@@ -183,7 +183,7 @@ class OpenSSLBase(TLSProgram):
         ffdh_groups = ['ffdhe2048', 'ffdhe8192']
 
         if any(x in ffdh_groups for x in self._named_groups):
-            ret.append('requires_openssl_3_x')
+            ret = ["requires_openssl_tls1_3_with_ffdh"]
 
         # ffdhe8192 has very long keys and requires intensive computation.
         # The test may fail on CI when executor is just very loaded. Give a second chance.

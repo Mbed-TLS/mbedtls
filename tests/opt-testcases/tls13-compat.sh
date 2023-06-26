@@ -374,8 +374,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,ffdhe2048,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups ffdhe2048 -msg -tls1_3" \
@@ -391,8 +390,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,ffdhe2048,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups ffdhe2048 -msg -tls1_3" \
@@ -408,8 +406,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,ffdhe2048,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups ffdhe2048 -msg -tls1_3" \
@@ -426,8 +423,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,ffdhe2048,rsa_pss_rsae_sha256" \
          "$P_SRV crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca_cat12.crt -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups ffdhe2048 -msg -tls1_3" \
@@ -443,8 +439,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,ffdhe8192,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -461,8 +456,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,ffdhe8192,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -479,8 +473,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,ffdhe8192,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -498,8 +491,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,ffdhe8192,rsa_pss_rsae_sha256" \
          "$P_SRV crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -861,8 +853,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,ffdhe2048,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp256r1_sha256 -groups ffdhe2048 -msg -tls1_3" \
@@ -878,8 +869,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,ffdhe2048,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp384r1_sha384 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp384r1_sha384 -groups ffdhe2048 -msg -tls1_3" \
@@ -895,8 +885,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,ffdhe2048,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp521r1_sha512 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp521r1_sha512 -groups ffdhe2048 -msg -tls1_3" \
@@ -913,8 +902,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,ffdhe2048,rsa_pss_rsae_sha256" \
          "$P_SRV crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=rsa_pss_rsae_sha256 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca_cat12.crt -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs rsa_pss_rsae_sha256 -groups ffdhe2048 -msg -tls1_3" \
@@ -930,8 +918,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,ffdhe8192,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -948,8 +935,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,ffdhe8192,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp384r1_sha384 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -966,8 +952,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,ffdhe8192,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp521r1_sha512 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -985,8 +970,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,ffdhe8192,rsa_pss_rsae_sha256" \
          "$P_SRV crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=rsa_pss_rsae_sha256 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -1348,8 +1332,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,ffdhe2048,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups ffdhe2048 -msg -tls1_3" \
@@ -1365,8 +1348,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,ffdhe2048,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups ffdhe2048 -msg -tls1_3" \
@@ -1382,8 +1364,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,ffdhe2048,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups ffdhe2048 -msg -tls1_3" \
@@ -1400,8 +1381,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,ffdhe2048,rsa_pss_rsae_sha256" \
          "$P_SRV crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca_cat12.crt -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups ffdhe2048 -msg -tls1_3" \
@@ -1417,8 +1397,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,ffdhe8192,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -1435,8 +1414,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,ffdhe8192,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -1453,8 +1431,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,ffdhe8192,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -1472,8 +1449,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,ffdhe8192,rsa_pss_rsae_sha256" \
          "$P_SRV crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -1835,8 +1811,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,ffdhe2048,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups ffdhe2048 -msg -tls1_3" \
@@ -1852,8 +1827,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,ffdhe2048,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups ffdhe2048 -msg -tls1_3" \
@@ -1869,8 +1843,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,ffdhe2048,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups ffdhe2048 -msg -tls1_3" \
@@ -1887,8 +1860,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,ffdhe2048,rsa_pss_rsae_sha256" \
          "$P_SRV crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca_cat12.crt -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups ffdhe2048 -msg -tls1_3" \
@@ -1904,8 +1876,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,ffdhe8192,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -1922,8 +1893,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,ffdhe8192,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -1940,8 +1910,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,ffdhe8192,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -1959,8 +1928,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,ffdhe8192,rsa_pss_rsae_sha256" \
          "$P_SRV crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -2322,8 +2290,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,ffdhe2048,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups ffdhe2048 -msg -tls1_3" \
@@ -2339,8 +2306,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,ffdhe2048,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups ffdhe2048 -msg -tls1_3" \
@@ -2356,8 +2322,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,ffdhe2048,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups ffdhe2048 -msg -tls1_3" \
@@ -2374,8 +2339,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,ffdhe2048,rsa_pss_rsae_sha256" \
          "$P_SRV crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca_cat12.crt -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups ffdhe2048 -msg -tls1_3" \
@@ -2391,8 +2355,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,ffdhe8192,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -2409,8 +2372,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,ffdhe8192,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -2427,8 +2389,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,ffdhe8192,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -2446,8 +2407,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,ffdhe8192,rsa_pss_rsae_sha256" \
          "$P_SRV crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -5480,8 +5440,7 @@ run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,x448,rsa_pss_rsae_sha256" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -5498,8 +5457,7 @@ run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,ffdhe2048,ecdsa_secp256r1_sha256" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -5516,8 +5474,7 @@ run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,ffdhe2048,ecdsa_secp384r1_sha384" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -5534,8 +5491,7 @@ run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,ffdhe2048,ecdsa_secp521r1_sha512" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -5553,8 +5509,7 @@ run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,ffdhe2048,rsa_pss_rsae_sha256" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -5572,8 +5527,7 @@ run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,ffdhe8192,ecdsa_secp256r1_sha256" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -5591,8 +5545,7 @@ run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,ffdhe8192,ecdsa_secp384r1_sha384" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -5610,8 +5563,7 @@ run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,ffdhe8192,ecdsa_secp521r1_sha512" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -5995,8 +5947,7 @@ run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,x448,rsa_pss_rsae_sha256" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -6013,8 +5964,7 @@ run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,ffdhe2048,ecdsa_secp256r1_sha256" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -6031,8 +5981,7 @@ run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,ffdhe2048,ecdsa_secp384r1_sha384" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -6049,8 +5998,7 @@ run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,ffdhe2048,ecdsa_secp521r1_sha512" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -6068,8 +6016,7 @@ run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,ffdhe2048,rsa_pss_rsae_sha256" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -6087,8 +6034,7 @@ run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,ffdhe8192,ecdsa_secp256r1_sha256" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -6106,8 +6052,7 @@ run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,ffdhe8192,ecdsa_secp384r1_sha384" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -6125,8 +6070,7 @@ run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,ffdhe8192,ecdsa_secp521r1_sha512" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -6510,8 +6454,7 @@ run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,x448,rsa_pss_rsae_sha256" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -6528,8 +6471,7 @@ run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,ffdhe2048,ecdsa_secp256r1_sha25
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -6546,8 +6488,7 @@ run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,ffdhe2048,ecdsa_secp384r1_sha38
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -6564,8 +6505,7 @@ run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,ffdhe2048,ecdsa_secp521r1_sha51
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -6583,8 +6523,7 @@ run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,ffdhe2048,rsa_pss_rsae_sha256" 
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -6602,8 +6541,7 @@ run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,ffdhe8192,ecdsa_secp256r1_sha25
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -6621,8 +6559,7 @@ run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,ffdhe8192,ecdsa_secp384r1_sha38
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -6640,8 +6577,7 @@ run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,ffdhe8192,ecdsa_secp521r1_sha51
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -7025,8 +6961,7 @@ run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,x448,rsa_pss_rsae_sha256" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -7043,8 +6978,7 @@ run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,ffdhe2048,ecdsa_secp256r1_sha256" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -7061,8 +6995,7 @@ run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,ffdhe2048,ecdsa_secp384r1_sha384" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -7079,8 +7012,7 @@ run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,ffdhe2048,ecdsa_secp521r1_sha512" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -7098,8 +7030,7 @@ run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,ffdhe2048,rsa_pss_rsae_sha256" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -7117,8 +7048,7 @@ run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,ffdhe8192,ecdsa_secp256r1_sha256" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -7136,8 +7066,7 @@ run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,ffdhe8192,ecdsa_secp384r1_sha384" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -7155,8 +7084,7 @@ run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,ffdhe8192,ecdsa_secp521r1_sha512" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -7540,8 +7468,7 @@ run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,x448,rsa_pss_rsae_sha256" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -7558,8 +7485,7 @@ run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,ffdhe2048,ecdsa_secp256r1_sha256" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -7576,8 +7502,7 @@ run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,ffdhe2048,ecdsa_secp384r1_sha384" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -7594,8 +7519,7 @@ run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,ffdhe2048,ecdsa_secp521r1_sha512" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -7613,8 +7537,7 @@ run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,ffdhe2048,rsa_pss_rsae_sha256" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -7632,8 +7555,7 @@ run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,ffdhe8192,ecdsa_secp256r1_sha256" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -7651,8 +7573,7 @@ run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,ffdhe8192,ecdsa_secp384r1_sha384" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -7670,8 +7591,7 @@ run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,ffdhe8192,ecdsa_secp521r1_sha512" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -14179,8 +14099,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: HRR secp256r1 -> ffdhe2048" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -groups P-256:ffdhe2048 -msg -tls1_3" \
@@ -14194,8 +14113,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: HRR secp256r1 -> ffdhe8192" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -14270,8 +14188,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: HRR secp384r1 -> ffdhe2048" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -groups P-384:ffdhe2048 -msg -tls1_3" \
@@ -14285,8 +14202,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: HRR secp384r1 -> ffdhe8192" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -14361,8 +14277,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: HRR secp521r1 -> ffdhe2048" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -groups P-521:ffdhe2048 -msg -tls1_3" \
@@ -14376,8 +14291,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: HRR secp521r1 -> ffdhe8192" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -14452,8 +14366,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: HRR x25519 -> ffdhe2048" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -groups X25519:ffdhe2048 -msg -tls1_3" \
@@ -14467,8 +14380,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: HRR x25519 -> ffdhe8192" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -14543,8 +14455,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: HRR x448 -> ffdhe2048" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -groups X448:ffdhe2048 -msg -tls1_3" \
@@ -14558,8 +14469,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: HRR x448 -> ffdhe8192" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -14575,8 +14485,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_ECDH_C
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: HRR ffdhe2048 -> secp256r1" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -groups ffdhe2048:P-256 -msg -tls1_3" \
@@ -14591,8 +14500,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_ECDH_C
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: HRR ffdhe2048 -> secp384r1" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -groups ffdhe2048:P-384 -msg -tls1_3" \
@@ -14607,8 +14515,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_ECDH_C
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: HRR ffdhe2048 -> secp521r1" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -groups ffdhe2048:P-521 -msg -tls1_3" \
@@ -14623,8 +14530,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_ECDH_C
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: HRR ffdhe2048 -> x25519" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=x25519 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -groups ffdhe2048:X25519 -msg -tls1_3" \
@@ -14639,8 +14545,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_ECDH_C
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 run_test "TLS 1.3 O->m: HRR ffdhe2048 -> x448" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=x448 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
          "$O_NEXT_CLI_NO_CERT -CAfile data_files/test-ca2.crt -groups ffdhe2048:X448 -msg -tls1_3" \
@@ -14654,8 +14559,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: HRR ffdhe2048 -> ffdhe8192" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -14671,8 +14575,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_ECDH_C
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: HRR ffdhe8192 -> secp256r1" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -14688,8 +14591,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_ECDH_C
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: HRR ffdhe8192 -> secp384r1" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -14705,8 +14607,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_ECDH_C
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: HRR ffdhe8192 -> secp521r1" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -14722,8 +14623,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_ECDH_C
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: HRR ffdhe8192 -> x25519" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=x25519 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -14739,8 +14639,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_ECDH_C
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: HRR ffdhe8192 -> x448" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=x448 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -14755,8 +14654,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 run_test "TLS 1.3 O->m: HRR ffdhe8192 -> ffdhe2048" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=ffdhe2048 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -15541,8 +15439,7 @@ run_test "TLS 1.3 m->O: HRR secp256r1 -> x448" \
          -c "received HelloRetryRequest message" \
          -c "selected_group ( 30 )"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -15560,8 +15457,7 @@ run_test "TLS 1.3 m->O: HRR secp256r1 -> ffdhe2048" \
          -c "received HelloRetryRequest message" \
          -c "selected_group ( 256 )"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -15652,8 +15548,7 @@ run_test "TLS 1.3 m->O: HRR secp384r1 -> x448" \
          -c "received HelloRetryRequest message" \
          -c "selected_group ( 30 )"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -15671,8 +15566,7 @@ run_test "TLS 1.3 m->O: HRR secp384r1 -> ffdhe2048" \
          -c "received HelloRetryRequest message" \
          -c "selected_group ( 256 )"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -15763,8 +15657,7 @@ run_test "TLS 1.3 m->O: HRR secp521r1 -> x448" \
          -c "received HelloRetryRequest message" \
          -c "selected_group ( 30 )"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -15782,8 +15675,7 @@ run_test "TLS 1.3 m->O: HRR secp521r1 -> ffdhe2048" \
          -c "received HelloRetryRequest message" \
          -c "selected_group ( 256 )"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -15874,8 +15766,7 @@ run_test "TLS 1.3 m->O: HRR x25519 -> x448" \
          -c "received HelloRetryRequest message" \
          -c "selected_group ( 30 )"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -15893,8 +15784,7 @@ run_test "TLS 1.3 m->O: HRR x25519 -> ffdhe2048" \
          -c "received HelloRetryRequest message" \
          -c "selected_group ( 256 )"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -15985,8 +15875,7 @@ run_test "TLS 1.3 m->O: HRR x448 -> x25519" \
          -c "received HelloRetryRequest message" \
          -c "selected_group ( 29 )"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -16004,8 +15893,7 @@ run_test "TLS 1.3 m->O: HRR x448 -> ffdhe2048" \
          -c "received HelloRetryRequest message" \
          -c "selected_group ( 256 )"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -16114,8 +16002,7 @@ run_test "TLS 1.3 m->O: HRR ffdhe2048 -> x448" \
          -c "received HelloRetryRequest message" \
          -c "selected_group ( 30 )"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -16223,8 +16110,7 @@ run_test "TLS 1.3 m->O: HRR ffdhe8192 -> x448" \
          -c "received HelloRetryRequest message" \
          -c "selected_group ( 30 )"
 
-requires_openssl_tls1_3
-requires_openssl_3_x
+requires_openssl_tls1_3_with_ffdh
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED

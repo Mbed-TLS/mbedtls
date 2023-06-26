@@ -972,7 +972,7 @@ run_test    "TLS 1.3: O->m: all/psk, fail, key material mismatch" \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: ephemeral_all/psk_ephemeral, good" \
@@ -990,7 +990,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/psk_ephemeral, good" \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: ephemeral_all/psk_ephemeral, fail, key id mismatch" \
@@ -1007,7 +1007,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/psk_ephemeral, fail, key id mismatch" 
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: ephemeral_all/psk_ephemeral, fail, key material mismatch" \
@@ -1024,7 +1024,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/psk_ephemeral, fail, key material mism
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: all/psk_ephemeral, good" \
@@ -1042,7 +1042,7 @@ run_test    "TLS 1.3: O->m: all/psk_ephemeral, good" \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: all/psk_ephemeral, fail, key id mismatch" \
@@ -1059,7 +1059,7 @@ run_test    "TLS 1.3: O->m: all/psk_ephemeral, fail, key id mismatch" \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: all/psk_ephemeral, fail, key material mismatch" \
@@ -1076,7 +1076,7 @@ run_test    "TLS 1.3: O->m: all/psk_ephemeral, fail, key material mismatch" \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
@@ -1095,7 +1095,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/psk_all, good" \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
@@ -1113,7 +1113,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/psk_all, fail, key id mismatch" \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
@@ -1131,7 +1131,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/psk_all, fail, key material mismatch" 
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
@@ -1150,7 +1150,7 @@ run_test    "TLS 1.3: O->m: all/psk_all, good" \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
@@ -1168,7 +1168,7 @@ run_test    "TLS 1.3: O->m: all/psk_all, fail, key id mismatch" \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
@@ -1186,7 +1186,7 @@ run_test    "TLS 1.3: O->m: all/psk_all, fail, key material mismatch" \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
@@ -1205,7 +1205,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/ephemeral_all, good" \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
@@ -1223,7 +1223,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/ephemeral_all, good, key id mismatch, 
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
@@ -1241,7 +1241,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/ephemeral_all, fail, key material mism
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
@@ -1260,7 +1260,7 @@ run_test    "TLS 1.3: O->m: all/ephemeral_all, good" \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
@@ -1278,7 +1278,7 @@ run_test    "TLS 1.3: O->m: all/ephemeral_all, good, key id mismatch, dhe." \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
@@ -1296,7 +1296,7 @@ run_test    "TLS 1.3: O->m: all/ephemeral_all, fail, key material mismatch" \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -1316,7 +1316,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/all, good" \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -1335,7 +1335,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/all, good, key id mismatch, dhe." \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -1354,7 +1354,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/all, fail, key material mismatch" \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -1374,7 +1374,7 @@ run_test    "TLS 1.3: O->m: all/all, good" \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -1393,7 +1393,7 @@ run_test    "TLS 1.3: O->m: all/all, good, key id mismatch, dhe." \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -1412,7 +1412,7 @@ run_test    "TLS 1.3: O->m: all/all, fail, key material mismatch" \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -1431,7 +1431,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/psk_or_ephemeral, good" \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -1450,7 +1450,7 @@ run_test    "TLS 1.3: O->m: all/psk_or_ephemeral, good" \
             -S "key exchange mode: psk_ephemeral"  \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
@@ -1468,7 +1468,7 @@ run_test    "TLS 1.3: O->m: all/psk_or_ephemeral, fail, key material mismatch" \
             -S "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: psk_ephemeral group(secp256r1) check, good" \
@@ -1481,7 +1481,7 @@ run_test    "TLS 1.3: O->m: psk_ephemeral group(secp256r1) check, good" \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: psk_ephemeral group(secp384r1) check, good" \
@@ -1494,7 +1494,7 @@ run_test    "TLS 1.3: O->m: psk_ephemeral group(secp384r1) check, good" \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: psk_ephemeral group(secp521r1) check, good" \
@@ -1507,7 +1507,7 @@ run_test    "TLS 1.3: O->m: psk_ephemeral group(secp521r1) check, good" \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: psk_ephemeral group(x25519) check, good" \
@@ -1520,7 +1520,7 @@ run_test    "TLS 1.3: O->m: psk_ephemeral group(x25519) check, good" \
             -s "key exchange mode: psk_ephemeral"  \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: psk_ephemeral group(x448) check, good" \
@@ -1534,7 +1534,7 @@ run_test    "TLS 1.3: O->m: psk_ephemeral group(x448) check, good" \
             -S "key exchange mode: ephemeral"
 
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 O->m: psk_ephemeral group(secp256r1->secp384r1) check, good" \
          "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_list=Client_identity,6162636465666768696a6b6c6d6e6f70,abc,dead,def,beef curves=secp384r1" \
@@ -2757,7 +2757,7 @@ run_test    "TLS 1.3: m->O: psk/ephemeral_all, fail - no common kex mode" \
             -c "Last error was: -0x7780 - SSL - A fatal alert message was received from our peer"
 
 #OPENSSL-SERVER psk_all mode
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -2776,7 +2776,7 @@ run_test    "TLS 1.3: m->O: psk_all/all, good" \
             -c "Selected key exchange mode: psk_ephemeral" \
             -c "HTTP/1.0 200 ok"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -2796,7 +2796,7 @@ run_test    "TLS 1.3: m->O: psk_all/ephemeral_all, good" \
             -c "HTTP/1.0 200 ok"
 
 #OPENSSL-SERVER psk_ephemeral mode
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -2814,7 +2814,7 @@ run_test    "TLS 1.3: m->O: psk_ephemeral/all, good" \
             -c "Selected key exchange mode: psk_ephemeral" \
             -c "HTTP/1.0 200 ok"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -2833,7 +2833,7 @@ run_test    "TLS 1.3: m->O: psk_ephemeral/ephemeral_all, good" \
             -c "HTTP/1.0 200 ok"
 
 #OPENSSL-SERVER ephemeral mode
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -2846,7 +2846,7 @@ run_test    "TLS 1.3: m->O: ephemeral/all, good" \
             -c "Selected key exchange mode: ephemeral" \
             -c "HTTP/1.0 200 ok"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -2860,7 +2860,7 @@ run_test    "TLS 1.3: m->O: ephemeral/ephemeral_all, good" \
             -c "HTTP/1.0 200 ok"
 
 #OPENSSL-SERVER ephemeral_all mode
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -2879,7 +2879,7 @@ run_test    "TLS 1.3: m->O: ephemeral_all/all, good" \
             -c "<= write client hello" \
             -c "HTTP/1.0 200 ok"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -2899,7 +2899,7 @@ run_test    "TLS 1.3: m->O: ephemeral_all/ephemeral_all, good" \
             -c "HTTP/1.0 200 ok"
 
 #OPENSSL-SERVER all mode
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -2919,7 +2919,7 @@ run_test    "TLS 1.3: m->O: all/all, good" \
             -c "<= write client hello" \
             -c "HTTP/1.0 200 ok"
 
-requires_openssl_tls1_3
+requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C

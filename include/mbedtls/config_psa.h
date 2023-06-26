@@ -114,7 +114,10 @@ extern "C" {
 #endif
 
 #if defined(MBEDTLS_SHA3_C)
-#define PSA_WANT_ALG_SHA_3 1
+#define PSA_WANT_ALG_SHA3_224 1
+#define PSA_WANT_ALG_SHA3_256 1
+#define PSA_WANT_ALG_SHA3_384 1
+#define PSA_WANT_ALG_SHA3_512 1
 #endif
 
 
@@ -274,8 +277,23 @@ extern "C" {
 #define MBEDTLS_SHA512_C
 #endif
 
-#if defined(PSA_WANT_ALG_SHA_3) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_3)
-#define MBEDTLS_PSA_BUILTIN_ALG_SHA_3 1
+#if defined(PSA_WANT_ALG_SHA3_224) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_3_224)
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_224 1
+#define MBEDTLS_SHA3_C
+#endif
+
+#if defined(PSA_WANT_ALG_SHA3_256) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_3_256)
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_256 1
+#define MBEDTLS_SHA3_C
+#endif
+
+#if defined(PSA_WANT_ALG_SHA3_384) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_3_384)
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_384 1
+#define MBEDTLS_SHA3_C
+#endif
+
+#if defined(PSA_WANT_ALG_SHA3_512) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_3_512)
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_512 1
 #define MBEDTLS_SHA3_C
 #endif
 
@@ -875,8 +893,14 @@ extern "C" {
 #endif
 
 #if defined(MBEDTLS_SHA3_C)
-#define MBEDTLS_PSA_BUILTIN_ALG_SHA_3 1
-#define PSA_WANT_ALG_SHA_3 1
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_224 1
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_256 1
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_384 1
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_512 1
+#define PSA_WANT_ALG_SHA3_224 1
+#define PSA_WANT_ALG_SHA3_256 1
+#define PSA_WANT_ALG_SHA3_384 1
+#define PSA_WANT_ALG_SHA3_512 1
 #endif
 
 #if defined(MBEDTLS_AES_C)

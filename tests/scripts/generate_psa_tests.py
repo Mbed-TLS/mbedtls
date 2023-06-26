@@ -117,12 +117,12 @@ def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
 
 # PSA_WANT_KEY_TYPE_xxx_KEY_PAIR symbols have a GENERATE suffix to state that
 # they support key generation.
-def fix_key_pair_dependencies(dep_list: str, type: str):
+def fix_key_pair_dependencies(dep_list: List[str], usage: str):
     # Note: this LEGACY replacement for RSA is temporary and it's going to be
     # aligned with ECC one in #7772.
     new_list = [re.sub(r'RSA_KEY_PAIR\Z', r'RSA_KEY_PAIR_LEGACY', dep)
                 for dep in dep_list]
-    new_list = [re.sub(r'ECC_KEY_PAIR\Z', r'ECC_KEY_PAIR_' + type, dep)
+    new_list = [re.sub(r'ECC_KEY_PAIR\Z', r'ECC_KEY_PAIR_' + usage, dep)
                 for dep in new_list]
     return new_list
 
@@ -219,7 +219,8 @@ class KeyTypeNotSupported:
             generate_dependencies = []
         else:
             generate_dependencies = fix_key_pair_dependencies(import_dependencies, 'GENERATE')
-            import_dependencies = fix_key_pair_dependencies(import_dependencies, 'BASIC_IMPORT_EXPORT')
+            import_dependencies = fix_key_pair_dependencies(import_dependencies,
+                                                            'BASIC_IMPORT_EXPORT')
         for bits in kt.sizes_to_test():
             yield test_case_for_key_type_not_supported(
                 'import', kt.expression, bits,

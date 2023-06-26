@@ -906,29 +906,6 @@ helper_libtestdriver1_make_main() {
     make CFLAGS="$ASAN_CFLAGS -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" "$@"
 }
 
-################################################################
-#### Helpers for checking `tests/data_files`
-################################################################
-
-helper_datafile_run_tests () {
-    msg "build: $1" # ~ 1 min 50s
-    CC=gcc make
-
-    msg "test: main suites" # ~ 50s
-    CC=gcc make test
-
-    msg "test: selftest" # ~ 10s
-    programs/test/selftest
-
-    msg "test: ssl-opt.sh" # ~ 1 min
-    tests/ssl-opt.sh
-
-    msg "test: compat.sh" # ~ 6 min
-    tests/compat.sh
-
-    msg "test: context-info.sh" # ~ 15 sec
-    tests/context-info.sh
-}
 
 ################################################################
 #### Basic checks
@@ -944,6 +921,8 @@ helper_datafile_run_tests () {
 # 2. Minimize total running time, by avoiding useless rebuilds
 #
 # Indicative running times are given for reference.
+
+source tests/scripts/regenerate_data_files_tests.sh
 
 component_test_faketime_default () {
     helper_datafile_run_tests " default configuration with faketime"

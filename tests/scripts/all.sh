@@ -4645,6 +4645,9 @@ component_check_test_helpers () {
     python3 -m unittest tests/scripts/translate_ciphers.py 2>&1
 }
 
+# Include tests for data files
+source tests/scripts/regenerate_data_files_tests.sh
+
 ################################################################
 #### Termination
 ################################################################

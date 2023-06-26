@@ -1449,31 +1449,6 @@ int main(int argc, char *argv[])
     signal(SIGINT, term_handler);
 #endif
 
-    if (argc < 2) {
-usage:
-        if (ret == 0) {
-            ret = 1;
-        }
-
-        mbedtls_printf(USAGE1);
-        mbedtls_printf(USAGE2);
-        mbedtls_printf(USAGE3);
-        mbedtls_printf(USAGE4);
-
-        list = mbedtls_ssl_list_ciphersuites();
-        while (*list) {
-            mbedtls_printf(" %-42s", mbedtls_ssl_get_ciphersuite_name(*list));
-            list++;
-            if (!*list) {
-                break;
-            }
-            mbedtls_printf(" %s\n", mbedtls_ssl_get_ciphersuite_name(*list));
-            list++;
-        }
-        mbedtls_printf("\n");
-        goto exit;
-    }
-
     opt.buffer_size         = DFL_IO_BUF_LEN;
     opt.server_addr         = DFL_SERVER_ADDR;
     opt.server_port         = DFL_SERVER_PORT;
@@ -1556,6 +1531,31 @@ usage:
     opt.use_srtp            = DFL_USE_SRTP;
     opt.force_srtp_profile  = DFL_SRTP_FORCE_PROFILE;
     opt.support_mki         = DFL_SRTP_SUPPORT_MKI;
+
+    if (argc < 2) {
+usage:
+        if (ret == 0) {
+            ret = 1;
+        }
+
+        mbedtls_printf(USAGE1);
+        mbedtls_printf(USAGE2);
+        mbedtls_printf(USAGE3);
+        mbedtls_printf(USAGE4);
+
+        list = mbedtls_ssl_list_ciphersuites();
+        while (*list) {
+            mbedtls_printf(" %-42s", mbedtls_ssl_get_ciphersuite_name(*list));
+            list++;
+            if (!*list) {
+                break;
+            }
+            mbedtls_printf(" %s\n", mbedtls_ssl_get_ciphersuite_name(*list));
+            list++;
+        }
+        mbedtls_printf("\n");
+        goto exit;
+    }
 
     for (i = 1; i < argc; i++) {
         p = argv[i];

@@ -867,31 +867,6 @@ int main(int argc, char *argv[])
     mbedtls_test_enable_insecure_external_rng();
 #endif  /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
-    if (argc < 2) {
-usage:
-        if (ret == 0) {
-            ret = 1;
-        }
-
-        mbedtls_printf(USAGE1);
-        mbedtls_printf(USAGE2);
-        mbedtls_printf(USAGE3);
-        mbedtls_printf(USAGE4);
-
-        list = mbedtls_ssl_list_ciphersuites();
-        while (*list) {
-            mbedtls_printf(" %-42s", mbedtls_ssl_get_ciphersuite_name(*list));
-            list++;
-            if (!*list) {
-                break;
-            }
-            mbedtls_printf(" %s\n", mbedtls_ssl_get_ciphersuite_name(*list));
-            list++;
-        }
-        mbedtls_printf("\n");
-        goto exit;
-    }
-
     opt.server_name         = DFL_SERVER_NAME;
     opt.server_addr         = DFL_SERVER_ADDR;
     opt.server_port         = DFL_SERVER_PORT;
@@ -975,6 +950,31 @@ usage:
     opt.mki                 = DFL_SRTP_MKI;
     opt.key_opaque_alg1     = DFL_KEY_OPAQUE_ALG;
     opt.key_opaque_alg2     = DFL_KEY_OPAQUE_ALG;
+
+    if (argc < 2) {
+usage:
+        if (ret == 0) {
+            ret = 1;
+        }
+
+        mbedtls_printf(USAGE1);
+        mbedtls_printf(USAGE2);
+        mbedtls_printf(USAGE3);
+        mbedtls_printf(USAGE4);
+
+        list = mbedtls_ssl_list_ciphersuites();
+        while (*list) {
+            mbedtls_printf(" %-42s", mbedtls_ssl_get_ciphersuite_name(*list));
+            list++;
+            if (!*list) {
+                break;
+            }
+            mbedtls_printf(" %s\n", mbedtls_ssl_get_ciphersuite_name(*list));
+            list++;
+        }
+        mbedtls_printf("\n");
+        goto exit;
+    }
 
     for (i = 1; i < argc; i++) {
         p = argv[i];

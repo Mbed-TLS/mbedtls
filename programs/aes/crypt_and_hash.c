@@ -92,6 +92,7 @@ int main(int argc, char *argv[])
     const mbedtls_md_info_t *md_info;
     mbedtls_cipher_context_t cipher_ctx;
     mbedtls_md_context_t md_ctx;
+    mbedtls_cipher_mode_t cipher_mode;
     unsigned int cipher_block_size;
     unsigned char md_size;
 #if defined(_WIN32_WCE)
@@ -413,10 +414,11 @@ int main(int argc, char *argv[])
         /*
          * Check the file size.
          */
-        if (cipher_info->mode != MBEDTLS_MODE_GCM &&
-            cipher_info->mode != MBEDTLS_MODE_CTR &&
-            cipher_info->mode != MBEDTLS_MODE_CFB &&
-            cipher_info->mode != MBEDTLS_MODE_OFB &&
+        cipher_mode = cipher_info->mode;
+        if (cipher_mode != MBEDTLS_MODE_GCM &&
+            cipher_mode != MBEDTLS_MODE_CTR &&
+            cipher_mode != MBEDTLS_MODE_CFB &&
+            cipher_mode != MBEDTLS_MODE_OFB &&
             ((filesize - md_size) % cipher_block_size) != 0) {
             mbedtls_fprintf(stderr, "File content not a multiple of the block size (%u).\n",
                             cipher_block_size);

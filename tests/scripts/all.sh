@@ -2504,6 +2504,9 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
 
     msg "test: full + accelerated EC algs + USE_PSA - ECP"
     make test
+
+    msg "ssl-opt: full + accelerated EC algs + USE_PSA - ECP"
+    tests/ssl-opt.sh
 }
 
 # Reference function used for driver's coverage analysis in analyze_outcomes.py
@@ -2518,6 +2521,9 @@ component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
 
     msg "test: crypto_full + non accelerated EC algs + USE_PSA"
     make test
+
+    msg "ssl-opt: crypto_full + non accelerated EC algs + USE_PSA"
+    tests/ssl-opt.sh
 }
 
 # Helper function used in:

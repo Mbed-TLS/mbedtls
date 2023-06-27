@@ -170,13 +170,20 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 /* *INDENT-ON* */
 
 /*
- * Define the constraint used for pointer operands to asm.
+ * Define the constraint used for read-only pointer operands to aarch64 asm.
  *
  * This is normally the usual "r", but for aarch64_32 (aka ILP32,
  * as found in watchos), "p" is required to avoid warnings from clang.
  *
  * Note that clang does not recognise '+p' or '=p', and armclang
- * does not recognise 'p' at all.
+ * does not recognise 'p' at all. Therefore, to update a pointer from
+ * aarch64 assembly, it is necessary to use something like:
+ *
+ * uintptr_t uptr = (uintptr_t) ptr;
+ * asm( "ldr x4, [%x0], #8" ... : "+r" (uptr) : : )
+ * ptr = (void*) uptr;
+ *
+ * Note that the "x" in "%x0" is neccessary; writing "%0" will cause warnings.
  */
 #if defined(__aarch64__) && defined(MBEDTLS_HAVE_ASM)
 #if UINTPTR_MAX == 0xfffffffful

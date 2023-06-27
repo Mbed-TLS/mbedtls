@@ -693,7 +693,7 @@ requires_openssl_tls1_3_with_ffdh() {
     requires_openssl_3_x
 }
 
-# skip next test if it cannot handle ephemeral key exchange
+# skip next test if openssl cannot handle ephemeral key exchange
 requires_openssl_tls1_3_with_compatible_ephemeral() {
     requires_openssl_next
 

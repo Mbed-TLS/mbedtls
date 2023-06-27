@@ -223,7 +223,6 @@ static int ssl_write_alpn_ext(mbedtls_ssl_context *ssl,
  * generalization of the TLS 1.2 supported elliptic curves extension. They both
  * share the same extension identifier.
  *
- * DHE groups are not supported yet.
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,

@@ -55,7 +55,6 @@ all_final += test-ca.crt
 
 parse_input/test-ca.crt.der: test-ca.crt
 	$(OPENSSL) x509 -inform PEM -in $< -outform DER -out $@
-all_final += test-ca.crt.der
 
 test-ca.key.der: $(test_ca_key_file_rsa)
 	$(OPENSSL) pkey -in $< -out $@ -inform PEM -outform DER -passin "pass:$(test_ca_pwd_rsa)"
@@ -198,35 +197,27 @@ all_final += $(test_ca_ec_cat)
 
 parse_input/test-ca-any_policy.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
 	$(OPENSSL) req -x509 -config $(test_ca_config_file) -extensions v3_any_policy_ca -key $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 0 -days 3653 -sha256 -in test-ca.req.sha256 -out $@
-all_final += test-ca-any_policy.crt
 
 parse_input/test-ca-any_policy_ec.crt: $(test_ca_key_file_ec) test-ca.req_ec.sha256
 	$(OPENSSL) req -x509 -config $(test_ca_config_file) -extensions v3_any_policy_ca -key $(test_ca_key_file_ec) -set_serial 0 -days 3653 -sha256 -in test-ca.req_ec.sha256 -out $@
-all_final += test-ca-any_policy_ec.crt
 
 parse_input/test-ca-any_policy_with_qualifier.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
 	$(OPENSSL) req -x509 -config $(test_ca_config_file) -extensions v3_any_policy_qualifier_ca -key $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 0 -days 3653 -sha256 -in test-ca.req.sha256 -out $@
-all_final += test-ca-any_policy_with_qualifier.crt
 
 parse_input/test-ca-any_policy_with_qualifier_ec.crt: $(test_ca_key_file_ec) test-ca.req_ec.sha256
 	$(OPENSSL) req -x509 -config $(test_ca_config_file) -extensions v3_any_policy_qualifier_ca -key $(test_ca_key_file_ec) -set_serial 0 -days 3653 -sha256 -in test-ca.req_ec.sha256 -out $@
-all_final += test-ca-any_policy_with_qualifier_ec.crt
 
 parse_input/test-ca-multi_policy.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
 	$(OPENSSL) req -x509 -config $(test_ca_config_file) -extensions v3_multi_policy_ca -key $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 0 -days 3653 -sha256 -in test-ca.req.sha256 -out $@
-all_final += test-ca-multi_policy.crt
 
 parse_input/test-ca-multi_policy_ec.crt: $(test_ca_key_file_ec) test-ca.req_ec.sha256
 	$(OPENSSL) req -x509 -config $(test_ca_config_file) -extensions v3_multi_policy_ca -key $(test_ca_key_file_ec) -set_serial 0 -days 3653 -sha256 -in test-ca.req_ec.sha256 -out $@
-all_final += test-ca-multi_policy_ec.crt
 
 parse_input/test-ca-unsupported_policy.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
 	$(OPENSSL) req -x509 -config $(test_ca_config_file) -extensions v3_unsupported_policy_ca -key $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 0 -days 3653 -sha256 -in test-ca.req.sha256 -out $@
-all_final += test-ca-unsupported_policy.crt
 
 parse_input/test-ca-unsupported_policy_ec.crt: $(test_ca_key_file_ec) test-ca.req_ec.sha256
 	$(OPENSSL) req -x509 -config $(test_ca_config_file) -extensions v3_unsupported_policy_ca -key $(test_ca_key_file_ec) -set_serial 0 -days 3653 -sha256 -in test-ca.req_ec.sha256 -out $@
-all_final += test-ca-unsupported_policy_ec.crt
 
 test-ca.req_ec.sha256: $(test_ca_key_file_ec)
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$(test_ca_key_file_ec) subject_name="C=NL, O=PolarSSL, CN=Polarssl Test EC CA" md=SHA256
@@ -289,10 +280,8 @@ enco-cert-utf8str.pem: rsa_pkcs1_1024_clear.pem
 
 parse_input/crl-idp.pem: $(test_ca_crt) $(test_ca_key_file_rsa) $(test_ca_config_file)
 	$(OPENSSL) ca -gencrl -batch -cert $(test_ca_crt) -keyfile $(test_ca_key_file_rsa) -key $(test_ca_pwd_rsa) -config $(test_ca_config_file) -name test_ca -md sha256 -crldays 3653 -crlexts crl_ext_idp -out $@
-all_final += crl-idp.pem
 parse_input/crl-idpnc.pem: $(test_ca_crt) $(test_ca_key_file_rsa) $(test_ca_config_file)
 	$(OPENSSL) ca -gencrl -batch -cert $(test_ca_crt) -keyfile $(test_ca_key_file_rsa) -key $(test_ca_pwd_rsa) -config $(test_ca_config_file) -name test_ca -md sha256 -crldays 3653 -crlexts crl_ext_idp_nc -out $@
-all_final += crl-idpnc.pem
 
 cli_crt_key_file_rsa = cli-rsa.key
 cli_crt_extensions_file = cli.opensslconf
@@ -314,7 +303,6 @@ all_final += cli-rsa-sha256.crt.der
 
 parse_input/cli-rsa-sha256-badalg.crt.der: cli-rsa-sha256.crt.der
 	hexdump -ve '1/1 "%.2X"' $< | sed "s/06092A864886F70D01010B0500/06092A864886F70D01010B0900/2" | xxd -r -p > $@
-all_final += cli-rsa-sha256-badalg.crt.der
 
 cli-rsa.key.der: $(cli_crt_key_file_rsa)
 	$(OPENSSL) pkey -in $< -out $@ -inform PEM -outform DER
@@ -354,15 +342,12 @@ all_final += server7_int-ca.crt
 
 parse_input/server7_pem_space.crt: server7.crt $(test_ca_int_rsa1)
 	cat server7.crt $(test_ca_int_rsa1) | sed '4s/\(.\)$$/ \1/' > $@
-all_final += server7_pem_space.crt
 
 parse_input/server7_all_space.crt: server7.crt $(test_ca_int_rsa1)
 	{ cat server7.crt | sed '4s/\(.\)$$/ \1/'; cat test-int-ca.crt | sed '4s/\(.\)$$/ \1/'; } > $@
-all_final += server7_all_space.crt
 
 parse_input/server7_trailing_space.crt: server7.crt $(test_ca_int_rsa1)
 	cat server7.crt $(test_ca_int_rsa1) | sed 's/\(.\)$$/\1 /' > $@
-all_final += server7_trailing_space.crt
 
 server7_int-ca_ca2.crt: server7.crt $(test_ca_int_rsa1) $(test_ca_crt_file_ec)
 	cat server7.crt $(test_ca_int_rsa1) $(test_ca_crt_file_ec) > $@
@@ -1348,7 +1333,6 @@ all_final += server1.req.cert_type_empty
 
 parse_input/server1.req.commas.sha256: server1.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL\, Commas,CN=PolarSSL Server 1" md=SHA256
-all_final += server1.req.commas.sha256
 
 # server2*
 

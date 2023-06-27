@@ -256,15 +256,15 @@
     do { uintptr_t muladdc_d = (uintptr_t) d, muladdc_s = (uintptr_t) s; asm(
 
 #define MULADDC_X1_CORE             \
-        "ldr x4, [%2], #8   \n\t"   \
-        "ldr x5, [%1]       \n\t"   \
+        "ldr x4, [%x2], #8  \n\t"   \
+        "ldr x5, [%x1]      \n\t"   \
         "mul x6, x4, %4     \n\t"   \
         "umulh x7, x4, %4   \n\t"   \
         "adds x5, x5, x6    \n\t"   \
         "adc x7, x7, xzr    \n\t"   \
         "adds x5, x5, %0    \n\t"   \
         "adc %0, x7, xzr    \n\t"   \
-        "str x5, [%1], #8   \n\t"
+        "str x5, [%x1], #8  \n\t"
 
 #define MULADDC_X1_STOP                                                 \
          : "+r" (c),                                                    \

@@ -94,7 +94,10 @@ cert_example_multi.csr: rsa_pkcs1_1024_clear.pem
 	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=www.example.com" -set_serial 17 -config $(test_ca_config_file) -extensions dns_alt_names -days 3650 -key rsa_pkcs1_1024_clear.pem -out $@
 
 parse_input/cert_example_multi.crt cert_example_multi.crt: cert_example_multi.csr
-	$(OPENSSL) x509 -req -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) -extfile $(test_ca_config_file) -extensions dns_alt_names -passin "pass:$(test_ca_pwd_rsa)" -set_serial 17 -days 3653 -sha256 -in $< > $@
+	$(OPENSSL) x509 -req -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) \
+		-extfile $(test_ca_config_file) -extensions dns_alt_names \
+		-passin "pass:$(test_ca_pwd_rsa)" -set_serial 17 -days 3653 -sha256 \
+		-in $< > $@
 
 parse_input/test_csr_v3_keyUsage.csr.der: rsa_pkcs1_1024_clear.pem
 	$(OPENSSL) req -new -subj '/CN=etcd' -config $(test_ca_config_file) -key rsa_pkcs1_1024_clear.pem -outform DER -out $@ -reqexts csr_ext_v3_keyUsage
@@ -1412,7 +1415,11 @@ test_ca_server1_config_file = test-ca.server1.opensslconf
 # server1*
 
 parse_input/server1.crt server1.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
-	$(MBEDTLS_CERT_WRITE) request_file=server1.req.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) version=1 not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
+	$(MBEDTLS_CERT_WRITE) request_file=server1.req.sha256 \
+		issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) \
+		issuer_pwd=$(test_ca_pwd_rsa) version=1 \
+		not_before=20190210144406 not_after=20290210144406 \
+		md=SHA1 version=3 output_file=$@
 server1.allSubjectAltNames.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
 	$(MBEDTLS_CERT_WRITE) request_file=server1.req.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) version=1 not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@ san=URI:http://pki.example.com\;IP:1.2.3.4\;DN:C=UK,O="Mbed TLS",CN="SubjectAltName test"\;DNS:example.com\;RFC822:mail@example.com
 server1.long_serial.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
@@ -1427,7 +1434,11 @@ server1.long_serial_FF.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test
 server1.noauthid.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
 	$(MBEDTLS_CERT_WRITE) request_file=server1.req.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144406 not_after=20290210144406 md=SHA1 authority_identifier=0 version=3 output_file=$@
 parse_input/server1.crt.der: server1.crt
-	$(MBEDTLS_CERT_WRITE) request_file=server1.req.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144406 not_after=20290210144406 md=SHA1 authority_identifier=0 version=3 output_file=$@
+	$(MBEDTLS_CERT_WRITE) request_file=server1.req.sha256 \
+		issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) \
+		issuer_pwd=$(test_ca_pwd_rsa) \
+		not_before=20190210144406 not_after=20290210144406 \
+		md=SHA1 authority_identifier=0 version=3 output_file=$@
 server1.der: server1.crt
 	$(OPENSSL) x509 -inform PEM -in $< -outform DER -out $@
 server1.commas.crt: server1.key server1.req.commas.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
@@ -1568,7 +1579,11 @@ cert_md5.csr: $(cert_md_test_key)
 all_intermediate += cert_md5.csr
 
 parse_input/cert_md5.crt cert_md5.crt: cert_md5.csr
-	$(MBEDTLS_CERT_WRITE) request_file=$< serial=6 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20000101121212 not_after=20300101121212 md=MD5 version=3 output_file=$@
+	$(MBEDTLS_CERT_WRITE) request_file=$< serial=6 \
+		issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) \
+		issuer_pwd=$(test_ca_pwd_rsa) \
+		not_before=20000101121212 not_after=20300101121212 \
+		md=MD5 version=3 output_file=$@
 all_final += cert_md5.crt
 
 # TLSv1.3 test certificates

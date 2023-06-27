@@ -63,7 +63,9 @@
  * only used here.
  */
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS) && defined(MBEDTLS_HAVE_ASM)
-#if defined(__arm__) || defined(__thumb__) || defined(__thumb2__) || defined(__aarch64__)
+#if ((defined(__arm__) || defined(__thumb__) || defined(__thumb2__)) && \
+    (UINTPTR_MAX == 0xfffffffful)) || defined(__aarch64__)
+/* We check pointer sizes to avoid issues with them not matching register size requirements */
 #define MBEDTLS_EFFICIENT_UNALIGNED_VOLATILE_ACCESS
 #endif
 #endif
@@ -79,7 +81,7 @@ static inline uint32_t mbedtls_get_unaligned_volatile_uint32(volatile const unsi
 #if defined(__arm__) || defined(__thumb__) || defined(__thumb2__)
     asm volatile ("ldr %0, [%1]" : "=r" (r) : "r" (p) :);
 #elif defined(__aarch64__)
-    asm volatile ("ldr %w0, [%1]" : "=r" (r) : "r" (p) :);
+    asm volatile ("ldr %w0, [%1]" : "=r" (r) : MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT(p) :);
 #endif
     return r;
 }

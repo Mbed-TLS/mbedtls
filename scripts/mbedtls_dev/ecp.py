@@ -574,7 +574,7 @@ class EcpP224K1Raw(bignum_common.ModOperationCommon,
     symbol = "-"
     test_function = "ecp_mod_p_generic_raw"
     test_name = "ecp_mod_p224k1_raw"
-    input_style = "fixed"
+    input_style = "arch_split"
     arity = 1
     dependencies = ["MBEDTLS_ECP_DP_SECP224K1_ENABLED"]
 

@@ -165,7 +165,8 @@ class EcpP224R1Raw(bignum_common.ModOperationCommon,
 
     @property
     def arg_a(self) -> str:
-        hex_digits = bignum_common.hex_digits_for_limb(448 // self.bits_in_limb, self.bits_in_limb)
+        limbs = 2 * bignum_common.bits_to_limbs(224, self.bits_in_limb)
+        hex_digits = bignum_common.hex_digits_for_limb(limbs, self.bits_in_limb)
         return super().format_arg('{:x}'.format(self.int_a)).zfill(hex_digits)
 
     def result(self) -> List[str]:
@@ -624,7 +625,8 @@ class EcpP224K1Raw(bignum_common.ModOperationCommon,
 
     @property
     def arg_a(self) -> str:
-        hex_digits = bignum_common.hex_digits_for_limb(448 // self.bits_in_limb, self.bits_in_limb)
+        limbs = 2 * bignum_common.bits_to_limbs(224, self.bits_in_limb)
+        hex_digits = bignum_common.hex_digits_for_limb(limbs, self.bits_in_limb)
         return super().format_arg('{:x}'.format(self.int_a)).zfill(hex_digits)
 
     def result(self) -> List[str]:

@@ -252,6 +252,13 @@
 // (including ILP32 __aarch64__ ABIs such as on watchOS, hence the 2^32 - 1)
 #if defined(__aarch64__) && (UINTPTR_MAX == 0xfffffffful || UINTPTR_MAX == 0xfffffffffffffffful)
 
+/*
+ * There are some issues around different compilers requiring different constraint
+ * syntax for updating pointers from assembly code (see notes for
+ * MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT in common.h), especially on aarch64_32 (aka ILP32).
+ *
+ * For this reason we cast the pointers to/from uintptr_t here.
+ */
 #define MULADDC_X1_INIT             \
     do { uintptr_t muladdc_d = (uintptr_t) d, muladdc_s = (uintptr_t) s; asm(
 

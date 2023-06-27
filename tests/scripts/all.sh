@@ -2435,15 +2435,6 @@ config_psa_crypto_no_ecp_at_all () {
     # start with full config for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
 
-    # keep excluding TLS and key exchanges (this will be removed in #7749)
-    # Note: key exchanges are not explicitly disabled here because they are
-    #       auto-disabled in build_info.h as long as the following symbols
-    #       are not enabled.
-    scripts/config.py unset MBEDTLS_SSL_TLS_C
-    scripts/config.py unset MBEDTLS_SSL_PROTO_DTLS
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_2
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-
     # enable support for drivers and configuring PSA-only algorithms
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     if [ "$DRIVER_ONLY" -eq 1 ]; then
@@ -2472,7 +2463,7 @@ config_psa_crypto_no_ecp_at_all () {
 #
 # Keep in sync with component_test_psa_crypto_config_reference_ecc_no_ecp_at_all()
 component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
-    msg "build: full + accelerated EC algs + USE_PSA - TLS - KEY_EXCHANGE - ECP"
+    msg "build: full + accelerated EC algs + USE_PSA - ECP"
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
@@ -2511,7 +2502,7 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     # Run the tests
     # -------------
 
-    msg "test: full + accelerated EC algs + USE_PSA - TLS - KEY_EXCHANGE - ECP"
+    msg "test: full + accelerated EC algs + USE_PSA - ECP"
     make test
 }
 
@@ -2519,13 +2510,13 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
 # in conjunction with component_test_psa_crypto_config_accel_ecc_no_ecp_at_all().
 # Keep in sync with its accelerated counterpart.
 component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
-    msg "build: full + non accelerated EC algs + USE_PSA - TLS - KEY_EXCHANGE"
+    msg "build: full + non accelerated EC algs + USE_PSA"
 
     config_psa_crypto_no_ecp_at_all 0
 
     make
 
-    msg "test: crypto_full + non accelerated EC algs + USE_PSA - TLS - KEY_EXCHANGE"
+    msg "test: crypto_full + non accelerated EC algs + USE_PSA"
     make test
 }
 

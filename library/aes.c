@@ -319,6 +319,7 @@ static const uint32_t RT3[256] = { RT };
 
 #undef RT
 
+#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 /*
  * Round constants
  */
@@ -328,6 +329,7 @@ static const uint32_t RCON[10] =
     0x00000010, 0x00000020, 0x00000040, 0x00000080,
     0x0000001B, 0x00000036
 };
+#endif /* !defined(MBEDTLS_AES_SETKEY_ENC_ALT) */
 
 #else /* MBEDTLS_AES_ROM_TABLES */
 

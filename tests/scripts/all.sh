@@ -2526,7 +2526,11 @@ psa_crypto_config_accel_all_curves_except_one () {
     loc_accel_list="ALG_ECDH \
                     ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_JPAKE \
-                    KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
+                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
+                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
+                    KEY_TYPE_ECC_PUBLIC_KEY"
 
     # Configure
     # ---------

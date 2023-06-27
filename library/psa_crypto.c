@@ -8061,18 +8061,18 @@ static psa_status_t psa_jpake_epilogue(
         /* End of an input/output */
         if (io_mode == PSA_JPAKE_INPUT) {
             stage->inputs++;
-            if (stage->inputs >= PSA_JPAKE_EXPECTED_INPUTS(stage->round)) {
+            if (stage->inputs == PSA_JPAKE_EXPECTED_INPUTS(stage->round)) {
                 stage->io_mode = PSA_JPAKE_OUTPUT;
             }
         }
         if (io_mode == PSA_JPAKE_OUTPUT) {
             stage->outputs++;
-            if (stage->outputs >= PSA_JPAKE_EXPECTED_OUTPUTS(stage->round)) {
+            if (stage->outputs == PSA_JPAKE_EXPECTED_OUTPUTS(stage->round)) {
                 stage->io_mode = PSA_JPAKE_INPUT;
             }
         }
-        if (stage->inputs >= PSA_JPAKE_EXPECTED_INPUTS(stage->round) &&
-            stage->outputs >= PSA_JPAKE_EXPECTED_OUTPUTS(stage->round)) {
+        if (stage->inputs == PSA_JPAKE_EXPECTED_INPUTS(stage->round) &&
+            stage->outputs == PSA_JPAKE_EXPECTED_OUTPUTS(stage->round)) {
             /* End of a round, move to the next round */
             stage->inputs = 0;
             stage->outputs = 0;

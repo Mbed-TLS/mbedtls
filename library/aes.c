@@ -524,6 +524,8 @@ void mbedtls_aes_xts_free(mbedtls_aes_xts_context *ctx)
     (defined(MBEDTLS_AESNI_C) && MBEDTLS_AESNI_HAVE_CODE == 2)
 #define MAY_NEED_TO_ALIGN
 #endif
+
+#if defined(MAY_NEED_TO_ALIGN) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
 {
 #if defined(MAY_NEED_TO_ALIGN)
@@ -560,6 +562,7 @@ static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
 
     return 0;
 }
+#endif /* defined(MAY_NEED_TO_ALIGN) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) */
 
 /*
  * AES key schedule (encryption)

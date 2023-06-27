@@ -55,7 +55,8 @@ static int aes_padlock_ace = -1;
 /*
  * Forward S-box
  */
-#if !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT)
+#if !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
+    !defined(MBEDTLS_AES_SETKEY_DEC_ALT)
 static const unsigned char FSb[256] =
 {
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5,
@@ -91,7 +92,8 @@ static const unsigned char FSb[256] =
     0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68,
     0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
 };
-#endif /* !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) */
+#endif \
+    /* !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) */
 
 /*
  * Forward tables
@@ -342,9 +344,11 @@ static const uint32_t RCON[10] =
 /*
  * Forward S-box & tables
  */
-#if !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT)
+#if !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
+    !defined(MBEDTLS_AES_SETKEY_DEC_ALT)
 static unsigned char FSb[256];
-#endif /* !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) */
+#endif \
+    /* !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) */
 #if !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 static uint32_t FT0[256];
 #if !defined(MBEDTLS_AES_FEWER_TABLES)
@@ -542,7 +546,8 @@ void mbedtls_aes_xts_free(mbedtls_aes_xts_context *ctx)
 #define MAY_NEED_TO_ALIGN
 #endif
 
-#if defined(MAY_NEED_TO_ALIGN) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
+#if defined(MAY_NEED_TO_ALIGN) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) || \
+    !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
 {
 #if defined(MAY_NEED_TO_ALIGN)
@@ -579,7 +584,8 @@ static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
 
     return 0;
 }
-#endif /* defined(MAY_NEED_TO_ALIGN) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) */
+#endif \
+    /* defined(MAY_NEED_TO_ALIGN) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) */
 
 /*
  * AES key schedule (encryption)

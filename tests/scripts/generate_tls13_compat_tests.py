@@ -385,9 +385,13 @@ class MbedTLSBase(TLSProgram):
                 'requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT')
 
         ec_groups = ['secp256r1', 'secp384r1', 'secp521r1', 'x25519', 'x448']
+        ffdh_groups = ['ffdhe2048', 'ffdhe8192']
 
         if any(x in ec_groups for x in self._named_groups):
-            ret.append('requires_config_enabled MBEDTLS_ECDH_C')
+            ret.append('requires_config_enabled PSA_WANT_ALG_ECDH')
+
+        if any(x in ffdh_groups for x in self._named_groups):
+            ret.append('requires_config_enabled PSA_WANT_ALG_FFDH')
 
         return ret
 

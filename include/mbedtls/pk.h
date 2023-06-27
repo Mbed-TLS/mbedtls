@@ -184,7 +184,7 @@ typedef struct mbedtls_pk_rsassa_pss_options {
 #endif
 #else /* MBEDTLS_USE_PSA_CRYPTO */
 #if defined(PSA_WANT_ALG_ECDSA)
-#if defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC_IMPORT_EXPORT)
+#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC)
 #define MBEDTLS_PK_CAN_ECDSA_SIGN
 #endif
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)

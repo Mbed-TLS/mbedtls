@@ -1006,23 +1006,19 @@ extern "C" {
 /* Even though KEY_PAIR symbols' feature several level of support (BASIC, IMPORT,
  * EXPORT, GENERATE, DERIVE) we're not planning to have support only for BASIC
  * without IMPORT/EXPORT since these last 2 features are strongly used in tests.
- * This is possible also because, in general, it is allowed to include more
- * feature than what is strictly requested.
- *
- * As a consequence the following internal symbol:
- * - is used to put together these 3 dependencies (BASIC + IMPORT + EXPORT)
- * - is enabled by BASIC which itself is enabled as soon as any feature is
- *   selected
- * - it does not include EXPORT or GENERATE, for which specific symbols have
- *   to be enabled explicitly.
- */
+ * In general it is allowed to include more feature than what is strictly
+ * requested.
+ * As a consequence IMPORT and EXPORT features will be automatically enabled
+ * as soon as the BASIC one is. */
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC)
-#define MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC_IMPORT_EXPORT
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT 1
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT 1
 #endif
 
-/* See description of MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC_IMPORT_EXPORT */
+/* See description above */
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC)
-#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC_IMPORT_EXPORT
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_IMPORT 1
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_EXPORT 1
 #endif
 
 /* Temporary internal migration helpers */

@@ -290,14 +290,14 @@ psa_status_t mbedtls_test_transparent_import_key(
 
     if (PSA_KEY_TYPE_IS_ECC(type)) {
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
-        (defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC_IMPORT_EXPORT) || \
+        (defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_IMPORT) || \
         defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY))
         return libtestdriver1_mbedtls_psa_ecp_import_key(
             (const libtestdriver1_psa_key_attributes_t *) attributes,
             data, data_length,
             key_buffer, key_buffer_size,
             key_buffer_length, bits);
-#elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC_IMPORT_EXPORT) || \
+#elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_IMPORT) || \
         defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
         return mbedtls_psa_ecp_import_key(
             attributes,
@@ -404,7 +404,7 @@ psa_status_t mbedtls_test_opaque_import_key(
             data, data_length,
             key_buffer_temp, key_buffer_size,
             key_buffer_length, bits);
-#elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC_IMPORT_EXPORT) || \
+#elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_IMPORT) || \
         defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
         status = mbedtls_psa_ecp_import_key(
             attributes,
@@ -561,13 +561,13 @@ psa_status_t mbedtls_test_transparent_export_public_key(
 
     if (PSA_KEY_TYPE_IS_ECC(key_type)) {
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
-        (defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC_IMPORT_EXPORT) || \
+        (defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_EXPORT) || \
         defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY))
         return libtestdriver1_mbedtls_psa_ecp_export_public_key(
             (const libtestdriver1_psa_key_attributes_t *) attributes,
             key_buffer, key_buffer_size,
             data, data_size, data_length);
-#elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC_IMPORT_EXPORT) || \
+#elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_EXPORT) || \
         defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
         return mbedtls_psa_ecp_export_public_key(
             attributes,
@@ -639,7 +639,7 @@ psa_status_t mbedtls_test_opaque_export_public_key(
                     (const libtestdriver1_psa_key_attributes_t *) attributes,
                     key_buffer_temp, *data_length,
                     data, data_size, data_length);
-#elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC_IMPORT_EXPORT) || \
+#elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_EXPORT) || \
                 defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
                 status = mbedtls_psa_ecp_export_public_key(
                     attributes,

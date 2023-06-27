@@ -42,13 +42,13 @@
 #endif
 
 #if defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA) && \
-    !(defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC_IMPORT_EXPORT) || \
+    !(defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC) || \
     defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY))
 #error "PSA_WANT_ALG_DETERMINISTIC_ECDSA defined, but not all prerequisites"
 #endif
 
 #if defined(PSA_WANT_ALG_ECDSA) && \
-    !(defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC_IMPORT_EXPORT) || \
+    !(defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC) || \
     defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY))
 #error "PSA_WANT_ALG_ECDSA defined, but not all prerequisites"
 #endif

@@ -124,6 +124,19 @@ def fix_key_pair_dependencies(dep_list: List[str], usage: str):
                 for dep in dep_list]
     new_list = [re.sub(r'ECC_KEY_PAIR\Z', r'ECC_KEY_PAIR_' + usage, dep)
                 for dep in new_list]
+    # BASIC automatically includes IMPORT and EXPORT for test purposes (see
+    # config_psa.h).
+    if any([re.match(r'[!]?\w+ECC_KEY_PAIR_BASIC', dep) for dep in new_list]):
+        match_pattern = next((dep for dep in new_list
+                             if re.match(r'([!]?\w+ECC_KEY_PAIR_BASIC)', dep) is not None), None)
+        new_list.append(re.sub(r'ECC_KEY_PAIR_BASIC', r'ECC_KEY_PAIR_IMPORT', match_pattern))
+        new_list.append(re.sub(r'ECC_KEY_PAIR_BASIC', r'ECC_KEY_PAIR_EXPORT', match_pattern))
+        #if any([re.match(r'!\w+ECC_KEY_PAIR_BASIC\w+', dep) for dep in new_list]):
+        #    new_list.append('!PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT')
+        #    new_list.append('!PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT')
+        #elif any([re.match(r'\w+ECC_KEY_PAIR\w+', dep) for dep in new_list]):
+        #    new_list.append('PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT')
+        #    new_list.append('PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT')
     return new_list
 
 class Information:
@@ -219,8 +232,7 @@ class KeyTypeNotSupported:
             generate_dependencies = []
         else:
             generate_dependencies = fix_key_pair_dependencies(import_dependencies, 'GENERATE')
-            import_dependencies = fix_key_pair_dependencies(import_dependencies,
-                                                            'BASIC_IMPORT_EXPORT')
+            import_dependencies = fix_key_pair_dependencies(import_dependencies, 'BASIC')
         for bits in kt.sizes_to_test():
             yield test_case_for_key_type_not_supported(
                 'import', kt.expression, bits,
@@ -381,7 +393,7 @@ class OpFail:
                                    pretty_reason,
                                    ' with ' + pretty_type if pretty_type else ''))
         dependencies = automatic_dependencies(alg.base_expression, key_type)
-        dependencies = fix_key_pair_dependencies(dependencies, 'BASIC_IMPORT_EXPORT')
+        dependencies = fix_key_pair_dependencies(dependencies, 'BASIC')
         for i, dep in enumerate(dependencies):
             if dep in not_deps:
                 dependencies[i] = '!' + dep
@@ -605,7 +617,7 @@ class StorageFormat:
         )
         dependencies = finish_family_dependencies(dependencies, key.bits)
         dependencies += generate_key_dependencies(key.description)
-        dependencies = fix_key_pair_dependencies(dependencies, 'BASIC_IMPORT_EXPORT')
+        dependencies = fix_key_pair_dependencies(dependencies, 'BASIC')
         tc.set_dependencies(dependencies)
         tc.set_function('key_storage_' + verb)
         if self.forward:

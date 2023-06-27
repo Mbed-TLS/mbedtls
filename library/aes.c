@@ -348,6 +348,7 @@ static uint32_t RT2[256];
 static uint32_t RT3[256];
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
 
+#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 /*
  * Round constants
  */
@@ -437,6 +438,8 @@ static void aes_gen_tables(void)
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
     }
 }
+
+#endif /* !defined(MBEDTLS_AES_SETKEY_ENC_ALT) */
 
 #undef ROTL8
 

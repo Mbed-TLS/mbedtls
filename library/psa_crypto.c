@@ -5616,8 +5616,10 @@ static psa_status_t psa_key_derivation_pbkdf2_read(
         psa_set_key_type(&attributes, PSA_KEY_TYPE_HMAC);
     } else if (kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
         prf_alg = PSA_ALG_CMAC;
-        prf_output_length = AES_CMAC_PRF_128_OUTPUT_SIZE;
+        prf_output_length = PSA_AES_CMAC_PRF_128_OUTPUT_SIZE;
         psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
+    } else {
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
 
     switch (pbkdf2->state) {
@@ -6184,7 +6186,7 @@ static psa_status_t psa_key_derivation_setup_kdf(
     if (kdf_alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS) {
         hash_size = PSA_HASH_LENGTH(PSA_ALG_SHA_256);
     } else if (kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
-        hash_size = AES_CMAC_PRF_128_OUTPUT_SIZE;
+        hash_size = PSA_AES_CMAC_PRF_128_OUTPUT_SIZE;
     } else {
         if (hash_size == 0) {
             return PSA_ERROR_NOT_SUPPORTED;
@@ -6738,23 +6740,23 @@ static psa_status_t psa_pbkdf2_cmac_set_password(const uint8_t *input,
                                                  size_t *output_len)
 {
     psa_status_t status = PSA_SUCCESS;
-    if (input_len != AES_CMAC_PRF_128_OUTPUT_SIZE) {
+    if (input_len != PSA_AES_CMAC_PRF_128_OUTPUT_SIZE) {
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-        uint8_t zeros[16] = {0};
+        uint8_t zeros[16] = { 0 };
         psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
         psa_set_key_bits(&attributes, PSA_BYTES_TO_BITS(sizeof(zeros)));
         psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_MESSAGE);
-        /* Passing AES_CMAC_PRF_128_OUTPUT_SIZE as mac_size as the driver
+        /* Passing PSA_AES_CMAC_PRF_128_OUTPUT_SIZE as mac_size as the driver
          * function sets mac_output_length = mac_size on success. See #7801*/
         status = psa_driver_wrapper_mac_compute(&attributes,
                                                 zeros, sizeof(zeros),
                                                 PSA_ALG_CMAC, input, input_len,
                                                 output,
-                                                AES_CMAC_PRF_128_OUTPUT_SIZE,
+                                                PSA_AES_CMAC_PRF_128_OUTPUT_SIZE,
                                                 output_len);
     } else {
         memcpy(output, input, input_len);
-        *output_len = AES_CMAC_PRF_128_OUTPUT_SIZE;
+        *output_len = PSA_AES_CMAC_PRF_128_OUTPUT_SIZE;
     }
     return status;
 }

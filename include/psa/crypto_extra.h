@@ -2024,8 +2024,10 @@ struct psa_jpake_computation_stage_s {
     psa_pake_step_t MBEDTLS_PRIVATE(step);
 };
 
-#define PSA_JPAKE_EXPECTED_INPUTS(round) (((round) == PSA_JPAKE_FIRST) ? 2 : 1)
-#define PSA_JPAKE_EXPECTED_OUTPUTS(round) (((round) == PSA_JPAKE_FIRST) ? 2 : 1)
+#define PSA_JPAKE_EXPECTED_INPUTS(round) ((round) == PSA_JPAKE_FINISHED ? 0 : \
+                                          ((round) == PSA_JPAKE_FIRST ? 2 : 1))
+#define PSA_JPAKE_EXPECTED_OUTPUTS(round) ((round) == PSA_JPAKE_FINISHED ? 0 : \
+                                           ((round) == PSA_JPAKE_FIRST ? 2 : 1))
 
 struct psa_pake_operation_s {
     /** Unique ID indicating which driver got assigned to do the

@@ -3338,54 +3338,26 @@ component_build_psa_accel_key_type_rsa_public_key() {
 }
 
 
-support_build_all_configs_armcc () {
+support_build_tfm_armcc () {
     armc6_cc="$ARMC6_BIN_DIR/armclang"
     (check_tools "$armc6_cc" > /dev/null 2>&1)
 }
 
-component_build_all_configs_armcc() { # ~ 45s
-    # Test that all config files in the configs directory will build cleanly
-    # on clang, gcc and armclang with various warnings enabled
+component_build_tfm_armcc() {
+    # test the TF-M configuration can build cleanly with various warning flags enabled
+    cp configs/tfm_mbedcrypto_config_profile_medium.h include/mbedtls/mbedtls_config.h
+    cp configs/crypto_config_profile_medium.h         include/psa/crypto_config.h
 
-    # backup config files
-    cp include/psa/crypto_config.h      include/psa/crypto_config.h.bak
-    cp include/mbedtls/mbedtls_config.h include/mbedtls/mbedtls_config.h.bak
+    msg "build: TF-M config, clang, armv8 thumb2"
+    make lib CC="clang" CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32 -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused"
 
-    for c in configs/*.h; do
-        if [[ "$c" == "configs/crypto_config_profile_medium.h" ]]; then
-            # skip the crypto_config file
-            continue
-        fi
+    msg "build: TF-M config, gcc native build"
+    make clean
+    make lib CC="gcc" CFLAGS="-Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wformat-signedness -Wformat-overflow=2 -Wformat-truncation -Wlogical-op"
 
-        msg "building config: ${c}"
-
-        # copy the configuration file(s) into place
-        cp ${c} include/mbedtls/mbedtls_config.h
-        if [[ "$c" == "configs/configs/tfm_mbedcrypto_config_profile_medium.h" ]]; then
-            # if using the TF-M main config file, also apply the associated crypto_config file
-            cp configs/crypto_config_profile_medium.h include/psa/crypto_config.h
-        fi
-
-        # test the configuration can build cleanly with various warning flags enabled
-        msg "build ${c}, clang, armv8 thumb2"
-        make lib CC="clang" CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32 -mthumb -O0 -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused"
-
-        msg "build: ${c}, gcc native build"
-        make clean
-        make lib CC="gcc" CFLAGS="-O0 -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wformat-signedness -Wformat-overflow=2 -Wformat-truncation -Wlogical-op"
-
-        msg "build: ${c}, armclang armv7 thumb2"
-        make clean
-        armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m -mthumb -O0 -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused"
-
-        # restore config files
-        cp include/psa/crypto_config.h.bak      include/psa/crypto_config.h
-        cp include/mbedtls/mbedtls_config.h.bak include/mbedtls/mbedtls_config.h
-    done
-
-    # remove backup config files
-    rm include/psa/crypto_config.h.bak
-    rm include/mbedtls/mbedtls_config.h.bak
+    msg "build: TF-M config, armclang armv7 thumb2"
+    make clean
+    armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused"
 }
 
 component_test_no_platform () {

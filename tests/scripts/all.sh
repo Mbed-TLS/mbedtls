@@ -2418,9 +2418,17 @@ component_test_psa_crypto_config_reference_ecc_ecp_light_only () {
 # on the ECP module.
 config_psa_crypto_no_ecp_at_all () {
     DRIVER_ONLY="$1"
-    # start with crypto_full config for maximum coverage (also enables USE_PSA),
-    # but excluding X509, TLS and key exchanges
-    helper_libtestdriver1_adjust_config "crypto_full"
+    # start with full config for maximum coverage (also enables USE_PSA)
+    helper_libtestdriver1_adjust_config "full"
+
+    # keep excluding TLS and key exchanges (this will be removed in #7749)
+    # Note: key exchanges are not explicitly disabled here because they are
+    #       auto-disabled in build_info.h as long as the following symbols
+    #       are not enabled.
+    scripts/config.py unset MBEDTLS_SSL_TLS_C
+    scripts/config.py unset MBEDTLS_SSL_PROTO_DTLS
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_2
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
 
     # enable support for drivers and configuring PSA-only algorithms
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
@@ -2433,22 +2441,6 @@ config_psa_crypto_no_ecp_at_all () {
         scripts/config.py unset MBEDTLS_ECP_C
     fi
 
-    # Disable PK module since it depends on ECP
-    scripts/config.py unset MBEDTLS_PK_C
-    scripts/config.py unset MBEDTLS_PK_PARSE_C
-    scripts/config.py unset MBEDTLS_PK_WRITE_C
-    # Disable also RSA_C that would re-enable PK
-    scripts/config.py unset MBEDTLS_RSA_C
-    scripts/config.py unset MBEDTLS_PKCS1_V15
-    scripts/config.py unset MBEDTLS_PKCS1_V21
-    scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
-    # Disable also key exchanges that depend on RSA for completeness
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-
     # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
     scripts/config.py unset MBEDTLS_PK_PARSE_EC_EXTENDED
     scripts/config.py unset MBEDTLS_PK_PARSE_EC_COMPRESSED
@@ -2458,16 +2450,6 @@ config_psa_crypto_no_ecp_at_all () {
     # the future, the following line could be removed (see issues
     # 6061, 6332 and following ones)
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
-
-    # Disable PSA_WANT symbols that would re-enable PK
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
-    for ALG in $(sed -n 's/^#define \(PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
-        scripts/config.py -f include/psa/crypto_config.h unset $ALG
-    done
 }
 
 # Build and test a configuration where driver accelerates all EC algs while
@@ -2476,7 +2458,7 @@ config_psa_crypto_no_ecp_at_all () {
 #
 # Keep in sync with component_test_psa_crypto_config_reference_ecc_no_ecp_at_all()
 component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
-    msg "build: crypto_full + accelerated EC algs + USE_PSA - ECP"
+    msg "build: full + accelerated EC algs + USE_PSA - TLS - KEY_EXCHANGE - ECP"
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
@@ -2507,12 +2489,11 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     not grep mbedtls_ecjpake_ library/ecjpake.o
     # Also ensure that ECP or RSA modules were not re-enabled
     not grep mbedtls_ecp_ library/ecp.o
-    not grep mbedtls_rsa_ library/rsa.o
 
     # Run the tests
     # -------------
 
-    msg "test suites: crypto_full + accelerated EC algs + USE_PSA - ECP"
+    msg "test: full + accelerated EC algs + USE_PSA - TLS - KEY_EXCHANGE - ECP"
     make test
 }
 
@@ -2520,16 +2501,13 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
 # in conjunction with component_test_psa_crypto_config_accel_ecc_no_ecp_at_all().
 # Keep in sync with its accelerated counterpart.
 component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
-    msg "build: crypto_full + non accelerated EC algs + USE_PSA"
+    msg "build: full + non accelerated EC algs + USE_PSA - TLS - KEY_EXCHANGE"
 
     config_psa_crypto_no_ecp_at_all 0
 
     make
 
-    # Esure that the RSA module was not re-enabled
-    not grep mbedtls_rsa_ library/rsa.o
-
-    msg "test suites: crypto_full + non accelerated EC algs + USE_PSA"
+    msg "test: crypto_full + non accelerated EC algs + USE_PSA - TLS - KEY_EXCHANGE"
     make test
 }
 

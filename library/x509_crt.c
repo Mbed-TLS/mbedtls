@@ -49,7 +49,6 @@
 #include "mbedtls/psa_util.h"
 #include "md_psa.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-#include "x509_invasive.h"
 #include "pk_internal.h"
 
 #include "mbedtls/platform.h"
@@ -107,7 +106,7 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default =
     MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA384) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA512),
     0xFFFFFFF, /* Any PK alg    */
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     /* Curves at or above 128-bit security level. Note that this selection
      * should be aligned with ssl_preset_default_curves in ssl_tls.c. */
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_SECP256R1) |
@@ -117,9 +116,9 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default =
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_BP384R1) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_BP512R1) |
     0,
-#else /* MBEDTLS_ECP_LIGHT */
+#else /* MBEDTLS_PK_HAVE_ECC_KEYS */
     0,
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
     2048,
 };
 
@@ -158,13 +157,13 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_suiteb =
     /* Only ECDSA */
     MBEDTLS_X509_ID_FLAG(MBEDTLS_PK_ECDSA) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_PK_ECKEY),
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     /* Only NIST P-256 and P-384 */
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_SECP256R1) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_SECP384R1),
-#else /* MBEDTLS_ECP_LIGHT */
+#else /* MBEDTLS_PK_HAVE_ECC_KEYS */
     0,
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
     0,
 };
 
@@ -234,7 +233,7 @@ static int x509_profile_check_key(const mbedtls_x509_crt_profile *profile,
     }
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     if (pk_alg == MBEDTLS_PK_ECDSA ||
         pk_alg == MBEDTLS_PK_ECKEY ||
         pk_alg == MBEDTLS_PK_ECKEY_DH) {
@@ -250,7 +249,7 @@ static int x509_profile_check_key(const mbedtls_x509_crt_profile *profile,
 
         return -1;
     }
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
     return -1;
 }
@@ -2862,7 +2861,6 @@ static int x509_inet_pton_ipv4(const char *src, void *dst)
 
 #endif /* !AF_INET6 || MBEDTLS_TEST_SW_INET_PTON */ //no-check-names
 
-MBEDTLS_STATIC_TESTABLE
 size_t mbedtls_x509_crt_parse_cn_inet_pton(const char *cn, void *dst)
 {
     return strchr(cn, ':') == NULL

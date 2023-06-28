@@ -207,7 +207,8 @@ typedef struct mbedtls_pk_rsassa_pss_options {
  * format. It should be noticed that this only affect how data is stored, not
  * which functions are used for various operations. The overall picture looks
  * like this:
- * - if ECP_C is defined then use legacy functions
+ * - if USE_PSA is not defined and ECP_C is then use ecp_keypair data structure
+ *   and legacy functions
  * - if USE_PSA is defined and
  *     - if ECP_C then use ecp_keypair structure, convert data to a PSA friendly
  *       format and use PSA functions
@@ -218,10 +219,17 @@ typedef struct mbedtls_pk_rsassa_pss_options {
  * ecp_keypair structure inside the pk_context so he/she can modify it using
  * ECP functions which are not under PK module's control.
  */
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_ECP_C) && \
-    defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) && \
+    !defined(MBEDTLS_ECP_C)
 #define MBEDTLS_PK_USE_PSA_EC_DATA
 #endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_ECP_C */
+
+/* Helper symbol to state that the PK module has support for EC keys. This
+ * can either be provided through the legacy ECP solution or through the
+ * PSA friendly MBEDTLS_PK_USE_PSA_EC_DATA. */
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA) || defined(MBEDTLS_ECP_C)
+#define MBEDTLS_PK_HAVE_ECC_KEYS
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA || MBEDTLS_ECP_C */
 
 /**
  * \brief           Types for interfacing with the debug module

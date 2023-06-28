@@ -500,6 +500,23 @@ int mbedtls_x509_info_cert_type(char **buf, size_t *size,
 int mbedtls_x509_info_key_usage(char **buf, size_t *size,
                                 unsigned int key_usage);
 
+/**
+ * \brief          This function parses a CN string as an IP address.
+ *
+ * \param cn       The CN string to parse. CN string MUST be null-terminated.
+ * \param dst      The target buffer to populate with the binary IP address.
+ *                 The buffer MUST be 16 bytes to save IPv6, and should be
+ *                 4-byte aligned if the result will be used as struct in_addr.
+ *                 e.g. uint32_t dst[4]
+ *
+ * \note           \p cn is parsed as an IPv6 address if string contains ':',
+ *                 else \p cn is parsed as an IPv4 address.
+ *
+ * \return         Length of binary IP address; num bytes written to target.
+ * \return         \c 0 on failure to parse CN string as an IP address.
+ */
+size_t mbedtls_x509_crt_parse_cn_inet_pton(const char *cn, void *dst);
+
 #define MBEDTLS_X509_SAFE_SNPRINTF                          \
     do {                                                    \
         if (ret < 0 || (size_t) ret >= n)                  \

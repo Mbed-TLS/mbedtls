@@ -36,8 +36,6 @@
 #include <string.h>
 #include "mbedtls/platform.h"
 
-#define ARRAY_LENGTH(array) (sizeof(array) / sizeof(*(array)))
-
 typedef struct {
     psa_key_slot_t key_slots[MBEDTLS_PSA_KEY_SLOT_COUNT];
     unsigned key_slots_initialized : 1;

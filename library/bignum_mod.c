@@ -88,7 +88,7 @@ void mbedtls_mpi_mod_modulus_free(mbedtls_mpi_mod_modulus *N)
             N->rep.mont.mm = 0;
             break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
-            mbedtls_free(N->rep.ored);
+            N->rep.ored.modp = NULL;
             break;
         case MBEDTLS_MPI_MOD_REP_INVALID:
             break;
@@ -136,39 +136,41 @@ cleanup:
     return ret;
 }
 
-int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *N,
-                                  const mbedtls_mpi_uint *p,
-                                  size_t p_limbs,
-                                  mbedtls_mpi_mod_rep_selector int_rep)
+static inline void standard_modulus_setup(mbedtls_mpi_mod_modulus *N,
+                                          const mbedtls_mpi_uint *p,
+                                          size_t p_limbs,
+                                          mbedtls_mpi_mod_rep_selector int_rep)
 {
-    int ret = 0;
-
     N->p = p;
     N->limbs = p_limbs;
     N->bits = mbedtls_mpi_core_bitlen(p, p_limbs);
+    N->int_rep = int_rep;
+}
 
-    switch (int_rep) {
-        case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
-            N->int_rep = int_rep;
-            N->rep.mont.mm = mbedtls_mpi_core_montmul_init(N->p);
-            ret = set_mont_const_square(&N->rep.mont.rr, N->p, N->limbs);
-            break;
-        case MBEDTLS_MPI_MOD_REP_OPT_RED:
-            N->int_rep = int_rep;
-            N->rep.ored = NULL;
-            break;
-        default:
-            ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
-            goto exit;
-    }
-
-exit:
+int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *N,
+                                  const mbedtls_mpi_uint *p,
+                                  size_t p_limbs)
+{
+    int ret = 0;
+    standard_modulus_setup(N, p, p_limbs, MBEDTLS_MPI_MOD_REP_MONTGOMERY);
+    N->rep.mont.mm = mbedtls_mpi_core_montmul_init(N->p);
+    ret = set_mont_const_square(&N->rep.mont.rr, N->p, N->limbs);
 
     if (ret != 0) {
         mbedtls_mpi_mod_modulus_free(N);
     }
 
     return ret;
+}
+
+int mbedtls_mpi_mod_optred_modulus_setup(mbedtls_mpi_mod_modulus *N,
+                                         const mbedtls_mpi_uint *p,
+                                         size_t p_limbs,
+                                         mbedtls_mpi_modp_fn modp)
+{
+    standard_modulus_setup(N, p, p_limbs, MBEDTLS_MPI_MOD_REP_OPT_RED);
+    N->rep.ored.modp = modp;
+    return 0;
 }
 
 int mbedtls_mpi_mod_mul(mbedtls_mpi_mod_residue *X,
@@ -235,8 +237,7 @@ static int mbedtls_mpi_mod_inv_non_mont(mbedtls_mpi_mod_residue *X,
     mbedtls_mpi_mod_modulus Nmont;
     mbedtls_mpi_mod_modulus_init(&Nmont);
 
-    MBEDTLS_MPI_CHK(mbedtls_mpi_mod_modulus_setup(&Nmont, N->p, N->limbs,
-                                                  MBEDTLS_MPI_MOD_REP_MONTGOMERY));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_mod_modulus_setup(&Nmont, N->p, N->limbs));
 
     /* We'll use X->p to hold the Montgomery form of the input A->p */
     mbedtls_mpi_core_to_mont_rep(X->p, A->p, Nmont.p, Nmont.limbs,

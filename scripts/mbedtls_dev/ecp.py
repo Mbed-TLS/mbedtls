@@ -34,7 +34,8 @@ class EcpP192R1Raw(bignum_common.ModOperationCommon,
     test_name = "ecp_mod_p192_raw"
     input_style = "fixed"
     arity = 1
-    dependencies = ["MBEDTLS_ECP_DP_SECP192R1_ENABLED"]
+    dependencies = ["MBEDTLS_ECP_DP_SECP192R1_ENABLED",
+                    "MBEDTLS_ECP_NIST_OPTIM"]
 
     moduli = ["fffffffffffffffffffffffffffffffeffffffffffffffff"] # type: List[str]
 
@@ -110,7 +111,8 @@ class EcpP224R1Raw(bignum_common.ModOperationCommon,
     test_name = "ecp_mod_p224_raw"
     input_style = "arch_split"
     arity = 1
-    dependencies = ["MBEDTLS_ECP_DP_SECP224R1_ENABLED"]
+    dependencies = ["MBEDTLS_ECP_DP_SECP224R1_ENABLED",
+                    "MBEDTLS_ECP_NIST_OPTIM"]
 
     moduli = ["ffffffffffffffffffffffffffffffff000000000000000000000001"] # type: List[str]
 
@@ -163,7 +165,8 @@ class EcpP224R1Raw(bignum_common.ModOperationCommon,
 
     @property
     def arg_a(self) -> str:
-        hex_digits = bignum_common.hex_digits_for_limb(448 // self.bits_in_limb, self.bits_in_limb)
+        limbs = 2 * bignum_common.bits_to_limbs(224, self.bits_in_limb)
+        hex_digits = bignum_common.hex_digits_for_limb(limbs, self.bits_in_limb)
         return super().format_arg('{:x}'.format(self.int_a)).zfill(hex_digits)
 
     def result(self) -> List[str]:
@@ -187,7 +190,8 @@ class EcpP256R1Raw(bignum_common.ModOperationCommon,
     test_name = "ecp_mod_p256_raw"
     input_style = "fixed"
     arity = 1
-    dependencies = ["MBEDTLS_ECP_DP_SECP256R1_ENABLED"]
+    dependencies = ["MBEDTLS_ECP_DP_SECP256R1_ENABLED",
+                    "MBEDTLS_ECP_NIST_OPTIM"]
 
     moduli = ["ffffffff00000001000000000000000000000000ffffffffffffffffffffffff"] # type: List[str]
 
@@ -270,7 +274,8 @@ class EcpP384R1Raw(bignum_common.ModOperationCommon,
     test_name = "ecp_mod_p384_raw"
     input_style = "fixed"
     arity = 1
-    dependencies = ["MBEDTLS_ECP_DP_SECP384R1_ENABLED"]
+    dependencies = ["MBEDTLS_ECP_DP_SECP384R1_ENABLED",
+                    "MBEDTLS_ECP_NIST_OPTIM"]
 
     moduli = [("ffffffffffffffffffffffffffffffffffffffffffffffff"
                "fffffffffffffffeffffffff0000000000000000ffffffff")
@@ -392,7 +397,8 @@ class EcpP521R1Raw(bignum_common.ModOperationCommon,
     test_name = "ecp_mod_p521_raw"
     input_style = "arch_split"
     arity = 1
-    dependencies = ["MBEDTLS_ECP_DP_SECP521R1_ENABLED"]
+    dependencies = ["MBEDTLS_ECP_DP_SECP521R1_ENABLED",
+                    "MBEDTLS_ECP_NIST_OPTIM"]
 
     moduli = [("01ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
                "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
@@ -568,7 +574,7 @@ class EcpP224K1Raw(bignum_common.ModOperationCommon,
     symbol = "-"
     test_function = "ecp_mod_p_generic_raw"
     test_name = "ecp_mod_p224k1_raw"
-    input_style = "fixed"
+    input_style = "arch_split"
     arity = 1
     dependencies = ["MBEDTLS_ECP_DP_SECP224K1_ENABLED"]
 
@@ -619,7 +625,8 @@ class EcpP224K1Raw(bignum_common.ModOperationCommon,
 
     @property
     def arg_a(self) -> str:
-        hex_digits = bignum_common.hex_digits_for_limb(448 // self.bits_in_limb, self.bits_in_limb)
+        limbs = 2 * bignum_common.bits_to_limbs(224, self.bits_in_limb)
+        hex_digits = bignum_common.hex_digits_for_limb(limbs, self.bits_in_limb)
         return super().format_arg('{:x}'.format(self.int_a)).zfill(hex_digits)
 
     def result(self) -> List[str]:

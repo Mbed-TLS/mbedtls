@@ -1373,7 +1373,7 @@ all_intermediate += server5-sha256.crt
 server5-sha%.crt: server5.csr $(test_ca_crt_file_ec) $(test_ca_key_file_ec) server5.crt.openssl.v3_ext
 	$(OPENSSL) x509 -req -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) \
 				-extfile server5.crt.openssl.v3_ext -set_serial 9 -days 3650 \
-				-sha$(@:server5-sha%.crt=%) -in $< -out $@
+				-sha$(@F:server5-sha%.crt=%) -in $< -out $@
 all_final += server5.crt server5-sha1.crt server5-sha224.crt server5-sha384.crt server5-sha512.crt
 
 server5-badsign.crt: server5.crt

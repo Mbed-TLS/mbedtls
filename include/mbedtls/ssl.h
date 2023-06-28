@@ -2055,7 +2055,8 @@ void mbedtls_ssl_conf_verify(mbedtls_ssl_config *conf,
  * \param f_ext  The extentions callback to use during CRT parsing.
  * \param p_ext  The opaque context to be passed to the callback.
  */
-void mbedtls_ssl_conf_ext_cb(mbedtls_ssl_config *conf, mbedtls_x509_crt_ext_cb_t f_ext, void *p_ext);
+void mbedtls_ssl_conf_ext_cb(mbedtls_ssl_config *conf, mbedtls_x509_crt_ext_cb_t f_ext,
+                             void *p_ext);
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /**

@@ -7205,7 +7205,12 @@ static int ssl_parse_certificate_chain(mbedtls_ssl_context *ssl,
             p_ext = ssl->conf->p_ext;
         }
 
-        ret = mbedtls_x509_crt_parse_der_with_ext_cb(chain, ssl->in_msg + i, n, COPY_CRT, f_ext, p_ext);
+        ret = mbedtls_x509_crt_parse_der_with_ext_cb(chain,
+                                                     ssl->in_msg + i,
+                                                     n,
+                                                     COPY_CRT,
+                                                     f_ext,
+                                                     p_ext);
         switch (ret) {
             case 0: /*ok*/
             case MBEDTLS_ERR_X509_UNKNOWN_SIG_ALG + MBEDTLS_ERR_OID_NOT_FOUND:

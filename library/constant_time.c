@@ -46,10 +46,18 @@
 #endif
 
 #include <string.h>
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,    \
-                                                           psa_to_ssl_errors,              \
-                                                           psa_generic_status_to_mbedtls)
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
+#include "psa/crypto.h"
+/* Define a local translating function to save code size by not using too many
+ * arguments in each translating place. */
+static int local_err_translation(psa_status_t status)
+{
+    return psa_status_to_mbedtls(status, psa_to_ssl_errors,
+                                 ARRAY_LENGTH(psa_to_ssl_errors),
+                                 psa_generic_status_to_mbedtls);
+}
+#define PSA_TO_MBEDTLS_ERR(status) local_err_translation(status)
 #endif
 
 /*

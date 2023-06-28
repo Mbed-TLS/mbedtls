@@ -84,8 +84,6 @@
 #include "mbedtls/sha512.h"
 #include "md_psa.h"
 
-#define ARRAY_LENGTH(array) (sizeof(array) / sizeof(*(array)))
-
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) ||          \
     defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) ||  \
     defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)

@@ -2519,10 +2519,10 @@ component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
 
     make
 
-    msg "test: crypto_full + non accelerated EC algs + USE_PSA"
+    msg "test: full + non accelerated EC algs + USE_PSA"
     make test
 
-    msg "ssl-opt: crypto_full + non accelerated EC algs + USE_PSA"
+    msg "ssl-opt: full + non accelerated EC algs + USE_PSA"
     tests/ssl-opt.sh
 }
 

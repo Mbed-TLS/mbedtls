@@ -3337,6 +3337,29 @@ component_build_psa_accel_key_type_rsa_public_key() {
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 }
 
+
+support_build_tfm_armcc () {
+    armc6_cc="$ARMC6_BIN_DIR/armclang"
+    (check_tools "$armc6_cc" > /dev/null 2>&1)
+}
+
+component_build_tfm_armcc() {
+    # test the TF-M configuration can build cleanly with various warning flags enabled
+    cp configs/tfm_mbedcrypto_config_profile_medium.h include/mbedtls/mbedtls_config.h
+    cp configs/crypto_config_profile_medium.h         include/psa/crypto_config.h
+
+    msg "build: TF-M config, clang, armv8 thumb2"
+    make lib CC="clang" CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32 -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused"
+
+    msg "build: TF-M config, gcc native build"
+    make clean
+    make lib CC="gcc" CFLAGS="-Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wformat-signedness -Wformat-overflow=2 -Wformat-truncation -Wlogical-op"
+
+    msg "build: TF-M config, armclang armv7 thumb2"
+    make clean
+    armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused"
+}
+
 component_test_no_platform () {
     # Full configuration build, without platform support, file IO and net sockets.
     # This should catch missing mbedtls_printf definitions, and by disabling file

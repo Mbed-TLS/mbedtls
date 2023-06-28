@@ -1229,7 +1229,6 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
                          const unsigned char *pwd, size_t pwdlen)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    const mbedtls_pk_info_t *pk_info;
 #if defined(MBEDTLS_PEM_PARSE_C)
     size_t len;
     mbedtls_pem_context pem;
@@ -1256,6 +1255,7 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
     }
 
     if (ret == 0) {
+        const mbedtls_pk_info_t *pk_info;
         pk_info = mbedtls_pk_info_from_type(MBEDTLS_PK_RSA);
         if ((ret = mbedtls_pk_setup(pk, pk_info)) != 0 ||
             (ret = pk_parse_key_pkcs1_der(mbedtls_pk_rsa(*pk),

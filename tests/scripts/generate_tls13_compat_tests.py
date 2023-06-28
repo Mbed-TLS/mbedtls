@@ -68,7 +68,6 @@ NAMED_GROUP_IANA_VALUE = {
     'x25519': 0x1d,
     'x448': 0x1e,
     'ffdhe2048': 0x100,
-    'ffdhe8192': 0x104,
 }
 
 
@@ -149,7 +148,6 @@ class OpenSSLBase(TLSProgram):
         'x25519': 'X25519',
         'x448': 'X448',
         'ffdhe2048': 'ffdhe2048',
-        'ffdhe8192': 'ffdhe8192',
     }
 
     def cmd(self):
@@ -180,15 +178,10 @@ class OpenSSLBase(TLSProgram):
         ret = ["requires_openssl_tls1_3"]
 
         # ffdh groups require at least openssl 3.0
-        ffdh_groups = ['ffdhe2048', 'ffdhe8192']
+        ffdh_groups = ['ffdhe2048']
 
         if any(x in ffdh_groups for x in self._named_groups):
             ret = ["requires_openssl_tls1_3_with_ffdh"]
-
-        # ffdhe8192 has very long keys and requires intensive computation.
-        # The test may fail on CI when executor is just very loaded. Give a second chance.
-        if 'ffdhe8192' in self._named_groups:
-            ret.append('client_needs_more_time 2')
 
         return ret
 
@@ -263,7 +256,6 @@ class GnuTLSBase(TLSProgram):
         'x25519': ['GROUP-X25519'],
         'x448': ['GROUP-X448'],
         'ffdhe2048': ['GROUP-FFDHE2048'],
-        'ffdhe8192': ['GROUP-FFDHE8192'],
     }
 
     def pre_checks(self):
@@ -385,7 +377,7 @@ class MbedTLSBase(TLSProgram):
                 'requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT')
 
         ec_groups = ['secp256r1', 'secp384r1', 'secp521r1', 'x25519', 'x448']
-        ffdh_groups = ['ffdhe2048', 'ffdhe8192']
+        ffdh_groups = ['ffdhe2048']
 
         if any(x in ec_groups for x in self._named_groups):
             ret.append('requires_config_enabled PSA_WANT_ALG_ECDH')

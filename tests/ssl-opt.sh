@@ -13194,6 +13194,174 @@ run_test    "TLS 1.3: NewSessionTicket: servername negative check, m->m" \
             -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
             -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH"
 
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
+requires_config_enabled PSA_WANT_ALG_FFDH
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,ffdhe3072,rsa_pss_rsae_sha256" \
+         "$P_SRV crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=ffdhe3072 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
+         "$G_NEXT_CLI_NO_CERT --debug=4 --single-key-share --x509cafile data_files/test-ca_cat12.crt --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE3072:+VERS-TLS1.3:%NO_TICKETS" \
+         0 \
+         -s "Protocol is TLSv1.3" \
+         -s "server hello, chosen ciphersuite: TLS1-3-AES-128-GCM-SHA256 ( id=4865 )" \
+         -s "received signature algorithm: 0x804" \
+         -s "got named group: ffdhe3072(0101)" \
+         -s "Certificate verification was skipped" \
+         -C "received HelloRetryRequest message"
+
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
+requires_config_enabled PSA_WANT_ALG_FFDH
+run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,ffdhe3072,rsa_pss_rsae_sha256" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE3072:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI ca_file=data_files/test-ca_cat12.crt debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=ffdhe3072" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "Protocol is TLSv1.3" \
+         -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+         -c "Certificate Verify: Signature algorithm ( 0804 )" \
+         -c "NamedGroup: ffdhe3072 ( 101 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -C "received HelloRetryRequest message"
+
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
+requires_config_enabled PSA_WANT_ALG_FFDH
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,ffdhe4096,rsa_pss_rsae_sha256" \
+         "$P_SRV crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=ffdhe4096 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
+         "$G_NEXT_CLI_NO_CERT --debug=4 --single-key-share --x509cafile data_files/test-ca_cat12.crt --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE4096:+VERS-TLS1.3:%NO_TICKETS" \
+         0 \
+         -s "Protocol is TLSv1.3" \
+         -s "server hello, chosen ciphersuite: TLS1-3-AES-128-GCM-SHA256 ( id=4865 )" \
+         -s "received signature algorithm: 0x804" \
+         -s "got named group: ffdhe4096(0102)" \
+         -s "Certificate verification was skipped" \
+         -C "received HelloRetryRequest message"
+
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
+requires_config_enabled PSA_WANT_ALG_FFDH
+run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,ffdhe4096,rsa_pss_rsae_sha256" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE4096:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI ca_file=data_files/test-ca_cat12.crt debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=ffdhe4096" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "Protocol is TLSv1.3" \
+         -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+         -c "Certificate Verify: Signature algorithm ( 0804 )" \
+         -c "NamedGroup: ffdhe4096 ( 102 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -C "received HelloRetryRequest message"
+
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
+requires_config_enabled PSA_WANT_ALG_FFDH
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,ffdhe6144,rsa_pss_rsae_sha256" \
+         "$P_SRV crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=ffdhe6144 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
+         "$G_NEXT_CLI_NO_CERT --debug=4 --single-key-share --x509cafile data_files/test-ca_cat12.crt --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE6144:+VERS-TLS1.3:%NO_TICKETS" \
+         0 \
+         -s "Protocol is TLSv1.3" \
+         -s "server hello, chosen ciphersuite: TLS1-3-AES-128-GCM-SHA256 ( id=4865 )" \
+         -s "received signature algorithm: 0x804" \
+         -s "got named group: ffdhe6144(0103)" \
+         -s "Certificate verification was skipped" \
+         -C "received HelloRetryRequest message"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
+requires_config_enabled PSA_WANT_ALG_FFDH
+run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,ffdhe6144,rsa_pss_rsae_sha256" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE6144:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI ca_file=data_files/test-ca_cat12.crt debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=ffdhe6144" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "Protocol is TLSv1.3" \
+         -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+         -c "Certificate Verify: Signature algorithm ( 0804 )" \
+         -c "NamedGroup: ffdhe6144 ( 103 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -C "received HelloRetryRequest message"
+
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
+requires_config_enabled PSA_WANT_ALG_FFDH
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+client_needs_more_time 4
+run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,ffdhe8192,rsa_pss_rsae_sha256" \
+         "$P_SRV crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=ffdhe8192 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
+         "$G_NEXT_CLI_NO_CERT --debug=4 --single-key-share --x509cafile data_files/test-ca_cat12.crt --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE8192:+VERS-TLS1.3:%NO_TICKETS" \
+         0 \
+         -s "Protocol is TLSv1.3" \
+         -s "server hello, chosen ciphersuite: TLS1-3-AES-128-GCM-SHA256 ( id=4865 )" \
+         -s "received signature algorithm: 0x804" \
+         -s "got named group: ffdhe8192(0104)" \
+         -s "Certificate verification was skipped" \
+         -C "received HelloRetryRequest message"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
+requires_config_enabled PSA_WANT_ALG_FFDH
+client_needs_more_time 4
+run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,ffdhe8192,rsa_pss_rsae_sha256" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE8192:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI ca_file=data_files/test-ca_cat12.crt debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=ffdhe8192" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "Protocol is TLSv1.3" \
+         -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+         -c "Certificate Verify: Signature algorithm ( 0804 )" \
+         -c "NamedGroup: ffdhe8192 ( 104 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -C "received HelloRetryRequest message"
+
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

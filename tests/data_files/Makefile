@@ -466,11 +466,11 @@ all_final += server5-der0.crt server5-der1b.crt server5-der4.crt \
 			 server5-der8.crt
 
 # directoryname sequence tag malformed
-parse_input/server5-directoryname-seq-malformed.crt.der: server5-two-directorynames.crt.der
+parse_input/server5-directoryname-seq-malformed.crt.der: parse_input/server5-two-directorynames.crt.der
 	hexdump -ve '1/1 "%.2X"' $< | sed "s/62A4473045310B/62A4473145310B/" | xxd -r -p > $@
 
 # Second directoryname OID length malformed 03 -> 15
-parse_input/server5-second-directoryname-oid-malformed.crt.der: server5-two-directorynames.crt.der
+parse_input/server5-second-directoryname-oid-malformed.crt.der: parse_input/server5-two-directorynames.crt.der
 	hexdump -ve '1/1 "%.2X"' $< | sed "s/0355040A0C0A4D414C464F524D5F4D45/1555040A0C0A4D414C464F524D5F4D45/" | xxd -r -p > $@
 
 all_final += server5-tricky-ip-san.crt
@@ -1441,8 +1441,8 @@ parse_input/server1.crt.der: server1.crt
 		md=SHA1 authority_identifier=0 version=3 output_file=$@
 server1.der: server1.crt
 	$(OPENSSL) x509 -inform PEM -in $< -outform DER -out $@
-server1.commas.crt: server1.key server1.req.commas.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
-	$(MBEDTLS_CERT_WRITE) request_file=server1.req.commas.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) version=1 not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
+server1.commas.crt: server1.key parse_input/server1.req.commas.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(MBEDTLS_CERT_WRITE) request_file=parse_input/server1.req.commas.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) version=1 not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
 all_final += server1.crt server1.noauthid.crt server1.crt.der server1.commas.crt
 
 parse_input/server1.key_usage.crt server1.key_usage.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)

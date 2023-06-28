@@ -2176,7 +2176,12 @@ component_test_psa_crypto_config_accel_ecdsa () {
     msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA"
 
     # Algorithms and key types to accelerate
-    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
+    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
+                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
+                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
+                    KEY_TYPE_ECC_PUBLIC_KEY"
 
     # Configure
     # ---------
@@ -2216,7 +2221,12 @@ component_test_psa_crypto_config_accel_ecdh () {
     msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH"
 
     # Algorithms and key types to accelerate
-    loc_accel_list="ALG_ECDH KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
+    loc_accel_list="ALG_ECDH \
+                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
+                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
+                    KEY_TYPE_ECC_PUBLIC_KEY"
 
     # Configure
     # ---------
@@ -2355,7 +2365,11 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
                     ALG_JPAKE \
-                    KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
+                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
+                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
+                    KEY_TYPE_ECC_PUBLIC_KEY"
 
     # Configure
     # ---------
@@ -2464,7 +2478,11 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
                     ALG_JPAKE \
-                    KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
+                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
+                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
+                    KEY_TYPE_ECC_PUBLIC_KEY"
 
     # Configure
     # ---------

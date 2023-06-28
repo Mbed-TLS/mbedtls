@@ -134,6 +134,8 @@ int mbedtls_x509_get_alg(unsigned char **p, const unsigned char *end,
 /*
  * Convert md type to string
  */
+#if !defined(MBEDTLS_X509_REMOVE_INFO) && defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
+
 static inline const char *md_type_to_string(mbedtls_md_type_t md_alg)
 {
     switch (md_alg) {
@@ -171,6 +173,8 @@ static inline const char *md_type_to_string(mbedtls_md_type_t md_alg)
             return NULL;
     }
 }
+
+#endif
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
 /*

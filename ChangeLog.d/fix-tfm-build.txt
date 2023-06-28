@@ -1,5 +1,3 @@
 Bugfix
-   * Fix compilation warnings in aes.c, which prevented the
-     example TF-M configuration in configs/ from building cleanly:
-     tfm_mbedcrypto_config_profile_medium.h with
-     crypto_config_profile_medium.h.
+   * Fix compilation warnings in aes.c for certain combinations
+     of configuration options.

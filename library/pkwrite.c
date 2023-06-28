@@ -175,11 +175,13 @@ exit:
 int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
                             const mbedtls_pk_context *key)
 {
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0;
 
     (void) p;
     (void) start;
     (void) key;
+    (void) ret;
 
     PK_VALIDATE_RET(p != NULL);
     PK_VALIDATE_RET(*p != NULL);

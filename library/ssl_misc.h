@@ -755,17 +755,25 @@ struct mbedtls_ssl_handshake_params {
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
 #endif /* MBEDTLS_ECDH_C && !MBEDTLS_USE_PSA_CRYPTO */
 
+#if defined(PSA_WANT_ALG_ECDH) && defined(PSA_WANT_ALG_FFDH)
+#if (MBEDTLS_PSA_MAX_FFDH_PUBKEY_LENGTH >= MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH)
+#define DH_PSA_PEERKEY_SIZE MBEDTLS_PSA_MAX_FFDH_PUBKEY_LENGTH
+#else
+#define DH_PSA_PEERKEY_SIZE MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#endif
+#elif defined(PSA_WANT_ALG_ECDH)
+#define DH_PSA_PEERKEY_SIZE MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#else
+#define DH_PSA_PEERKEY_SIZE MBEDTLS_PSA_MAX_FFDH_PUBKEY_LENGTH
+#endif
+
 #if (defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)) && \
     (defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3))
     psa_key_type_t ecdh_psa_type;
     size_t ecdh_bits;
     mbedtls_svc_key_id_t ecdh_psa_privkey;
     uint8_t ecdh_psa_privkey_is_external;
-#if defined(PSA_WANT_ALG_FFDH)
-    unsigned char ecdh_psa_peerkey[MBEDTLS_PSA_MAX_FFDH_PUBKEY_LENGTH];
-#else
-    unsigned char ecdh_psa_peerkey[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
-#endif
+    unsigned char ecdh_psa_peerkey[DH_PSA_PEERKEY_SIZE];
     size_t ecdh_psa_peerkey_len;
 #endif /* (PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH) &&
           (MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3) */

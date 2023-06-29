@@ -214,10 +214,13 @@ typedef struct mbedtls_mpi {
      * Note that this implies that calloc() or `... = {0}` does not create
      * a valid MPI representation. You must call mbedtls_mpi_init().
      */
-    int MBEDTLS_PRIVATE(s);
+    signed short MBEDTLS_PRIVATE(s);
 
     /** Total number of limbs in \c p.  */
-    size_t MBEDTLS_PRIVATE(n);
+    unsigned short MBEDTLS_PRIVATE(n);
+#if MBEDTLS_MPI_MAX_LIMBS > 65535
+#error "MBEDTLS_MPI_MAX_LIMBS > 65535 is not supported"
+#endif
 
     /** Pointer to limbs.
      *

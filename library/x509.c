@@ -174,7 +174,7 @@ static inline const char *md_type_to_string(mbedtls_md_type_t md_alg)
     }
 }
 
-#endif
+#endif /* !defined(MBEDTLS_X509_REMOVE_INFO) && defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) */
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
 /*

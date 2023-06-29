@@ -30,6 +30,8 @@
 
 #if !defined(MBEDTLS_SSL_TEST_IMPOSSIBLE)
 
+#define ARRAY_LENGTH(x)     (sizeof(x)/sizeof(x[0]))
+
 void my_debug(void *ctx, int level,
               const char *file, int line,
               const char *str)
@@ -508,7 +510,118 @@ static inline const char *mbedtls_ssl_ffdh_name_from_group(uint16_t group)
 }
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED && PSA_WANT_ALG_FFDH */
 
-int parse_groups(const char *groups, uint16_t *group_list, size_t group_list_len)
+static const struct {
+    uint16_t tls_id;
+    const char *name;
+    uint8_t is_supported;
+} tls_id_curve_name_table[] =
+{
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_521)
+    { 25, "secp521r1", 1 },
+#else
+    { 25, "secp521r1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
+    { 28, "brainpoolP512r1", 1 },
+#else
+    { 28, "brainpoolP512r1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_384)
+    { 24, "secp384r1", 1 },
+#else
+    { 24, "secp384r1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
+    { 27, "brainpoolP384r1", 1 },
+#else
+    { 27, "brainpoolP384r1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_256)
+    { 23, "secp256r1", 1 },
+#else
+    { 23, "secp256r1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_256)
+    { 22, "secp256k1", 1 },
+#else
+    { 22, "secp256k1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
+    { 26, "brainpoolP256r1", 1 },
+#else
+    { 26, "brainpoolP256r1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_224)
+    { 21, "secp224r1", 1 },
+#else
+    { 21, "secp224r1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_224)
+    { 20, "secp224k1", 1 },
+#else
+    { 20, "secp224k1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_192)
+    { 19, "secp192r1", 1 },
+#else
+    { 19, "secp192r1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_192)
+    { 18, "secp192k1", 1 },
+#else
+    { 18, "secp192k1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || defined(PSA_WANT_ECC_MONTGOMERY_255)
+    { 29, "x25519", 1 },
+#else
+    { 29, "x25519", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) || defined(PSA_WANT_ECC_MONTGOMERY_448)
+    { 30, "x448", 1 },
+#else
+    { 30, "x448", 0 },
+#endif
+    { 0, NULL, 0 },
+};
+
+static uint16_t mbedtls_ssl_get_curve_tls_id_from_name(const char *name)
+{
+    if (name == NULL) {
+        return 0;
+    }
+
+    for (int i = 0; tls_id_curve_name_table[i].tls_id != 0; i++) {
+        if (strcmp(tls_id_curve_name_table[i].name, name) == 0) {
+            return tls_id_curve_name_table[i].tls_id;
+        }
+    }
+
+    return 0;
+}
+
+static const char **mbedtls_ssl_get_supported_curves_list(void)
+{
+    const char **supported_list = NULL;
+    int i = 0, j = 0;
+
+    /* The allocated area might be bigger than strictly required (because not
+     * all the curves might be supported), but it is enough to contain all the
+     * pointers when all curves are enabled. */
+    supported_list = mbedtls_calloc(ARRAY_LENGTH(tls_id_curve_name_table),
+                                    sizeof(char *));
+    for (i = 0; tls_id_curve_name_table[i].tls_id != 0; i++) {
+        if (tls_id_curve_name_table[i].is_supported == 1) {
+            supported_list[j] = tls_id_curve_name_table[i].name;
+            j++;
+        }
+    }
+    // Keep NULL as last element as guard for end-of-array.
+    supported_list[j] = NULL;
+
+    return supported_list;
+}
+
+int parse_curves(const char *curves, uint16_t *group_list, size_t group_list_len)
 {
     char *p = (char *) groups;
     char *q = NULL;
@@ -524,9 +637,8 @@ int parse_groups(const char *groups, uint16_t *group_list, size_t group_list_len
             defined(PSA_WANT_ALG_FFDH)
             uint16_t ffdh_group = 0;
 #endif
-#if defined(MBEDTLS_ECP_LIGHT)
-            const mbedtls_ecp_curve_info *curve_cur = NULL;
-#endif
+            uint16_t curve_tls_id;
+
             /* Terminate the current string */
             while (*p != ',' && *p != '\0') {
                 p++;
@@ -535,11 +647,9 @@ int parse_groups(const char *groups, uint16_t *group_list, size_t group_list_len
                 *p++ = '\0';
             }
 
-#if defined(MBEDTLS_ECP_LIGHT)
-            if ((curve_cur = mbedtls_ecp_curve_info_from_name(q)) != NULL) {
-                group_list[i++] = curve_cur->tls_id;
+            if ((curve_tls_id = mbedtls_ssl_get_curve_tls_id_from_name(q)) != 0) {
+                group_list[i++] = curve_tls_id;
             } else
-#endif
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
             defined(PSA_WANT_ALG_FFDH)
             if ((ffdh_group = mbedtls_ssl_ffdh_group_from_name(q)) != 0) {
@@ -547,15 +657,15 @@ int parse_groups(const char *groups, uint16_t *group_list, size_t group_list_len
             } else
 #endif
             {
-                mbedtls_printf("unknown group %s\n", q);
-                mbedtls_printf("supported groups: ");
-#if defined(MBEDTLS_ECP_LIGHT)
-                for (curve_cur = mbedtls_ecp_curve_list();
-                     curve_cur->grp_id != MBEDTLS_ECP_DP_NONE;
-                     curve_cur++) {
-                    mbedtls_printf("%s ", curve_cur->name);
+                mbedtls_printf("unknown curve %s\n", q);
+                mbedtls_printf("supported curves: ");
+                const char **supported_curves = mbedtls_ssl_get_supported_curves_list();
+                for (int index = 0;
+                     supported_curves[index] != NULL;
+                     index++) {
+                    mbedtls_printf("%s ", supported_curves[index]);
                 }
-#endif
+                mbedtls_free((char *) supported_curves);
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
                 defined(PSA_WANT_ALG_FFDH)
                 const uint16_t *supported_ffdh_group = mbedtls_ssl_ffdh_supported_groups();

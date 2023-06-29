@@ -261,7 +261,7 @@ int main(void)
 #define USAGE_ALPN ""
 #endif /* MBEDTLS_SSL_ALPN */
 
-#if defined(MBEDTLS_ECP_LIGHT) || \
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) || \
     (defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
     defined(PSA_WANT_ALG_FFDH))
 #define USAGE_GROUPS \
@@ -1901,7 +1901,7 @@ usage:
     }
 #endif  /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_ECP_LIGHT) || \
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) || \
     (defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
     defined(PSA_WANT_ALG_FFDH))
     if (opt.groups != NULL &&

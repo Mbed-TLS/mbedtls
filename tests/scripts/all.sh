@@ -3361,6 +3361,10 @@ component_build_tfm_armcc() {
 }
 
 component_build_aes_variations() { # ~45s
+    # aes.o has many #if defined(...) guards that intersect in complex ways.
+    # Test that all the combinations build cleanly. The most common issue is
+    # unused variables/functions, so ensure -Wunused is set.
+
     msg "build: aes.o for all combinations of relevant config options"
     for a in set unset; do
     for b in set unset; do

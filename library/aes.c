@@ -229,7 +229,7 @@ static const unsigned char RSb[256] =
     0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26,
     0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D
 };
-#endif /* !(defined(MBEDTLS_AES_SETKEY_ENC_ALT) && defined(MBEDTLS_AES_DECRYPT_ALT)) */
+#endif /* defined(MBEDTLS_AES_DECRYPT_ALT)) */
 
 /*
  * Reverse tables
@@ -371,8 +371,8 @@ static uint32_t RT0[256];
 static uint32_t RT1[256];
 static uint32_t RT2[256];
 static uint32_t RT3[256];
-#endif /* !defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) */
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
+#endif /* !defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) */
 
 #if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 /*

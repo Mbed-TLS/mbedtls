@@ -324,9 +324,9 @@ static const uint32_t RT2[256] = { RT };
 static const uint32_t RT3[256] = { RT };
 #undef V
 
-#endif /* !defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) */
-
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
+
+#endif /* !defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) */
 
 #undef RT
 

@@ -115,28 +115,33 @@ def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
                for dep in dependencies):
         dependencies.append('DEPENDENCY_NOT_IMPLEMENTED_YET')
 
-# PSA_WANT_KEY_TYPE_xxx_KEY_PAIR symbols have a GENERATE suffix to state that
-# they support key generation.
-def fix_key_pair_dependencies(dep_list: List[str], usage: str):
+# This helper function add the proper suffix to PSA_WANT_KEY_TYPE_xxx_KEY_PAIR
+# symbols according to the required usage.
+def tweak_key_pair_dependency(dep: str, usage: str):
+    ret_list = list()
     # Note: this LEGACY replacement for RSA is temporary and it's going to be
     # aligned with ECC one in #7772.
-    new_list = [re.sub(r'RSA_KEY_PAIR\Z', r'RSA_KEY_PAIR_LEGACY', dep)
-                for dep in dep_list]
-    new_list = [re.sub(r'ECC_KEY_PAIR\Z', r'ECC_KEY_PAIR_' + usage, dep)
-                for dep in new_list]
-    # BASIC automatically includes IMPORT and EXPORT for test purposes (see
-    # config_psa.h).
-    if any([re.match(r'[!]?\w+ECC_KEY_PAIR_BASIC', dep) for dep in new_list]):
-        match_pattern = next((dep for dep in new_list
-                             if re.match(r'([!]?\w+ECC_KEY_PAIR_BASIC)', dep) is not None), None)
-        new_list.append(re.sub(r'ECC_KEY_PAIR_BASIC', r'ECC_KEY_PAIR_IMPORT', match_pattern))
-        new_list.append(re.sub(r'ECC_KEY_PAIR_BASIC', r'ECC_KEY_PAIR_EXPORT', match_pattern))
-        #if any([re.match(r'!\w+ECC_KEY_PAIR_BASIC\w+', dep) for dep in new_list]):
-        #    new_list.append('!PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT')
-        #    new_list.append('!PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT')
-        #elif any([re.match(r'\w+ECC_KEY_PAIR\w+', dep) for dep in new_list]):
-        #    new_list.append('PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT')
-        #    new_list.append('PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT')
+    if dep.endswith('RSA_KEY_PAIR'):
+        ret_list.append(re.sub(r'RSA_KEY_PAIR\Z', r'RSA_KEY_PAIR_LEGACY', dep))
+    elif dep.endswith('ECC_KEY_PAIR'):
+        if usage == "BASIC":
+            # BASIC automatically includes IMPORT and EXPORT for test purposes (see
+            # config_psa.h).
+            ret_list.append(re.sub(r'ECC_KEY_PAIR', r'ECC_KEY_PAIR_BASIC', dep))
+            ret_list.append(re.sub(r'ECC_KEY_PAIR', r'ECC_KEY_PAIR_IMPORT', dep))
+            ret_list.append(re.sub(r'ECC_KEY_PAIR', r'ECC_KEY_PAIR_EXPORT', dep))
+        elif usage == "GENERATE":
+            ret_list.append(re.sub(r'ECC_KEY_PAIR', r'ECC_KEY_PAIR_GENERATE', dep))
+    else:
+        # No replacement to do in this case
+        ret_list.append(dep)
+    return ret_list
+
+def fix_key_pair_dependencies(dep_list: List[str], usage: str):
+    new_list = [new_deps
+                for dep in dep_list
+                for new_deps in tweak_key_pair_dependency(dep, usage)]
+
     return new_list
 
 class Information:

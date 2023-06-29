@@ -1492,7 +1492,7 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
      */
     if (mbedtls_ssl_tls13_key_exchange_mode_with_ephemeral(ssl)) {
         if (mbedtls_ssl_tls13_named_group_is_ecdhe(handshake->offered_group_id) ||
-            mbedtls_ssl_tls13_named_group_is_dhe(handshake->offered_group_id)) {
+            mbedtls_ssl_tls13_named_group_is_ffdh(handshake->offered_group_id)) {
 #if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
             psa_algorithm_t alg =
                 mbedtls_ssl_tls13_named_group_is_ecdhe(handshake->offered_group_id) ?

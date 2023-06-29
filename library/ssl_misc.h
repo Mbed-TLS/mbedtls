@@ -2223,7 +2223,7 @@ static inline int mbedtls_ssl_tls13_named_group_is_ecdhe(uint16_t named_group)
            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_X448;
 }
 
-static inline int mbedtls_ssl_tls13_named_group_is_dhe(uint16_t named_group)
+static inline int mbedtls_ssl_tls13_named_group_is_ffdh(uint16_t named_group)
 {
     return named_group >= MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048 &&
            named_group <= MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192;
@@ -2258,7 +2258,7 @@ static inline int mbedtls_ssl_named_group_is_supported(uint16_t named_group)
     }
 #endif
 #if defined(PSA_WANT_ALG_FFDH)
-    if (mbedtls_ssl_tls13_named_group_is_dhe(named_group)) {
+    if (mbedtls_ssl_tls13_named_group_is_ffdh(named_group)) {
         return 1;
     }
 #endif
@@ -2660,7 +2660,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
 #if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-int mbedtls_ssl_tls13_read_public_ecdhe_share(mbedtls_ssl_context *ssl,
+int mbedtls_ssl_tls13_read_public_dhe_share(mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,
                                               size_t buf_len);
 

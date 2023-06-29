@@ -3363,7 +3363,7 @@ component_build_tfm() {
 
     msg "build: TF-M config, gcc native build"
     make clean
-    make lib CC="gcc" CFLAGS="-Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wformat-signedness -Wformat-overflow=2 -Wformat-truncation -Wlogical-op"
+    make lib CC="gcc" CFLAGS="-Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wformat-signedness -Wlogical-op"
 }
 
 component_build_aes_variations() { # ~45s

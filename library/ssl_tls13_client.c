@@ -201,14 +201,14 @@ static int ssl_tls13_reset_key_share(mbedtls_ssl_context *ssl)
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
         /* Destroy generated private key. */
-        status = psa_destroy_key(ssl->handshake->ecdh_psa_privkey);
+        status = psa_destroy_key(ssl->handshake->dh_psa_privkey);
         if (status != PSA_SUCCESS) {
             ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_destroy_key", ret);
             return ret;
         }
 
-        ssl->handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+        ssl->handshake->dh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
         return 0;
     } else
 #endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */

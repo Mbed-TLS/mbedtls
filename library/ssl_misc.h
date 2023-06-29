@@ -769,12 +769,12 @@ struct mbedtls_ssl_handshake_params {
 
 #if (defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)) && \
     (defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3))
-    psa_key_type_t ecdh_psa_type;
-    size_t ecdh_bits;
-    mbedtls_svc_key_id_t ecdh_psa_privkey;
-    uint8_t ecdh_psa_privkey_is_external;
-    unsigned char ecdh_psa_peerkey[DH_PSA_PEERKEY_SIZE];
-    size_t ecdh_psa_peerkey_len;
+    psa_key_type_t dh_psa_type;
+    size_t dh_bits;
+    mbedtls_svc_key_id_t dh_psa_privkey;
+    uint8_t dh_psa_privkey_is_external;
+    unsigned char dh_psa_peerkey[DH_PSA_PEERKEY_SIZE];
+    size_t dh_psa_peerkey_len;
 #endif /* (PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH) &&
           (MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3) */
 

@@ -508,9 +508,9 @@ static inline const char *mbedtls_ssl_ffdh_name_from_group(uint16_t group)
 }
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED && PSA_WANT_ALG_FFDH */
 
-int parse_curves(const char *curves, uint16_t *group_list, size_t group_list_len)
+int parse_groups(const char *groups, uint16_t *group_list, size_t group_list_len)
 {
-    char *p = (char *) curves;
+    char *p = (char *) groups;
     char *q = NULL;
     size_t i = 0;
 
@@ -570,10 +570,10 @@ int parse_curves(const char *curves, uint16_t *group_list, size_t group_list_len
             }
         }
 
-        mbedtls_printf("Number of curves: %u\n", (unsigned int) i);
+        mbedtls_printf("Number of groups: %u\n", (unsigned int) i);
 
         if (i == group_list_len - 1 && *p != '\0') {
-            mbedtls_printf("curves list too long, maximum %u",
+            mbedtls_printf("groups list too long, maximum %u",
                            (unsigned int) (group_list_len - 1));
             return -1;
         }

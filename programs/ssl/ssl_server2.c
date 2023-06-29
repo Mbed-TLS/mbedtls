@@ -133,7 +133,7 @@ int main(void)
 #define DFL_CACHE_REMOVE        0
 #define DFL_SNI                 NULL
 #define DFL_ALPN_STRING         NULL
-#define DFL_CURVES              NULL
+#define DFL_GROUPS              NULL
 #define DFL_MAX_EARLY_DATA_SIZE 0
 #define DFL_SIG_ALGS            NULL
 #define DFL_DHM_FILE            NULL
@@ -449,14 +449,17 @@ int main(void)
 #if defined(MBEDTLS_ECP_LIGHT) || \
     (defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
     defined(PSA_WANT_ALG_FFDH))
-#define USAGE_CURVES \
-    "    curves=a,b,c,d      default: \"default\" (library default)\n"  \
+#define USAGE_GROUPS \
+    "    groups=a,b,c,d      default: \"default\" (library default)\n"  \
     "                        example: \"secp521r1,brainpoolP512r1\"\n"  \
     "                        - use \"none\" for empty list\n"           \
-    "                        - see mbedtls_ecp_curve_list()\n"          \
-    "                          for acceptable curve names\n"
+    "                        - see mbedtls_ecp_curve_list()\n"                \
+    "                          for acceptable EC group names\n"               \
+    "                        - the following ffdh groups are supported:\n"    \
+    "                          ffdhe2048, ffdhe3072, ffdhe4096, ffdhe6144,\n" \
+    "                          ffdhe8192\n"
 #else
-#define USAGE_CURVES ""
+#define USAGE_GROUPS ""
 #endif
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
@@ -560,7 +563,7 @@ int main(void)
     USAGE_ALPN                                              \
     USAGE_EMS                                               \
     USAGE_ETM                                               \
-    USAGE_CURVES                                            \
+    USAGE_GROUPS                                            \
     USAGE_SIG_ALGS                                          \
     USAGE_KEY_OPAQUE_ALGS                                   \
     "\n"
@@ -672,7 +675,7 @@ struct options {
 #endif
     int cache_remove;           /* enable / disable cache entry removal     */
     char *sni;                  /* string describing sni information        */
-    const char *curves;         /* list of supported elliptic curves        */
+    const char *groups;         /* list of supported groups                 */
     const char *sig_algs;       /* supported TLS 1.3 signature algorithms   */
     const char *alpn_string;    /* ALPN supported protocols                 */
     const char *dhm_file;       /* the file with the DH parameters          */
@@ -1522,7 +1525,7 @@ int main(int argc, char *argv[])
 #if defined(SNI_OPTION)
     sni_entry *sni_info = NULL;
 #endif
-    uint16_t group_list[CURVE_LIST_SIZE];
+    uint16_t group_list[GROUP_LIST_SIZE];
 #if defined(MBEDTLS_SSL_ALPN)
     const char *alpn_list[ALPN_LIST_SIZE];
 #endif
@@ -1733,7 +1736,7 @@ usage:
     opt.cache_remove        = DFL_CACHE_REMOVE;
     opt.sni                 = DFL_SNI;
     opt.alpn_string         = DFL_ALPN_STRING;
-    opt.curves              = DFL_CURVES;
+    opt.groups              = DFL_GROUPS;
     opt.max_early_data_size = DFL_MAX_EARLY_DATA_SIZE;
     opt.sig_algs            = DFL_SIG_ALGS;
     opt.dhm_file            = DFL_DHM_FILE;
@@ -1913,8 +1916,8 @@ usage:
                 goto usage;
             }
             opt.force_ciphersuite[1] = 0;
-        } else if (strcmp(p, "curves") == 0) {
-            opt.curves = q;
+        } else if (strcmp(p, "groups") == 0) {
+            opt.groups = q;
         }
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
         else if (strcmp(p, "sig_algs") == 0) {
@@ -2386,8 +2389,8 @@ usage:
     }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
-    if (opt.curves != NULL) {
-        if (parse_curves(opt.curves, group_list, CURVE_LIST_SIZE) != 0) {
+    if (opt.groups != NULL) {
+        if (parse_groups(opt.groups, group_list, GROUP_LIST_SIZE) != 0) {
             goto exit;
         }
     }
@@ -3095,8 +3098,8 @@ usage:
 #if defined(MBEDTLS_ECP_LIGHT) || \
     (defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
     defined(PSA_WANT_ALG_FFDH))
-    if (opt.curves != NULL &&
-        strcmp(opt.curves, "default") != 0) {
+    if (opt.groups != NULL &&
+        strcmp(opt.groups, "default") != 0) {
         mbedtls_ssl_conf_groups(&conf, group_list);
     }
 #endif

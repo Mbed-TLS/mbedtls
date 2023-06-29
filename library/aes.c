@@ -184,9 +184,9 @@ static const uint32_t FT2[256] = { FT };
 static const uint32_t FT3[256] = { FT };
 #undef V
 
-#endif /* !defined(MBEDTLS_AES_ENCRYPT_ALT) */
-
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
+
+#endif /* !defined(MBEDTLS_AES_ENCRYPT_ALT) */
 
 #undef FT
 

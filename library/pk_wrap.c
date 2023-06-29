@@ -1297,6 +1297,48 @@ static int eckey_check_pair_wrap(mbedtls_pk_context *pub, mbedtls_pk_context *pr
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+/* When PK_USE_PSA_EC_DATA is defined opaque and non-opaque keys end up
+ * using the same function. */
+#define ecdsa_opaque_check_pair_wrap    eckey_check_pair_wrap
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+static int ecdsa_opaque_check_pair_wrap(mbedtls_pk_context *pub,
+                                        mbedtls_pk_context *prv,
+                                        int (*f_rng)(void *, unsigned char *, size_t),
+                                        void *p_rng)
+{
+    psa_status_t status;
+    uint8_t exp_pub_key[MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN];
+    size_t exp_pub_key_len = 0;
+    uint8_t pub_key[MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN];
+    size_t pub_key_len = 0;
+    int ret;
+    (void) f_rng;
+    (void) p_rng;
+
+    status = psa_export_public_key(prv->priv_id, exp_pub_key, sizeof(exp_pub_key),
+                                   &exp_pub_key_len);
+    if (status != PSA_SUCCESS) {
+        ret = psa_pk_status_to_mbedtls(status);
+        return ret;
+    }
+    ret = mbedtls_ecp_point_write_binary(&(mbedtls_pk_ec_ro(*pub)->grp),
+                                         &(mbedtls_pk_ec_ro(*pub)->Q),
+                                         MBEDTLS_ECP_PF_UNCOMPRESSED,
+                                         &pub_key_len, pub_key, sizeof(pub_key));
+    if (ret != 0) {
+        return ret;
+    }
+    if ((exp_pub_key_len != pub_key_len) ||
+        memcmp(exp_pub_key, pub_key, exp_pub_key_len)) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
+    return 0;
+}
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static void *eckey_alloc_wrap(void)
 {
@@ -1645,48 +1687,6 @@ static int ecdsa_opaque_can_do(mbedtls_pk_type_t type)
            type == MBEDTLS_PK_ECDSA;
 }
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-/* When PK_USE_PSA_EC_DATA is defined opaque and non-opaque keys end up
- * using the same function. */
-#define ecdsa_opaque_check_pair_wrap    eckey_check_pair_wrap
-#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
-#if defined(MBEDTLS_ECP_LIGHT)
-static int ecdsa_opaque_check_pair_wrap(mbedtls_pk_context *pub,
-                                        mbedtls_pk_context *prv,
-                                        int (*f_rng)(void *, unsigned char *, size_t),
-                                        void *p_rng)
-{
-    psa_status_t status;
-    uint8_t exp_pub_key[MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN];
-    size_t exp_pub_key_len = 0;
-    uint8_t pub_key[MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN];
-    size_t pub_key_len = 0;
-    int ret;
-    (void) f_rng;
-    (void) p_rng;
-
-    status = psa_export_public_key(prv->priv_id, exp_pub_key, sizeof(exp_pub_key),
-                                   &exp_pub_key_len);
-    if (status != PSA_SUCCESS) {
-        ret = psa_pk_status_to_mbedtls(status);
-        return ret;
-    }
-    ret = mbedtls_ecp_point_write_binary(&(mbedtls_pk_ec_ro(*pub)->grp),
-                                         &(mbedtls_pk_ec_ro(*pub)->Q),
-                                         MBEDTLS_ECP_PF_UNCOMPRESSED,
-                                         &pub_key_len, pub_key, sizeof(pub_key));
-    if (ret != 0) {
-        return ret;
-    }
-    if ((exp_pub_key_len != pub_key_len) ||
-        memcmp(exp_pub_key, pub_key, exp_pub_key_len)) {
-        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-    }
-    return 0;
-}
-#endif /* MBEDTLS_ECP_LIGHT */
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
-
 const mbedtls_pk_info_t mbedtls_ecdsa_opaque_info = {
     .type = MBEDTLS_PK_OPAQUE,
     .name = "Opaque",
@@ -1710,11 +1710,11 @@ const mbedtls_pk_info_t mbedtls_ecdsa_opaque_info = {
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
     .decrypt_func = NULL,
     .encrypt_func = NULL,
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     .check_pair_func = ecdsa_opaque_check_pair_wrap,
-#else /* MBEDTLS_ECP_LIGHT */
+#else /* MBEDTLS_PK_HAVE_ECC_KEYS */
     .check_pair_func = NULL,
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
     .ctx_alloc_func = NULL,
     .ctx_free_func = NULL,
     .debug_func = NULL,

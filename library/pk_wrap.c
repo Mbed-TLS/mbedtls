@@ -1396,7 +1396,6 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
     .debug_func = eckey_debug,            /* Same underlying key structure */
 };
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
 #if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
 static int ecdsa_can_do(mbedtls_pk_type_t type)
@@ -1490,6 +1489,7 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     .debug_func = eckey_debug,        /* Compatible key structures */
 };
 #endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /*

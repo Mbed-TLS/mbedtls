@@ -3348,7 +3348,7 @@ component_build_tfm_armcc() {
     cp configs/tfm_mbedcrypto_config_profile_medium.h include/mbedtls/mbedtls_config.h
     cp configs/crypto_config_profile_medium.h         include/psa/crypto_config.h
 
-    msg "build: TF-M config, armclang armv7 thumb2"
+    msg "build: TF-M config, armclang armv7-m thumb2"
     make clean
     armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused"
 }
@@ -3358,8 +3358,8 @@ component_build_tfm() {
     cp configs/tfm_mbedcrypto_config_profile_medium.h include/mbedtls/mbedtls_config.h
     cp configs/crypto_config_profile_medium.h         include/psa/crypto_config.h
 
-    msg "build: TF-M config, clang, armv8 thumb2"
-    make lib CC="clang" CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32 -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused"
+    msg "build: TF-M config, clang, armv7-m thumb2"
+    make lib CC="clang" CFLAGS="--target=arm-linux-gnueabihf -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused"
 
     msg "build: TF-M config, gcc native build"
     make clean

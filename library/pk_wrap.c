@@ -1681,6 +1681,7 @@ static size_t opaque_get_bitlen(mbedtls_pk_context *pk)
     return bits;
 }
 
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 static int ecdsa_opaque_can_do(mbedtls_pk_type_t type)
 {
     return type == MBEDTLS_PK_ECKEY ||
@@ -1710,15 +1711,12 @@ const mbedtls_pk_info_t mbedtls_ecdsa_opaque_info = {
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
     .decrypt_func = NULL,
     .encrypt_func = NULL,
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     .check_pair_func = ecdsa_opaque_check_pair_wrap,
-#else /* MBEDTLS_PK_HAVE_ECC_KEYS */
-    .check_pair_func = NULL,
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
     .ctx_alloc_func = NULL,
     .ctx_free_func = NULL,
     .debug_func = NULL,
 };
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
 static int rsa_opaque_can_do(mbedtls_pk_type_t type)
 {

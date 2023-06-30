@@ -1336,6 +1336,15 @@
 //#define MBEDTLS_RSA_NO_CRT
 
 /**
+ * \def MBEDTLS_RSA_MIN_KEY_SIZE
+ *
+ * Minimum RSA key size allowed in bits.
+ *
+ * Minimum possible value is 128 bits.
+ */
+#define MBEDTLS_RSA_MIN_KEY_SIZE 1024
+
+/**
  * \def MBEDTLS_SELF_TEST
  *
  * Enable the checkup functions (*_self_test).

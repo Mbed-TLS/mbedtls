@@ -550,6 +550,11 @@ int mbedtls_rsa_gen_key(mbedtls_rsa_context *ctx,
         goto cleanup;
     }
 
+    if (nbits < MBEDTLS_RSA_MIN_KEY_SIZE) {
+        ret = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
+        goto cleanup;
+    }
+
     /*
      * find primes P and Q with Q < P so that:
      * 1.  |P-Q| > 2^( nbits / 2 - 100 )

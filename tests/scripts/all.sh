@@ -3581,6 +3581,56 @@ component_test_malloc_0_null () {
     tests/ssl-opt.sh -e 'proxy'
 }
 
+support_test_aesni() {
+    # Check that gcc targets x86_64 (we can build AESNI), and check for
+    # AESNI support on the host (we can run AESNI).
+    #
+    # The name of this function is possibly slightly misleading, but needs to align
+    # with the name of the corresponding test, component_test_aesni.
+    #
+    # In principle 32-bit x86 can support AESNI, but our implementation does not
+    # support 32-bit x86, so we check for x86-64.
+    # We can only grep /proc/cpuinfo on Linux, so this also checks for Linux
+    (gcc -v 2>&1 | grep Target | grep -q x86_64) &&
+        [[ "$HOSTTYPE" == "x86_64" && "$OSTYPE" == "linux-gnu" ]] &&
+        (grep '^flags' /proc/cpuinfo | grep -qw aes)
+}
+
+component_test_aesni () { # ~ 60s
+    # This tests the two AESNI implementations (intrinsics and assembly), and also the plain C
+    # fallback. It also tests the logic that is used to select which implementation(s) to build.
+    #
+    # This test does not require the host to have support for AESNI (if it doesn't, the run-time
+    # AESNI detection will fallback to the plain C implementation, so the tests will instead
+    # exercise the plain C impl).
+
+    msg "build: default config with different AES implementations"
+    scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py set MBEDTLS_HAVE_ASM
+
+    # test the intrinsics implementation
+    msg "AES tests, test intrinsics"
+    make clean
+    make test programs/test/selftest CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
+    # check that we built intrinsics - this should be used by default when supported by the compiler
+    ./programs/test/selftest | grep "AESNI code" | grep -q "intrinsics"
+
+    # test the asm implementation
+    msg "AES tests, test assembly"
+    make clean
+    make test programs/test/selftest CC=gcc CFLAGS='-Werror -Wall -Wextra -mno-pclmul -mno-sse2 -mno-aes'
+    # check that we built assembly - this should be built if the compiler does not support intrinsics
+    ./programs/test/selftest | grep "AESNI code" | grep -q "assembly"
+
+    # test the plain C implementation
+    scripts/config.py unset MBEDTLS_AESNI_C
+    msg "AES tests, plain C"
+    make clean
+    make test programs/test/selftest CC=gcc CFLAGS='-O2 -Werror'
+    # check that there is no AESNI code present
+    ./programs/test/selftest | not grep -q "AESNI code"
+}
+
 component_test_aes_only_128_bit_keys () {
     msg "build: default config + AES_ONLY_128_BIT_KEY_LENGTH"
     scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH

@@ -1240,17 +1240,18 @@ static int eckey_check_pair_psa(mbedtls_pk_context *pub, mbedtls_pk_context *prv
     ret = mbedtls_mpi_write_binary(&mbedtls_pk_ec_ro(*prv)->d,
                                    prv_key_buf, curve_bytes);
     if (ret != 0) {
+        mbedtls_platform_zeroize(prv_key_buf, sizeof(prv_key_buf));
         return ret;
     }
 
     status = psa_import_key(&key_attr, prv_key_buf, curve_bytes, &key_id);
+    mbedtls_platform_zeroize(prv_key_buf, sizeof(prv_key_buf));
     ret = PSA_PK_TO_MBEDTLS_ERR(status);
     if (ret != 0) {
         return ret;
     }
 
-    mbedtls_platform_zeroize(prv_key_buf, sizeof(prv_key_buf));
-
+    // From now on prv_key_buf is used to store the public key of prv.
     status = psa_export_public_key(key_id, prv_key_buf, sizeof(prv_key_buf),
                                    &prv_key_len);
     ret = PSA_PK_TO_MBEDTLS_ERR(status);

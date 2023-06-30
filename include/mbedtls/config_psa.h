@@ -743,10 +743,16 @@ extern "C" {
 #define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT 1
 #define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT 1
 #define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE 1
+/* Normally we wouldn't enable this because it's not implemented in ecp.c,
+ * but since it used to be available any time ECP_C was enabled, let's enable
+ * it anyway for the sake of backwards compatibility */
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_IMPORT 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_EXPORT 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_GENERATE 1
+/* See comment for PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE above. */
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_DERIVE 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY 1
 #define PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY 1
 #endif /* MBEDTLS_ECP_C */

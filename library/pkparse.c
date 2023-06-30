@@ -1217,14 +1217,10 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
     }
 
+    /* Keep a reference to the position fo the private key. It will be used
+     * later in this function. */
     d = p;
     d_len = len;
-
-#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    if ((ret = mbedtls_mpi_read_binary(&eck->d, p, len)) != 0) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
-    }
-#endif
 
     p += len;
 
@@ -1244,6 +1240,13 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
         }
     }
+
+
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    if ((ret = mbedtls_ecp_read_key(eck->grp.id, eck, d, d_len)) != 0) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
+    }
+#endif
 
     if (p != end) {
         /*

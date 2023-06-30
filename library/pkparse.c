@@ -654,7 +654,7 @@ static int pk_parse_key_rfc8410_der(mbedtls_pk_context *pk,
 #else /* MBEDTLS_PK_USE_PSA_EC_DATA */
     mbedtls_ecp_keypair *eck = mbedtls_pk_ec_rw(*pk);
 
-    if ((ret = mbedtls_mpi_read_binary_le(&eck->d, key, len)) != 0) {
+    if ((ret = mbedtls_ecp_read_key(eck->grp.id, eck, key, len)) != 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
     }
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */

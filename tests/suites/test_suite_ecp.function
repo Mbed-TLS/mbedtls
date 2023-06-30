@@ -1296,70 +1296,70 @@ void ecp_mod_p_generic_raw(int curve_id,
     switch (curve_id) {
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) && defined(MBEDTLS_ECP_NIST_OPTIM)
         case MBEDTLS_ECP_DP_SECP192R1:
-            limbs = 2 * limbs_N;
+            limbs = BITS_TO_LIMBS(192) * 2;
             curve_bits = 192;
             curve_func = &mbedtls_ecp_mod_p192_raw;
             break;
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) && defined(MBEDTLS_ECP_NIST_OPTIM)
         case MBEDTLS_ECP_DP_SECP224R1:
-            limbs = 448 / biL;
+            limbs = BITS_TO_LIMBS(224) * 2;
             curve_bits = 224;
             curve_func = &mbedtls_ecp_mod_p224_raw;
             break;
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) && defined(MBEDTLS_ECP_NIST_OPTIM)
         case MBEDTLS_ECP_DP_SECP256R1:
-            limbs = 2 * limbs_N;
+            limbs = BITS_TO_LIMBS(256) * 2;
             curve_bits = 256;
             curve_func = &mbedtls_ecp_mod_p256_raw;
             break;
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) && defined(MBEDTLS_ECP_NIST_OPTIM)
         case MBEDTLS_ECP_DP_SECP384R1:
-            limbs = 2 * limbs_N;
+            limbs = BITS_TO_LIMBS(384) * 2;
             curve_bits = 384;
             curve_func = &mbedtls_ecp_mod_p384_raw;
             break;
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) && defined(MBEDTLS_ECP_NIST_OPTIM)
         case MBEDTLS_ECP_DP_SECP521R1:
-            limbs = 2 * limbs_N;
+            limbs = BITS_TO_LIMBS(522) * 2;
             curve_bits = 522;
             curve_func = &mbedtls_ecp_mod_p521_raw;
             break;
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
         case MBEDTLS_ECP_DP_SECP192K1:
-            limbs = 2 * limbs_N;
+            limbs = BITS_TO_LIMBS(192) * 2;
             curve_bits = 192;
             curve_func = &mbedtls_ecp_mod_p192k1_raw;
             break;
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
         case MBEDTLS_ECP_DP_SECP224K1:
-            limbs = 448 / biL;
+            limbs = BITS_TO_LIMBS(224) * 2;
             curve_bits = 224;
             curve_func = &mbedtls_ecp_mod_p224k1_raw;
             break;
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
         case MBEDTLS_ECP_DP_SECP256K1:
-            limbs = 2 * limbs_N;
+            limbs = BITS_TO_LIMBS(256) * 2;
             curve_bits = 256;
             curve_func = &mbedtls_ecp_mod_p256k1_raw;
             break;
 #endif
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
         case MBEDTLS_ECP_DP_CURVE25519:
-            limbs = 2 * limbs_N;
+            limbs = BITS_TO_LIMBS(255) * 2;
             curve_bits = 255;
             curve_func = &mbedtls_ecp_mod_p255_raw;
             break;
 #endif
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
         case MBEDTLS_ECP_DP_CURVE448:
-            limbs = 2 * limbs_N;
+            limbs = BITS_TO_LIMBS(448) * 2;
             curve_bits = 448;
             curve_func = &mbedtls_ecp_mod_p448_raw;
             break;

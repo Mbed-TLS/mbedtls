@@ -69,6 +69,44 @@ extern void (*mbedtls_test_hook_test_fail)(const char *test, int line, const cha
 #define MBEDTLS_TEST_HOOK_TEST_ASSERT(TEST)
 #endif /* defined(MBEDTLS_TEST_HOOKS) */
 
+/** \def ARRAY_LENGTH
+ * Return the number of elements of a static or stack array.
+ *
+ * \param array         A value of array (not pointer) type.
+ *
+ * \return The number of elements of the array.
+ */
+/* A correct implementation of ARRAY_LENGTH, but which silently gives
+ * a nonsensical result if called with a pointer rather than an array. */
+#define ARRAY_LENGTH_UNSAFE(array)            \
+    (sizeof(array) / sizeof(*(array)))
+
+#if defined(__GNUC__)
+/* Test if arg and &(arg)[0] have the same type. This is true if arg is
+ * an array but not if it's a pointer. */
+#define IS_ARRAY_NOT_POINTER(arg)                                     \
+    (!__builtin_types_compatible_p(__typeof__(arg),                \
+                                   __typeof__(&(arg)[0])))
+/* A compile-time constant with the value 0. If `const_expr` is not a
+ * compile-time constant with a nonzero value, cause a compile-time error. */
+#define STATIC_ASSERT_EXPR(const_expr)                                \
+    (0 && sizeof(struct { unsigned int STATIC_ASSERT : 1 - 2 * !(const_expr); }))
+
+/* Return the scalar value `value` (possibly promoted). This is a compile-time
+ * constant if `value` is. `condition` must be a compile-time constant.
+ * If `condition` is false, arrange to cause a compile-time error. */
+#define STATIC_ASSERT_THEN_RETURN(condition, value)   \
+    (STATIC_ASSERT_EXPR(condition) ? 0 : (value))
+
+#define ARRAY_LENGTH(array)                                           \
+    (STATIC_ASSERT_THEN_RETURN(IS_ARRAY_NOT_POINTER(array),         \
+                               ARRAY_LENGTH_UNSAFE(array)))
+
+#else
+/* If we aren't sure the compiler supports our non-standard tricks,
+ * fall back to the unsafe implementation. */
+#define ARRAY_LENGTH(array) ARRAY_LENGTH_UNSAFE(array)
+#endif
 /** Allow library to access its structs' private members.
  *
  * Although structs defined in header files are publicly available,
@@ -168,6 +206,34 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 #define asm __asm__
 #endif
 /* *INDENT-ON* */
+
+/*
+ * Define the constraint used for read-only pointer operands to aarch64 asm.
+ *
+ * This is normally the usual "r", but for aarch64_32 (aka ILP32,
+ * as found in watchos), "p" is required to avoid warnings from clang.
+ *
+ * Note that clang does not recognise '+p' or '=p', and armclang
+ * does not recognise 'p' at all. Therefore, to update a pointer from
+ * aarch64 assembly, it is necessary to use something like:
+ *
+ * uintptr_t uptr = (uintptr_t) ptr;
+ * asm( "ldr x4, [%x0], #8" ... : "+r" (uptr) : : )
+ * ptr = (void*) uptr;
+ *
+ * Note that the "x" in "%x0" is neccessary; writing "%0" will cause warnings.
+ */
+#if defined(__aarch64__) && defined(MBEDTLS_HAVE_ASM)
+#if UINTPTR_MAX == 0xfffffffful
+/* ILP32: Specify the pointer operand slightly differently, as per #7787. */
+#define MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT "p"
+#elif UINTPTR_MAX == 0xfffffffffffffffful
+/* Normal case (64-bit pointers): use "r" as the constraint for pointer operands to asm */
+#define MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT "r"
+#else
+#error Unrecognised pointer size for aarch64
+#endif
+#endif
 
 /* Always provide a static assert macro, so it can be used unconditionally.
  * It will expand to nothing on some systems.

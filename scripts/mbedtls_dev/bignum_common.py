@@ -19,6 +19,7 @@ import enum
 from typing import Iterator, List, Tuple, TypeVar, Any
 from copy import deepcopy
 from itertools import chain
+from math import ceil
 
 from . import test_case
 from . import test_data_generation
@@ -76,9 +77,14 @@ def combination_pairs(values: List[T]) -> List[Tuple[T, T]]:
     """Return all pair combinations from input values."""
     return [(x, y) for x in values for y in values]
 
+def bits_to_limbs(bits: int, bits_in_limb: int) -> int:
+    """ Return the appropriate ammount of limbs needed to store
+        a number contained in input bits"""
+    return ceil(bits / bits_in_limb)
+
 def hex_digits_for_limb(limbs: int, bits_in_limb: int) -> int:
-    """ Retrun the hex digits need for a number of limbs. """
-    return 2 * (limbs * bits_in_limb // 8)
+    """ Return the hex digits need for a number of limbs. """
+    return 2 * ((limbs * bits_in_limb) // 8)
 
 def hex_digits_max_int(val: str, bits_in_limb: int) -> int:
     """ Return the first number exceeding maximum  the limb space

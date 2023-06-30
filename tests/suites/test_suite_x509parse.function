@@ -1578,11 +1578,8 @@ void x509_crt_parse_authoritykeyid(char *file,
                                    int ref_ret)
 {
     mbedtls_x509_crt crt;
-    int bufferCounter = 0;
-    size_t issuerCounter = 0;
-    unsigned int result = 0;
     mbedtls_x509_subject_alternative_name san;
-    mbedtls_x509_name *pname = NULL;
+    char name_buf[128];
 
     mbedtls_x509_crt_init(&crt);
 
@@ -1606,18 +1603,12 @@ void x509_crt_parse_authoritykeyid(char *file,
 
             TEST_EQUAL(mbedtls_x509_parse_subject_alt_name(&issuerPtr->buf, &san), 0);
 
-            pname = &san.san.directory_name;
+            TEST_ASSERT(mbedtls_x509_dn_gets(name_buf, sizeof(name_buf),
+                                             &san.san.directory_name)
+                        > 0);
+            TEST_EQUAL(strcmp(name_buf, authorityKeyId_issuer), 0);
 
-            while (pname != NULL) {
-                for (issuerCounter = 0; issuerCounter < pname->val.len; issuerCounter++) {
-                    result |=
-                        (authorityKeyId_issuer[bufferCounter++] != pname->val.p[issuerCounter]);
-                }
-                bufferCounter++; /* Skipping the slash */
-                pname = pname->next;
-            }
             mbedtls_x509_free_subject_alt_name(&san);
-            TEST_EQUAL(result, 0);
         }
 
         /* Serial test */

@@ -133,5 +133,8 @@ mbedtls_x509_string_to_names:"C=NL, O=Offspark\\a Inc., OU=PolarSSL":"":MBEDTLS_
 X509 String to Names #6 (Escape at end)
 mbedtls_x509_string_to_names:"C=NL, O=Offspark\\":"":MBEDTLS_ERR_X509_INVALID_NAME
 
+X509 String to Names #6 (Invalid, no '=' or ',')
+mbedtls_x509_string_to_names:"ABC123":"":MBEDTLS_ERR_X509_INVALID_NAME
+
 Check max serial length
 x509_set_serial_check:

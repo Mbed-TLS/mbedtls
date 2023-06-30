@@ -115,9 +115,11 @@ def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
                for dep in dependencies):
         dependencies.append('DEPENDENCY_NOT_IMPLEMENTED_YET')
 
-# This helper function add the proper suffix to PSA_WANT_KEY_TYPE_xxx_KEY_PAIR
-# symbols according to the required usage.
 def tweak_key_pair_dependency(dep: str, usage: str):
+    """
+    This helper function add the proper suffix to PSA_WANT_KEY_TYPE_xxx_KEY_PAIR
+    symbols according to the required usage.
+    """
     ret_list = list()
     # Note: this LEGACY replacement for RSA is temporary and it's going to be
     # aligned with ECC one in #7772.

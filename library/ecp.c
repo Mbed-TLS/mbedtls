@@ -3277,6 +3277,7 @@ int mbedtls_ecp_read_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
                                     ECP_CURVE448_KEY_SIZE * 8 - 1, 1)
                 );
         }
+        MBEDTLS_MPI_CHK(mbedtls_ecp_check_privkey(&key->grp, &key->d));
     }
 
 #endif

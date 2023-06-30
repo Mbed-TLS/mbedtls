@@ -666,14 +666,6 @@ static int pk_parse_key_rfc8410_der(mbedtls_pk_context *pk,
         return ret;
     }
 
-    /* When MBEDTLS_PK_USE_PSA_EC_DATA the key is checked while importing it
-     * into PSA. */
-#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    if ((ret = mbedtls_ecp_check_privkey(&eck->grp, &eck->d)) != 0) {
-        return ret;
-    }
-#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
-
     return 0;
 }
 #endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
@@ -1309,12 +1301,6 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
             return ret;
         }
     }
-
-#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    if ((ret = mbedtls_ecp_check_privkey(&eck->grp, &eck->d)) != 0) {
-        return ret;
-    }
-#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
 
     return 0;
 }

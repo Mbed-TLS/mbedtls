@@ -113,7 +113,7 @@ def get_uncrustify_version() -> str:
     else:
         return str(result.stdout, "utf-8")
 
-def check_style_is_correct(src_file_list: List[str]) -> bool:
+def check_style_is_correct(src_file_list: List[str], use_git_diff: bool, use_pager: bool) -> bool:
     """
     Check the code style and output a diff for each file whose style is
     incorrect.
@@ -130,8 +130,18 @@ def check_style_is_correct(src_file_list: List[str]) -> bool:
 
         # Uncrustify makes changes to the code and places the result in a new
         # file with the extension ".uncrustify". To get the changes (if any)
-        # simply diff the 2 files.
-        diff_cmd = ["diff", "-u", src_file, src_file + ".uncrustify"]
+        # simply diff the 2 files
+
+        if use_git_diff:
+            if use_pager:
+                diff_cmd = ["git", "diff", "-u", "--no-index", src_file, src_file
+                            + ".uncrustify"]
+            else:
+                diff_cmd = ["git", "--no-pager", "diff", "-u", src_file, src_file
+                            + ".uncrustify"]
+        else:
+            diff_cmd = ["diff", "-u", src_file, src_file + ".uncrustify"]
+
         cp = subprocess.run(diff_cmd, check=False)
 
         if cp.returncode == 1:
@@ -206,6 +216,11 @@ def main() -> int:
                         help='only check the specified files (default with non-option arguments)')
     parser.add_argument('operands', nargs='*', metavar='FILE',
                         help='files to check (files MUST be known to git, if none: check all)')
+    parser.add_argument('-g', '--git', action='store_true',
+                        help='allow git to use a pager for diff')
+    parser.add_argument('-p', '--pager', action='store_true',
+                        help='allow git to use a pager for diff')
+
 
     args = parser.parse_args()
 
@@ -224,7 +239,7 @@ def main() -> int:
         return fix_style(src_files)
     else:
         # Check mode
-        if check_style_is_correct(src_files):
+        if check_style_is_correct(src_files, args.git, args.pager):
             print("Checked {} files, style ok.".format(len(src_files)))
             return 0
         else:

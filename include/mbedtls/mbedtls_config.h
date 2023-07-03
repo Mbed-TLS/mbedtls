@@ -3711,6 +3711,7 @@
  * MBEDTLS_PLATFORM_STD_CALLOC and MBEDTLS_PLATFORM_STD_FREE do not have to be defined at the same time, as, if they are used,
  * dynamic setup of these functions is possible. See the tree above to see how are they handled in all cases.
  */
+
 /** \def MBEDTLS_PLATFORM_STD_CALLOC
  *
  * Default allocator to use, can be undefined. See the description above for details.
@@ -3721,6 +3722,7 @@
  * The corresponding deallocation function is #MBEDTLS_PLATFORM_STD_FREE.
  */
 //#define MBEDTLS_PLATFORM_STD_CALLOC        calloc
+
 /** \def MBEDTLS_PLATFORM_STD_FREE
  *
  * Default free to use, can be undefined. See the description above for more details (same principles as for MBEDTLS_PLATFORM_STD_CALLOC apply).

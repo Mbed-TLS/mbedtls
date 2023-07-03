@@ -51,4 +51,5 @@ PREDEFINED             = "MBEDTLS_CHECK_RETURN_CRITICAL="   \
                          "MBEDTLS_CHECK_RETURN_TYPICAL="    \
                          "MBEDTLS_CHECK_RETURN_OPTIONAL="   \
                          "MBEDTLS_PRINTF_ATTRIBUTE(a,b)="   \
+                         "__DOXYGEN__"                      \
 

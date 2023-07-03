@@ -8572,6 +8572,26 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE*/
+void derive_input_invalid_cost(int alg_arg, int64_t cost)
+{
+    psa_algorithm_t alg = alg_arg;
+    psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
+
+    PSA_ASSERT(psa_crypto_init());
+    PSA_ASSERT(psa_key_derivation_setup(&operation, alg));
+
+    TEST_EQUAL(psa_key_derivation_input_integer(&operation,
+                                                PSA_KEY_DERIVATION_INPUT_COST,
+                                                cost),
+               PSA_ERROR_NOT_SUPPORTED);
+
+exit:
+    psa_key_derivation_abort(&operation);
+    PSA_DONE();
+}
+/* END_CASE*/
+
 /* BEGIN_CASE */
 void derive_over_capacity(int alg_arg)
 {

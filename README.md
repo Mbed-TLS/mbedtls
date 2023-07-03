@@ -48,7 +48,7 @@ You need the following tools to build the library with the provided makefiles:
 
 * GNU Make 3.82 or a build tool that CMake supports.
 * A C99 toolchain (compiler, linker, archiver). We actively test with GCC 5.4, Clang 3.8, IAR 8 and Visual Studio 2013. More recent versions should work. Slightly older versions may work.
-* Python 3.6 to generate the test code, and to generate sample programs in the development branch.
+* Python 3.6 to generate the test code. Python is also needed to integrate PSA drivers and to build the development branch (see next section).
 * Perl to run the tests, and to generate some source files in the development branch.
 * CMake 3.10.2 or later (if using CMake).
 * Microsoft Visual Studio 2013 or later (if using Visual Studio).

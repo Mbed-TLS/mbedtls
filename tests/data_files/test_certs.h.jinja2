@@ -36,13 +36,13 @@
 /* This is generated from {{value}}. */
 /* BEGIN FILE binary macro {{name}} {{value}} */
 #define {{name}} {% raw -%} { {%- endraw %} {{ '\\' | put_to_column(position=80-11-name|length)}}
-    {% for line in value | read_as_c_array %}
-        {% if not loop.last %}
+        {% for line in value | read_as_c_array %}
+            {% if not loop.last %}
         {{line}},{{ '\\' | put_to_column(position=80-9-line|length)}}
-        {% else %}
+            {% else %}
         {{line}}{{ '\\' | put_to_column(position=80-8-line|length)}}
-        {% endif %}
-    {% endfor %}
+            {% endif %}
+        {% endfor %}
 {% raw -%} } {%- endraw %}
 
 /* END FILE */

@@ -25,10 +25,13 @@ Note: must be run from Mbed TLS root.
 
 import argparse
 import os
+import re
 import subprocess
 import sys
+import typing
 from enum import Enum
 
+from mbedtls_dev import typing_util
 from mbedtls_dev import build_tree
 
 class SupportedArch(Enum):
@@ -44,7 +47,49 @@ CONFIG_TFM_MEDIUM_PSA_CRYPTO_H = "../configs/crypto_config_profile_medium.h"
 class SupportedConfig(Enum):
     """Supported configuration for code size measurement."""
     DEFAULT = 'default'
+    FULL = 'full'
     TFM_MEDIUM = 'tfm-medium'
+
+# Static library
+MBEDTLS_STATIC_LIB = {
+    'CRYPTO': 'library/libmbedcrypto.a',
+    'X509': 'library/libmbedx509.a',
+    'TLS': 'library/libmbedtls.a',
+}
+
+# Configurations need to be tweaked for aarch32/aarch64 with armclang
+ARCH_CONFIG_SET_FROM_DEFAULT = frozenset([
+    'MBEDTLS_NO_PLATFORM_ENTROPY'
+])
+ARCH_CONFIG_UNSET_FROM_DEFAULT = frozenset([
+    'MBEDTLS_FS_IO',
+    'MBEDTLS_HAVE_TIME',
+    'MBEDTLS_HAVE_TIME_DATE',
+    'MBEDTLS_NET_C',
+    'MBEDTLS_PSA_CRYPTO_STORAGE_C',
+    'MBEDTLS_PSA_ITS_FILE_C',
+    'MBEDTLS_TIMING_C'
+])
+ARCH_CONFIG_DICT = {
+    'set': ARCH_CONFIG_SET_FROM_DEFAULT,
+    'unset': ARCH_CONFIG_UNSET_FROM_DEFAULT,
+}
+
+# Configurations need to be tweaked for aarch32/aarch64 with armclang
+# ARCH_CONFIG_SET_FROM_DEFAULT = frozenset([
+    # 'MBEDTLS_NO_PLATFORM_ENTROPY'
+# ])
+# ARCH_CONFIG_UNSET_FROM_DEFAULT = frozenset([
+    # 'MBEDTLS_THREADING_PTHREAD',
+    # 'MBEDTLS_THREADING_C',
+    # 'MBEDTLS_HAVE_TIME',
+    # 'MBEDTLS_HAVE_TIME_DATE',
+    # 'MBEDTLS_PLATFORM_TIME_ALT',
+# ])
+# ARCH_CONFIG_DICT = {
+    # 'set': ARCH_CONFIG_SET_FROM_DEFAULT,
+    # 'unset': ARCH_CONFIG_UNSET_FROM_DEFAULT,
+# }
 
 DETECT_ARCH_CMD = "cc -dM -E - < /dev/null"
 def detect_arch() -> str:
@@ -62,12 +107,18 @@ def detect_arch() -> str:
         print("Unknown host architecture, cannot auto-detect arch.")
         sys.exit(1)
 
-class CodeSizeInfo: # pylint: disable=too-few-public-methods
+class CodeSizeInfo:
     """Gather information used to measure code size.
 
     It collects information about architecture, configuration in order to
     infer build command for code size measurement.
     """
+
+    PRE_MAKE_CMD = {
+        SupportedConfig.DEFAULT.value: '',
+        SupportedConfig.FULL.value: 'scripts/config.py full',
+        SupportedConfig.TFM_MEDIUM.value: ''
+    }
 
     SupportedArchConfig = [
         "-a " + SupportedArch.AARCH64.value + " -c " + SupportedConfig.DEFAULT.value,
@@ -77,54 +128,256 @@ class CodeSizeInfo: # pylint: disable=too-few-public-methods
         "-a " + SupportedArch.ARMV8_M.value + " -c " + SupportedConfig.TFM_MEDIUM.value,
     ]
 
-    def __init__(self, arch: str, config: str, sys_arch: str) -> None:
+    def __init__(
+            self,
+            arch: str,
+            config: str,
+            c_compiler: str,
+            sys_arch: str
+    ) -> None:
         """
         arch: architecture to measure code size on.
         config: configuration type to measure code size with.
+        sys_arch: TODO
+        c_compiler: TODO
         make_command: command to build library (Inferred from arch and config).
         """
         self.arch = arch
         self.config = config
         self.sys_arch = sys_arch
+
+        self.default_gcc = 'gcc'
+        self.default_clang = 'clang'
+        self.default_armclang = 'armclang'
+        self.tweak_config = False
+        self.pre_make_command = ''
+        self.c_compiler = self.set_c_compiler(c_compiler)
         self.make_command = self.set_make_command()
+
+    def set_c_compiler(self, c_compiler: str) -> str:
+        """TODO"""
+
+        # Comment TODO: handle default config
+        if self.config == SupportedConfig.DEFAULT.value:
+            if c_compiler:
+                if self.default_armclang in c_compiler and \
+                    (self.arch != SupportedArch.AARCH64.value and \
+                     self.arch != SupportedArch.AARCH32.value):
+                    print("Error: armclang is not supported on:", self.arch)
+                    sys.exit(1)
+                else:
+                    return c_compiler
+
+        # Comment TODO: handle full config
+        if self.config == SupportedConfig.FULL.value:
+            self.pre_make_command = CodeSizeInfo.PRE_MAKE_CMD[self.config]
+            if c_compiler:
+                if self.default_armclang in c_compiler and \
+                    (self.arch != SupportedArch.AARCH64.value and \
+                     self.arch != SupportedArch.AARCH32.value):
+                    print("Error: armclang is not supported on:", self.arch)
+                    sys.exit(1)
+                else:
+                    return c_compiler
+
+        # Comment TODO: handle tfm-medium config
+        elif self.config == SupportedConfig.TFM_MEDIUM.value:
+            if c_compiler is None:
+                return self.default_armclang
+            elif self.default_armclang in c_compiler:
+                return c_compiler
+            else:
+                print("Error: armclang is required to build configuration:",\
+                       SupportedConfig.TFM_MEDIUM.value)
+                sys.exit(1)
+
+        return self.default_gcc
 
     def set_make_command(self) -> str:
         """Infer build command based on architecture and configuration."""
 
-        if self.config == SupportedConfig.DEFAULT.value and \
-            self.arch == self.sys_arch:
-            return 'make -j lib CFLAGS=\'-Os \' '
+        # Comment TODO: handle default / full config
+        if self.config == SupportedConfig.DEFAULT.value or \
+            self.config == SupportedConfig.FULL.value:
+            if self.arch == self.sys_arch and self.c_compiler:
+                return 'make -j lib CC={CC} CFLAGS=\'-Os \' ' \
+                       .format(CC=self.c_compiler)
+            elif self.arch == SupportedArch.AARCH64.value and \
+                    self.default_armclang in self.c_compiler:
+                self.tweak_config = True
+                return 'make -j lib CC={CC} \
+                        CFLAGS=\'--target=aarch64-arm-none-eabi -Os \' ' \
+                       .format(CC=self.c_compiler)
+            elif self.arch == SupportedArch.AARCH32.value and \
+                    self.default_armclang in self.c_compiler:
+                self.tweak_config = True
+                return 'make -j lib CC={CC} \
+                        CFLAGS=\'--target=arm-arm-none-eabi -Os \' ' \
+                       .format(CC=self.c_compiler)
+
+        # Comment TODO: handle tfm-medium config
         elif self.arch == SupportedArch.ARMV8_M.value and \
              self.config == SupportedConfig.TFM_MEDIUM.value:
             return \
-                 'make -j lib CC=armclang \
+                 'make -j lib CC={CC} \
                   CFLAGS=\'--target=arm-arm-none-eabi -mcpu=cortex-m33 -Os \
-                 -DMBEDTLS_CONFIG_FILE=\\\"' + CONFIG_TFM_MEDIUM_MBEDCRYPTO_H + '\\\" \
-                 -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=\\\"' + CONFIG_TFM_MEDIUM_PSA_CRYPTO_H + '\\\" \''
+                 -DMBEDTLS_CONFIG_FILE=\\\"{MBEDCRYPTO_CONFIG}\\\" \
+                 -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=\\\"{PSACRYPTO_CONFIG}\\\" \' ' \
+                 .format(CC=self.c_compiler,
+                         MBEDCRYPTO_CONFIG=CONFIG_TFM_MEDIUM_MBEDCRYPTO_H,
+                         PSACRYPTO_CONFIG=CONFIG_TFM_MEDIUM_PSA_CRYPTO_H)
+
+        print("Unsupported combination of architecture: {} and configuration: {}"
+              .format(self.arch, self.config))
+        print("\nPlease use supported combination of architecture and configuration:")
+        for comb in CodeSizeInfo.SupportedArchConfig:
+            print(comb)
+        print("\nFor your system, please use:")
+        for comb in CodeSizeInfo.SupportedArchConfig:
+            if "default" in comb and self.sys_arch not in comb:
+                continue
+            print(comb)
+        sys.exit(1)
+
+class SizeEntry: # pylint: disable=too-few-public-methods
+    """Data Structure to only store information of code size."""
+    def __init__(self, text, data, bss, dec):
+        self.text = text
+        self.data = data
+        self.bss = bss
+        self.total = dec # total <=> dec
+
+class CodeSizeBase:
+    """Code Size Base Class for size record saving and writing."""
+
+    def __init__(self) -> None:
+        """ Variable code_size is used to store size info for any revisions.
+        code_size: (data format)
+        {revision: {module: {file_name: SizeEntry,
+                             etc ...
+                            },
+                    etc ...
+                   },
+         etc ...
+        }
+        """
+        self.code_size = {} #type: typing.Dict[str, typing.Dict]
+
+    def set_size_record(self, revision: str, mod: str, size_text: str) -> None:
+        """Store size information for target revision and high-level module.
+
+        size_text Format: text data bss dec hex filename
+        """
+        size_record = {}
+        for line in size_text.splitlines()[1:]:
+            data = line.split()
+            size_record[data[5]] = SizeEntry(data[0], data[1], data[2], data[3])
+        if revision in self.code_size:
+            self.code_size[revision].update({mod: size_record})
         else:
-            print("Unsupported combination of architecture: {} and configuration: {}"
-                  .format(self.arch, self.config))
-            print("\nPlease use supported combination of architecture and configuration:")
-            for comb in CodeSizeInfo.SupportedArchConfig:
-                print(comb)
-            print("\nFor your system, please use:")
-            for comb in CodeSizeInfo.SupportedArchConfig:
-                if "default" in comb and self.sys_arch not in comb:
+            self.code_size[revision] = {mod: size_record}
+
+    def read_size_record(self, revision: str, fname: str) -> None:
+        """Read size information from csv file and write it into code_size.
+
+        fname Format: filename text data bss dec
+        """
+        mod = ""
+        size_record = {}
+        with open(fname, 'r') as csv_file:
+            for line in csv_file:
+                data = line.strip().split()
+                # check if we find the beginning of a module
+                if data and data[0] in MBEDTLS_STATIC_LIB:
+                    mod = data[0]
                     continue
-                print(comb)
-            sys.exit(1)
+
+                if mod:
+                    size_record[data[0]] = \
+                        SizeEntry(data[1], data[2], data[3], data[4])
+
+                # check if we hit record for the end of a module
+                m = re.match(r'.?TOTALS', line)
+                if m:
+                    if revision in self.code_size:
+                        self.code_size[revision].update({mod: size_record})
+                    else:
+                        self.code_size[revision] = {mod: size_record}
+                    mod = ""
+                    size_record = {}
+
+    def _size_reader_helper(
+            self,
+            revision: str,
+            output: typing_util.Writable
+    ) -> typing.Iterator[tuple]:
+        """A helper function to peel code_size based on revision."""
+        for mod, file_size in self.code_size[revision].items():
+            output.write("\n" + mod + "\n")
+            for fname, size_entry in file_size.items():
+                yield mod, fname, size_entry
+
+    def write_size_record(
+            self,
+            revision: str,
+            output: typing_util.Writable
+    ) -> None:
+        """Write size information to a file.
+
+        Writing Format: file_name text data bss total(dec)
+        """
+        output.write("{:<30} {:>7} {:>7} {:>7} {:>7}\n"
+                     .format("filename", "text", "data", "bss", "total"))
+        for _, fname, size_entry in self._size_reader_helper(revision, output):
+            output.write("{:<30} {:>7} {:>7} {:>7} {:>7}\n"
+                         .format(fname, size_entry.text, size_entry.data,\
+                                 size_entry.bss, size_entry.total))
+
+    def write_comparison(
+            self,
+            old_rev: str,
+            new_rev: str,
+            output: typing_util.Writable
+    ) -> None:
+        """Write comparison result into a file.
+
+        Writing Format: file_name current(total) old(total) change(Byte) change_pct(%)
+        """
+        output.write("{:<30} {:>7} {:>7} {:>7} {:>7}\n"
+                     .format("filename", "current", "old", "change", "change%"))
+        for mod, fname, size_entry in self._size_reader_helper(new_rev, output):
+            new_size = int(size_entry.total)
+            # check if we have the file in old revision
+            if fname in self.code_size[old_rev][mod]:
+                old_size = int(self.code_size[old_rev][mod][fname].total)
+                change = new_size - old_size
+                if old_size != 0:
+                    change_pct = change / old_size
+                else:
+                    change_pct = 0
+                output.write("{:<30} {:>7} {:>7} {:>7} {:>7.2%}\n"
+                             .format(fname, new_size, old_size, change, change_pct))
+            else:
+                output.write("{} {}\n".format(fname, new_size))
 
 
-class CodeSizeComparison:
+class CodeSizeComparison(CodeSizeBase):
     """Compare code size between two Git revisions."""
 
-    def __init__(self, old_revision, new_revision, result_dir, code_size_info):
+    def __init__(
+            self,
+            old_revision: str,
+            new_revision: str,
+            result_dir: str,
+            code_size_info: CodeSizeInfo
+    ) -> None:
         """
         old_revision: revision to compare against.
         new_revision:
         result_dir: directory for comparison result.
         code_size_info: an object containing information to build library.
         """
+        super().__init__()
         self.repo_path = "."
         self.result_dir = os.path.abspath(result_dir)
         os.makedirs(self.result_dir, exist_ok=True)
@@ -135,22 +388,26 @@ class CodeSizeComparison:
         self.old_rev = old_revision
         self.new_rev = new_revision
         self.git_command = "git"
+        self.tweak_config = code_size_info.tweak_config
+        self.pre_make_command = code_size_info.pre_make_command
         self.make_command = code_size_info.make_command
-        self.fname_suffix = "-" + code_size_info.arch + "-" +\
-                            code_size_info.config
+        self.fname_suffix = "-" + \
+                            code_size_info.arch + "-" + \
+                            code_size_info.config + "-" + \
+                            code_size_info.c_compiler
 
     @staticmethod
-    def validate_revision(revision):
+    def validate_revision(revision: str) -> bytes:
         result = subprocess.check_output(["git", "rev-parse", "--verify",
                                           revision + "^{commit}"], shell=False)
         return result
 
-    def _create_git_worktree(self, revision):
+    def _create_git_worktree(self, revision: str) -> str:
         """Make a separate worktree for revision.
         Do not modify the current worktree."""
 
         if revision == "current":
-            print("Using current work directory.")
+            print("Using current work directory")
             git_worktree_path = self.repo_path
         else:
             print("Creating git worktree for", revision)
@@ -163,10 +420,41 @@ class CodeSizeComparison:
 
         return git_worktree_path
 
-    def _build_libraries(self, git_worktree_path):
+    @staticmethod
+    def _tweak_config(
+            config_dict: typing.Dict[str, frozenset],
+            git_worktree_path: str,
+            tweak: bool
+    ) -> None:
+        """Tweak configurations in the specified worktree."""
+        for opt, config_set in config_dict.items():
+            if not tweak:
+                if opt == 'set':
+                    opt = 'unset'
+                else:
+                    opt = 'set'
+            for config in config_set:
+                config_command = "./scripts/config.py " + opt + " " + config
+                subprocess.check_output(
+                    config_command, shell=True,
+                    cwd=git_worktree_path, stderr=subprocess.STDOUT
+                )
+
+    def _build_libraries(self, git_worktree_path: str) -> None:
         """Build libraries in the specified worktree."""
 
         my_environment = os.environ.copy()
+        if self.pre_make_command:
+            try:
+                subprocess.check_output(
+                    self.pre_make_command, env=my_environment, shell=True,
+                    cwd=git_worktree_path, stderr=subprocess.STDOUT,
+                )
+            except subprocess.CalledProcessError as e:
+                self._handle_called_process_error(e, git_worktree_path)
+
+        if self.tweak_config:
+            self._tweak_config(ARCH_CONFIG_DICT, git_worktree_path, True)
         try:
             subprocess.check_output(
                 self.make_command, env=my_environment, shell=True,
@@ -174,25 +462,34 @@ class CodeSizeComparison:
             )
         except subprocess.CalledProcessError as e:
             self._handle_called_process_error(e, git_worktree_path)
+        if self.tweak_config:
+            self._tweak_config(ARCH_CONFIG_DICT, git_worktree_path, False)
 
-    def _gen_code_size_csv(self, revision, git_worktree_path):
+    def _gen_code_size_csv(self, revision: str, git_worktree_path: str) -> None:
         """Generate code size csv file."""
 
-        csv_fname = revision + self.fname_suffix + ".csv"
         if revision == "current":
-            print("Measuring code size in current work directory.")
+            print("Measuring code size in current work directory")
         else:
             print("Measuring code size for", revision)
-        result = subprocess.check_output(
-            ["size library/*.o"], cwd=git_worktree_path, shell=True
-        )
-        size_text = result.decode()
-        csv_file = open(os.path.join(self.csv_dir, csv_fname), "w")
-        for line in size_text.splitlines()[1:]:
-            data = line.split()
-            csv_file.write("{}, {}\n".format(data[5], data[3]))
 
-    def _remove_worktree(self, git_worktree_path):
+        for mod, st_lib in MBEDTLS_STATIC_LIB.items():
+            try:
+                result = subprocess.check_output(
+                    ["size", st_lib, "-t"], cwd=git_worktree_path
+                )
+            except subprocess.CalledProcessError as e:
+                self._handle_called_process_error(e, git_worktree_path)
+            size_text = result.decode("utf-8")
+
+            self.set_size_record(revision, mod, size_text)
+
+        print("Generating code size csv for", revision)
+        csv_file = open(os.path.join(self.csv_dir, revision +
+                                     self.fname_suffix + ".csv"), "w")
+        self.write_size_record(revision, csv_file)
+
+    def _remove_worktree(self, git_worktree_path: str) -> None:
         """Remove temporary worktree."""
         if git_worktree_path != self.repo_path:
             print("Removing temporary worktree", git_worktree_path)
@@ -202,7 +499,7 @@ class CodeSizeComparison:
                 stderr=subprocess.STDOUT
             )
 
-    def _get_code_size_for_rev(self, revision):
+    def _get_code_size_for_rev(self, revision: str) -> None:
         """Generate code size csv file for the specified git revision."""
 
         # Check if the corresponding record exists
@@ -210,66 +507,39 @@ class CodeSizeComparison:
         if (revision != "current") and \
            os.path.exists(os.path.join(self.csv_dir, csv_fname)):
             print("Code size csv file for", revision, "already exists.")
+            self.read_size_record(revision, os.path.join(self.csv_dir, csv_fname))
         else:
             git_worktree_path = self._create_git_worktree(revision)
             self._build_libraries(git_worktree_path)
             self._gen_code_size_csv(revision, git_worktree_path)
             self._remove_worktree(git_worktree_path)
 
-    def compare_code_size(self):
+    def _gen_code_size_comparison(self) -> int:
         """Generate results of the size changes between two revisions,
         old and new. Measured code size results of these two revisions
         must be available."""
 
-        old_file = open(os.path.join(self.csv_dir, self.old_rev +
-                                     self.fname_suffix + ".csv"), "r")
-        new_file = open(os.path.join(self.csv_dir, self.new_rev +
-                                     self.fname_suffix + ".csv"), "r")
         res_file = open(os.path.join(self.result_dir, "compare-" +
                                      self.old_rev + "-" + self.new_rev +
                                      self.fname_suffix +
                                      ".csv"), "w")
 
-        res_file.write("file_name, this_size, old_size, change, change %\n")
-        print("Generating comparison results.")
+        print("\nGenerating comparison results between",\
+                self.old_rev, "and", self.new_rev)
+        self.write_comparison(self.old_rev, self.new_rev, res_file)
 
-        old_ds = {}
-        for line in old_file.readlines():
-            cols = line.split(", ")
-            fname = cols[0]
-            size = int(cols[1])
-            if size != 0:
-                old_ds[fname] = size
-
-        new_ds = {}
-        for line in new_file.readlines():
-            cols = line.split(", ")
-            fname = cols[0]
-            size = int(cols[1])
-            new_ds[fname] = size
-
-        for fname in new_ds:
-            this_size = new_ds[fname]
-            if fname in old_ds:
-                old_size = old_ds[fname]
-                change = this_size - old_size
-                change_pct = change / old_size
-                res_file.write("{}, {}, {}, {}, {:.2%}\n".format(fname, \
-                               this_size, old_size, change, float(change_pct)))
-            else:
-                res_file.write("{}, {}\n".format(fname, this_size))
         return 0
 
-    def get_comparision_results(self):
+    def get_comparision_results(self) -> int:
         """Compare size of library/*.o between self.old_rev and self.new_rev,
         and generate the result file."""
         build_tree.check_repo_path()
         self._get_code_size_for_rev(self.old_rev)
         self._get_code_size_for_rev(self.new_rev)
-        return self.compare_code_size()
+        return self._gen_code_size_comparison()
 
     def _handle_called_process_error(self, e: subprocess.CalledProcessError,
-                                     git_worktree_path):
+                                     git_worktree_path: str) -> None:
         """Handle a CalledProcessError and quit the program gracefully.
         Remove any extra worktrees so that the script may be called again."""
 
@@ -312,6 +582,10 @@ def main():
         choices=list(map(lambda s: s.value, SupportedConfig)),
         help="specify configuration type for code size comparison,\
               default is the current MbedTLS configuration.")
+    group_optional.add_argument(
+        "--cc", type=str, default=None, dest='c_compiler',
+        help="specify C Compiler for code size comparison, default is None\
+              which is default C Compiler in your system.")
     comp_args = parser.parse_args()
 
     if os.path.isfile(comp_args.result_dir):
@@ -328,9 +602,10 @@ def main():
         new_revision = "current"
 
     code_size_info = CodeSizeInfo(comp_args.arch, comp_args.config,
-                                  detect_arch())
-    print("Measure code size for architecture: {}, configuration: {}"
-          .format(code_size_info.arch, code_size_info.config))
+                                  comp_args.c_compiler, detect_arch())
+    print("Measure code size for architecture: {}, configuration: {}, C Compiler: {}\n"
+          .format(code_size_info.arch, code_size_info.config,
+                  code_size_info.c_compiler))
     result_dir = comp_args.result_dir
     size_compare = CodeSizeComparison(old_revision, new_revision, result_dir,
                                       code_size_info)

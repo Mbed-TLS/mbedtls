@@ -777,7 +777,7 @@ static int ssl_tls13_parse_supported_versions_ext(mbedtls_ssl_context *ssl,
     return (int) tls_version;
 }
 
-#if defined(PSA_WANT_ALG_ECDH)
+#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
 /*
  *
  * From RFC 8446:
@@ -833,11 +833,11 @@ static int ssl_tls13_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
     return 0;
 
 }
-#endif /* PSA_WANT_ALG_ECDH */
+#endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
 
 #define SSL_TLS1_3_PARSE_KEY_SHARES_EXT_NO_MATCH 1
 
-#if defined(PSA_WANT_ALG_ECDH)
+#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
 /*
  *  ssl_tls13_parse_key_shares_ext() verifies whether the information in the
  *  extension is correct and stores the first acceptable key share and its
@@ -911,10 +911,11 @@ static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
         }
 
         /*
-         * For now, we only support ECDHE groups.
+         * ECDHE and FFDHE groups are supported
          */
-        if (mbedtls_ssl_tls13_named_group_is_ecdhe(group)) {
-            MBEDTLS_SSL_DEBUG_MSG(2, ("ECDH group: %s (%04x)",
+        if (mbedtls_ssl_tls13_named_group_is_ecdhe(group) ||
+            mbedtls_ssl_tls13_named_group_is_dhe(group)) {
+            MBEDTLS_SSL_DEBUG_MSG(2, ("ECDH/FFDH group: %s (%04x)",
                                       mbedtls_ssl_named_group_to_str(group),
                                       group));
             ret = mbedtls_ssl_tls13_read_public_ecdhe_share(
@@ -939,7 +940,7 @@ static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
     }
     return 0;
 }
-#endif /* PSA_WANT_ALG_ECDH */
+#endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_client_hello_has_exts(mbedtls_ssl_context *ssl,
@@ -1541,7 +1542,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                 break;
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
-#if defined(PSA_WANT_ALG_ECDH)
+#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
             case MBEDTLS_TLS_EXT_SUPPORTED_GROUPS:
                 MBEDTLS_SSL_DEBUG_MSG(3, ("found supported group extension"));
 
@@ -1560,9 +1561,9 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                 }
 
                 break;
-#endif /* PSA_WANT_ALG_ECDH */
+#endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH*/
 
-#if defined(PSA_WANT_ALG_ECDH)
+#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
             case MBEDTLS_TLS_EXT_KEY_SHARE:
                 MBEDTLS_SSL_DEBUG_MSG(3, ("found key share extension"));
 
@@ -1587,7 +1588,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                 }
 
                 break;
-#endif /* PSA_WANT_ALG_ECDH */
+#endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
 
             case MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS:
                 /* Already parsed */
@@ -1912,18 +1913,19 @@ static int ssl_tls13_generate_and_write_key_share(mbedtls_ssl_context *ssl,
 
     *out_len = 0;
 
-#if defined(PSA_WANT_ALG_ECDH)
-    if (mbedtls_ssl_tls13_named_group_is_ecdhe(named_group)) {
-        ret = mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
+#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
+    if (mbedtls_ssl_tls13_named_group_is_ecdhe(named_group) ||
+        mbedtls_ssl_tls13_named_group_is_dhe(named_group)) {
+        ret = mbedtls_ssl_tls13_generate_and_write_dh_key_exchange(
             ssl, named_group, buf, end, out_len);
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(
-                1, "mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange",
+                1, "mbedtls_ssl_tls13_generate_and_write_dh_key_exchange",
                 ret);
             return ret;
         }
     } else
-#endif /* PSA_WANT_ALG_ECDH */
+#endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
     if (0 /* Other kinds of KEMs */) {
     } else {
         ((void) ssl);

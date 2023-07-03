@@ -40,7 +40,6 @@
 #include "mbedtls/pk.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/error.h"
-
 #include <string.h>
 
 /* Translations for symmetric crypto. */
@@ -234,6 +233,9 @@ static inline int mbedtls_psa_get_ecc_oid_from_id(
 
 #define MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH \
     PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)
+
+#define MBEDTLS_PSA_MAX_FFDH_PUBKEY_LENGTH \
+    PSA_KEY_EXPORT_FFDH_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_FFDH_MAX_KEY_BITS)
 
 /* Expose whatever RNG the PSA subsystem uses to applications using the
  * mbedtls_xxx API. The declarations and definitions here need to be

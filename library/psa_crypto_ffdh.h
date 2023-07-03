@@ -50,7 +50,7 @@
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY   \emptydescription
  * \retval #PSA_ERROR_CORRUPTION_DETECTED   \emptydescription
  */
-psa_status_t mbedtls_psa_key_agreement_ffdh(
+psa_status_t mbedtls_psa_ffdh_key_agreement(
     const psa_key_attributes_t *attributes,
     const uint8_t *peer_key,
     size_t peer_key_length,
@@ -77,7 +77,7 @@ psa_status_t mbedtls_psa_key_agreement_ffdh(
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY   \emptydescription
  * \retval #PSA_ERROR_CORRUPTION_DETECTED   \emptydescription
  */
-psa_status_t mbedtls_psa_export_ffdh_public_key(
+psa_status_t mbedtls_psa_ffdh_export_public_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,

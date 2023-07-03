@@ -4216,12 +4216,13 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
     mbedtls_ssl_buffering_free(ssl);
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-#if defined(PSA_WANT_ALG_ECDH) && \
+#if (defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)) && \
     (defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3))
     if (handshake->ecdh_psa_privkey_is_external == 0) {
         psa_destroy_key(handshake->ecdh_psa_privkey);
     }
-#endif /* PSA_WANT_ALG_ECDH && (MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3) */
+#endif /* (PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH) &&
+          (MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3) */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     mbedtls_ssl_transform_free(handshake->transform_handshake);
@@ -4951,6 +4952,13 @@ static uint16_t ssl_preset_default_groups[] = {
 #if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
     MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1,
 #endif
+#if defined(PSA_WANT_ALG_FFDH)
+    MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048,
+    MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072,
+    MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096,
+    MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144,
+    MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192,
+#endif
     MBEDTLS_SSL_IANA_TLS_GROUP_NONE
 };
 
@@ -5609,13 +5617,13 @@ static const struct {
 };
 
 int mbedtls_ssl_get_psa_curve_info_from_tls_id(uint16_t tls_id,
-                                               psa_ecc_family_t *family,
+                                               psa_key_type_t *type,
                                                size_t *bits)
 {
     for (int i = 0; tls_id_match_table[i].tls_id != 0; i++) {
         if (tls_id_match_table[i].tls_id == tls_id) {
-            if (family != NULL) {
-                *family = tls_id_match_table[i].psa_family;
+            if (type != NULL) {
+                *type = PSA_KEY_TYPE_ECC_KEY_PAIR(tls_id_match_table[i].psa_family);
             }
             if (bits != NULL) {
                 *bits = tls_id_match_table[i].bits;

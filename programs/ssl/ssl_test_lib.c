@@ -449,4 +449,139 @@ void test_hooks_free(void)
 
 #endif /* MBEDTLS_TEST_HOOKS */
 
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
+    defined(PSA_WANT_ALG_FFDH)
+
+/* Finite Field Group Names (DHE) */
+#define MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE2048     "ffdhe2048"
+#define MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE3072     "ffdhe3072"
+#define MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE4096     "ffdhe4096"
+#define MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE6144     "ffdhe6144"
+#define MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE8192     "ffdhe8192"
+
+static uint16_t mbedtls_ssl_ffdh_group_from_name(const char *name)
+{
+    if (strcmp(name, MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE2048) == 0) {
+        return MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048;
+    } else if (strcmp(name, MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE3072) == 0) {
+        return MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072;
+    } else if (strcmp(name, MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE4096) == 0) {
+        return MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096;
+    } else if (strcmp(name, MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE6144) == 0) {
+        return MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144;
+    } else if (strcmp(name, MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE8192) == 0) {
+        return MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192;
+    }
+    return 0;
+}
+
+static const uint16_t *mbedtls_ssl_ffdh_supported_groups(void)
+{
+    static const uint16_t ffdh_groups[] = {
+        MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048,
+        MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072,
+        MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096,
+        MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144,
+        MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192,
+        0
+    };
+    return ffdh_groups;
+}
+
+static inline const char *mbedtls_ssl_ffdh_name_from_group(uint16_t group)
+{
+    switch (group) {
+        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048:
+            return MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE2048;
+        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072:
+            return MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE3072;
+        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096:
+            return MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE4096;
+        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144:
+            return MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE6144;
+        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192:
+            return MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE8192;
+        default:
+            return NULL;
+    }
+    return NULL;
+}
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED && PSA_WANT_ALG_FFDH */
+
+int parse_curves(const char *curves, uint16_t *group_list, size_t group_list_len)
+{
+    char *p = (char *) curves;
+    char *q = NULL;
+    size_t i = 0;
+
+    if (strcmp(p, "none") == 0) {
+        group_list[0] = 0;
+    } else if (strcmp(p, "default") != 0) {
+        /* Leave room for a final NULL in curve list */
+        while (i < group_list_len - 1 && *p != '\0') {
+            q = p;
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
+            defined(PSA_WANT_ALG_FFDH)
+            uint16_t ffdh_group = 0;
+#endif
+#if defined(MBEDTLS_ECP_LIGHT)
+            const mbedtls_ecp_curve_info *curve_cur = NULL;
+#endif
+            /* Terminate the current string */
+            while (*p != ',' && *p != '\0') {
+                p++;
+            }
+            if (*p == ',') {
+                *p++ = '\0';
+            }
+
+#if defined(MBEDTLS_ECP_LIGHT)
+            if ((curve_cur = mbedtls_ecp_curve_info_from_name(q)) != NULL) {
+                group_list[i++] = curve_cur->tls_id;
+            } else
+#endif
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
+            defined(PSA_WANT_ALG_FFDH)
+            if ((ffdh_group = mbedtls_ssl_ffdh_group_from_name(q)) != 0) {
+                group_list[i++] = ffdh_group;
+            } else
+#endif
+            {
+                mbedtls_printf("unknown curve %s\n", q);
+#if defined(MBEDTLS_ECP_LIGHT)
+                mbedtls_printf("supported curves: ");
+                for (curve_cur = mbedtls_ecp_curve_list();
+                     curve_cur->grp_id != MBEDTLS_ECP_DP_NONE;
+                     curve_cur++) {
+                    mbedtls_printf("%s ", curve_cur->name);
+                }
+#endif
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
+                defined(PSA_WANT_ALG_FFDH)
+                const uint16_t *supported_ffdh_group = mbedtls_ssl_ffdh_supported_groups();
+                while (*supported_ffdh_group != 0) {
+                    mbedtls_printf("%s ",
+                                   mbedtls_ssl_ffdh_name_from_group(*supported_ffdh_group));
+                    supported_ffdh_group++;
+                }
+#endif
+                mbedtls_printf("\n");
+                return -1;
+            }
+        }
+
+        mbedtls_printf("Number of curves: %u\n", (unsigned int) i);
+
+        if (i == group_list_len - 1 && *p != '\0') {
+            mbedtls_printf("curves list too long, maximum %u",
+                           (unsigned int) (group_list_len - 1));
+            return -1;
+        }
+
+        group_list[i] = 0;
+    }
+
+    return 0;
+}
+
 #endif /* !defined(MBEDTLS_SSL_TEST_IMPOSSIBLE) */

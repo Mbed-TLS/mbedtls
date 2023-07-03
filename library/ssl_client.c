@@ -184,8 +184,8 @@ static int ssl_write_alpn_ext(mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_ALPN */
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_2_SOME_ECC) || \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
 /*
  * Function for writing a supported groups (TLS 1.3) or supported elliptic
  * curves (TLS 1.2) extension.
@@ -223,7 +223,6 @@ static int ssl_write_alpn_ext(mbedtls_ssl_context *ssl,
  * generalization of the TLS 1.2 supported elliptic curves extension. They both
  * share the same extension identifier.
  *
- * DHE groups are not supported yet.
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
@@ -257,7 +256,9 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
     for (; *group_list != 0; group_list++) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("got supported group(%04x)", *group_list));
 
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_SSL_TLS1_2_SOME_ECC) || \
+        (defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
+        defined(PSA_WANT_ALG_ECDH))
         if ((mbedtls_ssl_conf_is_tls13_enabled(ssl->conf) &&
              mbedtls_ssl_tls13_named_group_is_ecdhe(*group_list)) ||
             (mbedtls_ssl_conf_is_tls12_enabled(ssl->conf) &&
@@ -273,9 +274,20 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
                                       mbedtls_ssl_get_curve_name_from_tls_id(*group_list),
                                       *group_list));
         }
-#endif /* MBEDTLS_ECP_LIGHT */
-        /* Add DHE groups here */
+#endif /* MBEDTLS_SSL_TLS1_2_SOME_ECC ||
+          (MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED && PSA_WANT_ALG_ECDH) */
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
+        defined(PSA_WANT_ALG_FFDH)
+        if ((mbedtls_ssl_conf_is_tls13_enabled(ssl->conf) &&
+             mbedtls_ssl_tls13_named_group_is_dhe(*group_list))) {
 
+            MBEDTLS_SSL_DEBUG_MSG(3, ("NamedGroup: %s ( %x )",
+                                      mbedtls_ssl_named_group_to_str(*group_list), *group_list));
+            MBEDTLS_SSL_CHK_BUF_PTR(p, end, 2);
+            MBEDTLS_PUT_UINT16_BE(*group_list, p, 0);
+            p += 2;
+        }
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED && PSA_WANT_ALG_FFDH */
     }
 
     /* Length of named_group_list */
@@ -304,9 +316,8 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
 
     return 0;
 }
-
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
-          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_2_SOME_ECC ||
+          MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_write_client_hello_cipher_suites(
@@ -597,8 +608,8 @@ static int ssl_write_client_hello_body(mbedtls_ssl_context *ssl,
     }
 #endif
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_2_SOME_ECC) || \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
     if (
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         (propose_tls13 &&
@@ -614,7 +625,8 @@ static int ssl_write_client_hello_body(mbedtls_ssl_context *ssl,
         }
         p += output_len;
     }
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C || MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_2_SOME_ECC ||
+          MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     if (

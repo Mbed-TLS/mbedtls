@@ -123,7 +123,7 @@ cleanup:
 
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_LEGACY) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY)
-psa_status_t mbedtls_psa_export_ffdh_public_key(
+psa_status_t mbedtls_psa_ffdh_export_public_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
@@ -150,7 +150,9 @@ psa_status_t mbedtls_psa_export_ffdh_public_key(
     mbedtls_mpi_init(&GX); mbedtls_mpi_init(&G);
     mbedtls_mpi_init(&X); mbedtls_mpi_init(&P);
 
-    status = mbedtls_psa_ffdh_set_prime_generator(data_size, &P, &G);
+    size_t key_len = PSA_BITS_TO_BYTES(attributes->core.bits);
+
+    status = mbedtls_psa_ffdh_set_prime_generator(key_len, &P, &G);
 
     if (status != PSA_SUCCESS) {
         goto cleanup;
@@ -160,9 +162,9 @@ psa_status_t mbedtls_psa_export_ffdh_public_key(
                                             key_buffer_size));
 
     MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&GX, &G, &X, &P, NULL));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&GX, data, data_size));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&GX, data, key_len));
 
-    *data_length = data_size;
+    *data_length = key_len;
 
     ret = 0;
 cleanup:
@@ -232,7 +234,7 @@ psa_status_t mbedtls_psa_ffdh_import_key(
           MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY */
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_FFDH)
-psa_status_t mbedtls_psa_key_agreement_ffdh(
+psa_status_t mbedtls_psa_ffdh_key_agreement(
     const psa_key_attributes_t *attributes,
     const uint8_t *peer_key,
     size_t peer_key_length,

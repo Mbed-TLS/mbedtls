@@ -1720,7 +1720,7 @@ static int ssl_parse_server_ecdh_params(mbedtls_ssl_context *ssl,
     uint16_t tls_id;
     uint8_t ecpoint_len;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-    psa_ecc_family_t ec_psa_family = 0;
+    psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
     size_t ec_bits = 0;
 
     /*
@@ -1757,11 +1757,11 @@ static int ssl_parse_server_ecdh_params(mbedtls_ssl_context *ssl,
     }
 
     /* Convert EC's TLS ID to PSA key type. */
-    if (mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id, &ec_psa_family,
+    if (mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id, &key_type,
                                                    &ec_bits) == PSA_ERROR_NOT_SUPPORTED) {
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
-    handshake->ecdh_psa_type = PSA_KEY_TYPE_ECC_KEY_PAIR(ec_psa_family);
+    handshake->ecdh_psa_type = key_type;
     handshake->ecdh_bits = ec_bits;
 
     /* Keep a copy of the peer's public key */
@@ -1770,9 +1770,11 @@ static int ssl_parse_server_ecdh_params(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
 
+#if !defined(PSA_WANT_ALG_FFDH)
     if (ecpoint_len > sizeof(handshake->ecdh_psa_peerkey)) {
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
+#endif
 
     memcpy(handshake->ecdh_psa_peerkey, *p, ecpoint_len);
     handshake->ecdh_psa_peerkey_len = ecpoint_len;
@@ -2018,7 +2020,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     uint16_t tls_id = 0;
-    psa_ecc_family_t ecc_family;
+    psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
     mbedtls_ecp_group_id grp_id = mbedtls_pk_get_group_id(peer_pk);
 
     if (mbedtls_ssl_check_curve(ssl, grp_id) != 0) {
@@ -2035,10 +2037,10 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 
     /* If the above conversion to TLS ID was fine, then also this one will be,
        so there is no need to check the return value here */
-    mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id, &ecc_family,
+    mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id, &key_type,
                                                &ssl->handshake->ecdh_bits);
 
-    ssl->handshake->ecdh_psa_type = PSA_KEY_TYPE_ECC_KEY_PAIR(ecc_family);
+    ssl->handshake->ecdh_psa_type = key_type;
 
     /* Store peer's public key in psa format. */
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)

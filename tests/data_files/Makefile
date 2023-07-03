@@ -379,6 +379,7 @@ all_final += server8_int-ca2.crt
 
 cli2.req.sha256: cli2.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL,CN=PolarSSL Test Client 2" md=SHA256
+all_intermediate += cli2.req.sha256
 
 all_final += server1.req.sha1
 cli2.crt: cli2.req.sha256

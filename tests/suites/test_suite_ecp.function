@@ -1377,8 +1377,8 @@ void ecp_mod_p_generic_raw(int curve_id,
 
     TEST_EQUAL((*curve_func)(X, limbs_X), 0);
 
-    TEST_LE_U(mbedtls_mpi_core_bitlen(X, limbs_X), curve_bits);
     mbedtls_mpi_mod_raw_fix_quasi_reduction(X, &m);
+    TEST_LE_U(mbedtls_mpi_core_bitlen(X, limbs_X), curve_bits);
     TEST_MEMORY_COMPARE(X, bytes, res, bytes);
 
 exit:

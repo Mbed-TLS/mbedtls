@@ -181,10 +181,13 @@ int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
     type = psa_get_key_type(&attributes);
     psa_reset_key_attributes(&attributes);
 
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(type)) {
-        info = &mbedtls_pk_ecdsa_opaque_info;
-    } else if (type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
-        info = &mbedtls_pk_rsa_opaque_info;
+        info = &mbedtls_ecdsa_opaque_info;
+    } else
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+    if (type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
+        info = &mbedtls_rsa_opaque_info;
     } else {
         return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
     }

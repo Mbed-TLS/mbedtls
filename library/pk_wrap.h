@@ -134,8 +134,8 @@ extern const mbedtls_pk_info_t mbedtls_rsa_alt_info;
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-extern const mbedtls_pk_info_t mbedtls_pk_ecdsa_opaque_info;
-extern const mbedtls_pk_info_t mbedtls_pk_rsa_opaque_info;
+extern const mbedtls_pk_info_t mbedtls_ecdsa_opaque_info;
+extern const mbedtls_pk_info_t mbedtls_rsa_opaque_info;
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)

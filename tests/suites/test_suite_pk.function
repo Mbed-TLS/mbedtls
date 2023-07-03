@@ -223,8 +223,6 @@ void pk_psa_utils(int key_is_rsa)
     mbedtls_pk_init(&pk2);
     USE_PSA_INIT();
 
-    TEST_ASSERT(psa_crypto_init() == PSA_SUCCESS);
-
     TEST_ASSERT(mbedtls_pk_setup_opaque(&pk, MBEDTLS_SVC_KEY_ID_INIT) ==
                 MBEDTLS_ERR_PK_BAD_INPUT_DATA);
 
@@ -261,10 +259,11 @@ void pk_psa_utils(int key_is_rsa)
     }
 
     /* unsupported operations: verify, decrypt, encrypt */
-    TEST_ASSERT(mbedtls_pk_verify(&pk, md_alg,
-                                  b1, sizeof(b1), b2, sizeof(b2))
-                == MBEDTLS_ERR_PK_TYPE_MISMATCH);
-    if (key_is_rsa == 0) {
+    if (key_is_rsa == 1) {
+        TEST_ASSERT(mbedtls_pk_verify(&pk, md_alg,
+                                      b1, sizeof(b1), b2, sizeof(b2))
+                    == MBEDTLS_ERR_PK_TYPE_MISMATCH);
+    } else {
         TEST_ASSERT(mbedtls_pk_decrypt(&pk, b1, sizeof(b1),
                                        b2, &len, sizeof(b2),
                                        NULL, NULL)
@@ -1367,6 +1366,11 @@ void pk_psa_sign(int parameter_arg,
     TEST_ASSERT(mbedtls_pk_sign(&pk, MBEDTLS_MD_SHA256,
                                 hash, sizeof(hash), sig, sizeof(sig), &sig_len,
                                 NULL, NULL) == 0);
+    /* Only opaque EC keys support verification. */
+    if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(psa_type_arg)) {
+        TEST_ASSERT(mbedtls_pk_verify(&pk, MBEDTLS_MD_SHA256,
+                                      hash, sizeof(hash), sig, sig_len) == 0);
+    }
 
     /* Export underlying public key for re-importing in a psa context. */
 #if defined(MBEDTLS_PK_WRITE_C)

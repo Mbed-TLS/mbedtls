@@ -6608,18 +6608,18 @@ static int ssl_calc_verify_tls_psa(const mbedtls_ssl_context *ssl,
                                    size_t *hlen)
 {
     psa_status_t status;
-    psa_hash_operation_t copy = psa_hash_operation_init();
+    psa_hash_operation_t cloned_op = psa_hash_operation_init();
 
 #if !defined(MBEDTLS_DEBUG_C)
     (void) ssl;
 #endif
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> PSA calc verify"));
-    status = psa_hash_clone(hs_op, &copy);
+    status = psa_hash_clone(hs_op, &cloned_op);
     if (status != PSA_SUCCESS) {
         goto exit;
     }
 
-    status = psa_hash_finish(&copy, hash, buffer_size, hlen);
+    status = psa_hash_finish(&cloned_op, hash, buffer_size, hlen);
     if (status != PSA_SUCCESS) {
         goto exit;
     }
@@ -6628,7 +6628,7 @@ static int ssl_calc_verify_tls_psa(const mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG(2, ("<= PSA calc verify"));
 
 exit:
-    psa_hash_abort(&copy);
+    psa_hash_abort(&cloned_op);
     return mbedtls_md_error_from_psa(status);
 }
 #else
@@ -6638,25 +6638,25 @@ static int ssl_calc_verify_tls_legacy(const mbedtls_ssl_context *ssl,
                                       size_t *hlen)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_md_context_t copy;
+    mbedtls_md_context_t cloned_ctx;
 
-    mbedtls_md_init(&copy);
+    mbedtls_md_init(&cloned_ctx);
 
 #if !defined(MBEDTLS_DEBUG_C)
     (void) ssl;
 #endif
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> calc verify"));
 
-    ret = mbedtls_md_setup(&copy, mbedtls_md_info_from_ctx(hs_ctx), 0);
+    ret = mbedtls_md_setup(&cloned_ctx, mbedtls_md_info_from_ctx(hs_ctx), 0);
     if (ret != 0) {
         goto exit;
     }
-    ret = mbedtls_md_clone(&copy, hs_ctx);
+    ret = mbedtls_md_clone(&cloned_ctx, hs_ctx);
     if (ret != 0) {
         goto exit;
     }
 
-    ret = mbedtls_md_finish(&copy, hash);
+    ret = mbedtls_md_finish(&cloned_ctx, hash);
     if (ret != 0) {
         goto exit;
     }
@@ -6667,7 +6667,7 @@ static int ssl_calc_verify_tls_legacy(const mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG(2, ("<= calc verify"));
 
 exit:
-    mbedtls_md_free(&copy);
+    mbedtls_md_free(&cloned_ctx);
     return ret;
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -7648,13 +7648,13 @@ static int ssl_calc_finished_tls_generic(mbedtls_ssl_context *ssl, void *ctx,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status;
     psa_hash_operation_t *hs_op = ctx;
-    psa_hash_operation_t copy = PSA_HASH_OPERATION_INIT;
+    psa_hash_operation_t cloned_op = PSA_HASH_OPERATION_INIT;
     size_t hash_size;
 #else
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_md_context_t *hs_ctx = ctx;
-    mbedtls_md_context_t copy;
-    mbedtls_md_init(&copy);
+    mbedtls_md_context_t cloned_ctx;
+    mbedtls_md_init(&cloned_ctx);
 #endif
 
     mbedtls_ssl_session *session = ssl->session_negotiate;
@@ -7669,12 +7669,12 @@ static int ssl_calc_finished_tls_generic(mbedtls_ssl_context *ssl, void *ctx,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> calc PSA finished tls"));
 
-    status = psa_hash_clone(hs_op, &copy);
+    status = psa_hash_clone(hs_op, &cloned_op);
     if (status != PSA_SUCCESS) {
         goto exit;
     }
 
-    status = psa_hash_finish(&copy, padbuf, hlen, &hash_size);
+    status = psa_hash_finish(&cloned_op, padbuf, hlen, &hash_size);
     if (status != PSA_SUCCESS) {
         goto exit;
     }
@@ -7682,16 +7682,16 @@ static int ssl_calc_finished_tls_generic(mbedtls_ssl_context *ssl, void *ctx,
 #else
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> calc finished tls"));
 
-    ret = mbedtls_md_setup(&copy, mbedtls_md_info_from_ctx(hs_ctx), 0);
+    ret = mbedtls_md_setup(&cloned_ctx, mbedtls_md_info_from_ctx(hs_ctx), 0);
     if (ret != 0) {
         goto exit;
     }
-    ret = mbedtls_md_clone(&copy, hs_ctx);
+    ret = mbedtls_md_clone(&cloned_ctx, hs_ctx);
     if (ret != 0) {
         goto exit;
     }
 
-    ret = mbedtls_md_finish(&copy, padbuf);
+    ret = mbedtls_md_finish(&cloned_ctx, padbuf);
     if (ret != 0) {
         goto exit;
     }
@@ -7715,10 +7715,10 @@ static int ssl_calc_finished_tls_generic(mbedtls_ssl_context *ssl, void *ctx,
 
 exit:
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_hash_abort(&copy);
+    psa_hash_abort(&cloned_op);
     return mbedtls_md_error_from_psa(status);
 #else
-    mbedtls_md_free(&copy);
+    mbedtls_md_free(&cloned_ctx);
     return ret;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 }

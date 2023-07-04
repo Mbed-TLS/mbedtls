@@ -918,7 +918,7 @@ static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_MSG(2, ("ECDH/FFDH group: %s (%04x)",
                                       mbedtls_ssl_named_group_to_str(group),
                                       group));
-            ret = mbedtls_ssl_tls13_read_public_dhe_share(
+            ret = mbedtls_ssl_tls13_read_public_xxdhe_share(
                 ssl, key_exchange - 2, key_exchange_len + 2);
             if (ret != 0) {
                 return ret;

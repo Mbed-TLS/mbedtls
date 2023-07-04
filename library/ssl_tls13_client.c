@@ -201,14 +201,14 @@ static int ssl_tls13_reset_key_share(mbedtls_ssl_context *ssl)
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
         /* Destroy generated private key. */
-        status = psa_destroy_key(ssl->handshake->dh_psa_privkey);
+        status = psa_destroy_key(ssl->handshake->xxdh_psa_privkey);
         if (status != PSA_SUCCESS) {
             ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_destroy_key", ret);
             return ret;
         }
 
-        ssl->handshake->dh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+        ssl->handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
         return 0;
     } else
 #endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
@@ -508,7 +508,7 @@ static int ssl_tls13_parse_key_share_ext(mbedtls_ssl_context *ssl,
         mbedtls_ssl_tls13_named_group_is_ffdh(group)) {
         MBEDTLS_SSL_DEBUG_MSG(2,
                               ("DHE group name: %s", mbedtls_ssl_named_group_to_str(group)));
-        ret = mbedtls_ssl_tls13_read_public_dhe_share(ssl, p, end - p);
+        ret = mbedtls_ssl_tls13_read_public_xxdhe_share(ssl, p, end - p);
         if (ret != 0) {
             return ret;
         }

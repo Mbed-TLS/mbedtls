@@ -4218,8 +4218,8 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
 
 #if (defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)) && \
     (defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3))
-    if (handshake->dh_psa_privkey_is_external == 0) {
-        psa_destroy_key(handshake->dh_psa_privkey);
+    if (handshake->xxdh_psa_privkey_is_external == 0) {
+        psa_destroy_key(handshake->xxdh_psa_privkey);
     }
 #endif /* (PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH) &&
           (MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3) */

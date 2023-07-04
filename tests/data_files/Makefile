@@ -2202,6 +2202,8 @@ clean:
 ## Remove all build products, even the ones that are committed
 neat: clean
 	rm -f $(all_final)
-.PHONY: clean neat
+tidy: neat
+	rm -f $(all_parse_input)
+.PHONY: clean neat tidy
 
 .SECONDARY: $(all_intermediate)

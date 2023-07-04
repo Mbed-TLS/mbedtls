@@ -45,7 +45,7 @@ test_ca_pwd_rsa = PolarSSLTest
 test_ca_config_file = test-ca.opensslconf
 
 $(test_ca_key_file_rsa):
-	$(OPENSSL) genrsa -aes-128-cbc -passout pass:$(test_ca_pwd_rsa) -out $@ 2048
+	$(OPENSSL) genrsa -traditional -aes-128-cbc -passout pass:$(test_ca_pwd_rsa) -out $@ 2048
 all_final += $(test_ca_key_file_rsa)
 
 test-ca.req.sha256: $(test_ca_key_file_rsa)

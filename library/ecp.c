@@ -3277,18 +3277,15 @@ int mbedtls_ecp_read_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
                                     ECP_CURVE448_KEY_SIZE * 8 - 1, 1)
                 );
         }
-        MBEDTLS_MPI_CHK(mbedtls_ecp_check_privkey(&key->grp, &key->d));
     }
-
 #endif
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
     if (mbedtls_ecp_get_type(&key->grp) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS) {
         MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&key->d, buf, buflen));
-
-        MBEDTLS_MPI_CHK(mbedtls_ecp_check_privkey(&key->grp, &key->d));
     }
-
 #endif
+    MBEDTLS_MPI_CHK(mbedtls_ecp_check_privkey(&key->grp, &key->d));
+
 cleanup:
 
     if (ret != 0) {

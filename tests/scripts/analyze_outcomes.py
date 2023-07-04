@@ -333,10 +333,8 @@ TASKS = {
         'args': {
             'component_ref': 'test_psa_crypto_config_reference_ffdh',
             'component_driver': 'test_psa_crypto_config_accel_ffdh',
-            'ignored_suites': [
-            ],
-            'ignored_tests': {
-            }
+            'ignored_suites': ['dhm'],
+            'ignored_tests': {'test_suite_pkparse': ['DH group family: RFC 7919']}
         }
     },
 }

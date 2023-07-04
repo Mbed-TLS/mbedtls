@@ -6609,64 +6609,89 @@ int mbedtls_ssl_set_calc_verify_md(mbedtls_ssl_context *ssl, int md)
     return 0;
 }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+static int ssl_calc_verify_tls_psa(const mbedtls_ssl_context *ssl,
+                                   const psa_hash_operation_t *hs_op,
+                                   size_t buffer_size,
+                                   unsigned char *hash,
+                                   size_t *hlen)
+{
+    psa_status_t status;
+    psa_hash_operation_t cloned_op = psa_hash_operation_init();
+
+#if !defined(MBEDTLS_DEBUG_C)
+    (void) ssl;
+#endif
+    MBEDTLS_SSL_DEBUG_MSG(2, ("=> PSA calc verify"));
+    status = psa_hash_clone(hs_op, &cloned_op);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    status = psa_hash_finish(&cloned_op, hash, buffer_size, hlen);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    MBEDTLS_SSL_DEBUG_BUF(3, "PSA calculated verify result", hash, *hlen);
+    MBEDTLS_SSL_DEBUG_MSG(2, ("<= PSA calc verify"));
+
+exit:
+    psa_hash_abort(&cloned_op);
+    return mbedtls_md_error_from_psa(status);
+}
+#else
+static int ssl_calc_verify_tls_legacy(const mbedtls_ssl_context *ssl,
+                                      const mbedtls_md_context_t *hs_ctx,
+                                      unsigned char *hash,
+                                      size_t *hlen)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_md_context_t cloned_ctx;
+
+    mbedtls_md_init(&cloned_ctx);
+
+#if !defined(MBEDTLS_DEBUG_C)
+    (void) ssl;
+#endif
+    MBEDTLS_SSL_DEBUG_MSG(2, ("=> calc verify"));
+
+    ret = mbedtls_md_setup(&cloned_ctx, mbedtls_md_info_from_ctx(hs_ctx), 0);
+    if (ret != 0) {
+        goto exit;
+    }
+    ret = mbedtls_md_clone(&cloned_ctx, hs_ctx);
+    if (ret != 0) {
+        goto exit;
+    }
+
+    ret = mbedtls_md_finish(&cloned_ctx, hash);
+    if (ret != 0) {
+        goto exit;
+    }
+
+    *hlen = mbedtls_md_get_size(mbedtls_md_info_from_ctx(hs_ctx));
+
+    MBEDTLS_SSL_DEBUG_BUF(3, "calculated verify result", hash, *hlen);
+    MBEDTLS_SSL_DEBUG_MSG(2, ("<= calc verify"));
+
+exit:
+    mbedtls_md_free(&cloned_ctx);
+    return ret;
+}
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #if defined(MBEDTLS_MD_CAN_SHA256)
 int ssl_calc_verify_tls_sha256(const mbedtls_ssl_context *ssl,
                                unsigned char *hash,
                                size_t *hlen)
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    size_t hash_size;
-    psa_status_t status;
-    psa_hash_operation_t sha256_psa = psa_hash_operation_init();
-
-    MBEDTLS_SSL_DEBUG_MSG(2, ("=> PSA calc verify sha256"));
-    status = psa_hash_clone(&ssl->handshake->fin_sha256_psa, &sha256_psa);
-    if (status != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    status = psa_hash_finish(&sha256_psa, hash, 32, &hash_size);
-    if (status != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    *hlen = 32;
-    MBEDTLS_SSL_DEBUG_BUF(3, "PSA calculated verify result", hash, *hlen);
-    MBEDTLS_SSL_DEBUG_MSG(2, ("<= PSA calc verify"));
-
-exit:
-    psa_hash_abort(&sha256_psa);
-    return mbedtls_md_error_from_psa(status);
+    return ssl_calc_verify_tls_psa(ssl, &ssl->handshake->fin_sha256_psa, 32,
+                                   hash, hlen);
 #else
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_md_context_t sha256;
-
-    mbedtls_md_init(&sha256);
-
-    MBEDTLS_SSL_DEBUG_MSG(2, ("=> calc verify sha256"));
-
-    ret = mbedtls_md_setup(&sha256, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), 0);
-    if (ret != 0) {
-        goto exit;
-    }
-    ret = mbedtls_md_clone(&sha256, &ssl->handshake->fin_sha256);
-    if (ret != 0) {
-        goto exit;
-    }
-
-    ret = mbedtls_md_finish(&sha256, hash);
-    if (ret != 0) {
-        goto exit;
-    }
-
-    *hlen = 32;
-
-    MBEDTLS_SSL_DEBUG_BUF(3, "calculated verify result", hash, *hlen);
-    MBEDTLS_SSL_DEBUG_MSG(2, ("<= calc verify"));
-
-exit:
-    mbedtls_md_free(&sha256);
-    return ret;
+    return ssl_calc_verify_tls_legacy(ssl, &ssl->handshake->fin_sha256,
+                                      hash, hlen);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
 #endif /* MBEDTLS_MD_CAN_SHA256 */
@@ -6677,58 +6702,11 @@ int ssl_calc_verify_tls_sha384(const mbedtls_ssl_context *ssl,
                                size_t *hlen)
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    size_t hash_size;
-    psa_status_t status;
-    psa_hash_operation_t sha384_psa = psa_hash_operation_init();
-
-    MBEDTLS_SSL_DEBUG_MSG(2, ("=> PSA calc verify sha384"));
-    status = psa_hash_clone(&ssl->handshake->fin_sha384_psa, &sha384_psa);
-    if (status != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    status = psa_hash_finish(&sha384_psa, hash, 48, &hash_size);
-    if (status != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    *hlen = 48;
-    MBEDTLS_SSL_DEBUG_BUF(3, "PSA calculated verify result", hash, *hlen);
-    MBEDTLS_SSL_DEBUG_MSG(2, ("<= PSA calc verify"));
-
-exit:
-    psa_hash_abort(&sha384_psa);
-    return mbedtls_md_error_from_psa(status);
+    return ssl_calc_verify_tls_psa(ssl, &ssl->handshake->fin_sha384_psa, 48,
+                                   hash, hlen);
 #else
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_md_context_t sha384;
-
-    mbedtls_md_init(&sha384);
-
-    MBEDTLS_SSL_DEBUG_MSG(2, ("=> calc verify sha384"));
-
-    ret = mbedtls_md_setup(&sha384, mbedtls_md_info_from_type(MBEDTLS_MD_SHA384), 0);
-    if (ret != 0) {
-        goto exit;
-    }
-    ret = mbedtls_md_clone(&sha384, &ssl->handshake->fin_sha384);
-    if (ret != 0) {
-        goto exit;
-    }
-
-    ret = mbedtls_md_finish(&sha384, hash);
-    if (ret != 0) {
-        goto exit;
-    }
-
-    *hlen = 48;
-
-    MBEDTLS_SSL_DEBUG_BUF(3, "calculated verify result", hash, *hlen);
-    MBEDTLS_SSL_DEBUG_MSG(2, ("<= calc verify"));
-
-exit:
-    mbedtls_md_free(&sha384);
-    return ret;
+    return ssl_calc_verify_tls_legacy(ssl, &ssl->handshake->fin_sha384,
+                                      hash, hlen);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
 #endif /* MBEDTLS_MD_CAN_SHA384 */
@@ -7670,20 +7648,22 @@ exit:
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_MD_CAN_SHA256)
-static int ssl_calc_finished_tls_sha256(
-    mbedtls_ssl_context *ssl, unsigned char *buf, int from)
+static int ssl_calc_finished_tls_generic(mbedtls_ssl_context *ssl, void *ctx,
+                                         unsigned char *padbuf, size_t hlen,
+                                         unsigned char *buf, int from)
 {
     int len = 12;
     const char *sender;
-    unsigned char padbuf[32];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    size_t hash_size;
-    psa_hash_operation_t sha256_psa = PSA_HASH_OPERATION_INIT;
     psa_status_t status;
+    psa_hash_operation_t *hs_op = ctx;
+    psa_hash_operation_t cloned_op = PSA_HASH_OPERATION_INIT;
+    size_t hash_size;
 #else
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_md_context_t sha256;
+    mbedtls_md_context_t *hs_ctx = ctx;
+    mbedtls_md_context_t cloned_ctx;
+    mbedtls_md_init(&cloned_ctx);
 #endif
 
     mbedtls_ssl_session *session = ssl->session_negotiate;
@@ -7696,66 +7676,75 @@ static int ssl_calc_finished_tls_sha256(
              : "server finished";
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    sha256_psa = psa_hash_operation_init();
+    MBEDTLS_SSL_DEBUG_MSG(2, ("=> calc PSA finished tls"));
 
-    MBEDTLS_SSL_DEBUG_MSG(2, ("=> calc PSA finished tls sha256"));
-
-    status = psa_hash_clone(&ssl->handshake->fin_sha256_psa, &sha256_psa);
+    status = psa_hash_clone(hs_op, &cloned_op);
     if (status != PSA_SUCCESS) {
         goto exit;
     }
 
-    status = psa_hash_finish(&sha256_psa, padbuf, sizeof(padbuf), &hash_size);
+    status = psa_hash_finish(&cloned_op, padbuf, hlen, &hash_size);
     if (status != PSA_SUCCESS) {
         goto exit;
     }
-    MBEDTLS_SSL_DEBUG_BUF(3, "PSA calculated padbuf", padbuf, 32);
+    MBEDTLS_SSL_DEBUG_BUF(3, "PSA calculated padbuf", padbuf, hlen);
 #else
+    MBEDTLS_SSL_DEBUG_MSG(2, ("=> calc finished tls"));
 
-    mbedtls_md_init(&sha256);
-
-    MBEDTLS_SSL_DEBUG_MSG(2, ("=> calc  finished tls sha256"));
-
-    ret = mbedtls_md_setup(&sha256, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), 0);
+    ret = mbedtls_md_setup(&cloned_ctx, mbedtls_md_info_from_ctx(hs_ctx), 0);
     if (ret != 0) {
         goto exit;
     }
-    ret = mbedtls_md_clone(&sha256, &ssl->handshake->fin_sha256);
+    ret = mbedtls_md_clone(&cloned_ctx, hs_ctx);
     if (ret != 0) {
         goto exit;
     }
+
+    ret = mbedtls_md_finish(&cloned_ctx, padbuf);
+    if (ret != 0) {
+        goto exit;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+    MBEDTLS_SSL_DEBUG_BUF(4, "finished output", padbuf, hlen);
 
     /*
      * TLSv1.2:
      *   hash = PRF( master, finished_label,
      *               Hash( handshake ) )[0.11]
      */
-
-    ret = mbedtls_md_finish(&sha256, padbuf);
-    if (ret != 0) {
-        goto exit;
-    }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
-    MBEDTLS_SSL_DEBUG_BUF(4, "finished sha256 output", padbuf, 32);
-
     ssl->handshake->tls_prf(session->master, 48, sender,
-                            padbuf, 32, buf, len);
+                            padbuf, hlen, buf, len);
 
     MBEDTLS_SSL_DEBUG_BUF(3, "calc finished result", buf, len);
 
     mbedtls_platform_zeroize(padbuf, sizeof(padbuf));
 
-    MBEDTLS_SSL_DEBUG_MSG(2, ("<= calc  finished"));
+    MBEDTLS_SSL_DEBUG_MSG(2, ("<= calc finished"));
 
 exit:
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_hash_abort(&sha256_psa);
+    psa_hash_abort(&cloned_op);
     return mbedtls_md_error_from_psa(status);
 #else
-    mbedtls_md_free(&sha256);
+    mbedtls_md_free(&cloned_ctx);
     return ret;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+}
+
+#if defined(MBEDTLS_MD_CAN_SHA256)
+static int ssl_calc_finished_tls_sha256(
+    mbedtls_ssl_context *ssl, unsigned char *buf, int from)
+{
+    unsigned char padbuf[32];
+    return ssl_calc_finished_tls_generic(ssl,
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+                                         &ssl->handshake->fin_sha256_psa,
+#else
+                                         &ssl->handshake->fin_sha256,
+#endif
+                                         padbuf, sizeof(padbuf),
+                                         buf, from);
 }
 #endif /* MBEDTLS_MD_CAN_SHA256*/
 
@@ -7764,87 +7753,15 @@ exit:
 static int ssl_calc_finished_tls_sha384(
     mbedtls_ssl_context *ssl, unsigned char *buf, int from)
 {
-    int len = 12;
-    const char *sender;
     unsigned char padbuf[48];
+    return ssl_calc_finished_tls_generic(ssl,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    size_t hash_size;
-    psa_hash_operation_t sha384_psa = PSA_HASH_OPERATION_INIT;
-    psa_status_t status;
+                                         &ssl->handshake->fin_sha384_psa,
 #else
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_md_context_t sha384;
+                                         &ssl->handshake->fin_sha384,
 #endif
-
-    mbedtls_ssl_session *session = ssl->session_negotiate;
-    if (!session) {
-        session = ssl->session;
-    }
-
-    sender = (from == MBEDTLS_SSL_IS_CLIENT)
-                ? "client finished"
-                : "server finished";
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    sha384_psa = psa_hash_operation_init();
-
-    MBEDTLS_SSL_DEBUG_MSG(2, ("=> calc PSA finished tls sha384"));
-
-    status = psa_hash_clone(&ssl->handshake->fin_sha384_psa, &sha384_psa);
-    if (status != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    status = psa_hash_finish(&sha384_psa, padbuf, sizeof(padbuf), &hash_size);
-    if (status != PSA_SUCCESS) {
-        goto exit;
-    }
-    MBEDTLS_SSL_DEBUG_BUF(3, "PSA calculated padbuf", padbuf, 48);
-#else
-    mbedtls_md_init(&sha384);
-
-    MBEDTLS_SSL_DEBUG_MSG(2, ("=> calc  finished tls sha384"));
-
-    ret = mbedtls_md_setup(&sha384, mbedtls_md_info_from_type(MBEDTLS_MD_SHA384), 0);
-    if (ret != 0) {
-        goto exit;
-    }
-    ret = mbedtls_md_clone(&sha384, &ssl->handshake->fin_sha384);
-    if (ret != 0) {
-        goto exit;
-    }
-
-    /*
-     * TLSv1.2:
-     *   hash = PRF( master, finished_label,
-     *               Hash( handshake ) )[0.11]
-     */
-
-    ret = mbedtls_md_finish(&sha384, padbuf);
-    if (ret != 0) {
-        goto exit;
-    }
-#endif
-
-    MBEDTLS_SSL_DEBUG_BUF(4, "finished sha384 output", padbuf, 48);
-
-    ssl->handshake->tls_prf(session->master, 48, sender,
-                            padbuf, 48, buf, len);
-
-    MBEDTLS_SSL_DEBUG_BUF(3, "calc finished result", buf, len);
-
-    mbedtls_platform_zeroize(padbuf, sizeof(padbuf));
-
-    MBEDTLS_SSL_DEBUG_MSG(2, ("<= calc  finished"));
-
-exit:
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_hash_abort(&sha384_psa);
-    return mbedtls_md_error_from_psa(status);
-#else
-    mbedtls_md_free(&sha384);
-    return ret;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+                                         padbuf, sizeof(padbuf),
+                                         buf, from);
 }
 #endif /* MBEDTLS_MD_CAN_SHA384*/
 

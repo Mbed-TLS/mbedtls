@@ -101,59 +101,105 @@ int mbedtls_aesce_has_support(void)
 #endif
 }
 
+/* Single round of AESCE encryption */
+#define AESCE_ENCRYPT_ROUND                   \
+    block = vaeseq_u8(block, vld1q_u8(keys)); \
+    block = vaesmcq_u8(block);                \
+    keys += 16
+/* Two rounds of AESCE encryption */
+#define AESCE_ENCRYPT_ROUND_X2        AESCE_ENCRYPT_ROUND; AESCE_ENCRYPT_ROUND
+
+MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
 static uint8x16_t aesce_encrypt_block(uint8x16_t block,
                                       unsigned char *keys,
                                       int rounds)
 {
-    for (int i = 0; i < rounds - 1; i++) {
-        /* AES AddRoundKey, SubBytes, ShiftRows (in this order).
-         * AddRoundKey adds the round key for the previous round. */
-        block = vaeseq_u8(block, vld1q_u8(keys + i * 16));
-        /* AES mix columns */
-        block = vaesmcq_u8(block);
+    /* 10, 12 or 14 rounds. Unroll loop. */
+    if (rounds == 10) {
+        goto rounds_10;
     }
+    if (rounds == 12) {
+        goto rounds_12;
+    }
+    AESCE_ENCRYPT_ROUND_X2;
+rounds_12:
+    AESCE_ENCRYPT_ROUND_X2;
+rounds_10:
+    AESCE_ENCRYPT_ROUND_X2;
+    AESCE_ENCRYPT_ROUND_X2;
+    AESCE_ENCRYPT_ROUND_X2;
+    AESCE_ENCRYPT_ROUND_X2;
+    AESCE_ENCRYPT_ROUND;
 
     /* AES AddRoundKey for the previous round.
      * SubBytes, ShiftRows for the final round.  */
-    block = vaeseq_u8(block, vld1q_u8(keys + (rounds -1) * 16));
+    block = vaeseq_u8(block, vld1q_u8(keys));
+    keys += 16;
 
     /* Final round: no MixColumns */
 
     /* Final AddRoundKey */
-    block = veorq_u8(block, vld1q_u8(keys + rounds  * 16));
+    block = veorq_u8(block, vld1q_u8(keys));
 
     return block;
 }
+
+/* Single round of AESCE decryption
+ *
+ * AES AddRoundKey, SubBytes, ShiftRows
+ *
+ *      block = vaesdq_u8(block, vld1q_u8(keys));
+ *
+ * AES inverse MixColumns for the next round.
+ *
+ * This means that we switch the order of the inverse AddRoundKey and
+ * inverse MixColumns operations. We have to do this as AddRoundKey is
+ * done in an atomic instruction together with the inverses of SubBytes
+ * and ShiftRows.
+ *
+ * It works because MixColumns is a linear operation over GF(2^8) and
+ * AddRoundKey is an exclusive or, which is equivalent to addition over
+ * GF(2^8). (The inverse of MixColumns needs to be applied to the
+ * affected round keys separately which has been done when the
+ * decryption round keys were calculated.)
+ *
+ *      block = vaesimcq_u8(block);
+ */
+#define AESCE_DECRYPT_ROUND                   \
+    block = vaesdq_u8(block, vld1q_u8(keys)); \
+    block = vaesimcq_u8(block);               \
+    keys += 16
+/* Two rounds of AESCE decryption */
+#define AESCE_DECRYPT_ROUND_X2        AESCE_DECRYPT_ROUND; AESCE_DECRYPT_ROUND
 
 static uint8x16_t aesce_decrypt_block(uint8x16_t block,
                                       unsigned char *keys,
                                       int rounds)
 {
-
-    for (int i = 0; i < rounds - 1; i++) {
-        /* AES AddRoundKey, SubBytes, ShiftRows */
-        block = vaesdq_u8(block, vld1q_u8(keys + i * 16));
-        /* AES inverse MixColumns for the next round.
-         *
-         * This means that we switch the order of the inverse AddRoundKey and
-         * inverse MixColumns operations. We have to do this as AddRoundKey is
-         * done in an atomic instruction together with the inverses of SubBytes
-         * and ShiftRows.
-         *
-         * It works because MixColumns is a linear operation over GF(2^8) and
-         * AddRoundKey is an exclusive or, which is equivalent to addition over
-         * GF(2^8). (The inverse of MixColumns needs to be applied to the
-         * affected round keys separately which has been done when the
-         * decryption round keys were calculated.) */
-        block = vaesimcq_u8(block);
+    /* 10, 12 or 14 rounds. Unroll loop. */
+    if (rounds == 10) {
+        goto rounds_10;
     }
+    if (rounds == 12) {
+        goto rounds_12;
+    }
+    AESCE_DECRYPT_ROUND_X2;
+rounds_12:
+    AESCE_DECRYPT_ROUND_X2;
+rounds_10:
+    AESCE_DECRYPT_ROUND_X2;
+    AESCE_DECRYPT_ROUND_X2;
+    AESCE_DECRYPT_ROUND_X2;
+    AESCE_DECRYPT_ROUND_X2;
+    AESCE_DECRYPT_ROUND;
 
     /* The inverses of AES AddRoundKey, SubBytes, ShiftRows finishing up the
      * last full round. */
-    block = vaesdq_u8(block, vld1q_u8(keys + (rounds - 1) * 16));
+    block = vaesdq_u8(block, vld1q_u8(keys));
+    keys += 16;
 
     /* Inverse AddRoundKey for inverting the initial round key addition. */
-    block = veorq_u8(block, vld1q_u8(keys + rounds * 16));
+    block = veorq_u8(block, vld1q_u8(keys));
 
     return block;
 }

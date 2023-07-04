@@ -237,7 +237,7 @@ int mbedtls_cipher_cmac_update(mbedtls_cipher_context_t *ctx,
                input,
                block_size - cmac_ctx->unprocessed_len);
 
-        mbedtls_xor(state, cmac_ctx->unprocessed_block, state, block_size);
+        mbedtls_xor_no_simd(state, cmac_ctx->unprocessed_block, state, block_size);
 
         if ((ret = mbedtls_cipher_update(ctx, state, block_size, state,
                                          &olen)) != 0) {
@@ -255,7 +255,7 @@ int mbedtls_cipher_cmac_update(mbedtls_cipher_context_t *ctx,
     /* Iterate across the input data in block sized chunks, excluding any
      * final partial or complete block */
     for (j = 1; j < n; j++) {
-        mbedtls_xor(state, input, state, block_size);
+        mbedtls_xor_no_simd(state, input, state, block_size);
 
         if ((ret = mbedtls_cipher_update(ctx, state, block_size, state,
                                          &olen)) != 0) {

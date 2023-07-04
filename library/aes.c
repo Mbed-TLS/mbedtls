@@ -1077,23 +1077,6 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 
-#if defined(__ARM_NEON) && defined(__aarch64__)
-/* Avoid using the NEON implementation of mbedtls_xor. Because of the dependency on
- * the result for the next block in CBC, and the cost of transferring that data from
- * NEON registers, it is faster to use the following on aarch64.
- * For 32-bit arm, NEON should be faster. */
-#define CBC_XOR_16(r, a, b) do {                                           \
-        mbedtls_put_unaligned_uint64(r,                                    \
-                                     mbedtls_get_unaligned_uint64(a) ^     \
-                                     mbedtls_get_unaligned_uint64(b));     \
-        mbedtls_put_unaligned_uint64(r + 8,                                \
-                                     mbedtls_get_unaligned_uint64(a + 8) ^ \
-                                     mbedtls_get_unaligned_uint64(b + 8)); \
-} while (0)
-#else
-#define CBC_XOR_16(r, a, b) mbedtls_xor(r, a, b, 16)
-#endif
-
 /*
  * AES-CBC buffer encryption/decryption
  */
@@ -1136,7 +1119,10 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
             if (ret != 0) {
                 goto exit;
             }
-            CBC_XOR_16(output, output, iv);
+            /* Avoid using the NEON implementation of mbedtls_xor. Because of the dependency on
+             * the result for the next block in CBC, and the cost of transferring that data from
+             * NEON registers, NEON is slower on aarch64. */
+            mbedtls_xor_no_simd(output, output, iv, 16);
 
             memcpy(iv, temp, 16);
 
@@ -1146,7 +1132,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
         }
     } else {
         while (length > 0) {
-            CBC_XOR_16(output, input, ivp);
+            mbedtls_xor_no_simd(output, input, ivp, 16);
 
             ret = mbedtls_aes_crypt_ecb(ctx, mode, output, output);
             if (ret != 0) {
@@ -1179,8 +1165,11 @@ typedef unsigned char mbedtls_be128[16];
  * for machine endianness and hence works correctly on both big and little
  * endian machines.
  */
-static void mbedtls_gf128mul_x_ble(unsigned char r[16],
-                                   const unsigned char x[16])
+#if defined(MBEDTLS_AESCE_C) || defined(MBEDTLS_AESNI_C)
+MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
+#endif
+static inline void mbedtls_gf128mul_x_ble(unsigned char r[16],
+                                          const unsigned char x[16])
 {
     uint64_t a, b, ra, rb;
 
@@ -1196,7 +1185,13 @@ static void mbedtls_gf128mul_x_ble(unsigned char r[16],
 
 /*
  * AES-XTS buffer encryption/decryption
+ *
+ * Use of MBEDTLS_OPTIMIZE_FOR_PERFORMANCE here and for mbedtls_gf128mul_x_ble()
+ * is a 3x performance improvement for gcc -Os, if we have hardware AES support.
  */
+#if defined(MBEDTLS_AESCE_C) || defined(MBEDTLS_AESNI_C)
+MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
+#endif
 int mbedtls_aes_crypt_xts(mbedtls_aes_xts_context *ctx,
                           int mode,
                           size_t length,

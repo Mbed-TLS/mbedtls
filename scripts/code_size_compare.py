@@ -91,6 +91,7 @@ class CodeSizeInfo: # pylint: disable=too-few-public-methods
         """
         arch: architecture to measure code size on.
         config: configuration type to measure code size with.
+        sys_arch: host architecture.
         make_command: command to build library (Inferred from arch and config).
         """
         self.arch = arch

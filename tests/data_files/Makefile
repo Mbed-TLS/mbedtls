@@ -551,7 +551,10 @@ parse_input/server5-fan.crt.der: server5.key
 	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS FAN" -set_serial 77 -config $(test_ca_config_file) -extensions fan_cert -days 3650 -sha256 -key server5.key -outform der -out $@
 
 server5-tricky-ip-san.crt.der: server5.key
-	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS Tricky IP SAN" -set_serial 77 -config $(test_ca_config_file) -extensions tricky_ip_san -days 3650 -sha256 -key server5.key -outform der -out $@
+	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS Tricky IP SAN" -set_serial 77 \
+		-config $(test_ca_config_file) -extensions tricky_ip_san -days 3650 -sha256 \
+		-key server5.key -outform der -out $@
+all_final += server5-tricky-ip-san.crt.der
 
 all_final += server5-tricky-ip-san.crt.der
 

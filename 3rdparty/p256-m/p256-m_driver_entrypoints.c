@@ -22,7 +22,6 @@
 #include "p256-m_driver_entrypoints.h"
 #include "p256-m/p256-m.h"
 #include "psa/crypto.h"
-#include "psa_crypto_driver_wrappers.h"
 #include <stddef.h>
 
 #if defined(MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED)

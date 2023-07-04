@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# all.sh
+# faketime-all.sh
 #
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0
@@ -26,7 +26,8 @@
 # Purpose
 # -------
 #
-# To run all tests possible or available on the platform.
+# Run tests to check if files in `tests/data_files` and the generateing commands
+# are valid.
 #
 # Notes for users
 # ---------------
@@ -37,23 +38,16 @@
 #    * include/mbedtls/mbedtls_config.h
 #    * Makefile, library/Makefile, programs/Makefile, tests/Makefile,
 #      programs/fuzz/Makefile
-# After running this script, the CMake cache will be lost and CMake
-# will no longer be initialised.
+#
+# The script MUST be run under Linux only.(libfaketime depends on LD_PRELOAD)
 #
 # The script assumes the presence of a number of tools:
 #   * Basic Unix tools (Windows users note: a Unix-style find must be before
 #     the Windows find in the PATH)
-#   * Perl
+#   * Python 3.6 or later
 #   * GNU Make
-#   * CMake
-#   * GCC and Clang (recent enough for using ASan with gcc and MemSan with clang, or valgrind)
+#   * GCC
 #   * G++
-#   * arm-gcc and mingw-gcc
-#   * ArmCC 5 and ArmCC 6, unless invoked with --no-armcc
-#   * OpenSSL and GnuTLS command line tools, recent enough for the
-#     interoperability tests. If they don't support old features which we want
-#     to test, then a legacy version of these tools must be present as well
-#     (search for LEGACY below).
 # See the invocation of check_tools below for details.
 #
 # This script must be invoked from the toplevel directory of a git
@@ -69,47 +63,22 @@
 #    up on exit.
 #
 # Note that the output is not saved. You may want to run
-#   script -c tests/scripts/all.sh
+#   script -c tests/scripts/faketime-all.sh
 # or
-#   tests/scripts/all.sh >all.log 2>&1
+#   tests/scripts/faketime-all.sh >all.log 2>&1
 #
 # Notes for maintainers
 # ---------------------
 #
-# The bulk of the code is organized into functions that follow one of the
-# following naming conventions:
-#  * pre_XXX: things to do before running the tests, in order.
-#  * component_XXX: independent components. They can be run in any order.
-#      * component_check_XXX: quick tests that aren't worth parallelizing.
-#      * component_build_XXX: build things but don't run them.
-#      * component_test_XXX: build and test.
-#  * support_XXX: if support_XXX exists and returns false then
-#    component_XXX is not run by default.
-#  * post_XXX: things to do after running the tests.
-#  * other: miscellaneous support functions.
+# See also: `tests/scripts/all.sh`
 #
-# Each component must start by invoking `msg` with a short informative message.
-#
-# Warning: due to the way bash detects errors, the failure of a command
-# inside 'if' or '!' is not detected. Use the 'not' function instead of '!'.
-#
-# Each component is executed in a separate shell process. The component
-# fails if any command in it returns a non-zero status.
-#
-# The framework performs some cleanup tasks after each component. This
-# means that components can assume that the working directory is in a
-# cleaned-up state, and don't need to perform the cleanup themselves.
-# * Run `make clean`.
-# * Restore `include/mbedtls/mbedtls_config.h` from a backup made before running
-#   the component.
-# * Check out `Makefile`, `library/Makefile`, `programs/Makefile`,
-#   `tests/Makefile` and `programs/fuzz/Makefile` from git.
-#   This cleans up after an in-tree use of CMake.
-#
-# The tests are roughly in order from fastest to slowest. This doesn't
-# have to be exact, but in general you should add slower tests towards
-# the end and fast checks near the beginning.
-
+# This script is base on `all.sh`. The user interface is simillar, but it is
+# different for maintainers.
+# - This file only includes `test_faketime_*` and `test_regnerate_*` components.
+# - `test_faketime_*` will be run with libfaketime
+# - `test_regnerate_*` will cleanup and re-generate files in `tests/data_files`
+# - To keep consitent with global section of `all.sh`, do not change it if not
+#   neccesary.
 
 
 ################################################################

@@ -40,7 +40,7 @@
 #include "mbedtls/psa_util.h"
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED) || \
-    defined(PSA_WANT_ALG_ECDH)
+    defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
 /* Define a local translating function to save code size by not using too many
  * arguments in each translating place. */
 static int local_err_translation(psa_status_t status)

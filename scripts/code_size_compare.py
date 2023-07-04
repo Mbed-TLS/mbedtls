@@ -91,6 +91,7 @@ class CodeSizeInfo: # pylint: disable=too-few-public-methods
         """
         arch: architecture to measure code size on.
         config: configuration type to measure code size with.
+        sys_arch: host architecture.
         make_command: command to build library (Inferred from arch and config).
         """
         self.arch = arch
@@ -273,6 +274,7 @@ class CodeSizeComparison(CodeSizeBase):
         self.old_rev = old_revision
         self.new_rev = new_revision
         self.git_command = "git"
+        self.make_clean = 'make clean'
         self.make_command = code_size_info.make_command
         self.fname_suffix = "-" + code_size_info.arch + "-" +\
                             code_size_info.config
@@ -306,6 +308,10 @@ class CodeSizeComparison(CodeSizeBase):
 
         my_environment = os.environ.copy()
         try:
+            subprocess.check_output(
+                self.make_clean, env=my_environment, shell=True,
+                cwd=git_worktree_path, stderr=subprocess.STDOUT,
+            )
             subprocess.check_output(
                 self.make_command, env=my_environment, shell=True,
                 cwd=git_worktree_path, stderr=subprocess.STDOUT,

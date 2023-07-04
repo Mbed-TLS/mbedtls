@@ -252,7 +252,7 @@ test-ca2.crt: $(test_ca_key_file_ec) test-ca2.req.sha256
 all_final += test-ca2.crt
 
 test-ca2.ku-%.crt: test-ca2.ku-%.crt.openssl.v3_ext $(test_ca_key_file_ec) test-ca2.req.sha256
-	$(OPENSSL) x509 -req -in test-ca2.req.sha256 -extfile $< \
+	$(OPENSSL_3_0_2) x509 -req -in test-ca2.req.sha256 -extfile $< \
 		-signkey $(test_ca_key_file_ec) -days 3653 -out $@
 
 all_final += test-ca2.ku-crl.crt \
@@ -525,7 +525,7 @@ server5-ss-forgeca.crt: server5.key
 all_final += server5-ss-forgeca.crt
 
 server5-selfsigned.crt: server5.key
-	openssl req -x509 -key server5.key \
+	$(OPENSSL_3_0_2) req -x509 -key server5.key \
         -sha256 -days 3650 -nodes \
         -addext basicConstraints=critical,CA:FALSE \
         -addext keyUsage=critical,digitalSignature \
@@ -1395,35 +1395,35 @@ ec_bp512_pub.comp.pem: ec_bp512_pub.pem
 all_final += ec_bp512_pub.comp.pem
 
 ec_x25519_prv.der:
-	$(OPENSSL) genpkey -algorithm X25519 -out $@ -outform DER
+	$(OPENSSL_3_0_2) genpkey -algorithm X25519 -out $@ -outform DER
 all_final += ec_x25519_prv.der
 
 ec_x25519_pub.der: ec_x25519_prv.der
-	$(OPENSSL) pkey -in $< -inform DER -out $@ -outform DER -pubout
+	$(OPENSSL_3_0_2) pkey -in $< -inform DER -out $@ -outform DER -pubout
 all_final += ec_x25519_pub.der
 
 ec_x25519_prv.pem: ec_x25519_prv.der
-	$(OPENSSL) pkey -in $< -inform DER -out $@
+	$(OPENSSL_3_0_2) pkey -in $< -inform DER -out $@
 all_final += ec_x25519_prv.pem
 
 ec_x25519_pub.pem: ec_x25519_prv.der
-	$(OPENSSL) pkey -in $< -inform DER -out $@ -pubout
+	$(OPENSSL_3_0_2) pkey -in $< -inform DER -out $@ -pubout
 all_final += ec_x25519_pub.pem
 
 ec_x448_prv.der:
-	$(OPENSSL) genpkey -algorithm X448 -out $@ -outform DER
+	$(OPENSSL_3_0_2) genpkey -algorithm X448 -out $@ -outform DER
 all_final += ec_x448_prv.der
 
 ec_x448_pub.der: ec_x448_prv.der
-	$(OPENSSL) pkey -in $< -inform DER -out $@ -outform DER -pubout
+	$(OPENSSL_3_0_2) pkey -in $< -inform DER -out $@ -outform DER -pubout
 all_final += ec_x448_pub.der
 
 ec_x448_prv.pem: ec_x448_prv.der
-	$(OPENSSL) pkey -in $< -inform DER -out $@
+	$(OPENSSL_3_0_2) pkey -in $< -inform DER -out $@
 all_final += ec_x448_prv.pem
 
 ec_x448_pub.pem: ec_x448_prv.der
-	$(OPENSSL) pkey -in $< -inform DER -out $@ -pubout
+	$(OPENSSL_3_0_2) pkey -in $< -inform DER -out $@ -pubout
 all_final += ec_x448_pub.pem
 
 ################################################################
@@ -1507,7 +1507,8 @@ all_final += server1.req.sha256
 
 server1.req.sha256.ext: server1.key
 	# Generating this with OpenSSL as a comparison point to test we're getting the same result
-	openssl req -new -out $@ -key $< -subj '/C=NL/O=PolarSSL/CN=PolarSSL Server 1' -sha256 -addext "extendedKeyUsage=serverAuth" -addext "subjectAltName=URI:http://pki.example.com/,IP:127.1.1.0,DNS:example.com"
+	$(OPENSSL_3_0_2) req -new -out $@ -key $< -subj '/C=NL/O=PolarSSL/CN=PolarSSL Server 1' -sha256 \
+		-addext "extendedKeyUsage=serverAuth" -addext "subjectAltName=URI:http://pki.example.com/,IP:127.1.1.0,DNS:example.com"
 all_final += server1.req.sha256.ext
 
 

@@ -111,7 +111,7 @@ cert_example_multi_nocn.csr: rsa_pkcs1_1024_clear.pem
 	$(MBEDTLS_CERT_REQ) filename=$< output_file=$@ subject_name='C=NL'
 all_intermediate += cert_example_multi_nocn.csr
 
-cert_example_multi_nocn.crt: cert_example_multi_nocn.csr test-ca_nocn.crt
+parse_input/cert_example_multi_nocn.crt cert_example_multi_nocn.crt: cert_example_multi_nocn.csr test-ca_nocn.crt
 	$(OPENSSL) x509 -req -CA test-ca_nocn.crt -CAkey $(test_ca_key_file_rsa) \
 		-extfile $(test_ca_config_file) -extensions ext_multi_nocn -passin "pass:$(test_ca_pwd_rsa)" \
 		-set_serial  0xf7c67ff8e9a963f9 -days 3653 -sha1 -in $< > $@

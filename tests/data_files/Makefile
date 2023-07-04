@@ -541,7 +541,7 @@ all_final += test-int-ca3-badsign.crt
 server9.csr: server9.key
 	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
 					-key $< -out $@
-server9.crt: server9-sha1.crt
+parse_input/server9.crt server9.crt: server9-sha1.crt
 	cp $< $@
 all_final += server9.crt
 all_intermediate += server9.csr server9-sha1.crt
@@ -551,13 +551,13 @@ server9-%.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
 		-passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) \
 		-set_serial $(SERVER9_CRT_SERIAL) -days 3653 \
 		-sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:max \
-		-sigopt rsa_mgf1_md:$(@:server9-%.crt=%) -$(@:server9-%.crt=%) \
+		-sigopt rsa_mgf1_md:$(@F:server9-%.crt=%) -$(@F:server9-%.crt=%) \
 		-in $< -out $@
 server9-sha1.crt: SERVER9_CRT_SERIAL=22
-server9-sha224.crt: SERVER9_CRT_SERIAL=23
-server9-sha256.crt: SERVER9_CRT_SERIAL=24
-server9-sha384.crt: SERVER9_CRT_SERIAL=25
-server9-sha512.crt: SERVER9_CRT_SERIAL=26
+parse_input/server9-sha224.crt server9-sha224.crt: SERVER9_CRT_SERIAL=23
+parse_input/server9-sha256.crt server9-sha256.crt: SERVER9_CRT_SERIAL=24
+parse_input/server9-sha384.crt server9-sha384.crt: SERVER9_CRT_SERIAL=25
+parse_input/server9-sha512.crt server9-sha512.crt: SERVER9_CRT_SERIAL=26
 all_final += server9-sha224.crt server9-sha256.crt server9-sha384.crt server9-sha512.crt
 
 server9-defaults.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)

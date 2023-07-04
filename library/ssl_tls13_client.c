@@ -35,7 +35,7 @@
 #include "ssl_debug_helpers.h"
 #include "md_psa.h"
 
-#if defined(PSA_WANT_ALG_ECDH)
+#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
 /* Define a local translating function to save code size by not using too many
  * arguments in each translating place. */
 static int local_err_translation(psa_status_t status)

@@ -875,7 +875,7 @@ int mbedtls_md_error_from_psa(psa_status_t status)
 /*
  * Reminder: update profiles in x509_crt.c when adding a new hash!
  */
-static const int supported_digests[] = {
+static const mbedtls_md_type_t supported_digests[] = {
 
 #if defined(MBEDTLS_MD_CAN_SHA512)
     MBEDTLS_MD_SHA512,
@@ -923,7 +923,7 @@ static const int supported_digests[] = {
     MBEDTLS_MD_NONE
 };
 
-const int *mbedtls_md_list(void)
+const mbedtls_md_type_t *mbedtls_md_list(void)
 {
     return supported_digests;
 }

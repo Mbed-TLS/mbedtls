@@ -107,24 +107,25 @@ int main(int argc, char *argv[])
      * Parse the command-line arguments.
      */
     if (argc != 7) {
-        const int *list;
+        const mbedtls_cipher_type_t *cipher_list;
+        const mbedtls_md_type_t *md_list;
 
         mbedtls_printf(USAGE);
 
         mbedtls_printf("Available ciphers:\n");
-        list = mbedtls_cipher_list();
-        while (*list) {
-            cipher_info = mbedtls_cipher_info_from_type(*list);
+        cipher_list = mbedtls_cipher_list();
+        while (*cipher_list) {
+            cipher_info = mbedtls_cipher_info_from_type(*cipher_list);
             mbedtls_printf("  %s\n", mbedtls_cipher_info_get_name(cipher_info));
-            list++;
+            cipher_list++;
         }
 
         mbedtls_printf("\nAvailable message digests:\n");
-        list = mbedtls_md_list();
-        while (*list) {
-            md_info = mbedtls_md_info_from_type(*list);
+        md_list = mbedtls_md_list();
+        while (*md_list) {
+            md_info = mbedtls_md_info_from_type(*md_list);
             mbedtls_printf("  %s\n", mbedtls_md_get_name(md_info));
-            list++;
+            md_list++;
         }
 
         goto exit;

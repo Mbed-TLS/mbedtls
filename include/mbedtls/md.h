@@ -450,7 +450,7 @@ int mbedtls_md(const mbedtls_md_info_t *md_info, const unsigned char *input, siz
  *                  message-digest enumeration #mbedtls_md_type_t.
  *                  The last entry is 0.
  */
-const int *mbedtls_md_list(void);
+const mbedtls_md_type_t *mbedtls_md_list(void);
 
 /**
  * \brief           This function returns the message-digest information

@@ -259,6 +259,22 @@ static psa_algorithm_t psa_alg_of_md(const mbedtls_md_info_t *info)
         case MBEDTLS_MD_SHA512:
             return PSA_ALG_SHA_512;
 #endif
+#if defined(MBEDTLS_MD_SHA3_224_VIA_PSA)
+        case MBEDTLS_MD_SHA3_224:
+            return PSA_ALG_SHA3_224;
+#endif
+#if defined(MBEDTLS_MD_SHA3_256_VIA_PSA)
+        case MBEDTLS_MD_SHA3_256:
+            return PSA_ALG_SHA3_256;
+#endif
+#if defined(MBEDTLS_MD_SHA3_384_VIA_PSA)
+        case MBEDTLS_MD_SHA3_384:
+            return PSA_ALG_SHA3_384;
+#endif
+#if defined(MBEDTLS_MD_SHA3_512_VIA_PSA)
+        case MBEDTLS_MD_SHA3_512:
+            return PSA_ALG_SHA3_512;
+#endif
         default:
             return PSA_ALG_NONE;
     }

@@ -272,7 +272,7 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
             }
 #endif
 #if defined(PSA_WANT_ALG_FFDH)
-            if (mbedtls_ssl_tls13_named_group_is_dhe(*group_list)) {
+            if (mbedtls_ssl_tls13_named_group_is_ffdh(*group_list)) {
                 propose_group = 1;
             }
 #endif

@@ -751,9 +751,11 @@ struct mbedtls_ssl_handshake_params {
     mbedtls_dhm_context dhm_ctx;                /*!<  DHM key exchange        */
 #endif
 
-#if defined(MBEDTLS_ECDH_C) && !defined(MBEDTLS_USE_PSA_CRYPTO)
+#if !defined(MBEDTLS_USE_PSA_CRYPTO) && \
+    defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED)
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
-#endif /* MBEDTLS_ECDH_C && !MBEDTLS_USE_PSA_CRYPTO */
+#endif /* !MBEDTLS_USE_PSA_CRYPTO &&
+          MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED */
 
 #if defined(PSA_WANT_ALG_ECDH) && defined(PSA_WANT_ALG_FFDH)
 #if (MBEDTLS_PSA_MAX_FFDH_PUBKEY_LENGTH >= MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH)

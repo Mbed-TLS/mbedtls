@@ -1336,15 +1336,6 @@
 //#define MBEDTLS_RSA_NO_CRT
 
 /**
- * \def MBEDTLS_RSA_MIN_KEY_SIZE
- *
- * Minimum RSA key size allowed in bits.
- *
- * Minimum possible value is 128 bits.
- */
-#define MBEDTLS_RSA_MIN_KEY_SIZE 1024
-
-/**
  * \def MBEDTLS_SELF_TEST
  *
  * Enable the checkup functions (*_self_test).
@@ -3699,6 +3690,9 @@
 /* ECP options */
 //#define MBEDTLS_ECP_WINDOW_SIZE            4 /**< Maximum window size used */
 //#define MBEDTLS_ECP_FIXED_POINT_OPTIM      1 /**< Enable fixed-point speed-up */
+
+/* RSA OPTIONS */
+//#define MBEDTLS_RSA_MIN_KEY_SIZE           1024 /**<  Minimum RSA key size allowed in bits (Minimum possible value is 128 bits)*/
 
 /* Entropy options */
 //#define MBEDTLS_ENTROPY_MAX_SOURCES                20 /**< Maximum number of sources supported */

@@ -208,6 +208,18 @@
  * operations, and does not need to accept all key sizes up to the limit. */
 #define PSA_VENDOR_RSA_MAX_KEY_BITS 4096
 
+/* The minimum size of an RSA key on this implementation, in bits.
+ * This is a vendor-specific macro.
+ *
+ * Limits RSA key generation to a minimum due to security reasons.
+ * This value cannot be less than 128 bits.
+ */
+#if defined(MBEDTLS_RSA_MIN_KEY_SIZE)
+#define PSA_VENDOR_RSA_MIN_KEY_BITS MBEDTLS_RSA_MIN_KEY_SIZE
+#else
+#define PSA_VENDOR_RSA_MIN_KEY_BITS 1024
+#endif
+
 /* The maximum size of an DH key on this implementation, in bits.
  *
  * Note that an implementation may set different size limits for different

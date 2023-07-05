@@ -85,6 +85,10 @@ extern "C" {
 // Regular implementation
 //
 
+#if !defined(MBEDTLS_RSA_MIN_KEY_SIZE)
+#define MBEDTLS_RSA_MIN_KEY_SIZE 1024
+#endif
+
 /**
  * \brief   The RSA context structure.
  */

@@ -282,13 +282,13 @@ typedef struct mbedtls_cipher_info_t {
     /** The block size, in bytes. */
     unsigned int MBEDTLS_PRIVATE(block_size) : 5;
 
-    /** IV or nonce size, in bytes (right shifted by MBEDTLS_IV_SIZE_SHIFT).
+    /** IV or nonce size, in bytes (right shifted by #MBEDTLS_IV_SIZE_SHIFT).
      * For ciphers that accept variable IV sizes,
      * this is the recommended size.
      */
     unsigned int MBEDTLS_PRIVATE(iv_size) : 3;
 
-    /** The cipher key length, in bits (right shifted by MBEDTLS_KEY_BITLEN_SHIFT).
+    /** The cipher key length, in bits (right shifted by #MBEDTLS_KEY_BITLEN_SHIFT).
      * This is the default length for variable sized ciphers.
      * Includes parity bits for ciphers like DES.
      */

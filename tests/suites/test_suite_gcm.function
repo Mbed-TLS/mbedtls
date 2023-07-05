@@ -271,16 +271,16 @@ void gcm_crypt_and_tag_reuse_ctx(int cipher_id, data_t *key_str,
 
     mbedtls_gcm_init(&ctx);
 
-    memset(output_enc, 0x00, 128);
-    memset(output_dec, 0x00, 128);
-    memset(tag_output, 0x00, 16);
+    memset(output_enc, 0x00, sizeof(output_enc));
+    memset(output_dec, 0x00, sizeof(output_dec));
+    memset(tag_output, 0x00, sizeof(tag_output));
 
     /* Allocate a buffer for random input data */
     unsigned char rand_input[128];
-    memset(rand_input, 0x00, 128);
+    memset(rand_input, 0x00, sizeof(rand_input));
 
-    TEST_EQUAL(mbedtls_gcm_setkey(&ctx, cipher_id, key_str->x,
-                                  key_str->len * 8), init_result);
+    TEST_EQUAL(mbedtls_gcm_setkey(&ctx, cipher_id, key_str->x, key_str->len * 8),
+               init_result);
     if (init_result == 0) {
         /* Re-Use context(encryption) for n iterations with random data */
         for (nloop = 0; nloop < ITERATIONS; nloop += 1) {

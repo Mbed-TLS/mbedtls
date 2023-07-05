@@ -45,7 +45,12 @@ typedef enum {
  */
 #if !defined(MBEDTLS_ECP_WITH_MPI_UINT)
 
-/* Because of `check_names.py` a define is needed for every macro. */
+/* Provide a commented-out definition so that `check_names.py` knows that
+ * it's not a typo.
+ * MBEDTLS_ECP_WITH_MPI_UINT must not be defined within config files, but
+ * only on the command line, as otherwise both ECP implementations will be
+ * built.
+ */
 //#define MBEDTLS_ECP_WITH_MPI_UINT
 
 /* Enable the old bignum interface. */

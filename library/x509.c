@@ -586,12 +586,12 @@ static int x509_date_is_valid(const mbedtls_x509_time *t)
             return MBEDTLS_ERR_X509_INVALID_DATE;
     }
 
-    if ((unsigned int) (t->day - 1) >= month_days ||      /*(1 - days in month)*/
-        /*(unsigned int)( t->mon - 1 ) >= 12 ||*//*(1 - 12) checked above*/
-        (unsigned int) t->year > 9999 ||         /*(0 - 9999)*/
-        (unsigned int) t->hour > 23 ||           /*(0 - 23)*/
-        (unsigned int) t->min  > 59 ||           /*(0 - 59)*/
-        (unsigned int) t->sec  > 59) {           /*(0 - 59)*/
+    if ((unsigned int) (t->day - 1) >= month_days ||      /* (1 - days in month) */
+        /* (unsigned int)( t->mon - 1 ) >= 12 || */ /* (1 - 12) checked above */
+        (unsigned int) t->year > 9999 ||         /* (0 - 9999) */
+        (unsigned int) t->hour > 23 ||           /* (0 - 23) */
+        (unsigned int) t->min  > 59 ||           /* (0 - 59) */
+        (unsigned int) t->sec  > 59) {           /* (0 - 59) */
         return MBEDTLS_ERR_X509_INVALID_DATE;
     }
 

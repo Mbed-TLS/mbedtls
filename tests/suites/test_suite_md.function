@@ -386,13 +386,14 @@ exit:
 void md_psa_dynamic_dispatch(int md_type, int pre_psa_ret, int post_psa_engine)
 {
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(md_type);
-    TEST_ASSERT(md_info != NULL);
     mbedtls_md_context_t ctx1, ctx2;
 
     /* Intentionally no PSA init here! (Will be done later.) */
 
     mbedtls_md_init(&ctx1);
     mbedtls_md_init(&ctx2);
+
+    TEST_ASSERT(md_info != NULL);
 
     /* Before PSA crypto init */
     TEST_EQUAL(pre_psa_ret, mbedtls_md_setup(&ctx1, md_info, 0));

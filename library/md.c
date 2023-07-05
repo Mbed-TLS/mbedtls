@@ -817,6 +817,22 @@ psa_algorithm_t mbedtls_md_psa_alg_from_type(mbedtls_md_type_t md_type)
         case MBEDTLS_MD_SHA512:
             return PSA_ALG_SHA_512;
 #endif
+#if defined(MBEDTLS_MD_CAN_SHA3_224)
+        case MBEDTLS_MD_SHA3_224:
+            return PSA_ALG_SHA3_224;
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_256)
+        case MBEDTLS_MD_SHA3_256:
+            return PSA_ALG_SHA3_256;
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_384)
+        case MBEDTLS_MD_SHA3_384:
+            return PSA_ALG_SHA3_384;
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_512)
+        case MBEDTLS_MD_SHA3_512:
+            return PSA_ALG_SHA3_512;
+#endif
         default:
             return PSA_ALG_NONE;
     }
@@ -852,6 +868,22 @@ mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa_alg)
 #if defined(MBEDTLS_MD_CAN_SHA512)
         case PSA_ALG_SHA_512:
             return MBEDTLS_MD_SHA512;
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_224)
+        case PSA_ALG_SHA3_224:
+            return MBEDTLS_MD_SHA3_224;
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_256)
+        case PSA_ALG_SHA3_256:
+            return MBEDTLS_MD_SHA3_256;
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_384)
+        case PSA_ALG_SHA3_384:
+            return MBEDTLS_MD_SHA3_384;
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_512)
+        case PSA_ALG_SHA3_512:
+            return MBEDTLS_MD_SHA3_512;
 #endif
         default:
             return MBEDTLS_MD_NONE;

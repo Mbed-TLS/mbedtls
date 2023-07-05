@@ -56,10 +56,13 @@ helper_regenerate_data_files () {
     make -C tests/data_files clean
 
     msg "Only modified files are allowd"
-    if [ -n "$(git status -s --ignored -- tests/data_files | grep -v '^ M')" ]
+
+    file_status=$(git status -s --ignored -- tests/data_files | grep -vf ignored.lst)
+    if [ -n "$file_status" ]
     then
         err_msg "Files were not generated or not cleanup"
-        git status -s --ignored -- tests/data_files
+        git status -s --ignored -- tests/data_files | grep -vf ignored.lst
+        # git status -s --ignored -- tests/data_files
         exit 1
     fi
 

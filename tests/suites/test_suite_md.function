@@ -28,6 +28,11 @@ void mbedtls_md_list()
         TEST_EQUAL(0, mbedtls_md_starts(&ctx));
         TEST_EQUAL(0, mbedtls_md_finish(&ctx, out));
         mbedtls_md_free(&ctx);
+
+        /* Ensure that we can convert to and from a psa_algorithm_t */
+        psa_algorithm_t p = mbedtls_md_psa_alg_from_type(*md_type_ptr);
+        TEST_ASSERT(p != PSA_ALG_NONE);
+        TEST_EQUAL(*md_type_ptr, mbedtls_md_type_from_psa_alg(p));
     }
 
 exit:

@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/md.h"
+#include "../library/md_psa.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

@@ -203,6 +203,10 @@ def main() -> int:
     parser.add_argument('-f', '--fix', action='store_true',
                         help=('modify source files to fix the code style '
                               '(default: print diff, do not modify files)'))
+    parser.add_argument('-g', '--git', action='store_true',
+                        help='use git for diffing rather than diff')
+    parser.add_argument('-p', '--pager', action='store_true',
+                        help='allow git to use a pager for diff')
     parser.add_argument('-s', '--since', metavar='COMMIT', const='development', nargs='?',
                         help=('only check files modified since the specified commit'
                               ' (e.g. --since=HEAD~3 or --since=development). If no'
@@ -216,11 +220,6 @@ def main() -> int:
                         help='only check the specified files (default with non-option arguments)')
     parser.add_argument('operands', nargs='*', metavar='FILE',
                         help='files to check (files MUST be known to git, if none: check all)')
-    parser.add_argument('-g', '--git', action='store_true',
-                        help='allow git to use a pager for diff')
-    parser.add_argument('-p', '--pager', action='store_true',
-                        help='allow git to use a pager for diff')
-
 
     args = parser.parse_args()
 

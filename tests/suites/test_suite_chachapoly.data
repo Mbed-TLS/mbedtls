@@ -22,3 +22,21 @@ chachapoly_state:
 ChaCha20-Poly1305 Selftest
 depends_on:MBEDTLS_SELF_TEST
 chachapoly_selftest:
+
+ChaCha20 IV length 0
+chachapoly_set_iv:0:MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA
+
+ChaCha20 IV length 5
+chachapoly_set_iv:5:MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA
+
+ChaCha20 IV length 8
+chachapoly_set_iv:8:0
+
+ChaCha20 IV length 10
+chachapoly_set_iv:10:MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA
+
+ChaCha20 IV length 12
+chachapoly_set_iv:12:0
+
+ChaCha20 IV length 15
+chachapoly_set_iv:15:MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA

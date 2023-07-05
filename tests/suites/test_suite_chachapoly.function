@@ -162,3 +162,23 @@ void chachapoly_selftest()
     TEST_ASSERT(mbedtls_chachapoly_self_test(1) == 0);
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void chachapoly_set_iv(int iv_len_val, int ret)
+{
+    size_t iv_len = iv_len_val;
+    unsigned char iv[16];
+
+    /* Initialise iv buffer */
+    memset(iv, 0, sizeof(iv));
+
+    mbedtls_chachapoly_context ctx;
+
+    /* Initialise context */
+    mbedtls_chachapoly_init(&ctx);
+
+    TEST_ASSERT(ret == mbedtls_chachapoly_set_iv(&ctx, iv, iv_len, 0U));
+
+    mbedtls_chachapoly_free(&ctx);
+}
+/* END_CASE */

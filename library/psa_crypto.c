@@ -4429,10 +4429,8 @@ static psa_status_t psa_aead_check_nonce_length(psa_algorithm_t alg,
 #endif /* PSA_WANT_ALG_CCM */
 #if defined(PSA_WANT_ALG_CHACHA20_POLY1305)
         case PSA_ALG_CHACHA20_POLY1305:
-            if (nonce_length == 12) {
+            if (nonce_length == 12 || nonce_length == 8) {
                 return PSA_SUCCESS;
-            } else if (nonce_length == 8) {
-                return PSA_ERROR_NOT_SUPPORTED;
             }
             break;
 #endif /* PSA_WANT_ALG_CHACHA20_POLY1305 */
@@ -4486,6 +4484,10 @@ psa_status_t psa_aead_encrypt(mbedtls_svc_key_id_t key,
     };
 
     status = psa_aead_check_nonce_length(alg, nonce_length);
+    /*8 byte nonce length for ChaCha20-Poly1305 is not supported in single shot operation*/
+    if (alg == PSA_ALG_CHACHA20_POLY1305 && nonce_length == 8) {
+        status = PSA_ERROR_NOT_SUPPORTED;
+    }
     if (status != PSA_SUCCESS) {
         goto exit;
     }
@@ -4541,6 +4543,10 @@ psa_status_t psa_aead_decrypt(mbedtls_svc_key_id_t key,
     };
 
     status = psa_aead_check_nonce_length(alg, nonce_length);
+    /*8 byte nonce length for ChaCha20-Poly1305 is not supported in single shot operation*/
+    if (alg == PSA_ALG_CHACHA20_POLY1305 && nonce_length == 8) {
+        status = PSA_ERROR_NOT_SUPPORTED;
+    }
     if (status != PSA_SUCCESS) {
         goto exit;
     }

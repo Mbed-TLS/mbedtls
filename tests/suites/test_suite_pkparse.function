@@ -150,8 +150,8 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PK_WRITE_C */
-void pk_parse_fix_x25519(data_t *input_key, data_t *exp_output)
+/* BEGIN_CASE depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_PK_WRITE_C */
+void pk_parse_fix_montgomery(data_t *input_key, data_t *exp_output)
 {
     /* Montgomery keys have specific bits set to either 0 or 1 depending on
      * their position. This is enforced during parsing (please see the implementation

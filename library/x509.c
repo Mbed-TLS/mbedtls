@@ -587,7 +587,7 @@ static int x509_date_is_valid(const mbedtls_x509_time *t)
     }
 
     if ((unsigned int) (t->day - 1) >= month_days ||      /* (1 - days in month) */
-        /* (unsigned int)( t->mon - 1 ) >= 12 || */ /* (1 - 12) checked above */
+        /* (unsigned int) (t->mon - 1) >= 12 || */  /* (1 - 12) checked above */
         (unsigned int) t->year > 9999 ||         /* (0 - 9999) */
         (unsigned int) t->hour > 23 ||           /* (0 - 23) */
         (unsigned int) t->min  > 59 ||           /* (0 - 59) */

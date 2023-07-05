@@ -8323,7 +8323,7 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         size_t block_size = PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type);
 #else
-        size_t block_size = cipher_info->block_size;
+        size_t block_size = mbedtls_cipher_info_get_block_size(cipher_info);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -8346,7 +8346,7 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         transform->ivlen = PSA_CIPHER_IV_LENGTH(key_type, alg);
 #else
-        transform->ivlen = cipher_info->iv_size;
+        transform->ivlen = mbedtls_cipher_info_get_iv_size(cipher_info);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
         /* Minimum length */

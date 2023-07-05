@@ -176,10 +176,10 @@ int mbedtls_pkcs5_pbes2(const mbedtls_asn1_buf *pbe_params, int mode,
      * The value of keylen from pkcs5_parse_pbkdf2_params() is ignored
      * since it is optional and we don't know if it was set or not
      */
-    keylen = cipher_info->key_bitlen / 8;
+    keylen = (int) mbedtls_cipher_info_get_key_bitlen(cipher_info) / 8;
 
     if (enc_scheme_params.tag != MBEDTLS_ASN1_OCTET_STRING ||
-        enc_scheme_params.len != cipher_info->iv_size) {
+        enc_scheme_params.len != mbedtls_cipher_info_get_iv_size(cipher_info)) {
         return MBEDTLS_ERR_PKCS5_INVALID_FORMAT;
     }
 

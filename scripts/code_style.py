@@ -113,7 +113,8 @@ def get_uncrustify_version() -> str:
     else:
         return str(result.stdout, "utf-8")
 
-def check_style_is_correct(src_file_list: List[str], use_git_diff: bool, use_pager: bool) -> bool:
+def check_style_is_correct(src_file_list: List[str], use_git_diff: bool = False,
+                           use_pager: bool = False) -> bool:
     """
     Check the code style and output a diff for each file whose style is
     incorrect.

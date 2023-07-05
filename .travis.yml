@@ -32,6 +32,10 @@ jobs:
           packages:
           - clang-10
           - gnutls-bin
+      env:
+        # Platform tests have an allocation that returns null
+        - ASAN_OPTIONS="allocator_may_return_null=1"
+        - MSAN_OPTIONS="allocator_may_return_null=1"
       script:
         # Do a manual build+test sequence rather than using all.sh,
         # because there's no all.sh component that does what we want,
@@ -89,6 +93,10 @@ jobs:
         apt:
           packages:
           - gcc
+      env:
+        # Platform tests have an allocation that returns null
+        - ASAN_OPTIONS="allocator_may_return_null=1"
+        - MSAN_OPTIONS="allocator_may_return_null=1"
       script:
         # Do a manual build+test sequence rather than using all.sh.
         #
@@ -115,6 +123,10 @@ jobs:
           packages:
           - clang
           - gnutls-bin
+      env:
+        # Platform tests have an allocation that returns null
+        - ASAN_OPTIONS="allocator_may_return_null=1"
+        - MSAN_OPTIONS="allocator_may_return_null=1"
       script:
         # Do a manual build+test sequence rather than using all.sh.
         #

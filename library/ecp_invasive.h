@@ -43,7 +43,7 @@ typedef enum {
 /* Requred macros for ECP split.
  * If MBEDTLS_ECP_WITH_MPI_UINT is defined the new bignum interface is used.
  */
-#ifndef MBEDTLS_ECP_WITH_MPI_UINT
+#if !defined(MBEDTLS_ECP_WITH_MPI_UINT)
 
 /* Because of `check_names.py` a define is needed for every macro. */
 //#define MBEDTLS_ECP_WITH_MPI_UINT

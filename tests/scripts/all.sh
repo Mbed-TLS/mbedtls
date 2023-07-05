@@ -2260,7 +2260,7 @@ component_test_psa_crypto_config_accel_ffdh () {
     # Configure
     # ---------
 
-    # Start from default config (no TLS 1.3, no USE_PSA)
+    # start with full (USE_PSA and TLS 1.3)
     helper_libtestdriver1_adjust_config "full"
 
     # Disable the module that's accelerated
@@ -2294,21 +2294,11 @@ component_test_psa_crypto_config_reference_ffdh () {
     msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated FFDH"
 
     # Start with full (USE_PSA and TLS 1.3)
-    scripts/config.py full
-
-    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
-    # partial support for cipher operations in the driver test library.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
-
-    # enable support for drivers and configuring PSA-only algorithms
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    helper_libtestdriver1_adjust_config "full"
 
     # Disable things that are not supported
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
-
     make
 
     msg "test suites: MBEDTLS_PSA_CRYPTO_CONFIG with non-accelerated FFDH alg + USE_PSA"

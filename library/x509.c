@@ -567,23 +567,26 @@ error:
 
 static int x509_date_is_valid(const mbedtls_x509_time *t)
 {
-    unsigned int d;
+    unsigned int month_days;
+    unsigned int year;
     switch (t->mon) {
         case 1: case 3: case 5: case 7: case 8: case 10: case 12:
-            d = 31;
+            month_days = 31;
             break;
         case 4: case 6: case 9: case 11:
-            d = 30;
+            month_days = 30;
             break;
         case 2:
-            d = (unsigned int) t->year;
-            d = ((d & 3) || (!(d % 100) && (d % 400))) ? 28 : 29;
+            year = (unsigned int) t->year;
+            month_days = ((year & 3) || (!(year % 100)
+                                         && (year % 400)))
+                          ? 28 : 29;
             break;
         default:
             return MBEDTLS_ERR_X509_INVALID_DATE;
     }
 
-    if ((unsigned int) (t->day - 1) >= d ||      /*(1 - days in month)*/
+    if ((unsigned int) (t->day - 1) >= month_days ||      /*(1 - days in month)*/
         /*(unsigned int)( t->mon - 1 ) >= 12 ||*//*(1 - 12) checked above*/
         (unsigned int) t->year > 9999 ||         /*(0 - 9999)*/
         (unsigned int) t->hour > 23 ||           /*(0 - 23)*/

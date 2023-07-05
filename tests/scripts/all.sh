@@ -191,6 +191,7 @@ pre_initialize_variables () {
 
     # Platform tests have an allocation that returns null
     export ASAN_OPTIONS="allocator_may_return_null=1"
+    export MSAN_OPTIONS="allocator_may_return_null=1"
 
     # Gather the list of available components. These are the functions
     # defined in this script whose name starts with "component_".

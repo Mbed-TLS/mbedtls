@@ -148,7 +148,8 @@ static int ssl_parse_renegotiation_info(mbedtls_ssl_context *ssl,
     return 0;
 }
 
-#if defined(MBEDTLS_PK_CAN_ECDH) || defined(MBEDTLS_PK_CAN_ECDSA_SOME) || \
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED) || \
+    defined(MBEDTLS_PK_CAN_ECDSA_SOME) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 /*
  * Function for parsing a supported groups (TLS 1.3) or supported elliptic
@@ -292,8 +293,8 @@ static int ssl_parse_supported_point_formats(mbedtls_ssl_context *ssl,
 
     return 0;
 }
-#endif /* MBEDTLS_PK_CAN_ECDH || MBEDTLS_PK_CAN_ECDSA_SOME ||
-          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED ||
+          MBEDTLS_PK_CAN_ECDSA_SOME || MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -836,7 +837,8 @@ static int ssl_ciphersuite_match(mbedtls_ssl_context *ssl, int suite_id,
 #endif
 
 
-#if defined(MBEDTLS_PK_CAN_ECDH) || defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED) || \
+    defined(MBEDTLS_PK_CAN_ECDSA_SOME)
     if (mbedtls_ssl_ciphersuite_uses_ec(suite_info) &&
         (ssl->handshake->curves_tls_id == NULL ||
          ssl->handshake->curves_tls_id[0] == 0)) {
@@ -1379,7 +1381,8 @@ read_record_header:
                 break;
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_PK_CAN_ECDH) || defined(MBEDTLS_PK_CAN_ECDSA_SOME) || \
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED) || \
+                defined(MBEDTLS_PK_CAN_ECDSA_SOME) || \
                 defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
             case MBEDTLS_TLS_EXT_SUPPORTED_GROUPS:
                 MBEDTLS_SSL_DEBUG_MSG(3, ("found supported elliptic curves extension"));
@@ -1399,8 +1402,8 @@ read_record_header:
                     return ret;
                 }
                 break;
-#endif /* MBEDTLS_PK_CAN_ECDH || MBEDTLS_PK_CAN_ECDSA_SOME ||
-          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED || \
+          MBEDTLS_PK_CAN_ECDSA_SOME || MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
             case MBEDTLS_TLS_EXT_ECJPAKE_KKPP:

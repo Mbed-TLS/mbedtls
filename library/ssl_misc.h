@@ -794,7 +794,8 @@ struct mbedtls_ssl_handshake_params {
 #endif
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
-#if defined(MBEDTLS_PK_CAN_ECDH) || defined(MBEDTLS_PK_CAN_ECDSA_SOME) ||      \
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED) || \
+    defined(MBEDTLS_PK_CAN_ECDSA_SOME) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     uint16_t *curves_tls_id;      /*!<  List of TLS IDs of supported elliptic curves */
 #endif

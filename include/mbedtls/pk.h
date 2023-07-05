@@ -197,11 +197,6 @@ typedef struct mbedtls_pk_rsassa_pss_options {
 #define MBEDTLS_PK_CAN_ECDSA_SOME
 #endif
 
-#if (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_ECDH)) || \
-    (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ECDH_C))
-#define MBEDTLS_PK_CAN_ECDH
-#endif
-
 /* Internal helper to define which fields in the pk_context structure below
  * should be used for EC keys: legacy ecp_keypair or the raw (PSA friendly)
  * format. It should be noticed that this only affect how data is stored, not

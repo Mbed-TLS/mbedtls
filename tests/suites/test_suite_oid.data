@@ -82,6 +82,22 @@ OID hash id - id-sha512
 depends_on:MBEDTLS_MD_CAN_SHA512
 oid_get_md_alg_id:"608648016503040203":MBEDTLS_MD_SHA512
 
+OID hash id - id-sha3-224
+depends_on:MBEDTLS_MD_CAN_SHA3_224
+oid_get_md_alg_id:"608648016503040207":MBEDTLS_MD_SHA3_224
+
+OID hash id - id-sha3-256
+depends_on:MBEDTLS_MD_CAN_SHA3_256
+oid_get_md_alg_id:"608648016503040208":MBEDTLS_MD_SHA3_256
+
+OID hash id - id-sha3-384
+depends_on:MBEDTLS_MD_CAN_SHA3_384
+oid_get_md_alg_id:"608648016503040209":MBEDTLS_MD_SHA3_384
+
+OID hash id - id-sha3-512
+depends_on:MBEDTLS_MD_CAN_SHA3_512
+oid_get_md_alg_id:"60864801650304020a":MBEDTLS_MD_SHA3_512
+
 OID hash id - id-ripemd160
 depends_on:MBEDTLS_MD_CAN_RIPEMD160
 oid_get_md_alg_id:"2b24030201":MBEDTLS_MD_RIPEMD160

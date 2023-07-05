@@ -1118,6 +1118,20 @@ component_test_full_cmake_gcc_asan_new_bignum () {
         full-libmbedx509-modules
 }
 
+component_test_full_cmake_gcc_asan_new_bignum_test_hooks () {
+    msg "build: full config, cmake, gcc, ASan"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_TEST_HOOKS
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make CFLAGS="-DMBEDTLS_ECP_WITH_MPI_UINT"
+
+    msg "test: main suites (inc. selftests) (full config, ASan build)"
+    make test
+
+    msg "test: selftest (ASan build)" # ~ 10s
+    programs/test/selftest
+}
+
 component_test_psa_crypto_key_id_encodes_owner () {
     msg "build: full config + PSA_CRYPTO_KEY_ID_ENCODES_OWNER, cmake, gcc, ASan"
     scripts/config.py full

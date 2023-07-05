@@ -761,6 +761,30 @@ static const oid_md_alg_t oid_md_alg[] =
         MBEDTLS_MD_RIPEMD160,
     },
 #endif
+#if defined(MBEDTLS_MD_CAN_SHA3_224)
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_DIGEST_ALG_SHA3_224,    "id-sha3-224",    "SHA-3-224"),
+        MBEDTLS_MD_SHA3_224,
+    },
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_256)
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_DIGEST_ALG_SHA3_256,    "id-sha3-256",    "SHA-3-256"),
+        MBEDTLS_MD_SHA3_256,
+    },
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_384)
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_DIGEST_ALG_SHA3_384,    "id-sha3-384",    "SHA-3-384"),
+        MBEDTLS_MD_SHA3_384,
+    },
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_512)
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_DIGEST_ALG_SHA3_512,    "id-sha3-512",    "SHA-3-512"),
+        MBEDTLS_MD_SHA3_512,
+    },
+#endif
     {
         NULL_OID_DESCRIPTOR,
         MBEDTLS_MD_NONE,

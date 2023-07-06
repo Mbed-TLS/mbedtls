@@ -25,9 +25,15 @@
 #include "mbedtls/asn1.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/platform.h"
 #include "mbedtls/error.h"
 
 #include <string.h>
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "mbedtls/psa_util.h"
+#include "psa/crypto.h"
+#endif
 
 /* Key types */
 #if defined(MBEDTLS_RSA_C)
@@ -48,16 +54,6 @@
 #if defined(MBEDTLS_PKCS12_C)
 #include "mbedtls/pkcs12.h"
 #endif
-
-#if defined(MBEDTLS_PSA_CRYPTO_C)
-#include "psa_util_internal.h"
-#endif
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "psa/crypto.h"
-#endif
-
-#include "mbedtls/platform.h"
 
 /* Helper for Montgomery curves */
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)

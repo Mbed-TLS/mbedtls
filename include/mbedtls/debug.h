@@ -280,7 +280,7 @@ void mbedtls_debug_print_crt(const mbedtls_ssl_context *ssl, int level,
                              const char *text, const mbedtls_x509_crt *crt);
 #endif
 
-#if defined(MBEDTLS_ECDH_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED)
 typedef enum {
     MBEDTLS_DEBUG_ECDH_Q,
     MBEDTLS_DEBUG_ECDH_QP,

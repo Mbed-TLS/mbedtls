@@ -397,7 +397,7 @@ void mbedtls_debug_print_crt(const mbedtls_ssl_context *ssl, int level,
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_X509_REMOVE_INFO */
 
-#if defined(MBEDTLS_ECDH_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED)
 static void mbedtls_debug_printf_ecdh_internal(const mbedtls_ssl_context *ssl,
                                                int level, const char *file,
                                                int line,
@@ -443,6 +443,6 @@ void mbedtls_debug_printf_ecdh(const mbedtls_ssl_context *ssl, int level,
     }
 #endif
 }
-#endif /* MBEDTLS_ECDH_C */
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED */
 
 #endif /* MBEDTLS_DEBUG_C */

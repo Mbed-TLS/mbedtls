@@ -297,11 +297,7 @@ The X.509 and TLS code can use PSA cryptography for most operations. To enable t
 
 Mbed TLS supports drivers for cryptographic accelerators, secure elements and random generators. This is work in progress. Please note that the driver interfaces are not fully stable yet and may change without notice. We intend to preserve backward compatibility for application code (using the PSA Crypto API), but the code of the drivers may have to change in future minor releases of Mbed TLS.
 
-Driver-related documentation is a work in progress. The following documents describe the end goal; note that the current implementation may not be up-to-date.
-
-* [Driver interface specification](docs/proposed/psa-driver-interface.md)
-* [Driver developer's guide](docs/proposed/psa-driver-developer-guide.md)
-* [Driver integration guide](docs/proposed/psa-driver-integration-guide.md)
+Please see the [PSA driver example and guide](docs/psa-driver-example-and-guide.md) for information on writing a driver.
 
 When using drivers, you will generally want to enable two compilation options (see the reference manual for more information):
 

@@ -1,11 +1,6 @@
 *.sln
 *.vcxproj
 
-# Generated source files
-/suites/*.generated.data
-/suites/test_suite_psa_crypto_storage_format.v[0-9]*.data
-/suites/test_suite_psa_crypto_storage_format.current.data
-
 *.log
 /test_suite*
 data_files/mpi_write
@@ -20,3 +15,10 @@ include/test/instrument_record_status.h
 src/libmbed*
 
 libtestdriver1/*
+
+###START_GENERATED_FILES###
+# Generated source files
+/suites/*.generated.data
+/suites/test_suite_psa_crypto_storage_format.v[0-9]*.data
+/suites/test_suite_psa_crypto_storage_format.current.data
+###END_GENERATED_FILES###

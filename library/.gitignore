@@ -2,8 +2,9 @@ libmbed*
 *.sln
 *.vcxproj
 
-# Automatically generated files
+###START_GENERATED_FILES###
 /error.c
 /version_features.c
 /ssl_debug_helpers_generated.c
 /psa_crypto_driver_wrappers.c
+###END_GENERATED_FILES###

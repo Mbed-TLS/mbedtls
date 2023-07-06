@@ -29,16 +29,16 @@
 
 #include <string.h>
 
+/* Key types */
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"
 #endif
-#include "mbedtls/ecp.h"
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#include "mbedtls/ecp.h"
 #include "pk_internal.h"
 #endif
-#if defined(MBEDTLS_ECDSA_C)
-#include "mbedtls/ecdsa.h"
-#endif
+
+/* Extended formats */
 #if defined(MBEDTLS_PEM_PARSE_C)
 #include "mbedtls/pem.h"
 #endif

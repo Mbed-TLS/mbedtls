@@ -26,7 +26,6 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
-#include "pk_internal.h"
 
 #include <string.h>
 

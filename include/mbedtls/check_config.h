@@ -35,7 +35,7 @@
 
 #include <stdint.h>
 
-#if defined(_WIN32)
+#if defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER <= 1900)
 #if !defined(MBEDTLS_PLATFORM_C)
 #error "MBEDTLS_PLATFORM_C is required on Windows"
 #endif
@@ -51,7 +51,7 @@
     !defined(MBEDTLS_PLATFORM_VSNPRINTF_MACRO)
 #define MBEDTLS_PLATFORM_VSNPRINTF_ALT
 #endif
-#endif /* _WIN32 */
+#endif /* _MINGW32__ || (_MSC_VER && (_MSC_VER <= 1900)) */
 
 #if defined(TARGET_LIKE_MBED) && defined(MBEDTLS_NET_C)
 #error "The NET module is not available for mbed OS - please use the network functions provided by Mbed OS"

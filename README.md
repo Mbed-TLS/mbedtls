@@ -293,14 +293,16 @@ However, it does not aim to implement the whole specification; in particular it 
 
 The X.509 and TLS code can use PSA cryptography for most operations. To enable this support, activate the compilation option `MBEDTLS_USE_PSA_CRYPTO` in `mbedtls_config.h`. Note that TLS 1.3 uses PSA cryptography for most operations regardless of this option. See `docs/use-psa-crypto.md` for details.
 
-### Upcoming features
+### PSA drivers
 
-Future releases of this library will include:
+Mbed TLS supports drivers for cryptographic accelerators, secure elements and random generators. This is work in progress. Please note that the driver interfaces are not fully stable yet and may change without notice. We intend to preserve backward compatibility for application code (using the PSA Crypto API), but the code of the drivers may have to change in future minor releases of Mbed TLS.
 
-* A driver programming interface, which makes it possible to use hardware accelerators instead of the default software implementation for chosen algorithms.
-* Support for external keys to be stored and manipulated exclusively in a separate cryptoprocessor.
-* A configuration mechanism to compile only the algorithms you need for your application.
-* A wider set of cryptographic algorithms.
+Please see the [PSA driver example and guide](docs/psa-driver-example-and-guide.md) for information on writing a driver.
+
+When using drivers, you will generally want to enable two compilation options (see the reference manual for more information):
+
+* `MBEDTLS_USE_PSA_CRYPTO` is necessary so that the X.509 and TLS code calls the PSA drivers rather than the built-in software implementation.
+* `MBEDTLS_PSA_CRYPTO_CONFIG` allows you to enable PSA cryptographic mechanisms without including the code of the corresponding software implementation. This is not yet supported for all mechanisms.
 
 License
 -------

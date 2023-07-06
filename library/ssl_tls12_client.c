@@ -1770,10 +1770,16 @@ static int ssl_parse_server_ecdh_params(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
 
+    /* When FFDH is enabled, the array handshake->xxdh_psa_peer_key size takes into account
+       the sizes of the FFDH keys which are at least 2048 bits.
+       The size of the array is thus greater than 256 bytes which is greater than any
+       possible value of ecpoint_len (type uint8_t) and the check below can be skipped.*/
 #if !defined(PSA_WANT_ALG_FFDH)
     if (ecpoint_len > sizeof(handshake->xxdh_psa_peerkey)) {
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
+#else
+    MBEDTLS_STATIC_ASSERT(sizeof(handshake->xxdh_psa_peerkey) >= UINT8_MAX, "peer key buffer too small");
 #endif
 
     memcpy(handshake->xxdh_psa_peerkey, *p, ecpoint_len);

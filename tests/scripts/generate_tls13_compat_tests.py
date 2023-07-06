@@ -67,9 +67,9 @@ NAMED_GROUP_IANA_VALUE = {
     'secp521r1': 0x19,
     'x25519': 0x1d,
     'x448': 0x1e,
+    # Only one finite field group to keep testing time within reasonable bounds.
     'ffdhe2048': 0x100,
 }
-
 
 class TLSProgram:
     """

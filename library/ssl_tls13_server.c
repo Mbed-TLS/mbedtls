@@ -1916,11 +1916,11 @@ static int ssl_tls13_generate_and_write_key_share(mbedtls_ssl_context *ssl,
 #if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(named_group) ||
         mbedtls_ssl_tls13_named_group_is_ffdh(named_group)) {
-        ret = mbedtls_ssl_tls13_generate_and_write_dh_key_exchange(
+        ret = mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
             ssl, named_group, buf, end, out_len);
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(
-                1, "mbedtls_ssl_tls13_generate_and_write_dh_key_exchange",
+                1, "mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange",
                 ret);
             return ret;
         }

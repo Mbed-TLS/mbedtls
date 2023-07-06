@@ -1551,7 +1551,7 @@ static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
     }
 }
 
-int mbedtls_ssl_tls13_generate_and_write_dh_key_exchange(
+int mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
     mbedtls_ssl_context *ssl,
     uint16_t named_group,
     unsigned char *buf,

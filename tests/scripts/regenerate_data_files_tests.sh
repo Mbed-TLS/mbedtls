@@ -45,24 +45,24 @@ helper_regenerate_data_files () {
     msg "Build mbedtls tools"
     make  # data_files depends on programs/x509/cert_*
 
-    msg "Cleanup final files"
+    msg "Cleanup final files make -C tests/data_files $1"
     make -C tests/data_files $1
+    shift
 
     dd if=/dev/urandom of=./tests/data_files/seedfile bs=64 count=1
     msg "Regenerate files"
-    make -C tests/data_files
+    make -C tests/data_files all_final $*
 
     msg "Remove intermediate files"
     make -C tests/data_files clean
 
     msg "Only modified files are allowd"
-
-    file_status=$(git status -s --ignored -- tests/data_files | grep -vf ignored.lst)
-    if [ -n "$file_status" ]
+    if git status -s --ignored -- tests/data_files | grep -vf tests/data_files/ignored.lst
     then
         err_msg "Files were not generated or not cleanup"
-        git status -s --ignored -- tests/data_files | grep -vf ignored.lst
-        # git status -s --ignored -- tests/data_files
+        ( git status -s --ignored -- tests/data_files | grep -vf tests/data_files/ignored.lst) || true
+        err_msg "Status after regenerating"
+        git status -s --ignored -- tests/data_files
         exit 1
     fi
 
@@ -70,7 +70,7 @@ helper_regenerate_data_files () {
 }
 
 component_test_regnerate_parse_input () {
-    helper_regenerate_data_files tidy
+    helper_regenerate_data_files tidy all_parse_input
 }
 
 component_test_regenerate_data_files_full () {

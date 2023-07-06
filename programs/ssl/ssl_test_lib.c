@@ -554,26 +554,13 @@ static uint16_t mbedtls_ssl_get_curve_tls_id_from_name(const char *name)
     return 0;
 }
 
-static const char **mbedtls_ssl_get_supported_curves_list(void)
+static void mbedtls_ssl_print_supported_curves_list(void)
 {
-    const char **supported_list = NULL;
-    int i = 0, j = 0;
-
-    /* The allocated area might be bigger than strictly required (because not
-     * all the curves might be supported), but it is enough to contain all the
-     * pointers when all curves are enabled. */
-    supported_list = mbedtls_calloc(ARRAY_LENGTH(tls_id_curve_name_table),
-                                    sizeof(char *));
-    for (i = 0; tls_id_curve_name_table[i].tls_id != 0; i++) {
+    for (int i = 0; tls_id_curve_name_table[i].tls_id != 0; i++) {
         if (tls_id_curve_name_table[i].is_supported == 1) {
-            supported_list[j] = tls_id_curve_name_table[i].name;
-            j++;
+            mbedtls_printf("%s ", tls_id_curve_name_table[i].name);
         }
     }
-    // Keep NULL as last element as guard for end-of-array.
-    supported_list[j] = NULL;
-
-    return supported_list;
 }
 
 int parse_curves(const char *curves, uint16_t *group_list, size_t group_list_len)
@@ -603,13 +590,7 @@ int parse_curves(const char *curves, uint16_t *group_list, size_t group_list_len
             } else {
                 mbedtls_printf("unknown curve %s\n", q);
                 mbedtls_printf("supported curves: ");
-                const char **supported_curves = mbedtls_ssl_get_supported_curves_list();
-                for (int index = 0;
-                     supported_curves[index] != NULL;
-                     index++) {
-                    mbedtls_printf("%s ", supported_curves[index]);
-                }
-                mbedtls_free((char *) supported_curves);
+                mbedtls_ssl_print_supported_curves_list();
                 mbedtls_printf("\n");
                 return -1;
             }

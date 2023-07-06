@@ -312,7 +312,7 @@ void test_hooks_free(void);
 #endif /* !MBEDTLS_TEST_HOOKS */
 
 /* Helper functions for FFDH groups. */
-int parse_groups(const char *curves, uint16_t *group_list, size_t group_list_len);
+int parse_groups(const char *groups, uint16_t *group_list, size_t group_list_len);
 
 #endif /* MBEDTLS_SSL_TEST_IMPOSSIBLE conditions: else */
 #endif /* MBEDTLS_PROGRAMS_SSL_SSL_TEST_LIB_H */

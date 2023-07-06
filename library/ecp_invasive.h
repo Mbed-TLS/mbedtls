@@ -40,22 +40,12 @@ typedef enum {
     MBEDTLS_ECP_MOD_SCALAR
 } mbedtls_ecp_modulus_type;
 
-/* Requred macros for ECP split.
- * If MBEDTLS_ECP_WITH_MPI_UINT is defined the new bignum interface is used.
- */
-#if !defined(MBEDTLS_ECP_WITH_MPI_UINT)
-
 /* Provide a commented-out definition so that `check_names.py` knows that
  * it's not a typo.
  * MBEDTLS_ECP_WITH_MPI_UINT must not be defined within config files, but
- * only on the command line, as otherwise both ECP implementations will be
- * built.
+ * only on the command line.
  */
 //#define MBEDTLS_ECP_WITH_MPI_UINT
-
-/* Enable the old bignum interface. */
-#define MBEDTLS_ECP_WITH_MPI_STRUCT
-#endif
 
 typedef enum {
     MBEDTLS_ECP_VARIANT_NONE            = 0,

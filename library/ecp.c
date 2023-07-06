@@ -43,9 +43,7 @@
 
 #include "common.h"
 
-#include "ecp_invasive.h"
-
-#if defined(MBEDTLS_ECP_WITH_MPI_STRUCT)
+#if !defined(MBEDTLS_ECP_WITH_MPI_UINT)
 
 /**
  * \brief Function level alternative implementation.
@@ -84,6 +82,7 @@
 #include "mbedtls/error.h"
 
 #include "bn_mul.h"
+#include "ecp_invasive.h"
 
 #include <string.h>
 
@@ -3653,4 +3652,4 @@ mbedtls_ecp_variant mbedtls_ecp_get_variant()
 
 #endif /* MBEDTLS_ECP_LIGHT */
 
-#endif /* MBEDTLS_ECP_WITH_MPI_STRUCT */
+#endif /* MBEDTLS_ECP_WITH_MPI_UINT */

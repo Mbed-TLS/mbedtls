@@ -1636,12 +1636,10 @@ void check_variant()
 {
     mbedtls_ecp_variant variant = mbedtls_ecp_get_variant();
 
-#if defined(MBEDTLS_ECP_WITH_MPI_STRUCT)
-    TEST_EQUAL(variant, MBEDTLS_ECP_VARIANT_WITH_MPI_STRUCT);
-#elif defined(MBEDTLS_ECP_WITH_MPI_UINT)
+#if defined(MBEDTLS_ECP_VARIANT_WITH_MPI_UINT)
     TEST_EQUAL(variant, MBEDTLS_ECP_VARIANT_WITH_MPI_UINT);
 #else
-    #error "No ecp variant detected."
+    TEST_EQUAL(variant, MBEDTLS_ECP_VARIANT_WITH_MPI_STRUCT);
 #endif
 }
 /* END_CASE */

@@ -43,8 +43,6 @@
 
 #include "common.h"
 
-#include "ecp_invasive.h"
-
 #if defined(MBEDTLS_ECP_WITH_MPI_UINT)
 
 /**
@@ -84,6 +82,7 @@
 #include "mbedtls/error.h"
 
 #include "bn_mul.h"
+#include "ecp_invasive.h"
 
 #include <string.h>
 

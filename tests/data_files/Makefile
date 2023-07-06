@@ -2178,6 +2178,7 @@ dh.999.pem:
 ################################################################
 #### Meta targets
 ################################################################
+all_parse_input += $(shell cat ignored.txt | grep ^parse_input)
 
 all_final: $(all_final)
 all_parse_input: $(all_parse_input)

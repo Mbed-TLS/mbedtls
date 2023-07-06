@@ -171,32 +171,6 @@ typedef struct mbedtls_pk_rsassa_pss_options {
 #endif
 #endif /* defined(MBEDTLS_USE_PSA_CRYPTO) */
 
-/**
- * \brief   The following defines are meant to list ECDSA capabilities of the
- *          PK module in a general way (without any reference to how this
- *          is achieved, which can be either through PSA driver or
- *          MBEDTLS_ECDSA_C)
- */
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(MBEDTLS_ECDSA_C)
-#define MBEDTLS_PK_CAN_ECDSA_SIGN
-#define MBEDTLS_PK_CAN_ECDSA_VERIFY
-#endif
-#else /* MBEDTLS_USE_PSA_CRYPTO */
-#if defined(PSA_WANT_ALG_ECDSA)
-#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC)
-#define MBEDTLS_PK_CAN_ECDSA_SIGN
-#endif
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-#define MBEDTLS_PK_CAN_ECDSA_VERIFY
-#endif
-#endif /* PSA_WANT_ALG_ECDSA */
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
-#if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY) || defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
-#define MBEDTLS_PK_CAN_ECDSA_SOME
-#endif
-
 /* Internal helper to define which fields in the pk_context structure below
  * should be used for EC keys: legacy ecp_keypair or the raw (PSA friendly)
  * format. It should be noticed that this only affect how data is stored, not

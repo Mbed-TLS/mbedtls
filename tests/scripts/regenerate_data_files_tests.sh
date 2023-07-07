@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # regenerate_data_files_tests.sh
 #
 # Copyright The Mbed TLS Contributors

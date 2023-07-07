@@ -75,4 +75,72 @@ TODO
 Elliptic-curve cryptography (ECC)
 ---------------------------------
 
-TODO
+Note: things are still evolving. This section describes the situation right
+after #7452 has been merged. It will be updated again in #7757 when bignum is
+done.
+
+It is possible to have most ECC operations provided only by a driver:
+- the ECDH, ECDSA and EC J-PAKE algorithms;
+- key import, export, and random generation.
+
+More precisely:
+- you can enable `PSA_WANT_ALG_ECDH` without `MBEDTLS_ECDH_C` provided
+  `MBEDTLS_PSA_ACCEL_ALG_ECDH` is enabled;
+- you can enable `PSA_WANT_ALG_ECDSA` without `MBEDTLS_ECDSA_C` provided
+  `MBEDTLS_PSA_ACCEL_ALG_ECDSA` is enabled;
+- you can enable `PSA_WANT_ALG_JPAKE` without `MBEDTLS_ECJPAKE_C` provided
+  `MBEDTLS_PSA_ACCEL_ALG_JPAKE` is enabled.
+
+In addition, if none of `MBEDTLS_ECDH_C`, `MBEDTLS_ECDSA_C`,
+`MBEDTLS_ECJPAKE_C` is enabled, you can enable:
+- `PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY`;
+- `PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC`;
+- `PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT`;
+- `PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT`;
+- `PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE`;
+without `MBEDTLS_ECP_C` provided the corresponding
+`MBEDTLS_PSA_ACCEL_KEY_TYPE_xxx` are enabled.
+
+[Coming soon] If `MBEDTLS_ECP_C` is disabled and `ecp.c` is fully removed (see
+"Limitations regarding fully removing `ecp.c`" below), and you're not using
+RSA or FFDH, then you can also disable `MBEDTLS_BIGNUM_C` for further code
+size saving.
+
+### Limitations regarding fully removing `ecp.c`
+
+A limited subset of `ecp.c` will still be automatically re-enabled if any of
+the following is enabled:
+- `MBEDTLS_PK_PARSE_EC_COMPRESSED` - support for parsing ECC keys where the
+  public part is in compressed format;
+- `MBEDTLS_PK_PARSE_EC_EXTENDED` - support for parsing ECC keys where the
+  curve is identified not by name, but by explicit parameters;
+- `PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE` - support for deterministic
+  derivation of an ECC keypair with `psa_key_derivation_output_key()`.
+
+Note: when one of the above options is enabled, you can still `MBEDTLS_ECP_C`
+in `mbedtls_config.h`, and it will still result in some code size savings, but
+not as much as when none of these are enabled, as a subset of `ecp.c` will
+still be included in the build in order to support these.
+
+We do have plans to support each of these with `ecp.c` fully removed in the
+future, however no established timeline. If you're interested, please let us
+know, so we can take it into consideration in our planning.
+
+### Limitations regarding restartable / interruptible ECC operations
+
+At the moment, the is not driver support for interruptible operations
+(see `psa_sign_hash_start()` + `psa_sign_hash_complete()` etc.) so as a
+consequence these are not supported in builds without `MBEDTLS_ECDSA_C`.
+
+Similarly, there is no PSA support for interruptible ECDH operations so these
+are not supported without `ECDH_C`. See also limitations regarding
+restartable operations with `MBEDTLS_USE_PSA_CRYPTO` in [its
+documentation](use-psa-crypto.md).
+
+Again, we have plans to support this in the future but not established
+timeline, please let us know if you're interested.
+
+### Limitations regarding the selection of curves
+
+TODO: apparently we don't really support having some curves built-in and
+others driver-only... investigate and describe the situation. See also #7899.

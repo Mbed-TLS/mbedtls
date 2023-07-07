@@ -525,6 +525,9 @@ int mbedtls_x509_info_cert_type(char **buf, size_t *size,
 int mbedtls_x509_info_key_usage(char **buf, size_t *size,
                                 unsigned int key_usage);
 
+int mbedtls_x509_write_set_san_common(mbedtls_asn1_named_data **extensions,
+                                      const mbedtls_x509_san_list *san_list);
+
 /**
  * \brief          This function parses a CN string as an IP address.
  *

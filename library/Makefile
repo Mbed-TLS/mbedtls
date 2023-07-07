@@ -166,6 +166,7 @@ OBJS_X509= \
 	   x509_crl.o \
 	   x509_crt.o \
 	   x509_csr.o \
+   	   x509write.o \
 	   x509write_crt.o \
 	   x509write_csr.o \
 	   pkcs7.o \

@@ -10,3 +10,8 @@ test-ca2.ku-crl.crt.openssl.v3_ext
 test-ca2.ku-crt_crl.crt.openssl.v3_ext
 test-ca2.ku-crt.crt.openssl.v3_ext
 test-ca2.ku-ds.crt.openssl.v3_ext
+server5.crt.openssl.v3_ext
+cli.opensslconf
+test-ca.server1.opensslconf
+test-ca.server1.db
+server6-ss-child.crt.openssl.v3_ext

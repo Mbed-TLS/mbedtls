@@ -389,7 +389,7 @@ RSA Generate Key (Minimum size key)
 mbedtls_rsa_gen_key:MBEDTLS_RSA_MIN_KEY_SIZE:3:0
 
 RSA Generate Key (Key less than minimum size)
-depends_on:MBEDTLS_RSA_MIN_KEY_SIZE > 130
+depends_on:MBEDTLS_RSA_MIN_KEY_SIZE >= 130
 mbedtls_rsa_gen_key:MBEDTLS_RSA_MIN_KEY_SIZE-2:3:MBEDTLS_ERR_RSA_BAD_INPUT_DATA
 
 RSA Generate Key (Number of bits too small)

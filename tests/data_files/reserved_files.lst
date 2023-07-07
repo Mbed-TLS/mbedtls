@@ -2,3 +2,11 @@
 Makefile
 Readme-x509.txt
 reserved_files.lst
+ignored.lst
+known_missed.lst
+reserved_files.lst
+test-ca.opensslconf
+test-ca2.ku-crl.crt.openssl.v3_ext
+test-ca2.ku-crt_crl.crt.openssl.v3_ext
+test-ca2.ku-crt.crt.openssl.v3_ext
+test-ca2.ku-ds.crt.openssl.v3_ext

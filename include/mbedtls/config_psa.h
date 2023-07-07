@@ -743,10 +743,16 @@ extern "C" {
 #define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT 1
 #define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT 1
 #define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE 1
+/* Normally we wouldn't enable this because it's not implemented in ecp.c,
+ * but since it used to be available any time ECP_C was enabled, let's enable
+ * it anyway for the sake of backwards compatibility */
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_IMPORT 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_EXPORT 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_GENERATE 1
+/* See comment for PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE above. */
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_DERIVE 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY 1
 #define PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY 1
 #endif /* MBEDTLS_ECP_C */
@@ -1003,13 +1009,22 @@ extern "C" {
 #define PSA_WANT_ALG_SOME_PAKE 1
 #endif
 
-/* Temporary internal migration helpers */
-#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC) || \
-    defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT) || \
-    defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT) || \
-    defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE) || \
-    defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE)
-#define MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY
+/* Even though KEY_PAIR symbols' feature several level of support (BASIC, IMPORT,
+ * EXPORT, GENERATE, DERIVE) we're not planning to have support only for BASIC
+ * without IMPORT/EXPORT since these last 2 features are strongly used in tests.
+ * In general it is allowed to include more feature than what is strictly
+ * requested.
+ * As a consequence IMPORT and EXPORT features will be automatically enabled
+ * as soon as the BASIC one is. */
+#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC)
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT 1
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT 1
+#endif
+
+/* See description above */
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC)
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_IMPORT 1
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_EXPORT 1
 #endif
 
 /* Temporary internal migration helpers */
@@ -1026,15 +1041,6 @@ extern "C" {
     defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT) || \
     defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE)
 #define MBEDTLS_PSA_WANT_KEY_TYPE_DH_KEY_PAIR_LEGACY
-#endif
-
-/* Temporary internal migration helpers */
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_IMPORT) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_EXPORT) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_GENERATE) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_DERIVE)
-#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_LEGACY
 #endif
 
 /* Temporary internal migration helpers */

@@ -2176,7 +2176,12 @@ component_test_psa_crypto_config_accel_ecdsa () {
     msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA"
 
     # Algorithms and key types to accelerate
-    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
+    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
+                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
+                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
+                    KEY_TYPE_ECC_PUBLIC_KEY"
 
     # Configure
     # ---------
@@ -2216,7 +2221,12 @@ component_test_psa_crypto_config_accel_ecdh () {
     msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH"
 
     # Algorithms and key types to accelerate
-    loc_accel_list="ALG_ECDH KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
+    loc_accel_list="ALG_ECDH \
+                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
+                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
+                    KEY_TYPE_ECC_PUBLIC_KEY"
 
     # Configure
     # ---------
@@ -2355,7 +2365,11 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
                     ALG_JPAKE \
-                    KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
+                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
+                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
+                    KEY_TYPE_ECC_PUBLIC_KEY"
 
     # Configure
     # ---------
@@ -2464,7 +2478,11 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
                     ALG_JPAKE \
-                    KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
+                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
+                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
+                    KEY_TYPE_ECC_PUBLIC_KEY"
 
     # Configure
     # ---------
@@ -2526,7 +2544,11 @@ psa_crypto_config_accel_all_curves_except_one () {
     loc_accel_list="ALG_ECDH \
                     ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_JPAKE \
-                    KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
+                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
+                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
+                    KEY_TYPE_ECC_PUBLIC_KEY"
 
     # Configure
     # ---------
@@ -2622,6 +2644,42 @@ component_test_psa_crypto_config_accel_all_curves_except_p192 () {
 
 component_test_psa_crypto_config_accel_all_curves_except_x25519 () {
     psa_crypto_config_accel_all_curves_except_one MBEDTLS_ECP_DP_CURVE25519_ENABLED
+}
+
+# This is an helper used by:
+# - component_test_psa_ecc_key_pair_no_derive
+# - component_test_psa_ecc_key_pair_no_generate
+# The goal is to test with all PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_yyy symbols
+# enabled, but one. Input arguments are as follows:
+# - $1 is the key type under test, i.e. ECC/RSA/DH
+# - $2 is the key option to be unset (i.e. generate, derive, etc)
+build_and_test_psa_want_key_pair_partial() {
+    KEY_TYPE=$1
+    UNSET_OPTION=$2
+    DISABLED_PSA_WANT="PSA_WANT_KEY_TYPE_${KEY_TYPE}_KEY_PAIR_${UNSET_OPTION}"
+
+    msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG - ${DISABLED_PSA_WANT}"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
+
+    # All the PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_yyy are enabled by default in
+    # crypto_config.h so we just disable the one we don't want.
+    scripts/config.py -f include/psa/crypto_config.h unset "$DISABLED_PSA_WANT"
+
+    make CC=gcc CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: full + MBEDTLS_PSA_CRYPTO_CONFIG - ${DISABLED_PSA_WANT}"
+    make test
+}
+
+component_test_psa_ecc_key_pair_no_derive() {
+    build_and_test_psa_want_key_pair_partial "ECC" "DERIVE"
+}
+
+component_test_psa_ecc_key_pair_no_generate() {
+    build_and_test_psa_want_key_pair_partial "ECC" "GENERATE"
 }
 
 component_test_psa_crypto_config_accel_rsa_signature () {

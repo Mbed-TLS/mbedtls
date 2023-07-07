@@ -10,7 +10,8 @@ int pake_in_driver = 0;
 static const uint8_t jpake_server_id[] = { 's', 'e', 'r', 'v', 'e', 'r' };
 static const uint8_t jpake_client_id[] = { 'c', 'l', 'i', 'e', 'n', 't' };
 
-#if defined(PSA_WANT_ALG_JPAKE) && defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY) && \
+#if defined(PSA_WANT_ALG_JPAKE) && \
+    defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC) && \
     defined(PSA_WANT_ECC_SECP_R1_256) && defined(PSA_WANT_ALG_SHA_256)
 static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
                              psa_pake_operation_t *server,
@@ -747,10 +748,10 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256 */
-void generate_key(int force_status_arg,
-                  data_t *fake_output,
-                  int expected_status_arg)
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256:MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE */
+void generate_ec_key(int force_status_arg,
+                     data_t *fake_output,
+                     int expected_status_arg)
 {
     psa_status_t force_status = force_status_arg;
     psa_status_t expected_status = expected_status_arg;
@@ -3182,7 +3183,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE:MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256 */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256 */
 void ecjpake_rounds(int alg_arg, int primitive_arg, int hash_arg,
                     int derive_alg_arg, data_t *pw_data,
                     int client_input_first, int in_driver)

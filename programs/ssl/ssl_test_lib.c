@@ -508,16 +508,16 @@ static inline const char *mbedtls_ssl_ffdh_name_from_group(uint16_t group)
 }
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED && PSA_WANT_ALG_FFDH */
 
-int parse_curves(const char *curves, uint16_t *group_list, size_t group_list_len)
+int parse_groups(const char *groups, uint16_t *group_list, size_t group_list_len)
 {
-    char *p = (char *) curves;
+    char *p = (char *) groups;
     char *q = NULL;
     size_t i = 0;
 
     if (strcmp(p, "none") == 0) {
         group_list[0] = 0;
     } else if (strcmp(p, "default") != 0) {
-        /* Leave room for a final NULL in curve list */
+        /* Leave room for a final NULL in group list */
         while (i < group_list_len - 1 && *p != '\0') {
             q = p;
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
@@ -547,9 +547,9 @@ int parse_curves(const char *curves, uint16_t *group_list, size_t group_list_len
             } else
 #endif
             {
-                mbedtls_printf("unknown curve %s\n", q);
+                mbedtls_printf("unknown group %s\n", q);
+                mbedtls_printf("supported groups: ");
 #if defined(MBEDTLS_ECP_LIGHT)
-                mbedtls_printf("supported curves: ");
                 for (curve_cur = mbedtls_ecp_curve_list();
                      curve_cur->grp_id != MBEDTLS_ECP_DP_NONE;
                      curve_cur++) {
@@ -570,10 +570,10 @@ int parse_curves(const char *curves, uint16_t *group_list, size_t group_list_len
             }
         }
 
-        mbedtls_printf("Number of curves: %u\n", (unsigned int) i);
+        mbedtls_printf("Number of groups: %u\n", (unsigned int) i);
 
         if (i == group_list_len - 1 && *p != '\0') {
-            mbedtls_printf("curves list too long, maximum %u",
+            mbedtls_printf("groups list too long, maximum %u",
                            (unsigned int) (group_list_len - 1));
             return -1;
         }

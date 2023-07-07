@@ -914,11 +914,11 @@ static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
          * ECDHE and FFDHE groups are supported
          */
         if (mbedtls_ssl_tls13_named_group_is_ecdhe(group) ||
-            mbedtls_ssl_tls13_named_group_is_dhe(group)) {
+            mbedtls_ssl_tls13_named_group_is_ffdh(group)) {
             MBEDTLS_SSL_DEBUG_MSG(2, ("ECDH/FFDH group: %s (%04x)",
                                       mbedtls_ssl_named_group_to_str(group),
                                       group));
-            ret = mbedtls_ssl_tls13_read_public_ecdhe_share(
+            ret = mbedtls_ssl_tls13_read_public_xxdhe_share(
                 ssl, key_exchange - 2, key_exchange_len + 2);
             if (ret != 0) {
                 return ret;
@@ -1915,12 +1915,12 @@ static int ssl_tls13_generate_and_write_key_share(mbedtls_ssl_context *ssl,
 
 #if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(named_group) ||
-        mbedtls_ssl_tls13_named_group_is_dhe(named_group)) {
-        ret = mbedtls_ssl_tls13_generate_and_write_dh_key_exchange(
+        mbedtls_ssl_tls13_named_group_is_ffdh(named_group)) {
+        ret = mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
             ssl, named_group, buf, end, out_len);
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(
-                1, "mbedtls_ssl_tls13_generate_and_write_dh_key_exchange",
+                1, "mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange",
                 ret);
             return ret;
         }

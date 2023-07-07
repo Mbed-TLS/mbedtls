@@ -1492,7 +1492,7 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
      */
     if (mbedtls_ssl_tls13_key_exchange_mode_with_ephemeral(ssl)) {
         if (mbedtls_ssl_tls13_named_group_is_ecdhe(handshake->offered_group_id) ||
-            mbedtls_ssl_tls13_named_group_is_dhe(handshake->offered_group_id)) {
+            mbedtls_ssl_tls13_named_group_is_ffdh(handshake->offered_group_id)) {
 #if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
             psa_algorithm_t alg =
                 mbedtls_ssl_tls13_named_group_is_ecdhe(handshake->offered_group_id) ?
@@ -1502,7 +1502,7 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
             psa_status_t status = PSA_ERROR_GENERIC_ERROR;
             psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-            status = psa_get_key_attributes(handshake->ecdh_psa_privkey,
+            status = psa_get_key_attributes(handshake->xxdh_psa_privkey,
                                             &key_attributes);
             if (status != PSA_SUCCESS) {
                 ret = PSA_TO_MBEDTLS_ERR(status);
@@ -1516,8 +1516,8 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
             }
 
             status = psa_raw_key_agreement(
-                alg, handshake->ecdh_psa_privkey,
-                handshake->ecdh_psa_peerkey, handshake->ecdh_psa_peerkey_len,
+                alg, handshake->xxdh_psa_privkey,
+                handshake->xxdh_psa_peerkey, handshake->xxdh_psa_peerkey_len,
                 shared_secret, shared_secret_len, &shared_secret_len);
             if (status != PSA_SUCCESS) {
                 ret = PSA_TO_MBEDTLS_ERR(status);
@@ -1525,14 +1525,14 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
                 goto cleanup;
             }
 
-            status = psa_destroy_key(handshake->ecdh_psa_privkey);
+            status = psa_destroy_key(handshake->xxdh_psa_privkey);
             if (status != PSA_SUCCESS) {
                 ret = PSA_TO_MBEDTLS_ERR(status);
                 MBEDTLS_SSL_DEBUG_RET(1, "psa_destroy_key", ret);
                 goto cleanup;
             }
 
-            handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+            handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
 #endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
         } else {
             MBEDTLS_SSL_DEBUG_MSG(1, ("Group not supported."));

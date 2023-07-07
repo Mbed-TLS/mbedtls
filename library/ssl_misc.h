@@ -755,18 +755,26 @@ struct mbedtls_ssl_handshake_params {
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
 #endif /* MBEDTLS_ECDH_C && !MBEDTLS_USE_PSA_CRYPTO */
 
+#if defined(PSA_WANT_ALG_ECDH) && defined(PSA_WANT_ALG_FFDH)
+#if (MBEDTLS_PSA_MAX_FFDH_PUBKEY_LENGTH >= MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH)
+#define SSL_XXDH_PSA_PEERKEY_SIZE MBEDTLS_PSA_MAX_FFDH_PUBKEY_LENGTH
+#else
+#define SSL_XXDH_PSA_PEERKEY_SIZE MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#endif
+#elif defined(PSA_WANT_ALG_ECDH)
+#define SSL_XXDH_PSA_PEERKEY_SIZE MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#else
+#define SSL_XXDH_PSA_PEERKEY_SIZE MBEDTLS_PSA_MAX_FFDH_PUBKEY_LENGTH
+#endif
+
 #if (defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)) && \
     (defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3))
-    psa_key_type_t ecdh_psa_type;
-    size_t ecdh_bits;
-    mbedtls_svc_key_id_t ecdh_psa_privkey;
-    uint8_t ecdh_psa_privkey_is_external;
-#if defined(PSA_WANT_ALG_FFDH)
-    unsigned char ecdh_psa_peerkey[MBEDTLS_PSA_MAX_FFDH_PUBKEY_LENGTH];
-#else
-    unsigned char ecdh_psa_peerkey[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
-#endif
-    size_t ecdh_psa_peerkey_len;
+    psa_key_type_t xxdh_psa_type;
+    size_t xxdh_bits;
+    mbedtls_svc_key_id_t xxdh_psa_privkey;
+    uint8_t xxdh_psa_privkey_is_external;
+    unsigned char xxdh_psa_peerkey[SSL_XXDH_PSA_PEERKEY_SIZE];
+    size_t xxdh_psa_peerkey_len;
 #endif /* (PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH) &&
           (MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3) */
 
@@ -2117,7 +2125,7 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl);
 
 #if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
 MBEDTLS_CHECK_RETURN_CRITICAL
-int mbedtls_ssl_tls13_generate_and_write_dh_key_exchange(
+int mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
     mbedtls_ssl_context *ssl,
     uint16_t named_group,
     unsigned char *buf,
@@ -2215,7 +2223,7 @@ static inline int mbedtls_ssl_tls13_named_group_is_ecdhe(uint16_t named_group)
            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_X448;
 }
 
-static inline int mbedtls_ssl_tls13_named_group_is_dhe(uint16_t named_group)
+static inline int mbedtls_ssl_tls13_named_group_is_ffdh(uint16_t named_group)
 {
     return named_group >= MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048 &&
            named_group <= MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192;
@@ -2250,7 +2258,7 @@ static inline int mbedtls_ssl_named_group_is_supported(uint16_t named_group)
     }
 #endif
 #if defined(PSA_WANT_ALG_FFDH)
-    if (mbedtls_ssl_tls13_named_group_is_dhe(named_group)) {
+    if (mbedtls_ssl_tls13_named_group_is_ffdh(named_group)) {
         return 1;
     }
 #endif
@@ -2652,7 +2660,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
 #if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-int mbedtls_ssl_tls13_read_public_ecdhe_share(mbedtls_ssl_context *ssl,
+int mbedtls_ssl_tls13_read_public_xxdhe_share(mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,
                                               size_t buf_len);
 

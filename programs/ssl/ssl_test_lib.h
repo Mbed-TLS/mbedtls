@@ -81,7 +81,7 @@
 #include "../test/query_config.h"
 
 #define ALPN_LIST_SIZE    10
-#define CURVE_LIST_SIZE   25
+#define GROUP_LIST_SIZE   25
 #define SIG_ALG_LIST_SIZE  5
 
 typedef struct eap_tls_keys {
@@ -312,7 +312,7 @@ void test_hooks_free(void);
 #endif /* !MBEDTLS_TEST_HOOKS */
 
 /* Helper functions for FFDH groups. */
-int parse_curves(const char *curves, uint16_t *group_list, size_t group_list_len);
+int parse_groups(const char *groups, uint16_t *group_list, size_t group_list_len);
 
 #endif /* MBEDTLS_SSL_TEST_IMPOSSIBLE conditions: else */
 #endif /* MBEDTLS_PROGRAMS_SSL_SSL_TEST_LIB_H */

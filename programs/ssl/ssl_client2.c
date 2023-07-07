@@ -95,7 +95,7 @@ int main(void)
 #define DFL_RECONNECT_HARD      0
 #define DFL_TICKETS             MBEDTLS_SSL_SESSION_TICKETS_ENABLED
 #define DFL_ALPN_STRING         NULL
-#define DFL_CURVES              NULL
+#define DFL_GROUPS              NULL
 #define DFL_SIG_ALGS            NULL
 #define DFL_TRANSPORT           MBEDTLS_SSL_TRANSPORT_STREAM
 #define DFL_HS_TO_MIN           0
@@ -264,14 +264,17 @@ int main(void)
 #if defined(MBEDTLS_ECP_LIGHT) || \
     (defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
     defined(PSA_WANT_ALG_FFDH))
-#define USAGE_CURVES \
-    "    curves=a,b,c,d      default: \"default\" (library default)\n"  \
-    "                        example: \"secp521r1,brainpoolP512r1\"\n"  \
-    "                        - use \"none\" for empty list\n"           \
-    "                        - see mbedtls_ecp_curve_list()\n"          \
-    "                          for acceptable curve names\n"
+#define USAGE_GROUPS \
+    "    groups=a,b,c,d      default: \"default\" (library default)\n"        \
+    "                        example: \"secp521r1,brainpoolP512r1\"\n"        \
+    "                        - use \"none\" for empty list\n"                 \
+    "                        - see mbedtls_ecp_curve_list()\n"                \
+    "                          for acceptable EC group names\n"               \
+    "                        - the following ffdh groups are supported:\n"    \
+    "                          ffdhe2048, ffdhe3072, ffdhe4096, ffdhe6144,\n" \
+    "                          ffdhe8192\n"
 #else
-#define USAGE_CURVES ""
+#define USAGE_GROUPS ""
 #endif
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
@@ -439,7 +442,7 @@ int main(void)
     USAGE_EMS                                               \
     USAGE_ETM                                               \
     USAGE_REPRODUCIBLE                                      \
-    USAGE_CURVES                                            \
+    USAGE_GROUPS                                            \
     USAGE_SIG_ALGS                                          \
     USAGE_EARLY_DATA                                        \
     USAGE_DHMLEN                                            \
@@ -524,7 +527,7 @@ struct options {
     int reco_mode;              /* how to keep the session around           */
     int reconnect_hard;         /* unexpectedly reconnect from the same port */
     int tickets;                /* enable / disable session tickets         */
-    const char *curves;         /* list of supported elliptic curves        */
+    const char *groups;         /* list of supported groups                 */
     const char *sig_algs;       /* supported TLS 1.3 signature algorithms   */
     const char *alpn_string;    /* ALPN supported protocols                 */
     int transport;              /* TLS or DTLS?                             */
@@ -757,7 +760,7 @@ int main(int argc, char *argv[])
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     unsigned char alloc_buf[MEMORY_HEAP_SIZE];
 #endif
-    uint16_t group_list[CURVE_LIST_SIZE];
+    uint16_t group_list[GROUP_LIST_SIZE];
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
     unsigned char mki[MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH];
     size_t mki_len = 0;
@@ -943,7 +946,7 @@ usage:
     opt.reconnect_hard      = DFL_RECONNECT_HARD;
     opt.tickets             = DFL_TICKETS;
     opt.alpn_string         = DFL_ALPN_STRING;
-    opt.curves              = DFL_CURVES;
+    opt.groups              = DFL_GROUPS;
     opt.sig_algs            = DFL_SIG_ALGS;
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     opt.early_data          = DFL_EARLY_DATA;
@@ -1166,8 +1169,8 @@ usage:
                     break;
                 default: goto usage;
             }
-        } else if (strcmp(p, "curves") == 0) {
-            opt.curves = q;
+        } else if (strcmp(p, "groups") == 0) {
+            opt.groups = q;
         }
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
         else if (strcmp(p, "sig_algs") == 0) {
@@ -1491,8 +1494,8 @@ usage:
     }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-    if (opt.curves != NULL) {
-        if (parse_curves(opt.curves, group_list, CURVE_LIST_SIZE) != 0) {
+    if (opt.groups != NULL) {
+        if (parse_groups(opt.groups, group_list, GROUP_LIST_SIZE) != 0) {
             goto exit;
         }
     }
@@ -1901,8 +1904,8 @@ usage:
 #if defined(MBEDTLS_ECP_LIGHT) || \
     (defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
     defined(PSA_WANT_ALG_FFDH))
-    if (opt.curves != NULL &&
-        strcmp(opt.curves, "default") != 0) {
+    if (opt.groups != NULL &&
+        strcmp(opt.groups, "default") != 0) {
         mbedtls_ssl_conf_groups(&conf, group_list);
     }
 #endif

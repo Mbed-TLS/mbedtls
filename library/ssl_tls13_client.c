@@ -196,19 +196,19 @@ static int ssl_tls13_reset_key_share(mbedtls_ssl_context *ssl)
 
 #if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(group_id) ||
-        mbedtls_ssl_tls13_named_group_is_dhe(group_id)) {
+        mbedtls_ssl_tls13_named_group_is_ffdh(group_id)) {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
         /* Destroy generated private key. */
-        status = psa_destroy_key(ssl->handshake->ecdh_psa_privkey);
+        status = psa_destroy_key(ssl->handshake->xxdh_psa_privkey);
         if (status != PSA_SUCCESS) {
             ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_destroy_key", ret);
             return ret;
         }
 
-        ssl->handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+        ssl->handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
         return 0;
     } else
 #endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
@@ -247,7 +247,7 @@ static int ssl_tls13_get_default_group_id(mbedtls_ssl_context *ssl,
         }
 #endif
 #if defined(PSA_WANT_ALG_FFDH)
-        if (mbedtls_ssl_tls13_named_group_is_dhe(*group_list)) {
+        if (mbedtls_ssl_tls13_named_group_is_ffdh(*group_list)) {
             *group_id = *group_list;
             return 0;
         }
@@ -301,7 +301,7 @@ static int ssl_tls13_write_key_share_ext(mbedtls_ssl_context *ssl,
     /* HRR could already have requested something else. */
     group_id = ssl->handshake->offered_group_id;
     if (!mbedtls_ssl_tls13_named_group_is_ecdhe(group_id) &&
-        !mbedtls_ssl_tls13_named_group_is_dhe(group_id)) {
+        !mbedtls_ssl_tls13_named_group_is_ffdh(group_id)) {
         MBEDTLS_SSL_PROC_CHK(ssl_tls13_get_default_group_id(ssl,
                                                             &group_id));
     }
@@ -317,7 +317,7 @@ static int ssl_tls13_write_key_share_ext(mbedtls_ssl_context *ssl,
     client_shares = p;
 #if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(group_id) ||
-        mbedtls_ssl_tls13_named_group_is_dhe(group_id)) {
+        mbedtls_ssl_tls13_named_group_is_ffdh(group_id)) {
         /* Pointer to group */
         unsigned char *group = p;
         /* Length of key_exchange */
@@ -329,7 +329,7 @@ static int ssl_tls13_write_key_share_ext(mbedtls_ssl_context *ssl,
          */
         MBEDTLS_SSL_CHK_BUF_PTR(p, end, 4);
         p += 4;
-        ret = mbedtls_ssl_tls13_generate_and_write_dh_key_exchange(
+        ret = mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
             ssl, group_id, p, end, &key_exchange_len);
         p += key_exchange_len;
         if (ret != 0) {
@@ -429,7 +429,7 @@ static int ssl_tls13_parse_hrr_key_share_ext(mbedtls_ssl_context *ssl,
         }
 #endif /* PSA_WANT_ALG_ECDH */
 #if defined(PSA_WANT_ALG_FFDH)
-        if (mbedtls_ssl_tls13_named_group_is_dhe(*group_list)) {
+        if (mbedtls_ssl_tls13_named_group_is_ffdh(*group_list)) {
             found = 1;
             break;
         }
@@ -505,10 +505,10 @@ static int ssl_tls13_parse_key_share_ext(mbedtls_ssl_context *ssl,
 
 #if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(group) ||
-        mbedtls_ssl_tls13_named_group_is_dhe(group)) {
+        mbedtls_ssl_tls13_named_group_is_ffdh(group)) {
         MBEDTLS_SSL_DEBUG_MSG(2,
                               ("DHE group name: %s", mbedtls_ssl_named_group_to_str(group)));
-        ret = mbedtls_ssl_tls13_read_public_ecdhe_share(ssl, p, end - p);
+        ret = mbedtls_ssl_tls13_read_public_xxdhe_share(ssl, p, end - p);
         if (ret != 0) {
             return ret;
         }

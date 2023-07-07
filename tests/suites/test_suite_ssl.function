@@ -3386,7 +3386,7 @@ void raw_key_agreement_fail(int bad_server_ecdhe_key)
     if (bad_server_ecdhe_key) {
         /* Force a simulated bitflip in the server key. to make the
          * raw key agreement in ssl_write_client_key_exchange fail. */
-        (client.ssl).handshake->ecdh_psa_peerkey[0] ^= 0x02;
+        (client.ssl).handshake->xxdh_psa_peerkey[0] ^= 0x02;
     }
 
     TEST_EQUAL(mbedtls_test_move_handshake_to_state(

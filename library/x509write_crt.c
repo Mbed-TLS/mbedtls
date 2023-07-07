@@ -288,6 +288,11 @@ int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *c
         buf + buflen - len,
         len);
 
+    /* If we exceeded the allocated buffer it means that maximum size of the SubjectAltName list
+     * was incorrectly calculated and memory is corrupted. */
+    if (p < buf) {
+        ret = MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+    }
 cleanup:
     mbedtls_free(buf);
     return ret;

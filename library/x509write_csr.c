@@ -48,6 +48,16 @@
 
 #include "mbedtls/platform.h"
 
+#define CHECK_OVERFLOW_ADD(a, b) \
+    do                         \
+    {                           \
+        if (a > SIZE_MAX - (b)) \
+        { \
+            return MBEDTLS_ERR_X509_BAD_INPUT_DATA; \
+        }                            \
+        a += b; \
+    } while (0)
+
 void mbedtls_x509write_csr_init(mbedtls_x509write_csr *ctx)
 {
     memset(ctx, 0, sizeof(mbedtls_x509write_csr));
@@ -103,37 +113,53 @@ int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ct
             case MBEDTLS_X509_SAN_DNS_NAME:
             case MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER:
             case MBEDTLS_X509_SAN_IP_ADDRESS:
+            case MBEDTLS_X509_SAN_RFC822_NAME:
                 /* length of value for each name entry,
                  * maximum 4 bytes for the length field,
                  * 1 byte for the tag/type.
                  */
-                buflen += cur->node.san.unstructured_name.len + 4 + 1;
+                CHECK_OVERFLOW_ADD(buflen, cur->node.san.unstructured_name.len);
+                CHECK_OVERFLOW_ADD(buflen, 4 + 1);
                 break;
-
+            case MBEDTLS_X509_SAN_DIRECTORY_NAME:
+            {
+                const mbedtls_asn1_named_data *chunk = &cur->node.san.directory_name;
+                while (chunk != NULL) {
+                    // Max 4 bytes for length, +1 for tag,
+                    // additional 4 max for length, +1 for tag.
+                    // See x509_write_name for more information.
+                    CHECK_OVERFLOW_ADD(buflen, 4 + 1 + 4 + 1);
+                    CHECK_OVERFLOW_ADD(buflen, chunk->oid.len);
+                    CHECK_OVERFLOW_ADD(buflen, chunk->val.len);
+                    chunk = chunk->next;
+                }
+                CHECK_OVERFLOW_ADD(buflen, 4 + 1);
+                break;
+            }
             default:
-                /* Not supported - skip. */
-                break;
+                /* Not supported - return. */
+                return MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE;
         }
     }
 
     /* Add the extra length field and tag */
-    buflen += 4 + 1;
+    CHECK_OVERFLOW_ADD(buflen, 4 + 1);
 
     /* Allocate buffer */
     buf = mbedtls_calloc(1, buflen);
     if (buf == NULL) {
         return MBEDTLS_ERR_ASN1_ALLOC_FAILED;
     }
-
-    mbedtls_platform_zeroize(buf, buflen);
     p = buf + buflen;
 
     /* Write ASN.1-based structure */
     cur = san_list;
     len = 0;
     while (cur != NULL) {
+        size_t single_san_len = 0;
         switch (cur->node.type) {
             case MBEDTLS_X509_SAN_DNS_NAME:
+            case MBEDTLS_X509_SAN_RFC822_NAME:
             case MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER:
             case MBEDTLS_X509_SAN_IP_ADDRESS:
             {
@@ -141,23 +167,44 @@ int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ct
                     (const unsigned char *) cur->node.san.unstructured_name.p;
                 size_t unstructured_name_len = cur->node.san.unstructured_name.len;
 
-                MBEDTLS_ASN1_CHK_CLEANUP_ADD(len,
+                MBEDTLS_ASN1_CHK_CLEANUP_ADD(single_san_len,
                                              mbedtls_asn1_write_raw_buffer(
                                                  &p, buf,
                                                  unstructured_name, unstructured_name_len));
-                MBEDTLS_ASN1_CHK_CLEANUP_ADD(len, mbedtls_asn1_write_len(
+                MBEDTLS_ASN1_CHK_CLEANUP_ADD(single_san_len, mbedtls_asn1_write_len(
                                                  &p, buf, unstructured_name_len));
-                MBEDTLS_ASN1_CHK_CLEANUP_ADD(len,
+                MBEDTLS_ASN1_CHK_CLEANUP_ADD(single_san_len,
                                              mbedtls_asn1_write_tag(
                                                  &p, buf,
                                                  MBEDTLS_ASN1_CONTEXT_SPECIFIC | cur->node.type));
             }
             break;
-            default:
-                /* Skip unsupported names. */
+            case MBEDTLS_X509_SAN_DIRECTORY_NAME:
+                MBEDTLS_ASN1_CHK_CLEANUP_ADD(single_san_len,
+                                             mbedtls_x509_write_names(&p, buf,
+                                                                      (mbedtls_asn1_named_data *) &
+                                                                      cur->node
+                                                                      .san.directory_name));
+                MBEDTLS_ASN1_CHK_CLEANUP_ADD(single_san_len,
+                                             mbedtls_asn1_write_len(&p, buf, single_san_len));
+                MBEDTLS_ASN1_CHK_CLEANUP_ADD(single_san_len,
+                                             mbedtls_asn1_write_tag(&p, buf,
+                                                                    MBEDTLS_ASN1_CONTEXT_SPECIFIC |
+                                                                    MBEDTLS_ASN1_CONSTRUCTED |
+                                                                    MBEDTLS_X509_SAN_DIRECTORY_NAME));
                 break;
+            default:
+                /* Error out on an unsupported SAN */
+                ret = MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE;
+                goto cleanup;
         }
         cur = cur->next;
+        /* check for overflow */
+        if (len > SIZE_MAX - single_san_len) {
+            ret = MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+            goto cleanup;
+        }
+        len += single_san_len;
     }
 
     MBEDTLS_ASN1_CHK_CLEANUP_ADD(len, mbedtls_asn1_write_len(&p, buf, len));

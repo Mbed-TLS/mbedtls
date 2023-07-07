@@ -1779,7 +1779,8 @@ static int ssl_parse_server_ecdh_params(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
 #else
-    MBEDTLS_STATIC_ASSERT(sizeof(handshake->xxdh_psa_peerkey) >= UINT8_MAX, "peer key buffer too small");
+    MBEDTLS_STATIC_ASSERT(sizeof(handshake->xxdh_psa_peerkey) >= UINT8_MAX,
+                          "peer key buffer too small");
 #endif
 
     memcpy(handshake->xxdh_psa_peerkey, *p, ecpoint_len);

@@ -153,24 +153,44 @@ void x509_csr_check(char *key_file, char *cert_req_check_file, int md_type,
     mbedtls_x509_san_list san_ip;
     mbedtls_x509_san_list san_dns;
     mbedtls_x509_san_list san_uri;
+    mbedtls_x509_san_list san_mail;
+    mbedtls_x509_san_list san_dn;
     mbedtls_x509_san_list *san_list = NULL;
-    const char san_ip_name[] = { 0x7f, 0x01, 0x01, 0x00 }; // 127.1.1.0
+    mbedtls_asn1_named_data *ext_san_dirname = NULL;
+
+    const char san_ip_name[] = { 0x7f, 0x00, 0x00, 0x01 }; // 127.0.0.1
     const char *san_dns_name = "example.com";
-    const char *san_uri_name = "http://pki.example.com/";
+    const char *san_dn_name = "C=UK,O=Mbed TLS,CN=Mbed TLS directoryName SAN";
+    const char *san_mail_name = "mail@example.com";
+    const char *san_uri_name = "http://pki.example.com";
+
+    san_mail.node.type = MBEDTLS_X509_SAN_RFC822_NAME;
+    san_mail.node.san.unstructured_name.p = (unsigned char *) san_mail_name;
+    san_mail.node.san.unstructured_name.len = strlen(san_mail_name);
+    san_mail.next = NULL;
+
+    san_dns.node.type = MBEDTLS_X509_SAN_DNS_NAME;
+    san_dns.node.san.unstructured_name.p = (unsigned char *) san_dns_name;
+    san_dns.node.san.unstructured_name.len = strlen(san_dns_name);
+    san_dns.next = &san_mail;
+
+    san_dn.node.type = MBEDTLS_X509_SAN_DIRECTORY_NAME;
+    TEST_ASSERT(mbedtls_x509_string_to_names(&ext_san_dirname,
+                                             san_dn_name) == 0);
+    san_dn.node.san.directory_name = *ext_san_dirname;
+    san_dn.next = &san_dns;
+
+    san_ip.node.type = MBEDTLS_X509_SAN_IP_ADDRESS;
+    san_ip.node.san.unstructured_name.p = (unsigned char *) san_ip_name;
+    san_ip.node.san.unstructured_name.len = sizeof(san_ip_name);
+    san_ip.next = &san_dn;
 
     san_uri.node.type = MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER;
     san_uri.node.san.unstructured_name.p = (unsigned char *) san_uri_name;
     san_uri.node.san.unstructured_name.len = strlen(san_uri_name);
-    san_uri.next = NULL;
-    san_ip.node.type = MBEDTLS_X509_SAN_IP_ADDRESS;
-    san_ip.node.san.unstructured_name.p = (unsigned char *) san_ip_name;
-    san_ip.node.san.unstructured_name.len = sizeof(san_ip_name);
-    san_ip.next = &san_uri;
-    san_dns.node.type = MBEDTLS_X509_SAN_DNS_NAME;
-    san_dns.node.san.unstructured_name.p = (unsigned char *) san_dns_name;
-    san_dns.node.san.unstructured_name.len = strlen(san_dns_name);
-    san_dns.next = &san_ip;
-    san_list = &san_dns;
+    san_uri.next = &san_ip;
+
+    san_list = &san_uri;
 
     memset(&rnd_info, 0x2a, sizeof(mbedtls_test_rnd_pseudo_info));
 

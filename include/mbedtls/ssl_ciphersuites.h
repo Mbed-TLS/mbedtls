@@ -401,6 +401,11 @@ typedef enum {
 #define MBEDTLS_KEY_EXCHANGE_SOME_XXDH_1_2_ENABLED
 #endif
 
+#if (defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_1_2_ENABLED) && defined(MBEDTLS_USE_PSA_CRYPTO)) || \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
+#define MBEDTLS_KEY_EXCHANGE_SOME_XXDH_ANY_PSA_ENABLED
+#endif
+
 typedef struct mbedtls_ssl_ciphersuite_t mbedtls_ssl_ciphersuite_t;
 
 #define MBEDTLS_CIPHERSUITE_WEAK       0x01    /**< Weak ciphersuite flag  */

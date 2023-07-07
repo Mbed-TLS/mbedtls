@@ -769,16 +769,14 @@ struct mbedtls_ssl_handshake_params {
 #define SSL_XXDH_PSA_PEERKEY_SIZE MBEDTLS_PSA_MAX_FFDH_PUBKEY_LENGTH
 #endif
 
-#if (defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)) && \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3))
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_ANY_PSA_ENABLED)
     psa_key_type_t xxdh_psa_type;
     size_t xxdh_bits;
     mbedtls_svc_key_id_t xxdh_psa_privkey;
     uint8_t xxdh_psa_privkey_is_external;
     unsigned char xxdh_psa_peerkey[SSL_XXDH_PSA_PEERKEY_SIZE];
     size_t xxdh_psa_peerkey_len;
-#endif /* (PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH) &&
-          (MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3) */
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_XXDH_ANY_PSA_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

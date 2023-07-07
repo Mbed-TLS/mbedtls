@@ -988,7 +988,7 @@ static void ssl_handshake_params_init(mbedtls_ssl_handshake_params *handshake)
     mbedtls_dhm_init(&handshake->dhm_ctx);
 #endif
 #if !defined(MBEDTLS_USE_PSA_CRYPTO) && \
-    defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED)
     mbedtls_ecdh_init(&handshake->ecdh_ctx);
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
@@ -4134,7 +4134,7 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
     mbedtls_dhm_free(&handshake->dhm_ctx);
 #endif
 #if !defined(MBEDTLS_USE_PSA_CRYPTO) && \
-    defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED)
     mbedtls_ecdh_free(&handshake->ecdh_ctx);
 #endif
 

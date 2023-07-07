@@ -424,7 +424,7 @@ server7.csr: server7.key
 	$(OPENSSL) req -new -key server7.key -subj "/C=NL/O=PolarSSL/CN=localhost" -out $@
 all_intermediate += server7.csr
 
-server7.crt: server7.csr $(test_ca_int_rsa1)
+server7.crt: server7.csr $(test_ca_int_rsa1) $(cli_crt_extensions_file)
 	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa \
 		-CA $(test_ca_int_rsa1) -CAkey test-int-ca.key \
 		-set_serial 16 -days 3653 -sha256 -in server7.csr > $@
@@ -1636,7 +1636,7 @@ server6.csr: server6.key
 	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
 					-key $< -out $@
 all_intermediate += server6.csr
-server6.crt: server6.csr $(test_ca_crt_file_ec) $(test_ca_key_file_ec) server5.crt.openssl.v3_ext
+server6.crt: server6.csr $(test_ca_crt_file_ec) $(test_ca_key_file_ec)
 	$(OPENSSL) x509 -req -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) \
 				-extfile server5.crt.openssl.v3_ext -set_serial 10 -days 3650 -sha256 -in $< -out $@
 all_final += server6.crt
@@ -1824,7 +1824,7 @@ server1.v1.der.openssl: server1.v1.crt.openssl
 #
 # $(OPENSSL) ca -gencrl -batch -cert $(test_ca_crt) -keyfile $(test_ca_key_file_rsa) -key $(test_ca_pwd_rsa) -config $(test_ca_server1_config_file) -md sha256 -crldays 365 -revoke server1.crt
 
-crl.pem: $(test_ca_crt) $(test_ca_key_file_rsa) $(test_ca_config_file)
+crl.pem: $(test_ca_crt) $(test_ca_key_file_rsa) $(test_ca_config_file) test-ca.server1.db
 	$(OPENSSL) ca -gencrl -batch -cert $(test_ca_crt) -keyfile $(test_ca_key_file_rsa) -key $(test_ca_pwd_rsa) -config $(test_ca_server1_config_file) -md sha1 -crldays 3653 -out $@
 
 crl-futureRevocationDate.pem: $(test_ca_crt) $(test_ca_key_file_rsa) \

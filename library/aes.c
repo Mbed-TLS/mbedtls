@@ -361,9 +361,14 @@ static uint32_t FT3[256];
 /*
  * Reverse S-box & tables
  */
-#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT) || !defined(MBEDTLS_AES_DECRYPT_ALT)
+
+#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT) && !defined(MBEDTLS_AES_SETKEY_DEC_ALT)
 static unsigned char RSb[256];
-#endif /* !MBEDTLS_AES_SETKEY_ENC_ALT || !MBEDTLS_AES_DECRYPT_ALT */
+#else /* !MBEDTLS_AES_SETKEY_ENC_ALT && !MBEDTLS_AES_SETKEY_DEC_ALT */
+#if !defined(MBEDTLS_AES_DECRYPT_ALT)
+static unsigned char RSb[256];
+#endif /* !MBEDTLS_AES_DECRYPT_ALT */
+#endif /* !MBEDTLS_AES_SETKEY_ENC_ALT && !MBEDTLS_AES_SETKEY_DEC_ALT */
 
 #if !defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT)
 static uint32_t RT0[256];
@@ -417,7 +422,9 @@ static void aes_gen_tables(void)
      * generate the forward and reverse S-boxes
      */
     FSb[0x00] = 0x63;
+#if !defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT)
     RSb[0x63] = 0x00;
+#endif
 
     for (i = 1; i < 256; i++) {
         x = pow[255 - log[i]];
@@ -429,7 +436,9 @@ static void aes_gen_tables(void)
         x ^= y ^ 0x63;
 
         FSb[i] = x;
+#if !defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT)
         RSb[x] = (unsigned char) i;
+#endif
     }
 
     /*
@@ -451,9 +460,9 @@ static void aes_gen_tables(void)
         FT3[i] = ROTL8(FT2[i]);
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
 
+#if !defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT)
         x = RSb[i];
 
-#if !defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT)
         RT0[i] = ((uint32_t) MUL(0x0E, x)) ^
                  ((uint32_t) MUL(0x09, x) <<  8) ^
                  ((uint32_t) MUL(0x0D, x) << 16) ^

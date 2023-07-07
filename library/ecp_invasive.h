@@ -42,8 +42,6 @@ typedef enum {
 
 /* Provide a commented-out definition so that `check_names.py` knows that
  * it's not a typo.
- * MBEDTLS_ECP_WITH_MPI_UINT must not be defined within config files, but
- * only on the command line.
  */
 //#define MBEDTLS_ECP_WITH_MPI_UINT
 

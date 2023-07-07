@@ -298,14 +298,14 @@
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_PK_CAN_ECDH) ||                                       \
+    ( !defined(MBEDTLS_CAN_ECDH) ||                                       \
       !defined(MBEDTLS_PK_CAN_ECDSA_SIGN) ||                                \
       !defined(MBEDTLS_X509_CRT_PARSE_C) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_PK_CAN_ECDH) || !defined(MBEDTLS_RSA_C) ||          \
+    ( !defined(MBEDTLS_CAN_ECDH) || !defined(MBEDTLS_RSA_C) ||          \
       !defined(MBEDTLS_X509_CRT_PARSE_C) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED defined, but not all prerequisites"
 #endif
@@ -315,7 +315,7 @@
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) &&                     \
-    !defined(MBEDTLS_PK_CAN_ECDH)
+    !defined(MBEDTLS_CAN_ECDH)
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED defined, but not all prerequisites"
 #endif
 
@@ -326,13 +326,13 @@
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_PK_CAN_ECDH) || !defined(MBEDTLS_RSA_C) ||          \
+    ( !defined(MBEDTLS_CAN_ECDH) || !defined(MBEDTLS_RSA_C) ||          \
       !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_PKCS1_V15) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) &&                \
-    ( !defined(MBEDTLS_PK_CAN_ECDH) ||                                       \
+    ( !defined(MBEDTLS_CAN_ECDH) ||                                       \
       !defined(MBEDTLS_PK_CAN_ECDSA_SIGN) ||                                \
       !defined(MBEDTLS_X509_CRT_PARSE_C) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED defined, but not all prerequisites"

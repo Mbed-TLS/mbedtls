@@ -161,15 +161,17 @@
 #define MBEDTLS_PK_PARSE_EC_COMPRESSED
 #endif
 
-/* PK module can achieve ECDH and ECDSA functionalities by means of either
- * software implementations (ECDH_C and ECDSA_C) or through a PSA driver. The
- * following defines are meant to list these capabilities in a general way
- * which abstracts how they are implemented under the hood. */
+/* Helper symbol to state that there is support for ECDH, either through
+ * library implementation (ECDH_C) or through PSA. */
 #if (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_ECDH)) || \
     (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ECDH_C))
-#define MBEDTLS_PK_CAN_ECDH
+#define MBEDTLS_CAN_ECDH
 #endif
 
+/* PK module can achieve ECDSA functionalities by means of either software
+ * implementations (ECDSA_C) or through a PSA driver. The following defines
+ * are meant to list these capabilities in a general way which abstracts how
+ * they are implemented under the hood. */
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
 #if defined(MBEDTLS_ECDSA_C)
 #define MBEDTLS_PK_CAN_ECDSA_SIGN

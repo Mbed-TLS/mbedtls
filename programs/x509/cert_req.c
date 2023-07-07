@@ -66,10 +66,12 @@ int main(void)
     "    output_file=%%s      default: cert.req\n"      \
     "    subject_name=%%s     default: CN=Cert,O=mbed TLS,C=UK\n"   \
     "    san=%%s              default: (none)\n"       \
-    "                        Semicolon-separated-list of values:\n"     \
-    "                          DNS:value\n"            \
-    "                          URI:value\n"            \
-    "                          IP:value (Only IPv4 is supported)\n"             \
+    "                           Semicolon-separated-list of values:\n" \
+    "                           DNS:value\n"            \
+    "                           URI:value\n"            \
+    "                           RFC822:value\n"         \
+    "                           IP:value (Only IPv4 is supported)\n" \
+    "                           DN:list of comma separated key=value pairs\n" \
     "    key_usage=%%s        default: (empty)\n"       \
     "                        Comma-separated-list of values:\n"     \
     "                          digital_signature\n"     \
@@ -153,12 +155,13 @@ int main(int argc, char *argv[])
     mbedtls_pk_context key;
     char buf[1024];
     int i;
-    char *p, *q, *r, *subtype_value;
+    char *p, *q, *r;
     mbedtls_x509write_csr req;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     const char *pers = "csr example app";
     mbedtls_x509_san_list *cur, *prev;
+    mbedtls_asn1_named_data *ext_san_dirname = NULL;
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     uint8_t ip[4] = { 0 };
 #endif
@@ -218,11 +221,34 @@ usage:
         } else if (strcmp(p, "subject_name") == 0) {
             opt.subject_name = q;
         } else if (strcmp(p, "san") == 0) {
+            char *subtype_value;
             prev = NULL;
 
             while (q != NULL) {
-                if ((r = strchr(q, ';')) != NULL) {
+                char *semicolon;
+                r = q;
+
+                /* Find the first non-escaped ; occurrence and remove escaped ones */
+                do {
+                    if ((semicolon = strchr(r, ';')) != NULL) {
+                        if (*(semicolon-1) != '\\') {
+                            r = semicolon;
+                            break;
+                        }
+                        /* Remove the escape character */
+                        size_t size_left = strlen(semicolon);
+                        memmove(semicolon-1, semicolon, size_left);
+                        *(semicolon + size_left - 1) = '\0';
+                        /* r will now point at the character after the semicolon */
+                        r = semicolon;
+                    }
+
+                } while (semicolon != NULL);
+
+                if (semicolon != NULL) {
                     *r++ = '\0';
+                } else {
+                    r = NULL;
                 }
 
                 cur = mbedtls_calloc(1, sizeof(mbedtls_x509_san_list));
@@ -236,13 +262,13 @@ usage:
                 if ((subtype_value = strchr(q, ':')) != NULL) {
                     *subtype_value++ = '\0';
                 }
-
-                if (strcmp(q, "URI") == 0) {
+                if (strcmp(q, "RFC822") == 0) {
+                    cur->node.type = MBEDTLS_X509_SAN_RFC822_NAME;
+                } else if (strcmp(q, "URI") == 0) {
                     cur->node.type = MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER;
                 } else if (strcmp(q, "DNS") == 0) {
                     cur->node.type = MBEDTLS_X509_SAN_DNS_NAME;
                 } else if (strcmp(q, "IP") == 0) {
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
                     size_t ip_len = 0;
                     cur->node.type = MBEDTLS_X509_SAN_IP_ADDRESS;
                     ip_len = mbedtls_x509_crt_parse_cn_inet_pton(subtype_value, ip);
@@ -251,21 +277,28 @@ usage:
                                        subtype_value);
                         goto exit;
                     }
-#else
-                    mbedtls_printf("IP SAN parsing requires MBEDTLS_X509_CRT_PARSE_C to be defined");
-                    goto exit;
-#endif
+                    cur->node.san.unstructured_name.p = (unsigned char *) ip;
+                    cur->node.san.unstructured_name.len = sizeof(ip);
+                } else if (strcmp(q, "DN") == 0) {
+                    cur->node.type = MBEDTLS_X509_SAN_DIRECTORY_NAME;
+                    if ((ret = mbedtls_x509_string_to_names(&ext_san_dirname,
+                                                            subtype_value)) != 0) {
+                        mbedtls_strerror(ret, buf, sizeof(buf));
+                        mbedtls_printf(
+                            " failed\n  !  mbedtls_x509_string_to_names "
+                            "returned -0x%04x - %s\n\n",
+                            (unsigned int) -ret, buf);
+                        goto exit;
+                    }
+                    cur->node.san.directory_name = *ext_san_dirname;
                 } else {
                     mbedtls_free(cur);
                     goto usage;
                 }
 
-                if (strcmp(q, "IP") == 0) {
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-                    cur->node.san.unstructured_name.p = (unsigned char *) ip;
-                    cur->node.san.unstructured_name.len = sizeof(ip);
-#endif
-                } else {
+                if (cur->node.type == MBEDTLS_X509_SAN_RFC822_NAME ||
+                    cur->node.type == MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER ||
+                    cur->node.type == MBEDTLS_X509_SAN_DNS_NAME) {
                     q = subtype_value;
                     cur->node.san.unstructured_name.p = (unsigned char *) q;
                     cur->node.san.unstructured_name.len = strlen(q);
@@ -280,7 +313,6 @@ usage:
                 prev = cur;
                 q = r;
             }
-
         } else if (strcmp(p, "md") == 0) {
             const mbedtls_md_info_t *md_info =
                 mbedtls_md_info_from_string(q);
@@ -467,6 +499,7 @@ exit:
     }
 
     mbedtls_x509write_csr_free(&req);
+    mbedtls_asn1_free_named_data_list(&ext_san_dirname);
     mbedtls_pk_free(&key);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);

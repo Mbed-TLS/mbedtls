@@ -5657,19 +5657,19 @@ static const struct {
     const char *name;
 } tls_id_curve_name_table[] =
 {
-    { 25, "secp521r1" },
-    { 28, "brainpoolP512r1" },
-    { 24, "secp384r1" },
-    { 27, "brainpoolP384r1" },
-    { 23, "secp256r1" },
-    { 22, "secp256k1" },
-    { 26, "brainpoolP256r1" },
-    { 21, "secp224r1" },
-    { 20, "secp224k1" },
-    { 19, "secp192r1" },
-    { 18, "secp192k1" },
-    { 29, "x25519" },
-    { 30, "x448" },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1, "secp521r1" },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1, "brainpoolP512r1" },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1, "secp384r1" },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_BP384R1, "brainpoolP384r1" },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1, "secp256r1" },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256K1, "secp256k1" },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_BP256R1, "brainpoolP256r1" },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP224R1, "secp224r1" },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP224K1, "secp224k1" },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP192R1, "secp192r1" },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP192K1, "secp192k1" },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_X25519, "x25519" },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_X448, "x448" },
     { 0, NULL },
 };
 

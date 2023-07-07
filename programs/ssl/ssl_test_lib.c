@@ -455,7 +455,7 @@ static const struct {
     uint16_t tls_id;
     const char *name;
     uint8_t is_supported;
-} tls_id_curve_name_table[] =
+} tls_id_group_name_table[] =
 {
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_521)
     { MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1, "secp521r1", 1 },
@@ -545,9 +545,9 @@ static uint16_t mbedtls_ssl_get_curve_tls_id_from_name(const char *name)
         return 0;
     }
 
-    for (int i = 0; tls_id_curve_name_table[i].tls_id != 0; i++) {
-        if (strcmp(tls_id_curve_name_table[i].name, name) == 0) {
-            return tls_id_curve_name_table[i].tls_id;
+    for (int i = 0; tls_id_group_name_table[i].tls_id != 0; i++) {
+        if (strcmp(tls_id_group_name_table[i].name, name) == 0) {
+            return tls_id_group_name_table[i].tls_id;
         }
     }
 
@@ -556,9 +556,9 @@ static uint16_t mbedtls_ssl_get_curve_tls_id_from_name(const char *name)
 
 static void mbedtls_ssl_print_supported_curves_list(void)
 {
-    for (int i = 0; tls_id_curve_name_table[i].tls_id != 0; i++) {
-        if (tls_id_curve_name_table[i].is_supported == 1) {
-            mbedtls_printf("%s ", tls_id_curve_name_table[i].name);
+    for (int i = 0; tls_id_group_name_table[i].tls_id != 0; i++) {
+        if (tls_id_group_name_table[i].is_supported == 1) {
+            mbedtls_printf("%s ", tls_id_group_name_table[i].name);
         }
     }
 }

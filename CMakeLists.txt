@@ -34,9 +34,9 @@ cmake_policy(SET CMP0011 NEW)
 cmake_policy(SET CMP0012 NEW)
 
 if(TEST_CPP)
-    project("mbed TLS" C CXX)
+    project("mbed TLS" LANGUAGES C CXX)
 else()
-    project("mbed TLS" C)
+    project("mbed TLS" LANGUAGES C)
 endif()
 
 include(GNUInstallDirs)
@@ -245,7 +245,7 @@ if(MBEDTLS_FATAL_WARNINGS)
     endif(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)
 
     if (CMAKE_COMPILER_IS_IAR)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warning_are_errors")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warnings_are_errors")
     endif(CMAKE_COMPILER_IS_IAR)
 endif(MBEDTLS_FATAL_WARNINGS)
 

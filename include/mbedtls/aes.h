@@ -76,6 +76,10 @@ typedef struct mbedtls_aes_context {
     int MBEDTLS_PRIVATE(nr);                     /*!< The number of rounds. */
     size_t MBEDTLS_PRIVATE(rk_offset);           /*!< The offset in array elements to AES
                                                     round keys in the buffer. */
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH) && !defined(MBEDTLS_PADLOCK_C)
+    uint32_t MBEDTLS_PRIVATE(buf)[44];           /*!< Aligned data buffer to hold
+                                                    10 round keys for 128-bit case. */
+#else
     uint32_t MBEDTLS_PRIVATE(buf)[68];           /*!< Unaligned data buffer. This buffer can
                                                     hold 32 extra Bytes, which can be used for
                                                     one of the following purposes:
@@ -84,6 +88,7 @@ typedef struct mbedtls_aes_context {
                                                     <li>Simplifying key expansion in the 256-bit
                                                     case by generating an extra round key.
                                                     </li></ul> */
+#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH && !MBEDTLS_PADLOCK_C */
 }
 mbedtls_aes_context;
 

@@ -366,6 +366,41 @@ void mbedtls_mpi_core_shift_r(mbedtls_mpi_uint *X, size_t limbs,
     }
 }
 
+void mbedtls_mpi_core_shift_l(mbedtls_mpi_uint *X, size_t limbs,
+                              size_t count)
+{
+    size_t i, v0, v1;
+    mbedtls_mpi_uint r0 = 0, r1;
+
+    v0 = count / (biL);
+    v1 = count & (biL - 1);
+
+    /*
+     * shift by count / limb_size
+     */
+    if (v0 > 0) {
+        for (i = limbs; i > v0; i--) {
+            X[i - 1] = X[i - v0 - 1];
+        }
+
+        for (; i > 0; i--) {
+            X[i - 1] = 0;
+        }
+    }
+
+    /*
+     * shift by count % limb_size
+     */
+    if (v1 > 0) {
+        for (i = v0; i < limbs; i++) {
+            r1 = X[i] >> (biL - v1);
+            X[i] <<= v1;
+            X[i] |= r0;
+            r0 = r1;
+        }
+    }
+}
+
 mbedtls_mpi_uint mbedtls_mpi_core_add(mbedtls_mpi_uint *X,
                                       const mbedtls_mpi_uint *A,
                                       const mbedtls_mpi_uint *B,

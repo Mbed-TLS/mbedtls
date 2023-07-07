@@ -184,8 +184,8 @@ static int ssl_write_alpn_ext(mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_ALPN */
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_2_SOME_ECC) || \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
 /*
  * Function for writing a supported groups (TLS 1.3) or supported elliptic
  * curves (TLS 1.2) extension.
@@ -223,12 +223,15 @@ static int ssl_write_alpn_ext(mbedtls_ssl_context *ssl,
  * generalization of the TLS 1.2 supported elliptic curves extension. They both
  * share the same extension identifier.
  *
- * DHE groups are not supported yet.
  */
+#define SSL_WRITE_SUPPORTED_GROUPS_EXT_TLS1_2_FLAG 1
+#define SSL_WRITE_SUPPORTED_GROUPS_EXT_TLS1_3_FLAG 2
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
                                           unsigned char *buf,
                                           const unsigned char *end,
+                                          int flags,
                                           size_t *out_len)
 {
     unsigned char *p = buf;
@@ -255,27 +258,44 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
     }
 
     for (; *group_list != 0; group_list++) {
+        int propose_group = 0;
+
         MBEDTLS_SSL_DEBUG_MSG(1, ("got supported group(%04x)", *group_list));
 
-#if defined(MBEDTLS_ECP_LIGHT)
-        if ((mbedtls_ssl_conf_is_tls13_enabled(ssl->conf) &&
-             mbedtls_ssl_tls13_named_group_is_ecdhe(*group_list)) ||
-            (mbedtls_ssl_conf_is_tls12_enabled(ssl->conf) &&
-             mbedtls_ssl_tls12_named_group_is_ecdhe(*group_list))) {
-            if (mbedtls_ssl_get_ecp_group_id_from_tls_id(*group_list) ==
-                MBEDTLS_ECP_DP_NONE) {
-                continue;
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
+        if (flags & SSL_WRITE_SUPPORTED_GROUPS_EXT_TLS1_3_FLAG) {
+#if defined(PSA_WANT_ALG_ECDH)
+            if (mbedtls_ssl_tls13_named_group_is_ecdhe(*group_list) &&
+                (mbedtls_ssl_get_ecp_group_id_from_tls_id(*group_list) !=
+                 MBEDTLS_ECP_DP_NONE)) {
+                propose_group = 1;
             }
+#endif
+#if defined(PSA_WANT_ALG_FFDH)
+            if (mbedtls_ssl_tls13_named_group_is_dhe(*group_list)) {
+                propose_group = 1;
+            }
+#endif
+        }
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
+
+#if defined(MBEDTLS_SSL_TLS1_2_SOME_ECC)
+        if ((flags & SSL_WRITE_SUPPORTED_GROUPS_EXT_TLS1_2_FLAG) &&
+            mbedtls_ssl_tls12_named_group_is_ecdhe(*group_list) &&
+            (mbedtls_ssl_get_ecp_group_id_from_tls_id(*group_list) !=
+             MBEDTLS_ECP_DP_NONE)) {
+            propose_group = 1;
+        }
+#endif /* MBEDTLS_SSL_TLS1_2_SOME_ECC */
+
+        if (propose_group) {
             MBEDTLS_SSL_CHK_BUF_PTR(p, end, 2);
             MBEDTLS_PUT_UINT16_BE(*group_list, p, 0);
             p += 2;
             MBEDTLS_SSL_DEBUG_MSG(3, ("NamedGroup: %s ( %x )",
-                                      mbedtls_ssl_get_curve_name_from_tls_id(*group_list),
+                                      mbedtls_ssl_named_group_to_str(*group_list),
                                       *group_list));
         }
-#endif /* MBEDTLS_ECP_LIGHT */
-        /* Add DHE groups here */
-
     }
 
     /* Length of named_group_list */
@@ -304,9 +324,8 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
 
     return 0;
 }
-
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
-          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_2_SOME_ECC ||
+          MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_write_client_hello_cipher_suites(
@@ -597,24 +616,35 @@ static int ssl_write_client_hello_body(mbedtls_ssl_context *ssl,
     }
 #endif
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-    if (
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-        (propose_tls13 &&
-         mbedtls_ssl_conf_tls13_some_ephemeral_enabled(ssl)) ||
-#endif
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        (propose_tls12 && tls12_uses_ec) ||
-#endif
-        0) {
-        ret = ssl_write_supported_groups_ext(ssl, p, end, &output_len);
-        if (ret != 0) {
-            return ret;
+#if defined(MBEDTLS_SSL_TLS1_2_SOME_ECC) || \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
+    {
+        int ssl_write_supported_groups_ext_flags = 0;
+
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
+        if (propose_tls13 && mbedtls_ssl_conf_tls13_some_ephemeral_enabled(ssl)) {
+            ssl_write_supported_groups_ext_flags |=
+                SSL_WRITE_SUPPORTED_GROUPS_EXT_TLS1_3_FLAG;
         }
-        p += output_len;
+#endif
+#if defined(MBEDTLS_SSL_TLS1_2_SOME_ECC)
+        if (propose_tls12 && tls12_uses_ec) {
+            ssl_write_supported_groups_ext_flags |=
+                SSL_WRITE_SUPPORTED_GROUPS_EXT_TLS1_2_FLAG;
+        }
+#endif
+        if (ssl_write_supported_groups_ext_flags != 0) {
+            ret = ssl_write_supported_groups_ext(ssl, p, end,
+                                                 ssl_write_supported_groups_ext_flags,
+                                                 &output_len);
+            if (ret != 0) {
+                return ret;
+            }
+            p += output_len;
+        }
     }
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C || MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_2_SOME_ECC ||
+          MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     if (

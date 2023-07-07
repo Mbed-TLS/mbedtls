@@ -30,14 +30,22 @@
 #include "mbedtls/platform_util.h"
 #include "constant_time_internal.h"
 #include "mbedtls/constant_time.h"
-#include "hash_info.h"
 
 #include <string.h>
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
-                                                           psa_to_ssl_errors,             \
-                                                           psa_generic_status_to_mbedtls)
+/* Define a local translating function to save code size by not using too many
+ * arguments in each translating place. */
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_ENABLED) || \
+    defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
+static int local_err_translation(psa_status_t status)
+{
+    return psa_status_to_mbedtls(status, psa_to_ssl_errors,
+                                 ARRAY_LENGTH(psa_to_ssl_errors),
+                                 psa_generic_status_to_mbedtls);
+}
+#define PSA_TO_MBEDTLS_ERR(status) local_err_translation(status)
+#endif
 #endif
 
 #if defined(MBEDTLS_ECP_C)
@@ -179,7 +187,6 @@ static int ssl_parse_renegotiation_info(mbedtls_ssl_context *ssl,
  * generalization of the TLS 1.2 supported elliptic curves extension. They both
  * share the same extension identifier.
  *
- * DHE groups are not supported yet.
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
@@ -666,7 +673,7 @@ static int ssl_check_key_curve(mbedtls_pk_context *pk,
                                uint16_t *curves_tls_id)
 {
     uint16_t *curr_tls_id = curves_tls_id;
-    mbedtls_ecp_group_id grp_id = mbedtls_pk_ec(*pk)->grp.id;
+    mbedtls_ecp_group_id grp_id = mbedtls_pk_ec_ro(*pk)->grp.id;
     mbedtls_ecp_group_id curr_grp_id;
 
     while (*curr_tls_id != 0) {
@@ -1088,9 +1095,7 @@ read_record_header:
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
         if (ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS) {
             /* This couldn't be done in ssl_prepare_handshake_record() */
-            unsigned int cli_msg_seq = (ssl->in_msg[4] << 8) |
-                                       ssl->in_msg[5];
-
+            unsigned int cli_msg_seq = (unsigned int) MBEDTLS_GET_UINT16_BE(ssl->in_msg, 4);
             if (cli_msg_seq != ssl->handshake->in_msg_seq) {
                 MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message_seq: "
                                           "%u (expected %u)", cli_msg_seq,
@@ -1102,8 +1107,7 @@ read_record_header:
         } else
 #endif
         {
-            unsigned int cli_msg_seq = (ssl->in_msg[4] << 8) |
-                                       ssl->in_msg[5];
+            unsigned int cli_msg_seq = (unsigned int) MBEDTLS_GET_UINT16_BE(ssl->in_msg, 4);
             ssl->handshake->out_msg_seq = cli_msg_seq;
             ssl->handshake->in_msg_seq  = cli_msg_seq + 1;
         }
@@ -2593,14 +2597,17 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    unsigned char buf[
-        PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
-    psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
-    uint16_t tls_id = 0;
-    psa_ecc_family_t ecc_family;
-    size_t key_len;
     mbedtls_pk_context *pk;
+    mbedtls_pk_type_t pk_type;
+    psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    uint16_t tls_id = 0;
+    psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
+    size_t key_len;
+    mbedtls_ecp_group_id grp_id;
+    unsigned char buf[PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
     mbedtls_ecp_keypair *key;
+#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
 
     pk = mbedtls_ssl_own_key(ssl);
 
@@ -2608,15 +2615,20 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
-    switch (mbedtls_pk_get_type(pk)) {
+    pk_type = mbedtls_pk_get_type(pk);
+
+    switch (pk_type) {
         case MBEDTLS_PK_OPAQUE:
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+        case MBEDTLS_PK_ECKEY:
+        case MBEDTLS_PK_ECKEY_DH:
+        case MBEDTLS_PK_ECDSA:
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
             if (!mbedtls_pk_can_do(pk, MBEDTLS_PK_ECKEY)) {
                 return MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
             }
 
-            ssl->handshake->ecdh_psa_privkey =
-                *((mbedtls_svc_key_id_t *) pk->pk_ctx);
-
+            ssl->handshake->ecdh_psa_privkey = pk->priv_id;
             /* Key should not be destroyed in the TLS library */
             ssl->handshake->ecdh_psa_privkey_is_external = 1;
 
@@ -2634,15 +2646,16 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 
             ret = 0;
             break;
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
         case MBEDTLS_PK_ECKEY:
         case MBEDTLS_PK_ECKEY_DH:
         case MBEDTLS_PK_ECDSA:
-            key = mbedtls_pk_ec(*pk);
-            if (key == NULL) {
+            key = mbedtls_pk_ec_rw(*pk);
+            grp_id = mbedtls_pk_get_group_id(pk);
+            if (grp_id == MBEDTLS_ECP_DP_NONE) {
                 return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
             }
-
-            tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(key->grp.id);
+            tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(grp_id);
             if (tls_id == 0) {
                 /* This elliptic curve is not supported */
                 return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
@@ -2650,10 +2663,10 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 
             /* If the above conversion to TLS ID was fine, then also this one will
                be, so there is no need to check the return value here */
-            mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id, &ecc_family,
+            mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id, &key_type,
                                                        &ssl->handshake->ecdh_bits);
 
-            ssl->handshake->ecdh_psa_type = PSA_KEY_TYPE_ECC_KEY_PAIR(ecc_family);
+            ssl->handshake->ecdh_psa_type = key_type;
 
             key_attributes = psa_key_attributes_init();
             psa_set_key_usage_flags(&key_attributes, PSA_KEY_USAGE_DERIVE);
@@ -2665,24 +2678,25 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
             key_len = PSA_BITS_TO_BYTES(key->grp.pbits);
             ret = mbedtls_ecp_write_key(key, buf, key_len);
             if (ret != 0) {
-                goto cleanup;
+                mbedtls_platform_zeroize(buf, sizeof(buf));
+                break;
             }
 
             status = psa_import_key(&key_attributes, buf, key_len,
                                     &ssl->handshake->ecdh_psa_privkey);
             if (status != PSA_SUCCESS) {
                 ret = PSA_TO_MBEDTLS_ERR(status);
-                goto cleanup;
+                mbedtls_platform_zeroize(buf, sizeof(buf));
+                break;
             }
 
+            mbedtls_platform_zeroize(buf, sizeof(buf));
             ret = 0;
             break;
+#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
         default:
             ret = MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
     }
-
-cleanup:
-    mbedtls_platform_zeroize(buf, sizeof(buf));
 
     return ret;
 }
@@ -2705,7 +2719,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
     }
 
     if ((ret = mbedtls_ecdh_get_params(&ssl->handshake->ecdh_ctx,
-                                       mbedtls_pk_ec(*mbedtls_ssl_own_key(ssl)),
+                                       mbedtls_pk_ec_ro(*mbedtls_ssl_own_key(ssl)),
                                        MBEDTLS_ECDH_OURS)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ecdh_get_params"), ret);
         return ret;
@@ -2954,19 +2968,19 @@ curve_matching_done:
         const size_t header_size = 4; // curve_type(1), namedcurve(2),
                                       // data length(1)
         const size_t data_length_size = 1;
-        psa_ecc_family_t ec_psa_family = 0;
+        psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
         size_t ec_bits = 0;
 
         MBEDTLS_SSL_DEBUG_MSG(1, ("Perform PSA-based ECDH computation."));
 
         /* Convert EC's TLS ID to PSA key type. */
         if (mbedtls_ssl_get_psa_curve_info_from_tls_id(*curr_tls_id,
-                                                       &ec_psa_family,
+                                                       &key_type,
                                                        &ec_bits) == PSA_ERROR_NOT_SUPPORTED) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("Invalid ecc group parse."));
             return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
         }
-        handshake->ecdh_psa_type = PSA_KEY_TYPE_ECC_KEY_PAIR(ec_psa_family);
+        handshake->ecdh_psa_type = key_type;
         handshake->ecdh_bits = ec_bits;
 
         key_attributes = psa_key_attributes_init();
@@ -3074,7 +3088,7 @@ curve_matching_done:
 
         size_t dig_signed_len = ssl->out_msg + ssl->out_msglen - dig_signed;
         size_t hashlen = 0;
-        unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+        unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -3894,11 +3908,13 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
             return MBEDTLS_ERR_SSL_DECODE_ERROR;
         }
 
+#if !defined(PSA_WANT_ALG_FFDH)
         if (ecpoint_len > sizeof(handshake->ecdh_psa_peerkey)) {
             psa_destroy_key(handshake->ecdh_psa_privkey);
             handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
             return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
         }
+#endif
 
         memcpy(handshake->ecdh_psa_peerkey, p, ecpoint_len);
         handshake->ecdh_psa_peerkey_len = ecpoint_len;

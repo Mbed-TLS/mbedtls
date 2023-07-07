@@ -39,7 +39,6 @@
 #include "mbedtls/des.h"
 #endif
 
-#include "hash_info.h"
 #include "mbedtls/psa_util.h"
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
@@ -152,11 +151,11 @@ int mbedtls_pkcs12_pbe(mbedtls_asn1_buf *pbe_params, int mode,
         return MBEDTLS_ERR_PKCS12_FEATURE_UNAVAILABLE;
     }
 
-    keylen = cipher_info->key_bitlen / 8;
+    keylen = (int) mbedtls_cipher_info_get_key_bitlen(cipher_info) / 8;
 
     if ((ret = pkcs12_pbe_derive_key_iv(pbe_params, md_type, pwd, pwdlen,
                                         key, keylen,
-                                        iv, cipher_info->iv_size)) != 0) {
+                                        iv, mbedtls_cipher_info_get_iv_size(cipher_info))) != 0) {
         return ret;
     }
 
@@ -172,7 +171,9 @@ int mbedtls_pkcs12_pbe(mbedtls_asn1_buf *pbe_params, int mode,
         goto exit;
     }
 
-    if ((ret = mbedtls_cipher_set_iv(&cipher_ctx, iv, cipher_info->iv_size)) != 0) {
+    if ((ret =
+             mbedtls_cipher_set_iv(&cipher_ctx, iv,
+                                   mbedtls_cipher_info_get_iv_size(cipher_info))) != 0) {
         goto exit;
     }
 
@@ -290,7 +291,7 @@ int mbedtls_pkcs12_derivation(unsigned char *data, size_t datalen,
 
     unsigned char diversifier[128];
     unsigned char salt_block[128], pwd_block[128], hash_block[128] = { 0 };
-    unsigned char hash_output[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char hash_output[MBEDTLS_MD_MAX_SIZE];
     unsigned char *p;
     unsigned char c;
     int           use_password = 0;
@@ -314,7 +315,7 @@ int mbedtls_pkcs12_derivation(unsigned char *data, size_t datalen,
     use_password = (pwd && pwdlen != 0);
     use_salt = (salt && saltlen != 0);
 
-    hlen = mbedtls_hash_info_get_size(md_type);
+    hlen = mbedtls_md_get_size_from_type(md_type);
 
     if (hlen <= 32) {
         v = 64;

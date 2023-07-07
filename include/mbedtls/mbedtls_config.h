@@ -496,7 +496,6 @@
  * performance if ROM access is slower than RAM access.
  *
  * This option is independent of \c MBEDTLS_AES_FEWER_TABLES.
- *
  */
 //#define MBEDTLS_AES_ROM_TABLES
 
@@ -518,9 +517,25 @@
  * depends on the system and memory details.
  *
  * This option is independent of \c MBEDTLS_AES_ROM_TABLES.
- *
  */
 //#define MBEDTLS_AES_FEWER_TABLES
+
+/**
+ * \def MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
+ *
+ * Use only 128-bit keys in AES operations to save ROM.
+ *
+ * Uncomment this macro to remove support for AES operations that use 192-
+ * or 256-bit keys.
+ *
+ * Uncommenting this macro reduces the size of AES code by ~300 bytes
+ * on v8-M/Thumb2.
+ *
+ * Module:  library/aes.c
+ *
+ * Requires: MBEDTLS_AES_C
+ */
+//#define MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 
 /**
  * \def MBEDTLS_CAMELLIA_SMALL_MEMORY
@@ -640,7 +655,8 @@
 /** \def MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
  *
  * Uncomment this macro to use a 128-bit key in the CTR_DRBG module.
- * By default, CTR_DRBG uses a 256-bit key.
+ * Without this, CTR_DRBG uses a 256-bit key
+ * unless \c MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH is set.
  */
 //#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
 
@@ -1028,6 +1044,19 @@
  * Disable if you only need to support RFC 5915 + 5480 key formats.
  */
 #define MBEDTLS_PK_PARSE_EC_EXTENDED
+
+/**
+ * \def MBEDTLS_PK_PARSE_EC_COMPRESSED
+ *
+ * Enable the support for parsing public keys of type Short Weierstrass
+ * (MBEDTLS_ECP_DP_SECP_XXX and MBEDTLS_ECP_DP_BP_XXX) which are using the
+ * compressed point format. This parsing is done through ECP module's functions.
+ *
+ * \note As explained in the description of MBEDTLS_ECP_PF_COMPRESSED (in ecp.h)
+ *       the only unsupported curves are MBEDTLS_ECP_DP_SECP224R1 and
+ *       MBEDTLS_ECP_DP_SECP224K1.
+ */
+#define MBEDTLS_PK_PARSE_EC_COMPRESSED
 
 /**
  * \def MBEDTLS_ERROR_STRERROR_DUMMY
@@ -1642,7 +1671,7 @@
  *
  * Enable TLS 1.3 ephemeral key exchange mode.
  *
- * Requires: PSA_WANT_ALG_ECDH
+ * Requires: PSA_WANT_ALG_ECDH or PSA_WANT_ALG_FFDH
  *           MBEDTLS_X509_CRT_PARSE_C
  *           and at least one of:
  *               MBEDTLS_ECDSA_C or (MBEDTLS_USE_PSA_CRYPTO and PSA_WANT_ALG_ECDSA)
@@ -1660,7 +1689,7 @@
  *
  * Enable TLS 1.3 PSK ephemeral key exchange mode.
  *
- * Requires: PSA_WANT_ALG_ECDH
+ * Requires: PSA_WANT_ALG_ECDH or PSA_WANT_ALG_FFDH
  *
  * Comment to disable support for the PSK ephemeral key exchange mode in
  * TLS 1.3. If MBEDTLS_SSL_PROTO_TLS1_3 is not enabled, this option does not
@@ -2414,6 +2443,8 @@
  * The CTR_DRBG generator uses AES-256 by default.
  * To use AES-128 instead, enable \c MBEDTLS_CTR_DRBG_USE_128_BIT_KEY above.
  *
+ * \note AES-128 will be used if \c MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH is set.
+ *
  * \note To achieve a 256-bit security strength with CTR_DRBG,
  *       you must use AES-256 *and* use sufficient entropy.
  *       See ctr_drbg.h for more details.
@@ -3163,6 +3194,17 @@
  * This module adds support for SHA-512.
  */
 #define MBEDTLS_SHA512_C
+
+/**
+ * \def MBEDTLS_SHA3_C
+ *
+ * Enable the SHA3 cryptographic hash algorithm.
+ *
+ * Module:  library/sha3.c
+ *
+ * This module adds support for SHA3.
+ */
+#define MBEDTLS_SHA3_C
 
 /**
  * \def MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT

@@ -28,6 +28,9 @@ massif-*
 .project
 /.settings
 
+# Unix-like build artifacts:
+*.o
+
 # MSVC build artifacts:
 *.exe
 *.pdb
@@ -57,3 +60,6 @@ massif-*
 /TAGS
 /cscope*.out
 /tags
+
+# Clangd compilation database
+compile_commands.json

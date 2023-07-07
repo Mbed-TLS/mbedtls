@@ -39,6 +39,7 @@ int main(void)
 #include "mbedtls/sha1.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
+#include "mbedtls/sha3.h"
 
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"
@@ -113,11 +114,12 @@ static void mbedtls_set_alarm(int seconds);
 #define TITLE_LEN       25
 
 #define OPTIONS                                                         \
-    "md5, ripemd160, sha1, sha256, sha512,\n"                      \
-    "des3, des, camellia, chacha20,\n"                  \
+    "md5, ripemd160, sha1, sha256, sha512,\n"                           \
+    "sha3_224, sha3_256, sha3_384, sha3_512,\n"                         \
+    "des3, des, camellia, chacha20,\n"                                  \
     "aes_cbc, aes_gcm, aes_ccm, aes_xts, chachapoly,\n"                 \
     "aes_cmac, des3_cmac, poly1305\n"                                   \
-    "ctr_drbg, hmac_drbg\n"                                     \
+    "ctr_drbg, hmac_drbg\n"                                             \
     "rsa, dhm, ecdsa, ecdh.\n"
 
 #if defined(MBEDTLS_ERROR_C)
@@ -363,7 +365,7 @@ static unsigned long mbedtls_timing_hardclock(void)
 #endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           __GNUC__ && __ia64__ */
 
-#if !defined(HAVE_HARDCLOCK) && defined(_MSC_VER) && \
+#if !defined(HAVE_HARDCLOCK) && defined(_WIN32) && \
     !defined(EFIX64) && !defined(EFI32)
 
 #define HAVE_HARDCLOCK
@@ -376,7 +378,7 @@ static unsigned long mbedtls_timing_hardclock(void)
 
     return (unsigned long) (offset.QuadPart);
 }
-#endif /* !HAVE_HARDCLOCK && _MSC_VER && !EFIX64 && !EFI32 */
+#endif /* !HAVE_HARDCLOCK && _WIN32 && !EFIX64 && !EFI32 */
 
 #if !defined(HAVE_HARDCLOCK)
 
@@ -506,6 +508,7 @@ unsigned char buf[BUFSIZE];
 
 typedef struct {
     char md5, ripemd160, sha1, sha256, sha512,
+         sha3_224, sha3_256, sha3_384, sha3_512,
          des3, des,
          aes_cbc, aes_gcm, aes_ccm, aes_xts, chachapoly,
          aes_cmac, des3_cmac,
@@ -553,6 +556,14 @@ int main(int argc, char *argv[])
                 todo.sha256 = 1;
             } else if (strcmp(argv[i], "sha512") == 0) {
                 todo.sha512 = 1;
+            } else if (strcmp(argv[i], "sha3_224") == 0) {
+                todo.sha3_224 = 1;
+            } else if (strcmp(argv[i], "sha3_256") == 0) {
+                todo.sha3_256 = 1;
+            } else if (strcmp(argv[i], "sha3_384") == 0) {
+                todo.sha3_384 = 1;
+            } else if (strcmp(argv[i], "sha3_512") == 0) {
+                todo.sha3_512 = 1;
             } else if (strcmp(argv[i], "des3") == 0) {
                 todo.des3 = 1;
             } else if (strcmp(argv[i], "des") == 0) {
@@ -643,6 +654,20 @@ int main(int argc, char *argv[])
 #if defined(MBEDTLS_SHA512_C)
     if (todo.sha512) {
         TIME_AND_TSC("SHA-512", mbedtls_sha512(buf, BUFSIZE, tmp, 0));
+    }
+#endif
+#if defined(MBEDTLS_SHA3_C)
+    if (todo.sha3_224) {
+        TIME_AND_TSC("SHA3-224", mbedtls_sha3(MBEDTLS_SHA3_224, buf, BUFSIZE, tmp, 28));
+    }
+    if (todo.sha3_256) {
+        TIME_AND_TSC("SHA3-256", mbedtls_sha3(MBEDTLS_SHA3_256, buf, BUFSIZE, tmp, 32));
+    }
+    if (todo.sha3_384) {
+        TIME_AND_TSC("SHA3-384", mbedtls_sha3(MBEDTLS_SHA3_384, buf, BUFSIZE, tmp, 48));
+    }
+    if (todo.sha3_512) {
+        TIME_AND_TSC("SHA3-512", mbedtls_sha3(MBEDTLS_SHA3_512, buf, BUFSIZE, tmp, 64));
     }
 #endif
 

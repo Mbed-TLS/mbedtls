@@ -83,7 +83,7 @@ static inline int mbedtls_key_owner_id_equal(mbedtls_key_owner_id_t id1,
  */
 #if defined(MBEDTLS_PSA_CRYPTO_SPM)
 #define PSA_CRYPTO_SECURE 1
-#include "crypto_spe.h"
+#include "../tests/include/spe/crypto_spe.h"
 #endif // MBEDTLS_PSA_CRYPTO_SPM
 
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)

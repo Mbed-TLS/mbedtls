@@ -2,7 +2,7 @@
 
 """Mbed TLS configuration file manipulation library and tool
 
-Basic usage, to read the Mbed TLS or Mbed Crypto configuration:
+Basic usage, to read the Mbed TLS configuration:
     config = ConfigFile()
     if 'MBEDTLS_RSA_C' in config: print('RSA is enabled')
 """
@@ -189,6 +189,7 @@ def realfull_adapter(_name, active, section):
 # * Options that remove features.
 EXCLUDE_FROM_FULL = frozenset([
     #pylint: disable=line-too-long
+    'MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH', # interacts with CTR_DRBG_128_BIT_KEY
     'MBEDTLS_CTR_DRBG_USE_128_BIT_KEY', # interacts with ENTROPY_FORCE_SHA256
     'MBEDTLS_DEPRECATED_REMOVED', # conflicts with deprecated options
     'MBEDTLS_DEPRECATED_WARNING', # conflicts with deprecated options
@@ -467,7 +468,7 @@ if __name__ == '__main__':
     def main():
         """Command line mbedtls_config.h manipulation tool."""
         parser = argparse.ArgumentParser(description="""
-        Mbed TLS and Mbed Crypto configuration file manipulation tool.
+        Mbed TLS configuration file manipulation tool.
         """)
         parser.add_argument('--file', '-f',
                             help="""File to read (and modify if requested).

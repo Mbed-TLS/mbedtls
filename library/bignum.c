@@ -54,8 +54,6 @@
 #define MPI_VALIDATE(cond)                                           \
     MBEDTLS_INTERNAL_VALIDATE(cond)
 
-#define MPI_SIZE_T_MAX  ((size_t) -1)   /* SIZE_T_MAX is not standard */
-
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_mpi_zeroize(mbedtls_mpi_uint *v, size_t n)
 {
@@ -416,7 +414,7 @@ int mbedtls_mpi_read_string(mbedtls_mpi *X, int radix, const char *s)
     slen = strlen(s);
 
     if (radix == 16) {
-        if (slen > MPI_SIZE_T_MAX >> 2) {
+        if (slen > SIZE_MAX >> 2) {
             return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
         }
 
@@ -750,12 +748,8 @@ int mbedtls_mpi_write_binary(const mbedtls_mpi *X,
 int mbedtls_mpi_shift_l(mbedtls_mpi *X, size_t count)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i, v0, t1;
-    mbedtls_mpi_uint r0 = 0, r1;
+    size_t i;
     MPI_VALIDATE_RET(X != NULL);
-
-    v0 = count / (biL);
-    t1 = count & (biL - 1);
 
     i = mbedtls_mpi_bitlen(X) + count;
 
@@ -765,31 +759,7 @@ int mbedtls_mpi_shift_l(mbedtls_mpi *X, size_t count)
 
     ret = 0;
 
-    /*
-     * shift by count / limb_size
-     */
-    if (v0 > 0) {
-        for (i = X->n; i > v0; i--) {
-            X->p[i - 1] = X->p[i - v0 - 1];
-        }
-
-        for (; i > 0; i--) {
-            X->p[i - 1] = 0;
-        }
-    }
-
-    /*
-     * shift by count % limb_size
-     */
-    if (t1 > 0) {
-        for (i = v0; i < X->n; i++) {
-            r1 = X->p[i] >> (biL - t1);
-            X->p[i] <<= t1;
-            X->p[i] |= r0;
-            r0 = r1;
-        }
-    }
-
+    mbedtls_mpi_core_shift_l(X->p, X->n, count);
 cleanup:
 
     return ret;

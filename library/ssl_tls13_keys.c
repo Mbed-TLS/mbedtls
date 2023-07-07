@@ -34,10 +34,17 @@
 #include "ssl_tls13_invasive.h"
 
 #include "psa/crypto.h"
+#include "md_psa.h"
 
-#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
-                                                           psa_to_ssl_errors,             \
-                                                           psa_generic_status_to_mbedtls)
+/* Define a local translating function to save code size by not using too many
+ * arguments in each translating place. */
+static int local_err_translation(psa_status_t status)
+{
+    return psa_status_to_mbedtls(status, psa_to_ssl_errors,
+                                 ARRAY_LENGTH(psa_to_ssl_errors),
+                                 psa_generic_status_to_mbedtls);
+}
+#define PSA_TO_MBEDTLS_ERR(status) local_err_translation(status)
 
 #define MBEDTLS_SSL_TLS1_3_LABEL(name, string)       \
     .name = string,
@@ -677,7 +684,7 @@ static int ssl_tls13_key_schedule_stage_application(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-    psa_algorithm_t const hash_alg = mbedtls_hash_info_psa_from_md(
+    psa_algorithm_t const hash_alg = mbedtls_md_psa_alg_from_type(
         handshake->ciphersuite_info->mac);
 
     /*
@@ -792,7 +799,7 @@ int mbedtls_ssl_tls13_calculate_verify_data(mbedtls_ssl_context *ssl,
 
     mbedtls_md_type_t const md_type = ssl->handshake->ciphersuite_info->mac;
 
-    psa_algorithm_t hash_alg = mbedtls_hash_info_psa_from_md(
+    psa_algorithm_t hash_alg = mbedtls_md_psa_alg_from_type(
         ssl->handshake->ciphersuite_info->mac);
     size_t const hash_len = PSA_HASH_LENGTH(hash_alg);
 
@@ -1012,14 +1019,14 @@ int mbedtls_ssl_tls13_populate_transform(
 
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
     if ((ret = mbedtls_cipher_setkey(&transform->cipher_ctx_enc,
-                                     key_enc, cipher_info->key_bitlen,
+                                     key_enc, mbedtls_cipher_info_get_key_bitlen(cipher_info),
                                      MBEDTLS_ENCRYPT)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_cipher_setkey", ret);
         return ret;
     }
 
     if ((ret = mbedtls_cipher_setkey(&transform->cipher_ctx_dec,
-                                     key_dec, cipher_info->key_bitlen,
+                                     key_dec, mbedtls_cipher_info_get_key_bitlen(cipher_info),
                                      MBEDTLS_DECRYPT)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_cipher_setkey", ret);
         return ret;
@@ -1163,7 +1170,7 @@ static int ssl_tls13_generate_early_key(mbedtls_ssl_context *ssl,
 
     md_type = ciphersuite_info->mac;
 
-    hash_alg = mbedtls_hash_info_psa_from_md(ciphersuite_info->mac);
+    hash_alg = mbedtls_md_psa_alg_from_type(ciphersuite_info->mac);
     hash_len = PSA_HASH_LENGTH(hash_alg);
 
     ret = mbedtls_ssl_get_handshake_transcript(ssl, md_type,
@@ -1291,7 +1298,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_early(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
-    hash_alg = mbedtls_hash_info_psa_from_md(handshake->ciphersuite_info->mac);
+    hash_alg = mbedtls_md_psa_alg_from_type(handshake->ciphersuite_info->mac);
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     if (mbedtls_ssl_tls13_key_exchange_mode_with_psk(ssl)) {
         ret = mbedtls_ssl_tls13_export_handshake_psk(ssl, &psk, &psk_len);
@@ -1365,7 +1372,7 @@ static int ssl_tls13_generate_handshake_keys(mbedtls_ssl_context *ssl,
 
     md_type = ciphersuite_info->mac;
 
-    hash_alg = mbedtls_hash_info_psa_from_md(ciphersuite_info->mac);
+    hash_alg = mbedtls_md_psa_alg_from_type(ciphersuite_info->mac);
     hash_len = PSA_HASH_LENGTH(hash_alg);
 
     ret = mbedtls_ssl_get_handshake_transcript(ssl, md_type,
@@ -1472,7 +1479,7 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-    psa_algorithm_t const hash_alg = mbedtls_hash_info_psa_from_md(
+    psa_algorithm_t const hash_alg = mbedtls_md_psa_alg_from_type(
         handshake->ciphersuite_info->mac);
     unsigned char *shared_secret = NULL;
     size_t shared_secret_len = 0;
@@ -1484,8 +1491,13 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
      * are derived in the handshake secret derivation stage.
      */
     if (mbedtls_ssl_tls13_key_exchange_mode_with_ephemeral(ssl)) {
-        if (mbedtls_ssl_tls13_named_group_is_ecdhe(handshake->offered_group_id)) {
-#if defined(PSA_WANT_ALG_ECDH)
+        if (mbedtls_ssl_tls13_named_group_is_ecdhe(handshake->offered_group_id) ||
+            mbedtls_ssl_tls13_named_group_is_dhe(handshake->offered_group_id)) {
+#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
+            psa_algorithm_t alg =
+                mbedtls_ssl_tls13_named_group_is_ecdhe(handshake->offered_group_id) ?
+                PSA_ALG_ECDH : PSA_ALG_FFDH;
+
             /* Compute ECDH shared secret. */
             psa_status_t status = PSA_ERROR_GENERIC_ERROR;
             psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -1504,7 +1516,7 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
             }
 
             status = psa_raw_key_agreement(
-                PSA_ALG_ECDH, handshake->ecdh_psa_privkey,
+                alg, handshake->ecdh_psa_privkey,
                 handshake->ecdh_psa_peerkey, handshake->ecdh_psa_peerkey_len,
                 shared_secret, shared_secret_len, &shared_secret_len);
             if (status != PSA_SUCCESS) {
@@ -1521,7 +1533,7 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
             }
 
             handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
-#endif /* PSA_WANT_ALG_ECDH */
+#endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
         } else {
             MBEDTLS_SSL_DEBUG_MSG(1, ("Group not supported."));
             return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
@@ -1608,7 +1620,7 @@ static int ssl_tls13_generate_application_keys(
 
     md_type = handshake->ciphersuite_info->mac;
 
-    hash_alg = mbedtls_hash_info_psa_from_md(handshake->ciphersuite_info->mac);
+    hash_alg = mbedtls_md_psa_alg_from_type(handshake->ciphersuite_info->mac);
     hash_len = PSA_HASH_LENGTH(hash_alg);
 
     /* Compute current handshake transcript. It's the caller's responsibility
@@ -1766,7 +1778,7 @@ int mbedtls_ssl_tls13_compute_resumption_master_secret(mbedtls_ssl_context *ssl)
     }
 
     ret = mbedtls_ssl_tls13_derive_resumption_master_secret(
-        mbedtls_psa_translate_md(md_type),
+        mbedtls_md_psa_alg_from_type(md_type),
         handshake->tls13_master_secrets.app,
         transcript, transcript_len,
         &ssl->session_negotiate->app_secrets);
@@ -1781,7 +1793,7 @@ int mbedtls_ssl_tls13_compute_resumption_master_secret(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_BUF(
         4, "Resumption master secret",
         ssl->session_negotiate->app_secrets.resumption_master_secret,
-        PSA_HASH_LENGTH(mbedtls_psa_translate_md(md_type)));
+        PSA_HASH_LENGTH(mbedtls_md_psa_alg_from_type(md_type)));
 
     MBEDTLS_SSL_DEBUG_MSG(
         2, ("<= mbedtls_ssl_tls13_compute_resumption_master_secret"));

@@ -29,7 +29,6 @@
 #include "mbedtls/cipher.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
-#include "hash_info.h"
 
 #include <string.h>
 
@@ -491,7 +490,7 @@ int mbedtls_pem_write_buffer(const char *header, const char *footer,
     size_t len = 0, use_len, add_len = 0;
 
     mbedtls_base64_encode(NULL, 0, &use_len, der_data, der_len);
-    add_len = strlen(header) + strlen(footer) + (use_len / 64) + 1;
+    add_len = strlen(header) + strlen(footer) + (((use_len > 2) ? (use_len - 2) : 0) / 64) + 1;
 
     if (use_len + add_len > buf_len) {
         *olen = use_len + add_len;

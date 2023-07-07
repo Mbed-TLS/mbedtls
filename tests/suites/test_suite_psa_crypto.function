@@ -1530,8 +1530,15 @@ void import_export(data_t *data,
     psa_set_key_algorithm(&attributes, alg);
     psa_set_key_type(&attributes, type);
 
+    if (PSA_KEY_TYPE_IS_DH(type) &&
+        expected_export_status == PSA_ERROR_BUFFER_TOO_SMALL) {
+        /* Simulate that buffer is too small, by decreasing its size by 1 byte. */
+        export_size -= 1;
+    }
+
     /* Import the key */
-    PSA_ASSERT(psa_import_key(&attributes, data->x, data->len, &key));
+    TEST_EQUAL(psa_import_key(&attributes, data->x, data->len, &key),
+               PSA_SUCCESS);
 
     /* Test the key information */
     PSA_ASSERT(psa_get_key_attributes(key, &got_attributes));
@@ -2422,12 +2429,12 @@ exit:
 /* BEGIN_CASE */
 void copy_success(int source_usage_arg,
                   int source_alg_arg, int source_alg2_arg,
-                  unsigned int source_lifetime_arg,
+                  int source_lifetime_arg,
                   int type_arg, data_t *material,
                   int copy_attributes,
                   int target_usage_arg,
                   int target_alg_arg, int target_alg2_arg,
-                  unsigned int target_lifetime_arg,
+                  int target_lifetime_arg,
                   int expected_usage_arg,
                   int expected_alg_arg, int expected_alg2_arg)
 {
@@ -8565,6 +8572,26 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE*/
+void derive_input_invalid_cost(int alg_arg, int64_t cost)
+{
+    psa_algorithm_t alg = alg_arg;
+    psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
+
+    PSA_ASSERT(psa_crypto_init());
+    PSA_ASSERT(psa_key_derivation_setup(&operation, alg));
+
+    TEST_EQUAL(psa_key_derivation_input_integer(&operation,
+                                                PSA_KEY_DERIVATION_INPUT_COST,
+                                                cost),
+               PSA_ERROR_NOT_SUPPORTED);
+
+exit:
+    psa_key_derivation_abort(&operation);
+    PSA_DONE();
+}
+/* END_CASE*/
+
 /* BEGIN_CASE */
 void derive_over_capacity(int alg_arg)
 {
@@ -8706,6 +8733,16 @@ void derive_output(int alg_arg,
         switch (steps[i]) {
             case 0:
                 break;
+            case PSA_KEY_DERIVATION_INPUT_COST:
+                TEST_EQUAL(psa_key_derivation_input_integer(
+                               &operation, steps[i],
+                               parse_binary_string(inputs[i])),
+                           statuses[i]);
+                if (statuses[i] != PSA_SUCCESS) {
+                    goto exit;
+                }
+                break;
+            case PSA_KEY_DERIVATION_INPUT_PASSWORD:
             case PSA_KEY_DERIVATION_INPUT_SECRET:
                 switch (key_input_type) {
                     case 0: // input bytes
@@ -8733,9 +8770,14 @@ void derive_output(int alg_arg,
                                       PSA_TLS12_PSK_TO_MS_PSK_MAX_SIZE);
                         }
 
-                        PSA_ASSERT(psa_key_derivation_input_key(&operation,
+                        TEST_EQUAL(psa_key_derivation_input_key(&operation,
                                                                 steps[i],
-                                                                keys[i]));
+                                                                keys[i]),
+                                   statuses[i]);
+
+                        if (statuses[i] != PSA_SUCCESS) {
+                            goto exit;
+                        }
                         break;
                     default:
                         TEST_ASSERT(!"default case not supported");
@@ -9592,7 +9634,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_KEY_TYPE_RSA_KEY_PAIR:PSA_WANT_ALG_RSA_PKCS1V15_CRYPT:PSA_WANT_ALG_RSA_PKCS1V15_SIGN:MBEDTLS_GENPRIME */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY:PSA_WANT_ALG_RSA_PKCS1V15_CRYPT:PSA_WANT_ALG_RSA_PKCS1V15_SIGN:MBEDTLS_GENPRIME */
 void generate_key_rsa(int bits_arg,
                       data_t *e_arg,
                       int expected_status_arg)

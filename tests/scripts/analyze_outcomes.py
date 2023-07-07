@@ -196,11 +196,11 @@ TASKS = {
             }
         }
     },
-    'analyze_driver_vs_reference_all_ec_algs': {
+    'analyze_driver_vs_reference_ecp_light_only': {
         'test_function': do_analyze_driver_vs_reference,
         'args': {
-            'component_ref': 'test_psa_crypto_config_reference_all_ec_algs_use_psa',
-            'component_driver': 'test_psa_crypto_config_accel_all_ec_algs_use_psa',
+            'component_ref': 'test_psa_crypto_config_reference_ecc_ecp_light_only',
+            'component_driver': 'test_psa_crypto_config_accel_ecc_ecp_light_only',
             'ignored_suites': [
                 'ecdsa',
                 'ecdh',
@@ -247,15 +247,29 @@ TASKS = {
                     'ECP test vectors secp256r1 rfc 5114',
                     'ECP test vectors secp384r1 rfc 5114',
                     'ECP test vectors secp521r1 rfc 5114',
-                ]
+                ],
+                'test_suite_pkparse': [
+                    # This is a known difference for Montgomery curves: in
+                    # reference component private keys are parsed using
+                    # mbedtls_mpi_read_binary_le(), while in driver version they
+                    # they are imported in PSA and there the parsing is done
+                    # through mbedtls_ecp_read_key(). Unfortunately the latter
+                    # fixes the errors which are intentionally set on the parsed
+                    # key and therefore the following test case is not failing
+                    # as expected.
+                    # This cause the following test to be guarded by ECP_C and
+                    # not being executed on the driver version.
+                    ('Key ASN1 (OneAsymmetricKey X25519, doesn\'t match masking '
+                     'requirements, from RFC8410 Appendix A but made into version 0)'),
+                ],
             }
         }
     },
-    'analyze_driver_vs_reference_all_ec_algs_no_ecp': {
+    'analyze_driver_vs_reference_no_ecp_at_all': {
         'test_function': do_analyze_driver_vs_reference,
         'args': {
-            'component_ref': 'test_psa_crypto_full_reference_all_ec_algs_no_ecp_use_psa',
-            'component_driver': 'test_psa_crypto_full_accel_all_ec_algs_no_ecp_use_psa',
+            'component_ref': 'test_psa_crypto_config_reference_ecc_no_ecp_at_all',
+            'component_driver': 'test_psa_crypto_config_accel_ecc_no_ecp_at_all',
             'ignored_suites': [
                 # Ignore test suites for the modules that are disabled in the
                 # accelerated test case.
@@ -282,7 +296,35 @@ TASKS = {
                     'PSA key derivation: bits=7 invalid for ECC SECT_K1 (ECC enabled)',
                     'PSA key derivation: bits=7 invalid for ECC SECT_R1 (ECC enabled)',
                     'PSA key derivation: bits=7 invalid for ECC SECT_R2 (ECC enabled)',
-                ]
+                ],
+                'test_suite_pkparse': [
+                    # See description provided for the analyze_driver_vs_reference_all_ec_algs
+                    # case above.
+                    ('Key ASN1 (OneAsymmetricKey X25519, doesn\'t match masking '
+                     'requirements, from RFC8410 Appendix A but made into version 0)'),
+                    # When PK_PARSE_C and ECP_C are defined then PK_PARSE_EC_COMPRESSED
+                    # is automatically enabled in build_info.h (backward compatibility)
+                    # even if it is disabled in config_psa_crypto_no_ecp_at_all(). As a
+                    # consequence compressed points are supported in the reference
+                    # component but not in the accelerated one, so they should be skipped
+                    # while checking driver's coverage.
+                    'Parse EC Key #10a (SEC1 PEM, secp384r1, compressed)',
+                    'Parse EC Key #11a (SEC1 PEM, secp521r1, compressed)',
+                    'Parse EC Key #12a (SEC1 PEM, bp256r1, compressed)',
+                    'Parse EC Key #13a (SEC1 PEM, bp384r1, compressed)',
+                    'Parse EC Key #14a (SEC1 PEM, bp512r1, compressed)',
+                    'Parse EC Key #2a (SEC1 PEM, secp192r1, compressed)',
+                    'Parse EC Key #8a (SEC1 PEM, secp224r1, compressed)',
+                    'Parse EC Key #9a (SEC1 PEM, secp256r1, compressed)',
+                    'Parse Public EC Key #2a (RFC 5480, PEM, secp192r1, compressed)',
+                    'Parse Public EC Key #3a (RFC 5480, secp224r1, compressed)',
+                    'Parse Public EC Key #4a (RFC 5480, secp256r1, compressed)',
+                    'Parse Public EC Key #5a (RFC 5480, secp384r1, compressed)',
+                    'Parse Public EC Key #6a (RFC 5480, secp521r1, compressed)',
+                    'Parse Public EC Key #7a (RFC 5480, brainpoolP256r1, compressed)',
+                    'Parse Public EC Key #8a (RFC 5480, brainpoolP384r1, compressed)',
+                    'Parse Public EC Key #9a (RFC 5480, brainpoolP512r1, compressed)',
+                ],
             }
         }
     },

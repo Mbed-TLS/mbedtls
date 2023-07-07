@@ -569,6 +569,8 @@ int mbedtls_internal_sha512_process_a64_crypto(mbedtls_sha512_context *ctx,
             SHA512_BLOCK_SIZE) ? 0 : -1;
 }
 
+#endif /* MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT || MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY */
+
 #if defined(MBEDTLS_POP_TARGET_PRAGMA)
 #if defined(__clang__)
 #pragma clang attribute pop
@@ -577,8 +579,6 @@ int mbedtls_internal_sha512_process_a64_crypto(mbedtls_sha512_context *ctx,
 #endif
 #undef MBEDTLS_POP_TARGET_PRAGMA
 #endif
-
-#endif /* MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT || MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY */
 
 
 #if !defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT)
@@ -1000,8 +1000,6 @@ static sha_test_sum_t sha512_test_sum[] =
       0x4E, 0xAD, 0xB2, 0x17, 0xAD, 0x8C, 0xC0, 0x9B }
 };
 #endif /* MBEDTLS_SHA512_C */
-
-#define ARRAY_LENGTH(a)   (sizeof(a) / sizeof((a)[0]))
 
 static int mbedtls_sha512_common_self_test(int verbose, int is384)
 {

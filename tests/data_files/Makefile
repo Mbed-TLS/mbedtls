@@ -2212,8 +2212,9 @@ clean:
 ## Remove all build products, even the ones that are committed
 neat: clean
 	rm -f $(all_final)
-tidy: neat
-	rm -f $(all_parse_input)
+# Remove all files except reserverd files
+tidy:
+	rm -f $(shell find . -type f | grep -v -f reserved_files.lst -f known_missed.lst)
 .PHONY: clean neat tidy
 
 .SECONDARY: $(all_intermediate)

@@ -2,12 +2,17 @@
 /*----------------------------------------------------------------------------*/
 /* Headers */
 
-#include <test/macros.h>
+#include <test/arguments.h>
 #include <test/helpers.h>
+#include <test/macros.h>
 #include <test/random.h>
 #include <test/psa_crypto_helpers.h>
 
+#include <errno.h>
+#include <limits.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "mbedtls/platform.h"
 
@@ -20,22 +25,8 @@
 #include <setjmp.h>
 #endif
 
-#ifdef _MSC_VER
-#include <basetsd.h>
-typedef UINT8 uint8_t;
-typedef INT32 int32_t;
-typedef UINT32 uint32_t;
-#define strncasecmp _strnicmp
-#define strcasecmp _stricmp
-#else
-#include <stdint.h>
-#endif
-
-#include <string.h>
-
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <unistd.h>
-#include <strings.h>
 #endif
 
 /*----------------------------------------------------------------------------*/

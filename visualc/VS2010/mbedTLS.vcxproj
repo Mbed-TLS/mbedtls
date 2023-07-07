@@ -237,6 +237,7 @@
     <ClInclude Include="..\..\include\psa\crypto_struct.h" />
     <ClInclude Include="..\..\include\psa\crypto_types.h" />
     <ClInclude Include="..\..\include\psa\crypto_values.h" />
+    <ClInclude Include="..\..\tests\include\test\arguments.h" />
     <ClInclude Include="..\..\tests\include\test\asn1_helpers.h" />
     <ClInclude Include="..\..\tests\include\test\constant_flow.h" />
     <ClInclude Include="..\..\tests\include\test\fake_external_rng_for_test.h" />

@@ -1,0 +1,3 @@
+Bugfix
+   * Fix compilation warnings in aes.c for certain combinations
+     of configuration options.

@@ -5,9 +5,6 @@
 *.sln
 *.vcxproj
 
-*.o
-*.exe
-
 aes/crypt_and_hash
 hash/generic_sum
 hash/hello

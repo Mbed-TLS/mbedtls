@@ -2255,7 +2255,6 @@ static unsigned char ecp_pick_window_size(const mbedtls_ecp_group *grp,
 
     /*
      * If the table is not static, make sure w is within bounds.
-     * (The last test is useful only for very small curves in the test suite.)
      *
      * The user reduces MBEDTLS_ECP_WINDOW_SIZE does not changes the size of
      * static comb table, because the size of static comb table is fixed when
@@ -2266,9 +2265,6 @@ static unsigned char ecp_pick_window_size(const mbedtls_ecp_group *grp,
         w = MBEDTLS_ECP_WINDOW_SIZE;
     }
 #endif
-    if (w >= grp->nbits) {
-        w = 2;
-    }
 
     return w;
 }

@@ -4562,11 +4562,15 @@ static int ecp_group_load(mbedtls_ecp_group *grp,
 
     grp->h = 1;
 
+#if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
     grp->T = (mbedtls_ecp_point *) T;
     /*
      * Set T_size to 0 to prevent T free by mbedtls_ecp_group_free.
      */
     grp->T_size = 0;
+#else
+    (void) T;
+#endif
 
     return 0;
 }

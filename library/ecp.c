@@ -538,8 +538,11 @@ void mbedtls_ecp_group_init(mbedtls_ecp_group *grp)
     grp->t_pre = NULL;
     grp->t_post = NULL;
     grp->t_data = NULL;
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) && \
+    MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
     grp->T = NULL;
     grp->T_size = 0;
+#endif
 }
 
 /*
@@ -2355,10 +2358,12 @@ static int ecp_mul_comb(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
 cleanup:
 
+#if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
     /* does T belong to the group? */
     if (T == grp->T) {
         T = NULL;
     }
+#endif
 
     /* does T belong to the restart context? */
 #if defined(MBEDTLS_ECP_RESTARTABLE)

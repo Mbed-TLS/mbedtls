@@ -3051,6 +3051,8 @@ void conf_version(int endpoint, int transport,
     mbedtls_ssl_conf_max_tls_version(&conf, max_tls_version);
 
     TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == expected_ssl_setup_result);
+    TEST_EQUAL(mbedtls_ssl_conf_get_endpoint(
+                   mbedtls_ssl_context_get_config(&ssl)), endpoint);
 
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);

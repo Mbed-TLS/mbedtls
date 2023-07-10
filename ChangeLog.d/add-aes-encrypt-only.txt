@@ -1,0 +1,4 @@
+Features
+   * Add support to automatically enable MBEDTLS_AES_ENCRYPT_ONLY via PSA.
+     This new configuration can be used to set AES-setkey-decrypt and
+     AES-decrypt function as a no-op function in order to save code size.

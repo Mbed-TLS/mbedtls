@@ -3169,6 +3169,18 @@ component_test_psa_crypto_config_chachapoly_disabled() {
     make test
 }
 
+component_test_ccm_aes_sha256() {
+    msg "build: CCM + AES + SHA256 configuration"
+
+    cp tests/include/test/drivers/config_test_driver.h  include/mbedtls/mbedtls_config.h
+    cp configs/crypto-config-ccm-aes-sha256.h           include/psa/crypto_config.h
+
+    make CC=gcc
+
+    msg "test: CCM + AES + SHA256 configuration"
+    make test
+}
+
 # This should be renamed to test and updated once the accelerator ECDH code is in place and ready to test.
 component_build_psa_accel_alg_ecdh() {
     # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_ALG_ECDH

@@ -1926,7 +1926,7 @@ void mbedtls_ssl_conf_endpoint(mbedtls_ssl_config *conf, int endpoint);
  * \return         Endpoint type, either MBEDTLS_SSL_IS_CLIENT
  *                 or MBEDTLS_SSL_IS_SERVER
  */
-static inline int mbedtls_ssl_conf_get_endpoint(mbedtls_ssl_config *conf)
+static inline int mbedtls_ssl_conf_get_endpoint(const mbedtls_ssl_config *conf)
 {
     return conf->MBEDTLS_PRIVATE(endpoint);
 }

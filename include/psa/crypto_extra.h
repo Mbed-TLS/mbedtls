@@ -2088,6 +2088,51 @@ typedef enum {
  *    permitted-algorithm.
  */
     PSA_KEY_DATA_FORMAT_RSA_PUBLIC_KEY,
+/**
+ *  DER or PEM encoded SubjectPublicKeyInfo data structure as defined in
+ *  RFC 5280 (Internet X.509 Public Key Infrastructure Certificate and
+ *  Certificate Revocation List (CRL) Profile) or one of its sub-format namely
+ *  RSAPublicKey.
+ *
+ *  The definition of SubjectPublicKeyInfo is:
+ *
+ *  SubjectPublicKeyInfo  ::=  SEQUENCE  {
+ *       algorithm            AlgorithmIdentifier,
+ *       subjectPublicKey     BIT STRING }
+ *  with
+ *  AlgorithmIdentifier ::= SEQUENCE {
+ *       algorithm            OBJECT IDENTIFIER,
+ *       parameters           ANY DEFINED BY algorithm OPTIONAL }
+ *
+ *  The supported algorithm object identifiers are:
+ *  . rsaEncryption as defined in RFC 8017 (PKCS#1) with:
+ *    . NULL as parameters
+ *    . An RSA public key as described for PSA_KEY_DATA_FORMAT_RSA_PUBLIC_KEY
+ *      key data format.
+ *
+ *  . id-ecPublicKey and id-ecDH (ECDH algorithm only) as defined in RFC 5480
+ *    with:
+ *     . ECParameters ::= CHOICE {
+ *         namedCurve         OBJECT IDENTIFIER
+ *         -- implicitCurve   NULL
+ *         -- specifiedCurve  SpecifiedECDomain
+ *       }
+ *     . ECPoint ::= OCTET STRING
+ *
+ *  . id-X25519 and id-X448 (define the curve and ECDH algorithm only):
+ *     . no parameters
+ *     . ECPoint ::= OCTET STRING
+ *
+ *  Key attributes when importing:
+ *  . key permitted-algorithm: required in the case of rsaEncryption and
+ *    id-ecPublicKey for keys that will be used for a cryptographic operation.
+ *    Otherwise, if defined, the import functions check that it is compatible
+ *    with the algorithm specified in key data.
+ *  . key usage: a key usage may be provided to limit the usage of the key to
+ *    encryption/decryption or signature/verification only according to its
+ *    permitted-algorithm.
+ */
+    PSA_KEY_DATA_FORMAT_SUBJECT_PUBLIC_KEY_INFO,
 
     PSA_KEY_DATA_FORMAT_COUNT
 } psa_key_data_format_t;

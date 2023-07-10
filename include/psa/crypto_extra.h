@@ -2072,6 +2072,23 @@ static inline struct psa_pake_operation_s psa_pake_operation_init(void)
 typedef enum {
 /** An invalid key data format identifier. */
     PSA_KEY_DATA_FORMAT_NONE,
+/**
+ *  DER or PEM encoded RSAPublicKey data structure as defined in RFC 8017
+ *  (PKCS#1) with:
+ *
+ *  RSAPublicKey ::= SEQUENCE {
+ *       modulus          INTEGER, -- n
+ *       publicExponent   INTEGER  -- e }
+ *
+ *  Key attributes when importing:
+ *  . key permitted-algorithm: required for keys that will be used for a
+ *    cryptographic operation.
+ *  . key usage: a key usage may be provided to limit the usage of the key to
+ *    encryption/decryption or signature/verification only according to its
+ *    permitted-algorithm.
+ */
+    PSA_KEY_DATA_FORMAT_RSA_PUBLIC_KEY,
+
     PSA_KEY_DATA_FORMAT_COUNT
 } psa_key_data_format_t;
 

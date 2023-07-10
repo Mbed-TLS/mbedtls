@@ -8313,12 +8313,31 @@ psa_status_t psa_import_key_ext(const psa_key_attributes_t *attributes,
                                 size_t data_length,
                                 mbedtls_svc_key_id_t *key)
 {
-    (void) attributes;
-    (void) format;
-    (void) data;
-    (void) data_length;
-    (void) key;
+    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+    psa_key_attributes_t l_attributes;
 
-    return PSA_ERROR_NOT_SUPPORTED;
+    *key = MBEDTLS_SVC_KEY_ID_INIT;
+
+    if ((format >= PSA_KEY_DATA_FORMAT_COUNT) ||
+        (format == PSA_KEY_DATA_FORMAT_NONE)) {
+        goto cleanup;
+    }
+
+    l_attributes = *attributes;
+
+    switch (format) {
+        case PSA_KEY_DATA_FORMAT_RSA_PUBLIC_KEY:
+            psa_set_key_type(&l_attributes, PSA_KEY_TYPE_RSA_PUBLIC_KEY);
+            status = psa_import_key(&l_attributes, data, data_length, key);
+            break;
+
+        default:
+            status = PSA_ERROR_GENERIC_ERROR;
+            break;
+    }
+
+cleanup:
+
+    return status;
 }
 #endif /* MBEDTLS_PSA_CRYPTO_C */

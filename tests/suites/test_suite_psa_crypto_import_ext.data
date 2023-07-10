@@ -903,8 +903,7 @@ depends_on:NOT_SUPPORTED:MBEDTLS_PEM_PARSE_C
 import_key_from_file:"data_files/rsa_pkcs1_2048_public.pem":PSA_KEY_DATA_FORMAT_NONE:PSA_SUCCESS
 
 Parse Public RSA Key #4 (PKCS#1 wrapped, DER)
-depends_on:NOT_SUPPORTED
-import_key_from_file:"data_files/rsa_pkcs1_2048_public.der":PSA_KEY_DATA_FORMAT_NONE:PSA_SUCCESS
+import_key_from_file:"data_files/rsa_pkcs1_2048_public.der":PSA_KEY_DATA_FORMAT_RSA_PUBLIC_KEY:PSA_SUCCESS
 
 Parse Public EC Key #1 (RFC 5480, DER)
 depends_on:NOT_SUPPORTED:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP192R1_ENABLED

@@ -2291,7 +2291,7 @@ static int ecp_mul_comb(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                         mbedtls_ecp_restart_ctx *rs_ctx)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char w, p_eq_g, i;
+    unsigned char w, use_static_table, i;
     size_t d;
     unsigned char T_size = 0, T_ok = 0;
     mbedtls_ecp_point *T_local = NULL;
@@ -2299,33 +2299,37 @@ static int ecp_mul_comb(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
     ECP_RS_ENTER(rsm);
 
-    /* Is P the base point ? */
+    /* Use a static table if enabled and P is the base point */
 #if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
-    p_eq_g = (MPI_ECP_CMP(&P->Y, &grp->G.Y) == 0 &&
-              MPI_ECP_CMP(&P->X, &grp->G.X) == 0);
+    use_static_table = (MPI_ECP_CMP(&P->Y, &grp->G.Y) == 0 &&
+                        MPI_ECP_CMP(&P->X, &grp->G.X) == 0);
 #else
-    p_eq_g = 0;
+    use_static_table = 0;
 #endif
 
     /* Pick window size and deduce related sizes */
-    w = ecp_pick_window_size(grp, p_eq_g);
+    w = ecp_pick_window_size(grp, use_static_table);
     T_size = 1U << (w - 1);
     d = (grp->nbits + w - 1) / w;
 
+    /* The table can be:
+     * - static in the group (already populated);
+     * - dynamically allocated, stored in the restart context
+     *   (allocated on first run, populated possibly over several runs);
+     * - dynamically allocated locally, need to allocate and populate.
+     */
 #if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
-    /* Use static table if this is the base point */
-    if (p_eq_g) {
+    if (use_static_table) {
         T = &grp->T;
         T_ok = 1;
     } else
 #endif
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    /* Store the table in the restart context if we have one */
     if (rs_ctx != NULL && rs_ctx->rsm != NULL) {
         T = &rs_ctx->rsm->T;
         T_ok = rs_ctx->rsm->state >= ecp_rsm_comb_core;
 
-        /* Remembmer this for the benefit of ecp_restart_rsm_free() */
+        /* Remember this for the benefit of ecp_restart_rsm_free() */
         rs_ctx->rsm->T_size = T_size;
     } else
 #endif
@@ -2334,7 +2338,7 @@ static int ecp_mul_comb(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         T_ok = 0;
     }
 
-    /* If we don't have a table yet, allocate it */
+    /* If not allocated (local, or restartartable first run), do it */
     if (*T == NULL) {
         *T = mbedtls_calloc(T_size, sizeof(mbedtls_ecp_point));
         if (*T == NULL) {
@@ -2347,7 +2351,7 @@ static int ecp_mul_comb(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         }
     }
 
-    /* Compute table (or finish computing it) if not done already */
+    /* If not populated (local, or restartable first/early runs), do it */
     if (!T_ok) {
         MBEDTLS_MPI_CHK(ecp_precompute_comb(grp, *T, P, w, d, rs_ctx));
     }

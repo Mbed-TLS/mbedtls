@@ -2351,7 +2351,12 @@ component_test_psa_crypto_config_accel_ffdh () {
     msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated FFDH"
 
     # Algorithms and key types to accelerate
-    loc_accel_list="ALG_FFDH KEY_TYPE_DH_KEY_PAIR KEY_TYPE_DH_PUBLIC_KEY"
+    loc_accel_list="ALG_FFDH \
+                    KEY_TYPE_DH_KEY_PAIR_BASIC \
+                    KEY_TYPE_DH_KEY_PAIR_IMPORT \
+                    KEY_TYPE_DH_KEY_PAIR_EXPORT \
+                    KEY_TYPE_DH_KEY_PAIR_GENERATE \
+                    KEY_TYPE_DH_PUBLIC_KEY"
 
     # Configure
     # ---------

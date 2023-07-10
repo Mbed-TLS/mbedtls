@@ -245,7 +245,7 @@ psa_status_t mbedtls_test_transparent_generate_key(
     } else if (PSA_KEY_TYPE_IS_DH(psa_get_key_type(attributes))
                && PSA_KEY_TYPE_IS_KEY_PAIR(psa_get_key_type(attributes))) {
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
-        defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR)
+        defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_GENERATE)
         return libtestdriver1_mbedtls_psa_ffdh_generate_key(
             (const libtestdriver1_psa_key_attributes_t *) attributes,
             key, key_size, key_length);

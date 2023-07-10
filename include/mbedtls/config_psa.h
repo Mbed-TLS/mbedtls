@@ -1028,14 +1028,6 @@ extern "C" {
 #endif
 
 /* Temporary internal migration helpers */
-#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC) || \
-    defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT) || \
-    defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT) || \
-    defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
-#define MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY
-#endif
-
-/* Temporary internal migration helpers */
 #if defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_BASIC) || \
     defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT) || \
     defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT) || \

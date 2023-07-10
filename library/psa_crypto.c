@@ -7346,7 +7346,7 @@ static psa_status_t psa_validate_key_type_and_size_for_key_generation(
             return status;
         }
     } else
-#if defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY)
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
     if (PSA_KEY_TYPE_IS_RSA(type) && PSA_KEY_TYPE_IS_KEY_PAIR(type)) {
         if (bits > PSA_VENDOR_RSA_MAX_KEY_BITS) {
             return PSA_ERROR_NOT_SUPPORTED;
@@ -7358,7 +7358,7 @@ static psa_status_t psa_validate_key_type_and_size_for_key_generation(
             return PSA_ERROR_NOT_SUPPORTED;
         }
     } else
-#endif /* defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY) */
+#endif /* defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE) */
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE)
     if (PSA_KEY_TYPE_IS_ECC(type) && PSA_KEY_TYPE_IS_KEY_PAIR(type)) {

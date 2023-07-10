@@ -264,6 +264,7 @@ void x509_csr_check(char *key_file, char *cert_req_check_file, int md_type,
     TEST_ASSERT(ret == MBEDTLS_ERR_ASN1_BUF_TOO_SMALL);
 
 exit:
+    mbedtls_asn1_free_named_data_list(&ext_san_dirname);
     mbedtls_x509write_csr_free(&req);
     mbedtls_pk_free(&key);
     MD_OR_USE_PSA_DONE();

@@ -2270,8 +2270,8 @@ component_test_psa_crypto_config_accel_ffdh () {
     # Configure
     # ---------
 
-    # Start from default config (no TLS 1.3, no USE_PSA)
-    helper_libtestdriver1_adjust_config "default"
+    # start with full (USE_PSA and TLS 1.3)
+    helper_libtestdriver1_adjust_config "full"
 
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_DHM_C
@@ -2295,6 +2295,27 @@ component_test_psa_crypto_config_accel_ffdh () {
 
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated FFDH"
     make test
+
+    msg "ssl-opt: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated FFDH alg"
+    tests/ssl-opt.sh -f "ffdh"
+}
+
+component_test_psa_crypto_config_reference_ffdh () {
+    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated FFDH"
+
+    # Start with full (USE_PSA and TLS 1.3)
+    helper_libtestdriver1_adjust_config "full"
+
+    # Disable things that are not supported
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+    make
+
+    msg "test suites: MBEDTLS_PSA_CRYPTO_CONFIG with non-accelerated FFDH alg + USE_PSA"
+    make test
+
+    msg "ssl-opt: MBEDTLS_PSA_CRYPTO_CONFIG with non-accelerated FFDH alg + USE_PSA"
+    tests/ssl-opt.sh -f "ffdh"
 }
 
 component_test_psa_crypto_config_accel_pake() {

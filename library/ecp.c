@@ -2277,8 +2277,7 @@ static unsigned char ecp_pick_window_size(const mbedtls_ecp_group *grp,
  *
  * This function is mainly responsible for administrative work:
  * - managing the restart context if enabled
- * - managing the table of precomputed points (passed between the below two
- *   functions): allocation, computation, ownership transfer, freeing.
+ * - managing the table of precomputed points
  *
  * It delegates the actual arithmetic work to:
  *      ecp_precompute_comb() and ecp_mul_comb_with_precomp()
@@ -2295,7 +2294,8 @@ static int ecp_mul_comb(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     unsigned char w, p_eq_g, i;
     size_t d;
     unsigned char T_size = 0, T_ok = 0;
-    mbedtls_ecp_point *T = NULL;
+    mbedtls_ecp_point *T_local = NULL;
+    mbedtls_ecp_point **T = NULL;
 
     ECP_RS_ENTER(rsm);
 
@@ -2312,75 +2312,59 @@ static int ecp_mul_comb(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     T_size = 1U << (w - 1);
     d = (grp->nbits + w - 1) / w;
 
-    /* For the base point, use the pre-computed table */
 #if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
+    /* Use static table if this is the base point */
     if (p_eq_g) {
-        T = grp->T;
+        T = &grp->T;
         T_ok = 1;
     } else
 #endif
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    /* Pre-computed table: do we have one in progress? complete? */
-    if (rs_ctx != NULL && rs_ctx->rsm != NULL && rs_ctx->rsm->T != NULL) {
-        /* transfer ownership of T from rsm to local function */
-        T = rs_ctx->rsm->T;
-        rs_ctx->rsm->T = NULL;
-        rs_ctx->rsm->T_size = 0;
-
-        /* This effectively jumps to the call to mul_comb_after_precomp() */
+    /* Store the table in the restart context if we have one */
+    if (rs_ctx != NULL && rs_ctx->rsm != NULL) {
+        T = &rs_ctx->rsm->T;
         T_ok = rs_ctx->rsm->state >= ecp_rsm_comb_core;
+
+        /* Remembmer this for the benefit of ecp_restart_rsm_free() */
+        rs_ctx->rsm->T_size = T_size;
     } else
 #endif
-    /* Allocate table if we didn't have any */
     {
-        T = mbedtls_calloc(T_size, sizeof(mbedtls_ecp_point));
-        if (T == NULL) {
+        T = &T_local;
+        T_ok = 0;
+    }
+
+    /* If we don't have a table yet, allocate it */
+    if (*T == NULL) {
+        *T = mbedtls_calloc(T_size, sizeof(mbedtls_ecp_point));
+        if (*T == NULL) {
             ret = MBEDTLS_ERR_ECP_ALLOC_FAILED;
             goto cleanup;
         }
 
         for (i = 0; i < T_size; i++) {
-            mbedtls_ecp_point_init(&T[i]);
+            mbedtls_ecp_point_init((*T) + i);
         }
-
-        T_ok = 0;
     }
 
     /* Compute table (or finish computing it) if not done already */
     if (!T_ok) {
-        MBEDTLS_MPI_CHK(ecp_precompute_comb(grp, T, P, w, d, rs_ctx));
+        MBEDTLS_MPI_CHK(ecp_precompute_comb(grp, *T, P, w, d, rs_ctx));
     }
 
     /* Actual comb multiplication using precomputed points */
     MBEDTLS_MPI_CHK(ecp_mul_comb_after_precomp(grp, R, m,
-                                               T, T_size, w, d,
+                                               *T, T_size, w, d,
                                                f_rng, p_rng, rs_ctx));
 
 cleanup:
-
-#if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
-    /* does T belong to the group? */
-    if (T == grp->T) {
-        T = NULL;
-    }
-#endif
-
-    /* does T belong to the restart context? */
-#if defined(MBEDTLS_ECP_RESTARTABLE)
-    if (rs_ctx != NULL && rs_ctx->rsm != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS && T != NULL) {
-        /* transfer ownership of T from local function to rsm */
-        rs_ctx->rsm->T_size = T_size;
-        rs_ctx->rsm->T = T;
-        T = NULL;
-    }
-#endif
-
-    /* did T belong to us? then let's destroy it! */
-    if (T != NULL) {
+    /* Free the locally-allocated table if any.
+     * Note: ECP_RS_LEAVE(rsm) below takes care of the restart context. */
+    if (T_local != NULL) {
         for (i = 0; i < T_size; i++) {
-            mbedtls_ecp_point_free(&T[i]);
+            mbedtls_ecp_point_free(T_local + i);
         }
-        mbedtls_free(T);
+        mbedtls_free(T_local);
     }
 
     /* prevent caller from using invalid value */

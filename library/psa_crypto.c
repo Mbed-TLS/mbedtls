@@ -8331,6 +8331,11 @@ static const struct key_data_format_info key_data_format_infos[] = {
         .key_type = PSA_KEY_TYPE_RSA_KEY_PAIR,
         .pem_label = "RSA PRIVATE KEY",
     },
+    {
+        .format =  PSA_KEY_DATA_FORMAT_EC_PRIVATE_KEY,
+        .key_type = PSA_KEY_TYPE_NONE,
+        .pem_label = "EC PRIVATE KEY",
+    },
 };
 
 static void find_pem_header(const uint8_t *data, size_t data_length,
@@ -8433,6 +8438,39 @@ static psa_status_t mbedtls_psa_extract_from_pem(
     *key_type = key_data_format_info->key_type;
     *key_data = header_end;
     *key_data_length = footer - header_end;
+
+    return PSA_SUCCESS;
+}
+
+/*
+ * ECParameters ::= CHOICE {
+ *   namedCurve         OBJECT IDENTIFIER
+ *   -- specifiedCurve  SpecifiedECDomain
+ *   -- implicitCurve   NULL
+ * }
+ */
+static psa_status_t parse_asn1_ec_parameters(
+    unsigned char **p, const unsigned char *end,
+    psa_ecc_family_t *ecc_family)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_asn1_buf params;
+    mbedtls_ecp_group_id ecp_group_id;
+    size_t bits;
+
+    if ((ret = mbedtls_asn1_get_tag(p, end, &params.len, MBEDTLS_ASN1_OID)) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    params.tag = MBEDTLS_ASN1_OID;
+    params.p = *p;
+    *p += params.len;
+
+    if (mbedtls_oid_get_ec_grp(&params, &ecp_group_id) != 0) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    *ecc_family = mbedtls_ecc_group_to_psa(ecp_group_id, &bits);
 
     return PSA_SUCCESS;
 }
@@ -8582,6 +8620,79 @@ static psa_status_t import_key_from_subject_public_key_info(
     return status;
 }
 
+/*
+ * RFC 5915, or SEC1 Appendix C.4
+ *
+ * ECPrivateKey ::= SEQUENCE {
+ *      version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+ *      privateKey     OCTET STRING,
+ *      parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+ *      publicKey  [1] BIT STRING OPTIONAL
+ * }
+ */
+static psa_status_t import_key_from_ec_private_key(
+    psa_key_attributes_t *attributes,
+    const uint8_t *data, size_t data_length,
+    mbedtls_svc_key_id_t *key)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    unsigned char *p = (unsigned char *) data;
+    const unsigned char *end = p + data_length;
+    size_t len;
+    const uint8_t *key_data;
+    size_t key_data_length;
+    int version;
+    psa_ecc_family_t ecc_family;
+
+    if ((ret = mbedtls_asn1_get_tag(&p, end, &len,
+                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    end = p + len;
+
+    if ((ret = mbedtls_asn1_get_int(&p, end, &version)) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (version != 1) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    if ((ret = mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_OCTET_STRING)) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    key_data = p;
+    key_data_length = len;
+    p += len;
+
+    if ((ret = mbedtls_asn1_get_tag(&p, end, &len,
+                                    MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED)) ==
+        0) {
+        psa_key_type_t key_type;
+
+        status = parse_asn1_ec_parameters(&p, end, &ecc_family);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
+
+        key_type = psa_get_key_type(attributes);
+        if (key_type == PSA_KEY_TYPE_NONE) {
+            psa_set_key_type(attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(ecc_family));
+        } else {
+            if (key_type != PSA_KEY_TYPE_ECC_KEY_PAIR(ecc_family)) {
+                return PSA_ERROR_INVALID_ARGUMENT;
+            }
+        }
+    }
+
+/* TODO read and check public key */
+
+    return psa_import_key(attributes, key_data, key_data_length, key);
+}
+
 psa_status_t psa_import_key_ext(const psa_key_attributes_t *attributes,
                                 psa_key_data_format_t format,
                                 const uint8_t *data,
@@ -8671,6 +8782,11 @@ psa_status_t psa_import_key_ext(const psa_key_attributes_t *attributes,
             psa_set_key_type(&l_attributes, PSA_KEY_TYPE_RSA_KEY_PAIR);
             status = psa_import_key(&l_attributes, key_data, key_data_length,
                                     key);
+            break;
+
+        case PSA_KEY_DATA_FORMAT_EC_PRIVATE_KEY:
+            status = import_key_from_ec_private_key(
+                &l_attributes, key_data, key_data_length, key);
             break;
 
         default:

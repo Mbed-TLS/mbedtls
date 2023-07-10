@@ -2160,6 +2160,41 @@ typedef enum {
  */
     PSA_KEY_DATA_FORMAT_RSA_PRIVATE_KEY,
 
+/**
+ *  DER or PEM encoded ECPrivateKey data structure as defined in RFC 5915
+ *  (Elliptic Curve Private Key Structure) with:
+ *
+ *  ECPrivateKey ::= SEQUENCE {
+ *    version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+ *    privateKey     OCTET STRING,
+ *    parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+ *    publicKey  [1] BIT STRING OPTIONAL
+ *  }
+ *
+ *  with privateKey content for the different type of curves as defined in the
+ *  documentation of #psa_export_key().
+ *
+ *  with ECParameters as defined in RFC 5480 (Elliptic Curve Cryptography
+ *  Subject Public Key Information):
+ *
+ *  ECParameters ::= CHOICE {
+ *    namedCurve OBJECT IDENTIFIER
+ *    -- implicitCurve NULL
+ *    -- specifiedCurve SpecifiedECDomain
+ *  }
+ *    -- implicitCurve and specifiedCurve MUST NOT be used in PKIX.
+ *    -- Details for SpecifiedECDomain can be found in [X9.62].
+ *    -- Any future additions to this CHOICE should be coordinated
+ *    -- with ANSI X9.
+ *
+ *  Key attributes when importing:
+ *  . key permitted-algorithm: required for keys that will be used for a
+ *    cryptographic operation.
+ *  . key usage: a key usage may be provided to limit the usage of the key for
+ *    signature/verification only.
+ */
+    PSA_KEY_DATA_FORMAT_EC_PRIVATE_KEY,
+
     PSA_KEY_DATA_FORMAT_COUNT
 } psa_key_data_format_t;
 

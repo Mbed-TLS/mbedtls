@@ -2134,6 +2134,32 @@ typedef enum {
  */
     PSA_KEY_DATA_FORMAT_SUBJECT_PUBLIC_KEY_INFO,
 
+/**
+ *  DER or PEM encoded RSAPrivateKey data structure as defined in RFC 8017
+ *  (PKCS#1) with:
+ *
+ *  RSAPrivateKey ::= SEQUENCE {
+ *      version           Version,
+ *      modulus           INTEGER, -- n
+ *      publicExponent    INTEGER, -- e
+ *      privateExponent   INTEGER, -- d
+ *      prime1            INTEGER, -- p
+ *      prime2            INTEGER, -- q
+ *      exponent1         INTEGER, -- d mod (p-1)
+ *      exponent2         INTEGER, -- d mod (q-1)
+ *      coefficient       INTEGER, -- (inverse of q) mod p
+ *      otherPrimeInfos   OtherPrimeInfos OPTIONAL
+ *  }
+ *
+ *  Key attributes when importing:
+ *  . key permitted-algorithm: required for keys that will be used for a
+ *    cryptographic operation.
+ *  . key usage: a key usage may be provided to limit the usage of the key to
+ *    encryption/decryption or signature/verification only according to its
+ *    permitted-algorithm.
+ */
+    PSA_KEY_DATA_FORMAT_RSA_PRIVATE_KEY,
+
     PSA_KEY_DATA_FORMAT_COUNT
 } psa_key_data_format_t;
 

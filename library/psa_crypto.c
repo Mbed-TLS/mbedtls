@@ -8326,6 +8326,11 @@ static const struct key_data_format_info key_data_format_infos[] = {
         .key_type = PSA_KEY_TYPE_NONE,
         .pem_label = "PUBLIC KEY",
     },
+    {
+        .format =  PSA_KEY_DATA_FORMAT_RSA_PRIVATE_KEY,
+        .key_type = PSA_KEY_TYPE_RSA_KEY_PAIR,
+        .pem_label = "RSA PRIVATE KEY",
+    },
 };
 
 static void find_pem_header(const uint8_t *data, size_t data_length,
@@ -8656,6 +8661,16 @@ psa_status_t psa_import_key_ext(const psa_key_attributes_t *attributes,
             status = import_key_from_subject_public_key_info(
                 &l_attributes, key_data, key_data_length, key);
             /* TODO try PSA_KEY_DATA_FORMAT_RSA_PUBLIC_KEY in case of failure */
+            break;
+
+        case PSA_KEY_DATA_FORMAT_RSA_PRIVATE_KEY:
+            if ((key_type != PSA_KEY_TYPE_NONE) &&
+                (key_type != PSA_KEY_TYPE_RSA_KEY_PAIR)) {
+                goto cleanup;
+            }
+            psa_set_key_type(&l_attributes, PSA_KEY_TYPE_RSA_KEY_PAIR);
+            status = psa_import_key(&l_attributes, key_data, key_data_length,
+                                    key);
             break;
 
         default:

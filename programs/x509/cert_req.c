@@ -23,10 +23,10 @@
 /* md.h is included this early since MD_CAN_XXX macros are defined there. */
 #include "mbedtls/md.h"
 
-#if !defined(MBEDTLS_X509_CSR_WRITE_C) || !defined(MBEDTLS_FS_IO) ||  \
+#if !defined(MBEDTLS_X509_CSR_WRITE_C) || !defined(MBEDTLS_X509_CRT_PARSE_C) || \
     !defined(MBEDTLS_PK_PARSE_C) || !defined(MBEDTLS_MD_CAN_SHA256) || \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) || \
-    !defined(MBEDTLS_PEM_WRITE_C)
+    !defined(MBEDTLS_PEM_WRITE_C) || !defined(MBEDTLS_FS_IO)
 int main(void)
 {
     mbedtls_printf("MBEDTLS_X509_CSR_WRITE_C and/or MBEDTLS_FS_IO and/or "

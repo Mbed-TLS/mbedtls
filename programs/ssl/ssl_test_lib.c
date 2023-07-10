@@ -554,7 +554,7 @@ static uint16_t mbedtls_ssl_get_curve_tls_id_from_name(const char *name)
     return 0;
 }
 
-static void mbedtls_ssl_print_supported_curves_list(void)
+static void mbedtls_ssl_print_supported_groups_list(void)
 {
     for (int i = 0; tls_id_group_name_table[i].tls_id != 0; i++) {
         if (tls_id_group_name_table[i].is_supported == 1) {
@@ -563,7 +563,7 @@ static void mbedtls_ssl_print_supported_curves_list(void)
     }
 }
 
-int parse_curves(const char *curves, uint16_t *group_list, size_t group_list_len)
+int parse_groups(const char *groups, uint16_t *group_list, size_t group_list_len)
 {
     char *p = (char *) groups;
     char *q = NULL;
@@ -588,9 +588,9 @@ int parse_curves(const char *curves, uint16_t *group_list, size_t group_list_len
             if ((curve_tls_id = mbedtls_ssl_get_curve_tls_id_from_name(q)) != 0) {
                 group_list[i++] = curve_tls_id;
             } else {
-                mbedtls_printf("unknown curve %s\n", q);
-                mbedtls_printf("supported curves: ");
-                mbedtls_ssl_print_supported_curves_list();
+                mbedtls_printf("unknown group %s\n", q);
+                mbedtls_printf("supported groups: ");
+                mbedtls_ssl_print_supported_groups_list();
                 mbedtls_printf("\n");
                 return -1;
             }

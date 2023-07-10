@@ -54,10 +54,9 @@
 #include "mbedtls/cmac.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
 #include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_NIST_KW_C)
 #include "mbedtls/nist_kw.h"
@@ -144,6 +143,72 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_values(
     return NULL;
 }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+static inline psa_key_type_t mbedtls_psa_translate_cipher_type(
+    mbedtls_cipher_type_t cipher)
+{
+    switch (cipher) {
+        case MBEDTLS_CIPHER_AES_128_CCM:
+        case MBEDTLS_CIPHER_AES_192_CCM:
+        case MBEDTLS_CIPHER_AES_256_CCM:
+        case MBEDTLS_CIPHER_AES_128_CCM_STAR_NO_TAG:
+        case MBEDTLS_CIPHER_AES_192_CCM_STAR_NO_TAG:
+        case MBEDTLS_CIPHER_AES_256_CCM_STAR_NO_TAG:
+        case MBEDTLS_CIPHER_AES_128_GCM:
+        case MBEDTLS_CIPHER_AES_192_GCM:
+        case MBEDTLS_CIPHER_AES_256_GCM:
+        case MBEDTLS_CIPHER_AES_128_CBC:
+        case MBEDTLS_CIPHER_AES_192_CBC:
+        case MBEDTLS_CIPHER_AES_256_CBC:
+        case MBEDTLS_CIPHER_AES_128_ECB:
+        case MBEDTLS_CIPHER_AES_192_ECB:
+        case MBEDTLS_CIPHER_AES_256_ECB:
+            return PSA_KEY_TYPE_AES;
+
+        /* ARIA not yet supported in PSA. */
+        /* case MBEDTLS_CIPHER_ARIA_128_CCM:
+           case MBEDTLS_CIPHER_ARIA_192_CCM:
+           case MBEDTLS_CIPHER_ARIA_256_CCM:
+           case MBEDTLS_CIPHER_ARIA_128_CCM_STAR_NO_TAG:
+           case MBEDTLS_CIPHER_ARIA_192_CCM_STAR_NO_TAG:
+           case MBEDTLS_CIPHER_ARIA_256_CCM_STAR_NO_TAG:
+           case MBEDTLS_CIPHER_ARIA_128_GCM:
+           case MBEDTLS_CIPHER_ARIA_192_GCM:
+           case MBEDTLS_CIPHER_ARIA_256_GCM:
+           case MBEDTLS_CIPHER_ARIA_128_CBC:
+           case MBEDTLS_CIPHER_ARIA_192_CBC:
+           case MBEDTLS_CIPHER_ARIA_256_CBC:
+               return( PSA_KEY_TYPE_ARIA ); */
+
+        default:
+            return 0;
+    }
+}
+
+static inline psa_algorithm_t mbedtls_psa_translate_cipher_mode(
+    mbedtls_cipher_mode_t mode, size_t taglen)
+{
+    switch (mode) {
+        case MBEDTLS_MODE_ECB:
+            return PSA_ALG_ECB_NO_PADDING;
+        case MBEDTLS_MODE_GCM:
+            return PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, taglen);
+        case MBEDTLS_MODE_CCM:
+            return PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, taglen);
+        case MBEDTLS_MODE_CCM_STAR_NO_TAG:
+            return PSA_ALG_CCM_STAR_NO_TAG;
+        case MBEDTLS_MODE_CBC:
+            if (taglen == 0) {
+                return PSA_ALG_CBC_NO_PADDING;
+            } else {
+                return 0;
+            }
+        default:
+            return 0;
+    }
+}
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
+
 void mbedtls_cipher_init(mbedtls_cipher_context_t *ctx)
 {
     memset(ctx, 0, sizeof(mbedtls_cipher_context_t));
@@ -155,7 +220,7 @@ void mbedtls_cipher_free(mbedtls_cipher_context_t *ctx)
         return;
     }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ctx->psa_enabled == 1) {
         if (ctx->cipher_ctx != NULL) {
             mbedtls_cipher_context_psa * const cipher_psa =
@@ -173,7 +238,7 @@ void mbedtls_cipher_free(mbedtls_cipher_context_t *ctx)
         mbedtls_platform_zeroize(ctx, sizeof(mbedtls_cipher_context_t));
         return;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_CMAC_C)
     if (ctx->cmac_ctx) {
@@ -219,8 +284,7 @@ int mbedtls_cipher_setup(mbedtls_cipher_context_t *ctx,
     return 0;
 }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
 int mbedtls_cipher_setup_psa(mbedtls_cipher_context_t *ctx,
                              const mbedtls_cipher_info_t *cipher_info,
                              size_t taglen)
@@ -254,8 +318,7 @@ int mbedtls_cipher_setup_psa(mbedtls_cipher_context_t *ctx,
     ctx->psa_enabled = 1;
     return 0;
 }
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
 int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
                           const unsigned char *key,
@@ -269,7 +332,7 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ctx->psa_enabled == 1) {
         mbedtls_cipher_context_psa * const cipher_psa =
             (mbedtls_cipher_context_psa *) ctx->cipher_ctx;
@@ -302,7 +365,6 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
          * and use it for AEAD decryption. Until tests relying on this
          * are changed, allow any usage in PSA. */
         psa_set_key_usage_flags(&attributes,
-                                /* mbedtls_psa_translate_cipher_operation( operation ); */
                                 PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT);
         psa_set_key_algorithm(&attributes, cipher_psa->alg);
 
@@ -326,7 +388,7 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
         ctx->operation = operation;
         return 0;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
     if ((ctx->cipher_info->flags & MBEDTLS_CIPHER_VARIABLE_KEY_LEN) == 0 &&
         (int) mbedtls_cipher_info_get_key_bitlen(ctx->cipher_info) != key_bitlen) {
@@ -364,14 +426,14 @@ int mbedtls_cipher_set_iv(mbedtls_cipher_context_t *ctx,
     if (ctx->cipher_info == NULL) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ctx->psa_enabled == 1) {
         /* While PSA Crypto has an API for multipart
          * operations, we currently don't make it
          * accessible through the cipher layer. */
         return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
     /* avoid buffer overflow in ctx->iv */
     if (iv_len > MBEDTLS_MAX_IV_LENGTH) {
@@ -460,13 +522,13 @@ int mbedtls_cipher_reset(mbedtls_cipher_context_t *ctx)
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ctx->psa_enabled == 1) {
         /* We don't support resetting PSA-based
          * cipher contexts, yet. */
         return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
     ctx->unprocessed_len = 0;
 
@@ -481,14 +543,14 @@ int mbedtls_cipher_update_ad(mbedtls_cipher_context_t *ctx,
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ctx->psa_enabled == 1) {
         /* While PSA Crypto has an API for multipart
          * operations, we currently don't make it
          * accessible through the cipher layer. */
         return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_GCM_C)
     if (MBEDTLS_MODE_GCM == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
@@ -532,14 +594,14 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ctx->psa_enabled == 1) {
         /* While PSA Crypto has an API for multipart
          * operations, we currently don't make it
          * accessible through the cipher layer. */
         return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
     *olen = 0;
     block_size = mbedtls_cipher_get_block_size(ctx);
@@ -956,14 +1018,14 @@ int mbedtls_cipher_finish(mbedtls_cipher_context_t *ctx,
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ctx->psa_enabled == 1) {
         /* While PSA Crypto has an API for multipart
          * operations, we currently don't make it
          * accessible through the cipher layer. */
         return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
     *olen = 0;
 
@@ -1055,7 +1117,7 @@ int mbedtls_cipher_set_padding_mode(mbedtls_cipher_context_t *ctx,
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ctx->psa_enabled == 1) {
         /* While PSA Crypto knows about CBC padding
          * schemes, we currently don't make them
@@ -1066,7 +1128,7 @@ int mbedtls_cipher_set_padding_mode(mbedtls_cipher_context_t *ctx,
 
         return 0;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
     switch (mode) {
 #if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
@@ -1118,14 +1180,14 @@ int mbedtls_cipher_write_tag(mbedtls_cipher_context_t *ctx,
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ctx->psa_enabled == 1) {
         /* While PSA Crypto has an API for multipart
          * operations, we currently don't make it
          * accessible through the cipher layer. */
         return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_GCM_C)
     if (MBEDTLS_MODE_GCM == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
@@ -1167,14 +1229,14 @@ int mbedtls_cipher_check_tag(mbedtls_cipher_context_t *ctx,
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ctx->psa_enabled == 1) {
         /* While PSA Crypto has an API for multipart
          * operations, we currently don't make it
          * accessible through the cipher layer. */
         return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
     /* Status to return on a non-authenticated algorithm. */
     ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
@@ -1242,7 +1304,7 @@ int mbedtls_cipher_crypt(mbedtls_cipher_context_t *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t finish_olen;
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ctx->psa_enabled == 1) {
         /* As in the non-PSA case, we don't check that
          * a key has been set. If not, the key slot will
@@ -1300,7 +1362,7 @@ int mbedtls_cipher_crypt(mbedtls_cipher_context_t *ctx,
         *olen += part_len;
         return 0;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
     if ((ret = mbedtls_cipher_set_iv(ctx, iv, iv_len)) != 0) {
         return ret;
@@ -1337,7 +1399,7 @@ static int mbedtls_cipher_aead_encrypt(mbedtls_cipher_context_t *ctx,
                                        unsigned char *output, size_t *olen,
                                        unsigned char *tag, size_t tag_len)
 {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ctx->psa_enabled == 1) {
         /* As in the non-PSA case, we don't check that
          * a key has been set. If not, the key slot will
@@ -1368,7 +1430,7 @@ static int mbedtls_cipher_aead_encrypt(mbedtls_cipher_context_t *ctx,
         *olen -= tag_len;
         return 0;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_GCM_C)
     if (MBEDTLS_MODE_GCM == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
@@ -1414,7 +1476,7 @@ static int mbedtls_cipher_aead_decrypt(mbedtls_cipher_context_t *ctx,
                                        unsigned char *output, size_t *olen,
                                        const unsigned char *tag, size_t tag_len)
 {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ctx->psa_enabled == 1) {
         /* As in the non-PSA case, we don't check that
          * a key has been set. If not, the key slot will
@@ -1446,7 +1508,7 @@ static int mbedtls_cipher_aead_decrypt(mbedtls_cipher_context_t *ctx,
 
         return 0;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_GCM_C)
     if (MBEDTLS_MODE_GCM == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
@@ -1519,7 +1581,7 @@ int mbedtls_cipher_auth_encrypt_ext(mbedtls_cipher_context_t *ctx,
 {
 #if defined(MBEDTLS_NIST_KW_C)
     if (
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
         ctx->psa_enabled == 0 &&
 #endif
         (MBEDTLS_MODE_KW == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
@@ -1570,7 +1632,7 @@ int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
 {
 #if defined(MBEDTLS_NIST_KW_C)
     if (
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
         ctx->psa_enabled == 0 &&
 #endif
         (MBEDTLS_MODE_KW == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||

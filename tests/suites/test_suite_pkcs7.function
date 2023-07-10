@@ -8,6 +8,7 @@
 #include "sys/types.h"
 #include "sys/stat.h"
 #include "mbedtls/rsa.h"
+#include "mbedtls/error.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

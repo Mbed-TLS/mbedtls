@@ -24,12 +24,14 @@
 
 #include "mbedtls/build_info.h"
 
+#include "mbedtls/error.h"
+
 #include "mbedtls/ssl.h"
 #include "mbedtls/cipher.h"
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
 #endif
 
 #if defined(MBEDTLS_MD_CAN_MD5)

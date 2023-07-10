@@ -34,7 +34,7 @@
 #endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
 #define PSA_PK_TO_MBEDTLS_ERR(status) psa_pk_status_to_mbedtls(status)
 #define PSA_PK_RSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,     \
                                                                   psa_to_pk_rsa_errors,            \

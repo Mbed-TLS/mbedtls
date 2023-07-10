@@ -1148,13 +1148,19 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 void ssl_set_hostname_twice(char *hostname0, char *hostname1)
 {
+    const char *hostname;
     mbedtls_ssl_context ssl;
 
     mbedtls_ssl_init(&ssl);
     USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_ssl_set_hostname(&ssl, hostname0) == 0);
+    hostname = mbedtls_ssl_get_hostname(&ssl);
+    TEST_ASSERT(strcmp(hostname0, hostname) == 0);
+
     TEST_ASSERT(mbedtls_ssl_set_hostname(&ssl, hostname1) == 0);
+    hostname = mbedtls_ssl_get_hostname(&ssl);
+    TEST_ASSERT(strcmp(hostname1, hostname) == 0);
 
 exit:
     mbedtls_ssl_free(&ssl);
@@ -3045,6 +3051,8 @@ void conf_version(int endpoint, int transport,
     mbedtls_ssl_conf_max_tls_version(&conf, max_tls_version);
 
     TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == expected_ssl_setup_result);
+    TEST_EQUAL(mbedtls_ssl_conf_get_endpoint(
+                   mbedtls_ssl_context_get_config(&ssl)), endpoint);
 
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);

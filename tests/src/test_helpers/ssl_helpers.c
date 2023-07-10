@@ -93,6 +93,10 @@ void mbedtls_test_init_handshake_options(
     opts->cache = NULL;
     ASSERT_ALLOC(opts->cache, 1);
     mbedtls_ssl_cache_init(opts->cache);
+#if defined(MBEDTLS_HAVE_TIME)
+    TEST_EQUAL(mbedtls_ssl_cache_get_timeout(opts->cache),
+               MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT);
+#endif
 exit:
     return;
 #endif

@@ -949,7 +949,7 @@ int mbedtls_ecp_tls_write_group(const mbedtls_ecp_group *grp,
  * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
  * \return          Another negative error code on other kinds of failure.
  */
-int mbedtls_ecp_mul(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+int mbedtls_ecp_mul(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                     const mbedtls_mpi *m, const mbedtls_ecp_point *P,
                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng);
 
@@ -983,7 +983,7 @@ int mbedtls_ecp_mul(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  * \return          Another negative error code on other kinds of failure.
  */
-int mbedtls_ecp_mul_restartable(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+int mbedtls_ecp_mul_restartable(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                                 const mbedtls_mpi *m, const mbedtls_ecp_point *P,
                                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                                 mbedtls_ecp_restart_ctx *rs_ctx);
@@ -1024,7 +1024,7 @@ int mbedtls_ecp_mul_restartable(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  *                  designate a short Weierstrass curve.
  * \return          Another negative error code on other kinds of failure.
  */
-int mbedtls_ecp_muladd(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+int mbedtls_ecp_muladd(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                        const mbedtls_mpi *m, const mbedtls_ecp_point *P,
                        const mbedtls_mpi *n, const mbedtls_ecp_point *Q);
 
@@ -1069,7 +1069,7 @@ int mbedtls_ecp_muladd(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  * \return          Another negative error code on other kinds of failure.
  */
 int mbedtls_ecp_muladd_restartable(
-    mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+    const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     const mbedtls_mpi *m, const mbedtls_ecp_point *P,
     const mbedtls_mpi *n, const mbedtls_ecp_point *Q,
     mbedtls_ecp_restart_ctx *rs_ctx);
@@ -1174,7 +1174,7 @@ int mbedtls_ecp_gen_privkey(const mbedtls_ecp_group *grp,
  * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX error code
  *                  on failure.
  */
-int mbedtls_ecp_gen_keypair_base(mbedtls_ecp_group *grp,
+int mbedtls_ecp_gen_keypair_base(const mbedtls_ecp_group *grp,
                                  const mbedtls_ecp_point *G,
                                  mbedtls_mpi *d, mbedtls_ecp_point *Q,
                                  int (*f_rng)(void *, unsigned char *, size_t),
@@ -1203,7 +1203,7 @@ int mbedtls_ecp_gen_keypair_base(mbedtls_ecp_group *grp,
  * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX error code
  *                  on failure.
  */
-int mbedtls_ecp_gen_keypair(mbedtls_ecp_group *grp, mbedtls_mpi *d,
+int mbedtls_ecp_gen_keypair(const mbedtls_ecp_group *grp, mbedtls_mpi *d,
                             mbedtls_ecp_point *Q,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng);

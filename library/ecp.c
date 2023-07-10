@@ -2281,7 +2281,7 @@ static unsigned char ecp_pick_window_size(const mbedtls_ecp_group *grp,
  *
  * See comments on ecp_comb_recode_core() regarding the computation strategy.
  */
-static int ecp_mul_comb(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+static int ecp_mul_comb(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                         const mbedtls_mpi *m, const mbedtls_ecp_point *P,
                         int (*f_rng)(void *, unsigned char *, size_t),
                         void *p_rng,
@@ -2317,7 +2317,8 @@ static int ecp_mul_comb(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
      */
 #if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
     if (use_static_table) {
-        T = &grp->T;
+        /* Discard the const qualifier, but we know we won't modify it */
+        T = (mbedtls_ecp_point **) &grp->T;
         T_ok = 1;
     } else
 #endif
@@ -2522,7 +2523,7 @@ cleanup:
  * Multiplication with Montgomery ladder in x/z coordinates,
  * for curves in Montgomery form
  */
-static int ecp_mul_mxz(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+static int ecp_mul_mxz(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                        const mbedtls_mpi *m, const mbedtls_ecp_point *P,
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng)
@@ -2603,7 +2604,7 @@ cleanup:
  * This internal function can be called without an RNG in case where we know
  * the inputs are not sensitive.
  */
-static int ecp_mul_restartable_internal(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+static int ecp_mul_restartable_internal(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                                         const mbedtls_mpi *m, const mbedtls_ecp_point *P,
                                         int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                                         mbedtls_ecp_restart_ctx *rs_ctx)
@@ -2674,7 +2675,7 @@ cleanup:
 /*
  * Restartable multiplication R = m * P
  */
-int mbedtls_ecp_mul_restartable(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+int mbedtls_ecp_mul_restartable(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                                 const mbedtls_mpi *m, const mbedtls_ecp_point *P,
                                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                                 mbedtls_ecp_restart_ctx *rs_ctx)
@@ -2689,7 +2690,7 @@ int mbedtls_ecp_mul_restartable(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 /*
  * Multiplication R = m * P
  */
-int mbedtls_ecp_mul(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+int mbedtls_ecp_mul(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                     const mbedtls_mpi *m, const mbedtls_ecp_point *P,
                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
@@ -2742,7 +2743,7 @@ cleanup:
  * R = m * P with shortcuts for m == 0, m == 1 and m == -1
  * NOT constant-time - ONLY for short Weierstrass!
  */
-static int mbedtls_ecp_mul_shortcuts(mbedtls_ecp_group *grp,
+static int mbedtls_ecp_mul_shortcuts(const mbedtls_ecp_group *grp,
                                      mbedtls_ecp_point *R,
                                      const mbedtls_mpi *m,
                                      const mbedtls_ecp_point *P,
@@ -2778,7 +2779,7 @@ cleanup:
  * NOT constant-time
  */
 int mbedtls_ecp_muladd_restartable(
-    mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+    const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     const mbedtls_mpi *m, const mbedtls_ecp_point *P,
     const mbedtls_mpi *n, const mbedtls_ecp_point *Q,
     mbedtls_ecp_restart_ctx *rs_ctx)
@@ -2881,7 +2882,7 @@ cleanup:
  * Linear combination
  * NOT constant-time
  */
-int mbedtls_ecp_muladd(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+int mbedtls_ecp_muladd(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                        const mbedtls_mpi *m, const mbedtls_ecp_point *P,
                        const mbedtls_mpi *n, const mbedtls_ecp_point *Q)
 {
@@ -3138,7 +3139,7 @@ int mbedtls_ecp_gen_privkey(const mbedtls_ecp_group *grp,
 /*
  * Generate a keypair with configurable base point
  */
-int mbedtls_ecp_gen_keypair_base(mbedtls_ecp_group *grp,
+int mbedtls_ecp_gen_keypair_base(const mbedtls_ecp_group *grp,
                                  const mbedtls_ecp_point *G,
                                  mbedtls_mpi *d, mbedtls_ecp_point *Q,
                                  int (*f_rng)(void *, unsigned char *, size_t),
@@ -3155,7 +3156,7 @@ cleanup:
 /*
  * Generate key pair, wrapper for conventional base point
  */
-int mbedtls_ecp_gen_keypair(mbedtls_ecp_group *grp,
+int mbedtls_ecp_gen_keypair(const mbedtls_ecp_group *grp,
                             mbedtls_mpi *d, mbedtls_ecp_point *Q,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng)

@@ -2152,7 +2152,7 @@ typedef enum {
  *  }
  *
  *  Key attributes when importing:
- *  . key permitted-algorithm: required for keys that will be used for a
+ *  . key permitted-alegorithm: required for keys that will be used for a
  *    cryptographic operation.
  *  . key usage: a key usage may be provided to limit the usage of the key to
  *    encryption/decryption or signature/verification only according to its
@@ -2194,6 +2194,57 @@ typedef enum {
  *    signature/verification only.
  */
     PSA_KEY_DATA_FORMAT_EC_PRIVATE_KEY,
+
+/**
+ *  DER or PEM encoded OneAsymmetricKey (previously PrivateKeyInfo) data
+ *  structure as defined in RFC 5958 (Asymmetric Key Packages) or one of its
+ *  sub-format namely #PSA_KEY_DATA_FORMAT_RSA_PRIVATE_KEY or
+ *  ##PSA_KEY_DATA_FORMAT_EC_PRIVATE_KEY.
+ *
+ *  OneAsymmetricKey ::= SEQUENCE {
+ *    version                   Version,
+ *    privateKeyAlgorithm       PrivateKeyAlgorithmIdentifier,
+ *    privateKey                PrivateKey,
+ *    attributes            [0] Attributes OPTIONAL,
+ *    ...,
+ *    [[2: publicKey [1] PublicKey OPTIONAL ]],
+ *    ...
+ *  }
+ *  with Version ::= INTEGER { v1(0), v2(1) } (v1, ..., v2)
+ *  with PrivateKeyAlgorithmIdentifier ::= AlgorithmIdentifier
+ *                                          { PUBLIC-KEY,
+ *                                            { PrivateKeyAlgorithms } }
+ *  The same algorithm identifiers are supported as for the
+ *  #PSA_KEY_DATA_FORMAT_SUBJECT_PUBLIC_KEY_INFO key data format.
+ *
+ *  with PrivateKey ::= OCTET STRING
+ *                         -- Content varies based on type of key. The
+ *                         -- algorithm identifier dictates the format of
+ *                         -- the key.
+ *  The function supports RSAPrivateKey and ECPrivateKey data structures, see
+ *  documentation of #PSA_KEY_DATA_FORMAT_RSA_PRIVATE_KEY and
+ *  #PSA_KEY_DATA_FORMAT_EC_PRIVATE_KEY key data formats.
+ *
+ *  with PublicKey ::= BIT STRING
+ *                         -- Content varies based on type of key. The
+ *                         -- algorithm identifier dictates the format of
+ *                         -- the key.
+ *
+ *  with Attributes ::= SET OF Attribute { { OneAsymmetricKeyAttributes } }
+ *       OneAsymmetricKeyAttributes ATTRIBUTE ::= {
+ *         ...   -- For local profiles
+ *       }
+ *
+ *  Key attributes when importing:
+ *  . key permitted-algorithm: required in the case of rsaEncryption and
+ *    id-ecPublicKey algorithm identifiers for keys that will be used for a
+ *    cryptographic operation. Otherwise, if defined, the import functions
+ *    check that it is compatible with the algorithm specified in key data.
+ *  . key usage: a key usage may be provided to limit the usage of the key to
+ *    encryption/decryption or signature/verification only according to its
+ *    permitted-algorithm.
+ */
+    PSA_KEY_DATA_FORMAT_ONE_ASYMMETRIC_KEY,
 
     PSA_KEY_DATA_FORMAT_COUNT
 } psa_key_data_format_t;

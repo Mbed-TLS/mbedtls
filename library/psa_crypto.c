@@ -8336,6 +8336,11 @@ static const struct key_data_format_info key_data_format_infos[] = {
         .key_type = PSA_KEY_TYPE_NONE,
         .pem_label = "EC PRIVATE KEY",
     },
+    {
+        .format =  PSA_KEY_DATA_FORMAT_ONE_ASYMMETRIC_KEY,
+        .key_type = PSA_KEY_TYPE_NONE,
+        .pem_label = "PRIVATE KEY",
+    },
 };
 
 static void find_pem_header(const uint8_t *data, size_t data_length,
@@ -8693,6 +8698,125 @@ static psa_status_t import_key_from_ec_private_key(
     return psa_import_key(attributes, key_data, key_data_length, key);
 }
 
+/*
+ * Parse an RFC 8410 encoded private EC key
+ *
+ * CurvePrivateKey ::= OCTET STRING
+ */
+static psa_status_t import_key_from_rfc8410_curve_private_key(
+    psa_key_attributes_t *attributes,
+    const uint8_t *data, size_t data_length,
+    mbedtls_svc_key_id_t *key)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char *p = (unsigned char *) data;
+    size_t len;
+
+    if ((ret = mbedtls_asn1_get_tag(&p, data + data_length,
+                                    &len, MBEDTLS_ASN1_OCTET_STRING)) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    return psa_import_key(attributes, p, len, key);
+}
+
+/*
+ *  OneAsymmetricKey ::= SEQUENCE {
+ *    version                   Version,
+ *    privateKeyAlgorithm       PrivateKeyAlgorithmIdentifier,
+ *    privateKey                PrivateKey,
+ *    attributes            [0] Attributes OPTIONAL,
+ *    ...,
+ *    [[2: publicKey [1] PublicKey OPTIONAL ]],
+ *    ...
+ *  }
+ *  Version ::= INTEGER { v1(0), v2(1) } (v1, ..., v2)
+ *  PrivateKeyAlgorithmIdentifier ::= AlgorithmIdentifier
+ *                                     { PUBLIC-KEY,
+ *                                       { PrivateKeyAlgorithms } }
+ *  PrivateKey ::= OCTET STRING
+ *  PublicKey ::= BIT STRING
+ *  Attributes ::= SET OF Attribute { { OneAsymmetricKeyAttributes } }
+ *  OneAsymmetricKeyAttributes ATTRIBUTE ::= {
+ *     ...   -- For local profiles
+ *  }
+ */
+static psa_status_t import_key_from_one_asymmetric_key(
+    psa_key_attributes_t *attributes,
+    const uint8_t *data, size_t data_length,
+    mbedtls_svc_key_id_t *key)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    unsigned char *p = (unsigned char *) data;
+    const unsigned char *end = p + data_length;
+    size_t len;
+    int version;
+    psa_algorithm_t alg;
+    psa_key_type_t key_type;
+    psa_key_type_t public_key_type;
+
+    if ((ret = mbedtls_asn1_get_tag(&p, end, &len,
+                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    end = p + len;
+
+    if ((ret = mbedtls_asn1_get_int(&p, end, &version)) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (version != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    status = parse_asn1_algorithm_identifier(&p, end, &alg,
+                                             &key_type, &public_key_type);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    if ((ret = mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_OCTET_STRING)) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+/* TODO check end of the data ? */
+
+    if (psa_get_key_type(attributes) == PSA_KEY_TYPE_NONE) {
+        psa_set_key_type(attributes, key_type);
+    } else {
+        if (psa_get_key_type(attributes) != key_type) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
+
+    if (psa_get_key_algorithm(attributes) == PSA_ALG_NONE) {
+        psa_set_key_algorithm(attributes, alg);
+    } else if (alg != PSA_ALG_NONE) {
+        if (psa_get_key_algorithm(attributes) != alg) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
+
+    status = PSA_ERROR_GENERIC_ERROR;
+
+    if (PSA_KEY_TYPE_IS_ECC(key_type)) {
+        if (PSA_KEY_TYPE_ECC_GET_FAMILY(key_type) ==
+            PSA_ECC_FAMILY_MONTGOMERY) {
+            status = import_key_from_rfc8410_curve_private_key(
+                attributes, p, len, key);
+        } else {
+            status = import_key_from_ec_private_key(
+                attributes, p, len, key);
+        }
+    } else if (PSA_KEY_TYPE_IS_RSA(key_type)) {
+        status = psa_import_key(attributes, p, len, key);
+    }
+
+    return status;
+}
+
 psa_status_t psa_import_key_ext(const psa_key_attributes_t *attributes,
                                 psa_key_data_format_t format,
                                 const uint8_t *data,
@@ -8787,6 +8911,13 @@ psa_status_t psa_import_key_ext(const psa_key_attributes_t *attributes,
         case PSA_KEY_DATA_FORMAT_EC_PRIVATE_KEY:
             status = import_key_from_ec_private_key(
                 &l_attributes, key_data, key_data_length, key);
+            break;
+
+        case PSA_KEY_DATA_FORMAT_ONE_ASYMMETRIC_KEY:
+            status = import_key_from_one_asymmetric_key(
+                &l_attributes, key_data, key_data_length, key);
+            /* TODO try PSA_KEY_DATA_FORMAT_RSA_PRIVATE_KEY or
+                        PSA_KEY_DATA_FORMAT_EC_PRIVATE_KEY in case of failure */
             break;
 
         default:

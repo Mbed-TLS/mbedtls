@@ -8307,4 +8307,18 @@ psa_status_t psa_pake_abort(
 }
 #endif /* PSA_WANT_ALG_SOME_PAKE */
 
+psa_status_t psa_import_key_ext(const psa_key_attributes_t *attributes,
+                                psa_key_data_format_t format,
+                                const uint8_t *data,
+                                size_t data_length,
+                                mbedtls_svc_key_id_t *key)
+{
+    (void) attributes;
+    (void) format;
+    (void) data;
+    (void) data_length;
+    (void) key;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+}
 #endif /* MBEDTLS_PSA_CRYPTO_C */

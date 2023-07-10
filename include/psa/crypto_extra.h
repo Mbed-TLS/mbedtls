@@ -2069,6 +2069,25 @@ static inline struct psa_pake_operation_s psa_pake_operation_init(void)
     return v;
 }
 
+typedef enum {
+/** An invalid key data format identifier. */
+    PSA_KEY_DATA_FORMAT_NONE,
+    PSA_KEY_DATA_FORMAT_COUNT
+} psa_key_data_format_t;
+
+/**
+ * \brief Import a key in one of the supported key data formats.
+ *
+ * This functions supports the formats as defined in the documentation of
+ * #psa_key_data_format_t.
+ *
+ */
+psa_status_t psa_import_key_ext(const psa_key_attributes_t *attributes,
+                                psa_key_data_format_t format,
+                                const uint8_t *data,
+                                size_t data_length,
+                                mbedtls_svc_key_id_t *key);
+
 #ifdef __cplusplus
 }
 #endif

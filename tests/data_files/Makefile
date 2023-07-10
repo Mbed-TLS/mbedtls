@@ -2156,7 +2156,10 @@ clean:
 	rm -f $(all_intermediate)
 ## Remove all build products, even the ones that are committed
 neat: clean
-	rm -f $(all_final)
-.PHONY: clean neat
+	rm -f $(shell ls $(all_final) | grep -v -f uncategorized.lst)
+# Remove all files except reserverd files
+tidy:
+	rm -f $(shell find . -type f | grep -v -f reserved.lst -f uncategorized.lst)
+.PHONY: clean neat tidy
 
 .SECONDARY: $(all_intermediate)

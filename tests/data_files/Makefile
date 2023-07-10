@@ -28,7 +28,10 @@ MBEDTLS_CERT_REQ ?= $(TOP_DIR)/programs/x509/cert_req
 default: all_final
 
 all_intermediate := # temporary files
-all_final := # files used by tests
+all_parse_input := # files used by parse tests. Parse tests only unpack input
+                   # data and compare with expected result. So we should not
+                   # update the files if it is invalid.
+all_final := # files used by tests except parse tests
 
 
 
@@ -2129,6 +2132,7 @@ dh.999.pem:
 ################################################################
 
 all_final: $(all_final)
+all_parse_input: $(all_parse_input)
 all: $(all_intermediate) $(all_final)
 
 .PHONY: default all_final all
@@ -2149,7 +2153,9 @@ list_intermediate:
 # third-party tools.
 list_final:
 	@printf '%s\n' $(all_final) | sort
-.PHONY: list_intermediate list_final
+list_parse_input:
+	@printf '%s\n' $(all_parse_input) | sort
+.PHONY: list_intermediate list_final list_parse_input
 
 ## Remove intermediate files
 clean:

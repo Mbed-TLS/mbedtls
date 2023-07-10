@@ -293,7 +293,6 @@ typedef struct mbedtls_ecp_group {
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) && \
     MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
     mbedtls_ecp_point *MBEDTLS_PRIVATE(T);       /*!< Pre-computed points for ecp_mul_comb(). */
-    size_t MBEDTLS_PRIVATE(T_size);              /*!< The number of dynamic allocated pre-computed points. */
 #endif
 }
 mbedtls_ecp_group;

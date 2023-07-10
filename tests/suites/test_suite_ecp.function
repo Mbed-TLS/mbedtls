@@ -60,9 +60,7 @@ inline static int mbedtls_ecp_group_cmp(mbedtls_ecp_group *grp1,
     }
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) && \
     MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
-    if (grp1->T_size != grp2->T_size) {
-        return 1;
-    }
+    /* Comparing pointers: will either be NULL or point to a static table. */
     if (grp1->T != grp2->T) {
         return 1;
     }

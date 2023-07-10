@@ -541,7 +541,6 @@ void mbedtls_ecp_group_init(mbedtls_ecp_group *grp)
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) && \
     MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
     grp->T = NULL;
-    grp->T_size = 0;
 #endif
 }
 

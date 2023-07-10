@@ -8307,6 +8307,126 @@ psa_status_t psa_pake_abort(
 }
 #endif /* PSA_WANT_ALG_SOME_PAKE */
 
+#include <mbedtls/base64.h>
+
+struct key_data_format_info {
+    psa_key_data_format_t format;
+    psa_key_type_t key_type;
+    const char *pem_label;
+};
+
+static const struct key_data_format_info key_data_format_infos[] = {
+    {
+        .format =  PSA_KEY_DATA_FORMAT_RSA_PUBLIC_KEY,
+        .key_type = PSA_KEY_TYPE_RSA_PUBLIC_KEY,
+        .pem_label = "RSA PUBLIC KEY",
+    },
+};
+
+static void find_pem_header(const uint8_t *data, size_t data_length,
+                            const uint8_t **header, const uint8_t **header_end)
+{
+    (void) data_length;
+
+    *header = (uint8_t *) strstr((const char *) data, "-----BEGIN ");
+    if (*header == NULL) {
+        return;
+    }
+
+    *header_end = (uint8_t *) strstr((const char *) *header + 11, "-----");
+    if (*header_end == NULL) {
+        *header = NULL;
+        return;
+    }
+
+    *header_end += 5;
+}
+
+static void find_pem_footer(const uint8_t *data, size_t data_length,
+                            const uint8_t **footer, const uint8_t **footer_end)
+{
+    (void) data_length;
+
+    *footer = (uint8_t *) strstr((const char *) data, "-----END ");
+    if (*footer == NULL) {
+        return;
+    }
+
+    *footer_end = (uint8_t *) strstr((const char *) *footer + 9, "-----");
+    if (*footer_end == NULL) {
+        *footer = NULL;
+        return;
+    }
+
+    *footer_end += 5;
+}
+
+static psa_status_t mbedtls_psa_extract_from_pem(
+    const uint8_t *data, size_t data_length,
+    psa_key_data_format_t *format, psa_key_type_t *key_type,
+    const uint8_t **key_data, size_t *key_data_length)
+{
+    const struct key_data_format_info *key_data_format_info = NULL;
+    const uint8_t *header, *header_end, *footer = NULL, *footer_end;
+    const uint8_t *begin_label, *end_label;
+    size_t begin_label_length, end_label_length;
+
+    while (data_length > 0) {
+        find_pem_header(data, data_length, &header, &header_end);
+        if (header == NULL) {
+            return PSA_ERROR_NOT_SUPPORTED;
+        }
+
+        begin_label = header + 11;
+        begin_label_length = (header_end - begin_label) - 5;
+
+        for (size_t i = 0; i < ARRAY_LENGTH(key_data_format_infos); i++) {
+            const char *label = key_data_format_infos[i].pem_label;
+
+            if (label == NULL) {
+                continue;
+            }
+
+            if (begin_label_length == strlen(label) &&
+                (memcmp(begin_label, label, begin_label_length) == 0)) {
+                key_data_format_info = &key_data_format_infos[i];
+                break;
+            }
+        }
+
+        data_length -= header_end - data;
+        data = header_end;
+
+        if (key_data_format_info == NULL) {
+            continue;
+        }
+
+        find_pem_footer(data, data_length, &footer, &footer_end);
+        if (footer == NULL) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+
+        end_label = footer + 9;
+        end_label_length = (footer_end - end_label) - 5;
+        if ((end_label_length != begin_label_length) ||
+            (memcmp(end_label, begin_label, end_label_length) != 0)) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+        break;
+    }
+
+    if (key_data_format_info == NULL) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    *format = key_data_format_info->format;
+    *key_type = key_data_format_info->key_type;
+    *key_data = header_end;
+    *key_data_length = footer - header_end;
+
+    return PSA_SUCCESS;
+}
+
 psa_status_t psa_import_key_ext(const psa_key_attributes_t *attributes,
                                 psa_key_data_format_t format,
                                 const uint8_t *data,
@@ -8314,7 +8434,12 @@ psa_status_t psa_import_key_ext(const psa_key_attributes_t *attributes,
                                 mbedtls_svc_key_id_t *key)
 {
     psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+    psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
     psa_key_attributes_t l_attributes;
+    psa_key_data_format_t pem_format;
+    const uint8_t *key_data;
+    unsigned char *base64_decode_dst = NULL;
+    size_t key_data_length, base64_decode_dst_size;
 
     *key = MBEDTLS_SVC_KEY_ID_INIT;
 
@@ -8323,12 +8448,58 @@ psa_status_t psa_import_key_ext(const psa_key_attributes_t *attributes,
         goto cleanup;
     }
 
+    status = mbedtls_psa_extract_from_pem(data, data_length,
+                                          &pem_format, &key_type,
+                                          &key_data, &key_data_length);
+    switch (status) {
+        case PSA_SUCCESS:
+            if (pem_format != format) {
+                goto cleanup;
+            }
+
+            int ret = mbedtls_base64_decode(NULL, 0, &base64_decode_dst_size,
+                                            key_data, key_data_length);
+            if (ret != MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL) {
+                status = PSA_ERROR_GENERIC_ERROR;
+                goto cleanup;
+            }
+
+            if ((base64_decode_dst =
+                     mbedtls_calloc(1, base64_decode_dst_size)) == NULL) {
+                status = PSA_ERROR_INSUFFICIENT_MEMORY;
+                goto cleanup;
+            }
+
+            size_t dlen;
+            if ((ret = mbedtls_base64_decode(
+                     base64_decode_dst, base64_decode_dst_size, &dlen,
+                     key_data, key_data_length)) != 0) {
+                goto cleanup;
+            }
+            key_data = base64_decode_dst;
+            key_data_length = base64_decode_dst_size;
+            break;
+
+        case PSA_ERROR_NOT_SUPPORTED:
+            key_data = data;
+            key_data_length = data_length;
+            break;
+
+        default:
+            goto cleanup;
+    }
+
     l_attributes = *attributes;
 
     switch (format) {
         case PSA_KEY_DATA_FORMAT_RSA_PUBLIC_KEY:
+            if ((key_type != PSA_KEY_TYPE_NONE) &&
+                (key_type != PSA_KEY_TYPE_RSA_PUBLIC_KEY)) {
+                goto cleanup;
+            }
             psa_set_key_type(&l_attributes, PSA_KEY_TYPE_RSA_PUBLIC_KEY);
-            status = psa_import_key(&l_attributes, data, data_length, key);
+            status = psa_import_key(&l_attributes, key_data, key_data_length,
+                                    key);
             break;
 
         default:
@@ -8337,6 +8508,11 @@ psa_status_t psa_import_key_ext(const psa_key_attributes_t *attributes,
     }
 
 cleanup:
+
+    if (base64_decode_dst != NULL) {
+        mbedtls_platform_zeroize(base64_decode_dst, base64_decode_dst_size);
+        mbedtls_free(base64_decode_dst);
+    }
 
     return status;
 }

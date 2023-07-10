@@ -899,8 +899,8 @@ depends_on:NOT_SUPPORTED
 import_key_from_file:"data_files/rsa_pkcs8_2048_public.der":PSA_KEY_DATA_FORMAT_NONE:PSA_SUCCESS
 
 Parse Public RSA Key #3 (PKCS#1 wrapped)
-depends_on:NOT_SUPPORTED:MBEDTLS_PEM_PARSE_C
-import_key_from_file:"data_files/rsa_pkcs1_2048_public.pem":PSA_KEY_DATA_FORMAT_NONE:PSA_SUCCESS
+depends_on:MBEDTLS_PEM_PARSE_C
+import_key_from_file:"data_files/rsa_pkcs1_2048_public.pem":PSA_KEY_DATA_FORMAT_RSA_PUBLIC_KEY:PSA_SUCCESS
 
 Parse Public RSA Key #4 (PKCS#1 wrapped, DER)
 import_key_from_file:"data_files/rsa_pkcs1_2048_public.der":PSA_KEY_DATA_FORMAT_RSA_PUBLIC_KEY:PSA_SUCCESS

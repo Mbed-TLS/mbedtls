@@ -757,24 +757,12 @@ struct mbedtls_ssl_handshake_params {
 #endif /* !MBEDTLS_USE_PSA_CRYPTO &&
           MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED */
 
-#if defined(PSA_WANT_ALG_ECDH) && defined(PSA_WANT_ALG_FFDH)
-#if (MBEDTLS_PSA_MAX_FFDH_PUBKEY_LENGTH >= MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH)
-#define SSL_XXDH_PSA_PEERKEY_SIZE MBEDTLS_PSA_MAX_FFDH_PUBKEY_LENGTH
-#else
-#define SSL_XXDH_PSA_PEERKEY_SIZE MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#endif
-#elif defined(PSA_WANT_ALG_ECDH)
-#define SSL_XXDH_PSA_PEERKEY_SIZE MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#else
-#define SSL_XXDH_PSA_PEERKEY_SIZE MBEDTLS_PSA_MAX_FFDH_PUBKEY_LENGTH
-#endif
-
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_ANY_PSA_ENABLED)
     psa_key_type_t xxdh_psa_type;
     size_t xxdh_bits;
     mbedtls_svc_key_id_t xxdh_psa_privkey;
     uint8_t xxdh_psa_privkey_is_external;
-    unsigned char xxdh_psa_peerkey[SSL_XXDH_PSA_PEERKEY_SIZE];
+    unsigned char xxdh_psa_peerkey[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
     size_t xxdh_psa_peerkey_len;
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_XXDH_ANY_PSA_ENABLED */
 

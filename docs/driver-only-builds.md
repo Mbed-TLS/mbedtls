@@ -51,9 +51,10 @@ application will already be doing this.
 Mechanisms covered
 ------------------
 
-For now, only two families are supported:
+For now, only the following (families of) mechanisms are supported:
 - hashes: SHA-3, SHA-2, SHA-1, MD5, etc.
 - elliptic-curve cryptography (ECC): ECDH, ECDSA, EC J-PAKE, ECC key types.
+- finite-field Diffie-Hellman: FFDH algorithm, DH key types.
 
 Supported means that when those are provided only by drivers, everything
 (including PK, X.509 and TLS if `MBEDTLS_USE_PSA_CRYPTO` is enabled) should
@@ -64,8 +65,8 @@ below.
 In the near future (end of 2023), we are planning to also add support for
 ciphers (AES) and AEADs (GCM, CCM, ChachaPoly).
 
-Currently (mid-2023) we don't have plans to extend this to RSA of FFDH. If
-you're interested in driver-only support for those, please let us know.
+Currently (mid-2023) we don't have plans to extend this to RSA. If
+you're interested in driver-only support for RSA, please let us know.
 
 Hashes
 ------
@@ -144,3 +145,8 @@ timeline, please let us know if you're interested.
 
 TODO: apparently we don't really support having some curves built-in and
 others driver-only... investigate and describe the situation. See also #7899.
+
+Finite-field Diffie-Hellman
+---------------------------
+
+TODO

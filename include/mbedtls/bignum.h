@@ -203,6 +203,12 @@ extern "C" {
  * \brief          MPI structure
  */
 typedef struct mbedtls_mpi {
+    /** Pointer to limbs.
+     *
+     * This may be \c NULL if \c n is 0.
+     */
+    mbedtls_mpi_uint *MBEDTLS_PRIVATE(p);
+
     /** Sign: -1 if the mpi is negative, 1 otherwise.
      *
      * The number 0 must be represented with `s = +1`. Although many library
@@ -221,12 +227,6 @@ typedef struct mbedtls_mpi {
 #if MBEDTLS_MPI_MAX_LIMBS > 65535
 #error "MBEDTLS_MPI_MAX_LIMBS > 65535 is not supported"
 #endif
-
-    /** Pointer to limbs.
-     *
-     * This may be \c NULL if \c n is 0.
-     */
-    mbedtls_mpi_uint *MBEDTLS_PRIVATE(p);
 }
 mbedtls_mpi;
 

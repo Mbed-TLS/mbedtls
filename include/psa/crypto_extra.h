@@ -2255,6 +2255,71 @@ typedef enum {
  * This functions supports the formats as defined in the documentation of
  * #psa_key_data_format_t.
  *
+ * \param[in] attributes    The attributes for the new key. This function uses
+ *                          the attributes as follows:
+ *                          . The key type is inferred from the key data
+ *                            in \p data or the key data format \p format (see
+ *                            the documentation of #psa_key_data_format_t for
+ *                            more information). If provided in \p attributes,
+ *                            it must match the inferred key type.
+ *                          . The key size is always determined from the key
+ *                            data. If the key size in \p attributes is nonzero,
+ *                            it must be equal to the size determined from the
+ *                            key data.
+ *                          . The key permitted-algorithm policy may be
+ *                            required for keys that will be used for a
+ *                            cryptographic operation, see the documentation of
+ *                            the key data formats for more information. If the
+ *                            key data imposes restrictions on the algorithms
+ *                            the key can be used for, the key
+ *                            permitted-algorithm policy must comply with
+ *                            those restrictions.
+ *                          . The key usage flags define what operations are
+ *                            permitted with the key. If the key data imposes
+ *                            restrictions on the operations the key can be
+ *                            used for, the key usage flags must comply with
+ *                            those restrictions.
+ *                          . The key lifetime and identifier are required
+ *                            for a persistent key.
+ *
+ * \param[in] format        The format of the key data in the \p data buffer.
+ * \param[out] key          On success, an identifier to the newly created key.
+ *                          For persistent keys, this is the key identifier
+ *                          defined in \p attributes.
+ *                          \c 0 on failure.
+ * \param[in] data    Buffer containing the key data. The content of the buffer
+ *                    is interpreted according to the format of the key data
+ *                    as defined by \p format.
+ * \param data_length Size of the \p data buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ *         If the key is persistent, the key material and the key's metadata
+ *         have been saved to persistent storage.
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         This is an attempt to create a persistent key, and there is
+ *         already a persistent key with the given identifier.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The key data format of the key type or key size is not supported,
+ *         either by the implementation in general or in this particular
+ *         persistent location.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The key attributes, as a whole, are invalid, or
+ *         the key data is not correctly formatted, or
+ *         the size in \p attributes is nonzero and does not match the size
+ *         of the key data.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
  */
 psa_status_t psa_import_key_ext(const psa_key_attributes_t *attributes,
                                 psa_key_data_format_t format,

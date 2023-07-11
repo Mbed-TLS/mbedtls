@@ -3,6 +3,7 @@
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/ecp.h"
+#include "mbedtls/psa_util.h"
 #include "pk_internal.h"
 /* END_HEADER */
 
@@ -144,6 +145,42 @@ void pk_parse_key(data_t *buf, int result)
                                      mbedtls_test_rnd_std_rand, NULL) == result);
 
 exit:
+    mbedtls_pk_free(&pk);
+    USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_PK_WRITE_C */
+void pk_parse_fix_montgomery(data_t *input_key, data_t *exp_output)
+{
+    /* Montgomery keys have specific bits set to either 0 or 1 depending on
+     * their position. This is enforced during parsing (please see the implementation
+     * of mbedtls_ecp_read_key() for more details). The scope of this function
+     * is to verify this enforcing by feeding the parse algorithm with a x25519
+     * key which does not have those bits set properly. */
+    mbedtls_pk_context pk;
+    unsigned char *output_key = NULL;
+    size_t output_key_len = 0;
+
+    mbedtls_pk_init(&pk);
+    USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_pk_parse_key(&pk, input_key->x, input_key->len, NULL, 0,
+                                    mbedtls_test_rnd_std_rand, NULL), 0);
+
+    output_key_len = input_key->len;
+    ASSERT_ALLOC(output_key, output_key_len);
+    /* output_key_len is updated with the real amount of data written to
+     * output_key buffer. */
+    output_key_len = mbedtls_pk_write_key_der(&pk, output_key, output_key_len);
+    TEST_ASSERT(output_key_len > 0);
+
+    ASSERT_COMPARE(exp_output->x, exp_output->len, output_key, output_key_len);
+
+exit:
+    if (output_key != NULL) {
+        mbedtls_free(output_key);
+    }
     mbedtls_pk_free(&pk);
     USE_PSA_DONE();
 }

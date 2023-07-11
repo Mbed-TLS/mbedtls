@@ -118,10 +118,11 @@ the following is enabled:
 - `PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE` - support for deterministic
   derivation of an ECC keypair with `psa_key_derivation_output_key()`.
 
-Note: when one of the above options is enabled, you can still `MBEDTLS_ECP_C`
-in `mbedtls_config.h`, and it will still result in some code size savings, but
-not as much as when none of these are enabled, as a subset of `ecp.c` will
-still be included in the build in order to support these.
+Note: when any of the above options is enabled, a subset of `ecp.c` will
+automatically be included in the build in order to support it. Therefore
+you can still disable `MBEDTLS_ECP_C` in `mbedtls_config.h` and this will
+result in some code size savings, but not as much as when none of the
+above features are enabled.
 
 We do have plans to support each of these with `ecp.c` fully removed in the
 future, however no established timeline. If you're interested, please let us
@@ -129,7 +130,7 @@ know, so we can take it into consideration in our planning.
 
 ### Limitations regarding restartable / interruptible ECC operations
 
-At the moment, the is not driver support for interruptible operations
+At the moment, there is not driver support for interruptible operations
 (see `psa_sign_hash_start()` + `psa_sign_hash_complete()` etc.) so as a
 consequence these are not supported in builds without `MBEDTLS_ECDSA_C`.
 

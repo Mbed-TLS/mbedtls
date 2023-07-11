@@ -192,7 +192,7 @@ x509_cert_info:"data_files/parse_input/non-ascii-string-in-issuer.crt":"cert. ve
 
 X509 CRT information Parsing IPv4 and IPv6 IP names
 depends_on:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_RSA_C
-x509_cert_info:"data_files/server5-tricky-ip-san.crt.der":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS Tricky IP SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS Tricky IP SAN\nissued  on        \: 2023-06-05 11\:30\:36\nexpires on        \: 2033-06-02 11\:30\:36\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    iPAddress \: 97.98.99.100\n    iPAddress \: 6162\:6364\:2E65\:7861\:6D70\:6C65\:2E63\:6F6D\n"
+x509_cert_info:"data_files/parse_input/server5-tricky-ip-san.crt.der":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS Tricky IP SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS Tricky IP SAN\nissued  on        \: 2023-06-05 11\:30\:36\nexpires on        \: 2033-06-02 11\:30\:36\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    iPAddress \: 97.98.99.100\n    iPAddress \: 6162\:6364\:2E65\:7861\:6D70\:6C65\:2E63\:6F6D\n"
 
 X509 SAN parsing otherName
 depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_MD_CAN_SHA256

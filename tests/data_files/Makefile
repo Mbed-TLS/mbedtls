@@ -539,6 +539,9 @@ server5-tricky-ip-san.crt.der: server5.key
 	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS Tricky IP SAN" -set_serial 77 -config $(test_ca_config_file) -extensions tricky_ip_san -days 3650 -sha256 -key server5.key -outform der -out $@
 
 all_final += server5-tricky-ip-san.crt.der
+parse_input/server5-tricky-ip-san.crt.der: server5-tricky-ip-san.crt.der
+	cp $< $@
+all_parse_input += parse_input/server5-tricky-ip-san.crt.der
 
 # malformed IP length
 server5-tricky-ip-san-malformed-len.crt.der: server5-tricky-ip-san.crt.der

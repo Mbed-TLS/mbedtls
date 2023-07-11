@@ -2249,3 +2249,6 @@ tidy:
 .PHONY: clean neat tidy
 
 .SECONDARY: $(all_intermediate)
+
+# Diable parallel build to reduce debug loading
+.NOTPARALLEL:

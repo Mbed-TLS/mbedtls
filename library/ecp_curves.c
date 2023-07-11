@@ -44,7 +44,7 @@
 #define ECP_VALIDATE(cond)        \
     MBEDTLS_INTERNAL_VALIDATE(cond)
 
-#define ECP_MPI_INIT(s, n, p) { s, (n), (mbedtls_mpi_uint *) (p) }
+#define ECP_MPI_INIT(_s, _n, _p) { .s = (_s), .n = (_n), .p = (mbedtls_mpi_uint *) (_p) }
 
 #define ECP_MPI_INIT_ARRAY(x)   \
     ECP_MPI_INIT(1, sizeof(x) / sizeof(mbedtls_mpi_uint), x)

@@ -2930,7 +2930,7 @@ int mbedtls_ecp_muladd(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
-#define ECP_MPI_INIT(s, n, p) { s, (n), (mbedtls_mpi_uint *) (p) }
+#define ECP_MPI_INIT(_s, _n, _p) { .s = (_s), .n = (_n), .p = (mbedtls_mpi_uint *) (_p) }
 #define ECP_MPI_INIT_ARRAY(x)   \
     ECP_MPI_INIT(1, sizeof(x) / sizeof(mbedtls_mpi_uint), x)
 /*

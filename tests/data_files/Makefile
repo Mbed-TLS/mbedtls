@@ -1473,7 +1473,8 @@ all_final += server1.req.sha256
 
 server1.req.sha256.ext: server1.key
 	# Generating this with OpenSSL as a comparison point to test we're getting the same result
-	openssl req -new -out $@ -key $< -subj '/C=NL/O=PolarSSL/CN=PolarSSL Server 1' -sha256 -config server1.req.sha256.conf
+	$(OPENSSL) req -new -out $@ -key $< -subj '/C=NL/O=PolarSSL/CN=PolarSSL Server 1' -sha256 -addext "extendedKeyUsage=serverAuth" -addext "subjectAltName=URI:http://pki.example.com/,IP:127.1.1.0,DNS:example.com"
+all_final += server1.req.sha256.ext
 
 all_parse_input += parse_input/server1.req.sha384
 parse_input/server1.req.sha384 server1.req.sha384: server1.key

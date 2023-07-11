@@ -40,7 +40,7 @@
 #include <mbedtls/ssl.h>
 #endif
 #if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY) ||    \
-    defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY)
+    defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
 #include <mbedtls/rsa.h>
 #endif
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && \

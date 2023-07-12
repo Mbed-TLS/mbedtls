@@ -106,29 +106,25 @@ int mbedtls_aesce_has_support(void)
     block = vaeseq_u8(block, vld1q_u8(keys)); \
     block = vaesmcq_u8(block);                \
     keys += 16
-/* Two rounds of AESCE encryption */
-#define AESCE_ENCRYPT_ROUND_X2        AESCE_ENCRYPT_ROUND; AESCE_ENCRYPT_ROUND
 
 MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
 static uint8x16_t aesce_encrypt_block(uint8x16_t block,
                                       unsigned char *keys,
                                       int rounds)
 {
-    /* 10, 12 or 14 rounds. Unroll loop. */
-    if (rounds == 10) {
-        goto rounds_10;
+    /* 10, 12 or 14 rounds. Partially unroll loop by doing two
+     * rounds per iteration - this makes a significant perf
+     * difference.
+     *
+     * Hinting to the compiler that rounds is 10, 12 or 14 saves
+     * a few bytes of code size. */
+
+    MBEDTLS_ASSUME(rounds == 10 || rounds == 12 || rounds == 14);
+
+    for (int i = 0; i < (rounds - 2) / 2; i++) {
+        AESCE_ENCRYPT_ROUND;
+        AESCE_ENCRYPT_ROUND;
     }
-    if (rounds == 12) {
-        goto rounds_12;
-    }
-    AESCE_ENCRYPT_ROUND_X2;
-rounds_12:
-    AESCE_ENCRYPT_ROUND_X2;
-rounds_10:
-    AESCE_ENCRYPT_ROUND_X2;
-    AESCE_ENCRYPT_ROUND_X2;
-    AESCE_ENCRYPT_ROUND_X2;
-    AESCE_ENCRYPT_ROUND_X2;
     AESCE_ENCRYPT_ROUND;
 
     /* AES AddRoundKey for the previous round.
@@ -169,28 +165,19 @@ rounds_10:
     block = vaesdq_u8(block, vld1q_u8(keys)); \
     block = vaesimcq_u8(block);               \
     keys += 16
-/* Two rounds of AESCE decryption */
-#define AESCE_DECRYPT_ROUND_X2        AESCE_DECRYPT_ROUND; AESCE_DECRYPT_ROUND
 
 static uint8x16_t aesce_decrypt_block(uint8x16_t block,
                                       unsigned char *keys,
                                       int rounds)
 {
-    /* 10, 12 or 14 rounds. Unroll loop. */
-    if (rounds == 10) {
-        goto rounds_10;
+    MBEDTLS_ASSUME(rounds == 10 || rounds == 12 || rounds == 14);
+
+    /* 10, 12 or 14 rounds. Partially unroll loop. */
+
+    for (int i = 0; i < (rounds - 2) / 2; i++) {
+        AESCE_DECRYPT_ROUND;
+        AESCE_DECRYPT_ROUND;
     }
-    if (rounds == 12) {
-        goto rounds_12;
-    }
-    AESCE_DECRYPT_ROUND_X2;
-rounds_12:
-    AESCE_DECRYPT_ROUND_X2;
-rounds_10:
-    AESCE_DECRYPT_ROUND_X2;
-    AESCE_DECRYPT_ROUND_X2;
-    AESCE_DECRYPT_ROUND_X2;
-    AESCE_DECRYPT_ROUND_X2;
     AESCE_DECRYPT_ROUND;
 
     /* The inverses of AES AddRoundKey, SubBytes, ShiftRows finishing up the

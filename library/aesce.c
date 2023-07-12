@@ -166,6 +166,7 @@ static uint8x16_t aesce_encrypt_block(uint8x16_t block,
     block = vaesimcq_u8(block);               \
     keys += 16
 
+MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
 static uint8x16_t aesce_decrypt_block(uint8x16_t block,
                                       unsigned char *keys,
                                       int rounds)

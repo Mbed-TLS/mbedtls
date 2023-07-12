@@ -896,6 +896,8 @@ int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t j;
+    mbedtls_mpi_uint *p;
+    mbedtls_mpi_uint c;
     MPI_VALIDATE_RET(X != NULL);
     MPI_VALIDATE_RET(A != NULL);
     MPI_VALIDATE_RET(B != NULL);
@@ -929,9 +931,9 @@ int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 
     /* j is the number of non-zero limbs of B. Add those to X. */
 
-    mbedtls_mpi_uint *p = X->p;
+    p = X->p;
 
-    mbedtls_mpi_uint c = mbedtls_mpi_core_add(p, p, B->p, j);
+    c = mbedtls_mpi_core_add(p, p, B->p, j);
 
     p += j;
 

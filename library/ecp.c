@@ -3652,4 +3652,4 @@ mbedtls_ecp_variant mbedtls_ecp_get_variant()
 
 #endif /* MBEDTLS_ECP_LIGHT */
 
-#endif /* MBEDTLS_ECP_WITH_MPI_UINT */
+#endif /* !MBEDTLS_ECP_WITH_MPI_UINT */

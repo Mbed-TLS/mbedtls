@@ -18,9 +18,9 @@
  */
 
 #include "common.h"
-#include "ecp_invasive.h"
 
 #if defined(MBEDTLS_ECP_WITH_MPI_UINT)
+
 #if defined(MBEDTLS_ECP_LIGHT)
 
 #include "mbedtls/ecp.h"
@@ -30,8 +30,11 @@
 
 #include "mbedtls/platform.h"
 
+#include "constant_time_internal.h"
+
 #include "bn_mul.h"
 #include "bignum_core.h"
+#include "ecp_invasive.h"
 
 #include <string.h>
 
@@ -43,15 +46,15 @@
 #define ECP_VALIDATE(cond)        \
     MBEDTLS_INTERNAL_VALIDATE(cond)
 
-#define ECP_MPI_INIT(s, n, p) { s, (n), (mbedtls_mpi_uint *) (p) }
+#define ECP_MPI_INIT(_p, _n) { .p = (mbedtls_mpi_uint *) (_p), .s = 1, .n = (_n) }
 
 #define ECP_MPI_INIT_ARRAY(x)   \
-    ECP_MPI_INIT(1, sizeof(x) / sizeof(mbedtls_mpi_uint), x)
+    ECP_MPI_INIT(x, sizeof(x) / sizeof(mbedtls_mpi_uint))
 
 #define ECP_POINT_INIT_XY_Z0(x, y) { \
-        ECP_MPI_INIT_ARRAY(x), ECP_MPI_INIT_ARRAY(y), ECP_MPI_INIT(1, 0, NULL) }
+        ECP_MPI_INIT_ARRAY(x), ECP_MPI_INIT_ARRAY(y), ECP_MPI_INIT(NULL, 0) }
 #define ECP_POINT_INIT_XY_Z1(x, y) { \
-        ECP_MPI_INIT_ARRAY(x), ECP_MPI_INIT_ARRAY(y), ECP_MPI_INIT(1, 1, mpi_one) }
+        ECP_MPI_INIT_ARRAY(x), ECP_MPI_INIT_ARRAY(y), ECP_MPI_INIT(mpi_one, 1) }
 
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||   \
@@ -4511,12 +4514,13 @@ static const mbedtls_ecp_point brainpoolP512r1_T[32] = {
     defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 /*
  * Create an MPI from embedded constants
- * (assumes len is an exact multiple of sizeof(mbedtls_mpi_uint))
+ * (assumes len is an exact multiple of sizeof(mbedtls_mpi_uint) and
+ * len < 1048576)
  */
 static inline void ecp_mpi_load(mbedtls_mpi *X, const mbedtls_mpi_uint *p, size_t len)
 {
     X->s = 1;
-    X->n = len / sizeof(mbedtls_mpi_uint);
+    X->n = (unsigned short) (len / sizeof(mbedtls_mpi_uint));
     X->p = (mbedtls_mpi_uint *) p;
 }
 #endif
@@ -4612,7 +4616,7 @@ int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 static int ecp_mod_p448(mbedtls_mpi *);
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *, size_t);
+int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *, size_t);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
 static int ecp_mod_p192k1(mbedtls_mpi *);
@@ -4921,7 +4925,7 @@ static inline void carry64(mbedtls_mpi_uint *dst, mbedtls_mpi_uint *carry)
 static int ecp_mod_p192(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t expected_width = 2 * ((192 + biL - 1) / biL);
+    size_t expected_width = BITS_TO_LIMBS(192) * 2;
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
     ret = mbedtls_ecp_mod_p192_raw(N->p, expected_width);
 
@@ -4935,7 +4939,7 @@ int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn)
     mbedtls_mpi_uint c = 0, last_carry[WIDTH] = { 0 };
     mbedtls_mpi_uint *p, *end;
 
-    if (Nn != 2*((192 + biL - 1)/biL)) {
+    if (Nn != BITS_TO_LIMBS(192) * 2) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
@@ -5081,7 +5085,7 @@ static inline int8_t extract_carry(int64_t cur)
 static int ecp_mod_p224(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t expected_width =  2 * 224 / biL;
+    size_t expected_width = BITS_TO_LIMBS(224) * 2;
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
     ret = mbedtls_ecp_mod_p224_raw(N->p, expected_width);
 cleanup:
@@ -5091,7 +5095,7 @@ cleanup:
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p224_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {
-    if (X_limbs != 2 * 224 / biL) {
+    if (X_limbs != BITS_TO_LIMBS(224) * 2) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
@@ -5134,7 +5138,7 @@ int mbedtls_ecp_mod_p224_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 static int ecp_mod_p256(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t expected_width = 2 * 256 / biL;
+    size_t expected_width = BITS_TO_LIMBS(256) * 2;
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
     ret = mbedtls_ecp_mod_p256_raw(N->p, expected_width);
 cleanup:
@@ -5144,7 +5148,7 @@ cleanup:
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p256_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {
-    if (X_limbs != 2 * 256 / biL) {
+    if (X_limbs != BITS_TO_LIMBS(256) * 2) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
@@ -5214,7 +5218,7 @@ int mbedtls_ecp_mod_p256_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 static int ecp_mod_p384(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t expected_width = 2 * ((384 + biL - 1) / biL);
+    size_t expected_width = BITS_TO_LIMBS(384) * 2;
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
     ret = mbedtls_ecp_mod_p384_raw(N->p, expected_width);
 cleanup:
@@ -5224,7 +5228,7 @@ cleanup:
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {
-    if (X_limbs != 2*((384 + biL - 1)/biL)) {
+    if (X_limbs != BITS_TO_LIMBS(384) * 2) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
@@ -5336,7 +5340,7 @@ int mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 static int ecp_mod_p521(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t expected_width = 2 * P521_WIDTH;
+    size_t expected_width = BITS_TO_LIMBS(521) * 2;
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
     ret = mbedtls_ecp_mod_p521_raw(N->p, expected_width);
 cleanup:
@@ -5348,7 +5352,7 @@ int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {
     mbedtls_mpi_uint carry = 0;
 
-    if (X_limbs != 2 * P521_WIDTH || X[2 * P521_WIDTH - 1] != 0) {
+    if (X_limbs != BITS_TO_LIMBS(521) * 2) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
@@ -5422,7 +5426,7 @@ int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 static int ecp_mod_p255(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t expected_width = 2 * P255_WIDTH;
+    size_t expected_width = BITS_TO_LIMBS(255) * 2;
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
     ret = mbedtls_ecp_mod_p255_raw(N->p, expected_width);
 cleanup:
@@ -5433,7 +5437,7 @@ MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_Limbs)
 {
 
-    if (X_Limbs != 2 * P255_WIDTH) {
+    if (X_Limbs != BITS_TO_LIMBS(255) * 2) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
@@ -5483,21 +5487,22 @@ int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_Limbs)
 
 /* Number of limbs fully occupied by 2^224 (max), and limbs used by it (min) */
 #define DIV_ROUND_UP(X, Y) (((X) + (Y) -1) / (Y))
-#define P224_WIDTH_MIN   (28 / sizeof(mbedtls_mpi_uint))
-#define P224_WIDTH_MAX   DIV_ROUND_UP(28, sizeof(mbedtls_mpi_uint))
+#define P224_SIZE        (224 / 8)
+#define P224_WIDTH_MIN   (P224_SIZE / sizeof(mbedtls_mpi_uint))
+#define P224_WIDTH_MAX   DIV_ROUND_UP(P224_SIZE, sizeof(mbedtls_mpi_uint))
 #define P224_UNUSED_BITS ((P224_WIDTH_MAX * sizeof(mbedtls_mpi_uint) * 8) - 224)
 
 static int ecp_mod_p448(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t expected_width = 2 * ((448 + biL - 1) / biL);
+    size_t expected_width = BITS_TO_LIMBS(448) * 2;
 
     /* This is required as some tests and use cases do not pass in a Bignum of
      * the correct size, and expect the growth to be done automatically, which
      * will no longer happen. */
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
 
-    ret = mbedtls_ecp_mod_p448(N->p, N->n);
+    ret = mbedtls_ecp_mod_p448_raw(N->p, N->n);
 
 cleanup:
     return ret;
@@ -5515,33 +5520,36 @@ cleanup:
  * since mpi_core_add will then use 64-bit adds.
  */
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
+int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {
-    size_t i;
+    size_t round;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if (X_limbs <= P448_WIDTH) {
+    if (X_limbs != BITS_TO_LIMBS(448) * 2) {
         return 0;
     }
 
     size_t M_limbs = X_limbs - (P448_WIDTH);
-    const size_t Q_limbs = M_limbs;
 
     if (M_limbs > P448_WIDTH) {
         /* Shouldn't be called with X larger than 2^896! */
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
-    /* Extra limb for carry below. */
+    /* Both M and Q require an extra limb to catch carries. */
     M_limbs++;
 
-    mbedtls_mpi_uint *M = mbedtls_calloc(M_limbs, ciL);
+    const size_t Q_limbs = M_limbs;
+    mbedtls_mpi_uint *M = NULL;
+    mbedtls_mpi_uint *Q = NULL;
+
+    M = mbedtls_calloc(M_limbs, ciL);
 
     if (M == NULL) {
         return MBEDTLS_ERR_ECP_ALLOC_FAILED;
     }
 
-    mbedtls_mpi_uint *Q = mbedtls_calloc(Q_limbs, ciL);
+    Q = mbedtls_calloc(Q_limbs, ciL);
 
     if (Q == NULL) {
         ret =  MBEDTLS_ERR_ECP_ALLOC_FAILED;
@@ -5550,40 +5558,71 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
 
     /* M = A1 */
     memset(M, 0, (M_limbs * ciL));
-
     /* Do not copy into the overflow limb, as this would read past the end of
      * X. */
     memcpy(M, X + P448_WIDTH, ((M_limbs - 1) * ciL));
 
     /* X = A0 */
-    for (i = P448_WIDTH; i < X_limbs; i++) {
-        X[i] = 0;
-    }
+    memset(X + P448_WIDTH, 0, ((M_limbs - 1) * ciL));
 
-    /* X += A1 - Carry here dealt with by oversize M and X. */
+    /* X = X + M = A0 + A1 */
+    /* Carry here fits in oversize X. Oversize M means it will get
+     * added in, not returned as carry. */
     (void) mbedtls_mpi_core_add(X, X, M, M_limbs);
 
-    /* Q = B1, X += B1 */
-    memcpy(Q, M, (Q_limbs * ciL));
+    /* Q = B1 = M >> 224 */
+    memcpy(Q, (char *) M + P224_SIZE, P224_SIZE);
+    memset((char *) Q + P224_SIZE, 0, P224_SIZE);
 
-    mbedtls_mpi_core_shift_r(Q, Q_limbs, 224);
-
-    /* No carry here - only max 224 bits */
+    /* X = X + Q = (A0 + A1) + B1
+     * Oversize Q catches potential carry here when X is already max 448 bits.
+     */
     (void) mbedtls_mpi_core_add(X, X, Q, Q_limbs);
 
-    /* M = (B0 + B1) * 2^224, X += M */
-    if (sizeof(mbedtls_mpi_uint) > 4) {
-        M[P224_WIDTH_MIN] &= ((mbedtls_mpi_uint)-1) >> (P224_UNUSED_BITS);
-    }
-    for (i = P224_WIDTH_MAX; i < M_limbs; ++i) {
-        M[i] = 0;
-    }
+    /* M = B0 */
+#ifdef MBEDTLS_HAVE_INT64
+    M[P224_WIDTH_MIN] &= ((mbedtls_mpi_uint)-1) >> (P224_UNUSED_BITS);
+ #endif
+    memset(M + P224_WIDTH_MAX, 0, ((M_limbs - P224_WIDTH_MAX) * ciL));
 
+    /* M = M + Q = B0 + B1 */
     (void) mbedtls_mpi_core_add(M, M, Q, Q_limbs);
 
-    /* Shifted carry bit from the addition is dealt with by oversize M */
-    mbedtls_mpi_core_shift_l(M, M_limbs, 224);
+    /* M = (B0 + B1) * 2^224 */
+    /* Shifted carry bit from the addition fits in oversize M. */
+    memmove((char *) M + P224_SIZE, M, P224_SIZE + ciL);
+    memset(M, 0, P224_SIZE);
+
+    /* X = X + M = (A0 + A1 + B1) + (B0 + B1) * 2^224 */
     (void) mbedtls_mpi_core_add(X, X, M, M_limbs);
+
+    /* In the second and third rounds A1 and B0 have at most 1 non-zero limb and
+     * B1=0.
+     * Using this we need to calculate:
+     * A0 + A1 + B1 + (B0 + B1) * 2^224 = A0 + A1 + B0 * 2^224. */
+    for (round = 0; round < 2; ++round) {
+
+        /* M = A1 */
+        memset(M, 0, (M_limbs * ciL));
+        memcpy(M, X + P448_WIDTH, ((M_limbs - 1) * ciL));
+
+        /* X = A0 */
+        memset(X + P448_WIDTH, 0, ((M_limbs - 1) * ciL));
+
+        /* M = A1 + B0 * 2^224
+         * We know that only one limb of A1 will be non-zero and that it will be
+         * limb 0. We also know that B0 is the bottom 224 bits of A1 (which is
+         * then shifted up 224 bits), so, given M is currently A1 this turns
+         * into:
+         * M = M + (M << 224)
+         * As the single non-zero limb in B0 will be A1 limb 0 shifted up by 224
+         * bits, we can just move that into the right place, shifted up
+         * accordingly.*/
+        M[P224_WIDTH_MIN] = M[0] << (224 & (biL - 1));
+
+        /* X = A0 + (A1 + B0 * 2^224) */
+        (void) mbedtls_mpi_core_add(X, X, M, M_limbs);
+    }
 
     ret = 0;
 
@@ -5698,7 +5737,7 @@ cleanup:
 static int ecp_mod_p192k1(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t expected_width = 2 * ((192 + biL - 1) / biL);
+    size_t expected_width = BITS_TO_LIMBS(192) * 2;
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
     ret = mbedtls_ecp_mod_p192k1_raw(N->p, expected_width);
 
@@ -5714,7 +5753,7 @@ int mbedtls_ecp_mod_p192k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
                                   0x01, 0x00, 0x00, 0x00)
     };
 
-    if (X_limbs != 2 * ((192 + biL - 1) / biL)) {
+    if (X_limbs != BITS_TO_LIMBS(192) * 2) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
@@ -5732,7 +5771,7 @@ int mbedtls_ecp_mod_p192k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 static int ecp_mod_p224k1(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t expected_width =  2 * 224 / biL;
+    size_t expected_width = BITS_TO_LIMBS(224) * 2;
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
     ret = mbedtls_ecp_mod_p224k1_raw(N->p, expected_width);
 
@@ -5748,7 +5787,7 @@ int mbedtls_ecp_mod_p224k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
                                   0x01, 0x00, 0x00, 0x00)
     };
 
-    if (X_limbs != 2 * 224 / biL) {
+    if (X_limbs !=  BITS_TO_LIMBS(224) * 2) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
@@ -5766,7 +5805,7 @@ int mbedtls_ecp_mod_p224k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 static int ecp_mod_p256k1(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t expected_width = 2 * ((256 + biL - 1) / biL);
+    size_t expected_width = BITS_TO_LIMBS(256) * 2;
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
     ret = mbedtls_ecp_mod_p256k1_raw(N->p, expected_width);
 
@@ -5782,7 +5821,7 @@ int mbedtls_ecp_mod_p256k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
                                   0x01, 0x00, 0x00, 0x00)
     };
 
-    if (X_limbs != 2 * ((256 + biL - 1) / biL)) {
+    if (X_limbs != BITS_TO_LIMBS(256) * 2) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
@@ -5795,20 +5834,24 @@ int mbedtls_ecp_mod_p256k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
                               const mbedtls_ecp_group_id id,
-                              const mbedtls_ecp_curve_type ctype)
+                              const mbedtls_ecp_modulus_type ctype)
 {
+    mbedtls_mpi_modp_fn modp = NULL;
     mbedtls_mpi_uint *p = NULL;
     size_t p_limbs;
 
-    if (!(ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE || \
-          ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_SCALAR)) {
+    if (!(ctype == (mbedtls_ecp_modulus_type) MBEDTLS_ECP_MOD_COORDINATE || \
+          ctype == (mbedtls_ecp_modulus_type) MBEDTLS_ECP_MOD_SCALAR)) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
     switch (id) {
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
         case MBEDTLS_ECP_DP_SECP192R1:
-            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+            if (ctype == (mbedtls_ecp_modulus_type) MBEDTLS_ECP_MOD_COORDINATE) {
+#if defined(MBEDTLS_ECP_NIST_OPTIM)
+                modp = &mbedtls_ecp_mod_p192_raw;
+#endif
                 p = (mbedtls_mpi_uint *) secp192r1_p;
                 p_limbs = CHARS_TO_LIMBS(sizeof(secp192r1_p));
             } else {
@@ -5820,7 +5863,10 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 
 #if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
         case MBEDTLS_ECP_DP_SECP224R1:
-            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+            if (ctype == (mbedtls_ecp_modulus_type) MBEDTLS_ECP_MOD_COORDINATE) {
+#if defined(MBEDTLS_ECP_NIST_OPTIM)
+                modp = &mbedtls_ecp_mod_p224_raw;
+#endif
                 p = (mbedtls_mpi_uint *) secp224r1_p;
                 p_limbs = CHARS_TO_LIMBS(sizeof(secp224r1_p));
             } else {
@@ -5832,7 +5878,10 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 
 #if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
         case MBEDTLS_ECP_DP_SECP256R1:
-            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+            if (ctype == (mbedtls_ecp_modulus_type) MBEDTLS_ECP_MOD_COORDINATE) {
+#if defined(MBEDTLS_ECP_NIST_OPTIM)
+                modp = &mbedtls_ecp_mod_p256_raw;
+#endif
                 p = (mbedtls_mpi_uint *) secp256r1_p;
                 p_limbs = CHARS_TO_LIMBS(sizeof(secp256r1_p));
             } else {
@@ -5844,7 +5893,10 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 
 #if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
         case MBEDTLS_ECP_DP_SECP384R1:
-            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+            if (ctype == (mbedtls_ecp_modulus_type) MBEDTLS_ECP_MOD_COORDINATE) {
+#if defined(MBEDTLS_ECP_NIST_OPTIM)
+                modp = &mbedtls_ecp_mod_p384_raw;
+#endif
                 p = (mbedtls_mpi_uint *) secp384r1_p;
                 p_limbs = CHARS_TO_LIMBS(sizeof(secp384r1_p));
             } else {
@@ -5856,7 +5908,10 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
         case MBEDTLS_ECP_DP_SECP521R1:
-            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+            if (ctype == (mbedtls_ecp_modulus_type) MBEDTLS_ECP_MOD_COORDINATE) {
+#if defined(MBEDTLS_ECP_NIST_OPTIM)
+                modp = &mbedtls_ecp_mod_p521_raw;
+#endif
                 p = (mbedtls_mpi_uint *) secp521r1_p;
                 p_limbs = CHARS_TO_LIMBS(sizeof(secp521r1_p));
             } else {
@@ -5868,7 +5923,7 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 
 #if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
         case MBEDTLS_ECP_DP_BP256R1:
-            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+            if (ctype == (mbedtls_ecp_modulus_type) MBEDTLS_ECP_MOD_COORDINATE) {
                 p = (mbedtls_mpi_uint *) brainpoolP256r1_p;
                 p_limbs = CHARS_TO_LIMBS(sizeof(brainpoolP256r1_p));
             } else {
@@ -5880,7 +5935,7 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 
 #if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
         case MBEDTLS_ECP_DP_BP384R1:
-            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+            if (ctype == (mbedtls_ecp_modulus_type) MBEDTLS_ECP_MOD_COORDINATE) {
                 p = (mbedtls_mpi_uint *) brainpoolP384r1_p;
                 p_limbs = CHARS_TO_LIMBS(sizeof(brainpoolP384r1_p));
             } else {
@@ -5892,7 +5947,7 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 
 #if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
         case MBEDTLS_ECP_DP_BP512R1:
-            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+            if (ctype == (mbedtls_ecp_modulus_type) MBEDTLS_ECP_MOD_COORDINATE) {
                 p = (mbedtls_mpi_uint *) brainpoolP512r1_p;
                 p_limbs = CHARS_TO_LIMBS(sizeof(brainpoolP512r1_p));
             } else {
@@ -5904,7 +5959,8 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
         case MBEDTLS_ECP_DP_CURVE25519:
-            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+            if (ctype == (mbedtls_ecp_modulus_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                modp = &mbedtls_ecp_mod_p255_raw;
                 p = (mbedtls_mpi_uint *) curve25519_p;
                 p_limbs = CHARS_TO_LIMBS(sizeof(curve25519_p));
             } else {
@@ -5916,7 +5972,8 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
         case MBEDTLS_ECP_DP_SECP192K1:
-            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+            if (ctype == (mbedtls_ecp_modulus_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                modp = &mbedtls_ecp_mod_p192k1_raw;
                 p = (mbedtls_mpi_uint *) secp192k1_p;
                 p_limbs = CHARS_TO_LIMBS(sizeof(secp192k1_p));
             } else {
@@ -5928,7 +5985,8 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 
 #if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
         case MBEDTLS_ECP_DP_SECP224K1:
-            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+            if (ctype == (mbedtls_ecp_modulus_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                modp = &mbedtls_ecp_mod_p224k1_raw;
                 p = (mbedtls_mpi_uint *) secp224k1_p;
                 p_limbs = CHARS_TO_LIMBS(sizeof(secp224k1_p));
             } else {
@@ -5940,7 +5998,8 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 
 #if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
         case MBEDTLS_ECP_DP_SECP256K1:
-            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+            if (ctype == (mbedtls_ecp_modulus_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                modp = &mbedtls_ecp_mod_p256k1_raw;
                 p = (mbedtls_mpi_uint *) secp256k1_p;
                 p_limbs = CHARS_TO_LIMBS(sizeof(secp256k1_p));
             } else {
@@ -5952,7 +6011,8 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
         case MBEDTLS_ECP_DP_CURVE448:
-            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+            if (ctype == (mbedtls_ecp_modulus_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                modp = &mbedtls_ecp_mod_p448_raw;
                 p = (mbedtls_mpi_uint *) curve448_p;
                 p_limbs = CHARS_TO_LIMBS(sizeof(curve448_p));
             } else {
@@ -5967,9 +6027,14 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
             return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
-    if (mbedtls_mpi_mod_modulus_setup(N, p, p_limbs,
-                                      MBEDTLS_MPI_MOD_REP_MONTGOMERY)) {
-        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    if (modp != NULL) {
+        if (mbedtls_mpi_mod_optred_modulus_setup(N, p, p_limbs, modp)) {
+            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        }
+    } else {
+        if (mbedtls_mpi_mod_modulus_setup(N, p, p_limbs)) {
+            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        }
     }
     return 0;
 }

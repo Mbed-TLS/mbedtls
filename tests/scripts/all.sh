@@ -185,7 +185,7 @@ pre_initialize_variables () {
     # Include more verbose output for failing tests run by CMake or make
     export CTEST_OUTPUT_ON_FAILURE=1
 
-    # Globally used CFLAGS
+    # Build flags added in each component to all compilers and all builds. So use carefully.
     : ${GLOBAL_CFLAGS=}
     export GLOBAL_CFLAGS
 

@@ -318,6 +318,21 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 #define MBEDTLS_UNLIKELY(x)     x
 #endif
 
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_assume)
+/* MBEDTLS_ASSUME may be used to provide additional information to the compiler
+ * which can result in smaller code-size. */
+#define MBEDTLS_ASSUME(x)       __builtin_assume(x)
+// clang provides __builtin_assume
+#elif __has_builtin(__builtin_unreachable)
+#define MBEDTLS_ASSUME(x)       do { if (!(x)) __builtin_unreachable(); } while (0)
+// For gcc, use __builtin_unreachable
+#endif
+#endif
+#if !defined(MBEDTLS_ASSUME)
+#define MBEDTLS_ASSUME(x)
+#endif
+
 #if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \
     && !defined(__llvm__) && !defined(__INTEL_COMPILER)
 /* Defined if the compiler really is gcc and not clang, etc */

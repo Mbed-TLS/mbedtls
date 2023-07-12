@@ -1,0 +1,13 @@
+.gitignore
+Makefile
+Readme-x509.txt
+reserved.lst
+ignored.lst
+uncategorized.lst
+test-ca.opensslconf
+server5.crt.openssl.v3_ext
+cli.opensslconf
+test-ca.server1.opensslconf
+test-ca.server1.db
+seedfile
+README.md

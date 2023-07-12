@@ -27,15 +27,15 @@ helper_regenerate_data_files () {
     make  # data_files depends on programs/x509/cert_*
 
     msg "Cleanup final files make -C tests/data_files $1"
-    make -C tests/data_files $1
+    OPENSSL=/usr/bin/openssl make -C tests/data_files $1
     shift
 
     dd if=/dev/urandom of=./tests/data_files/seedfile bs=64 count=1
     msg "Regenerate files"
-    make -C tests/data_files all_final $*
+    OPENSSL=/usr/bin/openssl make -C tests/data_files all_final $*
 
     msg "Remove intermediate files"
-    make -C tests/data_files clean
+    OPENSSL=/usr/bin/openssl make -C tests/data_files clean
 
     msg "Only modified files are allowd"
     new_or_missed_files=$((git status -s --ignored -- tests/data_files | \
@@ -59,5 +59,6 @@ component_test_regenerate_parse_input () {
 }
 
 support_test_regenerate_parse_input () {
-    :
+    which xxd hexdump faketime 2>&1 >/dev/null && \
+        [[ $(/usr/bin/openssl version) == *"3.0.2"* ]]
 }

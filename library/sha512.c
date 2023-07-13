@@ -60,6 +60,11 @@
 #  if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT) || \
     defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
 /* *INDENT-OFF* */
+#   ifdef __ARM_NEON
+#       include <arm_neon.h>
+#   else
+#       error "Target does not support NEON instructions"
+#   endif
 /*
  * Best performance comes from most recent compilers, with intrinsics and -O3.
  * Must compile with -march=armv8.2-a+sha3, but we can't detect armv8.2-a, and
@@ -76,7 +81,16 @@
  */
 #    if !defined(__ARM_FEATURE_SHA512) || defined(MBEDTLS_ENABLE_ARM_SHA3_EXTENSIONS_COMPILER_FLAG)
        /* Test Clang first, as it defines __GNUC__ */
-#      if defined(__clang__)
+#      if defined(__ARMCOMPILER_VERSION)
+#        if __ARMCOMPILER_VERSION < 6090000
+#          error "A more recent armclang is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+#        elif __ARMCOMPILER_VERSION == 6090000
+#          error "Must use minimum -march=armv8.2-a+sha3 for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+#        else
+#          pragma clang attribute push (__attribute__((target("sha3"))), apply_to=function)
+#          define MBEDTLS_POP_TARGET_PRAGMA
+#        endif
+#      elif defined(__clang__)
 #        if __clang_major__ < 7
 #          error "A more recent Clang is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
 #        else
@@ -96,7 +110,6 @@
 #      endif
 #    endif
 /* *INDENT-ON* */
-#    include <arm_neon.h>
 #  endif
 #  if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT)
 #    if defined(__unix__)

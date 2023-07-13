@@ -2113,7 +2113,10 @@
  *          the CPU when this option is enabled.
  *
  * \note    Minimum compiler versions for this feature are Clang 4.0,
- *          GCC 6.0 or MSVC 2019 version 16.11.2.
+ *          armclang 6.6, GCC 6.0 or MSVC 2019 version 16.11.2.
+ *
+ * \note \c CFLAGS must be set to a minimum of \c -march=armv8-a+crypto for
+ * armclang <= 6.9
  *
  * This module adds support for the AES Armv8-A Cryptographic Extensions on Aarch64 systems.
  */
@@ -3130,6 +3133,12 @@
  * \note If MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT is defined when building
  * for a non-Aarch64 build it will be silently ignored.
  *
+ * \note    Minimum compiler versions for this feature are Clang 4.0,
+ * armclang 6.6 or GCC 6.0.
+ *
+ * \note \c CFLAGS must be set to a minimum of \c -march=armv8-a+crypto for
+ * armclang <= 6.9
+ *
  * \warning MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT cannot be defined at the
  * same time as MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY.
  *
@@ -3151,6 +3160,12 @@
  *
  * \note This allows builds with a smaller code size than with
  * MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+ *
+ * \note    Minimum compiler versions for this feature are Clang 4.0,
+ * armclang 6.6 or GCC 6.0.
+ *
+ * \note \c CFLAGS must be set to a minimum of \c -march=armv8-a+crypto for
+ * armclang <= 6.9
  *
  * \warning MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY cannot be defined at the same
  * time as MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT.
@@ -3216,8 +3231,11 @@
  * \note If MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT is defined when building
  * for a non-Aarch64 build it will be silently ignored.
  *
- * \note The code uses the SHA-512 Neon intrinsics, so requires GCC >= 8 or
- * Clang >= 7.
+ * \note    Minimum compiler versions for this feature are Clang 7.0,
+ * armclang 6.9 or GCC 8.0.
+ *
+ * \note \c CFLAGS must be set to a minimum of \c -march=armv8.2-a+sha3 for
+ * armclang 6.9
  *
  * \warning MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT cannot be defined at the
  * same time as MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY.
@@ -3241,8 +3259,11 @@
  * \note This allows builds with a smaller code size than with
  * MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
  *
- * \note The code uses the SHA-512 Neon intrinsics, so requires GCC >= 8 or
- * Clang >= 7.
+ * \note    Minimum compiler versions for this feature are Clang 7.0,
+ * armclang 6.9 or GCC 8.0.
+ *
+ * \note \c CFLAGS must be set to a minimum of \c -march=armv8.2-a+sha3 for
+ * armclang 6.9
  *
  * \warning MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY cannot be defined at the same
  * time as MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT.

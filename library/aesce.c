@@ -66,8 +66,22 @@
 #   endif
 #endif
 
-#if !defined(__ARM_FEATURE_AES) || defined(MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG)
-#   if defined(__clang__)
+#ifdef __ARM_NEON
+#include <arm_neon.h>
+#else
+#error "Target does not support NEON instructions"
+#endif
+
+#if !(defined(__ARM_FEATURE_CRYPTO) || defined(__ARM_FEATURE_AES)) || \
+    defined(MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG)
+#   if defined(__ARMCOMPILER_VERSION)
+#       if __ARMCOMPILER_VERSION <= 6090000
+#           error "Must use minimum -march=armv8-a+crypto for MBEDTLS_AESCE_C"
+#       else
+#           pragma clang attribute push (__attribute__((target("aes"))), apply_to=function)
+#           define MBEDTLS_POP_TARGET_PRAGMA
+#       endif
+#   elif defined(__clang__)
 #       pragma clang attribute push (__attribute__((target("aes"))), apply_to=function)
 #       define MBEDTLS_POP_TARGET_PRAGMA
 #   elif defined(__GNUC__)
@@ -77,9 +91,8 @@
 #   elif defined(_MSC_VER)
 #       error "Required feature(__ARM_FEATURE_AES) is not enabled."
 #   endif
-#endif /* !__ARM_FEATURE_AES || MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG */
-
-#include <arm_neon.h>
+#endif /* !(__ARM_FEATURE_CRYPTO || __ARM_FEATURE_AES) ||
+          MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG */
 
 #if defined(__linux__)
 #include <asm/hwcap.h>

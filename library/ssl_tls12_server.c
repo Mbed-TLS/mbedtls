@@ -1166,7 +1166,8 @@ read_record_header:
      */
     MBEDTLS_SSL_DEBUG_BUF(3, "client hello, version", buf, 2);
 
-    ssl->tls_version = mbedtls_ssl_read_version(buf, ssl->conf->transport);
+    ssl->tls_version = (mbedtls_ssl_protocol_version) mbedtls_ssl_read_version(buf,
+                                                                               ssl->conf->transport);
     ssl->session_negotiate->tls_version = ssl->tls_version;
 
     if (ssl->tls_version != MBEDTLS_SSL_VERSION_TLS1_2) {
@@ -3798,7 +3799,8 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
 
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
         if ((ret = mbedtls_ssl_psk_derive_premaster(ssl,
-                                                    ciphersuite_info->key_exchange)) != 0) {
+                                                    (mbedtls_key_exchange_type_t) ciphersuite_info->
+                                                    key_exchange)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_psk_derive_premaster", ret);
             return ret;
         }
@@ -3830,7 +3832,8 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
 
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
         if ((ret = mbedtls_ssl_psk_derive_premaster(ssl,
-                                                    ciphersuite_info->key_exchange)) != 0) {
+                                                    (mbedtls_key_exchange_type_t) ciphersuite_info->
+                                                    key_exchange)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_psk_derive_premaster", ret);
             return ret;
         }
@@ -3871,7 +3874,8 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_DEBUG_MPI(3, "DHM: K ", &ssl->handshake->dhm_ctx.K);
 #else
         if ((ret = mbedtls_ssl_psk_derive_premaster(ssl,
-                                                    ciphersuite_info->key_exchange)) != 0) {
+                                                    (mbedtls_key_exchange_type_t) ciphersuite_info->
+                                                    key_exchange)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_psk_derive_premaster", ret);
             return ret;
         }
@@ -3971,7 +3975,8 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
                                MBEDTLS_DEBUG_ECDH_QP);
 
         if ((ret = mbedtls_ssl_psk_derive_premaster(ssl,
-                                                    ciphersuite_info->key_exchange)) != 0) {
+                                                    (mbedtls_key_exchange_type_t) ciphersuite_info->
+                                                    key_exchange)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_psk_derive_premaster", ret);
             return ret;
         }

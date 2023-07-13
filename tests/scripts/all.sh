@@ -1037,6 +1037,9 @@ component_test_default_cmake_gcc_asan_new_bignum () {
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make CFLAGS="$GLOBAL_CFLAGS -DMBEDTLS_ECP_WITH_MPI_UINT"
 
+    not grep mbedtls_ecp library/CMakeFiles/mbedcrypto.dir/ecp.c.o
+    grep mbedtls_ecp library/CMakeFiles/mbedcrypto.dir/ecp_new.c.o
+
     msg "test: main suites (inc. selftests) (ASan build)" # ~ 50s
     make test
 
@@ -1095,6 +1098,9 @@ component_test_full_cmake_gcc_asan_new_bignum () {
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make CFLAGS="$GLOBAL_CFLAGS -DMBEDTLS_ECP_WITH_MPI_UINT"
 
+    not grep mbedtls_ecp library/CMakeFiles/mbedcrypto.dir/ecp.c.o
+    grep mbedtls_ecp library/CMakeFiles/mbedcrypto.dir/ecp_new.c.o
+
     msg "test: main suites (inc. selftests) (full config, ASan build)"
     make test
 
@@ -1130,6 +1136,9 @@ component_test_full_cmake_gcc_asan_new_bignum_test_hooks () {
     scripts/config.py set MBEDTLS_TEST_HOOKS
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make CFLAGS="$GLOBAL_CFLAGS -DMBEDTLS_ECP_WITH_MPI_UINT"
+
+    not grep mbedtls_ecp library/CMakeFiles/mbedcrypto.dir/ecp.c.o
+    grep mbedtls_ecp library/CMakeFiles/mbedcrypto.dir/ecp_new.c.o
 
     msg "test: main suites (inc. selftests) (full config, ASan build)"
     make test

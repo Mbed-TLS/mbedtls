@@ -78,11 +78,11 @@
 #       if __ARMCOMPILER_VERSION <= 6090000
 #           error "Must use minimum -march=armv8-a+crypto for MBEDTLS_AESCE_C"
 #       else
-#           pragma clang attribute push (__attribute__((target("crypto,aes"))), apply_to=function)
+#           pragma clang attribute push (__attribute__((target("aes"))), apply_to=function)
 #           define MBEDTLS_POP_TARGET_PRAGMA
 #       endif
 #   elif defined(__clang__)
-#       pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
+#       pragma clang attribute push (__attribute__((target("aes"))), apply_to=function)
 #       define MBEDTLS_POP_TARGET_PRAGMA
 #   elif defined(__GNUC__)
 #       pragma GCC push_options

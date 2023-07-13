@@ -174,7 +174,7 @@ int mbedtls_gcm_setkey(mbedtls_gcm_context *ctx,
  *      last4[x] = x times P^128
  * where x and last4[x] are seen as elements of GF(2^128) as in [MGV]
  */
-static const uint64_t last4[16] =
+static const uint16_t last4[16] =
 {
     0x0000, 0x1c20, 0x3840, 0x2460,
     0x7080, 0x6ca0, 0x48c0, 0x54e0,

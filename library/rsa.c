@@ -1266,13 +1266,13 @@ int mbedtls_rsa_rsaes_oaep_encrypt(mbedtls_rsa_context *ctx,
 
     /* maskedDB: Apply dbMask to DB */
     if ((ret = mgf_mask(output + hlen + 1, olen - hlen - 1, output + 1, hlen,
-                        ctx->hash_id)) != 0) {
+                        (mbedtls_md_type_t) ctx->hash_id)) != 0) {
         return ret;
     }
 
     /* maskedSeed: Apply seedMask to seed */
     if ((ret = mgf_mask(output + 1, hlen, output + hlen + 1, olen - hlen - 1,
-                        ctx->hash_id)) != 0) {
+                        (mbedtls_md_type_t) ctx->hash_id)) != 0) {
         return ret;
     }
 
@@ -1420,10 +1420,10 @@ int mbedtls_rsa_rsaes_oaep_decrypt(mbedtls_rsa_context *ctx,
      */
     /* seed: Apply seedMask to maskedSeed */
     if ((ret = mgf_mask(buf + 1, hlen, buf + hlen + 1, ilen - hlen - 1,
-                        ctx->hash_id)) != 0 ||
+                        (mbedtls_md_type_t) ctx->hash_id)) != 0 ||
         /* DB: Apply dbMask to maskedDB */
         (ret = mgf_mask(buf + hlen + 1, ilen - hlen - 1, buf + 1, hlen,
-                        ctx->hash_id)) != 0) {
+                        (mbedtls_md_type_t) ctx->hash_id)) != 0) {
         goto cleanup;
     }
 
@@ -1649,7 +1649,7 @@ static int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
     p += slen;
 
     /* Generate H = Hash( M' ) */
-    ret = hash_mprime(hash, hashlen, salt, slen, p, ctx->hash_id);
+    ret = hash_mprime(hash, hashlen, salt, slen, p, (mbedtls_md_type_t) ctx->hash_id);
     if (ret != 0) {
         return ret;
     }
@@ -1661,7 +1661,7 @@ static int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
 
     /* maskedDB: Apply dbMask to DB */
     ret = mgf_mask(sig + offset, olen - hlen - 1 - offset, p, hlen,
-                   ctx->hash_id);
+                   (mbedtls_md_type_t) ctx->hash_id);
     if (ret != 0) {
         return ret;
     }

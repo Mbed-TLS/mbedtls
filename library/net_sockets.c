@@ -49,11 +49,6 @@
 
 #define IS_EINTR(ret) ((ret) == WSAEINTR)
 
-#if !defined(_WIN32_WINNT)
-/* Enables getaddrinfo() & Co */
-#define _WIN32_WINNT 0x0501
-#endif
-
 #include <ws2tcpip.h>
 
 #include <winsock2.h>

@@ -60,9 +60,6 @@
 #if defined(MBEDTLS_HAVE_TIME)
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 #define WIN32_LEAN_AND_MEAN
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
 #include <windows.h>
 #else
 #include <time.h>
@@ -1539,6 +1536,7 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
 {
     int ret = 0;
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
+#if _WIN32_WINNT >= 0x0501 /* _WIN32_WINNT_XP */
     int w_ret;
     WCHAR szDir[MAX_PATH];
     char filename[MAX_PATH];
@@ -1601,6 +1599,9 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
 
 cleanup:
     FindClose(hFind);
+#else /* !_WIN32_WINNT_XP */
+#error mbedtls_x509_crt_parse_path not available before Windows XP
+#endif /* !_WIN32_WINNT_XP */
 #else /* _WIN32 */
     int t_ret;
     int snp_ret;
@@ -2704,6 +2705,9 @@ find_parent:
 #elif (defined(__MINGW32__) || defined(__MINGW64__)) && _WIN32_WINNT >= 0x0600
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#else
+/* inet_pton() is not supported, fallback to software version */
+#define MBEDTLS_TEST_SW_INET_PTON
 #endif
 #elif defined(__sun)
 /* Solaris requires -lsocket -lnsl for inet_pton() */

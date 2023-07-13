@@ -29,9 +29,29 @@ CMAC init #6 AES-0: bad key size
 depends_on:MBEDTLS_AES_C
 mbedtls_cmac_setkey:MBEDTLS_CIPHER_AES_128_ECB:0:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
 
-CMAC init #7 Camellia: wrong cipher
+CMAC init Camellia-128: wrong cipher
 depends_on:MBEDTLS_CAMELLIA_C
-mbedtls_cmac_setkey:MBEDTLS_CIPHER_CAMELLIA_192_ECB:128:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+mbedtls_cmac_setkey:MBEDTLS_CIPHER_CAMELLIA_128_ECB:128:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+
+CMAC init Camellia-192: wrong cipher
+depends_on:MBEDTLS_CAMELLIA_C
+mbedtls_cmac_setkey:MBEDTLS_CIPHER_CAMELLIA_192_ECB:192:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+
+CMAC init Camellia-256: wrong cipher
+depends_on:MBEDTLS_CAMELLIA_C
+mbedtls_cmac_setkey:MBEDTLS_CIPHER_CAMELLIA_256_ECB:256:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+
+CMAC init #8 ARIA-128: wrong cipher
+depends_on:MBEDTLS_ARIA_C
+mbedtls_cmac_setkey:MBEDTLS_CIPHER_ARIA_128_ECB:128:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+
+CMAC init #8 ARIA-192: wrong cipher
+depends_on:MBEDTLS_ARIA_C
+mbedtls_cmac_setkey:MBEDTLS_CIPHER_ARIA_192_ECB:192:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+
+CMAC init #8 ARIA-256: wrong cipher
+depends_on:MBEDTLS_ARIA_C
+mbedtls_cmac_setkey:MBEDTLS_CIPHER_ARIA_256_ECB:256:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
 
 CMAC Single Blocks #1 - Empty block, no updates
 depends_on:MBEDTLS_AES_C

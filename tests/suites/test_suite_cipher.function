@@ -63,6 +63,9 @@ static int check_cipher_info(mbedtls_cipher_type_t type,
                     key_bitlen == 192 ||
                     key_bitlen == 256);
     }
+    TEST_LE_U(key_bitlen, MBEDTLS_MAX_KEY_LENGTH * 8);
+    TEST_LE_U(block_size, MBEDTLS_MAX_BLOCK_LENGTH);
+    TEST_LE_U(iv_size, MBEDTLS_MAX_IV_LENGTH);
 
     if (strstr(info->name, "-ECB") != NULL) {
         TEST_ASSERT(iv_size == 0);

@@ -61,6 +61,16 @@
         }                                                    \
     } while (0)
 
+/** This macro asserts fails the test with given output message.
+ *
+ * \param   MESSAGE The message to be outputed on assertion
+ */
+#define ASSERT_FALSE(MESSAGE)                           \
+    do {                                                  \
+        mbedtls_test_fail(MESSAGE, __LINE__, __FILE__);   \
+        goto exit;                                          \
+    } while (0)                                              \
+
 /** Evaluate two integer expressions and fail the test case if they have
  * different values.
  *
@@ -73,7 +83,7 @@
 #define TEST_EQUAL(expr1, expr2)                                      \
     do {                                                                \
         if (!mbedtls_test_equal( #expr1 " == " #expr2, __LINE__, __FILE__, \
-                                 expr1, expr2))                      \
+                                 (unsigned long long) (expr1), (unsigned long long) (expr2)))                      \
         goto exit;                                                  \
     } while (0)
 
@@ -190,12 +200,21 @@
         }                                                   \
     } while (0)
 
+#if defined(MBEDTLS_FS_IO)
 #define TEST_HELPER_ASSERT(a) if (!(a))                          \
     {                                                                   \
         mbedtls_fprintf(stderr, "Assertion Failed at %s:%d - %s\n",    \
                         __FILE__, __LINE__, #a);              \
         mbedtls_exit(1);                                              \
     }
+#else
+#define TEST_HELPER_ASSERT(a) if (!(a))                          \
+    {                                                                   \
+        mbedtls_printf("Assertion Failed at %s:%d - %s\n",    \
+                       __FILE__, __LINE__, #a);              \
+        mbedtls_exit(1);                                              \
+    }
+#endif
 
 /** Return the smaller of two values.
  *

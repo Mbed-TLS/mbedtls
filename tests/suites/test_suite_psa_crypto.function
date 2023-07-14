@@ -8780,7 +8780,7 @@ void derive_output(int alg_arg,
                         }
                         break;
                     default:
-                        TEST_ASSERT(!"default case not supported");
+                        ASSERT_FALSE("default case not supported");
                         break;
                 }
                 break;
@@ -8830,7 +8830,7 @@ void derive_output(int alg_arg,
                                        key_agreement_peer_key->len), statuses[i]);
                         break;
                     default:
-                        TEST_ASSERT(!"default case not supported");
+                        ASSERT_FALSE("default case not supported");
                         break;
                 }
 
@@ -9822,7 +9822,7 @@ void persistent_key_load_key_from_storage(data_t *data,
             break;
 
         default:
-            TEST_ASSERT(!"generation_method not implemented in test");
+            ASSERT_FALSE("generation_method not implemented in test");
             break;
     }
     psa_reset_key_attributes(&attributes);

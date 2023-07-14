@@ -92,9 +92,16 @@ typedef int32_t   mbedtls_ct_int_t;
 
 /* constant_time_impl.h contains all the static inline implementations,
  * so that constant_time_internal.h is more readable.
+ *
+ * gcc generates warnings about duplicate declarations, so disable this
+ * warning.
  */
-#include "constant_time_impl.h"
+#ifdef __GNUC__
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wredundant-decls"
+#endif
 
+#include "constant_time_impl.h"
 
 /* ============================================================================
  * Boolean operations
@@ -472,5 +479,9 @@ void mbedtls_ct_memcpy_offset(unsigned char *dest,
 int mbedtls_ct_memcmp(const void *a,
                       const void *b,
                       size_t n);
+
+#ifdef __GNUC__
+    #pragma GCC diagnostic pop
+#endif
 
 #endif /* MBEDTLS_CONSTANT_TIME_INTERNAL_H */

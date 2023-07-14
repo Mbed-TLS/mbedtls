@@ -61,6 +61,16 @@
         }                                                    \
     } while (0)
 
+/** This macro asserts fails the test with given output message.
+ *
+ * \param   MESSAGE The message to be outputed on assertion
+ */
+#define ASSERT_FALSE(MESSAGE)                           \
+    do {                                                  \
+        mbedtls_test_fail(MESSAGE, __LINE__, __FILE__);   \
+        goto exit;                                          \
+    } while (0)                                              \
+
 /** Evaluate two integer expressions and fail the test case if they have
  * different values.
  *

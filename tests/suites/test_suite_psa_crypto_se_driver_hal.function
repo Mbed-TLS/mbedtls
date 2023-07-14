@@ -1328,7 +1328,7 @@ void sign_verify(int flow,
             key_management.p_export_public = ram_export_public;
             break;
         default:
-            TEST_ASSERT(!"unsupported flow (should be SIGN_IN_xxx)");
+            ASSERT_FALSE("unsupported flow (should be SIGN_IN_xxx)");
             break;
     }
     asymmetric.p_verify = ram_verify;

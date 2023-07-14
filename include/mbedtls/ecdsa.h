@@ -454,7 +454,7 @@ int mbedtls_ecdsa_write_signature_restartable(mbedtls_ecdsa_context *ctx,
  *                  and have a group and private key bound to it, for example
  *                  via mbedtls_ecdsa_genkey() or mbedtls_ecdsa_from_keypair().
  * \param hash      The message hash to be signed. This must be a readable
- *                  buffer of length \p blen Bytes.
+ *                  buffer of length \p hlen Bytes.
  * \param hlen      The length of the hash \p hash in Bytes.
  * \param sig       The buffer to which to write the signature. This must be a
  *                  writable buffer of length at least twice as large as the

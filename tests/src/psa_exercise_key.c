@@ -692,7 +692,7 @@ int mbedtls_test_psa_exported_key_sanity_check(
         TEST_EQUAL(mbedtls_asn1_get_tag(&p, end, &len,
                                         MBEDTLS_ASN1_SEQUENCE |
                                         MBEDTLS_ASN1_CONSTRUCTED), 0);
-        TEST_EQUAL(len, end - p);
+        TEST_EQUAL(len, (uintptr_t) end - (uintptr_t) p);
         if (!mbedtls_test_asn1_skip_integer(&p, end, 0, 0, 0)) {
             goto exit;
         }
@@ -722,7 +722,7 @@ int mbedtls_test_psa_exported_key_sanity_check(
         if (!mbedtls_test_asn1_skip_integer(&p, end, 1, bits / 2 + 1, 0)) {
             goto exit;
         }
-        TEST_EQUAL(p - end, 0);
+        TEST_EQUAL((uintptr_t) p - (uintptr_t) end, 0);
 
         TEST_ASSERT(exported_length <= PSA_EXPORT_KEY_PAIR_MAX_SIZE);
     } else
@@ -748,14 +748,14 @@ int mbedtls_test_psa_exported_key_sanity_check(
                                         MBEDTLS_ASN1_SEQUENCE |
                                         MBEDTLS_ASN1_CONSTRUCTED),
                    0);
-        TEST_EQUAL(len, end - p);
+        TEST_EQUAL(len, (uintptr_t) end - (uintptr_t) p);
         if (!mbedtls_test_asn1_skip_integer(&p, end, bits, bits, 1)) {
             goto exit;
         }
         if (!mbedtls_test_asn1_skip_integer(&p, end, 2, bits, 1)) {
             goto exit;
         }
-        TEST_EQUAL(p - end, 0);
+        TEST_EQUAL((uintptr_t) p - (uintptr_t) end, 0);
 
 
         TEST_ASSERT(exported_length <=

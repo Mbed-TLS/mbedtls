@@ -537,7 +537,7 @@ int mbedtls_rsa_check_pub_priv(const mbedtls_rsa_context *pub,
  * \note           This function does not handle message padding.
  *
  * \note           Make sure to set \p input[0] = 0 or ensure that
- *                 input is smaller than \p N.
+ *                 input is smaller than \c N.
  *
  * \return         \c 0 on success.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -1109,8 +1109,8 @@ int mbedtls_rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
  *                 verification using the mode from the context.
  *
  * \note           For PKCS#1 v2.1 encoding, see comments on
- *                 mbedtls_rsa_rsassa_pss_verify() about \p md_alg and
- *                 \p hash_id.
+ *                 mbedtls_rsa_rsassa_pss_verify() about \c md_alg and
+ *                 \c hash_id.
  *
  * \deprecated     It is deprecated and discouraged to call this function
  *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library

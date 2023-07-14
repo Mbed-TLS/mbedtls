@@ -344,7 +344,7 @@ int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp,
  *                  via mbedtls_ecdsa_genkey() or mbedtls_ecdsa_from_keypair().
  * \param md_alg    The message digest that was used to hash the message.
  * \param hash      The message hash to be signed. This must be a readable
- *                  buffer of length \p blen Bytes.
+ *                  buffer of length \p hlen Bytes.
  * \param hlen      The length of the hash \p hash in Bytes.
  * \param sig       The buffer to which to write the signature. This must be a
  *                  writable buffer of length at least twice as large as the
@@ -386,7 +386,7 @@ int mbedtls_ecdsa_write_signature(mbedtls_ecdsa_context *ctx,
  *                  via mbedtls_ecdsa_genkey() or mbedtls_ecdsa_from_keypair().
  * \param md_alg    The message digest that was used to hash the message.
  * \param hash      The message hash to be signed. This must be a readable
- *                  buffer of length \p blen Bytes.
+ *                  buffer of length \p hlen Bytes.
  * \param hlen      The length of the hash \p hash in Bytes.
  * \param sig       The buffer to which to write the signature. This must be a
  *                  writable buffer of length at least twice as large as the
@@ -490,7 +490,7 @@ int mbedtls_ecdsa_write_signature_det(mbedtls_ecdsa_context *ctx,
  * \param ctx       The ECDSA context to use. This must be initialized
  *                  and have a group and public key bound to it.
  * \param hash      The message hash that was signed. This must be a readable
- *                  buffer of length \p size Bytes.
+ *                  buffer of length \p hlen Bytes.
  * \param hlen      The size of the hash \p hash.
  * \param sig       The signature to read and verify. This must be a readable
  *                  buffer of length \p slen Bytes.
@@ -520,7 +520,7 @@ int mbedtls_ecdsa_read_signature(mbedtls_ecdsa_context *ctx,
  * \param ctx       The ECDSA context to use. This must be initialized
  *                  and have a group and public key bound to it.
  * \param hash      The message hash that was signed. This must be a readable
- *                  buffer of length \p size Bytes.
+ *                  buffer of length \p hlen Bytes.
  * \param hlen      The size of the hash \p hash.
  * \param sig       The signature to read and verify. This must be a readable
  *                  buffer of length \p slen Bytes.

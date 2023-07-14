@@ -242,7 +242,11 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 /* Define `asm` for compilers which don't define it. */
 /* *INDENT-OFF* */
 #ifndef asm
+#if defined(__IAR_SYSTEMS_ICC__)
+#define asm __asm
+#else 
 #define asm __asm__
+#endif
 #endif
 /* *INDENT-ON* */
 

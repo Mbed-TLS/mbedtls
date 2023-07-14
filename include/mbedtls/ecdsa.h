@@ -266,8 +266,9 @@ int mbedtls_ecdsa_sign_det(mbedtls_ecp_group *grp, mbedtls_mpi *r,
  * \param md_alg        The hash algorithm used to hash the original data.
  * \param f_rng_blind   The RNG function used for blinding. This must not be
  *                      \c NULL.
- * \param p_rng_blind   The RNG context to be passed to \p f_rng. This may be
- *                      \c NULL if \p f_rng doesn't need a context parameter.
+ * \param p_rng_blind   The RNG context to be passed to \p f_rng_blind. This
+ *                      may be \c NULL if \p f_rng_blind doesn't need
+ *                      a context parameter.
  *
  * \return          \c 0 on success.
  * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX

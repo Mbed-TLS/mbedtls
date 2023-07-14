@@ -135,6 +135,15 @@ extern "C" {
 #endif
 #endif /* MBEDTLS_PLATFORM_NO_STD_FUNCTIONS */
 
+/* Enable certain documented defines only when generating doxygen to avoid
+ * an "unrecognized define" error. */
+#if defined(__DOXYGEN__) && !defined(MBEDTLS_PLATFORM_STD_CALLOC)
+#define MBEDTLS_PLATFORM_STD_CALLOC
+#endif
+
+#if defined(__DOXYGEN__) && !defined(MBEDTLS_PLATFORM_STD_FREE)
+#define MBEDTLS_PLATFORM_STD_FREE
+#endif
 
 /** \} name SECTION: Module settings */
 

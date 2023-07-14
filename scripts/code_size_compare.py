@@ -125,16 +125,17 @@ class CodeSizeInfo: # pylint: disable=too-few-public-methods
                 print(comb)
             sys.exit(1)
 
-class SizeEntry: # pylint: disable=too-few-public-methods
-    """Data Structure to only store information of code size."""
-    def __init__(self, text, data, bss, dec):
-        self.text = text
-        self.data = data
-        self.bss = bss
-        self.total = dec # total <=> dec
 
-class CodeSizeBase:
+class CodeSizeGeneratorWithSize:
     """Code Size Base Class for size record saving and writing."""
+
+    class SizeEntry: # pylint: disable=too-few-public-methods
+        """Data Structure to only store information of code size."""
+        def __init__(self, text, data, bss, dec):
+            self.text = text
+            self.data = data
+            self.bss = bss
+            self.total = dec # total <=> dec
 
     def __init__(self) -> None:
         """ Variable code_size is used to store size info for any revisions.
@@ -157,7 +158,8 @@ class CodeSizeBase:
         size_record = {}
         for line in size_text.splitlines()[1:]:
             data = line.split()
-            size_record[data[5]] = SizeEntry(data[0], data[1], data[2], data[3])
+            size_record[data[5]] = CodeSizeGeneratorWithSize.SizeEntry(\
+                    data[0], data[1], data[2], data[3])
         if revision in self.code_size:
             self.code_size[revision].update({mod: size_record})
         else:
@@ -180,7 +182,8 @@ class CodeSizeBase:
 
                 if mod:
                     size_record[data[0]] = \
-                        SizeEntry(data[1], data[2], data[3], data[4])
+                        CodeSizeGeneratorWithSize.SizeEntry(\
+                        data[1], data[2], data[3], data[4])
 
                 # check if we hit record for the end of a module
                 m = re.match(r'.?TOTALS', line)
@@ -247,7 +250,7 @@ class CodeSizeBase:
                 output.write("{} {}\n".format(fname, new_size))
 
 
-class CodeSizeComparison(CodeSizeBase):
+class CodeSizeComparison:
     """Compare code size between two Git revisions."""
 
     def __init__(
@@ -278,6 +281,7 @@ class CodeSizeComparison(CodeSizeBase):
         self.make_command = code_size_info.make_command
         self.fname_suffix = "-" + code_size_info.arch + "-" +\
                             code_size_info.config
+        self.code_size_generator = CodeSizeGeneratorWithSize()
 
     @staticmethod
     def validate_revision(revision: str) -> bytes:
@@ -336,12 +340,12 @@ class CodeSizeComparison(CodeSizeBase):
                 self._handle_called_process_error(e, git_worktree_path)
             size_text = result.decode("utf-8")
 
-            self.set_size_record(revision, mod, size_text)
+            self.code_size_generator.set_size_record(revision, mod, size_text)
 
         print("Generating code size csv for", revision)
         csv_file = open(os.path.join(self.csv_dir, revision +
                                      self.fname_suffix + ".csv"), "w")
-        self.write_size_record(revision, csv_file)
+        self.code_size_generator.write_size_record(revision, csv_file)
 
     def _remove_worktree(self, git_worktree_path: str) -> None:
         """Remove temporary worktree."""
@@ -361,7 +365,8 @@ class CodeSizeComparison(CodeSizeBase):
         if (revision != "current") and \
            os.path.exists(os.path.join(self.csv_dir, csv_fname)):
             print("Code size csv file for", revision, "already exists.")
-            self.read_size_record(revision, os.path.join(self.csv_dir, csv_fname))
+            self.code_size_generator.read_size_record(revision,\
+                    os.path.join(self.csv_dir, csv_fname))
         else:
             git_worktree_path = self._create_git_worktree(revision)
             self._build_libraries(git_worktree_path)
@@ -380,7 +385,7 @@ class CodeSizeComparison(CodeSizeBase):
 
         print("\nGenerating comparison results between",\
                 self.old_rev, "and", self.new_rev)
-        self.write_comparison(self.old_rev, self.new_rev, res_file)
+        self.code_size_generator.write_comparison(self.old_rev, self.new_rev, res_file)
 
         return 0
 

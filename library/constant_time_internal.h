@@ -74,21 +74,21 @@
 typedef size_t    mbedtls_ct_condition_t;
 typedef size_t    mbedtls_ct_uint_t;
 typedef ptrdiff_t mbedtls_ct_int_t;
-#define MBEDTLS_CT_TRUE  ((mbedtls_ct_condition_t) SIZE_MAX)
+#define MBEDTLS_CT_TRUE  ((mbedtls_ct_condition_t) mbedtls_ct_compiler_opaque(SIZE_MAX))
 #elif (SIZE_MAX > 0xffffffff) || defined(MBEDTLS_HAVE_INT64)
 /* 32-bit < pointer size <= 64-bit, or 64-bit MPI */
 typedef uint64_t  mbedtls_ct_condition_t;
 typedef uint64_t  mbedtls_ct_uint_t;
 typedef int64_t   mbedtls_ct_int_t;
-#define MBEDTLS_CT_TRUE  ((mbedtls_ct_condition_t) UINT64_MAX)
+#define MBEDTLS_CT_TRUE  ((mbedtls_ct_condition_t) mbedtls_ct_compiler_opaque(UINT64_MAX))
 #else
 /* Pointer size <= 32-bit, and no 64-bit MPIs */
 typedef uint32_t  mbedtls_ct_condition_t;
 typedef uint32_t  mbedtls_ct_uint_t;
 typedef int32_t   mbedtls_ct_int_t;
-#define MBEDTLS_CT_TRUE  ((mbedtls_ct_condition_t) UINT32_MAX)
+#define MBEDTLS_CT_TRUE  ((mbedtls_ct_condition_t) mbedtls_ct_compiler_opaque(UINT32_MAX))
 #endif
-#define MBEDTLS_CT_FALSE ((mbedtls_ct_condition_t) 0)
+#define MBEDTLS_CT_FALSE ((mbedtls_ct_condition_t) mbedtls_ct_compiler_opaque(0))
 
 /* constant_time_impl.h contains all the static inline implementations,
  * so that constant_time_internal.h is more readable.

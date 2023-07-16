@@ -28,7 +28,7 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 #include "psa/crypto.h"
 #endif
 
@@ -615,7 +615,6 @@ int mbedtls_pk_sign(mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
                     unsigned char *sig, size_t sig_size, size_t *sig_len,
                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng);
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
 /**
  * \brief           Make signature given a signature type.
  *
@@ -652,7 +651,6 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
                         unsigned char *sig, size_t sig_size, size_t *sig_len,
                         int (*f_rng)(void *, unsigned char *, size_t),
                         void *p_rng);
-#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 /**
  * \brief           Restartable version of \c mbedtls_pk_sign()

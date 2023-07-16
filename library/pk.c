@@ -579,7 +579,7 @@ int mbedtls_pk_verify_ext(mbedtls_pk_type_t type, const void *options,
 
         return PSA_PK_RSA_TO_MBEDTLS_ERR(status);
     } else
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     {
         if (sig_len < mbedtls_pk_get_len(ctx)) {
             return MBEDTLS_ERR_RSA_VERIFY_FAILED;
@@ -672,7 +672,6 @@ int mbedtls_pk_sign(mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
                                        f_rng, p_rng, NULL);
 }
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
 /*
  * Make a signature given a signature type.
  */
@@ -684,11 +683,6 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
                         int (*f_rng)(void *, unsigned char *, size_t),
                         void *p_rng)
 {
-#if defined(MBEDTLS_RSA_C)
-    psa_algorithm_t psa_md_alg;
-#endif /* MBEDTLS_RSA_C */
-    *sig_len = 0;
-
     if (ctx->pk_info == NULL) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
@@ -702,8 +696,10 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
                                sig, sig_size, sig_len, f_rng, p_rng);
     }
 
-#if defined(MBEDTLS_RSA_C)
-    psa_md_alg = mbedtls_md_psa_alg_from_type(md_alg);
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PKCS1_V21)
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    const psa_algorithm_t psa_md_alg = mbedtls_md_psa_alg_from_type(md_alg);
     if (psa_md_alg == 0) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
@@ -720,12 +716,31 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
     return mbedtls_pk_psa_rsa_sign_ext(PSA_ALG_RSA_PSS(psa_md_alg),
                                        ctx->pk_ctx, hash, hash_len,
                                        sig, sig_size, sig_len);
-#else /* MBEDTLS_RSA_C */
-    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-#endif /* !MBEDTLS_RSA_C */
+#else /* MBEDTLS_USE_PSA_CRYPTO */
 
+    if (sig_size < mbedtls_pk_get_len(ctx)) {
+        return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
+    }
+
+    if (pk_hashlen_helper(md_alg, &hash_len) != 0) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
+
+    mbedtls_rsa_context *const rsa_ctx = mbedtls_pk_rsa(*ctx);
+
+    const int ret = mbedtls_rsa_rsassa_pss_sign(rsa_ctx, f_rng, p_rng, md_alg,
+                                                (unsigned int) hash_len, hash, sig);
+    if (ret == 0) {
+        *sig_len = rsa_ctx->len;
+    }
+    return ret;
+
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+#else
+    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+#endif /* MBEDTLS_RSA_C && MBEDTLS_PKCS1_V21 */
 }
-#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 /*
  * Decrypt message

@@ -1,0 +1,4 @@
+Changes
+   * mbedtls_pk_sign_ext() is now available even without PSA
+     (MBEDTLS_PSA_CRYPTO_C). This improves uniformity in the PK module;
+     it now only depends on MBEDTLS_USE_PSA_CRYPTO for its use of PSA.

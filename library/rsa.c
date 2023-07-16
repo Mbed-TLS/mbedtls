@@ -1282,7 +1282,7 @@ int mbedtls_rsa_rsaes_oaep_encrypt(mbedtls_rsa_context *ctx,
 
 #if defined(MBEDTLS_PKCS1_V15)
 /*
- * Implementation of the PKCS#1 v2.1 RSAES-PKCS1-V1_5-ENCRYPT function
+ * Implementation of the PKCS#1 v1.5 RSAES-PKCS1-V1_5-ENCRYPT function
  */
 int mbedtls_rsa_rsaes_pkcs1_v15_encrypt(mbedtls_rsa_context *ctx,
                                         int (*f_rng)(void *, unsigned char *, size_t),
@@ -1493,7 +1493,7 @@ cleanup:
 
 #if defined(MBEDTLS_PKCS1_V15)
 /*
- * Implementation of the PKCS#1 v2.1 RSAES-PKCS1-V1_5-DECRYPT function
+ * Implementation of the PKCS#1 v1.5 RSAES-PKCS1-V1_5-DECRYPT function
  */
 int mbedtls_rsa_rsaes_pkcs1_v15_decrypt(mbedtls_rsa_context *ctx,
                                         int (*f_rng)(void *, unsigned char *, size_t),
@@ -1711,7 +1711,7 @@ int mbedtls_rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
 
 #if defined(MBEDTLS_PKCS1_V15)
 /*
- * Implementation of the PKCS#1 v2.1 RSASSA-PKCS1-V1_5-SIGN function
+ * Implementation of the PKCS#1 v1.5 RSASSA-PKCS1-V1_5-SIGN function
  */
 
 /* Construct a PKCS v1.5 encoding of a hashed message
@@ -2097,7 +2097,7 @@ int mbedtls_rsa_rsassa_pss_verify(mbedtls_rsa_context *ctx,
 
 #if defined(MBEDTLS_PKCS1_V15)
 /*
- * Implementation of the PKCS#1 v2.1 RSASSA-PKCS1-v1_5-VERIFY function
+ * Implementation of the PKCS#1 v1.5 RSASSA-PKCS1-v1_5-VERIFY function
  */
 int mbedtls_rsa_rsassa_pkcs1_v15_verify(mbedtls_rsa_context *ctx,
                                         mbedtls_md_type_t md_alg,

@@ -396,6 +396,16 @@ void pk_invalid_param()
                                            buf, buf_size, &buf_size,
                                            NULL, NULL,
                                            NULL));
+    TEST_EQUAL(MBEDTLS_ERR_PK_BAD_INPUT_DATA,
+               mbedtls_pk_sign_ext(pk_type, &ctx, MBEDTLS_MD_NONE,
+                                   NULL, buf_size,
+                                   buf, buf_size, &buf_size,
+                                   NULL, NULL));
+    TEST_EQUAL(MBEDTLS_ERR_PK_BAD_INPUT_DATA,
+               mbedtls_pk_sign_ext(pk_type, &ctx, MBEDTLS_MD_SHA256,
+                                   NULL, 0,
+                                   buf, buf_size, &buf_size,
+                                   NULL, NULL));
 exit:
     mbedtls_pk_free(&ctx);
     USE_PSA_DONE();
@@ -432,19 +442,18 @@ void valid_parameters()
                                             NULL) ==
                 MBEDTLS_ERR_PK_BAD_INPUT_DATA);
 
-    TEST_ASSERT(mbedtls_pk_sign_restartable(&pk,
-                                            MBEDTLS_MD_NONE,
-                                            NULL, 0,
-                                            buf, sizeof(buf), &len,
-                                            mbedtls_test_rnd_std_rand, NULL,
-                                            NULL) ==
-                MBEDTLS_ERR_PK_BAD_INPUT_DATA);
-
     TEST_ASSERT(mbedtls_pk_sign(&pk,
                                 MBEDTLS_MD_NONE,
                                 NULL, 0,
                                 buf, sizeof(buf), &len,
                                 mbedtls_test_rnd_std_rand, NULL) ==
+                MBEDTLS_ERR_PK_BAD_INPUT_DATA);
+
+    TEST_ASSERT(mbedtls_pk_sign_ext(MBEDTLS_PK_NONE, &pk,
+                                    MBEDTLS_MD_NONE,
+                                    NULL, 0,
+                                    buf, sizeof(buf), &len,
+                                    mbedtls_test_rnd_std_rand, NULL) ==
                 MBEDTLS_ERR_PK_BAD_INPUT_DATA);
 
     TEST_ASSERT(mbedtls_pk_verify_restartable(&pk,
@@ -1164,22 +1173,31 @@ void pk_rsa_overflow()
     memset(hash, 0x2a, sizeof(hash));
     memset(sig, 0, sizeof(sig));
 
-    TEST_ASSERT(mbedtls_pk_setup(&pk,
-                                 mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)) == 0);
+    TEST_EQUAL(mbedtls_pk_setup(&pk,
+                                mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)), 0);
 
 #if defined(MBEDTLS_PKCS1_V21)
-    TEST_ASSERT(mbedtls_pk_verify_ext(MBEDTLS_PK_RSASSA_PSS, NULL, &pk,
-                                      MBEDTLS_MD_NONE, hash, hash_len, sig, sig_len) ==
-                MBEDTLS_ERR_PK_BAD_INPUT_DATA);
+    TEST_EQUAL(mbedtls_pk_verify_ext(MBEDTLS_PK_RSASSA_PSS, NULL, &pk,
+                                     MBEDTLS_MD_NONE, hash, hash_len, sig, sig_len),
+               MBEDTLS_ERR_PK_BAD_INPUT_DATA);
 #endif /* MBEDTLS_PKCS1_V21 */
 
-    TEST_ASSERT(mbedtls_pk_verify(&pk, MBEDTLS_MD_NONE, hash, hash_len,
-                                  sig, sig_len) == MBEDTLS_ERR_PK_BAD_INPUT_DATA);
+    TEST_EQUAL(mbedtls_pk_verify(&pk, MBEDTLS_MD_NONE, hash, hash_len,
+                                 sig, sig_len),
+               MBEDTLS_ERR_PK_BAD_INPUT_DATA);
 
-    TEST_ASSERT(mbedtls_pk_sign(&pk, MBEDTLS_MD_NONE, hash, hash_len,
-                                sig, sizeof(sig), &sig_len,
-                                mbedtls_test_rnd_std_rand, NULL)
-                == MBEDTLS_ERR_PK_BAD_INPUT_DATA);
+#if defined(MBEDTLS_PKCS1_V21)
+    TEST_EQUAL(mbedtls_pk_sign_ext(MBEDTLS_PK_RSASSA_PSS, &pk,
+                                   MBEDTLS_MD_NONE, hash, hash_len,
+                                   sig, sizeof(sig), &sig_len,
+                                   mbedtls_test_rnd_std_rand, NULL),
+               MBEDTLS_ERR_PK_BAD_INPUT_DATA);
+#endif /* MBEDTLS_PKCS1_V21 */
+
+    TEST_EQUAL(mbedtls_pk_sign(&pk, MBEDTLS_MD_NONE, hash, hash_len,
+                               sig, sizeof(sig), &sig_len,
+                               mbedtls_test_rnd_std_rand, NULL),
+               MBEDTLS_ERR_PK_BAD_INPUT_DATA);
 
 exit:
     mbedtls_pk_free(&pk);
@@ -1429,14 +1447,14 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_GENPRIME */
-void pk_psa_sign_ext(int pk_type, int parameter, int key_pk_type, int md_alg)
+/* BEGIN_CASE depends_on:MBEDTLS_GENPRIME */
+void pk_sign_ext(int pk_type, int parameter, int key_pk_type, int md_alg)
 {
     /* See the description of pk_genkey() for the description of the `parameter` argument. */
     mbedtls_pk_context pk;
     size_t sig_len;
     unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
-    unsigned char hash[PSA_HASH_MAX_SIZE];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     size_t hash_len = mbedtls_md_get_size_from_type(md_alg);
     void const *options = NULL;
     mbedtls_pk_rsassa_pss_options rsassa_pss_options;
@@ -1444,16 +1462,20 @@ void pk_psa_sign_ext(int pk_type, int parameter, int key_pk_type, int md_alg)
     memset(sig, 0, sizeof(sig));
 
     mbedtls_pk_init(&pk);
-    PSA_INIT();
+    USE_PSA_INIT();
 
-    TEST_ASSERT(mbedtls_pk_setup(&pk,
-                                 mbedtls_pk_info_from_type(pk_type)) == 0);
+    TEST_EQUAL(mbedtls_pk_setup(&pk,
+                                mbedtls_pk_info_from_type(pk_type)), 0);
 
-    TEST_ASSERT(pk_genkey(&pk, parameter) == 0);
+    if (key_pk_type == MBEDTLS_PK_RSASSA_PSS) {
+        mbedtls_rsa_context *pk_rsa = mbedtls_pk_rsa(pk);
+        TEST_EQUAL(mbedtls_rsa_set_padding(pk_rsa, MBEDTLS_RSA_PKCS_V21, md_alg), 0);
+    }
+    TEST_EQUAL(pk_genkey(&pk, parameter), 0);
 
-    TEST_ASSERT(mbedtls_pk_sign_ext(key_pk_type, &pk, md_alg, hash, hash_len,
-                                    sig, sizeof(sig), &sig_len,
-                                    mbedtls_test_rnd_std_rand, NULL) == 0);
+    TEST_EQUAL(mbedtls_pk_sign_ext(key_pk_type, &pk, md_alg, hash, hash_len,
+                                   sig, sizeof(sig), &sig_len,
+                                   mbedtls_test_rnd_std_rand, NULL), 0);
 
     if (key_pk_type == MBEDTLS_PK_RSASSA_PSS) {
         rsassa_pss_options.mgf1_hash_id = md_alg;
@@ -1461,11 +1483,11 @@ void pk_psa_sign_ext(int pk_type, int parameter, int key_pk_type, int md_alg)
         rsassa_pss_options.expected_salt_len = hash_len;
         options = (const void *) &rsassa_pss_options;
     }
-    TEST_ASSERT(mbedtls_pk_verify_ext(key_pk_type, options, &pk, md_alg,
-                                      hash, hash_len, sig, sig_len) == 0);
+    TEST_EQUAL(mbedtls_pk_verify_ext(key_pk_type, options, &pk, md_alg,
+                                     hash, hash_len, sig, sig_len), 0);
 exit:
     mbedtls_pk_free(&pk);
-    PSA_DONE();
+    USE_PSA_DONE();
 }
 /* END_CASE */
 

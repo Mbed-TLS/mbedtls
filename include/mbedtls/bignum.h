@@ -129,7 +129,7 @@
         #endif /* !MBEDTLS_HAVE_INT64 */
 typedef  int64_t mbedtls_mpi_sint;
 typedef uint64_t mbedtls_mpi_uint;
-#define MBEDTLS_MPI_UINT_MAX                18446744073709551615UL
+#define MBEDTLS_MPI_UINT_MAX                18446744073709551615U
     #elif defined(__GNUC__) && (                         \
     defined(__amd64__) || defined(__x86_64__)     || \
     defined(__ppc64__) || defined(__powerpc64__)  || \

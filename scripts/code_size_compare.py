@@ -92,12 +92,11 @@ class CodeSizeInfo: # pylint: disable=too-few-public-methods
         arch: architecture to measure code size on.
         config: configuration type to measure code size with.
         sys_arch: host architecture.
-        make_command: command to build library (Inferred from arch and config).
         """
         self.arch = arch
         self.config = config
         self.sys_arch = sys_arch
-        self.make_command = self.set_make_command()
+        self.make_cmd = self.set_make_command()
 
     def set_make_command(self) -> str:
         """Infer build command based on architecture and configuration."""
@@ -456,63 +455,52 @@ class CodeSizeComparison:
         self.new_rev = new_revision
         self.git_command = "git"
         self.make_clean = 'make clean'
-        self.make_command = code_size_info.make_command
+        self.make_cmd = code_size_info.make_cmd
         self.fname_suffix = "-" + code_size_info.arch + "-" +\
                             code_size_info.config
         self.code_size_generator = CodeSizeGeneratorWithSize()
 
-    def _gen_code_size_csv(self, revision: str) -> None:
-        """Generate code size csv file."""
+    def cal_code_size(self, revision: str):
+        """Calculate code size of library objects in a UTF-8 encoding"""
 
-        if revision == "current":
-            print("Measuring code size in current work directory")
-        else:
-            print("Measuring code size for", revision)
-
-        code_size_text = CodeSizeCalculator(revision, self.make_command).\
+        return CodeSizeCalculator(revision, self.make_cmd).\
                 cal_libraries_code_size()
 
-        csv_file = os.path.join(self.csv_dir, revision +
-                                self.fname_suffix + ".csv")
-        self.code_size_generator.size_generator_write_record(revision,\
-                code_size_text, csv_file)
+    def gen_code_size_report(self, revision):
+        """Generate code size record and write it into a file."""
 
-    def _get_code_size_for_rev(self, revision: str) -> None:
-        """Generate code size csv file for the specified git revision."""
-
+        output_file = os.path.join(self.csv_dir,\
+                revision + self.fname_suffix +  ".csv")
         # Check if the corresponding record exists
-        csv_fname = revision + self.fname_suffix +  ".csv"
-        if (revision != "current") and \
-           os.path.exists(os.path.join(self.csv_dir, csv_fname)):
+        if (revision != "current") and os.path.exists(output_file):
             print("Code size csv file for", revision, "already exists.")
-            self.code_size_generator.read_size_record(revision,\
-                    os.path.join(self.csv_dir, csv_fname))
+            self.code_size_generator.read_size_record(revision, output_file)
         else:
-            self._gen_code_size_csv(revision)
+            self.code_size_generator.size_generator_write_record(revision,\
+                self.cal_code_size(revision), output_file)
 
-    def _gen_code_size_comparison(self) -> int:
-        """Generate results of the size changes between two revisions,
+    def gen_code_size_comparison(self) -> int:
+        """Generate results of code size changes between two revisions,
         old and new. Measured code size results of these two revisions
         must be available."""
 
-        res_file = os.path.join(self.result_dir, "compare-" +
-                                self.old_rev + "-" + self.new_rev +
-                                self.fname_suffix + ".csv")
+        output_file = os.path.join(self.result_dir, "compare-" +
+                                   self.old_rev + "-" + self.new_rev +
+                                   self.fname_suffix + ".csv")
 
         print("\nGenerating comparison results between",\
                 self.old_rev, "and", self.new_rev)
         self.code_size_generator.size_generator_write_comparison(\
-                self.old_rev, self.new_rev, res_file)
-
+                self.old_rev, self.new_rev, output_file)
         return 0
 
     def get_comparision_results(self) -> int:
         """Compare size of library/*.o between self.old_rev and self.new_rev,
         and generate the result file."""
         build_tree.check_repo_path()
-        self._get_code_size_for_rev(self.old_rev)
-        self._get_code_size_for_rev(self.new_rev)
-        return self._gen_code_size_comparison()
+        self.gen_code_size_report(self.old_rev)
+        self.gen_code_size_report(self.new_rev)
+        return self.gen_code_size_comparison()
 
 def main():
     parser = argparse.ArgumentParser(description=(__doc__))

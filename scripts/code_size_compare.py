@@ -300,7 +300,7 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
     def __init__(self) -> None:
         """ Variable code_size is used to store size info for any revisions.
         code_size: (data format)
-        {revision: {module: {file_name: SizeEntry,
+        {revision: {module: {file_name: [text, data, bss, dec],
                              etc ...
                             },
                     etc ...
@@ -318,8 +318,9 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
         size_record = {}
         for line in size_text.splitlines()[1:]:
             data = line.split()
-            size_record[data[5]] = CodeSizeGeneratorWithSize.SizeEntry(\
-                    data[0], data[1], data[2], data[3])
+            # file_name: SizeEntry(text, data, bss, dec)
+            size_record[data[5]] = CodeSizeGeneratorWithSize.SizeEntry(
+                data[0], data[1], data[2], data[3])
         if revision in self.code_size:
             self.code_size[revision].update({mod: size_record})
         else:
@@ -341,8 +342,8 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                     continue
 
                 if mod:
-                    size_record[data[0]] = \
-                        CodeSizeGeneratorWithSize.SizeEntry(\
+                    # file_name: SizeEntry(text, data, bss, dec)
+                    size_record[data[0]] = CodeSizeGeneratorWithSize.SizeEntry(
                         data[1], data[2], data[3], data[4])
 
                 # check if we hit record for the end of a module
@@ -390,24 +391,43 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
     ) -> None:
         """Write comparison result into a file.
 
-        Writing Format: file_name current(total) old(total) change(Byte) change_pct(%)
+        Writing Format: file_name current(text,data) old(text,data)\
+                change(text,data) change_pct%(text,data)
         """
-        output.write("{:<30} {:>7} {:>7} {:>7} {:>7}\n"
-                     .format("filename", "current", "old", "change", "change%"))
-        for mod, fname, size_entry in self._size_reader_helper(new_rev, output):
-            new_size = int(size_entry.total)
+
+        def cal_size_section_variation(mod, fname, size_entry, attr):
+            new_size = int(size_entry.__dict__[attr])
             # check if we have the file in old revision
             if fname in self.code_size[old_rev][mod]:
-                old_size = int(self.code_size[old_rev][mod][fname].total)
+                old_size = int(self.code_size[old_rev][mod][fname].__dict__[attr])
                 change = new_size - old_size
                 if old_size != 0:
                     change_pct = change / old_size
                 else:
                     change_pct = 0
-                output.write("{:<30} {:>7} {:>7} {:>7} {:>7.2%}\n"
-                             .format(fname, new_size, old_size, change, change_pct))
+                return [new_size, old_size, change, change_pct]
             else:
-                output.write("{} {}\n".format(fname, new_size))
+                return [new_size]
+
+        output.write("{:<30} {:<18} {:<14} {:<17} {:<18}\n"
+                     .format("filename", "current(text,data)", "old(text,data)",\
+                             "change(text,data)", "change%(text,data)"))
+        for mod, fname, size_entry in self._size_reader_helper(new_rev, output):
+            text_vari = cal_size_section_variation(mod, fname, size_entry, 'text')
+            data_vari = cal_size_section_variation(mod, fname, size_entry, 'data')
+
+            if len(text_vari) != 1:
+                output.write("{:<30} {:<18} {:<14} {:<17} {:<18}\n"
+                             .format(fname,\
+                                     str(text_vari[0]) + "," + str(data_vari[0]),\
+                                     str(text_vari[1]) + "," + str(data_vari[1]),\
+                                     str(text_vari[2]) + "," + str(data_vari[2]),\
+                                     "{:.2%}".format(text_vari[3]) + "," +\
+                                     "{:.2%}".format(data_vari[3])))
+            else:
+                output.write("{:<30} {:<18}\n"
+                             .format(fname,\
+                                     str(text_vari[0]) + "," + str(data_vari[0])))
 
     def size_generator_write_record(
             self,

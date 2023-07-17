@@ -126,7 +126,44 @@ class CodeSizeInfo: # pylint: disable=too-few-public-methods
             sys.exit(1)
 
 
-class CodeSizeGeneratorWithSize:
+class CodeSizeGenerator:
+    """ A generator based on size measurement tool for library objects.
+
+    This is an abstract class. To use it, derive a class that implements
+    size_generator_write_record and size_generator_write_comparison methods,
+    then call both of them with proper arguments.
+    """
+    def size_generator_write_record(
+            self,
+            revision: str,
+            code_size_text: typing.Dict,
+            output_file: str
+    ) -> None:
+        """Write size record into a file.
+
+        revision: Git revision.(E.g: commit)
+        code_size_text: text output (utf-8) from code size measurement tool.
+        output_file: file which the code size record is written to.
+        """
+        raise NotImplementedError
+
+    def size_generator_write_comparison(
+            self,
+            old_rev: str,
+            new_rev: str,
+            output_stream
+    ) -> None:
+        """Write a comparision result into a stream between two revisions.
+
+        old_rev: old git revision to compared with.
+        new_rev: new git revision to compared with.
+        output_stream: stream which the code size record is written to.
+                       (E.g: file / sys.stdout)
+        """
+        raise NotImplementedError
+
+
+class CodeSizeGeneratorWithSize(CodeSizeGenerator):
     """Code Size Base Class for size record saving and writing."""
 
     class SizeEntry: # pylint: disable=too-few-public-methods
@@ -248,6 +285,31 @@ class CodeSizeGeneratorWithSize:
                              .format(fname, new_size, old_size, change, change_pct))
             else:
                 output.write("{} {}\n".format(fname, new_size))
+
+    def size_generator_write_record(
+            self,
+            revision: str,
+            code_size_text: typing.Dict,
+            output_file: str
+    ) -> None:
+        """Write size record into a specified file based on Git revision and
+        output from `size` tool."""
+        for mod, size_text in code_size_text.items():
+            self.set_size_record(revision, mod, size_text)
+
+        print("Generating code size csv for", revision)
+        output = open(output_file, "w")
+        self.write_size_record(revision, output)
+
+    def size_generator_write_comparison(
+            self,
+            old_rev: str,
+            new_rev: str,
+            output_stream
+    ) -> None:
+        """Write a comparision result into a stream between two revisions."""
+        output = open(output_stream, "w")
+        self.write_comparison(old_rev, new_rev, output)
 
 
 class CodeSizeComparison:

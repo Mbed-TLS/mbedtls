@@ -88,20 +88,25 @@ class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods
         "-a " + SupportedArch.ARMV8_M.value + " -c " + SupportedConfig.TFM_MEDIUM.value,
     ]
 
-    def __init__(self, size_version: SimpleNamespace) -> None:
+    def __init__(
+            self,
+            size_version: SimpleNamespace,
+            host_arch: str
+    ) -> None:
         """
         size_version: SimpleNamespace containing info for code size measurement.
         size_version.arch: architecture to measure code size on.
         size_version.config: configuration type to measure code size with.
-        size_version.host_arch: host architecture.
+        host_arch: host architecture.
         """
         self.size_version = size_version
+        self.host_arch = host_arch
 
     def infer_make_command(self) -> str:
         """Infer build command based on architecture and configuration."""
 
         if self.size_version.config == SupportedConfig.DEFAULT.value and \
-            self.size_version.arch == self.size_version.host_arch:
+            self.size_version.arch == self.host_arch:
             return 'make -j lib CFLAGS=\'-Os \' '
         elif self.size_version.arch == SupportedArch.ARMV8_M.value and \
              self.size_version.config == SupportedConfig.TFM_MEDIUM.value:
@@ -118,7 +123,7 @@ class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods
                 print(comb)
             print("\nFor your system, please use:")
             for comb in CodeSizeBuildInfo.SupportedArchConfig:
-                if "default" in comb and self.size_version.host_arch not in comb:
+                if "default" in comb and self.host_arch not in comb:
                     continue
                 print(comb)
             sys.exit(1)
@@ -133,10 +138,12 @@ class CodeSizeCalculator:
             self,
             revision: str,
             make_cmd: str,
+            measure_cmd: str
     ) -> None:
         """
         revision: Git revision.(E.g: commit)
-        make_cmd: command to build library objects.
+        make_cmd: command to build objects in library.
+        measure_cmd: command to measure code size for objects in library.
         """
         self.repo_path = "."
         self.git_command = "git"
@@ -144,6 +151,7 @@ class CodeSizeCalculator:
 
         self.revision = revision
         self.make_cmd = make_cmd
+        self.measure_cmd = measure_cmd
 
     @staticmethod
     def validate_revision(revision: str) -> bytes:
@@ -196,8 +204,8 @@ class CodeSizeCalculator:
         for mod, st_lib in MBEDTLS_STATIC_LIB.items():
             try:
                 result = subprocess.check_output(
-                    ["size", st_lib, "-t"], cwd=git_worktree_path,
-                    universal_newlines=True
+                    [self.measure_cmd + ' ' + st_lib], cwd=git_worktree_path,
+                    shell=True, universal_newlines=True
                 )
                 res[mod] = result
             except subprocess.CalledProcessError as e:
@@ -434,6 +442,7 @@ class CodeSizeComparison:
             self,
             old_size_version: SimpleNamespace,
             new_size_version: SimpleNamespace,
+            code_size_common: SimpleNamespace,
             result_dir: str,
     ) -> None:
         """
@@ -450,33 +459,46 @@ class CodeSizeComparison:
 
         self.old_size_version = old_size_version
         self.new_size_version = new_size_version
+        self.code_size_common = code_size_common
         self.old_size_version.make_cmd = \
-                CodeSizeBuildInfo(self.old_size_version).infer_make_command()
+                CodeSizeBuildInfo(self.old_size_version,\
+                    self.code_size_common.host_arch).infer_make_command()
         self.new_size_version.make_cmd = \
-                CodeSizeBuildInfo(self.new_size_version).infer_make_command()
+                CodeSizeBuildInfo(self.new_size_version,\
+                    self.code_size_common.host_arch).infer_make_command()
         self.git_command = "git"
         self.make_clean = 'make clean'
-        self.code_size_generator = CodeSizeGeneratorWithSize()
+        self.code_size_generator = self.__init_code_size_generator__(\
+                self.code_size_common.measure_cmd)
 
     @staticmethod
-    def cal_code_size(size_version: SimpleNamespace):
+    def __init_code_size_generator__(measure_cmd):
+        if re.match(r'size', measure_cmd.strip()):
+            return CodeSizeGeneratorWithSize()
+        else:
+            print("Error: unsupported tool:", measure_cmd.strip().split(' ')[0])
+            sys.exit(1)
+
+
+    def cal_code_size(self, size_version: SimpleNamespace):
         """Calculate code size of library objects in a UTF-8 encoding"""
 
-        return CodeSizeCalculator(size_version.revision, size_version.make_cmd).\
-                cal_libraries_code_size()
+        return CodeSizeCalculator(size_version.revision, size_version.make_cmd,\
+                self.code_size_common.measure_cmd).cal_libraries_code_size()
 
-    @staticmethod
-    def gen_file_name(old_size_version, new_size_version=None):
+    def gen_file_name(self, old_size_version, new_size_version=None):
         if new_size_version:
-            return '{}-{}-{}-{}-{}-{}.csv'\
+            return '{}-{}-{}-{}-{}-{}-{}.csv'\
                     .format(old_size_version.revision[:7],
                             old_size_version.arch, old_size_version.config,
                             new_size_version.revision[:7],
-                            new_size_version.arch, new_size_version.config)
+                            new_size_version.arch, new_size_version.config,
+                            self.code_size_common.measure_cmd.strip().split(' ')[0])
         else:
-            return '{}-{}-{}.csv'\
+            return '{}-{}-{}-{}.csv'\
                     .format(old_size_version.revision[:7],
-                            old_size_version.arch, old_size_version.config)
+                            old_size_version.arch, old_size_version.config,
+                            self.code_size_common.measure_cmd.strip().split(' ')[0])
 
     def gen_code_size_report(self, size_version: SimpleNamespace):
         """Generate code size record and write it into a file."""
@@ -565,7 +587,6 @@ def main():
         revision=old_revision,
         config=comp_args.config,
         arch=comp_args.arch,
-        host_arch=detect_arch(),
         make_cmd='',
     )
     new_size_version = SimpleNamespace(
@@ -573,12 +594,15 @@ def main():
         revision=new_revision,
         config=comp_args.config,
         arch=comp_args.arch,
-        host_arch=detect_arch(),
         make_cmd='',
+    )
+    code_size_common = SimpleNamespace(
+        host_arch=detect_arch(),
+        measure_cmd='size -t',
     )
 
     size_compare = CodeSizeComparison(old_size_version, new_size_version,\
-            comp_args.result_dir)
+            code_size_common, comp_args.result_dir)
     return_code = size_compare.get_comparision_results()
     sys.exit(return_code)
 

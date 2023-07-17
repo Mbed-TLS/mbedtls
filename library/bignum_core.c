@@ -35,7 +35,6 @@
 
 size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a)
 {
-    
 #if defined(__has_builtin)
 #if (MBEDTLS_MPI_UINT_MAX == UINT_MAX) && __has_builtin(__builtin_clz)
     #define core_clz __builtin_clz

@@ -1637,8 +1637,7 @@ static void *rsa_alt_alloc_wrap(void)
 
 static void rsa_alt_free_wrap(void *ctx)
 {
-    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_rsa_alt_context));
-    mbedtls_free(ctx);
+    mbedtls_zeroize_and_free(ctx, sizeof(mbedtls_rsa_alt_context));
 }
 
 const mbedtls_pk_info_t mbedtls_rsa_alt_info = {

@@ -327,8 +327,7 @@ static int resize_buffer(unsigned char **buffer, size_t len_new, size_t *len_old
      * lost, are done outside of this function. */
     memcpy(resized_buffer, *buffer,
            (len_new < *len_old) ? len_new : *len_old);
-    mbedtls_platform_zeroize(*buffer, *len_old);
-    mbedtls_free(*buffer);
+    mbedtls_zeroize_and_free(*buffer, *len_old);
 
     *buffer = resized_buffer;
     *len_old = len_new;
@@ -2123,9 +2122,7 @@ static void ssl_conf_remove_psk(mbedtls_ssl_config *conf)
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     if (conf->psk != NULL) {
-        mbedtls_platform_zeroize(conf->psk, conf->psk_len);
-
-        mbedtls_free(conf->psk);
+        mbedtls_zeroize_and_free(conf->psk, conf->psk_len);
         conf->psk = NULL;
         conf->psk_len = 0;
     }
@@ -2217,9 +2214,8 @@ static void ssl_remove_psk(mbedtls_ssl_context *ssl)
     }
 #else
     if (ssl->handshake->psk != NULL) {
-        mbedtls_platform_zeroize(ssl->handshake->psk,
+        mbedtls_zeroize_and_free(ssl->handshake->psk,
                                  ssl->handshake->psk_len);
-        mbedtls_free(ssl->handshake->psk);
         ssl->handshake->psk_len = 0;
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -2975,8 +2971,7 @@ int mbedtls_ssl_set_hostname(mbedtls_ssl_context *ssl, const char *hostname)
      * so we can free it safely */
 
     if (ssl->hostname != NULL) {
-        mbedtls_platform_zeroize(ssl->hostname, strlen(ssl->hostname));
-        mbedtls_free(ssl->hostname);
+        mbedtls_zeroize_and_free(ssl->hostname, strlen(ssl->hostname));
     }
 
     /* Passing NULL as hostname shall clear the old one */
@@ -4177,8 +4172,7 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
     }
 #else
     if (handshake->psk != NULL) {
-        mbedtls_platform_zeroize(handshake->psk, handshake->psk_len);
-        mbedtls_free(handshake->psk);
+        mbedtls_zeroize_and_free(handshake->psk, handshake->psk_len);
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
@@ -4851,8 +4845,7 @@ void mbedtls_ssl_free(mbedtls_ssl_context *ssl)
         size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN;
 #endif
 
-        mbedtls_platform_zeroize(ssl->out_buf, out_buf_len);
-        mbedtls_free(ssl->out_buf);
+        mbedtls_zeroize_and_free(ssl->out_buf, out_buf_len);
         ssl->out_buf = NULL;
     }
 
@@ -4863,8 +4856,7 @@ void mbedtls_ssl_free(mbedtls_ssl_context *ssl)
         size_t in_buf_len = MBEDTLS_SSL_IN_BUFFER_LEN;
 #endif
 
-        mbedtls_platform_zeroize(ssl->in_buf, in_buf_len);
-        mbedtls_free(ssl->in_buf);
+        mbedtls_zeroize_and_free(ssl->in_buf, in_buf_len);
         ssl->in_buf = NULL;
     }
 
@@ -4898,8 +4890,7 @@ void mbedtls_ssl_free(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     if (ssl->hostname != NULL) {
-        mbedtls_platform_zeroize(ssl->hostname, strlen(ssl->hostname));
-        mbedtls_free(ssl->hostname);
+        mbedtls_zeroize_and_free(ssl->hostname, strlen(ssl->hostname));
     }
 #endif
 
@@ -5382,15 +5373,13 @@ void mbedtls_ssl_config_free(mbedtls_ssl_config *conf)
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     if (conf->psk != NULL) {
-        mbedtls_platform_zeroize(conf->psk, conf->psk_len);
-        mbedtls_free(conf->psk);
+        mbedtls_zeroize_and_free(conf->psk, conf->psk_len);
         conf->psk = NULL;
         conf->psk_len = 0;
     }
 
     if (conf->psk_identity != NULL) {
-        mbedtls_platform_zeroize(conf->psk_identity, conf->psk_identity_len);
-        mbedtls_free(conf->psk_identity);
+        mbedtls_zeroize_and_free(conf->psk_identity, conf->psk_identity_len);
         conf->psk_identity = NULL;
         conf->psk_identity_len = 0;
     }
@@ -9549,9 +9538,8 @@ int mbedtls_ssl_session_set_hostname(mbedtls_ssl_session *session,
     /* Now it's clear that we will overwrite the old hostname,
      * so we can free it safely */
     if (session->hostname != NULL) {
-        mbedtls_platform_zeroize(session->hostname,
+        mbedtls_zeroize_and_free(session->hostname,
                                  strlen(session->hostname));
-        mbedtls_free(session->hostname);
     }
 
     /* Passing NULL as hostname shall clear the old one */

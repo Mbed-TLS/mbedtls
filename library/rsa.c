@@ -1905,10 +1905,8 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign(mbedtls_rsa_context *ctx,
     memcpy(sig, sig_try, ctx->len);
 
 cleanup:
-    mbedtls_platform_zeroize(sig_try, ctx->len);
-    mbedtls_platform_zeroize(verif, ctx->len);
-    mbedtls_free(sig_try);
-    mbedtls_free(verif);
+    mbedtls_zeroize_and_free(sig_try, ctx->len);
+    mbedtls_zeroize_and_free(verif, ctx->len);
 
     if (ret != 0) {
         memset(sig, '!', ctx->len);
@@ -2152,13 +2150,11 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify(mbedtls_rsa_context *ctx,
 cleanup:
 
     if (encoded != NULL) {
-        mbedtls_platform_zeroize(encoded, sig_len);
-        mbedtls_free(encoded);
+        mbedtls_zeroize_and_free(encoded, sig_len);
     }
 
     if (encoded_expected != NULL) {
-        mbedtls_platform_zeroize(encoded_expected, sig_len);
-        mbedtls_free(encoded_expected);
+        mbedtls_zeroize_and_free(encoded_expected, sig_len);
     }
 
     return ret;

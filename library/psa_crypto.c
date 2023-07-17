@@ -5148,27 +5148,23 @@ psa_status_t psa_key_derivation_abort(psa_key_derivation_operation_t *operation)
         /* TLS-1.2 PSK-to-MS KDF uses the same core as TLS-1.2 PRF */
         PSA_ALG_IS_TLS12_PSK_TO_MS(kdf_alg)) {
         if (operation->ctx.tls12_prf.secret != NULL) {
-            mbedtls_platform_zeroize(operation->ctx.tls12_prf.secret,
+            mbedtls_zeroize_and_free(operation->ctx.tls12_prf.secret,
                                      operation->ctx.tls12_prf.secret_length);
-            mbedtls_free(operation->ctx.tls12_prf.secret);
         }
 
         if (operation->ctx.tls12_prf.seed != NULL) {
-            mbedtls_platform_zeroize(operation->ctx.tls12_prf.seed,
+            mbedtls_zeroize_and_free(operation->ctx.tls12_prf.seed,
                                      operation->ctx.tls12_prf.seed_length);
-            mbedtls_free(operation->ctx.tls12_prf.seed);
         }
 
         if (operation->ctx.tls12_prf.label != NULL) {
-            mbedtls_platform_zeroize(operation->ctx.tls12_prf.label,
+            mbedtls_zeroize_and_free(operation->ctx.tls12_prf.label,
                                      operation->ctx.tls12_prf.label_length);
-            mbedtls_free(operation->ctx.tls12_prf.label);
         }
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
         if (operation->ctx.tls12_prf.other_secret != NULL) {
-            mbedtls_platform_zeroize(operation->ctx.tls12_prf.other_secret,
+            mbedtls_zeroize_and_free(operation->ctx.tls12_prf.other_secret,
                                      operation->ctx.tls12_prf.other_secret_length);
-            mbedtls_free(operation->ctx.tls12_prf.other_secret);
         }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
         status = PSA_SUCCESS;
@@ -5187,9 +5183,8 @@ psa_status_t psa_key_derivation_abort(psa_key_derivation_operation_t *operation)
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
     if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
         if (operation->ctx.pbkdf2.salt != NULL) {
-            mbedtls_platform_zeroize(operation->ctx.pbkdf2.salt,
+            mbedtls_zeroize_and_free(operation->ctx.pbkdf2.salt,
                                      operation->ctx.pbkdf2.salt_length);
-            mbedtls_free(operation->ctx.pbkdf2.salt);
         }
 
         status = PSA_SUCCESS;
@@ -6549,8 +6544,7 @@ static psa_status_t psa_tls12_prf_psk_to_ms_set_key(
 
     status = psa_tls12_prf_set_key(prf, pms, cur - pms);
 
-    mbedtls_platform_zeroize(pms, pms_len);
-    mbedtls_free(pms);
+    mbedtls_zeroize_and_free(pms, pms_len);
     return status;
 }
 
@@ -7988,8 +7982,7 @@ static psa_status_t psa_pake_complete_inputs(
     status = psa_driver_wrapper_pake_setup(operation, &inputs);
 
     /* Driver is responsible for creating its own copy of the password. */
-    mbedtls_platform_zeroize(inputs.password, inputs.password_len);
-    mbedtls_free(inputs.password);
+    mbedtls_zeroize_and_free(inputs.password, inputs.password_len);
 
     /* User and peer are translated to role. */
     mbedtls_free(inputs.user);
@@ -8290,9 +8283,8 @@ psa_status_t psa_pake_abort(
 
     if (operation->stage == PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS) {
         if (operation->data.inputs.password != NULL) {
-            mbedtls_platform_zeroize(operation->data.inputs.password,
+            mbedtls_zeroize_and_free(operation->data.inputs.password,
                                      operation->data.inputs.password_len);
-            mbedtls_free(operation->data.inputs.password);
         }
         if (operation->data.inputs.user != NULL) {
             mbedtls_free(operation->data.inputs.user);

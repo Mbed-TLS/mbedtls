@@ -3459,16 +3459,14 @@ static int ssl_parse_new_session_ticket(mbedtls_ssl_context *ssl)
     }
 
     if (ssl->session != NULL && ssl->session->ticket != NULL) {
-        mbedtls_platform_zeroize(ssl->session->ticket,
+        mbedtls_zeroize_and_free(ssl->session->ticket,
                                  ssl->session->ticket_len);
-        mbedtls_free(ssl->session->ticket);
         ssl->session->ticket = NULL;
         ssl->session->ticket_len = 0;
     }
 
-    mbedtls_platform_zeroize(ssl->session_negotiate->ticket,
+    mbedtls_zeroize_and_free(ssl->session_negotiate->ticket,
                              ssl->session_negotiate->ticket_len);
-    mbedtls_free(ssl->session_negotiate->ticket);
     ssl->session_negotiate->ticket = NULL;
     ssl->session_negotiate->ticket_len = 0;
 

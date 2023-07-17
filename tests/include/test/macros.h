@@ -73,7 +73,7 @@
 #define TEST_EQUAL(expr1, expr2)                                      \
     do {                                                                \
         if (!mbedtls_test_equal( #expr1 " == " #expr2, __LINE__, __FILE__, \
-                                 expr1, expr2))                      \
+                                 (unsigned long long) (expr1), (unsigned long long) (expr2)))                      \
         goto exit;                                                  \
     } while (0)
 

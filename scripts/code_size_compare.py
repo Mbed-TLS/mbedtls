@@ -31,6 +31,7 @@ import sys
 import typing
 from enum import Enum
 
+from types import SimpleNamespace
 from mbedtls_dev import typing_util
 from mbedtls_dev import build_tree
 
@@ -72,7 +73,7 @@ def detect_arch() -> str:
         print("Unknown host architecture, cannot auto-detect arch.")
         sys.exit(1)
 
-class CodeSizeInfo: # pylint: disable=too-few-public-methods
+class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods
     """Gather information used to measure code size.
 
     It collects information about architecture, configuration in order to
@@ -87,25 +88,23 @@ class CodeSizeInfo: # pylint: disable=too-few-public-methods
         "-a " + SupportedArch.ARMV8_M.value + " -c " + SupportedConfig.TFM_MEDIUM.value,
     ]
 
-    def __init__(self, arch: str, config: str, sys_arch: str) -> None:
+    def __init__(self, size_version: SimpleNamespace) -> None:
         """
-        arch: architecture to measure code size on.
-        config: configuration type to measure code size with.
-        sys_arch: host architecture.
+        size_version: SimpleNamespace containing info for code size measurement.
+        size_version.arch: architecture to measure code size on.
+        size_version.config: configuration type to measure code size with.
+        size_version.host_arch: host architecture.
         """
-        self.arch = arch
-        self.config = config
-        self.sys_arch = sys_arch
-        self.make_cmd = self.set_make_command()
+        self.size_version = size_version
 
-    def set_make_command(self) -> str:
+    def infer_make_command(self) -> str:
         """Infer build command based on architecture and configuration."""
 
-        if self.config == SupportedConfig.DEFAULT.value and \
-            self.arch == self.sys_arch:
+        if self.size_version.config == SupportedConfig.DEFAULT.value and \
+            self.size_version.arch == self.size_version.host_arch:
             return 'make -j lib CFLAGS=\'-Os \' '
-        elif self.arch == SupportedArch.ARMV8_M.value and \
-             self.config == SupportedConfig.TFM_MEDIUM.value:
+        elif self.size_version.arch == SupportedArch.ARMV8_M.value and \
+             self.size_version.config == SupportedConfig.TFM_MEDIUM.value:
             return \
                  'make -j lib CC=armclang \
                   CFLAGS=\'--target=arm-arm-none-eabi -mcpu=cortex-m33 -Os \
@@ -113,13 +112,13 @@ class CodeSizeInfo: # pylint: disable=too-few-public-methods
                  -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=\\\"' + CONFIG_TFM_MEDIUM_PSA_CRYPTO_H + '\\\" \''
         else:
             print("Unsupported combination of architecture: {} and configuration: {}"
-                  .format(self.arch, self.config))
+                  .format(self.size_version.arch, self.size_version.config))
             print("\nPlease use supported combination of architecture and configuration:")
-            for comb in CodeSizeInfo.SupportedArchConfig:
+            for comb in CodeSizeBuildInfo.SupportedArchConfig:
                 print(comb)
             print("\nFor your system, please use:")
-            for comb in CodeSizeInfo.SupportedArchConfig:
-                if "default" in comb and self.sys_arch not in comb:
+            for comb in CodeSizeBuildInfo.SupportedArchConfig:
+                if "default" in comb and self.size_version.host_arch not in comb:
                     continue
                 print(comb)
             sys.exit(1)
@@ -433,16 +432,14 @@ class CodeSizeComparison:
 
     def __init__(
             self,
-            old_revision: str,
-            new_revision: str,
+            old_size_version: SimpleNamespace,
+            new_size_version: SimpleNamespace,
             result_dir: str,
-            code_size_info: CodeSizeInfo
     ) -> None:
         """
         old_revision: revision to compare against.
         new_revision:
         result_dir: directory for comparison result.
-        code_size_info: an object containing information to build library.
         """
         self.repo_path = "."
         self.result_dir = os.path.abspath(result_dir)
@@ -451,56 +448,72 @@ class CodeSizeComparison:
         self.csv_dir = os.path.abspath("code_size_records/")
         os.makedirs(self.csv_dir, exist_ok=True)
 
-        self.old_rev = old_revision
-        self.new_rev = new_revision
+        self.old_size_version = old_size_version
+        self.new_size_version = new_size_version
+        self.old_size_version.make_cmd = \
+                CodeSizeBuildInfo(self.old_size_version).infer_make_command()
+        self.new_size_version.make_cmd = \
+                CodeSizeBuildInfo(self.new_size_version).infer_make_command()
         self.git_command = "git"
         self.make_clean = 'make clean'
-        self.make_cmd = code_size_info.make_cmd
-        self.fname_suffix = "-" + code_size_info.arch + "-" +\
-                            code_size_info.config
         self.code_size_generator = CodeSizeGeneratorWithSize()
 
-    def cal_code_size(self, revision: str):
+    @staticmethod
+    def cal_code_size(size_version: SimpleNamespace):
         """Calculate code size of library objects in a UTF-8 encoding"""
 
-        return CodeSizeCalculator(revision, self.make_cmd).\
+        return CodeSizeCalculator(size_version.revision, size_version.make_cmd).\
                 cal_libraries_code_size()
 
-    def gen_code_size_report(self, revision):
+    @staticmethod
+    def gen_file_name(old_size_version, new_size_version=None):
+        if new_size_version:
+            return '{}-{}-{}-{}-{}-{}.csv'\
+                    .format(old_size_version.revision[:7],
+                            old_size_version.arch, old_size_version.config,
+                            new_size_version.revision[:7],
+                            new_size_version.arch, new_size_version.config)
+        else:
+            return '{}-{}-{}.csv'\
+                    .format(old_size_version.revision[:7],
+                            old_size_version.arch, old_size_version.config)
+
+    def gen_code_size_report(self, size_version: SimpleNamespace):
         """Generate code size record and write it into a file."""
 
-        output_file = os.path.join(self.csv_dir,\
-                revision + self.fname_suffix +  ".csv")
+        output_file = os.path.join(self.csv_dir, self.gen_file_name(size_version))
         # Check if the corresponding record exists
-        if (revision != "current") and os.path.exists(output_file):
-            print("Code size csv file for", revision, "already exists.")
-            self.code_size_generator.read_size_record(revision, output_file)
+        if (size_version.revision != "current") and os.path.exists(output_file):
+            print("Code size csv file for", size_version.revision, "already exists.")
+            self.code_size_generator.read_size_record(size_version.revision, output_file)
         else:
-            self.code_size_generator.size_generator_write_record(revision,\
-                self.cal_code_size(revision), output_file)
+            self.code_size_generator.size_generator_write_record(\
+                    size_version.revision, self.cal_code_size(size_version),
+                    output_file)
 
     def gen_code_size_comparison(self) -> int:
         """Generate results of code size changes between two revisions,
         old and new. Measured code size results of these two revisions
         must be available."""
 
-        output_file = os.path.join(self.result_dir, "compare-" +
-                                   self.old_rev + "-" + self.new_rev +
-                                   self.fname_suffix + ".csv")
+        output_file = os.path.join(self.result_dir,\
+                self.gen_file_name(self.old_size_version, self.new_size_version))
 
         print("\nGenerating comparison results between",\
-                self.old_rev, "and", self.new_rev)
+                self.old_size_version.revision, "and", self.new_size_version.revision)
         self.code_size_generator.size_generator_write_comparison(\
-                self.old_rev, self.new_rev, output_file)
+                self.old_size_version.revision, self.new_size_version.revision,\
+                output_file)
         return 0
 
     def get_comparision_results(self) -> int:
         """Compare size of library/*.o between self.old_rev and self.new_rev,
         and generate the result file."""
         build_tree.check_repo_path()
-        self.gen_code_size_report(self.old_rev)
-        self.gen_code_size_report(self.new_rev)
+        self.gen_code_size_report(self.old_size_version)
+        self.gen_code_size_report(self.new_size_version)
         return self.gen_code_size_comparison()
+
 
 def main():
     parser = argparse.ArgumentParser(description=(__doc__))
@@ -547,13 +560,25 @@ def main():
     else:
         new_revision = "current"
 
-    code_size_info = CodeSizeInfo(comp_args.arch, comp_args.config,
-                                  detect_arch())
-    print("Measure code size for architecture: {}, configuration: {}\n"
-          .format(code_size_info.arch, code_size_info.config))
-    result_dir = comp_args.result_dir
-    size_compare = CodeSizeComparison(old_revision, new_revision, result_dir,
-                                      code_size_info)
+    old_size_version = SimpleNamespace(
+        version="old",
+        revision=old_revision,
+        config=comp_args.config,
+        arch=comp_args.arch,
+        host_arch=detect_arch(),
+        make_cmd='',
+    )
+    new_size_version = SimpleNamespace(
+        version="new",
+        revision=new_revision,
+        config=comp_args.config,
+        arch=comp_args.arch,
+        host_arch=detect_arch(),
+        make_cmd='',
+    )
+
+    size_compare = CodeSizeComparison(old_size_version, new_size_version,\
+            comp_args.result_dir)
     return_code = size_compare.get_comparision_results()
     sys.exit(return_code)
 

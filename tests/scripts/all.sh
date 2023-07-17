@@ -918,6 +918,11 @@ helper_libtestdriver1_make_main() {
 #
 # Indicative running times are given for reference.
 
+component_check_simulated_silent_merge_conflict () {
+    msg "Check: simulated silent merge conflict"
+    [ ! -e merge_conflict.txt ]
+}
+
 component_check_recursion () {
     msg "Check: recursion.pl" # < 1s
     tests/scripts/recursion.pl library/*.c

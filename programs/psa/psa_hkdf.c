@@ -43,16 +43,16 @@
 
 #if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_SHA256_C) || \
     defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
-int main( void )
+int main(void)
 {
-    printf( "MBEDTLS_PSA_CRYPTO_C and MBEDTLS_SHA256_C"
-            "not defined and/or "
-            "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\r\n" );
-    return( EXIT_SUCCESS );
+    printf("MBEDTLS_PSA_CRYPTO_C and MBEDTLS_SHA256_C"
+           "not defined and/or "
+           "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\r\n");
+    return EXIT_SUCCESS;
 }
 #else
 
-int main( void )
+int main(void)
 {
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -65,7 +65,8 @@ int main( void )
     unsigned char ikm[] = { 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
                             0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b };
 
-    unsigned char salt[] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c };
+    unsigned char salt[] =
+    { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c };
 
     /* Context and application specific information, which can be of zero length */
     unsigned char info[] = { 0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9 };
@@ -84,88 +85,80 @@ int main( void )
      */
     unsigned char output[32];
 
-    psa_algorithm_t alg = PSA_ALG_HKDF( PSA_ALG_SHA_256 );
+    psa_algorithm_t alg = PSA_ALG_HKDF(PSA_ALG_SHA_256);
 
-    printf( "PSA Crypto API: HKDF SHA-256 example\n\n" );
+    printf("PSA Crypto API: HKDF SHA-256 example\n\n");
 
-    status = psa_crypto_init( );
-    if( status != PSA_SUCCESS )
-    {
-        printf( "psa_crypto_init failed\n" );
-        return( EXIT_FAILURE );
+    status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        printf("psa_crypto_init failed\n");
+        return EXIT_FAILURE;
     }
 
-    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
-    psa_set_key_algorithm( &attributes, PSA_ALG_HKDF( PSA_ALG_SHA_256 ) );
-    psa_set_key_type( &attributes, PSA_KEY_TYPE_DERIVE );
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DERIVE);
+    psa_set_key_algorithm(&attributes, PSA_ALG_HKDF(PSA_ALG_SHA_256));
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_DERIVE);
 
-    status = psa_import_key( &attributes, ikm, sizeof( ikm ), &key_id );
-    if( status != PSA_SUCCESS )
-    {
-        printf( "psa_import_key failed\n" );
-        return( EXIT_FAILURE );
+    status = psa_import_key(&attributes, ikm, sizeof(ikm), &key_id);
+    if (status != PSA_SUCCESS) {
+        printf("psa_import_key failed\n");
+        return EXIT_FAILURE;
     }
 
-    status = psa_key_derivation_setup( &operation, alg );
-    if( status != PSA_SUCCESS )
-    {
-        printf( "psa_key_derivation_setup failed" );
-        return( EXIT_FAILURE );
+    status = psa_key_derivation_setup(&operation, alg);
+    if (status != PSA_SUCCESS) {
+        printf("psa_key_derivation_setup failed");
+        return EXIT_FAILURE;
     }
 
-    status = psa_key_derivation_input_bytes( &operation, PSA_KEY_DERIVATION_INPUT_SALT,
-                                             salt, sizeof( salt ) );
-    if( status != PSA_SUCCESS )
-    {
-        printf( "psa_key_derivation_input_bytes (salt) failed" );
-        return( EXIT_FAILURE );
+    status = psa_key_derivation_input_bytes(&operation, PSA_KEY_DERIVATION_INPUT_SALT,
+                                            salt, sizeof(salt));
+    if (status != PSA_SUCCESS) {
+        printf("psa_key_derivation_input_bytes (salt) failed");
+        return EXIT_FAILURE;
     }
 
-    status = psa_key_derivation_input_key( &operation, PSA_KEY_DERIVATION_INPUT_SECRET,
-                                           key_id );
-    if( status != PSA_SUCCESS )
-    {
-        printf( "psa_key_derivation_input_key failed" );
-        return( EXIT_FAILURE );
+    status = psa_key_derivation_input_key(&operation, PSA_KEY_DERIVATION_INPUT_SECRET,
+                                          key_id);
+    if (status != PSA_SUCCESS) {
+        printf("psa_key_derivation_input_key failed");
+        return EXIT_FAILURE;
     }
 
-    status = psa_key_derivation_input_bytes( &operation, PSA_KEY_DERIVATION_INPUT_INFO,
-                                             info, sizeof( info ) );
-    if( status != PSA_SUCCESS )
-    {
-        printf( "psa_key_derivation_input_bytes (info) failed" );
-        return( EXIT_FAILURE );
+    status = psa_key_derivation_input_bytes(&operation, PSA_KEY_DERIVATION_INPUT_INFO,
+                                            info, sizeof(info));
+    if (status != PSA_SUCCESS) {
+        printf("psa_key_derivation_input_bytes (info) failed");
+        return EXIT_FAILURE;
     }
 
-    status = psa_key_derivation_output_bytes( &operation, output, sizeof( output ) );
-    if( status != PSA_SUCCESS )
-    {
-        printf( "psa_key_derivation_output_bytes failed" );
-        return( EXIT_FAILURE );
+    status = psa_key_derivation_output_bytes(&operation, output, sizeof(output));
+    if (status != PSA_SUCCESS) {
+        printf("psa_key_derivation_output_bytes failed");
+        return EXIT_FAILURE;
     }
 
-    status = psa_key_derivation_abort( &operation );
-    if( status != PSA_SUCCESS )
-    {
-        printf( "psa_key_derivation_abort failed" );
-        return( EXIT_FAILURE );
+    status = psa_key_derivation_abort(&operation);
+    if (status != PSA_SUCCESS) {
+        printf("psa_key_derivation_abort failed");
+        return EXIT_FAILURE;
     }
 
-    printf( "OKM: \n");
+    printf("OKM: \n");
 
-    for( size_t j = 0; j < sizeof( output ); j++ )
-    {
-        if ( output[j] != expected_okm[j] )
-        {
-            printf( "\n --- Unexpected outcome!\n" );
-            return( EXIT_FAILURE );
+    for (size_t j = 0; j < sizeof(output); j++) {
+        if (output[j] != expected_okm[j]) {
+            printf("\n --- Unexpected outcome!\n");
+            return EXIT_FAILURE;
         }
 
-        if( j % 8 == 0 ) printf( "\n    " );
-        printf( "%02x ", output[j] );
+        if (j % 8 == 0) {
+            printf("\n    ");
+        }
+        printf("%02x ", output[j]);
     }
 
-    printf( "\n" );
-    return( EXIT_SUCCESS );
+    printf("\n");
+    return EXIT_SUCCESS;
 }
 #endif /* MBEDTLS_PSA_CRYPTO_C && MBEDTLS_SHA256_C */

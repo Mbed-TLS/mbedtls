@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "mbedtls/build_info.h"
+#include "mbedtls/debug.h"
 
 #define BUFFER_SIZE 500
 
@@ -106,7 +107,7 @@ int main( void )
         return( EXIT_FAILURE );
     }
 
-    printf( "Client Public Key (%zu bytes):\n", client_pk_len );
+    printf( "Client Public Key (%" MBEDTLS_PRINTF_SIZET " bytes):\n", client_pk_len );
 
     for( size_t j = 0; j < client_pk_len; j++ )
     {
@@ -148,7 +149,7 @@ int main( void )
         return( EXIT_FAILURE );
     }
 
-    printf( "Server Public Key (%zu bytes):\n", sizeof( server_pk ) );
+    printf( "Server Public Key (%" MBEDTLS_PRINTF_SIZET " bytes):\n", sizeof( server_pk ) );
 
     for( size_t j = 0; j < sizeof( server_pk ); j++ )
     {
@@ -169,7 +170,7 @@ int main( void )
         return( EXIT_FAILURE );
     }
 
-    printf( "Derived Key (%zu bytes):\n", derived_key_len );
+    printf( "Derived Key (%" MBEDTLS_PRINTF_SIZET " bytes):\n", derived_key_len );
 
     for( size_t j = 0; j < derived_key_len; j++ )
     {

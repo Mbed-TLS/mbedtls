@@ -224,6 +224,12 @@ typedef struct mbedtls_mpi {
 
     /** Total number of limbs in \c p.  */
     unsigned short MBEDTLS_PRIVATE(n);
+    /* Make sure that MBEDTLS_MPI_MAX_LIMBS fits in n.
+     * Use the same limit value on all platforms so that we don't have to
+     * think about different behavior on the rare platforms where
+     * unsigned short can store values larger than the minimum required by
+     * the C language, which is 65535.
+     */
 #if MBEDTLS_MPI_MAX_LIMBS > 65535
 #error "MBEDTLS_MPI_MAX_LIMBS > 65535 is not supported"
 #endif

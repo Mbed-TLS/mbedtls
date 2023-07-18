@@ -6434,6 +6434,13 @@ PSA key derivation: TLS 1.2 PRF SHA-256, exercise HKDF-SHA-256
 depends_on:PSA_WANT_ALG_HKDF:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_TLS12_PRF
 derive_key_exercise:PSA_ALG_TLS12_PRF(PSA_ALG_SHA_256):"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"000102030405060708090a0b0c":"f0f1f2f3f4f5f6f7f8f9":PSA_KEY_TYPE_DERIVE:400:PSA_KEY_USAGE_DERIVE:PSA_ALG_HKDF(PSA_ALG_SHA_256)
 
+# Deriving a key on a Weierstrass curve requires a driver call, but we
+# haven't implemented cooked key derivation drivers yet
+# ("key_derivation_output_key" driver entry point). Until then,
+# require built-in support for the curve of the derived key.
+# This limitation does not apply to keys on a Montgomery curve for which
+# derivation doesn't involve potentially-accelerated operations and thus
+# doesn't involve a driver call.
 PSA key derivation: HKDF-SHA-256 -> ECC secp256r1, exercise ECDSA
 depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ALG_HKDF:PSA_WANT_ALG_SHA_256:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE:PSA_WANT_ECC_SECP_R1_256:MBEDTLS_PSA_BUILTIN_ECC_SECP_R1_256:MBEDTLS_ECP_LIGHT
 derive_key_exercise:PSA_ALG_HKDF(PSA_ALG_SHA_256):"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"000102030405060708090a0b0c":"f0f1f2f3f4f5f6f7f8f9":PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1):256:PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH:PSA_ALG_ECDSA_ANY

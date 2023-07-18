@@ -37,11 +37,13 @@
 
 #include "mbedtls/build_info.h"
 
-#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_SHA256_C)
+#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_SHA256_C) || \
+    defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 int main( void )
 {
     printf( "MBEDTLS_PSA_CRYPTO_C and MBEDTLS_SHA256_C"
-            "not defined.\r\n" );
+            "not defined and/or "
+            "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\r\n" );
     return( 0 );
 }
 #else
@@ -74,7 +76,7 @@ int main( void )
     psa_status_t status;
     size_t mac_size_real = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t key_handle = 0;
+    psa_key_id_t key_id = 0;
     uint8_t mac[ PSA_MAC_MAX_SIZE ];
     psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
     const uint8_t key_bytes[16] = "kkkkkkkkkkkkkkkk";
@@ -98,7 +100,7 @@ int main( void )
     psa_set_key_algorithm( &attributes, PSA_ALG_HMAC( PSA_ALG_SHA_256 ) );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
 
-    status = psa_import_key( &attributes, key_bytes, sizeof( key_bytes ), &key_handle );
+    status = psa_import_key( &attributes, key_bytes, sizeof( key_bytes ), &key_id );
     if( status != PSA_SUCCESS )
     {
         printf( "psa_import_key failed\n" );
@@ -106,7 +108,7 @@ int main( void )
     }
 
     /* Single-part MAC operation with psa_mac_compute() */
-    status = psa_mac_compute( key_handle,
+    status = psa_mac_compute( key_id,
                               PSA_ALG_HMAC( PSA_ALG_SHA_256 ),
                               input,
                               sizeof( input ),
@@ -141,9 +143,9 @@ int main( void )
         printf( "\nMAC verified correctly!\n" );
     }
 
-    psa_destroy_key( key_handle );
+    psa_destroy_key( key_id );
 
-    status = psa_import_key( &attributes, key_bytes, sizeof( key_bytes ), &key_handle );
+    status = psa_import_key( &attributes, key_bytes, sizeof( key_bytes ), &key_id );
     if( status != PSA_SUCCESS )
     {
         printf( "psa_import_key failed\n" );
@@ -151,7 +153,7 @@ int main( void )
     }
 
     /* Single-part MAC operation with psa_mac_verify() */
-    status = psa_mac_verify( key_handle,
+    status = psa_mac_verify( key_id,
                              PSA_ALG_HMAC( PSA_ALG_SHA_256 ),
                              input,
                              sizeof( input ),
@@ -166,9 +168,9 @@ int main( void )
         printf( "psa_mac_verify passed successfully\n" );
     }
 
-    psa_destroy_key( key_handle );
+    psa_destroy_key( key_id );
 
-    status = psa_import_key( &attributes, key_bytes, sizeof( key_bytes ), &key_handle );
+    status = psa_import_key( &attributes, key_bytes, sizeof( key_bytes ), &key_id );
     if( status != PSA_SUCCESS )
     {
         printf( "psa_import_key failed\n" );
@@ -176,7 +178,7 @@ int main( void )
     }
 
     /* Multi-part MAC operation */
-    status = psa_mac_sign_setup( &operation, key_handle, PSA_ALG_HMAC( PSA_ALG_SHA_256 ) );
+    status = psa_mac_sign_setup( &operation, key_id, PSA_ALG_HMAC( PSA_ALG_SHA_256 ) );
     if( status != PSA_SUCCESS )
     {
         printf( "psa_mac_sign_setup failed\n" );
@@ -209,7 +211,7 @@ int main( void )
         printf( "MAC, calculated with multi-part MAC operation, verified correctly!\n" );
     }
 
-    psa_destroy_key( key_handle );
+    psa_destroy_key( key_id );
     mbedtls_psa_crypto_free( );
     return( EXIT_SUCCESS );
 }

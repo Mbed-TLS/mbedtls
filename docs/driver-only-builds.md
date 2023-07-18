@@ -30,9 +30,9 @@ TLS](proposed/psa-conditional-inclusion-c.md) for details.
 In addition, for each mechanism you want provided only by your driver:
 - Define the corresponding `PSA_WANT` macro in `psa/crypto_config.h` - this
   means the algorithm will be available in the PSA Crypto API.
-- Define the corresponding `MBEDTLS_PSA_ACCEL` in your build (could be in
-  `psa/crypto_config.h` or your compiler's command line). This informs the PSA
-code that an accelerator is available for this.
+- Define the corresponding `MBEDTLS_PSA_ACCEL` in your build. This could be
+  defined in `psa/crypto_config.h` or your compiler's command line. This
+informs the PSA code that an accelerator is available for this mechanism.
 - Undefine / comment out the corresponding `MBEDTLS_xxx_C` macro in
   `mbedtls/mbedtls_config.h`. This ensures the built-in implementation is not
 included in the build.
@@ -43,10 +43,10 @@ For example, if you want SHA-256 to be provided only by a driver, you'll want
 
 In addition to these compile-time considerations, at runtime you'll need to
 make sure you call `psa_crypto_init()` before any function that uses the
-mechanisms provided only by drivers. Note that this is already a requirement
-for any use of the PSA Crypto API, as well as for use of the PK, X.509 and TLS
-modules when `MBEDTLS_USE_PSA_CRYPTO` is enabled, so in most cases your
-application will already be doing this.
+driver-only mechanisms. Note that this is already a requirement for any use of
+the PSA Crypto API, as well as for use of the PK, X.509 and TLS modules when
+`MBEDTLS_USE_PSA_CRYPTO` is enabled, so in most cases your application will
+already be doing this.
 
 Mechanisms covered
 ------------------
@@ -93,7 +93,7 @@ More precisely:
   `MBEDTLS_PSA_ACCEL_ALG_JPAKE` is enabled.
 
 In addition, if none of `MBEDTLS_ECDH_C`, `MBEDTLS_ECDSA_C`,
-`MBEDTLS_ECJPAKE_C` is enabled, you can enable:
+`MBEDTLS_ECJPAKE_C` are enabled, you can enable:
 - `PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY`;
 - `PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC`;
 - `PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT`;
@@ -125,8 +125,8 @@ result in some code size savings, but not as much as when none of the
 above features are enabled.
 
 We do have plans to support each of these with `ecp.c` fully removed in the
-future, however no established timeline. If you're interested, please let us
-know, so we can take it into consideration in our planning.
+future, however there is no established timeline. If you're interested, please
+let us know, so we can take it into consideration in our planning.
 
 ### Limitations regarding restartable / interruptible ECC operations
 
@@ -139,7 +139,7 @@ are not supported without `ECDH_C`. See also limitations regarding
 restartable operations with `MBEDTLS_USE_PSA_CRYPTO` in [its
 documentation](use-psa-crypto.md).
 
-Again, we have plans to support this in the future but not established
+Again, we have plans to support this in the future but not with an established
 timeline, please let us know if you're interested.
 
 ### Limitations regarding the selection of curves

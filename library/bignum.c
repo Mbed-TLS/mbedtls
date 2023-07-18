@@ -114,7 +114,9 @@ int mbedtls_mpi_grow(mbedtls_mpi *X, size_t nblimbs)
             mbedtls_free(X->p);
         }
 
-        X->n = nblimbs;
+        /* nblimbs fits in n because we ensure that MBEDTLS_MPI_MAX_LIMBS
+         * fits, and we've checked that nblimbs <= MBEDTLS_MPI_MAX_LIMBS. */
+        X->n = (unsigned short) nblimbs;
         X->p = p;
     }
 
@@ -162,7 +164,9 @@ int mbedtls_mpi_shrink(mbedtls_mpi *X, size_t nblimbs)
         mbedtls_free(X->p);
     }
 
-    X->n = i;
+    /* i fits in n because we ensure that MBEDTLS_MPI_MAX_LIMBS
+     * fits, and we've checked that i <= nblimbs <= MBEDTLS_MPI_MAX_LIMBS. */
+    X->n = (unsigned short) i;
     X->p = p;
 
     return 0;
@@ -1574,8 +1578,8 @@ static void mpi_montred(mbedtls_mpi *A, const mbedtls_mpi *N,
 {
     mbedtls_mpi_uint z = 1;
     mbedtls_mpi U;
-
-    U.n = U.s = (int) z;
+    U.n = 1;
+    U.s = 1;
     U.p = &z;
 
     mpi_montmul(A, &U, N, mm, T);

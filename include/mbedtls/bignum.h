@@ -203,6 +203,12 @@ extern "C" {
  * \brief          MPI structure
  */
 typedef struct mbedtls_mpi {
+    /** Pointer to limbs.
+     *
+     * This may be \c NULL if \c n is 0.
+     */
+    mbedtls_mpi_uint *MBEDTLS_PRIVATE(p);
+
     /** Sign: -1 if the mpi is negative, 1 otherwise.
      *
      * The number 0 must be represented with `s = +1`. Although many library
@@ -214,16 +220,19 @@ typedef struct mbedtls_mpi {
      * Note that this implies that calloc() or `... = {0}` does not create
      * a valid MPI representation. You must call mbedtls_mpi_init().
      */
-    int MBEDTLS_PRIVATE(s);
+    signed short MBEDTLS_PRIVATE(s);
 
     /** Total number of limbs in \c p.  */
-    size_t MBEDTLS_PRIVATE(n);
-
-    /** Pointer to limbs.
-     *
-     * This may be \c NULL if \c n is 0.
+    unsigned short MBEDTLS_PRIVATE(n);
+    /* Make sure that MBEDTLS_MPI_MAX_LIMBS fits in n.
+     * Use the same limit value on all platforms so that we don't have to
+     * think about different behavior on the rare platforms where
+     * unsigned short can store values larger than the minimum required by
+     * the C language, which is 65535.
      */
-    mbedtls_mpi_uint *MBEDTLS_PRIVATE(p);
+#if MBEDTLS_MPI_MAX_LIMBS > 65535
+#error "MBEDTLS_MPI_MAX_LIMBS > 65535 is not supported"
+#endif
 }
 mbedtls_mpi;
 

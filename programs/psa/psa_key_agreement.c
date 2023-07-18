@@ -41,10 +41,14 @@
 
 #define BUFFER_SIZE 500
 
-#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_ECP_C) || !defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_ECP_C) || \
+    !defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) || \
+    defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 int main( void )
 {
-    printf( "MBEDTLS_PSA_CRYPTO_C, MBEDTLS_ECP_C or MBEDTLS_ECP_DP_SECP256R1_ENABLED not defined.\r\n" );
+    printf( "MBEDTLS_PSA_CRYPTO_C, MBEDTLS_ECP_C or "
+            "MBEDTLS_ECP_DP_SECP256R1_ENABLED not defined and/or "
+            "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\r\n" );
     return( 0 );
 }
 #else
@@ -54,8 +58,8 @@ int main( void )
     psa_key_attributes_t client_attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t server_attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t check_attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t client_key_handle = 0;
-    psa_key_handle_t server_key_handle = 0;
+    psa_key_id_t client_key_id = 0;
+    psa_key_id_t server_key_id = 0;
     uint8_t client_pk[BUFFER_SIZE] = {0};
     size_t client_pk_len;
     size_t key_bits;
@@ -87,13 +91,13 @@ int main( void )
     psa_set_key_bits( &client_attributes, 256 );
 
     /* Generate ephemeral key pair */
-    status = psa_generate_key( &client_attributes, &client_key_handle );
+    status = psa_generate_key( &client_attributes, &client_key_id );
     if( status != PSA_SUCCESS )
     {
         printf( "psa_generate_key failed\n" );
         return( EXIT_FAILURE );
     }
-    status = psa_export_public_key( client_key_handle,
+    status = psa_export_public_key( client_key_id,
                                     client_pk, sizeof( client_pk ),
                                     &client_pk_len );
     if( status != PSA_SUCCESS )
@@ -116,14 +120,14 @@ int main( void )
     psa_set_key_type( &server_attributes, PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_SECP_R1) );
 
     /* Import server public key */
-    status = psa_import_key( &server_attributes, server_pk, sizeof( server_pk ), &server_key_handle );
+    status = psa_import_key( &server_attributes, server_pk, sizeof( server_pk ), &server_key_id );
     if( status != PSA_SUCCESS )
     {
         printf( "psa_import_key failed\n" );
         return( EXIT_FAILURE );
     }
 
-    status = psa_get_key_attributes( server_key_handle, &check_attributes);
+    status = psa_get_key_attributes( server_key_id, &check_attributes);
     if( status != PSA_SUCCESS )
     {
         printf( "psa_get_key_attributes failed\n" );
@@ -155,7 +159,7 @@ int main( void )
 
     /* Generate ECDHE derived key */
     status = psa_raw_key_agreement( PSA_ALG_ECDH,                       // algorithm
-                                    client_key_handle,                  // client secret key
+                                    client_key_id,                  // client secret key
                                     server_pk, sizeof( server_pk ),     // server public key
                                     derived_key, sizeof( derived_key ), // buffer to store derived key
                                     &derived_key_len );
@@ -174,8 +178,8 @@ int main( void )
     }
     printf( "\n" );
 
-    psa_destroy_key( server_key_handle );
-    psa_destroy_key( client_key_handle );
+    psa_destroy_key( server_key_id );
+    psa_destroy_key( client_key_id );
     mbedtls_psa_crypto_free( );
     return( 0 );
 }

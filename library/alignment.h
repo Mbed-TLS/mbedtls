@@ -51,7 +51,7 @@
  * \param   p pointer to 2 bytes of data
  * \return  Data at the given address
  */
-inline uint16_t mbedtls_get_unaligned_uint16(const void *p)
+static inline uint16_t mbedtls_get_unaligned_uint16(const void *p)
 {
     uint16_t r;
     memcpy(&r, p, sizeof(r));
@@ -65,7 +65,7 @@ inline uint16_t mbedtls_get_unaligned_uint16(const void *p)
  * \param   p pointer to 2 bytes of data
  * \param   x data to write
  */
-inline void mbedtls_put_unaligned_uint16(void *p, uint16_t x)
+static inline void mbedtls_put_unaligned_uint16(void *p, uint16_t x)
 {
     memcpy(p, &x, sizeof(x));
 }
@@ -77,7 +77,7 @@ inline void mbedtls_put_unaligned_uint16(void *p, uint16_t x)
  * \param   p pointer to 4 bytes of data
  * \return  Data at the given address
  */
-inline uint32_t mbedtls_get_unaligned_uint32(const void *p)
+static inline uint32_t mbedtls_get_unaligned_uint32(const void *p)
 {
     uint32_t r;
     memcpy(&r, p, sizeof(r));
@@ -91,7 +91,7 @@ inline uint32_t mbedtls_get_unaligned_uint32(const void *p)
  * \param   p pointer to 4 bytes of data
  * \param   x data to write
  */
-inline void mbedtls_put_unaligned_uint32(void *p, uint32_t x)
+static inline void mbedtls_put_unaligned_uint32(void *p, uint32_t x)
 {
     memcpy(p, &x, sizeof(x));
 }
@@ -103,7 +103,7 @@ inline void mbedtls_put_unaligned_uint32(void *p, uint32_t x)
  * \param   p pointer to 8 bytes of data
  * \return  Data at the given address
  */
-inline uint64_t mbedtls_get_unaligned_uint64(const void *p)
+static inline uint64_t mbedtls_get_unaligned_uint64(const void *p)
 {
     uint64_t r;
     memcpy(&r, p, sizeof(r));
@@ -117,7 +117,7 @@ inline uint64_t mbedtls_get_unaligned_uint64(const void *p)
  * \param   p pointer to 8 bytes of data
  * \param   x data to write
  */
-inline void mbedtls_put_unaligned_uint64(void *p, uint64_t x)
+static inline void mbedtls_put_unaligned_uint64(void *p, uint64_t x)
 {
     memcpy(p, &x, sizeof(x));
 }

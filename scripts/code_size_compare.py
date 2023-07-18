@@ -274,7 +274,8 @@ class CodeSizeGenerator:
             self,
             old_rev: str,
             new_rev: str,
-            output_stream
+            output_stream,
+            with_markdown=False
     ) -> None:
         """Write a comparision result into a stream between two revisions.
 
@@ -282,6 +283,8 @@ class CodeSizeGenerator:
         new_rev: new git revision to compared with.
         output_stream: stream which the code size record is written to.
                        (E.g: file / sys.stdout)
+        with_markdown: write comparision result in a markdown table.
+                       (Default: False)
         """
         raise NotImplementedError
 
@@ -359,11 +362,13 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
     def _size_reader_helper(
             self,
             revision: str,
-            output: typing_util.Writable
+            output: typing_util.Writable,
+            with_markdown=False
     ) -> typing.Iterator[tuple]:
         """A helper function to peel code_size based on revision."""
         for mod, file_size in self.code_size[revision].items():
-            output.write("\n" + mod + "\n")
+            if not with_markdown:
+                output.write("\n" + mod + "\n")
             for fname, size_entry in file_size.items():
                 yield mod, fname, size_entry
 
@@ -376,18 +381,20 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
 
         Writing Format: file_name text data bss total(dec)
         """
-        output.write("{:<30} {:>7} {:>7} {:>7} {:>7}\n"
-                     .format("filename", "text", "data", "bss", "total"))
+        format_string = "{:<30} {:>7} {:>7} {:>7} {:>7}\n"
+        output.write(format_string.format("filename",
+                                          "text", "data", "bss", "total"))
         for _, fname, size_entry in self._size_reader_helper(revision, output):
-            output.write("{:<30} {:>7} {:>7} {:>7} {:>7}\n"
-                         .format(fname, size_entry.text, size_entry.data,\
-                                 size_entry.bss, size_entry.total))
+            output.write(format_string.format(fname,
+                                              size_entry.text, size_entry.data,
+                                              size_entry.bss, size_entry.total))
 
     def write_comparison(
             self,
             old_rev: str,
             new_rev: str,
-            output: typing_util.Writable
+            output: typing_util.Writable,
+            with_markdown: bool
     ) -> None:
         """Write comparison result into a file.
 
@@ -409,25 +416,38 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
             else:
                 return [new_size]
 
-        output.write("{:<30} {:<18} {:<14} {:<17} {:<18}\n"
-                     .format("filename", "current(text,data)", "old(text,data)",\
-                             "change(text,data)", "change%(text,data)"))
-        for mod, fname, size_entry in self._size_reader_helper(new_rev, output):
-            text_vari = cal_size_section_variation(mod, fname, size_entry, 'text')
-            data_vari = cal_size_section_variation(mod, fname, size_entry, 'data')
+        if with_markdown:
+            format_string = "| {:<30} | {:<18} | {:<14} | {:<17} | {:<18} |\n"
+        else:
+            format_string = "{:<30} {:<18} {:<14} {:<17} {:<18}\n"
+
+        output.write(format_string.format("filename", "current(text,data)",\
+                "old(text,data)", "change(text,data)", "change%(text,data)"))
+        if with_markdown:
+            output.write(format_string
+                         .format("----:", "----:", "----:", "----:", "----:"))
+
+        for mod, fname, size_entry in\
+                self._size_reader_helper(new_rev, output, with_markdown):
+            text_vari = cal_size_section_variation(mod, fname,
+                                                   size_entry, 'text')
+            data_vari = cal_size_section_variation(mod, fname,
+                                                   size_entry, 'data')
 
             if len(text_vari) != 1:
-                output.write("{:<30} {:<18} {:<14} {:<17} {:<18}\n"
-                             .format(fname,\
-                                     str(text_vari[0]) + "," + str(data_vari[0]),\
-                                     str(text_vari[1]) + "," + str(data_vari[1]),\
-                                     str(text_vari[2]) + "," + str(data_vari[2]),\
-                                     "{:.2%}".format(text_vari[3]) + "," +\
-                                     "{:.2%}".format(data_vari[3])))
+                # skip the files that haven't changed in code size if we write
+                # comparison result in a markdown table.
+                if with_markdown and text_vari[2] == 0 and data_vari[2] == 0:
+                    continue
+                output.write(format_string.format(fname,\
+                        str(text_vari[0]) + "," + str(data_vari[0]),\
+                        str(text_vari[1]) + "," + str(data_vari[1]),\
+                        str(text_vari[2]) + "," + str(data_vari[2]),\
+                        "{:.2%}".format(text_vari[3]) + "," +\
+                        "{:.2%}".format(data_vari[3])))
             else:
-                output.write("{:<30} {:<18}\n"
-                             .format(fname,\
-                                     str(text_vari[0]) + "," + str(data_vari[0])))
+                output.write("{:<30} {:<18}\n".format(fname,\
+                        str(text_vari[0]) + "," + str(data_vari[0])))
 
     def size_generator_write_record(
             self,
@@ -448,11 +468,12 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
             self,
             old_rev: str,
             new_rev: str,
-            output_stream
+            output_stream,
+            with_markdown=False
     ) -> None:
         """Write a comparision result into a stream between two revisions."""
         output = open(output_stream, "w")
-        self.write_comparison(old_rev, new_rev, output)
+        self.write_comparison(old_rev, new_rev, output, with_markdown)
 
 
 class CodeSizeComparison:
@@ -545,7 +566,7 @@ class CodeSizeComparison:
                 self.old_size_version.revision, "and", self.new_size_version.revision)
         self.code_size_generator.size_generator_write_comparison(\
                 self.old_size_version.revision, self.new_size_version.revision,\
-                output_file)
+                output_file, self.code_size_common.with_markdown)
         return 0
 
     def get_comparision_results(self) -> int:
@@ -587,6 +608,10 @@ def main():
         choices=list(map(lambda s: s.value, SupportedConfig)),
         help="specify configuration type for code size comparison,\
               default is the current MbedTLS configuration.")
+    group_optional.add_argument(
+        '--markdown', action='store_true', dest='markdown',
+        help="Show comparision of code size in a markdown table\
+              (only show the files that have changed).")
     comp_args = parser.parse_args()
 
     if os.path.isfile(comp_args.result_dir):
@@ -619,6 +644,7 @@ def main():
     code_size_common = SimpleNamespace(
         host_arch=detect_arch(),
         measure_cmd='size -t',
+        with_markdown=comp_args.markdown
     )
 
     size_compare = CodeSizeComparison(old_size_version, new_size_version,\

@@ -34,7 +34,7 @@ def short_expression(original: str, level: int = 0) -> str:
     unambiguous, but ad hoc way.
     """
     short = original
-    short = re.sub(r'\bPSA_(?:ALG|ECC_FAMILY|KEY_[A-Z]+)_', r'', short)
+    short = re.sub(r'\bPSA_(?:ALG|DH_FAMILY|ECC_FAMILY|KEY_[A-Z]+)_', r'', short)
     short = re.sub(r' +', r'', short)
     if level >= 1:
         short = re.sub(r'PUBLIC_KEY\b', r'PUB', short)

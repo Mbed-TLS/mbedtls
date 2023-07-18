@@ -117,11 +117,13 @@ extern void (*mbedtls_test_hook_test_fail)(const char *test, int line, const cha
 /**
  * \brief       Securely zeroize a buffer then free it.
  *
- *              Exactly the same as consecutive calls to
- *              \c mbedtls_platform_zeroize() and \c mbedtls_free(), but has a
+ *              Similar to making consecutive calls to
+ *              \c mbedtls_platform_zeroize() and \c mbedtls_free(), but has
  *              code size savings, and potential for optimisation in the future.
  *
- * \param buf   Buffer to be zeroized then freed. May be \c NULL.
+ *              Guaranteed to be a no-op if \p buf is \c NULL and \p len is 0.
+ *
+ * \param buf   Buffer to be zeroized then freed.
  * \param len   Length of the buffer in bytes
  */
 void mbedtls_zeroize_and_free(void *buf, size_t len);

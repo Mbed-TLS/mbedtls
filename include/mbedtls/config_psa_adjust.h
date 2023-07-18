@@ -10,6 +10,10 @@
  * too complicated and basically useless not to (e.g. when there is
  * no practical use for enabling A without B, or when A+B requires almost
  * no extra code compared with A lone).
+ *
+ * This file also defines internal symbols (e.g. PSA_WANT_ALG_SOME_PAKE),
+ * mostly to simplify and make more readable the pre-processor directives in
+ * the library code.
  */
 
 /*

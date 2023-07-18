@@ -93,64 +93,61 @@
 #endif
 #endif /* defined(MBEDTLS_PSA_CRYPTO_CONFIG) */
 
-/* Adjust the PSA crypto configuration.
- *
- * Note that this must be done before "config_mbedtls_from_psa.h" since
- * that header may take decisions based on symbols enabled here.
- */
-#if defined(MBEDTLS_PSA_CRYPTO_C) || defined(MBEDTLS_PSA_CRYPTO_CONFIG)
-#include "config_psa_adjust.h"
-#endif
-
-/* Extend the PSA configuration to always support certain mechanisms
- * if they are available through the legacy API, even when
- * MBEDTLS_PSA_CRYPTO_CONFIG is enabled.
- *
- * This is independent of the mbedtls-from-psa or psa-from-mbedtls
- * implications based on the setting of MBEDTLS_PSA_CRYPTO_CONFIG
- * and can be done before or after those.
- */
-#if defined(MBEDTLS_PSA_CRYPTO_C) || defined(MBEDTLS_PSA_CRYPTO_CONFIG)
-#include "config_psa_extend_from_mbedtls.h"
-#endif
-
-/* Enable legacy crypto features necessary to implement the requested
- * PSA crypto features.
- *
- * This must be done after the internal adjustments of the PSA crypto
- * configuration and before the internal adjustments of the legacy
- * crypto configuration.
- */
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
-#include "config_mbedtls_from_psa.h"
-#endif
-
-/* Enable PSA crypto features to provide functionality that is similar
- * to the legacy crypto API.
- *
- * This may be done before or after the internal adjustments of the PSA crypto
- * configuration.
- */
-#if defined(MBEDTLS_PSA_CRYPTO_C) && !defined(MBEDTLS_PSA_CRYPTO_CONFIG)
-#include "config_psa_from_mbedtls.h"
-#endif
-
-/* Adjust legacy Mbed TLS crypto-related configuration options.
- *
- * This never enables cryptographic mechanisms as such, only high-level
- * interfaces (e.g. MD/CIPHER/PK) or internal sub-features (e.g. xxx_LIGHT).
- * Therefore it can be done after config_psa_from_mbedtls.h.
- *
- * This depends on which legacy cryptography-related options are enabled,
- * so it must be done after config_mbedtls_from_psa.h.
+#if !defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+/*
+ * The configuration of the library is solely defined by the Mbed-TLS
+ * configuration file.
+ * First, we adjust the Mbed-TLS cryptography configuration with
+ * config_crypto_adjust.h: enforce dependencies that cannot be enforced in
+ * check_config.h as not backward compatible and define internal symbols to
+ * simplify configuration checks in the library code.
+ * Second, if the PSA cryptography API is enabled, define from the defined
+ * MBEDTLS_ cryptography configuration macros the PSA_WANT_ and
+ * MBEDTLS_PSA_BUILTIN_ macros used in the PSA cryptography API implementation
+ * to provide through the PSA cryptography API functionalities as defined by
+ * the MBEDTLS_ cryptography configuration macros.
+ * Third, adjust the TLS and x509 configurations: undefine some irrelevant
+ * configuration options and define internal symbols to simplify configuration
+ * checks in the library code.
  */
 #include "config_crypto_adjust.h"
 
-/* Adjust X.509-related configuration options. */
-#include "config_x509_adjust.h"
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+#include "config_psa_from_mbedtls.h"
+#include "config_psa_adjust.h"
+#endif
 
-/* Adjust TLS-related configuration options. */
+#include "config_x509_adjust.h"
 #include "config_tls_adjust.h"
+
+#else /* MBEDTLS_PSA_CRYPTO_CONFIG */
+
+/*
+ * The configuration of the library is defined by the Mbed-TLS configuration
+ * file AND the PSA cryptography configuration file.
+ *
+ * First, extend the PSA configuration to always support certain mechanisms
+ * if they are available through the legacy API: some PSA_WANT_ macros are
+ * defined based on the definition of some MBEDTLS_ cryptography configuration
+ * options.
+ * Second, adapt the PSA configuration (more PSA_WANT_ macros defined):
+ * enforce obvious dependencies and define some internal symbols to simplify
+ * configuration checks in the library code.
+ * Third, define from the defined PSA_WANT_ and MBEDTLS_PSA_ACCEL_ macros the
+ * MBEDTLS_ and MBEDTLS_PSA_BUILTIN_ cryptography configuration macros to
+ * provide the requested PSA cryptography features.
+ * Last, adjust the Mbed-TLS cryptography, TLS and x509 configurations.
+ */
+
+#include "config_psa_extend_from_mbedtls.h"
+#include "config_psa_adjust.h"
+#include "config_mbedtls_from_psa.h"
+
+#include "config_crypto_adjust.h"
+#include "config_x509_adjust.h"
+#include "config_tls_adjust.h"
+
+#endif /* MBEDTLS_PSA_CRYPTO_CONFIG */
 
 #include "mbedtls/check_config.h"
 

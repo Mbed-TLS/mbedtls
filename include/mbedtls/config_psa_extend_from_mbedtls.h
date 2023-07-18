@@ -6,8 +6,8 @@
  * Do not include this header directly! It is automatically included
  * by public headers as needed.
  *
- * This file is used when #MBEDTLS_PSA_CRYPTO_C is enabled, regardless
- * of the status of #MBEDTLS_PSA_CRYPTO_CONFIG.
+ * This file is used when #MBEDTLS_PSA_CRYPTO_C and MBEDTLS_PSA_CRYPTO_CONFIG
+ * are enabled.
  *
  * This file enables certain cryptographic mechanisms in the PSA API if they
  * are available through the legacy API. This simplifies the design of

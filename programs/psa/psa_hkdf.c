@@ -41,11 +41,13 @@
 #include <stdlib.h>
 #include "mbedtls/build_info.h"
 
-#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_SHA256_C)
+#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_SHA256_C) || \
+    defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 int main( void )
 {
     printf( "MBEDTLS_PSA_CRYPTO_C and MBEDTLS_SHA256_C"
-            "not defined.\r\n" );
+            "not defined and/or "
+            "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\r\n" );
     return( EXIT_SUCCESS );
 }
 #else
@@ -54,7 +56,7 @@ int main( void )
 {
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t key_handle = 0;
+    psa_key_id_t key_id = 0;
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
 
     /* Example test vector from RFC 5869 */
@@ -97,7 +99,7 @@ int main( void )
     psa_set_key_algorithm( &attributes, PSA_ALG_HKDF( PSA_ALG_SHA_256 ) );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_DERIVE );
 
-    status = psa_import_key( &attributes, ikm, sizeof( ikm ), &key_handle );
+    status = psa_import_key( &attributes, ikm, sizeof( ikm ), &key_id );
     if( status != PSA_SUCCESS )
     {
         printf( "psa_import_key failed\n" );
@@ -120,7 +122,7 @@ int main( void )
     }
 
     status = psa_key_derivation_input_key( &operation, PSA_KEY_DERIVATION_INPUT_SECRET,
-                                           key_handle );
+                                           key_id );
     if( status != PSA_SUCCESS )
     {
         printf( "psa_key_derivation_input_key failed" );

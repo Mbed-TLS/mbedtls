@@ -111,7 +111,7 @@ def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
         _implemented_dependencies = \
             read_implemented_dependencies('include/psa/crypto_config.h')
     if not all((dep.lstrip('!') in _implemented_dependencies or
-                'PSA_WANT' not in dep)
+                not dep.lstrip('!').startswith('PSA_WANT'))
                for dep in dependencies):
         dependencies.append('DEPENDENCY_NOT_IMPLEMENTED_YET')
 
@@ -121,7 +121,14 @@ def tweak_key_pair_dependency(dep: str, usage: str):
     symbols according to the required usage.
     """
     ret_list = list()
-    if dep.endswith('KEY_PAIR'):
+    # Note: this LEGACY replacement DH is temporary and it's going
+    # to be aligned with ECC one in #7773.
+    if dep.endswith('DH_KEY_PAIR'):
+        legacy = dep
+        legacy = re.sub(r'KEY_PAIR\Z', r'KEY_PAIR_LEGACY', legacy)
+        legacy = re.sub(r'PSA_WANT', r'MBEDTLS_PSA_WANT', legacy)
+        ret_list.append(legacy)
+    elif dep.endswith('KEY_PAIR'):
         if usage == "BASIC":
             # BASIC automatically includes IMPORT and EXPORT for test purposes (see
             # config_psa.h).

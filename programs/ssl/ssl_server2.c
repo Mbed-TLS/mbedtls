@@ -446,7 +446,7 @@ int main(void)
 #define USAGE_EARLY_DATA ""
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
-#if defined(MBEDTLS_ECP_LIGHT) || \
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) || \
     (defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
     defined(PSA_WANT_ALG_FFDH))
 #define USAGE_GROUPS \
@@ -3095,7 +3095,7 @@ usage:
     }
 #endif
 
-#if defined(MBEDTLS_ECP_LIGHT) || \
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) || \
     (defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
     defined(PSA_WANT_ALG_FFDH))
     if (opt.groups != NULL &&

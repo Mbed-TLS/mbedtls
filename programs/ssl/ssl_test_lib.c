@@ -30,6 +30,8 @@
 
 #if !defined(MBEDTLS_SSL_TEST_IMPOSSIBLE)
 
+#define ARRAY_LENGTH(x)     (sizeof(x)/sizeof(x[0]))
+
 void my_debug(void *ctx, int level,
               const char *file, int line,
               const char *str)
@@ -449,64 +451,117 @@ void test_hooks_free(void)
 
 #endif /* MBEDTLS_TEST_HOOKS */
 
+static const struct {
+    uint16_t tls_id;
+    const char *name;
+    uint8_t is_supported;
+} tls_id_group_name_table[] =
+{
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_521)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1, "secp521r1", 1 },
+#else
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1, "secp521r1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1, "brainpoolP512r1", 1 },
+#else
+    { MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1, "brainpoolP512r1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_384)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1, "secp384r1", 1 },
+#else
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1, "secp384r1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_BP384R1, "brainpoolP384r1", 1 },
+#else
+    { MBEDTLS_SSL_IANA_TLS_GROUP_BP384R1, "brainpoolP384r1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_256)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1, "secp256r1", 1 },
+#else
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1, "secp256r1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_256)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256K1, "secp256k1", 1 },
+#else
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256K1, "secp256k1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_BP256R1, "brainpoolP256r1", 1 },
+#else
+    { MBEDTLS_SSL_IANA_TLS_GROUP_BP256R1, "brainpoolP256r1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_224)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP224R1, "secp224r1", 1 },
+#else
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP224R1, "secp224r1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_224)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP224K1, "secp224k1", 1 },
+#else
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP224K1, "secp224k1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_192)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP192R1, "secp192r1", 1 },
+#else
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP192R1, "secp192r1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_192)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP192K1, "secp192k1", 1 },
+#else
+    { MBEDTLS_SSL_IANA_TLS_GROUP_SECP192K1, "secp192k1", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || defined(PSA_WANT_ECC_MONTGOMERY_255)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_X25519, "x25519", 1 },
+#else
+    { MBEDTLS_SSL_IANA_TLS_GROUP_X25519, "x25519", 0 },
+#endif
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) || defined(PSA_WANT_ECC_MONTGOMERY_448)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_X448, "x448", 1 },
+#else
+    { MBEDTLS_SSL_IANA_TLS_GROUP_X448, "x448", 0 },
+#endif
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
     defined(PSA_WANT_ALG_FFDH)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048, "ffdhe2048", 1 },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072, "ffdhe3072", 1 },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096, "ffdhe4096", 1 },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144, "ffdhe6144", 1 },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192, "ffdhe8192", 1 },
+#else
+    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048, "ffdhe2048", 0 },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072, "ffdhe3072", 0 },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096, "ffdhe4096", 0 },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144, "ffdhe6144", 0 },
+    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192, "ffdhe8192", 0 },
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED && PSA_WANT_ALG_FFDH */
+    { 0, NULL, 0 },
+};
 
-/* Finite Field Group Names (DHE) */
-#define MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE2048     "ffdhe2048"
-#define MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE3072     "ffdhe3072"
-#define MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE4096     "ffdhe4096"
-#define MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE6144     "ffdhe6144"
-#define MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE8192     "ffdhe8192"
-
-static uint16_t mbedtls_ssl_ffdh_group_from_name(const char *name)
+static uint16_t mbedtls_ssl_get_curve_tls_id_from_name(const char *name)
 {
-    if (strcmp(name, MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE2048) == 0) {
-        return MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048;
-    } else if (strcmp(name, MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE3072) == 0) {
-        return MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072;
-    } else if (strcmp(name, MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE4096) == 0) {
-        return MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096;
-    } else if (strcmp(name, MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE6144) == 0) {
-        return MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144;
-    } else if (strcmp(name, MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE8192) == 0) {
-        return MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192;
+    if (name == NULL) {
+        return 0;
     }
+
+    for (int i = 0; tls_id_group_name_table[i].tls_id != 0; i++) {
+        if (strcmp(tls_id_group_name_table[i].name, name) == 0) {
+            return tls_id_group_name_table[i].tls_id;
+        }
+    }
+
     return 0;
 }
 
-static const uint16_t *mbedtls_ssl_ffdh_supported_groups(void)
+static void mbedtls_ssl_print_supported_groups_list(void)
 {
-    static const uint16_t ffdh_groups[] = {
-        MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048,
-        MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072,
-        MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096,
-        MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144,
-        MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192,
-        0
-    };
-    return ffdh_groups;
-}
-
-static inline const char *mbedtls_ssl_ffdh_name_from_group(uint16_t group)
-{
-    switch (group) {
-        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048:
-            return MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE2048;
-        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072:
-            return MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE3072;
-        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096:
-            return MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE4096;
-        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144:
-            return MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE6144;
-        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192:
-            return MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE8192;
-        default:
-            return NULL;
+    for (int i = 0; tls_id_group_name_table[i].tls_id != 0; i++) {
+        if (tls_id_group_name_table[i].is_supported == 1) {
+            mbedtls_printf("%s ", tls_id_group_name_table[i].name);
+        }
     }
-    return NULL;
 }
-#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED && PSA_WANT_ALG_FFDH */
 
 int parse_groups(const char *groups, uint16_t *group_list, size_t group_list_len)
 {
@@ -519,14 +574,9 @@ int parse_groups(const char *groups, uint16_t *group_list, size_t group_list_len
     } else if (strcmp(p, "default") != 0) {
         /* Leave room for a final NULL in group list */
         while (i < group_list_len - 1 && *p != '\0') {
+            uint16_t curve_tls_id;
             q = p;
-#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
-            defined(PSA_WANT_ALG_FFDH)
-            uint16_t ffdh_group = 0;
-#endif
-#if defined(MBEDTLS_ECP_LIGHT)
-            const mbedtls_ecp_curve_info *curve_cur = NULL;
-#endif
+
             /* Terminate the current string */
             while (*p != ',' && *p != '\0') {
                 p++;
@@ -535,36 +585,12 @@ int parse_groups(const char *groups, uint16_t *group_list, size_t group_list_len
                 *p++ = '\0';
             }
 
-#if defined(MBEDTLS_ECP_LIGHT)
-            if ((curve_cur = mbedtls_ecp_curve_info_from_name(q)) != NULL) {
-                group_list[i++] = curve_cur->tls_id;
-            } else
-#endif
-#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
-            defined(PSA_WANT_ALG_FFDH)
-            if ((ffdh_group = mbedtls_ssl_ffdh_group_from_name(q)) != 0) {
-                group_list[i++] = ffdh_group;
-            } else
-#endif
-            {
+            if ((curve_tls_id = mbedtls_ssl_get_curve_tls_id_from_name(q)) != 0) {
+                group_list[i++] = curve_tls_id;
+            } else {
                 mbedtls_printf("unknown group %s\n", q);
                 mbedtls_printf("supported groups: ");
-#if defined(MBEDTLS_ECP_LIGHT)
-                for (curve_cur = mbedtls_ecp_curve_list();
-                     curve_cur->grp_id != MBEDTLS_ECP_DP_NONE;
-                     curve_cur++) {
-                    mbedtls_printf("%s ", curve_cur->name);
-                }
-#endif
-#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
-                defined(PSA_WANT_ALG_FFDH)
-                const uint16_t *supported_ffdh_group = mbedtls_ssl_ffdh_supported_groups();
-                while (*supported_ffdh_group != 0) {
-                    mbedtls_printf("%s ",
-                                   mbedtls_ssl_ffdh_name_from_group(*supported_ffdh_group));
-                    supported_ffdh_group++;
-                }
-#endif
+                mbedtls_ssl_print_supported_groups_list();
                 mbedtls_printf("\n");
                 return -1;
             }

@@ -28,6 +28,9 @@ import shutil
 import subprocess
 import sys
 
+import scripts_path
+from mbedtls_dev import build_tree
+
 # PSA Compliance tests we expect to fail due to known defects in Mbed TLS (or the test suite)
 # The test numbers correspond to the numbers used by the console output of the test suite.
 # Test number 2xx corresponds to the files in the folder
@@ -53,8 +56,11 @@ PSA_ARCH_TESTS_REF = 'fix-pr-5736'
 def main():
     mbedtls_dir = os.getcwd()
 
-    if not os.path.exists('library/libmbedcrypto.a'):
-        subprocess.check_call(['make', '-C', 'library', 'libmbedcrypto.a'])
+    is_psa_crypto = build_tree.looks_like_psa_crypto_root(mbedtls_dir) #type: bool
+
+    if not is_psa_crypto:
+        if not os.path.exists('library/libmbedcrypto.a'):
+            subprocess.check_call(['make', '-C', 'library', 'libmbedcrypto.a'])
 
     psa_arch_tests_dir = 'psa-arch-tests'
     os.makedirs(psa_arch_tests_dir, exist_ok=True)
@@ -74,6 +80,15 @@ def main():
         os.mkdir(build_dir)
         os.chdir(build_dir)
 
+        if is_psa_crypto:
+            psa_crypto_lib_filename = \
+                'mbedtls_out_of_source_build/core/libpsacrypto.a'
+        else:
+            psa_crypto_lib_filename = 'library/libmbedcrypto.a'
+
+        extra_includes = (';{}/drivers/builtin/include'.format(mbedtls_dir)
+                          if is_psa_crypto else '')
+
         #pylint: disable=bad-continuation
         subprocess.check_call([
             'cmake', '..',
@@ -81,8 +96,9 @@ def main():
                      '-DTARGET=tgt_dev_apis_stdc',
                      '-DTOOLCHAIN=HOST_GCC',
                      '-DSUITE=CRYPTO',
-                     '-DPSA_CRYPTO_LIB_FILENAME={}/library/libmbedcrypto.a'.format(mbedtls_dir),
-                     '-DPSA_INCLUDE_PATHS={}/include'.format(mbedtls_dir)
+                     '-DPSA_CRYPTO_LIB_FILENAME={}/{}'.format(mbedtls_dir,
+                                                              psa_crypto_lib_filename),
+                     ('-DPSA_INCLUDE_PATHS={}/include' + extra_includes).format(mbedtls_dir)
         ])
         subprocess.check_call(['cmake', '--build', '.'])
 

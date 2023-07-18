@@ -33,11 +33,12 @@
 
 
 #if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_AES_C) || \
-    !defined(MBEDTLS_CCM_C)
+    !defined(MBEDTLS_CCM_C) || defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 int main( void )
 {
     printf( "MBEDTLS_PSA_CRYPTO_C and/or MBEDTLS_AES_C and/or "
-            "MBEDTLS_CCM_C not defined.\r\n" );
+            "MBEDTLS_CCM_C not defined and/or "
+            "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\r\n" );
     return( 0 );
 }
 #else
@@ -55,7 +56,7 @@ int main( void )
 {
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t key_handle = 0;
+    psa_key_id_t key_id = 0;
     uint8_t encrypt[BUFFER_SIZE] = {0};
     uint8_t decrypt[BUFFER_SIZE] = {0};
     const uint8_t plaintext[] = "Hello World!";
@@ -78,7 +79,7 @@ int main( void )
     psa_set_key_type( &attributes, PSA_KEY_TYPE_AES );
     psa_set_key_bits( &attributes, 256 );
 
-    status = psa_import_key( &attributes, key_bytes, sizeof( key_bytes ), &key_handle );
+    status = psa_import_key( &attributes, key_bytes, sizeof( key_bytes ), &key_id );
     if( status != PSA_SUCCESS )
     {
         printf( "psa_import_key failed\n" );
@@ -92,7 +93,7 @@ int main( void )
         return( EXIT_FAILURE );
     }
 
-    status = psa_aead_encrypt( key_handle,                       // key
+    status = psa_aead_encrypt( key_id,                           // key
                                PSA_ALG_CCM,                      // algorithm
                                nonce, nonce_length,              // nonce
                                NULL, 0,                          // additional data
@@ -122,7 +123,7 @@ int main( void )
 
     printf( "\n" );
 
-    status = psa_aead_decrypt( key_handle,                  // key
+    status = psa_aead_decrypt( key_id,                      // key
                                PSA_ALG_CCM,                 // algorithm
                                nonce, nonce_length,         // nonce
                                NULL, 0,                     // additional data
@@ -144,7 +145,7 @@ int main( void )
         printf( "\nEncryption/Decryption successful!\n" );
     }
 
-    psa_destroy_key( key_handle );
+    psa_destroy_key( key_id );
     mbedtls_psa_crypto_free( );
     return( 0 );
 }

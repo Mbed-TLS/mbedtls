@@ -1,0 +1,2 @@
+Features
+   * Added an example program showing how to encrypt with the PSA API.

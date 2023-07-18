@@ -275,7 +275,7 @@ class CodeSizeGenerator:
             old_rev: str,
             new_rev: str,
             output_stream,
-            with_markdown=False
+            result_options: SimpleNamespace
     ) -> None:
         """Write a comparision result into a stream between two revisions.
 
@@ -283,8 +283,9 @@ class CodeSizeGenerator:
         new_rev: new git revision to compared with.
         output_stream: stream which the code size record is written to.
                        (E.g: file / sys.stdout)
-        with_markdown: write comparision result in a markdown table.
-                       (Default: False)
+        result_options: SimpleNamespace containing options for comparison result.
+            with_markdown: write comparision result in a markdown table. (Default: False)
+            stdout: direct comparison result into sys.stdout. (Default: False)
         """
         raise NotImplementedError
 
@@ -469,11 +470,14 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
             old_rev: str,
             new_rev: str,
             output_stream,
-            with_markdown=False
+            result_options: SimpleNamespace
     ) -> None:
         """Write a comparision result into a stream between two revisions."""
-        output = open(output_stream, "w")
-        self.write_comparison(old_rev, new_rev, output, with_markdown)
+        if result_options.stdout:
+            output = sys.stdout
+        else:
+            output = open(output_stream, "w")
+        self.write_comparison(old_rev, new_rev, output, result_options.with_markdown)
 
 
 class CodeSizeComparison:
@@ -484,7 +488,6 @@ class CodeSizeComparison:
             old_size_version: SimpleNamespace,
             new_size_version: SimpleNamespace,
             code_size_common: SimpleNamespace,
-            result_dir: str,
     ) -> None:
         """
         old_revision: revision to compare against.
@@ -492,7 +495,7 @@ class CodeSizeComparison:
         result_dir: directory for comparison result.
         """
         self.repo_path = "."
-        self.result_dir = os.path.abspath(result_dir)
+        self.result_dir = os.path.abspath(code_size_common.result_options.result_dir)
         os.makedirs(self.result_dir, exist_ok=True)
 
         self.csv_dir = os.path.abspath("code_size_records/")
@@ -566,7 +569,7 @@ class CodeSizeComparison:
                 self.old_size_version.revision, "and", self.new_size_version.revision)
         self.code_size_generator.size_generator_write_comparison(\
                 self.old_size_version.revision, self.new_size_version.revision,\
-                output_file, self.code_size_common.with_markdown)
+                output_file, self.code_size_common.result_options)
         return 0
 
     def get_comparision_results(self) -> int:
@@ -612,6 +615,10 @@ def main():
         '--markdown', action='store_true', dest='markdown',
         help="Show comparision of code size in a markdown table\
               (only show the files that have changed).")
+    group_optional.add_argument(
+        '--stdout', action='store_true', dest='stdout',
+        help="Set this option to direct comparison result into sys.stdout.\
+              (Default: file)")
     comp_args = parser.parse_args()
 
     if os.path.isfile(comp_args.result_dir):
@@ -642,13 +649,17 @@ def main():
         make_cmd='',
     )
     code_size_common = SimpleNamespace(
+        result_options=SimpleNamespace(
+            result_dir=comp_args.result_dir,
+            with_markdown=comp_args.markdown,
+            stdout=comp_args.stdout,
+        ),
         host_arch=detect_arch(),
         measure_cmd='size -t',
-        with_markdown=comp_args.markdown
     )
 
     size_compare = CodeSizeComparison(old_size_version, new_size_version,\
-            code_size_common, comp_args.result_dir)
+            code_size_common)
     return_code = size_compare.get_comparision_results()
     sys.exit(return_code)
 

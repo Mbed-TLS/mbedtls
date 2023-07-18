@@ -55,9 +55,9 @@
     MBEDTLS_INTERNAL_VALIDATE(cond)
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_mpi_zeroize(mbedtls_mpi_uint *v, size_t n)
+static void mbedtls_mpi_zeroize_and_free(mbedtls_mpi_uint *v, size_t n)
 {
-    mbedtls_platform_zeroize(v, ciL * n);
+    mbedtls_zeroize_and_free(v, ciL * n);
 }
 
 /*
@@ -82,8 +82,7 @@ void mbedtls_mpi_free(mbedtls_mpi *X)
     }
 
     if (X->p != NULL) {
-        mbedtls_mpi_zeroize(X->p, X->n);
-        mbedtls_free(X->p);
+        mbedtls_mpi_zeroize_and_free(X->p, X->n);
     }
 
     X->s = 1;
@@ -110,8 +109,7 @@ int mbedtls_mpi_grow(mbedtls_mpi *X, size_t nblimbs)
 
         if (X->p != NULL) {
             memcpy(p, X->p, X->n * ciL);
-            mbedtls_mpi_zeroize(X->p, X->n);
-            mbedtls_free(X->p);
+            mbedtls_mpi_zeroize_and_free(X->p, X->n);
         }
 
         X->n = nblimbs;
@@ -158,8 +156,7 @@ int mbedtls_mpi_shrink(mbedtls_mpi *X, size_t nblimbs)
 
     if (X->p != NULL) {
         memcpy(p, X->p, i * ciL);
-        mbedtls_mpi_zeroize(X->p, X->n);
-        mbedtls_free(X->p);
+        mbedtls_mpi_zeroize_and_free(X->p, X->n);
     }
 
     X->n = i;

@@ -267,6 +267,8 @@ class KeyType:
             if alg.head in {'PURE_EDDSA', 'EDDSA_PREHASH'} and \
                eccc == EllipticCurveCategory.TWISTED_EDWARDS:
                 return True
+        if self.head == 'DH' and alg.head == 'FFDH':
+            return True
         return False
 
 

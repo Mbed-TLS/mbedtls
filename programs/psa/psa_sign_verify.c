@@ -34,18 +34,20 @@
 
 #include "mbedtls/build_info.h"
 
-#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_ECDSA_C)
+#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 int main( void )
 {
     printf( "MBEDTLS_PSA_CRYPTO_C and MBEDTLS_ECDSA_C"
-            "not defined.\r\n" );
+            "not defined and/or "
+            "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\r\n" );
     return( 0 );
 }
 #else
 int main( void )
 {
     psa_status_t status;
-    psa_key_handle_t key_handle = 0;
+    psa_key_id_t key_id = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     uint8_t signature[PSA_SIGNATURE_MAX_SIZE] = {0};
     size_t signature_length;
@@ -73,14 +75,14 @@ int main( void )
     psa_set_key_algorithm( &attributes, PSA_ALG_ECDSA(PSA_ALG_SHA_256) );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1) );
 
-    status = psa_import_key( &attributes, key_bytes, sizeof( key_bytes ), &key_handle );
+    status = psa_import_key( &attributes, key_bytes, sizeof( key_bytes ), &key_id );
     if( status != PSA_SUCCESS )
     {
         printf( "psa_import_key failed\n" );
         return( EXIT_FAILURE );
     }
 
-    status = psa_sign_hash( key_handle,                     // key handle
+    status = psa_sign_hash( key_id,                     // key handle
                             PSA_ALG_ECDSA(PSA_ALG_SHA_256), // signature algorithm
                             hash, sizeof( hash ),           // hash of the message
                             signature, sizeof( signature ), // signature (as output)
@@ -101,7 +103,7 @@ int main( void )
 
     printf( "\n" );
 
-    status = psa_verify_hash( key_handle,                     // key handle
+    status = psa_verify_hash( key_id,                     // key handle
                               PSA_ALG_ECDSA(PSA_ALG_SHA_256), // signature algorithm
                               hash, sizeof( hash ),           // hash of message
                               signature, signature_length );  // signature
@@ -115,7 +117,7 @@ int main( void )
         printf( "\nSignature verification successful!\n" );
     }
 
-    psa_destroy_key( key_handle );
+    psa_destroy_key( key_id );
     mbedtls_psa_crypto_free( );
     return( 0 );
 }

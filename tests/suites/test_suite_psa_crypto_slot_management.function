@@ -775,7 +775,7 @@ void invalid_handle(int handle_construction,
                 mbedtls_svc_key_id_make(0, PSA_KEY_ID_VENDOR_MAX + 1);
             break;
         default:
-            ASSERT_FALSE("unknown handle construction");
+            TEST_FAIL("unknown handle construction");
     }
 
     /* Attempt to use the invalid handle. */

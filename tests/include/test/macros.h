@@ -65,7 +65,7 @@
  *
  * \param   MESSAGE The message to be outputed on assertion
  */
-#define ASSERT_FALSE(MESSAGE)                           \
+#define TEST_FAIL(MESSAGE)                           \
     do {                                                  \
         mbedtls_test_fail(MESSAGE, __LINE__, __FILE__);   \
         goto exit;                                          \

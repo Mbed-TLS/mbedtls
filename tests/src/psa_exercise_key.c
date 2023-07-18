@@ -309,7 +309,7 @@ static int exercise_signature_key(mbedtls_svc_key_id_t key,
             hash_alg = KNOWN_SUPPORTED_HASH_ALG;
             alg ^= PSA_ALG_ANY_HASH ^ hash_alg;
     #else
-            ASSERT_FALSE("No hash algorithm for hash-and-sign testing");
+            TEST_FAIL("No hash algorithm for hash-and-sign testing");
     #endif
         }
 
@@ -438,7 +438,7 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
                                                   PSA_KEY_DERIVATION_INPUT_LABEL,
                                                   input2, input2_length));
     } else {
-        ASSERT_FALSE("Key derivation algorithm not supported");
+        TEST_FAIL("Key derivation algorithm not supported");
     }
 
     if (capacity != SIZE_MAX) {
@@ -798,7 +798,7 @@ int mbedtls_test_psa_exported_key_sanity_check(
                     PSA_EXPORT_PUBLIC_KEY_MAX_SIZE);
     } else {
         (void) exported;
-        ASSERT_FALSE("Sanity check not implemented for this key type");
+        TEST_FAIL("Sanity check not implemented for this key type");
     }
 
 #if defined(MBEDTLS_DES_C)
@@ -943,7 +943,7 @@ int mbedtls_test_psa_exercise_key(mbedtls_svc_key_id_t key,
     } else if (PSA_ALG_IS_KEY_AGREEMENT(alg)) {
         ok = exercise_key_agreement_key(key, usage, alg);
     } else {
-        ASSERT_FALSE("No code to exercise this category of algorithm");
+        TEST_FAIL("No code to exercise this category of algorithm");
     }
 
     ok = ok && exercise_export_key(key, usage);

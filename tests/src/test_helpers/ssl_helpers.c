@@ -1753,7 +1753,7 @@ static int check_ssl_version(
             break;
 
         default:
-            ASSERT_FALSE(
+            TEST_FAIL(
                 "Version check not implemented for this protocol version");
     }
 

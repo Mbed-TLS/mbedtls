@@ -195,6 +195,13 @@ pre_initialize_variables () {
     # they are defined.
     ALL_COMPONENTS=$(sed -n 's/^ *component_\([0-9A-Z_a-z]*\) *().*/\1/p' <"$0")
 
+    # For Linux platforms we run latest/earliest versions of clang and the
+    # test_clang_opt function is only for FreeBSD. This condition removes
+    # test_clang_opt element from the ALL_COMPONENTS array for Linux.
+    if [[ $(uname) == "Linux" ]]; then
+        ALL_COMPONENTS=( "${ALL_COMPONENTS[@]/test_clang_opt}" )
+    fi
+
     # Exclude components that are not supported on this platform.
     SUPPORTED_COMPONENTS=
     for component in $ALL_COMPONENTS; do
@@ -3993,6 +4000,7 @@ component_test_cmake_shared () {
 
 test_build_opt () {
     info=$1 cc=$2; shift 2
+    $cc --version
     for opt in "$@"; do
           msg "build/test: $cc $opt, $info" # ~ 30s
           make CC="$cc" CFLAGS="$opt -std=c99 -pedantic -Wall -Wextra -Werror"
@@ -4005,14 +4013,45 @@ test_build_opt () {
     done
 }
 
-component_test_clang_opt () {
+# For FreeBSD we invoke the function by name so this condition is added
+# to disable the existing test_clang_opt function for linux.
+if [[ $(uname) != "Linux" ]]; then
+    component_test_clang_opt () {
+        scripts/config.py full
+        test_build_opt 'full config' clang -O0 -Os -O2
+    }
+fi
+
+component_test_clang_latest_opt () {
     scripts/config.py full
-    test_build_opt 'full config' clang -O0 -Os -O2
+    test_build_opt 'full config' clang-latest -O0 -Os -O2
+}
+support_test_clang_latest_opt () {
+    type clang-latest >/dev/null 2>/dev/null
 }
 
-component_test_gcc_opt () {
+component_test_clang_earliest_opt () {
     scripts/config.py full
-    test_build_opt 'full config' gcc -O0 -Os -O2
+    test_build_opt 'full config' clang-earliest -O0
+}
+support_test_clang_earliest_opt () {
+    type clang-earliest >/dev/null 2>/dev/null
+}
+
+component_test_gcc_latest_opt () {
+    scripts/config.py full
+    test_build_opt 'full config' gcc-latest -O0 -Os -O2
+}
+support_test_gcc_latest_opt () {
+    type gcc-latest >/dev/null 2>/dev/null
+}
+
+component_test_gcc_earliest_opt () {
+    scripts/config.py full
+    test_build_opt 'full config' gcc-earliest -O0
+}
+support_test_gcc_earliest_opt () {
+    type gcc-earliest >/dev/null 2>/dev/null
 }
 
 component_build_mbedtls_config_file () {

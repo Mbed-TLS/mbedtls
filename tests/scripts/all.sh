@@ -2446,7 +2446,7 @@ component_test_psa_crypto_config_accel_pake() {
 # - component_test_psa_crypto_config_accel_ecc_ecp_light_only;
 # - component_test_psa_crypto_config_reference_ecc_ecp_light_only.
 # This supports comparing their test coverage with analyze_outcomes.py.
-config_psa_crypto_config_ecp_ligh_only () {
+config_psa_crypto_config_ecp_light_only () {
     DRIVER_ONLY="$1"
     # start with config full for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
@@ -2482,7 +2482,7 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
     # ---------
 
     # Use the same config as reference, only without built-in EC algs
-    config_psa_crypto_config_ecp_ligh_only 1
+    config_psa_crypto_config_ecp_light_only 1
 
     # Build
     # -----
@@ -2513,7 +2513,7 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
 component_test_psa_crypto_config_reference_ecc_ecp_light_only () {
     msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with non-accelerated EC algs + USE_PSA"
 
-    config_psa_crypto_config_ecp_ligh_only 0
+    config_psa_crypto_config_ecp_light_only 0
 
     make
 

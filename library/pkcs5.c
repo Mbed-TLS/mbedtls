@@ -211,6 +211,24 @@ int mbedtls_pkcs5_pbes2(const mbedtls_asn1_buf *pbe_params, int mode,
         goto exit;
     }
 
+    /* PKCS5 uses CBC with PKCS7 padding (which is the same as
+     * "PKCS5 padding" except that it's typically only called PKCS5
+     * with 64-bit-block ciphers).
+     */
+    mbedtls_cipher_padding_t padding = MBEDTLS_PADDING_PKCS7;
+#if !defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+    /* For historical reasons, when decrypting, this function works when
+     * decrypting even when support for PKCS7 padding is disabled. In this
+     * case, it ignores the padding, and so will never report a
+     * password mismatch.
+     */
+    if (mode == MBEDTLS_DECRYPT)
+        padding = MBEDTLS_PADDING_NONE;
+#endif
+    if ((ret = mbedtls_cipher_set_padding_mode(&cipher_ctx, padding)) != 0) {
+        goto exit;
+    }
+
     if ((ret = mbedtls_cipher_crypt(&cipher_ctx, iv, enc_scheme_params.len,
                                     data, datalen, output, &olen)) != 0) {
         ret = MBEDTLS_ERR_PKCS5_PASSWORD_MISMATCH;

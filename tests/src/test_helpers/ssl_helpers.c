@@ -930,13 +930,14 @@ int mbedtls_ssl_write_fragment(mbedtls_ssl_context *ssl,
                                int *written,
                                const int expected_fragments)
 {
+    int ret;
     /* Verify that calling mbedtls_ssl_write with a NULL buffer and zero length is
      * a valid no-op for TLS connections. */
     if (ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
         TEST_ASSERT(mbedtls_ssl_write(ssl, NULL, 0) == 0);
     }
 
-    int ret = mbedtls_ssl_write(ssl, buf + *written, buf_len - *written);
+    ret = mbedtls_ssl_write(ssl, buf + *written, buf_len - *written);
     if (ret > 0) {
         *written += ret;
     }
@@ -976,13 +977,14 @@ int mbedtls_ssl_read_fragment(mbedtls_ssl_context *ssl,
                               int *read, int *fragments,
                               const int expected_fragments)
 {
+    int ret;
     /* Verify that calling mbedtls_ssl_write with a NULL buffer and zero length is
      * a valid no-op for TLS connections. */
     if (ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
         TEST_ASSERT(mbedtls_ssl_read(ssl, NULL, 0) == 0);
     }
 
-    int ret = mbedtls_ssl_read(ssl, buf + *read, buf_len - *read);
+    ret = mbedtls_ssl_read(ssl, buf + *read, buf_len - *read);
     if (ret > 0) {
         (*fragments)++;
         *read += ret;

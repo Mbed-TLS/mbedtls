@@ -28,6 +28,7 @@ import shutil
 import subprocess
 import sys
 
+#pylint: disable=unused-import
 import scripts_path
 from mbedtls_dev import build_tree
 
@@ -52,11 +53,11 @@ EXPECTED_FAILURES = {
 PSA_ARCH_TESTS_REPO = 'https://github.com/bensze01/psa-arch-tests.git'
 PSA_ARCH_TESTS_REF = 'fix-pr-5736'
 
-#pylint: disable=too-many-branches,too-many-statements
+#pylint: disable=too-many-branches,too-many-statements,too-many-locals
 def main():
     mbedtls_dir = os.getcwd()
 
-    is_psa_crypto = build_tree.looks_like_psa_crypto_root(mbedtls_dir) #type: bool
+    is_psa_crypto = build_tree.looks_like_psa_crypto_root(mbedtls_dir)
 
     if not is_psa_crypto:
         if not os.path.exists('library/libmbedcrypto.a'):

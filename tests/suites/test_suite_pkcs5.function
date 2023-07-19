@@ -27,6 +27,36 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ASN1_PARSE_C */
+void pbes2_encrypt(int params_tag, data_t *params_hex, data_t *pw,
+                   data_t *data, int ref_ret, data_t *ref_out)
+{
+    int my_ret;
+    mbedtls_asn1_buf params;
+    unsigned char *my_out = NULL;
+
+    MD_PSA_INIT();
+
+    params.tag = params_tag;
+    params.p = params_hex->x;
+    params.len = params_hex->len;
+
+    ASSERT_ALLOC(my_out, ref_out->len);
+
+    my_ret = mbedtls_pkcs5_pbes2(&params, MBEDTLS_PKCS5_ENCRYPT,
+                                 pw->x, pw->len, data->x, data->len, my_out);
+    TEST_EQUAL(my_ret, ref_ret);
+    if (ref_ret == 0) {
+        ASSERT_COMPARE(my_out, ref_out->len,
+                       ref_out->x, ref_out->len);
+    }
+
+exit:
+    mbedtls_free(my_out);
+    MD_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ASN1_PARSE_C */
 void mbedtls_pkcs5_pbes2(int params_tag, data_t *params_hex, data_t *pw,
                          data_t *data, int ref_ret, data_t *ref_out)
 {
@@ -40,14 +70,14 @@ void mbedtls_pkcs5_pbes2(int params_tag, data_t *params_hex, data_t *pw,
     params.p = params_hex->x;
     params.len = params_hex->len;
 
-    my_out = mbedtls_test_zero_alloc(ref_out->len);
+    ASSERT_ALLOC(my_out, ref_out->len);
 
     my_ret = mbedtls_pkcs5_pbes2(&params, MBEDTLS_PKCS5_DECRYPT,
                                  pw->x, pw->len, data->x, data->len, my_out);
-    TEST_ASSERT(my_ret == ref_ret);
-
+    TEST_EQUAL(my_ret, ref_ret);
     if (ref_ret == 0) {
-        TEST_ASSERT(memcmp(my_out, ref_out->x, ref_out->len) == 0);
+        ASSERT_COMPARE(my_out, ref_out->len,
+                       ref_out->x, ref_out->len);
     }
 
 exit:

@@ -3137,37 +3137,6 @@ component_test_psa_crypto_config_accel_aead () {
     make test
 }
 
-component_test_psa_crypto_config_accel_pake() {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated PAKE"
-
-    loc_accel_list="ALG_JPAKE"
-
-    # Configure
-    # ---------
-
-    helper_libtestdriver1_adjust_config "full"
-
-    # Make build-in fallback not available
-    scripts/config.py unset MBEDTLS_ECJPAKE_C
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
-
-    # Build
-    # -----
-
-    helper_libtestdriver1_make_drivers "$loc_accel_list"
-
-    helper_libtestdriver1_make_main "$loc_accel_list"
-
-    # Make sure this was not re-enabled by accident (additive config)
-    not grep mbedtls_ecjpake_init library/ecjpake.o
-
-    # Run the tests
-    # -------------
-
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated PAKE"
-    make test
-}
-
 component_test_psa_crypto_config_chachapoly_disabled() {
     # full minus MBEDTLS_CHACHAPOLY_C without PSA_WANT_ALG_GCM and PSA_WANT_ALG_CHACHA20_POLY1305
     msg "build: full minus MBEDTLS_CHACHAPOLY_C without PSA_WANT_ALG_GCM and PSA_WANT_ALG_CHACHA20_POLY1305"

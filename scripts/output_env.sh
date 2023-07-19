@@ -105,7 +105,19 @@ echo
 print_version "gcc" "--version" "" "head -n 1"
 echo
 
+print_version "gcc-earliest" "--version" "" "head -n 1"
+echo
+
+print_version "gcc-latest" "--version" "" "head -n 1"
+echo
+
 print_version "clang" "--version" "" "head -n 2"
+echo
+
+print_version "clang-earliest" "--version" "" "head -n 2"
+echo
+
+print_version "clang-latest" "--version" "" "head -n 2"
 echo
 
 print_version "ldd" "--version" "" "head -n 1"

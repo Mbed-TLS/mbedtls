@@ -2351,7 +2351,7 @@ component_test_psa_crypto_config_accel_ecdh () {
 }
 
 component_test_psa_crypto_config_accel_ffdh () {
-    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated FFDH"
+    msg "build: full with accelerated FFDH"
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_FFDH KEY_TYPE_DH_KEY_PAIR KEY_TYPE_DH_PUBLIC_KEY"
@@ -2382,15 +2382,15 @@ component_test_psa_crypto_config_accel_ffdh () {
     # Run the tests
     # -------------
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated FFDH"
+    msg "test: full with accelerated FFDH"
     make test
 
-    msg "ssl-opt: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated FFDH alg"
+    msg "ssl-opt: full with accelerated FFDH alg"
     tests/ssl-opt.sh -f "ffdh"
 }
 
 component_test_psa_crypto_config_reference_ffdh () {
-    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated FFDH"
+    msg "build: full with accelerated FFDH"
 
     # Start with full (USE_PSA and TLS 1.3)
     helper_libtestdriver1_adjust_config "full"
@@ -2400,15 +2400,15 @@ component_test_psa_crypto_config_reference_ffdh () {
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
     make
 
-    msg "test suites: MBEDTLS_PSA_CRYPTO_CONFIG with non-accelerated FFDH alg + USE_PSA"
+    msg "test suites: full with non-accelerated FFDH alg"
     make test
 
-    msg "ssl-opt: MBEDTLS_PSA_CRYPTO_CONFIG with non-accelerated FFDH alg + USE_PSA"
+    msg "ssl-opt: full with non-accelerated FFDH alg"
     tests/ssl-opt.sh -f "ffdh"
 }
 
 component_test_psa_crypto_config_accel_pake() {
-    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated PAKE"
+    msg "build: full with accelerated PAKE"
 
     loc_accel_list="ALG_JPAKE"
 
@@ -2434,7 +2434,7 @@ component_test_psa_crypto_config_accel_pake() {
     # Run the tests
     # -------------
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated PAKE"
+    msg "test: full with accelerated PAKE"
     make test
 }
 
@@ -2469,7 +2469,7 @@ config_psa_crypto_config_ecp_light_only () {
 
 # Keep in sync with component_test_psa_crypto_config_reference_ecc_ecp_light_only
 component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
-    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated EC algs + USE_PSA"
+    msg "build: full with accelerated EC algs"
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
@@ -2505,25 +2505,25 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
     # Run the tests
     # -------------
 
-    msg "test suites: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated EC algs + USE_PSA"
+    msg "test suites: full with accelerated EC algs"
     make test
 
-    msg "ssl-opt: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated EC algs + USE_PSA"
+    msg "ssl-opt: full with accelerated EC algs"
     tests/ssl-opt.sh
 }
 
 # Keep in sync with component_test_psa_crypto_config_accel_ecc_ecp_light_only
 component_test_psa_crypto_config_reference_ecc_ecp_light_only () {
-    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with non-accelerated EC algs + USE_PSA"
+    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with non-accelerated EC algs"
 
     config_psa_crypto_config_ecp_light_only 0
 
     make
 
-    msg "test suites: MBEDTLS_PSA_CRYPTO_CONFIG with non-accelerated EC algs + USE_PSA"
+    msg "test suites: full with non-accelerated EC algs"
     make test
 
-    msg "ssl-opt: MBEDTLS_PSA_CRYPTO_CONFIG with non-accelerated EC algs + USE_PSA"
+    msg "ssl-opt: full with non-accelerated EC algs"
     tests/ssl-opt.sh
 }
 
@@ -2573,7 +2573,7 @@ config_psa_crypto_no_ecp_at_all () {
 #
 # Keep in sync with component_test_psa_crypto_config_reference_ecc_no_ecp_at_all()
 component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
-    msg "build: full + accelerated EC algs + USE_PSA - ECP"
+    msg "build: full + accelerated EC algs - ECP"
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
@@ -2612,10 +2612,10 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     # Run the tests
     # -------------
 
-    msg "test: full + accelerated EC algs + USE_PSA - ECP"
+    msg "test: full + accelerated EC algs - ECP"
     make test
 
-    msg "ssl-opt: full + accelerated EC algs + USE_PSA - ECP"
+    msg "ssl-opt: full + accelerated EC algs - ECP"
     tests/ssl-opt.sh
 }
 
@@ -2623,16 +2623,16 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
 # in conjunction with component_test_psa_crypto_config_accel_ecc_no_ecp_at_all().
 # Keep in sync with its accelerated counterpart.
 component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
-    msg "build: full + non accelerated EC algs + USE_PSA"
+    msg "build: full + non accelerated EC algs"
 
     config_psa_crypto_no_ecp_at_all 0
 
     make
 
-    msg "test: full + non accelerated EC algs + USE_PSA"
+    msg "test: full + non accelerated EC algs"
     make test
 
-    msg "ssl-opt: full + non accelerated EC algs + USE_PSA"
+    msg "ssl-opt: full + non accelerated EC algs"
     tests/ssl-opt.sh
 }
 
@@ -2643,7 +2643,7 @@ component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
 psa_crypto_config_accel_all_curves_except_one () {
     BUILTIN_CURVE=$1
 
-    msg "build: PSA_CRYPTO_CONFIG + all accelerated EC algs (excl $BUILTIN_CURVE) + USE_PSA_CRYPTO"
+    msg "build: full + all accelerated EC algs (excl $BUILTIN_CURVE)"
 
     # Accelerate all EC algs (all EC curves are automatically accelerated as
     # well in the built-in version due to the "PSA_WANT_xxx" symbols in
@@ -2741,7 +2741,7 @@ psa_crypto_config_accel_all_curves_except_one () {
     # Run the tests
     # -------------
 
-    msg "test: PSA_CRYPTO_CONFIG + all accelerated EC algs (excl $BUILTIN_CURVE) + USE_PSA_CRYPTO"
+    msg "test: full + all accelerated EC algs (excl $BUILTIN_CURVE)"
     make test
 }
 
@@ -2997,7 +2997,7 @@ config_psa_crypto_hash_use_psa () {
 # is related to this component and both components need to be kept in sync.
 # For details please see comments for component_test_psa_crypto_config_reference_hash_use_psa.
 component_test_psa_crypto_config_accel_hash_use_psa () {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
+    msg "test: full with accelerated hashes"
 
     loc_accel_list="ALG_MD5 ALG_RIPEMD160 ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
 
@@ -3024,18 +3024,18 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     # Run the tests
     # -------------
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
+    msg "test: full with accelerated hashes"
     make test
 
     # This is mostly useful so that we can later compare outcome files with
     # the reference config in analyze_outcomes.py, to check that the
     # dependency declarations in ssl-opt.sh and in TLS code are correct.
-    msg "test: ssl-opt.sh, MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
+    msg "test: ssl-opt.sh, full with accelerated hashes"
     tests/ssl-opt.sh
 
     # This is to make sure all ciphersuites are exercised, but we don't need
     # interop testing (besides, we already got some from ssl-opt.sh).
-    msg "test: compat.sh, MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
+    msg "test: compat.sh, full with accelerated hashes"
     tests/compat.sh -p mbedTLS -V YES
 }
 
@@ -3044,16 +3044,16 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
 # script to find regression in test coverage when accelerated hash is used (tests and ssl-opt).
 # Both components need to be kept in sync.
 component_test_psa_crypto_config_reference_hash_use_psa() {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG without accelerated hash and USE_PSA"
+    msg "test: full without accelerated hashes"
 
     config_psa_crypto_hash_use_psa 0
 
     make
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG without accelerated hash and USE_PSA"
+    msg "test: full without accelerated hashes"
     make test
 
-    msg "test: ssl-opt.sh, MBEDTLS_PSA_CRYPTO_CONFIG without accelerated hash and USE_PSA"
+    msg "test: ssl-opt.sh, full without accelerated hashes"
     tests/ssl-opt.sh
 }
 

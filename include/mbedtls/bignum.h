@@ -129,7 +129,7 @@
         #endif /* !MBEDTLS_HAVE_INT64 */
 typedef  int64_t mbedtls_mpi_sint;
 typedef uint64_t mbedtls_mpi_uint;
-#define MBEDTLS_MPI_UINT_MAX                18446744073709551615U
+#define MBEDTLS_MPI_UINT_MAX                UINT64_MAX
     #elif defined(__GNUC__) && (                         \
     defined(__amd64__) || defined(__x86_64__)     || \
     defined(__ppc64__) || defined(__powerpc64__)  || \
@@ -142,7 +142,7 @@ typedef uint64_t mbedtls_mpi_uint;
         #endif /* MBEDTLS_HAVE_INT64 */
 typedef  int64_t mbedtls_mpi_sint;
 typedef uint64_t mbedtls_mpi_uint;
-#define MBEDTLS_MPI_UINT_MAX                18446744073709551615U
+#define MBEDTLS_MPI_UINT_MAX                UINT64_MAX
         #if !defined(MBEDTLS_NO_UDBL_DIVISION)
 /* mbedtls_t_udbl defined as 128-bit unsigned int */
 typedef unsigned int mbedtls_t_udbl __attribute__((mode(TI)));
@@ -158,7 +158,7 @@ typedef unsigned int mbedtls_t_udbl __attribute__((mode(TI)));
         #endif /* !MBEDTLS_HAVE_INT64 */
 typedef  int64_t mbedtls_mpi_sint;
 typedef uint64_t mbedtls_mpi_uint;
-#define MBEDTLS_MPI_UINT_MAX                18446744073709551615U
+#define MBEDTLS_MPI_UINT_MAX                UINT64_MAX
         #if !defined(MBEDTLS_NO_UDBL_DIVISION)
 /* mbedtls_t_udbl defined as 128-bit unsigned int */
 typedef __uint128_t mbedtls_t_udbl;
@@ -168,7 +168,7 @@ typedef __uint128_t mbedtls_t_udbl;
 /* Force 64-bit integers with unknown compiler */
 typedef  int64_t mbedtls_mpi_sint;
 typedef uint64_t mbedtls_mpi_uint;
-#define MBEDTLS_MPI_UINT_MAX                18446744073709551615U
+#define MBEDTLS_MPI_UINT_MAX                UINT64_MAX
     #endif
 #endif /* !MBEDTLS_HAVE_INT32 */
 
@@ -179,7 +179,7 @@ typedef uint64_t mbedtls_mpi_uint;
     #endif /* !MBEDTLS_HAVE_INT32 */
 typedef  int32_t mbedtls_mpi_sint;
 typedef uint32_t mbedtls_mpi_uint;
-#define MBEDTLS_MPI_UINT_MAX                4294967295U
+#define MBEDTLS_MPI_UINT_MAX                UINT32_MAX
     #if !defined(MBEDTLS_NO_UDBL_DIVISION)
 typedef uint64_t mbedtls_t_udbl;
         #define MBEDTLS_HAVE_UDBL

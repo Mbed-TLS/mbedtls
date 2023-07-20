@@ -2824,8 +2824,8 @@ component_test_psa_crypto_config_accel_rsa_signature () {
 
     # We need PEM parsing in the test library as well to support the import
     # of PEM encoded RSA keys.
-    scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_PEM_PARSE_C
-    scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_BASE64_C
+    scripts/config.py -f "$CONFIG_TEST_DRIVER_H" set MBEDTLS_PEM_PARSE_C
+    scripts/config.py -f "$CONFIG_TEST_DRIVER_H" set MBEDTLS_BASE64_C
 
     # Build
     # -----
@@ -3172,7 +3172,7 @@ component_test_psa_crypto_config_chachapoly_disabled() {
 component_test_ccm_aes_sha256() {
     msg "build: CCM + AES + SHA256 configuration"
 
-    cp tests/include/test/drivers/config_test_driver.h "$CONFIG_H"
+    cp "$CONFIG_TEST_DRIVER_H" "$CONFIG_H"
     cp configs/crypto-config-ccm-aes-sha256.h "$CRYPTO_CONFIG_H"
 
     make CC=gcc

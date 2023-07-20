@@ -7374,7 +7374,7 @@ static psa_status_t psa_validate_key_type_and_size_for_key_generation(
         if (bits > PSA_VENDOR_RSA_MAX_KEY_BITS) {
             return PSA_ERROR_NOT_SUPPORTED;
         }
-        if (bits < PSA_VENDOR_RSA_MIN_KEY_BITS) {
+        if (bits < PSA_VENDOR_RSA_GENERATE_MIN_KEY_BITS) {
             return PSA_ERROR_NOT_SUPPORTED;
         }
 

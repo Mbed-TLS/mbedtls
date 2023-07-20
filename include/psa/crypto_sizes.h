@@ -211,13 +211,13 @@
 /* The minimum size of an RSA key on this implementation, in bits.
  * This is a vendor-specific macro.
  *
- * Limits RSA key generation to a minimum due to security reasons.
+ * Limits RSA key generation to a minimum due to avoid accidental misuse.
  * This value cannot be less than 128 bits.
  */
-#if defined(MBEDTLS_RSA_MIN_KEY_SIZE)
-#define PSA_VENDOR_RSA_MIN_KEY_BITS MBEDTLS_RSA_MIN_KEY_SIZE
+#if defined(MBEDTLS_RSA_GEN_KEY_MIN_BITS)
+#define PSA_VENDOR_RSA_GENERATE_MIN_KEY_BITS MBEDTLS_RSA_GEN_KEY_MIN_BITS
 #else
-#define PSA_VENDOR_RSA_MIN_KEY_BITS 1024
+#define PSA_VENDOR_RSA_GENERATE_MIN_KEY_BITS 1024
 #endif
 
 /* The maximum size of an DH key on this implementation, in bits.

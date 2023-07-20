@@ -1,0 +1,3 @@
+Changes
+   * Enforce minimum RSA key size when generating a key
+     to avoid accidental misuse.

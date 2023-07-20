@@ -348,7 +348,7 @@ class KeyGenerate:
             generate_dependencies = fix_key_pair_dependencies(import_dependencies, 'GENERATE')
         for bits in kt.sizes_to_test():
             if kt.name == 'PSA_KEY_TYPE_RSA_KEY_PAIR':
-                size_dependency = "PSA_VENDOR_RSA_MIN_KEY_BITS <= " +  str(bits)
+                size_dependency = "PSA_VENDOR_RSA_GENERATE_MIN_KEY_BITS <= " +  str(bits)
                 test_dependencies = generate_dependencies + [size_dependency]
             else:
                 test_dependencies = generate_dependencies

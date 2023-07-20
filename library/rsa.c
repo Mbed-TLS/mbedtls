@@ -545,12 +545,12 @@ int mbedtls_rsa_gen_key(mbedtls_rsa_context *ctx,
     mbedtls_mpi_init(&G);
     mbedtls_mpi_init(&L);
 
-    if (nbits < 128 || exponent < 3 || nbits % 2 != 0) {
+    if (exponent < 3 || nbits % 2 != 0) {
         ret = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
         goto cleanup;
     }
 
-    if (nbits < MBEDTLS_RSA_MIN_KEY_SIZE) {
+    if (nbits < MBEDTLS_RSA_GEN_KEY_MIN_BITS) {
         ret = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
         goto cleanup;
     }

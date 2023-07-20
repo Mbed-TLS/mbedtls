@@ -3691,9 +3691,6 @@
 //#define MBEDTLS_ECP_WINDOW_SIZE            4 /**< Maximum window size used */
 //#define MBEDTLS_ECP_FIXED_POINT_OPTIM      1 /**< Enable fixed-point speed-up */
 
-/* RSA OPTIONS */
-//#define MBEDTLS_RSA_MIN_KEY_SIZE           1024 /**<  Minimum RSA key size allowed in bits (Minimum possible value is 128 bits) */
-
 /* Entropy options */
 //#define MBEDTLS_ENTROPY_MAX_SOURCES                20 /**< Maximum number of sources supported */
 //#define MBEDTLS_ENTROPY_MAX_GATHER                128 /**< Maximum amount requested from entropy sources */
@@ -3783,6 +3780,9 @@
  * 32 keys.
  */
 //#define MBEDTLS_PSA_KEY_SLOT_COUNT 32
+
+/* RSA OPTIONS */
+#define MBEDTLS_RSA_GEN_KEY_MIN_BITS            1024 /**<  Minimum RSA key size that can be generated in bits (Minimum possible value is 128 bits) */
 
 /* SSL Cache options */
 //#define MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */

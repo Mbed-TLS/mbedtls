@@ -85,8 +85,10 @@ extern "C" {
 // Regular implementation
 //
 
-#if !defined(MBEDTLS_RSA_MIN_KEY_SIZE)
-#define MBEDTLS_RSA_MIN_KEY_SIZE 1024
+#if !defined(MBEDTLS_RSA_GEN_KEY_MIN_BITS)
+#define MBEDTLS_RSA_GEN_KEY_MIN_BITS 1024
+#elif MBEDTLS_RSA_GEN_KEY_MIN_BITS < 128
+#error "MBEDTLS_RSA_GEN_KEY_MIN_BITS must be at least 128 bits"
 #endif
 
 /**

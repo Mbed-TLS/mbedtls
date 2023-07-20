@@ -5352,9 +5352,9 @@ static inline int ecp_mod_koblitz(mbedtls_mpi *N, mbedtls_mpi_uint *Rp, size_t p
     M.p = Mp;
 
     /* M = A1 */
-    M.n = N->n - (p_limbs - adjust);
+    M.n = (unsigned short) (N->n - (p_limbs - adjust));
     if (M.n > p_limbs + adjust) {
-        M.n = p_limbs + adjust;
+        M.n = (unsigned short) (p_limbs + adjust);
     }
     memset(Mp, 0, sizeof(Mp));
     memcpy(Mp, N->p + p_limbs - adjust, M.n * sizeof(mbedtls_mpi_uint));
@@ -5378,9 +5378,9 @@ static inline int ecp_mod_koblitz(mbedtls_mpi *N, mbedtls_mpi_uint *Rp, size_t p
     /* Second pass */
 
     /* M = A1 */
-    M.n = N->n - (p_limbs - adjust);
+    M.n = (unsigned short) (N->n - (p_limbs - adjust));
     if (M.n > p_limbs + adjust) {
-        M.n = p_limbs + adjust;
+        M.n = (unsigned short) (p_limbs + adjust);
     }
     memset(Mp, 0, sizeof(Mp));
     memcpy(Mp, N->p + p_limbs - adjust, M.n * sizeof(mbedtls_mpi_uint));

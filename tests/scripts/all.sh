@@ -1440,6 +1440,7 @@ component_test_sw_inet_pton () {
 component_test_crypto_full_md_light_only () {
     msg "build: crypto_full with only the light subset of MD"
     scripts/config.py crypto_full
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
     # Disable MD
     scripts/config.py unset MBEDTLS_MD_C
     # Disable direct dependencies of MD_C
@@ -1479,6 +1480,7 @@ component_test_full_no_cipher () {
     scripts/config.py unset MBEDTLS_SSL_TICKET_C
     # Indirect dependencies
     scripts/config.py unset MBEDTLS_SSL_CLI_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.py unset MBEDTLS_SSL_DTLS_ANTI_REPLAY
@@ -1508,6 +1510,7 @@ component_test_crypto_full_no_cipher () {
     scripts/config.py unset MBEDTLS_PKCS5_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
     # Indirect dependencies
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO

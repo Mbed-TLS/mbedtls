@@ -32,7 +32,7 @@ static int check_multipart(mbedtls_ccm_context *ctx,
     /* Allocate a tight buffer for each update call. This way, if the function
      * tries to write beyond the advertised required buffer size, this will
      * count as an overflow for memory sanitizers and static checkers. */
-    ASSERT_ALLOC(output, n1);
+    TEST_CALLOC_OR_FAIL(output, n1);
     olen = 0xdeadbeef;
     TEST_EQUAL(0, mbedtls_ccm_update(ctx, input->x, n1, output, n1, &olen));
     TEST_EQUAL(n1, olen);
@@ -40,7 +40,7 @@ static int check_multipart(mbedtls_ccm_context *ctx,
     mbedtls_free(output);
     output = NULL;
 
-    ASSERT_ALLOC(output, n2);
+    TEST_CALLOC_OR_FAIL(output, n2);
     olen = 0xdeadbeef;
     TEST_EQUAL(0, mbedtls_ccm_update(ctx, input->x + n1, n2, output, n2, &olen));
     TEST_EQUAL(n2, olen);
@@ -48,7 +48,7 @@ static int check_multipart(mbedtls_ccm_context *ctx,
     mbedtls_free(output);
     output = NULL;
 
-    ASSERT_ALLOC(output, tag->len);
+    TEST_CALLOC_OR_FAIL(output, tag->len);
     TEST_EQUAL(0, mbedtls_ccm_finish(ctx, output, tag->len));
     TEST_BUFFERS_EQUAL(output, tag->len, tag->x, tag->len);
     mbedtls_free(output);
@@ -190,13 +190,13 @@ void mbedtls_ccm_encrypt_and_tag(int cipher_id, data_t *key,
     const uint8_t *expected_tag = result->x + msg->len;
 
     /* Prepare input/output message buffer */
-    ASSERT_ALLOC(io_msg_buf, msg->len);
+    TEST_CALLOC_OR_FAIL(io_msg_buf, msg->len);
     if (msg->len != 0) {
         memcpy(io_msg_buf, msg->x, msg->len);
     }
 
     /* Prepare tag buffer */
-    ASSERT_ALLOC(tag_buf, expected_tag_len);
+    TEST_CALLOC_OR_FAIL(tag_buf, expected_tag_len);
 
     mbedtls_ccm_init(&ctx);
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
@@ -246,7 +246,7 @@ void mbedtls_ccm_star_no_tag(int cipher_id, int mode, data_t *key,
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
     TEST_EQUAL(0, mbedtls_ccm_set_lengths(&ctx, 0, msg->len, 0));
 
-    ASSERT_ALLOC(output, msg->len);
+    TEST_CALLOC_OR_FAIL(output, msg->len);
     TEST_EQUAL(0, mbedtls_ccm_update(&ctx, msg->x, msg->len, output, msg->len, &olen));
     TEST_EQUAL(result->len, olen);
     TEST_BUFFERS_EQUAL(output, olen, result->x, result->len);
@@ -272,7 +272,7 @@ void mbedtls_ccm_auth_decrypt(int cipher_id, data_t *key,
 
     /* Prepare input/output message buffer */
     uint8_t *io_msg_buf = NULL;
-    ASSERT_ALLOC(io_msg_buf, expected_msg_len);
+    TEST_CALLOC_OR_FAIL(io_msg_buf, expected_msg_len);
     if (expected_msg_len) {
         memcpy(io_msg_buf, msg->x, expected_msg_len);
     }
@@ -344,16 +344,16 @@ void mbedtls_ccm_star_encrypt_and_tag(int cipher_id,
     }
 
     /* Prepare input/output message buffer */
-    ASSERT_ALLOC(io_msg_buf, msg->len);
+    TEST_CALLOC_OR_FAIL(io_msg_buf, msg->len);
     if (msg->len) {
         memcpy(io_msg_buf, msg->x, msg->len);
     }
 
     /* Prepare tag buffer */
     if (expected_tag_len == 0) {
-        ASSERT_ALLOC(tag_buf, 16);
+        TEST_CALLOC_OR_FAIL(tag_buf, 16);
     } else {
-        ASSERT_ALLOC(tag_buf, expected_tag_len);
+        TEST_CALLOC_OR_FAIL(tag_buf, expected_tag_len);
     }
 
     /* Calculate iv */
@@ -429,7 +429,7 @@ void mbedtls_ccm_star_auth_decrypt(int cipher_id,
 
     /* Prepare input/output message buffer */
     uint8_t *io_msg_buf = NULL;
-    ASSERT_ALLOC(io_msg_buf, expected_msg_len);
+    TEST_CALLOC_OR_FAIL(io_msg_buf, expected_msg_len);
     if (expected_msg_len) {
         memcpy(io_msg_buf, msg->x, expected_msg_len);
     }
@@ -500,7 +500,7 @@ void mbedtls_ccm_skip_ad(int cipher_id, int mode,
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
     TEST_EQUAL(0, mbedtls_ccm_set_lengths(&ctx, 0, msg->len, tag->len));
 
-    ASSERT_ALLOC(output, result->len);
+    TEST_CALLOC_OR_FAIL(output, result->len);
     olen = 0xdeadbeef;
     TEST_EQUAL(0, mbedtls_ccm_update(&ctx, msg->x, msg->len, output, result->len, &olen));
     TEST_EQUAL(result->len, olen);
@@ -508,7 +508,7 @@ void mbedtls_ccm_skip_ad(int cipher_id, int mode,
     mbedtls_free(output);
     output = NULL;
 
-    ASSERT_ALLOC(output, tag->len);
+    TEST_CALLOC_OR_FAIL(output, tag->len);
     TEST_EQUAL(0, mbedtls_ccm_finish(&ctx, output, tag->len));
     TEST_BUFFERS_EQUAL(output, tag->len, tag->x, tag->len);
     mbedtls_free(output);
@@ -536,7 +536,7 @@ void mbedtls_ccm_skip_update(int cipher_id, int mode,
 
     TEST_EQUAL(0, mbedtls_ccm_update_ad(&ctx, add->x, add->len));
 
-    ASSERT_ALLOC(output, tag->len);
+    TEST_CALLOC_OR_FAIL(output, tag->len);
     TEST_EQUAL(0, mbedtls_ccm_finish(&ctx, output, tag->len));
     TEST_BUFFERS_EQUAL(output, tag->len, tag->x, tag->len);
     mbedtls_free(output);
@@ -607,7 +607,7 @@ void mbedtls_ccm_unexpected_text(int cipher_id, int mode,
 
     TEST_EQUAL(0, mbedtls_ccm_update_ad(&ctx, add->x, add->len));
 
-    ASSERT_ALLOC(output, msg->len);
+    TEST_CALLOC_OR_FAIL(output, msg->len);
     olen = 0xdeadbeef;
     TEST_EQUAL(MBEDTLS_ERR_CCM_BAD_INPUT,
                mbedtls_ccm_update(&ctx, msg->x, msg->len, output, msg->len, &olen));
@@ -633,7 +633,7 @@ void mbedtls_ccm_incomplete_ad(int cipher_id, int mode,
 
     TEST_EQUAL(0, mbedtls_ccm_update_ad(&ctx, add->x, add->len - 1));
 
-    ASSERT_ALLOC(output, 16);
+    TEST_CALLOC_OR_FAIL(output, 16);
     TEST_EQUAL(MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_finish(&ctx, output, 16));
 
 exit:
@@ -713,7 +713,7 @@ void mbedtls_ccm_overflow_update(int cipher_id, int mode,
 
     TEST_EQUAL(0, mbedtls_ccm_update_ad(&ctx, add->x, add->len));
 
-    ASSERT_ALLOC(output, msg->len);
+    TEST_CALLOC_OR_FAIL(output, msg->len);
     TEST_EQUAL(MBEDTLS_ERR_CCM_BAD_INPUT, \
                mbedtls_ccm_update(&ctx, msg->x, msg->len, output, msg->len, &olen));
 exit:
@@ -740,13 +740,13 @@ void mbedtls_ccm_incomplete_update(int cipher_id, int mode,
 
     TEST_EQUAL(0, mbedtls_ccm_update_ad(&ctx, add->x, add->len));
 
-    ASSERT_ALLOC(output, msg->len);
+    TEST_CALLOC_OR_FAIL(output, msg->len);
     olen = 0xdeadbeef;
     TEST_EQUAL(0, mbedtls_ccm_update(&ctx, msg->x, msg->len - 1, output, msg->len, &olen));
     mbedtls_free(output);
     output = NULL;
 
-    ASSERT_ALLOC(output, 16);
+    TEST_CALLOC_OR_FAIL(output, 16);
     TEST_EQUAL(MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_finish(&ctx, output, 16));
 
 exit:
@@ -774,7 +774,7 @@ void mbedtls_ccm_full_update_and_overflow(int cipher_id, int mode,
 
     TEST_EQUAL(0, mbedtls_ccm_update_ad(&ctx, add->x, add->len));
 
-    ASSERT_ALLOC(output, msg->len);
+    TEST_CALLOC_OR_FAIL(output, msg->len);
     // pass full text
     TEST_EQUAL(0, mbedtls_ccm_update(&ctx, msg->x, msg->len, output, msg->len, &olen));
     // pass 1 extra byte
@@ -809,7 +809,7 @@ void mbedtls_ccm_incomplete_update_overflow(int cipher_id, int mode,
 
     TEST_EQUAL(0, mbedtls_ccm_update_ad(&ctx, add->x, add->len));
 
-    ASSERT_ALLOC(output, msg->len + 1);
+    TEST_CALLOC_OR_FAIL(output, msg->len + 1);
     // pass incomplete text
     TEST_EQUAL(0, mbedtls_ccm_update(&ctx, msg->x, msg->len - 1, output, msg->len + 1, &olen));
     // pass 2 extra bytes (1 missing byte from previous incomplete pass, and 1 unexpected byte)
@@ -836,7 +836,7 @@ void mbedtls_ccm_instant_finish(int cipher_id, int mode,
     // They are not a part of this test
     TEST_EQUAL(0, mbedtls_ccm_set_lengths(&ctx, 16, 16, 16));
 
-    ASSERT_ALLOC(output, 16);
+    TEST_CALLOC_OR_FAIL(output, 16);
     TEST_EQUAL(MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_finish(&ctx, output, 16));
 
 exit:

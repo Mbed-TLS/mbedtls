@@ -506,7 +506,7 @@ psa_status_t mbedtls_test_psa_key_agreement_with_self(
     key_bits = psa_get_key_bits(&attributes);
     public_key_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(private_key_type);
     public_key_length = PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(public_key_type, key_bits);
-    ASSERT_ALLOC(public_key, public_key_length);
+    TEST_CALLOC_OR_FAIL(public_key, public_key_length);
     PSA_ASSERT(psa_export_public_key(key, public_key, public_key_length,
                                      &public_key_length));
 
@@ -548,7 +548,7 @@ psa_status_t mbedtls_test_psa_raw_key_agreement_with_self(
     key_bits = psa_get_key_bits(&attributes);
     public_key_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(private_key_type);
     public_key_length = PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(public_key_type, key_bits);
-    ASSERT_ALLOC(public_key, public_key_length);
+    TEST_CALLOC_OR_FAIL(public_key, public_key_length);
     PSA_ASSERT(psa_export_public_key(key,
                                      public_key, public_key_length,
                                      &public_key_length));
@@ -838,7 +838,7 @@ static int exercise_export_key(mbedtls_svc_key_id_t key,
     exported_size = PSA_EXPORT_KEY_OUTPUT_SIZE(
         psa_get_key_type(&attributes),
         psa_get_key_bits(&attributes));
-    ASSERT_ALLOC(exported, exported_size);
+    TEST_CALLOC_OR_FAIL(exported, exported_size);
 
     if ((usage & PSA_KEY_USAGE_EXPORT) == 0 &&
         !PSA_KEY_TYPE_IS_PUBLIC_KEY(psa_get_key_type(&attributes))) {
@@ -881,7 +881,7 @@ static int exercise_export_public_key(mbedtls_svc_key_id_t key)
         exported_size = PSA_EXPORT_KEY_OUTPUT_SIZE(
             psa_get_key_type(&attributes),
             psa_get_key_bits(&attributes));
-        ASSERT_ALLOC(exported, exported_size);
+        TEST_CALLOC_OR_FAIL(exported, exported_size);
 
         TEST_EQUAL(psa_export_public_key(key, exported,
                                          exported_size, &exported_length),
@@ -894,7 +894,7 @@ static int exercise_export_public_key(mbedtls_svc_key_id_t key)
         psa_get_key_type(&attributes));
     exported_size = PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(public_type,
                                                       psa_get_key_bits(&attributes));
-    ASSERT_ALLOC(exported, exported_size);
+    TEST_CALLOC_OR_FAIL(exported, exported_size);
 
     PSA_ASSERT(psa_export_public_key(key,
                                      exported, exported_size,

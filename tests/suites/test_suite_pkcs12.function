@@ -44,7 +44,7 @@ void pkcs12_derive_key(int md_type, int key_size_arg,
 
     salt_len = salt_arg->len;
 
-    ASSERT_ALLOC(output_data, key_size);
+    TEST_CALLOC_OR_FAIL(output_data, key_size);
 
     int ret = mbedtls_pkcs12_derivation(output_data,
                                         key_size,

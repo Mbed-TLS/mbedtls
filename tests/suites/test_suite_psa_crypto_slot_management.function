@@ -303,7 +303,7 @@ void persistent_slot_lifecycle(int lifetime_arg, int owner_id_arg, int id_arg,
                        psa_get_key_type(&read_attributes));
             TEST_EQUAL(psa_get_key_bits(&attributes),
                        psa_get_key_bits(&read_attributes));
-            ASSERT_ALLOC(reexported, key_data->len);
+            TEST_CALLOC_OR_FAIL(reexported, key_data->len);
             if (usage_flags & PSA_KEY_USAGE_EXPORT) {
                 PSA_ASSERT(psa_export_key(id, reexported, key_data->len,
                                           &reexported_length));
@@ -575,7 +575,7 @@ void copy_across_lifetimes(int source_lifetime_arg, int source_owner_id_arg,
                psa_get_key_enrollment_algorithm(&target_attributes));
     if (expected_usage & PSA_KEY_USAGE_EXPORT) {
         size_t length;
-        ASSERT_ALLOC(export_buffer, material->len);
+        TEST_CALLOC_OR_FAIL(export_buffer, material->len);
         PSA_ASSERT(psa_export_key(returned_target_id, export_buffer,
                                   material->len, &length));
         TEST_BUFFERS_EQUAL(material->x, material->len,
@@ -689,7 +689,7 @@ void copy_to_occupied(int source_lifetime_arg, int source_id_arg,
                psa_get_key_algorithm(&attributes2));
     if (target_usage & PSA_KEY_USAGE_EXPORT) {
         size_t length;
-        ASSERT_ALLOC(export_buffer, target_material->len);
+        TEST_CALLOC_OR_FAIL(export_buffer, target_material->len);
         PSA_ASSERT(psa_export_key(returned_target_id, export_buffer,
                                   target_material->len, &length));
         TEST_BUFFERS_EQUAL(target_material->x, target_material->len,
@@ -813,7 +813,7 @@ void many_transient_keys(int max_keys_arg)
     uint8_t exported[sizeof(size_t)];
     size_t exported_length;
 
-    ASSERT_ALLOC(keys, max_keys);
+    TEST_CALLOC_OR_FAIL(keys, max_keys);
     PSA_ASSERT(psa_crypto_init());
 
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_EXPORT);
@@ -942,7 +942,7 @@ void non_reusable_key_slots_integrity_in_case_of_key_slot_starvation()
 
     TEST_ASSERT(MBEDTLS_PSA_KEY_SLOT_COUNT >= 1);
 
-    ASSERT_ALLOC(keys, MBEDTLS_PSA_KEY_SLOT_COUNT);
+    TEST_CALLOC_OR_FAIL(keys, MBEDTLS_PSA_KEY_SLOT_COUNT);
     PSA_ASSERT(psa_crypto_init());
 
     psa_set_key_usage_flags(&attributes,

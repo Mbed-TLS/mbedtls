@@ -99,7 +99,7 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
     }
     TEST_ASSERT(check_buf_len > 0);
 
-    ASSERT_ALLOC(buf, check_buf_len);
+    TEST_CALLOC_OR_FAIL(buf, check_buf_len);
 
     if (is_public_key) {
         TEST_EQUAL(mbedtls_pk_parse_public_keyfile(&key, key_file), 0);
@@ -185,7 +185,7 @@ void pk_write_public_from_private(char *priv_key_file, char *pub_key_file)
                                     &pub_key_len), 0);
 
     derived_key_len = pub_key_len;
-    ASSERT_ALLOC(derived_key_raw, derived_key_len);
+    TEST_CALLOC_OR_FAIL(derived_key_raw, derived_key_len);
 
     TEST_EQUAL(mbedtls_pk_write_pubkey_der(&priv_key, derived_key_raw,
                                            derived_key_len), pub_key_len);

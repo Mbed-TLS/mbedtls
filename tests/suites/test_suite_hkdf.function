@@ -50,7 +50,7 @@ void test_hkdf_extract(int md_alg,
     TEST_ASSERT(md != NULL);
 
     output_prk_len = mbedtls_md_get_size(md);
-    ASSERT_ALLOC(output_prk, output_prk_len);
+    TEST_CALLOC_OR_FAIL(output_prk, output_prk_len);
 
     ret = mbedtls_hkdf_extract(md, salt->x, salt->len,
                                ikm->x, ikm->len, output_prk);
@@ -79,7 +79,7 @@ void test_hkdf_expand(int md_alg,
     const mbedtls_md_info_t *md = mbedtls_md_info_from_type(md_alg);
     TEST_ASSERT(md != NULL);
 
-    ASSERT_ALLOC(output_okm, OKM_LEN);
+    TEST_CALLOC_OR_FAIL(output_okm, OKM_LEN);
 
     TEST_ASSERT(prk->len == mbedtls_md_get_size(md));
     TEST_ASSERT(okm->len < OKM_LEN);
@@ -110,7 +110,7 @@ void test_hkdf_extract_ret(int hash_len, int ret)
     fake_md_info.type = MBEDTLS_MD_NONE;
     fake_md_info.size = hash_len;
 
-    ASSERT_ALLOC(prk, MBEDTLS_MD_MAX_SIZE);
+    TEST_CALLOC_OR_FAIL(prk, MBEDTLS_MD_MAX_SIZE);
     salt_len = 0;
     ikm_len = 0;
 
@@ -140,11 +140,11 @@ void test_hkdf_expand_ret(int hash_len, int prk_len, int okm_len, int ret)
     info_len = 0;
 
     if (prk_len > 0) {
-        ASSERT_ALLOC(prk, prk_len);
+        TEST_CALLOC_OR_FAIL(prk, prk_len);
     }
 
     if (okm_len > 0) {
-        ASSERT_ALLOC(okm, okm_len);
+        TEST_CALLOC_OR_FAIL(okm, okm_len);
     }
 
     output_ret = mbedtls_hkdf_expand(&fake_md_info, prk, prk_len,

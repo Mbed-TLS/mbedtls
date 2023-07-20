@@ -29,8 +29,8 @@ void mbedtls_ct_memcmp_null()
 void mbedtls_ct_memcmp(int same, int size, int offset)
 {
     uint8_t *a = NULL, *b = NULL;
-    ASSERT_ALLOC(a, size + offset);
-    ASSERT_ALLOC(b, size + offset);
+    TEST_CALLOC_OR_FAIL(a, size + offset);
+    TEST_CALLOC_OR_FAIL(b, size + offset);
 
     TEST_CF_SECRET(a + offset, size);
     TEST_CF_SECRET(b + offset, size);
@@ -70,9 +70,9 @@ exit:
 void mbedtls_ct_memcpy_if_eq(int eq, int size, int offset)
 {
     uint8_t *src = NULL, *result = NULL, *expected = NULL;
-    ASSERT_ALLOC(src, size + offset);
-    ASSERT_ALLOC(result, size + offset);
-    ASSERT_ALLOC(expected, size + offset);
+    TEST_CALLOC_OR_FAIL(src, size + offset);
+    TEST_CALLOC_OR_FAIL(result, size + offset);
+    TEST_CALLOC_OR_FAIL(expected, size + offset);
 
     for (int i = 0; i < size + offset; i++) {
         src[i]    = 1;
@@ -125,8 +125,8 @@ void ssl_cf_memcpy_offset(int offset_min, int offset_max, int len)
     size_t src_len = offset_max + len;
     size_t secret;
 
-    ASSERT_ALLOC(dst, len);
-    ASSERT_ALLOC(src, src_len);
+    TEST_CALLOC_OR_FAIL(dst, len);
+    TEST_CALLOC_OR_FAIL(src, src_len);
 
     /* Fill src in a way that we can detect if we copied the right bytes */
     mbedtls_test_rnd_std_rand(NULL, src, src_len);

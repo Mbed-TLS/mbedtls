@@ -91,7 +91,7 @@ void mbedtls_test_init_handshake_options(
     opts->resize_buffers = 1;
 #if defined(MBEDTLS_SSL_CACHE_C)
     opts->cache = NULL;
-    ASSERT_ALLOC(opts->cache, 1);
+    TEST_CALLOC_OR_FAIL(opts->cache, 1);
     mbedtls_ssl_cache_init(opts->cache);
 #if defined(MBEDTLS_HAVE_TIME)
     TEST_EQUAL(mbedtls_ssl_cache_get_timeout(opts->cache),
@@ -627,9 +627,9 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
     }
 
     cert = &(ep->cert);
-    ASSERT_ALLOC(cert->ca_cert, 1);
-    ASSERT_ALLOC(cert->cert, 1);
-    ASSERT_ALLOC(cert->pkey, 1);
+    TEST_CALLOC_OR_FAIL(cert->ca_cert, 1);
+    TEST_CALLOC_OR_FAIL(cert->cert, 1);
+    TEST_CALLOC_OR_FAIL(cert->pkey, 1);
 
     mbedtls_x509_crt_init(cert->ca_cert);
     mbedtls_x509_crt_init(cert->cert);

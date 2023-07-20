@@ -137,8 +137,8 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
     size_t c_x1_pr_off, c_x2_pr_off, c_x2s_pr_off;
     psa_status_t status;
 
-    ASSERT_ALLOC(buffer0, buffer_length);
-    ASSERT_ALLOC(buffer1, buffer_length);
+    TEST_CALLOC_OR_FAIL(buffer0, buffer_length);
+    TEST_CALLOC_OR_FAIL(buffer1, buffer_length);
 
     switch (round) {
         case PAKE_ROUND_ONE:
@@ -617,7 +617,7 @@ void ecjpake_setup(int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
 
     size_t buf_size = PSA_PAKE_OUTPUT_SIZE(alg, primitive_arg,
                                            PSA_PAKE_STEP_KEY_SHARE);
-    ASSERT_ALLOC(output_buffer, buf_size);
+    TEST_CALLOC_OR_FAIL(output_buffer, buf_size);
 
     psa_set_key_usage_flags(&attributes, key_usage_pw);
     psa_set_key_algorithm(&attributes, alg);

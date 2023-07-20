@@ -542,7 +542,7 @@ pre_check_git () {
             exit 1
         fi
 
-        if ! git diff --quiet include/mbedtls/mbedtls_config.h; then
+        if ! git diff --quiet "$CONFIG_H"; then
             err_msg "Warning - the configuration file 'include/mbedtls/mbedtls_config.h' has been edited. "
             echo "You can either delete or preserve your work, or force the test by rerunning the"
             echo "script as: $0 --force"
@@ -3172,7 +3172,7 @@ component_test_psa_crypto_config_chachapoly_disabled() {
 component_test_ccm_aes_sha256() {
     msg "build: CCM + AES + SHA256 configuration"
 
-    cp tests/include/test/drivers/config_test_driver.h  include/mbedtls/mbedtls_config.h
+    cp tests/include/test/drivers/config_test_driver.h "$CONFIG_H"
     cp configs/crypto-config-ccm-aes-sha256.h           include/psa/crypto_config.h
 
     make CC=gcc
@@ -3507,7 +3507,7 @@ support_build_tfm_armcc () {
 
 component_build_tfm_armcc() {
     # test the TF-M configuration can build cleanly with various warning flags enabled
-    cp configs/tfm_mbedcrypto_config_profile_medium.h include/mbedtls/mbedtls_config.h
+    cp configs/tfm_mbedcrypto_config_profile_medium.h "$CONFIG_H"
     cp configs/crypto_config_profile_medium.h         include/psa/crypto_config.h
 
     msg "build: TF-M config, armclang armv7-m thumb2"
@@ -3517,7 +3517,7 @@ component_build_tfm_armcc() {
 
 component_build_tfm() {
     # test the TF-M configuration can build cleanly with various warning flags enabled
-    cp configs/tfm_mbedcrypto_config_profile_medium.h include/mbedtls/mbedtls_config.h
+    cp configs/tfm_mbedcrypto_config_profile_medium.h "$CONFIG_H"
     cp configs/crypto_config_profile_medium.h         include/psa/crypto_config.h
 
     msg "build: TF-M config, clang, armv7-m thumb2"

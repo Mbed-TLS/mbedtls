@@ -51,8 +51,6 @@
 
 #define ECP_POINT_INIT_XY_Z0(x, y) { \
         ECP_MPI_INIT_ARRAY(x), ECP_MPI_INIT_ARRAY(y), ECP_MPI_INIT(NULL, 0) }
-#define ECP_POINT_INIT_XY_Z1(x, y) { \
-        ECP_MPI_INIT_ARRAY(x), ECP_MPI_INIT_ARRAY(y), ECP_MPI_INIT(mpi_one, 1) }
 
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||   \
@@ -266,7 +264,7 @@ static const mbedtls_mpi_uint secp192r1_T_15_Y[] = {
     MBEDTLS_BYTES_TO_T_UINT_8(0x59, 0x75, 0xE8, 0x30, 0x01, 0xCB, 0x9B, 0x1C),
 };
 static const mbedtls_ecp_point secp192r1_T[16] = {
-    ECP_POINT_INIT_XY_Z1(secp192r1_T_0_X, secp192r1_T_0_Y),
+    ECP_POINT_INIT_XY_Z0(secp192r1_T_0_X, secp192r1_T_0_Y),
     ECP_POINT_INIT_XY_Z0(secp192r1_T_1_X, secp192r1_T_1_Y),
     ECP_POINT_INIT_XY_Z0(secp192r1_T_2_X, secp192r1_T_2_Y),
     ECP_POINT_INIT_XY_Z0(secp192r1_T_3_X, secp192r1_T_3_Y),
@@ -516,7 +514,7 @@ static const mbedtls_mpi_uint secp224r1_T_15_Y[] = {
     MBEDTLS_BYTES_TO_T_UINT_8(0xF4, 0xFF, 0x27, 0xCA, 0x00, 0x00, 0x00, 0x00),
 };
 static const mbedtls_ecp_point secp224r1_T[16] = {
-    ECP_POINT_INIT_XY_Z1(secp224r1_T_0_X, secp224r1_T_0_Y),
+    ECP_POINT_INIT_XY_Z0(secp224r1_T_0_X, secp224r1_T_0_Y),
     ECP_POINT_INIT_XY_Z0(secp224r1_T_1_X, secp224r1_T_1_Y),
     ECP_POINT_INIT_XY_Z0(secp224r1_T_2_X, secp224r1_T_2_Y),
     ECP_POINT_INIT_XY_Z0(secp224r1_T_3_X, secp224r1_T_3_Y),
@@ -766,7 +764,7 @@ static const mbedtls_mpi_uint secp256r1_T_15_Y[] = {
     MBEDTLS_BYTES_TO_T_UINT_8(0x17, 0x3A, 0x72, 0xBC, 0xFE, 0x72, 0x58, 0x43),
 };
 static const mbedtls_ecp_point secp256r1_T[16] = {
-    ECP_POINT_INIT_XY_Z1(secp256r1_T_0_X, secp256r1_T_0_Y),
+    ECP_POINT_INIT_XY_Z0(secp256r1_T_0_X, secp256r1_T_0_Y),
     ECP_POINT_INIT_XY_Z0(secp256r1_T_1_X, secp256r1_T_1_Y),
     ECP_POINT_INIT_XY_Z0(secp256r1_T_2_X, secp256r1_T_2_Y),
     ECP_POINT_INIT_XY_Z0(secp256r1_T_3_X, secp256r1_T_3_Y),
@@ -1347,7 +1345,7 @@ static const mbedtls_mpi_uint secp384r1_T_31_Y[] = {
     MBEDTLS_BYTES_TO_T_UINT_8(0xB4, 0x97, 0xAE, 0xAD, 0x89, 0x88, 0x9E, 0x41),
 };
 static const mbedtls_ecp_point secp384r1_T[32] = {
-    ECP_POINT_INIT_XY_Z1(secp384r1_T_0_X, secp384r1_T_0_Y),
+    ECP_POINT_INIT_XY_Z0(secp384r1_T_0_X, secp384r1_T_0_Y),
     ECP_POINT_INIT_XY_Z0(secp384r1_T_1_X, secp384r1_T_1_Y),
     ECP_POINT_INIT_XY_Z0(secp384r1_T_2_X, secp384r1_T_2_Y),
     ECP_POINT_INIT_XY_Z0(secp384r1_T_3_X, secp384r1_T_3_Y),
@@ -2151,7 +2149,7 @@ static const mbedtls_mpi_uint secp521r1_T_31_Y[] = {
     MBEDTLS_BYTES_TO_T_UINT_8(0xE9, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
 };
 static const mbedtls_ecp_point secp521r1_T[32] = {
-    ECP_POINT_INIT_XY_Z1(secp521r1_T_0_X, secp521r1_T_0_Y),
+    ECP_POINT_INIT_XY_Z0(secp521r1_T_0_X, secp521r1_T_0_Y),
     ECP_POINT_INIT_XY_Z0(secp521r1_T_1_X, secp521r1_T_1_Y),
     ECP_POINT_INIT_XY_Z0(secp521r1_T_2_X, secp521r1_T_2_Y),
     ECP_POINT_INIT_XY_Z0(secp521r1_T_3_X, secp521r1_T_3_Y),
@@ -2379,7 +2377,7 @@ static const mbedtls_mpi_uint secp192k1_T_15_Y[] = {
     MBEDTLS_BYTES_TO_T_UINT_8(0x3C, 0x79, 0xCF, 0x17, 0xA5, 0x1E, 0xE8, 0xC8),
 };
 static const mbedtls_ecp_point secp192k1_T[16] = {
-    ECP_POINT_INIT_XY_Z1(secp192k1_T_0_X, secp192k1_T_0_Y),
+    ECP_POINT_INIT_XY_Z0(secp192k1_T_0_X, secp192k1_T_0_Y),
     ECP_POINT_INIT_XY_Z0(secp192k1_T_1_X, secp192k1_T_1_Y),
     ECP_POINT_INIT_XY_Z0(secp192k1_T_2_X, secp192k1_T_2_Y),
     ECP_POINT_INIT_XY_Z0(secp192k1_T_3_X, secp192k1_T_3_Y),
@@ -2628,7 +2626,7 @@ static const mbedtls_mpi_uint secp224k1_T_15_Y[] = {
     MBEDTLS_BYTES_TO_T_UINT_8(0xA5, 0x1F, 0x34, 0x5C, 0x00, 0x00, 0x00, 0x00),
 };
 static const mbedtls_ecp_point secp224k1_T[16] = {
-    ECP_POINT_INIT_XY_Z1(secp224k1_T_0_X, secp224k1_T_0_Y),
+    ECP_POINT_INIT_XY_Z0(secp224k1_T_0_X, secp224k1_T_0_Y),
     ECP_POINT_INIT_XY_Z0(secp224k1_T_1_X, secp224k1_T_1_Y),
     ECP_POINT_INIT_XY_Z0(secp224k1_T_2_X, secp224k1_T_2_Y),
     ECP_POINT_INIT_XY_Z0(secp224k1_T_3_X, secp224k1_T_3_Y),
@@ -2876,7 +2874,7 @@ static const mbedtls_mpi_uint secp256k1_T_15_Y[] = {
     MBEDTLS_BYTES_TO_T_UINT_8(0x37, 0x89, 0x7F, 0x8A, 0xB1, 0x52, 0x3A, 0xAB),
 };
 static const mbedtls_ecp_point secp256k1_T[16] = {
-    ECP_POINT_INIT_XY_Z1(secp256k1_T_0_X, secp256k1_T_0_Y),
+    ECP_POINT_INIT_XY_Z0(secp256k1_T_0_X, secp256k1_T_0_Y),
     ECP_POINT_INIT_XY_Z0(secp256k1_T_1_X, secp256k1_T_1_Y),
     ECP_POINT_INIT_XY_Z0(secp256k1_T_2_X, secp256k1_T_2_Y),
     ECP_POINT_INIT_XY_Z0(secp256k1_T_3_X, secp256k1_T_3_Y),
@@ -3133,7 +3131,7 @@ static const mbedtls_mpi_uint brainpoolP256r1_T_15_Y[] = {
     MBEDTLS_BYTES_TO_T_UINT_8(0xD4, 0xE8, 0xE6, 0x6F, 0xBB, 0xC1, 0x81, 0x7F),
 };
 static const mbedtls_ecp_point brainpoolP256r1_T[16] = {
-    ECP_POINT_INIT_XY_Z1(brainpoolP256r1_T_0_X, brainpoolP256r1_T_0_Y),
+    ECP_POINT_INIT_XY_Z0(brainpoolP256r1_T_0_X, brainpoolP256r1_T_0_Y),
     ECP_POINT_INIT_XY_Z0(brainpoolP256r1_T_1_X, brainpoolP256r1_T_1_Y),
     ECP_POINT_INIT_XY_Z0(brainpoolP256r1_T_2_X, brainpoolP256r1_T_2_Y),
     ECP_POINT_INIT_XY_Z0(brainpoolP256r1_T_3_X, brainpoolP256r1_T_3_Y),
@@ -3723,7 +3721,7 @@ static const mbedtls_mpi_uint brainpoolP384r1_T_31_Y[] = {
     MBEDTLS_BYTES_TO_T_UINT_8(0x83, 0x57, 0x69, 0x90, 0x76, 0xF3, 0x53, 0x3F),
 };
 static const mbedtls_ecp_point brainpoolP384r1_T[32] = {
-    ECP_POINT_INIT_XY_Z1(brainpoolP384r1_T_0_X, brainpoolP384r1_T_0_Y),
+    ECP_POINT_INIT_XY_Z0(brainpoolP384r1_T_0_X, brainpoolP384r1_T_0_Y),
     ECP_POINT_INIT_XY_Z0(brainpoolP384r1_T_1_X, brainpoolP384r1_T_1_Y),
     ECP_POINT_INIT_XY_Z0(brainpoolP384r1_T_2_X, brainpoolP384r1_T_2_Y),
     ECP_POINT_INIT_XY_Z0(brainpoolP384r1_T_3_X, brainpoolP384r1_T_3_Y),
@@ -4469,7 +4467,7 @@ static const mbedtls_mpi_uint brainpoolP512r1_T_31_Y[] = {
     MBEDTLS_BYTES_TO_T_UINT_8(0x41, 0x4F, 0x23, 0xA2, 0xC3, 0xD5, 0xEF, 0x42),
 };
 static const mbedtls_ecp_point brainpoolP512r1_T[32] = {
-    ECP_POINT_INIT_XY_Z1(brainpoolP512r1_T_0_X, brainpoolP512r1_T_0_Y),
+    ECP_POINT_INIT_XY_Z0(brainpoolP512r1_T_0_X, brainpoolP512r1_T_0_Y),
     ECP_POINT_INIT_XY_Z0(brainpoolP512r1_T_1_X, brainpoolP512r1_T_1_Y),
     ECP_POINT_INIT_XY_Z0(brainpoolP512r1_T_2_X, brainpoolP512r1_T_2_Y),
     ECP_POINT_INIT_XY_Z0(brainpoolP512r1_T_3_X, brainpoolP512r1_T_3_Y),

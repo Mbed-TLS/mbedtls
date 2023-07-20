@@ -1410,7 +1410,7 @@ void import_large_key(int type_arg, int byte_size_arg,
 
     /* Skip the test case if the target running the test cannot
      * accommodate large keys due to heap size constraints */
-    ASSERT_ALLOC_WEAK(buffer, buffer_size);
+    TEST_CALLOC_OR_SKIP(buffer, buffer_size);
     memset(buffer, 'K', byte_size);
 
     PSA_ASSERT(psa_crypto_init());

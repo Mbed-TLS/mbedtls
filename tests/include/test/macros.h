@@ -138,21 +138,21 @@
 
 /** Allocate memory dynamically. If the allocation fails, skip the test case.
  *
- * This macro behaves like #ASSERT_ALLOC, except that if the allocation
+ * This macro behaves like #TEST_CALLOC_OR_FAIL, except that if the allocation
  * fails, it marks the test as skipped rather than failed.
  */
-#define ASSERT_ALLOC_WEAK(pointer, length)                      \
-    do                                                            \
-    {                                                             \
-        TEST_ASSERT((pointer) == NULL);                       \
-        if ((length) != 0)                                     \
-        {                                                         \
-            (pointer) = mbedtls_calloc(sizeof(*(pointer)), \
+#define TEST_CALLOC_OR_SKIP(pointer, length)                \
+    do {                                                    \
+        TEST_ASSERT((pointer) == NULL);                     \
+        if ((length) != 0) {                                \
+            (pointer) = mbedtls_calloc(sizeof(*(pointer)),  \
                                        (length));           \
-            TEST_ASSUME((pointer) != NULL);                   \
-        }                                                         \
-    }                                                             \
-    while (0)
+            TEST_ASSUME((pointer) != NULL);                 \
+        }                                                   \
+    } while (0)
+
+/* For backwards compatibility */
+#define ASSERT_ALLOC_WEAK(pointer, length) TEST_CALLOC_OR_SKIP(pointer, length)
 
 /** Compare two buffers and fail the test case if they differ.
  *

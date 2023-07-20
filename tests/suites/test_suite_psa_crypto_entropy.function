@@ -19,12 +19,12 @@
  * \param expected_size     Expected size in bytes.
  *                          If 0, the file must not exist.
  *
- * \retval 0    Either \p expected_size is nonzero and
+ * \retval 1    Either \p expected_size is nonzero and
  *              the entropy seed file exists and has exactly this size,
  *              or \p expected_size is zero and the file does not exist.
- * \retval 1    Either \p expected_size is nonzero and
- *              the entropy seed file exists,
- *              or \p expected_size is zero and the file exists.
+ * \retval 0    Either \p expected_size is nonzero but
+ *              the entropy seed file does not exist or has a different size,
+ *              or \p expected_size is zero but the file exists.
  *              In this case, the test case is marked as failed.
  *
  * \note We enforce that the seed is in a specific ITS file.

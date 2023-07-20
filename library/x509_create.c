@@ -153,8 +153,8 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
         if (!in_tag && *c == '\\' && c != end) {
             c++;
 
-            /* Check for valid escaped characters */
-            if (c == end || *c != ',') {
+            /* Check for valid escaped characters in RFC 4514 in Section 3*/
+            if (c == end || !strchr(" ,=+<>#;\"\\+", *c)) {
                 ret = MBEDTLS_ERR_X509_INVALID_NAME;
                 goto exit;
             }

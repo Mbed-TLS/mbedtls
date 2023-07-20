@@ -855,12 +855,16 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
             }
 
             c = name->val.p[i];
-            // Special characters requiring escaping, RFC 1779
-            if (c && strchr(",=+<>#;\"\\", c)) {
-                if (j + 1 >= sizeof(s) - 1) {
-                    return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+            // Special characters requiring escaping, RFC 4514 Section 2.4
+            if (c) {
+                if (strchr(",=+<>;\"\\+", c) || 
+                ((i == 0) && strchr("# ", c)) ||
+                ((i == name->val.len-1 ) && (c == ' '))) {
+                    if (j + 1 >= sizeof(s) - 1) {
+                        return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                    }
+                    s[j++] = '\\';
                 }
-                s[j++] = '\\';
             }
             if (c < 32 || c >= 127) {
                 s[j] = '?';

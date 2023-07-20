@@ -97,10 +97,13 @@ class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods
             logger: logging.Logger,
     ) -> None:
         """
-        size_version: SimpleNamespace containing info for code size measurement.
-        size_version.arch: architecture to measure code size on.
-        size_version.config: configuration type to measure code size with.
-        host_arch: host architecture.
+        :param size_version:
+            SimpleNamespace containing info for code size measurement.
+                - size_version.arch: architecture to measure code size on.
+                - size_version.config: configuration type to measure code size
+                                       with.
+        :param host_arch: host architecture.
+        :param logger: logging module
         """
         self.size_version = size_version
         self.host_arch = host_arch
@@ -141,7 +144,7 @@ class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods
 
 
 class CodeSizeCalculator:
-    """ A calculator to calculate code size of library objects based on
+    """ A calculator to calculate code size of library/*.o based on
     Git revision and code size measurement tool.
     """
 
@@ -153,9 +156,10 @@ class CodeSizeCalculator:
             logger: logging.Logger,
     ) -> None:
         """
-        revision: Git revision.(E.g: commit)
-        make_cmd: command to build objects in library.
-        measure_cmd: command to measure code size for objects in library.
+        :param revision: Git revision.(E.g: commit)
+        :param make_cmd: command to build library/*.o.
+        :param measure_cmd: command to measure code size for library/*.o.
+        :param logger: logging module
         """
         self.repo_path = "."
         self.git_command = "git"
@@ -174,8 +178,8 @@ class CodeSizeCalculator:
         return result[:7]
 
     def _create_git_worktree(self) -> str:
-        """Make a separate worktree for revision.
-        Do not modify the current worktree."""
+        """Create a separate worktree for revision.
+        If revision is current, use current worktree instead."""
 
         if self.revision == "current":
             self.logger.debug("Using current work directory.")
@@ -194,9 +198,9 @@ class CodeSizeCalculator:
         return git_worktree_path
 
     def _build_libraries(self, git_worktree_path: str) -> None:
-        """Build libraries in the specified worktree."""
+        """Build library/*.o in the specified worktree."""
 
-        self.logger.debug("Building objects of library for {}."
+        self.logger.debug("Building library/*.o for {}."
                           .format(self.revision))
         my_environment = os.environ.copy()
         try:
@@ -214,7 +218,7 @@ class CodeSizeCalculator:
             self._handle_called_process_error(e, git_worktree_path)
 
     def _gen_raw_code_size(self, git_worktree_path: str) -> typing.Dict[str, str]:
-        """Calculate code size with measurement tool in UTF-8 encoding."""
+        """Measure code size by a tool and return in UTF-8 encoding."""
 
         self.logger.debug("Measuring code size for {} by `{}`."
                           .format(self.revision,
@@ -258,7 +262,12 @@ class CodeSizeCalculator:
         sys.exit(-1)
 
     def cal_libraries_code_size(self) -> typing.Dict[str, str]:
-        """Calculate code size of libraries by measurement tool."""
+        """Do a complete round to calculate code size of library/*.o
+        by measurement tool.
+
+        :return A dictionary of measured code size
+            - typing.Dict[mod: str]
+        """
 
         git_worktree_path = self._create_git_worktree()
         self._build_libraries(git_worktree_path)
@@ -269,13 +278,16 @@ class CodeSizeCalculator:
 
 
 class CodeSizeGenerator:
-    """ A generator based on size measurement tool for library objects.
+    """ A generator based on size measurement tool for library/*.o.
 
     This is an abstract class. To use it, derive a class that implements
     size_generator_write_record and size_generator_write_comparison methods,
     then call both of them with proper arguments.
     """
     def __init__(self, logger: logging.Logger) -> None:
+        """
+        :param logger: logging module
+        """
         self.logger = logger
 
     def size_generator_write_record(
@@ -286,9 +298,11 @@ class CodeSizeGenerator:
     ) -> None:
         """Write size record into a file.
 
-        revision: Git revision.(E.g: commit)
-        code_size_text: text output (utf-8) from code size measurement tool.
-        output_file: file which the code size record is written to.
+        :param revision: Git revision.(E.g: commit)
+        :param code_size_text:
+            string output (utf-8) from measurement tool of code size.
+                - typing.Dict[mod: str]
+        :param output_file: file which the code size record is written to.
         """
         raise NotImplementedError
 
@@ -301,13 +315,15 @@ class CodeSizeGenerator:
     ) -> None:
         """Write a comparision result into a stream between two revisions.
 
-        old_rev: old git revision to compared with.
-        new_rev: new git revision to compared with.
-        output_stream: stream which the code size record is written to.
-                       (E.g: file / sys.stdout)
-        result_options: SimpleNamespace containing options for comparison result.
-            with_markdown: write comparision result in a markdown table. (Default: False)
-            stdout: direct comparison result into sys.stdout. (Default: False)
+        :param old_rev: old Git revision to compared with.
+        :param new_rev: new Git revision to compared with.
+        :param output_stream: stream which the code size record is written to.
+        :param result_options:
+            SimpleNamespace containing options for comparison result.
+                - result_options.with_markdown:  write comparision result in a
+                                                 markdown table. (Default: False)
+                - result_options.stdout: direct comparison result into
+                                         sys.stdout. (Default: False)
         """
         raise NotImplementedError
 
@@ -325,14 +341,15 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
 
     def __init__(self, logger: logging.Logger) -> None:
         """ Variable code_size is used to store size info for any revisions.
-        code_size: (data format)
-        {revision: {module: {file_name: [text, data, bss, dec],
-                             etc ...
-                            },
-                    etc ...
-                   },
-         etc ...
-        }
+        :param code_size:
+            Data Format as following:
+                {revision: {module: {file_name: [text, data, bss, dec],
+                                     etc ...
+                                    },
+                            etc ...
+                           },
+                 etc ...
+                }
         """
         super().__init__(logger)
         self.code_size = {} #type: typing.Dict[str, typing.Dict]
@@ -501,7 +518,11 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
             output_stream: str,
             result_options: SimpleNamespace
     ) -> None:
-        """Write a comparision result into a stream between two revisions."""
+        """Write a comparision result into a stream between two revisions.
+
+        By default, it's written into a file called output_stream.
+        Once result_options.stdout is set, it's written into sys.stdout instead.
+        """
         self.logger.debug("Generating comparison results between {} and {}."
                           .format(old_rev, new_rev))
 
@@ -524,9 +545,14 @@ class CodeSizeComparison:
             logger: logging.Logger,
     ) -> None:
         """
-        old_revision: revision to compare against.
-        new_revision:
-        result_dir: directory for comparison result.
+        :param old_size_version: SimpleNamespace containing old version info
+                                 to compare code size with.
+        :param new_size_version: SimpleNamespace containing new version info
+                                 to take as comparision base.
+        :param code_size_common: SimpleNamespace containing common info for
+                                 both old and new size version,
+                                 measurement tool and result options.
+        :param logger: logging module
         """
         self.result_dir = os.path.abspath(
             code_size_common.result_options.result_dir)
@@ -551,6 +577,7 @@ class CodeSizeComparison:
         self.code_size_generator = self.__generate_size_parser()
 
     def __generate_size_parser(self):
+        """Generate a parser for the corresponding measurement tool."""
         if re.match(r'size', self.code_size_common.measure_cmd.strip()):
             return CodeSizeGeneratorWithSize(self.logger)
         else:
@@ -564,7 +591,7 @@ class CodeSizeComparison:
             self,
             size_version: SimpleNamespace
         ) -> typing.Dict[str, str]:
-        """Calculate code size of library objects in a UTF-8 encoding"""
+        """Calculate code size of library/*.o in a UTF-8 encoding"""
 
         return CodeSizeCalculator(size_version.revision, size_version.make_cmd,
                                   self.code_size_common.measure_cmd,
@@ -612,8 +639,12 @@ class CodeSizeComparison:
 
     def gen_code_size_comparison(self) -> None:
         """Generate results of code size changes between two revisions,
-        old and new. Measured code size results of these two revisions
-        must be available."""
+        old and new.
+
+        - Measured code size results of these two revisions must be available.
+        - The result is directed into either file / stdout depending on
+          the option, code_size_common.result_options.stdout. (Default: file)
+        """
 
         self.logger.info("Start to generate comparision result between "\
                          "{} and {}."
@@ -628,8 +659,8 @@ class CodeSizeComparison:
             output_file, self.code_size_common.result_options)
 
     def get_comparision_results(self) -> None:
-        """Compare size of library/*.o between self.old_rev and self.new_rev,
-        and generate the result file."""
+        """Compare size of library/*.o between self.old_size_version and
+        self.old_size_version and generate the result file."""
         build_tree.check_repo_path()
         self.gen_code_size_report(self.old_size_version)
         self.gen_code_size_report(self.new_size_version)
@@ -642,41 +673,43 @@ def main():
         'required arguments',
         'required arguments to parse for running ' + os.path.basename(__file__))
     group_required.add_argument(
-        "-o", "--old-rev", type=str, required=True,
-        help="old revision for comparison.")
+        '-o', '--old-rev', type=str, required=True,
+        help='old revision for comparison.')
 
     group_optional = parser.add_argument_group(
         'optional arguments',
         'optional arguments to parse for running ' + os.path.basename(__file__))
     group_optional.add_argument(
-        "-r", "--result-dir", type=str, default="comparison",
-        help="directory where comparison result is stored, \
-              default is comparison")
+        '-r', '--result-dir', type=str, default='comparison',
+        help='directory where comparison result is stored. '
+             '(Default: comparison)')
     group_optional.add_argument(
-        "-n", "--new-rev", type=str, default=None,
-        help="new revision for comparison, default is the current work \
-              directory, including uncommitted changes.")
+        '-n', '--new-rev', type=str, default=None,
+        help='new revision as comparison base. '
+             '(Default is the current work directory, including uncommitted '
+             'changes.)')
     group_optional.add_argument(
-        "-a", "--arch", type=str, default=detect_arch(),
+        '-a', '--arch', type=str, default=detect_arch(),
         choices=list(map(lambda s: s.value, SupportedArch)),
-        help="specify architecture for code size comparison, default is the\
-              host architecture.")
+        help='Specify architecture for code size comparison. '
+             '(Default is the host architecture.)')
     group_optional.add_argument(
-        "-c", "--config", type=str, default=SupportedConfig.DEFAULT.value,
+        '-c', '--config', type=str, default=SupportedConfig.DEFAULT.value,
         choices=list(map(lambda s: s.value, SupportedConfig)),
-        help="specify configuration type for code size comparison,\
-              default is the current MbedTLS configuration.")
+        help='Specify configuration type for code size comparison. '
+             '(Default is the current MbedTLS configuration.)')
     group_optional.add_argument(
         '--markdown', action='store_true', dest='markdown',
-        help="Show comparision of code size in a markdown table\
-              (only show the files that have changed).")
+        help='Show comparision of code size in a markdown table. '
+             '(Only show the files that have changed).')
     group_optional.add_argument(
         '--stdout', action='store_true', dest='stdout',
-        help="Set this option to direct comparison result into sys.stdout.\
-              (Default: file)")
+        help='Set this option to direct comparison result into sys.stdout. '
+             '(Default: file)')
     group_optional.add_argument(
         '--verbose', action='store_true', dest='verbose',
-        help="Show logs in detail for code size measurement. (Default: False)")
+        help='Show logs in detail for code size measurement. '
+             '(Default: False)')
     comp_args = parser.parse_args()
 
     logger = logging.getLogger()

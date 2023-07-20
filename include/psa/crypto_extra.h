@@ -1036,12 +1036,12 @@ typedef uint32_t psa_pake_primitive_t;
  *                      (value of type ::psa_pake_primitive_type_t).
  * \param pake_family   The family of the primitive
  *                      (the type and interpretation of this parameter depends
- *                      on \p type, for more information consult the
+ *                      on \p pake_type, for more information consult the
  *                      documentation of individual ::psa_pake_primitive_type_t
  *                      constants).
  * \param pake_bits     The bit-size of the primitive
  *                      (Value of type \c size_t. The interpretation
- *                      of this parameter depends on \p family, for more
+ *                      of this parameter depends on \p pake_family, for more
  *                      information consult the documentation of individual
  *                      ::psa_pake_primitive_type_t constants).
  *
@@ -1545,7 +1545,7 @@ psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p user_id is not valid for the \p operation's algorithm and cipher
+ *         \p peer_id is not valid for the \p operation's algorithm and cipher
  *         suite.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The algorithm doesn't associate a second identity with the session.
@@ -1627,8 +1627,8 @@ psa_status_t psa_pake_set_role(psa_pake_operation_t *operation,
  *                             \c PSA_PAKE_STEP_XXX constants for more
  *                             information.
  * \param output_size          Size of the \p output buffer in bytes. This must
- *                             be at least #PSA_PAKE_OUTPUT_SIZE(\p alg, \p
- *                             primitive, \p step) where \p alg and
+ *                             be at least #PSA_PAKE_OUTPUT_SIZE(\c alg, \c
+ *                             primitive, \p output_step) where \c alg and
  *                             \p primitive are the PAKE algorithm and primitive
  *                             in the operation's cipher suite, and \p step is
  *                             the output step.
@@ -1693,9 +1693,9 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
  * \retval #PSA_ERROR_INVALID_SIGNATURE
  *         The verification fails for a #PSA_PAKE_STEP_ZK_PROOF input step.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p is not compatible with the \p operation’s algorithm, or the
- *         \p input is not valid for the \p operation's algorithm, cipher suite
- *         or \p step.
+ *         \p input_length is not compatible with the \p operation’s algorithm,
+ *         or the \p input is not valid for the \p operation's algorithm,
+ *         cipher suite or \p step.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p step p is not supported with the \p operation's algorithm, or the
  *         \p input is not supported for the \p operation's algorithm, cipher
@@ -1744,7 +1744,7 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
  *
  * When this function returns successfully, \p operation becomes inactive.
  * If this function returns an error status, both \p operation
- * and \p key_derivation operations enter an error state and must be aborted by
+ * and \c key_derivation operations enter an error state and must be aborted by
  * calling psa_pake_abort() and psa_key_derivation_abort() respectively.
  *
  * \param[in,out] operation    Active PAKE operation.
@@ -1877,7 +1877,7 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
  * The value of this macro must be at least as large as the largest value
  * returned by PSA_PAKE_OUTPUT_SIZE()
  *
- * See also #PSA_PAKE_OUTPUT_SIZE(\p alg, \p primitive, \p step).
+ * See also #PSA_PAKE_OUTPUT_SIZE(\p alg, \p primitive, \p output_step).
  */
 #define PSA_PAKE_OUTPUT_MAX_SIZE 65
 
@@ -1889,7 +1889,7 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
  * The value of this macro must be at least as large as the largest value
  * returned by PSA_PAKE_INPUT_SIZE()
  *
- * See also #PSA_PAKE_INPUT_SIZE(\p alg, \p primitive, \p step).
+ * See also #PSA_PAKE_INPUT_SIZE(\p alg, \p primitive, \p output_step).
  */
 #define PSA_PAKE_INPUT_MAX_SIZE 65
 

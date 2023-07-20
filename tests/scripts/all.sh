@@ -2133,15 +2133,27 @@ component_test_psa_crypto_config_no_driver() {
     make test
 }
 
-component_test_psa_crypto_config_chachapoly_disabled() {
-    msg "build: full minus MBEDTLS_CHACHAPOLY_C without PSA_WANT_ALG_GCM and PSA_WANT_ALG_CHACHA20_POLY1305"
+component_test_aead_chachapoly_disabled() {
+    msg "build: full minus CHACHAPOLY"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_GCM
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_CHACHA20_POLY1305
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CHACHA20_POLY1305
     make CC=gcc CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS"
 
-    msg "test: full minus MBEDTLS_CHACHAPOLY_C without PSA_WANT_ALG_GCM and PSA_WANT_ALG_CHACHA20_POLY1305"
+    msg "test: full minus CHACHAPOLY"
+    make test
+}
+
+component_test_aead_only_ccm() {
+    msg "build: full minus CHACHAPOLY and GCM"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+    scripts/config.py unset MBEDTLS_GCM_C
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CHACHA20_POLY1305
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_GCM
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: full minus CHACHAPOLY and GCM"
     make test
 }
 

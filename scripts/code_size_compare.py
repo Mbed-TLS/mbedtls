@@ -45,8 +45,8 @@ class SupportedArch(Enum):
     X86_64 = 'x86_64'
     X86 = 'x86'
 
-CONFIG_TFM_MEDIUM_MBEDCRYPTO_H = "../configs/tfm_mbedcrypto_config_profile_medium.h"
-CONFIG_TFM_MEDIUM_PSA_CRYPTO_H = "../configs/crypto_config_profile_medium.h"
+CONFIG_TFM_MEDIUM_MBEDCRYPTO_H = '../configs/tfm_mbedcrypto_config_profile_medium.h'
+CONFIG_TFM_MEDIUM_PSA_CRYPTO_H = '../configs/crypto_config_profile_medium.h'
 class SupportedConfig(Enum):
     """Supported configuration for code size measurement."""
     DEFAULT = 'default'
@@ -63,13 +63,13 @@ DETECT_ARCH_CMD = "cc -dM -E - < /dev/null"
 def detect_arch() -> str:
     """Auto-detect host architecture."""
     cc_output = subprocess.check_output(DETECT_ARCH_CMD, shell=True).decode()
-    if "__aarch64__" in cc_output:
+    if '__aarch64__' in cc_output:
         return SupportedArch.AARCH64.value
-    if "__arm__" in cc_output:
+    if '__arm__' in cc_output:
         return SupportedArch.AARCH32.value
-    if "__x86_64__" in cc_output:
+    if '__x86_64__' in cc_output:
         return SupportedArch.X86_64.value
-    if "__x86__" in cc_output:
+    if '__x86__' in cc_output:
         return SupportedArch.X86.value
     else:
         print("Unknown host architecture, cannot auto-detect arch.")
@@ -83,11 +83,11 @@ class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods
     """
 
     SupportedArchConfig = [
-        "-a " + SupportedArch.AARCH64.value + " -c " + SupportedConfig.DEFAULT.value,
-        "-a " + SupportedArch.AARCH32.value + " -c " + SupportedConfig.DEFAULT.value,
-        "-a " + SupportedArch.X86_64.value  + " -c " + SupportedConfig.DEFAULT.value,
-        "-a " + SupportedArch.X86.value     + " -c " + SupportedConfig.DEFAULT.value,
-        "-a " + SupportedArch.ARMV8_M.value + " -c " + SupportedConfig.TFM_MEDIUM.value,
+        '-a ' + SupportedArch.AARCH64.value + ' -c ' + SupportedConfig.DEFAULT.value,
+        '-a ' + SupportedArch.AARCH32.value + ' -c ' + SupportedConfig.DEFAULT.value,
+        '-a ' + SupportedArch.X86_64.value  + ' -c ' + SupportedConfig.DEFAULT.value,
+        '-a ' + SupportedArch.X86.value     + ' -c ' + SupportedConfig.DEFAULT.value,
+        '-a ' + SupportedArch.ARMV8_M.value + ' -c ' + SupportedConfig.TFM_MEDIUM.value,
     ]
 
     def __init__(
@@ -107,11 +107,13 @@ class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods
         self.logger = logger
 
     def infer_make_command(self) -> str:
-        """Infer build command based on architecture and configuration."""
+        """Infer make command based on architecture and configuration."""
 
+        # make command by default
         if self.size_version.config == SupportedConfig.DEFAULT.value and \
-            self.size_version.arch == self.host_arch:
+           self.size_version.arch == self.host_arch:
             return 'make -j lib CFLAGS=\'-Os \' '
+        # make command for TF-M
         elif self.size_version.arch == SupportedArch.ARMV8_M.value and \
              self.size_version.config == SupportedConfig.TFM_MEDIUM.value:
             return \
@@ -119,6 +121,7 @@ class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods
                   CFLAGS=\'--target=arm-arm-none-eabi -mcpu=cortex-m33 -Os \
                  -DMBEDTLS_CONFIG_FILE=\\\"' + CONFIG_TFM_MEDIUM_MBEDCRYPTO_H + '\\\" \
                  -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=\\\"' + CONFIG_TFM_MEDIUM_PSA_CRYPTO_H + '\\\" \''
+        # unsupported combinations
         else:
             self.logger.error("Unsupported combination of architecture: {} " \
                               "and configuration: {}.\n"
@@ -164,10 +167,11 @@ class CodeSizeCalculator:
         self.logger = logger
 
     @staticmethod
-    def validate_revision(revision: str) -> bytes:
+    def validate_revision(revision: str) -> str:
         result = subprocess.check_output(["git", "rev-parse", "--verify",
-                                          revision + "^{commit}"], shell=False)
-        return result
+                                          revision + "^{commit}"], shell=False,
+                                         universal_newlines=True)
+        return result[:7]
 
     def _create_git_worktree(self) -> str:
         """Make a separate worktree for revision.
@@ -199,15 +203,17 @@ class CodeSizeCalculator:
             subprocess.check_output(
                 self.make_clean, env=my_environment, shell=True,
                 cwd=git_worktree_path, stderr=subprocess.STDOUT,
+                universal_newlines=True
             )
             subprocess.check_output(
                 self.make_cmd, env=my_environment, shell=True,
                 cwd=git_worktree_path, stderr=subprocess.STDOUT,
+                universal_newlines=True
             )
         except subprocess.CalledProcessError as e:
             self._handle_called_process_error(e, git_worktree_path)
 
-    def _gen_raw_code_size(self, git_worktree_path: str) -> typing.Dict:
+    def _gen_raw_code_size(self, git_worktree_path: str) -> typing.Dict[str, str]:
         """Calculate code size with measurement tool in UTF-8 encoding."""
 
         self.logger.debug("Measuring code size for {} by `{}`."
@@ -245,13 +251,13 @@ class CodeSizeCalculator:
 
         # Tell the user what went wrong
         self.logger.error(e, exc_info=True)
-        self.logger.error("Process output:\n {}".format(str(e.output, "utf-8")))
+        self.logger.error("Process output:\n {}".format(e.output))
 
         # Quit gracefully by removing the existing worktree
         self._remove_worktree(git_worktree_path)
         sys.exit(-1)
 
-    def cal_libraries_code_size(self) -> typing.Dict:
+    def cal_libraries_code_size(self) -> typing.Dict[str, str]:
         """Calculate code size of libraries by measurement tool."""
 
         git_worktree_path = self._create_git_worktree()
@@ -290,7 +296,7 @@ class CodeSizeGenerator:
             self,
             old_rev: str,
             new_rev: str,
-            output_stream,
+            output_stream: str,
             result_options: SimpleNamespace
     ) -> None:
         """Write a comparision result into a stream between two revisions.
@@ -331,7 +337,7 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
         super().__init__(logger)
         self.code_size = {} #type: typing.Dict[str, typing.Dict]
 
-    def set_size_record(self, revision: str, mod: str, size_text: str) -> None:
+    def _set_size_record(self, revision: str, mod: str, size_text: str) -> None:
         """Store size information for target revision and high-level module.
 
         size_text Format: text data bss dec hex filename
@@ -390,7 +396,7 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
             for fname, size_entry in file_size.items():
                 yield mod, fname, size_entry
 
-    def write_size_record(
+    def _write_size_record(
             self,
             revision: str,
             output: typing_util.Writable
@@ -407,7 +413,7 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                                               size_entry.text, size_entry.data,
                                               size_entry.bss, size_entry.total))
 
-    def write_comparison(
+    def _write_comparison(
             self,
             old_rev: str,
             new_rev: str,
@@ -439,13 +445,15 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
         else:
             format_string = "{:<30} {:<18} {:<14} {:<17} {:<18}\n"
 
-        output.write(format_string.format("filename", "current(text,data)",\
-                "old(text,data)", "change(text,data)", "change%(text,data)"))
+        output.write(format_string
+                     .format("filename",
+                             "current(text,data)", "old(text,data)",
+                             "change(text,data)", "change%(text,data)"))
         if with_markdown:
             output.write(format_string
                          .format("----:", "----:", "----:", "----:", "----:"))
 
-        for mod, fname, size_entry in\
+        for mod, fname, size_entry in \
                 self._size_reader_helper(new_rev, output, with_markdown):
             text_vari = cal_size_section_variation(mod, fname,
                                                    size_entry, 'text')
@@ -457,15 +465,18 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                 # comparison result in a markdown table.
                 if with_markdown and text_vari[2] == 0 and data_vari[2] == 0:
                     continue
-                output.write(format_string.format(fname,\
-                        str(text_vari[0]) + "," + str(data_vari[0]),\
-                        str(text_vari[1]) + "," + str(data_vari[1]),\
-                        str(text_vari[2]) + "," + str(data_vari[2]),\
-                        "{:.2%}".format(text_vari[3]) + "," +\
-                        "{:.2%}".format(data_vari[3])))
+                output.write(
+                    format_string
+                    .format(fname,
+                            str(text_vari[0]) + "," + str(data_vari[0]),
+                            str(text_vari[1]) + "," + str(data_vari[1]),
+                            str(text_vari[2]) + "," + str(data_vari[2]),
+                            "{:.2%}".format(text_vari[3]) + ","
+                            + "{:.2%}".format(data_vari[3])))
             else:
-                output.write("{:<30} {:<18}\n".format(fname,\
-                        str(text_vari[0]) + "," + str(data_vari[0])))
+                output.write("{:<30} {:<18}\n"
+                             .format(fname,
+                                     str(text_vari[0]) + "," + str(data_vari[0])))
 
     def size_generator_write_record(
             self,
@@ -478,16 +489,16 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
         self.logger.debug("Generating code size csv for {}.".format(revision))
 
         for mod, size_text in code_size_text.items():
-            self.set_size_record(revision, mod, size_text)
+            self._set_size_record(revision, mod, size_text)
 
         output = open(output_file, "w")
-        self.write_size_record(revision, output)
+        self._write_size_record(revision, output)
 
     def size_generator_write_comparison(
             self,
             old_rev: str,
             new_rev: str,
-            output_stream,
+            output_stream: str,
             result_options: SimpleNamespace
     ) -> None:
         """Write a comparision result into a stream between two revisions."""
@@ -498,7 +509,8 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
             output = sys.stdout
         else:
             output = open(output_stream, "w")
-        self.write_comparison(old_rev, new_rev, output, result_options.with_markdown)
+        self._write_comparison(old_rev, new_rev, output,
+                               result_options.with_markdown)
 
 
 class CodeSizeComparison:
@@ -516,8 +528,8 @@ class CodeSizeComparison:
         new_revision:
         result_dir: directory for comparison result.
         """
-        self.repo_path = "."
-        self.result_dir = os.path.abspath(code_size_common.result_options.result_dir)
+        self.result_dir = os.path.abspath(
+            code_size_common.result_options.result_dir)
         os.makedirs(self.result_dir, exist_ok=True)
 
         self.csv_dir = os.path.abspath("code_size_records/")
@@ -528,14 +540,14 @@ class CodeSizeComparison:
         self.old_size_version = old_size_version
         self.new_size_version = new_size_version
         self.code_size_common = code_size_common
+        # infer make command
         self.old_size_version.make_cmd = CodeSizeBuildInfo(
             self.old_size_version, self.code_size_common.host_arch,
             self.logger).infer_make_command()
         self.new_size_version.make_cmd = CodeSizeBuildInfo(
             self.new_size_version, self.code_size_common.host_arch,
             self.logger).infer_make_command()
-        self.git_command = "git"
-        self.make_clean = 'make clean'
+        # initialize size parser with corresponding measurement tool
         self.code_size_generator = self.__generate_size_parser()
 
     def __generate_size_parser(self):
@@ -548,29 +560,38 @@ class CodeSizeComparison:
             sys.exit(1)
 
 
-    def cal_code_size(self, size_version: SimpleNamespace):
+    def cal_code_size(
+            self,
+            size_version: SimpleNamespace
+        ) -> typing.Dict[str, str]:
         """Calculate code size of library objects in a UTF-8 encoding"""
 
         return CodeSizeCalculator(size_version.revision, size_version.make_cmd,
                                   self.code_size_common.measure_cmd,
                                   self.logger).cal_libraries_code_size()
 
-    def gen_file_name(self, old_size_version, new_size_version=None):
+    def gen_file_name(
+            self,
+            old_size_version: SimpleNamespace,
+            new_size_version=None
+        ) -> str:
         """Generate a literal string as csv file name."""
         if new_size_version:
             return '{}-{}-{}-{}-{}-{}-{}.csv'\
-                    .format(old_size_version.revision[:7],
-                            old_size_version.arch, old_size_version.config,
-                            new_size_version.revision[:7],
-                            new_size_version.arch, new_size_version.config,
-                            self.code_size_common.measure_cmd.strip().split(' ')[0])
+                   .format(old_size_version.revision, old_size_version.arch,
+                           old_size_version.config,
+                           new_size_version.revision, new_size_version.arch,
+                           new_size_version.config,
+                           self.code_size_common.measure_cmd.strip()\
+                               .split(' ')[0])
         else:
             return '{}-{}-{}-{}.csv'\
-                    .format(old_size_version.revision[:7],
-                            old_size_version.arch, old_size_version.config,
-                            self.code_size_common.measure_cmd.strip().split(' ')[0])
+                   .format(old_size_version.revision, old_size_version.arch,
+                           old_size_version.config,
+                           self.code_size_common.measure_cmd.strip()\
+                               .split(' ')[0])
 
-    def gen_code_size_report(self, size_version: SimpleNamespace):
+    def gen_code_size_report(self, size_version: SimpleNamespace) -> None:
         """Generate code size record and write it into a file."""
 
         self.logger.info("Start to generate code size record for {}."
@@ -585,11 +606,11 @@ class CodeSizeComparison:
             self.code_size_generator.read_size_record(
                 size_version.revision, output_file)
         else:
-            self.code_size_generator.size_generator_write_record(\
-                    size_version.revision, self.cal_code_size(size_version),
-                    output_file)
+            self.code_size_generator.size_generator_write_record(
+                size_version.revision, self.cal_code_size(size_version),
+                output_file)
 
-    def gen_code_size_comparison(self) -> int:
+    def gen_code_size_comparison(self) -> None:
         """Generate results of code size changes between two revisions,
         old and new. Measured code size results of these two revisions
         must be available."""
@@ -606,15 +627,13 @@ class CodeSizeComparison:
             self.old_size_version.revision, self.new_size_version.revision,
             output_file, self.code_size_common.result_options)
 
-        return 0
-
-    def get_comparision_results(self) -> int:
+    def get_comparision_results(self) -> None:
         """Compare size of library/*.o between self.old_rev and self.new_rev,
         and generate the result file."""
         build_tree.check_repo_path()
         self.gen_code_size_report(self.old_size_version)
         self.gen_code_size_report(self.new_size_version)
-        return self.gen_code_size_comparison()
+        self.gen_code_size_comparison()
 
 
 def main():
@@ -668,24 +687,21 @@ def main():
         logger.error("{} is not a directory".format(comp_args.result_dir))
         parser.exit()
 
-    validate_res = CodeSizeCalculator.validate_revision(comp_args.old_rev)
-    old_revision = validate_res.decode().replace("\n", "")
-
+    old_revision = CodeSizeCalculator.validate_revision(comp_args.old_rev)
     if comp_args.new_rev is not None:
-        validate_res = CodeSizeCalculator.validate_revision(comp_args.new_rev)
-        new_revision = validate_res.decode().replace("\n", "")
+        new_revision = CodeSizeCalculator.validate_revision(comp_args.new_rev)
     else:
         new_revision = "current"
 
     old_size_version = SimpleNamespace(
-        version="old",
+        version='old',
         revision=old_revision,
         config=comp_args.config,
         arch=comp_args.arch,
         make_cmd='',
     )
     new_size_version = SimpleNamespace(
-        version="new",
+        version='new',
         revision=new_revision,
         config=comp_args.config,
         arch=comp_args.arch,
@@ -707,10 +723,8 @@ def main():
                         new_size_version.revision, old_size_version.config,
                         new_size_version.arch,
                         code_size_common.measure_cmd.strip().split(' ')[0]))
-    size_compare = CodeSizeComparison(old_size_version, new_size_version,\
-            code_size_common, logger)
-    return_code = size_compare.get_comparision_results()
-    sys.exit(return_code)
+    CodeSizeComparison(old_size_version, new_size_version,
+                       code_size_common, logger).get_comparision_results()
 
 if __name__ == "__main__":
     main()

@@ -1403,18 +1403,15 @@ void ssl_crypt_record_small(int cipher_type, int hash_id,
             ret = mbedtls_ssl_encrypt_buf(&ssl, t_enc, &rec,
                                           mbedtls_test_rnd_std_rand, NULL);
 
-            if ((mode == 1 || mode == 2) && seen_success) {
-                TEST_ASSERT(ret == 0);
-            } else {
-                TEST_ASSERT(ret == 0 || ret == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
-                if (ret == 0) {
-                    seen_success = 1;
-                }
-            }
-
-            if (ret != 0) {
+            if (ret == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL) {
+                /* It's ok if the output buffer is too small. We do insist
+                 * on at least one mode succeeding; this is tracked by
+                 * seen_success. */
                 continue;
             }
+
+            TEST_EQUAL(ret, 0);
+            seen_success = 1;
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
             if (rec.cid_len != 0) {

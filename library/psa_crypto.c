@@ -6679,7 +6679,9 @@ static psa_status_t psa_pbkdf2_set_salt(psa_pbkdf2_key_derivation_t *pbkdf2,
         return PSA_ERROR_BAD_STATE;
     }
 
-    if (pbkdf2->state == PSA_PBKDF2_STATE_INPUT_COST_SET) {
+    if (data_length == 0) {
+        /* Nothing to do */
+    } else if (pbkdf2->state == PSA_PBKDF2_STATE_INPUT_COST_SET) {
         pbkdf2->salt = mbedtls_calloc(1, data_length);
         if (pbkdf2->salt == NULL) {
             return PSA_ERROR_INSUFFICIENT_MEMORY;

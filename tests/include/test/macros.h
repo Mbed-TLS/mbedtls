@@ -166,14 +166,16 @@
  * \param size2     Size of the second buffer in bytes.
  *                  This expression may be evaluated multiple times.
  */
-#define ASSERT_COMPARE(p1, size1, p2, size2)                          \
-    do                                                                  \
-    {                                                                   \
+#define TEST_BUFFERS_EQUAL(p1, size1, p2, size2)               \
+    do {                                                       \
         TEST_EQUAL((size1), (size2));                          \
-        if ((size1) != 0)                                            \
-        TEST_ASSERT(memcmp((p1), (p2), (size1)) == 0);    \
-    }                                                                   \
-    while (0)
+        if ((size1) != 0) {                                    \
+            TEST_ASSERT(memcmp((p1), (p2), (size1)) == 0);     \
+        }                                                      \
+    } while (0)
+
+/* For backwards compatibility */
+#define ASSERT_COMPARE(p1, size1, p2, size2) TEST_BUFFERS_EQUAL(p1, size1, p2, size2)
 
 /**
  * \brief   This macro tests the expression passed to it and skips the

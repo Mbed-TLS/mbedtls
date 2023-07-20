@@ -66,7 +66,7 @@ void format_storage_data_check(data_t *key_data,
                                     &attributes.core,
                                     file_data);
 
-    ASSERT_COMPARE(expected_file_data->x, expected_file_data->len,
+    TEST_BUFFERS_EQUAL(expected_file_data->x, expected_file_data->len,
                    file_data, file_data_length);
 
 exit:
@@ -111,7 +111,7 @@ void parse_storage_data_check(data_t *file_data,
                (uint32_t) expected_key_alg);
     TEST_EQUAL(psa_get_key_enrollment_algorithm(&attributes),
                (uint32_t) expected_key_alg2);
-    ASSERT_COMPARE(expected_key_data->x, expected_key_data->len,
+    TEST_BUFFERS_EQUAL(expected_key_data->x, expected_key_data->len,
                    key_data, key_data_length);
 
 exit:
@@ -307,7 +307,7 @@ void import_export_persistent_key(data_t *data, int type_arg,
     PSA_ASSERT(psa_export_key(key_id, exported, export_size,
                               &exported_length));
 
-    ASSERT_COMPARE(data->x, data->len, exported, exported_length);
+    TEST_BUFFERS_EQUAL(data->x, data->len, exported, exported_length);
 
     /* Destroy the key */
     PSA_ASSERT(psa_destroy_key(key_id));

@@ -36,7 +36,7 @@ static int check_multipart(mbedtls_ccm_context *ctx,
     olen = 0xdeadbeef;
     TEST_EQUAL(0, mbedtls_ccm_update(ctx, input->x, n1, output, n1, &olen));
     TEST_EQUAL(n1, olen);
-    ASSERT_COMPARE(output, olen, expected_output->x, n1);
+    TEST_BUFFERS_EQUAL(output, olen, expected_output->x, n1);
     mbedtls_free(output);
     output = NULL;
 
@@ -44,13 +44,13 @@ static int check_multipart(mbedtls_ccm_context *ctx,
     olen = 0xdeadbeef;
     TEST_EQUAL(0, mbedtls_ccm_update(ctx, input->x + n1, n2, output, n2, &olen));
     TEST_EQUAL(n2, olen);
-    ASSERT_COMPARE(output, olen, expected_output->x + n1, n2);
+    TEST_BUFFERS_EQUAL(output, olen, expected_output->x + n1, n2);
     mbedtls_free(output);
     output = NULL;
 
     ASSERT_ALLOC(output, tag->len);
     TEST_EQUAL(0, mbedtls_ccm_finish(ctx, output, tag->len));
-    ASSERT_COMPARE(output, tag->len, tag->x, tag->len);
+    TEST_BUFFERS_EQUAL(output, tag->len, tag->x, tag->len);
     mbedtls_free(output);
     output = NULL;
 
@@ -204,8 +204,8 @@ void mbedtls_ccm_encrypt_and_tag(int cipher_id, data_t *key,
     TEST_EQUAL(mbedtls_ccm_encrypt_and_tag(&ctx, msg->len, iv->x, iv->len, add->x, add->len,
                                            io_msg_buf, io_msg_buf, tag_buf, expected_tag_len), 0);
 
-    ASSERT_COMPARE(io_msg_buf, msg->len, result->x, msg->len);
-    ASSERT_COMPARE(tag_buf, expected_tag_len, expected_tag, expected_tag_len);
+    TEST_BUFFERS_EQUAL(io_msg_buf, msg->len, result->x, msg->len);
+    TEST_BUFFERS_EQUAL(tag_buf, expected_tag_len, expected_tag, expected_tag_len);
 
     /* Prepare data_t structures for multipart testing */
     const data_t encrypted_expected = { .x = result->x,
@@ -249,7 +249,7 @@ void mbedtls_ccm_star_no_tag(int cipher_id, int mode, data_t *key,
     ASSERT_ALLOC(output, msg->len);
     TEST_EQUAL(0, mbedtls_ccm_update(&ctx, msg->x, msg->len, output, msg->len, &olen));
     TEST_EQUAL(result->len, olen);
-    ASSERT_COMPARE(output, olen, result->x, result->len);
+    TEST_BUFFERS_EQUAL(output, olen, result->x, result->len);
 
     TEST_EQUAL(0, mbedtls_ccm_finish(&ctx, NULL, 0));
 exit:
@@ -285,7 +285,7 @@ void mbedtls_ccm_auth_decrypt(int cipher_id, data_t *key,
                result);
 
     if (result == 0) {
-        ASSERT_COMPARE(io_msg_buf, expected_msg_len, expected_msg->x, expected_msg_len);
+        TEST_BUFFERS_EQUAL(io_msg_buf, expected_msg_len, expected_msg->x, expected_msg_len);
 
         /* Prepare data_t structures for multipart testing */
         const data_t encrypted = { .x = msg->x,
@@ -372,8 +372,8 @@ void mbedtls_ccm_star_encrypt_and_tag(int cipher_id,
                                                 add->x, add->len, io_msg_buf,
                                                 io_msg_buf, tag_buf, expected_tag_len), output_ret);
 
-    ASSERT_COMPARE(io_msg_buf, msg->len, expected_result->x, msg->len);
-    ASSERT_COMPARE(tag_buf, expected_tag_len, expected_tag, expected_tag_len);
+    TEST_BUFFERS_EQUAL(io_msg_buf, msg->len, expected_result->x, msg->len);
+    TEST_BUFFERS_EQUAL(tag_buf, expected_tag_len, expected_tag, expected_tag_len);
 
     if (output_ret == 0) {
         const data_t iv_data = { .x = iv,
@@ -450,7 +450,7 @@ void mbedtls_ccm_star_auth_decrypt(int cipher_id,
                                              add->x, add->len, io_msg_buf, io_msg_buf,
                                              expected_tag, expected_tag_len), output_ret);
 
-    ASSERT_COMPARE(io_msg_buf, expected_msg_len, expected_result->x, expected_msg_len);
+    TEST_BUFFERS_EQUAL(io_msg_buf, expected_msg_len, expected_result->x, expected_msg_len);
 
     if (output_ret == 0) {
         const data_t iv_data = { .x = iv,
@@ -504,13 +504,13 @@ void mbedtls_ccm_skip_ad(int cipher_id, int mode,
     olen = 0xdeadbeef;
     TEST_EQUAL(0, mbedtls_ccm_update(&ctx, msg->x, msg->len, output, result->len, &olen));
     TEST_EQUAL(result->len, olen);
-    ASSERT_COMPARE(output, olen, result->x, result->len);
+    TEST_BUFFERS_EQUAL(output, olen, result->x, result->len);
     mbedtls_free(output);
     output = NULL;
 
     ASSERT_ALLOC(output, tag->len);
     TEST_EQUAL(0, mbedtls_ccm_finish(&ctx, output, tag->len));
-    ASSERT_COMPARE(output, tag->len, tag->x, tag->len);
+    TEST_BUFFERS_EQUAL(output, tag->len, tag->x, tag->len);
     mbedtls_free(output);
     output = NULL;
 
@@ -538,7 +538,7 @@ void mbedtls_ccm_skip_update(int cipher_id, int mode,
 
     ASSERT_ALLOC(output, tag->len);
     TEST_EQUAL(0, mbedtls_ccm_finish(&ctx, output, tag->len));
-    ASSERT_COMPARE(output, tag->len, tag->x, tag->len);
+    TEST_BUFFERS_EQUAL(output, tag->len, tag->x, tag->len);
     mbedtls_free(output);
     output = NULL;
 

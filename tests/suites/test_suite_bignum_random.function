@@ -174,7 +174,7 @@ void mpi_legacy_random_values(int min, char *max_hex)
      * same number, with the same limb count. */
     TEST_EQUAL(core_ret, legacy_ret);
     if (core_ret == 0) {
-        ASSERT_COMPARE(R_core, limbs * ciL,
+        TEST_BUFFERS_EQUAL(R_core, limbs * ciL,
                        R_legacy.p, R_legacy.n * ciL);
     }
 
@@ -182,7 +182,7 @@ void mpi_legacy_random_values(int min, char *max_hex)
     /* This may theoretically fail on rare platforms with padding in
      * the structure! If this is a problem in practice, change to a
      * field-by-field comparison. */
-    ASSERT_COMPARE(&rnd_core, sizeof(rnd_core),
+    TEST_BUFFERS_EQUAL(&rnd_core, sizeof(rnd_core),
                    &rnd_legacy, sizeof(rnd_legacy));
 
 exit:
@@ -237,11 +237,11 @@ void mpi_mod_random_values(int min, char *max_hex, int rep)
     if (core_ret == 0) {
         TEST_EQUAL(mbedtls_mpi_mod_raw_modulus_to_canonical_rep(R_mod_raw, &N),
                    0);
-        ASSERT_COMPARE(R_core, N.limbs * ciL,
+        TEST_BUFFERS_EQUAL(R_core, N.limbs * ciL,
                        R_mod_raw, N.limbs * ciL);
         TEST_EQUAL(mbedtls_mpi_mod_raw_modulus_to_canonical_rep(R_mod_digits, &N),
                    0);
-        ASSERT_COMPARE(R_core, N.limbs * ciL,
+        TEST_BUFFERS_EQUAL(R_core, N.limbs * ciL,
                        R_mod_digits, N.limbs * ciL);
     }
 
@@ -249,9 +249,9 @@ void mpi_mod_random_values(int min, char *max_hex, int rep)
     /* This may theoretically fail on rare platforms with padding in
      * the structure! If this is a problem in practice, change to a
      * field-by-field comparison. */
-    ASSERT_COMPARE(&rnd_core, sizeof(rnd_core),
+    TEST_BUFFERS_EQUAL(&rnd_core, sizeof(rnd_core),
                    &rnd_mod_raw, sizeof(rnd_mod_raw));
-    ASSERT_COMPARE(&rnd_core, sizeof(rnd_core),
+    TEST_BUFFERS_EQUAL(&rnd_core, sizeof(rnd_core),
                    &rnd_mod, sizeof(rnd_mod));
 
 exit:

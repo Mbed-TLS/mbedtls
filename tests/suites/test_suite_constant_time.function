@@ -91,7 +91,7 @@ void mbedtls_ct_memcpy_if_eq(int eq, int size, int offset)
     TEST_CF_PUBLIC(&one, sizeof(one));
     TEST_CF_PUBLIC(&secret_eq, sizeof(secret_eq));
 
-    ASSERT_COMPARE(expected, size, result + offset, size);
+    TEST_BUFFERS_EQUAL(expected, size, result + offset, size);
 
     for (int i = 0; i < size + offset; i++) {
         src[i]    = 1;
@@ -109,7 +109,7 @@ void mbedtls_ct_memcpy_if_eq(int eq, int size, int offset)
     TEST_CF_PUBLIC(&one, sizeof(one));
     TEST_CF_PUBLIC(&secret_eq, sizeof(secret_eq));
 
-    ASSERT_COMPARE(expected, size, result, size);
+    TEST_BUFFERS_EQUAL(expected, size, result, size);
 exit:
     mbedtls_free(src);
     mbedtls_free(result);
@@ -140,7 +140,7 @@ void ssl_cf_memcpy_offset(int offset_min, int offset_max, int len)
         TEST_CF_PUBLIC(&secret, sizeof(secret));
         TEST_CF_PUBLIC(dst, len);
 
-        ASSERT_COMPARE(dst, len, src + secret, len);
+        TEST_BUFFERS_EQUAL(dst, len, src + secret, len);
     }
 
 exit:

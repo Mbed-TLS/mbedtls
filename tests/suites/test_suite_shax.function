@@ -159,7 +159,7 @@ void mbedtls_sha3(int family, data_t *in, data_t *hash)
 
     TEST_ASSERT(mbedtls_sha3(family, in->x, in->len, output, hash->len) == 0);
 
-    ASSERT_COMPARE(output, hash->len, hash->x, hash->len);
+    TEST_BUFFERS_EQUAL(output, hash->len, hash->x, hash->len);
 
 exit:
     mbedtls_free(output);
@@ -204,7 +204,7 @@ void mbedtls_sha3_multi(int family, data_t *in, data_t *hash)
 
     TEST_ASSERT(mbedtls_sha3_finish(&ctx, output, hash->len) == 0);
 
-    ASSERT_COMPARE(output, hash->len, hash->x, hash->len);
+    TEST_BUFFERS_EQUAL(output, hash->len, hash->x, hash->len);
 
 exit:
     mbedtls_free(output);
@@ -253,7 +253,7 @@ void sha3_streaming(int type, data_t *input)
         mbedtls_sha3_finish(&ctx, hash, hash_length);
         mbedtls_sha3_free(&ctx);
 
-        ASSERT_COMPARE(hash, hash_length, reference_hash, hash_length);
+        TEST_BUFFERS_EQUAL(hash, hash_length, reference_hash, hash_length);
     }
 
 exit:
@@ -289,13 +289,13 @@ void sha3_reuse(data_t *input1, data_t *hash1,
     TEST_ASSERT(mbedtls_sha3_starts(&ctx, type1) == 0);
     TEST_ASSERT(mbedtls_sha3_update(&ctx, input1->x, input1->len) == 0);
     TEST_ASSERT(mbedtls_sha3_finish(&ctx, output, sizeof(output)) == 0);
-    ASSERT_COMPARE(output, hash1->len, hash1->x, hash1->len);
+    TEST_BUFFERS_EQUAL(output, hash1->len, hash1->x, hash1->len);
 
     /* Round 2 */
     TEST_ASSERT(mbedtls_sha3_starts(&ctx, type2) == 0);
     TEST_ASSERT(mbedtls_sha3_update(&ctx, input2->x, input2->len) == 0);
     TEST_ASSERT(mbedtls_sha3_finish(&ctx, output, sizeof(output)) == 0);
-    ASSERT_COMPARE(output, hash2->len, hash2->x, hash2->len);
+    TEST_BUFFERS_EQUAL(output, hash2->len, hash2->x, hash2->len);
 
 exit:
     mbedtls_sha3_free(&ctx);

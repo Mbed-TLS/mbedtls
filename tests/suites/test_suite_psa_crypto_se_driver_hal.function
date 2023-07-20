@@ -607,7 +607,7 @@ static int check_persistent_data(psa_key_location_t location,
     PSA_ASSERT(psa_its_get_info(uid, &info));
     ASSERT_ALLOC(loaded, info.size);
     PSA_ASSERT(psa_its_get(uid, 0, info.size, loaded, NULL));
-    ASSERT_COMPARE(expected_data, size, loaded, info.size);
+    TEST_BUFFERS_EQUAL(expected_data, size, loaded, info.size);
     ok = 1;
 
 exit:
@@ -965,7 +965,7 @@ void key_creation_import_export(int lifetime_arg, int min_slot, int restart)
     PSA_ASSERT(psa_export_key(returned_id,
                               exported, sizeof(exported),
                               &exported_length));
-    ASSERT_COMPARE(key_material, sizeof(key_material),
+    TEST_BUFFERS_EQUAL(key_material, sizeof(key_material),
                    exported, exported_length);
 
     PSA_ASSERT(psa_destroy_key(returned_id));

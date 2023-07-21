@@ -123,6 +123,16 @@ static const x509_attr_descriptor_t *x509_attr_descr_from_name(const char *name,
     return cur;
 }
 
+static int x509_is_char_hex(char c)
+{
+    return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
+}
+
+static int x509_hex_to_int(char c)
+{
+    return ((c & 0x40) ? (c + 9) : c) & 0x0F;
+}
+
 int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *name)
 {
     int ret = MBEDTLS_ERR_X509_INVALID_NAME;
@@ -131,6 +141,7 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
     const char *oid = NULL;
     const x509_attr_descriptor_t *attr_descr = NULL;
     int in_tag = 1;
+    int hexpair = 0;
     char data[MBEDTLS_X509_MAX_DN_NAME_SIZE];
     char *d = data;
 
@@ -154,7 +165,11 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
             c++;
 
             /* Check for valid escaped characters in RFC 4514 in Section 3*/
-            if (c == end || !strchr(" ,=+<>#;\"\\+", *c)) {
+            if (c + 1 < end && x509_is_char_hex(*c) && x509_is_char_hex(*(c+1))) {
+                hexpair = 1;
+                *(d++) = (x509_hex_to_int(*c) << 4) + x509_hex_to_int(*(c+1));
+                c++;
+            } else if (c == end || !strchr(" ,=+<>#;\"\\+", *c)) {
                 ret = MBEDTLS_ERR_X509_INVALID_NAME;
                 goto exit;
             }
@@ -182,7 +197,7 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
             ret = 0;
         }
 
-        if (!in_tag && s != c + 1) {
+        if (!hexpair && !in_tag && s != c + 1) {
             *(d++) = *c;
 
             if (d - data == MBEDTLS_X509_MAX_DN_NAME_SIZE) {
@@ -191,6 +206,7 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
             }
         }
 
+        hexpair = 0;
         c++;
     }
 

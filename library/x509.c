@@ -810,6 +810,12 @@ int mbedtls_x509_get_ext(unsigned char **p, const unsigned char *end,
     return 0;
 }
 
+/* Converts only the 4 least significant bits */
+static char x509_int_to_hexdigit(int i)
+{
+    return (i < 10) ? (i | 0x30) : ((i - 9) | 0x40);
+}
+
 /*
  * Store the name in printable form into buf; no more
  * than size characters will be written
@@ -857,9 +863,9 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
             c = name->val.p[i];
             // Special characters requiring escaping, RFC 4514 Section 2.4
             if (c) {
-                if (strchr(",=+<>;\"\\+", c) || 
-                ((i == 0) && strchr("# ", c)) ||
-                ((i == name->val.len-1 ) && (c == ' '))) {
+                if (strchr(",=+<>;\"\\+", c) ||
+                    ((i == 0) && strchr("# ", c)) ||
+                    ((i == name->val.len-1) && (c == ' '))) {
                     if (j + 1 >= sizeof(s) - 1) {
                         return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
                     }
@@ -867,7 +873,14 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
                 }
             }
             if (c < 32 || c >= 127) {
-                s[j] = '?';
+                if (j + 3 >= sizeof(s) - 1) {
+                    return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                }
+                s[j++] = '\\';
+                char lowbits = (c & 0x0F);
+                char highbits = c>>4;
+                s[j++] = x509_int_to_hexdigit(highbits);
+                s[j] = x509_int_to_hexdigit(lowbits);
             } else {
                 s[j] = c;
             }

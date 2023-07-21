@@ -43,8 +43,8 @@
  *         compatible with the PAKE algorithm, or the hash algorithm in
  *         \p cipher_suite is not supported or not compatible with the PAKE
  *         algorithm and primitive.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY   \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED   \emptydescription
  */
 psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
                                     const psa_crypto_driver_pake_inputs_t *inputs);
@@ -78,10 +78,10 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
  *         Success.
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
- * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_DATA_CORRUPT
- * \retval #PSA_ERROR_DATA_INVALID
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY  \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED   \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT          \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID          \emptydescription
  */
 psa_status_t mbedtls_psa_pake_output(mbedtls_psa_pake_operation_t *operation,
                                      psa_crypto_driver_pake_step_t step,
@@ -116,10 +116,10 @@ psa_status_t mbedtls_psa_pake_output(mbedtls_psa_pake_operation_t *operation,
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         the \p input is not supported for the \p operation's algorithm, cipher
  *         suite or \p step.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_DATA_CORRUPT
- * \retval #PSA_ERROR_DATA_INVALID
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY   \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED   \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT          \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID          \emptydescription
  */
 psa_status_t mbedtls_psa_pake_input(mbedtls_psa_pake_operation_t *operation,
                                     psa_crypto_driver_pake_step_t step,
@@ -143,10 +143,10 @@ psa_status_t mbedtls_psa_pake_input(mbedtls_psa_pake_operation_t *operation,
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         Input from a PAKE is not supported by the algorithm in the \p output
  *         key derivation operation.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_DATA_CORRUPT
- * \retval #PSA_ERROR_DATA_INVALID
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY   \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED   \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT          \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID          \emptydescription
  */
 psa_status_t mbedtls_psa_pake_get_implicit_key(
     mbedtls_psa_pake_operation_t *operation,
@@ -164,7 +164,7 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED   \emptydescription
  */
 psa_status_t mbedtls_psa_pake_abort(mbedtls_psa_pake_operation_t *operation);
 

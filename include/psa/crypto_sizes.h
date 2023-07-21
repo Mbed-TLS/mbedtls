@@ -51,6 +51,8 @@
 
 #define PSA_BITS_TO_BYTES(bits) (((bits) + 7) / 8)
 #define PSA_BYTES_TO_BITS(bytes) ((bytes) * 8)
+#define PSA_MAX_OF_THREE(a, b, c) ((a) <= (b) ? (b) <= (c) ? \
+                                   (c) : (b) : (a) <= (c) ? (c) : (a))
 
 #define PSA_ROUND_UP_TO_MULTIPLE(block_size, length) \
     (((length) + (block_size) - 1) / (block_size) * (block_size))
@@ -126,11 +128,22 @@
 /* Note: for HMAC-SHA-3, the block size is 144 bytes for HMAC-SHA3-226,
  * 136 bytes for HMAC-SHA3-256, 104 bytes for SHA3-384, 72 bytes for
  * HMAC-SHA3-512. */
-#if defined(PSA_WANT_ALG_SHA_512) || defined(PSA_WANT_ALG_SHA_384)
+/* Note: PSA_HASH_MAX_SIZE should be kept in sync with MBEDTLS_MD_MAX_SIZE,
+ * see the note on MBEDTLS_MD_MAX_SIZE for details. */
+#if defined(PSA_WANT_ALG_SHA_512)
 #define PSA_HASH_MAX_SIZE 64
 #define PSA_HMAC_MAX_HASH_BLOCK_SIZE 128
-#else
+#elif defined(PSA_WANT_ALG_SHA_384)
+#define PSA_HASH_MAX_SIZE 48
+#define PSA_HMAC_MAX_HASH_BLOCK_SIZE 128
+#elif defined(PSA_WANT_ALG_SHA_256)
 #define PSA_HASH_MAX_SIZE 32
+#define PSA_HMAC_MAX_HASH_BLOCK_SIZE 64
+#elif defined(PSA_WANT_ALG_SHA_224)
+#define PSA_HASH_MAX_SIZE 28
+#define PSA_HMAC_MAX_HASH_BLOCK_SIZE 64
+#else /* SHA-1 or smaller */
+#define PSA_HASH_MAX_SIZE 20
 #define PSA_HMAC_MAX_HASH_BLOCK_SIZE 64
 #endif
 
@@ -195,6 +208,12 @@
  * operations, and does not need to accept all key sizes up to the limit. */
 #define PSA_VENDOR_RSA_MAX_KEY_BITS 4096
 
+/* The maximum size of an DH key on this implementation, in bits.
+ *
+ * Note that an implementation may set different size limits for different
+ * operations, and does not need to accept all key sizes up to the limit. */
+#define PSA_VENDOR_FFDH_MAX_KEY_BITS 8192
+
 /* The maximum size of an ECC key on this implementation, in bits.
  * This is a vendor-specific macro. */
 #if defined(PSA_WANT_ECC_SECP_R1_521)
@@ -252,6 +271,10 @@
  * psa_tls12_ecjpake_to_pms_input. This function only accepts the P-256
  * curve. */
 #define PSA_TLS12_ECJPAKE_TO_PMS_DATA_SIZE 32
+
+/* The maximum number of iterations for PBKDF2 on this implementation, in bits.
+ * This is a vendor-specific macro. This can be configured if necessary */
+#define PSA_VENDOR_PBKDF2_MAX_ITERATIONS 0xffffffff
 
 /** The maximum size of a block cipher. */
 #define PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE 16
@@ -804,6 +827,18 @@
 #define PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(key_bits)   \
     (PSA_BITS_TO_BYTES(key_bits))
 
+/* Maximum size of the export encoding of an DH key pair.
+ *
+ * An DH key pair is represented by the secret value.
+ */
+#define PSA_KEY_EXPORT_FFDH_KEY_PAIR_MAX_SIZE(key_bits)   \
+    (PSA_BITS_TO_BYTES(key_bits))
+
+/* Maximum size of the export encoding of an DH public key.
+ */
+#define PSA_KEY_EXPORT_FFDH_PUBLIC_KEY_MAX_SIZE(key_bits)   \
+    (PSA_BITS_TO_BYTES(key_bits))
+
 /** Sufficient output buffer size for psa_export_key() or
  * psa_export_public_key().
  *
@@ -845,6 +880,7 @@
  */
 #define PSA_EXPORT_KEY_OUTPUT_SIZE(key_type, key_bits)                                              \
     (PSA_KEY_TYPE_IS_UNSTRUCTURED(key_type) ? PSA_BITS_TO_BYTES(key_bits) :                         \
+     PSA_KEY_TYPE_IS_DH(key_type) ? PSA_BITS_TO_BYTES(key_bits) :                                   \
      (key_type) == PSA_KEY_TYPE_RSA_KEY_PAIR ? PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE(key_bits) :     \
      (key_type) == PSA_KEY_TYPE_RSA_PUBLIC_KEY ? PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(key_bits) : \
      (key_type) == PSA_KEY_TYPE_DSA_KEY_PAIR ? PSA_KEY_EXPORT_DSA_KEY_PAIR_MAX_SIZE(key_bits) :     \
@@ -901,6 +937,7 @@
 #define PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(key_type, key_bits)                           \
     (PSA_KEY_TYPE_IS_RSA(key_type) ? PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(key_bits) : \
      PSA_KEY_TYPE_IS_ECC(key_type) ? PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(key_bits) : \
+     PSA_KEY_TYPE_IS_DH(key_type) ? PSA_BITS_TO_BYTES(key_bits) : \
      0)
 
 /** Sufficient buffer size for exporting any asymmetric key pair.
@@ -911,11 +948,10 @@
  *
  * See also #PSA_EXPORT_KEY_OUTPUT_SIZE(\p key_type, \p key_bits).
  */
-#define PSA_EXPORT_KEY_PAIR_MAX_SIZE                                            \
-    (PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE(PSA_VENDOR_RSA_MAX_KEY_BITS) >        \
-     PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS) ?      \
-     PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE(PSA_VENDOR_RSA_MAX_KEY_BITS) :        \
-     PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS))
+#define PSA_EXPORT_KEY_PAIR_MAX_SIZE                                                        \
+    PSA_MAX_OF_THREE(PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE(PSA_VENDOR_RSA_MAX_KEY_BITS),     \
+                     PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS),   \
+                     PSA_KEY_EXPORT_FFDH_KEY_PAIR_MAX_SIZE(PSA_VENDOR_FFDH_MAX_KEY_BITS))
 
 /** Sufficient buffer size for exporting any asymmetric public key.
  *
@@ -926,11 +962,11 @@
  *
  * See also #PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(\p key_type, \p key_bits).
  */
-#define PSA_EXPORT_PUBLIC_KEY_MAX_SIZE                                          \
-    (PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_RSA_MAX_KEY_BITS) >      \
-     PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS) ?    \
-     PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_RSA_MAX_KEY_BITS) :      \
-     PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS))
+#define PSA_EXPORT_PUBLIC_KEY_MAX_SIZE                                                        \
+    PSA_MAX_OF_THREE(PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_RSA_MAX_KEY_BITS),     \
+                     PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS),   \
+                     PSA_KEY_EXPORT_FFDH_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_FFDH_MAX_KEY_BITS))
+
 
 /** Sufficient output buffer size for psa_raw_key_agreement().
  *
@@ -955,11 +991,9 @@
  *                      If the parameters are not valid,
  *                      the return value is unspecified.
  */
-/* FFDH is not yet supported in PSA. */
 #define PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(key_type, key_bits)   \
-    (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(key_type) ?                   \
-     PSA_BITS_TO_BYTES(key_bits) :                              \
-     0)
+    ((PSA_KEY_TYPE_IS_ECC_KEY_PAIR(key_type) || \
+      PSA_KEY_TYPE_IS_DH_KEY_PAIR(key_type)) ? PSA_BITS_TO_BYTES(key_bits) : 0)
 
 /** Maximum size of the output from psa_raw_key_agreement().
  *
@@ -968,8 +1002,11 @@
  *
  * See also #PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(\p key_type, \p key_bits).
  */
-#define PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE   \
-    (PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS))
+#define PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE             \
+    (PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS) >   \
+     PSA_BITS_TO_BYTES(PSA_VENDOR_FFDH_MAX_KEY_BITS) ?    \
+     PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS) :   \
+     PSA_BITS_TO_BYTES(PSA_VENDOR_FFDH_MAX_KEY_BITS))
 
 /** The default IV size for a cipher algorithm, in bytes.
  *

@@ -563,6 +563,26 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mpi_core_shift_l(char *input, int count, char *result)
+{
+    mbedtls_mpi_uint *X = NULL;
+    mbedtls_mpi_uint *Y = NULL;
+    size_t limbs, n;
+
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&X, &limbs, input));
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&Y, &n, result));
+    TEST_EQUAL(limbs, n);
+
+    mbedtls_mpi_core_shift_l(X, limbs, count);
+    ASSERT_COMPARE(X, limbs * ciL, Y, limbs * ciL);
+
+exit:
+    mbedtls_free(X);
+    mbedtls_free(Y);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mpi_core_add_and_add_if(char *input_A, char *input_B,
                              char *input_S, int carry)
 {

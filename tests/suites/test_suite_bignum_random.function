@@ -312,8 +312,8 @@ void mpi_random_many(int min, char *bound_hex, int iterations)
 
         /* Temporarily use a legacy MPI for analysis, because the
          * necessary auxiliary functions don't exist yet in core. */
-        mbedtls_mpi B = { 1, limbs, upper_bound };
-        mbedtls_mpi R = { 1, limbs, result };
+        mbedtls_mpi B = { .s = 1, .n = limbs, .p = upper_bound };
+        mbedtls_mpi R = { .s = 1, .n = limbs, .p = result };
 
         TEST_ASSERT(mbedtls_mpi_cmp_mpi(&R, &B) < 0);
         TEST_ASSERT(mbedtls_mpi_cmp_int(&R, min) >= 0);

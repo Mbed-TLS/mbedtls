@@ -77,6 +77,24 @@ def automatic_dependencies(*expressions: str) -> List[str]:
     used.difference_update(SYMBOLS_WITHOUT_DEPENDENCY)
     return sorted(psa_want_symbol(name) for name in used)
 
+# Define set of regular expressions and dependencies to optionally append
+# extra dependencies for test case.
+AES_128BIT_ONLY_DEP_REGEX = r'AES\s(192|256)'
+AES_128BIT_ONLY_DEP = ["!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"]
+
+DEPENDENCY_FROM_KEY = {
+    AES_128BIT_ONLY_DEP_REGEX: AES_128BIT_ONLY_DEP
+}#type: Dict[str, List[str]]
+def generate_key_dependencies(description: str) -> List[str]:
+    """Return additional dependencies based on pairs of REGEX and dependencies.
+    """
+    deps = []
+    for regex, dep in DEPENDENCY_FROM_KEY.items():
+        if re.search(regex, description):
+            deps += dep
+
+    return deps
+
 # A temporary hack: at the time of writing, not all dependency symbols
 # are implemented yet. Skip test cases for which the dependency symbols are
 # not available. Once all dependency symbols are available, this hack must
@@ -92,10 +110,41 @@ def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
     if _implemented_dependencies is None:
         _implemented_dependencies = \
             read_implemented_dependencies('include/psa/crypto_config.h')
-    if not all((dep.lstrip('!') in _implemented_dependencies or 'PSA_WANT' not in dep)
+    if not all((dep.lstrip('!') in _implemented_dependencies or
+                'PSA_WANT' not in dep)
                for dep in dependencies):
         dependencies.append('DEPENDENCY_NOT_IMPLEMENTED_YET')
 
+def tweak_key_pair_dependency(dep: str, usage: str):
+    """
+    This helper function add the proper suffix to PSA_WANT_KEY_TYPE_xxx_KEY_PAIR
+    symbols according to the required usage.
+    """
+    ret_list = list()
+    # Note: this LEGACY replacement for RSA is temporary and it's going to be
+    # aligned with ECC one in #7772.
+    if dep.endswith('RSA_KEY_PAIR'):
+        ret_list.append(re.sub(r'RSA_KEY_PAIR\Z', r'RSA_KEY_PAIR_LEGACY', dep))
+    elif dep.endswith('ECC_KEY_PAIR'):
+        if usage == "BASIC":
+            # BASIC automatically includes IMPORT and EXPORT for test purposes (see
+            # config_psa.h).
+            ret_list.append(re.sub(r'ECC_KEY_PAIR', r'ECC_KEY_PAIR_BASIC', dep))
+            ret_list.append(re.sub(r'ECC_KEY_PAIR', r'ECC_KEY_PAIR_IMPORT', dep))
+            ret_list.append(re.sub(r'ECC_KEY_PAIR', r'ECC_KEY_PAIR_EXPORT', dep))
+        elif usage == "GENERATE":
+            ret_list.append(re.sub(r'ECC_KEY_PAIR', r'ECC_KEY_PAIR_GENERATE', dep))
+    else:
+        # No replacement to do in this case
+        ret_list.append(dep)
+    return ret_list
+
+def fix_key_pair_dependencies(dep_list: List[str], usage: str):
+    new_list = [new_deps
+                for dep in dep_list
+                for new_deps in tweak_key_pair_dependency(dep, usage)]
+
+    return new_list
 
 class Information:
     """Gather information about PSA constructors."""
@@ -189,7 +238,8 @@ class KeyTypeNotSupported:
         if kt.name.endswith('_PUBLIC_KEY'):
             generate_dependencies = []
         else:
-            generate_dependencies = import_dependencies
+            generate_dependencies = fix_key_pair_dependencies(import_dependencies, 'GENERATE')
+            import_dependencies = fix_key_pair_dependencies(import_dependencies, 'BASIC')
         for bits in kt.sizes_to_test():
             yield test_case_for_key_type_not_supported(
                 'import', kt.expression, bits,
@@ -281,9 +331,7 @@ class KeyGenerate:
             generate_dependencies = []
             result = 'PSA_ERROR_INVALID_ARGUMENT'
         else:
-            generate_dependencies = import_dependencies
-            if kt.name == 'PSA_KEY_TYPE_RSA_KEY_PAIR':
-                generate_dependencies.append("MBEDTLS_GENPRIME")
+            generate_dependencies = fix_key_pair_dependencies(import_dependencies, 'GENERATE')
         for bits in kt.sizes_to_test():
             yield test_case_for_key_generation(
                 kt.expression, bits,
@@ -352,6 +400,7 @@ class OpFail:
                                    pretty_reason,
                                    ' with ' + pretty_type if pretty_type else ''))
         dependencies = automatic_dependencies(alg.base_expression, key_type)
+        dependencies = fix_key_pair_dependencies(dependencies, 'BASIC')
         for i, dep in enumerate(dependencies):
             if dep in not_deps:
                 dependencies[i] = '!' + dep
@@ -574,6 +623,8 @@ class StorageFormat:
             key.alg.string, key.alg2.string,
         )
         dependencies = finish_family_dependencies(dependencies, key.bits)
+        dependencies += generate_key_dependencies(key.description)
+        dependencies = fix_key_pair_dependencies(dependencies, 'BASIC')
         tc.set_dependencies(dependencies)
         tc.set_function('key_storage_' + verb)
         if self.forward:

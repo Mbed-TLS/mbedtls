@@ -7,8 +7,6 @@
 #include <ssl_tls13_invasive.h>
 #include <test/ssl_helpers.h>
 
-#include "hash_info.h"
-
 #include <constant_time_internal.h>
 #include <test/constant_flow.h>
 
@@ -1150,13 +1148,19 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 void ssl_set_hostname_twice(char *hostname0, char *hostname1)
 {
+    const char *hostname;
     mbedtls_ssl_context ssl;
 
     mbedtls_ssl_init(&ssl);
     USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_ssl_set_hostname(&ssl, hostname0) == 0);
+    hostname = mbedtls_ssl_get_hostname(&ssl);
+    TEST_ASSERT(strcmp(hostname0, hostname) == 0);
+
     TEST_ASSERT(mbedtls_ssl_set_hostname(&ssl, hostname1) == 0);
+    hostname = mbedtls_ssl_get_hostname(&ssl);
+    TEST_ASSERT(strcmp(hostname1, hostname) == 0);
 
 exit:
     mbedtls_ssl_free(&ssl);
@@ -1974,7 +1978,7 @@ void ssl_tls13_create_psk_binder(int hash_alg,
                                  data_t *transcript,
                                  data_t *binder_expected)
 {
-    unsigned char binder[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char binder[MBEDTLS_MD_MAX_SIZE];
 
     /* Double-check that we've passed sane parameters. */
     psa_algorithm_t alg = (psa_algorithm_t) hash_alg;
@@ -2108,7 +2112,7 @@ void ssl_tls13_key_evolution(int hash_alg,
                              data_t *input,
                              data_t *expected)
 {
-    unsigned char secret_new[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char secret_new[MBEDTLS_MD_MAX_SIZE];
 
     PSA_INIT();
 
@@ -2576,7 +2580,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_LIGHT */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_MD_CAN_SHA256:MBEDTLS_PK_HAVE_ECC_KEYS */
 void move_handshake_to_state(int endpoint_type, int tls_version, int state, int need_pass)
 {
     enum { BUFFSIZE = 1024 };
@@ -2649,7 +2653,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_LIGHT:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
 void handshake_version(int dtls, int client_min_version, int client_max_version,
                        int server_min_version, int server_max_version,
                        int expected_negotiated_version)
@@ -2770,7 +2774,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_LIGHT:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
 void app_data_tls(int mfl, int cli_msg_len, int srv_msg_len,
                   int expected_cli_fragments,
                   int expected_srv_fragments)
@@ -3047,6 +3051,8 @@ void conf_version(int endpoint, int transport,
     mbedtls_ssl_conf_max_tls_version(&conf, max_tls_version);
 
     TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == expected_ssl_setup_result);
+    TEST_EQUAL(mbedtls_ssl_conf_get_endpoint(
+                   mbedtls_ssl_context_get_config(&ssl)), endpoint);
 
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);
@@ -3056,7 +3062,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_LIGHT:!MBEDTLS_DEPRECATED_REMOVED:!MBEDTLS_DEPRECATED_WARNING:MBEDTLS_ECP_DP_SECP192R1_ENABLED:MBEDTLS_ECP_DP_SECP224R1_ENABLED:MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+/* BEGIN_CASE depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:!MBEDTLS_DEPRECATED_REMOVED:!MBEDTLS_DEPRECATED_WARNING:MBEDTLS_ECP_DP_SECP192R1_ENABLED:MBEDTLS_ECP_DP_SECP224R1_ENABLED:MBEDTLS_ECP_DP_SECP256R1_ENABLED */
 void conf_curve()
 {
 
@@ -3388,7 +3394,7 @@ void raw_key_agreement_fail(int bad_server_ecdhe_key)
     if (bad_server_ecdhe_key) {
         /* Force a simulated bitflip in the server key. to make the
          * raw key agreement in ssl_write_client_key_exchange fail. */
-        (client.ssl).handshake->ecdh_psa_peerkey[0] ^= 0x02;
+        (client.ssl).handshake->xxdh_psa_peerkey[0] ^= 0x02;
     }
 
     TEST_EQUAL(mbedtls_test_move_handshake_to_state(
@@ -3591,7 +3597,7 @@ void ssl_ecjpake_set_password(int use_opaque_arg)
 /* BEGIN_CASE */
 void elliptic_curve_get_properties()
 {
-    psa_ecc_family_t psa_family;
+    psa_key_type_t psa_type = PSA_KEY_TYPE_NONE;
     size_t psa_bits;
 
     MD_OR_USE_PSA_INIT();

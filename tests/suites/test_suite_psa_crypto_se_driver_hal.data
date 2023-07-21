@@ -139,6 +139,7 @@ Key generation smoke test: AES-128-CTR
 generate_key_smoke:PSA_KEY_TYPE_AES:128:PSA_ALG_CTR
 
 Key generation smoke test: AES-256-CTR
+depends_on:!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 generate_key_smoke:PSA_KEY_TYPE_AES:128:PSA_ALG_CTR
 
 Key generation smoke test: HMAC-SHA-256

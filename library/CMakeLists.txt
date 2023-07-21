@@ -37,12 +37,12 @@ set(src_crypto
     ecdsa.c
     ecjpake.c
     ecp.c
+    ecp_new.c
     ecp_curves.c
     entropy.c
     entropy_poll.c
     error.c
     gcm.c
-    hash_info.c
     hkdf.c
     hmac_drbg.c
     lmots.c
@@ -69,6 +69,7 @@ set(src_crypto
     psa_crypto_client.c
     psa_crypto_driver_wrappers.c
     psa_crypto_ecp.c
+    psa_crypto_ffdh.c
     psa_crypto_hash.c
     psa_crypto_mac.c
     psa_crypto_pake.c
@@ -84,6 +85,7 @@ set(src_crypto
     sha1.c
     sha256.c
     sha512.c
+    sha3.c
     threading.c
     timing.c
     version.c
@@ -319,6 +321,15 @@ foreach(target IN LISTS target_libraries)
         PUBLIC $<BUILD_INTERFACE:${MBEDTLS_DIR}/include/>
                $<INSTALL_INTERFACE:include/>
         PRIVATE ${MBEDTLS_DIR}/library/)
+    # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
+    if(MBEDTLS_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
+    endif()
+    if(MBEDTLS_USER_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
+    endif()
     install(
         TARGETS ${target}
         EXPORT MbedTLSTargets

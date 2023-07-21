@@ -1,0 +1,14 @@
+New deprecations
+   * PSA_WANT_KEY_TYPE_xxx_KEY_PAIR and
+     MBEDTLS_PSA_ACCEL_KEY_TYPE_xxx_KEY_PAIR, where xxx is either ECC or RSA,
+     are now being deprecated in favor of PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_yyy and
+     MBEDTLS_PSA_ACCEL_KEY_TYPE_xxx_KEY_PAIR_yyy. Here yyy can be: USE, IMPORT,
+     EXPORT, GENERATE, DERIVE. The goal is to have a finer detail about the
+     capabilities of the PSA side for either key.
+
+Features
+   * New symbols PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_yyy and
+     MBEDTLS_PSA_ACCEL_KEY_TYPE_xxx_KEY_PAIR_yyy (where xxx is either ECC, RSA
+     or DH) were introduced in order to have finer accuracy in defining the
+     PSA capabilities for each key. These capabilities, named yyy above, can be
+     any of: USE, IMPORT, EXPORT, GENERATE, DERIVE.

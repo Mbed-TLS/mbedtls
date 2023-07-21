@@ -72,7 +72,7 @@ static int check_key_attributes_sanity(mbedtls_svc_key_id_t key)
     psa_key_slot_number_t slot_number = 0xec94d4a5058a1a21;
     psa_status_t status = psa_get_key_slot_number(&attributes, &slot_number);
     if (lifetime_is_dynamic_secure_element(lifetime)) {
-        /* Mbed Crypto currently always exposes the slot number to
+        /* Mbed TLS currently always exposes the slot number to
          * applications. This is not mandated by the PSA specification
          * and may change in future versions. */
         TEST_EQUAL(status, 0);
@@ -295,7 +295,8 @@ static int exercise_signature_key(mbedtls_svc_key_id_t key,
                                   psa_key_usage_t usage,
                                   psa_algorithm_t alg)
 {
-    if (usage & (PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH)) {
+    if (usage & (PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH) &&
+        PSA_ALG_IS_SIGN_HASH(alg)) {
         unsigned char payload[PSA_HASH_MAX_SIZE] = { 1 };
         size_t payload_length = 16;
         unsigned char signature[PSA_SIGNATURE_MAX_SIZE] = { 0 };
@@ -789,6 +790,12 @@ int mbedtls_test_psa_exported_key_sanity_check(
             TEST_EQUAL(1 + 2 * PSA_BITS_TO_BYTES(bits), exported_length);
             TEST_EQUAL(exported[0], 4);
         }
+    } else
+    if (PSA_KEY_TYPE_IS_DH_PUBLIC_KEY(type) || PSA_KEY_TYPE_IS_DH_KEY_PAIR(type)) {
+        TEST_ASSERT(exported_length ==
+                    PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(type, bits));
+        TEST_ASSERT(exported_length <=
+                    PSA_EXPORT_PUBLIC_KEY_MAX_SIZE);
     } else {
         (void) exported;
         TEST_ASSERT(!"Sanity check not implemented for this key type");

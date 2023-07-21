@@ -160,6 +160,20 @@ int mbedtls_ssl_cache_remove(void *data,
  * \param timeout  cache entry timeout in seconds
  */
 void mbedtls_ssl_cache_set_timeout(mbedtls_ssl_cache_context *cache, int timeout);
+
+/**
+ * \brief          Get the cache timeout
+ *
+ *                 A timeout of 0 indicates no timeout.
+ *
+ * \param cache    SSL cache context
+ *
+ * \return         cache entry timeout in seconds
+ */
+static inline int mbedtls_ssl_cache_get_timeout(mbedtls_ssl_cache_context *cache)
+{
+    return cache->MBEDTLS_PRIVATE(timeout);
+}
 #endif /* MBEDTLS_HAVE_TIME */
 
 /**

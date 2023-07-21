@@ -54,8 +54,7 @@ void mpi_mod_raw_io(data_t *input, int nb_int, int nx_32_int,
 
     mbedtls_mpi_uint init[sizeof(X) / sizeof(X[0])];
     memset(init, 0xFF, sizeof(init));
-    int ret = mbedtls_mpi_mod_modulus_setup(&m, init, nx,
-                                            MBEDTLS_MPI_MOD_REP_MONTGOMERY);
+    int ret = mbedtls_mpi_mod_modulus_setup(&m, init, nx);
     TEST_EQUAL(ret, 0);
 
     if (iendian == MBEDTLS_MPI_MOD_EXT_REP_INVALID && iret != 0) {
@@ -137,8 +136,7 @@ void mpi_mod_raw_cond_assign(char *input_X,
     ASSERT_ALLOC(buff_m, copy_limbs);
     memset(buff_m, 0xFF, copy_limbs);
     TEST_EQUAL(mbedtls_mpi_mod_modulus_setup(
-                   &m, buff_m, copy_limbs,
-                   MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
+                   &m, buff_m, copy_limbs), 0);
 
     /* condition is false */
     TEST_CF_SECRET(X, bytes);
@@ -208,8 +206,7 @@ void mpi_mod_raw_cond_swap(char *input_X,
     ASSERT_ALLOC(buff_m, copy_limbs);
     memset(buff_m, 0xFF, copy_limbs);
     TEST_EQUAL(mbedtls_mpi_mod_modulus_setup(
-                   &m, buff_m, copy_limbs,
-                   MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
+                   &m, buff_m, copy_limbs), 0);
 
     ASSERT_ALLOC(X, limbs);
     memcpy(X, tmp_X, bytes);
@@ -297,8 +294,7 @@ void mpi_mod_raw_sub(char *input_A,
     ASSERT_ALLOC(X, limbs);
 
     TEST_EQUAL(mbedtls_mpi_mod_modulus_setup(
-                   &m, N, limbs,
-                   MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
+                   &m, N, limbs), 0);
 
     mbedtls_mpi_mod_raw_sub(X, A, B, &m);
     ASSERT_COMPARE(X, bytes, res, bytes);
@@ -368,8 +364,7 @@ void mpi_mod_raw_fix_quasi_reduction(char *input_N,
     TEST_ASSERT(c || mbedtls_mpi_core_lt_ct(tmp, N, limbs));
 
     TEST_EQUAL(mbedtls_mpi_mod_modulus_setup(
-                   &m, N, limbs,
-                   MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
+                   &m, N, limbs), 0);
 
     mbedtls_mpi_mod_raw_fix_quasi_reduction(X, &m);
     ASSERT_COMPARE(X, bytes, res, bytes);
@@ -419,8 +414,7 @@ void mpi_mod_raw_mul(char *input_A,
     ASSERT_ALLOC(X, limbs);
 
     TEST_EQUAL(mbedtls_mpi_mod_modulus_setup(
-                   &m, N, limbs,
-                   MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
+                   &m, N, limbs), 0);
 
     const size_t limbs_T = limbs * 2 + 1;
     ASSERT_ALLOC(T, limbs_T);
@@ -580,9 +574,7 @@ void mpi_mod_raw_add(char *input_N,
     ASSERT_ALLOC(X, limbs);
 
     TEST_EQUAL(mbedtls_mpi_mod_modulus_setup(
-                   &m, N, limbs,
-                   MBEDTLS_MPI_MOD_REP_MONTGOMERY
-                   ), 0);
+                   &m, N, limbs), 0);
 
     /* A + B => Correct result */
     mbedtls_mpi_mod_raw_add(X, A, B, &m);
@@ -720,8 +712,7 @@ void mpi_mod_raw_to_mont_rep(char *input_N, char *input_A, char *input_X)
     size_t limbs = n_limbs;
     size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
 
-    TEST_EQUAL(0, mbedtls_mpi_mod_modulus_setup(&m, N, n_limbs,
-                                                MBEDTLS_MPI_MOD_REP_MONTGOMERY));
+    TEST_EQUAL(0, mbedtls_mpi_mod_modulus_setup(&m, N, n_limbs));
 
     /* 1. Test low-level function first */
 
@@ -785,8 +776,7 @@ void mpi_mod_raw_from_mont_rep(char *input_N, char *input_A, char *input_X)
     size_t limbs = n_limbs;
     size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
 
-    TEST_EQUAL(0, mbedtls_mpi_mod_modulus_setup(&m, N, n_limbs,
-                                                MBEDTLS_MPI_MOD_REP_MONTGOMERY));
+    TEST_EQUAL(0, mbedtls_mpi_mod_modulus_setup(&m, N, n_limbs));
 
     /* 1. Test low-level function first */
 
@@ -847,8 +837,7 @@ void mpi_mod_raw_neg(char *input_N, char *input_A, char *input_X)
     ASSERT_ALLOC(R, n_limbs);
     ASSERT_ALLOC(Z, n_limbs);
 
-    TEST_EQUAL(0, mbedtls_mpi_mod_modulus_setup(&m, N, n_limbs,
-                                                MBEDTLS_MPI_MOD_REP_MONTGOMERY));
+    TEST_EQUAL(0, mbedtls_mpi_mod_modulus_setup(&m, N, n_limbs));
 
     /* Neg( A == 0 ) => Zero result */
     mbedtls_mpi_mod_raw_neg(R, Z, &m);

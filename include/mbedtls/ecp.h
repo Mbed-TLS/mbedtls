@@ -284,7 +284,7 @@ typedef struct mbedtls_ecp_group {
                                      private keys. */
     /* End of public fields */
 
-    unsigned int MBEDTLS_PRIVATE(h);             /*!< \internal 1 if the constants are static. */
+    unsigned int MBEDTLS_PRIVATE(a_b_g_static);  /*!< \internal 1 if the constants are static. */
     int(*MBEDTLS_PRIVATE(modp))(mbedtls_mpi *);  /*!< The function for fast pseudo-reduction
                                                     mod \p P (see above).*/
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) && \

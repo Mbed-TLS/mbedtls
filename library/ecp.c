@@ -533,7 +533,7 @@ void mbedtls_ecp_group_init(mbedtls_ecp_group *grp)
     mbedtls_mpi_init(&grp->N);
     grp->pbits = 0;
     grp->nbits = 0;
-    grp->h = 0;
+    grp->a_b_g_static = 0;
     grp->modp = NULL;
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) && \
     MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
@@ -574,7 +574,7 @@ void mbedtls_ecp_group_free(mbedtls_ecp_group *grp)
         return;
     }
 
-    if (grp->h != 1) {
+    if (grp->a_b_g_static != 1) {
         mbedtls_mpi_free(&grp->A);
         mbedtls_mpi_free(&grp->B);
         mbedtls_ecp_point_free(&grp->G);

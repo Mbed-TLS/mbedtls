@@ -4610,7 +4610,7 @@ static int ecp_group_load(mbedtls_ecp_group *grp,
     grp->pbits = mbedtls_mpi_bitlen(&grp->P);
     grp->nbits = mbedtls_mpi_bitlen(&grp->N);
 
-    grp->h = 1;
+    grp->a_b_g_static = 1;
 
 #if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
     grp->T = (mbedtls_ecp_point *) T;

@@ -27,6 +27,7 @@ import argparse
 import logging
 import os
 import re
+import shutil
 import subprocess
 import sys
 import typing
@@ -45,8 +46,6 @@ class SupportedArch(Enum):
     X86 = 'x86'
 
 
-CONFIG_TFM_MEDIUM_MBEDCRYPTO_H = '../configs/tfm_mbedcrypto_config_profile_medium.h'
-CONFIG_TFM_MEDIUM_PSA_CRYPTO_H = '../configs/crypto_config_profile_medium.h'
 class SupportedConfig(Enum):
     """Supported configuration for code size measurement."""
     DEFAULT = 'default'
@@ -69,7 +68,8 @@ class CodeSizeDistinctInfo: # pylint: disable=too-few-public-methods
             git_rev: str,
             arch: str,
             config: str,
-            make_cmd: str,
+            compiler: str,
+            opt_level: str,
     ) -> None:
         """
         :param: version: which version to compare with for code size.
@@ -77,13 +77,18 @@ class CodeSizeDistinctInfo: # pylint: disable=too-few-public-methods
         :param: arch: architecture to measure code size on.
         :param: config: Configuration type to calculate code size.
                         (See SupportedConfig)
-        :param: make_cmd: make command to build library/*.o.
+        :param: compiler: compiler used to build library/*.o.
+        :param: opt_level: Options that control optimization. (E.g. -Os)
         """
         self.version = version
         self.git_rev = git_rev
         self.arch = arch
         self.config = config
-        self.make_cmd = make_cmd
+        self.compiler = compiler
+        self.opt_level = opt_level
+        # Note: Variables below are not initialized by class instantiation.
+        self.pre_make_cmd = [] #type: typing.List[str]
+        self.make_cmd = ''
 
 
 class CodeSizeCommonInfo: # pylint: disable=too-few-public-methods
@@ -140,6 +145,13 @@ def detect_arch() -> str:
         print("Unknown host architecture, cannot auto-detect arch.")
         sys.exit(1)
 
+TFM_MEDIUM_CONFIG_H = 'configs/tfm_mbedcrypto_config_profile_medium.h'
+TFM_MEDIUM_CRYPTO_CONFIG_H = 'configs/crypto_config_profile_medium.h'
+
+CONFIG_H = 'include/mbedtls/mbedtls_config.h'
+CRYPTO_CONFIG_H = 'include/psa/crypto_config.h'
+BACKUP_SUFFIX = '.code_size.bak'
+
 class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods
     """Gather information used to measure code size.
 
@@ -167,34 +179,79 @@ class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods
                 - size_dist_info.arch: architecture to measure code size on.
                 - size_dist_info.config: configuration type to measure
                                          code size with.
+                - size_dist_info.compiler: compiler used to build library/*.o.
+                - size_dist_info.opt_level: Options that control optimization.
+                                            (E.g. -Os)
         :param host_arch: host architecture.
         :param logger: logging module
         """
-        self.size_dist_info = size_dist_info
+        self.arch = size_dist_info.arch
+        self.config = size_dist_info.config
+        self.compiler = size_dist_info.compiler
+        self.opt_level = size_dist_info.opt_level
+
+        self.make_cmd = ['make', '-j', 'lib']
+
         self.host_arch = host_arch
         self.logger = logger
 
-    def infer_make_command(self) -> str:
-        """Infer make command based on architecture and configuration."""
+    def check_correctness(self) -> bool:
+        """Check whether we are using proper / supported combination
+        of information to build library/*.o."""
 
-        # make command by default
-        if self.size_dist_info.config == SupportedConfig.DEFAULT.value and \
-           self.size_dist_info.arch == self.host_arch:
-            return 'make -j lib CFLAGS=\'-Os \' '
-        # make command for TF-M
-        elif self.size_dist_info.arch == SupportedArch.ARMV8_M.value and \
-             self.size_dist_info.config == SupportedConfig.TFM_MEDIUM.value:
-            return \
-                 'make -j lib CC=armclang \
-                  CFLAGS=\'--target=arm-arm-none-eabi -mcpu=cortex-m33 -Os \
-                 -DMBEDTLS_CONFIG_FILE=\\\"' + CONFIG_TFM_MEDIUM_MBEDCRYPTO_H + '\\\" \
-                 -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=\\\"' + CONFIG_TFM_MEDIUM_PSA_CRYPTO_H + '\\\" \''
-        # unsupported combinations
+        # default config
+        if self.config == SupportedConfig.DEFAULT.value and \
+            self.arch == self.host_arch:
+            return True
+        # TF-M
+        elif self.arch == SupportedArch.ARMV8_M.value and \
+             self.config == SupportedConfig.TFM_MEDIUM.value:
+            return True
+
+        return False
+
+    def infer_pre_make_command(self) -> typing.List[str]:
+        """Infer command to set up proper configuration before running make."""
+        pre_make_cmd = [] #type: typing.List[str]
+        if self.config == SupportedConfig.TFM_MEDIUM.value:
+            pre_make_cmd.append('cp -r {} {}'
+                                .format(TFM_MEDIUM_CONFIG_H, CONFIG_H))
+            pre_make_cmd.append('cp -r {} {}'
+                                .format(TFM_MEDIUM_CRYPTO_CONFIG_H,
+                                        CRYPTO_CONFIG_H))
+
+        return pre_make_cmd
+
+    def infer_make_cflags(self) -> str:
+        """Infer CFLAGS by instance attributes in CodeSizeDistinctInfo."""
+        cflags = [] #type: typing.List[str]
+
+        # set optimization level
+        cflags.append(self.opt_level)
+        # set compiler by config
+        if self.config == SupportedConfig.TFM_MEDIUM.value:
+            self.compiler = 'armclang'
+            cflags.append('-mcpu=cortex-m33')
+        # set target
+        if self.compiler == 'armclang':
+            cflags.append('--target=arm-arm-none-eabi')
+
+        return ' '.join(cflags)
+
+    def infer_make_command(self) -> str:
+        """Infer make command by CFLAGS and CC."""
+
+        if self.check_correctness():
+            # set CFLAGS=
+            self.make_cmd.append('CFLAGS=\'{}\''.format(self.infer_make_cflags()))
+            # set CC=
+            self.make_cmd.append('CC={}'.format(self.compiler))
+            return ' '.join(self.make_cmd)
         else:
             self.logger.error("Unsupported combination of architecture: {} " \
                               "and configuration: {}.\n"
-                              .format(self.size_dist_info.arch,
-                                      self.size_dist_info.config))
+                              .format(self.arch,
+                                      self.config))
             self.logger.info("Please use supported combination of " \
                              "architecture and configuration:")
             for comb in CodeSizeBuildInfo.SupportedArchConfig:
@@ -213,15 +270,17 @@ class CodeSizeCalculator:
     Git revision and code size measurement tool.
     """
 
-    def __init__(
+    def __init__( #pylint: disable=too-many-arguments
             self,
             git_rev: str,
+            pre_make_cmd: typing.List[str],
             make_cmd: str,
             measure_cmd: str,
             logger: logging.Logger,
     ) -> None:
         """
         :param git_rev: Git revision. (E.g: commit)
+        :param pre_make_cmd: command to set up proper config before running make.
         :param make_cmd: command to build library/*.o.
         :param measure_cmd: command to measure code size for library/*.o.
         :param logger: logging module
@@ -231,6 +290,7 @@ class CodeSizeCalculator:
         self.make_clean = 'make clean'
 
         self.git_rev = git_rev
+        self.pre_make_cmd = pre_make_cmd
         self.make_cmd = make_cmd
         self.measure_cmd = measure_cmd
         self.logger = logger
@@ -246,7 +306,7 @@ class CodeSizeCalculator:
         """Create a separate worktree for Git revision.
         If Git revision is current, use current worktree instead."""
 
-        if self.git_rev == "current":
+        if self.git_rev == 'current':
             self.logger.debug("Using current work directory.")
             git_worktree_path = self.repo_path
         else:
@@ -262,6 +322,16 @@ class CodeSizeCalculator:
 
         return git_worktree_path
 
+    @staticmethod
+    def backup_config_files(restore: bool) -> None:
+        """Backup / Restore config files."""
+        if restore:
+            shutil.move(CONFIG_H + BACKUP_SUFFIX, CONFIG_H)
+            shutil.move(CRYPTO_CONFIG_H + BACKUP_SUFFIX, CRYPTO_CONFIG_H)
+        else:
+            shutil.copy(CONFIG_H, CONFIG_H + BACKUP_SUFFIX)
+            shutil.copy(CRYPTO_CONFIG_H, CRYPTO_CONFIG_H + BACKUP_SUFFIX)
+
     def _build_libraries(self, git_worktree_path: str) -> None:
         """Build library/*.o in the specified worktree."""
 
@@ -269,6 +339,14 @@ class CodeSizeCalculator:
                           .format(self.git_rev))
         my_environment = os.environ.copy()
         try:
+            if self.git_rev == 'current':
+                self.backup_config_files(restore=False)
+            for pre_cmd in self.pre_make_cmd:
+                subprocess.check_output(
+                    pre_cmd, env=my_environment, shell=True,
+                    cwd=git_worktree_path, stderr=subprocess.STDOUT,
+                    universal_newlines=True
+                )
             subprocess.check_output(
                 self.make_clean, env=my_environment, shell=True,
                 cwd=git_worktree_path, stderr=subprocess.STDOUT,
@@ -279,6 +357,8 @@ class CodeSizeCalculator:
                 cwd=git_worktree_path, stderr=subprocess.STDOUT,
                 universal_newlines=True
             )
+            if self.git_rev == 'current':
+                self.backup_config_files(restore=True)
         except subprocess.CalledProcessError as e:
             self._handle_called_process_error(e, git_worktree_path)
 
@@ -628,6 +708,13 @@ class CodeSizeComparison:
         self.old_size_dist_info = old_size_dist_info
         self.new_size_dist_info = new_size_dist_info
         self.size_common_info = size_common_info
+        # infer pre make command
+        self.old_size_dist_info.pre_make_cmd = CodeSizeBuildInfo(
+            self.old_size_dist_info, self.size_common_info.host_arch,
+            self.logger).infer_pre_make_command()
+        self.new_size_dist_info.pre_make_cmd = CodeSizeBuildInfo(
+            self.new_size_dist_info, self.size_common_info.host_arch,
+            self.logger).infer_pre_make_command()
         # infer make command
         self.old_size_dist_info.make_cmd = CodeSizeBuildInfo(
             self.old_size_dist_info, self.size_common_info.host_arch,
@@ -654,7 +741,6 @@ class CodeSizeComparison:
                                       .strip().split(' ')[0]))
             sys.exit(1)
 
-
     def cal_code_size(
             self,
             size_dist_info: CodeSizeDistinctInfo
@@ -662,6 +748,7 @@ class CodeSizeComparison:
         """Calculate code size of library/*.o in a UTF-8 encoding"""
 
         return CodeSizeCalculator(size_dist_info.git_rev,
+                                  size_dist_info.pre_make_cmd,
                                   size_dist_info.make_cmd,
                                   self.size_common_info.measure_cmd,
                                   self.logger).cal_libraries_code_size()
@@ -737,7 +824,6 @@ class CodeSizeComparison:
         self.gen_code_size_report(self.new_size_dist_info)
         self.gen_code_size_comparison()
 
-
 def main():
     parser = argparse.ArgumentParser(description=(__doc__))
     group_required = parser.add_argument_group(
@@ -800,14 +886,17 @@ def main():
         new_revision = CodeSizeCalculator.validate_git_revision(
             comp_args.new_rev)
     else:
-        new_revision = "current"
+        new_revision = 'current'
 
+    # version, git_rev, arch, config, compiler, opt_level
     old_size_dist_info = CodeSizeDistinctInfo(
-        'old', old_revision, comp_args.arch, comp_args.config, '')
+        'old', old_revision, comp_args.arch, comp_args.config, 'cc', '-Os')
     new_size_dist_info = CodeSizeDistinctInfo(
-        'new', new_revision, comp_args.arch, comp_args.config, '')
+        'new', new_revision, comp_args.arch, comp_args.config, 'cc', '-Os')
+    # host_arch, measure_cmd
     size_common_info = CodeSizeCommonInfo(
         detect_arch(), 'size -t')
+    # record_dir, comp_dir, with_markdown, stdout
     result_options = CodeSizeResultInfo(
         comp_args.record_dir, comp_args.comp_dir,
         comp_args.markdown, comp_args.stdout)

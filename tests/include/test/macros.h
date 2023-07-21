@@ -107,52 +107,52 @@
  * The allocated memory will be filled with zeros.
  *
  * You must set \p pointer to \c NULL before calling this macro and
- * put `mbedtls_free( pointer )` in the test's cleanup code.
+ * put `mbedtls_free(pointer)` in the test's cleanup code.
  *
- * If \p length is zero, the resulting \p pointer will be \c NULL.
+ * If \p item_count is zero, the resulting \p pointer will be \c NULL.
  * This is usually what we want in tests since API functions are
  * supposed to accept null pointers when a buffer size is zero.
  *
  * This macro expands to an instruction, not an expression.
  * It may jump to the \c exit label.
  *
- * \param pointer   An lvalue where the address of the allocated buffer
- *                  will be stored.
- *                  This expression may be evaluated multiple times.
- * \param length    Number of elements to allocate.
- *                  This expression may be evaluated multiple times.
+ * \param pointer    An lvalue where the address of the allocated buffer
+ *                   will be stored.
+ *                   This expression may be evaluated multiple times.
+ * \param item_count Number of elements to allocate.
+ *                   This expression may be evaluated multiple times.
  *
  */
-#define TEST_CALLOC(pointer, length)                        \
+#define TEST_CALLOC(pointer, item_count)                    \
     do {                                                    \
         TEST_ASSERT((pointer) == NULL);                     \
-        if ((length) != 0) {                                \
+        if ((item_count) != 0) {                            \
             (pointer) = mbedtls_calloc(sizeof(*(pointer)),  \
-                                       (length));           \
+                                       (item_count));       \
             TEST_ASSERT((pointer) != NULL);                 \
         }                                                   \
     } while (0)
 
 /* For backwards compatibility */
-#define ASSERT_ALLOC(pointer, length) TEST_CALLOC(pointer, length)
+#define ASSERT_ALLOC(pointer, item_count) TEST_CALLOC(pointer, item_count)
 
 /** Allocate memory dynamically. If the allocation fails, skip the test case.
  *
  * This macro behaves like #TEST_CALLOC, except that if the allocation
  * fails, it marks the test as skipped rather than failed.
  */
-#define TEST_CALLOC_OR_SKIP(pointer, length)                \
+#define TEST_CALLOC_OR_SKIP(pointer, item_count)            \
     do {                                                    \
         TEST_ASSERT((pointer) == NULL);                     \
-        if ((length) != 0) {                                \
+        if ((item_count) != 0) {                            \
             (pointer) = mbedtls_calloc(sizeof(*(pointer)),  \
-                                       (length));           \
+                                       (item_count));       \
             TEST_ASSUME((pointer) != NULL);                 \
         }                                                   \
     } while (0)
 
 /* For backwards compatibility */
-#define ASSERT_ALLOC_WEAK(pointer, length) TEST_CALLOC_OR_SKIP(pointer, length)
+#define ASSERT_ALLOC_WEAK(pointer, item_count) TEST_CALLOC_OR_SKIP(pointer, item_count)
 
 /** Compare two buffers and fail the test case if they differ.
  *

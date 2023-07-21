@@ -1848,10 +1848,11 @@ static void ecp_comb_recode_core(unsigned char x[], size_t d,
  * value, it's useful to set MBEDTLS_ECP_WINDOW_SIZE to a lower value in order
  * to minimize maximum blocking time.
  */
-static int ecp_precompute_comb(const mbedtls_ecp_group *grp,
-                               mbedtls_ecp_point T[], const mbedtls_ecp_point *P,
-                               unsigned char w, size_t d,
-                               mbedtls_ecp_restart_ctx *rs_ctx)
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_precompute_comb(const mbedtls_ecp_group *grp,
+                                mbedtls_ecp_point T[], const mbedtls_ecp_point *P,
+                                unsigned char w, size_t d,
+                                mbedtls_ecp_restart_ctx *rs_ctx)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char i;
@@ -2352,7 +2353,7 @@ static int ecp_mul_comb(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
     /* If not populated (local, or restartable first/early runs), do it */
     if (!T_ok) {
-        MBEDTLS_MPI_CHK(ecp_precompute_comb(grp, *T, P, w, d, rs_ctx));
+        MBEDTLS_MPI_CHK(mbedtls_ecp_precompute_comb(grp, *T, P, w, d, rs_ctx));
     }
 
     /* Actual comb multiplication using precomputed points */

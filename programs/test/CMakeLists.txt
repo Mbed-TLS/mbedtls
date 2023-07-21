@@ -10,6 +10,7 @@ set(executables_libs
 
 set(executables_mbedcrypto
     benchmark
+    ecp_new_curve
     query_compile_time_config
     zeroize
 )

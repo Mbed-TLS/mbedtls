@@ -89,6 +89,23 @@ int mbedtls_ecp_gen_privkey_mx(size_t high_bit,
 
 #endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
 
+#if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+/*
+ * Precompute points for the adapted comb method.
+ * See comment in ecp.c for details.
+ *
+ * This is made accessible under TEST_HOOKS not really for testing, but to
+ * support computation of the static table when adding a new curve. See
+ * tests/src/ecp_new_curve.c, used by programs/test/ecp_new_curve, and
+ * the comment "HOW TO ADD A NEW CURVE" in library/ecp_curves.c.
+ */
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_precompute_comb(const mbedtls_ecp_group *grp,
+                                mbedtls_ecp_point T[], const mbedtls_ecp_point *P,
+                                unsigned char w, size_t d,
+                                mbedtls_ecp_restart_ctx *rs_ctx);
+#endif /* MBEDTLS_ECP_C && MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
 
 /** Fast quasi-reduction modulo p192 (FIPS 186-3 D.2.1)

@@ -68,8 +68,8 @@
 #define TEST_FAIL(MESSAGE)                           \
     do {                                                  \
         mbedtls_test_fail(MESSAGE, __LINE__, __FILE__);   \
-        goto exit;                                          \
-    } while (0)                                              \
+        goto exit;                                        \
+    } while (0)
 
 /** Evaluate two integer expressions and fail the test case if they have
  * different values.

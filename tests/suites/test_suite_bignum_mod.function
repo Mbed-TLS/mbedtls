@@ -7,7 +7,7 @@
 #include "test/constant_flow.h"
 
 #define TEST_COMPARE_MPI_RESIDUES(a, b) \
-    TEST_BUFFERS_EQUAL((a).p, (a).limbs * sizeof(mbedtls_mpi_uint), \
+    TEST_MEMORY_COMPARE((a).p, (a).limbs * sizeof(mbedtls_mpi_uint), \
                    (b).p, (b).limbs * sizeof(mbedtls_mpi_uint))
 
 static int test_read_residue(mbedtls_mpi_mod_residue *r,
@@ -128,42 +128,42 @@ void mpi_mod_mul(char *input_A,
     TEST_EQUAL(mbedtls_mpi_mod_residue_setup(&rX, &m, X, limbs), 0);
 
     TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rA, &rB, &m), 0);
-    TEST_BUFFERS_EQUAL(rX.p, bytes, rR.p, bytes);
+    TEST_MEMORY_COMPARE(rX.p, bytes, rR.p, bytes);
 
     /* alias X to A */
     memcpy(rX.p, rA.p, bytes);
     TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rX, &rB, &m), 0);
-    TEST_BUFFERS_EQUAL(rX.p, bytes, rR.p, bytes);
+    TEST_MEMORY_COMPARE(rX.p, bytes, rR.p, bytes);
 
     /* alias X to B */
     memcpy(rX.p, rB.p, bytes);
     TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rA, &rX, &m), 0);
-    TEST_BUFFERS_EQUAL(rX.p, bytes, rR.p, bytes);
+    TEST_MEMORY_COMPARE(rX.p, bytes, rR.p, bytes);
 
     /* A == B: alias A and B */
     if (memcmp(rA.p, rB.p, bytes) == 0) {
         TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rA, &rA, &m), 0);
-        TEST_BUFFERS_EQUAL(rX.p, bytes, rR.p, bytes);
+        TEST_MEMORY_COMPARE(rX.p, bytes, rR.p, bytes);
 
         /* X, A, B all aliased together */
         memcpy(rX.p, rA.p, bytes);
         TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rX, &rX, &m), 0);
-        TEST_BUFFERS_EQUAL(rX.p, bytes, rR.p, bytes);
+        TEST_MEMORY_COMPARE(rX.p, bytes, rR.p, bytes);
     }
     /* A != B: test B * A */
     else {
         TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rB, &rA, &m), 0);
-        TEST_BUFFERS_EQUAL(rX.p, bytes, rR.p, bytes);
+        TEST_MEMORY_COMPARE(rX.p, bytes, rR.p, bytes);
 
         /* B * A: alias X to A */
         memcpy(rX.p, rA.p, bytes);
         TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rB, &rX, &m), 0);
-        TEST_BUFFERS_EQUAL(rX.p, bytes, rR.p, bytes);
+        TEST_MEMORY_COMPARE(rX.p, bytes, rR.p, bytes);
 
         /* B + A: alias X to B */
         memcpy(rX.p, rB.p, bytes);
         TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rX, &rA, &m), 0);
-        TEST_BUFFERS_EQUAL(rX.p, bytes, rR.p, bytes);
+        TEST_MEMORY_COMPARE(rX.p, bytes, rR.p, bytes);
     }
 
 exit:
@@ -702,7 +702,7 @@ void mpi_mod_io(char *input_N, data_t *input_A, int endian)
         TEST_EQUAL(0, mbedtls_mpi_mod_write(&r, &m, obuf, obuf_sizes[i], endian));
 
         /* Make sure that writing didn't corrupt the value of r */
-        TEST_BUFFERS_EQUAL(r.p, r.limbs, r_copy.p, r_copy.limbs);
+        TEST_MEMORY_COMPARE(r.p, r.limbs, r_copy.p, r_copy.limbs);
 
         /* Set up reference output for checking the result */
         TEST_CALLOC(ref_buf, obuf_sizes[i]);
@@ -723,7 +723,7 @@ void mpi_mod_io(char *input_N, data_t *input_A, int endian)
         }
 
         /* Check the result */
-        TEST_BUFFERS_EQUAL(obuf, obuf_sizes[i], ref_buf, obuf_sizes[i]);
+        TEST_MEMORY_COMPARE(obuf, obuf_sizes[i], ref_buf, obuf_sizes[i]);
 
         mbedtls_free(ref_buf);
         ref_buf = NULL;

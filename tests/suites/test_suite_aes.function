@@ -38,13 +38,13 @@ static int test_copy(const data_t *key,
     // Encrypt with copied context
     TEST_ASSERT(mbedtls_aes_crypt_ecb(enc, MBEDTLS_AES_ENCRYPT,
                                       plaintext, output) == 0);
-    TEST_BUFFERS_EQUAL(ciphertext, 16, output, 16);
+    TEST_MEMORY_COMPARE(ciphertext, 16, output, 16);
     mbedtls_aes_free(enc);
 
     // Decrypt with copied context
     TEST_ASSERT(mbedtls_aes_crypt_ecb(dec, MBEDTLS_AES_DECRYPT,
                                       ciphertext, output) == 0);
-    TEST_BUFFERS_EQUAL(plaintext, 16, output, 16);
+    TEST_MEMORY_COMPARE(plaintext, 16, output, 16);
     mbedtls_aes_free(dec);
 
     return 1;

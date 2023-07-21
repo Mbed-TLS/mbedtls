@@ -25,7 +25,7 @@ void hash_finish(int alg_arg, data_t *input, data_t *expected_hash)
     PSA_ASSERT(psa_hash_finish(&operation,
                                actual_hash, sizeof(actual_hash),
                                &actual_hash_length));
-    TEST_BUFFERS_EQUAL(expected_hash->x, expected_hash->len,
+    TEST_MEMORY_COMPARE(expected_hash->x, expected_hash->len,
                    actual_hash, actual_hash_length);
 
 exit:
@@ -83,13 +83,13 @@ void hash_multi_part(int alg_arg, data_t *input, data_t *expected_hash)
         PSA_ASSERT(psa_hash_finish(&operation,
                                    actual_hash, sizeof(actual_hash),
                                    &actual_hash_length));
-        TEST_BUFFERS_EQUAL(expected_hash->x, expected_hash->len,
+        TEST_MEMORY_COMPARE(expected_hash->x, expected_hash->len,
                        actual_hash, actual_hash_length);
 
         PSA_ASSERT(psa_hash_finish(&operation2,
                                    actual_hash, sizeof(actual_hash),
                                    &actual_hash_length));
-        TEST_BUFFERS_EQUAL(expected_hash->x, expected_hash->len,
+        TEST_MEMORY_COMPARE(expected_hash->x, expected_hash->len,
                        actual_hash, actual_hash_length);
     } while (len++ != input->len);
 

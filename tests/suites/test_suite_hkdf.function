@@ -26,7 +26,7 @@ void test_hkdf(int md_alg, data_t *ikm, data_t *salt, data_t *info,
                        info->x, info->len, okm, expected_okm->len);
     TEST_ASSERT(ret == 0);
 
-    TEST_BUFFERS_EQUAL(okm, expected_okm->len,
+    TEST_MEMORY_COMPARE(okm, expected_okm->len,
                    expected_okm->x, expected_okm->len);
 
 exit:
@@ -56,7 +56,7 @@ void test_hkdf_extract(int md_alg,
                                ikm->x, ikm->len, output_prk);
     TEST_ASSERT(ret == 0);
 
-    TEST_BUFFERS_EQUAL(output_prk, output_prk_len, prk->x, prk->len);
+    TEST_MEMORY_COMPARE(output_prk, output_prk_len, prk->x, prk->len);
 
 exit:
     mbedtls_free(output_prk);
@@ -88,7 +88,7 @@ void test_hkdf_expand(int md_alg,
                               info->x, info->len,
                               output_okm, OKM_LEN);
     TEST_ASSERT(ret == 0);
-    TEST_BUFFERS_EQUAL(output_okm, okm->len, okm->x, okm->len);
+    TEST_MEMORY_COMPARE(output_okm, okm->len, okm->x, okm->len);
 
 exit:
     mbedtls_free(output_okm);

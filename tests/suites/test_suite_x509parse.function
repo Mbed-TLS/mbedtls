@@ -447,7 +447,7 @@ void x509_crt_parse_cn_inet_pton(const char *cn, data_t *exp, int ref_ret)
     TEST_EQUAL(addrlen, (size_t) ref_ret);
 
     if (addrlen) {
-        TEST_BUFFERS_EQUAL(exp->x, exp->len, addr, addrlen);
+        TEST_MEMORY_COMPARE(exp->x, exp->len, addr, addrlen);
     }
 }
 /* END_CASE */

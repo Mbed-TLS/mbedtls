@@ -161,10 +161,10 @@ void mpi_mod_raw_cond_assign(char *input_X,
     /* Check if the given length is copied even it is smaller
        than the length of the given MPIs. */
     if (copy_limbs < limbs) {
-        TEST_BUFFERS_EQUAL(X, copy_bytes, Y, copy_bytes);
+        TEST_MEMORY_COMPARE(X, copy_bytes, Y, copy_bytes);
         TEST_ASSERT(memcmp(X, Y, bytes) != 0);
     } else {
-        TEST_BUFFERS_EQUAL(X, bytes, Y, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, Y, bytes);
     }
 
 exit:
@@ -223,8 +223,8 @@ void mpi_mod_raw_cond_swap(char *input_X,
     TEST_CF_PUBLIC(X, bytes);
     TEST_CF_PUBLIC(Y, bytes);
 
-    TEST_BUFFERS_EQUAL(X, bytes, tmp_X, bytes);
-    TEST_BUFFERS_EQUAL(Y, bytes, tmp_Y, bytes);
+    TEST_MEMORY_COMPARE(X, bytes, tmp_X, bytes);
+    TEST_MEMORY_COMPARE(Y, bytes, tmp_Y, bytes);
 
     /* condition is true */
     TEST_CF_SECRET(X, bytes);
@@ -238,15 +238,15 @@ void mpi_mod_raw_cond_swap(char *input_X,
     /* Check if the given length is copied even it is smaller
        than the length of the given MPIs. */
     if (copy_limbs < limbs) {
-        TEST_BUFFERS_EQUAL(X, copy_bytes, tmp_Y, copy_bytes);
-        TEST_BUFFERS_EQUAL(Y, copy_bytes, tmp_X, copy_bytes);
+        TEST_MEMORY_COMPARE(X, copy_bytes, tmp_Y, copy_bytes);
+        TEST_MEMORY_COMPARE(Y, copy_bytes, tmp_X, copy_bytes);
         TEST_ASSERT(memcmp(X, tmp_X, bytes) != 0);
         TEST_ASSERT(memcmp(X, tmp_Y, bytes) != 0);
         TEST_ASSERT(memcmp(Y, tmp_X, bytes) != 0);
         TEST_ASSERT(memcmp(Y, tmp_Y, bytes) != 0);
     } else {
-        TEST_BUFFERS_EQUAL(X, bytes, tmp_Y, bytes);
-        TEST_BUFFERS_EQUAL(Y, bytes, tmp_X, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, tmp_Y, bytes);
+        TEST_MEMORY_COMPARE(Y, bytes, tmp_X, bytes);
     }
 
 exit:
@@ -297,27 +297,27 @@ void mpi_mod_raw_sub(char *input_A,
                    &m, N, limbs), 0);
 
     mbedtls_mpi_mod_raw_sub(X, A, B, &m);
-    TEST_BUFFERS_EQUAL(X, bytes, res, bytes);
+    TEST_MEMORY_COMPARE(X, bytes, res, bytes);
 
     /* alias X to A */
     memcpy(X, A, bytes);
     mbedtls_mpi_mod_raw_sub(X, X, B, &m);
-    TEST_BUFFERS_EQUAL(X, bytes, res, bytes);
+    TEST_MEMORY_COMPARE(X, bytes, res, bytes);
 
     /* alias X to B */
     memcpy(X, B, bytes);
     mbedtls_mpi_mod_raw_sub(X, A, X, &m);
-    TEST_BUFFERS_EQUAL(X, bytes, res, bytes);
+    TEST_MEMORY_COMPARE(X, bytes, res, bytes);
 
     /* A == B: alias A and B */
     if (memcmp(A, B, bytes) == 0) {
         mbedtls_mpi_mod_raw_sub(X, A, A, &m);
-        TEST_BUFFERS_EQUAL(X, bytes, res, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, res, bytes);
 
         /* X, A, B all aliased together */
         memcpy(X, A, bytes);
         mbedtls_mpi_mod_raw_sub(X, X, X, &m);
-        TEST_BUFFERS_EQUAL(X, bytes, res, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, res, bytes);
     }
 exit:
     mbedtls_free(A);
@@ -367,7 +367,7 @@ void mpi_mod_raw_fix_quasi_reduction(char *input_N,
                    &m, N, limbs), 0);
 
     mbedtls_mpi_mod_raw_fix_quasi_reduction(X, &m);
-    TEST_BUFFERS_EQUAL(X, bytes, res, bytes);
+    TEST_MEMORY_COMPARE(X, bytes, res, bytes);
 
 exit:
     mbedtls_free(X);
@@ -420,42 +420,42 @@ void mpi_mod_raw_mul(char *input_A,
     TEST_CALLOC(T, limbs_T);
 
     mbedtls_mpi_mod_raw_mul(X, A, B, &m, T);
-    TEST_BUFFERS_EQUAL(X, bytes, R, bytes);
+    TEST_MEMORY_COMPARE(X, bytes, R, bytes);
 
     /* alias X to A */
     memcpy(X, A, bytes);
     mbedtls_mpi_mod_raw_mul(X, X, B, &m, T);
-    TEST_BUFFERS_EQUAL(X, bytes, R, bytes);
+    TEST_MEMORY_COMPARE(X, bytes, R, bytes);
 
     /* alias X to B */
     memcpy(X, B, bytes);
     mbedtls_mpi_mod_raw_mul(X, A, X, &m, T);
-    TEST_BUFFERS_EQUAL(X, bytes, R, bytes);
+    TEST_MEMORY_COMPARE(X, bytes, R, bytes);
 
     /* A == B: alias A and B */
     if (memcmp(A, B, bytes) == 0) {
         mbedtls_mpi_mod_raw_mul(X, A, A, &m, T);
-        TEST_BUFFERS_EQUAL(X, bytes, R, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, R, bytes);
 
         /* X, A, B all aliased together */
         memcpy(X, A, bytes);
         mbedtls_mpi_mod_raw_mul(X, X, X, &m, T);
-        TEST_BUFFERS_EQUAL(X, bytes, R, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, R, bytes);
     }
     /* A != B: test B * A */
     else {
         mbedtls_mpi_mod_raw_mul(X, B, A, &m, T);
-        TEST_BUFFERS_EQUAL(X, bytes, R, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, R, bytes);
 
         /* B * A: alias X to A */
         memcpy(X, A, bytes);
         mbedtls_mpi_mod_raw_mul(X, B, X, &m, T);
-        TEST_BUFFERS_EQUAL(X, bytes, R, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, R, bytes);
 
         /* B + A: alias X to B */
         memcpy(X, B, bytes);
         mbedtls_mpi_mod_raw_mul(X, X, A, &m, T);
-        TEST_BUFFERS_EQUAL(X, bytes, R, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, R, bytes);
     }
 
 exit:
@@ -578,45 +578,45 @@ void mpi_mod_raw_add(char *input_N,
 
     /* A + B => Correct result */
     mbedtls_mpi_mod_raw_add(X, A, B, &m);
-    TEST_BUFFERS_EQUAL(X, bytes, S, bytes);
+    TEST_MEMORY_COMPARE(X, bytes, S, bytes);
 
     /* A + B: alias X to A => Correct result */
     memcpy(X, A, bytes);
     mbedtls_mpi_mod_raw_add(X, X, B, &m);
-    TEST_BUFFERS_EQUAL(X, bytes, S, bytes);
+    TEST_MEMORY_COMPARE(X, bytes, S, bytes);
 
     /* A + B: alias X to B => Correct result */
     memcpy(X, B, bytes);
     mbedtls_mpi_mod_raw_add(X, A, X, &m);
-    TEST_BUFFERS_EQUAL(X, bytes, S, bytes);
+    TEST_MEMORY_COMPARE(X, bytes, S, bytes);
 
     if (memcmp(A, B, bytes) == 0) {
         /* A == B: alias A and B */
 
         /* A + A => Correct result */
         mbedtls_mpi_mod_raw_add(X, A, A, &m);
-        TEST_BUFFERS_EQUAL(X, bytes, S, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, S, bytes);
 
         /* A + A: X, A, B all aliased together => Correct result */
         memcpy(X, A, bytes);
         mbedtls_mpi_mod_raw_add(X, X, X, &m);
-        TEST_BUFFERS_EQUAL(X, bytes, S, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, S, bytes);
     } else {
         /* A != B: test B + A */
 
         /* B + A => Correct result */
         mbedtls_mpi_mod_raw_add(X, B, A, &m);
-        TEST_BUFFERS_EQUAL(X, bytes, S, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, S, bytes);
 
         /* B + A: alias X to A => Correct result */
         memcpy(X, A, bytes);
         mbedtls_mpi_mod_raw_add(X, B, X, &m);
-        TEST_BUFFERS_EQUAL(X, bytes, S, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, S, bytes);
 
         /* B + A: alias X to B => Correct result */
         memcpy(X, B, bytes);
         mbedtls_mpi_mod_raw_add(X, X, A, &m);
-        TEST_BUFFERS_EQUAL(X, bytes, S, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, S, bytes);
     }
 
 exit:
@@ -647,7 +647,7 @@ void mpi_mod_raw_canonical_to_modulus_rep(const char *input_N, int rep,
     TEST_EQUAL(0, mbedtls_test_read_mpi_core(&X, &X_limbs, input_X));
 
     TEST_EQUAL(0, mbedtls_mpi_mod_raw_canonical_to_modulus_rep(A, &N));
-    TEST_BUFFERS_EQUAL(A, A_limbs * sizeof(mbedtls_mpi_uint),
+    TEST_MEMORY_COMPARE(A, A_limbs * sizeof(mbedtls_mpi_uint),
                    X, X_limbs * sizeof(mbedtls_mpi_uint));
 
 exit:
@@ -674,7 +674,7 @@ void mpi_mod_raw_modulus_to_canonical_rep(const char *input_N, int rep,
     TEST_EQUAL(0, mbedtls_test_read_mpi_core(&X, &X_limbs, input_X));
 
     TEST_EQUAL(0, mbedtls_mpi_mod_raw_modulus_to_canonical_rep(A, &N));
-    TEST_BUFFERS_EQUAL(A, A_limbs * sizeof(mbedtls_mpi_uint),
+    TEST_MEMORY_COMPARE(A, A_limbs * sizeof(mbedtls_mpi_uint),
                    X, X_limbs * sizeof(mbedtls_mpi_uint));
 
 exit:
@@ -723,20 +723,20 @@ void mpi_mod_raw_to_mont_rep(char *input_N, char *input_A, char *input_X)
     mbedtls_mpi_core_to_mont_rep(R, A, N, n_limbs,
                                  m.rep.mont.mm, m.rep.mont.rr, T);
     /* Test that the low-level function gives the required value */
-    TEST_BUFFERS_EQUAL(R, bytes, X, bytes);
+    TEST_MEMORY_COMPARE(R, bytes, X, bytes);
 
     /* Test when output is aliased to input */
     memcpy(R, A, bytes);
     mbedtls_mpi_core_to_mont_rep(R, R, N, n_limbs,
                                  m.rep.mont.mm, m.rep.mont.rr, T);
-    TEST_BUFFERS_EQUAL(R, bytes, X, bytes);
+    TEST_MEMORY_COMPARE(R, bytes, X, bytes);
 
     /* 2. Test higher-level cannonical to Montgomery conversion */
 
     TEST_EQUAL(0, mbedtls_mpi_mod_raw_to_mont_rep(A, &m));
 
     /* The result matches expected value */
-    TEST_BUFFERS_EQUAL(A, bytes, X, bytes);
+    TEST_MEMORY_COMPARE(A, bytes, X, bytes);
 
 exit:
     mbedtls_mpi_mod_modulus_free(&m);
@@ -787,20 +787,20 @@ void mpi_mod_raw_from_mont_rep(char *input_N, char *input_A, char *input_X)
     mbedtls_mpi_core_from_mont_rep(R, A, N, n_limbs,
                                    m.rep.mont.mm, T);
     /* Test that the low-level function gives the required value */
-    TEST_BUFFERS_EQUAL(R, bytes, X, bytes);
+    TEST_MEMORY_COMPARE(R, bytes, X, bytes);
 
     /* Test when output is aliased to input */
     memcpy(R, A, bytes);
     mbedtls_mpi_core_from_mont_rep(R, R, N, n_limbs,
                                    m.rep.mont.mm, T);
-    TEST_BUFFERS_EQUAL(R, bytes, X, bytes);
+    TEST_MEMORY_COMPARE(R, bytes, X, bytes);
 
     /* 2. Test higher-level Montgomery to cannonical conversion */
 
     TEST_EQUAL(0, mbedtls_mpi_mod_raw_from_mont_rep(A, &m));
 
     /* The result matches expected value */
-    TEST_BUFFERS_EQUAL(A, bytes, X, bytes);
+    TEST_MEMORY_COMPARE(A, bytes, X, bytes);
 
 exit:
     mbedtls_mpi_mod_modulus_free(&m);
@@ -841,19 +841,19 @@ void mpi_mod_raw_neg(char *input_N, char *input_A, char *input_X)
 
     /* Neg( A == 0 ) => Zero result */
     mbedtls_mpi_mod_raw_neg(R, Z, &m);
-    TEST_BUFFERS_EQUAL(R, bytes, Z, bytes);
+    TEST_MEMORY_COMPARE(R, bytes, Z, bytes);
 
     /* Neg( A == N ) => Zero result */
     mbedtls_mpi_mod_raw_neg(R, N, &m);
-    TEST_BUFFERS_EQUAL(R, bytes, Z, bytes);
+    TEST_MEMORY_COMPARE(R, bytes, Z, bytes);
 
     /* Neg( A ) => Correct result */
     mbedtls_mpi_mod_raw_neg(R, A, &m);
-    TEST_BUFFERS_EQUAL(R, bytes, X, bytes);
+    TEST_MEMORY_COMPARE(R, bytes, X, bytes);
 
     /* Neg( A ): alias A to R => Correct result */
     mbedtls_mpi_mod_raw_neg(A, A, &m);
-    TEST_BUFFERS_EQUAL(A, bytes, X, bytes);
+    TEST_MEMORY_COMPARE(A, bytes, X, bytes);
 exit:
     mbedtls_mpi_mod_modulus_free(&m);
     mbedtls_free(N);

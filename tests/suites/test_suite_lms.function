@@ -164,7 +164,7 @@ void lms_import_export_test(data_t *pub_key, int expected_import_rc)
 
         TEST_EQUAL(exported_pub_key_size,
                    MBEDTLS_LMS_PUBLIC_KEY_LEN(MBEDTLS_LMS_SHA256_M32_H10));
-        TEST_BUFFERS_EQUAL(pub_key->x, pub_key->len,
+        TEST_MEMORY_COMPARE(pub_key->x, pub_key->len,
                        exported_pub_key, exported_pub_key_size);
         mbedtls_free(exported_pub_key);
         exported_pub_key = NULL;
@@ -185,7 +185,7 @@ void lms_import_export_test(data_t *pub_key, int expected_import_rc)
                                                  exported_pub_key_buf_size,
                                                  &exported_pub_key_size),
                    0);
-        TEST_BUFFERS_EQUAL(pub_key->x, pub_key->len,
+        TEST_MEMORY_COMPARE(pub_key->x, pub_key->len,
                        exported_pub_key, exported_pub_key_size);
         mbedtls_free(exported_pub_key);
         exported_pub_key = NULL;

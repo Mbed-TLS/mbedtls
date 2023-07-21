@@ -493,10 +493,10 @@ void mpi_core_cond_swap(char *input_X,
     TEST_EQUAL(limbs_X, limbs_Y);
     TEST_ASSERT(copy_limbs <= limbs);
 
-    TEST_CALLOC_OR_FAIL(X, limbs);
+    TEST_CALLOC(X, limbs);
     memcpy(X, tmp_X, bytes);
 
-    TEST_CALLOC_OR_FAIL(Y, limbs);
+    TEST_CALLOC(Y, limbs);
     memcpy(Y, tmp_Y, bytes);
 
     /* condition is false */
@@ -601,7 +601,7 @@ void mpi_core_add_and_add_if(char *input_A, char *input_B,
     TEST_EQUAL(A_limbs, S_limbs);
 
     size_t limbs = A_limbs;
-    TEST_CALLOC_OR_FAIL(X, limbs);
+    TEST_CALLOC(X, limbs);
 
     TEST_ASSERT(mpi_core_verify_add(A, B, limbs, S, carry, X));
     TEST_ASSERT(mpi_core_verify_add_if(A, B, limbs, S, carry, X));
@@ -646,15 +646,15 @@ void mpi_core_sub(char *input_A, char *input_B,
 
     /* Now let's get arrays of mbedtls_mpi_uints, rather than MPI structures */
 
-    /* TEST_CALLOC_OR_FAIL() uses calloc() under the hood, so these do get zeroed */
-    TEST_CALLOC_OR_FAIL(a, bytes);
-    TEST_CALLOC_OR_FAIL(b, bytes);
-    TEST_CALLOC_OR_FAIL(x, bytes);
-    TEST_CALLOC_OR_FAIL(r, bytes);
+    /* TEST_CALLOC() uses calloc() under the hood, so these do get zeroed */
+    TEST_CALLOC(a, bytes);
+    TEST_CALLOC(b, bytes);
+    TEST_CALLOC(x, bytes);
+    TEST_CALLOC(r, bytes);
 
     /* Populate the arrays. As the mbedtls_mpi_uint[]s in mbedtls_mpis (and as
      * processed by mbedtls_mpi_core_sub()) are little endian, we can just
-     * copy what we have as long as MSBs are 0 (which they are from TEST_CALLOC_OR_FAIL())
+     * copy what we have as long as MSBs are 0 (which they are from TEST_CALLOC())
      */
     memcpy(a, A.p, A.n * sizeof(mbedtls_mpi_uint));
     memcpy(b, B.p, B.n * sizeof(mbedtls_mpi_uint));
@@ -759,13 +759,13 @@ void mpi_core_mla(char *input_A, char *input_B, char *input_S,
 
     /* Now let's get arrays of mbedtls_mpi_uints, rather than MPI structures */
 
-    /* TEST_CALLOC_OR_FAIL() uses calloc() under the hood, so these do get zeroed */
-    TEST_CALLOC_OR_FAIL(a, bytes);
-    TEST_CALLOC_OR_FAIL(x, bytes);
+    /* TEST_CALLOC() uses calloc() under the hood, so these do get zeroed */
+    TEST_CALLOC(a, bytes);
+    TEST_CALLOC(x, bytes);
 
     /* Populate the arrays. As the mbedtls_mpi_uint[]s in mbedtls_mpis (and as
      * processed by mbedtls_mpi_core_mla()) are little endian, we can just
-     * copy what we have as long as MSBs are 0 (which they are from TEST_CALLOC_OR_FAIL()).
+     * copy what we have as long as MSBs are 0 (which they are from TEST_CALLOC()).
      */
     memcpy(a, A.p, A.n * sizeof(mbedtls_mpi_uint));
     memcpy(x, X->p, X->n * sizeof(mbedtls_mpi_uint));
@@ -1017,8 +1017,8 @@ void mpi_core_ct_uint_table_lookup(int bitlen, int window_size)
     mbedtls_mpi_uint *table = NULL;
     mbedtls_mpi_uint *dest = NULL;
 
-    TEST_CALLOC_OR_FAIL(table, limbs * count);
-    TEST_CALLOC_OR_FAIL(dest, limbs);
+    TEST_CALLOC(table, limbs * count);
+    TEST_CALLOC(dest, limbs);
 
     /*
      * Fill the table with a unique counter so that differences are easily
@@ -1070,7 +1070,7 @@ void mpi_core_fill_random(int wanted_bytes_arg, int extra_rng_bytes,
     int ret;
 
     /* Prepare an RNG with known output, limited to rng_bytes. */
-    TEST_CALLOC_OR_FAIL(rnd_data, rng_bytes);
+    TEST_CALLOC(rnd_data, rng_bytes);
     TEST_EQUAL(0, mbedtls_test_rnd_std_rand(NULL, rnd_data, rng_bytes));
     rnd_info.buf = rnd_data;
 
@@ -1078,7 +1078,7 @@ void mpi_core_fill_random(int wanted_bytes_arg, int extra_rng_bytes,
      * extra_limbs may be negative but the total limb count must be positive.
      * Fill the MPI with the byte value in before. */
     TEST_LE_U(1, X_limbs);
-    TEST_CALLOC_OR_FAIL(X, X_limbs);
+    TEST_CALLOC(X, X_limbs);
     memset(X, before, X_limbs * sizeof(*X));
 
     ret = mbedtls_mpi_core_fill_random(X, X_limbs, wanted_bytes,
@@ -1128,14 +1128,14 @@ void mpi_core_mul(char *input_A,
 
     const size_t X_limbs = A_limbs + B_limbs;
     const size_t X_bytes = X_limbs * sizeof(mbedtls_mpi_uint);
-    TEST_CALLOC_OR_FAIL(X, X_limbs);
+    TEST_CALLOC(X, X_limbs);
 
     const size_t A_bytes = A_limbs * sizeof(mbedtls_mpi_uint);
-    TEST_CALLOC_OR_FAIL(A_orig, A_limbs);
+    TEST_CALLOC(A_orig, A_limbs);
     memcpy(A_orig, A, A_bytes);
 
     const size_t B_bytes = B_limbs * sizeof(mbedtls_mpi_uint);
-    TEST_CALLOC_OR_FAIL(B_orig, B_limbs);
+    TEST_CALLOC(B_orig, B_limbs);
     memcpy(B_orig, B, B_bytes);
 
     /* Set result to something that is unlikely to be correct */
@@ -1195,7 +1195,7 @@ void mpi_core_exp_mod(char *input_N, char *input_A,
     TEST_EQUAL(0, mbedtls_test_read_mpi_core(&E, &E_limbs, input_E));
     TEST_EQUAL(0, mbedtls_test_read_mpi_core(&N, &N_limbs, input_N));
     TEST_EQUAL(0, mbedtls_test_read_mpi_core(&X, &X_limbs, input_X));
-    TEST_CALLOC_OR_FAIL(Y, N_limbs);
+    TEST_CALLOC(Y, N_limbs);
 
     TEST_EQUAL(A_limbs, N_limbs);
     TEST_EQUAL(X_limbs, N_limbs);
@@ -1227,7 +1227,7 @@ void mpi_core_exp_mod(char *input_N, char *input_A,
     TEST_LE_U(mbedtls_mpi_core_montmul_working_limbs(N_limbs),
               working_limbs);
 
-    TEST_CALLOC_OR_FAIL(T, working_limbs);
+    TEST_CALLOC(T, working_limbs);
 
     mbedtls_mpi_core_exp_mod(Y, A, N, N_limbs, E, E_limbs, R2, T);
 
@@ -1277,7 +1277,7 @@ void mpi_core_sub_int(char *input_A, char *input_B,
     TEST_EQUAL(A_limbs, X_limbs);
     size_t limbs = A_limbs;
 
-    TEST_CALLOC_OR_FAIL(R, limbs);
+    TEST_CALLOC(R, limbs);
 
 #define TEST_COMPARE_CORE_MPIS(A, B, limbs) \
     TEST_BUFFERS_EQUAL(A, (limbs) * sizeof(mbedtls_mpi_uint), B, (limbs) * sizeof(mbedtls_mpi_uint))

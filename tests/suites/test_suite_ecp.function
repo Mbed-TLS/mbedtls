@@ -1101,7 +1101,7 @@ void genkey_mx_known_answer(int bits, data_t *seed, data_t *expected)
     rnd_info.fallback_f_rng = NULL;
     rnd_info.fallback_p_rng = NULL;
 
-    TEST_CALLOC_OR_FAIL(actual, expected->len);
+    TEST_CALLOC(actual, expected->len);
 
     ret = mbedtls_ecp_gen_privkey_mx(bits, &d,
                                      mbedtls_test_rnd_buffer_rand, &rnd_info);
@@ -1456,10 +1456,10 @@ void ecp_mod_mul_inv(char *input_A, int id, int ctype)
     /* Test for limb sizes */
     TEST_EQUAL(m.limbs, limbs);
 
-    TEST_CALLOC_OR_FAIL(A_inverse, limbs);
+    TEST_CALLOC(A_inverse, limbs);
     TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rA_inverse, &m, A_inverse, limbs));
 
-    TEST_CALLOC_OR_FAIL(rX_raw, limbs);
+    TEST_CALLOC(rX_raw, limbs);
     TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rX, &m, rX_raw, limbs));
 
     /* Get inverse of A mode m, and multiply it with itself,
@@ -1467,7 +1467,7 @@ void ecp_mod_mul_inv(char *input_A, int id, int ctype)
     TEST_EQUAL(0, mbedtls_mpi_mod_inv(&rA_inverse, &rA, &m));
     TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rA, &rA_inverse, &m), 0);
 
-    TEST_CALLOC_OR_FAIL(bufx, limbs);
+    TEST_CALLOC(bufx, limbs);
     TEST_EQUAL(mbedtls_mpi_mod_write(&rX, &m, (unsigned char *) bufx,
                                      limbs * ciL,
                                      MBEDTLS_MPI_MOD_EXT_REP_LE), 0);
@@ -1515,7 +1515,7 @@ void ecp_mod_add_sub(char *input_A, char *input_B, int id, int ctype)
     TEST_EQUAL(m.limbs, p_A_limbs);
     bytes = p_A_limbs * ciL;
 
-    TEST_CALLOC_OR_FAIL(p_S, p_A_limbs);
+    TEST_CALLOC(p_S, p_A_limbs);
 
     TEST_EQUAL(mbedtls_mpi_mod_residue_setup(&rA, &m, p_A, p_A_limbs), 0);
     TEST_EQUAL(mbedtls_mpi_mod_residue_setup(&rB, &m, p_B, p_B_limbs), 0);
@@ -1562,11 +1562,11 @@ void ecp_mod_read_write(char *input_A, int id, int ctype)
     /* Test for limb sizes */
     TEST_EQUAL(m.limbs, limbs);
 
-    TEST_CALLOC_OR_FAIL(rX_raw, limbs);
+    TEST_CALLOC(rX_raw, limbs);
     TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rX, &m, rX_raw, limbs));
 
     bytes = limbs * ciL;
-    TEST_CALLOC_OR_FAIL(bufx, limbs);
+    TEST_CALLOC(bufx, limbs);
     /* Write source mod residue to a buffer, then read it back to
      * the destination mod residue, compare the two mod residues.
      * Firstly test little endian write and read */
@@ -1616,7 +1616,7 @@ void ecp_mod_random(int id, int ctype)
 
     limbs = m.limbs;
 
-    TEST_CALLOC_OR_FAIL(rX_raw, limbs);
+    TEST_CALLOC(rX_raw, limbs);
     TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rX, &m, rX_raw, limbs));
 
     TEST_EQUAL(0, mbedtls_mpi_mod_random(&rX, 1, &m,

@@ -17,10 +17,10 @@ void mbedtls_xor(int len)
 {
     size_t n = (size_t) len;
     unsigned char *a = NULL, *b = NULL, *r1 = NULL, *r2 = NULL;
-    TEST_CALLOC_OR_FAIL(a, n + 1);
-    TEST_CALLOC_OR_FAIL(b, n + 1);
-    TEST_CALLOC_OR_FAIL(r1, n + 1);
-    TEST_CALLOC_OR_FAIL(r2, n + 1);
+    TEST_CALLOC(a, n + 1);
+    TEST_CALLOC(b, n + 1);
+    TEST_CALLOC(r1, n + 1);
+    TEST_CALLOC(r2, n + 1);
 
     /* Test non-overlapping */
     fill_arrays(a, b, r1, r2, n);

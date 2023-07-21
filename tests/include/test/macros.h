@@ -123,7 +123,7 @@
  *                  This expression may be evaluated multiple times.
  *
  */
-#define TEST_CALLOC_OR_FAIL(pointer, length)                \
+#define TEST_CALLOC(pointer, length)                        \
     do {                                                    \
         TEST_ASSERT((pointer) == NULL);                     \
         if ((length) != 0) {                                \
@@ -134,11 +134,11 @@
     } while (0)
 
 /* For backwards compatibility */
-#define ASSERT_ALLOC(pointer, length) TEST_CALLOC_OR_FAIL(pointer, length)
+#define ASSERT_ALLOC(pointer, length) TEST_CALLOC(pointer, length)
 
 /** Allocate memory dynamically. If the allocation fails, skip the test case.
  *
- * This macro behaves like #TEST_CALLOC_OR_FAIL, except that if the allocation
+ * This macro behaves like #TEST_CALLOC, except that if the allocation
  * fails, it marks the test as skipped rather than failed.
  */
 #define TEST_CALLOC_OR_SKIP(pointer, length)                \

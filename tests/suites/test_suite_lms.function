@@ -124,7 +124,7 @@ void lms_verify_test(data_t *msg, data_t *sig, data_t *pub_key,
                 continue;
             }
 
-            TEST_CALLOC_OR_FAIL(tmp_sig, size);
+            TEST_CALLOC(tmp_sig, size);
             if (tmp_sig != NULL) {
                 memcpy(tmp_sig, sig->x, MIN(size, sig->len));
             }
@@ -156,7 +156,7 @@ void lms_import_export_test(data_t *pub_key, int expected_import_rc)
 
     if (expected_import_rc == 0) {
         exported_pub_key_buf_size = MBEDTLS_LMS_PUBLIC_KEY_LEN(MBEDTLS_LMS_SHA256_M32_H10);
-        TEST_CALLOC_OR_FAIL(exported_pub_key, exported_pub_key_buf_size);
+        TEST_CALLOC(exported_pub_key, exported_pub_key_buf_size);
 
         TEST_EQUAL(mbedtls_lms_export_public_key(&ctx, exported_pub_key,
                                                  exported_pub_key_buf_size,
@@ -171,7 +171,7 @@ void lms_import_export_test(data_t *pub_key, int expected_import_rc)
 
         /* Export into too-small buffer should fail */
         exported_pub_key_buf_size = MBEDTLS_LMS_PUBLIC_KEY_LEN(MBEDTLS_LMS_SHA256_M32_H10) - 1;
-        TEST_CALLOC_OR_FAIL(exported_pub_key, exported_pub_key_buf_size);
+        TEST_CALLOC(exported_pub_key, exported_pub_key_buf_size);
         TEST_EQUAL(mbedtls_lms_export_public_key(&ctx, exported_pub_key,
                                                  exported_pub_key_buf_size, NULL),
                    MBEDTLS_ERR_LMS_BUFFER_TOO_SMALL);
@@ -180,7 +180,7 @@ void lms_import_export_test(data_t *pub_key, int expected_import_rc)
 
         /* Export into too-large buffer should succeed */
         exported_pub_key_buf_size = MBEDTLS_LMS_PUBLIC_KEY_LEN(MBEDTLS_LMS_SHA256_M32_H10) + 1;
-        TEST_CALLOC_OR_FAIL(exported_pub_key, exported_pub_key_buf_size);
+        TEST_CALLOC(exported_pub_key, exported_pub_key_buf_size);
         TEST_EQUAL(mbedtls_lms_export_public_key(&ctx, exported_pub_key,
                                                  exported_pub_key_buf_size,
                                                  &exported_pub_key_size),

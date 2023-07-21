@@ -155,7 +155,7 @@ void mbedtls_sha3(int family, data_t *in, data_t *hash)
 {
     unsigned char *output = NULL;
 
-    TEST_CALLOC_OR_FAIL(output, hash->len);
+    TEST_CALLOC(output, hash->len);
 
     TEST_ASSERT(mbedtls_sha3(family, in->x, in->len, output, hash->len) == 0);
 
@@ -193,7 +193,7 @@ void mbedtls_sha3_multi(int family, data_t *in, data_t *hash)
     mbedtls_sha3_context ctx;
     const unsigned int block_size = 256;
 
-    TEST_CALLOC_OR_FAIL(output, hash->len);
+    TEST_CALLOC(output, hash->len);
 
     mbedtls_sha3_init(&ctx);
     mbedtls_sha3_starts(&ctx, family);

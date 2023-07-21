@@ -844,15 +844,15 @@ void mbedtls_mps_reader_random_usage(int num_out_chunks,
     mbedtls_mps_reader rd;
 
     if (acc_size > 0) {
-        TEST_CALLOC_OR_FAIL(acc, acc_size);
+        TEST_CALLOC(acc, acc_size);
     }
 
     /* This probably needs to be changed because we want
      * our tests to be deterministic. */
     //    srand( time( NULL ) );
 
-    TEST_CALLOC_OR_FAIL(outgoing, num_out_chunks * max_chunk_size);
-    TEST_CALLOC_OR_FAIL(incoming, num_out_chunks * max_chunk_size);
+    TEST_CALLOC(outgoing, num_out_chunks * max_chunk_size);
+    TEST_CALLOC(incoming, num_out_chunks * max_chunk_size);
 
     mbedtls_mps_reader_init(&rd, acc, acc_size);
 
@@ -884,7 +884,7 @@ void mbedtls_mps_reader_random_usage(int num_out_chunks,
                 }
 
                 tmp_size = (rand() % max_chunk_size) + 1;
-                TEST_CALLOC_OR_FAIL(tmp, tmp_size);
+                TEST_CALLOC(tmp, tmp_size);
 
                 TEST_ASSERT(mbedtls_test_rnd_std_rand(NULL, tmp, tmp_size) == 0);
                 ret = mbedtls_mps_reader_feed(&rd, tmp, tmp_size);

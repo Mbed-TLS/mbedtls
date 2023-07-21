@@ -32,7 +32,6 @@ import sys
 import typing
 from enum import Enum
 
-from types import SimpleNamespace
 from mbedtls_dev import build_tree
 from mbedtls_dev import logging_util
 from mbedtls_dev import typing_util
@@ -45,6 +44,7 @@ class SupportedArch(Enum):
     X86_64 = 'x86_64'
     X86 = 'x86'
 
+
 CONFIG_TFM_MEDIUM_MBEDCRYPTO_H = '../configs/tfm_mbedcrypto_config_profile_medium.h'
 CONFIG_TFM_MEDIUM_PSA_CRYPTO_H = '../configs/crypto_config_profile_medium.h'
 class SupportedConfig(Enum):
@@ -52,12 +52,77 @@ class SupportedConfig(Enum):
     DEFAULT = 'default'
     TFM_MEDIUM = 'tfm-medium'
 
+
 # Static library
 MBEDTLS_STATIC_LIB = {
     'CRYPTO': 'library/libmbedcrypto.a',
     'X509': 'library/libmbedx509.a',
     'TLS': 'library/libmbedtls.a',
 }
+
+class CodeSizeDistinctInfo: # pylint: disable=too-few-public-methods
+    """Data structure to store possibly distinct information for code size
+    comparison."""
+    def __init__( #pylint: disable=too-many-arguments
+            self,
+            version: str,
+            git_rev: str,
+            arch: str,
+            config: str,
+            make_cmd: str,
+    ) -> None:
+        """
+        :param: version: which version to compare with for code size.
+        :param: git_rev: Git revision to calculate code size.
+        :param: arch: architecture to measure code size on.
+        :param: config: Configuration type to calculate code size.
+                        (See SupportedConfig)
+        :param: make_cmd: make command to build library/*.o.
+        """
+        self.version = version
+        self.git_rev = git_rev
+        self.arch = arch
+        self.config = config
+        self.make_cmd = make_cmd
+
+
+class CodeSizeCommonInfo: # pylint: disable=too-few-public-methods
+    """Data structure to store common information for code size comparison."""
+    def __init__(
+            self,
+            host_arch: str,
+            measure_cmd: str,
+    ) -> None:
+        """
+        :param host_arch: host architecture.
+        :param measure_cmd: command to measure code size for library/*.o.
+        """
+        self.host_arch = host_arch
+        self.measure_cmd = measure_cmd
+
+
+class CodeSizeResultInfo: # pylint: disable=too-few-public-methods
+    """Data structure to store result options for code size comparison."""
+    def __init__(
+            self,
+            record_dir: str,
+            comp_dir: str,
+            with_markdown=False,
+            stdout=False,
+    ) -> None:
+        """
+        :param record_dir: directory to store code size record.
+        :param comp_dir: directory to store results of code size comparision.
+        :param with_markdown: write comparision result into a markdown table.
+                              (Default: False)
+        :param stdout: direct comparison result into sys.stdout.
+                       (Default False)
+        """
+        self.record_dir = record_dir
+        self.comp_dir = comp_dir
+        self.with_markdown = with_markdown
+        self.stdout = stdout
+
 
 DETECT_ARCH_CMD = "cc -dM -E - < /dev/null"
 def detect_arch() -> str:
@@ -92,20 +157,20 @@ class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods
 
     def __init__(
             self,
-            size_version: SimpleNamespace,
+            size_dist_info: CodeSizeDistinctInfo,
             host_arch: str,
             logger: logging.Logger,
     ) -> None:
         """
-        :param size_version:
-            SimpleNamespace containing info for code size measurement.
-                - size_version.arch: architecture to measure code size on.
-                - size_version.config: configuration type to measure code size
-                                       with.
+        :param size_dist_info:
+            CodeSizeDistinctInfo containing info for code size measurement.
+                - size_dist_info.arch: architecture to measure code size on.
+                - size_dist_info.config: configuration type to measure
+                                         code size with.
         :param host_arch: host architecture.
         :param logger: logging module
         """
-        self.size_version = size_version
+        self.size_dist_info = size_dist_info
         self.host_arch = host_arch
         self.logger = logger
 
@@ -113,12 +178,12 @@ class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods
         """Infer make command based on architecture and configuration."""
 
         # make command by default
-        if self.size_version.config == SupportedConfig.DEFAULT.value and \
-           self.size_version.arch == self.host_arch:
+        if self.size_dist_info.config == SupportedConfig.DEFAULT.value and \
+           self.size_dist_info.arch == self.host_arch:
             return 'make -j lib CFLAGS=\'-Os \' '
         # make command for TF-M
-        elif self.size_version.arch == SupportedArch.ARMV8_M.value and \
-             self.size_version.config == SupportedConfig.TFM_MEDIUM.value:
+        elif self.size_dist_info.arch == SupportedArch.ARMV8_M.value and \
+             self.size_dist_info.config == SupportedConfig.TFM_MEDIUM.value:
             return \
                  'make -j lib CC=armclang \
                   CFLAGS=\'--target=arm-arm-none-eabi -mcpu=cortex-m33 -Os \
@@ -128,8 +193,8 @@ class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods
         else:
             self.logger.error("Unsupported combination of architecture: {} " \
                               "and configuration: {}.\n"
-                              .format(self.size_version.arch,
-                                      self.size_version.config))
+                              .format(self.size_dist_info.arch,
+                                      self.size_dist_info.config))
             self.logger.info("Please use supported combination of " \
                              "architecture and configuration:")
             for comb in CodeSizeBuildInfo.SupportedArchConfig:
@@ -150,13 +215,13 @@ class CodeSizeCalculator:
 
     def __init__(
             self,
-            revision: str,
+            git_rev: str,
             make_cmd: str,
             measure_cmd: str,
             logger: logging.Logger,
     ) -> None:
         """
-        :param revision: Git revision.(E.g: commit)
+        :param git_rev: Git revision. (E.g: commit)
         :param make_cmd: command to build library/*.o.
         :param measure_cmd: command to measure code size for library/*.o.
         :param logger: logging module
@@ -165,33 +230,33 @@ class CodeSizeCalculator:
         self.git_command = "git"
         self.make_clean = 'make clean'
 
-        self.revision = revision
+        self.git_rev = git_rev
         self.make_cmd = make_cmd
         self.measure_cmd = measure_cmd
         self.logger = logger
 
     @staticmethod
-    def validate_revision(revision: str) -> str:
+    def validate_git_revision(git_rev: str) -> str:
         result = subprocess.check_output(["git", "rev-parse", "--verify",
-                                          revision + "^{commit}"], shell=False,
-                                         universal_newlines=True)
+                                          git_rev + "^{commit}"],
+                                         shell=False, universal_newlines=True)
         return result[:7]
 
     def _create_git_worktree(self) -> str:
-        """Create a separate worktree for revision.
-        If revision is current, use current worktree instead."""
+        """Create a separate worktree for Git revision.
+        If Git revision is current, use current worktree instead."""
 
-        if self.revision == "current":
+        if self.git_rev == "current":
             self.logger.debug("Using current work directory.")
             git_worktree_path = self.repo_path
         else:
             self.logger.debug("Creating git worktree for {}."
-                              .format(self.revision))
+                              .format(self.git_rev))
             git_worktree_path = os.path.join(self.repo_path,
-                                             "temp-" + self.revision)
+                                             "temp-" + self.git_rev)
             subprocess.check_output(
                 [self.git_command, "worktree", "add", "--detach",
-                 git_worktree_path, self.revision], cwd=self.repo_path,
+                 git_worktree_path, self.git_rev], cwd=self.repo_path,
                 stderr=subprocess.STDOUT
             )
 
@@ -201,7 +266,7 @@ class CodeSizeCalculator:
         """Build library/*.o in the specified worktree."""
 
         self.logger.debug("Building library/*.o for {}."
-                          .format(self.revision))
+                          .format(self.git_rev))
         my_environment = os.environ.copy()
         try:
             subprocess.check_output(
@@ -221,7 +286,7 @@ class CodeSizeCalculator:
         """Measure code size by a tool and return in UTF-8 encoding."""
 
         self.logger.debug("Measuring code size for {} by `{}`."
-                          .format(self.revision,
+                          .format(self.git_rev,
                                   self.measure_cmd.strip().split(' ')[0]))
 
         res = {}
@@ -292,13 +357,13 @@ class CodeSizeGenerator:
 
     def size_generator_write_record(
             self,
-            revision: str,
+            git_rev: str,
             code_size_text: typing.Dict,
             output_file: str
     ) -> None:
         """Write size record into a file.
 
-        :param revision: Git revision.(E.g: commit)
+        :param git_rev: Git revision. (E.g: commit)
         :param code_size_text:
             string output (utf-8) from measurement tool of code size.
                 - typing.Dict[mod: str]
@@ -311,15 +376,15 @@ class CodeSizeGenerator:
             old_rev: str,
             new_rev: str,
             output_stream: str,
-            result_options: SimpleNamespace
+            result_options: CodeSizeResultInfo
     ) -> None:
-        """Write a comparision result into a stream between two revisions.
+        """Write a comparision result into a stream between two Git revisions.
 
         :param old_rev: old Git revision to compared with.
         :param new_rev: new Git revision to compared with.
         :param output_stream: stream which the code size record is written to.
         :param result_options:
-            SimpleNamespace containing options for comparison result.
+            CodeSizeResultInfo containing options for comparison result.
                 - result_options.with_markdown:  write comparision result in a
                                                  markdown table. (Default: False)
                 - result_options.stdout: direct comparison result into
@@ -340,22 +405,22 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
             self.total = dec # total <=> dec
 
     def __init__(self, logger: logging.Logger) -> None:
-        """ Variable code_size is used to store size info for any revisions.
+        """ Variable code_size is used to store size info for any Git revisions.
         :param code_size:
             Data Format as following:
-                {revision: {module: {file_name: [text, data, bss, dec],
-                                     etc ...
-                                    },
-                            etc ...
-                           },
+                {git_rev: {module: {file_name: [text, data, bss, dec],
+                                    etc ...
+                                   },
+                           etc ...
+                          },
                  etc ...
                 }
         """
         super().__init__(logger)
         self.code_size = {} #type: typing.Dict[str, typing.Dict]
 
-    def _set_size_record(self, revision: str, mod: str, size_text: str) -> None:
-        """Store size information for target revision and high-level module.
+    def _set_size_record(self, git_rev: str, mod: str, size_text: str) -> None:
+        """Store size information for target Git revision and high-level module.
 
         size_text Format: text data bss dec hex filename
         """
@@ -365,12 +430,12 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
             # file_name: SizeEntry(text, data, bss, dec)
             size_record[data[5]] = CodeSizeGeneratorWithSize.SizeEntry(
                 data[0], data[1], data[2], data[3])
-        if revision in self.code_size:
-            self.code_size[revision].update({mod: size_record})
+        if git_rev in self.code_size:
+            self.code_size[git_rev].update({mod: size_record})
         else:
-            self.code_size[revision] = {mod: size_record}
+            self.code_size[git_rev] = {mod: size_record}
 
-    def read_size_record(self, revision: str, fname: str) -> None:
+    def read_size_record(self, git_rev: str, fname: str) -> None:
         """Read size information from csv file and write it into code_size.
 
         fname Format: filename text data bss dec
@@ -393,21 +458,21 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                 # check if we hit record for the end of a module
                 m = re.match(r'.?TOTALS', line)
                 if m:
-                    if revision in self.code_size:
-                        self.code_size[revision].update({mod: size_record})
+                    if git_rev in self.code_size:
+                        self.code_size[git_rev].update({mod: size_record})
                     else:
-                        self.code_size[revision] = {mod: size_record}
+                        self.code_size[git_rev] = {mod: size_record}
                     mod = ""
                     size_record = {}
 
     def _size_reader_helper(
             self,
-            revision: str,
+            git_rev: str,
             output: typing_util.Writable,
             with_markdown=False
     ) -> typing.Iterator[tuple]:
-        """A helper function to peel code_size based on revision."""
-        for mod, file_size in self.code_size[revision].items():
+        """A helper function to peel code_size based on Git revision."""
+        for mod, file_size in self.code_size[git_rev].items():
             if not with_markdown:
                 output.write("\n" + mod + "\n")
             for fname, size_entry in file_size.items():
@@ -415,7 +480,7 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
 
     def _write_size_record(
             self,
-            revision: str,
+            git_rev: str,
             output: typing_util.Writable
     ) -> None:
         """Write size information to a file.
@@ -425,7 +490,7 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
         format_string = "{:<30} {:>7} {:>7} {:>7} {:>7}\n"
         output.write(format_string.format("filename",
                                           "text", "data", "bss", "total"))
-        for _, fname, size_entry in self._size_reader_helper(revision, output):
+        for _, fname, size_entry in self._size_reader_helper(git_rev, output):
             output.write(format_string.format(fname,
                                               size_entry.text, size_entry.data,
                                               size_entry.bss, size_entry.total))
@@ -445,7 +510,7 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
 
         def cal_size_section_variation(mod, fname, size_entry, attr):
             new_size = int(size_entry.__dict__[attr])
-            # check if we have the file in old revision
+            # check if we have the file in old Git revision
             if fname in self.code_size[old_rev][mod]:
                 old_size = int(self.code_size[old_rev][mod][fname].__dict__[attr])
                 change = new_size - old_size
@@ -497,28 +562,28 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
 
     def size_generator_write_record(
             self,
-            revision: str,
+            git_rev: str,
             code_size_text: typing.Dict,
             output_file: str
     ) -> None:
         """Write size record into a specified file based on Git revision and
         output from `size` tool."""
-        self.logger.debug("Generating code size csv for {}.".format(revision))
+        self.logger.debug("Generating code size csv for {}.".format(git_rev))
 
         for mod, size_text in code_size_text.items():
-            self._set_size_record(revision, mod, size_text)
+            self._set_size_record(git_rev, mod, size_text)
 
         output = open(output_file, "w")
-        self._write_size_record(revision, output)
+        self._write_size_record(git_rev, output)
 
     def size_generator_write_comparison(
             self,
             old_rev: str,
             new_rev: str,
             output_stream: str,
-            result_options: SimpleNamespace
+            result_options: CodeSizeResultInfo
     ) -> None:
-        """Write a comparision result into a stream between two revisions.
+        """Write a comparision result into a stream between two Git revisions.
 
         By default, it's written into a file called output_stream.
         Once result_options.stdout is set, it's written into sys.stdout instead.
@@ -537,133 +602,139 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
 class CodeSizeComparison:
     """Compare code size between two Git revisions."""
 
-    def __init__(
+    def __init__( #pylint: disable=too-many-arguments
             self,
-            old_size_version: SimpleNamespace,
-            new_size_version: SimpleNamespace,
-            code_size_common: SimpleNamespace,
+            old_size_dist_info: CodeSizeDistinctInfo,
+            new_size_dist_info: CodeSizeDistinctInfo,
+            size_common_info: CodeSizeCommonInfo,
+            result_options: CodeSizeResultInfo,
             logger: logging.Logger,
     ) -> None:
         """
-        :param old_size_version: SimpleNamespace containing old version info
-                                 to compare code size with.
-        :param new_size_version: SimpleNamespace containing new version info
-                                 to take as comparision base.
-        :param code_size_common: SimpleNamespace containing common info for
-                                 both old and new size version,
-                                 measurement tool and result options.
+        :param old_size_dist_info: CodeSizeDistinctInfo containing old distinct
+                                   info to compare code size with.
+        :param new_size_dist_info: CodeSizeDistinctInfo containing new distinct
+                                   info to take as comparision base.
+        :param size_common_info: CodeSizeCommonInfo containing common info for
+                                 both old and new size distinct info and
+                                 measurement tool.
+        :param result_options: CodeSizeResultInfo containing results options for
+                               code size record and comparision.
         :param logger: logging module
         """
-        self.result_dir = os.path.abspath(
-            code_size_common.result_options.result_dir)
-        os.makedirs(self.result_dir, exist_ok=True)
-
-        self.csv_dir = os.path.abspath("code_size_records/")
-        os.makedirs(self.csv_dir, exist_ok=True)
 
         self.logger = logger
 
-        self.old_size_version = old_size_version
-        self.new_size_version = new_size_version
-        self.code_size_common = code_size_common
+        self.old_size_dist_info = old_size_dist_info
+        self.new_size_dist_info = new_size_dist_info
+        self.size_common_info = size_common_info
         # infer make command
-        self.old_size_version.make_cmd = CodeSizeBuildInfo(
-            self.old_size_version, self.code_size_common.host_arch,
+        self.old_size_dist_info.make_cmd = CodeSizeBuildInfo(
+            self.old_size_dist_info, self.size_common_info.host_arch,
             self.logger).infer_make_command()
-        self.new_size_version.make_cmd = CodeSizeBuildInfo(
-            self.new_size_version, self.code_size_common.host_arch,
+        self.new_size_dist_info.make_cmd = CodeSizeBuildInfo(
+            self.new_size_dist_info, self.size_common_info.host_arch,
             self.logger).infer_make_command()
         # initialize size parser with corresponding measurement tool
         self.code_size_generator = self.__generate_size_parser()
 
+        self.result_options = result_options
+        self.csv_dir = os.path.abspath(self.result_options.record_dir)
+        os.makedirs(self.csv_dir, exist_ok=True)
+        self.comp_dir = os.path.abspath(self.result_options.comp_dir)
+        os.makedirs(self.comp_dir, exist_ok=True)
+
     def __generate_size_parser(self):
         """Generate a parser for the corresponding measurement tool."""
-        if re.match(r'size', self.code_size_common.measure_cmd.strip()):
+        if re.match(r'size', self.size_common_info.measure_cmd.strip()):
             return CodeSizeGeneratorWithSize(self.logger)
         else:
             self.logger.error("Unsupported measurement tool: `{}`."
-                              .format(self.code_size_common.measure_cmd
+                              .format(self.size_common_info.measure_cmd
                                       .strip().split(' ')[0]))
             sys.exit(1)
 
 
     def cal_code_size(
             self,
-            size_version: SimpleNamespace
+            size_dist_info: CodeSizeDistinctInfo
         ) -> typing.Dict[str, str]:
         """Calculate code size of library/*.o in a UTF-8 encoding"""
 
-        return CodeSizeCalculator(size_version.revision, size_version.make_cmd,
-                                  self.code_size_common.measure_cmd,
+        return CodeSizeCalculator(size_dist_info.git_rev,
+                                  size_dist_info.make_cmd,
+                                  self.size_common_info.measure_cmd,
                                   self.logger).cal_libraries_code_size()
 
     def gen_file_name(
             self,
-            old_size_version: SimpleNamespace,
-            new_size_version=None
+            old_size_dist_info: CodeSizeDistinctInfo,
+            new_size_dist_info=None
         ) -> str:
         """Generate a literal string as csv file name."""
-        if new_size_version:
+        if new_size_dist_info:
             return '{}-{}-{}-{}-{}-{}-{}.csv'\
-                   .format(old_size_version.revision, old_size_version.arch,
-                           old_size_version.config,
-                           new_size_version.revision, new_size_version.arch,
-                           new_size_version.config,
-                           self.code_size_common.measure_cmd.strip()\
+                   .format(old_size_dist_info.git_rev, old_size_dist_info.arch,
+                           old_size_dist_info.config,
+                           new_size_dist_info.git_rev, new_size_dist_info.arch,
+                           new_size_dist_info.config,
+                           self.size_common_info.measure_cmd.strip()\
                                .split(' ')[0])
         else:
             return '{}-{}-{}-{}.csv'\
-                   .format(old_size_version.revision, old_size_version.arch,
-                           old_size_version.config,
-                           self.code_size_common.measure_cmd.strip()\
+                   .format(old_size_dist_info.git_rev,
+                           old_size_dist_info.arch,
+                           old_size_dist_info.config,
+                           self.size_common_info.measure_cmd.strip()\
                                .split(' ')[0])
 
-    def gen_code_size_report(self, size_version: SimpleNamespace) -> None:
+    def gen_code_size_report(self, size_dist_info: CodeSizeDistinctInfo) -> None:
         """Generate code size record and write it into a file."""
 
         self.logger.info("Start to generate code size record for {}."
-                         .format(size_version.revision))
+                         .format(size_dist_info.git_rev))
         output_file = os.path.join(self.csv_dir,
-                                   self.gen_file_name(size_version))
+                                   self.gen_file_name(size_dist_info))
         # Check if the corresponding record exists
-        if size_version.revision != "current" and \
+        if size_dist_info.git_rev != "current" and \
            os.path.exists(output_file):
             self.logger.debug("Code size csv file for {} already exists."
-                              .format(size_version.revision))
+                              .format(size_dist_info.git_rev))
             self.code_size_generator.read_size_record(
-                size_version.revision, output_file)
+                size_dist_info.git_rev, output_file)
         else:
             self.code_size_generator.size_generator_write_record(
-                size_version.revision, self.cal_code_size(size_version),
+                size_dist_info.git_rev, self.cal_code_size(size_dist_info),
                 output_file)
 
     def gen_code_size_comparison(self) -> None:
-        """Generate results of code size changes between two revisions,
+        """Generate results of code size changes between two Git revisions,
         old and new.
 
-        - Measured code size results of these two revisions must be available.
+        - Measured code size result of these two Git revisions must be available.
         - The result is directed into either file / stdout depending on
-          the option, code_size_common.result_options.stdout. (Default: file)
+          the option, size_common_info.result_options.stdout. (Default: file)
         """
 
         self.logger.info("Start to generate comparision result between "\
                          "{} and {}."
-                         .format(self.old_size_version.revision,
-                                 self.new_size_version.revision))
+                         .format(self.old_size_dist_info.git_rev,
+                                 self.new_size_dist_info.git_rev))
         output_file = os.path.join(
-            self.result_dir,
-            self.gen_file_name(self.old_size_version, self.new_size_version))
+            self.comp_dir,
+            self.gen_file_name(self.old_size_dist_info, self.new_size_dist_info))
 
         self.code_size_generator.size_generator_write_comparison(
-            self.old_size_version.revision, self.new_size_version.revision,
-            output_file, self.code_size_common.result_options)
+            self.old_size_dist_info.git_rev,
+            self.new_size_dist_info.git_rev,
+            output_file, self.result_options)
 
     def get_comparision_results(self) -> None:
-        """Compare size of library/*.o between self.old_size_version and
-        self.old_size_version and generate the result file."""
+        """Compare size of library/*.o between self.old_size_dist_info and
+        self.old_size_dist_info and generate the result file."""
         build_tree.check_repo_path()
-        self.gen_code_size_report(self.old_size_version)
-        self.gen_code_size_report(self.new_size_version)
+        self.gen_code_size_report(self.old_size_dist_info)
+        self.gen_code_size_report(self.new_size_dist_info)
         self.gen_code_size_comparison()
 
 
@@ -674,18 +745,22 @@ def main():
         'required arguments to parse for running ' + os.path.basename(__file__))
     group_required.add_argument(
         '-o', '--old-rev', type=str, required=True,
-        help='old revision for comparison.')
+        help='old Git revision for comparison.')
 
     group_optional = parser.add_argument_group(
         'optional arguments',
         'optional arguments to parse for running ' + os.path.basename(__file__))
     group_optional.add_argument(
-        '-r', '--result-dir', type=str, default='comparison',
+        '--record_dir', type=str, default='code_size_records',
+        help='directory where code size record is stored. '
+             '(Default: code_size_records)')
+    group_optional.add_argument(
+        '-r', '--comp-dir', type=str, default='comparison',
         help='directory where comparison result is stored. '
              '(Default: comparison)')
     group_optional.add_argument(
         '-n', '--new-rev', type=str, default=None,
-        help='new revision as comparison base. '
+        help='new Git revision as comparison base. '
              '(Default is the current work directory, including uncommitted '
              'changes.)')
     group_optional.add_argument(
@@ -716,48 +791,36 @@ def main():
     logging_util.configure_logger(logger)
     logger.setLevel(logging.DEBUG if comp_args.verbose else logging.INFO)
 
-    if os.path.isfile(comp_args.result_dir):
-        logger.error("{} is not a directory".format(comp_args.result_dir))
+    if os.path.isfile(comp_args.comp_dir):
+        logger.error("{} is not a directory".format(comp_args.comp_dir))
         parser.exit()
 
-    old_revision = CodeSizeCalculator.validate_revision(comp_args.old_rev)
+    old_revision = CodeSizeCalculator.validate_git_revision(comp_args.old_rev)
     if comp_args.new_rev is not None:
-        new_revision = CodeSizeCalculator.validate_revision(comp_args.new_rev)
+        new_revision = CodeSizeCalculator.validate_git_revision(
+            comp_args.new_rev)
     else:
         new_revision = "current"
 
-    old_size_version = SimpleNamespace(
-        version='old',
-        revision=old_revision,
-        config=comp_args.config,
-        arch=comp_args.arch,
-        make_cmd='',
-    )
-    new_size_version = SimpleNamespace(
-        version='new',
-        revision=new_revision,
-        config=comp_args.config,
-        arch=comp_args.arch,
-        make_cmd='',
-    )
-    code_size_common = SimpleNamespace(
-        result_options=SimpleNamespace(
-            result_dir=comp_args.result_dir,
-            with_markdown=comp_args.markdown,
-            stdout=comp_args.stdout,
-        ),
-        host_arch=detect_arch(),
-        measure_cmd='size -t',
-    )
+    old_size_dist_info = CodeSizeDistinctInfo(
+        'old', old_revision, comp_args.arch, comp_args.config, '')
+    new_size_dist_info = CodeSizeDistinctInfo(
+        'new', new_revision, comp_args.arch, comp_args.config, '')
+    size_common_info = CodeSizeCommonInfo(
+        detect_arch(), 'size -t')
+    result_options = CodeSizeResultInfo(
+        comp_args.record_dir, comp_args.comp_dir,
+        comp_args.markdown, comp_args.stdout)
 
     logger.info("Measure code size between {}:{}-{} and {}:{}-{} by `{}`."
-                .format(old_size_version.revision, old_size_version.config,
-                        old_size_version.arch,
-                        new_size_version.revision, old_size_version.config,
-                        new_size_version.arch,
-                        code_size_common.measure_cmd.strip().split(' ')[0]))
-    CodeSizeComparison(old_size_version, new_size_version,
-                       code_size_common, logger).get_comparision_results()
+                .format(old_size_dist_info.git_rev, old_size_dist_info.config,
+                        old_size_dist_info.arch,
+                        new_size_dist_info.git_rev, old_size_dist_info.config,
+                        new_size_dist_info.arch,
+                        size_common_info.measure_cmd.strip().split(' ')[0]))
+    CodeSizeComparison(old_size_dist_info, new_size_dist_info,
+                       size_common_info, result_options,
+                       logger).get_comparision_results()
 
 if __name__ == "__main__":
     main()

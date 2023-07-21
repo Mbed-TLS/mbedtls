@@ -38,6 +38,58 @@
 
 #if !defined(MBEDTLS_ECP_ALT)
 
+/***********************************************************************
+ *                      HOW TO ADD A NEW CURVE                         *
+ ***********************************************************************
+ *
+ * This guide covers adding a new curve to the crypto library;
+ * support in X.509 and TLS is out of scope.
+ *
+ * 1. Identifiers and feature macros.
+ *    a. Add a feature macro in mbedtls_config.h and update check_config.h.
+ *    b. In ecp.h: add an entry to enum mbedtls_ecp_group_id and
+ *       update helper macros MBEDTLS_ECP_xxx_ENABLED, MBEDTLS_ECP_MAX_BITS.
+ *    c. Add a PSA feature macro in crypto_config.h and config_psa.h
+ *       (including ACCEL and BUILTIN variants in the later), as well as
+ *       tests/include/test/drivers/crypto_config_test_driver_extension.h.
+ *    d. Add a PSA identifier in crypto_values.h and update
+ *       PSA_VENDOR_ECC_MAX_CURVE_BITS in crypto_sizes.h.
+ *    e. Expand coonversion functions in psa_crypto.c.
+ *    f. Add an entry to ecp_supported_curves in ecp.c.
+ * 2. Curve constants in ecp_curves.c
+ *    a. Define a static array of mbedtls_mpi_uint <curve_name>_<X> for each
+ *       curve constant, value taken from the relevant standards defining the
+ *       curve. For a Short Weierstrass curve, that's: p, a, b, gx, gy, n. For
+ *       different curve shapes the list will differ.
+ *    b. For Short Weierstrass curves: define <curve_name>_<X> to NULL.
+ *    c. Add the curve to the switch statement in mbedtls_ecp_group_load().
+ * 3. Basic testing: add test vectors in test_suite_ecp.
+ *    NOTE: for Short Weierstrass curves, until the next step, these will only
+ *    pass in builds with MBEDTLS_ECP_FIXED_POINT_OPTIM set to 0, which is NOT
+ *    the default. Still run them as a safety check before the next step.
+ * 4. For Short Weierstras curves: add static table.
+ *    a. Build with MBEDTLS_TEST_HOOKS enabled and MBEDTLS_ECP_WINDOW_SIZE set
+ *       to its maximum value: 7.
+ *    b. Run programs/test/ecp_new_curve <curve_id>
+ *       (use the numeric value of the curve in enum mbedtls_ecp_group_id).
+ *    c. Copy-paste the output in ecp_curve.s in place of the dummy definition
+ *       of <curve_name>_T inserted previously.
+ *    d. Tests should now pass with MBEDTLS_ECP_FIXED_POINT_OPTIM == 1.
+ * 5. Optional: for a curve whose prime supports fast reduction:
+ *    a. Write a fast reduction routine in ecp_curve.c, declared in
+ *       ecp_invasive.h, and test it in test_suite_ecp (see
+ *       scripts/mbedtls_dev/ecp.py as well).
+ *    b. Reference this routine in mbedtls_ecp_group_load().
+ * 5. Extended testing.
+ *    a. Add tests to test_suite_ecdh and/or test_suite_ecdsa if applicable.
+ *    b. Add tests to test_suite_psa_crypto.
+ * 6. Support in PK parse/write.
+ *    a. Add OIDs in oid.h and oid.c, taken from relevant standards.
+ *    b. Add test in test_suite_pkparse and test_suite_pkwrite.
+ *
+ * Done. Now update X.509 and/or TLS if applicable.
+ */
+
 /* Parameter validation macros based on platform_util.h */
 #define ECP_VALIDATE_RET(cond)    \
     MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA)

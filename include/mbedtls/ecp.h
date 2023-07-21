@@ -287,9 +287,6 @@ typedef struct mbedtls_ecp_group {
     unsigned int MBEDTLS_PRIVATE(h);             /*!< \internal 1 if the constants are static. */
     int(*MBEDTLS_PRIVATE(modp))(mbedtls_mpi *);  /*!< The function for fast pseudo-reduction
                                                     mod \p P (see above).*/
-    int(*MBEDTLS_PRIVATE(t_pre))(mbedtls_ecp_point *, void *);   /*!< Unused. */
-    int(*MBEDTLS_PRIVATE(t_post))(mbedtls_ecp_point *, void *);  /*!< Unused. */
-    void *MBEDTLS_PRIVATE(t_data);               /*!< Unused. */
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) && \
     MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
     mbedtls_ecp_point *MBEDTLS_PRIVATE(T);       /*!< Pre-computed points for ecp_mul_comb(). */

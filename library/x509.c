@@ -810,8 +810,7 @@ int mbedtls_x509_get_ext(unsigned char **p, const unsigned char *end,
     return 0;
 }
 
-/* Converts only the 4 least significant bits */
-static char x509_int_to_hexdigit(int i)
+static char nibble_to_hex_digit(int i)
 {
     return (i < 10) ? (i | 0x30) : ((i - 9) | 0x40);
 }
@@ -879,8 +878,8 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
                 s[j++] = '\\';
                 char lowbits = (c & 0x0F);
                 char highbits = c>>4;
-                s[j++] = x509_int_to_hexdigit(highbits);
-                s[j] = x509_int_to_hexdigit(lowbits);
+                s[j++] = nibble_to_hex_digit(highbits);
+                s[j] = nibble_to_hex_digit(lowbits);
             } else {
                 s[j] = c;
             }

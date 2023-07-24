@@ -768,6 +768,10 @@ class CodeSizeComparison:
                                  self.new_size_dist_info.git_rev))
         if self.result_options.stdout:
             output = sys.stdout
+            print("Measure code size between `{}` and `{}` by `{}`."
+                  .format(self.old_size_dist_info.get_info_indication(),
+                          self.new_size_dist_info.get_info_indication(),
+                          self.size_common_info.get_info_indication()))
         else:
             output_file = os.path.join(
                 self.comp_dir,

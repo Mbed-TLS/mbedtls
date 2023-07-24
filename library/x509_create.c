@@ -123,14 +123,11 @@ static const x509_attr_descriptor_t *x509_attr_descr_from_name(const char *name,
     return cur;
 }
 
-static int x509_is_char_hex(char c)
+static int hex_to_int(char c)
 {
-    return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
-}
-
-static int x509_hex_to_int(char c)
-{
-    return ((c & 0x40) ? (c + 9) : c) & 0x0F;
+    return ('0' <= c && c <= '9') ? (c - '0') :
+           ('a' <= c && c <= 'f') ? (c - 'a' + 10) :
+           ('A' <= c && c <= 'F') ? (c - 'A' + 10) : -1;
 }
 
 int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *name)
@@ -144,6 +141,7 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
     int hexpair = 0;
     char data[MBEDTLS_X509_MAX_DN_NAME_SIZE];
     char *d = data;
+    int n1, n2;
 
     /* Clear existing chain if present */
     mbedtls_asn1_free_named_data_list(head);
@@ -165,9 +163,11 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
             c++;
 
             /* Check for valid escaped characters in RFC 4514 in Section 3*/
-            if (c + 1 < end && x509_is_char_hex(*c) && x509_is_char_hex(*(c+1))) {
+            n1 = hex_to_int(*c);
+            n2 = hex_to_int(*(c+1));
+            if (c + 1 < end && n1 != -1 && n2 != -1) {
                 hexpair = 1;
-                *(d++) = (x509_hex_to_int(*c) << 4) + x509_hex_to_int(*(c+1));
+                *(d++) = (n1 << 4) | n2;
                 c++;
             } else if (c == end || !strchr(" ,=+<>#;\"\\+", *c)) {
                 ret = MBEDTLS_ERR_X509_INVALID_NAME;

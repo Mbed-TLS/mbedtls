@@ -426,8 +426,8 @@ class CodeSizeGenerator:
     """ A generator based on size measurement tool for library/*.o.
 
     This is an abstract class. To use it, derive a class that implements
-    size_generator_write_record and size_generator_write_comparison methods,
-    then call both of them with proper arguments.
+    write_record and write_comparison methods, then call both of them with
+    proper arguments.
     """
     def __init__(self, logger: logging.Logger) -> None:
         """
@@ -435,11 +435,11 @@ class CodeSizeGenerator:
         """
         self.logger = logger
 
-    def size_generator_write_record(
+    def write_record(
             self,
             git_rev: str,
-            code_size_text: typing.Dict,
-            output_file: str
+            code_size_text: typing.Dict[str, str],
+            output: typing_util.Writable
     ) -> None:
         """Write size record into a file.
 
@@ -447,28 +447,26 @@ class CodeSizeGenerator:
         :param code_size_text:
             string output (utf-8) from measurement tool of code size.
                 - typing.Dict[mod: str]
-        :param output_file: file which the code size record is written to.
+        :param output: output stream which the code size record is written to.
+                       (Note: Normally write code size record into File)
         """
         raise NotImplementedError
 
-    def size_generator_write_comparison(
+    def write_comparison(
             self,
             old_rev: str,
             new_rev: str,
-            output_stream: str,
-            result_options: CodeSizeResultInfo
+            output: typing_util.Writable,
+            with_markdown=False
     ) -> None:
         """Write a comparision result into a stream between two Git revisions.
 
         :param old_rev: old Git revision to compared with.
         :param new_rev: new Git revision to compared with.
-        :param output_stream: stream which the code size record is written to.
-        :param result_options:
-            CodeSizeResultInfo containing options for comparison result.
-                - result_options.with_markdown:  write comparision result in a
-                                                 markdown table. (Default: False)
-                - result_options.stdout: direct comparison result into
-                                         sys.stdout. (Default: False)
+        :param output: output stream which the code size record is written to.
+                       (File / sys.stdout)
+        :param with_markdown:  write comparision result in a markdown table.
+                               (Default: False)
         """
         raise NotImplementedError
 
@@ -558,15 +556,19 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
             for fname, size_entry in file_size.items():
                 yield mod, fname, size_entry
 
-    def _write_size_record(
+    def write_record(
             self,
             git_rev: str,
+            code_size_text: typing.Dict[str, str],
             output: typing_util.Writable
     ) -> None:
         """Write size information to a file.
 
         Writing Format: file_name text data bss total(dec)
         """
+        for mod, size_text in code_size_text.items():
+            self._set_size_record(git_rev, mod, size_text)
+
         format_string = "{:<30} {:>7} {:>7} {:>7} {:>7}\n"
         output.write(format_string.format("filename",
                                           "text", "data", "bss", "total"))
@@ -575,12 +577,12 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                                               size_entry.text, size_entry.data,
                                               size_entry.bss, size_entry.total))
 
-    def _write_comparison(
+    def write_comparison(
             self,
             old_rev: str,
             new_rev: str,
             output: typing_util.Writable,
-            with_markdown: bool
+            with_markdown=False
     ) -> None:
         """Write comparison result into a file.
 
@@ -639,44 +641,6 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                 output.write("{:<30} {:<18}\n"
                              .format(fname,
                                      str(text_vari[0]) + "," + str(data_vari[0])))
-
-    def size_generator_write_record(
-            self,
-            git_rev: str,
-            code_size_text: typing.Dict,
-            output_file: str
-    ) -> None:
-        """Write size record into a specified file based on Git revision and
-        output from `size` tool."""
-        self.logger.debug("Generating code size csv for {}.".format(git_rev))
-
-        for mod, size_text in code_size_text.items():
-            self._set_size_record(git_rev, mod, size_text)
-
-        output = open(output_file, "w")
-        self._write_size_record(git_rev, output)
-
-    def size_generator_write_comparison(
-            self,
-            old_rev: str,
-            new_rev: str,
-            output_stream: str,
-            result_options: CodeSizeResultInfo
-    ) -> None:
-        """Write a comparision result into a stream between two Git revisions.
-
-        By default, it's written into a file called output_stream.
-        Once result_options.stdout is set, it's written into sys.stdout instead.
-        """
-        self.logger.debug("Generating comparison results between {} and {}."
-                          .format(old_rev, new_rev))
-
-        if result_options.stdout:
-            output = sys.stdout
-        else:
-            output = open(output_stream, "w")
-        self._write_comparison(old_rev, new_rev, output,
-                               result_options.with_markdown)
 
 
 class CodeSizeComparison:
@@ -790,9 +754,14 @@ class CodeSizeComparison:
             self.code_size_generator.read_size_record(
                 size_dist_info.git_rev, output_file)
         else:
-            self.code_size_generator.size_generator_write_record(
-                size_dist_info.git_rev, self.cal_code_size(size_dist_info),
-                output_file)
+            # measure code size
+            code_size_text = self.cal_code_size(size_dist_info)
+
+            self.logger.debug("Generating code size csv for {}."
+                              .format(size_dist_info.git_rev))
+            output = open(output_file, "w")
+            self.code_size_generator.write_record(
+                size_dist_info.git_rev, code_size_text, output)
 
     def gen_code_size_comparison(self) -> None:
         """Generate results of code size changes between two Git revisions,
@@ -811,10 +780,17 @@ class CodeSizeComparison:
             self.comp_dir,
             self.gen_file_name(self.old_size_dist_info, self.new_size_dist_info))
 
-        self.code_size_generator.size_generator_write_comparison(
+        self.logger.debug("Generating comparison results between {} and {}."
+                          .format(self.old_size_dist_info.git_rev,
+                                  self.new_size_dist_info.git_rev))
+        if self.result_options.stdout:
+            output = sys.stdout
+        else:
+            output = open(output_file, "w")
+        self.code_size_generator.write_comparison(
             self.old_size_dist_info.git_rev,
             self.new_size_dist_info.git_rev,
-            output_file, self.result_options)
+            output, self.result_options.with_markdown)
 
     def get_comparision_results(self) -> None:
         """Compare size of library/*.o between self.old_size_dist_info and

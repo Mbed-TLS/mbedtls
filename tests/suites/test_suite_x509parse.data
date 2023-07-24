@@ -184,11 +184,11 @@ x509_cert_info:"data_files/parse_input/server3.crt":"cert. version     \: 3\nser
 
 X509 CRT information Bitstring in subject name
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA1
-x509_cert_info:"data_files/parse_input/bitstring-in-dn.pem":"cert. version     \: 3\nserial number     \: 02\nissuer name       \: CN=Test CA 01, ST=Ecnivorp, C=XX, emailAddress=tca@example.com, O=Test CA Authority\nsubject name      \: C=XX, O=tca, ST=Ecnivorp, OU=TCA, CN=Client, emailAddress=client@example.com, serialNumber=7101012255, uniqueIdentifier=?7101012255\nissued  on        \: 2015-03-11 12\:06\:51\nexpires on        \: 2025-03-08 12\:06\:51\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nsubject alt name  \:\n    rfc822Name \: client@example.com\next key usage     \: TLS Web Client Authentication\n"
+x509_cert_info:"data_files/parse_input/bitstring-in-dn.pem":"cert. version     \: 3\nserial number     \: 02\nissuer name       \: CN=Test CA 01, ST=Ecnivorp, C=XX, emailAddress=tca@example.com, O=Test CA Authority\nsubject name      \: C=XX, O=tca, ST=Ecnivorp, OU=TCA, CN=Client, emailAddress=client@example.com, serialNumber=7101012255, uniqueIdentifier=\\007101012255\nissued  on        \: 2015-03-11 12\:06\:51\nexpires on        \: 2025-03-08 12\:06\:51\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nsubject alt name  \:\n    rfc822Name \: client@example.com\next key usage     \: TLS Web Client Authentication\n"
 
 X509 CRT information Non-ASCII string in issuer name and subject name
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256
-x509_cert_info:"data_files/parse_input/non-ascii-string-in-issuer.crt":"cert. version     \: 3\nserial number     \: 05\:E6\:53\:E7\:1B\:74\:F0\:B5\:D3\:84\:6D\:0C\:6D\:DC\:FA\:3F\:A4\:5A\:2B\:E0\nissuer name       \: C=JP, ST=Tokyo, O=?????????????????? Ltd, CN=?????????????????? CA\nsubject name      \: C=JP, ST=Tokyo, O=?????????????????? Ltd, CN=?????????????????? CA\nissued  on        \: 2020-05-20 16\:17\:23\nexpires on        \: 2020-06-19 16\:17\:23\nsigned using      \: RSA with SHA-256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=true\n"
+x509_cert_info:"data_files/parse_input/non-ascii-string-in-issuer.crt":"cert. version     \: 3\nserial number     \: 05\:E6\:53\:E7\:1B\:74\:F0\:B5\:D3\:84\:6D\:0C\:6D\:DC\:FA\:3F\:A4\:5A\:2B\:E0\nissuer name       \: C=JP, ST=Tokyo, O=\\C3\\A3\\C2\\83\\C2\\86\\C3\\A3\\C2\\82\\C2\\B9\\C3\\A3\\C2\\83\\C2\\88 Ltd, CN=\\C3\\A3\\C2\\83\\C2\\86\\C3\\A3\\C2\\82\\C2\\B9\\C3\\A3\\C2\\83\\C2\\88 CA\nsubject name      \: C=JP, ST=Tokyo, O=\\C3\\A3\\C2\\83\\C2\\86\\C3\\A3\\C2\\82\\C2\\B9\\C3\\A3\\C2\\83\\C2\\88 Ltd, CN=\\C3\\A3\\C2\\83\\C2\\86\\C3\\A3\\C2\\82\\C2\\B9\\C3\\A3\\C2\\83\\C2\\88 CA\nissued  on        \: 2020-05-20 16\:17\:23\nexpires on        \: 2020-06-19 16\:17\:23\nsigned using      \: RSA with SHA-256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=true\n"
 
 X509 CRT information Parsing IPv4 and IPv6 IP names
 depends_on:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
@@ -446,6 +446,14 @@ mbedtls_x509_dn_gets:"data_files/server2.crt":"issuer":"C=NL, O=PolarSSL, CN=Pol
 X509 Get Distinguished Name #5
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA1
 mbedtls_x509_dn_gets:"data_files/server1.commas.crt":"subject":"C=NL, O=PolarSSL\\, Commas, CN=PolarSSL Server 1"
+
+X509 Get Distinguished Name #6
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA1
+mbedtls_x509_dn_gets:"data_files/server1.hashsymbol.crt":"subject":"C=NL, O=\\#PolarSSL, CN=PolarSSL Server 1"
+
+X509 Get Distinguished Name #7
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA1
+mbedtls_x509_dn_gets:"data_files/server1.spaces.crt":"subject":"C=NL, O=\\ PolarSSL\\ , CN=PolarSSL Server 1"
 
 X509 Get Modified DN #1
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA1

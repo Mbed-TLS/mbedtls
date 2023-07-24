@@ -28,6 +28,8 @@
 
 #include <string.h>
 
+#include "mbedtls/platform.h"
+
 /* Structure linking OIDs for X.509 DN AttributeTypes to their
  * string representations and default string encodings used by Mbed TLS. */
 typedef struct {
@@ -35,7 +37,8 @@ typedef struct {
                        * "CN" or "emailAddress". */
     size_t name_len; /* Length of 'name', without trailing 0 byte. */
     const char *oid; /* String representation of OID of AttributeType,
-                      * as per RFC 5280, Appendix A.1. */
+                      * as per RFC 5280, Appendix A.1. encoded as per
+                      * X.690 */
     int default_tag; /* The default character encoding used for the
                       * given attribute type, e.g.
                       * MBEDTLS_ASN1_UTF8_STRING for UTF-8. */
@@ -123,27 +126,99 @@ static const x509_attr_descriptor_t *x509_attr_descr_from_name(const char *name,
     return cur;
 }
 
-static int x509_is_char_hex(char c)
+static const x509_attr_descriptor_t *x509_attr_descr_from_numericoid(const char *numericoid, size_t numericoid_len)
 {
-    return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
+    const x509_attr_descriptor_t *cur;
+    mbedtls_asn1_buf *oid = mbedtls_calloc(1,sizeof(mbedtls_asn1_buf));
+    int ret;
+
+    ret = mbedtls_oid_from_numeric_string(oid, numericoid, numericoid_len);
+    if((ret == MBEDTLS_ERR_X509_ALLOC_FAILED) || (ret == MBEDTLS_ERR_ASN1_INVALID_DATA)) {
+      return NULL;
+    }
+
+    for (cur = x509_attrs; cur->oid != NULL; cur++) {
+        if (sizeof(cur->oid) == oid->len &&
+            strncmp(cur->oid, (const char*) oid->p, oid->len) == 0) {
+            break;
+        }
+    }
+
+    mbedtls_free(oid->p);
+    if (cur->oid == NULL) {
+        return NULL;
+    }
+
+    return cur;
 }
 
-static int x509_hex_to_int(char c)
+static int hex_to_int(char c)
 {
-    return ((c & 0x40) ? (c + 9) : c) & 0x0F;
+    return ('0' <= c && c <= '9') ? (c - '0') :
+           ('a' <= c && c <= 'f') ? (c - 'a' + 10) :
+           ('A' <= c && c <= 'F') ? (c - 'A' + 10) : -1;
+}
+
+static int hexpair_to_int(char c1, char c2)
+{
+    int n1 = hex_to_int(c1);
+    int n2 = hex_to_int(c2);
+    if (n1 != -1 && n2 != -1) {
+        return (n1 << 4) | n2;
+    } else {
+        return -1;
+    }
+}
+
+static int parse_attribute_value_string(const char *s, int len, char *data, int *data_len) {
+    const char *c = s;
+    const char *end = c + len;
+    int hexpair = 0;
+    char *d = data;
+    int n;
+    while(c < end) {
+        if (*c == '\\') {
+            c++;
+
+            /* Check for valid escaped characters in RFC 4514 in Section 3*/
+            if (c + 1 < end && (n = hexpair_to_int(*c, *(c+1))) != -1) {
+                hexpair = 1;
+                *(d++) = n;
+                c++;
+            } else if (c == end || !strchr(" ,=+<>#;\"\\+", *c)) {
+                return MBEDTLS_ERR_X509_INVALID_NAME;
+            }
+        }
+        if (!hexpair) {
+            *(d++) = *c;
+        }
+        if (d - data == MBEDTLS_X509_MAX_DN_NAME_SIZE) {
+            return MBEDTLS_ERR_X509_INVALID_NAME;
+        }
+
+        hexpair = 0;
+        c++;
+    }
+    *data_len = d - data;
+    return 0;
+}
+
+static int parse_attribute_value_ber_encoded(const char *s, int len, char *data, int *data_len) {
+    return 0;
 }
 
 int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *name)
 {
     int ret = MBEDTLS_ERR_X509_INVALID_NAME;
+    int parse_ret = 0;
     const char *s = name, *c = s;
     const char *end = s + strlen(s);
     const char *oid = NULL;
     const x509_attr_descriptor_t *attr_descr = NULL;
     int in_tag = 1;
-    int hexpair = 0;
+    int numericoid = 0;
     char data[MBEDTLS_X509_MAX_DN_NAME_SIZE];
-    char *d = data;
+    int data_len = 0;
 
     /* Clear existing chain if present */
     mbedtls_asn1_free_named_data_list(head);
@@ -151,34 +226,35 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
     while (c <= end) {
         if (in_tag && *c == '=') {
             if ((attr_descr = x509_attr_descr_from_name(s, c - s)) == NULL) {
-                ret = MBEDTLS_ERR_X509_UNKNOWN_OID;
-                goto exit;
+                if ((attr_descr = x509_attr_descr_from_numericoid(s, c - s)) == NULL) {
+                    return MBEDTLS_ERR_X509_UNKNOWN_OID;
+                } else {
+                    numericoid = 1;
+                }
+            } else {
+                numericoid = 0;
             }
 
             oid = attr_descr->oid;
             s = c + 1;
             in_tag = 0;
-            d = data;
         }
 
-        if (!in_tag && *c == '\\' && c != end) {
-            c++;
-
-            /* Check for valid escaped characters in RFC 4514 in Section 3*/
-            if (c + 1 < end && x509_is_char_hex(*c) && x509_is_char_hex(*(c+1))) {
-                hexpair = 1;
-                *(d++) = (x509_hex_to_int(*c) << 4) + x509_hex_to_int(*(c+1));
-                c++;
-            } else if (c == end || !strchr(" ,=+<>#;\"\\+", *c)) {
-                ret = MBEDTLS_ERR_X509_INVALID_NAME;
-                goto exit;
+        if(!in_tag && ((*c == ',' && *(c-1) != '\\') || c == end)) {
+            if(!numericoid) {
+                if((parse_ret = parse_attribute_value_string(s, c - s, data, &data_len)) != 0) {
+                  return MBEDTLS_ERR_X509_INVALID_NAME;
+                }
             }
-        } else if (!in_tag && (*c == ',' || c == end)) {
+            if(numericoid) {
+                if((parse_ret = parse_attribute_value_ber_encoded(s, c - s, data, &data_len)) != 0) {
+                  return MBEDTLS_ERR_X509_INVALID_NAME;
+                }
+            }
             mbedtls_asn1_named_data *cur =
                 mbedtls_asn1_store_named_data(head, oid, strlen(oid),
                                               (unsigned char *) data,
-                                              d - data);
-
+                                              data_len);
             if (cur == NULL) {
                 return MBEDTLS_ERR_X509_ALLOC_FAILED;
             }
@@ -196,22 +272,8 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
             /* Successfully parsed one name, update ret to success */
             ret = 0;
         }
-
-        if (!hexpair && !in_tag && s != c + 1) {
-            *(d++) = *c;
-
-            if (d - data == MBEDTLS_X509_MAX_DN_NAME_SIZE) {
-                ret = MBEDTLS_ERR_X509_INVALID_NAME;
-                goto exit;
-            }
-        }
-
-        hexpair = 0;
         c++;
     }
-
-exit:
-
     return ret;
 }
 

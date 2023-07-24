@@ -529,6 +529,12 @@ static int psa_rsa_oaep_set_padding_mode(psa_algorithm_t alg,
     psa_algorithm_t hash_alg = PSA_ALG_RSA_OAEP_GET_HASH(alg);
     mbedtls_md_type_t md_alg = mbedtls_md_type_from_psa_alg(hash_alg);
 
+    /* Just to get the error status right, as rsa_set_padding() doesn't
+     * distinguish between "bad RSA algorithm" and "unknown hash". */
+    if (mbedtls_md_info_from_type(md_alg) == NULL) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
     return mbedtls_rsa_set_padding(rsa, MBEDTLS_RSA_PKCS_V21, md_alg);
 }
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) */

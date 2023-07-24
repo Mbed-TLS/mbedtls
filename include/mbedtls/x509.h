@@ -367,6 +367,31 @@ static inline mbedtls_x509_name *mbedtls_x509_dn_get_next(
 int mbedtls_x509_serial_gets(char *buf, size_t size, const mbedtls_x509_buf *serial);
 
 /**
+ * \brief          Compare pair of mbedtls_x509_time.
+ *
+ * \param t1       mbedtls_x509_time to compare
+ * \param t2       mbedtls_x509_time to compare
+ *
+ * \return         < 0 if t1 is before t2
+ *                   0 if t1 equals t2
+ *                 > 0 if t1 is after t2
+ */
+int mbedtls_x509_time_cmp(const mbedtls_x509_time *t1, const mbedtls_x509_time *t2);
+
+#if defined(MBEDTLS_HAVE_TIME_DATE)
+/**
+ * \brief          Fill mbedtls_x509_time with provided mbedtls_time_t.
+ *
+ * \param tt       mbedtls_time_t to convert
+ * \param now      mbedtls_x509_time to fill with converted mbedtls_time_t
+ *
+ * \return         \c 0 on success
+ * \return         A non-zero return value on failure.
+ */
+int mbedtls_x509_time_gmtime(mbedtls_time_t tt, mbedtls_x509_time *now);
+#endif /* MBEDTLS_HAVE_TIME_DATE */
+
+/**
  * \brief          Check a given mbedtls_x509_time against the system time
  *                 and tell if it's in the past.
  *
@@ -404,7 +429,7 @@ int mbedtls_x509_time_is_future(const mbedtls_x509_time *from);
  * \param san_buf  The buffer holding the raw data item of the subject
  *                 alternative name.
  * \param san      The target structure to populate with the parsed presentation
- *                 of the subject alternative name encoded in \p san_raw.
+ *                 of the subject alternative name encoded in \p san_buf.
  *
  * \note           Supported GeneralName types, as defined in RFC 5280:
  *                 "rfc822Name", "dnsName", "directoryName",
@@ -414,7 +439,7 @@ int mbedtls_x509_time_is_future(const mbedtls_x509_time *from);
  * \note           This function should be called on a single raw data of
  *                 subject alternative name. For example, after successful
  *                 certificate parsing, one must iterate on every item in the
- *                 \p crt->subject_alt_names sequence, and pass it to
+ *                 \c crt->subject_alt_names sequence, and pass it to
  *                 this function.
  *
  * \warning        The target structure contains pointers to the raw data of the

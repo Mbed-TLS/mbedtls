@@ -93,6 +93,10 @@ void mbedtls_test_init_handshake_options(
     opts->cache = NULL;
     ASSERT_ALLOC(opts->cache, 1);
     mbedtls_ssl_cache_init(opts->cache);
+#if defined(MBEDTLS_HAVE_TIME)
+    TEST_EQUAL(mbedtls_ssl_cache_get_timeout(opts->cache),
+               MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT);
+#endif
 exit:
     return;
 #endif
@@ -926,13 +930,14 @@ int mbedtls_ssl_write_fragment(mbedtls_ssl_context *ssl,
                                int *written,
                                const int expected_fragments)
 {
+    int ret;
     /* Verify that calling mbedtls_ssl_write with a NULL buffer and zero length is
      * a valid no-op for TLS connections. */
     if (ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
         TEST_ASSERT(mbedtls_ssl_write(ssl, NULL, 0) == 0);
     }
 
-    int ret = mbedtls_ssl_write(ssl, buf + *written, buf_len - *written);
+    ret = mbedtls_ssl_write(ssl, buf + *written, buf_len - *written);
     if (ret > 0) {
         *written += ret;
     }
@@ -972,13 +977,14 @@ int mbedtls_ssl_read_fragment(mbedtls_ssl_context *ssl,
                               int *read, int *fragments,
                               const int expected_fragments)
 {
+    int ret;
     /* Verify that calling mbedtls_ssl_write with a NULL buffer and zero length is
      * a valid no-op for TLS connections. */
     if (ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
         TEST_ASSERT(mbedtls_ssl_read(ssl, NULL, 0) == 0);
     }
 
-    int ret = mbedtls_ssl_read(ssl, buf + *read, buf_len - *read);
+    ret = mbedtls_ssl_read(ssl, buf + *read, buf_len - *read);
     if (ret > 0) {
         (*fragments)++;
         *read += ret;
@@ -1142,11 +1148,11 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
     /* Pick cipher */
     cipher_info = mbedtls_cipher_info_from_type(cipher_type);
     CHK(cipher_info != NULL);
-    CHK(cipher_info->iv_size <= 16);
-    CHK(cipher_info->key_bitlen % 8 == 0);
+    CHK(mbedtls_cipher_info_get_iv_size(cipher_info) <= 16);
+    CHK(mbedtls_cipher_info_get_key_bitlen(cipher_info) % 8 == 0);
 
     /* Pick keys */
-    keylen = cipher_info->key_bitlen / 8;
+    keylen = mbedtls_cipher_info_get_key_bitlen(cipher_info) / 8;
     /* Allocate `keylen + 1` bytes to ensure that we get
      * a non-NULL pointers from `mbedtls_calloc` even if
      * `keylen == 0` in the case of the NULL cipher. */
@@ -1273,7 +1279,7 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
 
     /* Pick IV's (regardless of whether they
      * are being used by the transform). */
-    ivlen = cipher_info->iv_size;
+    ivlen = mbedtls_cipher_info_get_iv_size(cipher_info);
     memset(iv_enc, 0x3, sizeof(iv_enc));
     memset(iv_dec, 0x4, sizeof(iv_dec));
 

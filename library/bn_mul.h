@@ -248,27 +248,39 @@
 
 #endif /* AMD64 */
 
-#if defined(__aarch64__)
+// The following assembly code assumes that a pointer will fit in a 64-bit register
+// (including ILP32 __aarch64__ ABIs such as on watchOS, hence the 2^32 - 1)
+#if defined(__aarch64__) && (UINTPTR_MAX == 0xfffffffful || UINTPTR_MAX == 0xfffffffffffffffful)
 
+/*
+ * There are some issues around different compilers requiring different constraint
+ * syntax for updating pointers from assembly code (see notes for
+ * MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT in common.h), especially on aarch64_32 (aka ILP32).
+ *
+ * For this reason we cast the pointers to/from uintptr_t here.
+ */
 #define MULADDC_X1_INIT             \
-    asm(
+    do { uintptr_t muladdc_d = (uintptr_t) d, muladdc_s = (uintptr_t) s; asm(
 
 #define MULADDC_X1_CORE             \
-        "ldr x4, [%2], #8   \n\t"   \
-        "ldr x5, [%1]       \n\t"   \
+        "ldr x4, [%x2], #8  \n\t"   \
+        "ldr x5, [%x1]      \n\t"   \
         "mul x6, x4, %4     \n\t"   \
         "umulh x7, x4, %4   \n\t"   \
         "adds x5, x5, x6    \n\t"   \
         "adc x7, x7, xzr    \n\t"   \
         "adds x5, x5, %0    \n\t"   \
         "adc %0, x7, xzr    \n\t"   \
-        "str x5, [%1], #8   \n\t"
+        "str x5, [%x1], #8  \n\t"
 
 #define MULADDC_X1_STOP                                                 \
-         : "+r" (c),  "+r" (d), "+r" (s), "+m" (*(uint64_t (*)[16]) d)  \
+         : "+r" (c),                                                    \
+           "+r" (muladdc_d),                                            \
+           "+r" (muladdc_s),                                            \
+           "+m" (*(uint64_t (*)[16]) d)                                 \
          : "r" (b), "m" (*(const uint64_t (*)[16]) s)                   \
          : "x4", "x5", "x6", "x7", "cc"                                 \
-    );
+    ); d = (mbedtls_mpi_uint *)muladdc_d; s = (mbedtls_mpi_uint *)muladdc_s; } while (0);
 
 #endif /* Aarch64 */
 
@@ -661,14 +673,10 @@
 #if defined(__arm__)
 
 #if defined(__thumb__) && !defined(__thumb2__)
-#if !defined(__ARMCC_VERSION) && !defined(__clang__) \
-    && !defined(__llvm__) && !defined(__INTEL_COMPILER)
+#if defined(MBEDTLS_COMPILER_IS_GCC)
 /*
  * Thumb 1 ISA. This code path has only been tested successfully on gcc;
  * it does not compile on clang or armclang.
- *
- * Other compilers which define __GNUC__ may not work. The above macro
- * attempts to exclude these untested compilers.
  */
 
 #if !defined(__OPTIMIZE__) && defined(__GNUC__)

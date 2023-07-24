@@ -5,7 +5,7 @@
  *        removed from the library.
  *
  * PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_LEGACY and
- * MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_LEGACY symbols are deprecated.
+ * MBEDTLS_PSA_ACCEL_KEY_TYPE_xxx_KEY_PAIR_LEGACY symbols are deprecated.
  * New symols add a suffix to that base name in order to clearly state what is
  * the expected use for the key (use, import, export, generate, derive).
  * Here we define some backward compatibility support for uses stil using

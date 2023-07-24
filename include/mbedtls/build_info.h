@@ -232,6 +232,12 @@
 #define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED
 #endif
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    (defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED))
+#define MBEDTLS_SSL_TLS1_2_SOME_ECC
+#endif
+
 /* Make sure all configuration symbols are set before including check_config.h,
  * even the ones that are calculated programmatically. */
 #include "mbedtls/check_config.h"

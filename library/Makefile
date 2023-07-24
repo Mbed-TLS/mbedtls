@@ -102,6 +102,7 @@ OBJS_CRYPTO= \
 	     ecdsa.o \
 	     ecjpake.o \
 	     ecp.o \
+	     ecp_new.o \
 	     ecp_curves.o \
 	     entropy.o \
 	     entropy_poll.o \

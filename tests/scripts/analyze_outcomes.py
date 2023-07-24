@@ -248,20 +248,6 @@ TASKS = {
                     'ECP test vectors secp384r1 rfc 5114',
                     'ECP test vectors secp521r1 rfc 5114',
                 ],
-                'test_suite_pkparse': [
-                    # This is a known difference for Montgomery curves: in
-                    # reference component private keys are parsed using
-                    # mbedtls_mpi_read_binary_le(), while in driver version they
-                    # they are imported in PSA and there the parsing is done
-                    # through mbedtls_ecp_read_key(). Unfortunately the latter
-                    # fixes the errors which are intentionally set on the parsed
-                    # key and therefore the following test case is not failing
-                    # as expected.
-                    # This cause the following test to be guarded by ECP_C and
-                    # not being executed on the driver version.
-                    ('Key ASN1 (OneAsymmetricKey X25519, doesn\'t match masking '
-                     'requirements, from RFC8410 Appendix A but made into version 0)'),
-                ],
             }
         }
     },
@@ -298,10 +284,6 @@ TASKS = {
                     'PSA key derivation: bits=7 invalid for ECC SECT_R2 (ECC enabled)',
                 ],
                 'test_suite_pkparse': [
-                    # See description provided for the analyze_driver_vs_reference_all_ec_algs
-                    # case above.
-                    ('Key ASN1 (OneAsymmetricKey X25519, doesn\'t match masking '
-                     'requirements, from RFC8410 Appendix A but made into version 0)'),
                     # When PK_PARSE_C and ECP_C are defined then PK_PARSE_EC_COMPRESSED
                     # is automatically enabled in build_info.h (backward compatibility)
                     # even if it is disabled in config_psa_crypto_no_ecp_at_all(). As a
@@ -326,6 +308,15 @@ TASKS = {
                     'Parse Public EC Key #9a (RFC 5480, brainpoolP512r1, compressed)',
                 ],
             }
+        }
+    },
+    'analyze_driver_vs_reference_ffdh_alg': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_psa_crypto_config_reference_ffdh',
+            'component_driver': 'test_psa_crypto_config_accel_ffdh',
+            'ignored_suites': ['dhm'],
+            'ignored_tests': {}
         }
     },
 }

@@ -70,6 +70,7 @@ int main(void)
 #endif
 
 #include "mbedtls/pk.h"
+#include "mbedtls/dhm.h"
 
 /* Size of memory to be allocated for the heap, when using the library's memory
  * management and MBEDTLS_MEMORY_BUFFER_ALLOC_C is enabled. */
@@ -132,7 +133,7 @@ int main(void)
 #define DFL_CACHE_REMOVE        0
 #define DFL_SNI                 NULL
 #define DFL_ALPN_STRING         NULL
-#define DFL_CURVES              NULL
+#define DFL_GROUPS              NULL
 #define DFL_MAX_EARLY_DATA_SIZE 0
 #define DFL_SIG_ALGS            NULL
 #define DFL_DHM_FILE            NULL
@@ -445,15 +446,20 @@ int main(void)
 #define USAGE_EARLY_DATA ""
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
-#if defined(MBEDTLS_ECP_LIGHT)
-#define USAGE_CURVES \
-    "    curves=a,b,c,d      default: \"default\" (library default)\n"  \
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) || \
+    (defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
+    defined(PSA_WANT_ALG_FFDH))
+#define USAGE_GROUPS \
+    "    groups=a,b,c,d      default: \"default\" (library default)\n"  \
     "                        example: \"secp521r1,brainpoolP512r1\"\n"  \
     "                        - use \"none\" for empty list\n"           \
-    "                        - see mbedtls_ecp_curve_list()\n"          \
-    "                          for acceptable curve names\n"
+    "                        - see mbedtls_ecp_curve_list()\n"                \
+    "                          for acceptable EC group names\n"               \
+    "                        - the following ffdh groups are supported:\n"    \
+    "                          ffdhe2048, ffdhe3072, ffdhe4096, ffdhe6144,\n" \
+    "                          ffdhe8192\n"
 #else
-#define USAGE_CURVES ""
+#define USAGE_GROUPS ""
 #endif
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
@@ -557,7 +563,7 @@ int main(void)
     USAGE_ALPN                                              \
     USAGE_EMS                                               \
     USAGE_ETM                                               \
-    USAGE_CURVES                                            \
+    USAGE_GROUPS                                            \
     USAGE_SIG_ALGS                                          \
     USAGE_KEY_OPAQUE_ALGS                                   \
     "\n"
@@ -585,10 +591,6 @@ int main(void)
     "                                is printed if it is defined\n"           \
     USAGE_SERIALIZATION                                                       \
     " acceptable ciphersuite names:\n"
-
-#define ALPN_LIST_SIZE    10
-#define CURVE_LIST_SIZE   20
-#define SIG_ALG_LIST_SIZE 5
 
 #define PUT_UINT64_BE(out_be, in_le, i)                                   \
     {                                                                       \
@@ -673,7 +675,7 @@ struct options {
 #endif
     int cache_remove;           /* enable / disable cache entry removal     */
     char *sni;                  /* string describing sni information        */
-    const char *curves;         /* list of supported elliptic curves        */
+    const char *groups;         /* list of supported groups                 */
     const char *sig_algs;       /* supported TLS 1.3 signature algorithms   */
     const char *alpn_string;    /* ALPN supported protocols                 */
     const char *dhm_file;       /* the file with the DH parameters          */
@@ -1523,10 +1525,7 @@ int main(int argc, char *argv[])
 #if defined(SNI_OPTION)
     sni_entry *sni_info = NULL;
 #endif
-#if defined(MBEDTLS_ECP_LIGHT)
-    uint16_t group_list[CURVE_LIST_SIZE];
-    const mbedtls_ecp_curve_info *curve_cur;
-#endif
+    uint16_t group_list[GROUP_LIST_SIZE];
 #if defined(MBEDTLS_SSL_ALPN)
     const char *alpn_list[ALPN_LIST_SIZE];
 #endif
@@ -1737,7 +1736,7 @@ usage:
     opt.cache_remove        = DFL_CACHE_REMOVE;
     opt.sni                 = DFL_SNI;
     opt.alpn_string         = DFL_ALPN_STRING;
-    opt.curves              = DFL_CURVES;
+    opt.groups              = DFL_GROUPS;
     opt.max_early_data_size = DFL_MAX_EARLY_DATA_SIZE;
     opt.sig_algs            = DFL_SIG_ALGS;
     opt.dhm_file            = DFL_DHM_FILE;
@@ -1917,8 +1916,8 @@ usage:
                 goto usage;
             }
             opt.force_ciphersuite[1] = 0;
-        } else if (strcmp(p, "curves") == 0) {
-            opt.curves = q;
+        } else if (strcmp(p, "groups") == 0) {
+            opt.groups = q;
         }
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
         else if (strcmp(p, "sig_algs") == 0) {
@@ -2390,53 +2389,11 @@ usage:
     }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
-#if defined(MBEDTLS_ECP_LIGHT)
-    if (opt.curves != NULL) {
-        p = (char *) opt.curves;
-        i = 0;
-
-        if (strcmp(p, "none") == 0) {
-            group_list[0] = 0;
-        } else if (strcmp(p, "default") != 0) {
-            /* Leave room for a final NULL in curve list */
-            while (i < CURVE_LIST_SIZE - 1 && *p != '\0') {
-                q = p;
-
-                /* Terminate the current string */
-                while (*p != ',' && *p != '\0') {
-                    p++;
-                }
-                if (*p == ',') {
-                    *p++ = '\0';
-                }
-
-                if ((curve_cur = mbedtls_ecp_curve_info_from_name(q)) != NULL) {
-                    group_list[i++] = curve_cur->tls_id;
-                } else {
-                    mbedtls_printf("unknown curve %s\n", q);
-                    mbedtls_printf("supported curves: ");
-                    for (curve_cur = mbedtls_ecp_curve_list();
-                         curve_cur->grp_id != MBEDTLS_ECP_DP_NONE;
-                         curve_cur++) {
-                        mbedtls_printf("%s ", curve_cur->name);
-                    }
-                    mbedtls_printf("\n");
-                    goto exit;
-                }
-            }
-
-            mbedtls_printf("Number of curves: %d\n", i);
-
-            if (i == CURVE_LIST_SIZE - 1 && *p != '\0') {
-                mbedtls_printf("curves list too long, maximum %d",
-                               CURVE_LIST_SIZE - 1);
-                goto exit;
-            }
-
-            group_list[i] = 0;
+    if (opt.groups != NULL) {
+        if (parse_groups(opt.groups, group_list, GROUP_LIST_SIZE) != 0) {
+            goto exit;
         }
     }
-#endif /* MBEDTLS_ECP_LIGHT */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     if (opt.sig_algs != NULL) {
@@ -3138,9 +3095,11 @@ usage:
     }
 #endif
 
-#if defined(MBEDTLS_ECP_LIGHT)
-    if (opt.curves != NULL &&
-        strcmp(opt.curves, "default") != 0) {
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) || \
+    (defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
+    defined(PSA_WANT_ALG_FFDH))
+    if (opt.groups != NULL &&
+        strcmp(opt.groups, "default") != 0) {
         mbedtls_ssl_conf_groups(&conf, group_list);
     }
 #endif

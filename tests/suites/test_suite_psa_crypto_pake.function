@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #include "psa/crypto.h"
+#include "psa/crypto_extra.h"
 
 typedef enum {
     ERR_NONE = 0,
@@ -39,6 +40,10 @@ typedef enum {
     ERR_INJECT_ROUND2_SERVER_KEY_SHARE,
     ERR_INJECT_ROUND2_SERVER_ZK_PUBLIC,
     ERR_INJECT_ROUND2_SERVER_ZK_PROOF,
+    ERR_INJECT_EXTRA_OUTPUT,
+    ERR_INJECT_EXTRA_INPUT,
+    ERR_INJECT_EXTRA_OUTPUT_AT_END,
+    ERR_INJECT_EXTRA_INPUT_AT_END,
     /* erros issued from the .data file */
     ERR_IN_SETUP,
     ERR_IN_SET_USER,
@@ -67,6 +72,13 @@ static const uint8_t jpake_client_id[] = { 'c', 'l', 'i', 'e', 'n', 't' };
     if (this_stage == err_stage)                  \
     {                                               \
         *(buf + 7) ^= 1;                           \
+    }
+
+#define DO_ROUND_CONDITIONAL_CHECK_FAILURE(this_stage, function) \
+    if (this_stage == err_stage)                                 \
+    {                                                            \
+        TEST_EQUAL(function, expected_error_arg);                \
+        break;                                                   \
     }
 
 #define DO_ROUND_UPDATE_OFFSETS(main_buf_offset, step_offset, step_size) \
@@ -185,6 +197,12 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
                 buffer0 + buffer0_off);
             DO_ROUND_UPDATE_OFFSETS(buffer0_off, s_x2_pr_off, s_x2_pr_len);
 
+            size_t extra_output_len;
+            DO_ROUND_CONDITIONAL_CHECK_FAILURE(
+                ERR_INJECT_EXTRA_OUTPUT,
+                psa_pake_output(server, PSA_PAKE_STEP_KEY_SHARE,
+                                buffer0 + s_g2_off, 512 - s_g2_off, &extra_output_len));
+            (void) extra_output_len;
             /*
              * When injecting errors in inputs, the implementation is
              * free to detect it right away of with a delay.
@@ -222,6 +240,12 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
                                         buffer0 + s_x2_pr_off,
                                         s_x2_pr_len);
                 DO_ROUND_CHECK_FAILURE();
+
+                /* Note: Must have client_input_first == 1 to inject extra input */
+                DO_ROUND_CONDITIONAL_CHECK_FAILURE(
+                    ERR_INJECT_EXTRA_INPUT,
+                    psa_pake_input(client, PSA_PAKE_STEP_KEY_SHARE,
+                                   buffer0 + s_g2_off, s_g2_len));
 
                 /* Error didn't trigger, make test fail */
                 if ((err_stage >= ERR_INJECT_ROUND1_SERVER_KEY_SHARE_PART1) &&
@@ -444,6 +468,16 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
                 buffer1 + buffer1_off);
             DO_ROUND_UPDATE_OFFSETS(buffer1_off, c_x2s_pr_off, c_x2s_pr_len);
 
+            if (client_input_first == 1) {
+                size_t extra_output_at_end_len;
+                DO_ROUND_CONDITIONAL_CHECK_FAILURE(
+                    ERR_INJECT_EXTRA_OUTPUT_AT_END,
+                    psa_pake_output(client, PSA_PAKE_STEP_KEY_SHARE,
+                                    buffer1 + c_a_off, 512 - c_a_off,
+                                    &extra_output_at_end_len));
+                (void) extra_output_at_end_len;
+            }
+
             if (client_input_first == 0) {
                 /* Client second round Input */
                 status = psa_pake_input(client, PSA_PAKE_STEP_KEY_SHARE,
@@ -480,6 +514,12 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             status = psa_pake_input(server, PSA_PAKE_STEP_ZK_PROOF,
                                     buffer1 + c_x2s_pr_off, c_x2s_pr_len);
             DO_ROUND_CHECK_FAILURE();
+
+            DO_ROUND_CONDITIONAL_CHECK_FAILURE(
+                ERR_INJECT_EXTRA_INPUT_AT_END,
+                psa_pake_input(server, PSA_PAKE_STEP_KEY_SHARE,
+                               buffer1 + c_a_off, c_a_len));
+
 
             /* Error didn't trigger, make test fail */
             if ((err_stage >= ERR_INJECT_ROUND2_CLIENT_KEY_SHARE) &&
@@ -733,7 +773,8 @@ void ecjpake_rounds_inject(int alg_arg, int primitive_arg, int hash_arg,
                            int client_input_first,
                            data_t *pw_data,
                            int err_stage_arg,
-                           int expected_error_arg)
+                           int expected_error_arg,
+                           int inject_in_second_round)
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
     psa_pake_operation_t server = psa_pake_operation_init();
@@ -770,9 +811,10 @@ void ecjpake_rounds_inject(int alg_arg, int primitive_arg, int hash_arg,
 
     ecjpake_do_round(alg, primitive_arg, &server, &client,
                      client_input_first, PAKE_ROUND_ONE,
-                     err_stage, expected_error_arg);
+                     inject_in_second_round ? ERR_NONE : err_stage,
+                     expected_error_arg);
 
-    if (err_stage != ERR_NONE) {
+    if (!inject_in_second_round && err_stage != ERR_NONE) {
         goto exit;
     }
 

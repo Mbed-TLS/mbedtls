@@ -46,10 +46,18 @@
 #endif
 
 #include <string.h>
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,    \
-                                                           psa_to_ssl_errors,              \
-                                                           psa_generic_status_to_mbedtls)
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
+#include "psa/crypto.h"
+/* Define a local translating function to save code size by not using too many
+ * arguments in each translating place. */
+static int local_err_translation(psa_status_t status)
+{
+    return psa_status_to_mbedtls(status, psa_to_ssl_errors,
+                                 ARRAY_LENGTH(psa_to_ssl_errors),
+                                 psa_generic_status_to_mbedtls);
+}
+#define PSA_TO_MBEDTLS_ERR(status) local_err_translation(status)
 #endif
 
 /*
@@ -63,7 +71,9 @@
  * only used here.
  */
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS) && defined(MBEDTLS_HAVE_ASM)
-#if defined(__arm__) || defined(__thumb__) || defined(__thumb2__) || defined(__aarch64__)
+#if ((defined(__arm__) || defined(__thumb__) || defined(__thumb2__)) && \
+    (UINTPTR_MAX == 0xfffffffful)) || defined(__aarch64__)
+/* We check pointer sizes to avoid issues with them not matching register size requirements */
 #define MBEDTLS_EFFICIENT_UNALIGNED_VOLATILE_ACCESS
 #endif
 #endif
@@ -79,7 +89,7 @@ static inline uint32_t mbedtls_get_unaligned_volatile_uint32(volatile const unsi
 #if defined(__arm__) || defined(__thumb__) || defined(__thumb2__)
     asm volatile ("ldr %0, [%1]" : "=r" (r) : "r" (p) :);
 #elif defined(__aarch64__)
-    asm volatile ("ldr %w0, [%1]" : "=r" (r) : "r" (p) :);
+    asm volatile ("ldr %w0, [%1]" : "=r" (r) : MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT(p) :);
 #endif
     return r;
 }

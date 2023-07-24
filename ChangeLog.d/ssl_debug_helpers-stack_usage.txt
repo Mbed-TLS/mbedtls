@@ -1,0 +1,3 @@
+Bugfix
+   * Fix very high stack usage in SSL debug code. Reported by Maximilian
+     Gerhardt in #7804.

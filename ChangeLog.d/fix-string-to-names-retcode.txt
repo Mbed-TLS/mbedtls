@@ -1,0 +1,3 @@
+Bugfix
+   * Fix a bug in which mbedtls_x509_string_to_names() would return success
+     when given a invalid name string if it did not contain '=' or ','.

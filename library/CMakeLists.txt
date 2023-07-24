@@ -37,6 +37,7 @@ set(src_crypto
     ecdsa.c
     ecjpake.c
     ecp.c
+    ecp_new.c
     ecp_curves.c
     entropy.c
     entropy_poll.c
@@ -320,6 +321,15 @@ foreach(target IN LISTS target_libraries)
         PUBLIC $<BUILD_INTERFACE:${MBEDTLS_DIR}/include/>
                $<INSTALL_INTERFACE:include/>
         PRIVATE ${MBEDTLS_DIR}/library/)
+    # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
+    if(MBEDTLS_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
+    endif()
+    if(MBEDTLS_USER_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
+    endif()
     install(
         TARGETS ${target}
         EXPORT MbedTLSTargets

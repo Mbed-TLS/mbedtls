@@ -114,7 +114,9 @@ int mbedtls_mpi_grow(mbedtls_mpi *X, size_t nblimbs)
             mbedtls_free(X->p);
         }
 
-        X->n = nblimbs;
+        /* nblimbs fits in n because we ensure that MBEDTLS_MPI_MAX_LIMBS
+         * fits, and we've checked that nblimbs <= MBEDTLS_MPI_MAX_LIMBS. */
+        X->n = (unsigned short) nblimbs;
         X->p = p;
     }
 
@@ -162,7 +164,9 @@ int mbedtls_mpi_shrink(mbedtls_mpi *X, size_t nblimbs)
         mbedtls_free(X->p);
     }
 
-    X->n = i;
+    /* i fits in n because we ensure that MBEDTLS_MPI_MAX_LIMBS
+     * fits, and we've checked that i <= nblimbs <= MBEDTLS_MPI_MAX_LIMBS. */
+    X->n = (unsigned short) i;
     X->p = p;
 
     return 0;
@@ -896,6 +900,8 @@ int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t j;
+    mbedtls_mpi_uint *p;
+    mbedtls_mpi_uint c;
     MPI_VALIDATE_RET(X != NULL);
     MPI_VALIDATE_RET(A != NULL);
     MPI_VALIDATE_RET(B != NULL);
@@ -929,9 +935,9 @@ int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 
     /* j is the number of non-zero limbs of B. Add those to X. */
 
-    mbedtls_mpi_uint *p = X->p;
+    p = X->p;
 
-    mbedtls_mpi_uint c = mbedtls_mpi_core_add(p, p, B->p, j);
+    c = mbedtls_mpi_core_add(p, p, B->p, j);
 
     p += j;
 
@@ -1574,8 +1580,8 @@ static void mpi_montred(mbedtls_mpi *A, const mbedtls_mpi *N,
 {
     mbedtls_mpi_uint z = 1;
     mbedtls_mpi U;
-
-    U.n = U.s = (int) z;
+    U.n = 1;
+    U.s = 1;
     U.p = &z;
 
     mpi_montmul(A, &U, N, mm, T);

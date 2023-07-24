@@ -1278,6 +1278,32 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
+void mbedtls_x509_crt_parse_file(char *crt_path, int ret, int nb_crt)
+{
+    mbedtls_x509_crt chain, *cur;
+    int i;
+
+    mbedtls_x509_crt_init(&chain);
+    USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_x509_crt_parse_file(&chain, crt_path), ret);
+
+    /* Check how many certs we got */
+    for (i = 0, cur = &chain; cur != NULL; cur = cur->next) {
+        if (cur->raw.p != NULL) {
+            i++;
+        }
+    }
+
+    TEST_EQUAL(i, nb_crt);
+
+exit:
+    mbedtls_x509_crt_free(&chain);
+    USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
 void mbedtls_x509_crt_parse_path(char *crt_path, int ret, int nb_crt)
 {
     mbedtls_x509_crt chain, *cur;
@@ -1578,11 +1604,8 @@ void x509_crt_parse_authoritykeyid(char *file,
                                    int ref_ret)
 {
     mbedtls_x509_crt crt;
-    int bufferCounter = 0;
-    size_t issuerCounter = 0;
-    unsigned int result = 0;
     mbedtls_x509_subject_alternative_name san;
-    mbedtls_x509_name *pname = NULL;
+    char name_buf[128];
 
     mbedtls_x509_crt_init(&crt);
 
@@ -1606,18 +1629,12 @@ void x509_crt_parse_authoritykeyid(char *file,
 
             TEST_EQUAL(mbedtls_x509_parse_subject_alt_name(&issuerPtr->buf, &san), 0);
 
-            pname = &san.san.directory_name;
+            TEST_ASSERT(mbedtls_x509_dn_gets(name_buf, sizeof(name_buf),
+                                             &san.san.directory_name)
+                        > 0);
+            TEST_EQUAL(strcmp(name_buf, authorityKeyId_issuer), 0);
 
-            while (pname != NULL) {
-                for (issuerCounter = 0; issuerCounter < pname->val.len; issuerCounter++) {
-                    result |=
-                        (authorityKeyId_issuer[bufferCounter++] != pname->val.p[issuerCounter]);
-                }
-                bufferCounter++; /* Skipping the slash */
-                pname = pname->next;
-            }
             mbedtls_x509_free_subject_alt_name(&san);
-            TEST_EQUAL(result, 0);
         }
 
         /* Serial test */

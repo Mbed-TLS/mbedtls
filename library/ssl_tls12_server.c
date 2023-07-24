@@ -34,9 +34,18 @@
 #include <string.h>
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
-                                                           psa_to_ssl_errors,             \
-                                                           psa_generic_status_to_mbedtls)
+/* Define a local translating function to save code size by not using too many
+ * arguments in each translating place. */
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_ENABLED) || \
+    defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
+static int local_err_translation(psa_status_t status)
+{
+    return psa_status_to_mbedtls(status, psa_to_ssl_errors,
+                                 ARRAY_LENGTH(psa_to_ssl_errors),
+                                 psa_generic_status_to_mbedtls);
+}
+#define PSA_TO_MBEDTLS_ERR(status) local_err_translation(status)
+#endif
 #endif
 
 #if defined(MBEDTLS_ECP_C)
@@ -178,7 +187,6 @@ static int ssl_parse_renegotiation_info(mbedtls_ssl_context *ssl,
  * generalization of the TLS 1.2 supported elliptic curves extension. They both
  * share the same extension identifier.
  *
- * DHE groups are not supported yet.
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
@@ -2594,7 +2602,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
     psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
 #if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     uint16_t tls_id = 0;
-    psa_ecc_family_t ecc_family;
+    psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
     size_t key_len;
     mbedtls_ecp_group_id grp_id;
     unsigned char buf[PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
@@ -2620,19 +2628,20 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
                 return MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
             }
 
-            ssl->handshake->ecdh_psa_privkey = pk->priv_id;
-            /* Key should not be destroyed in the TLS library */
-            ssl->handshake->ecdh_psa_privkey_is_external = 1;
+            ssl->handshake->xxdh_psa_privkey = pk->priv_id;
 
-            status = psa_get_key_attributes(ssl->handshake->ecdh_psa_privkey,
+            /* Key should not be destroyed in the TLS library */
+            ssl->handshake->xxdh_psa_privkey_is_external = 1;
+
+            status = psa_get_key_attributes(ssl->handshake->xxdh_psa_privkey,
                                             &key_attributes);
             if (status != PSA_SUCCESS) {
-                ssl->handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+                ssl->handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
                 return PSA_TO_MBEDTLS_ERR(status);
             }
 
-            ssl->handshake->ecdh_psa_type = psa_get_key_type(&key_attributes);
-            ssl->handshake->ecdh_bits = psa_get_key_bits(&key_attributes);
+            ssl->handshake->xxdh_psa_type = psa_get_key_type(&key_attributes);
+            ssl->handshake->xxdh_bits = psa_get_key_bits(&key_attributes);
 
             psa_reset_key_attributes(&key_attributes);
 
@@ -2655,17 +2664,17 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 
             /* If the above conversion to TLS ID was fine, then also this one will
                be, so there is no need to check the return value here */
-            mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id, &ecc_family,
-                                                       &ssl->handshake->ecdh_bits);
+            mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id, &key_type,
+                                                       &ssl->handshake->xxdh_bits);
 
-            ssl->handshake->ecdh_psa_type = PSA_KEY_TYPE_ECC_KEY_PAIR(ecc_family);
+            ssl->handshake->xxdh_psa_type = key_type;
 
             key_attributes = psa_key_attributes_init();
             psa_set_key_usage_flags(&key_attributes, PSA_KEY_USAGE_DERIVE);
             psa_set_key_algorithm(&key_attributes, PSA_ALG_ECDH);
             psa_set_key_type(&key_attributes,
-                             PSA_KEY_TYPE_ECC_KEY_PAIR(ssl->handshake->ecdh_psa_type));
-            psa_set_key_bits(&key_attributes, ssl->handshake->ecdh_bits);
+                             PSA_KEY_TYPE_ECC_KEY_PAIR(ssl->handshake->xxdh_psa_type));
+            psa_set_key_bits(&key_attributes, ssl->handshake->xxdh_bits);
 
             key_len = PSA_BITS_TO_BYTES(key->grp.pbits);
             ret = mbedtls_ecp_write_key(key, buf, key_len);
@@ -2675,7 +2684,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
             }
 
             status = psa_import_key(&key_attributes, buf, key_len,
-                                    &ssl->handshake->ecdh_psa_privkey);
+                                    &ssl->handshake->xxdh_psa_privkey);
             if (status != PSA_SUCCESS) {
                 ret = PSA_TO_MBEDTLS_ERR(status);
                 mbedtls_platform_zeroize(buf, sizeof(buf));
@@ -2960,26 +2969,26 @@ curve_matching_done:
         const size_t header_size = 4; // curve_type(1), namedcurve(2),
                                       // data length(1)
         const size_t data_length_size = 1;
-        psa_ecc_family_t ec_psa_family = 0;
+        psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
         size_t ec_bits = 0;
 
         MBEDTLS_SSL_DEBUG_MSG(1, ("Perform PSA-based ECDH computation."));
 
         /* Convert EC's TLS ID to PSA key type. */
         if (mbedtls_ssl_get_psa_curve_info_from_tls_id(*curr_tls_id,
-                                                       &ec_psa_family,
+                                                       &key_type,
                                                        &ec_bits) == PSA_ERROR_NOT_SUPPORTED) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("Invalid ecc group parse."));
             return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
         }
-        handshake->ecdh_psa_type = PSA_KEY_TYPE_ECC_KEY_PAIR(ec_psa_family);
-        handshake->ecdh_bits = ec_bits;
+        handshake->xxdh_psa_type = key_type;
+        handshake->xxdh_bits = ec_bits;
 
         key_attributes = psa_key_attributes_init();
         psa_set_key_usage_flags(&key_attributes, PSA_KEY_USAGE_DERIVE);
         psa_set_key_algorithm(&key_attributes, PSA_ALG_ECDH);
-        psa_set_key_type(&key_attributes, handshake->ecdh_psa_type);
-        psa_set_key_bits(&key_attributes, handshake->ecdh_bits);
+        psa_set_key_type(&key_attributes, handshake->xxdh_psa_type);
+        psa_set_key_bits(&key_attributes, handshake->xxdh_bits);
 
         /*
          * ECParameters curve_params
@@ -2996,7 +3005,7 @@ curve_matching_done:
 
         /* Generate ECDH private key. */
         status = psa_generate_key(&key_attributes,
-                                  &handshake->ecdh_psa_privkey);
+                                  &handshake->xxdh_psa_privkey);
         if (status != PSA_SUCCESS) {
             ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_generate_key", ret);
@@ -3018,14 +3027,14 @@ curve_matching_done:
         size_t own_pubkey_max_len = (size_t) (MBEDTLS_SSL_OUT_CONTENT_LEN
                                               - (own_pubkey - ssl->out_msg));
 
-        status = psa_export_public_key(handshake->ecdh_psa_privkey,
+        status = psa_export_public_key(handshake->xxdh_psa_privkey,
                                        own_pubkey, own_pubkey_max_len,
                                        &len);
         if (status != PSA_SUCCESS) {
             ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_export_public_key", ret);
-            (void) psa_destroy_key(handshake->ecdh_psa_privkey);
-            handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+            (void) psa_destroy_key(handshake->xxdh_psa_privkey);
+            handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
             return ret;
         }
 
@@ -3720,27 +3729,27 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
         }
 
         /* Store peer's ECDH public key. */
-        memcpy(handshake->ecdh_psa_peerkey, p, data_len);
-        handshake->ecdh_psa_peerkey_len = data_len;
+        memcpy(handshake->xxdh_psa_peerkey, p, data_len);
+        handshake->xxdh_psa_peerkey_len = data_len;
 
         /* Compute ECDH shared secret. */
         status = psa_raw_key_agreement(
-            PSA_ALG_ECDH, handshake->ecdh_psa_privkey,
-            handshake->ecdh_psa_peerkey, handshake->ecdh_psa_peerkey_len,
+            PSA_ALG_ECDH, handshake->xxdh_psa_privkey,
+            handshake->xxdh_psa_peerkey, handshake->xxdh_psa_peerkey_len,
             handshake->premaster, sizeof(handshake->premaster),
             &handshake->pmslen);
         if (status != PSA_SUCCESS) {
             ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_raw_key_agreement", ret);
-            if (handshake->ecdh_psa_privkey_is_external == 0) {
-                (void) psa_destroy_key(handshake->ecdh_psa_privkey);
+            if (handshake->xxdh_psa_privkey_is_external == 0) {
+                (void) psa_destroy_key(handshake->xxdh_psa_privkey);
             }
-            handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+            handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
             return ret;
         }
 
-        if (handshake->ecdh_psa_privkey_is_external == 0) {
-            status = psa_destroy_key(handshake->ecdh_psa_privkey);
+        if (handshake->xxdh_psa_privkey_is_external == 0) {
+            status = psa_destroy_key(handshake->xxdh_psa_privkey);
 
             if (status != PSA_SUCCESS) {
                 ret = PSA_TO_MBEDTLS_ERR(status);
@@ -3748,7 +3757,7 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
                 return ret;
             }
         }
-        handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+        handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
 #else
         if ((ret = mbedtls_ecdh_read_public(&ssl->handshake->ecdh_ctx,
                                             p, end - p)) != 0) {
@@ -3881,33 +3890,42 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
 
         if ((ret = ssl_parse_client_psk_identity(ssl, &p, end)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, ("ssl_parse_client_psk_identity"), ret);
-            psa_destroy_key(handshake->ecdh_psa_privkey);
-            handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+            psa_destroy_key(handshake->xxdh_psa_privkey);
+            handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
             return ret;
         }
 
         /* Keep a copy of the peer's public key */
         if (p >= end) {
-            psa_destroy_key(handshake->ecdh_psa_privkey);
-            handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+            psa_destroy_key(handshake->xxdh_psa_privkey);
+            handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
             return MBEDTLS_ERR_SSL_DECODE_ERROR;
         }
 
         ecpoint_len = *(p++);
         if ((size_t) (end - p) < ecpoint_len) {
-            psa_destroy_key(handshake->ecdh_psa_privkey);
-            handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+            psa_destroy_key(handshake->xxdh_psa_privkey);
+            handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
             return MBEDTLS_ERR_SSL_DECODE_ERROR;
         }
 
-        if (ecpoint_len > sizeof(handshake->ecdh_psa_peerkey)) {
-            psa_destroy_key(handshake->ecdh_psa_privkey);
-            handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+        /* When FFDH is enabled, the array handshake->xxdh_psa_peer_key size takes into account
+           the sizes of the FFDH keys which are at least 2048 bits.
+           The size of the array is thus greater than 256 bytes which is greater than any
+           possible value of ecpoint_len (type uint8_t) and the check below can be skipped.*/
+#if !defined(PSA_WANT_ALG_FFDH)
+        if (ecpoint_len > sizeof(handshake->xxdh_psa_peerkey)) {
+            psa_destroy_key(handshake->xxdh_psa_privkey);
+            handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
             return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
         }
+#else
+        MBEDTLS_STATIC_ASSERT(sizeof(handshake->xxdh_psa_peerkey) >= UINT8_MAX,
+                              "peer key buffer too small");
+#endif
 
-        memcpy(handshake->ecdh_psa_peerkey, p, ecpoint_len);
-        handshake->ecdh_psa_peerkey_len = ecpoint_len;
+        memcpy(handshake->xxdh_psa_peerkey, p, ecpoint_len);
+        handshake->xxdh_psa_peerkey_len = ecpoint_len;
         p += ecpoint_len;
 
         /* As RFC 5489 section 2, the premaster secret is formed as follows:
@@ -3925,15 +3943,15 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
 
         /* Compute ECDH shared secret. */
         status = psa_raw_key_agreement(PSA_ALG_ECDH,
-                                       handshake->ecdh_psa_privkey,
-                                       handshake->ecdh_psa_peerkey,
-                                       handshake->ecdh_psa_peerkey_len,
+                                       handshake->xxdh_psa_privkey,
+                                       handshake->xxdh_psa_peerkey,
+                                       handshake->xxdh_psa_peerkey_len,
                                        psm + zlen_size,
                                        psm_end - (psm + zlen_size),
                                        &zlen);
 
-        destruction_status = psa_destroy_key(handshake->ecdh_psa_privkey);
-        handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+        destruction_status = psa_destroy_key(handshake->xxdh_psa_privkey);
+        handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
 
         if (status != PSA_SUCCESS) {
             return PSA_TO_MBEDTLS_ERR(status);

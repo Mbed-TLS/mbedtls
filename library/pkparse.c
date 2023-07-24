@@ -519,24 +519,32 @@ static int pk_use_ecparams(const mbedtls_asn1_buf *params, mbedtls_pk_context *p
 
 /*
  * Helper function for deriving a public key from its private counterpart.
+ *
+ * Note: the private key information is always available from pk,
+ * however for convenience the serialized version is also passed,
+ * as it's available at each calling site, and useful in some configs
+ * (as otherwise we're have to re-serialize it from the pk context).
  */
 static int pk_derive_public_key(mbedtls_pk_context *pk,
                                 const unsigned char *d, size_t d_len,
                                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
-    int ret;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     psa_status_t status;
     (void) f_rng;
     (void) p_rng;
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     (void) d;
     (void) d_len;
 
     status = psa_export_public_key(pk->priv_id, pk->pub_raw, sizeof(pk->pub_raw),
                                    &pk->pub_raw_len);
-    ret = psa_pk_status_to_mbedtls(status);
-#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+    return psa_pk_status_to_mbedtls(status);
+#elif defined(MBEDTLS_USE_PSA_CRYPTO) /* && !MBEDTLS_PK_USE_PSA_EC_DATA */
+    int ret;
+    psa_status_t status;
+    (void) f_rng;
+    (void) p_rng;
+
     mbedtls_ecp_keypair *eck = (mbedtls_ecp_keypair *) pk->pk_ctx;
     unsigned char key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     size_t key_len;
@@ -563,16 +571,14 @@ static int pk_derive_public_key(mbedtls_pk_context *pk,
     } else if (destruction_status != PSA_SUCCESS) {
         return psa_pk_status_to_mbedtls(destruction_status);
     }
-    ret = mbedtls_ecp_point_read_binary(&eck->grp, &eck->Q, key_buf, key_len);
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+    return mbedtls_ecp_point_read_binary(&eck->grp, &eck->Q, key_buf, key_len);
 #else /* MBEDTLS_USE_PSA_CRYPTO */
     mbedtls_ecp_keypair *eck = (mbedtls_ecp_keypair *) pk->pk_ctx;
     (void) d;
     (void) d_len;
 
-    ret = mbedtls_ecp_mul(&eck->grp, &eck->Q, &eck->d, &eck->grp.G, f_rng, p_rng);
+    return mbedtls_ecp_mul(&eck->grp, &eck->Q, &eck->d, &eck->grp.G, f_rng, p_rng);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-    return ret;
 }
 
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)

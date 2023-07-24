@@ -812,7 +812,7 @@ int mbedtls_x509_get_ext(unsigned char **p, const unsigned char *end,
 
 static char nibble_to_hex_digit(int i)
 {
-    return (i < 10) ? (i | 0x30) : ((i - 9) | 0x40);
+    return (i < 10) ? (i + '0') : (i - 10 + 'A');
 }
 
 /*

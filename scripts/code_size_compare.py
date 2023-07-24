@@ -647,9 +647,11 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                             "{:.2%}".format(text_vari[3]) + ","
                             + "{:.2%}".format(data_vari[3])))
             else:
-                output.write("{:<30} {:<18}\n"
-                             .format(fname,
-                                     str(text_vari[0]) + "," + str(data_vari[0])))
+                output.write(
+                    format_string
+                    .format(fname,
+                            str(text_vari[0]) + "," + str(data_vari[0]),
+                            'None', 'None', 'None'))
 
 
 class CodeSizeComparison:

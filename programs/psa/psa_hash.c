@@ -31,6 +31,7 @@
 #include <stdlib.h>
 
 #include "mbedtls/build_info.h"
+#include "mbedtls/platform.h"
 
 #define TEST_SHA256_HASH {                                                 \
         0x5a, 0x09, 0xe8, 0xfa, 0x9c, 0x77, 0x80, 0x7b, 0x24, 0xe9, 0x9c, 0x9c, \
@@ -43,10 +44,10 @@ const uint8_t mbedtls_test_sha256_hash[] = TEST_SHA256_HASH;
 const size_t mbedtls_test_sha256_hash_len =
     sizeof(mbedtls_test_sha256_hash);
 
-#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_SHA256_C)
+#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(PSA_WANT_ALG_SHA_256)
 int main(void)
 {
-    printf("MBEDTLS_PSA_CRYPTO_C and MBEDTLS_SHA256_C"
+    mbedtls_printf("MBEDTLS_PSA_CRYPTO_C and MBEDTLS_SHA256_C"
            "not defined.\r\n");
     return EXIT_SUCCESS;
 }
@@ -56,16 +57,16 @@ int main(void)
 {
     uint8_t buf[] = "Hello World!";
     psa_status_t status;
-    uint8_t hash[PSA_HASH_MAX_SIZE];
+    uint8_t hash[PSA_HASH_LENGTH(PSA_ALG_SHA_256)];
     size_t hash_size;
     psa_hash_operation_t sha256_psa = PSA_HASH_OPERATION_INIT;
     psa_hash_operation_t cloned_sha256 = PSA_HASH_OPERATION_INIT;
 
-    printf("PSA Crypto API: SHA-256 example\n\n");
+    mbedtls_printf("PSA Crypto API: SHA-256 example\n\n");
 
     status = psa_crypto_init();
     if (status != PSA_SUCCESS) {
-        printf("psa_crypto_init failed\n");
+        mbedtls_printf("psa_crypto_init failed\n");
         return EXIT_FAILURE;
     }
 
@@ -74,35 +75,35 @@ int main(void)
 
     status = psa_hash_setup(&sha256_psa, PSA_ALG_SHA_256);
     if (status != PSA_SUCCESS) {
-        printf("psa_hash_setup failed\n");
+        mbedtls_printf("psa_hash_setup failed\n");
         return EXIT_FAILURE;
     }
 
     status = psa_hash_update(&sha256_psa, buf, sizeof(buf));
     if (status != PSA_SUCCESS) {
-        printf("psa_hash_update failed\n");
+        mbedtls_printf("psa_hash_update failed\n");
         return EXIT_FAILURE;
     }
 
     status = psa_hash_clone(&sha256_psa, &cloned_sha256);
     if (status != PSA_SUCCESS) {
-        printf("PSA hash clone failed");
+        mbedtls_printf("PSA hash clone failed");
         return EXIT_FAILURE;
     }
 
     status = psa_hash_finish(&sha256_psa, hash, sizeof(hash), &hash_size);
     if (status != PSA_SUCCESS) {
-        printf("psa_hash_finish failed\n");
+        mbedtls_printf("psa_hash_finish failed\n");
         return EXIT_FAILURE;
     }
 
     status =
         psa_hash_verify(&cloned_sha256, mbedtls_test_sha256_hash, mbedtls_test_sha256_hash_len);
     if (status != PSA_SUCCESS) {
-        printf("psa_hash_verify failed\n");
+        mbedtls_printf("psa_hash_verify failed\n");
         return EXIT_FAILURE;
     } else {
-        printf("Multi-part hash operation successful!\n");
+        mbedtls_printf("Multi-part hash operation successful!\n");
     }
 
     /* Compute hash using one-shot function call */
@@ -114,29 +115,29 @@ int main(void)
                               hash, sizeof(hash),
                               &hash_size);
     if (status != PSA_SUCCESS) {
-        printf("psa_hash_compute failed\n");
+        mbedtls_printf("psa_hash_compute failed\n");
         return EXIT_FAILURE;
     }
 
     for (size_t j = 0; j < mbedtls_test_sha256_hash_len; j++) {
         if (hash[j] != mbedtls_test_sha256_hash[j]) {
-            printf("One-shot hash operation failed!\n\n");
+            mbedtls_printf("One-shot hash operation failed!\n\n");
             return EXIT_FAILURE;
         }
     }
 
-    printf("One-shot hash operation successful!\n\n");
+    mbedtls_printf("One-shot hash operation successful!\n\n");
 
-    printf("The SHA-256( '%s' ) is:\n", buf);
+    mbedtls_printf("The SHA-256( '%s' ) is:\n", buf);
 
     for (size_t j = 0; j < mbedtls_test_sha256_hash_len; j++) {
         if (j % 8 == 0) {
-            printf("\n    ");
+            mbedtls_printf("\n    ");
         }
-        printf("%02x ", hash[j]);
+        mbedtls_printf("%02x ", hash[j]);
     }
 
-    printf("\n");
+    mbedtls_printf("\n");
 
     mbedtls_psa_crypto_free();
     return EXIT_SUCCESS;

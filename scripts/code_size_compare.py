@@ -90,6 +90,11 @@ class CodeSizeDistinctInfo: # pylint: disable=too-few-public-methods
         self.pre_make_cmd = [] #type: typing.List[str]
         self.make_cmd = ''
 
+    def get_info_indication(self):
+        """Return a unique string to indicate Code Size Distinct Information."""
+        return '{}-{}-{}-{}'\
+               .format(self.git_rev, self.arch, self.config, self.compiler)
+
 
 class CodeSizeCommonInfo: # pylint: disable=too-few-public-methods
     """Data structure to store common information for code size comparison."""
@@ -105,6 +110,10 @@ class CodeSizeCommonInfo: # pylint: disable=too-few-public-methods
         self.host_arch = host_arch
         self.measure_cmd = measure_cmd
 
+    def get_info_indication(self):
+        """Return a unique string to indicate Code Size Common Information."""
+        return '{}'\
+               .format(self.measure_cmd.strip().split(' ')[0])
 
 class CodeSizeResultInfo: # pylint: disable=too-few-public-methods
     """Data structure to store result options for code size comparison."""
@@ -717,35 +726,16 @@ class CodeSizeComparison:
                                   self.size_common_info.measure_cmd,
                                   self.logger).cal_libraries_code_size()
 
-    def gen_file_name(
-            self,
-            old_size_dist_info: CodeSizeDistinctInfo,
-            new_size_dist_info=None
-        ) -> str:
-        """Generate a literal string as csv file name."""
-        if new_size_dist_info:
-            return '{}-{}-{}-{}-{}-{}-{}.csv'\
-                   .format(old_size_dist_info.git_rev, old_size_dist_info.arch,
-                           old_size_dist_info.config,
-                           new_size_dist_info.git_rev, new_size_dist_info.arch,
-                           new_size_dist_info.config,
-                           self.size_common_info.measure_cmd.strip()\
-                               .split(' ')[0])
-        else:
-            return '{}-{}-{}-{}.csv'\
-                   .format(old_size_dist_info.git_rev,
-                           old_size_dist_info.arch,
-                           old_size_dist_info.config,
-                           self.size_common_info.measure_cmd.strip()\
-                               .split(' ')[0])
-
     def gen_code_size_report(self, size_dist_info: CodeSizeDistinctInfo) -> None:
         """Generate code size record and write it into a file."""
 
         self.logger.info("Start to generate code size record for {}."
                          .format(size_dist_info.git_rev))
-        output_file = os.path.join(self.csv_dir,
-                                   self.gen_file_name(size_dist_info))
+        output_file = os.path.join(
+            self.csv_dir,
+            '{}-{}.csv'
+            .format(size_dist_info.get_info_indication(),
+                    self.size_common_info.get_info_indication()))
         # Check if the corresponding record exists
         if size_dist_info.git_rev != "current" and \
            os.path.exists(output_file):
@@ -776,17 +766,20 @@ class CodeSizeComparison:
                          "{} and {}."
                          .format(self.old_size_dist_info.git_rev,
                                  self.new_size_dist_info.git_rev))
-        output_file = os.path.join(
-            self.comp_dir,
-            self.gen_file_name(self.old_size_dist_info, self.new_size_dist_info))
+        if self.result_options.stdout:
+            output = sys.stdout
+        else:
+            output_file = os.path.join(
+                self.comp_dir,
+                '{}-{}-{}.csv'
+                .format(self.old_size_dist_info.get_info_indication(),
+                        self.new_size_dist_info.get_info_indication(),
+                        self.size_common_info.get_info_indication()))
+            output = open(output_file, "w")
 
         self.logger.debug("Generating comparison results between {} and {}."
                           .format(self.old_size_dist_info.git_rev,
                                   self.new_size_dist_info.git_rev))
-        if self.result_options.stdout:
-            output = sys.stdout
-        else:
-            output = open(output_file, "w")
         self.code_size_generator.write_comparison(
             self.old_size_dist_info.git_rev,
             self.new_size_dist_info.git_rev,
@@ -877,12 +870,10 @@ def main():
         comp_args.record_dir, comp_args.comp_dir,
         comp_args.markdown, comp_args.stdout)
 
-    logger.info("Measure code size between {}:{}-{} and {}:{}-{} by `{}`."
-                .format(old_size_dist_info.git_rev, old_size_dist_info.config,
-                        old_size_dist_info.arch,
-                        new_size_dist_info.git_rev, old_size_dist_info.config,
-                        new_size_dist_info.arch,
-                        size_common_info.measure_cmd.strip().split(' ')[0]))
+    logger.info("Measure code size between {} and {} by `{}`."
+                .format(old_size_dist_info.get_info_indication(),
+                        new_size_dist_info.get_info_indication(),
+                        size_common_info.get_info_indication()))
     CodeSizeComparison(old_size_dist_info, new_size_dist_info,
                        size_common_info, result_options,
                        logger).get_comparision_results()

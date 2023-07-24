@@ -33,6 +33,8 @@
 #include "mbedtls/build_info.h"
 #include "mbedtls/platform.h"
 
+#define HASH_ALG PSA_ALG_SHA_256
+
 #define TEST_SHA256_HASH {                                                 \
         0x5a, 0x09, 0xe8, 0xfa, 0x9c, 0x77, 0x80, 0x7b, 0x24, 0xe9, 0x9c, 0x9c, \
         0xf9, 0x99, 0xde, 0xbf, 0xad, 0x84, 0x41, 0xe2, 0x69, 0xeb, 0x96, 0x0e, \
@@ -57,7 +59,7 @@ int main(void)
 {
     uint8_t buf[] = "Hello World!";
     psa_status_t status;
-    uint8_t hash[PSA_HASH_LENGTH(PSA_ALG_SHA_256)];
+    uint8_t hash[PSA_HASH_LENGTH(HASH_ALG)];
     size_t hash_size;
     psa_hash_operation_t sha256_psa = PSA_HASH_OPERATION_INIT;
     psa_hash_operation_t cloned_sha256 = PSA_HASH_OPERATION_INIT;
@@ -73,7 +75,7 @@ int main(void)
 
     /* Compute hash using multi-part operation */
 
-    status = psa_hash_setup(&sha256_psa, PSA_ALG_SHA_256);
+    status = psa_hash_setup(&sha256_psa, HASH_ALG);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_setup failed\n");
         return EXIT_FAILURE;
@@ -110,7 +112,7 @@ int main(void)
     memset(hash, 0, sizeof(hash));
     hash_size = 0;
 
-    status = psa_hash_compute(PSA_ALG_SHA_256,
+    status = psa_hash_compute(HASH_ALG,
                               buf, sizeof(buf),
                               hash, sizeof(hash),
                               &hash_size);

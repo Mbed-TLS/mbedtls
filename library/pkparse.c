@@ -453,28 +453,39 @@ cleanup:
 }
 #endif /* MBEDTLS_PK_PARSE_EC_EXTENDED */
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-/* Functions pk_use_ecparams() and pk_use_ecparams_rfc8410() update the
- * ecp_keypair structure with proper group ID. The purpose of this helper
- * function is to update ec_family and ec_bits accordingly. */
-static int pk_update_psa_ecparams(mbedtls_pk_context *pk,
-                                  mbedtls_ecp_group_id grp_id)
+/*
+ * Set the group used by this key.
+ */
+static int pk_ecc_set_group(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id)
 {
-    psa_ecc_family_t ec_family;
-    size_t bits;
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    size_t ec_bits;
+    psa_ecc_family_t ec_family = mbedtls_ecc_group_to_psa(grp_id, &ec_bits);
 
-    ec_family = mbedtls_ecc_group_to_psa(grp_id, &bits);
-
-    if ((pk->ec_family != 0) && (pk->ec_family != ec_family)) {
+    /* group may already be initialized; if so, make sure IDs match */
+    if ((pk->ec_family != 0 && pk->ec_family != ec_family) ||
+        (pk->ec_bits != 0 && pk->ec_bits != ec_bits)) {
         return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
     }
 
+    /* set group */
     pk->ec_family = ec_family;
-    pk->ec_bits = bits;
+    pk->ec_bits = ec_bits;
 
     return 0;
-}
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+    mbedtls_ecp_keypair *ecp = mbedtls_pk_ec_rw(*pk);
+
+    /* grp may already be initialized; if so, make sure IDs match */
+    if (mbedtls_pk_ec_ro(*pk)->grp.id != MBEDTLS_ECP_DP_NONE &&
+        mbedtls_pk_ec_ro(*pk)->grp.id != grp_id) {
+        return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
+    }
+
+    /* set group */
+    return mbedtls_ecp_group_load(&(ecp->grp), grp_id);
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+}
 
 /*
  * Use EC parameters to initialise an EC group
@@ -503,22 +514,7 @@ static int pk_use_ecparams(const mbedtls_asn1_buf *params, mbedtls_pk_context *p
 #endif
     }
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    ret = pk_update_psa_ecparams(pk, grp_id);
-#else
-    /* grp may already be initialized; if so, make sure IDs match */
-    if (mbedtls_pk_ec_ro(*pk)->grp.id != MBEDTLS_ECP_DP_NONE &&
-        mbedtls_pk_ec_ro(*pk)->grp.id != grp_id) {
-        return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
-    }
-
-    if ((ret = mbedtls_ecp_group_load(&(mbedtls_pk_ec_rw(*pk)->grp),
-                                      grp_id)) != 0) {
-        return ret;
-    }
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
-
-    return ret;
+    return pk_ecc_set_group(pk, grp_id);
 }
 
 /*
@@ -588,22 +584,11 @@ static int pk_use_ecparams_rfc8410(const mbedtls_asn1_buf *params,
                                    mbedtls_ecp_group_id grp_id,
                                    mbedtls_pk_context *pk)
 {
-    int ret;
-
     if (params->tag != 0 || params->len != 0) {
         return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
     }
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    ret = pk_update_psa_ecparams(pk, grp_id);
-#else
-    mbedtls_ecp_keypair *ecp = mbedtls_pk_ec_rw(*pk);
-    ret = mbedtls_ecp_group_load(&(ecp->grp), grp_id);
-    if (ret != 0) {
-        return ret;
-    }
-#endif
-    return ret;
+    return pk_ecc_set_group(pk, grp_id);
 }
 
 /*

@@ -2646,7 +2646,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
             }
 
             ssl->handshake->xxdh_psa_type = psa_get_key_type(&key_attributes);
-            ssl->handshake->xxdh_bits = psa_get_key_bits(&key_attributes);
+            ssl->handshake->xxdh_psa_bits = psa_get_key_bits(&key_attributes);
 
             psa_reset_key_attributes(&key_attributes);
 
@@ -2670,7 +2670,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
             /* If the above conversion to TLS ID was fine, then also this one will
                be, so there is no need to check the return value here */
             mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id, &key_type,
-                                                       &ssl->handshake->xxdh_bits);
+                                                       &ssl->handshake->xxdh_psa_bits);
 
             ssl->handshake->xxdh_psa_type = key_type;
 
@@ -2679,7 +2679,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
             psa_set_key_algorithm(&key_attributes, PSA_ALG_ECDH);
             psa_set_key_type(&key_attributes,
                              PSA_KEY_TYPE_ECC_KEY_PAIR(ssl->handshake->xxdh_psa_type));
-            psa_set_key_bits(&key_attributes, ssl->handshake->xxdh_bits);
+            psa_set_key_bits(&key_attributes, ssl->handshake->xxdh_psa_bits);
 
             key_len = PSA_BITS_TO_BYTES(key->grp.pbits);
             ret = mbedtls_ecp_write_key(key, buf, key_len);
@@ -2987,13 +2987,13 @@ curve_matching_done:
             return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
         }
         handshake->xxdh_psa_type = key_type;
-        handshake->xxdh_bits = ec_bits;
+        handshake->xxdh_psa_bits = ec_bits;
 
         key_attributes = psa_key_attributes_init();
         psa_set_key_usage_flags(&key_attributes, PSA_KEY_USAGE_DERIVE);
         psa_set_key_algorithm(&key_attributes, PSA_ALG_ECDH);
         psa_set_key_type(&key_attributes, handshake->xxdh_psa_type);
-        psa_set_key_bits(&key_attributes, handshake->xxdh_bits);
+        psa_set_key_bits(&key_attributes, handshake->xxdh_psa_bits);
 
         /*
          * ECParameters curve_params

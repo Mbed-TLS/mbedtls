@@ -1766,7 +1766,7 @@ static int ssl_parse_server_ecdh_params(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
     handshake->xxdh_psa_type = key_type;
-    handshake->xxdh_bits = ec_bits;
+    handshake->xxdh_psa_bits = ec_bits;
 
     /* Keep a copy of the peer's public key */
     ecpoint_len = *(*p)++;
@@ -2039,7 +2039,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
     /* If the above conversion to TLS ID was fine, then also this one will be,
        so there is no need to check the return value here */
     mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id, &key_type,
-                                               &ssl->handshake->xxdh_bits);
+                                               &ssl->handshake->xxdh_psa_bits);
 
     ssl->handshake->xxdh_psa_type = key_type;
 
@@ -2790,7 +2790,7 @@ static int ssl_write_client_key_exchange(mbedtls_ssl_context *ssl)
         psa_set_key_usage_flags(&key_attributes, PSA_KEY_USAGE_DERIVE);
         psa_set_key_algorithm(&key_attributes, PSA_ALG_ECDH);
         psa_set_key_type(&key_attributes, handshake->xxdh_psa_type);
-        psa_set_key_bits(&key_attributes, handshake->xxdh_bits);
+        psa_set_key_bits(&key_attributes, handshake->xxdh_psa_bits);
 
         /* Generate ECDH private key. */
         status = psa_generate_key(&key_attributes,
@@ -2962,7 +2962,7 @@ ecdh_calc_secret:
         psa_set_key_usage_flags(&key_attributes, PSA_KEY_USAGE_DERIVE);
         psa_set_key_algorithm(&key_attributes, PSA_ALG_ECDH);
         psa_set_key_type(&key_attributes, handshake->xxdh_psa_type);
-        psa_set_key_bits(&key_attributes, handshake->xxdh_bits);
+        psa_set_key_bits(&key_attributes, handshake->xxdh_psa_bits);
 
         /* Generate ECDH private key. */
         status = psa_generate_key(&key_attributes,

@@ -35,7 +35,7 @@
 #include "ssl_debug_helpers.h"
 #include "md_psa.h"
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_ANY_PSA_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED)
 /* Define a local translating function to save code size by not using too many
  * arguments in each translating place. */
 static int local_err_translation(psa_status_t status)
@@ -194,7 +194,7 @@ static int ssl_tls13_reset_key_share(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_ANY_PSA_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(group_id) ||
         mbedtls_ssl_tls13_named_group_is_ffdh(group_id)) {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -211,7 +211,7 @@ static int ssl_tls13_reset_key_share(mbedtls_ssl_context *ssl)
         ssl->handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
         return 0;
     } else
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_XXDH_ANY_PSA_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED */
     if (0 /* other KEMs? */) {
         /* Do something */
     }
@@ -503,7 +503,7 @@ static int ssl_tls13_parse_key_share_ext(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_ANY_PSA_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(group) ||
         mbedtls_ssl_tls13_named_group_is_ffdh(group)) {
         MBEDTLS_SSL_DEBUG_MSG(2,
@@ -513,7 +513,7 @@ static int ssl_tls13_parse_key_share_ext(mbedtls_ssl_context *ssl,
             return ret;
         }
     } else
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_XXDH_ANY_PSA_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED */
     if (0 /* other KEMs? */) {
         /* Do something */
     } else {

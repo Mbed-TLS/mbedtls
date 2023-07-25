@@ -39,7 +39,7 @@
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_ANY_PSA_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED)
 /* Define a local translating function to save code size by not using too many
  * arguments in each translating place. */
 static int local_err_translation(psa_status_t status)
@@ -1496,7 +1496,7 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl)
     return ret;
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_ANY_PSA_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED)
 
 int mbedtls_ssl_tls13_read_public_xxdhe_share(mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,
@@ -1592,13 +1592,13 @@ int mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
     }
 
     handshake->xxdh_psa_type = key_type;
-    ssl->handshake->xxdh_bits = bits;
+    ssl->handshake->xxdh_psa_bits = bits;
 
     key_attributes = psa_key_attributes_init();
     psa_set_key_usage_flags(&key_attributes, PSA_KEY_USAGE_DERIVE);
     psa_set_key_algorithm(&key_attributes, alg);
     psa_set_key_type(&key_attributes, handshake->xxdh_psa_type);
-    psa_set_key_bits(&key_attributes, handshake->xxdh_bits);
+    psa_set_key_bits(&key_attributes, handshake->xxdh_psa_bits);
 
     /* Generate ECDH/FFDH private key. */
     status = psa_generate_key(&key_attributes,
@@ -1625,7 +1625,7 @@ int mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
 
     return 0;
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_XXDH_ANY_PSA_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED */
 
 /* RFC 8446 section 4.2
  *

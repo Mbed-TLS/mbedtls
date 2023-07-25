@@ -383,7 +383,7 @@ typedef enum {
 #define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED
 #endif
 
-/* TLS 1.3 key exchanges using ECDH or ECDHE */
+/* TLS 1.3 key exchanges using ECDHE */
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
     defined(PSA_WANT_ALG_ECDH)
 #define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_ECDHE_ENABLED
@@ -403,7 +403,7 @@ typedef enum {
 
 #if (defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_1_2_ENABLED) && defined(MBEDTLS_USE_PSA_CRYPTO)) || \
     defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
-#define MBEDTLS_KEY_EXCHANGE_SOME_XXDH_ANY_PSA_ENABLED
+#define MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED
 #endif
 
 typedef struct mbedtls_ssl_ciphersuite_t mbedtls_ssl_ciphersuite_t;

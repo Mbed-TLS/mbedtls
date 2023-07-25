@@ -4219,11 +4219,11 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
     mbedtls_ssl_buffering_free(ssl);
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_ANY_PSA_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED)
     if (handshake->xxdh_psa_privkey_is_external == 0) {
         psa_destroy_key(handshake->xxdh_psa_privkey);
     }
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_XXDH_ANY_PSA_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     mbedtls_ssl_transform_free(handshake->transform_handshake);

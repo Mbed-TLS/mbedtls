@@ -92,8 +92,9 @@ class CodeSizeDistinctInfo: # pylint: disable=too-few-public-methods
 
     def get_info_indication(self):
         """Return a unique string to indicate Code Size Distinct Information."""
-        return '{}-{}-{}-{}'\
-               .format(self.git_rev, self.arch, self.config, self.compiler)
+        return '{rev}-{arch}-{config}-{cc}'\
+               .format(rev=self.git_rev, arch=self.arch, config=self.config,
+                       cc=self.compiler)
 
 
 class CodeSizeCommonInfo: # pylint: disable=too-few-public-methods
@@ -112,8 +113,8 @@ class CodeSizeCommonInfo: # pylint: disable=too-few-public-methods
 
     def get_info_indication(self):
         """Return a unique string to indicate Code Size Common Information."""
-        return '{}'\
-               .format(self.measure_cmd.strip().split(' ')[0])
+        return '{measure_tool}'\
+               .format(measure_tool=self.measure_cmd.strip().split(' ')[0])
 
 class CodeSizeResultInfo: # pylint: disable=too-few-public-methods
     """Data structure to store result options for code size comparison."""
@@ -223,11 +224,11 @@ class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods
         """Infer command to set up proper configuration before running make."""
         pre_make_cmd = [] #type: typing.List[str]
         if self.config == SupportedConfig.TFM_MEDIUM.value:
-            pre_make_cmd.append('cp -r {} {}'
-                                .format(TFM_MEDIUM_CONFIG_H, CONFIG_H))
-            pre_make_cmd.append('cp -r {} {}'
-                                .format(TFM_MEDIUM_CRYPTO_CONFIG_H,
-                                        CRYPTO_CONFIG_H))
+            pre_make_cmd.append('cp -r {src} {dest}'
+                                .format(src=TFM_MEDIUM_CONFIG_H, dest=CONFIG_H))
+            pre_make_cmd.append('cp -r {src} {dest}'
+                                .format(src=TFM_MEDIUM_CRYPTO_CONFIG_H,
+                                        dest=CRYPTO_CONFIG_H))
 
         return pre_make_cmd
 
@@ -641,15 +642,20 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                 output.write(
                     format_string
                     .format(fname,
+                            # current(text,data)
                             str(text_vari[0]) + "," + str(data_vari[0]),
+                            # old(text,data)
                             str(text_vari[1]) + "," + str(data_vari[1]),
+                            # change(text,data)
                             str(text_vari[2]) + "," + str(data_vari[2]),
+                            # change%(text,data)
                             "{:.0%}".format(text_vari[3]) + ","
                             + "{:.0%}".format(data_vari[3])))
             else:
                 output.write(
                     format_string
                     .format(fname,
+                            # current(text,data)
                             str(text_vari[0]) + "," + str(data_vari[0]),
                             'None', 'None', 'None'))
 

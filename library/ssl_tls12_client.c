@@ -1774,9 +1774,10 @@ static int ssl_parse_server_ecdh_params(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
 
-    /* xxdh_psa_peerkey is sized after maximum supported FFDH public key.
-     * PSA_VENDOR_FFDH_MAX_KEY_BITS is always larger than EC public key, so
-     * we can skip the buffer size check before the memcpy-ing data into it. */
+    if (ecpoint_len > PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)) {
+        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+    }
+
     memcpy(handshake->xxdh_psa_peerkey, *p, ecpoint_len);
     handshake->xxdh_psa_peerkey_len = ecpoint_len;
     *p += ecpoint_len;

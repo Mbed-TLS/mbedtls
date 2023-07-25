@@ -644,8 +644,8 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                             str(text_vari[0]) + "," + str(data_vari[0]),
                             str(text_vari[1]) + "," + str(data_vari[1]),
                             str(text_vari[2]) + "," + str(data_vari[2]),
-                            "{:.2%}".format(text_vari[3]) + ","
-                            + "{:.2%}".format(data_vari[3])))
+                            "{:.0%}".format(text_vari[3]) + ","
+                            + "{:.0%}".format(data_vari[3])))
             else:
                 output.write(
                     format_string

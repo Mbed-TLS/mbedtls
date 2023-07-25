@@ -1462,7 +1462,7 @@ void pk_sign_ext(int pk_type, int parameter, int key_pk_type, int md_alg)
     memset(sig, 0, sizeof(sig));
 
     mbedtls_pk_init(&pk);
-    USE_PSA_INIT();
+    MD_OR_USE_PSA_INIT();
 
     TEST_EQUAL(mbedtls_pk_setup(&pk,
                                 mbedtls_pk_info_from_type(pk_type)), 0);
@@ -1487,7 +1487,7 @@ void pk_sign_ext(int pk_type, int parameter, int key_pk_type, int md_alg)
                                      hash, hash_len, sig, sig_len), 0);
 exit:
     mbedtls_pk_free(&pk);
-    USE_PSA_DONE();
+    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
 

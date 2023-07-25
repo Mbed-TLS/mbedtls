@@ -29,12 +29,6 @@
 #endif /* MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED */
 
 /*
- * Initialization and termination functions
- */
-static inline psa_status_t psa_driver_wrapper_init(void);
-static inline void psa_driver_wrapper_free(void);
-
-/*
  * Signature functions
  */
 static inline psa_status_t psa_driver_wrapper_sign_message(

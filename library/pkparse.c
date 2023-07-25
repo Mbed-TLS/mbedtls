@@ -504,14 +504,11 @@ static int pk_ecc_set_key(mbedtls_pk_context *pk,
     psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(pk->ec_family));
     psa_set_key_algorithm(&attributes, PSA_ALG_ECDH);
     psa_key_usage_t flags = PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_DERIVE;
+    /* Montgomery allows only ECDH, others ECDSA too */
     if (pk->ec_family != PSA_ECC_FAMILY_MONTGOMERY) {
         flags |= PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_SIGN_MESSAGE;
-#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
         psa_set_key_enrollment_algorithm(&attributes,
-                                         PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_ANY_HASH));
-#else
-        psa_set_key_enrollment_algorithm(&attributes, PSA_ALG_ECDSA(PSA_ALG_ANY_HASH));
-#endif
+                                         MBEDTLS_PK_PSA_ALG_ECDSA_MAYBE_DET(PSA_ALG_ANY_HASH));
     }
     psa_set_key_usage_flags(&attributes, flags);
 

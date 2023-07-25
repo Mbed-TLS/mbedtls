@@ -1037,13 +1037,8 @@ static int ecdsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     psa_ecc_family_t curve =
         mbedtls_ecc_group_to_psa(ctx->grp.id, &curve_bits);
     size_t key_len = PSA_BITS_TO_BYTES(curve_bits);
-#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
-    psa_algorithm_t psa_sig_md =
-        PSA_ALG_DETERMINISTIC_ECDSA(mbedtls_md_psa_alg_from_type(md_alg));
-#else
-    psa_algorithm_t psa_sig_md =
-        PSA_ALG_ECDSA(mbedtls_md_psa_alg_from_type(md_alg));
-#endif
+    psa_algorithm_t psa_hash = mbedtls_md_psa_alg_from_type(md_alg);
+    psa_algorithm_t psa_sig_md = MBEDTLS_PK_PSA_ALG_ECDSA_MAYBE_DET(psa_hash);
     ((void) f_rng);
     ((void) p_rng);
 

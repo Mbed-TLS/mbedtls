@@ -50,7 +50,7 @@ const size_t mbedtls_test_sha256_hash_len =
 int main(void)
 {
     mbedtls_printf("MBEDTLS_PSA_CRYPTO_C and MBEDTLS_SHA256_C"
-           "not defined.\r\n");
+                   "not defined.\r\n");
     return EXIT_SUCCESS;
 }
 #else

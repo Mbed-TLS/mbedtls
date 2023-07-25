@@ -43,7 +43,8 @@
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_LEGACY) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
 
 /* Mbed TLS doesn't support non-byte-aligned key sizes (i.e. key sizes
@@ -123,12 +124,13 @@ exit:
         * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) ||
-        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_LEGACY) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_LEGACY) || \
+#if (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) && \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
-
 psa_status_t mbedtls_psa_rsa_import_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *data, size_t data_length,
@@ -165,7 +167,12 @@ exit:
 
     return status;
 }
+#endif /* (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) &&
+        *  defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
 
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
 psa_status_t mbedtls_psa_rsa_export_key(psa_key_type_t type,
                                         mbedtls_rsa_context *rsa,
                                         uint8_t *data,
@@ -235,11 +242,10 @@ psa_status_t mbedtls_psa_rsa_export_public_key(
 
     return status;
 }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_LEGACY) ||
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_LEGACY) && \
-    defined(MBEDTLS_GENPRIME)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
 static psa_status_t psa_rsa_read_exponent(const uint8_t *domain_parameters,
                                           size_t domain_parameters_size,
                                           int *exponent)
@@ -301,8 +307,7 @@ psa_status_t mbedtls_psa_rsa_generate_key(
 
     return status;
 }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_LEGACY)
-        * defined(MBEDTLS_GENPRIME) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_GENERATE) */
 
 /****************************************************************/
 /* Sign/verify hashes */

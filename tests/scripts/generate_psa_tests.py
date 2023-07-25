@@ -121,19 +121,15 @@ def tweak_key_pair_dependency(dep: str, usage: str):
     symbols according to the required usage.
     """
     ret_list = list()
-    # Note: this LEGACY replacement for RSA is temporary and it's going to be
-    # aligned with ECC one in #7772.
-    if dep.endswith('RSA_KEY_PAIR'):
-        ret_list.append(re.sub(r'RSA_KEY_PAIR\Z', r'RSA_KEY_PAIR_LEGACY', dep))
-    elif dep.endswith('ECC_KEY_PAIR'):
+    if dep.endswith('KEY_PAIR'):
         if usage == "BASIC":
             # BASIC automatically includes IMPORT and EXPORT for test purposes (see
             # config_psa.h).
-            ret_list.append(re.sub(r'ECC_KEY_PAIR', r'ECC_KEY_PAIR_BASIC', dep))
-            ret_list.append(re.sub(r'ECC_KEY_PAIR', r'ECC_KEY_PAIR_IMPORT', dep))
-            ret_list.append(re.sub(r'ECC_KEY_PAIR', r'ECC_KEY_PAIR_EXPORT', dep))
+            ret_list.append(re.sub(r'KEY_PAIR', r'KEY_PAIR_BASIC', dep))
+            ret_list.append(re.sub(r'KEY_PAIR', r'KEY_PAIR_IMPORT', dep))
+            ret_list.append(re.sub(r'KEY_PAIR', r'KEY_PAIR_EXPORT', dep))
         elif usage == "GENERATE":
-            ret_list.append(re.sub(r'ECC_KEY_PAIR', r'ECC_KEY_PAIR_GENERATE', dep))
+            ret_list.append(re.sub(r'KEY_PAIR', r'KEY_PAIR_GENERATE', dep))
     else:
         # No replacement to do in this case
         ret_list.append(dep)

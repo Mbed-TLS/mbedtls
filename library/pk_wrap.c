@@ -97,7 +97,7 @@ int mbedtls_pk_error_from_psa(psa_status_t status)
 }
 
 #if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY) ||    \
-    defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY)
+    defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
 int mbedtls_pk_error_from_psa_rsa(psa_status_t status)
 {
     switch (status) {
@@ -134,7 +134,7 @@ int mbedtls_pk_error_from_psa_rsa(psa_status_t status)
             return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
     }
 }
-#endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY || MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY */
+#endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY || PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC */
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -1725,7 +1725,7 @@ static int rsa_opaque_can_do(mbedtls_pk_type_t type)
            type == MBEDTLS_PK_RSASSA_PSS;
 }
 
-#if defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY)
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
 static int rsa_opaque_decrypt(mbedtls_pk_context *pk,
                               const unsigned char *input, size_t ilen,
                               unsigned char *output, size_t *olen, size_t osize,
@@ -1747,7 +1747,7 @@ static int rsa_opaque_decrypt(mbedtls_pk_context *pk,
 
     return 0;
 }
-#endif /* MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY */
+#endif /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC */
 
 static int rsa_opaque_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
                                 const unsigned char *hash, size_t hash_len,
@@ -1817,11 +1817,11 @@ const mbedtls_pk_info_t mbedtls_rsa_opaque_info = {
     .rs_alloc_func = NULL,
     .rs_free_func = NULL,
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
-#if defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY)
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
     .decrypt_func = rsa_opaque_decrypt,
-#else /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY */
+#else /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC */
     .decrypt_func = NULL,
-#endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY */
+#endif /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC */
     .encrypt_func = NULL,
     .check_pair_func = NULL,
     .ctx_alloc_func = NULL,

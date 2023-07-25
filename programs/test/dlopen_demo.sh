@@ -25,6 +25,14 @@ msg "Test the dynamic loading of libmbed*"
 program="$programs_dir/test/dlopen"
 library_dir="$root_dir/library"
 
+# Skip this test if we don't have a shared library build. Detect this
+# through the absence of the demo program.
+if [ ! -e "$program" ]; then
+    msg "$0: this demo requires a shared library build."
+    # Exit with a success status so that this counts as a pass for run_demos.py.
+    exit
+fi
+
 # ELF-based Unix-like (Linux, *BSD, Solaris, ...)
 if [ -n "${LD_LIBRARY_PATH-}" ]; then
     LD_LIBRARY_PATH="$library_dir:$LD_LIBRARY_PATH"

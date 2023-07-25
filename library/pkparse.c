@@ -1214,11 +1214,30 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
     }
 
 
-#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(pk->ec_family));
+    /* Setting largest masks for usage and key algorithms */
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH |
+                            PSA_KEY_USAGE_SIGN_MESSAGE |
+                            PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_DERIVE);
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
+    psa_set_key_algorithm(&attributes,
+                          PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_ANY_HASH));
+#else
+    psa_set_key_algorithm(&attributes, PSA_ALG_ECDSA(PSA_ALG_ANY_HASH));
+#endif
+    psa_set_key_enrollment_algorithm(&attributes, PSA_ALG_ECDH);
+
+    status = psa_import_key(&attributes, d, d_len, &pk->priv_id);
+    if (status != PSA_SUCCESS) {
+        ret = psa_pk_status_to_mbedtls(status);
+        return ret;
+    }
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
     if ((ret = mbedtls_ecp_read_key(eck->grp.id, eck, d, d_len)) != 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
     }
-#endif
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
     if (p != end) {
         /*
@@ -1254,27 +1273,6 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
         }
     }
-
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(pk->ec_family));
-    /* Setting largest masks for usage and key algorithms */
-    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH |
-                            PSA_KEY_USAGE_SIGN_MESSAGE |
-                            PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_DERIVE);
-#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
-    psa_set_key_algorithm(&attributes,
-                          PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_ANY_HASH));
-#else
-    psa_set_key_algorithm(&attributes, PSA_ALG_ECDSA(PSA_ALG_ANY_HASH));
-#endif
-    psa_set_key_enrollment_algorithm(&attributes, PSA_ALG_ECDH);
-
-    status = psa_import_key(&attributes, d, d_len, &pk->priv_id);
-    if (status != PSA_SUCCESS) {
-        ret = psa_pk_status_to_mbedtls(status);
-        return ret;
-    }
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
     if (!pubkey_done) {
         if ((ret = pk_derive_public_key(pk, d, d_len, f_rng, p_rng)) != 0) {

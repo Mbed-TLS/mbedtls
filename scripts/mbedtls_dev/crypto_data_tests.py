@@ -19,6 +19,7 @@ This module is a work in progress, only implementing a few cases for now.
 # limitations under the License.
 
 import hashlib
+from abc import ABCMeta, abstractmethod
 from typing import Callable, Dict, Iterator, List, Optional #pylint: disable=unused-import
 
 from . import crypto_knowledge
@@ -37,10 +38,10 @@ def psa_low_level_dependencies(*expressions: str) -> List[str]:
     return ['MBEDTLS_PSA_BUILTIN_' + dep[9:] for dep in high_level]
 
 
-class HashPSALowLevel:
-    """Generate test cases for the PSA low-level hash interface."""
+class PSALowLevel(metaclass=ABCMeta):
+    """Generate test cases for the PSA low-level interface."""
 
-    def __init__(self, info: psa_information.Information) -> None:
+    def __init__(self, alg_type, info: psa_information.Information) -> None:
         self.info = info
         base_algorithms = sorted(info.constructors.algorithms)
         all_algorithms = \
@@ -50,36 +51,13 @@ class HashPSALowLevel:
             [alg
              for alg in all_algorithms
              if (not alg.is_wildcard and
-                 alg.can_do(crypto_knowledge.AlgorithmCategory.HASH))]
-
-    # CALCULATE[alg] = function to return the hash of its argument in hex
-    # TO-DO: implement the None entries with a third-party library, because
-    # hashlib might not have everything, depending on the Python version and
-    # the underlying OpenSSL. On Ubuntu 16.04, truncated sha512 and sha3/shake
-    # are not available. On Ubuntu 22.04, md2, md4 and ripemd160 are not
-    # available.
-    CALCULATE = {
-        'PSA_ALG_MD5': lambda data: hashlib.md5(data).hexdigest(),
-        'PSA_ALG_RIPEMD160': None, #lambda data: hashlib.new('ripdemd160').hexdigest()
-        'PSA_ALG_SHA_1': lambda data: hashlib.sha1(data).hexdigest(),
-        'PSA_ALG_SHA_224': lambda data: hashlib.sha224(data).hexdigest(),
-        'PSA_ALG_SHA_256': lambda data: hashlib.sha256(data).hexdigest(),
-        'PSA_ALG_SHA_384': lambda data: hashlib.sha384(data).hexdigest(),
-        'PSA_ALG_SHA_512': lambda data: hashlib.sha512(data).hexdigest(),
-        'PSA_ALG_SHA_512_224': None, #lambda data: hashlib.new('sha512_224').hexdigest()
-        'PSA_ALG_SHA_512_256': None, #lambda data: hashlib.new('sha512_256').hexdigest()
-        'PSA_ALG_SHA3_224': None, #lambda data: hashlib.sha3_224(data).hexdigest(),
-        'PSA_ALG_SHA3_256': None, #lambda data: hashlib.sha3_256(data).hexdigest(),
-        'PSA_ALG_SHA3_384': None, #lambda data: hashlib.sha3_384(data).hexdigest(),
-        'PSA_ALG_SHA3_512': None, #lambda data: hashlib.sha3_512(data).hexdigest(),
-        'PSA_ALG_SHAKE256_512': None, #lambda data: hashlib.shake_256(data).hexdigest(64),
-    } #type: Dict[str, Optional[Callable[[bytes], str]]]
+                 alg.can_do(alg_type))]
 
     @staticmethod
     def one_test_case(alg: crypto_knowledge.Algorithm,
                       function: str, note: str,
                       arguments: List[str]) -> test_case.TestCase:
-        """Construct one test case involving a hash."""
+        """Construct one test case."""
         tc = test_case.TestCase()
         tc.set_description('{}{} {}'
                            .format(function,
@@ -91,11 +69,53 @@ class HashPSALowLevel:
                          ['"{}"'.format(arg) for arg in arguments])
         return tc
 
-    def test_cases_for_hash(self,
-                            alg: crypto_knowledge.Algorithm
-                            ) -> Iterator[test_case.TestCase]:
+    @abstractmethod
+    def test_cases(self,
+                   alg: crypto_knowledge.Algorithm
+                   ) -> Iterator[test_case.TestCase]:
+        """Enumerate all test cases for one algorithm."""
+        raise NotImplementedError
+
+    def all_test_cases(self) -> Iterator[test_case.TestCase]:
+        """Enumerate all test cases for all hash algorithms."""
+        for alg in self.algorithms:
+            yield from self.test_cases(alg)
+
+
+class HashPSALowLevel(PSALowLevel):
+    """Generate test cases for the PSA low-level hash interface."""
+
+    def __init__(self, info: psa_information.Information) -> None:
+        super().__init__(crypto_knowledge.AlgorithmCategory.HASH, info)
+        # calculate[alg] = function to return the hash of its argument in hex
+        # TO-DO: implement the None entries with a third-party library, because
+        # hashlib might not have everything, depending on the Python version and
+        # the underlying OpenSSL. On Ubuntu 16.04, truncated sha512 and sha3/shake
+        # are not available. On Ubuntu 22.04, md2, md4 and ripemd160 are not
+        # available.
+        self.calculate = {
+            'PSA_ALG_MD5': lambda data: hashlib.md5(data).hexdigest(),
+            'PSA_ALG_RIPEMD160': None, #lambda data: hashlib.new('ripdemd160').hexdigest()
+            'PSA_ALG_SHA_1': lambda data: hashlib.sha1(data).hexdigest(),
+            'PSA_ALG_SHA_224': lambda data: hashlib.sha224(data).hexdigest(),
+            'PSA_ALG_SHA_256': lambda data: hashlib.sha256(data).hexdigest(),
+            'PSA_ALG_SHA_384': lambda data: hashlib.sha384(data).hexdigest(),
+            'PSA_ALG_SHA_512': lambda data: hashlib.sha512(data).hexdigest(),
+            'PSA_ALG_SHA_512_224': None, #lambda data: hashlib.new('sha512_224').hexdigest()
+            'PSA_ALG_SHA_512_256': None, #lambda data: hashlib.new('sha512_256').hexdigest()
+            'PSA_ALG_SHA3_224': None, #lambda data: hashlib.sha3_224(data).hexdigest(),
+            'PSA_ALG_SHA3_256': None, #lambda data: hashlib.sha3_256(data).hexdigest(),
+            'PSA_ALG_SHA3_384': None, #lambda data: hashlib.sha3_384(data).hexdigest(),
+            'PSA_ALG_SHA3_512': None, #lambda data: hashlib.sha3_512(data).hexdigest(),
+            'PSA_ALG_SHAKE256_512': None, #lambda data: hashlib.shake_256(data).hexdigest(64),
+        } #type: Dict[str, Optional[Callable[[bytes], str]]]
+
+
+    def test_cases(self,
+                   alg: crypto_knowledge.Algorithm
+                   ) -> Iterator[test_case.TestCase]:
         """Enumerate all test cases for one hash algorithm."""
-        calc = self.CALCULATE[alg.expression]
+        calc = self.calculate[alg.expression]
         if calc is None:
             return # not implemented yet
 
@@ -116,8 +136,3 @@ class HashPSALowLevel:
                                      '{} + {}'.format(n, len(long) - n),
                                      [long[:n].hex(), calc(long[:n]),
                                       long[n:].hex(), hash_long])
-
-    def all_test_cases(self) -> Iterator[test_case.TestCase]:
-        """Enumerate all test cases for all hash algorithms."""
-        for alg in self.algorithms:
-            yield from self.test_cases_for_hash(alg)

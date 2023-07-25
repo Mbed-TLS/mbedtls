@@ -55,10 +55,7 @@
     MBEDTLS_INTERNAL_VALIDATE(cond)
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_mpi_zeroize_and_free(mbedtls_mpi_uint *v, size_t n)
-{
-    mbedtls_zeroize_and_free(v, ciL * n);
-}
+#define mbedtls_mpi_zeroize_and_free(v, n) mbedtls_zeroize_and_free(v, ciL * n)
 
 /*
  * Initialize one MPI

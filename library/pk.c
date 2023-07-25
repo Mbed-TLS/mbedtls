@@ -726,6 +726,9 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
 
     mbedtls_rsa_context *const rsa_ctx = mbedtls_pk_rsa(*ctx);
 
+    // NOT THREAD-SAFE! Proof-of-concept only!
+    mbedtls_rsa_set_padding(rsa_ctx, MBEDTLS_RSA_PKCS_V21, md_alg);
+
     const int ret = mbedtls_rsa_rsassa_pss_sign(rsa_ctx, f_rng, p_rng, md_alg,
                                                 (unsigned int) hash_len, hash, sig);
     if (ret == 0) {

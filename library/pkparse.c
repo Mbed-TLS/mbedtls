@@ -679,11 +679,14 @@ static int pk_parse_key_rfc8410_der(mbedtls_pk_context *pk,
 /*
  * Create a temporary ecp_keypair for converting an EC point in compressed
  * format to an uncompressed one
+ *
+ * Consumes everything or fails - inherited from
+ * mbedtls_ecp_point_read_binary().
  */
-static int pk_convert_compressed_ec(mbedtls_pk_context *pk,
-                                    const unsigned char *in_start, size_t in_len,
-                                    size_t *out_buf_len, unsigned char *out_buf,
-                                    size_t out_buf_size)
+static int pk_ecc_read_compressed(mbedtls_pk_context *pk,
+                                  const unsigned char *in_start, size_t in_len,
+                                  unsigned char *out_buf, size_t out_buf_size,
+                                  size_t *out_buf_len)
 {
 #if defined(MBEDTLS_PK_PARSE_EC_COMPRESSED)
     mbedtls_ecp_keypair ecp_key;
@@ -730,7 +733,7 @@ static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     mbedtls_svc_key_id_t key;
     psa_key_attributes_t key_attrs = PSA_KEY_ATTRIBUTES_INIT;
-    size_t len = (end - *p);
+    size_t len = (size_t) (end - *p);
 
     if (len > PSA_EXPORT_PUBLIC_KEY_MAX_SIZE) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
@@ -739,19 +742,20 @@ static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
     if ((**p == 0x02) || (**p == 0x03)) {
         /* Compressed format, not supported by PSA Crypto.
          * Try converting using functions from ECP_LIGHT. */
-        ret = pk_convert_compressed_ec(pk, *p, len,
-                                       &(pk->pub_raw_len), pk->pub_raw,
-                                       PSA_EXPORT_PUBLIC_KEY_MAX_SIZE);
+        ret = pk_ecc_read_compressed(pk, *p, len,
+                                     pk->pub_raw,
+                                     PSA_EXPORT_PUBLIC_KEY_MAX_SIZE,
+                                     &pk->pub_raw_len);
         if (ret != 0) {
             return ret;
         }
     } else {
         /* Uncompressed format */
-        if ((size_t) (end - *p) > MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN) {
+        if (len > MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN) {
             return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
         }
-        memcpy(pk->pub_raw, *p, (end - *p));
-        pk->pub_raw_len = end - *p;
+        memcpy(pk->pub_raw, *p, len);
+        pk->pub_raw_len = len;
     }
 
     /* Validate the key by trying to importing it */
@@ -778,7 +782,8 @@ static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
     /*
-     * We know mbedtls_ecp_point_read_binary consumed all bytes or failed
+     * We know mbedtls_ecp_point_read_binary and pk_ecc_read_compressed either
+     * consumed all bytes or failed, and memcpy consumed all bytes too.
      */
     *p = (unsigned char *) end;
 

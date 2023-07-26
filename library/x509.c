@@ -43,6 +43,10 @@
 #include "mbedtls/pem.h"
 #endif
 
+#if defined(MBEDTLS_ASN1_WRITE_C)
+#include "mbedtls/asn1write.h"
+#endif
+
 #include "mbedtls/platform.h"
 
 #if defined(MBEDTLS_HAVE_TIME)
@@ -822,11 +826,16 @@ static char nibble_to_hex_digit(int i)
 int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i, j, n;
+    size_t i, j, n, asn1_len_size;
+    unsigned char asn1_len_buf[5];
+    int asn1_len_start;
+    unsigned char *asn1_len_p;
     unsigned char c, merge = 0;
     const mbedtls_x509_name *name;
     const char *short_name = NULL;
+    char numericoid[MBEDTLS_X509_MAX_DN_NAME_SIZE];
     char s[MBEDTLS_X509_MAX_DN_NAME_SIZE], *p;
+    int is_numericoid = 0;
 
     memset(s, 0, sizeof(s));
 
@@ -845,43 +854,82 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
             MBEDTLS_X509_SAFE_SNPRINTF;
         }
 
-        ret = mbedtls_oid_get_attr_short_name(&name->oid, &short_name);
+        is_numericoid = (name->val.tag == MBEDTLS_ASN1_BIT_STRING) || (name->val.tag == MBEDTLS_ASN1_OCTET_STRING);
 
-        if (ret == 0) {
-            ret = mbedtls_snprintf(p, n, "%s=", short_name);
-        } else {
-            ret = mbedtls_snprintf(p, n, "\?\?=");
+        if(is_numericoid) {
+            ret = mbedtls_oid_get_numeric_string(numericoid,MBEDTLS_X509_MAX_DN_NAME_SIZE,&name->oid);
+            if (ret > 0) {
+                ret = mbedtls_snprintf(p, n, "%s=", numericoid);
+            } else {
+                ret = mbedtls_snprintf(p, n, "\?\?=");
+            }
+            MBEDTLS_X509_SAFE_SNPRINTF;
         }
-        MBEDTLS_X509_SAFE_SNPRINTF;
-
-        for (i = 0, j = 0; i < name->val.len; i++, j++) {
-            if (j >= sizeof(s) - 1) {
-                return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+        else {
+            ret = mbedtls_oid_get_attr_short_name(&name->oid, &short_name);
+            if (ret == 0) {
+                ret = mbedtls_snprintf(p, n, "%s=", short_name);
+            } else {
+                ret = mbedtls_snprintf(p, n, "\?\?=");
             }
+            MBEDTLS_X509_SAFE_SNPRINTF;
+        }
 
-            c = name->val.p[i];
-            // Special characters requiring escaping, RFC 4514 Section 2.4
-            if (c) {
-                if (strchr(",=+<>;\"\\+", c) ||
-                    ((i == 0) && strchr("# ", c)) ||
-                    ((i == name->val.len-1) && (c == ' '))) {
-                    if (j + 1 >= sizeof(s) - 1) {
-                        return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
-                    }
-                    s[j++] = '\\';
-                }
-            }
-            if (c < 32 || c >= 127) {
-                if (j + 3 >= sizeof(s) - 1) {
+        if(is_numericoid) {
+            s[0] = '#';
+            c = name->val.tag;
+            char lowbits = (c & 0x0F);
+            char highbits = c>>4;
+            s[1] = nibble_to_hex_digit(highbits);
+            s[2] = nibble_to_hex_digit(lowbits);
+            asn1_len_p = asn1_len_buf+5;
+            asn1_len_size = mbedtls_asn1_write_len(&asn1_len_p,asn1_len_buf,name->val.len);
+            asn1_len_start = 5 - asn1_len_size;
+            for (i = 0, j = 3; i < asn1_len_size + name->val.len; i++, j++) {
+                if (j + 1 >= sizeof(s) - 1) {
                     return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
                 }
-                s[j++] = '\\';
+                if(i < asn1_len_size) {
+                    c = asn1_len_buf[asn1_len_start+i];
+                }
+                else {
+                    c = name->val.p[i-asn1_len_size];
+                }
                 char lowbits = (c & 0x0F);
                 char highbits = c>>4;
                 s[j++] = nibble_to_hex_digit(highbits);
                 s[j] = nibble_to_hex_digit(lowbits);
-            } else {
-                s[j] = c;
+            }
+        } else {
+            for (i = 0, j = 0; i < name->val.len; i++, j++) {
+                if (j >= sizeof(s) - 1) {
+                    return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                }
+
+                c = name->val.p[i];
+                // Special characters requiring escaping, RFC 4514 Section 2.4
+                if (c) {
+                    if (strchr(",=+<>;\"\\+", c) ||
+                        ((i == 0) && strchr("# ", c)) ||
+                        ((i == name->val.len-1) && (c == ' '))) {
+                        if (j + 1 >= sizeof(s) - 1) {
+                            return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                        }
+                        s[j++] = '\\';
+                    }
+                }
+                if (c < 32 || c >= 127) {
+                    if (j + 3 >= sizeof(s) - 1) {
+                        return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                    }
+                    s[j++] = '\\';
+                    char lowbits = (c & 0x0F);
+                    char highbits = c>>4;
+                    s[j++] = nibble_to_hex_digit(highbits);
+                    s[j] = nibble_to_hex_digit(lowbits);
+                } else {
+                    s[j] = c;
+                }
             }
         }
         s[j] = '\0';

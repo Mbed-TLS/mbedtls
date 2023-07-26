@@ -1026,10 +1026,10 @@ static void set_ciphersuite(mbedtls_ssl_config *conf, const char *cipher,
     TEST_ASSERT(ciphersuite_info->max_tls_version >= conf->min_tls_version);
 
     if (conf->max_tls_version > ciphersuite_info->max_tls_version) {
-        conf->max_tls_version = ciphersuite_info->max_tls_version;
+        conf->max_tls_version = (mbedtls_ssl_protocol_version) ciphersuite_info->max_tls_version;
     }
     if (conf->min_tls_version < ciphersuite_info->min_tls_version) {
-        conf->min_tls_version = ciphersuite_info->min_tls_version;
+        conf->min_tls_version = (mbedtls_ssl_protocol_version) ciphersuite_info->min_tls_version;
     }
 
     mbedtls_ssl_conf_ciphersuites(conf, forced_ciphersuite);
@@ -1146,7 +1146,7 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
     maclen = 0;
 
     /* Pick cipher */
-    cipher_info = mbedtls_cipher_info_from_type(cipher_type);
+    cipher_info = mbedtls_cipher_info_from_type((mbedtls_cipher_type_t) cipher_type);
     CHK(cipher_info != NULL);
     CHK(mbedtls_cipher_info_get_iv_size(cipher_info) <= 16);
     CHK(mbedtls_cipher_info_get_key_bitlen(cipher_info) % 8 == 0);
@@ -1204,10 +1204,10 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
     if (cipher_info->mode == MBEDTLS_MODE_CBC ||
         cipher_info->mode == MBEDTLS_MODE_STREAM) {
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
-        mbedtls_md_info_t const *md_info = mbedtls_md_info_from_type(hash_id);
+        mbedtls_md_info_t const *md_info = mbedtls_md_info_from_type((mbedtls_md_type_t) hash_id);
         CHK(md_info != NULL);
 #endif
-        maclen = mbedtls_md_get_size_from_type(hash_id);
+        maclen = mbedtls_md_get_size_from_type((mbedtls_md_type_t) hash_id);
         CHK(maclen != 0);
         /* Pick hash keys */
         CHK((md0 = mbedtls_calloc(1, maclen)) != NULL);

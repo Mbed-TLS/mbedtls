@@ -3602,8 +3602,9 @@ static int ssl_parse_record_header(mbedtls_ssl_context const *ssl,
      */
     rec->ver[0] = buf[rec_hdr_version_offset + 0];
     rec->ver[1] = buf[rec_hdr_version_offset + 1];
-    tls_version = mbedtls_ssl_read_version(buf + rec_hdr_version_offset,
-                                           ssl->conf->transport);
+    tls_version = (mbedtls_ssl_protocol_version) mbedtls_ssl_read_version(
+        buf + rec_hdr_version_offset,
+        ssl->conf->transport);
 
     if (tls_version > ssl->conf->max_tls_version) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("TLS version mismatch: got %u, expected max %u",
@@ -5849,15 +5850,19 @@ static void ssl_buffering_free_slot(mbedtls_ssl_context *ssl,
 void mbedtls_ssl_write_version(unsigned char version[2], int transport,
                                mbedtls_ssl_protocol_version tls_version)
 {
+    uint16_t tls_version_formatted;
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if (transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
-        tls_version =
+        tls_version_formatted =
             ~(tls_version - (tls_version == 0x0302 ? 0x0202 : 0x0201));
-    }
+    } else
 #else
     ((void) transport);
 #endif
-    MBEDTLS_PUT_UINT16_BE(tls_version, version, 0);
+    {
+        tls_version_formatted = (uint16_t) tls_version;
+    }
+    MBEDTLS_PUT_UINT16_BE(tls_version_formatted, version, 0);
 }
 
 uint16_t mbedtls_ssl_read_version(const unsigned char version[2],

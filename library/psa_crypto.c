@@ -7983,7 +7983,7 @@ static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_s
     } else {
         return PSA_JPAKE_STEP_INVALID;
     }
-    return key_share_step + stage->step - PSA_PAKE_STEP_KEY_SHARE;
+    return (psa_crypto_driver_pake_step_t) (key_share_step + stage->step - PSA_PAKE_STEP_KEY_SHARE);
 }
 #endif /* PSA_WANT_ALG_JPAKE */
 

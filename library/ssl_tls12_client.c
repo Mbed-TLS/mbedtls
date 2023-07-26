@@ -1271,7 +1271,8 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
     buf += mbedtls_ssl_hs_hdr_len(ssl);
 
     MBEDTLS_SSL_DEBUG_BUF(3, "server hello, version", buf, 2);
-    ssl->tls_version = mbedtls_ssl_read_version(buf, ssl->conf->transport);
+    ssl->tls_version = (mbedtls_ssl_protocol_version) mbedtls_ssl_read_version(buf,
+                                                                               ssl->conf->transport);
     ssl->session_negotiate->tls_version = ssl->tls_version;
 
     if (ssl->tls_version < ssl->conf->min_tls_version ||
@@ -3148,7 +3149,8 @@ ecdh_calc_secret:
 
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
         if ((ret = mbedtls_ssl_psk_derive_premaster(ssl,
-                                                    ciphersuite_info->key_exchange)) != 0) {
+                                                    (mbedtls_key_exchange_type_t) ciphersuite_info->
+                                                    key_exchange)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1,
                                   "mbedtls_ssl_psk_derive_premaster", ret);
             return ret;

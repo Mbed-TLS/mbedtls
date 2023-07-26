@@ -275,40 +275,39 @@ exit:
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
 /*
- * EC public key is an EC point
+ * Set the public key.
  *
- * The caller is responsible for clearing the structure upon failure if
- * desired. Take care to pass along the possible ECP_FEATURE_UNAVAILABLE
- * return code of mbedtls_ecp_point_read_binary() and leave p in a usable state.
+ * [in/out] pk: in: must have its group set, see pk_ecc_set_group().
+ *              out: will have the public key set.
+ * [in] pub, pub_len: the raw public key (an ECPoint).
  */
-static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
-                           mbedtls_pk_context *pk)
+static int pk_ecc_set_pubkey(mbedtls_pk_context *pk,
+                             const unsigned char *pub, size_t pub_len)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     mbedtls_svc_key_id_t key;
     psa_key_attributes_t key_attrs = PSA_KEY_ATTRIBUTES_INIT;
-    size_t len = (size_t) (end - *p);
 
-    if (len > PSA_EXPORT_PUBLIC_KEY_MAX_SIZE) {
+    if (pub_len > PSA_EXPORT_PUBLIC_KEY_MAX_SIZE) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 
-    if ((**p == 0x02) || (**p == 0x03)) {
+    if ((*pub == 0x02) || (*pub == 0x03)) {
         /* Compressed format, not supported by PSA Crypto.
          * Try converting using functions from ECP_LIGHT. */
-        ret = pk_ecc_set_pubkey_psa_ecp_fallback(pk, *p, len);
+        ret = pk_ecc_set_pubkey_psa_ecp_fallback(pk, pub, pub_len);
         if (ret != 0) {
             return ret;
         }
     } else {
         /* Uncompressed format */
-        if (len > MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN) {
+        if (pub_len > MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN) {
             return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
         }
-        memcpy(pk->pub_raw, *p, len);
-        pk->pub_raw_len = len;
+        memcpy(pk->pub_raw, pub, pub_len);
+        pk->pub_raw_len = pub_len;
     }
 
     /* Validate the key by trying to importing it */
@@ -328,18 +327,10 @@ static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
 #else /* MBEDTLS_PK_USE_PSA_EC_DATA */
     mbedtls_ecp_keypair *ec_key = (mbedtls_ecp_keypair *) pk->pk_ctx;
     if ((ret = mbedtls_ecp_point_read_binary(&ec_key->grp, &ec_key->Q,
-                                             (const unsigned char *) *p,
-                                             end - *p)) == 0) {
+                                             pub, pub_len)) == 0) {
         ret = mbedtls_ecp_check_pubkey(&ec_key->grp, &ec_key->Q);
     }
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
-
-    /*
-     * We know mbedtls_ecp_point_read_binary and pk_ecc_read_compressed either
-     * consumed all bytes or failed, and memcpy consumed all bytes too.
-     */
-    *p = (unsigned char *) end;
-
     return ret;
 }
 
@@ -900,7 +891,8 @@ int mbedtls_pk_parse_subpubkey(unsigned char **p, const unsigned char *end,
             ret = pk_use_ecparams(&alg_params, pk);
         }
         if (ret == 0) {
-            ret = pk_get_ecpubkey(p, end, pk);
+            ret = pk_ecc_set_pubkey(pk, *p, end - *p);
+            *p += end - *p;
         }
     } else
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
@@ -1204,11 +1196,11 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
                                          MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
             }
 
-            if ((ret = pk_get_ecpubkey(&p, end2, pk)) == 0) {
+            if ((ret = pk_ecc_set_pubkey(pk, p, end2 - p)) == 0) {
                 pubkey_done = 1;
             } else {
                 /*
-                 * The only acceptable failure mode of pk_get_ecpubkey() above
+                 * The only acceptable failure mode of pk_ecc_set_pubkey() above
                  * is if the point format is not recognized.
                  */
                 if (ret != MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE) {

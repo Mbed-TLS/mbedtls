@@ -21,11 +21,11 @@ import sys
 
 def configure_logger(
         logger: logging.Logger,
-        logger_format="[%(levelname)s]: %(message)s"
+        log_format="[%(levelname)s]: %(message)s"
     ) -> None:
     """
     Configure the logging.Logger instance so that:
-        - Format is set to any logger_format.
+        - Format is set to any log_format.
             Default: "[%(levelname)s]: %(message)s"
         - loglevel >= WARNING are printed to stderr.
         - loglevel <  WARNING are printed to stdout.
@@ -39,7 +39,7 @@ def configure_logger(
         def filter(self, record: logging.LogRecord) -> bool:
             return record.levelno <= self.max_level
 
-    log_formatter = logging.Formatter(logger_format)
+    log_formatter = logging.Formatter(log_format)
 
     # set loglevel >= WARNING to be printed to stderr
     stderr_hdlr = logging.StreamHandler(sys.stderr)

@@ -4205,6 +4205,19 @@ component_test_have_int64 () {
     make test
 }
 
+component_test_have_int32_cmake_new_bignum () {
+    msg "build: gcc, force 32-bit bignum limbs, new bignum interface, test hooks (ASan build)"
+    scripts/config.py unset MBEDTLS_HAVE_ASM
+    scripts/config.py unset MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_PADLOCK_C
+    scripts/config.py unset MBEDTLS_AESCE_C
+    scripts/config.py set MBEDTLS_TEST_HOOKS
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32 -DMBEDTLS_ECP_WITH_MPI_UINT" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: gcc, force 32-bit bignum limbs, new bignum interface, test hooks (ASan build)"
+    make test
+}
+
 component_test_no_udbl_division () {
     msg "build: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
     scripts/config.py full

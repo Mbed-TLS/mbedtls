@@ -222,9 +222,9 @@ class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods
         """Infer command to set up proper configuration before running make."""
         pre_make_cmd = [] #type: typing.List[str]
         if self.config == SupportedConfig.TFM_MEDIUM.value:
-            pre_make_cmd.append('cp -r {src} {dest}'
+            pre_make_cmd.append('cp {src} {dest}'
                                 .format(src=TFM_MEDIUM_CONFIG_H, dest=CONFIG_H))
-            pre_make_cmd.append('cp -r {src} {dest}'
+            pre_make_cmd.append('cp {src} {dest}'
                                 .format(src=TFM_MEDIUM_CRYPTO_CONFIG_H,
                                         dest=CRYPTO_CONFIG_H))
 

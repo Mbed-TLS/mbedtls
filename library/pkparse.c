@@ -675,7 +675,7 @@ static int pk_parse_key_rfc8410_der(mbedtls_pk_context *pk,
 }
 #endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA) && defined(MBEDTLS_PK_PARSE_EC_COMPRESSED)
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 /*
  * Create a temporary ecp_keypair for converting an EC point in compressed
  * format to an uncompressed one
@@ -685,6 +685,7 @@ static int pk_convert_compressed_ec(mbedtls_pk_context *pk,
                                     size_t *out_buf_len, unsigned char *out_buf,
                                     size_t out_buf_size)
 {
+#if defined(MBEDTLS_PK_PARSE_EC_COMPRESSED)
     mbedtls_ecp_keypair ecp_key;
     mbedtls_ecp_group_id ecp_group_id;
     int ret;
@@ -708,8 +709,11 @@ static int pk_convert_compressed_ec(mbedtls_pk_context *pk,
 exit:
     mbedtls_ecp_keypair_free(&ecp_key);
     return ret;
+#else /* MBEDTLS_PK_PARSE_EC_COMPRESSED */
+    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+#endif /* MBEDTLS_PK_PARSE_EC_COMPRESSED */
 }
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA && MBEDTLS_PK_PARSE_EC_COMPRESSED */
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
 /*
  * EC public key is an EC point
@@ -732,20 +736,15 @@ static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 
-    /* Compressed point format are not supported yet by PSA crypto. As a
-     * consequence ecp functions are used to "convert" the point to
-     * uncompressed format */
     if ((**p == 0x02) || (**p == 0x03)) {
-#if defined(MBEDTLS_PK_PARSE_EC_COMPRESSED)
+        /* Compressed format, not supported by PSA Crypto.
+         * Try converting using functions from ECP_LIGHT. */
         ret = pk_convert_compressed_ec(pk, *p, len,
                                        &(pk->pub_raw_len), pk->pub_raw,
                                        PSA_EXPORT_PUBLIC_KEY_MAX_SIZE);
         if (ret != 0) {
             return ret;
         }
-#else /* MBEDTLS_PK_PARSE_EC_COMPRESSED */
-        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-#endif /* MBEDTLS_PK_PARSE_EC_COMPRESSED */
     } else {
         /* Uncompressed format */
         if ((size_t) (end - *p) > MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN) {

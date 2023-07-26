@@ -423,9 +423,11 @@ class CodeSizeCalculator:
         """
 
         git_worktree_path = self._create_git_worktree()
-        self._build_libraries(git_worktree_path)
-        res = self._gen_raw_code_size(git_worktree_path)
-        self._remove_worktree(git_worktree_path)
+        try:
+            self._build_libraries(git_worktree_path)
+            res = self._gen_raw_code_size(git_worktree_path)
+        finally:
+            self._remove_worktree(git_worktree_path)
 
         return res
 

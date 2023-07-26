@@ -147,7 +147,7 @@ def detect_arch() -> str:
         return SupportedArch.AARCH32.value
     if '__x86_64__' in cc_output:
         return SupportedArch.X86_64.value
-    if '__x86__' in cc_output:
+    if '__i386__' in cc_output:
         return SupportedArch.X86.value
     else:
         print("Unknown host architecture, cannot auto-detect arch.")

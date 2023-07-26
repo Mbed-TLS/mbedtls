@@ -145,23 +145,34 @@ static int pk_ecc_set_key(mbedtls_pk_context *pk,
 }
 
 /*
- * Helper function for deriving a public key from its private counterpart.
+ * Derive a public key from its private counterpart.
+ * Computationally intensive, only use when public key is not available.
+ *
+ * [in/out] pk: in: must have the private key set, see pk_ecc_set_key().
+ *              out: will have the public key set.
+ * [in] prv, prv_len: the raw private key (see note below).
+ * [in] f_rng, p_rng: RNG function and context.
  *
  * Note: the private key information is always available from pk,
  * however for convenience the serialized version is also passed,
  * as it's available at each calling site, and useful in some configs
  * (as otherwise we're have to re-serialize it from the pk context).
+ *
+ * There are three implementations of this function:
+ * 1. MBEDTLS_PK_USE_PSA_EC_DATA,
+ * 2. MBEDTLS_USE_PSA_CRYPTO but not MBEDTLS_PK_USE_PSA_EC_DATA,
+ * 3. not MBEDTLS_USE_PSA_CRYPTO.
  */
-static int pk_derive_public_key(mbedtls_pk_context *pk,
-                                const unsigned char *d, size_t d_len,
-                                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
+static int pk_ecc_set_pubkey_from_prv(mbedtls_pk_context *pk,
+                                      const unsigned char *prv, size_t prv_len,
+                                      int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     psa_status_t status;
     (void) f_rng;
     (void) p_rng;
-    (void) d;
-    (void) d_len;
+    (void) prv;
+    (void) prv_len;
 
     status = psa_export_public_key(pk->priv_id, pk->pub_raw, sizeof(pk->pub_raw),
                                    &pk->pub_raw_len);
@@ -184,7 +195,7 @@ static int pk_derive_public_key(mbedtls_pk_context *pk,
     psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
     psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_EXPORT);
 
-    status = psa_import_key(&key_attr, d, d_len, &key_id);
+    status = psa_import_key(&key_attr, prv, prv_len, &key_id);
     ret = psa_pk_status_to_mbedtls(status);
     if (ret != 0) {
         return ret;
@@ -201,8 +212,8 @@ static int pk_derive_public_key(mbedtls_pk_context *pk,
     return mbedtls_ecp_point_read_binary(&eck->grp, &eck->Q, key_buf, key_len);
 #else /* MBEDTLS_USE_PSA_CRYPTO */
     mbedtls_ecp_keypair *eck = (mbedtls_ecp_keypair *) pk->pk_ctx;
-    (void) d;
-    (void) d_len;
+    (void) prv;
+    (void) prv_len;
 
     return mbedtls_ecp_mul(&eck->grp, &eck->Q, &eck->d, &eck->grp.G, f_rng, p_rng);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -696,7 +707,7 @@ static int pk_parse_key_rfc8410_der(mbedtls_pk_context *pk,
     /* pk_parse_key_pkcs8_unencrypted_der() only supports version 1 PKCS8 keys,
      * which never contain a public key. As such, derive the public key
      * unconditionally. */
-    if ((ret = pk_derive_public_key(pk, key, len, f_rng, p_rng)) != 0) {
+    if ((ret = pk_ecc_set_pubkey_from_prv(pk, key, len, f_rng, p_rng)) != 0) {
         return ret;
     }
 
@@ -1201,7 +1212,7 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
     }
 
     if (!pubkey_done) {
-        if ((ret = pk_derive_public_key(pk, d, d_len, f_rng, p_rng)) != 0) {
+        if ((ret = pk_ecc_set_pubkey_from_prv(pk, d, d_len, f_rng, p_rng)) != 0) {
             return ret;
         }
     }

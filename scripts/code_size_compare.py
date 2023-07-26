@@ -815,11 +815,11 @@ def main():
         'optional arguments',
         'optional arguments to parse for running ' + os.path.basename(__file__))
     group_optional.add_argument(
-        '--record_dir', type=str, default='code_size_records',
+        '--record-dir', type=str, default='code_size_records',
         help='directory where code size record is stored. '
              '(Default: code_size_records)')
     group_optional.add_argument(
-        '-r', '--comp-dir', type=str, default='comparison',
+        '--comp-dir', type=str, default='comparison',
         help='directory where comparison result is stored. '
              '(Default: comparison)')
     group_optional.add_argument(
@@ -858,9 +858,14 @@ def main():
     else:
         logger.setLevel(logging.DEBUG if comp_args.verbose else logging.INFO)
 
+    if os.path.isfile(comp_args.record_dir):
+        logger.error("record directory: {} is not a directory"
+                     .format(comp_args.record_dir))
+        sys.exit(1)
     if os.path.isfile(comp_args.comp_dir):
-        logger.error("{} is not a directory".format(comp_args.comp_dir))
-        parser.exit()
+        logger.error("comparison directory: {} is not a directory"
+                     .format(comp_args.comp_dir))
+        sys.exit(1)
 
     comp_args.old_rev = CodeSizeCalculator.validate_git_revision(
         comp_args.old_rev)

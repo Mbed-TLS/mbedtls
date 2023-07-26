@@ -69,6 +69,10 @@
 
 /*
  * Set the group used by this key.
+ *
+ * [in/out] pk: in: must have been pk_setup() to an ECC type
+ *              out: will have group (curve) information set
+ * [in] grp_in: a supported group ID (not NONE)
  */
 static int pk_ecc_set_group(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id)
 {
@@ -104,12 +108,12 @@ static int pk_ecc_set_group(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id)
 /*
  * Set the private key material
  *
- * Must have already set the group with pk_ecc_set_group().
- *
- * The 'key' argument points to the raw private key (no ASN.1 wrapping).
+ * [in/out] pk: in: must have the group set already, see pk_ecc_set_group().
+ *              out: will have the private key set.
+ * [in] key, key_len: the raw private key (no ASN.1 wrapping).
  */
 static int pk_ecc_set_key(mbedtls_pk_context *pk,
-                          unsigned char *key, size_t len)
+                          unsigned char *key, size_t key_len)
 {
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -126,13 +130,13 @@ static int pk_ecc_set_key(mbedtls_pk_context *pk,
     }
     psa_set_key_usage_flags(&attributes, flags);
 
-    status = psa_import_key(&attributes, key, len, &pk->priv_id);
+    status = psa_import_key(&attributes, key, key_len, &pk->priv_id);
     return psa_pk_status_to_mbedtls(status);
 
 #else /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
     mbedtls_ecp_keypair *eck = mbedtls_pk_ec_rw(*pk);
-    int ret = mbedtls_ecp_read_key(eck->grp.id, eck, key, len);
+    int ret = mbedtls_ecp_read_key(eck->grp.id, eck, key, key_len);
     if (ret != 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
     }

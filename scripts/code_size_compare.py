@@ -856,7 +856,10 @@ def main():
 
     logger = logging.getLogger()
     logging_util.configure_logger(logger)
-    logger.setLevel(logging.DEBUG if comp_args.verbose else logging.INFO)
+    if comp_args.stdout and not comp_args.verbose:
+        logger.setLevel(logging.ERROR)
+    else:
+        logger.setLevel(logging.DEBUG if comp_args.verbose else logging.INFO)
 
     if os.path.isfile(comp_args.comp_dir):
         logger.error("{} is not a directory".format(comp_args.comp_dir))

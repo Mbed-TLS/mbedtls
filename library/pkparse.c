@@ -284,54 +284,51 @@ exit:
 static int pk_ecc_set_pubkey(mbedtls_pk_context *pk,
                              const unsigned char *pub, size_t pub_len)
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    mbedtls_svc_key_id_t key;
-    psa_key_attributes_t key_attrs = PSA_KEY_ATTRIBUTES_INIT;
 
-    if (pub_len > PSA_EXPORT_PUBLIC_KEY_MAX_SIZE) {
-        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-    }
-
-    if ((*pub == 0x02) || (*pub == 0x03)) {
-        /* Compressed format, not supported by PSA Crypto.
-         * Try converting using functions from ECP_LIGHT. */
-        ret = pk_ecc_set_pubkey_psa_ecp_fallback(pk, pub, pub_len);
-        if (ret != 0) {
-            return ret;
-        }
-    } else {
-        /* Uncompressed format */
-        if (pub_len > MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN) {
+    /* Load the key */
+    if (*pub == 0x04) {
+        /* Uncompressed format, directly supported by PSA */
+        if (pub_len > sizeof(pk->pub_raw)) {
             return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
         }
         memcpy(pk->pub_raw, pub, pub_len);
         pk->pub_raw_len = pub_len;
+    } else {
+        /* Other format, try the fallback */
+        int ret = pk_ecc_set_pubkey_psa_ecp_fallback(pk, pub, pub_len);
+        if (ret != 0) {
+            return ret;
+        }
     }
 
-    /* Validate the key by trying to importing it */
+    /* Validate the key by trying to import it */
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t key_attrs = PSA_KEY_ATTRIBUTES_INIT;
+
     psa_set_key_usage_flags(&key_attrs, 0);
-    psa_set_key_algorithm(&key_attrs, PSA_ALG_ECDSA_ANY);
     psa_set_key_type(&key_attrs, PSA_KEY_TYPE_ECC_PUBLIC_KEY(pk->ec_family));
     psa_set_key_bits(&key_attrs, pk->ec_bits);
 
     if ((psa_import_key(&key_attrs, pk->pub_raw, pk->pub_raw_len,
-                        &key) != PSA_SUCCESS) ||
-        (psa_destroy_key(key) != PSA_SUCCESS)) {
-        mbedtls_platform_zeroize(pk->pub_raw, MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
-        pk->pub_raw_len = 0;
-        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+                        &key_id) != PSA_SUCCESS) ||
+        (psa_destroy_key(key_id) != PSA_SUCCESS)) {
+        return MBEDTLS_ERR_PK_INVALID_PUBKEY;
     }
-    ret = 0;
+
+    return 0;
+
 #else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+
+    int ret;
     mbedtls_ecp_keypair *ec_key = (mbedtls_ecp_keypair *) pk->pk_ctx;
-    if ((ret = mbedtls_ecp_point_read_binary(&ec_key->grp, &ec_key->Q,
-                                             pub, pub_len)) == 0) {
-        ret = mbedtls_ecp_check_pubkey(&ec_key->grp, &ec_key->Q);
+    ret = mbedtls_ecp_point_read_binary(&ec_key->grp, &ec_key->Q, pub, pub_len);
+    if (ret != 0) {
+        return ret;
     }
+    return mbedtls_ecp_check_pubkey(&ec_key->grp, &ec_key->Q);
+
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
-    return ret;
 }
 
 /***********************************************************************

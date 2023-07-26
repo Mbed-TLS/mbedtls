@@ -828,7 +828,7 @@ def main():
         help='directory where comparison result is stored. '
              '(Default: comparison)')
     group_optional.add_argument(
-        '-n', '--new-rev', type=str, default=None,
+        '-n', '--new-rev', type=str, default='current',
         help='new Git revision as comparison base. '
              '(Default is the current work directory, including uncommitted '
              'changes.)')
@@ -867,18 +867,17 @@ def main():
         logger.error("{} is not a directory".format(comp_args.comp_dir))
         parser.exit()
 
-    old_revision = CodeSizeCalculator.validate_git_revision(comp_args.old_rev)
-    if comp_args.new_rev is not None:
-        new_revision = CodeSizeCalculator.validate_git_revision(
+    comp_args.old_rev = CodeSizeCalculator.validate_git_revision(
+        comp_args.old_rev)
+    if comp_args.new_rev != 'current':
+        comp_args.new_rev = CodeSizeCalculator.validate_git_revision(
             comp_args.new_rev)
-    else:
-        new_revision = 'current'
 
     # version, git_rev, arch, config, compiler, opt_level
     old_size_dist_info = CodeSizeDistinctInfo(
-        'old', old_revision, comp_args.arch, comp_args.config, 'cc', '-Os')
+        'old', comp_args.old_rev, comp_args.arch, comp_args.config, 'cc', '-Os')
     new_size_dist_info = CodeSizeDistinctInfo(
-        'new', new_revision, comp_args.arch, comp_args.config, 'cc', '-Os')
+        'new', comp_args.new_rev, comp_args.arch, comp_args.config, 'cc', '-Os')
     # host_arch, measure_cmd
     size_common_info = CodeSizeCommonInfo(
         detect_arch(), 'size -t')

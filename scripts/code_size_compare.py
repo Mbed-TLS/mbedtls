@@ -776,10 +776,6 @@ class CodeSizeComparison:
                                  self.new_size_dist_info.git_rev))
         if self.result_options.stdout:
             output = sys.stdout
-            print("Measure code size between `{}` and `{}` by `{}`."
-                  .format(self.old_size_dist_info.get_info_indication(),
-                          self.new_size_dist_info.get_info_indication(),
-                          self.size_common_info.get_info_indication()))
         else:
             output_file = os.path.join(
                 self.comp_dir,
@@ -792,6 +788,12 @@ class CodeSizeComparison:
         self.logger.debug("Generating comparison results between {} and {}."
                           .format(self.old_size_dist_info.git_rev,
                                   self.new_size_dist_info.git_rev))
+        if self.result_options.with_markdown or self.result_options.stdout:
+            print("Measure code size between {} and {} by `{}`."
+                  .format(self.old_size_dist_info.get_info_indication(),
+                          self.new_size_dist_info.get_info_indication(),
+                          self.size_common_info.get_info_indication()),
+                  file=output)
         self.code_size_generator.write_comparison(
             self.old_size_dist_info.git_rev,
             self.new_size_dist_info.git_rev,

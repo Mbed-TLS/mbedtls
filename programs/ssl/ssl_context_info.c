@@ -128,12 +128,12 @@ const char buf_ln_err[] = "Buffer does not have enough data to complete the pars
 /*
  * Basic printing functions
  */
-void print_version()
+void print_version(void)
 {
     printf("%s v%d.%d\n", PROG_NAME, VER_MAJOR, VER_MINOR);
 }
 
-void print_usage()
+void print_usage(void)
 {
     print_version();
     printf("\nThis program is used to deserialize an Mbed TLS SSL session from the base64 code provided\n"
@@ -182,7 +182,7 @@ void printf_err(const char *str, ...)
 /*
  * Exit from the program in case of error
  */
-void error_exit()
+void error_exit(void)
 {
     if (NULL != b64_file) {
         fclose(b64_file);

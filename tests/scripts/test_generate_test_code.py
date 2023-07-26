@@ -647,7 +647,7 @@ void func()
         self.assertEqual(arg, [])
         expected = '''#line 1 "test_suite_ut.function"
 
-void test_func()
+void test_func(void)
 {
     ba ba black sheep
     have you any wool
@@ -690,7 +690,7 @@ exit:
 
         expected = '''#line 1 "test_suite_ut.function"
 
-void test_func()
+void test_func(void)
 {
     ba ba black sheep
     have you any wool
@@ -750,7 +750,7 @@ exit:
 void
 
 
-test_func()
+test_func(void)
 {
     ba ba black sheep
     have you any wool
@@ -803,7 +803,7 @@ exit:
 
 
 
-void test_func()
+void test_func(void)
 {
     ba ba black sheep
     have you any wool
@@ -1139,7 +1139,7 @@ void func2()
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
 #if defined(MBEDTLS_FS_IO)
 #line 13 "test_suite_ut.function"
-void test_func1()
+void test_func1(void)
 {
 exit:
     ;
@@ -1156,7 +1156,7 @@ void test_func1_wrapper( void ** params )
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
 #if defined(MBEDTLS_FS_IO)
 #line 19 "test_suite_ut.function"
-void test_func2()
+void test_func2(void)
 {
 exit:
     ;

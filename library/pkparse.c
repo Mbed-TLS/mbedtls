@@ -61,108 +61,6 @@
     ((id == MBEDTLS_ECP_DP_CURVE25519) || (id == MBEDTLS_ECP_DP_CURVE448))
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS && MBEDTLS_PK_HAVE_RFC8410_CURVES */
 
-#if defined(MBEDTLS_FS_IO)
-/*
- * Load all data from a file into a given buffer.
- *
- * The file is expected to contain either PEM or DER encoded data.
- * A terminating null byte is always appended. It is included in the announced
- * length only if the data looks like it is PEM encoded.
- */
-int mbedtls_pk_load_file(const char *path, unsigned char **buf, size_t *n)
-{
-    FILE *f;
-    long size;
-
-    if ((f = fopen(path, "rb")) == NULL) {
-        return MBEDTLS_ERR_PK_FILE_IO_ERROR;
-    }
-
-    /* Ensure no stdio buffering of secrets, as such buffers cannot be wiped. */
-    mbedtls_setbuf(f, NULL);
-
-    fseek(f, 0, SEEK_END);
-    if ((size = ftell(f)) == -1) {
-        fclose(f);
-        return MBEDTLS_ERR_PK_FILE_IO_ERROR;
-    }
-    fseek(f, 0, SEEK_SET);
-
-    *n = (size_t) size;
-
-    if (*n + 1 == 0 ||
-        (*buf = mbedtls_calloc(1, *n + 1)) == NULL) {
-        fclose(f);
-        return MBEDTLS_ERR_PK_ALLOC_FAILED;
-    }
-
-    if (fread(*buf, 1, *n, f) != *n) {
-        fclose(f);
-
-        mbedtls_zeroize_and_free(*buf, *n);
-
-        return MBEDTLS_ERR_PK_FILE_IO_ERROR;
-    }
-
-    fclose(f);
-
-    (*buf)[*n] = '\0';
-
-    if (strstr((const char *) *buf, "-----BEGIN ") != NULL) {
-        ++*n;
-    }
-
-    return 0;
-}
-
-/*
- * Load and parse a private key
- */
-int mbedtls_pk_parse_keyfile(mbedtls_pk_context *ctx,
-                             const char *path, const char *pwd,
-                             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t n;
-    unsigned char *buf;
-
-    if ((ret = mbedtls_pk_load_file(path, &buf, &n)) != 0) {
-        return ret;
-    }
-
-    if (pwd == NULL) {
-        ret = mbedtls_pk_parse_key(ctx, buf, n, NULL, 0, f_rng, p_rng);
-    } else {
-        ret = mbedtls_pk_parse_key(ctx, buf, n,
-                                   (const unsigned char *) pwd, strlen(pwd), f_rng, p_rng);
-    }
-
-    mbedtls_zeroize_and_free(buf, n);
-
-    return ret;
-}
-
-/*
- * Load and parse a public key
- */
-int mbedtls_pk_parse_public_keyfile(mbedtls_pk_context *ctx, const char *path)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t n;
-    unsigned char *buf;
-
-    if ((ret = mbedtls_pk_load_file(path, &buf, &n)) != 0) {
-        return ret;
-    }
-
-    ret = mbedtls_pk_parse_public_key(ctx, buf, n);
-
-    mbedtls_zeroize_and_free(buf, n);
-
-    return ret;
-}
-#endif /* MBEDTLS_FS_IO */
-
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 /* Minimally parse an ECParameters buffer to and mbedtls_asn1_buf
  *
@@ -1289,6 +1187,12 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
 }
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
+/***********************************************************************
+ *
+ *      PKCS#8 parsing functions
+ *
+ **********************************************************************/
+
 /*
  * Parse an unencrypted PKCS#8 encoded private key
  *
@@ -1523,6 +1427,12 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_pk_parse_key_pkcs8_encrypted_der(
     return pk_parse_key_pkcs8_unencrypted_der(pk, buf, outlen, f_rng, p_rng);
 }
 #endif /* MBEDTLS_PKCS12_C || MBEDTLS_PKCS5_C */
+
+/***********************************************************************
+ *
+ *      Top-level functions, with format auto-discovery
+ *
+ **********************************************************************/
 
 /*
  * Parse a private key
@@ -1842,5 +1752,113 @@ int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
 
     return ret;
 }
+
+/***********************************************************************
+ *
+ *      Top-level functions, with filesystem support
+ *
+ **********************************************************************/
+
+#if defined(MBEDTLS_FS_IO)
+/*
+ * Load all data from a file into a given buffer.
+ *
+ * The file is expected to contain either PEM or DER encoded data.
+ * A terminating null byte is always appended. It is included in the announced
+ * length only if the data looks like it is PEM encoded.
+ */
+int mbedtls_pk_load_file(const char *path, unsigned char **buf, size_t *n)
+{
+    FILE *f;
+    long size;
+
+    if ((f = fopen(path, "rb")) == NULL) {
+        return MBEDTLS_ERR_PK_FILE_IO_ERROR;
+    }
+
+    /* Ensure no stdio buffering of secrets, as such buffers cannot be wiped. */
+    mbedtls_setbuf(f, NULL);
+
+    fseek(f, 0, SEEK_END);
+    if ((size = ftell(f)) == -1) {
+        fclose(f);
+        return MBEDTLS_ERR_PK_FILE_IO_ERROR;
+    }
+    fseek(f, 0, SEEK_SET);
+
+    *n = (size_t) size;
+
+    if (*n + 1 == 0 ||
+        (*buf = mbedtls_calloc(1, *n + 1)) == NULL) {
+        fclose(f);
+        return MBEDTLS_ERR_PK_ALLOC_FAILED;
+    }
+
+    if (fread(*buf, 1, *n, f) != *n) {
+        fclose(f);
+
+        mbedtls_zeroize_and_free(*buf, *n);
+
+        return MBEDTLS_ERR_PK_FILE_IO_ERROR;
+    }
+
+    fclose(f);
+
+    (*buf)[*n] = '\0';
+
+    if (strstr((const char *) *buf, "-----BEGIN ") != NULL) {
+        ++*n;
+    }
+
+    return 0;
+}
+
+/*
+ * Load and parse a private key
+ */
+int mbedtls_pk_parse_keyfile(mbedtls_pk_context *ctx,
+                             const char *path, const char *pwd,
+                             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t n;
+    unsigned char *buf;
+
+    if ((ret = mbedtls_pk_load_file(path, &buf, &n)) != 0) {
+        return ret;
+    }
+
+    if (pwd == NULL) {
+        ret = mbedtls_pk_parse_key(ctx, buf, n, NULL, 0, f_rng, p_rng);
+    } else {
+        ret = mbedtls_pk_parse_key(ctx, buf, n,
+                                   (const unsigned char *) pwd, strlen(pwd), f_rng, p_rng);
+    }
+
+    mbedtls_zeroize_and_free(buf, n);
+
+    return ret;
+}
+
+/*
+ * Load and parse a public key
+ */
+int mbedtls_pk_parse_public_keyfile(mbedtls_pk_context *ctx, const char *path)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t n;
+    unsigned char *buf;
+
+    if ((ret = mbedtls_pk_load_file(path, &buf, &n)) != 0) {
+        return ret;
+    }
+
+    ret = mbedtls_pk_parse_public_key(ctx, buf, n);
+
+    mbedtls_zeroize_and_free(buf, n);
+
+    return ret;
+}
+#endif /* MBEDTLS_FS_IO */
 
 #endif /* MBEDTLS_PK_PARSE_C */

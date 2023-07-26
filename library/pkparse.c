@@ -55,13 +55,14 @@
 #include "mbedtls/pkcs12.h"
 #endif
 
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+
 /* Helper for Montgomery curves */
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
+#if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
 #define MBEDTLS_PK_IS_RFC8410_GROUP_ID(id)  \
     ((id == MBEDTLS_ECP_DP_CURVE25519) || (id == MBEDTLS_ECP_DP_CURVE448))
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS && MBEDTLS_PK_HAVE_RFC8410_CURVES */
+#endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 /* Minimally parse an ECParameters buffer to and mbedtls_asn1_buf
  *
  * ECParameters ::= CHOICE {

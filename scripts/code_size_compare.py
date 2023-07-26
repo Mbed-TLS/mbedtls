@@ -92,9 +92,7 @@ class CodeSizeDistinctInfo: # pylint: disable=too-few-public-methods
 
     def get_info_indication(self):
         """Return a unique string to indicate Code Size Distinct Information."""
-        return '{rev}-{arch}-{config}-{cc}'\
-               .format(rev=self.git_rev, arch=self.arch, config=self.config,
-                       cc=self.compiler)
+        return '{git_rev}-{arch}-{config}-{compiler}'.format(**self.__dict__)
 
 
 class CodeSizeCommonInfo: # pylint: disable=too-few-public-methods
@@ -518,10 +516,7 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
             # file_name: SizeEntry(text, data, bss, dec)
             size_record[data[5]] = CodeSizeGeneratorWithSize.SizeEntry(
                 data[0], data[1], data[2], data[3])
-        if git_rev in self.code_size:
-            self.code_size[git_rev].update({mod: size_record})
-        else:
-            self.code_size[git_rev] = {mod: size_record}
+        self.code_size.setdefault(git_rev, {}).update({mod: size_record})
 
     def read_size_record(self, git_rev: str, fname: str) -> None:
         """Read size information from csv file and write it into code_size.

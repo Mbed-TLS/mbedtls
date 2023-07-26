@@ -226,18 +226,26 @@ static int pk_ecc_set_pubkey_from_prv(mbedtls_pk_context *pk,
 
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 /*
- * Create a temporary ecp_keypair for converting an EC point in compressed
- * format to an uncompressed one
+ * Set the public key: fallback using ECP_LIGHT in the USE_PSA_EC_DATA case.
  *
- * Consumes everything or fails - inherited from
- * mbedtls_ecp_point_read_binary().
+ * Normally, when MBEDTLS_PK_USE_PSA_EC_DATA is enabled, we only use PSA
+ * functions to handle keys. However, currently psa_import_key() does not
+ * support compressed points. In case that support was explicitly requested,
+ * this fallback uses ECP functions to get the job done. This is the reason
+ * why MBEDTLS_PK_PARSE_EC_COMPRESSED auto-enables MBEDTLS_ECP_LIGHT.
+ *
+ * [in/out] pk: in: must have the group set, see pk_ecc_set_group().
+ *              out: will have the public key set.
+ * [in] pub, pub_len: the public key as an ECPoint,
+ *                    in any format supported by ECP.
  */
-static int pk_ecc_read_compressed(mbedtls_pk_context *pk,
-                                  const unsigned char *in_start, size_t in_len,
-                                  unsigned char *out_buf, size_t out_buf_size,
-                                  size_t *out_buf_len)
+static int pk_ecc_set_pubkey_psa_ecp_fallback(mbedtls_pk_context *pk,
+                                              const unsigned char *pub,
+                                              size_t pub_len)
 {
-#if defined(MBEDTLS_PK_PARSE_EC_COMPRESSED)
+#if !defined(MBEDTLS_PK_PARSE_EC_COMPRESSED)
+    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+#else /* MBEDTLS_PK_PARSE_EC_COMPRESSED */
     mbedtls_ecp_keypair ecp_key;
     mbedtls_ecp_group_id ecp_group_id;
     int ret;
@@ -250,19 +258,18 @@ static int pk_ecc_read_compressed(mbedtls_pk_context *pk,
         return ret;
     }
     ret = mbedtls_ecp_point_read_binary(&(ecp_key.grp), &ecp_key.Q,
-                                        in_start, in_len);
+                                        pub, pub_len);
     if (ret != 0) {
         goto exit;
     }
     ret = mbedtls_ecp_point_write_binary(&(ecp_key.grp), &ecp_key.Q,
                                          MBEDTLS_ECP_PF_UNCOMPRESSED,
-                                         out_buf_len, out_buf, out_buf_size);
+                                         &pk->pub_raw_len, pk->pub_raw,
+                                         sizeof(pk->pub_raw));
 
 exit:
     mbedtls_ecp_keypair_free(&ecp_key);
     return ret;
-#else /* MBEDTLS_PK_PARSE_EC_COMPRESSED */
-    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
 #endif /* MBEDTLS_PK_PARSE_EC_COMPRESSED */
 }
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
@@ -291,10 +298,7 @@ static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
     if ((**p == 0x02) || (**p == 0x03)) {
         /* Compressed format, not supported by PSA Crypto.
          * Try converting using functions from ECP_LIGHT. */
-        ret = pk_ecc_read_compressed(pk, *p, len,
-                                     pk->pub_raw,
-                                     PSA_EXPORT_PUBLIC_KEY_MAX_SIZE,
-                                     &pk->pub_raw_len);
+        ret = pk_ecc_set_pubkey_psa_ecp_fallback(pk, *p, len);
         if (ret != 0) {
             return ret;
         }

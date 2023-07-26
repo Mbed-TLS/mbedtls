@@ -262,16 +262,16 @@ class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods
                               "and configuration: {}.\n"
                               .format(self.arch,
                                       self.config))
-            self.logger.info("Please use supported combination of " \
+            self.logger.error("Please use supported combination of " \
                              "architecture and configuration:")
             for comb in CodeSizeBuildInfo.SupportedArchConfig:
-                self.logger.info(comb)
-            self.logger.info("")
-            self.logger.info("For your system, please use:")
+                self.logger.error(comb)
+            self.logger.error("")
+            self.logger.error("For your system, please use:")
             for comb in CodeSizeBuildInfo.SupportedArchConfig:
                 if "default" in comb and self.host_arch not in comb:
                     continue
-                self.logger.info(comb)
+                self.logger.error(comb)
             sys.exit(1)
 
 

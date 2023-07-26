@@ -202,11 +202,20 @@ mbedtls_x509_string_to_names:"C=NL, O=\\4F\\66\\66\\73\\70\\61\\72\\6B, OU=Polar
 X509 String to Names #12 (Escape ascii hexpairs lowercase encoded)
 mbedtls_x509_string_to_names:"C=NL, O=\\4f\\66\\66\\73\\70\\61\\72\\6b, OU=PolarSSL":"C=NL, O=Offspark, OU=PolarSSL":0
 
-X509 String to Names #13 (Escape non-ascii hexpairs)
+X509 String to Names #13 (Invalid hexpair escape at end of string)
+mbedtls_x509_string_to_names:"C=NL, O=\\4f\\66\\66\\73\\70\\61\\72\\6, OU=PolarSSL":"":MBEDTLS_ERR_X509_INVALID_NAME
+
+X509 String to Names #14 (Escape non-ascii hexpairs)
 mbedtls_x509_string_to_names:"C=NL, O=Of\\00spark, OU=PolarSSL":"C=NL, O=Of\\00spark, OU=PolarSSL":0
 
-X509 String to Names #14 (Invalid hexpairs)
+X509 String to Names #15 (Invalid hexpairs)
 mbedtls_x509_string_to_names:"C=NL, O=Of\\flspark, OU=PolarSSL":"":MBEDTLS_ERR_X509_INVALID_NAME
+
+X509 String to Names #16 (Accept numercoid/hexstring)
+mbedtls_x509_string_to_names:"C=NL, 2.5.4.10=#0C084F6666737061726B, OU=PolarSSL":"C=NL, O=Offspark, OU=PolarSSL":0
+
+X509 String to Names #17 (Accept numercoid/hexstring, output as bitstring)
+mbedtls_x509_string_to_names:"C=NL, 2.5.4.10=#03084F6666737061726B, OU=PolarSSL":"C=NL, O=#03084F6666737061726B, OU=PolarSSL":0
 
 Check max serial length
 x509_set_serial_check:

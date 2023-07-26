@@ -3933,16 +3933,16 @@ component_test_se_default () {
 }
 
 component_test_psa_crypto_drivers () {
-    msg "build: full + MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS + test drivers"
+    msg "build: full + test drivers dispatching to builtins"
     scripts/config.py full
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
     loc_cflags="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST_ALL"
     loc_cflags="${loc_cflags} '-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'"
     loc_cflags="${loc_cflags} -I../tests/include -O2"
 
     make CC=gcc CFLAGS="${loc_cflags}" LDFLAGS="$ASAN_CFLAGS"
 
-    msg "test: full + MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS + test drivers"
+    msg "test: full + test drivers dispatching to builtins"
     make test
 }
 

@@ -322,6 +322,12 @@ TASKS = {
                 'ecdsa',
                 'ecdh',
                 'ecjpake',
+                'bignum_core',
+                'bignum_random',
+                'bignum_mod',
+                'bignum_mod_raw',
+                'bignum.generated',
+                'bignum.misc',
             ],
             'ignored_tests': {
                 'test_suite_random': [
@@ -361,6 +367,28 @@ TASKS = {
                     'Parse Public EC Key #7a (RFC 5480, brainpoolP256r1, compressed)',
                     'Parse Public EC Key #8a (RFC 5480, brainpoolP384r1, compressed)',
                     'Parse Public EC Key #9a (RFC 5480, brainpoolP512r1, compressed)',
+                ],
+                'test_suite_asn1parse': [
+                    # This test depends on BIGNUM_C
+                    'INTEGER too large for mpi',
+                ],
+                'test_suite_asn1write': [
+                    # Following tests depends on BIGNUM_C
+                    'ASN.1 Write mpi 0 (1 limb)',
+                    'ASN.1 Write mpi 0 (null)',
+                    'ASN.1 Write mpi 0x100',
+                    'ASN.1 Write mpi 0x7f',
+                    'ASN.1 Write mpi 0x7f with leading 0 limb',
+                    'ASN.1 Write mpi 0x80',
+                    'ASN.1 Write mpi 0x80 with leading 0 limb',
+                    'ASN.1 Write mpi 0xff',
+                    'ASN.1 Write mpi 1',
+                    'ASN.1 Write mpi, 127*8 bits',
+                    'ASN.1 Write mpi, 127*8+1 bits',
+                    'ASN.1 Write mpi, 127*8-1 bits',
+                    'ASN.1 Write mpi, 255*8 bits',
+                    'ASN.1 Write mpi, 255*8-1 bits',
+                    'ASN.1 Write mpi, 256*8-1 bits',
                 ],
             }
         }

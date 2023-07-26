@@ -92,6 +92,6 @@ All new files should include the [Apache-2.0](https://spdx.org/licenses/Apache-2
 
 The copyright on contributions is retained by the original authors of the code. Where possible for new files, this should be noted in a comment at the top of the file in the form: "Copyright The Mbed TLS Contributors".
 
-When contributing code to us, the committer and all authors are required to make the submission under the terms of the [Developer Certificate of Origin](dco.txt), confirming that the code submitted can (legally) become part of the project, and be subject to either or both the Apache 2.0 and/or GPL-2.0-or-later licenses.
+When contributing code to us, the committer and all authors are required to make the submission under the terms of the [Developer Certificate of Origin](dco.txt), confirming that the code submitted can (legally) become part of the project, and is submitted under both the Apache-2.0 AND GPL-2.0-or-later licenses.
 
 This is done by including the standard Git `Signed-off-by:` line in every commit message. If more than one person contributed to the commit, they should also add their own `Signed-off-by:` line.

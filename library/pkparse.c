@@ -168,54 +168,59 @@ static int pk_ecc_set_pubkey_from_prv(mbedtls_pk_context *pk,
                                       int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    psa_status_t status;
+
     (void) f_rng;
     (void) p_rng;
     (void) prv;
     (void) prv_len;
+    psa_status_t status;
 
     status = psa_export_public_key(pk->priv_id, pk->pub_raw, sizeof(pk->pub_raw),
                                    &pk->pub_raw_len);
     return psa_pk_status_to_mbedtls(status);
+
 #elif defined(MBEDTLS_USE_PSA_CRYPTO) /* && !MBEDTLS_PK_USE_PSA_EC_DATA */
-    int ret;
-    psa_status_t status;
+
     (void) f_rng;
     (void) p_rng;
+    psa_status_t status;
 
     mbedtls_ecp_keypair *eck = (mbedtls_ecp_keypair *) pk->pk_ctx;
-    unsigned char key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
-    size_t key_len;
-    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
-    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
     size_t curve_bits;
     psa_ecc_family_t curve = mbedtls_ecc_group_to_psa(eck->grp.id, &curve_bits);
-    psa_status_t destruction_status;
 
+    /* Import private key into PSA, from serialized input */
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
     psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
     psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_EXPORT);
-
     status = psa_import_key(&key_attr, prv, prv_len, &key_id);
-    ret = psa_pk_status_to_mbedtls(status);
-    if (ret != 0) {
-        return ret;
+    if (status != PSA_SUCCESS) {
+        return psa_pk_status_to_mbedtls(status);
     }
 
-    status = psa_export_public_key(key_id, key_buf, sizeof(key_buf), &key_len);
-    ret = psa_pk_status_to_mbedtls(status);
-    destruction_status = psa_destroy_key(key_id);
-    if (ret != 0) {
-        return ret;
+    /* Export public key from PSA */
+    unsigned char pub[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
+    size_t pub_len;
+    status = psa_export_public_key(key_id, pub, sizeof(pub), &pub_len);
+    psa_status_t destruction_status = psa_destroy_key(key_id);
+    if (status != PSA_SUCCESS) {
+        return psa_pk_status_to_mbedtls(status);
     } else if (destruction_status != PSA_SUCCESS) {
         return psa_pk_status_to_mbedtls(destruction_status);
     }
-    return mbedtls_ecp_point_read_binary(&eck->grp, &eck->Q, key_buf, key_len);
+
+    /* Load serialized public key into ecp_keypair structure */
+    return mbedtls_ecp_point_read_binary(&eck->grp, &eck->Q, pub, pub_len);
+
 #else /* MBEDTLS_USE_PSA_CRYPTO */
-    mbedtls_ecp_keypair *eck = (mbedtls_ecp_keypair *) pk->pk_ctx;
+
     (void) prv;
     (void) prv_len;
 
+    mbedtls_ecp_keypair *eck = (mbedtls_ecp_keypair *) pk->pk_ctx;
     return mbedtls_ecp_mul(&eck->grp, &eck->Q, &eck->d, &eck->grp.G, f_rng, p_rng);
+
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
 

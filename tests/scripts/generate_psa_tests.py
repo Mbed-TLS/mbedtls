@@ -111,7 +111,7 @@ def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
         _implemented_dependencies = \
             read_implemented_dependencies('include/psa/crypto_config.h')
     if not all((dep.lstrip('!') in _implemented_dependencies or
-                'PSA_WANT' not in dep)
+                not dep.lstrip('!').startswith('PSA_WANT'))
                for dep in dependencies):
         dependencies.append('DEPENDENCY_NOT_IMPLEMENTED_YET')
 
@@ -121,7 +121,14 @@ def tweak_key_pair_dependency(dep: str, usage: str):
     symbols according to the required usage.
     """
     ret_list = list()
-    if dep.endswith('KEY_PAIR'):
+    # Note: this LEGACY replacement DH is temporary and it's going
+    # to be aligned with ECC one in #7773.
+    if dep.endswith('DH_KEY_PAIR'):
+        legacy = dep
+        legacy = re.sub(r'KEY_PAIR\Z', r'KEY_PAIR_LEGACY', legacy)
+        legacy = re.sub(r'PSA_WANT', r'MBEDTLS_PSA_WANT', legacy)
+        ret_list.append(legacy)
+    elif dep.endswith('KEY_PAIR'):
         if usage == "BASIC":
             # BASIC automatically includes IMPORT and EXPORT for test purposes (see
             # config_psa.h).
@@ -152,10 +159,8 @@ class Information:
     def remove_unwanted_macros(
             constructors: macro_collector.PSAMacroEnumerator
     ) -> None:
-        # Mbed TLS doesn't support finite-field DH yet and will not support
-        # finite-field DSA. Don't attempt to generate any related test case.
-        constructors.key_types.discard('PSA_KEY_TYPE_DH_KEY_PAIR')
-        constructors.key_types.discard('PSA_KEY_TYPE_DH_PUBLIC_KEY')
+        # Mbed TLS does not support finite-field DSA.
+        # Don't attempt to generate any related test case.
         constructors.key_types.discard('PSA_KEY_TYPE_DSA_KEY_PAIR')
         constructors.key_types.discard('PSA_KEY_TYPE_DSA_PUBLIC_KEY')
 
@@ -261,11 +266,15 @@ class KeyTypeNotSupported:
 
     ECC_KEY_TYPES = ('PSA_KEY_TYPE_ECC_KEY_PAIR',
                      'PSA_KEY_TYPE_ECC_PUBLIC_KEY')
+    DH_KEY_TYPES = ('PSA_KEY_TYPE_DH_KEY_PAIR',
+                    'PSA_KEY_TYPE_DH_PUBLIC_KEY')
 
     def test_cases_for_not_supported(self) -> Iterator[test_case.TestCase]:
         """Generate test cases that exercise the creation of keys of unsupported types."""
         for key_type in sorted(self.constructors.key_types):
             if key_type in self.ECC_KEY_TYPES:
+                continue
+            if key_type in self.DH_KEY_TYPES:
                 continue
             kt = crypto_knowledge.KeyType(key_type)
             yield from self.test_cases_for_key_type_not_supported(kt)
@@ -276,6 +285,13 @@ class KeyTypeNotSupported:
                     kt, param_descr='type')
                 yield from self.test_cases_for_key_type_not_supported(
                     kt, 0, param_descr='curve')
+        for dh_family in sorted(self.constructors.dh_groups):
+            for constr in self.DH_KEY_TYPES:
+                kt = crypto_knowledge.KeyType(constr, [dh_family])
+                yield from self.test_cases_for_key_type_not_supported(
+                    kt, param_descr='type')
+                yield from self.test_cases_for_key_type_not_supported(
+                    kt, 0, param_descr='group')
 
 def test_case_for_key_generation(
         key_type: str, bits: int,
@@ -304,6 +320,8 @@ class KeyGenerate:
 
     ECC_KEY_TYPES = ('PSA_KEY_TYPE_ECC_KEY_PAIR',
                      'PSA_KEY_TYPE_ECC_PUBLIC_KEY')
+    DH_KEY_TYPES = ('PSA_KEY_TYPE_DH_KEY_PAIR',
+                    'PSA_KEY_TYPE_DH_PUBLIC_KEY')
 
     @staticmethod
     def test_cases_for_key_type_key_generation(
@@ -341,11 +359,17 @@ class KeyGenerate:
         for key_type in sorted(self.constructors.key_types):
             if key_type in self.ECC_KEY_TYPES:
                 continue
+            if key_type in self.DH_KEY_TYPES:
+                continue
             kt = crypto_knowledge.KeyType(key_type)
             yield from self.test_cases_for_key_type_key_generation(kt)
         for curve_family in sorted(self.constructors.ecc_curves):
             for constr in self.ECC_KEY_TYPES:
                 kt = crypto_knowledge.KeyType(constr, [curve_family])
+                yield from self.test_cases_for_key_type_key_generation(kt)
+        for dh_family in sorted(self.constructors.dh_groups):
+            for constr in self.DH_KEY_TYPES:
+                kt = crypto_knowledge.KeyType(constr, [dh_family])
                 yield from self.test_cases_for_key_type_key_generation(kt)
 
 class OpFail:

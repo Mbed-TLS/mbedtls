@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-#if !defined(MBEDTLS_ECP_WITH_MPI_UINT)
+#if defined(MBEDTLS_ECP_WITH_MPI_UINT)
 
 #if defined(MBEDTLS_ECP_LIGHT)
 
@@ -5660,7 +5660,6 @@ static inline int ecp_mod_koblitz(mbedtls_mpi_uint *X,
     size_t shift   = bits % biL;
     size_t adjust  = (shift + biL - 1) / biL;
     size_t P_limbs = bits / biL + adjust;
-    mbedtls_mpi_uint mask = 0;
 
     mbedtls_mpi_uint *A1 = mbedtls_calloc(P_limbs, ciL);
     if (A1 == NULL) {
@@ -5676,6 +5675,7 @@ static inline int ecp_mod_koblitz(mbedtls_mpi_uint *X,
         goto cleanup;
     }
 
+    mbedtls_mpi_uint mask = 0;
     if (adjust != 0) {
         mask  = ((mbedtls_mpi_uint) 1 << shift) - 1;
     }

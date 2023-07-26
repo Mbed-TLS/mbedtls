@@ -39,6 +39,7 @@ set(src_crypto
     ecp.c
     ecp_new.c
     ecp_curves.c
+    ecp_curves_new.c
     entropy.c
     entropy_poll.c
     error.c

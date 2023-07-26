@@ -104,6 +104,7 @@ OBJS_CRYPTO= \
 	     ecp.o \
 	     ecp_new.o \
 	     ecp_curves.o \
+	     ecp_curves_new.o \
 	     entropy.o \
 	     entropy_poll.o \
 	     error.o \

@@ -126,20 +126,21 @@ static const x509_attr_descriptor_t *x509_attr_descr_from_name(const char *name,
     return cur;
 }
 
-static const x509_attr_descriptor_t *x509_attr_descr_from_numericoid(const char *numericoid, size_t numericoid_len)
+static const x509_attr_descriptor_t *x509_attr_descr_from_numericoid(const char *numericoid,
+                                                                     size_t numericoid_len)
 {
     const x509_attr_descriptor_t *cur;
-    mbedtls_asn1_buf *oid = mbedtls_calloc(1,sizeof(mbedtls_asn1_buf));
+    mbedtls_asn1_buf *oid = mbedtls_calloc(1, sizeof(mbedtls_asn1_buf));
     int ret;
 
     ret = mbedtls_oid_from_numeric_string(oid, numericoid, numericoid_len);
-    if((ret == MBEDTLS_ERR_X509_ALLOC_FAILED) || (ret == MBEDTLS_ERR_ASN1_INVALID_DATA)) {
-      return NULL;
+    if ((ret == MBEDTLS_ERR_X509_ALLOC_FAILED) || (ret == MBEDTLS_ERR_ASN1_INVALID_DATA)) {
+        return NULL;
     }
 
     for (cur = x509_attrs; cur->oid != NULL; cur++) {
-        if (sizeof(cur->oid) == oid->len &&
-            strncmp(cur->oid, (const char*) oid->p, oid->len) == 0) {
+        if (strlen(cur->oid) == oid->len &&
+            strncmp(cur->oid, (const char *) oid->p, oid->len) == 0) {
             break;
         }
     }
@@ -170,13 +171,14 @@ static int hexpair_to_int(char c1, char c2)
     }
 }
 
-static int parse_attribute_value_string(const char *s, int len, char *data, int *data_len) {
+static int parse_attribute_value_string(const char *s, int len, char *data, int *data_len)
+{
     const char *c = s;
     const char *end = c + len;
     int hexpair = 0;
     char *d = data;
     int n;
-    while(c < end) {
+    while (c < end) {
         if (*c == '\\') {
             c++;
 
@@ -203,7 +205,26 @@ static int parse_attribute_value_string(const char *s, int len, char *data, int 
     return 0;
 }
 
-static int parse_attribute_value_ber_encoded(const char *s, int len, char *data, int *data_len) {
+static int parse_attribute_value_ber_encoded(const char *s, int len, char *data, int *data_len)
+{
+    const char *c = s;
+    const char *end = c + len;
+    char *d = data;
+    int tag, n;
+    if ((len < 5) || (*c != '#') ||
+        ((tag =
+             hexpair_to_int(*(c+1), *(c+2))) == -1) || ((*data_len = hexpair_to_int(*(c+3), *(c+4))) == -1)) {
+        return MBEDTLS_ERR_X509_INVALID_NAME;
+    }
+    c += 5;
+
+    while (c < end) {
+        if ((c + 1 >= end) || (n = hexpair_to_int(*c, *(c+1))) == -1) {
+            return MBEDTLS_ERR_X509_INVALID_NAME;
+        }
+        *(d++) = n;
+        c += 2;
+    }
     return 0;
 }
 
@@ -240,15 +261,16 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
             in_tag = 0;
         }
 
-        if(!in_tag && ((*c == ',' && *(c-1) != '\\') || c == end)) {
-            if(!numericoid) {
-                if((parse_ret = parse_attribute_value_string(s, c - s, data, &data_len)) != 0) {
-                  return MBEDTLS_ERR_X509_INVALID_NAME;
+        if (!in_tag && ((*c == ',' && *(c-1) != '\\') || c == end)) {
+            if (!numericoid) {
+                if ((parse_ret = parse_attribute_value_string(s, c - s, data, &data_len)) != 0) {
+                    return MBEDTLS_ERR_X509_INVALID_NAME;
                 }
             }
-            if(numericoid) {
-                if((parse_ret = parse_attribute_value_ber_encoded(s, c - s, data, &data_len)) != 0) {
-                  return MBEDTLS_ERR_X509_INVALID_NAME;
+            if (numericoid) {
+                if ((parse_ret =
+                         parse_attribute_value_ber_encoded(s, c - s, data, &data_len)) != 0) {
+                    return MBEDTLS_ERR_X509_INVALID_NAME;
                 }
             }
             mbedtls_asn1_named_data *cur =

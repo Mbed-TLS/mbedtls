@@ -625,7 +625,7 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                              "change(text,data)", "change%(text,data)"))
         if with_markdown:
             output.write(format_string
-                         .format("----:", "----:", "----:", "----:", "----:"))
+                         .format(":----", "----:", "----:", "----:", "----:"))
 
         for mod, fname, size_entry in \
                 self._size_reader_helper(new_rev, output, with_markdown):

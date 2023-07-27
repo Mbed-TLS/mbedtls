@@ -51,7 +51,7 @@ void hmac(int alg_arg, char *input, data_t *expected_mac)
 
     PSA_ASSERT(psa_crypto_init());
 
-    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_MESSAGE);
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_MESSAGE | PSA_KEY_USAGE_VERIFY_MESSAGE);
     psa_set_key_algorithm(&attributes, alg);
     psa_set_key_type(&attributes, key_type);
     PSA_ASSERT(psa_import_key(&attributes, key_data, sizeof(key_data), &key));
@@ -59,9 +59,12 @@ void hmac(int alg_arg, char *input, data_t *expected_mac)
     uint8_t mac[PSA_MAC_MAX_SIZE + 10] = { 0 };
     size_t mac_length = 0;
 
-    PSA_ASSERT(psa_mac_compute(key, alg, (uint8_t const *) input, strlen(input), mac, sizeof(mac), &mac_length));
+    size_t input_len = strlen(input);
+    PSA_ASSERT(psa_mac_compute(key, alg, (uint8_t const *) input, input_len, mac, sizeof(mac), &mac_length));
 
     ASSERT_COMPARE(expected_mac->x, expected_mac->len, mac, mac_length);
+
+    PSA_ASSERT(psa_mac_verify(key, alg, (uint8_t const *) input, input_len, expected_mac->x, expected_mac->len));
 
     PSA_ASSERT(psa_destroy_key(key));
 exit:

@@ -594,7 +594,7 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
         """Write comparison result into a file.
 
         Writing Format: file_name current(text,data) old(text,data)\
-                change(text,data) change_pct%(text,data)
+                change(text,data)
         """
 
         def cal_size_section_variation(mod, fname, size_entry, attr):
@@ -603,26 +603,22 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
             if fname in self.code_size[old_rev][mod]:
                 old_size = int(self.code_size[old_rev][mod][fname].__dict__[attr])
                 change = new_size - old_size
-                if old_size != 0:
-                    change_pct = change / old_size
-                else:
-                    change_pct = 0
-                return [new_size, old_size, change, change_pct]
+                return [new_size, old_size, change]
             else:
                 return [new_size]
 
         if with_markdown:
-            format_string = "| {:<30} | {:<18} | {:<14} | {:<17} | {:<18} |\n"
+            format_string = "| {:<30} | {:<18} | {:<14} | {:<17} |\n"
         else:
-            format_string = "{:<30} {:<18} {:<14} {:<17} {:<18}\n"
+            format_string = "{:<30} {:<18} {:<14} {:<17}\n"
 
         output.write(format_string
                      .format("filename",
                              "current(text,data)", "old(text,data)",
-                             "change(text,data)", "change%(text,data)"))
+                             "change(text,data)"))
         if with_markdown:
             output.write(format_string
-                         .format(":----", "----:", "----:", "----:", "----:"))
+                         .format(":----", "----:", "----:", "----:"))
 
         for mod, fname, size_entry in \
                 self._size_reader_helper(new_rev, output, with_markdown):
@@ -644,17 +640,14 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                             # old(text,data)
                             str(text_vari[1]) + "," + str(data_vari[1]),
                             # change(text,data)
-                            str(text_vari[2]) + "," + str(data_vari[2]),
-                            # change%(text,data)
-                            "{:.0%}".format(text_vari[3]) + ","
-                            + "{:.0%}".format(data_vari[3])))
+                            str(text_vari[2]) + "," + str(data_vari[2])))
             else:
                 output.write(
                     format_string
                     .format(fname,
                             # current(text,data)
                             str(text_vari[0]) + "," + str(data_vari[0]),
-                            'None', 'None', 'None'))
+                            'None', 'None'))
 
 
 class CodeSizeComparison:

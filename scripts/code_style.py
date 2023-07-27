@@ -86,7 +86,7 @@ def get_src_files(since: Optional[str]) -> List[str]:
         output = subprocess.check_output(cmd, universal_newlines=True)
         committed_changed_files = output.split()
         # and also get all files with uncommitted changes
-        cmd = ["git", "diff", "--name-only", "--" ] + src_files
+        cmd = ["git", "diff", "--name-only", "--"] + src_files
         output = subprocess.check_output(cmd, universal_newlines=True)
         uncommitted_changed_files = output.split()
         src_files = list(set(committed_changed_files + uncommitted_changed_files))

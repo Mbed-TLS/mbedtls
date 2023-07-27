@@ -134,13 +134,14 @@ pre_initialize_variables () {
     CONFIG_H='include/mbedtls/mbedtls_config.h'
     CRYPTO_CONFIG_H='include/psa/crypto_config.h'
     CONFIG_TEST_DRIVER_H='tests/include/test/drivers/config_test_driver.h'
+    CONFIG_NEW_BIGNUM_H='library/ecp_invasive.h'
 
     # Files that are clobbered by some jobs will be backed up. Use a different
     # suffix from auxiliary scripts so that all.sh and auxiliary scripts can
     # independently decide when to remove the backup file.
     backup_suffix='.all.bak'
     # Files clobbered by config.py
-    files_to_back_up="$CONFIG_H $CRYPTO_CONFIG_H $CONFIG_TEST_DRIVER_H"
+    files_to_back_up="$CONFIG_H $CRYPTO_CONFIG_H $CONFIG_TEST_DRIVER_H $CONFIG_NEW_BIGNUM_H"
     # Files clobbered by in-tree cmake
     files_to_back_up="$files_to_back_up Makefile library/Makefile programs/Makefile tests/Makefile programs/fuzz/Makefile"
 
@@ -1028,8 +1029,9 @@ component_test_default_cmake_gcc_asan () {
 
 component_test_default_cmake_gcc_asan_new_bignum () {
     msg "build: cmake, gcc, ASan" # ~ 1 min 50s
+    scripts/config.py -f "$CONFIG_NEW_BIGNUM_H" set MBEDTLS_ECP_WITH_MPI_UINT
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make CFLAGS="-D MBEDTLS_ECP_WITH_MPI_UINT"
+    make
 
     msg "test: main suites (inc. selftests) (ASan build)" # ~ 50s
     make test
@@ -1086,8 +1088,9 @@ component_test_full_cmake_gcc_asan () {
 component_test_full_cmake_gcc_asan_new_bignum () {
     msg "build: full config, cmake, gcc, ASan"
     scripts/config.py full
+    scripts/config.py -f "$CONFIG_NEW_BIGNUM_H" set MBEDTLS_ECP_WITH_MPI_UINT
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make CFLAGS="-D MBEDTLS_ECP_WITH_MPI_UINT"
+    make
 
     msg "test: main suites (inc. selftests) (full config, ASan build)"
     make test
@@ -1122,8 +1125,9 @@ component_test_full_cmake_gcc_asan_new_bignum_test_hooks () {
     msg "build: full config, cmake, gcc, ASan"
     scripts/config.py full
     scripts/config.py set MBEDTLS_TEST_HOOKS
+    scripts/config.py -f "$CONFIG_NEW_BIGNUM_H" set MBEDTLS_ECP_WITH_MPI_UINT
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make CFLAGS="-DMBEDTLS_ECP_WITH_MPI_UINT"
+    make
 
     msg "test: main suites (inc. selftests) (full config, ASan build)"
     make test

@@ -32,6 +32,14 @@
 #include "mbedtls/ecp.h"
 
 /*
+ * Turning this option on enables using the new bignum code in the ECC modules.
+ *
+ * WARNING: ECC implementation using the new bignum code is a work in progress,
+ * this option serves only development and testing purposes.
+ */
+//#define MBEDTLS_ECP_WITH_MPI_UINT
+
+/*
  * Curve modulus types
  */
 typedef enum {
@@ -39,11 +47,6 @@ typedef enum {
     MBEDTLS_ECP_MOD_COORDINATE,
     MBEDTLS_ECP_MOD_SCALAR
 } mbedtls_ecp_modulus_type;
-
-/* Provide a commented-out definition so that `check_names.py` knows that
- * it's not a typo.
- */
-//#define MBEDTLS_ECP_WITH_MPI_UINT
 
 typedef enum {
     MBEDTLS_ECP_VARIANT_NONE = 0,

@@ -2684,10 +2684,9 @@ config_psa_crypto_config_accel_ecc_no_bignum() {
 
     # RSA support is intentionally disabled on this test because RSA_C depends
     # on BIGNUM_C.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
+    for KT in $(sed -n 's/^#define \(PSA_WANT_KEY_TYPE_RSA_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
+        scripts/config.py -f include/psa/crypto_config.h unset $KT
+    done
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
     for ALG in $(sed -n 's/^#define \(PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
         scripts/config.py -f include/psa/crypto_config.h unset $ALG
@@ -2705,10 +2704,9 @@ config_psa_crypto_config_accel_ecc_no_bignum() {
 
     # Disable FFDH because it also depends on BIGNUM.
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_FFDH
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_BASIC
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE
+    for KT in $(sed -n 's/^#define \(PSA_WANT_KEY_TYPE_DH_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
+        scripts/config.py -f include/psa/crypto_config.h unset $KT
+    done
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_DH_PUBLIC_KEY
     scripts/config.py unset MBEDTLS_DHM_C
     # Also disable key exchanges that depend on FFDH
@@ -2760,7 +2758,7 @@ component_test_psa_crypto_config_accel_ecc_no_bignum () {
     not grep mbedtls_ecdsa_ library/ecdsa.o
     not grep mbedtls_ecdh_ library/ecdh.o
     not grep mbedtls_ecjpake_ library/ecjpake.o
-    # Also ensure that ECP, RSA, or DHM modules were not re-enabled
+    # Also ensure that ECP, RSA, DHM or BIGNUM modules were not re-enabled
     not grep mbedtls_ecp_ library/ecp.o
     not grep mbedtls_rsa_ library/rsa.o
     not grep mbedtls_dhm_ library/dhm.o

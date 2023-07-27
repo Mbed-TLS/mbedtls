@@ -2593,6 +2593,7 @@ static int ecp_mul_mxz(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                        void *p_rng)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    int have_rng;
     size_t i;
     unsigned char b;
     mbedtls_ecp_point RP;
@@ -2626,7 +2627,7 @@ static int ecp_mul_mxz(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MOD_ADD(RP.X);
 
     /* Randomize coordinates of the starting point */
-    int have_rng = 1;
+    have_rng = 1;
 #if defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
     if (f_rng == NULL) {
         have_rng = 0;

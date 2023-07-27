@@ -60,17 +60,20 @@ void hmac(int alg_arg, char *input, data_t *expected_mac)
     size_t mac_length = 0;
 
     size_t input_len = strlen(input);
-    PSA_ASSERT(psa_mac_compute(key, alg, (uint8_t const *) input, input_len, mac, sizeof(mac), &mac_length));
+    PSA_ASSERT(psa_mac_compute(key, alg, (uint8_t const *) input, input_len, mac, sizeof(mac),
+                               &mac_length));
 
     // manual comparison against expected MAC
     ASSERT_COMPARE(expected_mac->x, expected_mac->len, mac, mac_length);
 
     // use psa_mac_verify to compare to expected MAC
-    PSA_ASSERT(psa_mac_verify(key, alg, (uint8_t const *) input, input_len, expected_mac->x, expected_mac->len));
+    PSA_ASSERT(psa_mac_verify(key, alg, (uint8_t const *) input, input_len, expected_mac->x,
+                              expected_mac->len));
 
     // corrupt the MAC and check that psa_mac_verify fails
     expected_mac->x[0] ^= 0x7f;
-    TEST_EQUAL(psa_mac_verify(key, alg, (uint8_t const *) input, input_len, expected_mac->x, expected_mac->len), PSA_ERROR_INVALID_SIGNATURE);
+    TEST_EQUAL(psa_mac_verify(key, alg, (uint8_t const *) input, input_len, expected_mac->x,
+                              expected_mac->len), PSA_ERROR_INVALID_SIGNATURE);
 
     PSA_ASSERT(psa_destroy_key(key));
 exit:

@@ -12,7 +12,7 @@ Features
      or DH) were introduced in order to have finer accuracy in defining the
      PSA capabilities for each key. These capabilities, named yyy above, can be
      any of: BASIC, IMPORT, EXPORT, GENERATE, DERIVE.
-     - GENERATE is only available for ECC keys, not for RSA or DH ones.
+     - DERIVE is only available for ECC keys, not for RSA or DH ones.
      - implementations are free to enable more than what it was strictly
        requested. For example BASIC internally enables IMPORT and EXPORT
-       (useful for testing purposes), but this might change in the future).
+       (useful for testing purposes), but this might change in the future.

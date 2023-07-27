@@ -820,7 +820,7 @@ static const oid_md_hmac_t oid_md_hmac[] =
         OID_DESCRIPTOR(MBEDTLS_OID_HMAC_SHA224,    "hmacSHA224",    "HMAC-SHA-224"),
         MBEDTLS_MD_SHA224,
     },
-#endif
+#endif /* MBEDTLS_MD_CAN_SHA224 */
 #if defined(MBEDTLS_MD_CAN_SHA256)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_HMAC_SHA256,    "hmacSHA256",    "HMAC-SHA-256"),

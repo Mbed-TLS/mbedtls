@@ -82,14 +82,14 @@ def get_src_files(since: Optional[str]) -> List[str]:
     src_files = output.split()
     if since:
         # get all files changed in commits since the starting point
-        cmd = ["git", "log", since + "..HEAD", "--name-only", "--pretty=", "--" ] + src_files
+        cmd = ["git", "log", since + "..HEAD", "--name-only", "--pretty=", "--"] + src_files
         output = subprocess.check_output(cmd, universal_newlines=True)
         committed_changed_files = output.split()
         # and also get all files with uncommitted changes
         cmd = ["git", "diff", "--name-only", "--" ] + src_files
         output = subprocess.check_output(cmd, universal_newlines=True)
         uncommitted_changed_files = output.split()
-        src_files = set(committed_changed_files + uncommitted_changed_files)
+        src_files = list(set(committed_changed_files + uncommitted_changed_files))
 
     generated_files = list_generated_files()
     # Don't correct style for third-party files (and, for simplicity,

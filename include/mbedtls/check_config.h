@@ -986,15 +986,15 @@
 #error "MBEDTLS_VERSION_FEATURES defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_X509_USE_C) && ( !defined(MBEDTLS_BIGNUM_C) ||  \
-    !defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_PARSE_C) ||    \
+#if defined(MBEDTLS_X509_USE_C) && \
+    (!defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_PARSE_C) ||   \
     !defined(MBEDTLS_PK_PARSE_C) ||                                 \
     ( !defined(MBEDTLS_MD_C) && !defined(MBEDTLS_USE_PSA_CRYPTO) ) )
 #error "MBEDTLS_X509_USE_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_X509_CREATE_C) && ( !defined(MBEDTLS_BIGNUM_C) ||  \
-    !defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_WRITE_C) ||       \
+#if defined(MBEDTLS_X509_CREATE_C) && \
+    (!defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_WRITE_C) ||      \
     !defined(MBEDTLS_PK_PARSE_C) ||                                    \
     ( !defined(MBEDTLS_MD_C) && !defined(MBEDTLS_USE_PSA_CRYPTO) ) )
 #error "MBEDTLS_X509_CREATE_C defined, but not all prerequisites"
@@ -1099,8 +1099,8 @@
 
 #if defined(MBEDTLS_PKCS7_C) && ( ( !defined(MBEDTLS_ASN1_PARSE_C) ) || \
     ( !defined(MBEDTLS_OID_C) ) || ( !defined(MBEDTLS_PK_PARSE_C) ) || \
-    ( !defined(MBEDTLS_X509_CRT_PARSE_C) ) ||\
-    ( !defined(MBEDTLS_X509_CRL_PARSE_C) ) || ( !defined(MBEDTLS_BIGNUM_C) ) || \
+    ( !defined(MBEDTLS_X509_CRT_PARSE_C) ) || \
+    ( !defined(MBEDTLS_X509_CRL_PARSE_C) ) || \
     ( !defined(MBEDTLS_MD_C) ) )
 #error  "MBEDTLS_PKCS7_C is defined, but not all prerequisites"
 #endif

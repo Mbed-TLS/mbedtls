@@ -5572,7 +5572,7 @@ static psa_status_t psa_key_derivation_pbkdf2_generate_block(
     for (i = 1; i < pbkdf2->input_cost; i++) {
         /* We are passing prf_output_length as mac_size because the driver
          * function directly sets mac_output_length as mac_size upon success.
-         * See #7801 */
+         * See https://github.com/Mbed-TLS/mbedtls/issues/7801 */
         status = psa_driver_wrapper_mac_compute(attributes,
                                                 pbkdf2->password,
                                                 pbkdf2->password_length,
@@ -6740,7 +6740,8 @@ static psa_status_t psa_pbkdf2_cmac_set_password(const uint8_t *input,
         psa_set_key_bits(&attributes, PSA_BYTES_TO_BITS(sizeof(zeros)));
         psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_MESSAGE);
         /* Passing PSA_MAC_LENGTH(PSA_KEY_TYPE_AES, 128U, PSA_ALG_CMAC) as
-         * mac_size as the driver function sets mac_output_length = mac_size */
+         * mac_size as the driver function sets mac_output_length = mac_size
+         * on success. See https://github.com/Mbed-TLS/mbedtls/issues/7801 */
         status = psa_driver_wrapper_mac_compute(&attributes,
                                                 zeros, sizeof(zeros),
                                                 PSA_ALG_CMAC, input, input_len,

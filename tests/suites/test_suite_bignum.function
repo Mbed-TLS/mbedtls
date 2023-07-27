@@ -834,7 +834,7 @@ void mpi_mul_int(char *input_X, int input_Y,
     } else if (strcmp(result_comparison, "!=") == 0) {
         TEST_ASSERT(mbedtls_mpi_cmp_mpi(&Z, &A) != 0);
     } else {
-        TEST_ASSERT("unknown operator" == 0);
+        TEST_FAIL("unknown operator");
     }
 
 exit:

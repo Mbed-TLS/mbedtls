@@ -238,13 +238,19 @@ static int pk_ecc_set_pubkey_from_prv(mbedtls_pk_context *pk,
  *              out: will have the public key set.
  * [in] pub, pub_len: the public key as an ECPoint,
  *                    in any format supported by ECP.
+ *
+ * Return:
+ * - 0 on success;
+ * - MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the format is potentially valid
+ *   but not supported;
+ * - another error code otherwise.
  */
 static int pk_ecc_set_pubkey_psa_ecp_fallback(mbedtls_pk_context *pk,
                                               const unsigned char *pub,
                                               size_t pub_len)
 {
 #if !defined(MBEDTLS_PK_PARSE_EC_COMPRESSED)
-    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+    return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
 #else /* MBEDTLS_PK_PARSE_EC_COMPRESSED */
     mbedtls_ecp_keypair ecp_key;
     mbedtls_ecp_group_id ecp_group_id;
@@ -280,6 +286,12 @@ exit:
  * [in/out] pk: in: must have its group set, see pk_ecc_set_group().
  *              out: will have the public key set.
  * [in] pub, pub_len: the raw public key (an ECPoint).
+ *
+ * Return:
+ * - 0 on success;
+ * - MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the format is potentially valid
+ *   but not supported;
+ * - another error code otherwise.
  */
 static int pk_ecc_set_pubkey(mbedtls_pk_context *pk,
                              const unsigned char *pub, size_t pub_len)

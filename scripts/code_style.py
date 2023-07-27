@@ -193,9 +193,10 @@ def main() -> int:
     parser.add_argument('-f', '--fix', action='store_true',
                         help=('modify source files to fix the code style '
                               '(default: print diff, do not modify files)'))
-    parser.add_argument('-s', '--since', metavar='COMMIT',
+    parser.add_argument('-s', '--since', metavar='COMMIT', const='development', nargs='?',
                         help=('only check files modified since the specified commit'
-                              ' (e.g. --since=HEAD~3 or --since=development)'))
+                              ' (e.g. --since=HEAD~3 or --since=development). If no'
+                              ' commit is specified, default to development.'))
     # --subset is almost useless: it only matters if there are no files
     # ('code_style.py' without arguments checks all files known to Git,
     # 'code_style.py --subset' does nothing). In particular,

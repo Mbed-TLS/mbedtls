@@ -6707,6 +6707,7 @@ static psa_status_t psa_pbkdf2_set_salt(psa_pbkdf2_key_derivation_t *pbkdf2,
     return PSA_SUCCESS;
 }
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
 static psa_status_t psa_pbkdf2_hmac_set_password(psa_algorithm_t hash_alg,
                                                  const uint8_t *input,
                                                  size_t input_len,
@@ -6723,7 +6724,9 @@ static psa_status_t psa_pbkdf2_hmac_set_password(psa_algorithm_t hash_alg,
     }
     return status;
 }
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128)
 static psa_status_t psa_pbkdf2_cmac_set_password(const uint8_t *input,
                                                  size_t input_len,
                                                  uint8_t *output,
@@ -6752,6 +6755,7 @@ static psa_status_t psa_pbkdf2_cmac_set_password(const uint8_t *input,
     }
     return status;
 }
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128 */
 
 static psa_status_t psa_pbkdf2_set_password(psa_pbkdf2_key_derivation_t *pbkdf2,
                                             psa_algorithm_t kdf_alg,

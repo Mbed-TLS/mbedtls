@@ -345,15 +345,51 @@ static int pk_ecc_set_pubkey(mbedtls_pk_context *pk,
 
 /***********************************************************************
  *
- * Unsorted (yet!) from this point on until the next section header
+ *      Low-level ECC parsing: optional support for SpecifiedECDomain
+ *
+ * There are two functions here that are used by the rest of the code:
+ * - pk_ecc_tag_may_be_speficied_ec_domain()
+ * - pk_ecc_group_id_from_specified()
+ *
+ * All the other functions are internal to this section.
+ *
+ * The two "public" functions have a dummy variant provided
+ * in configs without MBEDTLS_PK_PARSE_EC_EXTENDED. This acts as an
+ * abstraction layer for this macro, which should not appear outside
+ * this section.
  *
  **********************************************************************/
 
-#if defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
+#if !defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
+/* See the "real" version for documentation */
+static int pk_ecc_tag_may_be_specified_ec_domain(int tag)
+{
+    (void) tag;
+    return 0;
+}
+
+/* See the "real" version for documentation */
+static int pk_ecc_group_id_from_specified(const mbedtls_asn1_buf *params,
+                                          mbedtls_ecp_group_id *grp_id)
+{
+    (void) params;
+    (void) grp_id;
+    return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+}
+#else /* MBEDTLS_PK_PARSE_EC_EXTENDED */
+/*
+ * Tell if the passed tag might be the start of SpecifiedECDomain
+ * (that is, a sequence).
+ */
+static int pk_ecc_tag_may_be_specified_ec_domain(int tag)
+{
+    return tag == (MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
+}
+
 /*
  * Parse a SpecifiedECDomain (SEC 1 C.2) and (mostly) fill the group with it.
  * WARNING: the resulting group should only be used with
- * pk_group_id_from_specified(), since its base point may not be set correctly
+ * pk_ecc_group_id_from_specified(), since its base point may not be set correctly
  * if it was encoded compressed.
  *
  *  SpecifiedECDomain ::= SEQUENCE {
@@ -562,8 +598,8 @@ cleanup:
 /*
  * Parse a SpecifiedECDomain (SEC 1 C.2) and find the associated group ID
  */
-static int pk_group_id_from_specified(const mbedtls_asn1_buf *params,
-                                      mbedtls_ecp_group_id *grp_id)
+static int pk_ecc_group_id_from_specified(const mbedtls_asn1_buf *params,
+                                          mbedtls_ecp_group_id *grp_id)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_group grp;
@@ -578,7 +614,7 @@ static int pk_group_id_from_specified(const mbedtls_asn1_buf *params,
 
 cleanup:
     /* The API respecting lifecycle for mbedtls_ecp_group struct is
-     * _init(), _load() and _free(). In pk_group_id_from_specified() the
+     * _init(), _load() and _free(). In pk_ecc_group_id_from_specified() the
      * temporary grp breaks that flow and it's members are populated
      * by pk_group_id_from_group(). As such mbedtls_ecp_group_free()
      * which is assuming a group populated by _setup() may not clean-up
@@ -594,6 +630,11 @@ cleanup:
 }
 #endif /* MBEDTLS_PK_PARSE_EC_EXTENDED */
 
+/***********************************************************************
+ *
+ * Unsorted (yet!) from this point on until the next section header
+ *
+ **********************************************************************/
 
 /* Minimally parse an ECParameters buffer to and mbedtls_asn1_buf
  *
@@ -613,13 +654,10 @@ static int pk_get_ecparams(unsigned char **p, const unsigned char *end,
                                  MBEDTLS_ERR_ASN1_OUT_OF_DATA);
     }
 
-    /* Tag may be either OID or SEQUENCE */
+    /* Acceptable tags: OID for namedCurve, or specifiedECDomain */
     params->tag = **p;
-    if (params->tag != MBEDTLS_ASN1_OID
-#if defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
-        && params->tag != (MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)
-#endif
-        ) {
+    if (params->tag != MBEDTLS_ASN1_OID &&
+        !pk_ecc_tag_may_be_specified_ec_domain(params->tag)) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT,
                                  MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
     }
@@ -657,13 +695,10 @@ static int pk_use_ecparams(const mbedtls_asn1_buf *params, mbedtls_pk_context *p
             return MBEDTLS_ERR_PK_UNKNOWN_NAMED_CURVE;
         }
     } else {
-#if defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
-        if ((ret = pk_group_id_from_specified(params, &grp_id)) != 0) {
+        ret = pk_ecc_group_id_from_specified(params, &grp_id);
+        if (ret != 0) {
             return ret;
         }
-#else
-        return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
-#endif
     }
 
     return pk_ecc_set_group(pk, grp_id);

@@ -593,7 +593,7 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
     ) -> None:
         """Write comparison result into a file.
 
-        Writing Format: file_name current(text,data) old(text,data)\
+        Writing Format: file_name new(text,data) old(text,data)\
                 change(text,data)
         """
 
@@ -608,17 +608,17 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                 return [new_size]
 
         if with_markdown:
-            format_string = "| {:<30} | {:<18} | {:<14} | {:<17} |\n"
+            format_string = "| {:<30} | {:<9} | {:<9} | {:<12} | {:<12} |\n"
         else:
-            format_string = "{:<30} {:<18} {:<14} {:<17}\n"
+            format_string = "{:<30} {:<9} {:<9} {:<12} {:<12}\n"
 
         output.write(format_string
                      .format("filename",
-                             "current(text,data)", "old(text,data)",
-                             "change(text,data)"))
+                             "new(text)", "new(data)", "change(text)",
+                             "change(data)"))
         if with_markdown:
             output.write(format_string
-                         .format(":----", "----:", "----:", "----:"))
+                         .format(":----", "----:", "----:", "----:", "----:"))
 
         for mod, fname, size_entry in \
                 self._size_reader_helper(new_rev, output, with_markdown):
@@ -635,18 +635,17 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                 output.write(
                     format_string
                     .format(fname,
-                            # current(text,data)
-                            str(text_vari[0]) + "," + str(data_vari[0]),
-                            # old(text,data)
-                            str(text_vari[1]) + "," + str(data_vari[1]),
-                            # change(text,data)
-                            str(text_vari[2]) + "," + str(data_vari[2])))
+                            # new(text), new(data)
+                            str(text_vari[0]), str(data_vari[0]),
+                            # change(text), change(data)
+                            str(text_vari[2]), str(data_vari[2])))
             else:
                 output.write(
                     format_string
                     .format(fname,
-                            # current(text,data)
-                            str(text_vari[0]) + "," + str(data_vari[0]),
+                            # new(text), new(data)
+                            str(text_vari[0]), str(data_vari[0]),
+                            # change(text), change(data)
                             'None', 'None'))
 
 

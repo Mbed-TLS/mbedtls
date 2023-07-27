@@ -34,9 +34,6 @@
 #include "mbedtls/rsa.h"
 #endif
 #include "mbedtls/ecp.h"
-#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_PK_HAVE_ECC_KEYS)
-#include "pkwrite.h"
-#endif
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #include "pk_internal.h"
 #endif

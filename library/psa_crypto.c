@@ -5185,6 +5185,7 @@ psa_status_t psa_key_derivation_abort(psa_key_derivation_operation_t *operation)
     } else
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS) */
 #if defined(PSA_HAVE_SOFT_PBKDF2)
+    if (PSA_ALG_IS_PBKDF2(kdf_alg)) {
         if (operation->ctx.pbkdf2.salt != NULL) {
             mbedtls_platform_zeroize(operation->ctx.pbkdf2.salt,
                                      operation->ctx.pbkdf2.salt_length);
@@ -5712,6 +5713,7 @@ psa_status_t psa_key_derivation_output_bytes(
     } else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS */
 #if defined(PSA_HAVE_SOFT_PBKDF2)
+    if (PSA_ALG_IS_PBKDF2(kdf_alg)) {
         status = psa_key_derivation_pbkdf2_read(&operation->ctx.pbkdf2, kdf_alg,
                                                 output, output_length);
     } else
@@ -6888,6 +6890,7 @@ static psa_status_t psa_key_derivation_input_internal(
     } else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS */
 #if defined(PSA_HAVE_SOFT_PBKDF2)
+    if (PSA_ALG_IS_PBKDF2(kdf_alg)) {
         status = psa_pbkdf2_input(&operation->ctx.pbkdf2, kdf_alg,
                                   step, data, data_length);
     } else
@@ -6916,6 +6919,7 @@ static psa_status_t psa_key_derivation_input_integer_internal(
     psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg(operation);
 
 #if defined(PSA_HAVE_SOFT_PBKDF2)
+    if (PSA_ALG_IS_PBKDF2(kdf_alg)) {
         status = psa_pbkdf2_set_input_cost(
             &operation->ctx.pbkdf2, step, value);
     } else

@@ -486,7 +486,7 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
 
     class SizeEntry: # pylint: disable=too-few-public-methods
         """Data Structure to only store information of code size."""
-        def __init__(self, text, data, bss, dec):
+        def __init__(self, text: int, data: int, bss: int, dec: int):
             self.text = text
             self.data = data
             self.bss = bss
@@ -496,16 +496,20 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
         """ Variable code_size is used to store size info for any Git revisions.
         :param code_size:
             Data Format as following:
-                {git_rev: {module: {file_name: [text, data, bss, dec],
-                                    etc ...
-                                   },
-                           etc ...
-                          },
-                 etc ...
-                }
+            code_size = {
+                git_rev: {
+                    module: {
+                        file_name: SizeEntry,
+                        ...
+                    },
+                    ...
+                },
+                ...
+            }
         """
         super().__init__(logger)
         self.code_size = {} #type: typing.Dict[str, typing.Dict]
+        self.mod_total_suffix = '-' + 'TOTALS'
 
     def _set_size_record(self, git_rev: str, mod: str, size_text: str) -> None:
         """Store size information for target Git revision and high-level module.
@@ -515,9 +519,11 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
         size_record = {}
         for line in size_text.splitlines()[1:]:
             data = line.split()
+            if re.match(r'\s*\(TOTALS\)', data[5]):
+                data[5] = mod + self.mod_total_suffix
             # file_name: SizeEntry(text, data, bss, dec)
             size_record[data[5]] = CodeSizeGeneratorWithSize.SizeEntry(
-                data[0], data[1], data[2], data[3])
+                int(data[0]), int(data[1]), int(data[2]), int(data[3]))
         self.code_size.setdefault(git_rev, {}).update({mod: size_record})
 
     def read_size_record(self, git_rev: str, fname: str) -> None:
@@ -538,10 +544,10 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                 if mod:
                     # file_name: SizeEntry(text, data, bss, dec)
                     size_record[data[0]] = CodeSizeGeneratorWithSize.SizeEntry(
-                        data[1], data[2], data[3], data[4])
+                        int(data[1]), int(data[2]), int(data[3]), int(data[4]))
 
                 # check if we hit record for the end of a module
-                m = re.match(r'.?TOTALS', line)
+                m = re.match(r'\w+' + self.mod_total_suffix, line)
                 if m:
                     if git_rev in self.code_size:
                         self.code_size[git_rev].update({mod: size_record})
@@ -549,19 +555,6 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                         self.code_size[git_rev] = {mod: size_record}
                     mod = ""
                     size_record = {}
-
-    def _size_reader_helper(
-            self,
-            git_rev: str,
-            output: typing_util.Writable,
-            with_markdown=False
-    ) -> typing.Iterator[tuple]:
-        """A helper function to peel code_size based on Git revision."""
-        for mod, file_size in self.code_size[git_rev].items():
-            if not with_markdown:
-                output.write("\n" + mod + "\n")
-            for fname, size_entry in file_size.items():
-                yield mod, fname, size_entry
 
     def write_record(
             self,
@@ -571,7 +564,7 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
     ) -> None:
         """Write size information to a file.
 
-        Writing Format: file_name text data bss total(dec)
+        Writing Format: filename text data bss total(dec)
         """
         for mod, size_text in code_size_text.items():
             self._set_size_record(git_rev, mod, size_text)
@@ -579,12 +572,16 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
         format_string = "{:<30} {:>7} {:>7} {:>7} {:>7}\n"
         output.write(format_string.format("filename",
                                           "text", "data", "bss", "total"))
-        for _, fname, size_entry in self._size_reader_helper(git_rev, output):
-            output.write(format_string.format(fname,
-                                              size_entry.text, size_entry.data,
-                                              size_entry.bss, size_entry.total))
 
-    def write_comparison(
+        for mod, f_size in self.code_size[git_rev].items():
+            output.write("\n" + mod + "\n")
+            for fname, size_entry in f_size.items():
+                output.write(format_string
+                             .format(fname,
+                                     size_entry.text, size_entry.data,
+                                     size_entry.bss, size_entry.total))
+
+    def write_comparison( # pylint: disable=too-many-locals
             self,
             old_rev: str,
             new_rev: str,
@@ -593,60 +590,110 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
     ) -> None:
         """Write comparison result into a file.
 
-        Writing Format: file_name new(text,data) old(text,data)\
-                change(text,data)
+        Writing Format: filename new(text) new(data) change(text) change(data)
         """
-
-        def cal_size_section_variation(mod, fname, size_entry, attr):
-            new_size = int(size_entry.__dict__[attr])
-            # check if we have the file in old Git revision
-            if fname in self.code_size[old_rev][mod]:
-                old_size = int(self.code_size[old_rev][mod][fname].__dict__[attr])
-                change = new_size - old_size
-                return [new_size, old_size, change]
-            else:
-                return [new_size]
+        header_line = ["filename", "new(text)", "change(text)", "new(data)",
+                       "change(data)"]
 
         if with_markdown:
-            format_string = "| {:<30} | {:<9} | {:<9} | {:<12} | {:<12} |\n"
+            dash_line = [":----", "----:", "----:", "----:", "----:"]
+            line_format = "| {0:<30} | {1:<10} | {3:<10} | {2:<12} | {4:<12} |\n"
+            bold_text = lambda x: '**' + str(x) + '**'
         else:
-            format_string = "{:<30} {:<9} {:<9} {:<12} {:<12}\n"
+            line_format = "{0:<30} {1:<10} {3:<10} {2:<12} {4:<12}\n"
 
-        output.write(format_string
-                     .format("filename",
-                             "new(text)", "new(data)", "change(text)",
-                             "change(data)"))
-        if with_markdown:
-            output.write(format_string
-                         .format(":----", "----:", "----:", "----:", "----:"))
+        def cal_sect_change(
+                old_size: typing.Optional[CodeSizeGeneratorWithSize.SizeEntry],
+                new_size: typing.Optional[CodeSizeGeneratorWithSize.SizeEntry],
+                sect: str
+        ) -> typing.List:
+            """Inner helper function to calculate size change for a section.
 
-        for mod, fname, size_entry in \
-                self._size_reader_helper(new_rev, output, with_markdown):
-            text_vari = cal_size_section_variation(mod, fname,
-                                                   size_entry, 'text')
-            data_vari = cal_size_section_variation(mod, fname,
-                                                   size_entry, 'data')
+            Convention for special cases:
+                - If the object has been removed in new Git revision,
+                  the size is minus code size of old Git revision;
+                  the size change is marked as `Removed`,
+                - If the object only exists in new Git revision,
+                  the size is code size of new Git revision;
+                  the size change is marked as `None`,
 
-            if len(text_vari) != 1:
-                # skip the files that haven't changed in code size if we write
-                # comparison result in a markdown table.
-                if with_markdown and text_vari[2] == 0 and data_vari[2] == 0:
-                    continue
-                output.write(
-                    format_string
-                    .format(fname,
-                            # new(text), new(data)
-                            str(text_vari[0]), str(data_vari[0]),
-                            # change(text), change(data)
-                            str(text_vari[2]), str(data_vari[2])))
+            :param: old_size: code size for objects in old Git revision.
+            :param: new_size: code size for objects in new Git revision.
+            :param: sect: section to calculate from `size` tool. This could be
+                          any instance variable in SizeEntry.
+            :return: List of [section size of objects for new Git revision,
+                     section size change of objects between two Git revisions]
+            """
+            if old_size and new_size:
+                new_attr = new_size.__dict__[sect]
+                change_attr = new_size.__dict__[sect] - old_size.__dict__[sect]
+            elif old_size:
+                new_attr = - old_size.__dict__[sect]
+                change_attr = 'Removed'
+            elif new_size:
+                new_attr = new_size.__dict__[sect]
+                change_attr = 'None'
             else:
-                output.write(
-                    format_string
-                    .format(fname,
-                            # new(text), new(data)
-                            str(text_vari[0]), str(data_vari[0]),
-                            # change(text), change(data)
-                            'None', 'None'))
+                # Should never happen
+                new_attr = 'Error'
+                change_attr = 'Error'
+            return [new_attr, change_attr]
+
+        # sort dictionary by key
+        sort_by_k = lambda item: item[0].lower()
+        def get_results(
+                f_rev_size:
+                typing.Dict[str,
+                            typing.Dict[str,
+                                        CodeSizeGeneratorWithSize.SizeEntry]]
+            ) -> typing.List:
+            """Return List of results in the format of:
+            [filename, new(text), change(text), new(data), change(data)]
+            """
+            res = []
+            for fname, revs_size in sorted(f_rev_size.items(), key=sort_by_k):
+                old_size = revs_size.get(old_rev)
+                new_size = revs_size.get(new_rev)
+
+                text_sect = cal_sect_change(old_size, new_size, 'text')
+                data_sect = cal_sect_change(old_size, new_size, 'data')
+                # skip the files that haven't changed in code size
+                if text_sect[1] == 0 and data_sect[1] == 0:
+                    continue
+
+                res.append([fname, *text_sect, *data_sect])
+            return res
+
+        # write header
+        output.write(line_format.format(*header_line))
+        if with_markdown:
+            output.write(line_format.format(*dash_line))
+        for mod in MBEDTLS_STATIC_LIB:
+        # convert self.code_size to:
+        # {
+        #   file_name: {
+        #       old_rev: SizeEntry,
+        #       new_rev: SizeEntry
+        #   },
+        #   ...
+        # }
+            f_rev_size = {} #type: typing.Dict[str, typing.Dict]
+            for fname, size_entry in self.code_size[old_rev][mod].items():
+                f_rev_size.setdefault(fname, {}).update({old_rev: size_entry})
+            for fname, size_entry in self.code_size[new_rev][mod].items():
+                f_rev_size.setdefault(fname, {}).update({new_rev: size_entry})
+
+            mod_total_sz = f_rev_size.pop(mod + self.mod_total_suffix)
+            res = get_results(f_rev_size)
+            total_clm = get_results({mod + self.mod_total_suffix: mod_total_sz})
+            if with_markdown:
+                # bold row of mod-TOTALS in markdown table
+                total_clm = [[bold_text(j) for j in i] for i in total_clm]
+            res += total_clm
+
+            # write comparison result
+            for line in res:
+                output.write(line_format.format(*line))
 
 
 class CodeSizeComparison:

@@ -324,15 +324,17 @@ static void debug_print_pk(const mbedtls_ssl_context *ssl, int level,
         mbedtls_snprintf(name, sizeof(name), "%s%s", text, items[i].name);
         name[sizeof(name) - 1] = '\0';
 
+#if defined(MBEDTLS_RSA_C)
         if (items[i].type == MBEDTLS_PK_DEBUG_MPI) {
             mbedtls_debug_print_mpi(ssl, level, file, line, name, items[i].value);
         } else
+#endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_ECP_LIGHT)
         if (items[i].type == MBEDTLS_PK_DEBUG_ECP) {
             mbedtls_debug_print_ecp(ssl, level, file, line, name, items[i].value);
         } else
-#endif
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+#endif /* MBEDTLS_ECP_LIGHT */
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA) && defined(MBEDTLS_BIGNUM_C)
         if (items[i].type == MBEDTLS_PK_DEBUG_PSA_EC) {
             mbedtls_debug_print_psa_ec(ssl, level, file, line, name, items[i].value);
         } else

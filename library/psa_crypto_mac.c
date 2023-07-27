@@ -367,6 +367,10 @@ psa_status_t mbedtls_psa_mac_update(
         return PSA_ERROR_BAD_STATE;
     }
 
+    if (input_length == 0) {
+        return PSA_SUCCESS;
+    }
+
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
     if (PSA_ALG_FULL_LENGTH_MAC(operation->alg) == PSA_ALG_CMAC) {
         return mbedtls_to_psa_error(

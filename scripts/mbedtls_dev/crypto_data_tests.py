@@ -23,6 +23,8 @@ import hmac
 from abc import ABCMeta, abstractmethod
 from re import match
 from typing import Callable, Dict, Iterator, List, Optional #pylint: disable=unused-import
+from Crypto.Hash import CMAC
+from Crypto.Cipher import AES
 
 from . import crypto_knowledge
 from . import psa_information
@@ -154,7 +156,8 @@ class MacPSALowLevel(PSALowLevel):
         # available.
         self.calculate = {
             'PSA_ALG_CBC_MAC': None,
-            'PSA_ALG_CMAC': None,
+            'PSA_ALG_CMAC': \
+                lambda key, msg: CMAC.new(key, msg=msg, ciphermod=AES).digest(),
             'PSA_ALG_HMAC(PSA_ALG_MD5)': \
                 lambda key, msg: hmac.new(key, msg, 'md5').digest(),
             'PSA_ALG_HMAC(PSA_ALG_RIPEMD160)': \
@@ -192,6 +195,7 @@ class MacPSALowLevel(PSALowLevel):
         """Enumerate all test cases for hmac for one hash algorithm."""
 
         m = match(r'PSA_ALG_TRUNCATED_MAC\((.*),([0-9]+)\)', alg.expression)
+
         if m is not None:
             truncate = lambda x: x[0:int(m.group(2))]
             calc = self.calculate[m.group(1)]
@@ -202,7 +206,7 @@ class MacPSALowLevel(PSALowLevel):
         if calc is None:
             return # not implemented yet
 
-        key = b'supadupasecretkey'
+        key = b'supaupasecretkey'
         short = b'abc'
         mac_short = truncate(calc(key, short))
         long = (b'Hello, world. Here are 16 unprintable bytes: ['

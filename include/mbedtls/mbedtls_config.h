@@ -1998,8 +1998,15 @@
  * If the symbol #MBEDTLS_PSA_CRYPTO_CONFIG_FILE is defined, it specifies
  * an alternative header to include instead of include/psa/crypto_config.h.
  *
- * This feature is still experimental and is not ready for production since
- * it is not completed.
+ * \warning This option is experimental, in that the set of `PSA_WANT_XXX`
+ *          symbols is not completely finalized yet, and the configuration
+ *          tooling is not ideally adapted to having two separate configuration
+ *          files.
+ *          Future minor releases of Mbed TLS may make minor changes to those
+ *          symbols, but we will endeavor to provide a transition path.
+ *          Nonetheless, this option is considered mature enough to use in
+ *          production, as long as you accept that you may need to make
+ *          minor changes to psa/crypto_config.h when upgrading Mbed TLS.
  */
 //#define MBEDTLS_PSA_CRYPTO_CONFIG
 

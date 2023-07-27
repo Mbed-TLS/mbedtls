@@ -27,7 +27,7 @@ void test_hkdf(int md_alg, data_t *ikm, data_t *salt, data_t *info,
     TEST_ASSERT(ret == 0);
 
     TEST_MEMORY_COMPARE(okm, expected_okm->len,
-                   expected_okm->x, expected_okm->len);
+                        expected_okm->x, expected_okm->len);
 
 exit:
     MD_PSA_DONE();

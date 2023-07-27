@@ -175,7 +175,7 @@ void mpi_legacy_random_values(int min, char *max_hex)
     TEST_EQUAL(core_ret, legacy_ret);
     if (core_ret == 0) {
         TEST_MEMORY_COMPARE(R_core, limbs * ciL,
-                       R_legacy.p, R_legacy.n * ciL);
+                            R_legacy.p, R_legacy.n * ciL);
     }
 
     /* Also check that they have consumed the RNG in the same way. */
@@ -183,7 +183,7 @@ void mpi_legacy_random_values(int min, char *max_hex)
      * the structure! If this is a problem in practice, change to a
      * field-by-field comparison. */
     TEST_MEMORY_COMPARE(&rnd_core, sizeof(rnd_core),
-                   &rnd_legacy, sizeof(rnd_legacy));
+                        &rnd_legacy, sizeof(rnd_legacy));
 
 exit:
     mbedtls_mpi_free(&max_legacy);
@@ -238,11 +238,11 @@ void mpi_mod_random_values(int min, char *max_hex, int rep)
         TEST_EQUAL(mbedtls_mpi_mod_raw_modulus_to_canonical_rep(R_mod_raw, &N),
                    0);
         TEST_MEMORY_COMPARE(R_core, N.limbs * ciL,
-                       R_mod_raw, N.limbs * ciL);
+                            R_mod_raw, N.limbs * ciL);
         TEST_EQUAL(mbedtls_mpi_mod_raw_modulus_to_canonical_rep(R_mod_digits, &N),
                    0);
         TEST_MEMORY_COMPARE(R_core, N.limbs * ciL,
-                       R_mod_digits, N.limbs * ciL);
+                            R_mod_digits, N.limbs * ciL);
     }
 
     /* Also check that they have consumed the RNG in the same way. */
@@ -250,9 +250,9 @@ void mpi_mod_random_values(int min, char *max_hex, int rep)
      * the structure! If this is a problem in practice, change to a
      * field-by-field comparison. */
     TEST_MEMORY_COMPARE(&rnd_core, sizeof(rnd_core),
-                   &rnd_mod_raw, sizeof(rnd_mod_raw));
+                        &rnd_mod_raw, sizeof(rnd_mod_raw));
     TEST_MEMORY_COMPARE(&rnd_core, sizeof(rnd_core),
-                   &rnd_mod, sizeof(rnd_mod));
+                        &rnd_mod, sizeof(rnd_mod));
 
 exit:
     mbedtls_test_mpi_mod_modulus_free_with_limbs(&N);

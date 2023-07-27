@@ -1047,7 +1047,7 @@ void mpi_core_ct_uint_table_lookup(int bitlen, int window_size)
         TEST_CF_PUBLIC(dest, limbs * sizeof(*dest));
         TEST_CF_PUBLIC(table, count * limbs * sizeof(*table));
         TEST_MEMORY_COMPARE(dest, limbs * sizeof(*dest),
-                       current, limbs * sizeof(*current));
+                            current, limbs * sizeof(*current));
         TEST_CF_PUBLIC(&i, sizeof(i));
     }
 
@@ -1280,7 +1280,8 @@ void mpi_core_sub_int(char *input_A, char *input_B,
     TEST_CALLOC(R, limbs);
 
 #define TEST_COMPARE_CORE_MPIS(A, B, limbs) \
-    TEST_MEMORY_COMPARE(A, (limbs) * sizeof(mbedtls_mpi_uint), B, (limbs) * sizeof(mbedtls_mpi_uint))
+    TEST_MEMORY_COMPARE(A, (limbs) * sizeof(mbedtls_mpi_uint), \
+                        B, (limbs) * sizeof(mbedtls_mpi_uint))
 
     /* 1. R = A - b. Result and borrow should be correct */
     TEST_EQUAL(mbedtls_mpi_core_sub_int(R, A, B[0], limbs), borrow);

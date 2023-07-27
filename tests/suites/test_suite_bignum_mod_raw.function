@@ -648,7 +648,7 @@ void mpi_mod_raw_canonical_to_modulus_rep(const char *input_N, int rep,
 
     TEST_EQUAL(0, mbedtls_mpi_mod_raw_canonical_to_modulus_rep(A, &N));
     TEST_MEMORY_COMPARE(A, A_limbs * sizeof(mbedtls_mpi_uint),
-                   X, X_limbs * sizeof(mbedtls_mpi_uint));
+                        X, X_limbs * sizeof(mbedtls_mpi_uint));
 
 exit:
     mbedtls_test_mpi_mod_modulus_free_with_limbs(&N);
@@ -675,7 +675,7 @@ void mpi_mod_raw_modulus_to_canonical_rep(const char *input_N, int rep,
 
     TEST_EQUAL(0, mbedtls_mpi_mod_raw_modulus_to_canonical_rep(A, &N));
     TEST_MEMORY_COMPARE(A, A_limbs * sizeof(mbedtls_mpi_uint),
-                   X, X_limbs * sizeof(mbedtls_mpi_uint));
+                        X, X_limbs * sizeof(mbedtls_mpi_uint));
 
 exit:
     mbedtls_test_mpi_mod_modulus_free_with_limbs(&N);

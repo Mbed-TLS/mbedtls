@@ -67,7 +67,7 @@ void format_storage_data_check(data_t *key_data,
                                     file_data);
 
     TEST_MEMORY_COMPARE(expected_file_data->x, expected_file_data->len,
-                   file_data, file_data_length);
+                        file_data, file_data_length);
 
 exit:
     mbedtls_free(file_data);
@@ -112,7 +112,7 @@ void parse_storage_data_check(data_t *file_data,
     TEST_EQUAL(psa_get_key_enrollment_algorithm(&attributes),
                (uint32_t) expected_key_alg2);
     TEST_MEMORY_COMPARE(expected_key_data->x, expected_key_data->len,
-                   key_data, key_data_length);
+                        key_data, key_data_length);
 
 exit:
     mbedtls_free(key_data);

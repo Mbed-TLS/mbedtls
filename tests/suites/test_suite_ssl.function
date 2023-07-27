@@ -1729,7 +1729,7 @@ void ssl_tls13_hkdf_expand_label(int hash_alg,
                     dst, desired_length) == 0);
 
     TEST_MEMORY_COMPARE(dst, (size_t) desired_length,
-                   expected->x, (size_t) expected->len);
+                        expected->x, (size_t) expected->len);
 
 exit:
     PSA_DONE();
@@ -1769,21 +1769,21 @@ void ssl_tls13_traffic_key_generation(int hash_alg,
                     &keys) == 0);
 
     TEST_MEMORY_COMPARE(keys.client_write_key,
-                   keys.key_len,
-                   expected_client_write_key->x,
-                   (size_t) desired_key_len);
+                        keys.key_len,
+                        expected_client_write_key->x,
+                        (size_t) desired_key_len);
     TEST_MEMORY_COMPARE(keys.server_write_key,
-                   keys.key_len,
-                   expected_server_write_key->x,
-                   (size_t) desired_key_len);
+                        keys.key_len,
+                        expected_server_write_key->x,
+                        (size_t) desired_key_len);
     TEST_MEMORY_COMPARE(keys.client_write_iv,
-                   keys.iv_len,
-                   expected_client_write_iv->x,
-                   (size_t) desired_iv_len);
+                        keys.iv_len,
+                        expected_client_write_iv->x,
+                        (size_t) desired_iv_len);
     TEST_MEMORY_COMPARE(keys.server_write_iv,
-                   keys.iv_len,
-                   expected_server_write_iv->x,
-                   (size_t) desired_iv_len);
+                        keys.iv_len,
+                        expected_server_write_iv->x,
+                        (size_t) desired_iv_len);
 
 exit:
     PSA_DONE();
@@ -1828,7 +1828,7 @@ void ssl_tls13_derive_secret(int hash_alg,
                     dst, desired_length) == 0);
 
     TEST_MEMORY_COMPARE(dst, desired_length,
-                   expected->x, desired_length);
+                        expected->x, desired_length);
 
 exit:
     PSA_DONE();
@@ -1860,9 +1860,9 @@ void ssl_tls13_derive_early_secrets(int hash_alg,
                     &secrets) == 0);
 
     TEST_MEMORY_COMPARE(secrets.client_early_traffic_secret, hash_len,
-                   traffic_expected->x, traffic_expected->len);
+                        traffic_expected->x, traffic_expected->len);
     TEST_MEMORY_COMPARE(secrets.early_exporter_master_secret, hash_len,
-                   exporter_expected->x, exporter_expected->len);
+                        exporter_expected->x, exporter_expected->len);
 
 exit:
     PSA_DONE();
@@ -1894,9 +1894,9 @@ void ssl_tls13_derive_handshake_secrets(int hash_alg,
                     &secrets) == 0);
 
     TEST_MEMORY_COMPARE(secrets.client_handshake_traffic_secret, hash_len,
-                   client_expected->x, client_expected->len);
+                        client_expected->x, client_expected->len);
     TEST_MEMORY_COMPARE(secrets.server_handshake_traffic_secret, hash_len,
-                   server_expected->x, server_expected->len);
+                        server_expected->x, server_expected->len);
 
 exit:
     PSA_DONE();
@@ -1930,11 +1930,11 @@ void ssl_tls13_derive_application_secrets(int hash_alg,
                     &secrets) == 0);
 
     TEST_MEMORY_COMPARE(secrets.client_application_traffic_secret_N, hash_len,
-                   client_expected->x, client_expected->len);
+                        client_expected->x, client_expected->len);
     TEST_MEMORY_COMPARE(secrets.server_application_traffic_secret_N, hash_len,
-                   server_expected->x, server_expected->len);
+                        server_expected->x, server_expected->len);
     TEST_MEMORY_COMPARE(secrets.exporter_master_secret, hash_len,
-                   exporter_expected->x, exporter_expected->len);
+                        exporter_expected->x, exporter_expected->len);
 
 exit:
     PSA_DONE();
@@ -1964,7 +1964,7 @@ void ssl_tls13_derive_resumption_secrets(int hash_alg,
                     &secrets) == 0);
 
     TEST_MEMORY_COMPARE(secrets.resumption_master_secret, hash_len,
-                   resumption_expected->x, resumption_expected->len);
+                        resumption_expected->x, resumption_expected->len);
 
 exit:
     PSA_DONE();
@@ -1998,7 +1998,7 @@ void ssl_tls13_create_psk_binder(int hash_alg,
                     binder) == 0);
 
     TEST_MEMORY_COMPARE(binder, hash_len,
-                   binder_expected->x, binder_expected->len);
+                        binder_expected->x, binder_expected->len);
 
 exit:
     PSA_DONE();
@@ -2091,12 +2091,12 @@ void ssl_tls13_record_protection(int ciphersuite,
 
     if (padding_used == MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY) {
         TEST_MEMORY_COMPARE(rec.buf + rec.data_offset, rec.data_len,
-                       ciphertext->x, ciphertext->len);
+                            ciphertext->x, ciphertext->len);
     }
 
     TEST_ASSERT(mbedtls_ssl_decrypt_buf(NULL, &transform_recv, &rec) == 0);
     TEST_MEMORY_COMPARE(rec.buf + rec.data_offset, rec.data_len,
-                   plaintext->x, plaintext->len);
+                        plaintext->x, plaintext->len);
 
 exit:
     mbedtls_free(buf);
@@ -2123,7 +2123,7 @@ void ssl_tls13_key_evolution(int hash_alg,
                     secret_new) == 0);
 
     TEST_MEMORY_COMPARE(secret_new, (size_t) expected->len,
-                   expected->x, (size_t) expected->len);
+                        expected->x, (size_t) expected->len);
 
 exit:
     PSA_DONE();

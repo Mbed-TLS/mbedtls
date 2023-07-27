@@ -8,7 +8,7 @@
 
 #define TEST_COMPARE_MPI_RESIDUES(a, b) \
     TEST_MEMORY_COMPARE((a).p, (a).limbs * sizeof(mbedtls_mpi_uint), \
-                   (b).p, (b).limbs * sizeof(mbedtls_mpi_uint))
+                        (b).p, (b).limbs * sizeof(mbedtls_mpi_uint))
 
 static int test_read_residue(mbedtls_mpi_mod_residue *r,
                              const mbedtls_mpi_mod_modulus *m,

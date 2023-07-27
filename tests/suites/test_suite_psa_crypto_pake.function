@@ -1065,7 +1065,7 @@ void pake_input_getters_cipher_suite()
                PSA_SUCCESS);
 
     TEST_MEMORY_COMPARE(&cipher_suite_ret, sizeof(cipher_suite_ret),
-                   &cipher_suite, sizeof(cipher_suite));
+                        &cipher_suite, sizeof(cipher_suite));
 
 exit:
     PSA_ASSERT(psa_pake_abort(&operation));

@@ -30,7 +30,7 @@ void chacha20_crypt(data_t *key_str,
                                        output) == 0);
 
     TEST_MEMORY_COMPARE(output, expected_output_str->len,
-                   expected_output_str->x, expected_output_str->len);
+                        expected_output_str->x, expected_output_str->len);
 
     /*
      * Test the streaming API
@@ -45,7 +45,7 @@ void chacha20_crypt(data_t *key_str,
     TEST_ASSERT(mbedtls_chacha20_update(&ctx, src_str->len, src_str->x, output) == 0);
 
     TEST_MEMORY_COMPARE(output, expected_output_str->len,
-                   expected_output_str->x, expected_output_str->len);
+                        expected_output_str->x, expected_output_str->len);
 
     /*
      * Test the streaming API again, piecewise
@@ -61,7 +61,7 @@ void chacha20_crypt(data_t *key_str,
                                         src_str->x + 1, output + 1) == 0);
 
     TEST_MEMORY_COMPARE(output, expected_output_str->len,
-                   expected_output_str->x, expected_output_str->len);
+                        expected_output_str->x, expected_output_str->len);
 
     mbedtls_chacha20_free(&ctx);
 }

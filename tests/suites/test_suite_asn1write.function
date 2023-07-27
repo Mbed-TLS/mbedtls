@@ -38,7 +38,7 @@ int generic_write_finish_step(generic_write_data_t *data,
         TEST_ASSERT(data->p >= data->start);
         TEST_ASSERT(data->p <= data->end);
         TEST_MEMORY_COMPARE(data->p, (size_t) (data->end - data->p),
-                       expected->x, expected->len);
+                            expected->x, expected->len);
     }
     ok = 1;
 
@@ -441,7 +441,7 @@ void test_asn1_write_bitstrings(data_t *bitstring, int bits,
             TEST_EQUAL(mbedtls_asn1_get_bitstring(&data.p, data.end,
                                                   &read), 0);
             TEST_MEMORY_COMPARE(read.p, read.len,
-                           masked_bitstring, byte_length);
+                                masked_bitstring, byte_length);
             TEST_EQUAL(read.unused_bits, 8 * byte_length - value_bits);
         }
 #endif /* MBEDTLS_ASN1_PARSE_C */
@@ -546,7 +546,7 @@ void store_named_data_val_found(int old_len, int new_len)
 
     if (new_val != NULL) {
         TEST_MEMORY_COMPARE(found->val.p, found->val.len,
-                       new_val, (size_t) new_len);
+                            new_val, (size_t) new_len);
     }
     if (new_len == 0) {
         TEST_ASSERT(found->val.p == NULL);
@@ -588,7 +588,7 @@ void store_named_data_val_new(int new_len, int set_new_val)
     } else {
         TEST_ASSERT(found->val.p != new_val);
         TEST_MEMORY_COMPARE(found->val.p, found->val.len,
-                       new_val, (size_t) new_len);
+                            new_val, (size_t) new_len);
     }
 
 exit:

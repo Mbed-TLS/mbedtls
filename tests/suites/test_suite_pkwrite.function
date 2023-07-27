@@ -191,7 +191,7 @@ void pk_write_public_from_private(char *priv_key_file, char *pub_key_file)
                                            derived_key_len), pub_key_len);
 
     TEST_MEMORY_COMPARE(derived_key_raw, derived_key_len,
-                   pub_key_raw, pub_key_len);
+                        pub_key_raw, pub_key_len);
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_platform_zeroize(derived_key_raw, sizeof(derived_key_raw));
@@ -204,7 +204,7 @@ void pk_write_public_from_private(char *priv_key_file, char *pub_key_file)
                                            derived_key_len), pub_key_len);
 
     TEST_MEMORY_COMPARE(derived_key_raw, derived_key_len,
-                   pub_key_raw, pub_key_len);
+                        pub_key_raw, pub_key_len);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 exit:

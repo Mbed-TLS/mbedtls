@@ -633,7 +633,7 @@
  * This macro expands to a compile-time constant integer. This value
  * is the maximum size of a signature in bytes.
  */
-#define PSA_SIGNATURE_MAX_SIZE      0
+#define PSA_SIGNATURE_MAX_SIZE      1
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC) && \
     (PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE > PSA_SIGNATURE_MAX_SIZE)
@@ -956,7 +956,7 @@
  *
  * See also #PSA_EXPORT_KEY_OUTPUT_SIZE(\p key_type, \p key_bits).
  */
-#define PSA_EXPORT_KEY_PAIR_MAX_SIZE            0
+#define PSA_EXPORT_KEY_PAIR_MAX_SIZE            1
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC) && \
     (PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS) > \
@@ -989,7 +989,7 @@
  *
  * See also #PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(\p key_type, \p key_bits).
  */
-#define PSA_EXPORT_PUBLIC_KEY_MAX_SIZE            0
+#define PSA_EXPORT_PUBLIC_KEY_MAX_SIZE            1
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) && \
     (PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS) > \
@@ -1047,7 +1047,7 @@
  *
  * See also #PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(\p key_type, \p key_bits).
  */
-#define PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE       0
+#define PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE       1
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC) && \
     (PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS) > PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE)

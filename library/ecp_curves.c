@@ -5411,7 +5411,7 @@ cleanup:
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
 /*
  * Fast quasi-reduction modulo p192k1 = 2^192 - R,
- * with R = 2^32 + 2^12 + 2^8 + 2^7 + 2^6 + 2^3 + 1 = 0x0100001119
+ * with R = 2^32 + 2^12 + 2^8 + 2^7 + 2^6 + 2^3 + 1 = 0x01000011C9
  */
 static int ecp_mod_p192k1(mbedtls_mpi *N)
 {

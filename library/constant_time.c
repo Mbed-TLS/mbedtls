@@ -30,6 +30,8 @@
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 
+#include "../tests/include/test/constant_flow.h"
+
 #include <string.h>
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
@@ -127,6 +129,20 @@ int mbedtls_ct_memcmp(const void *a,
 
 void mbedtls_ct_memmove_left(void *start, size_t total, size_t offset)
 {
+    /* In case of inlining, ensure that code generated is independent of the value of offset
+     * (e.g., if the compiler knows that offset == 0, it might be able to optimise this function
+     * to a no-op). */
+    size_t hidden_offset = mbedtls_ct_compiler_opaque(offset);
+
+    /* During this loop, j will take every value from [0..total) exactly once,
+    * regardless of the value of hidden_offset (it only changes the initial
+    * value for j).
+    *
+    * For this reason, when testing, it is safe to mark hidden_offset as non-secret.
+    * This prevents the const-flow checkers from generating a false-positive.
+    */
+   TEST_CF_PUBLIC(&hidden_offset, sizeof(hidden_offset));
+
     /* Iterate over the array, reading each byte once and writing each byte once. */
     for (size_t i = 0; i < total; i++) {
         /* Each iteration, read one byte, and write it to start[i].
@@ -138,9 +154,8 @@ void mbedtls_ct_memmove_left(void *start, size_t total, size_t offset)
          * If the source address is out of range, mask it to zero.
          */
 
-        // The address that we will read from
-        // TODO: if offset is marked as secret, this upsets Memsan.
-        size_t j = i + offset;
+        // The offset that we will read from (if in range)
+        size_t j = i + hidden_offset;
 
         // Is the address off the end of the array?
         mbedtls_ct_condition_t not_dummy = mbedtls_ct_bool_lt(j, total);

@@ -33,18 +33,24 @@
 #include "mbedtls/build_info.h"
 #include "mbedtls/platform.h"
 
+/* The algorithm used by this demo is SHA 256.
+ * Please see include/psa/crypto_values.h to see the other
+ * algorithms that are supported. If you switch to a different
+ * algorithm you will need to update the hash data in the
+ * SAMPLE_HASH_DATA macro below.*/
+
 #define HASH_ALG PSA_ALG_SHA_256
 
-#define TEST_SHA256_HASH {                                                 \
+#define SAMPLE_HASH_DATA {                                                 \
         0x5a, 0x09, 0xe8, 0xfa, 0x9c, 0x77, 0x80, 0x7b, 0x24, 0xe9, 0x9c, 0x9c, \
         0xf9, 0x99, 0xde, 0xbf, 0xad, 0x84, 0x41, 0xe2, 0x69, 0xeb, 0x96, 0x0e, \
         0x20, 0x1f, 0x61, 0xfc, 0x3d, 0xe2, 0x0d, 0x5a                          \
 }
 
-const uint8_t test_sha256_hash[] = TEST_SHA256_HASH;
+const uint8_t sample_message[] = "Hello World!";
 
-const size_t test_sha256_hash_len =
-    sizeof(test_sha256_hash);
+const uint8_t sample_hash[] = SAMPLE_HASH_DATA;
+const size_t sample_hash_len = sizeof(sample_hash);
 
 #if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(PSA_WANT_ALG_SHA_256)
 int main(void)
@@ -57,7 +63,6 @@ int main(void)
 
 int main(void)
 {
-    uint8_t buf[] = "Hello World!";
     psa_status_t status;
     uint8_t hash[PSA_HASH_LENGTH(HASH_ALG)];
     size_t hash_length;
@@ -82,7 +87,7 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    status = psa_hash_update(&hash_operation, buf, sizeof(buf));
+    status = psa_hash_update(&hash_operation, sample_message, sizeof(sample_message));
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_update failed\n");
         psa_hash_abort(&hash_operation);
@@ -107,8 +112,8 @@ int main(void)
     }
 
     status =
-        psa_hash_verify(&cloned_hash_operation, test_sha256_hash,
-                        test_sha256_hash_len);
+        psa_hash_verify(&cloned_hash_operation, sample_hash,
+                        sample_hash_len);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_verify failed\n");
         psa_hash_abort(&hash_operation);
@@ -124,7 +129,7 @@ int main(void)
 
     /* Compute hash using one-shot function call */
     status = psa_hash_compute(HASH_ALG,
-                              buf, sizeof(buf),
+                              sample_message, sizeof(sample_message),
                               hash, sizeof(hash),
                               &hash_length);
     if (status != PSA_SUCCESS) {
@@ -134,7 +139,7 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    if (memcmp(hash, test_sha256_hash, test_sha256_hash_len) != 0)
+    if (memcmp(hash, sample_hash, sample_hash_len) != 0)
     {
         mbedtls_printf("One-shot hash operation gave the wrong result!\n\n");
         psa_hash_abort(&hash_operation);
@@ -145,9 +150,9 @@ int main(void)
     mbedtls_printf("One-shot hash operation successful!\n\n");
 
     /* Print out result */
-    mbedtls_printf("The SHA-256( '%s' ) is: ", buf);
+    mbedtls_printf("The SHA-256( '%s' ) is: ", sample_message);
 
-    for (size_t j = 0; j < test_sha256_hash_len; j++) {
+    for (size_t j = 0; j < sample_hash_len; j++) {
         mbedtls_printf("%02x", hash[j]);
     }
 

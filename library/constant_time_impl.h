@@ -73,17 +73,18 @@ static inline mbedtls_ct_uint_t mbedtls_ct_compiler_opaque(mbedtls_ct_uint_t x)
 #if defined(MBEDTLS_CT_ASM)
     /* Prevent false positives from Memsan - otherwise it will report the asm as
      * accessing secret data. */
-    TEST_CF_PUBLIC(&x, sizeof(x));
+    TEST_CF_SAVE_SECRET(x);
 
     asm volatile ("" : [x] "+r" (x) :);
 
-    /* Mark the return value as secret. This is needed so that code of the form:
+    /* Mark the return value as secret (if it was previously marked secret).
+     * This is needed so that code of the form:
      *
      * if (mbedtls_ct_compiler_opaque(secret)) { ... }
      *
      * will fail const-flow tests.
      */
-    TEST_CF_SECRET(&x, sizeof(x));
+    TEST_CF_RESTORE_SECRET(x);
     return x;
 #else
     return x ^ mbedtls_ct_zero;

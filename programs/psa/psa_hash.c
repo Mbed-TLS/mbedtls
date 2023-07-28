@@ -136,7 +136,7 @@ int main(void)
 
     for (size_t j = 0; j < test_sha256_hash_len; j++) {
         if (hash[j] != test_sha256_hash[j]) {
-            mbedtls_printf("One-shot hash operation failed!\n\n");
+            mbedtls_printf("One-shot hash operation gave the wrong result!\n\n");
             psa_hash_abort(&hash_operation);
             psa_hash_abort(&cloned_hash_operation);
             return EXIT_FAILURE;

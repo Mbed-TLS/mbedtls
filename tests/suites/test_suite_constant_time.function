@@ -77,13 +77,13 @@ void mbedtls_ct_bool_xxx(char *x_str, char *y_str)
     expected = x1 <= y1 ? MBEDTLS_CT_TRUE : MBEDTLS_CT_FALSE;
     TEST_EQUAL(mbedtls_ct_bool_le(x, y), expected);
 
-    expected = mbedtls_ct_bool(x) ^ mbedtls_ct_bool(y) ? MBEDTLS_CT_TRUE : MBEDTLS_CT_FALSE;
+    expected = mbedtls_ct_bool(x1) ^ mbedtls_ct_bool(y1) ? MBEDTLS_CT_TRUE : MBEDTLS_CT_FALSE;
     TEST_EQUAL(mbedtls_ct_bool_xor(mbedtls_ct_bool(x), mbedtls_ct_bool(y)), expected);
 
-    expected = mbedtls_ct_bool(x) & mbedtls_ct_bool(y) ? MBEDTLS_CT_TRUE : MBEDTLS_CT_FALSE;
+    expected = mbedtls_ct_bool(x1) & mbedtls_ct_bool(y1) ? MBEDTLS_CT_TRUE : MBEDTLS_CT_FALSE;
     TEST_EQUAL(mbedtls_ct_bool_and(mbedtls_ct_bool(x), mbedtls_ct_bool(y)), expected);
 
-    expected = mbedtls_ct_bool(x) | mbedtls_ct_bool(y) ? MBEDTLS_CT_TRUE : MBEDTLS_CT_FALSE;
+    expected = mbedtls_ct_bool(x1) | mbedtls_ct_bool(y1) ? MBEDTLS_CT_TRUE : MBEDTLS_CT_FALSE;
     TEST_EQUAL(mbedtls_ct_bool_or(mbedtls_ct_bool(x), mbedtls_ct_bool(y)), expected);
 
     TEST_CF_PUBLIC(&x, sizeof(x));

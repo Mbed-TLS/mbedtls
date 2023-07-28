@@ -49,7 +49,7 @@ const size_t mbedtls_test_sha256_hash_len =
 #if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(PSA_WANT_ALG_SHA_256)
 int main(void)
 {
-    mbedtls_printf("MBEDTLS_PSA_CRYPTO_C and MBEDTLS_SHA256_C"
+    mbedtls_printf("MBEDTLS_PSA_CRYPTO_C and PSA_WANT_ALG_SHA_256"
                    "not defined.\r\n");
     return EXIT_SUCCESS;
 }
@@ -160,4 +160,4 @@ int main(void)
     mbedtls_psa_crypto_free();
     return EXIT_SUCCESS;
 }
-#endif /* MBEDTLS_PSA_CRYPTO_C && MBEDTLS_SHA256_C */
+#endif /* MBEDTLS_PSA_CRYPTO_C && PSA_WANT_ALG_SHA_256 */

@@ -118,10 +118,11 @@ int main(void)
         mbedtls_printf("Multi-part hash operation successful!\n");
     }
 
-    /* Compute hash using one-shot function call */
+    /* Clear local variables prior to one-shot hash demo */
     memset(hash, 0, sizeof(hash));
     hash_length = 0;
 
+    /* Compute hash using one-shot function call */
     status = psa_hash_compute(HASH_ALG,
                               buf, sizeof(buf),
                               hash, sizeof(hash),

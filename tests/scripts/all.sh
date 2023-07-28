@@ -2559,8 +2559,6 @@ config_psa_crypto_no_ecp_at_all () {
     # start with full config for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
 
-    # enable support for drivers and configuring PSA-only algorithms
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     if [ "$DRIVER_ONLY" -eq 1 ]; then
         # Disable modules that are accelerated
         scripts/config.py unset MBEDTLS_ECDSA_C
@@ -2664,8 +2662,6 @@ config_psa_crypto_config_accel_ecc_no_bignum() {
     # but excluding X509, TLS and key exchanges
     helper_libtestdriver1_adjust_config "crypto_full"
 
-    # enable support for drivers and configuring PSA-only algorithms
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     if [ "$DRIVER_ONLY" -eq 1 ]; then
         # Disable modules that are accelerated
         scripts/config.py unset MBEDTLS_ECDSA_C

@@ -116,12 +116,13 @@ class CodeSizeCommonInfo: # pylint: disable=too-few-public-methods
 
 class CodeSizeResultInfo: # pylint: disable=too-few-public-methods
     """Data structure to store result options for code size comparison."""
-    def __init__(
+    def __init__( #pylint: disable=too-many-arguments
             self,
             record_dir: str,
             comp_dir: str,
             with_markdown=False,
             stdout=False,
+            show_all=False,
     ) -> None:
         """
         :param record_dir: directory to store code size record.
@@ -130,11 +131,13 @@ class CodeSizeResultInfo: # pylint: disable=too-few-public-methods
                               (Default: False)
         :param stdout: direct comparison result into sys.stdout.
                        (Default False)
+        :param show_all: show all objects in comparison result. (Default False)
         """
         self.record_dir = record_dir
         self.comp_dir = comp_dir
         self.with_markdown = with_markdown
         self.stdout = stdout
+        self.show_all = show_all
 
 
 DETECT_ARCH_CMD = "cc -dM -E - < /dev/null"
@@ -462,12 +465,13 @@ class CodeSizeGenerator:
         """
         raise NotImplementedError
 
-    def write_comparison(
+    def write_comparison( #pylint: disable=too-many-arguments
             self,
             old_rev: str,
             new_rev: str,
             output: typing_util.Writable,
-            with_markdown=False
+            with_markdown=False,
+            show_all=False
     ) -> None:
         """Write a comparision result into a stream between two Git revisions.
 
@@ -477,6 +481,7 @@ class CodeSizeGenerator:
                        (File / sys.stdout)
         :param with_markdown:  write comparision result in a markdown table.
                                (Default: False)
+        :param show_all: show all objects in comparison result. (Default False)
         """
         raise NotImplementedError
 
@@ -581,13 +586,15 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                                      size_entry.text, size_entry.data,
                                      size_entry.bss, size_entry.total))
 
-    def write_comparison( # pylint: disable=too-many-locals
+    def write_comparison( #pylint: disable=too-many-arguments
             self,
             old_rev: str,
             new_rev: str,
             output: typing_util.Writable,
-            with_markdown=False
+            with_markdown=False,
+            show_all=False
     ) -> None:
+        # pylint: disable=too-many-locals
         """Write comparison result into a file.
 
         Writing Format: filename new(text) new(data) change(text) change(data)
@@ -658,7 +665,7 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                 text_sect = cal_sect_change(old_size, new_size, 'text')
                 data_sect = cal_sect_change(old_size, new_size, 'data')
                 # skip the files that haven't changed in code size
-                if text_sect[1] == 0 and data_sect[1] == 0:
+                if not show_all and text_sect[1] == 0 and data_sect[1] == 0:
                     continue
 
                 res.append([fname, *text_sect, *data_sect])
@@ -834,7 +841,8 @@ class CodeSizeComparison:
         self.code_size_generator.write_comparison(
             self.old_size_dist_info.git_rev,
             self.new_size_dist_info.git_rev,
-            output, self.result_options.with_markdown)
+            output, self.result_options.with_markdown,
+            self.result_options.show_all)
 
     def get_comparision_results(self) -> None:
         """Compare size of library/*.o between self.old_size_dist_info and
@@ -888,6 +896,10 @@ def main():
         help='Set this option to direct comparison result into sys.stdout. '
              '(Default: file)')
     group_optional.add_argument(
+        '--show-all', action='store_true', dest='show_all',
+        help='Show all the objects in comparison result, including the ones '
+             'that haven\'t changed in code size. (Default: False)')
+    group_optional.add_argument(
         '--verbose', action='store_true', dest='verbose',
         help='Show logs in detail for code size measurement. '
              '(Default: False)')
@@ -923,10 +935,10 @@ def main():
     # host_arch, measure_cmd
     size_common_info = CodeSizeCommonInfo(
         detect_arch(), 'size -t')
-    # record_dir, comp_dir, with_markdown, stdout
+    # record_dir, comp_dir, with_markdown, stdout, show_all
     result_options = CodeSizeResultInfo(
         comp_args.record_dir, comp_args.comp_dir,
-        comp_args.markdown, comp_args.stdout)
+        comp_args.markdown, comp_args.stdout, comp_args.show_all)
 
     logger.info("Measure code size between {} and {} by `{}`."
                 .format(old_size_dist_info.get_info_indication(),

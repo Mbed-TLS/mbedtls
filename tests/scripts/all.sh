@@ -195,13 +195,6 @@ pre_initialize_variables () {
     # they are defined.
     ALL_COMPONENTS=$(sed -n 's/^ *component_\([0-9A-Z_a-z]*\) *().*/\1/p' <"$0")
 
-    # For Linux platforms we run latest/earliest versions of clang and the
-    # test_clang_opt function is only for FreeBSD. This condition removes
-    # test_clang_opt element from the ALL_COMPONENTS array for Linux.
-    if [[ $(uname) == "Linux" ]]; then
-        ALL_COMPONENTS=( "${ALL_COMPONENTS[@]/test_clang_opt}" )
-    fi
-
     # Exclude components that are not supported on this platform.
     SUPPORTED_COMPONENTS=
     for component in $ALL_COMPONENTS; do

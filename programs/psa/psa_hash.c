@@ -41,10 +41,10 @@
 
 #define HASH_ALG PSA_ALG_SHA_256
 
-#define SAMPLE_HASH_DATA {                                                 \
-        0x5a, 0x09, 0xe8, 0xfa, 0x9c, 0x77, 0x80, 0x7b, 0x24, 0xe9, 0x9c, 0x9c, \
-        0xf9, 0x99, 0xde, 0xbf, 0xad, 0x84, 0x41, 0xe2, 0x69, 0xeb, 0x96, 0x0e, \
-        0x20, 0x1f, 0x61, 0xfc, 0x3d, 0xe2, 0x0d, 0x5a                          \
+#define SAMPLE_HASH_DATA {                                                      \
+        0x7f, 0x83, 0xb1, 0x65, 0x7f, 0xf1, 0xfc, 0x53, 0xb9, 0x2d, 0xc1, 0x81, \
+        0x48, 0xa1, 0xd6, 0x5d, 0xfc, 0x2d, 0x4b, 0x1f, 0xa3, 0xd6, 0x77, 0x28, \
+        0x4a, 0xdd, 0xd2, 0x00, 0x12, 0x6d, 0x90, 0x69 \
 }
 
 const uint8_t sample_message[] = "Hello World!";
@@ -87,7 +87,9 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    status = psa_hash_update(&hash_operation, sample_message, sizeof(sample_message));
+    /* Note: Here we use sizeof(sample_message) - 1 since we don't wish to 
+     * include the null byte in the hash computation */
+    status = psa_hash_update(&hash_operation, sample_message, sizeof(sample_message) - 1);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_update failed\n");
         psa_hash_abort(&hash_operation);
@@ -138,7 +140,7 @@ int main(void)
 
     /* Compute hash using one-shot function call */
     status = psa_hash_compute(HASH_ALG,
-                              sample_message, sizeof(sample_message),
+                              sample_message, sizeof(sample_message) - 1,
                               hash, sizeof(hash),
                               &hash_length);
     if (status != PSA_SUCCESS) {

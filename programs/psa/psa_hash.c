@@ -148,7 +148,7 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    if (memcmp(hash, sample_hash, sample_hash_len) != 0)
+    if (memcmp(hash, sample_hash, sample_hash_len) != 0 || hash_length != sample_hash_len)
     {
         mbedtls_printf("One-shot hash operation gave the wrong result!\n\n");
         psa_hash_abort(&hash_operation);

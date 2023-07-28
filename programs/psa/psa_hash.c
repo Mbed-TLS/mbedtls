@@ -60,7 +60,7 @@ int main(void)
     uint8_t buf[] = "Hello World!";
     psa_status_t status;
     uint8_t hash[PSA_HASH_LENGTH(HASH_ALG)];
-    size_t hash_size;
+    size_t hash_length;
     psa_hash_operation_t psa_hash_operation = PSA_HASH_OPERATION_INIT;
     psa_hash_operation_t cloned_psa_hash_operation = PSA_HASH_OPERATION_INIT;
 
@@ -100,7 +100,7 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    status = psa_hash_finish(&psa_hash_operation, hash, sizeof(hash), &hash_size);
+    status = psa_hash_finish(&psa_hash_operation, hash, sizeof(hash), &hash_length);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_finish failed\n");
         psa_hash_abort(&psa_hash_operation);
@@ -122,12 +122,12 @@ int main(void)
 
     /* Compute hash using one-shot function call */
     memset(hash, 0, sizeof(hash));
-    hash_size = 0;
+    hash_length = 0;
 
     status = psa_hash_compute(HASH_ALG,
                               buf, sizeof(buf),
                               hash, sizeof(hash),
-                              &hash_size);
+                              &hash_length);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_compute failed\n");
         psa_hash_abort(&psa_hash_operation);

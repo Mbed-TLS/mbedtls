@@ -815,10 +815,11 @@ class CodeSizeComparison:
         else:
             output_file = os.path.join(
                 self.comp_dir,
-                '{}-{}-{}.csv'
+                '{}-{}-{}.{}'
                 .format(self.old_size_dist_info.get_info_indication(),
                         self.new_size_dist_info.get_info_indication(),
-                        self.size_common_info.get_info_indication()))
+                        self.size_common_info.get_info_indication(),
+                        'md' if self.result_options.with_markdown else 'csv'))
             output = open(output_file, "w")
 
         self.logger.debug("Generating comparison results between {} and {}."

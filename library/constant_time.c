@@ -135,13 +135,13 @@ void mbedtls_ct_memmove_left(void *start, size_t total, size_t offset)
     size_t hidden_offset = mbedtls_ct_compiler_opaque(offset);
 
     /* During this loop, j will take every value from [0..total) exactly once,
-    * regardless of the value of hidden_offset (it only changes the initial
-    * value for j).
-    *
-    * For this reason, when testing, it is safe to mark hidden_offset as non-secret.
-    * This prevents the const-flow checkers from generating a false-positive.
-    */
-   TEST_CF_PUBLIC(&hidden_offset, sizeof(hidden_offset));
+     * regardless of the value of hidden_offset (it only changes the initial
+     * value for j).
+     *
+     * For this reason, when testing, it is safe to mark hidden_offset as non-secret.
+     * This prevents the const-flow checkers from generating a false-positive.
+     */
+    TEST_CF_PUBLIC(&hidden_offset, sizeof(hidden_offset));
 
     /* Iterate over the array, reading each byte once and writing each byte once. */
     for (size_t i = 0; i < total; i++) {

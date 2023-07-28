@@ -76,8 +76,11 @@
 #define TEST_CF_PUBLIC  __msan_unpoison
 // void __msan_unpoison(const volatile void *a, size_t size);
 
-#define TEST_CF_SAVE_SECRET(_x)    int _test_cf_is_public_ ## _x = __msan_test_shadow(&(_x), sizeof(_x)) == -1; TEST_CF_PUBLIC(&(_x), sizeof(_x));
-#define TEST_CF_RESTORE_SECRET(_x) do { if (!_test_cf_is_public_ ## _x) TEST_CF_SECRET(&(_x), sizeof(_x)); } while(0)
+#define TEST_CF_SAVE_SECRET(_x) \
+    int _test_cf_is_public_ ## _x = __msan_test_shadow(&(_x), sizeof(_x)) == -1; \
+    TEST_CF_PUBLIC(&(_x), sizeof(_x));
+#define TEST_CF_RESTORE_SECRET(_x) \
+    if (!_test_cf_is_public_ ## _x) TEST_CF_SECRET(&(_x), sizeof(_x));
 
 #elif defined(MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND)
 #include <valgrind/memcheck.h>

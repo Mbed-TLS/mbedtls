@@ -72,7 +72,6 @@
 #include "mbedtls/gcm.h"
 #include "mbedtls/md5.h"
 #include "mbedtls/md.h"
-#include "md_wrap.h"
 #include "mbedtls/pk.h"
 #include "pk_wrap.h"
 #include "mbedtls/platform_util.h"

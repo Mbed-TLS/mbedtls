@@ -467,8 +467,8 @@ const int *mbedtls_md_list(void);
 const mbedtls_md_info_t *mbedtls_md_info_from_string(const char *md_name);
 
 /**
- * \brief           This function extracts the message-digest name from the
- *                  message-digest information structure.
+ * \brief           This function returns the name of the message digest for
+ *                  the message-digest information structure given.
  *
  * \param md_info   The information structure of the message-digest algorithm
  *                  to use.

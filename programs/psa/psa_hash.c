@@ -144,6 +144,7 @@ int main(void)
 
     mbedtls_printf("One-shot hash operation successful!\n\n");
 
+    /* Print out result */
     mbedtls_printf("The SHA-256( '%s' ) is: ", buf);
 
     for (size_t j = 0; j < test_sha256_hash_len; j++) {

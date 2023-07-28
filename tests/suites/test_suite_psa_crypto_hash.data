@@ -164,7 +164,7 @@ hash_finish:PSA_ALG_SHA3_224:"":"6b4e03423667dbb73b6e15454f0eb1abd4597f9a1b078e3
 
 PSA hash finish: SHA3-256 Test Vector NIST ""
 depends_on:PSA_WANT_ALG_SHA3_256
-hash_finish:PSA_ALG_SHA3_256:"616263":"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532"
+hash_finish:PSA_ALG_SHA3_256:"":"a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a"
 
 PSA hash finish: SHA3-384 Test Vector NIST ""
 depends_on:PSA_WANT_ALG_SHA3_384
@@ -552,7 +552,7 @@ hash_multi_part:PSA_ALG_SHA3_224:"":"6b4e03423667dbb73b6e15454f0eb1abd4597f9a1b0
 
 PSA hash multi part: SHA3-256 Test Vector NIST ""
 depends_on:PSA_WANT_ALG_SHA3_256
-hash_multi_part:PSA_ALG_SHA3_256:"616263":"3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532"
+hash_multi_part:PSA_ALG_SHA3_256:"":"a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a"
 
 PSA hash multi part: SHA3-384 Test Vector NIST ""
 depends_on:PSA_WANT_ALG_SHA3_384

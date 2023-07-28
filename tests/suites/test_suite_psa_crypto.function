@@ -1590,7 +1590,11 @@ void import_export(data_t *data,
     TEST_LE_U(exported_length,
               PSA_EXPORT_KEY_OUTPUT_SIZE(type,
                                          psa_get_key_bits(&got_attributes)));
-    TEST_LE_U(exported_length, PSA_EXPORT_KEY_PAIR_MAX_SIZE);
+    if (PSA_KEY_TYPE_IS_KEY_PAIR(type)) {
+        TEST_LE_U(exported_length, PSA_EXPORT_KEY_PAIR_MAX_SIZE);
+    } else if (PSA_KEY_TYPE_IS_PUBLIC_KEY(type)) {
+        TEST_LE_U(exported_length, PSA_EXPORT_PUBLIC_KEY_MAX_SIZE);
+    }
 
 destroy:
     /* Destroy the key */

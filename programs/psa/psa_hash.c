@@ -69,8 +69,6 @@ int main(void)
     status = psa_crypto_init();
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_crypto_init failed\n");
-        psa_hash_abort(&psa_hash_operation);
-        psa_hash_abort(&cloned_psa_hash_operation);
         return EXIT_FAILURE;
     }
 

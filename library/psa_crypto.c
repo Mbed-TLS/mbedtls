@@ -6768,15 +6768,23 @@ static psa_status_t psa_pbkdf2_set_password(psa_pbkdf2_key_derivation_t *pbkdf2,
         return PSA_ERROR_BAD_STATE;
     }
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
     if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
         psa_algorithm_t hash_alg = PSA_ALG_PBKDF2_HMAC_GET_HASH(kdf_alg);
         status = psa_pbkdf2_hmac_set_password(hash_alg, data, data_length,
                                               pbkdf2->password,
                                               &pbkdf2->password_length);
-    } else if (kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
+    } else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128)
+    if (kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
         status = psa_pbkdf2_cmac_set_password(data, data_length,
                                               pbkdf2->password,
                                               &pbkdf2->password_length);
+    } else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128 */
+    {
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
 
     pbkdf2->state = PSA_PBKDF2_STATE_PASSWORD_SET;

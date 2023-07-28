@@ -87,7 +87,7 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    /* Note: Here we use sizeof(sample_message) - 1 since we don't wish to 
+    /* Note: Here we use sizeof(sample_message) - 1 since we don't wish to
      * include the null byte in the hash computation */
     status = psa_hash_update(&hash_operation, sample_message, sizeof(sample_message) - 1);
     if (status != PSA_SUCCESS) {
@@ -114,8 +114,7 @@ int main(void)
     }
 
     /* Check the result of the operation against the sample */
-    if ((memcmp(hash, sample_hash, sample_hash_len) != 0) || hash_length != sample_hash_len)
-    {
+    if ((memcmp(hash, sample_hash, sample_hash_len) != 0) || hash_length != sample_hash_len) {
         mbedtls_printf("Multi-part hash operation gave the wrong result!\n\n");
         psa_hash_abort(&hash_operation);
         psa_hash_abort(&cloned_hash_operation);
@@ -150,8 +149,7 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    if (memcmp(hash, sample_hash, sample_hash_len) != 0 || hash_length != sample_hash_len)
-    {
+    if (memcmp(hash, sample_hash, sample_hash_len) != 0 || hash_length != sample_hash_len) {
         mbedtls_printf("One-shot hash operation gave the wrong result!\n\n");
         psa_hash_abort(&hash_operation);
         psa_hash_abort(&cloned_hash_operation);

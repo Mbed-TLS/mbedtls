@@ -41,10 +41,10 @@
         0x20, 0x1f, 0x61, 0xfc, 0x3d, 0xe2, 0x0d, 0x5a                          \
 }
 
-const uint8_t mbedtls_test_sha256_hash[] = TEST_SHA256_HASH;
+const uint8_t test_sha256_hash[] = TEST_SHA256_HASH;
 
-const size_t mbedtls_test_sha256_hash_len =
-    sizeof(mbedtls_test_sha256_hash);
+const size_t test_sha256_hash_len =
+    sizeof(test_sha256_hash);
 
 #if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(PSA_WANT_ALG_SHA_256)
 int main(void)
@@ -61,8 +61,8 @@ int main(void)
     psa_status_t status;
     uint8_t hash[PSA_HASH_LENGTH(HASH_ALG)];
     size_t hash_length;
-    psa_hash_operation_t psa_hash_operation = PSA_HASH_OPERATION_INIT;
-    psa_hash_operation_t cloned_psa_hash_operation = PSA_HASH_OPERATION_INIT;
+    psa_hash_operation_t hash_operation = PSA_HASH_OPERATION_INIT;
+    psa_hash_operation_t cloned_hash_operation = PSA_HASH_OPERATION_INIT;
 
     mbedtls_printf("PSA Crypto API: SHA-256 example\n\n");
 
@@ -74,45 +74,45 @@ int main(void)
 
     /* Compute hash using multi-part operation */
 
-    status = psa_hash_setup(&psa_hash_operation, HASH_ALG);
+    status = psa_hash_setup(&hash_operation, HASH_ALG);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_setup failed\n");
-        psa_hash_abort(&psa_hash_operation);
-        psa_hash_abort(&cloned_psa_hash_operation);
+        psa_hash_abort(&hash_operation);
+        psa_hash_abort(&cloned_hash_operation);
         return EXIT_FAILURE;
     }
 
-    status = psa_hash_update(&psa_hash_operation, buf, sizeof(buf));
+    status = psa_hash_update(&hash_operation, buf, sizeof(buf));
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_update failed\n");
-        psa_hash_abort(&psa_hash_operation);
-        psa_hash_abort(&cloned_psa_hash_operation);
+        psa_hash_abort(&hash_operation);
+        psa_hash_abort(&cloned_hash_operation);
         return EXIT_FAILURE;
     }
 
-    status = psa_hash_clone(&psa_hash_operation, &cloned_psa_hash_operation);
+    status = psa_hash_clone(&hash_operation, &cloned_hash_operation);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("PSA hash clone failed");
-        psa_hash_abort(&psa_hash_operation);
-        psa_hash_abort(&cloned_psa_hash_operation);
+        psa_hash_abort(&hash_operation);
+        psa_hash_abort(&cloned_hash_operation);
         return EXIT_FAILURE;
     }
 
-    status = psa_hash_finish(&psa_hash_operation, hash, sizeof(hash), &hash_length);
+    status = psa_hash_finish(&hash_operation, hash, sizeof(hash), &hash_length);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_finish failed\n");
-        psa_hash_abort(&psa_hash_operation);
-        psa_hash_abort(&cloned_psa_hash_operation);
+        psa_hash_abort(&hash_operation);
+        psa_hash_abort(&cloned_hash_operation);
         return EXIT_FAILURE;
     }
 
     status =
-        psa_hash_verify(&cloned_psa_hash_operation, mbedtls_test_sha256_hash,
-                        mbedtls_test_sha256_hash_len);
+        psa_hash_verify(&cloned_hash_operation, test_sha256_hash,
+                        test_sha256_hash_len);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_verify failed\n");
-        psa_hash_abort(&psa_hash_operation);
-        psa_hash_abort(&cloned_psa_hash_operation);
+        psa_hash_abort(&hash_operation);
+        psa_hash_abort(&cloned_hash_operation);
         return EXIT_FAILURE;
     } else {
         mbedtls_printf("Multi-part hash operation successful!\n");
@@ -128,16 +128,16 @@ int main(void)
                               &hash_length);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_compute failed\n");
-        psa_hash_abort(&psa_hash_operation);
-        psa_hash_abort(&cloned_psa_hash_operation);
+        psa_hash_abort(&hash_operation);
+        psa_hash_abort(&cloned_hash_operation);
         return EXIT_FAILURE;
     }
 
-    for (size_t j = 0; j < mbedtls_test_sha256_hash_len; j++) {
-        if (hash[j] != mbedtls_test_sha256_hash[j]) {
+    for (size_t j = 0; j < test_sha256_hash_len; j++) {
+        if (hash[j] != test_sha256_hash[j]) {
             mbedtls_printf("One-shot hash operation failed!\n\n");
-            psa_hash_abort(&psa_hash_operation);
-            psa_hash_abort(&cloned_psa_hash_operation);
+            psa_hash_abort(&hash_operation);
+            psa_hash_abort(&cloned_hash_operation);
             return EXIT_FAILURE;
         }
     }
@@ -146,7 +146,7 @@ int main(void)
 
     mbedtls_printf("The SHA-256( '%s' ) is:\n", buf);
 
-    for (size_t j = 0; j < mbedtls_test_sha256_hash_len; j++) {
+    for (size_t j = 0; j < test_sha256_hash_len; j++) {
         if (j % 8 == 0) {
             mbedtls_printf("\n    ");
         }

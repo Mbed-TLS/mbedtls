@@ -111,6 +111,15 @@ int main(void)
         return EXIT_FAILURE;
     }
 
+    /* Check the result of the operation against the sample */
+    if ((memcmp(hash, sample_hash, sample_hash_len) != 0) || hash_length != sample_hash_len)
+    {
+        mbedtls_printf("Multi-part hash operation gave the wrong result!\n\n");
+        psa_hash_abort(&hash_operation);
+        psa_hash_abort(&cloned_hash_operation);
+        return EXIT_FAILURE;
+    }
+
     status =
         psa_hash_verify(&cloned_hash_operation, sample_hash,
                         sample_hash_len);

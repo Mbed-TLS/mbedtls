@@ -86,19 +86,21 @@ int mbedtls_mpi_lt_mpi_ct(const mbedtls_mpi *X,
     cond   = mbedtls_ct_bool_xor(X_is_negative, Y_is_negative); // non-zero if different sign
     result = mbedtls_ct_bool_and(cond, X_is_negative);
 
-    /* Assuming signs are the same, compare  X and Y. We switch the comparison
+    /*
+     * Assuming signs are the same, compare X and Y. We switch the comparison
      * order if they are negative so that we get the right result, regardles of
      * sign.
-     *
-     * Store in ret iff the signs are the same (i.e., iff cond == 0). If
-     * the signs differ, done has already been set.
      */
 
-    /* This is used to conditionally swap the pointers in const time */
+    /* This array is used to conditionally swap the pointers in const time */
     void * const p[2] = { X->p, Y->p };
     size_t i = mbedtls_ct_size_if0(X_is_negative, 1);
     mbedtls_ct_condition_t lt = mbedtls_mpi_core_lt_ct(p[i], p[i ^ 1], X->n);
 
+    /*
+     * Store in result iff the signs are the same (i.e., iff cond == false). If
+     * the signs differ, result has already been set, so we don't change it.
+     */
     result = mbedtls_ct_bool_or(result, mbedtls_ct_bool_and(mbedtls_ct_bool_not(cond), lt));
 
     *ret = mbedtls_ct_uint_if0(result, 1);

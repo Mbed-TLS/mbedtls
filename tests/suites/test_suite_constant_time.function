@@ -346,7 +346,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_SOME_SUITES_USE_MAC */
+/* BEGIN_CASE */
 void mbedtls_ct_memcpy_offset(int offset_min, int offset_max, int len)
 {
     unsigned char *dst = NULL;

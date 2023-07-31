@@ -30,7 +30,7 @@
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 
-#include "constant_flow.h"
+#include "../tests/include/test/constant_flow.h"
 
 #include <string.h>
 

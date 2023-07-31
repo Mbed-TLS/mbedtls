@@ -18,7 +18,7 @@
 #include <mbedtls/constant_time.h>
 #include <constant_time_internal.h>
 
-#include "constant_flow.h"
+#include <test/constant_flow.h>
 /* END_HEADER */
 
 /* BEGIN_CASE */

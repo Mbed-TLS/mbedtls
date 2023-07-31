@@ -3,7 +3,7 @@
 #include "mbedtls/entropy.h"
 #include "constant_time_internal.h"
 #include "bignum_core.h"
-#include "constant_flow.h"
+#include "test/constant_flow.h"
 
 #if MBEDTLS_MPI_MAX_BITS > 792
 #define MPI_MAX_BITS_LARGER_THAN_792

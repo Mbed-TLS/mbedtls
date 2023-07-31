@@ -3,7 +3,7 @@
 #include "mbedtls/entropy.h"
 #include "bignum_core.h"
 #include "constant_time_internal.h"
-#include "constant_flow.h"
+#include "test/constant_flow.h"
 
 /** Verifies mbedtls_mpi_core_add().
  *

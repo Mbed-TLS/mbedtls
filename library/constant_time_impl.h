@@ -37,7 +37,7 @@
 #include "mbedtls/bignum.h"
 #endif
 
-#include "constant_flow.h"
+#include "../tests/include/test/constant_flow.h"
 
 /* armcc5 --gnu defines __GNUC__ but doesn't support GNU's extended asm */
 #if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) && (!defined(__ARMCC_VERSION) || \

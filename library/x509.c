@@ -833,9 +833,9 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
     unsigned char c, merge = 0;
     const mbedtls_x509_name *name;
     const char *short_name = NULL;
-    char numericoid[MBEDTLS_X509_MAX_DN_NAME_SIZE];
+    char numericoid[256];
     char s[MBEDTLS_X509_MAX_DN_NAME_SIZE], *p;
-    int is_numericoid = 0;
+    int print_hexstring;
 
     memset(s, 0, sizeof(s));
 
@@ -854,28 +854,21 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
             MBEDTLS_X509_SAFE_SNPRINTF;
         }
 
-        is_numericoid = (name->val.tag == MBEDTLS_ASN1_BIT_STRING) || (name->val.tag == MBEDTLS_ASN1_OCTET_STRING);
+        print_hexstring = (name->val.tag == MBEDTLS_ASN1_BIT_STRING) || (name->val.tag == MBEDTLS_ASN1_OCTET_STRING);
 
-        if(is_numericoid) {
-            ret = mbedtls_oid_get_numeric_string(numericoid,MBEDTLS_X509_MAX_DN_NAME_SIZE,&name->oid);
-            if (ret > 0) {
+        if ((ret = mbedtls_oid_get_attr_short_name(&name->oid, &short_name)) == 0) {
+            ret = mbedtls_snprintf(p, n, "%s=", short_name);
+        } else {
+            if ((ret = mbedtls_oid_get_numeric_string(numericoid,256,&name->oid)) > 0) {
                 ret = mbedtls_snprintf(p, n, "%s=", numericoid);
+                print_hexstring = 1;
             } else {
                 ret = mbedtls_snprintf(p, n, "\?\?=");
             }
-            MBEDTLS_X509_SAFE_SNPRINTF;
         }
-        else {
-            ret = mbedtls_oid_get_attr_short_name(&name->oid, &short_name);
-            if (ret == 0) {
-                ret = mbedtls_snprintf(p, n, "%s=", short_name);
-            } else {
-                ret = mbedtls_snprintf(p, n, "\?\?=");
-            }
-            MBEDTLS_X509_SAFE_SNPRINTF;
-        }
+        MBEDTLS_X509_SAFE_SNPRINTF;
 
-        if(is_numericoid) {
+        if(print_hexstring) {
             #if defined(MBEDTLS_ASN1_WRITE_C)
             s[0] = '#';
 

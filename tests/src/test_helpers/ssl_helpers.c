@@ -807,6 +807,7 @@ int mbedtls_ssl_write_fragment(mbedtls_ssl_context *ssl,
                                const int expected_fragments)
 {
     int ret;
+
     /* Verify that calling mbedtls_ssl_write with a NULL buffer and zero length is
      * a valid no-op for TLS connections. */
     if (ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
@@ -854,6 +855,7 @@ int mbedtls_ssl_read_fragment(mbedtls_ssl_context *ssl,
                               const int expected_fragments)
 {
     int ret;
+
     /* Verify that calling mbedtls_ssl_write with a NULL buffer and zero length is
      * a valid no-op for TLS connections. */
     if (ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM) {

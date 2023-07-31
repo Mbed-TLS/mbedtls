@@ -4901,6 +4901,7 @@ static psa_status_t psa_key_agreement_raw_internal(psa_algorithm_t alg,
 {
     mbedtls_ecp_keypair *ecp = NULL;
     psa_status_t status;
+
     switch (alg) {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
         case PSA_ALG_ECDH:

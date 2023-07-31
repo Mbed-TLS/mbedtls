@@ -26,7 +26,7 @@
 
 #include "mbedtls/build_info.h"
 
-/*
+/**
  * This file defines the two macros
  *
  *  #define TEST_CF_SECRET(ptr, size)

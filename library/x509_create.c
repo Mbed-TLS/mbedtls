@@ -209,6 +209,7 @@ static int parse_attribute_value_string(const char *s, int len, unsigned char *d
     return 0;
 }
 
+#if defined(MBEDTLS_ASN1_PARSE_C)
 static int parse_attribute_value_ber_encoded(const char *s, int len, unsigned char *data, size_t *data_len, int *tag)
 {
     const char *c = s;
@@ -247,6 +248,7 @@ static int parse_attribute_value_ber_encoded(const char *s, int len, unsigned ch
 
     return 0;
 }
+#endif
 
 int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *name)
 {
@@ -290,10 +292,14 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
                 tag = attr_descr->default_tag;
             }
             if (numericoid) {
+				#if defined(MBEDTLS_ASN1_PARSE_C)
                 if ((parse_ret =
                          parse_attribute_value_ber_encoded(s, c - s, data, &data_len, &tag)) != 0) {
                     return parse_ret;
                 }
+				#else
+				return MBEDTLS_ERR_X509_INVALID_NAME;
+				#endif
             }
             mbedtls_asn1_named_data *cur =
                 mbedtls_asn1_store_named_data(head, oid, strlen(oid),

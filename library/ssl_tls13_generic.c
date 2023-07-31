@@ -1521,6 +1521,7 @@ int mbedtls_ssl_tls13_read_public_xxdhe_share(mbedtls_ssl_context *ssl,
     return 0;
 }
 
+#if defined(PSA_WANT_ALG_FFDH)
 static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
     uint16_t tls_id, size_t *bits, psa_key_type_t *key_type)
 {
@@ -1549,6 +1550,7 @@ static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
             return PSA_ERROR_NOT_SUPPORTED;
     }
 }
+#endif /* PSA_WANT_ALG_FFDH */
 
 int mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
     mbedtls_ssl_context *ssl,

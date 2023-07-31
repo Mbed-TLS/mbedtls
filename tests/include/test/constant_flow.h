@@ -32,26 +32,13 @@
  *  #define TEST_CF_SECRET(ptr, size)
  *  #define TEST_CF_PUBLIC(ptr, size)
  *
- * and
- *
- * #define TEST_CF_SAVE_SECRET(variable)
- * #define TEST_CF_RESTORE_SECRET(variable)
- *
  * that can be used in tests to mark a memory area as secret (no branch or
  * memory access should depend on it) or public (default, only needs to be
  * marked explicitly when it was derived from secret data).
  *
- * The SAVE/RESTORE forms mark a variable as public, and subsequently restore its
- * previous secret/not-secret state. This is used where library code is generating
- * false positives and needs to temporarily disable Memsan checks for a particular
- * variable, and then restore it's original state afterwards so it doesn't interfere
- * with other checks.
- *
  * Arguments:
  * - ptr: a pointer to the memory area to be marked
  * - size: the size in bytes of the memory area
- *
- * - variable: a variable name
  *
  * Implementation:
  * The basic idea is that of ctgrind <https://github.com/agl/ctgrind>: we can
@@ -76,12 +63,6 @@
 #define TEST_CF_PUBLIC  __msan_unpoison
 // void __msan_unpoison(const volatile void *a, size_t size);
 
-#define TEST_CF_SAVE_SECRET(_x) \
-    int _test_cf_is_public_ ## _x = __msan_test_shadow(&(_x), sizeof(_x)) == -1; \
-    TEST_CF_PUBLIC(&(_x), sizeof(_x));
-#define TEST_CF_RESTORE_SECRET(_x) \
-    if (!_test_cf_is_public_ ## _x) TEST_CF_SECRET(&(_x), sizeof(_x));
-
 #elif defined(MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND)
 #include <valgrind/memcheck.h>
 
@@ -90,17 +71,11 @@
 #define TEST_CF_PUBLIC  VALGRIND_MAKE_MEM_DEFINED
 // VALGRIND_MAKE_MEM_DEFINED(_qzz_addr, _qzz_len)
 
-#define TEST_CF_SAVE_SECRET(_x)
-#define TEST_CF_RESTORE_SECRET(_x)
-
 #else /* MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN ||
          MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND */
 
 #define TEST_CF_SECRET(ptr, size)
 #define TEST_CF_PUBLIC(ptr, size)
-
-#define TEST_CF_SAVE_SECRET(_x)
-#define TEST_CF_RESTORE_SECRET(_x)
 
 #endif /* MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN ||
           MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND */

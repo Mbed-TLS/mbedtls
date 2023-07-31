@@ -37,11 +37,18 @@
 #include "mbedtls/bignum.h"
 #endif
 
-#include "../tests/include/test/constant_flow.h"
+/* Disable asm under Memsan because it confuses Memsan and generates false errors */
+#if defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+#define MBEDTLS_CT_NO_ASM
+#elif defined(__has_feature)
+#if __has_feature(memory_sanitizer)
+#define MBEDTLS_CT_NO_ASM
+#endif
+#endif
 
 /* armcc5 --gnu defines __GNUC__ but doesn't support GNU's extended asm */
 #if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) && (!defined(__ARMCC_VERSION) || \
-    __ARMCC_VERSION >= 6000000)
+    __ARMCC_VERSION >= 6000000) && !defined(MBEDTLS_CT_NO_ASM)
 #define MBEDTLS_CT_ASM
 #if (defined(__arm__) || defined(__thumb__) || defined(__thumb2__))
 #define MBEDTLS_CT_ARM_ASM
@@ -84,20 +91,7 @@ extern volatile mbedtls_ct_uint_t mbedtls_ct_zero;
 static inline mbedtls_ct_uint_t mbedtls_ct_compiler_opaque(mbedtls_ct_uint_t x)
 {
 #if defined(MBEDTLS_CT_ASM)
-    /* Prevent false positives from Memsan - otherwise it will report the asm as
-     * accessing secret data. */
-    TEST_CF_SAVE_SECRET(x);
-
     asm volatile ("" : [x] "+r" (x) :);
-
-    /* Mark the return value as secret (if it was previously marked secret).
-     * This is needed so that code of the form:
-     *
-     * if (mbedtls_ct_compiler_opaque(secret)) { ... }
-     *
-     * will fail const-flow tests.
-     */
-    TEST_CF_RESTORE_SECRET(x);
     return x;
 #else
     return x ^ mbedtls_ct_zero;

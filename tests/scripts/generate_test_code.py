@@ -668,7 +668,7 @@ def parse_function_code(funcs_f, dependencies, suite_dependencies):
     name = 'test_' + name
 
     # If a test function has no arguments then add 'void' argument to
-    # avoid "-Wstrict-prototypes" warnings from clang-16
+    # avoid "-Wstrict-prototypes" warnings from clang
     if len(args) == 0:
         code = code.replace('()', '(void)', 1)
 

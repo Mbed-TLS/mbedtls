@@ -185,8 +185,11 @@ void mbedtls_ct_memcpy_if(mbedtls_ct_condition_t condition,
     const uint32_t mask     = (uint32_t) condition;
     const uint32_t not_mask = (uint32_t) ~mbedtls_ct_compiler_opaque(condition);
 
-    /* If src2 is NULL and condition == 0, then this function has no effect.
-     * In this case, copy from dest back into dest. */
+    /* If src2 is NULL, setup src2 so that we read from the destination address.
+     *
+     * This means that if src2 == NULL && condition is false, the result will be a
+     * no-op because we read from dest and write the same data back into dest.
+     */
     if (src2 == NULL) {
         src2 = dest;
     }

@@ -8,7 +8,7 @@
 #include <test/ssl_helpers.h>
 
 #include <constant_time_internal.h>
-#include <test/constant_flow.h>
+#include "constant_flow.h"
 
 #define SSL_MESSAGE_QUEUE_INIT      { NULL, 0, 0, 0 }
 

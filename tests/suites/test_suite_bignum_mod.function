@@ -4,7 +4,7 @@
 #include "bignum_mod.h"
 #include "bignum_mod_raw.h"
 #include "constant_time_internal.h"
-#include "test/constant_flow.h"
+#include "constant_flow.h"
 
 #define TEST_COMPARE_MPI_RESIDUES(a, b) \
     ASSERT_COMPARE((a).p, (a).limbs * sizeof(mbedtls_mpi_uint), \

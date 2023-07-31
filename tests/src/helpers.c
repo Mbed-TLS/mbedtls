@@ -15,7 +15,7 @@
  *  limitations under the License.
  */
 
-#include <test/constant_flow.h>
+#include "constant_flow.h"
 #include <test/helpers.h>
 #include <test/macros.h>
 #include <string.h>

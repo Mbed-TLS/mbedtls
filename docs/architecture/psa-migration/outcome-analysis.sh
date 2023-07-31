@@ -43,8 +43,15 @@ record() {
     fi
 }
 
-# save current HEAD
-HEAD=$(git branch --show-current)
+# save current HEAD.
+# Note: unfortunately "git branch --show-current" was added only in GIT
+# version 2.22.
+GIT_VERSION="$(git --version | sed 's/git version //')"
+if dpkg --compare-versions "$GIT_VERSION" "gt" "2.22.0"; then
+    HEAD=$(git branch --show-current)
+else
+    HEAD=$(git rev-parse --abbrev-ref HEAD)
+fi
 
 # get the numbers before this PR for default and full
 cleanup

@@ -435,6 +435,13 @@ detect_required_features() {
             ;;
     esac
 
+    case "$CMD_LINE" in
+        *server2*|\
+        *server7*)
+            # server2 and server7 certificates use RSA encryption
+            requires_config_enabled "MBEDTLS_RSA_C"
+    esac
+
     unset tmp
 }
 
@@ -2275,6 +2282,7 @@ run_test    "Opaque key for server authentication: invalid alg: ECDHE-ECDSA with
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 requires_hash_alg SHA_256
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
@@ -2295,6 +2303,7 @@ run_test    "Opaque keys for server authentication: EC keys with different algs,
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_384
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "Opaque keys for server authentication: EC keys with different algs, force ECDH-ECDSA" \
@@ -2314,6 +2323,7 @@ run_test    "Opaque keys for server authentication: EC keys with different algs,
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_384
 requires_config_enabled MBEDTLS_CCM_C
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO

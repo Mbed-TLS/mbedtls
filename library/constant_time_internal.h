@@ -53,8 +53,9 @@
  *   function.
  *   example: if (x) memcpy(...)      =>    mbedtls_ct_memcpy_if(x, ...)
  *
- * mbedtls_ct_condition_t should be treated as opaque and only manipulated
- * via the functions in this header.
+ * mbedtls_ct_condition_t must be treated as opaque and only created and
+ * manipulated via the functions in this header. The compiler should never
+ * be able to prove anything about its value at compile-time.
  *
  * mbedtls_ct_uint_t is an unsigned integer type over which constant time
  * operations may be performed via the functions in this header. It is as big

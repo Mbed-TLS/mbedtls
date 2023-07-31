@@ -68,6 +68,19 @@
 extern volatile mbedtls_ct_uint_t mbedtls_ct_zero;
 #endif
 
+/**
+ * \brief   Ensure that a value cannot be known at compile time.
+ *
+ * \param x        The value to hide from the compiler.
+ * \return         The same value that was passed in, such that the compiler
+ *                 cannot prove its value (even for calls of the form
+ *                 x = mbedtls_ct_compiler_opaque(1), x will be unknown).
+ *
+ * \note           This is mainly used in constructing mbedtls_ct_condition_t
+ *                 values and performing operations over them, to ensure that
+ *                 there is no way for the compiler to ever know anything about
+ *                 the value of an mbedtls_ct_condition_t.
+ */
 static inline mbedtls_ct_uint_t mbedtls_ct_compiler_opaque(mbedtls_ct_uint_t x)
 {
 #if defined(MBEDTLS_CT_ASM)

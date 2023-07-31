@@ -428,7 +428,7 @@ void mbedtls_ct_memmove_left(void *start,
  * \param dest      Secret. Destination pointer.
  * \param src1      Secret. Pointer to copy from (if \p condition == MBEDTLS_CT_TRUE).
  *                  This may be equal to \p dest, but may not overlap in other ways.
- * \param src2      Secret (contents only - may branch to test if src2 == NULL).
+ * \param src2      Secret (contents only - may branch to determine if this parameter is NULL).
  *                  Pointer to copy from (if \p condition == MBEDTLS_CT_FALSE and \p src2 is not NULL). May be NULL.
  *                  This may be equal to \p dest, but may not overlap it in other ways. It may overlap with \p src1.
  * \param len       Number of bytes to copy.

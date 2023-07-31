@@ -5463,6 +5463,16 @@ static int ecp_mod_p256k1(mbedtls_mpi *N)
 }
 #endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
 
+#if defined(MBEDTLS_TEST_HOOKS)
+
+MBEDTLS_STATIC_TESTABLE
+mbedtls_ecp_variant mbedtls_ecp_get_variant(void)
+{
+    return MBEDTLS_ECP_VARIANT_WITH_MPI_STRUCT;
+}
+
+#endif /* MBEDTLS_TEST_HOOKS */
+
 #endif /* !MBEDTLS_ECP_ALT */
 
 #endif /* MBEDTLS_ECP_LIGHT */

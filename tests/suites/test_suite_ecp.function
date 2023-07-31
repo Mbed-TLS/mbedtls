@@ -1267,7 +1267,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_WITH_MPI_UINT */
 void ecp_mod_p_generic_raw(int curve_id,
                            char *input_N,
                            char *input_X,
@@ -1390,7 +1390,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_WITH_MPI_UINT */
 void ecp_mod_setup(char *input_A, int id, int ctype, int iret)
 {
     int ret;
@@ -1432,7 +1432,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_WITH_MPI_UINT */
 void ecp_mod_mul_inv(char *input_A, int id, int ctype)
 {
     size_t limbs;
@@ -1489,7 +1489,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_WITH_MPI_UINT */
 void ecp_mod_add_sub(char *input_A, char *input_B, int id, int ctype)
 {
     size_t p_A_limbs;
@@ -1540,7 +1540,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_WITH_MPI_UINT */
 void ecp_mod_read_write(char *input_A, int id, int ctype)
 {
     size_t limbs;
@@ -1603,7 +1603,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_WITH_MPI_UINT */
 void ecp_mod_random(int id, int ctype)
 {
     size_t limbs;

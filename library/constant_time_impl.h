@@ -48,8 +48,14 @@
     #pragma GCC diagnostic ignored "-Wredundant-decls"
 #endif
 
-/* Disable asm under Memsan because it confuses Memsan and generates false errors */
-#if defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
+/* Disable asm under Memsan because it confuses Memsan and generates false errors.
+ *
+ * We also disable under Valgrind by default, because it's more useful
+ * for Valgrind to test the plain C implementation. MBEDTLS_TEST_CONSTANT_FLOW_ASM //no-check-names
+ * may be set to permit building asm under Valgrind.
+ */
+#if defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN) || \
+    (defined(MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND) && !defined(MBEDTLS_TEST_CONSTANT_FLOW_ASM)) //no-check-names
 #define MBEDTLS_CT_NO_ASM
 #elif defined(__has_feature)
 #if __has_feature(memory_sanitizer)

@@ -2656,10 +2656,8 @@ component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
 # - component_test_psa_crypto_config_reference_ecc_no_bignum
 config_psa_crypto_config_accel_ecc_no_bignum() {
     DRIVER_ONLY="$1"
-    # start with full config for maximum coverage (also enables USE_PSA),
-    # but keep TLS and key exchanges disabled
+    # start with full config for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
-    scripts/config.py unset MBEDTLS_SSL_TLS_C
 
     if [ "$DRIVER_ONLY" -eq 1 ]; then
         # Disable modules that are accelerated
@@ -2712,7 +2710,7 @@ config_psa_crypto_config_accel_ecc_no_bignum() {
 #
 # Keep in sync with component_test_psa_crypto_config_reference_ecc_no_bignum()
 component_test_psa_crypto_config_accel_ecc_no_bignum () {
-    msg "build: full + accelerated EC algs + USE_PSA - ECP"
+    msg "build: full + accelerated EC algs + USE_PSA - ECP - BIGNUM"
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
@@ -2754,12 +2752,12 @@ component_test_psa_crypto_config_accel_ecc_no_bignum () {
     # Run the tests
     # -------------
 
-    msg "test suites: full + accelerated EC algs + USE_PSA - ECP"
+    msg "test suites: full + accelerated EC algs + USE_PSA - ECP - BIGNUM"
     make test
 
     # The following will be enabled in #7756
-    #msg "ssl-opt: full + accelerated EC algs + USE_PSA - ECP"
-    #tests/ssl-opt.sh
+    msg "ssl-opt: full + accelerated EC algs + USE_PSA - ECP - BIGNUM"
+    tests/ssl-opt.sh
 }
 
 # Reference function used for driver's coverage analysis in analyze_outcomes.py
@@ -2776,8 +2774,8 @@ component_test_psa_crypto_config_reference_ecc_no_bignum () {
     make test
 
     # The following will be enabled in #7756
-    #msg "ssl-opt: full + non accelerated EC algs + USE_PSA"
-    #tests/ssl-opt.sh
+    msg "ssl-opt: full + non accelerated EC algs + USE_PSA"
+    tests/ssl-opt.sh
 }
 
 # Helper function used in:

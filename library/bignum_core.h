@@ -178,7 +178,9 @@ mbedtls_ct_condition_t mbedtls_mpi_core_lt_ct(const mbedtls_mpi_uint *A,
  * \param[in]  A        The address of the source MPI. This must be initialized.
  * \param      limbs    The number of limbs of \p A.
  * \param      assign   The condition deciding whether to perform the
- *                      assignment or not.
+ *                      assignment or not. Callers will need to use
+ *                      the constant time interface (e.g. `mbedtls_ct_bool()`)
+ *                      to construct this argument.
  *
  * \note           This function avoids leaking any information about whether
  *                 the assignment was done or not.

@@ -476,10 +476,12 @@ void mbedtls_ct_memcpy_offset(unsigned char *dest,
                               size_t offset_max,
                               size_t len);
 
-/* Documented in include/mbedtls/constant_time.h. a and b are secret. */
-int mbedtls_ct_memcmp(const void *a,
-                      const void *b,
-                      size_t n);
+/* Documented in include/mbedtls/constant_time.h. a and b are secret.
+
+   int mbedtls_ct_memcmp(const void *a,
+                         const void *b,
+                         size_t n);
+ */
 
 #ifdef __GNUC__
     #pragma GCC diagnostic pop

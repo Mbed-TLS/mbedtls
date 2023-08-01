@@ -37,6 +37,17 @@
 #include "mbedtls/bignum.h"
 #endif
 
+/* constant_time_impl.h contains all the static inline implementations,
+ * so that constant_time_internal.h is more readable.
+ *
+ * gcc generates warnings about duplicate declarations, so disable this
+ * warning.
+ */
+#ifdef __GNUC__
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wredundant-decls"
+#endif
+
 /* Disable asm under Memsan because it confuses Memsan and generates false errors */
 #if defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)
 #define MBEDTLS_CT_NO_ASM
@@ -287,5 +298,9 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool_not(mbedtls_ct_condition_t 
 {
     return (mbedtls_ct_condition_t) (~x);
 }
+
+#ifdef __GNUC__
+    #pragma GCC diagnostic pop
+#endif
 
 #endif /* MBEDTLS_CONSTANT_TIME_IMPL_H */

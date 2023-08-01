@@ -68,6 +68,9 @@
  * architectures, it uses a plain C fallback designed to yield constant-time code
  * (this has been observed to be constant-time on latest gcc, clang and MSVC
  * as of May 2023).
+ *
+ * For readability, the static inline definitions are separated out into
+ * constant_time_impl.h.
  */
 
 #if (SIZE_MAX > 0xffffffffffffffffULL)
@@ -90,19 +93,6 @@ typedef int32_t   mbedtls_ct_int_t;
 #define MBEDTLS_CT_TRUE  ((mbedtls_ct_condition_t) mbedtls_ct_compiler_opaque(UINT32_MAX))
 #endif
 #define MBEDTLS_CT_FALSE ((mbedtls_ct_condition_t) mbedtls_ct_compiler_opaque(0))
-
-/* constant_time_impl.h contains all the static inline implementations,
- * so that constant_time_internal.h is more readable.
- *
- * gcc generates warnings about duplicate declarations, so disable this
- * warning.
- */
-#ifdef __GNUC__
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wredundant-decls"
-#endif
-
-#include "constant_time_impl.h"
 
 /* ============================================================================
  * Boolean operations
@@ -483,8 +473,7 @@ void mbedtls_ct_memcpy_offset(unsigned char *dest,
                          size_t n);
  */
 
-#ifdef __GNUC__
-    #pragma GCC diagnostic pop
-#endif
+/* Include the implementation of static inline functions above. */
+#include "constant_time_impl.h"
 
 #endif /* MBEDTLS_CONSTANT_TIME_INTERNAL_H */

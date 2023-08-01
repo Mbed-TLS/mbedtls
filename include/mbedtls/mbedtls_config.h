@@ -3997,4 +3997,13 @@
  */
 //#define MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED
 
+
+/**
+ * Uncomment to enable using new bignum code in the ECC modules.
+ *
+ * \warning This is currently experimental, incomplete and therefore should not
+ * be used in production.
+ */
+//#define MBEDTLS_ECP_WITH_MPI_UINT
+
 /** \} name SECTION: Module configuration options */

@@ -4007,10 +4007,9 @@
 //#define MBEDTLS_ECP_WITH_MPI_UINT
 
 /*
- * Platform independent implementation for crypto algorithms.
  * Disable plain C implementation for AES.
  *
- * If the plain C implementation is enabled, and an implementation using a
+ * When the plain C implementation is enabled, and an implementation using a
  * special CPU feature (such as MBEDTLS_AESCE_C) is also enabled, runtime
  * detection will be used to select between them.
  *

@@ -175,6 +175,10 @@ pre_initialize_variables () {
     : ${ARMC6_BIN_DIR:=/usr/bin}
     : ${ARM_NONE_EABI_GCC_PREFIX:=arm-none-eabi-}
     : ${ARM_LINUX_GNUEABI_GCC_PREFIX:=arm-linux-gnueabi-}
+    : ${CLANG_LATEST:="clang-16"}
+    : ${CLANG_EARLIEST:="clang-3.5"}
+    : ${GCC_LATEST:="gcc-12"}
+    : ${GCC_EARLIEST:="gcc-4.7"}
 
     # if MAKEFLAGS is not set add the -j option to speed up invocations of make
     if [ -z "${MAKEFLAGS+set}" ]; then
@@ -272,6 +276,10 @@ General options:
 Tool path options:
      --armc5-bin-dir=<ARMC5_bin_dir_path>       ARM Compiler 5 bin directory.
      --armc6-bin-dir=<ARMC6_bin_dir_path>       ARM Compiler 6 bin directory.
+     --clang-earliest=<Clang_earliest_path>     Earliest version of clang available
+     --clang-latest=<Clang_latest_path>         Latest version of clang available
+     --gcc-earliest=<GCC_earliest_path>         Earliest version of GCC available
+     --gcc-latest=<GCC_latest_path>             Latest version of GCC available
      --gnutls-cli=<GnuTLS_cli_path>             GnuTLS client executable to use for most tests.
      --gnutls-serv=<GnuTLS_serv_path>           GnuTLS server executable to use for most tests.
      --gnutls-legacy-cli=<GnuTLS_cli_path>      GnuTLS client executable to use for legacy tests.
@@ -415,9 +423,13 @@ pre_parse_command_line () {
             --armcc) no_armcc=;;
             --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
             --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
+            --clang-earliest) shift; CLANG_EARLIEST="$1";;
+            --clang-latest) shift; CLANG_LATEST="$1";;
             --error-test) error_test=$((error_test + 1));;
             --except) all_except=1;;
             --force|-f) FORCE=1;;
+            --gcc-earliest) shift; GCC_EARLIEST="$1";;
+            --gcc-latest) shift; GCC_LATEST="$1";;
             --gnutls-cli) shift; GNUTLS_CLI="$1";;
             --gnutls-legacy-cli) shift; GNUTLS_LEGACY_CLI="$1";;
             --gnutls-legacy-serv) shift; GNUTLS_LEGACY_SERV="$1";;
@@ -2953,34 +2965,34 @@ fi
 
 component_test_clang_latest_opt () {
     scripts/config.py full
-    test_build_opt 'full config' clang-latest -O0 -Os -O2
+    test_build_opt 'full config' "$CLANG_LATEST" -O0 -Os -O2
 }
 support_test_clang_latest_opt () {
-    type clang-latest >/dev/null 2>/dev/null
+    type "$CLANG_LATEST" >/dev/null 2>/dev/null
 }
 
 component_test_clang_earliest_opt () {
     scripts/config.py full
-    test_build_opt 'full config' clang-earliest -O0
+    test_build_opt 'full config' "$CLANG_EARLIEST" -O0
 }
 support_test_clang_earliest_opt () {
-    type clang-earliest >/dev/null 2>/dev/null
+    type "$CLANG_EARLIEST" >/dev/null 2>/dev/null
 }
 
 component_test_gcc_latest_opt () {
     scripts/config.py full
-    test_build_opt 'full config' gcc-latest -O0 -Os -O2
+    test_build_opt 'full config' "$GCC_LATEST" -O0 -Os -O2
 }
 support_test_gcc_latest_opt () {
-    type gcc-latest >/dev/null 2>/dev/null
+    type "$GCC_LATEST" >/dev/null 2>/dev/null
 }
 
 component_test_gcc_earliest_opt () {
     scripts/config.py full
-    test_build_opt 'full config' gcc-earliest -O0
+    test_build_opt 'full config' "$GCC_EARLIEST" -O0
 }
 support_test_gcc_earliest_opt () {
-    type gcc-earliest >/dev/null 2>/dev/null
+    type "$GCC_EARLIEST" >/dev/null 2>/dev/null
 }
 
 component_build_mbedtls_config_file () {

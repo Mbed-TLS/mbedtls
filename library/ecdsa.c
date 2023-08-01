@@ -366,7 +366,7 @@ modn:
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if (rs_ctx != NULL && rs_ctx->sig != NULL) {
-        mbedtls_mpi_copy(r, pr);
+        MBEDTLS_MPI_CHK(mbedtls_mpi_copy(r, pr));
     }
 #endif
 
@@ -457,7 +457,7 @@ static int ecdsa_sign_det_restartable(mbedtls_ecp_group *grp,
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(d, data, grp_len));
     MBEDTLS_MPI_CHK(derive_mpi(grp, &h, buf, blen));
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&h, data + grp_len, grp_len));
-    mbedtls_hmac_drbg_seed_buf(p_rng, md_info, data, 2 * grp_len);
+    MBEDTLS_MPI_CHK(mbedtls_hmac_drbg_seed_buf(p_rng, md_info, data, 2 * grp_len));
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if (rs_ctx != NULL && rs_ctx->det != NULL) {

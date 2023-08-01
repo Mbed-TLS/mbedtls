@@ -250,6 +250,9 @@ static int pk_ecc_set_pubkey_psa_ecp_fallback(mbedtls_pk_context *pk,
                                               size_t pub_len)
 {
 #if !defined(MBEDTLS_PK_PARSE_EC_COMPRESSED)
+    (void) pk;
+    (void) pub;
+    (void) pub_len;
     return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
 #else /* MBEDTLS_PK_PARSE_EC_COMPRESSED */
     mbedtls_ecp_keypair ecp_key;

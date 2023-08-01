@@ -26,7 +26,7 @@
 /** Constant-time buffer comparison without branches.
  *
  * This is equivalent to the standard memcmp function, but is likely to be
- * compiled to code using bitwise operation rather than a branch, such that
+ * compiled to code using bitwise operations rather than a branch, such that
  * the time taken is constant w.r.t. the data pointed to by \p a and \p b,
  * and w.r.t. whether \p a and \p b are equal or not. It is not constant-time
  * w.r.t. \p n .

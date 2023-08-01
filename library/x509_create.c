@@ -175,7 +175,10 @@ static int hexpair_to_int(char c1, char c2)
     }
 }
 
-static int parse_attribute_value_string(const char *s, int len, unsigned char *data, size_t *data_len)
+static int parse_attribute_value_string(const char *s,
+                                        int len,
+                                        unsigned char *data,
+                                        size_t *data_len)
 {
     const char *c = s;
     const char *end = c + len;
@@ -210,41 +213,45 @@ static int parse_attribute_value_string(const char *s, int len, unsigned char *d
 }
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
-static int parse_attribute_value_ber_encoded(const char *s, int len, unsigned char *data, size_t *data_len, int *tag)
+static int parse_attribute_value_ber_encoded(const char *s,
+                                             int len,
+                                             unsigned char *data,
+                                             size_t *data_len,
+                                             int *tag)
 {
     const char *c = s;
     const char *end = c + len;
     unsigned char asn1_der_buf[256];
-	unsigned char *asn1_der_end;
-	unsigned char *p;
+    unsigned char *asn1_der_end;
+    unsigned char *p;
     unsigned char *d;
     int n;
-	/* Converting from hexstring to raw binary so we can use asn1parse.c*/
-	if ((len < 5) || (*c != '#')) {
-		return MBEDTLS_ERR_X509_INVALID_NAME;
-	}
-	c++;
-	if((*tag = hexpair_to_int(*c, *(c+1))) == -1) {
-		return MBEDTLS_ERR_X509_INVALID_NAME;
-	}
-	c += 2;
-	p = asn1_der_buf;
+    /* Converting from hexstring to raw binary so we can use asn1parse.c*/
+    if ((len < 5) || (*c != '#')) {
+        return MBEDTLS_ERR_X509_INVALID_NAME;
+    }
+    c++;
+    if ((*tag = hexpair_to_int(*c, *(c+1))) == -1) {
+        return MBEDTLS_ERR_X509_INVALID_NAME;
+    }
+    c += 2;
+    p = asn1_der_buf;
     for (p = asn1_der_buf; c < end; c += 2) {
         if ((c + 1 >= end) || (n = hexpair_to_int(*c, *(c+1))) == -1) {
             return MBEDTLS_ERR_X509_INVALID_NAME;
         }
         *(p++) = n;
     }
-	asn1_der_end = p;
+    asn1_der_end = p;
 
-	p = asn1_der_buf;
-	if(mbedtls_asn1_get_len(&p, asn1_der_end, data_len) != 0) {
-		return MBEDTLS_ERR_X509_INVALID_NAME;
-	}
+    p = asn1_der_buf;
+    if (mbedtls_asn1_get_len(&p, asn1_der_end, data_len) != 0) {
+        return MBEDTLS_ERR_X509_INVALID_NAME;
+    }
 
-	for (d = data; p < asn1_der_end; p++) {
-		*(d++) = *p; 
-	}
+    for (d = data; p < asn1_der_end; p++) {
+        *(d++) = *p;
+    }
 
     return 0;
 }
@@ -292,14 +299,14 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
                 tag = attr_descr->default_tag;
             }
             if (numericoid) {
-				#if defined(MBEDTLS_ASN1_PARSE_C)
+                #if defined(MBEDTLS_ASN1_PARSE_C)
                 if ((parse_ret =
                          parse_attribute_value_ber_encoded(s, c - s, data, &data_len, &tag)) != 0) {
                     return parse_ret;
                 }
-				#else
-				return MBEDTLS_ERR_X509_INVALID_NAME;
-				#endif
+                #else
+                return MBEDTLS_ERR_X509_INVALID_NAME;
+                #endif
             }
             mbedtls_asn1_named_data *cur =
                 mbedtls_asn1_store_named_data(head, oid, strlen(oid),

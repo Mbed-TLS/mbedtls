@@ -854,12 +854,13 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
             MBEDTLS_X509_SAFE_SNPRINTF;
         }
 
-        print_hexstring = (name->val.tag == MBEDTLS_ASN1_BIT_STRING) || (name->val.tag == MBEDTLS_ASN1_OCTET_STRING);
+        print_hexstring = (name->val.tag == MBEDTLS_ASN1_BIT_STRING) ||
+                          (name->val.tag == MBEDTLS_ASN1_OCTET_STRING);
 
         if ((ret = mbedtls_oid_get_attr_short_name(&name->oid, &short_name)) == 0) {
             ret = mbedtls_snprintf(p, n, "%s=", short_name);
         } else {
-            if ((ret = mbedtls_oid_get_numeric_string(numericoid,256,&name->oid)) > 0) {
+            if ((ret = mbedtls_oid_get_numeric_string(numericoid, 256, &name->oid)) > 0) {
                 ret = mbedtls_snprintf(p, n, "%s=", numericoid);
                 print_hexstring = 1;
             } else {
@@ -868,7 +869,7 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
         }
         MBEDTLS_X509_SAFE_SNPRINTF;
 
-        if(print_hexstring) {
+        if (print_hexstring) {
             #if defined(MBEDTLS_ASN1_WRITE_C)
             s[0] = '#';
 
@@ -879,16 +880,15 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
             s[2] = nibble_to_hex_digit(lowbits);
 
             asn1_len_p = asn1_len_buf+5;
-            asn1_len_size = mbedtls_asn1_write_len(&asn1_len_p,asn1_len_buf,name->val.len);
+            asn1_len_size = mbedtls_asn1_write_len(&asn1_len_p, asn1_len_buf, name->val.len);
             asn1_len_start = 5 - asn1_len_size;
             for (i = 0, j = 3; i < asn1_len_size + name->val.len; i++, j++) {
                 if (j + 1 >= sizeof(s) - 1) {
                     return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
                 }
-                if(i < asn1_len_size) {
+                if (i < asn1_len_size) {
                     c = asn1_len_buf[asn1_len_start+i];
-                }
-                else {
+                } else {
                     c = name->val.p[i-asn1_len_size];
                 }
                 char lowbits = (c & 0x0F);

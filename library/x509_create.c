@@ -232,6 +232,81 @@ static int parse_attribute_value_der_encoded(const char *s,
     return 0;
 }
 
+static int validate_utf_8(unsigned char *data, size_t len) {
+    unsigned char *end = data + len;
+    int i, n;
+    int utf_tails;
+    unsigned char *d;
+
+    for(d = data; d < end; d++) {
+        if ((0x00 <= *d) && (*d <= 0x7F)) {
+            utf_tails = 0;
+        } 
+        else if ((0xC2 <= *d) && (*d <= 0xDF)) {
+            utf_tails = 1;
+        }
+        else if (((0xE1 <= *d) && (*d <= 0xEC)) || ((0xEE <= *d) && (*d <= 0xEF))) {
+            utf_tails = 2;
+        }
+        else if (0xE0 == *d) {
+            if(d + 1 >= end) {
+                return -1;
+            }
+            d++;
+            if(!((0xA0 <= *d) && (*d <= 0xBF))) {
+                return -1;
+            }
+            utf_tails = 1;
+        }
+        else if (0xED == *d) {
+            if(d + 1 >= end) {
+                return -1;
+            }
+            d++;
+            if(!((0x80 <= *d) && (*d <= 0x9F))) {
+                return -1;
+            }
+            utf_tails = 1;
+        }
+        else if ((0xF1 <= *d) && (*d <= 0xF3)) {
+            utf_tails = 3;
+        }
+        else if (0xF0 == *d) {
+            if(d + 1 >= end) {
+                return -1;
+            }
+            d++;
+            if(!((0x90 <= *d) && (*d <= 0xBF))) {
+                return -1;
+            }
+            utf_tails = 2;
+        }
+        else if (0xF4 == *d) {
+            if(d + 1 >= end) {
+                return -1;
+            }
+            d++;
+            if(!((0x80 <= *d) && (*d <= 0x8F))) {
+                return -1;
+            }
+            utf_tails = 2;
+        }
+        else {
+            return -1;
+        }
+        
+        for(i = 0; i < utf_tails; i++) {
+            if(d + 1 >= end) {
+                return -1;
+            }
+            d++;
+            if(!((0x80 <= *d) && (*d <= 0xBF))) {
+                return -1;
+            }
+        }
+    }
+}
+
 int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *name)
 {
     int ret = MBEDTLS_ERR_X509_INVALID_NAME;

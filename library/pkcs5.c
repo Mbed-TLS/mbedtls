@@ -46,6 +46,14 @@
 
 #include "psa_util_internal.h"
 
+#if !defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+int mbedtls_pkcs5_pbes2_ext(const mbedtls_asn1_buf *pbe_params, int mode,
+                            const unsigned char *pwd,  size_t pwdlen,
+                            const unsigned char *data, size_t datalen,
+                            unsigned char *output, size_t output_size,
+                            size_t *output_len);
+#endif
+
 #if defined(MBEDTLS_ASN1_PARSE_C)
 static int pkcs5_parse_pbkdf2_params(const mbedtls_asn1_buf *params,
                                      mbedtls_asn1_buf *salt, int *iterations,
@@ -116,16 +124,32 @@ int mbedtls_pkcs5_pbes2(const mbedtls_asn1_buf *pbe_params, int mode,
                         const unsigned char *data, size_t datalen,
                         unsigned char *output)
 {
+    size_t output_len = 0;
+
+    /* We assume caller of the function is providing a big enough output buffer
+     * so we pass output_size as SIZE_MAX to pass checks, However, no gurantees
+     * for the output size actually being correct.
+     */
+    return mbedtls_pkcs5_pbes2_ext(pbe_params, mode, pwd, pwdlen, data,
+                                   datalen, output, SIZE_MAX, &output_len);
+}
+
+int mbedtls_pkcs5_pbes2_ext(const mbedtls_asn1_buf *pbe_params, int mode,
+                            const unsigned char *pwd,  size_t pwdlen,
+                            const unsigned char *data, size_t datalen,
+                            unsigned char *output, size_t output_size,
+                            size_t *output_len)
+{
     int ret, iterations = 0, keylen = 0;
     unsigned char *p, *end;
     mbedtls_asn1_buf kdf_alg_oid, enc_scheme_oid, kdf_alg_params, enc_scheme_params;
     mbedtls_asn1_buf salt;
     mbedtls_md_type_t md_type = MBEDTLS_MD_SHA1;
     unsigned char key[32], iv[32];
-    size_t olen = 0;
     const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_type_t cipher_alg;
     mbedtls_cipher_context_t cipher_ctx;
+    unsigned int padlen = 0;
 
     p = pbe_params->p;
     end = p + pbe_params->len;
@@ -183,6 +207,19 @@ int mbedtls_pkcs5_pbes2(const mbedtls_asn1_buf *pbe_params, int mode,
         return MBEDTLS_ERR_PKCS5_INVALID_FORMAT;
     }
 
+    if (mode == MBEDTLS_PKCS5_DECRYPT) {
+        if (output_size < datalen) {
+            return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
+        }
+    }
+
+    if (mode == MBEDTLS_PKCS5_ENCRYPT) {
+        padlen = cipher_info->block_size - (datalen % cipher_info->block_size);
+        if (output_size < (datalen + padlen)) {
+            return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
+        }
+    }
+
     mbedtls_cipher_init(&cipher_ctx);
 
     memcpy(iv, enc_scheme_params.p, enc_scheme_params.len);
@@ -223,7 +260,7 @@ int mbedtls_pkcs5_pbes2(const mbedtls_asn1_buf *pbe_params, int mode,
     }
 #endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
     if ((ret = mbedtls_cipher_crypt(&cipher_ctx, iv, enc_scheme_params.len,
-                                    data, datalen, output, &olen)) != 0) {
+                                    data, datalen, output, output_len)) != 0) {
         ret = MBEDTLS_ERR_PKCS5_PASSWORD_MISMATCH;
     }
 

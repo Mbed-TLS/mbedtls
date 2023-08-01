@@ -1706,7 +1706,7 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
      */
     const size_t x_index = 0;
     mbedtls_mpi_init(&W[x_index]);
-    mbedtls_mpi_copy(&W[x_index], X);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_copy(&W[x_index], X));
 
     j = N->n + 1;
     /* All W[i] and X must have at least N->n limbs for the mpi_montmul()
@@ -1893,7 +1893,7 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
     /*
      * Load the result in the output variable.
      */
-    mbedtls_mpi_copy(X, &W[x_index]);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_copy(X, &W[x_index]));
 
 cleanup:
 

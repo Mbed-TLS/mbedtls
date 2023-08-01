@@ -1439,6 +1439,16 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
         case 6:
             session->start = mbedtls_time(NULL);
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+            /* To workaround anti-replay failure, 1 second negative tolerance
+             * was added in ticket check, that's due to the unit is second.
+             * This is a negative test. That modifies the age parameter to trigger
+             * fail case. 1 second is not enough for it, when the real age is
+             * large than 1 millisecond, the test will pass which is not
+             * expected.
+             *
+             * And #6788 is fix of anti-replay failure. This test should be
+             * changed when #6788 merged.
+             */
             session->ticket_age_add -= 2000;
 #endif
             break;

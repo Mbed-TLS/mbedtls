@@ -390,6 +390,16 @@ TASKS = {
                     'ASN.1 Write mpi, 255*8-1 bits',
                     'ASN.1 Write mpi, 256*8-1 bits',
                 ],
+                'test_suite_debug': [
+                    # Following tests depends on BIGNUM_C
+                    'Debug print mbedtls_mpi #2: 3 bits',
+                    'Debug print mbedtls_mpi: 0 (empty representation)',
+                    'Debug print mbedtls_mpi: 0 (non-empty representation)',
+                    'Debug print mbedtls_mpi: 49 bits',
+                    'Debug print mbedtls_mpi: 759 bits',
+                    'Debug print mbedtls_mpi: 764 bits #1',
+                    'Debug print mbedtls_mpi: 764 bits #2',
+                ],
             }
         }
     },

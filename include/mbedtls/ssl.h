@@ -42,7 +42,7 @@
 
 #include "mbedtls/md.h"
 
-#if defined(MBEDTLS_ECDH_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED)
 #include "mbedtls/ecdh.h"
 #endif
 

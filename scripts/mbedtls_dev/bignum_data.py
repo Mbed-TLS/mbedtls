@@ -106,7 +106,7 @@ INPUTS_DEFAULT = [
         RANDOM_1024_BIT_SEED_4_NO2, # largest (not a prime)
         ]
 
-ADD_SUB_DEFAULT = [
+ADD_SUB_DATA = [
     "0", "1", "3", "f", "fe", "ff", "100", "ff00", 
     "fffe", "ffff", "10000", # 2^16 - 1, 2^16, 2^16 + 1
     "fffffffe", "ffffffff", "100000000", # 2^32 - 1, 2^32, 2^32 + 1

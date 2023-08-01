@@ -4001,8 +4001,8 @@
 /**
  * Uncomment to enable using new bignum code in the ECC modules.
  *
- * \warning ECC implementation using new bignum code is a work in progress,
- * this option serves only development and testing purposes.
+ * \warning This is currently experimental, incomplete and therefore should not
+ * be used in production.
  */
 //#define MBEDTLS_ECP_WITH_MPI_UINT
 

@@ -854,8 +854,9 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
             MBEDTLS_X509_SAFE_SNPRINTF;
         }
 
-        print_hexstring = (name->val.tag == MBEDTLS_ASN1_BIT_STRING) ||
-                          (name->val.tag == MBEDTLS_ASN1_OCTET_STRING);
+        print_hexstring = (name->val.tag != MBEDTLS_ASN1_UTF8_STRING) &&
+                          (name->val.tag != MBEDTLS_ASN1_PRINTABLE_STRING) &&
+                          (name->val.tag != MBEDTLS_ASN1_IA5_STRING);
 
         if ((ret = mbedtls_oid_get_attr_short_name(&name->oid, &short_name)) == 0) {
             ret = mbedtls_snprintf(p, n, "%s=", short_name);

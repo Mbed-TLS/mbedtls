@@ -12,6 +12,11 @@ subjectKeyIdentifier=hash
 authorityKeyIdentifier=keyid:always,issuer:always
 basicConstraints = CA:true
 
+[no_subj_auth_id]
+subjectKeyIdentifier=none
+authorityKeyIdentifier=none
+basicConstraints = CA:true
+
 [othername_san]
 subjectAltName=otherName:1.3.6.1.5.5.7.8.4;SEQ:hw_module_name
 
@@ -99,3 +104,17 @@ nsCertType=server
 keyUsage = cRLSign
 subjectAltName=otherName:1.3.6.1.5.5.7.8.4;SEQ:nonprintable_hw_module_name
 nsCertType=client
+
+[directory_name_san]
+subjectAltName=dirName:dirname_sect
+
+[two_directorynames]
+subjectAltName=dirName:dirname_sect, dirName:dirname_to_malform
+
+[dirname_sect]
+C=UK
+O=Mbed TLS
+CN=Mbed TLS directoryName SAN
+
+[dirname_to_malform]
+O=MALFORM_ME

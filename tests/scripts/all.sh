@@ -176,7 +176,10 @@ pre_initialize_variables () {
     : ${ARMC6_BIN_DIR:=/usr/bin}
     : ${ARM_NONE_EABI_GCC_PREFIX:=arm-none-eabi-}
     : ${ARM_LINUX_GNUEABI_GCC_PREFIX:=arm-linux-gnueabi-}
-
+    : ${CLANG_LATEST:="clang-latest"}
+    : ${CLANG_EARLIEST:="clang-earliest"}
+    : ${GCC_LATEST:="gcc-latest"}
+    : ${GCC_EARLIEST:="gcc-earliest"}
     # if MAKEFLAGS is not set add the -j option to speed up invocations of make
     if [ -z "${MAKEFLAGS+set}" ]; then
         export MAKEFLAGS="-j$(all_sh_nproc)"
@@ -191,9 +194,7 @@ pre_initialize_variables () {
 
     # Gather the list of available components. These are the functions
     # defined in this script whose name starts with "component_".
-    # Parse the script with sed. This way we get the functions in the order
-    # they are defined.
-    ALL_COMPONENTS=$(sed -n 's/^ *component_\([0-9A-Z_a-z]*\) *().*/\1/p' <"$0")
+    ALL_COMPONENTS=$(compgen -A function component_ | sed 's/component_//')
 
     # Exclude components that are not supported on this platform.
     SUPPORTED_COMPONENTS=
@@ -275,6 +276,10 @@ General options:
 Tool path options:
      --armc5-bin-dir=<ARMC5_bin_dir_path>       ARM Compiler 5 bin directory.
      --armc6-bin-dir=<ARMC6_bin_dir_path>       ARM Compiler 6 bin directory.
+     --clang-earliest=<Clang_earliest_path>     Earliest version of clang available
+     --clang-latest=<Clang_latest_path>         Latest version of clang available
+     --gcc-earliest=<GCC_earliest_path>         Earliest version of GCC available
+     --gcc-latest=<GCC_latest_path>             Latest version of GCC available
      --gnutls-cli=<GnuTLS_cli_path>             GnuTLS client executable to use for most tests.
      --gnutls-serv=<GnuTLS_serv_path>           GnuTLS server executable to use for most tests.
      --gnutls-legacy-cli=<GnuTLS_cli_path>      GnuTLS client executable to use for legacy tests.
@@ -441,9 +446,13 @@ pre_parse_command_line () {
             --armcc) no_armcc=;;
             --armc5-bin-dir) shift; ;; # assignment to ARMC5_BIN_DIR done in pre_parse_command_line_for_dirs
             --armc6-bin-dir) shift; ;; # assignment to ARMC6_BIN_DIR done in pre_parse_command_line_for_dirs
+            --clang-earliest) shift; CLANG_EARLIEST="$1";;
+            --clang-latest) shift; CLANG_LATEST="$1";;
             --error-test) error_test=$((error_test + 1));;
             --except) all_except=1;;
             --force|-f) FORCE=1;;
+            --gcc-earliest) shift; GCC_EARLIEST="$1";;
+            --gcc-latest) shift; GCC_LATEST="$1";;
             --gnutls-cli) shift; GNUTLS_CLI="$1";;
             --gnutls-legacy-cli) shift; GNUTLS_LEGACY_CLI="$1";;
             --gnutls-legacy-serv) shift; GNUTLS_LEGACY_SERV="$1";;
@@ -4023,6 +4032,7 @@ component_test_cmake_shared () {
 
 test_build_opt () {
     info=$1 cc=$2; shift 2
+    $cc --version
     for opt in "$@"; do
           msg "build/test: $cc $opt, $info" # ~ 30s
           make CC="$cc" CFLAGS="$opt -std=c99 -pedantic -Wall -Wextra -Werror"
@@ -4035,14 +4045,45 @@ test_build_opt () {
     done
 }
 
-component_test_clang_opt () {
+# For FreeBSD we invoke the function by name so this condition is added
+# to disable the existing test_clang_opt function for linux.
+if [[ $(uname) != "Linux" ]]; then
+    component_test_clang_opt () {
+        scripts/config.py full
+        test_build_opt 'full config' clang -O0 -Os -O2
+    }
+fi
+
+component_test_clang_latest_opt () {
     scripts/config.py full
-    test_build_opt 'full config' clang -O0 -Os -O2
+    test_build_opt 'full config' "$CLANG_LATEST" -O0 -Os -O2
+}
+support_test_clang_latest_opt () {
+    type "$CLANG_LATEST" >/dev/null 2>/dev/null
 }
 
-component_test_gcc_opt () {
+component_test_clang_earliest_opt () {
     scripts/config.py full
-    test_build_opt 'full config' gcc -O0 -Os -O2
+    test_build_opt 'full config' "$CLANG_EARLIEST" -O0
+}
+support_test_clang_earliest_opt () {
+    type "$CLANG_EARLIEST" >/dev/null 2>/dev/null
+}
+
+component_test_gcc_latest_opt () {
+    scripts/config.py full
+    test_build_opt 'full config' "$GCC_LATEST" -O0 -Os -O2
+}
+support_test_gcc_latest_opt () {
+    type "$GCC_LATEST" >/dev/null 2>/dev/null
+}
+
+component_test_gcc_earliest_opt () {
+    scripts/config.py full
+    test_build_opt 'full config' "$GCC_EARLIEST" -O0
+}
+support_test_gcc_earliest_opt () {
+    type "$GCC_EARLIEST" >/dev/null 2>/dev/null
 }
 
 component_build_mbedtls_config_file () {

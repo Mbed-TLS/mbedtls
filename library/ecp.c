@@ -3641,7 +3641,7 @@ cleanup:
 #if defined(MBEDTLS_TEST_HOOKS)
 
 MBEDTLS_STATIC_TESTABLE
-mbedtls_ecp_variant mbedtls_ecp_get_variant()
+mbedtls_ecp_variant mbedtls_ecp_get_variant(void)
 {
     return MBEDTLS_ECP_VARIANT_WITH_MPI_STRUCT;
 }

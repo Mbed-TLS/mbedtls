@@ -264,7 +264,7 @@ static int pk_ecc_set_pubkey_psa_ecp_fallback(mbedtls_pk_context *pk,
     mbedtls_ecp_keypair_init(&ecp_key);
     ret = mbedtls_ecp_group_load(&(ecp_key.grp), ecp_group_id);
     if (ret != 0) {
-        return ret;
+        goto exit;
     }
     ret = mbedtls_ecp_point_read_binary(&(ecp_key.grp), &ecp_key.Q,
                                         pub, pub_len);

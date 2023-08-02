@@ -156,7 +156,7 @@ static int pk_ecc_set_key(mbedtls_pk_context *pk,
  * Note: the private key information is always available from pk,
  * however for convenience the serialized version is also passed,
  * as it's available at each calling site, and useful in some configs
- * (as otherwise we're have to re-serialize it from the pk context).
+ * (as otherwise we would have to re-serialize it from the pk context).
  *
  * There are three implementations of this function:
  * 1. MBEDTLS_PK_USE_PSA_EC_DATA,

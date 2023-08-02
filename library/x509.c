@@ -833,6 +833,7 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
     unsigned char c, merge = 0;
     const mbedtls_x509_name *name;
     const char *short_name = NULL;
+    char lowbits, highbits;
     char numericoid[256];
     char s[MBEDTLS_X509_MAX_DN_NAME_SIZE], *p;
     int print_hexstring;
@@ -875,8 +876,8 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
             s[0] = '#';
 
             c = name->val.tag;
-            char lowbits = (c & 0x0F);
-            char highbits = c>>4;
+            lowbits = (c & 0x0F);
+            highbits = c>>4;
             s[1] = nibble_to_hex_digit(highbits);
             s[2] = nibble_to_hex_digit(lowbits);
 
@@ -892,8 +893,8 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
                 } else {
                     c = name->val.p[i-asn1_len_size];
                 }
-                char lowbits = (c & 0x0F);
-                char highbits = c>>4;
+                lowbits = (c & 0x0F);
+                highbits = c>>4;
                 s[j++] = nibble_to_hex_digit(highbits);
                 s[j] = nibble_to_hex_digit(lowbits);
             }
@@ -923,8 +924,8 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
                         return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
                     }
                     s[j++] = '\\';
-                    char lowbits = (c & 0x0F);
-                    char highbits = c>>4;
+                    lowbits = (c & 0x0F);
+                    highbits = c>>4;
                     s[j++] = nibble_to_hex_digit(highbits);
                     s[j] = nibble_to_hex_digit(lowbits);
                 } else {

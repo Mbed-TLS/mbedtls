@@ -351,7 +351,7 @@ static int pk_ecc_set_pubkey(mbedtls_pk_context *pk,
  *      Low-level ECC parsing: optional support for SpecifiedECDomain
  *
  * There are two functions here that are used by the rest of the code:
- * - pk_ecc_tag_may_be_speficied_ec_domain()
+ * - pk_ecc_tag_is_speficied_ec_domain()
  * - pk_ecc_group_id_from_specified()
  *
  * All the other functions are internal to this section.
@@ -365,7 +365,7 @@ static int pk_ecc_set_pubkey(mbedtls_pk_context *pk,
 
 #if !defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
 /* See the "real" version for documentation */
-static int pk_ecc_tag_may_be_specified_ec_domain(int tag)
+static int pk_ecc_tag_is_specified_ec_domain(int tag)
 {
     (void) tag;
     return 0;
@@ -384,7 +384,7 @@ static int pk_ecc_group_id_from_specified(const mbedtls_asn1_buf *params,
  * Tell if the passed tag might be the start of SpecifiedECDomain
  * (that is, a sequence).
  */
-static int pk_ecc_tag_may_be_specified_ec_domain(int tag)
+static int pk_ecc_tag_is_specified_ec_domain(int tag)
 {
     return tag == (MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
 }
@@ -660,7 +660,7 @@ static int pk_get_ecparams(unsigned char **p, const unsigned char *end,
     /* Acceptable tags: OID for namedCurve, or specifiedECDomain */
     params->tag = **p;
     if (params->tag != MBEDTLS_ASN1_OID &&
-        !pk_ecc_tag_may_be_specified_ec_domain(params->tag)) {
+        !pk_ecc_tag_is_specified_ec_domain(params->tag)) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT,
                                  MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
     }

@@ -1041,20 +1041,16 @@ extern "C" {
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT 1
 #endif
 
-/* Temporary internal migration helpers */
-#if defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_BASIC) || \
-    defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT) || \
-    defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT) || \
-    defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE)
-#define MBEDTLS_PSA_WANT_KEY_TYPE_DH_KEY_PAIR_LEGACY
+/* See description above */
+#if defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_BASIC)
+#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT 1
+#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT 1
 #endif
 
-/* Temporary internal migration helpers */
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_BASIC) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_IMPORT) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_EXPORT) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_GENERATE)
-#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_LEGACY
+/* See description above */
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_BASIC)
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_IMPORT 1
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_EXPORT 1
 #endif
 
 /* These features are always enabled. */

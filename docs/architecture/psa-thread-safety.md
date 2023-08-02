@@ -131,7 +131,7 @@ The following functions modify a slot's usage state:
 * `psa_key_slot_set_flags` - writes to attr.flags
 * `psa_key_slot_set_bits_in_flags` - writes to attr.flags
 * `psa_key_slot_clear_bits` - writes to attr.flags
-* `psa_is_key_slot_occupied` - reads attr.type
+* `psa_is_key_slot_occupied` - reads attr.type (but see “[Determining whether a key slot is occupied](#determining-whether-a-key-slot-is-occupied)”)
 * `psa_key_slot_get_flags` - reads attr.flags
 
 `psa_crypto_slot_management.c`:
@@ -171,7 +171,11 @@ The following functions modify a slot's usage state:
 * `psa_key_derivation_input_key` - reads attr.type
 * `psa_key_agreement_raw_internal` - reads attr.type and attr.bits
 
-TODO: change `psa_is_key_slot_occupied` to checking the id?
+#### Determining whether a key slot is occupied
+
+`psa_is_key_slot_occupied` currently uses the `attr.type` field to determine whether a key slot is occupied. This works because we maintain the invariant that an occupied slot contains key material. With concurrency, it is desirable to allow a key slot to be reserved, but not yet contain key material or even metadata. When creating a key, determining the key type can be costly, for example when loading a persistent key from storage or (not yet implemented) when importing or unwrapping a key using an interface that determines the key type from the data that it parses. So we should not need to hold the global key store lock while the key type is undetermined.
+
+Instead, `psa_is_key_slot_occupied` should use the key identifier to decide whether a slot is occupied. The key identifier is always readily available: when allocating a slot for a persistent key, it's an input of the function that allocates the key slot; when allocating a slot for a volatile key, the identifier is calculated from the choice of slot.
 
 #### Key slot content
 

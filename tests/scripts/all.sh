@@ -2750,6 +2750,41 @@ component_test_psa_crypto_config_accel_all_curves_except_x25519 () {
     psa_crypto_config_accel_all_curves_except_one MBEDTLS_ECP_DP_CURVE25519_ENABLED
 }
 
+# Common helper for component_full_without_ecdhe_ecdsa() and
+# component_full_without_ecdhe_ecdsa_and_tls13() which:
+# - starts from the "full" configuration minus the list of symbols passed in
+#   as 1st parameter
+# - build
+# - test only TLS (i.e. test_suite_tls and ssl-opt)
+build_full_minus_something_and_test_tls () {
+    SYMBOLS_TO_DISABLE="$1"
+
+    msg "build: full minus something, test TLS"
+
+    scripts/config.py full
+    for SYM in $SYMBOLS_TO_DISABLE; do
+        echo "Disabling $SYM"
+        scripts/config.py unset $SYM
+    done
+
+    make
+
+    msg "test: full minus something, test TLS"
+    ( cd tests; ./test_suite_ssl )
+
+    msg "ssl-opt: full minus something, test TLS"
+    tests/ssl-opt.sh
+}
+
+component_full_without_ecdhe_ecdsa () {
+    build_full_minus_something_and_test_tls "MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED"
+}
+
+component_full_without_ecdhe_ecdsa_and_tls13 () {
+    build_full_minus_something_and_test_tls "MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+                                             MBEDTLS_SSL_PROTO_TLS1_3"
+}
+
 # This is an helper used by:
 # - component_test_psa_ecc_key_pair_no_derive
 # - component_test_psa_ecc_key_pair_no_generate

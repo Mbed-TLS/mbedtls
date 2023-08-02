@@ -1,6 +1,6 @@
 Mbed TLS ChangeLog (Sorted per branch, date)
 
-= Mbed TLS x.x.x branch released xxxx-xx-xx
+= Mbed TLS 3.4.1 branch released 2023-08-04
 
 Bugfix
    * Fix builds on Windows with clang

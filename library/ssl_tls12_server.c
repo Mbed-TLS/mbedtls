@@ -149,7 +149,7 @@ static int ssl_parse_renegotiation_info(mbedtls_ssl_context *ssl,
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 /*
  * Function for parsing a supported groups (TLS 1.3) or supported elliptic
@@ -294,7 +294,7 @@ static int ssl_parse_supported_point_formats(mbedtls_ssl_context *ssl,
     return 0;
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
@@ -670,7 +670,7 @@ static int ssl_parse_use_srtp_ext(mbedtls_ssl_context *ssl,
 /*
  * Return 0 if the given key uses one of the acceptable curves, -1 otherwise
  */
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_check_key_curve(mbedtls_pk_context *pk,
                                uint16_t *curves_tls_id)
@@ -689,7 +689,7 @@ static int ssl_check_key_curve(mbedtls_pk_context *pk,
 
     return -1;
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED */
 
 /*
  * Try picking a certificate for this ciphersuite,
@@ -774,7 +774,7 @@ static int ssl_pick_cert(mbedtls_ssl_context *ssl,
             continue;
         }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
         if (pk_alg == MBEDTLS_PK_ECDSA &&
             ssl_check_key_curve(&cur->cert->pk,
                                 ssl->handshake->curves_tls_id) != 0) {
@@ -839,7 +839,7 @@ static int ssl_ciphersuite_match(mbedtls_ssl_context *ssl, int suite_id,
 
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
     if (mbedtls_ssl_ciphersuite_uses_ec(suite_info) &&
         (ssl->handshake->curves_tls_id == NULL ||
          ssl->handshake->curves_tls_id[0] == 0)) {
@@ -1384,7 +1384,7 @@ read_record_header:
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED) || \
-                defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) || \
+                defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED) || \
                 defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
             case MBEDTLS_TLS_EXT_SUPPORTED_GROUPS:
                 MBEDTLS_SSL_DEBUG_MSG(3, ("found supported elliptic curves extension"));
@@ -1405,7 +1405,7 @@ read_record_header:
                 }
                 break;
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED || \
-          MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
@@ -1515,7 +1515,7 @@ read_record_header:
     if (!sig_hash_alg_ext_present) {
         uint16_t *received_sig_algs = ssl->handshake->received_sig_algs;
         const uint16_t default_sig_algs[] = {
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
             MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA,
                                                MBEDTLS_SSL_HASH_SHA1),
 #endif
@@ -1900,7 +1900,7 @@ static void ssl_write_max_fragment_length_ext(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 static void ssl_write_supported_point_formats_ext(mbedtls_ssl_context *ssl,
                                                   unsigned char *buf,
@@ -1929,7 +1929,7 @@ static void ssl_write_supported_point_formats_ext(mbedtls_ssl_context *ssl,
     *olen = 6;
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
@@ -2360,7 +2360,7 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     const mbedtls_ssl_ciphersuite_t *suite =
         mbedtls_ssl_ciphersuite_from_id(ssl->session_negotiate->ciphersuite);

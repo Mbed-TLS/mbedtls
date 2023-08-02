@@ -783,7 +783,7 @@ struct mbedtls_ssl_handshake_params {
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED) || \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_ECDSA_ANY_ENABLED) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     uint16_t *curves_tls_id;      /*!<  List of TLS IDs of supported elliptic curves */
 #endif
@@ -2482,7 +2482,7 @@ static inline int mbedtls_ssl_tls12_sig_alg_is_supported(
             break;
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
         case MBEDTLS_SSL_SIG_ECDSA:
             break;
 #endif

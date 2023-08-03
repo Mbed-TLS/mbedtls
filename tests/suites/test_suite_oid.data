@@ -59,31 +59,31 @@ OID get x509 extension - wrong oid - id-ce
 oid_get_x509_extension:"551D":0
 
 OID hash id - id-md5
-depends_on:MBEDTLS_HAS_ALG_MD5_VIA_LOWLEVEL_OR_PSA
+depends_on:MBEDTLS_MD_CAN_MD5
 oid_get_md_alg_id:"2A864886f70d0205":MBEDTLS_MD_MD5
 
 OID hash id - id-sha1
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_LOWLEVEL_OR_PSA
+depends_on:MBEDTLS_MD_CAN_SHA1
 oid_get_md_alg_id:"2b0e03021a":MBEDTLS_MD_SHA1
 
 OID hash id - id-sha224
-depends_on:MBEDTLS_HAS_ALG_SHA_224_VIA_LOWLEVEL_OR_PSA
+depends_on:MBEDTLS_MD_CAN_SHA224
 oid_get_md_alg_id:"608648016503040204":MBEDTLS_MD_SHA224
 
 OID hash id - id-sha256
-depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_LOWLEVEL_OR_PSA
+depends_on:MBEDTLS_MD_CAN_SHA256
 oid_get_md_alg_id:"608648016503040201":MBEDTLS_MD_SHA256
 
 OID hash id - id-sha384
-depends_on:MBEDTLS_HAS_ALG_SHA_384_VIA_LOWLEVEL_OR_PSA
+depends_on:MBEDTLS_MD_CAN_SHA384
 oid_get_md_alg_id:"608648016503040202":MBEDTLS_MD_SHA384
 
 OID hash id - id-sha512
-depends_on:MBEDTLS_HAS_ALG_SHA_512_VIA_LOWLEVEL_OR_PSA
+depends_on:MBEDTLS_MD_CAN_SHA512
 oid_get_md_alg_id:"608648016503040203":MBEDTLS_MD_SHA512
 
 OID hash id - id-ripemd160
-depends_on:MBEDTLS_HAS_ALG_RIPEMD160_VIA_LOWLEVEL_OR_PSA
+depends_on:MBEDTLS_MD_CAN_RIPEMD160
 oid_get_md_alg_id:"2b24030201":MBEDTLS_MD_RIPEMD160
 
 OID hash id - invalid oid
@@ -137,3 +137,51 @@ oid_get_numeric_string:"8001":MBEDTLS_ERR_ASN1_INVALID_DATA:""
 
 OID get numeric string - overlong encoding, second subidentifier
 oid_get_numeric_string:"2B8001":MBEDTLS_ERR_ASN1_INVALID_DATA:""
+
+OID from numeric string - hardware module name
+oid_from_numeric_string:"1.3.6.1.5.5.7.8.4":0:"2B06010505070804"
+
+OID from numeric string - multi-byte subidentifier
+oid_from_numeric_string:"1.1.2108":0:"29903C"
+
+OID from numeric string - second component greater than 39
+oid_from_numeric_string:"2.49.0.0.826.0":0:"81010000863A00"
+
+OID from numeric string - multi-byte first subidentifier
+oid_from_numeric_string:"2.999":0:"8837"
+
+OID from numeric string - empty string input
+oid_from_numeric_string:"":MBEDTLS_ERR_ASN1_INVALID_DATA:""
+
+OID from numeric string - first component not a number
+oid_from_numeric_string:"abc.1.2":MBEDTLS_ERR_ASN1_INVALID_DATA:""
+
+OID from numeric string - second component not a number
+oid_from_numeric_string:"1.abc.2":MBEDTLS_ERR_ASN1_INVALID_DATA:""
+
+OID from numeric string - first component too large
+oid_from_numeric_string:"3.1":MBEDTLS_ERR_ASN1_INVALID_DATA:""
+
+OID from numeric string - first component < 2, second > 39
+oid_from_numeric_string:"1.40":MBEDTLS_ERR_ASN1_INVALID_DATA:""
+
+OID from numeric string - third component not a number
+oid_from_numeric_string:"1.2.abc":MBEDTLS_ERR_ASN1_INVALID_DATA:""
+
+OID from numeric string - non-'.' separator between first and second
+oid_from_numeric_string:"1/2.3.4":MBEDTLS_ERR_ASN1_INVALID_DATA:""
+
+OID from numeric string - non-'.' separator between second and third
+oid_from_numeric_string:"1.2/3.4":MBEDTLS_ERR_ASN1_INVALID_DATA:""
+
+OID from numeric string - non-'.' separator between third and fourth
+oid_from_numeric_string:"1.2.3/4":MBEDTLS_ERR_ASN1_INVALID_DATA:""
+
+OID from numeric string - OID greater than max length (129 components)
+oid_from_numeric_string:"1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1":MBEDTLS_ERR_ASN1_INVALID_DATA:""
+
+OID from numeric string - OID with maximum subidentifier
+oid_from_numeric_string:"2.4294967215":0:"8FFFFFFF7F"
+
+OID from numeric string - OID with overflowing subidentifier
+oid_from_numeric_string:"2.4294967216":MBEDTLS_ERR_ASN1_INVALID_DATA:""

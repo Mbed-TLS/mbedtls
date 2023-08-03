@@ -40,7 +40,7 @@
 #include <string.h>
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
 #include "psa/crypto.h"
 #endif
 
@@ -49,9 +49,15 @@
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
-                                                           psa_to_ssl_errors,             \
-                                                           psa_generic_status_to_mbedtls)
+/* Define a local translating function to save code size by not using too many
+ * arguments in each translating place. */
+static int local_err_translation(psa_status_t status)
+{
+    return psa_status_to_mbedtls(status, psa_to_ssl_errors,
+                                 ARRAY_LENGTH(psa_to_ssl_errors),
+                                 psa_generic_status_to_mbedtls);
+}
+#define PSA_TO_MBEDTLS_ERR(status) local_err_translation(status)
 #endif
 
 static uint32_t ssl_get_hs_total_len(mbedtls_ssl_context const *ssl);
@@ -3596,8 +3602,9 @@ static int ssl_parse_record_header(mbedtls_ssl_context const *ssl,
      */
     rec->ver[0] = buf[rec_hdr_version_offset + 0];
     rec->ver[1] = buf[rec_hdr_version_offset + 1];
-    tls_version = mbedtls_ssl_read_version(buf + rec_hdr_version_offset,
-                                           ssl->conf->transport);
+    tls_version = (mbedtls_ssl_protocol_version) mbedtls_ssl_read_version(
+        buf + rec_hdr_version_offset,
+        ssl->conf->transport);
 
     if (tls_version > ssl->conf->max_tls_version) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("TLS version mismatch: got %u, expected max %u",
@@ -5843,15 +5850,19 @@ static void ssl_buffering_free_slot(mbedtls_ssl_context *ssl,
 void mbedtls_ssl_write_version(unsigned char version[2], int transport,
                                mbedtls_ssl_protocol_version tls_version)
 {
+    uint16_t tls_version_formatted;
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if (transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
-        tls_version =
+        tls_version_formatted =
             ~(tls_version - (tls_version == 0x0302 ? 0x0202 : 0x0201));
-    }
+    } else
 #else
     ((void) transport);
 #endif
-    MBEDTLS_PUT_UINT16_BE(tls_version, version, 0);
+    {
+        tls_version_formatted = (uint16_t) tls_version;
+    }
+    MBEDTLS_PUT_UINT16_BE(tls_version_formatted, version, 0);
 }
 
 uint16_t mbedtls_ssl_read_version(const unsigned char version[2],

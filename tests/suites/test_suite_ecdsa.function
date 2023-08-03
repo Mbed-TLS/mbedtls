@@ -1,11 +1,5 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ecdsa.h"
-#include "hash_info.h"
-#include "mbedtls/legacy_or_psa.h"
-#if (defined(MBEDTLS_ECDSA_DETERMINISTIC) && defined(MBEDTLS_SHA256_C)) || \
-    (!defined(MBEDTLS_ECDSA_DETERMINISTIC) && defined(MBEDTLS_HAS_ALG_SHA_256_VIA_LOWLEVEL_OR_PSA))
-#define MBEDTLS_HAS_ALG_SHA_256_VIA_MD_IF_DETERMINISTIC
-#endif
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -20,7 +14,7 @@ void ecdsa_prim_zero(int id)
     mbedtls_ecp_point Q;
     mbedtls_mpi d, r, s;
     mbedtls_test_rnd_pseudo_info rnd_info;
-    unsigned char buf[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char buf[MBEDTLS_MD_MAX_SIZE];
 
     mbedtls_ecp_group_init(&grp);
     mbedtls_ecp_point_init(&Q);
@@ -52,7 +46,7 @@ void ecdsa_prim_random(int id)
     mbedtls_ecp_point Q;
     mbedtls_mpi d, r, s;
     mbedtls_test_rnd_pseudo_info rnd_info;
-    unsigned char buf[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char buf[MBEDTLS_MD_MAX_SIZE];
 
     mbedtls_ecp_group_init(&grp);
     mbedtls_ecp_point_init(&Q);
@@ -203,6 +197,8 @@ void ecdsa_det_test_vectors(int id, char *d_str, int md_alg, data_t *hash,
     mbedtls_ecp_group grp;
     mbedtls_mpi d, r, s, r_check, s_check;
 
+    MD_PSA_INIT();
+
     mbedtls_ecp_group_init(&grp);
     mbedtls_mpi_init(&d); mbedtls_mpi_init(&r); mbedtls_mpi_init(&s);
     mbedtls_mpi_init(&r_check); mbedtls_mpi_init(&s_check);
@@ -226,10 +222,11 @@ exit:
     mbedtls_ecp_group_free(&grp);
     mbedtls_mpi_free(&d); mbedtls_mpi_free(&r); mbedtls_mpi_free(&s);
     mbedtls_mpi_free(&r_check); mbedtls_mpi_free(&s_check);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_IF_DETERMINISTIC */
+/* BEGIN_CASE depends_on:MBEDTLS_MD_CAN_SHA256 */
 void ecdsa_write_read_zero(int id)
 {
     mbedtls_ecdsa_context ctx;
@@ -237,6 +234,8 @@ void ecdsa_write_read_zero(int id)
     unsigned char hash[32];
     unsigned char sig[200];
     size_t sig_len, i;
+
+    MD_PSA_INIT();
 
     mbedtls_ecdsa_init(&ctx);
     memset(&rnd_info, 0x00, sizeof(mbedtls_test_rnd_pseudo_info));
@@ -288,10 +287,11 @@ void ecdsa_write_read_zero(int id)
 
 exit:
     mbedtls_ecdsa_free(&ctx);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_IF_DETERMINISTIC */
+/* BEGIN_CASE depends_on:MBEDTLS_MD_CAN_SHA256 */
 void ecdsa_write_read_random(int id)
 {
     mbedtls_ecdsa_context ctx;
@@ -299,6 +299,8 @@ void ecdsa_write_read_random(int id)
     unsigned char hash[32];
     unsigned char sig[200];
     size_t sig_len, i;
+
+    MD_PSA_INIT();
 
     mbedtls_ecdsa_init(&ctx);
     memset(&rnd_info, 0x00, sizeof(mbedtls_test_rnd_pseudo_info));
@@ -354,6 +356,7 @@ void ecdsa_write_read_random(int id)
 
 exit:
     mbedtls_ecdsa_free(&ctx);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -433,6 +436,8 @@ void ecdsa_write_restart(int id, char *d_str, int md_alg,
     unsigned char sig[MBEDTLS_ECDSA_MAX_LEN];
     size_t slen;
 
+    MD_PSA_INIT();
+
     mbedtls_ecdsa_restart_init(&rs_ctx);
     mbedtls_ecdsa_init(&ctx);
     memset(sig, 0, sizeof(sig));
@@ -483,6 +488,7 @@ void ecdsa_write_restart(int id, char *d_str, int md_alg,
 exit:
     mbedtls_ecdsa_restart_free(&rs_ctx);
     mbedtls_ecdsa_free(&ctx);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 

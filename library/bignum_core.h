@@ -102,9 +102,12 @@
 
 /** Count leading zero bits in a given integer.
  *
+ * \warning     The result is undefined if \p a == 0
+ *
  * \param a     Integer to count leading zero bits.
  *
- * \return      The number of leading zero bits in \p a.
+ * \return      The number of leading zero bits in \p a, if \p a != 0.
+ *              If \p a == 0, the result is undefined.
  */
 size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a);
 
@@ -278,7 +281,7 @@ int mbedtls_mpi_core_write_be(const mbedtls_mpi_uint *A,
                               unsigned char *output,
                               size_t output_length);
 
-/** \brief              Shift an MPI right in place by a number of bits.
+/** \brief              Shift an MPI in-place right by a number of bits.
  *
  *                      Shifting by more bits than there are bit positions
  *                      in \p X is valid and results in setting \p X to 0.
@@ -291,6 +294,21 @@ int mbedtls_mpi_core_write_be(const mbedtls_mpi_uint *A,
  * \param count         The number of bits to shift by.
  */
 void mbedtls_mpi_core_shift_r(mbedtls_mpi_uint *X, size_t limbs,
+                              size_t count);
+
+/**
+ * \brief               Shift an MPI in-place left by a number of bits.
+ *
+ *                      Shifting by more bits than there are bit positions
+ *                      in \p X will produce an unspecified result.
+ *
+ *                      This function's execution time depends on the value
+ *                      of \p count (and of course \p limbs).
+ * \param[in,out] X     The number to shift.
+ * \param limbs         The number of limbs of \p X. This must be at least 1.
+ * \param count         The number of bits to shift by.
+ */
+void mbedtls_mpi_core_shift_l(mbedtls_mpi_uint *X, size_t limbs,
                               size_t count);
 
 /**
@@ -397,6 +415,26 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub(mbedtls_mpi_uint *X,
 mbedtls_mpi_uint mbedtls_mpi_core_mla(mbedtls_mpi_uint *X, size_t X_limbs,
                                       const mbedtls_mpi_uint *A, size_t A_limbs,
                                       mbedtls_mpi_uint b);
+
+/**
+ * \brief Perform a known-size multiplication
+ *
+ * \p X may not be aliased to any of the inputs for this function.
+ * \p A may be aliased to \p B.
+ *
+ * \param[out] X     The pointer to the (little-endian) array to receive
+ *                   the product of \p A_limbs and \p B_limbs.
+ *                   This must be of length \p A_limbs + \p B_limbs.
+ * \param[in] A      The pointer to the (little-endian) array
+ *                   representing the first factor.
+ * \param A_limbs    The number of limbs in \p A.
+ * \param[in] B      The pointer to the (little-endian) array
+ *                   representing the second factor.
+ * \param B_limbs    The number of limbs in \p B.
+ */
+void mbedtls_mpi_core_mul(mbedtls_mpi_uint *X,
+                          const mbedtls_mpi_uint *A, size_t A_limbs,
+                          const mbedtls_mpi_uint *B, size_t B_limbs);
 
 /**
  * \brief Calculate initialisation value for fast Montgomery modular
@@ -549,8 +587,6 @@ int mbedtls_mpi_core_random(mbedtls_mpi_uint *X,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng);
 
-/* BEGIN MERGE SLOT 1 */
-
 /**
  * \brief          Returns the number of limbs of working memory required for
  *                 a call to `mbedtls_mpi_core_exp_mod()`.
@@ -603,14 +639,6 @@ void mbedtls_mpi_core_exp_mod(mbedtls_mpi_uint *X,
                               const mbedtls_mpi_uint *E, size_t E_limbs,
                               const mbedtls_mpi_uint *RR,
                               mbedtls_mpi_uint *T);
-
-/* END MERGE SLOT 1 */
-
-/* BEGIN MERGE SLOT 2 */
-
-/* END MERGE SLOT 2 */
-
-/* BEGIN MERGE SLOT 3 */
 
 /**
  * \brief Subtract unsigned integer from known-size large unsigned integers.
@@ -733,35 +761,5 @@ void mbedtls_mpi_core_from_mont_rep(mbedtls_mpi_uint *X,
                                     size_t AN_limbs,
                                     mbedtls_mpi_uint mm,
                                     mbedtls_mpi_uint *T);
-
-/* END MERGE SLOT 3 */
-
-/* BEGIN MERGE SLOT 4 */
-
-/* END MERGE SLOT 4 */
-
-/* BEGIN MERGE SLOT 5 */
-
-/* END MERGE SLOT 5 */
-
-/* BEGIN MERGE SLOT 6 */
-
-/* END MERGE SLOT 6 */
-
-/* BEGIN MERGE SLOT 7 */
-
-/* END MERGE SLOT 7 */
-
-/* BEGIN MERGE SLOT 8 */
-
-/* END MERGE SLOT 8 */
-
-/* BEGIN MERGE SLOT 9 */
-
-/* END MERGE SLOT 9 */
-
-/* BEGIN MERGE SLOT 10 */
-
-/* END MERGE SLOT 10 */
 
 #endif /* MBEDTLS_BIGNUM_CORE_H */

@@ -54,6 +54,7 @@ extern "C" {
 typedef enum {
     MBEDTLS_ECJPAKE_CLIENT = 0,         /**< Client                         */
     MBEDTLS_ECJPAKE_SERVER,             /**< Server                         */
+    MBEDTLS_ECJPAKE_NONE,               /**< Undefined                      */
 } mbedtls_ecjpake_role;
 
 #if !defined(MBEDTLS_ECJPAKE_ALT)

@@ -98,10 +98,11 @@ typedef enum {
     /* Skip 1 as it is slightly easier to accidentally pass to functions. */
     /** Montgomery representation. */
     MBEDTLS_MPI_MOD_REP_MONTGOMERY = 2,
-    /** TODO: document this.
-     *
-     * Residues are in canonical representation.
-     */
+    /* Optimised reduction available. This indicates a coordinate modulus (P)
+     * and one or more of the following have been configured:
+     * - A nist curve (MBEDTLS_ECP_DP_SECPXXXR1_ENABLED) & MBEDTLS_ECP_NIST_OPTIM.
+     * - A Kobliz Curve.
+     * - A Fast Reduction Curve CURVE25519 or CURVE448. */
     MBEDTLS_MPI_MOD_REP_OPT_RED,
 } mbedtls_mpi_mod_rep_selector;
 
@@ -123,7 +124,11 @@ typedef struct {
     mbedtls_mpi_uint mm;         /* Montgomery const for -N^{-1} mod 2^{ciL} */
 } mbedtls_mpi_mont_struct;
 
-typedef void *mbedtls_mpi_opt_red_struct;
+typedef int (*mbedtls_mpi_modp_fn)(mbedtls_mpi_uint *X, size_t X_limbs);
+
+typedef struct {
+    mbedtls_mpi_modp_fn modp;    /* The optimised reduction function pointer */
+} mbedtls_mpi_opt_red_struct;
 
 typedef struct {
     const mbedtls_mpi_uint *p;
@@ -197,16 +202,29 @@ void mbedtls_mpi_mod_modulus_init(mbedtls_mpi_mod_modulus *N);
  *                  not be modified in any way until after
  *                  mbedtls_mpi_mod_modulus_free() is called.
  * \param p_limbs   The number of limbs of \p p.
- * \param int_rep   The internal representation to be used for residues
- *                  associated with \p N (see #mbedtls_mpi_mod_rep_selector).
  *
  * \return      \c 0 if successful.
- * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p int_rep is invalid.
  */
 int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *N,
                                   const mbedtls_mpi_uint *p,
-                                  size_t p_limbs,
-                                  mbedtls_mpi_mod_rep_selector int_rep);
+                                  size_t p_limbs);
+
+/** Setup an optimised-reduction compatible modulus structure.
+ *
+ * \param[out] N    The address of the modulus structure to populate.
+ * \param[in] p     The address of the limb array storing the value of \p N.
+ *                  The memory pointed to by \p p will be used by \p N and must
+ *                  not be modified in any way until after
+ *                  mbedtls_mpi_mod_modulus_free() is called.
+ * \param p_limbs   The number of limbs of \p p.
+ * \param modp      A pointer to the optimised reduction function to use. \p p.
+ *
+ * \return      \c 0 if successful.
+ */
+int mbedtls_mpi_mod_optred_modulus_setup(mbedtls_mpi_mod_modulus *N,
+                                         const mbedtls_mpi_uint *p,
+                                         size_t p_limbs,
+                                         mbedtls_mpi_modp_fn modp);
 
 /** Free elements of a modulus structure.
  *
@@ -219,12 +237,6 @@ int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *N,
  * \param[in,out] N     The address of the modulus structure to free.
  */
 void mbedtls_mpi_mod_modulus_free(mbedtls_mpi_mod_modulus *N);
-
-/* BEGIN MERGE SLOT 1 */
-
-/* END MERGE SLOT 1 */
-
-/* BEGIN MERGE SLOT 2 */
 
 /** \brief  Multiply two residues, returning the residue modulo the specified
  *          modulus.
@@ -260,9 +272,6 @@ int mbedtls_mpi_mod_mul(mbedtls_mpi_mod_residue *X,
                         const mbedtls_mpi_mod_residue *B,
                         const mbedtls_mpi_mod_modulus *N);
 
-/* END MERGE SLOT 2 */
-
-/* BEGIN MERGE SLOT 3 */
 /**
  * \brief Perform a fixed-size modular subtraction.
  *
@@ -321,13 +330,6 @@ int mbedtls_mpi_mod_sub(mbedtls_mpi_mod_residue *X,
 int mbedtls_mpi_mod_inv(mbedtls_mpi_mod_residue *X,
                         const mbedtls_mpi_mod_residue *A,
                         const mbedtls_mpi_mod_modulus *N);
-/* END MERGE SLOT 3 */
-
-/* BEGIN MERGE SLOT 4 */
-
-/* END MERGE SLOT 4 */
-
-/* BEGIN MERGE SLOT 5 */
 /**
  * \brief Perform a fixed-size modular addition.
  *
@@ -358,9 +360,6 @@ int mbedtls_mpi_mod_add(mbedtls_mpi_mod_residue *X,
                         const mbedtls_mpi_mod_residue *A,
                         const mbedtls_mpi_mod_residue *B,
                         const mbedtls_mpi_mod_modulus *N);
-/* END MERGE SLOT 5 */
-
-/* BEGIN MERGE SLOT 6 */
 
 /** Generate a random number uniformly in a range.
  *
@@ -395,9 +394,6 @@ int mbedtls_mpi_mod_random(mbedtls_mpi_mod_residue *X,
                            int (*f_rng)(void *, unsigned char *, size_t),
                            void *p_rng);
 
-/* END MERGE SLOT 6 */
-
-/* BEGIN MERGE SLOT 7 */
 /** Read a residue from a byte buffer.
  *
  * The residue will be automatically converted to the internal representation
@@ -464,18 +460,5 @@ int mbedtls_mpi_mod_write(const mbedtls_mpi_mod_residue *r,
                           unsigned char *buf,
                           size_t buflen,
                           mbedtls_mpi_mod_ext_rep ext_rep);
-/* END MERGE SLOT 7 */
-
-/* BEGIN MERGE SLOT 8 */
-
-/* END MERGE SLOT 8 */
-
-/* BEGIN MERGE SLOT 9 */
-
-/* END MERGE SLOT 9 */
-
-/* BEGIN MERGE SLOT 10 */
-
-/* END MERGE SLOT 10 */
 
 #endif /* MBEDTLS_BIGNUM_MOD_H */

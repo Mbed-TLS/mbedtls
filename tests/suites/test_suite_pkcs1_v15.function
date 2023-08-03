@@ -1,8 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/rsa.h"
 #include "mbedtls/md.h"
-
-#include "mbedtls/legacy_or_psa.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

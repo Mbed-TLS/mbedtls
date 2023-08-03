@@ -39,18 +39,18 @@ struct mbedtls_pk_info_t {
     const char *name;
 
     /** Get key size in bits */
-    size_t (*get_bitlen)(const void *);
+    size_t (*get_bitlen)(mbedtls_pk_context *pk);
 
     /** Tell if the context implements this type (e.g. ECKEY can do ECDSA) */
     int (*can_do)(mbedtls_pk_type_t type);
 
     /** Verify signature */
-    int (*verify_func)(void *ctx, mbedtls_md_type_t md_alg,
+    int (*verify_func)(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
                        const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len);
 
     /** Make signature */
-    int (*sign_func)(void *ctx, mbedtls_md_type_t md_alg,
+    int (*sign_func)(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
                      const unsigned char *hash, size_t hash_len,
                      unsigned char *sig, size_t sig_size, size_t *sig_len,
                      int (*f_rng)(void *, unsigned char *, size_t),
@@ -58,13 +58,13 @@ struct mbedtls_pk_info_t {
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     /** Verify signature (restartable) */
-    int (*verify_rs_func)(void *ctx, mbedtls_md_type_t md_alg,
+    int (*verify_rs_func)(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
                           const unsigned char *hash, size_t hash_len,
                           const unsigned char *sig, size_t sig_len,
                           void *rs_ctx);
 
     /** Make signature (restartable) */
-    int (*sign_rs_func)(void *ctx, mbedtls_md_type_t md_alg,
+    int (*sign_rs_func)(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
                         const unsigned char *hash, size_t hash_len,
                         unsigned char *sig, size_t sig_size, size_t *sig_len,
                         int (*f_rng)(void *, unsigned char *, size_t),
@@ -72,19 +72,19 @@ struct mbedtls_pk_info_t {
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
     /** Decrypt message */
-    int (*decrypt_func)(void *ctx, const unsigned char *input, size_t ilen,
+    int (*decrypt_func)(mbedtls_pk_context *pk, const unsigned char *input, size_t ilen,
                         unsigned char *output, size_t *olen, size_t osize,
                         int (*f_rng)(void *, unsigned char *, size_t),
                         void *p_rng);
 
     /** Encrypt message */
-    int (*encrypt_func)(void *ctx, const unsigned char *input, size_t ilen,
+    int (*encrypt_func)(mbedtls_pk_context *pk, const unsigned char *input, size_t ilen,
                         unsigned char *output, size_t *olen, size_t osize,
                         int (*f_rng)(void *, unsigned char *, size_t),
                         void *p_rng);
 
     /** Check public-private key pair */
-    int (*check_pair_func)(const void *pub, const void *prv,
+    int (*check_pair_func)(mbedtls_pk_context *pub, mbedtls_pk_context *prv,
                            int (*f_rng)(void *, unsigned char *, size_t),
                            void *p_rng);
 
@@ -103,7 +103,7 @@ struct mbedtls_pk_info_t {
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
     /** Interface with the debug module */
-    void (*debug_func)(const void *ctx, mbedtls_pk_debug_item *items);
+    void (*debug_func)(mbedtls_pk_context *pk, mbedtls_pk_debug_item *items);
 
 };
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
@@ -120,7 +120,7 @@ typedef struct {
 extern const mbedtls_pk_info_t mbedtls_rsa_info;
 #endif
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 extern const mbedtls_pk_info_t mbedtls_eckey_info;
 extern const mbedtls_pk_info_t mbedtls_eckeydh_info;
 #endif
@@ -134,8 +134,8 @@ extern const mbedtls_pk_info_t mbedtls_rsa_alt_info;
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-extern const mbedtls_pk_info_t mbedtls_pk_ecdsa_opaque_info;
-extern const mbedtls_pk_info_t mbedtls_pk_rsa_opaque_info;
+extern const mbedtls_pk_info_t mbedtls_ecdsa_opaque_info;
+extern const mbedtls_pk_info_t mbedtls_rsa_opaque_info;
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
@@ -150,9 +150,9 @@ int MBEDTLS_DEPRECATED mbedtls_pk_error_from_psa_ecdsa(psa_status_t status);
 int MBEDTLS_DEPRECATED mbedtls_pk_error_from_psa(psa_status_t status);
 
 #if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY) ||    \
-    defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR)
+    defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
 int MBEDTLS_DEPRECATED mbedtls_pk_error_from_psa_rsa(psa_status_t status);
-#endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY || PSA_WANT_KEY_TYPE_RSA_KEY_PAIR */
+#endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY || PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC */
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_RSA_C)

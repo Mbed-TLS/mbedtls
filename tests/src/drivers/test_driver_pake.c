@@ -19,7 +19,7 @@
 
 #include <test/helpers.h>
 
-#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
 #include "psa_crypto_pake.h"
 
 #include "test/drivers/pake.h"
@@ -94,7 +94,8 @@ psa_status_t mbedtls_test_transparent_pake_output(
         defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_PAKE)
         mbedtls_test_driver_pake_hooks.driver_status =
             libtestdriver1_mbedtls_psa_pake_output(
-                operation, step, output, output_size, output_length);
+                operation, (libtestdriver1_psa_crypto_driver_pake_step_t) step,
+                output, output_size, output_length);
 #elif defined(MBEDTLS_PSA_BUILTIN_PAKE)
         mbedtls_test_driver_pake_hooks.driver_status =
             mbedtls_psa_pake_output(
@@ -129,7 +130,8 @@ psa_status_t mbedtls_test_transparent_pake_input(
         defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_PAKE)
         mbedtls_test_driver_pake_hooks.driver_status =
             libtestdriver1_mbedtls_psa_pake_input(
-                operation, step, input, input_length);
+                operation, (libtestdriver1_psa_crypto_driver_pake_step_t) step,
+                input, input_length);
 #elif defined(MBEDTLS_PSA_BUILTIN_PAKE)
         mbedtls_test_driver_pake_hooks.driver_status =
             mbedtls_psa_pake_input(
@@ -209,4 +211,4 @@ psa_status_t mbedtls_test_transparent_pake_abort(
     return mbedtls_test_driver_pake_hooks.driver_status;
 }
 
-#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_DRIVER_TEST */

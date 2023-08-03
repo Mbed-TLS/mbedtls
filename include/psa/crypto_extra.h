@@ -29,8 +29,6 @@
 #define PSA_CRYPTO_EXTRA_H
 #include "mbedtls/private_access.h"
 
-#include "mbedtls/platform_util.h"
-
 #include "crypto_types.h"
 #include "crypto_compat.h"
 
@@ -108,7 +106,7 @@ static inline psa_algorithm_t psa_get_key_enrollment_algorithm(
  *         indicates the slot number that contains it.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The caller is not permitted to query the slot number.
- *         Mbed Crypto currently does not return this error.
+ *         Mbed TLS currently does not return this error.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The key is not located in a secure element.
  */
@@ -221,7 +219,7 @@ void mbedtls_psa_crypto_free(void);
  * resource consumption related to the PSA keystore.
  *
  * \note The content of this structure is not part of the stable API and ABI
- *       of Mbed Crypto and may change arbitrarily from version to version.
+ *       of Mbed TLS and may change arbitrarily from version to version.
  */
 typedef struct mbedtls_psa_stats_s {
     /** Number of slots containing key material for a volatile key. */
@@ -250,7 +248,7 @@ typedef struct mbedtls_psa_stats_s {
 /** \brief Get statistics about
  * resource consumption related to the PSA keystore.
  *
- * \note When Mbed Crypto is built as part of a service, with isolation
+ * \note When Mbed TLS is built as part of a service, with isolation
  *       between the application and the keystore, the service may or
  *       may not expose this function.
  */
@@ -574,8 +572,7 @@ psa_status_t psa_get_key_domain_parameters(
 /** \defgroup psa_tls_helpers TLS helper functions
  * @{
  */
-
-#if defined(MBEDTLS_ECP_C)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 #include <mbedtls/ecp.h>
 
 /** Convert an ECC curve identifier from the Mbed TLS encoding to PSA.
@@ -591,54 +588,8 @@ psa_status_t psa_get_key_domain_parameters(
  *                      (`PSA_ECC_FAMILY_xxx`).
  * \return              \c 0 on failure (\p grpid is not recognized).
  */
-static inline psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
-                                                        size_t *bits)
-{
-    switch (grpid) {
-        case MBEDTLS_ECP_DP_SECP192R1:
-            *bits = 192;
-            return PSA_ECC_FAMILY_SECP_R1;
-        case MBEDTLS_ECP_DP_SECP224R1:
-            *bits = 224;
-            return PSA_ECC_FAMILY_SECP_R1;
-        case MBEDTLS_ECP_DP_SECP256R1:
-            *bits = 256;
-            return PSA_ECC_FAMILY_SECP_R1;
-        case MBEDTLS_ECP_DP_SECP384R1:
-            *bits = 384;
-            return PSA_ECC_FAMILY_SECP_R1;
-        case MBEDTLS_ECP_DP_SECP521R1:
-            *bits = 521;
-            return PSA_ECC_FAMILY_SECP_R1;
-        case MBEDTLS_ECP_DP_BP256R1:
-            *bits = 256;
-            return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
-        case MBEDTLS_ECP_DP_BP384R1:
-            *bits = 384;
-            return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
-        case MBEDTLS_ECP_DP_BP512R1:
-            *bits = 512;
-            return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
-        case MBEDTLS_ECP_DP_CURVE25519:
-            *bits = 255;
-            return PSA_ECC_FAMILY_MONTGOMERY;
-        case MBEDTLS_ECP_DP_SECP192K1:
-            *bits = 192;
-            return PSA_ECC_FAMILY_SECP_K1;
-        case MBEDTLS_ECP_DP_SECP224K1:
-            *bits = 224;
-            return PSA_ECC_FAMILY_SECP_K1;
-        case MBEDTLS_ECP_DP_SECP256K1:
-            *bits = 256;
-            return PSA_ECC_FAMILY_SECP_K1;
-        case MBEDTLS_ECP_DP_CURVE448:
-            *bits = 448;
-            return PSA_ECC_FAMILY_MONTGOMERY;
-        default:
-            *bits = 0;
-            return 0;
-    }
-}
+psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
+                                          size_t *bits);
 
 /** Convert an ECC curve identifier from the PSA encoding to Mbed TLS.
  *
@@ -662,7 +613,7 @@ static inline psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grp
 mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
                                               size_t bits,
                                               int bits_is_sloppy);
-#endif /* MBEDTLS_ECP_C */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 /**@}*/
 
@@ -958,7 +909,7 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
  * the official PSA Crypto API yet.
  *
  * \note The content of this section is not part of the stable API and ABI
- *       of Mbed Crypto and may change arbitrarily from version to version.
+ *       of Mbed TLS and may change arbitrarily from version to version.
  *       Same holds for the corresponding macros #PSA_ALG_CATEGORY_PAKE and
  *       #PSA_ALG_JPAKE.
  * @{
@@ -1085,12 +1036,12 @@ typedef uint32_t psa_pake_primitive_t;
  *                      (value of type ::psa_pake_primitive_type_t).
  * \param pake_family   The family of the primitive
  *                      (the type and interpretation of this parameter depends
- *                      on \p type, for more information consult the
+ *                      on \p pake_type, for more information consult the
  *                      documentation of individual ::psa_pake_primitive_type_t
  *                      constants).
  * \param pake_bits     The bit-size of the primitive
  *                      (Value of type \c size_t. The interpretation
- *                      of this parameter depends on \p family, for more
+ *                      of this parameter depends on \p pake_family, for more
  *                      information consult the documentation of individual
  *                      ::psa_pake_primitive_type_t constants).
  *
@@ -1330,20 +1281,6 @@ psa_status_t psa_crypto_driver_pake_get_password(
     const psa_crypto_driver_pake_inputs_t *inputs,
     uint8_t *buffer, size_t buffer_size, size_t *buffer_length);
 
-/** Get the role from given inputs.
- *
- * \param[in]  inputs           Operation inputs.
- * \param[out] role             Return buffer for role.
- *
- * \retval #PSA_SUCCESS
- *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         Role hasn't been set yet.
- */
-psa_status_t psa_crypto_driver_pake_get_role(
-    const psa_crypto_driver_pake_inputs_t *inputs,
-    psa_pake_role_t *role);
-
 /** Get the length of the user id in bytes from given inputs.
  *
  * \param[in]  inputs           Operation inputs.
@@ -1562,7 +1499,6 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  *                              been set (psa_pake_set_user() hasn't been
  *                              called yet).
  * \param[in] user_id           The user ID to authenticate with.
- *                              (temporary limitation: "client" or "server" only)
  * \param user_id_len           Size of the \p user_id buffer in bytes.
  *
  * \retval #PSA_SUCCESS
@@ -1604,13 +1540,12 @@ psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
  *                              been set (psa_pake_set_peer() hasn't been
  *                              called yet).
  * \param[in] peer_id           The peer's ID to authenticate.
- *                              (temporary limitation: "client" or "server" only)
  * \param peer_id_len           Size of the \p peer_id buffer in bytes.
  *
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p user_id is not valid for the \p operation's algorithm and cipher
+ *         \p peer_id is not valid for the \p operation's algorithm and cipher
  *         suite.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The algorithm doesn't associate a second identity with the session.
@@ -1692,8 +1627,8 @@ psa_status_t psa_pake_set_role(psa_pake_operation_t *operation,
  *                             \c PSA_PAKE_STEP_XXX constants for more
  *                             information.
  * \param output_size          Size of the \p output buffer in bytes. This must
- *                             be at least #PSA_PAKE_OUTPUT_SIZE(\p alg, \p
- *                             primitive, \p step) where \p alg and
+ *                             be at least #PSA_PAKE_OUTPUT_SIZE(\c alg, \c
+ *                             primitive, \p output_step) where \c alg and
  *                             \p primitive are the PAKE algorithm and primitive
  *                             in the operation's cipher suite, and \p step is
  *                             the output step.
@@ -1758,9 +1693,9 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
  * \retval #PSA_ERROR_INVALID_SIGNATURE
  *         The verification fails for a #PSA_PAKE_STEP_ZK_PROOF input step.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p is not compatible with the \p operation’s algorithm, or the
- *         \p input is not valid for the \p operation's algorithm, cipher suite
- *         or \p step.
+ *         \p input_length is not compatible with the \p operation’s algorithm,
+ *         or the \p input is not valid for the \p operation's algorithm,
+ *         cipher suite or \p step.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p step p is not supported with the \p operation's algorithm, or the
  *         \p input is not supported for the \p operation's algorithm, cipher
@@ -1809,7 +1744,7 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
  *
  * When this function returns successfully, \p operation becomes inactive.
  * If this function returns an error status, both \p operation
- * and \p key_derivation operations enter an error state and must be aborted by
+ * and \c key_derivation operations enter an error state and must be aborted by
  * calling psa_pake_abort() and psa_key_derivation_abort() respectively.
  *
  * \param[in,out] operation    Active PAKE operation.
@@ -1939,7 +1874,10 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
  *
  * This macro must expand to a compile-time constant integer.
  *
- * See also #PSA_PAKE_OUTPUT_SIZE(\p alg, \p primitive, \p step).
+ * The value of this macro must be at least as large as the largest value
+ * returned by PSA_PAKE_OUTPUT_SIZE()
+ *
+ * See also #PSA_PAKE_OUTPUT_SIZE(\p alg, \p primitive, \p output_step).
  */
 #define PSA_PAKE_OUTPUT_MAX_SIZE 65
 
@@ -1948,7 +1886,10 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
  *
  * This macro must expand to a compile-time constant integer.
  *
- * See also #PSA_PAKE_INPUT_SIZE(\p alg, \p primitive, \p step).
+ * The value of this macro must be at least as large as the largest value
+ * returned by PSA_PAKE_INPUT_SIZE()
+ *
+ * See also #PSA_PAKE_INPUT_SIZE(\p alg, \p primitive, \p output_step).
  */
 #define PSA_PAKE_INPUT_MAX_SIZE 65
 
@@ -1960,7 +1901,7 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
 /** Returns a suitable initializer for a PAKE operation object of type
  * psa_pake_operation_t.
  */
-#define PSA_PAKE_OPERATION_INIT { 0, PSA_ALG_NONE, PSA_PAKE_OPERATION_STAGE_SETUP, \
+#define PSA_PAKE_OPERATION_INIT { 0, PSA_ALG_NONE, 0, PSA_PAKE_OPERATION_STAGE_SETUP, \
                                   { 0 }, { { 0 } } }
 
 struct psa_pake_cipher_suite_s {
@@ -2035,7 +1976,6 @@ static inline void psa_pake_cs_set_hash(psa_pake_cipher_suite_t *cipher_suite,
 struct psa_crypto_driver_pake_inputs_s {
     uint8_t *MBEDTLS_PRIVATE(password);
     size_t MBEDTLS_PRIVATE(password_len);
-    psa_pake_role_t MBEDTLS_PRIVATE(role);
     uint8_t *MBEDTLS_PRIVATE(user);
     size_t MBEDTLS_PRIVATE(user_len);
     uint8_t *MBEDTLS_PRIVATE(peer);
@@ -2043,34 +1983,6 @@ struct psa_crypto_driver_pake_inputs_s {
     psa_key_attributes_t MBEDTLS_PRIVATE(attributes);
     psa_pake_cipher_suite_t MBEDTLS_PRIVATE(cipher_suite);
 };
-
-typedef enum psa_jpake_step {
-    PSA_PAKE_STEP_INVALID       = 0,
-    PSA_PAKE_STEP_X1_X2         = 1,
-    PSA_PAKE_STEP_X2S           = 2,
-    PSA_PAKE_STEP_DERIVE        = 3,
-} psa_jpake_step_t;
-
-typedef enum psa_jpake_state {
-    PSA_PAKE_STATE_INVALID      = 0,
-    PSA_PAKE_STATE_SETUP        = 1,
-    PSA_PAKE_STATE_READY        = 2,
-    PSA_PAKE_OUTPUT_X1_X2       = 3,
-    PSA_PAKE_OUTPUT_X2S         = 4,
-    PSA_PAKE_INPUT_X1_X2        = 5,
-    PSA_PAKE_INPUT_X4S          = 6,
-} psa_jpake_state_t;
-
-typedef enum psa_jpake_sequence {
-    PSA_PAKE_SEQ_INVALID        = 0,
-    PSA_PAKE_X1_STEP_KEY_SHARE  = 1,    /* also X2S & X4S KEY_SHARE */
-    PSA_PAKE_X1_STEP_ZK_PUBLIC  = 2,    /* also X2S & X4S ZK_PUBLIC */
-    PSA_PAKE_X1_STEP_ZK_PROOF   = 3,    /* also X2S & X4S ZK_PROOF */
-    PSA_PAKE_X2_STEP_KEY_SHARE  = 4,
-    PSA_PAKE_X2_STEP_ZK_PUBLIC  = 5,
-    PSA_PAKE_X2_STEP_ZK_PROOF   = 6,
-    PSA_PAKE_SEQ_END            = 7,
-} psa_jpake_sequence_t;
 
 typedef enum psa_crypto_driver_pake_step {
     PSA_JPAKE_STEP_INVALID        = 0,  /* Invalid step */
@@ -2088,13 +2000,34 @@ typedef enum psa_crypto_driver_pake_step {
     PSA_JPAKE_X4S_STEP_ZK_PROOF   = 12  /* Round 2: input Schnorr NIZKP proof for the X4S key (from peer) */
 } psa_crypto_driver_pake_step_t;
 
+typedef enum psa_jpake_round {
+    PSA_JPAKE_FIRST = 0,
+    PSA_JPAKE_SECOND = 1,
+    PSA_JPAKE_FINISHED = 2
+} psa_jpake_round_t;
+
+typedef enum psa_jpake_io_mode {
+    PSA_JPAKE_INPUT = 0,
+    PSA_JPAKE_OUTPUT = 1
+} psa_jpake_io_mode_t;
 
 struct psa_jpake_computation_stage_s {
-    psa_jpake_state_t MBEDTLS_PRIVATE(state);
-    psa_jpake_sequence_t MBEDTLS_PRIVATE(sequence);
-    psa_jpake_step_t MBEDTLS_PRIVATE(input_step);
-    psa_jpake_step_t MBEDTLS_PRIVATE(output_step);
+    /* The J-PAKE round we are currently on */
+    psa_jpake_round_t MBEDTLS_PRIVATE(round);
+    /* The 'mode' we are currently in (inputting or outputting) */
+    psa_jpake_io_mode_t MBEDTLS_PRIVATE(io_mode);
+    /* The number of completed inputs so far this round */
+    uint8_t MBEDTLS_PRIVATE(inputs);
+    /* The number of completed outputs so far this round */
+    uint8_t MBEDTLS_PRIVATE(outputs);
+    /* The next expected step (KEY_SHARE, ZK_PUBLIC or ZK_PROOF) */
+    psa_pake_step_t MBEDTLS_PRIVATE(step);
 };
+
+#define PSA_JPAKE_EXPECTED_INPUTS(round) ((round) == PSA_JPAKE_FINISHED ? 0 : \
+                                          ((round) == PSA_JPAKE_FIRST ? 2 : 1))
+#define PSA_JPAKE_EXPECTED_OUTPUTS(round) ((round) == PSA_JPAKE_FINISHED ? 0 : \
+                                           ((round) == PSA_JPAKE_FIRST ? 2 : 1))
 
 struct psa_pake_operation_s {
     /** Unique ID indicating which driver got assigned to do the
@@ -2106,6 +2039,8 @@ struct psa_pake_operation_s {
     unsigned int MBEDTLS_PRIVATE(id);
     /* Algorithm of the PAKE operation */
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
+    /* A primitive of type compatible with algorithm */
+    psa_pake_primitive_t MBEDTLS_PRIVATE(primitive);
     /* Stage of the PAKE operation: waiting for the setup, collecting inputs
      * or computing. */
     uint8_t MBEDTLS_PRIVATE(stage);

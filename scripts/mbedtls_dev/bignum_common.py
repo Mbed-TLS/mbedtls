@@ -17,7 +17,9 @@
 from abc import abstractmethod
 import enum
 from typing import Iterator, List, Tuple, TypeVar, Any
+from copy import deepcopy
 from itertools import chain
+from math import ceil
 
 from . import test_case
 from . import test_data_generation
@@ -68,15 +70,38 @@ def bound_mpi_limbs(limbs: int, bits_in_limb: int) -> int:
 
 def limbs_mpi(val: int, bits_in_limb: int) -> int:
     """Return the number of limbs required to store value."""
-    return (val.bit_length() + bits_in_limb - 1) // bits_in_limb
+    bit_length = max(val.bit_length(), 1)
+    return (bit_length + bits_in_limb - 1) // bits_in_limb
 
 def combination_pairs(values: List[T]) -> List[Tuple[T, T]]:
     """Return all pair combinations from input values."""
     return [(x, y) for x in values for y in values]
 
+def bits_to_limbs(bits: int, bits_in_limb: int) -> int:
+    """ Return the appropriate ammount of limbs needed to store
+        a number contained in input bits"""
+    return ceil(bits / bits_in_limb)
+
 def hex_digits_for_limb(limbs: int, bits_in_limb: int) -> int:
-    """ Retrun the hex digits need for a number of limbs. """
-    return 2 * (limbs * bits_in_limb // 8)
+    """ Return the hex digits need for a number of limbs. """
+    return 2 * ((limbs * bits_in_limb) // 8)
+
+def hex_digits_max_int(val: str, bits_in_limb: int) -> int:
+    """ Return the first number exceeding maximum  the limb space
+    required to store the input hex-string value. This method
+    weights on the input str_len rather than numerical value
+    and works with zero-padded inputs"""
+    n = ((1 << (len(val) * 4)) - 1)
+    l = limbs_mpi(n, bits_in_limb)
+    return bound_mpi_limbs(l, bits_in_limb)
+
+def zfill_match(reference: str, target: str) -> str:
+    """ Zero pad target hex-string to match the limb size of
+    the reference input """
+    lt = len(target)
+    lr = len(reference)
+    target_len = lr if lt < lr else lt
+    return "{:x}".format(int(target, 16)).zfill(target_len)
 
 class OperationCommon(test_data_generation.BaseTest):
     """Common features for bignum binary operations.
@@ -103,6 +128,7 @@ class OperationCommon(test_data_generation.BaseTest):
     symbol = ""
     input_values = INPUTS_DEFAULT # type: List[str]
     input_cases = [] # type: List[Any]
+    dependencies = [] # type: List[Any]
     unique_combinations_only = False
     input_styles = ["variable", "fixed", "arch_split"] # type: List[str]
     input_style = "variable" # type: str
@@ -118,10 +144,11 @@ class OperationCommon(test_data_generation.BaseTest):
         # provides earlier/more robust input validation.
         self.int_a = hex_to_int(val_a)
         self.int_b = hex_to_int(val_b)
+        self.dependencies = deepcopy(self.dependencies)
         if bits_in_limb not in self.limb_sizes:
             raise ValueError("Invalid number of bits in limb!")
         if self.input_style == "arch_split":
-            self.dependencies = ["MBEDTLS_HAVE_INT{:d}".format(bits_in_limb)]
+            self.dependencies.append("MBEDTLS_HAVE_INT{:d}".format(bits_in_limb))
         self.bits_in_limb = bits_in_limb
 
     @property
@@ -388,43 +415,3 @@ class ModOperationCommon(OperationCommon):
                         lambda test_object: test_object.is_valid,
                         chain(test_objects, special_cases)
                         ))
-
-# BEGIN MERGE SLOT 1
-
-# END MERGE SLOT 1
-
-# BEGIN MERGE SLOT 2
-
-# END MERGE SLOT 2
-
-# BEGIN MERGE SLOT 3
-
-# END MERGE SLOT 3
-
-# BEGIN MERGE SLOT 4
-
-# END MERGE SLOT 4
-
-# BEGIN MERGE SLOT 5
-
-# END MERGE SLOT 5
-
-# BEGIN MERGE SLOT 6
-
-# END MERGE SLOT 6
-
-# BEGIN MERGE SLOT 7
-
-# END MERGE SLOT 7
-
-# BEGIN MERGE SLOT 8
-
-# END MERGE SLOT 8
-
-# BEGIN MERGE SLOT 9
-
-# END MERGE SLOT 9
-
-# BEGIN MERGE SLOT 10
-
-# END MERGE SLOT 10

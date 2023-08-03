@@ -19,11 +19,12 @@
 
 #include <test/helpers.h>
 
-#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
 
 #include "psa/crypto.h"
 #include "psa_crypto_core.h"
 #include "psa_crypto_ecp.h"
+#include "psa_crypto_ffdh.h"
 
 #include "test/drivers/key_agreement.h"
 #include "test/drivers/test_driver.h"
@@ -33,6 +34,7 @@
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
 #include "libtestdriver1/include/psa/crypto.h"
 #include "libtestdriver1/library/psa_crypto_ecp.h"
+#include "libtestdriver1/library/psa_crypto_ffdh.h"
 #endif
 
 mbedtls_test_driver_key_agreement_hooks_t
@@ -94,6 +96,37 @@ psa_status_t mbedtls_test_transparent_key_agreement(
         (void) shared_secret_length;
         return PSA_ERROR_NOT_SUPPORTED;
 #endif
+    }
+    if (PSA_ALG_IS_FFDH(alg)) {
+#if (defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+        defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_ALG_FFDH))
+        return libtestdriver1_mbedtls_psa_ffdh_key_agreement(
+            (const libtestdriver1_psa_key_attributes_t *) attributes,
+            peer_key, peer_key_length,
+            key_buffer, key_buffer_size,
+            shared_secret, shared_secret_size,
+            shared_secret_length);
+#elif defined(MBEDTLS_PSA_BUILTIN_ALG_FFDH)
+        return mbedtls_psa_ffdh_key_agreement(
+            attributes,
+            peer_key,
+            peer_key_length,
+            key_buffer,
+            key_buffer_size,
+            shared_secret,
+            shared_secret_size,
+            shared_secret_length);
+#else
+        (void) attributes;
+        (void) key_buffer;
+        (void) key_buffer_size;
+        (void) peer_key;
+        (void) peer_key_length;
+        (void) shared_secret;
+        (void) shared_secret_size;
+        (void) shared_secret_length;
+        return PSA_ERROR_NOT_SUPPORTED;
+#endif
     } else {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
@@ -123,4 +156,4 @@ psa_status_t mbedtls_test_opaque_key_agreement(
     return PSA_ERROR_NOT_SUPPORTED;
 }
 
-#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_DRIVER_TEST */

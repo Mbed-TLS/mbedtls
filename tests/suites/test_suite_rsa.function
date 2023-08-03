@@ -1,8 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/rsa.h"
 #include "rsa_alt_helpers.h"
-
-#include "mbedtls/legacy_or_psa.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -1376,6 +1374,10 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void rsa_selftest()
 {
+    MD_PSA_INIT();
     TEST_ASSERT(mbedtls_rsa_self_test(1) == 0);
+
+exit:
+    MD_PSA_DONE();
 }
 /* END_CASE */

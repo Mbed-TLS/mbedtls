@@ -48,26 +48,51 @@
 
 #if defined(MBEDTLS_HAVE_ARM64)
 
-#if !defined(__ARM_FEATURE_AES) || defined(MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG)
-#   if defined(__clang__)
-#       if __clang_major__ < 4
-#           error "A more recent Clang is required for MBEDTLS_AESCE_C"
+/* Compiler version checks. */
+#if defined(__clang__)
+#   if __clang_major__ < 4
+#       error "Minimum version of Clang for MBEDTLS_AESCE_C is 4.0."
+#   endif
+#elif defined(__GNUC__)
+#   if __GNUC__ < 6
+#       error "Minimum version of GCC for MBEDTLS_AESCE_C is 6.0."
+#   endif
+#elif defined(_MSC_VER)
+/* TODO: We haven't verified MSVC from 1920 to 1928. If someone verified that,
+ *       please update this and document of `MBEDTLS_AESCE_C` in
+ *       `mbedtls_config.h`. */
+#   if _MSC_VER < 1929
+#       error "Minimum version of MSVC for MBEDTLS_AESCE_C is 2019 version 16.11.2."
+#   endif
+#endif
+
+#ifdef __ARM_NEON
+#include <arm_neon.h>
+#else
+#error "Target does not support NEON instructions"
+#endif
+
+#if !(defined(__ARM_FEATURE_CRYPTO) || defined(__ARM_FEATURE_AES)) || \
+    defined(MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG)
+#   if defined(__ARMCOMPILER_VERSION)
+#       if __ARMCOMPILER_VERSION <= 6090000
+#           error "Must use minimum -march=armv8-a+crypto for MBEDTLS_AESCE_C"
+#       else
+#           pragma clang attribute push (__attribute__((target("aes"))), apply_to=function)
+#           define MBEDTLS_POP_TARGET_PRAGMA
 #       endif
-#       pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
+#   elif defined(__clang__)
+#       pragma clang attribute push (__attribute__((target("aes"))), apply_to=function)
 #       define MBEDTLS_POP_TARGET_PRAGMA
 #   elif defined(__GNUC__)
-#       if __GNUC__ < 6
-#           error "A more recent GCC is required for MBEDTLS_AESCE_C"
-#       endif
 #       pragma GCC push_options
-#       pragma GCC target ("arch=armv8-a+crypto")
+#       pragma GCC target ("+crypto")
 #       define MBEDTLS_POP_TARGET_PRAGMA
-#   else
-#       error "Only GCC and Clang supported for MBEDTLS_AESCE_C"
+#   elif defined(_MSC_VER)
+#       error "Required feature(__ARM_FEATURE_AES) is not enabled."
 #   endif
-#endif /* !__ARM_FEATURE_AES || MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG */
-
-#include <arm_neon.h>
+#endif /* !(__ARM_FEATURE_CRYPTO || __ARM_FEATURE_AES) ||
+          MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG */
 
 #if defined(__linux__)
 #include <asm/hwcap.h>
@@ -89,59 +114,105 @@ int mbedtls_aesce_has_support(void)
 #endif
 }
 
+/* Single round of AESCE encryption */
+#define AESCE_ENCRYPT_ROUND                   \
+    block = vaeseq_u8(block, vld1q_u8(keys)); \
+    block = vaesmcq_u8(block);                \
+    keys += 16
+/* Two rounds of AESCE encryption */
+#define AESCE_ENCRYPT_ROUND_X2        AESCE_ENCRYPT_ROUND; AESCE_ENCRYPT_ROUND
+
+MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
 static uint8x16_t aesce_encrypt_block(uint8x16_t block,
                                       unsigned char *keys,
                                       int rounds)
 {
-    for (int i = 0; i < rounds - 1; i++) {
-        /* AES AddRoundKey, SubBytes, ShiftRows (in this order).
-         * AddRoundKey adds the round key for the previous round. */
-        block = vaeseq_u8(block, vld1q_u8(keys + i * 16));
-        /* AES mix columns */
-        block = vaesmcq_u8(block);
+    /* 10, 12 or 14 rounds. Unroll loop. */
+    if (rounds == 10) {
+        goto rounds_10;
     }
+    if (rounds == 12) {
+        goto rounds_12;
+    }
+    AESCE_ENCRYPT_ROUND_X2;
+rounds_12:
+    AESCE_ENCRYPT_ROUND_X2;
+rounds_10:
+    AESCE_ENCRYPT_ROUND_X2;
+    AESCE_ENCRYPT_ROUND_X2;
+    AESCE_ENCRYPT_ROUND_X2;
+    AESCE_ENCRYPT_ROUND_X2;
+    AESCE_ENCRYPT_ROUND;
 
     /* AES AddRoundKey for the previous round.
      * SubBytes, ShiftRows for the final round.  */
-    block = vaeseq_u8(block, vld1q_u8(keys + (rounds -1) * 16));
+    block = vaeseq_u8(block, vld1q_u8(keys));
+    keys += 16;
 
     /* Final round: no MixColumns */
 
     /* Final AddRoundKey */
-    block = veorq_u8(block, vld1q_u8(keys + rounds  * 16));
+    block = veorq_u8(block, vld1q_u8(keys));
 
     return block;
 }
+
+/* Single round of AESCE decryption
+ *
+ * AES AddRoundKey, SubBytes, ShiftRows
+ *
+ *      block = vaesdq_u8(block, vld1q_u8(keys));
+ *
+ * AES inverse MixColumns for the next round.
+ *
+ * This means that we switch the order of the inverse AddRoundKey and
+ * inverse MixColumns operations. We have to do this as AddRoundKey is
+ * done in an atomic instruction together with the inverses of SubBytes
+ * and ShiftRows.
+ *
+ * It works because MixColumns is a linear operation over GF(2^8) and
+ * AddRoundKey is an exclusive or, which is equivalent to addition over
+ * GF(2^8). (The inverse of MixColumns needs to be applied to the
+ * affected round keys separately which has been done when the
+ * decryption round keys were calculated.)
+ *
+ *      block = vaesimcq_u8(block);
+ */
+#define AESCE_DECRYPT_ROUND                   \
+    block = vaesdq_u8(block, vld1q_u8(keys)); \
+    block = vaesimcq_u8(block);               \
+    keys += 16
+/* Two rounds of AESCE decryption */
+#define AESCE_DECRYPT_ROUND_X2        AESCE_DECRYPT_ROUND; AESCE_DECRYPT_ROUND
 
 static uint8x16_t aesce_decrypt_block(uint8x16_t block,
                                       unsigned char *keys,
                                       int rounds)
 {
-
-    for (int i = 0; i < rounds - 1; i++) {
-        /* AES AddRoundKey, SubBytes, ShiftRows */
-        block = vaesdq_u8(block, vld1q_u8(keys + i * 16));
-        /* AES inverse MixColumns for the next round.
-         *
-         * This means that we switch the order of the inverse AddRoundKey and
-         * inverse MixColumns operations. We have to do this as AddRoundKey is
-         * done in an atomic instruction together with the inverses of SubBytes
-         * and ShiftRows.
-         *
-         * It works because MixColumns is a linear operation over GF(2^8) and
-         * AddRoundKey is an exclusive or, which is equivalent to addition over
-         * GF(2^8). (The inverse of MixColumns needs to be applied to the
-         * affected round keys separately which has been done when the
-         * decryption round keys were calculated.) */
-        block = vaesimcq_u8(block);
+    /* 10, 12 or 14 rounds. Unroll loop. */
+    if (rounds == 10) {
+        goto rounds_10;
     }
+    if (rounds == 12) {
+        goto rounds_12;
+    }
+    AESCE_DECRYPT_ROUND_X2;
+rounds_12:
+    AESCE_DECRYPT_ROUND_X2;
+rounds_10:
+    AESCE_DECRYPT_ROUND_X2;
+    AESCE_DECRYPT_ROUND_X2;
+    AESCE_DECRYPT_ROUND_X2;
+    AESCE_DECRYPT_ROUND_X2;
+    AESCE_DECRYPT_ROUND;
 
     /* The inverses of AES AddRoundKey, SubBytes, ShiftRows finishing up the
      * last full round. */
-    block = vaesdq_u8(block, vld1q_u8(keys + (rounds - 1) * 16));
+    block = vaesdq_u8(block, vld1q_u8(keys));
+    keys += 16;
 
     /* Inverse AddRoundKey for inverting the initial round key addition. */
-    block = veorq_u8(block, vld1q_u8(keys + rounds * 16));
+    block = veorq_u8(block, vld1q_u8(keys));
 
     return block;
 }
@@ -239,6 +310,7 @@ static void aesce_setkey_enc(unsigned char *rk,
             /* Do not write overflow words.*/
             continue;
         }
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
         switch (key_bit_length) {
             case 128:
                 break;
@@ -253,6 +325,7 @@ static void aesce_setkey_enc(unsigned char *rk,
                 rko[7] = rko[6] ^ rki[7];
                 break;
         }
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
     }
 }
 
@@ -295,12 +368,24 @@ static inline poly64_t vget_low_p64(poly64x2_t __a)
  * Older compilers miss some intrinsic functions for `poly*_t`. We use
  * uint8x16_t and uint8x16x3_t as input/output parameters.
  */
+#if defined(__GNUC__) && !defined(__clang__)
+/* GCC reports incompatible type error without cast. GCC think poly64_t and
+ * poly64x1_t are different, that is different with MSVC and Clang. */
+#define MBEDTLS_VMULL_P64(a, b) vmull_p64((poly64_t) a, (poly64_t) b)
+#else
+/* MSVC reports `error C2440: 'type cast'` with cast. Clang does not report
+ * error with/without cast. And I think poly64_t and poly64x1_t are same, no
+ * cast for clang also. */
+#define MBEDTLS_VMULL_P64(a, b) vmull_p64(a, b)
+#endif
 static inline uint8x16_t pmull_low(uint8x16_t a, uint8x16_t b)
 {
+
     return vreinterpretq_u8_p128(
-        vmull_p64(
-            (poly64_t) vget_low_p64(vreinterpretq_p64_u8(a)),
-            (poly64_t) vget_low_p64(vreinterpretq_p64_u8(b))));
+        MBEDTLS_VMULL_P64(
+            vget_low_p64(vreinterpretq_p64_u8(a)),
+            vget_low_p64(vreinterpretq_p64_u8(b))
+            ));
 }
 
 static inline uint8x16_t pmull_high(uint8x16_t a, uint8x16_t b)
@@ -362,9 +447,14 @@ static inline uint8x16x3_t poly_mult_128(uint8x16_t a, uint8x16_t b)
 static inline uint8x16_t poly_mult_reduce(uint8x16x3_t input)
 {
     uint8x16_t const ZERO = vdupq_n_u8(0);
-    /* use 'asm' as an optimisation barrier to prevent loading MODULO from memory */
+
     uint64x2_t r = vreinterpretq_u64_u8(vdupq_n_u8(0x87));
+#if defined(__GNUC__)
+    /* use 'asm' as an optimisation barrier to prevent loading MODULO from
+     * memory. It is for GNUC compatible compilers.
+     */
     asm ("" : "+w" (r));
+#endif
     uint8x16_t const MODULO = vreinterpretq_u8_u64(vshrq_n_u64(r, 64 - 8));
     uint8x16_t h, m, l; /* input high/middle/low 128b */
     uint8x16_t c, d, e, f, g, n, o;

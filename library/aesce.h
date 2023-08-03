@@ -30,10 +30,10 @@
 
 #include "mbedtls/aes.h"
 
-
-#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) && \
-    defined(__aarch64__) && !defined(MBEDTLS_HAVE_ARM64)
+#if !defined(MBEDTLS_HAVE_ARM64)
+#if defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC)
 #define MBEDTLS_HAVE_ARM64
+#endif
 #endif
 
 #if defined(MBEDTLS_HAVE_ARM64)
@@ -51,6 +51,9 @@ int mbedtls_aesce_has_support(void);
 
 /**
  * \brief          Internal AES-ECB block encryption and decryption
+ *
+ * \warning        This assumes that the context specifies either 10, 12 or 14
+ *                 rounds and will behave incorrectly if this is not the case.
  *
  * \param ctx      AES context
  * \param mode     MBEDTLS_AES_ENCRYPT or MBEDTLS_AES_DECRYPT

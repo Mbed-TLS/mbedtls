@@ -74,11 +74,7 @@ static void custom_entropy_init(mbedtls_entropy_context *ctx)
 #endif
 
     ctx->accumulator_started = 0;
-#if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
-    mbedtls_sha512_init(&ctx->accumulator);
-#else
-    mbedtls_sha256_init(&ctx->accumulator);
-#endif
+    mbedtls_md_init(&ctx->accumulator);
 
 #if !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
     if (custom_entropy_sources_mask & ENTROPY_SOURCE_PLATFORM) {

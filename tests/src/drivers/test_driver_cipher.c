@@ -20,7 +20,7 @@
 
 #include <test/helpers.h>
 
-#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
 #include "psa/crypto.h"
 #include "psa_crypto_cipher.h"
 #include "psa_crypto_core.h"
@@ -433,4 +433,4 @@ psa_status_t mbedtls_test_opaque_cipher_finish(
     (void) output_length;
     return PSA_ERROR_NOT_SUPPORTED;
 }
-#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_DRIVER_TEST */

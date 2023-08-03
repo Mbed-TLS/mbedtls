@@ -97,7 +97,8 @@
  * mbedtls_platform_zeroize() to use a suitable implementation for their
  * platform and needs.
  */
-#if !defined(MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO) && !defined(__STDC_LIB_EXT1__) \
+#if !defined(MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO) && !(defined(__STDC_LIB_EXT1__) && \
+    !defined(__IAR_SYSTEMS_ICC__)) \
     && !defined(_WIN32)
 static void *(*const volatile memset_func)(void *, int, size_t) = memset;
 #endif
@@ -118,7 +119,7 @@ void mbedtls_platform_zeroize(void *buf, size_t len)
          */
         __msan_unpoison(buf, len);
 #endif
-#elif defined(__STDC_LIB_EXT1__)
+#elif defined(__STDC_LIB_EXT1__) && !defined(__IAR_SYSTEMS_ICC__)
         memset_s(buf, len, 0, len);
 #elif defined(_WIN32)
         SecureZeroMemory(buf, len);
@@ -219,3 +220,49 @@ extern inline void mbedtls_put_unaligned_uint32(void *p, uint32_t x);
 extern inline uint64_t mbedtls_get_unaligned_uint64(const void *p);
 
 extern inline void mbedtls_put_unaligned_uint64(void *p, uint64_t x);
+
+#if defined(MBEDTLS_HAVE_TIME) && !defined(MBEDTLS_PLATFORM_MS_TIME_ALT)
+
+#include <time.h>
+#if !defined(_WIN32) && \
+    (defined(unix) || defined(__unix) || defined(__unix__) || \
+    (defined(__APPLE__) && defined(__MACH__)))
+#include <unistd.h>
+#endif /* !_WIN32 && (unix || __unix || __unix__ || (__APPLE__ && __MACH__)) */
+#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 199309L)
+mbedtls_ms_time_t mbedtls_ms_time(void)
+{
+    int ret;
+    struct timespec tv;
+    mbedtls_ms_time_t current_ms;
+
+#if defined(__linux__)
+    ret = clock_gettime(CLOCK_BOOTTIME, &tv);
+#else
+    ret = clock_gettime(CLOCK_MONOTONIC, &tv);
+#endif
+    if (ret) {
+        return time(NULL) * 1000;
+    }
+
+    current_ms = tv.tv_sec;
+
+    return current_ms*1000 + tv.tv_nsec / 1000000;
+}
+#elif defined(_WIN32) || defined(WIN32) || defined(__CYGWIN__) || \
+    defined(__MINGW32__) || defined(_WIN64)
+#include <windows.h>
+mbedtls_ms_time_t mbedtls_ms_time(void)
+{
+    FILETIME ct;
+    mbedtls_ms_time_t current_ms;
+
+    GetSystemTimeAsFileTime(&ct);
+    current_ms = ((mbedtls_ms_time_t) ct.dwLowDateTime +
+                  ((mbedtls_ms_time_t) (ct.dwHighDateTime) << 32LL))/10000;
+    return current_ms;
+}
+#else
+#error "No mbedtls_ms_time available"
+#endif
+#endif /* MBEDTLS_HAVE_TIME && !MBEDTLS_PLATFORM_MS_TIME_ALT */

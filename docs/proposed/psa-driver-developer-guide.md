@@ -7,7 +7,7 @@ This document describes how to write drivers of cryptoprocessors such as acceler
 
 This document focuses on behavior that is specific to Mbed TLS. For a reference of the interface between Mbed TLS and drivers, refer to the [PSA Cryptoprocessor Driver Interface specification](psa-driver-interface.html).
 
-The interface is not fully implemented in Mbed TLS yet and is disabled by default. You can enable the experimental work in progress by setting `MBEDTLS_PSA_CRYPTO_DRIVERS` in the compile-time configuration. Please note that the interface may still change: until further notice, we do not guarantee backward compatibility with existing driver code when `MBEDTLS_PSA_CRYPTO_DRIVERS` is enabled.
+The interface is not fully implemented in Mbed TLS yet. Please note that the interface may still change: until further notice, we do not guarantee backward compatibility with existing driver code.
 
 ## Introduction
 

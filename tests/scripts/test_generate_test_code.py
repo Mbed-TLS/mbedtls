@@ -485,9 +485,10 @@ class ParseFuncSignature(TestCase):
         args, local, arg_dispatch = parse_function_arguments(line)
         self.assertEqual(args, ['char*', 'int', 'int'])
         self.assertEqual(local, '')
-        self.assertEqual(arg_dispatch, ['(char *) params[0]',
-                                        '*( (int *) params[1] )',
-                                        '*( (int *) params[2] )'])
+        self.assertEqual(arg_dispatch,
+                         ['(char *) params[0]',
+                          '((mbedtls_test_argument_t *) params[1])->sint',
+                          '((mbedtls_test_argument_t *) params[2])->sint'])
 
     def test_hex_params(self):
         """
@@ -499,25 +500,58 @@ class ParseFuncSignature(TestCase):
         self.assertEqual(args, ['char*', 'hex', 'int'])
         self.assertEqual(local,
                          '    data_t data1 = {(uint8_t *) params[1], '
-                         '*( (uint32_t *) params[2] )};\n')
+                         '((mbedtls_test_argument_t *) params[2])->len};\n')
         self.assertEqual(arg_dispatch, ['(char *) params[0]',
                                         '&data1',
-                                        '*( (int *) params[3] )'])
+                                        '((mbedtls_test_argument_t *) params[3])->sint'])
 
     def test_unsupported_arg(self):
         """
-        Test unsupported arguments (not among int, char * and data_t)
+        Test unsupported argument type
         :return:
         """
-        line = 'void entropy_threshold( char * a, data_t * h, char result )'
+        line = 'void entropy_threshold( char * a, data_t * h, unknown_t result )'
         self.assertRaises(ValueError, parse_function_arguments, line)
 
-    def test_no_params(self):
+    def test_empty_params(self):
         """
-        Test no parameters.
+        Test no parameters (nothing between parentheses).
         :return:
         """
         line = 'void entropy_threshold()'
+        args, local, arg_dispatch = parse_function_arguments(line)
+        self.assertEqual(args, [])
+        self.assertEqual(local, '')
+        self.assertEqual(arg_dispatch, [])
+
+    def test_blank_params(self):
+        """
+        Test no parameters (space between parentheses).
+        :return:
+        """
+        line = 'void entropy_threshold( )'
+        args, local, arg_dispatch = parse_function_arguments(line)
+        self.assertEqual(args, [])
+        self.assertEqual(local, '')
+        self.assertEqual(arg_dispatch, [])
+
+    def test_void_params(self):
+        """
+        Test no parameters (void keyword).
+        :return:
+        """
+        line = 'void entropy_threshold(void)'
+        args, local, arg_dispatch = parse_function_arguments(line)
+        self.assertEqual(args, [])
+        self.assertEqual(local, '')
+        self.assertEqual(arg_dispatch, [])
+
+    def test_void_space_params(self):
+        """
+        Test no parameters (void with spaces).
+        :return:
+        """
+        line = 'void entropy_threshold( void )'
         args, local, arg_dispatch = parse_function_arguments(line)
         self.assertEqual(args, [])
         self.assertEqual(local, '')
@@ -613,7 +647,7 @@ void func()
         self.assertEqual(arg, [])
         expected = '''#line 1 "test_suite_ut.function"
 
-void test_func()
+void test_func(void)
 {
     ba ba black sheep
     have you any wool
@@ -656,7 +690,7 @@ exit:
 
         expected = '''#line 1 "test_suite_ut.function"
 
-void test_func()
+void test_func(void)
 {
     ba ba black sheep
     have you any wool
@@ -716,7 +750,7 @@ exit:
 void
 
 
-test_func()
+test_func(void)
 {
     ba ba black sheep
     have you any wool
@@ -769,7 +803,7 @@ exit:
 
 
 
-void test_func()
+void test_func(void)
 {
     ba ba black sheep
     have you any wool
@@ -1105,7 +1139,7 @@ void func2()
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
 #if defined(MBEDTLS_FS_IO)
 #line 13 "test_suite_ut.function"
-void test_func1()
+void test_func1(void)
 {
 exit:
     ;
@@ -1122,7 +1156,7 @@ void test_func1_wrapper( void ** params )
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
 #if defined(MBEDTLS_FS_IO)
 #line 19 "test_suite_ut.function"
-void test_func2()
+void test_func2(void)
 {
 exit:
     ;
@@ -1264,29 +1298,33 @@ dhm_selftest:
         # List of (name, function_name, dependencies, args)
         tests = list(parse_test_data(stream))
         test1, test2, test3, test4 = tests
-        self.assertEqual(test1[0], 'Diffie-Hellman full exchange #1')
-        self.assertEqual(test1[1], 'dhm_do_dhm')
-        self.assertEqual(test1[2], [])
-        self.assertEqual(test1[3], ['10', '"23"', '10', '"5"'])
+        self.assertEqual(test1[0], 3)
+        self.assertEqual(test1[1], 'Diffie-Hellman full exchange #1')
+        self.assertEqual(test1[2], 'dhm_do_dhm')
+        self.assertEqual(test1[3], [])
+        self.assertEqual(test1[4], ['10', '"23"', '10', '"5"'])
 
-        self.assertEqual(test2[0], 'Diffie-Hellman full exchange #2')
-        self.assertEqual(test2[1], 'dhm_do_dhm')
-        self.assertEqual(test2[2], [])
-        self.assertEqual(test2[3], ['10', '"93450983094850938450983409623"',
+        self.assertEqual(test2[0], 6)
+        self.assertEqual(test2[1], 'Diffie-Hellman full exchange #2')
+        self.assertEqual(test2[2], 'dhm_do_dhm')
+        self.assertEqual(test2[3], [])
+        self.assertEqual(test2[4], ['10', '"93450983094850938450983409623"',
                                     '10', '"9345098304850938450983409622"'])
 
-        self.assertEqual(test3[0], 'Diffie-Hellman full exchange #3')
-        self.assertEqual(test3[1], 'dhm_do_dhm')
-        self.assertEqual(test3[2], [])
-        self.assertEqual(test3[3], ['10',
+        self.assertEqual(test3[0], 9)
+        self.assertEqual(test3[1], 'Diffie-Hellman full exchange #3')
+        self.assertEqual(test3[2], 'dhm_do_dhm')
+        self.assertEqual(test3[3], [])
+        self.assertEqual(test3[4], ['10',
                                     '"9345098382739712938719287391879381271"',
                                     '10',
                                     '"9345098792137312973297123912791271"'])
 
-        self.assertEqual(test4[0], 'Diffie-Hellman selftest')
-        self.assertEqual(test4[1], 'dhm_selftest')
-        self.assertEqual(test4[2], [])
+        self.assertEqual(test4[0], 12)
+        self.assertEqual(test4[1], 'Diffie-Hellman selftest')
+        self.assertEqual(test4[2], 'dhm_selftest')
         self.assertEqual(test4[3], [])
+        self.assertEqual(test4[4], [])
 
     def test_with_dependencies(self):
         """
@@ -1306,15 +1344,17 @@ dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622"
         # List of (name, function_name, dependencies, args)
         tests = list(parse_test_data(stream))
         test1, test2 = tests
-        self.assertEqual(test1[0], 'Diffie-Hellman full exchange #1')
-        self.assertEqual(test1[1], 'dhm_do_dhm')
-        self.assertEqual(test1[2], ['YAHOO'])
-        self.assertEqual(test1[3], ['10', '"23"', '10', '"5"'])
+        self.assertEqual(test1[0], 4)
+        self.assertEqual(test1[1], 'Diffie-Hellman full exchange #1')
+        self.assertEqual(test1[2], 'dhm_do_dhm')
+        self.assertEqual(test1[3], ['YAHOO'])
+        self.assertEqual(test1[4], ['10', '"23"', '10', '"5"'])
 
-        self.assertEqual(test2[0], 'Diffie-Hellman full exchange #2')
-        self.assertEqual(test2[1], 'dhm_do_dhm')
-        self.assertEqual(test2[2], [])
-        self.assertEqual(test2[3], ['10', '"93450983094850938450983409623"',
+        self.assertEqual(test2[0], 7)
+        self.assertEqual(test2[1], 'Diffie-Hellman full exchange #2')
+        self.assertEqual(test2[2], 'dhm_do_dhm')
+        self.assertEqual(test2[3], [])
+        self.assertEqual(test2[4], ['10', '"93450983094850938450983409623"',
                                     '10', '"9345098304850938450983409622"'])
 
     def test_no_args(self):
@@ -1335,7 +1375,7 @@ dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622"
         stream = StringIOWrapper('test_suite_ut.function', data)
         err = None
         try:
-            for _, _, _, _ in parse_test_data(stream):
+            for _, _, _, _, _ in parse_test_data(stream):
                 pass
         except GeneratorInputError as err:
             self.assertEqual(type(err), GeneratorInputError)
@@ -1353,7 +1393,7 @@ depends_on:YAHOO
         stream = StringIOWrapper('test_suite_ut.function', data)
         err = None
         try:
-            for _, _, _, _ in parse_test_data(stream):
+            for _, _, _, _, _ in parse_test_data(stream):
                 pass
         except GeneratorInputError as err:
             self.assertEqual(type(err), GeneratorInputError)

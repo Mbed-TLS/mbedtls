@@ -15,6 +15,8 @@ void test_hkdf(int md_alg, data_t *ikm, data_t *salt, data_t *info,
     int ret;
     unsigned char okm[128] = { '\0' };
 
+    MD_PSA_INIT();
+
     const mbedtls_md_info_t *md = mbedtls_md_info_from_type(md_alg);
     TEST_ASSERT(md != NULL);
 
@@ -26,6 +28,9 @@ void test_hkdf(int md_alg, data_t *ikm, data_t *salt, data_t *info,
 
     ASSERT_COMPARE(okm, expected_okm->len,
                    expected_okm->x, expected_okm->len);
+
+exit:
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -38,6 +43,8 @@ void test_hkdf_extract(int md_alg,
     int ret;
     unsigned char *output_prk = NULL;
     size_t output_prk_len;
+
+    MD_PSA_INIT();
 
     const mbedtls_md_info_t *md = mbedtls_md_info_from_type(md_alg);
     TEST_ASSERT(md != NULL);
@@ -53,6 +60,7 @@ void test_hkdf_extract(int md_alg,
 
 exit:
     mbedtls_free(output_prk);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -65,6 +73,8 @@ void test_hkdf_expand(int md_alg,
     enum { OKM_LEN  = 1024 };
     int ret;
     unsigned char *output_okm = NULL;
+
+    MD_PSA_INIT();
 
     const mbedtls_md_info_t *md = mbedtls_md_info_from_type(md_alg);
     TEST_ASSERT(md != NULL);
@@ -82,6 +92,7 @@ void test_hkdf_expand(int md_alg,
 
 exit:
     mbedtls_free(output_okm);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 

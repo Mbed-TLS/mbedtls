@@ -306,7 +306,7 @@ static psa_status_t psa_cipher_update_ecb(
     size_t *output_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    size_t block_size = ctx->cipher_info->block_size;
+    size_t block_size = mbedtls_cipher_info_get_block_size(ctx->cipher_info);
     size_t internal_output_length = 0;
     *output_length = 0;
 

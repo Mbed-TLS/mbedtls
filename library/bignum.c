@@ -54,8 +54,6 @@
 #define MPI_VALIDATE(cond)                                           \
     MBEDTLS_INTERNAL_VALIDATE(cond)
 
-#define MPI_SIZE_T_MAX  ((size_t) -1)   /* SIZE_T_MAX is not standard */
-
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_mpi_zeroize(mbedtls_mpi_uint *v, size_t n)
 {
@@ -116,7 +114,9 @@ int mbedtls_mpi_grow(mbedtls_mpi *X, size_t nblimbs)
             mbedtls_free(X->p);
         }
 
-        X->n = nblimbs;
+        /* nblimbs fits in n because we ensure that MBEDTLS_MPI_MAX_LIMBS
+         * fits, and we've checked that nblimbs <= MBEDTLS_MPI_MAX_LIMBS. */
+        X->n = (unsigned short) nblimbs;
         X->p = p;
     }
 
@@ -164,7 +164,9 @@ int mbedtls_mpi_shrink(mbedtls_mpi *X, size_t nblimbs)
         mbedtls_free(X->p);
     }
 
-    X->n = i;
+    /* i fits in n because we ensure that MBEDTLS_MPI_MAX_LIMBS
+     * fits, and we've checked that i <= nblimbs <= MBEDTLS_MPI_MAX_LIMBS. */
+    X->n = (unsigned short) i;
     X->p = p;
 
     return 0;
@@ -416,7 +418,7 @@ int mbedtls_mpi_read_string(mbedtls_mpi *X, int radix, const char *s)
     slen = strlen(s);
 
     if (radix == 16) {
-        if (slen > MPI_SIZE_T_MAX >> 2) {
+        if (slen > SIZE_MAX >> 2) {
             return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
         }
 
@@ -750,12 +752,8 @@ int mbedtls_mpi_write_binary(const mbedtls_mpi *X,
 int mbedtls_mpi_shift_l(mbedtls_mpi *X, size_t count)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i, v0, t1;
-    mbedtls_mpi_uint r0 = 0, r1;
+    size_t i;
     MPI_VALIDATE_RET(X != NULL);
-
-    v0 = count / (biL);
-    t1 = count & (biL - 1);
 
     i = mbedtls_mpi_bitlen(X) + count;
 
@@ -765,31 +763,7 @@ int mbedtls_mpi_shift_l(mbedtls_mpi *X, size_t count)
 
     ret = 0;
 
-    /*
-     * shift by count / limb_size
-     */
-    if (v0 > 0) {
-        for (i = X->n; i > v0; i--) {
-            X->p[i - 1] = X->p[i - v0 - 1];
-        }
-
-        for (; i > 0; i--) {
-            X->p[i - 1] = 0;
-        }
-    }
-
-    /*
-     * shift by count % limb_size
-     */
-    if (t1 > 0) {
-        for (i = v0; i < X->n; i++) {
-            r1 = X->p[i] >> (biL - t1);
-            X->p[i] <<= t1;
-            X->p[i] |= r0;
-            r0 = r1;
-        }
-    }
-
+    mbedtls_mpi_core_shift_l(X->p, X->n, count);
 cleanup:
 
     return ret;
@@ -926,6 +900,8 @@ int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t j;
+    mbedtls_mpi_uint *p;
+    mbedtls_mpi_uint c;
     MPI_VALIDATE_RET(X != NULL);
     MPI_VALIDATE_RET(A != NULL);
     MPI_VALIDATE_RET(B != NULL);
@@ -959,9 +935,9 @@ int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 
     /* j is the number of non-zero limbs of B. Add those to X. */
 
-    mbedtls_mpi_uint *p = X->p;
+    p = X->p;
 
-    mbedtls_mpi_uint c = mbedtls_mpi_core_add(p, p, B->p, j);
+    c = mbedtls_mpi_core_add(p, p, B->p, j);
 
     p += j;
 
@@ -1136,7 +1112,8 @@ int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
     MPI_VALIDATE_RET(A != NULL);
     MPI_VALIDATE_RET(B != NULL);
 
-    mbedtls_mpi_init(&TA); mbedtls_mpi_init(&TB);
+    mbedtls_mpi_init(&TA);
+    mbedtls_mpi_init(&TB);
 
     if (X == A) {
         MBEDTLS_MPI_CHK(mbedtls_mpi_copy(&TA, A)); A = &TA;
@@ -1166,13 +1143,7 @@ int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(X, i + j));
     MBEDTLS_MPI_CHK(mbedtls_mpi_lset(X, 0));
 
-    for (size_t k = 0; k < j; k++) {
-        /* We know that there cannot be any carry-out since we're
-         * iterating from bottom to top. */
-        (void) mbedtls_mpi_core_mla(X->p + k, i + 1,
-                                    A->p, i,
-                                    B->p[k]);
-    }
+    mbedtls_mpi_core_mul(X->p, A->p, i, B->p, j);
 
     /* If the result is 0, we don't shortcut the operation, which reduces
      * but does not eliminate side channels leaking the zero-ness. We do
@@ -1609,8 +1580,8 @@ static void mpi_montred(mbedtls_mpi *A, const mbedtls_mpi *N,
 {
     mbedtls_mpi_uint z = 1;
     mbedtls_mpi U;
-
-    U.n = U.s = (int) z;
+    U.n = 1;
+    U.s = 1;
     U.p = &z;
 
     mpi_montmul(A, &U, N, mm, T);

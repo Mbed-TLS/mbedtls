@@ -141,15 +141,6 @@ typedef enum {
     MBEDTLS_ECP_TYPE_MONTGOMERY,           /* y^2 = x^3 + a x^2 + x    */
 } mbedtls_ecp_curve_type;
 
-/*
- * Curve modulus types
- */
-typedef enum {
-    MBEDTLS_ECP_MOD_NONE = 0,
-    MBEDTLS_ECP_MOD_COORDINATE,
-    MBEDTLS_ECP_MOD_SCALAR
-} mbedtls_ecp_modulus_type;
-
 /**
  * Curve information, for use by other modules.
  *
@@ -312,7 +303,7 @@ mbedtls_ecp_group;
 /**
  * The maximum size of the groups, that is, of \c N and \c P.
  */
-#if !defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_ECP_LIGHT)
 /* Dummy definition to help code that has optional ECP support and
  * defines an MBEDTLS_ECP_MAX_BYTES-sized array unconditionally. */
 #define MBEDTLS_ECP_MAX_BITS 1
@@ -343,9 +334,9 @@ mbedtls_ecp_group;
 #define MBEDTLS_ECP_MAX_BITS 192
 #elif defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
 #define MBEDTLS_ECP_MAX_BITS 192
-#else
+#else /* !MBEDTLS_ECP_LIGHT */
 #error "Missing definition of MBEDTLS_ECP_MAX_BITS"
-#endif
+#endif /* !MBEDTLS_ECP_LIGHT */
 
 #define MBEDTLS_ECP_MAX_BYTES    ((MBEDTLS_ECP_MAX_BITS + 7) / 8)
 #define MBEDTLS_ECP_MAX_PT_LEN   (2 * MBEDTLS_ECP_MAX_BYTES + 1)
@@ -1092,7 +1083,7 @@ int mbedtls_ecp_muladd_restartable(
  *
  *                  It only checks that the point is non-zero, has
  *                  valid coordinates and lies on the curve. It does not verify
- *                  that it is indeed a multiple of \p G. This additional
+ *                  that it is indeed a multiple of \c G. This additional
  *                  check is computationally more expensive, is not required
  *                  by standards, and should not be necessary if the group
  *                  used has a small cofactor. In particular, it is useless for
@@ -1117,7 +1108,7 @@ int mbedtls_ecp_check_pubkey(const mbedtls_ecp_group *grp,
                              const mbedtls_ecp_point *pt);
 
 /**
- * \brief           This function checks that an \p mbedtls_mpi is a
+ * \brief           This function checks that an \c mbedtls_mpi is a
  *                  valid private key for this curve.
  *
  * \note            This function uses bare components rather than an

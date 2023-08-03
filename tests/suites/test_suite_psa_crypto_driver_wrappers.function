@@ -10,7 +10,8 @@ int pake_in_driver = 0;
 static const uint8_t jpake_server_id[] = { 's', 'e', 'r', 'v', 'e', 'r' };
 static const uint8_t jpake_client_id[] = { 'c', 'l', 'i', 'e', 'n', 't' };
 
-#if defined(PSA_WANT_ALG_JPAKE) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) && \
+#if defined(PSA_WANT_ALG_JPAKE) && \
+    defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC) && \
     defined(PSA_WANT_ECC_SECP_R1_256) && defined(PSA_WANT_ALG_SHA_256)
 static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
                              psa_pake_operation_t *server,
@@ -484,7 +485,7 @@ exit:
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_PSA_CRYPTO_DRIVERS:PSA_CRYPTO_DRIVER_TEST
+ * depends_on:MBEDTLS_PSA_CRYPTO_C:PSA_CRYPTO_DRIVER_TEST
  * END_DEPENDENCIES
  */
 
@@ -747,10 +748,10 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256 */
-void generate_key(int force_status_arg,
-                  data_t *fake_output,
-                  int expected_status_arg)
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256:MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE */
+void generate_ec_key(int force_status_arg,
+                     data_t *fake_output,
+                     int expected_status_arg)
 {
     psa_status_t force_status = force_status_arg;
     psa_status_t expected_status = expected_status_arg;
@@ -2130,7 +2131,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_CRYPTO_DRIVER_TEST:MBEDTLS_PSA_CRYPTO_DRIVERS:MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
+/* BEGIN_CASE depends_on:PSA_CRYPTO_DRIVER_TEST:MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 void builtin_key_export(int builtin_key_id_arg,
                         int builtin_key_type_arg,
                         int builtin_key_bits_arg,
@@ -2181,7 +2182,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_CRYPTO_DRIVER_TEST:MBEDTLS_PSA_CRYPTO_DRIVERS:MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
+/* BEGIN_CASE depends_on:PSA_CRYPTO_DRIVER_TEST:MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 void builtin_pubkey_export(int builtin_key_id_arg,
                            int builtin_key_type_arg,
                            int builtin_key_bits_arg,
@@ -2241,11 +2242,13 @@ void hash_compute(int alg_arg,
     unsigned char *output = NULL;
     size_t output_length;
 
-    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    mbedtls_test_driver_hash_hooks.forced_status = forced_status;
 
     PSA_ASSERT(psa_crypto_init());
     ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
+
+    /* Do this after psa_crypto_init() which may call hash drivers */
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+    mbedtls_test_driver_hash_hooks.forced_status = forced_status;
 
     TEST_EQUAL(psa_hash_compute(alg, input->x, input->len,
                                 output, PSA_HASH_LENGTH(alg),
@@ -2277,12 +2280,14 @@ void hash_multipart_setup(int alg_arg,
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     size_t output_length;
 
-    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
 
     PSA_ASSERT(psa_crypto_init());
+    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
 
+    /* Do this after psa_crypto_init() which may call hash drivers */
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
     mbedtls_test_driver_hash_hooks.forced_status = forced_status;
+
     TEST_EQUAL(psa_hash_setup(&operation, alg), expected_status);
     TEST_EQUAL(mbedtls_test_driver_hash_hooks.hits, 1);
     TEST_EQUAL(mbedtls_test_driver_hash_hooks.driver_status, forced_status);
@@ -2322,10 +2327,12 @@ void hash_multipart_update(int alg_arg,
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     size_t output_length;
 
-    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
 
     PSA_ASSERT(psa_crypto_init());
+    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
+
+    /* Do this after psa_crypto_init() which may call hash drivers */
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
 
     /*
      * Update inactive operation, the driver shouldn't be called.
@@ -2377,10 +2384,11 @@ void hash_multipart_finish(int alg_arg,
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     size_t output_length;
 
-    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+    PSA_ASSERT(psa_crypto_init());
     ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
 
-    PSA_ASSERT(psa_crypto_init());
+    /* Do this after psa_crypto_init() which may call hash drivers */
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
 
     /*
      * Finish inactive operation, the driver shouldn't be called.
@@ -2431,10 +2439,11 @@ void hash_clone(int alg_arg,
     psa_hash_operation_t target_operation = PSA_HASH_OPERATION_INIT;
     size_t output_length;
 
-    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+    PSA_ASSERT(psa_crypto_init());
     ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
 
-    PSA_ASSERT(psa_crypto_init());
+    /* Do this after psa_crypto_init() which may call hash drivers */
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
 
     /*
      * Clone inactive operation, the driver shouldn't be called.
@@ -3119,8 +3128,10 @@ void pake_operations(data_t *pw_data, int forced_status_setup_arg, int forced_st
                        PSA_SUCCESS);
 
             /* Simulate that we are ready to get implicit key. */
-            operation.computation_stage.jpake.input_step = PSA_PAKE_STEP_DERIVE;
-            operation.computation_stage.jpake.output_step = PSA_PAKE_STEP_DERIVE;
+            operation.computation_stage.jpake.round = PSA_JPAKE_FINISHED;
+            operation.computation_stage.jpake.inputs = 0;
+            operation.computation_stage.jpake.outputs = 0;
+            operation.computation_stage.jpake.step = PSA_PAKE_STEP_KEY_SHARE;
 
             /* --- psa_pake_get_implicit_key --- */
             mbedtls_test_driver_pake_hooks.forced_status = forced_status;
@@ -3172,7 +3183,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256 */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256 */
 void ecjpake_rounds(int alg_arg, int primitive_arg, int hash_arg,
                     int derive_alg_arg, data_t *pw_data,
                     int client_input_first, int in_driver)

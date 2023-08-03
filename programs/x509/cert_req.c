@@ -20,15 +20,17 @@
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/platform.h"
+/* md.h is included this early since MD_CAN_XXX macros are defined there. */
+#include "mbedtls/md.h"
 
 #if !defined(MBEDTLS_X509_CSR_WRITE_C) || !defined(MBEDTLS_FS_IO) ||  \
-    !defined(MBEDTLS_PK_PARSE_C) || !defined(MBEDTLS_SHA256_C) || \
+    !defined(MBEDTLS_PK_PARSE_C) || !defined(MBEDTLS_MD_CAN_SHA256) || \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) || \
     !defined(MBEDTLS_PEM_WRITE_C)
 int main(void)
 {
     mbedtls_printf("MBEDTLS_X509_CSR_WRITE_C and/or MBEDTLS_FS_IO and/or "
-                   "MBEDTLS_PK_PARSE_C and/or MBEDTLS_SHA256_C and/or "
+                   "MBEDTLS_PK_PARSE_C and/or MBEDTLS_MD_CAN_SHA256 and/or "
                    "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C "
                    "not defined.\n");
     mbedtls_exit(0);
@@ -64,7 +66,7 @@ int main(void)
     "    output_file=%%s      default: cert.req\n"      \
     "    subject_name=%%s     default: CN=Cert,O=mbed TLS,C=UK\n"   \
     "    san=%%s              default: (none)\n"       \
-    "                        Comma-separated-list of values:\n"     \
+    "                        Semicolon-separated-list of values:\n"     \
     "                          DNS:value\n"            \
     "                          URI:value\n"            \
     "                          IP:value (Only IPv4 is supported)\n"             \
@@ -114,18 +116,6 @@ struct options {
     mbedtls_md_type_t md_alg;         /* Hash algorithm used for signature.   */
 } opt;
 
-static void ip_string_to_bytes(const char *str, uint8_t *bytes, int maxBytes)
-{
-    for (int i = 0; i < maxBytes; i++) {
-        bytes[i] = (uint8_t) strtoul(str, NULL, 16);
-        str = strchr(str, '.');
-        if (str == NULL || *str == '\0') {
-            break;
-        }
-        str++;
-    }
-}
-
 int write_certificate_request(mbedtls_x509write_csr *req, const char *output_file,
                               int (*f_rng)(void *, unsigned char *, size_t),
                               void *p_rng)
@@ -163,13 +153,15 @@ int main(int argc, char *argv[])
     mbedtls_pk_context key;
     char buf[1024];
     int i;
-    char *p, *q, *r, *r2;
+    char *p, *q, *r, *subtype_value;
     mbedtls_x509write_csr req;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     const char *pers = "csr example app";
     mbedtls_x509_san_list *cur, *prev;
-
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    uint8_t ip[4] = { 0 };
+#endif
     /*
      * Set to sane values
      */
@@ -177,6 +169,16 @@ int main(int argc, char *argv[])
     mbedtls_pk_init(&key);
     mbedtls_ctr_drbg_init(&ctr_drbg);
     memset(buf, 0, sizeof(buf));
+    mbedtls_entropy_init(&entropy);
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
+                        (int) status);
+        goto exit;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if (argc < 2) {
 usage:
@@ -219,8 +221,6 @@ usage:
             prev = NULL;
 
             while (q != NULL) {
-                uint8_t ip[4] = { 0 };
-
                 if ((r = strchr(q, ';')) != NULL) {
                     *r++ = '\0';
                 }
@@ -233,8 +233,8 @@ usage:
 
                 cur->next = NULL;
 
-                if ((r2 = strchr(q, ':')) != NULL) {
-                    *r2++ = '\0';
+                if ((subtype_value = strchr(q, ':')) != NULL) {
+                    *subtype_value++ = '\0';
                 }
 
                 if (strcmp(q, "URI") == 0) {
@@ -242,18 +242,31 @@ usage:
                 } else if (strcmp(q, "DNS") == 0) {
                     cur->node.type = MBEDTLS_X509_SAN_DNS_NAME;
                 } else if (strcmp(q, "IP") == 0) {
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+                    size_t ip_len = 0;
                     cur->node.type = MBEDTLS_X509_SAN_IP_ADDRESS;
-                    ip_string_to_bytes(r2, ip, 4);
+                    ip_len = mbedtls_x509_crt_parse_cn_inet_pton(subtype_value, ip);
+                    if (ip_len == 0) {
+                        mbedtls_printf("mbedtls_x509_crt_parse_cn_inet_pton failed to parse %s\n",
+                                       subtype_value);
+                        goto exit;
+                    }
+#else
+                    mbedtls_printf("IP SAN parsing requires MBEDTLS_X509_CRT_PARSE_C to be defined");
+                    goto exit;
+#endif
                 } else {
                     mbedtls_free(cur);
                     goto usage;
                 }
 
                 if (strcmp(q, "IP") == 0) {
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
                     cur->node.san.unstructured_name.p = (unsigned char *) ip;
                     cur->node.san.unstructured_name.len = sizeof(ip);
+#endif
                 } else {
-                    q = r2;
+                    q = subtype_value;
                     cur->node.san.unstructured_name.p = (unsigned char *) q;
                     cur->node.san.unstructured_name.len = strlen(q);
                 }
@@ -386,7 +399,6 @@ usage:
     mbedtls_printf("  . Seeding the random number generator...");
     fflush(stdout);
 
-    mbedtls_entropy_init(&entropy);
     if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
                                      (const unsigned char *) pers,
                                      strlen(pers))) != 0) {
@@ -458,6 +470,9 @@ exit:
     mbedtls_pk_free(&key);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_psa_crypto_free();
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     cur = opt.san_list;
     while (cur != NULL) {

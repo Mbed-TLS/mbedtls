@@ -1,6 +1,5 @@
 /* BEGIN_HEADER */
 #include "mbedtls/rsa.h"
-#include "mbedtls/legacy_or_psa.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -17,6 +16,8 @@ void pkcs1_rsaes_oaep_encrypt(int mod, data_t *input_N, data_t *input_E,
     mbedtls_rsa_context ctx;
     mbedtls_test_rnd_buf_info info;
     mbedtls_mpi N, E;
+
+    MD_PSA_INIT();
 
     info.fallback_f_rng = mbedtls_test_rnd_std_rand;
     info.fallback_p_rng = NULL;
@@ -53,6 +54,7 @@ void pkcs1_rsaes_oaep_encrypt(int mod, data_t *input_N, data_t *input_E,
 exit:
     mbedtls_mpi_free(&N); mbedtls_mpi_free(&E);
     mbedtls_rsa_free(&ctx);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -68,6 +70,8 @@ void pkcs1_rsaes_oaep_decrypt(int mod, data_t *input_P, data_t *input_Q,
     mbedtls_test_rnd_pseudo_info rnd_info;
     mbedtls_mpi N, P, Q, E;
     ((void) seed);
+
+    MD_PSA_INIT();
 
     mbedtls_mpi_init(&N); mbedtls_mpi_init(&P);
     mbedtls_mpi_init(&Q); mbedtls_mpi_init(&E);
@@ -114,6 +118,7 @@ exit:
     mbedtls_mpi_free(&N); mbedtls_mpi_free(&P);
     mbedtls_mpi_free(&Q); mbedtls_mpi_free(&E);
     mbedtls_rsa_free(&ctx);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -128,6 +133,8 @@ void pkcs1_rsassa_pss_sign(int mod, data_t *input_P, data_t *input_Q,
     mbedtls_rsa_context ctx;
     mbedtls_test_rnd_buf_info info;
     mbedtls_mpi N, P, Q, E;
+
+    MD_PSA_INIT();
 
     info.fallback_f_rng = mbedtls_test_rnd_std_rand;
     info.fallback_p_rng = NULL;
@@ -179,6 +186,7 @@ exit:
     mbedtls_mpi_free(&N); mbedtls_mpi_free(&P);
     mbedtls_mpi_free(&Q); mbedtls_mpi_free(&E);
     mbedtls_rsa_free(&ctx);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -190,6 +198,8 @@ void pkcs1_rsassa_pss_verify(int mod, data_t *input_N, data_t *input_E,
     mbedtls_rsa_context ctx;
     mbedtls_mpi N, E;
     ((void) salt);
+
+    MD_PSA_INIT();
 
     mbedtls_mpi_init(&N); mbedtls_mpi_init(&E);
     mbedtls_rsa_init(&ctx);
@@ -213,6 +223,7 @@ void pkcs1_rsassa_pss_verify(int mod, data_t *input_N, data_t *input_E,
 exit:
     mbedtls_mpi_free(&N); mbedtls_mpi_free(&E);
     mbedtls_rsa_free(&ctx);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -226,6 +237,8 @@ void pkcs1_rsassa_pss_verify_ext(int mod, data_t *input_N, data_t *input_E,
 {
     mbedtls_rsa_context ctx;
     mbedtls_mpi N, E;
+
+    MD_PSA_INIT();
 
     mbedtls_mpi_init(&N); mbedtls_mpi_init(&E);
     mbedtls_rsa_init(&ctx);
@@ -254,5 +267,6 @@ void pkcs1_rsassa_pss_verify_ext(int mod, data_t *input_N, data_t *input_E,
 exit:
     mbedtls_mpi_free(&N); mbedtls_mpi_free(&E);
     mbedtls_rsa_free(&ctx);
+    MD_PSA_DONE();
 }
 /* END_CASE */

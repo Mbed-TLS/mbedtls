@@ -79,9 +79,9 @@ extern "C" {
  * \param data       data to process
  * \param datalen    length of data
  * \param output     Output buffer.
- *                   On success, it contains the decrypted data, possibly
- *                   followed by the CBC padding.
- *                   On failure, the content is indetermidate.
+ *                   On success, it contains the encrypted or decrypted data,
+ *                   possibly followed by the CBC padding.
+ *                   On failure, the content is indeterminate.
  *                   For decryption, there must be enough room for \p datalen
  *                   bytes.
  *                   For encryption, there must be enough room for

@@ -68,23 +68,23 @@ x509_cert_info:"data_files/server9-sha512.crt":"cert. version     \: 3\nserial n
 
 X509 CRT information EC, SHA1 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-x509_cert_info:"data_files/server5-sha1.crt":"cert. version     \: 3\nserial number     \: 12\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 16\:21\:27\nexpires on        \: 2023-09-22 16\:21\:27\nsigned using      \: ECDSA with SHA1\nEC key size       \: 256 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/parse_input/server5-sha1.crt":"cert. version     \: 3\nserial number     \: 12\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 16\:21\:27\nexpires on        \: 2023-09-22 16\:21\:27\nsigned using      \: ECDSA with SHA1\nEC key size       \: 256 bits\nbasic constraints \: CA=false\n"
 
 X509 CRT information EC, SHA224 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_224_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-x509_cert_info:"data_files/server5-sha224.crt":"cert. version     \: 3\nserial number     \: 13\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 16\:21\:27\nexpires on        \: 2023-09-22 16\:21\:27\nsigned using      \: ECDSA with SHA224\nEC key size       \: 256 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/parse_input/server5-sha224.crt":"cert. version     \: 3\nserial number     \: 13\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 16\:21\:27\nexpires on        \: 2023-09-22 16\:21\:27\nsigned using      \: ECDSA with SHA224\nEC key size       \: 256 bits\nbasic constraints \: CA=false\n"
 
 X509 CRT information EC, SHA256 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-x509_cert_info:"data_files/server5.crt":"cert. version     \: 3\nserial number     \: 09\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 15\:52\:04\nexpires on        \: 2023-09-22 15\:52\:04\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/parse_input/server5.crt":"cert. version     \: 3\nserial number     \: 09\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 15\:52\:04\nexpires on        \: 2023-09-22 15\:52\:04\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nbasic constraints \: CA=false\n"
 
 X509 CRT information EC, SHA384 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-x509_cert_info:"data_files/server5-sha384.crt":"cert. version     \: 3\nserial number     \: 14\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 16\:21\:27\nexpires on        \: 2023-09-22 16\:21\:27\nsigned using      \: ECDSA with SHA384\nEC key size       \: 256 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/parse_input/server5-sha384.crt":"cert. version     \: 3\nserial number     \: 14\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 16\:21\:27\nexpires on        \: 2023-09-22 16\:21\:27\nsigned using      \: ECDSA with SHA384\nEC key size       \: 256 bits\nbasic constraints \: CA=false\n"
 
 X509 CRT information EC, SHA512 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-x509_cert_info:"data_files/server5-sha512.crt":"cert. version     \: 3\nserial number     \: 15\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 16\:21\:27\nexpires on        \: 2023-09-22 16\:21\:27\nsigned using      \: ECDSA with SHA512\nEC key size       \: 256 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/parse_input/server5-sha512.crt":"cert. version     \: 3\nserial number     \: 15\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 16\:21\:27\nexpires on        \: 2023-09-22 16\:21\:27\nsigned using      \: ECDSA with SHA512\nEC key size       \: 256 bits\nbasic constraints \: CA=false\n"
 
 X509 CRT information EC, SHA256 Digest, hardware module name SAN
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
@@ -168,11 +168,11 @@ x509_cert_info:"data_files/server1.ext_ku.crt":"cert. version     \: 3\nserial n
 
 X509 CRT information RSA signed by EC
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_PK_CAN_ECDSA_SOME
-x509_cert_info:"data_files/server4.crt":"cert. version     \: 3\nserial number     \: 08\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 15\:52\:04\nexpires on        \: 2023-09-22 15\:52\:04\nsigned using      \: ECDSA with SHA256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/parse_input/server4.crt":"cert. version     \: 3\nserial number     \: 08\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 15\:52\:04\nexpires on        \: 2023-09-22 15\:52\:04\nsigned using      \: ECDSA with SHA256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 CRT information EC signed by RSA
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP192R1_ENABLED:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
-x509_cert_info:"data_files/server3.crt":"cert. version     \: 3\nserial number     \: 0D\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-08-09 09\:17\:03\nexpires on        \: 2023-08-07 09\:17\:03\nsigned using      \: RSA with SHA1\nEC key size       \: 192 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/parse_input/server3.crt":"cert. version     \: 3\nserial number     \: 0D\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-08-09 09\:17\:03\nexpires on        \: 2023-08-07 09\:17\:03\nsigned using      \: RSA with SHA1\nEC key size       \: 192 bits\nbasic constraints \: CA=false\n"
 
 X509 CRT information Bitstring in subject name
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA
@@ -260,7 +260,7 @@ mbedtls_x509_crl_info:"data_files/crl-rsa-pss-sha512.pem":"CRL version   \: 2\ni
 
 X509 CRL Information EC, SHA1 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_PK_CAN_ECDSA_SOME:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl-ec-sha1.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA1\n"
+mbedtls_x509_crl_info:"data_files/parse_input/crl-ec-sha1.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA1\n"
 
 X509 CRL Information EC, SHA224 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_HAS_ALG_SHA_224_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_PK_CAN_ECDSA_SOME:!MBEDTLS_X509_REMOVE_INFO
@@ -268,7 +268,7 @@ mbedtls_x509_crl_info:"data_files/crl-ec-sha224.pem":"CRL version   \: 2\nissuer
 
 X509 CRL Information EC, SHA256 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_PK_CAN_ECDSA_SOME:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl-ec-sha256.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA256\n"
+mbedtls_x509_crl_info:"data_files/parse_input/crl-ec-sha256.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA256\n"
 
 X509 CRL Information EC, SHA384 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_PK_CAN_ECDSA_SOME:!MBEDTLS_X509_REMOVE_INFO

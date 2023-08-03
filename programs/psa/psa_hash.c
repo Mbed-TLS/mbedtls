@@ -90,33 +90,25 @@ int main(void)
     status = psa_hash_update(&hash_operation, sample_message, sizeof(sample_message) - 1);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_update failed\n");
-        psa_hash_abort(&hash_operation);
-        psa_hash_abort(&cloned_hash_operation);
-        return EXIT_FAILURE;
+        goto cleanup;
     }
 
     status = psa_hash_clone(&hash_operation, &cloned_hash_operation);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("PSA hash clone failed");
-        psa_hash_abort(&hash_operation);
-        psa_hash_abort(&cloned_hash_operation);
-        return EXIT_FAILURE;
+        goto cleanup;
     }
 
     status = psa_hash_finish(&hash_operation, hash, sizeof(hash), &hash_length);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_finish failed\n");
-        psa_hash_abort(&hash_operation);
-        psa_hash_abort(&cloned_hash_operation);
-        return EXIT_FAILURE;
+        goto cleanup;
     }
 
     /* Check the result of the operation against the sample */
     if ((memcmp(hash, sample_hash, sample_hash_len) != 0) || hash_length != sample_hash_len) {
         mbedtls_printf("Multi-part hash operation gave the wrong result!\n\n");
-        psa_hash_abort(&hash_operation);
-        psa_hash_abort(&cloned_hash_operation);
-        return EXIT_FAILURE;
+        goto cleanup;
     }
 
     status =
@@ -124,9 +116,7 @@ int main(void)
                         sample_hash_len);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_verify failed\n");
-        psa_hash_abort(&hash_operation);
-        psa_hash_abort(&cloned_hash_operation);
-        return EXIT_FAILURE;
+        goto cleanup;
     } else {
         mbedtls_printf("Multi-part hash operation successful!\n");
     }
@@ -142,16 +132,12 @@ int main(void)
                               &hash_length);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_compute failed\n");
-        psa_hash_abort(&hash_operation);
-        psa_hash_abort(&cloned_hash_operation);
-        return EXIT_FAILURE;
+        goto cleanup;
     }
 
     if (memcmp(hash, sample_hash, sample_hash_len) != 0 || hash_length != sample_hash_len) {
         mbedtls_printf("One-shot hash operation gave the wrong result!\n\n");
-        psa_hash_abort(&hash_operation);
-        psa_hash_abort(&cloned_hash_operation);
-        return EXIT_FAILURE;
+        goto cleanup;
     }
 
     mbedtls_printf("One-shot hash operation successful!\n\n");
@@ -167,5 +153,10 @@ int main(void)
 
     mbedtls_psa_crypto_free();
     return EXIT_SUCCESS;
+
+cleanup:
+    psa_hash_abort(&hash_operation);
+    psa_hash_abort(&cloned_hash_operation);
+    return EXIT_FAILURE;
 }
 #endif /* MBEDTLS_PSA_CRYPTO_C && PSA_WANT_ALG_SHA_256 */

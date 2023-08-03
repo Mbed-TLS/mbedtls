@@ -319,9 +319,8 @@ void mbedtls_md_free(mbedtls_md_context_t *ctx)
 
 #if defined(MBEDTLS_MD_C)
     if (ctx->hmac_ctx != NULL) {
-        mbedtls_platform_zeroize(ctx->hmac_ctx,
+        mbedtls_zeroize_and_free(ctx->hmac_ctx,
                                  2 * ctx->md_info->block_size);
-        mbedtls_free(ctx->hmac_ctx);
     }
 #endif
 

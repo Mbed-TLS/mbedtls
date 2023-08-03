@@ -1526,8 +1526,7 @@ int mbedtls_x509_crt_parse_file(mbedtls_x509_crt *chain, const char *path)
 
     ret = mbedtls_x509_crt_parse(chain, buf, n);
 
-    mbedtls_platform_zeroize(buf, n);
-    mbedtls_free(buf);
+    mbedtls_zeroize_and_free(buf, n);
 
     return ret;
 }
@@ -3258,8 +3257,7 @@ void mbedtls_x509_crt_free(mbedtls_x509_crt *crt)
         mbedtls_asn1_sequence_free(cert_cur->authority_key_id.authorityCertIssuer.next);
 
         if (cert_cur->raw.p != NULL && cert_cur->own_buffer) {
-            mbedtls_platform_zeroize(cert_cur->raw.p, cert_cur->raw.len);
-            mbedtls_free(cert_cur->raw.p);
+            mbedtls_zeroize_and_free(cert_cur->raw.p, cert_cur->raw.len);
         }
 
         cert_prv = cert_cur;

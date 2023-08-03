@@ -541,9 +541,8 @@ static int get_merkle_path(mbedtls_lms_private_t *ctx,
     ret = 0;
 
 exit:
-    mbedtls_platform_zeroize(tree, node_bytes *
+    mbedtls_zeroize_and_free(tree, node_bytes *
                              MERKLE_TREE_NODE_AM(ctx->params.type));
-    mbedtls_free(tree);
 
     return ret;
 }
@@ -704,9 +703,8 @@ int mbedtls_lms_calculate_public_key(mbedtls_lms_public_t *ctx,
     ret = 0;
 
 exit:
-    mbedtls_platform_zeroize(tree, node_bytes *
+    mbedtls_zeroize_and_free(tree, node_bytes *
                              MERKLE_TREE_NODE_AM(priv_ctx->params.type));
-    mbedtls_free(tree);
 
     return ret;
 }

@@ -253,8 +253,7 @@ int mbedtls_mpi_mod_raw_to_mont_rep(mbedtls_mpi_uint *X,
     mbedtls_mpi_core_to_mont_rep(X, X, N->p, N->limbs,
                                  N->rep.mont.mm, N->rep.mont.rr, T);
 
-    mbedtls_platform_zeroize(T, t_limbs * ciL);
-    mbedtls_free(T);
+    mbedtls_zeroize_and_free(T, t_limbs * ciL);
     return 0;
 }
 
@@ -270,8 +269,7 @@ int mbedtls_mpi_mod_raw_from_mont_rep(mbedtls_mpi_uint *X,
 
     mbedtls_mpi_core_from_mont_rep(X, X, N->p, N->limbs, N->rep.mont.mm, T);
 
-    mbedtls_platform_zeroize(T, t_limbs * ciL);
-    mbedtls_free(T);
+    mbedtls_zeroize_and_free(T, t_limbs * ciL);
     return 0;
 }
 

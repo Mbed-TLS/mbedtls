@@ -80,9 +80,8 @@ void mbedtls_mpi_mod_modulus_free(mbedtls_mpi_mod_modulus *N)
     switch (N->int_rep) {
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
             if (N->rep.mont.rr != NULL) {
-                mbedtls_platform_zeroize((mbedtls_mpi_uint *) N->rep.mont.rr,
+                mbedtls_zeroize_and_free((mbedtls_mpi_uint *) N->rep.mont.rr,
                                          N->limbs * sizeof(mbedtls_mpi_uint));
-                mbedtls_free((mbedtls_mpi_uint *) N->rep.mont.rr);
                 N->rep.mont.rr = NULL;
             }
             N->rep.mont.mm = 0;
@@ -295,9 +294,8 @@ int mbedtls_mpi_mod_inv(mbedtls_mpi_mod_residue *X,
             break;
     }
 
-    mbedtls_platform_zeroize(working_memory,
+    mbedtls_zeroize_and_free(working_memory,
                              working_limbs * sizeof(mbedtls_mpi_uint));
-    mbedtls_free(working_memory);
 
     return ret;
 }
@@ -399,8 +397,7 @@ cleanup:
     if (N->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY &&
         working_memory != NULL) {
 
-        mbedtls_platform_zeroize(working_memory, working_memory_len);
-        mbedtls_free(working_memory);
+        mbedtls_zeroize_and_free(working_memory, working_memory_len);
     }
 
     return ret;

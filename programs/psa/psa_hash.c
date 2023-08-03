@@ -82,8 +82,6 @@ int main(void)
     status = psa_hash_setup(&hash_operation, HASH_ALG);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_setup failed\n");
-        psa_hash_abort(&hash_operation);
-        psa_hash_abort(&cloned_hash_operation);
         return EXIT_FAILURE;
     }
 

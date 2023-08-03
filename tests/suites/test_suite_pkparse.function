@@ -78,7 +78,7 @@ void pk_parse_public_keyfile_ec(char *key_file, int result)
     int res;
 
     mbedtls_pk_init(&ctx);
-    USE_PSA_INIT();
+    MD_PSA_INIT();
 
     res = mbedtls_pk_parse_public_keyfile(&ctx, key_file);
 
@@ -99,7 +99,7 @@ void pk_parse_public_keyfile_ec(char *key_file, int result)
 
 exit:
     mbedtls_pk_free(&ctx);
-    USE_PSA_DONE();
+    MD_PSA_DONE();
 }
 /* END_CASE */
 

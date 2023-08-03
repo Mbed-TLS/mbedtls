@@ -66,6 +66,58 @@
 #error "MBEDTLS_HAVE_TIME_DATE without MBEDTLS_HAVE_TIME does not make sense"
 #endif
 
+#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED) && !defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
+#error "MBEDTLS_ECP_DP_BP256R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED) && !defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
+#error "MBEDTLS_ECP_DP_BP384R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED) && !defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
+#error "MBEDTLS_ECP_DP_BP512R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) && !defined(PSA_WANT_ECC_MONTGOMERY_255)
+#error "MBEDTLS_ECP_DP_CURVE25519_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) && !defined(PSA_WANT_ECC_MONTGOMERY_448)
+#error "MBEDTLS_ECP_DP_CURVE448_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) && !defined(PSA_WANT_ECC_SECP_R1_192)
+#error "MBEDTLS_ECP_DP_SECP192R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) && !defined(PSA_WANT_ECC_SECP_R1_224)
+#error "MBEDTLS_ECP_DP_SECP224R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) && !defined(PSA_WANT_ECC_SECP_R1_256)
+#error "MBEDTLS_ECP_DP_SECP256R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) && !defined(PSA_WANT_ECC_SECP_R1_384)
+#error "MBEDTLS_ECP_DP_SECP384R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) && !defined(PSA_WANT_ECC_SECP_R1_521)
+#error "MBEDTLS_ECP_DP_SECP521R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) && !defined(PSA_WANT_ECC_SECP_K1_192)
+#error "MBEDTLS_ECP_DP_SECP192K1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) && !defined(PSA_WANT_ECC_SECP_K1_224)
+#error "MBEDTLS_ECP_DP_SECP224K1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) && !defined(PSA_WANT_ECC_SECP_K1_256)
+#error "MBEDTLS_ECP_DP_SECP256K1_ENABLED defined, but not its PSA counterpart"
+#endif
+
 #if defined(MBEDTLS_CTR_DRBG_C) && !defined(MBEDTLS_AES_C)
 #error "MBEDTLS_CTR_DRBG_C defined, but not all prerequisites"
 #endif

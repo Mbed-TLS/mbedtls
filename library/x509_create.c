@@ -139,6 +139,8 @@ static const x509_attr_descriptor_t *x509_attr_descr_from_numericoid(const char 
 
     ret = mbedtls_oid_from_numeric_string(oid, numericoid, numericoid_len);
     if ((ret == MBEDTLS_ERR_X509_ALLOC_FAILED) || (ret == MBEDTLS_ERR_ASN1_INVALID_DATA)) {
+        mbedtls_free(oid->p);
+        mbedtls_free(oid);
         return NULL;
     }
 

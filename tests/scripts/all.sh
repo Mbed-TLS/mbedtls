@@ -3898,6 +3898,39 @@ component_test_aesni () { # ~ 60s
     ./programs/test/selftest aes | grep "AES note: using AESNI"
 }
 
+
+# For timebeing, no aarch64 gcc available in CI and no arm64 CI node.
+component_build_aes_aesce_armcc () {
+    msg "Build: AESCE test on arm64 platform without plain C."
+    scripts/config.py baremetal
+
+    # armc[56] don't support SHA-512 intrinsics
+    scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
+
+    # Stop armclang warning about feature detection for A64_CRYPTO.
+    # With this enabled, the library does build correctly under armclang,
+    # but in baremetal builds (as tested here), feature detection is
+    # unavailable, and the user is notified via a #warning. So enabling
+    # this feature would prevent us from building with -Werror on
+    # armclang. Tracked in #7198.
+    scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+    scripts/config.py set MBEDTLS_HAVE_ASM
+
+    msg "AESCE, build with default configuration."
+    scripts/config.py set MBEDTLS_AESCE_C
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
+    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto"
+
+    msg "AESCE, build AESCE only"
+    scripts/config.py set MBEDTLS_AESCE_C
+    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
+    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto"
+}
+
+support_build_aes_aesce_armcc () {
+    support_build_armcc
+}
+
 component_test_aes_only_128_bit_keys () {
     msg "build: default config + AES_ONLY_128_BIT_KEY_LENGTH"
     scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH

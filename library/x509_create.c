@@ -150,6 +150,7 @@ static const x509_attr_descriptor_t *x509_attr_descr_from_numericoid(const char 
     }
 
     mbedtls_free(oid->p);
+    mbedtls_free(oid);
     if (cur->oid == NULL) {
         return NULL;
     }

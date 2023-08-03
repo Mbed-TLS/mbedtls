@@ -166,7 +166,7 @@ void ecp_test_vect_restart(int id,
      * MBEDTLS_ECP_WINDOW_SIZE, as well as implementation details that may
      * change in the future. A factor 2 is a minimum safety margin.
      *
-     * For reference, with mbed TLS 2.4 and default settings, for P-256:
+     * For reference, with Mbed TLS 2.4 and default settings, for P-256:
      * - Random point mult:     ~3250M
      * - Cold base point mult:  ~3300M
      * - Hot base point mult:   ~1100M

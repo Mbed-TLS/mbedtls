@@ -47,7 +47,7 @@
  */
 #define MBEDTLS_VERSION_NUMBER         0x03040100
 #define MBEDTLS_VERSION_STRING         "3.4.1"
-#define MBEDTLS_VERSION_STRING_FULL    "mbed TLS 3.4.1"
+#define MBEDTLS_VERSION_STRING_FULL    "Mbed TLS 3.4.1"
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1

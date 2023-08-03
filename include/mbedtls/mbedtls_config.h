@@ -168,7 +168,7 @@
  *
  * Enable the memory allocation layer.
  *
- * By default mbed TLS uses the system-provided calloc() and free().
+ * By default Mbed TLS uses the system-provided calloc() and free().
  * This allows different allocators (self-implemented or provided) to be
  * provided to the platform abstraction layer.
  *
@@ -241,10 +241,10 @@
 /**
  * \def MBEDTLS_PLATFORM_EXIT_ALT
  *
- * MBEDTLS_PLATFORM_XXX_ALT: Uncomment a macro to let mbed TLS support the
+ * MBEDTLS_PLATFORM_XXX_ALT: Uncomment a macro to let Mbed TLS support the
  * function in the platform abstraction layer.
  *
- * Example: In case you uncomment MBEDTLS_PLATFORM_PRINTF_ALT, mbed TLS will
+ * Example: In case you uncomment MBEDTLS_PLATFORM_PRINTF_ALT, Mbed TLS will
  * provide a function "mbedtls_platform_set_printf()" that allows you to set an
  * alternative printf function pointer.
  *
@@ -344,7 +344,7 @@
 /** \} name SECTION: System support */
 
 /**
- * \name SECTION: mbed TLS feature support
+ * \name SECTION: Mbed TLS feature support
  *
  * This section sets support for features that are or are not needed
  * within the modules that are enabled.
@@ -367,7 +367,7 @@
 /**
  * \def MBEDTLS_AES_ALT
  *
- * MBEDTLS__MODULE_NAME__ALT: Uncomment a macro to let mbed TLS use your
+ * MBEDTLS__MODULE_NAME__ALT: Uncomment a macro to let Mbed TLS use your
  * alternate core implementation of a symmetric crypto, an arithmetic or hash
  * module (e.g. platform specific assembly optimized implementations). Keep
  * in mind that the function prototypes should remain the same.
@@ -375,7 +375,7 @@
  * This replaces the whole module. If you only want to replace one of the
  * functions, use one of the MBEDTLS__FUNCTION_NAME__ALT flags.
  *
- * Example: In case you uncomment MBEDTLS_AES_ALT, mbed TLS will no longer
+ * Example: In case you uncomment MBEDTLS_AES_ALT, Mbed TLS will no longer
  * provide the "struct mbedtls_aes_context" definition and omit the base
  * function declarations and implementations. "aes_alt.h" will be included from
  * "aes.h" to include the new function definitions.
@@ -423,14 +423,14 @@
 /**
  * \def MBEDTLS_SHA256_PROCESS_ALT
  *
- * MBEDTLS__FUNCTION_NAME__ALT: Uncomment a macro to let mbed TLS use you
+ * MBEDTLS__FUNCTION_NAME__ALT: Uncomment a macro to let Mbed TLS use you
  * alternate core implementation of symmetric crypto or hash function. Keep in
  * mind that function prototypes should remain the same.
  *
- * This replaces only one function. The header file from mbed TLS is still
+ * This replaces only one function. The header file from Mbed TLS is still
  * used, in contrast to the MBEDTLS__MODULE_NAME__ALT flags.
  *
- * Example: In case you uncomment MBEDTLS_SHA256_PROCESS_ALT, mbed TLS will
+ * Example: In case you uncomment MBEDTLS_SHA256_PROCESS_ALT, Mbed TLS will
  * no longer provide the mbedtls_sha1_process() function, but it will still provide
  * the other function (using your mbedtls_sha1_process() function) and the definition
  * of mbedtls_sha1_context, so your implementation of mbedtls_sha1_process must be compatible
@@ -480,11 +480,11 @@
  *
  * Expose a part of the internal interface of the Elliptic Curve Point module.
  *
- * MBEDTLS_ECP__FUNCTION_NAME__ALT: Uncomment a macro to let mbed TLS use your
+ * MBEDTLS_ECP__FUNCTION_NAME__ALT: Uncomment a macro to let Mbed TLS use your
  * alternative core implementation of elliptic curve arithmetic. Keep in mind
  * that function prototypes should remain the same.
  *
- * This partially replaces one function. The header file from mbed TLS is still
+ * This partially replaces one function. The header file from Mbed TLS is still
  * used, in contrast to the MBEDTLS_ECP_ALT flag. The original implementation
  * is still present and it is used for group structures not supported by the
  * alternative.
@@ -508,11 +508,11 @@
  * implement optimized set up and tear down instructions.
  *
  * Example: In case you set MBEDTLS_ECP_INTERNAL_ALT and
- * MBEDTLS_ECP_DOUBLE_JAC_ALT, mbed TLS will still provide the ecp_double_jac()
+ * MBEDTLS_ECP_DOUBLE_JAC_ALT, Mbed TLS will still provide the ecp_double_jac()
  * function, but will use your mbedtls_internal_ecp_double_jac() if the group
  * for the operation is supported by your implementation (i.e. your
  * mbedtls_internal_ecp_grp_capable() function returns 1 for this group). If the
- * group is not supported by your implementation, then the original mbed TLS
+ * group is not supported by your implementation, then the original Mbed TLS
  * implementation of ecp_double_jac() is used instead, unless this fallback
  * behaviour is disabled by setting MBEDTLS_ECP_NO_FALLBACK (in which case
  * ecp_double_jac() will return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE).
@@ -543,7 +543,7 @@
 /**
  * \def MBEDTLS_ENTROPY_HARDWARE_ALT
  *
- * Uncomment this macro to let mbed TLS use your own implementation of a
+ * Uncomment this macro to let Mbed TLS use your own implementation of a
  * hardware entropy collector.
  *
  * Your function must be called \c mbedtls_hardware_poll(), have the same
@@ -1491,7 +1491,7 @@
  * \def MBEDTLS_SSL_ALL_ALERT_MESSAGES
  *
  * Enable sending of alert messages in case of encountered errors as per RFC.
- * If you choose not to send the alert messages, mbed TLS can still communicate
+ * If you choose not to send the alert messages, Mbed TLS can still communicate
  * with other servers, only debugging of failures is harder.
  *
  * The advantage of not sending alert messages, is that no information is given
@@ -2181,12 +2181,12 @@
  * Comment this macro to disallow using RSASSA-PSS in certificates.
  */
 #define MBEDTLS_X509_RSASSA_PSS_SUPPORT
-/** \} name SECTION: mbed TLS feature support */
+/** \} name SECTION: Mbed TLS feature support */
 
 /**
- * \name SECTION: mbed TLS modules
+ * \name SECTION: Mbed TLS modules
  *
- * This section enables or disables entire modules in mbed TLS
+ * This section enables or disables entire modules in Mbed TLS
  * \{
  */
 
@@ -2882,7 +2882,7 @@
  * Module:  library/memory_buffer_alloc.c
  *
  * Requires: MBEDTLS_PLATFORM_C
- *           MBEDTLS_PLATFORM_MEMORY (to use it within mbed TLS)
+ *           MBEDTLS_PLATFORM_MEMORY (to use it within Mbed TLS)
  *
  * Enable this module to enable the buffer memory allocator.
  */
@@ -3484,7 +3484,7 @@
  * \def MBEDTLS_THREADING_C
  *
  * Enable the threading abstraction layer.
- * By default mbed TLS assumes it is used in a non-threaded environment or that
+ * By default Mbed TLS assumes it is used in a non-threaded environment or that
  * contexts are not shared between threads. If you do intend to use contexts
  * between threads, you will need to enable this layer to prevent race
  * conditions. See also our Knowledge Base article about threading:
@@ -3498,7 +3498,7 @@
  * You will have to enable either MBEDTLS_THREADING_ALT or
  * MBEDTLS_THREADING_PTHREAD.
  *
- * Enable this layer to allow use of mutexes within mbed TLS
+ * Enable this layer to allow use of mutexes within Mbed TLS
  */
 //#define MBEDTLS_THREADING_C
 
@@ -3644,7 +3644,7 @@
  */
 #define MBEDTLS_X509_CSR_WRITE_C
 
-/** \} name SECTION: mbed TLS modules */
+/** \} name SECTION: Mbed TLS modules */
 
 /**
  * \name SECTION: General configuration options

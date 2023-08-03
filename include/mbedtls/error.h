@@ -166,7 +166,7 @@ static inline int mbedtls_error_add(int high, int low,
 }
 
 /**
- * \brief Translate a mbed TLS error code into a string representation,
+ * \brief Translate a Mbed TLS error code into a string representation,
  *        Result is truncated if necessary and always includes a terminating
  *        null byte.
  *

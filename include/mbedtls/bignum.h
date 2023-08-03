@@ -1005,7 +1005,7 @@ int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
  *                 This must point to an initialized MPI.
  * \param rounds   The number of bases to perform the Miller-Rabin primality
  *                 test for. The probability of returning 0 on a composite is
- *                 at most 2<sup>-2*\p rounds</sup>.
+ *                 at most 2<sup>-2*\p rounds </sup>.
  * \param f_rng    The RNG function to use. This must not be \c NULL.
  * \param p_rng    The RNG parameter to be passed to \p f_rng.
  *                 This may be \c NULL if \p f_rng doesn't use

@@ -1,4 +1,4 @@
-PROJECT_NAME           = "mbed TLS v3.4.0"
+PROJECT_NAME           = "mbed TLS v3.4.1"
 OUTPUT_DIRECTORY       = ../apidoc/
 FULL_PATH_NAMES        = NO
 OPTIMIZE_OUTPUT_FOR_C  = YES
@@ -18,6 +18,7 @@ HTML_OUTPUT            = .
 HTML_TIMESTAMP         = YES
 SEARCHENGINE           = YES
 GENERATE_LATEX         = NO
+GENERATE_XML           = YES
 MACRO_EXPANSION        = YES
 EXPAND_ONLY_PREDEF     = YES
 INCLUDE_PATH           = ../include
@@ -42,3 +43,12 @@ DOT_TRANSPARENT        = YES
 #     \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
 # This avoids writing redundant text and keeps Clang happy.
 ALIASES += emptydescription=""
+
+# Define away Mbed TLS macros that make parsing definitions difficult.
+# MBEDTLS_DEPRECATED is not included in this list as it's important to
+# display deprecated status in the documentation.
+PREDEFINED             = "MBEDTLS_CHECK_RETURN_CRITICAL="   \
+                         "MBEDTLS_CHECK_RETURN_TYPICAL="    \
+                         "MBEDTLS_CHECK_RETURN_OPTIONAL="   \
+                         "MBEDTLS_PRINTF_ATTRIBUTE(a,b)="   \
+

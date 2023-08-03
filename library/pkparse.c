@@ -302,8 +302,10 @@ static int pk_ecc_set_pubkey(mbedtls_pk_context *pk,
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 
     /* Load the key */
-    if (*pub == 0x04) {
-        /* Uncompressed format, directly supported by PSA */
+    if (!PSA_ECC_FAMILY_IS_WEIERSTRASS(pk->ec_family) || *pub == 0x04) {
+        /* Format directly supported by PSA:
+         * - non-Weierstrass curves that only have one format;
+         * - uncompressed format for Weierstrass curves. */
         if (pub_len > sizeof(pk->pub_raw)) {
             return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
         }

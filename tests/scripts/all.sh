@@ -3862,6 +3862,7 @@ component_test_aesni () { # ~ 60s
 
     msg "build: default config with different AES implementations"
     scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
     scripts/config.py set MBEDTLS_HAVE_ASM
 
     # test the intrinsics implementation
@@ -3880,6 +3881,7 @@ component_test_aesni () { # ~ 60s
 
     # test the plain C implementation
     scripts/config.py unset MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
     msg "AES tests, plain C"
     make clean
     make test programs/test/selftest CC=gcc CFLAGS='-O2 -Werror'

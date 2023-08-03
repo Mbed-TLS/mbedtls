@@ -150,7 +150,7 @@ jobs:
         - scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
         - make generated_files
         - make
-        - programs/test/selftest
+        - programs/test/selftest aes | grep "using AESCE"
         - tests/context-info.sh
 
 after_failure:

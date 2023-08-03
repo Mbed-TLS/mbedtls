@@ -114,7 +114,7 @@ psa_status_t p256_transparent_key_agreement(
     /*
      *  Check that private key = 32 bytes, peer public key = 65 bytes,
      *  and that the shared secret buffer is big enough. */
-    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
+    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
     if (key_buffer_size != 32 || shared_secret_size < 32 ||
         peer_key_length != 65) {
         return status;
@@ -150,7 +150,7 @@ psa_status_t p256_transparent_sign_hash(
     (void) alg;
 
     psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
-    if (key_buffer_size != 32 || signature_size != 64) {
+    if (key_buffer_size != 32 || signature_size < 64) {
         return status;
     }
 

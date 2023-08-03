@@ -3887,6 +3887,15 @@ component_test_aesni () { # ~ 60s
     make test programs/test/selftest CC=gcc CFLAGS='-O2 -Werror'
     # check that there is no AESNI code present
     ./programs/test/selftest aes | not grep -q "AESNI code"
+
+    # test the intrinsics implementation
+    scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
+    msg "AES tests, test AESNI only"
+    make clean
+    make test programs/test/selftest CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
+    # check that we built intrinsics - this should be used by default when supported by the compiler
+    ./programs/test/selftest aes | grep "AES note: using AESNI"
 }
 
 component_test_aes_only_128_bit_keys () {

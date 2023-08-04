@@ -53,7 +53,7 @@ extern signed char mbedtls_aesce_has_support_result;
  */
 int mbedtls_aesce_has_support_impl(void);
 
-#define mbedtls_aesce_has_support() (mbedtls_aesce_has_support_result == -1 ? \
+#define MBEDTLS_AESCE_HAS_SUPPORT() (mbedtls_aesce_has_support_result == -1 ? \
                                      mbedtls_aesce_has_support_impl() : \
                                      mbedtls_aesce_has_support_result)
 
@@ -62,7 +62,7 @@ int mbedtls_aesce_has_support_impl(void);
 /* If we are not on Linux, we can't detect support so assume that it's supported.
  * Similarly, assume support if MBEDTLS_AES_USE_HARDWARE_ONLY is set.
  */
-#define mbedtls_aesce_has_support() 1
+#define MBEDTLS_AESCE_HAS_SUPPORT() 1
 
 #endif /* defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY) */
 

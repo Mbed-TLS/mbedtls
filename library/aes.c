@@ -653,7 +653,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 #endif
 
 #if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
-    if (mbedtls_aesce_has_support()) {
+    if (MBEDTLS_AESCE_HAS_SUPPORT()) {
         return mbedtls_aesce_setkey_enc((unsigned char *) RK, key, keybits);
     }
 #endif
@@ -765,7 +765,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
 #endif
 
 #if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
-    if (mbedtls_aesce_has_support()) {
+    if (MBEDTLS_AESCE_HAS_SUPPORT()) {
         mbedtls_aesce_inverse_key(
             (unsigned char *) RK,
             (const unsigned char *) (cty.buf + cty.rk_offset),
@@ -1092,7 +1092,7 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
 #endif
 
 #if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
-    if (mbedtls_aesce_has_support()) {
+    if (MBEDTLS_AESCE_HAS_SUPPORT()) {
         return mbedtls_aesce_crypt_ecb(ctx, mode, input, output);
     }
 #endif
@@ -1911,7 +1911,7 @@ int mbedtls_aes_self_test(int verbose)
         } else
 #endif
 #if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
-        if (mbedtls_aesce_has_support()) {
+        if (MBEDTLS_AESCE_HAS_SUPPORT()) {
             mbedtls_printf("  AES note: using AESCE.\n");
         } else
 #endif

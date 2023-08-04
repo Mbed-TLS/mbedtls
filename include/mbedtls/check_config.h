@@ -66,8 +66,8 @@
 #error "MBEDTLS_HAVE_TIME_DATE without MBEDTLS_HAVE_TIME does not make sense"
 #endif
 
-/* Check that each MBEDTLS_ECP_DP symbol has its PSA_WANT_ECC counterpart, but
- * only when config_psa.h is evaluated. */
+/* Check that each MBEDTLS_ECP_DP_xxx symbol has its PSA_WANT_ECC_xxx counterpart,
+ * but only when config_psa.h is evaluated. */
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG) || defined(MBEDTLS_PSA_CRYPTO_C)
 
 #if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED) && !defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)

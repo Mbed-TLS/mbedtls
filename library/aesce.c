@@ -99,7 +99,7 @@
 #include <asm/hwcap.h>
 #include <sys/auxv.h>
 
-char mbedtls_aesce_has_support_result = 2;
+signed char mbedtls_aesce_has_support_result = -1;
 
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 /*
@@ -113,7 +113,7 @@ int mbedtls_aesce_has_support_impl(void)
      * It is possible that we could end up setting result more than
      * once, but that is harmless.
      */
-    if (mbedtls_aesce_has_support_result == 2) {
+    if (mbedtls_aesce_has_support_result == -1) {
         unsigned long auxval = getauxval(AT_HWCAP);
         if ((auxval & (HWCAP_ASIMD | HWCAP_AES)) ==
             (HWCAP_ASIMD | HWCAP_AES)) {

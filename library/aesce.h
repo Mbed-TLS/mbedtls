@@ -44,7 +44,7 @@ extern "C" {
 
 #if defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 
-extern char mbedtls_aesce_has_support_result;
+extern signed char mbedtls_aesce_has_support_result;
 
 /**
  * \brief          Internal function to detect the crypto extension in CPUs.
@@ -53,7 +53,7 @@ extern char mbedtls_aesce_has_support_result;
  */
 int mbedtls_aesce_has_support_impl(void);
 
-#define mbedtls_aesce_has_support() (mbedtls_aesce_has_support_result == 2 ? \
+#define mbedtls_aesce_has_support() (mbedtls_aesce_has_support_result == -1 ? \
                                      mbedtls_aesce_has_support_impl() : \
                                      mbedtls_aesce_has_support_result)
 

@@ -2780,31 +2780,55 @@ component_test_psa_crypto_config_reference_ecc_no_bignum () {
     #tests/ssl-opt.sh
 }
 
-component_test_tfm_config_p256m_driver_accel_ec () {
-    msg "build: TFM config + p256m driver + accel ECDH(E)/ECDSA"
-
-    # Replace "mbedtls_config.h" and "cypto_config.h" with TFM ones
+common_tfm_config () {
+    # Enable TF-M config
     cp configs/tfm_mbedcrypto_config_profile_medium.h "$CONFIG_H"
     cp configs/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
 
-    # Create a fake "mbedtls_entropy_nv_seed_config.h" which is required by
-    # the TFM configuration. It will be deleted on exit.
-    touch "include/mbedtls/mbedtls_entropy_nv_seed_config.h"
+    # Adjust for the fact that we're building outside the TF-M environment.
+    #
+    # TF-M has separation, our build doesn't
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SPM
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
+    # TF-M provdes its own (dummy) implemenation, from their tree
+    scripts/config.py unset MBEDTLS_AES_DECRYPT_ALT
+    scripts/config.py unset MBEDTLS_AES_SETKEY_DEC_ALT
+    # We have an OS that provides entropy, use it
+    scripts/config.py unset MBEDTLS_NO_PLATFORM_ENTROPY
+
+    # Other config adjustments to make the tests pass.
+    # Those are a surprise and should be investigated and fixed.
+    #
+    # pkparse.c and pkwrite.c fail to link without this
+    echo "#define MBEDTLS_OID_C" >> "$CONFIG_H"
+
+    # Config adjustements for better test coverage in our environment.
+    # These are not needed just to build and pass tests.
+    #
+    # Enable filesystem I/O for the benefit of PK parse/write tests.
+    echo "#define MBEDTLS_FS_IO" >> "$CONFIG_H"
+}
+
+component_test_tfm_config_p256m_driver_accel_ec () {
+    msg "build: TF-M config + p256m driver + accel ECDH(E)/ECDSA"
+
+    common_tfm_config
 
     # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
 
-    # Unset PSA_CRYPTO_SPM because test and sample programs aren't equipped
-    # for the modified names used when MBEDTLS_PSA_CRYPTO_SPM is active.
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SPM
-    # Use our implementation of AES
-    scripts/config.py unset MBEDTLS_AES_DECRYPT_ALT
-    scripts/config.py unset MBEDTLS_AES_SETKEY_DEC_ALT
-    # Configure entropy support
-    scripts/config.py unset MBEDTLS_NO_PLATFORM_ENTROPY
-    scripts/config.py set MBEDTLS_ENTROPY_NV_SEED
-    # Enable crypto storage
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_STORAGE_C
+    # Add missing symbols from "tfm_mbedcrypto_config_profile_medium.h"
+    #
+    # - USE_PSA_CRYPTO for PK_HAVE_ECC_KEYS
+    echo "#define MBEDTLS_USE_PSA_CRYPTO" >> "$CONFIG_H"
+    # - ECP_C and BIGNUM because P256M does not have support for import and export
+    #       of keys so we need the builtin support for that
+    echo "#define MBEDTLS_ECP_C" >> "$CONFIG_H"
+    echo "#define MBEDTLS_BIGNUM_C" >> "$CONFIG_H"
+    # - ASN1_[PARSE/WRITE]_C and OID_C found by check_config.h
+    echo "#define MBEDTLS_ASN1_PARSE_C" >> "$CONFIG_H"
+    echo "#define MBEDTLS_ASN1_WRITE_C" >> "$CONFIG_H"
+    echo "#define MBEDTLS_OID_C" >> "$CONFIG_H"
 
     # Set the list of accelerated components in order to remove them from
     # builtin support. We don't set IMPORT and EXPORT because P256M does not
@@ -2815,23 +2839,9 @@ component_test_tfm_config_p256m_driver_accel_ec () {
                     KEY_TYPE_ECC_KEY_PAIR_GENERATE \
                     KEY_TYPE_ECC_PUBLIC_KEY"
     loc_accel_flags="$( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
-    # Add missing symbols from "tfm_mbedcrypto_config_profile_medium.h". All of
-    # them fix missing items:
-    # - USE_PSA_CRYPTO for PK_HAVE_ECC_KEYS
-    # - FS_IO for the plaform + entropy modules
-    # - ECP_C and BIGNUM because P256M does not have support for import and export
-    #       of keys so we need the builtin support for that
-    # - ASN1_[PARSE/WRITE]_C and OID_C found by check_config.h
-    cflags="-DMBEDTLS_USE_PSA_CRYPTO \
-            -DMBEDTLS_ASN1_PARSE_C \
-            -DMBEDTLS_ASN1_WRITE_C \
-            -DMBEDTLS_OID_C \
-            -DMBEDTLS_FS_IO \
-            -DMBEDTLS_ECP_C \
-            -DMBEDTLS_BIGNUM_C \
-            -DMBEDTLS_PSA_ITS_FILE_C"
+
     # Build crypto library specifying we want to use P256M code for EC operations
-    make CFLAGS="$cflags $loc_accel_flags -DMBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED -O0 -g"
+    make CFLAGS="$loc_accel_flags -DMBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     #not grep mbedtls_ecdsa_ library/ecdsa.o # this is needed for deterministic ECDSA
@@ -2844,11 +2854,18 @@ component_test_tfm_config_p256m_driver_accel_ec () {
     #not grep mbedtls_mpi_ library/bignum.o # this is needed from ECP module
 
     # Run the tests
-    msg "test: TFM config + p256m driver + accel ECDH(E)/ECDSA"
+    msg "test: TF-M config + p256m driver + accel ECDH(E)/ECDSA"
     make test
+}
 
-    # Remove unnecessary files generated for the test
-    rm "include/mbedtls/mbedtls_entropy_nv_seed_config.h"
+component_test_tfm_config() {
+    common_tfm_config
+
+    msg "build: TF-M config"
+    make tests
+
+    msg "test: TF-M config"
+    make test
 }
 
 # Helper function used in:

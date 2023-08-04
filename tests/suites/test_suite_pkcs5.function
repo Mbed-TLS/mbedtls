@@ -39,8 +39,9 @@ void pbes2_encrypt(int params_tag, data_t *params_hex, data_t *pw,
     size_t my_out_len = 0;
 #endif
     MD_PSA_INIT();
-    /* This parameter is only used when MBEDTLS_CIPHER_PADDING_PKCS7 is enabled */
+    /* Those parameters are only used when MBEDTLS_CIPHER_PADDING_PKCS7 is enabled */
     (void) ref_out_len;
+    (void) outsize;
 
     params.tag = params_tag;
     params.p = params_hex->x;
@@ -88,8 +89,9 @@ void mbedtls_pkcs5_pbes2(int params_tag, data_t *params_hex, data_t *pw,
 #endif
 
     MD_PSA_INIT();
-    /* This parameter is only used when MBEDTLS_CIPHER_PADDING_PKCS7 is enabled */
+    /* Those parameters are only used when MBEDTLS_CIPHER_PADDING_PKCS7 is enabled */
     (void) ref_out_len;
+    (void) outsize;
 
 
     params.tag = params_tag;

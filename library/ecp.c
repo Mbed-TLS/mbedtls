@@ -43,8 +43,6 @@
 
 #include "common.h"
 
-#if !defined(MBEDTLS_ECP_WITH_MPI_UINT)
-
 /**
  * \brief Function level alternative implementation.
  *
@@ -591,11 +589,14 @@ void mbedtls_ecp_group_free(mbedtls_ecp_group *grp)
     }
 
     if (grp->h != 1) {
-        mbedtls_mpi_free(&grp->P);
         mbedtls_mpi_free(&grp->A);
         mbedtls_mpi_free(&grp->B);
         mbedtls_ecp_point_free(&grp->G);
+
+#if !defined(MBEDTLS_ECP_WITH_MPI_UINT)
         mbedtls_mpi_free(&grp->N);
+        mbedtls_mpi_free(&grp->P);
+#endif
     }
 
     if (!ecp_group_is_static_comb_table(grp) && grp->T != NULL) {
@@ -3638,18 +3639,6 @@ cleanup:
 
 #endif /* MBEDTLS_SELF_TEST */
 
-#if defined(MBEDTLS_TEST_HOOKS)
-
-MBEDTLS_STATIC_TESTABLE
-mbedtls_ecp_variant mbedtls_ecp_get_variant(void)
-{
-    return MBEDTLS_ECP_VARIANT_WITH_MPI_STRUCT;
-}
-
-#endif /* MBEDTLS_TEST_HOOKS */
-
 #endif /* !MBEDTLS_ECP_ALT */
 
 #endif /* MBEDTLS_ECP_LIGHT */
-
-#endif /* !MBEDTLS_ECP_WITH_MPI_UINT */

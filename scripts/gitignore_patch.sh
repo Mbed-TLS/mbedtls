@@ -59,7 +59,7 @@ esac
 
 GITIGNORES=$(find . -name ".gitignore")
 for GITIGNORE in $GITIGNORES; do
-    if $IGNORE; then 
+    if $IGNORE; then
         sed -i '/###START_COMMENTED_GENERATED_FILES###/,/###END_COMMENTED_GENERATED_FILES###/s/^# //' $GITIGNORE
         sed -i 's/###START_COMMENTED_GENERATED_FILES###/###START_GENERATED_FILES###/' $GITIGNORE
         sed -i 's/###END_COMMENTED_GENERATED_FILES###/###END_GENERATED_FILES###/' $GITIGNORE

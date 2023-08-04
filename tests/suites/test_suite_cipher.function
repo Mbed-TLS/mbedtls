@@ -583,7 +583,7 @@ void dec_empty_buf(int cipher,
         iv_len = 12;
     }
 
-    ASSERT_ALLOC(iv, iv_len);
+    TEST_CALLOC(iv, iv_len);
     memset(iv, 0, iv_len);
 
     TEST_ASSERT(sizeof(key) * 8 >= mbedtls_cipher_info_get_key_bitlen(cipher_info));
@@ -905,7 +905,7 @@ void auth_crypt_tv(int cipher_id, data_t *key, data_t *iv,
      * (we need the tag appended to the ciphertext)
      */
     cipher_plus_tag_len = cipher->len + tag->len;
-    ASSERT_ALLOC(cipher_plus_tag, cipher_plus_tag_len);
+    TEST_CALLOC(cipher_plus_tag, cipher_plus_tag_len);
     memcpy(cipher_plus_tag, cipher->x, cipher->len);
     memcpy(cipher_plus_tag + cipher->len, tag->x, tag->len);
 
@@ -923,7 +923,7 @@ void auth_crypt_tv(int cipher_id, data_t *key, data_t *iv,
      * Try decrypting to a buffer that's 1B too small
      */
     if (decrypt_buf_len != 0) {
-        ASSERT_ALLOC(decrypt_buf, decrypt_buf_len - 1);
+        TEST_CALLOC(decrypt_buf, decrypt_buf_len - 1);
 
         outlen = 0;
         ret = mbedtls_cipher_auth_decrypt_ext(&ctx, iv->x, iv->len,
@@ -938,7 +938,7 @@ void auth_crypt_tv(int cipher_id, data_t *key, data_t *iv,
     /*
      * Authenticate and decrypt, and check result
      */
-    ASSERT_ALLOC(decrypt_buf, decrypt_buf_len);
+    TEST_CALLOC(decrypt_buf, decrypt_buf_len);
 
     outlen = 0;
     ret = mbedtls_cipher_auth_decrypt_ext(&ctx, iv->x, iv->len,
@@ -950,7 +950,7 @@ void auth_crypt_tv(int cipher_id, data_t *key, data_t *iv,
         TEST_ASSERT(buffer_is_all_zero(decrypt_buf, decrypt_buf_len));
     } else {
         TEST_ASSERT(ret == 0);
-        ASSERT_COMPARE(decrypt_buf, outlen, clear->x, clear->len);
+        TEST_MEMORY_COMPARE(decrypt_buf, outlen, clear->x, clear->len);
     }
 
     mbedtls_free(decrypt_buf);
@@ -981,7 +981,7 @@ void auth_crypt_tv(int cipher_id, data_t *key, data_t *iv,
         /*
          * Try encrypting with an output buffer that's 1B too small
          */
-        ASSERT_ALLOC(encrypt_buf, encrypt_buf_len - 1);
+        TEST_CALLOC(encrypt_buf, encrypt_buf_len - 1);
 
         outlen = 0;
         ret = mbedtls_cipher_auth_encrypt_ext(&ctx, iv->x, iv->len,
@@ -995,7 +995,7 @@ void auth_crypt_tv(int cipher_id, data_t *key, data_t *iv,
         /*
          * Encrypt and check the result
          */
-        ASSERT_ALLOC(encrypt_buf, encrypt_buf_len);
+        TEST_CALLOC(encrypt_buf, encrypt_buf_len);
 
         outlen = 0;
         ret = mbedtls_cipher_auth_encrypt_ext(&ctx, iv->x, iv->len,

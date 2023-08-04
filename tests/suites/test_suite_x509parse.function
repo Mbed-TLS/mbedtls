@@ -447,7 +447,7 @@ void x509_crt_parse_cn_inet_pton(const char *cn, data_t *exp, int ref_ret)
     TEST_EQUAL(addrlen, (size_t) ref_ret);
 
     if (addrlen) {
-        ASSERT_COMPARE(exp->x, exp->len, addr, addrlen);
+        TEST_MEMORY_COMPARE(exp->x, exp->len, addr, addrlen);
     }
 }
 /* END_CASE */
@@ -944,7 +944,7 @@ void mbedtls_x509_dn_get_next(char *name_str,
     c = buf + sizeof(buf);
     // Additional size required for trailing space
     out_size = strlen(expected_oids) + 2;
-    ASSERT_ALLOC(out, out_size);
+    TEST_CALLOC(out, out_size);
 
     TEST_EQUAL(mbedtls_x509_string_to_names(&names, name_str), 0);
 
@@ -979,7 +979,7 @@ void mbedtls_x509_dn_get_next(char *name_str,
     out = NULL;
 
     out_size = strlen(exp_dn_gets) + 1;
-    ASSERT_ALLOC(out, out_size);
+    TEST_CALLOC(out, out_size);
 
     TEST_LE_S(0, mbedtls_x509_dn_gets((char *) out, out_size, &parsed));
     TEST_EQUAL(strcmp((char *) out, exp_dn_gets), 0);

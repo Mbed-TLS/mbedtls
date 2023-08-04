@@ -2780,6 +2780,9 @@ component_test_psa_crypto_config_reference_ecc_no_bignum () {
     #tests/ssl-opt.sh
 }
 
+# Helper for setting common configurations between:
+# - component_test_tfm_config_p256m_driver_accel_ec()
+# - component_test_tfm_config()
 common_tfm_config () {
     # Enable TF-M config
     cp configs/tfm_mbedcrypto_config_profile_medium.h "$CONFIG_H"
@@ -2809,6 +2812,8 @@ common_tfm_config () {
     echo "#define MBEDTLS_FS_IO" >> "$CONFIG_H"
 }
 
+# Keep this in sync with component_test_tfm_config() as they are both meant
+# to be used in analyze_outcomes.py for driver's coverage analysis.
 component_test_tfm_config_p256m_driver_accel_ec () {
     msg "build: TF-M config + p256m driver + accel ECDH(E)/ECDSA"
 
@@ -2858,6 +2863,9 @@ component_test_tfm_config_p256m_driver_accel_ec () {
     make test
 }
 
+# Keep this in sync with component_test_tfm_config_p256m_driver_accel_ec() as
+# they are both meant to be used in analyze_outcomes.py for driver's coverage
+# analysis.
 component_test_tfm_config() {
     common_tfm_config
 

@@ -66,6 +66,10 @@
 #error "MBEDTLS_HAVE_TIME_DATE without MBEDTLS_HAVE_TIME does not make sense"
 #endif
 
+/* Check that each MBEDTLS_ECP_DP symbol has its PSA_WANT_ECC counterpart, but
+ * only when config_psa.h is evaluated. */
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG) || defined(MBEDTLS_PSA_CRYPTO_C)
+
 #if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED) && !defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
 #error "MBEDTLS_ECP_DP_BP256R1_ENABLED defined, but not its PSA counterpart"
 #endif
@@ -118,6 +122,8 @@
 #if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) && !defined(PSA_WANT_ECC_SECP_K1_256)
 #error "MBEDTLS_ECP_DP_SECP256K1_ENABLED defined, but not its PSA counterpart"
 #endif
+
+#endif /* MBEDTLS_PSA_CRYPTO_CONFIG || MBEDTLS_PSA_CRYPTO_C */
 
 #if defined(MBEDTLS_CTR_DRBG_C) && !defined(MBEDTLS_AES_C)
 #error "MBEDTLS_CTR_DRBG_C defined, but not all prerequisites"

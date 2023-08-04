@@ -110,7 +110,8 @@
 #error "MBEDTLS_ECP_DP_SECP192K1_ENABLED defined, but not its PSA counterpart"
 #endif
 
-#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) && !defined(PSA_WANT_ECC_SECP_K1_224)
+/* SECP224K1 is buggy in PSA API so we skip this check */
+#if 0 && defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) && !defined(PSA_WANT_ECC_SECP_K1_224)
 #error "MBEDTLS_ECP_DP_SECP224K1_ENABLED defined, but not its PSA counterpart"
 #endif
 

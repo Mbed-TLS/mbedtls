@@ -69,11 +69,7 @@ extern "C" {
  *
  * \return         non-zero if CPU has support for the feature, 0 otherwise
  */
-#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 int mbedtls_padlock_has_support(int feature);
-#else
-#define /* no-check-names */ mbedtls_padlock_has_support(feature) 1
-#endif
 
 /**
  * \brief          Internal PadLock AES-ECB block en(de)cryption

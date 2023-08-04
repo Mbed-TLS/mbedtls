@@ -33,7 +33,10 @@
 
 #if defined(MBEDTLS_HAVE_X86)
 
-#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#if defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#error "MBEDTLS_PADLOCK_C defined, but not all prerequisites"
+#endif
+
 /*
  * PadLock detection routine
  */
@@ -63,7 +66,6 @@ int mbedtls_padlock_has_support(int feature)
 
     return flags & feature;
 }
-#endif
 
 /*
  * PadLock AES-ECB block en(de)cryption

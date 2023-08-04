@@ -622,7 +622,9 @@ static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
 int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
                            unsigned int keybits)
 {
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
     unsigned int i;
+#endif
     uint32_t *RK;
 
     switch (keybits) {
@@ -656,6 +658,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
     }
 #endif
 
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
     for (i = 0; i < (keybits >> 5); i++) {
         RK[i] = MBEDTLS_GET_UINT32_LE(key, i << 2);
     }
@@ -722,6 +725,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
     }
 
     return 0;
+#endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 }
 #endif /* !MBEDTLS_AES_SETKEY_ENC_ALT */
 
@@ -732,10 +736,14 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
                            unsigned int keybits)
 {
-    int i, j, ret;
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+    int i, j;
+    uint32_t *SK;
+#endif
+    int ret;
     mbedtls_aes_context cty;
     uint32_t *RK;
-    uint32_t *SK;
+
 
     mbedtls_aes_init(&cty);
 
@@ -767,6 +775,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
     }
 #endif
 
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
     SK = cty.buf + cty.rk_offset + cty.nr * 4;
 
     *RK++ = *SK++;
@@ -787,7 +796,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
     *RK++ = *SK++;
     *RK++ = *SK++;
     *RK++ = *SK++;
-
+#endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 exit:
     mbedtls_aes_free(&cty);
 
@@ -1095,11 +1104,14 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
     }
 #endif
 
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
     if (mode == MBEDTLS_AES_ENCRYPT) {
         return mbedtls_internal_aes_encrypt(ctx, input, output);
     } else {
         return mbedtls_internal_aes_decrypt(ctx, input, output);
     }
+#endif
+
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -1899,7 +1911,11 @@ int mbedtls_aes_self_test(int verbose)
             mbedtls_printf("  AES note: using AESCE.\n");
         } else
 #endif
-        mbedtls_printf("  AES note: built-in implementation.\n");
+        {
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+            mbedtls_printf("  AES note: built-in implementation.\n");
+#endif
+        }
 #endif /* MBEDTLS_AES_ALT */
     }
 

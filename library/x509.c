@@ -826,9 +826,8 @@ static char nibble_to_hex_digit(int i)
 int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i, j, n, asn1_len_size;
+    size_t i, j, n, asn1_len_size, asn1_len_start;
     unsigned char asn1_len_buf[5];
-    int asn1_len_start;
     unsigned char *asn1_len_p;
     unsigned char c, merge = 0;
     const mbedtls_x509_name *name;

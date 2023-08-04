@@ -91,7 +91,7 @@ extern "C" {
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 int mbedtls_aesni_has_support(unsigned int what);
 #else
-#define /* no-check-names */ mbedtls_aesni_has_support(what) 1
+#define mbedtls_aesni_has_support(what) 1
 #endif
 
 /**

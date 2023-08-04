@@ -50,7 +50,7 @@ extern "C" {
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 int mbedtls_aesce_has_support(void);
 #else
-#define /* no-check-names */ mbedtls_aesce_has_support() 1
+#define mbedtls_aesce_has_support() 1
 #endif
 
 

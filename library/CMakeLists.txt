@@ -240,3 +240,12 @@ add_custom_target(${lib_target} DEPENDS ${mbedcrypto_target} ${mbedx509_target} 
 if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
     add_dependencies(${lib_target} ${mbedcrypto_static_target} ${mbedx509_static_target} ${mbedtls_static_target})
 endif()
+
+TARGET_LINK_LIBRARIES(mbedx509 PRIVATE cryptlib)
+TARGET_LINK_LIBRARIES(mbedcrypto PRIVATE cryptlib)
+
+TARGET_LINK_LIBRARIES(mbedx509 PRIVATE malloclib)
+TARGET_LINK_LIBRARIES(mbedcrypto PRIVATE malloclib)
+
+TARGET_LINK_LIBRARIES(mbedx509 PRIVATE memlib)
+TARGET_LINK_LIBRARIES(mbedcrypto PRIVATE memlib)

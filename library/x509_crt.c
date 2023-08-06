@@ -153,6 +153,82 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_suiteb =
     0,
 };
 
+int my_printf(const char *fmt, ...)
+{
+    //LIBSPDM_ASSERT(false);
+    return 0;
+}
+
+int my_snprintf(char *str, size_t size, const char *format, ...)
+{
+    //LIBSPDM_ASSERT(false);
+    return 0;
+}
+
+void mbedtls_platform_zeroize(void *buf, size_t len)
+{
+   // libspdm_zero_mem(buf, len);
+}
+
+size_t strlen(const char *string)
+{
+	uint32_t i = 0;
+
+	while (string[i])
+	{
+		i++;
+	}
+
+	return i;
+}
+
+char *strchr(const char *a, int b)
+{
+	uint32_t i = 0;
+
+	while (a[i])
+	{
+		if (a[i] == b)
+			return (char *)&a[i+1];
+	}
+
+	return NULL;
+}
+
+int strcmp(const char *a, const char *b)
+{
+	uint32_t len1;
+	uint32_t len2;
+	uint32_t i = 0;
+
+	len1 = strlen(a);
+	len2 = strlen(b);
+
+	if (len1 != len2)
+		return 0;
+
+	for (i = 0; i < len1; i++)
+	{
+		if (a[i] != b[1])
+			return 0;
+	}
+
+	return 1;
+}
+
+void *memmove(void *dest, const void *src, size_t count)
+{
+	uint32_t i = 0;
+	uint8_t *ptr1 = (uint8_t *)dest;
+	uint8_t *ptr2 = (uint8_t *)src;
+
+	while (count)
+	{
+		ptr1[i] = ptr2[i];
+	}
+
+	return dest;
+}
 /*
  * Check md_alg against profile
  * Return 0 if md_alg is acceptable for this profile, -1 otherwise

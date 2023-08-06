@@ -308,6 +308,8 @@ static const mbedtls_oid_descriptor_t oid_certificate_policies[] =
 FN_OID_TYPED_FROM_ASN1(mbedtls_oid_descriptor_t, certificate_policies, oid_certificate_policies)
 FN_OID_GET_ATTR1(mbedtls_oid_get_certificate_policies, mbedtls_oid_descriptor_t, certificate_policies, const char *, description)
 
+#define MBEDTLS_MD_C
+
 #if defined(MBEDTLS_MD_C)
 /*
  * For SignatureAlgorithmIdentifier

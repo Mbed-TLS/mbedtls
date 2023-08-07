@@ -280,3 +280,5 @@ There is currently no indication of when a slot is in the WRITING state. This on
 Problem: a key slot is destroyed (by `psa_wipe_key_slot`) while it's in use (READING or WRITING).
 
 TODO: how do we ensure that? This needs something more sophisticated than mutexes (concurrency number >2)! Even a per-slot mutex isn't enough (we'd need a reader-writer lock).
+
+Solution: after some team discussion, we've decided to rely on a new threading abstraction which mimics C11 (i.e. `mbedtls_fff` where `fff` is the C11 function name, having the same parameters and return type, with default implementations for C11, pthreads and Windows). We'll likely use condition variables in addition to mutexes.

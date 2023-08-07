@@ -2798,6 +2798,8 @@ common_tfm_config () {
     scripts/config.py unset MBEDTLS_AES_SETKEY_DEC_ALT
     # We have an OS that provides entropy, use it
     scripts/config.py unset MBEDTLS_NO_PLATFORM_ENTROPY
+    # Disable buffer allocator and use dynamic memory for calloc/free
+    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
 
     # Other config adjustments to make the tests pass.
     # Those are a surprise and should be investigated and fixed.
@@ -2846,7 +2848,7 @@ component_test_tfm_config_p256m_driver_accel_ec () {
     loc_accel_flags="$( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
 
     # Build crypto library specifying we want to use P256M code for EC operations
-    make CFLAGS="$loc_accel_flags -DMBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED"
+    make CFLAGS="$ASAN_CFLAGS $loc_accel_flags -DMBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED" LDFLAGS="$ASAN_CFLAGS"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     #not grep mbedtls_ecdsa_ library/ecdsa.o # this is needed for deterministic ECDSA

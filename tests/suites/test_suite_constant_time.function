@@ -152,7 +152,7 @@ void mbedtls_ct_zeroize_if(char *c_str, int len)
     uint8_t *buf = NULL;
     mbedtls_ct_condition_t c = mbedtls_ct_bool(strtoull(c_str, NULL, 16));
 
-    ASSERT_ALLOC(buf, len);
+    TEST_CALLOC(buf, len);
     for (size_t i = 0; i < (size_t) len; i++) {
         buf[i] = 1;
     }
@@ -321,8 +321,8 @@ void mbedtls_ct_memmove_left(int len, int offset)
     size_t o = (size_t) offset;
 
     uint8_t *buf = NULL, *buf_expected = NULL;
-    ASSERT_ALLOC(buf, l);
-    ASSERT_ALLOC(buf_expected, l);
+    TEST_CALLOC(buf, l);
+    TEST_CALLOC(buf_expected, l);
 
     for (size_t i = 0; i < l; i++) {
         buf[i] = (uint8_t) i;

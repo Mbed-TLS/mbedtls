@@ -24,6 +24,7 @@
 #include "psa/crypto.h"
 #include "psa_crypto_driver_wrappers.h"
 #include <stddef.h>
+#include <string.h>
 
 #if defined(MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED)
 
@@ -57,6 +58,50 @@ static psa_status_t p256_to_psa_error(int ret)
         default:
             return PSA_ERROR_GENERIC_ERROR;
     }
+}
+
+psa_status_t p256_transparent_import_key(const psa_key_attributes_t *attributes,
+                             const uint8_t *data,
+                             size_t data_length,
+                             uint8_t *key_buffer,
+                             size_t key_buffer_size,
+                             size_t *key_buffer_length,
+                             size_t *bits)
+{
+    /* Check the key size */
+    if (*bits != 0 && *bits != 256) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    /* Validate the key (and its type and size) */
+    psa_key_type_t type = psa_get_key_type(attributes);
+    if (type == PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_SECP_R1)) {
+        if (data_length != 65) {
+            return *bits == 0 ? PSA_ERROR_NOT_SUPPORTED : PSA_ERROR_INVALID_ARGUMENT;
+        }
+        if (p256_validate_pubkey(data + 1) != P256_SUCCESS) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    } else if (type == PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1)) {
+        if (data_length != 32) {
+            return *bits == 0 ? PSA_ERROR_NOT_SUPPORTED : PSA_ERROR_INVALID_ARGUMENT;
+        }
+        if (p256_validate_privkey(data) != P256_SUCCESS) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    } else {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+    *bits = 256;
+
+    /* We only support the export format for input, so just copy. */
+    if (key_buffer_size < data_length) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
+    }
+    memcpy(key_buffer, data, data_length);
+    *key_buffer_length = data_length;
+
+    return PSA_SUCCESS;
 }
 
 psa_status_t p256_transparent_generate_key(

@@ -232,79 +232,125 @@ static int parse_attribute_value_der_encoded(const char *s,
     return 0;
 }
 
-static int validate_utf_8(unsigned char *data, size_t len) {
+static int validate_utf_8(unsigned char *data, size_t len)
+{
     unsigned char *end = data + len;
     int i, n;
     int utf_tails;
     unsigned char *d;
 
-    for(d = data; d < end; d++) {
+    for (d = data; d < end; d++) {
         if ((0x00 <= *d) && (*d <= 0x7F)) {
             utf_tails = 0;
-        } 
-        else if ((0xC2 <= *d) && (*d <= 0xDF)) {
+        } else if ((0xC2 <= *d) && (*d <= 0xDF)) {
             utf_tails = 1;
-        }
-        else if (((0xE1 <= *d) && (*d <= 0xEC)) || ((0xEE <= *d) && (*d <= 0xEF))) {
+        } else if (((0xE1 <= *d) && (*d <= 0xEC)) || ((0xEE <= *d) && (*d <= 0xEF))) {
             utf_tails = 2;
-        }
-        else if (0xE0 == *d) {
-            if(d + 1 >= end) {
+        } else if (0xE0 == *d) {
+            if (d + 1 >= end) {
                 return -1;
             }
             d++;
-            if(!((0xA0 <= *d) && (*d <= 0xBF))) {
+            if (!((0xA0 <= *d) && (*d <= 0xBF))) {
                 return -1;
             }
             utf_tails = 1;
-        }
-        else if (0xED == *d) {
-            if(d + 1 >= end) {
+        } else if (0xED == *d) {
+            if (d + 1 >= end) {
                 return -1;
             }
             d++;
-            if(!((0x80 <= *d) && (*d <= 0x9F))) {
+            if (!((0x80 <= *d) && (*d <= 0x9F))) {
                 return -1;
             }
             utf_tails = 1;
-        }
-        else if ((0xF1 <= *d) && (*d <= 0xF3)) {
+        } else if ((0xF1 <= *d) && (*d <= 0xF3)) {
             utf_tails = 3;
-        }
-        else if (0xF0 == *d) {
-            if(d + 1 >= end) {
+        } else if (0xF0 == *d) {
+            if (d + 1 >= end) {
                 return -1;
             }
             d++;
-            if(!((0x90 <= *d) && (*d <= 0xBF))) {
+            if (!((0x90 <= *d) && (*d <= 0xBF))) {
                 return -1;
             }
             utf_tails = 2;
-        }
-        else if (0xF4 == *d) {
-            if(d + 1 >= end) {
+        } else if (0xF4 == *d) {
+            if (d + 1 >= end) {
                 return -1;
             }
             d++;
-            if(!((0x80 <= *d) && (*d <= 0x8F))) {
+            if (!((0x80 <= *d) && (*d <= 0x8F))) {
                 return -1;
             }
             utf_tails = 2;
-        }
-        else {
+        } else {
             return -1;
         }
-        
-        for(i = 0; i < utf_tails; i++) {
-            if(d + 1 >= end) {
+
+        for (i = 0; i < utf_tails; i++) {
+            if (d + 1 >= end) {
                 return -1;
             }
             d++;
-            if(!((0x80 <= *d) && (*d <= 0xBF))) {
+            if (!((0x80 <= *d) && (*d <= 0xBF))) {
                 return -1;
             }
         }
     }
+}
+
+static int validate_utf_8_2(unsigned char *data, size_t len)
+{
+    uint32_t code_point;
+    unsigned char *d;
+    unsigned char *end = data + len;
+    int utf_bytes, i;
+
+    for (d = data; d < end; d++) {
+        code_point = 0;
+        if (*d & 0x80 == 0x00) {
+            utf_bytes = 1;
+            code_point = code_point | (*d & 0x3F);
+        } else if (*d & 0xE0 == 0xC0) {
+            utf_bytes = 2;
+            code_point = code_point | (uint32_t) (*d & 0x1F) << 6;
+        } else if (*d & 0xF0 == 0xE0) {
+            utf_bytes = 3;
+            code_point = code_point | (uint32_t) (*d & 0x0F) << 12;
+        } else if (*d & 0xF8 == 0xF0) {
+            utf_bytes = 4;
+            code_point = code_point | (uint32_t) (*d & 0x07) << 18;
+        } else {
+            return MBEDTLS_ERROR_C;
+        }
+        for (i = utf_bytes-1; i > 0; i--) {
+            if (d + 1 >= end) {
+                return -1;
+            }
+            d++;
+            code_point = code_point | (uint32_t) (*d & 0x3F) << (6 * (i-1));
+        }
+        switch (utf_bytes) {
+            case 2:
+                if (!(0x80 < code_point && code_point < 0x7FF)) {
+                    return MBEDTLS_ERROR_C; //bad encoding
+                }
+                break;
+            case 3:
+                if (!(0x800 < code_point && code_point < 0xD7FF) &&
+                    !(0xE000 < utf_bytes && utf_bytes < 0xFFFF)) {
+                    return MBEDTLS_ERROR_C; //bad encoding
+                }
+                break;
+            case 4:
+                if (!(0x10000 < code_point && code_point < 0x10FFFF)) {
+                    return MBEDTLS_ERROR_C; //bad encoding
+                }
+                break;
+        }
+    }
+    return 0;
 }
 
 int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *name)

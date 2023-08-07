@@ -414,6 +414,11 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
                     tag = attr_descr->default_tag;
                 }
             }
+            if (tag == MBEDTLS_ASN1_UTF8_STRING) {
+                if (validate_utf_8_2(data, data_len) != 0) {
+                    return MBEDTLS_ERR_X509_INVALID_NAME;
+                }
+            }
 
             mbedtls_asn1_named_data *cur =
                 mbedtls_asn1_store_named_data(head, (char *) oid.p, oid.len,

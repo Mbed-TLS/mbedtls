@@ -50,16 +50,9 @@ void hash_valid_one_shot(int alg_arg, data_t *input,
     mbedtls_free(output);
     output = NULL;
 
-#if 0
-    /* Smaller output buffer (does not have to work!) */
-    output_size = expected->len - 1;
-    ASSERT_ALLOC(output, output_size);
-    TEST_EQUAL(mbedtls_psa_hash_compute(alg, input->x, input->len,
-                                        output, output_size, &length),
-               PSA_ERROR_BUFFER_TOO_SMALL);
-    mbedtls_free(output);
-    output = NULL;
-#endif
+    /* We don't test with a smaller output buffer because this isn't
+     * guaranteed to work: the core must pass a sufficiently large
+     * output buffer to the driver. */
 
 exit:
     mbedtls_free(output);
@@ -146,18 +139,9 @@ void hash_valid_multipart(int alg_arg,
     mbedtls_free(output);
     output = NULL;
 
-#if 0
-    /* Smaller output buffer (does not have to work!) */
-    TEST_EQUAL(mbedtls_psa_hash_clone(&clone_more, &clone_end),
-               PSA_SUCCESS);
-    output_size = expected2->len - 1;
-    ASSERT_ALLOC(output, output_size);
-    TEST_EQUAL(mbedtls_psa_hash_finish(&clone_end,
-                                       output, output_size, &length),
-               PSA_ERROR_BUFFER_TOO_SMALL);
-    mbedtls_free(output);
-    output = NULL;
-#endif
+    /* We don't test with a smaller output buffer because this isn't
+     * guaranteed to work: the core must pass a sufficiently large
+     * output buffer to the driver. */
 
     /* Nominal case again after an error in a cloned operation */
     output_size = expected2->len;

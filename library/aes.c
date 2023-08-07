@@ -34,16 +34,14 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
-#if defined(MBEDTLS_HAVE_ASM) && \
-    defined(__aarch64__) && !defined(MBEDTLS_HAVE_ARM64)
+#if defined(MBEDTLS_HAVE_ASM) && defined(__aarch64__)
 #if !defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 #error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
 #endif
 #endif
 
 #if defined(MBEDTLS_HAVE_ASM) && \
-    (defined(__amd64__) || defined(__x86_64__))   &&  \
-    !defined(MBEDTLS_HAVE_X86_64)
+    (defined(__amd64__) || defined(__x86_64__))
 #if !defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 #error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
 #endif

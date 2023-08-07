@@ -36,22 +36,17 @@
 size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a)
 {
 #if defined(__has_builtin)
-#if __has_builtin(__builtin_clz)
-    if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned int)) {
-        return (size_t) __builtin_clz(a);
-    }
-#endif
-#if __has_builtin(__builtin_clzl)
-    if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned long)) {
-        return (size_t) __builtin_clzl(a);
-    }
-#endif
-#if __has_builtin(__builtin_clzll)
-    if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned long long)) {
-        return (size_t) __builtin_clzll(a);
-    }
+#if (MBEDTLS_MPI_UINT_MAX == UINT_MAX) && __has_builtin(__builtin_clz)
+    #define core_clz __builtin_clz
+#elif (MBEDTLS_MPI_UINT_MAX == ULONG_MAX) && __has_builtin(__builtin_clzl)
+    #define core_clz __builtin_clzl
+#elif (MBEDTLS_MPI_UINT_MAX == ULLONG_MAX) && __has_builtin(__builtin_clzll)
+    #define core_clz __builtin_clzll
 #endif
 #endif
+#if defined(core_clz)
+    return (size_t) core_clz(a);
+#else
     size_t j;
     mbedtls_mpi_uint mask = (mbedtls_mpi_uint) 1 << (biL - 1);
 
@@ -64,6 +59,7 @@ size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a)
     }
 
     return j;
+#endif
 }
 
 size_t mbedtls_mpi_core_bitlen(const mbedtls_mpi_uint *A, size_t A_limbs)

@@ -108,13 +108,13 @@ nsCertType=client
 [directory_name_san]
 subjectAltName=dirName:dirname_sect
 
-[bad_second_directory_name_san]
-subjectAltName=dirName:dirname_sect, dirName:dirname_sect_bad
+[two_directorynames]
+subjectAltName=dirName:dirname_sect, dirName:dirname_to_malform
 
 [dirname_sect]
 C=UK
 O=Mbed TLS
 CN=Mbed TLS directoryName SAN
 
-[two_directorynames]
+[dirname_to_malform]
 O=MALFORM_ME

@@ -181,10 +181,7 @@ cleanup:
 }
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_mpi_zeroize(mbedtls_mpi_uint *v, size_t n)
-{
-    mbedtls_platform_zeroize(v, ciL * n);
-}
+#define mbedtls_mpi_zeroize_and_free(v, n) mbedtls_zeroize_and_free(v, ciL * (n))
 
 /*
  * Initialize one MPI
@@ -208,8 +205,7 @@ void mbedtls_mpi_free(mbedtls_mpi *X)
     }
 
     if (X->p != NULL) {
-        mbedtls_mpi_zeroize(X->p, X->n);
-        mbedtls_free(X->p);
+        mbedtls_mpi_zeroize_and_free(X->p, X->n);
     }
 
     X->s = 1;
@@ -236,11 +232,12 @@ int mbedtls_mpi_grow(mbedtls_mpi *X, size_t nblimbs)
 
         if (X->p != NULL) {
             memcpy(p, X->p, X->n * ciL);
-            mbedtls_mpi_zeroize(X->p, X->n);
-            mbedtls_free(X->p);
+            mbedtls_mpi_zeroize_and_free(X->p, X->n);
         }
 
-        X->n = nblimbs;
+        /* nblimbs fits in n because we ensure that MBEDTLS_MPI_MAX_LIMBS
+         * fits, and we've checked that nblimbs <= MBEDTLS_MPI_MAX_LIMBS. */
+        X->n = (unsigned short) nblimbs;
         X->p = p;
     }
 
@@ -284,11 +281,12 @@ int mbedtls_mpi_shrink(mbedtls_mpi *X, size_t nblimbs)
 
     if (X->p != NULL) {
         memcpy(p, X->p, i * ciL);
-        mbedtls_mpi_zeroize(X->p, X->n);
-        mbedtls_free(X->p);
+        mbedtls_mpi_zeroize_and_free(X->p, X->n);
     }
 
-    X->n = i;
+    /* i fits in n because we ensure that MBEDTLS_MPI_MAX_LIMBS
+     * fits, and we've checked that i <= nblimbs <= MBEDTLS_MPI_MAX_LIMBS. */
+    X->n = (unsigned short) i;
     X->p = p;
 
     return 0;
@@ -1022,6 +1020,8 @@ int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t j;
+    mbedtls_mpi_uint *p;
+    mbedtls_mpi_uint c;
     MPI_VALIDATE_RET(X != NULL);
     MPI_VALIDATE_RET(A != NULL);
     MPI_VALIDATE_RET(B != NULL);
@@ -1055,9 +1055,9 @@ int mbedtls_mpi_add_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
 
     /* j is the number of non-zero limbs of B. Add those to X. */
 
-    mbedtls_mpi_uint *p = X->p;
+    p = X->p;
 
-    mbedtls_mpi_uint c = mbedtls_mpi_core_add(p, p, B->p, j);
+    c = mbedtls_mpi_core_add(p, p, B->p, j);
 
     p += j;
 
@@ -1700,8 +1700,8 @@ static void mpi_montred(mbedtls_mpi *A, const mbedtls_mpi *N,
 {
     mbedtls_mpi_uint z = 1;
     mbedtls_mpi U;
-
-    U.n = U.s = (int) z;
+    U.n = 1;
+    U.s = 1;
     U.p = &z;
 
     mpi_montmul(A, &U, N, mm, T);

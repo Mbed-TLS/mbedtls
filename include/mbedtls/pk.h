@@ -171,37 +171,6 @@ typedef struct mbedtls_pk_rsassa_pss_options {
 #endif
 #endif /* defined(MBEDTLS_USE_PSA_CRYPTO) */
 
-/**
- * \brief   The following defines are meant to list ECDSA capabilities of the
- *          PK module in a general way (without any reference to how this
- *          is achieved, which can be either through PSA driver or
- *          MBEDTLS_ECDSA_C)
- */
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(MBEDTLS_ECDSA_C)
-#define MBEDTLS_PK_CAN_ECDSA_SIGN
-#define MBEDTLS_PK_CAN_ECDSA_VERIFY
-#endif
-#else /* MBEDTLS_USE_PSA_CRYPTO */
-#if defined(PSA_WANT_ALG_ECDSA)
-#if defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY)
-#define MBEDTLS_PK_CAN_ECDSA_SIGN
-#endif
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-#define MBEDTLS_PK_CAN_ECDSA_VERIFY
-#endif
-#endif /* PSA_WANT_ALG_ECDSA */
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
-#if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY) || defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
-#define MBEDTLS_PK_CAN_ECDSA_SOME
-#endif
-
-#if (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_ECDH)) || \
-    (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ECDH_C))
-#define MBEDTLS_PK_CAN_ECDH
-#endif
-
 /* Internal helper to define which fields in the pk_context structure below
  * should be used for EC keys: legacy ecp_keypair or the raw (PSA friendly)
  * format. It should be noticed that this only affect how data is stored, not
@@ -552,7 +521,7 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
  *
  * \return          0 on success (signature is valid),
  *                  #MBEDTLS_ERR_PK_SIG_LEN_MISMATCH if there is a valid
- *                  signature in sig but its length is less than \p siglen,
+ *                  signature in \p sig but its length is less than \p sig_len,
  *                  or a specific error code.
  *
  * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
@@ -606,7 +575,7 @@ int mbedtls_pk_verify_restartable(mbedtls_pk_context *ctx,
  *                  #MBEDTLS_ERR_PK_TYPE_MISMATCH if the PK context can't be
  *                  used for this type of signatures,
  *                  #MBEDTLS_ERR_PK_SIG_LEN_MISMATCH if there is a valid
- *                  signature in sig but its length is less than \p siglen,
+ *                  signature in \p sig but its length is less than \p sig_len,
  *                  or a specific error code.
  *
  * \note            If hash_len is 0, then the length associated with md_alg

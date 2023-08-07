@@ -114,6 +114,20 @@ extern void (*mbedtls_test_hook_test_fail)(const char *test, int line, const cha
  */
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
+/**
+ * \brief       Securely zeroize a buffer then free it.
+ *
+ *              Similar to making consecutive calls to
+ *              \c mbedtls_platform_zeroize() and \c mbedtls_free(), but has
+ *              code size savings, and potential for optimisation in the future.
+ *
+ *              Guaranteed to be a no-op if \p buf is \c NULL and \p len is 0.
+ *
+ * \param buf   Buffer to be zeroized then freed.
+ * \param len   Length of the buffer in bytes
+ */
+void mbedtls_zeroize_and_free(void *buf, size_t len);
+
 /** Return an offset into a buffer.
  *
  * This is just the addition of an offset to a pointer, except that this
@@ -192,6 +206,45 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
     }
 }
 
+/**
+ * Perform a fast block XOR operation, such that
+ * r[i] = a[i] ^ b[i] where 0 <= i < n
+ *
+ * In some situations, this can perform better than mbedtls_xor (e.g., it's about 5%
+ * better in AES-CBC).
+ *
+ * \param   r Pointer to result (buffer of at least \p n bytes). \p r
+ *            may be equal to either \p a or \p b, but behaviour when
+ *            it overlaps in other ways is undefined.
+ * \param   a Pointer to input (buffer of at least \p n bytes)
+ * \param   b Pointer to input (buffer of at least \p n bytes)
+ * \param   n Number of bytes to process.
+ */
+static inline void mbedtls_xor_no_simd(unsigned char *r,
+                                       const unsigned char *a,
+                                       const unsigned char *b,
+                                       size_t n)
+{
+    size_t i = 0;
+#if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
+#if defined(__amd64__) || defined(__x86_64__) || defined(__aarch64__)
+    /* This codepath probably only makes sense on architectures with 64-bit registers */
+    for (; (i + 8) <= n; i += 8) {
+        uint64_t x = mbedtls_get_unaligned_uint64(a + i) ^ mbedtls_get_unaligned_uint64(b + i);
+        mbedtls_put_unaligned_uint64(r + i, x);
+    }
+#else
+    for (; (i + 4) <= n; i += 4) {
+        uint32_t x = mbedtls_get_unaligned_uint32(a + i) ^ mbedtls_get_unaligned_uint32(b + i);
+        mbedtls_put_unaligned_uint32(r + i, x);
+    }
+#endif
+#endif
+    for (; i < n; i++) {
+        r[i] = a[i] ^ b[i];
+    }
+}
+
 /* Fix MSVC C99 compatible issue
  *      MSVC support __func__ from visual studio 2015( 1900 )
  *      Use MSVC predefine macro to avoid name check fail.
@@ -203,7 +256,11 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 /* Define `asm` for compilers which don't define it. */
 /* *INDENT-OFF* */
 #ifndef asm
+#if defined(__IAR_SYSTEMS_ICC__)
+#define asm __asm
+#else
 #define asm __asm__
+#endif
 #endif
 /* *INDENT-ON* */
 
@@ -252,13 +309,29 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 /* Define compiler branch hints */
 #if defined(__has_builtin)
 #if __has_builtin(__builtin_expect)
-#define MBEDTLS_LIKELY(x)       __builtin_expect((x), 1)
-#define MBEDTLS_UNLIKELY(x)     __builtin_expect((x), 0)
+#define MBEDTLS_LIKELY(x)       __builtin_expect(!!(x), 1)
+#define MBEDTLS_UNLIKELY(x)     __builtin_expect(!!(x), 0)
 #endif
 #endif
 #if !defined(MBEDTLS_LIKELY)
 #define MBEDTLS_LIKELY(x)       x
 #define MBEDTLS_UNLIKELY(x)     x
+#endif
+
+#if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \
+    && !defined(__llvm__) && !defined(__INTEL_COMPILER)
+/* Defined if the compiler really is gcc and not clang, etc */
+#define MBEDTLS_COMPILER_IS_GCC
+#endif
+
+/* For gcc -Os, override with -O2 for a given function.
+ *
+ * This will not affect behaviour for other optimisation settings, e.g. -O0.
+ */
+#if defined(MBEDTLS_COMPILER_IS_GCC) && defined(__OPTIMIZE_SIZE__)
+#define MBEDTLS_OPTIMIZE_FOR_PERFORMANCE __attribute__((optimize("-O2")))
+#else
+#define MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
 #endif
 
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

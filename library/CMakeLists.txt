@@ -38,6 +38,7 @@ set(src_crypto
     ecjpake.c
     ecp.c
     ecp_curves.c
+    ecp_curves_new.c
     entropy.c
     entropy_poll.c
     error.c
@@ -289,7 +290,7 @@ endif(USE_STATIC_MBEDTLS_LIBRARY)
 if(USE_SHARED_MBEDTLS_LIBRARY)
     set(CMAKE_LIBRARY_PATH ${CMAKE_CURRENT_BINARY_DIR})
     add_library(${mbedcrypto_target} SHARED ${src_crypto})
-    set_target_properties(${mbedcrypto_target} PROPERTIES VERSION 3.4.0 SOVERSION 14)
+    set_target_properties(${mbedcrypto_target} PROPERTIES VERSION 3.4.1 SOVERSION 14)
     target_link_libraries(${mbedcrypto_target} PUBLIC ${libs})
 
     if(TARGET everest)
@@ -301,11 +302,11 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
     endif()
 
     add_library(${mbedx509_target} SHARED ${src_x509})
-    set_target_properties(${mbedx509_target} PROPERTIES VERSION 3.4.0 SOVERSION 5)
+    set_target_properties(${mbedx509_target} PROPERTIES VERSION 3.4.1 SOVERSION 5)
     target_link_libraries(${mbedx509_target} PUBLIC ${libs} ${mbedcrypto_target})
 
     add_library(${mbedtls_target} SHARED ${src_tls})
-    set_target_properties(${mbedtls_target} PROPERTIES VERSION 3.4.0 SOVERSION 19)
+    set_target_properties(${mbedtls_target} PROPERTIES VERSION 3.4.1 SOVERSION 19)
     target_link_libraries(${mbedtls_target} PUBLIC ${libs} ${mbedx509_target})
 endif(USE_SHARED_MBEDTLS_LIBRARY)
 
@@ -320,6 +321,15 @@ foreach(target IN LISTS target_libraries)
         PUBLIC $<BUILD_INTERFACE:${MBEDTLS_DIR}/include/>
                $<INSTALL_INTERFACE:include/>
         PRIVATE ${MBEDTLS_DIR}/library/)
+    # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
+    if(MBEDTLS_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
+    endif()
+    if(MBEDTLS_USER_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
+    endif()
     install(
         TARGETS ${target}
         EXPORT MbedTLSTargets

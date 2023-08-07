@@ -263,7 +263,7 @@ reset:
     mbedtls_ssl_session_reset(&ssl);
 
     /*
-     * 3. Wait until a client connects
+     * 5. Wait until a client connects
      */
     printf("  . Waiting for a remote connection ...");
     fflush(stdout);
@@ -288,7 +288,7 @@ reset:
     printf(" ok\n");
 
     /*
-     * 5. Handshake
+     * 6. Handshake
      */
     printf("  . Performing the DTLS handshake...");
     fflush(stdout);
@@ -310,7 +310,7 @@ reset:
     printf(" ok\n");
 
     /*
-     * 6. Read the echo Request
+     * 7. Read the echo Request
      */
     printf("  < Read from client:");
     fflush(stdout);
@@ -344,7 +344,7 @@ reset:
     printf(" %d bytes read\n\n%s\n\n", len, buf);
 
     /*
-     * 7. Write the 200 Response
+     * 8. Write the 200 Response
      */
     printf("  > Write to client:");
     fflush(stdout);
@@ -363,7 +363,7 @@ reset:
     printf(" %d bytes written\n\n%s\n\n", len, buf);
 
     /*
-     * 8. Done, cleanly close the connection
+     * 9. Done, cleanly close the connection
      */
 close_notify:
     printf("  . Closing the connection...");

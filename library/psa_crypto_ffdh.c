@@ -27,8 +27,10 @@
 #include "psa_crypto_ffdh.h"
 #include "psa_crypto_random_impl.h"
 #include "mbedtls/platform.h"
+#include "mbedtls/error.h"
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_LEGACY) ||   \
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_EXPORT) ||   \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_GENERATE) ||   \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_FFDH)
 static psa_status_t mbedtls_psa_ffdh_set_prime_generator(size_t key_size,
@@ -117,13 +119,14 @@ cleanup:
 
     return PSA_SUCCESS;
 }
-#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_LEGACY ||
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_EXPORT ||
+          MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_GENERATE ||
           MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY ||
           MBEDTLS_PSA_BUILTIN_ALG_FFDH */
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_LEGACY) || \
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_EXPORT) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY)
-psa_status_t mbedtls_psa_export_ffdh_public_key(
+psa_status_t mbedtls_psa_ffdh_export_public_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
@@ -150,7 +153,9 @@ psa_status_t mbedtls_psa_export_ffdh_public_key(
     mbedtls_mpi_init(&GX); mbedtls_mpi_init(&G);
     mbedtls_mpi_init(&X); mbedtls_mpi_init(&P);
 
-    status = mbedtls_psa_ffdh_set_prime_generator(data_size, &P, &G);
+    size_t key_len = PSA_BITS_TO_BYTES(attributes->core.bits);
+
+    status = mbedtls_psa_ffdh_set_prime_generator(key_len, &P, &G);
 
     if (status != PSA_SUCCESS) {
         goto cleanup;
@@ -160,9 +165,9 @@ psa_status_t mbedtls_psa_export_ffdh_public_key(
                                             key_buffer_size));
 
     MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&GX, &G, &X, &P, NULL));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&GX, data, data_size));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&GX, data, key_len));
 
-    *data_length = data_size;
+    *data_length = key_len;
 
     ret = 0;
 cleanup:
@@ -175,7 +180,10 @@ cleanup:
 
     return status;
 }
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_EXPORT ||
+          MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY */
 
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_GENERATE)
 psa_status_t mbedtls_psa_ffdh_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length)
@@ -209,7 +217,9 @@ cleanup:
 
     return status;
 }
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_GENERATE */
 
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_IMPORT)
 psa_status_t mbedtls_psa_ffdh_import_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *data, size_t data_length,
@@ -227,12 +237,10 @@ psa_status_t mbedtls_psa_ffdh_import_key(
 
     return PSA_SUCCESS;
 }
-
-#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_LEGACY ||
-          MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY */
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_IMPORT */
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_FFDH)
-psa_status_t mbedtls_psa_key_agreement_ffdh(
+psa_status_t mbedtls_psa_ffdh_key_agreement(
     const psa_key_attributes_t *attributes,
     const uint8_t *peer_key,
     size_t peer_key_length,

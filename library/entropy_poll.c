@@ -48,10 +48,8 @@
 
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 
-#if !defined(_WIN32_WINNT)
-#define _WIN32_WINNT 0x0400
-#endif
 #include <windows.h>
+#if _WIN32_WINNT >= 0x0501 /* _WIN32_WINNT_WINXP */
 #include <wincrypt.h>
 
 int mbedtls_platform_entropy_poll(void *data, unsigned char *output, size_t len,
@@ -76,6 +74,9 @@ int mbedtls_platform_entropy_poll(void *data, unsigned char *output, size_t len,
 
     return 0;
 }
+#else /* !_WIN32_WINNT_WINXP */
+#error Entropy not available before Windows XP, use MBEDTLS_NO_PLATFORM_ENTROPY
+#endif /* !_WIN32_WINNT_WINXP */
 #else /* _WIN32 && !EFIX64 && !EFI32 */
 
 /*

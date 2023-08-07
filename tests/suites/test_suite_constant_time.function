@@ -175,8 +175,8 @@ exit:
 void mbedtls_ct_memcmp(int same, int size, int offset)
 {
     uint8_t *a = NULL, *b = NULL;
-    ASSERT_ALLOC(a, size + offset);
-    ASSERT_ALLOC(b, size + offset);
+    TEST_CALLOC(a, size + offset);
+    TEST_CALLOC(b, size + offset);
 
     /* Construct data that matches, if same == -1, otherwise
      * same gives the number of bytes (after the initial offset)
@@ -219,10 +219,10 @@ exit:
 void mbedtls_ct_memcpy_if(int eq, int size, int offset)
 {
     uint8_t *src = NULL, *src2 = NULL, *result = NULL, *expected = NULL;
-    ASSERT_ALLOC(src, size + offset);
-    ASSERT_ALLOC(src2, size + offset);
-    ASSERT_ALLOC(result, size + offset);
-    ASSERT_ALLOC(expected, size + offset);
+    TEST_CALLOC(src, size + offset);
+    TEST_CALLOC(src2, size + offset);
+    TEST_CALLOC(result, size + offset);
+    TEST_CALLOC(expected, size + offset);
 
     /* Apply offset to result only */
     for (int i = 0; i < size + offset; i++) {
@@ -242,7 +242,7 @@ void mbedtls_ct_memcpy_if(int eq, int size, int offset)
     TEST_CF_PUBLIC(src, size + offset);
     TEST_CF_PUBLIC(result, size + offset);
 
-    ASSERT_COMPARE(expected, size, result + offset, size);
+    TEST_MEMORY_COMPARE(expected, size, result + offset, size);
 
 
     /* Apply offset to src only */
@@ -262,7 +262,7 @@ void mbedtls_ct_memcpy_if(int eq, int size, int offset)
     TEST_CF_PUBLIC(src, size + offset);
     TEST_CF_PUBLIC(result, size + offset);
 
-    ASSERT_COMPARE(expected, size, result, size);
+    TEST_MEMORY_COMPARE(expected, size, result, size);
 
 
     /* Apply offset to src and src2 */
@@ -285,7 +285,7 @@ void mbedtls_ct_memcpy_if(int eq, int size, int offset)
     TEST_CF_SECRET(src2, size + offset);
     TEST_CF_PUBLIC(result, size + offset);
 
-    ASSERT_COMPARE(expected, size, result, size);
+    TEST_MEMORY_COMPARE(expected, size, result, size);
 
 
     /* result == src == dest */
@@ -305,7 +305,7 @@ void mbedtls_ct_memcpy_if(int eq, int size, int offset)
     TEST_CF_PUBLIC(src, size + offset);
     TEST_CF_PUBLIC(result, size + offset);
 
-    ASSERT_COMPARE(expected, size, src + offset, size);
+    TEST_MEMORY_COMPARE(expected, size, src + offset, size);
 exit:
     mbedtls_free(src);
     mbedtls_free(src2);
@@ -354,8 +354,8 @@ void mbedtls_ct_memcpy_offset(int offset_min, int offset_max, int len)
     size_t src_len = offset_max + len;
     size_t secret;
 
-    ASSERT_ALLOC(dst, len);
-    ASSERT_ALLOC(src, src_len);
+    TEST_CALLOC(dst, len);
+    TEST_CALLOC(src, src_len);
 
     /* Fill src in a way that we can detect if we copied the right bytes */
     mbedtls_test_rnd_std_rand(NULL, src, src_len);
@@ -372,7 +372,7 @@ void mbedtls_ct_memcpy_offset(int offset_min, int offset_max, int len)
         TEST_CF_PUBLIC(src, len);
         TEST_CF_PUBLIC(dst, len);
 
-        ASSERT_COMPARE(dst, len, src + secret, len);
+        TEST_MEMORY_COMPARE(dst, len, src + secret, len);
     }
 
 exit:

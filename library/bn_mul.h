@@ -673,14 +673,10 @@
 #if defined(__arm__)
 
 #if defined(__thumb__) && !defined(__thumb2__)
-#if !defined(__ARMCC_VERSION) && !defined(__clang__) \
-    && !defined(__llvm__) && !defined(__INTEL_COMPILER)
+#if defined(MBEDTLS_COMPILER_IS_GCC)
 /*
  * Thumb 1 ISA. This code path has only been tested successfully on gcc;
  * it does not compile on clang or armclang.
- *
- * Other compilers which define __GNUC__ may not work. The above macro
- * attempts to exclude these untested compilers.
  */
 
 #if !defined(__OPTIMIZE__) && defined(__GNUC__)

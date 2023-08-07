@@ -39,7 +39,7 @@
 #include "lmots.h"
 
 #include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
 #include "mbedtls/lms.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
@@ -249,8 +249,10 @@ int mbedtls_lms_import_public_key(mbedtls_lms_public_t *ctx,
     mbedtls_lms_algorithm_type_t type;
     mbedtls_lmots_algorithm_type_t otstype;
 
-    type = mbedtls_lms_network_bytes_to_unsigned_int(MBEDTLS_LMS_TYPE_LEN,
-                                                     key + PUBLIC_KEY_TYPE_OFFSET);
+    type = (mbedtls_lms_algorithm_type_t) mbedtls_lms_network_bytes_to_unsigned_int(
+        MBEDTLS_LMS_TYPE_LEN,
+        key +
+        PUBLIC_KEY_TYPE_OFFSET);
     if (type != MBEDTLS_LMS_SHA256_M32_H10) {
         return MBEDTLS_ERR_LMS_BAD_INPUT_DATA;
     }
@@ -260,8 +262,10 @@ int mbedtls_lms_import_public_key(mbedtls_lms_public_t *ctx,
         return MBEDTLS_ERR_LMS_BAD_INPUT_DATA;
     }
 
-    otstype = mbedtls_lms_network_bytes_to_unsigned_int(MBEDTLS_LMOTS_TYPE_LEN,
-                                                        key + PUBLIC_KEY_OTSTYPE_OFFSET);
+    otstype = (mbedtls_lmots_algorithm_type_t) mbedtls_lms_network_bytes_to_unsigned_int(
+        MBEDTLS_LMOTS_TYPE_LEN,
+        key +
+        PUBLIC_KEY_OTSTYPE_OFFSET);
     if (otstype != MBEDTLS_LMOTS_SHA256_N32_W8) {
         return MBEDTLS_ERR_LMS_BAD_INPUT_DATA;
     }
@@ -537,9 +541,8 @@ static int get_merkle_path(mbedtls_lms_private_t *ctx,
     ret = 0;
 
 exit:
-    mbedtls_platform_zeroize(tree, node_bytes *
+    mbedtls_zeroize_and_free(tree, node_bytes *
                              MERKLE_TREE_NODE_AM(ctx->params.type));
-    mbedtls_free(tree);
 
     return ret;
 }
@@ -700,9 +703,8 @@ int mbedtls_lms_calculate_public_key(mbedtls_lms_public_t *ctx,
     ret = 0;
 
 exit:
-    mbedtls_platform_zeroize(tree, node_bytes *
+    mbedtls_zeroize_and_free(tree, node_bytes *
                              MERKLE_TREE_NODE_AM(priv_ctx->params.type));
-    mbedtls_free(tree);
 
     return ret;
 }

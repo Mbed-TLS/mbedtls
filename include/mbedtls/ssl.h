@@ -42,7 +42,7 @@
 
 #include "mbedtls/md.h"
 
-#if defined(MBEDTLS_ECDH_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED)
 #include "mbedtls/ecdh.h"
 #endif
 
@@ -619,6 +619,7 @@
 
 /* Dummy type used only for its size */
 union mbedtls_ssl_premaster_secret {
+    unsigned char dummy; /* Make the union non-empty even with SSL disabled */
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
     unsigned char _pms_rsa[48];                         /* RFC 5246 8.1.1 */
 #endif
@@ -1486,7 +1487,7 @@ struct mbedtls_ssl_config {
     const uint16_t *MBEDTLS_PRIVATE(sig_algs);      /*!< allowed signature algorithms       */
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_ECP_LIGHT) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     const mbedtls_ecp_group_id *MBEDTLS_PRIVATE(curve_list); /*!< allowed curves             */
 #endif
 
@@ -1919,6 +1920,19 @@ int mbedtls_ssl_session_reset(mbedtls_ssl_context *ssl);
 void mbedtls_ssl_conf_endpoint(mbedtls_ssl_config *conf, int endpoint);
 
 /**
+ * \brief          Get the current endpoint type
+ *
+ * \param conf     SSL configuration
+ *
+ * \return         Endpoint type, either MBEDTLS_SSL_IS_CLIENT
+ *                 or MBEDTLS_SSL_IS_SERVER
+ */
+static inline int mbedtls_ssl_conf_get_endpoint(const mbedtls_ssl_config *conf)
+{
+    return conf->MBEDTLS_PRIVATE(endpoint);
+}
+
+/**
  * \brief           Set the transport type (TLS or DTLS).
  *                  Default: TLS
  *
@@ -2157,10 +2171,10 @@ void mbedtls_ssl_set_bio(mbedtls_ssl_context *ssl,
  * \param own_cid     The address of the readable buffer holding the CID we want
  *                    the peer to use when sending encrypted messages to us.
  *                    This may be \c NULL if \p own_cid_len is \c 0.
- *                    This parameter is unused if \p enabled is set to
+ *                    This parameter is unused if \p enable is set to
  *                    MBEDTLS_SSL_CID_DISABLED.
  * \param own_cid_len The length of \p own_cid.
- *                    This parameter is unused if \p enabled is set to
+ *                    This parameter is unused if \p enable is set to
  *                    MBEDTLS_SSL_CID_DISABLED.
  *
  * \note              The value of \p own_cid_len must match the value of the
@@ -3111,8 +3125,8 @@ int mbedtls_ssl_session_load(mbedtls_ssl_session *session,
  *
  * \param session  The session structure to be saved.
  * \param buf      The buffer to write the serialized data to. It must be a
- *                 writeable buffer of at least \p len bytes, or may be \c
- *                 NULL if \p len is \c 0.
+ *                 writeable buffer of at least \p buf_len bytes, or may be \c
+ *                 NULL if \p buf_len is \c 0.
  * \param buf_len  The number of bytes available for writing in \p buf.
  * \param olen     The size in bytes of the data that has been or would have
  *                 been written. It must point to a valid \c size_t.
@@ -3253,7 +3267,7 @@ void mbedtls_ssl_conf_tls13_key_exchange_modes(mbedtls_ssl_config *conf,
  *                      record headers.
  *
  * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if \p own_cid_len
+ * \return              #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if \p len
  *                      is too large.
  */
 int mbedtls_ssl_conf_cid(mbedtls_ssl_config *conf, size_t len,
@@ -3621,7 +3635,7 @@ void mbedtls_ssl_conf_dhm_min_bitlen(mbedtls_ssl_config *conf,
                                      unsigned int bitlen);
 #endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_CLI_C */
 
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief          Set the allowed curves in order of preference.
@@ -3667,7 +3681,7 @@ void mbedtls_ssl_conf_dhm_min_bitlen(mbedtls_ssl_config *conf,
 void MBEDTLS_DEPRECATED mbedtls_ssl_conf_curves(mbedtls_ssl_config *conf,
                                                 const mbedtls_ecp_group_id *curves);
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
 /**
  * \brief          Set the allowed groups in order of preference.
@@ -3777,13 +3791,28 @@ void mbedtls_ssl_conf_sig_algs(mbedtls_ssl_config *conf,
  *                 On too long input failure, old hostname is unchanged.
  */
 int mbedtls_ssl_set_hostname(mbedtls_ssl_context *ssl, const char *hostname);
+
+/**
+ * \brief          Get the hostname that checked against the received
+ *                 server certificate. It is used to set the ServerName
+ *                 TLS extension, too, if that extension is enabled.
+ *                 (client-side only)
+ *
+ * \param ssl      SSL context
+ *
+ * \return         const pointer to the hostname value
+ */
+static inline const char *mbedtls_ssl_get_hostname(mbedtls_ssl_context *ssl)
+{
+    return ssl->MBEDTLS_PRIVATE(hostname);
+}
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 /**
  * \brief          Retrieve SNI extension value for the current handshake.
- *                 Available in \p f_cert_cb of \c mbedtls_ssl_conf_cert_cb(),
- *                 this is the same value passed to \p f_sni callback of
+ *                 Available in \c f_cert_cb of \c mbedtls_ssl_conf_cert_cb(),
+ *                 this is the same value passed to \c f_sni callback of
  *                 \c mbedtls_ssl_conf_sni() and may be used instead of
  *                 \c mbedtls_ssl_conf_sni().
  *
@@ -3792,10 +3821,10 @@ int mbedtls_ssl_set_hostname(mbedtls_ssl_context *ssl, const char *hostname);
  *                 0 if SNI extension is not present or not yet processed.
  *
  * \return         const pointer to SNI extension value.
- *                 - value is valid only when called in \p f_cert_cb
+ *                 - value is valid only when called in \c f_cert_cb
  *                   registered with \c mbedtls_ssl_conf_cert_cb().
  *                 - value is NULL if SNI extension is not present.
- *                 - value is not '\0'-terminated.  Use \c name_len for len.
+ *                 - value is not '\0'-terminated. Use \c name_len for len.
  *                 - value must not be freed.
  */
 const unsigned char *mbedtls_ssl_get_hs_sni(mbedtls_ssl_context *ssl,
@@ -4088,7 +4117,7 @@ void MBEDTLS_DEPRECATED mbedtls_ssl_conf_max_version(mbedtls_ssl_config *conf, i
  *                 negotiated.
  *
  * \param conf         SSL configuration
- * \param tls_version  TLS protocol version number (\p mbedtls_ssl_protocol_version)
+ * \param tls_version  TLS protocol version number (\c mbedtls_ssl_protocol_version)
  *                     (#MBEDTLS_SSL_VERSION_UNKNOWN is not valid)
  */
 static inline void mbedtls_ssl_conf_max_tls_version(mbedtls_ssl_config *conf,
@@ -4145,7 +4174,7 @@ void MBEDTLS_DEPRECATED mbedtls_ssl_conf_min_version(mbedtls_ssl_config *conf, i
  *                 negotiated.
  *
  * \param conf         SSL configuration
- * \param tls_version  TLS protocol version number (\p mbedtls_ssl_protocol_version)
+ * \param tls_version  TLS protocol version number (\c mbedtls_ssl_protocol_version)
  *                     (#MBEDTLS_SSL_VERSION_UNKNOWN is not valid)
  */
 static inline void mbedtls_ssl_conf_min_tls_version(mbedtls_ssl_config *conf,

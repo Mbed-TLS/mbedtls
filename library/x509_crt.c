@@ -46,7 +46,7 @@
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
 #include "md_psa.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 #include "pk_internal.h"
@@ -60,9 +60,6 @@
 #if defined(MBEDTLS_HAVE_TIME)
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 #define WIN32_LEAN_AND_MEAN
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
 #include <windows.h>
 #else
 #include <time.h>
@@ -1529,8 +1526,7 @@ int mbedtls_x509_crt_parse_file(mbedtls_x509_crt *chain, const char *path)
 
     ret = mbedtls_x509_crt_parse(chain, buf, n);
 
-    mbedtls_platform_zeroize(buf, n);
-    mbedtls_free(buf);
+    mbedtls_zeroize_and_free(buf, n);
 
     return ret;
 }
@@ -1539,6 +1535,7 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
 {
     int ret = 0;
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
+#if _WIN32_WINNT >= 0x0501 /* _WIN32_WINNT_XP */
     int w_ret;
     WCHAR szDir[MAX_PATH];
     char filename[MAX_PATH];
@@ -1601,6 +1598,9 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
 
 cleanup:
     FindClose(hFind);
+#else /* !_WIN32_WINNT_XP */
+#error mbedtls_x509_crt_parse_path not available before Windows XP
+#endif /* !_WIN32_WINNT_XP */
 #else /* _WIN32 */
     int t_ret;
     int snp_ret;
@@ -2020,7 +2020,8 @@ int mbedtls_x509_crt_is_revoked(const mbedtls_x509_crt *crt, const mbedtls_x509_
  */
 static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
                               mbedtls_x509_crl *crl_list,
-                              const mbedtls_x509_crt_profile *profile)
+                              const mbedtls_x509_crt_profile *profile,
+                              const mbedtls_x509_time *now)
 {
     int flags = 0;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
@@ -2098,16 +2099,20 @@ static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
             break;
         }
 
+#if defined(MBEDTLS_HAVE_TIME_DATE)
         /*
          * Check for validity of CRL (Do not drop out)
          */
-        if (mbedtls_x509_time_is_past(&crl_list->next_update)) {
+        if (mbedtls_x509_time_cmp(&crl_list->next_update, now) < 0) {
             flags |= MBEDTLS_X509_BADCRL_EXPIRED;
         }
 
-        if (mbedtls_x509_time_is_future(&crl_list->this_update)) {
+        if (mbedtls_x509_time_cmp(&crl_list->this_update, now) > 0) {
             flags |= MBEDTLS_X509_BADCRL_FUTURE;
         }
+#else
+        ((void) now);
+#endif
 
         /*
          * Check if certificate is revoked
@@ -2265,7 +2270,8 @@ static int x509_crt_find_parent_in(
     int top,
     unsigned path_cnt,
     unsigned self_cnt,
-    mbedtls_x509_crt_restart_ctx *rs_ctx)
+    mbedtls_x509_crt_restart_ctx *rs_ctx,
+    const mbedtls_x509_time *now)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_x509_crt *parent, *fallback_parent;
@@ -2328,9 +2334,10 @@ check_signature:
             continue;
         }
 
+#if defined(MBEDTLS_HAVE_TIME_DATE)
         /* optional time check */
-        if (mbedtls_x509_time_is_past(&parent->valid_to) ||
-            mbedtls_x509_time_is_future(&parent->valid_from)) {
+        if (mbedtls_x509_time_cmp(&parent->valid_to, now) < 0 ||    /* past */
+            mbedtls_x509_time_cmp(&parent->valid_from, now) > 0) {  /* future */
             if (fallback_parent == NULL) {
                 fallback_parent = parent;
                 fallback_signature_is_good = signature_is_good;
@@ -2338,6 +2345,9 @@ check_signature:
 
             continue;
         }
+#else
+        ((void) now);
+#endif
 
         *r_parent = parent;
         *r_signature_is_good = signature_is_good;
@@ -2383,7 +2393,8 @@ static int x509_crt_find_parent(
     int *signature_is_good,
     unsigned path_cnt,
     unsigned self_cnt,
-    mbedtls_x509_crt_restart_ctx *rs_ctx)
+    mbedtls_x509_crt_restart_ctx *rs_ctx,
+    const mbedtls_x509_time *now)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_x509_crt *search_list;
@@ -2404,7 +2415,7 @@ static int x509_crt_find_parent(
         ret = x509_crt_find_parent_in(child, search_list,
                                       parent, signature_is_good,
                                       *parent_is_trusted,
-                                      path_cnt, self_cnt, rs_ctx);
+                                      path_cnt, self_cnt, rs_ctx, now);
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
         if (rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
@@ -2525,6 +2536,13 @@ static int x509_crt_verify_chain(
     int signature_is_good;
     unsigned self_cnt;
     mbedtls_x509_crt *cur_trust_ca = NULL;
+    mbedtls_x509_time now;
+
+#if defined(MBEDTLS_HAVE_TIME_DATE)
+    if (mbedtls_x509_time_gmtime(mbedtls_time(NULL), &now) != 0) {
+        return MBEDTLS_ERR_X509_FATAL_ERROR;
+    }
+#endif
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     /* resume if we had an operation in progress */
@@ -2555,14 +2573,16 @@ static int x509_crt_verify_chain(
         ver_chain->len++;
         flags = &cur->flags;
 
+#if defined(MBEDTLS_HAVE_TIME_DATE)
         /* Check time-validity (all certificates) */
-        if (mbedtls_x509_time_is_past(&child->valid_to)) {
+        if (mbedtls_x509_time_cmp(&child->valid_to, &now) < 0) {
             *flags |= MBEDTLS_X509_BADCERT_EXPIRED;
         }
 
-        if (mbedtls_x509_time_is_future(&child->valid_from)) {
+        if (mbedtls_x509_time_cmp(&child->valid_from, &now) > 0) {
             *flags |= MBEDTLS_X509_BADCERT_FUTURE;
         }
+#endif
 
         /* Stop here for trusted roots (but not for trusted EE certs) */
         if (child_is_trusted) {
@@ -2613,7 +2633,8 @@ find_parent:
         /* Look for a parent in trusted CAs or up the chain */
         ret = x509_crt_find_parent(child, cur_trust_ca, &parent,
                                    &parent_is_trusted, &signature_is_good,
-                                   ver_chain->len - 1, self_cnt, rs_ctx);
+                                   ver_chain->len - 1, self_cnt, rs_ctx,
+                                   &now);
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
         if (rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
@@ -2662,7 +2683,7 @@ find_parent:
 
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
         /* Check trusted CA's CRL for the given crt */
-        *flags |= x509_crt_verifycrl(child, parent, ca_crl, profile);
+        *flags |= x509_crt_verifycrl(child, parent, ca_crl, profile, &now);
 #else
         (void) ca_crl;
 #endif
@@ -2683,6 +2704,9 @@ find_parent:
 #elif (defined(__MINGW32__) || defined(__MINGW64__)) && _WIN32_WINNT >= 0x0600
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#else
+/* inet_pton() is not supported, fallback to software version */
+#define MBEDTLS_TEST_SW_INET_PTON
 #endif
 #elif defined(__sun)
 /* Solaris requires -lsocket -lnsl for inet_pton() */
@@ -3233,8 +3257,7 @@ void mbedtls_x509_crt_free(mbedtls_x509_crt *crt)
         mbedtls_asn1_sequence_free(cert_cur->authority_key_id.authorityCertIssuer.next);
 
         if (cert_cur->raw.p != NULL && cert_cur->own_buffer) {
-            mbedtls_platform_zeroize(cert_cur->raw.p, cert_cur->raw.len);
-            mbedtls_free(cert_cur->raw.p);
+            mbedtls_zeroize_and_free(cert_cur->raw.p, cert_cur->raw.len);
         }
 
         cert_prv = cert_cur;

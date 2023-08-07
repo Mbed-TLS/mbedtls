@@ -35,14 +35,6 @@ from mbedtls_dev import test_data_generation
 
 def psa_want_symbol(name: str) -> str:
     """Return the PSA_WANT_xxx symbol associated with a PSA crypto feature."""
-    # PSA_WANT_KEY_TYPE_[RSA/ECC]_KEY_PAIR symbols are deprecated and they should
-    # be replaced soon with newer PSA_WANT_KEY_TYPE_[RSA/ECC]_KEY_PAIR_yyy in
-    # library's code and tests. Until this happen though, they have been
-    # renamed to temporary internal symbols
-    # MBEDTLS_PSA_WANT_KEY_TYPE_[RSA/ECC]_KEY_PAIR_LEGACY so this is what must
-    # be used in tests' dependencies.
-    if name.endswith('RSA_KEY_PAIR') or name.endswith('ECC_KEY_PAIR'):
-        return 'MBEDTLS_' + name[:4] + 'WANT_' + name[4:] + '_LEGACY'
     if name.startswith('PSA_'):
         return name[:4] + 'WANT_' + name[4:]
     else:
@@ -113,22 +105,42 @@ def read_implemented_dependencies(filename: str) -> FrozenSet[str]:
                      for line in open(filename)
                      for symbol in re.findall(r'\bPSA_WANT_\w+\b', line))
 _implemented_dependencies = None #type: Optional[FrozenSet[str]] #pylint: disable=invalid-name
-# This is a temporary fix for the KEY_PAIR_LEGACY symbols since they are not
-# defined in "crypto_config.h". This fix can be removed as soon as these _LEGACY
-# symbols will be removed from the code.
-_LEGACY_KEY_PAIR = ['MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY',
-                    'MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY']
 def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
     global _implemented_dependencies #pylint: disable=global-statement,invalid-name
     if _implemented_dependencies is None:
         _implemented_dependencies = \
             read_implemented_dependencies('include/psa/crypto_config.h')
     if not all((dep.lstrip('!') in _implemented_dependencies or
-                'PSA_WANT' not in dep or
-                dep.lstrip('!') in _LEGACY_KEY_PAIR)
+                not dep.lstrip('!').startswith('PSA_WANT'))
                for dep in dependencies):
         dependencies.append('DEPENDENCY_NOT_IMPLEMENTED_YET')
 
+def tweak_key_pair_dependency(dep: str, usage: str):
+    """
+    This helper function add the proper suffix to PSA_WANT_KEY_TYPE_xxx_KEY_PAIR
+    symbols according to the required usage.
+    """
+    ret_list = list()
+    if dep.endswith('KEY_PAIR'):
+        if usage == "BASIC":
+            # BASIC automatically includes IMPORT and EXPORT for test purposes (see
+            # config_psa.h).
+            ret_list.append(re.sub(r'KEY_PAIR', r'KEY_PAIR_BASIC', dep))
+            ret_list.append(re.sub(r'KEY_PAIR', r'KEY_PAIR_IMPORT', dep))
+            ret_list.append(re.sub(r'KEY_PAIR', r'KEY_PAIR_EXPORT', dep))
+        elif usage == "GENERATE":
+            ret_list.append(re.sub(r'KEY_PAIR', r'KEY_PAIR_GENERATE', dep))
+    else:
+        # No replacement to do in this case
+        ret_list.append(dep)
+    return ret_list
+
+def fix_key_pair_dependencies(dep_list: List[str], usage: str):
+    new_list = [new_deps
+                for dep in dep_list
+                for new_deps in tweak_key_pair_dependency(dep, usage)]
+
+    return new_list
 
 class Information:
     """Gather information about PSA constructors."""
@@ -140,10 +152,8 @@ class Information:
     def remove_unwanted_macros(
             constructors: macro_collector.PSAMacroEnumerator
     ) -> None:
-        # Mbed TLS doesn't support finite-field DH yet and will not support
-        # finite-field DSA. Don't attempt to generate any related test case.
-        constructors.key_types.discard('PSA_KEY_TYPE_DH_KEY_PAIR')
-        constructors.key_types.discard('PSA_KEY_TYPE_DH_PUBLIC_KEY')
+        # Mbed TLS does not support finite-field DSA.
+        # Don't attempt to generate any related test case.
         constructors.key_types.discard('PSA_KEY_TYPE_DSA_KEY_PAIR')
         constructors.key_types.discard('PSA_KEY_TYPE_DSA_PUBLIC_KEY')
 
@@ -222,7 +232,8 @@ class KeyTypeNotSupported:
         if kt.name.endswith('_PUBLIC_KEY'):
             generate_dependencies = []
         else:
-            generate_dependencies = import_dependencies
+            generate_dependencies = fix_key_pair_dependencies(import_dependencies, 'GENERATE')
+            import_dependencies = fix_key_pair_dependencies(import_dependencies, 'BASIC')
         for bits in kt.sizes_to_test():
             yield test_case_for_key_type_not_supported(
                 'import', kt.expression, bits,
@@ -248,11 +259,15 @@ class KeyTypeNotSupported:
 
     ECC_KEY_TYPES = ('PSA_KEY_TYPE_ECC_KEY_PAIR',
                      'PSA_KEY_TYPE_ECC_PUBLIC_KEY')
+    DH_KEY_TYPES = ('PSA_KEY_TYPE_DH_KEY_PAIR',
+                    'PSA_KEY_TYPE_DH_PUBLIC_KEY')
 
     def test_cases_for_not_supported(self) -> Iterator[test_case.TestCase]:
         """Generate test cases that exercise the creation of keys of unsupported types."""
         for key_type in sorted(self.constructors.key_types):
             if key_type in self.ECC_KEY_TYPES:
+                continue
+            if key_type in self.DH_KEY_TYPES:
                 continue
             kt = crypto_knowledge.KeyType(key_type)
             yield from self.test_cases_for_key_type_not_supported(kt)
@@ -263,6 +278,13 @@ class KeyTypeNotSupported:
                     kt, param_descr='type')
                 yield from self.test_cases_for_key_type_not_supported(
                     kt, 0, param_descr='curve')
+        for dh_family in sorted(self.constructors.dh_groups):
+            for constr in self.DH_KEY_TYPES:
+                kt = crypto_knowledge.KeyType(constr, [dh_family])
+                yield from self.test_cases_for_key_type_not_supported(
+                    kt, param_descr='type')
+                yield from self.test_cases_for_key_type_not_supported(
+                    kt, 0, param_descr='group')
 
 def test_case_for_key_generation(
         key_type: str, bits: int,
@@ -291,6 +313,8 @@ class KeyGenerate:
 
     ECC_KEY_TYPES = ('PSA_KEY_TYPE_ECC_KEY_PAIR',
                      'PSA_KEY_TYPE_ECC_PUBLIC_KEY')
+    DH_KEY_TYPES = ('PSA_KEY_TYPE_DH_KEY_PAIR',
+                    'PSA_KEY_TYPE_DH_PUBLIC_KEY')
 
     @staticmethod
     def test_cases_for_key_type_key_generation(
@@ -314,13 +338,16 @@ class KeyGenerate:
             generate_dependencies = []
             result = 'PSA_ERROR_INVALID_ARGUMENT'
         else:
-            generate_dependencies = import_dependencies
-            if kt.name == 'PSA_KEY_TYPE_RSA_KEY_PAIR':
-                generate_dependencies.append("MBEDTLS_GENPRIME")
+            generate_dependencies = fix_key_pair_dependencies(import_dependencies, 'GENERATE')
         for bits in kt.sizes_to_test():
+            if kt.name == 'PSA_KEY_TYPE_RSA_KEY_PAIR':
+                size_dependency = "PSA_VENDOR_RSA_GENERATE_MIN_KEY_BITS <= " +  str(bits)
+                test_dependencies = generate_dependencies + [size_dependency]
+            else:
+                test_dependencies = generate_dependencies
             yield test_case_for_key_generation(
                 kt.expression, bits,
-                finish_family_dependencies(generate_dependencies, bits),
+                finish_family_dependencies(test_dependencies, bits),
                 str(bits),
                 result
             )
@@ -330,11 +357,17 @@ class KeyGenerate:
         for key_type in sorted(self.constructors.key_types):
             if key_type in self.ECC_KEY_TYPES:
                 continue
+            if key_type in self.DH_KEY_TYPES:
+                continue
             kt = crypto_knowledge.KeyType(key_type)
             yield from self.test_cases_for_key_type_key_generation(kt)
         for curve_family in sorted(self.constructors.ecc_curves):
             for constr in self.ECC_KEY_TYPES:
                 kt = crypto_knowledge.KeyType(constr, [curve_family])
+                yield from self.test_cases_for_key_type_key_generation(kt)
+        for dh_family in sorted(self.constructors.dh_groups):
+            for constr in self.DH_KEY_TYPES:
+                kt = crypto_knowledge.KeyType(constr, [dh_family])
                 yield from self.test_cases_for_key_type_key_generation(kt)
 
 class OpFail:
@@ -385,6 +418,7 @@ class OpFail:
                                    pretty_reason,
                                    ' with ' + pretty_type if pretty_type else ''))
         dependencies = automatic_dependencies(alg.base_expression, key_type)
+        dependencies = fix_key_pair_dependencies(dependencies, 'BASIC')
         for i, dep in enumerate(dependencies):
             if dep in not_deps:
                 dependencies[i] = '!' + dep
@@ -608,6 +642,7 @@ class StorageFormat:
         )
         dependencies = finish_family_dependencies(dependencies, key.bits)
         dependencies += generate_key_dependencies(key.description)
+        dependencies = fix_key_pair_dependencies(dependencies, 'BASIC')
         tc.set_dependencies(dependencies)
         tc.set_function('key_storage_' + verb)
         if self.forward:

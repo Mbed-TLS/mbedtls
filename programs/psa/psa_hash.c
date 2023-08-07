@@ -106,7 +106,7 @@ int main(void)
     }
 
     /* Check the result of the operation against the sample */
-    if ((memcmp(hash, sample_hash, sample_hash_len) != 0) || hash_length != sample_hash_len) {
+    if (hash_length != sample_hash_len || (memcmp(hash, sample_hash, sample_hash_len) != 0)) {
         mbedtls_printf("Multi-part hash operation gave the wrong result!\n\n");
         goto cleanup;
     }
@@ -135,7 +135,7 @@ int main(void)
         goto cleanup;
     }
 
-    if (memcmp(hash, sample_hash, sample_hash_len) != 0 || hash_length != sample_hash_len) {
+    if (hash_length != sample_hash_len || (memcmp(hash, sample_hash, sample_hash_len) != 0)) {
         mbedtls_printf("One-shot hash operation gave the wrong result!\n\n");
         goto cleanup;
     }

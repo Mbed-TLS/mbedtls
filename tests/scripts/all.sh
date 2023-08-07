@@ -3896,6 +3896,7 @@ component_test_aesni () { # ~ 60s
     make test programs/test/selftest CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
     # check that we built intrinsics - this should be used by default when supported by the compiler
     ./programs/test/selftest aes | grep "AES note: using AESNI"
+    ./programs/test/selftest aes | grep -v "AES note: built-in implementation."
 }
 
 

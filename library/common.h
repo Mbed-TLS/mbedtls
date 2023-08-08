@@ -188,7 +188,8 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
         uint8x16_t x = veorq_u8(v1, v2);
         vst1q_u8(r + i, x);
     }
-#elif defined(__amd64__) || defined(__x86_64__) || defined(__aarch64__)
+#elif defined(__amd64__) || defined(__x86_64__) || \
+    defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC)
     /* This codepath probably only makes sense on architectures with 64-bit registers */
     for (; (i + 8) <= n; i += 8) {
         uint64_t x = mbedtls_get_unaligned_uint64(a + i) ^ mbedtls_get_unaligned_uint64(b + i);
@@ -227,7 +228,8 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 {
     size_t i = 0;
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
-#if defined(__amd64__) || defined(__x86_64__) || defined(__aarch64__)
+#if defined(__amd64__) || defined(__x86_64__) || \
+    defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC)
     /* This codepath probably only makes sense on architectures with 64-bit registers */
     for (; (i + 8) <= n; i += 8) {
         uint64_t x = mbedtls_get_unaligned_uint64(a + i) ^ mbedtls_get_unaligned_uint64(b + i);

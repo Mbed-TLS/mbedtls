@@ -118,9 +118,9 @@ psa_status_t p256_transparent_export_public_key(const psa_key_attributes_t *attr
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
-    /* Validate input and output sizes */
+    /* Validate sizes, as p256-m expects fixed-size buffers */
     if (key_buffer_size != 32) {
-        return PSA_ERROR_INVALID_ARGUMENT;
+        return PSA_ERROR_CORRUPTION_DETECTED;
     }
     if (data_size < 65) {
         return PSA_ERROR_BUFFER_TOO_SMALL;
@@ -129,13 +129,11 @@ psa_status_t p256_transparent_export_public_key(const psa_key_attributes_t *attr
     /* Output public key in the PSA export format */
     data[0] = 0x04;
     int ret = p256_public_from_private(data + 1, key_buffer);
-    if (ret != P256_SUCCESS) {
-        /* The only possible error is the private key was invalid */
-        return PSA_ERROR_INVALID_ARGUMENT;
+    if (ret == P256_SUCCESS) {
+        *data_length = 65;
     }
-    *data_length = 65;
 
-    return PSA_SUCCESS;
+    return p256_to_psa_error(ret);
 }
 
 psa_status_t p256_transparent_generate_key(
@@ -148,13 +146,9 @@ psa_status_t p256_transparent_generate_key(
      * of driver entry-points. (void) used to avoid compiler warning. */
     (void) attributes;
 
-    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
-
-    /*
-     *  p256-m generates a 32 byte private key, and expects to write to a buffer
-     *   that is of that size. */
+    /* Validate sizes, as p256-m expects fixed-size buffers */
     if (key_buffer_size != 32) {
-        return status;
+        return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
     /*
@@ -164,13 +158,12 @@ psa_status_t p256_transparent_generate_key(
      *  function as an argument. */
     uint8_t public_key_buffer[64];
 
-    status = p256_to_psa_error(
-        p256_gen_keypair(key_buffer, public_key_buffer));
-    if (status == PSA_SUCCESS) {
+    int ret = p256_gen_keypair(key_buffer, public_key_buffer);
+    if (ret == P256_SUCCESS) {
         *key_buffer_length = 32;
     }
 
-    return status;
+    return p256_to_psa_error(ret);
 }
 
 psa_status_t p256_transparent_key_agreement(
@@ -190,25 +183,23 @@ psa_status_t p256_transparent_key_agreement(
     (void) attributes;
     (void) alg;
 
-    /*
-     *  Check that private key = 32 bytes, peer public key = 65 bytes,
-     *  and that the shared secret buffer is big enough. */
-    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
-    if (key_buffer_size != 32 || shared_secret_size < 32 ||
-        peer_key_length != 65) {
-        return status;
+    /* Validate sizes, as p256-m expects fixed-size buffers */
+    if (key_buffer_size != 32 || peer_key_length != 65) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+    if (shared_secret_size < 32) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
     /* We add 1 to peer_key pointer to omit the leading byte of the public key
      * representation (0x04). See information about PSA key formats at the top
      * of the file. */
-    status = p256_to_psa_error(
-        p256_ecdh_shared_secret(shared_secret, key_buffer, peer_key+1));
-    if (status == PSA_SUCCESS) {
+    int ret = p256_ecdh_shared_secret(shared_secret, key_buffer, peer_key + 1);
+    if (ret == P256_SUCCESS) {
         *shared_secret_length = 32;
     }
 
-    return status;
+    return p256_to_psa_error(ret);
 }
 
 psa_status_t p256_transparent_sign_hash(
@@ -228,18 +219,20 @@ psa_status_t p256_transparent_sign_hash(
     (void) attributes;
     (void) alg;
 
-    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
-    if (key_buffer_size != 32 || signature_size < 64) {
-        return status;
+    /* Validate sizes, as p256-m expects fixed-size buffers */
+    if (key_buffer_size != 32) {
+        return PSA_ERROR_CORRUPTION_DETECTED;
+    }
+    if (signature_size < 64) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
-    status = p256_to_psa_error(
-        p256_ecdsa_sign(signature, key_buffer, hash, hash_length));
-    if (status == PSA_SUCCESS) {
+    int ret = p256_ecdsa_sign(signature, key_buffer, hash, hash_length);
+    if (ret == P256_SUCCESS) {
         *signature_length = 64;
     }
 
-    return status;
+    return p256_to_psa_error(ret);
 }
 
 /*  This function expects the key buffer to contain a 65 byte public key,
@@ -252,19 +245,21 @@ static psa_status_t p256_verify_hash_with_public_key(
     const uint8_t *signature,
     size_t signature_length)
 {
-    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
-    if (key_buffer_size != 65 || signature_length != 64 || *key_buffer != 0x04) {
-        return status;
+    /* Validate sizes, as p256-m expects fixed-size buffers */
+    if (key_buffer_size != 65 || *key_buffer != 0x04) {
+        return PSA_ERROR_CORRUPTION_DETECTED;
+    }
+    if (signature_length != 64) {
+        return PSA_ERROR_INVALID_SIGNATURE;
     }
 
     /* We add 1 to public_key_buffer pointer to omit the leading byte of the
      * public key representation (0x04). See information about PSA key formats
      * at the top of the file. */
     const uint8_t *public_key_buffer = key_buffer + 1;
-    status = p256_to_psa_error(
-        p256_ecdsa_verify(signature, public_key_buffer, hash, hash_length));
+    int ret = p256_ecdsa_verify(signature, public_key_buffer, hash, hash_length);
 
-    return status;
+    return p256_to_psa_error(ret);
 }
 
 psa_status_t p256_transparent_verify_hash(

@@ -35,11 +35,16 @@
  * efficient when this is not defined.
  */
 #if defined(__ARM_FEATURE_UNALIGNED) \
-    || defined(__i386__) || defined(__amd64__) || defined(__x86_64__)
+    || defined(__i386__) || defined(__amd64__) || defined(__x86_64__) \
+    || defined(_M_ARM64) || defined(_M_ARM64EC)
 /*
  * __ARM_FEATURE_UNALIGNED is defined where appropriate by armcc, gcc 7, clang 9
  * (and later versions) for Arm v7 and later; all x86 platforms should have
  * efficient unaligned access.
+ *
+ * https://learn.microsoft.com/en-us/cpp/build/arm64-windows-abi-conventions?view=msvc-170#alignment
+ * specifies that on Windows-on-Arm64, unaligned access is safe (except for uncached
+ * device memory).
  */
 #define MBEDTLS_EFFICIENT_UNALIGNED_ACCESS
 #endif

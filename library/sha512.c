@@ -154,7 +154,7 @@ static int mbedtls_a64_crypto_sha512_determine_support(void)
                            NULL, 0);
     return ret == 0 && value != 0;
 }
-#elif defined(_M_ARM64)
+#elif defined(_M_ARM64) || defined(_M_ARM64EC)
 /*
  * As of March 2022, there don't appear to be any PF_ARM_V8_* flags
  * available to pass to IsProcessorFeaturePresent() to check for

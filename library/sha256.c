@@ -110,7 +110,7 @@
 #      include <signal.h>
 #    endif
 #  endif
-#elif defined(_M_ARM64)
+#elif defined(_M_ARM64) || defined(_M_ARM64EC)
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
     defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
 #    include <arm64_neon.h>
@@ -135,7 +135,7 @@ static int mbedtls_a64_crypto_sha256_determine_support(void)
 {
     return 1;
 }
-#elif defined(_M_ARM64)
+#elif defined(_M_ARM64) || defined(_M_ARM64EC)
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <processthreadsapi.h>

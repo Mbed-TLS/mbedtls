@@ -46,6 +46,7 @@ void pbes2_encrypt(int params_tag, data_t *params_hex, data_t *pw,
 
     ASSERT_ALLOC(my_out, outsize);
 
+#if defined(MBEDTLS_TEST_DEPRECATED)
     if (ref_ret != MBEDTLS_ERR_ASN1_BUF_TOO_SMALL) {
         my_ret = mbedtls_pkcs5_pbes2(&params, MBEDTLS_PKCS5_ENCRYPT,
                                      pw->x, pw->len, data->x, data->len, my_out);
@@ -55,6 +56,7 @@ void pbes2_encrypt(int params_tag, data_t *params_hex, data_t *pw,
         ASSERT_COMPARE(my_out, ref_out->len,
                        ref_out->x, ref_out->len);
     }
+#endif
 
 #if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
     my_ret = mbedtls_pkcs5_pbes2_ext(&params, MBEDTLS_PKCS5_ENCRYPT,
@@ -93,6 +95,7 @@ void pbes2_decrypt(int params_tag, data_t *params_hex, data_t *pw,
 
     ASSERT_ALLOC(my_out, outsize);
 
+#if defined(MBEDTLS_TEST_DEPRECATED)
     if (ref_ret != MBEDTLS_ERR_ASN1_BUF_TOO_SMALL) {
         my_ret = mbedtls_pkcs5_pbes2(&params, MBEDTLS_PKCS5_DECRYPT,
                                      pw->x, pw->len, data->x, data->len, my_out);
@@ -102,6 +105,8 @@ void pbes2_decrypt(int params_tag, data_t *params_hex, data_t *pw,
         ASSERT_COMPARE(my_out, ref_out->len,
                        ref_out->x, ref_out->len);
     }
+#endif
+
 #if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
     my_ret = mbedtls_pkcs5_pbes2_ext(&params, MBEDTLS_PKCS5_DECRYPT,
                                      pw->x, pw->len, data->x, data->len, my_out,

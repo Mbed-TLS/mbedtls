@@ -119,6 +119,7 @@ int mbedtls_pkcs5_pbes2_ext(const mbedtls_asn1_buf *pbe_params, int mode,
                             size_t *output_len);
 #endif
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 int mbedtls_pkcs5_pbes2(const mbedtls_asn1_buf *pbe_params, int mode,
                         const unsigned char *pwd,  size_t pwdlen,
                         const unsigned char *data, size_t datalen,
@@ -133,6 +134,7 @@ int mbedtls_pkcs5_pbes2(const mbedtls_asn1_buf *pbe_params, int mode,
     return mbedtls_pkcs5_pbes2_ext(pbe_params, mode, pwd, pwdlen, data,
                                    datalen, output, SIZE_MAX, &output_len);
 }
+#endif
 
 int mbedtls_pkcs5_pbes2_ext(const mbedtls_asn1_buf *pbe_params, int mode,
                             const unsigned char *pwd,  size_t pwdlen,

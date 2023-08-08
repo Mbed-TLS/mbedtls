@@ -49,8 +49,8 @@
 
 #if defined(MBEDTLS_HAVE_ASM) && defined(__i386__) && \
     !defined(MBEDTLS_HAVE_ASAN)
-#if !defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-#error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
+#if defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#error "MBEDTLS_AES_USE_HARDWARE_ONLY not supported yet for i386."
 #endif
 #endif
 

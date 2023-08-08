@@ -2823,19 +2823,18 @@ component_test_tfm_config_p256m_driver_accel_ec () {
 
     # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
+    # Disable deterministic ECDSA as p256-m only does randomized
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
 
     # Add missing symbols from "tfm_mbedcrypto_config_profile_medium.h"
     #
     # - USE_PSA_CRYPTO for PK_HAVE_ECC_KEYS
     echo "#define MBEDTLS_USE_PSA_CRYPTO" >> "$CONFIG_H"
-    # - ECP_C and BIGNUM because P256M does not have support for import and export
-    #       of keys so we need the builtin support for that
-    echo "#define MBEDTLS_ECP_C" >> "$CONFIG_H"
-    echo "#define MBEDTLS_BIGNUM_C" >> "$CONFIG_H"
-    # - ASN1_[PARSE/WRITE]_C and OID_C found by check_config.h
+    # - ASN1_[PARSE/WRITE]_C found by check_config.h for pkparse/pkwrite
     echo "#define MBEDTLS_ASN1_PARSE_C" >> "$CONFIG_H"
     echo "#define MBEDTLS_ASN1_WRITE_C" >> "$CONFIG_H"
-    echo "#define MBEDTLS_OID_C" >> "$CONFIG_H"
+    # - MD_C for HKDF_C
+    echo "#define MBEDTLS_MD_C" >> "$CONFIG_H"
 
     # Set the list of accelerated components in order to remove them from
     # builtin support. We don't set IMPORT and EXPORT because P256M does not
@@ -2843,6 +2842,8 @@ component_test_tfm_config_p256m_driver_accel_ec () {
     loc_accel_list="ALG_ECDSA \
                     ALG_ECDH \
                     KEY_TYPE_ECC_KEY_PAIR_BASIC \
+                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
                     KEY_TYPE_ECC_KEY_PAIR_GENERATE \
                     KEY_TYPE_ECC_PUBLIC_KEY"
     loc_accel_flags="$( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"

@@ -3887,8 +3887,8 @@ component_test_aesni () { # ~ 60s
     make CC=gcc CFLAGS='-O2 -Werror'
     # check that there is no AESNI code present
     ./programs/test/selftest aes | not grep -q "AESNI code"
-    strings ./programs/test/selftest | not grep -q "AES note: using AESNI"
-    strings ./programs/test/selftest | grep -q "AES note: built-in implementation."
+    not grep -q "AES note: using AESNI" ./programs/test/selftest
+    grep -q "AES note: built-in implementation." ./programs/test/selftest
 
     # test the intrinsics implementation
     scripts/config.py set MBEDTLS_AESNI_C
@@ -3896,10 +3896,11 @@ component_test_aesni () { # ~ 60s
     msg "AES tests, test AESNI only"
     make clean
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
-    strings ./programs/test/selftest | grep -q "AES note: using AESNI"
-    strings ./programs/test/selftest | not grep -q "AES note: built-in implementation."
     ./programs/test/selftest aes | grep -q "AES note: using AESNI"
     ./programs/test/selftest aes | not grep -q "AES note: built-in implementation."
+    grep -q "AES note: using AESNI" ./programs/test/selftest
+    not grep -q "AES note: built-in implementation." ./programs/test/selftest
+
 
 }
 

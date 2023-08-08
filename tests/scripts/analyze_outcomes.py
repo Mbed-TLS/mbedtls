@@ -407,9 +407,20 @@ TASKS = {
         'args': {
             'component_ref': 'test_tfm_config',
             'component_driver': 'test_tfm_config_p256m_driver_accel_ec',
-            # Ignore test suites for the modules that are disabled in the
-            # accelerated test case.
-            'ignored_suites': ['ecdh', 'ecdsa'],
+            'ignored_suites': [
+                # Ignore test suites for the modules that are disabled in the
+                # accelerated test case.
+                'ecp',
+                'ecdsa',
+                'ecdh',
+                'ecjpake',
+                'bignum_core',
+                'bignum_random',
+                'bignum_mod',
+                'bignum_mod_raw',
+                'bignum.generated',
+                'bignum.misc',
+            ],
             'ignored_tests': {
                 # Ignore all tests that require DERIVE support which is disabled
                 # in the driver version
@@ -456,9 +467,34 @@ TASKS = {
                     'PSA key derivation: bits=7 invalid for ECC SECT_R2 (ECC enabled)',
                     'PSA raw key agreement: ECDH SECP256R1 (RFC 5903)',
                 ],
+                'test_suite_random': [
+                    'PSA classic wrapper: ECDSA signature (SECP256R1)',
+                ],
                 'test_suite_psa_crypto_pake': [
                     'PSA PAKE: ecjpake size macros',
-                ]
+                ],
+                'test_suite_asn1parse': [
+                    # This test depends on BIGNUM_C
+                    'INTEGER too large for mpi',
+                ],
+                'test_suite_asn1write': [
+                    # Following tests depends on BIGNUM_C
+                    'ASN.1 Write mpi 0 (1 limb)',
+                    'ASN.1 Write mpi 0 (null)',
+                    'ASN.1 Write mpi 0x100',
+                    'ASN.1 Write mpi 0x7f',
+                    'ASN.1 Write mpi 0x7f with leading 0 limb',
+                    'ASN.1 Write mpi 0x80',
+                    'ASN.1 Write mpi 0x80 with leading 0 limb',
+                    'ASN.1 Write mpi 0xff',
+                    'ASN.1 Write mpi 1',
+                    'ASN.1 Write mpi, 127*8 bits',
+                    'ASN.1 Write mpi, 127*8+1 bits',
+                    'ASN.1 Write mpi, 127*8-1 bits',
+                    'ASN.1 Write mpi, 255*8 bits',
+                    'ASN.1 Write mpi, 255*8-1 bits',
+                    'ASN.1 Write mpi, 256*8-1 bits',
+                ],
             }
         }
     }

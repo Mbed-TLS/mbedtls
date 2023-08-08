@@ -41,8 +41,6 @@ void pbes2_encrypt(int params_tag, data_t *params_hex, data_t *pw,
     mbedtls_asn1_buf params;
     unsigned char *my_out = NULL;
 
-    MD_PSA_INIT();
-
     params.tag = params_tag;
     params.p = params_hex->x;
     params.len = params_hex->len;
@@ -59,7 +57,6 @@ void pbes2_encrypt(int params_tag, data_t *params_hex, data_t *pw,
 
 exit:
     mbedtls_free(my_out);
-    MD_PSA_DONE();
 }
 /* END_CASE */
 

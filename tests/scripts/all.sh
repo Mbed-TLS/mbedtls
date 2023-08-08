@@ -2798,20 +2798,36 @@ common_tfm_config () {
     scripts/config.py unset MBEDTLS_AES_SETKEY_DEC_ALT
     # We have an OS that provides entropy, use it
     scripts/config.py unset MBEDTLS_NO_PLATFORM_ENTROPY
-    # Disable buffer allocator and use dynamic memory for calloc/free
-    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
 
     # Other config adjustments to make the tests pass.
-    # Those are a surprise and should be investigated and fixed.
+    # Those should probably be adopted upstream.
     #
+    # - USE_PSA_CRYPTO for PK_HAVE_ECC_KEYS
+    echo "#define MBEDTLS_USE_PSA_CRYPTO" >> "$CONFIG_H"
     # pkparse.c and pkwrite.c fail to link without this
     echo "#define MBEDTLS_OID_C" >> "$CONFIG_H"
+    # - ASN1_[PARSE/WRITE]_C found by check_config.h for pkparse/pkwrite
+    echo "#define MBEDTLS_ASN1_PARSE_C" >> "$CONFIG_H"
+    echo "#define MBEDTLS_ASN1_WRITE_C" >> "$CONFIG_H"
+    # - MD_C for HKDF_C
+    echo "#define MBEDTLS_MD_C" >> "$CONFIG_H"
 
     # Config adjustements for better test coverage in our environment.
     # These are not needed just to build and pass tests.
     #
     # Enable filesystem I/O for the benefit of PK parse/write tests.
     echo "#define MBEDTLS_FS_IO" >> "$CONFIG_H"
+    # Disable this for maximal ASan efficiency
+    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+
+    # Config adjustements for features that are not supported
+    # when using only drivers / by p256-m
+    #
+    # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
+    # Disable deterministic ECDSA as p256-m only does randomized
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
+
 }
 
 # Keep this in sync with component_test_tfm_config() as they are both meant
@@ -2820,21 +2836,6 @@ component_test_tfm_config_p256m_driver_accel_ec () {
     msg "build: TF-M config + p256m driver + accel ECDH(E)/ECDSA"
 
     common_tfm_config
-
-    # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
-    # Disable deterministic ECDSA as p256-m only does randomized
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
-
-    # Add missing symbols from "tfm_mbedcrypto_config_profile_medium.h"
-    #
-    # - USE_PSA_CRYPTO for PK_HAVE_ECC_KEYS
-    echo "#define MBEDTLS_USE_PSA_CRYPTO" >> "$CONFIG_H"
-    # - ASN1_[PARSE/WRITE]_C found by check_config.h for pkparse/pkwrite
-    echo "#define MBEDTLS_ASN1_PARSE_C" >> "$CONFIG_H"
-    echo "#define MBEDTLS_ASN1_WRITE_C" >> "$CONFIG_H"
-    # - MD_C for HKDF_C
-    echo "#define MBEDTLS_MD_C" >> "$CONFIG_H"
 
     # Set the list of accelerated components in order to remove them from
     # builtin support. We don't set IMPORT and EXPORT because P256M does not
@@ -2852,14 +2853,14 @@ component_test_tfm_config_p256m_driver_accel_ec () {
     make CFLAGS="$ASAN_CFLAGS $loc_accel_flags -DMBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED" LDFLAGS="$ASAN_CFLAGS"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
-    #not grep mbedtls_ecdsa_ library/ecdsa.o # this is needed for deterministic ECDSA
+    not grep mbedtls_ecdsa_ library/ecdsa.o
     not grep mbedtls_ecdh_ library/ecdh.o
     not grep mbedtls_ecjpake_ library/ecjpake.o
     # Also ensure that ECP, RSA, DHM or BIGNUM modules were not re-enabled
-    #not grep mbedtls_ecp_ library/ecp.o  # this is needed for import/export EC keys (explained above)
+    not grep mbedtls_ecp_ library/ecp.o
     not grep mbedtls_rsa_ library/rsa.o
     not grep mbedtls_dhm_ library/dhm.o
-    #not grep mbedtls_mpi_ library/bignum.o # this is needed from ECP module
+    not grep mbedtls_mpi_ library/bignum.o
 
     # Run the tests
     msg "test: TF-M config + p256m driver + accel ECDH(E)/ECDSA"

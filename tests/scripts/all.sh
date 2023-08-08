@@ -3849,7 +3849,7 @@ support_test_aesni() {
     # We can only grep /proc/cpuinfo on Linux, so this also checks for Linux
     (gcc -v 2>&1 | grep Target | grep -q x86_64) &&
         [[ "$HOSTTYPE" == "x86_64" && "$OSTYPE" == "linux-gnu" ]] &&
-        (grep '^flags' /proc/cpuinfo | grep -qw aes)
+        (lscpu | grep -qw aes)
 }
 
 component_test_aesni () { # ~ 60s
@@ -3868,14 +3868,14 @@ component_test_aesni () { # ~ 60s
     # test the intrinsics implementation
     msg "AES tests, test intrinsics"
     make clean
-    make test programs/test/selftest CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
     # check that we built intrinsics - this should be used by default when supported by the compiler
     ./programs/test/selftest aes | grep "AESNI code" | grep -q "intrinsics"
 
     # test the asm implementation
     msg "AES tests, test assembly"
     make clean
-    make test programs/test/selftest CC=gcc CFLAGS='-Werror -Wall -Wextra -mno-pclmul -mno-sse2 -mno-aes'
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mno-pclmul -mno-sse2 -mno-aes'
     # check that we built assembly - this should be built if the compiler does not support intrinsics
     ./programs/test/selftest aes | grep "AESNI code" | grep -q "assembly"
 
@@ -3884,19 +3884,23 @@ component_test_aesni () { # ~ 60s
     scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
     msg "AES tests, plain C"
     make clean
-    make test programs/test/selftest CC=gcc CFLAGS='-O2 -Werror'
+    make CC=gcc CFLAGS='-O2 -Werror'
     # check that there is no AESNI code present
     ./programs/test/selftest aes | not grep -q "AESNI code"
+    strings ./programs/test/selftest | not grep -q "AES note: using AESNI"
+    strings ./programs/test/selftest | grep -q "AES note: built-in implementation."
 
     # test the intrinsics implementation
     scripts/config.py set MBEDTLS_AESNI_C
     scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
     msg "AES tests, test AESNI only"
     make clean
-    make test programs/test/selftest CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
-    # check that we built intrinsics - this should be used by default when supported by the compiler
-    ./programs/test/selftest aes | grep "AES note: using AESNI"
-    ./programs/test/selftest aes | grep -v "AES note: built-in implementation."
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
+    strings ./programs/test/selftest | grep -q "AES note: using AESNI"
+    strings ./programs/test/selftest | not grep -q "AES note: built-in implementation."
+    ./programs/test/selftest aes | grep -q "AES note: using AESNI"
+    ./programs/test/selftest aes | not grep -q "AES note: built-in implementation."
+
 }
 
 

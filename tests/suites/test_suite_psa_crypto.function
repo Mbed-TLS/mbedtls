@@ -1366,7 +1366,21 @@ void import_with_data(data_t *data, int type_arg,
     psa_set_key_bits(&attributes, attr_bits);
 
     status = psa_import_key(&attributes, data->x, data->len, &key);
-    TEST_EQUAL(status, expected_status);
+    /* When expecting INVALID_ARGUMENT, also accept NOT_SUPPORTED.
+     *
+     * This can happen with a type supported only by a driver:
+     * - the driver sees the invalid data (for example wrong size) and thinks
+     *   "well perhaps this is a key size I don't support" so it returns
+     *   NOT_SUPPORTED which is correct at this point;
+     * - we fallback to built-ins, which don't support this type, so return
+     *   NOT_SUPPORTED which again is correct at this point.
+     */
+    if (expected_status == PSA_ERROR_INVALID_ARGUMENT &&
+        status == PSA_ERROR_NOT_SUPPORTED) {
+        ; // OK
+    } else {
+        TEST_EQUAL(status, expected_status);
+    }
     if (status != PSA_SUCCESS) {
         goto exit;
     }

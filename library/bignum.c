@@ -258,6 +258,10 @@ static inline mbedtls_mpi_uint mpi_sint_abs(mbedtls_mpi_sint z)
     return (mbedtls_mpi_uint) 0 - (mbedtls_mpi_uint) z;
 }
 
+/* Convert x to a sign, i.e. to 1, if x is positive, or -1, if x is negative.
+ * This looks awkward but generates smaller code than (x < 0 ? -1 : 1) */
+#define TO_SIGN(x) ((((mbedtls_mpi_uint)x) >> (biL - 1)) * -2 + 1)
+
 /*
  * Set value from integer
  */
@@ -270,7 +274,7 @@ int mbedtls_mpi_lset(mbedtls_mpi *X, mbedtls_mpi_sint z)
     memset(X->p, 0, X->n * ciL);
 
     X->p[0] = mpi_sint_abs(z);
-    X->s    = (z < 0) ? -1 : 1;
+    X->s    = TO_SIGN(z);
 
 cleanup:
 
@@ -880,7 +884,7 @@ int mbedtls_mpi_cmp_int(const mbedtls_mpi *X, mbedtls_mpi_sint z)
     MPI_VALIDATE_RET(X != NULL);
 
     *p  = mpi_sint_abs(z);
-    Y.s = (z < 0) ? -1 : 1;
+    Y.s = TO_SIGN(z);
     Y.n = 1;
     Y.p = p;
 
@@ -1068,7 +1072,7 @@ int mbedtls_mpi_add_int(mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint b
     MPI_VALIDATE_RET(A != NULL);
 
     p[0] = mpi_sint_abs(b);
-    B.s = (b < 0) ? -1 : 1;
+    B.s = TO_SIGN(b);
     B.n = 1;
     B.p = p;
 
@@ -1086,7 +1090,7 @@ int mbedtls_mpi_sub_int(mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint b
     MPI_VALIDATE_RET(A != NULL);
 
     p[0] = mpi_sint_abs(b);
-    B.s = (b < 0) ? -1 : 1;
+    B.s = TO_SIGN(b);
     B.n = 1;
     B.p = p;
 
@@ -1436,7 +1440,7 @@ int mbedtls_mpi_div_int(mbedtls_mpi *Q, mbedtls_mpi *R,
     MPI_VALIDATE_RET(A != NULL);
 
     p[0] = mpi_sint_abs(b);
-    B.s = (b < 0) ? -1 : 1;
+    B.s = TO_SIGN(b);
     B.n = 1;
     B.p = p;
 

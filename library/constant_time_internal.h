@@ -455,8 +455,8 @@ void mbedtls_ct_memcpy_if(mbedtls_ct_condition_t condition,
  *
  * memcpy(dst, src + offset, len)
  *
- * This function copies \p len bytes from \p src_base + \p offset to \p
- * dst, with a code flow and memory access pattern that does not depend on
+ * This function copies \p len bytes from \p src + \p offset to
+ * \p dst, with a code flow and memory access pattern that does not depend on
  * \p offset, but only on \p offset_min, \p offset_max and \p len.
  *
  * \note                This function reads from \p dest, but the value that

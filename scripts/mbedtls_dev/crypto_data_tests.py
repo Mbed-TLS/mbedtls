@@ -73,7 +73,7 @@ class HashPSALowLevel:
         'PSA_ALG_SHA3_384': None, #lambda data: hashlib.sha3_384(data).hexdigest(),
         'PSA_ALG_SHA3_512': None, #lambda data: hashlib.sha3_512(data).hexdigest(),
         'PSA_ALG_SHAKE256_512': None, #lambda data: hashlib.shake_256(data).hexdigest(64),
-    } #typing: Optional[Dict[str, Callable[[bytes], str]]]
+    } #type: Dict[str, Optional[Callable[[bytes], str]]]
 
     @staticmethod
     def one_test_case(alg: crypto_knowledge.Algorithm,

@@ -57,12 +57,12 @@
  * These constants are guaranteed to be the same, though, so we suppress the
  * warning when including intsafe.h.
  */
-#pragma warning( push )
-#pragma warning( disable : 4005 )
+#pragma warning(push)
+#pragma warning(disable : 4005)
 #endif
 #include <intsafe.h>
 #if defined(_MSC_VER) && _MSC_VER <= 1600
-#pragma warning( pop )
+#pragma warning(pop)
 #endif
 
 int mbedtls_platform_entropy_poll(void *data, unsigned char *output, size_t len,
@@ -77,14 +77,13 @@ int mbedtls_platform_entropy_poll(void *data, unsigned char *output, size_t len,
      * 64-bit Windows platforms. Ensure len's value can be safely converted into
      * a ULONG.
      */
-    if ( FAILED( SizeTToULong( len, &len_as_ulong ) ) )
-    {
-        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+    if (FAILED(SizeTToULong(len, &len_as_ulong))) {
+        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
     }
 
-    if ( !BCRYPT_SUCCESS( BCryptGenRandom( NULL, output, len_as_ulong, BCRYPT_USE_SYSTEM_PREFERRED_RNG ) ) )
-    {
-        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+    if (!BCRYPT_SUCCESS(BCryptGenRandom(NULL, output, len_as_ulong,
+                                        BCRYPT_USE_SYSTEM_PREFERRED_RNG))) {
+        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
     }
 
     *olen = len;

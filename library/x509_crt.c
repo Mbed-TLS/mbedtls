@@ -67,12 +67,12 @@
  * These constants are guaranteed to be the same, though, so we suppress the
  * warning when including intsafe.h.
  */
-#pragma warning( push )
-#pragma warning( disable : 4005 )
+#pragma warning(push )
+#pragma warning(disable : 4005)
 #endif
 #include <intsafe.h>
 #if defined(_MSC_VER) && _MSC_VER <= 1600
-#pragma warning( pop )
+#pragma warning(pop)
 #endif
 #else
 #include <time.h>
@@ -1570,8 +1570,9 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
     p = filename + len;
     filename[len++] = '*';
 
-    if (FAILED (SizeTToInt(len, &length_as_int)))
-        return(MBEDTLS_ERR_X509_FILE_IO_ERROR);
+    if (FAILED(SizeTToInt(len, &length_as_int))) {
+        return MBEDTLS_ERR_X509_FILE_IO_ERROR;
+    }
 
     /*
      * Note this function uses the code page CP_ACP, and assumes the incoming
@@ -1600,15 +1601,15 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
             continue;
         }
 
-        if (FAILED(SizeTToInt(wcslen(file_data.cFileName), &length_as_int)))
-            return(MBEDTLS_ERR_X509_FILE_IO_ERROR);
+        if (FAILED(SizeTToInt(wcslen(file_data.cFileName), &length_as_int))) {
+            return MBEDTLS_ERR_X509_FILE_IO_ERROR;
+        }
 
         w_ret = WideCharToMultiByte(CP_ACP, 0, file_data.cFileName,
                                     length_as_int,
                                     p, (int) len - 1,
                                     NULL, NULL);
-        if(w_ret == 0)
-        {
+        if (w_ret == 0) {
             ret = MBEDTLS_ERR_X509_FILE_IO_ERROR;
             goto cleanup;
         }

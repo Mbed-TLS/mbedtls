@@ -330,16 +330,33 @@ cleanup:
  */
 size_t mbedtls_mpi_lsb(const mbedtls_mpi *X)
 {
-    size_t i, j, count = 0;
+    size_t i;
     MBEDTLS_INTERNAL_VALIDATE_RET(X != NULL, 0);
 
+#if defined(__has_builtin)
+#if (MBEDTLS_MPI_UINT_MAX == UINT_MAX) && __has_builtin(__builtin_ctz)
+    #define mbedtls_mpi_uint_ctz __builtin_ctz
+#elif (MBEDTLS_MPI_UINT_MAX == ULONG_MAX) && __has_builtin(__builtin_ctzl)
+    #define mbedtls_mpi_uint_ctz __builtin_ctzl
+#elif (MBEDTLS_MPI_UINT_MAX == ULLONG_MAX) && __has_builtin(__builtin_ctzll)
+    #define mbedtls_mpi_uint_ctz __builtin_ctzll
+#endif
+#endif
+
+#if defined(mbedtls_mpi_uint_ctz)
     for (i = 0; i < X->n; i++) {
-        for (j = 0; j < biL; j++, count++) {
+        if (X->p[i] != 0) return i * biL + mbedtls_mpi_uint_ctz(X->p[i]);
+    }
+#else
+    size_t count = 0;
+    for (i = 0; i < X->n; i++) {
+        for (size_t j = 0; j < biL; j++, count++) {
             if (((X->p[i] >> j) & 1) != 0) {
                 return count;
             }
         }
     }
+#endif
 
     return 0;
 }

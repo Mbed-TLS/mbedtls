@@ -260,7 +260,7 @@ static inline mbedtls_mpi_uint mpi_sint_abs(mbedtls_mpi_sint z)
 
 /* Convert x to a sign, i.e. to 1, if x is positive, or -1, if x is negative.
  * This looks awkward but generates smaller code than (x < 0 ? -1 : 1) */
-#define TO_SIGN(x) ((((mbedtls_mpi_uint)x) >> (biL - 1)) * -2 + 1)
+#define TO_SIGN(x) ((((mbedtls_mpi_uint) x) >> (biL - 1)) * -2 + 1)
 
 /*
  * Set value from integer
@@ -345,7 +345,9 @@ size_t mbedtls_mpi_lsb(const mbedtls_mpi *X)
 
 #if defined(mbedtls_mpi_uint_ctz)
     for (i = 0; i < X->n; i++) {
-        if (X->p[i] != 0) return i * biL + mbedtls_mpi_uint_ctz(X->p[i]);
+        if (X->p[i] != 0) {
+            return i * biL + mbedtls_mpi_uint_ctz(X->p[i]);
+        }
     }
 #else
     size_t count = 0;

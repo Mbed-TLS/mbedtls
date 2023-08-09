@@ -1468,6 +1468,9 @@ component_test_full_no_cipher () {
     msg "build: full minus CIPHER"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_CIPHER_C
+    # Don't pull in cipher via PSA mechanisms
+    # (currently ignored anyway because we completely disable PSA)
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
     # Direct dependencies
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CMAC_C
@@ -1480,7 +1483,6 @@ component_test_full_no_cipher () {
     scripts/config.py unset MBEDTLS_SSL_TICKET_C
     # Indirect dependencies
     scripts/config.py unset MBEDTLS_SSL_CLI_C
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.py unset MBEDTLS_SSL_DTLS_ANTI_REPLAY
@@ -1501,6 +1503,9 @@ component_test_crypto_full_no_cipher () {
     msg "build: crypto_full minus CIPHER"
     scripts/config.py crypto_full
     scripts/config.py unset MBEDTLS_CIPHER_C
+    # Don't pull in cipher via PSA mechanisms
+    # (currently ignored anyway because we completely disable PSA)
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
     # Direct dependencies
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CMAC_C
@@ -1510,7 +1515,6 @@ component_test_crypto_full_no_cipher () {
     scripts/config.py unset MBEDTLS_PKCS5_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
     # Indirect dependencies
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO

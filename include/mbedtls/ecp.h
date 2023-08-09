@@ -196,21 +196,25 @@ mbedtls_ecp_point;
  * cardinality is denoted by \p N. Our code requires that \p N is an
  * odd prime as mbedtls_ecp_mul() requires an odd number, and
  * mbedtls_ecdsa_sign() requires that it is prime for blinding purposes.
+ *
  * The default implementation only initializes \p A without setting it to the
  * authentic value for curves with <code>A = -3</code>(SECP256R1, etc), in which
- * case you need to load and free \p A by yourself when using domain parameters
- * directly, for example:
+ * case you need to load \p A by yourself when using domain parameters directly,
+ * for example:
  * \code
+ * mbedtls_mpi_init(&A);
  * mbedtls_ecp_group_init(&grp);
  * CHECK_RETURN(mbedtls_ecp_group_load(&grp, grp_id));
  * if (mbedtls_ecp_group_a_is_minus_3(&grp)) {
- *     CHECK_RETURN(mbedtls_mpi_sub_int(&grp.A, &grp.P, 3);
+ *     CHECK_RETURN(mbedtls_mpi_sub_int(&A, &grp.P, 3));
+ * } else {
+ *     CHECK_RETURN(mbedtls_mpi_copy(&A, &grp.A));
  * }
  *
- * access_grp_A_etc(&grp);
+ * do_something_with_a(&A);
  *
  * cleanup:
- * mbedtls_mpi_free(&grp.A);
+ * mbedtls_mpi_free(&A);
  * mbedtls_ecp_group_free(&grp);
  * \endcode
  *
@@ -242,9 +246,9 @@ typedef struct mbedtls_ecp_group {
     mbedtls_mpi P;              /*!< The prime modulus of the base field. */
     mbedtls_mpi A;              /*!< For Short Weierstrass: \p A in the equation. Note that
                                      \p A is not set to the authentic value in some cases.
-                                     For Montgomery curves: <code>(A + 2) / 4</code>.
-                                     Refer to detailed description of mbedtls_ecp_group if
-                                     using domain parameters in the structure. */
+                                     Refer to detailed description of ::mbedtls_ecp_group if
+                                     using domain parameters in the structure.
+                                     For Montgomery curves: <code>(A + 2) / 4</code>. */
     mbedtls_mpi B;              /*!< For Short Weierstrass: \p B in the equation.
                                      For Montgomery curves: unused. */
     mbedtls_ecp_point G;        /*!< The generator of the subgroup used. */

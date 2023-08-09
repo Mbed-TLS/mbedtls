@@ -2394,7 +2394,7 @@ component_test_psa_crypto_config_accel_ffdh () {
 }
 
 component_test_psa_crypto_config_reference_ffdh () {
-    msg "build: full with accelerated FFDH"
+    msg "build: full with non-accelerated FFDH"
 
     # Start with full (USE_PSA and TLS 1.3)
     helper_libtestdriver1_adjust_config "full"

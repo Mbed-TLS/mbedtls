@@ -116,7 +116,7 @@
         PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_256 ? 136u :     \
         PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_384 ? 104u :     \
         PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_512 ? 72u :      \
-        0)
+        0u)
 
 /** \def PSA_HASH_MAX_SIZE
  *
@@ -579,7 +579,7 @@
 
 #define PSA_RSA_MINIMUM_PADDING_SIZE(alg)                         \
     (PSA_ALG_IS_RSA_OAEP(alg) ?                                   \
-     2 * PSA_HASH_LENGTH(PSA_ALG_RSA_OAEP_GET_HASH(alg)) + 1u :   \
+     2u * PSA_HASH_LENGTH(PSA_ALG_RSA_OAEP_GET_HASH(alg)) + 1u :   \
      11u /*PKCS#1v1.5*/)
 
 /**
@@ -591,7 +591,7 @@
  * \note This macro returns a compile-time constant if its argument is one.
  */
 #define PSA_ECDSA_SIGNATURE_SIZE(curve_bits)    \
-    (PSA_BITS_TO_BYTES(curve_bits) * 2)
+    (PSA_BITS_TO_BYTES(curve_bits) * 2u)
 
 /** Sufficient signature buffer size for psa_sign_hash().
  *

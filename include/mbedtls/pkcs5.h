@@ -57,13 +57,36 @@ extern "C" {
 /**
  * \brief          PKCS#5 PBES2 function
  *
+ * \note           When encrypting, #MBEDTLS_CIPHER_PADDING_PKCS7 must
+ *                 be enabled at compile time.
+ *
+ * \warning        When decrypting:
+ *                 - if #MBEDTLS_CIPHER_PADDING_PKCS7 is enabled at compile
+ *                   time, this function validates the CBC padding and returns
+ *                   #MBEDTLS_ERR_PKCS5_PASSWORD_MISMATCH if the padding is
+ *                   invalid. Note that this can help active adversaries
+ *                   attempting to brute-forcing the password. Note also that
+ *                   there is no guarantee that an invalid password will be
+ *                   detected (the chances of a valid padding with a random
+ *                   password are about 1/255).
+ *                 - if #MBEDTLS_CIPHER_PADDING_PKCS7 is disabled at compile
+ *                   time, this function does not validate the CBC padding.
+ *
  * \param pbe_params the ASN.1 algorithm parameters
  * \param mode       either MBEDTLS_PKCS5_DECRYPT or MBEDTLS_PKCS5_ENCRYPT
  * \param pwd        password to use when generating key
  * \param pwdlen     length of password
  * \param data       data to process
  * \param datalen    length of data
- * \param output     output buffer
+ * \param output     Output buffer.
+ *                   On success, it contains the encrypted or decrypted data,
+ *                   possibly followed by the CBC padding.
+ *                   On failure, the content is indeterminate.
+ *                   For decryption, there must be enough room for \p datalen
+ *                   bytes.
+ *                   For encryption, there must be enough room for
+ *                   \p datalen + 1 bytes, rounded up to the block size of
+ *                   the block cipher identified by \p pbe_params.
  *
  * \returns        0 on success, or a MBEDTLS_ERR_XXX code if verification fails.
  */

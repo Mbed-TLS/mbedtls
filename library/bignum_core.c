@@ -686,16 +686,16 @@ cleanup:
 
 static size_t exp_mod_get_window_size(size_t Ebits)
 {
-    size_t wsize = (Ebits > 671) ? 6 : (Ebits > 239) ? 5 :
-                   (Ebits >  79) ? 4 : 1;
-
-#if (MBEDTLS_MPI_WINDOW_SIZE < 6)
-    if (wsize > MBEDTLS_MPI_WINDOW_SIZE) {
-        wsize = MBEDTLS_MPI_WINDOW_SIZE;
-    }
+#if MBEDTLS_MPI_WINDOW_SIZE >= 6
+    return (Ebits > 671) ? 6 : (Ebits > 239) ? 5 : (Ebits >  79) ? 4 : 1;
+#elif MBEDTLS_MPI_WINDOW_SIZE == 5
+    return (Ebits > 239) ? 5 : (Ebits >  79) ? 4 : 1;
+#elif MBEDTLS_MPI_WINDOW_SIZE > 1
+    return (Ebits >  79) ? MBEDTLS_MPI_WINDOW_SIZE : 1;
+#else
+    (void) Ebits;
+    return 1;
 #endif
-
-    return wsize;
 }
 
 size_t mbedtls_mpi_core_exp_mod_working_limbs(size_t AN_limbs, size_t E_limbs)

@@ -817,9 +817,8 @@ int mbedtls_mpi_cmp_abs(const mbedtls_mpi *X, const mbedtls_mpi *Y)
         }
     }
 
-    if (i == 0 && j == 0) {
-        return 0;
-    }
+    /* If i == j == 0, i.e. abs(X) == abs(Y),
+     * we end up returning 0 at the end of the function. */
 
     if (i > j) {
         return 1;

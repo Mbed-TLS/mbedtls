@@ -2,10 +2,6 @@ set(libs
     ${mbedtls_target}
 )
 
-if(WIN32)
-    set(libs ${libs} bcrypt)
-endif(WIN32)
-
 set(executables_libs
     query_included_headers
     selftest

@@ -5,10 +5,6 @@ set(libs
     ${mbedtls_target}
 )
 
-if(WIN32)
-    set(libs ${libs} bcrypt)
-endif(WIN32)
-
 set(executables
     dtls_client
     dtls_server

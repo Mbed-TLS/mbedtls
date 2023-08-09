@@ -2,10 +2,6 @@ set(libs
     mbedtls
 )
 
-if(WIN32)
-    set(libs ${libs} bcrypt)
-endif(WIN32)
-
 set(executables_mbedtls
     dh_client
     dh_server

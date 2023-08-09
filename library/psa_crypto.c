@@ -34,6 +34,7 @@
 #include "psa_crypto_core.h"
 #include "psa_crypto_invasive.h"
 #include "psa_crypto_driver_wrappers.c"
+#include "psa_crypto_driver_wrappers.h"
 #include "psa_crypto_ecp.h"
 #include "psa_crypto_ffdh.h"
 #include "psa_crypto_hash.h"

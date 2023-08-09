@@ -1,15 +1,6 @@
 /**
  *  Constant-time functions
  *
- *  For readability, the static inline definitions are here, and
- *  constant_time_internal.h has only the declarations.
- *
- *  This results in duplicate declarations of the form:
- *      static inline void f() { ... }
- *      static inline void f();
- *  when constant_time_internal.h is included. This appears to behave
- *  exactly as if the declaration-without-definition was not present.
- *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -37,11 +28,20 @@
 #include "mbedtls/bignum.h"
 #endif
 
-/* constant_time_impl.h contains all the static inline implementations,
- * so that constant_time_internal.h is more readable.
+/*
+ * To improve readability of constant_time_internal.h, the static inline
+ * definitions are here, and constant_time_internal.h has only the declarations.
  *
- * gcc generates warnings about duplicate declarations, so disable this
- * warning.
+ * This results in duplicate declarations of the form:
+ *     static inline void f();         // from constant_time_internal.h
+ *     static inline void f() { ... }  // from constant_time_impl.h
+ * when constant_time_internal.h is included.
+ *
+ * This appears to behave as if the declaration-without-definition was not present
+ * (except for warnings if gcc -Wredundant-decls or similar is used).
+ *
+ * Disable -Wredundant-decls so that gcc does not warn about this. This is re-enabled
+ * at the bottom of this file.
  */
 #ifdef __GNUC__
     #pragma GCC diagnostic push
@@ -531,6 +531,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool_not(mbedtls_ct_condition_t 
 }
 
 #ifdef __GNUC__
+/* Restore warnings for -Wredundant-decls on gcc */
     #pragma GCC diagnostic pop
 #endif
 

@@ -6,6 +6,7 @@
     "capabilities": [
         {
             "mbedtls/c_condition": "defined(MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED)",
+            "_comment_entry_points": "This is not the complete list of entry points supported by this driver, only those that are currently supported in JSON. See docs/psa-driver-example-and-guide.md",
             "entry_points": ["import_key", "export_public_key"],
             "algorithms": ["PSA_ALG_ECDH", "PSA_ALG_ECDSA(PSA_ALG_ANY_HASH)"],
             "key_types": [

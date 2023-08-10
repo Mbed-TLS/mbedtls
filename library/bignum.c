@@ -258,6 +258,10 @@ static inline mbedtls_mpi_uint mpi_sint_abs(mbedtls_mpi_sint z)
     return (mbedtls_mpi_uint) 0 - (mbedtls_mpi_uint) z;
 }
 
+/* Convert x to a sign, i.e. to 1, if x is positive, or -1, if x is negative.
+ * This looks awkward but generates smaller code than (x < 0 ? -1 : 1) */
+#define TO_SIGN(x) ((((mbedtls_mpi_uint) x) >> (biL - 1)) * -2 + 1)
+
 /*
  * Set value from integer
  */
@@ -270,7 +274,7 @@ int mbedtls_mpi_lset(mbedtls_mpi *X, mbedtls_mpi_sint z)
     memset(X->p, 0, X->n * ciL);
 
     X->p[0] = mpi_sint_abs(z);
-    X->s    = (z < 0) ? -1 : 1;
+    X->s    = TO_SIGN(z);
 
 cleanup:
 
@@ -326,16 +330,35 @@ cleanup:
  */
 size_t mbedtls_mpi_lsb(const mbedtls_mpi *X)
 {
-    size_t i, j, count = 0;
+    size_t i;
     MBEDTLS_INTERNAL_VALIDATE_RET(X != NULL, 0);
 
+#if defined(__has_builtin)
+#if (MBEDTLS_MPI_UINT_MAX == UINT_MAX) && __has_builtin(__builtin_ctz)
+    #define mbedtls_mpi_uint_ctz __builtin_ctz
+#elif (MBEDTLS_MPI_UINT_MAX == ULONG_MAX) && __has_builtin(__builtin_ctzl)
+    #define mbedtls_mpi_uint_ctz __builtin_ctzl
+#elif (MBEDTLS_MPI_UINT_MAX == ULLONG_MAX) && __has_builtin(__builtin_ctzll)
+    #define mbedtls_mpi_uint_ctz __builtin_ctzll
+#endif
+#endif
+
+#if defined(mbedtls_mpi_uint_ctz)
     for (i = 0; i < X->n; i++) {
-        for (j = 0; j < biL; j++, count++) {
+        if (X->p[i] != 0) {
+            return i * biL + mbedtls_mpi_uint_ctz(X->p[i]);
+        }
+    }
+#else
+    size_t count = 0;
+    for (i = 0; i < X->n; i++) {
+        for (size_t j = 0; j < biL; j++, count++) {
             if (((X->p[i] >> j) & 1) != 0) {
                 return count;
             }
         }
     }
+#endif
 
     return 0;
 }
@@ -796,9 +819,8 @@ int mbedtls_mpi_cmp_abs(const mbedtls_mpi *X, const mbedtls_mpi *Y)
         }
     }
 
-    if (i == 0 && j == 0) {
-        return 0;
-    }
+    /* If i == j == 0, i.e. abs(X) == abs(Y),
+     * we end up returning 0 at the end of the function. */
 
     if (i > j) {
         return 1;
@@ -880,7 +902,7 @@ int mbedtls_mpi_cmp_int(const mbedtls_mpi *X, mbedtls_mpi_sint z)
     MPI_VALIDATE_RET(X != NULL);
 
     *p  = mpi_sint_abs(z);
-    Y.s = (z < 0) ? -1 : 1;
+    Y.s = TO_SIGN(z);
     Y.n = 1;
     Y.p = p;
 
@@ -1068,7 +1090,7 @@ int mbedtls_mpi_add_int(mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint b
     MPI_VALIDATE_RET(A != NULL);
 
     p[0] = mpi_sint_abs(b);
-    B.s = (b < 0) ? -1 : 1;
+    B.s = TO_SIGN(b);
     B.n = 1;
     B.p = p;
 
@@ -1086,7 +1108,7 @@ int mbedtls_mpi_sub_int(mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint b
     MPI_VALIDATE_RET(A != NULL);
 
     p[0] = mpi_sint_abs(b);
-    B.s = (b < 0) ? -1 : 1;
+    B.s = TO_SIGN(b);
     B.n = 1;
     B.p = p;
 
@@ -1436,7 +1458,7 @@ int mbedtls_mpi_div_int(mbedtls_mpi *Q, mbedtls_mpi *R,
     MPI_VALIDATE_RET(A != NULL);
 
     p[0] = mpi_sint_abs(b);
-    B.s = (b < 0) ? -1 : 1;
+    B.s = TO_SIGN(b);
     B.n = 1;
     B.p = p;
 

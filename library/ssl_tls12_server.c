@@ -3537,9 +3537,9 @@ static int ssl_parse_encrypted_pms(mbedtls_ssl_context *ssl,
      * padding, to protect against timing-based Bleichenbacher-type
      * attacks. */
     diff = mbedtls_ct_bool(ret);
-    diff = mbedtls_ct_bool_or(diff, mbedtls_ct_bool_ne(peer_pmslen, 48));
-    diff = mbedtls_ct_bool_or(diff, mbedtls_ct_bool_ne(peer_pms[0], ver[0]));
-    diff = mbedtls_ct_bool_or(diff, mbedtls_ct_bool_ne(peer_pms[1], ver[1]));
+    diff = mbedtls_ct_bool_or(diff, mbedtls_ct_uint_ne(peer_pmslen, 48));
+    diff = mbedtls_ct_bool_or(diff, mbedtls_ct_uint_ne(peer_pms[0], ver[0]));
+    diff = mbedtls_ct_bool_or(diff, mbedtls_ct_uint_ne(peer_pms[1], ver[1]));
 
     /*
      * Protection against Bleichenbacher's attack: invalid PKCS#1 v1.5 padding

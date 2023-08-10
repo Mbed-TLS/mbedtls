@@ -143,7 +143,7 @@ static inline mbedtls_ct_uint_t mbedtls_ct_if(mbedtls_ct_condition_t condition,
     return (mbedtls_ct_uint_t) ((condition & if1) | (not_cond & if0));
 }
 
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_lt(mbedtls_ct_uint_t x, mbedtls_ct_uint_t y)
+static inline mbedtls_ct_condition_t mbedtls_ct_uint_lt(mbedtls_ct_uint_t x, mbedtls_ct_uint_t y)
 {
     /* Ensure that the compiler cannot optimise the following operations over x and y,
      * even if it knows the value of x and y.
@@ -175,7 +175,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool_lt(mbedtls_ct_uint_t x, mbe
     return mbedtls_ct_bool(ret);
 }
 
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_ne(mbedtls_ct_uint_t x, mbedtls_ct_uint_t y)
+static inline mbedtls_ct_condition_t mbedtls_ct_uint_ne(mbedtls_ct_uint_t x, mbedtls_ct_uint_t y)
 {
     /* diff = 0 if x == y, non-zero otherwise */
     const mbedtls_ct_uint_t diff = mbedtls_ct_compiler_opaque(x) ^ mbedtls_ct_compiler_opaque(y);
@@ -252,28 +252,28 @@ static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if0(mbedtls_ct_condition_t co
 
 #endif /* MBEDTLS_BIGNUM_C */
 
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_eq(mbedtls_ct_uint_t x,
+static inline mbedtls_ct_condition_t mbedtls_ct_uint_eq(mbedtls_ct_uint_t x,
                                                         mbedtls_ct_uint_t y)
 {
-    return ~mbedtls_ct_bool_ne(x, y);
+    return ~mbedtls_ct_uint_ne(x, y);
 }
 
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_gt(mbedtls_ct_uint_t x,
+static inline mbedtls_ct_condition_t mbedtls_ct_uint_gt(mbedtls_ct_uint_t x,
                                                         mbedtls_ct_uint_t y)
 {
-    return mbedtls_ct_bool_lt(y, x);
+    return mbedtls_ct_uint_lt(y, x);
 }
 
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_ge(mbedtls_ct_uint_t x,
+static inline mbedtls_ct_condition_t mbedtls_ct_uint_ge(mbedtls_ct_uint_t x,
                                                         mbedtls_ct_uint_t y)
 {
-    return ~mbedtls_ct_bool_lt(x, y);
+    return ~mbedtls_ct_uint_lt(x, y);
 }
 
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_le(mbedtls_ct_uint_t x,
+static inline mbedtls_ct_condition_t mbedtls_ct_uint_le(mbedtls_ct_uint_t x,
                                                         mbedtls_ct_uint_t y)
 {
-    return ~mbedtls_ct_bool_gt(x, y);
+    return ~mbedtls_ct_uint_gt(x, y);
 }
 
 static inline mbedtls_ct_condition_t mbedtls_ct_bool_xor(mbedtls_ct_condition_t x,

@@ -120,13 +120,13 @@ static int mbedtls_ct_rsaes_pkcs1_v15_unpadding(unsigned char *input,
 
     /* Decode EME-PKCS1-v1_5 padding: 0x00 || 0x02 || PS || 0x00
      * where PS must be at least 8 nonzero bytes. */
-    bad = mbedtls_ct_bool_or(bad, mbedtls_ct_bool_ne(input[1], MBEDTLS_RSA_CRYPT));
+    bad = mbedtls_ct_bool_or(bad, mbedtls_ct_uint_ne(input[1], MBEDTLS_RSA_CRYPT));
 
     /* Read the whole buffer. Set pad_done to nonzero if we find
      * the 0x00 byte and remember the padding length in pad_count. */
     pad_done = MBEDTLS_CT_FALSE;
     for (i = 2; i < ilen; i++) {
-        mbedtls_ct_condition_t found = mbedtls_ct_bool_eq(input[i], 0);
+        mbedtls_ct_condition_t found = mbedtls_ct_uint_eq(input[i], 0);
         pad_done   = mbedtls_ct_bool_or(pad_done, found);
         pad_count += mbedtls_ct_uint_if0(mbedtls_ct_bool_not(pad_done), 1);
     }
@@ -135,7 +135,7 @@ static int mbedtls_ct_rsaes_pkcs1_v15_unpadding(unsigned char *input,
     bad = mbedtls_ct_bool_or(bad, mbedtls_ct_bool_not(pad_done));
 
     /* There must be at least 8 bytes of padding. */
-    bad = mbedtls_ct_bool_or(bad, mbedtls_ct_bool_gt(8, pad_count));
+    bad = mbedtls_ct_bool_or(bad, mbedtls_ct_uint_gt(8, pad_count));
 
     /* If the padding is valid, set plaintext_size to the number of
      * remaining bytes after stripping the padding. If the padding
@@ -150,7 +150,7 @@ static int mbedtls_ct_rsaes_pkcs1_v15_unpadding(unsigned char *input,
 
     /* Set output_too_large to 0 if the plaintext fits in the output
      * buffer and to 1 otherwise. */
-    output_too_large = mbedtls_ct_bool_gt(plaintext_size,
+    output_too_large = mbedtls_ct_uint_gt(plaintext_size,
                                           plaintext_max_size);
 
     /* Set ret without branches to avoid timing attacks. Return:

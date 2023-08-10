@@ -149,7 +149,7 @@ mbedtls_ct_condition_t mbedtls_mpi_core_uint_le_mpi(mbedtls_mpi_uint min,
                                                     size_t A_limbs)
 {
     /* min <= least significant limb? */
-    mbedtls_ct_condition_t min_le_lsl = mbedtls_ct_bool_ge(A[0], min);
+    mbedtls_ct_condition_t min_le_lsl = mbedtls_ct_uint_ge(A[0], min);
 
     /* limbs other than the least significant one are all zero? */
     mbedtls_ct_condition_t msll_mask = MBEDTLS_CT_FALSE;
@@ -176,7 +176,7 @@ mbedtls_ct_condition_t mbedtls_mpi_core_lt_ct(const mbedtls_mpi_uint *A,
          * Again even if we can make a decision, we just mark the result and
          * the fact that we are done and continue looping.
          */
-        cond = mbedtls_ct_bool_lt(B[i - 1], A[i - 1]);
+        cond = mbedtls_ct_uint_lt(B[i - 1], A[i - 1]);
         done = mbedtls_ct_bool_or(done, cond);
 
         /*
@@ -185,7 +185,7 @@ mbedtls_ct_condition_t mbedtls_mpi_core_lt_ct(const mbedtls_mpi_uint *A,
          * Again even if we can make a decision, we just mark the result and
          * the fact that we are done and continue looping.
          */
-        cond = mbedtls_ct_bool_lt(A[i - 1], B[i - 1]);
+        cond = mbedtls_ct_uint_lt(A[i - 1], B[i - 1]);
         ret  = mbedtls_ct_bool_or(ret, mbedtls_ct_bool_and(cond, mbedtls_ct_bool_not(done)));
         done = mbedtls_ct_bool_or(done, cond);
     }
@@ -634,7 +634,7 @@ void mbedtls_mpi_core_ct_uint_table_lookup(mbedtls_mpi_uint *dest,
                                            size_t index)
 {
     for (size_t i = 0; i < count; i++, table += limbs) {
-        mbedtls_ct_condition_t assign = mbedtls_ct_bool_eq(i, index);
+        mbedtls_ct_condition_t assign = mbedtls_ct_uint_eq(i, index);
         mbedtls_mpi_core_cond_assign(dest, table, limbs, assign);
     }
 }

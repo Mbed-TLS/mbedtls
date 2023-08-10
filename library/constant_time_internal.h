@@ -37,10 +37,11 @@
  * It has three main parts:
  *
  * - boolean operations
- *   These are all named mbedtls_ct_bool_<operation>, and operate over
+ *   These are all named mbedtls_ct_<type>_<operation>, and operate over
  *   mbedtls_ct_condition_t.
  *   All arguments are considered secret.
  *   example: bool x = y | z          =>    x = mbedtls_ct_bool_or(y, z)
+ *   example: bool x = y == z         =>    x = mbedtls_ct_uint_eq(y, z)
  *
  * - conditional data selection
  *   These are all named mbedtls_ct_<type>_if and mbedtls_ct_<type>_if0
@@ -118,7 +119,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool(mbedtls_ct_uint_t x);
  *
  * \return      MBEDTLS_CT_TRUE if \p x != \p y, otherwise MBEDTLS_CT_FALSE.
  */
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_ne(mbedtls_ct_uint_t x, mbedtls_ct_uint_t y);
+static inline mbedtls_ct_condition_t mbedtls_ct_uint_ne(mbedtls_ct_uint_t x, mbedtls_ct_uint_t y);
 
 /** Boolean "equals" operation.
  *
@@ -131,7 +132,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool_ne(mbedtls_ct_uint_t x, mbe
  *
  * \return      MBEDTLS_CT_TRUE if \p x == \p y, otherwise MBEDTLS_CT_FALSE.
  */
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_eq(mbedtls_ct_uint_t x,
+static inline mbedtls_ct_condition_t mbedtls_ct_uint_eq(mbedtls_ct_uint_t x,
                                                         mbedtls_ct_uint_t y);
 
 /** Boolean "less than" operation.
@@ -145,7 +146,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool_eq(mbedtls_ct_uint_t x,
  *
  * \return      MBEDTLS_CT_TRUE if \p x < \p y, otherwise MBEDTLS_CT_FALSE.
  */
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_lt(mbedtls_ct_uint_t x, mbedtls_ct_uint_t y);
+static inline mbedtls_ct_condition_t mbedtls_ct_uint_lt(mbedtls_ct_uint_t x, mbedtls_ct_uint_t y);
 
 /** Boolean "greater than" operation.
  *
@@ -158,7 +159,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool_lt(mbedtls_ct_uint_t x, mbe
  *
  * \return      MBEDTLS_CT_TRUE if \p x > \p y, otherwise MBEDTLS_CT_FALSE.
  */
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_gt(mbedtls_ct_uint_t x,
+static inline mbedtls_ct_condition_t mbedtls_ct_uint_gt(mbedtls_ct_uint_t x,
                                                         mbedtls_ct_uint_t y);
 
 /** Boolean "greater or equal" operation.
@@ -173,7 +174,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool_gt(mbedtls_ct_uint_t x,
  * \return      MBEDTLS_CT_TRUE if \p x >= \p y,
  *              otherwise MBEDTLS_CT_FALSE.
  */
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_ge(mbedtls_ct_uint_t x,
+static inline mbedtls_ct_condition_t mbedtls_ct_uint_ge(mbedtls_ct_uint_t x,
                                                         mbedtls_ct_uint_t y);
 
 /** Boolean "less than or equal" operation.
@@ -188,7 +189,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool_ge(mbedtls_ct_uint_t x,
  * \return      MBEDTLS_CT_TRUE if \p x <= \p y,
  *              otherwise MBEDTLS_CT_FALSE.
  */
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_le(mbedtls_ct_uint_t x,
+static inline mbedtls_ct_condition_t mbedtls_ct_uint_le(mbedtls_ct_uint_t x,
                                                         mbedtls_ct_uint_t y);
 
 /** Boolean "xor" operation.

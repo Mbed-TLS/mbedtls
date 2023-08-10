@@ -131,7 +131,7 @@ void mbedtls_ct_memmove_left(void *start, size_t total, size_t offset)
 {
     volatile unsigned char *buf = start;
     for (size_t i = 0; i < total; i++) {
-        mbedtls_ct_condition_t no_op = mbedtls_ct_bool_gt(total - offset, i);
+        mbedtls_ct_condition_t no_op = mbedtls_ct_uint_gt(total - offset, i);
         /* The first `total - offset` passes are a no-op. The last
          * `offset` passes shift the data one byte to the left and
          * zero out the last byte. */
@@ -188,7 +188,7 @@ void mbedtls_ct_memcpy_offset(unsigned char *dest,
     size_t offsetval;
 
     for (offsetval = offset_min; offsetval <= offset_max; offsetval++) {
-        mbedtls_ct_memcpy_if(mbedtls_ct_bool_eq(offsetval, offset), dest, src + offsetval, NULL,
+        mbedtls_ct_memcpy_if(mbedtls_ct_uint_eq(offsetval, offset), dest, src + offsetval, NULL,
                              len);
     }
 }

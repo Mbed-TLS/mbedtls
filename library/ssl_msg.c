@@ -257,7 +257,7 @@ int mbedtls_ct_hmac(mbedtls_md_context_t *ctx,
         MD_CHK(mbedtls_md_clone(&aux, ctx));
         MD_CHK(mbedtls_md_finish(&aux, aux_out));
         /* Keep only the correct inner_hash in the output buffer */
-        mbedtls_ct_memcpy_if(mbedtls_ct_bool_eq(offset, data_len_secret),
+        mbedtls_ct_memcpy_if(mbedtls_ct_uint_eq(offset, data_len_secret),
                              output, aux_out, NULL, hash_size);
 
         if (offset < max_data_len) {
@@ -1918,7 +1918,7 @@ hmac_failed_etm_enabled:
         padlen = data[rec->data_len - 1];
 
         if (auth_done == 1) {
-            const mbedtls_ct_condition_t ge = mbedtls_ct_bool_ge(
+            const mbedtls_ct_condition_t ge = mbedtls_ct_uint_ge(
                 rec->data_len,
                 padlen + 1);
             correct = mbedtls_ct_size_if0(ge, correct);
@@ -1934,7 +1934,7 @@ hmac_failed_etm_enabled:
                                           padlen + 1));
             }
 #endif
-            const mbedtls_ct_condition_t ge = mbedtls_ct_bool_ge(
+            const mbedtls_ct_condition_t ge = mbedtls_ct_uint_ge(
                 rec->data_len,
                 transform->maclen + padlen + 1);
             correct = mbedtls_ct_size_if0(ge, correct);
@@ -1967,13 +1967,13 @@ hmac_failed_etm_enabled:
             /* pad_count += (idx >= padding_idx) &&
              *              (check[idx] == padlen - 1);
              */
-            const mbedtls_ct_condition_t a = mbedtls_ct_bool_ge(idx, padding_idx);
+            const mbedtls_ct_condition_t a = mbedtls_ct_uint_ge(idx, padding_idx);
             size_t increment = mbedtls_ct_size_if0(a, 1);
-            const mbedtls_ct_condition_t b = mbedtls_ct_bool_eq(check[idx], padlen - 1);
+            const mbedtls_ct_condition_t b = mbedtls_ct_uint_eq(check[idx], padlen - 1);
             increment = mbedtls_ct_size_if0(b, increment);
             pad_count += increment;
         }
-        correct = mbedtls_ct_size_if0(mbedtls_ct_bool_eq(pad_count, padlen), padlen);
+        correct = mbedtls_ct_size_if0(mbedtls_ct_uint_eq(pad_count, padlen), padlen);
 
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
         if (padlen > 0 && correct == 0) {

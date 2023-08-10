@@ -37,8 +37,8 @@
  * It has three main parts:
  *
  * - boolean operations
- *   These are all named mbedtls_ct_<type>_<operation>, and operate over
- *   mbedtls_ct_condition_t.
+ *   These are all named mbedtls_ct_<type>_<operation>.
+ *   They operate over <type> and return mbedtls_ct_condition_t.
  *   All arguments are considered secret.
  *   example: bool x = y | z          =>    x = mbedtls_ct_bool_or(y, z)
  *   example: bool x = y == z         =>    x = mbedtls_ct_uint_eq(y, z)

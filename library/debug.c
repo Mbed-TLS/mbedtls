@@ -144,7 +144,6 @@ void mbedtls_debug_print_buf(const mbedtls_ssl_context *ssl, int level,
 
     debug_send_line(ssl, level, file, line, str);
 
-    idx = 0;
     memset(txt, 0, sizeof(txt));
     for (i = 0; i < len; i++) {
         if (i >= 4096) {
@@ -215,7 +214,6 @@ static void mbedtls_debug_print_ec_coord(const mbedtls_ssl_context *ssl, int lev
 
     debug_send_line(ssl, level, file, line, str);
 
-    idx = 0;
     for (i = 0; i < len; i++) {
         if (i >= 4096) {
             break;

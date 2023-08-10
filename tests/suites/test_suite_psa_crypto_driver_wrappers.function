@@ -466,7 +466,7 @@ static int sanity_check_rsa_encryption_result(
         TEST_EQUAL(buf[0], 0x00);
         /* The rest is too hard to check */
     } else {
-        TEST_ASSERT(!"Encryption result sanity check not implemented for RSA algorithm");
+        TEST_FAIL("Encryption result sanity check not implemented for RSA algorithm");
     }
 #endif /* MBEDTLS_BIGNUM_C */
 
@@ -2755,7 +2755,7 @@ void asymmetric_encrypt(int alg_arg,
             {
                 (void) modulus;
                 (void) private_exponent;
-                TEST_ASSERT(!"Encryption sanity checks not implemented for this key type");
+                TEST_FAIL("Encryption sanity checks not implemented for this key type");
             }
         }
     }

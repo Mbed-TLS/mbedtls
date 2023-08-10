@@ -876,7 +876,7 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
 
             c = name->val.tag;
             lowbits = (c & 0x0F);
-            highbits = c>>4;
+            highbits = c >> 4;
             s[1] = nibble_to_hex_digit(highbits);
             s[2] = nibble_to_hex_digit(lowbits);
 
@@ -893,7 +893,7 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
                     c = name->val.p[i-asn1_len_size];
                 }
                 lowbits = (c & 0x0F);
-                highbits = c>>4;
+                highbits = c >> 4;
                 s[j++] = nibble_to_hex_digit(highbits);
                 s[j] = nibble_to_hex_digit(lowbits);
             }
@@ -924,7 +924,7 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
                     }
                     s[j++] = '\\';
                     lowbits = (c & 0x0F);
-                    highbits = c>>4;
+                    highbits = c >> 4;
                     s[j++] = nibble_to_hex_digit(highbits);
                     s[j] = nibble_to_hex_digit(lowbits);
                 } else {

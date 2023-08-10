@@ -303,15 +303,15 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
                 tag = attr_descr->default_tag;
             }
             if (numericoid) {
-                #if defined(MBEDTLS_ASN1_PARSE_C)
+#if defined(MBEDTLS_ASN1_PARSE_C)
                 if ((parse_ret =
                          parse_attribute_value_ber_encoded(s, (int) (c - s), data, &data_len,
                                                            &tag)) != 0) {
                     return parse_ret;
                 }
-                #else
+#else
                 return MBEDTLS_ERR_X509_INVALID_NAME;
-                #endif
+#endif
             }
             mbedtls_asn1_named_data *cur =
                 mbedtls_asn1_store_named_data(head, oid, strlen(oid),

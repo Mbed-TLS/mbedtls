@@ -826,8 +826,8 @@ static char nibble_to_hex_digit(int i)
 int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i, j, n, asn1_len_size, asn1_len_start;
-    unsigned char asn1_len_buf[5];
+    size_t i, j, n, asn1_len_size, asn1_tag_size, asn1_tag_len_buf_start;
+    unsigned char asn1_tag_len_buf[10];
     unsigned char *asn1_len_p;
     unsigned char c, merge = 0;
     const mbedtls_x509_name *name;
@@ -874,28 +874,29 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
 #if defined(MBEDTLS_ASN1_WRITE_C)
             s[0] = '#';
 
-            c = name->val.tag;
-            lowbits = (c & 0x0F);
-            highbits = c >> 4;
-            s[1] = nibble_to_hex_digit(highbits);
-            s[2] = nibble_to_hex_digit(lowbits);
-
-            asn1_len_p = asn1_len_buf+5;
-            asn1_len_size = mbedtls_asn1_write_len(&asn1_len_p, asn1_len_buf, name->val.len);
-            asn1_len_start = 5 - asn1_len_size;
-            for (i = 0, j = 3; i < asn1_len_size + name->val.len; i++, j++) {
+            asn1_len_p = asn1_tag_len_buf + 10;
+            asn1_len_size = mbedtls_asn1_write_len(&asn1_len_p, asn1_tag_len_buf, name->val.len);
+            asn1_tag_size = mbedtls_asn1_write_tag(&asn1_len_p,asn1_tag_len_buf,name->val.tag);
+            asn1_tag_len_buf_start = 10 - asn1_len_size - asn1_tag_size;
+            for (i = 0, j = 1; i < asn1_len_size + asn1_tag_size; i++) {
                 if (j + 1 >= sizeof(s) - 1) {
                     return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
                 }
-                if (i < asn1_len_size) {
-                    c = asn1_len_buf[asn1_len_start+i];
-                } else {
-                    c = name->val.p[i-asn1_len_size];
-                }
+                c = asn1_tag_len_buf[asn1_tag_len_buf_start+i];
                 lowbits = (c & 0x0F);
                 highbits = c >> 4;
                 s[j++] = nibble_to_hex_digit(highbits);
-                s[j] = nibble_to_hex_digit(lowbits);
+                s[j++] = nibble_to_hex_digit(lowbits);
+            }
+            for (i = 0; i < name->val.len; i++) {
+                if (j + 1 >= sizeof(s) - 1) {
+                    return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                }
+                c = name->val.p[i];
+                lowbits = (c & 0x0F);
+                highbits = c >> 4;
+                s[j++] = nibble_to_hex_digit(highbits);
+                s[j++] = nibble_to_hex_digit(lowbits);
             }
 #else
             return MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE;

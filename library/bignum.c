@@ -94,7 +94,7 @@ int mbedtls_mpi_lt_mpi_ct(const mbedtls_mpi *X,
 
     /* This array is used to conditionally swap the pointers in const time */
     void * const p[2] = { X->p, Y->p };
-    size_t i = mbedtls_ct_size_if0(X_is_negative, 1);
+    size_t i = mbedtls_ct_size_if_else_0(X_is_negative, 1);
     mbedtls_ct_condition_t lt = mbedtls_mpi_core_lt_ct(p[i], p[i ^ 1], X->n);
 
     /*
@@ -104,7 +104,7 @@ int mbedtls_mpi_lt_mpi_ct(const mbedtls_mpi *X,
     result = mbedtls_ct_bool_or(result,
                                 mbedtls_ct_bool_and(mbedtls_ct_bool_not(different_sign), lt));
 
-    *ret = mbedtls_ct_uint_if0(result, 1);
+    *ret = mbedtls_ct_uint_if_else_0(result, 1);
 
     return 0;
 }
@@ -139,7 +139,7 @@ int mbedtls_mpi_safe_cond_assign(mbedtls_mpi *X,
 
     mbedtls_ct_condition_t do_not_assign = mbedtls_ct_bool_not(do_assign);
     for (size_t i = Y->n; i < X->n; i++) {
-        X->p[i] = mbedtls_ct_mpi_uint_if0(do_not_assign, X->p[i]);
+        X->p[i] = mbedtls_ct_mpi_uint_if_else_0(do_not_assign, X->p[i]);
     }
 
 cleanup:

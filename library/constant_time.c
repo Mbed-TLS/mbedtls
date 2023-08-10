@@ -140,7 +140,7 @@ void mbedtls_ct_memmove_left(void *start, size_t total, size_t offset)
             unsigned char next    = buf[n+1];
             buf[n] = mbedtls_ct_uint_if(no_op, current, next);
         }
-        buf[total-1] = mbedtls_ct_uint_if0(no_op, buf[total-1]);
+        buf[total-1] = mbedtls_ct_uint_if_else_0(no_op, buf[total-1]);
     }
 }
 

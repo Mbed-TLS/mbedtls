@@ -463,7 +463,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_add_if(mbedtls_mpi_uint *X,
     mbedtls_ct_condition_t do_add = mbedtls_ct_bool(cond);
 
     for (size_t i = 0; i < limbs; i++) {
-        mbedtls_mpi_uint add = mbedtls_ct_mpi_uint_if0(do_add, A[i]);
+        mbedtls_mpi_uint add = mbedtls_ct_mpi_uint_if_else_0(do_add, A[i]);
         mbedtls_mpi_uint t = c + X[i];
         c = (t < X[i]);
         t += add;

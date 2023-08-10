@@ -128,7 +128,7 @@ static int mbedtls_ct_rsaes_pkcs1_v15_unpadding(unsigned char *input,
     for (i = 2; i < ilen; i++) {
         mbedtls_ct_condition_t found = mbedtls_ct_uint_eq(input[i], 0);
         pad_done   = mbedtls_ct_bool_or(pad_done, found);
-        pad_count += mbedtls_ct_uint_if0(mbedtls_ct_bool_not(pad_done), 1);
+        pad_count += mbedtls_ct_uint_if_else_0(mbedtls_ct_bool_not(pad_done), 1);
     }
 
     /* If pad_done is still zero, there's no data, only unfinished padding. */
@@ -161,7 +161,7 @@ static int mbedtls_ct_rsaes_pkcs1_v15_unpadding(unsigned char *input,
     ret = -(int) mbedtls_ct_uint_if(
         bad,
         (unsigned) (-(MBEDTLS_ERR_RSA_INVALID_PADDING)),
-        mbedtls_ct_uint_if0(
+        mbedtls_ct_uint_if_else_0(
             output_too_large,
             (unsigned) (-(MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE)))
         );

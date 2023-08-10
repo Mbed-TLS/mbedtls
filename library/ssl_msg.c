@@ -1921,8 +1921,8 @@ hmac_failed_etm_enabled:
             const mbedtls_ct_condition_t ge = mbedtls_ct_uint_ge(
                 rec->data_len,
                 padlen + 1);
-            correct = mbedtls_ct_size_if0(ge, correct);
-            padlen  = mbedtls_ct_size_if0(ge, padlen);
+            correct = mbedtls_ct_size_if_else_0(ge, correct);
+            padlen  = mbedtls_ct_size_if_else_0(ge, padlen);
         } else {
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
             if (rec->data_len < transform->maclen + padlen + 1) {
@@ -1937,8 +1937,8 @@ hmac_failed_etm_enabled:
             const mbedtls_ct_condition_t ge = mbedtls_ct_uint_ge(
                 rec->data_len,
                 transform->maclen + padlen + 1);
-            correct = mbedtls_ct_size_if0(ge, correct);
-            padlen  = mbedtls_ct_size_if0(ge, padlen);
+            correct = mbedtls_ct_size_if_else_0(ge, correct);
+            padlen  = mbedtls_ct_size_if_else_0(ge, padlen);
         }
 
         padlen++;
@@ -1968,19 +1968,19 @@ hmac_failed_etm_enabled:
              *              (check[idx] == padlen - 1);
              */
             const mbedtls_ct_condition_t a = mbedtls_ct_uint_ge(idx, padding_idx);
-            size_t increment = mbedtls_ct_size_if0(a, 1);
+            size_t increment = mbedtls_ct_size_if_else_0(a, 1);
             const mbedtls_ct_condition_t b = mbedtls_ct_uint_eq(check[idx], padlen - 1);
-            increment = mbedtls_ct_size_if0(b, increment);
+            increment = mbedtls_ct_size_if_else_0(b, increment);
             pad_count += increment;
         }
-        correct = mbedtls_ct_size_if0(mbedtls_ct_uint_eq(pad_count, padlen), padlen);
+        correct = mbedtls_ct_size_if_else_0(mbedtls_ct_uint_eq(pad_count, padlen), padlen);
 
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
         if (padlen > 0 && correct == 0) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("bad padding byte detected"));
         }
 #endif
-        padlen = mbedtls_ct_size_if0(mbedtls_ct_bool(correct), padlen);
+        padlen = mbedtls_ct_size_if_else_0(mbedtls_ct_bool(correct), padlen);
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 

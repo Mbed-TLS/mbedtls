@@ -323,7 +323,7 @@ static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if(mbedtls_ct_condition_t con
  *
  * \return  \c if1 if \p condition == MBEDTLS_CT_TRUE, otherwise 0.
  */
-static inline unsigned mbedtls_ct_uint_if0(mbedtls_ct_condition_t condition, unsigned if1);
+static inline unsigned mbedtls_ct_uint_if_else_0(mbedtls_ct_condition_t condition, unsigned if1);
 
 #if defined(MBEDTLS_BIGNUM_C)
 
@@ -341,8 +341,8 @@ static inline unsigned mbedtls_ct_uint_if0(mbedtls_ct_condition_t condition, uns
  *
  * \return  \c if1 if \p condition == MBEDTLS_CT_TRUE, otherwise 0.
  */
-static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if0(mbedtls_ct_condition_t condition,
-                                                       mbedtls_mpi_uint if1);
+static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if_else_0(mbedtls_ct_condition_t condition,
+                                                             mbedtls_mpi_uint if1);
 
 #endif
 

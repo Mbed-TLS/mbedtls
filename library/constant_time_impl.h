@@ -232,20 +232,20 @@ static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if(mbedtls_ct_condition_t con
 
 #endif
 
-static inline size_t mbedtls_ct_size_if0(mbedtls_ct_condition_t condition, size_t if1)
+static inline size_t mbedtls_ct_size_if_else_0(mbedtls_ct_condition_t condition, size_t if1)
 {
     return (size_t) (condition & if1);
 }
 
-static inline unsigned mbedtls_ct_uint_if0(mbedtls_ct_condition_t condition, unsigned if1)
+static inline unsigned mbedtls_ct_uint_if_else_0(mbedtls_ct_condition_t condition, unsigned if1)
 {
     return (unsigned) (condition & if1);
 }
 
 #if defined(MBEDTLS_BIGNUM_C)
 
-static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if0(mbedtls_ct_condition_t condition,
-                                                       mbedtls_mpi_uint if1)
+static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if_else_0(mbedtls_ct_condition_t condition,
+                                                             mbedtls_mpi_uint if1)
 {
     return (mbedtls_mpi_uint) (condition & if1);
 }

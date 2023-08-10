@@ -315,7 +315,7 @@ static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if(mbedtls_ct_condition_t con
  *
  * condition ? if1 : 0.
  *
- * Functionally equivalent tombedtls_ct_uint_if(condition, if1, 0) but
+ * Functionally equivalent to mbedtls_ct_uint_if(condition, if1, 0) but
  * results in smaller code size.
  *
  * \param condition     Condition to test.
@@ -333,7 +333,7 @@ static inline unsigned mbedtls_ct_uint_if_else_0(mbedtls_ct_condition_t conditio
  *
  * condition ? if1 : 0.
  *
- * Functionally equivalent tombedtls_ct_mpi_uint_if(condition, if1, 0) but
+ * Functionally equivalent to mbedtls_ct_mpi_uint_if(condition, if1, 0) but
  * results in smaller code size.
  *
  * \param condition     Condition to test.

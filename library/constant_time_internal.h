@@ -325,7 +325,7 @@ static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if(mbedtls_ct_condition_t con
  */
 static inline unsigned mbedtls_ct_uint_if_else_0(mbedtls_ct_condition_t condition, unsigned if1);
 
-/** Choose between an unsigned value and 0.
+/** Choose between a size_t value and 0.
  *
  * Functionally equivalent to:
  *

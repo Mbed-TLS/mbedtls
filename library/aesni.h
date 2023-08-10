@@ -35,13 +35,13 @@
 /* Can we do AESNI with inline assembly?
  * (Only implemented with gas syntax, only for 64-bit.)
  */
-#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) && \
-    (defined(__amd64__) || defined(__x86_64__))   &&  \
-    !defined(MBEDTLS_HAVE_X86_64)
+#if !defined(MBEDTLS_HAVE_X86_64) && \
+    (defined(__amd64__) || defined(__x86_64__) || \
+    defined(_M_X64) || defined(_M_AMD64))
 #define MBEDTLS_HAVE_X86_64
 #endif
 
-#if defined(MBEDTLS_AESNI_C)
+#if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
 
 /* Can we do AESNI with intrinsics?
  * (Only implemented with certain compilers, only for certain targets.)
@@ -67,8 +67,10 @@
  * In the long run, we will likely remove the assembly implementation. */
 #if defined(MBEDTLS_AESNI_HAVE_INTRINSICS)
 #define MBEDTLS_AESNI_HAVE_CODE 2 // via intrinsics
-#elif defined(MBEDTLS_HAVE_X86_64)
+#elif defined(MBEDTLS_HAVE_ASM)
 #define MBEDTLS_AESNI_HAVE_CODE 1 // via assembly
+#else
+#error "MBEDTLS_AESNI_C defined, but neither intrinsics nor assembly available"
 #endif
 
 #if defined(MBEDTLS_AESNI_HAVE_CODE)

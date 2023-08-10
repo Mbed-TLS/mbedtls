@@ -40,8 +40,7 @@
 #endif
 #endif
 
-#if defined(MBEDTLS_HAVE_ASM) && \
-    (defined(__amd64__) || defined(__x86_64__))
+#if defined(__amd64__) || defined(__x86_64__)
 #if !defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 #error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
 #endif

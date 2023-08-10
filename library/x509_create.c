@@ -197,7 +197,7 @@ static int parse_attribute_value_string(const char *s,
                 hexpair = 1;
                 *(d++) = n;
                 c++;
-            } else if (c == end || !strchr(" ,=+<>#;\"\\+", *c)) {
+            } else if (c == end || !strchr(" ,=+<>#;\"\\", *c)) {
                 return MBEDTLS_ERR_X509_INVALID_NAME;
             }
         }

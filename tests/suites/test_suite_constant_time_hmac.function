@@ -8,7 +8,7 @@
 #include <test/constant_flow.h>
 /* END_HEADER */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC:MBEDTLS_TEST_HOOKS */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_SOME_SUITES_USE_MAC:MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC:MBEDTLS_TEST_HOOKS */
 void ssl_cf_hmac(int hash)
 {
     /*

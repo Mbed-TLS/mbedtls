@@ -415,11 +415,6 @@ int parse_crt_ext_cb(void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf 
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 /* END_HEADER */
 
-/* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_BIGNUM_C
- * END_DEPENDENCIES
- */
-
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
 void x509_accessor_ext_types(int ext_type, int has_ext_type)
 {

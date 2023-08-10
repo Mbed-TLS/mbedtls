@@ -2656,9 +2656,10 @@ component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
 # - component_test_psa_crypto_config_reference_ecc_no_bignum
 config_psa_crypto_config_accel_ecc_no_bignum() {
     DRIVER_ONLY="$1"
-    # start with crypto_full config for maximum coverage (also enables USE_PSA),
-    # but excluding X509, TLS and key exchanges
-    helper_libtestdriver1_adjust_config "crypto_full"
+    # start with full config for maximum coverage (also enables USE_PSA),
+    # but keep TLS and key exchanges disabled
+    helper_libtestdriver1_adjust_config "full"
+    scripts/config.py unset MBEDTLS_SSL_TLS_C
 
     if [ "$DRIVER_ONLY" -eq 1 ]; then
         # Disable modules that are accelerated
@@ -2711,7 +2712,7 @@ config_psa_crypto_config_accel_ecc_no_bignum() {
 #
 # Keep in sync with component_test_psa_crypto_config_reference_ecc_no_bignum()
 component_test_psa_crypto_config_accel_ecc_no_bignum () {
-    msg "build: crypto_full + accelerated EC algs + USE_PSA - ECP"
+    msg "build: full + accelerated EC algs + USE_PSA - ECP"
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
@@ -2753,7 +2754,7 @@ component_test_psa_crypto_config_accel_ecc_no_bignum () {
     # Run the tests
     # -------------
 
-    msg "test suites: crypto_full + accelerated EC algs + USE_PSA - ECP"
+    msg "test suites: full + accelerated EC algs + USE_PSA - ECP"
     make test
 
     # The following will be enabled in #7756
@@ -2765,13 +2766,13 @@ component_test_psa_crypto_config_accel_ecc_no_bignum () {
 # in conjunction with component_test_psa_crypto_config_accel_ecc_no_bignum().
 # Keep in sync with its accelerated counterpart.
 component_test_psa_crypto_config_reference_ecc_no_bignum () {
-    msg "build: crypto_full + non accelerated EC algs + USE_PSA"
+    msg "build: full + non accelerated EC algs + USE_PSA"
 
     config_psa_crypto_config_accel_ecc_no_bignum 0
 
     make
 
-    msg "test suites: crypto_full + non accelerated EC algs + USE_PSA"
+    msg "test suites: full + non accelerated EC algs + USE_PSA"
     make test
 
     # The following will be enabled in #7756

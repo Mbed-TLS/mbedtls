@@ -268,7 +268,7 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
     const char *end = s + strlen(s);
     const char *oid = NULL;
     const x509_attr_descriptor_t *attr_descr = NULL;
-    int in_tag = 1;
+    int in_attr_type = 1;
     int tag;
     int numericoid = 0;
     unsigned char data[MBEDTLS_X509_MAX_DN_NAME_SIZE];
@@ -278,7 +278,7 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
     mbedtls_asn1_free_named_data_list(head);
 
     while (c <= end) {
-        if (in_tag && *c == '=') {
+        if (in_attr_type && *c == '=') {
             if ((attr_descr = x509_attr_descr_from_name(s, c - s)) == NULL) {
                 if ((attr_descr = x509_attr_descr_from_numericoid(s, c - s)) == NULL) {
                     return MBEDTLS_ERR_X509_UNKNOWN_OID;
@@ -291,10 +291,10 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
 
             oid = attr_descr->oid;
             s = c + 1;
-            in_tag = 0;
+            in_attr_type = 0;
         }
 
-        if (!in_tag && ((*c == ',' && *(c-1) != '\\') || c == end)) {
+        if (!in_attr_type && ((*c == ',' && *(c-1) != '\\') || c == end)) {
             if (!numericoid) {
                 if ((parse_ret =
                          parse_attribute_value_string(s, (int) (c - s), data, &data_len)) != 0) {
@@ -329,7 +329,7 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
             }
 
             s = c + 1;
-            in_tag = 1;
+            in_attr_type = 1;
 
             /* Successfully parsed one name, update ret to success */
             ret = 0;

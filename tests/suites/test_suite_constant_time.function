@@ -136,6 +136,7 @@ void mbedtls_ct_if(char *c_str, char *t_str, char *f_str)
 #endif
 
     TEST_EQUAL(mbedtls_ct_uint_if_else_0(c, t), (unsigned) expected0);
+    TEST_EQUAL(mbedtls_ct_size_if_else_0(c, (size_t) t), (size_t) expected0);
 #if defined(MBEDTLS_BIGNUM_C)
     TEST_EQUAL(mbedtls_ct_mpi_uint_if_else_0(c, t), (mbedtls_mpi_uint) expected0);
 #endif

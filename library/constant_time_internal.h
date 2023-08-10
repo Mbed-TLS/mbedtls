@@ -325,6 +325,22 @@ static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if(mbedtls_ct_condition_t con
  */
 static inline unsigned mbedtls_ct_uint_if_else_0(mbedtls_ct_condition_t condition, unsigned if1);
 
+/** Choose between an unsigned value and 0.
+ *
+ * Functionally equivalent to:
+ *
+ * condition ? if1 : 0.
+ *
+ * Functionally equivalent to mbedtls_ct_size_if(condition, if1, 0) but
+ * results in smaller code size.
+ *
+ * \param condition     Condition to test.
+ * \param if1           Value to use if \p condition == MBEDTLS_CT_TRUE.
+ *
+ * \return  \c if1 if \p condition == MBEDTLS_CT_TRUE, otherwise 0.
+ */
+static inline size_t mbedtls_ct_size_if_else_0(mbedtls_ct_condition_t condition, size_t if1);
+
 #if defined(MBEDTLS_BIGNUM_C)
 
 /** Choose between an mbedtls_mpi_uint value and 0.

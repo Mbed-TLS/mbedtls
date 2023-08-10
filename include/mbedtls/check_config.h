@@ -425,7 +425,7 @@
 #endif
 
 #if defined(MBEDTLS_PK_C) && \
-    !defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_ECP_LIGHT)
+    !defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #error "MBEDTLS_PK_C defined, but not all prerequisites"
 #endif
 

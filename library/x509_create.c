@@ -224,10 +224,10 @@ static int parse_attribute_value_ber_encoded(const char *s,
 {
     const char *c = s;
     const char *end = c + len;
-    unsigned char asn1_der_buf[256];
+    unsigned char asn1_der_buf[MBEDTLS_X509_MAX_DN_NAME_SIZE];
     unsigned char *asn1_der_end;
     unsigned char *p;
-    unsigned char *d;
+    unsigned char *d = data;
     int n;
     /* Converting from hexstring to raw binary so we can use asn1parse.c*/
     if ((len < 5) || (*c != '#')) {
@@ -252,8 +252,8 @@ static int parse_attribute_value_ber_encoded(const char *s,
         return MBEDTLS_ERR_X509_INVALID_NAME;
     }
 
-    for (d = data; p < asn1_der_end; p++) {
-        *(d++) = *p;
+    while (p < asn1_der_end) {
+        *(d++) = *(p++);
     }
 
     return 0;

@@ -833,7 +833,6 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
     const mbedtls_x509_name *name;
     const char *short_name = NULL;
     char lowbits, highbits;
-    char numericoid[256];
     char s[MBEDTLS_X509_MAX_DN_NAME_SIZE], *p;
     int print_hexstring;
 
@@ -861,8 +860,9 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
         if ((ret = mbedtls_oid_get_attr_short_name(&name->oid, &short_name)) == 0) {
             ret = mbedtls_snprintf(p, n, "%s=", short_name);
         } else {
-            if ((ret = mbedtls_oid_get_numeric_string(numericoid, 256, &name->oid)) > 0) {
-                ret = mbedtls_snprintf(p, n, "%s=", numericoid);
+            if ((ret = mbedtls_oid_get_numeric_string(p, n, &name->oid)) > 0) {
+                MBEDTLS_X509_SAFE_SNPRINTF;
+                ret = mbedtls_snprintf(p, n, "=");
                 print_hexstring = 1;
             } else {
                 ret = mbedtls_snprintf(p, n, "\?\?=");

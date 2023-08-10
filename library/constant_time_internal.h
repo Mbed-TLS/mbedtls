@@ -44,10 +44,10 @@
  *   example: bool x = y == z         =>    x = mbedtls_ct_uint_eq(y, z)
  *
  * - conditional data selection
- *   These are all named mbedtls_ct_<type>_if and mbedtls_ct_<type>_if0
+ *   These are all named mbedtls_ct_<type>_if and mbedtls_ct_<type>_if_else_0
  *   All arguments are considered secret.
  *   example: size_t a = x ? b : c    =>    a = mbedtls_ct_size_if(x, b, c)
- *   example: unsigned a = x ? b : 0  =>    a = mbedtls_ct_uint_if0(x, b)
+ *   example: unsigned a = x ? b : 0  =>    a = mbedtls_ct_uint__if_else_0(x, b)
  *
  * - block memory operations
  *   Only some arguments are considered secret, as documented for each
@@ -201,7 +201,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_le(mbedtls_ct_uint_t x,
  * \param x     The first value to analyze.
  * \param y     The second value to analyze.
  *
- * \note        This is more efficient than mbedtls_ct_bool_ne if both arguments are
+ * \note        This is more efficient than mbedtls_ct_uint_ne if both arguments are
  *              mbedtls_ct_condition_t.
  *
  * \return      MBEDTLS_CT_TRUE if \p x ^ \p y,

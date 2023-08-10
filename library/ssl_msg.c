@@ -154,7 +154,7 @@ int mbedtls_ct_hmac(mbedtls_svc_key_id_t key,
         PSA_CHK(psa_hash_finish(&aux_operation, aux_out,
                                 PSA_HASH_MAX_SIZE, &hash_length));
         /* Keep only the correct inner_hash in the output buffer */
-        mbedtls_ct_memcpy_if(mbedtls_ct_bool_eq(offset, data_len_secret),
+        mbedtls_ct_memcpy_if(mbedtls_ct_uint_eq(offset, data_len_secret),
                              output, aux_out, NULL, hash_size);
 
         if (offset < max_data_len) {

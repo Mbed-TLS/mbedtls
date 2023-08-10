@@ -110,23 +110,45 @@ For the purposes of this work, three domains emerge:
 
 #### Non-use-PSA modules
 
-The following modules in Mbed TLS call another module to perform cryptographic operations which, in the long term, will be provided through a PSA interface, but cannot make any PSA-related assumption:
+The following modules in Mbed TLS call another module to perform cryptographic operations which, in the long term, will be provided through a PSA interface, but cannot make any PSA-related assumption.
 
-* CCM (block cipher in ECB mode; interdependent with cipher)
-* cipher (cipher and AEAD algorithms)
-* CMAC (AES-ECB and DES-ECB, but could be extended to the other block ciphers; interdependent with cipher)
-* CTR\_DRBG (AES-ECB, but could be extended to the other block ciphers)
-* entropy (hashes via low-level)
+Hashes and HMAC (after the work on MD-light):
+
+* entropy (hashes via MD-light)
 * ECDSA (HMAC\_DRBG; `md.h` exposed through API)
-* ECJPAKE (hashes via md; `md.h` exposed through API)
-* GCM (block cipher in ECB mode; interdependent with cipher)
-* md (hashes and HMAC)
-* NIST\_KW (AES-ECB; interdependent with cipher)
+* ECJPAKE (hashes via MD-light; `md.h` exposed through API)
+* MD (hashes and HMAC)
 * HMAC\_DRBG (hashes and HMAC via `md.h`; `md.h` exposed through API)
-* PEM (AES and DES in CBC mode without padding; MD5 hash via low-level)
-* PKCS12 (cipher, generically, selected from ASN.1 or function parameters; hashes via md; `cipher.h` exposed through API)
-* PKCS5 (cipher, generically, selected from ASN.1; HMAC via `md.h`; `md.h` exposed through API)
-* RSA (hash via md for PSS and OAEP; `md.h` exposed through API)
+* PKCS12 (hashes via MD-light)
+* PKCS5 (HMAC via `md.h`; `md.h` exposed through API)
+* RSA (hash via MD-light for PSS and OAEP; `md.h` exposed through API)
+* PEM (MD5 hash via MD-light)
+
+Symmetric ciphers and AEADs (before Cipher-light work):
+
+* PEM (AES and DES in CBC mode without padding)
+       AES and DES: setkey_dec + crypt_cbc
+       (look at test data for DES)
+* PKCS12 (cipher, generically, selected from ASN.1 or function parameters; `cipher.h` exposed through API)
+       setup, setkey, set_iv, reset, update, finish (in sequence, once)
+       no documented restriction, block cipher in CBC mode in practice
+       (padding?)
+       (look at test cases)
+* PKCS5 (cipher, generically, selected from ASN.1)
+       only DES-CBC or 3DES-CBC
+       (padding?)
+       setup, setkey, crypt
+* CTR\_DRBG (AES-ECB, but could be extended to the other block ciphers)
+        setkey_enc + crypt_ecb
+* CCM (block cipher in ECB mode; interdependent with cipher)
+        info, setup, setkey, update (several times), (never finish)
+* CMAC (AES-ECB and DES-ECB, but could be extended to the other block ciphers; interdependent with cipher)
+        info, setup, setkey, update (several times), (never finish)
+* GCM (block cipher in ECB mode; interdependent with cipher)
+        info, setup, setkey, update (several times), (never finish)
+* NIST\_KW (AES-ECB; interdependent with cipher)
+        info, setup, setkey, update (several times), (never finish)
+* cipher (cipher and AEAD algorithms)
 
 ### Difficulties
 

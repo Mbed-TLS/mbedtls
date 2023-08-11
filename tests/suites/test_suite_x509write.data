@@ -170,7 +170,7 @@ X509 String to Names #1
 mbedtls_x509_string_to_names:"C=NL,O=Offspark\\, Inc., OU=PolarSSL":"C=NL, O=Offspark\\, Inc., OU=PolarSSL":0
 
 X509 String to Names #2
-mbedtls_x509_string_to_names:"C=NL, O=Offspark, Inc., OU=PolarSSL":"":MBEDTLS_ERR_X509_UNKNOWN_OID
+mbedtls_x509_string_to_names:"C=NL, O=Offspark, Inc., OU=PolarSSL":"":MBEDTLS_ERR_X509_INVALID_NAME
 
 X509 String to Names #3 (Name precisely 255 bytes)
 mbedtls_x509_string_to_names:"C=NL, O=123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345,OU=PolarSSL":"C=NL, O=123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345, OU=PolarSSL":0
@@ -208,16 +208,22 @@ mbedtls_x509_string_to_names:"C=NL, O=\\4f\\66\\66\\73\\70\\61\\72\\6, OU=PolarS
 X509 String to Names #14 (Reject escaped null hexpair)
 mbedtls_x509_string_to_names:"C=NL, O=Of\\00spark, OU=PolarSSL":"":MBEDTLS_ERR_X509_INVALID_NAME
 
-X509 String to Names #15 (Escape non-ascii hexpairs)
-mbedtls_x509_string_to_names:"C=NL, O=Of\\00spark, OU=PolarSSL":"C=NL, O=Of\\00spark, OU=PolarSSL":0
-
-X509 String to Names #16 (Invalid hexpairs)
+X509 String to Names #15 (Invalid hexpairs)
 mbedtls_x509_string_to_names:"C=NL, O=Of\\flspark, OU=PolarSSL":"":MBEDTLS_ERR_X509_INVALID_NAME
 
-X509 String to Names #17 (Accept numercoid/hexstring)
+X509 String to Names #16 (Accept numercoid/hexstring)
 mbedtls_x509_string_to_names:"C=NL, 2.5.4.10=#0C084F6666737061726B, OU=PolarSSL":"C=NL, O=Offspark, OU=PolarSSL":0
 
-X509 String to Names #18 (Output attributetype as bitstring)
+X509 String to Names #17 (Odd length hexstring)
+mbedtls_x509_string_to_names:"C=NL, 2.5.4.10=#0C084F6666737061726, OU=PolarSSL":"":MBEDTLS_ERR_X509_INVALID_NAME
+
+X509 String to Names #18 (Invalid OID)
+mbedtls_x509_string_to_names:"C=NL, 10.5.4.10=#0C084F6666737061726, OU=PolarSSL":"":MBEDTLS_ERR_X509_INVALID_NAME
+
+X509 String to Names #19 (Escape non-ascii hexpairs)
+mbedtls_x509_string_to_names:"C=NL, O=Of\\00spark, OU=PolarSSL":"C=NL, O=Of\\00spark, OU=PolarSSL":0
+
+X509 String to Names #20 (Output attributetype as bitstring)
 mbedtls_x509_string_to_names:"C=NL, 2.5.4.10=#03084F6666737061726B, OU=PolarSSL":"C=NL, O=#03084F6666737061726B, OU=PolarSSL":0
 
 Check max serial length

@@ -583,19 +583,19 @@ int mbedtls_pk_write_pubkey_pem(mbedtls_pk_context *key, unsigned char *buf, siz
 
     if ((ret = mbedtls_pk_write_pubkey_der(key, output_buf,
                                            PUB_DER_MAX_BYTES)) < 0) {
-        free(output_buf);
-        return ret;
+        goto cleanup;
     }
 
     if ((ret = mbedtls_pem_write_buffer(PEM_BEGIN_PUBLIC_KEY, PEM_END_PUBLIC_KEY,
                                         output_buf + PUB_DER_MAX_BYTES - ret,
                                         ret, buf, size, &olen)) != 0) {
-        free(output_buf);
-        return ret;
+        goto cleanup;
     }
 
+    ret = 0;
+cleanup:
     free(output_buf);
-    return 0;
+    return ret;
 }
 
 int mbedtls_pk_write_key_pem(mbedtls_pk_context *key, unsigned char *buf, size_t size)
@@ -613,8 +613,7 @@ int mbedtls_pk_write_key_pem(mbedtls_pk_context *key, unsigned char *buf, size_t
     PK_VALIDATE_RET(buf != NULL || size == 0);
 
     if ((ret = mbedtls_pk_write_key_der(key, output_buf, PRV_DER_MAX_BYTES)) < 0) {
-        free(output_buf);
-        return ret;
+        goto cleanup;
     }
 
 #if defined(MBEDTLS_RSA_C)
@@ -630,19 +629,20 @@ int mbedtls_pk_write_key_pem(mbedtls_pk_context *key, unsigned char *buf, size_t
     } else
 #endif
     {
-        free(output_buf);
-        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+        ret = MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+        goto cleanup;
     }
 
     if ((ret = mbedtls_pem_write_buffer(begin, end,
                                         output_buf + PRV_DER_MAX_BYTES - ret,
                                         ret, buf, size, &olen)) != 0) {
-        free(output_buf);
-        return ret;
+        goto cleanup;
     }
 
+    ret = 0;
+cleanup:
     free(output_buf);
-    return 0;
+    return ret;
 }
 #endif /* MBEDTLS_PEM_WRITE_C */
 

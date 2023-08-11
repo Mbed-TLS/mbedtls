@@ -37,7 +37,7 @@ helper_regenerate_data_files () {
     msg "Remove intermediate files"
     OPENSSL=/usr/bin/openssl make -C tests/data_files clean
 
-    msg "Only modified files are allowd"
+    msg "Only modified files are allowed"
     new_or_missed_files=$((git status -s --ignored -- tests/data_files | \
                                 grep -v -f tests/data_files/ignored.lst \
                                     -f tests/data_files/uncategorized.lst) \

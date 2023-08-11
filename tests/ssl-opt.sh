@@ -435,6 +435,13 @@ detect_required_features() {
             ;;
     esac
 
+    case "$CMD_LINE" in
+        *server2*|\
+        *server7*)
+            # server2 and server7 certificates use RSA encryption
+            requires_config_enabled "MBEDTLS_RSA_C"
+    esac
+
     unset tmp
 }
 

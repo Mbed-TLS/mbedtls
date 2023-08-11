@@ -67,7 +67,7 @@
  * In the long run, we will likely remove the assembly implementation. */
 #if defined(MBEDTLS_AESNI_HAVE_INTRINSICS)
 #define MBEDTLS_AESNI_HAVE_CODE 2 // via intrinsics
-#elif defined(MBEDTLS_HAVE_ASM)
+#elif defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__)
 #define MBEDTLS_AESNI_HAVE_CODE 1 // via assembly
 #else
 #error "MBEDTLS_AESNI_C defined, but neither intrinsics nor assembly available"

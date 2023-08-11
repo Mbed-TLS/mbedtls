@@ -62,6 +62,9 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #if defined(_MSC_VER) && _MSC_VER <= 1600
+#define MBEDTLS_POP_TARGET_PRAGMA
+#endif
+#if defined(MBEDTLS_POP_TARGET_PRAGMA)
 /* Visual Studio 2010 and earlier issue a warning when both <stdint.h> and
  * <intsafe.h> are included, as they redefine a number of <TYPE>_MAX constants.
  * These constants are guaranteed to be the same, though, so we suppress the
@@ -71,7 +74,7 @@
 #pragma warning(disable : 4005)
 #endif
 #include <intsafe.h>
-#if defined(_MSC_VER) && _MSC_VER <= 1600
+#if defined(MBEDTLS_POP_TARGET_PRAGMA)
 #pragma warning(pop)
 #endif
 #else
@@ -3332,5 +3335,9 @@ void mbedtls_x509_crt_restart_free(mbedtls_x509_crt_restart_ctx *ctx)
     mbedtls_x509_crt_restart_init(ctx);
 }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+
+#if defined(MBEDTLS_POP_TARGET_PRAGMA)
+#undef MBEDTLS_POP_TARGET_PRAGMA
+#endif
 
 #endif /* MBEDTLS_X509_CRT_PARSE_C */

@@ -39,6 +39,10 @@ APPLE_BUILD ?= 1
 endif
 endif
 
+ifdef WINDOWS_BUILD
+LOCAL_LDFLAGS += -lbcrypt
+endif
+
 # To compile as a shared library:
 ifdef SHARED
 # all code is position-indep with mingw, avoid warning about useless flag
@@ -302,7 +306,7 @@ libmbedcrypto.dylib: $(OBJS_CRYPTO)
 
 libmbedcrypto.dll: $(OBJS_CRYPTO)
 	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_CRYPTO) -lws2_32 -lbcrypt -lwinmm -lgdi32 -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
+	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_CRYPTO) -lws2_32 -lwinmm -lgdi32 -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
 
 .c.o:
 	echo "  CC    $<"

@@ -1530,7 +1530,6 @@ server2.req.sha256: server2.key
 all_intermediate += server2.req.sha256
 
 all_parse_input += parse_input/server2.crt.der
-all_parse_input += parse_input/server2.crt
 parse_input/server2.crt.der: parse_input/server2.crt
 server2.crt.der: server2.crt
 parse_input/server2.crt.der server2.crt.der:
@@ -1808,7 +1807,7 @@ crl-futureRevocationDate.pem: $(test_ca_crt) $(test_ca_key_file_rsa) \
 server1_all: crl.pem crl-futureRevocationDate.pem server1.crt server1.noauthid.crt server1.crt.openssl server1.v1.crt server1.v1.crt.openssl server1.key_usage.crt server1.key_usage_noauthid.crt server1.key_usage.crt.openssl server1.cert_type.crt server1.cert_type_noauthid.crt server1.cert_type.crt.openssl server1.der server1.der.openssl server1.v1.der server1.v1.der.openssl server1.key_usage.der server1.key_usage.der.openssl server1.cert_type.der server1.cert_type.der.openssl
 
 # server2*
-
+all_parse_input += parse_input/server2.crt
 parse_input/server2.crt server2.crt: server2.req.sha256
 	$(MBEDTLS_CERT_WRITE) request_file=server2.req.sha256 serial=2 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
 all_final += server2.crt

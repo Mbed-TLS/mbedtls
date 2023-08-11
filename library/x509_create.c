@@ -274,7 +274,7 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
         if (in_attr_type && *c == '=') {
             if ((attr_descr = x509_attr_descr_from_name(s, c - s)) == NULL) {
                 if ((oid = x509_oid_from_numericoid(s, c - s)) == NULL) {
-                    return MBEDTLS_ERR_X509_UNKNOWN_OID;
+                    return MBEDTLS_ERR_X509_INVALID_NAME;
                 } else {
                     numericoid = 1;
                 }

@@ -2244,15 +2244,15 @@ list_parse_input:
 ## Remove intermediate files
 clean:
 	rm -f $(all_intermediate)
-## Remove all build products, even the ones that are committed
+## Remove all build products except uncategorized files, even the ones that are committed
 neat: clean
 	rm -f $(shell ls $(all_final) | grep -v -f uncategorized.lst)
-# Remove all files except reserverd files
+# Remove all files except reserverd and uncategorized files
 tidy:
 	rm -f $(shell find . -type f | grep -v -f reserved.lst -f uncategorized.lst)
 .PHONY: clean neat tidy
 
 .SECONDARY: $(all_intermediate)
 
-# Diable parallel build to reduce debug loading
+# Disable parallel build to reduce debug loading
 .NOTPARALLEL:

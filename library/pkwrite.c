@@ -601,14 +601,19 @@ int mbedtls_pk_write_pubkey_pem(mbedtls_pk_context *key, unsigned char *buf, siz
 int mbedtls_pk_write_key_pem(mbedtls_pk_context *key, unsigned char *buf, size_t size)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char output_buf[PRV_DER_MAX_BYTES];
+    unsigned char *output_buf = NULL;
+    output_buf = calloc(1, PRV_DER_MAX_BYTES);
+    if (output_buf == NULL) {
+        return MBEDTLS_ERR_PK_ALLOC_FAILED;
+    }
     const char *begin, *end;
     size_t olen = 0;
 
     PK_VALIDATE_RET(key != NULL);
     PK_VALIDATE_RET(buf != NULL || size == 0);
 
-    if ((ret = mbedtls_pk_write_key_der(key, output_buf, sizeof(output_buf))) < 0) {
+    if ((ret = mbedtls_pk_write_key_der(key, output_buf, PRV_DER_MAX_BYTES)) < 0) {
+        free(output_buf);
         return ret;
     }
 
@@ -624,14 +629,19 @@ int mbedtls_pk_write_key_pem(mbedtls_pk_context *key, unsigned char *buf, size_t
         end = PEM_END_PRIVATE_KEY_EC;
     } else
 #endif
-    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+    {
+        free(output_buf);
+        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+    }
 
     if ((ret = mbedtls_pem_write_buffer(begin, end,
-                                        output_buf + sizeof(output_buf) - ret,
+                                        output_buf + PRV_DER_MAX_BYTES - ret,
                                         ret, buf, size, &olen)) != 0) {
+        free(output_buf);
         return ret;
     }
 
+    free(output_buf);
     return 0;
 }
 #endif /* MBEDTLS_PEM_WRITE_C */

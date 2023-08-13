@@ -2,6 +2,9 @@
 MD list
 mbedtls_md_list:
 
+MD <-> PSA conversion
+md_to_from_psa:
+
 MD NULL/uninitialised arguments
 md_null_args:
 

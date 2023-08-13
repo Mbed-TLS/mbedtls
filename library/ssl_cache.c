@@ -131,8 +131,7 @@ static void ssl_cache_entry_zeroize(mbedtls_ssl_cache_entry *entry)
 
     /* zeroize and free session structure */
     if (entry->session != NULL) {
-        mbedtls_platform_zeroize(entry->session, entry->session_len);
-        mbedtls_free(entry->session);
+        mbedtls_zeroize_and_free(entry->session, entry->session_len);
     }
 
     /* zeroize the whole entry structure */
@@ -324,8 +323,7 @@ exit:
 #endif
 
     if (session_serialized != NULL) {
-        mbedtls_platform_zeroize(session_serialized, session_serialized_len);
-        mbedtls_free(session_serialized);
+        mbedtls_zeroize_and_free(session_serialized, session_serialized_len);
         session_serialized = NULL;
     }
 

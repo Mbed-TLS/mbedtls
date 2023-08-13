@@ -1,6 +1,7 @@
 /*
  * Interface of curve P-256 (ECDH and ECDSA)
  *
+ * Copyright The Mbed TLS Contributors
  * Author: Manuel Pégourié-Gonnard.
  * SPDX-License-Identifier: Apache-2.0
  */

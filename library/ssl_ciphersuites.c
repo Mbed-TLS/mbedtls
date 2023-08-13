@@ -28,6 +28,9 @@
 #include "mbedtls/ssl_ciphersuites.h"
 #include "mbedtls/ssl.h"
 #include "ssl_misc.h"
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "md_psa.h"
+#endif
 
 #include <string.h>
 
@@ -1928,7 +1931,7 @@ size_t mbedtls_ssl_ciphersuite_get_cipher_key_bitlen(const mbedtls_ssl_ciphersui
     return key_bits;
 #else
     const mbedtls_cipher_info_t * const cipher_info =
-        mbedtls_cipher_info_from_type(info->cipher);
+        mbedtls_cipher_info_from_type((mbedtls_cipher_type_t) info->cipher);
 
     return mbedtls_cipher_info_get_key_bitlen(cipher_info);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -1966,10 +1969,10 @@ psa_algorithm_t mbedtls_ssl_get_ciphersuite_sig_pk_psa_alg(const mbedtls_ssl_cip
         case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
             return PSA_ALG_RSA_PKCS1V15_SIGN(
-                mbedtls_hash_info_psa_from_md(info->mac));
+                mbedtls_md_psa_alg_from_type(info->mac));
 
         case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
-            return PSA_ALG_ECDSA(mbedtls_hash_info_psa_from_md(info->mac));
+            return PSA_ALG_ECDSA(mbedtls_md_psa_alg_from_type(info->mac));
 
         case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
@@ -2018,7 +2021,8 @@ mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_alg(const mbedtls_ssl_ciphersu
 
 #endif /* MBEDTLS_PK_C */
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED) || \
+    defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 int mbedtls_ssl_ciphersuite_uses_ec(const mbedtls_ssl_ciphersuite_t *info)
 {
@@ -2035,7 +2039,8 @@ int mbedtls_ssl_ciphersuite_uses_ec(const mbedtls_ssl_ciphersuite_t *info)
             return 0;
     }
 }
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C || MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED*/
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED ||
+        * MBEDTLS_ECDSA_C || MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED*/
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 int mbedtls_ssl_ciphersuite_uses_psk(const mbedtls_ssl_ciphersuite_t *info)

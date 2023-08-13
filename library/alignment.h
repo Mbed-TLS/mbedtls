@@ -181,6 +181,9 @@ inline void mbedtls_put_unaligned_uint64(void *p, uint64_t x)
 
 /* Detect armcc built-in byteswap routine */
 #if defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 410000) && !defined(MBEDTLS_BSWAP32)
+#if defined(__ARM_ACLE)  /* ARM Compiler 6 - earlier versions don't need a header */
+#include <arm_acle.h>
+#endif
 #define MBEDTLS_BSWAP32 __rev
 #endif
 

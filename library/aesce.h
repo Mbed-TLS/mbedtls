@@ -52,6 +52,9 @@ int mbedtls_aesce_has_support(void);
 /**
  * \brief          Internal AES-ECB block encryption and decryption
  *
+ * \warning        This assumes that the context specifies either 10, 12 or 14
+ *                 rounds and will behave incorrectly if this is not the case.
+ *
  * \param ctx      AES context
  * \param mode     MBEDTLS_AES_ENCRYPT or MBEDTLS_AES_DECRYPT
  * \param input    16-byte input block

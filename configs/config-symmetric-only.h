@@ -25,7 +25,7 @@
 #define MBEDTLS_HAVE_TIME
 #define MBEDTLS_HAVE_TIME_DATE
 
-/* Mbed Crypto feature support */
+/* Mbed TLS feature support */
 #define MBEDTLS_CIPHER_MODE_CBC
 #define MBEDTLS_CIPHER_MODE_CFB
 #define MBEDTLS_CIPHER_MODE_CTR
@@ -42,7 +42,7 @@
 #define MBEDTLS_USE_PSA_CRYPTO
 #define MBEDTLS_VERSION_FEATURES
 
-/* Mbed Crypto modules */
+/* Mbed TLS modules */
 #define MBEDTLS_AES_C
 #define MBEDTLS_ASN1_PARSE_C
 #define MBEDTLS_ASN1_WRITE_C

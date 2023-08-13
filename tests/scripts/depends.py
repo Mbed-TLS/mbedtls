@@ -237,6 +237,8 @@ REVERSE_DEPENDENCIES = {
                       'MBEDTLS_ECDH_C',
                       'MBEDTLS_ECJPAKE_C',
                       'MBEDTLS_ECP_RESTARTABLE',
+                      'MBEDTLS_PK_PARSE_EC_EXTENDED',
+                      'MBEDTLS_PK_PARSE_EC_COMPRESSED',
                       'MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED',

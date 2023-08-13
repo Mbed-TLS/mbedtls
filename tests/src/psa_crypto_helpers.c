@@ -149,4 +149,49 @@ int mbedtls_test_fail_if_psa_leaking(int line_no, const char *filename)
     }
 }
 
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY)
+
+#include <mbedtls/entropy.h>
+#include <psa_crypto_its.h>
+
+int mbedtls_test_inject_entropy_seed_read(unsigned char *buf, size_t len)
+{
+    size_t actual_len = 0;
+    psa_status_t status = psa_its_get(PSA_CRYPTO_ITS_RANDOM_SEED_UID,
+                                      0, len, buf, &actual_len);
+    if (status != 0) {
+        return MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR;
+    }
+    if (actual_len != len) {
+        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
+    }
+    return 0;
+}
+
+int mbedtls_test_inject_entropy_seed_write(unsigned char *buf, size_t len)
+{
+    psa_status_t status = psa_its_set(PSA_CRYPTO_ITS_RANDOM_SEED_UID,
+                                      len, buf, 0);
+    if (status != 0) {
+        return MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR;
+    }
+    return 0;
+}
+
+int mbedtls_test_inject_entropy_restore(void)
+{
+    unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
+    for (size_t i = 0; i < sizeof(buf); i++) {
+        buf[i] = (unsigned char) i;
+    }
+    psa_status_t status = mbedtls_psa_inject_entropy(buf, sizeof(buf));
+    /* It's ok if the file was just created, or if it already exists. */
+    if (status != PSA_SUCCESS && status != PSA_ERROR_NOT_PERMITTED) {
+        return status;
+    }
+    return PSA_SUCCESS;
+}
+
+#endif /* MBEDTLS_PSA_INJECT_ENTROPY */
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

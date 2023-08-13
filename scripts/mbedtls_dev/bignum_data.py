@@ -106,6 +106,29 @@ INPUTS_DEFAULT = [
         RANDOM_1024_BIT_SEED_4_NO2, # largest (not a prime)
         ]
 
+ADD_SUB_DATA = [
+    "0", "1", "3", "f", "fe", "ff", "100", "ff00",
+    "fffe", "ffff", "10000", # 2^16 - 1, 2^16, 2^16 + 1
+    "fffffffe", "ffffffff", "100000000", # 2^32 - 1, 2^32, 2^32 + 1
+    "1f7f7f7f7f7f7f",
+    "8000000000000000", "fefefefefefefefe",
+    "fffffffffffffffe", "ffffffffffffffff", "10000000000000000", # 2^64 - 1, 2^64, 2^64 + 1
+    "1234567890abcdef0",
+    "fffffffffffffffffffffffe",
+    "ffffffffffffffffffffffff",
+    "1000000000000000000000000",
+    "fffffffffffffffffefefefefefefefe",
+    "fffffffffffffffffffffffffffffffe",
+    "ffffffffffffffffffffffffffffffff",
+    "100000000000000000000000000000000",
+    "1234567890abcdef01234567890abcdef0",
+    "fffffffffffffffffffffffffffffffffffffffffffffffffefefefefefefefe",
+    "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe",
+    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "10000000000000000000000000000000000000000000000000000000000000000",
+    "1234567890abcdef01234567890abcdef01234567890abcdef01234567890abcdef0",
+    ]
+
 # Only odd moduli are present as in the new bignum code only odd moduli are
 # supported for now.
 MODULI_DEFAULT = [

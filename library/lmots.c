@@ -41,13 +41,19 @@
 #include "mbedtls/lms.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
 
 #include "psa/crypto.h"
 
-#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
-                                                           psa_to_lms_errors,             \
-                                                           psa_generic_status_to_mbedtls)
+/* Define a local translating function to save code size by not using too many
+ * arguments in each translating place. */
+static int local_err_translation(psa_status_t status)
+{
+    return psa_status_to_mbedtls(status, psa_to_lms_errors,
+                                 ARRAY_LENGTH(psa_to_lms_errors),
+                                 psa_generic_status_to_mbedtls);
+}
+#define PSA_TO_MBEDTLS_ERR(status) local_err_translation(status)
 
 #define PUBLIC_KEY_TYPE_OFFSET     (0)
 #define PUBLIC_KEY_I_KEY_ID_OFFSET (PUBLIC_KEY_TYPE_OFFSET + \
@@ -432,8 +438,10 @@ int mbedtls_lmots_import_public_key(mbedtls_lmots_public_t *ctx,
     }
 
     ctx->params.type =
-        mbedtls_lms_network_bytes_to_unsigned_int(MBEDTLS_LMOTS_TYPE_LEN,
-                                                  key + MBEDTLS_LMOTS_SIG_TYPE_OFFSET);
+        (mbedtls_lmots_algorithm_type_t) mbedtls_lms_network_bytes_to_unsigned_int(
+            MBEDTLS_LMOTS_TYPE_LEN,
+            key +
+            MBEDTLS_LMOTS_SIG_TYPE_OFFSET);
 
     if (key_len != MBEDTLS_LMOTS_PUBLIC_KEY_LEN(ctx->params.type)) {
         return MBEDTLS_ERR_LMS_BAD_INPUT_DATA;

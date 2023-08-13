@@ -360,7 +360,7 @@ void key_agreement_fail(int key_type_arg, data_t *key_data,
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     uint8_t public_key[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE] = { 0 };
     size_t public_key_length = SIZE_MAX;
-    uint8_t output[PSA_SIGNATURE_MAX_SIZE] = { 0 };
+    uint8_t output[PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE] = { 0 };
     size_t length = SIZE_MAX;
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
 

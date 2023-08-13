@@ -23,8 +23,6 @@
 
 #include <psa/crypto.h>
 
-#include "md_wrap.h"
-
 /** Calculate the hash (digest) of a message using Mbed TLS routines.
  *
  * \note The signature of this function is that of a PSA driver hash_compute

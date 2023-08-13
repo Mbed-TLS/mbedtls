@@ -21,6 +21,7 @@
  */
 
 #include <test/ssl_helpers.h>
+#include "md_psa.h"
 
 #if defined(MBEDTLS_SSL_TLS_C)
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
@@ -90,8 +91,12 @@ void mbedtls_test_init_handshake_options(
     opts->resize_buffers = 1;
 #if defined(MBEDTLS_SSL_CACHE_C)
     opts->cache = NULL;
-    ASSERT_ALLOC(opts->cache, 1);
+    TEST_CALLOC(opts->cache, 1);
     mbedtls_ssl_cache_init(opts->cache);
+#if defined(MBEDTLS_HAVE_TIME)
+    TEST_EQUAL(mbedtls_ssl_cache_get_timeout(opts->cache),
+               MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT);
+#endif
 exit:
     return;
 #endif
@@ -595,8 +600,7 @@ static void test_ssl_endpoint_certificate_free(mbedtls_test_ssl_endpoint *ep)
         if (cert->pkey != NULL) {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
             if (mbedtls_pk_get_type(cert->pkey) == MBEDTLS_PK_OPAQUE) {
-                mbedtls_svc_key_id_t *key_slot = cert->pkey->pk_ctx;
-                psa_destroy_key(*key_slot);
+                psa_destroy_key(cert->pkey->priv_id);
             }
 #endif
             mbedtls_pk_free(cert->pkey);
@@ -623,9 +627,9 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
     }
 
     cert = &(ep->cert);
-    ASSERT_ALLOC(cert->ca_cert, 1);
-    ASSERT_ALLOC(cert->cert, 1);
-    ASSERT_ALLOC(cert->pkey, 1);
+    TEST_CALLOC(cert->ca_cert, 1);
+    TEST_CALLOC(cert->cert, 1);
+    TEST_CALLOC(cert->pkey, 1);
 
     mbedtls_x509_crt_init(cert->ca_cert);
     mbedtls_x509_crt_init(cert->cert);
@@ -926,13 +930,14 @@ int mbedtls_ssl_write_fragment(mbedtls_ssl_context *ssl,
                                int *written,
                                const int expected_fragments)
 {
+    int ret;
     /* Verify that calling mbedtls_ssl_write with a NULL buffer and zero length is
      * a valid no-op for TLS connections. */
     if (ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
         TEST_ASSERT(mbedtls_ssl_write(ssl, NULL, 0) == 0);
     }
 
-    int ret = mbedtls_ssl_write(ssl, buf + *written, buf_len - *written);
+    ret = mbedtls_ssl_write(ssl, buf + *written, buf_len - *written);
     if (ret > 0) {
         *written += ret;
     }
@@ -972,13 +977,14 @@ int mbedtls_ssl_read_fragment(mbedtls_ssl_context *ssl,
                               int *read, int *fragments,
                               const int expected_fragments)
 {
+    int ret;
     /* Verify that calling mbedtls_ssl_write with a NULL buffer and zero length is
      * a valid no-op for TLS connections. */
     if (ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
         TEST_ASSERT(mbedtls_ssl_read(ssl, NULL, 0) == 0);
     }
 
-    int ret = mbedtls_ssl_read(ssl, buf + *read, buf_len - *read);
+    ret = mbedtls_ssl_read(ssl, buf + *read, buf_len - *read);
     if (ret > 0) {
         (*fragments)++;
         *read += ret;
@@ -1020,10 +1026,10 @@ static void set_ciphersuite(mbedtls_ssl_config *conf, const char *cipher,
     TEST_ASSERT(ciphersuite_info->max_tls_version >= conf->min_tls_version);
 
     if (conf->max_tls_version > ciphersuite_info->max_tls_version) {
-        conf->max_tls_version = ciphersuite_info->max_tls_version;
+        conf->max_tls_version = (mbedtls_ssl_protocol_version) ciphersuite_info->max_tls_version;
     }
     if (conf->min_tls_version < ciphersuite_info->min_tls_version) {
-        conf->min_tls_version = ciphersuite_info->min_tls_version;
+        conf->min_tls_version = (mbedtls_ssl_protocol_version) ciphersuite_info->min_tls_version;
     }
 
     mbedtls_ssl_conf_ciphersuites(conf, forced_ciphersuite);
@@ -1140,13 +1146,13 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
     maclen = 0;
 
     /* Pick cipher */
-    cipher_info = mbedtls_cipher_info_from_type(cipher_type);
+    cipher_info = mbedtls_cipher_info_from_type((mbedtls_cipher_type_t) cipher_type);
     CHK(cipher_info != NULL);
-    CHK(cipher_info->iv_size <= 16);
-    CHK(cipher_info->key_bitlen % 8 == 0);
+    CHK(mbedtls_cipher_info_get_iv_size(cipher_info) <= 16);
+    CHK(mbedtls_cipher_info_get_key_bitlen(cipher_info) % 8 == 0);
 
     /* Pick keys */
-    keylen = cipher_info->key_bitlen / 8;
+    keylen = mbedtls_cipher_info_get_key_bitlen(cipher_info) / 8;
     /* Allocate `keylen + 1` bytes to ensure that we get
      * a non-NULL pointers from `mbedtls_calloc` even if
      * `keylen == 0` in the case of the NULL cipher. */
@@ -1198,10 +1204,10 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
     if (cipher_info->mode == MBEDTLS_MODE_CBC ||
         cipher_info->mode == MBEDTLS_MODE_STREAM) {
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
-        mbedtls_md_info_t const *md_info = mbedtls_md_info_from_type(hash_id);
+        mbedtls_md_info_t const *md_info = mbedtls_md_info_from_type((mbedtls_md_type_t) hash_id);
         CHK(md_info != NULL);
 #endif
-        maclen = mbedtls_hash_info_get_size(hash_id);
+        maclen = mbedtls_md_get_size_from_type((mbedtls_md_type_t) hash_id);
         CHK(maclen != 0);
         /* Pick hash keys */
         CHK((md0 = mbedtls_calloc(1, maclen)) != NULL);
@@ -1210,7 +1216,7 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
         memset(md1, 0x6, maclen);
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        alg = mbedtls_hash_info_psa_from_md(hash_id);
+        alg = mbedtls_md_psa_alg_from_type(hash_id);
 
         CHK(alg != 0);
 
@@ -1273,7 +1279,7 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
 
     /* Pick IV's (regardless of whether they
      * are being used by the transform). */
-    ivlen = cipher_info->iv_size;
+    ivlen = mbedtls_cipher_info_get_iv_size(cipher_info);
     memset(iv_enc, 0x3, sizeof(iv_enc));
     memset(iv_dec, 0x4, sizeof(iv_dec));
 
@@ -1502,7 +1508,7 @@ int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
         }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_algorithm_t psa_alg = mbedtls_hash_info_psa_from_md(
+        psa_algorithm_t psa_alg = mbedtls_md_psa_alg_from_type(
             MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE);
         size_t hash_size = 0;
         psa_status_t status = psa_hash_compute(
@@ -1753,8 +1759,8 @@ static int check_ssl_version(
             break;
 
         default:
-            TEST_ASSERT(
-                !"Version check not implemented for this protocol version");
+            TEST_FAIL(
+                "Version check not implemented for this protocol version");
     }
 
     return 1;

@@ -592,6 +592,11 @@ void mbedtls_ecp_group_free(mbedtls_ecp_group *grp)
         mbedtls_mpi_free(&grp->A);
         mbedtls_mpi_free(&grp->B);
         mbedtls_ecp_point_free(&grp->G);
+
+#if !defined(MBEDTLS_ECP_WITH_MPI_UINT)
+        mbedtls_mpi_free(&grp->N);
+        mbedtls_mpi_free(&grp->P);
+#endif
     }
 
     if (!ecp_group_is_static_comb_table(grp) && grp->T != NULL) {
@@ -1250,7 +1255,7 @@ static int ecp_sw_rhs(const mbedtls_ecp_group *grp,
     MPI_ECP_SQR(rhs, X);
 
     /* Special case for A = -3 */
-    if (grp->A.p == NULL) {
+    if (mbedtls_ecp_group_a_is_minus_3(grp)) {
         MPI_ECP_SUB_INT(rhs, rhs, 3);
     } else {
         MPI_ECP_ADD(rhs, rhs, &grp->A);
@@ -1521,7 +1526,7 @@ static int ecp_double_jac(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     /* Special case for A = -3 */
-    if (grp->A.p == NULL) {
+    if (mbedtls_ecp_group_a_is_minus_3(grp)) {
         /* tmp[0] <- M = 3(X + Z^2)(X - Z^2) */
         MPI_ECP_SQR(&tmp[1],  &P->Z);
         MPI_ECP_ADD(&tmp[2],  &P->X,  &tmp[1]);
@@ -2930,9 +2935,9 @@ int mbedtls_ecp_muladd(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
-#define ECP_MPI_INIT(s, n, p) { s, (n), (mbedtls_mpi_uint *) (p) }
+#define ECP_MPI_INIT(_p, _n) { .p = (mbedtls_mpi_uint *) (_p), .s = 1, .n = (_n) }
 #define ECP_MPI_INIT_ARRAY(x)   \
-    ECP_MPI_INIT(1, sizeof(x) / sizeof(mbedtls_mpi_uint), x)
+    ECP_MPI_INIT(x, sizeof(x) / sizeof(mbedtls_mpi_uint))
 /*
  * Constants for the two points other than 0, 1, -1 (mod p) in
  * https://cr.yp.to/ecdh.html#validate
@@ -3278,16 +3283,14 @@ int mbedtls_ecp_read_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
                 );
         }
     }
-
 #endif
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
     if (mbedtls_ecp_get_type(&key->grp) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS) {
         MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&key->d, buf, buflen));
-
-        MBEDTLS_MPI_CHK(mbedtls_ecp_check_privkey(&key->grp, &key->d));
     }
-
 #endif
+    MBEDTLS_MPI_CHK(mbedtls_ecp_check_privkey(&key->grp, &key->d));
+
 cleanup:
 
     if (ret != 0) {

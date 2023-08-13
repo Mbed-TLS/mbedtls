@@ -14354,3 +14354,7 @@ shake_multi:MBEDTLS_SHA3_SHAKE256:"54686973206973206d6f7265207468616e206f6e65206
 SHA-3 Selftest
 depends_on:MBEDTLS_SELF_TEST:MBEDTLS_SHA3_C
 sha3_selftest:
+
+SHA-3 invalid param
+depends_on:MBEDTLS_SHA3_C
+sha3_invalid_param

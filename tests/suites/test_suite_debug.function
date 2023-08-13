@@ -167,11 +167,11 @@ void mbedtls_debug_print_crt(char *crt_file, char *file, int line,
     mbedtls_ssl_config conf;
     struct buffer_data buffer;
 
-    MD_PSA_INIT();
-
     mbedtls_ssl_init(&ssl);
     mbedtls_ssl_config_init(&conf);
     mbedtls_x509_crt_init(&crt);
+    MD_OR_USE_PSA_INIT();
+
     memset(buffer.buf, 0, 2000);
     buffer.ptr = buffer.buf;
 
@@ -193,7 +193,7 @@ exit:
     mbedtls_x509_crt_free(&crt);
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);
-    MD_PSA_DONE();
+    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
 

@@ -4407,9 +4407,9 @@ psa_status_t psa_sign_hash_start(
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p signature buffer is too small. You can
  *         determine a sufficient buffer size by calling
- *         #PSA_SIGN_OUTPUT_SIZE(\c key_type, \c key_bits, \p alg)
+ *         #PSA_SIGN_OUTPUT_SIZE(\c key_type, \c key_bits, \c alg)
  *         where \c key_type and \c key_bits are the type and bit-size
- *         respectively of \p key.
+ *         respectively of \c key.
  *
  * \retval #PSA_ERROR_BAD_STATE
  *         An operation was not previously started on this context via

@@ -17,8 +17,26 @@
 
 set -e -u
 
-program="${0%/*}"/key_ladder_demo
+program_name="key_ladder_demo"
+program="${0%/*}/$program_name"
 files_to_clean=
+
+if [ ! -e "$program" ]; then
+    # Look for programs in the current directory and the directories above it
+    for dir in "." ".." "../.."; do
+        program="$dir/programs/psa/$program_name"
+        if [ -e "$program" ]; then
+            break
+        fi
+    done
+    if [ ! -e "$program" ]; then
+        echo "Could not find $program_name executable"
+
+        echo "If building out-of-tree, this script must be run" \
+             "from the project build directory."
+        exit 1
+    fi
+fi
 
 run () {
     echo

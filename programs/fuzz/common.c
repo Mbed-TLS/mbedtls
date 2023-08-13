@@ -13,7 +13,7 @@ mbedtls_time_t dummy_constant_time(mbedtls_time_t *time)
 }
 #endif
 
-void dummy_init()
+void dummy_init(void)
 {
 #if defined(MBEDTLS_PLATFORM_TIME_ALT)
     mbedtls_platform_set_time(dummy_constant_time);

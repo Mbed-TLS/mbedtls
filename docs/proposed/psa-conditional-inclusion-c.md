@@ -80,9 +80,18 @@ If a feature is not requested for inclusion in the PSA Crypto configuration file
 
 #### Configuration symbols for key types
 
-For each constant or constructor macro of the form `PSA_KEY_TYPE_xxx`, the symbol **`PSA_WANT_KEY_TYPE_xxx`** indicates that support for this key type is desired.
+For most constant or constructor macros of the form `PSA_KEY_TYPE_xxx`, the symbol **`PSA_WANT_KEY_TYPE_xxx`** indicates that support for this key type is desired.
 
-For asymmetric cryptography, `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR` determines whether private-key operations are desired, and `PSA_WANT_KEY_TYPE_xxx_PUBLIC_KEY` determines whether public-key operations are desired. `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR` implicitly enables `PSA_WANT_KEY_TYPE_xxx_PUBLIC_KEY`: there is no way to only include private-key operations (which typically saves little code).
+As an exception, starting in Mbed TLS 3.5.0, for `KEY_PAIR` types (that is, private keys for asymmetric cryptography), the feature selection is more fine-grained, with an additional suffix:
+* `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_BASIC` enables basic support for the key type, and in particular support for operations with a key of that type for enabled algorithms. This is automatically enabled if any of the other `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_yyy` options is enabled.
+* `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_IMPORT` enables support for `psa_import_key` to import a key of that type.
+* `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_GENERATE` enables support for `psa_generate_key` to randomly generate a key of that type.
+* `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_DERIVE` enables support for `psa_key_derivation_output_key` to deterministically derive a key of that type.
+* `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_EXPORT` enables support for `psa_export_key` to export a key of that type.
+
+For asymmetric cryptography, `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_BASIC` determines whether private-key operations are desired, and `PSA_WANT_KEY_TYPE_xxx_PUBLIC_KEY` determines whether public-key operations are desired. `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_BASIC` implicitly enables `PSA_WANT_KEY_TYPE_xxx_PUBLIC_KEY`, as well as support for `psa_export_public_key` on the private key: there is no way to only include private-key operations (which typically saves little code).
+
+Note: the implementation is always free to include support for more than what was explicitly requested. (For example, as of Mbed TLS 3.5.0, `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_BASIC` implicitly enables import and export support for that key type, but this may not be the case in future versions.) Applications should always request support for all operations they need, rather than rely on them being implicitly enabled by the implementation. The only thing that is documented and guaranteed in the future is as follows: `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_yyy` -> `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_BASIC` -> `PSA_WANT_KEY_TYPE_xxx_PUBLIC_KEY`.
 
 #### Configuration symbols for elliptic curves
 

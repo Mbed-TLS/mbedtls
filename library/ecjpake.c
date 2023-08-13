@@ -30,8 +30,6 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
-#include "hash_info.h"
-
 #include <string.h>
 
 #if !defined(MBEDTLS_ECJPAKE_ALT)
@@ -217,7 +215,7 @@ static int ecjpake_hash(const mbedtls_md_type_t md_type,
     unsigned char *p = buf;
     const unsigned char *end = buf + sizeof(buf);
     const size_t id_len = strlen(id);
-    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 
     /* Write things to temporary buffer */
     MBEDTLS_MPI_CHK(ecjpake_write_len_point(&p, end, grp, pf, G));
@@ -244,7 +242,7 @@ static int ecjpake_hash(const mbedtls_md_type_t md_type,
 
     /* Turn it into an integer mod n */
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(h, hash,
-                                            mbedtls_hash_info_get_size(md_type)));
+                                            mbedtls_md_get_size_from_type(md_type)));
     MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(h, h, &grp->N));
 
 cleanup:
@@ -780,7 +778,7 @@ int mbedtls_ecjpake_derive_secret(mbedtls_ecjpake_context *ctx,
     unsigned char kx[MBEDTLS_ECP_MAX_BYTES];
     size_t x_bytes;
 
-    *olen = mbedtls_hash_info_get_size(ctx->md_type);
+    *olen = mbedtls_md_get_size_from_type(ctx->md_type);
     if (len < *olen) {
         return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
     }

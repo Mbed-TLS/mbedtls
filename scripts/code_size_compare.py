@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 """
-Purpose
-
 This script is for comparing the size of the library files from two
 different Git revisions within an Mbed TLS repository.
 The results of the comparison is formatted as csv and stored at a
@@ -27,21 +25,245 @@ Note: must be run from Mbed TLS root.
 
 import argparse
 import os
+import re
 import subprocess
 import sys
+import typing
+from enum import Enum
 
+from mbedtls_dev import typing_util
 from mbedtls_dev import build_tree
 
+class SupportedArch(Enum):
+    """Supported architecture for code size measurement."""
+    AARCH64 = 'aarch64'
+    AARCH32 = 'aarch32'
+    ARMV8_M = 'armv8-m'
+    X86_64 = 'x86_64'
+    X86 = 'x86'
 
-class CodeSizeComparison:
+CONFIG_TFM_MEDIUM_MBEDCRYPTO_H = "../configs/tfm_mbedcrypto_config_profile_medium.h"
+CONFIG_TFM_MEDIUM_PSA_CRYPTO_H = "../configs/crypto_config_profile_medium.h"
+class SupportedConfig(Enum):
+    """Supported configuration for code size measurement."""
+    DEFAULT = 'default'
+    TFM_MEDIUM = 'tfm-medium'
+
+# Static library
+MBEDTLS_STATIC_LIB = {
+    'CRYPTO': 'library/libmbedcrypto.a',
+    'X509': 'library/libmbedx509.a',
+    'TLS': 'library/libmbedtls.a',
+}
+
+DETECT_ARCH_CMD = "cc -dM -E - < /dev/null"
+def detect_arch() -> str:
+    """Auto-detect host architecture."""
+    cc_output = subprocess.check_output(DETECT_ARCH_CMD, shell=True).decode()
+    if "__aarch64__" in cc_output:
+        return SupportedArch.AARCH64.value
+    if "__arm__" in cc_output:
+        return SupportedArch.AARCH32.value
+    if "__x86_64__" in cc_output:
+        return SupportedArch.X86_64.value
+    if "__x86__" in cc_output:
+        return SupportedArch.X86.value
+    else:
+        print("Unknown host architecture, cannot auto-detect arch.")
+        sys.exit(1)
+
+class CodeSizeInfo: # pylint: disable=too-few-public-methods
+    """Gather information used to measure code size.
+
+    It collects information about architecture, configuration in order to
+    infer build command for code size measurement.
+    """
+
+    SupportedArchConfig = [
+        "-a " + SupportedArch.AARCH64.value + " -c " + SupportedConfig.DEFAULT.value,
+        "-a " + SupportedArch.AARCH32.value + " -c " + SupportedConfig.DEFAULT.value,
+        "-a " + SupportedArch.X86_64.value  + " -c " + SupportedConfig.DEFAULT.value,
+        "-a " + SupportedArch.X86.value     + " -c " + SupportedConfig.DEFAULT.value,
+        "-a " + SupportedArch.ARMV8_M.value + " -c " + SupportedConfig.TFM_MEDIUM.value,
+    ]
+
+    def __init__(self, arch: str, config: str, sys_arch: str) -> None:
+        """
+        arch: architecture to measure code size on.
+        config: configuration type to measure code size with.
+        sys_arch: host architecture.
+        make_command: command to build library (Inferred from arch and config).
+        """
+        self.arch = arch
+        self.config = config
+        self.sys_arch = sys_arch
+        self.make_command = self.set_make_command()
+
+    def set_make_command(self) -> str:
+        """Infer build command based on architecture and configuration."""
+
+        if self.config == SupportedConfig.DEFAULT.value and \
+            self.arch == self.sys_arch:
+            return 'make -j lib CFLAGS=\'-Os \' '
+        elif self.arch == SupportedArch.ARMV8_M.value and \
+             self.config == SupportedConfig.TFM_MEDIUM.value:
+            return \
+                 'make -j lib CC=armclang \
+                  CFLAGS=\'--target=arm-arm-none-eabi -mcpu=cortex-m33 -Os \
+                 -DMBEDTLS_CONFIG_FILE=\\\"' + CONFIG_TFM_MEDIUM_MBEDCRYPTO_H + '\\\" \
+                 -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=\\\"' + CONFIG_TFM_MEDIUM_PSA_CRYPTO_H + '\\\" \''
+        else:
+            print("Unsupported combination of architecture: {} and configuration: {}"
+                  .format(self.arch, self.config))
+            print("\nPlease use supported combination of architecture and configuration:")
+            for comb in CodeSizeInfo.SupportedArchConfig:
+                print(comb)
+            print("\nFor your system, please use:")
+            for comb in CodeSizeInfo.SupportedArchConfig:
+                if "default" in comb and self.sys_arch not in comb:
+                    continue
+                print(comb)
+            sys.exit(1)
+
+class SizeEntry: # pylint: disable=too-few-public-methods
+    """Data Structure to only store information of code size."""
+    def __init__(self, text, data, bss, dec):
+        self.text = text
+        self.data = data
+        self.bss = bss
+        self.total = dec # total <=> dec
+
+class CodeSizeBase:
+    """Code Size Base Class for size record saving and writing."""
+
+    def __init__(self) -> None:
+        """ Variable code_size is used to store size info for any revisions.
+        code_size: (data format)
+        {revision: {module: {file_name: SizeEntry,
+                             etc ...
+                            },
+                    etc ...
+                   },
+         etc ...
+        }
+        """
+        self.code_size = {} #type: typing.Dict[str, typing.Dict]
+
+    def set_size_record(self, revision: str, mod: str, size_text: str) -> None:
+        """Store size information for target revision and high-level module.
+
+        size_text Format: text data bss dec hex filename
+        """
+        size_record = {}
+        for line in size_text.splitlines()[1:]:
+            data = line.split()
+            size_record[data[5]] = SizeEntry(data[0], data[1], data[2], data[3])
+        if revision in self.code_size:
+            self.code_size[revision].update({mod: size_record})
+        else:
+            self.code_size[revision] = {mod: size_record}
+
+    def read_size_record(self, revision: str, fname: str) -> None:
+        """Read size information from csv file and write it into code_size.
+
+        fname Format: filename text data bss dec
+        """
+        mod = ""
+        size_record = {}
+        with open(fname, 'r') as csv_file:
+            for line in csv_file:
+                data = line.strip().split()
+                # check if we find the beginning of a module
+                if data and data[0] in MBEDTLS_STATIC_LIB:
+                    mod = data[0]
+                    continue
+
+                if mod:
+                    size_record[data[0]] = \
+                        SizeEntry(data[1], data[2], data[3], data[4])
+
+                # check if we hit record for the end of a module
+                m = re.match(r'.?TOTALS', line)
+                if m:
+                    if revision in self.code_size:
+                        self.code_size[revision].update({mod: size_record})
+                    else:
+                        self.code_size[revision] = {mod: size_record}
+                    mod = ""
+                    size_record = {}
+
+    def _size_reader_helper(
+            self,
+            revision: str,
+            output: typing_util.Writable
+    ) -> typing.Iterator[tuple]:
+        """A helper function to peel code_size based on revision."""
+        for mod, file_size in self.code_size[revision].items():
+            output.write("\n" + mod + "\n")
+            for fname, size_entry in file_size.items():
+                yield mod, fname, size_entry
+
+    def write_size_record(
+            self,
+            revision: str,
+            output: typing_util.Writable
+    ) -> None:
+        """Write size information to a file.
+
+        Writing Format: file_name text data bss total(dec)
+        """
+        output.write("{:<30} {:>7} {:>7} {:>7} {:>7}\n"
+                     .format("filename", "text", "data", "bss", "total"))
+        for _, fname, size_entry in self._size_reader_helper(revision, output):
+            output.write("{:<30} {:>7} {:>7} {:>7} {:>7}\n"
+                         .format(fname, size_entry.text, size_entry.data,\
+                                 size_entry.bss, size_entry.total))
+
+    def write_comparison(
+            self,
+            old_rev: str,
+            new_rev: str,
+            output: typing_util.Writable
+    ) -> None:
+        """Write comparison result into a file.
+
+        Writing Format: file_name current(total) old(total) change(Byte) change_pct(%)
+        """
+        output.write("{:<30} {:>7} {:>7} {:>7} {:>7}\n"
+                     .format("filename", "current", "old", "change", "change%"))
+        for mod, fname, size_entry in self._size_reader_helper(new_rev, output):
+            new_size = int(size_entry.total)
+            # check if we have the file in old revision
+            if fname in self.code_size[old_rev][mod]:
+                old_size = int(self.code_size[old_rev][mod][fname].total)
+                change = new_size - old_size
+                if old_size != 0:
+                    change_pct = change / old_size
+                else:
+                    change_pct = 0
+                output.write("{:<30} {:>7} {:>7} {:>7} {:>7.2%}\n"
+                             .format(fname, new_size, old_size, change, change_pct))
+            else:
+                output.write("{} {}\n".format(fname, new_size))
+
+
+class CodeSizeComparison(CodeSizeBase):
     """Compare code size between two Git revisions."""
 
-    def __init__(self, old_revision, new_revision, result_dir):
+    def __init__(
+            self,
+            old_revision: str,
+            new_revision: str,
+            result_dir: str,
+            code_size_info: CodeSizeInfo
+    ) -> None:
         """
-        old_revision: revision to compare against
+        old_revision: revision to compare against.
         new_revision:
-        result_dir: directory for comparison result
+        result_dir: directory for comparison result.
+        code_size_info: an object containing information to build library.
         """
+        super().__init__()
         self.repo_path = "."
         self.result_dir = os.path.abspath(result_dir)
         os.makedirs(self.result_dir, exist_ok=True)
@@ -52,20 +274,23 @@ class CodeSizeComparison:
         self.old_rev = old_revision
         self.new_rev = new_revision
         self.git_command = "git"
-        self.make_command = "make"
+        self.make_clean = 'make clean'
+        self.make_command = code_size_info.make_command
+        self.fname_suffix = "-" + code_size_info.arch + "-" +\
+                            code_size_info.config
 
     @staticmethod
-    def validate_revision(revision):
+    def validate_revision(revision: str) -> bytes:
         result = subprocess.check_output(["git", "rev-parse", "--verify",
                                           revision + "^{commit}"], shell=False)
         return result
 
-    def _create_git_worktree(self, revision):
+    def _create_git_worktree(self, revision: str) -> str:
         """Make a separate worktree for revision.
         Do not modify the current worktree."""
 
         if revision == "current":
-            print("Using current work directory.")
+            print("Using current work directory")
             git_worktree_path = self.repo_path
         else:
             print("Creating git worktree for", revision)
@@ -75,35 +300,50 @@ class CodeSizeComparison:
                  git_worktree_path, revision], cwd=self.repo_path,
                 stderr=subprocess.STDOUT
             )
+
         return git_worktree_path
 
-    def _build_libraries(self, git_worktree_path):
+    def _build_libraries(self, git_worktree_path: str) -> None:
         """Build libraries in the specified worktree."""
 
         my_environment = os.environ.copy()
-        subprocess.check_output(
-            [self.make_command, "-j", "lib"], env=my_environment,
-            cwd=git_worktree_path, stderr=subprocess.STDOUT,
-        )
+        try:
+            subprocess.check_output(
+                self.make_clean, env=my_environment, shell=True,
+                cwd=git_worktree_path, stderr=subprocess.STDOUT,
+            )
+            subprocess.check_output(
+                self.make_command, env=my_environment, shell=True,
+                cwd=git_worktree_path, stderr=subprocess.STDOUT,
+            )
+        except subprocess.CalledProcessError as e:
+            self._handle_called_process_error(e, git_worktree_path)
 
-    def _gen_code_size_csv(self, revision, git_worktree_path):
+    def _gen_code_size_csv(self, revision: str, git_worktree_path: str) -> None:
         """Generate code size csv file."""
 
-        csv_fname = revision + ".csv"
         if revision == "current":
-            print("Measuring code size in current work directory.")
+            print("Measuring code size in current work directory")
         else:
             print("Measuring code size for", revision)
-        result = subprocess.check_output(
-            ["size library/*.o"], cwd=git_worktree_path, shell=True
-        )
-        size_text = result.decode()
-        csv_file = open(os.path.join(self.csv_dir, csv_fname), "w")
-        for line in size_text.splitlines()[1:]:
-            data = line.split()
-            csv_file.write("{}, {}\n".format(data[5], data[3]))
 
-    def _remove_worktree(self, git_worktree_path):
+        for mod, st_lib in MBEDTLS_STATIC_LIB.items():
+            try:
+                result = subprocess.check_output(
+                    ["size", st_lib, "-t"], cwd=git_worktree_path
+                )
+            except subprocess.CalledProcessError as e:
+                self._handle_called_process_error(e, git_worktree_path)
+            size_text = result.decode("utf-8")
+
+            self.set_size_record(revision, mod, size_text)
+
+        print("Generating code size csv for", revision)
+        csv_file = open(os.path.join(self.csv_dir, revision +
+                                     self.fname_suffix + ".csv"), "w")
+        self.write_size_record(revision, csv_file)
+
+    def _remove_worktree(self, git_worktree_path: str) -> None:
         """Remove temporary worktree."""
         if git_worktree_path != self.repo_path:
             print("Removing temporary worktree", git_worktree_path)
@@ -113,92 +353,89 @@ class CodeSizeComparison:
                 stderr=subprocess.STDOUT
             )
 
-    def _get_code_size_for_rev(self, revision):
+    def _get_code_size_for_rev(self, revision: str) -> None:
         """Generate code size csv file for the specified git revision."""
 
         # Check if the corresponding record exists
-        csv_fname = revision + ".csv"
+        csv_fname = revision + self.fname_suffix +  ".csv"
         if (revision != "current") and \
            os.path.exists(os.path.join(self.csv_dir, csv_fname)):
             print("Code size csv file for", revision, "already exists.")
+            self.read_size_record(revision, os.path.join(self.csv_dir, csv_fname))
         else:
             git_worktree_path = self._create_git_worktree(revision)
             self._build_libraries(git_worktree_path)
             self._gen_code_size_csv(revision, git_worktree_path)
             self._remove_worktree(git_worktree_path)
 
-    def compare_code_size(self):
+    def _gen_code_size_comparison(self) -> int:
         """Generate results of the size changes between two revisions,
         old and new. Measured code size results of these two revisions
         must be available."""
 
-        old_file = open(os.path.join(self.csv_dir, self.old_rev + ".csv"), "r")
-        new_file = open(os.path.join(self.csv_dir, self.new_rev + ".csv"), "r")
-        res_file = open(os.path.join(self.result_dir, "compare-" + self.old_rev
-                                     + "-" + self.new_rev + ".csv"), "w")
+        res_file = open(os.path.join(self.result_dir, "compare-" +
+                                     self.old_rev + "-" + self.new_rev +
+                                     self.fname_suffix +
+                                     ".csv"), "w")
 
-        res_file.write("file_name, this_size, old_size, change, change %\n")
-        print("Generating comparison results.")
+        print("\nGenerating comparison results between",\
+                self.old_rev, "and", self.new_rev)
+        self.write_comparison(self.old_rev, self.new_rev, res_file)
 
-        old_ds = {}
-        for line in old_file.readlines()[1:]:
-            cols = line.split(", ")
-            fname = cols[0]
-            size = int(cols[1])
-            if size != 0:
-                old_ds[fname] = size
-
-        new_ds = {}
-        for line in new_file.readlines()[1:]:
-            cols = line.split(", ")
-            fname = cols[0]
-            size = int(cols[1])
-            new_ds[fname] = size
-
-        for fname in new_ds:
-            this_size = new_ds[fname]
-            if fname in old_ds:
-                old_size = old_ds[fname]
-                change = this_size - old_size
-                change_pct = change / old_size
-                res_file.write("{}, {}, {}, {}, {:.2%}\n".format(fname, \
-                               this_size, old_size, change, float(change_pct)))
-            else:
-                res_file.write("{}, {}\n".format(fname, this_size))
         return 0
 
-    def get_comparision_results(self):
+    def get_comparision_results(self) -> int:
         """Compare size of library/*.o between self.old_rev and self.new_rev,
         and generate the result file."""
         build_tree.check_repo_path()
         self._get_code_size_for_rev(self.old_rev)
         self._get_code_size_for_rev(self.new_rev)
-        return self.compare_code_size()
+        return self._gen_code_size_comparison()
+
+    def _handle_called_process_error(self, e: subprocess.CalledProcessError,
+                                     git_worktree_path: str) -> None:
+        """Handle a CalledProcessError and quit the program gracefully.
+        Remove any extra worktrees so that the script may be called again."""
+
+        # Tell the user what went wrong
+        print("The following command: {} failed and exited with code {}"
+              .format(e.cmd, e.returncode))
+        print("Process output:\n {}".format(str(e.output, "utf-8")))
+
+        # Quit gracefully by removing the existing worktree
+        self._remove_worktree(git_worktree_path)
+        sys.exit(-1)
 
 def main():
-    parser = argparse.ArgumentParser(
-        description=(
-            """This script is for comparing the size of the library files
-            from two different Git revisions within an Mbed TLS repository.
-            The results of the comparison is formatted as csv, and stored at
-            a configurable location.
-            Note: must be run from Mbed TLS root."""
-        )
-    )
-    parser.add_argument(
+    parser = argparse.ArgumentParser(description=(__doc__))
+    group_required = parser.add_argument_group(
+        'required arguments',
+        'required arguments to parse for running ' + os.path.basename(__file__))
+    group_required.add_argument(
+        "-o", "--old-rev", type=str, required=True,
+        help="old revision for comparison.")
+
+    group_optional = parser.add_argument_group(
+        'optional arguments',
+        'optional arguments to parse for running ' + os.path.basename(__file__))
+    group_optional.add_argument(
         "-r", "--result-dir", type=str, default="comparison",
         help="directory where comparison result is stored, \
-              default is comparison",
-    )
-    parser.add_argument(
-        "-o", "--old-rev", type=str, help="old revision for comparison.",
-        required=True,
-    )
-    parser.add_argument(
+              default is comparison")
+    group_optional.add_argument(
         "-n", "--new-rev", type=str, default=None,
         help="new revision for comparison, default is the current work \
-              directory, including uncommitted changes."
-    )
+              directory, including uncommitted changes.")
+    group_optional.add_argument(
+        "-a", "--arch", type=str, default=detect_arch(),
+        choices=list(map(lambda s: s.value, SupportedArch)),
+        help="specify architecture for code size comparison, default is the\
+              host architecture.")
+    group_optional.add_argument(
+        "-c", "--config", type=str, default=SupportedConfig.DEFAULT.value,
+        choices=list(map(lambda s: s.value, SupportedConfig)),
+        help="specify configuration type for code size comparison,\
+              default is the current MbedTLS configuration.")
     comp_args = parser.parse_args()
 
     if os.path.isfile(comp_args.result_dir):
@@ -214,8 +451,13 @@ def main():
     else:
         new_revision = "current"
 
+    code_size_info = CodeSizeInfo(comp_args.arch, comp_args.config,
+                                  detect_arch())
+    print("Measure code size for architecture: {}, configuration: {}\n"
+          .format(code_size_info.arch, code_size_info.config))
     result_dir = comp_args.result_dir
-    size_compare = CodeSizeComparison(old_revision, new_revision, result_dir)
+    size_compare = CodeSizeComparison(old_revision, new_revision, result_dir,
+                                      code_size_info)
     return_code = size_compare.get_comparision_results()
     sys.exit(return_code)
 

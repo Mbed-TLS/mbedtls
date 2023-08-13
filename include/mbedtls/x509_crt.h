@@ -75,7 +75,9 @@ typedef struct mbedtls_x509_crt {
     mbedtls_x509_buf issuer_id;         /**< Optional X.509 v2/v3 issuer unique identifier. */
     mbedtls_x509_buf subject_id;        /**< Optional X.509 v2/v3 subject unique identifier. */
     mbedtls_x509_buf v3_ext;            /**< Optional X.509 v3 extensions.  */
-    mbedtls_x509_sequence subject_alt_names;    /**< Optional list of raw entries of Subject Alternative Names extension (currently only dNSName, uniformResourceIdentifier, DirectoryName and OtherName are listed). */
+    mbedtls_x509_sequence subject_alt_names; /**< Optional list of raw entries of Subject Alternative Names extension. These can be later parsed by mbedtls_x509_parse_subject_alt_name. */
+    mbedtls_x509_buf subject_key_id;    /**< Optional X.509 v3 extension subject key identifier. */
+    mbedtls_x509_authority authority_key_id;    /**< Optional X.509 v3 extension authority key identifier. */
 
     mbedtls_x509_sequence certificate_policies; /**< Optional list of certificate policies (Only anyPolicy is printed and enforced, however the rest of the policies are still listed). */
 
@@ -238,6 +240,21 @@ typedef struct mbedtls_x509write_cert {
     mbedtls_asn1_named_data *MBEDTLS_PRIVATE(extensions);
 }
 mbedtls_x509write_cert;
+
+/**
+ * \brief           Set Subject Alternative Name
+ *
+ * \param ctx       Certificate context to use
+ * \param san_list  List of SAN values
+ *
+ * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
+ *
+ * \note            "dnsName", "uniformResourceIdentifier", "IP address",
+ *                  "otherName", and "DirectoryName", as defined in RFC 5280,
+ *                  are supported.
+ */
+int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *ctx,
+                                                       const mbedtls_x509_san_list *san_list);
 
 /**
  * Item in a verification chain: cert and flags for it
@@ -559,6 +576,7 @@ int mbedtls_x509_crt_parse_file(mbedtls_x509_crt *chain, const char *path);
 int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path);
 
 #endif /* MBEDTLS_FS_IO */
+
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
 /**
  * \brief          Returns an informational string about the
@@ -638,8 +656,12 @@ int mbedtls_x509_crt_verify_info(char *buf, size_t size, const char *prefix,
  * \param cn       The expected Common Name. This will be checked to be
  *                 present in the certificate's subjectAltNames extension or,
  *                 if this extension is absent, as a CN component in its
- *                 Subject name. DNS names and IP addresses are supported. This
- *                 may be \c NULL if the CN need not be verified.
+ *                 Subject name. DNS names and IP addresses are fully
+ *                 supported, while the URI subtype is partially supported:
+ *                 only exact matching, without any normalization procedures
+ *                 described in 7.4 of RFC5280, will result in a positive
+ *                 URI verification.
+ *                 This may be \c NULL if the CN need not be verified.
  * \param flags    The address at which to store the result of the verification.
  *                 If the verification couldn't be completed, the flag value is
  *                 set to (uint32_t) -1.

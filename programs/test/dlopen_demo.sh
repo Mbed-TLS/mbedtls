@@ -20,8 +20,29 @@
 
 set -e -u
 
+program_name="dlopen"
 program_dir="${0%/*}"
-program="$program_dir/dlopen"
+program="$program_dir/$program_name"
+
+if [ ! -e "$program" ]; then
+    # Look for programs in the current directory and the directories above it
+    for dir in "." ".." "../.."; do
+        program_dir="$dir/programs/test"
+        program="$program_dir/$program_name"
+        if [ -e "$program" ]; then
+            break
+        fi
+    done
+    if [ ! -e "$program" ]; then
+        echo "Could not find $program_name program"
+
+        echo "Make sure that Mbed TLS is built as a shared library." \
+             "If building out-of-tree, this script must be run" \
+             "from the project build directory."
+        exit 1
+    fi
+fi
+
 top_dir="$program_dir/../.."
 library_dir="$top_dir/library"
 

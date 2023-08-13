@@ -36,7 +36,7 @@
 #include <string.h>
 
 #include <mbedtls/entropy.h>
-#include "../../library/alignment.h"
+#include <alignment.h>
 
 int mbedtls_test_rnd_std_rand(void *rng_state,
                               unsigned char *output,

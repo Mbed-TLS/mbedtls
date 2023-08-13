@@ -344,7 +344,7 @@ int mbedtls_sha3_starts_kmac(mbedtls_sha3_context *ctx, mbedtls_sha3_id id,
         return ret;
     }
 
-    encbuf_len = left_encode(encbuf, ctx->r / 8);
+    encbuf_len = left_encode(encbuf, ctx->max_block_size);
     mbedtls_sha3_update(ctx, encbuf, encbuf_len);
 
     encbuf_len = left_encode(encbuf, key_len * 8);

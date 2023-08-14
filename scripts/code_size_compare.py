@@ -597,17 +597,23 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
         # pylint: disable=too-many-locals
         """Write comparison result into a file.
 
-        Writing Format: filename new(text) new(data) change(text) change(data)
+        Writing Format:
+            Markdown Output:
+                filename new(text) new(data) change(text) change(data)
+            CSV Output:
+                filename new(text) new(data) old(text) old(data) change(text) change(data)
         """
-        header_line = ["filename", "new(text)", "change(text)", "new(data)",
-                       "change(data)"]
-
+        header_line = ["filename", "new(text)", "old(text)", "change(text)",
+                       "new(data)", "old(data)", "change(data)"]
         if with_markdown:
-            dash_line = [":----", "----:", "----:", "----:", "----:"]
-            line_format = "| {0:<30} | {1:>10} | {3:>10} | {2:>12} | {4:>12} |\n"
+            dash_line = [":----", "----:", "----:", "----:",
+                         "----:", "----:", "----:"]
+            # | filename | new(text) | new(data) | change(text) | change(data) |
+            line_format = "| {0:<30} | {1:>9} | {4:>9} | {3:>12} | {6:>12} |\n"
             bold_text = lambda x: '**' + str(x) + '**'
         else:
-            line_format = "{0:<30} {1:>10} {3:>10} {2:>12} {4:>12}\n"
+            # filename new(text) new(data) old(text) old(data) change(text) change(data)
+            line_format = "{0:<30} {1:>9} {4:>9} {2:>10} {5:>10} {3:>12} {6:>12}\n"
 
         def cal_sect_change(
                 old_size: typing.Optional[CodeSizeGeneratorWithSize.SizeEntry],
@@ -629,23 +635,28 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
             :param: sect: section to calculate from `size` tool. This could be
                           any instance variable in SizeEntry.
             :return: List of [section size of objects for new Git revision,
+                     section size of objects for old Git revision,
                      section size change of objects between two Git revisions]
             """
             if old_size and new_size:
                 new_attr = new_size.__dict__[sect]
-                delta = new_size.__dict__[sect] - old_size.__dict__[sect]
+                old_attr = old_size.__dict__[sect]
+                delta = new_attr - old_attr
                 change_attr = '{0:{1}}'.format(delta, '+' if delta else '')
             elif old_size:
                 new_attr = - old_size.__dict__[sect]
+                old_attr = old_size.__dict__[sect]
                 change_attr = 'Removed'
             elif new_size:
                 new_attr = new_size.__dict__[sect]
+                old_attr = 'NotCreated'
                 change_attr = 'None'
             else:
                 # Should never happen
                 new_attr = 'Error'
+                old_attr = 'Error'
                 change_attr = 'Error'
-            return [new_attr, change_attr]
+            return [new_attr, old_attr, change_attr]
 
         # sort dictionary by key
         sort_by_k = lambda item: item[0].lower()
@@ -656,7 +667,8 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                                         CodeSizeGeneratorWithSize.SizeEntry]]
             ) -> typing.List:
             """Return List of results in the format of:
-            [filename, new(text), change(text), new(data), change(data)]
+            [filename, new(text), old(text), change(text),
+             new(data), old(data), change(data)]
             """
             res = []
             for fname, revs_size in sorted(f_rev_size.items(), key=sort_by_k):
@@ -666,7 +678,7 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                 text_sect = cal_sect_change(old_size, new_size, 'text')
                 data_sect = cal_sect_change(old_size, new_size, 'data')
                 # skip the files that haven't changed in code size
-                if not show_all and text_sect[1] == '0' and data_sect[1] == '0':
+                if not show_all and text_sect[-1] == '0' and data_sect[-1] == '0':
                     continue
 
                 res.append([fname, *text_sect, *data_sect])

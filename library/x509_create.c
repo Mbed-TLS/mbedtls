@@ -187,6 +187,9 @@ static int parse_attribute_value_string(const char *s,
 
             /* Check for valid escaped characters in RFC 4514 in Section 3*/
             if (c + 1 < end && (n = hexpair_to_int(*c, *(c+1))) != -1) {
+                if(n == 0) {
+                    return MBEDTLS_ERR_X509_INVALID_NAME;
+                }
                 hexpair = 1;
                 *(d++) = n;
                 c++;

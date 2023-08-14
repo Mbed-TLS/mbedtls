@@ -4627,7 +4627,7 @@ static int ecp_mod_p256k1(mbedtls_mpi *);
                                          )
 #endif /* ECP_LOAD_GROUP */
 
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
 /* Constants used by ecp_use_curve25519() */
 static const unsigned char curve25519_part_of_n[] = {
     0x14, 0xDE, 0xF9, 0xDE, 0xA2, 0xF7, 0x9C, 0xD6,
@@ -4635,9 +4635,7 @@ static const unsigned char curve25519_part_of_n[] = {
 };
 
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
-/* Constants used by ecp_use_curve25519() */
 static const mbedtls_mpi_sint curve25519_a24 = 0x01DB42;
-
 /*
  * Specialized function for creating the Curve25519 group
  */
@@ -4766,11 +4764,15 @@ static int ecp_use_ed25519(mbedtls_ecp_group *grp)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     /* P = 2^255 - 19 */
-    ecp_mpi_load(&grp->P, curve25519_p, sizeof(curve25519_p));
-
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->P, 1));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(&grp->P, 255));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&grp->P, &grp->P, 19));
     grp->pbits = mbedtls_mpi_bitlen(&grp->P);
 
-    ecp_mpi_load(&grp->N, curve25519_n, sizeof(curve25519_n));
+    /* N = 2^252 + 27742317777372353535851937790883648493 */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&grp->N,
+                                            curve25519_part_of_n, sizeof(curve25519_part_of_n)));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_set_bit(&grp->N, 252, 1));
 
     /* Actually, the required msb for private keys */
     grp->nbits = 254;
@@ -4810,10 +4812,19 @@ static int ecp_use_ed448(mbedtls_ecp_group *grp)
 
     mbedtls_mpi_init(&Ns);
 
-    ecp_mpi_load(&grp->P, curve448_p, sizeof(curve448_p));
+    /* P = 2^448 - 2^224 - 1 */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->P, 1));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(&grp->P, 224));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&grp->P, &grp->P, 1));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(&grp->P, 224));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&grp->P, &grp->P, 1));
     grp->pbits = mbedtls_mpi_bitlen(&grp->P);
 
-    ecp_mpi_load(&grp->N, curve448_n, sizeof(curve448_n));
+    /* N = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885 */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_set_bit(&grp->N, 446, 1));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&Ns,
+                                            curve448_part_of_n, sizeof(curve448_part_of_n)));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_mpi(&grp->N, &grp->N, &Ns));
 
     /* A = 1 */
     MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->A, 1));

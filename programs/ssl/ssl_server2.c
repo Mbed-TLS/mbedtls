@@ -124,6 +124,7 @@ int main(void)
 #define DFL_GROUPS              NULL
 #define DFL_MAX_EARLY_DATA_SIZE MBEDTLS_SSL_MAX_EARLY_DATA_SIZE
 #define DFL_EARLY_DATA          0
+#define DFL_RECO_GROUPS         NULL
 #define DFL_SIG_ALGS            NULL
 #define DFL_DHM_FILE            NULL
 #define DFL_TRANSPORT           MBEDTLS_SSL_TRANSPORT_STREAM
@@ -442,6 +443,7 @@ int main(void)
     (defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
     defined(PSA_WANT_ALG_FFDH))
 #define USAGE_GROUPS \
+    "    reco_groups=groups  default: NULL, named groups of re-connection\n"  \
     "    groups=a,b,c,d      default: \"default\" (library default)\n"  \
     "                        example: \"secp521r1,brainpoolP512r1\"\n"  \
     "                        - use \"none\" for empty list\n"           \
@@ -669,6 +671,7 @@ struct options {
     int cache_remove;           /* enable / disable cache entry removal     */
     char *sni;                  /* string describing sni information        */
     const char *groups;         /* list of supported groups                 */
+    const char *reco_groups;    /* group of re-connection */
     const char *sig_algs;       /* supported TLS 1.3 signature algorithms   */
     const char *alpn_string;    /* ALPN supported protocols                 */
     const char *dhm_file;       /* the file with the DH parameters          */
@@ -1762,6 +1765,7 @@ int main(int argc, char *argv[])
     opt.sni                 = DFL_SNI;
     opt.alpn_string         = DFL_ALPN_STRING;
     opt.groups              = DFL_GROUPS;
+    opt.reco_groups         = DFL_RECO_GROUPS;
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     opt.max_early_data_size = DFL_MAX_EARLY_DATA_SIZE;
     opt.early_data          = DFL_EARLY_DATA;
@@ -1991,6 +1995,8 @@ usage:
             opt.force_ciphersuite[1] = 0;
         } else if (strcmp(p, "groups") == 0) {
             opt.groups = q;
+        } else if (strcmp(p, "reco_groups") == 0) {
+            opt.reco_groups = q;
         }
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
         else if (strcmp(p, "sig_algs") == 0) {
@@ -3356,6 +3362,12 @@ reset:
     mbedtls_net_free(&client_fd);
 
     if (connection_counter++) {
+        if (opt.reco_groups != NULL) {
+            if (parse_groups(opt.reco_groups, group_list, GROUP_LIST_SIZE) != 0) {
+                goto exit;
+            }
+            mbedtls_ssl_conf_groups(&conf, group_list);
+        }
     }
 
     mbedtls_ssl_session_reset(&ssl);

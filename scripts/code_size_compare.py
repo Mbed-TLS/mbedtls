@@ -633,7 +633,8 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
             """
             if old_size and new_size:
                 new_attr = new_size.__dict__[sect]
-                change_attr = new_size.__dict__[sect] - old_size.__dict__[sect]
+                delta = new_size.__dict__[sect] - old_size.__dict__[sect]
+                change_attr = '{0:{1}}'.format(delta, '+' if delta else '')
             elif old_size:
                 new_attr = - old_size.__dict__[sect]
                 change_attr = 'Removed'
@@ -665,7 +666,7 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                 text_sect = cal_sect_change(old_size, new_size, 'text')
                 data_sect = cal_sect_change(old_size, new_size, 'data')
                 # skip the files that haven't changed in code size
-                if not show_all and text_sect[1] == 0 and data_sect[1] == 0:
+                if not show_all and text_sect[1] == '0' and data_sect[1] == '0':
                     continue
 
                 res.append([fname, *text_sect, *data_sect])

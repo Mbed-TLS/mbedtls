@@ -239,6 +239,9 @@ static int parse_attribute_value_ber_encoded(const char *s,
         if ((c + 1 >= end) || (n = hexpair_to_int(*c, *(c+1))) == -1) {
             return MBEDTLS_ERR_X509_INVALID_NAME;
         }
+        if (MBEDTLS_ASN1_IS_STRING_TAG(*tag) && n == 0) {
+            return MBEDTLS_ERR_X509_INVALID_NAME;
+        }
         *(p++) = n;
     }
     asn1_der_end = p;

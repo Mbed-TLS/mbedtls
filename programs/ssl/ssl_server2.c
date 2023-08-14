@@ -1445,7 +1445,7 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
              * failure we want.
              * Note: previously tried 1000ms, but that's not enough when real
              * age > 1ms.
-             * TODO: This needs to be changed (XXX to what?) when PR #6788
+             * TODO: This needs to be changed to 1 millsecond when PR #6788
              * (which fixes anti-replay failure) is merged.
              */
             session->ticket_age_add -= 2000;

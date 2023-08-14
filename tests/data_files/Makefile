@@ -1446,6 +1446,9 @@ parse_input/server1.req.hashsymbol.sha256: server1.key
 
 parse_input/server1.req.spaces.sha256: server1.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O= PolarSSL ,CN=PolarSSL Server 1" md=SHA256
+
+parse_input/server1.req.asciichars.sha256: server1.key
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=极地SSL,CN=PolarSSL Server 1" md=SHA256
 # server2*
 
 server2_pwd_ec = PolarSSLTest
@@ -1599,7 +1602,9 @@ server1.hashsymbol.crt: server1.key parse_input/server1.req.hashsymbol.sha256 $(
 	$(MBEDTLS_CERT_WRITE) request_file=parse_input/server1.req.hashsymbol.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) version=1 not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
 server1.spaces.crt: server1.key parse_input/server1.req.spaces.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
 	$(MBEDTLS_CERT_WRITE) request_file=parse_input/server1.req.spaces.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) version=1 not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
-all_final += server1.crt server1.noauthid.crt parse_input/server1.crt.der server1.commas.crt server1.hashsymbol.crt server1.spaces.crt
+server1.asciichars.crt: server1.key parse_input/server1.req.asciichars.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(MBEDTLS_CERT_WRITE) request_file=parse_input/server1.req.asciichars.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) version=1 not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
+all_final += server1.crt server1.noauthid.crt parse_input/server1.crt.der server1.commas.crt server1.hashsymbol.crt server1.spaces.crt server1.asciichars.crt
 
 parse_input/server1.key_usage.crt: parse_input/server1.req.sha256
 server1.key_usage.crt: server1.req.sha256

@@ -604,10 +604,10 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
 
         if with_markdown:
             dash_line = [":----", "----:", "----:", "----:", "----:"]
-            line_format = "| {0:<30} | {1:<10} | {3:<10} | {2:<12} | {4:<12} |\n"
+            line_format = "| {0:<30} | {1:>10} | {3:>10} | {2:>12} | {4:>12} |\n"
             bold_text = lambda x: '**' + str(x) + '**'
         else:
-            line_format = "{0:<30} {1:<10} {3:<10} {2:<12} {4:<12}\n"
+            line_format = "{0:<30} {1:>10} {3:>10} {2:>12} {4:>12}\n"
 
         def cal_sect_change(
                 old_size: typing.Optional[CodeSizeGeneratorWithSize.SizeEntry],

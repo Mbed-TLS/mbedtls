@@ -220,8 +220,8 @@ mbedtls_x509_string_to_names:"C=NL, 10.5.4.10=#0C084F6666737061726B, OU=PolarSSL
 X509 String to Names #18 (short name and hexstring)
 mbedtls_x509_string_to_names:"C=NL, O=#0C084F6666737061726B, OU=PolarSSL":"C=NL, O=Offspark, OU=PolarSSL":0
 
-X509 String to Names #19 (Escape non-ascii hexpairs)
-mbedtls_x509_string_to_names:"C=NL, O=Of\\00spark, OU=PolarSSL":"C=NL, O=Of\\00spark, OU=PolarSSL":0
+X509 String to Names #19 (Accept non-ascii hexpairs)
+mbedtls_x509_string_to_names:"C=NL, O=Of\\CCspark, OU=PolarSSL":"C=NL, O=Of\\CCspark, OU=PolarSSL":0
 
 Check max serial length
 x509_set_serial_check:

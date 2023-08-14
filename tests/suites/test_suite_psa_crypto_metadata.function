@@ -699,7 +699,7 @@ void ecc_key_family(int curve_arg)
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_DHM_C */
+/* BEGIN_CASE depends_on:PSA_KEY_TYPE_DH_PUBLIC_KEY:PSA_KEY_TYPE_DH_KEY_PAIR */
 void dh_key_family(int group_arg)
 {
     psa_dh_family_t group = group_arg;

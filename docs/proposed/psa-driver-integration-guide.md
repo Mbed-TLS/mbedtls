@@ -2,6 +2,7 @@ Building Mbed TLS with PSA cryptoprocessor drivers
 ==================================================
 
 **This is a specification of work in progress. The implementation is not yet merged into Mbed TLS.**
+For a description of the current state of drivers Mbed TLS, see our [PSA Cryptoprocessor driver development examples](../psa-driver-example-and-guide.html).
 
 This document describes how to build Mbed TLS with additional cryptoprocessor drivers that follow the PSA cryptoprocessor driver interface.
 

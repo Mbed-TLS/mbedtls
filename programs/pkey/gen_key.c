@@ -180,7 +180,9 @@ int main(int argc, char *argv[])
     char buf[1024];
     int i;
     char *p, *q;
+#if defined(MBEDTLS_RSA_C)
     mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
+#endif /* MBEDTLS_RSA_C */
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     const char *pers = "gen_key";
@@ -191,10 +193,11 @@ int main(int argc, char *argv[])
     /*
      * Set to sane values
      */
-
+#if defined(MBEDTLS_RSA_C)
     mbedtls_mpi_init(&N); mbedtls_mpi_init(&P); mbedtls_mpi_init(&Q);
     mbedtls_mpi_init(&D); mbedtls_mpi_init(&E); mbedtls_mpi_init(&DP);
     mbedtls_mpi_init(&DQ); mbedtls_mpi_init(&QP);
+#endif /* MBEDTLS_RSA_C */
 
     mbedtls_pk_init(&key);
     mbedtls_ctr_drbg_init(&ctr_drbg);
@@ -409,9 +412,11 @@ exit:
 #endif
     }
 
+#if defined(MBEDTLS_RSA_C)
     mbedtls_mpi_free(&N); mbedtls_mpi_free(&P); mbedtls_mpi_free(&Q);
     mbedtls_mpi_free(&D); mbedtls_mpi_free(&E); mbedtls_mpi_free(&DP);
     mbedtls_mpi_free(&DQ); mbedtls_mpi_free(&QP);
+#endif /* MBEDTLS_RSA_C */
 
     mbedtls_pk_free(&key);
     mbedtls_ctr_drbg_free(&ctr_drbg);

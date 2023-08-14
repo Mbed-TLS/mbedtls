@@ -137,7 +137,7 @@ int mbedtls_ssl_cache_set(void *data,
  *
  * \param data            The SSL cache context to use.
  * \param session_id      The pointer to the buffer holding the session ID
- *                        associated to \p session.
+ *                        associated to session.
  * \param session_id_len  The length of \p session_id in bytes.
  *
  * \return                \c 0 on success. This indicates the cache entry for
@@ -160,6 +160,20 @@ int mbedtls_ssl_cache_remove(void *data,
  * \param timeout  cache entry timeout in seconds
  */
 void mbedtls_ssl_cache_set_timeout(mbedtls_ssl_cache_context *cache, int timeout);
+
+/**
+ * \brief          Get the cache timeout
+ *
+ *                 A timeout of 0 indicates no timeout.
+ *
+ * \param cache    SSL cache context
+ *
+ * \return         cache entry timeout in seconds
+ */
+static inline int mbedtls_ssl_cache_get_timeout(mbedtls_ssl_cache_context *cache)
+{
+    return cache->MBEDTLS_PRIVATE(timeout);
+}
 #endif /* MBEDTLS_HAVE_TIME */
 
 /**

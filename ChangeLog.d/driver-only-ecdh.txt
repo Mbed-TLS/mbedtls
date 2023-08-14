@@ -1,7 +1,0 @@
-Features
-   * When a PSA driver for ECDH is present, it is now possible to disable
-     MBEDTLS_ECDH_C in the build in order to save code size. For TLS 1.2
-     key exchanges based on ECDH(E) to work, this requires
-     MBEDTLS_USE_PSA_CRYPTO. Restartable/interruptible ECDHE operations in
-     TLS 1.2 (ECDHE-ECDSA key exchange) are not supported in those builds yet,
-     as PSA does not have an API for restartable ECDH yet.

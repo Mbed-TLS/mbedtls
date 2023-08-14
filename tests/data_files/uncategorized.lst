@@ -262,6 +262,7 @@ parse_input/server9-sha224.crt
 parse_input/server9-sha256.crt
 parse_input/server9-sha384.crt
 parse_input/server9-sha512.crt
+parse_input/server5-non-compliant.crt
 passwd.psk
 pkcs7_data_no_signers.der
 print_c.pl
@@ -387,3 +388,4 @@ test-ca-v1.crt
 test-int-ca2.key
 test-int-ca3.key
 test-int-ca.key
+test_certs.h.jinja2

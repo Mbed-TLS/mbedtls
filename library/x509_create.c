@@ -131,7 +131,7 @@ static const x509_attr_descriptor_t *x509_attr_descr_from_name(const char *name,
 }
 
 static char *x509_oid_from_numericoid(const char *numericoid,
-                                                                     size_t numericoid_len)
+                                      size_t numericoid_len)
 {
     char *oid;
     mbedtls_asn1_buf *oid_buf = mbedtls_calloc(1, sizeof(mbedtls_asn1_buf));
@@ -139,7 +139,7 @@ static char *x509_oid_from_numericoid(const char *numericoid,
 
     ret = mbedtls_oid_from_numeric_string(oid_buf, numericoid, numericoid_len);
     if (ret != 0) {
-        if(ret != MBEDTLS_ERR_ASN1_ALLOC_FAILED) {
+        if (ret != MBEDTLS_ERR_ASN1_ALLOC_FAILED) {
             mbedtls_free(oid_buf->p);
         }
         mbedtls_free(oid_buf);
@@ -187,7 +187,7 @@ static int parse_attribute_value_string(const char *s,
 
             /* Check for valid escaped characters in RFC 4514 in Section 3*/
             if (c + 1 < end && (n = hexpair_to_int(*c, *(c+1))) != -1) {
-                if(n == 0) {
+                if (n == 0) {
                     return MBEDTLS_ERR_X509_INVALID_NAME;
                 }
                 hexpair = 1;
@@ -283,7 +283,7 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
                 }
             } else {
                 oid = malloc(strlen(attr_descr->oid));
-                strcpy(oid,attr_descr->oid);
+                strcpy(oid, attr_descr->oid);
                 numericoid = 0;
             }
 
@@ -294,14 +294,14 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
         if (!in_attr_type && ((*c == ',' && *(c-1) != '\\') || c == end)) {
 #if defined(MBEDTLS_ASN1_PARSE_C)
             if ((parse_ret =
-                        parse_attribute_value_ber_encoded(s, (int) (c - s), data, &data_len,
-                                                        &tag)) != 0) {
-                if(numericoid) {
+                     parse_attribute_value_ber_encoded(s, (int) (c - s), data, &data_len,
+                                                       &tag)) != 0) {
+                if (numericoid) {
                     return MBEDTLS_ERR_X509_INVALID_NAME;
-                }
-                else {
+                } else {
                     if ((parse_ret =
-                                parse_attribute_value_string(s, (int) (c - s), data, &data_len)) != 0) {
+                             parse_attribute_value_string(s, (int) (c - s), data,
+                                                          &data_len)) != 0) {
                         return parse_ret;
                     }
                     tag = attr_descr->default_tag;

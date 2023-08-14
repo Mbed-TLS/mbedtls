@@ -876,7 +876,7 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
 
             asn1_len_p = asn1_tag_len_buf + 10;
             asn1_len_size = mbedtls_asn1_write_len(&asn1_len_p, asn1_tag_len_buf, name->val.len);
-            asn1_tag_size = mbedtls_asn1_write_tag(&asn1_len_p,asn1_tag_len_buf,name->val.tag);
+            asn1_tag_size = mbedtls_asn1_write_tag(&asn1_len_p, asn1_tag_len_buf, name->val.tag);
             asn1_tag_len_buf_start = 10 - asn1_len_size - asn1_tag_size;
             for (i = 0, j = 1; i < asn1_len_size + asn1_tag_size; i++) {
                 if (j + 1 >= sizeof(s) - 1) {

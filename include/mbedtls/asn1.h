@@ -103,8 +103,7 @@
                            (1u << MBEDTLS_ASN1_T61_STRING)       |     \
                            (1u << MBEDTLS_ASN1_IA5_STRING)       |     \
                            (1u << MBEDTLS_ASN1_UNIVERSAL_STRING) |     \
-                           (1u << MBEDTLS_ASN1_PRINTABLE_STRING) |     \
-                           (1u << MBEDTLS_ASN1_BIT_STRING))) != 0))
+                           (1u << MBEDTLS_ASN1_PRINTABLE_STRING))) != 0))
 
 /*
  * Bit masks for each of the components of an ASN.1 tag as specified in

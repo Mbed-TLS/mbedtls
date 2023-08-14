@@ -906,11 +906,8 @@ def main():
     comp_args = parser.parse_args()
 
     logger = logging.getLogger()
-    logging_util.configure_logger(logger)
-    if comp_args.stdout and not comp_args.verbose:
-        logger.setLevel(logging.ERROR)
-    else:
-        logger.setLevel(logging.DEBUG if comp_args.verbose else logging.INFO)
+    logging_util.configure_logger(logger, split_level=logging.NOTSET)
+    logger.setLevel(logging.DEBUG if comp_args.verbose else logging.INFO)
 
     if os.path.isfile(comp_args.record_dir):
         logger.error("record directory: {} is not a directory"

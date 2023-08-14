@@ -21,14 +21,16 @@ import sys
 
 def configure_logger(
         logger: logging.Logger,
-        log_format="[%(levelname)s]: %(message)s"
+        log_format="[%(levelname)s]: %(message)s",
+        split_level=logging.WARNING
     ) -> None:
     """
     Configure the logging.Logger instance so that:
         - Format is set to any log_format.
             Default: "[%(levelname)s]: %(message)s"
-        - loglevel >= WARNING are printed to stderr.
-        - loglevel <  WARNING are printed to stdout.
+        - loglevel >= split_level are printed to stderr.
+        - loglevel <  split_level are printed to stdout.
+            Default: logging.WARNING
     """
     class MaxLevelFilter(logging.Filter):
         # pylint: disable=too-few-public-methods
@@ -41,14 +43,14 @@ def configure_logger(
 
     log_formatter = logging.Formatter(log_format)
 
-    # set loglevel >= WARNING to be printed to stderr
+    # set loglevel >= split_level to be printed to stderr
     stderr_hdlr = logging.StreamHandler(sys.stderr)
-    stderr_hdlr.setLevel(logging.WARNING)
+    stderr_hdlr.setLevel(split_level)
     stderr_hdlr.setFormatter(log_formatter)
 
-    # set loglevel <= INFO to be printed to stdout
+    # set loglevel < split_level to be printed to stdout
     stdout_hdlr = logging.StreamHandler(sys.stdout)
-    stdout_hdlr.addFilter(MaxLevelFilter(logging.INFO))
+    stdout_hdlr.addFilter(MaxLevelFilter(split_level - 1))
     stdout_hdlr.setFormatter(log_formatter)
 
     logger.addHandler(stderr_hdlr)

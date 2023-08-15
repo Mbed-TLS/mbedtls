@@ -500,7 +500,7 @@ requires_gnutls_next
 requires_all_configs_enabled MBEDTLS_SSL_EARLY_DATA MBEDTLS_SSL_SESSION_TICKETS     \
                              MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME    \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_ECP_LIGHT
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 G->m: EarlyData: feature is disabled, fail." \
@@ -515,7 +515,7 @@ run_test "TLS 1.3 G->m: EarlyData: feature is disabled, fail." \
 requires_gnutls_next
 requires_all_configs_enabled MBEDTLS_SSL_EARLY_DATA MBEDTLS_SSL_SESSION_TICKETS \
                              MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME \
-                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_ECP_LIGHT
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 G->m: EarlyData: psk*: feature is enabled, fail." \

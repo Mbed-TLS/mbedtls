@@ -146,6 +146,11 @@ static char *x509_oid_from_numericoid(const char *numericoid,
         return NULL;
     }
     oid = mbedtls_calloc(1, oid_buf->len + 1);
+    if(oid == NULL) {
+        mbedtls_free(oid_buf->p);
+        mbedtls_free(oid_buf);
+        return MBEDTLS_ERR_X509_ALLOC_FAILED;
+    }
     memcpy(oid, oid_buf->p, oid_buf->len);
     oid[oid_buf->len + 1] = '\0';
     mbedtls_free(oid_buf->p);

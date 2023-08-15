@@ -93,6 +93,18 @@
 #endif
 #endif /* defined(MBEDTLS_PSA_CRYPTO_CONFIG) */
 
+/* PSA crypto specific configuration options
+ * - If config_psa.h reads a configuration option in preprocessor directive,
+ *   this symbol should be set before its inclusion. (e.g. MBEDTLS_MD_C)
+ * - If config_psa.h writes a configuration option in conditional directive,
+ *   this symbol should be consulted after its inclusion.
+ *   (e.g. MBEDTLS_MD_LIGHT)
+ */
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG) /* PSA_WANT_xxx influences MBEDTLS_xxx */ || \
+    defined(MBEDTLS_PSA_CRYPTO_C) /* MBEDTLS_xxx influences PSA_WANT_xxx */
+#include "mbedtls/config_psa.h"
+#endif
+
 /* Auto-enable MBEDTLS_CTR_DRBG_USE_128_BIT_KEY if
  * MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH and MBEDTLS_CTR_DRBG_C defined
  * to ensure a 128-bit key size in CTR_DRBG.
@@ -106,18 +118,6 @@
  */
 #if defined(MBEDTLS_PKCS5_C)
 #define MBEDTLS_MD_C
-#endif
-
-/* PSA crypto specific configuration options
- * - If config_psa.h reads a configuration option in preprocessor directive,
- *   this symbol should be set before its inclusion. (e.g. MBEDTLS_MD_C)
- * - If config_psa.h writes a configuration option in conditional directive,
- *   this symbol should be consulted after its inclusion.
- *   (e.g. MBEDTLS_MD_LIGHT)
- */
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG) /* PSA_WANT_xxx influences MBEDTLS_xxx */ || \
-    defined(MBEDTLS_PSA_CRYPTO_C) /* MBEDTLS_xxx influences PSA_WANT_xxx */
-#include "mbedtls/config_psa.h"
 #endif
 
 #include "mbedtls/config_adjust_legacy_crypto.h"

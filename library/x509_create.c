@@ -145,7 +145,7 @@ static char *x509_oid_from_numericoid(const char *numericoid,
         mbedtls_free(oid_buf);
         return NULL;
     }
-    oid = calloc(1, oid_buf->len + 1);
+    oid = mbedtls_calloc(1, oid_buf->len + 1);
     memcpy(oid, oid_buf->p, oid_buf->len);
     oid[oid_buf->len + 1] = '\0';
     mbedtls_free(oid_buf->p);
@@ -285,7 +285,7 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
                     numericoid = 1;
                 }
             } else {
-                oid = calloc(1, strlen(attr_descr->oid));
+                oid = mbedtls_calloc(1, strlen(attr_descr->oid));
                 strcpy(oid, attr_descr->oid);
                 numericoid = 0;
             }

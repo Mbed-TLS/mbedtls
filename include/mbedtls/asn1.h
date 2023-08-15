@@ -258,6 +258,27 @@ int mbedtls_asn1_get_tag(unsigned char **p,
                          size_t *len, int tag);
 
 /**
+ * \brief       Get the tag of the element.
+ *              Updates the pointer to immediately in front of the tag.
+ *
+ * \param p     On entry, \c *p points to the start of the ASN.1 element.
+ *              On successful completion, \c *p points to the first byte
+ *              after the tag, i.e. the first byte of the length.
+ *              On error, the value of \c *p is undefined.
+ * \param end   End of data.
+ * \param tag   On successful completion, \c *tag contains the tag
+ *              read from the ASN.1 input.
+ *
+ * \return      0 if successful.
+ * \return      #MBEDTLS_ERR_ASN1_OUT_OF_DATA if the ASN.1 element
+ *              would end beyond \p end.
+ */
+int mbedtls_asn1_get_any_tag(unsigned char **p,
+                         const unsigned char *end,
+                         int *tag);
+
+
+/**
  * \brief       Retrieve a boolean ASN.1 tag and its value.
  *              Updates the pointer to immediately behind the full tag.
  *

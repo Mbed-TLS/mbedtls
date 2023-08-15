@@ -130,34 +130,6 @@ static const x509_attr_descriptor_t *x509_attr_descr_from_name(const char *name,
     return cur;
 }
 
-static char *x509_oid_from_numericoid(const char *numericoid,
-                                      size_t numericoid_len)
-{
-    char *oid;
-    mbedtls_asn1_buf *oid_buf = mbedtls_calloc(1, sizeof(mbedtls_asn1_buf));
-    int ret;
-
-    ret = mbedtls_oid_from_numeric_string(oid_buf, numericoid, numericoid_len);
-    if (ret != 0) {
-        if (ret != MBEDTLS_ERR_ASN1_ALLOC_FAILED) {
-            mbedtls_free(oid_buf->p);
-        }
-        mbedtls_free(oid_buf);
-        return NULL;
-    }
-    oid = mbedtls_calloc(1, oid_buf->len + 1);
-    if(oid == NULL) {
-        mbedtls_free(oid_buf->p);
-        mbedtls_free(oid_buf);
-        return MBEDTLS_ERR_X509_ALLOC_FAILED;
-    }
-    memcpy(oid, oid_buf->p, oid_buf->len);
-    oid[oid_buf->len + 1] = '\0';
-    mbedtls_free(oid_buf->p);
-    mbedtls_free(oid_buf);
-    return oid;
-}
-
 static int hex_to_int(char c)
 {
     return ('0' <= c && c <= '9') ? (c - '0') :
@@ -270,7 +242,7 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
     int parse_ret = 0;
     const char *s = name, *c = s;
     const char *end = s + strlen(s);
-    char *oid = NULL;
+    mbedtls_asn1_buf oid = { .p = NULL, .len = 0, .tag = 5 };
     const x509_attr_descriptor_t *attr_descr = NULL;
     int in_attr_type = 1;
     int tag;
@@ -284,14 +256,15 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
     while (c <= end) {
         if (in_attr_type && *c == '=') {
             if ((attr_descr = x509_attr_descr_from_name(s, c - s)) == NULL) {
-                if ((oid = x509_oid_from_numericoid(s, c - s)) == NULL) {
+                if ((mbedtls_oid_from_numeric_string(&oid, s, c - s)) != 0) {
                     return MBEDTLS_ERR_X509_INVALID_NAME;
                 } else {
                     numericoid = 1;
                 }
             } else {
-                oid = mbedtls_calloc(1, strlen(attr_descr->oid));
-                strcpy(oid, attr_descr->oid);
+                oid.len = strlen(attr_descr->oid);
+                oid.p = mbedtls_calloc(1, oid.len);
+                memcpy(oid.p, attr_descr->oid, oid.len);
                 numericoid = 0;
             }
 
@@ -305,13 +278,13 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
                      parse_attribute_value_ber_encoded(s, (int) (c - s), data, &data_len,
                                                        &tag)) != 0) {
                 if (numericoid) {
-                    mbedtls_free(oid);
+                    mbedtls_free(oid.p);
                     return MBEDTLS_ERR_X509_INVALID_NAME;
                 } else {
                     if ((parse_ret =
                              parse_attribute_value_string(s, (int) (c - s), data,
                                                           &data_len)) != 0) {
-                        mbedtls_free(oid);
+                        mbedtls_free(oid.p);
                         return parse_ret;
                     }
                     tag = attr_descr->default_tag;
@@ -332,11 +305,11 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
             }
 #endif
             mbedtls_asn1_named_data *cur =
-                mbedtls_asn1_store_named_data(head, oid, strlen(oid),
+                mbedtls_asn1_store_named_data(head, (char *) oid.p, oid.len,
                                               (unsigned char *) data,
                                               data_len);
-            mbedtls_free(oid);
-            oid = NULL;
+            mbedtls_free(oid.p);
+            oid.p = NULL;
             if (cur == NULL) {
                 return MBEDTLS_ERR_X509_ALLOC_FAILED;
             }
@@ -356,8 +329,8 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
         }
         c++;
     }
-    if (oid != NULL) {
-        mbedtls_free(oid);
+    if (oid.p != NULL) {
+        mbedtls_free(oid.p);
     }
     return ret;
 }

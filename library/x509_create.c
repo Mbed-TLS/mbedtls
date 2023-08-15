@@ -285,7 +285,7 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
                     numericoid = 1;
                 }
             } else {
-                oid = malloc(strlen(attr_descr->oid));
+                oid = calloc(1, strlen(attr_descr->oid));
                 strcpy(oid, attr_descr->oid);
                 numericoid = 0;
             }
@@ -300,11 +300,13 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
                      parse_attribute_value_ber_encoded(s, (int) (c - s), data, &data_len,
                                                        &tag)) != 0) {
                 if (numericoid) {
+                    mbedtls_free(oid);
                     return MBEDTLS_ERR_X509_INVALID_NAME;
                 } else {
                     if ((parse_ret =
                              parse_attribute_value_string(s, (int) (c - s), data,
                                                           &data_len)) != 0) {
+                        mbedtls_free(oid);
                         return parse_ret;
                     }
                     tag = attr_descr->default_tag;
@@ -314,11 +316,13 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
             if (!numericoid) {
                 if ((parse_ret =
                          parse_attribute_value_string(s, (int) (c - s), data, &data_len)) != 0) {
+                    mbedtls_free(oid);
                     return parse_ret;
                 }
                 tag = attr_descr->default_tag;
             }
             if (numericoid) {
+                mbedtls_free(oid);
                 return MBEDTLS_ERR_X509_INVALID_NAME;
             }
 #endif
@@ -327,6 +331,7 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
                                               (unsigned char *) data,
                                               data_len);
             mbedtls_free(oid);
+            oid = NULL;
             if (cur == NULL) {
                 return MBEDTLS_ERR_X509_ALLOC_FAILED;
             }
@@ -345,6 +350,9 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
             ret = 0;
         }
         c++;
+    }
+    if (oid != NULL) {
+        mbedtls_free(oid);
     }
     return ret;
 }

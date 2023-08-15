@@ -30,8 +30,6 @@
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 
-#include "../tests/include/test/constant_flow.h"
-
 #include <string.h>
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)

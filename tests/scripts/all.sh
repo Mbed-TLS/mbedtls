@@ -3900,10 +3900,62 @@ component_test_aesni () { # ~ 60s
     ./programs/test/selftest aes | not grep -q "AES note: built-in implementation."
     grep -q "AES note: using AESNI" ./programs/test/selftest
     not grep -q "AES note: built-in implementation." ./programs/test/selftest
-
-
 }
 
+
+
+support_test_aesni_m32() {
+    support_test_m32_o0 && (lscpu | grep -qw aes)
+}
+
+component_test_aesni_m32 () { # ~ 60s
+    # This tests are duplicated from component_test_aesni for i386 target
+    #
+    # AESNI intrinsic code supports i386 and assembly code does not support it.
+
+    msg "build: default config with different AES implementations"
+    scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py set MBEDTLS_PADLOCK_C
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
+    scripts/config.py set MBEDTLS_HAVE_ASM
+
+    # test the intrinsics implementation
+    msg "AES tests, test intrinsics"
+    make clean
+    make CC=gcc CFLAGS='-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes' LDFLAGS='-m32'
+    # check that we built intrinsics - this should be used by default when supported by the compiler
+    ./programs/test/selftest aes | grep "AESNI code" | grep -q "intrinsics"
+    grep -q "AES note: using AESNI" ./programs/test/selftest
+    grep -q "AES note: built-in implementation." ./programs/test/selftest
+    grep -q "AES note: using VIA Padlock" ./programs/test/selftest
+    grep -q mbedtls_aesni_has_support ./programs/test/selftest
+
+    scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py set MBEDTLS_PADLOCK_C
+    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
+    msg "AES tests, test AESNI and VIA Padlock enabled"
+    make clean
+    make CC=gcc CFLAGS='-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes' LDFLAGS='-m32'
+    ./programs/test/selftest aes | grep -q "AES note: using AESNI"
+    ./programs/test/selftest aes | not grep -q "AES note: built-in implementation."
+    grep -q "AES note: using AESNI" ./programs/test/selftest
+    not grep -q "AES note: built-in implementation." ./programs/test/selftest
+    grep -q "AES note: using VIA Padlock" ./programs/test/selftest
+    grep -q mbedtls_aesni_has_support ./programs/test/selftest
+
+    scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_PADLOCK_C
+    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
+    msg "AES tests, test AESNI only"
+    make clean
+    make CC=gcc CFLAGS='-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes' LDFLAGS='-m32'
+    ./programs/test/selftest aes | grep -q "AES note: using AESNI"
+    ./programs/test/selftest aes | not grep -q "AES note: built-in implementation."
+    grep -q "AES note: using AESNI" ./programs/test/selftest
+    not grep -q "AES note: built-in implementation." ./programs/test/selftest
+    not grep -q "AES note: using VIA Padlock" ./programs/test/selftest
+    not grep -q mbedtls_aesni_has_support ./programs/test/selftest
+}
 
 # For timebeing, no aarch64 gcc available in CI and no arm64 CI node.
 component_build_aes_aesce_armcc () {

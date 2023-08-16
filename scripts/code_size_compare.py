@@ -644,13 +644,15 @@ class CodeSizeGeneratorWithSize(CodeSizeGenerator):
                 delta = new_attr - old_attr
                 change_attr = '{0:{1}}'.format(delta, '+' if delta else '')
             elif old_size:
-                new_attr = - old_size.__dict__[sect]
+                new_attr = 'Removed'
                 old_attr = old_size.__dict__[sect]
-                change_attr = 'Removed'
+                delta = - old_attr
+                change_attr = '{0:{1}}'.format(delta, '+' if delta else '')
             elif new_size:
                 new_attr = new_size.__dict__[sect]
                 old_attr = 'NotCreated'
-                change_attr = 'None'
+                delta = new_attr
+                change_attr = '{0:{1}}'.format(delta, '+' if delta else '')
             else:
                 # Should never happen
                 new_attr = 'Error'

@@ -40,15 +40,16 @@
 #endif
 #endif
 
-#if defined(__amd64__) || defined(__x86_64__)
+#if defined(__amd64__) || defined(__x86_64__) || \
+    defined(_M_X64) || defined(_M_AMD64)
 #if !defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 #error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
 #endif
 #endif
 
-#if defined(__i386__)
-#if defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-#error "MBEDTLS_AES_USE_HARDWARE_ONLY not supported yet for i386."
+#if defined(__i386__) || defined(_M_IX86)
+#if defined(MBEDTLS_AES_USE_HARDWARE_ONLY) && !defined(MBEDTLS_AESNI_C)
+#error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_PADLOCK_C) && !defined(MBEDTLS_HAVE_ASM)

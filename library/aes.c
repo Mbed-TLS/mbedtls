@@ -71,7 +71,7 @@
 
 #if !defined(MBEDTLS_AES_ALT)
 
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
+#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86) && defined(__GNUC__)
 static int aes_padlock_ace = -1;
 #endif
 
@@ -578,7 +578,7 @@ static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
 #if defined(MAY_NEED_TO_ALIGN)
     int align_16_bytes = 0;
 
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
+#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86) && defined(__GNUC__)
     if (aes_padlock_ace == -1) {
         aes_padlock_ace = mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE);
     }
@@ -1102,7 +1102,7 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
     }
 #endif
 
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
+#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86) && defined(__GNUC__)
     if (aes_padlock_ace > 0) {
         return mbedtls_padlock_xcryptecb(ctx, mode, input, output);
     }
@@ -1148,7 +1148,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
         return MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH;
     }
 
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
+#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86) && defined(__GNUC__)
     if (aes_padlock_ace > 0) {
         if (mbedtls_padlock_xcryptcbc(ctx, mode, length, iv, input, output) == 0) {
             return 0;
@@ -1900,7 +1900,7 @@ int mbedtls_aes_self_test(int verbose)
 #if defined(MBEDTLS_AES_ALT)
         mbedtls_printf("  AES note: alternative implementation.\n");
 #else /* MBEDTLS_AES_ALT */
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
+#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86) && defined(__GNUC__)
         if (mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE)) {
             mbedtls_printf("  AES note: using VIA Padlock.\n");
         } else

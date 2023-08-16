@@ -655,6 +655,13 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
     }
 #endif
 
+/* When runtime detection enabled and plain C is disabled, compiler
+   reports `-Werror=return-type`. */
+#if defined(MBEDTLS_HAVE_X86) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY) && \
+    defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_AESNI_HAVE_CODE)
+    return MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED;
+#endif
+
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
     for (i = 0; i < (keybits >> 5); i++) {
         RK[i] = MBEDTLS_GET_UINT32_LE(key, i << 2);
@@ -1099,6 +1106,13 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
     if (aes_padlock_ace > 0) {
         return mbedtls_padlock_xcryptecb(ctx, mode, input, output);
     }
+#endif
+
+/* When runtime detection enabled and plain C is disabled, compiler
+   reports `-Werror=return-type`. */
+#if defined(MBEDTLS_HAVE_X86) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY) && \
+    defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_AESNI_HAVE_CODE)
+    return MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED;
 #endif
 
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)

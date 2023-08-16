@@ -78,7 +78,7 @@ static inline uint32_t mbedtls_get_unaligned_volatile_uint32(volatile const unsi
      */
     uint32_t r;
 #if defined(MBEDTLS_CT_ARM_ASM)
-    __asm volatile ("ldr %0, [%1]" : "=r" (r) : "r" (p) :);
+    asm volatile ("ldr %0, [%1]" : "=r" (r) : "r" (p) :);
 #elif defined(MBEDTLS_CT_AARCH64_ASM)
     asm volatile ("ldr %w0, [%1]" : "=r" (r) : MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT(p) :);
 #else

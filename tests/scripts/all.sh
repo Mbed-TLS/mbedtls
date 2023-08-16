@@ -4272,6 +4272,7 @@ component_test_m32_o0 () {
     # build) and not the i386-specific inline assembly.
     msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
     scripts/config.py full
+    scripts/config.py unset MBEDTLS_AESNI_C # AESNI depends on cpu modifiers
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O0" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, make, gcc -O0 (ASan build)"
@@ -4289,6 +4290,7 @@ component_test_m32_o2 () {
     # and go faster for tests.
     msg "build: i386, make, gcc -O2 (ASan build)" # ~ 30s
     scripts/config.py full
+    scripts/config.py unset MBEDTLS_AESNI_C # AESNI depends on cpu modifiers
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, make, gcc -O2 (ASan build)"
@@ -4304,6 +4306,7 @@ support_test_m32_o2 () {
 component_test_m32_everest () {
     msg "build: i386, Everest ECDH context (ASan build)" # ~ 6 min
     scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+    scripts/config.py unset MBEDTLS_AESNI_C # AESNI depends on cpu modifiers
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
@@ -4757,6 +4760,7 @@ component_test_tls13_only_record_size_limit () {
 
 component_build_mingw () {
     msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
+    scripts/config.py unset MBEDTLS_AESNI_C # AESNI depends on cpu modifiers
     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs
 
     # note Make tests only builds the tests, but doesn't run them

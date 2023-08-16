@@ -137,7 +137,7 @@ state may override this method.
                         function_names[function_name] = description
                     else:
                         self.process_test_case(descriptions, file_name,
-                                            line_number, description)
+                                               line_number, description)
 
     @staticmethod
     def collect_test_directories():

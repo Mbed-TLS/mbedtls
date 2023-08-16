@@ -1592,7 +1592,7 @@ all_final += cert_md5.crt
 #         server2-v1*.crt: EE cert (without of with chain in same file)
 
 test-ca-v1.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
-	$(MBEDTLS_CERT_WRITE) is_ca=1 serial_hex=53a2b68e05400e555c9395e5 \
+	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=25883963888465069501131757029 \
 		request_file=test-ca.req.sha256 \
 		selfsign=1 issuer_name="CN=PolarSSL Test CA v1,OU=testing,O=PolarSSL,C=NL" \
 		issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) \
@@ -1601,7 +1601,7 @@ test-ca-v1.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
 all_final += test-ca-v1.crt
 
 server1-v1.crt: server1.key test-ca-v1.crt
-	$(MBEDTLS_CERT_WRITE) subject_key=$< serial_hex=53a2b6c704cd4d8ebc800bc1\
+	$(MBEDTLS_CERT_WRITE) subject_key=$< serial=25883964939897181595909491649 \
 		subject_name="CN=server1/int-ca-v1,OU=testing,O=PolarSSL,C=NL"  \
 		issuer_crt=test-ca-v1.crt issuer_key=$(test_ca_key_file_rsa) \
 		issuer_pwd=$(test_ca_pwd_rsa) \
@@ -1611,7 +1611,7 @@ server1-v1.crt: server1.key test-ca-v1.crt
 all_final += server1-v1.crt
 
 server2-v1.crt: server2.key server1-v1.crt
-	$(MBEDTLS_CERT_WRITE) subject_key=$< serial_hex=53a2b6d9235dbc4573f9b76c\
+	$(MBEDTLS_CERT_WRITE) subject_key=$< serial=25883965274140956871506900844 \
 		subject_name="CN=server2,OU=testing,O=PolarSSL,C=NL"  \
 		issuer_crt=server1-v1.crt issuer_key=server1.key \
 		not_before=20190210144406 not_after=20290210144406 \

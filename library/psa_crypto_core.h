@@ -21,6 +21,8 @@
 #ifndef PSA_CRYPTO_CORE_H
 #define PSA_CRYPTO_CORE_H
 
+#include "mbedtls/constant_time.h"
+
 #include "mbedtls/build_info.h"
 
 #include "psa/crypto.h"
@@ -49,14 +51,7 @@ int psa_can_do_hash(psa_algorithm_t hash_alg);
 static inline int mbedtls_psa_safer_memcmp(
     const uint8_t *a, const uint8_t *b, size_t n)
 {
-    size_t i;
-    unsigned char diff = 0;
-
-    for (i = 0; i < n; i++) {
-        diff |= a[i] ^ b[i];
-    }
-
-    return diff;
+    return mbedtls_ct_memcmp(a, b, n);
 }
 
 /** The data structure representing a key slot, containing key material

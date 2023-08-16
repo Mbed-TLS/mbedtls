@@ -82,7 +82,7 @@ static inline uint32_t mbedtls_get_unaligned_volatile_uint32(volatile const unsi
 #elif defined(MBEDTLS_CT_AARCH64_ASM)
     asm volatile ("ldr %w0, [%1]" : "=r" (r) : MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT(p) :);
 #else
-#error No assembly defined for mbedtls_get_unaligned_volatile_uint32
+#error "No assembly defined for mbedtls_get_unaligned_volatile_uint32"
 #endif
     return r;
 }

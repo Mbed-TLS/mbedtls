@@ -1866,7 +1866,7 @@ int mbedtls_aes_self_test(int verbose)
 #elif MBEDTLS_AESNI_HAVE_CODE == 2
         mbedtls_printf("  AES note: AESNI code present (intrinsics implementation).\n");
 #else
-#error Unrecognised value for MBEDTLS_AESNI_HAVE_CODE
+#error "Unrecognised value for MBEDTLS_AESNI_HAVE_CODE"
 #endif
         if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
             mbedtls_printf("  AES note: using AESNI.\n");

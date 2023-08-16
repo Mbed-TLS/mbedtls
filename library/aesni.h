@@ -76,6 +76,8 @@
 #elif defined(MBEDTLS_HAVE_ASM) && \
     defined(__GNUC__) && defined(MBEDTLS_HAVE_X86_64)
 #define MBEDTLS_AESNI_HAVE_CODE 1 // via assembly
+#elif defined(__GNUC__)
+#   error "Must use `-mpclmul -msse2 -maes` for MBEDTLS_AESNI_C"
 #else
 #error "MBEDTLS_AESNI_C defined, but neither intrinsics nor assembly available"
 #endif

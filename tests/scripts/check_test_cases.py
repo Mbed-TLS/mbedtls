@@ -114,13 +114,30 @@ state may override this method.
                 # function name.
                 m = re.match(br'\s*run_test\s+"((?:[^\\"]|\\.)*)"', line)
                 if not m:
-                    continue
-                description = m.group(1)
-                if br'$1' in description:
-                    function_names[function_name] = description
+                    m = re.match(br'\s*((\S+)\s*) ((\S+)\s*)', line)
+                    if m is not None:
+                        fn = m.group(1).lstrip()
+                        if fn in function_names.keys():
+                            # Replace the description's $1 with the
+                            # corresponding parameter and process. Currently,
+                            # we are only handling one parameter ($1)
+                            params = m.group(3)
+                            description = function_names[fn].replace(br'$1',
+                                                                     params)
+                            description = description.rstrip()
+                            self.process_test_case(descriptions, file_name,
+                                                   line_number, description)
                 else:
-                    self.process_test_case(descriptions, file_name,
-                                           line_number, description)
+                    description = m.group(1)
+                    # If the test case has arguments, save the test case's
+                    # description and corresponding function name to be
+                    # processed later. Otherwise, process the test case in this
+                    # moment.
+                    if br'$1' in description:
+                        function_names[function_name] = description
+                    else:
+                        self.process_test_case(descriptions, file_name,
+                                            line_number, description)
 
     @staticmethod
     def collect_test_directories():

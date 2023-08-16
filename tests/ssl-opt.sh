@@ -29,6 +29,10 @@
 # with a dependency.  The tests focus on functionality and do not consider
 # performance.
 #
+# Please note that for test purposes, the declaration of functions should
+# follow the pattern '<function_name>() {' exactly as per the rest of the
+# functions in this file
+#
 
 set -u
 
@@ -445,13 +449,13 @@ detect_required_features() {
     unset tmp
 }
 
-requires_certificate_authentication () {
+requires_certificate_authentication() {
     if [ "$PSK_ONLY" = "YES" ]; then
         SKIP_NEXT="YES"
     fi
 }
 
-adapt_cmd_for_psk () {
+adapt_cmd_for_psk() {
     case "$2" in
         *openssl*) s='-psk abc123 -nocert';;
         *gnutls-*) s='--pskkey=abc123';;
@@ -1184,8 +1188,7 @@ use_ext_tool_without_ecdh_support() {
 }
 
 # Generate random psk_list argument for ssl_server2
-get_srv_psk_list ()
-{
+get_srv_psk_list() {
     case $(( TESTS % 3 )) in
         0) echo "psk_list=abc,dead,def,beef,Client_identity,6162636465666768696a6b6c6d6e6f70";;
         1) echo "psk_list=abc,dead,Client_identity,6162636465666768696a6b6c6d6e6f70,def,beef";;
@@ -1728,8 +1731,7 @@ run_test_psa_force_curve() {
 # a maximum fragment length.
 #  first argument ($1) is MFL for SSL client
 #  second argument ($2) is memory usage for SSL client with default MFL (16k)
-run_test_memory_after_hanshake_with_mfl()
-{
+run_test_memory_after_hanshake_with_mfl() {
     # The test passes if the difference is around 2*(16k-MFL)
     MEMORY_USAGE_LIMIT="$(( $2 - ( 2 * ( 16384 - $1 )) ))"
 
@@ -1748,8 +1750,7 @@ run_test_memory_after_hanshake_with_mfl()
 
 # Test that the server's memory usage after a handshake is reduced when a client specifies
 # different values of Maximum Fragment Length: default (16k), 4k, 2k, 1k and 512 bytes
-run_tests_memory_after_hanshake()
-{
+run_tests_memory_after_hanshake() {
     # all tests in this sequence requires the same configuration (see requires_config_enabled())
     SKIP_THIS_TESTS="$SKIP_NEXT"
 
@@ -1830,11 +1831,11 @@ case "$EXCLUDE" in
         simple_exclude="*$EXCLUDE*";;
 esac
 if [ -n "$need_grep" ]; then
-    is_excluded () {
+    is_excluded() {
         ! echo "$1" | grep "$FILTER" | grep -q -v "$EXCLUDE"
     }
 else
-    is_excluded () {
+    is_excluded() {
         case "$1" in
             $simple_exclude) true;;
             $simple_filter) false;;

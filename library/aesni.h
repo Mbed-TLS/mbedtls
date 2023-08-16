@@ -97,7 +97,8 @@ extern "C" {
  *
  * \return         1 if CPU has support for the feature, 0 otherwise
  */
-#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY) || \
+    (defined(MBEDTLS_HAVE_X86) && defined(MBEDTLS_PADLOCK_C))
 int mbedtls_aesni_has_support(unsigned int what);
 #else
 #define mbedtls_aesni_has_support(what) 1

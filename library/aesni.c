@@ -39,7 +39,8 @@
 #include <immintrin.h>
 #endif
 
-#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY) || \
+    (defined(MBEDTLS_HAVE_X86) && defined(MBEDTLS_PADLOCK_C))
 /*
  * AES-NI support detection routine
  */

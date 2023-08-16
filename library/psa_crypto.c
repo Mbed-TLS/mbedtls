@@ -104,9 +104,9 @@ static int key_type_is_raw_bytes(psa_key_type_t type)
 #define RNG_SEEDED 2
 
 typedef struct {
-    unsigned initialized : 1;
-    unsigned rng_state : 2;
-    unsigned drivers_initialized : 1;
+    uint8_t initialized;
+    uint8_t rng_state;
+    uint8_t drivers_initialized;
     mbedtls_psa_random_context_t rng;
 } psa_global_data_t;
 

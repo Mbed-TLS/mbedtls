@@ -242,7 +242,7 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
     int parse_ret = 0;
     const char *s = name, *c = s;
     const char *end = s + strlen(s);
-    mbedtls_asn1_buf oid = { .p = NULL, .len = 0, .tag = 5 };
+    mbedtls_asn1_buf oid = { .p = NULL, .len = 0, .tag = MBEDTLS_ASN1_NULL };
     const x509_attr_descriptor_t *attr_descr = NULL;
     int in_attr_type = 1;
     int tag;

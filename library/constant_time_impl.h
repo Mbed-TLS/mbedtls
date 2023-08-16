@@ -189,8 +189,8 @@ static inline unsigned char mbedtls_ct_uchar_in_range_if(unsigned char low,
                                                          unsigned char c,
                                                          unsigned char t)
 {
-    const unsigned char co = (const unsigned char) mbedtls_ct_compiler_opaque(c);
-    const unsigned char to = (const unsigned char) mbedtls_ct_compiler_opaque(t);
+    const unsigned char co= (unsigned char) mbedtls_ct_compiler_opaque(c);
+    const unsigned char to= (unsigned char) mbedtls_ct_compiler_opaque(t);
 
     /* low_mask is: 0 if low <= c, 0x...ff if low > c */
     unsigned low_mask = ((unsigned) co - low) >> 8;

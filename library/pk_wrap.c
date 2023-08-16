@@ -302,11 +302,16 @@ int  mbedtls_pk_psa_rsa_sign_ext(psa_algorithm_t alg,
     psa_status_t status;
     mbedtls_pk_context key;
     int key_len;
-    unsigned char buf[MBEDTLS_PK_RSA_PRV_DER_MAX_BYTES];
+    unsigned char *buf = NULL;
+    buf = mbedtls_calloc(1, MBEDTLS_PK_RSA_PRV_DER_MAX_BYTES);
+    if (buf == NULL) {
+        return MBEDTLS_ERR_PK_ALLOC_FAILED;
+    }
     mbedtls_pk_info_t pk_info = mbedtls_rsa_info;
 
     *sig_len = mbedtls_rsa_get_len(rsa_ctx);
     if (sig_size < *sig_len) {
+        mbedtls_free(buf);
         return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
     }
 
@@ -314,8 +319,9 @@ int  mbedtls_pk_psa_rsa_sign_ext(psa_algorithm_t alg,
      * re-construct one to make it happy */
     key.pk_info = &pk_info;
     key.pk_ctx = rsa_ctx;
-    key_len = mbedtls_pk_write_key_der(&key, buf, sizeof(buf));
+    key_len = mbedtls_pk_write_key_der(&key, buf, MBEDTLS_PK_RSA_PRV_DER_MAX_BYTES);
     if (key_len <= 0) {
+        mbedtls_free(buf);
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH);
@@ -323,7 +329,7 @@ int  mbedtls_pk_psa_rsa_sign_ext(psa_algorithm_t alg,
     psa_set_key_type(&attributes, PSA_KEY_TYPE_RSA_KEY_PAIR);
 
     status = psa_import_key(&attributes,
-                            buf + sizeof(buf) - key_len, key_len,
+                            buf + MBEDTLS_PK_RSA_PRV_DER_MAX_BYTES - key_len, key_len,
                             &key_id);
     if (status != PSA_SUCCESS) {
         ret = PSA_PK_TO_MBEDTLS_ERR(status);
@@ -339,6 +345,7 @@ int  mbedtls_pk_psa_rsa_sign_ext(psa_algorithm_t alg,
     ret = 0;
 
 cleanup:
+    mbedtls_free(buf);
     status = psa_destroy_key(key_id);
     if (ret == 0 && status != PSA_SUCCESS) {
         ret = PSA_PK_TO_MBEDTLS_ERR(status);

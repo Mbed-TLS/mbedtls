@@ -804,10 +804,7 @@ int mbedtls_ecp_point_write_binary(const mbedtls_ecp_group *grp,
 {
     int ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
     size_t plen;
-#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
-    mbedtls_mpi q;
-    mbedtls_mpi_init(&q);
-#endif
+
     if (format != MBEDTLS_ECP_PF_UNCOMPRESSED &&
         format != MBEDTLS_ECP_PF_COMPRESSED) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
@@ -866,7 +863,8 @@ int mbedtls_ecp_point_write_binary(const mbedtls_ecp_group *grp,
             break;
 #endif
 #if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
-        case MBEDTLS_ECP_TYPE_EDWARDS:
+        case MBEDTLS_ECP_TYPE_EDWARDS: {
+            mbedtls_mpi q;
             /* Only the compressed format is defined for Edwards curves. */
             if (format != MBEDTLS_ECP_PF_COMPRESSED) {
                 return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
@@ -880,19 +878,25 @@ int mbedtls_ecp_point_write_binary(const mbedtls_ecp_group *grp,
                 return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
             }
 
-            MBEDTLS_MPI_CHK(mbedtls_ecp_point_encode(grp, &q, P));
+            mbedtls_mpi_init(&q);
+            if ((ret = mbedtls_ecp_point_encode(grp, &q, P)) != 0) {
+                mbedtls_mpi_free(&q);
+                return ret;
+            }
 
-            MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary_le(&q, buf, plen));
+            ret = mbedtls_mpi_write_binary_le(&q, buf, plen);
+            mbedtls_mpi_free(&q);
+            if (ret != 0) {
+                return ret;
+            }
             break;
 #endif
+        }
         default:
             break;
     }
 
 cleanup:
-#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
-    mbedtls_mpi_free(&q);
-#endif
     return ret;
 }
 

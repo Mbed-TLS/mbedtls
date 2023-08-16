@@ -737,5 +737,6 @@ exit:
     mbedtls_free(R);
     mbedtls_free(R_COPY);
     mbedtls_free(obuf);
+    mbedtls_free(ref_buf);
 }
 /* END_CASE */

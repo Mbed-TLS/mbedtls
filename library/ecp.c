@@ -958,9 +958,8 @@ int mbedtls_ecp_tls_read_group_id(mbedtls_ecp_group_id *grp,
     /*
      * Next two bytes are the namedcurve value
      */
-    tls_id = *(*buf)++;
-    tls_id <<= 8;
-    tls_id |= *(*buf)++;
+    tls_id = MBEDTLS_GET_UINT16_BE(*buf, 0);
+    *buf += 2;
 
     if ((curve_info = mbedtls_ecp_curve_info_from_tls_id(tls_id)) == NULL) {
         return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;

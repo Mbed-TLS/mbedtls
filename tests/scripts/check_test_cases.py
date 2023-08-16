@@ -99,8 +99,16 @@ state may override this method.
     def walk_ssl_opt_sh(self, file_name):
         """Iterate over the test cases in ssl-opt.sh or a file with a similar format."""
         descriptions = self.new_per_file_state() # pylint: disable=assignment-from-none
+        function_name = None
+        function_names = {}
         with open(file_name, 'rb') as file_contents:
             for line_number, line in enumerate(file_contents, 1):
+                # Assume that all function declaration follow the same form
+                # '<function_name>() {' exactly.
+                m = re.match(br'((\S+)\s*)\(\)\s\{$', line)
+                if m is not None:
+                    function_name = m.group(1)
+                    continue
                 # Assume that all run_test calls have the same simple form
                 # with the test description entirely on the same line as the
                 # function name.
@@ -108,8 +116,11 @@ state may override this method.
                 if not m:
                     continue
                 description = m.group(1)
-                self.process_test_case(descriptions,
-                                       file_name, line_number, description)
+                if br'$1' in description:
+                    function_names[function_name] = description
+                else:
+                    self.process_test_case(descriptions, file_name,
+                                           line_number, description)
 
     @staticmethod
     def collect_test_directories():

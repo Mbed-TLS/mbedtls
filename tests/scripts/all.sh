@@ -3989,9 +3989,11 @@ component_build_aes_aesce_armcc () {
 component_build_aes_via_padlock () {
 
     msg "AES:VIA PadLock, build with default configuration."
+    scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py set MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
+    grep -q mbedtls_padlock_has_support ./programs/test/selftest
 
 }
 

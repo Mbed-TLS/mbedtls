@@ -127,7 +127,7 @@
 
 #if defined(MBEDTLS_SOME_BUILTIN_EC) && \
     !(defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_ECDSA_DETERMINISTIC) || \
-      defined(MBEDTLS_ECDH_C))
+      defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECJPAKE_C))
 #error "Some builtin curve is included, but there is no algorighm using it"
 #endif
 

@@ -92,7 +92,10 @@
 #define MBEDTLS_ASN1_BMP_STRING              0x1E
 #define MBEDTLS_ASN1_PRIMITIVE               0x00
 #define MBEDTLS_ASN1_CONSTRUCTED             0x20
+#define MBEDTLS_ASN1_UNIVERSAL               0x00
+#define MBEDTLS_ASN1_APPLICATION             0x40
 #define MBEDTLS_ASN1_CONTEXT_SPECIFIC        0x80
+#define MBEDTLS_ASN1_PRIVATE                 0xC0
 
 /* Slightly smaller way to check if tag is a string tag
  * compared to canonical implementation. */
@@ -273,10 +276,12 @@ int mbedtls_asn1_get_tag(unsigned char **p,
  * \return      #MBEDTLS_ERR_ASN1_OUT_OF_DATA if the ASN.1 element
  *              would end beyond \p end.
  */
-int mbedtls_asn1_get_any_tag(unsigned char **p,
-                         const unsigned char *end,
-                         int *tag);
 
+int mbedtls_asn1_get_any_tag(unsigned char **p,
+                             const unsigned char *end,
+                             int *tag_number,
+                             int *tag_constructed,
+                             int *tag_class);
 
 /**
  * \brief       Retrieve a boolean ASN.1 tag and its value.

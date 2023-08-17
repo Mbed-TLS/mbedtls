@@ -71,7 +71,7 @@
 
 #if !defined(MBEDTLS_AES_ALT)
 
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86) && defined(__GNUC__)
+#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
 static int aes_padlock_ace = -1;
 #endif
 
@@ -578,7 +578,7 @@ static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
 #if defined(MAY_NEED_TO_ALIGN)
     int align_16_bytes = 0;
 
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86) && defined(__GNUC__)
+#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
     if (aes_padlock_ace == -1) {
         aes_padlock_ace = mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE);
     }
@@ -1102,7 +1102,7 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
     }
 #endif
 
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86) && defined(__GNUC__)
+#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
     if (aes_padlock_ace > 0) {
         return mbedtls_padlock_xcryptecb(ctx, mode, input, output);
     }
@@ -1110,8 +1110,8 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
 
 /* When runtime detection enabled and plain C is disabled, compiler
    reports `-Werror=return-type`. */
-#if defined(MBEDTLS_HAVE_X86) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY) && \
-    defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_AESNI_HAVE_CODE)
+#if defined(MBEDTLS_AES_USE_HARDWARE_ONLY) && \
+    defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE) && defined(MBEDTLS_AESNI_HAVE_CODE)
     return MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED;
 #endif
 
@@ -1148,7 +1148,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
         return MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH;
     }
 
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86) && defined(__GNUC__)
+#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
     if (aes_padlock_ace > 0) {
         if (mbedtls_padlock_xcryptcbc(ctx, mode, length, iv, input, output) == 0) {
             return 0;
@@ -1912,7 +1912,7 @@ int mbedtls_aes_self_test(int verbose)
             mbedtls_printf("  AES note: using AESNI.\n");
         } else
 #endif
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86) && defined(__GNUC__)
+#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
         if (mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE)) {
             mbedtls_printf("  AES note: using VIA Padlock.\n");
         } else

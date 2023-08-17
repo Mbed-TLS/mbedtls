@@ -567,7 +567,7 @@ void mbedtls_aes_xts_free(mbedtls_aes_xts_context *ctx)
  * Note that the offset is in units of elements of buf, i.e. 32-bit words,
  * i.e. an offset of 1 means 4 bytes and so on.
  */
-#if (defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)) ||        \
+#if (defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)) ||        \
     (defined(MBEDTLS_AESNI_C) && MBEDTLS_AESNI_HAVE_CODE == 2)
 #define MAY_NEED_TO_ALIGN
 #endif

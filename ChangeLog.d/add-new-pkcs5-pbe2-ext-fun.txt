@@ -1,0 +1,6 @@
+Features
+   * Add new mbedtls_pkcs5_pbes2_ext function a more secure replacement to
+     mbedtls_pkcs5_pbes2 function because it reports the length of the output
+     bytes written to the output buffer and it requires a parameter containing
+     the output buffer size and validate if the output buffer is big enough
+     for output including padding.

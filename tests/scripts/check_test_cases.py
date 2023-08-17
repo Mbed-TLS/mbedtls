@@ -27,6 +27,8 @@ import os
 import re
 import subprocess
 import sys
+import subprocess
+
 
 class Results:
     """Store file and line information about errors or warnings in test suites."""
@@ -100,17 +102,11 @@ state may override this method.
     def walk_ssl_opt_sh(self, file_name):
         """Iterate over the test cases in ssl-opt.sh or a file with a similar format."""
         descriptions = self.new_per_file_state() # pylint: disable=assignment-from-none
-        with open(file_name, 'rb') as file_contents:
-            for line_number, line in enumerate(file_contents, 1):
-                # Assume that all run_test calls have the same simple form
-                # with the test description entirely on the same line as the
-                # function name.
-                m = re.match(br'\s*run_test\s+"((?:[^\\"]|\\.)*)"', line)
-                if not m:
-                    continue
-                description = m.group(1)
-                self.process_test_case(descriptions,
-                                       file_name, line_number, description)
+        listed = subprocess.run(['tests/ssl-opt.sh', '-l'],
+                                 capture_output=True)
+        listed = set(map(lambda x: x.rstrip(), listed.stdout.splitlines()))
+        for description in listed:
+            self.process_test_case(descriptions, file_name, None, description)
 
     def walk_compat_sh(self, file_name):
         """Iterate over the test cases compat.sh with a similar format."""

@@ -112,8 +112,7 @@ int mbedtls_pkcs5_pbes2(const mbedtls_asn1_buf *pbe_params, int mode,
  * \param data       data to process
  * \param datalen    length of data
  * \param output     Output buffer.
- *                   On success, it contains the decrypted data, possibly
- *                   followed by the CBC padding.
+ *                   On success, it contains the decrypted data.
  *                   On failure, the content is indetermidate.
  *                   For decryption, there must be enough room for \p datalen
  *                   bytes.
@@ -123,7 +122,7 @@ int mbedtls_pkcs5_pbes2(const mbedtls_asn1_buf *pbe_params, int mode,
  * \param output_size size of output buffer.
  *                    This must be big enough to accommodate for output plus
  *                    padding data.
- * \param output_len length of actual data written to the output buffer.
+ * \param output_len On success, length of actual data written to the output buffer.
  *
  * \returns        0 on success, or a MBEDTLS_ERR_XXX code if verification fails.
  */

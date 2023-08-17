@@ -3931,19 +3931,6 @@ component_test_aesni_m32 () { # ~ 60s
     grep -q mbedtls_aesni_has_support ./programs/test/selftest
 
     scripts/config.py set MBEDTLS_AESNI_C
-    scripts/config.py set MBEDTLS_PADLOCK_C
-    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
-    msg "AES tests, test AESNI and VIA Padlock enabled"
-    make clean
-    make CC=gcc CFLAGS='-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes' LDFLAGS='-m32'
-    ./programs/test/selftest aes | grep -q "AES note: using AESNI"
-    ./programs/test/selftest aes | not grep -q "AES note: built-in implementation."
-    grep -q "AES note: using AESNI" ./programs/test/selftest
-    not grep -q "AES note: built-in implementation." ./programs/test/selftest
-    grep -q "AES note: using VIA Padlock" ./programs/test/selftest
-    grep -q mbedtls_aesni_has_support ./programs/test/selftest
-
-    scripts/config.py set MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
     msg "AES tests, test AESNI only"

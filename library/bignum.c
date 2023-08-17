@@ -54,11 +54,134 @@
 #define MPI_VALIDATE(cond)                                           \
     MBEDTLS_INTERNAL_VALIDATE(cond)
 
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_mpi_zeroize(mbedtls_mpi_uint *v, size_t n)
+/*
+ * Compare signed values in constant time
+ */
+int mbedtls_mpi_lt_mpi_ct(const mbedtls_mpi *X,
+                          const mbedtls_mpi *Y,
+                          unsigned *ret)
 {
-    mbedtls_platform_zeroize(v, ciL * n);
+    mbedtls_ct_condition_t different_sign, X_is_negative, Y_is_negative, result;
+
+    MPI_VALIDATE_RET(X != NULL);
+    MPI_VALIDATE_RET(Y != NULL);
+    MPI_VALIDATE_RET(ret != NULL);
+
+    if (X->n != Y->n) {
+        return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+    }
+
+    /*
+     * Set sign_N to 1 if N >= 0, 0 if N < 0.
+     * We know that N->s == 1 if N >= 0 and N->s == -1 if N < 0.
+     */
+    X_is_negative = mbedtls_ct_bool((X->s & 2) >> 1);
+    Y_is_negative = mbedtls_ct_bool((Y->s & 2) >> 1);
+
+    /*
+     * If the signs are different, then the positive operand is the bigger.
+     * That is if X is negative (X_is_negative == 1), then X < Y is true and it
+     * is false if X is positive (X_is_negative == 0).
+     */
+    different_sign = mbedtls_ct_bool_xor(X_is_negative, Y_is_negative); // non-zero if different sign
+    result = mbedtls_ct_bool_and(different_sign, X_is_negative);
+
+    /*
+     * Assuming signs are the same, compare X and Y. We switch the comparison
+     * order if they are negative so that we get the right result, regardles of
+     * sign.
+     */
+
+    /* This array is used to conditionally swap the pointers in const time */
+    void * const p[2] = { X->p, Y->p };
+    size_t i = mbedtls_ct_size_if_else_0(X_is_negative, 1);
+    mbedtls_ct_condition_t lt = mbedtls_mpi_core_lt_ct(p[i], p[i ^ 1], X->n);
+
+    /*
+     * Store in result iff the signs are the same (i.e., iff different_sign == false). If
+     * the signs differ, result has already been set, so we don't change it.
+     */
+    result = mbedtls_ct_bool_or(result,
+                                mbedtls_ct_bool_and(mbedtls_ct_bool_not(different_sign), lt));
+
+    *ret = mbedtls_ct_uint_if_else_0(result, 1);
+
+    return 0;
 }
+
+/*
+ * Conditionally assign X = Y, without leaking information
+ * about whether the assignment was made or not.
+ * (Leaking information about the respective sizes of X and Y is ok however.)
+ */
+#if defined(_MSC_VER) && defined(_M_ARM64) && (_MSC_FULL_VER < 193131103)
+/*
+ * MSVC miscompiles this function if it's inlined prior to Visual Studio 2022 version 17.1. See:
+ * https://developercommunity.visualstudio.com/t/c-compiler-miscompiles-part-of-mbedtls-library-on/1646989
+ */
+__declspec(noinline)
+#endif
+int mbedtls_mpi_safe_cond_assign(mbedtls_mpi *X,
+                                 const mbedtls_mpi *Y,
+                                 unsigned char assign)
+{
+    int ret = 0;
+    MPI_VALIDATE_RET(X != NULL);
+    MPI_VALIDATE_RET(Y != NULL);
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(X, Y->n));
+
+    mbedtls_ct_condition_t do_assign = mbedtls_ct_bool(assign);
+
+    X->s = (int) mbedtls_ct_uint_if(do_assign, Y->s, X->s);
+
+    mbedtls_mpi_core_cond_assign(X->p, Y->p, Y->n, do_assign);
+
+    mbedtls_ct_condition_t do_not_assign = mbedtls_ct_bool_not(do_assign);
+    for (size_t i = Y->n; i < X->n; i++) {
+        X->p[i] = mbedtls_ct_mpi_uint_if_else_0(do_not_assign, X->p[i]);
+    }
+
+cleanup:
+    return ret;
+}
+
+/*
+ * Conditionally swap X and Y, without leaking information
+ * about whether the swap was made or not.
+ * Here it is not ok to simply swap the pointers, which would lead to
+ * different memory access patterns when X and Y are used afterwards.
+ */
+int mbedtls_mpi_safe_cond_swap(mbedtls_mpi *X,
+                               mbedtls_mpi *Y,
+                               unsigned char swap)
+{
+    int ret = 0;
+    int s;
+    MPI_VALIDATE_RET(X != NULL);
+    MPI_VALIDATE_RET(Y != NULL);
+
+    if (X == Y) {
+        return 0;
+    }
+
+    mbedtls_ct_condition_t do_swap = mbedtls_ct_bool(swap);
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(X, Y->n));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(Y, X->n));
+
+    s = X->s;
+    X->s = (int) mbedtls_ct_uint_if(do_swap, Y->s, X->s);
+    Y->s = (int) mbedtls_ct_uint_if(do_swap, s, Y->s);
+
+    mbedtls_mpi_core_cond_swap(X->p, Y->p, X->n, do_swap);
+
+cleanup:
+    return ret;
+}
+
+/* Implementation that should never be optimized out by the compiler */
+#define mbedtls_mpi_zeroize_and_free(v, n) mbedtls_zeroize_and_free(v, ciL * (n))
 
 /*
  * Initialize one MPI
@@ -82,8 +205,7 @@ void mbedtls_mpi_free(mbedtls_mpi *X)
     }
 
     if (X->p != NULL) {
-        mbedtls_mpi_zeroize(X->p, X->n);
-        mbedtls_free(X->p);
+        mbedtls_mpi_zeroize_and_free(X->p, X->n);
     }
 
     X->s = 1;
@@ -110,8 +232,7 @@ int mbedtls_mpi_grow(mbedtls_mpi *X, size_t nblimbs)
 
         if (X->p != NULL) {
             memcpy(p, X->p, X->n * ciL);
-            mbedtls_mpi_zeroize(X->p, X->n);
-            mbedtls_free(X->p);
+            mbedtls_mpi_zeroize_and_free(X->p, X->n);
         }
 
         /* nblimbs fits in n because we ensure that MBEDTLS_MPI_MAX_LIMBS
@@ -160,8 +281,7 @@ int mbedtls_mpi_shrink(mbedtls_mpi *X, size_t nblimbs)
 
     if (X->p != NULL) {
         memcpy(p, X->p, i * ciL);
-        mbedtls_mpi_zeroize(X->p, X->n);
-        mbedtls_free(X->p);
+        mbedtls_mpi_zeroize_and_free(X->p, X->n);
     }
 
     /* i fits in n because we ensure that MBEDTLS_MPI_MAX_LIMBS
@@ -264,6 +384,10 @@ static inline mbedtls_mpi_uint mpi_sint_abs(mbedtls_mpi_sint z)
     return (mbedtls_mpi_uint) 0 - (mbedtls_mpi_uint) z;
 }
 
+/* Convert x to a sign, i.e. to 1, if x is positive, or -1, if x is negative.
+ * This looks awkward but generates smaller code than (x < 0 ? -1 : 1) */
+#define TO_SIGN(x) ((((mbedtls_mpi_uint) x) >> (biL - 1)) * -2 + 1)
+
 /*
  * Set value from integer
  */
@@ -276,7 +400,7 @@ int mbedtls_mpi_lset(mbedtls_mpi *X, mbedtls_mpi_sint z)
     memset(X->p, 0, X->n * ciL);
 
     X->p[0] = mpi_sint_abs(z);
-    X->s    = (z < 0) ? -1 : 1;
+    X->s    = TO_SIGN(z);
 
 cleanup:
 
@@ -332,16 +456,35 @@ cleanup:
  */
 size_t mbedtls_mpi_lsb(const mbedtls_mpi *X)
 {
-    size_t i, j, count = 0;
+    size_t i;
     MBEDTLS_INTERNAL_VALIDATE_RET(X != NULL, 0);
 
+#if defined(__has_builtin)
+#if (MBEDTLS_MPI_UINT_MAX == UINT_MAX) && __has_builtin(__builtin_ctz)
+    #define mbedtls_mpi_uint_ctz __builtin_ctz
+#elif (MBEDTLS_MPI_UINT_MAX == ULONG_MAX) && __has_builtin(__builtin_ctzl)
+    #define mbedtls_mpi_uint_ctz __builtin_ctzl
+#elif (MBEDTLS_MPI_UINT_MAX == ULLONG_MAX) && __has_builtin(__builtin_ctzll)
+    #define mbedtls_mpi_uint_ctz __builtin_ctzll
+#endif
+#endif
+
+#if defined(mbedtls_mpi_uint_ctz)
     for (i = 0; i < X->n; i++) {
-        for (j = 0; j < biL; j++, count++) {
+        if (X->p[i] != 0) {
+            return i * biL + mbedtls_mpi_uint_ctz(X->p[i]);
+        }
+    }
+#else
+    size_t count = 0;
+    for (i = 0; i < X->n; i++) {
+        for (size_t j = 0; j < biL; j++, count++) {
             if (((X->p[i] >> j) & 1) != 0) {
                 return count;
             }
         }
     }
+#endif
 
     return 0;
 }
@@ -802,9 +945,8 @@ int mbedtls_mpi_cmp_abs(const mbedtls_mpi *X, const mbedtls_mpi *Y)
         }
     }
 
-    if (i == 0 && j == 0) {
-        return 0;
-    }
+    /* If i == j == 0, i.e. abs(X) == abs(Y),
+     * we end up returning 0 at the end of the function. */
 
     if (i > j) {
         return 1;
@@ -886,7 +1028,7 @@ int mbedtls_mpi_cmp_int(const mbedtls_mpi *X, mbedtls_mpi_sint z)
     MPI_VALIDATE_RET(X != NULL);
 
     *p  = mpi_sint_abs(z);
-    Y.s = (z < 0) ? -1 : 1;
+    Y.s = TO_SIGN(z);
     Y.n = 1;
     Y.p = p;
 
@@ -1074,7 +1216,7 @@ int mbedtls_mpi_add_int(mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint b
     MPI_VALIDATE_RET(A != NULL);
 
     p[0] = mpi_sint_abs(b);
-    B.s = (b < 0) ? -1 : 1;
+    B.s = TO_SIGN(b);
     B.n = 1;
     B.p = p;
 
@@ -1092,7 +1234,7 @@ int mbedtls_mpi_sub_int(mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint b
     MPI_VALIDATE_RET(A != NULL);
 
     p[0] = mpi_sint_abs(b);
-    B.s = (b < 0) ? -1 : 1;
+    B.s = TO_SIGN(b);
     B.n = 1;
     B.p = p;
 
@@ -1442,7 +1584,7 @@ int mbedtls_mpi_div_int(mbedtls_mpi *Q, mbedtls_mpi *R,
     MPI_VALIDATE_RET(A != NULL);
 
     p[0] = mpi_sint_abs(b);
-    B.s = (b < 0) ? -1 : 1;
+    B.s = TO_SIGN(b);
     B.n = 1;
     B.p = p;
 
@@ -1608,10 +1750,8 @@ static int mpi_select(mbedtls_mpi *R, const mbedtls_mpi *T, size_t T_size, size_
 
     for (size_t i = 0; i < T_size; i++) {
         MBEDTLS_MPI_CHK(mbedtls_mpi_safe_cond_assign(R, &T[i],
-                                                     (unsigned char) mbedtls_ct_size_bool_eq(i,
-                                                                                             idx)));
+                                                     (unsigned char) mbedtls_ct_uint_eq(i, idx)));
     }
-
 cleanup:
     return ret;
 }

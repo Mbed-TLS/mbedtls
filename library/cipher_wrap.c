@@ -120,8 +120,10 @@ enum mbedtls_cipher_base_index {
     MBEDTLS_CIPHER_BASE_INDEX_NULL_BASE,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_AES_C)
-    MBEDTLS_CIPHER_BASE_INDEX_XTS_AES
+    MBEDTLS_CIPHER_BASE_INDEX_XTS_AES,
 #endif
+    /* Prevent compile failure due to empty enum */
+    MBEDTLS_CIPHER_BASE_PREVENT_EMPTY_ENUM
 };
 
 #if defined(MBEDTLS_GCM_C)

@@ -310,6 +310,99 @@ TASKS = {
             }
         }
     },
+    'analyze_driver_vs_reference_no_bignum': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_psa_crypto_config_reference_ecc_no_bignum',
+            'component_driver': 'test_psa_crypto_config_accel_ecc_no_bignum',
+            'ignored_suites': [
+                # Ignore test suites for the modules that are disabled in the
+                # accelerated test case.
+                'ecp',
+                'ecdsa',
+                'ecdh',
+                'ecjpake',
+                'bignum_core',
+                'bignum_random',
+                'bignum_mod',
+                'bignum_mod_raw',
+                'bignum.generated',
+                'bignum.misc',
+            ],
+            'ignored_tests': {
+                'test_suite_random': [
+                    'PSA classic wrapper: ECDSA signature (SECP256R1)',
+                ],
+                'test_suite_psa_crypto': [
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1 (1 redraw)',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1, exercise ECDSA',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp384r1',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp521r1 #0',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp521r1 #1',
+                    'PSA key derivation: bits=7 invalid for ECC BRAINPOOL_P_R1 (ECC enabled)',
+                    'PSA key derivation: bits=7 invalid for ECC SECP_K1 (ECC enabled)',
+                    'PSA key derivation: bits=7 invalid for ECC SECP_R1 (ECC enabled)',
+                    'PSA key derivation: bits=7 invalid for ECC SECP_R2 (ECC enabled)',
+                    'PSA key derivation: bits=7 invalid for ECC SECT_K1 (ECC enabled)',
+                    'PSA key derivation: bits=7 invalid for ECC SECT_R1 (ECC enabled)',
+                    'PSA key derivation: bits=7 invalid for ECC SECT_R2 (ECC enabled)',
+                ],
+                'test_suite_pkparse': [
+                    # See the description provided above in the
+                    # analyze_driver_vs_reference_no_ecp_at_all component.
+                    'Parse EC Key #10a (SEC1 PEM, secp384r1, compressed)',
+                    'Parse EC Key #11a (SEC1 PEM, secp521r1, compressed)',
+                    'Parse EC Key #12a (SEC1 PEM, bp256r1, compressed)',
+                    'Parse EC Key #13a (SEC1 PEM, bp384r1, compressed)',
+                    'Parse EC Key #14a (SEC1 PEM, bp512r1, compressed)',
+                    'Parse EC Key #2a (SEC1 PEM, secp192r1, compressed)',
+                    'Parse EC Key #8a (SEC1 PEM, secp224r1, compressed)',
+                    'Parse EC Key #9a (SEC1 PEM, secp256r1, compressed)',
+                    'Parse Public EC Key #2a (RFC 5480, PEM, secp192r1, compressed)',
+                    'Parse Public EC Key #3a (RFC 5480, secp224r1, compressed)',
+                    'Parse Public EC Key #4a (RFC 5480, secp256r1, compressed)',
+                    'Parse Public EC Key #5a (RFC 5480, secp384r1, compressed)',
+                    'Parse Public EC Key #6a (RFC 5480, secp521r1, compressed)',
+                    'Parse Public EC Key #7a (RFC 5480, brainpoolP256r1, compressed)',
+                    'Parse Public EC Key #8a (RFC 5480, brainpoolP384r1, compressed)',
+                    'Parse Public EC Key #9a (RFC 5480, brainpoolP512r1, compressed)',
+                ],
+                'test_suite_asn1parse': [
+                    # This test depends on BIGNUM_C
+                    'INTEGER too large for mpi',
+                ],
+                'test_suite_asn1write': [
+                    # Following tests depends on BIGNUM_C
+                    'ASN.1 Write mpi 0 (1 limb)',
+                    'ASN.1 Write mpi 0 (null)',
+                    'ASN.1 Write mpi 0x100',
+                    'ASN.1 Write mpi 0x7f',
+                    'ASN.1 Write mpi 0x7f with leading 0 limb',
+                    'ASN.1 Write mpi 0x80',
+                    'ASN.1 Write mpi 0x80 with leading 0 limb',
+                    'ASN.1 Write mpi 0xff',
+                    'ASN.1 Write mpi 1',
+                    'ASN.1 Write mpi, 127*8 bits',
+                    'ASN.1 Write mpi, 127*8+1 bits',
+                    'ASN.1 Write mpi, 127*8-1 bits',
+                    'ASN.1 Write mpi, 255*8 bits',
+                    'ASN.1 Write mpi, 255*8-1 bits',
+                    'ASN.1 Write mpi, 256*8-1 bits',
+                ],
+                'test_suite_debug': [
+                    # Following tests depends on BIGNUM_C
+                    'Debug print mbedtls_mpi #2: 3 bits',
+                    'Debug print mbedtls_mpi: 0 (empty representation)',
+                    'Debug print mbedtls_mpi: 0 (non-empty representation)',
+                    'Debug print mbedtls_mpi: 49 bits',
+                    'Debug print mbedtls_mpi: 759 bits',
+                    'Debug print mbedtls_mpi: 764 bits #1',
+                    'Debug print mbedtls_mpi: 764 bits #2',
+                ],
+            }
+        }
+    },
     'analyze_driver_vs_reference_ffdh_alg': {
         'test_function': do_analyze_driver_vs_reference,
         'args': {

@@ -29,8 +29,8 @@ Auto-generation of the driver wrapper is supported for the operation entry point
 | Transparent Driver  | Opaque Driver       |
 |---------------------|---------------------|
 | `import_key`        | `import_key`        |
-| `export_key`        | `export_key`        |
 | `export_public_key` | `export_public_key` |
+|                     | `export_key`        |
 |                     | `copy_key`          |
 |                     | `get_builtin_key`   |
 

@@ -1559,8 +1559,7 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
 
 cleanup:
     if (shared_secret != NULL) {
-        mbedtls_platform_zeroize(shared_secret, shared_secret_len);
-        mbedtls_free(shared_secret);
+        mbedtls_zeroize_and_free(shared_secret, shared_secret_len);
     }
 
     return ret;

@@ -124,7 +124,7 @@ void lms_verify_test(data_t *msg, data_t *sig, data_t *pub_key,
                 continue;
             }
 
-            ASSERT_ALLOC(tmp_sig, size);
+            TEST_CALLOC(tmp_sig, size);
             if (tmp_sig != NULL) {
                 memcpy(tmp_sig, sig->x, MIN(size, sig->len));
             }
@@ -156,7 +156,7 @@ void lms_import_export_test(data_t *pub_key, int expected_import_rc)
 
     if (expected_import_rc == 0) {
         exported_pub_key_buf_size = MBEDTLS_LMS_PUBLIC_KEY_LEN(MBEDTLS_LMS_SHA256_M32_H10);
-        ASSERT_ALLOC(exported_pub_key, exported_pub_key_buf_size);
+        TEST_CALLOC(exported_pub_key, exported_pub_key_buf_size);
 
         TEST_EQUAL(mbedtls_lms_export_public_key(&ctx, exported_pub_key,
                                                  exported_pub_key_buf_size,
@@ -164,14 +164,14 @@ void lms_import_export_test(data_t *pub_key, int expected_import_rc)
 
         TEST_EQUAL(exported_pub_key_size,
                    MBEDTLS_LMS_PUBLIC_KEY_LEN(MBEDTLS_LMS_SHA256_M32_H10));
-        ASSERT_COMPARE(pub_key->x, pub_key->len,
-                       exported_pub_key, exported_pub_key_size);
+        TEST_MEMORY_COMPARE(pub_key->x, pub_key->len,
+                            exported_pub_key, exported_pub_key_size);
         mbedtls_free(exported_pub_key);
         exported_pub_key = NULL;
 
         /* Export into too-small buffer should fail */
         exported_pub_key_buf_size = MBEDTLS_LMS_PUBLIC_KEY_LEN(MBEDTLS_LMS_SHA256_M32_H10) - 1;
-        ASSERT_ALLOC(exported_pub_key, exported_pub_key_buf_size);
+        TEST_CALLOC(exported_pub_key, exported_pub_key_buf_size);
         TEST_EQUAL(mbedtls_lms_export_public_key(&ctx, exported_pub_key,
                                                  exported_pub_key_buf_size, NULL),
                    MBEDTLS_ERR_LMS_BUFFER_TOO_SMALL);
@@ -180,13 +180,13 @@ void lms_import_export_test(data_t *pub_key, int expected_import_rc)
 
         /* Export into too-large buffer should succeed */
         exported_pub_key_buf_size = MBEDTLS_LMS_PUBLIC_KEY_LEN(MBEDTLS_LMS_SHA256_M32_H10) + 1;
-        ASSERT_ALLOC(exported_pub_key, exported_pub_key_buf_size);
+        TEST_CALLOC(exported_pub_key, exported_pub_key_buf_size);
         TEST_EQUAL(mbedtls_lms_export_public_key(&ctx, exported_pub_key,
                                                  exported_pub_key_buf_size,
                                                  &exported_pub_key_size),
                    0);
-        ASSERT_COMPARE(pub_key->x, pub_key->len,
-                       exported_pub_key, exported_pub_key_size);
+        TEST_MEMORY_COMPARE(pub_key->x, pub_key->len,
+                            exported_pub_key, exported_pub_key_size);
         mbedtls_free(exported_pub_key);
         exported_pub_key = NULL;
     }

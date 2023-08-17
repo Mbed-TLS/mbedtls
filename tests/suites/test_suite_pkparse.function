@@ -8,7 +8,7 @@
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_BIGNUM_C
+ * depends_on:MBEDTLS_PK_PARSE_C
  * END_DEPENDENCIES
  */
 
@@ -169,13 +169,13 @@ void pk_parse_fix_montgomery(data_t *input_key, data_t *exp_output)
                                     mbedtls_test_rnd_std_rand, NULL), 0);
 
     output_key_len = input_key->len;
-    ASSERT_ALLOC(output_key, output_key_len);
+    TEST_CALLOC(output_key, output_key_len);
     /* output_key_len is updated with the real amount of data written to
      * output_key buffer. */
     output_key_len = mbedtls_pk_write_key_der(&pk, output_key, output_key_len);
     TEST_ASSERT(output_key_len > 0);
 
-    ASSERT_COMPARE(exp_output->x, exp_output->len, output_key, output_key_len);
+    TEST_MEMORY_COMPARE(exp_output->x, exp_output->len, output_key, output_key_len);
 
 exit:
     if (output_key != NULL) {

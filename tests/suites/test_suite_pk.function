@@ -21,8 +21,8 @@
 /* Used for properly sizing the key buffer in pk_genkey_ec() */
 #include "psa_util_internal.h"
 
-#define RSA_KEY_SIZE 512
-#define RSA_KEY_LEN   64
+#define RSA_KEY_SIZE   MBEDTLS_RSA_GEN_KEY_MIN_BITS
+#define RSA_KEY_LEN   (MBEDTLS_RSA_GEN_KEY_MIN_BITS/8)
 
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static int pk_genkey_ec(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id)
@@ -1198,8 +1198,8 @@ void pk_rsa_alt()
     mbedtls_rsa_context raw;
     mbedtls_pk_context rsa, alt;
     mbedtls_pk_debug_item dbg_items[10];
-    unsigned char hash[50], sig[64];
-    unsigned char msg[50], ciph[64], test[50];
+    unsigned char hash[50], sig[RSA_KEY_LEN];
+    unsigned char msg[50], ciph[RSA_KEY_LEN], test[50];
     size_t sig_len, ciph_len, test_len;
     int ret = MBEDTLS_ERR_PK_TYPE_MISMATCH;
 

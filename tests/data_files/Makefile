@@ -1304,8 +1304,7 @@ all_final += server1.req.sha256
 
 server1.req.sha256.ext: server1.key
 	# Generating this with OpenSSL as a comparison point to test we're getting the same result
-	openssl req -new -out $@ -key $< -subj '/C=NL/O=PolarSSL/CN=PolarSSL Server 1' -sha256 -addext "extendedKeyUsage=serverAuth" -addext "subjectAltName=URI:http://pki.example.com/,IP:127.1.1.0,DNS:example.com"
-all_final += server1.req.sha256.ext
+	openssl req -new -out $@ -key $< -subj '/C=NL/O=PolarSSL/CN=PolarSSL Server 1' -sha256 -config server1.req.sha256.conf
 
 parse_input/server1.req.sha384 server1.req.sha384: server1.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA384
@@ -1385,7 +1384,7 @@ all_final += server5-badsign.crt
 
 # The use of 'Server 1' in the DN is intentional here, as the DN is hardcoded in the x509_write test suite.'
 server5.req.ku.sha1: server5.key
-	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< key_usage=digital_signature,non_repudiation subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1
+	$(OPENSSL) req -key $< -out $@ -new -nodes -subj "/C=NL/O=PolarSSL/CN=PolarSSL Server 1" -sha1 -addext keyUsage=digitalSignature,nonRepudiation
 all_final += server5.req.ku.sha1
 
 # server6*

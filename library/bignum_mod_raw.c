@@ -40,7 +40,7 @@ void mbedtls_mpi_mod_raw_cond_assign(mbedtls_mpi_uint *X,
                                      const mbedtls_mpi_mod_modulus *N,
                                      unsigned char assign)
 {
-    mbedtls_mpi_core_cond_assign(X, A, N->limbs, assign);
+    mbedtls_mpi_core_cond_assign(X, A, N->limbs, mbedtls_ct_bool(assign));
 }
 
 void mbedtls_mpi_mod_raw_cond_swap(mbedtls_mpi_uint *X,
@@ -48,7 +48,7 @@ void mbedtls_mpi_mod_raw_cond_swap(mbedtls_mpi_uint *X,
                                    const mbedtls_mpi_mod_modulus *N,
                                    unsigned char swap)
 {
-    mbedtls_mpi_core_cond_swap(X, Y, N->limbs, swap);
+    mbedtls_mpi_core_cond_swap(X, Y, N->limbs, mbedtls_ct_bool(swap));
 }
 
 int mbedtls_mpi_mod_raw_read(mbedtls_mpi_uint *X,
@@ -253,8 +253,7 @@ int mbedtls_mpi_mod_raw_to_mont_rep(mbedtls_mpi_uint *X,
     mbedtls_mpi_core_to_mont_rep(X, X, N->p, N->limbs,
                                  N->rep.mont.mm, N->rep.mont.rr, T);
 
-    mbedtls_platform_zeroize(T, t_limbs * ciL);
-    mbedtls_free(T);
+    mbedtls_zeroize_and_free(T, t_limbs * ciL);
     return 0;
 }
 
@@ -270,8 +269,7 @@ int mbedtls_mpi_mod_raw_from_mont_rep(mbedtls_mpi_uint *X,
 
     mbedtls_mpi_core_from_mont_rep(X, X, N->p, N->limbs, N->rep.mont.mm, T);
 
-    mbedtls_platform_zeroize(T, t_limbs * ciL);
-    mbedtls_free(T);
+    mbedtls_zeroize_and_free(T, t_limbs * ciL);
     return 0;
 }
 

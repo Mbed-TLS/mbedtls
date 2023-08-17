@@ -108,9 +108,9 @@ int mbedtls_asn1_get_any_tag(unsigned char **p,
     }
 
     tag = *((*p)++);
-    *tag_number = tag & 0b00011111;
-    *tag_constructed = tag & 0b00100000;
-    *tag_class = tag & 0b11000000;
+    *tag_number = tag & 0x1F;
+    *tag_constructed = tag & 0x20;
+    *tag_class = tag & 0xC0;
 
     return 0;
 }

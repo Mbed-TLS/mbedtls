@@ -1334,6 +1334,8 @@ server5.eku-srv_cli.crt: SERVER5_EXT_KEY_USAGE=serverAuth,clientAuth
 server5.eku-srv.crt: SERVER5_CRT_SERIAL=62
 server5.eku-srv.crt: SERVER5_EXT_KEY_USAGE=serverAuth
 server5.ku-%.crt: SERVER5_EXT_OPTS=key_usage=$(SERVER5_KEY_USAGE)
+# The commands for server5.eku-*.crt is invalid because `ext_key_usage` was not supported by
+# `cert_write` in 2.28. This would be fixed by #8083.
 server5.eku-%.crt: SERVER5_EXT_OPTS=ext_key_usage=$(SERVER5_EXT_KEY_USAGE)
 server5.%.crt: server5.key
 	$(MBEDTLS_CERT_WRITE) \

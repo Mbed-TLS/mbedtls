@@ -52,7 +52,8 @@
 #error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PADLOCK_C) && !defined(MBEDTLS_HAVE_ASM)
+#if defined(MBEDTLS_PADLOCK_C) && \
+    (!defined(MBEDTLS_HAVE_ASM) || defined(MBEDTLS_AES_USE_HARDWARE_ONLY))
 #error "MBEDTLS_PADLOCK_C defined, but not all prerequisites"
 #endif
 #endif

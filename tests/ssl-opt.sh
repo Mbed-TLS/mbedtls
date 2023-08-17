@@ -123,6 +123,7 @@ FILTER='.*'
 EXCLUDE='^$'
 
 SHOW_TEST_NUMBER=0
+LIST_TESTS=0
 RUN_TEST_NUMBER=''
 
 PRESERVE_LOGS=0
@@ -140,6 +141,7 @@ print_usage() {
     printf "  -f|--filter\tOnly matching tests are executed (substring or BRE)\n"
     printf "  -e|--exclude\tMatching tests are excluded (substring or BRE)\n"
     printf "  -n|--number\tExecute only numbered test (comma-separated, e.g. '245,256')\n"
+    printf "  -l|--list-tests\tList test names and exit\n"
     printf "  -s|--show-numbers\tShow test numbers in front of test names\n"
     printf "  -p|--preserve-logs\tPreserve logs of successful tests as well\n"
     printf "     --outcome-file\tFile where test outcomes are written\n"
@@ -166,6 +168,9 @@ get_options() {
                 ;;
             -s|--show-numbers)
                 SHOW_TEST_NUMBER=1
+                ;;
+            -l|--list-tests)
+                LIST_TESTS=1
                 ;;
             -p|--preserve-logs)
                 PRESERVE_LOGS=1
@@ -862,9 +867,13 @@ print_name() {
 
     LINE="$LINE$1"
     printf "%s " "$LINE"
-    LEN=$(( 72 - `echo "$LINE" | wc -c` ))
-    for i in `seq 1 $LEN`; do printf '.'; done
-    printf ' '
+    if [ "$LIST_TESTS" -gt 0 ]; then
+        printf "\n"
+    else
+        LEN=$(( 72 - `echo "$LINE" | wc -c` ))
+        for i in `seq 1 $LEN`; do printf '.'; done
+        printf ' '
+    fi
 
 }
 
@@ -1579,6 +1588,10 @@ run_test() {
     fi
 
     print_name "$NAME"
+
+    if [ "$LIST_TESTS" -gt 0 ]; then
+        return
+    fi
 
     # Do we only run numbered tests?
     if [ -n "$RUN_TEST_NUMBER" ]; then
@@ -13375,17 +13388,21 @@ requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_max_content_len 16384
 run_tests_memory_after_hanshake
 
-# Final report
+if [ "$LIST_TESTS" -eq 0 ]; then
 
-echo "------------------------------------------------------------------------"
+    # Final report
 
-if [ $FAILS = 0 ]; then
-    printf "PASSED"
-else
-    printf "FAILED"
+    echo "------------------------------------------------------------------------"
+
+    if [ $FAILS = 0 ]; then
+        printf "PASSED"
+    else
+        printf "FAILED"
+    fi
+    PASSES=$(( $TESTS - $FAILS ))
+    echo " ($PASSES / $TESTS tests ($SKIPS skipped))"
+
 fi
-PASSES=$(( $TESTS - $FAILS ))
-echo " ($PASSES / $TESTS tests ($SKIPS skipped))"
 
 if [ $FAILS -gt 255 ]; then
     # Clamp at 255 as caller gets exit code & 0xFF

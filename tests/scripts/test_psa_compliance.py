@@ -22,6 +22,7 @@ to help keep the list of known defects as up to date as possible.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import os
 import re
 import shutil
@@ -54,14 +55,18 @@ PSA_ARCH_TESTS_REPO = 'https://github.com/bensze01/psa-arch-tests.git'
 PSA_ARCH_TESTS_REF = 'fix-pr-5736'
 
 #pylint: disable=too-many-branches,too-many-statements,too-many-locals
-def main():
+def main(library_build_dir: str):
     mbedtls_dir = os.getcwd()
 
     is_psa_crypto = build_tree.looks_like_psa_crypto_root(mbedtls_dir)
 
-    if not is_psa_crypto:
-        if not os.path.exists('library/libmbedcrypto.a'):
-            subprocess.check_call(['make', '-C', 'library', 'libmbedcrypto.a'])
+    if not os.path.exists(library_build_dir + '/library/libmbedcrypto.a'):
+        subprocess.check_call([
+            'cmake', '.',
+                     '-GUnix Makefiles',
+                     '-B', library_build_dir
+        ])
+        subprocess.check_call(['cmake', '--build', library_build_dir])
 
     psa_arch_tests_dir = 'psa-arch-tests'
     os.makedirs(psa_arch_tests_dir, exist_ok=True)
@@ -83,9 +88,9 @@ def main():
 
         if is_psa_crypto:
             psa_crypto_lib_filename = \
-                'mbedtls_out_of_source_build/core/libpsacrypto.a'
+                library_build_dir + '/core/libpsacrypto.a'
         else:
-            psa_crypto_lib_filename = 'library/libmbedcrypto.a'
+            psa_crypto_lib_filename = library_build_dir + '/library/libmbedcrypto.a'
 
         extra_includes = (';{}/drivers/builtin/include'.format(mbedtls_dir)
                           if is_psa_crypto else '')
@@ -156,4 +161,15 @@ def main():
         os.chdir(mbedtls_dir)
 
 if __name__ == '__main__':
-    sys.exit(main())
+    # Default build directory
+    library_build_dir = 'mbedtls_out_of_source_build'
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--build-dir', nargs=1,
+                        help='path to Mbed TLS build directory')
+    args = parser.parse_args()
+
+    if args.build_dir is not None:
+        library_build_dir = args.build_dir[0]
+
+    sys.exit(main(library_build_dir))

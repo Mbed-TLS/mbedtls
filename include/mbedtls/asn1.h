@@ -269,8 +269,14 @@ int mbedtls_asn1_get_tag(unsigned char **p,
  *              after the tag, i.e. the first byte of the length.
  *              On error, the value of \c *p is undefined.
  * \param end   End of data.
- * \param tag   On successful completion, \c *tag contains the tag
+ * \param tag_number   On successful completion, \c *tag_number contains the tag
  *              read from the ASN.1 input.
+ * \param tag_constructed   On successful completion, \c *tag_constructed contains
+ *              either MBEDTLS_ASN1_CONSTRUCTED or MBEDTLS_ASN1_PRIMITIVE as read
+ *              from ASN.1 input.
+ * \param tag_class   On successful completion, \c *tag_class contains either
+ *              MBEDTLS_ASN1_UNIVERSAL, MBEDTLS_ASN1_APPLICATION, MBEDTLS_ASN1_CONTEXT_SPECIFIC, MBEDTLS_ASN1_PRIVATE
+ *              as read from ASN.1 input.
  *
  * \return      0 if successful.
  * \return      #MBEDTLS_ERR_ASN1_OUT_OF_DATA if the ASN.1 element

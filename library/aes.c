@@ -620,9 +620,6 @@ static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
 int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
                            unsigned int keybits)
 {
-#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-    unsigned int i;
-#endif
     uint32_t *RK;
 
     switch (keybits) {
@@ -657,14 +654,14 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 #endif
 
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-    for (i = 0; i < (keybits >> 5); i++) {
+    for (unsigned int i = 0; i < (keybits >> 5); i++) {
         RK[i] = MBEDTLS_GET_UINT32_LE(key, i << 2);
     }
 
     switch (ctx->nr) {
         case 10:
 
-            for (i = 0; i < 10; i++, RK += 4) {
+            for (unsigned int i = 0; i < 10; i++, RK += 4) {
                 RK[4]  = RK[0] ^ RCON[i] ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_1(RK[3])]) ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_2(RK[3])] <<  8) ^
@@ -680,7 +677,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 #if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
         case 12:
 
-            for (i = 0; i < 8; i++, RK += 6) {
+            for (unsigned int i = 0; i < 8; i++, RK += 6) {
                 RK[6]  = RK[0] ^ RCON[i] ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_1(RK[5])]) ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_2(RK[5])] <<  8) ^
@@ -697,7 +694,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 
         case 14:
 
-            for (i = 0; i < 7; i++, RK += 8) {
+            for (unsigned int i = 0; i < 7; i++, RK += 8) {
                 RK[8]  = RK[0] ^ RCON[i] ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_1(RK[7])]) ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_2(RK[7])] <<  8) ^
@@ -735,7 +732,6 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
                            unsigned int keybits)
 {
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-    int i, j;
     uint32_t *SK;
 #endif
     int ret;
@@ -780,9 +776,9 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
     *RK++ = *SK++;
     *RK++ = *SK++;
     *RK++ = *SK++;
-
-    for (i = ctx->nr - 1, SK -= 8; i > 0; i--, SK -= 8) {
-        for (j = 0; j < 4; j++, SK++) {
+    SK -= 8;
+    for (int i = ctx->nr - 1; i > 0; i--, SK -= 8) {
+        for (int j = 0; j < 4; j++, SK++) {
             *RK++ = AES_RT0(FSb[MBEDTLS_BYTE_0(*SK)]) ^
                     AES_RT1(FSb[MBEDTLS_BYTE_1(*SK)]) ^
                     AES_RT2(FSb[MBEDTLS_BYTE_2(*SK)]) ^

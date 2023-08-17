@@ -86,6 +86,7 @@ exit:
     return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
 }
 
+#if defined(MBEDTLS_ECP_WITH_MPI_UINT)
 int mbedtls_test_read_mpi_modulus(mbedtls_mpi_mod_modulus *N,
                                   const char *s,
                                   mbedtls_mpi_mod_rep_selector int_rep)
@@ -122,6 +123,7 @@ void mbedtls_test_mpi_mod_modulus_free_with_limbs(mbedtls_mpi_mod_modulus *N)
     mbedtls_free((mbedtls_mpi_uint *) N->p);
     mbedtls_mpi_mod_modulus_free(N);
 }
+#endif /* MBEDTLS_ECP_WITH_MPI_UINT */
 
 int mbedtls_test_read_mpi(mbedtls_mpi *X, const char *s)
 {

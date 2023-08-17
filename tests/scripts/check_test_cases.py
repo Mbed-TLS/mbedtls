@@ -143,9 +143,6 @@ state may override this method.
             ssl_opt_sh = os.path.join(directory, 'ssl-opt.sh')
             if os.path.exists(ssl_opt_sh):
                 self.walk_ssl_opt_sh(ssl_opt_sh)
-            for ssl_opt_file_name in glob.glob(os.path.join(directory, 'opt-testcases',
-                                                            '*.sh')):
-                self.walk_ssl_opt_sh(ssl_opt_file_name)
             compat_sh = os.path.join(directory, 'compat.sh')
             if os.path.exists(compat_sh):
                 self.walk_compat_sh(compat_sh)

@@ -37,7 +37,8 @@
  */
 #if !defined(MBEDTLS_HAVE_X86_64) && \
     (defined(__amd64__) || defined(__x86_64__) || \
-    defined(_M_X64) || defined(_M_AMD64))
+    defined(_M_X64) || defined(_M_AMD64)) && \
+    !defined(_M_ARM64EC)
 #define MBEDTLS_HAVE_X86_64
 #endif
 

@@ -1900,11 +1900,6 @@ int mbedtls_aes_self_test(int verbose)
 #if defined(MBEDTLS_AES_ALT)
         mbedtls_printf("  AES note: alternative implementation.\n");
 #else /* MBEDTLS_AES_ALT */
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86) && defined(__GNUC__)
-        if (mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE)) {
-            mbedtls_printf("  AES note: using VIA Padlock.\n");
-        } else
-#endif
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
 #if MBEDTLS_AESNI_HAVE_CODE == 1
         mbedtls_printf("  AES note: AESNI code present (assembly implementation).\n");
@@ -1915,6 +1910,11 @@ int mbedtls_aes_self_test(int verbose)
 #endif
         if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
             mbedtls_printf("  AES note: using AESNI.\n");
+        } else
+#endif
+#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86) && defined(__GNUC__)
+        if (mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE)) {
+            mbedtls_printf("  AES note: using VIA Padlock.\n");
         } else
 #endif
 #if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)

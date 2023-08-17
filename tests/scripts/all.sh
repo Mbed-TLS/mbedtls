@@ -123,8 +123,8 @@ set -e -o pipefail -u
 # Enable ksh/bash extended file matching patterns
 shopt -s extglob
 
-in_psa_crypto_repo () {
-    test -d core
+in_mbedtls_repo () {
+    test ! -d core
 }
 
 pre_check_environment () {
@@ -135,10 +135,10 @@ pre_check_environment () {
 }
 
 pre_initialize_variables () {
-    if in_psa_crypto_repo; then
-        CONFIG_H='drivers/builtin/include/mbedtls/mbedtls_config.h'
-    else
+    if in_mbedtls_repo; then
         CONFIG_H='include/mbedtls/mbedtls_config.h'
+    else
+        CONFIG_H='drivers/builtin/include/mbedtls/mbedtls_config.h'
     fi
     CRYPTO_CONFIG_H='include/psa/crypto_config.h'
     CONFIG_TEST_DRIVER_H='tests/include/test/drivers/config_test_driver.h'
@@ -149,7 +149,7 @@ pre_initialize_variables () {
     backup_suffix='.all.bak'
     # Files clobbered by config.py
     files_to_back_up="$CONFIG_H $CRYPTO_CONFIG_H $CONFIG_TEST_DRIVER_H"
-    if ! in_psa_crypto_repo; then
+    if in_mbedtls_repo; then
         # Files clobbered by in-tree cmake
         files_to_back_up="$files_to_back_up Makefile library/Makefile programs/Makefile tests/Makefile programs/fuzz/Makefile"
     fi
@@ -309,7 +309,7 @@ EOF
 # Does not remove generated source files.
 cleanup()
 {
-    if ! in_psa_crypto_repo; then
+    if in_mbedtls_repo; then
         command make clean
     fi
 
@@ -5276,7 +5276,7 @@ pre_prepare_outcome_file
 pre_print_configuration
 pre_check_tools
 cleanup
-if ! in_psa_crypto_repo; then
+if in_mbedtls_repo; then
     pre_generate_files
 fi
 

@@ -5093,7 +5093,7 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation)
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
+    defined(PSA_HAVE_SOFT_PBKDF2)
 #define AT_LEAST_ONE_BUILTIN_KDF
 #endif /* At least one builtin KDF */
 
@@ -5193,8 +5193,8 @@ psa_status_t psa_key_derivation_abort(psa_key_derivation_operation_t *operation)
                                  sizeof(operation->ctx.tls12_ecjpake_to_pms.data));
     } else
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS) */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
-    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
+#if defined(PSA_HAVE_SOFT_PBKDF2)
+    if (PSA_ALG_IS_PBKDF2(kdf_alg)) {
         if (operation->ctx.pbkdf2.salt != NULL) {
             mbedtls_zeroize_and_free(operation->ctx.pbkdf2.salt,
                                      operation->ctx.pbkdf2.salt_length);
@@ -5202,7 +5202,7 @@ psa_status_t psa_key_derivation_abort(psa_key_derivation_operation_t *operation)
 
         status = PSA_SUCCESS;
     } else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC) */
+#endif /* defined(PSA_HAVE_SOFT_PBKDF2) */
     {
         status = PSA_ERROR_BAD_STATE;
     }
@@ -5529,7 +5529,7 @@ static psa_status_t psa_key_derivation_tls12_ecjpake_to_pms_read(
 }
 #endif
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
+#if defined(PSA_HAVE_SOFT_PBKDF2)
 static psa_status_t psa_key_derivation_pbkdf2_generate_block(
     psa_pbkdf2_key_derivation_t *pbkdf2,
     psa_algorithm_t prf_alg,
@@ -5578,11 +5578,14 @@ static psa_status_t psa_key_derivation_pbkdf2_generate_block(
     memcpy(U_accumulator, U_i, prf_output_length);
 
     for (i = 1; i < pbkdf2->input_cost; i++) {
+        /* We are passing prf_output_length as mac_size because the driver
+         * function directly sets mac_output_length as mac_size upon success.
+         * See https://github.com/Mbed-TLS/mbedtls/issues/7801 */
         status = psa_driver_wrapper_mac_compute(attributes,
                                                 pbkdf2->password,
                                                 pbkdf2->password_length,
                                                 prf_alg, U_i, prf_output_length,
-                                                U_i, sizeof(U_i),
+                                                U_i, prf_output_length,
                                                 &mac_output_length);
         if (status != PSA_SUCCESS) {
             goto cleanup;
@@ -5614,6 +5617,10 @@ static psa_status_t psa_key_derivation_pbkdf2_read(
         prf_alg = PSA_ALG_HMAC(PSA_ALG_PBKDF2_HMAC_GET_HASH(kdf_alg));
         prf_output_length = PSA_HASH_LENGTH(prf_alg);
         psa_set_key_type(&attributes, PSA_KEY_TYPE_HMAC);
+    } else if (kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
+        prf_alg = PSA_ALG_CMAC;
+        prf_output_length = PSA_MAC_LENGTH(PSA_KEY_TYPE_AES, 128U, PSA_ALG_CMAC);
+        psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
     } else {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
@@ -5658,7 +5665,7 @@ static psa_status_t psa_key_derivation_pbkdf2_read(
 
     return PSA_SUCCESS;
 }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
+#endif /* PSA_HAVE_SOFT_PBKDF2 */
 
 psa_status_t psa_key_derivation_output_bytes(
     psa_key_derivation_operation_t *operation,
@@ -5713,12 +5720,12 @@ psa_status_t psa_key_derivation_output_bytes(
             &operation->ctx.tls12_ecjpake_to_pms, output, output_length);
     } else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
-    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
+#if defined(PSA_HAVE_SOFT_PBKDF2)
+    if (PSA_ALG_IS_PBKDF2(kdf_alg)) {
         status = psa_key_derivation_pbkdf2_read(&operation->ctx.pbkdf2, kdf_alg,
                                                 output, output_length);
     } else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
+#endif /* PSA_HAVE_SOFT_PBKDF2 */
 
     {
         (void) kdf_alg;
@@ -6145,6 +6152,11 @@ static int is_kdf_alg_supported(psa_algorithm_t kdf_alg)
         return 1;
     }
 #endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128)
+    if (kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
+        return 1;
+    }
+#endif
     return 0;
 }
 
@@ -6170,10 +6182,14 @@ static psa_status_t psa_key_derivation_setup_kdf(
     }
 
     /* All currently supported key derivation algorithms (apart from
-     * ecjpake to pms) are based on a hash algorithm. */
+     * ecjpake to pms and pbkdf2_aes_cmac_128) are based on a hash algorithm. */
     psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH(kdf_alg);
     size_t hash_size = PSA_HASH_LENGTH(hash_alg);
-    if (kdf_alg != PSA_ALG_TLS12_ECJPAKE_TO_PMS) {
+    if (kdf_alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS) {
+        hash_size = PSA_HASH_LENGTH(PSA_ALG_SHA_256);
+    } else if (kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
+        hash_size = PSA_MAC_LENGTH(PSA_KEY_TYPE_AES, 128U, PSA_ALG_CMAC);
+    } else {
         if (hash_size == 0) {
             return PSA_ERROR_NOT_SUPPORTED;
         }
@@ -6185,8 +6201,6 @@ static psa_status_t psa_key_derivation_setup_kdf(
         if (status != PSA_SUCCESS) {
             return status;
         }
-    } else {
-        hash_size = PSA_HASH_LENGTH(PSA_ALG_SHA_256);
     }
 
     if ((PSA_ALG_IS_TLS12_PRF(kdf_alg) ||
@@ -6638,7 +6652,7 @@ static psa_status_t psa_tls12_ecjpake_to_pms_input(
 }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS */
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
+#if defined(PSA_HAVE_SOFT_PBKDF2)
 static psa_status_t psa_pbkdf2_set_input_cost(
     psa_pbkdf2_key_derivation_t *pbkdf2,
     psa_key_derivation_step_t step,
@@ -6703,6 +6717,7 @@ static psa_status_t psa_pbkdf2_set_salt(psa_pbkdf2_key_derivation_t *pbkdf2,
     return PSA_SUCCESS;
 }
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
 static psa_status_t psa_pbkdf2_hmac_set_password(psa_algorithm_t hash_alg,
                                                  const uint8_t *input,
                                                  size_t input_len,
@@ -6719,6 +6734,39 @@ static psa_status_t psa_pbkdf2_hmac_set_password(psa_algorithm_t hash_alg,
     }
     return status;
 }
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128)
+static psa_status_t psa_pbkdf2_cmac_set_password(const uint8_t *input,
+                                                 size_t input_len,
+                                                 uint8_t *output,
+                                                 size_t *output_len)
+{
+    psa_status_t status = PSA_SUCCESS;
+    if (input_len != PSA_MAC_LENGTH(PSA_KEY_TYPE_AES, 128U, PSA_ALG_CMAC)) {
+        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+        uint8_t zeros[16] = { 0 };
+        psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
+        psa_set_key_bits(&attributes, PSA_BYTES_TO_BITS(sizeof(zeros)));
+        psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_MESSAGE);
+        /* Passing PSA_MAC_LENGTH(PSA_KEY_TYPE_AES, 128U, PSA_ALG_CMAC) as
+         * mac_size as the driver function sets mac_output_length = mac_size
+         * on success. See https://github.com/Mbed-TLS/mbedtls/issues/7801 */
+        status = psa_driver_wrapper_mac_compute(&attributes,
+                                                zeros, sizeof(zeros),
+                                                PSA_ALG_CMAC, input, input_len,
+                                                output,
+                                                PSA_MAC_LENGTH(PSA_KEY_TYPE_AES,
+                                                               128U,
+                                                               PSA_ALG_CMAC),
+                                                output_len);
+    } else {
+        memcpy(output, input, input_len);
+        *output_len = PSA_MAC_LENGTH(PSA_KEY_TYPE_AES, 128U, PSA_ALG_CMAC);
+    }
+    return status;
+}
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128 */
 
 static psa_status_t psa_pbkdf2_set_password(psa_pbkdf2_key_derivation_t *pbkdf2,
                                             psa_algorithm_t kdf_alg,
@@ -6730,13 +6778,23 @@ static psa_status_t psa_pbkdf2_set_password(psa_pbkdf2_key_derivation_t *pbkdf2,
         return PSA_ERROR_BAD_STATE;
     }
 
-    if (data_length != 0) {
-        if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
-            psa_algorithm_t hash_alg = PSA_ALG_PBKDF2_HMAC_GET_HASH(kdf_alg);
-            status = psa_pbkdf2_hmac_set_password(hash_alg, data, data_length,
-                                                  pbkdf2->password,
-                                                  &pbkdf2->password_length);
-        }
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
+    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
+        psa_algorithm_t hash_alg = PSA_ALG_PBKDF2_HMAC_GET_HASH(kdf_alg);
+        status = psa_pbkdf2_hmac_set_password(hash_alg, data, data_length,
+                                              pbkdf2->password,
+                                              &pbkdf2->password_length);
+    } else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128)
+    if (kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
+        status = psa_pbkdf2_cmac_set_password(data, data_length,
+                                              pbkdf2->password,
+                                              &pbkdf2->password_length);
+    } else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128 */
+    {
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
 
     pbkdf2->state = PSA_PBKDF2_STATE_PASSWORD_SET;
@@ -6759,7 +6817,7 @@ static psa_status_t psa_pbkdf2_input(psa_pbkdf2_key_derivation_t *pbkdf2,
             return PSA_ERROR_INVALID_ARGUMENT;
     }
 }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
+#endif /* PSA_HAVE_SOFT_PBKDF2 */
 
 /** Check whether the given key type is acceptable for the given
  * input step of a key derivation.
@@ -6856,12 +6914,12 @@ static psa_status_t psa_key_derivation_input_internal(
             &operation->ctx.tls12_ecjpake_to_pms, step, data, data_length);
     } else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
-    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
+#if defined(PSA_HAVE_SOFT_PBKDF2)
+    if (PSA_ALG_IS_PBKDF2(kdf_alg)) {
         status = psa_pbkdf2_input(&operation->ctx.pbkdf2, kdf_alg,
                                   step, data, data_length);
     } else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
+#endif /* PSA_HAVE_SOFT_PBKDF2 */
     {
         /* This can't happen unless the operation object was not initialized */
         (void) data;
@@ -6885,12 +6943,12 @@ static psa_status_t psa_key_derivation_input_integer_internal(
     psa_status_t status;
     psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg(operation);
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
-    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
+#if defined(PSA_HAVE_SOFT_PBKDF2)
+    if (PSA_ALG_IS_PBKDF2(kdf_alg)) {
         status = psa_pbkdf2_set_input_cost(
             &operation->ctx.pbkdf2, step, value);
     } else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
+#endif /* PSA_HAVE_SOFT_PBKDF2 */
     {
         (void) step;
         (void) value;

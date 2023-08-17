@@ -80,6 +80,7 @@ endif
 ## make sure to check that it still works if you tweak the format here.
 APPS = \
 	aes/crypt_and_hash \
+	asn1/asn_decoder \
 	cipher/cipher_aead_demo \
 	hash/generic_sum \
 	hash/hello \

@@ -28,8 +28,6 @@
 #if defined(MBEDTLS_EDDSA_C)
 
 #include "mbedtls/eddsa.h"
-#include "mbedtls/asn1write.h"
-
 #include <string.h>
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -299,36 +297,31 @@ cleanup:
 }
 
 /*
- * Convert a signature (given by context) to ASN.1
+ * Convert a signature (given by context) to binary
  */
-#if defined(MBEDTLS_ASN1_WRITE_C)
-static int eddsa_signature_to_asn1(const mbedtls_mpi *r, const mbedtls_mpi *s,
+static int eddsa_signature_to_binary(const mbedtls_ecp_group *grp, const mbedtls_mpi *r, const mbedtls_mpi *s,
                                    unsigned char *sig, size_t sig_size,
                                    size_t *slen)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char buf[MBEDTLS_EDDSA_MAX_LEN] = { 0 };
-    unsigned char *p = buf + sizeof(buf);
-    size_t len = 0;
+    size_t plen = (grp->pbits + 1 + 7) >> 3;
 
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_mpi(&p, buf, s));
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_mpi(&p, buf, r));
-
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&p, buf, len));
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(&p, buf,
-                                                     MBEDTLS_ASN1_CONSTRUCTED |
-                                                     MBEDTLS_ASN1_SEQUENCE));
-
-    if (len > sig_size) {
+    if (2 * plen > sig_size) {
         return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
     }
 
-    memcpy(sig, p, len);
-    *slen = len;
+    ret = mbedtls_mpi_write_binary_le(r, sig, plen);
+    if (ret != 0) {
+        return ret;
+    }
+    ret = mbedtls_mpi_write_binary_le(s, sig + plen, plen);
+    if (ret != 0) {
+        return ret;
+    }
+    *slen = 2 * plen;
 
     return 0;
 }
-#endif
 
 /*
  * Compute and write signature
@@ -344,10 +337,6 @@ int mbedtls_eddsa_write_signature(mbedtls_ecp_keypair *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi r, s;
 
-#if !defined(MBEDTLS_ASN1_WRITE_C)
-    return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
-#else
-
     if (ctx == NULL || hash == NULL || sig == NULL || slen == NULL || f_rng == NULL) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
@@ -360,14 +349,13 @@ int mbedtls_eddsa_write_signature(mbedtls_ecp_keypair *ctx,
                                        ed_ctx_len, f_rng,
                                        p_rng));
 
-    MBEDTLS_MPI_CHK(eddsa_signature_to_asn1(&r, &s, sig, sig_size, slen));
+    MBEDTLS_MPI_CHK(eddsa_signature_to_binary(&ctx->grp, &r, &s, sig, sig_size, slen));
 
 cleanup:
     mbedtls_mpi_free(&r);
     mbedtls_mpi_free(&s);
 
     return ret;
-#endif /* MBEDTLS_ASN1_WRITE_C */
 }
 
 /*
@@ -380,39 +368,22 @@ int mbedtls_eddsa_read_signature(mbedtls_ecp_keypair *ctx,
                                  const unsigned char *ed_ctx, size_t ed_ctx_len)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char *p = (unsigned char *) sig;
-    const unsigned char *end = sig + slen;
-    size_t len;
+    size_t plen = (ctx->grp.pbits + 1 + 7) >> 3;
     mbedtls_mpi r, s;
 
-#if !defined(MBEDTLS_ASN1_PARSE_C)
-    return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
-#else
-
     if (ctx == NULL || hash == NULL || sig == NULL) {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+    if (2 * plen > slen) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
     mbedtls_mpi_init(&r);
     mbedtls_mpi_init(&s);
 
-    if ((ret = mbedtls_asn1_get_tag(&p, end, &len,
-                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
-        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-        goto cleanup;
-    }
-
-    if (p + len != end) {
-        ret = MBEDTLS_ERROR_ADD(MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
-        goto cleanup;
-    }
-
-    if ((ret = mbedtls_asn1_get_mpi(&p, end, &r)) != 0 ||
-        (ret = mbedtls_asn1_get_mpi(&p, end, &s)) != 0) {
-        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-        goto cleanup;
-    }
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary_le(&r, sig, plen));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary_le(&s, sig + plen, plen));
 
     if ((ret = mbedtls_eddsa_verify(&ctx->grp, hash, hlen,
                                     &ctx->Q, &r, &s,
@@ -420,19 +391,11 @@ int mbedtls_eddsa_read_signature(mbedtls_ecp_keypair *ctx,
         goto cleanup;
     }
 
-    /* At this point we know that the buffer starts with a valid signature.
-     * Return 0 if the buffer just contains the signature, and a specific
-     * error code if the valid signature is followed by more data. */
-    if (p != end) {
-        ret = MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH;
-    }
-
 cleanup:
     mbedtls_mpi_free(&r);
     mbedtls_mpi_free(&s);
 
     return ret;
-#endif /* MBEDTLS_ASN1_PARSE_C */
 }
 
 #endif /* MBEDTLS_EDDSA_C */

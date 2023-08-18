@@ -314,7 +314,7 @@ typedef enum {
 #define MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED
 #endif
 
-/* Helper to state that certificated based client authentication through ECDSA
+/* Helper to state that certificate-based client authentication through ECDSA
  * is supported in TLS 1.2 */
 #if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED) && \
     defined(MBEDTLS_PK_CAN_ECDSA_SIGN) && defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)

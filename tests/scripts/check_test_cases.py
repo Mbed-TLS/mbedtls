@@ -102,7 +102,7 @@ state may override this method.
     def walk_ssl_opt_sh(self, file_name):
         """Iterate over the test cases in ssl-opt.sh or a file with a similar format."""
         descriptions = self.new_per_file_state() # pylint: disable=assignment-from-none
-        listed = subprocess.check_output([f'{file_name}', '-l'])
+        listed = subprocess.check_output([file_name, '-l'])
         listed = set(map(lambda x: x.rstrip(), listed.splitlines()))
         for description in listed:
             self.process_test_case(descriptions, file_name, None, description)

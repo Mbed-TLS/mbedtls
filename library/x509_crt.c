@@ -1741,6 +1741,7 @@ static int x509_get_other_name(const mbedtls_x509_buf *subject_alt_name,
     if (MBEDTLS_OID_CMP(MBEDTLS_OID_ON_HW_MODULE_NAME, &cur_oid) != 0) {
         return MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE;
     }
+    other_name->type_id = cur_oid;
 
     p += len;
     if ((ret = mbedtls_asn1_get_tag(&p, end, &len,

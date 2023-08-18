@@ -51,22 +51,7 @@
 #include <windows.h>
 #if _WIN32_WINNT >= 0x0501 /* _WIN32_WINNT_WINXP */
 #include <bcrypt.h>
-#if defined(_MSC_VER) && _MSC_VER <= 1600
-#define MBEDTLS_POP_TARGET_PRAGMA
-#endif
-#if defined(MBEDTLS_POP_TARGET_PRAGMA)
-/* Visual Studio 2010 and earlier issue a warning when both <stdint.h> and
- * <intsafe.h> are included, as they redefine a number of <TYPE>_MAX constants.
- * These constants are guaranteed to be the same, though, so we suppress the
- * warning when including intsafe.h.
- */
-#pragma warning(push)
-#pragma warning(disable : 4005)
-#endif
 #include <intsafe.h>
-#if defined(MBEDTLS_POP_TARGET_PRAGMA)
-#pragma warning(pop)
-#endif
 
 int mbedtls_platform_entropy_poll(void *data, unsigned char *output, size_t len,
                                   size_t *olen)
@@ -255,9 +240,5 @@ int mbedtls_nv_seed_poll(void *data,
     return 0;
 }
 #endif /* MBEDTLS_ENTROPY_NV_SEED */
-
-#if defined(MBEDTLS_POP_TARGET_PRAGMA)
-#undef MBEDTLS_POP_TARGET_PRAGMA
-#endif
 
 #endif /* MBEDTLS_ENTROPY_C */

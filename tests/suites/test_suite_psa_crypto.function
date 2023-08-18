@@ -296,17 +296,6 @@ exit:
 
 #define INPUT_INTEGER 0x10000   /* Out of range of psa_key_type_t */
 
-uint64_t parse_binary_string(data_t *bin_string)
-{
-    uint64_t result = 0;
-    TEST_LE_U(bin_string->len, 8);
-    for (size_t i = 0; i < bin_string->len; i++) {
-        result = result << 8 | bin_string->x[i];
-    }
-exit:
-    return result; /* returns 0 if len > 8 */
-}
-
 /* An overapproximation of the amount of storage needed for a key of the
  * given type and with the given content. The API doesn't make it easy
  * to find a good value for the size. The current implementation doesn't

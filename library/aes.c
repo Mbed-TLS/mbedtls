@@ -33,6 +33,36 @@
 #include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+
+#if defined(__aarch64__)
+#if !defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
+#endif
+#endif
+
+#if defined(__amd64__) || defined(__x86_64__) || \
+    ((defined(_M_X64) || defined(_M_AMD64)) && !defined(_M_ARM64EC))
+#if !defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
+#endif
+#endif
+
+#if defined(__i386__) || defined(_M_IX86)
+#if defined(MBEDTLS_AES_USE_HARDWARE_ONLY) && !defined(MBEDTLS_AESNI_C)
+#error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PADLOCK_C)
+#if !defined(MBEDTLS_HAVE_ASM)
+#error "MBEDTLS_PADLOCK_C defined, but not all prerequisites"
+#endif
+#if defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#error "MBEDTLS_AES_USE_HARDWARE_ONLY cannot be defined when " \
+    "MBEDTLS_PADLOCK_C is set"
+#endif
+#endif
+#endif
+
 #if defined(MBEDTLS_PADLOCK_C)
 #include "padlock.h"
 #endif
@@ -47,7 +77,7 @@
 
 #if !defined(MBEDTLS_AES_ALT)
 
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
+#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
 static int aes_padlock_ace = -1;
 #endif
 
@@ -542,7 +572,7 @@ void mbedtls_aes_xts_free(mbedtls_aes_xts_context *ctx)
  * Note that the offset is in units of elements of buf, i.e. 32-bit words,
  * i.e. an offset of 1 means 4 bytes and so on.
  */
-#if (defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)) ||        \
+#if (defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)) ||        \
     (defined(MBEDTLS_AESNI_C) && MBEDTLS_AESNI_HAVE_CODE == 2)
 #define MAY_NEED_TO_ALIGN
 #endif
@@ -554,7 +584,7 @@ static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
 #if defined(MAY_NEED_TO_ALIGN)
     int align_16_bytes = 0;
 
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
+#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
     if (aes_padlock_ace == -1) {
         aes_padlock_ace = mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE);
     }
@@ -595,7 +625,6 @@ static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
 int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
                            unsigned int keybits)
 {
-    unsigned int i;
     uint32_t *RK;
 
     switch (keybits) {
@@ -629,14 +658,15 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
     }
 #endif
 
-    for (i = 0; i < (keybits >> 5); i++) {
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+    for (unsigned int i = 0; i < (keybits >> 5); i++) {
         RK[i] = MBEDTLS_GET_UINT32_LE(key, i << 2);
     }
 
     switch (ctx->nr) {
         case 10:
 
-            for (i = 0; i < 10; i++, RK += 4) {
+            for (unsigned int i = 0; i < 10; i++, RK += 4) {
                 RK[4]  = RK[0] ^ RCON[i] ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_1(RK[3])]) ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_2(RK[3])] <<  8) ^
@@ -652,7 +682,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 #if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
         case 12:
 
-            for (i = 0; i < 8; i++, RK += 6) {
+            for (unsigned int i = 0; i < 8; i++, RK += 6) {
                 RK[6]  = RK[0] ^ RCON[i] ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_1(RK[5])]) ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_2(RK[5])] <<  8) ^
@@ -669,7 +699,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 
         case 14:
 
-            for (i = 0; i < 7; i++, RK += 8) {
+            for (unsigned int i = 0; i < 7; i++, RK += 8) {
                 RK[8]  = RK[0] ^ RCON[i] ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_1(RK[7])]) ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_2(RK[7])] <<  8) ^
@@ -695,6 +725,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
     }
 
     return 0;
+#endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 }
 #endif /* !MBEDTLS_AES_SETKEY_ENC_ALT */
 
@@ -705,10 +736,13 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
                            unsigned int keybits)
 {
-    int i, j, ret;
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+    uint32_t *SK;
+#endif
+    int ret;
     mbedtls_aes_context cty;
     uint32_t *RK;
-    uint32_t *SK;
+
 
     mbedtls_aes_init(&cty);
 
@@ -740,15 +774,16 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
     }
 #endif
 
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
     SK = cty.buf + cty.rk_offset + cty.nr * 4;
 
     *RK++ = *SK++;
     *RK++ = *SK++;
     *RK++ = *SK++;
     *RK++ = *SK++;
-
-    for (i = ctx->nr - 1, SK -= 8; i > 0; i--, SK -= 8) {
-        for (j = 0; j < 4; j++, SK++) {
+    SK -= 8;
+    for (int i = ctx->nr - 1; i > 0; i--, SK -= 8) {
+        for (int j = 0; j < 4; j++, SK++) {
             *RK++ = AES_RT0(FSb[MBEDTLS_BYTE_0(*SK)]) ^
                     AES_RT1(FSb[MBEDTLS_BYTE_1(*SK)]) ^
                     AES_RT2(FSb[MBEDTLS_BYTE_2(*SK)]) ^
@@ -760,7 +795,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
     *RK++ = *SK++;
     *RK++ = *SK++;
     *RK++ = *SK++;
-
+#endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 exit:
     mbedtls_aes_free(&cty);
 
@@ -1062,17 +1097,20 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
     }
 #endif
 
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
+#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
     if (aes_padlock_ace > 0) {
         return mbedtls_padlock_xcryptecb(ctx, mode, input, output);
     }
 #endif
 
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
     if (mode == MBEDTLS_AES_ENCRYPT) {
         return mbedtls_internal_aes_encrypt(ctx, input, output);
     } else {
         return mbedtls_internal_aes_decrypt(ctx, input, output);
     }
+#endif
+
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -1103,7 +1141,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
         return MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH;
     }
 
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
+#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
     if (aes_padlock_ace > 0) {
         if (mbedtls_padlock_xcryptcbc(ctx, mode, length, iv, input, output) == 0) {
             return 0;
@@ -1855,11 +1893,6 @@ int mbedtls_aes_self_test(int verbose)
 #if defined(MBEDTLS_AES_ALT)
         mbedtls_printf("  AES note: alternative implementation.\n");
 #else /* MBEDTLS_AES_ALT */
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
-        if (mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE)) {
-            mbedtls_printf("  AES note: using VIA Padlock.\n");
-        } else
-#endif
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
 #if MBEDTLS_AESNI_HAVE_CODE == 1
         mbedtls_printf("  AES note: AESNI code present (assembly implementation).\n");
@@ -1872,12 +1905,21 @@ int mbedtls_aes_self_test(int verbose)
             mbedtls_printf("  AES note: using AESNI.\n");
         } else
 #endif
+#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
+        if (mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE)) {
+            mbedtls_printf("  AES note: using VIA Padlock.\n");
+        } else
+#endif
 #if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
         if (mbedtls_aesce_has_support()) {
             mbedtls_printf("  AES note: using AESCE.\n");
         } else
 #endif
-        mbedtls_printf("  AES note: built-in implementation.\n");
+        {
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+            mbedtls_printf("  AES note: built-in implementation.\n");
+#endif
+        }
 #endif /* MBEDTLS_AES_ALT */
     }
 

@@ -884,6 +884,13 @@ int mbedtls_gcm_self_test(int verbose)
             mbedtls_printf("  GCM note: using AESNI.\n");
         } else
 #endif
+
+#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
+        if (mbedtls_aesce_has_support()) {
+            mbedtls_printf("  GCM note: using AESCE.\n");
+        } else
+#endif
+
         mbedtls_printf("  GCM note: built-in implementation.\n");
 #endif /* MBEDTLS_GCM_ALT */
     }

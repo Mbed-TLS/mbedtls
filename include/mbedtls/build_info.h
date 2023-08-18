@@ -99,6 +99,8 @@
  * - If config_psa.h writes a configuration option in conditional directive,
  *   this symbol should be consulted after its inclusion.
  *   (e.g. MBEDTLS_MD_LIGHT)
+ * - When MBEDTLS_PSA_CRYPTO_CONFIG is disabled features that may-be handled
+ *   by config_psa.h should not be enabled.
  */
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG) /* PSA_WANT_xxx influences MBEDTLS_xxx */ || \
     defined(MBEDTLS_PSA_CRYPTO_C) /* MBEDTLS_xxx influences PSA_WANT_xxx */

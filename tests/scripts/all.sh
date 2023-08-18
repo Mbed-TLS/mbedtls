@@ -2547,8 +2547,6 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
                     ALG_JPAKE \
                     $(helper_get_psa_keys_list "ECC")"
 
-    echo "$loc_accel_list"
-
     loc_curve_list="$(helper_get_psa_curve_list)"
 
     # Configure

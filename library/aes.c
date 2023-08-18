@@ -40,14 +40,13 @@
 #endif
 #endif
 
-#if defined(__amd64__) || defined(__x86_64__) || \
-    ((defined(_M_X64) || defined(_M_AMD64)) && !defined(_M_ARM64EC))
+#if defined(MBEDTLS_ARCH_IS_X64)
 #if !defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 #error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
 #endif
 #endif
 
-#if defined(__i386__) || defined(_M_IX86)
+#if defined(MBEDTLS_ARCH_IS_X86)
 #if defined(MBEDTLS_AES_USE_HARDWARE_ONLY) && !defined(MBEDTLS_AESNI_C)
 #error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
 #endif

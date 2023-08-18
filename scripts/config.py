@@ -218,6 +218,7 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_SSL_RECORD_SIZE_LIMIT', # in development, currently breaks other tests
     'MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN', # build dependency (clang+memsan)
     'MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND', # build dependency (valgrind headers)
+    'MBEDTLS_THREADING_SRWLOCK', # os dependency (windows)
     'MBEDTLS_X509_REMOVE_INFO', # removes a feature
 ])
 

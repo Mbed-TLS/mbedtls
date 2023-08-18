@@ -125,6 +125,60 @@ int (*mbedtls_mutex_unlock)(mbedtls_threading_mutex_t *) = threading_mutex_unloc
 
 #endif /* MBEDTLS_THREADING_PTHREAD */
 
+#if defined(MBEDTLS_THREADING_SRWLOCK)
+static void threading_mutex_init_srwlock(mbedtls_threading_mutex_t *mutex)
+{
+    if (mutex == NULL) {
+        return;
+    }
+
+    InitializeSRWLock(&mutex->lock);
+}
+
+static void threading_mutex_free_srwlock(mbedtls_threading_mutex_t *mutex)
+{
+    if (mutex == NULL) {
+        return;
+    }
+    /*
+     * SRW locks do not need to be explicitly destroyed.
+     */
+}
+
+static int threading_mutex_lock_srwlock(mbedtls_threading_mutex_t *mutex)
+{
+    if (mutex == NULL) {
+        return MBEDTLS_ERR_THREADING_BAD_INPUT_DATA;
+    }
+
+    AcquireSRWLockExclusive(&mutex->lock);
+
+    return 0;
+}
+
+static int threading_mutex_unlock_srwlock(mbedtls_threading_mutex_t *mutex)
+{
+    if (mutex == NULL) {
+        return MBEDTLS_ERR_THREADING_BAD_INPUT_DATA;
+    }
+
+    ReleaseSRWLockExclusive(&mutex->lock);
+
+    return 0;
+}
+
+void (*mbedtls_mutex_init)(mbedtls_threading_mutex_t *) = threading_mutex_init_srwlock;
+void (*mbedtls_mutex_free)(mbedtls_threading_mutex_t *) = threading_mutex_free_srwlock;
+int (*mbedtls_mutex_lock)(mbedtls_threading_mutex_t *) = threading_mutex_lock_srwlock;
+int (*mbedtls_mutex_unlock)(mbedtls_threading_mutex_t *) = threading_mutex_unlock_srwlock;
+
+/*
+ * With SRW Lock we can statically initialize mutexes
+ */
+#define MUTEX_INIT = SRWLOCK_INIT
+
+#endif /* MBEDTLS_THREADING_SRWLOCK */
+
 #if defined(MBEDTLS_THREADING_ALT)
 static int threading_mutex_fail(mbedtls_threading_mutex_t *mutex)
 {

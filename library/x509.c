@@ -810,6 +810,11 @@ int mbedtls_x509_get_ext(unsigned char **p, const unsigned char *end,
     return 0;
 }
 
+static char nibble_to_hex_digit(int i)
+{
+    return (i < 10) ? (i + '0') : (i - 10 + 'A');
+}
+
 /*
  * Store the name in printable form into buf; no more
  * than size characters will be written
@@ -855,15 +860,26 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
             }
 
             c = name->val.p[i];
-            // Special characters requiring escaping, RFC 1779
-            if (c && strchr(",=+<>#;\"\\", c)) {
-                if (j + 1 >= sizeof(s) - 1) {
+            // Special characters requiring escaping, RFC 4514 Section 2.4
+            if (c) {
+                if (strchr(",=+<>;\"\\+", c) ||
+                    ((i == 0) && strchr("# ", c)) ||
+                    ((i == name->val.len-1) && (c == ' '))) {
+                    if (j + 1 >= sizeof(s) - 1) {
+                        return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                    }
+                    s[j++] = '\\';
+                }
+            }
+            if (c < 32 || c >= 127) {
+                if (j + 3 >= sizeof(s) - 1) {
                     return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
                 }
                 s[j++] = '\\';
-            }
-            if (c < 32 || c >= 127) {
-                s[j] = '?';
+                char lowbits = (c & 0x0F);
+                char highbits = c>>4;
+                s[j++] = nibble_to_hex_digit(highbits);
+                s[j] = nibble_to_hex_digit(lowbits);
             } else {
                 s[j] = c;
             }

@@ -878,8 +878,8 @@ int mbedtls_ecp_point_write_binary(const mbedtls_ecp_group *grp,
                 return ret;
             }
             break;
-#endif
         }
+#endif
         default:
             break;
     }

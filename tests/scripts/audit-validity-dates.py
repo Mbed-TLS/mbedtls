@@ -24,7 +24,6 @@ from tests/data_files/ and tests/suites/*.data files by default.
 """
 
 import os
-import sys
 import re
 import typing
 import argparse
@@ -43,6 +42,7 @@ from generate_test_code import FileWrapper
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import build_tree
+from mbedtls_dev import logging_util
 
 def check_cryptography_version():
     match = re.match(r'^[0-9]+', cryptography.__version__)
@@ -393,38 +393,6 @@ def list_all(audit_data: AuditData):
             loc))
 
 
-def configure_logger(logger: logging.Logger) -> None:
-    """
-    Configure the logging.Logger instance so that:
-        - Format is set to "[%(levelname)s]: %(message)s".
-        - loglevel >= WARNING are printed to stderr.
-        - loglevel <  WARNING are printed to stdout.
-    """
-    class MaxLevelFilter(logging.Filter):
-        # pylint: disable=too-few-public-methods
-        def __init__(self, max_level, name=''):
-            super().__init__(name)
-            self.max_level = max_level
-
-        def filter(self, record: logging.LogRecord) -> bool:
-            return record.levelno <= self.max_level
-
-    log_formatter = logging.Formatter("[%(levelname)s]: %(message)s")
-
-    # set loglevel >= WARNING to be printed to stderr
-    stderr_hdlr = logging.StreamHandler(sys.stderr)
-    stderr_hdlr.setLevel(logging.WARNING)
-    stderr_hdlr.setFormatter(log_formatter)
-
-    # set loglevel <= INFO to be printed to stdout
-    stdout_hdlr = logging.StreamHandler(sys.stdout)
-    stdout_hdlr.addFilter(MaxLevelFilter(logging.INFO))
-    stdout_hdlr.setFormatter(log_formatter)
-
-    logger.addHandler(stderr_hdlr)
-    logger.addHandler(stdout_hdlr)
-
-
 def main():
     """
     Perform argument parsing.
@@ -457,7 +425,7 @@ def main():
     # start main routine
     # setup logger
     logger = logging.getLogger()
-    configure_logger(logger)
+    logging_util.configure_logger(logger)
     logger.setLevel(logging.DEBUG if args.verbose else logging.ERROR)
 
     td_auditor = TestDataAuditor(logger)

@@ -3950,7 +3950,7 @@ support_test_aesni() {
     # We can only grep /proc/cpuinfo on Linux, so this also checks for Linux
     (gcc -v 2>&1 | grep Target | grep -q x86_64) &&
         [[ "$HOSTTYPE" == "x86_64" && "$OSTYPE" == "linux-gnu" ]] &&
-        (grep '^flags' /proc/cpuinfo | grep -qw aes)
+        (lscpu | grep -qw aes)
 }
 
 component_test_aesni () { # ~ 60s
@@ -3963,29 +3963,136 @@ component_test_aesni () { # ~ 60s
 
     msg "build: default config with different AES implementations"
     scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
     scripts/config.py set MBEDTLS_HAVE_ASM
 
     # test the intrinsics implementation
     msg "AES tests, test intrinsics"
     make clean
-    make test programs/test/selftest CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
     # check that we built intrinsics - this should be used by default when supported by the compiler
-    ./programs/test/selftest | grep "AESNI code" | grep -q "intrinsics"
+    ./programs/test/selftest aes | grep "AESNI code" | grep -q "intrinsics"
 
     # test the asm implementation
     msg "AES tests, test assembly"
     make clean
-    make test programs/test/selftest CC=gcc CFLAGS='-Werror -Wall -Wextra -mno-pclmul -mno-sse2 -mno-aes'
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mno-pclmul -mno-sse2 -mno-aes'
     # check that we built assembly - this should be built if the compiler does not support intrinsics
-    ./programs/test/selftest | grep "AESNI code" | grep -q "assembly"
+    ./programs/test/selftest aes | grep "AESNI code" | grep -q "assembly"
 
     # test the plain C implementation
     scripts/config.py unset MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
     msg "AES tests, plain C"
     make clean
-    make test programs/test/selftest CC=gcc CFLAGS='-O2 -Werror'
+    make CC=gcc CFLAGS='-O2 -Werror'
     # check that there is no AESNI code present
-    ./programs/test/selftest | not grep -q "AESNI code"
+    ./programs/test/selftest aes | not grep -q "AESNI code"
+    not grep -q "AES note: using AESNI" ./programs/test/selftest
+    grep -q "AES note: built-in implementation." ./programs/test/selftest
+
+    # test the intrinsics implementation
+    scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
+    msg "AES tests, test AESNI only"
+    make clean
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
+    ./programs/test/selftest aes | grep -q "AES note: using AESNI"
+    ./programs/test/selftest aes | not grep -q "AES note: built-in implementation."
+    grep -q "AES note: using AESNI" ./programs/test/selftest
+    not grep -q "AES note: built-in implementation." ./programs/test/selftest
+}
+
+
+
+support_test_aesni_m32() {
+    support_test_m32_o0 && (lscpu | grep -qw aes)
+}
+
+component_test_aesni_m32 () { # ~ 60s
+    # This tests are duplicated from component_test_aesni for i386 target
+    #
+    # AESNI intrinsic code supports i386 and assembly code does not support it.
+
+    msg "build: default config with different AES implementations"
+    scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py set MBEDTLS_PADLOCK_C
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
+    scripts/config.py set MBEDTLS_HAVE_ASM
+
+    # test the intrinsics implementation
+    msg "AES tests, test intrinsics"
+    make clean
+    make CC=gcc CFLAGS='-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes' LDFLAGS='-m32'
+    # check that we built intrinsics - this should be used by default when supported by the compiler
+    ./programs/test/selftest aes | grep "AESNI code" | grep -q "intrinsics"
+    grep -q "AES note: using AESNI" ./programs/test/selftest
+    grep -q "AES note: built-in implementation." ./programs/test/selftest
+    grep -q "AES note: using VIA Padlock" ./programs/test/selftest
+    grep -q mbedtls_aesni_has_support ./programs/test/selftest
+
+    scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_PADLOCK_C
+    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
+    msg "AES tests, test AESNI only"
+    make clean
+    make CC=gcc CFLAGS='-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes' LDFLAGS='-m32'
+    ./programs/test/selftest aes | grep -q "AES note: using AESNI"
+    ./programs/test/selftest aes | not grep -q "AES note: built-in implementation."
+    grep -q "AES note: using AESNI" ./programs/test/selftest
+    not grep -q "AES note: built-in implementation." ./programs/test/selftest
+    not grep -q "AES note: using VIA Padlock" ./programs/test/selftest
+    not grep -q mbedtls_aesni_has_support ./programs/test/selftest
+}
+
+# For timebeing, no aarch64 gcc available in CI and no arm64 CI node.
+component_build_aes_aesce_armcc () {
+    msg "Build: AESCE test on arm64 platform without plain C."
+    scripts/config.py baremetal
+
+    # armc[56] don't support SHA-512 intrinsics
+    scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
+
+    # Stop armclang warning about feature detection for A64_CRYPTO.
+    # With this enabled, the library does build correctly under armclang,
+    # but in baremetal builds (as tested here), feature detection is
+    # unavailable, and the user is notified via a #warning. So enabling
+    # this feature would prevent us from building with -Werror on
+    # armclang. Tracked in #7198.
+    scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+    scripts/config.py set MBEDTLS_HAVE_ASM
+
+    msg "AESCE, build with default configuration."
+    scripts/config.py set MBEDTLS_AESCE_C
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
+    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto"
+
+    msg "AESCE, build AESCE only"
+    scripts/config.py set MBEDTLS_AESCE_C
+    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
+    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto"
+}
+
+# For timebeing, no VIA Padlock platform available.
+component_build_aes_via_padlock () {
+
+    msg "AES:VIA PadLock, build with default configuration."
+    scripts/config.py unset MBEDTLS_AESNI_C
+    scripts/config.py set MBEDTLS_PADLOCK_C
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
+    grep -q mbedtls_padlock_has_support ./programs/test/selftest
+
+}
+
+support_build_aes_via_padlock_only () {
+    ( [ "$MBEDTLS_TEST_PLATFORM" == "Linux-x86_64" ] || \
+        [ "$MBEDTLS_TEST_PLATFORM" == "Linux-amd64" ] ) && \
+    [ "`dpkg --print-foreign-architectures`" == "i386" ]
+}
+
+support_build_aes_aesce_armcc () {
+    support_build_armcc
 }
 
 component_test_aes_only_128_bit_keys () {
@@ -4253,6 +4360,7 @@ component_test_m32_o0 () {
     # build) and not the i386-specific inline assembly.
     msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
     scripts/config.py full
+    scripts/config.py unset MBEDTLS_AESNI_C # AESNI depends on cpu modifiers
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O0" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, make, gcc -O0 (ASan build)"
@@ -4270,6 +4378,7 @@ component_test_m32_o2 () {
     # and go faster for tests.
     msg "build: i386, make, gcc -O2 (ASan build)" # ~ 30s
     scripts/config.py full
+    scripts/config.py unset MBEDTLS_AESNI_C # AESNI depends on cpu modifiers
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, make, gcc -O2 (ASan build)"
@@ -4285,6 +4394,7 @@ support_test_m32_o2 () {
 component_test_m32_everest () {
     msg "build: i386, Everest ECDH context (ASan build)" # ~ 6 min
     scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+    scripts/config.py unset MBEDTLS_AESNI_C # AESNI depends on cpu modifiers
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
@@ -4738,6 +4848,7 @@ component_test_tls13_only_record_size_limit () {
 
 component_build_mingw () {
     msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
+    scripts/config.py unset MBEDTLS_AESNI_C # AESNI depends on cpu modifiers
     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs
 
     # note Make tests only builds the tests, but doesn't run them
@@ -5041,6 +5152,7 @@ component_check_test_helpers () {
     msg "unit test: translate_ciphers.py"
     python3 -m unittest tests/scripts/translate_ciphers.py 2>&1
 }
+
 
 ################################################################
 #### Termination

@@ -4035,4 +4035,18 @@
  */
 //#define MBEDTLS_ECP_WITH_MPI_UINT
 
+/*
+ * Disable plain C implementation for AES.
+ *
+ * When the plain C implementation is enabled, and an implementation using a
+ * special CPU feature (such as MBEDTLS_AESCE_C) is also enabled, runtime
+ * detection will be used to select between them.
+ *
+ * If only one implementation is present, runtime detection will not be used.
+ * This configuration will crash at runtime if running on a CPU without the
+ * necessary features. It will not build unless at least one of MBEDTLS_AESCE_C
+ * and/or MBEDTLS_AESNI_C is enabled & present in the build.
+ */
+//#define MBEDTLS_AES_USE_HARDWARE_ONLY
+
 /** \} name SECTION: Module configuration options */

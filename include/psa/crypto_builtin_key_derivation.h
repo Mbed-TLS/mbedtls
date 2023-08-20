@@ -105,7 +105,7 @@ typedef struct psa_tls12_prf_key_derivation_s {
 } psa_tls12_prf_key_derivation_t;
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) ||
         * MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
+#if defined(PSA_HAVE_SOFT_PBKDF2)
 typedef enum {
     PSA_PBKDF2_STATE_INIT,             /* no input provided */
     PSA_PBKDF2_STATE_INPUT_COST_SET,   /* input cost has been set */
@@ -125,6 +125,6 @@ typedef struct {
     uint8_t MBEDTLS_PRIVATE(bytes_used);
     uint32_t MBEDTLS_PRIVATE(block_number);
 } psa_pbkdf2_key_derivation_t;
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
+#endif /* PSA_HAVE_SOFT_PBKDF2 */
 
 #endif /* PSA_CRYPTO_BUILTIN_KEY_DERIVATION_H */

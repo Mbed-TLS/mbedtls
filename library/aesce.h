@@ -47,7 +47,12 @@ extern "C" {
  *
  * \return         1 if CPU has support for the feature, 0 otherwise
  */
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 int mbedtls_aesce_has_support(void);
+#else
+#define mbedtls_aesce_has_support() 1
+#endif
+
 
 /**
  * \brief          Internal AES-ECB block encryption and decryption

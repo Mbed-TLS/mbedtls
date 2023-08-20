@@ -99,6 +99,7 @@
 #include <sys/auxv.h>
 #endif
 
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 /*
  * AES instruction support detection routine
  */
@@ -113,6 +114,7 @@ int mbedtls_aesce_has_support(void)
     return 1;
 #endif
 }
+#endif
 
 /* Single round of AESCE encryption */
 #define AESCE_ENCRYPT_ROUND                   \

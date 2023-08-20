@@ -288,7 +288,7 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 /* Normal case (64-bit pointers): use "r" as the constraint for pointer operands to asm */
 #define MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT "r"
 #else
-#error Unrecognised pointer size for aarch64
+#error "Unrecognised pointer size for aarch64"
 #endif
 #endif
 

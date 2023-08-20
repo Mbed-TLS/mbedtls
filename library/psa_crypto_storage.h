@@ -39,7 +39,7 @@ extern "C" {
 /* Sanity check: a file size must fit in 32 bits. Allow a generous
  * 64kB of metadata. */
 #if PSA_CRYPTO_MAX_STORAGE_SIZE > 0xffff0000
-#error PSA_CRYPTO_MAX_STORAGE_SIZE > 0xffff0000
+#error "PSA_CRYPTO_MAX_STORAGE_SIZE > 0xffff0000"
 #endif
 
 /** The maximum permitted persistent slot number.

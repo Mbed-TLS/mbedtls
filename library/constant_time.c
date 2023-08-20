@@ -30,8 +30,6 @@
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 
-#include "../tests/include/test/constant_flow.h"
-
 #include <string.h>
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
@@ -84,7 +82,7 @@ static inline uint32_t mbedtls_get_unaligned_volatile_uint32(volatile const unsi
 #elif defined(MBEDTLS_CT_AARCH64_ASM)
     asm volatile ("ldr %w0, [%1]" : "=r" (r) : MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT(p) :);
 #else
-#error No assembly defined for mbedtls_get_unaligned_volatile_uint32
+#error "No assembly defined for mbedtls_get_unaligned_volatile_uint32"
 #endif
     return r;
 }

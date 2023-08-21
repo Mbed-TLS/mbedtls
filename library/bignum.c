@@ -2033,7 +2033,7 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
     /*
      * Load the result in the output variable.
      */
-    mbedtls_mpi_copy(X, &W[x_index]);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_copy(X, &W[x_index]));
 
 cleanup:
 

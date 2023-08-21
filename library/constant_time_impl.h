@@ -234,14 +234,14 @@ static inline mbedtls_ct_uint_t mbedtls_ct_if(mbedtls_ct_condition_t condition,
 static inline mbedtls_ct_condition_t mbedtls_ct_uint_lt(mbedtls_ct_uint_t x, mbedtls_ct_uint_t y)
 {
 #if defined(MBEDTLS_CT_AARCH64_ASM) && (defined(MBEDTLS_CT_SIZE_32) || defined(MBEDTLS_CT_SIZE_64))
-    uint64_t s1, s2;
+    uint64_t s1;
     asm volatile ("eor     %x[s1], %x[y], %x[x]          \n\t"
-                  "sub     %x[s2], %x[x], %x[y]          \n\t"
-                  "bic     %x[s2], %x[s2], %[s1]         \n\t"
+                  "sub     %x[x], %x[x], %x[y]           \n\t"
+                  "bic     %x[x], %x[x], %[s1]           \n\t"
                   "and     %x[s1], %x[s1], %x[y]         \n\t"
-                  "orr     %x[s1], %x[s2], %x[s1]        \n\t"
+                  "orr     %x[s1], %x[x], %x[s1]         \n\t"
                   "asr     %x[x], %x[s1], 63"
-                  : [s1] "=&r" (s1), [s2] "=&r" (s2), [x] "+r" (x)
+                  : [s1] "=&r" (s1), [x] "+&r" (x)
                   : [y] "r" (y)
                   :
                   );

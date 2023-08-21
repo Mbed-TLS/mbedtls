@@ -98,7 +98,7 @@ static int gcm_gen_table(mbedtls_gcm_context *ctx)
 #endif
 
 #if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
-    if (mbedtls_aesce_has_support()) {
+    if (MBEDTLS_AESCE_HAS_SUPPORT()) {
         return 0;
     }
 #endif
@@ -209,7 +209,7 @@ static void gcm_mult(mbedtls_gcm_context *ctx, const unsigned char x[16],
 #endif /* MBEDTLS_AESNI_HAVE_CODE */
 
 #if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
-    if (mbedtls_aesce_has_support()) {
+    if (MBEDTLS_AESCE_HAS_SUPPORT()) {
         unsigned char h[16];
 
         /* mbedtls_aesce_gcm_mult needs big-endian input */
@@ -886,7 +886,7 @@ int mbedtls_gcm_self_test(int verbose)
 #endif
 
 #if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
-        if (mbedtls_aesce_has_support()) {
+        if (MBEDTLS_AESCE_HAS_SUPPORT()) {
             mbedtls_printf("  GCM note: using AESCE.\n");
         } else
 #endif

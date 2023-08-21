@@ -760,7 +760,7 @@ int mbedtls_pk_write_pubkey_pem(const mbedtls_pk_context *key, unsigned char *bu
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *output_buf = NULL;
-    output_buf = calloc(1, PUB_DER_MAX_BYTES);
+    output_buf = mbedtls_calloc(1, PUB_DER_MAX_BYTES);
     if (output_buf == NULL) {
         return MBEDTLS_ERR_PK_ALLOC_FAILED;
     }
@@ -779,7 +779,7 @@ int mbedtls_pk_write_pubkey_pem(const mbedtls_pk_context *key, unsigned char *bu
 
     ret = 0;
 cleanup:
-    free(output_buf);
+    mbedtls_free(output_buf);
     return ret;
 }
 
@@ -787,7 +787,7 @@ int mbedtls_pk_write_key_pem(const mbedtls_pk_context *key, unsigned char *buf, 
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *output_buf = NULL;
-    output_buf = calloc(1, PRV_DER_MAX_BYTES);
+    output_buf = mbedtls_calloc(1, PRV_DER_MAX_BYTES);
     if (output_buf == NULL) {
         return MBEDTLS_ERR_PK_ALLOC_FAILED;
     }
@@ -860,7 +860,7 @@ int mbedtls_pk_write_key_pem(const mbedtls_pk_context *key, unsigned char *buf, 
 
     ret = 0;
 cleanup:
-    free(output_buf);
+    mbedtls_free(output_buf);
     return ret;
 }
 #endif /* MBEDTLS_PEM_WRITE_C */

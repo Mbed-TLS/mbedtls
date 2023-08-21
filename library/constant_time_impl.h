@@ -115,6 +115,28 @@ static inline mbedtls_ct_uint_t mbedtls_ct_compiler_opaque(mbedtls_ct_uint_t x)
 #endif
 }
 
+/*
+ * Selecting unified syntax is needed for gcc, and harmless on clang.
+ *
+ * This is needed because on Thumb 1, condition flags are always set, so
+ * e.g. "negs" is supported but "neg" is not (on Thumb 2, both exist).
+ *
+ * Under Thumb 1 unified syntax, only the "negs" form is accepted, and
+ * under divided syntax, only the "neg" form is accepted. clang only
+ * supports unified syntax.
+ *
+ * On Thumb 2 and Arm, both compilers are happy with the "s" suffix,
+ * although we don't actually care about setting the flags.
+ *
+ * For gcc, restore divided syntax afterwards - otherwise old versions of gcc
+ * seem to apply unified syntax globally, which breaks other asm code.
+ */
+#if !defined(__clang__)
+#define RESTORE_ASM_SYNTAX  ".syntax divided             \n\t"
+#else
+#define RESTORE_ASM_SYNTAX
+#endif
+
 /* Convert a number into a condition in constant time. */
 static inline mbedtls_ct_condition_t mbedtls_ct_bool(mbedtls_ct_uint_t x)
 {
@@ -140,28 +162,6 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool(mbedtls_ct_uint_t x)
     return (mbedtls_ct_condition_t) x;
 #elif defined(MBEDTLS_CT_ARM_ASM) && defined(MBEDTLS_CT_SIZE_32)
     uint32_t s;
-    /*
-     * Selecting unified syntax is needed for gcc, and harmless on clang.
-     *
-     * This is needed because on Thumb 1, condition flags are always set, so
-     * e.g. "negs" is supported but "neg" is not (on Thumb 2, both exist).
-     *
-     * Under Thumb 1 unified syntax, only the "negs" form is accepted, and
-     * under divided syntax, only the "neg" form is accepted. clang only
-     * supports unified syntax.
-     *
-     * On Thumb 2 and Arm, both compilers are happy with the "s" suffix,
-     * although we don't actually care about setting the flags.
-     *
-     * For gcc, restore divided syntax afterwards - otherwise old versions of gcc
-     * seem to apply unified syntax globally, which breaks other asm code.
-     */
-#if !defined(__clang__)
-#define RESTORE_ASM_SYNTAX  ".syntax divided             \n\t"
-#else
-#define RESTORE_ASM_SYNTAX
-#endif
-
     asm volatile (".syntax unified                       \n\t"
                   "negs %[s], %[x]                       \n\t"
                   "orrs %[x], %[x], %[s]                 \n\t"

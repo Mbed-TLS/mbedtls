@@ -438,9 +438,12 @@ cleanup:
 /*
  * Convert a signature (given by context) to binary
  */
-static int eddsa_signature_to_binary(const mbedtls_ecp_group *grp, const mbedtls_mpi *r, const mbedtls_mpi *s,
-                                   unsigned char *sig, size_t sig_size,
-                                   size_t *slen)
+static int eddsa_signature_to_binary(const mbedtls_ecp_group *grp,
+                                     const mbedtls_mpi *r,
+                                     const mbedtls_mpi *s,
+                                     unsigned char *sig,
+                                     size_t sig_size,
+                                     size_t *slen)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t plen = (grp->pbits + 1 + 7) >> 3;

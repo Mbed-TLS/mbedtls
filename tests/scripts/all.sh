@@ -2490,6 +2490,7 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
+    not grep mbedtls_eddsa_ library/eddsa.o
     not grep mbedtls_ecdh_ library/ecdh.o
     not grep mbedtls_ecjpake_ library/ecjpake.o
     not grep mbedtls_ecp_mul library/ecp.o
@@ -2595,6 +2596,7 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
+    not grep mbedtls_eddsa_ library/eddsa.o
     not grep mbedtls_ecdh_ library/ecdh.o
     not grep mbedtls_ecjpake_ library/ecjpake.o
     # Also ensure that ECP or RSA modules were not re-enabled
@@ -2643,6 +2645,7 @@ config_psa_crypto_config_accel_ecc_no_bignum() {
     if [ "$DRIVER_ONLY" -eq 1 ]; then
         # Disable modules that are accelerated
         scripts/config.py unset MBEDTLS_ECDSA_C
+        scripts/config.py unset MBEDTLS_EDDSA_C
         scripts/config.py unset MBEDTLS_ECDH_C
         scripts/config.py unset MBEDTLS_ECJPAKE_C
         # Disable ECP module (entirely)
@@ -2722,6 +2725,7 @@ component_test_psa_crypto_config_accel_ecc_no_bignum () {
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
+    not grep mbedtls_eddsa_ library/eddsa.o
     not grep mbedtls_ecdh_ library/ecdh.o
     not grep mbedtls_ecjpake_ library/ecjpake.o
     # Also ensure that ECP, RSA, DHM or BIGNUM modules were not re-enabled
@@ -2838,6 +2842,7 @@ psa_crypto_config_accel_all_curves_except_one () {
     # make sure excluded modules were not auto-re-enabled by accident
     not grep mbedtls_ecdh_ library/ecdh.o
     not grep mbedtls_ecdsa_ library/ecdsa.o
+    not grep mbedtls_eddsa_ library/eddsa.o
     not grep mbedtls_ecjpake_ library/ecjpake.o
     if [ $BUILTIN_CURVE == "MBEDTLS_ECP_DP_SECP192R1_ENABLED" ]; then
         # The only built-in curve is Short Weierstrass, so ECP shouldn't have
@@ -4768,6 +4773,7 @@ component_test_tls13_only_psk_ephemeral_ffdh () {
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
     scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_EDDSA_C
     scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA

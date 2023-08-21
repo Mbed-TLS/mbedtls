@@ -39,7 +39,7 @@
 #include "mbedtls/des.h"
 #endif
 
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
 

@@ -48,7 +48,7 @@ void pkcs1_rsaes_oaep_encrypt(int mod, data_t *input_N, data_t *input_E,
                                           message_str->x,
                                           output) == result);
     if (result == 0) {
-        ASSERT_COMPARE(output, ctx.len, result_str->x, result_str->len);
+        TEST_MEMORY_COMPARE(output, ctx.len, result_str->x, result_str->len);
     }
 
 exit:
@@ -110,7 +110,7 @@ void pkcs1_rsaes_oaep_decrypt(int mod, data_t *input_P, data_t *input_Q,
                                               output,
                                               sizeof(output)) == result);
         if (result == 0) {
-            ASSERT_COMPARE(output, output_len, result_str->x, result_str->len);
+            TEST_MEMORY_COMPARE(output, output_len, result_str->x, result_str->len);
         }
     }
 
@@ -167,7 +167,7 @@ void pkcs1_rsassa_pss_sign(int mod, data_t *input_P, data_t *input_Q,
                         &ctx, &mbedtls_test_rnd_buffer_rand, &info,
                         digest, hash_digest->len, hash_digest->x, output) == result);
         if (result == 0) {
-            ASSERT_COMPARE(output, ctx.len, result_str->x, result_str->len);
+            TEST_MEMORY_COMPARE(output, ctx.len, result_str->x, result_str->len);
         }
 
         info.buf = rnd_buf->x;
@@ -179,7 +179,7 @@ void pkcs1_rsassa_pss_sign(int mod, data_t *input_P, data_t *input_Q,
                     digest, hash_digest->len, hash_digest->x,
                     fixed_salt_length, output) == result);
     if (result == 0) {
-        ASSERT_COMPARE(output, ctx.len, result_str->x, result_str->len);
+        TEST_MEMORY_COMPARE(output, ctx.len, result_str->x, result_str->len);
     }
 
 exit:

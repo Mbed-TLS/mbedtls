@@ -1,0 +1,3 @@
+Features
+   * Add a possibility to generate CSR's with RCF822 and directoryName subtype
+     of subjectAltName extension in x509 certificates.

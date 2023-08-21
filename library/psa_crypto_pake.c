@@ -28,7 +28,7 @@
 #include "psa_crypto_slot_management.h"
 
 #include <mbedtls/ecjpake.h>
-#include <mbedtls/psa_util.h>
+#include <psa_util_internal.h>
 
 #include <mbedtls/platform.h>
 #include <mbedtls/error.h>
@@ -559,8 +559,7 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
 
 psa_status_t mbedtls_psa_pake_abort(mbedtls_psa_pake_operation_t *operation)
 {
-    mbedtls_platform_zeroize(operation->password, operation->password_len);
-    mbedtls_free(operation->password);
+    mbedtls_zeroize_and_free(operation->password, operation->password_len);
     operation->password = NULL;
     operation->password_len = 0;
 

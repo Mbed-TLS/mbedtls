@@ -1283,8 +1283,8 @@
  * );
  * ```
  * The \c context value is initialized to 0 before the first call.
- * The function must fill the \c output buffer with \p output_size bytes
- * of random data and set \c *output_length to \p output_size.
+ * The function must fill the \c output buffer with \c output_size bytes
+ * of random data and set \c *output_length to \c output_size.
  *
  * Requires: MBEDTLS_PSA_CRYPTO_C
  *
@@ -1998,8 +1998,15 @@
  * If the symbol #MBEDTLS_PSA_CRYPTO_CONFIG_FILE is defined, it specifies
  * an alternative header to include instead of include/psa/crypto_config.h.
  *
- * This feature is still experimental and is not ready for production since
- * it is not completed.
+ * \warning This option is experimental, in that the set of `PSA_WANT_XXX`
+ *          symbols is not completely finalized yet, and the configuration
+ *          tooling is not ideally adapted to having two separate configuration
+ *          files.
+ *          Future minor releases of Mbed TLS may make minor changes to those
+ *          symbols, but we will endeavor to provide a transition path.
+ *          Nonetheless, this option is considered mature enough to use in
+ *          production, as long as you accept that you may need to make
+ *          minor changes to psa/crypto_config.h when upgrading Mbed TLS.
  */
 //#define MBEDTLS_PSA_CRYPTO_CONFIG
 
@@ -2113,7 +2120,10 @@
  *          the CPU when this option is enabled.
  *
  * \note    Minimum compiler versions for this feature are Clang 4.0,
- *          GCC 6.0 or MSVC 2019 version 16.11.2.
+ *          armclang 6.6, GCC 6.0 or MSVC 2019 version 16.11.2.
+ *
+ * \note \c CFLAGS must be set to a minimum of \c -march=armv8-a+crypto for
+ * armclang <= 6.9
  *
  * This module adds support for the AES Armv8-A Cryptographic Extensions on Aarch64 systems.
  */
@@ -3130,6 +3140,12 @@
  * \note If MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT is defined when building
  * for a non-Aarch64 build it will be silently ignored.
  *
+ * \note    Minimum compiler versions for this feature are Clang 4.0,
+ * armclang 6.6 or GCC 6.0.
+ *
+ * \note \c CFLAGS must be set to a minimum of \c -march=armv8-a+crypto for
+ * armclang <= 6.9
+ *
  * \warning MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT cannot be defined at the
  * same time as MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY.
  *
@@ -3151,6 +3167,12 @@
  *
  * \note This allows builds with a smaller code size than with
  * MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+ *
+ * \note    Minimum compiler versions for this feature are Clang 4.0,
+ * armclang 6.6 or GCC 6.0.
+ *
+ * \note \c CFLAGS must be set to a minimum of \c -march=armv8-a+crypto for
+ * armclang <= 6.9
  *
  * \warning MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY cannot be defined at the same
  * time as MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT.
@@ -3216,8 +3238,11 @@
  * \note If MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT is defined when building
  * for a non-Aarch64 build it will be silently ignored.
  *
- * \note The code uses the SHA-512 Neon intrinsics, so requires GCC >= 8 or
- * Clang >= 7.
+ * \note    Minimum compiler versions for this feature are Clang 7.0,
+ * armclang 6.9 or GCC 8.0.
+ *
+ * \note \c CFLAGS must be set to a minimum of \c -march=armv8.2-a+sha3 for
+ * armclang 6.9
  *
  * \warning MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT cannot be defined at the
  * same time as MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY.
@@ -3241,8 +3266,11 @@
  * \note This allows builds with a smaller code size than with
  * MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
  *
- * \note The code uses the SHA-512 Neon intrinsics, so requires GCC >= 8 or
- * Clang >= 7.
+ * \note    Minimum compiler versions for this feature are Clang 7.0,
+ * armclang 6.9 or GCC 8.0.
+ *
+ * \note \c CFLAGS must be set to a minimum of \c -march=armv8.2-a+sha3 for
+ * armclang 6.9
  *
  * \warning MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY cannot be defined at the same
  * time as MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT.
@@ -3760,6 +3788,9 @@
  */
 //#define MBEDTLS_PSA_KEY_SLOT_COUNT 32
 
+/* RSA OPTIONS */
+#define MBEDTLS_RSA_GEN_KEY_MIN_BITS            1024 /**<  Minimum RSA key size that can be generated in bits (Minimum possible value is 128 bits) */
+
 /* SSL Cache options */
 //#define MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */
 //#define MBEDTLS_SSL_CACHE_DEFAULT_MAX_ENTRIES      50 /**< Maximum entries in cache */
@@ -3975,5 +4006,28 @@
  * DO NOT ENABLE/USE THIS MACRO IN PRODUCTION BUILDS!
  */
 //#define MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED
+
+
+/**
+ * Uncomment to enable using new bignum code in the ECC modules.
+ *
+ * \warning This is currently experimental, incomplete and therefore should not
+ * be used in production.
+ */
+//#define MBEDTLS_ECP_WITH_MPI_UINT
+
+/*
+ * Disable plain C implementation for AES.
+ *
+ * When the plain C implementation is enabled, and an implementation using a
+ * special CPU feature (such as MBEDTLS_AESCE_C) is also enabled, runtime
+ * detection will be used to select between them.
+ *
+ * If only one implementation is present, runtime detection will not be used.
+ * This configuration will crash at runtime if running on a CPU without the
+ * necessary features. It will not build unless at least one of MBEDTLS_AESCE_C
+ * and/or MBEDTLS_AESNI_C is enabled & present in the build.
+ */
+//#define MBEDTLS_AES_USE_HARDWARE_ONLY
 
 /** \} name SECTION: Module configuration options */

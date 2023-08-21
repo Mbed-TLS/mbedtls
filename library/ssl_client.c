@@ -272,7 +272,7 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
             }
 #endif
 #if defined(PSA_WANT_ALG_FFDH)
-            if (mbedtls_ssl_tls13_named_group_is_dhe(*group_list)) {
+            if (mbedtls_ssl_tls13_named_group_is_ffdh(*group_list)) {
                 propose_group = 1;
             }
 #endif
@@ -374,7 +374,8 @@ static int ssl_write_client_hello_cipher_suites(
         }
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-        (defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+        (defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED) || \
+        defined(MBEDTLS_ECDSA_C) || \
         defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED))
         *tls12_uses_ec |= mbedtls_ssl_ciphersuite_uses_ec(ciphersuite_info);
 #endif

@@ -114,6 +114,20 @@ extern void (*mbedtls_test_hook_test_fail)(const char *test, int line, const cha
  */
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
+/**
+ * \brief       Securely zeroize a buffer then free it.
+ *
+ *              Similar to making consecutive calls to
+ *              \c mbedtls_platform_zeroize() and \c mbedtls_free(), but has
+ *              code size savings, and potential for optimisation in the future.
+ *
+ *              Guaranteed to be a no-op if \p buf is \c NULL and \p len is 0.
+ *
+ * \param buf   Buffer to be zeroized then freed.
+ * \param len   Length of the buffer in bytes
+ */
+void mbedtls_zeroize_and_free(void *buf, size_t len);
+
 /** Return an offset into a buffer.
  *
  * This is just the addition of an offset to a pointer, except that this
@@ -242,7 +256,11 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 /* Define `asm` for compilers which don't define it. */
 /* *INDENT-OFF* */
 #ifndef asm
+#if defined(__IAR_SYSTEMS_ICC__)
+#define asm __asm
+#else
 #define asm __asm__
+#endif
 #endif
 /* *INDENT-ON* */
 
@@ -270,7 +288,7 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 /* Normal case (64-bit pointers): use "r" as the constraint for pointer operands to asm */
 #define MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT "r"
 #else
-#error Unrecognised pointer size for aarch64
+#error "Unrecognised pointer size for aarch64"
 #endif
 #endif
 
@@ -291,8 +309,8 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 /* Define compiler branch hints */
 #if defined(__has_builtin)
 #if __has_builtin(__builtin_expect)
-#define MBEDTLS_LIKELY(x)       __builtin_expect((x), 1)
-#define MBEDTLS_UNLIKELY(x)     __builtin_expect((x), 0)
+#define MBEDTLS_LIKELY(x)       __builtin_expect(!!(x), 1)
+#define MBEDTLS_UNLIKELY(x)     __builtin_expect(!!(x), 0)
 #endif
 #endif
 #if !defined(MBEDTLS_LIKELY)

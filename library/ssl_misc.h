@@ -24,12 +24,14 @@
 
 #include "mbedtls/build_info.h"
 
+#include "mbedtls/error.h"
+
 #include "mbedtls/ssl.h"
 #include "mbedtls/cipher.h"
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
 #endif
 
 #if defined(MBEDTLS_MD_CAN_MD5)
@@ -751,24 +753,20 @@ struct mbedtls_ssl_handshake_params {
     mbedtls_dhm_context dhm_ctx;                /*!<  DHM key exchange        */
 #endif
 
-#if defined(MBEDTLS_ECDH_C) && !defined(MBEDTLS_USE_PSA_CRYPTO)
+#if !defined(MBEDTLS_USE_PSA_CRYPTO) && \
+    defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED)
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
-#endif /* MBEDTLS_ECDH_C && !MBEDTLS_USE_PSA_CRYPTO */
+#endif /* !MBEDTLS_USE_PSA_CRYPTO &&
+          MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED */
 
-#if (defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)) && \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3))
-    psa_key_type_t ecdh_psa_type;
-    size_t ecdh_bits;
-    mbedtls_svc_key_id_t ecdh_psa_privkey;
-    uint8_t ecdh_psa_privkey_is_external;
-#if defined(PSA_WANT_ALG_FFDH)
-    unsigned char ecdh_psa_peerkey[MBEDTLS_PSA_MAX_FFDH_PUBKEY_LENGTH];
-#else
-    unsigned char ecdh_psa_peerkey[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
-#endif
-    size_t ecdh_psa_peerkey_len;
-#endif /* (PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH) &&
-          (MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3) */
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED)
+    psa_key_type_t xxdh_psa_type;
+    size_t xxdh_psa_bits;
+    mbedtls_svc_key_id_t xxdh_psa_privkey;
+    uint8_t xxdh_psa_privkey_is_external;
+    unsigned char xxdh_psa_peerkey[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
+    size_t xxdh_psa_peerkey_len;
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -784,7 +782,8 @@ struct mbedtls_ssl_handshake_params {
 #endif
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
-#if defined(MBEDTLS_PK_CAN_ECDH) || defined(MBEDTLS_PK_CAN_ECDSA_SOME) ||      \
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED) || \
+    defined(MBEDTLS_PK_CAN_ECDSA_SOME) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     uint16_t *curves_tls_id;      /*!<  List of TLS IDs of supported elliptic curves */
 #endif
@@ -1557,10 +1556,10 @@ int mbedtls_ssl_set_calc_verify_md(mbedtls_ssl_context *ssl, int md);
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_check_curve_tls_id(const mbedtls_ssl_context *ssl, uint16_t tls_id);
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_check_curve(const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id);
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
 /**
  * \brief Return PSA EC info for the specified TLS ID.
@@ -2117,7 +2116,7 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl);
 
 #if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
 MBEDTLS_CHECK_RETURN_CRITICAL
-int mbedtls_ssl_tls13_generate_and_write_dh_key_exchange(
+int mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
     mbedtls_ssl_context *ssl,
     uint16_t named_group,
     unsigned char *buf,
@@ -2215,7 +2214,7 @@ static inline int mbedtls_ssl_tls13_named_group_is_ecdhe(uint16_t named_group)
            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_X448;
 }
 
-static inline int mbedtls_ssl_tls13_named_group_is_dhe(uint16_t named_group)
+static inline int mbedtls_ssl_tls13_named_group_is_ffdh(uint16_t named_group)
 {
     return named_group >= MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048 &&
            named_group <= MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192;
@@ -2250,7 +2249,7 @@ static inline int mbedtls_ssl_named_group_is_supported(uint16_t named_group)
     }
 #endif
 #if defined(PSA_WANT_ALG_FFDH)
-    if (mbedtls_ssl_tls13_named_group_is_dhe(named_group)) {
+    if (mbedtls_ssl_tls13_named_group_is_ffdh(named_group)) {
         return 1;
     }
 #endif
@@ -2652,7 +2651,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
 #if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-int mbedtls_ssl_tls13_read_public_ecdhe_share(mbedtls_ssl_context *ssl,
+int mbedtls_ssl_tls13_read_public_xxdhe_share(mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,
                                               size_t buf_len);
 
@@ -2796,5 +2795,65 @@ static inline void mbedtls_ssl_session_clear_ticket_flags(
 #if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
 int mbedtls_ssl_tls13_finalize_client_hello(mbedtls_ssl_context *ssl);
 #endif
+
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
+
+/** Compute the HMAC of variable-length data with constant flow.
+ *
+ * This function computes the HMAC of the concatenation of \p add_data and \p
+ * data, and does with a code flow and memory access pattern that does not
+ * depend on \p data_len_secret, but only on \p min_data_len and \p
+ * max_data_len. In particular, this function always reads exactly \p
+ * max_data_len bytes from \p data.
+ *
+ * \param ctx               The HMAC context. It must have keys configured
+ *                          with mbedtls_md_hmac_starts() and use one of the
+ *                          following hashes: SHA-384, SHA-256, SHA-1 or MD-5.
+ *                          It is reset using mbedtls_md_hmac_reset() after
+ *                          the computation is complete to prepare for the
+ *                          next computation.
+ * \param add_data          The first part of the message whose HMAC is being
+ *                          calculated. This must point to a readable buffer
+ *                          of \p add_data_len bytes.
+ * \param add_data_len      The length of \p add_data in bytes.
+ * \param data              The buffer containing the second part of the
+ *                          message. This must point to a readable buffer
+ *                          of \p max_data_len bytes.
+ * \param data_len_secret   The length of the data to process in \p data.
+ *                          This must be no less than \p min_data_len and no
+ *                          greater than \p max_data_len.
+ * \param min_data_len      The minimal length of the second part of the
+ *                          message, read from \p data.
+ * \param max_data_len      The maximal length of the second part of the
+ *                          message, read from \p data.
+ * \param output            The HMAC will be written here. This must point to
+ *                          a writable buffer of sufficient size to hold the
+ *                          HMAC value.
+ *
+ * \retval 0 on success.
+ * \retval #MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED
+ *         The hardware accelerator failed.
+ */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+int mbedtls_ct_hmac(mbedtls_svc_key_id_t key,
+                    psa_algorithm_t mac_alg,
+                    const unsigned char *add_data,
+                    size_t add_data_len,
+                    const unsigned char *data,
+                    size_t data_len_secret,
+                    size_t min_data_len,
+                    size_t max_data_len,
+                    unsigned char *output);
+#else
+int mbedtls_ct_hmac(mbedtls_md_context_t *ctx,
+                    const unsigned char *add_data,
+                    size_t add_data_len,
+                    const unsigned char *data,
+                    size_t data_len_secret,
+                    size_t min_data_len,
+                    size_t max_data_len,
+                    unsigned char *output);
+#endif /* defined(MBEDTLS_USE_PSA_CRYPTO) */
+#endif /* MBEDTLS_TEST_HOOKS && defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC) */
 
 #endif /* ssl_misc.h */

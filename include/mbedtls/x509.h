@@ -429,7 +429,7 @@ int mbedtls_x509_time_is_future(const mbedtls_x509_time *from);
  * \param san_buf  The buffer holding the raw data item of the subject
  *                 alternative name.
  * \param san      The target structure to populate with the parsed presentation
- *                 of the subject alternative name encoded in \p san_raw.
+ *                 of the subject alternative name encoded in \p san_buf.
  *
  * \note           Supported GeneralName types, as defined in RFC 5280:
  *                 "rfc822Name", "dnsName", "directoryName",
@@ -439,7 +439,7 @@ int mbedtls_x509_time_is_future(const mbedtls_x509_time *from);
  * \note           This function should be called on a single raw data of
  *                 subject alternative name. For example, after successful
  *                 certificate parsing, one must iterate on every item in the
- *                 \p crt->subject_alt_names sequence, and pass it to
+ *                 \c crt->subject_alt_names sequence, and pass it to
  *                 this function.
  *
  * \warning        The target structure contains pointers to the raw data of the
@@ -503,7 +503,8 @@ int mbedtls_x509_write_names(unsigned char **p, unsigned char *start,
                              mbedtls_asn1_named_data *first);
 int mbedtls_x509_write_sig(unsigned char **p, unsigned char *start,
                            const char *oid, size_t oid_len,
-                           unsigned char *sig, size_t size);
+                           unsigned char *sig, size_t size,
+                           mbedtls_pk_type_t pk_alg);
 int mbedtls_x509_get_ns_cert_type(unsigned char **p,
                                   const unsigned char *end,
                                   unsigned char *ns_cert_type);
@@ -524,6 +525,9 @@ int mbedtls_x509_info_cert_type(char **buf, size_t *size,
                                 unsigned char ns_cert_type);
 int mbedtls_x509_info_key_usage(char **buf, size_t *size,
                                 unsigned int key_usage);
+
+int mbedtls_x509_write_set_san_common(mbedtls_asn1_named_data **extensions,
+                                      const mbedtls_x509_san_list *san_list);
 
 /**
  * \brief          This function parses a CN string as an IP address.

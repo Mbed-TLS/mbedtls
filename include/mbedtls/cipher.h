@@ -366,7 +366,7 @@ typedef struct mbedtls_cipher_context_t {
     mbedtls_cmac_context_t *MBEDTLS_PRIVATE(cmac_ctx);
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     /** Indicates whether the cipher operations should be performed
      *  by Mbed TLS' own crypto library or an external implementation
      *  of the PSA Crypto API.
@@ -375,7 +375,7 @@ typedef struct mbedtls_cipher_context_t {
      *  mbedtls_cipher_setup_psa().
      */
     unsigned char MBEDTLS_PRIVATE(psa_enabled);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
 } mbedtls_cipher_context_t;
 
@@ -505,7 +505,7 @@ static inline size_t mbedtls_cipher_info_get_key_bitlen(
  *
  * \return              The cipher name, which is a human readable string,
  *                      with static storage duration.
- * \return              \c NULL if \c info is \p NULL.
+ * \return              \c NULL if \p info is \c NULL.
  */
 static inline const char *mbedtls_cipher_info_get_name(
     const mbedtls_cipher_info_t *info)
@@ -596,7 +596,7 @@ static inline int mbedtls_cipher_info_has_variable_iv_size(
 }
 
 /**
- * \brief               This function initializes a \p cipher_context as NONE.
+ * \brief               This function initializes a \p ctx as NONE.
  *
  * \param ctx           The context to be initialized. This must not be \c NULL.
  */
@@ -790,7 +790,7 @@ static inline const char *mbedtls_cipher_get_name(
  * \param ctx           The context of the cipher. This must be initialized.
  *
  * \return              The key length of the cipher in bits.
- * \return              #MBEDTLS_KEY_LENGTH_NONE if ctx \p has not been
+ * \return              #MBEDTLS_KEY_LENGTH_NONE if \p ctx has not been
  *                      initialized.
  */
 static inline int mbedtls_cipher_get_key_bitlen(
@@ -990,7 +990,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx,
  * \param ctx           The generic cipher context. This must be initialized and
  *                      bound to a key.
  * \param output        The buffer to write data to. This needs to be a writable
- *                      buffer of at least \p block_size Bytes.
+ *                      buffer of at least block_size Bytes.
  * \param olen          The length of the data written to the \p output buffer.
  *                      This may not be \c NULL.
  *

@@ -1196,29 +1196,47 @@ Key ASN1 (ECPrivateKey, empty parameters)
 depends_on:MBEDTLS_PK_HAVE_ECC_KEYS
 pk_parse_key:"30070201010400a000":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
-Key ASN1 (OneAsymmetricKey X25519, doesn't match masking requirements, from RFC8410 Appendix A but made into version 0)
-depends_on:MBEDTLS_ECP_C
-pk_parse_key:"302e020100300506032b656e04220420f8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff3f":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
-
 Key ASN1 (OneAsymmetricKey X25519, with invalid optional AlgorithIdentifier parameters)
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_CURVE25519_ENABLED
 pk_parse_key:"3030020100300706032b656e050004220420b06d829655543a51cba36e53522bc0acfd60af59466555fb3e1e796872ab1a59":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (OneAsymmetricKey X25519, with NULL private key)
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_CURVE25519_ENABLED
 pk_parse_key:"300e020100300506032b656e04020500":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (OneAsymmetricKey with invalid AlgorithIdentifier)
 pk_parse_key:"3013020100300a06082b0601040181fd5904020500":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (OneAsymmetricKey X25519, with unsupported attributes)
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_CURVE25519_ENABLED
 pk_parse_key:"304f020100300506032b656e04220420b06d829655543a51cba36e53522bc0acfd60af59466555fb3e1e796872ab1a59a01f301d060a2a864886f70d01090914310f0c0d437572646c6520436861697273":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (OneAsymmetricKey X25519, unsupported version 2 with public key)
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_CURVE25519_ENABLED
 pk_parse_key:"3051020101300506032b656e04220420b06d829655543a51cba36e53522bc0acfd60af59466555fb3e1e796872ab1a598121009bc3b0e93d8233fe6a8ba6138948cc12a91362d5c2ed81584db05ab5419c9d11":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (OneAsymmetricKey X25519, unsupported version 2 with public key and unsupported attributes)
-depends_on:MBEDTLS_PK_HAVE_ECC_KEYS
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_CURVE25519_ENABLED
 pk_parse_key:"3072020101300506032b656e04220420b06d829655543a51cba36e53522bc0acfd60af59466555fb3e1e796872ab1a59a01f301d060a2a864886f70d01090914310f0c0d437572646c65204368616972738121009bc3b0e93d8233fe6a8ba6138948cc12a91362d5c2ed81584db05ab5419c9d11":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
+
+# From RFC8410 Appendix A but made into version 0
+OneAsymmetricKey X25519, doesn't match masking requirements #1
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+pk_parse_fix_montgomery:"302e020100300506032b656e04220420f8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff3f":"302e020100300506032b656e04220420f8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f"
+
+# Full inverse of the expected x25519 pattern:
+# - 3 LSb to 1
+# - 1st MSb to 1
+# - 2nd MSb to 0
+# Note: Montgomery keys are written in Little endian format.
+OneAsymmetricKey X25519, doesn't match masking requirements #2
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+pk_parse_fix_montgomery:"302e020100300506032b656e04220420ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffbf":"302e020100300506032b656e04220420f8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f"
+
+# Full inverse of the expected x448 pattern:
+# - 2 LSb to 1
+# - MSb to 0
+# Note: Montgomery keys are written in Little endian format.
+OneAsymmetricKey X448, doesn't match masking requirements #3
+depends_on:MBEDTLS_ECP_DP_CURVE448_ENABLED
+pk_parse_fix_montgomery:"3046020100300506032b656f043a0438ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f":"3046020100300506032b656f043a0438fcffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"

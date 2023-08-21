@@ -76,6 +76,7 @@
 #define PSA_WANT_ALG_MD5                        1
 #define PSA_WANT_ALG_OFB                        1
 #define PSA_WANT_ALG_PBKDF2_HMAC                1
+#define PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128    1
 #define PSA_WANT_ALG_RIPEMD160                  1
 #define PSA_WANT_ALG_RSA_OAEP                   1
 #define PSA_WANT_ALG_RSA_PKCS1V15_CRYPT         1

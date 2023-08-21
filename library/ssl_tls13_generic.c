@@ -37,10 +37,9 @@
 #include "ssl_debug_helpers.h"
 
 #include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
 
-#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED) || \
-    defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
 /* Define a local translating function to save code size by not using too many
  * arguments in each translating place. */
 static int local_err_translation(psa_status_t status)
@@ -1497,9 +1496,9 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl)
     return ret;
 }
 
-#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
 
-int mbedtls_ssl_tls13_read_public_ecdhe_share(mbedtls_ssl_context *ssl,
+int mbedtls_ssl_tls13_read_public_xxdhe_share(mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,
                                               size_t buf_len)
 {
@@ -1516,12 +1515,13 @@ int mbedtls_ssl_tls13_read_public_ecdhe_share(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, peerkey_len);
 
     /* Store peer's ECDH public key. */
-    memcpy(handshake->ecdh_psa_peerkey, p, peerkey_len);
-    handshake->ecdh_psa_peerkey_len = peerkey_len;
+    memcpy(handshake->xxdh_psa_peerkey, p, peerkey_len);
+    handshake->xxdh_psa_peerkey_len = peerkey_len;
 
     return 0;
 }
 
+#if defined(PSA_WANT_ALG_FFDH)
 static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
     uint16_t tls_id, size_t *bits, psa_key_type_t *key_type)
 {
@@ -1550,8 +1550,9 @@ static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
             return PSA_ERROR_NOT_SUPPORTED;
     }
 }
+#endif /* PSA_WANT_ALG_FFDH */
 
-int mbedtls_ssl_tls13_generate_and_write_dh_key_exchange(
+int mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
     mbedtls_ssl_context *ssl,
     uint16_t named_group,
     unsigned char *buf,
@@ -1592,18 +1593,18 @@ int mbedtls_ssl_tls13_generate_and_write_dh_key_exchange(
         return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
     }
 
-    handshake->ecdh_psa_type = key_type;
-    ssl->handshake->ecdh_bits = bits;
+    handshake->xxdh_psa_type = key_type;
+    ssl->handshake->xxdh_psa_bits = bits;
 
     key_attributes = psa_key_attributes_init();
     psa_set_key_usage_flags(&key_attributes, PSA_KEY_USAGE_DERIVE);
     psa_set_key_algorithm(&key_attributes, alg);
-    psa_set_key_type(&key_attributes, handshake->ecdh_psa_type);
-    psa_set_key_bits(&key_attributes, handshake->ecdh_bits);
+    psa_set_key_type(&key_attributes, handshake->xxdh_psa_type);
+    psa_set_key_bits(&key_attributes, handshake->xxdh_psa_bits);
 
     /* Generate ECDH/FFDH private key. */
     status = psa_generate_key(&key_attributes,
-                              &handshake->ecdh_psa_privkey);
+                              &handshake->xxdh_psa_privkey);
     if (status != PSA_SUCCESS) {
         ret = PSA_TO_MBEDTLS_ERR(status);
         MBEDTLS_SSL_DEBUG_RET(1, "psa_generate_key", ret);
@@ -1612,7 +1613,7 @@ int mbedtls_ssl_tls13_generate_and_write_dh_key_exchange(
     }
 
     /* Export the public part of the ECDH/FFDH private key from PSA. */
-    status = psa_export_public_key(handshake->ecdh_psa_privkey,
+    status = psa_export_public_key(handshake->xxdh_psa_privkey,
                                    buf, buf_size,
                                    &own_pubkey_len);
 
@@ -1626,7 +1627,7 @@ int mbedtls_ssl_tls13_generate_and_write_dh_key_exchange(
 
     return 0;
 }
-#endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
 
 /* RFC 8446 section 4.2
  *

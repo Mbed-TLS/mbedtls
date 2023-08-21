@@ -869,13 +869,13 @@ int mbedtls_ecp_point_write_binary(const mbedtls_ecp_group *grp,
             mbedtls_mpi_init(&q);
             if ((ret = mbedtls_ecp_point_encode(grp, &q, P)) != 0) {
                 mbedtls_mpi_free(&q);
-                return ret;
+                goto cleanup;
             }
 
             ret = mbedtls_mpi_write_binary_le(&q, buf, plen);
             mbedtls_mpi_free(&q);
             if (ret != 0) {
-                return ret;
+                goto cleanup;
             }
             break;
         }

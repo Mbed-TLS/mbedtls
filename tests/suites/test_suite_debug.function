@@ -205,3 +205,17 @@ exit:
     USE_PSA_DONE();
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void check_mbedtls_calloc_overallocation(int num, int size)
+{
+    unsigned char *buf;
+    buf = mbedtls_calloc((size_t) num * SIZE_MAX/2, (size_t) size * SIZE_MAX/2);
+    /* Dummy usage of the pointer to prevent optimizing it */
+    mbedtls_printf("calloc pointer : %p\n", buf);
+    TEST_ASSERT(buf == NULL);
+
+exit:
+    mbedtls_free(buf);
+}
+/* END_CASE */

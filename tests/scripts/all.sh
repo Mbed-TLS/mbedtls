@@ -192,6 +192,10 @@ pre_initialize_variables () {
     # default to -O2, use -Ox _after_ this if you want another level
     ASAN_CFLAGS='-O2 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
 
+    # Platform tests have an allocation that returns null
+    export ASAN_OPTIONS="allocator_may_return_null=1"
+    export MSAN_OPTIONS="allocator_may_return_null=1"
+
     # Gather the list of available components. These are the functions
     # defined in this script whose name starts with "component_".
     ALL_COMPONENTS=$(compgen -A function component_ | sed 's/component_//')

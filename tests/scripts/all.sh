@@ -175,6 +175,10 @@ pre_initialize_variables () {
     : ${ARMC6_BIN_DIR:=/usr/bin}
     : ${ARM_NONE_EABI_GCC_PREFIX:=arm-none-eabi-}
     : ${ARM_LINUX_GNUEABI_GCC_PREFIX:=arm-linux-gnueabi-}
+    : ${CLANG_LATEST:="clang-latest"}
+    : ${CLANG_EARLIEST:="clang-earliest"}
+    : ${GCC_LATEST:="gcc-latest"}
+    : ${GCC_EARLIEST:="gcc-earliest"}
 
     # if MAKEFLAGS is not set add the -j option to speed up invocations of make
     if [ -z "${MAKEFLAGS+set}" ]; then
@@ -194,9 +198,7 @@ pre_initialize_variables () {
 
     # Gather the list of available components. These are the functions
     # defined in this script whose name starts with "component_".
-    # Parse the script with sed. This way we get the functions in the order
-    # they are defined.
-    ALL_COMPONENTS=$(sed -n 's/^ *component_\([0-9A-Z_a-z]*\) *().*/\1/p' <"$0")
+    ALL_COMPONENTS=$(compgen -A function component_ | sed 's/component_//')
 
     # Exclude components that are not supported on this platform.
     SUPPORTED_COMPONENTS=
@@ -278,6 +280,10 @@ General options:
 Tool path options:
      --armc5-bin-dir=<ARMC5_bin_dir_path>       ARM Compiler 5 bin directory.
      --armc6-bin-dir=<ARMC6_bin_dir_path>       ARM Compiler 6 bin directory.
+     --clang-earliest=<Clang_earliest_path>     Earliest version of clang available
+     --clang-latest=<Clang_latest_path>         Latest version of clang available
+     --gcc-earliest=<GCC_earliest_path>         Earliest version of GCC available
+     --gcc-latest=<GCC_latest_path>             Latest version of GCC available
      --gnutls-cli=<GnuTLS_cli_path>             GnuTLS client executable to use for most tests.
      --gnutls-serv=<GnuTLS_serv_path>           GnuTLS server executable to use for most tests.
      --gnutls-legacy-cli=<GnuTLS_cli_path>      GnuTLS client executable to use for legacy tests.
@@ -421,9 +427,13 @@ pre_parse_command_line () {
             --armcc) no_armcc=;;
             --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
             --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
+            --clang-earliest) shift; CLANG_EARLIEST="$1";;
+            --clang-latest) shift; CLANG_LATEST="$1";;
             --error-test) error_test=$((error_test + 1));;
             --except) all_except=1;;
             --force|-f) FORCE=1;;
+            --gcc-earliest) shift; GCC_EARLIEST="$1";;
+            --gcc-latest) shift; GCC_LATEST="$1";;
             --gnutls-cli) shift; GNUTLS_CLI="$1";;
             --gnutls-legacy-cli) shift; GNUTLS_LEGACY_CLI="$1";;
             --gnutls-legacy-serv) shift; GNUTLS_LEGACY_SERV="$1";;
@@ -1246,6 +1256,21 @@ component_test_psa_external_rng_use_psa_crypto () {
 
     msg "test: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG"
     tests/ssl-opt.sh -f 'Default\|opaque'
+}
+
+component_test_psa_inject_entropy () {
+    msg "build: full + MBEDTLS_PSA_INJECT_ENTROPY"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_INJECT_ENTROPY
+    scripts/config.py set MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.py set MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
+    scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_STD_NV_SEED_READ
+    scripts/config.py unset MBEDTLS_PLATFORM_STD_NV_SEED_WRITE
+    make CFLAGS="$ASAN_CFLAGS '-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: full + MBEDTLS_PSA_INJECT_ENTROPY"
+    make test
 }
 
 component_test_ecp_no_internal_rng () {
@@ -2500,6 +2525,43 @@ component_test_check_params_silent () {
     make CC=gcc CFLAGS='-Werror -O1' all test
 }
 
+component_build_aes_variations() { # ~45s
+    msg "build: aes.o for all combinations of relevant config options"
+
+    for a in set unset; do
+    for b in set unset; do
+    for c in set unset; do
+    for d in set unset; do
+    for e in set unset; do
+    for f in set unset; do
+    for g in set unset; do
+        echo ./scripts/config.py $a MBEDTLS_AES_SETKEY_ENC_ALT
+        echo ./scripts/config.py $b MBEDTLS_AES_DECRYPT_ALT
+        echo ./scripts/config.py $c MBEDTLS_AES_ROM_TABLES
+        echo ./scripts/config.py $d MBEDTLS_AES_ENCRYPT_ALT
+        echo ./scripts/config.py $e MBEDTLS_AES_SETKEY_DEC_ALT
+        echo ./scripts/config.py $f MBEDTLS_AES_FEWER_TABLES
+        echo ./scripts/config.py $g MBEDTLS_PADLOCK_C
+
+        ./scripts/config.py $a MBEDTLS_AES_SETKEY_ENC_ALT
+        ./scripts/config.py $b MBEDTLS_AES_DECRYPT_ALT
+        ./scripts/config.py $c MBEDTLS_AES_ROM_TABLES
+        ./scripts/config.py $d MBEDTLS_AES_ENCRYPT_ALT
+        ./scripts/config.py $e MBEDTLS_AES_SETKEY_DEC_ALT
+        ./scripts/config.py $f MBEDTLS_AES_FEWER_TABLES
+        ./scripts/config.py $g MBEDTLS_PADLOCK_C
+
+        rm -f library/aes.o
+        make -C library aes.o CC="clang" CFLAGS="-O0 -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused"
+    done
+    done
+    done
+    done
+    done
+    done
+    done
+}
+
 component_test_no_platform () {
     # Full configuration build, without platform support, file IO and net sockets.
     # This should catch missing mbedtls_printf definitions, and by disabling file
@@ -2898,6 +2960,7 @@ component_test_cmake_shared () {
 
 test_build_opt () {
     info=$1 cc=$2; shift 2
+    $cc --version
     for opt in "$@"; do
           msg "build/test: $cc $opt, $info" # ~ 30s
           make CC="$cc" CFLAGS="$opt -std=c99 -pedantic -Wall -Wextra -Werror"
@@ -2910,14 +2973,45 @@ test_build_opt () {
     done
 }
 
-component_test_clang_opt () {
+# For FreeBSD we invoke the function by name so this condition is added
+# to disable the existing test_clang_opt function for linux.
+if [[ $(uname) != "Linux" ]]; then
+    component_test_clang_opt () {
+        scripts/config.py full
+        test_build_opt 'full config' clang -O0 -Os -O2
+    }
+fi
+
+component_test_clang_latest_opt () {
     scripts/config.py full
-    test_build_opt 'full config' clang -O0 -Os -O2
+    test_build_opt 'full config' "$CLANG_LATEST" -O0 -Os -O2
+}
+support_test_clang_latest_opt () {
+    type "$CLANG_LATEST" >/dev/null 2>/dev/null
 }
 
-component_test_gcc_opt () {
+component_test_clang_earliest_opt () {
     scripts/config.py full
-    test_build_opt 'full config' gcc -O0 -Os -O2
+    test_build_opt 'full config' "$CLANG_EARLIEST" -O0
+}
+support_test_clang_earliest_opt () {
+    type "$CLANG_EARLIEST" >/dev/null 2>/dev/null
+}
+
+component_test_gcc_latest_opt () {
+    scripts/config.py full
+    test_build_opt 'full config' "$GCC_LATEST" -O0 -Os -O2
+}
+support_test_gcc_latest_opt () {
+    type "$GCC_LATEST" >/dev/null 2>/dev/null
+}
+
+component_test_gcc_earliest_opt () {
+    scripts/config.py full
+    test_build_opt 'full config' "$GCC_EARLIEST" -O0
+}
+support_test_gcc_earliest_opt () {
+    type "$GCC_EARLIEST" >/dev/null 2>/dev/null
 }
 
 component_build_mbedtls_config_file () {
@@ -3160,6 +3254,25 @@ component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
     not grep __aeabi_lmul library/*.o
 }
 
+component_build_arm_clang_thumb () {
+    # ~ 30s
+
+    scripts/config.py baremetal
+
+    msg "build: clang thumb 2, make"
+    make clean
+    make CC="clang" CFLAGS='-std=c99 -Werror -Os --target=arm-linux-gnueabihf -march=armv7-m -mthumb' lib
+
+    # Some Thumb 1 asm is sensitive to optimisation level, so test both -O0 and -Os
+    msg "build: clang thumb 1 -O0, make"
+    make clean
+    make CC="clang" CFLAGS='-std=c99 -Werror -O0 --target=arm-linux-gnueabihf -mcpu=arm1136j-s -mthumb' lib
+
+    msg "build: clang thumb 1 -Os, make"
+    make clean
+    make CC="clang" CFLAGS='-std=c99 -Werror -Os --target=arm-linux-gnueabihf -mcpu=arm1136j-s -mthumb' lib
+}
+
 component_build_armcc () {
     msg "build: ARM Compiler 5"
     scripts/config.py baremetal
@@ -3169,6 +3282,8 @@ component_build_armcc () {
     "$ARMC5_FROMELF" -z library/*.o
 
     make clean
+
+    # Compile mostly with -O1 since some Arm inline assembly is disabled for -O0.
 
     # ARM Compiler 6 - Target ARMv7-A
     armc6_build_test "--target=arm-arm-none-eabi -march=armv7-a"
@@ -3184,7 +3299,14 @@ component_build_armcc () {
 
     # ARM Compiler 6 - Target ARMv8-A - AArch64
     armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a"
+
+    # ARM Compiler 6 - Target Cortex-M0 - no optimisation
+    armc6_build_test "-O0 --target=arm-arm-none-eabi -mcpu=cortex-m0"
+
+    # ARM Compiler 6 - Target Cortex-M0
+    armc6_build_test "-Os --target=arm-arm-none-eabi -mcpu=cortex-m0"
 }
+
 support_build_armcc () {
     armc5_cc="$ARMC5_BIN_DIR/armcc"
     armc6_cc="$ARMC6_BIN_DIR/armclang"
@@ -3350,6 +3472,69 @@ component_test_cmake_as_subdirectory () {
 support_test_cmake_as_subdirectory () {
     support_test_cmake_out_of_source
 }
+
+component_build_cmake_custom_config_file () {
+    # Make a copy of config file to use for the in-tree test
+    cp "$CONFIG_H" include/mbedtls_config_in_tree_copy.h
+
+    MBEDTLS_ROOT_DIR="$PWD"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+
+    # Build once to get the generated files (which need an intact config file)
+    cmake "$MBEDTLS_ROOT_DIR"
+    make
+
+    msg "build: cmake with -DMBEDTLS_CONFIG_FILE"
+    scripts/config.py -w full_config.h full
+    echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_ROOT_DIR/$CONFIG_H"
+    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h "$MBEDTLS_ROOT_DIR"
+    make
+
+    msg "build: cmake with -DMBEDTLS_CONFIG_FILE + -DMBEDTLS_USER_CONFIG_FILE"
+    # In the user config, disable one feature (for simplicity, pick a feature
+    # that nothing else depends on).
+    echo '#undef MBEDTLS_NIST_KW_C' >user_config.h
+
+    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h -DMBEDTLS_USER_CONFIG_FILE=user_config.h "$MBEDTLS_ROOT_DIR"
+    make
+    not programs/test/query_compile_time_config MBEDTLS_NIST_KW_C
+
+    rm -f user_config.h full_config.h
+
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR"
+
+    # Now repeat the test for an in-tree build:
+
+    # Restore config for the in-tree test
+    mv include/mbedtls_config_in_tree_copy.h "$CONFIG_H"
+
+    # Build once to get the generated files (which need an intact config)
+    cmake .
+    make
+
+    msg "build: cmake (in-tree) with -DMBEDTLS_CONFIG_FILE"
+    scripts/config.py -w full_config.h full
+    echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_ROOT_DIR/$CONFIG_H"
+    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h .
+    make
+
+    msg "build: cmake (in-tree) with -DMBEDTLS_CONFIG_FILE + -DMBEDTLS_USER_CONFIG_FILE"
+    # In the user config, disable one feature (for simplicity, pick a feature
+    # that nothing else depends on).
+    echo '#undef MBEDTLS_NIST_KW_C' >user_config.h
+
+    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h -DMBEDTLS_USER_CONFIG_FILE=user_config.h .
+    make
+    not programs/test/query_compile_time_config MBEDTLS_NIST_KW_C
+
+    rm -f user_config.h full_config.h
+}
+support_build_cmake_custom_config_file () {
+    support_test_cmake_out_of_source
+}
+
 
 component_test_zeroize () {
     # Test that the function mbedtls_platform_zeroize() is not optimized away by

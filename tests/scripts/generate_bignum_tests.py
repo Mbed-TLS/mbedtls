@@ -196,7 +196,7 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
 class BignumCmp(BignumOperation):
     """Test cases for bignum value comparison."""
     count = 0
-    test_function = "mbedtls_mpi_cmp_mpi"
+    test_function = "mpi_cmp_mpi"
     test_name = "MPI compare"
     input_cases = [
         ("-2", "-3"),
@@ -217,7 +217,7 @@ class BignumCmp(BignumOperation):
 class BignumCmpAbs(BignumCmp):
     """Test cases for absolute bignum value comparison."""
     count = 0
-    test_function = "mbedtls_mpi_cmp_abs"
+    test_function = "mpi_cmp_abs"
     test_name = "MPI compare (abs)"
 
     def __init__(self, val_a, val_b) -> None:
@@ -228,7 +228,7 @@ class BignumAdd(BignumOperation):
     """Test cases for bignum value addition."""
     count = 0
     symbol = "+"
-    test_function = "mbedtls_mpi_add_mpi"
+    test_function = "mpi_add_mpi"
     test_name = "MPI add"
     input_cases = combination_pairs(
         [

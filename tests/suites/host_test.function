@@ -28,50 +28,28 @@ int verify_string(char **str)
  *              integer value.
  *
  * \param str   Input string.
- * \param value Pointer to int for output value.
+ * \param p_value Pointer to output value.
  *
  * \return      0 if success else 1
  */
-int verify_int(char *str, int32_t *value)
+int verify_int(char *str, intmax_t *p_value)
 {
-    size_t i;
-    int minus = 0;
-    int digits = 1;
-    int hex = 0;
-
-    for (i = 0; i < strlen(str); i++) {
-        if (i == 0 && str[i] == '-') {
-            minus = 1;
-            continue;
-        }
-
-        if (((minus && i == 2) || (!minus && i == 1)) &&
-            str[i - 1] == '0' && (str[i] == 'x' || str[i] == 'X')) {
-            hex = 1;
-            continue;
-        }
-
-        if (!((str[i] >= '0' && str[i] <= '9') ||
-              (hex && ((str[i] >= 'a' && str[i] <= 'f') ||
-                       (str[i] >= 'A' && str[i] <= 'F'))))) {
-            digits = 0;
-            break;
-        }
+    char *end = NULL;
+    errno = 0;
+    /* Limit the range to long: for large integers, the test framework will
+     * use expressions anyway. */
+    long value = strtol(str, &end, 0);
+    if (errno == EINVAL || *end != '\0') {
+        mbedtls_fprintf(stderr,
+                        "Expected integer for parameter and got: %s\n", str);
+        return KEY_VALUE_MAPPING_NOT_FOUND;
     }
-
-    if (digits) {
-        if (hex) {
-            *value = strtol(str, NULL, 16);
-        } else {
-            *value = strtol(str, NULL, 10);
-        }
-
-        return 0;
+    if (errno == ERANGE) {
+        mbedtls_fprintf(stderr, "Integer out of range: %s\n", str);
+        return KEY_VALUE_MAPPING_NOT_FOUND;
     }
-
-    mbedtls_fprintf(stderr,
-                    "Expected integer for parameter and got: %s\n", str);
-    return KEY_VALUE_MAPPING_NOT_FOUND;
+    *p_value = value;
+    return 0;
 }
 
 
@@ -180,24 +158,24 @@ static int parse_arguments(char *buf, size_t len, char **params,
         p++;
     }
 
-    /* Replace newlines, question marks and colons in strings */
+    /* Replace backslash escapes in strings */
     for (i = 0; i < cnt; i++) {
         p = params[i];
         q = params[i];
 
         while (*p != '\0') {
-            if (*p == '\\' && *(p + 1) == 'n') {
-                p += 2;
-                *(q++) = '\n';
-            } else if (*p == '\\' && *(p + 1) == ':') {
-                p += 2;
-                *(q++) = ':';
-            } else if (*p == '\\' && *(p + 1) == '?') {
-                p += 2;
-                *(q++) = '?';
-            } else {
-                *(q++) = *(p++);
+            if (*p == '\\') {
+                ++p;
+                switch (*p) {
+                    case 'n':
+                        *p = '\n';
+                        break;
+                    default:
+                        // Fall through to copying *p
+                        break;
+                }
             }
+            *(q++) = *(p++);
         }
         *q = '\0';
     }
@@ -223,7 +201,8 @@ static int parse_arguments(char *buf, size_t len, char **params,
  *
  * \return      0 for success else 1
  */
-static int convert_params(size_t cnt, char **params, int32_t *int_params_store)
+static int convert_params(size_t cnt, char **params,
+                          mbedtls_test_argument_t *int_params_store)
 {
     char **cur = params;
     char **out = params;
@@ -241,7 +220,7 @@ static int convert_params(size_t cnt, char **params, int32_t *int_params_store)
                 break;
             }
         } else if (strcmp(type, "int") == 0) {
-            if (verify_int(val, int_params_store) == 0) {
+            if (verify_int(val, &int_params_store->sint) == 0) {
                 *out++ = (char *) int_params_store++;
             } else {
                 ret = (DISPATCH_INVALID_TEST_DATA);
@@ -255,7 +234,7 @@ static int convert_params(size_t cnt, char **params, int32_t *int_params_store)
                     mbedtls_test_unhexify((unsigned char *) val, strlen(val),
                                           val, &len) == 0);
 
-                *int_params_store = len;
+                int_params_store->len = len;
                 *out++ = val;
                 *out++ = (char *) (int_params_store++);
             } else {
@@ -264,7 +243,7 @@ static int convert_params(size_t cnt, char **params, int32_t *int_params_store)
             }
         } else if (strcmp(type, "exp") == 0) {
             int exp_id = strtol(val, NULL, 10);
-            if (get_expression(exp_id, int_params_store) == 0) {
+            if (get_expression(exp_id, &int_params_store->sint) == 0) {
                 *out++ = (char *) int_params_store++;
             } else {
                 ret = (DISPATCH_INVALID_TEST_DATA);
@@ -483,7 +462,7 @@ int execute_tests(int argc, const char **argv)
     char buf[5000];
     char *params[50];
     /* Store for processed integer params. */
-    int32_t int_params[50];
+    mbedtls_test_argument_t int_params[50];
     void *pointer;
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
     int stdout_fd = -1;

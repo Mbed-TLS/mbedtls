@@ -12,8 +12,8 @@ build:
     python: "3.9"
   jobs:
     pre_build:
-      - make apidoc
-      - breathe-apidoc -o docs/api apidoc/xml
+    - ./scripts/apidoc_full.sh
+    - breathe-apidoc -o docs/api apidoc/xml
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:

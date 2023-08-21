@@ -22,6 +22,10 @@ mbedtls_pem_read_buffer:"^":"$":"^\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: DES-EDE3
 PEM read (DES-CBC + invalid iv)
 mbedtls_pem_read_buffer:"^":"$":"^\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: DES-CBC,00$":"pwd":MBEDTLS_ERR_PEM_INVALID_ENC_IV
 
+PEM read (AES-128-CBC + invalid iv)
+depends_on:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_AES_C
+mbedtls_pem_read_buffer:"^":"$":"^\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: AES-128-CBC,00$":"pwd":MBEDTLS_ERR_PEM_INVALID_ENC_IV
+
 PEM read (unknown encryption algorithm)
 depends_on:MBEDTLS_AES_C
 mbedtls_pem_read_buffer:"^":"$":"^\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: AES-,00$":"pwd":MBEDTLS_ERR_PEM_UNKNOWN_ENC_ALG

@@ -72,7 +72,7 @@ static int check_key_attributes_sanity(mbedtls_svc_key_id_t key)
     psa_key_slot_number_t slot_number = 0xec94d4a5058a1a21;
     psa_status_t status = psa_get_key_slot_number(&attributes, &slot_number);
     if (lifetime_is_dynamic_secure_element(lifetime)) {
-        /* Mbed Crypto currently always exposes the slot number to
+        /* Mbed TLS currently always exposes the slot number to
          * applications. This is not mandated by the PSA specification
          * and may change in future versions. */
         TEST_EQUAL(status, 0);
@@ -308,7 +308,7 @@ static int exercise_signature_key(mbedtls_svc_key_id_t key,
             hash_alg = KNOWN_MBEDTLS_SUPPORTED_HASH_ALG;
             alg ^= PSA_ALG_ANY_HASH ^ hash_alg;
     #else
-            TEST_ASSERT(!"No hash algorithm for hash-and-sign testing");
+            TEST_FAIL("No hash algorithm for hash-and-sign testing");
     #endif
         }
 
@@ -437,7 +437,7 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
                                                   PSA_KEY_DERIVATION_INPUT_LABEL,
                                                   input2, input2_length));
     } else {
-        TEST_ASSERT(!"Key derivation algorithm not supported");
+        TEST_FAIL("Key derivation algorithm not supported");
     }
 
     if (capacity != SIZE_MAX) {
@@ -767,7 +767,7 @@ int mbedtls_test_psa_exported_key_sanity_check(
 
     {
         (void) exported;
-        TEST_ASSERT(!"Sanity check not implemented for this key type");
+        TEST_FAIL("Sanity check not implemented for this key type");
     }
 
 #if defined(MBEDTLS_DES_C)
@@ -912,7 +912,7 @@ int mbedtls_test_psa_exercise_key(mbedtls_svc_key_id_t key,
     } else if (PSA_ALG_IS_KEY_AGREEMENT(alg)) {
         ok = exercise_key_agreement_key(key, usage, alg);
     } else {
-        TEST_ASSERT(!"No code to exercise this category of algorithm");
+        TEST_FAIL("No code to exercise this category of algorithm");
     }
 
     ok = ok && exercise_export_key(key, usage);

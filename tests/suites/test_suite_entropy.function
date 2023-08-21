@@ -135,7 +135,7 @@ int read_nv_seed(unsigned char *buf, size_t buf_len)
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_ENTROPY_C
+ * depends_on:MBEDTLS_ENTROPY_C:!MBEDTLS_PSA_INJECT_ENTROPY
  * END_DEPENDENCIES
  */
 

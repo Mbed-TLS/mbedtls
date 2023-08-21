@@ -61,12 +61,11 @@ inline static int mbedtls_ecp_group_cmp(mbedtls_ecp_group *grp1,
     if (grp1->t_data != grp2->t_data) {
         return 1;
     }
-    if (grp1->T_size != grp2->T_size) {
-        return 1;
-    }
-    if (grp1->T != grp2->T) {
-        return 1;
-    }
+    /* Here we should not compare T and T_size as the value of T is
+     * always NULL for Montgomery curves and for Weierstrass curves
+     * it will be NULL until ecp_mul is called. After calling ecp_mul,
+     * the value will be unique (dynamically allocated).
+     */
 
     return 0;
 }
@@ -1207,6 +1206,8 @@ void mbedtls_ecp_group_metadata(int id, int bit_size, int crv_type,
 
     // Copy group and compare with original
     TEST_EQUAL(mbedtls_ecp_group_copy(&grp_cpy, &grp), 0);
+    TEST_ASSERT(grp_cpy.T == NULL);
+    TEST_ASSERT(grp_cpy.T_size == 0);
     TEST_EQUAL(mbedtls_ecp_group_cmp(&grp, &grp_cpy), 0);
 
     // Check curve is in curve list and group ID list

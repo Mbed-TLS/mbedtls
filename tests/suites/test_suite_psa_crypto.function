@@ -5577,7 +5577,7 @@ void persistent_key_load_key_from_storage(data_t *data,
             break;
 
         default:
-            TEST_ASSERT(!"generation_method not implemented in test");
+            TEST_FAIL("generation_method not implemented in test");
             break;
     }
     psa_reset_key_attributes(&attributes);

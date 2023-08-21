@@ -18,6 +18,14 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     }
 
     mbedtls_pk_init(&pk);
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     ret = mbedtls_pk_parse_key(&pk, Data, Size, NULL, 0);
     if (ret == 0) {
 #if defined(MBEDTLS_RSA_C)
@@ -63,6 +71,10 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
             abort();
         }
     }
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+exit:
+    mbedtls_psa_crypto_free();
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     mbedtls_pk_free(&pk);
 #else
     (void) Data;

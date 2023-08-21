@@ -72,6 +72,15 @@ int main(int argc, char *argv[])
      */
     mbedtls_x509_csr_init(&csr);
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
+                        (int) status);
+        goto exit;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     if (argc < 2) {
 usage:
         mbedtls_printf(USAGE);
@@ -127,6 +136,9 @@ usage:
 
 exit:
     mbedtls_x509_csr_free(&csr);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_psa_crypto_free();
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(_WIN32)
     mbedtls_printf("  + Press Enter to exit this program.\n");

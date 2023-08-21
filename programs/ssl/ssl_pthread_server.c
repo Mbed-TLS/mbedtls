@@ -337,6 +337,16 @@ int main(void)
      */
     mbedtls_entropy_init(&entropy);
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
+                        (int) status);
+        ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+        goto exit;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     /*
      * 1. Load the certificates and private RSA key
      */
@@ -477,14 +487,14 @@ exit:
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
     mbedtls_ssl_config_free(&conf);
-
     mbedtls_net_free(&listen_fd);
-
     mbedtls_mutex_free(&debug_mutex);
-
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_free();
 #endif
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_psa_crypto_free();
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(_WIN32)
     mbedtls_printf("  Press Enter to exit this program.\n");

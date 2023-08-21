@@ -30,9 +30,15 @@ Each test case has a description which succinctly describes for a human audience
 
 #### SSL test case descriptions
 
-Each test case in `ssl-opt.sh` has a description which succinctly describes for a human audience what the test does. The test description is the first parameter to `run_tests`.
+Each test case in `ssl-opt.sh` has a description which succinctly describes for a human audience what the test does. The test description is the first parameter to `run_test`.
 
 The same rules and guidelines apply as for [unit test descriptions](#unit-test-descriptions). In addition, the description must be written on the same line as `run_test`, in double quotes, for the sake of `check_test_cases.py`.
+
+### SSL cipher suite tests
+
+Each test case in `compat.sh` has a description which succinctly describes for a human audience what the test does. The test description is `$TITLE` defined in `run_client`.
+
+The same rules and guidelines apply as for [unit test descriptions](#unit-test-descriptions). In addition, failure cause in `compat.sh` is not classified as `ssl-opt.sh`, so the information of failed log files are followed as prompt.
 
 ## Running tests
 
@@ -40,7 +46,7 @@ The same rules and guidelines apply as for [unit test descriptions](#unit-test-d
 
 #### Generating an outcome file
 
-Unit tests and `ssl-opt.sh` record the outcome of each test case in a **test outcome file**. This feature is enabled if the environment variable `MBEDTLS_TEST_OUTCOME_FILE` is set. Set it to the path of the desired file.
+Unit tests, `ssl-opt.sh` and `compat.sh` record the outcome of each test case in a **test outcome file**. This feature is enabled if the environment variable `MBEDTLS_TEST_OUTCOME_FILE` is set. Set it to the path of the desired file.
 
 If you run `all.sh --outcome-file test-outcome.csv`, this collects the outcome of all the test cases in `test-outcome.csv`.
 
@@ -52,7 +58,7 @@ The outcome file has 6 fields:
 
 * **Platform**: a description of the platform, e.g. `Linux-x86_64` or `Linux-x86_64-gcc7-msan`.
 * **Configuration**: a unique description of the configuration (`config.h`).
-* **Test suite**: `test_suite_xxx` or `ssl-opt`.
+* **Test suite**: `test_suite_xxx`, `ssl-opt` or `compat`.
 * **Test case**: the description of the test case.
 * **Result**: one of `PASS`, `SKIP` or `FAIL`.
 * **Cause**: more information explaining the result.

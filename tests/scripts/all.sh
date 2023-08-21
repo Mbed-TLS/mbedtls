@@ -4163,7 +4163,7 @@ component_test_aes_fewer_tables_and_rom_tables () {
 }
 
 component_test_aes_encrypt_only () {
-    msg "build: default config + PSA_CRYPTO_CONFIG - CIPHER_MODE_CBC - CIPHER_MODE_XTS - NIST_KW_C + AES_ENCRYPT_ONLY"
+    msg "build: default config + PSA_CRYPTO_CONFIG + implicitly enable AES_ENCRYPT_ONLY"
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
@@ -4176,7 +4176,7 @@ component_test_aes_encrypt_only () {
     make CC=gcc CFLAGS="-Werror -Wall -Wextra -I '$PWD' \
         -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_aes_encrypt_only.h\"'"
 
-    msg "test: default config + PSA_CRYPTO_CONFIG - CIPHER_MODE_CBC - CIPHER_MODE_XTS - NIST_KW_C + AES_ENCRYPT_ONLY"
+    msg "test: default config + PSA_CRYPTO_CONFIG + implicitly enable AES_ENCRYPT_ONLY"
     make test
 
     rm -f psa_aes_encrypt_only.h

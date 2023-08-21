@@ -39,14 +39,10 @@
 #endif
 
 /* Some versions of ASan result in errors about not enough registers */
-#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) && defined(__i386__) && \
-    !defined(MBEDTLS_HAVE_ASAN)
+#if defined(__GNUC__) && defined(MBEDTLS_ARCH_IS_X86) && \
+    defined(MBEDTLS_HAVE_ASM) && !defined(MBEDTLS_HAVE_ASAN)
 
 #define MBEDTLS_VIA_PADLOCK_HAVE_CODE
-
-#ifndef MBEDTLS_HAVE_X86
-#define MBEDTLS_HAVE_X86
-#endif
 
 #include <stdint.h>
 

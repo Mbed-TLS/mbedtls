@@ -42,9 +42,10 @@ int main(void)
     "\n  example: asn_decoder file\n" \
     "\n"
 
-static const char *tag_number_to_names(int tag_number) {
+static const char *tag_number_to_names(int tag_number)
+{
     const char *tag_name;
-    switch(tag_number) {
+    switch (tag_number) {
         case MBEDTLS_ASN1_BOOLEAN:
             tag_name = "BOOLEAN";
             break;
@@ -100,7 +101,8 @@ static const char *tag_number_to_names(int tag_number) {
     return tag_name;
 }
 
-static int ber_to_string(unsigned char **input, int length, int depth) {
+static int ber_to_string(unsigned char **input, int length, int depth)
+{
     int number, constructed, class;
     const char *tag_name;
     size_t inner_length;
@@ -108,53 +110,48 @@ static int ber_to_string(unsigned char **input, int length, int depth) {
     unsigned int i;
     unsigned char *content = NULL;
     unsigned char *end = (*input) + length;
-    
-    while(*input < end) {
-        if((ret = mbedtls_asn1_get_any_tag(input, end, &number, &constructed, &class)) != 0) {
+
+    while (*input < end) {
+        if ((ret = mbedtls_asn1_get_any_tag(input, end, &number, &constructed, &class)) != 0) {
             return -1;
         }
-        if((ret = mbedtls_asn1_get_len(input, end, &inner_length)) != 0) {
+        if ((ret = mbedtls_asn1_get_len(input, end, &inner_length)) != 0) {
             return -1;
         }
-        
-        if(class == MBEDTLS_ASN1_UNIVERSAL) {
+
+        if (class == MBEDTLS_ASN1_UNIVERSAL) {
             tag_name = tag_number_to_names(number);
             printf("%*s ", depth*4 + (int) strlen(tag_name), tag_name);
-        }
-        else if(class == MBEDTLS_ASN1_APPLICATION) {
+        } else if (class == MBEDTLS_ASN1_APPLICATION) {
             printf("%*s[APPLICATION %d] ", depth*4, "", number);
-        }
-        else {
+        } else {
             printf("%*s[%d] ", depth*4, "", number);
         }
 
-        if(inner_length + (*input) > end) {
+        if (inner_length + (*input) > end) {
             return -1;
-        }
-        else if(constructed == MBEDTLS_ASN1_CONSTRUCTED) {
+        } else if (constructed == MBEDTLS_ASN1_CONSTRUCTED) {
             printf("{ \n");
-            if((ret = ber_to_string(input, inner_length, depth + 1)) != 0) {
+            if ((ret = ber_to_string(input, inner_length, depth + 1)) != 0) {
                 return ret;
             }
             printf("%*s}\n", depth*4, "");
-        }
-        else {
+        } else {
             content = malloc(inner_length);
             /* Do some stuff with the content based on tag */
             content = memcpy(content, *input, inner_length);
             *input += inner_length;
-            if(MBEDTLS_ASN1_IS_STRING_TAG((unsigned int) number) && 
-                    (number != MBEDTLS_ASN1_BIT_STRING) &&
-                    (class == MBEDTLS_ASN1_UNIVERSAL)) {
+            if (MBEDTLS_ASN1_IS_STRING_TAG((unsigned int) number) &&
+                (number != MBEDTLS_ASN1_BIT_STRING) &&
+                (class == MBEDTLS_ASN1_UNIVERSAL)) {
                 printf("\"");
-                for(i = 0; i < inner_length; i++) {
+                for (i = 0; i < inner_length; i++) {
                     printf("%c", content[i]);
                 }
                 printf("\"");
-            }
-            else {
+            } else {
                 printf("0x");
-                for(i = 0; i < inner_length; i++) {
+                for (i = 0; i < inner_length; i++) {
                     printf("%X", content[i]);
                 }
             }
@@ -165,14 +162,15 @@ static int ber_to_string(unsigned char **input, int length, int depth) {
     return 0;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     FILE *fp = NULL;
     int exit_code = MBEDTLS_EXIT_FAILURE, ret;
     int file_length;
     unsigned char *input_buf = NULL;
     unsigned char *s;
 
-    if(argc != 2) {
+    if (argc != 2) {
         mbedtls_printf(USAGE);
         goto exit;
     }
@@ -193,15 +191,15 @@ int main(int argc, char *argv[]) {
 
     ret = ber_to_string(&s, file_length, 0);
 
-    if(ret == -1) {
+    if (ret == -1) {
         printf("Invalid data, error at byte %ld\n", s - input_buf);
     }
 
 exit:
-    if(fp) {
+    if (fp) {
         fclose(fp);
     }
-    if(input_buf) {
+    if (input_buf) {
         mbedtls_free(input_buf);
     }
     mbedtls_exit(exit_code);

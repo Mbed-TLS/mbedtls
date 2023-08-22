@@ -861,7 +861,8 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
             ret = mbedtls_snprintf(p, n, "%s=", short_name);
         } else {
             if ((ret = mbedtls_oid_get_numeric_string(p, n, &name->oid)) > 0) {
-                MBEDTLS_X509_SAFE_SNPRINTF;
+                n -= ret;
+                p += ret;
                 ret = mbedtls_snprintf(p, n, "=");
                 print_hexstring = 1;
             } else {

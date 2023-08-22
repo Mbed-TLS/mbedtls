@@ -276,20 +276,19 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
             if (*s == '#') {
 #if defined(MBEDTLS_ASN1_PARSE_C)
                 if ((parse_ret =
-                    parse_attribute_value_der_encoded(s, (int) (c - s), data, &data_len,
-                                                    &tag)) != 0) {
+                         parse_attribute_value_der_encoded(s, (int) (c - s), data, &data_len,
+                                                           &tag)) != 0) {
                     mbedtls_free(oid.p);
                     return MBEDTLS_ERR_X509_INVALID_NAME;
-                }     
+                }
 #else
                 return MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE
 #endif
             } else {
-                if(numericoid) {
+                if (numericoid) {
                     mbedtls_free(oid.p);
                     return MBEDTLS_ERR_X509_INVALID_NAME;
-                }
-                else {
+                } else {
                     if ((parse_ret =
                              parse_attribute_value_string(s, (int) (c - s), data,
                                                           &data_len)) != 0) {

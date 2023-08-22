@@ -867,8 +867,7 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
                 print_hexstring = 1;
             } else if (ret == MBEDTLS_ERR_OID_BUF_TOO_SMALL) {
                 return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
-            }
-            else {
+            } else {
                 ret = mbedtls_snprintf(p, n, "\?\?=");
             }
         }
@@ -879,11 +878,11 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
             s[0] = '#';
 
             asn1_len_p = asn1_tag_len_buf + 10;
-            if((ret = mbedtls_asn1_write_len(&asn1_len_p, asn1_tag_len_buf, name->val.len)) < 0) {
+            if ((ret = mbedtls_asn1_write_len(&asn1_len_p, asn1_tag_len_buf, name->val.len)) < 0) {
                 return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
             }
             asn1_len_size = ret;
-            if((ret = mbedtls_asn1_write_tag(&asn1_len_p, asn1_tag_len_buf, name->val.tag)) < 0) {
+            if ((ret = mbedtls_asn1_write_tag(&asn1_len_p, asn1_tag_len_buf, name->val.tag)) < 0) {
                 return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
             }
             asn1_tag_size = ret;
@@ -921,8 +920,7 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
                 // Special characters requiring escaping, RFC 4514 Section 2.4
                 if (c == '\0') {
                     return MBEDTLS_ERR_X509_INVALID_NAME;
-                }
-                else {
+                } else {
                     if (strchr(",=+<>;\"\\", c) ||
                         ((i == 0) && strchr("# ", c)) ||
                         ((i == name->val.len-1) && (c == ' '))) {

@@ -25,6 +25,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <stdint.h>
+#include <limits.h>
+
 #if defined(MBEDTLS_ASN1_PARSE_C) && defined(MBEDTLS_FS_IO)
 #include "mbedtls/asn1.h"
 #endif
@@ -195,7 +198,13 @@ int main(int argc, char *argv[])
     ret = ber_to_string(&s, file_length, 0);
 
     if (ret == -1) {
+#if PTRDIFF_MAX == INT_MAX
+        printf("Invalid data, error at byte %d\n", s - input_buf);
+#elif PTRDIFF_MAX == LONG_MAX
         printf("Invalid data, error at byte %ld\n", s - input_buf);
+#elif PTRDIFF_MAX == LLONG_MAX
+        printf("Invalid data, error at byte %lld\n", s - input_buf);
+#endif
     }
 
 exit:

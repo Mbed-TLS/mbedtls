@@ -63,7 +63,10 @@ def analyze_coverage(results, outcomes, allow_list, full_coverage):
                 results.warning('Test case not executed: {}', key)
         elif hits != 0 and key in allow_list:
             # Test Case should be removed from the allow list.
-            results.warning('Allow listed test case was executed: {}', key)
+            if full_coverage:
+                results.error('Allow listed test case was executed: {}', key)
+            else:
+                results.warning('Allow listed test case was executed: {}', key)
 
 def analyze_outcomes(outcomes, args):
     """Run all analyses on the given outcome collection."""

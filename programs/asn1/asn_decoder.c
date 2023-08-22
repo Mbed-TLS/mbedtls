@@ -189,7 +189,8 @@ int main(int argc, char *argv[])
     input_buf = calloc(1, file_length+1);
     s = input_buf;
 
-    fread(input_buf, file_length, 1, fp);
+    while (fread(input_buf, file_length, 1, fp) != 1) {
+    }
 
     ret = ber_to_string(&s, file_length, 0);
 

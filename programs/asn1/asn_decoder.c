@@ -97,6 +97,8 @@ static const char *tag_number_to_names(int tag_number)
         case MBEDTLS_ASN1_BMP_STRING:
             tag_name = "BMP_STRING";
             break;
+        default:
+            tag_name = "UNKNOWN";
     }
     return tag_name;
 }

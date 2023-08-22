@@ -2194,6 +2194,7 @@ static const unsigned char small_prime_gaps[] = {
     14, 4, 2, 4, 14, 4, 2, 4,
     20, 4, 8, 10, 8, 4, 6, 6,
     14, 4, 6, 6, 8, 6, /*reaches 997*/
+    0 /* the last entry is effectively unused */
 };
 
 /*

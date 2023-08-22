@@ -1,2 +1,2 @@
 Bugfix
-   * Improve general IAR support
+   * Fix IAR compiler warnings. Fixes #7873, #4300.

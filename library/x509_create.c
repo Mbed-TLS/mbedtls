@@ -189,7 +189,7 @@ static int parse_attribute_value_string(const char *s,
 }
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
-static int parse_attribute_value_ber_encoded(const char *s,
+static int parse_attribute_value_der_encoded(const char *s,
                                              int len,
                                              unsigned char *data,
                                              size_t *data_len,
@@ -275,7 +275,7 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
         if (!in_attr_type && ((*c == ',' && *(c-1) != '\\') || c == end)) {
 #if defined(MBEDTLS_ASN1_PARSE_C)
             if ((parse_ret =
-                     parse_attribute_value_ber_encoded(s, (int) (c - s), data, &data_len,
+                     parse_attribute_value_der_encoded(s, (int) (c - s), data, &data_len,
                                                        &tag)) != 0) {
                 if (numericoid) {
                     mbedtls_free(oid.p);

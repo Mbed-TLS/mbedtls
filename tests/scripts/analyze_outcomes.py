@@ -184,9 +184,10 @@ TASKS = {
         'test_function': do_analyze_coverage,
         'args': {
             'allow_list': [
-                'test_suite_psa_crypto_metadata;Asymmetric signature: '
-                'pure EdDSA',
-                'test_suite_psa_crypto_metadata;Cipher: XTS'
+                # Algorithm not supported yet
+                'test_suite_psa_crypto_metadata;Asymmetric signature: pure EdDSA',
+                # Algorithm not supported yet
+                'test_suite_psa_crypto_metadata;Cipher: XTS',
                 ],
             'full_coverage': False,
         }

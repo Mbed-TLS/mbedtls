@@ -30,23 +30,7 @@
 #ifndef MBEDTLS_CONFIG_PSA_H
 #define MBEDTLS_CONFIG_PSA_H
 
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG_FILE)
-#include MBEDTLS_PSA_CRYPTO_CONFIG_FILE
-#else
-#include "psa/crypto_config.h"
-#endif
-#endif /* defined(MBEDTLS_PSA_CRYPTO_CONFIG) */
-
-#if defined(MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE)
-#include MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE
-#endif
-
 #include "psa/crypto_legacy.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 
@@ -1073,9 +1057,5 @@ extern "C" {
 #define PSA_WANT_KEY_TYPE_PASSWORD 1
 #define PSA_WANT_KEY_TYPE_PASSWORD_HASH 1
 #define PSA_WANT_KEY_TYPE_RAW_DATA 1
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* MBEDTLS_CONFIG_PSA_H */

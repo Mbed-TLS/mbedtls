@@ -86,7 +86,7 @@ def analyze_coverage(results, outcomes, allow_list, full_coverage):
         elif hits != 0 and key in allow_list:
             # Test Case should be removed from the allow list.
             if full_coverage:
-              results.error('Allow listed test case was executed: {}', key)
+                results.error('Allow listed test case was executed: {}', key)
             else:
                 results.warning('Allow listed test case was executed: {}', key)
 

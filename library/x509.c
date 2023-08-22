@@ -919,7 +919,10 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
 
                 c = name->val.p[i];
                 // Special characters requiring escaping, RFC 4514 Section 2.4
-                if (c) {
+                if (c == '\0') {
+                    return MBEDTLS_ERR_X509_INVALID_NAME;
+                }
+                else {
                     if (strchr(",=+<>;\"\\", c) ||
                         ((i == 0) && strchr("# ", c)) ||
                         ((i == name->val.len-1) && (c == ' '))) {

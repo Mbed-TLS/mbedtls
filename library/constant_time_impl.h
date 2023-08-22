@@ -243,7 +243,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_lt(mbedtls_ct_uint_t x, mbe
     uint64_t s1;
     asm volatile ("eor     %x[s1], %x[y], %x[x]          \n\t"
                   "sub     %x[x], %x[x], %x[y]           \n\t"
-                  "bic     %x[x], %x[x], %[s1]           \n\t"
+                  "bic     %x[x], %x[x], %x[s1]          \n\t"
                   "and     %x[s1], %x[s1], %x[y]         \n\t"
                   "orr     %x[s1], %x[x], %x[s1]         \n\t"
                   "asr     %x[x], %x[s1], 63"

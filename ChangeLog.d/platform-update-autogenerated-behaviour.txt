@@ -1,0 +1,2 @@
+Default behavior changes
+   * Automatic file generation is disabled by default on release build tags.

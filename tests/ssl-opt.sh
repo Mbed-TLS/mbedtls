@@ -223,6 +223,9 @@ skip_next_test() {
 # Check if the required configuration ($1) is enabled
 is_config_enabled()
 {
+    if [ "$LIST_TESTS" -gt 0 ];then
+        return 0;
+    fi
     case $CONFIGS_ENABLED in
         *" $1"[\ =]*) return 0;;
         *) return 1;;
@@ -231,6 +234,9 @@ is_config_enabled()
 
 # skip next test if the flag is not enabled in mbedtls_config.h
 requires_config_enabled() {
+    if [ "$LIST_TESTS" -gt 0 ];then
+        return;
+    fi
     case $CONFIGS_ENABLED in
         *" $1"[\ =]*) :;;
         *) SKIP_NEXT="YES";;
@@ -239,12 +245,18 @@ requires_config_enabled() {
 
 # skip next test if the flag is enabled in mbedtls_config.h
 requires_config_disabled() {
+    if [ "$LIST_TESTS" -gt 0 ];then
+        return;
+    fi
     case $CONFIGS_ENABLED in
         *" $1"[\ =]*) SKIP_NEXT="YES";;
     esac
 }
 
 requires_all_configs_enabled() {
+    if [ "$LIST_TESTS" -gt 0 ];then
+        return;
+    fi
     if ! $P_QUERY -all $*
     then
         SKIP_NEXT="YES"
@@ -252,6 +264,9 @@ requires_all_configs_enabled() {
 }
 
 requires_all_configs_disabled() {
+    if [ "$LIST_TESTS" -gt 0 ];then
+        return;
+    fi
     if $P_QUERY -any $*
     then
         SKIP_NEXT="YES"
@@ -259,6 +274,9 @@ requires_all_configs_disabled() {
 }
 
 requires_any_configs_enabled() {
+    if [ "$LIST_TESTS" -gt 0 ];then
+        return;
+    fi
     if ! $P_QUERY -any $*
     then
         SKIP_NEXT="YES"
@@ -266,6 +284,9 @@ requires_any_configs_enabled() {
 }
 
 requires_any_configs_disabled() {
+    if [ "$LIST_TESTS" -gt 0 ];then
+        return;
+    fi
     if $P_QUERY -all $*
     then
         SKIP_NEXT="YES"
@@ -290,6 +311,9 @@ TLS1_2_KEY_EXCHANGES_WITH_CERT_WO_ECDH="MBEDTLS_KEY_EXCHANGE_RSA_ENABLED \
                                        MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED"
 
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled() {
+    if [ "$LIST_TESTS" -gt 0 ];then
+        return;
+    fi
     if $P_QUERY -all MBEDTLS_SSL_PROTO_TLS1_2
     then
         requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
@@ -307,10 +331,18 @@ get_config_value_or_default() {
     #
     # Note that if the configuration is not defined or is defined to nothing,
     # the output of this function will be an empty string.
-    ${P_SRV} "query_config=${1}"
+    if [ "$LIST_TESTS" -eq 0 ];then
+        ${P_SRV} "query_config=${1}"
+    else
+        echo "1"
+    fi
+
 }
 
 requires_config_value_at_least() {
+    if [ "$LIST_TESTS" -gt 0 ];then
+        return;
+    fi
     VAL="$( get_config_value_or_default "$1" )"
     if [ -z "$VAL" ]; then
         # Should never happen
@@ -322,6 +354,9 @@ requires_config_value_at_least() {
 }
 
 requires_config_value_at_most() {
+    if [ "$LIST_TESTS" -gt 0 ];then
+        return;
+    fi
     VAL=$( get_config_value_or_default "$1" )
     if [ -z "$VAL" ]; then
         # Should never happen
@@ -333,6 +368,9 @@ requires_config_value_at_most() {
 }
 
 requires_config_value_equals() {
+    if [ "$LIST_TESTS" -gt 0 ];then
+        return;
+    fi
     VAL=$( get_config_value_or_default "$1" )
     if [ -z "$VAL" ]; then
         # Should never happen
@@ -348,6 +386,9 @@ requires_config_value_equals() {
 # Inputs:
 # * $1: protocol version in mbedtls syntax (argument to force_version=)
 requires_protocol_version() {
+    if [ "$LIST_TESTS" -gt 0 ];then
+        return;
+    fi
     # Support for DTLS is detected separately in detect_dtls().
     case "$1" in
         tls12|dtls12) requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2;;
@@ -818,19 +859,20 @@ requires_not_i686() {
     fi
 }
 
-# Calculate the input & output maximum content lengths set in the config
 MAX_CONTENT_LEN=16384
 MAX_IN_LEN=$( get_config_value_or_default "MBEDTLS_SSL_IN_CONTENT_LEN" )
 MAX_OUT_LEN=$( get_config_value_or_default "MBEDTLS_SSL_OUT_CONTENT_LEN" )
+if [ "$LIST_TESTS" -eq 0 ];then
+    # Calculate the input & output maximum content lengths set in the config
 
-# Calculate the maximum content length that fits both
-if [ "$MAX_IN_LEN" -lt "$MAX_CONTENT_LEN" ]; then
-    MAX_CONTENT_LEN="$MAX_IN_LEN"
+    # Calculate the maximum content length that fits both
+    if [ "$MAX_IN_LEN" -lt "$MAX_CONTENT_LEN" ]; then
+        MAX_CONTENT_LEN="$MAX_IN_LEN"
+    fi
+    if [ "$MAX_OUT_LEN" -lt "$MAX_CONTENT_LEN" ]; then
+        MAX_CONTENT_LEN="$MAX_OUT_LEN"
+    fi
 fi
-if [ "$MAX_OUT_LEN" -lt "$MAX_CONTENT_LEN" ]; then
-    MAX_CONTENT_LEN="$MAX_OUT_LEN"
-fi
-
 # skip the next test if the SSL output buffer is less than 16KB
 requires_full_size_output_buffer() {
     if [ "$MAX_OUT_LEN" -ne 16384 ]; then
@@ -1844,109 +1886,112 @@ else
     }
 fi
 
-# sanity checks, avoid an avalanche of errors
-P_SRV_BIN="${P_SRV%%[  ]*}"
-P_CLI_BIN="${P_CLI%%[  ]*}"
-P_PXY_BIN="${P_PXY%%[  ]*}"
-if [ ! -x "$P_SRV_BIN" ]; then
-    echo "Command '$P_SRV_BIN' is not an executable file"
-    exit 1
-fi
-if [ ! -x "$P_CLI_BIN" ]; then
-    echo "Command '$P_CLI_BIN' is not an executable file"
-    exit 1
-fi
-if [ ! -x "$P_PXY_BIN" ]; then
-    echo "Command '$P_PXY_BIN' is not an executable file"
-    exit 1
-fi
-if [ "$MEMCHECK" -gt 0 ]; then
-    if which valgrind >/dev/null 2>&1; then :; else
-        echo "Memcheck not possible. Valgrind not found"
+if [ "$LIST_TESTS" -eq 0 ];then
+
+    # sanity checks, avoid an avalanche of errors
+    P_SRV_BIN="${P_SRV%%[  ]*}"
+    P_CLI_BIN="${P_CLI%%[  ]*}"
+    P_PXY_BIN="${P_PXY%%[  ]*}"
+    if [ ! -x "$P_SRV_BIN" ]; then
+        echo "Command '$P_SRV_BIN' is not an executable file"
         exit 1
     fi
+    if [ ! -x "$P_CLI_BIN" ]; then
+        echo "Command '$P_CLI_BIN' is not an executable file"
+        exit 1
+    fi
+    if [ ! -x "$P_PXY_BIN" ]; then
+        echo "Command '$P_PXY_BIN' is not an executable file"
+        exit 1
+    fi
+    if [ "$MEMCHECK" -gt 0 ]; then
+        if which valgrind >/dev/null 2>&1; then :; else
+            echo "Memcheck not possible. Valgrind not found"
+            exit 1
+        fi
+    fi
+    if which $OPENSSL >/dev/null 2>&1; then :; else
+        echo "Command '$OPENSSL' not found"
+        exit 1
+    fi
+
+    # used by watchdog
+    MAIN_PID="$$"
+
+    # We use somewhat arbitrary delays for tests:
+    # - how long do we wait for the server to start (when lsof not available)?
+    # - how long do we allow for the client to finish?
+    #   (not to check performance, just to avoid waiting indefinitely)
+    # Things are slower with valgrind, so give extra time here.
+    #
+    # Note: without lsof, there is a trade-off between the running time of this
+    # script and the risk of spurious errors because we didn't wait long enough.
+    # The watchdog delay on the other hand doesn't affect normal running time of
+    # the script, only the case where a client or server gets stuck.
+    if [ "$MEMCHECK" -gt 0 ]; then
+        START_DELAY=6
+        DOG_DELAY=60
+    else
+        START_DELAY=2
+        DOG_DELAY=20
+    fi
+
+    # some particular tests need more time:
+    # - for the client, we multiply the usual watchdog limit by a factor
+    # - for the server, we sleep for a number of seconds after the client exits
+    # see client_need_more_time() and server_needs_more_time()
+    CLI_DELAY_FACTOR=1
+    SRV_DELAY_SECONDS=0
+
+    # fix commands to use this port, force IPv4 while at it
+    # +SRV_PORT will be replaced by either $SRV_PORT or $PXY_PORT later
+    # Note: Using 'localhost' rather than 127.0.0.1 here is unwise, as on many
+    # machines that will resolve to ::1, and we don't want ipv6 here.
+    P_SRV="$P_SRV server_addr=127.0.0.1 server_port=$SRV_PORT"
+    P_CLI="$P_CLI server_addr=127.0.0.1 server_port=+SRV_PORT"
+    P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT ${SEED:+"seed=$SEED"}"
+    O_SRV="$O_SRV -accept $SRV_PORT"
+    O_CLI="$O_CLI -connect 127.0.0.1:+SRV_PORT"
+    G_SRV="$G_SRV -p $SRV_PORT"
+    G_CLI="$G_CLI -p +SRV_PORT"
+
+    # Newer versions of OpenSSL have a syntax to enable all "ciphers", even
+    # low-security ones. This covers not just cipher suites but also protocol
+    # versions. It is necessary, for example, to use (D)TLS 1.0/1.1 on
+    # OpenSSL 1.1.1f from Ubuntu 20.04. The syntax was only introduced in
+    # OpenSSL 1.1.0 (21e0c1d23afff48601eb93135defddae51f7e2e3) and I can't find
+    # a way to discover it from -help, so check the openssl version.
+    case $($OPENSSL version) in
+        "OpenSSL 0"*|"OpenSSL 1.0"*) :;;
+        *)
+            O_CLI="$O_CLI -cipher ALL@SECLEVEL=0"
+            O_SRV="$O_SRV -cipher ALL@SECLEVEL=0"
+            ;;
+    esac
+
+    if [ -n "${OPENSSL_NEXT:-}" ]; then
+        O_NEXT_SRV="$O_NEXT_SRV -accept $SRV_PORT"
+        O_NEXT_SRV_NO_CERT="$O_NEXT_SRV_NO_CERT -accept $SRV_PORT"
+        O_NEXT_SRV_EARLY_DATA="$O_NEXT_SRV_EARLY_DATA -accept $SRV_PORT"
+        O_NEXT_CLI="$O_NEXT_CLI -connect 127.0.0.1:+SRV_PORT"
+        O_NEXT_CLI_NO_CERT="$O_NEXT_CLI_NO_CERT -connect 127.0.0.1:+SRV_PORT"
+    fi
+
+    if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
+        G_NEXT_SRV="$G_NEXT_SRV -p $SRV_PORT"
+        G_NEXT_SRV_NO_CERT="$G_NEXT_SRV_NO_CERT -p $SRV_PORT"
+    fi
+
+    if [ -n "${GNUTLS_NEXT_CLI:-}" ]; then
+        G_NEXT_CLI="$G_NEXT_CLI -p +SRV_PORT"
+        G_NEXT_CLI_NO_CERT="$G_NEXT_CLI_NO_CERT -p +SRV_PORT localhost"
+    fi
+
+    # Allow SHA-1, because many of our test certificates use it
+    P_SRV="$P_SRV allow_sha1=1"
+    P_CLI="$P_CLI allow_sha1=1"
+
 fi
-if which $OPENSSL >/dev/null 2>&1; then :; else
-    echo "Command '$OPENSSL' not found"
-    exit 1
-fi
-
-# used by watchdog
-MAIN_PID="$$"
-
-# We use somewhat arbitrary delays for tests:
-# - how long do we wait for the server to start (when lsof not available)?
-# - how long do we allow for the client to finish?
-#   (not to check performance, just to avoid waiting indefinitely)
-# Things are slower with valgrind, so give extra time here.
-#
-# Note: without lsof, there is a trade-off between the running time of this
-# script and the risk of spurious errors because we didn't wait long enough.
-# The watchdog delay on the other hand doesn't affect normal running time of
-# the script, only the case where a client or server gets stuck.
-if [ "$MEMCHECK" -gt 0 ]; then
-    START_DELAY=6
-    DOG_DELAY=60
-else
-    START_DELAY=2
-    DOG_DELAY=20
-fi
-
-# some particular tests need more time:
-# - for the client, we multiply the usual watchdog limit by a factor
-# - for the server, we sleep for a number of seconds after the client exits
-# see client_need_more_time() and server_needs_more_time()
-CLI_DELAY_FACTOR=1
-SRV_DELAY_SECONDS=0
-
-# fix commands to use this port, force IPv4 while at it
-# +SRV_PORT will be replaced by either $SRV_PORT or $PXY_PORT later
-# Note: Using 'localhost' rather than 127.0.0.1 here is unwise, as on many
-# machines that will resolve to ::1, and we don't want ipv6 here.
-P_SRV="$P_SRV server_addr=127.0.0.1 server_port=$SRV_PORT"
-P_CLI="$P_CLI server_addr=127.0.0.1 server_port=+SRV_PORT"
-P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT ${SEED:+"seed=$SEED"}"
-O_SRV="$O_SRV -accept $SRV_PORT"
-O_CLI="$O_CLI -connect 127.0.0.1:+SRV_PORT"
-G_SRV="$G_SRV -p $SRV_PORT"
-G_CLI="$G_CLI -p +SRV_PORT"
-
-# Newer versions of OpenSSL have a syntax to enable all "ciphers", even
-# low-security ones. This covers not just cipher suites but also protocol
-# versions. It is necessary, for example, to use (D)TLS 1.0/1.1 on
-# OpenSSL 1.1.1f from Ubuntu 20.04. The syntax was only introduced in
-# OpenSSL 1.1.0 (21e0c1d23afff48601eb93135defddae51f7e2e3) and I can't find
-# a way to discover it from -help, so check the openssl version.
-case $($OPENSSL version) in
-    "OpenSSL 0"*|"OpenSSL 1.0"*) :;;
-    *)
-        O_CLI="$O_CLI -cipher ALL@SECLEVEL=0"
-        O_SRV="$O_SRV -cipher ALL@SECLEVEL=0"
-        ;;
-esac
-
-if [ -n "${OPENSSL_NEXT:-}" ]; then
-    O_NEXT_SRV="$O_NEXT_SRV -accept $SRV_PORT"
-    O_NEXT_SRV_NO_CERT="$O_NEXT_SRV_NO_CERT -accept $SRV_PORT"
-    O_NEXT_SRV_EARLY_DATA="$O_NEXT_SRV_EARLY_DATA -accept $SRV_PORT"
-    O_NEXT_CLI="$O_NEXT_CLI -connect 127.0.0.1:+SRV_PORT"
-    O_NEXT_CLI_NO_CERT="$O_NEXT_CLI_NO_CERT -connect 127.0.0.1:+SRV_PORT"
-fi
-
-if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
-    G_NEXT_SRV="$G_NEXT_SRV -p $SRV_PORT"
-    G_NEXT_SRV_NO_CERT="$G_NEXT_SRV_NO_CERT -p $SRV_PORT"
-fi
-
-if [ -n "${GNUTLS_NEXT_CLI:-}" ]; then
-    G_NEXT_CLI="$G_NEXT_CLI -p +SRV_PORT"
-    G_NEXT_CLI_NO_CERT="$G_NEXT_CLI_NO_CERT -p +SRV_PORT localhost"
-fi
-
-# Allow SHA-1, because many of our test certificates use it
-P_SRV="$P_SRV allow_sha1=1"
-P_CLI="$P_CLI allow_sha1=1"
-
 # Also pick a unique name for intermediate files
 SRV_OUT="srv_out.$$"
 CLI_OUT="cli_out.$$"

@@ -9,6 +9,7 @@ less likely to be useful.
 import argparse
 import sys
 import traceback
+import re
 
 import check_test_cases
 
@@ -50,20 +51,23 @@ class TestCaseOutcomes:
         """
         return len(self.successes) + len(self.failures)
 
-def analyze_coverage(results, outcomes):
+def analyze_coverage(results, outcomes, allow_list):
     """Check that all available test cases are executed at least once."""
     available = check_test_cases.collect_available_test_cases()
     for key in available:
         hits = outcomes[key].hits() if key in outcomes else 0
-        if hits == 0:
+        if hits == 0 and key not in allow_list:
             # Make this a warning, not an error, as long as we haven't
             # fixed this branch to have full coverage of test cases.
             results.warning('Test case not executed: {}', key)
+        elif hits != 0 and key in allow_list:
+            # Test Case should be removed from the allow list.
+            results.warning('Allow listed test case was executed: {}', key)
 
-def analyze_outcomes(outcomes):
+def analyze_outcomes(outcomes, allow_list):
     """Run all analyses on the given outcome collection."""
     results = Results()
-    analyze_coverage(results, outcomes)
+    analyze_coverage(results, outcomes, allow_list)
     return results
 
 def read_outcome_file(outcome_file):
@@ -87,20 +91,62 @@ by a semicolon.
                 outcomes[key].failures.append(setup)
     return outcomes
 
-def analyze_outcome_file(outcome_file):
-    """Analyze the given outcome file."""
+def do_analyze_coverage(outcome_file, args):
+    """Perform coverage analysis."""
     outcomes = read_outcome_file(outcome_file)
-    return analyze_outcomes(outcomes)
+    Results.log("\n*** Analyze coverage ***\n")
+    results = analyze_outcomes(outcomes, args['allow_list'])
+    return results.error_count == 0
+
+# List of tasks with a function that can handle this task and additional arguments if required
+TASKS = {
+    'analyze_coverage':                 {
+        'test_function': do_analyze_coverage,
+        'args': {
+            'allow_list': [],
+        }
+    },
+}
 
 def main():
     try:
         parser = argparse.ArgumentParser(description=__doc__)
         parser.add_argument('outcomes', metavar='OUTCOMES.CSV',
                             help='Outcome file to analyze')
+        parser.add_argument('task', default='all', nargs='?',
+                            help='Analysis to be done. By default, run all tasks. '
+                                 'With one or more TASK, run only those. '
+                                 'TASK can be the name of a single task or '
+                                 'comma/space-separated list of tasks. ')
+        parser.add_argument('--list', action='store_true',
+                            help='List all available tasks and exit.')
         options = parser.parse_args()
-        results = analyze_outcome_file(options.outcomes)
-        if results.error_count > 0:
+
+        if options.list:
+            for task in TASKS:
+                Results.log(task)
+            sys.exit(0)
+
+        result = True
+
+        if options.task == 'all':
+            tasks = TASKS.keys()
+        else:
+            tasks = re.split(r'[, ]+', options.task)
+
+            for task in tasks:
+                if task not in TASKS:
+                    Results.log('Error: invalid task: {}'.format(task))
+                    sys.exit(1)
+
+        for task in TASKS:
+            if task in tasks:
+                if not TASKS[task]['test_function'](options.outcomes, TASKS[task]['args']):
+                    result = False
+
+        if result is False:
             sys.exit(1)
+        Results.log("SUCCESS :-)")
     except Exception: # pylint: disable=broad-except
         # Print the backtrace and exit explicitly with our chosen status.
         traceback.print_exc()

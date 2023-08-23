@@ -58,7 +58,7 @@ PSA_ARCH_TESTS_REF = 'fix-pr-5736'
 def main(library_build_dir: str):
     mbedtls_dir = os.getcwd()
 
-    is_psa_crypto = build_tree.looks_like_psa_crypto_root(mbedtls_dir)
+    in_psa_crypto_repo = build_tree.looks_like_psa_crypto_root(mbedtls_dir)
 
     if not os.path.exists(library_build_dir + '/library/libmbedcrypto.a'):
         subprocess.check_call([
@@ -86,14 +86,14 @@ def main(library_build_dir: str):
         os.mkdir(build_dir)
         os.chdir(build_dir)
 
-        if is_psa_crypto:
+        if in_psa_crypto_repo:
             crypto_lib_filename = \
                 library_build_dir + '/core/libpsacrypto.a'
         else:
             crypto_lib_filename = library_build_dir + '/library/libmbedcrypto.a'
 
         extra_includes = (';{}/drivers/builtin/include'.format(mbedtls_dir)
-                          if is_psa_crypto else '')
+                          if in_psa_crypto_repo else '')
 
         #pylint: disable=bad-continuation
         subprocess.check_call([

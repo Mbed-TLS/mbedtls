@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_BIGNUM_C)
+#if defined(MBEDTLS_BIGNUM_C) && defined(MBEDTLS_ECP_WITH_MPI_UINT)
 
 #include <string.h>
 
@@ -40,7 +40,7 @@ void mbedtls_mpi_mod_raw_cond_assign(mbedtls_mpi_uint *X,
                                      const mbedtls_mpi_mod_modulus *N,
                                      unsigned char assign)
 {
-    mbedtls_mpi_core_cond_assign(X, A, N->limbs, assign);
+    mbedtls_mpi_core_cond_assign(X, A, N->limbs, mbedtls_ct_bool(assign));
 }
 
 void mbedtls_mpi_mod_raw_cond_swap(mbedtls_mpi_uint *X,
@@ -48,7 +48,7 @@ void mbedtls_mpi_mod_raw_cond_swap(mbedtls_mpi_uint *X,
                                    const mbedtls_mpi_mod_modulus *N,
                                    unsigned char swap)
 {
-    mbedtls_mpi_core_cond_swap(X, Y, N->limbs, swap);
+    mbedtls_mpi_core_cond_swap(X, Y, N->limbs, mbedtls_ct_bool(swap));
 }
 
 int mbedtls_mpi_mod_raw_read(mbedtls_mpi_uint *X,
@@ -114,8 +114,6 @@ void mbedtls_mpi_mod_raw_sub(mbedtls_mpi_uint *X,
     (void) mbedtls_mpi_core_add_if(X, N->p, N->limbs, (unsigned) c);
 }
 
-#if defined(MBEDTLS_TEST_HOOKS)
-
 MBEDTLS_STATIC_TESTABLE
 void mbedtls_mpi_mod_raw_fix_quasi_reduction(mbedtls_mpi_uint *X,
                                              const mbedtls_mpi_mod_modulus *N)
@@ -125,7 +123,6 @@ void mbedtls_mpi_mod_raw_fix_quasi_reduction(mbedtls_mpi_uint *X,
     (void) mbedtls_mpi_core_add_if(X, N->p, N->limbs, (unsigned) c);
 }
 
-#endif /* MBEDTLS_TEST_HOOKS */
 
 void mbedtls_mpi_mod_raw_mul(mbedtls_mpi_uint *X,
                              const mbedtls_mpi_uint *A,
@@ -133,8 +130,31 @@ void mbedtls_mpi_mod_raw_mul(mbedtls_mpi_uint *X,
                              const mbedtls_mpi_mod_modulus *N,
                              mbedtls_mpi_uint *T)
 {
-    mbedtls_mpi_core_montmul(X, A, B, N->limbs, N->p, N->limbs,
-                             N->rep.mont.mm, T);
+    /* Standard (A * B) multiplication stored into pre-allocated T
+     * buffer of fixed limb size of (2N + 1).
+     *
+     * The space may not not fully filled by when
+     * MBEDTLS_MPI_MOD_REP_OPT_RED is used. */
+    const size_t T_limbs = BITS_TO_LIMBS(N->bits) * 2;
+    switch (N->int_rep) {
+        case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
+            mbedtls_mpi_core_montmul(X, A, B, N->limbs, N->p, N->limbs,
+                                     N->rep.mont.mm, T);
+            break;
+        case MBEDTLS_MPI_MOD_REP_OPT_RED:
+            mbedtls_mpi_core_mul(T, A, N->limbs, B, N->limbs);
+
+            /* Optimised Reduction */
+            (*N->rep.ored.modp)(T, T_limbs);
+
+            /* Convert back to canonical representation */
+            mbedtls_mpi_mod_raw_fix_quasi_reduction(T, N);
+            memcpy(X, T, N->limbs * sizeof(mbedtls_mpi_uint));
+            break;
+        default:
+            break;
+    }
+
 }
 
 size_t mbedtls_mpi_mod_raw_inv_prime_working_limbs(size_t AN_limbs)
@@ -233,8 +253,7 @@ int mbedtls_mpi_mod_raw_to_mont_rep(mbedtls_mpi_uint *X,
     mbedtls_mpi_core_to_mont_rep(X, X, N->p, N->limbs,
                                  N->rep.mont.mm, N->rep.mont.rr, T);
 
-    mbedtls_platform_zeroize(T, t_limbs * ciL);
-    mbedtls_free(T);
+    mbedtls_zeroize_and_free(T, t_limbs * ciL);
     return 0;
 }
 
@@ -250,8 +269,7 @@ int mbedtls_mpi_mod_raw_from_mont_rep(mbedtls_mpi_uint *X,
 
     mbedtls_mpi_core_from_mont_rep(X, X, N->p, N->limbs, N->rep.mont.mm, T);
 
-    mbedtls_platform_zeroize(T, t_limbs * ciL);
-    mbedtls_free(T);
+    mbedtls_zeroize_and_free(T, t_limbs * ciL);
     return 0;
 }
 
@@ -267,4 +285,4 @@ void mbedtls_mpi_mod_raw_neg(mbedtls_mpi_uint *X,
     (void) mbedtls_mpi_core_add_if(X, N->p, N->limbs, (unsigned) borrow);
 }
 
-#endif /* MBEDTLS_BIGNUM_C */
+#endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ECP_WITH_MPI_UINT */

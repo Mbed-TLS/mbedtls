@@ -57,11 +57,26 @@
 #include "mbedtls/platform.h"
 
 #if defined(__aarch64__)
+
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
     defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
+
 /* *INDENT-OFF* */
+
+#   ifdef __ARM_NEON
+#       include <arm_neon.h>
+#   else
+#       error "Target does not support NEON instructions"
+#   endif
+
 #    if !defined(__ARM_FEATURE_CRYPTO) || defined(MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG)
-#      if defined(__clang__)
+#      if defined(__ARMCOMPILER_VERSION)
+#        if __ARMCOMPILER_VERSION <= 6090000
+#          error "Must use minimum -march=armv8-a+crypto for MBEDTLS_SHA256_USE_A64_CRYPTO_*"
+#        endif
+#          pragma clang attribute push (__attribute__((target("sha2"))), apply_to=function)
+#          define MBEDTLS_POP_TARGET_PRAGMA
+#      elif defined(__clang__)
 #        if __clang_major__ < 4
 #          error "A more recent Clang is required for MBEDTLS_SHA256_USE_A64_CRYPTO_*"
 #        endif
@@ -83,7 +98,7 @@
 #      endif
 #    endif
 /* *INDENT-ON* */
-#    include <arm_neon.h>
+
 #  endif
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT)
 #    if defined(__unix__)

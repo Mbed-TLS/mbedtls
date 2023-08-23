@@ -97,7 +97,8 @@
  * mbedtls_platform_zeroize() to use a suitable implementation for their
  * platform and needs.
  */
-#if !defined(MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO) && !defined(__STDC_LIB_EXT1__) \
+#if !defined(MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO) && !(defined(__STDC_LIB_EXT1__) && \
+    !defined(__IAR_SYSTEMS_ICC__)) \
     && !defined(_WIN32)
 static void *(*const volatile memset_func)(void *, int, size_t) = memset;
 #endif
@@ -118,7 +119,7 @@ void mbedtls_platform_zeroize(void *buf, size_t len)
          */
         __msan_unpoison(buf, len);
 #endif
-#elif defined(__STDC_LIB_EXT1__)
+#elif defined(__STDC_LIB_EXT1__) && !defined(__IAR_SYSTEMS_ICC__)
         memset_s(buf, len, 0, len);
 #elif defined(_WIN32)
         SecureZeroMemory(buf, len);
@@ -128,6 +129,15 @@ void mbedtls_platform_zeroize(void *buf, size_t len)
     }
 }
 #endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT */
+
+void mbedtls_zeroize_and_free(void *buf, size_t len)
+{
+    if (buf != NULL) {
+        mbedtls_platform_zeroize(buf, len);
+    }
+
+    mbedtls_free(buf);
+}
 
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)
 #include <time.h>
@@ -235,7 +245,11 @@ mbedtls_ms_time_t mbedtls_ms_time(void)
     struct timespec tv;
     mbedtls_ms_time_t current_ms;
 
+#if defined(__linux__)
+    ret = clock_gettime(CLOCK_BOOTTIME, &tv);
+#else
     ret = clock_gettime(CLOCK_MONOTONIC, &tv);
+#endif
     if (ret) {
         return time(NULL) * 1000;
     }

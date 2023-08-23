@@ -100,14 +100,14 @@ psa_status_t mbedtls_test_transparent_key_agreement(
     if (PSA_ALG_IS_FFDH(alg)) {
 #if (defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
         defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_ALG_FFDH))
-        return libtestdriver1_mbedtls_psa_key_agreement_ffdh(
+        return libtestdriver1_mbedtls_psa_ffdh_key_agreement(
             (const libtestdriver1_psa_key_attributes_t *) attributes,
             peer_key, peer_key_length,
             key_buffer, key_buffer_size,
             shared_secret, shared_secret_size,
             shared_secret_length);
 #elif defined(MBEDTLS_PSA_BUILTIN_ALG_FFDH)
-        return mbedtls_psa_key_agreement_ffdh(
+        return mbedtls_psa_ffdh_key_agreement(
             attributes,
             peer_key,
             peer_key_length,

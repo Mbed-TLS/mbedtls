@@ -209,24 +209,18 @@ class EnumDefinition:
                     continue
                 member = field.strip().split()[0]
                 translation_table.append(
-                    '{space}[{member}] = "{member}",'.format(member=member,
-                                                             space=' '*8)
+                    '{space}case {member}:\n{space}    return "{member}";'
+                    .format(member=member, space=' '*8)
                 )
 
         body = textwrap.dedent('''\
             const char *{name}_str( {prototype} in )
             {{
-                const char * in_to_str[]=
-                {{
+                switch (in) {{
             {translation_table}
-                }};
-
-                if( in > ( sizeof( in_to_str )/sizeof( in_to_str[0]) - 1 ) ||
-                    in_to_str[ in ] == NULL )
-                {{
-                    return "UNKNOWN_VALUE";
+                    default:
+                        return "UNKNOWN_VALUE";
                 }}
-                return in_to_str[ in ];
             }}
                     ''')
         body = body.format(translation_table='\n'.join(translation_table),

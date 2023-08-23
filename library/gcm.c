@@ -98,7 +98,7 @@ static int gcm_gen_table(mbedtls_gcm_context *ctx)
 #endif
 
 #if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
-    if (mbedtls_aesce_has_support()) {
+    if (MBEDTLS_AESCE_HAS_SUPPORT()) {
         return 0;
     }
 #endif
@@ -147,7 +147,7 @@ int mbedtls_gcm_setkey(mbedtls_gcm_context *ctx,
         return MBEDTLS_ERR_GCM_BAD_INPUT;
     }
 
-    if (cipher_info->block_size != 16) {
+    if (mbedtls_cipher_info_get_block_size(cipher_info) != 16) {
         return MBEDTLS_ERR_GCM_BAD_INPUT;
     }
 
@@ -174,7 +174,7 @@ int mbedtls_gcm_setkey(mbedtls_gcm_context *ctx,
  *      last4[x] = x times P^128
  * where x and last4[x] are seen as elements of GF(2^128) as in [MGV]
  */
-static const uint64_t last4[16] =
+static const uint16_t last4[16] =
 {
     0x0000, 0x1c20, 0x3840, 0x2460,
     0x7080, 0x6ca0, 0x48c0, 0x54e0,
@@ -209,7 +209,7 @@ static void gcm_mult(mbedtls_gcm_context *ctx, const unsigned char x[16],
 #endif /* MBEDTLS_AESNI_HAVE_CODE */
 
 #if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
-    if (mbedtls_aesce_has_support()) {
+    if (MBEDTLS_AESCE_HAS_SUPPORT()) {
         unsigned char h[16];
 
         /* mbedtls_aesce_gcm_mult needs big-endian input */
@@ -884,6 +884,13 @@ int mbedtls_gcm_self_test(int verbose)
             mbedtls_printf("  GCM note: using AESNI.\n");
         } else
 #endif
+
+#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
+        if (MBEDTLS_AESCE_HAS_SUPPORT()) {
+            mbedtls_printf("  GCM note: using AESCE.\n");
+        } else
+#endif
+
         mbedtls_printf("  GCM note: built-in implementation.\n");
 #endif /* MBEDTLS_GCM_ALT */
     }

@@ -66,94 +66,167 @@
 #   endif
 #endif
 
-#if !defined(__ARM_FEATURE_AES) || defined(MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG)
-#   if defined(__clang__)
-#       pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
+#ifdef __ARM_NEON
+#include <arm_neon.h>
+#else
+#error "Target does not support NEON instructions"
+#endif
+
+#if !(defined(__ARM_FEATURE_CRYPTO) || defined(__ARM_FEATURE_AES)) || \
+    defined(MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG)
+#   if defined(__ARMCOMPILER_VERSION)
+#       if __ARMCOMPILER_VERSION <= 6090000
+#           error "Must use minimum -march=armv8-a+crypto for MBEDTLS_AESCE_C"
+#       else
+#           pragma clang attribute push (__attribute__((target("aes"))), apply_to=function)
+#           define MBEDTLS_POP_TARGET_PRAGMA
+#       endif
+#   elif defined(__clang__)
+#       pragma clang attribute push (__attribute__((target("aes"))), apply_to=function)
 #       define MBEDTLS_POP_TARGET_PRAGMA
 #   elif defined(__GNUC__)
 #       pragma GCC push_options
-#       pragma GCC target ("arch=armv8-a+crypto")
+#       pragma GCC target ("+crypto")
 #       define MBEDTLS_POP_TARGET_PRAGMA
 #   elif defined(_MSC_VER)
 #       error "Required feature(__ARM_FEATURE_AES) is not enabled."
 #   endif
-#endif /* !__ARM_FEATURE_AES || MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG */
+#endif /* !(__ARM_FEATURE_CRYPTO || __ARM_FEATURE_AES) ||
+          MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG */
 
-#include <arm_neon.h>
+#if defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 
-#if defined(__linux__)
 #include <asm/hwcap.h>
 #include <sys/auxv.h>
-#endif
 
+signed char mbedtls_aesce_has_support_result = -1;
+
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 /*
  * AES instruction support detection routine
  */
-int mbedtls_aesce_has_support(void)
+int mbedtls_aesce_has_support_impl(void)
 {
-#if defined(__linux__)
-    unsigned long auxval = getauxval(AT_HWCAP);
-    return (auxval & (HWCAP_ASIMD | HWCAP_AES)) ==
-           (HWCAP_ASIMD | HWCAP_AES);
-#else
-    /* Assume AES instructions are supported. */
-    return 1;
-#endif
+    /* To avoid many calls to getauxval, cache the result. This is
+     * thread-safe, because we store the result in a char so cannot
+     * be vulnerable to non-atomic updates.
+     * It is possible that we could end up setting result more than
+     * once, but that is harmless.
+     */
+    if (mbedtls_aesce_has_support_result == -1) {
+        unsigned long auxval = getauxval(AT_HWCAP);
+        if ((auxval & (HWCAP_ASIMD | HWCAP_AES)) ==
+            (HWCAP_ASIMD | HWCAP_AES)) {
+            mbedtls_aesce_has_support_result = 1;
+        } else {
+            mbedtls_aesce_has_support_result = 0;
+        }
+    }
+    return mbedtls_aesce_has_support_result;
 }
+#endif
 
+#endif /* defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY) */
+
+/* Single round of AESCE encryption */
+#define AESCE_ENCRYPT_ROUND                   \
+    block = vaeseq_u8(block, vld1q_u8(keys)); \
+    block = vaesmcq_u8(block);                \
+    keys += 16
+/* Two rounds of AESCE encryption */
+#define AESCE_ENCRYPT_ROUND_X2        AESCE_ENCRYPT_ROUND; AESCE_ENCRYPT_ROUND
+
+MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
 static uint8x16_t aesce_encrypt_block(uint8x16_t block,
                                       unsigned char *keys,
                                       int rounds)
 {
-    for (int i = 0; i < rounds - 1; i++) {
-        /* AES AddRoundKey, SubBytes, ShiftRows (in this order).
-         * AddRoundKey adds the round key for the previous round. */
-        block = vaeseq_u8(block, vld1q_u8(keys + i * 16));
-        /* AES mix columns */
-        block = vaesmcq_u8(block);
+    /* 10, 12 or 14 rounds. Unroll loop. */
+    if (rounds == 10) {
+        goto rounds_10;
     }
+    if (rounds == 12) {
+        goto rounds_12;
+    }
+    AESCE_ENCRYPT_ROUND_X2;
+rounds_12:
+    AESCE_ENCRYPT_ROUND_X2;
+rounds_10:
+    AESCE_ENCRYPT_ROUND_X2;
+    AESCE_ENCRYPT_ROUND_X2;
+    AESCE_ENCRYPT_ROUND_X2;
+    AESCE_ENCRYPT_ROUND_X2;
+    AESCE_ENCRYPT_ROUND;
 
     /* AES AddRoundKey for the previous round.
      * SubBytes, ShiftRows for the final round.  */
-    block = vaeseq_u8(block, vld1q_u8(keys + (rounds -1) * 16));
+    block = vaeseq_u8(block, vld1q_u8(keys));
+    keys += 16;
 
     /* Final round: no MixColumns */
 
     /* Final AddRoundKey */
-    block = veorq_u8(block, vld1q_u8(keys + rounds  * 16));
+    block = veorq_u8(block, vld1q_u8(keys));
 
     return block;
 }
+
+/* Single round of AESCE decryption
+ *
+ * AES AddRoundKey, SubBytes, ShiftRows
+ *
+ *      block = vaesdq_u8(block, vld1q_u8(keys));
+ *
+ * AES inverse MixColumns for the next round.
+ *
+ * This means that we switch the order of the inverse AddRoundKey and
+ * inverse MixColumns operations. We have to do this as AddRoundKey is
+ * done in an atomic instruction together with the inverses of SubBytes
+ * and ShiftRows.
+ *
+ * It works because MixColumns is a linear operation over GF(2^8) and
+ * AddRoundKey is an exclusive or, which is equivalent to addition over
+ * GF(2^8). (The inverse of MixColumns needs to be applied to the
+ * affected round keys separately which has been done when the
+ * decryption round keys were calculated.)
+ *
+ *      block = vaesimcq_u8(block);
+ */
+#define AESCE_DECRYPT_ROUND                   \
+    block = vaesdq_u8(block, vld1q_u8(keys)); \
+    block = vaesimcq_u8(block);               \
+    keys += 16
+/* Two rounds of AESCE decryption */
+#define AESCE_DECRYPT_ROUND_X2        AESCE_DECRYPT_ROUND; AESCE_DECRYPT_ROUND
 
 static uint8x16_t aesce_decrypt_block(uint8x16_t block,
                                       unsigned char *keys,
                                       int rounds)
 {
-
-    for (int i = 0; i < rounds - 1; i++) {
-        /* AES AddRoundKey, SubBytes, ShiftRows */
-        block = vaesdq_u8(block, vld1q_u8(keys + i * 16));
-        /* AES inverse MixColumns for the next round.
-         *
-         * This means that we switch the order of the inverse AddRoundKey and
-         * inverse MixColumns operations. We have to do this as AddRoundKey is
-         * done in an atomic instruction together with the inverses of SubBytes
-         * and ShiftRows.
-         *
-         * It works because MixColumns is a linear operation over GF(2^8) and
-         * AddRoundKey is an exclusive or, which is equivalent to addition over
-         * GF(2^8). (The inverse of MixColumns needs to be applied to the
-         * affected round keys separately which has been done when the
-         * decryption round keys were calculated.) */
-        block = vaesimcq_u8(block);
+    /* 10, 12 or 14 rounds. Unroll loop. */
+    if (rounds == 10) {
+        goto rounds_10;
     }
+    if (rounds == 12) {
+        goto rounds_12;
+    }
+    AESCE_DECRYPT_ROUND_X2;
+rounds_12:
+    AESCE_DECRYPT_ROUND_X2;
+rounds_10:
+    AESCE_DECRYPT_ROUND_X2;
+    AESCE_DECRYPT_ROUND_X2;
+    AESCE_DECRYPT_ROUND_X2;
+    AESCE_DECRYPT_ROUND_X2;
+    AESCE_DECRYPT_ROUND;
 
     /* The inverses of AES AddRoundKey, SubBytes, ShiftRows finishing up the
      * last full round. */
-    block = vaesdq_u8(block, vld1q_u8(keys + (rounds - 1) * 16));
+    block = vaesdq_u8(block, vld1q_u8(keys));
+    keys += 16;
 
     /* Inverse AddRoundKey for inverting the initial round key addition. */
-    block = veorq_u8(block, vld1q_u8(keys + rounds * 16));
+    block = veorq_u8(block, vld1q_u8(keys));
 
     return block;
 }

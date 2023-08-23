@@ -87,12 +87,12 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R
 x509_cert_info:"data_files/parse_input/server5-sha512.crt":"cert. version     \: 3\nserial number     \: 15\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 16\:21\:27\nexpires on        \: 2023-09-22 16\:21\:27\nsigned using      \: ECDSA with SHA512\nEC key size       \: 256 bits\nbasic constraints \: CA=false\n"
 
 X509 CRT information EC, SHA256 Digest, hardware module name SAN
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
-x509_cert_info:"data_files/parse_input/server5-othername.crt":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS othername SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS othername SAN\nissued  on        \: 2019-03-24 09\:06\:02\nexpires on        \: 2029-03-21 09\:06\:02\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    otherName \:\n        hardware module name \:\n            hardware type          \: 1.3.6.1.4.1.17.3\n            hardware serial number \: 313233343536\n"
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
+x509_cert_info:"data_files/parse_input/server5-othername.crt.der":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS othername SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS othername SAN\nissued  on        \: 2023-06-20 09\:04\:43\nexpires on        \: 2033-06-17 09\:04\:43\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    otherName \:\n        hardware module name \:\n            hardware type          \: 1.3.6.1.4.1.17.3\n            hardware serial number \: 313233343536\n"
 
 X509 CRT information EC, SHA256 Digest, binary hardware module name SAN
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
-x509_cert_info:"data_files/parse_input/server5-nonprintable_othername.crt":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS non-printable othername SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS non-printable othername SAN\nissued  on        \: 2022-09-06 15\:56\:47\nexpires on        \: 2032-09-03 15\:56\:47\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    otherName \:\n        hardware module name \:\n            hardware type          \: 1.3.6.1.4.1.17.3\n            hardware serial number \: 3132338081008180333231\n"
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
+x509_cert_info:"data_files/parse_input/server5-nonprintable_othername.crt.der":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS non-printable othername SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS non-printable othername SAN\nissued  on        \: 2023-06-20 09\:49\:20\nexpires on        \: 2033-06-17 09\:49\:20\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    otherName \:\n        hardware module name \:\n            hardware type          \: 1.3.6.1.4.1.17.3\n            hardware serial number \: 3132338081008180333231\n"
 
 X509 CRT information EC, SHA256 Digest, directoryName SAN
 depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
@@ -103,8 +103,8 @@ depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD
 x509_cert_info:"data_files/parse_input/server5-two-directorynames.crt.der":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS directoryName SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS directoryName SAN\nissued  on        \: 2023-01-12 10\:34\:11\nexpires on        \: 2033-01-09 10\:34\:11\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    directoryName \: C=UK, O=Mbed TLS, CN=Mbed TLS directoryName SAN\n    directoryName \: O=MALFORM_ME\n"
 
 X509 CRT information EC, SHA256 Digest, Wisun Fan device
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
-x509_cert_info:"data_files/parse_input/server5-fan.crt":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS FAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS FAN\nissued  on        \: 2019-03-25 09\:03\:46\nexpires on        \: 2029-03-22 09\:03\:46\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\next key usage     \: Wi-SUN Alliance Field Area Network (FAN)\n"
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
+x509_cert_info:"data_files/parse_input/server5-fan.crt.der":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS FAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS FAN\nissued  on        \: 2023-06-20 09\:49\:35\nexpires on        \: 2033-06-17 09\:49\:35\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\next key usage     \: Wi-SUN Alliance Field Area Network (FAN)\n"
 
 X509 CRT information, NS Cert Type
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA1
@@ -195,12 +195,12 @@ depends_on:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP
 x509_cert_info:"data_files/server5-tricky-ip-san.crt.der":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS Tricky IP SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS Tricky IP SAN\nissued  on        \: 2023-06-05 11\:30\:36\nexpires on        \: 2033-06-02 11\:30\:36\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    iPAddress \: 97.98.99.100\n    iPAddress \: 6162\:6364\:2E65\:7861\:6D70\:6C65\:2E63\:6F6D\n"
 
 X509 SAN parsing otherName
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
-x509_parse_san:"data_files/parse_input/server5-othername.crt":"type \: 0\notherName \: hardware module name \: hardware type \: 1.3.6.1.4.1.17.3, hardware serial number \: 313233343536\n":0
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
+x509_parse_san:"data_files/parse_input/server5-othername.crt.der":"type \: 0\notherName \: hardware module name \: hardware type \: 1.3.6.1.4.1.17.3, hardware serial number \: 313233343536\n":0
 
 X509 SAN parsing binary otherName
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
-x509_parse_san:"data_files/parse_input/server5-nonprintable_othername.crt":"type \: 0\notherName \: hardware module name \: hardware type \: 1.3.6.1.4.1.17.3, hardware serial number \: 3132338081008180333231\n":0
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
+x509_parse_san:"data_files/parse_input/server5-nonprintable_othername.crt.der":"type \: 0\notherName \: hardware module name \: hardware type \: 1.3.6.1.4.1.17.3, hardware serial number \: 3132338081008180333231\n":0
 
 X509 SAN parsing directoryName
 depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
@@ -227,8 +227,8 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256:MBEDTLS_PK_CA
 x509_parse_san:"data_files/parse_input/server4.crt":"":0
 
 X509 SAN parsing, unsupported otherName name
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
-x509_parse_san:"data_files/parse_input/server5-unsupported_othername.crt":"":0
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
+x509_parse_san:"data_files/parse_input/server5-unsupported_othername.crt.der":"":0
 
 X509 SAN parsing rfc822Name
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256
@@ -996,7 +996,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_MD_CAN_SHA256
 x509_verify:"data_files/server5.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"globalhost":0:0:"":"verify_all"
 
 X509 CRT verification #93 (Suite B invalid, EC cert, RSA CA)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP192R1_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_MD_CAN_SHA1
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_ECP_DP_SECP192R1_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_MD_CAN_SHA1
 x509_verify:"data_files/server3.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_BAD_MD|MBEDTLS_X509_BADCERT_BAD_PK|MBEDTLS_X509_BADCERT_BAD_KEY|MBEDTLS_X509_BADCRL_BAD_MD|MBEDTLS_X509_BADCRL_BAD_PK:"suite_b":"NULL"
 
 X509 CRT verification #94 (Suite B invalid, RSA cert, EC CA)
@@ -2051,11 +2051,11 @@ x509parse_crt:"3081b030819aa0030201028204deadbeef300d06092a864886f70d01010b05003
 
 X509 CRT ASN1 (inv extBasicConstraint, pathlen is INT_MAX)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256:MBEDTLS_MD_CAN_SHA1
-x509parse_crt_file:"data_files/parse_input/server1_pathlen_int_max.crt":MBEDTLS_ERR_X509_INVALID_EXTENSIONS + MBEDTLS_ERR_ASN1_INVALID_LENGTH
+mbedtls_x509_crt_parse_file:"data_files/parse_input/server1_pathlen_int_max.crt":MBEDTLS_ERR_X509_INVALID_EXTENSIONS + MBEDTLS_ERR_ASN1_INVALID_LENGTH:0
 
 X509 CRT ASN1 (pathlen is INT_MAX-1)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256:MBEDTLS_MD_CAN_SHA1
-x509parse_crt_file:"data_files/parse_input/server1_pathlen_int_max-1.crt":0
+mbedtls_x509_crt_parse_file:"data_files/parse_input/server1_pathlen_int_max-1.crt":0:1
 
 X509 CRT ASN1 (TBS, inv extBasicConstraint, pathlen inv length encoding)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256
@@ -2575,15 +2575,29 @@ X509 CRL ASN1 (extension not critical explicit, crl-idp.pem byte 129)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256:!MBEDTLS_X509_REMOVE_INFO
 x509parse_crl:"308201b330819c020101300d06092a864886f70d01010b0500303b310b3009060355040613024e4c3111300f060355040a1308506f6c617253534c3119301706035504031310506f6c617253534c2054657374204341170d3138303331343037333134385a170d3238303331343037333134385aa02d302b30290603551d1c010100041f301da01ba0198617687474703a2f2f706b692e6578616d706c652e636f6d2f300d06092a864886f70d01010b05000382010100b3fbe9d586eaf4b8ff60cf8edae06a85135db78f78198498719725b5b403c0b803c2c150f52faae7306d6a7871885dc2e9dc83a164bac7263776474ef642b660040b35a1410ac291ac8f6f18ab85e7fd6e22bd1af1c41ca95cf2448f6e2b42a018493dfc03c6b6aa1b9e3fe7b76af2182fb2121db4166bf0167d6f379c5a58adee5082423434d97be2909f5e7488053f996646db10dd49782626da53ad8eada01813c031b2bacdb0203bc017aac1735951a11d013ee4d1d5f7143ccbebf2371e66a1bec6e1febe69148f50784eef8adbb66664c96196d7e0c0bcdc807f447b54e058f37642a3337995bfbcd332208bd6016936705c82263eabd7affdba92fae3":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2018-03-14 07\:31\:48\nnext update   \: 2028-03-14 07\:31\:48\nRevoked certificates\:\nsigned using  \: RSA with SHA-256\n":0
 
-X509 CRT parse path #2 (one cert)
+X509 CRT parse file dir3/Readme
+mbedtls_x509_crt_parse_file:"data_files/dir3/Readme":MBEDTLS_ERR_X509_INVALID_FORMAT:0
+
+X509 CRT parse file dir3/test-ca.crt
+depends_on:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C
+mbedtls_x509_crt_parse_file:"data_files/dir3/test-ca.crt":0:1
+
+X509 CRT parse file dir3/test-ca2.crt
+depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+mbedtls_x509_crt_parse_file:"data_files/dir3/test-ca2.crt":0:1
+
+# The parse_path tests are known to fail when compiled for a 32-bit architecture
+# and run via qemu-user on Linux on a 64-bit host. This is due to a known
+# bug in Qemu: https://gitlab.com/qemu-project/qemu/-/issues/263
+X509 CRT parse path #1 (one cert)
 depends_on:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C
 mbedtls_x509_crt_parse_path:"data_files/dir1":0:1
 
-X509 CRT parse path #3 (two certs)
+X509 CRT parse path #2 (two certs)
 depends_on:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP384R1_ENABLED
 mbedtls_x509_crt_parse_path:"data_files/dir2":0:2
 
-X509 CRT parse path #4 (two certs, one non-cert)
+X509 CRT parse path #3 (two certs, one non-cert)
 depends_on:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP384R1_ENABLED
 mbedtls_x509_crt_parse_path:"data_files/dir3":1:2
 
@@ -3083,23 +3097,31 @@ mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_ex
 
 X509 File parse (no issues)
 depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-x509parse_crt_file:"data_files/parse_input/server7_int-ca.crt":0
+mbedtls_x509_crt_parse_file:"data_files/parse_input/server7_int-ca.crt":0:2
 
 X509 File parse (extra space in one certificate)
 depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-x509parse_crt_file:"data_files/parse_input/server7_pem_space.crt":1
+mbedtls_x509_crt_parse_file:"data_files/parse_input/server7_pem_space.crt":1:1
 
 X509 File parse (all certificates fail)
 depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_RSA_C
-x509parse_crt_file:"data_files/parse_input/server7_all_space.crt":MBEDTLS_ERR_PEM_INVALID_DATA + MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+mbedtls_x509_crt_parse_file:"data_files/parse_input/server7_all_space.crt":MBEDTLS_ERR_PEM_INVALID_DATA + MBEDTLS_ERR_BASE64_INVALID_CHARACTER:0
 
 X509 File parse (trailing spaces, OK)
 depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-x509parse_crt_file:"data_files/parse_input/server7_trailing_space.crt":0
+mbedtls_x509_crt_parse_file:"data_files/parse_input/server7_trailing_space.crt":0:2
 
 X509 File parse (Algorithm Params Tag mismatch)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-x509parse_crt_file:"data_files/parse_input/cli-rsa-sha256-badalg.crt.der":MBEDTLS_ERR_X509_SIG_MISMATCH
+mbedtls_x509_crt_parse_file:"data_files/parse_input/cli-rsa-sha256-badalg.crt.der":MBEDTLS_ERR_X509_SIG_MISMATCH:0
+
+X509 File parse (does not conform to RFC 5480 / RFC 5758 - AlgorithmIdentifier's parameters field is present, mbedTLS generated before bugfix, OK)
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
+x509parse_crt_file:"data_files/parse_input/server5-non-compliant.crt":0
+
+X509 File parse (conforms to RFC 5480 / RFC 5758 - AlgorithmIdentifier's parameters field must be absent for ECDSA)
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
+x509parse_crt_file:"data_files/parse_input/server5.crt":0
 
 X509 Get time (UTC no issues)
 depends_on:MBEDTLS_X509_USE_C
@@ -3323,11 +3345,11 @@ x509_crt_parse_subjectkeyid:"data_files/authorityKeyId_subjectKeyId_tag_len_malf
 
 X509 CRT parse Authority Key Id - Correct Authority Key ID
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId.crt.der":"A505E864B8DCDF600F50124D60A864AF4D8B4393":"NL/PolarSSL/PolarSSL Test CA/":"680430CD074DE63FCDC051260FD042C2B512B6BA":0
+x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId.crt.der":"A505E864B8DCDF600F50124D60A864AF4D8B4393":"C=NL, OU=PolarSSL, CN=PolarSSL Test CA":"680430CD074DE63FCDC051260FD042C2B512B6BA":0
 
 X509 CRT parse Authority Key Id - Correct Authority Key ID (no keyid)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_no_keyid.crt.der":"":"NL/PolarSSL/PolarSSL Test CA/":"680430CD074DE63FCDC051260FD042C2B512B6BA":0
+x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_no_keyid.crt.der":"":"C=NL, OU=PolarSSL, CN=PolarSSL Test CA":"680430CD074DE63FCDC051260FD042C2B512B6BA":0
 
 X509 CRT parse Authority Key Id - Correct Authority Key ID (no issuer)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C

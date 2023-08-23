@@ -172,14 +172,46 @@
  * This allows different allocators (self-implemented or provided) to be
  * provided to the platform abstraction layer.
  *
- * Enabling MBEDTLS_PLATFORM_MEMORY without the
+ * Enabling #MBEDTLS_PLATFORM_MEMORY without the
  * MBEDTLS_PLATFORM_{FREE,CALLOC}_MACROs will provide
  * "mbedtls_platform_set_calloc_free()" allowing you to set an alternative calloc() and
  * free() function pointer at runtime.
  *
- * Enabling MBEDTLS_PLATFORM_MEMORY and specifying
+ * Enabling #MBEDTLS_PLATFORM_MEMORY and specifying
  * MBEDTLS_PLATFORM_{CALLOC,FREE}_MACROs will allow you to specify the
  * alternate function at compile time.
+ *
+ * An overview of how the value of mbedtls_calloc is determined:
+ *
+ * - if !MBEDTLS_PLATFORM_MEMORY
+ *     - mbedtls_calloc = calloc
+ * - if MBEDTLS_PLATFORM_MEMORY
+ *     - if (MBEDTLS_PLATFORM_CALLOC_MACRO && MBEDTLS_PLATFORM_FREE_MACRO):
+ *         - mbedtls_calloc = MBEDTLS_PLATFORM_CALLOC_MACRO
+ *     - if !(MBEDTLS_PLATFORM_CALLOC_MACRO && MBEDTLS_PLATFORM_FREE_MACRO):
+ *         - Dynamic setup via mbedtls_platform_set_calloc_free is now possible with a default value MBEDTLS_PLATFORM_STD_CALLOC.
+ *         - How is MBEDTLS_PLATFORM_STD_CALLOC handled?
+ *         - if MBEDTLS_PLATFORM_NO_STD_FUNCTIONS:
+ *             - MBEDTLS_PLATFORM_STD_CALLOC is not set to anything;
+ *             - MBEDTLS_PLATFORM_STD_MEM_HDR can be included if present;
+ *         - if !MBEDTLS_PLATFORM_NO_STD_FUNCTIONS:
+ *             - if MBEDTLS_PLATFORM_STD_CALLOC is present:
+ *                 - User-defined MBEDTLS_PLATFORM_STD_CALLOC is respected;
+ *             - if !MBEDTLS_PLATFORM_STD_CALLOC:
+ *                 - MBEDTLS_PLATFORM_STD_CALLOC = calloc
+ *
+ *         - At this point the presence of MBEDTLS_PLATFORM_STD_CALLOC is checked.
+ *         - if !MBEDTLS_PLATFORM_STD_CALLOC
+ *             - MBEDTLS_PLATFORM_STD_CALLOC = uninitialized_calloc
+ *
+ *         - mbedtls_calloc = MBEDTLS_PLATFORM_STD_CALLOC.
+ *
+ * Defining MBEDTLS_PLATFORM_CALLOC_MACRO and #MBEDTLS_PLATFORM_STD_CALLOC at the same time is not possible.
+ * MBEDTLS_PLATFORM_CALLOC_MACRO and MBEDTLS_PLATFORM_FREE_MACRO must both be defined or undefined at the same time.
+ * #MBEDTLS_PLATFORM_STD_CALLOC and #MBEDTLS_PLATFORM_STD_FREE do not have to be defined at the same time, as, if they are used,
+ * dynamic setup of these functions is possible. See the tree above to see how are they handled in all cases.
+ * An uninitialized #MBEDTLS_PLATFORM_STD_CALLOC always fails, returning a null pointer.
+ * An uninitialized #MBEDTLS_PLATFORM_STD_FREE does not do anything.
  *
  * Requires: MBEDTLS_PLATFORM_C
  *
@@ -1283,8 +1315,8 @@
  * );
  * ```
  * The \c context value is initialized to 0 before the first call.
- * The function must fill the \c output buffer with \p output_size bytes
- * of random data and set \c *output_length to \p output_size.
+ * The function must fill the \c output buffer with \c output_size bytes
+ * of random data and set \c *output_length to \c output_size.
  *
  * Requires: MBEDTLS_PSA_CRYPTO_C
  *
@@ -1671,7 +1703,7 @@
  *
  * Enable TLS 1.3 ephemeral key exchange mode.
  *
- * Requires: PSA_WANT_ALG_ECDH
+ * Requires: PSA_WANT_ALG_ECDH or PSA_WANT_ALG_FFDH
  *           MBEDTLS_X509_CRT_PARSE_C
  *           and at least one of:
  *               MBEDTLS_ECDSA_C or (MBEDTLS_USE_PSA_CRYPTO and PSA_WANT_ALG_ECDSA)
@@ -1689,7 +1721,7 @@
  *
  * Enable TLS 1.3 PSK ephemeral key exchange mode.
  *
- * Requires: PSA_WANT_ALG_ECDH
+ * Requires: PSA_WANT_ALG_ECDH or PSA_WANT_ALG_FFDH
  *
  * Comment to disable support for the PSK ephemeral key exchange mode in
  * TLS 1.3. If MBEDTLS_SSL_PROTO_TLS1_3 is not enabled, this option does not
@@ -1998,8 +2030,15 @@
  * If the symbol #MBEDTLS_PSA_CRYPTO_CONFIG_FILE is defined, it specifies
  * an alternative header to include instead of include/psa/crypto_config.h.
  *
- * This feature is still experimental and is not ready for production since
- * it is not completed.
+ * \warning This option is experimental, in that the set of `PSA_WANT_XXX`
+ *          symbols is not completely finalized yet, and the configuration
+ *          tooling is not ideally adapted to having two separate configuration
+ *          files.
+ *          Future minor releases of Mbed TLS may make minor changes to those
+ *          symbols, but we will endeavor to provide a transition path.
+ *          Nonetheless, this option is considered mature enough to use in
+ *          production, as long as you accept that you may need to make
+ *          minor changes to psa/crypto_config.h when upgrading Mbed TLS.
  */
 //#define MBEDTLS_PSA_CRYPTO_CONFIG
 
@@ -2113,7 +2152,10 @@
  *          the CPU when this option is enabled.
  *
  * \note    Minimum compiler versions for this feature are Clang 4.0,
- *          GCC 6.0 or MSVC 2019 version 16.11.2.
+ *          armclang 6.6, GCC 6.0 or MSVC 2019 version 16.11.2.
+ *
+ * \note \c CFLAGS must be set to a minimum of \c -march=armv8-a+crypto for
+ * armclang <= 6.9
  *
  * This module adds support for the AES Armv8-A Cryptographic Extensions on Aarch64 systems.
  */
@@ -3130,6 +3172,12 @@
  * \note If MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT is defined when building
  * for a non-Aarch64 build it will be silently ignored.
  *
+ * \note    Minimum compiler versions for this feature are Clang 4.0,
+ * armclang 6.6 or GCC 6.0.
+ *
+ * \note \c CFLAGS must be set to a minimum of \c -march=armv8-a+crypto for
+ * armclang <= 6.9
+ *
  * \warning MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT cannot be defined at the
  * same time as MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY.
  *
@@ -3151,6 +3199,12 @@
  *
  * \note This allows builds with a smaller code size than with
  * MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+ *
+ * \note    Minimum compiler versions for this feature are Clang 4.0,
+ * armclang 6.6 or GCC 6.0.
+ *
+ * \note \c CFLAGS must be set to a minimum of \c -march=armv8-a+crypto for
+ * armclang <= 6.9
  *
  * \warning MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY cannot be defined at the same
  * time as MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT.
@@ -3216,8 +3270,11 @@
  * \note If MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT is defined when building
  * for a non-Aarch64 build it will be silently ignored.
  *
- * \note The code uses the SHA-512 Neon intrinsics, so requires GCC >= 8 or
- * Clang >= 7.
+ * \note    Minimum compiler versions for this feature are Clang 7.0,
+ * armclang 6.9 or GCC 8.0.
+ *
+ * \note \c CFLAGS must be set to a minimum of \c -march=armv8.2-a+sha3 for
+ * armclang 6.9
  *
  * \warning MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT cannot be defined at the
  * same time as MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY.
@@ -3241,8 +3298,11 @@
  * \note This allows builds with a smaller code size than with
  * MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
  *
- * \note The code uses the SHA-512 Neon intrinsics, so requires GCC >= 8 or
- * Clang >= 7.
+ * \note    Minimum compiler versions for this feature are Clang 7.0,
+ * armclang 6.9 or GCC 8.0.
+ *
+ * \note \c CFLAGS must be set to a minimum of \c -march=armv8.2-a+sha3 for
+ * armclang 6.9
  *
  * \warning MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY cannot be defined at the same
  * time as MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT.
@@ -3680,8 +3740,29 @@
 
 /* Platform options */
 //#define MBEDTLS_PLATFORM_STD_MEM_HDR   <stdlib.h> /**< Header to include if MBEDTLS_PLATFORM_NO_STD_FUNCTIONS is defined. Don't define if no header is needed. */
-//#define MBEDTLS_PLATFORM_STD_CALLOC        calloc /**< Default allocator to use, can be undefined */
-//#define MBEDTLS_PLATFORM_STD_FREE            free /**< Default free to use, can be undefined */
+
+/** \def MBEDTLS_PLATFORM_STD_CALLOC
+ *
+ * Default allocator to use, can be undefined.
+ * It must initialize the allocated buffer memory to zeroes.
+ * The size of the buffer is the product of the two parameters.
+ * The calloc function returns either a null pointer or a pointer to the allocated space.
+ * If the product is 0, the function may either return NULL or a valid pointer to an array of size 0 which is a valid input to the deallocation function.
+ * An uninitialized #MBEDTLS_PLATFORM_STD_CALLOC always fails, returning a null pointer.
+ * See the description of #MBEDTLS_PLATFORM_MEMORY for more details.
+ * The corresponding deallocation function is #MBEDTLS_PLATFORM_STD_FREE.
+ */
+//#define MBEDTLS_PLATFORM_STD_CALLOC        calloc
+
+/** \def MBEDTLS_PLATFORM_STD_FREE
+ *
+ * Default free to use, can be undefined.
+ * NULL is a valid parameter, and the function must do nothing.
+ * A non-null parameter will always be a pointer previously returned by #MBEDTLS_PLATFORM_STD_CALLOC and not yet freed.
+ * An uninitialized #MBEDTLS_PLATFORM_STD_FREE does not do anything.
+ * See the description of #MBEDTLS_PLATFORM_MEMORY for more details (same principles as for MBEDTLS_PLATFORM_STD_CALLOC apply).
+ */
+//#define MBEDTLS_PLATFORM_STD_FREE            free
 //#define MBEDTLS_PLATFORM_STD_SETBUF      setbuf /**< Default setbuf to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_EXIT            exit /**< Default exit to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_TIME            time /**< Default time to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled */
@@ -3695,10 +3776,10 @@
 //#define MBEDTLS_PLATFORM_STD_NV_SEED_WRITE  mbedtls_platform_std_nv_seed_write /**< Default nv_seed_write function to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_NV_SEED_FILE  "seedfile" /**< Seed file to read/write with default implementation */
 
-/* To Use Function Macros MBEDTLS_PLATFORM_C must be enabled */
+/* To use the following function macros, MBEDTLS_PLATFORM_C must be enabled. */
 /* MBEDTLS_PLATFORM_XXX_MACRO and MBEDTLS_PLATFORM_XXX_ALT cannot both be defined */
-//#define MBEDTLS_PLATFORM_CALLOC_MACRO        calloc /**< Default allocator macro to use, can be undefined */
-//#define MBEDTLS_PLATFORM_FREE_MACRO            free /**< Default free macro to use, can be undefined */
+//#define MBEDTLS_PLATFORM_CALLOC_MACRO        calloc /**< Default allocator macro to use, can be undefined. See MBEDTLS_PLATFORM_STD_CALLOC for requirements. */
+//#define MBEDTLS_PLATFORM_FREE_MACRO            free /**< Default free macro to use, can be undefined. See MBEDTLS_PLATFORM_STD_FREE for requirements. */
 //#define MBEDTLS_PLATFORM_EXIT_MACRO            exit /**< Default exit macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_SETBUF_MACRO      setbuf /**< Default setbuf macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_TIME_MACRO            time /**< Default time macro to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled */
@@ -3759,6 +3840,9 @@
  * 32 keys.
  */
 //#define MBEDTLS_PSA_KEY_SLOT_COUNT 32
+
+/* RSA OPTIONS */
+#define MBEDTLS_RSA_GEN_KEY_MIN_BITS            1024 /**<  Minimum RSA key size that can be generated in bits (Minimum possible value is 128 bits) */
 
 /* SSL Cache options */
 //#define MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */
@@ -3975,5 +4059,28 @@
  * DO NOT ENABLE/USE THIS MACRO IN PRODUCTION BUILDS!
  */
 //#define MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED
+
+
+/**
+ * Uncomment to enable using new bignum code in the ECC modules.
+ *
+ * \warning This is currently experimental, incomplete and therefore should not
+ * be used in production.
+ */
+//#define MBEDTLS_ECP_WITH_MPI_UINT
+
+/*
+ * Disable plain C implementation for AES.
+ *
+ * When the plain C implementation is enabled, and an implementation using a
+ * special CPU feature (such as MBEDTLS_AESCE_C) is also enabled, runtime
+ * detection will be used to select between them.
+ *
+ * If only one implementation is present, runtime detection will not be used.
+ * This configuration will crash at runtime if running on a CPU without the
+ * necessary features. It will not build unless at least one of MBEDTLS_AESCE_C
+ * and/or MBEDTLS_AESNI_C is enabled & present in the build.
+ */
+//#define MBEDTLS_AES_USE_HARDWARE_ONLY
 
 /** \} name SECTION: Module configuration options */

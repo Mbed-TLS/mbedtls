@@ -21,6 +21,7 @@ from typing import Dict, Iterator, List, Tuple
 from . import test_case
 from . import test_data_generation
 from . import bignum_common
+from .bignum_data import ADD_SUB_DATA
 
 class BignumCoreTarget(test_data_generation.BaseTarget):
     #pylint: disable=abstract-method, too-few-public-methods
@@ -176,6 +177,7 @@ class BignumCoreAddAndAddIf(BignumCoreTarget, bignum_common.OperationCommon):
     test_function = "mpi_core_add_and_add_if"
     test_name = "mpi_core_add_and_add_if"
     input_style = "arch_split"
+    input_values = ADD_SUB_DATA
     unique_combinations_only = True
 
     def result(self) -> List[str]:
@@ -196,6 +198,7 @@ class BignumCoreSub(BignumCoreTarget, bignum_common.OperationCommon):
     symbol = "-"
     test_function = "mpi_core_sub"
     test_name = "mbedtls_mpi_core_sub"
+    input_values = ADD_SUB_DATA
 
     def result(self) -> List[str]:
         if self.int_a >= self.int_b:

@@ -38,16 +38,16 @@
  */
 #define MBEDTLS_VERSION_MAJOR  3
 #define MBEDTLS_VERSION_MINOR  4
-#define MBEDTLS_VERSION_PATCH  0
+#define MBEDTLS_VERSION_PATCH  1
 
 /**
  * The single version number has the following structure:
  *    MMNNPP00
  *    Major version | Minor version | Patch version
  */
-#define MBEDTLS_VERSION_NUMBER         0x03040000
-#define MBEDTLS_VERSION_STRING         "3.4.0"
-#define MBEDTLS_VERSION_STRING_FULL    "mbed TLS 3.4.0"
+#define MBEDTLS_VERSION_NUMBER         0x03040100
+#define MBEDTLS_VERSION_STRING         "3.4.1"
+#define MBEDTLS_VERSION_STRING_FULL    "mbed TLS 3.4.1"
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
@@ -59,6 +59,7 @@
 #define inline __inline
 #endif
 
+/* X.509, TLS and non-PSA crypto configuration */
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/mbedtls_config.h"
 #else
@@ -79,6 +80,18 @@
 #if defined(MBEDTLS_USER_CONFIG_FILE)
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
+
+/* PSA crypto configuration */
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG_FILE)
+#include MBEDTLS_PSA_CRYPTO_CONFIG_FILE
+#else
+#include "psa/crypto_config.h"
+#endif
+#if defined(MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE)
+#include MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE
+#endif
+#endif /* defined(MBEDTLS_PSA_CRYPTO_CONFIG) */
 
 /* Auto-enable MBEDTLS_CTR_DRBG_USE_128_BIT_KEY if
  * MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH and MBEDTLS_CTR_DRBG_C defined
@@ -161,6 +174,37 @@
 #define MBEDTLS_PK_PARSE_EC_COMPRESSED
 #endif
 
+/* Helper symbol to state that there is support for ECDH, either through
+ * library implementation (ECDH_C) or through PSA. */
+#if (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_ECDH)) || \
+    (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ECDH_C))
+#define MBEDTLS_CAN_ECDH
+#endif
+
+/* PK module can achieve ECDSA functionalities by means of either software
+ * implementations (ECDSA_C) or through a PSA driver. The following defines
+ * are meant to list these capabilities in a general way which abstracts how
+ * they are implemented under the hood. */
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_ECDSA_C)
+#define MBEDTLS_PK_CAN_ECDSA_SIGN
+#define MBEDTLS_PK_CAN_ECDSA_VERIFY
+#endif /* MBEDTLS_ECDSA_C */
+#else /* MBEDTLS_USE_PSA_CRYPTO */
+#if defined(PSA_WANT_ALG_ECDSA)
+#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC)
+#define MBEDTLS_PK_CAN_ECDSA_SIGN
+#endif /* PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC */
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
+#define MBEDTLS_PK_CAN_ECDSA_VERIFY
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
+#endif /* PSA_WANT_ALG_ECDSA */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+#if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY) || defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
+#define MBEDTLS_PK_CAN_ECDSA_SOME
+#endif
+
 /* If MBEDTLS_PSA_CRYPTO_C is defined, make sure MBEDTLS_PSA_CRYPTO_CLIENT
  * is defined as well to include all PSA code.
  */
@@ -176,6 +220,14 @@
 #define MBEDTLS_PK_WRITE_C
 #define MBEDTLS_PK_PARSE_C
 #endif
+
+/* Helper symbol to state that the PK module has support for EC keys. This
+ * can either be provided through the legacy ECP solution or through the
+ * PSA friendly MBEDTLS_PK_USE_PSA_EC_DATA (see pk.h for its description). */
+#if defined(MBEDTLS_ECP_C) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY))
+#define MBEDTLS_PK_HAVE_ECC_KEYS
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA || MBEDTLS_ECP_C */
 
 /* The following blocks make it easier to disable all of TLS,
  * or of TLS 1.2 or 1.3 or DTLS, without having to manually disable all
@@ -222,14 +274,10 @@
 #undef MBEDTLS_SSL_EARLY_DATA
 #endif
 
-#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED) || \
-    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED)
-#define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED
-#endif
-
-#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED) || \
-    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED)
-#define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    (defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED))
+#define MBEDTLS_SSL_TLS1_2_SOME_ECC
 #endif
 
 /* Make sure all configuration symbols are set before including check_config.h,

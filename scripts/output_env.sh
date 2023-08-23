@@ -105,7 +105,35 @@ echo
 print_version "gcc" "--version" "" "head -n 1"
 echo
 
+if [ -n "${GCC_EARLIEST+set}" ]; then
+    print_version "${GCC_EARLIEST}" "--version" "" "head -n 1"
+else
+    echo " GCC_EARLIEST : Not configured."
+fi
+echo
+
+if [ -n "${GCC_LATEST+set}" ]; then
+    print_version "${GCC_LATEST}" "--version" "" "head -n 1"
+else
+    echo " GCC_LATEST : Not configured."
+fi
+echo
+
 print_version "clang" "--version" "" "head -n 2"
+echo
+
+if [ -n "${CLANG_EARLIEST+set}" ]; then
+    print_version "${CLANG_EARLIEST}" "--version" "" "head -n 2"
+else
+    echo " CLANG_EARLIEST : Not configured."
+fi
+echo
+
+if [ -n "${CLANG_LATEST+set}" ]; then
+    print_version "${CLANG_LATEST}" "--version" "" "head -n 2"
+else
+    echo " CLANG_LATEST : Not configured."
+fi
 echo
 
 print_version "ldd" "--version" "" "head -n 1"

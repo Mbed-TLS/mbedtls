@@ -75,7 +75,7 @@ int mbedtls_nist_kw_setkey(mbedtls_nist_kw_context *ctx,
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-    if (cipher_info->block_size != 16) {
+    if (mbedtls_cipher_info_get_block_size(cipher_info) != 16) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 

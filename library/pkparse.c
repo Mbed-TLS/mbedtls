@@ -34,9 +34,6 @@
 #include "mbedtls/rsa.h"
 #endif
 #include "mbedtls/ecp.h"
-#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECP_C)
-#include "pkwrite.h"
-#endif
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #include "pk_internal.h"
 #endif
@@ -54,7 +51,7 @@
 #endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -107,8 +104,7 @@ int mbedtls_pk_load_file(const char *path, unsigned char **buf, size_t *n)
     if (fread(*buf, 1, *n, f) != *n) {
         fclose(f);
 
-        mbedtls_platform_zeroize(*buf, *n);
-        mbedtls_free(*buf);
+        mbedtls_zeroize_and_free(*buf, *n);
 
         return MBEDTLS_ERR_PK_FILE_IO_ERROR;
     }
@@ -146,8 +142,7 @@ int mbedtls_pk_parse_keyfile(mbedtls_pk_context *ctx,
                                    (const unsigned char *) pwd, strlen(pwd), f_rng, p_rng);
     }
 
-    mbedtls_platform_zeroize(buf, n);
-    mbedtls_free(buf);
+    mbedtls_zeroize_and_free(buf, n);
 
     return ret;
 }
@@ -167,8 +162,7 @@ int mbedtls_pk_parse_public_keyfile(mbedtls_pk_context *ctx, const char *path)
 
     ret = mbedtls_pk_parse_public_key(ctx, buf, n);
 
-    mbedtls_platform_zeroize(buf, n);
-    mbedtls_free(buf);
+    mbedtls_zeroize_and_free(buf, n);
 
     return ret;
 }
@@ -654,7 +648,7 @@ static int pk_parse_key_rfc8410_der(mbedtls_pk_context *pk,
 #else /* MBEDTLS_PK_USE_PSA_EC_DATA */
     mbedtls_ecp_keypair *eck = mbedtls_pk_ec_rw(*pk);
 
-    if ((ret = mbedtls_mpi_read_binary_le(&eck->d, key, len)) != 0) {
+    if ((ret = mbedtls_ecp_read_key(eck->grp.id, eck, key, len)) != 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
     }
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
@@ -665,14 +659,6 @@ static int pk_parse_key_rfc8410_der(mbedtls_pk_context *pk,
     if ((ret = pk_derive_public_key(pk, key, len, f_rng, p_rng)) != 0) {
         return ret;
     }
-
-    /* When MBEDTLS_PK_USE_PSA_EC_DATA the key is checked while importing it
-     * into PSA. */
-#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    if ((ret = mbedtls_ecp_check_privkey(&eck->grp, &eck->d)) != 0) {
-        return ret;
-    }
-#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
 
     return 0;
 }
@@ -1217,14 +1203,10 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
     }
 
+    /* Keep a reference to the position fo the private key. It will be used
+     * later in this function. */
     d = p;
     d_len = len;
-
-#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    if ((ret = mbedtls_mpi_read_binary(&eck->d, p, len)) != 0) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
-    }
-#endif
 
     p += len;
 
@@ -1244,6 +1226,13 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
         }
     }
+
+
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    if ((ret = mbedtls_ecp_read_key(eck->grp.id, eck, d, d_len)) != 0) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
+    }
+#endif
 
     if (p != end) {
         /*
@@ -1306,12 +1295,6 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
             return ret;
         }
     }
-
-#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    if ((ret = mbedtls_ecp_check_privkey(&eck->grp, &eck->d)) != 0) {
-        return ret;
-    }
-#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
 
     return 0;
 }
@@ -1697,8 +1680,7 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
         ret = pk_parse_key_pkcs8_encrypted_der(pk, key_copy, keylen,
                                                pwd, pwdlen, f_rng, p_rng);
 
-        mbedtls_platform_zeroize(key_copy, keylen);
-        mbedtls_free(key_copy);
+        mbedtls_zeroize_and_free(key_copy, keylen);
     }
 
     if (ret == 0) {

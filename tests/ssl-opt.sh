@@ -201,6 +201,8 @@ get_options() {
     done
 }
 
+get_options "$@"
+
 # Read boolean configuration options from mbedtls_config.h for easy and quick
 # testing. Skip non-boolean options (with something other than spaces
 # and a comment after "#define SYMBOL"). The variable contains a
@@ -1787,8 +1789,6 @@ cleanup() {
 #
 # MAIN
 #
-
-get_options "$@"
 
 # Make the outcome file path relative to the original directory, not
 # to .../tests

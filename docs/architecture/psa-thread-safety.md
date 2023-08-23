@@ -67,16 +67,28 @@ In the medium to long term, performing a slow or blocking operation (for example
 
 We may want to go directly to a more sophisticated approach because when a system works with a global lock, it's typically hard to get rid of it to get more fine-grained concurrency.
 
-### Key destruction long-term requirements
-
-As noted above in [“Correctness out of the box”](#correctness-out-of-the-box), when a key is destroyed, it's ok if `psa_destroy_key` allows copies of the key to live until ongoing operations using the key return. In the long term, it would be good to guarantee that `psa_destroy_key` wipes all copies of the key material.
+### Key destruction short-term requirements
 
 #### Summary of guarantees when `psa_destroy_key` returns
 
 * The key identifier doesn't exist. Rationale: this is a functional requirement for persistent keys: the caller can immediately create a new key with the same identifier.
 * The resources from the key have been freed. Rationale: in a low-resource condition, this may be necessary for the caller to re-create a similar key, which should be possible.
 * The call must not block indefinitely, and in particular cannot wait for an event that is triggered by application code such as calling an abort function. Rationale: this may not strictly be a functional requirement, but it is an expectation `psa_destroy_key` does not block forever due to another thread, which could potentially be another process on a multi-process system.
-* In the long term, no copy of the key material exists. Rationale: this is a security requirement. We do not have this requirement yet, but we need to document this as a security weakness, and we would like to become compliant.
+
+As noted above in [“Correctness out of the box”](#correctness-out-of-the-box), destroying a key while it's in use is undefined behavior. The only guarantee in this case is that it won't cause data corruption or read-after-free inside the key store. In particular, any or all the listed guarantees may be violated when `psa_destroy_key` is called on a key that is in use.
+
+### Key destruction long-term requirements
+
+The [PSA Crypto API specification](https://armmbed.github.io/mbed-crypto/html/api/keys/management.html#key-destruction) mandates that implementations make a best effort to ensure that that the key material cannot be recovered. In the long term, it would be good to guarantee that `psa_destroy_key` wipes all copies of the key material.
+
+#### Summary of guarantees when `psa_destroy_key` returns
+
+* The key identifier doesn't exist. Rationale: this is a functional requirement for persistent keys: the caller can immediately create a new key with the same identifier.
+* The resources from the key have been freed. Rationale: in a low-resource condition, this may be necessary for the caller to re-create a similar key, which should be possible.
+* The call must not block indefinitely, and in particular cannot wait for an event that is triggered by application code such as calling an abort function. Rationale: this may not strictly be a functional requirement, but it is an expectation `psa_destroy_key` does not block forever due to another thread, which could potentially be another process on a multi-process system.
+* No copy of the key material exists. Rationale: this is a security requirement. We do not have this requirement yet, but we need to document this as a security weakness, and we would like to become compliant.
+
+As opposed to the short term requirements, the above guarantees hold even if `psa_destroy_key` is called on a key that is in use.
 
 ## Resources to protect
 

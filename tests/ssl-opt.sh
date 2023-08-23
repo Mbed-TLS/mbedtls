@@ -207,7 +207,11 @@ get_options "$@"
 # testing. Skip non-boolean options (with something other than spaces
 # and a comment after "#define SYMBOL"). The variable contains a
 # space-separated list of symbols.
-CONFIGS_ENABLED=" $(echo `$P_QUERY -l` )"
+if [ "$LIST_TESTS" -eq 0 ];then
+    CONFIGS_ENABLED=" $(echo `$P_QUERY -l` )"
+else
+    CONFIGS_ENABLED=""
+fi
 # Skip next test; use this macro to skip tests which are legitimate
 # in theory and expected to be re-introduced at some point, but
 # aren't expected to succeed at the moment due to problems outside

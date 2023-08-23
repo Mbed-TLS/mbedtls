@@ -273,7 +273,10 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
         }
 
         if (!in_attr_type && ((*c == ',' && *(c-1) != '\\') || c == end)) {
-            if (*s == '#') {
+            if (s >= end) {
+                mbedtls_free(oid.p);
+                return MBEDTLS_ERR_X509_INVALID_NAME;
+            } else if (*s == '#') {
 #if defined(MBEDTLS_ASN1_PARSE_C)
                 if ((parse_ret =
                          parse_attribute_value_der_encoded(s, (int) (c - s), data, &data_len,

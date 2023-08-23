@@ -309,6 +309,7 @@ libmbedcrypto.dll: $(OBJS_CRYPTO)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
 .PHONY: generated_files
+ifneq ($(GEN_FILES), 0)
 GENERATED_FILES = \
 	error.c version_features.c \
 	ssl_debug_helpers_generated.c \
@@ -345,6 +346,7 @@ psa_crypto_driver_wrappers.c: ../scripts/data_files/driver_templates/psa_crypto_
 psa_crypto_driver_wrappers.c:
 	echo "  Gen   $@"
 	$(PYTHON) ../scripts/generate_driver_wrappers.py
+endif
 
 clean:
 ifndef WINDOWS

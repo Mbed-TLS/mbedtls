@@ -66,6 +66,7 @@ PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; els
 endif
 
 .PHONY: generated_files
+ifneq ($(GEN_FILES), 0)
 GENERATED_BIGNUM_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) scripts/generate_bignum_tests.py --list || \
 	echo FAILED \
@@ -140,6 +141,7 @@ generated_psa_test_data: suites/test_suite_psa_crypto_metadata.data
 generated_psa_test_data:
 	echo "  Gen   $(GENERATED_PSA_DATA_FILES) ..."
 	$(PYTHON) scripts/generate_psa_tests.py
+endif
 
 # A test application is built for each suites/test_suite_*.data file.
 # Application name is same as .data file's base name and can be

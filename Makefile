@@ -31,10 +31,12 @@ tests/%:
 	$(MAKE) -C tests $*
 
 .PHONY: generated_files
+ifneq ($(GEN_FILES), 0)
 generated_files: library/generated_files
 generated_files: programs/generated_files
 generated_files: tests/generated_files
 generated_files: visualc_files
+endif
 
 .PHONY: visualc_files
 VISUALC_FILES = visualc/VS2013/mbedTLS.sln visualc/VS2013/mbedTLS.vcxproj

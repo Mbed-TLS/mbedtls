@@ -87,10 +87,10 @@ def main(library_build_dir: str):
         os.chdir(build_dir)
 
         if is_psa_crypto:
-            psa_crypto_lib_filename = \
+            crypto_lib_filename = \
                 library_build_dir + '/core/libpsacrypto.a'
         else:
-            psa_crypto_lib_filename = library_build_dir + '/library/libmbedcrypto.a'
+            crypto_lib_filename = library_build_dir + '/library/libmbedcrypto.a'
 
         extra_includes = (';{}/drivers/builtin/include'.format(mbedtls_dir)
                           if is_psa_crypto else '')
@@ -103,7 +103,7 @@ def main(library_build_dir: str):
                      '-DTOOLCHAIN=HOST_GCC',
                      '-DSUITE=CRYPTO',
                      '-DPSA_CRYPTO_LIB_FILENAME={}/{}'.format(mbedtls_dir,
-                                                              psa_crypto_lib_filename),
+                                                              crypto_lib_filename),
                      ('-DPSA_INCLUDE_PATHS={}/include' + extra_includes).format(mbedtls_dir)
         ])
         subprocess.check_call(['cmake', '--build', '.'])

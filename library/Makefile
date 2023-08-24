@@ -309,6 +309,13 @@ libmbedcrypto.dll: $(OBJS_CRYPTO)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
 .PHONY: generated_files
+ifndef WINDOWS
+    GIT_DESCR := $(shell git describe --exact-match HEAD  >> /dev/null 2>&1; echo $$?)
+    ifeq ($(GIT_DESCR), 0)
+        GEN_FILES = 0
+    endif
+endif
+
 ifneq ($(GEN_FILES), 0)
 GENERATED_FILES = \
 	error.c version_features.c \

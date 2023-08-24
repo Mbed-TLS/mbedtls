@@ -173,6 +173,13 @@ ${MBEDTLS_TEST_OBJS}:
 	$(MAKE) -C ../tests mbedtls_test
 
 .PHONY: generated_files
+ifndef WINDOWS
+    GIT_DESCR := $(shell git describe --exact-match HEAD  >> /dev/null 2>&1; echo $$?)
+    ifeq ($(GIT_DESCR), 0)
+        GEN_FILES = 0
+    endif
+endif
+
 ifneq ($(GEN_FILES), 0)
 GENERATED_FILES = psa/psa_constant_names_generated.c test/query_config.c
 generated_files: $(GENERATED_FILES)

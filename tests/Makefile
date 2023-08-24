@@ -66,6 +66,13 @@ PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; els
 endif
 
 .PHONY: generated_files
+ifndef WINDOWS
+    GIT_DESCR := $(shell git describe --exact-match HEAD  >> /dev/null 2>&1; echo $$?)
+    ifeq ($(GIT_DESCR), 0)
+        GEN_FILES = 0
+    endif
+endif
+
 ifneq ($(GEN_FILES), 0)
 GENERATED_BIGNUM_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) scripts/generate_bignum_tests.py --list || \

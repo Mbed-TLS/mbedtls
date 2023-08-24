@@ -4226,7 +4226,12 @@ int mbedtls_ecp_check_pub_priv(
     mbedtls_ecp_group_copy(&grp, &prv->grp);
 
     /* Also checks d is valid */
-    MBEDTLS_MPI_CHK(mbedtls_ecp_mul(&grp, &Q, &prv->d, &prv->grp.G, f_rng, p_rng));
+    if (mbedtls_ecp_get_type(&grp) == MBEDTLS_ECP_TYPE_EDWARDS) {
+        MBEDTLS_MPI_CHK(mbedtls_ecp_point_edwards(&grp, &Q, &prv->d, f_rng, p_rng));
+    }
+    else {
+        MBEDTLS_MPI_CHK(mbedtls_ecp_mul(&grp, &Q, &prv->d, &prv->grp.G, f_rng, p_rng));
+    }
 
     if (mbedtls_mpi_cmp_mpi(&Q.X, &prv->Q.X) ||
         mbedtls_mpi_cmp_mpi(&Q.Y, &prv->Q.Y) ||

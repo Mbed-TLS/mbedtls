@@ -396,6 +396,7 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
     ctx->key_bitlen = key_bitlen;
     ctx->operation = operation;
 
+#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
     /*
      * For OFB, CFB and CTR mode always use the encryption key schedule
      */
@@ -413,6 +414,10 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
     }
 
     return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+#else
+    return mbedtls_cipher_get_base(ctx->cipher_info)->setkey_enc_func(ctx->cipher_ctx, key,
+                                                                      ctx->key_bitlen);
+#endif
 }
 
 int mbedtls_cipher_set_iv(mbedtls_cipher_context_t *ctx,

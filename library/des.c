@@ -483,6 +483,7 @@ int mbedtls_des_setkey_enc(mbedtls_des_context *ctx, const unsigned char key[MBE
 /*
  * DES key schedule (56-bit, decryption)
  */
+#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
 int mbedtls_des_setkey_dec(mbedtls_des_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE])
 {
     int i;
@@ -496,6 +497,7 @@ int mbedtls_des_setkey_dec(mbedtls_des_context *ctx, const unsigned char key[MBE
 
     return 0;
 }
+#endif
 
 static void des3_set2key(uint32_t esk[96],
                          uint32_t dsk[96],
@@ -538,6 +540,7 @@ int mbedtls_des3_set2key_enc(mbedtls_des3_context *ctx,
 /*
  * Triple-DES key schedule (112-bit, decryption)
  */
+#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
 int mbedtls_des3_set2key_dec(mbedtls_des3_context *ctx,
                              const unsigned char key[MBEDTLS_DES_KEY_SIZE * 2])
 {
@@ -548,6 +551,7 @@ int mbedtls_des3_set2key_dec(mbedtls_des3_context *ctx,
 
     return 0;
 }
+#endif
 
 static void des3_set3key(uint32_t esk[96],
                          uint32_t dsk[96],
@@ -588,6 +592,7 @@ int mbedtls_des3_set3key_enc(mbedtls_des3_context *ctx,
 /*
  * Triple-DES key schedule (168-bit, decryption)
  */
+#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
 int mbedtls_des3_set3key_dec(mbedtls_des3_context *ctx,
                              const unsigned char key[MBEDTLS_DES_KEY_SIZE * 3])
 {
@@ -598,6 +603,7 @@ int mbedtls_des3_set3key_dec(mbedtls_des3_context *ctx,
 
     return 0;
 }
+#endif
 
 /*
  * DES-ECB block encryption/decryption
@@ -869,28 +875,43 @@ int mbedtls_des_self_test(int verbose)
                            (v == MBEDTLS_DES_DECRYPT) ? "dec" : "enc");
         }
 
+#if defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+        if (v == MBEDTLS_DES_DECRYPT) {
+            if (verbose != 0) {
+                mbedtls_printf("skipped\n");
+            }
+            continue;
+        }
+#endif
+
         memcpy(buf, des3_test_buf, 8);
 
         switch (i) {
+#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
             case 0:
                 ret = mbedtls_des_setkey_dec(&ctx, des3_test_keys);
                 break;
+#endif
 
             case 1:
                 ret = mbedtls_des_setkey_enc(&ctx, des3_test_keys);
                 break;
 
+#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
             case 2:
                 ret = mbedtls_des3_set2key_dec(&ctx3, des3_test_keys);
                 break;
+#endif
 
             case 3:
                 ret = mbedtls_des3_set2key_enc(&ctx3, des3_test_keys);
                 break;
 
+#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
             case 4:
                 ret = mbedtls_des3_set3key_dec(&ctx3, des3_test_keys);
                 break;
+#endif
 
             case 5:
                 ret = mbedtls_des3_set3key_enc(&ctx3, des3_test_keys);

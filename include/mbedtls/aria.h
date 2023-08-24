@@ -110,6 +110,7 @@ int mbedtls_aria_setkey_enc(mbedtls_aria_context *ctx,
                             const unsigned char *key,
                             unsigned int keybits);
 
+#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
 /**
  * \brief          This function sets the decryption key.
  *
@@ -128,6 +129,7 @@ int mbedtls_aria_setkey_enc(mbedtls_aria_context *ctx,
 int mbedtls_aria_setkey_dec(mbedtls_aria_context *ctx,
                             const unsigned char *key,
                             unsigned int keybits);
+#endif /* !MBEDTLS_CIPHER_ENCRYPT_ONLY */
 
 /**
  * \brief          This function performs an ARIA single-block encryption or

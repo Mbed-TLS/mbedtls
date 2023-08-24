@@ -30,10 +30,9 @@
 
 #include "mbedtls/aes.h"
 
+#include "runtime_internal.h"
 
-#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_ARCH_IS_ARM64)
-
-#define MBEDTLS_AESCE_HAVE_CODE
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
 
 #ifdef __cplusplus
 extern "C" {
@@ -128,6 +127,6 @@ int mbedtls_aesce_setkey_enc(unsigned char *rk,
 }
 #endif
 
-#endif /* MBEDTLS_AESCE_C && MBEDTLS_ARCH_IS_ARM64 */
+#endif /* MBEDTLS_AESCE_HAVE_CODE */
 
 #endif /* MBEDTLS_AESCE_H */

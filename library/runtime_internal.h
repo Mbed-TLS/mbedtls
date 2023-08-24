@@ -54,6 +54,7 @@
 
 #if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_ARCH_IS_ARM64)
 #define MBEDTLS_AES_HAVE_AESCE 1
+#define MBEDTLS_AESCE_HAVE_CODE
 #else
 #define MBEDTLS_AES_HAVE_AESCE 0
 #endif

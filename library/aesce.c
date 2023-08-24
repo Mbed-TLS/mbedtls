@@ -42,11 +42,9 @@
 #include <string.h>
 #include "common.h"
 
-#if defined(MBEDTLS_AESCE_C)
-
 #include "aesce.h"
 
-#if defined(MBEDTLS_ARCH_IS_ARM64)
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
 
 /* Compiler version checks. */
 #if defined(__clang__)
@@ -510,6 +508,4 @@ void mbedtls_aesce_gcm_mult(unsigned char c[16],
 #undef MBEDTLS_POP_TARGET_PRAGMA
 #endif
 
-#endif /* MBEDTLS_ARCH_IS_ARM64 */
-
-#endif /* MBEDTLS_AESCE_C */
+#endif /* MBEDTLS_AESCE_HAVE_CODE */

@@ -866,9 +866,7 @@ int mbedtls_ecp_point_write_binary(const mbedtls_ecp_group *grp,
         case MBEDTLS_ECP_TYPE_EDWARDS: {
             mbedtls_mpi q;
             /* Only the compressed format is defined for Edwards curves. */
-            if (format != MBEDTLS_ECP_PF_COMPRESSED) {
-                return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-            }
+            (void) format;
 
             /* We need to add an extra bit to store the least significant bit of X. */
             plen = (grp->pbits + 1 + 7) >> 3;

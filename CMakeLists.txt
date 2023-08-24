@@ -56,11 +56,6 @@ option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
 
 option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)
 option(MBEDTLS_FATAL_WARNINGS "Compiler warnings treated as errors" ON)
-if(CMAKE_HOST_WIN32)
-    option(GEN_FILES "Generate the auto-generated files as needed" OFF)
-else()
-    option(GEN_FILES "Generate the auto-generated files as needed" ON)
-endif()
 
 option(DISABLE_PACKAGE_CONFIG_AND_INSTALL "Disable package configuration, target export and installation" ${MBEDTLS_AS_SUBPROJECT})
 
@@ -68,6 +63,21 @@ string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 string(REGEX MATCH "GNU" CMAKE_COMPILER_IS_GNU "${CMAKE_C_COMPILER_ID}")
 string(REGEX MATCH "IAR" CMAKE_COMPILER_IS_IAR "${CMAKE_C_COMPILER_ID}")
 string(REGEX MATCH "MSVC" CMAKE_COMPILER_IS_MSVC "${CMAKE_C_COMPILER_ID}")
+
+# Only attempt to auto-detect if the user has not explicitly
+# overriden the -D GEN_FILES.
+if(NOT DEFINED GEN_FILES)
+    option(GEN_FILES "Generate the auto-generated files as needed" ON)
+    execute_process(COMMAND git describe --exact-match HEAD
+                        OUTPUT_QUIET ERROR_QUIET RESULT_VARIABLE result)
+    if(${result} EQUAL 0)
+        message(INFO "Configuring on release tag, disabling file auto-generation.")
+        set(GEN_FILES OFF)
+    elseif(CMAKE_HOST_WIN32)
+        message(INFO "Configuring on Windows Host, disabling file auto-generation.")
+        set(GEN_FILES OFF)
+    endif()
+endif()
 
 # the test suites currently have compile errors with MSVC
 if(CMAKE_COMPILER_IS_MSVC)

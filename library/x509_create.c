@@ -241,16 +241,16 @@ static int validate_utf8(unsigned char *data, size_t len)
 
     for (d = data; d < end; d++) {
         code_point = 0;
-        if (*d & 0x80 == 0x00) {
+        if ((*d & 0x80) == 0x00) {
             utf_bytes = 1;
             code_point = code_point | (*d & 0x3F);
-        } else if (*d & 0xE0 == 0xC0) {
+        } else if ((*d & 0xE0) == 0xC0) {
             utf_bytes = 2;
             code_point = code_point | (uint32_t) (*d & 0x1F) << 6;
-        } else if (*d & 0xF0 == 0xE0) {
+        } else if ((*d & 0xF0) == 0xE0) {
             utf_bytes = 3;
             code_point = code_point | (uint32_t) (*d & 0x0F) << 12;
-        } else if (*d & 0xF8 == 0xF0) {
+        } else if ((*d & 0xF8) == 0xF0) {
             utf_bytes = 4;
             code_point = code_point | (uint32_t) (*d & 0x07) << 18;
         } else {

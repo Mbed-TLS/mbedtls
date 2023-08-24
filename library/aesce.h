@@ -38,7 +38,7 @@
 extern "C" {
 #endif
 
-#if defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#if defined(MBEDTLS_RUNTIME_HAVE_CODE) && defined(MBEDTLS_AES_RUNTIME_HAVE_CODE)
 
 extern signed char mbedtls_aesce_has_support_result;
 
@@ -53,14 +53,14 @@ int mbedtls_aesce_has_support_impl(void);
                                      mbedtls_aesce_has_support_impl() : \
                                      mbedtls_aesce_has_support_result)
 
-#else /* defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY) */
+#else /* MBEDTLS_RUNTIME_HAVE_CODE && MBEDTLS_AES_RUNTIME_HAVE_CODE */
 
 /* If we are not on Linux, we can't detect support so assume that it's supported.
  * Similarly, assume support if MBEDTLS_AES_USE_HARDWARE_ONLY is set.
  */
 #define MBEDTLS_AESCE_HAS_SUPPORT() 1
 
-#endif /* defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY) */
+#endif /* !(MBEDTLS_RUNTIME_HAVE_CODE && MBEDTLS_AES_RUNTIME_HAVE_CODE) */
 
 /**
  * \brief          Internal AES-ECB block encryption and decryption

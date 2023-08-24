@@ -92,14 +92,10 @@
 #endif /* !(__ARM_FEATURE_CRYPTO || __ARM_FEATURE_AES) ||
           MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG */
 
-#if defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-
-#include <asm/hwcap.h>
-#include <sys/auxv.h>
+#if defined(MBEDTLS_RUNTIME_HAVE_CODE) && defined(MBEDTLS_AES_RUNTIME_HAVE_CODE)
 
 signed char mbedtls_aesce_has_support_result = -1;
 
-#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 /*
  * AES instruction support detection routine
  */
@@ -112,9 +108,8 @@ int mbedtls_aesce_has_support_impl(void)
      * once, but that is harmless.
      */
     if (mbedtls_aesce_has_support_result == -1) {
-        unsigned long auxval = getauxval(AT_HWCAP);
-        if ((auxval & (HWCAP_ASIMD | HWCAP_AES)) ==
-            (HWCAP_ASIMD | HWCAP_AES)) {
+        if (mbedtls_cpu_has_features(
+                MBEDTLS_HWCAP_ASIMD | MBEDTLS_HWCAP_AES) == true) {
             mbedtls_aesce_has_support_result = 1;
         } else {
             mbedtls_aesce_has_support_result = 0;
@@ -122,9 +117,8 @@ int mbedtls_aesce_has_support_impl(void)
     }
     return mbedtls_aesce_has_support_result;
 }
-#endif
 
-#endif /* defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY) */
+#endif /* MBEDTLS_RUNTIME_HAVE_CODE && MBEDTLS_AES_RUNTIME_HAVE_CODE */
 
 /* Single round of AESCE encryption */
 #define AESCE_ENCRYPT_ROUND                   \

@@ -113,7 +113,7 @@ TASKS = {
                 'test_suite_psa_crypto_metadata;Asymmetric signature: pure EdDSA',
                 # Algorithm not supported yet
                 'test_suite_psa_crypto_metadata;Cipher: XTS',
-                ],
+            ],
             'full_coverage': False,
         }
     },

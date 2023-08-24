@@ -188,10 +188,10 @@ TASKS = {
                 'test_suite_psa_crypto_metadata;Asymmetric signature: pure EdDSA',
                 # Algorithm not supported yet
                 'test_suite_psa_crypto_metadata;Cipher: XTS',
-                ],
+            ],
             'full_coverage': False,
         }
-        },
+    },
     # There are 2 options to use analyze_driver_vs_reference_xxx locally:
     # 1. Run tests and then analysis:
     #   - tests/scripts/all.sh --outcome-file "$PWD/out.csv" <component_ref> <component_driver>

@@ -31,6 +31,7 @@
 
 #include <string.h>
 
+#if defined(MBEDTLS_CIPHER_C)
 const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     psa_algorithm_t alg,
     psa_key_type_t key_type,
@@ -158,6 +159,7 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     return mbedtls_cipher_info_from_values(cipher_id_tmp,
                                            (int) key_bits, mode);
 }
+#endif /* MBEDTLS_CIPHER_C */
 
 #if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
 

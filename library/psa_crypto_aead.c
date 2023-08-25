@@ -43,13 +43,13 @@ static psa_status_t psa_aead_setup(
     psa_algorithm_t alg)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    size_t key_bits;
-    const mbedtls_cipher_info_t *cipher_info;
-    mbedtls_cipher_id_t cipher_id;
 
     (void) key_buffer_size;
 
-    key_bits = attributes->core.bits;
+#if defined(MBEDTLS_CIPHER_C)
+    const mbedtls_cipher_info_t *cipher_info;
+    mbedtls_cipher_id_t cipher_id;
+    size_t key_bits = attributes->core.bits;
 
     cipher_info = mbedtls_cipher_info_from_psa(alg,
                                                attributes->core.type, key_bits,
@@ -57,6 +57,7 @@ static psa_status_t psa_aead_setup(
     if (cipher_info == NULL) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
+#endif /* MBEDTLS_CIPHER_C */
 
     switch (PSA_ALG_AEAD_WITH_SHORTENED_TAG(alg, 0)) {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)

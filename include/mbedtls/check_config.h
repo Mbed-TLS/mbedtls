@@ -766,7 +766,9 @@
 #error "MBEDTLS_PSA_CRYPTO_C defined, but not all prerequisites (missing RNG)"
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_C) && !defined(MBEDTLS_CIPHER_C )
+#if defined(MBEDTLS_PSA_CRYPTO_C) && \
+    (defined(PSA_HAVE_SOFT_BLOCK_CIPHER) || defined(PSA_HAVE_SOFT_BLOCK_AEAD)) && \
+    !defined(MBEDTLS_CIPHER_C)
 #error "MBEDTLS_PSA_CRYPTO_C defined, but not all prerequisites"
 #endif
 

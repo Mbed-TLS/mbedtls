@@ -1488,7 +1488,7 @@ component_test_crypto_full_md_light_only () {
 }
 
 component_test_full_no_cipher () {
-    msg "build: full minus CIPHER"
+    msg "build: full - CIPHER - PSA_CRYPTO_C"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_CIPHER_C
     # Don't pull in cipher via PSA mechanisms
@@ -1518,8 +1518,91 @@ component_test_full_no_cipher () {
     scripts/config.py unset MBEDTLS_LMS_PRIVATE
     make
 
-    msg "test: full minus CIPHER"
+    msg "test: full - CIPHER - PSA_CRYPTO_C"
     make test
+}
+
+# This is a common configurator and test function that is used in:
+# - component_test_full_no_cipher_with_crypto
+# - component_test_full_no_cipher_with_crypto_config
+# It accepts 2 input parameters:
+# - $1: boolean value which basically reflects status of MBEDTLS_PSA_CRYPTO_CONFIG
+# - $2: a text string which describes the test component
+common_test_full_no_cipher_with_crypto () {
+    USE_CRYPTO_CONFIG="$1"
+    COMPONENT_DESCRIPTION="$2"
+
+    msg "build: $COMPONENT_DESCRIPTION"
+
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_CIPHER_C
+
+    if [ "$USE_CRYPTO_CONFIG" -eq 1 ]; then
+        # Direct dependencies from PSA config
+        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
+        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_GCM
+        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CMAC
+        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_NO_PADDING
+        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_PKCS7
+        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CFB
+        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CTR
+        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECB_NO_PADDING
+        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_OFB
+        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_STREAM_CIPHER
+        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_AES
+        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DES
+        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_CAMELLIA
+        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_ARIA
+    else
+        # Don't pull in cipher via PSA mechanisms
+        scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
+    fi
+    # Direct dependencies
+    scripts/config.py unset MBEDTLS_CCM_C
+    scripts/config.py unset MBEDTLS_CMAC_C
+    scripts/config.py unset MBEDTLS_GCM_C
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+    scripts/config.py unset MBEDTLS_PKCS12_C
+    scripts/config.py unset MBEDTLS_PKCS5_C
+    scripts/config.py unset MBEDTLS_SSL_TLS_C
+    scripts/config.py unset MBEDTLS_SSL_TICKET_C
+    # Disable cipher modes/keys that make PSA depend on CIPHER_C.
+    # Keep CHACHA20 enabled since it does not depend on CIPHER_C.
+    scripts/config.py unset-all MBEDTLS_CIPHER_MODE
+    scripts/config.py unset MBEDTLS_AES_C
+    scripts/config.py unset MBEDTLS_DES_C
+    scripts/config.py unset MBEDTLS_ARIA_C
+    scripts/config.py unset MBEDTLS_CAMELLIA_C
+    # Dependencies on AES_C
+    scripts/config.py unset MBEDTLS_CTR_DRBG_C
+    # Disable dependencies on the AEAD algs
+    scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
+    # Indirect dependencies
+    scripts/config.py unset MBEDTLS_SSL_CLI_C
+    scripts/config.py unset MBEDTLS_SSL_DTLS_ANTI_REPLAY
+    scripts/config.py unset MBEDTLS_SSL_DTLS_CONNECTION_ID
+    scripts/config.py unset MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
+    scripts/config.py unset MBEDTLS_SSL_SRV_C
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.py unset MBEDTLS_LMS_C
+    scripts/config.py unset MBEDTLS_LMS_PRIVATE
+    make
+
+    # Ensure that CIPHER_C was not re-enabled
+    not grep mbedtls_cipher_init library/cipher.o
+
+    msg "test: $COMPONENT_DESCRIPTION"
+    make test
+}
+
+component_test_full_no_cipher_with_crypto() {
+    common_test_full_no_cipher_with_crypto 0 "full - CIPHER - CRYPTO_CONFIG"
+}
+
+component_test_full_no_cipher_with_crypto_config() {
+    common_test_full_no_cipher_with_crypto 1 "full - CIPHER"
 }
 
 component_test_full_no_bignum () {

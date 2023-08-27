@@ -120,12 +120,8 @@ echo
 # Step 2c - Compatibility tests (keep going even if some tests fail)
 echo '################ compat.sh ################'
 {
-    echo '#### compat.sh: Default versions'
-    sh compat.sh -m 'tls1 tls1_1 tls12 dtls1 dtls12'
-    echo
-
-    echo '#### compat.sh: legacy (SSLv3)'
-    OPENSSL="$OPENSSL_LEGACY" sh compat.sh -m 'ssl3'
+    echo '#### compat.sh: Default ciphers'
+    sh compat.sh -m 'ssl3 tls1 tls1_1 tls12 dtls1 dtls12'
     echo
 
     echo '#### compat.sh: legacy (null, DES, RC4)'

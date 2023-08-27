@@ -51,8 +51,6 @@ fi
 : ${OPENSSL_LEGACY:="$OPENSSL"}
 : ${GNUTLS_CLI:="gnutls-cli"}
 : ${GNUTLS_SERV:="gnutls-serv"}
-: ${GNUTLS_LEGACY_CLI:="$GNUTLS_CLI"}
-: ${GNUTLS_LEGACY_SERV:="$GNUTLS_SERV"}
 
 # Used to make ssl-opt.sh deterministic.
 #
@@ -81,8 +79,6 @@ OPENSSL="$OPENSSL"                           \
     OPENSSL_LEGACY="$OPENSSL_LEGACY"         \
     GNUTLS_CLI="$GNUTLS_CLI"                 \
     GNUTLS_SERV="$GNUTLS_SERV"               \
-    GNUTLS_LEGACY_CLI="$GNUTLS_LEGACY_CLI"   \
-    GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV" \
     scripts/output_env.sh
 echo
 
@@ -126,7 +122,6 @@ echo '################ compat.sh ################'
 
     echo '#### compat.sh: legacy (null, DES, RC4)'
     OPENSSL="$OPENSSL_LEGACY" \
-    GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" \
     sh compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR'
     echo
 

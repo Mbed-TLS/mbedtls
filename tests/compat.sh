@@ -592,7 +592,7 @@ setup_arguments()
     fi
 
     M_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE"
-    O_SERVER_ARGS="-accept $PORT -cipher NULL,ALL -$O_MODE"
+    O_SERVER_ARGS="-accept $PORT -cipher ALL,COMPLEMENTOFALL -$O_MODE"
     G_SERVER_ARGS="-p $PORT --http $G_MODE"
     G_SERVER_PRIO="NORMAL:${G_PRIO_CCM}+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+SHA256:+SHA384:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
 

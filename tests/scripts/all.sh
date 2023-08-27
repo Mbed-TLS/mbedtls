@@ -50,10 +50,13 @@
 #   * G++
 #   * arm-gcc and mingw-gcc
 #   * ArmCC 5 and ArmCC 6, unless invoked with --no-armcc
-#   * OpenSSL and GnuTLS command line tools, recent enough for the
-#     interoperability tests. If they don't support old features which we want
-#     to test, then a legacy version of these tools must be present as well
-#     (search for LEGACY below).
+#   * OpenSSL and GnuTLS command line tools, in suitable versions for the
+#     interoperability tests. The following are the official versions at the
+#     time of writing:
+#     * GNUTLS_{CLI,SERV} = 3.4.10
+#     * GNUTLS_NEXT_{CLI,SERV} = 3.7.2
+#     * OPENSSL = 1.0.2g (without Debian/Ubuntu patches)
+#     * OPENSSL_NEXT = 1.1.1a
 # See the invocation of check_tools below for details.
 #
 # This script must be invoked from the toplevel directory of a git
@@ -165,12 +168,9 @@ pre_initialize_variables () {
 
     # Default commands, can be overridden by the environment
     : ${OPENSSL:="openssl"}
-    : ${OPENSSL_LEGACY:="$OPENSSL"}
     : ${OPENSSL_NEXT:="$OPENSSL"}
     : ${GNUTLS_CLI:="gnutls-cli"}
     : ${GNUTLS_SERV:="gnutls-serv"}
-    : ${GNUTLS_LEGACY_CLI:="$GNUTLS_CLI"}
-    : ${GNUTLS_LEGACY_SERV:="$GNUTLS_SERV"}
     : ${OUT_OF_SOURCE_DIR:=./mbedtls_out_of_source_build}
     : ${ARMC5_BIN_DIR:=/usr/bin}
     : ${ARMC6_BIN_DIR:=/usr/bin}
@@ -286,10 +286,7 @@ Tool path options:
      --gcc-latest=<GCC_latest_path>             Latest version of GCC available
      --gnutls-cli=<GnuTLS_cli_path>             GnuTLS client executable to use for most tests.
      --gnutls-serv=<GnuTLS_serv_path>           GnuTLS server executable to use for most tests.
-     --gnutls-legacy-cli=<GnuTLS_cli_path>      GnuTLS client executable to use for legacy tests.
-     --gnutls-legacy-serv=<GnuTLS_serv_path>    GnuTLS server executable to use for legacy tests.
      --openssl=<OpenSSL_path>                   OpenSSL executable to use for most tests.
-     --openssl-legacy=<OpenSSL_path>            OpenSSL executable to use for legacy tests..
      --openssl-next=<OpenSSL_path>              OpenSSL executable to use for recent things like ARIA
 EOF
 }
@@ -458,8 +455,8 @@ pre_parse_command_line () {
             --gcc-earliest) shift; GCC_EARLIEST="$1";;
             --gcc-latest) shift; GCC_LATEST="$1";;
             --gnutls-cli) shift; GNUTLS_CLI="$1";;
-            --gnutls-legacy-cli) shift; GNUTLS_LEGACY_CLI="$1";;
-            --gnutls-legacy-serv) shift; GNUTLS_LEGACY_SERV="$1";;
+            --gnutls-legacy-cli) shift;; # ignored for backward compatibility
+            --gnutls-legacy-serv) shift;; # ignored for backward compatibility
             --gnutls-serv) shift; GNUTLS_SERV="$1";;
             --help|-h) usage; exit;;
             --keep-going|-k) KEEP_GOING=1;;
@@ -473,7 +470,6 @@ pre_parse_command_line () {
             --no-memory) MEMORY=0;;
             --no-quiet) QUIET=0;;
             --openssl) shift; OPENSSL="$1";;
-            --openssl-legacy) shift; OPENSSL_LEGACY="$1";;
             --openssl-next) shift; OPENSSL_NEXT="$1";;
             --outcome-file) shift; MBEDTLS_TEST_OUTCOME_FILE="$1";;
             --out-of-source-dir) shift; OUT_OF_SOURCE_DIR="$1";;
@@ -728,12 +724,9 @@ pre_print_configuration () {
     echo "SEED: ${SEED-"UNSET"}"
     echo
     echo "OPENSSL: $OPENSSL"
-    echo "OPENSSL_LEGACY: $OPENSSL_LEGACY"
     echo "OPENSSL_NEXT: $OPENSSL_NEXT"
     echo "GNUTLS_CLI: $GNUTLS_CLI"
     echo "GNUTLS_SERV: $GNUTLS_SERV"
-    echo "GNUTLS_LEGACY_CLI: $GNUTLS_LEGACY_CLI"
-    echo "GNUTLS_LEGACY_SERV: $GNUTLS_LEGACY_SERV"
     echo "ARMC5_BIN_DIR: $ARMC5_BIN_DIR"
     echo "ARMC6_BIN_DIR: $ARMC6_BIN_DIR"
 }
@@ -757,13 +750,10 @@ pre_check_tools () {
             if [ -n "${SEED-}" ]; then
                 export SEED
             fi
-            set "$@" OPENSSL="$OPENSSL" OPENSSL_LEGACY="$OPENSSL_LEGACY"
+            set "$@" OPENSSL="$OPENSSL"
             set "$@" GNUTLS_CLI="$GNUTLS_CLI" GNUTLS_SERV="$GNUTLS_SERV"
-            set "$@" GNUTLS_LEGACY_CLI="$GNUTLS_LEGACY_CLI"
-            set "$@" GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV"
-            check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$OPENSSL_NEXT" \
-                        "$GNUTLS_CLI" "$GNUTLS_SERV" \
-                        "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV"
+            check_tools "$OPENSSL" "$OPENSSL_NEXT" \
+                        "$GNUTLS_CLI" "$GNUTLS_SERV"
             ;;
     esac
 

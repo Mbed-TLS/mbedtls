@@ -124,9 +124,7 @@ echo '################ compat.sh ################'
     sh compat.sh
     echo
 
-    echo '#### compat.sh: legacy (null)'
-    OPENSSL="$OPENSSL_LEGACY" \
-    GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" \
+    echo '#### compat.sh: null cipher'
     sh compat.sh -e '^$' -f 'NULL'
     echo
 

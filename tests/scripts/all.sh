@@ -1855,7 +1855,7 @@ component_test_full_cmake_clang () {
     tests/ssl-opt.sh -f 'Default\|ECJPAKE\|SSL async private'
 
     msg "test: compat.sh NULL (full config)" # ~ 2 min
-    env OPENSSL="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '^$' -f 'NULL'
+    tests/compat.sh -e '^$' -f 'NULL'
 
     msg "test: compat.sh ARIA + ChachaPoly"
     env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
@@ -2242,7 +2242,7 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     tests/compat.sh
 
     msg "test: compat.sh NULL (full minus MBEDTLS_USE_PSA_CRYPTO)"
-    env OPENSSL="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -f 'NULL'
+    tests/compat.sh -f 'NULL'
 
     msg "test: compat.sh ARIA + ChachaPoly (full minus MBEDTLS_USE_PSA_CRYPTO)"
     env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'

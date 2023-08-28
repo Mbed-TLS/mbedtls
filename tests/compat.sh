@@ -108,6 +108,7 @@ FILTER=""
 EXCLUDE='NULL\|ARIA\|CHACHA20_POLY1305'
 VERBOSE=""
 MEMCHECK=0
+PRESERVE_LOGS=0
 PEERS="OpenSSL$PEER_GNUTLS mbedTLS"
 
 # hidden option: skip DTLS with OpenSSL
@@ -128,6 +129,7 @@ print_usage() {
     printf "  -v|--verbose\tSet verbose output.\n"
     printf "     --outcome-file\tFile where test outcomes are written\n"
     printf "                   \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
+    printf "     --preserve-logs\tPreserve logs of successful tests as well\n"
 }
 
 get_options() {
@@ -159,6 +161,9 @@ get_options() {
                 ;;
             --outcome-file)
                 shift; MBEDTLS_TEST_OUTCOME_FILE=$1
+                ;;
+            --preserve-logs)
+                PRESERVE_LOGS=1
                 ;;
             -h|--help)
                 print_usage
@@ -842,12 +847,16 @@ record_outcome() {
     fi
 }
 
+save_logs() {
+    cp $SRV_OUT c-srv-${TESTS}.log
+    cp $CLI_OUT c-cli-${TESTS}.log
+}
+
 # display additional information if test case fails
 report_fail() {
     FAIL_PROMPT="outputs saved to c-srv-${TESTS}.log, c-cli-${TESTS}.log"
     record_outcome "FAIL" "$FAIL_PROMPT"
-    cp $SRV_OUT c-srv-${TESTS}.log
-    cp $CLI_OUT c-cli-${TESTS}.log
+    save_logs
     echo "  ! $FAIL_PROMPT"
 
     if [ "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
@@ -966,6 +975,9 @@ run_client() {
     case $RESULT in
         "0")
             record_outcome "PASS"
+            if [ "$PRESERVE_LOGS" -gt 0 ]; then
+                save_logs
+            fi
             ;;
         "1")
             record_outcome "SKIP"

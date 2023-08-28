@@ -38,9 +38,14 @@
 #endif
 #endif
 
-/* Some versions of ASan result in errors about not enough registers */
-#if defined(__GNUC__) && defined(MBEDTLS_ARCH_IS_X86) && \
-    defined(MBEDTLS_HAVE_ASM) && !defined(MBEDTLS_HAVE_ASAN)
+/*
+ * - `padlock` is implements with GNUC assembly for x86 target.
+ * - Some versions of ASan result in errors about not enough registers.
+ */
+#if defined(MBEDTLS_PADLOCK_C) && \
+    defined(__GNUC__) && defined(MBEDTLS_ARCH_IS_X86) && \
+    defined(MBEDTLS_HAVE_ASM) && \
+    !defined(MBEDTLS_HAVE_ASAN)
 
 #define MBEDTLS_VIA_PADLOCK_HAVE_CODE
 

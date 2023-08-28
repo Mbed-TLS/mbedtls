@@ -32,10 +32,6 @@
 #define MBEDTLS_AESNI_AES      0x02000000u
 #define MBEDTLS_AESNI_CLMUL    0x00000002u
 
-/* Can we do AESNI with inline assembly?
- * (Only implemented with gas syntax, only for 64-bit.)
- */
-
 #if defined(MBEDTLS_AESNI_C) && \
     (defined(MBEDTLS_ARCH_IS_X64) || defined(MBEDTLS_ARCH_IS_X86))
 
@@ -65,6 +61,9 @@
 #define MBEDTLS_AESNI_HAVE_CODE 2 // via intrinsics
 #elif defined(MBEDTLS_HAVE_ASM) && \
     defined(__GNUC__) && defined(MBEDTLS_ARCH_IS_X64)
+/* Can we do AESNI with inline assembly?
+ * (Only implemented with gas syntax, only for 64-bit.)
+ */
 #define MBEDTLS_AESNI_HAVE_CODE 1 // via assembly
 #elif defined(__GNUC__)
 #   error "Must use `-mpclmul -msse2 -maes` for MBEDTLS_AESNI_C"

@@ -30,7 +30,6 @@
 
 #include "mbedtls/aes.h"
 
-#include "common.h"
 
 #if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_ARCH_IS_ARM64)
 

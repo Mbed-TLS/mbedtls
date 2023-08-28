@@ -860,7 +860,7 @@ int mbedtls_pk_write_key_pem(const mbedtls_pk_context *key, unsigned char *buf, 
 
     ret = 0;
 cleanup:
-    mbedtls_free(output_buf);
+    mbedtls_zeroize_and_free(output_buf, PRV_DER_MAX_BYTES);
     return ret;
 }
 #endif /* MBEDTLS_PEM_WRITE_C */

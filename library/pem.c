@@ -169,7 +169,7 @@ static int pem_cipher_decrypt(mbedtls_cipher_type_t enc_alg,
     unsigned char key[32];
     const mbedtls_cipher_info_t *cipher_info;
     size_t key_bitlen, block_size;
-    unsigned char *output;
+    unsigned char *output = NULL;
     size_t output_len;
     int ret;
 
@@ -181,8 +181,6 @@ static int pem_cipher_decrypt(mbedtls_cipher_type_t enc_alg,
     key_bitlen = mbedtls_cipher_info_get_key_bitlen(cipher_info);
     block_size = mbedtls_cipher_info_get_block_size(cipher_info);
 
-    mbedtls_cipher_init(&ctx);
-
     ret = mbedtls_cipher_setup(&ctx, cipher_info);
     if (ret != 0) {
         return ret;
@@ -190,12 +188,12 @@ static int pem_cipher_decrypt(mbedtls_cipher_type_t enc_alg,
 
     ret = pem_pbkdf1(key, key_bitlen/8, iv, pwd, pwdlen);
     if (ret != 0) {
-        return ret;
+        goto exit;
     }
 
     ret = mbedtls_cipher_setkey(&ctx, key, key_bitlen, MBEDTLS_DECRYPT);
     if (ret != 0) {
-        return ret;
+        goto exit;
     }
 
     output_len = input_len + block_size;
@@ -210,7 +208,10 @@ static int pem_cipher_decrypt(mbedtls_cipher_type_t enc_alg,
     memcpy(input, output, input_len);
 
 exit:
-    mbedtls_free(output);
+    mbedtls_cipher_free(&ctx);
+    if (output != NULL) {
+        mbedtls_free(output);
+    }
     return ret;
 }
 #endif /* MBEDTLS_CIPHER_C */

@@ -199,6 +199,7 @@ rounds_10:
 /* Two rounds of AESCE decryption */
 #define AESCE_DECRYPT_ROUND_X2        AESCE_DECRYPT_ROUND; AESCE_DECRYPT_ROUND
 
+#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
 static uint8x16_t aesce_decrypt_block(uint8x16_t block,
                                       unsigned char *keys,
                                       int rounds)
@@ -230,6 +231,7 @@ rounds_10:
 
     return block;
 }
+#endif
 
 /*
  * AES-ECB block en(de)cryption
@@ -242,11 +244,16 @@ int mbedtls_aesce_crypt_ecb(mbedtls_aes_context *ctx,
     uint8x16_t block = vld1q_u8(&input[0]);
     unsigned char *keys = (unsigned char *) (ctx->buf + ctx->rk_offset);
 
+#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
     if (mode == MBEDTLS_AES_ENCRYPT) {
         block = aesce_encrypt_block(block, keys, ctx->nr);
     } else {
         block = aesce_decrypt_block(block, keys, ctx->nr);
     }
+#else
+    (void) mode;
+    block = aesce_encrypt_block(block, keys, ctx->nr);
+#endif /* !MBEDTLS_CIPHER_ENCRYPT_ONLY */
     vst1q_u8(&output[0], block);
 
     return 0;
@@ -255,6 +262,7 @@ int mbedtls_aesce_crypt_ecb(mbedtls_aes_context *ctx,
 /*
  * Compute decryption round keys from encryption round keys
  */
+#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
 void mbedtls_aesce_inverse_key(unsigned char *invkey,
                                const unsigned char *fwdkey,
                                int nr)
@@ -269,6 +277,7 @@ void mbedtls_aesce_inverse_key(unsigned char *invkey,
     vst1q_u8(invkey + i * 16, vld1q_u8(fwdkey + j * 16));
 
 }
+#endif
 
 static inline uint32_t aes_rot_word(uint32_t word)
 {

@@ -102,6 +102,7 @@ void mbedtls_aesce_gcm_mult(unsigned char c[16],
                             const unsigned char b[16]);
 
 
+#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
 /**
  * \brief           Internal round key inversion. This function computes
  *                  decryption round keys from the encryption round keys.
@@ -113,6 +114,7 @@ void mbedtls_aesce_gcm_mult(unsigned char c[16],
 void mbedtls_aesce_inverse_key(unsigned char *invkey,
                                const unsigned char *fwdkey,
                                int nr);
+#endif /* !MBEDTLS_CIPHER_ENCRYPT_ONLY */
 
 /**
  * \brief           Internal key expansion for encryption

@@ -56,6 +56,11 @@
 #define MBEDTLS_MD_LIGHT
 #endif
 
+/* PEM_PARSE_C depends on cipher in order to perform DES/AES decryption. */
+#if defined(MBEDTLS_PEM_PARSE_C)
+#define MBEDTLS_CIPHER_C
+#endif /* MBEDTLS_PEM_PARSE_C */
+
 /* MBEDTLS_ECP_LIGHT is auto-enabled by the following symbols:
  * - MBEDTLS_ECP_C because now it consists of MBEDTLS_ECP_LIGHT plus functions
  *   for curve arithmetic. As a consequence if MBEDTLS_ECP_C is required for

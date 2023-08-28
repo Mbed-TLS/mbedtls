@@ -93,21 +93,32 @@ int mbedtls_aesni_crypt_ecb(mbedtls_aes_context *ctx,
     ++rk;
     --nr;
 
-    if (mode == 0) {
-        while (nr != 0) {
-            state = _mm_aesdec_si128(state, *rk);
-            ++rk;
-            --nr;
-        }
-        state = _mm_aesdeclast_si128(state, *rk);
-    } else {
+#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+    if (mode == MBEDTLS_AES_ENCRYPT) {
         while (nr != 0) {
             state = _mm_aesenc_si128(state, *rk);
             ++rk;
             --nr;
         }
         state = _mm_aesenclast_si128(state, *rk);
+    } else {
+        while (nr != 0) {
+            state = _mm_aesdec_si128(state, *rk);
+            ++rk;
+            --nr;
+        }
+        state = _mm_aesdeclast_si128(state, *rk);
     }
+#else
+    (void) mode;
+    while (nr != 0) {
+
+        state = _mm_aesenc_si128(state, *rk);
+        ++rk;
+        --nr;
+    }
+    state = _mm_aesenclast_si128(state, *rk);
+#endif /* !MBEDTLS_CIPHER_ENCRYPT_ONLY */
 
     memcpy(output, &state, 16);
     return 0;
@@ -217,6 +228,7 @@ void mbedtls_aesni_gcm_mult(unsigned char c[16],
 /*
  * Compute decryption round keys from encryption round keys
  */
+#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
 void mbedtls_aesni_inverse_key(unsigned char *invkey,
                                const unsigned char *fwdkey, int nr)
 {
@@ -229,6 +241,7 @@ void mbedtls_aesni_inverse_key(unsigned char *invkey,
     }
     *ik = *fk;
 }
+#endif
 
 /*
  * Key expansion, 128-bit case
@@ -455,6 +468,7 @@ int mbedtls_aesni_crypt_ecb(mbedtls_aes_context *ctx,
          "jnz       1b              \n\t"
          "movdqu    (%1), %%xmm1    \n\t" // load round key
          AESENCLAST(xmm1_xmm0)            // last round
+#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
          "jmp       3f              \n\t"
 
          "2:                        \n\t" // decryption loop
@@ -465,6 +479,7 @@ int mbedtls_aesni_crypt_ecb(mbedtls_aes_context *ctx,
          "jnz       2b              \n\t"
          "movdqu    (%1), %%xmm1    \n\t" // load round key
          AESDECLAST(xmm1_xmm0)            // last round
+#endif
 
          "3:                        \n\t"
          "movdqu    %%xmm0, (%4)    \n\t" // export output
@@ -591,6 +606,7 @@ void mbedtls_aesni_gcm_mult(unsigned char c[16],
 /*
  * Compute decryption round keys from encryption round keys
  */
+#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
 void mbedtls_aesni_inverse_key(unsigned char *invkey,
                                const unsigned char *fwdkey, int nr)
 {
@@ -610,6 +626,7 @@ void mbedtls_aesni_inverse_key(unsigned char *invkey,
 
     memcpy(ik, fk, 16);
 }
+#endif
 
 /*
  * Key expansion, 128-bit case

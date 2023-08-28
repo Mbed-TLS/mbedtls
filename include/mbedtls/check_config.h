@@ -511,7 +511,8 @@
 #error "MBEDTLS_MEMORY_DEBUG defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PEM_PARSE_C) && !defined(MBEDTLS_BASE64_C)
+#if defined(MBEDTLS_PEM_PARSE_C) && \
+    !(defined(MBEDTLS_BASE64_C) && defined(MBEDTLS_CIPHER_C))
 #error "MBEDTLS_PEM_PARSE_C defined, but not all prerequisites"
 #endif
 

@@ -10,4 +10,5 @@ cli.opensslconf
 test-ca.server1.opensslconf
 test-ca.server1.db
 seedfile
+server1.req.sha256.conf
 README.md

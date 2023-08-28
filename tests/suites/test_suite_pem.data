@@ -38,13 +38,28 @@ PEM read (unknown encryption algorithm)
 depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_AES_C
 mbedtls_pem_read_buffer:"^":"$":"^\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: AES-,00$":"pwd":MBEDTLS_ERR_PEM_UNKNOWN_ENC_ALG:""
 
+# Here's how to get valid sample data through openssl:
+# - generate a key and write it to file --> openssl ecparam -name prime256v1 -genkey -noout -out key.pem
+# - encrypt with the desired cipher and store to new file --> openssl ec -des-cbc -in key.pem -out key.pem.enc -passout pass:pwd
+# - replace newlines and semicolumns in output file --> cat key.pem.enc | sed -z 's/\n/\\n/g' | sed 's/\:/\\:/g'
+#   - this is the input of the parsing function
+# - convert PEM file to DER --> openssl ec -in key.pem -out key.der -outform DER
+#   - print it in hex format and remove newlines --> xxd -p key.der | sed -z 's/\n//g'
+#   - this is the reference data for the parsing function
+PEM read (valid PEM DES-CBC)
+depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_DES_C:MBEDTLS_CIPHER_MODE_CBC
+mbedtls_pem_read_buffer:"-----BEGIN EC PRIVATE KEY-----":"-----END EC PRIVATE KEY-----":"-----BEGIN EC PRIVATE KEY-----\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: DES-CBC,4C562C2564A1B412\n\nQCi9GWfqo4XaCfMbM1ULtjZah9/RqV0xKk2KxWSGWwc2pQByYrmW0HMi02ywl4+q\nfUGXGq5pzrKAxrHvVqOzbFPNVlXsrWB+YgkmE8+HZjuTiugL07phHLplxNiThmoQ\nPR0ldoLk8bWoRQG+gHcknsUuf+/1dYkfU0l6Ti+rTa8=\n-----END EC PRIVATE KEY-----":"pwd":0:"307702010104202f5dd52f105bd7c4f39a4c4f87c402931563ce75bc98349b2949f4661a240d25a00a06082a8648ce3d030107a144034200042555b81061ed5d62e2ff15e31bad88b3ddda7b416276dcdd46b53c05788f42bfbacaf4bd0a43a93ca321b466599d777124681283007fadf45bda1d3fbd24effb07070707070707"
+
 PEM read (malformed PEM DES-CBC)
 depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_DES_C:MBEDTLS_CIPHER_MODE_CBC
 mbedtls_pem_read_buffer:"-----BEGIN EC PRIVATE KEY-----":"-----END EC PRIVATE KEY-----":"-----BEGIN EC PRIVATE KEY-----\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: DES-CBC,AA94892A169FA426\n\nMAAA\n-----END EC PRIVATE KEY-----":"pwd":MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH:""
 
 PEM read (malformed PEM DES-EDE3-CBC)
 depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_DES_C:MBEDTLS_CIPHER_MODE_CBC
-mbedtls_pem_read_buffer:"-----BEGIN EC PRIVATE KEY-----":"-----END EC PRIVATE KEY-----":"-----BEGIN EC PRIVATE KEY-----\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: DES-EDE3-CBC,AA94892A169FA426\n\nMAAA\n-----END EC PRIVATE KEY-----":"pwd":MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH:""
+
+PEM read (valid PEM AES-128-CBC)
+depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+mbedtls_pem_read_buffer:"-----BEGIN EC PRIVATE KEY-----":"-----END EC PRIVATE KEY-----":"-----BEGIN EC PRIVATE KEY-----\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: AES-128-CBC,E1A5686C648EA2D0C6BF1ECFC9E238DF\n\nFNkLuYIT/p/F5FcVIjJnDfhns2rXeGdpZaHJ0KxY1JOt50aFnEbMHyePNBlglY3s\nqVXF5WBzTJSympLxtIcFRMXtmZ8kiBZ9GdNZBZ+e5Sq5mb2znfpThsZ/c+jHlV7W\nG0Zc5KlWgYiwuXDpZUepj/v/patRaVhi4S2mezldiTo=\n-----END EC PRIVATE KEY-----":"pwd":0:"30770201010420576e9a930d97c90329ddafca471b263e9e444ec47841e769a29ffed2c1b3e0a9a00a06082a8648ce3d030107a14403420004be06c1130275e7b4a5d08048a976576f4ec13a9c189ea7406030af9f1fce6f32a7857effa7aec7bf22f8b49ced75d2e973096603804a817508c72e6af4cc92be07070707070707"
 
 PEM read (malformed PEM AES-128-CBC)
 depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC

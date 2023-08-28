@@ -641,6 +641,7 @@ int mbedtls_pk_write_key_pem(mbedtls_pk_context *key, unsigned char *buf, size_t
 
     ret = 0;
 cleanup:
+    mbedtls_platform_zeroize(output_buf, PRV_DER_MAX_BYTES);
     mbedtls_free(output_buf);
     return ret;
 }

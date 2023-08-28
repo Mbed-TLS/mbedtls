@@ -617,7 +617,16 @@ add_gnutls_ciphersuites()
             ;;
 
         "RSA")
-            if [ `minor_ver "$MODE"` -gt 0 ]
+            # TLS-RSA-WITH-NULL-SHA256 is a (D)TLS 1.2-only cipher suite,
+            # like all SHA256 cipher suites. But Mbed TLS supports it with
+            # (D)TLS 1.0 and 1.1 as well. So do ancient versions of GnuTLS,
+            # but this was considered a bug which was fixed in GnuTLS 3.4.7.
+            # Check the GnuTLS support list to see what the protocol version
+            # requirement is for that cipher suite.
+            if [ `minor_ver "$MODE"` -ge 3 ] || {
+                   [ `minor_ver "$MODE"` -gt 0 ] &&
+                   $GNUTLS_CLI --list | grep -q '^TLS_RSA_NULL_SHA256.*0$'
+               }
             then
                 M_CIPHERS="$M_CIPHERS                           \
                     TLS-RSA-WITH-NULL-SHA256                    \

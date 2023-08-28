@@ -158,99 +158,62 @@ exit:
     return ret;
 }
 
-#if defined(MBEDTLS_DES_C)
-/*
- * Decrypt with DES-CBC, using PBKDF1 for key derivation
- */
-static int pem_des_decrypt(unsigned char des_iv[8],
-                           unsigned char *buf, size_t buflen,
-                           const unsigned char *pwd, size_t pwdlen)
+#if defined(MBEDTLS_CIPHER_C)
+static int pem_cipher_decrypt(mbedtls_cipher_type_t enc_alg,
+                              unsigned char *iv, size_t iv_len,
+                              const unsigned char *pwd, size_t pwdlen,
+                              unsigned char *input, size_t input_len)
 {
-    mbedtls_des_context des_ctx;
-    unsigned char des_key[8];
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_cipher_context_t ctx;
+    // Pick the largest key size between DES and AES, i.e. AES-256
+    unsigned char key[32];
+    const mbedtls_cipher_info_t *cipher_info;
+    size_t key_bitlen, block_size;
+    unsigned char *output;
+    size_t output_len;
+    int ret;
 
-    mbedtls_des_init(&des_ctx);
+    cipher_info = mbedtls_cipher_info_from_type(enc_alg);
+    if (cipher_info == NULL) {
+        return MBEDTLS_ERR_PEM_FEATURE_UNAVAILABLE;
+    }
 
-    if ((ret = pem_pbkdf1(des_key, 8, des_iv, pwd, pwdlen)) != 0) {
+    key_bitlen = mbedtls_cipher_info_get_key_bitlen(cipher_info);
+    block_size = mbedtls_cipher_info_get_block_size(cipher_info);
+
+    mbedtls_cipher_init(&ctx);
+
+    ret = mbedtls_cipher_setup(&ctx, cipher_info);
+    if (ret != 0) {
+        return ret;
+    }
+
+    ret = pem_pbkdf1(key, key_bitlen/8, iv, pwd, pwdlen);
+    if (ret != 0) {
+        return ret;
+    }
+
+    ret = mbedtls_cipher_setkey(&ctx, key, key_bitlen, MBEDTLS_DECRYPT);
+    if (ret != 0) {
+        return ret;
+    }
+
+    output_len = input_len + block_size;
+    output = mbedtls_calloc(1, output_len);
+
+    ret = mbedtls_cipher_crypt(&ctx, iv, iv_len, input, input_len,
+                               output, &output_len);
+    if (ret != 0) {
         goto exit;
     }
 
-    if ((ret = mbedtls_des_setkey_dec(&des_ctx, des_key)) != 0) {
-        goto exit;
-    }
-    ret = mbedtls_des_crypt_cbc(&des_ctx, MBEDTLS_DES_DECRYPT, buflen,
-                                des_iv, buf, buf);
+    memcpy(input, output, input_len);
 
 exit:
-    mbedtls_des_free(&des_ctx);
-    mbedtls_platform_zeroize(des_key, 8);
-
+    mbedtls_free(output);
     return ret;
 }
-
-/*
- * Decrypt with 3DES-CBC, using PBKDF1 for key derivation
- */
-static int pem_des3_decrypt(unsigned char des3_iv[8],
-                            unsigned char *buf, size_t buflen,
-                            const unsigned char *pwd, size_t pwdlen)
-{
-    mbedtls_des3_context des3_ctx;
-    unsigned char des3_key[24];
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-    mbedtls_des3_init(&des3_ctx);
-
-    if ((ret = pem_pbkdf1(des3_key, 24, des3_iv, pwd, pwdlen)) != 0) {
-        goto exit;
-    }
-
-    if ((ret = mbedtls_des3_set3key_dec(&des3_ctx, des3_key)) != 0) {
-        goto exit;
-    }
-    ret = mbedtls_des3_crypt_cbc(&des3_ctx, MBEDTLS_DES_DECRYPT, buflen,
-                                 des3_iv, buf, buf);
-
-exit:
-    mbedtls_des3_free(&des3_ctx);
-    mbedtls_platform_zeroize(des3_key, 24);
-
-    return ret;
-}
-#endif /* MBEDTLS_DES_C */
-
-#if defined(MBEDTLS_AES_C)
-/*
- * Decrypt with AES-XXX-CBC, using PBKDF1 for key derivation
- */
-static int pem_aes_decrypt(unsigned char aes_iv[16], unsigned int keylen,
-                           unsigned char *buf, size_t buflen,
-                           const unsigned char *pwd, size_t pwdlen)
-{
-    mbedtls_aes_context aes_ctx;
-    unsigned char aes_key[32];
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-    mbedtls_aes_init(&aes_ctx);
-
-    if ((ret = pem_pbkdf1(aes_key, keylen, aes_iv, pwd, pwdlen)) != 0) {
-        goto exit;
-    }
-
-    if ((ret = mbedtls_aes_setkey_dec(&aes_ctx, aes_key, keylen * 8)) != 0) {
-        goto exit;
-    }
-    ret = mbedtls_aes_crypt_cbc(&aes_ctx, MBEDTLS_AES_DECRYPT, buflen,
-                                aes_iv, buf, buf);
-
-exit:
-    mbedtls_aes_free(&aes_ctx);
-    mbedtls_platform_zeroize(aes_key, keylen);
-
-    return ret;
-}
-#endif /* MBEDTLS_AES_C */
+#endif /* MBEDTLS_CIPHER_C */
 
 #endif /* PEM_RFC1421 */
 
@@ -417,25 +380,12 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
             return MBEDTLS_ERR_PEM_PASSWORD_REQUIRED;
         }
 
-        ret = 0;
+        ret = MBEDTLS_ERR_PEM_FEATURE_UNAVAILABLE;
 
-#if defined(MBEDTLS_DES_C)
-        if (enc_alg == MBEDTLS_CIPHER_DES_EDE3_CBC) {
-            ret = pem_des3_decrypt(pem_iv, buf, len, pwd, pwdlen);
-        } else if (enc_alg == MBEDTLS_CIPHER_DES_CBC) {
-            ret = pem_des_decrypt(pem_iv, buf, len, pwd, pwdlen);
-        }
-#endif /* MBEDTLS_DES_C */
-
-#if defined(MBEDTLS_AES_C)
-        if (enc_alg == MBEDTLS_CIPHER_AES_128_CBC) {
-            ret = pem_aes_decrypt(pem_iv, 16, buf, len, pwd, pwdlen);
-        } else if (enc_alg == MBEDTLS_CIPHER_AES_192_CBC) {
-            ret = pem_aes_decrypt(pem_iv, 24, buf, len, pwd, pwdlen);
-        } else if (enc_alg == MBEDTLS_CIPHER_AES_256_CBC) {
-            ret = pem_aes_decrypt(pem_iv, 32, buf, len, pwd, pwdlen);
-        }
-#endif /* MBEDTLS_AES_C */
+#if defined(MBEDTLS_CIPHER_C)
+        ret = pem_cipher_decrypt(enc_alg, pem_iv, sizeof(pem_iv),
+                                 pwd, pwdlen, buf, len);
+#endif
 
         if (ret != 0) {
             mbedtls_free(buf);

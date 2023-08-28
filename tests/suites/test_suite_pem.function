@@ -1,8 +1,7 @@
 /* BEGIN_HEADER */
 #include "mbedtls/base64.h"
 #include "mbedtls/pem.h"
-#include "mbedtls/des.h"
-#include "mbedtls/aes.h"
+#include "mbedtls/cipher.h"
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C */

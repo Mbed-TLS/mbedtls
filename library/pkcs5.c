@@ -44,13 +44,6 @@
 
 #include "mbedtls/platform.h"
 
-#if !defined(MBEDTLS_CIPHER_PADDING_PKCS7)
-int mbedtls_pkcs5_pbes2_ext(const mbedtls_asn1_buf *pbe_params, int mode,
-                            const unsigned char *pwd,  size_t pwdlen,
-                            const unsigned char *data, size_t datalen,
-                            unsigned char *output, size_t output_size,
-                            size_t *output_len);
-#endif
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
 static int pkcs5_parse_pbkdf2_params(const mbedtls_asn1_buf *params,
@@ -116,6 +109,14 @@ static int pkcs5_parse_pbkdf2_params(const mbedtls_asn1_buf *params,
 
     return 0;
 }
+
+#if !defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+int mbedtls_pkcs5_pbes2_ext(const mbedtls_asn1_buf *pbe_params, int mode,
+                            const unsigned char *pwd,  size_t pwdlen,
+                            const unsigned char *data, size_t datalen,
+                            unsigned char *output, size_t output_size,
+                            size_t *output_len);
+#endif
 
 int mbedtls_pkcs5_pbes2(const mbedtls_asn1_buf *pbe_params, int mode,
                         const unsigned char *pwd,  size_t pwdlen,

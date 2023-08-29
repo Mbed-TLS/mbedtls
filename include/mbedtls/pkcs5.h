@@ -73,7 +73,7 @@ extern "C" {
  *                   time, this function does not validate the CBC padding.
  *
  * \param pbe_params the ASN.1 algorithm parameters
- * \param mode       either MBEDTLS_PKCS5_DECRYPT or MBEDTLS_PKCS5_ENCRYPT
+ * \param mode       either #MBEDTLS_PKCS5_DECRYPT or #MBEDTLS_PKCS5_ENCRYPT
  * \param pwd        password to use when generating key
  * \param pwdlen     length of password
  * \param data       data to process
@@ -110,7 +110,7 @@ int mbedtls_pkcs5_pbes2(const mbedtls_asn1_buf *pbe_params, int mode,
  *                   password are about 1/255).
  *
  * \param pbe_params the ASN.1 algorithm parameters
- * \param mode       either MBEDTLS_PKCS5_DECRYPT or MBEDTLS_PKCS5_ENCRYPT
+ * \param mode       either #MBEDTLS_PKCS5_DECRYPT or #MBEDTLS_PKCS5_ENCRYPT
  * \param pwd        password to use when generating key
  * \param pwdlen     length of password
  * \param data       data to process
@@ -128,7 +128,7 @@ int mbedtls_pkcs5_pbes2(const mbedtls_asn1_buf *pbe_params, int mode,
  *                    padding data.
  * \param output_len On success, length of actual data written to the output buffer.
  *
- * \returns        0 on success, or a MBEDTLS_ERR_XXX code if verification fails.
+ * \returns        0 on success, or a MBEDTLS_ERR_XXX code if parsing or decryption fails.
  */
 int mbedtls_pkcs5_pbes2_ext(const mbedtls_asn1_buf *pbe_params, int mode,
                             const unsigned char *pwd,  size_t pwdlen,

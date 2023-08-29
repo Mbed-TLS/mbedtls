@@ -56,9 +56,9 @@ PSA_ARCH_TESTS_REF = 'fix-pr-5736'
 
 #pylint: disable=too-many-branches,too-many-statements,too-many-locals
 def main(library_build_dir: str):
-    mbedtls_dir = os.getcwd()
+    root_dir = os.getcwd()
 
-    in_psa_crypto_repo = build_tree.looks_like_psa_crypto_root(mbedtls_dir)
+    in_psa_crypto_repo = build_tree.looks_like_psa_crypto_root(root_dir)
 
     if in_psa_crypto_repo:
         crypto_lib_filename = \
@@ -92,7 +92,7 @@ def main(library_build_dir: str):
         os.mkdir(build_dir)
         os.chdir(build_dir)
 
-        extra_includes = (';{}/drivers/builtin/include'.format(mbedtls_dir)
+        extra_includes = (';{}/drivers/builtin/include'.format(root_dir)
                           if in_psa_crypto_repo else '')
 
         #pylint: disable=bad-continuation
@@ -102,9 +102,9 @@ def main(library_build_dir: str):
                      '-DTARGET=tgt_dev_apis_stdc',
                      '-DTOOLCHAIN=HOST_GCC',
                      '-DSUITE=CRYPTO',
-                     '-DPSA_CRYPTO_LIB_FILENAME={}/{}'.format(mbedtls_dir,
+                     '-DPSA_CRYPTO_LIB_FILENAME={}/{}'.format(root_dir,
                                                               crypto_lib_filename),
-                     ('-DPSA_INCLUDE_PATHS={}/include' + extra_includes).format(mbedtls_dir)
+                     ('-DPSA_INCLUDE_PATHS={}/include' + extra_includes).format(root_dir)
         ])
         subprocess.check_call(['cmake', '--build', '.'])
 
@@ -158,7 +158,7 @@ def main(library_build_dir: str):
             print('SUCCESS')
             return 0
     finally:
-        os.chdir(mbedtls_dir)
+        os.chdir(root_dir)
 
 if __name__ == '__main__':
     # Default build directory

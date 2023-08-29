@@ -175,6 +175,7 @@ def main(library_build_dir: str):
 if __name__ == '__main__':
     BUILD_DIR = 'out_of_source_build'
 
+    # pylint: disable=invalid-name
     parser = argparse.ArgumentParser()
     parser.add_argument('--build-dir', nargs=1,
                         help='path to Mbed TLS / PSA Crypto build directory')

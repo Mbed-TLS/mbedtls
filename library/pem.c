@@ -191,7 +191,7 @@ static int pem_cipher_decrypt(mbedtls_cipher_type_t enc_alg,
         goto exit;
     }
 
-    ret = mbedtls_cipher_setkey(&ctx, key, key_bitlen, MBEDTLS_DECRYPT);
+    ret = mbedtls_cipher_setkey(&ctx, key, (int) key_bitlen, MBEDTLS_DECRYPT);
     if (ret != 0) {
         goto exit;
     }

@@ -132,7 +132,7 @@ in_psa_crypto_repo () {
 }
 
 pre_check_environment () {
-    if [ \( -d library -o -d core \) -a -d include -a -d tests ]; then :; else
+    if in_mbedtls_repo || in_psa_crypto_repo; then :; else
         echo "Must be run from Mbed TLS root" >&2
         exit 1
     fi

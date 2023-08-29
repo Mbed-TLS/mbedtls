@@ -68,6 +68,7 @@ def main(library_build_dir: str):
         crypto_lib_filename = library_build_dir + '/library/libmbedcrypto.a'
 
     if not os.path.exists(crypto_lib_filename):
+        #pylint: disable=bad-continuation
         subprocess.check_call([
             'cmake', '.',
                      '-GUnix Makefiles',

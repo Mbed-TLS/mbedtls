@@ -62,10 +62,15 @@ def main(library_build_dir: str):
     in_psa_crypto_repo = build_tree.looks_like_psa_crypto_root(root_dir)
 
     if in_psa_crypto_repo:
-        crypto_lib_filename = \
-            library_build_dir + '/core/libpsacrypto.a'
+        crypto_name = 'psacrypto'
+        library_subdir = 'core'
     else:
-        crypto_lib_filename = library_build_dir + '/library/libmbedcrypto.a'
+        crypto_name = 'mbedcrypto'
+        library_subdir = 'library'
+
+    crypto_lib_filename = (library_build_dir + '/' +
+                           library_subdir + '/' +
+                           'lib' + crypto_name + '.a')
 
     if not os.path.exists(crypto_lib_filename):
         #pylint: disable=bad-continuation
@@ -74,7 +79,8 @@ def main(library_build_dir: str):
                      '-GUnix Makefiles',
                      '-B', library_build_dir
         ])
-        subprocess.check_call(['cmake', '--build', library_build_dir])
+        subprocess.check_call(['cmake', '--build', library_build_dir,
+                               '-t', crypto_name])
 
     psa_arch_tests_dir = 'psa-arch-tests'
     os.makedirs(psa_arch_tests_dir, exist_ok=True)

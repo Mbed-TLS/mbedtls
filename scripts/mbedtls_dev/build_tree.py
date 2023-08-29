@@ -22,7 +22,7 @@ import inspect
 def looks_like_psa_crypto_root(path: str) -> bool:
     """Whether the given directory looks like the root of the PSA Crypto source tree."""
     return all(os.path.isdir(os.path.join(path, subdir))
-               for subdir in ['include', 'core', 'tests'])
+               for subdir in ['include', 'core', 'drivers', 'programs', 'tests'])
 
 def looks_like_mbedtls_root(path: str) -> bool:
     """Whether the given directory looks like the root of the Mbed TLS source tree."""

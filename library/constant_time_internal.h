@@ -47,7 +47,7 @@
  *   These are all named mbedtls_ct_<type>_if and mbedtls_ct_<type>_if_else_0
  *   All arguments are considered secret.
  *   example: size_t a = x ? b : c    =>    a = mbedtls_ct_size_if(x, b, c)
- *   example: unsigned a = x ? b : 0  =>    a = mbedtls_ct_uint__if_else_0(x, b)
+ *   example: unsigned a = x ? b : 0  =>    a = mbedtls_ct_uint_if_else_0(x, b)
  *
  * - block memory operations
  *   Only some arguments are considered secret, as documented for each

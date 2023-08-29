@@ -125,8 +125,11 @@ def main(library_build_dir: str):
         )
         test = -1
         unexpected_successes = set(EXPECTED_FAILURES)
-        expected_failures = []
-        unexpected_failures = []
+        expected_failures = [] # type: List[int]
+        unexpected_failures = [] # type: List[int]
+        if proc.stdout is None:
+            return 1
+
         for line in proc.stdout:
             print(line, end='')
             match = test_re.match(line)

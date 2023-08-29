@@ -169,8 +169,7 @@ def main(library_build_dir: str):
         os.chdir(root_dir)
 
 if __name__ == '__main__':
-    # Default build directory
-    library_build_dir = 'out_of_source_build'
+    BUILD_DIR = 'out_of_source_build'
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--build-dir', nargs=1,
@@ -178,6 +177,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.build_dir is not None:
-        library_build_dir = args.build_dir[0]
+        BUILD_DIR = args.build_dir[0]
 
-    sys.exit(main(library_build_dir))
+    sys.exit(main(BUILD_DIR))

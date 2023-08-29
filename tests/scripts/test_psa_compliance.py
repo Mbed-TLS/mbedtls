@@ -28,6 +28,7 @@ import re
 import shutil
 import subprocess
 import sys
+from typing import List
 
 #pylint: disable=unused-import
 import scripts_path

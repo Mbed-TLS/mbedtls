@@ -77,7 +77,7 @@ def main(library_build_dir: str):
         subprocess.check_call([
             'cmake', '.',
                      '-GUnix Makefiles',
-                     '-B', library_build_dir
+                     '-B' + library_build_dir
         ])
         subprocess.check_call(['cmake', '--build', library_build_dir,
                                '-t', crypto_name])

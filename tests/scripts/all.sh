@@ -124,7 +124,11 @@ set -e -o pipefail -u
 shopt -s extglob
 
 in_mbedtls_repo () {
-    test ! -d core
+    test -d include -a -d library -a -d programs -a -d tests
+}
+
+in_psa_crypto_repo () {
+    test -d include -a -d core -a -d drivers -a -d programs -a -d tests
 }
 
 pre_check_environment () {

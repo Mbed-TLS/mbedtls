@@ -60,7 +60,13 @@ def main(library_build_dir: str):
 
     in_psa_crypto_repo = build_tree.looks_like_psa_crypto_root(mbedtls_dir)
 
-    if not os.path.exists(library_build_dir + '/library/libmbedcrypto.a'):
+    if in_psa_crypto_repo:
+        crypto_lib_filename = \
+            library_build_dir + '/core/libpsacrypto.a'
+    else:
+        crypto_lib_filename = library_build_dir + '/library/libmbedcrypto.a'
+
+    if not os.path.exists(crypto_lib_filename):
         subprocess.check_call([
             'cmake', '.',
                      '-GUnix Makefiles',
@@ -85,12 +91,6 @@ def main(library_build_dir: str):
             pass
         os.mkdir(build_dir)
         os.chdir(build_dir)
-
-        if in_psa_crypto_repo:
-            crypto_lib_filename = \
-                library_build_dir + '/core/libpsacrypto.a'
-        else:
-            crypto_lib_filename = library_build_dir + '/library/libmbedcrypto.a'
 
         extra_includes = (';{}/drivers/builtin/include'.format(mbedtls_dir)
                           if in_psa_crypto_repo else '')

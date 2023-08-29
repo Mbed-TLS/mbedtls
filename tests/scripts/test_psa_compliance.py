@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Run the PSA Crypto API compliance test suite.
 Clone the repo and check out the commit specified by PSA_ARCH_TEST_REPO and PSA_ARCH_TEST_REF,
-then compile and run the test suite. The clone is stored at <Mbed TLS root>/psa-arch-tests.
-Known defects in either the test suite or mbedtls - identified by their test number - are ignored,
-while unexpected failures AND successes are reported as errors,
-to help keep the list of known defects as up to date as possible.
+then compile and run the test suite. The clone is stored at <repository root>/psa-arch-tests.
+Known defects in either the test suite or mbedtls / psa-crypto - identified by their test
+number - are ignored, while unexpected failures AND successes are reported as errors, to help
+keep the list of known defects as up to date as possible.
 """
 
 # Copyright The Mbed TLS Contributors
@@ -33,7 +33,8 @@ import sys
 import scripts_path
 from mbedtls_dev import build_tree
 
-# PSA Compliance tests we expect to fail due to known defects in Mbed TLS (or the test suite)
+# PSA Compliance tests we expect to fail due to known defects in Mbed TLS / PSA Crypto
+# (or the test suite).
 # The test numbers correspond to the numbers used by the console output of the test suite.
 # Test number 2xx corresponds to the files in the folder
 # psa-arch-tests/api-tests/dev_apis/crypto/test_c0xx
@@ -162,11 +163,11 @@ def main(library_build_dir: str):
 
 if __name__ == '__main__':
     # Default build directory
-    library_build_dir = 'mbedtls_out_of_source_build'
+    library_build_dir = 'out_of_source_build'
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--build-dir', nargs=1,
-                        help='path to Mbed TLS build directory')
+                        help='path to Mbed TLS / PSA Crypto build directory')
     args = parser.parse_args()
 
     if args.build_dir is not None:

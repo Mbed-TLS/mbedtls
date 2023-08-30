@@ -158,7 +158,7 @@ static int parse_attribute_value_string(const char *s,
     const char *end = s + len;
     unsigned char *d = data;
     int n;
-    
+
     for (c = s; c < end; c++) {
         if (*c == '\\') {
             c++;
@@ -175,9 +175,9 @@ static int parse_attribute_value_string(const char *s,
                 return MBEDTLS_ERR_X509_INVALID_NAME;
             }
         }
-        
+
         *(d++) = *c;
-        
+
         if (d - data == MBEDTLS_X509_MAX_DN_NAME_SIZE) {
             return MBEDTLS_ERR_X509_INVALID_NAME;
         }
@@ -200,7 +200,7 @@ static int parse_attribute_value_der_encoded(const char *s,
     unsigned char *p;
     unsigned char *d = data;
     int n;
-    
+
     /* Converting from hexstring to raw binary so we can use asn1parse.c */
     if ((len < 5) || (*c != '#')) {
         return MBEDTLS_ERR_X509_INVALID_NAME;

@@ -143,22 +143,21 @@ print_test_case() {
 
 # list_test_case lists all potential test cases in compat.sh without execution
 list_test_case() {
-    reset_ciphersuites
-    for TYPE in $TYPES; do
-        add_common_ciphersuites
-        add_openssl_ciphersuites
-        add_gnutls_ciphersuites
-        add_mbedtls_ciphersuites
-    done
-
-    for VERIFY in $VERIFIES; do
-        VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
-        for MODE in $MODES; do
-            print_test_case m O "$O_CIPHERS"
-            print_test_case O m "$O_CIPHERS"
-            print_test_case m G "$G_CIPHERS"
-            print_test_case G m "$G_CIPHERS"
-            print_test_case m m "$M_CIPHERS"
+    for MODE in $MODES; do
+        for TYPE in $TYPES; do
+            for VERIFY in $VERIFIES; do
+                VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
+                reset_ciphersuites
+                add_common_ciphersuites
+                add_openssl_ciphersuites
+                add_gnutls_ciphersuites
+                add_mbedtls_ciphersuites
+                print_test_case m O "$O_CIPHERS"
+                print_test_case O m "$O_CIPHERS"
+                print_test_case m G "$G_CIPHERS"
+                print_test_case G m "$G_CIPHERS"
+                print_test_case m m "$M_CIPHERS"
+            done
         done
     done
 }

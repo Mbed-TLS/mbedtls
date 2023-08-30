@@ -84,6 +84,14 @@
 #error "MBEDTLS_NIST_KW_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_CIPHER_ENCRYPT_ONLY) && \
+    (!defined(MBEDTLS_PSA_CRYPTO_CONFIG) || \
+    (defined(MBEDTLS_CIPHER_MODE_CBC) || \
+     defined(MBEDTLS_CIPHER_MODE_XTS) || \
+     defined(MBEDTLS_NIST_KW_C)))
+#error "MBEDTLS_CIPHER_ENCRYPT_ONLY defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_ECDH_C) && !defined(MBEDTLS_ECP_C)
 #error "MBEDTLS_ECDH_C defined, but not all prerequisites"
 #endif

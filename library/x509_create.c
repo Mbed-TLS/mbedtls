@@ -163,7 +163,7 @@ static int parse_attribute_value_string(const char *s,
         if (*c == '\\') {
             c++;
 
-            /* Check for valid escaped characters in RFC 4514 in Section 3*/
+            /* Check for valid escaped characters as per RFC 4514 Section 3 */
             if (c + 1 < end && (n = hexpair_to_int(*c, *(c+1))) != -1) {
                 if (n == 0) {
                     return MBEDTLS_ERR_X509_INVALID_NAME;
@@ -204,7 +204,7 @@ static int parse_attribute_value_der_encoded(const char *s,
     unsigned char *d = data;
     int n;
     
-    /* Converting from hexstring to raw binary so we can use asn1parse.c*/
+    /* Converting from hexstring to raw binary so we can use asn1parse.c */
     if ((len < 5) || (*c != '#')) {
         return MBEDTLS_ERR_X509_INVALID_NAME;
     }

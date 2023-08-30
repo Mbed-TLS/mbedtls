@@ -286,7 +286,7 @@ int mbedtls_sha3_finish(mbedtls_sha3_context *ctx,
     ret = 0;
 
 exit:
-    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha3_context));
+    mbedtls_sha3_free(ctx);
     return ret;
 }
 

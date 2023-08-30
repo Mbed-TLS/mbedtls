@@ -178,12 +178,12 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
         return status;
     }
 
-    psa_crypto_driver_pake_get_user_len(inputs, &user_len);
+    status = psa_crypto_driver_pake_get_user_len(inputs, &user_len);
     if (status != PSA_SUCCESS) {
         return status;
     }
 
-    psa_crypto_driver_pake_get_peer_len(inputs, &peer_len);
+    status = psa_crypto_driver_pake_get_peer_len(inputs, &peer_len);
     if (status != PSA_SUCCESS) {
         return status;
     }

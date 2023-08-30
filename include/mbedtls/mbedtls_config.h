@@ -172,14 +172,46 @@
  * This allows different allocators (self-implemented or provided) to be
  * provided to the platform abstraction layer.
  *
- * Enabling MBEDTLS_PLATFORM_MEMORY without the
+ * Enabling #MBEDTLS_PLATFORM_MEMORY without the
  * MBEDTLS_PLATFORM_{FREE,CALLOC}_MACROs will provide
  * "mbedtls_platform_set_calloc_free()" allowing you to set an alternative calloc() and
  * free() function pointer at runtime.
  *
- * Enabling MBEDTLS_PLATFORM_MEMORY and specifying
+ * Enabling #MBEDTLS_PLATFORM_MEMORY and specifying
  * MBEDTLS_PLATFORM_{CALLOC,FREE}_MACROs will allow you to specify the
  * alternate function at compile time.
+ *
+ * An overview of how the value of mbedtls_calloc is determined:
+ *
+ * - if !MBEDTLS_PLATFORM_MEMORY
+ *     - mbedtls_calloc = calloc
+ * - if MBEDTLS_PLATFORM_MEMORY
+ *     - if (MBEDTLS_PLATFORM_CALLOC_MACRO && MBEDTLS_PLATFORM_FREE_MACRO):
+ *         - mbedtls_calloc = MBEDTLS_PLATFORM_CALLOC_MACRO
+ *     - if !(MBEDTLS_PLATFORM_CALLOC_MACRO && MBEDTLS_PLATFORM_FREE_MACRO):
+ *         - Dynamic setup via mbedtls_platform_set_calloc_free is now possible with a default value MBEDTLS_PLATFORM_STD_CALLOC.
+ *         - How is MBEDTLS_PLATFORM_STD_CALLOC handled?
+ *         - if MBEDTLS_PLATFORM_NO_STD_FUNCTIONS:
+ *             - MBEDTLS_PLATFORM_STD_CALLOC is not set to anything;
+ *             - MBEDTLS_PLATFORM_STD_MEM_HDR can be included if present;
+ *         - if !MBEDTLS_PLATFORM_NO_STD_FUNCTIONS:
+ *             - if MBEDTLS_PLATFORM_STD_CALLOC is present:
+ *                 - User-defined MBEDTLS_PLATFORM_STD_CALLOC is respected;
+ *             - if !MBEDTLS_PLATFORM_STD_CALLOC:
+ *                 - MBEDTLS_PLATFORM_STD_CALLOC = calloc
+ *
+ *         - At this point the presence of MBEDTLS_PLATFORM_STD_CALLOC is checked.
+ *         - if !MBEDTLS_PLATFORM_STD_CALLOC
+ *             - MBEDTLS_PLATFORM_STD_CALLOC = uninitialized_calloc
+ *
+ *         - mbedtls_calloc = MBEDTLS_PLATFORM_STD_CALLOC.
+ *
+ * Defining MBEDTLS_PLATFORM_CALLOC_MACRO and #MBEDTLS_PLATFORM_STD_CALLOC at the same time is not possible.
+ * MBEDTLS_PLATFORM_CALLOC_MACRO and MBEDTLS_PLATFORM_FREE_MACRO must both be defined or undefined at the same time.
+ * #MBEDTLS_PLATFORM_STD_CALLOC and #MBEDTLS_PLATFORM_STD_FREE do not have to be defined at the same time, as, if they are used,
+ * dynamic setup of these functions is possible. See the tree above to see how are they handled in all cases.
+ * An uninitialized #MBEDTLS_PLATFORM_STD_CALLOC always fails, returning a null pointer.
+ * An uninitialized #MBEDTLS_PLATFORM_STD_FREE does not do anything.
  *
  * Requires: MBEDTLS_PLATFORM_C
  *
@@ -3708,8 +3740,29 @@
 
 /* Platform options */
 //#define MBEDTLS_PLATFORM_STD_MEM_HDR   <stdlib.h> /**< Header to include if MBEDTLS_PLATFORM_NO_STD_FUNCTIONS is defined. Don't define if no header is needed. */
-//#define MBEDTLS_PLATFORM_STD_CALLOC        calloc /**< Default allocator to use, can be undefined */
-//#define MBEDTLS_PLATFORM_STD_FREE            free /**< Default free to use, can be undefined */
+
+/** \def MBEDTLS_PLATFORM_STD_CALLOC
+ *
+ * Default allocator to use, can be undefined.
+ * It must initialize the allocated buffer memory to zeroes.
+ * The size of the buffer is the product of the two parameters.
+ * The calloc function returns either a null pointer or a pointer to the allocated space.
+ * If the product is 0, the function may either return NULL or a valid pointer to an array of size 0 which is a valid input to the deallocation function.
+ * An uninitialized #MBEDTLS_PLATFORM_STD_CALLOC always fails, returning a null pointer.
+ * See the description of #MBEDTLS_PLATFORM_MEMORY for more details.
+ * The corresponding deallocation function is #MBEDTLS_PLATFORM_STD_FREE.
+ */
+//#define MBEDTLS_PLATFORM_STD_CALLOC        calloc
+
+/** \def MBEDTLS_PLATFORM_STD_FREE
+ *
+ * Default free to use, can be undefined.
+ * NULL is a valid parameter, and the function must do nothing.
+ * A non-null parameter will always be a pointer previously returned by #MBEDTLS_PLATFORM_STD_CALLOC and not yet freed.
+ * An uninitialized #MBEDTLS_PLATFORM_STD_FREE does not do anything.
+ * See the description of #MBEDTLS_PLATFORM_MEMORY for more details (same principles as for MBEDTLS_PLATFORM_STD_CALLOC apply).
+ */
+//#define MBEDTLS_PLATFORM_STD_FREE            free
 //#define MBEDTLS_PLATFORM_STD_SETBUF      setbuf /**< Default setbuf to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_EXIT            exit /**< Default exit to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_TIME            time /**< Default time to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled */
@@ -3723,10 +3776,10 @@
 //#define MBEDTLS_PLATFORM_STD_NV_SEED_WRITE  mbedtls_platform_std_nv_seed_write /**< Default nv_seed_write function to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_NV_SEED_FILE  "seedfile" /**< Seed file to read/write with default implementation */
 
-/* To Use Function Macros MBEDTLS_PLATFORM_C must be enabled */
+/* To use the following function macros, MBEDTLS_PLATFORM_C must be enabled. */
 /* MBEDTLS_PLATFORM_XXX_MACRO and MBEDTLS_PLATFORM_XXX_ALT cannot both be defined */
-//#define MBEDTLS_PLATFORM_CALLOC_MACRO        calloc /**< Default allocator macro to use, can be undefined */
-//#define MBEDTLS_PLATFORM_FREE_MACRO            free /**< Default free macro to use, can be undefined */
+//#define MBEDTLS_PLATFORM_CALLOC_MACRO        calloc /**< Default allocator macro to use, can be undefined. See MBEDTLS_PLATFORM_STD_CALLOC for requirements. */
+//#define MBEDTLS_PLATFORM_FREE_MACRO            free /**< Default free macro to use, can be undefined. See MBEDTLS_PLATFORM_STD_FREE for requirements. */
 //#define MBEDTLS_PLATFORM_EXIT_MACRO            exit /**< Default exit macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_SETBUF_MACRO      setbuf /**< Default setbuf macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_TIME_MACRO            time /**< Default time macro to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled */
@@ -4015,5 +4068,19 @@
  * be used in production.
  */
 //#define MBEDTLS_ECP_WITH_MPI_UINT
+
+/*
+ * Disable plain C implementation for AES.
+ *
+ * When the plain C implementation is enabled, and an implementation using a
+ * special CPU feature (such as MBEDTLS_AESCE_C) is also enabled, runtime
+ * detection will be used to select between them.
+ *
+ * If only one implementation is present, runtime detection will not be used.
+ * This configuration will crash at runtime if running on a CPU without the
+ * necessary features. It will not build unless at least one of MBEDTLS_AESCE_C
+ * and/or MBEDTLS_AESNI_C is enabled & present in the build.
+ */
+//#define MBEDTLS_AES_USE_HARDWARE_ONLY
 
 /** \} name SECTION: Module configuration options */

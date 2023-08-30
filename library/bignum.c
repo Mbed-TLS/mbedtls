@@ -1826,8 +1826,9 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
      * and squarings. Firstly, when multiplying by an element of the window
      * W[i], we do a constant-trace table lookup to obfuscate i. This leaves
      * squarings as having a different memory access patterns from other
-     * multiplications. So secondly, we put the accumulator X in the table as
-     * well, and also do a constant-trace table lookup to multiply by X.
+     * multiplications. So secondly, we put the accumulator in the table as
+     * well, and also do a constant-trace table lookup to multiply by the
+     * accumulator which is W[x_index].
      *
      * This way, all multiplications take the form of a lookup-and-multiply.
      * The number of lookup-and-multiply operations inside each iteration of
@@ -1840,19 +1841,16 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
      * observe both memory accesses and branches. However, branch prediction
      * exploitation typically requires many traces of execution over the same
      * data, which is defeated by randomized blinding.
-     *
-     * To achieve this, we make a copy of X and we use the table entry in each
-     * calculation from this point on.
      */
     const size_t x_index = 0;
     mbedtls_mpi_init(&W[x_index]);
-    mbedtls_mpi_copy(&W[x_index], X);
 
     j = N->n + 1;
-    /* All W[i] and X must have at least N->n limbs for the mpi_montmul()
-     * and mpi_montred() calls later. Here we ensure that W[1] and X are
-     * large enough, and later we'll grow other W[i] to the same length.
-     * They must not be shrunk midway through this function!
+    /* All W[i] including the accumulator must have at least N->n limbs for
+     * the mpi_montmul() and mpi_montred() calls later. Here we ensure that
+     * W[1] and the accumulator W[x_index] are large enough. later we'll grow
+     * other W[i] to the same length. They must not be shrunk midway through
+     * this function!
      */
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&W[x_index], j));
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&W[1],  j));
@@ -2033,7 +2031,7 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
     /*
      * Load the result in the output variable.
      */
-    mbedtls_mpi_copy(X, &W[x_index]);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_copy(X, &W[x_index]));
 
 cleanup:
 
@@ -2311,29 +2309,30 @@ cleanup:
 
 #if defined(MBEDTLS_GENPRIME)
 
-static const int small_prime[] =
-{
-    3,    5,    7,   11,   13,   17,   19,   23,
-    29,   31,   37,   41,   43,   47,   53,   59,
-    61,   67,   71,   73,   79,   83,   89,   97,
-    101,  103,  107,  109,  113,  127,  131,  137,
-    139,  149,  151,  157,  163,  167,  173,  179,
-    181,  191,  193,  197,  199,  211,  223,  227,
-    229,  233,  239,  241,  251,  257,  263,  269,
-    271,  277,  281,  283,  293,  307,  311,  313,
-    317,  331,  337,  347,  349,  353,  359,  367,
-    373,  379,  383,  389,  397,  401,  409,  419,
-    421,  431,  433,  439,  443,  449,  457,  461,
-    463,  467,  479,  487,  491,  499,  503,  509,
-    521,  523,  541,  547,  557,  563,  569,  571,
-    577,  587,  593,  599,  601,  607,  613,  617,
-    619,  631,  641,  643,  647,  653,  659,  661,
-    673,  677,  683,  691,  701,  709,  719,  727,
-    733,  739,  743,  751,  757,  761,  769,  773,
-    787,  797,  809,  811,  821,  823,  827,  829,
-    839,  853,  857,  859,  863,  877,  881,  883,
-    887,  907,  911,  919,  929,  937,  941,  947,
-    953,  967,  971,  977,  983,  991,  997, -103
+/* Gaps between primes, starting at 3. https://oeis.org/A001223 */
+static const unsigned char small_prime_gaps[] = {
+    2, 2, 4, 2, 4, 2, 4, 6,
+    2, 6, 4, 2, 4, 6, 6, 2,
+    6, 4, 2, 6, 4, 6, 8, 4,
+    2, 4, 2, 4, 14, 4, 6, 2,
+    10, 2, 6, 6, 4, 6, 6, 2,
+    10, 2, 4, 2, 12, 12, 4, 2,
+    4, 6, 2, 10, 6, 6, 6, 2,
+    6, 4, 2, 10, 14, 4, 2, 4,
+    14, 6, 10, 2, 4, 6, 8, 6,
+    6, 4, 6, 8, 4, 8, 10, 2,
+    10, 2, 6, 4, 6, 8, 4, 2,
+    4, 12, 8, 4, 8, 4, 6, 12,
+    2, 18, 6, 10, 6, 6, 2, 6,
+    10, 6, 6, 2, 6, 6, 4, 2,
+    12, 10, 2, 4, 6, 6, 2, 12,
+    4, 6, 8, 10, 8, 10, 8, 6,
+    6, 4, 8, 6, 4, 8, 4, 14,
+    10, 12, 2, 10, 2, 4, 2, 10,
+    14, 4, 2, 4, 14, 4, 2, 4,
+    20, 4, 8, 10, 8, 4, 6, 6,
+    14, 4, 6, 6, 8, 6, /*reaches 997*/
+    0 /* the last entry is effectively unused */
 };
 
 /*
@@ -2350,20 +2349,20 @@ static int mpi_check_small_factors(const mbedtls_mpi *X)
     int ret = 0;
     size_t i;
     mbedtls_mpi_uint r;
+    unsigned p = 3; /* The first odd prime */
 
     if ((X->p[0] & 1) == 0) {
         return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
     }
 
-    for (i = 0; small_prime[i] > 0; i++) {
-        if (mbedtls_mpi_cmp_int(X, small_prime[i]) <= 0) {
-            return 1;
-        }
-
-        MBEDTLS_MPI_CHK(mbedtls_mpi_mod_int(&r, X, small_prime[i]));
-
+    for (i = 0; i < sizeof(small_prime_gaps); p += small_prime_gaps[i], i++) {
+        MBEDTLS_MPI_CHK(mbedtls_mpi_mod_int(&r, X, p));
         if (r == 0) {
-            return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
+            if (mbedtls_mpi_cmp_int(X, p) == 0) {
+                return 1;
+            } else {
+                return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
+            }
         }
     }
 

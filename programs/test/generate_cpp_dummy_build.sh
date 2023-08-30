@@ -63,6 +63,7 @@ EOF
     for header in include/mbedtls/*.h include/psa/*.h; do
         case ${header#include/} in
             mbedtls/mbedtls_config.h) :;; # not meant for direct inclusion
+            mbedtls/config_*.h) :;; # not meant for direct inclusion
             psa/crypto_config.h) :;; # not meant for direct inclusion
             # Some of the psa/crypto_*.h headers are not meant to be included
             # directly. They do have include guards that make them no-ops if

@@ -45,6 +45,7 @@
 #include "mbedtls/sha1.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
+#include "mbedtls/sha3.h"
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_MD5) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RIPEMD160) || \
@@ -52,7 +53,11 @@
     defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_256) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512)
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_224) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_256) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_384) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_512)
 #define MBEDTLS_PSA_BUILTIN_HASH
 #endif
 
@@ -76,6 +81,12 @@ typedef struct {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512) || \
         defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384)
         mbedtls_sha512_context sha512;
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_224) || \
+        defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_256) || \
+        defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_384) || \
+        defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_512)
+        mbedtls_sha3_context sha3;
 #endif
     } MBEDTLS_PRIVATE(ctx);
 } mbedtls_psa_hash_operation_t;

@@ -59,6 +59,7 @@
 #define inline __inline
 #endif
 
+/* X.509, TLS and non-PSA crypto configuration */
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/mbedtls_config.h"
 #else
@@ -79,6 +80,18 @@
 #if defined(MBEDTLS_USER_CONFIG_FILE)
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
+
+/* PSA crypto configuration */
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG_FILE)
+#include MBEDTLS_PSA_CRYPTO_CONFIG_FILE
+#else
+#include "psa/crypto_config.h"
+#endif
+#if defined(MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE)
+#include MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE
+#endif
+#endif /* defined(MBEDTLS_PSA_CRYPTO_CONFIG) */
 
 /* Auto-enable MBEDTLS_CTR_DRBG_USE_128_BIT_KEY if
  * MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH and MBEDTLS_CTR_DRBG_C defined

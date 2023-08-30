@@ -30,23 +30,7 @@
 #ifndef MBEDTLS_CONFIG_PSA_H
 #define MBEDTLS_CONFIG_PSA_H
 
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG_FILE)
-#include MBEDTLS_PSA_CRYPTO_CONFIG_FILE
-#else
-#include "psa/crypto_config.h"
-#endif
-#endif /* defined(MBEDTLS_PSA_CRYPTO_CONFIG) */
-
-#if defined(MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE)
-#include MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE
-#endif
-
 #include "psa/crypto_legacy.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 
@@ -111,6 +95,13 @@ extern "C" {
 
 #if defined(MBEDTLS_SHA512_C)
 #define PSA_WANT_ALG_SHA_512 1
+#endif
+
+#if defined(MBEDTLS_SHA3_C)
+#define PSA_WANT_ALG_SHA3_224 1
+#define PSA_WANT_ALG_SHA3_256 1
+#define PSA_WANT_ALG_SHA3_384 1
+#define PSA_WANT_ALG_SHA3_512 1
 #endif
 
 
@@ -268,6 +259,26 @@ extern "C" {
 #if defined(PSA_WANT_ALG_SHA_512) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_512)
 #define MBEDTLS_PSA_BUILTIN_ALG_SHA_512 1
 #define MBEDTLS_SHA512_C
+#endif
+
+#if defined(PSA_WANT_ALG_SHA3_224) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_224)
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_224 1
+#define MBEDTLS_SHA3_C
+#endif
+
+#if defined(PSA_WANT_ALG_SHA3_256) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_256)
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_256 1
+#define MBEDTLS_SHA3_C
+#endif
+
+#if defined(PSA_WANT_ALG_SHA3_384) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_384)
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_384 1
+#define MBEDTLS_SHA3_C
+#endif
+
+#if defined(PSA_WANT_ALG_SHA3_512) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_512)
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_512 1
+#define MBEDTLS_SHA3_C
 #endif
 
 #if defined(PSA_WANT_ALG_PBKDF2_HMAC)
@@ -888,6 +899,17 @@ extern "C" {
 #define PSA_WANT_ALG_SHA_512 1
 #endif
 
+#if defined(MBEDTLS_SHA3_C)
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_224 1
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_256 1
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_384 1
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_512 1
+#define PSA_WANT_ALG_SHA3_224 1
+#define PSA_WANT_ALG_SHA3_256 1
+#define PSA_WANT_ALG_SHA3_384 1
+#define PSA_WANT_ALG_SHA3_512 1
+#endif
+
 #if defined(MBEDTLS_AES_C)
 #define PSA_WANT_KEY_TYPE_AES 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_AES 1
@@ -1073,9 +1095,5 @@ extern "C" {
 #define PSA_WANT_KEY_TYPE_PASSWORD 1
 #define PSA_WANT_KEY_TYPE_PASSWORD_HASH 1
 #define PSA_WANT_KEY_TYPE_RAW_DATA 1
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* MBEDTLS_CONFIG_PSA_H */

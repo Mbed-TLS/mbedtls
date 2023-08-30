@@ -120,6 +120,8 @@ state may override this method.
         # Assume compat.sh is responsible for printing identical format of
         # test case description between --list-test-case and its OUTCOME.CSV
         description = compat_output.strip().split(b'\n')
+        # idx indicates the number of test case since there is no line number
+        # in `compat.sh` for each test case.
         for idx, descrip in enumerate(description):
             self.process_test_case(descriptions, file_name, idx, descrip)
 

@@ -448,20 +448,6 @@ requires_gnutls_next() {
     fi
 }
 
-# skip next test if OpenSSL-legacy isn't available
-requires_openssl_legacy() {
-    if [ -z "${OPENSSL_LEGACY_AVAILABLE:-}" ]; then
-        if which "${OPENSSL_LEGACY:-}" >/dev/null 2>&1; then
-            OPENSSL_LEGACY_AVAILABLE="YES"
-        else
-            OPENSSL_LEGACY_AVAILABLE="NO"
-        fi
-    fi
-    if [ "$OPENSSL_LEGACY_AVAILABLE" = "NO" ]; then
-        SKIP_NEXT="YES"
-    fi
-}
-
 requires_openssl_next() {
     if [ -z "${OPENSSL_NEXT_AVAILABLE:-}" ]; then
         if which "${OPENSSL_NEXT:-}" >/dev/null 2>&1; then

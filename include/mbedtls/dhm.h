@@ -325,7 +325,7 @@ size_t mbedtls_dhm_get_len(const mbedtls_dhm_context *ctx);
  *                 initialized.
  *
  * \return         \c 0 on success.
- * \return         #MBEDTLS_ERR_DHM_BAD_INPUT_DATA if \p field is invalid.
+ * \return         #MBEDTLS_ERR_DHM_BAD_INPUT_DATA if \p param is invalid.
  * \return         An \c MBEDTLS_ERR_MPI_XXX error code if the copy fails.
  */
 int mbedtls_dhm_get_value(const mbedtls_dhm_context *ctx,

@@ -30,6 +30,11 @@ set -u
 # where it may output seemingly unlimited length error logs.
 ulimit -f 20971520
 
+ORIGINAL_PWD=$PWD
+if ! cd "$(dirname "$0")"; then
+    exit 125
+fi
+
 # initialise counters
 TESTS=0
 FAILED=0
@@ -77,6 +82,17 @@ else
     PEER_GNUTLS=""
 fi
 
+guess_config_name() {
+    if git diff --quiet ../include/mbedtls/mbedtls_config.h 2>/dev/null; then
+        echo "default"
+    else
+        echo "unknown"
+    fi
+}
+: ${MBEDTLS_TEST_OUTCOME_FILE=}
+: ${MBEDTLS_TEST_CONFIGURATION:="$(guess_config_name)"}
+: ${MBEDTLS_TEST_PLATFORM:="$(uname -s | tr -c \\n0-9A-Za-z _)-$(uname -m | tr -c \\n0-9A-Za-z _)"}
+
 # default values for options
 # /!\ keep this synchronised with:
 # - basic-build-test.sh
@@ -111,6 +127,8 @@ print_usage() {
     printf "  -M|--memcheck\tCheck memory leaks and errors.\n"
     printf "  -v|--verbose\tSet verbose output.\n"
     printf "     --list-test-case\tList all potential test cases (No Execution)\n"
+    printf "     --outcome-file\tFile where test outcomes are written\n"
+    printf "                   \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
 }
 
 # print_test_case <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
@@ -175,6 +193,9 @@ get_options() {
             --list-test-case)
                 list_test_case
                 exit $?
+                ;;
+            --outcome-file)
+                shift; MBEDTLS_TEST_OUTCOME_FILE=$1
                 ;;
             -h|--help)
                 print_usage
@@ -571,6 +592,16 @@ add_mbedtls_ciphersuites()
     esac
 }
 
+# o_check_ciphersuite STANDARD_CIPHER_SUITE
+o_check_ciphersuite()
+{
+    if [ "${O_SUPPORT_ECDH}" = "NO" ]; then
+        case "$1" in
+            *ECDH_*) SKIP_NEXT="YES"
+        esac
+    fi
+}
+
 setup_arguments()
 {
     O_MODE=""
@@ -638,6 +669,11 @@ setup_arguments()
             O_CLIENT_ARGS="$O_CLIENT_ARGS -cipher ALL@SECLEVEL=0"
             O_SERVER_ARGS="$O_SERVER_ARGS -cipher ALL@SECLEVEL=0"
             ;;
+    esac
+
+    case $($OPENSSL ciphers ALL) in
+        *ECDH-ECDSA*|*ECDH-RSA*) O_SUPPORT_ECDH="YES";;
+        *) O_SUPPORT_ECDH="NO";;
     esac
 
     if [ "X$VERIFY" = "XYES" ];
@@ -835,6 +871,39 @@ uniform_title() {
     TITLE="$1->$2 $MODE,$VERIF $3"
 }
 
+# record_outcome <outcome> [<failure-reason>]
+record_outcome() {
+    echo "$1"
+    if [ -n "$MBEDTLS_TEST_OUTCOME_FILE" ]; then
+        # The test outcome file has the format (in single line):
+        # platform;configuration;
+        # test suite name;test case description;
+        # PASS/FAIL/SKIP;[failure cause]
+        printf '%s;%s;%s;%s;%s;%s\n'                                    \
+            "$MBEDTLS_TEST_PLATFORM" "$MBEDTLS_TEST_CONFIGURATION"      \
+            "compat" "$TITLE"                                           \
+            "$1" "${2-}"                                                \
+            >> "$MBEDTLS_TEST_OUTCOME_FILE"
+    fi
+}
+
+# display additional information if test case fails
+report_fail() {
+    FAIL_PROMPT="outputs saved to c-srv-${TESTS}.log, c-cli-${TESTS}.log"
+    record_outcome "FAIL" "$FAIL_PROMPT"
+    cp $SRV_OUT c-srv-${TESTS}.log
+    cp $CLI_OUT c-cli-${TESTS}.log
+    echo "  ! $FAIL_PROMPT"
+
+    if [ "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
+        echo "  ! server output:"
+        cat c-srv-${TESTS}.log
+        echo "  ! ==================================================="
+        echo "  ! client output:"
+        cat c-cli-${TESTS}.log
+    fi
+}
+
 # run_client PROGRAM_NAME STANDARD_CIPHER_SUITE PROGRAM_CIPHER_SUITE
 run_client() {
     # announce what we're going to do
@@ -846,7 +915,7 @@ run_client() {
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then
         SKIP_NEXT="NO"
-        echo "SKIP"
+        record_outcome "SKIP"
         SKIPPED=$(( $SKIPPED + 1 ))
         return
     fi
@@ -863,7 +932,7 @@ run_client() {
             if [ $EXIT -eq 0 ]; then
                 RESULT=0
             else
-                # If the cipher isn't supported...
+                # If it is NULL cipher ...
                 if grep 'Cipher is (NONE)' $CLI_OUT >/dev/null; then
                     RESULT=1
                 else
@@ -940,26 +1009,14 @@ run_client() {
     # report and count result
     case $RESULT in
         "0")
-            echo PASS
+            record_outcome "PASS"
             ;;
         "1")
-            echo SKIP
+            record_outcome "SKIP"
             SKIPPED=$(( $SKIPPED + 1 ))
             ;;
         "2")
-            echo FAIL
-            cp $SRV_OUT c-srv-${TESTS}.log
-            cp $CLI_OUT c-cli-${TESTS}.log
-            echo "  ! outputs saved to c-srv-${TESTS}.log, c-cli-${TESTS}.log"
-
-            if [ "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
-                echo "  ! server output:"
-                cat c-srv-${TESTS}.log
-                echo "  ! ==================================================="
-                echo "  ! client output:"
-                cat c-cli-${TESTS}.log
-            fi
-
+            report_fail
             FAILED=$(( $FAILED + 1 ))
             ;;
     esac
@@ -971,12 +1028,15 @@ run_client() {
 # MAIN
 #
 
-if cd $( dirname $0 ); then :; else
-    echo "cd $( dirname $0 ) failed" >&2
-    exit 1
-fi
-
 get_options "$@"
+
+# Make the outcome file path relative to the original directory, not
+# to .../tests
+case "$MBEDTLS_TEST_OUTCOME_FILE" in
+    [!/]*)
+        MBEDTLS_TEST_OUTCOME_FILE="$ORIGINAL_PWD/$MBEDTLS_TEST_OUTCOME_FILE"
+        ;;
+esac
 
 # sanity checks, avoid an avalanche of errors
 if [ ! -x "$M_SRV" ]; then
@@ -1077,6 +1137,7 @@ for MODE in $MODES; do
                         start_server "OpenSSL"
                         translate_ciphers m $M_CIPHERS
                         for i in $ciphers; do
+                            o_check_ciphersuite "${i%%=*}"
                             run_client mbedTLS ${i%%=*} ${i#*=}
                         done
                         stop_server
@@ -1086,6 +1147,7 @@ for MODE in $MODES; do
                         start_server "mbedTLS"
                         translate_ciphers o $O_CIPHERS
                         for i in $ciphers; do
+                            o_check_ciphersuite "${i%%=*}"
                             run_client OpenSSL ${i%%=*} ${i#*=}
                         done
                         stop_server

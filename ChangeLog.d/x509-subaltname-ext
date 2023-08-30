@@ -1,5 +1,0 @@
-Bugfix
-   * Fix parsing of X.509 SubjectAlternativeName extension. Previously,
-     malformed alternative name components were not caught during initial
-     certificate parsing, but only on subsequent calls to
-     mbedtls_x509_parse_subject_alt_name(). Fixes #2838.

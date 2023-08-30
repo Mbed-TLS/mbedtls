@@ -7,10 +7,10 @@
  * \note This file may not be included directly. Applications must
  * include psa/crypto.h.
  *
- * \note This header and its content is not part of the Mbed TLS API and
+ * \note This header and its content are not part of the Mbed TLS API and
  * applications must not depend on it. Its main purpose is to define the
  * multi-part state objects of the Mbed TLS software-based PSA drivers. The
- * definition of these objects are then used by crypto_struct.h to define the
+ * definitions of these objects are then used by crypto_struct.h to define the
  * implementation-defined types of PSA multi-part state objects.
  */
 /*
@@ -94,7 +94,8 @@ typedef struct {
     defined(MBEDTLS_PSA_BUILTIN_ALG_OFB) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7)
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CCM_STAR_NO_TAG)
 #define MBEDTLS_PSA_BUILTIN_CIPHER  1
 #endif
 

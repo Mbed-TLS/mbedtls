@@ -1,5 +1,0 @@
-Features
-   * Add an interruptible version of sign and verify hash to the PSA interface,
-     backed by internal library support for ECDSA signing and verification.
-
-

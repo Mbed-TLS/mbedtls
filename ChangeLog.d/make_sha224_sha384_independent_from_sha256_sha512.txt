@@ -1,4 +1,0 @@
-Features
-   * SHA224_C/SHA384_C are now independent from SHA384_C/SHA512_C respectively.
-     This helps in saving code size when some of the above hashes are not
-     required.

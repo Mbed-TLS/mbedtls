@@ -74,11 +74,7 @@ static void custom_entropy_init(mbedtls_entropy_context *ctx)
 #endif
 
     ctx->accumulator_started = 0;
-#if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
-    mbedtls_sha512_init(&ctx->accumulator);
-#else
-    mbedtls_sha256_init(&ctx->accumulator);
-#endif
+    mbedtls_md_init(&ctx->accumulator);
 
 #if !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
     if (custom_entropy_sources_mask & ENTROPY_SOURCE_PLATFORM) {
@@ -271,7 +267,7 @@ void entropy_from_nv_seed(int seed_size_arg,
     uint8_t *seed = NULL;
     size_t seed_size = seed_size_arg;
 
-    ASSERT_ALLOC(seed, seed_size);
+    TEST_CALLOC(seed, seed_size);
     TEST_ASSERT(mbedtls_nv_seed_write(seed, seed_size) >= 0);
 
     custom_entropy_sources_mask = ENTROPY_SOURCE_NV_SEED;

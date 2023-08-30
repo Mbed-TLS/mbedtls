@@ -1,4 +1,0 @@
-Bugfix
-   * Fix behavior of certain sample programs which could, when run with no
-     arguments, access uninitialized memory in some cases. Fixes #6700 (which
-     was found by TrustInSoft Analyzer during REDOCS'22) and #1120.

@@ -21,6 +21,7 @@ from typing import Dict, Iterator, List, Tuple
 from . import test_case
 from . import test_data_generation
 from . import bignum_common
+from .bignum_data import ADD_SUB_DATA
 
 class BignumCoreTarget(test_data_generation.BaseTarget):
     #pylint: disable=abstract-method, too-few-public-methods
@@ -68,6 +69,68 @@ class BignumCoreShiftR(BignumCoreTarget, test_data_generation.BaseTest):
             for count in counts:
                 yield cls(input_hex, descr, count).create_test_case()
 
+
+class BignumCoreShiftL(BignumCoreTarget, bignum_common.ModOperationCommon):
+    """Test cases for mbedtls_bignum_core_shift_l()."""
+
+    BIT_SHIFT_VALUES = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a',
+                        '1f', '20', '21', '3f', '40', '41', '47', '48', '4f',
+                        '50', '51', '58', '80', '81', '88']
+    DATA = ["0", "1", "40", "dee5ca1a7ef10a75", "a1055eb0bb1efa1150ff",
+            "002e7ab0070ad57001", "020100000000000000001011121314151617",
+            "1946e2958a85d8863ae21f4904fcc49478412534ed53eaf321f63f2a222"
+            "7a3c63acbf50b6305595f90cfa8327f6db80d986fe96080bcbb5df1bdbe"
+            "9b74fb8dedf2bddb3f8215b54dffd66409323bcc473e45a8fe9d08e77a51"
+            "1698b5dad0416305db7fcf"]
+    arity = 1
+    test_function = "mpi_core_shift_l"
+    test_name = "Core shift(L)"
+    input_style = "arch_split"
+    symbol = "<<"
+    input_values = BIT_SHIFT_VALUES
+    moduli = DATA
+
+    @property
+    def val_n_max_limbs(self) -> int:
+        """ Return the limb count required to store the maximum number that can
+        fit in a the number of digits used by val_n """
+        m = bignum_common.hex_digits_max_int(self.val_n, self.bits_in_limb) - 1
+        return bignum_common.limbs_mpi(m, self.bits_in_limb)
+
+    def arguments(self) -> List[str]:
+        return [bignum_common.quote_str(self.val_n),
+                str(self.int_a)
+                ] + self.result()
+
+    def description(self) -> str:
+        """ Format the output as:
+        #{count} {hex input} ({input bits} {limbs capacity}) << {bit shift} """
+        bits = "({} bits in {} limbs)".format(self.int_n.bit_length(), self.val_n_max_limbs)
+        return "{} #{} {} {} {} {}".format(self.test_name,
+                                           self.count,
+                                           self.val_n,
+                                           bits,
+                                           self.symbol,
+                                           self.int_a)
+
+    def format_result(self, res: int) -> str:
+        # Override to match zero-pading for leading digits between the output and input.
+        res_str = bignum_common.zfill_match(self.val_n, "{:x}".format(res))
+        return bignum_common.quote_str(res_str)
+
+    def result(self) -> List[str]:
+        result = (self.int_n << self.int_a)
+        # Calculate if there is space for shifting to the left(leading zero limbs)
+        mx = bignum_common.hex_digits_max_int(self.val_n, self.bits_in_limb)
+        # If there are empty limbs ahead, adjust the bitmask accordingly
+        result = result & (mx - 1)
+        return [self.format_result(result)]
+
+    @property
+    def is_valid(self) -> bool:
+        return True
+
+
 class BignumCoreCTLookup(BignumCoreTarget, test_data_generation.BaseTest):
     """Test cases for mbedtls_mpi_core_ct_uint_table_lookup()."""
     test_function = "mpi_core_ct_uint_table_lookup"
@@ -114,6 +177,7 @@ class BignumCoreAddAndAddIf(BignumCoreTarget, bignum_common.OperationCommon):
     test_function = "mpi_core_add_and_add_if"
     test_name = "mpi_core_add_and_add_if"
     input_style = "arch_split"
+    input_values = ADD_SUB_DATA
     unique_combinations_only = True
 
     def result(self) -> List[str]:
@@ -134,6 +198,7 @@ class BignumCoreSub(BignumCoreTarget, bignum_common.OperationCommon):
     symbol = "-"
     test_function = "mpi_core_sub"
     test_name = "mbedtls_mpi_core_sub"
+    input_values = ADD_SUB_DATA
 
     def result(self) -> List[str]:
         if self.int_a >= self.int_b:
@@ -228,6 +293,31 @@ class BignumCoreMLA(BignumCoreTarget, bignum_common.OperationCommon):
             for s_value in cls.input_scalars:
                 cur_op = cls(a_value, b_value, s_value)
                 yield cur_op.create_test_case()
+
+
+class BignumCoreMul(BignumCoreTarget, bignum_common.OperationCommon):
+    """Test cases for bignum core multiplication."""
+    count = 0
+    input_style = "arch_split"
+    symbol = "*"
+    test_function = "mpi_core_mul"
+    test_name = "mbedtls_mpi_core_mul"
+    arity = 2
+    unique_combinations_only = True
+
+    def format_arg(self, val: str) -> str:
+        return val
+
+    def format_result(self, res: int) -> str:
+        res_str = '{:x}'.format(res)
+        a_limbs = bignum_common.limbs_mpi(self.int_a, self.bits_in_limb)
+        b_limbs = bignum_common.limbs_mpi(self.int_b, self.bits_in_limb)
+        hex_digits = bignum_common.hex_digits_for_limb(a_limbs + b_limbs, self.bits_in_limb)
+        return bignum_common.quote_str(self.format_arg(res_str).zfill(hex_digits))
+
+    def result(self) -> List[str]:
+        result = self.int_a * self.int_b
+        return [self.format_result(result)]
 
 
 class BignumCoreMontmul(BignumCoreTarget, test_data_generation.BaseTest):
@@ -749,7 +839,6 @@ def mpi_modmul_case_generate() -> None:
             i += 1
     print(generated_inputs)
 
-# BEGIN MERGE SLOT 1
 
 class BignumCoreExpMod(BignumCoreTarget, bignum_common.ModOperationCommon):
     """Test cases for bignum core exponentiation."""
@@ -771,13 +860,6 @@ class BignumCoreExpMod(BignumCoreTarget, bignum_common.ModOperationCommon):
         # the modulus (see for example exponent blinding)
         return bool(self.int_a < self.int_n)
 
-# END MERGE SLOT 1
-
-# BEGIN MERGE SLOT 2
-
-# END MERGE SLOT 2
-
-# BEGIN MERGE SLOT 3
 
 class BignumCoreSubInt(BignumCoreTarget, bignum_common.OperationCommon):
     """Test cases for bignum core sub int."""
@@ -823,33 +905,3 @@ class BignumCoreZeroCheckCT(BignumCoreTarget, bignum_common.OperationCommon):
     def result(self) -> List[str]:
         result = 1 if self.int_a == 0 else 0
         return [str(result)]
-
-# END MERGE SLOT 3
-
-# BEGIN MERGE SLOT 4
-
-# END MERGE SLOT 4
-
-# BEGIN MERGE SLOT 5
-
-# END MERGE SLOT 5
-
-# BEGIN MERGE SLOT 6
-
-# END MERGE SLOT 6
-
-# BEGIN MERGE SLOT 7
-
-# END MERGE SLOT 7
-
-# BEGIN MERGE SLOT 8
-
-# END MERGE SLOT 8
-
-# BEGIN MERGE SLOT 9
-
-# END MERGE SLOT 9
-
-# BEGIN MERGE SLOT 10
-
-# END MERGE SLOT 10

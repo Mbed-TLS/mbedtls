@@ -1,7 +1,9 @@
-Mbed Crypto storage specification
+Mbed TLS storage specification
 =================================
 
-This document specifies how Mbed Crypto uses storage.
+This document specifies how Mbed TLS uses storage.
+Key storage was originally introduced in a product called Mbed Crypto, which was re-distributed via Mbed TLS and has since been merged into Mbed TLS.
+This document contains historical information both from before and after this merge.
 
 Mbed Crypto may be upgraded on an existing device with the storage preserved. Therefore:
 
@@ -354,7 +356,7 @@ Supported features:
 
 * [Persistent keys](#key-file-format-for-mbed-tls-2.25.0) designated by a [key identifier and owner](#key-names-for-mbed-tls-2.25.0). Keys can be:
     * Transparent, stored in the export format.
-    * Opaque, using the unified driver interface with statically registered drivers (`MBEDTLS_PSA_CRYPTO_DRIVERS`). The driver determines the content of the opaque key blob.
+    * Opaque, using the PSA driver interface with statically registered drivers. The driver determines the content of the opaque key blob.
     * Opaque, using the deprecated secure element interface with dynamically registered drivers (`MBEDTLS_PSA_CRYPTO_SE_C`). The driver picks a slot number which is stored in the place of the key material.
 * [Nonvolatile random seed](#nonvolatile-random-seed-file-format-for-mbed-tls-2.25.0) on ITS only.
 

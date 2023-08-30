@@ -1,3 +1,0 @@
-Bugfix
-   * List PSA_WANT_ALG_CCM_STAR_NO_TAG in psa/crypto_config.h so that it can
-     be toggled with config.py.

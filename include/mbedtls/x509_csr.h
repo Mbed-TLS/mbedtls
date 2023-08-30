@@ -60,7 +60,7 @@ typedef struct mbedtls_x509_csr {
 
     unsigned int key_usage;     /**< Optional key usage extension value: See the values in x509.h */
     unsigned char ns_cert_type; /**< Optional Netscape certificate type extension value: See the values in x509.h */
-    mbedtls_x509_sequence subject_alt_names;    /**< Optional list of raw entries of Subject Alternative Names extension (currently only dNSName and OtherName are listed). */
+    mbedtls_x509_sequence subject_alt_names; /**< Optional list of raw entries of Subject Alternative Names extension. These can be later parsed by mbedtls_x509_parse_subject_alt_name. */
 
     int MBEDTLS_PRIVATE(ext_types);              /**< Bit string containing detected and parsed extensions */
 
@@ -89,6 +89,10 @@ mbedtls_x509write_csr;
  *
  * \note           CSR attributes (if any) are currently silently ignored.
  *
+ * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                 subsystem must have been initialized by calling
+ *                 psa_crypto_init() before calling this function.
+ *
  * \param csr      CSR context to fill
  * \param buf      buffer holding the CRL data
  * \param buflen   size of the buffer
@@ -102,6 +106,10 @@ int mbedtls_x509_csr_parse_der(mbedtls_x509_csr *csr,
  * \brief          Load a Certificate Signing Request (CSR), DER or PEM format
  *
  * \note           See notes for \c mbedtls_x509_csr_parse_der()
+ *
+ * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                 subsystem must have been initialized by calling
+ *                 psa_crypto_init() before calling this function.
  *
  * \param csr      CSR context to fill
  * \param buf      buffer holding the CRL data
@@ -219,6 +227,20 @@ void mbedtls_x509write_csr_set_md_alg(mbedtls_x509write_csr *ctx, mbedtls_md_typ
  *                  function.
  */
 int mbedtls_x509write_csr_set_key_usage(mbedtls_x509write_csr *ctx, unsigned char key_usage);
+
+/**
+ * \brief           Set Subject Alternative Name
+ *
+ * \param ctx       CSR context to use
+ * \param san_list  List of SAN values
+ *
+ * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
+ *
+ * \note            Only "dnsName", "uniformResourceIdentifier" and "otherName",
+ *                  as defined in RFC 5280, are supported.
+ */
+int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ctx,
+                                                       const mbedtls_x509_san_list *san_list);
 
 /**
  * \brief           Set the Netscape Cert Type flags

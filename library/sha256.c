@@ -22,6 +22,28 @@
  *  http://csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf
  */
 
+#if defined(__aarch64__) && !defined(__ARM_FEATURE_CRYPTO) && \
+    defined(__clang__) && __clang_major__ >= 4
+/* TODO: Re-consider above after https://reviews.llvm.org/D131064 merged.
+ *
+ * The intrinsic declaration are guarded by predefined ACLE macros in clang:
+ * these are normally only enabled by the -march option on the command line.
+ * By defining the macros ourselves we gain access to those declarations without
+ * requiring -march on the command line.
+ *
+ * `arm_neon.h` could be included by any header file, so we put these defines
+ * at the top of this file, before any includes.
+ */
+#define __ARM_FEATURE_CRYPTO 1
+/* See: https://arm-software.github.io/acle/main/acle.html#cryptographic-extensions
+ *
+ * `__ARM_FEATURE_CRYPTO` is deprecated, but we need to continue to specify it
+ * for older compilers.
+ */
+#define __ARM_FEATURE_SHA2   1
+#define MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG
+#endif
+
 #include "common.h"
 
 #if defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA224_C)
@@ -35,9 +57,48 @@
 #include "mbedtls/platform.h"
 
 #if defined(__aarch64__)
+
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
     defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
-#    include <arm_neon.h>
+
+/* *INDENT-OFF* */
+
+#   ifdef __ARM_NEON
+#       include <arm_neon.h>
+#   else
+#       error "Target does not support NEON instructions"
+#   endif
+
+#    if !defined(__ARM_FEATURE_CRYPTO) || defined(MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG)
+#      if defined(__ARMCOMPILER_VERSION)
+#        if __ARMCOMPILER_VERSION <= 6090000
+#          error "Must use minimum -march=armv8-a+crypto for MBEDTLS_SHA256_USE_A64_CRYPTO_*"
+#        endif
+#          pragma clang attribute push (__attribute__((target("sha2"))), apply_to=function)
+#          define MBEDTLS_POP_TARGET_PRAGMA
+#      elif defined(__clang__)
+#        if __clang_major__ < 4
+#          error "A more recent Clang is required for MBEDTLS_SHA256_USE_A64_CRYPTO_*"
+#        endif
+#        pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
+#        define MBEDTLS_POP_TARGET_PRAGMA
+#      elif defined(__GNUC__)
+         /* FIXME: GCC 5 claims to support Armv8 Crypto Extensions, but some
+          *        intrinsics are missing. Missing intrinsics could be worked around.
+          */
+#        if __GNUC__ < 6
+#          error "A more recent GCC is required for MBEDTLS_SHA256_USE_A64_CRYPTO_*"
+#        else
+#          pragma GCC push_options
+#          pragma GCC target ("arch=armv8-a+crypto")
+#          define MBEDTLS_POP_TARGET_PRAGMA
+#        endif
+#      else
+#        error "Only GCC and Clang supported for MBEDTLS_SHA256_USE_A64_CRYPTO_*"
+#      endif
+#    endif
+/* *INDENT-ON* */
+
 #  endif
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT)
 #    if defined(__unix__)
@@ -355,6 +416,14 @@ int mbedtls_internal_sha256_process_a64_crypto(mbedtls_sha256_context *ctx,
 
 #endif /* MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT || MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY */
 
+#if defined(MBEDTLS_POP_TARGET_PRAGMA)
+#if defined(__clang__)
+#pragma clang attribute pop
+#elif defined(__GNUC__)
+#pragma GCC pop_options
+#endif
+#undef MBEDTLS_POP_TARGET_PRAGMA
+#endif
 
 #if !defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT)
 #define mbedtls_internal_sha256_process_many_c mbedtls_internal_sha256_process_many

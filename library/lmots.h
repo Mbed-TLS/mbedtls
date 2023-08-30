@@ -79,6 +79,7 @@ void mbedtls_lms_unsigned_int_to_network_bytes(unsigned int val, size_t len,
 unsigned int mbedtls_lms_network_bytes_to_unsigned_int(size_t len,
                                                        const unsigned char *bytes);
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief                    This function converts a \ref psa_status_t to a
  *                           low-level LMS error code.
@@ -87,8 +88,8 @@ unsigned int mbedtls_lms_network_bytes_to_unsigned_int(size_t len,
  *
  * \return                   The corresponding LMS error code.
  */
-int mbedtls_lms_error_from_psa(psa_status_t status);
-
+int MBEDTLS_DEPRECATED mbedtls_lms_error_from_psa(psa_status_t status);
+#endif
 
 /**
  * \brief                    This function initializes a public LMOTS context

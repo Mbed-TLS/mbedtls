@@ -30,15 +30,6 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
-/* We use MD first if it's available (for compatibility reasons)
- * and "fall back" to PSA otherwise (which needs psa_crypto_init()). */
-#if !defined(MBEDTLS_MD_C)
-#include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
-#endif /* !MBEDTLS_MD_C */
-
-#include "hash_info.h"
-
 #include <string.h>
 
 #if !defined(MBEDTLS_ECJPAKE_ALT)
@@ -61,19 +52,8 @@ static int mbedtls_ecjpake_compute_hash(mbedtls_md_type_t md_type,
                                         const unsigned char *input, size_t ilen,
                                         unsigned char *output)
 {
-#if defined(MBEDTLS_MD_C)
     return mbedtls_md(mbedtls_md_info_from_type(md_type),
                       input, ilen, output);
-#else
-    psa_algorithm_t alg = mbedtls_psa_translate_md(md_type);
-    psa_status_t status;
-    size_t out_size = PSA_HASH_LENGTH(alg);
-    size_t out_len;
-
-    status = psa_hash_compute(alg, input, ilen, output, out_size, &out_len);
-
-    return mbedtls_md_error_from_psa(status);
-#endif /* !MBEDTLS_MD_C */
 }
 
 /*
@@ -137,15 +117,9 @@ int mbedtls_ecjpake_setup(mbedtls_ecjpake_context *ctx,
 
     ctx->role = role;
 
-#if defined(MBEDTLS_MD_C)
     if ((mbedtls_md_info_from_type(hash)) == NULL) {
         return MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE;
     }
-#else
-    if (mbedtls_psa_translate_md(hash) == MBEDTLS_MD_NONE) {
-        return MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE;
-    }
-#endif
 
     ctx->md_type = hash;
 
@@ -241,7 +215,7 @@ static int ecjpake_hash(const mbedtls_md_type_t md_type,
     unsigned char *p = buf;
     const unsigned char *end = buf + sizeof(buf);
     const size_t id_len = strlen(id);
-    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 
     /* Write things to temporary buffer */
     MBEDTLS_MPI_CHK(ecjpake_write_len_point(&p, end, grp, pf, G));
@@ -268,7 +242,7 @@ static int ecjpake_hash(const mbedtls_md_type_t md_type,
 
     /* Turn it into an integer mod n */
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(h, hash,
-                                            mbedtls_hash_info_get_size(md_type)));
+                                            mbedtls_md_get_size_from_type(md_type)));
     MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(h, h, &grp->N));
 
 cleanup:
@@ -804,7 +778,7 @@ int mbedtls_ecjpake_derive_secret(mbedtls_ecjpake_context *ctx,
     unsigned char kx[MBEDTLS_ECP_MAX_BYTES];
     size_t x_bytes;
 
-    *olen = mbedtls_hash_info_get_size(ctx->md_type);
+    *olen = mbedtls_md_get_size_from_type(ctx->md_type);
     if (len < *olen) {
         return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
     }
@@ -865,7 +839,7 @@ cleanup:
 #include "mbedtls/platform.h"
 
 #if !defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) || \
-    !defined(MBEDTLS_SHA256_C)
+    !defined(MBEDTLS_MD_CAN_SHA256)
 int mbedtls_ecjpake_self_test(int verbose)
 {
     (void) verbose;
@@ -1247,7 +1221,7 @@ cleanup:
 
 #undef TEST_ASSERT
 
-#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED && MBEDTLS_SHA256_C */
+#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED && MBEDTLS_MD_CAN_SHA256 */
 
 #endif /* MBEDTLS_SELF_TEST */
 

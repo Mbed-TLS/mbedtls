@@ -63,7 +63,7 @@
 
 #if !defined(MBEDTLS_MPI_WINDOW_SIZE)
 /*
- * Maximum window size used for modular exponentiation. Default: 6
+ * Maximum window size used for modular exponentiation. Default: 2
  * Minimum value: 1. Maximum value: 6.
  *
  * Result is an array of ( 2 ** MBEDTLS_MPI_WINDOW_SIZE ) MPIs used
@@ -71,7 +71,7 @@
  *
  * Reduction in size, reduces speed.
  */
-#define MBEDTLS_MPI_WINDOW_SIZE                           6        /**< Maximum window size used. */
+#define MBEDTLS_MPI_WINDOW_SIZE                           2        /**< Maximum window size used. */
 #endif /* !MBEDTLS_MPI_WINDOW_SIZE */
 
 #if !defined(MBEDTLS_MPI_MAX_SIZE)
@@ -129,6 +129,7 @@
         #endif /* !MBEDTLS_HAVE_INT64 */
 typedef  int64_t mbedtls_mpi_sint;
 typedef uint64_t mbedtls_mpi_uint;
+#define MBEDTLS_MPI_UINT_MAX                UINT64_MAX
     #elif defined(__GNUC__) && (                         \
     defined(__amd64__) || defined(__x86_64__)     || \
     defined(__ppc64__) || defined(__powerpc64__)  || \
@@ -141,6 +142,7 @@ typedef uint64_t mbedtls_mpi_uint;
         #endif /* MBEDTLS_HAVE_INT64 */
 typedef  int64_t mbedtls_mpi_sint;
 typedef uint64_t mbedtls_mpi_uint;
+#define MBEDTLS_MPI_UINT_MAX                UINT64_MAX
         #if !defined(MBEDTLS_NO_UDBL_DIVISION)
 /* mbedtls_t_udbl defined as 128-bit unsigned int */
 typedef unsigned int mbedtls_t_udbl __attribute__((mode(TI)));
@@ -156,6 +158,7 @@ typedef unsigned int mbedtls_t_udbl __attribute__((mode(TI)));
         #endif /* !MBEDTLS_HAVE_INT64 */
 typedef  int64_t mbedtls_mpi_sint;
 typedef uint64_t mbedtls_mpi_uint;
+#define MBEDTLS_MPI_UINT_MAX                UINT64_MAX
         #if !defined(MBEDTLS_NO_UDBL_DIVISION)
 /* mbedtls_t_udbl defined as 128-bit unsigned int */
 typedef __uint128_t mbedtls_t_udbl;
@@ -165,6 +168,7 @@ typedef __uint128_t mbedtls_t_udbl;
 /* Force 64-bit integers with unknown compiler */
 typedef  int64_t mbedtls_mpi_sint;
 typedef uint64_t mbedtls_mpi_uint;
+#define MBEDTLS_MPI_UINT_MAX                UINT64_MAX
     #endif
 #endif /* !MBEDTLS_HAVE_INT32 */
 
@@ -175,6 +179,7 @@ typedef uint64_t mbedtls_mpi_uint;
     #endif /* !MBEDTLS_HAVE_INT32 */
 typedef  int32_t mbedtls_mpi_sint;
 typedef uint32_t mbedtls_mpi_uint;
+#define MBEDTLS_MPI_UINT_MAX                UINT32_MAX
     #if !defined(MBEDTLS_NO_UDBL_DIVISION)
 typedef uint64_t mbedtls_t_udbl;
         #define MBEDTLS_HAVE_UDBL
@@ -203,6 +208,12 @@ extern "C" {
  * \brief          MPI structure
  */
 typedef struct mbedtls_mpi {
+    /** Pointer to limbs.
+     *
+     * This may be \c NULL if \c n is 0.
+     */
+    mbedtls_mpi_uint *MBEDTLS_PRIVATE(p);
+
     /** Sign: -1 if the mpi is negative, 1 otherwise.
      *
      * The number 0 must be represented with `s = +1`. Although many library
@@ -214,16 +225,19 @@ typedef struct mbedtls_mpi {
      * Note that this implies that calloc() or `... = {0}` does not create
      * a valid MPI representation. You must call mbedtls_mpi_init().
      */
-    int MBEDTLS_PRIVATE(s);
+    signed short MBEDTLS_PRIVATE(s);
 
     /** Total number of limbs in \c p.  */
-    size_t MBEDTLS_PRIVATE(n);
-
-    /** Pointer to limbs.
-     *
-     * This may be \c NULL if \c n is 0.
+    unsigned short MBEDTLS_PRIVATE(n);
+    /* Make sure that MBEDTLS_MPI_MAX_LIMBS fits in n.
+     * Use the same limit value on all platforms so that we don't have to
+     * think about different behavior on the rare platforms where
+     * unsigned short can store values larger than the minimum required by
+     * the C language, which is 65535.
      */
-    mbedtls_mpi_uint *MBEDTLS_PRIVATE(p);
+#if MBEDTLS_MPI_MAX_LIMBS > 65535
+#error "MBEDTLS_MPI_MAX_LIMBS > 65535 is not supported"
+#endif
 }
 mbedtls_mpi;
 
@@ -530,7 +544,7 @@ int mbedtls_mpi_write_file(const char *p, const mbedtls_mpi *X,
  * \param X        The destination MPI. This must point to an initialized MPI.
  * \param buf      The input buffer. This must be a readable buffer of length
  *                 \p buflen Bytes.
- * \param buflen   The length of the input buffer \p p in Bytes.
+ * \param buflen   The length of the input buffer \p buf in Bytes.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed.
@@ -545,7 +559,7 @@ int mbedtls_mpi_read_binary(mbedtls_mpi *X, const unsigned char *buf,
  * \param X        The destination MPI. This must point to an initialized MPI.
  * \param buf      The input buffer. This must be a readable buffer of length
  *                 \p buflen Bytes.
- * \param buflen   The length of the input buffer \p p in Bytes.
+ * \param buflen   The length of the input buffer \p buf in Bytes.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed.
@@ -594,6 +608,8 @@ int mbedtls_mpi_write_binary_le(const mbedtls_mpi *X,
  * \brief          Perform a left-shift on an MPI: X <<= count
  *
  * \param X        The MPI to shift. This must point to an initialized MPI.
+ *                 The MPI pointed by \p X may be resized to fit
+ *                 the resulting number.
  * \param count    The number of bits to shift by.
  *
  * \return         \c 0 if successful.
@@ -983,8 +999,8 @@ int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A,
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
  * \return         #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p N is less than
  *                 or equal to one.
- * \return         #MBEDTLS_ERR_MPI_NOT_ACCEPTABLE if \p has no modular inverse
- *                 with respect to \p N.
+ * \return         #MBEDTLS_ERR_MPI_NOT_ACCEPTABLE if \p A has no modular
+ *                 inverse with respect to \p N.
  */
 int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
                         const mbedtls_mpi *N);
@@ -1005,7 +1021,7 @@ int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
  *                 This must point to an initialized MPI.
  * \param rounds   The number of bases to perform the Miller-Rabin primality
  *                 test for. The probability of returning 0 on a composite is
- *                 at most 2<sup>-2*\p rounds</sup>.
+ *                 at most 2<sup>-2*\p rounds </sup>.
  * \param f_rng    The RNG function to use. This must not be \c NULL.
  * \param p_rng    The RNG parameter to be passed to \p f_rng.
  *                 This may be \c NULL if \p f_rng doesn't use

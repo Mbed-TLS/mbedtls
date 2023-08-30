@@ -46,9 +46,10 @@
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
+#include "md_psa.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-#include "hash_info.h"
+#include "pk_internal.h"
 
 #include "mbedtls/platform.h"
 
@@ -58,6 +59,7 @@
 
 #if defined(MBEDTLS_HAVE_TIME)
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #else
 #include <time.h>
@@ -101,7 +103,7 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default =
     MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA384) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA512),
     0xFFFFFFF, /* Any PK alg    */
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     /* Curves at or above 128-bit security level. Note that this selection
      * should be aligned with ssl_preset_default_curves in ssl_tls.c. */
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_SECP256R1) |
@@ -111,9 +113,9 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default =
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_BP384R1) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_BP512R1) |
     0,
-#else
+#else /* MBEDTLS_PK_HAVE_ECC_KEYS */
     0,
-#endif
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
     2048,
 };
 
@@ -152,13 +154,13 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_suiteb =
     /* Only ECDSA */
     MBEDTLS_X509_ID_FLAG(MBEDTLS_PK_ECDSA) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_PK_ECKEY),
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     /* Only NIST P-256 and P-384 */
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_SECP256R1) |
     MBEDTLS_X509_ID_FLAG(MBEDTLS_ECP_DP_SECP384R1),
-#else
+#else /* MBEDTLS_PK_HAVE_ECC_KEYS */
     0,
-#endif
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
     0,
 };
 
@@ -226,13 +228,13 @@ static int x509_profile_check_key(const mbedtls_x509_crt_profile *profile,
 
         return -1;
     }
-#endif
+#endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     if (pk_alg == MBEDTLS_PK_ECDSA ||
         pk_alg == MBEDTLS_PK_ECKEY ||
         pk_alg == MBEDTLS_PK_ECKEY_DH) {
-        const mbedtls_ecp_group_id gid = mbedtls_pk_ec(*pk)->grp.id;
+        const mbedtls_ecp_group_id gid = mbedtls_pk_get_group_id(pk);
 
         if (gid == MBEDTLS_ECP_DP_NONE) {
             return -1;
@@ -244,7 +246,7 @@ static int x509_profile_check_key(const mbedtls_x509_crt_profile *profile,
 
         return -1;
     }
-#endif
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
     return -1;
 }
@@ -587,6 +589,114 @@ static int x509_get_ext_key_usage(unsigned char **p,
 }
 
 /*
+ * SubjectKeyIdentifier ::= KeyIdentifier
+ *
+ * KeyIdentifier ::= OCTET STRING
+ */
+static int x509_get_subject_key_id(unsigned char **p,
+                                   const unsigned char *end,
+                                   mbedtls_x509_buf *subject_key_id)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len = 0u;
+
+    if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                    MBEDTLS_ASN1_OCTET_STRING)) != 0) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+    }
+
+    subject_key_id->len = len;
+    subject_key_id->tag = MBEDTLS_ASN1_OCTET_STRING;
+    subject_key_id->p = *p;
+    *p += len;
+
+    if (*p != end) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+    }
+
+    return 0;
+}
+
+/*
+ * AuthorityKeyIdentifier ::= SEQUENCE {
+ *        keyIdentifier [0] KeyIdentifier OPTIONAL,
+ *        authorityCertIssuer [1] GeneralNames OPTIONAL,
+ *        authorityCertSerialNumber [2] CertificateSerialNumber OPTIONAL }
+ *
+ *    KeyIdentifier ::= OCTET STRING
+ */
+static int x509_get_authority_key_id(unsigned char **p,
+                                     unsigned char *end,
+                                     mbedtls_x509_authority *authority_key_id)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len = 0u;
+
+    if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+    }
+
+    if (*p + len != end) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+    }
+
+    ret = mbedtls_asn1_get_tag(p, end, &len,
+                               MBEDTLS_ASN1_CONTEXT_SPECIFIC);
+
+    /* KeyIdentifier is an OPTIONAL field */
+    if (ret == 0) {
+        authority_key_id->keyIdentifier.len = len;
+        authority_key_id->keyIdentifier.p = *p;
+        /* Setting tag of the keyIdentfier intentionally to 0x04.
+         * Although the .keyIdentfier field is CONTEXT_SPECIFIC ([0] OPTIONAL),
+         * its tag with the content is the payload of on OCTET STRING primitive */
+        authority_key_id->keyIdentifier.tag = MBEDTLS_ASN1_OCTET_STRING;
+
+        *p += len;
+    } else if (ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+    }
+
+    if (*p < end) {
+        /* Getting authorityCertIssuer using the required specific class tag [1] */
+        if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                        MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED |
+                                        1)) != 0) {
+            /* authorityCertIssuer and authorityCertSerialNumber MUST both
+               be present or both be absent. At this point we expect to have both. */
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+        }
+        /* "end" also includes the CertSerialNumber field so "len" shall be used */
+        ret = mbedtls_x509_get_subject_alt_name_ext(p,
+                                                    (*p+len),
+                                                    &authority_key_id->authorityCertIssuer);
+        if (ret != 0) {
+            return ret;
+        }
+
+        /* Getting authorityCertSerialNumber using the required specific class tag [2] */
+        if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                        MBEDTLS_ASN1_CONTEXT_SPECIFIC | 2)) != 0) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+        }
+        authority_key_id->authorityCertSerialNumber.len = len;
+        authority_key_id->authorityCertSerialNumber.p = *p;
+        authority_key_id->authorityCertSerialNumber.tag = MBEDTLS_ASN1_INTEGER;
+        *p += len;
+    }
+
+    if (*p != end) {
+        return MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+               MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+    }
+
+    return 0;
+}
+
+/*
  * id-ce-certificatePolicies OBJECT IDENTIFIER ::=  { id-ce 32 }
  *
  * anyPolicy OBJECT IDENTIFIER ::= { id-ce-certificatePolicies 0 }
@@ -884,8 +994,25 @@ static int x509_get_crt_ext(unsigned char **p,
                 }
                 break;
 
+            case MBEDTLS_X509_EXT_SUBJECT_KEY_IDENTIFIER:
+                /* Parse subject key identifier */
+                if ((ret = x509_get_subject_key_id(p, end_ext_data,
+                                                   &crt->subject_key_id)) != 0) {
+                    return ret;
+                }
+                break;
+
+            case MBEDTLS_X509_EXT_AUTHORITY_KEY_IDENTIFIER:
+                /* Parse authority key identifier */
+                if ((ret = x509_get_authority_key_id(p, end_ext_octet,
+                                                     &crt->authority_key_id)) != 0) {
+                    return ret;
+                }
+                break;
             case MBEDTLS_X509_EXT_SUBJECT_ALT_NAME:
-                /* Parse subject alt name */
+                /* Parse subject alt name
+                 * SubjectAltName ::= GeneralNames
+                 */
                 if ((ret = mbedtls_x509_get_subject_alt_name(p, end_ext_octet,
                                                              &crt->subject_alt_names)) != 0) {
                     return ret;
@@ -1399,8 +1526,7 @@ int mbedtls_x509_crt_parse_file(mbedtls_x509_crt *chain, const char *path)
 
     ret = mbedtls_x509_crt_parse(chain, buf, n);
 
-    mbedtls_platform_zeroize(buf, n);
-    mbedtls_free(buf);
+    mbedtls_zeroize_and_free(buf, n);
 
     return ret;
 }
@@ -1409,6 +1535,7 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
 {
     int ret = 0;
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
+#if _WIN32_WINNT >= 0x0501 /* _WIN32_WINNT_XP */
     int w_ret;
     WCHAR szDir[MAX_PATH];
     char filename[MAX_PATH];
@@ -1471,6 +1598,9 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
 
 cleanup:
     FindClose(hFind);
+#else /* !_WIN32_WINNT_XP */
+#error mbedtls_x509_crt_parse_path not available before Windows XP
+#endif /* !_WIN32_WINNT_XP */
 #else /* _WIN32 */
     int t_ret;
     int snp_ret;
@@ -1545,6 +1675,27 @@ cleanup:
 #endif /* MBEDTLS_FS_IO */
 
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
+#define PRINT_ITEM(i)                               \
+    do {                                            \
+        ret = mbedtls_snprintf(p, n, "%s" i, sep);  \
+        MBEDTLS_X509_SAFE_SNPRINTF;                 \
+        sep = ", ";                                 \
+    } while (0)
+
+#define CERT_TYPE(type, name)          \
+    do {                               \
+        if (ns_cert_type & (type)) {   \
+            PRINT_ITEM(name);          \
+        }                              \
+    } while (0)
+
+#define KEY_USAGE(code, name)      \
+    do {                           \
+        if (key_usage & (code)) {  \
+            PRINT_ITEM(name);      \
+        }                          \
+    } while (0)
+
 static int x509_info_ext_key_usage(char **buf, size_t *size,
                                    const mbedtls_x509_sequence *extended_key_usage)
 {
@@ -1869,10 +2020,11 @@ int mbedtls_x509_crt_is_revoked(const mbedtls_x509_crt *crt, const mbedtls_x509_
  */
 static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
                               mbedtls_x509_crl *crl_list,
-                              const mbedtls_x509_crt_profile *profile)
+                              const mbedtls_x509_crt_profile *profile,
+                              const mbedtls_x509_time *now)
 {
     int flags = 0;
-    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_algorithm_t psa_algorithm;
 #else
@@ -1912,7 +2064,7 @@ static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
         }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_algorithm = mbedtls_hash_info_psa_from_md(crl_list->sig_md);
+        psa_algorithm = mbedtls_md_psa_alg_from_type(crl_list->sig_md);
         if (psa_hash_compute(psa_algorithm,
                              crl_list->tbs.p,
                              crl_list->tbs.len,
@@ -1947,16 +2099,20 @@ static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
             break;
         }
 
+#if defined(MBEDTLS_HAVE_TIME_DATE)
         /*
          * Check for validity of CRL (Do not drop out)
          */
-        if (mbedtls_x509_time_is_past(&crl_list->next_update)) {
+        if (mbedtls_x509_time_cmp(&crl_list->next_update, now) < 0) {
             flags |= MBEDTLS_X509_BADCRL_EXPIRED;
         }
 
-        if (mbedtls_x509_time_is_future(&crl_list->this_update)) {
+        if (mbedtls_x509_time_cmp(&crl_list->this_update, now) > 0) {
             flags |= MBEDTLS_X509_BADCRL_FUTURE;
         }
+#else
+        ((void) now);
+#endif
 
         /*
          * Check if certificate is revoked
@@ -1981,7 +2137,7 @@ static int x509_crt_check_signature(const mbedtls_x509_crt *child,
                                     mbedtls_x509_crt_restart_ctx *rs_ctx)
 {
     size_t hash_len;
-    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
     const mbedtls_md_info_t *md_info;
     md_info = mbedtls_md_info_from_type(child->sig_md);
@@ -1992,7 +2148,7 @@ static int x509_crt_check_signature(const mbedtls_x509_crt *child,
         return -1;
     }
 #else
-    psa_algorithm_t hash_alg = mbedtls_hash_info_psa_from_md(child->sig_md);
+    psa_algorithm_t hash_alg = mbedtls_md_psa_alg_from_type(child->sig_md);
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     status = psa_hash_compute(hash_alg,
@@ -2114,7 +2270,8 @@ static int x509_crt_find_parent_in(
     int top,
     unsigned path_cnt,
     unsigned self_cnt,
-    mbedtls_x509_crt_restart_ctx *rs_ctx)
+    mbedtls_x509_crt_restart_ctx *rs_ctx,
+    const mbedtls_x509_time *now)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_x509_crt *parent, *fallback_parent;
@@ -2177,9 +2334,10 @@ check_signature:
             continue;
         }
 
+#if defined(MBEDTLS_HAVE_TIME_DATE)
         /* optional time check */
-        if (mbedtls_x509_time_is_past(&parent->valid_to) ||
-            mbedtls_x509_time_is_future(&parent->valid_from)) {
+        if (mbedtls_x509_time_cmp(&parent->valid_to, now) < 0 ||    /* past */
+            mbedtls_x509_time_cmp(&parent->valid_from, now) > 0) {  /* future */
             if (fallback_parent == NULL) {
                 fallback_parent = parent;
                 fallback_signature_is_good = signature_is_good;
@@ -2187,6 +2345,9 @@ check_signature:
 
             continue;
         }
+#else
+        ((void) now);
+#endif
 
         *r_parent = parent;
         *r_signature_is_good = signature_is_good;
@@ -2232,7 +2393,8 @@ static int x509_crt_find_parent(
     int *signature_is_good,
     unsigned path_cnt,
     unsigned self_cnt,
-    mbedtls_x509_crt_restart_ctx *rs_ctx)
+    mbedtls_x509_crt_restart_ctx *rs_ctx,
+    const mbedtls_x509_time *now)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_x509_crt *search_list;
@@ -2253,7 +2415,7 @@ static int x509_crt_find_parent(
         ret = x509_crt_find_parent_in(child, search_list,
                                       parent, signature_is_good,
                                       *parent_is_trusted,
-                                      path_cnt, self_cnt, rs_ctx);
+                                      path_cnt, self_cnt, rs_ctx, now);
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
         if (rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
@@ -2374,6 +2536,13 @@ static int x509_crt_verify_chain(
     int signature_is_good;
     unsigned self_cnt;
     mbedtls_x509_crt *cur_trust_ca = NULL;
+    mbedtls_x509_time now;
+
+#if defined(MBEDTLS_HAVE_TIME_DATE)
+    if (mbedtls_x509_time_gmtime(mbedtls_time(NULL), &now) != 0) {
+        return MBEDTLS_ERR_X509_FATAL_ERROR;
+    }
+#endif
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     /* resume if we had an operation in progress */
@@ -2404,14 +2573,16 @@ static int x509_crt_verify_chain(
         ver_chain->len++;
         flags = &cur->flags;
 
+#if defined(MBEDTLS_HAVE_TIME_DATE)
         /* Check time-validity (all certificates) */
-        if (mbedtls_x509_time_is_past(&child->valid_to)) {
+        if (mbedtls_x509_time_cmp(&child->valid_to, &now) < 0) {
             *flags |= MBEDTLS_X509_BADCERT_EXPIRED;
         }
 
-        if (mbedtls_x509_time_is_future(&child->valid_from)) {
+        if (mbedtls_x509_time_cmp(&child->valid_from, &now) > 0) {
             *flags |= MBEDTLS_X509_BADCERT_FUTURE;
         }
+#endif
 
         /* Stop here for trusted roots (but not for trusted EE certs) */
         if (child_is_trusted) {
@@ -2462,7 +2633,8 @@ find_parent:
         /* Look for a parent in trusted CAs or up the chain */
         ret = x509_crt_find_parent(child, cur_trust_ca, &parent,
                                    &parent_is_trusted, &signature_is_good,
-                                   ver_chain->len - 1, self_cnt, rs_ctx);
+                                   ver_chain->len - 1, self_cnt, rs_ctx,
+                                   &now);
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
         if (rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
@@ -2511,7 +2683,7 @@ find_parent:
 
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
         /* Check trusted CA's CRL for the given crt */
-        *flags |= x509_crt_verifycrl(child, parent, ca_crl, profile);
+        *flags |= x509_crt_verifycrl(child, parent, ca_crl, profile, &now);
 #else
         (void) ca_crl;
 #endif
@@ -2522,6 +2694,202 @@ find_parent:
         child_is_trusted = parent_is_trusted;
         signature_is_good = 0;
     }
+}
+
+#ifdef _WIN32
+#ifdef _MSC_VER
+#pragma comment(lib, "ws2_32.lib")
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#elif (defined(__MINGW32__) || defined(__MINGW64__)) && _WIN32_WINNT >= 0x0600
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+/* inet_pton() is not supported, fallback to software version */
+#define MBEDTLS_TEST_SW_INET_PTON
+#endif
+#elif defined(__sun)
+/* Solaris requires -lsocket -lnsl for inet_pton() */
+#elif defined(__has_include)
+#if __has_include(<sys/socket.h>)
+#include <sys/socket.h>
+#endif
+#if __has_include(<arpa/inet.h>)
+#include <arpa/inet.h>
+#endif
+#endif
+
+/* Use whether or not AF_INET6 is defined to indicate whether or not to use
+ * the platform inet_pton() or a local implementation (below).  The local
+ * implementation may be used even in cases where the platform provides
+ * inet_pton(), e.g. when there are different includes required and/or the
+ * platform implementation requires dependencies on additional libraries.
+ * Specifically, Windows requires custom includes and additional link
+ * dependencies, and Solaris requires additional link dependencies.
+ * Also, as a coarse heuristic, use the local implementation if the compiler
+ * does not support __has_include(), or if the definition of AF_INET6 is not
+ * provided by headers included (or not) via __has_include() above.
+ * MBEDTLS_TEST_SW_INET_PTON is a bypass define to force testing of this code //no-check-names
+ * despite having a platform that has inet_pton. */
+#if !defined(AF_INET6) || defined(MBEDTLS_TEST_SW_INET_PTON) //no-check-names
+/* Definition located further below to possibly reduce compiler inlining */
+static int x509_inet_pton_ipv4(const char *src, void *dst);
+
+#define li_cton(c, n) \
+    (((n) = (c) - '0') <= 9 || (((n) = ((c)&0xdf) - 'A') <= 5 ? ((n) += 10) : 0))
+
+static int x509_inet_pton_ipv6(const char *src, void *dst)
+{
+    const unsigned char *p = (const unsigned char *) src;
+    int nonzero_groups = 0, num_digits, zero_group_start = -1;
+    uint16_t addr[8];
+    do {
+        /* note: allows excess leading 0's, e.g. 1:0002:3:... */
+        uint16_t group = num_digits = 0;
+        for (uint8_t digit; num_digits < 4; num_digits++) {
+            if (li_cton(*p, digit) == 0) {
+                break;
+            }
+            group = (group << 4) | digit;
+            p++;
+        }
+        if (num_digits != 0) {
+            addr[nonzero_groups++] = MBEDTLS_IS_BIG_ENDIAN ? group :
+                                     (group << 8) | (group >> 8);
+            if (*p == '\0') {
+                break;
+            } else if (*p == '.') {
+                /* Don't accept IPv4 too early or late */
+                if ((nonzero_groups == 0 && zero_group_start == -1) ||
+                    nonzero_groups >= 7) {
+                    break;
+                }
+
+                /* Walk back to prior ':', then parse as IPv4-mapped */
+                int steps = 4;
+                do {
+                    p--;
+                    steps--;
+                } while (*p != ':' && steps > 0);
+
+                if (*p != ':') {
+                    break;
+                }
+                p++;
+                nonzero_groups--;
+                if (x509_inet_pton_ipv4((const char *) p,
+                                        addr + nonzero_groups) != 0) {
+                    break;
+                }
+
+                nonzero_groups += 2;
+                p = (const unsigned char *) "";
+                break;
+            } else if (*p != ':') {
+                return -1;
+            }
+        } else {
+            /* Don't accept a second zero group or an invalid delimiter */
+            if (zero_group_start != -1 || *p != ':') {
+                return -1;
+            }
+            zero_group_start = nonzero_groups;
+
+            /* Accept a zero group at start, but it has to be a double colon */
+            if (zero_group_start == 0 && *++p != ':') {
+                return -1;
+            }
+
+            if (p[1] == '\0') {
+                ++p;
+                break;
+            }
+        }
+        ++p;
+    } while (nonzero_groups < 8);
+
+    if (*p != '\0') {
+        return -1;
+    }
+
+    if (zero_group_start != -1) {
+        if (nonzero_groups > 6) {
+            return -1;
+        }
+        int zero_groups = 8 - nonzero_groups;
+        int groups_after_zero = nonzero_groups - zero_group_start;
+
+        /* Move the non-zero part to after the zeroes */
+        if (groups_after_zero) {
+            memmove(addr + zero_group_start + zero_groups,
+                    addr + zero_group_start,
+                    groups_after_zero * sizeof(*addr));
+        }
+        memset(addr + zero_group_start, 0, zero_groups * sizeof(*addr));
+    } else {
+        if (nonzero_groups != 8) {
+            return -1;
+        }
+    }
+    memcpy(dst, addr, sizeof(addr));
+    return 0;
+}
+
+static int x509_inet_pton_ipv4(const char *src, void *dst)
+{
+    const unsigned char *p = (const unsigned char *) src;
+    uint8_t *res = (uint8_t *) dst;
+    uint8_t digit, num_digits = 0;
+    uint8_t num_octets = 0;
+    uint16_t octet;
+
+    do {
+        octet = num_digits = 0;
+        do {
+            digit = *p - '0';
+            if (digit > 9) {
+                break;
+            }
+
+            /* Don't allow leading zeroes. These might mean octal format,
+             * which this implementation does not support. */
+            if (octet == 0 && num_digits > 0) {
+                return -1;
+            }
+
+            octet = octet * 10 + digit;
+            num_digits++;
+            p++;
+        } while (num_digits < 3);
+
+        if (octet >= 256 || num_digits > 3 || num_digits == 0) {
+            return -1;
+        }
+        *res++ = (uint8_t) octet;
+        num_octets++;
+    } while (num_octets < 4 && *p++ == '.');
+    return num_octets == 4 && *p == '\0' ? 0 : -1;
+}
+
+#else
+
+static int x509_inet_pton_ipv6(const char *src, void *dst)
+{
+    return inet_pton(AF_INET6, src, dst) == 1 ? 0 : -1;
+}
+
+static int x509_inet_pton_ipv4(const char *src, void *dst)
+{
+    return inet_pton(AF_INET, src, dst) == 1 ? 0 : -1;
+}
+
+#endif /* !AF_INET6 || MBEDTLS_TEST_SW_INET_PTON */ //no-check-names
+
+size_t mbedtls_x509_crt_parse_cn_inet_pton(const char *cn, void *dst)
+{
+    return strchr(cn, ':') == NULL
+            ? x509_inet_pton_ipv4(cn, dst) == 0 ? 4 : 0
+            : x509_inet_pton_ipv6(cn, dst) == 0 ? 16 : 0;
 }
 
 /*
@@ -2544,23 +2912,80 @@ static int x509_crt_check_cn(const mbedtls_x509_buf *name,
     return -1;
 }
 
+static int x509_crt_check_san_ip(const mbedtls_x509_sequence *san,
+                                 const char *cn, size_t cn_len)
+{
+    uint32_t ip[4];
+    cn_len = mbedtls_x509_crt_parse_cn_inet_pton(cn, ip);
+    if (cn_len == 0) {
+        return -1;
+    }
+
+    for (const mbedtls_x509_sequence *cur = san; cur != NULL; cur = cur->next) {
+        const unsigned char san_type = (unsigned char) cur->buf.tag &
+                                       MBEDTLS_ASN1_TAG_VALUE_MASK;
+        if (san_type == MBEDTLS_X509_SAN_IP_ADDRESS &&
+            cur->buf.len == cn_len && memcmp(cur->buf.p, ip, cn_len) == 0) {
+            return 0;
+        }
+    }
+
+    return -1;
+}
+
+static int x509_crt_check_san_uri(const mbedtls_x509_sequence *san,
+                                  const char *cn, size_t cn_len)
+{
+    for (const mbedtls_x509_sequence *cur = san; cur != NULL; cur = cur->next) {
+        const unsigned char san_type = (unsigned char) cur->buf.tag &
+                                       MBEDTLS_ASN1_TAG_VALUE_MASK;
+        if (san_type == MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER &&
+            cur->buf.len == cn_len && memcmp(cur->buf.p, cn, cn_len) == 0) {
+            return 0;
+        }
+    }
+
+    return -1;
+}
+
 /*
  * Check for SAN match, see RFC 5280 Section 4.2.1.6
  */
-static int x509_crt_check_san(const mbedtls_x509_buf *name,
+static int x509_crt_check_san(const mbedtls_x509_sequence *san,
                               const char *cn, size_t cn_len)
 {
-    const unsigned char san_type = (unsigned char) name->tag &
-                                   MBEDTLS_ASN1_TAG_VALUE_MASK;
-
-    /* dNSName */
-    if (san_type == MBEDTLS_X509_SAN_DNS_NAME) {
-        return x509_crt_check_cn(name, cn, cn_len);
+    int san_ip = 0;
+    int san_uri = 0;
+    /* Prioritize DNS name over other subtypes due to popularity */
+    for (const mbedtls_x509_sequence *cur = san; cur != NULL; cur = cur->next) {
+        switch ((unsigned char) cur->buf.tag & MBEDTLS_ASN1_TAG_VALUE_MASK) {
+            case MBEDTLS_X509_SAN_DNS_NAME:
+                if (x509_crt_check_cn(&cur->buf, cn, cn_len) == 0) {
+                    return 0;
+                }
+                break;
+            case MBEDTLS_X509_SAN_IP_ADDRESS:
+                san_ip = 1;
+                break;
+            case MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER:
+                san_uri = 1;
+                break;
+            /* (We may handle other types here later.) */
+            default: /* Unrecognized type */
+                break;
+        }
+    }
+    if (san_ip) {
+        if (x509_crt_check_san_ip(san, cn, cn_len) == 0) {
+            return 0;
+        }
+    }
+    if (san_uri) {
+        if (x509_crt_check_san_uri(san, cn, cn_len) == 0) {
+            return 0;
+        }
     }
 
-    /* (We may handle other types here later.) */
-
-    /* Unrecognized type */
     return -1;
 }
 
@@ -2572,31 +2997,23 @@ static void x509_crt_verify_name(const mbedtls_x509_crt *crt,
                                  uint32_t *flags)
 {
     const mbedtls_x509_name *name;
-    const mbedtls_x509_sequence *cur;
     size_t cn_len = strlen(cn);
 
     if (crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME) {
-        for (cur = &crt->subject_alt_names; cur != NULL; cur = cur->next) {
-            if (x509_crt_check_san(&cur->buf, cn, cn_len) == 0) {
-                break;
-            }
-        }
-
-        if (cur == NULL) {
-            *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
+        if (x509_crt_check_san(&crt->subject_alt_names, cn, cn_len) == 0) {
+            return;
         }
     } else {
         for (name = &crt->subject; name != NULL; name = name->next) {
             if (MBEDTLS_OID_CMP(MBEDTLS_OID_AT_CN, &name->oid) == 0 &&
                 x509_crt_check_cn(&name->val, cn, cn_len) == 0) {
-                break;
+                return;
             }
         }
 
-        if (name == NULL) {
-            *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
-        }
     }
+
+    *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
 }
 
 /*
@@ -2837,10 +3254,10 @@ void mbedtls_x509_crt_free(mbedtls_x509_crt *crt)
         mbedtls_asn1_sequence_free(cert_cur->ext_key_usage.next);
         mbedtls_asn1_sequence_free(cert_cur->subject_alt_names.next);
         mbedtls_asn1_sequence_free(cert_cur->certificate_policies.next);
+        mbedtls_asn1_sequence_free(cert_cur->authority_key_id.authorityCertIssuer.next);
 
         if (cert_cur->raw.p != NULL && cert_cur->own_buffer) {
-            mbedtls_platform_zeroize(cert_cur->raw.p, cert_cur->raw.len);
-            mbedtls_free(cert_cur->raw.p);
+            mbedtls_zeroize_and_free(cert_cur->raw.p, cert_cur->raw.len);
         }
 
         cert_prv = cert_cur;

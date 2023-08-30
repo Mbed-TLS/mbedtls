@@ -10,7 +10,7 @@
  * before changing how test data is constructed or validated.
  */
 
-#include "../library/psa_crypto_its.h"
+#include "psa_crypto_its.h"
 
 #include "test/psa_helpers.h"
 

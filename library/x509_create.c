@@ -158,6 +158,7 @@ static int parse_attribute_value_string(const char *s,
     int hexpair = 0;
     unsigned char *d = data;
     int n;
+    
     while (c < end) {
         if (*c == '\\') {
             c++;
@@ -202,6 +203,7 @@ static int parse_attribute_value_der_encoded(const char *s,
     unsigned char *p;
     unsigned char *d = data;
     int n;
+    
     /* Converting from hexstring to raw binary so we can use asn1parse.c*/
     if ((len < 5) || (*c != '#')) {
         return MBEDTLS_ERR_X509_INVALID_NAME;

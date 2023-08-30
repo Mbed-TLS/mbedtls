@@ -45,14 +45,11 @@ void pbes2_encrypt(int params_tag, data_t *params_hex, data_t *pw,
     size_t my_out_len = 0;
 #endif
 
-    /* Those parameters are only used when MBEDTLS_CIPHER_PADDING_PKCS7 is enabled */
-    (void) outsize;
-
     params.tag = params_tag;
     params.p = params_hex->x;
     params.len = params_hex->len;
 
-    ASSERT_ALLOC(my_out, ref_out->len);
+    ASSERT_ALLOC(my_out, outsize);
 
     if (ref_ret != MBEDTLS_ERR_ASN1_BUF_TOO_SMALL) {
         my_ret = mbedtls_pkcs5_pbes2(&params, MBEDTLS_PKCS5_ENCRYPT,
@@ -92,14 +89,11 @@ void pbes2_decrypt(int params_tag, data_t *params_hex, data_t *pw,
     size_t my_out_len = 0;
 #endif
 
-    /* Those parameters are only used when MBEDTLS_CIPHER_PADDING_PKCS7 is enabled */
-    (void) outsize;
-
     params.tag = params_tag;
     params.p = params_hex->x;
     params.len = params_hex->len;
 
-    ASSERT_ALLOC(my_out, ref_out->len);
+    ASSERT_ALLOC(my_out, outsize);
 
     if (ref_ret != MBEDTLS_ERR_ASN1_BUF_TOO_SMALL) {
         my_ret = mbedtls_pkcs5_pbes2(&params, MBEDTLS_PKCS5_DECRYPT,

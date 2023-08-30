@@ -226,7 +226,9 @@ if(CMAKE_COMPILER_IS_CLANG)
 endif(CMAKE_COMPILER_IS_CLANG)
 
 if(CMAKE_COMPILER_IS_IAR)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warn_about_c_style_casts -Ohz")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warn_about_c_style_casts")
+    set(CMAKE_C_FLAGS_RELEASE     "-Ohz")
+    set(CMAKE_C_FLAGS_DEBUG       "--debug -On")
 endif(CMAKE_COMPILER_IS_IAR)
 
 if(CMAKE_COMPILER_IS_MSVC)
@@ -372,7 +374,7 @@ if(NOT DISABLE_PACKAGE_CONFIG_AND_INSTALL)
     write_basic_package_version_file(
         "cmake/MbedTLSConfigVersion.cmake"
             COMPATIBILITY SameMajorVersion
-            VERSION 3.4.0)
+            VERSION 3.4.1)
 
     install(
         FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfig.cmake"

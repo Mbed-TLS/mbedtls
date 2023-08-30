@@ -178,12 +178,12 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
         return status;
     }
 
-    psa_crypto_driver_pake_get_user_len(inputs, &user_len);
+    status = psa_crypto_driver_pake_get_user_len(inputs, &user_len);
     if (status != PSA_SUCCESS) {
         return status;
     }
 
-    psa_crypto_driver_pake_get_peer_len(inputs, &peer_len);
+    status = psa_crypto_driver_pake_get_peer_len(inputs, &peer_len);
     if (status != PSA_SUCCESS) {
         return status;
     }
@@ -559,8 +559,7 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
 
 psa_status_t mbedtls_psa_pake_abort(mbedtls_psa_pake_operation_t *operation)
 {
-    mbedtls_platform_zeroize(operation->password, operation->password_len);
-    mbedtls_free(operation->password);
+    mbedtls_zeroize_and_free(operation->password, operation->password_len);
     operation->password = NULL;
     operation->password_len = 0;
 

@@ -8,7 +8,7 @@
 #include <test/constant_flow.h>
 /* END_HEADER */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC:MBEDTLS_TEST_HOOKS */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_SOME_SUITES_USE_MAC:MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC:MBEDTLS_TEST_HOOKS */
 void ssl_cf_hmac(int hash)
 {
     /*
@@ -58,7 +58,7 @@ void ssl_cf_hmac(int hash)
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     /* Use allocated out buffer to catch overwrites */
-    ASSERT_ALLOC(out, out_len);
+    TEST_CALLOC(out, out_len);
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     /* Set up dummy key */
@@ -85,7 +85,7 @@ void ssl_cf_hmac(int hash)
         mbedtls_test_set_step(max_in_len * 10000);
 
         /* Use allocated in buffer to catch overreads */
-        ASSERT_ALLOC(data, max_in_len);
+        TEST_CALLOC(data, max_in_len);
 
         min_in_len = max_in_len > 255 ? max_in_len - 255 : 0;
         for (in_len = min_in_len; in_len <= max_in_len; in_len++) {
@@ -133,7 +133,7 @@ void ssl_cf_hmac(int hash)
             TEST_EQUAL(0, mbedtls_md_hmac_reset(&ref_ctx));
 
             /* Compare */
-            ASSERT_COMPARE(out, out_len, ref_out, out_len);
+            TEST_MEMORY_COMPARE(out, out_len, ref_out, out_len);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
         }
 

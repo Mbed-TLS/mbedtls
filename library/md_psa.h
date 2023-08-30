@@ -31,12 +31,21 @@
  * \brief           This function returns the PSA algorithm identifier
  *                  associated with the given digest type.
  *
- * \param md_type   The type of digest to search for.
+ * \param md_type   The type of digest to search for. Must not be NONE.
  *
- * \return          The PSA algorithm identifier associated with \p md_type.
- * \return          PSA_ALG_NONE if the algorithm is not supported.
+ * \warning         If \p md_type is \c MBEDTLS_MD_NONE, this function will
+ *                  not return \c PSA_ALG_NONE, but an invalid algorithm.
+ *
+ * \warning         This function does not check if the algorithm is
+ *                  supported, it always returns the corresponding identifier.
+ *
+ * \return          The PSA algorithm identifier associated with \p md_type,
+ *                  regardless of whether it is supported or not.
  */
-psa_algorithm_t mbedtls_md_psa_alg_from_type(mbedtls_md_type_t md_type);
+static inline psa_algorithm_t mbedtls_md_psa_alg_from_type(mbedtls_md_type_t md_type)
+{
+    return PSA_ALG_CATEGORY_HASH | (psa_algorithm_t) md_type;
+}
 
 /**
  * \brief           This function returns the given digest type
@@ -44,10 +53,16 @@ psa_algorithm_t mbedtls_md_psa_alg_from_type(mbedtls_md_type_t md_type);
  *
  * \param psa_alg   The PSA algorithm identifier to search for.
  *
- * \return          The MD type associated with \p psa_alg.
- * \return          MBEDTLS_MD_NONE if the algorithm is not supported.
+ * \warning         This function does not check if the algorithm is
+ *                  supported, it always returns the corresponding identifier.
+ *
+ * \return          The MD type associated with \p psa_alg,
+ *                  regardless of whether it is supported or not.
  */
-mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa_alg);
+static inline mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa_alg)
+{
+    return (mbedtls_md_type_t) (psa_alg & PSA_ALG_HASH_MASK);
+}
 
 /** Convert PSA status to MD error code.
  *

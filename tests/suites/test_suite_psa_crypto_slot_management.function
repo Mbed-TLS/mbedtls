@@ -303,12 +303,12 @@ void persistent_slot_lifecycle(int lifetime_arg, int owner_id_arg, int id_arg,
                        psa_get_key_type(&read_attributes));
             TEST_EQUAL(psa_get_key_bits(&attributes),
                        psa_get_key_bits(&read_attributes));
-            ASSERT_ALLOC(reexported, key_data->len);
+            TEST_CALLOC(reexported, key_data->len);
             if (usage_flags & PSA_KEY_USAGE_EXPORT) {
                 PSA_ASSERT(psa_export_key(id, reexported, key_data->len,
                                           &reexported_length));
-                ASSERT_COMPARE(key_data->x, key_data->len,
-                               reexported, reexported_length);
+                TEST_MEMORY_COMPARE(key_data->x, key_data->len,
+                                    reexported, reexported_length);
             } else {
                 TEST_EQUAL(psa_export_key(id, reexported,
                                           key_data->len, &reexported_length),
@@ -402,8 +402,8 @@ void create_existent(int lifetime_arg, int owner_id_arg, int id_arg,
     PSA_ASSERT(psa_export_key(id,
                               reexported, sizeof(reexported),
                               &reexported_length));
-    ASSERT_COMPARE(material1, sizeof(material1),
-                   reexported, reexported_length);
+    TEST_MEMORY_COMPARE(material1, sizeof(material1),
+                        reexported, reexported_length);
 
     PSA_ASSERT(psa_close_key(id));
 
@@ -575,11 +575,11 @@ void copy_across_lifetimes(int source_lifetime_arg, int source_owner_id_arg,
                psa_get_key_enrollment_algorithm(&target_attributes));
     if (expected_usage & PSA_KEY_USAGE_EXPORT) {
         size_t length;
-        ASSERT_ALLOC(export_buffer, material->len);
+        TEST_CALLOC(export_buffer, material->len);
         PSA_ASSERT(psa_export_key(returned_target_id, export_buffer,
                                   material->len, &length));
-        ASSERT_COMPARE(material->x, material->len,
-                       export_buffer, length);
+        TEST_MEMORY_COMPARE(material->x, material->len,
+                            export_buffer, length);
     } else {
         size_t length;
         /* Check that the key is actually non-exportable. */
@@ -689,11 +689,11 @@ void copy_to_occupied(int source_lifetime_arg, int source_id_arg,
                psa_get_key_algorithm(&attributes2));
     if (target_usage & PSA_KEY_USAGE_EXPORT) {
         size_t length;
-        ASSERT_ALLOC(export_buffer, target_material->len);
+        TEST_CALLOC(export_buffer, target_material->len);
         PSA_ASSERT(psa_export_key(returned_target_id, export_buffer,
                                   target_material->len, &length));
-        ASSERT_COMPARE(target_material->x, target_material->len,
-                       export_buffer, length);
+        TEST_MEMORY_COMPARE(target_material->x, target_material->len,
+                            export_buffer, length);
     }
 
     PSA_ASSERT(psa_destroy_key(returned_source_id));
@@ -775,7 +775,7 @@ void invalid_handle(int handle_construction,
                 mbedtls_svc_key_id_make(0, PSA_KEY_ID_VENDOR_MAX + 1);
             break;
         default:
-            TEST_ASSERT(!"unknown handle construction");
+            TEST_FAIL("unknown handle construction");
     }
 
     /* Attempt to use the invalid handle. */
@@ -813,7 +813,7 @@ void many_transient_keys(int max_keys_arg)
     uint8_t exported[sizeof(size_t)];
     size_t exported_length;
 
-    ASSERT_ALLOC(keys, max_keys);
+    TEST_CALLOC(keys, max_keys);
     PSA_ASSERT(psa_crypto_init());
 
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_EXPORT);
@@ -840,8 +840,8 @@ void many_transient_keys(int max_keys_arg)
         PSA_ASSERT(psa_export_key(keys[i],
                                   exported, sizeof(exported),
                                   &exported_length));
-        ASSERT_COMPARE(exported, exported_length,
-                       (uint8_t *) &i, sizeof(i));
+        TEST_MEMORY_COMPARE(exported, exported_length,
+                            (uint8_t *) &i, sizeof(i));
     }
     PSA_ASSERT(psa_close_key(keys[i - 1]));
 
@@ -917,8 +917,8 @@ void key_slot_eviction_to_import_new_key(int lifetime_arg)
         PSA_ASSERT(psa_export_key(key,
                                   exported, sizeof(exported),
                                   &exported_length));
-        ASSERT_COMPARE(exported, exported_length,
-                       (uint8_t *) &i, sizeof(i));
+        TEST_MEMORY_COMPARE(exported, exported_length,
+                            (uint8_t *) &i, sizeof(i));
         PSA_ASSERT(psa_destroy_key(key));
     }
 
@@ -942,7 +942,7 @@ void non_reusable_key_slots_integrity_in_case_of_key_slot_starvation()
 
     TEST_ASSERT(MBEDTLS_PSA_KEY_SLOT_COUNT >= 1);
 
-    ASSERT_ALLOC(keys, MBEDTLS_PSA_KEY_SLOT_COUNT);
+    TEST_CALLOC(keys, MBEDTLS_PSA_KEY_SLOT_COUNT);
     PSA_ASSERT(psa_crypto_init());
 
     psa_set_key_usage_flags(&attributes,
@@ -988,7 +988,7 @@ void non_reusable_key_slots_integrity_in_case_of_key_slot_starvation()
                               exported, sizeof(exported),
                               &exported_length));
     i = MBEDTLS_PSA_KEY_SLOT_COUNT - 1;
-    ASSERT_COMPARE(exported, exported_length, (uint8_t *) &i, sizeof(i));
+    TEST_MEMORY_COMPARE(exported, exported_length, (uint8_t *) &i, sizeof(i));
     PSA_ASSERT(psa_destroy_key(keys[MBEDTLS_PSA_KEY_SLOT_COUNT - 1]));
 
     /*
@@ -1016,8 +1016,8 @@ void non_reusable_key_slots_integrity_in_case_of_key_slot_starvation()
         PSA_ASSERT(psa_export_key(keys[i],
                                   exported, sizeof(exported),
                                   &exported_length));
-        ASSERT_COMPARE(exported, exported_length,
-                       (uint8_t *) &i, sizeof(i));
+        TEST_MEMORY_COMPARE(exported, exported_length,
+                            (uint8_t *) &i, sizeof(i));
         PSA_ASSERT(psa_destroy_key(keys[i]));
     }
 
@@ -1028,8 +1028,8 @@ void non_reusable_key_slots_integrity_in_case_of_key_slot_starvation()
 
     PSA_ASSERT(psa_export_key(persistent_key, exported, sizeof(exported),
                               &exported_length));
-    ASSERT_COMPARE(exported, exported_length,
-                   (uint8_t *) &persistent_key, sizeof(persistent_key));
+    TEST_MEMORY_COMPARE(exported, exported_length,
+                        (uint8_t *) &persistent_key, sizeof(persistent_key));
 exit:
     /*
      * Key attributes may have been returned by psa_get_key_attributes()

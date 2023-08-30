@@ -137,8 +137,8 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
     size_t c_x1_pr_off, c_x2_pr_off, c_x2s_pr_off;
     psa_status_t status;
 
-    ASSERT_ALLOC(buffer0, buffer_length);
-    ASSERT_ALLOC(buffer1, buffer_length);
+    TEST_CALLOC(buffer0, buffer_length);
+    TEST_CALLOC(buffer1, buffer_length);
 
     switch (round) {
         case PAKE_ROUND_ONE:
@@ -617,7 +617,7 @@ void ecjpake_setup(int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
 
     size_t buf_size = PSA_PAKE_OUTPUT_SIZE(alg, primitive_arg,
                                            PSA_PAKE_STEP_KEY_SHARE);
-    ASSERT_ALLOC(output_buffer, buf_size);
+    TEST_CALLOC(output_buffer, buf_size);
 
     psa_set_key_usage_flags(&attributes, key_usage_pw);
     psa_set_key_algorithm(&attributes, alg);
@@ -1031,7 +1031,7 @@ void pake_input_getters_password()
                                                    &buffer_len_ret),
                PSA_SUCCESS);
 
-    ASSERT_COMPARE(password_ret, buffer_len_ret, password, strlen(password));
+    TEST_MEMORY_COMPARE(password_ret, buffer_len_ret, password, strlen(password));
 exit:
     PSA_ASSERT(psa_destroy_key(key));
     PSA_ASSERT(psa_pake_abort(&operation));
@@ -1064,8 +1064,8 @@ void pake_input_getters_cipher_suite()
     TEST_EQUAL(psa_crypto_driver_pake_get_cipher_suite(&operation.data.inputs, &cipher_suite_ret),
                PSA_SUCCESS);
 
-    ASSERT_COMPARE(&cipher_suite_ret, sizeof(cipher_suite_ret),
-                   &cipher_suite, sizeof(cipher_suite));
+    TEST_MEMORY_COMPARE(&cipher_suite_ret, sizeof(cipher_suite_ret),
+                        &cipher_suite, sizeof(cipher_suite));
 
 exit:
     PSA_ASSERT(psa_pake_abort(&operation));
@@ -1128,7 +1128,7 @@ void pake_input_getters_user()
                                                    &buffer_len_ret),
                    PSA_SUCCESS);
 
-        ASSERT_COMPARE(user_ret, buffer_len_ret, user, user_len);
+        TEST_MEMORY_COMPARE(user_ret, buffer_len_ret, user, user_len);
     }
 exit:
     PSA_ASSERT(psa_pake_abort(&operation));
@@ -1191,7 +1191,7 @@ void pake_input_getters_peer()
                                                    &buffer_len_ret),
                    PSA_SUCCESS);
 
-        ASSERT_COMPARE(peer_ret, buffer_len_ret, peer, peer_len);
+        TEST_MEMORY_COMPARE(peer_ret, buffer_len_ret, peer, peer_len);
     }
 exit:
     PSA_ASSERT(psa_pake_abort(&operation));

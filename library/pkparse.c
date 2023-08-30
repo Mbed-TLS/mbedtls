@@ -34,9 +34,6 @@
 #include "mbedtls/rsa.h"
 #endif
 #include "mbedtls/ecp.h"
-#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECP_C)
-#include "pkwrite.h"
-#endif
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #include "pk_internal.h"
 #endif
@@ -107,8 +104,7 @@ int mbedtls_pk_load_file(const char *path, unsigned char **buf, size_t *n)
     if (fread(*buf, 1, *n, f) != *n) {
         fclose(f);
 
-        mbedtls_platform_zeroize(*buf, *n);
-        mbedtls_free(*buf);
+        mbedtls_zeroize_and_free(*buf, *n);
 
         return MBEDTLS_ERR_PK_FILE_IO_ERROR;
     }
@@ -146,8 +142,7 @@ int mbedtls_pk_parse_keyfile(mbedtls_pk_context *ctx,
                                    (const unsigned char *) pwd, strlen(pwd), f_rng, p_rng);
     }
 
-    mbedtls_platform_zeroize(buf, n);
-    mbedtls_free(buf);
+    mbedtls_zeroize_and_free(buf, n);
 
     return ret;
 }
@@ -167,8 +162,7 @@ int mbedtls_pk_parse_public_keyfile(mbedtls_pk_context *ctx, const char *path)
 
     ret = mbedtls_pk_parse_public_key(ctx, buf, n);
 
-    mbedtls_platform_zeroize(buf, n);
-    mbedtls_free(buf);
+    mbedtls_zeroize_and_free(buf, n);
 
     return ret;
 }
@@ -1686,8 +1680,7 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
         ret = pk_parse_key_pkcs8_encrypted_der(pk, key_copy, keylen,
                                                pwd, pwdlen, f_rng, p_rng);
 
-        mbedtls_platform_zeroize(key_copy, keylen);
-        mbedtls_free(key_copy);
+        mbedtls_zeroize_and_free(key_copy, keylen);
     }
 
     if (ret == 0) {

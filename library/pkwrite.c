@@ -165,7 +165,7 @@ static int pk_write_ec_pubkey(unsigned char **p, unsigned char *start,
                               const mbedtls_pk_context *pk)
 {
     size_t len = 0;
-    uint8_t buf[PSA_EXPORT_KEY_PAIR_MAX_SIZE];
+    uint8_t buf[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
 
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_OPAQUE) {
         if (psa_export_public_key(pk->priv_id, buf, sizeof(buf), &len) != PSA_SUCCESS) {

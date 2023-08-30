@@ -231,8 +231,7 @@ void mbedtls_cipher_free(mbedtls_cipher_context_t *ctx)
                 (void) psa_destroy_key(cipher_psa->slot);
             }
 
-            mbedtls_platform_zeroize(cipher_psa, sizeof(*cipher_psa));
-            mbedtls_free(cipher_psa);
+            mbedtls_zeroize_and_free(cipher_psa, sizeof(*cipher_psa));
         }
 
         mbedtls_platform_zeroize(ctx, sizeof(mbedtls_cipher_context_t));
@@ -242,9 +241,8 @@ void mbedtls_cipher_free(mbedtls_cipher_context_t *ctx)
 
 #if defined(MBEDTLS_CMAC_C)
     if (ctx->cmac_ctx) {
-        mbedtls_platform_zeroize(ctx->cmac_ctx,
+        mbedtls_zeroize_and_free(ctx->cmac_ctx,
                                  sizeof(mbedtls_cmac_context_t));
-        mbedtls_free(ctx->cmac_ctx);
     }
 #endif
 

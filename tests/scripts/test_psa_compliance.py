@@ -81,7 +81,7 @@ def main(library_build_dir: str):
                      '-B' + library_build_dir
         ])
         subprocess.check_call(['cmake', '--build', library_build_dir,
-                               '-t', crypto_name])
+                               '--target', crypto_name])
 
     psa_arch_tests_dir = 'psa-arch-tests'
     os.makedirs(psa_arch_tests_dir, exist_ok=True)

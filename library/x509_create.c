@@ -141,7 +141,7 @@ static int hexpair_to_int(const char *hexpair)
 {
     int n1 = hex_to_int(*hexpair);
     int n2 = hex_to_int(*(hexpair + 1));
-    
+
     if (n1 != -1 && n2 != -1) {
         return (n1 << 4) | n2;
     } else {
@@ -154,13 +154,12 @@ static int parse_attribute_value_string(const char *s,
                                         unsigned char *data,
                                         size_t *data_len)
 {
-    const char *c = s;
-    const char *end = c + len;
-    int hexpair = 0;
+    const char *c;
+    const char *end = s + len;
     unsigned char *d = data;
     int n;
     
-    while (c < end) {
+    for (c = s; c < end; c++) {
         if (*c == '\\') {
             c++;
 
@@ -169,22 +168,19 @@ static int parse_attribute_value_string(const char *s,
                 if (n == 0) {
                     return MBEDTLS_ERR_X509_INVALID_NAME;
                 }
-                hexpair = 1;
                 *(d++) = n;
                 c++;
+                continue;
             } else if (c == end || !strchr(" ,=+<>#;\"\\", *c)) {
                 return MBEDTLS_ERR_X509_INVALID_NAME;
             }
         }
-        if (!hexpair) {
-            *(d++) = *c;
-        }
+        
+        *(d++) = *c;
+        
         if (d - data == MBEDTLS_X509_MAX_DN_NAME_SIZE) {
             return MBEDTLS_ERR_X509_INVALID_NAME;
         }
-
-        hexpair = 0;
-        c++;
     }
     *data_len = d - data;
     return 0;

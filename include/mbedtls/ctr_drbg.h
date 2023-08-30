@@ -44,7 +44,12 @@
 
 #include "mbedtls/build_info.h"
 
+#if defined(MBEDTLS_CIPHER_C)
+#include "mbedtls/cipher.h"
+#else /* MBEDTLS_CIPHER_C */
 #include "mbedtls/aes.h"
+#endif /* MBEDTLS_CIPHER_C */
+
 #include "entropy.h"
 
 #if defined(MBEDTLS_THREADING_C)
@@ -187,7 +192,11 @@ typedef struct mbedtls_ctr_drbg_context {
                                                   * This is the maximum number of requests
                                                   * that can be made between reseedings. */
 
+#if defined(MBEDTLS_CIPHER_C)
+    mbedtls_cipher_context_t MBEDTLS_PRIVATE(cipher_ctx);        /*!< Context for AES. */
+#else /* MBEDTLS_CIPHER_C */
     mbedtls_aes_context MBEDTLS_PRIVATE(aes_ctx);        /*!< The AES context. */
+#endif /* MBEDTLS_CIPHER_C */
 
     /*
      * Callbacks (Entropy)

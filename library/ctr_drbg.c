@@ -38,13 +38,24 @@
 
 #include "mbedtls/platform.h"
 
+#if defined(MBEDTLS_CTR_DRBG_USE_128_BIT_KEY)
+#define CTR_DRBG_AES_TYPE   MBEDTLS_CIPHER_AES_128_ECB
+#else
+#define CTR_DRBG_AES_TYPE   MBEDTLS_CIPHER_AES_256_ECB
+#endif
+
 /*
  * CTR_DRBG context initialization
  */
 void mbedtls_ctr_drbg_init(mbedtls_ctr_drbg_context *ctx)
 {
     memset(ctx, 0, sizeof(mbedtls_ctr_drbg_context));
+#if defined(MBEDTLS_CIPHER_C)
+    mbedtls_cipher_setup(&ctx->cipher_ctx,
+                         mbedtls_cipher_info_from_type(CTR_DRBG_AES_TYPE));
+#else /* MBEDTLS_CIPHER_C */
     mbedtls_aes_init(&ctx->aes_ctx);
+#endif /* MBEDTLS_CIPHER_C */
     /* Indicate that the entropy nonce length is not set explicitly.
      * See mbedtls_ctr_drbg_set_nonce_len(). */
     ctx->reseed_counter = -1;
@@ -68,7 +79,11 @@ void mbedtls_ctr_drbg_free(mbedtls_ctr_drbg_context *ctx)
         mbedtls_mutex_free(&ctx->mutex);
     }
 #endif
+#if defined(MBEDTLS_CIPHER_C)
+    mbedtls_cipher_free(&ctx->cipher_ctx);
+#else /* MBEDTLS_CIPHER_C */
     mbedtls_aes_free(&ctx->aes_ctx);
+#endif /* MBEDTLS_CIPHER_C */
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_ctr_drbg_context));
     ctx->reseed_interval = MBEDTLS_CTR_DRBG_RESEED_INTERVAL;
     ctx->reseed_counter = -1;
@@ -129,7 +144,12 @@ static int block_cipher_df(unsigned char *output,
     unsigned char key[MBEDTLS_CTR_DRBG_KEYSIZE];
     unsigned char chain[MBEDTLS_CTR_DRBG_BLOCKSIZE];
     unsigned char *p, *iv;
+#if defined(MBEDTLS_CIPHER_C)
+    mbedtls_cipher_context_t cipher_ctx;
+    size_t out_len;
+#else /* MBEDTLS_CIPHER_C */
     mbedtls_aes_context aes_ctx;
+#endif /* MBEDTLS_CIPHER_C */
     int ret = 0;
 
     int i, j;
@@ -139,9 +159,16 @@ static int block_cipher_df(unsigned char *output,
         return MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG;
     }
 
-    memset(buf, 0, MBEDTLS_CTR_DRBG_MAX_SEED_INPUT +
-           MBEDTLS_CTR_DRBG_BLOCKSIZE + 16);
+    memset(buf, 0, sizeof(buf));
+#if defined(MBEDTLS_CIPHER_C)
+    ret = mbedtls_cipher_setup(&cipher_ctx,
+                               mbedtls_cipher_info_from_type(CTR_DRBG_AES_TYPE));
+    if (ret != 0) {
+        return ret;
+    }
+#else /* MBEDTLS_CIPHER_C */
     mbedtls_aes_init(&aes_ctx);
+#endif /* MBEDTLS_CIPHER_C */
 
     /*
      * Construct IV (16 bytes) and S in buffer
@@ -163,10 +190,18 @@ static int block_cipher_df(unsigned char *output,
         key[i] = i;
     }
 
+#if defined(MBEDTLS_CIPHER_C)
+    if ((ret = mbedtls_cipher_setkey(&cipher_ctx, key,
+                                     MBEDTLS_CTR_DRBG_KEYBITS,
+                                     MBEDTLS_ENCRYPT)) != 0) {
+        goto exit;
+    }
+#else /* MBEDTLS_CIPHER_C */
     if ((ret = mbedtls_aes_setkey_enc(&aes_ctx, key,
                                       MBEDTLS_CTR_DRBG_KEYBITS)) != 0) {
         goto exit;
     }
+#endif /* MBEDTLS_CIPHER_C */
 
     /*
      * Reduce data to MBEDTLS_CTR_DRBG_SEEDLEN bytes of data
@@ -182,10 +217,18 @@ static int block_cipher_df(unsigned char *output,
             use_len -= (use_len >= MBEDTLS_CTR_DRBG_BLOCKSIZE) ?
                        MBEDTLS_CTR_DRBG_BLOCKSIZE : use_len;
 
+#if defined(MBEDTLS_CIPHER_C)
+            if ((ret = mbedtls_cipher_crypt(&cipher_ctx, NULL, 0,
+                                            chain, MBEDTLS_CTR_DRBG_BLOCKSIZE,
+                                            chain, &out_len)) != 0) {
+                goto exit;
+            }
+#else /* MBEDTLS_CIPHER_C */
             if ((ret = mbedtls_aes_crypt_ecb(&aes_ctx, MBEDTLS_AES_ENCRYPT,
                                              chain, chain)) != 0) {
                 goto exit;
             }
+#endif /* MBEDTLS_CIPHER_C */
         }
 
         memcpy(tmp + j, chain, MBEDTLS_CTR_DRBG_BLOCKSIZE);
@@ -199,23 +242,43 @@ static int block_cipher_df(unsigned char *output,
     /*
      * Do final encryption with reduced data
      */
+#if defined(MBEDTLS_CIPHER_C)
+    if ((ret = mbedtls_cipher_setkey(&cipher_ctx, tmp,
+                                     MBEDTLS_CTR_DRBG_KEYBITS,
+                                     MBEDTLS_ENCRYPT)) != 0) {
+        goto exit;
+    }
+#else /* MBEDTLS_CIPHER_C */
     if ((ret = mbedtls_aes_setkey_enc(&aes_ctx, tmp,
                                       MBEDTLS_CTR_DRBG_KEYBITS)) != 0) {
         goto exit;
     }
+#endif /* MBEDTLS_CIPHER_C */
     iv = tmp + MBEDTLS_CTR_DRBG_KEYSIZE;
     p = output;
 
     for (j = 0; j < MBEDTLS_CTR_DRBG_SEEDLEN; j += MBEDTLS_CTR_DRBG_BLOCKSIZE) {
+#if defined(MBEDTLS_CIPHER_C)
+        if ((ret = mbedtls_cipher_crypt(&cipher_ctx, NULL, 0,
+                                        iv, MBEDTLS_CTR_DRBG_BLOCKSIZE,
+                                        iv, &out_len)) != 0) {
+            goto exit;
+        }
+#else /* MBEDTLS_CIPHER_C */
         if ((ret = mbedtls_aes_crypt_ecb(&aes_ctx, MBEDTLS_AES_ENCRYPT,
                                          iv, iv)) != 0) {
             goto exit;
         }
+#endif /* MBEDTLS_CIPHER_C */
         memcpy(p, iv, MBEDTLS_CTR_DRBG_BLOCKSIZE);
         p += MBEDTLS_CTR_DRBG_BLOCKSIZE;
     }
 exit:
+#if defined(MBEDTLS_CIPHER_C)
+    mbedtls_cipher_free(&cipher_ctx);
+#else /* MBEDTLS_CIPHER_C */
     mbedtls_aes_free(&aes_ctx);
+#endif /* MBEDTLS_CIPHER_C */
     /*
      * tidy up the stack
      */
@@ -248,6 +311,9 @@ static int ctr_drbg_update_internal(mbedtls_ctr_drbg_context *ctx,
     unsigned char *p = tmp;
     int i, j;
     int ret = 0;
+#if defined(MBEDTLS_CIPHER_C)
+    size_t out_len;
+#endif /* MBEDTLS_CIPHER_C */
 
     memset(tmp, 0, MBEDTLS_CTR_DRBG_SEEDLEN);
 
@@ -264,10 +330,18 @@ static int ctr_drbg_update_internal(mbedtls_ctr_drbg_context *ctx,
         /*
          * Crypt counter block
          */
+#if defined(MBEDTLS_CIPHER_C)
+        if ((ret = mbedtls_cipher_crypt(&ctx->cipher_ctx, NULL, 0,
+                                        ctx->counter, sizeof(ctx->counter),
+                                        p, &out_len)) != 0) {
+            goto exit;
+        }
+#else /* MBEDTLS_CIPHER_C */
         if ((ret = mbedtls_aes_crypt_ecb(&ctx->aes_ctx, MBEDTLS_AES_ENCRYPT,
                                          ctx->counter, p)) != 0) {
             goto exit;
         }
+#endif /* MBEDTLS_CIPHER_C */
 
         p += MBEDTLS_CTR_DRBG_BLOCKSIZE;
     }
@@ -279,10 +353,18 @@ static int ctr_drbg_update_internal(mbedtls_ctr_drbg_context *ctx,
     /*
      * Update key and counter
      */
+#if defined(MBEDTLS_CIPHER_C)
+    if ((ret = mbedtls_cipher_setkey(&ctx->cipher_ctx, tmp,
+                                     MBEDTLS_CTR_DRBG_KEYBITS,
+                                     MBEDTLS_ENCRYPT)) != 0) {
+        goto exit;
+    }
+#else /* MBEDTLS_CIPHER_C */
     if ((ret = mbedtls_aes_setkey_enc(&ctx->aes_ctx, tmp,
                                       MBEDTLS_CTR_DRBG_KEYBITS)) != 0) {
         goto exit;
     }
+#endif /* MBEDTLS_CIPHER_C */
     memcpy(ctx->counter, tmp + MBEDTLS_CTR_DRBG_KEYSIZE,
            MBEDTLS_CTR_DRBG_BLOCKSIZE);
 
@@ -459,10 +541,18 @@ int mbedtls_ctr_drbg_seed(mbedtls_ctr_drbg_context *ctx,
                  good_nonce_len(ctx->entropy_len));
 
     /* Initialize with an empty key. */
+#if defined(MBEDTLS_CIPHER_C)
+    if ((ret = mbedtls_cipher_setkey(&ctx->cipher_ctx, key,
+                                     MBEDTLS_CTR_DRBG_KEYBITS,
+                                     MBEDTLS_ENCRYPT)) != 0) {
+        return ret;
+    }
+#else /* MBEDTLS_CIPHER_C */
     if ((ret = mbedtls_aes_setkey_enc(&ctx->aes_ctx, key,
                                       MBEDTLS_CTR_DRBG_KEYBITS)) != 0) {
         return ret;
     }
+#endif /* MBEDTLS_CIPHER_C */
 
     /* Do the initial seeding. */
     if ((ret = mbedtls_ctr_drbg_reseed_internal(ctx, custom, len,
@@ -502,6 +592,9 @@ int mbedtls_ctr_drbg_random_with_add(void *p_rng,
     unsigned char tmp[MBEDTLS_CTR_DRBG_BLOCKSIZE];
     int i;
     size_t use_len;
+#if defined(MBEDTLS_CIPHER_C)
+    size_t out_len;
+#endif /* MBEDTLS_CIPHER_C */
 
     if (output_len > MBEDTLS_CTR_DRBG_MAX_REQUEST) {
         return MBEDTLS_ERR_CTR_DRBG_REQUEST_TOO_BIG;
@@ -543,10 +636,18 @@ int mbedtls_ctr_drbg_random_with_add(void *p_rng,
         /*
          * Crypt counter block
          */
+#if defined(MBEDTLS_CIPHER_C)
+        if ((ret = mbedtls_cipher_crypt(&ctx->cipher_ctx, NULL, 0,
+                                        ctx->counter, sizeof(ctx->counter),
+                                        tmp, &out_len)) != 0) {
+            goto exit;
+        }
+#else /* MBEDTLS_CIPHER_C */
         if ((ret = mbedtls_aes_crypt_ecb(&ctx->aes_ctx, MBEDTLS_AES_ENCRYPT,
                                          ctx->counter, tmp)) != 0) {
             goto exit;
         }
+#endif /* MBEDTLS_CIPHER_C */
 
         use_len = (output_len > MBEDTLS_CTR_DRBG_BLOCKSIZE)
             ? MBEDTLS_CTR_DRBG_BLOCKSIZE : output_len;

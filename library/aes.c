@@ -75,6 +75,16 @@
 
 #include "mbedtls/platform.h"
 
+#if !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
+    (!defined(MBEDTLS_AES_SETKEY_DEC_ALT) && !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY))
+#define MBEDTLS_AES_NEED_FORWARD_S_BOXES
+#endif
+
+#if (!defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT)) && \
+    !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#define MBEDTLS_AES_NEED_REVERSE_TABLES
+#endif
+
 #if !defined(MBEDTLS_AES_ALT)
 
 #if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
@@ -85,8 +95,7 @@ static int aes_padlock_ace = -1;
 /*
  * Forward S-box
  */
-#if !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
-    (!defined(MBEDTLS_AES_SETKEY_DEC_ALT) && !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY))
+#if defined(MBEDTLS_AES_NEED_FORWARD_S_BOXES)
 static const unsigned char FSb[256] =
 {
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5,
@@ -122,8 +131,7 @@ static const unsigned char FSb[256] =
     0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68,
     0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
 };
-#endif /* !MBEDTLS_AES_ENCRYPT_ALT || !MBEDTLS_AES_SETKEY_ENC_ALT ||
-          (!MBEDTLS_AES_SETKEY_DEC_ALT && !MBEDTLS_CIPHER_ENCRYPT_ONLY) */
+#endif /* MBEDTLS_AES_NEED_FORWARD_S_BOXES */
 
 /*
  * Forward tables
@@ -331,8 +339,7 @@ static const unsigned char RSb[256] =
     V(71, 01, A8, 39), V(DE, B3, 0C, 08), V(9C, E4, B4, D8), V(90, C1, 56, 64), \
     V(61, 84, CB, 7B), V(70, B6, 32, D5), V(74, 5C, 6C, 48), V(42, 57, B8, D0)
 
-#if (!defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT)) && \
-    !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if defined(MBEDTLS_AES_NEED_REVERSE_TABLES)
 
 #define V(a, b, c, d) 0x##a##b##c##d
 static const uint32_t RT0[256] = { RT };
@@ -353,8 +360,7 @@ static const uint32_t RT3[256] = { RT };
 #undef V
 
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
-#endif /* (!MBEDTLS_AES_DECRYPT_ALT || !MBEDTLS_AES_SETKEY_DEC_ALT) &&
-          !MBEDTLS_CIPHER_ENCRYPT_ONLY */
+#endif /* MBEDTLS_AES_NEED_REVERSE_TABLES */
 
 #undef RT
 
@@ -375,11 +381,9 @@ static const uint32_t RCON[10] =
 /*
  * Forward S-box & tables
  */
-#if !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
-    (!defined(MBEDTLS_AES_SETKEY_DEC_ALT) && !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY))
+#if defined(MBEDTLS_AES_NEED_FORWARD_S_BOXES)
 static unsigned char FSb[256];
-#endif /* !MBEDTLS_AES_ENCRYPT_ALT || !MBEDTLS_AES_SETKEY_ENC_ALT ||
-          (!MBEDTLS_AES_SETKEY_DEC_ALT && !MBEDTLS_CIPHER_ENCRYPT_ONLY) */
+#endif
 #if !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 static uint32_t FT0[256];
 #if !defined(MBEDTLS_AES_FEWER_TABLES)
@@ -392,27 +396,21 @@ static uint32_t FT3[256];
 /*
  * Reverse S-box & tables
  */
-#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT) && !defined(MBEDTLS_AES_SETKEY_DEC_ALT) && \
-    !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if (!defined(MBEDTLS_AES_SETKEY_ENC_ALT) && !defined(MBEDTLS_AES_SETKEY_DEC_ALT)) || \
+    !defined(MBEDTLS_AES_DECRYPT_ALT)
 static unsigned char RSb[256];
-#else /* !MBEDTLS_AES_SETKEY_ENC_ALT && !MBEDTLS_AES_SETKEY_DEC_ALT &&
-         !MBEDTLS_CIPHER_ENCRYPT_ONLY */
-#if !defined(MBEDTLS_AES_DECRYPT_ALT) && !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
-static unsigned char RSb[256];
-#endif /* !MBEDTLS_AES_DECRYPT_ALT && !MBEDTLS_CIPHER_ENCRYPT_ONLY*/
-#endif /* !MBEDTLS_AES_SETKEY_ENC_ALT && !MBEDTLS_AES_SETKEY_DEC_ALT &&
-          !MBEDTLS_CIPHER_ENCRYPT_ONLY */
+#endif
+#endif /* !MBEDTLS_CIPHER_ENCRYPT_ONLY */
 
-#if (!defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT)) && \
-    !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if defined(MBEDTLS_AES_NEED_REVERSE_TABLES)
 static uint32_t RT0[256];
 #if !defined(MBEDTLS_AES_FEWER_TABLES)
 static uint32_t RT1[256];
 static uint32_t RT2[256];
 static uint32_t RT3[256];
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
-#endif /* (!MBEDTLS_AES_DECRYPT_ALT || !MBEDTLS_AES_SETKEY_DEC_ALT) &&
-          !MBEDTLS_CIPHER_ENCRYPT_ONLY */
+#endif /* MBEDTLS_AES_NEED_REVERSE_TABLES */
 
 #if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 /*
@@ -457,11 +455,9 @@ static void aes_gen_tables(void)
      * generate the forward and reverse S-boxes
      */
     FSb[0x00] = 0x63;
-#if (!defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT)) && \
-    !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if defined(MBEDTLS_AES_NEED_REVERSE_TABLES)
     RSb[0x63] = 0x00;
-#endif /* (!MBEDTLS_AES_DECRYPT_ALT || !MBEDTLS_AES_SETKEY_DEC_ALT) &&
-          !MBEDTLS_CIPHER_ENCRYPT_ONLY */
+#endif
 
     for (i = 1; i < 256; i++) {
         x = pow[255 - log[i]];
@@ -473,11 +469,9 @@ static void aes_gen_tables(void)
         x ^= y ^ 0x63;
 
         FSb[i] = x;
-#if (!defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT)) && \
-        !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if defined(MBEDTLS_AES_NEED_REVERSE_TABLES)
         RSb[x] = (unsigned char) i;
-#endif /* (!MBEDTLS_AES_DECRYPT_ALT || !MBEDTLS_AES_SETKEY_DEC_ALT) &&
-          !MBEDTLS_CIPHER_ENCRYPT_ONLY */
+#endif
     }
 
     /*
@@ -499,8 +493,7 @@ static void aes_gen_tables(void)
         FT3[i] = ROTL8(FT2[i]);
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
 
-#if (!defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT)) && \
-        !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if defined(MBEDTLS_AES_NEED_REVERSE_TABLES)
         x = RSb[i];
 
         RT0[i] = ((uint32_t) MUL(0x0E, x)) ^
@@ -513,8 +506,7 @@ static void aes_gen_tables(void)
         RT2[i] = ROTL8(RT1[i]);
         RT3[i] = ROTL8(RT2[i]);
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
-#endif /* (!MBEDTLS_AES_DECRYPT_ALT || !MBEDTLS_AES_SETKEY_DEC_ALT) &&
-          !MBEDTLS_CIPHER_ENCRYPT_ONLY */
+#endif /* MBEDTLS_AES_NEED_REVERSE_TABLES */
     }
 }
 

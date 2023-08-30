@@ -33,26 +33,26 @@ static int check_multipart(mbedtls_gcm_context *ctx,
     /* Allocate a tight buffer for each update call. This way, if the function
      * tries to write beyond the advertised required buffer size, this will
      * count as an overflow for memory sanitizers and static checkers. */
-    ASSERT_ALLOC(output, n1);
+    TEST_CALLOC(output, n1);
     olen = 0xdeadbeef;
     TEST_EQUAL(0, mbedtls_gcm_update(ctx, input->x, n1, output, n1, &olen));
     TEST_EQUAL(n1, olen);
-    ASSERT_COMPARE(output, olen, expected_output->x, n1);
+    TEST_MEMORY_COMPARE(output, olen, expected_output->x, n1);
     mbedtls_free(output);
     output = NULL;
 
-    ASSERT_ALLOC(output, n2);
+    TEST_CALLOC(output, n2);
     olen = 0xdeadbeef;
     TEST_EQUAL(0, mbedtls_gcm_update(ctx, input->x + n1, n2, output, n2, &olen));
     TEST_EQUAL(n2, olen);
-    ASSERT_COMPARE(output, olen, expected_output->x + n1, n2);
+    TEST_MEMORY_COMPARE(output, olen, expected_output->x + n1, n2);
     mbedtls_free(output);
     output = NULL;
 
-    ASSERT_ALLOC(output, tag->len);
+    TEST_CALLOC(output, tag->len);
     TEST_EQUAL(0, mbedtls_gcm_finish(ctx, NULL, 0, &olen, output, tag->len));
     TEST_EQUAL(0, olen);
-    ASSERT_COMPARE(output, tag->len, tag->x, tag->len);
+    TEST_MEMORY_COMPARE(output, tag->len, tag->x, tag->len);
     mbedtls_free(output);
     output = NULL;
 
@@ -87,18 +87,18 @@ static void check_cipher_with_empty_ad(mbedtls_gcm_context *ctx,
     /* Allocate a tight buffer for each update call. This way, if the function
      * tries to write beyond the advertised required buffer size, this will
      * count as an overflow for memory sanitizers and static checkers. */
-    ASSERT_ALLOC(output, input->len);
+    TEST_CALLOC(output, input->len);
     olen = 0xdeadbeef;
     TEST_EQUAL(0, mbedtls_gcm_update(ctx, input->x, input->len, output, input->len, &olen));
     TEST_EQUAL(input->len, olen);
-    ASSERT_COMPARE(output, olen, expected_output->x, input->len);
+    TEST_MEMORY_COMPARE(output, olen, expected_output->x, input->len);
     mbedtls_free(output);
     output = NULL;
 
-    ASSERT_ALLOC(output, tag->len);
+    TEST_CALLOC(output, tag->len);
     TEST_EQUAL(0, mbedtls_gcm_finish(ctx, NULL, 0, &olen, output, tag->len));
     TEST_EQUAL(0, olen);
-    ASSERT_COMPARE(output, tag->len, tag->x, tag->len);
+    TEST_MEMORY_COMPARE(output, tag->len, tag->x, tag->len);
 
 exit:
     mbedtls_free(output);
@@ -124,11 +124,11 @@ static void check_empty_cipher_with_ad(mbedtls_gcm_context *ctx,
         TEST_EQUAL(0, olen);
     }
 
-    ASSERT_ALLOC(output_tag, tag->len);
+    TEST_CALLOC(output_tag, tag->len);
     TEST_EQUAL(0, mbedtls_gcm_finish(ctx, NULL, 0, &olen,
                                      output_tag, tag->len));
     TEST_EQUAL(0, olen);
-    ASSERT_COMPARE(output_tag, tag->len, tag->x, tag->len);
+    TEST_MEMORY_COMPARE(output_tag, tag->len, tag->x, tag->len);
 
 exit:
     mbedtls_free(output_tag);
@@ -144,10 +144,10 @@ static void check_no_cipher_no_ad(mbedtls_gcm_context *ctx,
 
     TEST_EQUAL(0, mbedtls_gcm_starts(ctx, mode,
                                      iv->x, iv->len));
-    ASSERT_ALLOC(output, tag->len);
+    TEST_CALLOC(output, tag->len);
     TEST_EQUAL(0, mbedtls_gcm_finish(ctx, NULL, 0, &olen, output, tag->len));
     TEST_EQUAL(0, olen);
-    ASSERT_COMPARE(output, tag->len, tag->x, tag->len);
+    TEST_MEMORY_COMPARE(output, tag->len, tag->x, tag->len);
 
 exit:
     mbedtls_free(output);
@@ -212,8 +212,8 @@ void gcm_encrypt_and_tag(int cipher_id, data_t *key_str,
                                               iv_str->len, add_str->x, add_str->len, src_str->x,
                                               output, tag_len, tag_output) == 0);
 
-        ASSERT_COMPARE(output, src_str->len, dst->x, dst->len);
-        ASSERT_COMPARE(tag_output, tag_len, tag->x, tag->len);
+        TEST_MEMORY_COMPARE(output, src_str->len, dst->x, dst->len);
+        TEST_MEMORY_COMPARE(tag_output, tag_len, tag->x, tag->len);
 
         for (n1 = 0; n1 <= src_str->len; n1 += 1) {
             for (n1_add = 0; n1_add <= add_str->len; n1_add += 1) {
@@ -269,7 +269,7 @@ void gcm_decrypt_and_verify(int cipher_id, data_t *key_str,
             TEST_ASSERT(ret == MBEDTLS_ERR_GCM_AUTH_FAILED);
         } else {
             TEST_ASSERT(ret == 0);
-            ASSERT_COMPARE(output, src_str->len, pt_result->x, pt_result->len);
+            TEST_MEMORY_COMPARE(output, src_str->len, pt_result->x, pt_result->len);
 
             for (n1 = 0; n1 <= src_str->len; n1 += 1) {
                 for (n1_add = 0; n1_add <= add_str->len; n1_add += 1) {
@@ -448,7 +448,7 @@ void gcm_update_output_buffer_too_small(int cipher_id, int mode,
     TEST_EQUAL(mbedtls_gcm_setkey(&ctx, cipher_id, key_str->x, key_str->len * 8), 0);
     TEST_EQUAL(0, mbedtls_gcm_starts(&ctx, mode, iv->x, iv->len));
 
-    ASSERT_ALLOC(output, output_len);
+    TEST_CALLOC(output, output_len);
     TEST_EQUAL(MBEDTLS_ERR_GCM_BUFFER_TOO_SMALL,
                mbedtls_gcm_update(&ctx, input->x, input->len, output, output_len, &olen));
 

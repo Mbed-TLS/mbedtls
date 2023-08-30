@@ -130,6 +130,15 @@ void mbedtls_platform_zeroize(void *buf, size_t len)
 }
 #endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT */
 
+void mbedtls_zeroize_and_free(void *buf, size_t len)
+{
+    if (buf != NULL) {
+        mbedtls_platform_zeroize(buf, len);
+    }
+
+    mbedtls_free(buf);
+}
+
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)
 #include <time.h>
 #if !defined(_WIN32) && (defined(unix) || \

@@ -86,6 +86,8 @@
 #include "mbedtls/bignum.h"
 #endif
 
+#include "constant_time_internal.h"
+
 #define ciL    (sizeof(mbedtls_mpi_uint))     /** chars in limb  */
 #define biL    (ciL << 3)                     /** bits  in limb  */
 #define biH    (ciL << 2)                     /** half limb size */
@@ -142,11 +144,29 @@ void mbedtls_mpi_core_bigendian_to_host(mbedtls_mpi_uint *A,
  * \param A_limbs  The number of limbs of \p A.
  *                 This must be at least 1.
  *
- * \return         1 if \p min is less than or equal to \p A, otherwise 0.
+ * \return         MBEDTLS_CT_TRUE if \p min is less than or equal to \p A, otherwise MBEDTLS_CT_FALSE.
  */
-unsigned mbedtls_mpi_core_uint_le_mpi(mbedtls_mpi_uint min,
-                                      const mbedtls_mpi_uint *A,
-                                      size_t A_limbs);
+mbedtls_ct_condition_t mbedtls_mpi_core_uint_le_mpi(mbedtls_mpi_uint min,
+                                                    const mbedtls_mpi_uint *A,
+                                                    size_t A_limbs);
+
+/**
+ * \brief          Check if one unsigned MPI is less than another in constant
+ *                 time.
+ *
+ * \param A        The left-hand MPI. This must point to an array of limbs
+ *                 with the same allocated length as \p B.
+ * \param B        The right-hand MPI. This must point to an array of limbs
+ *                 with the same allocated length as \p A.
+ * \param limbs    The number of limbs in \p A and \p B.
+ *                 This must not be 0.
+ *
+ * \return         MBEDTLS_CT_TRUE  if \p A is less than \p B.
+ *                 MBEDTLS_CT_FALSE if \p A is greater than or equal to \p B.
+ */
+mbedtls_ct_condition_t mbedtls_mpi_core_lt_ct(const mbedtls_mpi_uint *A,
+                                              const mbedtls_mpi_uint *B,
+                                              size_t limbs);
 
 /**
  * \brief   Perform a safe conditional copy of an MPI which doesn't reveal
@@ -158,21 +178,17 @@ unsigned mbedtls_mpi_core_uint_le_mpi(mbedtls_mpi_uint min,
  * \param[in]  A        The address of the source MPI. This must be initialized.
  * \param      limbs    The number of limbs of \p A.
  * \param      assign   The condition deciding whether to perform the
- *                      assignment or not. Must be either 0 or 1:
- *                      * \c 1: Perform the assignment `X = A`.
- *                      * \c 0: Keep the original value of \p X.
+ *                      assignment or not. Callers will need to use
+ *                      the constant time interface (e.g. `mbedtls_ct_bool()`)
+ *                      to construct this argument.
  *
  * \note           This function avoids leaking any information about whether
  *                 the assignment was done or not.
- *
- * \warning        If \p assign is neither 0 nor 1, the result of this function
- *                 is indeterminate, and the resulting value in \p X might be
- *                 neither its original value nor the value in \p A.
  */
 void mbedtls_mpi_core_cond_assign(mbedtls_mpi_uint *X,
                                   const mbedtls_mpi_uint *A,
                                   size_t limbs,
-                                  unsigned char assign);
+                                  mbedtls_ct_condition_t assign);
 
 /**
  * \brief   Perform a safe conditional swap of two MPIs which doesn't reveal
@@ -184,21 +200,15 @@ void mbedtls_mpi_core_cond_assign(mbedtls_mpi_uint *X,
  *                          This must be initialized.
  * \param         limbs     The number of limbs of \p X and \p Y.
  * \param         swap      The condition deciding whether to perform
- *                          the swap or not. Must be either 0 or 1:
- *                          * \c 1: Swap the values of \p X and \p Y.
- *                          * \c 0: Keep the original values of \p X and \p Y.
+ *                          the swap or not.
  *
  * \note           This function avoids leaking any information about whether
  *                 the swap was done or not.
- *
- * \warning        If \p swap is neither 0 nor 1, the result of this function
- *                 is indeterminate, and both \p X and \p Y might end up with
- *                 values different to either of the original ones.
  */
 void mbedtls_mpi_core_cond_swap(mbedtls_mpi_uint *X,
                                 mbedtls_mpi_uint *Y,
                                 size_t limbs,
-                                unsigned char swap);
+                                mbedtls_ct_condition_t swap);
 
 /** Import X from unsigned binary data, little-endian.
  *

@@ -17,7 +17,7 @@ int generic_write_start_step(generic_write_data_t *data)
     mbedtls_test_set_step(data->size);
     mbedtls_free(data->output);
     data->output = NULL;
-    ASSERT_ALLOC(data->output, data->size == 0 ? 1 : data->size);
+    TEST_CALLOC(data->output, data->size == 0 ? 1 : data->size);
     data->end = data->output + data->size;
     data->p = data->end;
     data->start = data->end - data->size;
@@ -37,8 +37,8 @@ int generic_write_finish_step(generic_write_data_t *data,
         TEST_EQUAL(ret, data->end - data->p);
         TEST_ASSERT(data->p >= data->start);
         TEST_ASSERT(data->p <= data->end);
-        ASSERT_COMPARE(data->p, (size_t) (data->end - data->p),
-                       expected->x, expected->len);
+        TEST_MEMORY_COMPARE(data->p, (size_t) (data->end - data->p),
+                            expected->x, expected->len);
     }
     ok = 1;
 
@@ -296,7 +296,7 @@ void mbedtls_asn1_write_algorithm_identifier(data_t *oid,
             size_t len_complete = data_len + par_len;
             unsigned char expected_params_tag;
             size_t expected_params_len;
-            ASSERT_ALLOC(buf_complete, len_complete);
+            TEST_CALLOC(buf_complete, len_complete);
             unsigned char *end_complete = buf_complete + len_complete;
             memcpy(buf_complete, data.p, data_len);
             if (par_len == 0) {
@@ -316,13 +316,13 @@ void mbedtls_asn1_write_algorithm_identifier(data_t *oid,
                 buf_complete[data_len + 2] = (unsigned char) (expected_params_len >> 8);
                 buf_complete[data_len + 3] = (unsigned char) (expected_params_len);
             } else {
-                TEST_ASSERT(!"Bad test data: invalid length of ASN.1 element");
+                TEST_FAIL("Bad test data: invalid length of ASN.1 element");
             }
             unsigned char *p = buf_complete;
             TEST_EQUAL(mbedtls_asn1_get_alg(&p, end_complete,
                                             &alg, &params), 0);
             TEST_EQUAL(alg.tag, MBEDTLS_ASN1_OID);
-            ASSERT_COMPARE(alg.p, alg.len, oid->x, oid->len);
+            TEST_MEMORY_COMPARE(alg.p, alg.len, oid->x, oid->len);
             TEST_EQUAL(params.tag, expected_params_tag);
             TEST_EQUAL(params.len, expected_params_len);
             mbedtls_free(buf_complete);
@@ -404,7 +404,7 @@ void test_asn1_write_bitstrings(data_t *bitstring, int bits,
     TEST_ASSERT(bitstring->len >= byte_length);
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
-    ASSERT_ALLOC(masked_bitstring, byte_length);
+    TEST_CALLOC(masked_bitstring, byte_length);
     if (byte_length != 0) {
         memcpy(masked_bitstring, bitstring->x, byte_length);
         if (bits % 8 != 0) {
@@ -440,8 +440,8 @@ void test_asn1_write_bitstrings(data_t *bitstring, int bits,
             mbedtls_asn1_bitstring read = { 0, 0, NULL };
             TEST_EQUAL(mbedtls_asn1_get_bitstring(&data.p, data.end,
                                                   &read), 0);
-            ASSERT_COMPARE(read.p, read.len,
-                           masked_bitstring, byte_length);
+            TEST_MEMORY_COMPARE(read.p, read.len,
+                                masked_bitstring, byte_length);
             TEST_EQUAL(read.unused_bits, 8 * byte_length - value_bits);
         }
 #endif /* MBEDTLS_ASN1_PARSE_C */
@@ -477,7 +477,7 @@ void store_named_data_find(data_t *oid0, data_t *oid1,
     }
     pointers[ARRAY_LENGTH(nd)] = NULL;
     for (i = 0; i < ARRAY_LENGTH(nd); i++) {
-        ASSERT_ALLOC(nd[i].oid.p, oid[i]->len);
+        TEST_CALLOC(nd[i].oid.p, oid[i]->len);
         memcpy(nd[i].oid.p, oid[i]->x, oid[i]->len);
         nd[i].oid.len = oid[i]->len;
         nd[i].next = pointers[i+1];
@@ -529,7 +529,7 @@ void store_named_data_val_found(int old_len, int new_len)
     unsigned char *new_val = (unsigned char *) "new value";
 
     if (old_len != 0) {
-        ASSERT_ALLOC(nd.val.p, (size_t) old_len);
+        TEST_CALLOC(nd.val.p, (size_t) old_len);
         old_val = nd.val.p;
         nd.val.len = old_len;
         memset(old_val, 'x', old_len);
@@ -545,8 +545,8 @@ void store_named_data_val_found(int old_len, int new_len)
     TEST_ASSERT(found == head);
 
     if (new_val != NULL) {
-        ASSERT_COMPARE(found->val.p, found->val.len,
-                       new_val, (size_t) new_len);
+        TEST_MEMORY_COMPARE(found->val.p, found->val.len,
+                            new_val, (size_t) new_len);
     }
     if (new_len == 0) {
         TEST_ASSERT(found->val.p == NULL);
@@ -580,15 +580,15 @@ void store_named_data_val_new(int new_len, int set_new_val)
     TEST_ASSERT(found != NULL);
     TEST_ASSERT(found == head);
     TEST_ASSERT(found->oid.p != oid);
-    ASSERT_COMPARE(found->oid.p, found->oid.len, oid, oid_len);
+    TEST_MEMORY_COMPARE(found->oid.p, found->oid.len, oid, oid_len);
     if (new_len == 0) {
         TEST_ASSERT(found->val.p == NULL);
     } else if (new_val == NULL) {
         TEST_ASSERT(found->val.p != NULL);
     } else {
         TEST_ASSERT(found->val.p != new_val);
-        ASSERT_COMPARE(found->val.p, found->val.len,
-                       new_val, (size_t) new_len);
+        TEST_MEMORY_COMPARE(found->val.p, found->val.len,
+                            new_val, (size_t) new_len);
     }
 
 exit:

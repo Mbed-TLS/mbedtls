@@ -85,8 +85,8 @@ void pkcs7_verify(char *pkcs7_file,
         }
     }
 
-    ASSERT_ALLOC(crts, n_crts);
-    ASSERT_ALLOC(crt_files_arr, n_crts);
+    TEST_CALLOC(crts, n_crts);
+    TEST_CALLOC(crt_files_arr, n_crts);
 
     for (i = 0; i < strlen(crt_files); i++) {
         for (k = i; k < strlen(crt_files); k++) {
@@ -94,7 +94,7 @@ void pkcs7_verify(char *pkcs7_file,
                 break;
             }
         }
-        ASSERT_ALLOC(crt_files_arr[cnt], (k-i)+1);
+        TEST_CALLOC(crt_files_arr[cnt], (k-i)+1);
         crt_files_arr[cnt][k-i] = '\0';
         memcpy(crt_files_arr[cnt++], crt_files + i, k-i);
         i = k;
@@ -102,7 +102,7 @@ void pkcs7_verify(char *pkcs7_file,
 
     mbedtls_pkcs7_init(&pkcs7);
     for (i = 0; i < n_crts; i++) {
-        ASSERT_ALLOC(crts[i], 1);
+        TEST_CALLOC(crts[i], 1);
         mbedtls_x509_crt_init(crts[i]);
     }
 
@@ -127,7 +127,7 @@ void pkcs7_verify(char *pkcs7_file,
 
     datalen = st.st_size;
     /* Special-case for zero-length input so that data will be non-NULL */
-    ASSERT_ALLOC(data, datalen == 0 ? 1 : datalen);
+    TEST_CALLOC(data, datalen == 0 ? 1 : datalen);
     buflen = fread((void *) data, sizeof(unsigned char), datalen, file);
     TEST_EQUAL(buflen, datalen);
 
@@ -135,7 +135,7 @@ void pkcs7_verify(char *pkcs7_file,
 
     if (do_hash_alg) {
         md_info = mbedtls_md_info_from_type((mbedtls_md_type_t) do_hash_alg);
-        ASSERT_ALLOC(hash, mbedtls_md_get_size(md_info));
+        TEST_CALLOC(hash, mbedtls_md_get_size(md_info));
         res = mbedtls_md(md_info, data, datalen, hash);
         TEST_EQUAL(res, 0);
 

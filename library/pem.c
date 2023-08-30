@@ -406,16 +406,14 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
     }
 
     if ((ret = mbedtls_base64_decode(buf, len, &len, s1, s2 - s1)) != 0) {
-        mbedtls_platform_zeroize(buf, len);
-        mbedtls_free(buf);
+        mbedtls_zeroize_and_free(buf, len);
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PEM_INVALID_DATA, ret);
     }
 
     if (enc != 0) {
 #if defined(PEM_RFC1421)
         if (pwd == NULL) {
-            mbedtls_platform_zeroize(buf, len);
-            mbedtls_free(buf);
+            mbedtls_zeroize_and_free(buf, len);
             return MBEDTLS_ERR_PEM_PASSWORD_REQUIRED;
         }
 
@@ -451,13 +449,11 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
          * Use that as a heuristic to try to detect password mismatches.
          */
         if (len <= 2 || buf[0] != 0x30 || buf[1] > 0x83) {
-            mbedtls_platform_zeroize(buf, len);
-            mbedtls_free(buf);
+            mbedtls_zeroize_and_free(buf, len);
             return MBEDTLS_ERR_PEM_PASSWORD_MISMATCH;
         }
 #else
-        mbedtls_platform_zeroize(buf, len);
-        mbedtls_free(buf);
+        mbedtls_zeroize_and_free(buf, len);
         return MBEDTLS_ERR_PEM_FEATURE_UNAVAILABLE;
 #endif /* PEM_RFC1421 */
     }
@@ -471,8 +467,7 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
 void mbedtls_pem_free(mbedtls_pem_context *ctx)
 {
     if (ctx->buf != NULL) {
-        mbedtls_platform_zeroize(ctx->buf, ctx->buflen);
-        mbedtls_free(ctx->buf);
+        mbedtls_zeroize_and_free(ctx->buf, ctx->buflen);
     }
     mbedtls_free(ctx->info);
 

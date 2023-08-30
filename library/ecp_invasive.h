@@ -40,11 +40,6 @@ typedef enum {
     MBEDTLS_ECP_MOD_SCALAR
 } mbedtls_ecp_modulus_type;
 
-/* Provide a commented-out definition so that `check_names.py` knows that
- * it's not a typo.
- */
-//#define MBEDTLS_ECP_WITH_MPI_UINT
-
 typedef enum {
     MBEDTLS_ECP_VARIANT_NONE = 0,
     MBEDTLS_ECP_VARIANT_WITH_MPI_STRUCT,

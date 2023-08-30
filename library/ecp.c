@@ -43,8 +43,6 @@
 
 #include "common.h"
 
-#if !defined(MBEDTLS_ECP_WITH_MPI_UINT)
-
 /**
  * \brief Function level alternative implementation.
  *
@@ -594,6 +592,11 @@ void mbedtls_ecp_group_free(mbedtls_ecp_group *grp)
         mbedtls_mpi_free(&grp->A);
         mbedtls_mpi_free(&grp->B);
         mbedtls_ecp_point_free(&grp->G);
+
+#if !defined(MBEDTLS_ECP_WITH_MPI_UINT)
+        mbedtls_mpi_free(&grp->N);
+        mbedtls_mpi_free(&grp->P);
+#endif
     }
 
     if (!ecp_group_is_static_comb_table(grp) && grp->T != NULL) {
@@ -1252,7 +1255,7 @@ static int ecp_sw_rhs(const mbedtls_ecp_group *grp,
     MPI_ECP_SQR(rhs, X);
 
     /* Special case for A = -3 */
-    if (grp->A.p == NULL) {
+    if (mbedtls_ecp_group_a_is_minus_3(grp)) {
         MPI_ECP_SUB_INT(rhs, rhs, 3);
     } else {
         MPI_ECP_ADD(rhs, rhs, &grp->A);
@@ -1523,7 +1526,7 @@ static int ecp_double_jac(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     /* Special case for A = -3 */
-    if (grp->A.p == NULL) {
+    if (mbedtls_ecp_group_a_is_minus_3(grp)) {
         /* tmp[0] <- M = 3(X + Z^2)(X - Z^2) */
         MPI_ECP_SQR(&tmp[1],  &P->Z);
         MPI_ECP_ADD(&tmp[2],  &P->X,  &tmp[1]);
@@ -3636,18 +3639,6 @@ cleanup:
 
 #endif /* MBEDTLS_SELF_TEST */
 
-#if defined(MBEDTLS_TEST_HOOKS)
-
-MBEDTLS_STATIC_TESTABLE
-mbedtls_ecp_variant mbedtls_ecp_get_variant()
-{
-    return MBEDTLS_ECP_VARIANT_WITH_MPI_STRUCT;
-}
-
-#endif /* MBEDTLS_TEST_HOOKS */
-
 #endif /* !MBEDTLS_ECP_ALT */
 
 #endif /* MBEDTLS_ECP_LIGHT */
-
-#endif /* !MBEDTLS_ECP_WITH_MPI_UINT */

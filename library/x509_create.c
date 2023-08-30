@@ -137,10 +137,11 @@ static int hex_to_int(char c)
            ('A' <= c && c <= 'F') ? (c - 'A' + 10) : -1;
 }
 
-static int hexpair_to_int(char c1, char c2)
+static int hexpair_to_int(const char *hexpair)
 {
-    int n1 = hex_to_int(c1);
-    int n2 = hex_to_int(c2);
+    int n1 = hex_to_int(*hexpair);
+    int n2 = hex_to_int(*(hexpair + 1));
+    
     if (n1 != -1 && n2 != -1) {
         return (n1 << 4) | n2;
     } else {
@@ -164,7 +165,7 @@ static int parse_attribute_value_string(const char *s,
             c++;
 
             /* Check for valid escaped characters as per RFC 4514 Section 3 */
-            if (c + 1 < end && (n = hexpair_to_int(*c, *(c+1))) != -1) {
+            if (c + 1 < end && (n = hexpair_to_int(c)) != -1) {
                 if (n == 0) {
                     return MBEDTLS_ERR_X509_INVALID_NAME;
                 }
@@ -209,13 +210,13 @@ static int parse_attribute_value_der_encoded(const char *s,
         return MBEDTLS_ERR_X509_INVALID_NAME;
     }
     c++;
-    if ((*tag = hexpair_to_int(*c, *(c+1))) == -1) {
+    if ((*tag = hexpair_to_int(c)) == -1) {
         return MBEDTLS_ERR_X509_INVALID_NAME;
     }
     c += 2;
     p = asn1_der_buf;
     for (p = asn1_der_buf; c < end; c += 2) {
-        if ((c + 1 >= end) || (n = hexpair_to_int(*c, *(c+1))) == -1) {
+        if ((c + 1 >= end) || (n = hexpair_to_int(c)) == -1) {
             return MBEDTLS_ERR_X509_INVALID_NAME;
         }
         if (MBEDTLS_ASN1_IS_STRING_TAG(*tag) && n == 0) {

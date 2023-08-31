@@ -30,23 +30,7 @@
 #ifndef MBEDTLS_CONFIG_PSA_H
 #define MBEDTLS_CONFIG_PSA_H
 
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG_FILE)
-#include MBEDTLS_PSA_CRYPTO_CONFIG_FILE
-#else
-#include "psa/crypto_config.h"
-#endif
-#endif /* defined(MBEDTLS_PSA_CRYPTO_CONFIG) */
-
-#if defined(MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE)
-#include MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE
-#endif
-
 #include "psa/crypto_legacy.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 
@@ -111,6 +95,13 @@ extern "C" {
 
 #if defined(MBEDTLS_SHA512_C)
 #define PSA_WANT_ALG_SHA_512 1
+#endif
+
+#if defined(MBEDTLS_SHA3_C)
+#define PSA_WANT_ALG_SHA3_224 1
+#define PSA_WANT_ALG_SHA3_256 1
+#define PSA_WANT_ALG_SHA3_384 1
+#define PSA_WANT_ALG_SHA3_512 1
 #endif
 
 
@@ -270,9 +261,30 @@ extern "C" {
 #define MBEDTLS_SHA512_C
 #endif
 
+#if defined(PSA_WANT_ALG_SHA3_224) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_224)
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_224 1
+#define MBEDTLS_SHA3_C
+#endif
+
+#if defined(PSA_WANT_ALG_SHA3_256) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_256)
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_256 1
+#define MBEDTLS_SHA3_C
+#endif
+
+#if defined(PSA_WANT_ALG_SHA3_384) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_384)
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_384 1
+#define MBEDTLS_SHA3_C
+#endif
+
+#if defined(PSA_WANT_ALG_SHA3_512) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_512)
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_512 1
+#define MBEDTLS_SHA3_C
+#endif
+
 #if defined(PSA_WANT_ALG_PBKDF2_HMAC)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_PBKDF2_HMAC)
 #define MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC 1
+#define PSA_HAVE_SOFT_PBKDF2_HMAC
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_HMAC)
 #define MBEDTLS_PSA_BUILTIN_ALG_HMAC 1
 #endif /* !MBEDTLS_PSA_ACCEL_ALG_HMAC */
@@ -438,13 +450,21 @@ extern "C" {
 #define PSA_HAVE_SOFT_BLOCK_AEAD 1
 #endif
 
+#if defined(PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_PBKDF2_AES_CMAC_PRF_128)
+#define MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128 1
+#define PSA_HAVE_SOFT_PBKDF2_CMAC
+#endif /* !MBEDTLS_PSA_ACCEL_ALG_PBKDF2_AES_CMAC_PRF_128 */
+#endif /* PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128 */
+
 #if defined(PSA_WANT_KEY_TYPE_AES)
 #if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
 #define PSA_HAVE_SOFT_KEY_TYPE_AES 1
 #endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_AES */
 #if defined(PSA_HAVE_SOFT_KEY_TYPE_AES) || \
     defined(PSA_HAVE_SOFT_BLOCK_MODE) || \
-    defined(PSA_HAVE_SOFT_BLOCK_AEAD)
+    defined(PSA_HAVE_SOFT_BLOCK_AEAD) || \
+    defined(PSA_HAVE_SOFT_PBKDF2_CMAC)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_AES 1
 #define MBEDTLS_AES_C
 #endif /* PSA_HAVE_SOFT_KEY_TYPE_AES || PSA_HAVE_SOFT_BLOCK_MODE */
@@ -515,11 +535,17 @@ extern "C" {
 
 #if defined(PSA_WANT_ALG_CMAC)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_CMAC) || \
-    defined(PSA_HAVE_SOFT_BLOCK_CIPHER)
+    defined(PSA_HAVE_SOFT_BLOCK_CIPHER) || \
+    defined(PSA_HAVE_SOFT_PBKDF2_CMAC)
 #define MBEDTLS_PSA_BUILTIN_ALG_CMAC 1
 #define MBEDTLS_CMAC_C
 #endif /* !MBEDTLS_PSA_ACCEL_ALG_CMAC */
 #endif /* PSA_WANT_ALG_CMAC */
+
+#if defined(PSA_HAVE_SOFT_PBKDF2_HMAC) || \
+    defined(PSA_HAVE_SOFT_PBKDF2_CMAC)
+#define PSA_HAVE_SOFT_PBKDF2 1
+#endif /* PSA_HAVE_SOFT_PBKDF2_HMAC || PSA_HAVE_SOFT_PBKDF2_CMAC */
 
 #if defined(PSA_WANT_ALG_CTR)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_CTR) || \
@@ -873,6 +899,17 @@ extern "C" {
 #define PSA_WANT_ALG_SHA_512 1
 #endif
 
+#if defined(MBEDTLS_SHA3_C)
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_224 1
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_256 1
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_384 1
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA3_512 1
+#define PSA_WANT_ALG_SHA3_224 1
+#define PSA_WANT_ALG_SHA3_256 1
+#define PSA_WANT_ALG_SHA3_384 1
+#define PSA_WANT_ALG_SHA3_512 1
+#endif
+
 #if defined(MBEDTLS_AES_C)
 #define PSA_WANT_KEY_TYPE_AES 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_AES 1
@@ -1058,9 +1095,5 @@ extern "C" {
 #define PSA_WANT_KEY_TYPE_PASSWORD 1
 #define PSA_WANT_KEY_TYPE_PASSWORD_HASH 1
 #define PSA_WANT_KEY_TYPE_RAW_DATA 1
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* MBEDTLS_CONFIG_PSA_H */

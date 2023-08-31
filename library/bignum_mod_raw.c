@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_BIGNUM_C)
+#if defined(MBEDTLS_BIGNUM_C) && defined(MBEDTLS_ECP_WITH_MPI_UINT)
 
 #include <string.h>
 
@@ -285,4 +285,4 @@ void mbedtls_mpi_mod_raw_neg(mbedtls_mpi_uint *X,
     (void) mbedtls_mpi_core_add_if(X, N->p, N->limbs, (unsigned) borrow);
 }
 
-#endif /* MBEDTLS_BIGNUM_C */
+#endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ECP_WITH_MPI_UINT */

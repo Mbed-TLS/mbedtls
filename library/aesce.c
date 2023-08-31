@@ -94,25 +94,39 @@
 #endif /* !(__ARM_FEATURE_CRYPTO || __ARM_FEATURE_AES) ||
           MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG */
 
-#if defined(__linux__)
+#if defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+
 #include <asm/hwcap.h>
 #include <sys/auxv.h>
-#endif
 
+signed char mbedtls_aesce_has_support_result = -1;
+
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 /*
  * AES instruction support detection routine
  */
-int mbedtls_aesce_has_support(void)
+int mbedtls_aesce_has_support_impl(void)
 {
-#if defined(__linux__)
-    unsigned long auxval = getauxval(AT_HWCAP);
-    return (auxval & (HWCAP_ASIMD | HWCAP_AES)) ==
-           (HWCAP_ASIMD | HWCAP_AES);
-#else
-    /* Assume AES instructions are supported. */
-    return 1;
-#endif
+    /* To avoid many calls to getauxval, cache the result. This is
+     * thread-safe, because we store the result in a char so cannot
+     * be vulnerable to non-atomic updates.
+     * It is possible that we could end up setting result more than
+     * once, but that is harmless.
+     */
+    if (mbedtls_aesce_has_support_result == -1) {
+        unsigned long auxval = getauxval(AT_HWCAP);
+        if ((auxval & (HWCAP_ASIMD | HWCAP_AES)) ==
+            (HWCAP_ASIMD | HWCAP_AES)) {
+            mbedtls_aesce_has_support_result = 1;
+        } else {
+            mbedtls_aesce_has_support_result = 0;
+        }
+    }
+    return mbedtls_aesce_has_support_result;
 }
+#endif
+
+#endif /* defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY) */
 
 /* Single round of AESCE encryption */
 #define AESCE_ENCRYPT_ROUND                   \

@@ -175,9 +175,7 @@ psa_status_t mbedtls_to_psa_error(int ret)
 #endif
 
 #if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
-#if defined(MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA)
         case MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA:
-#endif
         case MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH:
             return PSA_ERROR_NOT_SUPPORTED;
 #endif

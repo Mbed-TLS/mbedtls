@@ -123,15 +123,27 @@ set -e -o pipefail -u
 # Enable ksh/bash extended file matching patterns
 shopt -s extglob
 
+in_mbedtls_repo () {
+    test -d include -a -d library -a -d programs -a -d tests
+}
+
+in_psa_crypto_repo () {
+    test -d include -a -d core -a -d drivers -a -d programs -a -d tests
+}
+
 pre_check_environment () {
-    if [ -d library -a -d include -a -d tests ]; then :; else
-        echo "Must be run from mbed TLS root" >&2
+    if in_mbedtls_repo || in_psa_crypto_repo; then :; else
+        echo "Must be run from Mbed TLS / psa-crypto root" >&2
         exit 1
     fi
 }
 
 pre_initialize_variables () {
-    CONFIG_H='include/mbedtls/mbedtls_config.h'
+    if in_mbedtls_repo; then
+        CONFIG_H='include/mbedtls/mbedtls_config.h'
+    else
+        CONFIG_H='drivers/builtin/include/mbedtls/mbedtls_config.h'
+    fi
     CRYPTO_CONFIG_H='include/psa/crypto_config.h'
     CONFIG_TEST_DRIVER_H='tests/include/test/drivers/config_test_driver.h'
 
@@ -141,8 +153,10 @@ pre_initialize_variables () {
     backup_suffix='.all.bak'
     # Files clobbered by config.py
     files_to_back_up="$CONFIG_H $CRYPTO_CONFIG_H $CONFIG_TEST_DRIVER_H"
-    # Files clobbered by in-tree cmake
-    files_to_back_up="$files_to_back_up Makefile library/Makefile programs/Makefile tests/Makefile programs/fuzz/Makefile"
+    if in_mbedtls_repo; then
+        # Files clobbered by in-tree cmake
+        files_to_back_up="$files_to_back_up Makefile library/Makefile programs/Makefile tests/Makefile programs/fuzz/Makefile"
+    fi
 
     append_outcome=0
     MEMORY=0
@@ -299,7 +313,9 @@ EOF
 # Does not remove generated source files.
 cleanup()
 {
-    command make clean
+    if in_mbedtls_repo; then
+        command make clean
+    fi
 
     # Remove CMake artefacts
     find . -name .git -prune -o \
@@ -556,7 +572,7 @@ pre_check_git () {
         fi
 
         if ! git diff --quiet "$CONFIG_H"; then
-            err_msg "Warning - the configuration file 'include/mbedtls/mbedtls_config.h' has been edited. "
+            err_msg "Warning - the configuration file '$CONFIG_H' has been edited. "
             echo "You can either delete or preserve your work, or force the test by rerunning the"
             echo "script as: $0 --force"
             exit 1
@@ -5284,7 +5300,9 @@ pre_prepare_outcome_file
 pre_print_configuration
 pre_check_tools
 cleanup
-pre_generate_files
+if in_mbedtls_repo; then
+    pre_generate_files
+fi
 
 # Run the requested tests.
 for ((error_test_i=1; error_test_i <= error_test; error_test_i++)); do

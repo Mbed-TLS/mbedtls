@@ -1324,8 +1324,8 @@ void ecp_mod_p_generic_raw(int curve_id,
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) && defined(MBEDTLS_ECP_NIST_OPTIM)
         case MBEDTLS_ECP_DP_SECP521R1:
-            limbs = BITS_TO_LIMBS(522) * 2;
-            curve_bits = 522;
+            limbs = BITS_TO_LIMBS(521) * 2;
+            curve_bits = 521;
             curve_func = &mbedtls_ecp_mod_p521_raw;
             break;
 #endif
@@ -1377,8 +1377,8 @@ void ecp_mod_p_generic_raw(int curve_id,
 
     TEST_EQUAL((*curve_func)(X, limbs_X), 0);
 
-    TEST_LE_U(mbedtls_mpi_core_bitlen(X, limbs_X), curve_bits);
     mbedtls_mpi_mod_raw_fix_quasi_reduction(X, &m);
+    TEST_LE_U(mbedtls_mpi_core_bitlen(X, limbs_X), curve_bits);
     TEST_MEMORY_COMPARE(X, bytes, res, bytes);
 
 exit:

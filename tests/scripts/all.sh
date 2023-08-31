@@ -4219,6 +4219,45 @@ component_test_cipher_encrypt_only_aesni () {
     rm -f psa_cipher_encrypt_only.h
 }
 
+support_test_cipher_encrypt_only_aesce_armcc () {
+    armc6_cc="$ARMC6_BIN_DIR/armclang"
+    (check_tools "$armc6_cc" > /dev/null 2>&1)
+}
+
+component_test_cipher_encrypt_only_aesce_armcc () {
+    scripts/config.py baremetal
+
+    # armc[56] don't support SHA-512 intrinsics
+    scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
+
+    # Stop armclang warning about feature detection for A64_CRYPTO.
+    # With this enabled, the library does build correctly under armclang,
+    # but in baremetal builds (as tested here), feature detection is
+    # unavailable, and the user is notified via a #warning. So enabling
+    # this feature would prevent us from building with -Werror on
+    # armclang. Tracked in #7198.
+    scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+    scripts/config.py set MBEDTLS_HAVE_ASM
+
+    # pre-setup to implicitly enable CIPHER_ENCRYPT_ONLY
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+
+    echo '#undef PSA_WANT_ALG_CBC_NO_PADDING' >> psa_cipher_encrypt_only.h
+    echo '#undef PSA_WANT_ALG_CBC_PKCS7' >> psa_cipher_encrypt_only.h
+    echo '#undef PSA_WANT_ALG_ECB_NO_PADDING' >> psa_cipher_encrypt_only.h
+
+    # test AESCE baremetal build
+    scripts/config.py set MBEDTLS_AESCE_C
+    msg "build: implicitly enable CIPER_ENCRYPT_ONLY with AESCE"
+    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto \
+        -I '$PWD' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
+
+    rm -f psa_cipher_encrypt_only.h
+}
+
 component_test_ctr_drbg_aes_256_sha_256 () {
     msg "build: full + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
     scripts/config.py full

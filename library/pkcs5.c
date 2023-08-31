@@ -126,7 +126,7 @@ int mbedtls_pkcs5_pbes2(const mbedtls_asn1_buf *pbe_params, int mode,
     size_t output_len = 0;
 
     /* We assume caller of the function is providing a big enough output buffer
-     * so we pass output_size as SIZE_MAX to pass checks, However, no gurantees
+     * so we pass output_size as SIZE_MAX to pass checks, However, no guarantees
      * for the output size actually being correct.
      */
     return mbedtls_pkcs5_pbes2_ext(pbe_params, mode, pwd, pwdlen, data,

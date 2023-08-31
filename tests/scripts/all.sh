@@ -4219,6 +4219,48 @@ component_test_cipher_encrypt_only_aesni () {
     rm -f psa_cipher_encrypt_only.h
 }
 
+component_test_cipher_encrypt_only_aesni_m32 () {
+    # pre-setup to implicitly enable CIPHER_ENCRYPT_ONLY
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+
+    echo '#undef PSA_WANT_ALG_CBC_NO_PADDING' >> psa_cipher_encrypt_only.h
+    echo '#undef PSA_WANT_ALG_CBC_PKCS7' >> psa_cipher_encrypt_only.h
+    echo '#undef PSA_WANT_ALG_ECB_NO_PADDING' >> psa_cipher_encrypt_only.h
+
+    # test AESNI intrinsics for i386 with VIA PADLOCK
+    scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py set MBEDTLS_PADLOCK_C
+    msg "build: implicitly enable CIPER_ENCRYPT_ONLY for i386 with VIA PADLOCK"
+    make clean
+    make CC=gcc LDFLAGS='-m32' CFLAGS="-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes\
+        -I '$PWD' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
+
+    msg "test: implicitly enable CIPER_ENCRYPT_ONLY for i386 with VIA PADLOCK"
+    make test
+
+    msg "selftest: implicitly enable CIPER_ENCRYPT_ONLY for i386 with VIA PADLOCK"
+    programs/test/selftest
+
+    # test AESNI intrinsics for i386 without VIA PADLOCK
+    scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_PADLOCK_C
+    msg "build: implicitly enable CIPER_ENCRYPT_ONLY for i386 without VIA PADLOCK"
+    make clean
+    make CC=gcc LDFLAGS='-m32' CFLAGS="-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes\
+        -I '$PWD' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
+
+    msg "test: implicitly enable CIPER_ENCRYPT_ONLY for i386 without VIA PADLOCK"
+    make test
+
+    msg "selftest: implicitly enable CIPER_ENCRYPT_ONLY for i386 without VIA PADLOCK"
+    programs/test/selftest
+
+    rm -f psa_cipher_encrypt_only.h
+}
+
 support_test_cipher_encrypt_only_aesce_armcc () {
     armc6_cc="$ARMC6_BIN_DIR/armclang"
     (check_tools "$armc6_cc" > /dev/null 2>&1)

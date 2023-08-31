@@ -174,13 +174,53 @@
 #endif
 
 #if defined(MBEDTLS_CMAC_C) && \
-    ( !defined(MBEDTLS_CIPHER_C ) || ( !defined(MBEDTLS_AES_C) && !defined(MBEDTLS_DES_C) ) )
+    ( !defined(MBEDTLS_CIPHER_LIGHT) || ( !defined(MBEDTLS_AES_C) && !defined(MBEDTLS_DES_C) ) )
 #error "MBEDTLS_CMAC_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_NIST_KW_C) && \
     ( !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_CIPHER_C) )
 #error "MBEDTLS_NIST_KW_C defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_CHACHA20_C) && !defined(MBEDTLS_CIPHER_C)
+#error "MBEDTLS_CHACHA20_C defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_CIPHER_NULL_CIPHER) && !defined(MBEDTLS_CIPHER_C)
+#error "MBEDTLS_CIPHER_NULL_CIPHER defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_CIPHER_MODE_CFB) && !defined(MBEDTLS_CIPHER_C)
+#error "MBEDTLS_CIPHER_MODE_CFB defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_CIPHER_MODE_CTR) && !defined(MBEDTLS_CIPHER_C)
+#error "MBEDTLS_CIPHER_MODE_CTR defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_CIPHER_MODE_OFB) && !defined(MBEDTLS_CIPHER_C)
+#error "MBEDTLS_CIPHER_MODE_OFB defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_CIPHER_MODE_XTS) && !defined(MBEDTLS_CIPHER_C)
+#error "MBEDTLS_CIPHER_MODE_XTS defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_CIPHER_PADDING_PKCS7) && !defined(MBEDTLS_CIPHER_C)
+#error "MBEDTLS_CIPHER_PADDING_PKCS7 defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS) && !defined(MBEDTLS_CIPHER_C)
+#error "MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN) && !defined(MBEDTLS_CIPHER_C)
+#error "MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_CIPHER_PADDING_ZEROS) && !defined(MBEDTLS_CIPHER_C)
+#error "MBEDTLS_CIPHER_PADDING_ZEROS defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_ECDH_C) && !defined(MBEDTLS_ECP_C)
@@ -252,12 +292,11 @@
 #error "MBEDTLS_PK_PARSE_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PKCS12_C) && !defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_PKCS12_C) && !defined(MBEDTLS_CIPHER_LIGHT)
 #error "MBEDTLS_PKCS12_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PKCS5_C) && \
-    !defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_PKCS5_C) && !defined(MBEDTLS_CIPHER_LIGHT)
 #error "MBEDTLS_PKCS5_C defined, but not all prerequisites"
 #endif
 
@@ -309,7 +348,7 @@
 #error "MBEDTLS_CCM_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_CCM_C) && !defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CCM_C) && !defined(MBEDTLS_CIPHER_LIGHT)
 #error "MBEDTLS_CCM_C defined, but not all prerequisites"
 #endif
 
@@ -318,7 +357,7 @@
 #error "MBEDTLS_GCM_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_GCM_C) && !defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_GCM_C) && !defined(MBEDTLS_CIPHER_LIGHT)
 #error "MBEDTLS_GCM_C defined, but not all prerequisites"
 #endif
 
@@ -766,7 +805,7 @@
 #error "MBEDTLS_PSA_CRYPTO_C defined, but not all prerequisites (missing RNG)"
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_C) && !defined(MBEDTLS_CIPHER_C )
+#if defined(MBEDTLS_PSA_CRYPTO_C) && !defined(MBEDTLS_CIPHER_LIGHT)
 #error "MBEDTLS_PSA_CRYPTO_C defined, but not all prerequisites"
 #endif
 

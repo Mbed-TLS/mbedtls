@@ -56,6 +56,23 @@
 #define MBEDTLS_MD_LIGHT
 #endif
 
+/* For backward compatibility, we need to enable CIPHER_LIGHT when the following
+ * modules are enabled. */
+#if defined(MBEDTLS_PKCS12_C) || defined(MBEDTLS_PKCS5_C) || \
+    defined(MBEDTLS_CCM_C) || defined(MBEDTLS_CMAC_C) || \
+    defined(MBEDTLS_GCM_C) || defined(MBEDTLS_PSA_CRYPTO_C)
+#define MBEDTLS_CIPHER_LIGHT
+#endif
+
+/* CIPHER_C is an enhancement of CIPHER_LIGHT which adds support for:
+ * - CFB, OFB, CTR, XTS and stream modes
+ * - padding mode for CBC
+ * - AEAD and NIST_KW
+ * Of course it requires CIPHER_LIGHT as its base. */
+#if defined(MBEDTLS_CIPHER_C)
+#define MBEDTLS_CIPHER_LIGHT
+#endif /* MBEDTLS_CIPHER_C */
+
 /* MBEDTLS_ECP_LIGHT is auto-enabled by the following symbols:
  * - MBEDTLS_ECP_C because now it consists of MBEDTLS_ECP_LIGHT plus functions
  *   for curve arithmetic. As a consequence if MBEDTLS_ECP_C is required for

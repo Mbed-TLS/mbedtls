@@ -1518,13 +1518,26 @@ component_test_full_no_cipher_at_all () {
     # Don't pull in cipher via PSA mechanisms
     # (currently ignored anyway because we completely disable PSA)
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
-    # Direct dependencies
+    # Direct dependencies for CIPHER_LIGHT
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CMAC_C
     scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
     scripts/config.py unset MBEDTLS_PKCS12_C
     scripts/config.py unset MBEDTLS_PKCS5_C
+    # Direct dependencies for CIPHER_C
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CFB
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CTR
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_OFB
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+    scripts/config.py unset MBEDTLS_CHACHA20_C
+    scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+    scripts/config.py unset MBEDTLS_CIPHER_NULL_CIPHER
+    scripts/config.py unset MBEDTLS_CIPHER_PADDING_PKCS7
+    scripts/config.py unset MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
+    scripts/config.py unset MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
+    scripts/config.py unset MBEDTLS_CIPHER_PADDING_ZEROS
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
     scripts/config.py unset MBEDTLS_SSL_TLS_C
     scripts/config.py unset MBEDTLS_SSL_TICKET_C
@@ -1537,10 +1550,11 @@ component_test_full_no_cipher_at_all () {
     scripts/config.py unset MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     scripts/config.py unset MBEDTLS_SSL_SRV_C
+    scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_LMS_C
     scripts/config.py unset MBEDTLS_LMS_PRIVATE
-    make
+    make CFLAGS="-O0 -g"
 
     not grep mbedtls_cipher library/cipher.o
 
@@ -1552,13 +1566,24 @@ component_test_full_cipher_light_only () {
     msg "build: full minus CIPHER"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_CIPHER_C
-    # Direct dependencies
-    scripts/config.py unset MBEDTLS_CCM_C
-    scripts/config.py unset MBEDTLS_CMAC_C
-    scripts/config.py unset MBEDTLS_GCM_C
+    # Direct dependencies for CIPHER_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
-    scripts/config.py unset MBEDTLS_PKCS12_C
-    scripts/config.py unset MBEDTLS_PKCS5_C
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CFB
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CFB
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CTR
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CTR
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_OFB
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_OFB
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+    scripts/config.py unset MBEDTLS_CHACHA20_C
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_CHACHA20
+    scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+    scripts/config.py unset MBEDTLS_CIPHER_NULL_CIPHER
+    scripts/config.py unset MBEDTLS_CIPHER_PADDING_PKCS7
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py unset MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
+    scripts/config.py unset MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
+    scripts/config.py unset MBEDTLS_CIPHER_PADDING_ZEROS
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
     scripts/config.py unset MBEDTLS_SSL_TLS_C
     scripts/config.py unset MBEDTLS_SSL_TICKET_C
@@ -1574,8 +1599,8 @@ component_test_full_cipher_light_only () {
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_LMS_C
     scripts/config.py unset MBEDTLS_LMS_PRIVATE
-    # Build with CIPHER_LIGHT enabled
-    make CFLAGS="-DMBEDTLS_CIPHER_LIGHT"
+
+    make
 
     not grep mbedtls_cipher_auth library/cipher.o
 

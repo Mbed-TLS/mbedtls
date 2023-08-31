@@ -21,8 +21,6 @@
 #ifndef PSA_CRYPTO_CORE_H
 #define PSA_CRYPTO_CORE_H
 
-#include "mbedtls/constant_time.h"
-
 #include "mbedtls/build_info.h"
 
 #include "psa/crypto.h"

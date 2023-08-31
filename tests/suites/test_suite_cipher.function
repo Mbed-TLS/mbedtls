@@ -82,7 +82,7 @@ exit:
     return 0;
 }
 
-#if defined(MBEDTLS_CIPHER_AUTH_CRYPT)
+#if defined(MBEDTLS_CIPHER_AUTH_CRYPT) && defined(MBEDTLS_CIPHER_C)
 /* Helper for resetting key/direction
  *
  * The documentation doesn't explicitly say whether calling
@@ -140,7 +140,7 @@ int buffer_is_all_zero(const uint8_t *buf, size_t size)
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_CIPHER_C
+ * depends_on:MBEDTLS_CIPHER_LIGHT
  * END_DEPENDENCIES
  */
 
@@ -832,7 +832,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_AUTH_CRYPT */
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_AUTH_CRYPT:MBEDTLS_CIPHER_C */
 void auth_crypt_tv(int cipher_id, data_t *key, data_t *iv,
                    data_t *ad, data_t *cipher, data_t *tag,
                    char *result, data_t *clear, int use_psa)

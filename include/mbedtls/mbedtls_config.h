@@ -2959,7 +2959,12 @@
  *
  * Requires: MBEDTLS_HAVE_ASM
  *
- * This modules adds support for the VIA PadLock on x86.
+ * This module adds support for the VIA PadLock on x86.
+ *
+ * \warning This module will be disabled silently when
+ *          - Not build for x86 target
+ *          - Compiler is not GNUC compatible
+ *          - ASAN is enabled.
  */
 #define MBEDTLS_PADLOCK_C
 

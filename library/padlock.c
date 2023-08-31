@@ -23,13 +23,11 @@
  *  programming_guide.pdf
  */
 
-#include "common.h"
-
-#if defined(MBEDTLS_PADLOCK_C)
-
-#include "padlock.h"
 
 #include <string.h>
+
+#include "common.h"
+#include "padlock.h"
 
 #if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
 
@@ -164,4 +162,3 @@ int mbedtls_padlock_xcryptcbc(mbedtls_aes_context *ctx,
 
 #endif /* MBEDTLS_VIA_PADLOCK_HAVE_CODE */
 
-#endif /* MBEDTLS_PADLOCK_C */

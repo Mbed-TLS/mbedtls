@@ -53,7 +53,20 @@
 #endif
 
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_ARCH_IS_X86)
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer)
+#define MBEDTLS_HAVE_ASAN
+#endif
+#endif
+#if !(defined(MBEDTLS_HAVE_ASAN)) && \
+    defined(__GNUC__) && defined(MBEDTLS_HAVE_ASM)
+/*
+ * - `padlock` is implements with GNUC assembly for x86 target.
+ * - Some versions of ASan result in errors about not enough registers.
+ */
 #define MBEDTLS_AES_HAVE_PADLOCK 1
+#define MBEDTLS_VIA_PADLOCK_HAVE_CODE
+#endif
 #else
 #define MBEDTLS_AES_HAVE_PADLOCK 0
 #endif

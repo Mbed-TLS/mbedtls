@@ -4166,8 +4166,8 @@ component_test_aes_fewer_tables_and_rom_tables () {
     make test
 }
 
-component_test_cipher_encrypt_only () {
-    msg "build: default config + PSA_CRYPTO_CONFIG + implicitly enable CIPHER_ENCRYPT_ONLY"
+component_test_cipher_encrypt_only_aesni () {
+    # pre-setup to implicitly enable CIPHER_ENCRYPT_ONLY
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
@@ -4177,13 +4177,43 @@ component_test_cipher_encrypt_only () {
     echo '#undef PSA_WANT_ALG_CBC_PKCS7' >> psa_cipher_encrypt_only.h
     echo '#undef PSA_WANT_ALG_ECB_NO_PADDING' >> psa_cipher_encrypt_only.h
 
-    make CC=gcc CFLAGS="-Werror -Wall -Wextra -I '$PWD' \
-        -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
+    # test AESNI intrinsics
+    scripts/config.py set MBEDTLS_AESNI_C
+    msg "build: implicitly enable CIPER_ENCRYPT_ONLY with AESNI intrinsics"
+    make clean
+    make CC=gcc CFLAGS="-Werror -Wall -Wextra -mpclmul -msse2 -maes \
+        -I '$PWD' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
 
-    msg "test: default config + PSA_CRYPTO_CONFIG + implicitly enable CIPER_ENCRYPT_ONLY"
+    msg "test: implicitly enable CIPER_ENCRYPT_ONLY with AESNI intrinsics"
     make test
 
-    msg "selftest: default config + PSA_CRYPTO_CONFIG + implicitly enable CIPER_ENCRYPT_ONLY"
+    msg "selftest: implicitly enable CIPER_ENCRYPT_ONLY with AESNI intrinsics"
+    programs/test/selftest
+
+    # test AESNI assembly
+    scripts/config.py set MBEDTLS_AESNI_C
+    msg "build: implicitly enable CIPER_ENCRYPT_ONLY with AESNI assembly"
+    make clean
+    make CC=gcc CFLAGS="-Werror -Wall -Wextra -mno-pclmul -mno-sse2 -mno-aes \
+        -I '$PWD' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
+
+    msg "test: implicitly enable CIPER_ENCRYPT_ONLY with AESNI assembly"
+    make test
+
+    msg "selftest: implicitly enable CIPER_ENCRYPT_ONLY with AESNI assembly"
+    programs/test/selftest
+
+    # test AES C implementation
+    msg "build: implicitly enable CIPER_ENCRYPT_ONLY with AES C Implementation"
+    scripts/config.py unset MBEDTLS_AESNI_C
+    make clean
+    make CC=gcc CFLAGS="-Werror -Wall -Wextra \
+        -I '$PWD' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
+
+    msg "test: implicitly enable CIPER_ENCRYPT_ONLY with AES C Implementation"
+    make test
+
+    msg "selftest: implicitly enable CIPER_ENCRYPT_ONLY with AES C Implementation"
     programs/test/selftest
 
     rm -f psa_cipher_encrypt_only.h

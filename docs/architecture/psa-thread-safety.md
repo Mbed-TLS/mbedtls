@@ -75,7 +75,7 @@ When `psa_destroy_key` returns:
 
 1. The key identifier doesn't exist. Rationale: this is a functional requirement for persistent keys: the caller can immediately create a new key with the same identifier.
 2. The resources from the key have been freed. Rationale: in a low-resource condition, this may be necessary for the caller to re-create a similar key, which should be possible.
-3. The call must not block indefinitely, and in particular cannot wait for an event that is triggered by application code such as calling an abort function. Rationale: this may not strictly be a functional requirement, but it is an expectation `psa_destroy_key` does not block forever due to another thread, which could potentially be another process on a multi-process system.
+3. The call must not block indefinitely, and in particular cannot wait for an event that is triggered by application code such as calling an abort function. Rationale: this may not strictly be a functional requirement, but it is an expectation `psa_destroy_key` does not block forever due to another thread, which could potentially be another process on a multi-process system. (This doesn't mean that the call can't block at all. It is acceptable for example to block waiting for another thread to complete an API call that it had already started, but it is unacceptable to wait for another thread to make an API call.)
 
 When `psa_destroy_key` is called on a key that is in use, guarantee 2. might be violated. (This is consistent with the requirement [“Correctness out of the box”](#correctness-out-of-the-box), as destroying a key while it's in use is undefined behavior.)
 
@@ -89,7 +89,7 @@ When `psa_destroy_key` returns:
 
 1. The key identifier doesn't exist. Rationale: this is a functional requirement for persistent keys: the caller can immediately create a new key with the same identifier.
 2. The resources from the key have been freed. Rationale: in a low-resource condition, this may be necessary for the caller to re-create a similar key, which should be possible.
-3. The call must not block indefinitely, and in particular cannot wait for an event that is triggered by application code such as calling an abort function. Rationale: this may not strictly be a functional requirement, but it is an expectation `psa_destroy_key` does not block forever due to another thread, which could potentially be another process on a multi-process system.
+3. The call must not block indefinitely, and in particular cannot wait for an event that is triggered by application code such as calling an abort function. Rationale: this may not strictly be a functional requirement, but it is an expectation `psa_destroy_key` does not block forever due to another thread, which could potentially be another process on a multi-process system. (This doesn't mean that the call can't block at all. It is acceptable for example to block waiting for another thread to complete an API call that it had already started, but it is unacceptable to wait for another thread to make an API call.)
 4. No copy of the key material exists. Rationale: this is a security requirement. We do not have this requirement yet, but we need to document this as a security weakness, and we would like to become compliant.
 
 As opposed to the short term requirements, all the above guarantees hold even if `psa_destroy_key` is called on a key that is in use.

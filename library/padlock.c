@@ -31,35 +31,25 @@
 
 #if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
 
+#if defined(MBEDTLS_RUNTIME_HAVE_CODE) && defined(MBEDTLS_AES_RUNTIME_HAVE_CODE)
+
+signed char mbedtls_padlock_has_support_result = -1;
 /*
  * PadLock detection routine
  */
-int mbedtls_padlock_has_support(int feature)
+int mbedtls_padlock_has_support(void)
 {
-    static int flags = -1;
-    int ebx = 0, edx = 0;
 
-    if (flags == -1) {
-        asm ("movl  %%ebx, %0           \n\t"
-             "movl  $0xC0000000, %%eax  \n\t"
-             "cpuid                     \n\t"
-             "cmpl  $0xC0000001, %%eax  \n\t"
-             "movl  $0, %%edx           \n\t"
-             "jb    1f                  \n\t"
-             "movl  $0xC0000001, %%eax  \n\t"
-             "cpuid                     \n\t"
-             "1:                        \n\t"
-             "movl  %%edx, %1           \n\t"
-             "movl  %2, %%ebx           \n\t"
-             : "=m" (ebx), "=m" (edx)
-             :  "m" (ebx)
-             : "eax", "ecx", "edx");
-
-        flags = edx;
+    if (mbedtls_padlock_has_support_result == -1) {
+        if (mbedtls_cpu_has_features(MBEDTLS_HWCAP_PADLOCK_ACE) == true) {
+            mbedtls_padlock_has_support_result = 1;
+        } else {
+            mbedtls_padlock_has_support_result = 0;
+        }
     }
-
-    return flags & feature;
+    return mbedtls_padlock_has_support_result;
 }
+#endif /* MBEDTLS_RUNTIME_HAVE_CODE && MBEDTLS_AES_RUNTIME_HAVE_CODE */
 
 /*
  * PadLock AES-ECB block en(de)cryption
@@ -161,4 +151,3 @@ int mbedtls_padlock_xcryptcbc(mbedtls_aes_context *ctx,
 }
 
 #endif /* MBEDTLS_VIA_PADLOCK_HAVE_CODE */
-

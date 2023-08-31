@@ -76,10 +76,6 @@
 
 #if !defined(MBEDTLS_AES_ALT)
 
-#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
-static int aes_padlock_ace = -1;
-#endif
-
 #if defined(MBEDTLS_AES_ROM_TABLES)
 /*
  * Forward S-box
@@ -584,10 +580,7 @@ static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
     int align_16_bytes = 0;
 
 #if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
-    if (aes_padlock_ace == -1) {
-        aes_padlock_ace = mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE);
-    }
-    if (aes_padlock_ace) {
+    if (MBEDTLS_PADLOCK_HAS_SUPPORT()) {
         align_16_bytes = 1;
     }
 #endif
@@ -1097,7 +1090,7 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
 #endif
 
 #if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
-    if (aes_padlock_ace > 0) {
+    if (MBEDTLS_PADLOCK_HAS_SUPPORT()) {
         return mbedtls_padlock_xcryptecb(ctx, mode, input, output);
     }
 #endif
@@ -1141,7 +1134,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     }
 
 #if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
-    if (aes_padlock_ace > 0) {
+    if (MBEDTLS_PADLOCK_HAS_SUPPORT()) {
         if (mbedtls_padlock_xcryptcbc(ctx, mode, length, iv, input, output) == 0) {
             return 0;
         }
@@ -1905,7 +1898,7 @@ int mbedtls_aes_self_test(int verbose)
         } else
 #endif
 #if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
-        if (mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE)) {
+        if (MBEDTLS_PADLOCK_HAS_SUPPORT()) {
             mbedtls_printf("  AES note: using VIA Padlock.\n");
         } else
 #endif

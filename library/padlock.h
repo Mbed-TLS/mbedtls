@@ -49,17 +49,26 @@
 extern "C" {
 #endif
 
+#if defined(MBEDTLS_RUNTIME_HAVE_CODE) && defined(MBEDTLS_AES_RUNTIME_HAVE_CODE)
+
+extern signed char mbedtls_padlock_has_support_result;
+
 /**
- * \brief          Internal PadLock detection routine
+ * \brief          Internal function to detect VIA Padlock in CPUs.
  *
- * \note           This function is only for internal use by other library
- *                 functions; you must not call it directly.
- *
- * \param feature  The feature to detect
- *
- * \return         non-zero if CPU has support for the feature, 0 otherwise
+ * \return         1 if CPU has support for the feature, 0 otherwise
  */
-int mbedtls_padlock_has_support(int feature);
+int mbedtls_padlock_has_support(void);
+
+#define MBEDTLS_PADLOCK_HAS_SUPPORT() \
+    (mbedtls_padlock_has_support_result == -1 ? \
+     mbedtls_padlock_has_support() : mbedtls_padlock_has_support_result)
+
+#else /* MBEDTLS_RUNTIME_HAVE_CODE && MBEDTLS_AES_RUNTIME_HAVE_CODE */
+
+#define MBEDTLS_PADLOCK_HAS_SUPPORT() 1
+
+#endif /* !(MBEDTLS_RUNTIME_HAVE_CODE && MBEDTLS_AES_RUNTIME_HAVE_CODE) */
 
 /**
  * \brief          Internal PadLock AES-ECB block en(de)cryption

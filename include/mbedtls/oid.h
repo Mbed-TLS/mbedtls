@@ -30,7 +30,7 @@
 
 #include <stddef.h>
 
-#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_LIGHT)
 #include "mbedtls/cipher.h"
 #endif
 
@@ -700,7 +700,7 @@ int mbedtls_oid_get_certificate_policies(const mbedtls_asn1_buf *oid, const char
  */
 int mbedtls_oid_get_oid_by_md(mbedtls_md_type_t md_alg, const char **oid, size_t *olen);
 
-#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_LIGHT)
 /**
  * \brief          Translate encryption algorithm OID into cipher_type
  *
@@ -710,7 +710,7 @@ int mbedtls_oid_get_oid_by_md(mbedtls_md_type_t md_alg, const char **oid, size_t
  * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
  */
 int mbedtls_oid_get_cipher_alg(const mbedtls_asn1_buf *oid, mbedtls_cipher_type_t *cipher_alg);
-#endif /* MBEDTLS_CIPHER_C */
+#endif /* MBEDTLS_CIPHER_LIGHT */
 
 #if defined(MBEDTLS_PKCS12_C)
 /**

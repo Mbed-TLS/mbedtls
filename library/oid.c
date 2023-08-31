@@ -676,7 +676,7 @@ FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_ec_grp_algid,
                         grp_id)
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
-#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_LIGHT)
 /*
  * For PKCS#5 PBES2 encryption algorithm
  */
@@ -707,7 +707,7 @@ FN_OID_GET_ATTR1(mbedtls_oid_get_cipher_alg,
                  cipher_alg,
                  mbedtls_cipher_type_t,
                  cipher_alg)
-#endif /* MBEDTLS_CIPHER_C */
+#endif /* MBEDTLS_CIPHER_LIGHT */
 
 /*
  * For digestAlgorithm

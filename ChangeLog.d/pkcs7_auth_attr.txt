@@ -1,2 +1,0 @@
-Features
-   * Add support for PKCS#7 authenticated attributes.

@@ -23,7 +23,7 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_LIGHT)
 
 #include "mbedtls/cipher.h"
 #include "cipher_wrap.h"
@@ -739,7 +739,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
     }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-#if defined(MBEDTLS_CIPHER_MODE_CFB)
+#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
     if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_CFB) {
         if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->cfb_func(ctx->cipher_ctx,
                                                                             ctx->operation, ilen,
@@ -755,7 +755,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
     }
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
-#if defined(MBEDTLS_CIPHER_MODE_OFB)
+#if defined(MBEDTLS_CIPHER_MODE_OFB) && defined(MBEDTLS_CIPHER_C)
     if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_OFB) {
         if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->ofb_func(ctx->cipher_ctx,
                                                                             ilen,
@@ -771,7 +771,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
     }
 #endif /* MBEDTLS_CIPHER_MODE_OFB */
 
-#if defined(MBEDTLS_CIPHER_MODE_CTR)
+#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
     if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_CTR) {
         if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->ctr_func(ctx->cipher_ctx,
                                                                             ilen,
@@ -788,7 +788,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
     }
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
-#if defined(MBEDTLS_CIPHER_MODE_XTS)
+#if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_CIPHER_C)
     if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_XTS) {
         if (ctx->unprocessed_len > 0) {
             /* We can only process an entire data unit at a time. */
@@ -811,7 +811,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
     }
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
 
-#if defined(MBEDTLS_CIPHER_MODE_STREAM)
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && defined(MBEDTLS_CIPHER_C)
     if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_STREAM) {
         if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->stream_func(ctx->cipher_ctx,
                                                                                ilen, input,
@@ -829,7 +829,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
-#if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+#if defined(MBEDTLS_CIPHER_PADDING_PKCS7) && defined(MBEDTLS_CIPHER_C)
 /*
  * PKCS7 (and PKCS5) padding: fill with ll bytes, with ll = padding_len
  */
@@ -870,9 +870,9 @@ static int get_pkcs_padding(unsigned char *input, size_t input_len,
 
     return MBEDTLS_ERR_CIPHER_INVALID_PADDING * (bad != 0);
 }
-#endif /* MBEDTLS_CIPHER_PADDING_PKCS7 */
+#endif /* MBEDTLS_CIPHER_PADDING_PKCS7 && MBEDTLS_CIPHER_C */
 
-#if defined(MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS)
+#if defined(MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS) && defined(MBEDTLS_CIPHER_C)
 /*
  * One and zeros padding: fill with 80 00 ... 00
  */
@@ -910,9 +910,9 @@ static int get_one_and_zeros_padding(unsigned char *input, size_t input_len,
     return MBEDTLS_ERR_CIPHER_INVALID_PADDING * (bad != 0);
 
 }
-#endif /* MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS */
+#endif /* MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS && MBEDTLS_CIPHER_C */
 
-#if defined(MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN)
+#if defined(MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN) && defined(MBEDTLS_CIPHER_C)
 /*
  * Zeros and len padding: fill with 00 ... 00 ll, where ll is padding length
  */
@@ -953,9 +953,9 @@ static int get_zeros_and_len_padding(unsigned char *input, size_t input_len,
 
     return MBEDTLS_ERR_CIPHER_INVALID_PADDING * (bad != 0);
 }
-#endif /* MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN */
+#endif /* MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN && MBEDTLS_CIPHER_C */
 
-#if defined(MBEDTLS_CIPHER_PADDING_ZEROS)
+#if defined(MBEDTLS_CIPHER_PADDING_ZEROS) && defined(MBEDTLS_CIPHER_C)
 /*
  * Zero padding: fill with 00 ... 00
  */
@@ -988,7 +988,7 @@ static int get_zeros_padding(unsigned char *input, size_t input_len,
 
     return 0;
 }
-#endif /* MBEDTLS_CIPHER_PADDING_ZEROS */
+#endif /* MBEDTLS_CIPHER_PADDING_ZEROS && MBEDTLS_CIPHER_C */
 
 /*
  * No padding: don't pad :)
@@ -1129,25 +1129,25 @@ int mbedtls_cipher_set_padding_mode(mbedtls_cipher_context_t *ctx,
 #endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
     switch (mode) {
-#if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+#if defined(MBEDTLS_CIPHER_PADDING_PKCS7) && defined(MBEDTLS_CIPHER_C)
         case MBEDTLS_PADDING_PKCS7:
             ctx->add_padding = add_pkcs_padding;
             ctx->get_padding = get_pkcs_padding;
             break;
 #endif
-#if defined(MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS)
+#if defined(MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS) && defined(MBEDTLS_CIPHER_C)
         case MBEDTLS_PADDING_ONE_AND_ZEROS:
             ctx->add_padding = add_one_and_zeros_padding;
             ctx->get_padding = get_one_and_zeros_padding;
             break;
 #endif
-#if defined(MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN)
+#if defined(MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN) && defined(MBEDTLS_CIPHER_C)
         case MBEDTLS_PADDING_ZEROS_AND_LEN:
             ctx->add_padding = add_zeros_and_len_padding;
             ctx->get_padding = get_zeros_and_len_padding;
             break;
 #endif
-#if defined(MBEDTLS_CIPHER_PADDING_ZEROS)
+#if defined(MBEDTLS_CIPHER_PADDING_ZEROS) && defined(MBEDTLS_CIPHER_C)
         case MBEDTLS_PADDING_ZEROS:
             ctx->add_padding = add_zeros_padding;
             ctx->get_padding = get_zeros_padding;
@@ -1385,7 +1385,7 @@ int mbedtls_cipher_crypt(mbedtls_cipher_context_t *ctx,
     return 0;
 }
 
-#if defined(MBEDTLS_CIPHER_MODE_AEAD)
+#if defined(MBEDTLS_CIPHER_MODE_AEAD) && defined(MBEDTLS_CIPHER_C)
 /*
  * Packet-oriented encryption for AEAD modes: internal function used by
  * mbedtls_cipher_auth_encrypt_ext().
@@ -1564,9 +1564,10 @@ static int mbedtls_cipher_aead_decrypt(mbedtls_cipher_context_t *ctx,
 
     return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
 }
-#endif /* MBEDTLS_CIPHER_MODE_AEAD */
+#endif /* MBEDTLS_CIPHER_MODE_AEAD && MBEDTLS_CIPHER_C*/
 
-#if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)
+#if (defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)) && \
+    defined(MBEDTLS_CIPHER_C)
 /*
  * Packet-oriented encryption for AEAD/NIST_KW: public function.
  */
@@ -1666,6 +1667,6 @@ int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
     return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
 #endif /* MBEDTLS_CIPHER_MODE_AEAD */
 }
-#endif /* MBEDTLS_CIPHER_MODE_AEAD || MBEDTLS_NIST_KW_C */
+#endif /* (MBEDTLS_CIPHER_MODE_AEAD || MBEDTLS_NIST_KW_C) && MBEDTLS_CIPHER_C */
 
-#endif /* MBEDTLS_CIPHER_C */
+#endif /* MBEDTLS_CIPHER_LIGHT */

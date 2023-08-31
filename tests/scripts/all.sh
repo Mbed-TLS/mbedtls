@@ -1511,7 +1511,7 @@ component_test_crypto_full_md_light_only () {
     make test
 }
 
-component_test_full_no_cipher () {
+component_test_full_no_cipher_at_all () {
     msg "build: full minus CIPHER"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_CIPHER_C
@@ -1541,6 +1541,8 @@ component_test_full_no_cipher () {
     scripts/config.py unset MBEDTLS_LMS_C
     scripts/config.py unset MBEDTLS_LMS_PRIVATE
     make
+
+    not grep mbedtls_cipher library/cipher.o
 
     msg "test: full minus CIPHER"
     make test

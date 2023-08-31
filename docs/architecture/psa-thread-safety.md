@@ -69,7 +69,9 @@ We may want to go directly to a more sophisticated approach because when a syste
 
 ### Key destruction short-term requirements
 
-#### Summary of guarantees when `psa_destroy_key` returns
+#### Summary of guarantees in the short term
+
+When `psa_destroy_key` returns:
 
 1. The key identifier doesn't exist. Rationale: this is a functional requirement for persistent keys: the caller can immediately create a new key with the same identifier.
 2. The resources from the key have been freed. Rationale: in a low-resource condition, this may be necessary for the caller to re-create a similar key, which should be possible.
@@ -81,12 +83,14 @@ When `psa_destroy_key` is called on a key that is in use, guarantee 2. might be 
 
 The [PSA Crypto API specification](https://armmbed.github.io/mbed-crypto/html/api/keys/management.html#key-destruction) mandates that implementations make a best effort to ensure that that the key material cannot be recovered. In the long term, it would be good to guarantee that `psa_destroy_key` wipes all copies of the key material.
 
-#### Summary of guarantees when `psa_destroy_key` returns
+#### Summary of guarantees in the long term
 
-* The key identifier doesn't exist. Rationale: this is a functional requirement for persistent keys: the caller can immediately create a new key with the same identifier.
-* The resources from the key have been freed. Rationale: in a low-resource condition, this may be necessary for the caller to re-create a similar key, which should be possible.
-* The call must not block indefinitely, and in particular cannot wait for an event that is triggered by application code such as calling an abort function. Rationale: this may not strictly be a functional requirement, but it is an expectation `psa_destroy_key` does not block forever due to another thread, which could potentially be another process on a multi-process system.
-* No copy of the key material exists. Rationale: this is a security requirement. We do not have this requirement yet, but we need to document this as a security weakness, and we would like to become compliant.
+When `psa_destroy_key` returns:
+
+1. The key identifier doesn't exist. Rationale: this is a functional requirement for persistent keys: the caller can immediately create a new key with the same identifier.
+2. The resources from the key have been freed. Rationale: in a low-resource condition, this may be necessary for the caller to re-create a similar key, which should be possible.
+3. The call must not block indefinitely, and in particular cannot wait for an event that is triggered by application code such as calling an abort function. Rationale: this may not strictly be a functional requirement, but it is an expectation `psa_destroy_key` does not block forever due to another thread, which could potentially be another process on a multi-process system.
+4. No copy of the key material exists. Rationale: this is a security requirement. We do not have this requirement yet, but we need to document this as a security weakness, and we would like to become compliant.
 
 As opposed to the short term requirements, all the above guarantees hold even if `psa_destroy_key` is called on a key that is in use.
 

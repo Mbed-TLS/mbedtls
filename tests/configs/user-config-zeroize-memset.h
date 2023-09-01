@@ -1,4 +1,4 @@
-/* mbedtls_config.h wrapper that defines mbedtls_platform_zeroize() to be
+/* mbedtls_config.h modifier that defines mbedtls_platform_zeroize() to be
  * memset(), so that the compile can check arguments for us.
  * Used for testing.
  */
@@ -18,8 +18,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-#include "mbedtls/mbedtls_config.h"
 
 #include <string.h>
 

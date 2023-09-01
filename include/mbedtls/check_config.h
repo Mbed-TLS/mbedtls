@@ -125,12 +125,6 @@
 
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG || MBEDTLS_PSA_CRYPTO_C */
 
-#if defined(MBEDTLS_SOME_BUILTIN_EC) && \
-    !(defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_ECDSA_DETERMINISTIC) || \
-      defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECJPAKE_C))
-#error "Some builtin curve is included, but there is no algorighm using it"
-#endif
-
 #if defined(MBEDTLS_CTR_DRBG_C) && !defined(MBEDTLS_AES_C)
 #error "MBEDTLS_CTR_DRBG_C defined, but not all prerequisites"
 #endif

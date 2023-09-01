@@ -1594,15 +1594,15 @@ run_test() {
     NAME="$1"
     shift 1
 
-    print_name "$NAME"
-
-    if [ "$LIST_TESTS" -gt 0 ]; then
-        return
-    fi
-
     if is_excluded "$NAME"; then
         SKIP_NEXT="NO"
         # There was no request to run the test, so don't record its outcome.
+        return
+    fi
+
+    print_name "$NAME"
+
+    if [ "$LIST_TESTS" -gt 0 ]; then
         return
     fi
 

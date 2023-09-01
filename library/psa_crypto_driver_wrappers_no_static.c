@@ -78,85 +78,80 @@
 psa_status_t psa_driver_wrapper_export_public_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
-    uint8_t *data, size_t data_size, size_t *data_length )
+    uint8_t *data, size_t data_size, size_t *data_length)
 
 {
 
     psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(
-                                      psa_get_key_lifetime( attributes ) );
+        psa_get_key_lifetime(attributes));
 
     /* Try dynamically-registered SE interface first */
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     const psa_drv_se_t *drv;
     psa_drv_se_context_t *drv_context;
 
-    if( psa_get_se_driver( attributes->core.lifetime, &drv, &drv_context ) )
-    {
-        if( ( drv->key_management == NULL ) ||
-            ( drv->key_management->p_export_public == NULL ) )
-        {
-            return( PSA_ERROR_NOT_SUPPORTED );
+    if (psa_get_se_driver(attributes->core.lifetime, &drv, &drv_context)) {
+        if ((drv->key_management == NULL) ||
+            (drv->key_management->p_export_public == NULL)) {
+            return PSA_ERROR_NOT_SUPPORTED;
         }
 
-        return( drv->key_management->p_export_public(
-                    drv_context,
-                    *( (psa_key_slot_number_t *)key_buffer ),
-                    data, data_size, data_length ) );
+        return drv->key_management->p_export_public(
+            drv_context,
+            *((psa_key_slot_number_t *) key_buffer),
+            data, data_size, data_length);
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-    switch( location )
-    {
+    switch (location) {
         case PSA_KEY_LOCATION_LOCAL_STORAGE:
             /* Key is stored in the slot in export representation, so
              * cycle through all known transparent accelerators */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 
-#if (defined(PSA_CRYPTO_DRIVER_TEST) )
-            status = mbedtls_test_transparent_export_public_key
-                (attributes,
-                                key_buffer,
-                                key_buffer_size,
-                                data,
-                                data_size,
-                                data_length
-            );
+#if (defined(PSA_CRYPTO_DRIVER_TEST))
+            status = mbedtls_test_transparent_export_public_key(
+                attributes,
+                key_buffer,
+                key_buffer_size,
+                data,
+                data_size,
+                data_length);
 
-            if( status != PSA_ERROR_NOT_SUPPORTED )
-                return( status );
+            if (status != PSA_ERROR_NOT_SUPPORTED) {
+                return status;
+            }
 #endif
 
 
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
             /* Fell through, meaning no accelerator supports this operation */
-            return( psa_export_public_key_internal( attributes,
-                                                    key_buffer,
-                                                    key_buffer_size,
-                                                    data,
-                                                    data_size,
-                                                    data_length ) );
+            return psa_export_public_key_internal(attributes,
+                                                  key_buffer,
+                                                  key_buffer_size,
+                                                  data,
+                                                  data_size,
+                                                  data_length);
 
-        /* Add cases for opaque driver here */
+            /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 
-#if (defined(PSA_CRYPTO_DRIVER_TEST) )
+#if (defined(PSA_CRYPTO_DRIVER_TEST))
         case 0x7fffff:
-            return( mbedtls_test_opaque_export_public_key
-            (attributes,
-                            key_buffer,
-                            key_buffer_size,
-                            data,
-                            data_size,
-                            data_length
-        ));
+            return mbedtls_test_opaque_export_public_key(attributes,
+                                                         key_buffer,
+                                                         key_buffer_size,
+                                                         data,
+                                                         data_size,
+                                                         data_length);
 #endif
 
 
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
         default:
             /* Key is declared with a lifetime not known to us */
-            return( status );
+            return status;
     }
 
 }

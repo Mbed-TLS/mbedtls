@@ -167,7 +167,28 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  * \param len   Length of the buffer in bytes
  *
  */
+#if defined(MBEDTLS_PLATFORM_ZEROIZE_CHECK_UNSAFE)
+#define MBEDTLS_PLATFORM_ZEROIZE_ALT
+#define mbedtls_platform_zeroize(buf, len) memset(buf, 0, len)
+#include <string.h>
+#else
 void mbedtls_platform_zeroize(void *buf, size_t len);
+#endif
+
+/* MBEDTLS_PLATFORM_ZEROIZE_CHECK_UNSAFE
+ *
+ * Replaces calls to mbedtls_platform_zeroize() with calls to memset(),
+ * to allow compiler analysis to check for invalid length arguments (e.g.
+ * specifying sizeof(pointer) rather than sizeof(pointee)).
+ *
+ * Note that this option is meant for internal use only and must not be used
+ * in production builds, because that would lead to zeroization calls being
+ * optimised out by the compiler.
+ *
+ * It is only intended to be used in CFLAGS, with -Wsizeof-pointer-memaccess,
+ * to check for those incorrect calls to mbedtls_platform_zeroize().
+ */
+//#define MBEDTLS_PLATFORM_ZEROIZE_CHECK_UNSAFE
 
 #if defined(MBEDTLS_HAVE_TIME_DATE)
 /**

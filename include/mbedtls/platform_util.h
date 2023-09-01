@@ -145,6 +145,11 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
 #define MBEDTLS_IGNORE_RETURN(result) ((void) !(result))
 #endif
 
+/* If the following macro is defined, the library is being built by the test
+ * framework, and the framework is going to provide a replacement
+ * mbedtls_platform_zeroize() using a preprocessor macro, so the function
+ * declaration should be omitted.  */
+#if !defined(MBEDTLS_TEST_DEFINES_ZEROIZE) //no-check-names
 /**
  * \brief       Securely zeroize a buffer
  *
@@ -167,17 +172,8 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  * \param len   Length of the buffer in bytes
  *
  */
-#if !defined(MBEDTLS_TEST_DEFINES_ZEROIZE)
 void mbedtls_platform_zeroize(void *buf, size_t len);
 #endif
-
-/* MBEDTLS_TEST_DEFINES_ZEROIZE
- *
- * Indicates that the library is being built by the test framework, and the
- * framework is going to provide a replacement mbedtls_platform_zeroize()
- * using a pre-processor macro, so the function declaration should be omitted.
- */
-//#define MBEDTLS_TEST_DEFINES_ZEROIZE
 
 #if defined(MBEDTLS_HAVE_TIME_DATE)
 /**

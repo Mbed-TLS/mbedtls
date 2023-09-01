@@ -11308,10 +11308,8 @@ run_test    "TLS 1.3: Test gnutls tls1_3 feature" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_ciphersuite_enabled TLS1-3-CHACHA20-POLY1305-SHA256
-requires_any_configs_enabled "MBEDTLS_ECP_DP_CURVE25519_ENABLED
-                              PSA_WANT_ECC_MONTGOMERY_255"
-requires_any_configs_enabled "MBEDTLS_ECP_DP_SECP256R1_ENABLED \
-                              PSA_WANT_ECC_SECP_R1_256"
+requires_any_configs_enabled "PSA_WANT_ECC_MONTGOMERY_255"
+requires_any_configs_enabled "PSA_WANT_ECC_SECP_R1_256"
 run_test    "TLS 1.3: Default" \
             "$P_SRV allow_sha1=0 debug_level=3 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13" \
             "$P_CLI allow_sha1=0" \

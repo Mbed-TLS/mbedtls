@@ -210,6 +210,7 @@ get_options "$@"
 if [ "$LIST_TESTS" -eq 0 ];then
     CONFIGS_ENABLED=" $(echo `$P_QUERY -l` )"
 else
+    P_QUERY=":"
     CONFIGS_ENABLED=""
 fi
 # Skip next test; use this macro to skip tests which are legitimate
@@ -223,9 +224,6 @@ skip_next_test() {
 # Check if the required configuration ($1) is enabled
 is_config_enabled()
 {
-    if [ "$LIST_TESTS" -gt 0 ];then
-        return 0;
-    fi
     case $CONFIGS_ENABLED in
         *" $1"[\ =]*) return 0;;
         *) return 1;;
@@ -234,9 +232,6 @@ is_config_enabled()
 
 # skip next test if the flag is not enabled in mbedtls_config.h
 requires_config_enabled() {
-    if [ "$LIST_TESTS" -gt 0 ];then
-        return;
-    fi
     case $CONFIGS_ENABLED in
         *" $1"[\ =]*) :;;
         *) SKIP_NEXT="YES";;
@@ -245,18 +240,12 @@ requires_config_enabled() {
 
 # skip next test if the flag is enabled in mbedtls_config.h
 requires_config_disabled() {
-    if [ "$LIST_TESTS" -gt 0 ];then
-        return;
-    fi
     case $CONFIGS_ENABLED in
         *" $1"[\ =]*) SKIP_NEXT="YES";;
     esac
 }
 
 requires_all_configs_enabled() {
-    if [ "$LIST_TESTS" -gt 0 ];then
-        return;
-    fi
     if ! $P_QUERY -all $*
     then
         SKIP_NEXT="YES"
@@ -264,9 +253,6 @@ requires_all_configs_enabled() {
 }
 
 requires_all_configs_disabled() {
-    if [ "$LIST_TESTS" -gt 0 ];then
-        return;
-    fi
     if $P_QUERY -any $*
     then
         SKIP_NEXT="YES"
@@ -274,9 +260,6 @@ requires_all_configs_disabled() {
 }
 
 requires_any_configs_enabled() {
-    if [ "$LIST_TESTS" -gt 0 ];then
-        return;
-    fi
     if ! $P_QUERY -any $*
     then
         SKIP_NEXT="YES"
@@ -284,9 +267,6 @@ requires_any_configs_enabled() {
 }
 
 requires_any_configs_disabled() {
-    if [ "$LIST_TESTS" -gt 0 ];then
-        return;
-    fi
     if $P_QUERY -all $*
     then
         SKIP_NEXT="YES"
@@ -311,9 +291,6 @@ TLS1_2_KEY_EXCHANGES_WITH_CERT_WO_ECDH="MBEDTLS_KEY_EXCHANGE_RSA_ENABLED \
                                        MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED"
 
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled() {
-    if [ "$LIST_TESTS" -gt 0 ];then
-        return;
-    fi
     if $P_QUERY -all MBEDTLS_SSL_PROTO_TLS1_2
     then
         requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
@@ -340,9 +317,6 @@ get_config_value_or_default() {
 }
 
 requires_config_value_at_least() {
-    if [ "$LIST_TESTS" -gt 0 ];then
-        return;
-    fi
     VAL="$( get_config_value_or_default "$1" )"
     if [ -z "$VAL" ]; then
         # Should never happen
@@ -354,9 +328,6 @@ requires_config_value_at_least() {
 }
 
 requires_config_value_at_most() {
-    if [ "$LIST_TESTS" -gt 0 ];then
-        return;
-    fi
     VAL=$( get_config_value_or_default "$1" )
     if [ -z "$VAL" ]; then
         # Should never happen
@@ -368,9 +339,6 @@ requires_config_value_at_most() {
 }
 
 requires_config_value_equals() {
-    if [ "$LIST_TESTS" -gt 0 ];then
-        return;
-    fi
     VAL=$( get_config_value_or_default "$1" )
     if [ -z "$VAL" ]; then
         # Should never happen
@@ -386,9 +354,6 @@ requires_config_value_equals() {
 # Inputs:
 # * $1: protocol version in mbedtls syntax (argument to force_version=)
 requires_protocol_version() {
-    if [ "$LIST_TESTS" -gt 0 ];then
-        return;
-    fi
     # Support for DTLS is detected separately in detect_dtls().
     case "$1" in
         tls12|dtls12) requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2;;

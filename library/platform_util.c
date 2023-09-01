@@ -137,7 +137,7 @@ void mbedtls_platform_zeroize(void *buf, size_t len)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wvla"
 #endif
-        asm volatile ("" : : "m" (*(char (*)[len]) buf) : );
+        asm volatile ("" : : "m" (*(char (*)[len]) buf) :);
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #elif defined(MBEDTLS_COMPILER_IS_GCC)

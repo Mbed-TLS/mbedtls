@@ -141,7 +141,7 @@ print_usage() {
     printf "  -f|--filter\tOnly matching tests are executed (substring or BRE)\n"
     printf "  -e|--exclude\tMatching tests are excluded (substring or BRE)\n"
     printf "  -n|--number\tExecute only numbered test (comma-separated, e.g. '245,256')\n"
-    printf "  -l|--list-tests\tList test names and exit\n"
+    printf "  -l|--list-test-cases\tList all potential test cases (No Execution)\n"
     printf "  -s|--show-numbers\tShow test numbers in front of test names\n"
     printf "  -p|--preserve-logs\tPreserve logs of successful tests as well\n"
     printf "     --outcome-file\tFile where test outcomes are written\n"
@@ -169,7 +169,7 @@ get_options() {
             -s|--show-numbers)
                 SHOW_TEST_NUMBER=1
                 ;;
-            -l|--list-tests)
+            -l|--list-test-cases)
                 LIST_TESTS=1
                 ;;
             -p|--preserve-logs)

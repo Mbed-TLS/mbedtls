@@ -115,10 +115,10 @@ mbedtls_entropy_source_state;
  * \brief           Entropy context structure
  */
 typedef struct mbedtls_entropy_context {
+    mbedtls_md_context_t  MBEDTLS_PRIVATE(accumulator);
     int MBEDTLS_PRIVATE(accumulator_started); /* 0 after init.
                                                * 1 after the first update.
                                                * -1 after free. */
-    mbedtls_md_context_t  MBEDTLS_PRIVATE(accumulator);
     int             MBEDTLS_PRIVATE(source_count); /* Number of entries used in source. */
     mbedtls_entropy_source_state    MBEDTLS_PRIVATE(source)[MBEDTLS_ENTROPY_MAX_SOURCES];
 #if defined(MBEDTLS_THREADING_C)

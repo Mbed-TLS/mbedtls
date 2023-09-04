@@ -30,9 +30,7 @@
 
 #include "mbedtls/platform.h"
 
-#if defined(MBEDTLS_ASN1_PARSE_C)
 #include "mbedtls/asn1.h"
-#endif
 
 /* Structure linking OIDs for X.509 DN AttributeTypes to their
  * string representations and default string encodings used by Mbed TLS. */
@@ -186,7 +184,6 @@ static int parse_attribute_value_string(const char *s,
     return 0;
 }
 
-#if defined(MBEDTLS_ASN1_PARSE_C)
 static int parse_attribute_value_der_encoded(const char *s,
                                              int len,
                                              unsigned char *data,
@@ -233,7 +230,6 @@ static int parse_attribute_value_der_encoded(const char *s,
 
     return 0;
 }
-#endif
 
 int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *name)
 {
@@ -276,16 +272,12 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
                 mbedtls_free(oid.p);
                 return MBEDTLS_ERR_X509_INVALID_NAME;
             } else if (*s == '#') {
-#if defined(MBEDTLS_ASN1_PARSE_C)
                 if ((parse_ret =
                          parse_attribute_value_der_encoded(s, (int) (c - s), data, &data_len,
                                                            &tag)) != 0) {
                     mbedtls_free(oid.p);
                     return MBEDTLS_ERR_X509_INVALID_NAME;
                 }
-#else
-                return MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE
-#endif
             } else {
                 if (numericoid) {
                     mbedtls_free(oid.p);

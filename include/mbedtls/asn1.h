@@ -209,6 +209,7 @@ typedef struct mbedtls_asn1_named_data {
 }
 mbedtls_asn1_named_data;
 
+#if defined(MBEDTLS_ASN1_PARSE_C) || defined(MBEDTLS_X509_CREATE_C)
 /**
  * \brief       Get the length of an ASN.1 element.
  *              Updates the pointer to immediately behind the length.
@@ -271,6 +272,9 @@ int mbedtls_asn1_get_tag(unsigned char **p,
  * \return      An ASN.1 error code if the input does not start with
  *              a valid ASN.1 BOOLEAN.
  */
+#endif /* MBEDTLS_ASN1_PARSE_C || MBEDTLS_X509_CREATE_C */
+
+#if defined(MBEDTLS_ASN1_PARSE_C)
 int mbedtls_asn1_get_bool(unsigned char **p,
                           const unsigned char *end,
                           int *val);
@@ -644,5 +648,7 @@ void mbedtls_asn1_free_named_data_list_shallow(mbedtls_asn1_named_data *name);
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* MBEDTLS_ASN1_PARSE_C */
 
 #endif /* asn1.h */

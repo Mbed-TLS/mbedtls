@@ -43,9 +43,7 @@
 #include "mbedtls/pem.h"
 #endif
 
-#if defined(MBEDTLS_ASN1_WRITE_C)
 #include "mbedtls/asn1write.h"
-#endif
 
 #include "mbedtls/platform.h"
 
@@ -874,7 +872,6 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
         MBEDTLS_X509_SAFE_SNPRINTF;
 
         if (print_hexstring) {
-#if defined(MBEDTLS_ASN1_WRITE_C)
             s[0] = '#';
 
             asn1_len_p = asn1_tag_len_buf + 10;
@@ -907,9 +904,6 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
                 s[j++] = nibble_to_hex_digit(highbits);
                 s[j++] = nibble_to_hex_digit(lowbits);
             }
-#else
-            return MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE;
-#endif
         } else {
             for (i = 0, j = 0; i < name->val.len; i++, j++) {
                 if (j >= sizeof(s) - 1) {

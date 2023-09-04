@@ -214,6 +214,25 @@ int mbedtls_pkcs12_pbe(mbedtls_asn1_buf *pbe_params, int mode,
         goto exit;
     }
 
+#if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
+    /* PKCS12 uses CBC with PKCS7 padding */
+
+    mbedtls_cipher_padding_t padding = MBEDTLS_PADDING_PKCS7;
+#if !defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+    /* For historical reasons, when decrypting, this function works when
+     * decrypting even when support for PKCS7 padding is disabled. In this
+     * case, it ignores the padding, and so will never report a
+     * password mismatch.
+     */
+    if (mode == MBEDTLS_PKCS12_PBE_DECRYPT) {
+        padding = MBEDTLS_PADDING_NONE;
+    }
+#endif
+    if ((ret = mbedtls_cipher_set_padding_mode(&cipher_ctx, padding)) != 0) {
+        goto exit;
+    }
+#endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
+
     if ((ret = mbedtls_cipher_set_iv(&cipher_ctx, iv, cipher_info->iv_size)) != 0) {
         goto exit;
     }

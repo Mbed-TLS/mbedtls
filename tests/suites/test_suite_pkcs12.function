@@ -1,6 +1,8 @@
 /* BEGIN_HEADER */
 #include "mbedtls/pkcs12.h"
 #include "mbedtls/error.h"
+#include "mbedtls/oid.h"
+#include "common.h"
 
 typedef enum {
     USE_NULL_INPUT = 0,
@@ -14,7 +16,7 @@ typedef enum {
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE MBEDTLS_ASN1_PARSE_C*/
 void pkcs12_derive_key(int md_type, int key_size_arg,
                        data_t *password_arg, int password_usage,
                        data_t *salt_arg, int salt_usage,
@@ -64,5 +66,81 @@ void pkcs12_derive_key(int md_type, int key_size_arg,
 exit:
     mbedtls_free(output_data);
 
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ASN1_PARSE_C */
+void pkcs12_pbe_encrypt(data_t *params_hex, data_t *pw,
+                        data_t *data, int ref_ret, data_t *ref_out)
+{
+    int my_ret;
+    mbedtls_asn1_buf pbe_alg_oid, pbe_params;
+    unsigned char *my_out = NULL;
+    unsigned char *p, *end;
+    mbedtls_cipher_type_t cipher_alg;
+    mbedtls_md_type_t md_alg;
+
+    p = params_hex->x;
+    end = p + params_hex->len;
+
+    my_ret = mbedtls_asn1_get_alg(&p, end, &pbe_alg_oid, &pbe_params);
+    if (my_ret) {
+        TEST_HELPER_ASSERT(0);
+    }
+    my_ret = mbedtls_oid_get_pkcs12_pbe_alg(&pbe_alg_oid, &md_alg, &cipher_alg);
+    if (my_ret) {
+        TEST_HELPER_ASSERT(0);
+    }
+
+    ASSERT_ALLOC(my_out, ref_out->len);
+
+    my_ret = mbedtls_pkcs12_pbe(&pbe_params, MBEDTLS_PKCS12_PBE_ENCRYPT, cipher_alg,
+                                md_alg, pw->x, pw->len, data->x, data->len, my_out);
+    TEST_EQUAL(my_ret, ref_ret);
+    if (ref_ret == 0) {
+        ASSERT_COMPARE(my_out, ref_out->len,
+                       ref_out->x, ref_out->len);
+    }
+
+exit:
+    mbedtls_free(my_out);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ASN1_PARSE_C */
+void pkcs12_pbe_decrypt(data_t *params_hex, data_t *pw,
+                        data_t *data, int ref_ret, data_t *ref_out)
+{
+    int my_ret;
+    mbedtls_asn1_buf pbe_alg_oid, pbe_params;
+    unsigned char *my_out = NULL;
+    unsigned char *p, *end;
+    mbedtls_cipher_type_t cipher_alg;
+    mbedtls_md_type_t md_alg;
+
+    p = params_hex->x;
+    end = p + params_hex->len;
+
+    my_ret = mbedtls_asn1_get_alg(&p, end, &pbe_alg_oid, &pbe_params);
+    if (my_ret) {
+        TEST_HELPER_ASSERT(0);
+    }
+    my_ret = mbedtls_oid_get_pkcs12_pbe_alg(&pbe_alg_oid, &md_alg, &cipher_alg);
+    if (my_ret) {
+        TEST_HELPER_ASSERT(0);
+    }
+
+    ASSERT_ALLOC(my_out, ref_out->len);
+
+    my_ret = mbedtls_pkcs12_pbe(&pbe_params, MBEDTLS_PKCS12_PBE_DECRYPT, cipher_alg,
+                                md_alg, pw->x, pw->len, data->x, data->len, my_out);
+    TEST_EQUAL(my_ret, ref_ret);
+    if (ref_ret == 0) {
+        ASSERT_COMPARE(my_out, ref_out->len,
+                       ref_out->x, ref_out->len);
+    }
+
+exit:
+    mbedtls_free(my_out);
 }
 /* END_CASE */

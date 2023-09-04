@@ -2390,14 +2390,22 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
                              size_t hash_size,
                              size_t *hash_length)
 {
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
     *hash_length = 0;
     if (operation->id == 0) {
-        return PSA_ERROR_BAD_STATE;
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
     }
 
-    psa_status_t status = psa_driver_wrapper_hash_finish(
-        operation, hash, hash_size, hash_length);
-    psa_hash_abort(operation);
+    status = psa_driver_wrapper_hash_finish(
+                        operation, hash, hash_size, hash_length);
+
+exit:
+    if (status != PSA_SUCCESS) {
+        psa_hash_abort(operation);
+    }
+
     return status;
 }
 

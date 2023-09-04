@@ -36,6 +36,26 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void hash_finish_verify_id(int alg_arg, data_t *input, data_t *expected_hash)
+{
+    psa_algorithm_t alg = alg_arg;
+    unsigned char actual_hash[PSA_HASH_MAX_SIZE];
+    size_t actual_hash_length;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
+
+    PSA_ASSERT(psa_crypto_init());
+
+    PSA_ASSERT(psa_hash_finish(&operation,
+                               actual_hash, sizeof(actual_hash),
+                               &actual_hash_length));
+
+exit:
+    psa_hash_abort(&operation);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void hmac(int alg_arg, char *input, data_t *expected_mac)
 {
     psa_algorithm_t alg = PSA_ALG_HMAC(alg_arg);

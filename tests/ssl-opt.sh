@@ -879,14 +879,15 @@ print_name() {
     fi
 
     LINE="$LINE$1"
-    printf "%s " "$LINE"
     if [ "$LIST_TESTS" -gt 0 ]; then
-        printf "\n"
-    else
-        LEN=$(( 72 - `echo "$LINE" | wc -c` ))
-        for i in `seq 1 $LEN`; do printf '.'; done
-        printf ' '
+        printf "%s\n" "$LINE"
+        return
     fi
+
+    printf "%s " "$LINE"
+    LEN=$(( 72 - `echo "$LINE" | wc -c` ))
+    for i in `seq 1 $LEN`; do printf '.'; done
+    printf ' '
 
 }
 

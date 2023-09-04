@@ -105,7 +105,7 @@ size saving.
 
 [Coming soon] As noted in the "Limitations regarding the selection of curves"
 section below, there is an upcoming requirement for all the required curves to
-be also accelerated in the PSA driver in order to exclude the builtin algs
+also be accelerated in the PSA driver in order to exclude the builtin algs
 support.
 
 ### Limitations regarding fully removing `ecp.c`
@@ -146,8 +146,8 @@ timeline, please let us know if you're interested.
 ### Limitations regarding the selection of curves
 
 There is an ongoing work which tries to establish a link/constrain between
-the list of supported curves and supported algorithms both in builtin and PSA
-sides. In particular:
+the list of supported curves and supported algorithms both in the builtin and
+PSA sides. In particular:
 
 - #8014 ensures that the curves supported on the PSA side (`PSA_WANT_ECC_xxx`)
   are always a superset of the builtin ones (`MBEDTLS_ECP_DP_xxx`)
@@ -170,7 +170,7 @@ Key management and usage can be enabled by means of the usual `PSA_WANT` +
 - `[PSA_WANT|MBEDTLS_PSA_ACCEL]_KEY_TYPE_DH_KEY_PAIR_GENERATE`;
 
 The same holds for the associated algorithm:
-`[PSA_WANT|MBEDTLS_PSA_ACCEL]_ALG_FFDH` allow to build accelerating FFDH and
+`[PSA_WANT|MBEDTLS_PSA_ACCEL]_ALG_FFDH` allow builds accelerating FFDH and
 removing builtin support (i.e. `MBEDTLS_DHM_C`).
 
 ### Limitations

@@ -39,7 +39,7 @@ static int test_written_key(const psa_key_attributes_t *attributes,
     TEST_CALLOC(actual_representation, storage_info.size);
     PSA_ASSERT(psa_its_get(uid, 0, storage_info.size,
                            actual_representation, &length));
-    TEST_BUFFERS_EQUAL(expected_representation->x, expected_representation->len,
+    TEST_MEMORY_COMPARE(expected_representation->x, expected_representation->len,
                    actual_representation, length);
 
     ok = 1;
@@ -272,7 +272,7 @@ static int test_read_key(const psa_key_attributes_t *expected_attributes,
         PSA_ASSERT(psa_export_key(key_id,
                                   exported_material, expected_material->len,
                                   &length));
-        TEST_BUFFERS_EQUAL(expected_material->x, expected_material->len,
+        TEST_MEMORY_COMPARE(expected_material->x, expected_material->len,
                        exported_material, length);
     }
 

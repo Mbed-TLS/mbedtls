@@ -94,7 +94,7 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
         start_buf = buf;
     }
 
-    TEST_BUFFERS_EQUAL(start_buf, buf_len, check_buf, check_buf_len);
+    TEST_MEMORY_COMPARE(start_buf, buf_len, check_buf, check_buf_len);
 
 exit:
     mbedtls_free(buf);
@@ -150,7 +150,7 @@ void pk_write_public_from_private(char *priv_key_file, char *pub_key_file)
     TEST_EQUAL(mbedtls_pk_write_pubkey_der(&priv_key, derived_key_raw,
                                            derived_key_len), pub_key_len);
 
-    TEST_BUFFERS_EQUAL(derived_key_raw, derived_key_len,
+    TEST_MEMORY_COMPARE(derived_key_raw, derived_key_len,
                    pub_key_raw, pub_key_len);
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -162,7 +162,7 @@ void pk_write_public_from_private(char *priv_key_file, char *pub_key_file)
     TEST_EQUAL(mbedtls_pk_write_pubkey_der(&priv_key, derived_key_raw,
                                            derived_key_len), pub_key_len);
 
-    TEST_BUFFERS_EQUAL(derived_key_raw, derived_key_len,
+    TEST_MEMORY_COMPARE(derived_key_raw, derived_key_len,
                    pub_key_raw, pub_key_len);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

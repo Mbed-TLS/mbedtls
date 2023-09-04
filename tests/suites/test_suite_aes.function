@@ -34,7 +34,7 @@ static int test_ctx_alignment(const data_t *key,
     // Decrypt
     TEST_ASSERT(mbedtls_aes_crypt_ecb(dec, MBEDTLS_AES_DECRYPT,
                                       ciphertext, output) == 0);
-    TEST_BUFFERS_EQUAL(plaintext, 16, output, 16);
+    TEST_MEMORY_COMPARE(plaintext, 16, output, 16);
 
     mbedtls_aes_free(dec);
 

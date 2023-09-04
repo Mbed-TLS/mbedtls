@@ -84,7 +84,7 @@ void ssl_cf_hmac(int hash)
             TEST_EQUAL(0, mbedtls_md_hmac_reset(&ref_ctx));
 
             /* Compare */
-            TEST_BUFFERS_EQUAL(out, out_len, ref_out, out_len);
+            TEST_MEMORY_COMPARE(out, out_len, ref_out, out_len);
         }
 
         mbedtls_free(data);

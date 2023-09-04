@@ -57,7 +57,7 @@ void pkcs12_derive_key(int md_type, int key_size_arg,
     TEST_EQUAL(ret, expected_status);
 
     if (expected_status == 0) {
-        TEST_BUFFERS_EQUAL(expected_output->x, expected_output->len,
+        TEST_MEMORY_COMPARE(expected_output->x, expected_output->len,
                        output_data, key_size);
     }
 

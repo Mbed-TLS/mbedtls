@@ -106,7 +106,7 @@ static const char *tag_number_to_names(int tag_number)
     return tag_name;
 }
 
-static int ber_to_string(unsigned char **input, int length, int depth)
+static int ber_to_string(unsigned char **input, size_t length, int depth)
 {
     int number, constructed, class;
     const char *tag_name;
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
 {
     FILE *fp = NULL;
     int exit_code = MBEDTLS_EXIT_FAILURE, ret;
-    int file_length;
+    long file_length;
     unsigned char *input_buf = NULL;
     unsigned char *s;
 

@@ -1062,10 +1062,6 @@
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_EXPORT 1
 #endif
 
-/* These features are always enabled. */
-#define PSA_WANT_KEY_TYPE_DERIVE 1
-#define PSA_WANT_KEY_TYPE_PASSWORD 1
-#define PSA_WANT_KEY_TYPE_PASSWORD_HASH 1
-#define PSA_WANT_KEY_TYPE_RAW_DATA 1
+#include "psa/crypto_adjust_auto_enabled.h"
 
 #endif /* MBEDTLS_CONFIG_PSA_H */

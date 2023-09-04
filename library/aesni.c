@@ -32,7 +32,7 @@
 
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
 
-#if MBEDTLS_AESNI_HAVE_CODE == 2
+#if defined(MBEDTLS_AESNI_HAVE_INTRINSICS)
 #if !defined(_WIN32)
 #include <cpuid.h>
 #else
@@ -41,39 +41,43 @@
 #include <immintrin.h>
 #endif
 
-#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-/*
- * AES-NI support detection routine
- */
-int mbedtls_aesni_has_support(unsigned int what)
+#if defined(MBEDTLS_RUNTIME_HAVE_CODE) && defined(MBEDTLS_AES_RUNTIME_HAVE_CODE)
+
+signed char mbedtls_aesni_aes_has_support_result = -1;
+
+int mbedtls_aesni_aes_has_support(void)
 {
-    static int done = 0;
-    static unsigned int c = 0;
-
-    if (!done) {
-#if MBEDTLS_AESNI_HAVE_CODE == 2
-        static unsigned info[4] = { 0, 0, 0, 0 };
-#if defined(_MSC_VER)
-        __cpuid(info, 1);
-#else
-        __cpuid(1, info[0], info[1], info[2], info[3]);
-#endif
-        c = info[2];
-#else /* AESNI using asm */
-        asm ("movl  $1, %%eax   \n\t"
-             "cpuid             \n\t"
-             : "=c" (c)
-             :
-             : "eax", "ebx", "edx");
-#endif /* MBEDTLS_AESNI_HAVE_CODE */
-        done = 1;
+    if (mbedtls_aesni_aes_has_support_result == -1) {
+        if (mbedtls_cpu_has_features(MBEDTLS_HWCAP_AESNI_AES) == true) {
+            mbedtls_aesni_aes_has_support_result = 1;
+        } else {
+            mbedtls_aesni_aes_has_support_result = 0;
+        }
     }
-
-    return (c & what) != 0;
+    return mbedtls_aesni_aes_has_support_result;
 }
-#endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 
-#if MBEDTLS_AESNI_HAVE_CODE == 2
+#if defined(MBEDTLS_GCM_C)
+
+signed char mbedtls_aesni_clmul_has_support_result = -1;
+
+int mbedtls_aesni_clmul_has_support(void)
+{
+    if (mbedtls_aesni_clmul_has_support_result == -1) {
+        if (mbedtls_cpu_has_features(MBEDTLS_HWCAP_AESNI_CLMUL) == true) {
+            mbedtls_aesni_clmul_has_support_result = 1;
+        } else {
+            mbedtls_aesni_clmul_has_support_result = 0;
+        }
+    }
+    return mbedtls_aesni_clmul_has_support_result;
+}
+
+#endif
+
+#endif /* MBEDTLS_RUNTIME_HAVE_CODE && MBEDTLS_AES_RUNTIME_HAVE_CODE */
+
+#if defined(MBEDTLS_AESNI_HAVE_INTRINSICS)
 
 /*
  * AES-NI AES-ECB block en(de)cryption
@@ -396,7 +400,7 @@ static void aesni_setkey_enc_256(unsigned char *rk_bytes,
 }
 #endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 
-#else /* MBEDTLS_AESNI_HAVE_CODE == 1 */
+#else /* MBEDTLS_AESNI_HAVE_INTRINSICS */
 
 #if defined(__has_feature)
 #if __has_feature(memory_sanitizer)

@@ -47,6 +47,7 @@
 
 #if defined(MBEDTLS_AESNI_C) && \
     (defined(MBEDTLS_ARCH_IS_X64) || defined(MBEDTLS_ARCH_IS_X86))
+#define MBEDTLS_AESNI_HAVE_CODE
 #define MBEDTLS_AES_HAVE_AESNI 1
 #else
 #define MBEDTLS_AES_HAVE_AESNI 0

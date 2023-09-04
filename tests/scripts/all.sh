@@ -4248,7 +4248,7 @@ component_test_aesni_m32 () { # ~ 60s
     grep -q "AES note: using AESNI" ./programs/test/selftest
     grep -q "AES note: built-in implementation." ./programs/test/selftest
     grep -q "AES note: using VIA Padlock" ./programs/test/selftest
-    grep -q mbedtls_aesni_has_support ./programs/test/selftest
+    grep -q mbedtls_aesni_aes_has_support ./programs/test/selftest
 
     scripts/config.py set MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_PADLOCK_C
@@ -4261,7 +4261,7 @@ component_test_aesni_m32 () { # ~ 60s
     grep -q "AES note: using AESNI" ./programs/test/selftest
     not grep -q "AES note: built-in implementation." ./programs/test/selftest
     not grep -q "AES note: using VIA Padlock" ./programs/test/selftest
-    not grep -q mbedtls_aesni_has_support ./programs/test/selftest
+    not grep -q mbedtls_aesni_aes_has_support ./programs/test/selftest
 }
 
 # For timebeing, no aarch64 gcc available in CI and no arm64 CI node.

@@ -92,7 +92,7 @@ static int gcm_gen_table(mbedtls_gcm_context *ctx)
 
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
     /* With CLMUL support, we need only h, not the rest of the table */
-    if (mbedtls_aesni_has_support(MBEDTLS_AESNI_CLMUL)) {
+    if (MBEDTLS_AESNI_CLMUL_HAS_SUPPORT()) {
         return 0;
     }
 #endif
@@ -194,7 +194,7 @@ static void gcm_mult(mbedtls_gcm_context *ctx, const unsigned char x[16],
     uint64_t zh, zl;
 
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
-    if (mbedtls_aesni_has_support(MBEDTLS_AESNI_CLMUL)) {
+    if (MBEDTLS_AESNI_CLMUL_HAS_SUPPORT()) {
         unsigned char h[16];
 
         /* mbedtls_aesni_gcm_mult needs big-endian input */
@@ -880,7 +880,7 @@ int mbedtls_gcm_self_test(int verbose)
         mbedtls_printf("  GCM note: alternative implementation.\n");
 #else /* MBEDTLS_GCM_ALT */
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
-        if (mbedtls_aesni_has_support(MBEDTLS_AESNI_CLMUL)) {
+        if (MBEDTLS_AESNI_CLMUL_HAS_SUPPORT()) {
             mbedtls_printf("  GCM note: using AESNI.\n");
         } else
 #endif

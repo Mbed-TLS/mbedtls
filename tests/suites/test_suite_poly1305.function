@@ -23,7 +23,7 @@ void mbedtls_poly1305(data_t *key, data_t *expected_mac, data_t *src_str)
                                      src_str->len, mac) == 0);
 
     TEST_MEMORY_COMPARE(mac, expected_mac->len,
-                   expected_mac->x, expected_mac->len);
+                        expected_mac->x, expected_mac->len);
 
     /*
      * Test the streaming API
@@ -37,7 +37,7 @@ void mbedtls_poly1305(data_t *key, data_t *expected_mac, data_t *src_str)
     TEST_ASSERT(mbedtls_poly1305_finish(&ctx, mac) == 0);
 
     TEST_MEMORY_COMPARE(mac, expected_mac->len,
-                   expected_mac->x, expected_mac->len);
+                        expected_mac->x, expected_mac->len);
 
     /*
      * Test the streaming API again, piecewise
@@ -54,7 +54,7 @@ void mbedtls_poly1305(data_t *key, data_t *expected_mac, data_t *src_str)
         TEST_ASSERT(mbedtls_poly1305_finish(&ctx, mac) == 0);
 
         TEST_MEMORY_COMPARE(mac, expected_mac->len,
-                       expected_mac->x, expected_mac->len);
+                            expected_mac->x, expected_mac->len);
     }
 
     /*
@@ -70,7 +70,7 @@ void mbedtls_poly1305(data_t *key, data_t *expected_mac, data_t *src_str)
         TEST_ASSERT(mbedtls_poly1305_finish(&ctx, mac) == 0);
 
         TEST_MEMORY_COMPARE(mac, expected_mac->len,
-                       expected_mac->x, expected_mac->len);
+                            expected_mac->x, expected_mac->len);
     }
 
     mbedtls_poly1305_free(&ctx);

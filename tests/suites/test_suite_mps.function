@@ -611,8 +611,8 @@ void mbedtls_mps_reader_reclaim_data_left(int option)
             TEST_ASSERT(mbedtls_mps_reader_get(&rd, sizeof(buf) / 2,
                                                &tmp, NULL) == 0);
             TEST_MEMORY_COMPARE(tmp, sizeof(buf) / 2,
-                           buf + sizeof(buf) / 2,
-                           sizeof(buf) / 2);
+                                buf + sizeof(buf) / 2,
+                                sizeof(buf) / 2);
             break;
 
         default:

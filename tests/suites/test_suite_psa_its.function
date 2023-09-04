@@ -168,7 +168,7 @@ void set_multiple(int first_id, int count)
                          "Content of file 0x%08lx", (unsigned long) uid);
         PSA_ASSERT(psa_its_get(uid, 0, sizeof(stored), retrieved, &ret_len));
         TEST_MEMORY_COMPARE(retrieved, ret_len,
-                       stored, sizeof(stored));
+                            stored, sizeof(stored));
         PSA_ASSERT(psa_its_remove(uid));
         TEST_ASSERT(psa_its_get(uid, 0, 0, NULL, NULL) ==
                     PSA_ERROR_DOES_NOT_EXIST);
@@ -224,7 +224,7 @@ void get_at(int uid_arg, data_t *data,
     TEST_ASSERT(status == (psa_status_t) expected_status);
     if (status == PSA_SUCCESS) {
         TEST_MEMORY_COMPARE(data->x + offset, (size_t) length_arg,
-                       buffer, ret_len);
+                            buffer, ret_len);
     }
     for (i = 0; i < 16; i++) {
         TEST_ASSERT(trailer[i] == '-');

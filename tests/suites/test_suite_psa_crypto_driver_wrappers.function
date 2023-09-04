@@ -65,7 +65,7 @@ void sign_hash(int key_type_arg,
     TEST_EQUAL(actual_status, expected_status);
     if (expected_status == PSA_SUCCESS) {
         TEST_MEMORY_COMPARE(signature, signature_length,
-                       expected_output->x, expected_output->len);
+                            expected_output->x, expected_output->len);
     }
     TEST_EQUAL(mbedtls_test_driver_signature_sign_hooks.hits, 1);
 
@@ -192,7 +192,7 @@ void sign_message(int key_type_arg,
     TEST_EQUAL(actual_status, expected_status);
     if (expected_status == PSA_SUCCESS) {
         TEST_MEMORY_COMPARE(signature, signature_length,
-                       expected_output->x, expected_output->len);
+                            expected_output->x, expected_output->len);
     }
     /* In the builtin algorithm the driver is called twice. */
     TEST_EQUAL(mbedtls_test_driver_signature_sign_hooks.hits,
@@ -314,7 +314,7 @@ void generate_key(int force_status_arg,
 
         if (fake_output->len > 0) {
             TEST_MEMORY_COMPARE(actual_output, actual_output_length,
-                           expected_output, expected_output_length);
+                                expected_output, expected_output_length);
         } else {
             size_t zeroes = 0;
             for (size_t i = 0; i < sizeof(actual_output); i++) {
@@ -446,7 +446,7 @@ void export_key(int force_status_arg,
 
     if (actual_status == PSA_SUCCESS) {
         TEST_MEMORY_COMPARE(actual_output, actual_output_length,
-                       expected_output_ptr, expected_output_length);
+                            expected_output_ptr, expected_output_length);
     }
 exit:
     psa_reset_key_attributes(&attributes);
@@ -528,7 +528,7 @@ void cipher_encrypt_validation(int alg_arg,
     // driver function should've been called as part of the finish() core routine
     TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits, 0);
     TEST_MEMORY_COMPARE(output1 + iv_size, output1_length - iv_size,
-                   output2, output2_length);
+                        output2, output2_length);
 
 exit:
     psa_cipher_abort(&operation);
@@ -656,7 +656,7 @@ void cipher_encrypt_multipart(int alg_arg,
         TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits, 0);
 
         TEST_MEMORY_COMPARE(expected_output->x, expected_output->len,
-                       output, total_output_length);
+                            output, total_output_length);
     }
 
 exit:
@@ -785,7 +785,7 @@ void cipher_decrypt_multipart(int alg_arg,
         TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits, 0);
 
         TEST_MEMORY_COMPARE(expected_output->x, expected_output->len,
-                       output, total_output_length);
+                            output, total_output_length);
     }
 
 exit:
@@ -857,7 +857,7 @@ void cipher_decrypt(int alg_arg,
 
     if (expected_status == PSA_SUCCESS) {
         TEST_MEMORY_COMPARE(expected_output->x, expected_output->len,
-                       output, output_length);
+                            output, output_length);
     }
 
 exit:
@@ -1142,7 +1142,7 @@ void aead_encrypt(int key_type_arg, data_t *key_data,
 
     if (status == PSA_SUCCESS) {
         TEST_MEMORY_COMPARE(expected_result->x, expected_result->len,
-                       output_data, output_length);
+                            output_data, output_length);
     }
 
 exit:
@@ -1205,7 +1205,7 @@ void aead_decrypt(int key_type_arg, data_t *key_data,
 
     if (status == PSA_SUCCESS) {
         TEST_MEMORY_COMPARE(expected_data->x, expected_data->len,
-                       output_data, output_length);
+                            output_data, output_length);
     }
 
 exit:
@@ -1327,7 +1327,7 @@ void mac_sign(int key_type_arg,
 
     if (forced_status == PSA_SUCCESS) {
         TEST_MEMORY_COMPARE(expected_mac->x, expected_mac->len,
-                       actual_mac, mac_length);
+                            actual_mac, mac_length);
     }
 
     mbedtls_free(actual_mac);
@@ -1478,7 +1478,7 @@ void builtin_key_export(int builtin_key_id_arg,
         PSA_ASSERT(actual_status);
         TEST_EQUAL(output_size, expected_output->len);
         TEST_MEMORY_COMPARE(output_buffer, output_size,
-                       expected_output->x, expected_output->len);
+                            expected_output->x, expected_output->len);
 
         PSA_ASSERT(psa_get_key_attributes(key, &attributes));
         TEST_EQUAL(psa_get_key_bits(&attributes), builtin_key_bits);
@@ -1529,7 +1529,7 @@ void builtin_pubkey_export(int builtin_key_id_arg,
         PSA_ASSERT(actual_status);
         TEST_EQUAL(output_size, expected_output->len);
         TEST_MEMORY_COMPARE(output_buffer, output_size,
-                       expected_output->x, expected_output->len);
+                            expected_output->x, expected_output->len);
 
         PSA_ASSERT(psa_get_key_attributes(key, &attributes));
         TEST_EQUAL(psa_get_key_bits(&attributes), builtin_key_bits);

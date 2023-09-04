@@ -623,7 +623,7 @@ void import_export(data_t *data,
     }
 
     if (canonical_input) {
-        ASSERT_COMPARE(data->x, data->len, exported, exported_length);
+        TEST_BUFFERS_EQUAL(data->x, data->len, exported, exported_length);
     } else {
         mbedtls_svc_key_id_t key2 = MBEDTLS_SVC_KEY_ID_INIT;
         PSA_ASSERT(psa_import_key(&attributes, exported, exported_length,
@@ -632,7 +632,7 @@ void import_export(data_t *data,
                                   reexported,
                                   export_size,
                                   &reexported_length));
-        ASSERT_COMPARE(exported, exported_length,
+        TEST_BUFFERS_EQUAL(exported, exported_length,
                        reexported, reexported_length);
         PSA_ASSERT(psa_destroy_key(key2));
     }
@@ -703,7 +703,7 @@ void import_export_public_key(data_t *data,
                   PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(public_type, bits));
         TEST_LE_U(expected_public_key->len,
                   PSA_EXPORT_PUBLIC_KEY_MAX_SIZE);
-        ASSERT_COMPARE(expected_public_key->x, expected_public_key->len,
+        TEST_BUFFERS_EQUAL(expected_public_key->x, expected_public_key->len,
                        exported, exported_length);
     }
 
@@ -1449,7 +1449,7 @@ void copy_success(int source_usage_arg,
         ASSERT_ALLOC(export_buffer, material->len);
         PSA_ASSERT(psa_export_key(target_key, export_buffer,
                                   material->len, &length));
-        ASSERT_COMPARE(material->x, material->len,
+        TEST_BUFFERS_EQUAL(material->x, material->len,
                        export_buffer, length);
     }
 
@@ -1650,7 +1650,7 @@ void hash_compute_compare(int alg_arg, data_t *input,
                                 output, PSA_HASH_LENGTH(alg),
                                 &output_length));
     TEST_EQUAL(output_length, PSA_HASH_LENGTH(alg));
-    ASSERT_COMPARE(output, output_length,
+    TEST_BUFFERS_EQUAL(output, output_length,
                    expected_output->x, expected_output->len);
 
     /* Compute with larger buffer */
@@ -1658,7 +1658,7 @@ void hash_compute_compare(int alg_arg, data_t *input,
                                 output, sizeof(output),
                                 &output_length));
     TEST_EQUAL(output_length, PSA_HASH_LENGTH(alg));
-    ASSERT_COMPARE(output, output_length,
+    TEST_BUFFERS_EQUAL(output, output_length,
                    expected_output->x, expected_output->len);
 
     /* Compare with correct hash */
@@ -2195,7 +2195,7 @@ void mac_sign(int key_type_arg,
                                    actual_mac, output_size, &mac_length),
                    expected_status);
         if (expected_status == PSA_SUCCESS) {
-            ASSERT_COMPARE(expected_mac->x, expected_mac->len,
+            TEST_BUFFERS_EQUAL(expected_mac->x, expected_mac->len,
                            actual_mac, mac_length);
         }
 
@@ -2214,7 +2214,7 @@ void mac_sign(int key_type_arg,
         PSA_ASSERT(psa_mac_abort(&operation));
 
         if (expected_status == PSA_SUCCESS) {
-            ASSERT_COMPARE(expected_mac->x, expected_mac->len,
+            TEST_BUFFERS_EQUAL(expected_mac->x, expected_mac->len,
                            actual_mac, mac_length);
         }
         mbedtls_free(actual_mac);
@@ -2697,7 +2697,7 @@ void cipher_alg_without_iv(int alg_arg, int key_type_arg, data_t *key_data,
                                  output_buffer_size - output_length,
                                  &length));
     output_length += length;
-    ASSERT_COMPARE(ciphertext->x, ciphertext->len,
+    TEST_BUFFERS_EQUAL(ciphertext->x, ciphertext->len,
                    output, output_length);
 
     /* Multipart encryption */
@@ -2715,7 +2715,7 @@ void cipher_alg_without_iv(int alg_arg, int key_type_arg, data_t *key_data,
                                  output_buffer_size - output_length,
                                  &length));
     output_length += length;
-    ASSERT_COMPARE(plaintext->x, plaintext->len,
+    TEST_BUFFERS_EQUAL(plaintext->x, plaintext->len,
                    output, output_length);
 
     /* One-shot encryption */
@@ -2723,7 +2723,7 @@ void cipher_alg_without_iv(int alg_arg, int key_type_arg, data_t *key_data,
     PSA_ASSERT(psa_cipher_encrypt(key, alg, plaintext->x, plaintext->len,
                                   output, output_buffer_size,
                                   &output_length));
-    ASSERT_COMPARE(ciphertext->x, ciphertext->len,
+    TEST_BUFFERS_EQUAL(ciphertext->x, ciphertext->len,
                    output, output_length);
 
     /* One-shot decryption */
@@ -2731,7 +2731,7 @@ void cipher_alg_without_iv(int alg_arg, int key_type_arg, data_t *key_data,
     PSA_ASSERT(psa_cipher_decrypt(key, alg, ciphertext->x, ciphertext->len,
                                   output, output_buffer_size,
                                   &output_length));
-    ASSERT_COMPARE(plaintext->x, plaintext->len,
+    TEST_BUFFERS_EQUAL(plaintext->x, plaintext->len,
                    output, output_length);
 
 exit:
@@ -2850,7 +2850,7 @@ void cipher_encrypt_validation(int alg_arg,
     output2_length += function_output_length;
 
     PSA_ASSERT(psa_cipher_abort(&operation));
-    ASSERT_COMPARE(output1 + iv_size, output1_length - iv_size,
+    TEST_BUFFERS_EQUAL(output1 + iv_size, output1_length - iv_size,
                    output2, output2_length);
 
 exit:
@@ -2949,7 +2949,7 @@ void cipher_encrypt_multipart(int alg_arg, int key_type_arg,
     if (expected_status == PSA_SUCCESS) {
         PSA_ASSERT(psa_cipher_abort(&operation));
 
-        ASSERT_COMPARE(expected_output->x, expected_output->len,
+        TEST_BUFFERS_EQUAL(expected_output->x, expected_output->len,
                        output, total_output_length);
     }
 
@@ -3049,7 +3049,7 @@ void cipher_decrypt_multipart(int alg_arg, int key_type_arg,
     if (expected_status == PSA_SUCCESS) {
         PSA_ASSERT(psa_cipher_abort(&operation));
 
-        ASSERT_COMPARE(expected_output->x, expected_output->len,
+        TEST_BUFFERS_EQUAL(expected_output->x, expected_output->len,
                        output, total_output_length);
     }
 
@@ -3160,7 +3160,7 @@ void cipher_decrypt(int alg_arg,
     TEST_LE_U(output_length,
               PSA_CIPHER_DECRYPT_OUTPUT_MAX_SIZE(input_buffer_size));
 
-    ASSERT_COMPARE(expected_output->x, expected_output->len,
+    TEST_BUFFERS_EQUAL(expected_output->x, expected_output->len,
                    output, output_length);
 exit:
     mbedtls_free(input);
@@ -3217,7 +3217,7 @@ void cipher_verify_output(int alg_arg,
     TEST_LE_U(output2_length,
               PSA_CIPHER_DECRYPT_OUTPUT_MAX_SIZE(output1_length));
 
-    ASSERT_COMPARE(input->x, input->len, output2, output2_length);
+    TEST_BUFFERS_EQUAL(input->x, input->len, output2, output2_length);
 
 exit:
     mbedtls_free(output1);
@@ -3357,7 +3357,7 @@ void cipher_verify_output_multipart(int alg_arg,
 
     PSA_ASSERT(psa_cipher_abort(&operation2));
 
-    ASSERT_COMPARE(input->x, input->len, output2, output2_length);
+    TEST_BUFFERS_EQUAL(input->x, input->len, output2, output2_length);
 
 exit:
     psa_cipher_abort(&operation1);
@@ -3452,7 +3452,7 @@ void aead_encrypt_decrypt(int key_type_arg, data_t *key_data,
                                     &output_length2),
                    expected_result);
 
-        ASSERT_COMPARE(input_data->x, input_data->len,
+        TEST_BUFFERS_EQUAL(input_data->x, input_data->len,
                        output_data2, output_length2);
     }
 
@@ -3519,7 +3519,7 @@ void aead_encrypt(int key_type_arg, data_t *key_data,
     }
 
     PSA_ASSERT(status);
-    ASSERT_COMPARE(expected_result->x, expected_result->len,
+    TEST_BUFFERS_EQUAL(expected_result->x, expected_result->len,
                    output_data, output_length);
 
 exit:
@@ -3592,7 +3592,7 @@ void aead_decrypt(int key_type_arg, data_t *key_data,
     TEST_EQUAL(status, expected_result);
 
     if (expected_result == PSA_SUCCESS) {
-        ASSERT_COMPARE(expected_data->x, expected_data->len,
+        TEST_BUFFERS_EQUAL(expected_data->x, expected_data->len,
                        output_data, output_length);
     }
 
@@ -3663,7 +3663,7 @@ void sign_hash_deterministic(int key_type_arg, data_t *key_data,
                              signature, signature_size,
                              &signature_length));
     /* Verify that the signature is what is expected. */
-    ASSERT_COMPARE(output_data->x, output_data->len,
+    TEST_BUFFERS_EQUAL(output_data->x, output_data->len,
                    signature, signature_length);
 
 #if defined(MBEDTLS_TEST_DEPRECATED)
@@ -3673,7 +3673,7 @@ void sign_hash_deterministic(int key_type_arg, data_t *key_data,
                                    input_data->x, input_data->len,
                                    signature, signature_size,
                                    &signature_length));
-    ASSERT_COMPARE(output_data->x, output_data->len,
+    TEST_BUFFERS_EQUAL(output_data->x, output_data->len,
                    signature, signature_length);
 #endif /* MBEDTLS_TEST_DEPRECATED */
 
@@ -3933,7 +3933,7 @@ void sign_message_deterministic(int key_type_arg,
                                 signature, signature_size,
                                 &signature_length));
 
-    ASSERT_COMPARE(output_data->x, output_data->len,
+    TEST_BUFFERS_EQUAL(output_data->x, output_data->len,
                    signature, signature_length);
 
 exit:
@@ -4271,7 +4271,7 @@ void asymmetric_encrypt_decrypt(int key_type_arg,
                                       label->x, label->len,
                                       output2, output2_size,
                                       &output2_length));
-    ASSERT_COMPARE(input_data->x, input_data->len,
+    TEST_BUFFERS_EQUAL(input_data->x, input_data->len,
                    output2, output2_length);
 
 exit:
@@ -4328,7 +4328,7 @@ void asymmetric_decrypt(int key_type_arg,
                                       output,
                                       output_size,
                                       &output_length));
-    ASSERT_COMPARE(expected_data->x, expected_data->len,
+    TEST_BUFFERS_EQUAL(expected_data->x, expected_data->len,
                    output, output_length);
 
     /* If the label is empty, the test framework puts a non-null pointer
@@ -4344,7 +4344,7 @@ void asymmetric_decrypt(int key_type_arg,
                                           output,
                                           output_size,
                                           &output_length));
-        ASSERT_COMPARE(expected_data->x, expected_data->len,
+        TEST_BUFFERS_EQUAL(expected_data->x, expected_data->len,
                        output, output_length);
     }
 
@@ -4756,7 +4756,7 @@ void derive_output(int alg_arg,
         /* Success. Check the read data. */
         PSA_ASSERT(status);
         if (output_sizes[i] != 0) {
-            ASSERT_COMPARE(output_buffer, output_sizes[i],
+            TEST_BUFFERS_EQUAL(output_buffer, output_sizes[i],
                            expected_outputs[i], output_sizes[i]);
         }
         /* Check the operation status. */
@@ -4982,7 +4982,7 @@ void derive_key_export(int alg_arg,
     TEST_EQUAL(length, bytes2);
 
     /* Compare the outputs from the two runs. */
-    ASSERT_COMPARE(output_buffer, bytes1 + bytes2,
+    TEST_BUFFERS_EQUAL(output_buffer, bytes1 + bytes2,
                    export_buffer, capacity);
 
 exit:
@@ -5133,7 +5133,7 @@ void raw_key_agreement(int alg_arg,
                                      peer_key_data->x, peer_key_data->len,
                                      output, expected_output->len,
                                      &output_length));
-    ASSERT_COMPARE(output, output_length,
+    TEST_BUFFERS_EQUAL(output, output_length,
                    expected_output->x, expected_output->len);
     mbedtls_free(output);
     output = NULL;
@@ -5145,7 +5145,7 @@ void raw_key_agreement(int alg_arg,
                                      peer_key_data->x, peer_key_data->len,
                                      output, expected_output->len + 1,
                                      &output_length));
-    ASSERT_COMPARE(output, output_length,
+    TEST_BUFFERS_EQUAL(output, output_length,
                    expected_output->x, expected_output->len);
     mbedtls_free(output);
     output = NULL;
@@ -5268,13 +5268,13 @@ void key_agreement_output(int alg_arg,
     PSA_ASSERT(psa_key_derivation_output_bytes(&operation,
                                                actual_output,
                                                expected_output1->len));
-    ASSERT_COMPARE(actual_output, expected_output1->len,
+    TEST_BUFFERS_EQUAL(actual_output, expected_output1->len,
                    expected_output1->x, expected_output1->len);
     if (expected_output2->len != 0) {
         PSA_ASSERT(psa_key_derivation_output_bytes(&operation,
                                                    actual_output,
                                                    expected_output2->len));
-        ASSERT_COMPARE(actual_output, expected_output2->len,
+        TEST_BUFFERS_EQUAL(actual_output, expected_output2->len,
                        expected_output2->x, expected_output2->len);
     }
 
@@ -5443,7 +5443,7 @@ void generate_key_rsa(int bits_arg,
     if (is_default_public_exponent) {
         TEST_EQUAL(e_read_length, 0);
     } else {
-        ASSERT_COMPARE(e_read_buffer, e_read_length, e_arg->x, e_arg->len);
+        TEST_BUFFERS_EQUAL(e_read_buffer, e_read_length, e_arg->x, e_arg->len);
     }
 
     /* Do something with the key according to its type and permitted usage. */
@@ -5479,7 +5479,7 @@ void generate_key_rsa(int bits_arg,
             TEST_EQUAL(p[1], 0);
             TEST_EQUAL(p[2], 1);
         } else {
-            ASSERT_COMPARE(p, len, e_arg->x, e_arg->len);
+            TEST_BUFFERS_EQUAL(p, len, e_arg->x, e_arg->len);
         }
     }
 
@@ -5588,7 +5588,7 @@ void persistent_key_load_key_from_storage(data_t *data,
                                   first_export, export_size,
                                   &first_exported_length));
         if (generation_method == IMPORT_KEY) {
-            ASSERT_COMPARE(data->x, data->len,
+            TEST_BUFFERS_EQUAL(data->x, data->len,
                            first_export, first_exported_length);
         }
     }
@@ -5615,7 +5615,7 @@ void persistent_key_load_key_from_storage(data_t *data,
         PSA_ASSERT(psa_export_key(key,
                                   second_export, export_size,
                                   &second_exported_length));
-        ASSERT_COMPARE(first_export, first_exported_length,
+        TEST_BUFFERS_EQUAL(first_export, first_exported_length,
                        second_export, second_exported_length);
     }
 

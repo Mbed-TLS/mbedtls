@@ -852,7 +852,7 @@ void ecp_muladd(int id,
                    &len, actual_result, sizeof(actual_result)));
     TEST_ASSERT(len <= MBEDTLS_ECP_MAX_PT_LEN);
 
-    ASSERT_COMPARE(expected_result->x, expected_result->len,
+    TEST_BUFFERS_EQUAL(expected_result->x, expected_result->len,
                    actual_result, len);
 
 exit:
@@ -1356,7 +1356,7 @@ void mbedtls_ecp_read_key(int grp_id, data_t *in_key, int expected, int canonica
             ret = mbedtls_ecp_write_key(&key, buf, in_key->len);
             TEST_ASSERT(ret == 0);
 
-            ASSERT_COMPARE(in_key->x, in_key->len,
+            TEST_BUFFERS_EQUAL(in_key->x, in_key->len,
                            buf, in_key->len);
         } else {
             unsigned char export1[MBEDTLS_ECP_MAX_BYTES];
@@ -1371,7 +1371,7 @@ void mbedtls_ecp_read_key(int grp_id, data_t *in_key, int expected, int canonica
             ret = mbedtls_ecp_write_key(&key2, export2, in_key->len);
             TEST_ASSERT(ret == 0);
 
-            ASSERT_COMPARE(export1, in_key->len,
+            TEST_BUFFERS_EQUAL(export1, in_key->len,
                            export2, in_key->len);
         }
     }
@@ -1448,7 +1448,7 @@ void genkey_mx_known_answer(int bits, data_t *seed, data_t *expected)
          *   (can be enforced by checking these bits).
          * - Other bits must be random (by testing with different RNG outputs,
          *   we validate that those bits are indeed influenced by the RNG). */
-        ASSERT_COMPARE(expected->x, expected->len,
+        TEST_BUFFERS_EQUAL(expected->x, expected->len,
                        actual, expected->len);
     }
 

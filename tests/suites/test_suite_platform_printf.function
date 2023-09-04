@@ -34,7 +34,7 @@ void printf_int(char *format, /* any format expecting one int argument, e.g. "%d
     /* Nominal case: buffer just large enough */
     ASSERT_ALLOC(output, n + 1);
     TEST_EQUAL(n, mbedtls_snprintf(output, n + 1, format, x));
-    ASSERT_COMPARE(result, n + 1, output, n + 1);
+    TEST_BUFFERS_EQUAL(result, n + 1, output, n + 1);
     mbedtls_free(output);
     output = NULL;
 
@@ -59,7 +59,7 @@ void printf_long_max(const char *format, /* "%lx" or longer type */
 
     ASSERT_ALLOC(output, n + 1);
     TEST_EQUAL(n, mbedtls_snprintf(output, n + 1, format, value));
-    ASSERT_COMPARE(expected, n + 1, output, n + 1);
+    TEST_BUFFERS_EQUAL(expected, n + 1, output, n + 1);
     mbedtls_free(output);
     output = NULL;
 
@@ -79,7 +79,7 @@ void printf_char2(char *format, /* "%c%c" */
     /* Nominal case: buffer just large enough */
     ASSERT_ALLOC(output, n + 1);
     TEST_EQUAL(n, mbedtls_snprintf(output, n + 1, format, arg1, arg2));
-    ASSERT_COMPARE(result, n + 1, output, n + 1);
+    TEST_BUFFERS_EQUAL(result, n + 1, output, n + 1);
     mbedtls_free(output);
     output = NULL;
 

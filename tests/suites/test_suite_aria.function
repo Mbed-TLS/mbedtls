@@ -224,7 +224,7 @@ void aria_encrypt_ecb(data_t *key_str, data_t *src_str,
                                                output + i) == 0);
         }
 
-        ASSERT_COMPARE(output, expected_output->len,
+        TEST_BUFFERS_EQUAL(output, expected_output->len,
                        expected_output->x, expected_output->len);
     }
 
@@ -252,7 +252,7 @@ void aria_decrypt_ecb(data_t *key_str, data_t *src_str,
                                                output + i) == 0);
         }
 
-        ASSERT_COMPARE(output, expected_output->len,
+        TEST_BUFFERS_EQUAL(output, expected_output->len,
                        expected_output->x, expected_output->len);
     }
 
@@ -277,7 +277,7 @@ void aria_encrypt_cbc(data_t *key_str, data_t *iv_str,
                                        src_str->len, iv_str->x, src_str->x,
                                        output) == cbc_result);
     if (cbc_result == 0) {
-        ASSERT_COMPARE(output, expected_output->len,
+        TEST_BUFFERS_EQUAL(output, expected_output->len,
                        expected_output->x, expected_output->len);
     }
 
@@ -302,7 +302,7 @@ void aria_decrypt_cbc(data_t *key_str, data_t *iv_str,
                                        src_str->len, iv_str->x, src_str->x,
                                        output) == cbc_result);
     if (cbc_result == 0) {
-        ASSERT_COMPARE(output, expected_output->len,
+        TEST_BUFFERS_EQUAL(output, expected_output->len,
                        expected_output->x, expected_output->len);
     }
 
@@ -329,7 +329,7 @@ void aria_encrypt_cfb128(data_t *key_str, data_t *iv_str,
                                           iv_str->x, src_str->x, output)
                 == result);
 
-    ASSERT_COMPARE(output, expected_output->len,
+    TEST_BUFFERS_EQUAL(output, expected_output->len,
                    expected_output->x, expected_output->len);
 
 exit:
@@ -355,7 +355,7 @@ void aria_decrypt_cfb128(data_t *key_str, data_t *iv_str,
                                           iv_str->x, src_str->x, output)
                 == result);
 
-    ASSERT_COMPARE(output, expected_output->len,
+    TEST_BUFFERS_EQUAL(output, expected_output->len,
                    expected_output->x, expected_output->len);
 
 exit:
@@ -381,7 +381,7 @@ void aria_encrypt_ctr(data_t *key_str, data_t *iv_str,
                                        iv_str->x, blk, src_str->x, output)
                 == result);
 
-    ASSERT_COMPARE(output, expected_output->len,
+    TEST_BUFFERS_EQUAL(output, expected_output->len,
                    expected_output->x, expected_output->len);
 
 exit:
@@ -407,7 +407,7 @@ void aria_decrypt_ctr(data_t *key_str, data_t *iv_str,
                                        iv_str->x, blk, src_str->x, output)
                 == result);
 
-    ASSERT_COMPARE(output, expected_output->len,
+    TEST_BUFFERS_EQUAL(output, expected_output->len,
                    expected_output->x, expected_output->len);
 
 exit:

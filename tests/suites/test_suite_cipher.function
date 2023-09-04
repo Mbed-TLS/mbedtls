@@ -1274,7 +1274,7 @@ void auth_crypt_tv(int cipher_id, data_t *key, data_t *iv,
         TEST_ASSERT(buffer_is_all_zero(decrypt_buf, decrypt_buf_len));
     } else {
         TEST_ASSERT(ret == 0);
-        ASSERT_COMPARE(decrypt_buf, outlen, clear->x, clear->len);
+        TEST_BUFFERS_EQUAL(decrypt_buf, outlen, clear->x, clear->len);
     }
 
     /* Free this, but keep cipher_plus_tag for deprecated function with PSA */
@@ -1390,7 +1390,7 @@ void auth_crypt_tv(int cipher_id, data_t *key, data_t *iv,
     } else {
         /* authentic message: is the plaintext correct? */
         TEST_ASSERT(ret == 0);
-        ASSERT_COMPARE(decrypt_buf, outlen, clear->x, clear->len);
+        TEST_BUFFERS_EQUAL(decrypt_buf, outlen, clear->x, clear->len);
     }
 
     mbedtls_free(decrypt_buf);

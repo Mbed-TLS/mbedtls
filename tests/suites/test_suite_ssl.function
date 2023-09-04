@@ -1689,7 +1689,7 @@ void ssl_tls1_3_hkdf_expand_label(int hash_alg,
                     ctx->x, ctx->len,
                     dst, desired_length) == 0);
 
-    ASSERT_COMPARE(dst, (size_t) desired_length,
+    TEST_BUFFERS_EQUAL(dst, (size_t) desired_length,
                    expected->x, (size_t) expected->len);
 }
 /* END_CASE */
@@ -1724,19 +1724,19 @@ void ssl_tls1_3_traffic_key_generation(int hash_alg,
                     desired_key_len, desired_iv_len,
                     &keys) == 0);
 
-    ASSERT_COMPARE(keys.client_write_key,
+    TEST_BUFFERS_EQUAL(keys.client_write_key,
                    keys.key_len,
                    expected_client_write_key->x,
                    (size_t) desired_key_len);
-    ASSERT_COMPARE(keys.server_write_key,
+    TEST_BUFFERS_EQUAL(keys.server_write_key,
                    keys.key_len,
                    expected_server_write_key->x,
                    (size_t) desired_key_len);
-    ASSERT_COMPARE(keys.client_write_iv,
+    TEST_BUFFERS_EQUAL(keys.client_write_iv,
                    keys.iv_len,
                    expected_client_write_iv->x,
                    (size_t) desired_iv_len);
-    ASSERT_COMPARE(keys.server_write_iv,
+    TEST_BUFFERS_EQUAL(keys.server_write_iv,
                    keys.iv_len,
                    expected_server_write_iv->x,
                    (size_t) desired_iv_len);
@@ -1778,7 +1778,7 @@ void ssl_tls1_3_derive_secret(int hash_alg,
                     already_hashed,
                     dst, desired_length) == 0);
 
-    ASSERT_COMPARE(dst, desired_length,
+    TEST_BUFFERS_EQUAL(dst, desired_length,
                    expected->x, desired_length);
 }
 /* END_CASE */
@@ -1797,7 +1797,7 @@ void ssl_tls1_3_key_evolution(int hash_alg,
                     input->len ? input->x : NULL, input->len,
                     secret_new) == 0);
 
-    ASSERT_COMPARE(secret_new, (size_t) expected->len,
+    TEST_BUFFERS_EQUAL(secret_new, (size_t) expected->len,
                    expected->x, (size_t) expected->len);
 }
 /* END_CASE */

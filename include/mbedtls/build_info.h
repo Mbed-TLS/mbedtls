@@ -124,56 +124,7 @@
 
 #include "mbedtls/config_adjust_x509.h"
 
-/* The following blocks make it easier to disable all of TLS,
- * or of TLS 1.2 or 1.3 or DTLS, without having to manually disable all
- * key exchanges, options and extensions related to them. */
-
-#if !defined(MBEDTLS_SSL_TLS_C)
-#undef MBEDTLS_SSL_CLI_C
-#undef MBEDTLS_SSL_SRV_C
-#undef MBEDTLS_SSL_PROTO_TLS1_3
-#undef MBEDTLS_SSL_PROTO_TLS1_2
-#undef MBEDTLS_SSL_PROTO_DTLS
-#endif
-
-#if !defined(MBEDTLS_SSL_PROTO_DTLS)
-#undef MBEDTLS_SSL_DTLS_ANTI_REPLAY
-#undef MBEDTLS_SSL_DTLS_CONNECTION_ID
-#undef MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT
-#undef MBEDTLS_SSL_DTLS_HELLO_VERIFY
-#undef MBEDTLS_SSL_DTLS_SRTP
-#undef MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE
-#endif
-
-#if !defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#undef MBEDTLS_SSL_ENCRYPT_THEN_MAC
-#undef MBEDTLS_SSL_EXTENDED_MASTER_SECRET
-#undef MBEDTLS_SSL_RENEGOTIATION
-#undef MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
-#endif
-
-#if !defined(MBEDTLS_SSL_PROTO_TLS1_3)
-#undef MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
-#undef MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-#undef MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-#undef MBEDTLS_SSL_EARLY_DATA
-#endif
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    (defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED))
-#define MBEDTLS_SSL_TLS1_2_SOME_ECC
-#endif
+#include "mbedtls/config_adjust_ssl.h"
 
 /* Make sure all configuration symbols are set before including check_config.h,
  * even the ones that are calculated programmatically. */

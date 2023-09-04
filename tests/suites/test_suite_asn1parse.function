@@ -139,7 +139,7 @@ int get_len_step(const data_t *input, size_t buffer_size,
         end = buf + 1;
         p = end;
     } else {
-        ASSERT_ALLOC_WEAK(buf, buffer_size);
+        TEST_CALLOC_OR_SKIP(buf, buffer_size);
         if (buffer_size > input->len) {
             memcpy(buf, input->x, input->len);
             memset(buf + input->len, 'A', buffer_size - input->len);

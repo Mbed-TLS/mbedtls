@@ -904,8 +904,8 @@ helper_libtestdriver1_adjust_config() {
 }
 
 # When called with no parameter this function disables all builtin curves.
-# The function optionally accepts 1 parameter with the space-separated list
-# of the curves that should be kept enabled.
+# The function optionally accepts 1 parameter: a space-separated list of the
+# curves that should be kept enabled.
 helper_disable_builtin_curves() {
     allowed_list="${1:-}"
     scripts/config.py unset-all "MBEDTLS_ECP_DP_[0-9A-Z_a-z]*_ENABLED"

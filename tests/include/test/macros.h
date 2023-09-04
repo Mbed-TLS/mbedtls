@@ -143,22 +143,22 @@
  *                  This expression may be evaluated multiple times.
  *
  */
-#define ASSERT_ALLOC(pointer, length)                           \
-    do                                                            \
-    {                                                             \
-        TEST_ASSERT((pointer) == NULL);                       \
-        if ((length) != 0)                                     \
-        {                                                         \
-            (pointer) = mbedtls_calloc(sizeof(*(pointer)), \
+#define TEST_CALLOC_OR_FAIL(pointer, length)                \
+    do {                                                    \
+        TEST_ASSERT((pointer) == NULL);                     \
+        if ((length) != 0) {                                \
+            (pointer) = mbedtls_calloc(sizeof(*(pointer)),  \
                                        (length));           \
-            TEST_ASSERT((pointer) != NULL);                   \
-        }                                                         \
-    }                                                             \
-    while (0)
+            TEST_ASSERT((pointer) != NULL);                 \
+        }                                                   \
+    } while (0)
+
+/* For backwards compatibility */
+#define ASSERT_ALLOC(pointer, length) TEST_CALLOC_OR_FAIL(pointer, length)
 
 /** Allocate memory dynamically. If the allocation fails, skip the test case.
  *
- * This macro behaves like #ASSERT_ALLOC, except that if the allocation
+ * This macro behaves like #TEST_CALLOC_OR_FAIL, except that if the allocation
  * fails, it marks the test as skipped rather than failed.
  */
 #define ASSERT_ALLOC_WEAK(pointer, length)                      \

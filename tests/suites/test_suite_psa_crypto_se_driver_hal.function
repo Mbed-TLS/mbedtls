@@ -601,7 +601,7 @@ static int check_persistent_data(psa_key_location_t location,
     int ok = 0;
 
     PSA_ASSERT(psa_its_get_info(uid, &info));
-    ASSERT_ALLOC(loaded, info.size);
+    TEST_CALLOC_OR_FAIL(loaded, info.size);
     PSA_ASSERT(psa_its_get(uid, 0, info.size, loaded, NULL));
     TEST_BUFFERS_EQUAL(expected_data, size, loaded, info.size);
     ok = 1;

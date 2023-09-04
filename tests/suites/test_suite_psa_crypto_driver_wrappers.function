@@ -56,7 +56,7 @@ void sign_hash(int key_type_arg,
 
     TEST_ASSERT(signature_size != 0);
     TEST_ASSERT(signature_size <= PSA_SIGNATURE_MAX_SIZE);
-    ASSERT_ALLOC(signature, signature_size);
+    TEST_CALLOC_OR_FAIL(signature, signature_size);
 
     actual_status = psa_sign_hash(key, alg,
                                   data_input->x, data_input->len,
@@ -183,7 +183,7 @@ void sign_message(int key_type_arg,
 
     TEST_ASSERT(signature_size != 0);
     TEST_ASSERT(signature_size <= PSA_SIGNATURE_MAX_SIZE);
-    ASSERT_ALLOC(signature, signature_size);
+    TEST_CALLOC_OR_FAIL(signature, signature_size);
 
     actual_status = psa_sign_message(key, alg,
                                      data_input->x, data_input->len,
@@ -487,8 +487,8 @@ void cipher_encrypt_validation(int alg_arg,
     output1_buffer_size = PSA_CIPHER_ENCRYPT_OUTPUT_SIZE(key_type, alg, input->len);
     output2_buffer_size = PSA_CIPHER_UPDATE_OUTPUT_SIZE(key_type, alg, input->len) +
                           PSA_CIPHER_FINISH_OUTPUT_SIZE(key_type, alg);
-    ASSERT_ALLOC(output1, output1_buffer_size);
-    ASSERT_ALLOC(output2, output2_buffer_size);
+    TEST_CALLOC_OR_FAIL(output1, output1_buffer_size);
+    TEST_CALLOC_OR_FAIL(output2, output2_buffer_size);
 
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
                               &key));
@@ -605,7 +605,7 @@ void cipher_encrypt_multipart(int alg_arg,
 
     output_buffer_size = ((size_t) input->len +
                           PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type));
-    ASSERT_ALLOC(output, output_buffer_size);
+    TEST_CALLOC_OR_FAIL(output, output_buffer_size);
 
     if (mock_output_arg) {
         mbedtls_test_driver_cipher_hooks.forced_output = expected_output->x;
@@ -733,7 +733,7 @@ void cipher_decrypt_multipart(int alg_arg,
 
     output_buffer_size = ((size_t) input->len +
                           PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type));
-    ASSERT_ALLOC(output, output_buffer_size);
+    TEST_CALLOC_OR_FAIL(output, output_buffer_size);
 
     if (mock_output_arg) {
         mbedtls_test_driver_cipher_hooks.forced_output = expected_output->x;
@@ -832,13 +832,13 @@ void cipher_decrypt(int alg_arg,
     /* Allocate input buffer and copy the iv and the plaintext */
     input_buffer_size = ((size_t) input_arg->len + (size_t) iv->len);
     if (input_buffer_size > 0) {
-        ASSERT_ALLOC(input, input_buffer_size);
+        TEST_CALLOC_OR_FAIL(input, input_buffer_size);
         memcpy(input, iv->x, iv->len);
         memcpy(input + iv->len, input_arg->x, input_arg->len);
     }
 
     output_buffer_size = PSA_CIPHER_DECRYPT_OUTPUT_SIZE(key_type, alg, input_buffer_size);
-    ASSERT_ALLOC(output, output_buffer_size);
+    TEST_CALLOC_OR_FAIL(output, output_buffer_size);
 
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
                               &key));
@@ -885,7 +885,7 @@ void cipher_entry_points(int alg_arg, int key_type_arg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_test_driver_cipher_hooks = mbedtls_test_driver_cipher_hooks_init();
 
-    ASSERT_ALLOC(output, input->len + 16);
+    TEST_CALLOC_OR_FAIL(output, input->len + 16);
     output_buffer_size = input->len + 16;
 
     PSA_ASSERT(psa_crypto_init());
@@ -1125,7 +1125,7 @@ void aead_encrypt(int key_type_arg, data_t *key_data,
                PSA_AEAD_ENCRYPT_OUTPUT_SIZE(key_type, alg, input_data->len));
     TEST_ASSERT(output_size <=
                 PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE(input_data->len));
-    ASSERT_ALLOC(output_data, output_size);
+    TEST_CALLOC_OR_FAIL(output_data, output_size);
 
     mbedtls_test_driver_aead_hooks.forced_status = forced_status;
     status = psa_aead_encrypt(key, alg,
@@ -1187,7 +1187,7 @@ void aead_decrypt(int key_type_arg, data_t *key_data,
 
     output_size = input_data->len - PSA_AEAD_TAG_LENGTH(key_type, key_bits,
                                                         alg);
-    ASSERT_ALLOC(output_data, output_size);
+    TEST_CALLOC_OR_FAIL(output_data, output_size);
 
     mbedtls_test_driver_aead_hooks.forced_status = forced_status;
     status = psa_aead_decrypt(key, alg,
@@ -1250,7 +1250,7 @@ void mac_sign(int key_type_arg,
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
                               &key));
 
-    ASSERT_ALLOC(actual_mac, mac_buffer_size);
+    TEST_CALLOC_OR_FAIL(actual_mac, mac_buffer_size);
     mbedtls_test_driver_mac_hooks.forced_status = forced_status;
 
     /*
@@ -1470,7 +1470,7 @@ void builtin_key_export(int builtin_key_id_arg,
     psa_status_t actual_status;
 
     PSA_ASSERT(psa_crypto_init());
-    ASSERT_ALLOC(output_buffer, expected_output->len);
+    TEST_CALLOC_OR_FAIL(output_buffer, expected_output->len);
 
     actual_status = psa_export_key(key, output_buffer, expected_output->len, &output_size);
 
@@ -1521,7 +1521,7 @@ void builtin_pubkey_export(int builtin_key_id_arg,
     psa_status_t actual_status;
 
     PSA_ASSERT(psa_crypto_init());
-    ASSERT_ALLOC(output_buffer, expected_output->len);
+    TEST_CALLOC_OR_FAIL(output_buffer, expected_output->len);
 
     actual_status = psa_export_public_key(key, output_buffer, expected_output->len, &output_size);
 
@@ -1564,7 +1564,7 @@ void hash_compute(int alg_arg,
     mbedtls_test_driver_hash_hooks.forced_status = forced_status;
 
     PSA_ASSERT(psa_crypto_init());
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
+    TEST_CALLOC_OR_FAIL(output, PSA_HASH_LENGTH(alg));
 
     TEST_EQUAL(psa_hash_compute(alg, input->x, input->len,
                                 output, PSA_HASH_LENGTH(alg),
@@ -1597,7 +1597,7 @@ void hash_multipart_setup(int alg_arg,
     size_t output_length;
 
     mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
+    TEST_CALLOC_OR_FAIL(output, PSA_HASH_LENGTH(alg));
 
     PSA_ASSERT(psa_crypto_init());
 
@@ -1642,7 +1642,7 @@ void hash_multipart_update(int alg_arg,
     size_t output_length;
 
     mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
+    TEST_CALLOC_OR_FAIL(output, PSA_HASH_LENGTH(alg));
 
     PSA_ASSERT(psa_crypto_init());
 
@@ -1697,7 +1697,7 @@ void hash_multipart_finish(int alg_arg,
     size_t output_length;
 
     mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
+    TEST_CALLOC_OR_FAIL(output, PSA_HASH_LENGTH(alg));
 
     PSA_ASSERT(psa_crypto_init());
 
@@ -1751,7 +1751,7 @@ void hash_clone(int alg_arg,
     size_t output_length;
 
     mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
+    TEST_CALLOC_OR_FAIL(output, PSA_HASH_LENGTH(alg));
 
     PSA_ASSERT(psa_crypto_init());
 

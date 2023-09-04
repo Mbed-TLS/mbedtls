@@ -122,6 +122,8 @@
 
 #include "mbedtls/config_adjust_legacy_crypto.h"
 
+#include "mbedtls/config_adjust_x509.h"
+
 /* The following blocks make it easier to disable all of TLS,
  * or of TLS 1.2 or 1.3 or DTLS, without having to manually disable all
  * key exchanges, options and extensions related to them. */

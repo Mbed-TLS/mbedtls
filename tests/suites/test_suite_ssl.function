@@ -147,7 +147,7 @@ void test_callback_buffer(int size, int put1, int put1_ret,
     if (input_len == 0) {
         input_len = 1;
     }
-    TEST_CALLOC_OR_FAIL(input, input_len);
+    TEST_CALLOC(input, input_len);
 
     output_len = 0;
     for (j = 0; j < ROUNDS; j++) {
@@ -161,7 +161,7 @@ void test_callback_buffer(int size, int put1, int put1_ret,
     if (output_len == 0) {
         output_len = 1;
     }
-    TEST_CALLOC_OR_FAIL(output, output_len);
+    TEST_CALLOC(output, output_len);
 
     /* Fill up the buffer with structured data so that unwanted changes
      * can be detected */
@@ -1516,8 +1516,8 @@ void ssl_decrypt_non_etm_cbc(int cipher_type, int hash_id, int trunc_hmac,
              + plaintext_len
              + t0.maclen
              + padlen + 1;
-    TEST_CALLOC_OR_FAIL(buf, buflen);
-    TEST_CALLOC_OR_FAIL(buf_save, buflen);
+    TEST_CALLOC(buf, buflen);
+    TEST_CALLOC(buf_save, buflen);
 
     /* Prepare a dummy record header */
     memset(rec.ctr, 0, sizeof(rec.ctr));

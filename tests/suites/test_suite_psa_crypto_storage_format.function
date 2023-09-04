@@ -36,7 +36,7 @@ static int test_written_key(const psa_key_attributes_t *attributes,
     /* Check that the key is represented as expected. */
     PSA_ASSERT(psa_its_get_info(uid, &storage_info));
     TEST_EQUAL(storage_info.size, expected_representation->len);
-    TEST_CALLOC_OR_FAIL(actual_representation, storage_info.size);
+    TEST_CALLOC(actual_representation, storage_info.size);
     PSA_ASSERT(psa_its_get(uid, 0, storage_info.size,
                            actual_representation, &length));
     TEST_BUFFERS_EQUAL(expected_representation->x, expected_representation->len,
@@ -268,7 +268,7 @@ static int test_read_key(const psa_key_attributes_t *expected_attributes,
     TEST_EQUAL(psa_get_key_enrollment_algorithm(expected_attributes),
                psa_get_key_enrollment_algorithm(&actual_attributes));
     if (can_export(expected_attributes)) {
-        TEST_CALLOC_OR_FAIL(exported_material, expected_material->len);
+        TEST_CALLOC(exported_material, expected_material->len);
         PSA_ASSERT(psa_export_key(key_id,
                                   exported_material, expected_material->len,
                                   &length));

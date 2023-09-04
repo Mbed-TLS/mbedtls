@@ -566,9 +566,9 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
     }
 
     cert = &(ep->cert);
-    TEST_CALLOC_OR_FAIL(cert->ca_cert, 1);
-    TEST_CALLOC_OR_FAIL(cert->cert, 1);
-    TEST_CALLOC_OR_FAIL(cert->pkey, 1);
+    TEST_CALLOC(cert->ca_cert, 1);
+    TEST_CALLOC(cert->cert, 1);
+    TEST_CALLOC(cert->pkey, 1);
 
     mbedtls_x509_crt_init(cert->ca_cert);
     mbedtls_x509_crt_init(cert->cert);

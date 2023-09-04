@@ -1426,7 +1426,7 @@ void genkey_mx_known_answer(int bits, data_t *seed, data_t *expected)
     rnd_info.fallback_f_rng = NULL;
     rnd_info.fallback_p_rng = NULL;
 
-    TEST_CALLOC_OR_FAIL(actual, expected->len);
+    TEST_CALLOC(actual, expected->len);
 
     ret = mbedtls_ecp_gen_privkey_mx(bits, &d,
                                      mbedtls_test_rnd_buffer_rand, &rnd_info);

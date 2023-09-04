@@ -35,7 +35,7 @@ void ssl_cf_hmac(int hash)
     block_size = hash == MBEDTLS_MD_SHA384 ? 128 : 64;
 
     /* Use allocated out buffer to catch overwrites */
-    TEST_CALLOC_OR_FAIL(out, out_len);
+    TEST_CALLOC(out, out_len);
 
     /* Set up contexts with the given hash and a dummy key */
     TEST_EQUAL(0, mbedtls_md_setup(&ctx, md_info, 1));
@@ -54,7 +54,7 @@ void ssl_cf_hmac(int hash)
         mbedtls_test_set_step(max_in_len * 10000);
 
         /* Use allocated in buffer to catch overreads */
-        TEST_CALLOC_OR_FAIL(data, max_in_len);
+        TEST_CALLOC(data, max_in_len);
 
         min_in_len = max_in_len > 255 ? max_in_len - 255 : 0;
         for (in_len = min_in_len; in_len <= max_in_len; in_len++) {

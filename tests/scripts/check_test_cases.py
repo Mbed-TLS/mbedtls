@@ -105,11 +105,14 @@ option"""
         listed = subprocess.check_output(['sh', file_name, '--list-test-cases'])
         # Assume test file is responsible for printing identical format of
         # test case description between --list-test-cases and its OUTCOME.CSV
-        listed = set(map(lambda x: x.rstrip(), listed.splitlines()))
+        #
         # idx indicates the number of test case since there is no line number
         # in `compat.sh` for each test case.
-        for idx, description in enumerate(listed):
-            self.process_test_case(descriptions, file_name, idx, description)
+        for idx, description in enumerate(listed.splitlines()):
+            self.process_test_case(descriptions,
+                                   file_name,
+                                   idx,
+                                   description.rstrip())
 
     @staticmethod
     def collect_test_directories():

@@ -127,7 +127,7 @@ print_usage() {
     printf "            \tAlso available: GnuTLS (needs v3.2.15 or higher)\n"
     printf "  -M|--memcheck\tCheck memory leaks and errors.\n"
     printf "  -v|--verbose\tSet verbose output.\n"
-    printf "  -l|--list-test-cases\tList all potential test cases (No Execution)\n"
+    printf "     --list-test-cases\tList all potential test cases (No Execution)\n"
     printf "     --outcome-file\tFile where test outcomes are written\n"
     printf "                   \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
     printf "     --preserve-logs\tPreserve logs of successful tests as well\n"

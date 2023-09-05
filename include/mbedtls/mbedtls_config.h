@@ -1727,9 +1727,7 @@
  *
  * Enable support for TLS 1.3.
  *
- * \note The support for TLS 1.3 is not comprehensive yet, in particular
- *       pre-shared keys are not supported.
- *       See docs/architecture/tls13-support.md for a description of the TLS
+ * \note See docs/architecture/tls13-support.md for a description of the TLS
  *       1.3 support that this option enables.
  *
  * Requires: MBEDTLS_SSL_KEEP_PEER_CERTIFICATE

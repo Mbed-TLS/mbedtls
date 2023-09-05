@@ -4055,7 +4055,7 @@
  * This is not used in TLS 1.2.
  *
  */
-#define MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE 6000
+//#define MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE 6000
 
 /**
  * \def MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH
@@ -4064,7 +4064,7 @@
  *
  * This must be less than 256.
  */
-#define MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH 32
+//#define MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH 32
 
 /**
  * \def MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS
@@ -4074,7 +4074,7 @@
  * the MBEDTLS_SSL_SESSION_TICKETS option is enabled.
  *
  */
-#define MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS 1
+//#define MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS 1
 
 /* X509 options */
 //#define MBEDTLS_X509_MAX_INTERMEDIATE_CA   8   /**< Maximum number of intermediate CAs in a verification chain. */

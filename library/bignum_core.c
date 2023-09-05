@@ -99,6 +99,7 @@ static mbedtls_mpi_uint mpi_bigendian_to_host(mbedtls_mpi_uint a)
         /* Nothing to do on bigendian systems. */
         return a;
     } else {
+MBEDTLS_IGNORE_UNREACHABLE_BEGIN
         switch (sizeof(mbedtls_mpi_uint)) {
             case 4:
                 return (mbedtls_mpi_uint) MBEDTLS_BSWAP32((uint32_t) a);
@@ -109,6 +110,7 @@ static mbedtls_mpi_uint mpi_bigendian_to_host(mbedtls_mpi_uint a)
         /* Fall back to C-based reordering if we don't know the byte order
          * or we couldn't use a compiler-specific builtin. */
         return mpi_bigendian_to_host_c(a);
+MBEDTLS_IGNORE_UNREACHABLE_END
     }
 }
 

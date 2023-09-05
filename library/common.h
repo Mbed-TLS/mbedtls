@@ -33,7 +33,13 @@
 
 #if defined(__ARM_NEON)
 #include <arm_neon.h>
+#define MBEDTLS_HAVE_NEON_INTRINSICS
 #endif /* __ARM_NEON */
+
+#if defined(_M_ARM64) || defined(_M_ARM64EC)
+#include <arm64_neon.h>
+#define MBEDTLS_HAVE_NEON_INTRINSICS
+#endif
 
 /** Helper to define a function as static except when building invasive tests.
  *

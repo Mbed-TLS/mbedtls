@@ -71,31 +71,24 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ASN1_PARSE_C */
-void pkcs12_pbe_encrypt(data_t *params_hex, data_t *pw,
+void pkcs12_pbe_encrypt(int cipher, int md, data_t *params_hex, data_t *pw,
                         data_t *data, int ref_ret, data_t *ref_out)
 {
     int my_ret;
-    mbedtls_asn1_buf pbe_alg_oid, pbe_params;
+    mbedtls_asn1_buf pbe_params;
     unsigned char *my_out = NULL;
-    unsigned char *p, *end;
-    mbedtls_cipher_type_t cipher_alg;
-    mbedtls_md_type_t md_alg;
+    mbedtls_cipher_type_t cipher_alg = (mbedtls_cipher_type_t) cipher;
+    mbedtls_md_type_t md_alg = (mbedtls_md_type_t) md;
+    size_t block_size;
 
     MD_PSA_INIT();
 
-    p = params_hex->x;
-    end = p + params_hex->len;
+    block_size = mbedtls_cipher_info_get_block_size(mbedtls_cipher_info_from_type(cipher_alg));
+    ASSERT_ALLOC(my_out, ((data->len/block_size) + 1) * block_size);
 
-    my_ret = mbedtls_asn1_get_alg(&p, end, &pbe_alg_oid, &pbe_params);
-    if (my_ret) {
-        TEST_FAIL("Invalid test paramaters");
-    }
-    my_ret = mbedtls_oid_get_pkcs12_pbe_alg(&pbe_alg_oid, &md_alg, &cipher_alg);
-    if (my_ret) {
-        TEST_FAIL("Invalid test paramaters");
-    }
-
-    ASSERT_ALLOC(my_out, ref_out->len);
+    pbe_params.tag = params_hex->x[0];
+    pbe_params.len = params_hex->x[1];
+    pbe_params.p = params_hex->x + 2;
 
     my_ret = mbedtls_pkcs12_pbe(&pbe_params, MBEDTLS_PKCS12_PBE_ENCRYPT, cipher_alg,
                                 md_alg, pw->x, pw->len, data->x, data->len, my_out);
@@ -112,31 +105,22 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ASN1_PARSE_C */
-void pkcs12_pbe_decrypt(data_t *params_hex, data_t *pw,
+void pkcs12_pbe_decrypt(int cipher, int md, data_t *params_hex, data_t *pw,
                         data_t *data, int ref_ret, data_t *ref_out)
 {
     int my_ret;
-    mbedtls_asn1_buf pbe_alg_oid, pbe_params;
+    mbedtls_asn1_buf pbe_params;
     unsigned char *my_out = NULL;
-    unsigned char *p, *end;
-    mbedtls_cipher_type_t cipher_alg;
-    mbedtls_md_type_t md_alg;
+    mbedtls_cipher_type_t cipher_alg = (mbedtls_cipher_type_t) cipher;
+    mbedtls_md_type_t md_alg = (mbedtls_md_type_t) md;
 
     MD_PSA_INIT();
 
-    p = params_hex->x;
-    end = p + params_hex->len;
+    ASSERT_ALLOC(my_out, data->len);
 
-    my_ret = mbedtls_asn1_get_alg(&p, end, &pbe_alg_oid, &pbe_params);
-    if (my_ret) {
-        TEST_FAIL("Invalid test paramaters");
-    }
-    my_ret = mbedtls_oid_get_pkcs12_pbe_alg(&pbe_alg_oid, &md_alg, &cipher_alg);
-    if (my_ret) {
-        TEST_FAIL("Invalid test paramaters");
-    }
-
-    ASSERT_ALLOC(my_out, ref_out->len);
+    pbe_params.tag = params_hex->x[0];
+    pbe_params.len = params_hex->x[1];
+    pbe_params.p = params_hex->x + 2;
 
     my_ret = mbedtls_pkcs12_pbe(&pbe_params, MBEDTLS_PKCS12_PBE_DECRYPT, cipher_alg,
                                 md_alg, pw->x, pw->len, data->x, data->len, my_out);

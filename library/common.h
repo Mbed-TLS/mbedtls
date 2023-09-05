@@ -334,23 +334,4 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 #define MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
 #endif
 
-/* Define macros that can be used to disable warnings about unreachable code. */
-#if defined(__clang__)
-
-#define MBEDTLS_PRAGMA(x) _Pragma(#x)
-
-#define MBEDTLS_IGNORE_UNREACHABLE_BEGIN \
-    MBEDTLS_PRAGMA(clang diagnostic push) \
-    MBEDTLS_PRAGMA(clang diagnostic ignored "-Wunreachable-code")
-
-#define MBEDTLS_IGNORE_UNREACHABLE_END \
-    MBEDTLS_PRAGMA(clang diagnostic pop)
-
-#else
-
-#define MBEDTLS_IGNORE_UNREACHABLE_BEGIN
-#define MBEDTLS_IGNORE_UNREACHABLE_END
-
-#endif
-
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

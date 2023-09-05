@@ -42,7 +42,7 @@ void pkcs12_derive_key(int md_type, int key_size_arg,
 
     salt_len = salt_arg->len;
 
-    ASSERT_ALLOC(output_data, key_size);
+    TEST_CALLOC(output_data, key_size);
 
     int ret = mbedtls_pkcs12_derivation(output_data,
                                         key_size,
@@ -57,8 +57,8 @@ void pkcs12_derive_key(int md_type, int key_size_arg,
     TEST_EQUAL(ret, expected_status);
 
     if (expected_status == 0) {
-        ASSERT_COMPARE(expected_output->x, expected_output->len,
-                       output_data, key_size);
+        TEST_MEMORY_COMPARE(expected_output->x, expected_output->len,
+                            output_data, key_size);
     }
 
 exit:

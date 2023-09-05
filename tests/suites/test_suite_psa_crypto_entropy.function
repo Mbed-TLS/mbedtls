@@ -114,8 +114,8 @@ void external_rng_failure_sign(int key_type, data_t *key_data, int alg,
     size_t signature_size = PSA_SIGNATURE_MAX_SIZE;
     size_t signature_length;
 
-    ASSERT_ALLOC(input, input_size);
-    ASSERT_ALLOC(signature, signature_size);
+    TEST_CALLOC(input, input_size);
+    TEST_CALLOC(signature, signature_size);
 
     PSA_ASSERT(psa_crypto_init());
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
@@ -163,7 +163,7 @@ void validate_entropy_seed_injection(int seed_length_a,
     } else {
         seed_size = seed_length_b;
     }
-    ASSERT_ALLOC(seed, seed_size);
+    TEST_CALLOC(seed, seed_size);
     /* fill seed with some data */
     for (i = 0; i < seed_size; ++i) {
         seed[i] = i;

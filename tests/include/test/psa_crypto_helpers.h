@@ -243,7 +243,7 @@ int mbedtls_test_inject_entropy_restore(void);
 
 /** Parse binary string and convert it to a long integer
  */
-uint64_t parse_binary_string(data_t *bin_string);
+uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
 
 /** Skip a test case if the given key is a 192 bits AES key and the AES
  *  implementation is at least partially provided by an accelerator or

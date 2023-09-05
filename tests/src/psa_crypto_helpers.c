@@ -149,7 +149,7 @@ int mbedtls_test_fail_if_psa_leaking(int line_no, const char *filename)
     }
 }
 
-uint64_t parse_binary_string(data_t *bin_string)
+uint64_t mbedtls_test_parse_binary_string(data_t *bin_string)
 {
     uint64_t result = 0;
     TEST_LE_U(bin_string->len, 8);

@@ -136,7 +136,6 @@ OBJS_CRYPTO= \
 	     psa_crypto_aead.o \
 	     psa_crypto_cipher.o \
 	     psa_crypto_client.o \
-	     psa_crypto_driver_wrappers.o \
 		 psa_crypto_driver_wrappers_no_static.o \
 	     psa_crypto_ecp.o \
 	     psa_crypto_ffdh.o \
@@ -208,6 +207,8 @@ all: static
 else
 all: shared static
 endif
+
+psa_crypto.o:psa_crypto_driver_wrappers.c
 
 static: libmbedcrypto.a libmbedx509.a libmbedtls.a
 	cd ../tests && echo "This is a seedfile that contains 64 bytes (65 on Windows)......" > seedfile

@@ -14,7 +14,7 @@ no_test: programs
 programs: lib mbedtls_test
 	$(MAKE) -C programs
 
-lib: generated_files
+lib:
 	$(MAKE) -C library
 
 tests: lib mbedtls_test

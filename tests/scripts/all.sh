@@ -2638,10 +2638,10 @@ component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
 #       - it still disables RSA, but it uses builtin EC and FFDH algs
 #
 # This function accepts 2 parameters:
-# $1: it is a boolean values which states if we are testing an accelerated
-#     scenario or not.
-# $2: it is a string value which states which are the tested components. Allowed
-#     values are "ECC" or "ECC_DH".
+# $1: a boolean value which states if we are testing an accelerated scenario
+#     or not.
+# $2: a string value which states which components are tested. Allowed values
+#     are "ECC" or "ECC_DH".
 config_psa_crypto_config_accel_ecc_ffdh_no_bignum() {
     DRIVER_ONLY="$1"
     TEST_TARGET="$2"
@@ -2712,12 +2712,12 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum() {
 # - both ECC and FFDH
 #
 # It is meant to be used in conjunction with
-# common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum() for drivers'
-# coverage analysis in "analyze_outcomes.py" script.
+# common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum() for drivers
+# coverage analysis in the "analyze_outcomes.py" script.
 common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     TEST_TARGET="$1"
 
-    # This is an internal helper to simplify text messages' handling
+    # This is an internal helper to simplify text message handling
     if [ "$TEST_TARGET" = "ECC_DH" ]; then
         ACCEL_TEXT="ECC/FFDH"
         REMOVED_TEXT="ECP - DH"
@@ -2800,7 +2800,7 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
 common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
     TEST_TARGET="$1"
 
-    # This is an internal helper to simplify text messages' handling
+    # This is an internal helper to simplify text message handling
     if [ "$TEST_TARGET" = "ECC_DH" ]; then
         ACCEL_TEXT="ECC/FFDH"
     else

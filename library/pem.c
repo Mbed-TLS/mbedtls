@@ -208,6 +208,7 @@ static int pem_cipher_decrypt(mbedtls_cipher_type_t enc_alg,
     memcpy(input, output, input_len);
 
 exit:
+    mbedtls_platform_zeroize(key, sizeof(key));
     mbedtls_cipher_free(&ctx);
     if (output != NULL) {
         mbedtls_free(output);

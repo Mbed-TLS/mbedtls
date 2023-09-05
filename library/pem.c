@@ -165,8 +165,7 @@ static int pem_cipher_decrypt(mbedtls_cipher_type_t enc_alg,
                               unsigned char *input, size_t input_len)
 {
     mbedtls_cipher_context_t ctx;
-    // Pick the largest key size between DES and AES, i.e. AES-256
-    unsigned char key[32];
+    unsigned char key[MBEDTLS_MAX_KEY_LENGTH];
     const mbedtls_cipher_info_t *cipher_info;
     size_t key_bitlen, block_size;
     unsigned char *output = NULL;

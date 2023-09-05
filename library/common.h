@@ -187,7 +187,7 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 {
     size_t i = 0;
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
-#if defined(__ARM_NEON)
+#if defined(MBEDTLS_HAVE_NEON_INTRINSICS)
     for (; (i + 16) <= n; i += 16) {
         uint8x16_t v1 = vld1q_u8(a + i);
         uint8x16_t v2 = vld1q_u8(b + i);

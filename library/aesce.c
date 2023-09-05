@@ -26,7 +26,7 @@
  * By defining the macros ourselves we gain access to those declarations without
  * requiring -march on the command line.
  *
- * `arm_neon.h` could be included by any header file, so we put these defines
+ * `arm_neon.h` is included by common.h, so we put these defines
  * at the top of this file, before any includes.
  */
 #define __ARM_FEATURE_CRYPTO 1
@@ -66,9 +66,7 @@
 #   endif
 #endif
 
-#ifdef __ARM_NEON
-#include <arm_neon.h>
-#else
+#if !defined(MBEDTLS_HAVE_NEON_INTRINSICS)
 #error "Target does not support NEON instructions"
 #endif
 

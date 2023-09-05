@@ -84,9 +84,9 @@ static mbedtls_mpi_uint mpi_bigendian_to_host(mbedtls_mpi_uint a)
         return a;
     } else {
 #if defined(MBEDTLS_HAVE_INT32)
-        return (mbedtls_mpi_uint) MBEDTLS_BSWAP32((uint32_t) a);
+        return (mbedtls_mpi_uint) MBEDTLS_BSWAP32(a);
 #elif defined(MBEDTLS_HAVE_INT64)
-        return (mbedtls_mpi_uint) MBEDTLS_BSWAP64((uint64_t) a);
+        return (mbedtls_mpi_uint) MBEDTLS_BSWAP64(a);
 #else
 #error "This is one of several places that need to be adapted to support a new limb size"
 #endif

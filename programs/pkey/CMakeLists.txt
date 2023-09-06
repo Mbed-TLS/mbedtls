@@ -1,5 +1,5 @@
 set(libs
-    mbedtls
+    ${mbedtls_target}
 )
 
 set(executables_mbedtls

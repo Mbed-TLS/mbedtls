@@ -56,7 +56,6 @@
 int mbedtls_platform_entropy_poll(void *data, unsigned char *output, size_t len,
                                   size_t *olen)
 {
-    ULONG len_as_ulong = 0;
     ((void) data);
     *olen = 0;
 
@@ -65,16 +64,18 @@ int mbedtls_platform_entropy_poll(void *data, unsigned char *output, size_t len,
      * 64-bit Windows platforms. Ensure len's value can be safely converted into
      * a ULONG.
      */
-    if (FAILED(SizeTToULong(len, &len_as_ulong))) {
-        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
-    }
+    while (len != 0) {
+        unsigned long ulong_bytes =
+            (len > ULONG_MAX) ? ULONG_MAX : (unsigned long) len;
 
-    if (!BCRYPT_SUCCESS(BCryptGenRandom(NULL, output, len_as_ulong,
-                                        BCRYPT_USE_SYSTEM_PREFERRED_RNG))) {
-        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
-    }
+        if (!BCRYPT_SUCCESS(BCryptGenRandom(NULL, output, ulong_bytes,
+                                            BCRYPT_USE_SYSTEM_PREFERRED_RNG))) {
+            return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
+        }
 
-    *olen = len;
+        *olen += ulong_bytes;
+        len -= ulong_bytes;
+    }
 
     return 0;
 }

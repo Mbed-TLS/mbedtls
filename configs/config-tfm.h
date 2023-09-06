@@ -38,9 +38,6 @@
 /* pkparse.c fails to link without this. */
 #define MBEDTLS_OID_C
 
-/* Since MBEDTLS_PSA_CRYPTO_STORAGE_C is disabled, we need to disable this to
-   pass test_suite_psa_crypto_slot_management. */
-#undef MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
 /* Use built-in platform entropy functions. */
 #undef MBEDTLS_NO_PLATFORM_ENTROPY
 /* Disable buffer-based memory allocator */

@@ -7,6 +7,7 @@
  */
 
 #include "p256-m.h"
+#include "mbedtls/platform_util.h"
 #include "psa/crypto.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,12 +18,7 @@
 /*
  * Zeroize memory - this should not be optimized away
  */
-static void zeroize(void *d, size_t n)
-{
-    volatile char *p = d;
-    while( n-- )
-        *p++ = 0;
-}
+#define zeroize mbedtls_platform_zeroize
 
 /*
  * Helpers to test constant-time behaviour with valgrind or MemSan.

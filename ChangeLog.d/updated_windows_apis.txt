@@ -1,5 +1,8 @@
 Requirement changes
-   * Update Windows APIs to use BCryptGenRandom and wcslen and
+   * Minimum required Windows version is now Windows Vista.
+
+Changes
+   * Update Windows code to use BCryptGenRandom and wcslen, and
      ensure that conversions between size_t, ULONG, and int are
-     always done safely. Original contribution by Kevin Kane #635,
-     #730 followed by Simon Butcher #1453.
+     always done safely.  Original contribution by Kevin Kane #635, #730
+     followed by Simon Butcher #1453.

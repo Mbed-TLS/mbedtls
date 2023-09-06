@@ -25,3 +25,23 @@
 
 /* TF-M PSA Crypto Configuration */
 #define MBEDTLS_PSA_CRYPTO_CONFIG_FILE "../configs/ext/crypto_config_profile_medium.h"
+
+/*****************************************************************************/
+/* Tweak configuration based on TF-M config for a successful build and test. */
+/*****************************************************************************/
+
+/* MBEDTLS_PSA_CRYPTO_SPM needs third party files, so disable it. */
+#undef MBEDTLS_PSA_CRYPTO_SPM
+/* TF-M provides its own (dummy) implemenations which Mbed TLS doesn't need. */
+#undef MBEDTLS_AES_SETKEY_DEC_ALT
+#undef MBEDTLS_AES_DECRYPT_ALT
+/* pkparse.c fails to link without this. */
+#define MBEDTLS_OID_C
+
+/* Since MBEDTLS_PSA_CRYPTO_STORAGE_C is disabled, we need to disable this to
+   pass test_suite_psa_crypto_slot_management. */
+#undef MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
+/* Use built-in platform entropy functions. */
+#undef MBEDTLS_NO_PLATFORM_ENTROPY
+/* Disable buffer-based memory allocator */
+#undef MBEDTLS_MEMORY_BUFFER_ALLOC_C

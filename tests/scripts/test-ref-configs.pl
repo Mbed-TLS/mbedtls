@@ -53,6 +53,9 @@ my %configs = (
         'opt' => '-f ECJPAKE.*nolog',
         'test_again_with_use_psa' => 1,
     },
+    'config-tfm.h' => {
+        'test_again_with_use_psa' => 0, # Uses PSA by default, no need to test it twice
+    },
 );
 
 # If no config-name is provided, use all known configs.

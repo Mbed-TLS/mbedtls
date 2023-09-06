@@ -49,12 +49,12 @@ my %configs = (
     'config-symmetric-only.h' => {
         'test_again_with_use_psa' => 0, # Uses PSA by default, no need to test it twice
     },
+    'config-tfm.h' => {
+        'test_again_with_use_psa' => 0, # Uses PSA by default, no need to test it twice
+    },
     'config-thread.h' => {
         'opt' => '-f ECJPAKE.*nolog',
         'test_again_with_use_psa' => 1,
-    },
-    'config-tfm.h' => {
-        'test_again_with_use_psa' => 0, # Uses PSA by default, no need to test it twice
     },
 );
 

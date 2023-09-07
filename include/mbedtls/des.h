@@ -182,7 +182,6 @@ int mbedtls_des_key_check_weak(const unsigned char key[MBEDTLS_DES_KEY_SIZE]);
 MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_des_setkey_enc(mbedtls_des_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE]);
 
-#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
 /**
  * \brief          DES key schedule (56-bit, decryption)
  *
@@ -197,7 +196,6 @@ int mbedtls_des_setkey_enc(mbedtls_des_context *ctx, const unsigned char key[MBE
  */
 MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_des_setkey_dec(mbedtls_des_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE]);
-#endif /* !MBEDTLS_CIPHER_ENCRYPT_ONLY */
 
 /**
  * \brief          Triple-DES key schedule (112-bit, encryption)
@@ -215,7 +213,6 @@ MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_des3_set2key_enc(mbedtls_des3_context *ctx,
                              const unsigned char key[MBEDTLS_DES_KEY_SIZE * 2]);
 
-#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
 /**
  * \brief          Triple-DES key schedule (112-bit, decryption)
  *
@@ -231,7 +228,6 @@ int mbedtls_des3_set2key_enc(mbedtls_des3_context *ctx,
 MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_des3_set2key_dec(mbedtls_des3_context *ctx,
                              const unsigned char key[MBEDTLS_DES_KEY_SIZE * 2]);
-#endif /* !MBEDTLS_CIPHER_ENCRYPT_ONLY */
 
 /**
  * \brief          Triple-DES key schedule (168-bit, encryption)
@@ -249,7 +245,6 @@ MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_des3_set3key_enc(mbedtls_des3_context *ctx,
                              const unsigned char key[MBEDTLS_DES_KEY_SIZE * 3]);
 
-#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
 /**
  * \brief          Triple-DES key schedule (168-bit, decryption)
  *
@@ -265,7 +260,6 @@ int mbedtls_des3_set3key_enc(mbedtls_des3_context *ctx,
 MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_des3_set3key_dec(mbedtls_des3_context *ctx,
                              const unsigned char key[MBEDTLS_DES_KEY_SIZE * 3]);
-#endif /* !MBEDTLS_CIPHER_ENCRYPT_ONLY */
 
 /**
  * \brief          DES-ECB block encryption/decryption

@@ -21,7 +21,7 @@
  */
 
 /* TF-M medium profile: mbedtls legacy configuration */
-#include "ext/tfm_mbedcrypto_config_profile_medium.h"
+#include "../configs/ext/tfm_mbedcrypto_config_profile_medium.h"
 
 /* TF-M medium profile: PSA crypto configuration */
 #define MBEDTLS_PSA_CRYPTO_CONFIG_FILE "../configs/ext/crypto_config_profile_medium.h"
@@ -35,7 +35,7 @@
 
 /* TF-M provides its own dummy implementations to save code size.
  * We don't have any way to disable the tests that need these feature,
- * so we just keep AES decryption enabled. We will resolve this though
+ * so we just keep AES decryption enabled. We will resolve this through
  * an official way to disable AES decryption, then this deviation
  * will no longer be needed:
  * https://github.com/Mbed-TLS/mbedtls/issues/7368

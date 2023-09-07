@@ -73,15 +73,22 @@ def execute_reference_driver_tests(ref_component, driver_component, outcome_file
         Results.log("Error: failed to run reference/driver components")
         sys.exit(ret_val)
 
-def analyze_coverage(results, outcomes):
+def analyze_coverage(results, outcomes, allow_list, full_coverage):
     """Check that all available test cases are executed at least once."""
     available = check_test_cases.collect_available_test_cases()
     for key in available:
         hits = outcomes[key].hits() if key in outcomes else 0
-        if hits == 0:
-            # Make this a warning, not an error, as long as we haven't
-            # fixed this branch to have full coverage of test cases.
-            results.warning('Test case not executed: {}', key)
+        if hits == 0 and key not in allow_list:
+            if full_coverage:
+                results.error('Test case not executed: {}', key)
+            else:
+                results.warning('Test case not executed: {}', key)
+        elif hits != 0 and key in allow_list:
+            # Test Case should be removed from the allow list.
+            if full_coverage:
+                results.error('Allow listed test case was executed: {}', key)
+            else:
+                results.warning('Allow listed test case was executed: {}', key)
 
 def analyze_driver_vs_reference(outcomes, component_ref, component_driver,
                                 ignored_suites, ignored_test=None):
@@ -122,10 +129,11 @@ def analyze_driver_vs_reference(outcomes, component_ref, component_driver,
             result = False
     return result
 
-def analyze_outcomes(outcomes):
+def analyze_outcomes(outcomes, args):
     """Run all analyses on the given outcome collection."""
     results = Results()
-    analyze_coverage(results, outcomes)
+    analyze_coverage(results, outcomes, args['allow_list'],
+                     args['full_coverage'])
     return results
 
 def read_outcome_file(outcome_file):
@@ -151,10 +159,9 @@ by a semicolon.
 
 def do_analyze_coverage(outcome_file, args):
     """Perform coverage analysis."""
-    del args # unused
     outcomes = read_outcome_file(outcome_file)
     Results.log("\n*** Analyze coverage ***\n")
-    results = analyze_outcomes(outcomes)
+    results = analyze_outcomes(outcomes, args)
     return results.error_count == 0
 
 def do_analyze_driver_vs_reference(outcome_file, args):
@@ -175,8 +182,16 @@ def do_analyze_driver_vs_reference(outcome_file, args):
 TASKS = {
     'analyze_coverage':                 {
         'test_function': do_analyze_coverage,
-        'args': {}
-        },
+        'args': {
+            'allow_list': [
+                # Algorithm not supported yet
+                'test_suite_psa_crypto_metadata;Asymmetric signature: pure EdDSA',
+                # Algorithm not supported yet
+                'test_suite_psa_crypto_metadata;Cipher: XTS',
+            ],
+            'full_coverage': False,
+        }
+    },
     # There are 2 options to use analyze_driver_vs_reference_xxx locally:
     # 1. Run tests and then analysis:
     #   - tests/scripts/all.sh --outcome-file "$PWD/out.csv" <component_ref> <component_driver>
@@ -426,6 +441,11 @@ def main():
                                  'comma/space-separated list of tasks. ')
         parser.add_argument('--list', action='store_true',
                             help='List all available tasks and exit.')
+        parser.add_argument('--require-full-coverage', action='store_true',
+                            dest='full_coverage', help="Require all available "
+                            "test cases to be executed and issue an error "
+                            "otherwise. This flag is ignored if 'task' is "
+                            "neither 'all' nor 'analyze_coverage'")
         options = parser.parse_args()
 
         if options.list:
@@ -444,6 +464,9 @@ def main():
                 if task not in TASKS:
                     Results.log('Error: invalid task: {}'.format(task))
                     sys.exit(1)
+
+        TASKS['analyze_coverage']['args']['full_coverage'] = \
+            options.full_coverage
 
         for task in TASKS:
             if task in tasks:

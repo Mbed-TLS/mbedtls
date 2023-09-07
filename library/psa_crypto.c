@@ -64,6 +64,7 @@
 #include "mbedtls/cipher.h"
 #include "mbedtls/ccm.h"
 #include "mbedtls/cmac.h"
+#include "mbedtls/constant_time.h"
 #include "mbedtls/des.h"
 #include "mbedtls/ecdh.h"
 #include "mbedtls/ecp.h"
@@ -104,9 +105,9 @@ static int key_type_is_raw_bytes(psa_key_type_t type)
 #define RNG_SEEDED 2
 
 typedef struct {
-    unsigned initialized : 1;
-    unsigned rng_state : 2;
-    unsigned drivers_initialized : 1;
+    uint8_t initialized;
+    uint8_t rng_state;
+    uint8_t drivers_initialized;
     mbedtls_psa_random_context_t rng;
 } psa_global_data_t;
 
@@ -152,9 +153,15 @@ psa_status_t mbedtls_to_psa_error(int ret)
         case 0:
             return PSA_SUCCESS;
 
+#if defined(MBEDTLS_AES_C)
         case MBEDTLS_ERR_AES_INVALID_KEY_LENGTH:
         case MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH:
             return PSA_ERROR_NOT_SUPPORTED;
+        case MBEDTLS_ERR_AES_BAD_INPUT_DATA:
+            return PSA_ERROR_INVALID_ARGUMENT;
+#endif
+
+#if defined(MBEDTLS_ASN1_PARSE_C) || defined(MBEDTLS_ASN1_WRITE_C)
         case MBEDTLS_ERR_ASN1_OUT_OF_DATA:
         case MBEDTLS_ERR_ASN1_UNEXPECTED_TAG:
         case MBEDTLS_ERR_ASN1_INVALID_LENGTH:
@@ -165,26 +172,34 @@ psa_status_t mbedtls_to_psa_error(int ret)
             return PSA_ERROR_INSUFFICIENT_MEMORY;
         case MBEDTLS_ERR_ASN1_BUF_TOO_SMALL:
             return PSA_ERROR_BUFFER_TOO_SMALL;
-
-#if defined(MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA)
-        case MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA:
 #endif
+
+#if defined(MBEDTLS_CAMELLIA_C)
+        case MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA:
         case MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH:
             return PSA_ERROR_NOT_SUPPORTED;
+#endif
 
+#if defined(MBEDTLS_CCM_C)
         case MBEDTLS_ERR_CCM_BAD_INPUT:
             return PSA_ERROR_INVALID_ARGUMENT;
         case MBEDTLS_ERR_CCM_AUTH_FAILED:
             return PSA_ERROR_INVALID_SIGNATURE;
+#endif
 
+#if defined(MBEDTLS_CHACHA20_C)
         case MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA:
             return PSA_ERROR_INVALID_ARGUMENT;
+#endif
 
+#if defined(MBEDTLS_CHACHAPOLY_C)
         case MBEDTLS_ERR_CHACHAPOLY_BAD_STATE:
             return PSA_ERROR_BAD_STATE;
         case MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED:
             return PSA_ERROR_INVALID_SIGNATURE;
+#endif
 
+#if defined(MBEDTLS_CIPHER_C)
         case MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE:
             return PSA_ERROR_NOT_SUPPORTED;
         case MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA:
@@ -199,6 +214,7 @@ psa_status_t mbedtls_to_psa_error(int ret)
             return PSA_ERROR_INVALID_SIGNATURE;
         case MBEDTLS_ERR_CIPHER_INVALID_CONTEXT:
             return PSA_ERROR_CORRUPTION_DETECTED;
+#endif
 
 #if !(defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) ||      \
             defined(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE))
@@ -213,20 +229,24 @@ psa_status_t mbedtls_to_psa_error(int ret)
             return PSA_ERROR_INSUFFICIENT_ENTROPY;
 #endif
 
+#if defined(MBEDTLS_DES_C)
         case MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH:
             return PSA_ERROR_NOT_SUPPORTED;
+#endif
 
         case MBEDTLS_ERR_ENTROPY_NO_SOURCES_DEFINED:
         case MBEDTLS_ERR_ENTROPY_NO_STRONG_SOURCE:
         case MBEDTLS_ERR_ENTROPY_SOURCE_FAILED:
             return PSA_ERROR_INSUFFICIENT_ENTROPY;
 
+#if defined(MBEDTLS_GCM_C)
         case MBEDTLS_ERR_GCM_AUTH_FAILED:
             return PSA_ERROR_INVALID_SIGNATURE;
         case MBEDTLS_ERR_GCM_BUFFER_TOO_SMALL:
             return PSA_ERROR_BUFFER_TOO_SMALL;
         case MBEDTLS_ERR_GCM_BAD_INPUT:
             return PSA_ERROR_INVALID_ARGUMENT;
+#endif
 
 #if !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) &&        \
             defined(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE)
@@ -241,17 +261,24 @@ psa_status_t mbedtls_to_psa_error(int ret)
             return PSA_ERROR_INSUFFICIENT_ENTROPY;
 #endif
 
+#if defined(MBEDTLS_MD_LIGHT)
         case MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE:
             return PSA_ERROR_NOT_SUPPORTED;
         case MBEDTLS_ERR_MD_BAD_INPUT_DATA:
             return PSA_ERROR_INVALID_ARGUMENT;
         case MBEDTLS_ERR_MD_ALLOC_FAILED:
             return PSA_ERROR_INSUFFICIENT_MEMORY;
+#if defined(MBEDTLS_FS_IO)
         case MBEDTLS_ERR_MD_FILE_IO_ERROR:
             return PSA_ERROR_STORAGE_FAILURE;
+#endif
+#endif
 
+#if defined(MBEDTLS_BIGNUM_C)
+#if defined(MBEDTLS_FS_IO)
         case MBEDTLS_ERR_MPI_FILE_IO_ERROR:
             return PSA_ERROR_STORAGE_FAILURE;
+#endif
         case MBEDTLS_ERR_MPI_BAD_INPUT_DATA:
             return PSA_ERROR_INVALID_ARGUMENT;
         case MBEDTLS_ERR_MPI_INVALID_CHARACTER:
@@ -266,14 +293,19 @@ psa_status_t mbedtls_to_psa_error(int ret)
             return PSA_ERROR_INVALID_ARGUMENT;
         case MBEDTLS_ERR_MPI_ALLOC_FAILED:
             return PSA_ERROR_INSUFFICIENT_MEMORY;
+#endif
 
+#if defined(MBEDTLS_PK_C)
         case MBEDTLS_ERR_PK_ALLOC_FAILED:
             return PSA_ERROR_INSUFFICIENT_MEMORY;
         case MBEDTLS_ERR_PK_TYPE_MISMATCH:
         case MBEDTLS_ERR_PK_BAD_INPUT_DATA:
             return PSA_ERROR_INVALID_ARGUMENT;
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) || defined(MBEDTLS_FS_IO) || \
+            defined(MBEDTLS_PSA_ITS_FILE_C)
         case MBEDTLS_ERR_PK_FILE_IO_ERROR:
             return PSA_ERROR_STORAGE_FAILURE;
+#endif
         case MBEDTLS_ERR_PK_KEY_INVALID_VERSION:
         case MBEDTLS_ERR_PK_KEY_INVALID_FORMAT:
             return PSA_ERROR_INVALID_ARGUMENT;
@@ -292,12 +324,14 @@ psa_status_t mbedtls_to_psa_error(int ret)
             return PSA_ERROR_INVALID_SIGNATURE;
         case MBEDTLS_ERR_PK_BUFFER_TOO_SMALL:
             return PSA_ERROR_BUFFER_TOO_SMALL;
+#endif
 
         case MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED:
             return PSA_ERROR_HARDWARE_FAILURE;
         case MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED:
             return PSA_ERROR_NOT_SUPPORTED;
 
+#if defined(MBEDTLS_RSA_C)
         case MBEDTLS_ERR_RSA_BAD_INPUT_DATA:
             return PSA_ERROR_INVALID_ARGUMENT;
         case MBEDTLS_ERR_RSA_INVALID_PADDING:
@@ -315,7 +349,9 @@ psa_status_t mbedtls_to_psa_error(int ret)
             return PSA_ERROR_BUFFER_TOO_SMALL;
         case MBEDTLS_ERR_RSA_RNG_FAILED:
             return PSA_ERROR_INSUFFICIENT_ENTROPY;
+#endif
 
+#if defined(MBEDTLS_ECP_LIGHT)
         case MBEDTLS_ERR_ECP_BAD_INPUT_DATA:
         case MBEDTLS_ERR_ECP_INVALID_KEY:
             return PSA_ERROR_INVALID_ARGUMENT;
@@ -331,8 +367,11 @@ psa_status_t mbedtls_to_psa_error(int ret)
         case MBEDTLS_ERR_ECP_RANDOM_FAILED:
             return PSA_ERROR_INSUFFICIENT_ENTROPY;
 
+#if defined(MBEDTLS_ECP_RESTARTABLE)
         case MBEDTLS_ERR_ECP_IN_PROGRESS:
             return PSA_OPERATION_INCOMPLETE;
+#endif
+#endif
 
         case MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED:
             return PSA_ERROR_CORRUPTION_DETECTED;
@@ -392,45 +431,71 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
                                           size_t *bits)
 {
     switch (grpid) {
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
         case MBEDTLS_ECP_DP_SECP192R1:
             *bits = 192;
             return PSA_ECC_FAMILY_SECP_R1;
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
         case MBEDTLS_ECP_DP_SECP224R1:
             *bits = 224;
             return PSA_ECC_FAMILY_SECP_R1;
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
         case MBEDTLS_ECP_DP_SECP256R1:
             *bits = 256;
             return PSA_ECC_FAMILY_SECP_R1;
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
         case MBEDTLS_ECP_DP_SECP384R1:
             *bits = 384;
             return PSA_ECC_FAMILY_SECP_R1;
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
         case MBEDTLS_ECP_DP_SECP521R1:
             *bits = 521;
             return PSA_ECC_FAMILY_SECP_R1;
+#endif
+#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
         case MBEDTLS_ECP_DP_BP256R1:
             *bits = 256;
             return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
+#endif
+#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
         case MBEDTLS_ECP_DP_BP384R1:
             *bits = 384;
             return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
+#endif
+#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
         case MBEDTLS_ECP_DP_BP512R1:
             *bits = 512;
             return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
+#endif
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
         case MBEDTLS_ECP_DP_CURVE25519:
             *bits = 255;
             return PSA_ECC_FAMILY_MONTGOMERY;
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
         case MBEDTLS_ECP_DP_SECP192K1:
             *bits = 192;
             return PSA_ECC_FAMILY_SECP_K1;
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
         case MBEDTLS_ECP_DP_SECP224K1:
             *bits = 224;
             return PSA_ECC_FAMILY_SECP_K1;
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
         case MBEDTLS_ECP_DP_SECP256K1:
             *bits = 256;
             return PSA_ECC_FAMILY_SECP_K1;
+#endif
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
         case MBEDTLS_ECP_DP_CURVE448:
             *bits = 448;
             return PSA_ECC_FAMILY_MONTGOMERY;
+#endif
         default:
             *bits = 0;
             return 0;
@@ -2356,7 +2421,7 @@ psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
         goto exit;
     }
 
-    if (mbedtls_psa_safer_memcmp(hash, actual_hash, actual_hash_length) != 0) {
+    if (mbedtls_ct_memcmp(hash, actual_hash, actual_hash_length) != 0) {
         status = PSA_ERROR_INVALID_SIGNATURE;
     }
 
@@ -2405,7 +2470,7 @@ psa_status_t psa_hash_compare(psa_algorithm_t alg,
         status = PSA_ERROR_INVALID_SIGNATURE;
         goto exit;
     }
-    if (mbedtls_psa_safer_memcmp(hash, actual_hash, actual_hash_length) != 0) {
+    if (mbedtls_ct_memcmp(hash, actual_hash, actual_hash_length) != 0) {
         status = PSA_ERROR_INVALID_SIGNATURE;
     }
 
@@ -2787,7 +2852,7 @@ psa_status_t psa_mac_verify(mbedtls_svc_key_id_t key,
         status = PSA_ERROR_INVALID_SIGNATURE;
         goto exit;
     }
-    if (mbedtls_psa_safer_memcmp(mac, actual_mac, actual_mac_length) != 0) {
+    if (mbedtls_ct_memcmp(mac, actual_mac, actual_mac_length) != 0) {
         status = PSA_ERROR_INVALID_SIGNATURE;
         goto exit;
     }

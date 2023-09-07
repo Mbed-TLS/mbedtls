@@ -7722,7 +7722,7 @@ static int ssl_calc_finished_tls_generic(mbedtls_ssl_context *ssl, void *ctx,
 
     MBEDTLS_SSL_DEBUG_BUF(3, "calc finished result", buf, len);
 
-    mbedtls_platform_zeroize(padbuf, sizeof(padbuf));
+    mbedtls_platform_zeroize(padbuf, hlen);
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("<= calc finished"));
 

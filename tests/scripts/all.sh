@@ -123,15 +123,27 @@ set -e -o pipefail -u
 # Enable ksh/bash extended file matching patterns
 shopt -s extglob
 
+in_mbedtls_repo () {
+    test -d include -a -d library -a -d programs -a -d tests
+}
+
+in_psa_crypto_repo () {
+    test -d include -a -d core -a -d drivers -a -d programs -a -d tests
+}
+
 pre_check_environment () {
-    if [ -d library -a -d include -a -d tests ]; then :; else
-        echo "Must be run from mbed TLS root" >&2
+    if in_mbedtls_repo || in_psa_crypto_repo; then :; else
+        echo "Must be run from Mbed TLS / psa-crypto root" >&2
         exit 1
     fi
 }
 
 pre_initialize_variables () {
-    CONFIG_H='include/mbedtls/mbedtls_config.h'
+    if in_mbedtls_repo; then
+        CONFIG_H='include/mbedtls/mbedtls_config.h'
+    else
+        CONFIG_H='drivers/builtin/include/mbedtls/mbedtls_config.h'
+    fi
     CRYPTO_CONFIG_H='include/psa/crypto_config.h'
     CONFIG_TEST_DRIVER_H='tests/include/test/drivers/config_test_driver.h'
 
@@ -141,8 +153,10 @@ pre_initialize_variables () {
     backup_suffix='.all.bak'
     # Files clobbered by config.py
     files_to_back_up="$CONFIG_H $CRYPTO_CONFIG_H $CONFIG_TEST_DRIVER_H"
-    # Files clobbered by in-tree cmake
-    files_to_back_up="$files_to_back_up Makefile library/Makefile programs/Makefile tests/Makefile programs/fuzz/Makefile"
+    if in_mbedtls_repo; then
+        # Files clobbered by in-tree cmake
+        files_to_back_up="$files_to_back_up Makefile library/Makefile programs/Makefile tests/Makefile programs/fuzz/Makefile"
+    fi
 
     append_outcome=0
     MEMORY=0
@@ -299,7 +313,9 @@ EOF
 # Does not remove generated source files.
 cleanup()
 {
-    command make clean
+    if in_mbedtls_repo; then
+        command make clean
+    fi
 
     # Remove CMake artefacts
     find . -name .git -prune -o \
@@ -556,7 +572,7 @@ pre_check_git () {
         fi
 
         if ! git diff --quiet "$CONFIG_H"; then
-            err_msg "Warning - the configuration file 'include/mbedtls/mbedtls_config.h' has been edited. "
+            err_msg "Warning - the configuration file '$CONFIG_H' has been edited. "
             echo "You can either delete or preserve your work, or force the test by rerunning the"
             echo "script as: $0 --force"
             exit 1
@@ -1872,6 +1888,16 @@ skip_suites_without_constant_flow () {
     export SKIP_TEST_SUITES
 }
 
+skip_all_except_given_suite () {
+    # Skip all but the given test suite
+    SKIP_TEST_SUITES=$(
+        ls -1 tests/suites/test_suite_*.function |
+        grep -v $1.function |
+         sed 's/tests.suites.test_suite_//; s/\.function$//' |
+        tr '\n' ,)
+    export SKIP_TEST_SUITES
+}
+
 component_test_memsan_constant_flow () {
     # This tests both (1) accesses to undefined memory, and (2) branches or
     # memory access depending on secret values. To distinguish between those:
@@ -1930,6 +1956,16 @@ component_test_valgrind_constant_flow () {
     # this only shows a summary of the results (how many of each type)
     # details are left in Testing/<date>/DynamicAnalysis.xml
     msg "test: some suites (full minus MBEDTLS_USE_PSA_CRYPTO, valgrind + constant flow)"
+    make memcheck
+
+    # Test asm path in constant time module - by default, it will test the plain C
+    # path under Valgrind or Memsan. Running only the constant_time tests is fast (<1s)
+    msg "test: valgrind asm constant_time"
+    scripts/config.py --force set MBEDTLS_TEST_CONSTANT_FLOW_ASM
+    skip_all_except_given_suite test_suite_constant_time
+    cmake -D CMAKE_BUILD_TYPE:String=Release .
+    make clean
+    make
     make memcheck
 }
 
@@ -5215,6 +5251,16 @@ support_build_cmake_custom_config_file () {
 }
 
 
+component_build_zeroize_checks () {
+    msg "build: check for obviously wrong calls to mbedtls_platform_zeroize()"
+
+    scripts/config.py full
+
+    # Only compile - we're looking for sizeof-pointer-memaccess warnings
+    make CC=gcc CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-zeroize-memset.h\"' -DMBEDTLS_TEST_DEFINES_ZEROIZE -Werror -Wsizeof-pointer-memaccess"
+}
+
+
 component_test_zeroize () {
     # Test that the function mbedtls_platform_zeroize() is not optimized away by
     # different combinations of compilers and optimization flags by using an
@@ -5398,7 +5444,9 @@ pre_prepare_outcome_file
 pre_print_configuration
 pre_check_tools
 cleanup
-pre_generate_files
+if in_mbedtls_repo; then
+    pre_generate_files
+fi
 
 # Run the requested tests.
 for ((error_test_i=1; error_test_i <= error_test; error_test_i++)); do

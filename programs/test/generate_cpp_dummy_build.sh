@@ -65,6 +65,7 @@ EOF
             mbedtls/mbedtls_config.h) :;; # not meant for direct inclusion
             mbedtls/config_*.h) :;; # not meant for direct inclusion
             psa/crypto_config.h) :;; # not meant for direct inclusion
+            psa/crypto_ajdust_config*.h) :;; # not meant for direct inclusion
             # Some of the psa/crypto_*.h headers are not meant to be included
             # directly. They do have include guards that make them no-ops if
             # psa/crypto.h has been included before. Since psa/crypto.h comes

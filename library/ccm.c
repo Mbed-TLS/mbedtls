@@ -400,7 +400,6 @@ int mbedtls_ccm_update(mbedtls_ccm_context *ctx,
             mbedtls_xor(ctx->y + offset, ctx->y + offset, local_output, use_len);
 
             memcpy(output, local_output, use_len);
-            mbedtls_platform_zeroize(local_output, 16);
 
             if (use_len + offset == 16 || ctx->processed == ctx->plaintext_len) {
                 if ((ret =

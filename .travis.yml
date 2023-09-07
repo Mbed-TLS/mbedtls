@@ -171,7 +171,7 @@ after_failure:
 env:
   global:
     - SEED=1
-    - secure: "JECCru6HASpKZ0OLfHh8f/KXhKkdrCwjquZghd/qbA4ksxsWImjR7KEPERcaPndXEilzhDbKwuFvJiQX2duVgTGoq745YGhLZIjzo1i8tySkceCVd48P8WceYGz+F/bmY7r+m6fFNuxDSoGGSVeA4Lnjvmm8PFUP45YodDV9no4="
+    - secure: "GF/Fde5fkm15T/RNykrjrPV5Uh1KJ70cP308igL6Xkk3eJmqkkmWCe9JqRH12J3TeWw2fu9PYPHt6iFSg6jasgqysfUyg+W03knRT5QNn3h5eHgt36cQJiJr6t3whPrRaiM6U9omE0evm+c0cAwlkA3GGSMw8Z+na4EnKI6OFCo="
 
 install:
   - $PYTHON scripts/min_requirements.py

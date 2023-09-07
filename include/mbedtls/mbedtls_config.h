@@ -292,22 +292,25 @@
 //#define MBEDTLS_PLATFORM_GMTIME_R_ALT
 
 /**
- * Uncomment the macro to let mbed TLS use your alternate implementation of
- * mbedtls_platform_zeroize(). This replaces the default implementation in
- * platform_util.c.
+ * Uncomment the macro to let Mbed TLS use your alternate implementation of
+ * mbedtls_platform_zeroize(), to wipe sensitive data in memory. This replaces
+ * the default implementation in platform_util.c.
  *
- * mbedtls_platform_zeroize() is a widely used function across the library to
- * zero a block of memory. The implementation is expected to be secure in the
- * sense that it has been written to prevent the compiler from removing calls
- * to mbedtls_platform_zeroize() as part of redundant code elimination
- * optimizations. However, it is difficult to guarantee that calls to
- * mbedtls_platform_zeroize() will not be optimized by the compiler as older
- * versions of the C language standards do not provide a secure implementation
- * of memset(). Therefore, MBEDTLS_PLATFORM_ZEROIZE_ALT enables users to
- * configure their own implementation of mbedtls_platform_zeroize(), for
- * example by using directives specific to their compiler, features from newer
- * C standards (e.g using memset_s() in C11) or calling a secure memset() from
- * their system (e.g explicit_bzero() in BSD).
+ * By default, the library uses a system function such as memset_s()
+ * (optional feature of C11), explicit_bzero() (BSD and compatible), or
+ * SecureZeroMemory (Windows). If no such function is detected, the library
+ * falls back to a plain C implementation. Compilers are technically
+ * permitted to optimize this implementation out, meaning that the memory is
+ * not actually wiped. The library tries to prevent that, but the C language
+ * makes it impossible to guarantee that the memory will always be wiped.
+ *
+ * If your platform provides a guaranteed method to wipe memory which
+ * `platform_util.c` does not detect, define this macro to the name of
+ * a function that takes two arguments, a `void *` pointer and a length,
+ * and wipes that many bytes starting at the specified address. For example,
+ * if your platform has explicit_bzero() but `platform_util.c` does not
+ * detect its presence, define `MBEDTLS_PLATFORM_ZEROIZE_ALT` to be
+ * `explicit_bzero` to use that function as mbedtls_platform_zeroize().
  */
 //#define MBEDTLS_PLATFORM_ZEROIZE_ALT
 

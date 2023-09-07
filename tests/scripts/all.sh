@@ -4215,41 +4215,41 @@ component_test_cipher_encrypt_only_aesni () {
 
     # test AESNI intrinsics
     scripts/config.py set MBEDTLS_AESNI_C
-    msg "build: implicitly enable CIPER_ENCRYPT_ONLY with AESNI intrinsics"
+    msg "build: implicitly enable CIPHER_ENCRYPT_ONLY with AESNI intrinsics"
     make clean
     make CC=gcc CFLAGS="-Werror -Wall -Wextra -mpclmul -msse2 -maes \
         -I '$PWD' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
 
-    msg "test: implicitly enable CIPER_ENCRYPT_ONLY with AESNI intrinsics"
+    msg "test: implicitly enable CIPHER_ENCRYPT_ONLY with AESNI intrinsics"
     make test
 
-    msg "selftest: implicitly enable CIPER_ENCRYPT_ONLY with AESNI intrinsics"
+    msg "selftest: implicitly enable CIPHER_ENCRYPT_ONLY with AESNI intrinsics"
     programs/test/selftest
 
     # test AESNI assembly
     scripts/config.py set MBEDTLS_AESNI_C
-    msg "build: implicitly enable CIPER_ENCRYPT_ONLY with AESNI assembly"
+    msg "build: implicitly enable CIPHER_ENCRYPT_ONLY with AESNI assembly"
     make clean
     make CC=gcc CFLAGS="-Werror -Wall -Wextra -mno-pclmul -mno-sse2 -mno-aes \
         -I '$PWD' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
 
-    msg "test: implicitly enable CIPER_ENCRYPT_ONLY with AESNI assembly"
+    msg "test: implicitly enable CIPHER_ENCRYPT_ONLY with AESNI assembly"
     make test
 
-    msg "selftest: implicitly enable CIPER_ENCRYPT_ONLY with AESNI assembly"
+    msg "selftest: implicitly enable CIPHER_ENCRYPT_ONLY with AESNI assembly"
     programs/test/selftest
 
     # test AES C implementation
-    msg "build: implicitly enable CIPER_ENCRYPT_ONLY with AES C Implementation"
+    msg "build: implicitly enable CIPHER_ENCRYPT_ONLY with AES C Implementation"
     scripts/config.py unset MBEDTLS_AESNI_C
     make clean
     make CC=gcc CFLAGS="-Werror -Wall -Wextra \
         -I '$PWD' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
 
-    msg "test: implicitly enable CIPER_ENCRYPT_ONLY with AES C Implementation"
+    msg "test: implicitly enable CIPHER_ENCRYPT_ONLY with AES C Implementation"
     make test
 
-    msg "selftest: implicitly enable CIPER_ENCRYPT_ONLY with AES C Implementation"
+    msg "selftest: implicitly enable CIPHER_ENCRYPT_ONLY with AES C Implementation"
     programs/test/selftest
 
     rm -f psa_cipher_encrypt_only.h
@@ -4269,29 +4269,29 @@ component_test_cipher_encrypt_only_aesni_m32 () {
     # test AESNI intrinsics for i386 with VIA PADLOCK
     scripts/config.py set MBEDTLS_AESNI_C
     scripts/config.py set MBEDTLS_PADLOCK_C
-    msg "build: implicitly enable CIPER_ENCRYPT_ONLY for i386 with VIA PADLOCK"
+    msg "build: implicitly enable CIPHER_ENCRYPT_ONLY for i386 with VIA PADLOCK"
     make clean
     make CC=gcc LDFLAGS='-m32' CFLAGS="-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes\
         -I '$PWD' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
 
-    msg "test: implicitly enable CIPER_ENCRYPT_ONLY for i386 with VIA PADLOCK"
+    msg "test: implicitly enable CIPHER_ENCRYPT_ONLY for i386 with VIA PADLOCK"
     make test
 
-    msg "selftest: implicitly enable CIPER_ENCRYPT_ONLY for i386 with VIA PADLOCK"
+    msg "selftest: implicitly enable CIPHER_ENCRYPT_ONLY for i386 with VIA PADLOCK"
     programs/test/selftest
 
     # test AESNI intrinsics for i386 without VIA PADLOCK
     scripts/config.py set MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_PADLOCK_C
-    msg "build: implicitly enable CIPER_ENCRYPT_ONLY for i386 without VIA PADLOCK"
+    msg "build: implicitly enable CIPHER_ENCRYPT_ONLY for i386 without VIA PADLOCK"
     make clean
     make CC=gcc LDFLAGS='-m32' CFLAGS="-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes\
         -I '$PWD' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
 
-    msg "test: implicitly enable CIPER_ENCRYPT_ONLY for i386 without VIA PADLOCK"
+    msg "test: implicitly enable CIPHER_ENCRYPT_ONLY for i386 without VIA PADLOCK"
     make test
 
-    msg "selftest: implicitly enable CIPER_ENCRYPT_ONLY for i386 without VIA PADLOCK"
+    msg "selftest: implicitly enable CIPHER_ENCRYPT_ONLY for i386 without VIA PADLOCK"
     programs/test/selftest
 
     rm -f psa_cipher_encrypt_only.h
@@ -4329,7 +4329,7 @@ component_test_cipher_encrypt_only_aesce_armcc () {
 
     # test AESCE baremetal build
     scripts/config.py set MBEDTLS_AESCE_C
-    msg "build: implicitly enable CIPER_ENCRYPT_ONLY with AESCE"
+    msg "build: implicitly enable CIPHER_ENCRYPT_ONLY with AESCE"
     armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto \
         -I '$PWD' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
 

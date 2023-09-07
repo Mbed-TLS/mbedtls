@@ -39,14 +39,20 @@
  * MBEDTLS_CIPHER_ENCRYPT_ONLY is only enabled when those modes
  * are not requested via the PSA API and are not enabled in the legacy API.
  *
+ * DES only supports ECB and CBC modes in Mbed TLS. As it's a deprecated and
+ * insecure block cipher, MBEDTLS_CIPHER_ENCRYPT_ONLY is enabled when DES
+ * is not requested via the PSA API and is not enabled in the legacy API.
+ *
  * Note: XTS, KW are not yet supported via the PSA API in Mbed TLS.
  */
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 #if !defined(PSA_WANT_ALG_ECB_NO_PADDING) && \
     !defined(PSA_WANT_ALG_CBC_NO_PADDING) && \
     !defined(PSA_WANT_ALG_CBC_PKCS7) && \
+    !defined(PSA_WANT_KEY_TYPE_DES) && \
     !defined(MBEDTLS_CIPHER_MODE_CBC) && \
     !defined(MBEDTLS_CIPHER_MODE_XTS) && \
+    !defined(MBEDTLS_DES_C) && \
     !defined(MBEDTLS_NIST_KW_C)
 #define MBEDTLS_CIPHER_ENCRYPT_ONLY 1
 #endif

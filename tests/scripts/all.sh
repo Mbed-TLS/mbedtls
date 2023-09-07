@@ -4207,11 +4207,13 @@ component_test_cipher_encrypt_only_aesni () {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+    scripts/config.py unset MBEDTLS_DES_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
 
     echo '#undef PSA_WANT_ALG_CBC_NO_PADDING' >> psa_cipher_encrypt_only.h
     echo '#undef PSA_WANT_ALG_CBC_PKCS7' >> psa_cipher_encrypt_only.h
     echo '#undef PSA_WANT_ALG_ECB_NO_PADDING' >> psa_cipher_encrypt_only.h
+    echo '#undef PSA_WANT_KEY_TYPE_DES' >> psa_cipher_encrypt_only.h
 
     # test AESNI intrinsics
     scripts/config.py set MBEDTLS_AESNI_C
@@ -4260,11 +4262,13 @@ component_test_cipher_encrypt_only_aesni_m32 () {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+    scripts/config.py unset MBEDTLS_DES_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
 
     echo '#undef PSA_WANT_ALG_CBC_NO_PADDING' >> psa_cipher_encrypt_only.h
     echo '#undef PSA_WANT_ALG_CBC_PKCS7' >> psa_cipher_encrypt_only.h
     echo '#undef PSA_WANT_ALG_ECB_NO_PADDING' >> psa_cipher_encrypt_only.h
+    echo '#undef PSA_WANT_KEY_TYPE_DES' >> psa_cipher_encrypt_only.h
 
     # test AESNI intrinsics for i386 with VIA PADLOCK
     scripts/config.py set MBEDTLS_AESNI_C
@@ -4321,11 +4325,13 @@ component_test_cipher_encrypt_only_aesce_armcc () {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+    scripts/config.py unset MBEDTLS_DES_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
 
     echo '#undef PSA_WANT_ALG_CBC_NO_PADDING' >> psa_cipher_encrypt_only.h
     echo '#undef PSA_WANT_ALG_CBC_PKCS7' >> psa_cipher_encrypt_only.h
     echo '#undef PSA_WANT_ALG_ECB_NO_PADDING' >> psa_cipher_encrypt_only.h
+    echo '#undef PSA_WANT_KEY_TYPE_DES' >> psa_cipher_encrypt_only.h
 
     # test AESCE baremetal build
     scripts/config.py set MBEDTLS_AESCE_C

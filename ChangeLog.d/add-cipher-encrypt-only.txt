@@ -4,3 +4,4 @@ Features
      MBEDTLS_CIPHER_ENCRYPT_ONLY when
      - ECB and CBC cipher modes are not requested via the PSA API.
      - ECB, CBC, XTS and KW are not enabled in the legacy API.
+     - DES is not requested in the PSA API and the legacy API.

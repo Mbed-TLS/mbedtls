@@ -1,7 +1,6 @@
 Security
-   * Updates to constant time C code so that compilers are less likely to use
-     conditional instructions, which might have an observable difference in
-     timing (Clang was observed to generate conditional instructions).
-     Introduce assembly implementations of constant time code for
-     Thumb 1 & Thumb 2, 32-bit Arm, aarch64, x86 and x86-64, which are
+   * Updates to constant-time C code so that compilers are less likely to use
+     conditional instructions, which can have an observable difference in
+     timing. (Clang has been seen to do this.) Also introduce assembly
+     implementations for 32 and 64-bit Arm and for x86 and x86-64, which are
      guaranteed not to use conditional instructions.

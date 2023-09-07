@@ -67,7 +67,6 @@ set(src_crypto
     psa_crypto_aead.c
     psa_crypto_cipher.c
     psa_crypto_client.c
-    psa_crypto_driver_wrappers.c
     psa_crypto_driver_wrappers_no_static.c
     psa_crypto_ecp.c
     psa_crypto_ffdh.c
@@ -190,7 +189,6 @@ else()
     link_to_source(error.c)
     link_to_source(version_features.c)
     link_to_source(ssl_debug_helpers_generated.c)
-    link_to_source(psa_crypto_driver_wrappers.c)
     link_to_source(psa_crypto_driver_wrappers_no_static.c)
 endif()
 

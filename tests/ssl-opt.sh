@@ -879,10 +879,6 @@ print_name() {
     fi
 
     LINE="$LINE$1"
-    if [ "$LIST_TESTS" -gt 0 ]; then
-        printf "%s\n" "$LINE"
-        return
-    fi
 
     printf "%s " "$LINE"
     LEN=$(( 72 - `echo "$LINE" | wc -c` ))
@@ -1601,11 +1597,12 @@ run_test() {
         return
     fi
 
-    print_name "$NAME"
-
     if [ "$LIST_TESTS" -gt 0 ]; then
+        printf "%s\n" "$NAME"
         return
     fi
+
+    print_name "$NAME"
 
     # Do we only run numbered tests?
     if [ -n "$RUN_TEST_NUMBER" ]; then

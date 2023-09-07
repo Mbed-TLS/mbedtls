@@ -2257,3 +2257,7 @@ test_vec_crypt:MBEDTLS_CIPHER_AES_256_CCM_STAR_NO_TAG:MBEDTLS_DECRYPT:"f7079dfa3
 Cipher Corner Case behaviours
 depends_on:MBEDTLS_AES_C
 cipher_special_behaviours:
+
+Check set padding
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+check_set_padding:

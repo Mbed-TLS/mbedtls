@@ -2,6 +2,7 @@
 #include "mbedtls/cipher.h"
 #include "mbedtls/aes.h"
 
+
 #if defined(MBEDTLS_GCM_C)
 #include "mbedtls/gcm.h"
 #endif
@@ -400,6 +401,16 @@ void enc_dec_buf(int cipher_id, char *cipher_string, int key_len,
     if (-1 != pad_mode) {
         TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx_dec, pad_mode));
         TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx_enc, pad_mode));
+    } else {
+        if (ctx_dec.cipher_info->mode == MBEDTLS_MODE_CBC) {
+#if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+            TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx_dec, MBEDTLS_PADDING_PKCS7));
+            TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx_enc, MBEDTLS_PADDING_PKCS7));
+#else
+            TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx_dec, MBEDTLS_PADDING_NONE));
+            TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx_enc, MBEDTLS_PADDING_NONE));
+#endif
+        }
     }
 #else
     (void) pad_mode;
@@ -601,6 +612,16 @@ void dec_empty_buf(int cipher,
 
     TEST_ASSERT(0 == mbedtls_cipher_reset(&ctx_dec));
 
+#if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
+    if (ctx_dec.cipher_info->mode == MBEDTLS_MODE_CBC) {
+#if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+        TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx_dec, MBEDTLS_PADDING_PKCS7));
+#else
+        TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx_dec, MBEDTLS_PADDING_NONE));
+#endif
+    }
+#endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
+
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
     int expected = (cipher_info->mode == MBEDTLS_MODE_GCM ||
                     cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305) ?
@@ -684,6 +705,16 @@ void enc_dec_buf_multipart(int cipher_id, int key_len, int first_length_val,
     if (-1 != pad_mode) {
         TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx_dec, pad_mode));
         TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx_enc, pad_mode));
+    } else {
+        if (ctx_dec.cipher_info->mode == MBEDTLS_MODE_CBC) {
+#if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+            TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx_dec, MBEDTLS_PADDING_PKCS7));
+            TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx_enc, MBEDTLS_PADDING_PKCS7));
+#else
+            TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx_dec, MBEDTLS_PADDING_NONE));
+            TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx_enc, MBEDTLS_PADDING_NONE));
+#endif
+        }
     }
 #else
     (void) pad_mode;
@@ -1196,5 +1227,39 @@ void iv_len_validity(int cipher_id, char *cipher_string,
 exit:
     mbedtls_cipher_free(&ctx_dec);
     mbedtls_cipher_free(&ctx_enc);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void check_set_padding()
+{
+    mbedtls_cipher_context_t ctx;
+    unsigned char key[16] = { 0 };
+    unsigned char iv[16] = { 0 };
+    unsigned char input[16] = { 0 };
+    unsigned char output[32] = { 0 };
+    size_t outlen = 0;
+    int result = MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+    const mbedtls_cipher_info_t *cipher_info;
+
+    cipher_info = mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_128_CBC);
+
+    mbedtls_cipher_init(&ctx);
+
+    TEST_ASSERT(0 == mbedtls_cipher_setup(&ctx, cipher_info));
+
+    TEST_ASSERT(0 == mbedtls_cipher_setkey(&ctx, key, 128, MBEDTLS_ENCRYPT));
+
+    TEST_ASSERT(result == mbedtls_cipher_crypt(&ctx, iv, sizeof(iv), input,
+                                               sizeof(input), output, &outlen));
+
+#if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
+    TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx, MBEDTLS_PADDING_NONE));
+    TEST_ASSERT(0 == mbedtls_cipher_crypt(&ctx, iv, sizeof(iv), input,
+                                          sizeof(input), output, &outlen));
+#endif
+
+exit:
+    mbedtls_cipher_free(&ctx);
 }
 /* END_CASE */

@@ -256,7 +256,9 @@ int mbedtls_asn1_get_len(unsigned char **p,
 int mbedtls_asn1_get_tag(unsigned char **p,
                          const unsigned char *end,
                          size_t *len, int tag);
+#endif /* MBEDTLS_ASN1_PARSE_C || MBEDTLS_X509_CREATE_C */
 
+#if defined(MBEDTLS_ASN1_PARSE_C)
 /**
  * \brief       Retrieve a boolean ASN.1 tag and its value.
  *              Updates the pointer to immediately behind the full tag.
@@ -272,9 +274,6 @@ int mbedtls_asn1_get_tag(unsigned char **p,
  * \return      An ASN.1 error code if the input does not start with
  *              a valid ASN.1 BOOLEAN.
  */
-#endif /* MBEDTLS_ASN1_PARSE_C || MBEDTLS_X509_CREATE_C */
-
-#if defined(MBEDTLS_ASN1_PARSE_C)
 int mbedtls_asn1_get_bool(unsigned char **p,
                           const unsigned char *end,
                           int *val);

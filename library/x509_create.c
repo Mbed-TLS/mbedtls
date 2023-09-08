@@ -173,8 +173,7 @@ static int parse_attribute_value_string(const char *s,
             } else {
                 return MBEDTLS_ERR_X509_INVALID_NAME;
             }
-        }
-        else {
+        } else {
             *(d++) = *c;
         }
 

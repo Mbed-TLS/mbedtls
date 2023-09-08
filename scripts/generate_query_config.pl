@@ -43,7 +43,7 @@ my $default_query_config_format_file = "./scripts/data_files/query_config.fmt";
 my $default_query_config_file = "./programs/test/query_config.c";
 
 if( @ARGV ) {
-    die "Invalid number of arguments - usage: $0 [CONFIG_FILE TEMPLATE_FILE OUTPUT_FILE]" if scalar @ARGV != 4;
+    die "Invalid number of arguments - usage: $0 [MBED_TLS_CONFIG_FILE PSA_CRYPTO_CONFIG_FILE TEMPLATE_FILE OUTPUT_FILE]" if scalar @ARGV != 4;
     ($mbedtls_config_file, $psa_crypto_config_file, $query_config_format_file, $query_config_file) = @ARGV;
 
     -f $mbedtls_config_file or die "No such file: $mbedtls_config_file";

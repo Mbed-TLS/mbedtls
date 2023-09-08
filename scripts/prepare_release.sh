@@ -1,5 +1,7 @@
 #!/bin/bash
-#
+
+# Prepare .gitignore for a release.
+
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -14,13 +16,6 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# Purpose
-#
-# For adapting gitignore files for releases so generated files can be included.
-#
-# Usage: gitignore_add_generated_files.sh  [ -h | --help ] etc
-#
 
 set -eu
 

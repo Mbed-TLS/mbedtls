@@ -4210,7 +4210,7 @@ component_test_cipher_encrypt_only_aesni () {
     scripts/config.py unset MBEDTLS_DES_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
 
-    echo '#undef PSA_WANT_ALG_CBC_NO_PADDING' >> psa_cipher_encrypt_only.h
+    echo '#undef PSA_WANT_ALG_CBC_NO_PADDING' > psa_cipher_encrypt_only.h
     echo '#undef PSA_WANT_ALG_CBC_PKCS7' >> psa_cipher_encrypt_only.h
     echo '#undef PSA_WANT_ALG_ECB_NO_PADDING' >> psa_cipher_encrypt_only.h
     echo '#undef PSA_WANT_KEY_TYPE_DES' >> psa_cipher_encrypt_only.h
@@ -4221,6 +4221,13 @@ component_test_cipher_encrypt_only_aesni () {
     make clean
     make CC=gcc CFLAGS="-Werror -Wall -Wextra -mpclmul -msse2 -maes \
         -I '$PWD' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
+
+    # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
+    not grep mbedtls_aes_setkey_dec library/aes.o
+    not grep mbedtls_aria_setkey_dec library/aria.o
+    not grep mbedtls_camellia_setkey_dec library/camellia.o
+    # Make sure we don't have mbedtls_internal_aes_decrypt in AES
+    not grep mbedtls_internal_aes_decrypt library/aes.o
 
     msg "test: implicitly enable CIPHER_ENCRYPT_ONLY with AESNI intrinsics"
     make test
@@ -4235,6 +4242,13 @@ component_test_cipher_encrypt_only_aesni () {
     make CC=gcc CFLAGS="-Werror -Wall -Wextra -mno-pclmul -mno-sse2 -mno-aes \
         -I '$PWD' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
 
+    # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
+    not grep mbedtls_aes_setkey_dec library/aes.o
+    not grep mbedtls_aria_setkey_dec library/aria.o
+    not grep mbedtls_camellia_setkey_dec library/camellia.o
+    # Make sure we don't have mbedtls_internal_aes_decrypt in AES
+    not grep mbedtls_internal_aes_decrypt library/aes.o
+
     msg "test: implicitly enable CIPHER_ENCRYPT_ONLY with AESNI assembly"
     make test
 
@@ -4247,6 +4261,13 @@ component_test_cipher_encrypt_only_aesni () {
     make clean
     make CC=gcc CFLAGS="-Werror -Wall -Wextra \
         -I '$PWD' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
+
+    # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
+    not grep mbedtls_aes_setkey_dec library/aes.o
+    not grep mbedtls_aria_setkey_dec library/aria.o
+    not grep mbedtls_camellia_setkey_dec library/camellia.o
+    # Make sure we don't have mbedtls_internal_aes_decrypt in AES
+    not grep mbedtls_internal_aes_decrypt library/aes.o
 
     msg "test: implicitly enable CIPHER_ENCRYPT_ONLY with AES C Implementation"
     make test
@@ -4265,7 +4286,7 @@ component_test_cipher_encrypt_only_aesni_m32 () {
     scripts/config.py unset MBEDTLS_DES_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
 
-    echo '#undef PSA_WANT_ALG_CBC_NO_PADDING' >> psa_cipher_encrypt_only.h
+    echo '#undef PSA_WANT_ALG_CBC_NO_PADDING' > psa_cipher_encrypt_only.h
     echo '#undef PSA_WANT_ALG_CBC_PKCS7' >> psa_cipher_encrypt_only.h
     echo '#undef PSA_WANT_ALG_ECB_NO_PADDING' >> psa_cipher_encrypt_only.h
     echo '#undef PSA_WANT_KEY_TYPE_DES' >> psa_cipher_encrypt_only.h
@@ -4277,6 +4298,13 @@ component_test_cipher_encrypt_only_aesni_m32 () {
     make clean
     make CC=gcc LDFLAGS='-m32' CFLAGS="-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes\
         -I '$PWD' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
+
+    # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
+    not grep mbedtls_aes_setkey_dec library/aes.o
+    not grep mbedtls_aria_setkey_dec library/aria.o
+    not grep mbedtls_camellia_setkey_dec library/camellia.o
+    # Make sure we don't have mbedtls_internal_aes_decrypt in AES
+    not grep mbedtls_internal_aes_decrypt library/aes.o
 
     msg "test: implicitly enable CIPHER_ENCRYPT_ONLY for i386 with VIA PADLOCK"
     make test
@@ -4291,6 +4319,13 @@ component_test_cipher_encrypt_only_aesni_m32 () {
     make clean
     make CC=gcc LDFLAGS='-m32' CFLAGS="-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes\
         -I '$PWD' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
+
+    # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
+    not grep mbedtls_aes_setkey_dec library/aes.o
+    not grep mbedtls_aria_setkey_dec library/aria.o
+    not grep mbedtls_camellia_setkey_dec library/camellia.o
+    # Make sure we don't have mbedtls_internal_aes_decrypt in AES
+    not grep mbedtls_internal_aes_decrypt library/aes.o
 
     msg "test: implicitly enable CIPHER_ENCRYPT_ONLY for i386 without VIA PADLOCK"
     make test
@@ -4328,7 +4363,7 @@ component_test_cipher_encrypt_only_aesce_armcc () {
     scripts/config.py unset MBEDTLS_DES_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
 
-    echo '#undef PSA_WANT_ALG_CBC_NO_PADDING' >> psa_cipher_encrypt_only.h
+    echo '#undef PSA_WANT_ALG_CBC_NO_PADDING' > psa_cipher_encrypt_only.h
     echo '#undef PSA_WANT_ALG_CBC_PKCS7' >> psa_cipher_encrypt_only.h
     echo '#undef PSA_WANT_ALG_ECB_NO_PADDING' >> psa_cipher_encrypt_only.h
     echo '#undef PSA_WANT_KEY_TYPE_DES' >> psa_cipher_encrypt_only.h
@@ -4338,6 +4373,13 @@ component_test_cipher_encrypt_only_aesce_armcc () {
     msg "build: implicitly enable CIPHER_ENCRYPT_ONLY with AESCE"
     armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto \
         -I '$PWD' -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_cipher_encrypt_only.h\"'"
+
+    # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
+    not grep mbedtls_aes_setkey_dec library/aes.o
+    not grep mbedtls_aria_setkey_dec library/aria.o
+    not grep mbedtls_camellia_setkey_dec library/camellia.o
+    # Make sure we don't have mbedtls_internal_aes_decrypt in AES
+    not grep mbedtls_internal_aes_decrypt library/aes.o
 
     rm -f psa_cipher_encrypt_only.h
 }

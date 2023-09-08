@@ -348,8 +348,8 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_lt(mbedtls_ct_uint_t x, mbe
                   "sar $63, %[x]                                  \n\t"
                   :
                   [mask] "=&a" (mask),
-                  [x] "+&S" (x),
-                  [y] "+&D" (y)
+                  [x] "+&D" (x),
+                  [y] "+&S" (y)
                   :
                   :
                   );

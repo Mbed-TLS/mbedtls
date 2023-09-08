@@ -168,13 +168,16 @@ static int parse_attribute_value_string(const char *s,
                 }
                 *(d++) = n;
                 c++;
-                continue;
-            } else if (c == end || !strchr(" ,=+<>#;\"\\", *c)) {
+            } else if (c < end && strchr(" ,=+<>#;\"\\", *c)) {
+                *(d++) = *c;
+            } else {
                 return MBEDTLS_ERR_X509_INVALID_NAME;
             }
         }
+        else {
+            *(d++) = *c;
+        }
 
-        *(d++) = *c;
 
         if (d - data == MBEDTLS_X509_MAX_DN_NAME_SIZE) {
             return MBEDTLS_ERR_X509_INVALID_NAME;

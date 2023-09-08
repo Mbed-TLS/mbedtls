@@ -345,8 +345,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_lt(mbedtls_ct_uint_t x, mbe
                   "not %[mask]                                    \n\t"
                   "and %[mask], %[x]                              \n\t"
                   "or %[y], %[x]                                  \n\t"
-                  "mov %[x], %[mask]                              \n\t"
-                  "sar $63, %[mask]                               \n\t"
+                  "sar $63, %[x]                                  \n\t"
                   :
                   [mask] "=&a" (mask),
                   [x] "+&S" (x),
@@ -354,7 +353,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_lt(mbedtls_ct_uint_t x, mbe
                   :
                   :
                   );
-    return (mbedtls_ct_condition_t) mask;
+    return (mbedtls_ct_condition_t) x;
 #elif defined(MBEDTLS_CT_X86_ASM) && defined(MBEDTLS_CT_SIZE_32)
     uint32_t s;
     asm volatile ("mov %[x], %[s]                                 \n\t"

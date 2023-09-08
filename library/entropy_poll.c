@@ -61,8 +61,8 @@ int mbedtls_platform_entropy_poll(void *data, unsigned char *output, size_t len,
 
     /*
      * BCryptGenRandom takes ULONG for size, which is smaller than size_t on
-     * 64-bit Windows platforms. Ensure len's value can be safely converted into
-     * a ULONG.
+     * 64-bit Windows platforms. Extract entropy in chunks of len (dependent
+     * on ULONG_MAX) size.
      */
     while (len != 0) {
         unsigned long ulong_bytes =

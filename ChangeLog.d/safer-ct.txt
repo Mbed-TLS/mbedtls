@@ -2,5 +2,5 @@ Security
    * Updates to constant-time C code so that compilers are less likely to use
      conditional instructions, which can have an observable difference in
      timing. (Clang has been seen to do this.) Also introduce assembly
-     implementations for 32 and 64-bit Arm and for x86 and x86-64, which are
+     implementations for 32- and 64-bit Arm and for x86 and x86-64, which are
      guaranteed not to use conditional instructions.

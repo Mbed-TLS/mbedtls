@@ -226,9 +226,9 @@ def is_seamless_alt(name):
     an implementation of the relevant functions and an xxx_alt.h header.
     """
     if name in (
-        'MBEDTLS_PLATFORM_GMTIME_R_ALT',
-        'MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT',
-        'MBEDTLS_PLATFORM_ZEROIZE_ALT',
+            'MBEDTLS_PLATFORM_GMTIME_R_ALT',
+            'MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT',
+            'MBEDTLS_PLATFORM_ZEROIZE_ALT',
     ):
         # Similar to non-platform xxx_ALT, requires platform_alt.h
         return False

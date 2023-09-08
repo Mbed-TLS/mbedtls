@@ -412,13 +412,12 @@ armc6_build_test()
     FLAGS="$1"
 
     msg "build: ARM Compiler 6 ($FLAGS)"
+    make clean
     ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" CFLAGS="$FLAGS" \
                     WARNING_CFLAGS='-Werror -xc -std=c99' make lib
 
     msg "size: ARM Compiler 6 ($FLAGS)"
     "$ARMC6_FROMELF" -z library/*.o
-
-    make clean
 }
 
 err_msg()
@@ -3676,7 +3675,6 @@ component_build_tfm_armcc() {
     cp configs/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
 
     msg "build: TF-M config, armclang armv7-m thumb2"
-    make clean
     armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused"
 }
 
@@ -4852,8 +4850,6 @@ component_build_armcc () {
 
     msg "size: ARM Compiler 5"
     "$ARMC5_FROMELF" -z library/*.o
-
-    make clean
 
     # Compile mostly with -O1 since some Arm inline assembly is disabled for -O0.
 

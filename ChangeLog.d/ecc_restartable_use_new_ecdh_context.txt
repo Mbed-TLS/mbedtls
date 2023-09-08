@@ -1,0 +1,4 @@
+Changes
+   * Make restartable ECC use the new ECDH context format since the
+     MBEDTLS_ECDH_LEGACY_CONTEXT config option bas been removed in
+     #4404. This is requested by #4440.

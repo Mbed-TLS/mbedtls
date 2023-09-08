@@ -359,11 +359,10 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_lt(mbedtls_ct_uint_t x, mbe
     asm volatile ("mov %[x], %[s]                                 \n\t"
                   "xor %[y], %[s]                                 \n\t"
                   "sub %[y], %[x]                                 \n\t"
+                  "and %[s], %[y]                                 \n\t"
                   "not %[s]                                       \n\t"
                   "and %[s], %[x]                                 \n\t"
-                  "not %[s]                                       \n\t"
-                  "and %[y], %[s]                                 \n\t"
-                  "or  %[s], %[x]                                 \n\t"
+                  "or  %[y], %[x]                                 \n\t"
                   "sar $31, %[x]                                  \n\t"
                   :
                   [s] "=&b" (s),

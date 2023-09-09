@@ -181,8 +181,6 @@ GEN_FILES ?= yes
 ifdef GEN_FILES
 gen_file_dep =
 else
-# Order-only dependency: generate the target if it's absent, but don't
-# re-generate it if it's present but older than its dependencies.
 gen_file_dep = |
 endif
 

@@ -85,7 +85,7 @@ static int mbedtls_write_len_and_tag(unsigned char **p,
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, start, len));
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(p, start, tag));
 
-    return len;
+    return (int) len;
 }
 
 int mbedtls_asn1_write_raw_buffer(unsigned char **p, const unsigned char *start,

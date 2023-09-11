@@ -697,7 +697,7 @@ int mbedtls_sha256_finish(mbedtls_sha256_context *ctx,
         memset(ctx->buffer + used, 0, SHA256_BLOCK_SIZE - used);
 
         if ((ret = mbedtls_internal_sha256_process(ctx, ctx->buffer)) != 0) {
-            return ret;
+            goto exit;
         }
 
         memset(ctx->buffer, 0, 56);
@@ -714,7 +714,7 @@ int mbedtls_sha256_finish(mbedtls_sha256_context *ctx,
     MBEDTLS_PUT_UINT32_BE(low,  ctx->buffer, 60);
 
     if ((ret = mbedtls_internal_sha256_process(ctx, ctx->buffer)) != 0) {
-        return ret;
+        goto exit;
     }
 
     /*
@@ -736,7 +736,11 @@ int mbedtls_sha256_finish(mbedtls_sha256_context *ctx,
         MBEDTLS_PUT_UINT32_BE(ctx->state[7], output, 28);
     }
 
-    return 0;
+    ret = 0;
+
+exit:
+    mbedtls_sha256_free(ctx);
+    return ret;
 }
 
 #endif /* !MBEDTLS_SHA256_ALT */

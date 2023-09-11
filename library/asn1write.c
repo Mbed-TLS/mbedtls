@@ -77,7 +77,7 @@ int mbedtls_asn1_write_tag(unsigned char **p, const unsigned char *start, unsign
 
 static int mbedtls_write_len_and_tag(unsigned char **p,
                                      const unsigned char *start,
-                                     int len,
+                                     size_t len,
                                      unsigned char tag)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

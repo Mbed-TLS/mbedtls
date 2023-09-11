@@ -342,10 +342,13 @@ version_features.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_features.pl
 
-psa_crypto_driver_wrappers.c: ../scripts/generate_driver_wrappers.py
-psa_crypto_driver_wrappers.c: ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.c.jinja
-psa_crypto_driver_wrappers.c:
-	echo "  Gen   $@"
+GENERATED_WRAPPER_FILES = \
+                    psa_crypto_driver_wrappers.c \
+                    psa_crypto_driver_wrappers_no_static.c
+$(GENERATED_WRAPPER_FILES): ../scripts/generate_driver_wrappers.py
+$(GENERATED_WRAPPER_FILES): ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.c.jinja
+$(GENERATED_WRAPPER_FILES):
+	echo "  Gen   $(GENERATED_WRAPPER_FILES)"
 	$(PYTHON) ../scripts/generate_driver_wrappers.py
 
 clean:

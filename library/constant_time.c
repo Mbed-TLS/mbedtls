@@ -22,6 +22,7 @@
  * might be translated to branches by some compilers on some platforms.
  */
 
+#include <stdint.h>
 #include <limits.h>
 
 #include "common.h"
@@ -120,7 +121,13 @@ int mbedtls_ct_memcmp(const void *a,
         diff |= x ^ y;
     }
 
+#if UINT_MAX < UINT32_MAX
+    /* In case the only bits set are in the top 16-bits, and would be lost
+     * by the conversion to 16-bit int (the smallest possible size for int). */
+    return (int) (diff | (diff >> 16))
+#else
     return (int) diff;
+#endif
 }
 
 #if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)

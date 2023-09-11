@@ -37,9 +37,8 @@ int mbedtls_asn1_write_len(unsigned char **p, const unsigned char *start, size_t
 #endif
 
     int required = 1;
-    if (len < 0x80) {
-        required = 1;
-    } else {
+
+    if (len >= 0x80) {
         for (size_t l = len; l != 0; l >>= 8) {
             required++;
         }
@@ -55,7 +54,7 @@ int mbedtls_asn1_write_len(unsigned char **p, const unsigned char *start, size_t
     } while (len);
 
     if (required > 1) {
-        *--(*p) = (unsigned char) (required + 0x7f);
+        *--(*p) = (unsigned char) (0x80 + required - 1);
     }
 
     return required;

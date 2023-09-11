@@ -168,7 +168,7 @@ def trace_exception(e: Exception, file=sys.stderr) -> None:
     ), file)
 
 
-TEMPLATE_FILENAMES = ["psa_crypto_driver_wrappers.c.jinja",
+TEMPLATE_FILENAMES = ["psa_crypto_driver_wrappers.h.jinja",
                       "psa_crypto_driver_wrappers_no_static.c.jinja"]
 
 def main() -> int:

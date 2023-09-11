@@ -208,7 +208,7 @@ else
 all: shared static
 endif
 
-psa_crypto.o:psa_crypto_driver_wrappers.c
+psa_crypto.o:psa_crypto_driver_wrappers.h
 
 static: libmbedcrypto.a libmbedx509.a libmbedtls.a
 	cd ../tests && echo "This is a seedfile that contains 64 bytes (65 on Windows)......" > seedfile
@@ -318,7 +318,8 @@ libmbedcrypto.dll: $(OBJS_CRYPTO)
 GENERATED_FILES = \
 	error.c version_features.c \
 	ssl_debug_helpers_generated.c \
-        psa_crypto_driver_wrappers.c
+    psa_crypto_driver_wrappers.h \
+	psa_crypto_driver_wrappers_no_static.c
 generated_files: $(GENERATED_FILES)
 
 # See root Makefile
@@ -355,10 +356,11 @@ version_features.c:
 	$(PERL) ../scripts/generate_features.pl
 
 GENERATED_WRAPPER_FILES = \
-                    psa_crypto_driver_wrappers.c \
+                    psa_crypto_driver_wrappers.h \
                     psa_crypto_driver_wrappers_no_static.c
 $(GENERATED_WRAPPER_FILES): ../scripts/generate_driver_wrappers.py
-$(GENERATED_WRAPPER_FILES): ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.c.jinja
+$(GENERATED_WRAPPER_FILES): ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.h.jinja
+$(GENERATED_WRAPPER_FILES): ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers_no_static.c.jinja
 $(GENERATED_WRAPPER_FILES):
 	echo "  Gen   $(GENERATED_WRAPPER_FILES)"
 	$(PYTHON) ../scripts/generate_driver_wrappers.py

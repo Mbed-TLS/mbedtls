@@ -1346,7 +1346,7 @@ int mbedtls_aes_crypt_cfb128(mbedtls_aes_context *ctx,
                              const unsigned char *input,
                              unsigned char *output)
 {
-    int c;
+    unsigned char c;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n;
 
@@ -1360,34 +1360,21 @@ int mbedtls_aes_crypt_cfb128(mbedtls_aes_context *ctx,
         return MBEDTLS_ERR_AES_BAD_INPUT_DATA;
     }
 
-    if (mode == MBEDTLS_AES_DECRYPT) {
-        while (length--) {
-            if (n == 0) {
-                ret = mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_ENCRYPT, iv, iv);
-                if (ret != 0) {
-                    goto exit;
-                }
+    while (length--) {
+        if (n == 0) {
+            ret = mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_ENCRYPT, iv, iv);
+            if (ret != 0) {
+                goto exit;
             }
-
-            c = *input++;
-            *output++ = (unsigned char) (c ^ iv[n]);
-            iv[n] = (unsigned char) c;
-
-            n = (n + 1) & 0x0F;
         }
-    } else {
-        while (length--) {
-            if (n == 0) {
-                ret = mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_ENCRYPT, iv, iv);
-                if (ret != 0) {
-                    goto exit;
-                }
-            }
 
-            iv[n] = *output++ = (unsigned char) (iv[n] ^ *input++);
-
-            n = (n + 1) & 0x0F;
+        c = *input;
+        iv[n] = *output++ = *input++ ^ iv[n];
+        if (mode == MBEDTLS_AES_DECRYPT) {
+            iv[n] = c;
         }
+
+        n = (n + 1) & 0x0F;
     }
 
     *iv_off = n;

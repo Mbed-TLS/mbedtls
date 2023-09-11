@@ -28,6 +28,10 @@
 
 #include "mbedtls/platform.h"
 
+#if defined(MBEDTLS_ASN1_PARSE_C)
+#include "mbedtls/asn1.h"
+#endif
+
 int mbedtls_asn1_write_len(unsigned char **p, const unsigned char *start, size_t len)
 {
 #if SIZE_MAX > 0xFFFFFFFF
@@ -353,6 +357,7 @@ int mbedtls_asn1_write_octet_string(unsigned char **p, const unsigned char *star
 }
 
 
+#if !defined(MBEDTLS_ASN1_PARSE_C)
 /* This is a copy of the ASN.1 parsing function mbedtls_asn1_find_named_data(),
  * which is replicated to avoid a dependency ASN1_WRITE_C on ASN1_PARSE_C. */
 static mbedtls_asn1_named_data *asn1_find_named_data(
@@ -370,6 +375,10 @@ static mbedtls_asn1_named_data *asn1_find_named_data(
 
     return list;
 }
+#else
+#define asn1_find_named_data(list, oid, len) \
+    ((mbedtls_asn1_named_data *) mbedtls_asn1_find_named_data(list, oid, len))
+#endif
 
 mbedtls_asn1_named_data *mbedtls_asn1_store_named_data(
     mbedtls_asn1_named_data **head,

@@ -173,6 +173,47 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mbedtls_ct_memcmp_single_bit_diff()
+{
+    uint8_t *a = NULL, *b = NULL;
+    size_t size = 32;
+    TEST_CALLOC(a, size);
+    TEST_CALLOC(b, size);
+
+    TEST_CF_SECRET(a, size);
+    TEST_CF_SECRET(b, size);
+    int result = mbedtls_ct_memcmp(a, b, size);
+    TEST_CF_PUBLIC(a, size);
+    TEST_CF_PUBLIC(b, size);
+
+    TEST_EQUAL(result, 0);
+
+    for (size_t offset = 0; offset < size; offset++) {
+        for (size_t bit_offset = 0; bit_offset < 8; bit_offset++) {
+            /* Set a single bit to be different at given offset, to test that we
+            detect single-bit differences */
+            a[offset] = 1 << bit_offset;
+
+            TEST_CF_SECRET(a, size);
+            TEST_CF_SECRET(b, size);
+            result = mbedtls_ct_memcmp(a, b, size);
+            TEST_CF_PUBLIC(a, size);
+            TEST_CF_PUBLIC(b, size);
+
+            TEST_ASSERT(result != 0);
+
+            a[offset] = 0;
+        }
+    }
+
+
+exit:
+    mbedtls_free(a);
+    mbedtls_free(b);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mbedtls_ct_memcmp(int same, int size, int offset)
 {
     uint8_t *a = NULL, *b = NULL;

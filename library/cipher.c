@@ -127,14 +127,14 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_string(
 
 const mbedtls_cipher_info_t *mbedtls_cipher_info_from_values(
     const mbedtls_cipher_id_t cipher_id,
-    int key_bitlen,
+    size_t key_bitlen,
     const mbedtls_cipher_mode_t mode)
 {
     const mbedtls_cipher_definition_t *def;
 
     for (def = mbedtls_cipher_definitions; def->info != NULL; def++) {
         if (mbedtls_cipher_get_base(def->info)->cipher == cipher_id &&
-            mbedtls_cipher_info_get_key_bitlen(def->info) == (unsigned) key_bitlen &&
+            mbedtls_cipher_info_get_key_bitlen(def->info) == key_bitlen &&
             def->info->mode == mode) {
             return def->info;
         }

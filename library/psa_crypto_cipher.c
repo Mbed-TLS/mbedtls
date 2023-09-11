@@ -156,7 +156,7 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     }
 
     return mbedtls_cipher_info_from_values(cipher_id_tmp,
-                                           (int) key_bits, mode);
+                                           key_bits, mode);
 }
 
 #if defined(MBEDTLS_PSA_BUILTIN_CIPHER)

@@ -25,7 +25,7 @@
 #include "psa/crypto.h"
 
 #include "psa_crypto_core.h"
-#include "psa_crypto_driver_wrappers.h"
+#include "psa_crypto_driver_wrappers_no_static.h"
 #include "psa_crypto_slot_management.h"
 #include "psa_crypto_storage.h"
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)

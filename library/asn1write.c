@@ -31,7 +31,9 @@
 int mbedtls_asn1_write_len(unsigned char **p, const unsigned char *start, size_t len)
 {
 #if SIZE_MAX > 0xFFFFFFFF
-    if (len > 0xFFFFFFFF) return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+    if (len > 0xFFFFFFFF) {
+        return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+    }
 #endif
 
     int required = 1;
@@ -53,7 +55,7 @@ int mbedtls_asn1_write_len(unsigned char **p, const unsigned char *start, size_t
     } while (len);
 
     if (required > 1) {
-        *--(*p) = (unsigned char)(required + 0x7f);
+        *--(*p) = (unsigned char) (required + 0x7f);
     }
 
     return required;

@@ -273,6 +273,48 @@
 //#define MBEDTLS_PLATFORM_MS_TIME_ALT
 
 /**
+ * Uncomment the macro to let Mbed TLS use your alternate implementation of
+ * mbedtls_platform_gmtime_r(). This replaces the default implementation in
+ * platform_util.c.
+ *
+ * gmtime() is not a thread-safe function as defined in the C standard. The
+ * library will try to use safer implementations of this function, such as
+ * gmtime_r() when available. However, if Mbed TLS cannot identify the target
+ * system, the implementation of mbedtls_platform_gmtime_r() will default to
+ * using the standard gmtime(). In this case, calls from the library to
+ * gmtime() will be guarded by the global mutex mbedtls_threading_gmtime_mutex
+ * if MBEDTLS_THREADING_C is enabled. We recommend that calls from outside the
+ * library are also guarded with this mutex to avoid race conditions. However,
+ * if the macro MBEDTLS_PLATFORM_GMTIME_R_ALT is defined, Mbed TLS will
+ * unconditionally use the implementation for mbedtls_platform_gmtime_r()
+ * supplied at compile time.
+ */
+//#define MBEDTLS_PLATFORM_GMTIME_R_ALT
+
+/**
+ * Uncomment the macro to let Mbed TLS use your alternate implementation of
+ * mbedtls_platform_zeroize(), to wipe sensitive data in memory. This replaces
+ * the default implementation in platform_util.c.
+ *
+ * By default, the library uses a system function such as memset_s()
+ * (optional feature of C11), explicit_bzero() (BSD and compatible), or
+ * SecureZeroMemory (Windows). If no such function is detected, the library
+ * falls back to a plain C implementation. Compilers are technically
+ * permitted to optimize this implementation out, meaning that the memory is
+ * not actually wiped. The library tries to prevent that, but the C language
+ * makes it impossible to guarantee that the memory will always be wiped.
+ *
+ * If your platform provides a guaranteed method to wipe memory which
+ * `platform_util.c` does not detect, define this macro to the name of
+ * a function that takes two arguments, a `void *` pointer and a length,
+ * and wipes that many bytes starting at the specified address. For example,
+ * if your platform has explicit_bzero() but `platform_util.c` does not
+ * detect its presence, define `MBEDTLS_PLATFORM_ZEROIZE_ALT` to be
+ * `explicit_bzero` to use that function as mbedtls_platform_zeroize().
+ */
+//#define MBEDTLS_PLATFORM_ZEROIZE_ALT
+
+/**
  * \def MBEDTLS_DEPRECATED_WARNING
  *
  * Mark deprecated functions and features so that they generate a warning if
@@ -569,6 +611,20 @@
  */
 //#define MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 
+/*
+ * Disable plain C implementation for AES.
+ *
+ * When the plain C implementation is enabled, and an implementation using a
+ * special CPU feature (such as MBEDTLS_AESCE_C) is also enabled, runtime
+ * detection will be used to select between them.
+ *
+ * If only one implementation is present, runtime detection will not be used.
+ * This configuration will crash at runtime if running on a CPU without the
+ * necessary features. It will not build unless at least one of MBEDTLS_AESCE_C
+ * and/or MBEDTLS_AESNI_C is enabled & present in the build.
+ */
+//#define MBEDTLS_AES_USE_HARDWARE_ONLY
+
 /**
  * \def MBEDTLS_CAMELLIA_SMALL_MEMORY
  *
@@ -693,6 +749,15 @@
 //#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
 
 /**
+ * Enable the verified implementations of ECDH primitives from Project Everest
+ * (currently only Curve25519). This feature changes the layout of ECDH
+ * contexts and therefore is a compatibility break for applications that access
+ * fields of a mbedtls_ecdh_context structure directly. See also
+ * MBEDTLS_ECDH_LEGACY_CONTEXT in include/mbedtls/ecdh.h.
+ */
+//#define MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+
+/**
  * \def MBEDTLS_ECP_DP_SECP192R1_ENABLED
  *
  * MBEDTLS_ECP_XXXX_ENABLED: Enables specific curves within the Elliptic Curve
@@ -781,6 +846,28 @@
  * Uncomment this macro to enable restartable ECC computations.
  */
 //#define MBEDTLS_ECP_RESTARTABLE
+
+/**
+ * Uncomment to enable using new bignum code in the ECC modules.
+ *
+ * \warning This is currently experimental, incomplete and therefore should not
+ * be used in production.
+ */
+//#define MBEDTLS_ECP_WITH_MPI_UINT
+
+/**
+ * Uncomment to enable p256-m, which implements ECC key generation, ECDH,
+ * and ECDSA for SECP256R1 curves. This driver is used as an example to
+ * document how a third-party driver or software accelerator can be integrated
+ * to work alongside Mbed TLS.
+ *
+ * \warning p256-m has only been included to serve as a sample implementation
+ * of how a driver/accelerator can be integrated alongside Mbed TLS. It is not
+ * intended for use in production. p256-m files in Mbed TLS are not updated
+ * regularly, so they may not contain upstream fixes/improvements.
+ * DO NOT ENABLE/USE THIS MACRO IN PRODUCTION BUILDS!
+ */
+//#define MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED
 
 /**
  * \def MBEDTLS_ECDSA_DETERMINISTIC
@@ -1643,9 +1730,7 @@
  *
  * Enable support for TLS 1.3.
  *
- * \note The support for TLS 1.3 is not comprehensive yet, in particular
- *       pre-shared keys are not supported.
- *       See docs/architecture/tls13-support.md for a description of the TLS
+ * \note See docs/architecture/tls13-support.md for a description of the TLS
  *       1.3 support that this option enables.
  *
  * Requires: MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
@@ -3842,7 +3927,7 @@
 //#define MBEDTLS_PSA_KEY_SLOT_COUNT 32
 
 /* RSA OPTIONS */
-#define MBEDTLS_RSA_GEN_KEY_MIN_BITS            1024 /**<  Minimum RSA key size that can be generated in bits (Minimum possible value is 128 bits) */
+//#define MBEDTLS_RSA_GEN_KEY_MIN_BITS            1024 /**<  Minimum RSA key size that can be generated in bits (Minimum possible value is 128 bits) */
 
 /* SSL Cache options */
 //#define MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */
@@ -3973,7 +4058,7 @@
  * This is not used in TLS 1.2.
  *
  */
-#define MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE 6000
+//#define MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE 6000
 
 /**
  * \def MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH
@@ -3982,7 +4067,7 @@
  *
  * This must be less than 256.
  */
-#define MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH 32
+//#define MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH 32
 
 /**
  * \def MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS
@@ -3992,95 +4077,10 @@
  * the MBEDTLS_SSL_SESSION_TICKETS option is enabled.
  *
  */
-#define MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS 1
+//#define MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS 1
 
 /* X509 options */
 //#define MBEDTLS_X509_MAX_INTERMEDIATE_CA   8   /**< Maximum number of intermediate CAs in a verification chain. */
 //#define MBEDTLS_X509_MAX_FILE_PATH_LEN     512 /**< Maximum length of a path/filename string in bytes including the null terminator character ('\0'). */
-
-/**
- * Uncomment the macro to let mbed TLS use your alternate implementation of
- * mbedtls_platform_zeroize(). This replaces the default implementation in
- * platform_util.c.
- *
- * mbedtls_platform_zeroize() is a widely used function across the library to
- * zero a block of memory. The implementation is expected to be secure in the
- * sense that it has been written to prevent the compiler from removing calls
- * to mbedtls_platform_zeroize() as part of redundant code elimination
- * optimizations. However, it is difficult to guarantee that calls to
- * mbedtls_platform_zeroize() will not be optimized by the compiler as older
- * versions of the C language standards do not provide a secure implementation
- * of memset(). Therefore, MBEDTLS_PLATFORM_ZEROIZE_ALT enables users to
- * configure their own implementation of mbedtls_platform_zeroize(), for
- * example by using directives specific to their compiler, features from newer
- * C standards (e.g using memset_s() in C11) or calling a secure memset() from
- * their system (e.g explicit_bzero() in BSD).
- */
-//#define MBEDTLS_PLATFORM_ZEROIZE_ALT
-
-/**
- * Uncomment the macro to let Mbed TLS use your alternate implementation of
- * mbedtls_platform_gmtime_r(). This replaces the default implementation in
- * platform_util.c.
- *
- * gmtime() is not a thread-safe function as defined in the C standard. The
- * library will try to use safer implementations of this function, such as
- * gmtime_r() when available. However, if Mbed TLS cannot identify the target
- * system, the implementation of mbedtls_platform_gmtime_r() will default to
- * using the standard gmtime(). In this case, calls from the library to
- * gmtime() will be guarded by the global mutex mbedtls_threading_gmtime_mutex
- * if MBEDTLS_THREADING_C is enabled. We recommend that calls from outside the
- * library are also guarded with this mutex to avoid race conditions. However,
- * if the macro MBEDTLS_PLATFORM_GMTIME_R_ALT is defined, Mbed TLS will
- * unconditionally use the implementation for mbedtls_platform_gmtime_r()
- * supplied at compile time.
- */
-//#define MBEDTLS_PLATFORM_GMTIME_R_ALT
-
-/**
- * Enable the verified implementations of ECDH primitives from Project Everest
- * (currently only Curve25519). This feature changes the layout of ECDH
- * contexts and therefore is a compatibility break for applications that access
- * fields of a mbedtls_ecdh_context structure directly. See also
- * MBEDTLS_ECDH_LEGACY_CONTEXT in include/mbedtls/ecdh.h.
- */
-//#define MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
-
-/**
- * Uncomment to enable p256-m, which implements ECC key generation, ECDH,
- * and ECDSA for SECP256R1 curves. This driver is used as an example to
- * document how a third-party driver or software accelerator can be integrated
- * to work alongside Mbed TLS.
- *
- * \warning p256-m has only been included to serve as a sample implementation
- * of how a driver/accelerator can be integrated alongside Mbed TLS. It is not
- * intended for use in production. p256-m files in Mbed TLS are not updated
- * regularly, so they may not contain upstream fixes/improvements.
- * DO NOT ENABLE/USE THIS MACRO IN PRODUCTION BUILDS!
- */
-//#define MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED
-
-
-/**
- * Uncomment to enable using new bignum code in the ECC modules.
- *
- * \warning This is currently experimental, incomplete and therefore should not
- * be used in production.
- */
-//#define MBEDTLS_ECP_WITH_MPI_UINT
-
-/*
- * Disable plain C implementation for AES.
- *
- * When the plain C implementation is enabled, and an implementation using a
- * special CPU feature (such as MBEDTLS_AESCE_C) is also enabled, runtime
- * detection will be used to select between them.
- *
- * If only one implementation is present, runtime detection will not be used.
- * This configuration will crash at runtime if running on a CPU without the
- * necessary features. It will not build unless at least one of MBEDTLS_AESCE_C
- * and/or MBEDTLS_AESNI_C is enabled & present in the build.
- */
-//#define MBEDTLS_AES_USE_HARDWARE_ONLY
 
 /** \} name SECTION: Module configuration options */

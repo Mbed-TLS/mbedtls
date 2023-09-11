@@ -30,66 +30,33 @@
 
 int mbedtls_asn1_write_len(unsigned char **p, const unsigned char *start, size_t len)
 {
-    if (len < 0x80) {
-        if (*p - start < 1) {
-            return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
-        }
-
-        *--(*p) = (unsigned char) len;
-        return 1;
-    }
-
-    if (len <= 0xFF) {
-        if (*p - start < 2) {
-            return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
-        }
-
-        *--(*p) = (unsigned char) len;
-        *--(*p) = 0x81;
-        return 2;
-    }
-
-    if (len <= 0xFFFF) {
-        if (*p - start < 3) {
-            return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
-        }
-
-        *--(*p) = MBEDTLS_BYTE_0(len);
-        *--(*p) = MBEDTLS_BYTE_1(len);
-        *--(*p) = 0x82;
-        return 3;
-    }
-
-    if (len <= 0xFFFFFF) {
-        if (*p - start < 4) {
-            return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
-        }
-
-        *--(*p) = MBEDTLS_BYTE_0(len);
-        *--(*p) = MBEDTLS_BYTE_1(len);
-        *--(*p) = MBEDTLS_BYTE_2(len);
-        *--(*p) = 0x83;
-        return 4;
-    }
-
-    int len_is_valid = 1;
 #if SIZE_MAX > 0xFFFFFFFF
-    len_is_valid = (len <= 0xFFFFFFFF);
+    if (len > 0xFFFFFFFF) return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
 #endif
-    if (len_is_valid) {
-        if (*p - start < 5) {
-            return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
-        }
 
-        *--(*p) = MBEDTLS_BYTE_0(len);
-        *--(*p) = MBEDTLS_BYTE_1(len);
-        *--(*p) = MBEDTLS_BYTE_2(len);
-        *--(*p) = MBEDTLS_BYTE_3(len);
-        *--(*p) = 0x84;
-        return 5;
+    int required = 1;
+    if (len < 0x80) {
+        required = 1;
+    } else {
+        for (size_t l = len; l != 0; l >>= 8) {
+            required++;
+        }
     }
 
-    return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+    if (required > (*p - start)) {
+        return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
+    }
+
+    do {
+        *--(*p) = MBEDTLS_BYTE_0(len);
+        len >>= 8;
+    } while (len);
+
+    if (required > 1) {
+        *--(*p) = (unsigned char)(required + 0x7f);
+    }
+
+    return required;
 }
 
 int mbedtls_asn1_write_tag(unsigned char **p, const unsigned char *start, unsigned char tag)

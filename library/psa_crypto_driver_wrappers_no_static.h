@@ -18,8 +18,8 @@
  *  limitations under the License.
  */
 
-#ifndef PSA_CRYPTO_DRIVER_WRAPPERS_H
-#define PSA_CRYPTO_DRIVER_WRAPPERS_H
+#ifndef PSA_CRYPTO_DRIVER_WRAPPERS_NO_STATIC_H
+#define PSA_CRYPTO_DRIVER_WRAPPERS_NO_STATIC_H
 
 #include "psa/crypto.h"
 #include "psa/crypto_driver_common.h"
@@ -43,6 +43,6 @@ psa_status_t psa_driver_wrapper_get_builtin_key(
     psa_key_attributes_t *attributes,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length);
 
-#endif /* PSA_CRYPTO_DRIVER_WRAPPERS_H */
+#endif /* PSA_CRYPTO_DRIVER_WRAPPERS_NO_STATIC_H */
 
 /* End of automatically generated file. */

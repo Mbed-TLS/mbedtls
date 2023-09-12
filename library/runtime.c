@@ -53,8 +53,20 @@ static mbedtls_hwcap_mask_t cpu_feature_get(void)
     }
     return 0;
 }
+#elif defined(_WIN64)
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <processthreadsapi.h>
 
-#endif /* __FreeBSD__ && __FreeBSD_version >= 1200000 */
+static mbedtls_hwcap_mask_t cpu_feature_get(void)
+{
+    return IsProcessorFeaturePresent(PF_ARM_V8_CRYPTO_INSTRUCTIONS_AVAILABLE) ?
+           MBEDTLS_HWCAP_ASIMD     | \
+           MBEDTLS_HWCAP_AES       | \
+           MBEDTLS_HWCAP_PMULL     | \
+           MBEDTLS_HWCAP_SHA2 : 0;
+}
+#endif /* _WIN64 */
 
 #endif /* MBEDTLS_ARCH_IS_ARM64 */
 

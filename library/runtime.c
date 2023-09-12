@@ -66,7 +66,38 @@ static mbedtls_hwcap_mask_t cpu_feature_get(void)
            MBEDTLS_HWCAP_PMULL     | \
            MBEDTLS_HWCAP_SHA2 : 0;
 }
-#endif /* _WIN64 */
+
+#elif defined(__APPLE__)
+/* See: https://developer.apple.com/documentation/kernel/1387446-sysctlbyname/determining_instruction_set_characteristics */
+#include <sys/types.h>
+#include <sys/sysctl.h>
+static bool is_cpu_feature_available(const char *name)
+{
+    int value = 0;
+    size_t value_len = sizeof(value);
+
+    int ret = sysctlbyname(name, &value, &value_len, NULL, 0);
+    return ret == 0 && value != 0;
+}
+
+static mbedtls_hwcap_mask_t cpu_feature_get(void)
+{
+#define MBEDTLS_APPLE_GET_FEATURE(name, mask) \
+    is_cpu_feature_available(name) ? mask : 0
+
+    mbedtls_hwcap_mask_t hwcap = 0;
+    hwcap |= MBEDTLS_APPLE_GET_FEATURE("hw.optional.arm.FEAT_AES",
+                                       MBEDTLS_HWCAP_ASIMD | MBEDTLS_HWCAP_AES);
+    hwcap |= MBEDTLS_APPLE_GET_FEATURE("hw.optional.arm.FEAT_PMULL",
+                                       MBEDTLS_HWCAP_PMULL);
+    hwcap |= MBEDTLS_APPLE_GET_FEATURE("hw.optional.arm.FEAT_SHA256",
+                                       MBEDTLS_HWCAP_SHA2);
+    hwcap |= MBEDTLS_APPLE_GET_FEATURE("hw.optional.arm.FEAT_SHA512",
+                                       MBEDTLS_HWCAP_SHA512);
+    return hwcap;
+}
+
+#endif /* __APPLE__ */
 
 #endif /* MBEDTLS_ARCH_IS_ARM64 */
 

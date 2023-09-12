@@ -27,7 +27,8 @@
 
 #if defined(__linux__) || \
     (defined(__FreeBSD__) && __FreeBSD_version >= 1200000) || \
-    defined(_WIN64)
+    defined(_WIN64) || \
+    defined(__APPLE__)
 #define MBEDTLS_RUNTIME_C
 #endif
 

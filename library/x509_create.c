@@ -177,7 +177,6 @@ static int parse_attribute_value_string(const char *s,
             *(d++) = *c;
         }
 
-
         if (d - data == MBEDTLS_X509_MAX_DN_NAME_SIZE) {
             return MBEDTLS_ERR_X509_INVALID_NAME;
         }

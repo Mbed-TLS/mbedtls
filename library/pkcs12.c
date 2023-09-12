@@ -49,7 +49,7 @@ static int pkcs12_parse_pbe_params(mbedtls_asn1_buf *params,
                                    mbedtls_asn1_buf *salt, int *iterations)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char *p = params->p;
+    unsigned char **p = &params->p;
     const unsigned char *end = params->p + params->len;
 
     /*
@@ -64,18 +64,18 @@ static int pkcs12_parse_pbe_params(mbedtls_asn1_buf *params,
                                  MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
     }
 
-    if ((ret = mbedtls_asn1_get_tag(&p, end, &salt->len, MBEDTLS_ASN1_OCTET_STRING)) != 0) {
+    if ((ret = mbedtls_asn1_get_tag(p, end, &salt->len, MBEDTLS_ASN1_OCTET_STRING)) != 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS12_PBE_INVALID_FORMAT, ret);
     }
 
-    salt->p = p;
-    p += salt->len;
+    salt->p = *p;
+    *p += salt->len;
 
-    if ((ret = mbedtls_asn1_get_int(&p, end, iterations)) != 0) {
+    if ((ret = mbedtls_asn1_get_int(p, end, iterations)) != 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS12_PBE_INVALID_FORMAT, ret);
     }
 
-    if (p != end) {
+    if (*p != end) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS12_PBE_INVALID_FORMAT,
                                  MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
     }

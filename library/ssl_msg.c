@@ -1973,7 +1973,7 @@ hmac_failed_etm_enabled:
             increment = mbedtls_ct_size_if_else_0(b, increment);
             pad_count += increment;
         }
-        correct = mbedtls_ct_size_if_else_0(mbedtls_ct_uint_eq(pad_count, padlen), padlen);
+        correct = mbedtls_ct_size_if_else_0(mbedtls_ct_uint_eq(pad_count, padlen), correct);
 
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
         if (padlen > 0 && correct == 0) {

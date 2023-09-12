@@ -1417,13 +1417,12 @@ static int pk_parse_key_pkcs8_unencrypted_der(
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
     return MBEDTLS_ERR_PK_UNKNOWN_PK_ALG;
 
-#if !defined(MBEDTLS_PKCS12_C)
     end = p + len;
     if (end != (key + keylen)) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT,
                                  MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
     }
-#endif
+
     return 0;
 }
 
@@ -1498,16 +1497,16 @@ static int pk_parse_key_pkcs8_encrypted_der(
      */
 #if defined(MBEDTLS_PKCS12_C)
     if (mbedtls_oid_get_pkcs12_pbe_alg(&pbe_alg_oid, &md_alg, &cipher_alg) == 0) {
-        if ((ret = mbedtls_pkcs12_pbe(&pbe_params, MBEDTLS_PKCS12_PBE_DECRYPT,
+        if ((ret = mbedtls_pkcs12_pbe_ext(&pbe_params, MBEDTLS_PKCS12_PBE_DECRYPT,
                                       cipher_alg, md_alg,
-                                      pwd, pwdlen, p, len, buf)) != 0) {
+                                      pwd, pwdlen, p, len, buf, len, &outlen)) != 0) {
             if (ret == MBEDTLS_ERR_PKCS12_PASSWORD_MISMATCH) {
                 return MBEDTLS_ERR_PK_PASSWORD_MISMATCH;
             }
 
             return ret;
         }
-        outlen = len;
+
         decrypted = 1;
     } else
 #endif /* MBEDTLS_PKCS12_C */

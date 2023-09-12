@@ -138,6 +138,7 @@ int mbedtls_pkcs12_pbe_ext(mbedtls_asn1_buf *pbe_params, int mode,
                            size_t *output_len);
 #endif
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 int mbedtls_pkcs12_pbe(mbedtls_asn1_buf *pbe_params, int mode,
                        mbedtls_cipher_type_t cipher_type, mbedtls_md_type_t md_type,
                        const unsigned char *pwd,  size_t pwdlen,
@@ -154,6 +155,7 @@ int mbedtls_pkcs12_pbe(mbedtls_asn1_buf *pbe_params, int mode,
                                   pwd, pwdlen, data, len, output, SIZE_MAX,
                                   &output_len);
 }
+#endif
 
 int mbedtls_pkcs12_pbe_ext(mbedtls_asn1_buf *pbe_params, int mode,
                            mbedtls_cipher_type_t cipher_type, mbedtls_md_type_t md_type,

@@ -52,12 +52,17 @@ extern "C" {
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief            PKCS12 Password Based function (encryption / decryption)
  *                   for cipher-based and mbedtls_md-based PBE's
  *
  * \note             When encrypting, #MBEDTLS_CIPHER_PADDING_PKCS7 must
  *                   be enabled at compile time.
+ *
+ * \deprecated       This function is deprecated and will be removed in a
+ *                   future version of the library.
+ *                   Please use mbedtls_pkcs12_pbe_ext() instead.
  *
  * \warning          When decrypting:
  *                   - if #MBEDTLS_CIPHER_PADDING_PKCS7 is enabled at compile
@@ -93,11 +98,12 @@ extern "C" {
  *
  * \return           0 if successful, or a MBEDTLS_ERR_XXX code
  */
-int mbedtls_pkcs12_pbe(mbedtls_asn1_buf *pbe_params, int mode,
+int MBEDTLS_DEPRECATED mbedtls_pkcs12_pbe(mbedtls_asn1_buf *pbe_params, int mode,
                        mbedtls_cipher_type_t cipher_type, mbedtls_md_type_t md_type,
                        const unsigned char *pwd,  size_t pwdlen,
                        const unsigned char *data, size_t len,
                        unsigned char *output);
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
 

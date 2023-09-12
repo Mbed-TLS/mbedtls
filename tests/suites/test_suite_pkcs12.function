@@ -101,6 +101,11 @@ void pkcs12_pbe_encrypt(int params_tag, int cipher, int md, data_t *params_hex, 
     }
 
 #if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+
+    pbe_params.tag = params_tag;
+    pbe_params.len = params_hex->len;
+    pbe_params.p = params_hex->x;
+
     my_ret = mbedtls_pkcs12_pbe_ext(&pbe_params, MBEDTLS_PKCS12_PBE_ENCRYPT, cipher_alg,
                                     md_alg, pw->x, pw->len, data->x, data->len, my_out,
                                     outsize, &my_out_len);
@@ -150,6 +155,11 @@ void pkcs12_pbe_decrypt(int params_tag, int cipher, int md, data_t *params_hex, 
     }
 
 #if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+
+    pbe_params.tag = params_tag;
+    pbe_params.len = params_hex->len;
+    pbe_params.p = params_hex->x;
+
     my_ret = mbedtls_pkcs12_pbe_ext(&pbe_params, MBEDTLS_PKCS12_PBE_DECRYPT, cipher_alg,
                                     md_alg, pw->x, pw->len, data->x, data->len, my_out,
                                     outsize, &my_out_len);

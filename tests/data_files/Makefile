@@ -1,7 +1,7 @@
 ## This file contains a record of how some of the test data was
 ## generated. The final build products are committed to the repository
 ## as well to make sure that the test data is identical. You do not
-## need to use this makefile unless you're extending mbed TLS's tests.
+## need to use this makefile unless you're extending Mbed TLS's tests.
 
 ## Many data files were generated prior to the existence of this
 ## makefile, so the method of their generation was not recorded.

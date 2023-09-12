@@ -185,6 +185,7 @@ void mbedtls_ct_memcmp_single_bit_diff()
     int result = mbedtls_ct_memcmp(a, b, size);
     TEST_CF_PUBLIC(a, size);
     TEST_CF_PUBLIC(b, size);
+    TEST_CF_PUBLIC(&result, sizeof(result));
 
     TEST_EQUAL(result, 0);
 
@@ -199,6 +200,7 @@ void mbedtls_ct_memcmp_single_bit_diff()
             result = mbedtls_ct_memcmp(a, b, size);
             TEST_CF_PUBLIC(a, size);
             TEST_CF_PUBLIC(b, size);
+            TEST_CF_PUBLIC(&result, sizeof(result));
 
             TEST_ASSERT(result != 0);
 

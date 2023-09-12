@@ -122,7 +122,7 @@ int mbedtls_ct_memcmp(const void *a,
     }
 
 
-#if (UINT_MAX < UINT32_MAX)
+#if (INT_MAX < INT32_MAX)
     /* We don't support int smaller than 32-bits, but if someone tried to build
      * with this configuration, there is a risk that, for differing data, the
      * only bits set in diff are in the top 16-bits, and would be lost by a

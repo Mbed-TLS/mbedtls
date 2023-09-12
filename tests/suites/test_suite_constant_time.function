@@ -191,7 +191,7 @@ void mbedtls_ct_memcmp_single_bit_diff()
     for (size_t offset = 0; offset < size; offset++) {
         for (size_t bit_offset = 0; bit_offset < 8; bit_offset++) {
             /* Set a single bit to be different at given offset, to test that we
-            detect single-bit differences */
+               detect single-bit differences */
             a[offset] = 1 << bit_offset;
 
             TEST_CF_SECRET(a, size);

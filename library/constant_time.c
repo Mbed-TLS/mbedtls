@@ -121,10 +121,14 @@ int mbedtls_ct_memcmp(const void *a,
         diff |= x ^ y;
     }
 
-#if UINT_MAX < UINT32_MAX
-    /* In case the only bits set are in the top 16-bits, and would be lost
-     * by the conversion to 16-bit int (the smallest possible size for int). */
-    return (int) (diff | (diff >> 16))
+
+#if (UINT_MAX < UINT32_MAX)
+    /* We don't support int smaller than 32-bits, but if someone tried to build
+     * with this configuration, there is a risk that, for differing data, the
+     * only bits set in diff are in the top 16-bits, and would be lost by a
+     * simple cast from uint32 to int.
+     * This would have significant security implications, so protect against it. */
+#error "mbedtls_ct_memcmp() requires minimum 32-bit ints"
 #else
     return (int) diff;
 #endif

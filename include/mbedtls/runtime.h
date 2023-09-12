@@ -41,6 +41,16 @@
 
 #endif /* MBEDTLS_ARCH_IS_ARM64 */
 
+#if defined(MBEDTLS_ARCH_IS_X64) || defined(MBEDTLS_ARCH_IS_X86)
+/* The lower 32bits follow up https://en.wikipedia.org/wiki/CPUID to reduce code
+ * size. VIA Padlock ACE needs different instructions, it is put in high 32bits.
+ */
+#define MBEDTLS_HWCAP_AESNI_AES         (1ULL <<  25)
+#define MBEDTLS_HWCAP_AESNI_CLMUL       (1ULL <<   1)
+#define MBEDTLS_HWCAP_PADLOCK_ACE       (1ULL <<  32)
+
+#endif /* MBEDTLS_ARCH_IS_X64 || MBEDTLS_ARCH_IS_X86 */
+
 typedef uint64_t mbedtls_hwcap_mask_t;
 /**
  * \brief Definition of core CPU feature sets detection on x64/i386.

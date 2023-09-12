@@ -31,6 +31,12 @@
 
 #endif
 
+#if defined(MBEDTLS_ARCH_IS_X64) || defined(MBEDTLS_ARCH_IS_X86)
+#define MBEDTLS_RUNTIME_C
+#endif
+
+#endif /* !MBEDTLS_CPU_HAS_FEATURES_ALT */
+
 /* Check if AES module needs runtime detection */
 #if defined(MBEDTLS_AES_C)
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)

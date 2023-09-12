@@ -40,6 +40,49 @@ static mbedtls_hwcap_mask_t cpu_feature_get(void)
 
 #endif /* MBEDTLS_ARCH_IS_ARM64 */
 
+#if defined(MBEDTLS_ARCH_IS_X64) || defined(MBEDTLS_ARCH_IS_X86)
+#if defined(_MSC_VER)
+#include <intrin.h>
+#else
+#include <cpuid.h>
+#endif
+static void get_cpuid(unsigned eax, unsigned info[4])
+{
+#if defined(_MSC_VER)
+    __cpuid(info, eax);
+#else
+    __cpuid(eax, info[0], info[1], info[2], info[3]);
+#endif
+}
+
+#define MBEDTLS_GET_HIGHEST_CENTAUR_EXT 0xc0000000
+#define MBEDTLS_GET_CENTAUR_INFO        0xc0000001
+#define MBEDTLS_PADLOCK_ACE 0x00c0
+
+static mbedtls_hwcap_mask_t cpu_feature_get(void)
+{
+    unsigned info[4] = { 0, 0, 0, 0 };
+    mbedtls_hwcap_mask_t hwcap = 0;
+
+#if defined(MBEDTLS_AESNI_C)
+    get_cpuid(1, info);
+    hwcap |= info[2] & (MBEDTLS_HWCAP_AESNI_AES | MBEDTLS_HWCAP_AESNI_CLMUL);
+#endif
+
+#if defined(MBEDTLS_PADLOCK_C)
+    get_cpuid(MBEDTLS_GET_HIGHEST_CENTAUR_EXT, info);
+    if (info[0] >= MBEDTLS_GET_CENTAUR_INFO) {
+        get_cpuid(MBEDTLS_GET_CENTAUR_INFO, info);
+        if ((info[2]&MBEDTLS_PADLOCK_ACE) == MBEDTLS_PADLOCK_ACE) {
+            hwcap |= MBEDTLS_HWCAP_PADLOCK_ACE;
+        }
+    }
+#endif
+
+    return hwcap;
+}
+#endif /* MBEDTLS_ARCH_IS_X64 || MBEDTLS_ARCH_IS_X86 */
+
 bool mbedtls_cpu_has_features(mbedtls_hwcap_mask_t hwcap)
 {
     static mbedtls_hwcap_mask_t mbedtls_cpu_hwcaps = 0;

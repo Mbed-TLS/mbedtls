@@ -25,7 +25,8 @@
 
 #if defined(MBEDTLS_ARCH_IS_ARM64)
 
-#if defined(__linux__)
+#if defined(__linux__) || \
+    (defined(__FreeBSD__) && __FreeBSD_version >= 1200000)
 #define MBEDTLS_RUNTIME_C
 #endif
 

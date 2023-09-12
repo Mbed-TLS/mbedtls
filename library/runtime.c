@@ -36,7 +36,25 @@ static mbedtls_hwcap_mask_t cpu_feature_get(void)
     return (mbedtls_hwcap_mask_t) getauxval(AT_HWCAP) & \
            MBEDTLS_RUNTIME_AVAILABLE_MASKS;
 }
-#endif /* __linux__ */
+#elif defined(__FreeBSD__) && __FreeBSD_version >= 1200000
+#include <sys/auxv.h>
+/* See:
+ * - https://man.freebsd.org/cgi/man.cgi?query=elf_aux_info&sektion=3&format=html
+ * - https://docs.freebsd.org/en/books/porters-handbook/versions/#versions-12
+ * - https://reviews.freebsd.org/D12743
+ *
+ * On freebsd, we should use `elf_aux_info` to detect CPU feature sets.
+ */
+static mbedtls_hwcap_mask_t cpu_feature_get(void)
+{
+    mbedtls_hwcap_mask_t hwcap = 0;
+    if (!elf_aux_info(aux, &hwcap, sizeof(hwcap))) {
+        return hwcap & MBEDTLS_RUNTIME_AVAILABLE_MASKS;
+    }
+    return 0;
+}
+
+#endif /* __FreeBSD__ && __FreeBSD_version >= 1200000 */
 
 #endif /* MBEDTLS_ARCH_IS_ARM64 */
 

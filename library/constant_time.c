@@ -22,6 +22,7 @@
  * might be translated to branches by some compilers on some platforms.
  */
 
+#include <stdint.h>
 #include <limits.h>
 
 #include "common.h"
@@ -120,7 +121,24 @@ int mbedtls_ct_memcmp(const void *a,
         diff |= x ^ y;
     }
 
-    return (int) diff;
+
+#if (INT_MAX < INT32_MAX)
+    /* We don't support int smaller than 32-bits, but if someone tried to build
+     * with this configuration, there is a risk that, for differing data, the
+     * only bits set in diff are in the top 16-bits, and would be lost by a
+     * simple cast from uint32 to int.
+     * This would have significant security implications, so protect against it. */
+#error "mbedtls_ct_memcmp() requires minimum 32-bit ints"
+#else
+    /* The bit-twiddling ensures that when we cast uint32_t to int, we are casting
+     * a value that is in the range 0..INT_MAX - a value larger than this would
+     * result in implementation defined behaviour.
+     *
+     * This ensures that the value returned by the function is non-zero iff
+     * diff is non-zero.
+     */
+    return (int) ((diff & 0xffff) | (diff >> 16));
+#endif
 }
 
 #if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)

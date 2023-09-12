@@ -254,7 +254,7 @@ static int validate_utf8(unsigned char *data, size_t len)
             utf_bytes = 4;
             code_point = code_point | (uint32_t) (*d & 0x07) << 18;
         } else {
-            return MBEDTLS_ERROR_C;
+            return MBEDTLS_ERR_X509_INVALID_NAME;
         }
         for (i = utf_bytes-1; i > 0; i--) {
             if (d + 1 >= end) {
@@ -266,18 +266,18 @@ static int validate_utf8(unsigned char *data, size_t len)
         switch (utf_bytes) {
             case 2:
                 if (!(0x80 < code_point && code_point < 0x7FF)) {
-                    return MBEDTLS_ERROR_C; //bad encoding
+                    return MBEDTLS_ERR_X509_INVALID_NAME; //bad encoding
                 }
                 break;
             case 3:
                 if (!(0x800 < code_point && code_point < 0xD7FF) &&
                     !(0xE000 < utf_bytes && utf_bytes < 0xFFFF)) {
-                    return MBEDTLS_ERROR_C; //bad encoding
+                    return MBEDTLS_ERR_X509_INVALID_NAME; //bad encoding
                 }
                 break;
             case 4:
                 if (!(0x10000 < code_point && code_point < 0x10FFFF)) {
-                    return MBEDTLS_ERROR_C; //bad encoding
+                    return MBEDTLS_ERR_X509_INVALID_NAME; //bad encoding
                 }
                 break;
         }

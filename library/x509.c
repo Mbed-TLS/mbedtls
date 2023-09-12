@@ -825,7 +825,8 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t i, j, n, asn1_len_size, asn1_tag_size, asn1_tag_len_buf_start;
-    unsigned char asn1_tag_len_buf[10];
+    /* 6 is enough as our asn1 write functions only write one byte for the tag and at most five bytes for the length*/
+    unsigned char asn1_tag_len_buf[6];
     unsigned char *asn1_len_p;
     unsigned char c, merge = 0;
     const mbedtls_x509_name *name;
@@ -874,7 +875,7 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
         if (print_hexstring) {
             s[0] = '#';
 
-            asn1_len_p = asn1_tag_len_buf + 10;
+            asn1_len_p = asn1_tag_len_buf + sizeof(asn1_tag_len_buf);
             if ((ret = mbedtls_asn1_write_len(&asn1_len_p, asn1_tag_len_buf, name->val.len)) < 0) {
                 return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
             }
@@ -883,7 +884,7 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
                 return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
             }
             asn1_tag_size = ret;
-            asn1_tag_len_buf_start = 10 - asn1_len_size - asn1_tag_size;
+            asn1_tag_len_buf_start = sizeof(asn1_tag_len_buf) - asn1_len_size - asn1_tag_size;
             for (i = 0, j = 1; i < asn1_len_size + asn1_tag_size; i++) {
                 if (j + 1 >= sizeof(s) - 1) {
                     return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;

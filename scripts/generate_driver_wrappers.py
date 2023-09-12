@@ -72,7 +72,7 @@ def generate_driver_wrapper_file(template_dir: str,
 
     result = render(driver_wrapper_template_filename, driver_jsoncontext)
 
-    with open(file=os.path.join(output_dir, template_file_name.rsplit(".", 1)[0]),
+    with open(file=os.path.join(output_dir, os.path.splitext(template_file_name)[0]),
               mode='w',
               encoding='UTF-8') as out_file:
         out_file.write(result)

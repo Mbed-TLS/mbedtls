@@ -1,15 +1,6 @@
 /**
  *  Constant-time functions
  *
- *  For readability, the static inline definitions are here, and
- *  constant_time_internal.h has only the declarations.
- *
- *  This results in duplicate declarations of the form:
- *      static inline void f() { ... }
- *      static inline void f();
- *  when constant_time_internal.h is included. This appears to behave
- *  exactly as if the declaration-without-definition was not present.
- *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -37,11 +28,20 @@
 #include "mbedtls/bignum.h"
 #endif
 
-/* constant_time_impl.h contains all the static inline implementations,
- * so that constant_time_internal.h is more readable.
+/*
+ * To improve readability of constant_time_internal.h, the static inline
+ * definitions are here, and constant_time_internal.h has only the declarations.
  *
- * gcc generates warnings about duplicate declarations, so disable this
- * warning.
+ * This results in duplicate declarations of the form:
+ *     static inline void f();         // from constant_time_internal.h
+ *     static inline void f() { ... }  // from constant_time_impl.h
+ * when constant_time_internal.h is included.
+ *
+ * This appears to behave as if the declaration-without-definition was not present
+ * (except for warnings if gcc -Wredundant-decls or similar is used).
+ *
+ * Disable -Wredundant-decls so that gcc does not warn about this. This is re-enabled
+ * at the bottom of this file.
  */
 #ifdef __GNUC__
     #pragma GCC diagnostic push
@@ -71,6 +71,10 @@
 #define MBEDTLS_CT_ARM_ASM
 #elif defined(__aarch64__)
 #define MBEDTLS_CT_AARCH64_ASM
+#elif defined(__amd64__) || defined(__x86_64__)
+#define MBEDTLS_CT_X86_64_ASM
+#elif defined(__i386__)
+#define MBEDTLS_CT_X86_ASM
 #endif
 #endif
 
@@ -132,7 +136,7 @@ static inline mbedtls_ct_uint_t mbedtls_ct_compiler_opaque(mbedtls_ct_uint_t x)
  * seem to apply unified syntax globally, which breaks other asm code.
  */
 #if !defined(__clang__)
-#define RESTORE_ASM_SYNTAX  ".syntax divided             \n\t"
+#define RESTORE_ASM_SYNTAX  ".syntax divided                      \n\t"
 #else
 #define RESTORE_ASM_SYNTAX
 #endif
@@ -150,9 +154,9 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool(mbedtls_ct_uint_t x)
      */
 #if defined(MBEDTLS_CT_AARCH64_ASM) && (defined(MBEDTLS_CT_SIZE_32) || defined(MBEDTLS_CT_SIZE_64))
     mbedtls_ct_uint_t s;
-    asm volatile ("neg %x[s], %x[x]                     \n\t"
-                  "orr %x[x], %x[s], %x[x]              \n\t"
-                  "asr %x[x], %x[x], 63"
+    asm volatile ("neg %x[s], %x[x]                               \n\t"
+                  "orr %x[x], %x[s], %x[x]                        \n\t"
+                  "asr %x[x], %x[x], 63                           \n\t"
                   :
                   [s] "=&r" (s),
                   [x] "+&r" (x)
@@ -162,10 +166,10 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool(mbedtls_ct_uint_t x)
     return (mbedtls_ct_condition_t) x;
 #elif defined(MBEDTLS_CT_ARM_ASM) && defined(MBEDTLS_CT_SIZE_32)
     uint32_t s;
-    asm volatile (".syntax unified                       \n\t"
-                  "negs %[s], %[x]                       \n\t"
-                  "orrs %[x], %[x], %[s]                 \n\t"
-                  "asrs %[x], %[x], #31                  \n\t"
+    asm volatile (".syntax unified                                \n\t"
+                  "negs %[s], %[x]                                \n\t"
+                  "orrs %[x], %[x], %[s]                          \n\t"
+                  "asrs %[x], %[x], #31                           \n\t"
                   RESTORE_ASM_SYNTAX
                   :
                   [s] "=&l" (s),
@@ -173,6 +177,32 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool(mbedtls_ct_uint_t x)
                   :
                   :
                   "cc" /* clobbers flag bits */
+                  );
+    return (mbedtls_ct_condition_t) x;
+#elif defined(MBEDTLS_CT_X86_64_ASM) && (defined(MBEDTLS_CT_SIZE_32) || defined(MBEDTLS_CT_SIZE_64))
+    uint64_t s;
+    asm volatile ("mov  %[x], %[s]                                \n\t"
+                  "neg  %[s]                                      \n\t"
+                  "or   %[x], %[s]                                \n\t"
+                  "sar  $63, %[s]                                 \n\t"
+                  :
+                  [s] "=&a" (s)
+                  :
+                  [x] "D" (x)
+                  :
+                  );
+    return (mbedtls_ct_condition_t) s;
+#elif defined(MBEDTLS_CT_X86_ASM) && defined(MBEDTLS_CT_SIZE_32)
+    uint32_t s;
+    asm volatile ("mov %[x], %[s]                                 \n\t"
+                  "neg %[s]                                       \n\t"
+                  "or %[s], %[x]                                  \n\t"
+                  "sar $31, %[x]                                  \n\t"
+                  :
+                  [s] "=&c" (s),
+                  [x] "+&a" (x)
+                  :
+                  :
                   );
     return (mbedtls_ct_condition_t) x;
 #else
@@ -202,9 +232,9 @@ static inline mbedtls_ct_uint_t mbedtls_ct_if(mbedtls_ct_condition_t condition,
                                               mbedtls_ct_uint_t if0)
 {
 #if defined(MBEDTLS_CT_AARCH64_ASM) && (defined(MBEDTLS_CT_SIZE_32) || defined(MBEDTLS_CT_SIZE_64))
-    asm volatile ("and %x[if1], %x[if1], %x[condition]       \n\t"
-                  "mvn %x[condition], %x[condition]          \n\t"
-                  "and %x[condition], %x[condition], %x[if0] \n\t"
+    asm volatile ("and %x[if1], %x[if1], %x[condition]            \n\t"
+                  "mvn %x[condition], %x[condition]               \n\t"
+                  "and %x[condition], %x[condition], %x[if0]      \n\t"
                   "orr %x[condition], %x[if1], %x[condition]"
                   :
                   [condition] "+&r" (condition),
@@ -215,11 +245,11 @@ static inline mbedtls_ct_uint_t mbedtls_ct_if(mbedtls_ct_condition_t condition,
                   );
     return (mbedtls_ct_uint_t) condition;
 #elif defined(MBEDTLS_CT_ARM_ASM) && defined(MBEDTLS_CT_SIZE_32)
-    asm volatile (".syntax unified                           \n\t"
-                  "ands %[if1], %[if1], %[condition]         \n\t"
-                  "mvns %[condition], %[condition]           \n\t"
-                  "ands %[condition], %[condition], %[if0]   \n\t"
-                  "orrs %[condition], %[if1], %[condition]   \n\t"
+    asm volatile (".syntax unified                                \n\t"
+                  "ands %[if1], %[if1], %[condition]              \n\t"
+                  "mvns %[condition], %[condition]                \n\t"
+                  "ands %[condition], %[condition], %[if0]        \n\t"
+                  "orrs %[condition], %[if1], %[condition]        \n\t"
                   RESTORE_ASM_SYNTAX
                   :
                   [condition] "+&l" (condition),
@@ -230,6 +260,32 @@ static inline mbedtls_ct_uint_t mbedtls_ct_if(mbedtls_ct_condition_t condition,
                   "cc"
                   );
     return (mbedtls_ct_uint_t) condition;
+#elif defined(MBEDTLS_CT_X86_64_ASM) && (defined(MBEDTLS_CT_SIZE_32) || defined(MBEDTLS_CT_SIZE_64))
+    asm volatile ("and  %[condition], %[if1]                      \n\t"
+                  "not  %[condition]                              \n\t"
+                  "and  %[condition], %[if0]                      \n\t"
+                  "or   %[if1], %[if0]                            \n\t"
+                  :
+                  [condition] "+&D" (condition),
+                  [if1] "+&S" (if1),
+                  [if0] "+&a" (if0)
+                  :
+                  :
+                  );
+    return if0;
+#elif defined(MBEDTLS_CT_X86_ASM) && defined(MBEDTLS_CT_SIZE_32)
+    asm volatile ("and %[condition], %[if1]                       \n\t"
+                  "not %[condition]                               \n\t"
+                  "and %[if0], %[condition]                       \n\t"
+                  "or %[condition], %[if1]                        \n\t"
+                  :
+                  [condition] "+&c" (condition),
+                  [if1] "+&a" (if1)
+                  :
+                  [if0] "b" (if0)
+                  :
+                  );
+    return if1;
 #else
     mbedtls_ct_condition_t not_cond =
         (mbedtls_ct_condition_t) (~mbedtls_ct_compiler_opaque(condition));
@@ -241,38 +297,80 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_lt(mbedtls_ct_uint_t x, mbe
 {
 #if defined(MBEDTLS_CT_AARCH64_ASM) && (defined(MBEDTLS_CT_SIZE_32) || defined(MBEDTLS_CT_SIZE_64))
     uint64_t s1;
-    asm volatile ("eor     %x[s1], %x[y], %x[x]          \n\t"
-                  "sub     %x[x], %x[x], %x[y]           \n\t"
-                  "bic     %x[x], %x[x], %x[s1]          \n\t"
-                  "and     %x[s1], %x[s1], %x[y]         \n\t"
-                  "orr     %x[s1], %x[x], %x[s1]         \n\t"
+    asm volatile ("eor     %x[s1], %x[y], %x[x]                   \n\t"
+                  "sub     %x[x], %x[x], %x[y]                    \n\t"
+                  "bic     %x[x], %x[x], %x[s1]                   \n\t"
+                  "and     %x[s1], %x[s1], %x[y]                  \n\t"
+                  "orr     %x[s1], %x[x], %x[s1]                  \n\t"
                   "asr     %x[x], %x[s1], 63"
-                  : [s1] "=&r" (s1), [x] "+&r" (x)
-                  : [y] "r" (y)
+                  :
+                  [s1] "=&r" (s1),
+                  [x] "+&r" (x)
+                  :
+                  [y] "r" (y)
                   :
                   );
     return (mbedtls_ct_condition_t) x;
 #elif defined(MBEDTLS_CT_ARM_ASM) && defined(MBEDTLS_CT_SIZE_32)
     uint32_t s1;
     asm volatile (
-        ".syntax unified                    \n\t"
+        ".syntax unified                                          \n\t"
 #if defined(__thumb__) && !defined(__thumb2__)
-        "movs     %[s1], %[x]               \n\t"
-        "eors     %[s1], %[s1], %[y]        \n\t"
+        "movs     %[s1], %[x]                                     \n\t"
+        "eors     %[s1], %[s1], %[y]                              \n\t"
 #else
-        "eors     %[s1], %[x], %[y]         \n\t"
+        "eors     %[s1], %[x], %[y]                               \n\t"
 #endif
-        "subs    %[x], %[x], %[y]           \n\t"
-        "bics    %[x], %[x], %[s1]          \n\t"
-        "ands    %[y], %[s1], %[y]          \n\t"
-        "orrs    %[x], %[x], %[y]           \n\t"
-        "asrs    %[x], %[x], #31            \n\t"
+        "subs    %[x], %[x], %[y]                                 \n\t"
+        "bics    %[x], %[x], %[s1]                                \n\t"
+        "ands    %[y], %[s1], %[y]                                \n\t"
+        "orrs    %[x], %[x], %[y]                                 \n\t"
+        "asrs    %[x], %[x], #31                                  \n\t"
         RESTORE_ASM_SYNTAX
-        : [s1] "=&l" (s1), [x] "+&l" (x),  [y] "+&l" (y)
+        :
+        [s1] "=&l" (s1),
+        [x] "+&l" (x),
+        [y] "+&l" (y)
         :
         :
         "cc"
         );
+    return (mbedtls_ct_condition_t) x;
+#elif defined(MBEDTLS_CT_X86_64_ASM) && (defined(MBEDTLS_CT_SIZE_32) || defined(MBEDTLS_CT_SIZE_64))
+    uint64_t s;
+    asm volatile ("mov %[x], %[s]                                 \n\t"
+                  "xor %[y], %[s]                                 \n\t"
+                  "sub %[y], %[x]                                 \n\t"
+                  "and %[s], %[y]                                 \n\t"
+                  "not %[s]                                       \n\t"
+                  "and %[s], %[x]                                 \n\t"
+                  "or %[y], %[x]                                  \n\t"
+                  "sar $63, %[x]                                  \n\t"
+                  :
+                  [s] "=&a" (s),
+                  [x] "+&D" (x),
+                  [y] "+&S" (y)
+                  :
+                  :
+                  );
+    return (mbedtls_ct_condition_t) x;
+#elif defined(MBEDTLS_CT_X86_ASM) && defined(MBEDTLS_CT_SIZE_32)
+    uint32_t s;
+    asm volatile ("mov %[x], %[s]                                 \n\t"
+                  "xor %[y], %[s]                                 \n\t"
+                  "sub %[y], %[x]                                 \n\t"
+                  "and %[s], %[y]                                 \n\t"
+                  "not %[s]                                       \n\t"
+                  "and %[s], %[x]                                 \n\t"
+                  "or  %[y], %[x]                                 \n\t"
+                  "sar $31, %[x]                                  \n\t"
+                  :
+                  [s] "=&b" (s),
+                  [x] "+&a" (x),
+                  [y] "+&c" (y)
+                  :
+                  :
+                  );
     return (mbedtls_ct_condition_t) x;
 #else
     /* Ensure that the compiler cannot optimise the following operations over x and y,
@@ -431,6 +529,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool_not(mbedtls_ct_condition_t 
 }
 
 #ifdef __GNUC__
+/* Restore warnings for -Wredundant-decls on gcc */
     #pragma GCC diagnostic pop
 #endif
 

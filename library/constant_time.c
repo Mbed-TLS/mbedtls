@@ -130,7 +130,14 @@ int mbedtls_ct_memcmp(const void *a,
      * This would have significant security implications, so protect against it. */
 #error "mbedtls_ct_memcmp() requires minimum 32-bit ints"
 #else
-    return (int) diff;
+    /* The bit-twiddling ensures that when we cast uint32_t to int, we are casting
+     * a value that is in the range 0..INT_MAX - a value larger than this would
+     * result in implementation defined behaviour.
+     *
+     * This ensures that the value returned by the function is non-zero iff
+     * diff is non-zero.
+     */
+    return (int) ((diff & 0xffff) | (diff >> 16));
 #endif
 }
 

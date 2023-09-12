@@ -1498,8 +1498,8 @@ static int pk_parse_key_pkcs8_encrypted_der(
 #if defined(MBEDTLS_PKCS12_C)
     if (mbedtls_oid_get_pkcs12_pbe_alg(&pbe_alg_oid, &md_alg, &cipher_alg) == 0) {
         if ((ret = mbedtls_pkcs12_pbe_ext(&pbe_params, MBEDTLS_PKCS12_PBE_DECRYPT,
-                                      cipher_alg, md_alg,
-                                      pwd, pwdlen, p, len, buf, len, &outlen)) != 0) {
+                                          cipher_alg, md_alg,
+                                          pwd, pwdlen, p, len, buf, len, &outlen)) != 0) {
             if (ret == MBEDTLS_ERR_PKCS12_PASSWORD_MISMATCH) {
                 return MBEDTLS_ERR_PK_PASSWORD_MISMATCH;
             }

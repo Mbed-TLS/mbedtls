@@ -20,6 +20,26 @@
 
 #if defined(MBEDTLS_RUNTIME_C) && defined(MBEDTLS_RUNTIME_HAVE_CODE)
 
+#if defined(MBEDTLS_ARCH_IS_ARM64)
+
+#define MBEDTLS_RUNTIME_AVAILABLE_MASKS ( \
+        MBEDTLS_HWCAP_ASIMD     | \
+        MBEDTLS_HWCAP_AES       | \
+        MBEDTLS_HWCAP_PMULL     | \
+        MBEDTLS_HWCAP_SHA2      | \
+        MBEDTLS_HWCAP_SHA512      \
+        )
+#if defined(__linux__)
+#include <sys/auxv.h>
+static mbedtls_hwcap_mask_t cpu_feature_get(void)
+{
+    return (mbedtls_hwcap_mask_t) getauxval(AT_HWCAP) & \
+           MBEDTLS_RUNTIME_AVAILABLE_MASKS;
+}
+#endif /* __linux__ */
+
+#endif /* MBEDTLS_ARCH_IS_ARM64 */
+
 bool mbedtls_cpu_has_features(mbedtls_hwcap_mask_t hwcap)
 {
     static mbedtls_hwcap_mask_t mbedtls_cpu_hwcaps = 0;

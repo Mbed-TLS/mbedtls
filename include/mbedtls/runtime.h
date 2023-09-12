@@ -22,10 +22,24 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "mbedtls/build_info.h"
 
 /* Reserverd by internal runtime detection module to check if cpu features have
  * been profiled. */
 #define MBEDTLS_HWCAP_PROFILED  (1ULL << 63)
+
+#if defined(MBEDTLS_ARCH_IS_ARM64)
+
+/* The bit mask definitions follow up [`hwcap.h`](https://github.com/torvalds/linux/blob/master/arch/arm64/include/uapi/asm/hwcap.h)
+ * to reduce down code size of runtime detection module.
+ */
+#define MBEDTLS_HWCAP_ASIMD     (1ULL <<  1)
+#define MBEDTLS_HWCAP_AES       (1ULL <<  3)
+#define MBEDTLS_HWCAP_PMULL     (1ULL <<  4)
+#define MBEDTLS_HWCAP_SHA2      (1ULL <<  6)
+#define MBEDTLS_HWCAP_SHA512    (1ULL << 21)
+
+#endif /* MBEDTLS_ARCH_IS_ARM64 */
 
 typedef uint64_t mbedtls_hwcap_mask_t;
 /**

@@ -23,6 +23,12 @@
 
 #if !defined(MBEDTLS_CPU_HAS_FEATURES_ALT)
 
+#if defined(MBEDTLS_ARCH_IS_ARM64)
+
+#if defined(__linux__)
+#define MBEDTLS_RUNTIME_C
+#endif
+
 #endif
 
 #endif /* MBEDTLS_RUNTIME_INTERNAL_H */

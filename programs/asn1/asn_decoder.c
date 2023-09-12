@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
         printf("Invalid data, error at byte %ld\n", s - input_buf);
 #elif PTRDIFF_MAX == LLONG_MAX
 #if defined(_WIN32)
-        printf("Invalid data, error at byte %l64u\n", s - input_buf);
+        printf("Invalid data, error at byte %I64u\n", s - input_buf);
 #else
         printf("Invalid data, error at byte %lld\n", s - input_buf);
 #endif

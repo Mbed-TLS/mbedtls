@@ -125,7 +125,7 @@ shopt -s extglob
 
 pre_check_environment () {
     if [ -d library -a -d include -a -d tests ]; then :; else
-        echo "Must be run from mbed TLS root" >&2
+        echo "Must be run from Mbed TLS root" >&2
         exit 1
     fi
 }

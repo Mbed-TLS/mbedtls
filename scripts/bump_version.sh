@@ -125,7 +125,7 @@ cat include/mbedtls/version.h |                                    \
     sed -e "s/_VERSION_PATCH .\{1,\}/_VERSION_PATCH  $PATCH/" |    \
     sed -e "s/_VERSION_NUMBER .\{1,\}/_VERSION_NUMBER         $VERSION_NR/" |    \
     sed -e "s/_VERSION_STRING .\{1,\}/_VERSION_STRING         \"$VERSION\"/" |    \
-    sed -e "s/_VERSION_STRING_FULL .\{1,\}/_VERSION_STRING_FULL    \"mbed TLS $VERSION\"/" \
+    sed -e "s/_VERSION_STRING_FULL .\{1,\}/_VERSION_STRING_FULL    \"Mbed TLS $VERSION\"/" \
     > tmp
 mv tmp include/mbedtls/version.h
 

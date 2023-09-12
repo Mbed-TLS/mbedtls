@@ -38,7 +38,7 @@
 /* System support */
 #define MBEDTLS_HAVE_ASM
 
-/* mbed TLS feature support */
+/* Mbed TLS feature support */
 #define MBEDTLS_AES_ROM_TABLES
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
 #define MBEDTLS_ECP_NIST_OPTIM
@@ -50,7 +50,7 @@
 #define MBEDTLS_SSL_DTLS_HELLO_VERIFY
 #define MBEDTLS_SSL_EXPORT_KEYS
 
-/* mbed TLS modules */
+/* Mbed TLS modules */
 #define MBEDTLS_AES_C
 #define MBEDTLS_ASN1_PARSE_C
 #define MBEDTLS_ASN1_WRITE_C

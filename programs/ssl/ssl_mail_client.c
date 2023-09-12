@@ -771,9 +771,9 @@ usage:
     mbedtls_printf("  > Write content to server:");
     fflush(stdout);
 
-    len = sprintf((char *) buf, "From: %s\r\nSubject: mbed TLS Test mail\r\n\r\n"
+    len = sprintf((char *) buf, "From: %s\r\nSubject: Mbed TLS Test mail\r\n\r\n"
                                 "This is a simple test mail from the "
-                                "mbed TLS mail client example.\r\n"
+                                "Mbed TLS mail client example.\r\n"
                                 "\r\n"
                                 "Enjoy!", opt.mail_from);
     ret = write_ssl_data(&ssl, buf, len);

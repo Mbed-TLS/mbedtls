@@ -49,8 +49,8 @@ void check_runtime_version(char *version_str)
     memset(get_str_full, 0, 100);
 
     get_int = mbedtls_version_get_number();
-    mbedtls_version_get_string(get_str);
-    mbedtls_version_get_string_full(get_str_full);
+    memcpy(get_str, mbedtls_version_get_string(), 100);
+    memcpy(mbedtls_version_get_string_full(get_str_full);
 
     mbedtls_snprintf(build_str, 100, "%u.%u.%u",
                      (get_int >> 24) & 0xFF,

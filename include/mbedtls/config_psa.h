@@ -110,6 +110,10 @@ extern "C" {
 
 #if defined(PSA_WANT_ALG_HKDF)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_HKDF)
+/*
+ * The PSA implementation has its own implementation of HKDF, separate from
+ * hkdf.c. No need to enable MBEDTLS_HKDF_C here.
+ */
 #define MBEDTLS_PSA_BUILTIN_ALG_HMAC 1
 #define MBEDTLS_PSA_BUILTIN_ALG_HKDF 1
 #endif /* !MBEDTLS_PSA_ACCEL_ALG_HKDF */

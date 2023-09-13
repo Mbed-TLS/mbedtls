@@ -3,7 +3,7 @@ PSA Cryptoprocessor Driver Interface
 
 This document describes an interface for cryptoprocessor drivers in the PSA cryptography API. This interface complements the [PSA Cryptography API specification](https://armmbed.github.io/mbed-crypto/psa/#application-programming-interface), which describes the interface between a PSA Cryptography implementation and an application.
 
-This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API. At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
+This specification is work in progress and should be considered to be in a beta stage. There is ongoing work to implement this interface in Mbed TLS, which is the reference implementation of the PSA Cryptography API (although it omits a few functions and mechanisms). At this stage, Arm does not expect major changes, but minor changes are expected based on experience from the first implementation and on external feedback.
 
 For a practical guide, with a description of the current state of drivers Mbed TLS, see our [PSA Cryptoprocessor driver development examples](../psa-driver-example-and-guide.html).
 

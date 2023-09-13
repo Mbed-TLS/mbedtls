@@ -1494,8 +1494,8 @@ psa_status_t psa_export_key_internal(
             key_buffer, key_buffer_size,
             data, data_size, data_length);
     } else {
-        /* This shouldn't happen in the reference implementation, but
-           it is valid for a special-purpose implementation to omit
+        /* This shouldn't happen in the built-in implementation, but
+           it is valid for a special-purpose drivers to omit
            support for exporting certain key types. */
         return PSA_ERROR_NOT_SUPPORTED;
     }

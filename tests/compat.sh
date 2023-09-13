@@ -262,7 +262,7 @@ filter_ciphersuites()
 {
     if [ "X" != "X$FILTER" -o "X" != "X$EXCLUDE" ];
     then
-        # Ciphersuite for mbed TLS
+        # Ciphersuite for Mbed TLS
         M_CIPHERS=$( filter "$M_CIPHERS" )
 
         # Ciphersuite for OpenSSL
@@ -272,7 +272,7 @@ filter_ciphersuites()
         G_CIPHERS=$( filter "$G_CIPHERS" )
     fi
 
-    # For GnuTLS client -> mbed TLS server,
+    # For GnuTLS client -> Mbed TLS server,
     # we need to force IPv4 by connecting to 127.0.0.1 but then auth fails
     if is_dtls "$MODE" && [ "X$VERIFY" = "XYES" ]; then
         G_CIPHERS=""

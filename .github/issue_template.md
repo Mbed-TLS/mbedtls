@@ -20,7 +20,7 @@ github issues for questions.
 **OS**  
 Mbed OS|linux|windows|
 
-**mbed TLS build:**  
+**Mbed TLS build:**  
 Version: x.x.x or git commit id  
 OS version: x.x.x  
 Configuration: please attach config.h file where possible  

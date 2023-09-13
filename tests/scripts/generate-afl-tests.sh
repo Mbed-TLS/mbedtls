@@ -41,7 +41,7 @@ THIS_DIR=$(basename $PWD)
 if [ -d ../library -a -d ../include -a -d ../tests -a $THIS_DIR == "tests" ];
 then :;
 else
-    echo " [!] Must be run from mbed TLS tests directory" >&2
+    echo " [!] Must be run from Mbed TLS tests directory" >&2
     exit 1
 fi
 

@@ -23,4 +23,4 @@ them, you can pick one of the following methods:
     make
 
 Note that the second method also works if you want to keep your custom
-configuration file outside the mbed TLS tree.
+configuration file outside the Mbed TLS tree.

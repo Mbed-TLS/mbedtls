@@ -31,7 +31,7 @@ int main()
     /* This version string is 18 bytes long, as advised by version.h. */
     char version[18];
 
-    mbedtls_version_get_string_full(version);
+    memcpy(version, mbedtls_version_get_string(), sizeof(version));
 
     mbedtls_printf("Built against %s\n", version);
 

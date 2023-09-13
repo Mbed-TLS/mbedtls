@@ -1,0 +1,5 @@
+Features
+   * Applications using ECC over secp256r1 through the PSA API can use a
+     new implementation with a much smaller footprint, but some minor
+     usage restrictions. See the documentation of the new configuration
+     option MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED for details.

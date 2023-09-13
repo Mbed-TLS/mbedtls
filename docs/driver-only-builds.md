@@ -145,9 +145,9 @@ timeline, please let us know if you're interested.
 
 ### Limitations regarding the selection of curves
 
-There is an ongoing work which tries to establish a link/constrain between
-the list of supported curves and supported algorithms both in the builtin and
-PSA sides. In particular:
+There is ongoing work which is trying to establish the links and constraints
+between the list of supported curves and supported algorithms both in the
+builtin and PSA sides. In particular:
 
 - #8014 ensures that the curves supported on the PSA side (`PSA_WANT_ECC_xxx`)
   are always a superset of the builtin ones (`MBEDTLS_ECP_DP_xxx`)

@@ -50,7 +50,8 @@
 #define MBEDTLS_HAVE_X86
 #endif
 
-#if defined(MBEDTLS_AESNI_C)
+#if defined(MBEDTLS_AESNI_C) && \
+    (defined(MBEDTLS_HAVE_X86_64) || defined(MBEDTLS_HAVE_X86))
 
 /* Can we do AESNI with intrinsics?
  * (Only implemented with certain compilers, only for certain targets.)

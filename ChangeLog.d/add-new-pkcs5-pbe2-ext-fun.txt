@@ -1,6 +1,7 @@
 Security
-   * Developers using mbedtls_pkcs5_pbes2() should review the size of the output
-     buffer passed to this function, and note that the output after decryption
-     may include CBC padding. Consider moving to the new function
-     mbedtls_pkcs5_pbes2_ext() which checks for overflow of the output buffer
-     and reports the actual length of the output.
+   * Developers using mbedtls_pkcs5_pbes2() or mbedtls_pkcs12_pbe() should review
+     the size of the output buffer passed to this function, and note that the
+     output after decryption may include CBC padding. Consider moving to the
+     new functions mbedtls_pkcs5_pbes2_ext() or mbedtls_pkcs12_pbe_ext() which
+     checks for overflow of the output buffer and reports the actual length
+     of the output.

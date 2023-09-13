@@ -260,7 +260,7 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
     for (; *group_list != 0; group_list++) {
         int propose_group = 0;
 
-        MBEDTLS_SSL_DEBUG_MSG(1, ("got supported group(%04x)", *group_list));
+        MBEDTLS_SSL_DEBUG_MSG(3, ("got supported group(%04x)", *group_list));
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
         if (flags & SSL_WRITE_SUPPORTED_GROUPS_EXT_TLS1_3_FLAG) {

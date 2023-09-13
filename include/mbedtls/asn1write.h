@@ -48,6 +48,7 @@
 extern "C" {
 #endif
 
+#if defined(MBEDTLS_ASN1_WRITE_C) || defined(MBEDTLS_X509_USE_C)
 /**
  * \brief           Write a length field in ASN.1 format.
  *
@@ -76,7 +77,9 @@ int mbedtls_asn1_write_len(unsigned char **p, const unsigned char *start,
  */
 int mbedtls_asn1_write_tag(unsigned char **p, const unsigned char *start,
                            unsigned char tag);
+#endif /* MBEDTLS_ASN1_WRITE_C || MBEDTLS_X509_USE_C */
 
+#if defined(MBEDTLS_ASN1_WRITE_C)
 /**
  * \brief           Write raw buffer data.
  *
@@ -392,5 +395,7 @@ mbedtls_asn1_named_data *mbedtls_asn1_store_named_data(mbedtls_asn1_named_data *
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* MBEDTLS_ASN1_WRITE_C */
 
 #endif /* MBEDTLS_ASN1_WRITE_H */

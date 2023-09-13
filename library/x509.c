@@ -43,6 +43,8 @@
 #include "mbedtls/pem.h"
 #endif
 
+#include "mbedtls/asn1write.h"
+
 #include "mbedtls/platform.h"
 
 #if defined(MBEDTLS_HAVE_TIME)
@@ -810,6 +812,11 @@ int mbedtls_x509_get_ext(unsigned char **p, const unsigned char *end,
     return 0;
 }
 
+static char nibble_to_hex_digit(int i)
+{
+    return (i < 10) ? (i + '0') : (i - 10 + 'A');
+}
+
 /*
  * Store the name in printable form into buf; no more
  * than size characters will be written
@@ -817,11 +824,16 @@ int mbedtls_x509_get_ext(unsigned char **p, const unsigned char *end,
 int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i, j, n;
+    size_t i, j, n, asn1_len_size, asn1_tag_size, asn1_tag_len_buf_start;
+    /* 6 is enough as our asn1 write functions only write one byte for the tag and at most five bytes for the length*/
+    unsigned char asn1_tag_len_buf[6];
+    unsigned char *asn1_len_p;
     unsigned char c, merge = 0;
     const mbedtls_x509_name *name;
     const char *short_name = NULL;
+    char lowbits, highbits;
     char s[MBEDTLS_X509_MAX_DN_NAME_SIZE], *p;
+    int print_hexstring;
 
     memset(s, 0, sizeof(s));
 
@@ -840,32 +852,91 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
             MBEDTLS_X509_SAFE_SNPRINTF;
         }
 
-        ret = mbedtls_oid_get_attr_short_name(&name->oid, &short_name);
+        print_hexstring = (name->val.tag != MBEDTLS_ASN1_UTF8_STRING) &&
+                          (name->val.tag != MBEDTLS_ASN1_PRINTABLE_STRING) &&
+                          (name->val.tag != MBEDTLS_ASN1_IA5_STRING);
 
-        if (ret == 0) {
+        if ((ret = mbedtls_oid_get_attr_short_name(&name->oid, &short_name)) == 0) {
             ret = mbedtls_snprintf(p, n, "%s=", short_name);
         } else {
-            ret = mbedtls_snprintf(p, n, "\?\?=");
+            if ((ret = mbedtls_oid_get_numeric_string(p, n, &name->oid)) > 0) {
+                n -= ret;
+                p += ret;
+                ret = mbedtls_snprintf(p, n, "=");
+                print_hexstring = 1;
+            } else if (ret == MBEDTLS_ERR_OID_BUF_TOO_SMALL) {
+                return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+            } else {
+                ret = mbedtls_snprintf(p, n, "\?\?=");
+            }
         }
         MBEDTLS_X509_SAFE_SNPRINTF;
 
-        for (i = 0, j = 0; i < name->val.len; i++, j++) {
-            if (j >= sizeof(s) - 1) {
-                return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
-            }
+        if (print_hexstring) {
+            s[0] = '#';
 
-            c = name->val.p[i];
-            // Special characters requiring escaping, RFC 1779
-            if (c && strchr(",=+<>#;\"\\", c)) {
+            asn1_len_p = asn1_tag_len_buf + sizeof(asn1_tag_len_buf);
+            if ((ret = mbedtls_asn1_write_len(&asn1_len_p, asn1_tag_len_buf, name->val.len)) < 0) {
+                return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            }
+            asn1_len_size = ret;
+            if ((ret = mbedtls_asn1_write_tag(&asn1_len_p, asn1_tag_len_buf, name->val.tag)) < 0) {
+                return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+            }
+            asn1_tag_size = ret;
+            asn1_tag_len_buf_start = sizeof(asn1_tag_len_buf) - asn1_len_size - asn1_tag_size;
+            for (i = 0, j = 1; i < asn1_len_size + asn1_tag_size; i++) {
                 if (j + 1 >= sizeof(s) - 1) {
                     return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
                 }
-                s[j++] = '\\';
+                c = asn1_tag_len_buf[asn1_tag_len_buf_start+i];
+                lowbits = (c & 0x0F);
+                highbits = c >> 4;
+                s[j++] = nibble_to_hex_digit(highbits);
+                s[j++] = nibble_to_hex_digit(lowbits);
             }
-            if (c < 32 || c >= 127) {
-                s[j] = '?';
-            } else {
-                s[j] = c;
+            for (i = 0; i < name->val.len; i++) {
+                if (j + 1 >= sizeof(s) - 1) {
+                    return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                }
+                c = name->val.p[i];
+                lowbits = (c & 0x0F);
+                highbits = c >> 4;
+                s[j++] = nibble_to_hex_digit(highbits);
+                s[j++] = nibble_to_hex_digit(lowbits);
+            }
+        } else {
+            for (i = 0, j = 0; i < name->val.len; i++, j++) {
+                if (j >= sizeof(s) - 1) {
+                    return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                }
+
+                c = name->val.p[i];
+                // Special characters requiring escaping, RFC 4514 Section 2.4
+                if (c == '\0') {
+                    return MBEDTLS_ERR_X509_INVALID_NAME;
+                } else {
+                    if (strchr(",=+<>;\"\\", c) ||
+                        ((i == 0) && strchr("# ", c)) ||
+                        ((i == name->val.len-1) && (c == ' '))) {
+                        if (j + 1 >= sizeof(s) - 1) {
+                            return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                        }
+                        s[j++] = '\\';
+                    }
+                }
+                if (c < 32 || c >= 127) {
+                    if (j + 3 >= sizeof(s) - 1) {
+                        return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                    }
+                    s[j++] = '\\';
+                    lowbits = (c & 0x0F);
+                    highbits = c >> 4;
+                    s[j++] = nibble_to_hex_digit(highbits);
+                    s[j] = nibble_to_hex_digit(lowbits);
+                } else {
+                    s[j] = c;
+                }
             }
         }
         s[j] = '\0';

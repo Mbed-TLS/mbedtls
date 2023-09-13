@@ -856,16 +856,32 @@
 //#define MBEDTLS_ECP_WITH_MPI_UINT
 
 /**
- * Uncomment to enable p256-m, which implements ECC key generation, ECDH,
- * and ECDSA for SECP256R1 curves. This driver is used as an example to
- * document how a third-party driver or software accelerator can be integrated
- * to work alongside Mbed TLS.
+ * Uncomment to enable p256-m. This is an alternative implementation of
+ * key generation, ECDH and (randomized) ECDSA on the curve SECP256R1.
+ * Compared to the default implementation:
  *
- * \warning p256-m has only been included to serve as a sample implementation
- * of how a driver/accelerator can be integrated alongside Mbed TLS. It is not
- * intended for use in production. p256-m files in Mbed TLS are not updated
- * regularly, so they may not contain upstream fixes/improvements.
- * DO NOT ENABLE/USE THIS MACRO IN PRODUCTION BUILDS!
+ * - p256-m has a much smaller code size and RAM footprint.
+ * - p256-m is only available via the PSA API. This includes the pk module
+ *   when #MBEDTLS_USE_PSA_CRYPTO is enabled.
+ * - p256-m does not support deterministic ECDSA, EC-JPAKE, custom protocols
+ *   over the core arithmetic, or deterministic derivation of keys.
+ *
+ * We recommend enabling this option if your application uses the PSA API
+ * and the only elliptic curve support it needs is ECDH and ECDSA over
+ * SECP256R1.
+ *
+ * If you enable this option, you do not need to enable any ECC-related
+ * MBEDTLS_xxx option. You do need to separately request support for the
+ * cryptographic mechanisms through the PSA API:
+ * - #MBEDTLS_PSA_CRYPTO_C and #MBEDTLS_PSA_CRYPTO_CONFIG for PSA-based
+ *   configuration;
+ * - #MBEDTLS_USE_PSA_CRYPTO if you want to use p256-m from PK, X.509 or TLS;
+ * - #PSA_WANT_ECC_SECP_R1_256;
+ * - #PSA_WANT_ALG_ECDH and/or #PSA_WANT_ALG_ECDSA as needed;
+ * - #PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY, #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC,
+ *   #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT,
+ *   #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT and/or
+ *   #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE as needed.
  */
 //#define MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED
 

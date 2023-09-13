@@ -62,6 +62,16 @@ typedef uint64_t mbedtls_hwcap_mask_t;
  *
  * \note We only define the features that are used in MbedTLS.
  *
+ * \note When only one CPU accelerator or only plain C enabled for target plat-
+ *       form and algorithm, this function won't be compiled. It will be
+ *       replaced with extenal function when \c MBEDTLS_CPU_HAS_FEATURES_ALT
+ *       enabled.
+ *
+ *       When built-in implementation does not support target platform, please
+ *       provide extenal implementation or adjust config options to disable run-
+ *       time detection.
+ *       Built-in function has supported i386,x86_64, arm64 linux,arm64 freebsd
+ *       and arm64 apple os.
  */
 bool mbedtls_cpu_has_features(mbedtls_hwcap_mask_t hwcap);
 

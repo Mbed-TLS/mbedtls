@@ -411,6 +411,8 @@
 
 /*
  * Uncomment to enable alternative core CPU feature sets detection function.
+ *
+ * When enabled, `mbedtls_cpu_has_features()` MUST be provided.
  */
 //#define MBEDTLS_CPU_HAS_FEATURES_ALT
 

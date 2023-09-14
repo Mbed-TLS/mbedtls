@@ -18,8 +18,8 @@
  *  limitations under the License.
  */
 /*
- *  http://www.ietf.org/rfc/rfc2246.txt
- *  http://www.ietf.org/rfc/rfc4346.txt
+ *  https://datatracker.ietf.org/doc/html/rfc2246
+ *  https://datatracker.ietf.org/doc/html/rfc4346
  */
 
 #include "common.h"

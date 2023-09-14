@@ -11,8 +11,8 @@
  *        purpose is to protect cryptographic keys.
  *
  *        Its equivalent is RFC 3394 for KW, and RFC 5649 for KWP.
- *        https://tools.ietf.org/html/rfc3394
- *        https://tools.ietf.org/html/rfc5649
+ *        https://datatracker.ietf.org/doc/html/rfc3394
+ *        https://datatracker.ietf.org/doc/html/rfc5649
  *
  */
 /*

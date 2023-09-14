@@ -31,10 +31,12 @@
 #include "mbedtls/asn1write.h"
 #include "mbedtls/error.h"
 #include "mbedtls/oid.h"
+#include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
-#include "mbedtls/sha1.h"
+#include "mbedtls/md.h"
 
 #include <string.h>
+#include <stdint.h>
 
 #if defined(MBEDTLS_PEM_WRITE_C)
 #include "mbedtls/pem.h"
@@ -42,11 +44,9 @@
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
+#include "md_psa.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-
-#include "hash_info.h"
-#include "mbedtls/legacy_or_psa.h"
 
 void mbedtls_x509write_crt_init(mbedtls_x509write_cert *ctx)
 {
@@ -153,6 +153,13 @@ int mbedtls_x509write_crt_set_validity(mbedtls_x509write_cert *ctx,
     return 0;
 }
 
+int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *ctx,
+                                                       const mbedtls_x509_san_list *san_list)
+{
+    return mbedtls_x509_write_set_san_common(&ctx->extensions, san_list);
+}
+
+
 int mbedtls_x509write_crt_set_extension(mbedtls_x509write_cert *ctx,
                                         const char *oid, size_t oid_len,
                                         int critical,
@@ -195,7 +202,7 @@ int mbedtls_x509write_crt_set_basic_constraints(mbedtls_x509write_cert *ctx,
                                             is_ca, buf + sizeof(buf) - len, len);
 }
 
-#if defined(MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+#if defined(MBEDTLS_MD_CAN_SHA1)
 static int mbedtls_x509write_crt_set_key_identifier(mbedtls_x509write_cert *ctx,
                                                     int is_ca,
                                                     unsigned char tag)
@@ -229,8 +236,9 @@ static int mbedtls_x509write_crt_set_key_identifier(mbedtls_x509write_cert *ctx,
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
 #else
-    ret = mbedtls_sha1(buf + sizeof(buf) - len, len,
-                       buf + sizeof(buf) - 20);
+    ret = mbedtls_md(mbedtls_md_info_from_type(MBEDTLS_MD_SHA1),
+                     buf + sizeof(buf) - len, len,
+                     buf + sizeof(buf) - 20);
     if (ret != 0) {
         return ret;
     }
@@ -279,7 +287,7 @@ int mbedtls_x509write_crt_set_authority_key_identifier(mbedtls_x509write_cert *c
                                                     1,
                                                     (MBEDTLS_ASN1_CONTEXT_SPECIFIC | 0));
 }
-#endif /* MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
+#endif /* MBEDTLS_MD_CAN_SHA1 */
 
 int mbedtls_x509write_crt_set_key_usage(mbedtls_x509write_cert *ctx,
                                         unsigned int key_usage)
@@ -426,7 +434,7 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
     unsigned char *c, *c2;
     unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
     size_t hash_length = 0;
-    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_algorithm_t psa_algorithm;
@@ -435,6 +443,7 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
     size_t sub_len = 0, pub_len = 0, sig_and_oid_len = 0, sig_len;
     size_t len = 0;
     mbedtls_pk_type_t pk_alg;
+    int write_sig_null_par;
 
     /*
      * Prepare data to be signed at the end of the target buffer
@@ -526,9 +535,20 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
     /*
      *  Signature   ::=  AlgorithmIdentifier
      */
+    if (pk_alg == MBEDTLS_PK_ECDSA) {
+        /*
+         * The AlgorithmIdentifier's parameters field must be absent for DSA/ECDSA signature
+         * algorithms, see https://www.rfc-editor.org/rfc/rfc5480#page-17 and
+         * https://www.rfc-editor.org/rfc/rfc5758#section-3.
+         */
+        write_sig_null_par = 0;
+    } else {
+        write_sig_null_par = 1;
+    }
     MBEDTLS_ASN1_CHK_ADD(len,
-                         mbedtls_asn1_write_algorithm_identifier(&c, buf,
-                                                                 sig_oid, strlen(sig_oid), 0));
+                         mbedtls_asn1_write_algorithm_identifier_ext(&c, buf,
+                                                                     sig_oid, strlen(sig_oid),
+                                                                     0, write_sig_null_par));
 
     /*
      *  Serial   ::=  INTEGER
@@ -585,7 +605,7 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
 
     /* Compute hash of CRT. */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_algorithm = mbedtls_hash_info_psa_from_md(ctx->md_alg);
+    psa_algorithm = mbedtls_md_psa_alg_from_type(ctx->md_alg);
 
     status = psa_hash_compute(psa_algorithm,
                               c,
@@ -620,8 +640,8 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
      * into the CRT buffer. */
     c2 = buf + size;
     MBEDTLS_ASN1_CHK_ADD(sig_and_oid_len, mbedtls_x509_write_sig(&c2, c,
-                                                                 sig_oid, sig_oid_len, sig,
-                                                                 sig_len));
+                                                                 sig_oid, sig_oid_len,
+                                                                 sig, sig_len, pk_alg));
 
     /*
      * Memory layout after this step:

@@ -49,7 +49,7 @@ class TestData:
     Take in test_suite_pkcs7.data file.
     Allow for new tests to be added.
     """
-    mandatory_dep = "MBEDTLS_SHA256_C"
+    mandatory_dep = "MBEDTLS_MD_CAN_SHA256"
     test_name = "PKCS7 Parse Failure Invalid ASN1"
     test_function = "pkcs7_asn1_fail:"
     def __init__(self, file_name):

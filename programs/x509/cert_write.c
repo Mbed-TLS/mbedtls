@@ -20,16 +20,18 @@
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/platform.h"
+/* md.h is included this early since MD_CAN_XXX macros are defined there. */
+#include "mbedtls/md.h"
 
 #if !defined(MBEDTLS_X509_CRT_WRITE_C) || \
     !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_FS_IO) || \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) || \
-    !defined(MBEDTLS_ERROR_C) || !defined(MBEDTLS_SHA256_C) || \
+    !defined(MBEDTLS_ERROR_C) || !defined(MBEDTLS_MD_CAN_SHA256) || \
     !defined(MBEDTLS_PEM_WRITE_C)
 int main(void)
 {
     mbedtls_printf("MBEDTLS_X509_CRT_WRITE_C and/or MBEDTLS_X509_CRT_PARSE_C and/or "
-                   "MBEDTLS_FS_IO and/or MBEDTLS_SHA256_C and/or "
+                   "MBEDTLS_FS_IO and/or MBEDTLS_MD_CAN_SHA256 and/or "
                    "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
                    "MBEDTLS_ERROR_C not defined.\n");
     mbedtls_exit(0);
@@ -41,7 +43,6 @@ int main(void)
 #include "mbedtls/oid.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
-#include "mbedtls/md.h"
 #include "mbedtls/error.h"
 #include "test/helpers.h"
 
@@ -78,6 +79,7 @@ int main(void)
 #define DFL_NOT_AFTER           "20301231235959"
 #define DFL_SERIAL              "1"
 #define DFL_SERIAL_HEX          "1"
+#define DFL_EXT_SUBJECTALTNAME  ""
 #define DFL_SELFSIGN            0
 #define DFL_IS_CA               0
 #define DFL_MAX_PATHLEN         -1
@@ -133,6 +135,13 @@ int main(void)
     "    subject_identifier=%%s   default: 1\n"             \
     "                            Possible values: 0, 1\n"   \
     "                            (Considered for v3 only)\n" \
+    "    san=%%s                   default: (none)\n"       \
+    "                            Semicolon-separated-list of values:\n" \
+    "                             DNS:value\n"            \
+    "                             URI:value\n"            \
+    "                             RFC822:value\n"         \
+    "                             IP:value (Only IPv4 is supported)\n" \
+    "                             DN:list of comma separated key=value pairs\n" \
     "    authority_identifier=%%s default: 1\n"             \
     "                            Possible values: 0, 1\n"   \
     "                            (Considered for v3 only)\n" \
@@ -187,6 +196,7 @@ struct options {
     const char *issuer_pwd;     /* password for the issuer key file     */
     const char *output_file;    /* where to store the constructed CRT   */
     const char *subject_name;   /* subject name for certificate         */
+    mbedtls_x509_san_list *san_list; /* subjectAltName for certificate  */
     const char *issuer_name;    /* issuer name for certificate          */
     const char *not_before;     /* validity period not before           */
     const char *not_after;      /* validity period not after            */
@@ -313,7 +323,9 @@ int main(int argc, char *argv[])
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     const char *pers = "crt example app";
-
+    mbedtls_x509_san_list *cur, *prev;
+    mbedtls_asn1_named_data *ext_san_dirname = NULL;
+    uint8_t ip[4] = { 0 };
     /*
      * Set to sane values
      */
@@ -328,6 +340,15 @@ int main(int argc, char *argv[])
     mbedtls_x509_crt_init(&issuer_crt);
     memset(buf, 0, sizeof(buf));
     memset(serial, 0, sizeof(serial));
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
+                        (int) status);
+        goto exit;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if (argc < 2) {
 usage:
@@ -360,6 +381,7 @@ usage:
     opt.authority_identifier = DFL_AUTH_IDENT;
     opt.basic_constraints    = DFL_CONSTRAINTS;
     opt.format              = DFL_FORMAT;
+    opt.san_list            = NULL;
 
     for (i = 1; i < argc; i++) {
 
@@ -508,6 +530,8 @@ usage:
                     SET_OID(ext_key_usage->buf, MBEDTLS_OID_TIME_STAMPING);
                 } else if (strcmp(q, "OCSPSigning") == 0) {
                     SET_OID(ext_key_usage->buf, MBEDTLS_OID_OCSP_SIGNING);
+                } else if (strcmp(q, "any") == 0) {
+                    SET_OID(ext_key_usage->buf, MBEDTLS_OID_ANY_EXTENDED_KEY_USAGE);
                 } else {
                     mbedtls_printf("Invalid argument for option %s\n", p);
                     goto usage;
@@ -516,6 +540,99 @@ usage:
                 *tail = ext_key_usage;
                 tail = &ext_key_usage->next;
 
+                q = r;
+            }
+        } else if (strcmp(p, "san") == 0) {
+            char *subtype_value;
+            prev = NULL;
+
+            while (q != NULL) {
+                char *semicolon;
+                r = q;
+
+                /* Find the first non-escaped ; occurrence and remove escaped ones */
+                do {
+                    if ((semicolon = strchr(r, ';')) != NULL) {
+                        if (*(semicolon-1) != '\\') {
+                            r = semicolon;
+                            break;
+                        }
+                        /* Remove the escape character */
+                        size_t size_left = strlen(semicolon);
+                        memmove(semicolon-1, semicolon, size_left);
+                        *(semicolon + size_left - 1) = '\0';
+                        /* r will now point at the character after the semicolon */
+                        r = semicolon;
+                    }
+
+                } while (semicolon != NULL);
+
+                if (semicolon != NULL) {
+                    *r++ = '\0';
+                } else {
+                    r = NULL;
+                }
+
+                cur = mbedtls_calloc(1, sizeof(mbedtls_x509_san_list));
+                if (cur == NULL) {
+                    mbedtls_printf("Not enough memory for subjectAltName list\n");
+                    goto usage;
+                }
+
+                cur->next = NULL;
+
+                if ((subtype_value = strchr(q, ':')) != NULL) {
+                    *subtype_value++ = '\0';
+                }
+                if (strcmp(q, "RFC822") == 0) {
+                    cur->node.type = MBEDTLS_X509_SAN_RFC822_NAME;
+                } else if (strcmp(q, "URI") == 0) {
+                    cur->node.type = MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER;
+                } else if (strcmp(q, "DNS") == 0) {
+                    cur->node.type = MBEDTLS_X509_SAN_DNS_NAME;
+                } else if (strcmp(q, "IP") == 0) {
+                    size_t ip_len = 0;
+                    cur->node.type = MBEDTLS_X509_SAN_IP_ADDRESS;
+                    ip_len = mbedtls_x509_crt_parse_cn_inet_pton(subtype_value, ip);
+                    if (ip_len == 0) {
+                        mbedtls_printf("mbedtls_x509_crt_parse_cn_inet_pton failed to parse %s\n",
+                                       subtype_value);
+                        goto exit;
+                    }
+                    cur->node.san.unstructured_name.p = (unsigned char *) ip;
+                    cur->node.san.unstructured_name.len = sizeof(ip);
+                } else if (strcmp(q, "DN") == 0) {
+                    cur->node.type = MBEDTLS_X509_SAN_DIRECTORY_NAME;
+                    if ((ret = mbedtls_x509_string_to_names(&ext_san_dirname,
+                                                            subtype_value)) != 0) {
+                        mbedtls_strerror(ret, buf, sizeof(buf));
+                        mbedtls_printf(
+                            " failed\n  !  mbedtls_x509_string_to_names "
+                            "returned -0x%04x - %s\n\n",
+                            (unsigned int) -ret, buf);
+                        goto exit;
+                    }
+                    cur->node.san.directory_name = *ext_san_dirname;
+                } else {
+                    mbedtls_free(cur);
+                    goto usage;
+                }
+
+                if (cur->node.type == MBEDTLS_X509_SAN_RFC822_NAME ||
+                    cur->node.type == MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER ||
+                    cur->node.type == MBEDTLS_X509_SAN_DNS_NAME) {
+                    q = subtype_value;
+                    cur->node.san.unstructured_name.p = (unsigned char *) q;
+                    cur->node.san.unstructured_name.len = strlen(q);
+                }
+
+                if (prev == NULL) {
+                    opt.san_list = cur;
+                } else {
+                    prev->next = cur;
+                }
+
+                prev = cur;
                 q = r;
             }
         } else if (strcmp(p, "ns_cert_type") == 0) {
@@ -771,7 +888,7 @@ usage:
         mbedtls_printf(" ok\n");
     }
 
-#if defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_MD_CAN_SHA1)
     if (opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
         opt.subject_identifier != 0) {
         mbedtls_printf("  . Adding the Subject Key Identifier ...");
@@ -805,7 +922,7 @@ usage:
 
         mbedtls_printf(" ok\n");
     }
-#endif /* MBEDTLS_SHA1_C */
+#endif /* MBEDTLS_MD_CAN_SHA1 */
 
     if (opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
         opt.key_usage != 0) {
@@ -821,6 +938,17 @@ usage:
         }
 
         mbedtls_printf(" ok\n");
+    }
+
+    if (opt.san_list != NULL) {
+        ret = mbedtls_x509write_crt_set_subject_alternative_name(&crt, opt.san_list);
+
+        if (ret != 0) {
+            mbedtls_printf(
+                " failed\n  !  mbedtls_x509write_crt_set_subject_alternative_name returned %d",
+                ret);
+            goto exit;
+        }
     }
 
     if (opt.ext_key_usage) {
@@ -878,12 +1006,16 @@ exit:
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
     mbedtls_x509_csr_free(&csr);
 #endif /* MBEDTLS_X509_CSR_PARSE_C */
+    mbedtls_asn1_free_named_data_list(&ext_san_dirname);
     mbedtls_x509_crt_free(&issuer_crt);
     mbedtls_x509write_crt_free(&crt);
     mbedtls_pk_free(&loaded_subject_key);
     mbedtls_pk_free(&loaded_issuer_key);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_psa_crypto_free();
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     mbedtls_exit(exit_code);
 }

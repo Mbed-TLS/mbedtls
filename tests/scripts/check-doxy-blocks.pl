@@ -68,7 +68,7 @@ sub check_dir {
 # Check that the script is being run from the project's root directory.
 for my $dir (@directories) {
     if (! -d $dir) {
-        die "This script must be run from the mbed TLS root directory";
+        die "This script must be run from the Mbed TLS root directory";
     } else {
         check_dir($dir)
     }

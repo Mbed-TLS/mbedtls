@@ -118,8 +118,10 @@ if(GEN_FILES)
             --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
         DEPENDS
             ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_psa_tests.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/crypto_data_tests.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/crypto_knowledge.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/macro_collector.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/psa_information.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/psa_storage.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/test_case.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/test_data_generation.py
@@ -237,7 +239,9 @@ function(add_test_suite suite_name)
             test_suite_${data_name}.datax
     )
 
-    add_executable(test_suite_${data_name} test_suite_${data_name}.c $<TARGET_OBJECTS:mbedtls_test>)
+    add_executable(test_suite_${data_name} test_suite_${data_name}.c
+                   $<TARGET_OBJECTS:mbedtls_test>
+                   $<TARGET_OBJECTS:mbedtls_test_helpers>)
     add_dependencies(test_suite_${data_name} ${dependency})
     target_link_libraries(test_suite_${data_name} ${libs})
     # Include test-specific header files from ./include and private header

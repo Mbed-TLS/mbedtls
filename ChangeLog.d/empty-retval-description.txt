@@ -1,3 +1,0 @@
-Bugfix
-   * Silence warnings from clang -Wdocumentation about empty \retval
-     descriptions, which started appearing with Clang 15. Fixes #6960.

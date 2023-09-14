@@ -39,8 +39,8 @@ if( @ARGV ) {
 
 my $feature_format_file = $data_dir.'/version_features.fmt';
 
-my @sections = ( "System support", "mbed TLS modules",
-                 "mbed TLS feature support" );
+my @sections = ( "System support", "Mbed TLS modules",
+                 "Mbed TLS feature support" );
 
 my $line_separator = $/;
 undef $/;
@@ -66,11 +66,14 @@ while (my $line = <CONFIG_H>)
             $in_section = 0;
             next;
         }
-
-        my ($define) = $line =~ /#define (\w+)/;
-        $feature_defines .= "#if defined(${define})\n";
-        $feature_defines .= "    \"${define}\",\n";
-        $feature_defines .= "#endif /* ${define} */\n";
+        # Strip leading MBEDTLS_ to save binary size
+        my ($mbedtls_prefix, $define) = $line =~ /#define (MBEDTLS_)?(\w+)/;
+        if (!$mbedtls_prefix) {
+            die "Feature does not start with 'MBEDTLS_': $line\n";
+        }
+        $feature_defines .= "#if defined(MBEDTLS_${define})\n";
+        $feature_defines .= "    \"${define}\", //no-check-names\n";
+        $feature_defines .= "#endif /* MBEDTLS_${define} */\n";
     }
 
     if (!$in_section) {

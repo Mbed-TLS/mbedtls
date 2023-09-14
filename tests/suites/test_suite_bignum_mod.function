@@ -7,23 +7,8 @@
 #include "test/constant_flow.h"
 
 #define TEST_COMPARE_MPI_RESIDUES(a, b) \
-    ASSERT_COMPARE((a).p, (a).limbs * sizeof(mbedtls_mpi_uint), \
-                   (b).p, (b).limbs * sizeof(mbedtls_mpi_uint))
-
-static int test_read_modulus(mbedtls_mpi_mod_modulus *m,
-                             mbedtls_mpi_mod_rep_selector int_rep,
-                             char *input)
-{
-    mbedtls_mpi_uint *p = NULL;
-    size_t limbs;
-
-    int ret = mbedtls_test_read_mpi_core(&p, &limbs, input);
-    if (ret != 0) {
-        return ret;
-    }
-
-    return mbedtls_mpi_mod_modulus_setup(m, p, limbs, int_rep);
-}
+    TEST_MEMORY_COMPARE((a).p, (a).limbs * sizeof(mbedtls_mpi_uint), \
+                        (b).p, (b).limbs * sizeof(mbedtls_mpi_uint))
 
 static int test_read_residue(mbedtls_mpi_mod_residue *r,
                              const mbedtls_mpi_mod_modulus *m,
@@ -50,7 +35,7 @@ static int test_read_residue(mbedtls_mpi_mod_residue *r,
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_BIGNUM_C
+ * depends_on:MBEDTLS_BIGNUM_C:MBEDTLS_ECP_WITH_MPI_UINT
  * END_DEPENDENCIES
  */
 
@@ -65,7 +50,19 @@ void mpi_mod_setup(int int_rep, int iret)
     memset(mp, 0xFF, sizeof(mp));
 
     mbedtls_mpi_mod_modulus_init(&m);
-    ret = mbedtls_mpi_mod_modulus_setup(&m, mp, MLIMBS, int_rep);
+
+    switch (int_rep) {
+        case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
+            ret = mbedtls_mpi_mod_modulus_setup(&m, mp, MLIMBS);
+            break;
+        case MBEDTLS_MPI_MOD_REP_OPT_RED:
+            ret = mbedtls_mpi_mod_optred_modulus_setup(&m, mp, MLIMBS, NULL);
+            break;
+        default:
+            ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+            break;
+    }
+
     TEST_EQUAL(ret, iret);
 
     /* Only test if the constants have been set-up  */
@@ -96,12 +93,6 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN MERGE SLOT 1 */
-
-/* END MERGE SLOT 1 */
-
-/* BEGIN MERGE SLOT 2 */
-
 /* BEGIN_CASE */
 void mpi_mod_mul(char *input_A,
                  char *input_B,
@@ -118,8 +109,8 @@ void mpi_mod_mul(char *input_A,
     mbedtls_mpi_mod_modulus m;
     mbedtls_mpi_mod_modulus_init(&m);
 
-    TEST_EQUAL(test_read_modulus(&m, MBEDTLS_MPI_MOD_REP_MONTGOMERY, input_N),
-               0);
+    TEST_EQUAL(mbedtls_test_read_mpi_modulus(&m, input_N,
+                                             MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
 
     TEST_EQUAL(test_read_residue(&rA, &m, input_A, 0), 0);
     TEST_EQUAL(test_read_residue(&rB, &m, input_B, 0), 0);
@@ -132,47 +123,47 @@ void mpi_mod_mul(char *input_A,
     TEST_EQUAL(rB.limbs, limbs);
     TEST_EQUAL(rR.limbs, limbs);
 
-    ASSERT_ALLOC(X, limbs);
+    TEST_CALLOC(X, limbs);
 
     TEST_EQUAL(mbedtls_mpi_mod_residue_setup(&rX, &m, X, limbs), 0);
 
     TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rA, &rB, &m), 0);
-    ASSERT_COMPARE(rX.p, bytes, rR.p, bytes);
+    TEST_MEMORY_COMPARE(rX.p, bytes, rR.p, bytes);
 
     /* alias X to A */
     memcpy(rX.p, rA.p, bytes);
     TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rX, &rB, &m), 0);
-    ASSERT_COMPARE(rX.p, bytes, rR.p, bytes);
+    TEST_MEMORY_COMPARE(rX.p, bytes, rR.p, bytes);
 
     /* alias X to B */
     memcpy(rX.p, rB.p, bytes);
     TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rA, &rX, &m), 0);
-    ASSERT_COMPARE(rX.p, bytes, rR.p, bytes);
+    TEST_MEMORY_COMPARE(rX.p, bytes, rR.p, bytes);
 
     /* A == B: alias A and B */
     if (memcmp(rA.p, rB.p, bytes) == 0) {
         TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rA, &rA, &m), 0);
-        ASSERT_COMPARE(rX.p, bytes, rR.p, bytes);
+        TEST_MEMORY_COMPARE(rX.p, bytes, rR.p, bytes);
 
         /* X, A, B all aliased together */
         memcpy(rX.p, rA.p, bytes);
         TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rX, &rX, &m), 0);
-        ASSERT_COMPARE(rX.p, bytes, rR.p, bytes);
+        TEST_MEMORY_COMPARE(rX.p, bytes, rR.p, bytes);
     }
     /* A != B: test B * A */
     else {
         TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rB, &rA, &m), 0);
-        ASSERT_COMPARE(rX.p, bytes, rR.p, bytes);
+        TEST_MEMORY_COMPARE(rX.p, bytes, rR.p, bytes);
 
         /* B * A: alias X to A */
         memcpy(rX.p, rA.p, bytes);
         TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rB, &rX, &m), 0);
-        ASSERT_COMPARE(rX.p, bytes, rR.p, bytes);
+        TEST_MEMORY_COMPARE(rX.p, bytes, rR.p, bytes);
 
         /* B + A: alias X to B */
         memcpy(rX.p, rB.p, bytes);
         TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rX, &rA, &m), 0);
-        ASSERT_COMPARE(rX.p, bytes, rR.p, bytes);
+        TEST_MEMORY_COMPARE(rX.p, bytes, rR.p, bytes);
     }
 
 exit:
@@ -206,8 +197,8 @@ void mpi_mod_mul_neg(char *input_A,
     mbedtls_mpi_mod_modulus fake_m;
     mbedtls_mpi_mod_modulus_init(&fake_m);
 
-    TEST_EQUAL(test_read_modulus(&m, MBEDTLS_MPI_MOD_REP_MONTGOMERY, input_N),
-               0);
+    TEST_EQUAL(mbedtls_test_read_mpi_modulus(&m, input_N,
+                                             MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
 
     TEST_EQUAL(test_read_residue(&rA, &m, input_A, 1), 0);
     TEST_EQUAL(test_read_residue(&rB, &m, input_B, 1), 0);
@@ -215,7 +206,7 @@ void mpi_mod_mul_neg(char *input_A,
 
     const size_t limbs = m.limbs;
 
-    ASSERT_ALLOC(X, limbs);
+    TEST_CALLOC(X, limbs);
 
     TEST_EQUAL(mbedtls_mpi_mod_residue_setup(&rX, &m, X, limbs), 0);
     rX.limbs = rR.limbs;
@@ -238,9 +229,6 @@ exit:
 }
 /* END_CASE */
 
-/* END MERGE SLOT 2 */
-
-/* BEGIN MERGE SLOT 3 */
 /* BEGIN_CASE */
 void mpi_mod_sub(char *input_N,
                  char *input_A, char *input_B,
@@ -256,7 +244,8 @@ void mpi_mod_sub(char *input_N,
     mbedtls_mpi_mod_modulus_init(&m);
 
     TEST_EQUAL(0,
-               test_read_modulus(&m, MBEDTLS_MPI_MOD_REP_MONTGOMERY, input_N));
+               mbedtls_test_read_mpi_modulus(&m, input_N,
+                                             MBEDTLS_MPI_MOD_REP_MONTGOMERY));
 
     /* test_read_residue() normally checks that inputs have the same number of
      * limbs as the modulus. For negative testing we can ask it to skip this
@@ -270,7 +259,7 @@ void mpi_mod_sub(char *input_N,
 
     if (expected_ret == 0) {
         /* Negative test with too many limbs in output */
-        ASSERT_ALLOC(X_raw, limbs + 1);
+        TEST_CALLOC(X_raw, limbs + 1);
 
         x.p = X_raw;
         x.limbs = limbs + 1;
@@ -282,7 +271,7 @@ void mpi_mod_sub(char *input_N,
 
         /* Negative test with too few limbs in output */
         if (limbs > 1) {
-            ASSERT_ALLOC(X_raw, limbs - 1);
+            TEST_CALLOC(X_raw, limbs - 1);
 
             x.p = X_raw;
             x.limbs = limbs - 1;
@@ -297,7 +286,7 @@ void mpi_mod_sub(char *input_N,
          * manually-written test cases with expected_ret != 0. */
     }
 
-    ASSERT_ALLOC(X_raw, limbs);
+    TEST_CALLOC(X_raw, limbs);
 
     TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&x, &m, X_raw, limbs));
 
@@ -357,7 +346,8 @@ void mpi_mod_inv_mont(char *input_N,
     mbedtls_mpi_mod_modulus_init(&N);
 
     TEST_EQUAL(0,
-               test_read_modulus(&N, MBEDTLS_MPI_MOD_REP_MONTGOMERY, input_N));
+               mbedtls_test_read_mpi_modulus(&N, input_N,
+                                             MBEDTLS_MPI_MOD_REP_MONTGOMERY));
 
     /* test_read_residue() normally checks that inputs have the same number of
      * limbs as the modulus. For negative testing we can ask it to skip this
@@ -368,7 +358,7 @@ void mpi_mod_inv_mont(char *input_N,
     size_t limbs = N.limbs;
     size_t bytes = limbs * sizeof(*X_raw);
 
-    ASSERT_ALLOC(X_raw, limbs);
+    TEST_CALLOC(X_raw, limbs);
 
     TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&x, &N, X_raw, limbs));
 
@@ -406,7 +396,8 @@ void mpi_mod_inv_non_mont(char *input_N,
     mbedtls_mpi_mod_modulus_init(&N);
 
     TEST_EQUAL(0,
-               test_read_modulus(&N, MBEDTLS_MPI_MOD_REP_OPT_RED, input_N));
+               mbedtls_test_read_mpi_modulus(&N, input_N,
+                                             MBEDTLS_MPI_MOD_REP_OPT_RED));
 
     /* test_read_residue() normally checks that inputs have the same number of
      * limbs as the modulus. For negative testing we can ask it to skip this
@@ -417,7 +408,7 @@ void mpi_mod_inv_non_mont(char *input_N,
     size_t limbs = N.limbs;
     size_t bytes = limbs * sizeof(*X_raw);
 
-    ASSERT_ALLOC(X_raw, limbs);
+    TEST_CALLOC(X_raw, limbs);
 
     TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&x, &N, X_raw, limbs));
 
@@ -440,13 +431,7 @@ exit:
     mbedtls_free(X_raw);
 }
 /* END_CASE */
-/* END MERGE SLOT 3 */
 
-/* BEGIN MERGE SLOT 4 */
-
-/* END MERGE SLOT 4 */
-
-/* BEGIN MERGE SLOT 5 */
 /* BEGIN_CASE */
 void mpi_mod_add(char *input_N,
                  char *input_A, char *input_B,
@@ -462,7 +447,8 @@ void mpi_mod_add(char *input_N,
     mbedtls_mpi_mod_modulus_init(&m);
 
     TEST_EQUAL(0,
-               test_read_modulus(&m, MBEDTLS_MPI_MOD_REP_MONTGOMERY, input_N));
+               mbedtls_test_read_mpi_modulus(&m, input_N,
+                                             MBEDTLS_MPI_MOD_REP_MONTGOMERY));
 
     /* test_read_residue() normally checks that inputs have the same number of
      * limbs as the modulus. For negative testing we can ask it to skip this
@@ -476,7 +462,7 @@ void mpi_mod_add(char *input_N,
 
     if (expected_ret == 0) {
         /* Negative test with too many limbs in output */
-        ASSERT_ALLOC(X_raw, limbs + 1);
+        TEST_CALLOC(X_raw, limbs + 1);
 
         x.p = X_raw;
         x.limbs = limbs + 1;
@@ -488,7 +474,7 @@ void mpi_mod_add(char *input_N,
 
         /* Negative test with too few limbs in output */
         if (limbs > 1) {
-            ASSERT_ALLOC(X_raw, limbs - 1);
+            TEST_CALLOC(X_raw, limbs - 1);
 
             x.p = X_raw;
             x.limbs = limbs - 1;
@@ -504,7 +490,7 @@ void mpi_mod_add(char *input_N,
     }
 
     /* Allocate correct number of limbs for X_raw */
-    ASSERT_ALLOC(X_raw, limbs);
+    TEST_CALLOC(X_raw, limbs);
 
     TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&x, &m, X_raw, limbs));
 
@@ -549,13 +535,7 @@ exit:
     mbedtls_free(X_raw);
 }
 /* END_CASE */
-/* END MERGE SLOT 5 */
 
-/* BEGIN MERGE SLOT 6 */
-
-/* END MERGE SLOT 6 */
-
-/* BEGIN MERGE SLOT 7 */
 /* BEGIN_CASE */
 void mpi_residue_setup(char *input_N, char *input_R, int ret)
 {
@@ -571,8 +551,7 @@ void mpi_residue_setup(char *input_N, char *input_R, int ret)
     TEST_EQUAL(0, mbedtls_test_read_mpi_core(&N, &n_limbs, input_N));
     TEST_EQUAL(0, mbedtls_test_read_mpi_core(&R, &r_limbs, input_R));
 
-    TEST_EQUAL(0, mbedtls_mpi_mod_modulus_setup(&m, N, n_limbs,
-                                                MBEDTLS_MPI_MOD_REP_MONTGOMERY));
+    TEST_EQUAL(0, mbedtls_mpi_mod_modulus_setup(&m, N, n_limbs));
 
     TEST_EQUAL(ret, mbedtls_mpi_mod_residue_setup(&r, &m, R, r_limbs));
 
@@ -603,7 +582,7 @@ void mpi_mod_io_neg(char *input_N, data_t *buf, int ret)
     size_t n_limbs;
     TEST_EQUAL(0, mbedtls_test_read_mpi_core(&N, &n_limbs, input_N));
     size_t r_limbs = n_limbs;
-    ASSERT_ALLOC(R, r_limbs);
+    TEST_CALLOC(R, r_limbs);
 
     /* modulus->p == NULL || residue->p == NULL ( m has not been set-up ) */
     TEST_EQUAL(MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
@@ -613,8 +592,7 @@ void mpi_mod_io_neg(char *input_N, data_t *buf, int ret)
                mbedtls_mpi_mod_write(&r, &m, buf->x, buf->len, endian));
 
     /* Set up modulus and test with residue->p == NULL */
-    TEST_EQUAL(0, mbedtls_mpi_mod_modulus_setup(&m, N, n_limbs,
-                                                MBEDTLS_MPI_MOD_REP_MONTGOMERY));
+    TEST_EQUAL(0, mbedtls_mpi_mod_modulus_setup(&m, N, n_limbs));
 
     TEST_EQUAL(MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
                mbedtls_mpi_mod_read(&r, &m, buf->x, buf->len, endian));
@@ -680,15 +658,14 @@ void mpi_mod_io(char *input_N, data_t *input_A, int endian)
     a_bytes = input_A->len;
 
     /* Allocate the memory for intermediate data structures */
-    ASSERT_ALLOC(R, n_bytes);
-    ASSERT_ALLOC(R_COPY, n_bytes);
+    TEST_CALLOC(R, n_bytes);
+    TEST_CALLOC(R_COPY, n_bytes);
 
     /* Test that input's size is not greater to modulo's */
     TEST_LE_U(a_bytes, n_bytes);
 
     /* Init Structures */
-    TEST_EQUAL(0, mbedtls_mpi_mod_modulus_setup(&m, N, n_limbs,
-                                                MBEDTLS_MPI_MOD_REP_MONTGOMERY));
+    TEST_EQUAL(0, mbedtls_mpi_mod_modulus_setup(&m, N, n_limbs));
 
     /* Enforcing p_limbs >= m->limbs */
     TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&r, &m, R, n_limbs));
@@ -721,14 +698,14 @@ void mpi_mod_io(char *input_N, data_t *input_A, int endian)
     obuf_sizes[2] = a_bytes + 8;
 
     for (size_t i = 0; i < obuf_sizes_len; i++) {
-        ASSERT_ALLOC(obuf, obuf_sizes[i]);
+        TEST_CALLOC(obuf, obuf_sizes[i]);
         TEST_EQUAL(0, mbedtls_mpi_mod_write(&r, &m, obuf, obuf_sizes[i], endian));
 
         /* Make sure that writing didn't corrupt the value of r */
-        ASSERT_COMPARE(r.p, r.limbs, r_copy.p, r_copy.limbs);
+        TEST_MEMORY_COMPARE(r.p, r.limbs, r_copy.p, r_copy.limbs);
 
         /* Set up reference output for checking the result */
-        ASSERT_ALLOC(ref_buf, obuf_sizes[i]);
+        TEST_CALLOC(ref_buf, obuf_sizes[i]);
         switch (endian) {
             case MBEDTLS_MPI_MOD_EXT_REP_LE:
                 memcpy(ref_buf, input_A->x, a_bytes_trimmed);
@@ -746,7 +723,7 @@ void mpi_mod_io(char *input_N, data_t *input_A, int endian)
         }
 
         /* Check the result */
-        ASSERT_COMPARE(obuf, obuf_sizes[i], ref_buf, obuf_sizes[i]);
+        TEST_MEMORY_COMPARE(obuf, obuf_sizes[i], ref_buf, obuf_sizes[i]);
 
         mbedtls_free(ref_buf);
         ref_buf = NULL;
@@ -760,18 +737,6 @@ exit:
     mbedtls_free(R);
     mbedtls_free(R_COPY);
     mbedtls_free(obuf);
+    mbedtls_free(ref_buf);
 }
 /* END_CASE */
-/* END MERGE SLOT 7 */
-
-/* BEGIN MERGE SLOT 8 */
-
-/* END MERGE SLOT 8 */
-
-/* BEGIN MERGE SLOT 9 */
-
-/* END MERGE SLOT 9 */
-
-/* BEGIN MERGE SLOT 10 */
-
-/* END MERGE SLOT 10 */

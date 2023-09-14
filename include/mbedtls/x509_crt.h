@@ -24,7 +24,6 @@
 #include "mbedtls/private_access.h"
 
 #include "mbedtls/build_info.h"
-#include "mbedtls/legacy_or_psa.h"
 
 #include "mbedtls/x509.h"
 #include "mbedtls/x509_crl.h"
@@ -76,7 +75,9 @@ typedef struct mbedtls_x509_crt {
     mbedtls_x509_buf issuer_id;         /**< Optional X.509 v2/v3 issuer unique identifier. */
     mbedtls_x509_buf subject_id;        /**< Optional X.509 v2/v3 subject unique identifier. */
     mbedtls_x509_buf v3_ext;            /**< Optional X.509 v3 extensions.  */
-    mbedtls_x509_sequence subject_alt_names;    /**< Optional list of raw entries of Subject Alternative Names extension (currently only dNSName, uniformResourceIdentifier and OtherName are listed). */
+    mbedtls_x509_sequence subject_alt_names; /**< Optional list of raw entries of Subject Alternative Names extension. These can be later parsed by mbedtls_x509_parse_subject_alt_name. */
+    mbedtls_x509_buf subject_key_id;    /**< Optional X.509 v3 extension subject key identifier. */
+    mbedtls_x509_authority authority_key_id;    /**< Optional X.509 v3 extension authority key identifier. */
 
     mbedtls_x509_sequence certificate_policies; /**< Optional list of certificate policies (Only anyPolicy is printed and enforced, however the rest of the policies are still listed). */
 
@@ -241,6 +242,21 @@ typedef struct mbedtls_x509write_cert {
 mbedtls_x509write_cert;
 
 /**
+ * \brief           Set Subject Alternative Name
+ *
+ * \param ctx       Certificate context to use
+ * \param san_list  List of SAN values
+ *
+ * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
+ *
+ * \note            "dnsName", "uniformResourceIdentifier", "IP address",
+ *                  "otherName", and "DirectoryName", as defined in RFC 5280,
+ *                  are supported.
+ */
+int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *ctx,
+                                                       const mbedtls_x509_san_list *san_list);
+
+/**
  * Item in a verification chain: cert and flags for it
  */
 typedef struct {
@@ -341,6 +357,10 @@ extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_none;
  * \brief          Parse a single DER formatted certificate and add it
  *                 to the end of the provided chained list.
  *
+ * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                 subsystem must have been initialized by calling
+ *                 psa_crypto_init() before calling this function.
+ *
  * \param chain    The pointer to the start of the CRT chain to attach to.
  *                 When parsing the first CRT in a chain, this should point
  *                 to an instance of ::mbedtls_x509_crt initialized through
@@ -402,6 +422,10 @@ typedef int (*mbedtls_x509_crt_ext_cb_t)(void *p_ctx,
  * \brief            Parse a single DER formatted certificate and add it
  *                   to the end of the provided chained list.
  *
+ * \note             If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                   subsystem must have been initialized by calling
+ *                   psa_crypto_init() before calling this function.
+ *
  * \param chain      The pointer to the start of the CRT chain to attach to.
  *                   When parsing the first CRT in a chain, this should point
  *                   to an instance of ::mbedtls_x509_crt initialized through
@@ -452,6 +476,10 @@ int mbedtls_x509_crt_parse_der_with_ext_cb(mbedtls_x509_crt *chain,
  *                 temporary ownership of the CRT buffer until the CRT
  *                 is destroyed.
  *
+ * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                 subsystem must have been initialized by calling
+ *                 psa_crypto_init() before calling this function.
+ *
  * \param chain    The pointer to the start of the CRT chain to attach to.
  *                 When parsing the first CRT in a chain, this should point
  *                 to an instance of ::mbedtls_x509_crt initialized through
@@ -492,6 +520,10 @@ int mbedtls_x509_crt_parse_der_nocopy(mbedtls_x509_crt *chain,
  *                 long as the certificates are enclosed in the PEM specific
  *                 '-----{BEGIN/END} CERTIFICATE-----' delimiters.
  *
+ * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                 subsystem must have been initialized by calling
+ *                 psa_crypto_init() before calling this function.
+ *
  * \param chain    The chain to which to add the parsed certificates.
  * \param buf      The buffer holding the certificate data in PEM or DER format.
  *                 For certificates in PEM encoding, this may be a concatenation
@@ -515,6 +547,10 @@ int mbedtls_x509_crt_parse(mbedtls_x509_crt *chain, const unsigned char *buf, si
  *                 certificates can be parsed, the result is the number
  *                 of failed certificates it encountered. If none complete
  *                 correctly, the first error is returned.
+ *
+ * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                 subsystem must have been initialized by calling
+ *                 psa_crypto_init() before calling this function.
  *
  * \param chain    points to the start of the chain
  * \param path     filename to read the certificates from
@@ -540,6 +576,7 @@ int mbedtls_x509_crt_parse_file(mbedtls_x509_crt *chain, const char *path);
 int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path);
 
 #endif /* MBEDTLS_FS_IO */
+
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
 /**
  * \brief          Returns an informational string about the
@@ -619,8 +656,12 @@ int mbedtls_x509_crt_verify_info(char *buf, size_t size, const char *prefix,
  * \param cn       The expected Common Name. This will be checked to be
  *                 present in the certificate's subjectAltNames extension or,
  *                 if this extension is absent, as a CN component in its
- *                 Subject name. Currently only DNS names are supported. This
- *                 may be \c NULL if the CN need not be verified.
+ *                 Subject name. DNS names and IP addresses are fully
+ *                 supported, while the URI subtype is partially supported:
+ *                 only exact matching, without any normalization procedures
+ *                 described in 7.4 of RFC5280, will result in a positive
+ *                 URI verification.
+ *                 This may be \c NULL if the CN need not be verified.
  * \param flags    The address at which to store the result of the verification.
  *                 If the verification couldn't be completed, the flag value is
  *                 set to (uint32_t) -1.
@@ -966,7 +1007,7 @@ int mbedtls_x509write_crt_set_validity(mbedtls_x509write_cert *ctx, const char *
  * \brief           Set the issuer name for a Certificate
  *                  Issuer names should contain a comma-separated list
  *                  of OID types and values:
- *                  e.g. "C=UK,O=ARM,CN=mbed TLS CA"
+ *                  e.g. "C=UK,O=ARM,CN=Mbed TLS CA"
  *
  * \param ctx           CRT context to use
  * \param issuer_name   issuer name to set
@@ -981,7 +1022,7 @@ int mbedtls_x509write_crt_set_issuer_name(mbedtls_x509write_cert *ctx,
  * \brief           Set the subject name for a Certificate
  *                  Subject names should contain a comma-separated list
  *                  of OID types and values:
- *                  e.g. "C=UK,O=ARM,CN=mbed TLS Server 1"
+ *                  e.g. "C=UK,O=ARM,CN=Mbed TLS Server 1"
  *
  * \param ctx           CRT context to use
  * \param subject_name  subject name to set
@@ -1049,7 +1090,7 @@ int mbedtls_x509write_crt_set_extension(mbedtls_x509write_cert *ctx,
 int mbedtls_x509write_crt_set_basic_constraints(mbedtls_x509write_cert *ctx,
                                                 int is_ca, int max_pathlen);
 
-#if defined(MBEDTLS_HAS_ALG_SHA_1_VIA_LOWLEVEL_OR_PSA)
+#if defined(MBEDTLS_MD_CAN_SHA1)
 /**
  * \brief           Set the subjectKeyIdentifier extension for a CRT
  *                  Requires that mbedtls_x509write_crt_set_subject_key() has been
@@ -1071,7 +1112,7 @@ int mbedtls_x509write_crt_set_subject_key_identifier(mbedtls_x509write_cert *ctx
  * \return          0 if successful, or a MBEDTLS_ERR_X509_ALLOC_FAILED
  */
 int mbedtls_x509write_crt_set_authority_key_identifier(mbedtls_x509write_cert *ctx);
-#endif /* MBEDTLS_HAS_ALG_SHA_1_VIA_LOWLEVEL_OR_PSA */
+#endif /* MBEDTLS_MD_CAN_SHA1 */
 
 /**
  * \brief           Set the Key Usage Extension flags

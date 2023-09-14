@@ -1,7 +1,7 @@
-option(USE_STATIC_MBEDTLS_LIBRARY "Build mbed TLS static library." ON)
-option(USE_SHARED_MBEDTLS_LIBRARY "Build mbed TLS shared library." OFF)
-option(LINK_WITH_PTHREAD "Explicitly link mbed TLS library to pthread." OFF)
-option(LINK_WITH_TRUSTED_STORAGE "Explicitly link mbed TLS library to trusted_storage." OFF)
+option(USE_STATIC_MBEDTLS_LIBRARY "Build Mbed TLS static library." ON)
+option(USE_SHARED_MBEDTLS_LIBRARY "Build Mbed TLS shared library." OFF)
+option(LINK_WITH_PTHREAD "Explicitly link Mbed TLS library to pthread." OFF)
+option(LINK_WITH_TRUSTED_STORAGE "Explicitly link Mbed TLS library to trusted_storage." OFF)
 
 # Set the project root directory if it's not already defined, as may happen if
 # the library folder is included directly by a parent project, without
@@ -38,11 +38,11 @@ set(src_crypto
     ecjpake.c
     ecp.c
     ecp_curves.c
+    ecp_curves_new.c
     entropy.c
     entropy_poll.c
     error.c
     gcm.c
-    hash_info.c
     hkdf.c
     hmac_drbg.c
     lmots.c
@@ -69,6 +69,7 @@ set(src_crypto
     psa_crypto_client.c
     psa_crypto_driver_wrappers.c
     psa_crypto_ecp.c
+    psa_crypto_ffdh.c
     psa_crypto_hash.c
     psa_crypto_mac.c
     psa_crypto_pake.c
@@ -77,12 +78,14 @@ set(src_crypto
     psa_crypto_slot_management.c
     psa_crypto_storage.c
     psa_its_file.c
+    psa_util.c
     ripemd160.c
     rsa.c
     rsa_alt_helpers.c
     sha1.c
     sha256.c
     sha512.c
+    sha3.c
     threading.c
     timing.c
     version.c
@@ -96,6 +99,7 @@ set(src_x509
     x509_crl.c
     x509_crt.c
     x509_csr.c
+    x509write.c
     x509write_crt.c
     x509write_csr.c
 )
@@ -271,6 +275,10 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
         target_link_libraries(${mbedcrypto_static_target} PUBLIC everest)
     endif()
 
+    if(TARGET p256m)
+        target_link_libraries(${mbedcrypto_static_target} PUBLIC p256m)
+    endif()
+
     add_library(${mbedx509_static_target} STATIC ${src_x509})
     set_target_properties(${mbedx509_static_target} PROPERTIES OUTPUT_NAME mbedx509)
     target_link_libraries(${mbedx509_static_target} PUBLIC ${libs} ${mbedcrypto_static_target})
@@ -283,19 +291,23 @@ endif(USE_STATIC_MBEDTLS_LIBRARY)
 if(USE_SHARED_MBEDTLS_LIBRARY)
     set(CMAKE_LIBRARY_PATH ${CMAKE_CURRENT_BINARY_DIR})
     add_library(${mbedcrypto_target} SHARED ${src_crypto})
-    set_target_properties(${mbedcrypto_target} PROPERTIES VERSION 3.3.0 SOVERSION 13)
+    set_target_properties(${mbedcrypto_target} PROPERTIES VERSION 3.4.1 SOVERSION 14)
     target_link_libraries(${mbedcrypto_target} PUBLIC ${libs})
 
     if(TARGET everest)
         target_link_libraries(${mbedcrypto_target} PUBLIC everest)
     endif()
 
+    if(TARGET p256m)
+        target_link_libraries(${mbedcrypto_target} PUBLIC p256m)
+    endif()
+
     add_library(${mbedx509_target} SHARED ${src_x509})
-    set_target_properties(${mbedx509_target} PROPERTIES VERSION 3.3.0 SOVERSION 4)
+    set_target_properties(${mbedx509_target} PROPERTIES VERSION 3.4.1 SOVERSION 5)
     target_link_libraries(${mbedx509_target} PUBLIC ${libs} ${mbedcrypto_target})
 
     add_library(${mbedtls_target} SHARED ${src_tls})
-    set_target_properties(${mbedtls_target} PROPERTIES VERSION 3.3.0 SOVERSION 19)
+    set_target_properties(${mbedtls_target} PROPERTIES VERSION 3.4.1 SOVERSION 19)
     target_link_libraries(${mbedtls_target} PUBLIC ${libs} ${mbedx509_target})
 endif(USE_SHARED_MBEDTLS_LIBRARY)
 
@@ -310,6 +322,15 @@ foreach(target IN LISTS target_libraries)
         PUBLIC $<BUILD_INTERFACE:${MBEDTLS_DIR}/include/>
                $<INSTALL_INTERFACE:include/>
         PRIVATE ${MBEDTLS_DIR}/library/)
+    # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
+    if(MBEDTLS_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
+    endif()
+    if(MBEDTLS_USER_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
+    endif()
     install(
         TARGETS ${target}
         EXPORT MbedTLSTargets

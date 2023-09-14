@@ -26,11 +26,6 @@ class BignumModRawTarget(test_data_generation.BaseTarget):
     """Target for bignum mod_raw test case generation."""
     target_basename = 'test_suite_bignum_mod_raw.generated'
 
-# BEGIN MERGE SLOT 1
-
-# END MERGE SLOT 1
-
-# BEGIN MERGE SLOT 2
 
 class BignumModRawSub(bignum_common.ModOperationCommon,
                       BignumModRawTarget):
@@ -101,9 +96,6 @@ class BignumModRawMul(bignum_common.ModOperationCommon,
         result = (self.int_a * self.int_b) % self.int_n
         return [self.format_result(self.to_montgomery(result))]
 
-# END MERGE SLOT 2
-
-# BEGIN MERGE SLOT 3
 
 class BignumModRawInvPrime(bignum_common.ModOperationCommon,
                            BignumModRawTarget):
@@ -123,13 +115,6 @@ class BignumModRawInvPrime(bignum_common.ModOperationCommon,
         mont_result = self.to_montgomery(result)
         return [self.format_result(mont_result)]
 
-# END MERGE SLOT 3
-
-# BEGIN MERGE SLOT 4
-
-# END MERGE SLOT 4
-
-# BEGIN MERGE SLOT 5
 
 class BignumModRawAdd(bignum_common.ModOperationCommon,
                       BignumModRawTarget):
@@ -144,9 +129,6 @@ class BignumModRawAdd(bignum_common.ModOperationCommon,
         result = (self.int_a + self.int_b) % self.int_n
         return [self.format_result(result)]
 
-# END MERGE SLOT 5
-
-# BEGIN MERGE SLOT 6
 
 class BignumModRawConvertRep(bignum_common.ModOperationCommon,
                              BignumModRawTarget):
@@ -230,9 +212,6 @@ class BignumModRawModulusToCanonicalRep(BignumModRawConvertRep):
     def result(self) -> List[str]:
         return [self.format_result(self.int_a)]
 
-# END MERGE SLOT 6
-
-# BEGIN MERGE SLOT 7
 
 class BignumModRawConvertToMont(bignum_common.ModOperationCommon,
                                 BignumModRawTarget):
@@ -272,16 +251,3 @@ class BignumModRawModNegate(bignum_common.ModOperationCommon,
     def result(self) -> List[str]:
         result = (self.int_n - self.int_a) % self.int_n
         return [self.format_result(result)]
-# END MERGE SLOT 7
-
-# BEGIN MERGE SLOT 8
-
-# END MERGE SLOT 8
-
-# BEGIN MERGE SLOT 9
-
-# END MERGE SLOT 9
-
-# BEGIN MERGE SLOT 10
-
-# END MERGE SLOT 10

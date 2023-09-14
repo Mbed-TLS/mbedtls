@@ -7,7 +7,7 @@
         {
             "_comment":     "The Mbed TLS transparent driver supports import key/export key",
             "mbedtls/c_condition":    "defined(PSA_CRYPTO_DRIVER_TEST)",
-            "entry_points": ["import_key", "export_key"],
+            "entry_points": ["import_key"],
             "fallback":     true
         },
         {

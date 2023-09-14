@@ -20,7 +20,7 @@ void check_compiletime_version(char *version_str)
     mbedtls_snprintf(build_str, 100, "%d.%d.%d", MBEDTLS_VERSION_MAJOR,
                      MBEDTLS_VERSION_MINOR, MBEDTLS_VERSION_PATCH);
 
-    mbedtls_snprintf(build_str_full, 100, "mbed TLS %d.%d.%d", MBEDTLS_VERSION_MAJOR,
+    mbedtls_snprintf(build_str_full, 100, "Mbed TLS %d.%d.%d", MBEDTLS_VERSION_MAJOR,
                      MBEDTLS_VERSION_MINOR, MBEDTLS_VERSION_PATCH);
 
     build_int = MBEDTLS_VERSION_MAJOR << 24 |
@@ -56,7 +56,7 @@ void check_runtime_version(char *version_str)
                      (get_int >> 24) & 0xFF,
                      (get_int >> 16) & 0xFF,
                      (get_int >> 8) & 0xFF);
-    mbedtls_snprintf(build_str_full, 100, "mbed TLS %s", version_str);
+    mbedtls_snprintf(build_str_full, 100, "Mbed TLS %s", version_str);
 
     TEST_ASSERT(strcmp(build_str, version_str) == 0);
     TEST_ASSERT(strcmp(build_str_full, get_str_full) == 0);

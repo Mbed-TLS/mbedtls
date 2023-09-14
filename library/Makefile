@@ -48,8 +48,8 @@ endif
 endif
 
 SOEXT_TLS?=so.19
-SOEXT_X509?=so.4
-SOEXT_CRYPTO?=so.13
+SOEXT_X509?=so.5
+SOEXT_CRYPTO?=so.14
 
 # Set AR_DASH= (empty string) to use an ar implementation that does not accept
 # the - prefix for command line options (e.g. llvm-ar)
@@ -103,11 +103,11 @@ OBJS_CRYPTO= \
 	     ecjpake.o \
 	     ecp.o \
 	     ecp_curves.o \
+	     ecp_curves_new.o \
 	     entropy.o \
 	     entropy_poll.o \
 	     error.o \
 	     gcm.o \
-	     hash_info.o \
 	     hkdf.o \
 	     hmac_drbg.o \
 	     lmots.o \
@@ -134,6 +134,7 @@ OBJS_CRYPTO= \
 	     psa_crypto_client.o \
 	     psa_crypto_driver_wrappers.o \
 	     psa_crypto_ecp.o \
+	     psa_crypto_ffdh.o \
 	     psa_crypto_hash.o \
 	     psa_crypto_mac.o \
 	     psa_crypto_pake.o \
@@ -142,12 +143,14 @@ OBJS_CRYPTO= \
 	     psa_crypto_slot_management.o \
 	     psa_crypto_storage.o \
 	     psa_its_file.o \
+	     psa_util.o \
 	     ripemd160.o \
 	     rsa.o \
 	     rsa_alt_helpers.o \
 	     sha1.o \
 	     sha256.o \
 	     sha512.o \
+	     sha3.o \
 	     threading.o \
 	     timing.o \
 	     version.o \
@@ -164,6 +167,7 @@ OBJS_X509= \
 	   x509_crl.o \
 	   x509_crt.o \
 	   x509_csr.o \
+   	   x509write.o \
 	   x509write_crt.o \
 	   x509write_csr.o \
 	   pkcs7.o \

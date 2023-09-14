@@ -7,11 +7,6 @@ mpi_mod_setup:MBEDTLS_MPI_MOD_REP_OPT_RED:0
 Test mbedtls_mpi_mod_setup #7 (Montgomery representation)
 mpi_mod_setup:MBEDTLS_MPI_MOD_REP_MONTGOMERY:0
 
-# BEGIN MERGE SLOT 1
-
-# END MERGE SLOT 1
-
-# BEGIN MERGE SLOT 2
 Test mpi_mod_mul #1 N->limbs != A->limbs
 mpi_mod_mul_neg:"1":"00000000000000000000000000000000":"f0000000000000000000000000000000":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
@@ -20,9 +15,6 @@ mpi_mod_mul_neg:"1234567890abcdef1234567890abcdef":"0":"f00000000000000000000000
 
 Test mpi_mod_mul #3 N->limbs != X->limbs
 mpi_mod_mul_neg:"1234567890abcdef1234567890abcdef":"00000000000000000000000000000000":"f0000000000000000000000000000000":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
-# END MERGE SLOT 2
-
-# BEGIN MERGE SLOT 3
 
 mpi_mod_sub base case for negative testing (N, a, b all >= 1 limb)
 mpi_mod_sub:"014320a022ccb75bdf470ddf25":"000000025a55a46e5da99c71c7":"00033b2e3c9fd0803ce8000f93":"013fe57440828b4a0008aa4159":0
@@ -89,13 +81,6 @@ mbedtls_mpi_mod_inv 64-bit Mont. form - A too short
 depends_on:MBEDTLS_HAVE_INT64
 mpi_mod_inv_mont:"0000000000000000000000000000152d02c7e14af67fe0bf":"00000000000009545642424381c611fb":"000000000000000000000000000009545642424381c611fb":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
-# END MERGE SLOT 3
-
-# BEGIN MERGE SLOT 4
-
-# END MERGE SLOT 4
-
-# BEGIN MERGE SLOT 5
 mpi_mod_add base case for negative testing (N, a, b all >= 1 limb)
 mpi_mod_add:"014320a022ccb75bdf470ddf25":"000000025a55a46e5da99c71c7":"00033b2e3c9fd0803ce8000f93":"00033b3096f574ee9a919c815a":0
 
@@ -116,13 +101,7 @@ mpi_mod_add:"014320a022ccb75bdf470ddf25":"a99c71c7":"00033b2e3c9fd0803ce8000f93"
 
 mpi_mod_add with second input too short
 mpi_mod_add:"014320a022ccb75bdf470ddf25":"000000025a55a46e5da99c71c7":"e8000f93":"00":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
-# END MERGE SLOT 5
 
-# BEGIN MERGE SLOT 6
-
-# END MERGE SLOT 6
-
-# BEGIN MERGE SLOT 7
 Test mbedtls_mpi_residue_setup #1 m > r
 mpi_residue_setup:"fe":"01":0
 

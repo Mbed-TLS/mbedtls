@@ -207,8 +207,9 @@ int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
  * \param md_alg        The hash algorithm used to hash the original data.
  * \param f_rng_blind   The RNG function used for blinding. This must not be
  *                      \c NULL.
- * \param p_rng_blind   The RNG context to be passed to \p f_rng. This may be
- *                      \c NULL if \p f_rng doesn't need a context parameter.
+ * \param p_rng_blind   The RNG context to be passed to \p f_rng_blind. This
+ *                      may be \c NULL if \p f_rng_blind doesn't need a context
+ *                      parameter.
  *
  * \return          \c 0 on success.
  * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX
@@ -288,6 +289,8 @@ int mbedtls_ecdsa_sign_restartable(
     void *p_rng_blind,
     mbedtls_ecdsa_restart_ctx *rs_ctx);
 
+#endif /* !MBEDTLS_ECDSA_SIGN_ALT */
+
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 
 /**
@@ -321,10 +324,11 @@ int mbedtls_ecdsa_sign_restartable(
  *                      buffer of length \p blen Bytes. It may be \c NULL if
  *                      \p blen is zero.
  * \param blen          The length of \p buf in Bytes.
+ * \param md_alg        The hash algorithm used to hash the original data.
  * \param f_rng_blind   The RNG function used for blinding. This must not be
  *                      \c NULL.
- * \param p_rng_blind   The RNG context to be passed to \p f_rng. This may be
- *                      \c NULL if \p f_rng doesn't need a context parameter.
+ * \param p_rng_blind   The RNG context to be passed to \p f_rng_blind. This may be
+ *                      \c NULL if \p f_rng_blind doesn't need a context parameter.
  * \param rs_ctx        The restart context to use. This may be \c NULL
  *                      to disable restarting. If it is not \c NULL, it
  *                      must point to an initialized restart context.
@@ -347,8 +351,6 @@ int mbedtls_ecdsa_sign_det_restartable(
     mbedtls_ecdsa_restart_ctx *rs_ctx);
 
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
-
-#endif /* !MBEDTLS_ECDSA_SIGN_ALT */
 
 /**
  * \brief           This function verifies the ECDSA signature of a
@@ -458,7 +460,7 @@ int mbedtls_ecdsa_verify_restartable(mbedtls_ecp_group *grp,
  *                  via mbedtls_ecdsa_genkey() or mbedtls_ecdsa_from_keypair().
  * \param md_alg    The message digest that was used to hash the message.
  * \param hash      The message hash to be signed. This must be a readable
- *                  buffer of length \p blen Bytes.
+ *                  buffer of length \p hlen Bytes.
  * \param hlen      The length of the hash \p hash in Bytes.
  * \param sig       The buffer to which to write the signature. This must be a
  *                  writable buffer of length at least twice as large as the
@@ -501,7 +503,7 @@ int mbedtls_ecdsa_write_signature(mbedtls_ecdsa_context *ctx,
  *                  via mbedtls_ecdsa_genkey() or mbedtls_ecdsa_from_keypair().
  * \param md_alg    The message digest that was used to hash the message.
  * \param hash      The message hash to be signed. This must be a readable
- *                  buffer of length \p blen Bytes.
+ *                  buffer of length \p hlen Bytes.
  * \param hlen      The length of the hash \p hash in Bytes.
  * \param sig       The buffer to which to write the signature. This must be a
  *                  writable buffer of length at least twice as large as the
@@ -548,7 +550,7 @@ int mbedtls_ecdsa_write_signature_restartable(mbedtls_ecdsa_context *ctx,
  * \param ctx       The ECDSA context to use. This must be initialized
  *                  and have a group and public key bound to it.
  * \param hash      The message hash that was signed. This must be a readable
- *                  buffer of length \p size Bytes.
+ *                  buffer of length \p hlen Bytes.
  * \param hlen      The size of the hash \p hash.
  * \param sig       The signature to read and verify. This must be a readable
  *                  buffer of length \p slen Bytes.
@@ -578,7 +580,7 @@ int mbedtls_ecdsa_read_signature(mbedtls_ecdsa_context *ctx,
  * \param ctx       The ECDSA context to use. This must be initialized
  *                  and have a group and public key bound to it.
  * \param hash      The message hash that was signed. This must be a readable
- *                  buffer of length \p size Bytes.
+ *                  buffer of length \p hlen Bytes.
  * \param hlen      The size of the hash \p hash.
  * \param sig       The signature to read and verify. This must be a readable
  *                  buffer of length \p slen Bytes.

@@ -1,5 +1,5 @@
 /**
- * \file build_info.h
+ * \file mbedtls/build_info.h
  *
  * \brief Build-time configuration info
  *
@@ -37,17 +37,42 @@
  * Major, Minor, Patchlevel
  */
 #define MBEDTLS_VERSION_MAJOR  3
-#define MBEDTLS_VERSION_MINOR  3
-#define MBEDTLS_VERSION_PATCH  0
+#define MBEDTLS_VERSION_MINOR  4
+#define MBEDTLS_VERSION_PATCH  1
 
 /**
  * The single version number has the following structure:
  *    MMNNPP00
  *    Major version | Minor version | Patch version
  */
-#define MBEDTLS_VERSION_NUMBER         0x03030000
-#define MBEDTLS_VERSION_STRING         "3.3.0"
-#define MBEDTLS_VERSION_STRING_FULL    "mbed TLS 3.3.0"
+#define MBEDTLS_VERSION_NUMBER         0x03040100
+#define MBEDTLS_VERSION_STRING         "3.4.1"
+#define MBEDTLS_VERSION_STRING_FULL    "Mbed TLS 3.4.1"
+
+/* Macros for build-time platform detection */
+
+#if !defined(MBEDTLS_ARCH_IS_ARM64) && \
+    (defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC))
+#define MBEDTLS_ARCH_IS_ARM64
+#endif
+
+#if !defined(MBEDTLS_ARCH_IS_ARM32) && \
+    (defined(__arm__) || defined(_M_ARM) || \
+    defined(_M_ARMT) || defined(__thumb__) || defined(__thumb2__))
+#define MBEDTLS_ARCH_IS_ARM32
+#endif
+
+#if !defined(MBEDTLS_ARCH_IS_X64) && \
+    (defined(__amd64__) || defined(__x86_64__) || \
+    ((defined(_M_X64) || defined(_M_AMD64)) && !defined(_M_ARM64EC)))
+#define MBEDTLS_ARCH_IS_X64
+#endif
+
+#if !defined(MBEDTLS_ARCH_IS_X86) && \
+    (defined(__i386__) || defined(_X86_) || \
+    (defined(_M_IX86) && !defined(_M_I86)))
+#define MBEDTLS_ARCH_IS_X86
+#endif
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
@@ -59,6 +84,7 @@
 #define inline __inline
 #endif
 
+/* X.509, TLS and non-PSA crypto configuration */
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/mbedtls_config.h"
 #else
@@ -80,53 +106,53 @@
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
 
-/* The PK wrappers need pk_write functions to format RSA key objects
- * when they are dispatching to the PSA API. This happens under USE_PSA_CRYPTO,
- * and also even without USE_PSA_CRYPTO for mbedtls_pk_sign_ext(). */
-#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_RSA_C)
-#define MBEDTLS_PK_C
-#define MBEDTLS_PK_WRITE_C
-#define MBEDTLS_PK_PARSE_C
+/* PSA crypto configuration */
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG_FILE)
+#include MBEDTLS_PSA_CRYPTO_CONFIG_FILE
+#else
+#include "psa/crypto_config.h"
+#endif
+#if defined(MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE)
+#include MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE
+#endif
+#endif /* defined(MBEDTLS_PSA_CRYPTO_CONFIG) */
+
+/* Auto-enable MBEDTLS_CTR_DRBG_USE_128_BIT_KEY if
+ * MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH and MBEDTLS_CTR_DRBG_C defined
+ * to ensure a 128-bit key size in CTR_DRBG.
+ */
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH) && defined(MBEDTLS_CTR_DRBG_C)
+#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
 #endif
 
-#if !defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#undef MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
-#undef MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
+/* Auto-enable MBEDTLS_MD_C if needed by a module that didn't require it
+ * in a previous release, to ensure backwards compatibility.
+ */
+#if defined(MBEDTLS_PKCS5_C)
+#define MBEDTLS_MD_C
 #endif
 
-#if !defined(MBEDTLS_SSL_PROTO_TLS1_3)
-#undef MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
-#undef MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-#undef MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-#undef MBEDTLS_SSL_EARLY_DATA
-#endif
-
-#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED) || \
-    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED)
-#define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED
-#endif
-
-#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED) || \
-    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED)
-#define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED
-#endif
-
-/* Make sure all configuration symbols are set before including check_config.h,
- * even the ones that are calculated programmatically. */
+/* PSA crypto specific configuration options
+ * - If config_psa.h reads a configuration option in preprocessor directive,
+ *   this symbol should be set before its inclusion. (e.g. MBEDTLS_MD_C)
+ * - If config_psa.h writes a configuration option in conditional directive,
+ *   this symbol should be consulted after its inclusion.
+ *   (e.g. MBEDTLS_MD_LIGHT)
+ */
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG) /* PSA_WANT_xxx influences MBEDTLS_xxx */ || \
     defined(MBEDTLS_PSA_CRYPTO_C) /* MBEDTLS_xxx influences PSA_WANT_xxx */
 #include "mbedtls/config_psa.h"
 #endif
 
+#include "mbedtls/config_adjust_legacy_crypto.h"
+
+#include "mbedtls/config_adjust_x509.h"
+
+#include "mbedtls/config_adjust_ssl.h"
+
+/* Make sure all configuration symbols are set before including check_config.h,
+ * even the ones that are calculated programmatically. */
 #include "mbedtls/check_config.h"
 
 #endif /* MBEDTLS_BUILD_INFO_H */

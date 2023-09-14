@@ -18,13 +18,15 @@
 
 /* END_HEADER */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_C:!MBEDTLS_PSA_INJECT_ENTROPY:MBEDTLS_CTR_DRBG_C */
 void random_twice_with_ctr_drbg()
 {
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context drbg;
     unsigned char output1[OUTPUT_SIZE];
     unsigned char output2[OUTPUT_SIZE];
+
+    MD_PSA_INIT();
 
     /* First round */
     mbedtls_entropy_init(&entropy);
@@ -54,10 +56,11 @@ void random_twice_with_ctr_drbg()
 exit:
     mbedtls_ctr_drbg_free(&drbg);
     mbedtls_entropy_free(&entropy);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_C:MBEDTLS_HMAC_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_C:!MBEDTLS_PSA_INJECT_ENTROPY:MBEDTLS_HMAC_DRBG_C */
 void random_twice_with_hmac_drbg(int md_type)
 {
     mbedtls_entropy_context entropy;
@@ -65,6 +68,8 @@ void random_twice_with_hmac_drbg(int md_type)
     unsigned char output1[OUTPUT_SIZE];
     unsigned char output2[OUTPUT_SIZE];
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(md_type);
+
+    MD_PSA_INIT();
 
     /* First round */
     mbedtls_entropy_init(&entropy);
@@ -94,6 +99,7 @@ void random_twice_with_hmac_drbg(int md_type)
 exit:
     mbedtls_hmac_drbg_free(&drbg);
     mbedtls_entropy_free(&entropy);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -163,7 +169,7 @@ void mbedtls_psa_get_random_length(int n)
     unsigned char *output = NULL;
 
     PSA_ASSERT(psa_crypto_init());
-    ASSERT_ALLOC(output, n);
+    TEST_CALLOC(output, n);
 
     TEST_EQUAL(0, mbedtls_psa_get_random(MBEDTLS_PSA_RANDOM_STATE,
                                          output, n));

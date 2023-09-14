@@ -1,3 +1,0 @@
-Changes
-  * Install the .cmake files into CMAKE_INSTALL_LIBDIR/cmake/MbedTLS,
-    typically /usr/lib/cmake/MbedTLS.

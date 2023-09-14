@@ -39,6 +39,7 @@
 #define MBEDTLS_PSA_BUILTIN_ALG_SHA_256 1
 #define MBEDTLS_CTR_DRBG_C
 #define MBEDTLS_ENTROPY_C
+#define MBEDTLS_ENTROPY_FORCE_SHA256
 
 /*
  * Configuration options that may need to be additionally enabled for the
@@ -51,8 +52,5 @@
 //#define MBEDTLS_MD_C
 //#define MBEDTLS_PEM_PARSE_C
 //#define MBEDTLS_BASE64_C
-
-#include "mbedtls/config_psa.h"
-#include "mbedtls/check_config.h"
 
 #endif /* MBEDTLS_CONFIG_H */

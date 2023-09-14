@@ -7,10 +7,12 @@
 #include "mbedtls/oid.h"
 #include "sys/types.h"
 #include "sys/stat.h"
+#include "mbedtls/rsa.h"
+#include "mbedtls/error.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_PKCS7_C:MBEDTLS_RSA_C
+ * depends_on:MBEDTLS_PKCS7_C
  * END_DEPENDENCIES
  */
 /* BEGIN_SUITE_HELPERS */
@@ -74,6 +76,9 @@ void pkcs7_verify(char *pkcs7_file,
     mbedtls_pkcs7 pkcs7;
     mbedtls_x509_crt **crts = NULL;
 
+    MD_OR_USE_PSA_INIT();
+
+    mbedtls_pkcs7_init(&pkcs7);
 
     /* crt_files are space seprated list */
     for (i = 0; i < strlen(crt_files); i++) {
@@ -82,8 +87,8 @@ void pkcs7_verify(char *pkcs7_file,
         }
     }
 
-    ASSERT_ALLOC(crts, sizeof(*crts)*n_crts);
-    ASSERT_ALLOC(crt_files_arr, sizeof(*crt_files_arr)*n_crts);
+    TEST_CALLOC(crts, n_crts);
+    TEST_CALLOC(crt_files_arr, n_crts);
 
     for (i = 0; i < strlen(crt_files); i++) {
         for (k = i; k < strlen(crt_files); k++) {
@@ -91,19 +96,16 @@ void pkcs7_verify(char *pkcs7_file,
                 break;
             }
         }
-        ASSERT_ALLOC(crt_files_arr[cnt], (k-i)+1);
+        TEST_CALLOC(crt_files_arr[cnt], (k-i)+1);
         crt_files_arr[cnt][k-i] = '\0';
         memcpy(crt_files_arr[cnt++], crt_files + i, k-i);
         i = k;
     }
 
-    mbedtls_pkcs7_init(&pkcs7);
     for (i = 0; i < n_crts; i++) {
-        ASSERT_ALLOC(crts[i], sizeof(*crts[i]));
+        TEST_CALLOC(crts[i], 1);
         mbedtls_x509_crt_init(crts[i]);
     }
-
-    USE_PSA_INIT();
 
     res = mbedtls_pk_load_file(pkcs7_file, &pkcs7_buf, &buflen);
     TEST_EQUAL(res, 0);
@@ -126,7 +128,7 @@ void pkcs7_verify(char *pkcs7_file,
 
     datalen = st.st_size;
     /* Special-case for zero-length input so that data will be non-NULL */
-    ASSERT_ALLOC(data, datalen == 0 ? 1 : datalen);
+    TEST_CALLOC(data, datalen == 0 ? 1 : datalen);
     buflen = fread((void *) data, sizeof(unsigned char), datalen, file);
     TEST_EQUAL(buflen, datalen);
 
@@ -134,7 +136,7 @@ void pkcs7_verify(char *pkcs7_file,
 
     if (do_hash_alg) {
         md_info = mbedtls_md_info_from_type((mbedtls_md_type_t) do_hash_alg);
-        ASSERT_ALLOC(hash, mbedtls_md_get_size(md_info));
+        TEST_CALLOC(hash, mbedtls_md_get_size(md_info));
         res = mbedtls_md(md_info, data, datalen, hash);
         TEST_EQUAL(res, 0);
 
@@ -163,6 +165,6 @@ exit:
     mbedtls_free(crts);
     mbedtls_free(data);
     mbedtls_free(pkcs7_buf);
-    USE_PSA_DONE();
+    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */

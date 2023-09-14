@@ -67,8 +67,9 @@ NAMED_GROUP_IANA_VALUE = {
     'secp521r1': 0x19,
     'x25519': 0x1d,
     'x448': 0x1e,
+    # Only one finite field group to keep testing time within reasonable bounds.
+    'ffdhe2048': 0x100,
 }
-
 
 class TLSProgram:
     """
@@ -146,6 +147,7 @@ class OpenSSLBase(TLSProgram):
         'secp521r1': 'P-521',
         'x25519': 'X25519',
         'x448': 'X448',
+        'ffdhe2048': 'ffdhe2048',
     }
 
     def cmd(self):
@@ -173,7 +175,15 @@ class OpenSSLBase(TLSProgram):
         return ret
 
     def pre_checks(self):
-        return ["requires_openssl_tls1_3"]
+        ret = ["requires_openssl_tls1_3"]
+
+        # ffdh groups require at least openssl 3.0
+        ffdh_groups = ['ffdhe2048']
+
+        if any(x in ffdh_groups for x in self._named_groups):
+            ret = ["requires_openssl_tls1_3_with_ffdh"]
+
+        return ret
 
 
 class OpenSSLServ(OpenSSLBase):
@@ -245,6 +255,7 @@ class GnuTLSBase(TLSProgram):
         'secp521r1': ['GROUP-SECP521R1'],
         'x25519': ['GROUP-X25519'],
         'x448': ['GROUP-X448'],
+        'ffdhe2048': ['GROUP-FFDHE2048'],
     }
 
     def pre_checks(self):
@@ -351,8 +362,7 @@ class MbedTLSBase(TLSProgram):
 
         if self._named_groups:
             named_groups = ','.join(self._named_groups)
-            ret += ["curves={named_groups}".format(named_groups=named_groups)]
-        ret += ['force_version=tls13']
+            ret += ["groups={named_groups}".format(named_groups=named_groups)]
         return ret
 
     def pre_checks(self):
@@ -365,6 +375,16 @@ class MbedTLSBase(TLSProgram):
         if 'rsa_pss_rsae_sha256' in self._sig_algs + self._cert_sig_algs:
             ret.append(
                 'requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT')
+
+        ec_groups = ['secp256r1', 'secp384r1', 'secp521r1', 'x25519', 'x448']
+        ffdh_groups = ['ffdhe2048']
+
+        if any(x in ec_groups for x in self._named_groups):
+            ret.append('requires_config_enabled PSA_WANT_ALG_ECDH')
+
+        if any(x in ffdh_groups for x in self._named_groups):
+            ret.append('requires_config_enabled PSA_WANT_ALG_FFDH')
+
         return ret
 
 

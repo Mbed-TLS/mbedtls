@@ -40,11 +40,9 @@
 #include "mbedtls/dhm.h"
 #endif
 
-/* Adding guard for MBEDTLS_ECDSA_C to ensure no compile errors due
- * to guards in TLS code. There is a gap in functionality that access to
- * ecdh_ctx structure is needed for MBEDTLS_ECDSA_C which does not seem correct.
- */
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
+#include "mbedtls/md.h"
+
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED)
 #include "mbedtls/ecdh.h"
 #endif
 
@@ -110,7 +108,8 @@
 /* Error space gap */
 /* Error space gap */
 /* Error space gap */
-/* Error space gap */
+/** Cache entry not found */
+#define MBEDTLS_ERR_SSL_CACHE_ENTRY_NOT_FOUND             -0x7E80
 /** Memory allocation failed */
 #define MBEDTLS_ERR_SSL_ALLOC_FAILED                      -0x7F00
 /** Hardware acceleration function returned with error */
@@ -406,6 +405,18 @@
 #define MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY 16
 #endif
 
+#if !defined(MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE)
+#define MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE 6000
+#endif
+
+#if !defined(MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH)
+#define MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH 32
+#endif
+
+#if !defined(MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS)
+#define MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS 1
+#endif
+
 /** \} name SECTION: Module settings */
 
 /*
@@ -571,6 +582,8 @@
 #define MBEDTLS_TLS_EXT_ENCRYPT_THEN_MAC            22 /* 0x16 */
 #define MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET  0x0017 /* 23 */
 
+#define MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT           28 /* RFC 8449 (implemented for TLS 1.3 only) */
+
 #define MBEDTLS_TLS_EXT_SESSION_TICKET              35
 
 #define MBEDTLS_TLS_EXT_PRE_SHARED_KEY              41 /* RFC 8446 TLS 1.3 */
@@ -599,11 +612,26 @@
  * Size defines
  */
 #if !defined(MBEDTLS_PSK_MAX_LEN)
-#define MBEDTLS_PSK_MAX_LEN            32 /* 256 bits */
+/*
+ * If the library supports TLS 1.3 tickets and the cipher suite
+ * TLS1-3-AES-256-GCM-SHA384, set the PSK maximum length to 48 instead of 32.
+ * That way, the TLS 1.3 client and server are able to resume sessions where
+ * the cipher suite is TLS1-3-AES-256-GCM-SHA384 (pre-shared keys are 48
+ * bytes long in that case).
+ */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_AES_C) && defined(MBEDTLS_GCM_C) && \
+    defined(MBEDTLS_MD_CAN_SHA384)
+#define MBEDTLS_PSK_MAX_LEN 48 /* 384 bits */
+#else
+#define MBEDTLS_PSK_MAX_LEN 32 /* 256 bits */
 #endif
+#endif /* !MBEDTLS_PSK_MAX_LEN */
 
 /* Dummy type used only for its size */
 union mbedtls_ssl_premaster_secret {
+    unsigned char dummy; /* Make the union non-empty even with SSL disabled */
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
     unsigned char _pms_rsa[48];                         /* RFC 5246 8.1.1 */
 #endif
@@ -1089,13 +1117,13 @@ typedef void mbedtls_ssl_async_cancel_t(mbedtls_ssl_context *ssl);
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED) &&        \
     !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_MAX_LEN  48
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_MD_CAN_SHA256)
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE MBEDTLS_MD_SHA256
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN  32
-#elif defined(MBEDTLS_SHA384_C)
+#elif defined(MBEDTLS_MD_CAN_SHA384)
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE MBEDTLS_MD_SHA384
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN  48
-#elif defined(MBEDTLS_SHA1_C)
+#elif defined(MBEDTLS_MD_CAN_SHA1)
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE MBEDTLS_MD_SHA1
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN  20
 #else
@@ -1471,7 +1499,7 @@ struct mbedtls_ssl_config {
     const uint16_t *MBEDTLS_PRIVATE(sig_algs);      /*!< allowed signature algorithms       */
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     const mbedtls_ecp_group_id *MBEDTLS_PRIVATE(curve_list); /*!< allowed curves             */
 #endif
 
@@ -1593,19 +1621,21 @@ struct mbedtls_ssl_context {
                                                     renego_max_records is < 0           */
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
-    /** Server: Negotiated TLS protocol version.
-     *  Client: Maximum TLS version to be negotiated, then negotiated TLS
-     *          version.
+    /**
+     *  Maximum TLS version to be negotiated, then negotiated TLS version.
      *
-     *  It is initialized as the maximum TLS version to be negotiated in the
-     *  ClientHello writing preparation stage and used throughout the
-     *  ClientHello writing. For a fresh handshake not linked to any previous
-     *  handshake, it is initialized to the configured maximum TLS version
-     *  to be negotiated. When renegotiating or resuming a session, it is
-     *  initialized to the previously negotiated TLS version.
+     *  It is initialized as the configured maximum TLS version to be
+     *  negotiated by mbedtls_ssl_setup().
      *
-     *  Updated to the negotiated TLS version as soon as the ServerHello is
-     *  received.
+     *  When renegotiating or resuming a session, it is overwritten in the
+     *  ClientHello writing preparation stage with the previously negotiated
+     *  TLS version.
+     *
+     *  On client side, it is updated to the TLS version selected by the server
+     *  for the handshake when the ServerHello is received.
+     *
+     *  On server side, it is updated to the TLS version the server selects for
+     *  the handshake when the ClientHello is received.
      */
     mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(tls_version);
 
@@ -1869,6 +1899,10 @@ void mbedtls_ssl_init(mbedtls_ssl_context *ssl);
  *                 Calling mbedtls_ssl_setup again is not supported, even
  *                 if no session is active.
  *
+ * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                 subsystem must have been initialized by calling
+ *                 psa_crypto_init() before calling this function.
+ *
  * \param ssl      SSL context
  * \param conf     SSL configuration to use
  *
@@ -1896,6 +1930,19 @@ int mbedtls_ssl_session_reset(mbedtls_ssl_context *ssl);
  * \param endpoint must be MBEDTLS_SSL_IS_CLIENT or MBEDTLS_SSL_IS_SERVER
  */
 void mbedtls_ssl_conf_endpoint(mbedtls_ssl_config *conf, int endpoint);
+
+/**
+ * \brief          Get the current endpoint type
+ *
+ * \param conf     SSL configuration
+ *
+ * \return         Endpoint type, either MBEDTLS_SSL_IS_CLIENT
+ *                 or MBEDTLS_SSL_IS_SERVER
+ */
+static inline int mbedtls_ssl_conf_get_endpoint(const mbedtls_ssl_config *conf)
+{
+    return conf->MBEDTLS_PRIVATE(endpoint);
+}
 
 /**
  * \brief           Set the transport type (TLS or DTLS).
@@ -2136,10 +2183,10 @@ void mbedtls_ssl_set_bio(mbedtls_ssl_context *ssl,
  * \param own_cid     The address of the readable buffer holding the CID we want
  *                    the peer to use when sending encrypted messages to us.
  *                    This may be \c NULL if \p own_cid_len is \c 0.
- *                    This parameter is unused if \p enabled is set to
+ *                    This parameter is unused if \p enable is set to
  *                    MBEDTLS_SSL_CID_DISABLED.
  * \param own_cid_len The length of \p own_cid.
- *                    This parameter is unused if \p enabled is set to
+ *                    This parameter is unused if \p enable is set to
  *                    MBEDTLS_SSL_CID_DISABLED.
  *
  * \note              The value of \p own_cid_len must match the value of the
@@ -3090,8 +3137,8 @@ int mbedtls_ssl_session_load(mbedtls_ssl_session *session,
  *
  * \param session  The session structure to be saved.
  * \param buf      The buffer to write the serialized data to. It must be a
- *                 writeable buffer of at least \p len bytes, or may be \c
- *                 NULL if \p len is \c 0.
+ *                 writeable buffer of at least \p buf_len bytes, or may be \c
+ *                 NULL if \p buf_len is \c 0.
  * \param buf_len  The number of bytes available for writing in \p buf.
  * \param olen     The size in bytes of the data that has been or would have
  *                 been written. It must point to a valid \c size_t.
@@ -3232,7 +3279,7 @@ void mbedtls_ssl_conf_tls13_key_exchange_modes(mbedtls_ssl_config *conf,
  *                      record headers.
  *
  * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if \p own_cid_len
+ * \return              #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if \p len
  *                      is too large.
  */
 int mbedtls_ssl_conf_cid(mbedtls_ssl_config *conf, size_t len,
@@ -3600,7 +3647,7 @@ void mbedtls_ssl_conf_dhm_min_bitlen(mbedtls_ssl_config *conf,
                                      unsigned int bitlen);
 #endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_CLI_C */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief          Set the allowed curves in order of preference.
@@ -3646,7 +3693,7 @@ void mbedtls_ssl_conf_dhm_min_bitlen(mbedtls_ssl_config *conf,
 void MBEDTLS_DEPRECATED mbedtls_ssl_conf_curves(mbedtls_ssl_config *conf,
                                                 const mbedtls_ecp_group_id *curves);
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
 /**
  * \brief          Set the allowed groups in order of preference.
@@ -3756,13 +3803,28 @@ void mbedtls_ssl_conf_sig_algs(mbedtls_ssl_config *conf,
  *                 On too long input failure, old hostname is unchanged.
  */
 int mbedtls_ssl_set_hostname(mbedtls_ssl_context *ssl, const char *hostname);
+
+/**
+ * \brief          Get the hostname that checked against the received
+ *                 server certificate. It is used to set the ServerName
+ *                 TLS extension, too, if that extension is enabled.
+ *                 (client-side only)
+ *
+ * \param ssl      SSL context
+ *
+ * \return         const pointer to the hostname value
+ */
+static inline const char *mbedtls_ssl_get_hostname(mbedtls_ssl_context *ssl)
+{
+    return ssl->MBEDTLS_PRIVATE(hostname);
+}
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 /**
  * \brief          Retrieve SNI extension value for the current handshake.
- *                 Available in \p f_cert_cb of \c mbedtls_ssl_conf_cert_cb(),
- *                 this is the same value passed to \p f_sni callback of
+ *                 Available in \c f_cert_cb of \c mbedtls_ssl_conf_cert_cb(),
+ *                 this is the same value passed to \c f_sni callback of
  *                 \c mbedtls_ssl_conf_sni() and may be used instead of
  *                 \c mbedtls_ssl_conf_sni().
  *
@@ -3771,10 +3833,10 @@ int mbedtls_ssl_set_hostname(mbedtls_ssl_context *ssl, const char *hostname);
  *                 0 if SNI extension is not present or not yet processed.
  *
  * \return         const pointer to SNI extension value.
- *                 - value is valid only when called in \p f_cert_cb
+ *                 - value is valid only when called in \c f_cert_cb
  *                   registered with \c mbedtls_ssl_conf_cert_cb().
  *                 - value is NULL if SNI extension is not present.
- *                 - value is not '\0'-terminated.  Use \c name_len for len.
+ *                 - value is not '\0'-terminated. Use \c name_len for len.
  *                 - value must not be freed.
  */
 const unsigned char *mbedtls_ssl_get_hs_sni(mbedtls_ssl_context *ssl,
@@ -4067,7 +4129,7 @@ void MBEDTLS_DEPRECATED mbedtls_ssl_conf_max_version(mbedtls_ssl_config *conf, i
  *                 negotiated.
  *
  * \param conf         SSL configuration
- * \param tls_version  TLS protocol version number (\p mbedtls_ssl_protocol_version)
+ * \param tls_version  TLS protocol version number (\c mbedtls_ssl_protocol_version)
  *                     (#MBEDTLS_SSL_VERSION_UNKNOWN is not valid)
  */
 static inline void mbedtls_ssl_conf_max_tls_version(mbedtls_ssl_config *conf,
@@ -4124,7 +4186,7 @@ void MBEDTLS_DEPRECATED mbedtls_ssl_conf_min_version(mbedtls_ssl_config *conf, i
  *                 negotiated.
  *
  * \param conf         SSL configuration
- * \param tls_version  TLS protocol version number (\p mbedtls_ssl_protocol_version)
+ * \param tls_version  TLS protocol version number (\c mbedtls_ssl_protocol_version)
  *                     (#MBEDTLS_SSL_VERSION_UNKNOWN is not valid)
  */
 static inline void mbedtls_ssl_conf_min_tls_version(mbedtls_ssl_config *conf,
@@ -4684,6 +4746,11 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                 in which case the datagram of the underlying transport that is
  *                 currently being processed might or might not contain further
  *                 DTLS records.
+ *
+ * \note           If the context is configured to allow TLS 1.3, or if
+ *                 #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                 subsystem must have been initialized by calling
+ *                 psa_crypto_init() before calling this function.
  */
 int mbedtls_ssl_handshake(mbedtls_ssl_context *ssl);
 

@@ -39,7 +39,7 @@ extern "C" {
 /* Sanity check: a file size must fit in 32 bits. Allow a generous
  * 64kB of metadata. */
 #if PSA_CRYPTO_MAX_STORAGE_SIZE > 0xffff0000
-#error PSA_CRYPTO_MAX_STORAGE_SIZE > 0xffff0000
+#error "PSA_CRYPTO_MAX_STORAGE_SIZE > 0xffff0000"
 #endif
 
 /** The maximum permitted persistent slot number.
@@ -202,7 +202,7 @@ psa_status_t psa_parse_key_data_from_storage(const uint8_t *storage_data,
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
 /** This symbol is defined if transaction support is required. */
-#define PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS
+#define PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS 1
 #endif
 
 #if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)

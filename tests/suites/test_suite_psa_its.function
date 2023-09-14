@@ -10,7 +10,7 @@
  * before changing how test data is constructed or validated.
  */
 
-#include "../library/psa_crypto_its.h"
+#include "psa_crypto_its.h"
 
 #include "test/psa_helpers.h"
 
@@ -92,7 +92,7 @@ void set_get_remove(int uid_arg, int flags_arg, data_t *data)
     unsigned char *buffer = NULL;
     size_t ret_len = 0;
 
-    ASSERT_ALLOC(buffer, data->len);
+    TEST_CALLOC(buffer, data->len);
 
     PSA_ASSERT(psa_its_set_wrap(uid, data->len, data->x, flags));
 
@@ -100,7 +100,7 @@ void set_get_remove(int uid_arg, int flags_arg, data_t *data)
     TEST_ASSERT(info.size == data->len);
     TEST_ASSERT(info.flags == flags);
     PSA_ASSERT(psa_its_get(uid, 0, data->len, buffer, &ret_len));
-    ASSERT_COMPARE(data->x, data->len, buffer, ret_len);
+    TEST_MEMORY_COMPARE(data->x, data->len, buffer, ret_len);
 
     PSA_ASSERT(psa_its_remove(uid));
 
@@ -122,14 +122,14 @@ void set_overwrite(int uid_arg,
     unsigned char *buffer = NULL;
     size_t ret_len = 0;
 
-    ASSERT_ALLOC(buffer, MAX(data1->len, data2->len));
+    TEST_CALLOC(buffer, MAX(data1->len, data2->len));
 
     PSA_ASSERT(psa_its_set_wrap(uid, data1->len, data1->x, flags1));
     PSA_ASSERT(psa_its_get_info(uid, &info));
     TEST_ASSERT(info.size == data1->len);
     TEST_ASSERT(info.flags == flags1);
     PSA_ASSERT(psa_its_get(uid, 0, data1->len, buffer, &ret_len));
-    ASSERT_COMPARE(data1->x, data1->len, buffer, ret_len);
+    TEST_MEMORY_COMPARE(data1->x, data1->len, buffer, ret_len);
 
     PSA_ASSERT(psa_its_set_wrap(uid, data2->len, data2->x, flags2));
     PSA_ASSERT(psa_its_get_info(uid, &info));
@@ -137,7 +137,7 @@ void set_overwrite(int uid_arg,
     TEST_ASSERT(info.flags == flags2);
     ret_len = 0;
     PSA_ASSERT(psa_its_get(uid, 0, data2->len, buffer, &ret_len));
-    ASSERT_COMPARE(data2->x, data2->len, buffer, ret_len);
+    TEST_MEMORY_COMPARE(data2->x, data2->len, buffer, ret_len);
 
     PSA_ASSERT(psa_its_remove(uid));
 
@@ -167,8 +167,8 @@ void set_multiple(int first_id, int count)
         mbedtls_snprintf(stored, sizeof(stored),
                          "Content of file 0x%08lx", (unsigned long) uid);
         PSA_ASSERT(psa_its_get(uid, 0, sizeof(stored), retrieved, &ret_len));
-        ASSERT_COMPARE(retrieved, ret_len,
-                       stored, sizeof(stored));
+        TEST_MEMORY_COMPARE(retrieved, ret_len,
+                            stored, sizeof(stored));
         PSA_ASSERT(psa_its_remove(uid));
         TEST_ASSERT(psa_its_get(uid, 0, 0, NULL, NULL) ==
                     PSA_ERROR_DOES_NOT_EXIST);
@@ -214,7 +214,7 @@ void get_at(int uid_arg, data_t *data,
     size_t i;
     size_t ret_len = 0;
 
-    ASSERT_ALLOC(buffer, length + 16);
+    TEST_CALLOC(buffer, length + 16);
     trailer = buffer + length;
     memset(trailer, '-', 16);
 
@@ -223,8 +223,8 @@ void get_at(int uid_arg, data_t *data,
     status = psa_its_get(uid, offset, length_arg, buffer, &ret_len);
     TEST_ASSERT(status == (psa_status_t) expected_status);
     if (status == PSA_SUCCESS) {
-        ASSERT_COMPARE(data->x + offset, (size_t) length_arg,
-                       buffer, ret_len);
+        TEST_MEMORY_COMPARE(data->x + offset, (size_t) length_arg,
+                            buffer, ret_len);
     }
     for (i = 0; i < 16; i++) {
         TEST_ASSERT(trailer[i] == '-');

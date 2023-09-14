@@ -187,12 +187,6 @@ int mbedtls_mpi_mod_raw_write(const mbedtls_mpi_uint *A,
                               size_t output_length,
                               mbedtls_mpi_mod_ext_rep ext_rep);
 
-/* BEGIN MERGE SLOT 1 */
-
-/* END MERGE SLOT 1 */
-
-/* BEGIN MERGE SLOT 2 */
-
 /** \brief  Subtract two MPIs, returning the residue modulo the specified
  *          modulus.
  *
@@ -250,10 +244,6 @@ void mbedtls_mpi_mod_raw_mul(mbedtls_mpi_uint *X,
                              const mbedtls_mpi_mod_modulus *N,
                              mbedtls_mpi_uint *T);
 
-/* END MERGE SLOT 2 */
-
-/* BEGIN MERGE SLOT 3 */
-
 /**
  * \brief          Returns the number of limbs of working memory required for
  *                 a call to `mbedtls_mpi_mod_raw_inv_prime()`.
@@ -303,13 +293,6 @@ void mbedtls_mpi_mod_raw_inv_prime(mbedtls_mpi_uint *X,
                                    const mbedtls_mpi_uint *RR,
                                    mbedtls_mpi_uint *T);
 
-/* END MERGE SLOT 3 */
-
-/* BEGIN MERGE SLOT 4 */
-
-/* END MERGE SLOT 4 */
-
-/* BEGIN MERGE SLOT 5 */
 /**
  * \brief Perform a known-size modular addition.
  *
@@ -332,9 +315,6 @@ void mbedtls_mpi_mod_raw_add(mbedtls_mpi_uint *X,
                              const mbedtls_mpi_uint *A,
                              const mbedtls_mpi_uint *B,
                              const mbedtls_mpi_mod_modulus *N);
-/* END MERGE SLOT 5 */
-
-/* BEGIN MERGE SLOT 6 */
 
 /** Convert an MPI from canonical representation (little-endian limb array)
  * to the representation associated with the modulus.
@@ -404,9 +384,6 @@ int mbedtls_mpi_mod_raw_random(mbedtls_mpi_uint *X,
                                int (*f_rng)(void *, unsigned char *, size_t),
                                void *p_rng);
 
-/* END MERGE SLOT 6 */
-
-/* BEGIN MERGE SLOT 7 */
 /** Convert an MPI into Montgomery form.
  *
  * \param X      The address of the MPI.
@@ -447,18 +424,5 @@ int mbedtls_mpi_mod_raw_from_mont_rep(mbedtls_mpi_uint *X,
 void mbedtls_mpi_mod_raw_neg(mbedtls_mpi_uint *X,
                              const mbedtls_mpi_uint *A,
                              const mbedtls_mpi_mod_modulus *N);
-/* END MERGE SLOT 7 */
-
-/* BEGIN MERGE SLOT 8 */
-
-/* END MERGE SLOT 8 */
-
-/* BEGIN MERGE SLOT 9 */
-
-/* END MERGE SLOT 9 */
-
-/* BEGIN MERGE SLOT 10 */
-
-/* END MERGE SLOT 10 */
 
 #endif /* MBEDTLS_BIGNUM_MOD_RAW_H */

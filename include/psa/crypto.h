@@ -22,7 +22,11 @@
 #ifndef PSA_CRYPTO_H
 #define PSA_CRYPTO_H
 
+#if defined(MBEDTLS_PSA_CRYPTO_PLATFORM_FILE)
+#include MBEDTLS_PSA_CRYPTO_PLATFORM_FILE
+#else
 #include "crypto_platform.h"
+#endif
 
 #include <stddef.h>
 
@@ -4403,9 +4407,9 @@ psa_status_t psa_sign_hash_start(
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p signature buffer is too small. You can
  *         determine a sufficient buffer size by calling
- *         #PSA_SIGN_OUTPUT_SIZE(\c key_type, \c key_bits, \p alg)
+ *         #PSA_SIGN_OUTPUT_SIZE(\c key_type, \c key_bits, \c alg)
  *         where \c key_type and \c key_bits are the type and bit-size
- *         respectively of \p key.
+ *         respectively of \c key.
  *
  * \retval #PSA_ERROR_BAD_STATE
  *         An operation was not previously started on this context via
@@ -4680,7 +4684,11 @@ psa_status_t psa_verify_hash_abort(
 
 /* The file "crypto_struct.h" contains definitions for
  * implementation-specific structs that are declared above. */
+#if defined(MBEDTLS_PSA_CRYPTO_STRUCT_FILE)
+#include MBEDTLS_PSA_CRYPTO_STRUCT_FILE
+#else
 #include "crypto_struct.h"
+#endif
 
 /* The file "crypto_extra.h" contains vendor-specific definitions. This
  * can include vendor-defined algorithms, extra functions, etc. */

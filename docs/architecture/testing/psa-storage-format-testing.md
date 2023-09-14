@@ -47,7 +47,7 @@ The PSA subsystem provides storage on top of the PSA trusted storage interface. 
 * [Storage transaction file](#storage-transaction-resumption).
 * [Driver state files](#driver-state-files).
 
-For a more detailed description, refer to the [Mbed Crypto storage specification](../mbed-crypto-storage-specification.md).
+For a more detailed description, refer to the [Mbed TLS storage specification](../mbed-crypto-storage-specification.md).
 
 In addition, Mbed TLS includes an implementation of the PSA trusted storage interface on top of C stdio. This document addresses the test strategy for [PSA ITS over file](#psa-its-over-file) in a separate section below.
 

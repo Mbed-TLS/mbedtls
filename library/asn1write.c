@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_ASN1_WRITE_C)
+#if defined(MBEDTLS_ASN1_WRITE_C) || defined(MBEDTLS_X509_USE_C)
 
 #include "mbedtls/asn1write.h"
 #include "mbedtls/error.h"
@@ -102,7 +102,9 @@ int mbedtls_asn1_write_tag(unsigned char **p, const unsigned char *start, unsign
 
     return 1;
 }
+#endif /* MBEDTLS_ASN1_WRITE_C || MBEDTLS_X509_USE_C */
 
+#if defined(MBEDTLS_ASN1_WRITE_C)
 int mbedtls_asn1_write_raw_buffer(unsigned char **p, const unsigned char *start,
                                   const unsigned char *buf, size_t size)
 {
@@ -195,13 +197,22 @@ int mbedtls_asn1_write_algorithm_identifier(unsigned char **p, const unsigned ch
                                             const char *oid, size_t oid_len,
                                             size_t par_len)
 {
+    return mbedtls_asn1_write_algorithm_identifier_ext(p, start, oid, oid_len, par_len, 1);
+}
+
+int mbedtls_asn1_write_algorithm_identifier_ext(unsigned char **p, const unsigned char *start,
+                                                const char *oid, size_t oid_len,
+                                                size_t par_len, int has_par)
+{
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0;
 
-    if (par_len == 0) {
-        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_null(p, start));
-    } else {
-        len += par_len;
+    if (has_par) {
+        if (par_len == 0) {
+            MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_null(p, start));
+        } else {
+            len += par_len;
+        }
     }
 
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_oid(p, start, oid, oid_len));

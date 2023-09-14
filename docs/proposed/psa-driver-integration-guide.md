@@ -2,10 +2,11 @@ Building Mbed TLS with PSA cryptoprocessor drivers
 ==================================================
 
 **This is a specification of work in progress. The implementation is not yet merged into Mbed TLS.**
+For a description of the current state of drivers Mbed TLS, see our [PSA Cryptoprocessor driver development examples](../psa-driver-example-and-guide.html).
 
 This document describes how to build Mbed TLS with additional cryptoprocessor drivers that follow the PSA cryptoprocessor driver interface.
 
-The interface is not fully implemented in Mbed TLS yet and is disabled by default. You can enable the experimental work in progress by setting `MBEDTLS_PSA_CRYPTO_DRIVERS` in the compile-time configuration. Please note that the interface may still change: until further notice, we do not guarantee backward compatibility with existing driver code when `MBEDTLS_PSA_CRYPTO_DRIVERS` is enabled.
+The interface is not fully implemented in Mbed TLS yet. Please note that the interface may still change: until further notice, we do not guarantee backward compatibility with existing driver code.
 
 ## Introduction
 
@@ -19,21 +20,14 @@ Concretely speaking, a driver consists of one or more **driver description files
 
 To build Mbed TLS with drivers:
 
-1. Activate `MBEDTLS_PSA_CRYPTO_DRIVERS` in the library configuration.
-
-    ```
-    cd /path/to/mbedtls
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
-    ```
-
-2. Pass the driver description files through the Make variable `PSA_DRIVERS` when building the library.
+1. Pass the driver description files through the Make variable `PSA_DRIVERS` when building the library.
 
     ```
     cd /path/to/mbedtls
     make PSA_DRIVERS="/path/to/acme/driver.json /path/to/nadir/driver.json" lib
     ```
 
-3. Link your application with the implementation of the driver functions.
+2. Link your application with the implementation of the driver functions.
 
     ```
     cd /path/to/application

@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include "../library/alignment.h"
+#include <alignment.h>
 
 #include <stdint.h>
 
@@ -12,18 +12,15 @@
  */
 int parse_hex_string(char *hex_string, uint64_t *result)
 {
-    uint8_t raw[8];
+    uint8_t raw[8] = { 0 };
     size_t olen;
     if (mbedtls_test_unhexify(raw, sizeof(raw), hex_string, &olen) != 0) {
         return 0;
     }
+
     *result = 0;
     for (size_t i = 0; i < olen; i++) {
-        if (MBEDTLS_IS_BIG_ENDIAN) {
-            *result |= ((uint64_t) raw[i]) << (i * 8);
-        } else {
-            *result |= ((uint64_t) raw[i]) << ((olen - i - 1) * 8);
-        }
+        *result |= ((uint64_t) raw[i]) << ((olen - i - 1) * 8);
     }
     return 1;
 }
@@ -57,44 +54,29 @@ void mbedtls_unaligned_access(int size, int offset)
             break;
     }
 
-    /* Generate expected result */
+    /* Define expected result by manually aligning the raw bytes, and
+     * reading back with a normal pointer access. */
+    uint64_t raw_aligned_64;
+    uint16_t *raw_aligned_16 = (uint16_t *) &raw_aligned_64;
+    uint32_t *raw_aligned_32 = (uint32_t *) &raw_aligned_64;
+    memcpy(&raw_aligned_64, ((uint8_t *) &raw) + offset, size / 8);
+    /* Make a 16/32/64 byte read from the aligned location, and copy to expected */
     uint64_t expected = 0;
-    for (uint8_t i = 0; i < 8; i++) {
-        uint8_t shift;
-        if (MBEDTLS_IS_BIG_ENDIAN) {
-            /*
-             * Similar to little-endian case described below, but the shift needs
-             * to be inverted
-             */
-            shift = 7 - (i * 8);
-        } else {
-            /* example for offset == 1:
-             * expected = (( 1 + 0 ) << (0 * 8)) | (( 1 + 1 ) << (1 * 8)) | (( 1 + 2 ) << (2 * 8)))
-             *          = (1 << 0) | (2 << 8) | (3 << 16) ...
-             *          = 0x0807060504030201
-             * x = { 0, 1, 2, 3, ... }
-             * ie expected is the value that would be read from x on a LE system, when
-             * byte swapping is not performed
-             */
-            shift = i * 8;
-        }
-        uint64_t b = offset + i;
-        expected |= b << shift;
-    }
-
-    /* Mask out excess bits from expected result */
     switch (size) {
         case 16:
-            expected &= 0xffff;
+            expected = *raw_aligned_16;
             break;
         case 32:
-            expected &= 0xffffffff;
+            expected = *raw_aligned_32;
+            break;
+        case 64:
+            expected = raw_aligned_64;
             break;
     }
 
     TEST_EQUAL(r, expected);
 
-    /* Write sentinel to the part of the array we will testing writing to */
+    /* Write sentinel to the part of the array we will test writing to */
     for (size_t i = 0; i < (size_t) (size / 8); i++) {
         x[i + offset] = 0xff;
     }
@@ -122,7 +104,7 @@ void mbedtls_unaligned_access(int size, int offset)
 /* BEGIN_CASE */
 void mbedtls_byteswap(char *input_str, int size, char *expected_str)
 {
-    uint64_t input, expected;
+    uint64_t input = 0, expected = 0;
     TEST_ASSERT(parse_hex_string(input_str, &input));
     TEST_ASSERT(parse_hex_string(expected_str, &expected));
 
@@ -139,7 +121,7 @@ void mbedtls_byteswap(char *input_str, int size, char *expected_str)
             r = MBEDTLS_BSWAP64(input);
             break;
         default:
-            TEST_ASSERT(!"size must be 16, 32 or 64");
+            TEST_FAIL("size must be 16, 32 or 64");
     }
     TEST_EQUAL(r, expected);
 
@@ -315,7 +297,7 @@ void unaligned_access_endian_aware(int size, int offset, int big_endian)
     /* Verify read */
     TEST_EQUAL(read, expected);
 
-    /* Test writing back to memory. First write sentiel */
+    /* Test writing back to memory. First write sentinel */
     for (size_t i = 0; i < (size_t) (size / 8); i++) {
         x[i + offset] = 0xff;
     }

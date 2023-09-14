@@ -26,26 +26,17 @@
 #include "psa/crypto.h"
 #include "psa/crypto_se_driver.h"
 
-/** Constant-time buffer comparison
+/**
+ * Tell if PSA is ready for this hash.
  *
- * \param[in]  a    Left-hand buffer for comparison.
- * \param[in]  b    Right-hand buffer for comparison.
- * \param n         Amount of bytes to compare.
+ * \note            For now, only checks the state of the driver subsystem,
+ *                  not the algorithm. Might do more in the future.
  *
- * \return 0 if the buffer contents are equal, non-zero otherwise
+ * \param hash_alg  The hash algorithm (ignored for now).
+ *
+ * \return 1 if the driver subsytem is ready, 0 otherwise.
  */
-static inline int mbedtls_psa_safer_memcmp(
-    const uint8_t *a, const uint8_t *b, size_t n)
-{
-    size_t i;
-    unsigned char diff = 0;
-
-    for (i = 0; i < n; i++) {
-        diff |= a[i] ^ b[i];
-    }
-
-    return diff;
-}
+int psa_can_do_hash(psa_algorithm_t hash_alg);
 
 /** The data structure representing a key slot, containing key material
  * and metadata for one key.
@@ -182,24 +173,6 @@ static inline psa_key_slot_number_t psa_key_slot_get_slot_number(
 }
 #endif
 
-/** Get the description of a key given its identifier and policy constraints
- *  and lock it.
- *
- * The key must have allow all the usage flags set in \p usage. If \p alg is
- * nonzero, the key must allow operations with this algorithm. If \p alg is
- * zero, the algorithm is not checked.
- *
- * In case of a persistent key, the function loads the description of the key
- * into a key slot if not already done.
- *
- * On success, the returned key slot is locked. It is the responsibility of
- * the caller to unlock the key slot when it does not access it anymore.
- */
-psa_status_t psa_get_and_lock_key_slot_with_policy(mbedtls_svc_key_id_t key,
-                                                   psa_key_slot_t **p_slot,
-                                                   psa_key_usage_t usage,
-                                                   psa_algorithm_t alg);
-
 /** Completely wipe a slot in memory, including its policy.
  *
  * Persistent storage is not affected.
@@ -252,12 +225,12 @@ psa_status_t psa_copy_key_material_into_slot(psa_key_slot_t *slot,
                                              const uint8_t *data,
                                              size_t data_length);
 
-/** Convert an mbed TLS error code to a PSA error code
+/** Convert an Mbed TLS error code to a PSA error code
  *
  * \note This function is provided solely for the convenience of
  *       Mbed TLS and may be removed at any time without notice.
  *
- * \param ret           An mbed TLS-thrown error code
+ * \param ret           An Mbed TLS-thrown error code
  *
  * \return              The corresponding PSA error code
  */

@@ -369,6 +369,16 @@ int main(int argc, char *argv[])
     mbedtls_x509_crt_init(&clicert);
     mbedtls_pk_init(&pkey);
     mbedtls_ctr_drbg_init(&ctr_drbg);
+    mbedtls_entropy_init(&entropy);
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
+                        (int) status);
+        goto exit;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if (argc < 2) {
 usage:
@@ -458,7 +468,6 @@ usage:
     mbedtls_printf("\n  . Seeding the random number generator...");
     fflush(stdout);
 
-    mbedtls_entropy_init(&entropy);
     if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
                                      (const unsigned char *) pers,
                                      strlen(pers))) != 0) {
@@ -766,9 +775,9 @@ usage:
     mbedtls_printf("  > Write content to server:");
     fflush(stdout);
 
-    len = sprintf((char *) buf, "From: %s\r\nSubject: mbed TLS Test mail\r\n\r\n"
+    len = sprintf((char *) buf, "From: %s\r\nSubject: Mbed TLS Test mail\r\n\r\n"
                                 "This is a simple test mail from the "
-                                "mbed TLS mail client example.\r\n"
+                                "Mbed TLS mail client example.\r\n"
                                 "\r\n"
                                 "Enjoy!", opt.mail_from);
     ret = write_ssl_data(&ssl, buf, len);
@@ -796,6 +805,9 @@ exit:
     mbedtls_ssl_config_free(&conf);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_psa_crypto_free();
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     mbedtls_exit(exit_code);
 }

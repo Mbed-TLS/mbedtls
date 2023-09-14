@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.5.1)
 
 # Test the target renaming support by adding a prefix to the targets built
 set(MBEDTLS_TARGET_PREFIX subproject_test_)

@@ -2,15 +2,15 @@ Generate random twice with CTR_DRBG
 random_twice_with_ctr_drbg:
 
 Generate random twice with HMAC_DRBG(SHA-1)
-depends_on:MBEDTLS_SHA1_C
+depends_on:MBEDTLS_MD_CAN_SHA1
 random_twice_with_hmac_drbg:MBEDTLS_MD_SHA1
 
 Generate random twice with HMAC_DRBG(SHA-256)
-depends_on:MBEDTLS_SHA256_C
+depends_on:MBEDTLS_MD_CAN_SHA256
 random_twice_with_hmac_drbg:MBEDTLS_MD_SHA256
 
 Generate random twice with HMAC_DRBG(SHA-512)
-depends_on:MBEDTLS_SHA512_C
+depends_on:MBEDTLS_MD_CAN_SHA512
 random_twice_with_hmac_drbg:MBEDTLS_MD_SHA512
 
 Generate random twice with PSA classic wrapper

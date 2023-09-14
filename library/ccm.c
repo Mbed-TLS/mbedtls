@@ -70,7 +70,7 @@ int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
         return MBEDTLS_ERR_CCM_BAD_INPUT;
     }
 
-    if (cipher_info->block_size != 16) {
+    if (mbedtls_cipher_info_get_block_size(cipher_info) != 16) {
         return MBEDTLS_ERR_CCM_BAD_INPUT;
     }
 
@@ -400,7 +400,6 @@ int mbedtls_ccm_update(mbedtls_ccm_context *ctx,
             mbedtls_xor(ctx->y + offset, ctx->y + offset, local_output, use_len);
 
             memcpy(output, local_output, use_len);
-            mbedtls_platform_zeroize(local_output, 16);
 
             if (use_len + offset == 16 || ctx->processed == ctx->plaintext_len) {
                 if ((ret =

@@ -26,6 +26,7 @@
 
 #if defined(MBEDTLS_X509_CSR_WRITE_C)
 
+#include "mbedtls/x509.h"
 #include "mbedtls/x509_csr.h"
 #include "mbedtls/asn1write.h"
 #include "mbedtls/error.h"
@@ -34,9 +35,9 @@
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
+#include "md_psa.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-#include "hash_info.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -83,6 +84,12 @@ int mbedtls_x509write_csr_set_extension(mbedtls_x509write_csr *ctx,
 {
     return mbedtls_x509_set_extension(&ctx->extensions, oid, oid_len,
                                       critical, val, val_len);
+}
+
+int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ctx,
+                                                       const mbedtls_x509_san_list *san_list)
+{
+    return mbedtls_x509_write_set_san_common(&ctx->extensions, san_list);
 }
 
 int mbedtls_x509write_csr_set_key_usage(mbedtls_x509write_csr *ctx, unsigned char key_usage)
@@ -143,13 +150,13 @@ static int x509write_csr_der_internal(mbedtls_x509write_csr *ctx,
     const char *sig_oid;
     size_t sig_oid_len = 0;
     unsigned char *c, *c2;
-    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     size_t pub_len = 0, sig_and_oid_len = 0, sig_len;
     size_t len = 0;
     mbedtls_pk_type_t pk_alg;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     size_t hash_len;
-    psa_algorithm_t hash_alg = mbedtls_hash_info_psa_from_md(ctx->md_alg);
+    psa_algorithm_t hash_alg = mbedtls_md_psa_alg_from_type(ctx->md_alg);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     /* Write the CSR backwards starting from the end of buf */
@@ -263,7 +270,7 @@ static int x509write_csr_der_internal(mbedtls_x509write_csr *ctx,
     c2 = buf + size;
     MBEDTLS_ASN1_CHK_ADD(sig_and_oid_len,
                          mbedtls_x509_write_sig(&c2, buf + len, sig_oid, sig_oid_len,
-                                                sig, sig_len));
+                                                sig, sig_len, pk_alg));
 
     /*
      * Compact the space between the CSR data and signature by moving the

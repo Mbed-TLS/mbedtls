@@ -2662,16 +2662,29 @@ component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
     tests/ssl-opt.sh
 }
 
-# This function is really similar to config_psa_crypto_no_ecp_at_all() above so
-# its description is basically the same. The main difference in this case is
-# that when the EC built-in implementation is disabled, then also Bignum module
-# and its dependencies are disabled as well.
-#
-# This is the common helper between:
+# This is a common configuration helper used directly from:
+# - common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum
+# - common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum
+# and indirectly from:
 # - component_test_psa_crypto_config_accel_ecc_no_bignum
+#       - accelerate all EC algs, disable RSA and FFDH
 # - component_test_psa_crypto_config_reference_ecc_no_bignum
-config_psa_crypto_config_accel_ecc_no_bignum() {
+#       - this is the reference component of the above
+#       - it still disables RSA and FFDH, but it uses builtin EC algs
+# - component_test_psa_crypto_config_accel_ecc_ffdh_no_bignum
+#       - accelerate all EC and FFDH algs, disable only RSA
+# - component_test_psa_crypto_config_reference_ecc_ffdh_no_bignum
+#       - this is the reference component of the above
+#       - it still disables RSA, but it uses builtin EC and FFDH algs
+#
+# This function accepts 2 parameters:
+# $1: a boolean value which states if we are testing an accelerated scenario
+#     or not.
+# $2: a string value which states which components are tested. Allowed values
+#     are "ECC" or "ECC_DH".
+config_psa_crypto_config_accel_ecc_ffdh_no_bignum() {
     DRIVER_ONLY="$1"
+    TEST_TARGET="$2"
     # start with full config for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
 
@@ -2706,13 +2719,23 @@ config_psa_crypto_config_accel_ecc_no_bignum() {
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
 
-    # Disable FFDH because it also depends on BIGNUM.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_FFDH
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_KEY_TYPE_DH_[0-9A-Z_a-z]*"
-    scripts/config.py unset MBEDTLS_DHM_C
-    # Also disable key exchanges that depend on FFDH
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+    if [ "$TEST_TARGET" = "ECC" ]; then
+        # When testing ECC only, we disable FFDH support, both from builtin and
+        # PSA sides, and also disable the key exchanges that depend on DHM.
+        scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_FFDH
+        scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_KEY_TYPE_DH_[0-9A-Z_a-z]*"
+        scripts/config.py unset MBEDTLS_DHM_C
+        scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
+        scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+    else
+        # When testing ECC and DH instead, we disable DHM and depending key
+        # exchanges only in the accelerated build
+        if [ "$DRIVER_ONLY" -eq 1 ]; then
+            scripts/config.py unset MBEDTLS_DHM_C
+            scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
+            scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+        fi
+    fi
 
     # Restartable feature is not yet supported by PSA. Once it will in
     # the future, the following line could be removed (see issues
@@ -2720,15 +2743,32 @@ config_psa_crypto_config_accel_ecc_no_bignum() {
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
 }
 
-# Build and test a configuration where driver accelerates all EC algs while
-# all support and dependencies from ECP and ECP_LIGHT are removed on the library
-# side.
+# Common helper used by:
+# - component_test_psa_crypto_config_accel_ecc_no_bignum
+# - component_test_psa_crypto_config_accel_ecc_ffdh_no_bignum
 #
-# Keep in sync with component_test_psa_crypto_config_reference_ecc_no_bignum()
-component_test_psa_crypto_config_accel_ecc_no_bignum () {
-    msg "build: full + accelerated EC algs + USE_PSA - ECP - BIGNUM"
+# The goal is to build and test accelerating either:
+# - ECC only or
+# - both ECC and FFDH
+#
+# It is meant to be used in conjunction with
+# common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum() for drivers
+# coverage analysis in the "analyze_outcomes.py" script.
+common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
+    TEST_TARGET="$1"
 
-    # Algorithms and key types to accelerate
+    # This is an internal helper to simplify text message handling
+    if [ "$TEST_TARGET" = "ECC_DH" ]; then
+        ACCEL_TEXT="ECC/FFDH"
+        REMOVED_TEXT="ECP - DH"
+    else
+        ACCEL_TEXT="ECC"
+        REMOVED_TEXT="ECP"
+    fi
+
+    msg "build: full + accelerated $ACCEL_TEXT algs + USE_PSA - $REMOVED_TEXT - BIGNUM"
+
+    # By default we accelerate all EC keys/algs
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
                     ALG_JPAKE \
@@ -2737,12 +2777,22 @@ component_test_psa_crypto_config_accel_ecc_no_bignum () {
                     KEY_TYPE_ECC_KEY_PAIR_EXPORT \
                     KEY_TYPE_ECC_KEY_PAIR_GENERATE \
                     KEY_TYPE_ECC_PUBLIC_KEY"
+    # Optionally we can also add DH to the list of accelerated items
+    if [ "$TEST_TARGET" = "ECC_DH" ]; then
+        loc_accel_list="$loc_accel_list \
+                        ALG_FFDH \
+                        KEY_TYPE_DH_KEY_PAIR_BASIC \
+                        KEY_TYPE_DH_KEY_PAIR_IMPORT \
+                        KEY_TYPE_DH_KEY_PAIR_EXPORT \
+                        KEY_TYPE_DH_KEY_PAIR_GENERATE \
+                        KEY_TYPE_DH_PUBLIC_KEY"
+    fi
 
     # Configure
     # ---------
 
     # Set common configurations between library's and driver's builds
-    config_psa_crypto_config_accel_ecc_no_bignum 1
+    config_psa_crypto_config_accel_ecc_ffdh_no_bignum 1 "$TEST_TARGET"
 
     # Build
     # -----
@@ -2759,39 +2809,71 @@ component_test_psa_crypto_config_accel_ecc_no_bignum () {
     not grep mbedtls_ecdsa_ library/ecdsa.o
     not grep mbedtls_ecdh_ library/ecdh.o
     not grep mbedtls_ecjpake_ library/ecjpake.o
-    # Also ensure that ECP, RSA, DHM or BIGNUM modules were not re-enabled
+    # Also ensure that ECP, RSA, [DHM] or BIGNUM modules were not re-enabled
     not grep mbedtls_ecp_ library/ecp.o
     not grep mbedtls_rsa_ library/rsa.o
-    not grep mbedtls_dhm_ library/dhm.o
     not grep mbedtls_mpi_ library/bignum.o
+    not grep mbedtls_dhm_ library/dhm.o
 
     # Run the tests
     # -------------
 
-    msg "test suites: full + accelerated EC algs + USE_PSA - ECP - BIGNUM"
+    msg "test suites: full + accelerated $ACCEL_TEXT algs + USE_PSA - $REMOVED_TEXT - DHM - BIGNUM"
+
     make test
 
-    # The following will be enabled in #7756
-    msg "ssl-opt: full + accelerated EC algs + USE_PSA - ECP - BIGNUM"
+    msg "ssl-opt: full + accelerated $ACCEL_TEXT algs + USE_PSA - $REMOVED_TEXT - BIGNUM"
     tests/ssl-opt.sh
 }
 
-# Reference function used for driver's coverage analysis in analyze_outcomes.py
-# in conjunction with component_test_psa_crypto_config_accel_ecc_no_bignum().
-# Keep in sync with its accelerated counterpart.
-component_test_psa_crypto_config_reference_ecc_no_bignum () {
-    msg "build: full + non accelerated EC algs + USE_PSA"
+# Common helper used by:
+# - component_test_psa_crypto_config_reference_ecc_no_bignum
+# - component_test_psa_crypto_config_reference_ecc_ffdh_no_bignum
+#
+# The goal is to build and test a reference scenario (i.e. with builtin
+# components) compared to the ones used in
+# common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum() above.
+#
+# It is meant to be used in conjunction with
+# common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum() for drivers'
+# coverage analysis in "analyze_outcomes.py" script.
+common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
+    TEST_TARGET="$1"
 
-    config_psa_crypto_config_accel_ecc_no_bignum 0
+    # This is an internal helper to simplify text message handling
+    if [ "$TEST_TARGET" = "ECC_DH" ]; then
+        ACCEL_TEXT="ECC/FFDH"
+    else
+        ACCEL_TEXT="ECC"
+    fi
+
+    msg "build: full + non accelerated $ACCEL_TEXT algs + USE_PSA"
+
+    config_psa_crypto_config_accel_ecc_ffdh_no_bignum 0 "$TEST_TARGET"
 
     make
 
     msg "test suites: full + non accelerated EC algs + USE_PSA"
     make test
 
-    # The following will be enabled in #7756
-    msg "ssl-opt: full + non accelerated EC algs + USE_PSA"
+    msg "ssl-opt: full + non accelerated $ACCEL_TEXT algs + USE_PSA"
     tests/ssl-opt.sh
+}
+
+component_test_psa_crypto_config_accel_ecc_no_bignum () {
+    common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum "ECC"
+}
+
+component_test_psa_crypto_config_reference_ecc_no_bignum () {
+    common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum "ECC"
+}
+
+component_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
+    common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum "ECC_DH"
+}
+
+component_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
+    common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum "ECC_DH"
 }
 
 # Helper function used in:

@@ -648,14 +648,15 @@ static int ssl_write_client_hello_body(mbedtls_ssl_context *ssl,
           MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-    if (
+    int write_sig_alg_ext = 0;
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-        (propose_tls13 && mbedtls_ssl_conf_tls13_ephemeral_enabled(ssl)) ||
+    write_sig_alg_ext = write_sig_alg_ext || (propose_tls13 && mbedtls_ssl_conf_tls13_ephemeral_enabled(ssl));
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        propose_tls12 ||
+    write_sig_alg_ext = write_sig_alg_ext || propose_tls12;
 #endif
-        0) {
+
+    if (write_sig_alg_ext) {
         ret = mbedtls_ssl_write_sig_alg_ext(ssl, p, end, &output_len);
         if (ret != 0) {
             return ret;

@@ -1848,7 +1848,7 @@
  * production.
  *
  */
-#define MBEDTLS_SSL_MAX_EARLY_DATA_SIZE        1024
+//#define MBEDTLS_SSL_MAX_EARLY_DATA_SIZE        1024
 
 /**
  * \def MBEDTLS_SSL_PROTO_DTLS

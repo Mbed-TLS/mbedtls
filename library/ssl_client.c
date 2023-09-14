@@ -650,7 +650,8 @@ static int ssl_write_client_hello_body(mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     int write_sig_alg_ext = 0;
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    write_sig_alg_ext = write_sig_alg_ext || (propose_tls13 && mbedtls_ssl_conf_tls13_ephemeral_enabled(ssl));
+    write_sig_alg_ext = write_sig_alg_ext ||
+                        (propose_tls13 && mbedtls_ssl_conf_tls13_ephemeral_enabled(ssl));
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     write_sig_alg_ext = write_sig_alg_ext || propose_tls12;

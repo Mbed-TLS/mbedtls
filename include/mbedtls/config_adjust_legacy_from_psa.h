@@ -124,26 +124,6 @@
 #endif /* !MBEDTLS_PSA_ACCEL_ECC_SECP_K1_256 */
 #endif /* PSA_WANT_ECC_SECP_K1_256 */
 
-/* The purpose of MBEDTLS_SOME_BUILTIN_EC is to signal that there are builtin
- * curves so we want to make sure there is some code using them:
- * - if there is at least one PSA_WANT_ALG_xxx which is not accelerated
- * - if there is at least one builtin module/function (ex: PK_PARSE_EC_EXTENDED)
- *   that relies on these curves.
- * If none of the above condition is met, then we forcedly enable builtin ECDSA,
- * ECDH and ECJPAKE support.
- */
-#if (defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA) && \
-    !defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA)) || \
-    (defined(PSA_WANT_ALG_ECDH) && !defined(MBEDTLS_PSA_ACCEL_ALG_ECDH)) || \
-    (defined(PSA_WANT_ALG_ECDSA) && !defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA)) || \
-    (defined(PSA_WANT_ALG_JPAKE) && !defined(MBEDTLS_PSA_ACCEL_ALG_JPAKE)) || \
-    defined(MBEDTLS_ECP_C) || \
-    defined(MBEDTLS_PK_PARSE_EC_EXTENDED) || \
-    defined(MBEDTLS_PK_PARSE_EC_COMPRESSED) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_DERIVE)
-#undef MBEDTLS_SOME_BUILTIN_EC
-#endif
-
 #if defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA) || defined(MBEDTLS_SOME_BUILTIN_EC)
 #define MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA 1

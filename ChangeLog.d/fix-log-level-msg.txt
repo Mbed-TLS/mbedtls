@@ -1,0 +1,3 @@
+Bugfix
+   * Fix an incorrect log level that was causing excessive messages during
+     DTLS handshakes. Fixes #6765.

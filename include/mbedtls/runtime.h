@@ -24,13 +24,10 @@
 #include <stdint.h>
 #include "mbedtls/build_info.h"
 
-/* Reserverd by internal runtime detection module to check if cpu features have
- * been profiled. */
-#define MBEDTLS_HWCAP_PROFILED  (1ULL << 63)
 
-#if defined(MBEDTLS_ARCH_IS_ARM64)
-
-/* The bit mask definitions follow up [`hwcap.h`](https://github.com/torvalds/linux/blob/master/arch/arm64/include/uapi/asm/hwcap.h)
+/* CPU features bit mask definitions for aarch64
+ *
+ * That follows up [`hwcap.h`](https://github.com/torvalds/linux/blob/master/arch/arm64/include/uapi/asm/hwcap.h)
  * to reduce down code size of runtime detection module.
  */
 #define MBEDTLS_HWCAP_ASIMD     (1ULL <<  1)
@@ -39,17 +36,15 @@
 #define MBEDTLS_HWCAP_SHA2      (1ULL <<  6)
 #define MBEDTLS_HWCAP_SHA512    (1ULL << 21)
 
-#endif /* MBEDTLS_ARCH_IS_ARM64 */
-
-#if defined(MBEDTLS_ARCH_IS_X64) || defined(MBEDTLS_ARCH_IS_X86)
-/* The lower 32bits follow up https://en.wikipedia.org/wiki/CPUID to reduce code
+/* CPU features bit mask definitions for i386/x86_64
+ *
+ * The lower 32bits follow up https://en.wikipedia.org/wiki/CPUID to reduce code
  * size. VIA Padlock ACE needs different instructions, it is put in high 32bits.
  */
 #define MBEDTLS_HWCAP_AESNI_AES         (1ULL <<  25)
 #define MBEDTLS_HWCAP_AESNI_CLMUL       (1ULL <<   1)
 #define MBEDTLS_HWCAP_PADLOCK_ACE       (1ULL <<  32)
 
-#endif /* MBEDTLS_ARCH_IS_X64 || MBEDTLS_ARCH_IS_X86 */
 
 typedef uint64_t mbedtls_hwcap_mask_t;
 /**

@@ -20,6 +20,10 @@
 
 #if defined(MBEDTLS_RUNTIME_C) && defined(MBEDTLS_RUNTIME_HAVE_CODE)
 
+/* Reserverd by internal runtime detection module to check if cpu features have
+ * been profiled. */
+#define MBEDTLS_HWCAP_PROFILED  (1ULL << 63)
+
 #if defined(MBEDTLS_ARCH_IS_ARM64)
 
 #define MBEDTLS_RUNTIME_AVAILABLE_MASKS ( \

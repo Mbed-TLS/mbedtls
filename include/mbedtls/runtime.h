@@ -70,8 +70,8 @@ typedef uint64_t mbedtls_hwcap_mask_t;
  *       When built-in implementation does not support target platform, please
  *       provide extenal implementation or adjust config options to disable run-
  *       time detection.
- *       Built-in function has supported i386,x86_64, arm64 linux,arm64 freebsd
- *       and arm64 apple os.
+ *       Built-in function has support for i386, x86_64, aarch64 Linux, aarch64
+ *       FreeBSD and Darwin on Apple Silicon.
  */
 bool mbedtls_cpu_has_features(mbedtls_hwcap_mask_t hwcap);
 

@@ -18,11 +18,9 @@
  */
 #include "runtime_internal.h"
 
-#if defined(MBEDTLS_RUNTIME_C) && defined(MBEDTLS_RUNTIME_HAVE_CODE)
+mbedtls_hwcap_mask_t mbedtls_cpu_hwcaps = 0;
 
-/* Reserverd by internal runtime detection module to check if cpu features have
- * been profiled. */
-#define MBEDTLS_HWCAP_PROFILED  (1ULL << 63)
+#if defined(MBEDTLS_RUNTIME_C) && defined(MBEDTLS_RUNTIME_HAVE_CODE)
 
 #if defined(MBEDTLS_ARCH_IS_ARM64)
 
@@ -148,13 +146,9 @@ static mbedtls_hwcap_mask_t cpu_feature_get(void)
 }
 #endif /* MBEDTLS_ARCH_IS_X64 || MBEDTLS_ARCH_IS_X86 */
 
-bool mbedtls_cpu_has_features(mbedtls_hwcap_mask_t hwcap)
+mbedtls_hwcap_mask_t mbedtls_cpuid_get(void)
 {
-    static mbedtls_hwcap_mask_t mbedtls_cpu_hwcaps = 0;
-    if ((mbedtls_cpu_hwcaps & MBEDTLS_HWCAP_PROFILED) == 0) {
-        mbedtls_cpu_hwcaps = cpu_feature_get() | MBEDTLS_HWCAP_PROFILED;
-    }
-    return (hwcap & mbedtls_cpu_hwcaps) == hwcap;
+    return cpu_feature_get() | MBEDTLS_HWCAP_PROFILED;
 }
 
 #endif /* MBEDTLS_RUNTIME_C && MBEDTLS_RUNTIME_HAVE_CODE */

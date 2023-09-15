@@ -21,7 +21,7 @@
 
 #include <mbedtls/runtime.h>
 
-#if !defined(MBEDTLS_CPU_HAS_FEATURES_ALT)
+#if !defined(MBEDTLS_CPUID_GET_ALT)
 
 #if defined(MBEDTLS_ARCH_IS_ARM64)
 
@@ -38,7 +38,7 @@
 #define MBEDTLS_RUNTIME_C
 #endif
 
-#endif /* !MBEDTLS_CPU_HAS_FEATURES_ALT */
+#endif /* !MBEDTLS_CPUID_GET_ALT */
 
 /* Check if AES module needs runtime detection */
 #if defined(MBEDTLS_AES_C)
@@ -99,9 +99,21 @@
 #undef MBEDTLS_AES_ACCELERATOR_NUM
 #endif /* MBEDTLS_AES_C */
 
-#if (defined(MBEDTLS_RUNTIME_C) || defined(MBEDTLS_CPU_HAS_FEATURES_ALT)) && \
+#if (defined(MBEDTLS_RUNTIME_C) || defined(MBEDTLS_CPUID_GET_ALT)) && \
     defined(MBEDTLS_AES_RUNTIME_HAVE_CODE)
 #define MBEDTLS_RUNTIME_HAVE_CODE
 #endif
+
+#define MBEDTLS_HWCAP_PROFILED  (1ULL << 63)
+extern mbedtls_hwcap_mask_t mbedtls_cpu_hwcaps;
+static inline bool mbedtls_cpu_has_support(mbedtls_hwcap_mask_t mask)
+{
+    if (mbedtls_cpu_hwcaps == 0) {
+        mbedtls_cpu_hwcaps = mbedtls_cpuid_get() | MBEDTLS_HWCAP_PROFILED;
+    }
+    return (mbedtls_cpu_hwcaps & mask) == mask;
+}
+#define MBEDTLS_RUNTIME_HAS_SUPPORT(mask)                   \
+    mbedtls_cpu_has_support(mask)
 
 #endif /* MBEDTLS_RUNTIME_INTERNAL_H */

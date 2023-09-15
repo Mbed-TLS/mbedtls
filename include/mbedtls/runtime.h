@@ -48,26 +48,23 @@
 
 typedef uint64_t mbedtls_hwcap_mask_t;
 /**
- * \brief Definition of core CPU feature sets detection on x64/i386.
+ * \brief Get CPU feature sets.
  *
- * \param hwcap  Bit mask of request feature sets. `MBEDTLS_HWCAP_*` are
- *               valid bit masks
+ * \return Bit mask of CPU feature sets.
  *
- * \return true if the request fetature sets available.
- *
- * \note We only define the features that are used in MbedTLS.
+ * \note We only define the CPU features that are used in MbedTLS.
  *
  * \note When only one CPU accelerator or only plain C enabled for target plat-
- *       form and algorithm, this function won't be compiled. It will be
- *       replaced with extenal function when \c MBEDTLS_CPU_HAS_FEATURES_ALT
+ *       form and algorithm, this function won't be called. It can be
+ *       replaced with extenal function when \c MBEDTLS_CPUID_GET_ALT
  *       enabled.
  *
  *       When built-in implementation does not support target platform, please
- *       provide extenal implementation or adjust config options to disable run-
- *       time detection.
+ *       provide extenal implementation or adjust config options to disable CPU
+ *       features detection.
  *       Built-in function has support for i386, x86_64, aarch64 Linux, aarch64
  *       FreeBSD and Darwin on Apple Silicon.
  */
-bool mbedtls_cpu_has_features(mbedtls_hwcap_mask_t hwcap);
+mbedtls_hwcap_mask_t mbedtls_cpuid_get(void);
 
 #endif /* MBEDTLS_RUNTIME_H */

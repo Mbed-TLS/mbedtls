@@ -412,9 +412,9 @@
 /*
  * Uncomment to enable alternative core CPU feature sets detection function.
  *
- * When enabled, `mbedtls_cpu_has_features()` MUST be provided.
+ * When enabled, `mbedtls_cpuid_get()` MUST be provided.
  */
-//#define MBEDTLS_CPU_HAS_FEATURES_ALT
+//#define MBEDTLS_CPUID_GET_ALT
 
 /*
  * When replacing the elliptic curve module, please consider, that it is

@@ -36,7 +36,7 @@
  */
 #if defined(__ARM_FEATURE_UNALIGNED) \
     || defined(MBEDTLS_ARCH_IS_X86) || defined(MBEDTLS_ARCH_IS_X64) \
-    || defined(_M_ARM64) || defined(_M_ARM64EC)
+    || defined(MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64)
 /*
  * __ARM_FEATURE_UNALIGNED is defined where appropriate by armcc, gcc 7, clang 9
  * (and later versions) for Arm v7 and later; all x86 platforms should have

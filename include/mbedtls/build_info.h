@@ -74,6 +74,10 @@
 #define MBEDTLS_ARCH_IS_X86
 #endif
 
+#if defined(_M_ARM64) || defined(_M_ARM64EC)
+#define MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64
+#endif
+
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif

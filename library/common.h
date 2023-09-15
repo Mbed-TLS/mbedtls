@@ -34,9 +34,7 @@
 #if defined(__ARM_NEON)
 #include <arm_neon.h>
 #define MBEDTLS_HAVE_NEON_INTRINSICS
-#endif /* __ARM_NEON */
-
-#if defined(_M_ARM64) || defined(_M_ARM64EC)
+#elif defined(MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64)
 #include <arm64_neon.h>
 #define MBEDTLS_HAVE_NEON_INTRINSICS
 #endif

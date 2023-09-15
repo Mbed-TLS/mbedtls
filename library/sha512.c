@@ -119,12 +119,7 @@
 #      include <signal.h>
 #    endif
 #  endif
-#elif defined(_M_ARM64)
-#  if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT) || \
-    defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
-#    include <arm64_neon.h>
-#  endif
-#else
+#elif !defined(MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64)
 #  undef MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY
 #  undef MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
 #endif
@@ -152,7 +147,7 @@ static int mbedtls_a64_crypto_sha512_determine_support(void)
                            NULL, 0);
     return ret == 0 && value != 0;
 }
-#elif defined(_M_ARM64) || defined(_M_ARM64EC)
+#elif defined(MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64)
 /*
  * As of March 2022, there don't appear to be any PF_ARM_V8_* flags
  * available to pass to IsProcessorFeaturePresent() to check for

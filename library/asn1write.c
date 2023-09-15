@@ -78,9 +78,9 @@ int mbedtls_asn1_write_tag(unsigned char **p, const unsigned char *start, unsign
 
 #if defined(MBEDTLS_ASN1_WRITE_C)
 static int mbedtls_asn1_write_len_and_tag(unsigned char **p,
-                                     const unsigned char *start,
-                                     size_t len,
-                                     unsigned char tag)
+                                          const unsigned char *start,
+                                          size_t len,
+                                          unsigned char tag)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -191,7 +191,7 @@ int mbedtls_asn1_write_algorithm_identifier_ext(unsigned char **p, const unsigne
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_oid(p, start, oid, oid_len));
 
     return mbedtls_asn1_write_len_and_tag(p, start, len,
-                                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
+                                          MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
 }
 
 int mbedtls_asn1_write_bool(unsigned char **p, const unsigned char *start, int boolean)

@@ -112,7 +112,7 @@ For the purposes of this work, three domains emerge:
 
 The following modules in Mbed TLS call another module to perform cryptographic operations which, in the long term, will be provided through a PSA interface, but cannot make any PSA-related assumption.
 
-Hashes and HMAC (after the work on MD-light):
+Hashes and HMAC (after the work on driver-only hashes):
 
 * entropy (hashes via MD-light)
 * ECDSA (HMAC\_DRBG; `md.h` exposed through API)
@@ -124,31 +124,63 @@ Hashes and HMAC (after the work on MD-light):
 * RSA (hash via MD-light for PSS and OAEP; `md.h` exposed through API)
 * PEM (MD5 hash via MD-light)
 
-Symmetric ciphers and AEADs (before Cipher-light work):
+Symmetric ciphers and AEADs (before work on driver-only cipher):
 
-* PEM (AES and DES in CBC mode without padding)
-       AES and DES: setkey_dec + crypt_cbc
-       (look at test data for DES)
-* PKCS12 (cipher, generically, selected from ASN.1 or function parameters; `cipher.h` exposed through API)
-       setup, setkey, set_iv, reset, update, finish (in sequence, once)
-       no documented restriction, block cipher in CBC mode in practice
-       (padding?)
-       (look at test cases)
-* PKCS5 (cipher, generically, selected from ASN.1)
-       only DES-CBC or 3DES-CBC
-       (padding?)
-       setup, setkey, crypt
-* CTR\_DRBG (AES-ECB, but could be extended to the other block ciphers)
-        setkey_enc + crypt_ecb
-* CCM (block cipher in ECB mode; interdependent with cipher)
-        info, setup, setkey, update (several times), (never finish)
-* CMAC (AES-ECB and DES-ECB, but could be extended to the other block ciphers; interdependent with cipher)
-        info, setup, setkey, update (several times), (never finish)
-* GCM (block cipher in ECB mode; interdependent with cipher)
-        info, setup, setkey, update (several times), (never finish)
-* NIST\_KW (AES-ECB; interdependent with cipher)
-        info, setup, setkey, update (several times), (never finish)
-* cipher (cipher and AEAD algorithms)
+* PEM:
+  * AES, DES or 3DES in CBC mode without padding, decrypt only (!).
+  * Currently using low-level non-generic APIs.
+  * No hard dependency, features guarded by `AES_C` resp. `DES_C`.
+  * Functions called: `setkey_dec()` + `crypt_cbc()`.
+* PKCS12:
+  * In practice: 2DES or 3DES in CBC mode with PKCS7 padding, decrypt only
+    (when called from pkparse).
+  * In principle: any cipher-mode (default padding), passed an
+    `mbedtls_cipher_type_t` as an argument, no documented restriction.
+  * Cipher, generically, selected from ASN.1 or function parameters;
+    no documented restriction but in practice TODO (inc. padding and
+    en/decrypt, look at standards and tests)
+  * Unconditional dependency on `CIPHER_C` in `check_config.h`.
+  * Note: `cipher.h` exposed through API.
+  * Functions called: `setup`, `setkey`, `set_iv`, `reset`, `update`, `finish` (in sequence, once).
+* PKCS5 (PBES2, `mbedtls_pkcs5_pbes2()`):
+  * 3DES or DES in CBC mode with PKCS7 padding, both encrypt and decrypt.
+  * Note: could also be AES in the future, see #7038.
+  * Unconditional dependency on `CIPHER_C` in `check_config.h`.
+  * Functions called: `setup`, `setkey`, `crypt`.
+* CTR\_DRBG:
+  * AES in ECB mode, encrypt only.
+  * Currently using low-level non-generic API (`aes.h`).
+  * Unconditional dependency on `AES_C` in `check_config.h`.
+  * Functions called: `setkey_enc`, `crypt_ecb`.
+* CCM:
+  * AES, Camellia or Aria in ECB mode, encrypt only.
+  * Unconditional dependency on `AES_C || CAMELLIA_C || ARIA_C` in `check_config.h`.
+  * Unconditional dependency on `CIPHER_C` in `check_config.h`.
+  * Note: also called by `cipher.c` if enabled.
+  * Functions called: `info`, `setup`, `setkey`, `update` (several times) - (never finish)
+* CMAC:
+  * AES or DES in ECB mode, encrypt only.
+  * Unconditional dependency on `AES_C || DES_C` in `check_config.h`.
+  * Unconditional dependency on `CIPHER_C` in `check_config.h`.
+  * Note: also called by `cipher.c` if enabled.
+  * Functions called: `info`, `setup`, `setkey`, `update` (several times) - (never finish)
+* GCM:
+  * AES, Camellia or Aria in ECB mode, encrypt only.
+  * Unconditional dependency on `AES_C || CAMELLIA_C || ARIA_C` in `check_config.h`.
+  * Unconditional dependency on `CIPHER_C` in `check_config.h`.
+  * Note: also called by `cipher.c` if enabled.
+  * Functions called: `info`, `setup`, `setkey`, `update` (several times) - (never finish)
+* NIST\_KW:
+  * AES in ECB mode, both encryt and decrypt.
+  * Unconditional dependency on `AES_C || DES_C` in `check_config.h`.
+  * Unconditional dependency on `CIPHER_C` in `check_config.h`.
+  * Note: also called by `cipher.c` if enabled.
+  * Note: `cipher.h` exposed through API.
+  * Functions called: `info`, `setup`, `setkey`, `update` (several times) - (never finish)
+* Cipher:
+  * potentially any cipher/AEAD in any mode and any direction
+
+Note: PSA cipher is built on Cipher, but PSA AEAD directly calls the underlying AEAD modules (GCM, CCM, ChachaPoly).
 
 ### Difficulties
 

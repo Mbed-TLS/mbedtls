@@ -51,19 +51,8 @@ extern "C" {
 
 #if defined(MBEDTLS_RUNTIME_HAVE_CODE) && defined(MBEDTLS_AES_RUNTIME_HAVE_CODE)
 
-extern signed char mbedtls_padlock_has_support_result;
-
-/**
- * \brief          Internal function to detect VIA Padlock in CPUs.
- *
- * \return         1 if CPU has support for the feature, 0 otherwise
- */
-int mbedtls_padlock_has_support(void);
-
 #define MBEDTLS_PADLOCK_HAS_SUPPORT() \
-    (mbedtls_padlock_has_support_result == -1 ? \
-     mbedtls_padlock_has_support() : mbedtls_padlock_has_support_result)
-
+    MBEDTLS_RUNTIME_HAS_SUPPORT(MBEDTLS_HWCAP_PADLOCK_ACE)
 #else /* MBEDTLS_RUNTIME_HAVE_CODE && MBEDTLS_AES_RUNTIME_HAVE_CODE */
 
 #define MBEDTLS_PADLOCK_HAS_SUPPORT() 1

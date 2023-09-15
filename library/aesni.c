@@ -41,42 +41,6 @@
 #include <immintrin.h>
 #endif
 
-#if defined(MBEDTLS_RUNTIME_HAVE_CODE) && defined(MBEDTLS_AES_RUNTIME_HAVE_CODE)
-
-signed char mbedtls_aesni_aes_has_support_result = -1;
-
-int mbedtls_aesni_aes_has_support(void)
-{
-    if (mbedtls_aesni_aes_has_support_result == -1) {
-        if (mbedtls_cpu_has_features(MBEDTLS_HWCAP_AESNI_AES) == true) {
-            mbedtls_aesni_aes_has_support_result = 1;
-        } else {
-            mbedtls_aesni_aes_has_support_result = 0;
-        }
-    }
-    return mbedtls_aesni_aes_has_support_result;
-}
-
-#if defined(MBEDTLS_GCM_C)
-
-signed char mbedtls_aesni_clmul_has_support_result = -1;
-
-int mbedtls_aesni_clmul_has_support(void)
-{
-    if (mbedtls_aesni_clmul_has_support_result == -1) {
-        if (mbedtls_cpu_has_features(MBEDTLS_HWCAP_AESNI_CLMUL) == true) {
-            mbedtls_aesni_clmul_has_support_result = 1;
-        } else {
-            mbedtls_aesni_clmul_has_support_result = 0;
-        }
-    }
-    return mbedtls_aesni_clmul_has_support_result;
-}
-
-#endif
-
-#endif /* MBEDTLS_RUNTIME_HAVE_CODE && MBEDTLS_AES_RUNTIME_HAVE_CODE */
-
 #if defined(MBEDTLS_AESNI_HAVE_INTRINSICS)
 
 /*

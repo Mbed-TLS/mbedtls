@@ -92,34 +92,6 @@
 #endif /* !(__ARM_FEATURE_CRYPTO || __ARM_FEATURE_AES) ||
           MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG */
 
-#if defined(MBEDTLS_RUNTIME_HAVE_CODE) && defined(MBEDTLS_AES_RUNTIME_HAVE_CODE)
-
-signed char mbedtls_aesce_has_support_result = -1;
-
-/*
- * AES instruction support detection routine
- */
-int mbedtls_aesce_has_support_impl(void)
-{
-    /* To avoid many calls to getauxval, cache the result. This is
-     * thread-safe, because we store the result in a char so cannot
-     * be vulnerable to non-atomic updates.
-     * It is possible that we could end up setting result more than
-     * once, but that is harmless.
-     */
-    if (mbedtls_aesce_has_support_result == -1) {
-        if (mbedtls_cpu_has_features(
-                MBEDTLS_HWCAP_ASIMD | MBEDTLS_HWCAP_AES) == true) {
-            mbedtls_aesce_has_support_result = 1;
-        } else {
-            mbedtls_aesce_has_support_result = 0;
-        }
-    }
-    return mbedtls_aesce_has_support_result;
-}
-
-#endif /* MBEDTLS_RUNTIME_HAVE_CODE && MBEDTLS_AES_RUNTIME_HAVE_CODE */
-
 /* Single round of AESCE encryption */
 #define AESCE_ENCRYPT_ROUND                   \
     block = vaeseq_u8(block, vld1q_u8(keys)); \

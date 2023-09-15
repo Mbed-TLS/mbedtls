@@ -40,18 +40,8 @@ extern "C" {
 
 #if defined(MBEDTLS_RUNTIME_HAVE_CODE) && defined(MBEDTLS_AES_RUNTIME_HAVE_CODE)
 
-extern signed char mbedtls_aesce_has_support_result;
-
-/**
- * \brief          Internal function to detect the crypto extension in CPUs.
- *
- * \return         1 if CPU has support for the feature, 0 otherwise
- */
-int mbedtls_aesce_has_support_impl(void);
-
-#define MBEDTLS_AESCE_HAS_SUPPORT() (mbedtls_aesce_has_support_result == -1 ? \
-                                     mbedtls_aesce_has_support_impl() : \
-                                     mbedtls_aesce_has_support_result)
+#define MBEDTLS_AESCE_HAS_SUPPORT() \
+    MBEDTLS_RUNTIME_HAS_SUPPORT(MBEDTLS_HWCAP_ASIMD | MBEDTLS_HWCAP_AES)
 
 #else /* MBEDTLS_RUNTIME_HAVE_CODE && MBEDTLS_AES_RUNTIME_HAVE_CODE */
 

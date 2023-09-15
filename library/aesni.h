@@ -73,32 +73,11 @@ extern "C" {
 
 #if defined(MBEDTLS_RUNTIME_HAVE_CODE) && defined(MBEDTLS_AES_RUNTIME_HAVE_CODE)
 
-extern signed char mbedtls_aesni_aes_has_support_result;
-
-/**
- * \brief          Internal function to detect AESNI AES in CPUs.
- *
- * \return         1 if CPU has support for the feature, 0 otherwise
- */
-int mbedtls_aesni_aes_has_support(void);
-
 #define MBEDTLS_AESNI_AES_HAS_SUPPORT() \
-    (mbedtls_aesni_aes_has_support_result == -1 ? \
-     mbedtls_aesni_aes_has_support() : mbedtls_aesni_aes_has_support_result)
+    MBEDTLS_RUNTIME_HAS_SUPPORT(MBEDTLS_HWCAP_AESNI_AES)
 #if defined(MBEDTLS_GCM_C)
-
-extern signed char mbedtls_aesni_clmul_has_support_result;
-
-/**
- * \brief          Internal function to detect CLMUL in CPUs.
- *
- * \return         1 if CPU has support for the feature, 0 otherwise
- */
-int mbedtls_aesni_clmul_has_support(void);
-
 #define MBEDTLS_AESNI_CLMUL_HAS_SUPPORT() \
-    (mbedtls_aesni_clmul_has_support_result == -1 ? \
-     mbedtls_aesni_clmul_has_support() : mbedtls_aesni_clmul_has_support_result)
+    MBEDTLS_RUNTIME_HAS_SUPPORT(MBEDTLS_HWCAP_AESNI_CLMUL)
 #endif
 
 

@@ -31,26 +31,6 @@
 
 #if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
 
-#if defined(MBEDTLS_RUNTIME_HAVE_CODE) && defined(MBEDTLS_AES_RUNTIME_HAVE_CODE)
-
-signed char mbedtls_padlock_has_support_result = -1;
-/*
- * PadLock detection routine
- */
-int mbedtls_padlock_has_support(void)
-{
-
-    if (mbedtls_padlock_has_support_result == -1) {
-        if (mbedtls_cpu_has_features(MBEDTLS_HWCAP_PADLOCK_ACE) == true) {
-            mbedtls_padlock_has_support_result = 1;
-        } else {
-            mbedtls_padlock_has_support_result = 0;
-        }
-    }
-    return mbedtls_padlock_has_support_result;
-}
-#endif /* MBEDTLS_RUNTIME_HAVE_CODE && MBEDTLS_AES_RUNTIME_HAVE_CODE */
-
 /*
  * PadLock AES-ECB block en(de)cryption
  */

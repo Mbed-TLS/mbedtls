@@ -35,7 +35,7 @@
  * efficient when this is not defined.
  */
 #if defined(__ARM_FEATURE_UNALIGNED) \
-    || defined(__i386__) || defined(__amd64__) || defined(__x86_64__) \
+    || defined(MBEDTLS_ARCH_IS_X86) || defined(MBEDTLS_ARCH_IS_X64) \
     || defined(_M_ARM64) || defined(_M_ARM64EC)
 /*
  * __ARM_FEATURE_UNALIGNED is defined where appropriate by armcc, gcc 7, clang 9

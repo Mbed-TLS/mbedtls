@@ -56,7 +56,7 @@ void sign_hash(int key_type_arg,
 
     TEST_ASSERT(signature_size != 0);
     TEST_ASSERT(signature_size <= PSA_SIGNATURE_MAX_SIZE);
-    ASSERT_ALLOC(signature, signature_size);
+    TEST_CALLOC(signature, signature_size);
 
     actual_status = psa_sign_hash(key, alg,
                                   data_input->x, data_input->len,
@@ -64,8 +64,8 @@ void sign_hash(int key_type_arg,
                                   &signature_length);
     TEST_EQUAL(actual_status, expected_status);
     if (expected_status == PSA_SUCCESS) {
-        ASSERT_COMPARE(signature, signature_length,
-                       expected_output->x, expected_output->len);
+        TEST_MEMORY_COMPARE(signature, signature_length,
+                            expected_output->x, expected_output->len);
     }
     TEST_EQUAL(mbedtls_test_driver_signature_sign_hooks.hits, 1);
 
@@ -183,7 +183,7 @@ void sign_message(int key_type_arg,
 
     TEST_ASSERT(signature_size != 0);
     TEST_ASSERT(signature_size <= PSA_SIGNATURE_MAX_SIZE);
-    ASSERT_ALLOC(signature, signature_size);
+    TEST_CALLOC(signature, signature_size);
 
     actual_status = psa_sign_message(key, alg,
                                      data_input->x, data_input->len,
@@ -191,8 +191,8 @@ void sign_message(int key_type_arg,
                                      &signature_length);
     TEST_EQUAL(actual_status, expected_status);
     if (expected_status == PSA_SUCCESS) {
-        ASSERT_COMPARE(signature, signature_length,
-                       expected_output->x, expected_output->len);
+        TEST_MEMORY_COMPARE(signature, signature_length,
+                            expected_output->x, expected_output->len);
     }
     /* In the builtin algorithm the driver is called twice. */
     TEST_EQUAL(mbedtls_test_driver_signature_sign_hooks.hits,
@@ -313,8 +313,8 @@ void generate_key(int force_status_arg,
         psa_export_key(key, actual_output, sizeof(actual_output), &actual_output_length);
 
         if (fake_output->len > 0) {
-            ASSERT_COMPARE(actual_output, actual_output_length,
-                           expected_output, expected_output_length);
+            TEST_MEMORY_COMPARE(actual_output, actual_output_length,
+                                expected_output, expected_output_length);
         } else {
             size_t zeroes = 0;
             for (size_t i = 0; i < sizeof(actual_output); i++) {
@@ -445,8 +445,8 @@ void export_key(int force_status_arg,
     }
 
     if (actual_status == PSA_SUCCESS) {
-        ASSERT_COMPARE(actual_output, actual_output_length,
-                       expected_output_ptr, expected_output_length);
+        TEST_MEMORY_COMPARE(actual_output, actual_output_length,
+                            expected_output_ptr, expected_output_length);
     }
 exit:
     psa_reset_key_attributes(&attributes);
@@ -487,8 +487,8 @@ void cipher_encrypt_validation(int alg_arg,
     output1_buffer_size = PSA_CIPHER_ENCRYPT_OUTPUT_SIZE(key_type, alg, input->len);
     output2_buffer_size = PSA_CIPHER_UPDATE_OUTPUT_SIZE(key_type, alg, input->len) +
                           PSA_CIPHER_FINISH_OUTPUT_SIZE(key_type, alg);
-    ASSERT_ALLOC(output1, output1_buffer_size);
-    ASSERT_ALLOC(output2, output2_buffer_size);
+    TEST_CALLOC(output1, output1_buffer_size);
+    TEST_CALLOC(output2, output2_buffer_size);
 
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
                               &key));
@@ -527,8 +527,8 @@ void cipher_encrypt_validation(int alg_arg,
     PSA_ASSERT(psa_cipher_abort(&operation));
     // driver function should've been called as part of the finish() core routine
     TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits, 0);
-    ASSERT_COMPARE(output1 + iv_size, output1_length - iv_size,
-                   output2, output2_length);
+    TEST_MEMORY_COMPARE(output1 + iv_size, output1_length - iv_size,
+                        output2, output2_length);
 
 exit:
     psa_cipher_abort(&operation);
@@ -605,7 +605,7 @@ void cipher_encrypt_multipart(int alg_arg,
 
     output_buffer_size = ((size_t) input->len +
                           PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type));
-    ASSERT_ALLOC(output, output_buffer_size);
+    TEST_CALLOC(output, output_buffer_size);
 
     if (mock_output_arg) {
         mbedtls_test_driver_cipher_hooks.forced_output = expected_output->x;
@@ -655,8 +655,8 @@ void cipher_encrypt_multipart(int alg_arg,
         PSA_ASSERT(psa_cipher_abort(&operation));
         TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits, 0);
 
-        ASSERT_COMPARE(expected_output->x, expected_output->len,
-                       output, total_output_length);
+        TEST_MEMORY_COMPARE(expected_output->x, expected_output->len,
+                            output, total_output_length);
     }
 
 exit:
@@ -733,7 +733,7 @@ void cipher_decrypt_multipart(int alg_arg,
 
     output_buffer_size = ((size_t) input->len +
                           PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type));
-    ASSERT_ALLOC(output, output_buffer_size);
+    TEST_CALLOC(output, output_buffer_size);
 
     if (mock_output_arg) {
         mbedtls_test_driver_cipher_hooks.forced_output = expected_output->x;
@@ -784,8 +784,8 @@ void cipher_decrypt_multipart(int alg_arg,
         PSA_ASSERT(psa_cipher_abort(&operation));
         TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits, 0);
 
-        ASSERT_COMPARE(expected_output->x, expected_output->len,
-                       output, total_output_length);
+        TEST_MEMORY_COMPARE(expected_output->x, expected_output->len,
+                            output, total_output_length);
     }
 
 exit:
@@ -832,13 +832,13 @@ void cipher_decrypt(int alg_arg,
     /* Allocate input buffer and copy the iv and the plaintext */
     input_buffer_size = ((size_t) input_arg->len + (size_t) iv->len);
     if (input_buffer_size > 0) {
-        ASSERT_ALLOC(input, input_buffer_size);
+        TEST_CALLOC(input, input_buffer_size);
         memcpy(input, iv->x, iv->len);
         memcpy(input + iv->len, input_arg->x, input_arg->len);
     }
 
     output_buffer_size = PSA_CIPHER_DECRYPT_OUTPUT_SIZE(key_type, alg, input_buffer_size);
-    ASSERT_ALLOC(output, output_buffer_size);
+    TEST_CALLOC(output, output_buffer_size);
 
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
                               &key));
@@ -856,8 +856,8 @@ void cipher_decrypt(int alg_arg,
     TEST_EQUAL(status, expected_status);
 
     if (expected_status == PSA_SUCCESS) {
-        ASSERT_COMPARE(expected_output->x, expected_output->len,
-                       output, output_length);
+        TEST_MEMORY_COMPARE(expected_output->x, expected_output->len,
+                            output, output_length);
     }
 
 exit:
@@ -885,7 +885,7 @@ void cipher_entry_points(int alg_arg, int key_type_arg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_test_driver_cipher_hooks = mbedtls_test_driver_cipher_hooks_init();
 
-    ASSERT_ALLOC(output, input->len + 16);
+    TEST_CALLOC(output, input->len + 16);
     output_buffer_size = input->len + 16;
 
     PSA_ASSERT(psa_crypto_init());
@@ -1125,7 +1125,7 @@ void aead_encrypt(int key_type_arg, data_t *key_data,
                PSA_AEAD_ENCRYPT_OUTPUT_SIZE(key_type, alg, input_data->len));
     TEST_ASSERT(output_size <=
                 PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE(input_data->len));
-    ASSERT_ALLOC(output_data, output_size);
+    TEST_CALLOC(output_data, output_size);
 
     mbedtls_test_driver_aead_hooks.forced_status = forced_status;
     status = psa_aead_encrypt(key, alg,
@@ -1141,8 +1141,8 @@ void aead_encrypt(int key_type_arg, data_t *key_data,
                PSA_SUCCESS : forced_status);
 
     if (status == PSA_SUCCESS) {
-        ASSERT_COMPARE(expected_result->x, expected_result->len,
-                       output_data, output_length);
+        TEST_MEMORY_COMPARE(expected_result->x, expected_result->len,
+                            output_data, output_length);
     }
 
 exit:
@@ -1187,7 +1187,7 @@ void aead_decrypt(int key_type_arg, data_t *key_data,
 
     output_size = input_data->len - PSA_AEAD_TAG_LENGTH(key_type, key_bits,
                                                         alg);
-    ASSERT_ALLOC(output_data, output_size);
+    TEST_CALLOC(output_data, output_size);
 
     mbedtls_test_driver_aead_hooks.forced_status = forced_status;
     status = psa_aead_decrypt(key, alg,
@@ -1204,8 +1204,8 @@ void aead_decrypt(int key_type_arg, data_t *key_data,
                PSA_SUCCESS : forced_status);
 
     if (status == PSA_SUCCESS) {
-        ASSERT_COMPARE(expected_data->x, expected_data->len,
-                       output_data, output_length);
+        TEST_MEMORY_COMPARE(expected_data->x, expected_data->len,
+                            output_data, output_length);
     }
 
 exit:
@@ -1250,7 +1250,7 @@ void mac_sign(int key_type_arg,
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
                               &key));
 
-    ASSERT_ALLOC(actual_mac, mac_buffer_size);
+    TEST_CALLOC(actual_mac, mac_buffer_size);
     mbedtls_test_driver_mac_hooks.forced_status = forced_status;
 
     /*
@@ -1326,8 +1326,8 @@ void mac_sign(int key_type_arg,
     }
 
     if (forced_status == PSA_SUCCESS) {
-        ASSERT_COMPARE(expected_mac->x, expected_mac->len,
-                       actual_mac, mac_length);
+        TEST_MEMORY_COMPARE(expected_mac->x, expected_mac->len,
+                            actual_mac, mac_length);
     }
 
     mbedtls_free(actual_mac);
@@ -1470,15 +1470,15 @@ void builtin_key_export(int builtin_key_id_arg,
     psa_status_t actual_status;
 
     PSA_ASSERT(psa_crypto_init());
-    ASSERT_ALLOC(output_buffer, expected_output->len);
+    TEST_CALLOC(output_buffer, expected_output->len);
 
     actual_status = psa_export_key(key, output_buffer, expected_output->len, &output_size);
 
     if (expected_status == PSA_SUCCESS) {
         PSA_ASSERT(actual_status);
         TEST_EQUAL(output_size, expected_output->len);
-        ASSERT_COMPARE(output_buffer, output_size,
-                       expected_output->x, expected_output->len);
+        TEST_MEMORY_COMPARE(output_buffer, output_size,
+                            expected_output->x, expected_output->len);
 
         PSA_ASSERT(psa_get_key_attributes(key, &attributes));
         TEST_EQUAL(psa_get_key_bits(&attributes), builtin_key_bits);
@@ -1521,15 +1521,15 @@ void builtin_pubkey_export(int builtin_key_id_arg,
     psa_status_t actual_status;
 
     PSA_ASSERT(psa_crypto_init());
-    ASSERT_ALLOC(output_buffer, expected_output->len);
+    TEST_CALLOC(output_buffer, expected_output->len);
 
     actual_status = psa_export_public_key(key, output_buffer, expected_output->len, &output_size);
 
     if (expected_status == PSA_SUCCESS) {
         PSA_ASSERT(actual_status);
         TEST_EQUAL(output_size, expected_output->len);
-        ASSERT_COMPARE(output_buffer, output_size,
-                       expected_output->x, expected_output->len);
+        TEST_MEMORY_COMPARE(output_buffer, output_size,
+                            expected_output->x, expected_output->len);
 
         PSA_ASSERT(psa_get_key_attributes(key, &attributes));
         TEST_EQUAL(psa_get_key_bits(&attributes), builtin_key_bits);
@@ -1564,7 +1564,7 @@ void hash_compute(int alg_arg,
     mbedtls_test_driver_hash_hooks.forced_status = forced_status;
 
     PSA_ASSERT(psa_crypto_init());
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
+    TEST_CALLOC(output, PSA_HASH_LENGTH(alg));
 
     TEST_EQUAL(psa_hash_compute(alg, input->x, input->len,
                                 output, PSA_HASH_LENGTH(alg),
@@ -1573,7 +1573,7 @@ void hash_compute(int alg_arg,
     TEST_EQUAL(mbedtls_test_driver_hash_hooks.driver_status, forced_status);
 
     if (expected_status == PSA_SUCCESS) {
-        ASSERT_COMPARE(output, output_length, hash->x, hash->len);
+        TEST_MEMORY_COMPARE(output, output_length, hash->x, hash->len);
     }
 
 exit:
@@ -1597,7 +1597,7 @@ void hash_multipart_setup(int alg_arg,
     size_t output_length;
 
     mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
+    TEST_CALLOC(output, PSA_HASH_LENGTH(alg));
 
     PSA_ASSERT(psa_crypto_init());
 
@@ -1619,7 +1619,7 @@ void hash_multipart_setup(int alg_arg,
                    forced_status == PSA_ERROR_NOT_SUPPORTED ? 1 : 4);
         TEST_EQUAL(mbedtls_test_driver_hash_hooks.driver_status, forced_status);
 
-        ASSERT_COMPARE(output, output_length, hash->x, hash->len);
+        TEST_MEMORY_COMPARE(output, output_length, hash->x, hash->len);
     }
 
 exit:
@@ -1642,7 +1642,7 @@ void hash_multipart_update(int alg_arg,
     size_t output_length;
 
     mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
+    TEST_CALLOC(output, PSA_HASH_LENGTH(alg));
 
     PSA_ASSERT(psa_crypto_init());
 
@@ -1674,7 +1674,7 @@ void hash_multipart_update(int alg_arg,
         TEST_EQUAL(mbedtls_test_driver_hash_hooks.hits, 2);
         TEST_EQUAL(mbedtls_test_driver_hash_hooks.driver_status, PSA_SUCCESS);
 
-        ASSERT_COMPARE(output, output_length, hash->x, hash->len);
+        TEST_MEMORY_COMPARE(output, output_length, hash->x, hash->len);
     }
 
 exit:
@@ -1697,7 +1697,7 @@ void hash_multipart_finish(int alg_arg,
     size_t output_length;
 
     mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
+    TEST_CALLOC(output, PSA_HASH_LENGTH(alg));
 
     PSA_ASSERT(psa_crypto_init());
 
@@ -1727,7 +1727,7 @@ void hash_multipart_finish(int alg_arg,
     TEST_EQUAL(mbedtls_test_driver_hash_hooks.driver_status, forced_status);
 
     if (forced_status == PSA_SUCCESS) {
-        ASSERT_COMPARE(output, output_length, hash->x, hash->len);
+        TEST_MEMORY_COMPARE(output, output_length, hash->x, hash->len);
     }
 
 exit:
@@ -1751,7 +1751,7 @@ void hash_clone(int alg_arg,
     size_t output_length;
 
     mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
+    TEST_CALLOC(output, PSA_HASH_LENGTH(alg));
 
     PSA_ASSERT(psa_crypto_init());
 
@@ -1786,7 +1786,7 @@ void hash_clone(int alg_arg,
         TEST_EQUAL(mbedtls_test_driver_hash_hooks.hits, 3);
         TEST_EQUAL(mbedtls_test_driver_hash_hooks.driver_status, PSA_SUCCESS);
 
-        ASSERT_COMPARE(output, output_length, hash->x, hash->len);
+        TEST_MEMORY_COMPARE(output, output_length, hash->x, hash->len);
     }
 
 exit:

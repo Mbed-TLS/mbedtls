@@ -38,6 +38,11 @@ DNS.3=*.example.org
 [multiple_san]
 subjectAltName=@alt_names
 
+[ext_multi_nocn]
+basicConstraints = CA:false
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment
+subjectAltName = DNS:www.shotokan-braunschweig.de,DNS:www.massimo-abate.eu,IP:192.168.1.1,IP:192.168.69.144
+
 [hw_module_name]
 hwtype = OID:1.3.6.1.4.1.17.3
 hwserial = OCT:123456

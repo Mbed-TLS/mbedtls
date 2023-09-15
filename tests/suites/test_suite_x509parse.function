@@ -240,7 +240,7 @@ int verify_parse_san(mbedtls_x509_subject_alternative_name *san,
             MBEDTLS_X509_SAFE_SNPRINTF;
 
             if (MBEDTLS_OID_CMP(MBEDTLS_OID_ON_HW_MODULE_NAME,
-                                &san->san.other_name.value.hardware_module_name.oid) != 0) {
+                                &san->san.other_name.type_id) == 0) {
                 ret = mbedtls_snprintf(p, n, " hardware module name :");
                 MBEDTLS_X509_SAFE_SNPRINTF;
                 ret = mbedtls_snprintf(p, n, " hardware type : ");
@@ -564,7 +564,7 @@ void x509_verify_restart(char *crt_file, char *ca_file,
     /*
      * See comments on ecp_test_vect_restart() for op count precision.
      *
-     * For reference, with mbed TLS 2.6 and default settings:
+     * For reference, with Mbed TLS 2.6 and default settings:
      * - ecdsa_verify() for P-256:  ~  6700
      * - ecdsa_verify() for P-384:  ~ 18800
      * - x509_verify() for server5 -> test-ca2:             ~ 18800

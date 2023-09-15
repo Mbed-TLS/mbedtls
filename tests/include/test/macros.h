@@ -71,6 +71,16 @@
         }                                                    \
     } while (0)
 
+/** This macro asserts fails the test with given output message.
+ *
+ * \param   MESSAGE The message to be outputed on assertion
+ */
+#define TEST_FAIL(MESSAGE)                           \
+    do {                                                  \
+        mbedtls_test_fail(MESSAGE, __LINE__, __FILE__);   \
+        goto exit;                                        \
+    } while (0)
+
 /** Evaluate two integer expressions and fail the test case if they have
  * different values.
  *
@@ -117,52 +127,52 @@
  * The allocated memory will be filled with zeros.
  *
  * You must set \p pointer to \c NULL before calling this macro and
- * put `mbedtls_free( pointer )` in the test's cleanup code.
+ * put `mbedtls_free(pointer)` in the test's cleanup code.
  *
- * If \p length is zero, the resulting \p pointer will be \c NULL.
+ * If \p item_count is zero, the resulting \p pointer will be \c NULL.
  * This is usually what we want in tests since API functions are
  * supposed to accept null pointers when a buffer size is zero.
  *
  * This macro expands to an instruction, not an expression.
  * It may jump to the \c exit label.
  *
- * \param pointer   An lvalue where the address of the allocated buffer
- *                  will be stored.
- *                  This expression may be evaluated multiple times.
- * \param length    Number of elements to allocate.
- *                  This expression may be evaluated multiple times.
+ * \param pointer    An lvalue where the address of the allocated buffer
+ *                   will be stored.
+ *                   This expression may be evaluated multiple times.
+ * \param item_count Number of elements to allocate.
+ *                   This expression may be evaluated multiple times.
  *
  */
-#define ASSERT_ALLOC(pointer, length)                           \
-    do                                                            \
-    {                                                             \
-        TEST_ASSERT((pointer) == NULL);                       \
-        if ((length) != 0)                                     \
-        {                                                         \
-            (pointer) = mbedtls_calloc(sizeof(*(pointer)), \
-                                       (length));           \
-            TEST_ASSERT((pointer) != NULL);                   \
-        }                                                         \
-    }                                                             \
-    while (0)
+#define TEST_CALLOC(pointer, item_count)                    \
+    do {                                                    \
+        TEST_ASSERT((pointer) == NULL);                     \
+        if ((item_count) != 0) {                            \
+            (pointer) = mbedtls_calloc(sizeof(*(pointer)),  \
+                                       (item_count));       \
+            TEST_ASSERT((pointer) != NULL);                 \
+        }                                                   \
+    } while (0)
+
+/* For backwards compatibility */
+#define ASSERT_ALLOC(pointer, item_count) TEST_CALLOC(pointer, item_count)
 
 /** Allocate memory dynamically. If the allocation fails, skip the test case.
  *
- * This macro behaves like #ASSERT_ALLOC, except that if the allocation
+ * This macro behaves like #TEST_CALLOC, except that if the allocation
  * fails, it marks the test as skipped rather than failed.
  */
-#define ASSERT_ALLOC_WEAK(pointer, length)                      \
-    do                                                            \
-    {                                                             \
-        TEST_ASSERT((pointer) == NULL);                       \
-        if ((length) != 0)                                     \
-        {                                                         \
-            (pointer) = mbedtls_calloc(sizeof(*(pointer)), \
-                                       (length));           \
-            TEST_ASSUME((pointer) != NULL);                   \
-        }                                                         \
-    }                                                             \
-    while (0)
+#define TEST_CALLOC_OR_SKIP(pointer, item_count)            \
+    do {                                                    \
+        TEST_ASSERT((pointer) == NULL);                     \
+        if ((item_count) != 0) {                            \
+            (pointer) = mbedtls_calloc(sizeof(*(pointer)),  \
+                                       (item_count));       \
+            TEST_ASSUME((pointer) != NULL);                 \
+        }                                                   \
+    } while (0)
+
+/* For backwards compatibility */
+#define ASSERT_ALLOC_WEAK(pointer, item_count) TEST_CALLOC_OR_SKIP(pointer, item_count)
 
 /** Compare two buffers and fail the test case if they differ.
  *
@@ -176,14 +186,16 @@
  * \param size2     Size of the second buffer in bytes.
  *                  This expression may be evaluated multiple times.
  */
-#define ASSERT_COMPARE(p1, size1, p2, size2)                          \
-    do                                                                  \
-    {                                                                   \
+#define TEST_MEMORY_COMPARE(p1, size1, p2, size2)              \
+    do {                                                       \
         TEST_EQUAL((size1), (size2));                          \
-        if ((size1) != 0)                                            \
-        TEST_ASSERT(memcmp((p1), (p2), (size1)) == 0);    \
-    }                                                                   \
-    while (0)
+        if ((size1) != 0) {                                    \
+            TEST_ASSERT(memcmp((p1), (p2), (size1)) == 0);     \
+        }                                                      \
+    } while (0)
+
+/* For backwards compatibility */
+#define ASSERT_COMPARE(p1, size1, p2, size2) TEST_MEMORY_COMPARE(p1, size1, p2, size2)
 
 /**
  * \brief   This macro tests the expression passed to it and skips the

@@ -24,6 +24,11 @@
 #include <setjmp.h>
 #endif
 
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY)
+#include <psa/crypto.h>
+#include <test/psa_crypto_helpers.h>
+#endif
+
 /*----------------------------------------------------------------------------*/
 /* Static global variables */
 
@@ -52,9 +57,22 @@ mbedtls_test_info_t mbedtls_test_info;
 int mbedtls_test_platform_setup(void)
 {
     int ret = 0;
+
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY)
+    /* Make sure that injected entropy is present. Otherwise
+     * psa_crypto_init() will fail. This is not necessary for test suites
+     * that don't use PSA, but it's harmless (except for leaving a file
+     * behind). */
+    ret = mbedtls_test_inject_entropy_restore();
+    if (ret != 0) {
+        return ret;
+    }
+#endif
+
 #if defined(MBEDTLS_PLATFORM_C)
     ret = mbedtls_platform_setup(&platform_ctx);
 #endif /* MBEDTLS_PLATFORM_C */
+
     return ret;
 }
 

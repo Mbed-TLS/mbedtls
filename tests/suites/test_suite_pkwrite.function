@@ -58,7 +58,7 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
     }
     TEST_ASSERT(check_buf_len > 0);
 
-    ASSERT_ALLOC(buf, check_buf_len);
+    TEST_CALLOC(buf, check_buf_len);
 
     if (is_public_key) {
         TEST_EQUAL(mbedtls_pk_parse_public_keyfile(&key, key_file), 0);
@@ -94,7 +94,7 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
         start_buf = buf;
     }
 
-    ASSERT_COMPARE(start_buf, buf_len, check_buf, check_buf_len);
+    TEST_MEMORY_COMPARE(start_buf, buf_len, check_buf, check_buf_len);
 
 exit:
     mbedtls_free(buf);
@@ -145,16 +145,16 @@ void pk_write_public_from_private(char *priv_key_file, char *pub_key_file)
                                     &pub_key_len), 0);
 
     derived_key_len = pub_key_len;
-    ASSERT_ALLOC(derived_key_raw, derived_key_len);
+    TEST_CALLOC(derived_key_raw, derived_key_len);
 
     TEST_EQUAL(mbedtls_pk_write_pubkey_der(&priv_key, derived_key_raw,
                                            derived_key_len), pub_key_len);
 
-    ASSERT_COMPARE(derived_key_raw, derived_key_len,
-                   pub_key_raw, pub_key_len);
+    TEST_MEMORY_COMPARE(derived_key_raw, derived_key_len,
+                        pub_key_raw, pub_key_len);
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    mbedtls_platform_zeroize(derived_key_raw, sizeof(derived_key_raw));
+    mbedtls_platform_zeroize(derived_key_raw, derived_key_len);
 
     TEST_EQUAL(mbedtls_pk_wrap_as_opaque(&priv_key, &opaque_key_id,
                                          PSA_ALG_NONE), 0);
@@ -162,8 +162,8 @@ void pk_write_public_from_private(char *priv_key_file, char *pub_key_file)
     TEST_EQUAL(mbedtls_pk_write_pubkey_der(&priv_key, derived_key_raw,
                                            derived_key_len), pub_key_len);
 
-    ASSERT_COMPARE(derived_key_raw, derived_key_len,
-                   pub_key_raw, pub_key_len);
+    TEST_MEMORY_COMPARE(derived_key_raw, derived_key_len,
+                        pub_key_raw, pub_key_len);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 exit:

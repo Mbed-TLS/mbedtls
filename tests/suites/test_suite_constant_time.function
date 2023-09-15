@@ -23,8 +23,8 @@ void ssl_cf_memcpy_offset(int offset_min, int offset_max, int len)
     size_t src_len = offset_max + len;
     size_t secret;
 
-    ASSERT_ALLOC(dst, len);
-    ASSERT_ALLOC(src, src_len);
+    TEST_CALLOC(dst, len);
+    TEST_CALLOC(src, src_len);
 
     /* Fill src in a way that we can detect if we copied the right bytes */
     mbedtls_test_rnd_std_rand(NULL, src, src_len);
@@ -38,7 +38,7 @@ void ssl_cf_memcpy_offset(int offset_min, int offset_max, int len)
         TEST_CF_PUBLIC(&secret, sizeof(secret));
         TEST_CF_PUBLIC(dst, len);
 
-        ASSERT_COMPARE(dst, len, src + secret, len);
+        TEST_MEMORY_COMPARE(dst, len, src + secret, len);
     }
 
 exit:

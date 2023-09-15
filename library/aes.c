@@ -19,7 +19,7 @@
 /*
  *  The AES block cipher was designed by Vincent Rijmen and Joan Daemen.
  *
- *  http://csrc.nist.gov/encryption/aes/rijndael/Rijndael.pdf
+ *  https://csrc.nist.gov/csrc/media/projects/cryptographic-standards-and-guidelines/documents/aes-development/rijndael-ammended.pdf
  *  http://csrc.nist.gov/publications/fips/fips197/fips-197.pdf
  */
 

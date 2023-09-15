@@ -128,8 +128,38 @@ print_usage() {
     printf "            \tAlso available: GnuTLS (needs v3.2.15 or higher)\n"
     printf "  -M|--memcheck\tCheck memory leaks and errors.\n"
     printf "  -v|--verbose\tSet verbose output.\n"
+    printf "     --list-test-case\tList all potential test cases (No Execution)\n"
     printf "     --outcome-file\tFile where test outcomes are written\n"
     printf "                   \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
+}
+
+# print_test_case <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
+print_test_case() {
+    for i in $3; do
+        uniform_title $1 $2 $i
+        echo $TITLE
+    done
+}
+
+# list_test_case lists all potential test cases in compat.sh without execution
+list_test_case() {
+    for MODE in $MODES; do
+        for TYPE in $TYPES; do
+            for VERIFY in $VERIFIES; do
+                VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
+                reset_ciphersuites
+                add_common_ciphersuites
+                add_openssl_ciphersuites
+                add_gnutls_ciphersuites
+                add_mbedtls_ciphersuites
+                print_test_case m O "$O_CIPHERS"
+                print_test_case O m "$O_CIPHERS"
+                print_test_case m G "$G_CIPHERS"
+                print_test_case G m "$G_CIPHERS"
+                print_test_case m m "$M_CIPHERS"
+            done
+        done
+    done
 }
 
 get_options() {
@@ -158,6 +188,12 @@ get_options() {
                 ;;
             -M|--memcheck)
                 MEMCHECK=1
+                ;;
+            # Please check scripts/check_test_cases.py correspondingly
+            # if you have to modify option, --list-test-case
+            --list-test-case)
+                list_test_case
+                exit $?
                 ;;
             --outcome-file)
                 shift; MBEDTLS_TEST_OUTCOME_FILE=$1
@@ -240,7 +276,7 @@ filter_ciphersuites()
 {
     if [ "X" != "X$FILTER" -o "X" != "X$EXCLUDE" ];
     then
-        # Ciphersuite for mbed TLS
+        # Ciphersuite for Mbed TLS
         M_CIPHERS=$( filter "$M_CIPHERS" )
 
         # Ciphersuite for OpenSSL
@@ -250,7 +286,7 @@ filter_ciphersuites()
         G_CIPHERS=$( filter "$G_CIPHERS" )
     fi
 
-    # For GnuTLS client -> mbed TLS server,
+    # For GnuTLS client -> Mbed TLS server,
     # we need to force IPv4 by connecting to 127.0.0.1 but then auth fails
     if is_dtls "$MODE" && [ "X$VERIFY" = "XYES" ]; then
         G_CIPHERS=""
@@ -1199,15 +1235,21 @@ report_fail() {
     fi
 }
 
+# uniform_title <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
+# $TITLE is considered as test case description for both --list-test-case and
+# MBEDTLS_TEST_OUTCOME_FILE. This function aims to control the format of
+# each test case description.
+uniform_title() {
+    TITLE="$1->$2 $MODE,$VERIF $3"
+}
+
 # run_client <name> <cipher>
 run_client() {
     # announce what we're going to do
     TESTS=$(( $TESTS + 1 ))
-    TITLE="`echo $1 | head -c1`->`echo $SERVER_NAME | head -c1`"
-    TITLE="$TITLE $MODE,$VERIF $2"
-    printf "%s " "$TITLE"
-    LEN=$(( 72 - `echo "$TITLE" | wc -c` ))
-    for i in `seq 1 $LEN`; do printf '.'; done; printf ' '
+    uniform_title "${1%"${1#?}"}" "${SERVER_NAME%"${SERVER_NAME#?}"}" $2
+    DOTS72="........................................................................"
+    printf "%s %.*s " "$TITLE" "$((71 - ${#TITLE}))" "$DOTS72"
 
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then

@@ -915,7 +915,7 @@ void pk_sign_verify(int type, int parameter, int sign_ret, int verify_ret)
 #endif
 
     hash_len = mbedtls_md_get_size(mbedtls_md_info_from_type(md));
-    ASSERT_ALLOC(hash, hash_len);
+    TEST_CALLOC(hash, hash_len);
 
     mbedtls_pk_init(&pk);
     USE_PSA_INIT();

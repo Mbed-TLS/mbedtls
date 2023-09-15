@@ -1507,7 +1507,7 @@ void mpi_random_many(int min, data_t *bound_bytes, int iterations)
         full_stats = 0;
         stats_len = n_bits;
     }
-    ASSERT_ALLOC(stats, stats_len);
+    TEST_CALLOC(stats, stats_len);
 
     for (i = 0; i < (size_t) iterations; i++) {
         mbedtls_test_set_step(i);

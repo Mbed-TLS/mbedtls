@@ -17,8 +17,8 @@
 #
 # Purpose
 #
-# This script migrates application source code from the mbed TLS 1.3 API to the
-# mbed TLS 2.0 API.
+# This script migrates application source code from the Mbed TLS 1.3 API to the
+# Mbed TLS 2.0 API.
 #
 # The script processes the given source code and renames identifiers - functions
 # types, enums etc, as
@@ -88,7 +88,7 @@ while( my $filename = shift )
     if( dir($filename)->parent eq $lib_include_dir ||
          dir($filename)->parent eq $lib_source_dir )
     {
-        die "Script cannot be executed on the mbed TLS library itself.";
+        die "Script cannot be executed on the Mbed TLS library itself.";
     }
 
     if( -d $filename ) { print STDERR "skip (directory)\n"; next }

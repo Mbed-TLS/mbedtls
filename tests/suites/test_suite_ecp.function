@@ -489,7 +489,7 @@ void ecp_test_vect_restart(int id,
      * MBEDTLS_ECP_WINDOW_SIZE, as well as implementation details that may
      * change in the future. A factor 2 is a minimum safety margin.
      *
-     * For reference, with mbed TLS 2.4 and default settings, for P-256:
+     * For reference, with Mbed TLS 2.4 and default settings, for P-256:
      * - Random point mult:     ~3250M
      * - Cold base point mult:  ~3300M
      * - Hot base point mult:   ~1100M
@@ -852,8 +852,8 @@ void ecp_muladd(int id,
                    &len, actual_result, sizeof(actual_result)));
     TEST_ASSERT(len <= MBEDTLS_ECP_MAX_PT_LEN);
 
-    ASSERT_COMPARE(expected_result->x, expected_result->len,
-                   actual_result, len);
+    TEST_MEMORY_COMPARE(expected_result->x, expected_result->len,
+                        actual_result, len);
 
 exit:
     mbedtls_ecp_group_free(&grp);
@@ -1356,8 +1356,8 @@ void mbedtls_ecp_read_key(int grp_id, data_t *in_key, int expected, int canonica
             ret = mbedtls_ecp_write_key(&key, buf, in_key->len);
             TEST_ASSERT(ret == 0);
 
-            ASSERT_COMPARE(in_key->x, in_key->len,
-                           buf, in_key->len);
+            TEST_MEMORY_COMPARE(in_key->x, in_key->len,
+                                buf, in_key->len);
         } else {
             unsigned char export1[MBEDTLS_ECP_MAX_BYTES];
             unsigned char export2[MBEDTLS_ECP_MAX_BYTES];
@@ -1371,8 +1371,8 @@ void mbedtls_ecp_read_key(int grp_id, data_t *in_key, int expected, int canonica
             ret = mbedtls_ecp_write_key(&key2, export2, in_key->len);
             TEST_ASSERT(ret == 0);
 
-            ASSERT_COMPARE(export1, in_key->len,
-                           export2, in_key->len);
+            TEST_MEMORY_COMPARE(export1, in_key->len,
+                                export2, in_key->len);
         }
     }
 
@@ -1426,7 +1426,7 @@ void genkey_mx_known_answer(int bits, data_t *seed, data_t *expected)
     rnd_info.fallback_f_rng = NULL;
     rnd_info.fallback_p_rng = NULL;
 
-    ASSERT_ALLOC(actual, expected->len);
+    TEST_CALLOC(actual, expected->len);
 
     ret = mbedtls_ecp_gen_privkey_mx(bits, &d,
                                      mbedtls_test_rnd_buffer_rand, &rnd_info);
@@ -1448,8 +1448,8 @@ void genkey_mx_known_answer(int bits, data_t *seed, data_t *expected)
          *   (can be enforced by checking these bits).
          * - Other bits must be random (by testing with different RNG outputs,
          *   we validate that those bits are indeed influenced by the RNG). */
-        ASSERT_COMPARE(expected->x, expected->len,
-                       actual, expected->len);
+        TEST_MEMORY_COMPARE(expected->x, expected->len,
+                            actual, expected->len);
     }
 
 exit:

@@ -1,6 +1,6 @@
 Features
    * New configuration option MBEDTLS_CPU_HAS_FEATURES_ALT and
      `mbedtls_cpu_has_features()` introduced. Runtime detection code in AES
-     CPU accerlerator modules are moved into `mbedtls_cpu_has_features()`. The
-     function will be replaced with extenal function when
+     CPU accelerator modules are moved into `mbedtls_cpu_has_features()`. The
+     function will be replaced with external function when
      MBEDTLS_CPU_HAS_FEATURES_ALT is enabled.

@@ -1830,25 +1830,11 @@
  * This feature is experimental, not completed and thus not ready for
  * production.
  *
+ * \note The maximum amount of early data can be set with
+ *       MBEDTLS_SSL_MAX_EARLY_DATA_SIZE.
+ *
  */
 //#define MBEDTLS_SSL_EARLY_DATA
-
-/**
- * \def MBEDTLS_SSL_MAX_EARLY_DATA_SIZE
- *
- * The default maximum amount of 0-RTT data. See the documentation of
- * \c mbedtls_ssl_tls13_conf_max_early_data_size() for more information.
- *
- * It must be positive and smaller than UINT32_MAX.
- *
- * If MBEDTLS_SSL_EARLY_DATA is not defined, this default value does not
- * have any impact on the build.
- *
- * This feature is experimental, not completed and thus not ready for
- * production.
- *
- */
-#define MBEDTLS_SSL_MAX_EARLY_DATA_SIZE        1024
 
 /**
  * \def MBEDTLS_SSL_PROTO_DTLS
@@ -4039,6 +4025,23 @@
  * The value below is only an example, not the default.
  */
 //#define MBEDTLS_SSL_CIPHERSUITES MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+
+/**
+ * \def MBEDTLS_SSL_MAX_EARLY_DATA_SIZE
+ *
+ * The default maximum amount of 0-RTT data. See the documentation of
+ * \c mbedtls_ssl_tls13_conf_max_early_data_size() for more information.
+ *
+ * It must be positive and smaller than UINT32_MAX.
+ *
+ * If MBEDTLS_SSL_EARLY_DATA is not defined, this default value does not
+ * have any impact on the build.
+ *
+ * This feature is experimental, not completed and thus not ready for
+ * production.
+ *
+ */
+//#define MBEDTLS_SSL_MAX_EARLY_DATA_SIZE        1024
 
 /**
  * \def MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE

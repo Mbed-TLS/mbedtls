@@ -33,7 +33,7 @@
 #define MBEDTLS_HAVE_ASM
 #define MBEDTLS_HAVE_TIME
 
-/* mbed TLS feature support */
+/* Mbed TLS feature support */
 #define MBEDTLS_CIPHER_MODE_CBC
 #define MBEDTLS_CIPHER_PADDING_PKCS7
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
@@ -47,7 +47,7 @@
 #define MBEDTLS_SELF_TEST
 #define MBEDTLS_VERSION_FEATURES
 
-/* mbed TLS modules */
+/* Mbed TLS modules */
 #define MBEDTLS_AES_C
 #define MBEDTLS_ASN1_PARSE_C
 #define MBEDTLS_ASN1_WRITE_C

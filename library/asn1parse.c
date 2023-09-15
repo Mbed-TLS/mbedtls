@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_ASN1_PARSE_C)
+#if defined(MBEDTLS_ASN1_PARSE_C) || defined(MBEDTLS_X509_CREATE_C)
 
 #include "mbedtls/asn1.h"
 #include "mbedtls/platform_util.h"
@@ -114,7 +114,9 @@ int mbedtls_asn1_get_tag(unsigned char **p,
 
     return mbedtls_asn1_get_len(p, end, len);
 }
+#endif /* MBEDTLS_ASN1_PARSE_C || MBEDTLS_X509_CREATE_C */
 
+#if defined(MBEDTLS_ASN1_PARSE_C)
 int mbedtls_asn1_get_bool(unsigned char **p,
                           const unsigned char *end,
                           int *val)

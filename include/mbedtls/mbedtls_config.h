@@ -1672,6 +1672,8 @@
  * it has been associated with security issues in the past and is easy to
  * misuse/misunderstand.
  *
+ * Requires: MBEDTLS_SSL_PROTO_TLS1_2
+ *
  * Comment this to disable support for renegotiation.
  *
  * \note   Even if this option is disabled, both client and server are aware

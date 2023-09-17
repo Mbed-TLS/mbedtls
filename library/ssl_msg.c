@@ -1504,7 +1504,8 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
 
     int auth_done = 0;
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
-    size_t padlen = 0, correct = 1;
+    size_t padlen = 0;
+    mbedtls_ct_condition_t correct = MBEDTLS_CT_TRUE;
 #endif
     unsigned char *data;
     /* For an explanation of the additional data length see
@@ -1921,7 +1922,7 @@ hmac_failed_etm_enabled:
             const mbedtls_ct_condition_t ge = mbedtls_ct_uint_ge(
                 rec->data_len,
                 padlen + 1);
-            correct = mbedtls_ct_size_if_else_0(ge, correct);
+            correct = mbedtls_ct_bool_and(ge, correct);
             padlen  = mbedtls_ct_size_if_else_0(ge, padlen);
         } else {
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
@@ -1937,7 +1938,7 @@ hmac_failed_etm_enabled:
             const mbedtls_ct_condition_t ge = mbedtls_ct_uint_ge(
                 rec->data_len,
                 transform->maclen + padlen + 1);
-            correct = mbedtls_ct_size_if_else_0(ge, correct);
+            correct = mbedtls_ct_bool_and(ge, correct);
             padlen  = mbedtls_ct_size_if_else_0(ge, padlen);
         }
 
@@ -1973,14 +1974,14 @@ hmac_failed_etm_enabled:
             increment = mbedtls_ct_size_if_else_0(b, increment);
             pad_count += increment;
         }
-        correct = mbedtls_ct_size_if_else_0(mbedtls_ct_uint_eq(pad_count, padlen), padlen);
+        correct = mbedtls_ct_bool_and(mbedtls_ct_uint_eq(pad_count, padlen), correct);
 
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
-        if (padlen > 0 && correct == 0) {
+        if (padlen > 0 && correct == MBEDTLS_CT_FALSE) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("bad padding byte detected"));
         }
 #endif
-        padlen = mbedtls_ct_size_if_else_0(mbedtls_ct_bool(correct), padlen);
+        padlen = mbedtls_ct_size_if_else_0(correct, padlen);
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
@@ -2075,7 +2076,7 @@ hmac_failed_etm_enabled:
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
             MBEDTLS_SSL_DEBUG_MSG(1, ("message mac does not match"));
 #endif
-            correct = 0;
+            correct = MBEDTLS_CT_FALSE;
         }
         auth_done++;
 
@@ -2090,7 +2091,7 @@ hmac_failed_etm_disabled:
     /*
      * Finally check the correct flag
      */
-    if (correct == 0) {
+    if (correct == MBEDTLS_CT_FALSE) {
         return MBEDTLS_ERR_SSL_INVALID_MAC;
     }
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */

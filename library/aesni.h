@@ -32,16 +32,8 @@
 #define MBEDTLS_AESNI_AES      0x02000000u
 #define MBEDTLS_AESNI_CLMUL    0x00000002u
 
-/* Can we do AESNI with inline assembly?
- * (Only implemented with gas syntax, only for 64-bit.)
- */
-#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) && \
-    (defined(__amd64__) || defined(__x86_64__))   &&  \
-    !defined(MBEDTLS_HAVE_X86_64)
-#define MBEDTLS_HAVE_X86_64
-#endif
-
-#if defined(MBEDTLS_AESNI_C)
+#if defined(MBEDTLS_AESNI_C) && \
+    (defined(MBEDTLS_ARCH_IS_X64) || defined(MBEDTLS_ARCH_IS_X86))
 
 /* Can we do AESNI with intrinsics?
  * (Only implemented with certain compilers, only for certain targets.)
@@ -67,8 +59,16 @@
  * In the long run, we will likely remove the assembly implementation. */
 #if defined(MBEDTLS_AESNI_HAVE_INTRINSICS)
 #define MBEDTLS_AESNI_HAVE_CODE 2 // via intrinsics
-#elif defined(MBEDTLS_HAVE_X86_64)
+#elif defined(MBEDTLS_HAVE_ASM) && \
+    defined(__GNUC__) && defined(MBEDTLS_ARCH_IS_X64)
+/* Can we do AESNI with inline assembly?
+ * (Only implemented with gas syntax, only for 64-bit.)
+ */
 #define MBEDTLS_AESNI_HAVE_CODE 1 // via assembly
+#elif defined(__GNUC__)
+#   error "Must use `-mpclmul -msse2 -maes` for MBEDTLS_AESNI_C"
+#else
+#error "MBEDTLS_AESNI_C defined, but neither intrinsics nor assembly available"
 #endif
 
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
@@ -88,7 +88,11 @@ extern "C" {
  *
  * \return         1 if CPU has support for the feature, 0 otherwise
  */
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 int mbedtls_aesni_has_support(unsigned int what);
+#else
+#define mbedtls_aesni_has_support(what) 1
+#endif
 
 /**
  * \brief          Internal AES-NI AES-ECB block encryption and decryption

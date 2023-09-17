@@ -1,0 +1,4 @@
+Changes
+   * Use heap memory to allocate DER encoded RSA private key.
+     This reduces stack usage significantly for RSA signature
+     operations when MBEDTLS_PSA_CRYPTO_C is defined.

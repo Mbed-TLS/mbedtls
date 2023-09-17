@@ -35,7 +35,7 @@ static int test_read_residue(mbedtls_mpi_mod_residue *r,
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_BIGNUM_C
+ * depends_on:MBEDTLS_BIGNUM_C:MBEDTLS_ECP_WITH_MPI_UINT
  * END_DEPENDENCIES
  */
 
@@ -737,5 +737,6 @@ exit:
     mbedtls_free(R);
     mbedtls_free(R_COPY);
     mbedtls_free(obuf);
+    mbedtls_free(ref_buf);
 }
 /* END_CASE */

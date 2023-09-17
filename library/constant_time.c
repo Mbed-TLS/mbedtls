@@ -30,8 +30,6 @@
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 
-#include "../tests/include/test/constant_flow.h"
-
 #include <string.h>
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
@@ -84,7 +82,7 @@ static inline uint32_t mbedtls_get_unaligned_volatile_uint32(volatile const unsi
 #elif defined(MBEDTLS_CT_AARCH64_ASM)
     asm volatile ("ldr %w0, [%1]" : "=r" (r) : MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT(p) :);
 #else
-#error No assembly defined for mbedtls_get_unaligned_volatile_uint32
+#error "No assembly defined for mbedtls_get_unaligned_volatile_uint32"
 #endif
     return r;
 }
@@ -152,8 +150,13 @@ void mbedtls_ct_memcpy_if(mbedtls_ct_condition_t condition,
                           const unsigned char *src2,
                           size_t len)
 {
+#if defined(MBEDTLS_CT_SIZE_64)
+    const uint64_t mask     = (uint64_t) condition;
+    const uint64_t not_mask = (uint64_t) ~mbedtls_ct_compiler_opaque(condition);
+#else
     const uint32_t mask     = (uint32_t) condition;
     const uint32_t not_mask = (uint32_t) ~mbedtls_ct_compiler_opaque(condition);
+#endif
 
     /* If src2 is NULL, setup src2 so that we read from the destination address.
      *
@@ -167,11 +170,19 @@ void mbedtls_ct_memcpy_if(mbedtls_ct_condition_t condition,
     /* dest[i] = c1 == c2 ? src[i] : dest[i] */
     size_t i = 0;
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
+#if defined(MBEDTLS_CT_SIZE_64)
+    for (; (i + 8) <= len; i += 8) {
+        uint64_t a = mbedtls_get_unaligned_uint64(src1 + i) & mask;
+        uint64_t b = mbedtls_get_unaligned_uint64(src2 + i) & not_mask;
+        mbedtls_put_unaligned_uint64(dest + i, a | b);
+    }
+#else
     for (; (i + 4) <= len; i += 4) {
         uint32_t a = mbedtls_get_unaligned_uint32(src1 + i) & mask;
         uint32_t b = mbedtls_get_unaligned_uint32(src2 + i) & not_mask;
         mbedtls_put_unaligned_uint32(dest + i, a | b);
     }
+#endif /* defined(MBEDTLS_CT_SIZE_64) */
 #endif /* MBEDTLS_EFFICIENT_UNALIGNED_ACCESS */
     for (; i < len; i++) {
         dest[i] = (src1[i] & mask) | (src2[i] & not_mask);

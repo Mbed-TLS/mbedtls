@@ -51,7 +51,7 @@ lcov_library_report () {
     lcov --rc lcov_branch_coverage=1 --add-tracefile Coverage/tmp/files.info --add-tracefile Coverage/tmp/tests.info -o Coverage/tmp/all.info
     lcov --rc lcov_branch_coverage=1 --remove Coverage/tmp/all.info -o Coverage/tmp/final.info '*.h'
     gendesc tests/Descriptions.txt -o Coverage/tmp/descriptions
-    genhtml --title "mbed TLS" --description-file Coverage/tmp/descriptions --keep-descriptions --legend --branch-coverage -o Coverage Coverage/tmp/final.info
+    genhtml --title "Mbed TLS" --description-file Coverage/tmp/descriptions --keep-descriptions --legend --branch-coverage -o Coverage Coverage/tmp/final.info
     rm -f Coverage/tmp/*.info Coverage/tmp/descriptions
     echo "Coverage report in: Coverage/index.html"
 }

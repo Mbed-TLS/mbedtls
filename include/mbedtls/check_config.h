@@ -30,7 +30,7 @@
  */
 #include <limits.h>
 #if CHAR_BIT != 8
-#error "mbed TLS requires a platform with 8-bit chars"
+#error "Mbed TLS requires a platform with 8-bit chars"
 #endif
 
 #include <stdint.h>
@@ -410,10 +410,6 @@
 
 #if defined(MBEDTLS_MEMORY_DEBUG) && !defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #error "MBEDTLS_MEMORY_DEBUG defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_PADLOCK_C) && !defined(MBEDTLS_HAVE_ASM)
-#error "MBEDTLS_PADLOCK_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_PEM_PARSE_C) && !defined(MBEDTLS_BASE64_C)
@@ -834,10 +830,10 @@
 #endif
 
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_SRV_C) && \
-    ( !defined(MBEDTLS_SSL_MAX_EARLY_DATA_SIZE)     || \
-      ( MBEDTLS_SSL_MAX_EARLY_DATA_SIZE < 0 )       || \
-      ( MBEDTLS_SSL_MAX_EARLY_DATA_SIZE > UINT32_MAX ) )
-#error "MBEDTLS_SSL_MAX_EARLY_DATA_SIZE MUST be defined and in range(0..UINT32_MAX)"
+    defined(MBEDTLS_SSL_MAX_EARLY_DATA_SIZE) &&                      \
+        ((MBEDTLS_SSL_MAX_EARLY_DATA_SIZE < 0) ||                    \
+         (MBEDTLS_SSL_MAX_EARLY_DATA_SIZE > UINT32_MAX))
+#error "MBEDTLS_SSL_MAX_EARLY_DATA_SIZE must be in the range(0..UINT32_MAX)"
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)     && \

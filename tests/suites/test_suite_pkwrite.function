@@ -194,7 +194,7 @@ void pk_write_public_from_private(char *priv_key_file, char *pub_key_file)
                         pub_key_raw, pub_key_len);
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    mbedtls_platform_zeroize(derived_key_raw, sizeof(derived_key_raw));
+    mbedtls_platform_zeroize(derived_key_raw, derived_key_len);
 
     TEST_EQUAL(mbedtls_pk_wrap_as_opaque(&priv_key, &opaque_key_id,
                                          PSA_ALG_NONE, PSA_KEY_USAGE_EXPORT,

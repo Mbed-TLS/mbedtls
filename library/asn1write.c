@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_ASN1_WRITE_C)
+#if defined(MBEDTLS_ASN1_WRITE_C) || defined(MBEDTLS_X509_USE_C)
 
 #include "mbedtls/asn1write.h"
 #include "mbedtls/error.h"
@@ -102,7 +102,9 @@ int mbedtls_asn1_write_tag(unsigned char **p, const unsigned char *start, unsign
 
     return 1;
 }
+#endif /* MBEDTLS_ASN1_WRITE_C || MBEDTLS_X509_USE_C */
 
+#if defined(MBEDTLS_ASN1_WRITE_C)
 int mbedtls_asn1_write_raw_buffer(unsigned char **p, const unsigned char *start,
                                   const unsigned char *buf, size_t size)
 {

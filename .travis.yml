@@ -32,6 +32,10 @@ jobs:
           packages:
           - clang-10
           - gnutls-bin
+      env:
+        # Platform tests have an allocation that returns null
+        - ASAN_OPTIONS="allocator_may_return_null=1"
+        - MSAN_OPTIONS="allocator_may_return_null=1"
       script:
         # Do a manual build+test sequence rather than using all.sh,
         # because there's no all.sh component that does what we want,
@@ -89,6 +93,10 @@ jobs:
         apt:
           packages:
           - gcc
+      env:
+        # Platform tests have an allocation that returns null
+        - ASAN_OPTIONS="allocator_may_return_null=1"
+        - MSAN_OPTIONS="allocator_may_return_null=1"
       script:
         # Do a manual build+test sequence rather than using all.sh.
         #
@@ -115,6 +123,10 @@ jobs:
           packages:
           - clang
           - gnutls-bin
+      env:
+        # Platform tests have an allocation that returns null
+        - ASAN_OPTIONS="allocator_may_return_null=1"
+        - MSAN_OPTIONS="allocator_may_return_null=1"
       script:
         # Do a manual build+test sequence rather than using all.sh.
         #
@@ -129,13 +141,37 @@ jobs:
         - tests/scripts/travis-log-failure.sh
         - tests/context-info.sh
 
+    - name: Arm64 accelerators tests on arm64 host
+      os: linux
+      dist: focal
+      arch: arm64
+      addons:
+        apt:
+          packages:
+          - gcc
+      script:
+        # Do a manual build+test sequence rather than using all.sh.
+        #
+        # This is arm64 host only test for no runtime detection case. Internal
+        # and Open CI do not include Arm64 host, and they check if components
+        # are be tested. As result, it will always fail on `pre-test-check` in
+        # them.
+        - scripts/config.py unset MBEDTLS_AESNI_C
+        - scripts/config.py unset MBEDTLS_PADLOCK_C
+        - scripts/config.py set MBEDTLS_AESCE_C
+        - scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
+        - make generated_files
+        - make
+        - programs/test/selftest aes | grep "using AESCE"
+        - tests/context-info.sh
+
 after_failure:
 - tests/scripts/travis-log-failure.sh
 
 env:
   global:
     - SEED=1
-    - secure: "JECCru6HASpKZ0OLfHh8f/KXhKkdrCwjquZghd/qbA4ksxsWImjR7KEPERcaPndXEilzhDbKwuFvJiQX2duVgTGoq745YGhLZIjzo1i8tySkceCVd48P8WceYGz+F/bmY7r+m6fFNuxDSoGGSVeA4Lnjvmm8PFUP45YodDV9no4="
+    - secure: "GF/Fde5fkm15T/RNykrjrPV5Uh1KJ70cP308igL6Xkk3eJmqkkmWCe9JqRH12J3TeWw2fu9PYPHt6iFSg6jasgqysfUyg+W03knRT5QNn3h5eHgt36cQJiJr6t3whPrRaiM6U9omE0evm+c0cAwlkA3GGSMw8Z+na4EnKI6OFCo="
 
 install:
   - $PYTHON scripts/min_requirements.py

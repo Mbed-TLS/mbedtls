@@ -1599,7 +1599,7 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
 cleanup:
     FindClose(hFind);
 #else /* !_WIN32_WINNT_XP */
-#error mbedtls_x509_crt_parse_path not available before Windows XP
+#error "mbedtls_x509_crt_parse_path not available before Windows XP"
 #endif /* !_WIN32_WINNT_XP */
 #else /* _WIN32 */
     int t_ret;
@@ -2754,8 +2754,8 @@ static int x509_inet_pton_ipv6(const char *src, void *dst)
             p++;
         }
         if (num_digits != 0) {
-            addr[nonzero_groups++] = MBEDTLS_IS_BIG_ENDIAN ? group :
-                                     (group << 8) | (group >> 8);
+            MBEDTLS_PUT_UINT16_BE(group, addr, nonzero_groups);
+            nonzero_groups++;
             if (*p == '\0') {
                 break;
             } else if (*p == '.') {

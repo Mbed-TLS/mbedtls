@@ -1,7 +1,7 @@
-option(USE_STATIC_MBEDTLS_LIBRARY "Build mbed TLS static library." ON)
-option(USE_SHARED_MBEDTLS_LIBRARY "Build mbed TLS shared library." OFF)
-option(LINK_WITH_PTHREAD "Explicitly link mbed TLS library to pthread." OFF)
-option(LINK_WITH_TRUSTED_STORAGE "Explicitly link mbed TLS library to trusted_storage." OFF)
+option(USE_STATIC_MBEDTLS_LIBRARY "Build Mbed TLS static library." ON)
+option(USE_SHARED_MBEDTLS_LIBRARY "Build Mbed TLS shared library." OFF)
+option(LINK_WITH_PTHREAD "Explicitly link Mbed TLS library to pthread." OFF)
+option(LINK_WITH_TRUSTED_STORAGE "Explicitly link Mbed TLS library to trusted_storage." OFF)
 
 # Set the project root directory if it's not already defined, as may happen if
 # the library folder is included directly by a parent project, without
@@ -99,6 +99,7 @@ set(src_x509
     x509_crl.c
     x509_crt.c
     x509_csr.c
+    x509write.c
     x509write_crt.c
     x509write_csr.c
 )

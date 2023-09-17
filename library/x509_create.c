@@ -28,6 +28,10 @@
 
 #include <string.h>
 
+#include "mbedtls/platform.h"
+
+#include "mbedtls/asn1.h"
+
 /* Structure linking OIDs for X.509 DN AttributeTypes to their
  * string representations and default string encodings used by Mbed TLS. */
 typedef struct {
@@ -35,7 +39,8 @@ typedef struct {
                        * "CN" or "emailAddress". */
     size_t name_len; /* Length of 'name', without trailing 0 byte. */
     const char *oid; /* String representation of OID of AttributeType,
-                      * as per RFC 5280, Appendix A.1. */
+                      * as per RFC 5280, Appendix A.1. encoded as per
+                      * X.690 */
     int default_tag; /* The default character encoding used for the
                       * given attribute type, e.g.
                       * MBEDTLS_ASN1_UTF8_STRING for UTF-8. */
@@ -123,79 +128,200 @@ static const x509_attr_descriptor_t *x509_attr_descr_from_name(const char *name,
     return cur;
 }
 
+static int hex_to_int(char c)
+{
+    return ('0' <= c && c <= '9') ? (c - '0') :
+           ('a' <= c && c <= 'f') ? (c - 'a' + 10) :
+           ('A' <= c && c <= 'F') ? (c - 'A' + 10) : -1;
+}
+
+static int hexpair_to_int(const char *hexpair)
+{
+    int n1 = hex_to_int(*hexpair);
+    int n2 = hex_to_int(*(hexpair + 1));
+
+    if (n1 != -1 && n2 != -1) {
+        return (n1 << 4) | n2;
+    } else {
+        return -1;
+    }
+}
+
+static int parse_attribute_value_string(const char *s,
+                                        int len,
+                                        unsigned char *data,
+                                        size_t *data_len)
+{
+    const char *c;
+    const char *end = s + len;
+    unsigned char *d = data;
+    int n;
+
+    for (c = s; c < end; c++) {
+        if (*c == '\\') {
+            c++;
+
+            /* Check for valid escaped characters as per RFC 4514 Section 3 */
+            if (c + 1 < end && (n = hexpair_to_int(c)) != -1) {
+                if (n == 0) {
+                    return MBEDTLS_ERR_X509_INVALID_NAME;
+                }
+                *(d++) = n;
+                c++;
+            } else if (c < end && strchr(" ,=+<>#;\"\\", *c)) {
+                *(d++) = *c;
+            } else {
+                return MBEDTLS_ERR_X509_INVALID_NAME;
+            }
+        } else {
+            *(d++) = *c;
+        }
+
+        if (d - data == MBEDTLS_X509_MAX_DN_NAME_SIZE) {
+            return MBEDTLS_ERR_X509_INVALID_NAME;
+        }
+    }
+    *data_len = d - data;
+    return 0;
+}
+
+static int parse_attribute_value_der_encoded(const char *s,
+                                             int len,
+                                             unsigned char *data,
+                                             size_t *data_len,
+                                             int *tag)
+{
+    const char *c = s;
+    const char *end = c + len;
+    unsigned char asn1_der_buf[MBEDTLS_X509_MAX_DN_NAME_SIZE];
+    unsigned char *asn1_der_end;
+    unsigned char *p;
+    unsigned char *d = data;
+    int n;
+
+    /* Converting from hexstring to raw binary so we can use asn1parse.c */
+    if ((len < 5) || (*c != '#')) {
+        return MBEDTLS_ERR_X509_INVALID_NAME;
+    }
+    c++;
+    if ((*tag = hexpair_to_int(c)) == -1) {
+        return MBEDTLS_ERR_X509_INVALID_NAME;
+    }
+    c += 2;
+    p = asn1_der_buf;
+    for (p = asn1_der_buf; c < end; c += 2) {
+        if ((c + 1 >= end) || (n = hexpair_to_int(c)) == -1) {
+            return MBEDTLS_ERR_X509_INVALID_NAME;
+        }
+        if (MBEDTLS_ASN1_IS_STRING_TAG(*tag) && n == 0) {
+            return MBEDTLS_ERR_X509_INVALID_NAME;
+        }
+        *(p++) = n;
+    }
+    asn1_der_end = p;
+
+    p = asn1_der_buf;
+    if (mbedtls_asn1_get_len(&p, asn1_der_end, data_len) != 0) {
+        return MBEDTLS_ERR_X509_INVALID_NAME;
+    }
+
+    while (p < asn1_der_end) {
+        *(d++) = *(p++);
+    }
+
+    return 0;
+}
+
 int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *name)
 {
     int ret = MBEDTLS_ERR_X509_INVALID_NAME;
+    int parse_ret = 0;
     const char *s = name, *c = s;
     const char *end = s + strlen(s);
-    const char *oid = NULL;
+    mbedtls_asn1_buf oid = { .p = NULL, .len = 0, .tag = MBEDTLS_ASN1_NULL };
     const x509_attr_descriptor_t *attr_descr = NULL;
-    int in_tag = 1;
-    char data[MBEDTLS_X509_MAX_DN_NAME_SIZE];
-    char *d = data;
+    int in_attr_type = 1;
+    int tag;
+    int numericoid = 0;
+    unsigned char data[MBEDTLS_X509_MAX_DN_NAME_SIZE];
+    size_t data_len = 0;
 
     /* Clear existing chain if present */
     mbedtls_asn1_free_named_data_list(head);
 
     while (c <= end) {
-        if (in_tag && *c == '=') {
+        if (in_attr_type && *c == '=') {
             if ((attr_descr = x509_attr_descr_from_name(s, c - s)) == NULL) {
-                ret = MBEDTLS_ERR_X509_UNKNOWN_OID;
-                goto exit;
+                if ((mbedtls_oid_from_numeric_string(&oid, s, c - s)) != 0) {
+                    return MBEDTLS_ERR_X509_INVALID_NAME;
+                } else {
+                    numericoid = 1;
+                }
+            } else {
+                oid.len = strlen(attr_descr->oid);
+                oid.p = mbedtls_calloc(1, oid.len);
+                memcpy(oid.p, attr_descr->oid, oid.len);
+                numericoid = 0;
             }
 
-            oid = attr_descr->oid;
             s = c + 1;
-            in_tag = 0;
-            d = data;
+            in_attr_type = 0;
         }
 
-        if (!in_tag && *c == '\\' && c != end) {
-            c++;
-
-            /* Check for valid escaped characters */
-            if (c == end || *c != ',') {
-                ret = MBEDTLS_ERR_X509_INVALID_NAME;
-                goto exit;
+        if (!in_attr_type && ((*c == ',' && *(c-1) != '\\') || c == end)) {
+            if (s == c) {
+                mbedtls_free(oid.p);
+                return MBEDTLS_ERR_X509_INVALID_NAME;
+            } else if (*s == '#') {
+                if ((parse_ret =
+                         parse_attribute_value_der_encoded(s, (int) (c - s), data, &data_len,
+                                                           &tag)) != 0) {
+                    mbedtls_free(oid.p);
+                    return MBEDTLS_ERR_X509_INVALID_NAME;
+                }
+            } else {
+                if (numericoid) {
+                    mbedtls_free(oid.p);
+                    return MBEDTLS_ERR_X509_INVALID_NAME;
+                } else {
+                    if ((parse_ret =
+                             parse_attribute_value_string(s, (int) (c - s), data,
+                                                          &data_len)) != 0) {
+                        mbedtls_free(oid.p);
+                        return parse_ret;
+                    }
+                    tag = attr_descr->default_tag;
+                }
             }
-        } else if (!in_tag && (*c == ',' || c == end)) {
-            mbedtls_asn1_named_data *cur =
-                mbedtls_asn1_store_named_data(head, oid, strlen(oid),
-                                              (unsigned char *) data,
-                                              d - data);
 
+            mbedtls_asn1_named_data *cur =
+                mbedtls_asn1_store_named_data(head, (char *) oid.p, oid.len,
+                                              (unsigned char *) data,
+                                              data_len);
+            mbedtls_free(oid.p);
+            oid.p = NULL;
             if (cur == NULL) {
                 return MBEDTLS_ERR_X509_ALLOC_FAILED;
             }
 
             // set tagType
-            cur->val.tag = attr_descr->default_tag;
+            cur->val.tag = tag;
 
             while (c < end && *(c + 1) == ' ') {
                 c++;
             }
 
             s = c + 1;
-            in_tag = 1;
+            in_attr_type = 1;
 
             /* Successfully parsed one name, update ret to success */
             ret = 0;
         }
-
-        if (!in_tag && s != c + 1) {
-            *(d++) = *c;
-
-            if (d - data == MBEDTLS_X509_MAX_DN_NAME_SIZE) {
-                ret = MBEDTLS_ERR_X509_INVALID_NAME;
-                goto exit;
-            }
-        }
-
         c++;
     }
-
-exit:
-
+    if (oid.p != NULL) {
+        mbedtls_free(oid.p);
+    }
     return ret;
 }
 

@@ -203,7 +203,7 @@ int mbedtls_sha3_starts(mbedtls_sha3_context *ctx, mbedtls_sha3_id id)
         }
     }
 
-    if (p == NULL || p->id == MBEDTLS_SHA3_NONE) {
+    if (p->id == MBEDTLS_SHA3_NONE) {
         return MBEDTLS_ERR_SHA3_BAD_INPUT_DATA;
     }
 
@@ -264,10 +264,13 @@ int mbedtls_sha3_update(mbedtls_sha3_context *ctx,
 int mbedtls_sha3_finish(mbedtls_sha3_context *ctx,
                         uint8_t *output, size_t olen)
 {
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
     /* Catch SHA-3 families, with fixed output length */
     if (ctx->olen > 0) {
         if (ctx->olen > olen) {
-            return MBEDTLS_ERR_SHA3_BAD_INPUT_DATA;
+            ret = MBEDTLS_ERR_SHA3_BAD_INPUT_DATA;
+            goto exit;
         }
         olen = ctx->olen;
     }
@@ -293,7 +296,11 @@ int mbedtls_sha3_finish(mbedtls_sha3_context *ctx,
         }
     }
 
-    return 0;
+    ret = 0;
+
+exit:
+    mbedtls_sha3_free(ctx);
+    return ret;
 }
 
 /*

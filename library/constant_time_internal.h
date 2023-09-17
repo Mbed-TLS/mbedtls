@@ -47,7 +47,7 @@
  *   These are all named mbedtls_ct_<type>_if and mbedtls_ct_<type>_if_else_0
  *   All arguments are considered secret.
  *   example: size_t a = x ? b : c    =>    a = mbedtls_ct_size_if(x, b, c)
- *   example: unsigned a = x ? b : 0  =>    a = mbedtls_ct_uint__if_else_0(x, b)
+ *   example: unsigned a = x ? b : 0  =>    a = mbedtls_ct_uint_if_else_0(x, b)
  *
  * - block memory operations
  *   Only some arguments are considered secret, as documented for each
@@ -85,12 +85,14 @@ typedef ptrdiff_t mbedtls_ct_int_t;
 typedef uint64_t  mbedtls_ct_condition_t;
 typedef uint64_t  mbedtls_ct_uint_t;
 typedef int64_t   mbedtls_ct_int_t;
+#define MBEDTLS_CT_SIZE_64
 #define MBEDTLS_CT_TRUE  ((mbedtls_ct_condition_t) mbedtls_ct_compiler_opaque(UINT64_MAX))
 #else
 /* Pointer size <= 32-bit, and no 64-bit MPIs */
 typedef uint32_t  mbedtls_ct_condition_t;
 typedef uint32_t  mbedtls_ct_uint_t;
 typedef int32_t   mbedtls_ct_int_t;
+#define MBEDTLS_CT_SIZE_32
 #define MBEDTLS_CT_TRUE  ((mbedtls_ct_condition_t) mbedtls_ct_compiler_opaque(UINT32_MAX))
 #endif
 #define MBEDTLS_CT_FALSE ((mbedtls_ct_condition_t) mbedtls_ct_compiler_opaque(0))
@@ -453,8 +455,8 @@ void mbedtls_ct_memcpy_if(mbedtls_ct_condition_t condition,
  *
  * memcpy(dst, src + offset, len)
  *
- * This function copies \p len bytes from \p src_base + \p offset to \p
- * dst, with a code flow and memory access pattern that does not depend on
+ * This function copies \p len bytes from \p src + \p offset to
+ * \p dst, with a code flow and memory access pattern that does not depend on
  * \p offset, but only on \p offset_min, \p offset_max and \p len.
  *
  * \note                This function reads from \p dest, but the value that

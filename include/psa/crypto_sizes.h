@@ -125,26 +125,41 @@
  * This macro expands to a compile-time constant integer. This value
  * is the maximum size of a hash in bytes.
  */
-/* Note: for HMAC-SHA-3, the block size is 144 bytes for HMAC-SHA3-226,
+/* Note: for HMAC-SHA-3, the block size is 144 bytes for HMAC-SHA3-224,
  * 136 bytes for HMAC-SHA3-256, 104 bytes for SHA3-384, 72 bytes for
  * HMAC-SHA3-512. */
 /* Note: PSA_HASH_MAX_SIZE should be kept in sync with MBEDTLS_MD_MAX_SIZE,
  * see the note on MBEDTLS_MD_MAX_SIZE for details. */
-#if defined(PSA_WANT_ALG_SHA_512)
-#define PSA_HASH_MAX_SIZE 64
+#if defined(PSA_WANT_ALG_SHA3_224)
+#define PSA_HMAC_MAX_HASH_BLOCK_SIZE 144
+#elif defined(PSA_WANT_ALG_SHA3_256)
+#define PSA_HMAC_MAX_HASH_BLOCK_SIZE 136
+#elif defined(PSA_WANT_ALG_SHA_512)
 #define PSA_HMAC_MAX_HASH_BLOCK_SIZE 128
 #elif defined(PSA_WANT_ALG_SHA_384)
-#define PSA_HASH_MAX_SIZE 48
 #define PSA_HMAC_MAX_HASH_BLOCK_SIZE 128
+#elif defined(PSA_WANT_ALG_SHA3_384)
+#define PSA_HMAC_MAX_HASH_BLOCK_SIZE 104
+#elif defined(PSA_WANT_ALG_SHA3_512)
+#define PSA_HMAC_MAX_HASH_BLOCK_SIZE 72
 #elif defined(PSA_WANT_ALG_SHA_256)
-#define PSA_HASH_MAX_SIZE 32
 #define PSA_HMAC_MAX_HASH_BLOCK_SIZE 64
 #elif defined(PSA_WANT_ALG_SHA_224)
-#define PSA_HASH_MAX_SIZE 28
 #define PSA_HMAC_MAX_HASH_BLOCK_SIZE 64
 #else /* SHA-1 or smaller */
-#define PSA_HASH_MAX_SIZE 20
 #define PSA_HMAC_MAX_HASH_BLOCK_SIZE 64
+#endif
+
+#if defined(PSA_WANT_ALG_SHA_512) || defined(PSA_WANT_ALG_SHA3_512)
+#define PSA_HASH_MAX_SIZE 64
+#elif defined(PSA_WANT_ALG_SHA_384) || defined(PSA_WANT_ALG_SHA3_384)
+#define PSA_HASH_MAX_SIZE 48
+#elif defined(PSA_WANT_ALG_SHA_256) || defined(PSA_WANT_ALG_SHA3_256)
+#define PSA_HASH_MAX_SIZE 32
+#elif defined(PSA_WANT_ALG_SHA_224) || defined(PSA_WANT_ALG_SHA3_224)
+#define PSA_HASH_MAX_SIZE 28
+#else /* SHA-1 or smaller */
+#define PSA_HASH_MAX_SIZE 20
 #endif
 
 /** \def PSA_MAC_MAX_SIZE

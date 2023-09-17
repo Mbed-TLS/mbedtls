@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_BIGNUM_C)
+#if defined(MBEDTLS_BIGNUM_C) && defined(MBEDTLS_ECP_WITH_MPI_UINT)
 
 #include <string.h>
 
@@ -403,4 +403,4 @@ cleanup:
     return ret;
 }
 
-#endif /* MBEDTLS_BIGNUM_C */
+#endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ECP_WITH_MPI_UINT */

@@ -1,6 +1,7 @@
 /* BEGIN_HEADER */
 
 #include <stdint.h>
+#include "psa/crypto.h"
 
 /* END_HEADER */
 
@@ -30,6 +31,52 @@ void hash_finish(int alg_arg, data_t *input, data_t *expected_hash)
 
 exit:
     psa_hash_abort(&operation);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void hmac(int alg_arg, char *input, data_t *expected_mac)
+{
+    psa_algorithm_t alg = PSA_ALG_HMAC(alg_arg);
+
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = PSA_KEY_TYPE_HMAC;
+    const uint8_t key_data[] = { // 32 bytes of 0xaa
+        0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
+        0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
+        0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa
+    };
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    PSA_ASSERT(psa_crypto_init());
+
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_MESSAGE | PSA_KEY_USAGE_VERIFY_MESSAGE);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_type(&attributes, key_type);
+    PSA_ASSERT(psa_import_key(&attributes, key_data, sizeof(key_data), &key));
+
+    uint8_t mac[PSA_MAC_MAX_SIZE + 10] = { 0 };
+    size_t mac_length = 0;
+
+    size_t input_len = strlen(input);
+    PSA_ASSERT(psa_mac_compute(key, alg, (uint8_t const *) input, input_len, mac, sizeof(mac),
+                               &mac_length));
+
+    // manual comparison against expected MAC
+    ASSERT_COMPARE(expected_mac->x, expected_mac->len, mac, mac_length);
+
+    // use psa_mac_verify to compare to expected MAC
+    PSA_ASSERT(psa_mac_verify(key, alg, (uint8_t const *) input, input_len, expected_mac->x,
+                              expected_mac->len));
+
+    // corrupt the MAC and check that psa_mac_verify fails
+    expected_mac->x[0] ^= 0x7f;
+    TEST_EQUAL(psa_mac_verify(key, alg, (uint8_t const *) input, input_len, expected_mac->x,
+                              expected_mac->len), PSA_ERROR_INVALID_SIGNATURE);
+
+    PSA_ASSERT(psa_destroy_key(key));
+exit:
     PSA_DONE();
 }
 /* END_CASE */

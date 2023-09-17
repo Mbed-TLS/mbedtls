@@ -192,7 +192,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_WITH_MPI_UINT */
 void mpi_mod_random_values(int min, char *max_hex, int rep)
 {
     /* Same RNG as in mpi_core_random_basic */
@@ -403,7 +403,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_WITH_MPI_UINT */
 void mpi_mod_random_validation(int min, char *bound_hex,
                                int result_limbs_delta,
                                int expected_ret)

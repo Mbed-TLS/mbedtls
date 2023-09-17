@@ -176,9 +176,12 @@ void sha3_invalid_param()
     TEST_EQUAL(mbedtls_sha3_starts(&ctx, MBEDTLS_SHA3_NONE), MBEDTLS_ERR_SHA3_BAD_INPUT_DATA);
 
     TEST_EQUAL(mbedtls_sha3_starts(&ctx, MBEDTLS_SHA3_256), 0);
-
     TEST_EQUAL(mbedtls_sha3_finish(&ctx, output, 0), MBEDTLS_ERR_SHA3_BAD_INPUT_DATA);
+
+    TEST_EQUAL(mbedtls_sha3_starts(&ctx, MBEDTLS_SHA3_256), 0);
     TEST_EQUAL(mbedtls_sha3_finish(&ctx, output, 31), MBEDTLS_ERR_SHA3_BAD_INPUT_DATA);
+
+    TEST_EQUAL(mbedtls_sha3_starts(&ctx, MBEDTLS_SHA3_256), 0);
     TEST_EQUAL(mbedtls_sha3_finish(&ctx, output, 32), 0);
 
 exit:

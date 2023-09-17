@@ -1,4 +1,4 @@
 Site: localhost
-BuildName: mbed TLS-test
+BuildName: Mbed TLS-test
 CoverageCommand: /usr/bin/gcov
 MemoryCheckCommand: /usr/bin/valgrind

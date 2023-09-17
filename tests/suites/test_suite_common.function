@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include "../library/common.h"
+#include "common.h"
 
 void fill_arrays(unsigned char *a, unsigned char *b, unsigned char *r1, unsigned char *r2, size_t n)
 {

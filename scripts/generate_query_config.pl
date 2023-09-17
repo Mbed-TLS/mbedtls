@@ -7,15 +7,16 @@
 # form (if any). This facilitates querying the compile time configuration of
 # the library, for example, for testing.
 #
-# The query_config.c is generated from the current configuration at
-# include/mbedtls/mbedtls_config.h. The idea is that the mbedtls_config.h contains ALL the
+# The query_config.c is generated from the default configuration files
+# include/mbedtls/mbedtls_config.h and include/psa/crypto_config.h.
+# The idea is that mbedtls_config.h and crypto_config.h contain ALL the
 # compile time configurations available in Mbed TLS (commented or uncommented).
-# This script extracts the configuration macros from the mbedtls_config.h and this
+# This script extracts the configuration macros from the two files and this
 # information is used to automatically generate the body of the query_config()
 # function by using the template in scripts/data_files/query_config.fmt.
 #
 # Usage: scripts/generate_query_config.pl without arguments, or
-# generate_query_config.pl mbedtls_config_file template_file output_file [psa_crypto_config_file]
+# generate_query_config.pl mbedtls_config_file psa_crypto_config_file template_file output_file
 #
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0
@@ -34,29 +35,25 @@
 
 use strict;
 
-my ($mbedtls_config_file, $query_config_format_file, $query_config_file, $psa_crypto_config_file);
+my ($mbedtls_config_file, $psa_crypto_config_file, $query_config_format_file, $query_config_file);
 
 my $default_mbedtls_config_file = "./include/mbedtls/mbedtls_config.h";
+my $default_psa_crypto_config_file = "./include/psa/crypto_config.h";
 my $default_query_config_format_file = "./scripts/data_files/query_config.fmt";
 my $default_query_config_file = "./programs/test/query_config.c";
-my $default_psa_crypto_config_file = "./include/psa/crypto_config.h";
 
 if( @ARGV ) {
-    die "Invalid number of arguments - usage: $0 [CONFIG_FILE TEMPLATE_FILE OUTPUT_FILE]" if scalar @ARGV != 3;
-    ($mbedtls_config_file, $query_config_format_file, $query_config_file) = @ARGV;
+    die "Invalid number of arguments - usage: $0 [MBED_TLS_CONFIG_FILE PSA_CRYPTO_CONFIG_FILE TEMPLATE_FILE OUTPUT_FILE]" if scalar @ARGV != 4;
+    ($mbedtls_config_file, $psa_crypto_config_file, $query_config_format_file, $query_config_file) = @ARGV;
 
     -f $mbedtls_config_file or die "No such file: $mbedtls_config_file";
+    -f $psa_crypto_config_file or die "No such file: $psa_crypto_config_file";
     -f $query_config_format_file or die "No such file: $query_config_format_file";
-    if (defined($psa_crypto_config_file) && length($psa_crypto_config_file)) {
-        -f $psa_crypto_config_file or die "No such file: $psa_crypto_config_file";
-    } else {
-        $psa_crypto_config_file = (-f $default_psa_crypto_config_file) ? $default_psa_crypto_config_file : undef;
-    }
 } else {
     $mbedtls_config_file = $default_mbedtls_config_file;
+    $psa_crypto_config_file = $default_psa_crypto_config_file;
     $query_config_format_file = $default_query_config_format_file;
     $query_config_file = $default_query_config_file;
-    $psa_crypto_config_file = $default_psa_crypto_config_file;
 
     unless(-f $mbedtls_config_file && -f $query_config_format_file  && -f $psa_crypto_config_file) {
         chdir '..' or die;

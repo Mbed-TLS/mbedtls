@@ -77,7 +77,8 @@ extern "C" {
 typedef struct mbedtls_ccm_context {
     unsigned char MBEDTLS_PRIVATE(y)[16];    /*!< The Y working buffer */
     unsigned char MBEDTLS_PRIVATE(ctr)[16];  /*!< The counter buffer */
-    mbedtls_cipher_context_t MBEDTLS_PRIVATE(cipher_ctx);    /*!< The cipher context used. */
+    int MBEDTLS_PRIVATE(state);              /*!< Working value holding context's
+                                                  state. Used for chunked data input */
     size_t MBEDTLS_PRIVATE(plaintext_len);   /*!< Total plaintext length */
     size_t MBEDTLS_PRIVATE(add_len);         /*!< Total authentication data length */
     size_t MBEDTLS_PRIVATE(tag_len);         /*!< Total tag length */
@@ -87,15 +88,13 @@ typedef struct mbedtls_ccm_context {
                                                   and plaintext/ciphertext.
                                                   This variable is set to zero after
                                                   auth data input is finished. */
-    unsigned char MBEDTLS_PRIVATE(q);        /*!< The Q working value */
-    unsigned char MBEDTLS_PRIVATE(mode);     /*!< The operation to perform:
+    unsigned int MBEDTLS_PRIVATE(q);         /*!< The Q working value */
+    unsigned int MBEDTLS_PRIVATE(mode);      /*!< The operation to perform:
                                               #MBEDTLS_CCM_ENCRYPT or
                                               #MBEDTLS_CCM_DECRYPT or
                                               #MBEDTLS_CCM_STAR_ENCRYPT or
                                               #MBEDTLS_CCM_STAR_DECRYPT. */
-    int MBEDTLS_PRIVATE(state);              /*!< Working value holding context's
-                                                  state. Used for chunked data
-                                                  input */
+    mbedtls_cipher_context_t MBEDTLS_PRIVATE(cipher_ctx);    /*!< The cipher context used. */
 }
 mbedtls_ccm_context;
 

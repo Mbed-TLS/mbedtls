@@ -34,14 +34,14 @@ cmake_policy(SET CMP0011 NEW)
 cmake_policy(SET CMP0012 NEW)
 
 if(TEST_CPP)
-    project("mbed TLS" LANGUAGES C CXX)
+    project("Mbed TLS" LANGUAGES C CXX)
 else()
-    project("mbed TLS" LANGUAGES C)
+    project("Mbed TLS" LANGUAGES C)
 endif()
 
 include(GNUInstallDirs)
 
-# Determine if mbed TLS is being built as a subproject using add_subdirectory()
+# Determine if Mbed TLS is being built as a subproject using add_subdirectory()
 if(NOT DEFINED MBEDTLS_AS_SUBPROJECT)
   set(MBEDTLS_AS_SUBPROJECT ON)
   if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -52,7 +52,7 @@ endif()
 # Set the project root directory.
 set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
-option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
+option(ENABLE_PROGRAMS "Build Mbed TLS programs." ON)
 
 option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)
 option(MBEDTLS_FATAL_WARNINGS "Compiler warnings treated as errors" ON)
@@ -71,9 +71,9 @@ string(REGEX MATCH "MSVC" CMAKE_COMPILER_IS_MSVC "${CMAKE_C_COMPILER_ID}")
 
 # the test suites currently have compile errors with MSVC
 if(CMAKE_COMPILER_IS_MSVC)
-    option(ENABLE_TESTING "Build mbed TLS tests." OFF)
+    option(ENABLE_TESTING "Build Mbed TLS tests." OFF)
 else()
-    option(ENABLE_TESTING "Build mbed TLS tests." ON)
+    option(ENABLE_TESTING "Build Mbed TLS tests." ON)
 endif()
 
 # Warning string - created as a list for compatibility with CMake 2.8

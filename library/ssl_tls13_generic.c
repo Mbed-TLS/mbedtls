@@ -837,6 +837,8 @@ int mbedtls_ssl_tls13_process_certificate(mbedtls_ssl_context *ssl)
                              ssl, MBEDTLS_SSL_HS_CERTIFICATE, buf, buf_len));
 
 cleanup:
+#else /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
+    (void) ssl;
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("<= parse certificate"));

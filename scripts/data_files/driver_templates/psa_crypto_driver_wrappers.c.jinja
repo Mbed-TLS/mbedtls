@@ -32,6 +32,7 @@
 #include "psa_crypto_rsa.h"
 
 #include "mbedtls/platform.h"
+#include "mbedtls/constant_time.h"
 /* END-common headers */
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
@@ -2253,7 +2254,7 @@ psa_status_t psa_driver_wrapper_aead_verify(
                 if( status == PSA_SUCCESS )
                 {
                     if( tag_length != check_tag_length ||
-                        mbedtls_psa_safer_memcmp( tag, check_tag, tag_length )
+                        mbedtls_ct_memcmp( tag, check_tag, tag_length )
                         != 0 )
                         status = PSA_ERROR_INVALID_SIGNATURE;
                 }

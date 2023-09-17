@@ -31,7 +31,7 @@
 
 /** Generate SECP256R1 ECC Key Pair.
  *  Interface function which calls the p256-m key generation function and
- *  places it in the key buffer provided by the caller (mbed TLS) in the
+ *  places it in the key buffer provided by the caller (Mbed TLS) in the
  *  correct format. For a SECP256R1 curve this is the 32 bit private key.
  *
  * \param[in]  attributes           The attributes of the key to use for the

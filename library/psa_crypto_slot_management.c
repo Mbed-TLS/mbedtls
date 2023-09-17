@@ -38,7 +38,7 @@
 
 typedef struct {
     psa_key_slot_t key_slots[MBEDTLS_PSA_KEY_SLOT_COUNT];
-    unsigned key_slots_initialized : 1;
+    uint8_t key_slots_initialized;
 } psa_global_data_t;
 
 static psa_global_data_t global_data;

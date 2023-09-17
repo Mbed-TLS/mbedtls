@@ -78,6 +78,8 @@ void pkcs7_verify(char *pkcs7_file,
 
     MD_OR_USE_PSA_INIT();
 
+    mbedtls_pkcs7_init(&pkcs7);
+
     /* crt_files are space seprated list */
     for (i = 0; i < strlen(crt_files); i++) {
         if (crt_files[i] == ' ') {
@@ -100,7 +102,6 @@ void pkcs7_verify(char *pkcs7_file,
         i = k;
     }
 
-    mbedtls_pkcs7_init(&pkcs7);
     for (i = 0; i < n_crts; i++) {
         TEST_CALLOC(crts[i], 1);
         mbedtls_x509_crt_init(crts[i]);

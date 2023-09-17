@@ -87,12 +87,17 @@
 #define PSA_WANT_ALG_SHA_256                    1
 #define PSA_WANT_ALG_SHA_384                    1
 #define PSA_WANT_ALG_SHA_512                    1
+#define PSA_WANT_ALG_SHA3_224                   1
+#define PSA_WANT_ALG_SHA3_256                   1
+#define PSA_WANT_ALG_SHA3_384                   1
+#define PSA_WANT_ALG_SHA3_512                   1
 #define PSA_WANT_ALG_STREAM_CIPHER              1
 #define PSA_WANT_ALG_TLS12_PRF                  1
 #define PSA_WANT_ALG_TLS12_PSK_TO_MS            1
 #define PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS       1
 
-/* Note: when adding support, also adjust include/mbedtls/config_psa.h */
+/* XTS is not yet supported via the PSA API in Mbed TLS.
+ * Note: when adding support, also adjust include/mbedtls/config_psa.h */
 //#define PSA_WANT_ALG_XTS                        1
 
 #define PSA_WANT_ECC_BRAINPOOL_P_R1_256         1

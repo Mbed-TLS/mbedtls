@@ -4578,13 +4578,14 @@ static int ssl_context_load(mbedtls_ssl_context *ssl,
      * We can't check that the config matches the initial one, but we can at
      * least check it matches the requirements for serializing.
      */
-    if (ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM ||
-        ssl->conf->max_tls_version < MBEDTLS_SSL_VERSION_TLS1_2 ||
-        ssl->conf->min_tls_version > MBEDTLS_SSL_VERSION_TLS1_2 ||
+    if (
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
         ssl->conf->disable_renegotiation != MBEDTLS_SSL_RENEGOTIATION_DISABLED ||
 #endif
-        0) {
+        ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM ||
+        ssl->conf->max_tls_version < MBEDTLS_SSL_VERSION_TLS1_2 ||
+        ssl->conf->min_tls_version > MBEDTLS_SSL_VERSION_TLS1_2
+        ) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
@@ -7722,7 +7723,7 @@ static int ssl_calc_finished_tls_generic(mbedtls_ssl_context *ssl, void *ctx,
 
     MBEDTLS_SSL_DEBUG_BUF(3, "calc finished result", buf, len);
 
-    mbedtls_platform_zeroize(padbuf, sizeof(padbuf));
+    mbedtls_platform_zeroize(padbuf, hlen);
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("<= calc finished"));
 

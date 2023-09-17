@@ -175,7 +175,7 @@ mbedtls_ecp_point;
 
 #if !defined(MBEDTLS_ECP_ALT)
 /*
- * default mbed TLS elliptic curve arithmetic implementation
+ * default Mbed TLS elliptic curve arithmetic implementation
  *
  * (in case MBEDTLS_ECP_ALT is defined then the developer has to provide an
  * alternative implementation for the whole module and it will replace this

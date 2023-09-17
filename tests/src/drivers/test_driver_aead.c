@@ -25,6 +25,8 @@
 
 #include "test/drivers/aead.h"
 
+#include "mbedtls/constant_time.h"
+
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
 #include "libtestdriver1/library/psa_crypto_aead.h"
 #endif
@@ -431,7 +433,7 @@ psa_status_t mbedtls_test_transparent_aead_verify(
 
         if (mbedtls_test_driver_aead_hooks.driver_status == PSA_SUCCESS) {
             if (tag_length != check_tag_length ||
-                mbedtls_psa_safer_memcmp(tag, check_tag, tag_length)
+                mbedtls_ct_memcmp(tag, check_tag, tag_length)
                 != 0) {
                 mbedtls_test_driver_aead_hooks.driver_status =
                     PSA_ERROR_INVALID_SIGNATURE;

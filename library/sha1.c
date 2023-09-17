@@ -322,7 +322,7 @@ int mbedtls_sha1_finish(mbedtls_sha1_context *ctx,
         memset(ctx->buffer + used, 0, 64 - used);
 
         if ((ret = mbedtls_internal_sha1_process(ctx, ctx->buffer)) != 0) {
-            return ret;
+            goto exit;
         }
 
         memset(ctx->buffer, 0, 56);
@@ -339,7 +339,7 @@ int mbedtls_sha1_finish(mbedtls_sha1_context *ctx,
     MBEDTLS_PUT_UINT32_BE(low,  ctx->buffer, 60);
 
     if ((ret = mbedtls_internal_sha1_process(ctx, ctx->buffer)) != 0) {
-        return ret;
+        goto exit;
     }
 
     /*
@@ -351,7 +351,11 @@ int mbedtls_sha1_finish(mbedtls_sha1_context *ctx,
     MBEDTLS_PUT_UINT32_BE(ctx->state[3], output, 12);
     MBEDTLS_PUT_UINT32_BE(ctx->state[4], output, 16);
 
-    return 0;
+    ret = 0;
+
+exit:
+    mbedtls_sha1_free(ctx);
+    return ret;
 }
 
 #endif /* !MBEDTLS_SHA1_ALT */
@@ -382,7 +386,6 @@ int mbedtls_sha1(const unsigned char *input,
 
 exit:
     mbedtls_sha1_free(&ctx);
-
     return ret;
 }
 

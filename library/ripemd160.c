@@ -356,12 +356,12 @@ int mbedtls_ripemd160_finish(mbedtls_ripemd160_context *ctx,
 
     ret = mbedtls_ripemd160_update(ctx, ripemd160_padding, padn);
     if (ret != 0) {
-        return ret;
+        goto exit;
     }
 
     ret = mbedtls_ripemd160_update(ctx, msglen, 8);
     if (ret != 0) {
-        return ret;
+        goto exit;
     }
 
     MBEDTLS_PUT_UINT32_LE(ctx->state[0], output,  0);
@@ -370,7 +370,11 @@ int mbedtls_ripemd160_finish(mbedtls_ripemd160_context *ctx,
     MBEDTLS_PUT_UINT32_LE(ctx->state[3], output, 12);
     MBEDTLS_PUT_UINT32_LE(ctx->state[4], output, 16);
 
-    return 0;
+    ret = 0;
+
+exit:
+    mbedtls_ripemd160_free(ctx);
+    return ret;
 }
 
 #endif /* ! MBEDTLS_RIPEMD160_ALT */

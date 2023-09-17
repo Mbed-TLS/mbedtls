@@ -77,38 +77,17 @@ size_t mbedtls_mpi_core_bitlen(const mbedtls_mpi_uint *A, size_t A_limbs)
     return 0;
 }
 
-/* Convert a big-endian byte array aligned to the size of mbedtls_mpi_uint
- * into the storage form used by mbedtls_mpi. */
-static mbedtls_mpi_uint mpi_bigendian_to_host_c(mbedtls_mpi_uint a)
-{
-    uint8_t i;
-    unsigned char *a_ptr;
-    mbedtls_mpi_uint tmp = 0;
-
-    for (i = 0, a_ptr = (unsigned char *) &a; i < ciL; i++, a_ptr++) {
-        tmp <<= CHAR_BIT;
-        tmp |= (mbedtls_mpi_uint) *a_ptr;
-    }
-
-    return tmp;
-}
-
 static mbedtls_mpi_uint mpi_bigendian_to_host(mbedtls_mpi_uint a)
 {
     if (MBEDTLS_IS_BIG_ENDIAN) {
         /* Nothing to do on bigendian systems. */
         return a;
     } else {
-        switch (sizeof(mbedtls_mpi_uint)) {
-            case 4:
-                return (mbedtls_mpi_uint) MBEDTLS_BSWAP32((uint32_t) a);
-            case 8:
-                return (mbedtls_mpi_uint) MBEDTLS_BSWAP64((uint64_t) a);
-        }
-
-        /* Fall back to C-based reordering if we don't know the byte order
-         * or we couldn't use a compiler-specific builtin. */
-        return mpi_bigendian_to_host_c(a);
+#if defined(MBEDTLS_HAVE_INT32)
+        return (mbedtls_mpi_uint) MBEDTLS_BSWAP32(a);
+#elif defined(MBEDTLS_HAVE_INT64)
+        return (mbedtls_mpi_uint) MBEDTLS_BSWAP64(a);
+#endif
     }
 }
 

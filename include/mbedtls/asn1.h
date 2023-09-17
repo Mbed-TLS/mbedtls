@@ -96,15 +96,14 @@
 
 /* Slightly smaller way to check if tag is a string tag
  * compared to canonical implementation. */
-#define MBEDTLS_ASN1_IS_STRING_TAG(tag)                                     \
-    ((tag) < 32u && (                                                      \
+#define MBEDTLS_ASN1_IS_STRING_TAG(tag)                                \
+    ((unsigned int) (tag) < 32u && (                                   \
          ((1u << (tag)) & ((1u << MBEDTLS_ASN1_BMP_STRING)       |     \
                            (1u << MBEDTLS_ASN1_UTF8_STRING)      |     \
                            (1u << MBEDTLS_ASN1_T61_STRING)       |     \
                            (1u << MBEDTLS_ASN1_IA5_STRING)       |     \
                            (1u << MBEDTLS_ASN1_UNIVERSAL_STRING) |     \
-                           (1u << MBEDTLS_ASN1_PRINTABLE_STRING) |     \
-                           (1u << MBEDTLS_ASN1_BIT_STRING))) != 0))
+                           (1u << MBEDTLS_ASN1_PRINTABLE_STRING))) != 0))
 
 /*
  * Bit masks for each of the components of an ASN.1 tag as specified in
@@ -210,6 +209,7 @@ typedef struct mbedtls_asn1_named_data {
 }
 mbedtls_asn1_named_data;
 
+#if defined(MBEDTLS_ASN1_PARSE_C) || defined(MBEDTLS_X509_CREATE_C)
 /**
  * \brief       Get the length of an ASN.1 element.
  *              Updates the pointer to immediately behind the length.
@@ -256,7 +256,9 @@ int mbedtls_asn1_get_len(unsigned char **p,
 int mbedtls_asn1_get_tag(unsigned char **p,
                          const unsigned char *end,
                          size_t *len, int tag);
+#endif /* MBEDTLS_ASN1_PARSE_C || MBEDTLS_X509_CREATE_C */
 
+#if defined(MBEDTLS_ASN1_PARSE_C)
 /**
  * \brief       Retrieve a boolean ASN.1 tag and its value.
  *              Updates the pointer to immediately behind the full tag.
@@ -645,5 +647,7 @@ void mbedtls_asn1_free_named_data_list_shallow(mbedtls_asn1_named_data *name);
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* MBEDTLS_ASN1_PARSE_C */
 
 #endif /* asn1.h */

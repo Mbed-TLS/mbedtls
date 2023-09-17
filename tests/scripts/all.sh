@@ -123,15 +123,27 @@ set -e -o pipefail -u
 # Enable ksh/bash extended file matching patterns
 shopt -s extglob
 
+in_mbedtls_repo () {
+    test -d include -a -d library -a -d programs -a -d tests
+}
+
+in_psa_crypto_repo () {
+    test -d include -a -d core -a -d drivers -a -d programs -a -d tests
+}
+
 pre_check_environment () {
-    if [ -d library -a -d include -a -d tests ]; then :; else
-        echo "Must be run from mbed TLS root" >&2
+    if in_mbedtls_repo || in_psa_crypto_repo; then :; else
+        echo "Must be run from Mbed TLS / psa-crypto root" >&2
         exit 1
     fi
 }
 
 pre_initialize_variables () {
-    CONFIG_H='include/mbedtls/mbedtls_config.h'
+    if in_mbedtls_repo; then
+        CONFIG_H='include/mbedtls/mbedtls_config.h'
+    else
+        CONFIG_H='drivers/builtin/include/mbedtls/mbedtls_config.h'
+    fi
     CRYPTO_CONFIG_H='include/psa/crypto_config.h'
     CONFIG_TEST_DRIVER_H='tests/include/test/drivers/config_test_driver.h'
 
@@ -141,8 +153,10 @@ pre_initialize_variables () {
     backup_suffix='.all.bak'
     # Files clobbered by config.py
     files_to_back_up="$CONFIG_H $CRYPTO_CONFIG_H $CONFIG_TEST_DRIVER_H"
-    # Files clobbered by in-tree cmake
-    files_to_back_up="$files_to_back_up Makefile library/Makefile programs/Makefile tests/Makefile programs/fuzz/Makefile"
+    if in_mbedtls_repo; then
+        # Files clobbered by in-tree cmake
+        files_to_back_up="$files_to_back_up Makefile library/Makefile programs/Makefile tests/Makefile programs/fuzz/Makefile"
+    fi
 
     append_outcome=0
     MEMORY=0
@@ -191,6 +205,10 @@ pre_initialize_variables () {
     # CFLAGS and LDFLAGS for Asan builds that don't use CMake
     # default to -O2, use -Ox _after_ this if you want another level
     ASAN_CFLAGS='-O2 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
+
+    # Platform tests have an allocation that returns null
+    export ASAN_OPTIONS="allocator_may_return_null=1"
+    export MSAN_OPTIONS="allocator_may_return_null=1"
 
     # Gather the list of available components. These are the functions
     # defined in this script whose name starts with "component_".
@@ -295,7 +313,9 @@ EOF
 # Does not remove generated source files.
 cleanup()
 {
-    command make clean
+    if in_mbedtls_repo; then
+        command make clean
+    fi
 
     # Remove CMake artefacts
     find . -name .git -prune -o \
@@ -552,7 +572,7 @@ pre_check_git () {
         fi
 
         if ! git diff --quiet "$CONFIG_H"; then
-            err_msg "Warning - the configuration file 'include/mbedtls/mbedtls_config.h' has been edited. "
+            err_msg "Warning - the configuration file '$CONFIG_H' has been edited. "
             echo "You can either delete or preserve your work, or force the test by rerunning the"
             echo "script as: $0 --force"
             exit 1
@@ -1868,6 +1888,16 @@ skip_suites_without_constant_flow () {
     export SKIP_TEST_SUITES
 }
 
+skip_all_except_given_suite () {
+    # Skip all but the given test suite
+    SKIP_TEST_SUITES=$(
+        ls -1 tests/suites/test_suite_*.function |
+        grep -v $1.function |
+         sed 's/tests.suites.test_suite_//; s/\.function$//' |
+        tr '\n' ,)
+    export SKIP_TEST_SUITES
+}
+
 component_test_memsan_constant_flow () {
     # This tests both (1) accesses to undefined memory, and (2) branches or
     # memory access depending on secret values. To distinguish between those:
@@ -1926,6 +1956,16 @@ component_test_valgrind_constant_flow () {
     # this only shows a summary of the results (how many of each type)
     # details are left in Testing/<date>/DynamicAnalysis.xml
     msg "test: some suites (full minus MBEDTLS_USE_PSA_CRYPTO, valgrind + constant flow)"
+    make memcheck
+
+    # Test asm path in constant time module - by default, it will test the plain C
+    # path under Valgrind or Memsan. Running only the constant_time tests is fast (<1s)
+    msg "test: valgrind asm constant_time"
+    scripts/config.py --force set MBEDTLS_TEST_CONSTANT_FLOW_ASM
+    skip_all_except_given_suite test_suite_constant_time
+    cmake -D CMAKE_BUILD_TYPE:String=Release .
+    make clean
+    make
     make memcheck
 }
 
@@ -2622,16 +2662,29 @@ component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
     tests/ssl-opt.sh
 }
 
-# This function is really similar to config_psa_crypto_no_ecp_at_all() above so
-# its description is basically the same. The main difference in this case is
-# that when the EC built-in implementation is disabled, then also Bignum module
-# and its dependencies are disabled as well.
-#
-# This is the common helper between:
+# This is a common configuration helper used directly from:
+# - common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum
+# - common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum
+# and indirectly from:
 # - component_test_psa_crypto_config_accel_ecc_no_bignum
+#       - accelerate all EC algs, disable RSA and FFDH
 # - component_test_psa_crypto_config_reference_ecc_no_bignum
-config_psa_crypto_config_accel_ecc_no_bignum() {
+#       - this is the reference component of the above
+#       - it still disables RSA and FFDH, but it uses builtin EC algs
+# - component_test_psa_crypto_config_accel_ecc_ffdh_no_bignum
+#       - accelerate all EC and FFDH algs, disable only RSA
+# - component_test_psa_crypto_config_reference_ecc_ffdh_no_bignum
+#       - this is the reference component of the above
+#       - it still disables RSA, but it uses builtin EC and FFDH algs
+#
+# This function accepts 2 parameters:
+# $1: a boolean value which states if we are testing an accelerated scenario
+#     or not.
+# $2: a string value which states which components are tested. Allowed values
+#     are "ECC" or "ECC_DH".
+config_psa_crypto_config_accel_ecc_ffdh_no_bignum() {
     DRIVER_ONLY="$1"
+    TEST_TARGET="$2"
     # start with full config for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
 
@@ -2666,13 +2719,23 @@ config_psa_crypto_config_accel_ecc_no_bignum() {
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
 
-    # Disable FFDH because it also depends on BIGNUM.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_FFDH
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_KEY_TYPE_DH_[0-9A-Z_a-z]*"
-    scripts/config.py unset MBEDTLS_DHM_C
-    # Also disable key exchanges that depend on FFDH
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+    if [ "$TEST_TARGET" = "ECC" ]; then
+        # When testing ECC only, we disable FFDH support, both from builtin and
+        # PSA sides, and also disable the key exchanges that depend on DHM.
+        scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_FFDH
+        scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_KEY_TYPE_DH_[0-9A-Z_a-z]*"
+        scripts/config.py unset MBEDTLS_DHM_C
+        scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
+        scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+    else
+        # When testing ECC and DH instead, we disable DHM and depending key
+        # exchanges only in the accelerated build
+        if [ "$DRIVER_ONLY" -eq 1 ]; then
+            scripts/config.py unset MBEDTLS_DHM_C
+            scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
+            scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+        fi
+    fi
 
     # Restartable feature is not yet supported by PSA. Once it will in
     # the future, the following line could be removed (see issues
@@ -2680,15 +2743,32 @@ config_psa_crypto_config_accel_ecc_no_bignum() {
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
 }
 
-# Build and test a configuration where driver accelerates all EC algs while
-# all support and dependencies from ECP and ECP_LIGHT are removed on the library
-# side.
+# Common helper used by:
+# - component_test_psa_crypto_config_accel_ecc_no_bignum
+# - component_test_psa_crypto_config_accel_ecc_ffdh_no_bignum
 #
-# Keep in sync with component_test_psa_crypto_config_reference_ecc_no_bignum()
-component_test_psa_crypto_config_accel_ecc_no_bignum () {
-    msg "build: full + accelerated EC algs + USE_PSA - ECP - BIGNUM"
+# The goal is to build and test accelerating either:
+# - ECC only or
+# - both ECC and FFDH
+#
+# It is meant to be used in conjunction with
+# common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum() for drivers
+# coverage analysis in the "analyze_outcomes.py" script.
+common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
+    TEST_TARGET="$1"
 
-    # Algorithms and key types to accelerate
+    # This is an internal helper to simplify text message handling
+    if [ "$TEST_TARGET" = "ECC_DH" ]; then
+        ACCEL_TEXT="ECC/FFDH"
+        REMOVED_TEXT="ECP - DH"
+    else
+        ACCEL_TEXT="ECC"
+        REMOVED_TEXT="ECP"
+    fi
+
+    msg "build: full + accelerated $ACCEL_TEXT algs + USE_PSA - $REMOVED_TEXT - BIGNUM"
+
+    # By default we accelerate all EC keys/algs
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
                     ALG_JPAKE \
@@ -2697,12 +2777,22 @@ component_test_psa_crypto_config_accel_ecc_no_bignum () {
                     KEY_TYPE_ECC_KEY_PAIR_EXPORT \
                     KEY_TYPE_ECC_KEY_PAIR_GENERATE \
                     KEY_TYPE_ECC_PUBLIC_KEY"
+    # Optionally we can also add DH to the list of accelerated items
+    if [ "$TEST_TARGET" = "ECC_DH" ]; then
+        loc_accel_list="$loc_accel_list \
+                        ALG_FFDH \
+                        KEY_TYPE_DH_KEY_PAIR_BASIC \
+                        KEY_TYPE_DH_KEY_PAIR_IMPORT \
+                        KEY_TYPE_DH_KEY_PAIR_EXPORT \
+                        KEY_TYPE_DH_KEY_PAIR_GENERATE \
+                        KEY_TYPE_DH_PUBLIC_KEY"
+    fi
 
     # Configure
     # ---------
 
     # Set common configurations between library's and driver's builds
-    config_psa_crypto_config_accel_ecc_no_bignum 1
+    config_psa_crypto_config_accel_ecc_ffdh_no_bignum 1 "$TEST_TARGET"
 
     # Build
     # -----
@@ -2719,39 +2809,71 @@ component_test_psa_crypto_config_accel_ecc_no_bignum () {
     not grep mbedtls_ecdsa_ library/ecdsa.o
     not grep mbedtls_ecdh_ library/ecdh.o
     not grep mbedtls_ecjpake_ library/ecjpake.o
-    # Also ensure that ECP, RSA, DHM or BIGNUM modules were not re-enabled
+    # Also ensure that ECP, RSA, [DHM] or BIGNUM modules were not re-enabled
     not grep mbedtls_ecp_ library/ecp.o
     not grep mbedtls_rsa_ library/rsa.o
-    not grep mbedtls_dhm_ library/dhm.o
     not grep mbedtls_mpi_ library/bignum.o
+    not grep mbedtls_dhm_ library/dhm.o
 
     # Run the tests
     # -------------
 
-    msg "test suites: full + accelerated EC algs + USE_PSA - ECP - BIGNUM"
+    msg "test suites: full + accelerated $ACCEL_TEXT algs + USE_PSA - $REMOVED_TEXT - DHM - BIGNUM"
+
     make test
 
-    # The following will be enabled in #7756
-    msg "ssl-opt: full + accelerated EC algs + USE_PSA - ECP - BIGNUM"
+    msg "ssl-opt: full + accelerated $ACCEL_TEXT algs + USE_PSA - $REMOVED_TEXT - BIGNUM"
     tests/ssl-opt.sh
 }
 
-# Reference function used for driver's coverage analysis in analyze_outcomes.py
-# in conjunction with component_test_psa_crypto_config_accel_ecc_no_bignum().
-# Keep in sync with its accelerated counterpart.
-component_test_psa_crypto_config_reference_ecc_no_bignum () {
-    msg "build: full + non accelerated EC algs + USE_PSA"
+# Common helper used by:
+# - component_test_psa_crypto_config_reference_ecc_no_bignum
+# - component_test_psa_crypto_config_reference_ecc_ffdh_no_bignum
+#
+# The goal is to build and test a reference scenario (i.e. with builtin
+# components) compared to the ones used in
+# common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum() above.
+#
+# It is meant to be used in conjunction with
+# common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum() for drivers'
+# coverage analysis in "analyze_outcomes.py" script.
+common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
+    TEST_TARGET="$1"
 
-    config_psa_crypto_config_accel_ecc_no_bignum 0
+    # This is an internal helper to simplify text message handling
+    if [ "$TEST_TARGET" = "ECC_DH" ]; then
+        ACCEL_TEXT="ECC/FFDH"
+    else
+        ACCEL_TEXT="ECC"
+    fi
+
+    msg "build: full + non accelerated $ACCEL_TEXT algs + USE_PSA"
+
+    config_psa_crypto_config_accel_ecc_ffdh_no_bignum 0 "$TEST_TARGET"
 
     make
 
     msg "test suites: full + non accelerated EC algs + USE_PSA"
     make test
 
-    # The following will be enabled in #7756
-    msg "ssl-opt: full + non accelerated EC algs + USE_PSA"
+    msg "ssl-opt: full + non accelerated $ACCEL_TEXT algs + USE_PSA"
     tests/ssl-opt.sh
+}
+
+component_test_psa_crypto_config_accel_ecc_no_bignum () {
+    common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum "ECC"
+}
+
+component_test_psa_crypto_config_reference_ecc_no_bignum () {
+    common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum "ECC"
+}
+
+component_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
+    common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum "ECC_DH"
+}
+
+component_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
+    common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum "ECC_DH"
 }
 
 # Helper function used in:
@@ -5077,6 +5199,16 @@ support_build_cmake_custom_config_file () {
 }
 
 
+component_build_zeroize_checks () {
+    msg "build: check for obviously wrong calls to mbedtls_platform_zeroize()"
+
+    scripts/config.py full
+
+    # Only compile - we're looking for sizeof-pointer-memaccess warnings
+    make CC=gcc CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-zeroize-memset.h\"' -DMBEDTLS_TEST_DEFINES_ZEROIZE -Werror -Wsizeof-pointer-memaccess"
+}
+
+
 component_test_zeroize () {
     # Test that the function mbedtls_platform_zeroize() is not optimized away by
     # different combinations of compilers and optimization flags by using an
@@ -5260,7 +5392,9 @@ pre_prepare_outcome_file
 pre_print_configuration
 pre_check_tools
 cleanup
-pre_generate_files
+if in_mbedtls_repo; then
+    pre_generate_files
+fi
 
 # Run the requested tests.
 for ((error_test_i=1; error_test_i <= error_test; error_test_i++)); do

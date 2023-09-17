@@ -131,7 +131,7 @@ cat include/mbedtls/build_info.h |                                    \
     sed -e "s/\(# *define  *[A-Z]*_VERSION\)_PATCH .\{1,\}/\1_PATCH  $PATCH/" |    \
     sed -e "s/\(# *define  *[A-Z]*_VERSION\)_NUMBER .\{1,\}/\1_NUMBER         $VERSION_NR/" |    \
     sed -e "s/\(# *define  *[A-Z]*_VERSION\)_STRING .\{1,\}/\1_STRING         \"$VERSION\"/" |    \
-    sed -e "s/\(# *define  *[A-Z]*_VERSION\)_STRING_FULL .\{1,\}/\1_STRING_FULL    \"mbed TLS $VERSION\"/" \
+    sed -e "s/\(# *define  *[A-Z]*_VERSION\)_STRING_FULL .\{1,\}/\1_STRING_FULL    \"Mbed TLS $VERSION\"/" \
     > tmp
 mv tmp include/mbedtls/build_info.h
 
@@ -142,7 +142,7 @@ mv tmp tests/suites/test_suite_version.data
 [ $VERBOSE ] && echo "Bumping PROJECT_NAME in doxygen/mbedtls.doxyfile and doxygen/input/doc_mainpage.h"
 for i in doxygen/mbedtls.doxyfile doxygen/input/doc_mainpage.h;
 do
-  sed -e "s/mbed TLS v[0-9\.]\{1,\}/mbed TLS v$VERSION/g" < $i > tmp
+  sed -e "s/\\([Mm]bed TLS v\\)[0-9][0-9.]*/\\1$VERSION/g" < $i > tmp
   mv tmp $i
 done
 

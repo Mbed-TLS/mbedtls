@@ -1536,7 +1536,6 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
 {
     int ret = 0;
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
-#if _WIN32_WINNT >= 0x0501 /* _WIN32_WINNT_XP */
     int w_ret;
     WCHAR szDir[MAX_PATH];
     char filename[MAX_PATH];
@@ -1616,9 +1615,6 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
 
 cleanup:
     FindClose(hFind);
-#else /* !_WIN32_WINNT_XP */
-#error "mbedtls_x509_crt_parse_path not available before Windows XP"
-#endif /* !_WIN32_WINNT_XP */
 #else /* _WIN32 */
     int t_ret;
     int snp_ret;

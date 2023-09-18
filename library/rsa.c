@@ -1541,8 +1541,8 @@ int mbedtls_rsa_rsaes_oaep_decrypt(mbedtls_rsa_context *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t ilen, i, pad_len;
-    unsigned char *p, pad_done;
-    int bad;
+    unsigned char *p;
+    mbedtls_ct_condition_t bad, pad_done;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     unsigned char lhash[MBEDTLS_MD_MAX_SIZE];
     unsigned int hlen;
@@ -1602,27 +1602,26 @@ int mbedtls_rsa_rsaes_oaep_decrypt(mbedtls_rsa_context *ctx,
      * Check contents, in "constant-time"
      */
     p = buf;
-    bad = 0;
 
-    bad |= *p++; /* First byte must be 0 */
+    bad = mbedtls_ct_bool(*p++); /* First byte must be 0 */
 
     p += hlen; /* Skip seed */
 
     /* Check lHash */
-    bad |= mbedtls_ct_memcmp(lhash, p, hlen);
+    bad = mbedtls_ct_bool_or(bad, mbedtls_ct_bool(mbedtls_ct_memcmp(lhash, p, hlen)));
     p += hlen;
 
     /* Get zero-padding len, but always read till end of buffer
      * (minus one, for the 01 byte) */
     pad_len = 0;
-    pad_done = 0;
+    pad_done = MBEDTLS_CT_FALSE;
     for (i = 0; i < ilen - 2 * hlen - 2; i++) {
-        pad_done |= p[i];
-        pad_len += ((pad_done | (unsigned char) -pad_done) >> 7) ^ 1;
+        pad_done = mbedtls_ct_bool_or(pad_done, mbedtls_ct_uint_ne(p[i], 0));
+        pad_len += mbedtls_ct_mpi_uint_if_else_0(mbedtls_ct_bool_not(pad_done), 1);
     }
 
     p += pad_len;
-    bad |= *p++ ^ 0x01;
+    bad = mbedtls_ct_bool_or(bad, mbedtls_ct_uint_ne(*p++, 0x01));
 
     /*
      * The only information "leaked" is whether the padding was correct or not
@@ -1630,7 +1629,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt(mbedtls_rsa_context *ctx,
      * recommendations in PKCS#1 v2.2: an opponent cannot distinguish between
      * the different error conditions.
      */
-    if (bad != 0) {
+    if (bad != MBEDTLS_CT_FALSE) {
         ret = MBEDTLS_ERR_RSA_INVALID_PADDING;
         goto cleanup;
     }

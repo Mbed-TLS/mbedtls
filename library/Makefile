@@ -167,7 +167,7 @@ OBJS_X509= \
 	   x509_crl.o \
 	   x509_crt.o \
 	   x509_csr.o \
-   	   x509write.o \
+	   x509write.o \
 	   x509write_crt.o \
 	   x509write_csr.o \
 	   pkcs7.o \
@@ -315,21 +315,29 @@ GENERATED_FILES = \
         psa_crypto_driver_wrappers.c
 generated_files: $(GENERATED_FILES)
 
-error.c: ../scripts/generate_errors.pl
-error.c: ../scripts/data_files/error.fmt
-error.c: $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
+# See root Makefile
+GEN_FILES ?= yes
+ifdef GEN_FILES
+gen_file_dep =
+else
+gen_file_dep = |
+endif
+
+error.c: $(gen_file_dep) ../scripts/generate_errors.pl
+error.c: $(gen_file_dep) ../scripts/data_files/error.fmt
+error.c: $(gen_file_dep) $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
 error.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_errors.pl
 
-ssl_debug_helpers_generated.c: ../scripts/generate_ssl_debug_helpers.py
-ssl_debug_helpers_generated.c: $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
+ssl_debug_helpers_generated.c: $(gen_file_dep) ../scripts/generate_ssl_debug_helpers.py
+ssl_debug_helpers_generated.c: $(gen_file_dep) $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
 ssl_debug_helpers_generated.c:
 	echo "  Gen   $@"
 	$(PYTHON) ../scripts/generate_ssl_debug_helpers.py --mbedtls-root .. .
 
-version_features.c: ../scripts/generate_features.pl
-version_features.c: ../scripts/data_files/version_features.fmt
+version_features.c: $(gen_file_dep) ../scripts/generate_features.pl
+version_features.c: $(gen_file_dep) ../scripts/data_files/version_features.fmt
 ## The generated file only depends on the options that are present in mbedtls_config.h,
 ## not on which options are set. To avoid regenerating this file all the time
 ## when switching between configurations, don't declare mbedtls_config.h as a
@@ -340,8 +348,8 @@ version_features.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_features.pl
 
-psa_crypto_driver_wrappers.c: ../scripts/generate_driver_wrappers.py
-psa_crypto_driver_wrappers.c: ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.c.jinja
+psa_crypto_driver_wrappers.c: $(gen_file_dep) ../scripts/generate_driver_wrappers.py
+psa_crypto_driver_wrappers.c: $(gen_file_dep) ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.c.jinja
 psa_crypto_driver_wrappers.c:
 	echo "  Gen   $@"
 	$(PYTHON) ../scripts/generate_driver_wrappers.py

@@ -935,7 +935,8 @@ static int get_zeros_and_len_padding(unsigned char *input, size_t input_len,
                                      size_t *data_len)
 {
     size_t i, pad_idx;
-    unsigned char padding_len, bad = 0;
+    unsigned char padding_len;
+    mbedtls_ct_condition_t bad;
 
     if (NULL == input || NULL == data_len) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
@@ -945,16 +946,18 @@ static int get_zeros_and_len_padding(unsigned char *input, size_t input_len,
     *data_len = input_len - padding_len;
 
     /* Avoid logical || since it results in a branch */
-    bad |= padding_len > input_len;
-    bad |= padding_len == 0;
+    bad = mbedtls_ct_uint_gt(padding_len, input_len);
+    bad = mbedtls_ct_bool_or(bad, mbedtls_ct_uint_eq(padding_len, 0));
 
     /* The number of bytes checked must be independent of padding_len */
     pad_idx = input_len - padding_len;
     for (i = 0; i < input_len - 1; i++) {
-        bad |= input[i] * (i >= pad_idx);
+        mbedtls_ct_condition_t is_padding = mbedtls_ct_uint_ge(i, pad_idx);
+        mbedtls_ct_condition_t nonzero_pad_byte = mbedtls_ct_uint_if_else_0(is_padding, mbedtls_ct_bool(input[i]));
+        bad = mbedtls_ct_bool_or(bad, nonzero_pad_byte);
     }
 
-    return MBEDTLS_ERR_CIPHER_INVALID_PADDING * (bad != 0);
+    return -((int) mbedtls_ct_uint_if_else_0(bad, -MBEDTLS_ERR_CIPHER_INVALID_PADDING));
 }
 #endif /* MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN */
 

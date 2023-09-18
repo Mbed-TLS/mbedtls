@@ -200,50 +200,6 @@ typedef struct mbedtls_pk_rsassa_pss_options {
 #define MBEDTLS_PK_HAVE_ECC_KEYS
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA || MBEDTLS_ECP_C */
 
-/* Internal helper to define which fields in the pk_context structure below
- * should be used for EC keys: legacy ecp_keypair or the raw (PSA friendly)
- * format. It should be noted that this only affects how data is stored, not
- * which functions are used for various operations. The overall picture looks
- * like this:
- * - if USE_PSA is not defined and ECP_C is defined then use ecp_keypair data
- *   structure and legacy functions
- * - if USE_PSA is defined and
- *     - if ECP_C then use ecp_keypair structure, convert data to a PSA friendly
- *       format and use PSA functions
- *     - if !ECP_C then use new raw data and PSA functions directly.
- *
- * The main reason for the "intermediate" (USE_PSA + ECP_C) above is that as long
- * as ECP_C is defined mbedtls_pk_ec() gives the user read/write access to the
- * ecp_keypair structure inside the pk_context so they can modify it using
- * ECP functions which are not under the PK module's control.
- */
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) && \
-    !defined(MBEDTLS_ECP_C)
-#define MBEDTLS_PK_USE_PSA_EC_DATA
-#endif
-
-/* Internal helper to define which fields in the pk_context structure below
- * should be used for EC keys: legacy ecp_keypair or the raw (PSA friendly)
- * format. It should be noted that this only affects how data is stored, not
- * which functions are used for various operations. The overall picture looks
- * like this:
- * - if USE_PSA is not defined and ECP_C is then use ecp_keypair data structure
- *   and legacy functions
- * - if USE_PSA is defined and
- *     - if ECP_C then use ecp_keypair structure, convert data to a PSA friendly
- *       format and use PSA functions
- *     - if !ECP_C then use new raw data and PSA functions directly.
- *
- * The main reason for the "intermediate" (USE_PSA + ECP_C) above is that as long
- * as ECP_C is defined mbedtls_pk_ec() gives the user a read/write access to the
- * ecp_keypair structure inside the pk_context so they can modify it using
- * ECP functions which are not under PK module's control.
- */
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) && \
-    !defined(MBEDTLS_ECP_C)
-#define MBEDTLS_PK_USE_PSA_EC_DATA
-#endif
-
 /**
  * \brief           Types for interfacing with the debug module
  */

@@ -74,7 +74,8 @@
 #define MBEDTLS_ARCH_IS_X86
 #endif
 
-#if defined(_M_ARM64) || defined(_M_ARM64EC)
+#if !defined(MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64) && \
+    (defined(_M_ARM64) || defined(_M_ARM64EC))
 #define MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64
 #endif
 

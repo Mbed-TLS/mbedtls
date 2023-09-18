@@ -1,4 +1,4 @@
-/* config.h wrapper that forces calloc(0) to return NULL.
+/* config.h modifier that forces calloc(0) to return NULL.
  * Used for testing.
  */
 /*
@@ -18,11 +18,6 @@
  *  limitations under the License.
  */
 
-#ifndef MBEDTLS_CONFIG_H
-/* Don't #define MBEDTLS_CONFIG_H, let config.h do it. */
-
-#include "mbedtls/config.h"
-
 #include <stdlib.h>
 
 #ifndef MBEDTLS_PLATFORM_STD_CALLOC
@@ -37,5 +32,3 @@ static inline void *custom_calloc(size_t nmemb, size_t size)
 #define MBEDTLS_PLATFORM_MEMORY
 #define MBEDTLS_PLATFORM_STD_CALLOC custom_calloc
 #endif
-
-#endif /* MBEDTLS_CONFIG_H */

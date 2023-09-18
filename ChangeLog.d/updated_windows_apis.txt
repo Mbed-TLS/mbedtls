@@ -1,5 +1,6 @@
 Requirement changes
-   * Minimum required Windows version is now Windows Vista.
+   * Minimum required Windows version is now Windows Vista, or
+     Windows Server 2008.
 
 Changes
    * Update Windows code to use BCryptGenRandom and wcslen, and

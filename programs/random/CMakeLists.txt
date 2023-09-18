@@ -1,7 +1,3 @@
-set(libs
-    ${mbedtls_target}
-)
-
 set(executables
     gen_entropy
     gen_random_ctr_drbg

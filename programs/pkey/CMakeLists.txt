@@ -1,7 +1,3 @@
-set(libs
-    ${mbedtls_target}
-)
-
 set(executables_mbedtls
     dh_client
     dh_server

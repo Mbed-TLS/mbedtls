@@ -259,6 +259,44 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_NIST_KW_C */
+void mbedtls_ct_memcmp_partial(int diff, int size, int skip_head, int skip_tail, int expected)
+{
+    uint8_t *a = NULL, *b = NULL;
+    TEST_CALLOC(a, size + 1); // + 1 to avoid NULL result from TEST_CALLOC(0)
+    TEST_CALLOC(b, size + 1);
+
+    TEST_ASSERT((skip_head + skip_tail) <= size);
+
+    /* Construct data that matches, except for specified byte (if in range). */
+    for (int i = 0; i < size; i++) {
+        a[i] = i & 0xff;
+        if (i != diff) {
+            b[i] = a[i];
+        } else {
+            b[i] = (i + 1) & 0xff;
+        }
+    }
+
+    int reference = memcmp(a + skip_head, b + skip_head, size - skip_head - skip_tail);
+
+    TEST_CF_SECRET(a, size);
+    TEST_CF_SECRET(b, size);
+
+    int actual = mbedtls_ct_memcmp_partial(a, b, size, skip_head, skip_tail);
+
+    TEST_CF_PUBLIC(a, size);
+    TEST_CF_PUBLIC(b, size);
+    TEST_CF_PUBLIC(&actual, sizeof(actual));
+
+    TEST_EQUAL(!!reference, !!actual);
+    TEST_EQUAL(!!expected, !!actual);
+exit:
+    mbedtls_free(a);
+    mbedtls_free(b);
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void mbedtls_ct_memcpy_if(int eq, int size, int offset)
 {

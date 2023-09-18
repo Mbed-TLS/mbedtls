@@ -30,6 +30,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 #include "mbedtls/constant_time.h"
+#include "constant_time_internal.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -848,7 +849,8 @@ static int get_pkcs_padding(unsigned char *input, size_t input_len,
                             size_t *data_len)
 {
     size_t i, pad_idx;
-    unsigned char padding_len, bad = 0;
+    unsigned char padding_len;
+    mbedtls_ct_condition_t bad = MBEDTLS_CT_FALSE;
 
     if (NULL == input || NULL == data_len) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
@@ -857,18 +859,19 @@ static int get_pkcs_padding(unsigned char *input, size_t input_len,
     padding_len = input[input_len - 1];
     *data_len = input_len - padding_len;
 
-    /* Avoid logical || since it results in a branch */
-    bad |= padding_len > input_len;
-    bad |= padding_len == 0;
+    bad = mbedtls_ct_uint_gt(padding_len, input_len);
+    bad = mbedtls_ct_bool_or(bad, mbedtls_ct_uint_eq(padding_len, 0));
 
     /* The number of bytes checked must be independent of padding_len,
      * so pick input_len, which is usually 8 or 16 (one block) */
     pad_idx = input_len - padding_len;
     for (i = 0; i < input_len; i++) {
-        bad |= (input[i] ^ padding_len) * (i >= pad_idx);
+        mbedtls_ct_condition_t dont_ignore = mbedtls_ct_uint_ge(i, pad_idx);
+        mbedtls_ct_condition_t different   = mbedtls_ct_uint_ne(input[i], padding_len);
+        bad = mbedtls_ct_bool_or(bad, mbedtls_ct_bool_and(dont_ignore, different));
     }
 
-    return MBEDTLS_ERR_CIPHER_INVALID_PADDING * (bad != 0);
+    return mbedtls_ct_uint_if_else_0(bad, MBEDTLS_ERR_CIPHER_INVALID_PADDING);
 }
 #endif /* MBEDTLS_CIPHER_PADDING_PKCS7 */
 

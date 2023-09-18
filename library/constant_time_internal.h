@@ -492,6 +492,37 @@ void mbedtls_ct_memcpy_offset(unsigned char *dest,
                          size_t n);
  */
 
+#if defined(MBEDTLS_NIST_KW_C)
+
+/** Constant-time buffer comparison without branches.
+ *
+ * Similar to mbedtls_ct_memcmp, except that the result only depends on part of
+ * the input data - differences in the head or tail are ignored. Functionally equivalent to:
+ *
+ * memcmp(a + skip_head, b + skip_head, size - skip_head - skip_tail)
+ *
+ * Time taken depends on \p n, but not on \p skip_head or \p skip_tail .
+ *
+ * Behaviour is undefined if ( \p skip_head + \p skip_tail) > \p n.
+ *
+ * \param a         Secret. Pointer to the first buffer, containing at least \p n bytes. May not be NULL.
+ * \param b         Secret. Pointer to the second buffer, containing at least \p n bytes. May not be NULL.
+ * \param n         The number of bytes to examine (total size of the buffers).
+ * \param skip_head Secret. The number of bytes to treat as non-significant at the start of the buffer.
+ *                  These bytes will still be read.
+ * \param skip_tail Secret. The number of bytes to treat as non-significant at the end of the buffer.
+ *                  These bytes will still be read.
+ *
+ * \return          Zero if the contents of the two buffers are the same, otherwise non-zero.
+ */
+int mbedtls_ct_memcmp_partial(const void *a,
+                              const void *b,
+                              size_t n,
+                              size_t skip_head,
+                              size_t skip_tail);
+
+#endif
+
 /* Include the implementation of static inline functions above. */
 #include "constant_time_impl.h"
 

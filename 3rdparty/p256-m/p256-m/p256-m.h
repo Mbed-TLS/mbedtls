@@ -92,7 +92,7 @@ int p256_ecdsa_verify(const uint8_t sig[64], const uint8_t pub[64],
 /*
  * Public key validation
  *
- * Note: you never need to call this function, as all other function always
+ * Note: you never need to call this function, as all other functions always
  * validate their input; however it's availabe if you want to validate the key
  * without performing an operation.
  *
@@ -106,7 +106,7 @@ int p256_validate_pubkey(const uint8_t pub[64]);
 /*
  * Private key validation
  *
- * Note: you never need to call this function, as all other function always
+ * Note: you never need to call this function, as all other functions always
  * validate their input; however it's availabe if you want to validate the key
  * without performing an operation.
  *

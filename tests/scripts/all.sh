@@ -2812,7 +2812,7 @@ common_tfm_config () {
     # - MD_C for HKDF_C
     echo "#define MBEDTLS_MD_C" >> "$CONFIG_H"
 
-    # Config adjustements for better test coverage in our environment.
+    # Config adjustments for better test coverage in our environment.
     # These are not needed just to build and pass tests.
     #
     # Enable filesystem I/O for the benefit of PK parse/write tests.
@@ -2820,7 +2820,7 @@ common_tfm_config () {
     # Disable this for maximal ASan efficiency
     scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
 
-    # Config adjustements for features that are not supported
+    # Config adjustments for features that are not supported
     # when using only drivers / by p256-m
     #
     # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
@@ -2838,8 +2838,7 @@ component_test_tfm_config_p256m_driver_accel_ec () {
     common_tfm_config
 
     # Set the list of accelerated components in order to remove them from
-    # builtin support. We don't set IMPORT and EXPORT because P256M does not
-    # support these operations.
+    # builtin support.
     loc_accel_list="ALG_ECDSA \
                     ALG_ECDH \
                     KEY_TYPE_ECC_KEY_PAIR_BASIC \

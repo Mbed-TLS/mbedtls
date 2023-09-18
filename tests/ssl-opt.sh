@@ -1639,7 +1639,7 @@ run_test() {
     fi
 
     # If the client or server requires certain features that can be detected
-    # from their command-line arguments, check that they're enabled.
+    # from their command-line arguments, check whether they're enabled.
     detect_required_features "$SRV_CMD" "server" "$TLS_VERSION" "$EXT_WO_ECDH" "$@"
     detect_required_features "$CLI_CMD" "client" "$TLS_VERSION" "$EXT_WO_ECDH" "$@"
 

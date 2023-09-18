@@ -23,10 +23,30 @@
  */
 
 #if defined(PSA_CRYPTO_DRIVER_TEST_ALL)
+/* PSA_CRYPTO_DRIVER_TEST_ALL activates test drivers while keeping the
+ * built-in implementations active. Normally setting MBEDTLS_PSA_ACCEL_xxx
+ * would disable MBEDTLS_PSA_BUILTIN_xxx unless fallback is activated, but
+ * here we arrange to have both active so that psa_crypto_*.c includes
+ * the built-in implementations and the driver code can call the built-in
+ * implementations.
+ *
+ * The point of this test mode is to verify that the
+ * driver entry points are called when they should be in a lightweight
+ * way, without requiring an actual driver. This is different from builds
+ * with libtestdriver1, where we make a copy of the library source code
+ * and use that as an external driver.
+ */
 
 /* Enable the use of the test driver in the library, and build the generic
  * part of the test driver. */
 #define PSA_CRYPTO_DRIVER_TEST
+
+/* With MBEDTLS_PSA_CRYPTO_CONFIG, if we set up the acceleration, the
+ * built-in implementations won't be enabled. */
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#error \
+    "PSA_CRYPTO_DRIVER_TEST_ALL sets up a nonstandard configuration that is incompatible with MBEDTLS_PSA_CRYPTO_CONFIG"
+#endif
 
 /* Use the accelerator driver for all cryptographic mechanisms for which
  * the test driver implemented. */

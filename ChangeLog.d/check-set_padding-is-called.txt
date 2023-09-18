@@ -1,4 +1,5 @@
 Changes
-   * Check while doing cipher encryption/decryption that
-     mbedtls_set_padding has been called in case of modes
-     that require padding.
+   * When using CBC with the cipher module, the requirement to call
+     mbedtls_cipher_set_padding_mode() is now enforced. Previously, omitting
+     this call accidentally applied a default padding mode chosen at compile
+     time.

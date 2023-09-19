@@ -263,8 +263,9 @@ exit:
 void mbedtls_ct_memcmp_partial(int diff, int size, int skip_head, int skip_tail)
 {
     uint8_t *a = NULL, *b = NULL;
-    TEST_CALLOC(a, size + 1); // + 1 to avoid NULL result from TEST_CALLOC(0)
-    TEST_CALLOC(b, size + 1);
+
+    TEST_CALLOC_NONNULL(a, size);
+    TEST_CALLOC_NONNULL(b, size);
 
     TEST_ASSERT((skip_head + skip_tail) <= size);
 

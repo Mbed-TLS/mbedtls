@@ -160,12 +160,18 @@
  * \param item_count Number of elements to allocate.
  *                   This expression may be evaluated multiple times.
  *
+ * Note: if passing size 0, mbedtls_calloc may return NULL. In this case,
+ * we reattempt to allocate with the smallest possible buffer to assure a
+ * non-NULL pointer.
  */
 #define TEST_CALLOC_NONNULL(pointer, item_count)            \
     do {                                                    \
         TEST_ASSERT((pointer) == NULL);                     \
         (pointer) = mbedtls_calloc(sizeof(*(pointer)),      \
                                    (item_count));           \
+        if (((pointer) == NULL) && ((item_count) == 0)) {   \
+            (pointer) = mbedtls_calloc(1, 1);               \
+        }                                                   \
         TEST_ASSERT((pointer) != NULL);                     \
     } while (0)
 

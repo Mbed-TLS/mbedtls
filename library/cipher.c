@@ -983,7 +983,7 @@ static int get_zeros_padding(unsigned char *input, size_t input_len,
                              size_t *data_len)
 {
     size_t i;
-    unsigned char done = 0, prev_done;
+    mbedtls_ct_condition_t done = MBEDTLS_CT_FALSE, prev_done;
 
     if (NULL == input || NULL == data_len) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
@@ -992,8 +992,8 @@ static int get_zeros_padding(unsigned char *input, size_t input_len,
     *data_len = 0;
     for (i = input_len; i > 0; i--) {
         prev_done = done;
-        done |= (input[i-1] != 0);
-        *data_len |= i * (done != prev_done);
+        done = mbedtls_ct_bool_or(done, mbedtls_ct_uint_ne(input[i-1], 0));
+        *data_len = mbedtls_ct_size_if(mbedtls_ct_bool_ne(done, prev_done), i, *data_len);
     }
 
     return 0;

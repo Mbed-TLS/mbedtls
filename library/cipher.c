@@ -957,7 +957,8 @@ static int get_zeros_and_len_padding(unsigned char *input, size_t input_len,
     pad_idx = input_len - padding_len;
     for (i = 0; i < input_len - 1; i++) {
         mbedtls_ct_condition_t is_padding = mbedtls_ct_uint_ge(i, pad_idx);
-        mbedtls_ct_condition_t nonzero_pad_byte = mbedtls_ct_uint_if_else_0(is_padding, mbedtls_ct_bool(input[i]));
+        mbedtls_ct_condition_t nonzero_pad_byte;
+        nonzero_pad_byte = mbedtls_ct_uint_if_else_0(is_padding, mbedtls_ct_bool(input[i]));
         bad = mbedtls_ct_bool_or(bad, nonzero_pad_byte);
     }
 

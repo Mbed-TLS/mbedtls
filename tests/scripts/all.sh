@@ -76,41 +76,14 @@
 # Notes for maintainers
 # ---------------------
 #
-# The bulk of the code is organized into functions that follow one of the
+# The code is organized into functions that follow one of the
 # following naming conventions:
 #  * pre_XXX: things to do before running the tests, in order.
-#  * component_XXX: independent components. They can be run in any order.
-#      * component_check_XXX: quick tests that aren't worth parallelizing.
-#      * component_build_XXX: build things but don't run them.
-#      * component_test_XXX: build and test.
-#  * support_XXX: if support_XXX exists and returns false then
-#    component_XXX is not run by default.
 #  * post_XXX: things to do after running the tests.
 #  * other: miscellaneous support functions.
 #
-# Each component must start by invoking `msg` with a short informative message.
-#
-# Warning: due to the way bash detects errors, the failure of a command
-# inside 'if' or '!' is not detected. Use the 'not' function instead of '!'.
-#
-# Each component is executed in a separate shell process. The component
-# fails if any command in it returns a non-zero status.
-#
-# The framework performs some cleanup tasks after each component. This
-# means that components can assume that the working directory is in a
-# cleaned-up state, and don't need to perform the cleanup themselves.
-# * Run `make clean`.
-# * Restore `include/mbedtls/mbedtls_config.h` from a backup made before running
-#   the component.
-# * Check out `Makefile`, `library/Makefile`, `programs/Makefile`,
-#   `tests/Makefile` and `programs/fuzz/Makefile` from git.
-#   This cleans up after an in-tree use of CMake.
-#
-# The tests are roughly in order from fastest to slowest. This doesn't
-# have to be exact, but in general you should add slower tests towards
-# the end and fast checks near the beginning.
-
-
+# The test components are imported into this script from
+# the accompanying components.sh script.
 
 ################################################################
 #### Initialization and command line parsing

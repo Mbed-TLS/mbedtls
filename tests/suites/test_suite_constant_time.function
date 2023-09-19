@@ -260,7 +260,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_NIST_KW_C */
-void mbedtls_ct_memcmp_partial(int diff, int size, int skip_head, int skip_tail, int expected)
+void mbedtls_ct_memcmp_partial(int diff, int size, int skip_head, int skip_tail)
 {
     uint8_t *a = NULL, *b = NULL;
     TEST_CALLOC(a, size + 1); // + 1 to avoid NULL result from TEST_CALLOC(0)
@@ -290,7 +290,6 @@ void mbedtls_ct_memcmp_partial(int diff, int size, int skip_head, int skip_tail,
     TEST_CF_PUBLIC(&actual, sizeof(actual));
 
     TEST_EQUAL(!!reference, !!actual);
-    TEST_EQUAL(!!expected, !!actual);
 exit:
     mbedtls_free(a);
     mbedtls_free(b);

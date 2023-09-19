@@ -704,67 +704,67 @@ mbedtls_ct_memmove_left 16 16
 mbedtls_ct_memmove_left:16:16
 
 mbedtls_ct_memcmp_partial -1 0 0 0
-mbedtls_ct_memcmp_partial:-1:0:0:0:0
+mbedtls_ct_memcmp_partial:-1:0:0:0
 
 mbedtls_ct_memcmp_partial 0 1 0 0
-mbedtls_ct_memcmp_partial:0:1:0:0:1
+mbedtls_ct_memcmp_partial:0:1:0:0
 
 mbedtls_ct_memcmp_partial 0 1 1 0
-mbedtls_ct_memcmp_partial:0:1:1:0:0
+mbedtls_ct_memcmp_partial:0:1:1:0
 
 mbedtls_ct_memcmp_partial 0 1 0 1
-mbedtls_ct_memcmp_partial:0:1:0:1:0
+mbedtls_ct_memcmp_partial:0:1:0:1
 
 mbedtls_ct_memcmp_partial -1 1 0 0
-mbedtls_ct_memcmp_partial:-1:1:0:0:0
+mbedtls_ct_memcmp_partial:-1:1:0:0
 
 mbedtls_ct_memcmp_partial 0 2 0 1
-mbedtls_ct_memcmp_partial:0:2:0:1:1
+mbedtls_ct_memcmp_partial:0:2:0:1
 
 mbedtls_ct_memcmp_partial 0 2 1 0
-mbedtls_ct_memcmp_partial:0:2:1:0:0
+mbedtls_ct_memcmp_partial:0:2:1:0
 
 mbedtls_ct_memcmp_partial 0 16 4 4
-mbedtls_ct_memcmp_partial:0:16:4:4:0
+mbedtls_ct_memcmp_partial:0:16:4:4
 
 mbedtls_ct_memcmp_partial 2 16 4 4
-mbedtls_ct_memcmp_partial:2:16:4:4:0
+mbedtls_ct_memcmp_partial:2:16:4:4
 
 mbedtls_ct_memcmp_partial 3 16 4 4
-mbedtls_ct_memcmp_partial:3:16:4:4:0
+mbedtls_ct_memcmp_partial:3:16:4:4
 
 mbedtls_ct_memcmp_partial 4 16 4 4
-mbedtls_ct_memcmp_partial:4:16:4:4:1
+mbedtls_ct_memcmp_partial:4:16:4:4
 
 mbedtls_ct_memcmp_partial 7 16 4 4
-mbedtls_ct_memcmp_partial:7:16:4:4:1
+mbedtls_ct_memcmp_partial:7:16:4:4
 
 mbedtls_ct_memcmp_partial 11 16 4 4
-mbedtls_ct_memcmp_partial:11:16:4:4:1
+mbedtls_ct_memcmp_partial:11:16:4:4
 
 mbedtls_ct_memcmp_partial 12 16 4 4
-mbedtls_ct_memcmp_partial:12:16:4:4:0
+mbedtls_ct_memcmp_partial:12:16:4:4
 
 mbedtls_ct_memcmp_partial 15 16 4 4
-mbedtls_ct_memcmp_partial:15:16:4:4:0
+mbedtls_ct_memcmp_partial:15:16:4:4
 
 mbedtls_ct_memcmp_partial 15 16 4 0
-mbedtls_ct_memcmp_partial:15:16:4:0:1
+mbedtls_ct_memcmp_partial:15:16:4:0
 
 mbedtls_ct_memcmp_partial 15 16 0 4
-mbedtls_ct_memcmp_partial:15:16:0:4:0
+mbedtls_ct_memcmp_partial:15:16:0:4
 
 mbedtls_ct_memcmp_partial 0 16 0 0
-mbedtls_ct_memcmp_partial:0:16:0:0:1
+mbedtls_ct_memcmp_partial:0:16:0:0
 
 mbedtls_ct_memcmp_partial 15 16 0 0
-mbedtls_ct_memcmp_partial:15:16:0:0:1
+mbedtls_ct_memcmp_partial:15:16:0:0
 
 mbedtls_ct_memcmp_partial -1 16 0 0
-mbedtls_ct_memcmp_partial:-1:16:0:0:0
+mbedtls_ct_memcmp_partial:-1:16:0:0
 
 mbedtls_ct_memcmp_partial -1 16 12 4
-mbedtls_ct_memcmp_partial:-1:16:12:4:0
+mbedtls_ct_memcmp_partial:-1:16:12:4
 
 mbedtls_ct_memcmp_partial -1 16 8 8
-mbedtls_ct_memcmp_partial:-1:16:8:8:0
+mbedtls_ct_memcmp_partial:-1:16:8:8

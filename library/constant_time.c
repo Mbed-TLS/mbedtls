@@ -158,13 +158,15 @@ int mbedtls_ct_memcmp_partial(const void *a,
 
     for (size_t i = 0; i < n; i++) {
         unsigned char x = A[i], y = B[i];
-        int d = x ^ y;
+        unsigned int d = x ^ y;
         mbedtls_ct_condition_t valid = mbedtls_ct_bool_and(mbedtls_ct_uint_ge(i, skip_head),
                                                            mbedtls_ct_uint_lt(i, valid_end));
         diff |= mbedtls_ct_uint_if_else_0(valid, d);
     }
 
-    return (int) ((diff & 0xffff) | (diff >> 16));
+    /* Since we go byte-by-byte, the only bits set will be in the bottom 8 bits, so the
+     * cast from uint to int is safe. */
+    return (int) diff;
 }
 
 #endif

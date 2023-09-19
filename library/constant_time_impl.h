@@ -407,8 +407,8 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_le(mbedtls_ct_uint_t x,
     return ~mbedtls_ct_uint_gt(x, y);
 }
 
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_xor(mbedtls_ct_condition_t x,
-                                                         mbedtls_ct_condition_t y)
+static inline mbedtls_ct_condition_t mbedtls_ct_bool_ne(mbedtls_ct_condition_t x,
+                                                        mbedtls_ct_condition_t y)
 {
     return (mbedtls_ct_condition_t) (x ^ y);
 }

@@ -194,11 +194,11 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_ge(mbedtls_ct_uint_t x,
 static inline mbedtls_ct_condition_t mbedtls_ct_uint_le(mbedtls_ct_uint_t x,
                                                         mbedtls_ct_uint_t y);
 
-/** Boolean "xor" operation.
+/** Boolean not-equals operation.
  *
  * Functionally equivalent to:
  *
- * \p x ^ \p y
+ * \p x != \p y
  *
  * \param x     The first value to analyze.
  * \param y     The second value to analyze.
@@ -206,11 +206,11 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_le(mbedtls_ct_uint_t x,
  * \note        This is more efficient than mbedtls_ct_uint_ne if both arguments are
  *              mbedtls_ct_condition_t.
  *
- * \return      MBEDTLS_CT_TRUE if \p x ^ \p y,
+ * \return      MBEDTLS_CT_TRUE if \p x != \p y,
  *              otherwise MBEDTLS_CT_FALSE.
  */
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_xor(mbedtls_ct_condition_t x,
-                                                         mbedtls_ct_condition_t y);
+static inline mbedtls_ct_condition_t mbedtls_ct_bool_ne(mbedtls_ct_condition_t x,
+                                                        mbedtls_ct_condition_t y);
 
 /** Boolean "and" operation.
  *

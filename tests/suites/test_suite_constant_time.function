@@ -77,8 +77,8 @@ void mbedtls_ct_bool_xxx(char *x_str, char *y_str)
     expected = x1 <= y1 ? MBEDTLS_CT_TRUE : MBEDTLS_CT_FALSE;
     TEST_EQUAL(mbedtls_ct_uint_le(x, y), expected);
 
-    expected = (!!x1) ^ (!!y1) ? MBEDTLS_CT_TRUE : MBEDTLS_CT_FALSE;
-    TEST_EQUAL(mbedtls_ct_bool_xor(mbedtls_ct_bool(x), mbedtls_ct_bool(y)), expected);
+    expected = (!!x1) != (!!y1) ? MBEDTLS_CT_TRUE : MBEDTLS_CT_FALSE;
+    TEST_EQUAL(mbedtls_ct_bool_ne(mbedtls_ct_bool(x), mbedtls_ct_bool(y)), expected);
 
     expected = (!!x1) && (!!y1) ? MBEDTLS_CT_TRUE : MBEDTLS_CT_FALSE;
     TEST_EQUAL(mbedtls_ct_bool_and(mbedtls_ct_bool(x), mbedtls_ct_bool(y)), expected);

@@ -350,6 +350,14 @@ static inline unsigned mbedtls_ct_uint_if(mbedtls_ct_condition_t condition,
     return (unsigned) mbedtls_ct_if(condition, (mbedtls_ct_uint_t) if1, (mbedtls_ct_uint_t) if0);
 }
 
+static inline mbedtls_ct_condition_t mbedtls_ct_bool_if(mbedtls_ct_condition_t condition,
+                                                        mbedtls_ct_condition_t if1,
+                                                        mbedtls_ct_condition_t if0)
+{
+    return (mbedtls_ct_condition_t) mbedtls_ct_if(condition, (mbedtls_ct_uint_t) if1,
+                                                  (mbedtls_ct_uint_t) if0);
+}
+
 #if defined(MBEDTLS_BIGNUM_C)
 
 static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if(mbedtls_ct_condition_t condition,
@@ -371,6 +379,12 @@ static inline size_t mbedtls_ct_size_if_else_0(mbedtls_ct_condition_t condition,
 static inline unsigned mbedtls_ct_uint_if_else_0(mbedtls_ct_condition_t condition, unsigned if1)
 {
     return (unsigned) (condition & if1);
+}
+
+static inline mbedtls_ct_condition_t mbedtls_ct_bool_if_else_0(mbedtls_ct_condition_t condition,
+                                                               mbedtls_ct_condition_t if1)
+{
+    return (mbedtls_ct_condition_t) (condition & if1);
 }
 
 #if defined(MBEDTLS_BIGNUM_C)

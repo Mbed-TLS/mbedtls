@@ -421,10 +421,9 @@ int mbedtls_nist_kw_unwrap(mbedtls_nist_kw_context *ctx,
          * larger than 8, because of the type wrap around.
          */
         padlen = in_len - KW_SEMIBLOCK_LENGTH - Plen;
-        if (padlen > 7) {
-            padlen &= 7;
-            ret = MBEDTLS_ERR_CIPHER_AUTH_FAILED;
-        }
+        ret = -((int) mbedtls_ct_uint_if_else_0(mbedtls_ct_uint_gt(padlen, 7),
+                                                -MBEDTLS_ERR_CIPHER_AUTH_FAILED));
+        padlen &= 7;
 
         /* Check padding in "constant-time" */
         const uint8_t zero[KW_SEMIBLOCK_LENGTH] = { 0 };

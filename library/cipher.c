@@ -972,11 +972,7 @@ static int get_zeros_and_len_padding(unsigned char *input, size_t input_len,
 static void add_zeros_padding(unsigned char *output,
                               size_t output_len, size_t data_len)
 {
-    size_t i;
-
-    for (i = data_len; i < output_len; i++) {
-        output[i] = 0x00;
-    }
+    memset(output + data_len, 0, output_len - data_len);
 }
 
 static int get_zeros_padding(unsigned char *input, size_t input_len,

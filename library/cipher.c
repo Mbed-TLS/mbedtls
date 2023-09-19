@@ -903,7 +903,7 @@ static int get_one_and_zeros_padding(unsigned char *input, size_t input_len,
 
     *data_len = 0;
 
-    for (int i = input_len - 1; i >= 0; i--) {
+    for (ptrdiff_t i = (ptrdiff_t) (input_len) - 1; i >= 0; i--) {
         mbedtls_ct_condition_t is_nonzero = mbedtls_ct_bool(input[i]);
 
         mbedtls_ct_condition_t hit_first_nonzero = mbedtls_ct_bool_and(is_nonzero, in_padding);

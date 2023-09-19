@@ -283,10 +283,10 @@ void mbedtls_ct_memcmp_partial(int diff, int size, int skip_head, int skip_tail)
     /* Construct data that matches, except for specified byte (if in range). */
     for (int i = 0; i < size; i++) {
         a[i] = i & 0xff;
-        if (i != diff) {
-            b[i] = a[i];
-        } else {
-            b[i] = (i + 1) & 0xff;
+        b[i] = a[i];
+        if (i == diff) {
+            // modify the specified byte
+            b[i] ^= 1;
         }
     }
 

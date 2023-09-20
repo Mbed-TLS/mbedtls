@@ -372,7 +372,7 @@ int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
 int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *buf, size_t size)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char *c;
+    unsigned char *c = NULL;
     int has_par = 1;
     size_t len = 0, par_len = 0, oid_len = 0;
     mbedtls_pk_type_t pk_type;

@@ -798,7 +798,8 @@ static int get_one_and_zeros_padding(unsigned char *input, size_t input_len,
 
         *data_len = (*data_len & ~hit_first_nonzero) | ((size_t) i & hit_first_nonzero);
 
-        bad = mbedtls_ct_uint_if(hit_first_nonzero, !mbedtls_ct_size_bool_eq(input[i], 0x80), bad);
+        bad = mbedtls_ct_uint_if((unsigned int) hit_first_nonzero,
+                                 !mbedtls_ct_size_bool_eq(input[i], 0x80), bad);
 
         in_padding = in_padding & ~is_nonzero;
     }
@@ -843,7 +844,7 @@ static int get_zeros_and_len_padding(unsigned char *input, size_t input_len,
     /* The number of bytes checked must be independent of padding_len */
     pad_idx = input_len - padding_len;
     for (i = 0; i < input_len - 1; i++) {
-        unsigned int mask = mbedtls_ct_size_mask_ge(i, pad_idx);
+        size_t mask = mbedtls_ct_size_mask_ge(i, pad_idx);
         bad |= input[i] & mask;
     }
 

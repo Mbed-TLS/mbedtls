@@ -116,7 +116,8 @@ mbedtls_mpi_uint mbedtls_ct_mpi_uint_mask(mbedtls_mpi_uint value)
 
 #endif /* MBEDTLS_BIGNUM_C */
 
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC) || defined(MBEDTLS_NIST_KW_C) || \
+    defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
 
 /** Constant-flow mask generation for "less than" comparison:
  * - if \p x < \p y, return all-bits 1, that is (size_t) -1
@@ -151,7 +152,8 @@ size_t mbedtls_ct_size_mask_ge(size_t x,
     return ~mbedtls_ct_size_mask_lt(x, y);
 }
 
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
+#endif /* defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC) || defined(MBEDTLS_NIST_KW_C) ||
+          defined(MBEDTLS_CIPHER_MODE_WITH_PADDING) */
 
 #if defined(MBEDTLS_BASE64_C)
 

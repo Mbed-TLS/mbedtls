@@ -1542,7 +1542,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt(mbedtls_rsa_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t ilen, i, pad_len;
     unsigned char *p;
-    mbedtls_ct_condition_t bad, pad_done;
+    mbedtls_ct_condition_t bad, in_padding;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     unsigned char lhash[MBEDTLS_MD_MAX_SIZE];
     unsigned int hlen;
@@ -1614,10 +1614,10 @@ int mbedtls_rsa_rsaes_oaep_decrypt(mbedtls_rsa_context *ctx,
     /* Get zero-padding len, but always read till end of buffer
      * (minus one, for the 01 byte) */
     pad_len = 0;
-    pad_done = MBEDTLS_CT_FALSE;
+    in_padding = MBEDTLS_CT_TRUE;
     for (i = 0; i < ilen - 2 * hlen - 2; i++) {
-        pad_done = mbedtls_ct_bool_or(pad_done, mbedtls_ct_uint_ne(p[i], 0));
-        pad_len += mbedtls_ct_uint_if_else_0(mbedtls_ct_bool_not(pad_done), 1);
+        in_padding = mbedtls_ct_bool_and(in_padding, mbedtls_ct_uint_eq(p[i], 0));
+        pad_len += mbedtls_ct_uint_if_else_0(in_padding, 1);
     }
 
     p += pad_len;

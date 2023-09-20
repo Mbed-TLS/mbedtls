@@ -38,7 +38,7 @@
  *                       total of 65 bytes.
  *
  * p256-m's internal format for private keys matches PSA. Its format for public
- * keys is only 64 bytes; the same as PSA but without the leading byte (0x04).
+ * keys is only 64 bytes: the same as PSA but without the leading byte (0x04).
  * Hence, when passing public keys from PSA to p256-m, the leading byte is
  * removed.
  *
@@ -89,6 +89,7 @@ psa_status_t p256_transparent_import_key(const psa_key_attributes_t *attributes,
         if (data_length != PSA_PUBKEY_SIZE) {
             return *bits == 0 ? PSA_ERROR_NOT_SUPPORTED : PSA_ERROR_INVALID_ARGUMENT;
         }
+        /* See INFORMATION ON PSA KEY EXPORT FORMATS near top of file */
         if (p256_validate_pubkey(data + 1) != P256_SUCCESS) {
             return PSA_ERROR_INVALID_ARGUMENT;
         }
@@ -136,7 +137,7 @@ psa_status_t p256_transparent_export_public_key(const psa_key_attributes_t *attr
         return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
-    /* Output public key in the PSA export format */
+    /* See INFORMATION ON PSA KEY EXPORT FORMATS near top of file */
     data[0] = PSA_PUBKEY_HEADER_BYTE;
     int ret = p256_public_from_private(data + 1, key_buffer);
     if (ret == P256_SUCCESS) {
@@ -201,10 +202,9 @@ psa_status_t p256_transparent_key_agreement(
         return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
-    /* We add 1 to peer_key pointer to omit the leading byte of the public key
-     * representation (0x04). See information about PSA key formats at the top
-     * of the file. */
-    int ret = p256_ecdh_shared_secret(shared_secret, key_buffer, peer_key + 1);
+    /* See INFORMATION ON PSA KEY EXPORT FORMATS near top of file */
+    const uint8_t peer_key_p256m = peer_key + 1;
+    int ret = p256_ecdh_shared_secret(shared_secret, key_buffer, peer_key_p256m);
     if (ret == P256_SUCCESS) {
         *shared_secret_length = SHARED_SECRET_SIZE;
     }
@@ -263,11 +263,9 @@ static psa_status_t p256_verify_hash_with_public_key(
         return PSA_ERROR_INVALID_SIGNATURE;
     }
 
-    /* We add 1 to public_key_buffer pointer to omit the leading byte of the
-     * public key representation (0x04). See information about PSA key formats
-     * at the top of the file. */
-    const uint8_t *public_key_buffer = key_buffer + 1;
-    int ret = p256_ecdsa_verify(signature, public_key_buffer, hash, hash_length);
+    /* See INFORMATION ON PSA KEY EXPORT FORMATS near top of file */
+    const uint8_t *public_key_p256m = key_buffer + 1;
+    int ret = p256_ecdsa_verify(signature, public_key_p256m, hash, hash_length);
 
     return p256_to_psa_error(ret);
 }

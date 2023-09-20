@@ -46,7 +46,7 @@
 unsigned mbedtls_ct_uint_mask(unsigned value);
 
 #if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC) || defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC) || \
-    defined(MBEDTLS_NIST_KW_C) || defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
+    defined(MBEDTLS_NIST_KW_C) || defined(MBEDTLS_CIPHER_MODE_CBC)
 
 /** Turn a value into a mask:
  * - if \p value == 0, return the all-bits 0 mask, aka 0
@@ -62,7 +62,7 @@ unsigned mbedtls_ct_uint_mask(unsigned value);
 size_t mbedtls_ct_size_mask(size_t value);
 
 #endif /* defined(MBEDTLS_SSL_SOME_MODES_USE_MAC) || defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC) ||
-          defined(MBEDTLS_NIST_KW_C) || defined(MBEDTLS_CIPHER_MODE_WITH_PADDING) */
+          defined(MBEDTLS_NIST_KW_C) || defined(MBEDTLS_CIPHER_MODE_CBC) */
 
 #if defined(MBEDTLS_BIGNUM_C)
 

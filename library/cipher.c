@@ -837,16 +837,17 @@ static int get_zeros_and_len_padding(unsigned char *input, size_t input_len,
     *data_len = input_len - padding_len;
 
     /* Avoid logical || since it results in a branch */
-    bad |= padding_len > input_len;
-    bad |= padding_len == 0;
+    bad |= mbedtls_ct_size_mask_ge(padding_len, input_len + 1);
+    bad |= mbedtls_ct_size_bool_eq(padding_len, 0);
 
     /* The number of bytes checked must be independent of padding_len */
     pad_idx = input_len - padding_len;
     for (i = 0; i < input_len - 1; i++) {
-        bad |= input[i] * (i >= pad_idx);
+        unsigned int mask = mbedtls_ct_size_mask_ge(i, pad_idx);
+        bad |= input[i] & mask;
     }
 
-    return MBEDTLS_ERR_CIPHER_INVALID_PADDING * (bad != 0);
+    return (int) mbedtls_ct_uint_if(bad, MBEDTLS_ERR_CIPHER_INVALID_PADDING, 0);
 }
 #endif /* MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN */
 

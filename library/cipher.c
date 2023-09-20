@@ -879,7 +879,8 @@ static int get_zeros_padding(unsigned char *input, size_t input_len,
     for (i = input_len; i > 0; i--) {
         prev_done = done;
         done |= (input[i-1] != 0);
-        *data_len |= i * (done != prev_done);
+        size_t mask = mbedtls_ct_size_mask(done ^ prev_done);
+        *data_len |= i & mask;
     }
 
     return 0;

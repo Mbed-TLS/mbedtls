@@ -141,8 +141,8 @@ print_test_case() {
     done
 }
 
-# list_test_case lists all potential test cases in compat.sh without execution
-list_test_case() {
+# list_test_cases lists all potential test cases in compat.sh without execution
+list_test_cases() {
     reset_ciphersuites
     for TYPE in $TYPES; do
         add_common_ciphersuites
@@ -193,7 +193,7 @@ get_options() {
             # Please check scripts/check_test_cases.py correspondingly
             # if you have to modify option, --list-test-cases
             --list-test-cases)
-                list_test_case
+                list_test_cases
                 exit $?
                 ;;
             --outcome-file)

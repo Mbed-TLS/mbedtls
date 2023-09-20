@@ -157,8 +157,9 @@
 #define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES
 #endif
 
+/* Special case: we don't support cooked key derivation in drivers yet */
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE) && \
-    !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_DERIVE)
+    (1 || !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_DERIVE))
 #define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES
 #endif
 
@@ -402,8 +403,9 @@
 #endif /* missing accel */
 #endif /* PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE */
 
+/* Special case: we don't support cooked key derivation in drivers yet */
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE)
-#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_DERIVE) || \
+#if 1 || !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_DERIVE) || \
     defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_DERIVE 1
 #define MBEDTLS_ECP_LIGHT

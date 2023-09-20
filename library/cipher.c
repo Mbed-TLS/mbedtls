@@ -782,24 +782,28 @@ static void add_one_and_zeros_padding(unsigned char *output,
 static int get_one_and_zeros_padding(unsigned char *input, size_t input_len,
                                      size_t *data_len)
 {
-    size_t i;
-    unsigned char done = 0, prev_done, bad;
+    unsigned int bad = 1;
 
     if (NULL == input || NULL == data_len) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-    bad = 0x80;
     *data_len = 0;
-    for (i = input_len; i > 0; i--) {
-        prev_done = done;
-        done |= (input[i - 1] != 0);
-        *data_len |= (i - 1) * (done != prev_done);
-        bad ^= input[i - 1] * (done != prev_done);
+    size_t in_padding = ~0;
+
+    for (ptrdiff_t i = (ptrdiff_t) (input_len) - 1; i >= 0; i--) {
+        size_t is_nonzero = mbedtls_ct_uint_mask(input[i]);
+
+        size_t hit_first_nonzero = is_nonzero & in_padding;
+
+        *data_len = (*data_len & ~hit_first_nonzero) | ((size_t) i & hit_first_nonzero);
+
+        bad = mbedtls_ct_uint_if(hit_first_nonzero, !mbedtls_ct_size_bool_eq(input[i], 0x80), bad);
+
+        in_padding = in_padding & ~is_nonzero;
     }
 
-    return MBEDTLS_ERR_CIPHER_INVALID_PADDING * (bad != 0);
-
+    return (int) mbedtls_ct_uint_if(bad, MBEDTLS_ERR_CIPHER_INVALID_PADDING, 0);
 }
 #endif /* MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS */
 

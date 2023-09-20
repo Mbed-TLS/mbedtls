@@ -1617,7 +1617,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt(mbedtls_rsa_context *ctx,
     pad_done = MBEDTLS_CT_FALSE;
     for (i = 0; i < ilen - 2 * hlen - 2; i++) {
         pad_done = mbedtls_ct_bool_or(pad_done, mbedtls_ct_uint_ne(p[i], 0));
-        pad_len += mbedtls_ct_mpi_uint_if_else_0(mbedtls_ct_bool_not(pad_done), 1);
+        pad_len += mbedtls_ct_uint_if_else_0(mbedtls_ct_bool_not(pad_done), 1);
     }
 
     p += pad_len;

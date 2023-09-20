@@ -850,7 +850,6 @@ static int get_pkcs_padding(unsigned char *input, size_t input_len,
 {
     size_t i, pad_idx;
     unsigned char padding_len;
-    mbedtls_ct_condition_t bad = MBEDTLS_CT_FALSE;
 
     if (NULL == input || NULL == data_len) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
@@ -859,7 +858,7 @@ static int get_pkcs_padding(unsigned char *input, size_t input_len,
     padding_len = input[input_len - 1];
     *data_len = input_len - padding_len;
 
-    bad = mbedtls_ct_uint_gt(padding_len, input_len);
+    mbedtls_ct_condition_t bad = mbedtls_ct_uint_gt(padding_len, input_len);
     bad = mbedtls_ct_bool_or(bad, mbedtls_ct_uint_eq(padding_len, 0));
 
     /* The number of bytes checked must be independent of padding_len,

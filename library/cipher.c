@@ -30,6 +30,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 #include "mbedtls/constant_time.h"
+#include "constant_time_internal.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -755,10 +756,10 @@ static int get_pkcs_padding(unsigned char *input, size_t input_len,
      * so pick input_len, which is usually 8 or 16 (one block) */
     pad_idx = input_len - padding_len;
     for (i = 0; i < input_len; i++) {
-        bad |= (input[i] ^ padding_len) * (i >= pad_idx);
+        size_t mask = mbedtls_ct_size_mask_ge(i, pad_idx);
+        bad |= (input[i] ^ padding_len) & mask;
     }
-
-    return MBEDTLS_ERR_CIPHER_INVALID_PADDING * (bad != 0);
+    return (int) mbedtls_ct_uint_if(bad, MBEDTLS_ERR_CIPHER_INVALID_PADDING, 0);
 }
 #endif /* MBEDTLS_CIPHER_PADDING_PKCS7 */
 

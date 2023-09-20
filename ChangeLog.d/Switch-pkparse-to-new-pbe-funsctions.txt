@@ -1,0 +1,11 @@
+New deprecations
+   * mbedtls_pkcs5_pbes2() and mbedtls_pkcs12_pbe() functions are now
+     deprecated in favor of mbedtls_pkcs5_pbes2_ext() and
+     mbedtls_pkcs12_pbe_ext() as they offer more security by checking
+     for overflow of the output buffer and reporting the actual length
+     of the output.
+
+Bugfix
+   * Pass real length of key to pk_parse_key_pkcs8_unencrypted_der()
+     after decrypting the key to avoid trailing padding data which are not
+     part of the original key before encrypting.

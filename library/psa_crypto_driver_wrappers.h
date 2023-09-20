@@ -24,9 +24,9 @@
 #include "psa/crypto.h"
 #include "psa/crypto_driver_common.h"
 
-#if defined(MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED)
+#if defined(MBEDTLS_PSA_P256M_DRIVER_ENABLED)
 #include "../3rdparty/p256-m/p256-m_driver_entrypoints.h"
-#endif /* MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED */
+#endif /* MBEDTLS_PSA_P256M_DRIVER_ENABLED */
 
 /*
  * Initialization and termination functions

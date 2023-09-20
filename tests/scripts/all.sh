@@ -1749,6 +1749,9 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only_use_psa () {
 component_test_tls1_2_ecjpake_compatibility() {
     msg "build: TLS1.2 server+client w/ EC-JPAKE w/o USE_PSA"
     scripts/config.py set MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
+    # Explicitly make lib first to avoid a race condition:
+    # https://github.com/Mbed-TLS/mbedtls/issues/8229
+    make lib
     make -C programs ssl/ssl_server2 ssl/ssl_client2
     cp programs/ssl/ssl_server2 s2_no_use_psa
     cp programs/ssl/ssl_client2 c2_no_use_psa
@@ -1756,6 +1759,7 @@ component_test_tls1_2_ecjpake_compatibility() {
     msg "build: TLS1.2 server+client w/ EC-JPAKE w/ USE_PSA"
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
     make clean
+    make lib
     make -C programs ssl/ssl_server2 ssl/ssl_client2
     make -C programs test/udp_proxy test/query_compile_time_config
 

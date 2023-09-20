@@ -1443,6 +1443,16 @@
  *   #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT,
  *   #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT and/or
  *   #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE as needed.
+ *
+ * \note To genuinely benefit from the smaller code size of p256-m, make
+ *       sure that you do not enable any ECC-related option that requires
+ *       the built-in implementation of elliptic curve arithmetic. This
+ *       means enabling #MBEDTLS_PSA_CRYPTO_C, #MBEDTLS_PSA_CRYPTO_CONFIG,
+ *       #PSA_WANT_ECC_SECP_R1_256 and #MBEDTLS_PSA_P256M_DRIVER_ENABLED,
+ *       plus any of the `PSA_WANT_ALG_xxx` and `PSA_WANT_KEY_TYPE_xxx`
+ *       options listed above, and not enabling other ECC-related options
+ *       through `PSA_WANT_xxx` or `MBEDTLS_xxx` (in particular, not
+ *       enabling other curves or EC-JPAKE).
  */
 //#define MBEDTLS_PSA_P256M_DRIVER_ENABLED
 

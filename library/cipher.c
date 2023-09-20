@@ -759,7 +759,7 @@ static int get_pkcs_padding(unsigned char *input, size_t input_len,
         size_t mask = mbedtls_ct_size_mask_ge(i, pad_idx);
         bad |= (input[i] ^ padding_len) & mask;
     }
-    return -mbedtls_ct_uint_if(bad, -MBEDTLS_ERR_CIPHER_INVALID_PADDING, 0);
+    return -(int) mbedtls_ct_uint_if(bad, -MBEDTLS_ERR_CIPHER_INVALID_PADDING, 0);
 }
 #endif /* MBEDTLS_CIPHER_PADDING_PKCS7 */
 
@@ -804,7 +804,7 @@ static int get_one_and_zeros_padding(unsigned char *input, size_t input_len,
         in_padding = in_padding & ~is_nonzero;
     }
 
-    return -mbedtls_ct_uint_if(bad, -MBEDTLS_ERR_CIPHER_INVALID_PADDING, 0);
+    return -(int) mbedtls_ct_uint_if(bad, -MBEDTLS_ERR_CIPHER_INVALID_PADDING, 0);
 }
 #endif /* MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS */
 
@@ -848,7 +848,7 @@ static int get_zeros_and_len_padding(unsigned char *input, size_t input_len,
         bad |= input[i] & mask;
     }
 
-    return -mbedtls_ct_uint_if(bad, -MBEDTLS_ERR_CIPHER_INVALID_PADDING, 0);
+    return -(int) mbedtls_ct_uint_if(bad, -MBEDTLS_ERR_CIPHER_INVALID_PADDING, 0);
 }
 #endif /* MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN */
 

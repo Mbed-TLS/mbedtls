@@ -147,7 +147,7 @@ void test_callback_buffer(int size, int put1, int put1_ret,
     if (input_len == 0) {
         input_len = 1;
     }
-    ASSERT_ALLOC(input, input_len);
+    TEST_CALLOC(input, input_len);
 
     output_len = 0;
     for (j = 0; j < ROUNDS; j++) {
@@ -161,7 +161,7 @@ void test_callback_buffer(int size, int put1, int put1_ret,
     if (output_len == 0) {
         output_len = 1;
     }
-    ASSERT_ALLOC(output, output_len);
+    TEST_CALLOC(output, output_len);
 
     /* Fill up the buffer with structured data so that unwanted changes
      * can be detected */
@@ -1516,8 +1516,8 @@ void ssl_decrypt_non_etm_cbc(int cipher_type, int hash_id, int trunc_hmac,
              + plaintext_len
              + t0.maclen
              + padlen + 1;
-    ASSERT_ALLOC(buf, buflen);
-    ASSERT_ALLOC(buf_save, buflen);
+    TEST_CALLOC(buf, buflen);
+    TEST_CALLOC(buf_save, buflen);
 
     /* Prepare a dummy record header */
     memset(rec.ctr, 0, sizeof(rec.ctr));
@@ -1689,8 +1689,8 @@ void ssl_tls1_3_hkdf_expand_label(int hash_alg,
                     ctx->x, ctx->len,
                     dst, desired_length) == 0);
 
-    ASSERT_COMPARE(dst, (size_t) desired_length,
-                   expected->x, (size_t) expected->len);
+    TEST_MEMORY_COMPARE(dst, (size_t) desired_length,
+                        expected->x, (size_t) expected->len);
 }
 /* END_CASE */
 
@@ -1724,22 +1724,22 @@ void ssl_tls1_3_traffic_key_generation(int hash_alg,
                     desired_key_len, desired_iv_len,
                     &keys) == 0);
 
-    ASSERT_COMPARE(keys.client_write_key,
-                   keys.key_len,
-                   expected_client_write_key->x,
-                   (size_t) desired_key_len);
-    ASSERT_COMPARE(keys.server_write_key,
-                   keys.key_len,
-                   expected_server_write_key->x,
-                   (size_t) desired_key_len);
-    ASSERT_COMPARE(keys.client_write_iv,
-                   keys.iv_len,
-                   expected_client_write_iv->x,
-                   (size_t) desired_iv_len);
-    ASSERT_COMPARE(keys.server_write_iv,
-                   keys.iv_len,
-                   expected_server_write_iv->x,
-                   (size_t) desired_iv_len);
+    TEST_MEMORY_COMPARE(keys.client_write_key,
+                        keys.key_len,
+                        expected_client_write_key->x,
+                        (size_t) desired_key_len);
+    TEST_MEMORY_COMPARE(keys.server_write_key,
+                        keys.key_len,
+                        expected_server_write_key->x,
+                        (size_t) desired_key_len);
+    TEST_MEMORY_COMPARE(keys.client_write_iv,
+                        keys.iv_len,
+                        expected_client_write_iv->x,
+                        (size_t) desired_iv_len);
+    TEST_MEMORY_COMPARE(keys.server_write_iv,
+                        keys.iv_len,
+                        expected_server_write_iv->x,
+                        (size_t) desired_iv_len);
 }
 /* END_CASE */
 
@@ -1778,8 +1778,8 @@ void ssl_tls1_3_derive_secret(int hash_alg,
                     already_hashed,
                     dst, desired_length) == 0);
 
-    ASSERT_COMPARE(dst, desired_length,
-                   expected->x, desired_length);
+    TEST_MEMORY_COMPARE(dst, desired_length,
+                        expected->x, desired_length);
 }
 /* END_CASE */
 
@@ -1797,8 +1797,8 @@ void ssl_tls1_3_key_evolution(int hash_alg,
                     input->len ? input->x : NULL, input->len,
                     secret_new) == 0);
 
-    ASSERT_COMPARE(secret_new, (size_t) expected->len,
-                   expected->x, (size_t) expected->len);
+    TEST_MEMORY_COMPARE(secret_new, (size_t) expected->len,
+                        expected->x, (size_t) expected->len);
 }
 /* END_CASE */
 
@@ -2126,7 +2126,7 @@ void ssl_session_serialize_version_check(int corrupt_major,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED:MBEDTLS_CERTS_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_ENTROPY_C:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED:MBEDTLS_CERTS_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_ENTROPY_C:!MBEDTLS_TEST_NULL_ENTROPY:!MBEDTLS_PSA_INJECT_ENTROPY:MBEDTLS_CTR_DRBG_C:MBEDTLS_SHA256_C */
 void mbedtls_endpoint_sanity(int endpoint_type)
 {
     enum { BUFFSIZE = 1024 };
@@ -2151,7 +2151,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED:MBEDTLS_CERTS_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_ENTROPY_C:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C:MBEDTLS_ECP_C:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED:MBEDTLS_CERTS_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_ENTROPY_C:!MBEDTLS_TEST_NULL_ENTROPY:!MBEDTLS_PSA_INJECT_ENTROPY:MBEDTLS_CTR_DRBG_C:MBEDTLS_ECP_C:MBEDTLS_SHA256_C */
 void move_handshake_to_state(int endpoint_type, int state, int need_pass)
 {
     enum { BUFFSIZE = 1024 };
@@ -2408,7 +2408,7 @@ void resize_buffers_renegotiate_mfl(int mfl, int legacy_renegotiation,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED:MBEDTLS_CERTS_C:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ENTROPY_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_CTR_DRBG_C:MBEDTLS_ECP_C:MBEDTLS_ECDSA_C */
+/* BEGIN_CASE depends_on:MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED:MBEDTLS_CERTS_C:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ENTROPY_C:!MBEDTLS_TEST_NULL_ENTROPY:!MBEDTLS_PSA_INJECT_ENTROPY:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_CTR_DRBG_C:MBEDTLS_ECP_C:MBEDTLS_ECDSA_C */
 void raw_key_agreement_fail(int bad_server_ecdhe_key)
 {
     enum { BUFFSIZE = 17000 };

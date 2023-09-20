@@ -533,7 +533,7 @@ int mbedtls_mpi_write_file(const char *p, const mbedtls_mpi *X,
  * \param X        The destination MPI. This must point to an initialized MPI.
  * \param buf      The input buffer. This must be a readable buffer of length
  *                 \p buflen Bytes.
- * \param buflen   The length of the input buffer \p p in Bytes.
+ * \param buflen   The length of the input buffer \p buf in Bytes.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed.
@@ -548,7 +548,7 @@ int mbedtls_mpi_read_binary(mbedtls_mpi *X, const unsigned char *buf,
  * \param X        The destination MPI. This must point to an initialized MPI.
  * \param buf      The input buffer. This must be a readable buffer of length
  *                 \p buflen Bytes.
- * \param buflen   The length of the input buffer \p p in Bytes.
+ * \param buflen   The length of the input buffer \p buf in Bytes.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed.
@@ -986,8 +986,8 @@ int mbedtls_mpi_gcd(mbedtls_mpi *G, const mbedtls_mpi *A,
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
  * \return         #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p N is less than
  *                 or equal to one.
- * \return         #MBEDTLS_ERR_MPI_NOT_ACCEPTABLE if \p has no modular inverse
- *                 with respect to \p N.
+ * \return         #MBEDTLS_ERR_MPI_NOT_ACCEPTABLE if \p A has no modular
+ *                 inverse with respect to \p N.
  */
 int mbedtls_mpi_inv_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
                         const mbedtls_mpi *N);

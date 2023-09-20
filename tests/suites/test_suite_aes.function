@@ -34,7 +34,7 @@ static int test_ctx_alignment(const data_t *key,
     // Decrypt
     TEST_ASSERT(mbedtls_aes_crypt_ecb(dec, MBEDTLS_AES_DECRYPT,
                                       ciphertext, output) == 0);
-    ASSERT_COMPARE(plaintext, 16, output, 16);
+    TEST_MEMORY_COMPARE(plaintext, 16, output, 16);
 
     mbedtls_aes_free(dec);
 
@@ -688,8 +688,8 @@ void aes_ecb_context_alignment(data_t *key)
     struct align1 *dec1 = NULL;
 
     /* All peak alignment */
-    ASSERT_ALLOC(enc0, 1);
-    ASSERT_ALLOC(dec0, 1);
+    TEST_CALLOC(enc0, 1);
+    TEST_CALLOC(dec0, 1);
     if (!test_ctx_alignment(key, &enc0->ctx, &dec0->ctx)) {
         goto exit;
     }
@@ -699,8 +699,8 @@ void aes_ecb_context_alignment(data_t *key)
     dec0 = NULL;
 
     /* Enc aligned, dec not */
-    ASSERT_ALLOC(enc0, 1);
-    ASSERT_ALLOC(dec1, 1);
+    TEST_CALLOC(enc0, 1);
+    TEST_CALLOC(dec1, 1);
     if (!test_ctx_alignment(key, &enc0->ctx, &dec1->ctx)) {
         goto exit;
     }
@@ -710,8 +710,8 @@ void aes_ecb_context_alignment(data_t *key)
     dec1 = NULL;
 
     /* Dec aligned, enc not */
-    ASSERT_ALLOC(enc1, 1);
-    ASSERT_ALLOC(dec0, 1);
+    TEST_CALLOC(enc1, 1);
+    TEST_CALLOC(dec0, 1);
     if (!test_ctx_alignment(key, &enc1->ctx, &dec0->ctx)) {
         goto exit;
     }
@@ -721,8 +721,8 @@ void aes_ecb_context_alignment(data_t *key)
     dec0 = NULL;
 
     /* Both shifted */
-    ASSERT_ALLOC(enc1, 1);
-    ASSERT_ALLOC(dec1, 1);
+    TEST_CALLOC(enc1, 1);
+    TEST_CALLOC(dec1, 1);
     if (!test_ctx_alignment(key, &enc1->ctx, &dec1->ctx)) {
         goto exit;
     }

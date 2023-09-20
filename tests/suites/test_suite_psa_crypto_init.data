@@ -25,7 +25,10 @@ validate_module_init_key_based:1
 Custom entropy sources: all standard
 custom_entropy_sources:0x0000ffff:PSA_SUCCESS
 
+# MBEDTLS_PSA_INJECT_ENTROPY means that a source of entropy (the seed file)
+# is effectively always available.
 Custom entropy sources: none
+depends_on:!MBEDTLS_PSA_INJECT_ENTROPY
 custom_entropy_sources:0:PSA_ERROR_INSUFFICIENT_ENTROPY
 
 Fake entropy: never returns anything

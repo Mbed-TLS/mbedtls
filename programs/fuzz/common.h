@@ -19,7 +19,7 @@ typedef struct fuzzBufferOffset {
 #if defined(MBEDTLS_HAVE_TIME)
 mbedtls_time_t dummy_constant_time(mbedtls_time_t *time);
 #endif
-void dummy_init();
+void dummy_init(void);
 
 int dummy_send(void *ctx, const unsigned char *buf, size_t len);
 int fuzz_recv(void *ctx, unsigned char *buf, size_t len);

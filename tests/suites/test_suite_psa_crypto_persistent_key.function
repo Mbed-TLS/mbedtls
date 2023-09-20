@@ -61,13 +61,13 @@ void format_storage_data_check(data_t *key_data,
     psa_set_key_algorithm(&attributes, key_alg);
     psa_set_key_enrollment_algorithm(&attributes, key_alg2);
 
-    ASSERT_ALLOC(file_data, file_data_length);
+    TEST_CALLOC(file_data, file_data_length);
     psa_format_key_data_for_storage(key_data->x, key_data->len,
                                     &attributes.core,
                                     file_data);
 
-    ASSERT_COMPARE(expected_file_data->x, expected_file_data->len,
-                   file_data, file_data_length);
+    TEST_MEMORY_COMPARE(expected_file_data->x, expected_file_data->len,
+                        file_data, file_data_length);
 
 exit:
     mbedtls_free(file_data);
@@ -111,8 +111,8 @@ void parse_storage_data_check(data_t *file_data,
                (uint32_t) expected_key_alg);
     TEST_EQUAL(psa_get_key_enrollment_algorithm(&attributes),
                (uint32_t) expected_key_alg2);
-    ASSERT_COMPARE(expected_key_data->x, expected_key_data->len,
-                   key_data, key_data_length);
+    TEST_MEMORY_COMPARE(expected_key_data->x, expected_key_data->len,
+                        key_data, key_data_length);
 
 exit:
     mbedtls_free(key_data);
@@ -127,7 +127,7 @@ void save_large_persistent_key(int data_length_arg, int expected_status)
     size_t data_length = data_length_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    ASSERT_ALLOC(data, data_length);
+    TEST_CALLOC(data, data_length);
 
     PSA_ASSERT(psa_crypto_init());
 
@@ -267,7 +267,7 @@ void import_export_persistent_key(data_t *data, int type_arg,
     size_t exported_length;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    ASSERT_ALLOC(exported, export_size);
+    TEST_CALLOC(exported, export_size);
 
     PSA_ASSERT(psa_crypto_init());
 
@@ -307,7 +307,7 @@ void import_export_persistent_key(data_t *data, int type_arg,
     PSA_ASSERT(psa_export_key(key_id, exported, export_size,
                               &exported_length));
 
-    ASSERT_COMPARE(data->x, data->len, exported, exported_length);
+    TEST_MEMORY_COMPARE(data->x, data->len, exported, exported_length);
 
     /* Destroy the key */
     PSA_ASSERT(psa_destroy_key(key_id));

@@ -601,9 +601,9 @@ static int check_persistent_data(psa_key_location_t location,
     int ok = 0;
 
     PSA_ASSERT(psa_its_get_info(uid, &info));
-    ASSERT_ALLOC(loaded, info.size);
+    TEST_CALLOC(loaded, info.size);
     PSA_ASSERT(psa_its_get(uid, 0, info.size, loaded, NULL));
-    ASSERT_COMPARE(expected_data, size, loaded, info.size);
+    TEST_MEMORY_COMPARE(expected_data, size, loaded, info.size);
     ok = 1;
 
 exit:
@@ -958,8 +958,8 @@ void key_creation_import_export(int lifetime_arg, int min_slot, int restart)
     PSA_ASSERT(psa_export_key(returned_id,
                               exported, sizeof(exported),
                               &exported_length));
-    ASSERT_COMPARE(key_material, sizeof(key_material),
-                   exported, exported_length);
+    TEST_MEMORY_COMPARE(key_material, sizeof(key_material),
+                        exported, exported_length);
 
     PSA_ASSERT(psa_destroy_key(returned_id));
     if (!check_persistent_data(location,
@@ -1321,7 +1321,7 @@ void sign_verify(int flow,
             key_management.p_export_public = ram_export_public;
             break;
         default:
-            TEST_ASSERT(!"unsupported flow (should be SIGN_IN_xxx)");
+            TEST_FAIL("unsupported flow (should be SIGN_IN_xxx)");
             break;
     }
     asymmetric.p_verify = ram_verify;

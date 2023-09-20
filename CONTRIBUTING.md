@@ -84,8 +84,14 @@ Mbed TLS is well documented, but if you think documentation is needed, speak out
 License and Copyright
 ---------------------
 
-All new files should include the [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) standard license header where possible. For licensing details, please see the [License section of the README](README.md#License).
+Unless specifically indicated otherwise in a file, Mbed TLS files are provided under the [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) license. See the [LICENSE](LICENSE) file for the full text of this license.
+
+Contributors must accept that their contributions are made under both the Apache-2.0 AND [GPL-2.0-or-later](https://spdx.org/licenses/GPL-2.0-or-later.html) licenses. This enables LTS (Long Term Support) branches of the software to be provided under either the Apache-2.0 or GPL-2.0-or-later licenses.
+
+All new files should include the [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) standard license header where possible.
 
 The copyright on contributions is retained by the original authors of the code. Where possible for new files, this should be noted in a comment at the top of the file in the form: "Copyright The Mbed TLS Contributors".
 
-When contributing code to us, the committer and all authors are required to make the submission under the terms of the [Developer Certificate of Origin](dco.txt), confirming that the code submitted can (legally) become part of the project, and be subject to the same Apache 2.0 license. This is done by including the standard Git `Signed-off-by:` line in every commit message. If more than one person contributed to the commit, they should also add their own `Signed-off-by:` line.
+When contributing code to us, the committer and all authors are required to make the submission under the terms of the [Developer Certificate of Origin](dco.txt), confirming that the code submitted can (legally) become part of the project, and is submitted under both the Apache-2.0 AND GPL-2.0-or-later licenses.
+
+This is done by including the standard Git `Signed-off-by:` line in every commit message. If more than one person contributed to the commit, they should also add their own `Signed-off-by:` line.

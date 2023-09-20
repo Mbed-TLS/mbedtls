@@ -289,7 +289,7 @@ void entropy_from_nv_seed(int seed_size_arg,
     uint8_t *seed = NULL;
     size_t seed_size = seed_size_arg;
 
-    ASSERT_ALLOC(seed, seed_size);
+    TEST_CALLOC(seed, seed_size);
     TEST_ASSERT(mbedtls_nv_seed_write(seed, seed_size) >= 0);
 
     custom_entropy_sources_mask = ENTROPY_SOURCE_NV_SEED;

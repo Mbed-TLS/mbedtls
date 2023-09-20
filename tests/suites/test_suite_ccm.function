@@ -48,7 +48,7 @@ void ccm_lengths(int msg_len, int iv_len, int add_len, int tag_len, int res)
 
     mbedtls_ccm_init(&ctx);
 
-    ASSERT_ALLOC_WEAK(add, add_len);
+    TEST_CALLOC_OR_SKIP(add, add_len);
     memset(key, 0, sizeof(key));
     memset(msg, 0, sizeof(msg));
     memset(iv, 0, sizeof(iv));

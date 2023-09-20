@@ -104,9 +104,10 @@ psa_status_t p256_transparent_export_public_key(const psa_key_attributes_t *attr
  *
  * \retval  #PSA_SUCCESS
  *          Success. Keypair generated and stored in buffer.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_GENERIC_ERROR
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval  #PSA_ERROR_BUFFER_TOO_SMALL
+ *          \p key_buffer_size is too small.
+ * \retval  #PSA_ERROR_GENERIC_ERROR
+ *          The internal RNG failed.
  */
 psa_status_t p256_transparent_generate_key(
     const psa_key_attributes_t *attributes,
@@ -132,9 +133,12 @@ psa_status_t p256_transparent_generate_key(
  *                                  bytes.
  * \param[out] shared_secret_length On success, the number of bytes that
  *                                  make up the returned shared secret.
- * \retval #PSA_SUCCESS
- *         Success. Shared secret successfully calculated.
- * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval  #PSA_SUCCESS
+ *          Success. Shared secret successfully calculated.
+ * \retval  #PSA_ERROR_INVALID_ARGUMENT
+ *          The input is invalid.
+ * \retval  #PSA_ERROR_BUFFER_TOO_SMALL
+ *          \p shared_secret_size is too small.
  */
 psa_status_t p256_transparent_key_agreement(
     const psa_key_attributes_t *attributes,
@@ -163,10 +167,14 @@ psa_status_t p256_transparent_key_agreement(
  * \param[out] signature_length     On success, the number of bytes
  *                                  that make up the returned signature value.
  *
- * \retval #PSA_SUCCESS
+ * \retval  #PSA_SUCCESS
  *          Success. Hash was signed successfully.
- *         respectively of the key.
- * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval  #PSA_ERROR_INVALID_ARGUMENT
+ *          The input is invalid.
+ * \retval  #PSA_ERROR_BUFFER_TOO_SMALL
+ *          \p signature_size is too small.
+ * \retval  #PSA_ERROR_GENERIC_ERROR
+ *          The internal RNG failed.
  */
 psa_status_t p256_transparent_sign_hash(
     const psa_key_attributes_t *attributes,
@@ -202,12 +210,13 @@ psa_status_t p256_transparent_sign_hash(
  * \param[in]  signature        Buffer containing the signature to verify.
  * \param[in]  signature_length Size of the \p signature buffer in bytes.
  *
- * \retval #PSA_SUCCESS
- *         The signature is valid.
- * \retval #PSA_ERROR_INVALID_SIGNATURE
- *         The calculation was performed successfully, but the passed
- *         signature is not a valid signature.
- * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval  #PSA_SUCCESS
+ *          The signature is valid.
+ * \retval  #PSA_ERROR_INVALID_SIGNATURE
+ *          The calculation was performed successfully, but the passed
+ *          signature is not a valid signature.
+ * \retval  #PSA_ERROR_INVALID_ARGUMENT
+ *          The input is invalid.
  */
 psa_status_t p256_transparent_verify_hash(
     const psa_key_attributes_t *attributes,

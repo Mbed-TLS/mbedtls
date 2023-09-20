@@ -30,294 +30,384 @@
 
 /*
  * ECC: support for a feature is controlled by a triplet or a pair:
- * (curve, key_type basic, alg) or (curve, key_type_<action>).
+ * (curve, key_type public/basic, alg) or (curve, key_type_<action>).
  *
- * A triplet is accelerated if all of is components are accelerated;
+ * A triplet/pair is accelerated if all of is components are accelerated;
  * otherwise each component needs to be built in.
  *
- * In addition, the set of features supported is the full cross-product:
- * if (a, b) and (c, d) are supported, so are (a, d) and (c, b). At this
- * point, the same holds for the set of accelerated features.
- *
- * So, we end up with as simple alternative:
- * - either each curve, key type and alg that is requested is accelerated, and
- *   we don't need any built-in implementation;
- * - or at least one curve, key type or alg is requested but not accelerated,
- *   and we enable built-ins for each curve, key type, and alg.
- *
- * This is implemented in two passes:
- * 1. Check if everything is accelerated.
- * 2. If not, enable built-ins for each item that was requested.
+ * We proceed in two passes:
+ * 1. Check if acceleration is complete for curves, key types, algs.
+ * 2. Then enable built-ins for each thing that's either not accelerated of
+ * doesn't have complete acceleration of the other triplet/pair components.
  *
  * Note: this needs psa/crypto_adjust_keypair_types.h to have been included
  * already, so that we know the full set of key types that are requested.
  */
 
-/* ECC: curves: is everything accelerated? */
+/* ECC: curves: is acceleration complete? */
 #if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256) && \
     !defined(MBEDTLS_PSA_ACCEL_ECC_BRAINPOOL_P_R1_256)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES
 #endif
 
 #if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384) && \
     !defined(MBEDTLS_PSA_ACCEL_ECC_BRAINPOOL_P_R1_384)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES
 #endif
 
 #if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512) && \
     !defined(MBEDTLS_PSA_ACCEL_ECC_BRAINPOOL_P_R1_512)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES
 #endif
 
 #if defined(PSA_WANT_ECC_MONTGOMERY_255) && \
     !defined(MBEDTLS_PSA_ACCEL_ECC_MONTGOMERY_255)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES
 #endif
 
 #if defined(PSA_WANT_ECC_MONTGOMERY_448) && \
     !defined(MBEDTLS_PSA_ACCEL_ECC_MONTGOMERY_448)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES
 #endif
 
 #if defined(PSA_WANT_ECC_SECP_R1_192) && \
     !defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_192)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES
 #endif
 
 #if defined(PSA_WANT_ECC_SECP_R1_224) && \
     !defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_224)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES
 #endif
 
 #if defined(PSA_WANT_ECC_SECP_R1_256) && \
     !defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_256)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES
 #endif
 
 #if defined(PSA_WANT_ECC_SECP_R1_384) && \
     !defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_384)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES
 #endif
 
 #if defined(PSA_WANT_ECC_SECP_R1_521) && \
     !defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_521)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES
 #endif
 
 #if defined(PSA_WANT_ECC_SECP_K1_192) && \
     !defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_192)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES
 #endif
 
 #if defined(PSA_WANT_ECC_SECP_K1_224) && \
     !defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_224)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES
 #endif
 
 #if defined(PSA_WANT_ECC_SECP_K1_256) && \
     !defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_256)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES
 #endif
 
-/* ECC: algs: is everything accelerated? */
+/* ECC: algs: is acceleration complete? */
 #if defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA) && \
     !defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS
 #endif
 
 #if defined(PSA_WANT_ALG_ECDH) && \
     !defined(MBEDTLS_PSA_ACCEL_ALG_ECDH)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS
 #endif
 
 #if defined(PSA_WANT_ALG_ECDSA) && \
     !defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS
 #endif
 
 #if defined(PSA_WANT_ALG_JPAKE) && \
     !defined(MBEDTLS_PSA_ACCEL_ALG_JPAKE)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS
 #endif
 
-/* ECC: key types: is everything accelerated? */
+/* ECC: key types: is acceleration complete? */
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) && \
     !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES
 #endif
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC) && \
     !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_BASIC)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES
 #endif
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT) && \
     !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_IMPORT)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES
 #endif
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT) && \
     !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_EXPORT)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES
 #endif
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE) && \
     !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_GENERATE)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES
 #endif
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE) && \
     !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_DERIVE)
-#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE
+#define MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES
 #endif
 
-/* ECC: if acceleration is incomplete,
- * enable built-ins for everything that's requested */
-#if defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE)
-
-/* ECC: curves: enable built-ins */
+/* ECC: curves: enable built-ins as needed.
+ *
+ * We need the curve built-in:
+ * - if it's not accelerated, or
+ * - if there's a key type with missing acceleration, or
+ * - if there's a alg with missing acceleration.
+ */
 #if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
+#if !defined(MBEDTLS_PSA_ACCEL_ECC_BRAINPOOL_P_R1_256) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS)
 #define MBEDTLS_ECP_DP_BP256R1_ENABLED
 #define MBEDTLS_PSA_BUILTIN_ECC_BRAINPOOL_P_R1_256 1
+#endif /* missing accel */
 #endif /* PSA_WANT_ECC_BRAINPOOL_P_R1_256 */
 
 #if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
+#if !defined(MBEDTLS_PSA_ACCEL_ECC_BRAINPOOL_P_R1_384) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS)
 #define MBEDTLS_ECP_DP_BP384R1_ENABLED
 #define MBEDTLS_PSA_BUILTIN_ECC_BRAINPOOL_P_R1_384 1
+#endif /* missing accel */
 #endif /* PSA_WANT_ECC_BRAINPOOL_P_R1_384 */
 
 #if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
+#if !defined(MBEDTLS_PSA_ACCEL_ECC_BRAINPOOL_P_R1_512) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS)
 #define MBEDTLS_ECP_DP_BP512R1_ENABLED
 #define MBEDTLS_PSA_BUILTIN_ECC_BRAINPOOL_P_R1_512 1
+#endif /* missing accel */
 #endif /* PSA_WANT_ECC_BRAINPOOL_P_R1_512 */
 
 #if defined(PSA_WANT_ECC_MONTGOMERY_255)
+#if !defined(MBEDTLS_PSA_ACCEL_ECC_MONTGOMERY_255) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS)
 #define MBEDTLS_ECP_DP_CURVE25519_ENABLED
 #define MBEDTLS_PSA_BUILTIN_ECC_MONTGOMERY_255 1
+#endif /* missing accel */
 #endif /* PSA_WANT_ECC_MONTGOMERY_255 */
 
 #if defined(PSA_WANT_ECC_MONTGOMERY_448)
+#if !defined(MBEDTLS_PSA_ACCEL_ECC_MONTGOMERY_448) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS)
 #define MBEDTLS_ECP_DP_CURVE448_ENABLED
 #define MBEDTLS_PSA_BUILTIN_ECC_MONTGOMERY_448 1
+#endif /* missing accel */
 #endif /* PSA_WANT_ECC_MONTGOMERY_448 */
 
 #if defined(PSA_WANT_ECC_SECP_R1_192)
+#if !defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_192) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS)
 #define MBEDTLS_ECP_DP_SECP192R1_ENABLED
 #define MBEDTLS_PSA_BUILTIN_ECC_SECP_R1_192 1
+#endif /* missing accel */
 #endif /* PSA_WANT_ECC_SECP_R1_192 */
 
 #if defined(PSA_WANT_ECC_SECP_R1_224)
+#if !defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_224) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS)
 #define MBEDTLS_ECP_DP_SECP224R1_ENABLED
 #define MBEDTLS_PSA_BUILTIN_ECC_SECP_R1_224 1
+#endif /* missing accel */
 #endif /* PSA_WANT_ECC_SECP_R1_224 */
 
 #if defined(PSA_WANT_ECC_SECP_R1_256)
+#if !defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_256) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS)
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
 #define MBEDTLS_PSA_BUILTIN_ECC_SECP_R1_256 1
+#endif /* missing accel */
 #endif /* PSA_WANT_ECC_SECP_R1_256 */
 
 #if defined(PSA_WANT_ECC_SECP_R1_384)
+#if !defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_384) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS)
 #define MBEDTLS_ECP_DP_SECP384R1_ENABLED
 #define MBEDTLS_PSA_BUILTIN_ECC_SECP_R1_384 1
+#endif /* missing accel */
 #endif /* PSA_WANT_ECC_SECP_R1_384 */
 
 #if defined(PSA_WANT_ECC_SECP_R1_521)
+#if !defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_521) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS)
 #define MBEDTLS_ECP_DP_SECP521R1_ENABLED
 #define MBEDTLS_PSA_BUILTIN_ECC_SECP_R1_521 1
+#endif /* missing accel */
 #endif /* PSA_WANT_ECC_SECP_R1_521 */
 
 #if defined(PSA_WANT_ECC_SECP_K1_192)
+#if !defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_192) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS)
 #define MBEDTLS_ECP_DP_SECP192K1_ENABLED
 #define MBEDTLS_PSA_BUILTIN_ECC_SECP_K1_192 1
+#endif /* missing accel */
 #endif /* PSA_WANT_ECC_SECP_K1_192 */
 
 #if defined(PSA_WANT_ECC_SECP_K1_224)
-/*
- * SECP224K1 is buggy via the PSA API in Mbed TLS
- * (https://github.com/Mbed-TLS/mbedtls/issues/3541).
- */
+#if !defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_224) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS)
+/* https://github.com/Mbed-TLS/mbedtls/issues/3541 */
 #error "SECP224K1 is buggy via the PSA API in Mbed TLS."
 #define MBEDTLS_ECP_DP_SECP224K1_ENABLED
 #define MBEDTLS_PSA_BUILTIN_ECC_SECP_K1_224 1
+#endif /* missing accel */
 #endif /* PSA_WANT_ECC_SECP_K1_224 */
 
 #if defined(PSA_WANT_ECC_SECP_K1_256)
+#if !defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_256) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS)
 #define MBEDTLS_ECP_DP_SECP256K1_ENABLED
 #define MBEDTLS_PSA_BUILTIN_ECC_SECP_K1_256 1
+#endif /* missing accel */
 #endif /* PSA_WANT_ECC_SECP_K1_256 */
 
-/* ECC: algs: enable built-ins */
+/* ECC: algs: enable built-ins as needed.
+ *
+ * We need the alg built-in:
+ * - if it's not accelerated, or
+ * - if there's a curve with missing acceleration, or
+ * - if there's a key type with missing acceleration.
+ */
 #if defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES)
 #define MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA 1
 #define MBEDTLS_ECDSA_DETERMINISTIC
 #define MBEDTLS_ECDSA_C
 #define MBEDTLS_HMAC_DRBG_C
 #define MBEDTLS_MD_C
+#endif /* missing accel */
 #endif /* PSA_WANT_ALG_DETERMINISTIC_ECDSA */
 
 #if defined(PSA_WANT_ALG_ECDH)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_ECDH) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES)
 #define MBEDTLS_PSA_BUILTIN_ALG_ECDH 1
 #define MBEDTLS_ECDH_C
 #define MBEDTLS_ECP_C
 #define MBEDTLS_BIGNUM_C
+#endif /* missing accel */
 #endif /* PSA_WANT_ALG_ECDH */
 
 #if defined(PSA_WANT_ALG_ECDSA)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES)
 #define MBEDTLS_PSA_BUILTIN_ALG_ECDSA 1
 #define MBEDTLS_ECDSA_C
 #define MBEDTLS_ECP_C
 #define MBEDTLS_BIGNUM_C
 #define MBEDTLS_ASN1_PARSE_C
 #define MBEDTLS_ASN1_WRITE_C
+#endif /* missing accel */
 #endif /* PSA_WANT_ALG_ECDSA */
 
 #if defined(PSA_WANT_ALG_JPAKE)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_JPAKE) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_KEYTYPES)
 #define MBEDTLS_PSA_BUILTIN_PAKE 1
 #define MBEDTLS_PSA_BUILTIN_ALG_JPAKE 1
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
 #define MBEDTLS_BIGNUM_C
 #define MBEDTLS_ECP_C
 #define MBEDTLS_ECJPAKE_C
+#endif /* missing accel */
 #endif /* PSA_WANT_ALG_JPAKE */
 
-/* ECC: key types: enable built-ins */
+/* ECC: key types: enable built-ins as needed.
+ *
+ * We need the key type built-in:
+ * - if it's not accelerated, or
+ * - if there's a curve with missing acceleration, or
+ * - only for public/basic: if there's an alg with missing acceleration.
+ */
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY 1
 #define MBEDTLS_ECP_C
 #define MBEDTLS_BIGNUM_C
+#endif /* missing accel */
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_BASIC) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_ALGS)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC 1
 #define MBEDTLS_ECP_C
 #define MBEDTLS_BIGNUM_C
+#endif /* missing accel */
 #endif /* PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC */
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_IMPORT) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_IMPORT 1
 #define MBEDTLS_ECP_C
 #define MBEDTLS_BIGNUM_C
+#endif /* missing accel */
 #endif /* PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT */
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_EXPORT) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_EXPORT 1
 #define MBEDTLS_ECP_C
 #define MBEDTLS_BIGNUM_C
+#endif /* missing accel */
 #endif /* PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT */
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_GENERATE) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_GENERATE 1
 #define MBEDTLS_ECP_C
 #define MBEDTLS_BIGNUM_C
+#endif /* missing accel */
 #endif /* PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE */
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_DERIVE) || \
+    defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_DERIVE 1
 #define MBEDTLS_ECP_C
 #define MBEDTLS_BIGNUM_C
+#endif /* missing accel */
 #endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_DERIVE */
 
-#endif /* MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE */
+/* End of ECC section */
 
 #if defined(PSA_WANT_ALG_FFDH)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_FFDH)

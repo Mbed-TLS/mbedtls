@@ -865,9 +865,9 @@ static int get_pkcs_padding(unsigned char *input, size_t input_len,
      * so pick input_len, which is usually 8 or 16 (one block) */
     pad_idx = input_len - padding_len;
     for (i = 0; i < input_len; i++) {
-        mbedtls_ct_condition_t dont_ignore = mbedtls_ct_uint_ge(i, pad_idx);
-        mbedtls_ct_condition_t different   = mbedtls_ct_uint_ne(input[i], padding_len);
-        bad = mbedtls_ct_bool_or(bad, mbedtls_ct_bool_and(dont_ignore, different));
+        mbedtls_ct_condition_t in_padding = mbedtls_ct_uint_ge(i, pad_idx);
+        mbedtls_ct_condition_t different  = mbedtls_ct_uint_ne(input[i], padding_len);
+        bad = mbedtls_ct_bool_or(bad, mbedtls_ct_bool_and(in_padding, different));
     }
 
     return mbedtls_ct_uint_if_else_0(bad, MBEDTLS_ERR_CIPHER_INVALID_PADDING);

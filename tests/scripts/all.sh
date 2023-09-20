@@ -2884,6 +2884,105 @@ component_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
     common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum "ECC_DH"
 }
 
+# Helper for setting common configurations between:
+# - component_test_tfm_config_p256m_driver_accel_ec()
+# - component_test_tfm_config()
+common_tfm_config () {
+    # Enable TF-M config
+    cp configs/tfm_mbedcrypto_config_profile_medium.h "$CONFIG_H"
+    cp configs/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
+
+    # Adjust for the fact that we're building outside the TF-M environment.
+    #
+    # TF-M has separation, our build doesn't
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SPM
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
+    # TF-M provdes its own (dummy) implemenation, from their tree
+    scripts/config.py unset MBEDTLS_AES_DECRYPT_ALT
+    scripts/config.py unset MBEDTLS_AES_SETKEY_DEC_ALT
+    # We have an OS that provides entropy, use it
+    scripts/config.py unset MBEDTLS_NO_PLATFORM_ENTROPY
+
+    # Other config adjustments to make the tests pass.
+    # Those should probably be adopted upstream.
+    #
+    # - USE_PSA_CRYPTO for PK_HAVE_ECC_KEYS
+    echo "#define MBEDTLS_USE_PSA_CRYPTO" >> "$CONFIG_H"
+    # pkparse.c and pkwrite.c fail to link without this
+    echo "#define MBEDTLS_OID_C" >> "$CONFIG_H"
+    # - ASN1_[PARSE/WRITE]_C found by check_config.h for pkparse/pkwrite
+    echo "#define MBEDTLS_ASN1_PARSE_C" >> "$CONFIG_H"
+    echo "#define MBEDTLS_ASN1_WRITE_C" >> "$CONFIG_H"
+    # - MD_C for HKDF_C
+    echo "#define MBEDTLS_MD_C" >> "$CONFIG_H"
+
+    # Config adjustments for better test coverage in our environment.
+    # These are not needed just to build and pass tests.
+    #
+    # Enable filesystem I/O for the benefit of PK parse/write tests.
+    echo "#define MBEDTLS_FS_IO" >> "$CONFIG_H"
+    # Disable this for maximal ASan efficiency
+    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+
+    # Config adjustments for features that are not supported
+    # when using only drivers / by p256-m
+    #
+    # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
+    # Disable deterministic ECDSA as p256-m only does randomized
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
+
+}
+
+# Keep this in sync with component_test_tfm_config() as they are both meant
+# to be used in analyze_outcomes.py for driver's coverage analysis.
+component_test_tfm_config_p256m_driver_accel_ec () {
+    msg "build: TF-M config + p256m driver + accel ECDH(E)/ECDSA"
+
+    common_tfm_config
+
+    # Set the list of accelerated components in order to remove them from
+    # builtin support.
+    loc_accel_list="ALG_ECDSA \
+                    ALG_ECDH \
+                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
+                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
+                    KEY_TYPE_ECC_PUBLIC_KEY"
+    loc_accel_flags="$( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
+
+    # Build crypto library specifying we want to use P256M code for EC operations
+    make CFLAGS="$ASAN_CFLAGS $loc_accel_flags -DMBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED" LDFLAGS="$ASAN_CFLAGS"
+
+    # Make sure any built-in EC alg was not re-enabled by accident (additive config)
+    not grep mbedtls_ecdsa_ library/ecdsa.o
+    not grep mbedtls_ecdh_ library/ecdh.o
+    not grep mbedtls_ecjpake_ library/ecjpake.o
+    # Also ensure that ECP, RSA, DHM or BIGNUM modules were not re-enabled
+    not grep mbedtls_ecp_ library/ecp.o
+    not grep mbedtls_rsa_ library/rsa.o
+    not grep mbedtls_dhm_ library/dhm.o
+    not grep mbedtls_mpi_ library/bignum.o
+
+    # Run the tests
+    msg "test: TF-M config + p256m driver + accel ECDH(E)/ECDSA"
+    make test
+}
+
+# Keep this in sync with component_test_tfm_config_p256m_driver_accel_ec() as
+# they are both meant to be used in analyze_outcomes.py for driver's coverage
+# analysis.
+component_test_tfm_config() {
+    common_tfm_config
+
+    msg "build: TF-M config"
+    make tests
+
+    msg "test: TF-M config"
+    make test
+}
+
 # Helper function used in:
 # - component_test_psa_crypto_config_accel_all_curves_except_p192
 # - component_test_psa_crypto_config_accel_all_curves_except_x25519

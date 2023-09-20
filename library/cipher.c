@@ -749,8 +749,8 @@ static int get_pkcs_padding(unsigned char *input, size_t input_len,
     *data_len = input_len - padding_len;
 
     /* Avoid logical || since it results in a branch */
-    bad |= padding_len > input_len;
-    bad |= padding_len == 0;
+    bad |= ~mbedtls_ct_size_mask_ge(input_len, padding_len);
+    bad |= mbedtls_ct_size_bool_eq(padding_len, 0);
 
     /* The number of bytes checked must be independent of padding_len,
      * so pick input_len, which is usually 8 or 16 (one block) */
@@ -879,7 +879,7 @@ static int get_zeros_padding(unsigned char *input, size_t input_len,
     *data_len = 0;
     for (i = input_len; i > 0; i--) {
         prev_done = done;
-        done |= (input[i-1] != 0);
+        done |= !mbedtls_ct_size_bool_eq(input[i-1], 0);
         size_t mask = mbedtls_ct_size_mask(done ^ prev_done);
         *data_len |= i & mask;
     }

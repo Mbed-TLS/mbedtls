@@ -1436,7 +1436,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
  *
  */
 #if defined(MBEDTLS_PKCS12_C) || defined(MBEDTLS_PKCS5_C)
-static int pk_parse_key_pkcs8_encrypted_der(
+MBEDTLS_STATIC_TESTABLE int mbedtls_pk_parse_key_pkcs8_encrypted_der(
     mbedtls_pk_context *pk,
     unsigned char *key, size_t keylen,
     const unsigned char *pwd, size_t pwdlen,
@@ -1650,8 +1650,8 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
                                       key, NULL, 0, &len);
     }
     if (ret == 0) {
-        if ((ret = pk_parse_key_pkcs8_encrypted_der(pk, pem.buf, pem.buflen,
-                                                    pwd, pwdlen, f_rng, p_rng)) != 0) {
+        if ((ret = mbedtls_pk_parse_key_pkcs8_encrypted_der(pk, pem.buf, pem.buflen,
+                                                            pwd, pwdlen, f_rng, p_rng)) != 0) {
             mbedtls_pk_free(pk);
         }
 
@@ -1683,8 +1683,8 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
 
         memcpy(key_copy, key, keylen);
 
-        ret = pk_parse_key_pkcs8_encrypted_der(pk, key_copy, keylen,
-                                               pwd, pwdlen, f_rng, p_rng);
+        ret = mbedtls_pk_parse_key_pkcs8_encrypted_der(pk, key_copy, keylen,
+                                                       pwd, pwdlen, f_rng, p_rng);
 
         mbedtls_zeroize_and_free(key_copy, keylen);
     }

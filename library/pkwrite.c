@@ -379,7 +379,7 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     mbedtls_ecp_group_id ec_grp_id = MBEDTLS_ECP_DP_NONE;
 #endif
-    const char *oid;
+    const char *oid = NULL;
 
     if (size == 0) {
         return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;

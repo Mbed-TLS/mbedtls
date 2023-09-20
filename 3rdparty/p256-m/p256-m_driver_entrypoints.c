@@ -130,7 +130,7 @@ psa_status_t p256_transparent_export_public_key(const psa_key_attributes_t *attr
 
     /* Validate sizes, as p256-m expects fixed-size buffers */
     if (key_buffer_size != PRIVKEY_SIZE) {
-        return PSA_ERROR_CORRUPTION_DETECTED;
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
     if (data_size < PSA_PUBKEY_SIZE) {
         return PSA_ERROR_BUFFER_TOO_SMALL;
@@ -231,7 +231,7 @@ psa_status_t p256_transparent_sign_hash(
 
     /* Validate sizes, as p256-m expects fixed-size buffers */
     if (key_buffer_size != PRIVKEY_SIZE) {
-        return PSA_ERROR_CORRUPTION_DETECTED;
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
     if (signature_size < SIGNATURE_SIZE) {
         return PSA_ERROR_BUFFER_TOO_SMALL;
@@ -257,7 +257,7 @@ static psa_status_t p256_verify_hash_with_public_key(
 {
     /* Validate sizes, as p256-m expects fixed-size buffers */
     if (key_buffer_size != PSA_PUBKEY_SIZE || *key_buffer != PSA_PUBKEY_HEADER_BYTE) {
-        return PSA_ERROR_CORRUPTION_DETECTED;
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
     if (signature_length != SIGNATURE_SIZE) {
         return PSA_ERROR_INVALID_SIGNATURE;

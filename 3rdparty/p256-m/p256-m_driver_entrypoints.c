@@ -203,7 +203,7 @@ psa_status_t p256_transparent_key_agreement(
     }
 
     /* See INFORMATION ON PSA KEY EXPORT FORMATS near top of file */
-    const uint8_t peer_key_p256m = peer_key + 1;
+    const uint8_t *peer_key_p256m = peer_key + 1;
     int ret = p256_ecdh_shared_secret(shared_secret, key_buffer, peer_key_p256m);
     if (ret == P256_SUCCESS) {
         *shared_secret_length = SHARED_SECRET_SIZE;

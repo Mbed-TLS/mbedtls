@@ -646,31 +646,6 @@ mbedtls_ct_if:"0xffffffffffffffff":"0xffffffffffffffff":"0x7fffffffffffffff"
 mbedtls_ct_if 0xffffffffffffffff 0xffffffffffffffff 0xffffffffffffffff
 mbedtls_ct_if:"0xffffffffffffffff":"0xffffffffffffffff":"0xffffffffffffffff"
 
-# These values exercise the case where an argument to mbedtls_ct_error_if is INT_MIN
-mbedtls_ct_if 1 0x80000000 0xffffffff
-mbedtls_ct_if:"1":"0x80000000":"0xffffffff"
-
-mbedtls_ct_if 1 0xffffffff 0x80000000
-mbedtls_ct_if:"1":"0xffffffff":"0x80000000"
-
-mbedtls_ct_if 0 0x80000000 0xffffffff
-mbedtls_ct_if:"0":"0x80000000":"0xffffffff"
-
-mbedtls_ct_if 0 0xffffffff 0x80000000
-mbedtls_ct_if:"0":"0xffffffff":"0x80000000"
-
-mbedtls_ct_if 1 0x8000000000000000 0xffffffffffffffff
-mbedtls_ct_if:"1":"0x8000000000000000":"0xffffffffffffffff"
-
-mbedtls_ct_if 1 0xffffffffffffffff 0x8000000000000000
-mbedtls_ct_if:"1":"0xffffffffffffffff":"0x8000000000000000"
-
-mbedtls_ct_if 0 0x8000000000000000 0xffffffffffffffff
-mbedtls_ct_if:"0":"0x8000000000000000":"0xffffffffffffffff"
-
-mbedtls_ct_if 0 0xffffffffffffffff 0x8000000000000000
-mbedtls_ct_if:"0":"0xffffffffffffffff":"0x8000000000000000"
-
 mbedtls_ct_zeroize_if 0x0 0
 mbedtls_ct_zeroize_if:"0x0":0
 

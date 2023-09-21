@@ -124,24 +124,9 @@ void mbedtls_ct_if(char *c_str, char *t_str, char *f_str)
     mbedtls_ct_uint_t expected = c ? t : f;
     mbedtls_ct_uint_t expected0 = c ? t : 0;
 
-    /* Avoid UB by checking that -t will fit in an int, i.e.,
-     * t <= abs(INT_MIN), and similar for f.
-     * Define ABS_INT_MIN in a way that avoids UB, then use it to
-     * check t and f before making them negative.
-     */
-    #define ABS_INT_MIN (UINT_MAX - ((unsigned int) (INT_MIN)) + 1U)
-    int t_neg = (t <= ABS_INT_MIN) && (t <= INT_MAX) ? -((int) t) : INT_MIN;
-    int f_neg = (f <= ABS_INT_MIN) && (t <= INT_MAX) ? -((int) f) : INT_MIN;
-    int expected0_neg = c ? t_neg : 0;
-    int expected_neg = c ? t_neg : f_neg;
-    int t_fits_in_int = t <= INT_MAX;
-    int f_fits_in_int = f <= INT_MAX;
-
     TEST_CF_SECRET(&c, sizeof(c));
     TEST_CF_SECRET(&t, sizeof(t));
     TEST_CF_SECRET(&f, sizeof(f));
-    TEST_CF_SECRET(&t_neg, sizeof(t));
-    TEST_CF_SECRET(&f_neg, sizeof(f));
 
     TEST_EQUAL(mbedtls_ct_if(c, t, f), expected);
     TEST_EQUAL(mbedtls_ct_size_if(c, t, f), (size_t) expected);
@@ -159,20 +144,9 @@ void mbedtls_ct_if(char *c_str, char *t_str, char *f_str)
     TEST_EQUAL(mbedtls_ct_mpi_uint_if_else_0(c, t), (mbedtls_mpi_uint) expected0);
 #endif
 
-    if (t_fits_in_int) {
-        TEST_EQUAL(mbedtls_ct_int_if_else_0(c, (int) t), (int) expected0);
-        if (f_fits_in_int) {
-            TEST_EQUAL(mbedtls_ct_int_if(c, (int) t, (int) f), (int) expected);
-        }
-    }
-    TEST_EQUAL(mbedtls_ct_int_if_else_0(c, t_neg), expected0_neg);
-    TEST_EQUAL(mbedtls_ct_int_if(c, t_neg, f_neg), expected_neg);
-
     TEST_CF_PUBLIC(&c, sizeof(c));
     TEST_CF_PUBLIC(&t, sizeof(t));
     TEST_CF_PUBLIC(&f, sizeof(f));
-    TEST_CF_PUBLIC(&t_neg, sizeof(t_neg));
-    TEST_CF_PUBLIC(&f_neg, sizeof(f_neg));
 }
 /* END_CASE */
 

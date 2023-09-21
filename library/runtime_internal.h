@@ -113,7 +113,5 @@ static inline bool mbedtls_cpu_has_support(mbedtls_hwcap_mask_t mask)
     }
     return (mbedtls_cpu_hwcaps & mask) == mask;
 }
-#define MBEDTLS_RUNTIME_HAS_SUPPORT(mask)                   \
-    mbedtls_cpu_has_support(mask)
 
 #endif /* MBEDTLS_RUNTIME_INTERNAL_H */

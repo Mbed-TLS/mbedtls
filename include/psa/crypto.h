@@ -3881,7 +3881,7 @@ psa_status_t psa_key_derivation_verify_bytes(
  */
 psa_status_t psa_key_derivation_verify_key(
     psa_key_derivation_operation_t *operation,
-    psa_key_id_t expected);
+    mbedtls_svc_key_id_t expected);
 
 /** Abort a key derivation operation.
  *

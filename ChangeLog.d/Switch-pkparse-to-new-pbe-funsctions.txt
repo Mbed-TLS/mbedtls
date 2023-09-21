@@ -6,6 +6,4 @@ New deprecations
      of the output.
 
 Bugfix
-   * Pass real length of key to pk_parse_key_pkcs8_unencrypted_der()
-     after decrypting the key to avoid trailing padding data which are not
-     part of the original key before encrypting.
+   * mbedtls_pk_parse_key() now rejects trailing garbage in encrypted keys.

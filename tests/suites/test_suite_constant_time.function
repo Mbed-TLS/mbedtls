@@ -129,9 +129,9 @@ void mbedtls_ct_if(char *c_str, char *t_str, char *f_str)
      * Define ABS_INT_MIN in a way that avoids UB, then use it to
      * check t and f before making them negative.
      */
-    #define ABS_INT_MIN (UINT_MAX - ((unsigned int)(INT_MIN)) + 1U)
-    int t_neg = t <= ABS_INT_MIN ? -t : INT_MIN;
-    int f_neg = f <= ABS_INT_MIN ? -f : INT_MIN;
+    #define ABS_INT_MIN (UINT_MAX - ((unsigned int) (INT_MIN)) + 1U)
+    int t_neg = t <= ABS_INT_MIN ? -((int) t) : INT_MIN;
+    int f_neg = f <= ABS_INT_MIN ? -((int) f) : INT_MIN;
     int expected0_neg = c ? t_neg : 0;
     int expected_neg = c ? t_neg : f_neg;
 

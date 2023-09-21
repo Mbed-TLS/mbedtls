@@ -141,6 +141,36 @@ int mbedtls_ct_memcmp(const void *a,
 #endif
 }
 
+#if defined(MBEDTLS_NIST_KW_C)
+
+int mbedtls_ct_memcmp_partial(const void *a,
+                              const void *b,
+                              size_t n,
+                              size_t skip_head,
+                              size_t skip_tail)
+{
+    unsigned int diff = 0;
+
+    volatile const unsigned char *A = (volatile const unsigned char *) a;
+    volatile const unsigned char *B = (volatile const unsigned char *) b;
+
+    size_t valid_end = n - skip_tail;
+
+    for (size_t i = 0; i < n; i++) {
+        unsigned char x = A[i], y = B[i];
+        unsigned int d = x ^ y;
+        mbedtls_ct_condition_t valid = mbedtls_ct_bool_and(mbedtls_ct_uint_ge(i, skip_head),
+                                                           mbedtls_ct_uint_lt(i, valid_end));
+        diff |= mbedtls_ct_uint_if_else_0(valid, d);
+    }
+
+    /* Since we go byte-by-byte, the only bits set will be in the bottom 8 bits, so the
+     * cast from uint to int is safe. */
+    return (int) diff;
+}
+
+#endif
+
 #if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
 
 void mbedtls_ct_memmove_left(void *start, size_t total, size_t offset)

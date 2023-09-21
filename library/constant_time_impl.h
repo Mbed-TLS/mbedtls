@@ -331,6 +331,42 @@ static inline unsigned char mbedtls_ct_uchar_in_range_if(unsigned char low,
     return (unsigned char) (~(low_mask | high_mask)) & to;
 }
 
+static inline int mbedtls_ct_int_if(mbedtls_ct_condition_t condition, int if1, int if0)
+{
+    /*
+     * Use memcpy to avoid unsigned-to-signed conversion UB.
+     *
+     * Although this looks inefficient, in practice (for gcc and clang),
+     * the sizeof test is eliminated at compile-time, and identical code is generated
+     * as for mbedtls_ct_uint_if (for -Os and -O1 or higher).
+     */
+    int result;
+    if (sizeof(int) <= sizeof(unsigned int)) {
+        unsigned int uif1 = 0, uif0 = 0;
+        memcpy(&uif1, &if1, sizeof(if1));
+        memcpy(&uif0, &if0, sizeof(if0));
+        unsigned int uresult = mbedtls_ct_uint_if(condition, uif1, uif0);
+        memcpy(&result, &uresult, sizeof(result));
+    } else {
+        mbedtls_ct_memcpy_if(condition, (unsigned char *) &result, (const unsigned char *) &if1,
+                             (const unsigned char *) &if0, sizeof(result));
+    }
+    return result;
+}
+
+static inline int mbedtls_ct_int_if_else_0(mbedtls_ct_condition_t condition, int if1)
+{
+    if (sizeof(int) <= sizeof(unsigned int)) {
+        unsigned int uif1 = 0;
+        memcpy(&uif1, &if1, sizeof(if1));
+        unsigned int uresult = mbedtls_ct_uint_if_else_0(condition, uif1);
+        int result;
+        memcpy(&result, &uresult, sizeof(result));
+        return result;
+    } else {
+        return mbedtls_ct_int_if(condition, if1, 0);
+    }
+}
 
 /* ============================================================================
  * Everything below here is trivial wrapper functions
@@ -396,17 +432,6 @@ static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if_else_0(mbedtls_ct_conditio
 }
 
 #endif /* MBEDTLS_BIGNUM_C */
-
-static inline int mbedtls_ct_int_if(mbedtls_ct_condition_t condition, int if1, int if0)
-{
-    int a[2] = {if0, if1};
-    return a[mbedtls_ct_uint_if_else_0(condition, 1)];
-}
-
-static inline int mbedtls_ct_int_if_else_0(mbedtls_ct_condition_t condition, int if1)
-{
-    return mbedtls_ct_int_if(condition, if1, 0);
-}
 
 static inline mbedtls_ct_condition_t mbedtls_ct_uint_eq(mbedtls_ct_uint_t x,
                                                         mbedtls_ct_uint_t y)

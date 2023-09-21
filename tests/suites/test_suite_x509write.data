@@ -208,17 +208,52 @@ mbedtls_x509_string_to_names:"C=NL, O=Of\\flspark, OU=PolarSSL":"":MBEDTLS_ERR_X
 X509 String to Names #14 (Accept numercoid/hexstring)
 mbedtls_x509_string_to_names:"C=NL, 2.5.4.10=#0C084F6666737061726B, OU=PolarSSL":"C=NL, O=Offspark, OU=PolarSSL":0
 
+# TODO: Should the trailing garbage be ignored?
+X509 String to Names (hexstring: trailing garbage after DER is ignored)
+mbedtls_x509_string_to_names:"C=NL, 2.5.4.10=#0C084F6666737061726Baa, OU=PolarSSL":"C=NL, O=Offspark, OU=PolarSSL":0
+
+# TODO: this passes mbedtls_x509_string_to_names() but fails the
+# round-trip test: mbedtls_x509_dn_gets() returns MBEDTLS_ERR_X509_INVALID_NAME.
+# X509 String to Names: long hexstring (DER=256 bytes, too long)
+# mbedtls_x509_string_to_names:"C=NL, 2.5.4.10=#0C81fdaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, OU=PolarSSL":"C=NL, O=Offspark, OU=PolarSSL":0
+
+X509 String to Names: long hexstring (DER=257 bytes, too long)
+mbedtls_x509_string_to_names:"C=NL, 2.5.4.10=#0C81feaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, OU=PolarSSL":"C=NL, O=Offspark, OU=PolarSSL":MBEDTLS_ERR_X509_INVALID_NAME
+
+X509 String to Names: long hexstring (DER=258 bytes, too long)
+mbedtls_x509_string_to_names:"C=NL, 2.5.4.10=#0C81ffaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, OU=PolarSSL":"C=NL, O=Offspark, OU=PolarSSL":MBEDTLS_ERR_X509_INVALID_NAME
+
 X509 String to Names #15 (Odd length DER hexstring)
 mbedtls_x509_string_to_names:"C=NL, 2.5.4.10=#0C084F6666737061726, OU=PolarSSL":"":MBEDTLS_ERR_X509_INVALID_NAME
 
-X509 String to Names #16 (Length mismatch DER hexstring)
+X509 String to Names (empty DER hexstring)
+mbedtls_x509_string_to_names:"C=NL, 2.5.4.10=#, OU=PolarSSL":"":MBEDTLS_ERR_X509_INVALID_NAME
+
+X509 String to Names (empty DER hexstring at end)
+mbedtls_x509_string_to_names:"C=NL, 2.5.4.10=#":"":MBEDTLS_ERR_X509_INVALID_NAME
+
+X509 String to Names (1-byte DER hexstring)
+mbedtls_x509_string_to_names:"C=NL, 2.5.4.10=#0C, OU=PolarSSL":"":MBEDTLS_ERR_X509_INVALID_NAME
+
+X509 String to Names (1-byte DER hexstring at end)
+mbedtls_x509_string_to_names:"C=NL, 2.5.4.10=#0C":"":MBEDTLS_ERR_X509_INVALID_NAME
+
+X509 String to Names #16 (hexstring: DER length exceeds available data)
 mbedtls_x509_string_to_names:"C=NL, 2.5.4.10=#0C0B4F6666737061726B, OU=PolarSSL":"":MBEDTLS_ERR_X509_INVALID_NAME
 
-X509 String to Names #17 (Invalid OID)
+X509 String to Names #17 (hexstring: Invalid OID)
 mbedtls_x509_string_to_names:"C=NL, 10.5.4.10=#0C084F6666737061726B, OU=PolarSSL":"":MBEDTLS_ERR_X509_INVALID_NAME
 
 X509 String to Names #18 (short name and hexstring)
 mbedtls_x509_string_to_names:"C=NL, O=#0C084F6666737061726B, OU=PolarSSL":"C=NL, O=Offspark, OU=PolarSSL":0
+
+X509 String to Names #18 (null byte in hexstring with string type)
+mbedtls_x509_string_to_names:"C=NL, O=#0C0100, OU=PolarSSL":"C=NL, O=Offspark, OU=PolarSSL":MBEDTLS_ERR_X509_INVALID_NAME
+
+# TODO: this passes mbedtls_x509_string_to_names() but fails the
+# round-trip test: mbedtls_x509_get_name() returns MBEDTLS_ERR_X509_INVALID_NAME.
+# X509 String to Names #18 (null byte in hexstring with non-string type)
+# mbedtls_x509_string_to_names:"C=NL, O=#040100, OU=PolarSSL":"C=NL, O=Offspark, OU=PolarSSL":0
 
 X509 String to Names #19 (Accept non-ascii hexpairs)
 mbedtls_x509_string_to_names:"C=NL, O=Of\\CCspark, OU=PolarSSL":"C=NL, O=Of\\CCspark, OU=PolarSSL":0

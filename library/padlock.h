@@ -49,15 +49,15 @@
 extern "C" {
 #endif
 
-#if defined(MBEDTLS_RUNTIME_HAVE_CODE) && defined(MBEDTLS_AES_RUNTIME_HAVE_CODE)
+#if defined(MBEDTLS_AES_CPUID_HAVE_CODE)
 
 #define MBEDTLS_PADLOCK_HAS_SUPPORT() \
     mbedtls_cpu_has_support(MBEDTLS_HWCAP_PADLOCK_ACE)
-#else /* MBEDTLS_RUNTIME_HAVE_CODE && MBEDTLS_AES_RUNTIME_HAVE_CODE */
+#else /* MBEDTLS_AES_CPUID_HAVE_CODE */
 
 #define MBEDTLS_PADLOCK_HAS_SUPPORT() 1
 
-#endif /* !(MBEDTLS_RUNTIME_HAVE_CODE && MBEDTLS_AES_RUNTIME_HAVE_CODE) */
+#endif /* !MBEDTLS_AES_CPUID_HAVE_CODE */
 
 /**
  * \brief          Internal PadLock AES-ECB block en(de)cryption

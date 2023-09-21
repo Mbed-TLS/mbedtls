@@ -71,7 +71,7 @@
 extern "C" {
 #endif
 
-#if defined(MBEDTLS_RUNTIME_HAVE_CODE) && defined(MBEDTLS_AES_RUNTIME_HAVE_CODE)
+#if defined(MBEDTLS_AES_CPUID_HAVE_CODE)
 
 #define MBEDTLS_AESNI_AES_HAS_SUPPORT() \
     mbedtls_cpu_has_support(MBEDTLS_HWCAP_AESNI_AES)
@@ -81,7 +81,7 @@ extern "C" {
 #endif
 
 
-#else /* MBEDTLS_RUNTIME_HAVE_CODE && MBEDTLS_AES_RUNTIME_HAVE_CODE */
+#else /* MBEDTLS_AES_CPUID_HAVE_CODE */
 
 #define MBEDTLS_AESNI_AES_HAS_SUPPORT() 1
 
@@ -89,7 +89,7 @@ extern "C" {
 #define MBEDTLS_AESNI_CLMUL_HAS_SUPPORT() 1
 #endif
 
-#endif /* !(MBEDTLS_RUNTIME_HAVE_CODE && MBEDTLS_AES_RUNTIME_HAVE_CODE) */
+#endif /* !MBEDTLS_AES_CPUID_HAVE_CODE  */
 
 /**
  * \brief          Internal AES-NI AES-ECB block encryption and decryption

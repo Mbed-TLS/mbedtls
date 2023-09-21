@@ -89,7 +89,7 @@
 #if MBEDTLS_AES_ACCELERATOR_NUM == 0
 #error "AES implementation is not available"
 #elif MBEDTLS_AES_ACCELERATOR_NUM > 1
-#define MBEDTLS_AES_RUNTIME_HAVE_CODE
+#define MBEDTLS_AES_CPUID_HAVE_CODE
 #endif
 
 #undef MBEDTLS_AES_HAVE_PLAIN_C
@@ -99,9 +99,9 @@
 #undef MBEDTLS_AES_ACCELERATOR_NUM
 #endif /* MBEDTLS_AES_C */
 
-#if (defined(MBEDTLS_CPUID_C) || defined(MBEDTLS_CPUID_GET_ALT)) && \
-    defined(MBEDTLS_AES_RUNTIME_HAVE_CODE)
-#define MBEDTLS_RUNTIME_HAVE_CODE
+#if !(defined(MBEDTLS_CPUID_C) || defined(MBEDTLS_CPUID_GET_ALT)) && \
+    defined(MBEDTLS_AES_CPUID_HAVE_CODE)
+#error "CPU identify module is needed but not provided."
 #endif
 
 #define MBEDTLS_HWCAP_PROFILED  (1ULL << 63)

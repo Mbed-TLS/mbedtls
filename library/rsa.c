@@ -158,12 +158,10 @@ static int mbedtls_ct_rsaes_pkcs1_v15_unpadding(unsigned char *input,
      * - OUTPUT_TOO_LARGE if the padding is good but the decrypted
      *   plaintext does not fit in the output buffer.
      * - 0 if the padding is correct. */
-    ret = -(int) mbedtls_ct_uint_if(
+    ret = mbedtls_ct_error_if(
         bad,
-        (unsigned) (-(MBEDTLS_ERR_RSA_INVALID_PADDING)),
-        mbedtls_ct_uint_if_else_0(
-            output_too_large,
-            (unsigned) (-(MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE)))
+        MBEDTLS_ERR_RSA_INVALID_PADDING,
+        mbedtls_ct_error_if_else_0(output_too_large, MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE)
         );
 
     /* If the padding is bad or the plaintext is too large, zero the

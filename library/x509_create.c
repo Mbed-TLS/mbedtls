@@ -208,7 +208,7 @@ static int parse_attribute_value_string(const char *s,
  *                  contains a null byte.
  */
 static int parse_attribute_value_hex_der_encoded(const char *s,
-                                                 int len,
+                                                 size_t len,
                                                  unsigned char *data,
                                                  size_t *data_len,
                                                  int *tag)
@@ -308,10 +308,12 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
                 mbedtls_free(oid.p);
                 return MBEDTLS_ERR_X509_INVALID_NAME;
             } else if (*s == '#') {
-                if ((parse_ret =
-                         parse_attribute_value_hex_der_encoded(s + 1, (int) (c - s - 1),
-                                                               data, &data_len,
-                                                               &tag)) != 0) {
+                /* We know that c >= s (loop invariant) and c != s (in this
+                 * else branch), hence c - s - 1 >= 0. */
+                parse_ret = parse_attribute_value_hex_der_encoded(
+                    s + 1, c - s - 1,
+                    data, &data_len, &tag);
+                if (parse_ret != 0) {
                     mbedtls_free(oid.p);
                     return MBEDTLS_ERR_X509_INVALID_NAME;
                 }

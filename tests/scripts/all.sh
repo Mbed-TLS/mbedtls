@@ -2922,7 +2922,7 @@ common_tfm_config () {
     # Config adjustments for features that are not supported
     # when using only drivers / by p256-m
     #
-    # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
+    # Disable all the features that auto-enable ECP_LIGHT (see config_adjust_legacy_crypto.h)
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
     # Disable deterministic ECDSA as p256-m only does randomized
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_DETERMINISTIC_ECDSA

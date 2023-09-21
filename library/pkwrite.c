@@ -688,7 +688,6 @@ end_of_export:
 int mbedtls_pk_write_key_der(const mbedtls_pk_context *key, unsigned char *buf, size_t size)
 {
     unsigned char *c;
-    size_t len = 0;
 #if defined(MBEDTLS_RSA_C)
     int is_rsa_opaque = 0;
 #endif /* MBEDTLS_RSA_C */
@@ -733,8 +732,6 @@ int mbedtls_pk_write_key_der(const mbedtls_pk_context *key, unsigned char *buf, 
     } else
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
     return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-
-    return (int) len;
 }
 
 #if defined(MBEDTLS_PEM_WRITE_C)

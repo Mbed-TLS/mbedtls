@@ -336,7 +336,7 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
                     data, sizeof(data), &data_len, &tag);
                 if (parse_ret != 0) {
                     mbedtls_free(oid.p);
-                    return MBEDTLS_ERR_X509_INVALID_NAME;
+                    return parse_ret;
                 }
             } else {
                 if (numericoid) {

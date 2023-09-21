@@ -7076,6 +7076,35 @@ psa_status_t psa_key_derivation_input_key(
 }
 
 
+psa_status_t psa_key_derivation_verify_bytes(
+    psa_key_derivation_operation_t *operation,
+    const uint8_t *expected_output,
+    size_t output_length)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    uint8_t *actual_output = mbedtls_calloc(output_length, 1);
+
+    status = psa_key_derivation_output_bytes(operation,
+                                             actual_output,
+                                             output_length);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    if (mbedtls_ct_memcmp(expected_output, actual_output,output_length) != 0) {
+        status = PSA_ERROR_INVALID_SIGNATURE;
+        goto exit;
+    }
+
+exit:
+    mbedtls_zeroize_and_free(actual_output, output_length);
+    if (status != PSA_SUCCESS && status != PSA_ERROR_INVALID_SIGNATURE &&
+        status != PSA_ERROR_INSUFFICIENT_DATA) {
+            psa_key_derivation_abort(operation);
+        }
+
+    return status;
+}
 
 /****************************************************************/
 /* Key agreement */

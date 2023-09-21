@@ -714,7 +714,7 @@ void mbedtls_x509_string_to_names(char *name, char *parsed_name, int result
     TEST_LE_S(1, ret);
 
     TEST_EQUAL(mbedtls_asn1_get_tag(&c, buf + sizeof(buf), &len,
-                                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE), 0);
+                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE), 0);
     TEST_EQUAL(mbedtls_x509_get_name(&c, buf + sizeof(buf), &parsed), 0);
 
     ret = mbedtls_x509_dn_gets((char *) out, sizeof(out), &parsed);

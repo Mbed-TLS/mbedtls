@@ -50,10 +50,7 @@
 
 #if defined(MBEDTLS_AESNI_C) && \
     (defined(MBEDTLS_ARCH_IS_X64) || defined(MBEDTLS_ARCH_IS_X86))
-#define MBEDTLS_AESNI_HAVE_CODE
-#define MBEDTLS_AES_HAVE_AESNI 1
-#else
-#define MBEDTLS_AES_HAVE_AESNI 0
+#define MBEDTLS_AESNI_HAVE_CODE 1
 #endif
 
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_ARCH_IS_X86)
@@ -68,23 +65,17 @@
  * - `padlock` is implements with GNUC assembly for x86 target.
  * - Some versions of ASan result in errors about not enough registers.
  */
-#define MBEDTLS_AES_HAVE_PADLOCK 1
-#define MBEDTLS_VIA_PADLOCK_HAVE_CODE
+#define MBEDTLS_VIA_PADLOCK_HAVE_CODE 1
 #endif
-#else
-#define MBEDTLS_AES_HAVE_PADLOCK 0
 #endif
 
 #if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_ARCH_IS_ARM64)
-#define MBEDTLS_AES_HAVE_AESCE 1
-#define MBEDTLS_AESCE_HAVE_CODE
-#else
-#define MBEDTLS_AES_HAVE_AESCE 0
+#define MBEDTLS_AESCE_HAVE_CODE 1
 #endif
 
 #define MBEDTLS_AES_ACCELERATOR_NUM \
-    (MBEDTLS_AES_HAVE_PLAIN_C + MBEDTLS_AES_HAVE_AESNI + \
-     MBEDTLS_AES_HAVE_PADLOCK + MBEDTLS_AES_HAVE_AESCE)
+    (MBEDTLS_AES_HAVE_PLAIN_C + MBEDTLS_AESNI_HAVE_CODE + \
+     MBEDTLS_VIA_PADLOCK_HAVE_CODE + MBEDTLS_AESCE_HAVE_CODE)
 
 #if MBEDTLS_AES_ACCELERATOR_NUM == 0
 #error "AES implementation is not available"
@@ -93,9 +84,6 @@
 #endif
 
 #undef MBEDTLS_AES_HAVE_PLAIN_C
-#undef MBEDTLS_AES_HAVE_AESNI
-#undef MBEDTLS_AES_HAVE_AESCE
-#undef MBEDTLS_AES_HAVE_PADLOCK
 #undef MBEDTLS_AES_ACCELERATOR_NUM
 #endif /* MBEDTLS_AES_C */
 

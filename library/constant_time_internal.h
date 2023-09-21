@@ -411,6 +411,35 @@ static inline unsigned char mbedtls_ct_uchar_in_range_if(unsigned char low,
                                                          unsigned char c,
                                                          unsigned char t);
 
+/** Choose between two error values. The values must be zero or negative.
+ *
+ * Functionally equivalent to:
+ *
+ * condition ? if1 : if0.
+ *
+ * \param condition     Condition to test.
+ * \param if1           Value to use if \p condition == MBEDTLS_CT_TRUE.
+ * \param if0           Value to use if \p condition == MBEDTLS_CT_FALSE.
+ *
+ * \return  \c if1 if \p condition == MBEDTLS_CT_TRUE, otherwise \c if0.
+ */
+static inline int mbedtls_ct_error_if(mbedtls_ct_condition_t condition, int if1, int if0);
+
+/** Choose between an error value and 0. The error value must be zero or negative.
+ *
+ * Functionally equivalent to:
+ *
+ * condition ? if1 : 0.
+ *
+ * Functionally equivalent to mbedtls_ct_error_if(condition, if1, 0) but
+ * results in smaller code size.
+ *
+ * \param condition     Condition to test.
+ * \param if1           Value to use if \p condition == MBEDTLS_CT_TRUE.
+ *
+ * \return  \c if1 if \p condition == MBEDTLS_CT_TRUE, otherwise 0.
+ */
+static inline int mbedtls_ct_error_if_else_0(mbedtls_ct_condition_t condition, int if1);
 
 /* ============================================================================
  * Block memory operations

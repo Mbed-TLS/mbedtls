@@ -123,6 +123,6 @@ int mbedtls_padlock_xcryptcbc(mbedtls_aes_context *ctx,
 }
 #endif
 
-#endif /* MBEDTLS_VIA_PADLOCK_HAVE_CODE  */
+#endif /* MBEDTLS_VIA_PADLOCK_HAVE_CODE */
 
 #endif /* padlock.h */

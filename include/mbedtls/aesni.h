@@ -176,6 +176,6 @@ int mbedtls_aesni_setkey_enc(unsigned char *rk,
 #endif
 
 #endif /* MBEDTLS_AESNI_HAVE_CODE */
-#endif  /* MBEDTLS_AESNI_C */
+#endif /* MBEDTLS_AESNI_C && (MBEDTLS_HAVE_X86_64 || MBEDTLS_HAVE_X86) */
 
 #endif /* MBEDTLS_AESNI_H */

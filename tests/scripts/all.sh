@@ -2893,25 +2893,18 @@ component_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
 # - component_test_tfm_config()
 common_tfm_config () {
     # Enable TF-M config
-    cp configs/tfm_mbedcrypto_config_profile_medium.h "$CONFIG_H"
-    cp configs/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
-
-    # Adjust for the fact that we're building outside the TF-M environment.
-    #
-    # TF-M has separation, our build doesn't
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SPM
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
-    # TF-M provdes its own (dummy) implemenation, from their tree
-    scripts/config.py unset MBEDTLS_AES_DECRYPT_ALT
-    scripts/config.py unset MBEDTLS_AES_SETKEY_DEC_ALT
-    # We have an OS that provides entropy, use it
-    scripts/config.py unset MBEDTLS_NO_PLATFORM_ENTROPY
+    cp configs/config-tfm.h "$CONFIG_H"
+    echo "#undef MBEDTLS_PSA_CRYPTO_CONFIG_FILE" >> "$CONFIG_H"
+    cp configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
 
     # Other config adjustments to make the tests pass.
     # Those should probably be adopted upstream.
     #
     # - USE_PSA_CRYPTO for PK_HAVE_ECC_KEYS
     echo "#define MBEDTLS_USE_PSA_CRYPTO" >> "$CONFIG_H"
+    # PK_[PARSE/WRITE]_C used to avoid build and link errors in test_suite_pk.c
+    echo "#define MBEDTLS_PK_PARSE_C" >> "$CONFIG_H"
+    echo "#define MBEDTLS_PK_WRITE_C" >> "$CONFIG_H"
     # pkparse.c and pkwrite.c fail to link without this
     echo "#define MBEDTLS_OID_C" >> "$CONFIG_H"
     # - ASN1_[PARSE/WRITE]_C found by check_config.h for pkparse/pkwrite
@@ -2925,8 +2918,6 @@ common_tfm_config () {
     #
     # Enable filesystem I/O for the benefit of PK parse/write tests.
     echo "#define MBEDTLS_FS_IO" >> "$CONFIG_H"
-    # Disable this for maximal ASan efficiency
-    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
 
     # Config adjustments for features that are not supported
     # when using only drivers / by p256-m

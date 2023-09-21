@@ -1,0 +1,6 @@
+Security
+   * Fix non-constant-time behaviour in padding calculations in CBC
+     decryption, NIST SP 800-38F key wrapping, and RSAAES-OAEP decryption.
+     For CBC and RSAAES-OAEP, this may have been exploitable in a
+     padding oracle for a privileged local attacker with the ability to
+     observe memory access timings.

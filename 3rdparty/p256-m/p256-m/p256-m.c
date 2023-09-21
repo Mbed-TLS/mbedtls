@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined (MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED)
+#if defined (MBEDTLS_PSA_P256M_DRIVER_ENABLED)
 
 /*
  * Zeroize memory - this should not be optimized away

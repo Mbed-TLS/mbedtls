@@ -856,36 +856,6 @@
 //#define MBEDTLS_ECP_WITH_MPI_UINT
 
 /**
- * Uncomment to enable p256-m. This is an alternative implementation of
- * key generation, ECDH and (randomized) ECDSA on the curve SECP256R1.
- * Compared to the default implementation:
- *
- * - p256-m has a much smaller code size and RAM footprint.
- * - p256-m is only available via the PSA API. This includes the pk module
- *   when #MBEDTLS_USE_PSA_CRYPTO is enabled.
- * - p256-m does not support deterministic ECDSA, EC-JPAKE, custom protocols
- *   over the core arithmetic, or deterministic derivation of keys.
- *
- * We recommend enabling this option if your application uses the PSA API
- * and the only elliptic curve support it needs is ECDH and ECDSA over
- * SECP256R1.
- *
- * If you enable this option, you do not need to enable any ECC-related
- * MBEDTLS_xxx option. You do need to separately request support for the
- * cryptographic mechanisms through the PSA API:
- * - #MBEDTLS_PSA_CRYPTO_C and #MBEDTLS_PSA_CRYPTO_CONFIG for PSA-based
- *   configuration;
- * - #MBEDTLS_USE_PSA_CRYPTO if you want to use p256-m from PK, X.509 or TLS;
- * - #PSA_WANT_ECC_SECP_R1_256;
- * - #PSA_WANT_ALG_ECDH and/or #PSA_WANT_ALG_ECDSA as needed;
- * - #PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY, #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC,
- *   #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT,
- *   #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT and/or
- *   #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE as needed.
- */
-//#define MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED
-
-/**
  * \def MBEDTLS_ECDSA_DETERMINISTIC
  *
  * Enable deterministic ECDSA (RFC 6979).
@@ -1445,6 +1415,46 @@
  *
  */
 //#define MBEDTLS_PSA_CRYPTO_SPM
+
+/**
+ * Uncomment to enable p256-m. This is an alternative implementation of
+ * key generation, ECDH and (randomized) ECDSA on the curve SECP256R1.
+ * Compared to the default implementation:
+ *
+ * - p256-m has a much smaller code size and RAM footprint.
+ * - p256-m is only available via the PSA API. This includes the pk module
+ *   when #MBEDTLS_USE_PSA_CRYPTO is enabled.
+ * - p256-m does not support deterministic ECDSA, EC-JPAKE, custom protocols
+ *   over the core arithmetic, or deterministic derivation of keys.
+ *
+ * We recommend enabling this option if your application uses the PSA API
+ * and the only elliptic curve support it needs is ECDH and ECDSA over
+ * SECP256R1.
+ *
+ * If you enable this option, you do not need to enable any ECC-related
+ * MBEDTLS_xxx option. You do need to separately request support for the
+ * cryptographic mechanisms through the PSA API:
+ * - #MBEDTLS_PSA_CRYPTO_C and #MBEDTLS_PSA_CRYPTO_CONFIG for PSA-based
+ *   configuration;
+ * - #MBEDTLS_USE_PSA_CRYPTO if you want to use p256-m from PK, X.509 or TLS;
+ * - #PSA_WANT_ECC_SECP_R1_256;
+ * - #PSA_WANT_ALG_ECDH and/or #PSA_WANT_ALG_ECDSA as needed;
+ * - #PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY, #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC,
+ *   #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT,
+ *   #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT and/or
+ *   #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE as needed.
+ *
+ * \note To genuinely benefit from the smaller code size of p256-m, make
+ *       sure that you do not enable any ECC-related option that requires
+ *       the built-in implementation of elliptic curve arithmetic. This
+ *       means enabling #MBEDTLS_PSA_CRYPTO_C, #MBEDTLS_PSA_CRYPTO_CONFIG,
+ *       #PSA_WANT_ECC_SECP_R1_256 and #MBEDTLS_PSA_P256M_DRIVER_ENABLED,
+ *       plus any of the `PSA_WANT_ALG_xxx` and `PSA_WANT_KEY_TYPE_xxx`
+ *       options listed above, and not enabling other ECC-related options
+ *       through `PSA_WANT_xxx` or `MBEDTLS_xxx` (in particular, not
+ *       enabling other curves or EC-JPAKE).
+ */
+//#define MBEDTLS_PSA_P256M_DRIVER_ENABLED
 
 /**
  * \def MBEDTLS_PSA_INJECT_ENTROPY

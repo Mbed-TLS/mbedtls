@@ -26,7 +26,7 @@
 #include <stddef.h>
 #include <string.h>
 
-#if defined(MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED)
+#if defined(MBEDTLS_PSA_P256M_DRIVER_ENABLED)
 
 /* INFORMATION ON PSA KEY EXPORT FORMATS:
  *
@@ -321,4 +321,4 @@ exit:
     return status;
 }
 
-#endif /* MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED */
+#endif /* MBEDTLS_PSA_P256M_DRIVER_ENABLED */

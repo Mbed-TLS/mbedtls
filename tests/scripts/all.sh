@@ -2953,7 +2953,7 @@ component_test_tfm_config_p256m_driver_accel_ec () {
     loc_accel_flags="$( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
 
     # Build crypto library specifying we want to use P256M code for EC operations
-    make CFLAGS="$ASAN_CFLAGS $loc_accel_flags -DMBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED" LDFLAGS="$ASAN_CFLAGS"
+    make CFLAGS="$ASAN_CFLAGS $loc_accel_flags -DMBEDTLS_PSA_P256M_DRIVER_ENABLED" LDFLAGS="$ASAN_CFLAGS"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o

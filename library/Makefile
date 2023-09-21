@@ -151,7 +151,7 @@ OBJS_CRYPTO= \
 	     ripemd160.o \
 	     rsa.o \
 	     rsa_alt_helpers.o \
-	     runtime.o \
+	     cpuid.o \
 	     sha1.o \
 	     sha256.o \
 	     sha512.o \

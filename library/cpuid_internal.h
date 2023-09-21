@@ -16,10 +16,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-#if !defined(MBEDTLS_RUNTIME_INTERNAL_H)
-#define MBEDTLS_RUNTIME_INTERNAL_H
+#if !defined(MBEDTLS_CPUID_INTERNAL_H)
+#define MBEDTLS_CPUID_INTERNAL_H
 
-#include <mbedtls/runtime.h>
+#include <mbedtls/cpuid.h>
 
 #if !defined(MBEDTLS_CPUID_GET_ALT)
 
@@ -29,13 +29,13 @@
     (defined(__FreeBSD__) && __FreeBSD_version >= 1200000) || \
     defined(_WIN64) || \
     defined(__APPLE__)
-#define MBEDTLS_RUNTIME_C
+#define MBEDTLS_CPUID_C
 #endif
 
 #endif
 
 #if defined(MBEDTLS_ARCH_IS_X64) || defined(MBEDTLS_ARCH_IS_X86)
-#define MBEDTLS_RUNTIME_C
+#define MBEDTLS_CPUID_C
 #endif
 
 #endif /* !MBEDTLS_CPUID_GET_ALT */
@@ -99,7 +99,7 @@
 #undef MBEDTLS_AES_ACCELERATOR_NUM
 #endif /* MBEDTLS_AES_C */
 
-#if (defined(MBEDTLS_RUNTIME_C) || defined(MBEDTLS_CPUID_GET_ALT)) && \
+#if (defined(MBEDTLS_CPUID_C) || defined(MBEDTLS_CPUID_GET_ALT)) && \
     defined(MBEDTLS_AES_RUNTIME_HAVE_CODE)
 #define MBEDTLS_RUNTIME_HAVE_CODE
 #endif
@@ -114,4 +114,4 @@ static inline bool mbedtls_cpu_has_support(mbedtls_hwcap_mask_t mask)
     return (mbedtls_cpu_hwcaps & mask) == mask;
 }
 
-#endif /* MBEDTLS_RUNTIME_INTERNAL_H */
+#endif /* MBEDTLS_CPUID_INTERNAL_H */

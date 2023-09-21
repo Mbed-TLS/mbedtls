@@ -30,7 +30,7 @@
 
 #include "mbedtls/aes.h"
 
-#include "runtime_internal.h"
+#include "cpuid_internal.h"
 
 #if defined(MBEDTLS_AESCE_HAVE_CODE)
 

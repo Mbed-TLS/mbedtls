@@ -17,8 +17,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-#if !defined(MBEDTLS_RUNTIME_H)
-#define MBEDTLS_RUNTIME_H
+#if !defined(MBEDTLS_CPUID_H)
+#define MBEDTLS_CPUID_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -67,4 +67,4 @@ typedef uint64_t mbedtls_hwcap_mask_t;
  */
 mbedtls_hwcap_mask_t mbedtls_cpuid_get(void);
 
-#endif /* MBEDTLS_RUNTIME_H */
+#endif /* MBEDTLS_CPUID_H */

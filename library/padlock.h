@@ -30,7 +30,7 @@
 
 #include "mbedtls/aes.h"
 
-#include "runtime_internal.h"
+#include "cpuid_internal.h"
 
 #define MBEDTLS_ERR_PADLOCK_DATA_MISALIGNED               -0x0030  /**< Input data should be aligned. */
 

@@ -28,7 +28,7 @@
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/aes.h"
-#include "runtime_internal.h"
+#include "cpuid_internal.h"
 
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
 

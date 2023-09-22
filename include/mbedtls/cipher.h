@@ -449,6 +449,10 @@ void mbedtls_cipher_free(mbedtls_cipher_context_t *ctx);
  * \brief               This function initializes a cipher context for
  *                      use with the given cipher primitive.
  *
+ *  \warning            The behavior if mbedtls_cipher_set_padding_mode()
+ *                      is not called after calling this function is not
+ *                      guaranteed.
+ *
  * \param ctx           The context to initialize. This must be initialized.
  * \param cipher_info   The cipher to use.
  *

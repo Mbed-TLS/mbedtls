@@ -20,7 +20,7 @@
 
 mbedtls_hwcap_mask_t mbedtls_cpu_hwcaps = 0;
 
-#if defined(MBEDTLS_CPUID_C)
+#if defined(MBEDTLS_CPUID_C) && defined(MBEDTLS_AES_CPUID_HAVE_CODE)
 
 #if defined(MBEDTLS_ARCH_IS_ARM64)
 
@@ -151,4 +151,4 @@ mbedtls_hwcap_mask_t mbedtls_cpuid_get(void)
     return cpu_feature_get() | MBEDTLS_HWCAP_PROFILED;
 }
 
-#endif /* MBEDTLS_CPUID_C */
+#endif /* MBEDTLS_CPUID_C && MBEDTLS_AES_CPUID_HAVE_CODE */

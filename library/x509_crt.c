@@ -1562,12 +1562,9 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
     }
 
     /*
-     * Note this function uses the code page CP_ACP, and assumes the incoming
-     * string is encoded in ANSI, before translating it into Unicode. If the
-     * incoming string were changed to be UTF-8, then the length check needs to
-     * change to check the number of characters, not the number of bytes, in the
-     * incoming string are less than MAX_PATH to avoid a buffer overrun with
-     * MultiByteToWideChar().
+     * Note this function uses the code page CP_ACP which is the system default
+     * ANSI codepage. The input string is always described in BYTES and the
+     * output length is described in WCHARs.
      */
     w_ret = MultiByteToWideChar(CP_ACP, 0, filename, length_as_int, szDir,
                                 MAX_PATH - 3);
@@ -1587,14 +1584,8 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
         if (file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
             continue;
         }
-
-        if (FAILED(SizeTToInt(wcslen(file_data.cFileName), &length_as_int))) {
-            return MBEDTLS_ERR_X509_FILE_IO_ERROR;
-        }
-
         w_ret = WideCharToMultiByte(CP_ACP, 0, file_data.cFileName,
-                                    length_as_int,
-                                    p, (int) len - 1,
+                                    -1, p, (int) len - 1,
                                     NULL, NULL);
         if (w_ret == 0) {
             ret = MBEDTLS_ERR_X509_FILE_IO_ERROR;

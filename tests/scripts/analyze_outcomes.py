@@ -271,6 +271,9 @@ TASKS = {
                     'PSA key derivation: HKDF-SHA-256 -> ECC secp521r1 #0',
                     'PSA key derivation: HKDF-SHA-256 -> ECC secp521r1 #1',
                 ],
+                'test_suite_ssl': [
+                    'Test configuration of groups for DHE through mbedtls_ssl_conf_curves()',
+                ],
             }
         }
     },
@@ -329,6 +332,9 @@ TASKS = {
                     'Parse Public EC Key #7a (RFC 5480, brainpoolP256r1, compressed)',
                     'Parse Public EC Key #8a (RFC 5480, brainpoolP384r1, compressed)',
                     'Parse Public EC Key #9a (RFC 5480, brainpoolP512r1, compressed)',
+                ],
+                'test_suite_ssl': [
+                    'Test configuration of groups for DHE through mbedtls_ssl_conf_curves()',
                 ],
             }
         }
@@ -423,6 +429,9 @@ TASKS = {
                     'Debug print mbedtls_mpi: 764 bits #1',
                     'Debug print mbedtls_mpi: 764 bits #2',
                 ],
+                'test_suite_ssl': [
+                    'Test configuration of groups for DHE through mbedtls_ssl_conf_curves()',
+                ],
             }
         }
     },
@@ -516,6 +525,9 @@ TASKS = {
                     'Debug print mbedtls_mpi: 759 bits',
                     'Debug print mbedtls_mpi: 764 bits #1',
                     'Debug print mbedtls_mpi: 764 bits #2',
+                ],
+                'test_suite_ssl': [
+                    'Test configuration of groups for DHE through mbedtls_ssl_conf_curves()',
                 ],
             }
         }

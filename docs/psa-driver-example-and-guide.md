@@ -149,7 +149,7 @@ The Mbed TLS build system includes the instructions needed to build p256-m. To b
 (You need extra steps if you want to disable the built-in implementation of ECC algorithms, which includes more features than p256-m. Refer to the documentation of `MBEDTLS_PSA_P256M_DRIVER_ENABLED` for more information.)
 
 The driver prefix for p256-m is `P256`/`p256`.
-The p256-m driver implements four entry points: `generate_key`, `key_agreement`, `sign_hash`, `verify_hash`.
+The p256-m driver implements the following entry points: `import_key`, `export_public_key`, `generate_key`, `key_agreement`, `sign_hash`, `verify_hash`.
 There are no entry points for `sign_message` and `verify_message`, which are not necessary for a sign-and-hash algorithm. The core still implements these functions by doing the hashes and then calling the sign/verify-hash entry points.
 The driver entry point functions can be found in `p256m_driver_entrypoints.[hc]`. These functions act as an interface between Mbed TLS and p256-m; converting between PSA and p256-m argument formats and performing sanity checks. If the driver's status codes differ from PSA's, it is recommended to implement a status code translation function. The function `p256_to_psa_error()` converts error codes returned by p256-m into PSA error codes.
 

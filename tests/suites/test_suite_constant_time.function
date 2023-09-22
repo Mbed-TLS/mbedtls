@@ -119,8 +119,8 @@ void mbedtls_ct_error_if(int cond, int t, int f)
 {
     mbedtls_ct_condition_t c = mbedtls_ct_bool(cond);
 
-    mbedtls_ct_uint_t expected = c ? t : f;
-    mbedtls_ct_uint_t expected0 = c ? t : 0;
+    int expected = c ? t : f;
+    int expected0 = c ? t : 0;
 
     TEST_CF_SECRET(&c, sizeof(c));
     TEST_CF_SECRET(&t, sizeof(t));

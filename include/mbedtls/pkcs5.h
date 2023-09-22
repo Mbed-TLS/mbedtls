@@ -25,6 +25,7 @@
 #define MBEDTLS_PKCS5_H
 
 #include "mbedtls/build_info.h"
+#include "mbedtls/platform_util.h"
 
 #include "mbedtls/asn1.h"
 #include "mbedtls/md.h"
@@ -50,11 +51,16 @@ extern "C" {
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief          PKCS#5 PBES2 function
  *
  * \note           When encrypting, #MBEDTLS_CIPHER_PADDING_PKCS7 must
  *                 be enabled at compile time.
+ *
+ * \deprecated     This function is deprecated and will be removed in a
+ *                 future version of the library.
+ *                 Please use mbedtls_pkcs5_pbes2_ext() instead.
  *
  * \warning        When decrypting:
  *                 - if #MBEDTLS_CIPHER_PADDING_PKCS7 is enabled at compile
@@ -86,10 +92,11 @@ extern "C" {
  *
  * \returns        0 on success, or a MBEDTLS_ERR_XXX code if verification fails.
  */
-int mbedtls_pkcs5_pbes2(const mbedtls_asn1_buf *pbe_params, int mode,
-                        const unsigned char *pwd,  size_t pwdlen,
-                        const unsigned char *data, size_t datalen,
-                        unsigned char *output);
+int MBEDTLS_DEPRECATED mbedtls_pkcs5_pbes2(const mbedtls_asn1_buf *pbe_params, int mode,
+                                           const unsigned char *pwd,  size_t pwdlen,
+                                           const unsigned char *data, size_t datalen,
+                                           unsigned char *output);
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
 

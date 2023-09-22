@@ -90,6 +90,7 @@ void pkcs12_pbe_encrypt(int params_tag, int cipher, int md, data_t *params_hex, 
     pbe_params.len = params_hex->len;
     pbe_params.p = params_hex->x;
 
+#if defined(MBEDTLS_TEST_DEPRECATED)
     if (ref_ret != MBEDTLS_ERR_ASN1_BUF_TOO_SMALL) {
         my_ret = mbedtls_pkcs12_pbe(&pbe_params, MBEDTLS_PKCS12_PBE_ENCRYPT, cipher_alg,
                                     md_alg, pw->x, pw->len, data->x, data->len, my_out);
@@ -99,6 +100,7 @@ void pkcs12_pbe_encrypt(int params_tag, int cipher, int md, data_t *params_hex, 
         ASSERT_COMPARE(my_out, ref_out->len,
                        ref_out->x, ref_out->len);
     }
+#endif
 
 #if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
 
@@ -143,6 +145,7 @@ void pkcs12_pbe_decrypt(int params_tag, int cipher, int md, data_t *params_hex, 
     pbe_params.len = params_hex->len;
     pbe_params.p = params_hex->x;
 
+#if defined(MBEDTLS_TEST_DEPRECATED)
     if (ref_ret != MBEDTLS_ERR_ASN1_BUF_TOO_SMALL) {
         my_ret = mbedtls_pkcs12_pbe(&pbe_params, MBEDTLS_PKCS12_PBE_DECRYPT, cipher_alg,
                                     md_alg, pw->x, pw->len, data->x, data->len, my_out);
@@ -153,6 +156,7 @@ void pkcs12_pbe_decrypt(int params_tag, int cipher, int md, data_t *params_hex, 
         ASSERT_COMPARE(my_out, ref_out->len,
                        ref_out->x, ref_out->len);
     }
+#endif
 
 #if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
 

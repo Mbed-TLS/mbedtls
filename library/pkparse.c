@@ -1417,6 +1417,12 @@ static int pk_parse_key_pkcs8_unencrypted_der(
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
     return MBEDTLS_ERR_PK_UNKNOWN_PK_ALG;
 
+    end = p + len;
+    if (end != (key + keylen)) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+    }
+
     return 0;
 }
 
@@ -1430,7 +1436,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
  *
  */
 #if defined(MBEDTLS_PKCS12_C) || defined(MBEDTLS_PKCS5_C)
-static int pk_parse_key_pkcs8_encrypted_der(
+MBEDTLS_STATIC_TESTABLE int mbedtls_pk_parse_key_pkcs8_encrypted_der(
     mbedtls_pk_context *pk,
     unsigned char *key, size_t keylen,
     const unsigned char *pwd, size_t pwdlen,
@@ -1445,6 +1451,7 @@ static int pk_parse_key_pkcs8_encrypted_der(
     mbedtls_cipher_type_t cipher_alg;
     mbedtls_md_type_t md_alg;
 #endif
+    size_t outlen = 0;
 
     p = key;
     end = p + keylen;
@@ -1490,9 +1497,9 @@ static int pk_parse_key_pkcs8_encrypted_der(
      */
 #if defined(MBEDTLS_PKCS12_C)
     if (mbedtls_oid_get_pkcs12_pbe_alg(&pbe_alg_oid, &md_alg, &cipher_alg) == 0) {
-        if ((ret = mbedtls_pkcs12_pbe(&pbe_params, MBEDTLS_PKCS12_PBE_DECRYPT,
-                                      cipher_alg, md_alg,
-                                      pwd, pwdlen, p, len, buf)) != 0) {
+        if ((ret = mbedtls_pkcs12_pbe_ext(&pbe_params, MBEDTLS_PKCS12_PBE_DECRYPT,
+                                          cipher_alg, md_alg,
+                                          pwd, pwdlen, p, len, buf, len, &outlen)) != 0) {
             if (ret == MBEDTLS_ERR_PKCS12_PASSWORD_MISMATCH) {
                 return MBEDTLS_ERR_PK_PASSWORD_MISMATCH;
             }
@@ -1505,8 +1512,8 @@ static int pk_parse_key_pkcs8_encrypted_der(
 #endif /* MBEDTLS_PKCS12_C */
 #if defined(MBEDTLS_PKCS5_C)
     if (MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS5_PBES2, &pbe_alg_oid) == 0) {
-        if ((ret = mbedtls_pkcs5_pbes2(&pbe_params, MBEDTLS_PKCS5_DECRYPT, pwd, pwdlen,
-                                       p, len, buf)) != 0) {
+        if ((ret = mbedtls_pkcs5_pbes2_ext(&pbe_params, MBEDTLS_PKCS5_DECRYPT, pwd, pwdlen,
+                                           p, len, buf, len, &outlen)) != 0) {
             if (ret == MBEDTLS_ERR_PKCS5_PASSWORD_MISMATCH) {
                 return MBEDTLS_ERR_PK_PASSWORD_MISMATCH;
             }
@@ -1524,8 +1531,7 @@ static int pk_parse_key_pkcs8_encrypted_der(
     if (decrypted == 0) {
         return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
     }
-
-    return pk_parse_key_pkcs8_unencrypted_der(pk, buf, len, f_rng, p_rng);
+    return pk_parse_key_pkcs8_unencrypted_der(pk, buf, outlen, f_rng, p_rng);
 }
 #endif /* MBEDTLS_PKCS12_C || MBEDTLS_PKCS5_C */
 
@@ -1644,8 +1650,8 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
                                       key, NULL, 0, &len);
     }
     if (ret == 0) {
-        if ((ret = pk_parse_key_pkcs8_encrypted_der(pk, pem.buf, pem.buflen,
-                                                    pwd, pwdlen, f_rng, p_rng)) != 0) {
+        if ((ret = mbedtls_pk_parse_key_pkcs8_encrypted_der(pk, pem.buf, pem.buflen,
+                                                            pwd, pwdlen, f_rng, p_rng)) != 0) {
             mbedtls_pk_free(pk);
         }
 
@@ -1677,8 +1683,8 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
 
         memcpy(key_copy, key, keylen);
 
-        ret = pk_parse_key_pkcs8_encrypted_der(pk, key_copy, keylen,
-                                               pwd, pwdlen, f_rng, p_rng);
+        ret = mbedtls_pk_parse_key_pkcs8_encrypted_der(pk, key_copy, keylen,
+                                                       pwd, pwdlen, f_rng, p_rng);
 
         mbedtls_zeroize_and_free(key_copy, keylen);
     }

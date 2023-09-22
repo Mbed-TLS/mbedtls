@@ -229,6 +229,14 @@
 #define MBEDTLS_PK_HAVE_ECC_KEYS
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA || MBEDTLS_ECP_C */
 
+/* Historically pkparse did not check the CBC padding when decrypting
+ * a key. This was a bug, which is now fixed. As a consequence, pkparse
+ * now needs PKCS7 padding support, but existing configurations might not
+ * enable it, so we enable it here. */
+#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PKCS5_C) && defined(MBEDTLS_CIPHER_MODE_CBC)
+#define MBEDTLS_CIPHER_PADDING_PKCS7
+#endif
+
 /* The following blocks make it easier to disable all of TLS,
  * or of TLS 1.2 or 1.3 or DTLS, without having to manually disable all
  * key exchanges, options and extensions related to them. */

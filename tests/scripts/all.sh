@@ -2841,7 +2841,7 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     if [ "$TEST_TARGET" = "ECC_DH" ]; then
         loc_accel_list="$loc_accel_list \
                         ALG_FFDH \
-                        $(helper_get_psa_key_type_list "FFDH")"
+                        $(helper_get_psa_key_type_list "DH")"
     fi
 
     # Note: Those are handled in a special way by the libtestdriver machinery,

@@ -7,4 +7,5 @@ Features
      provided - these limitations are lifted in this version. A new set of
      feature macros, MBEDTLS_MD_CAN_xxx, has been introduced that can be used
      to check for availability of hash algorithms, regardless of whether
-     they're provided by a built-in implementation, a driver or both.
+     they're provided by a built-in implementation, a driver or both. See
+     docs/driver-only-builds.md.

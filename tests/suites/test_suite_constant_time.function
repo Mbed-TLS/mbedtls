@@ -115,6 +115,27 @@ void mbedtls_ct_uchar_in_range_if(int li, int hi, int ti)
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mbedtls_ct_error_if(int cond, int t, int f)
+{
+    mbedtls_ct_condition_t c = mbedtls_ct_bool(cond);
+
+    mbedtls_ct_uint_t expected = c ? t : f;
+    mbedtls_ct_uint_t expected0 = c ? t : 0;
+
+    TEST_CF_SECRET(&c, sizeof(c));
+    TEST_CF_SECRET(&t, sizeof(t));
+    TEST_CF_SECRET(&f, sizeof(f));
+
+    TEST_EQUAL(mbedtls_ct_error_if(c, t, f), expected);
+    TEST_EQUAL(mbedtls_ct_error_if_else_0(c, t), expected0);
+
+    TEST_CF_PUBLIC(&c, sizeof(c));
+    TEST_CF_PUBLIC(&t, sizeof(t));
+    TEST_CF_PUBLIC(&f, sizeof(f));
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mbedtls_ct_if(char *c_str, char *t_str, char *f_str)
 {
     mbedtls_ct_condition_t c = mbedtls_ct_bool(strtoull(c_str, NULL, 16));

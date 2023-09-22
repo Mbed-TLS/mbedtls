@@ -331,7 +331,6 @@ static inline unsigned char mbedtls_ct_uchar_in_range_if(unsigned char low,
     return (unsigned char) (~(low_mask | high_mask)) & to;
 }
 
-
 /* ============================================================================
  * Everything below here is trivial wrapper functions
  */
@@ -396,6 +395,17 @@ static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if_else_0(mbedtls_ct_conditio
 }
 
 #endif /* MBEDTLS_BIGNUM_C */
+
+static inline int mbedtls_ct_error_if(mbedtls_ct_condition_t condition, int if1, int if0)
+{
+    return -((int) mbedtls_ct_if(condition, (mbedtls_ct_uint_t) (-if1),
+                                 (mbedtls_ct_uint_t) (-if0)));
+}
+
+static inline int mbedtls_ct_error_if_else_0(mbedtls_ct_condition_t condition, int if1)
+{
+    return -((int) (condition & (-if1)));
+}
 
 static inline mbedtls_ct_condition_t mbedtls_ct_uint_eq(mbedtls_ct_uint_t x,
                                                         mbedtls_ct_uint_t y)

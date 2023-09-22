@@ -737,7 +737,7 @@ static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
 #endif /* MBEDTLS_PK_PARSE_EC_COMPRESSED */
     } else {
         /* Uncompressed format */
-        if ((end - *p) > MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN) {
+        if ((size_t) (end - *p) > MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN) {
             return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
         }
         memcpy(pk->pub_raw, *p, (end - *p));

@@ -305,6 +305,7 @@ void unaligned_access_endian_aware(int size, int offset, int big_endian)
     if (big_endian) {
         /* Done this way rather than with a switch() to help ensure they
          * are implemented properly with do-while(0). */
+        /* *INDENT-OFF* */
         if (size == 16)
             MBEDTLS_PUT_UINT16_BE(read, x, offset);
         else if (size == 24)
@@ -313,7 +314,9 @@ void unaligned_access_endian_aware(int size, int offset, int big_endian)
             MBEDTLS_PUT_UINT32_BE(read, x, offset);
         else if (size == 64)
             MBEDTLS_PUT_UINT64_BE(read, x, offset);
+        /* *INDENT-ON* */
     } else {
+        /* *INDENT-OFF* */
         if (size == 16)
             MBEDTLS_PUT_UINT16_LE(read, x, offset);
         else if (size == 24)
@@ -322,6 +325,7 @@ void unaligned_access_endian_aware(int size, int offset, int big_endian)
             MBEDTLS_PUT_UINT32_LE(read, x, offset);
         else if (size == 64)
             MBEDTLS_PUT_UINT64_LE(read, x, offset);
+        /* *INDENT-ON* */
     }
 
     /* Verify write - check memory is correct */

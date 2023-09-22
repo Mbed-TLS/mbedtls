@@ -3177,21 +3177,8 @@ component_test_tfm_config_p256m_driver_accel_ec () {
 
     common_tfm_config
 
-    # Set the list of accelerated components in order to remove them from
-    # builtin support.
-    loc_accel_list="ALG_ECDSA \
-                    ALG_ECDH \
-                    ECC_SECP_R1_256 \
-                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
-                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
-                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
-                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
-                    KEY_TYPE_ECC_PUBLIC_KEY"
-    loc_accel_flags="$( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
-
     # Build crypto library specifying we want to use P256M code for EC operations
-    make CFLAGS="$ASAN_CFLAGS $loc_accel_flags -DMBEDTLS_PSA_P256M_DRIVER_ENABLED -I../tests/include/spe" LDFLAGS="$ASAN_CFLAGS"
-
+    make CFLAGS="$ASAN_CFLAGS -DMBEDTLS_PSA_P256M_DRIVER_ENABLED -I../tests/include/spe" LDFLAGS="$ASAN_CFLAGS"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o

@@ -28,6 +28,20 @@
 #ifndef MBEDTLS_CONFIG_ADJUST_LEGACY_FROM_PSA_H
 #define MBEDTLS_CONFIG_ADJUST_LEGACY_FROM_PSA_H
 
+/* Define appropriate ACCEL macros for the p256-m driver.
+ * In the future, those should be generated from the drivers JSON description.
+ */
+#if defined(MBEDTLS_PSA_P256M_DRIVER_ENABLED)
+#define MBEDTLS_PSA_ACCEL_ECC_SECP_R1_256
+#define MBEDTLS_PSA_ACCEL_ALG_ECDSA
+#define MBEDTLS_PSA_ACCEL_ALG_ECDH
+#define MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY
+#define MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_BASIC
+#define MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_IMPORT
+#define MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_EXPORT
+#define MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_GENERATE
+#endif
+
 /*
  * ECC: support for a feature is controlled by a triplet or a pair:
  * (curve, key_type public/basic, alg) or (curve, key_type_<action>).

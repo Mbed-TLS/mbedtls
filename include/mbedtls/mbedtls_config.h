@@ -1453,13 +1453,13 @@
  *
  * \note To genuinely benefit from the smaller code size of p256-m, make
  *       sure that you do not enable any ECC-related option that requires
- *       the built-in implementation of elliptic curve arithmetic. This
- *       means enabling #MBEDTLS_PSA_CRYPTO_C, #MBEDTLS_PSA_CRYPTO_CONFIG,
- *       #PSA_WANT_ECC_SECP_R1_256 and #MBEDTLS_PSA_P256M_DRIVER_ENABLED,
- *       plus any of the `PSA_WANT_ALG_xxx` and `PSA_WANT_KEY_TYPE_xxx`
- *       options listed above, and not enabling other ECC-related options
- *       through `PSA_WANT_xxx` or `MBEDTLS_xxx` (in particular, not
- *       enabling other curves or EC-JPAKE).
+ *       the built-in implementation of elliptic curve arithmetic. Make sure
+ *       #PSA_WANT_ALG_DETERMINISTIC_ECDSA, #PSA_WANT_ALG_JPAKE and
+ *       #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE, and curves other than
+ *       SECP256R1 are disabled as they are not supported by this driver.
+ *       Also, avoid defining #MBEDTLS_PK_PARSE_EC_COMPRESSED or
+ *       #MBEDTLS_PK_PARSE_EC_EXTENDED as those currently require a subset of
+ *       the built-in ECC implementation, see docs/driver-only-builts.md.
  */
 //#define MBEDTLS_PSA_P256M_DRIVER_ENABLED
 

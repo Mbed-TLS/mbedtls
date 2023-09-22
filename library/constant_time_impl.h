@@ -398,6 +398,12 @@ static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if_else_0(mbedtls_ct_conditio
 
 static inline int mbedtls_ct_error_if(mbedtls_ct_condition_t condition, int if1, int if0)
 {
+    /* Coverting int -> uint -> int here is safe, because we require if1 and if0 to be
+     * in the range -32767..0, and we require 32-bit int and uint types.
+     *
+     * This means that (0 <= -if0 < INT_MAX), so negating if0 is safe, and similarly for
+     * converting back to int.
+     */
     return -((int) mbedtls_ct_if(condition, (mbedtls_ct_uint_t) (-if1),
                                  (mbedtls_ct_uint_t) (-if0)));
 }

@@ -1,6 +1,6 @@
 /**
- * \file psa/crypto_adjust_keypair_types.h
- * \brief Adjust PSA configuration for keypair types.
+ * \file psa/crypto_adjust_config_key_pair_types.h
+ * \brief Adjust PSA configuration for key pair types.
  *
  * See docs/proposed/psa-conditional-inclusion-c.md.
  * - Support non-basic operations in a keypair type implicitly enables basic

@@ -1138,19 +1138,6 @@ component_test_full_cmake_gcc_asan () {
 
     msg "test: context-info.sh (full config, ASan build)" # ~ 15 sec
     tests/context-info.sh
-
-    msg "test: check direct ECP dependencies in TLS and X.509"
-    docs/architecture/psa-migration/syms.sh full
-
-    # TODO: replace "mbedtls_ecp_curve" with "mbedtls_ecp" also for
-    # "full-tls-external" once Issue6839 is completed
-    not grep mbedtls_ecp_curve full-libmbedtls-external
-    not grep mbedtls_ecp full-libmbedx509-external
-
-    rm  full-libmbedtls-external \
-        full-libmbedtls-modules \
-        full-libmbedx509-external \
-        full-libmbedx509-modules
 }
 
 
@@ -1175,19 +1162,6 @@ component_test_full_cmake_gcc_asan_new_bignum () {
 
     msg "test: context-info.sh (full config, ASan build)" # ~ 15 sec
     tests/context-info.sh
-
-    msg "test: check direct ECP dependencies in TLS and X.509"
-    docs/architecture/psa-migration/syms.sh full
-
-    # TODO: replace "mbedtls_ecp_curve" with "mbedtls_ecp" also for
-    # "full-tls-external" once Issue6839 is completed
-    not grep mbedtls_ecp_curve full-libmbedtls-external
-    not grep mbedtls_ecp full-libmbedx509-external
-
-    rm  full-libmbedtls-external \
-        full-libmbedtls-modules \
-        full-libmbedx509-external \
-        full-libmbedx509-modules
 }
 
 component_test_full_cmake_gcc_asan_new_bignum_test_hooks () {

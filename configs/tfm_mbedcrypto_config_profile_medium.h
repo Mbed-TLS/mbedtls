@@ -457,45 +457,6 @@
 #define MBEDTLS_MEMORY_BUFFER_ALLOC_C
 
 /**
- * \def MBEDTLS_PK_C
- *
- * Enable the generic public (asymetric) key layer.
- *
- * Module:  library/pk.c
- *
- * Requires: MBEDTLS_RSA_C or MBEDTLS_ECP_C
- *
- * Uncomment to enable generic public key wrappers.
- */
-#define MBEDTLS_PK_C
-
-/**
- * \def MBEDTLS_PK_PARSE_C
- *
- * Enable the generic public (asymetric) key parser.
- *
- * Module:  library/pkparse.c
- *
- * Requires: MBEDTLS_PK_C
- *
- * Uncomment to enable generic public key parse functions.
- */
-#define MBEDTLS_PK_PARSE_C
-
-/**
- * \def MBEDTLS_PK_WRITE_C
- *
- * Enable the generic public (asymetric) key writer.
- *
- * Module:  library/pkwrite.c
- *
- * Requires: MBEDTLS_PK_C
- *
- * Uncomment to enable generic public key write functions.
- */
-#define MBEDTLS_PK_WRITE_C
-
-/**
  * \def MBEDTLS_PLATFORM_C
  *
  * Enable the platform abstraction layer that allows you to re-assign

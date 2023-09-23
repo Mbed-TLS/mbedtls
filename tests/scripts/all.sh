@@ -2321,7 +2321,8 @@ component_test_psa_crypto_config_accel_ecdsa () {
     # -----
 
     # These hashes are needed for some ECDSA signature tests.
-    loc_extra_list="ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
+    loc_extra_list="ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
 
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
@@ -2527,7 +2528,8 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
     # -----
 
     # These hashes are needed for some ECDSA signature tests.
-    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
+    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
     helper_libtestdriver1_make_main "$loc_accel_list"
@@ -2629,8 +2631,9 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     # -----
 
     # Things we wanted supported in libtestdriver1, but not accelerated in the main library:
-    # SHA-1 and all SHA-2 variants, as they are used by ECDSA deterministic.
-    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
+    # SHA-1 and all SHA-2/3 variants, as they are used by ECDSA deterministic.
+    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
 
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
@@ -2806,8 +2809,9 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     # -----
 
     # Things we wanted supported in libtestdriver1, but not accelerated in the main library:
-    # SHA-1 and all SHA-2 variants, as they are used by ECDSA deterministic.
-    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
+    # SHA-1 and all SHA-2/3 variants, as they are used by ECDSA deterministic.
+    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
 
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
@@ -3052,7 +3056,8 @@ psa_crypto_config_accel_all_curves_except_one () {
     # -----
 
     # These hashes are needed for some ECDSA signature tests.
-    loc_extra_list="ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
+    loc_extra_list="ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
     # (See above regarding loc_curve_list.)
@@ -3219,7 +3224,8 @@ component_test_psa_crypto_config_accel_rsa_signature () {
     # -----
 
     # These hashes are needed for some RSA-PSS signature tests.
-    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
+    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
     helper_libtestdriver1_make_main "$loc_accel_list"

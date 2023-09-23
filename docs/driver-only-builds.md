@@ -3,7 +3,7 @@ cryptographic mechanisms are provided only by PSA drivers (that is, no
 built-in implementation of those algorithms), from a user's perspective.
 
 This is useful to save code size for people who are using either a hardware
-accelerator, or an alternative software implementation that's more
+accelerator, or an alternative software implementation that is more
 aggressively optimized for code size than the default one in Mbed TLS.
 
 General considerations
@@ -71,7 +71,7 @@ you're interested in driver-only support for RSA, please let us know.
 Hashes
 ------
 
-If is possible to have all hash operations provided only by a driver.
+It is possible to have all hash operations provided only by a driver.
 
 More precisely:
 - you can enable `PSA_WANT_ALG_SHA_256` without `MBEDTLS_SHA256_C`, provided
@@ -85,8 +85,8 @@ APIs), as well as X.509 and TLS, will work as usual, except that direct calls
 to low-level hash APIs (`mbedtls_sha256()` etc.) are not possible for the
 modules that are disabled.
 
-You'll need to call `psa_crypto_init()` before any crypto operation that uses
-a hash algorithm that's provided only by a driver, as mentioned in [General
+You need to call `psa_crypto_init()` before any crypto operation that uses
+a hash algorithm that is provided only by a driver, as mentioned in [General
 considerations](#general-considerations) above.
 
 If you want to check at compile-time whether a certain hash algorithm is
@@ -94,7 +94,7 @@ available in the present build of Mbed TLS, regardless of whether it's
 provided by a driver or built-in, you should use the following macros:
 - for code that uses only the PSA Crypto API: `PSA_WANT_ALG_xxx` from
   `psa/crypto.h`;
-- for code that may also use non-PSA crypto APIs: `MBEDTLS_MD_CAN_xxx` from
+- for code that uses non-PSA crypto APIs: `MBEDTLS_MD_CAN_xxx` from
   `mbedtls/md.h`.
 
 Elliptic-curve cryptography (ECC)

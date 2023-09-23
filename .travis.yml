@@ -1,15 +1,18 @@
 # Declare python as our language. This way we get our chosen Python version,
 # and pip is available. Gcc and clang are available anyway.
-distro: xenial
+dist: jammy
 os: linux
 language: python
-python: 3.5
+python: 3.10
 
 cache: ccache
 
 branches:
   only:
     coverity_scan
+
+install:
+  - $PYTHON scripts/min_requirements.py
 
 env:
   global:

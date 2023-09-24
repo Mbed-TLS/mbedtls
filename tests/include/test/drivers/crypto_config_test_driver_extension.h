@@ -152,6 +152,38 @@
 #endif
 #endif
 
+#if defined(PSA_WANT_ALG_SHA3_224)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_224)
+#undef MBEDTLS_PSA_ACCEL_ALG_SHA3_224
+#else
+#define MBEDTLS_PSA_ACCEL_ALG_SHA3_224 1
+#endif
+#endif
+
+#if defined(PSA_WANT_ALG_SHA3_256)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_256)
+#undef MBEDTLS_PSA_ACCEL_ALG_SHA3_256
+#else
+#define MBEDTLS_PSA_ACCEL_ALG_SHA3_256 1
+#endif
+#endif
+
+#if defined(PSA_WANT_ALG_SHA3_384)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_384)
+#undef MBEDTLS_PSA_ACCEL_ALG_SHA3_384
+#else
+#define MBEDTLS_PSA_ACCEL_ALG_SHA3_384 1
+#endif
+#endif
+
+#if defined(PSA_WANT_ALG_SHA3_512)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_512)
+#undef MBEDTLS_PSA_ACCEL_ALG_SHA3_512
+#else
+#define MBEDTLS_PSA_ACCEL_ALG_SHA3_512 1
+#endif
+#endif
+
 #if defined(PSA_WANT_ALG_XTS)
 #if defined(MBEDTLS_PSA_ACCEL_ALG_XTS)
 #undef MBEDTLS_PSA_ACCEL_ALG_XTS

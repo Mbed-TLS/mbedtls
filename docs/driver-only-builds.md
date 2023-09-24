@@ -3,7 +3,7 @@ cryptographic mechanisms are provided only by PSA drivers (that is, no
 built-in implementation of those algorithms), from a user's perspective.
 
 This is useful to save code size for people who are using either a hardware
-accelerator, or an alternative software implementation that's more
+accelerator, or an alternative software implementation that is more
 aggressively optimized for code size than the default one in Mbed TLS.
 
 General considerations
@@ -71,7 +71,31 @@ you're interested in driver-only support for RSA, please let us know.
 Hashes
 ------
 
-TODO
+It is possible to have all hash operations provided only by a driver.
+
+More precisely:
+- you can enable `PSA_WANT_ALG_SHA_256` without `MBEDTLS_SHA256_C`, provided
+  you have `MBEDTLS_PSA_ACCEL_ALG_SHA_256` enabled;
+- and similarly for all supported hash algorithms: `MD5`, `RIPEMD160`,
+  `SHA_1`, `SHA_224`, `SHA_256`, `SHA_384`, `SHA_512`, `SHA3_224`, `SHA3_256`,
+`SHA3_384`, `SHA3_512`.
+
+In such a build, all crypto operations (via the PSA Crypto API, or non-PSA
+APIs), as well as X.509 and TLS, will work as usual, except that direct calls
+to low-level hash APIs (`mbedtls_sha256()` etc.) are not possible for the
+modules that are disabled.
+
+You need to call `psa_crypto_init()` before any crypto operation that uses
+a hash algorithm that is provided only by a driver, as mentioned in [General
+considerations](#general-considerations) above.
+
+If you want to check at compile-time whether a certain hash algorithm is
+available in the present build of Mbed TLS, regardless of whether it's
+provided by a driver or built-in, you should use the following macros:
+- for code that uses only the PSA Crypto API: `PSA_WANT_ALG_xxx` from
+  `psa/crypto.h`;
+- for code that uses non-PSA crypto APIs: `MBEDTLS_MD_CAN_xxx` from
+  `mbedtls/md.h`.
 
 Elliptic-curve cryptography (ECC)
 ---------------------------------

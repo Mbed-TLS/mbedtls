@@ -646,6 +646,102 @@ mbedtls_ct_if:"0xffffffffffffffff":"0xffffffffffffffff":"0x7fffffffffffffff"
 mbedtls_ct_if 0xffffffffffffffff 0xffffffffffffffff 0xffffffffffffffff
 mbedtls_ct_if:"0xffffffffffffffff":"0xffffffffffffffff":"0xffffffffffffffff"
 
+mbedtls_ct_error_if 0 0 0
+mbedtls_ct_error_if:0:0:0
+
+mbedtls_ct_error_if 0 0 -1
+mbedtls_ct_error_if:0:0:-1
+
+mbedtls_ct_error_if 0 0 -32766
+mbedtls_ct_error_if:0:0:-32766
+
+mbedtls_ct_error_if 0 0 -32767
+mbedtls_ct_error_if:0:0:-32767
+
+mbedtls_ct_error_if 0 -1 0
+mbedtls_ct_error_if:0:-1:0
+
+mbedtls_ct_error_if 0 -1 -1
+mbedtls_ct_error_if:0:-1:-1
+
+mbedtls_ct_error_if 0 -1 -32766
+mbedtls_ct_error_if:0:-1:-32766
+
+mbedtls_ct_error_if 0 -1 -32767
+mbedtls_ct_error_if:0:-1:-32767
+
+mbedtls_ct_error_if 0 -32766 0
+mbedtls_ct_error_if:0:-32766:0
+
+mbedtls_ct_error_if 0 -32766 -1
+mbedtls_ct_error_if:0:-32766:-1
+
+mbedtls_ct_error_if 0 -32766 -32766
+mbedtls_ct_error_if:0:-32766:-32766
+
+mbedtls_ct_error_if 0 -32766 -32767
+mbedtls_ct_error_if:0:-32766:-32767
+
+mbedtls_ct_error_if 0 -32767 0
+mbedtls_ct_error_if:0:-32767:0
+
+mbedtls_ct_error_if 0 -32767 -1
+mbedtls_ct_error_if:0:-32767:-1
+
+mbedtls_ct_error_if 0 -32767 -32766
+mbedtls_ct_error_if:0:-32767:-32766
+
+mbedtls_ct_error_if 0 -32767 -32767
+mbedtls_ct_error_if:0:-32767:-32767
+
+mbedtls_ct_error_if 1 0 0
+mbedtls_ct_error_if:1:0:0
+
+mbedtls_ct_error_if 1 0 -1
+mbedtls_ct_error_if:1:0:-1
+
+mbedtls_ct_error_if 1 0 -32766
+mbedtls_ct_error_if:1:0:-32766
+
+mbedtls_ct_error_if 1 0 -32767
+mbedtls_ct_error_if:1:0:-32767
+
+mbedtls_ct_error_if 1 -1 0
+mbedtls_ct_error_if:1:-1:0
+
+mbedtls_ct_error_if 1 -1 -1
+mbedtls_ct_error_if:1:-1:-1
+
+mbedtls_ct_error_if 1 -1 -32766
+mbedtls_ct_error_if:1:-1:-32766
+
+mbedtls_ct_error_if 1 -1 -32767
+mbedtls_ct_error_if:1:-1:-32767
+
+mbedtls_ct_error_if 1 -32766 0
+mbedtls_ct_error_if:1:-32766:0
+
+mbedtls_ct_error_if 1 -32766 -1
+mbedtls_ct_error_if:1:-32766:-1
+
+mbedtls_ct_error_if 1 -32766 -32766
+mbedtls_ct_error_if:1:-32766:-32766
+
+mbedtls_ct_error_if 1 -32766 -32767
+mbedtls_ct_error_if:1:-32766:-32767
+
+mbedtls_ct_error_if 1 -32767 0
+mbedtls_ct_error_if:1:-32767:0
+
+mbedtls_ct_error_if 1 -32767 -1
+mbedtls_ct_error_if:1:-32767:-1
+
+mbedtls_ct_error_if 1 -32767 -32766
+mbedtls_ct_error_if:1:-32767:-32766
+
+mbedtls_ct_error_if 1 -32767 -32767
+mbedtls_ct_error_if:1:-32767:-32767
+
 mbedtls_ct_zeroize_if 0x0 0
 mbedtls_ct_zeroize_if:"0x0":0
 

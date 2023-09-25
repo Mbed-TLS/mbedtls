@@ -194,11 +194,11 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_ge(mbedtls_ct_uint_t x,
 static inline mbedtls_ct_condition_t mbedtls_ct_uint_le(mbedtls_ct_uint_t x,
                                                         mbedtls_ct_uint_t y);
 
-/** Boolean "xor" operation.
+/** Boolean not-equals operation.
  *
  * Functionally equivalent to:
  *
- * \p x ^ \p y
+ * \p x != \p y
  *
  * \param x     The first value to analyze.
  * \param y     The second value to analyze.
@@ -206,11 +206,11 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_le(mbedtls_ct_uint_t x,
  * \note        This is more efficient than mbedtls_ct_uint_ne if both arguments are
  *              mbedtls_ct_condition_t.
  *
- * \return      MBEDTLS_CT_TRUE if \p x ^ \p y,
+ * \return      MBEDTLS_CT_TRUE if \p x != \p y,
  *              otherwise MBEDTLS_CT_FALSE.
  */
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_xor(mbedtls_ct_condition_t x,
-                                                         mbedtls_ct_condition_t y);
+static inline mbedtls_ct_condition_t mbedtls_ct_bool_ne(mbedtls_ct_condition_t x,
+                                                        mbedtls_ct_condition_t y);
 
 /** Boolean "and" operation.
  *
@@ -291,6 +291,22 @@ static inline unsigned mbedtls_ct_uint_if(mbedtls_ct_condition_t condition,
                                           unsigned if1,
                                           unsigned if0);
 
+/** Choose between two mbedtls_ct_condition_t values.
+ *
+ * Functionally equivalent to:
+ *
+ * condition ? if1 : if0.
+ *
+ * \param condition     Condition to test.
+ * \param if1           Value to use if \p condition == MBEDTLS_CT_TRUE.
+ * \param if0           Value to use if \p condition == MBEDTLS_CT_FALSE.
+ *
+ * \return  \c if1 if \p condition == MBEDTLS_CT_TRUE, otherwise \c if0.
+ */
+static inline mbedtls_ct_condition_t mbedtls_ct_bool_if(mbedtls_ct_condition_t condition,
+                                                        mbedtls_ct_condition_t if1,
+                                                        mbedtls_ct_condition_t if0);
+
 #if defined(MBEDTLS_BIGNUM_C)
 
 /** Choose between two mbedtls_mpi_uint values.
@@ -326,6 +342,23 @@ static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if(mbedtls_ct_condition_t con
  * \return  \c if1 if \p condition == MBEDTLS_CT_TRUE, otherwise 0.
  */
 static inline unsigned mbedtls_ct_uint_if_else_0(mbedtls_ct_condition_t condition, unsigned if1);
+
+/** Choose between an mbedtls_ct_condition_t and 0.
+ *
+ * Functionally equivalent to:
+ *
+ * condition ? if1 : 0.
+ *
+ * Functionally equivalent to mbedtls_ct_bool_if(condition, if1, 0) but
+ * results in smaller code size.
+ *
+ * \param condition     Condition to test.
+ * \param if1           Value to use if \p condition == MBEDTLS_CT_TRUE.
+ *
+ * \return  \c if1 if \p condition == MBEDTLS_CT_TRUE, otherwise 0.
+ */
+static inline mbedtls_ct_condition_t mbedtls_ct_bool_if_else_0(mbedtls_ct_condition_t condition,
+                                                               mbedtls_ct_condition_t if1);
 
 /** Choose between a size_t value and 0.
  *
@@ -378,6 +411,35 @@ static inline unsigned char mbedtls_ct_uchar_in_range_if(unsigned char low,
                                                          unsigned char c,
                                                          unsigned char t);
 
+/** Choose between two error values. The values must be in the range [-32767..0].
+ *
+ * Functionally equivalent to:
+ *
+ * condition ? if1 : if0.
+ *
+ * \param condition     Condition to test.
+ * \param if1           Value to use if \p condition == MBEDTLS_CT_TRUE.
+ * \param if0           Value to use if \p condition == MBEDTLS_CT_FALSE.
+ *
+ * \return  \c if1 if \p condition == MBEDTLS_CT_TRUE, otherwise \c if0.
+ */
+static inline int mbedtls_ct_error_if(mbedtls_ct_condition_t condition, int if1, int if0);
+
+/** Choose between an error value and 0. The error value must be in the range [-32767..0].
+ *
+ * Functionally equivalent to:
+ *
+ * condition ? if1 : 0.
+ *
+ * Functionally equivalent to mbedtls_ct_error_if(condition, if1, 0) but
+ * results in smaller code size.
+ *
+ * \param condition     Condition to test.
+ * \param if1           Value to use if \p condition == MBEDTLS_CT_TRUE.
+ *
+ * \return  \c if1 if \p condition == MBEDTLS_CT_TRUE, otherwise 0.
+ */
+static inline int mbedtls_ct_error_if_else_0(mbedtls_ct_condition_t condition, int if1);
 
 /* ============================================================================
  * Block memory operations

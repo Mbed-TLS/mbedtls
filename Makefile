@@ -1,6 +1,7 @@
 DESTDIR=/usr/local
 PREFIX=mbedtls_
 PERL ?= perl
+PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
 
 .SILENT:
 
@@ -64,18 +65,17 @@ VISUALC_FILES = visualc/VS2013/mbedTLS.sln visualc/VS2013/mbedTLS.vcxproj
 # TODO: $(app).vcxproj for each $(app) in programs/
 visualc_files: $(VISUALC_FILES)
 
-# Ensure that the .c files that generate_visualc_files.pl enumerates are
+# Ensure that the .c files that generate_visualc_files.py enumerates are
 # present before it runs. It doesn't matter if the files aren't up-to-date,
 # they just need to be present.
 $(VISUALC_FILES): | library/generated_files
-$(VISUALC_FILES): $(gen_file_dep) scripts/generate_visualc_files.pl
-$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2013-app-template.vcxproj
-$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2013-main-template.vcxproj
-$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2013-sln-template.sln
+$(VISUALC_FILES): $(gen_file_dep) scripts/generate_visualc_files.py
+$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2013-vcxproj.jinja2
+$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2013-sln.jinja2
 # TODO: also the list of .c and .h source files, but not their content
 $(VISUALC_FILES):
 	echo "  Gen   $@ ..."
-	$(PERL) scripts/generate_visualc_files.pl
+	$(PYTHON) scripts/generate_visualc_files.py
 
 ifndef WINDOWS
 install: no_test

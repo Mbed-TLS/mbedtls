@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+{% for conf, platform in project.configurations %}
+    <ProjectConfiguration Include="{{conf}}|{{platform}}">
+      <Configuration>{{conf}}</Configuration>
+      <Platform>{{platform}}</Platform>
+    </ProjectConfiguration>
+{% endfor %}
+  </ItemGroup>
+{% if project.ref_proj %}
+  <ItemGroup>
+    <ProjectReference Include="{{ project.ref_proj.name }}.vcxproj">
+      <Project>{{ project.ref_proj.guid }}</Project>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemGroup>
+{% endif %}
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{{ project.guid }}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>{{ project.name }}</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+{% for conf, platform in project.configurations %}
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='{{conf}}|{{platform}}'" Label="Configuration">
+    <ConfigurationType>{{project.configuration_type}}</ConfigurationType>
+    <UseDebugLibraries>{{ 'true' if conf == 'Debug' else 'false'}}</UseDebugLibraries>
+    {% if conf == 'Release' %}
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    {% endif %}
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+{% endfor %}
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+{% for conf, platform in project.configurations %}
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='{{conf}}|{{platform}}'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+{% endfor %}
+  <PropertyGroup Label="UserMacros" />
+{% for conf, platform in project.configurations %}
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='{{conf}}|{{platform}}'">
+    <LinkIncremental>{{ 'true' if conf == 'Debug' else 'false'}}</LinkIncremental>
+    <IntDir>$(Configuration)\$(TargetName)\</IntDir>
+  </PropertyGroup>
+{% endfor %}
+{% for conf, platform in project.configurations %}
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='{{conf}}|{{platform}}'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>{{'Disabled' if conf == 'Debug' else 'MaxSpeed'}}</Optimization>
+      {% if conf == 'Release' %}
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      {% endif %}
+      <PreprocessorDefinitions>{{'NDEBUG;' if conf == 'Release' }}{{ '_USRDLL;MBEDTLS_EXPORTS;KRML_VERIFIED_UINT128;' if project.configuration_type == 'StaticLibrary'}}%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>
+{{';'.join(project.include_directories)}}      </AdditionalIncludeDirectories>
+    {% if project.configuration_type == 'StaticLibrary' %}
+      <CompileAs>CompileAsC</CompileAs>
+    {% endif %}
+    {% if platform == 'ARM64' %}
+      <RuntimeLibrary>MultiThreaded{{"Debug" if conf == 'Debug' else ''}}</RuntimeLibrary>
+    {% endif %}
+    </ClCompile>
+    <Link>
+      <SubSystem>{{ 'Windows' if project.configuration_type == 'StaticLibrary' else 'Console'}}</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      {% if conf == 'Release' %}
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      {% endif %}
+      {% if project.configuration_type == 'Application' %}
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>{{conf}}</AdditionalLibraryDirectories>
+      {% endif %}
+    </Link>
+    {% if conf == 'Debug' and project.configuration_type == 'Application' %}
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    {% endif %}
+  </ItemDefinitionGroup>
+{% endfor %}
+{% if project.headers %}
+  <ItemGroup>
+{% for header in project.headers %}
+    <ClInclude Include="{{header.replace('/','\\')}}" />
+{% endfor %}
+  </ItemGroup>
+{% endif %}
+{% if project.sources %}
+  <ItemGroup>
+{% for source in project.sources %}
+    <ClCompile Include="{{source.replace('/','\\')}}" />
+{% endfor %}
+  </ItemGroup>
+{% endif %}
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

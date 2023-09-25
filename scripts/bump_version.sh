@@ -156,5 +156,5 @@ scripts/generate_query_config.pl
 scripts/generate_features.pl
 
 [ $VERBOSE ] && echo "Re-generating visualc files"
-scripts/generate_visualc_files.pl
+scripts/generate_visualc_files.py
 

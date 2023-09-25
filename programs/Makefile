@@ -76,7 +76,7 @@ endif
 ## The following assignment is the list of base names of applications that
 ## will be built on Windows. Extra Linux/Unix/POSIX-only applications can
 ## be declared by appending with `APPS += ...` afterwards.
-## See the get_app_list function in scripts/generate_visualc_files.pl and
+## See the get_app_list function in scripts/generate_visualc_files.py and
 ## make sure to check that it still works if you tweak the format here.
 APPS = \
 	aes/crypt_and_hash \

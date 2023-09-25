@@ -15,5 +15,9 @@ Jinja2 >= 2.10.1; python_version <  '3.10'
 Jinja2 >= 2.10.3; python_version >= '3.10'
 # Jinja2 >=2.10, <3.0 needs a separate package for type annotations
 types-Jinja2
+
 jsonschema >= 3.2.0
-types-jsonschema
+# types-jsonschema 4.19.0.0 doesn't work with Python 3.5 but doesn't declare
+# that dependency.
+types-jsonschema < 4.19; python_version < '3.6'
+types-jsonschema; python_version >= '3.6'

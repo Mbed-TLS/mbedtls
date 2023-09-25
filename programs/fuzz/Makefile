@@ -46,7 +46,7 @@ BINARIES := $(addsuffix $(EXEXT),$(APPS))
 all: $(BINARIES)
 
 $(DEP):
-	$(MAKE) -C ../../library
+	$(MAKE) -C ../../library $(@F)
 
 C_FILES := $(addsuffix .c,$(APPS))
 

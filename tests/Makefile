@@ -168,7 +168,7 @@ BINARIES := $(addsuffix $(EXEXT),$(APPS))
 all: $(BINARIES)
 
 $(MBEDLIBS):
-	$(MAKE) -C ../library
+	$(MAKE) -C ../library $(@F)
 
 MBEDTLS_TEST_OBJS=$(patsubst %.c,%.o,$(wildcard src/*.c src/drivers/*.c src/test_helpers/*.c))
 

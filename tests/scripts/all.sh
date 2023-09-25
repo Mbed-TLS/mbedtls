@@ -2897,22 +2897,14 @@ common_tfm_config () {
     echo "#undef MBEDTLS_PSA_CRYPTO_CONFIG_FILE" >> "$CONFIG_H"
     cp configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
 
-    # Other config adjustments to make the tests pass.
-    # Those should probably be adopted upstream.
+    # Other config adjustment to make the tests pass.
+    # This should probably be adopted upstream.
     #
     # - USE_PSA_CRYPTO for PK_HAVE_ECC_KEYS
     echo "#define MBEDTLS_USE_PSA_CRYPTO" >> "$CONFIG_H"
-    # PK_[PARSE/WRITE]_C used to avoid build and link errors in test_suite_pk.c
-    echo "#define MBEDTLS_PK_PARSE_C" >> "$CONFIG_H"
-    echo "#define MBEDTLS_PK_WRITE_C" >> "$CONFIG_H"
-    # pkparse.c and pkwrite.c fail to link without this
-    echo "#define MBEDTLS_OID_C" >> "$CONFIG_H"
-    # - ASN1_[PARSE/WRITE]_C found by check_config.h for pkparse/pkwrite
-    echo "#define MBEDTLS_ASN1_PARSE_C" >> "$CONFIG_H"
-    echo "#define MBEDTLS_ASN1_WRITE_C" >> "$CONFIG_H"
 
-    # Config adjustments for better test coverage in our environment.
-    # These are not needed just to build and pass tests.
+    # Config adjustment for better test coverage in our environment.
+    # This is not needed just to build and pass tests.
     #
     # Enable filesystem I/O for the benefit of PK parse/write tests.
     echo "#define MBEDTLS_FS_IO" >> "$CONFIG_H"
@@ -2924,7 +2916,6 @@ common_tfm_config () {
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
     # Disable deterministic ECDSA as p256-m only does randomized
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
-
 }
 
 # Keep this in sync with component_test_tfm_config() as they are both meant

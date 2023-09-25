@@ -449,6 +449,12 @@ void mbedtls_cipher_free(mbedtls_cipher_context_t *ctx);
  * \brief               This function prepares a cipher context for
  *                      use with the given cipher primitive.
  *
+ * \warning             In CBC mode, if mbedtls_cipher_set_padding_mode() is not called:
+ *                      - If MBEDTLS_CIPHER_PADDING_PKCS7 is enabled, the
+ *                      context will use PKCS7 padding.
+ *                      - Otherwise the context uses no padding and the input
+ *                      must be a whole number of blocks.
+ *
  * \note                After calling this function, you should call
  *                      mbedtls_cipher_setkey() and, if the mode uses padding,
  *                      mbedtls_cipher_set_padding_mode(), then for each
@@ -672,8 +678,6 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
  * \brief               This function sets the padding mode, for cipher modes
  *                      that use padding.
  *
- *                      The default passing mode is PKCS7 padding.
- *
  * \param ctx           The generic cipher context. This must be initialized and
  *                      bound to a cipher information structure.
  * \param mode          The padding mode.
@@ -729,8 +733,7 @@ int mbedtls_cipher_set_iv(mbedtls_cipher_context_t *ctx,
  *                2. mbedtls_cipher_reset()
  *                3. mbedtls_cipher_update_ad()
  *                4. mbedtls_cipher_update() one or more times
- *                5. mbedtls_cipher_finish()
- *                6. mbedtls_cipher_check_tag() (for decryption) or
+ *                5. mbedtls_cipher_check_tag() (for decryption) or
  *                mbedtls_cipher_write_tag() (for encryption).
  *                .
  *                This sequence can be repeated to encrypt or decrypt multiple

@@ -2910,8 +2910,6 @@ common_tfm_config () {
     # - ASN1_[PARSE/WRITE]_C found by check_config.h for pkparse/pkwrite
     echo "#define MBEDTLS_ASN1_PARSE_C" >> "$CONFIG_H"
     echo "#define MBEDTLS_ASN1_WRITE_C" >> "$CONFIG_H"
-    # - MD_C for HKDF_C
-    echo "#define MBEDTLS_MD_C" >> "$CONFIG_H"
 
     # Config adjustments for better test coverage in our environment.
     # These are not needed just to build and pass tests.

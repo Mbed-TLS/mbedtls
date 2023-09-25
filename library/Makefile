@@ -39,6 +39,10 @@ APPLE_BUILD ?= 1
 endif
 endif
 
+ifdef WINDOWS_BUILD
+LOCAL_LDFLAGS += -lbcrypt
+endif
+
 # To compile as a shared library:
 ifdef SHARED
 # all code is position-indep with mingw, avoid warning about useless flag

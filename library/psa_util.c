@@ -25,7 +25,7 @@
 #include <psa/crypto.h>
 
 #include "psa_crypto_core.h"
-#include <psa_util_internal.h>
+#include "psa_util_internal.h"
 
 /* The following includes are needed for MBEDTLS_ERR_XXX macros */
 #include <mbedtls/error.h>

@@ -161,6 +161,7 @@ derived."""
     log_command(['config.py', 'full'])
     conf.adapt(config.full_adapter)
     set_config_option_value(conf, 'MBEDTLS_TEST_HOOKS', colors, False)
+    set_config_option_value(conf, 'MBEDTLS_PSA_CRYPTO_CONFIG', colors, False)
     if options.unset_use_psa:
         set_config_option_value(conf, 'MBEDTLS_USE_PSA_CRYPTO', colors, False)
 

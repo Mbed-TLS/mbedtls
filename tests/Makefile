@@ -65,6 +65,14 @@ else
 PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
 endif
 
+# See root Makefile
+GEN_FILES ?= yes
+ifdef GEN_FILES
+gen_file_dep =
+else
+gen_file_dep = |
+endif
+
 .PHONY: generated_files
 GENERATED_BIGNUM_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) scripts/generate_bignum_tests.py --list || \
@@ -97,7 +105,7 @@ generated_files: $(GENERATED_FILES)
 # Use an intermediate phony dependency so that parallel builds don't run
 # a separate instance of the recipe for each output file.
 .SECONDARY: generated_bignum_test_data generated_ecp_test_data generated_psa_test_data
-$(GENERATED_BIGNUM_DATA_FILES): generated_bignum_test_data
+$(GENERATED_BIGNUM_DATA_FILES): $(gen_file_dep) generated_bignum_test_data
 generated_bignum_test_data: scripts/generate_bignum_tests.py
 generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_common.py
 generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_core.py
@@ -109,7 +117,7 @@ generated_bignum_test_data:
 	echo "  Gen   $(GENERATED_BIGNUM_DATA_FILES)"
 	$(PYTHON) scripts/generate_bignum_tests.py
 
-$(GENERATED_ECP_DATA_FILES): generated_ecp_test_data
+$(GENERATED_ECP_DATA_FILES): $(gen_file_dep) generated_ecp_test_data
 generated_ecp_test_data: scripts/generate_ecp_tests.py
 generated_ecp_test_data: ../scripts/mbedtls_dev/bignum_common.py
 generated_ecp_test_data: ../scripts/mbedtls_dev/ecp.py
@@ -119,7 +127,7 @@ generated_ecp_test_data:
 	echo "  Gen   $(GENERATED_ECP_DATA_FILES)"
 	$(PYTHON) scripts/generate_ecp_tests.py
 
-$(GENERATED_PSA_DATA_FILES): generated_psa_test_data
+$(GENERATED_PSA_DATA_FILES): $(gen_file_dep) generated_psa_test_data
 generated_psa_test_data: scripts/generate_psa_tests.py
 generated_psa_test_data: ../scripts/mbedtls_dev/crypto_data_tests.py
 generated_psa_test_data: ../scripts/mbedtls_dev/crypto_knowledge.py

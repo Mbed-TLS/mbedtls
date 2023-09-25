@@ -126,6 +126,26 @@ void mbedtls_platform_zeroize(void *buf, size_t len)
 #else
         memset_func(buf, 0, len);
 #endif
+
+#if defined(__GNUC__)
+        /* For clang and recent gcc, pretend that we have some assembly that reads the
+         * zero'd memory as an additional protection against being optimised away. */
+#if defined(__clang__) || (__GNUC__ >= 10)
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wvla"
+#elif defined(MBEDTLS_COMPILER_IS_GCC)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wvla"
+#endif
+        asm volatile ("" : : "m" (*(char (*)[len]) buf) :);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(MBEDTLS_COMPILER_IS_GCC)
+#pragma GCC diagnostic pop
+#endif
+#endif
+#endif
     }
 }
 #endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT */

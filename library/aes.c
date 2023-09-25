@@ -34,20 +34,19 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
-#if defined(__aarch64__)
+#if defined(MBEDTLS_ARCH_IS_ARM64)
 #if !defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 #error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
 #endif
 #endif
 
-#if defined(__amd64__) || defined(__x86_64__) || \
-    ((defined(_M_X64) || defined(_M_AMD64)) && !defined(_M_ARM64EC))
+#if defined(MBEDTLS_ARCH_IS_X64)
 #if !defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 #error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
 #endif
 #endif
 
-#if defined(__i386__) || defined(_M_IX86)
+#if defined(MBEDTLS_ARCH_IS_X86)
 #if defined(MBEDTLS_AES_USE_HARDWARE_ONLY) && !defined(MBEDTLS_AESNI_C)
 #error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
 #endif
@@ -652,7 +651,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
     }
 #endif
 
-#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
     if (MBEDTLS_AESCE_HAS_SUPPORT()) {
         return mbedtls_aesce_setkey_enc((unsigned char *) RK, key, keybits);
     }
@@ -764,7 +763,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
     }
 #endif
 
-#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
     if (MBEDTLS_AESCE_HAS_SUPPORT()) {
         mbedtls_aesce_inverse_key(
             (unsigned char *) RK,
@@ -1091,7 +1090,7 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
     }
 #endif
 
-#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
     if (MBEDTLS_AESCE_HAS_SUPPORT()) {
         return mbedtls_aesce_crypt_ecb(ctx, mode, input, output);
     }
@@ -1910,7 +1909,7 @@ int mbedtls_aes_self_test(int verbose)
             mbedtls_printf("  AES note: using VIA Padlock.\n");
         } else
 #endif
-#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
         if (MBEDTLS_AESCE_HAS_SUPPORT()) {
             mbedtls_printf("  AES note: using AESCE.\n");
         } else

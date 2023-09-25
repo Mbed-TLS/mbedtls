@@ -136,7 +136,7 @@ OBJS_CRYPTO= \
 	     psa_crypto_aead.o \
 	     psa_crypto_cipher.o \
 	     psa_crypto_client.o \
-		 psa_crypto_driver_wrappers_no_static.o \
+	     psa_crypto_driver_wrappers_no_static.o \
 	     psa_crypto_ecp.o \
 	     psa_crypto_ffdh.o \
 	     psa_crypto_hash.o \
@@ -316,7 +316,7 @@ libmbedcrypto.dll: $(OBJS_CRYPTO)
 GENERATED_FILES = \
 	error.c version_features.c \
 	ssl_debug_helpers_generated.c \
-    psa_crypto_driver_wrappers.h \
+	psa_crypto_driver_wrappers.h \
 	psa_crypto_driver_wrappers_no_static.c
 generated_files: $(GENERATED_FILES)
 

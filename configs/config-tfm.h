@@ -42,17 +42,6 @@
  */
 #undef MBEDTLS_AES_SETKEY_DEC_ALT
 #undef MBEDTLS_AES_DECRYPT_ALT
-/* The configuration we have enables MBEDTLS_PK_PARSE_C and MBEDTLS_PK_WRITE_C
- * but not MBEDTLS_OID_C. This is inconsistent, and leads to a link error
- * when using one of the mbedtls_pk_parse_xxx or mbedtls_pk_write_xxx
- * functions that depend on an mbedtls_oid_xxx function.
- * Mbed TLS needs PK parse/write for RSA with PSA, but the medium
- * profile doesn't have RSA. Later versions of TF-M no longer enable
- * PK parse/write: it wasn't a wanted feature. So disable it here
- * (otherwise we'd have to enable MBEDTLS_OID_C).
- */
-#undef MBEDTLS_PK_PARSE_C
-#undef MBEDTLS_PK_WRITE_C
 
 /* Use built-in platform entropy functions (TF-M provides its own). */
 #undef MBEDTLS_NO_PLATFORM_ENTROPY

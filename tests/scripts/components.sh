@@ -1,5 +1,3 @@
-#! /usr/bin/env bash
-
 # components.sh
 #
 # Copyright The Mbed TLS Contributors

@@ -61,7 +61,6 @@
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <intsafe.h>
 #else
 #include <time.h>
 #endif

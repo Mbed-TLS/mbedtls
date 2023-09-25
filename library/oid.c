@@ -710,7 +710,7 @@ static const oid_cipher_alg_t oid_cipher_alg[] =
     {
         NULL_OID_DESCRIPTOR,
         MBEDTLS_CIPHER_NONE,
-    }
+    },
 };
 
 FN_OID_TYPED_FROM_ASN1(oid_cipher_alg_t, cipher_alg, oid_cipher_alg)

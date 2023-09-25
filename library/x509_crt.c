@@ -1541,7 +1541,6 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
     char filename[MAX_PATH];
     char *p;
     size_t len = strlen(path);
-    int length_as_int = 0;
 
     WIN32_FIND_DATAW file_data;
     HANDLE hFind;
@@ -1557,16 +1556,12 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
     p = filename + len;
     filename[len++] = '*';
 
-    if (FAILED(SizeTToInt(len, &length_as_int))) {
-        return MBEDTLS_ERR_X509_FILE_IO_ERROR;
-    }
-
     /*
      * Note this function uses the code page CP_ACP which is the system default
      * ANSI codepage. The input string is always described in BYTES and the
      * output length is described in WCHARs.
      */
-    w_ret = MultiByteToWideChar(CP_ACP, 0, filename, length_as_int, szDir,
+    w_ret = MultiByteToWideChar(CP_ACP, 0, filename, (int) len, szDir,
                                 MAX_PATH - 3);
     if (w_ret == 0) {
         return MBEDTLS_ERR_X509_BAD_INPUT_DATA;

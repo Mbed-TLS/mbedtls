@@ -2520,6 +2520,121 @@ component_test_psa_crypto_config_accel_pake() {
     make test
 }
 
+# Run tests with only (non-)Weierstrass accelerated
+# Common code used in:
+# - component_test_psa_crypto_config_accel_ecc_weirstrass_curves
+# - component_test_psa_crypto_config_accel_ecc_non_weirstrass_curves
+common_test_psa_crypto_config_accel_ecc_some_curves () {
+    WEIERSTRASS=$1
+    if [ $WEIERSTRASS -eq 1 ]; then
+        DESC="Weierstrass"
+    else
+        DESC="non-Weierstrass"
+    fi
+
+    msg "build: full with accelerated EC algs and $DESC curves"
+
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
+                    ALG_ECDH \
+                    ALG_JPAKE \
+                    $(helper_get_psa_key_type_list "ECC")"
+
+    # Note: Curves are handled in a special way by the libtestdriver machinery,
+    # so we only want to include them in the accel list when building the main
+    # libraries, hence the use of a separate variable.
+    # Note: the following loop is a modified version of
+    # helper_get_psa_curve_list that only keeps Weierstrass families.
+    loc_weierstrass_list=""
+    loc_non_weierstrass_list=""
+    for ITEM in $(sed -n 's/^#define PSA_WANT_\(ECC_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
+        case $ITEM in
+            ECC_BRAINPOOL*|ECC_SECP*)
+                loc_weierstrass_list="$loc_weierstrass_list $ITEM"
+                ;;
+            *)
+                loc_non_weierstrass_list="$loc_non_weierstrass_list $ITEM"
+                ;;
+        esac
+    done
+    if [ $WEIERSTRASS -eq 1 ]; then
+        loc_curve_list=$loc_weierstrass_list
+    else
+        loc_curve_list=$loc_non_weierstrass_list
+    fi
+
+    # Configure
+    # ---------
+
+    # start with config full for maximum coverage (also enables USE_PSA)
+    helper_libtestdriver1_adjust_config "full"
+
+    # Disable modules that are accelerated - some will be re-enabled
+    scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_ECDH_C
+    scripts/config.py unset MBEDTLS_ECJPAKE_C
+    scripts/config.py unset MBEDTLS_ECP_C
+
+    # Disable all curves - those that aren't accelerated should be re-enabled
+    helper_disable_builtin_curves
+
+    # Restartable feature is not yet supported by PSA. Once it will in
+    # the future, the following line could be removed (see issues
+    # 6061, 6332 and following ones)
+    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+
+    # this is not supported by the driver API yet
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
+
+    # Build
+    # -----
+
+    # These hashes are needed for some ECDSA signature tests.
+    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
+    helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
+
+    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+
+    # We expect ECDH to be re-enabled for the missing curves
+    grep mbedtls_ecdh_ library/ecdh.o
+    # We expect ECP to be re-enabled, however the parts specific to the
+    # families of curves that are accelerated should be ommited.
+    # - functions with mxz in the name are specific to Montgomery curves
+    # - ecp_muladd is specific to Weierstrass curves
+    ##nm library/ecp.o | tee ecp.syms
+    if [ $WEIERSTRASS -eq 1 ]; then
+        not grep mbedtls_ecp_muladd library/ecp.o
+        grep mxz library/ecp.o
+    else
+        grep mbedtls_ecp_muladd library/ecp.o
+        not grep mxz library/ecp.o
+    fi
+    # We expect ECDSA and ECJPAKE to be re-enabled only when
+    # Weierstrass curves are not accelerated
+    if [ $WEIERSTRASS -eq 1 ]; then
+        not grep mbedtls_ecdsa library/ecdsa.o
+        not grep mbedtls_ecjpake  library/ecjpake.o
+    else
+        grep mbedtls_ecdsa library/ecdsa.o
+        grep mbedtls_ecjpake  library/ecjpake.o
+    fi
+
+    # Run the tests
+    # -------------
+
+    msg "test suites: full with accelerated EC algs and $DESC curves"
+    make test
+}
+
+component_test_psa_crypto_config_accel_ecc_weirstrass_curves () {
+    common_test_psa_crypto_config_accel_ecc_some_curves 1
+}
+
+component_test_psa_crypto_config_accel_ecc_non_weirstrass_curves () {
+    common_test_psa_crypto_config_accel_ecc_some_curves 0
+}
+
 # Auxiliary function to build config for all EC based algorithms (EC-JPAKE,
 # ECDH, ECDSA) with and without drivers.
 # The input parameter is a boolean value which indicates:

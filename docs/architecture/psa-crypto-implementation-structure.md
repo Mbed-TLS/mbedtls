@@ -139,7 +139,7 @@ Some mechanisms require other mechanisms. For example, you can't do GCM without 
 The general structure of a cryptographic operation function is:
 
 1. API function defined in `library/psa_crypto.c`. The entry point performs generic checks that don't depend on whether the mechanism is implemented in software or in a driver and looks up keys in the key store.
-2. Driver dispatch code in `scripts/data_files/driver_templates/psa_crypto_driver_wrappers.c.jinja` or files included from there.
+2. Driver dispatch code in `scripts/data_files/driver_templates/psa_crypto_driver_wrappers.h.jinja`, `scripts/data_files/driver_templates/psa_crypto_driver_wrappers_no_static.c.jinja` or files included from there.
 3. Built-in implementation in `library/psa_crypto_*.c` (with function declarations in the corresponding `.h` file). These files typically contain the implementation of modes of operation over basic building blocks that are defined elsewhere. For example, HMAC is implemented in `library/psa_crypto_mac.c` but the underlying hash functions are implemented in `library/sha*.c` and `library/md*.c`.
 4. Basic cryptographic building blocks in `library/*.c`.
 

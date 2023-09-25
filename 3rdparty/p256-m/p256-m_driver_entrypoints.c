@@ -22,7 +22,6 @@
 #include "p256-m_driver_entrypoints.h"
 #include "p256-m/p256-m.h"
 #include "psa/crypto.h"
-#include "psa_crypto_driver_wrappers.h"
 #include <stddef.h>
 #include <string.h>
 
@@ -280,9 +279,11 @@ psa_status_t p256_transparent_verify_hash(
     const uint8_t *signature,
     size_t signature_length)
 {
-    /* We don't use this argument, but the specification mandates the signature
+    /* We don't use these arguments, but the specification mandates the signature
      * of driver entry-points. (void) used to avoid compiler warning. */
     (void) alg;
+    (void) key_buffer;
+    (void) key_buffer_size;
 
     psa_status_t status;
     uint8_t public_key_buffer[PSA_PUBKEY_SIZE];
@@ -298,13 +299,10 @@ psa_status_t p256_transparent_verify_hash(
      * (keypair format), or 0x04 followed by the 64 byte public key (public
      * key format). To ensure the key is in the latter format, the public key
      * is exported. */
-    status = psa_driver_wrapper_export_public_key(
-        attributes,
-        key_buffer,
-        key_buffer_size,
-        public_key_buffer,
-        public_key_buffer_size,
-        public_key_length_ptr);
+    mbedtls_svc_key_id_t key_id = psa_get_key_id(attributes);
+    status = psa_export_public_key(key_id, public_key_buffer,
+                                   public_key_buffer_size, public_key_length_ptr);
+
     if (status != PSA_SUCCESS) {
         goto exit;
     }

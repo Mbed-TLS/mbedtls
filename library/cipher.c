@@ -269,17 +269,6 @@ int mbedtls_cipher_setup(mbedtls_cipher_context_t *ctx,
 
     ctx->cipher_info = cipher_info;
 
-#if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
-    /*
-     * Ignore possible errors caused by a cipher mode that doesn't use padding
-     */
-#if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
-    (void) mbedtls_cipher_set_padding_mode(ctx, MBEDTLS_PADDING_PKCS7);
-#else
-    (void) mbedtls_cipher_set_padding_mode(ctx, MBEDTLS_PADDING_NONE);
-#endif
-#endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
-
     return 0;
 }
 
@@ -1032,6 +1021,16 @@ int mbedtls_cipher_finish(mbedtls_cipher_context_t *ctx,
 #endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
     *olen = 0;
+
+#if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
+    /* CBC mode requires padding so we make sure a call to
+     * mbedtls_cipher_set_padding_mode has been done successfully. */
+    if (MBEDTLS_MODE_CBC == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
+        if (ctx->get_padding == NULL) {
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+        }
+    }
+#endif
 
     if (MBEDTLS_MODE_CFB == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
         MBEDTLS_MODE_OFB == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||

@@ -783,7 +783,7 @@ struct mbedtls_ssl_handshake_params {
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED) || \
-    defined(MBEDTLS_PK_CAN_ECDSA_SOME) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     uint16_t *curves_tls_id;      /*!<  List of TLS IDs of supported elliptic curves */
 #endif
@@ -2313,7 +2313,7 @@ static inline int mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported(
     const uint16_t sig_alg)
 {
     switch (sig_alg) {
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 #if defined(PSA_WANT_ALG_SHA_256) && defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256:
             break;
@@ -2326,7 +2326,7 @@ static inline int mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported(
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512:
             break;
 #endif /* PSA_WANT_ALG_SHA_512 && MBEDTLS_ECP_DP_SECP521R1_ENABLED */
-#endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
 #if defined(MBEDTLS_PKCS1_V21)
 #if defined(PSA_WANT_ALG_SHA_256)
@@ -2482,7 +2482,7 @@ static inline int mbedtls_ssl_tls12_sig_alg_is_supported(
             break;
 #endif
 
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
         case MBEDTLS_SSL_SIG_ECDSA:
             break;
 #endif

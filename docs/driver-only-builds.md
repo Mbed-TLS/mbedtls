@@ -3,7 +3,7 @@ cryptographic mechanisms are provided only by PSA drivers (that is, no
 built-in implementation of those algorithms), from a user's perspective.
 
 This is useful to save code size for people who are using either a hardware
-accelerator, or an alternative software implementation that's more
+accelerator, or an alternative software implementation that is more
 aggressively optimized for code size than the default one in Mbed TLS.
 
 General considerations
@@ -71,14 +71,34 @@ you're interested in driver-only support for RSA, please let us know.
 Hashes
 ------
 
-TODO
+It is possible to have all hash operations provided only by a driver.
+
+More precisely:
+- you can enable `PSA_WANT_ALG_SHA_256` without `MBEDTLS_SHA256_C`, provided
+  you have `MBEDTLS_PSA_ACCEL_ALG_SHA_256` enabled;
+- and similarly for all supported hash algorithms: `MD5`, `RIPEMD160`,
+  `SHA_1`, `SHA_224`, `SHA_256`, `SHA_384`, `SHA_512`, `SHA3_224`, `SHA3_256`,
+`SHA3_384`, `SHA3_512`.
+
+In such a build, all crypto operations (via the PSA Crypto API, or non-PSA
+APIs), as well as X.509 and TLS, will work as usual, except that direct calls
+to low-level hash APIs (`mbedtls_sha256()` etc.) are not possible for the
+modules that are disabled.
+
+You need to call `psa_crypto_init()` before any crypto operation that uses
+a hash algorithm that is provided only by a driver, as mentioned in [General
+considerations](#general-considerations) above.
+
+If you want to check at compile-time whether a certain hash algorithm is
+available in the present build of Mbed TLS, regardless of whether it's
+provided by a driver or built-in, you should use the following macros:
+- for code that uses only the PSA Crypto API: `PSA_WANT_ALG_xxx` from
+  `psa/crypto.h`;
+- for code that uses non-PSA crypto APIs: `MBEDTLS_MD_CAN_xxx` from
+  `mbedtls/md.h`.
 
 Elliptic-curve cryptography (ECC)
 ---------------------------------
-
-Note: things are still evolving. This section describes the situation right
-after #7452 has been merged. It will be updated again in #7757 when bignum is
-done.
 
 It is possible to have most ECC operations provided only by a driver:
 - the ECDH, ECDSA and EC J-PAKE algorithms;
@@ -106,6 +126,11 @@ without `MBEDTLS_ECP_C` provided the corresponding
 "Limitations regarding fully removing `ecp.c`" below), and you're not using
 RSA or FFDH, then you can also disable `MBEDTLS_BIGNUM_C` for further code
 size saving.
+
+[Coming soon] As noted in the "Limitations regarding the selection of curves"
+section below, there is an upcoming requirement for all the required curves to
+also be accelerated in the PSA driver in order to exclude the builtin algs
+support.
 
 ### Limitations regarding fully removing `ecp.c`
 
@@ -144,10 +169,34 @@ timeline, please let us know if you're interested.
 
 ### Limitations regarding the selection of curves
 
-TODO: apparently we don't really support having some curves built-in and
-others driver-only... investigate and describe the situation. See also #7899.
+There is ongoing work which is trying to establish the links and constraints
+between the list of supported curves and supported algorithms both in the
+builtin and PSA sides. In particular:
+
+- #8014 ensures that the curves supported on the PSA side (`PSA_WANT_ECC_xxx`)
+  are always a superset of the builtin ones (`MBEDTLS_ECP_DP_xxx`)
+- #8016 forces builtin alg support as soon as there is at least one builtin
+  curve. In other words, in order to exclue all builtin algs, all the required
+  curves should be supported and accelerated by the PSA driver.
 
 Finite-field Diffie-Hellman
 ---------------------------
 
-TODO
+Support is pretty similar to the "Elliptic-curve cryptography (ECC)" section
+above.
+Key management and usage can be enabled by means of the usual `PSA_WANT` +
+`MBEDTLS_PSA_ACCEL` pairs:
+
+- `[PSA_WANT|MBEDTLS_PSA_ACCEL]_KEY_TYPE_DH_PUBLIC_KEY`;
+- `[PSA_WANT|MBEDTLS_PSA_ACCEL]_KEY_TYPE_DH_KEY_PAIR_BASIC`;
+- `[PSA_WANT|MBEDTLS_PSA_ACCEL]_KEY_TYPE_DH_KEY_PAIR_IMPORT`;
+- `[PSA_WANT|MBEDTLS_PSA_ACCEL]_KEY_TYPE_DH_KEY_PAIR_EXPORT`;
+- `[PSA_WANT|MBEDTLS_PSA_ACCEL]_KEY_TYPE_DH_KEY_PAIR_GENERATE`;
+
+The same holds for the associated algorithm:
+`[PSA_WANT|MBEDTLS_PSA_ACCEL]_ALG_FFDH` allow builds accelerating FFDH and
+removing builtin support (i.e. `MBEDTLS_DHM_C`).
+
+### Limitations
+Support for deterministic derivation of a DH keypair
+(i.e. `PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_DERIVE`) is not supported.

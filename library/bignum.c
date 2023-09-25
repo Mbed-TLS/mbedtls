@@ -72,7 +72,7 @@ int mbedtls_mpi_lt_mpi_ct(const mbedtls_mpi *X,
     }
 
     /*
-     * Set sign_N to 1 if N >= 0, 0 if N < 0.
+     * Set N_is_negative to MBEDTLS_CT_FALSE if N >= 0, MBEDTLS_CT_TRUE if N < 0.
      * We know that N->s == 1 if N >= 0 and N->s == -1 if N < 0.
      */
     X_is_negative = mbedtls_ct_bool((X->s & 2) >> 1);

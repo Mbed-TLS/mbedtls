@@ -1635,13 +1635,18 @@ run_test() {
         requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
     fi
 
-    # If the client or server requires certain features that can be detected
-    # from their command-line arguments, check that they're enabled.
-    TLS_VERSION=$(get_tls_version "$SRV_CMD" "$CLI_CMD")
-
     # Check if we are trying to use an external tool wich does not support ECDH
     EXT_WO_ECDH=$(use_ext_tool_without_ecdh_support "$SRV_CMD" "$CLI_CMD")
 
+    # Guess the TLS version which is going to be used
+    if [ "$EXT_WO_ECDH" = "no" ]; then
+        TLS_VERSION=$(get_tls_version "$SRV_CMD" "$CLI_CMD")
+    else
+        TLS_VERSION="TLS12"
+    fi
+
+    # If the client or server requires certain features that can be detected
+    # from their command-line arguments, check whether they're enabled.
     detect_required_features "$SRV_CMD" "server" "$TLS_VERSION" "$EXT_WO_ECDH" "$@"
     detect_required_features "$CLI_CMD" "client" "$TLS_VERSION" "$EXT_WO_ECDH" "$@"
 

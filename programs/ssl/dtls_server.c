@@ -331,7 +331,6 @@ reset:
 
             case MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY:
                 printf(" connection was closed gracefully\n");
-                ret = 0;
                 goto close_notify;
 
             default:

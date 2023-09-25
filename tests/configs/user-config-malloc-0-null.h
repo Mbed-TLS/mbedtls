@@ -1,4 +1,4 @@
-/* mbedtls_config.h wrapper that forces calloc(0) to return NULL.
+/* mbedtls_config.h modifier that forces calloc(0) to return NULL.
  * Used for testing.
  */
 /*
@@ -17,8 +17,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-#include "mbedtls/mbedtls_config.h"
 
 #include <stdlib.h>
 

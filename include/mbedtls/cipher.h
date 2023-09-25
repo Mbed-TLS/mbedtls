@@ -476,6 +476,10 @@ void mbedtls_cipher_free(mbedtls_cipher_context_t *ctx);
  *                      parameter-verification failure.
  * \return              #MBEDTLS_ERR_CIPHER_ALLOC_FAILED if allocation of the
  *                      cipher-specific context fails.
+ *
+ * \internal Currently, the function also clears the structure.
+ * In future versions, the caller will be required to call
+ * mbedtls_cipher_init() on the structure first.
  */
 int mbedtls_cipher_setup(mbedtls_cipher_context_t *ctx,
                          const mbedtls_cipher_info_t *cipher_info);

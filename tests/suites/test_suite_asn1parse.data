@@ -514,13 +514,13 @@ traverse_sequence_of:"300705000203123456":0:0:0xff:0x02:"6,0x02,3":0
 Traverse SEQUENCE of INTEGER, skip everything
 traverse_sequence_of:"30080203123456020178":0xff:0x02:0:1:"":0
 
-Traverse SEQUENCE of NULL, OCTET STRING, skip NULL: OS, NULL
+Traverse SEQUENCE of {NULL, OCTET STRING}, skip NULL: OS, NULL
 traverse_sequence_of:"300704031234560500":0xfe:0x04:0xff:0x04:"4,0x04,3":0
 
-Traverse SEQUENCE of NULL, OCTET STRING, skip NULL: NULL, OS
+Traverse SEQUENCE of {NULL, OCTET STRING}, skip NULL: NULL, OS
 traverse_sequence_of:"300705000403123456":0xfe:0x04:0xff:0x04:"6,0x04,3":0
 
-Traverse SEQUENCE of NULL, OCTET STRING, skip everything
+Traverse SEQUENCE of {NULL, OCTET STRING}, skip everything
 traverse_sequence_of:"300705000403123456":0xfe:0x04:0:1:"":0
 
 Traverse SEQUENCE of INTEGER, stop at 0: NULL

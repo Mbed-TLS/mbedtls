@@ -530,6 +530,8 @@ TASKS = {
             'ignored_suites': [
                 # Ignore test suites for the modules that are disabled in the
                 # accelerated test case.
+                'asn1parse',
+                'asn1write',
                 'ecp',
                 'ecdsa',
                 'ecdh',
@@ -592,28 +594,6 @@ TASKS = {
                 ],
                 'test_suite_psa_crypto_pake': [
                     'PSA PAKE: ecjpake size macros',
-                ],
-                'test_suite_asn1parse': [
-                    # This test depends on BIGNUM_C
-                    'INTEGER too large for mpi',
-                ],
-                'test_suite_asn1write': [
-                    # Following tests depends on BIGNUM_C
-                    'ASN.1 Write mpi 0 (1 limb)',
-                    'ASN.1 Write mpi 0 (null)',
-                    'ASN.1 Write mpi 0x100',
-                    'ASN.1 Write mpi 0x7f',
-                    'ASN.1 Write mpi 0x7f with leading 0 limb',
-                    'ASN.1 Write mpi 0x80',
-                    'ASN.1 Write mpi 0x80 with leading 0 limb',
-                    'ASN.1 Write mpi 0xff',
-                    'ASN.1 Write mpi 1',
-                    'ASN.1 Write mpi, 127*8 bits',
-                    'ASN.1 Write mpi, 127*8+1 bits',
-                    'ASN.1 Write mpi, 127*8-1 bits',
-                    'ASN.1 Write mpi, 255*8 bits',
-                    'ASN.1 Write mpi, 255*8-1 bits',
-                    'ASN.1 Write mpi, 256*8-1 bits',
                 ],
             }
         }

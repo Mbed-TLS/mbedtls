@@ -2520,6 +2520,71 @@ component_test_psa_crypto_config_accel_pake() {
     make test
 }
 
+component_test_psa_crypto_config_accel_ecc_some_key_types () {
+    msg "build: full with accelerated EC algs and some key types"
+
+    # Algorithms and key types to accelerate
+    # For key types, use an explicitly list to omit GENERATE (and DERIVE)
+    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
+                    ALG_ECDH \
+                    ALG_JPAKE \
+                    KEY_TYPE_ECC_PUBLIC_KEY \
+                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
+                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_EXPORT"
+
+    # Note: Curves are handled in a special way by the libtestdriver machinery,
+    # so we only want to include them in the accel list when building the main
+    # libraries, hence the use of a separate variable.
+    loc_curve_list="$(helper_get_psa_curve_list)"
+
+    # Configure
+    # ---------
+
+    # start with config full for maximum coverage (also enables USE_PSA)
+    helper_libtestdriver1_adjust_config "full"
+
+    # Disable modules that are accelerated - some will be re-enabled
+    scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_ECDH_C
+    scripts/config.py unset MBEDTLS_ECJPAKE_C
+    scripts/config.py unset MBEDTLS_ECP_C
+
+    # Disable all curves - those that aren't accelerated should be re-enabled
+    helper_disable_builtin_curves
+
+    # Restartable feature is not yet supported by PSA. Once it will in
+    # the future, the following line could be removed (see issues
+    # 6061, 6332 and following ones)
+    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+
+    # this is not supported by the driver API yet
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
+
+    # Build
+    # -----
+
+    # These hashes are needed for some ECDSA signature tests.
+    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
+    helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
+
+    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+
+    # ECP should be re-enabled but not the others
+    not grep mbedtls_ecdh_ library/ecdh.o
+    not grep mbedtls_ecdsa library/ecdsa.o
+    not grep mbedtls_ecjpake  library/ecjpake.o
+    grep mbedtls_ecp library/ecp.o
+
+    # Run the tests
+    # -------------
+
+    msg "test suites: full with accelerated EC algs and some key types"
+    make test
+}
+
+
 # Run tests with only (non-)Weierstrass accelerated
 # Common code used in:
 # - component_test_psa_crypto_config_accel_ecc_weirstrass_curves

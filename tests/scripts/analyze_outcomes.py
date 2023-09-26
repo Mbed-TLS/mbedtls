@@ -60,13 +60,13 @@ def execute_reference_driver_tests(ref_component, driver_component, outcome_file
     # If the outcome file already exists, we assume that the user wants to
     # perform the comparison analysis again without repeating the tests.
     if os.path.exists(outcome_file):
-        Results.log("Outcome file (" + outcome_file + ") already exists. " + \
-                    "Tests will be skipped.")
+        Results.log("Outcome file {} already exists. Tests will be skipped.",
+                    outcome_file)
         return
 
     shell_command = "tests/scripts/all.sh --outcome-file " + outcome_file + \
                     " " + ref_component + " " + driver_component
-    Results.log("Running: " + shell_command)
+    Results.log("Running: {}", shell_command)
     ret_val = subprocess.run(shell_command.split(), check=False).returncode
 
     if ret_val != 0:
@@ -101,6 +101,7 @@ def analyze_driver_vs_reference(outcomes, component_ref, component_driver,
     """
     available = check_test_cases.collect_available_test_cases()
     result = True
+    escape_curly_brace = lambda x: x.replace('{', '{{').replace('}', '}}')
 
     for key in available:
         # Continue if test was not executed by any component
@@ -125,7 +126,7 @@ def analyze_driver_vs_reference(outcomes, component_ref, component_driver,
             if component_ref in entry:
                 reference_test_passed = True
         if(reference_test_passed and not driver_test_passed):
-            Results.log(key)
+            Results.log(escape_curly_brace(key))
             result = False
     return result
 
@@ -172,8 +173,8 @@ def do_analyze_driver_vs_reference(outcome_file, args):
     ignored_suites = ['test_suite_' + x for x in args['ignored_suites']]
 
     outcomes = read_outcome_file(outcome_file)
-    Results.log("\n*** Analyze driver {} vs reference {} ***\n".format(
-        args['component_driver'], args['component_ref']))
+    Results.log("\n*** Analyze driver {} vs reference {} ***\n",
+                args['component_driver'], args['component_ref'])
     return analyze_driver_vs_reference(outcomes, args['component_ref'],
                                        args['component_driver'], ignored_suites,
                                        args['ignored_tests'])
@@ -652,7 +653,7 @@ def main():
 
             for task in tasks:
                 if task not in TASKS:
-                    Results.log('Error: invalid task: {}'.format(task))
+                    Results.log('Error: invalid task: {}', task)
                     sys.exit(1)
 
         TASKS['analyze_coverage']['args']['full_coverage'] = \

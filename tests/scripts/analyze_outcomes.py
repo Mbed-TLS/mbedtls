@@ -101,7 +101,6 @@ def analyze_driver_vs_reference(outcomes, component_ref, component_driver,
     """
     available = check_test_cases.collect_available_test_cases()
     result = True
-    escape_curly_brace = lambda x: x.replace('{', '{{').replace('}', '}}')
 
     for key in available:
         # Continue if test was not executed by any component
@@ -126,7 +125,7 @@ def analyze_driver_vs_reference(outcomes, component_ref, component_driver,
             if component_ref in entry:
                 reference_test_passed = True
         if(reference_test_passed and not driver_test_passed):
-            Results.log(escape_curly_brace(key))
+            Results.log('{}', key)
             result = False
     return result
 
@@ -621,7 +620,7 @@ def main():
 
         if options.list:
             for task in TASKS:
-                Results.log(task)
+                Results.log('{}', task)
             sys.exit(0)
 
         result = True

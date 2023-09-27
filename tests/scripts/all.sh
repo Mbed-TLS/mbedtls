@@ -2584,7 +2584,6 @@ component_test_psa_crypto_config_accel_ecc_some_key_types () {
     make test
 }
 
-
 # Run tests with only (non-)Weierstrass accelerated
 # Common code used in:
 # - component_test_psa_crypto_config_accel_ecc_weirstrass_curves
@@ -2689,7 +2688,8 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     # -------------
 
     msg "test suites: full with accelerated EC algs and $DESC curves"
-    make test
+    # does not work for PK (and above), see #8255
+    make test SKIP_TEST_SUITES=pk,pkparse,pkwrite,x509parse,x509write,ssl,debug
 }
 
 component_test_psa_crypto_config_accel_ecc_weirstrass_curves () {

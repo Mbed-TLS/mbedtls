@@ -179,6 +179,30 @@ builtin and PSA sides. In particular:
   curve. In other words, in order to exclue all builtin algs, all the required
   curves should be supported and accelerated by the PSA driver.
 
+### Limitations regarding "mixed" builds (driver and built-in)
+
+In order for a build to be driver-only (no built-in implementation), all the
+requested algorithms, key types (key operations) and curves must be
+accelerated (plus a few other restrictions, see "Limitations regarding fully
+removing `ecp.c`" above). However, what if you have an accelerator that only
+supports some algorithms, some key types (key operations), or some curves, but
+want to have more enabled in you build?
+
+It is possible to have acceleration for only a subset of the requested
+algorithms. In this case, the built-in implementation of the accelerated
+algorithms will be disabled, provided all the requested curves and key types
+that can be used with this algorithm are also declared as accelerated.
+
+There is very limited support for having acceleration for only a subset of the
+requested key type operations. The only configuration that's tested is that of
+a driver accelerating `PUBLIC_KEY`, `KEY_PAIR_BASIC`, `KEY_PAIR_IMPORT`,
+`KEY_PAIR_EXPORT` but not `KEY_PAIR_GENERATE`. (Note: currently the driver
+interface does not support `KEY_PAIR_DERIVE`.)
+
+There is limited support for having acceleration for only a subset of the
+requested curves. In such builds, only the PSA API is currently tested and
+working; there are known issues in PK, and X.509 and TLS are untested.
+
 Finite-field Diffie-Hellman
 ---------------------------
 

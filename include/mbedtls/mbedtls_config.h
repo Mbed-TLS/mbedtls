@@ -1410,6 +1410,13 @@
  * NSPE (Non-Secure Process Environment) and an SPE (Secure Process
  * Environment).
  *
+ * If you enable this option, your build environment must include a header
+ * file `"crypto_spe.h"` (either in the `psa` subdirectory of the Mbed TLS
+ * header files, or in another directory on the compiler's include search
+ * path). Alternatively, your platform may customize the header
+ * `psa/crypto_platform.h`, in which case it can skip or replace the
+ * inclusion of `"crypto_spe.h"`.
+ *
  * Module:  library/psa_crypto.c
  * Requires: MBEDTLS_PSA_CRYPTO_C
  *

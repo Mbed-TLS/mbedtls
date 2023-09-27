@@ -135,6 +135,47 @@
 #define MBEDTLS_PK_PARSE_C
 #endif
 
+/* Helpers to state that each key is supported either on the builtin or PSA side. */
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_521)
+#define MBEDTLS_ECP_HAVE_SECP521R1
+#endif
+#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
+#define MBEDTLS_ECP_HAVE_BP512R1
+#endif
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) || defined(PSA_WANT_ECC_MONTGOMERY_448)
+#define MBEDTLS_ECP_HAVE_CURVE448
+#endif
+#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
+#define MBEDTLS_ECP_HAVE_BP384R1
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_384)
+#define MBEDTLS_ECP_HAVE_SECP384R1
+#endif
+#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
+#define MBEDTLS_ECP_HAVE_BP256R1
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_256)
+#define MBEDTLS_ECP_HAVE_SECP256K1
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_256)
+#define MBEDTLS_ECP_HAVE_SECP256R1
+#endif
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || defined(PSA_WANT_ECC_MONTGOMERY_255)
+#define MBEDTLS_ECP_HAVE_CURVE25519
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_224)
+#define MBEDTLS_ECP_HAVE_SECP224K1
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_224)
+#define MBEDTLS_ECP_HAVE_SECP224R1
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_192)
+#define MBEDTLS_ECP_HAVE_SECP192K1
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_192)
+#define MBEDTLS_ECP_HAVE_SECP192R1
+#endif
+
 /* Helper symbol to state that the PK module has support for EC keys. This
  * can either be provided through the legacy ECP solution or through the
  * PSA friendly MBEDTLS_PK_USE_PSA_EC_DATA (see pk.h for its description). */

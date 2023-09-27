@@ -903,6 +903,47 @@ helper_libtestdriver1_adjust_config() {
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
 }
 
+# When called with no parameter this function disables all builtin curves.
+# The function optionally accepts 1 parameter: a space-separated list of the
+# curves that should be kept enabled.
+helper_disable_builtin_curves() {
+    allowed_list="${1:-}"
+    scripts/config.py unset-all "MBEDTLS_ECP_DP_[0-9A-Z_a-z]*_ENABLED"
+
+    for CURVE in $allowed_list; do
+        scripts/config.py set $CURVE
+    done
+}
+
+# Helper returning the list of supported elliptic curves from CRYPTO_CONFIG_H,
+# without the "PSA_WANT_" prefix. This becomes handy for accelerating curves
+# in the following helpers.
+helper_get_psa_curve_list () {
+    loc_list=""
+    for ITEM in $(sed -n 's/^#define PSA_WANT_\(ECC_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
+        loc_list="$loc_list $ITEM"
+    done
+
+    echo "$loc_list"
+}
+
+# Get the list of uncommented PSA_WANT_KEY_TYPE_xxx_ from CRYPTO_CONFIG_H. This
+# is useful to easily get a list of key type symbols to accelerate.
+# The function accepts a single argument which is the key type: ECC, DH, RSA.
+helper_get_psa_key_type_list() {
+    KEY_TYPE="$1"
+    loc_list=""
+    for ITEM in $(sed -n "s/^#define PSA_WANT_\(KEY_TYPE_${KEY_TYPE}_[0-9A-Z_a-z]*\).*/\1/p" <"$CRYPTO_CONFIG_H"); do
+        # Skip DERIVE for elliptic keys since there is no driver dispatch for
+        # it so it cannot be accelerated.
+        if [ "$ITEM" != "KEY_TYPE_ECC_KEY_PAIR_DERIVE" ]; then
+            loc_list="$loc_list $ITEM"
+        fi
+    done
+
+    echo "$loc_list"
+}
+
 # Build the drivers library libtestdriver1.a (with ASan).
 #
 # Parameters:
@@ -2297,11 +2338,12 @@ component_test_psa_crypto_config_accel_ecdsa () {
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
-                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
-                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
-                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
-                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
-                    KEY_TYPE_ECC_PUBLIC_KEY"
+                    $(helper_get_psa_key_type_list "ECC")"
+
+    # Note: Those are handled in a special way by the libtestdriver machinery,
+    # so we only want to include them in the accel list when building the main
+    # libraries, hence the use of a separate variable.
+    loc_curve_list="$(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
@@ -2326,7 +2368,7 @@ component_test_psa_crypto_config_accel_ecdsa () {
 
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list"
+    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
 
     # Make sure this was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
@@ -2343,11 +2385,12 @@ component_test_psa_crypto_config_accel_ecdh () {
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDH \
-                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
-                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
-                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
-                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
-                    KEY_TYPE_ECC_PUBLIC_KEY"
+                    $(helper_get_psa_key_type_list "ECC")"
+
+    # Note: Those are handled in a special way by the libtestdriver machinery,
+    # so we only want to include them in the accel list when building the main
+    # libraries, hence the use of a separate variable.
+    loc_curve_list="$(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
@@ -2370,7 +2413,7 @@ component_test_psa_crypto_config_accel_ecdh () {
 
     helper_libtestdriver1_make_drivers "$loc_accel_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list"
+    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
 
     # Make sure this was not re-enabled by accident (additive config)
     not grep mbedtls_ecdh_ library/ecdh.o
@@ -2387,11 +2430,7 @@ component_test_psa_crypto_config_accel_ffdh () {
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_FFDH \
-                    KEY_TYPE_DH_KEY_PAIR_BASIC \
-                    KEY_TYPE_DH_KEY_PAIR_IMPORT \
-                    KEY_TYPE_DH_KEY_PAIR_EXPORT \
-                    KEY_TYPE_DH_KEY_PAIR_GENERATE \
-                    KEY_TYPE_DH_PUBLIC_KEY"
+                    $(helper_get_psa_key_type_list "DH")"
 
     # Configure
     # ---------
@@ -2447,7 +2486,13 @@ component_test_psa_crypto_config_reference_ffdh () {
 component_test_psa_crypto_config_accel_pake() {
     msg "build: full with accelerated PAKE"
 
-    loc_accel_list="ALG_JPAKE"
+    loc_accel_list="ALG_JPAKE \
+                    $(helper_get_psa_key_type_list "ECC")"
+
+    # Note: Those are handled in a special way by the libtestdriver machinery,
+    # so we only want to include them in the accel list when building the main
+    # libraries, hence the use of a separate variable.
+    loc_curve_list="$(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
@@ -2463,7 +2508,7 @@ component_test_psa_crypto_config_accel_pake() {
 
     helper_libtestdriver1_make_drivers "$loc_accel_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list"
+    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
 
     # Make sure this was not re-enabled by accident (additive config)
     not grep mbedtls_ecjpake_init library/ecjpake.o
@@ -2473,6 +2518,186 @@ component_test_psa_crypto_config_accel_pake() {
 
     msg "test: full with accelerated PAKE"
     make test
+}
+
+component_test_psa_crypto_config_accel_ecc_some_key_types () {
+    msg "build: full with accelerated EC algs and some key types"
+
+    # Algorithms and key types to accelerate
+    # For key types, use an explicitly list to omit GENERATE (and DERIVE)
+    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
+                    ALG_ECDH \
+                    ALG_JPAKE \
+                    KEY_TYPE_ECC_PUBLIC_KEY \
+                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
+                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_EXPORT"
+
+    # Note: Curves are handled in a special way by the libtestdriver machinery,
+    # so we only want to include them in the accel list when building the main
+    # libraries, hence the use of a separate variable.
+    loc_curve_list="$(helper_get_psa_curve_list)"
+
+    # Configure
+    # ---------
+
+    # start with config full for maximum coverage (also enables USE_PSA)
+    helper_libtestdriver1_adjust_config "full"
+
+    # Disable modules that are accelerated - some will be re-enabled
+    scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_ECDH_C
+    scripts/config.py unset MBEDTLS_ECJPAKE_C
+    scripts/config.py unset MBEDTLS_ECP_C
+
+    # Disable all curves - those that aren't accelerated should be re-enabled
+    helper_disable_builtin_curves
+
+    # Restartable feature is not yet supported by PSA. Once it will in
+    # the future, the following line could be removed (see issues
+    # 6061, 6332 and following ones)
+    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+
+    # this is not supported by the driver API yet
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
+
+    # Build
+    # -----
+
+    # These hashes are needed for some ECDSA signature tests.
+    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
+    helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
+
+    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+
+    # ECP should be re-enabled but not the others
+    not grep mbedtls_ecdh_ library/ecdh.o
+    not grep mbedtls_ecdsa library/ecdsa.o
+    not grep mbedtls_ecjpake  library/ecjpake.o
+    grep mbedtls_ecp library/ecp.o
+
+    # Run the tests
+    # -------------
+
+    msg "test suites: full with accelerated EC algs and some key types"
+    make test
+}
+
+# Run tests with only (non-)Weierstrass accelerated
+# Common code used in:
+# - component_test_psa_crypto_config_accel_ecc_weirstrass_curves
+# - component_test_psa_crypto_config_accel_ecc_non_weirstrass_curves
+common_test_psa_crypto_config_accel_ecc_some_curves () {
+    WEIERSTRASS=$1
+    if [ $WEIERSTRASS -eq 1 ]; then
+        DESC="Weierstrass"
+    else
+        DESC="non-Weierstrass"
+    fi
+
+    msg "build: full with accelerated EC algs and $DESC curves"
+
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
+                    ALG_ECDH \
+                    ALG_JPAKE \
+                    $(helper_get_psa_key_type_list "ECC")"
+
+    # Note: Curves are handled in a special way by the libtestdriver machinery,
+    # so we only want to include them in the accel list when building the main
+    # libraries, hence the use of a separate variable.
+    # Note: the following loop is a modified version of
+    # helper_get_psa_curve_list that only keeps Weierstrass families.
+    loc_weierstrass_list=""
+    loc_non_weierstrass_list=""
+    for ITEM in $(sed -n 's/^#define PSA_WANT_\(ECC_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
+        case $ITEM in
+            ECC_BRAINPOOL*|ECC_SECP*)
+                loc_weierstrass_list="$loc_weierstrass_list $ITEM"
+                ;;
+            *)
+                loc_non_weierstrass_list="$loc_non_weierstrass_list $ITEM"
+                ;;
+        esac
+    done
+    if [ $WEIERSTRASS -eq 1 ]; then
+        loc_curve_list=$loc_weierstrass_list
+    else
+        loc_curve_list=$loc_non_weierstrass_list
+    fi
+
+    # Configure
+    # ---------
+
+    # start with config full for maximum coverage (also enables USE_PSA)
+    helper_libtestdriver1_adjust_config "full"
+
+    # Disable modules that are accelerated - some will be re-enabled
+    scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_ECDH_C
+    scripts/config.py unset MBEDTLS_ECJPAKE_C
+    scripts/config.py unset MBEDTLS_ECP_C
+
+    # Disable all curves - those that aren't accelerated should be re-enabled
+    helper_disable_builtin_curves
+
+    # Restartable feature is not yet supported by PSA. Once it will in
+    # the future, the following line could be removed (see issues
+    # 6061, 6332 and following ones)
+    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+
+    # this is not supported by the driver API yet
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
+
+    # Build
+    # -----
+
+    # These hashes are needed for some ECDSA signature tests.
+    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
+    helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
+
+    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+
+    # We expect ECDH to be re-enabled for the missing curves
+    grep mbedtls_ecdh_ library/ecdh.o
+    # We expect ECP to be re-enabled, however the parts specific to the
+    # families of curves that are accelerated should be ommited.
+    # - functions with mxz in the name are specific to Montgomery curves
+    # - ecp_muladd is specific to Weierstrass curves
+    ##nm library/ecp.o | tee ecp.syms
+    if [ $WEIERSTRASS -eq 1 ]; then
+        not grep mbedtls_ecp_muladd library/ecp.o
+        grep mxz library/ecp.o
+    else
+        grep mbedtls_ecp_muladd library/ecp.o
+        not grep mxz library/ecp.o
+    fi
+    # We expect ECDSA and ECJPAKE to be re-enabled only when
+    # Weierstrass curves are not accelerated
+    if [ $WEIERSTRASS -eq 1 ]; then
+        not grep mbedtls_ecdsa library/ecdsa.o
+        not grep mbedtls_ecjpake  library/ecjpake.o
+    else
+        grep mbedtls_ecdsa library/ecdsa.o
+        grep mbedtls_ecjpake  library/ecjpake.o
+    fi
+
+    # Run the tests
+    # -------------
+
+    msg "test suites: full with accelerated EC algs and $DESC curves"
+    # does not work for PK (and above), see #8255
+    make test SKIP_TEST_SUITES=pk,pkparse,pkwrite,x509parse,x509write,ssl,debug
+}
+
+component_test_psa_crypto_config_accel_ecc_weirstrass_curves () {
+    common_test_psa_crypto_config_accel_ecc_some_curves 1
+}
+
+component_test_psa_crypto_config_accel_ecc_non_weirstrass_curves () {
+    common_test_psa_crypto_config_accel_ecc_some_curves 0
 }
 
 # Auxiliary function to build config for all EC based algorithms (EC-JPAKE,
@@ -2512,17 +2737,22 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
                     ALG_JPAKE \
-                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
-                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
-                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
-                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
-                    KEY_TYPE_ECC_PUBLIC_KEY"
+                    $(helper_get_psa_key_type_list "ECC")"
+
+    # Note: Those are handled in a special way by the libtestdriver machinery,
+    # so we only want to include them in the accel list when building the main
+    # libraries, hence the use of a separate variable.
+    loc_curve_list="$(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
 
     # Use the same config as reference, only without built-in EC algs
     config_psa_crypto_config_ecp_light_only 1
+
+    # Do not disable builtin curves because that support is required for:
+    # - MBEDTLS_PK_PARSE_EC_EXTENDED
+    # - MBEDTLS_PK_PARSE_EC_COMPRESSED
 
     # Build
     # -----
@@ -2532,7 +2762,7 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
                     ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list"
+    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
@@ -2615,17 +2845,20 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
                     ALG_JPAKE \
-                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
-                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
-                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
-                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
-                    KEY_TYPE_ECC_PUBLIC_KEY"
+                    $(helper_get_psa_key_type_list "ECC")"
+
+    # Note: Those are handled in a special way by the libtestdriver machinery,
+    # so we only want to include them in the accel list when building the main
+    # libraries, hence the use of a separate variable.
+    loc_curve_list="$(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
 
     # Set common configurations between library's and driver's builds
     config_psa_crypto_no_ecp_at_all 1
+    # Disable all the builtin curves. All the required algs are accelerated.
+    helper_disable_builtin_curves
 
     # Build
     # -----
@@ -2637,13 +2870,13 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
 
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list"
+    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
     not grep mbedtls_ecdh_ library/ecdh.o
     not grep mbedtls_ecjpake_ library/ecjpake.o
-    # Also ensure that ECP or RSA modules were not re-enabled
+    # Also ensure that ECP module was not re-enabled
     not grep mbedtls_ecp_ library/ecp.o
 
     # Run the tests
@@ -2783,27 +3016,26 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
                     ALG_JPAKE \
-                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
-                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
-                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
-                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
-                    KEY_TYPE_ECC_PUBLIC_KEY"
+                    $(helper_get_psa_key_type_list "ECC")"
     # Optionally we can also add DH to the list of accelerated items
     if [ "$TEST_TARGET" = "ECC_DH" ]; then
         loc_accel_list="$loc_accel_list \
                         ALG_FFDH \
-                        KEY_TYPE_DH_KEY_PAIR_BASIC \
-                        KEY_TYPE_DH_KEY_PAIR_IMPORT \
-                        KEY_TYPE_DH_KEY_PAIR_EXPORT \
-                        KEY_TYPE_DH_KEY_PAIR_GENERATE \
-                        KEY_TYPE_DH_PUBLIC_KEY"
+                        $(helper_get_psa_key_type_list "DH")"
     fi
+
+    # Note: Those are handled in a special way by the libtestdriver machinery,
+    # so we only want to include them in the accel list when building the main
+    # libraries, hence the use of a separate variable.
+    loc_curve_list="$(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
 
     # Set common configurations between library's and driver's builds
     config_psa_crypto_config_accel_ecc_ffdh_no_bignum 1 "$TEST_TARGET"
+    # Disable all the builtin curves. All the required algs are accelerated.
+    helper_disable_builtin_curves
 
     # Build
     # -----
@@ -2815,7 +3047,7 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
 
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list"
+    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
@@ -2949,6 +3181,7 @@ component_test_tfm_config_p256m_driver_accel_ec () {
     # builtin support.
     loc_accel_list="ALG_ECDSA \
                     ALG_ECDH \
+                    ECC_SECP_R1_256 \
                     KEY_TYPE_ECC_KEY_PAIR_BASIC \
                     KEY_TYPE_ECC_KEY_PAIR_IMPORT \
                     KEY_TYPE_ECC_KEY_PAIR_EXPORT \
@@ -2958,6 +3191,7 @@ component_test_tfm_config_p256m_driver_accel_ec () {
 
     # Build crypto library specifying we want to use P256M code for EC operations
     make CFLAGS="$ASAN_CFLAGS $loc_accel_flags -DMBEDTLS_PSA_P256M_DRIVER_ENABLED" LDFLAGS="$ASAN_CFLAGS"
+
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
@@ -2985,116 +3219,6 @@ component_test_tfm_config() {
 
     msg "test: TF-M config"
     make test
-}
-
-# Helper function used in:
-# - component_test_psa_crypto_config_accel_all_curves_except_p192
-# - component_test_psa_crypto_config_accel_all_curves_except_x25519
-# to build and test with all accelerated curves a part from the specified one.
-psa_crypto_config_accel_all_curves_except_one () {
-    BUILTIN_CURVE=$1
-
-    msg "build: full + all accelerated EC algs (excl $BUILTIN_CURVE)"
-
-    # Accelerate all EC algs (all EC curves are automatically accelerated as
-    # well in the built-in version due to the "PSA_WANT_xxx" symbols in
-    # "crypto_config.h")
-    loc_accel_list="ALG_ECDH \
-                    ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
-                    ALG_JPAKE \
-                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
-                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
-                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
-                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
-                    KEY_TYPE_ECC_PUBLIC_KEY"
-
-    # Configure
-    # ---------
-
-    helper_libtestdriver1_adjust_config "full"
-
-    # restartable is not yet supported in PSA
-    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
-
-    # disable modules for which we have drivers
-    scripts/config.py unset MBEDTLS_ECDSA_C
-    scripts/config.py unset MBEDTLS_ECDH_C
-    scripts/config.py unset MBEDTLS_ECJPAKE_C
-
-    # Ensure also RSA and asssociated algs are disabled so that the size of
-    # the public/private keys cannot be taken from there
-    scripts/config.py unset MBEDTLS_RSA_C
-    scripts/config.py unset MBEDTLS_PKCS1_V15
-    scripts/config.py unset MBEDTLS_PKCS1_V21
-    scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
-    # Disable RSA on the PSA side too
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_KEY_TYPE_RSA_[0-9A-Z_a-z]*"
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*"
-    # Also disable key exchanges that depend on RSA
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-
-    # Explicitly disable all SW implementation for elliptic curves
-    scripts/config.py unset-all "MBEDTLS_ECP_DP_[0-9A-Z_a-z]*_ENABLED"
-    # Just leave SW implementation for the specified curve for allowing to
-    # build with ECP_C.
-    scripts/config.py set $BUILTIN_CURVE
-    # Accelerate all curves listed in "crypto_config.h" (skipping the ones that
-    # are commented out).
-    # Note: Those are handled in a special way by the libtestdriver machinery,
-    # so we only want to include them in the accel list when building the main
-    # libraries, hence the use of a separate variable.
-    loc_curve_list=""
-    for CURVE in $(sed -n 's/^#define PSA_WANT_\(ECC_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
-        loc_curve_list="$loc_curve_list $CURVE"
-    done
-
-    # Build
-    # -----
-
-    # These hashes are needed for some ECDSA signature tests.
-    loc_extra_list="ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
-                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
-    helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
-
-    # (See above regarding loc_curve_list.)
-    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
-
-    # make sure excluded modules were not auto-re-enabled by accident
-    not grep mbedtls_ecdh_ library/ecdh.o
-    not grep mbedtls_ecdsa_ library/ecdsa.o
-    not grep mbedtls_ecjpake_ library/ecjpake.o
-    if [ $BUILTIN_CURVE == "MBEDTLS_ECP_DP_SECP192R1_ENABLED" ]; then
-        # The only built-in curve is Short Weierstrass, so ECP shouldn't have
-        # support for Montgomery curves. Functions with mxz in their name
-        # are specific to Montgomery curves.
-        not grep mxz library/ecp.o
-    elif [ $BUILTIN_CURVE == "MBEDTLS_ECP_DP_CURVE25519_ENABLED" ]; then
-        # The only built-in curve is Montgomery, so ECP shouldn't have
-        # support for Short Weierstrass curves. Functions with mbedtls_ecp_muladd
-        # in their name are specific to Short Weierstrass curves.
-        not grep mbedtls_ecp_muladd library/ecp.o
-    else
-        err_msg "Error: $BUILTIN_CURVE is not supported in psa_crypto_config_accel_all_curves_except_one()"
-        exit 1
-    fi
-
-    # Run the tests
-    # -------------
-
-    msg "test: full + all accelerated EC algs (excl $BUILTIN_CURVE)"
-    make test
-}
-
-component_test_psa_crypto_config_accel_all_curves_except_p192 () {
-    psa_crypto_config_accel_all_curves_except_one MBEDTLS_ECP_DP_SECP192R1_ENABLED
-}
-
-component_test_psa_crypto_config_accel_all_curves_except_x25519 () {
-    psa_crypto_config_accel_all_curves_except_one MBEDTLS_ECP_DP_CURVE25519_ENABLED
 }
 
 # Common helper for component_full_without_ecdhe_ecdsa() and
@@ -3585,12 +3709,7 @@ component_build_psa_accel_key_type_ecc_key_pair() {
     scripts/config.py full
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC 1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT 1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT 1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE 1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE 1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY 1
+    scripts/config.py -f "$CRYPTO_CONFIG_H" set-all "PSA_WANT_KEY_TYPE_ECC_[0-9A-Z_a-z]*"
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 }

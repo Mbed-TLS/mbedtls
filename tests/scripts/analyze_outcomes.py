@@ -263,6 +263,14 @@ TASKS = {
                     'ECP test vectors secp384r1 rfc 5114',
                     'ECP test vectors secp521r1 rfc 5114',
                 ],
+                'test_suite_psa_crypto': [
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1 (1 redraw)',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1, exercise ECDSA',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp384r1',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp521r1 #0',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp521r1 #1',
+                ],
             }
         }
     },

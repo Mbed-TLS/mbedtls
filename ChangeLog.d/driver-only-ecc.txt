@@ -8,3 +8,14 @@ Features
    * When all of ECDH, ECDSA and EC J-PAKE are either disabled or provided by
      a driver, it is possible to disable MBEDTLS_ECP_C and still get support
      for ECC keys and algorithms in PSA. See docs/driver-only-builds.txt.
+API changes
+   * Mbed TLS 3.4 introduced support for omitting the built-in implementation
+     of ECDSA and/or EC J-PAKE when those are provided by a driver. However,
+     their was a flaw in the logic checking if the built-in implementation, in
+     that if failed to check if all the relevant curves were supported by the
+     accelerator. As a result, it was possible to declare no curves as
+     accelerated and still have the built-in implementation compiled out.
+     Starting with this release, it is necessary to declare which curves are
+     accelerated (using MBEDTLS_PSA_ACCEL_ECC_xxx macros), or they will be
+     considered not accelerated, and the built-in implementation of the curves
+     and any algorithm possible using them will be included in the build.

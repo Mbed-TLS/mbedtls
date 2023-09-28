@@ -472,7 +472,7 @@ static inline psa_status_t psa_driver_wrapper_verify_hash(
     }
 }
 
-static inline int psa_driver_wrapper_sign_hash_get_num_ops(
+static inline psa_status_t psa_driver_wrapper_sign_hash_get_num_ops(
     psa_sign_hash_interruptible_operation_t *operation, uint32_t *num_ops )
 {
     switch( operation->id )
@@ -497,7 +497,7 @@ static inline int psa_driver_wrapper_sign_hash_get_num_ops(
     return( PSA_ERROR_INVALID_ARGUMENT );
 }
 
-static inline int psa_driver_wrapper_verify_hash_get_num_ops(
+static inline psa_status_t psa_driver_wrapper_verify_hash_get_num_ops(
     psa_verify_hash_interruptible_operation_t *operation, uint32_t *num_ops )
 {
     switch( operation->id )

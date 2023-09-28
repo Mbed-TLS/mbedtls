@@ -386,7 +386,7 @@ static inline mbedtls_mpi_uint mpi_sint_abs(mbedtls_mpi_sint z)
 
 /* Convert x to a sign, i.e. to 1, if x is positive, or -1, if x is negative.
  * This looks awkward but generates smaller code than (x < 0 ? -1 : 1) */
-#define TO_SIGN(x) ((((mbedtls_mpi_uint) x) >> (biL - 1)) * -2 + 1)
+#define TO_SIGN(x) ((mbedtls_mpi_sint) (((mbedtls_mpi_uint) x) >> (biL - 1)) * -2 + 1)
 
 /*
  * Set value from integer

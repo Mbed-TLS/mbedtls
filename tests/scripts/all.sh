@@ -5228,7 +5228,6 @@ component_test_cmake_as_package () {
 
     msg "build: cmake 'as-package' build"
     cd programs/test/cmake_package
-    # Note: Explicitly generate files as these are turned off in releases
     cmake .
     make
     ./cmake_package
@@ -5244,7 +5243,6 @@ component_test_cmake_as_package_install () {
 
     msg "build: cmake 'as-installed-package' build"
     cd programs/test/cmake_package_install
-    # Note: Explicitly generate files as these are turned off in releases
     cmake .
     make
     ./cmake_package_install

@@ -152,6 +152,11 @@ driver or built-in, you should use the following macros:
   `mbedtls/build_info.h` where xxx can take the same values as for
 `MBEDTLS_ECP_DP_xxx` macros.
 
+Note that for externally-provided drivers, the integrator is responsible for
+ensuring the appropriate `MBEDTLS_PSA_ACCEL_xxx` macros are defined. However,
+for the p256-m driver that's provided with the library, those macros are
+automatically defined when enabling `MBEDTLS_PSA_P256M_DRIVER_ENABLED`.
+
 ### Limitations regarding fully removing `ecp.c`
 
 A limited subset of `ecp.c` will still be automatically re-enabled if any of

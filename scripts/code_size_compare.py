@@ -163,6 +163,12 @@ CONFIG_H = 'include/mbedtls/mbedtls_config.h'
 CRYPTO_CONFIG_H = 'include/psa/crypto_config.h'
 BACKUP_SUFFIX = '.code_size.bak'
 
+CONFIG_SCRIPT = './scripts/config.py'
+CONFIG_UNSET = 'unset'
+CONFIG_MACROS = [
+    'MBEDTLS_PSA_CRYPTO_SPM',
+]
+
 class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods
     """Gather information used to measure code size.
 
@@ -230,6 +236,11 @@ class CodeSizeBuildInfo: # pylint: disable=too-few-public-methods
             pre_make_cmd.append('cp {src} {dest}'
                                 .format(src=TFM_MEDIUM_CRYPTO_CONFIG_H,
                                         dest=CRYPTO_CONFIG_H))
+            for macro in CONFIG_MACROS:
+                pre_make_cmd.append('{script} {opt} {macro}'
+                                    .format(script=CONFIG_SCRIPT,
+                                            opt=CONFIG_UNSET,
+                                            macro=macro))
 
         return pre_make_cmd
 

@@ -3448,7 +3448,6 @@ psa_status_t psa_sign_hash_complete(
     size_t *signature_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_status_t numops_status = PSA_ERROR_CORRUPTION_DETECTED;
 
     *signature_length = 0;
 
@@ -3471,10 +3470,7 @@ psa_status_t psa_sign_hash_complete(
                                                    signature_length);
 
     /* Update ops count with work done. */
-    numops_status = psa_driver_wrapper_sign_hash_get_num_ops(operation, &operation->num_ops);
-    if (status == PSA_SUCCESS) {
-        status = numops_status;
-    }
+    operation->num_ops = psa_driver_wrapper_sign_hash_get_num_ops(operation);
 
 exit:
 
@@ -3594,7 +3590,6 @@ psa_status_t psa_verify_hash_complete(
     psa_verify_hash_interruptible_operation_t *operation)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_status_t numops_status = PSA_ERROR_CORRUPTION_DETECTED;
 
     /* Check that start has been called first, and that operation has not
      * previously errored. */
@@ -3606,10 +3601,8 @@ psa_status_t psa_verify_hash_complete(
     status = psa_driver_wrapper_verify_hash_complete(operation);
 
     /* Update ops count with work done. */
-    numops_status = psa_driver_wrapper_verify_hash_get_num_ops(operation, &operation->num_ops);
-    if (status == PSA_SUCCESS) {
-        status = numops_status;
-    }
+    operation->num_ops = psa_driver_wrapper_verify_hash_get_num_ops(
+        operation);
 
 exit:
 

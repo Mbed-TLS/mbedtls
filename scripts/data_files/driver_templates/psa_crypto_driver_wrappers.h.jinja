@@ -472,19 +472,17 @@ static inline psa_status_t psa_driver_wrapper_verify_hash(
     }
 }
 
-static inline psa_status_t psa_driver_wrapper_sign_hash_get_num_ops(
-    psa_sign_hash_interruptible_operation_t *operation, uint32_t *num_ops )
+static inline uint32_t psa_driver_wrapper_sign_hash_get_num_ops(
+    psa_sign_hash_interruptible_operation_t *operation )
 {
     switch( operation->id )
     {
         /* If uninitialised, return 0, as no work can have been done. */
         case 0:
-            *num_ops = 0;
-            return PSA_SUCCESS;
+            return 0;
 
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            *num_ops = mbedtls_psa_sign_hash_get_num_ops(&operation->ctx.mbedtls_ctx);
-            return PSA_SUCCESS;
+            return(mbedtls_psa_sign_hash_get_num_ops(&operation->ctx.mbedtls_ctx));
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
@@ -494,22 +492,21 @@ static inline psa_status_t psa_driver_wrapper_sign_hash_get_num_ops(
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
     }
 
-    return( PSA_ERROR_INVALID_ARGUMENT );
+    /* Can't happen (see discussion in #8271) */
+    return 0;
 }
 
-static inline psa_status_t psa_driver_wrapper_verify_hash_get_num_ops(
-    psa_verify_hash_interruptible_operation_t *operation, uint32_t *num_ops )
+static inline uint32_t psa_driver_wrapper_verify_hash_get_num_ops(
+    psa_verify_hash_interruptible_operation_t *operation )
 {
     switch( operation->id )
     {
         /* If uninitialised, return 0, as no work can have been done. */
         case 0:
-            *num_ops = 0;
-            return PSA_SUCCESS;
+            return 0;
 
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            *num_ops = mbedtls_psa_verify_hash_get_num_ops(&operation->ctx.mbedtls_ctx);
-            return PSA_SUCCESS;
+            return (mbedtls_psa_verify_hash_get_num_ops(&operation->ctx.mbedtls_ctx));
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
@@ -520,7 +517,8 @@ static inline psa_status_t psa_driver_wrapper_verify_hash_get_num_ops(
 
     }
 
-    return ( PSA_ERROR_INVALID_ARGUMENT );
+    /* Can't happen (see discussion in #8271) */
+    return 0;
 }
 
 static inline psa_status_t psa_driver_wrapper_sign_hash_start(

@@ -262,9 +262,11 @@ static int rsa_verify_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     mbedtls_rsa_context *rsa = (mbedtls_rsa_context *) pk->pk_ctx;
     size_t rsa_len = mbedtls_rsa_get_len(rsa);
 
+#if SIZE_MAX > UINT_MAX
     if (md_alg == MBEDTLS_MD_NONE && UINT_MAX < hash_len) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
+#endif
 
     if (sig_len < rsa_len) {
         return MBEDTLS_ERR_RSA_VERIFY_FAILED;
@@ -382,9 +384,11 @@ static int rsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
 {
     mbedtls_rsa_context *rsa = (mbedtls_rsa_context *) pk->pk_ctx;
 
+#if SIZE_MAX > UINT_MAX
     if (md_alg == MBEDTLS_MD_NONE && UINT_MAX < hash_len) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
+#endif
 
     *sig_len = mbedtls_rsa_get_len(rsa);
     if (sig_size < *sig_len) {
@@ -1565,9 +1569,11 @@ static int rsa_alt_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
 {
     mbedtls_rsa_alt_context *rsa_alt = pk->pk_ctx;
 
+#if SIZE_MAX > UINT_MAX
     if (UINT_MAX < hash_len) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
+#endif
 
     *sig_len = rsa_alt->key_len_func(rsa_alt->key);
     if (*sig_len > MBEDTLS_PK_SIGNATURE_MAX_SIZE) {

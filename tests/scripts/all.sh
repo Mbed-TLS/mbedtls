@@ -1138,19 +1138,6 @@ component_test_full_cmake_gcc_asan () {
 
     msg "test: context-info.sh (full config, ASan build)" # ~ 15 sec
     tests/context-info.sh
-
-    msg "test: check direct ECP dependencies in TLS and X.509"
-    docs/architecture/psa-migration/syms.sh full
-
-    # TODO: replace "mbedtls_ecp_curve" with "mbedtls_ecp" also for
-    # "full-tls-external" once Issue6839 is completed
-    not grep mbedtls_ecp_curve full-libmbedtls-external
-    not grep mbedtls_ecp full-libmbedx509-external
-
-    rm  full-libmbedtls-external \
-        full-libmbedtls-modules \
-        full-libmbedx509-external \
-        full-libmbedx509-modules
 }
 
 
@@ -1175,19 +1162,6 @@ component_test_full_cmake_gcc_asan_new_bignum () {
 
     msg "test: context-info.sh (full config, ASan build)" # ~ 15 sec
     tests/context-info.sh
-
-    msg "test: check direct ECP dependencies in TLS and X.509"
-    docs/architecture/psa-migration/syms.sh full
-
-    # TODO: replace "mbedtls_ecp_curve" with "mbedtls_ecp" also for
-    # "full-tls-external" once Issue6839 is completed
-    not grep mbedtls_ecp_curve full-libmbedtls-external
-    not grep mbedtls_ecp full-libmbedx509-external
-
-    rm  full-libmbedtls-external \
-        full-libmbedtls-modules \
-        full-libmbedx509-external \
-        full-libmbedx509-modules
 }
 
 component_test_full_cmake_gcc_asan_new_bignum_test_hooks () {
@@ -3177,21 +3151,8 @@ component_test_tfm_config_p256m_driver_accel_ec () {
 
     common_tfm_config
 
-    # Set the list of accelerated components in order to remove them from
-    # builtin support.
-    loc_accel_list="ALG_ECDSA \
-                    ALG_ECDH \
-                    ECC_SECP_R1_256 \
-                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
-                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
-                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
-                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
-                    KEY_TYPE_ECC_PUBLIC_KEY"
-    loc_accel_flags="$( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
-
     # Build crypto library specifying we want to use P256M code for EC operations
-    make CFLAGS="$ASAN_CFLAGS $loc_accel_flags -DMBEDTLS_PSA_P256M_DRIVER_ENABLED -I../tests/include/spe" LDFLAGS="$ASAN_CFLAGS"
-
+    make CFLAGS="$ASAN_CFLAGS -DMBEDTLS_PSA_P256M_DRIVER_ENABLED -I../tests/include/spe" LDFLAGS="$ASAN_CFLAGS"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o

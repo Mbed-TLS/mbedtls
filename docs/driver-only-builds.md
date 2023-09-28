@@ -104,33 +104,61 @@ It is possible to have most ECC operations provided only by a driver:
 - the ECDH, ECDSA and EC J-PAKE algorithms;
 - key import, export, and random generation.
 
-More precisely:
-- you can enable `PSA_WANT_ALG_ECDH` without `MBEDTLS_ECDH_C` provided
-  `MBEDTLS_PSA_ACCEL_ALG_ECDH` is enabled;
-- you can enable `PSA_WANT_ALG_ECDSA` without `MBEDTLS_ECDSA_C` provided
+More precisely, if:
+- you have driver support for ECC public and using private keys (that is,
+`MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY` and
+`MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_BASIC` are enabled), and
+- you have driver support for all ECC curves that are enabled (that is, for
+  each `PSA_WANT_ECC_xxx` macro enabled, the corresponding
+`MBEDTLS_PSA_ACCEL_ECC_xxx` macros is enabled as well);
+
+then you can:
+- enable `PSA_WANT_ALG_ECDH` without `MBEDTLS_ECDH_C`, provided
+  `MBEDTLS_PSA_ACCEL_ALG_ECDH` is enabled
+- enable `PSA_WANT_ALG_ECDSA` without `MBEDTLS_ECDSA_C`, provided
   `MBEDTLS_PSA_ACCEL_ALG_ECDSA` is enabled;
-- you can enable `PSA_WANT_ALG_JPAKE` without `MBEDTLS_ECJPAKE_C` provided
+- enable `PSA_WANT_ALG_JPAKE` without `MBEDTLS_ECJPAKE_C`, provided
   `MBEDTLS_PSA_ACCEL_ALG_JPAKE` is enabled.
 
-In addition, if none of `MBEDTLS_ECDH_C`, `MBEDTLS_ECDSA_C`,
-`MBEDTLS_ECJPAKE_C` are enabled, you can enable:
-- `PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY`;
-- `PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC`;
-- `PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT`;
-- `PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT`;
-- `PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE`;
-without `MBEDTLS_ECP_C` provided the corresponding
-`MBEDTLS_PSA_ACCEL_KEY_TYPE_xxx` are enabled.
+In addition, if:
+- none of `MBEDTLS_ECDH_C`, `MBEDTLS_ECDSA_C`, `MBEDTLS_ECJPAKE_C` are enabled
+  (see conditions above), and
+- you have driver support for all enabled ECC key pair operations - that is,
+  for each `PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_xxx` macro enabled, the
+corresponding `MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_xxx` macros is also
+enabled,
 
-[Coming soon] If `MBEDTLS_ECP_C` is disabled and `ecp.c` is fully removed (see
-"Limitations regarding fully removing `ecp.c`" below), and you're not using
-RSA or FFDH, then you can also disable `MBEDTLS_BIGNUM_C` for further code
-size saving.
+then you can also disable `MBEDTLS_ECP_C`. However, a small subset of it might
+still be included in the build, see limitations sub-section below.
 
-[Coming soon] As noted in the "Limitations regarding the selection of curves"
-section below, there is an upcoming requirement for all the required curves to
-also be accelerated in the PSA driver in order to exclude the builtin algs
-support.
+In addition, if:
+- `MBEDTLS_ECP_C` is fully removed (see limitation sub-section below), and
+- support for RSA key types and algorithms is fully disabled, and
+- support for DH key types and the FFDH algorithm is either disabled, or
+  fully provided by a driver,
+
+then you can also disable `MBEDTLS_BIGNUM_C`.
+
+In such builds, all crypto operations via the PSA Crypto API will work as
+usual, as well as the PK, X.509 and TLS modules if `MBEDTLS_USE_PSA_CRYPTO` is
+enabled, with the following exceptions:
+- direct calls to APIs from the disabled modules are not possible;
+- PK, X.509 and TLS will not support restartable ECC operations (see
+  limitation sub-section below).
+
+If you want to check at compile-time whether a certain curve is available in
+the present build of Mbed TLS, regardless of whether ECC is provided by a
+driver or built-in, you should use the following macros:
+- for code that uses only the PSA Crypto API: `PSA_WANT_ECC_xxx` from
+  `psa/crypto.h`;
+- for code that may also use non-PSA crypto APIs: `MBEDTLS_ECP_HAVE_xxx` from
+  `mbedtls/build_info.h` where xxx can take the same values as for
+`MBEDTLS_ECP_DP_xxx` macros.
+
+Note that for externally-provided drivers, the integrator is responsible for
+ensuring the appropriate `MBEDTLS_PSA_ACCEL_xxx` macros are defined. However,
+for the p256-m driver that's provided with the library, those macros are
+automatically defined when enabling `MBEDTLS_PSA_P256M_DRIVER_ENABLED`.
 
 ### Limitations regarding fully removing `ecp.c`
 
@@ -155,7 +183,7 @@ let us know, so we can take it into consideration in our planning.
 
 ### Limitations regarding restartable / interruptible ECC operations
 
-At the moment, there is not driver support for interruptible operations
+At the moment, there is no driver support for interruptible operations
 (see `psa_sign_hash_start()` + `psa_sign_hash_complete()` etc.) so as a
 consequence these are not supported in builds without `MBEDTLS_ECDSA_C`.
 
@@ -166,18 +194,6 @@ documentation](use-psa-crypto.md).
 
 Again, we have plans to support this in the future but not with an established
 timeline, please let us know if you're interested.
-
-### Limitations regarding the selection of curves
-
-There is ongoing work which is trying to establish the links and constraints
-between the list of supported curves and supported algorithms both in the
-builtin and PSA sides. In particular:
-
-- #8014 ensures that the curves supported on the PSA side (`PSA_WANT_ECC_xxx`)
-  are always a superset of the builtin ones (`MBEDTLS_ECP_DP_xxx`)
-- #8016 forces builtin alg support as soon as there is at least one builtin
-  curve. In other words, in order to exclue all builtin algs, all the required
-  curves should be supported and accelerated by the PSA driver.
 
 ### Limitations regarding "mixed" builds (driver and built-in)
 

@@ -3470,7 +3470,9 @@ psa_status_t psa_sign_hash_complete(
                                                    signature_length);
 
     /* Update ops count with work done. */
-    operation->num_ops = psa_driver_wrapper_sign_hash_get_num_ops(operation);
+    if (status == PSA_SUCCESS) {
+        status = psa_driver_wrapper_sign_hash_get_num_ops(operation, &operation->num_ops);
+    }
 
 exit:
 
@@ -3601,8 +3603,9 @@ psa_status_t psa_verify_hash_complete(
     status = psa_driver_wrapper_verify_hash_complete(operation);
 
     /* Update ops count with work done. */
-    operation->num_ops = psa_driver_wrapper_verify_hash_get_num_ops(
-        operation);
+    if (status == PSA_SUCCESS) {
+        status = psa_driver_wrapper_verify_hash_get_num_ops(operation, &operation->num_ops);
+    }
 
 exit:
 

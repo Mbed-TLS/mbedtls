@@ -2596,7 +2596,7 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
         desc="non-Weierstrass"
     fi
 
-    msg "build: full with accelerated EC algs and $desc curves"
+    msg "build: crypto_full minus PK with accelerated EC algs and $desc curves"
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
@@ -2630,8 +2630,18 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     # Configure
     # ---------
 
-    # start with config full for maximum coverage (also enables USE_PSA)
-    helper_libtestdriver1_adjust_config "full"
+    # Start with config crypto_full and remove PK_C:
+    # that's what's supported now, see docs/driver-only-builds.md.
+    helper_libtestdriver1_adjust_config "crypto_full"
+    scripts/config.py unset MBEDTLS_PK_C
+    scripts/config.py unset MBEDTLS_PK_PARSE_C
+    scripts/config.py unset MBEDTLS_PK_WRITE_C
+    # We need to disable RSA too or PK will be re-enabled.
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_KEY_TYPE_RSA_[0-9A-Z_a-z]*"
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*"
+    scripts/config.py unset MBEDTLS_RSA_C
+    scripts/config.py unset MBEDTLS_PKCS1_V15
+    scripts/config.py unset MBEDTLS_PKCS1_V21
 
     # Disable modules that are accelerated - some will be re-enabled
     scripts/config.py unset MBEDTLS_ECDSA_C
@@ -2687,9 +2697,8 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     # Run the tests
     # -------------
 
-    msg "test suites: full with accelerated EC algs and $desc curves"
-    # does not work for PK (and above), see #8255
-    make test SKIP_TEST_SUITES=pk,pkparse,pkwrite,x509parse,x509write,ssl,debug
+    msg "test suites: crypto_full minus PK with accelerated EC algs and $desc curves"
+    make test
 }
 
 component_test_psa_crypto_config_accel_ecc_weierstrass_curves () {

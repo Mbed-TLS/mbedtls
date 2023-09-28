@@ -74,6 +74,8 @@ gen_file_dep = |
 endif
 
 .PHONY: generated_files
+GENERATED_DATA_FILES :=
+
 GENERATED_BIGNUM_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) scripts/generate_bignum_tests.py --list || \
 	echo FAILED \
@@ -81,6 +83,8 @@ GENERATED_BIGNUM_DATA_FILES := $(patsubst tests/%,%,$(shell \
 ifeq ($(GENERATED_BIGNUM_DATA_FILES),FAILED)
 $(error "$(PYTHON) scripts/generate_bignum_tests.py --list" failed)
 endif
+GENERATED_DATA_FILES += $(GENERATED_BIGNUM_DATA_FILES)
+
 GENERATED_ECP_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) scripts/generate_ecp_tests.py --list || \
 	echo FAILED \
@@ -88,6 +92,8 @@ GENERATED_ECP_DATA_FILES := $(patsubst tests/%,%,$(shell \
 ifeq ($(GENERATED_ECP_DATA_FILES),FAILED)
 $(error "$(PYTHON) scripts/generate_ecp_tests.py --list" failed)
 endif
+GENERATED_DATA_FILES += $(GENERATED_ECP_DATA_FILES)
+
 GENERATED_PSA_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) scripts/generate_psa_tests.py --list || \
 	echo FAILED \
@@ -95,9 +101,11 @@ GENERATED_PSA_DATA_FILES := $(patsubst tests/%,%,$(shell \
 ifeq ($(GENERATED_PSA_DATA_FILES),FAILED)
 $(error "$(PYTHON) scripts/generate_psa_tests.py --list" failed)
 endif
+GENERATED_DATA_FILES += $(GENERATED_PSA_DATA_FILES)
+
 GENERATED_FILES := \
 	src/value_names_generated.c \
-	$(GENERATED_PSA_DATA_FILES) $(GENERATED_ECP_DATA_FILES) $(GENERATED_BIGNUM_DATA_FILES)
+	$(GENERATED_DATA_FILES)
 generated_files: $(GENERATED_FILES)
 
 src/value_names_generated.c: $(gen_file_dep) $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
@@ -163,7 +171,7 @@ generated_psa_test_data:
 DATA_FILES := $(wildcard suites/test_suite_*.data)
 # Make sure that generated data files are included even if they don't
 # exist yet when the makefile is parsed.
-DATA_FILES += $(filter-out $(DATA_FILES),$(GENERATED_FILES))
+DATA_FILES += $(filter-out $(DATA_FILES),$(GENERATED_DATA_FILES))
 APPS = $(basename $(subst suites/,,$(DATA_FILES)))
 
 # Construct executable name by adding OS specific suffix $(EXEXT).
@@ -178,7 +186,11 @@ all: $(BINARIES)
 $(MBEDLIBS):
 	$(MAKE) -C ../library
 
-MBEDTLS_TEST_OBJS=$(patsubst %.c,%.o,$(wildcard src/*.c src/drivers/*.c src/test_helpers/*.c))
+TEST_SRC_C_FOUND = $(wildcard src/*.c src/drivers/*.c src/test_helpers/*.c)
+TEST_SRC_C_GENERATED = src/value_names_generated.c
+# $(TEST_SRC_C_FOUND) may or may not include the generated files.
+# In case it does, call the sort function to remove duplicates.
+MBEDTLS_TEST_OBJS = $(sort $(patsubst %.c,%.o,$(TEST_SRC_C_FOUND) $(TEST_SRC_C_GENERATED)))
 
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 

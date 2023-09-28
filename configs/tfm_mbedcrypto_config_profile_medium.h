@@ -270,7 +270,7 @@
  * Requires: MBEDTLS_PSA_CRYPTO_C
  *
  */
-#define MBEDTLS_PSA_CRYPTO_SPM
+//#define MBEDTLS_PSA_CRYPTO_SPM
 
 /**
  * \def MBEDTLS_SHA256_SMALLER

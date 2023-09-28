@@ -111,6 +111,7 @@ More precisely, if:
 - you have driver support for all ECC curves that are enabled (that is, for
   each `PSA_WANT_ECC_xxx` macro enabled, the corresponding
 `MBEDTLS_PSA_ACCEL_ECC_xxx` macros is enabled as well);
+
 then you can:
 - enable `PSA_WANT_ALG_ECDH` without `MBEDTLS_ECDH_C`, provided
   `MBEDTLS_PSA_ACCEL_ALG_ECDH` is enabled
@@ -126,6 +127,7 @@ In addition, if:
   for each `PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_xxx` macro enabled, the
 corresponding `MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_xxx` macros is also
 enabled,
+
 then you can also disable `MBEDTLS_ECP_C`. However, a small subset of it might
 still be included in the build, see limitations sub-section below.
 
@@ -134,6 +136,7 @@ In addition, if:
 - support for RSA key types and algorithms is fully disabled, and
 - support for DH key types and the FFDH algorithm is either disabled, or
   fully provided by a driver,
+
 then you can also disable `MBEDTLS_BIGNUM_C`.
 
 In such builds, all crypto operations via the PSA Crypto API will work as

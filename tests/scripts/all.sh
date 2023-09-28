@@ -428,9 +428,9 @@ err_msg()
 
 check_tools()
 {
-    for TOOL in "$@"; do
-        if ! `type "$TOOL" >/dev/null 2>&1`; then
-            err_msg "$TOOL not found!"
+    for tool in "$@"; do
+        if ! `type "$tool" >/dev/null 2>&1`; then
+            err_msg "$tool not found!"
             exit 1
         fi
     done
@@ -884,10 +884,10 @@ pre_generate_files() {
 # Adjust the configuration - for both libtestdriver1 and main library,
 # as they should have the same PSA_WANT macros.
 helper_libtestdriver1_adjust_config() {
-    BASE_CONFIG=$1
+    base_config=$1
     # Select the base configuration
-    if [ "$BASE_CONFIG" != "default" ]; then
-        scripts/config.py "$BASE_CONFIG"
+    if [ "$base_config" != "default" ]; then
+        scripts/config.py "$base_config"
     fi
 
     # Enable PSA-based config (necessary to use drivers)
@@ -910,8 +910,8 @@ helper_disable_builtin_curves() {
     allowed_list="${1:-}"
     scripts/config.py unset-all "MBEDTLS_ECP_DP_[0-9A-Z_a-z]*_ENABLED"
 
-    for CURVE in $allowed_list; do
-        scripts/config.py set $CURVE
+    for curve in $allowed_list; do
+        scripts/config.py set $curve
     done
 }
 
@@ -920,8 +920,8 @@ helper_disable_builtin_curves() {
 # in the following helpers.
 helper_get_psa_curve_list () {
     loc_list=""
-    for ITEM in $(sed -n 's/^#define PSA_WANT_\(ECC_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
-        loc_list="$loc_list $ITEM"
+    for item in $(sed -n 's/^#define PSA_WANT_\(ECC_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
+        loc_list="$loc_list $item"
     done
 
     echo "$loc_list"
@@ -931,13 +931,13 @@ helper_get_psa_curve_list () {
 # is useful to easily get a list of key type symbols to accelerate.
 # The function accepts a single argument which is the key type: ECC, DH, RSA.
 helper_get_psa_key_type_list() {
-    KEY_TYPE="$1"
+    key_type="$1"
     loc_list=""
-    for ITEM in $(sed -n "s/^#define PSA_WANT_\(KEY_TYPE_${KEY_TYPE}_[0-9A-Z_a-z]*\).*/\1/p" <"$CRYPTO_CONFIG_H"); do
+    for item in $(sed -n "s/^#define PSA_WANT_\(KEY_TYPE_${key_type}_[0-9A-Z_a-z]*\).*/\1/p" <"$CRYPTO_CONFIG_H"); do
         # Skip DERIVE for elliptic keys since there is no driver dispatch for
         # it so it cannot be accelerated.
-        if [ "$ITEM" != "KEY_TYPE_ECC_KEY_PAIR_DERIVE" ]; then
-            loc_list="$loc_list $ITEM"
+        if [ "$item" != "KEY_TYPE_ECC_KEY_PAIR_DERIVE" ]; then
+            loc_list="$loc_list $item"
         fi
     done
 
@@ -2560,17 +2560,17 @@ component_test_psa_crypto_config_accel_ecc_some_key_types () {
 
 # Run tests with only (non-)Weierstrass accelerated
 # Common code used in:
-# - component_test_psa_crypto_config_accel_ecc_weirstrass_curves
-# - component_test_psa_crypto_config_accel_ecc_non_weirstrass_curves
+# - component_test_psa_crypto_config_accel_ecc_weierstrass_curves
+# - component_test_psa_crypto_config_accel_ecc_non_weierstrass_curves
 common_test_psa_crypto_config_accel_ecc_some_curves () {
-    WEIERSTRASS=$1
-    if [ $WEIERSTRASS -eq 1 ]; then
-        DESC="Weierstrass"
+    weierstrass=$1
+    if [ $weierstrass -eq 1 ]; then
+        desc="Weierstrass"
     else
-        DESC="non-Weierstrass"
+        desc="non-Weierstrass"
     fi
 
-    msg "build: full with accelerated EC algs and $DESC curves"
+    msg "build: crypto_full minus PK with accelerated EC algs and $desc curves"
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
@@ -2585,17 +2585,17 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     # helper_get_psa_curve_list that only keeps Weierstrass families.
     loc_weierstrass_list=""
     loc_non_weierstrass_list=""
-    for ITEM in $(sed -n 's/^#define PSA_WANT_\(ECC_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
-        case $ITEM in
+    for item in $(sed -n 's/^#define PSA_WANT_\(ECC_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
+        case $item in
             ECC_BRAINPOOL*|ECC_SECP*)
-                loc_weierstrass_list="$loc_weierstrass_list $ITEM"
+                loc_weierstrass_list="$loc_weierstrass_list $item"
                 ;;
             *)
-                loc_non_weierstrass_list="$loc_non_weierstrass_list $ITEM"
+                loc_non_weierstrass_list="$loc_non_weierstrass_list $item"
                 ;;
         esac
     done
-    if [ $WEIERSTRASS -eq 1 ]; then
+    if [ $weierstrass -eq 1 ]; then
         loc_curve_list=$loc_weierstrass_list
     else
         loc_curve_list=$loc_non_weierstrass_list
@@ -2604,8 +2604,18 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     # Configure
     # ---------
 
-    # start with config full for maximum coverage (also enables USE_PSA)
-    helper_libtestdriver1_adjust_config "full"
+    # Start with config crypto_full and remove PK_C:
+    # that's what's supported now, see docs/driver-only-builds.md.
+    helper_libtestdriver1_adjust_config "crypto_full"
+    scripts/config.py unset MBEDTLS_PK_C
+    scripts/config.py unset MBEDTLS_PK_PARSE_C
+    scripts/config.py unset MBEDTLS_PK_WRITE_C
+    # We need to disable RSA too or PK will be re-enabled.
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_KEY_TYPE_RSA_[0-9A-Z_a-z]*"
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*"
+    scripts/config.py unset MBEDTLS_RSA_C
+    scripts/config.py unset MBEDTLS_PKCS1_V15
+    scripts/config.py unset MBEDTLS_PKCS1_V21
 
     # Disable modules that are accelerated - some will be re-enabled
     scripts/config.py unset MBEDTLS_ECDSA_C
@@ -2641,7 +2651,7 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     # - functions with mxz in the name are specific to Montgomery curves
     # - ecp_muladd is specific to Weierstrass curves
     ##nm library/ecp.o | tee ecp.syms
-    if [ $WEIERSTRASS -eq 1 ]; then
+    if [ $weierstrass -eq 1 ]; then
         not grep mbedtls_ecp_muladd library/ecp.o
         grep mxz library/ecp.o
     else
@@ -2650,7 +2660,7 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     fi
     # We expect ECDSA and ECJPAKE to be re-enabled only when
     # Weierstrass curves are not accelerated
-    if [ $WEIERSTRASS -eq 1 ]; then
+    if [ $weierstrass -eq 1 ]; then
         not grep mbedtls_ecdsa library/ecdsa.o
         not grep mbedtls_ecjpake  library/ecjpake.o
     else
@@ -2661,16 +2671,15 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     # Run the tests
     # -------------
 
-    msg "test suites: full with accelerated EC algs and $DESC curves"
-    # does not work for PK (and above), see #8255
-    make test SKIP_TEST_SUITES=pk,pkparse,pkwrite,x509parse,x509write,ssl,debug
+    msg "test suites: crypto_full minus PK with accelerated EC algs and $desc curves"
+    make test
 }
 
-component_test_psa_crypto_config_accel_ecc_weirstrass_curves () {
+component_test_psa_crypto_config_accel_ecc_weierstrass_curves () {
     common_test_psa_crypto_config_accel_ecc_some_curves 1
 }
 
-component_test_psa_crypto_config_accel_ecc_non_weirstrass_curves () {
+component_test_psa_crypto_config_accel_ecc_non_weierstrass_curves () {
     common_test_psa_crypto_config_accel_ecc_some_curves 0
 }
 
@@ -2686,10 +2695,10 @@ component_test_psa_crypto_config_accel_ecc_non_weirstrass_curves () {
 # - component_test_psa_crypto_config_reference_ecc_ecp_light_only.
 # This supports comparing their test coverage with analyze_outcomes.py.
 config_psa_crypto_config_ecp_light_only () {
-    DRIVER_ONLY="$1"
+    driver_only="$1"
     # start with config full for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
-    if [ "$DRIVER_ONLY" -eq 1 ]; then
+    if [ "$driver_only" -eq 1 ]; then
         # Disable modules that are accelerated
         scripts/config.py unset MBEDTLS_ECDSA_C
         scripts/config.py unset MBEDTLS_ECDH_C
@@ -2783,11 +2792,11 @@ component_test_psa_crypto_config_reference_ecc_ecp_light_only () {
 # PK_C and RSA_C are always disabled to ensure there is no remaining dependency
 # on the ECP module.
 config_psa_crypto_no_ecp_at_all () {
-    DRIVER_ONLY="$1"
+    driver_only="$1"
     # start with full config for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
 
-    if [ "$DRIVER_ONLY" -eq 1 ]; then
+    if [ "$driver_only" -eq 1 ]; then
         # Disable modules that are accelerated
         scripts/config.py unset MBEDTLS_ECDSA_C
         scripts/config.py unset MBEDTLS_ECDH_C
@@ -2901,12 +2910,12 @@ component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
 # $2: a string value which states which components are tested. Allowed values
 #     are "ECC" or "ECC_DH".
 config_psa_crypto_config_accel_ecc_ffdh_no_bignum() {
-    DRIVER_ONLY="$1"
-    TEST_TARGET="$2"
+    driver_only="$1"
+    test_target="$2"
     # start with full config for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
 
-    if [ "$DRIVER_ONLY" -eq 1 ]; then
+    if [ "$driver_only" -eq 1 ]; then
         # Disable modules that are accelerated
         scripts/config.py unset MBEDTLS_ECDSA_C
         scripts/config.py unset MBEDTLS_ECDH_C
@@ -2937,7 +2946,7 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum() {
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
 
-    if [ "$TEST_TARGET" = "ECC" ]; then
+    if [ "$test_target" = "ECC" ]; then
         # When testing ECC only, we disable FFDH support, both from builtin and
         # PSA sides, and also disable the key exchanges that depend on DHM.
         scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_FFDH
@@ -2948,7 +2957,7 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum() {
     else
         # When testing ECC and DH instead, we disable DHM and depending key
         # exchanges only in the accelerated build
-        if [ "$DRIVER_ONLY" -eq 1 ]; then
+        if [ "$driver_only" -eq 1 ]; then
             scripts/config.py unset MBEDTLS_DHM_C
             scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
             scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
@@ -2973,18 +2982,18 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum() {
 # common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum() for drivers
 # coverage analysis in the "analyze_outcomes.py" script.
 common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
-    TEST_TARGET="$1"
+    test_target="$1"
 
     # This is an internal helper to simplify text message handling
-    if [ "$TEST_TARGET" = "ECC_DH" ]; then
-        ACCEL_TEXT="ECC/FFDH"
-        REMOVED_TEXT="ECP - DH"
+    if [ "$test_target" = "ECC_DH" ]; then
+        accel_text="ECC/FFDH"
+        removed_text="ECP - DH"
     else
-        ACCEL_TEXT="ECC"
-        REMOVED_TEXT="ECP"
+        accel_text="ECC"
+        removed_text="ECP"
     fi
 
-    msg "build: full + accelerated $ACCEL_TEXT algs + USE_PSA - $REMOVED_TEXT - BIGNUM"
+    msg "build: full + accelerated $accel_text algs + USE_PSA - $removed_text - BIGNUM"
 
     # By default we accelerate all EC keys/algs
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
@@ -2992,7 +3001,7 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
                     ALG_JPAKE \
                     $(helper_get_psa_key_type_list "ECC")"
     # Optionally we can also add DH to the list of accelerated items
-    if [ "$TEST_TARGET" = "ECC_DH" ]; then
+    if [ "$test_target" = "ECC_DH" ]; then
         loc_accel_list="$loc_accel_list \
                         ALG_FFDH \
                         $(helper_get_psa_key_type_list "DH")"
@@ -3007,7 +3016,7 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     # ---------
 
     # Set common configurations between library's and driver's builds
-    config_psa_crypto_config_accel_ecc_ffdh_no_bignum 1 "$TEST_TARGET"
+    config_psa_crypto_config_accel_ecc_ffdh_no_bignum 1 "$test_target"
     # Disable all the builtin curves. All the required algs are accelerated.
     helper_disable_builtin_curves
 
@@ -3036,11 +3045,11 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     # Run the tests
     # -------------
 
-    msg "test suites: full + accelerated $ACCEL_TEXT algs + USE_PSA - $REMOVED_TEXT - DHM - BIGNUM"
+    msg "test suites: full + accelerated $accel_text algs + USE_PSA - $removed_text - DHM - BIGNUM"
 
     make test
 
-    msg "ssl-opt: full + accelerated $ACCEL_TEXT algs + USE_PSA - $REMOVED_TEXT - BIGNUM"
+    msg "ssl-opt: full + accelerated $accel_text algs + USE_PSA - $removed_text - BIGNUM"
     tests/ssl-opt.sh
 }
 
@@ -3056,25 +3065,25 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
 # common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum() for drivers'
 # coverage analysis in "analyze_outcomes.py" script.
 common_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
-    TEST_TARGET="$1"
+    test_target="$1"
 
     # This is an internal helper to simplify text message handling
-    if [ "$TEST_TARGET" = "ECC_DH" ]; then
-        ACCEL_TEXT="ECC/FFDH"
+    if [ "$test_target" = "ECC_DH" ]; then
+        accel_text="ECC/FFDH"
     else
-        ACCEL_TEXT="ECC"
+        accel_text="ECC"
     fi
 
-    msg "build: full + non accelerated $ACCEL_TEXT algs + USE_PSA"
+    msg "build: full + non accelerated $accel_text algs + USE_PSA"
 
-    config_psa_crypto_config_accel_ecc_ffdh_no_bignum 0 "$TEST_TARGET"
+    config_psa_crypto_config_accel_ecc_ffdh_no_bignum 0 "$test_target"
 
     make
 
     msg "test suites: full + non accelerated EC algs + USE_PSA"
     make test
 
-    msg "ssl-opt: full + non accelerated $ACCEL_TEXT algs + USE_PSA"
+    msg "ssl-opt: full + non accelerated $accel_text algs + USE_PSA"
     tests/ssl-opt.sh
 }
 
@@ -3189,14 +3198,14 @@ component_test_tfm_config() {
 # - build
 # - test only TLS (i.e. test_suite_tls and ssl-opt)
 build_full_minus_something_and_test_tls () {
-    SYMBOLS_TO_DISABLE="$1"
+    symbols_to_disable="$1"
 
     msg "build: full minus something, test TLS"
 
     scripts/config.py full
-    for SYM in $SYMBOLS_TO_DISABLE; do
-        echo "Disabling $SYM"
-        scripts/config.py unset $SYM
+    for sym in $symbols_to_disable; do
+        echo "Disabling $sym"
+        scripts/config.py unset $sym
     done
 
     make
@@ -3225,22 +3234,22 @@ component_full_without_ecdhe_ecdsa_and_tls13 () {
 # - $1 is the key type under test, i.e. ECC/RSA/DH
 # - $2 is the key option to be unset (i.e. generate, derive, etc)
 build_and_test_psa_want_key_pair_partial() {
-    KEY_TYPE=$1
-    UNSET_OPTION=$2
-    DISABLED_PSA_WANT="PSA_WANT_KEY_TYPE_${KEY_TYPE}_KEY_PAIR_${UNSET_OPTION}"
+    key_type=$1
+    unset_option=$2
+    disabled_psa_want="PSA_WANT_KEY_TYPE_${key_type}_KEY_PAIR_${unset_option}"
 
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO - ${DISABLED_PSA_WANT}"
+    msg "build: full - MBEDTLS_USE_PSA_CRYPTO - ${disabled_psa_want}"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
 
     # All the PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_yyy are enabled by default in
     # crypto_config.h so we just disable the one we don't want.
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset "$DISABLED_PSA_WANT"
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset "$disabled_psa_want"
 
     make CC=gcc CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
-    msg "test: full - MBEDTLS_USE_PSA_CRYPTO - ${DISABLED_PSA_WANT}"
+    msg "test: full - MBEDTLS_USE_PSA_CRYPTO - ${disabled_psa_want}"
     make test
 }
 
@@ -3445,10 +3454,10 @@ component_test_psa_crypto_config_accel_hash_keep_builtins () {
 
 # Auxiliary function to build config for hashes with and without drivers
 config_psa_crypto_hash_use_psa () {
-    DRIVER_ONLY="$1"
+    driver_only="$1"
     # start with config full for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
-    if [ "$DRIVER_ONLY" -eq 1 ]; then
+    if [ "$driver_only" -eq 1 ]; then
         # disable the built-in implementation of hashes
         scripts/config.py unset MBEDTLS_MD5_C
         scripts/config.py unset MBEDTLS_RIPEMD160_C
@@ -3662,33 +3671,6 @@ component_build_psa_accel_alg_ecdh() {
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_ECDH -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# This should be renamed to test and updated once the accelerator ECC key pair code is in place and ready to test.
-component_build_psa_accel_key_type_ecc_key_pair() {
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_xxx"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set-all "PSA_WANT_KEY_TYPE_ECC_[0-9A-Z_a-z]*"
-    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# This should be renamed to test and updated once the accelerator ECC public key code is in place and ready to test.
-component_build_psa_accel_key_type_ecc_public_key() {
-    msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY"
-    scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY 1
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
-    # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 }
 
 # This should be renamed to test and updated once the accelerator HMAC code is in place and ready to test.

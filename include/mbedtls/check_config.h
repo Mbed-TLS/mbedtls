@@ -125,6 +125,46 @@
 
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG || MBEDTLS_PSA_CRYPTO_C */
 
+/* Limitations on ECC key types acceleration: if we have any of `PUBLIC_KEY`,
+ * `KEY_PAIR_BASIC`, `KEY_PAIR_IMPORT`, `KEY_PAIR_EXPORT` then we must have
+ * all 4 of them.
+ */
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_BASIC) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_IMPORT) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_EXPORT)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) || \
+    !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_BASIC) || \
+    !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_IMPORT) || \
+    !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_EXPORT)
+#error "Unsupported partial support for ECC key type acceleration, see docs/driver-only-builds.md"
+#endif /* not all of public, basic, import, export */
+#endif /* one of public, basic, import, export */
+
+/* Limitations on ECC curves acceleration: partial curve acceleration is only
+ * supported with crypto excluding PK, X.509 or TLS.
+ * Note: no need to check X.509 as it depends on PK. */
+#if defined(MBEDTLS_PSA_ACCEL_ECC_BRAINPOOL_P_R1_256) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_BRAINPOOL_P_R1_384) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_BRAINPOOL_P_R1_512) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_MONTGOMERY_255) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_MONTGOMERY_448) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_192) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_224) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_256) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_192) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_224) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_256) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_384) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_521)
+#if defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES)
+#if defined(MBEDTLS_PK_C) || \
+    defined(MBEDTLS_SSL_TLS_C)
+#error "Unsupported partial support for ECC curves acceleration, see docs/driver-only-builds.md"
+#endif /* modules beyond what's supported */
+#endif /* not all curves accelerated */
+#endif /* some curve accelerated */
+
 #if defined(MBEDTLS_CTR_DRBG_C) && !defined(MBEDTLS_AES_C)
 #error "MBEDTLS_CTR_DRBG_C defined, but not all prerequisites"
 #endif

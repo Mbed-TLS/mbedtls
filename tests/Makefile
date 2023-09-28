@@ -95,8 +95,16 @@ GENERATED_PSA_DATA_FILES := $(patsubst tests/%,%,$(shell \
 ifeq ($(GENERATED_PSA_DATA_FILES),FAILED)
 $(error "$(PYTHON) scripts/generate_psa_tests.py --list" failed)
 endif
-GENERATED_FILES := $(GENERATED_PSA_DATA_FILES) $(GENERATED_ECP_DATA_FILES) $(GENERATED_BIGNUM_DATA_FILES)
+GENERATED_FILES := \
+	src/value_names_generated.c \
+	$(GENERATED_PSA_DATA_FILES) $(GENERATED_ECP_DATA_FILES) $(GENERATED_BIGNUM_DATA_FILES)
 generated_files: $(GENERATED_FILES)
+
+src/value_names_generated.c: $(gen_file_dep) $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
+src/value_names_generated.c: scripts/generate_value_names.py
+src/value_names_generated.c:
+	echo "  Gen   $@"
+	$(PYTHON) scripts/generate_value_names.py
 
 # generate_bignum_tests.py and generate_psa_tests.py spend more time analyzing
 # inputs than generating outputs. Its inputs are the same no matter which files

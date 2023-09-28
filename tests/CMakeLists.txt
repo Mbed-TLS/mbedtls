@@ -73,6 +73,18 @@ foreach(file ${base_psa_generated_data_files})
 endforeach()
 
 if(GEN_FILES)
+    file(GLOB value_name_headers ${CMAKE_CURRENT_SOURCE_DIR}/../include/*/*.h)
+    add_custom_command(
+        OUTPUT
+            ${CMAKE_CURRENT_BINARY_DIR}/src/value_names_generated.c
+        COMMAND
+            ${MBEDTLS_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_value_names.py
+                -o ${CMAKE_CURRENT_BINARY_DIR}/src/value_names_generated.c
+        DEPENDS
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_value_names.py
+            ${value_name_headers}
+    )
     add_custom_command(
         OUTPUT
             ${bignum_generated_data_files}

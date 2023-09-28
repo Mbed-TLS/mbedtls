@@ -5256,11 +5256,16 @@ support_test_cmake_out_of_source () {
 }
 
 component_test_cmake_out_of_source () {
+    # Remove existing generated files so that we use the ones cmake
+    # generates
+    make neat
+
     msg "build: cmake 'out-of-source' build"
     MBEDTLS_ROOT_DIR="$PWD"
     mkdir "$OUT_OF_SOURCE_DIR"
     cd "$OUT_OF_SOURCE_DIR"
-    cmake -D CMAKE_BUILD_TYPE:String=Check "$MBEDTLS_ROOT_DIR"
+    # Note: Explicitly generate files as these are turned off in releases
+    cmake -D CMAKE_BUILD_TYPE:String=Check -D GEN_FILES=ON "$MBEDTLS_ROOT_DIR"
     make
 
     msg "test: cmake 'out-of-source' build"
@@ -5281,9 +5286,14 @@ component_test_cmake_out_of_source () {
 }
 
 component_test_cmake_as_subdirectory () {
+    # Remove existing generated files so that we use the ones CMake
+    # generates
+    make neat
+
     msg "build: cmake 'as-subdirectory' build"
     cd programs/test/cmake_subproject
-    cmake .
+    # Note: Explicitly generate files as these are turned off in releases
+    cmake -D GEN_FILES=ON .
     make
     ./cmake_subproject
 }
@@ -5292,6 +5302,10 @@ support_test_cmake_as_subdirectory () {
 }
 
 component_test_cmake_as_package () {
+    # Remove existing generated files so that we use the ones CMake
+    # generates
+    make neat
+
     msg "build: cmake 'as-package' build"
     cd programs/test/cmake_package
     cmake .
@@ -5303,6 +5317,10 @@ support_test_cmake_as_package () {
 }
 
 component_test_cmake_as_package_install () {
+    # Remove existing generated files so that we use the ones CMake
+    # generates
+    make neat
+
     msg "build: cmake 'as-installed-package' build"
     cd programs/test/cmake_package_install
     cmake .

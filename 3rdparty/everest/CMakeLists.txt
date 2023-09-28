@@ -1,9 +1,11 @@
-add_library(everest
+set(everest_target "${MBEDTLS_TARGET_PREFIX}everest")
+
+add_library(${everest_target}
   library/everest.c
   library/x25519.c
   library/Hacl_Curve25519_joined.c)
 
-target_include_directories(everest
+target_include_directories(${everest_target}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
          $<BUILD_INTERFACE:${MBEDTLS_DIR}/include>
          $<INSTALL_INTERFACE:include>
@@ -16,11 +18,11 @@ target_include_directories(everest
 # everest is not directly linked against any mbedtls targets
 # so does not inherit the compile definitions.
 if(MBEDTLS_CONFIG_FILE)
-    target_compile_definitions(everest
+    target_compile_definitions(${everest_target}
         PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
 endif()
 if(MBEDTLS_USER_CONFIG_FILE)
-    target_compile_definitions(everest
+    target_compile_definitions(${everest_target}
         PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
 endif()
 
@@ -34,7 +36,7 @@ if(INSTALL_MBEDTLS_HEADERS)
 
 endif(INSTALL_MBEDTLS_HEADERS)
 
-install(TARGETS everest
+install(TARGETS ${everest_target}
   EXPORT MbedTLSTargets
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)

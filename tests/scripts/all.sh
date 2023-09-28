@@ -2586,8 +2586,8 @@ component_test_psa_crypto_config_accel_ecc_some_key_types () {
 
 # Run tests with only (non-)Weierstrass accelerated
 # Common code used in:
-# - component_test_psa_crypto_config_accel_ecc_weirstrass_curves
-# - component_test_psa_crypto_config_accel_ecc_non_weirstrass_curves
+# - component_test_psa_crypto_config_accel_ecc_weierstrass_curves
+# - component_test_psa_crypto_config_accel_ecc_non_weierstrass_curves
 common_test_psa_crypto_config_accel_ecc_some_curves () {
     weierstrass=$1
     if [ $weierstrass -eq 1 ]; then
@@ -2692,11 +2692,11 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     make test SKIP_TEST_SUITES=pk,pkparse,pkwrite,x509parse,x509write,ssl,debug
 }
 
-component_test_psa_crypto_config_accel_ecc_weirstrass_curves () {
+component_test_psa_crypto_config_accel_ecc_weierstrass_curves () {
     common_test_psa_crypto_config_accel_ecc_some_curves 1
 }
 
-component_test_psa_crypto_config_accel_ecc_non_weirstrass_curves () {
+component_test_psa_crypto_config_accel_ecc_non_weierstrass_curves () {
     common_test_psa_crypto_config_accel_ecc_some_curves 0
 }
 

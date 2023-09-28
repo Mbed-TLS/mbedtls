@@ -5176,7 +5176,7 @@ support_test_cmake_out_of_source () {
 }
 
 component_test_cmake_out_of_source () {
-    # remove existing generated files so that we use the ones cmake
+    # Remove existing generated files so that we use the ones cmake
     # generates
     make neat
 

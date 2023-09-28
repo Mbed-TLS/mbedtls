@@ -131,15 +131,17 @@ int mbedtls_mpi_safe_cond_assign(mbedtls_mpi *X,
 
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(X, Y->n));
 
-    mbedtls_ct_condition_t do_assign = mbedtls_ct_bool(assign);
+    {
+        mbedtls_ct_condition_t do_assign = mbedtls_ct_bool(assign);
 
-    X->s = (int) mbedtls_ct_uint_if(do_assign, Y->s, X->s);
+        X->s = (int) mbedtls_ct_uint_if(do_assign, Y->s, X->s);
 
-    mbedtls_mpi_core_cond_assign(X->p, Y->p, Y->n, do_assign);
+        mbedtls_mpi_core_cond_assign(X->p, Y->p, Y->n, do_assign);
 
-    mbedtls_ct_condition_t do_not_assign = mbedtls_ct_bool_not(do_assign);
-    for (size_t i = Y->n; i < X->n; i++) {
-        X->p[i] = mbedtls_ct_mpi_uint_if_else_0(do_not_assign, X->p[i]);
+        mbedtls_ct_condition_t do_not_assign = mbedtls_ct_bool_not(do_assign);
+        for (size_t i = Y->n; i < X->n; i++) {
+            X->p[i] = mbedtls_ct_mpi_uint_if_else_0(do_not_assign, X->p[i]);
+        }
     }
 
 cleanup:

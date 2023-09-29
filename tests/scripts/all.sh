@@ -3934,84 +3934,98 @@ component_build_tfm() {
     make lib CC="gcc" CFLAGS="-Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wformat-signedness -Wlogical-op -I../tests/include/spe"
 }
 
-component_build_aes_variations() { # ~7m
+component_build_aes_variations() {
+    # 1m40 - around 90ms per clang invocation on M1 Pro
+    #
     # aes.o has many #if defined(...) guards that intersect in complex ways.
     # Test that all the combinations build cleanly. The most common issue is
     # unused variables/functions, so ensure -Wunused is set.
 
     msg "build: aes.o for all combinations of relevant config options"
 
+    WARNING_FLAGS="-Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused"
+
     # check to see if we can enable MBEDTLS_AES_USE_HARDWARE_ONLY - require
     # Linux (so we can check for CPU flags)
     if [[ "$OSTYPE" == "linux-gnu" ]]; then
         # Runtime detection is supported on Linux, so it's safe to set these here
-        AESNI_OPTIONS="set unset"
-        AESCE_OPTIONS="set unset"
+        AESNI_OPTIONS="0 1"
+        AESCE_OPTIONS="0 1"
     else
         # otherwise leave them unset
-        AESNI_OPTIONS="unset"
-        AESCE_OPTIONS="unset"
+        AESNI_OPTIONS="0"
+        AESCE_OPTIONS="0"
     fi
 
-    for a in set unset; do
-    for b in set unset; do
-    for c in set unset; do
-    for d in set unset; do
-    for e in set unset; do
-    for f in set unset; do
-    for g in set unset; do
-    for h in set unset; do
-    for i in ${AESNI_OPTIONS}; do
-    for j in ${AESCE_OPTIONS}; do
-    for k in set unset; do
-        if [[ "$h" == "set" ]]; then
-            if [[ !(("$HOSTTYPE" == "aarch64" && "$j" == "set") || ("$HOSTTYPE" == "x86_64" && "$i" == "set")) ]]; then
+    # clear all the variables, so that we can individually set them via clang
+    for x in "MBEDTLS_AES_SETKEY_ENC_ALT" "MBEDTLS_AES_DECRYPT_ALT" "MBEDTLS_AES_ROM_TABLES" \
+             "MBEDTLS_AES_ENCRYPT_ALT" "MBEDTLS_AES_SETKEY_DEC_ALT" "MBEDTLS_AES_FEWER_TABLES" \
+             "MBEDTLS_PADLOCK_C" "MBEDTLS_AES_USE_HARDWARE_ONLY" "MBEDTLS_AESNI_C" "MBEDTLS_AESCE_C" \
+             "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"; do
+        echo  ./scripts/config.py unset ${x}
+        ./scripts/config.py unset ${x}
+    done
+
+    FAILED=0
+
+    for a in 0 1; do [[ $a == 0 ]] && A="" || A="-DMBEDTLS_AES_SETKEY_ENC_ALT"
+    for b in 0 1; do [[ $b == 0 ]] && B="" || B="-DMBEDTLS_AES_DECRYPT_ALT"
+    for c in 0 1; do [[ $c == 0 ]] && C="" || C="-DMBEDTLS_AES_ROM_TABLES"
+    for d in 0 1; do [[ $d == 0 ]] && D="" || D="-DMBEDTLS_AES_ENCRYPT_ALT"
+    for e in 0 1; do [[ $e == 0 ]] && E="" || E="-DMBEDTLS_AES_SETKEY_DEC_ALT"
+    for f in 0 1; do [[ $f == 0 ]] && F="" || F="-DMBEDTLS_AES_FEWER_TABLES"
+    for g in 0 1; do [[ $g == 0 ]] && G="" || G="-DMBEDTLS_PADLOCK_C"
+    for h in 0 1; do [[ $h == 0 ]] && H="" || H="-DMBEDTLS_AES_USE_HARDWARE_ONLY"
+    for i in $AESNI_OPTIONS; do [[ $i == 0 ]] && I="" || I="-DMBEDTLS_AESNI_C"
+    for j in $AESCE_OPTIONS; do [[ $j == 0 ]] && J="" || J="-DMBEDTLS_AESCE_C"
+    for k in 0 1; do [[ $k == 0 ]] && K="" || K="-DMBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"
+
+        # skip invalid combinations
+        if [[ $h -eq 1 ]]; then
+            if [[ !(("$HOSTTYPE" == "aarch64" && $j -eq 1) || ("$HOSTTYPE" == "x86_64" && $i -eq 1)) ]]; then
                 # MBEDTLS_AES_USE_HARDWARE_ONLY requires hw acceleration for the target platform
                 continue
             fi
-            if [[ "$g" == "set" ]]; then
+            if [[ $g -eq 1 ]]; then
                 # MBEDTLS_AES_USE_HARDWARE_ONLY and MBEDTLS_PADLOCK_C is not supported
                 continue
             fi
         fi
 
-        echo ./scripts/config.py $a MBEDTLS_AES_SETKEY_ENC_ALT
-        echo ./scripts/config.py $b MBEDTLS_AES_DECRYPT_ALT
-        echo ./scripts/config.py $c MBEDTLS_AES_ROM_TABLES
-        echo ./scripts/config.py $d MBEDTLS_AES_ENCRYPT_ALT
-        echo ./scripts/config.py $e MBEDTLS_AES_SETKEY_DEC_ALT
-        echo ./scripts/config.py $f MBEDTLS_AES_FEWER_TABLES
-        echo ./scripts/config.py $g MBEDTLS_PADLOCK_C
-        echo ./scripts/config.py $h MBEDTLS_AES_USE_HARDWARE_ONLY
-        echo ./scripts/config.py $i MBEDTLS_AESNI_C
-        echo ./scripts/config.py $j MBEDTLS_AESCE_C
-        echo ./scripts/config.py $k MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
+        # Check syntax only, for speed
+        # Capture failures and continue, but hide successes to avoid spamming the log with 2^11 combinations
+        CMD_FAILED=0
+        cmd="clang $A $B $C $D $E $F $G $H $I $J $K -fsyntax-only library/aes.c -Iinclude -std=c99 $WARNING_FLAGS"
+        $cmd || CMD_FAILED=1
 
-        ./scripts/config.py $a MBEDTLS_AES_SETKEY_ENC_ALT
-        ./scripts/config.py $b MBEDTLS_AES_DECRYPT_ALT
-        ./scripts/config.py $c MBEDTLS_AES_ROM_TABLES
-        ./scripts/config.py $d MBEDTLS_AES_ENCRYPT_ALT
-        ./scripts/config.py $e MBEDTLS_AES_SETKEY_DEC_ALT
-        ./scripts/config.py $f MBEDTLS_AES_FEWER_TABLES
-        ./scripts/config.py $g MBEDTLS_PADLOCK_C
-        ./scripts/config.py $h MBEDTLS_AES_USE_HARDWARE_ONLY
-        ./scripts/config.py $i MBEDTLS_AESNI_C
-        ./scripts/config.py $j MBEDTLS_AESCE_C
-        ./scripts/config.py $k MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
+        if [[ $CMD_FAILED -eq 1 ]]; then
+            FAILED=1
+            echo "Failed: $cmd"
+            echo $a MBEDTLS_AES_SETKEY_ENC_ALT
+            echo $b MBEDTLS_AES_DECRYPT_ALT
+            echo $c MBEDTLS_AES_ROM_TABLES
+            echo $d MBEDTLS_AES_ENCRYPT_ALT
+            echo $e MBEDTLS_AES_SETKEY_DEC_ALT
+            echo $f MBEDTLS_AES_FEWER_TABLES
+            echo $g MBEDTLS_PADLOCK_C
+            echo $h MBEDTLS_AES_USE_HARDWARE_ONLY
+            echo $i MBEDTLS_AESNI_C
+            echo $j MBEDTLS_AESCE_C
+            echo $k MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
+        fi
+    done
+    done
+    done
+    done
+    done
+    done
+    done
+    done
+    done
+    done
+    done
 
-        rm -f library/aes.o
-        make -C library aes.o CC="clang" CFLAGS="-O0 -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused"
-    done
-    done
-    done
-    done
-    done
-    done
-    done
-    done
-    done
-    done
-    done
+    [[ $FAILED -eq 1 ]] && false # fail if any combination failed
 }
 
 component_test_no_platform () {

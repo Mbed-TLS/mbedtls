@@ -2733,11 +2733,6 @@ static inline psa_status_t psa_driver_wrapper_pake_output(
     size_t output_size,
     size_t *output_length )
 {
-    (void) step;
-    (void) output;
-    (void) output_size;
-    (void) output_length;
-
     switch( operation->id )
     {
 #if defined(MBEDTLS_PSA_BUILTIN_PAKE)
@@ -2755,6 +2750,10 @@ static inline psa_status_t psa_driver_wrapper_pake_output(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
         default:
+            (void) step;
+            (void) output;
+            (void) output_size;
+            (void) output_length;
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 }

@@ -57,6 +57,8 @@ class ConstantNames:
 
         The filename must be relative to the Mbed TLS root directory.
         """
+        # We need a path with slashes, but we might be getting a Windows path.
+        filename = filename.replace('\\', '/')
         filename = re.sub(self.STRIP_INCLUDE_PREFIX_RE, '', filename)
         self.headers.add(filename)
 

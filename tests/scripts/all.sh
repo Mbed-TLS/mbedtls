@@ -3934,7 +3934,7 @@ component_build_tfm() {
     make lib CC="gcc" CFLAGS="-Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wformat-signedness -Wlogical-op -I../tests/include/spe"
 }
 
-component_build_aes_variations() { # 3m20s
+component_build_aes_variations() { # ~7m
     # aes.o has many #if defined(...) guards that intersect in complex ways.
     # Test that all the combinations build cleanly. The most common issue is
     # unused variables/functions, so ensure -Wunused is set.
@@ -3963,6 +3963,7 @@ component_build_aes_variations() { # 3m20s
     for h in set unset; do
     for i in ${AESNI_OPTIONS}; do
     for j in ${AESCE_OPTIONS}; do
+    for k in set unset; do
         if [[ "$h" == "set" ]]; then
             if [[ !(("$HOSTTYPE" == "aarch64" && "$j" == "set") || ("$HOSTTYPE" == "x86_64" && "$i" == "set")) ]]; then
                 # MBEDTLS_AES_USE_HARDWARE_ONLY requires hw acceleration for the target platform
@@ -3984,6 +3985,7 @@ component_build_aes_variations() { # 3m20s
         echo ./scripts/config.py $h MBEDTLS_AES_USE_HARDWARE_ONLY
         echo ./scripts/config.py $i MBEDTLS_AESNI_C
         echo ./scripts/config.py $j MBEDTLS_AESCE_C
+        echo ./scripts/config.py $k MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 
         ./scripts/config.py $a MBEDTLS_AES_SETKEY_ENC_ALT
         ./scripts/config.py $b MBEDTLS_AES_DECRYPT_ALT
@@ -3995,9 +3997,11 @@ component_build_aes_variations() { # 3m20s
         ./scripts/config.py $h MBEDTLS_AES_USE_HARDWARE_ONLY
         ./scripts/config.py $i MBEDTLS_AESNI_C
         ./scripts/config.py $j MBEDTLS_AESCE_C
+        ./scripts/config.py $k MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 
         rm -f library/aes.o
         make -C library aes.o CC="clang" CFLAGS="-O0 -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused"
+    done
     done
     done
     done

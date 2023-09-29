@@ -4016,10 +4016,9 @@ component_build_aes_variations() {
 
     echo "all: ${DEPS}" >> $MAKEFILE
 
-    MAKEFILE_CONTENT=`cat $MAKEFILE`
-    rm ${MAKEFILE}
     NCPUS=$(lscpu -p|tail -n1|sed 's/,.*//')
-    echo $MAKEFILE_CONTENT | make --quiet -j$((NCPUS * 2)) -f ${MAKEFILE} all
+    make --quiet -j$((NCPUS * 2)) -f ${MAKEFILE} all
+    rm ${MAKEFILE}
 }
 
 component_test_no_platform () {

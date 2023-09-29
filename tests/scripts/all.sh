@@ -3935,7 +3935,7 @@ component_build_tfm() {
 }
 
 component_build_aes_variations() {
-    # 1m40 - around 90ms per clang invocation on M1 Pro
+    # 18s - around 90ms per clang invocation on M1 Pro
     #
     # aes.o has many #if defined(...) guards that intersect in complex ways.
     # Test that all the combinations build cleanly. The most common issue is
@@ -3962,11 +3962,11 @@ component_build_aes_variations() {
              "MBEDTLS_AES_ENCRYPT_ALT" "MBEDTLS_AES_SETKEY_DEC_ALT" "MBEDTLS_AES_FEWER_TABLES" \
              "MBEDTLS_PADLOCK_C" "MBEDTLS_AES_USE_HARDWARE_ONLY" "MBEDTLS_AESNI_C" "MBEDTLS_AESCE_C" \
              "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"; do
-        echo  ./scripts/config.py unset ${x}
         ./scripts/config.py unset ${x}
     done
 
-    FAILED=0
+    MAKEFILE=$(mktemp)
+    DEPS=""
 
     for a in 0 1; do [[ $a == 0 ]] && A="" || A="-DMBEDTLS_AES_SETKEY_ENC_ALT"
     for b in 0 1; do [[ $b == 0 ]] && B="" || B="-DMBEDTLS_AES_DECRYPT_ALT"
@@ -3996,23 +3996,12 @@ component_build_aes_variations() {
         # Capture failures and continue, but hide successes to avoid spamming the log with 2^11 combinations
         CMD_FAILED=0
         cmd="clang $A $B $C $D $E $F $G $H $I $J $K -fsyntax-only library/aes.c -Iinclude -std=c99 $WARNING_FLAGS"
-        $cmd || CMD_FAILED=1
 
-        if [[ $CMD_FAILED -eq 1 ]]; then
-            FAILED=1
-            echo "Failed: $cmd"
-            echo $a MBEDTLS_AES_SETKEY_ENC_ALT
-            echo $b MBEDTLS_AES_DECRYPT_ALT
-            echo $c MBEDTLS_AES_ROM_TABLES
-            echo $d MBEDTLS_AES_ENCRYPT_ALT
-            echo $e MBEDTLS_AES_SETKEY_DEC_ALT
-            echo $f MBEDTLS_AES_FEWER_TABLES
-            echo $g MBEDTLS_PADLOCK_C
-            echo $h MBEDTLS_AES_USE_HARDWARE_ONLY
-            echo $i MBEDTLS_AESNI_C
-            echo $j MBEDTLS_AESCE_C
-            echo $k MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
-        fi
+        TARGET="t$a$b$c$d$e$f$g$h$i$j$k"
+        echo "${TARGET}:" >> $MAKEFILE
+        echo -e "\t$cmd" >> $MAKEFILE
+        echo >> $MAKEFILE
+        DEPS="${DEPS} ${TARGET}"
     done
     done
     done
@@ -4025,7 +4014,12 @@ component_build_aes_variations() {
     done
     done
 
-    [[ $FAILED -eq 1 ]] && false # fail if any combination failed
+    echo "all: ${DEPS}" >> $MAKEFILE
+
+    MAKEFILE_CONTENT=`cat $MAKEFILE`
+    rm ${MAKEFILE}
+    NCPUS=$(lscpu -p|tail -n1|sed 's/,.*//')
+    echo $MAKEFILE_CONTENT | make --quiet -j$((NCPUS * 2)) -f ${MAKEFILE} all
 }
 
 component_test_no_platform () {

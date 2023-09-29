@@ -19,6 +19,7 @@
 #include <test/helpers.h>
 #include <test/macros.h>
 #include <test/value_names.h>
+#include <limits.h>
 #include <string.h>
 
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
@@ -219,11 +220,35 @@ static value_category_t guess_value_category(const char *code)
 static const char *get_value_name(value_category_t category,
                                   unsigned long long value)
 {
+    /* Naively, this would be `signed_value = value`. But do it carefully to
+     * avoid allowing implementation-defined behavior such as trapping on
+     * overflow. */
+    long long signed_value;
+    if (value <= LLONG_MAX) {
+        signed_value = value;
+    } else if (value >= (unsigned long long) LLONG_MIN) {
+        signed_value = value - ULLONG_MAX - 1;
+    } else {
+        /* Can't happen on architectures where signed integers are two's
+         * complement with no trap representations. */
+        return NULL;
+    }
+
     switch (category) {
         case VALUE_CATEGORY_error:
-            return mbedtls_test_get_name_of_error(value);
+            if (signed_value >= INT_MIN && signed_value <= INT_MAX) {
+                return mbedtls_test_get_name_of_error((int) value);
+            } else {
+                return NULL;
+            }
+            break;
         case VALUE_CATEGORY_psa_status_t:
-            return mbedtls_test_get_name_of_psa_status_t(value);
+            if (signed_value >= -0x80000000LL && signed_value <= 0x7fffffffLL) {
+                return mbedtls_test_get_name_of_psa_status_t((psa_status_t) signed_value);
+            } else {
+                return NULL;
+            }
+            break;
         default:
             return NULL;
     }

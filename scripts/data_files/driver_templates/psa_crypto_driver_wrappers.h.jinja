@@ -492,7 +492,8 @@ static inline uint32_t psa_driver_wrapper_sign_hash_get_num_ops(
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
     }
 
-    return( PSA_ERROR_INVALID_ARGUMENT );
+    /* Can't happen (see discussion in #8271) */
+    return 0;
 }
 
 static inline uint32_t psa_driver_wrapper_verify_hash_get_num_ops(
@@ -516,7 +517,8 @@ static inline uint32_t psa_driver_wrapper_verify_hash_get_num_ops(
 
     }
 
-    return( PSA_ERROR_INVALID_ARGUMENT );
+    /* Can't happen (see discussion in #8271) */
+    return 0;
 }
 
 static inline psa_status_t psa_driver_wrapper_sign_hash_start(

@@ -525,15 +525,7 @@ static inline psa_status_t psa_driver_wrapper_sign_hash_start(
     size_t key_buffer_size, psa_algorithm_t alg,
     const uint8_t *hash, size_t hash_length )
 {
-    ( void ) operation;
-    ( void ) key_buffer;
-    ( void ) key_buffer_size;
-    ( void ) alg;
-    ( void ) hash;
-    ( void ) hash_length;
-
-    psa_key_location_t location =
-                                  PSA_KEY_LIFETIME_GET_LOCATION(
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(
                                                     attributes->core.lifetime );
 
     switch( location )
@@ -621,15 +613,6 @@ static inline psa_status_t psa_driver_wrapper_verify_hash_start(
     const uint8_t *hash, size_t hash_length,
     const uint8_t *signature, size_t signature_length )
 {
-    ( void ) operation;
-    ( void ) key_buffer;
-    ( void ) key_buffer_size;
-    ( void ) alg;
-    ( void ) hash;
-    ( void ) hash_length;
-    ( void ) signature;
-    ( void ) signature_length;
-
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(
                                                     attributes->core.lifetime );
 
@@ -2739,8 +2722,6 @@ static inline psa_status_t psa_driver_wrapper_pake_setup(
         default:
             /* Key is declared with a lifetime not known to us */
             (void)operation;
-            (void)inputs;
-            (void)status;
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 }

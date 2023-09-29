@@ -1,3 +1,5 @@
 Features
-   * Add a driver dispatch layer for FFDH keys, enabling alternative
+   * Add support for the FFDH algorithm and DH key types in PSA, with
+     parameters from RFC 7919. This includes a built-in implementation based
+     on MBEDTLS_BIGNUM_C, and a driver dispatch layer enabling alternative
      implementations of FFDH through the driver entry points.

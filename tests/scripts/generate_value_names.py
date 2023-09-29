@@ -49,11 +49,15 @@ class ConstantNames:
         for category in self.MACRO_PREFIXES.values():
             self.macros.setdefault(category, set())
 
+    # Prefix to strip to go from a relative file path to an include path.
+    STRIP_INCLUDE_PREFIX_RE = re.compile(r'include/')
+
     def register_include(self, filename: str) -> None:
-        """Register a header to include for value definitions."""
-        if '/config' in filename:
-            # Skip config-related files: they can't be included directly.
-            return
+        """Register a header to include for value definitions.
+
+        The filename must be relative to the Mbed TLS root directory.
+        """
+        filename = re.sub(self.STRIP_INCLUDE_PREFIX_RE, '', filename)
         self.headers.add(filename)
 
     # Match a macro definition with one of the recognized prefixes.
@@ -62,12 +66,17 @@ class ConstantNames:
             '|'.join(MACRO_PREFIXES.keys())
         ), re.A)
 
-    def collect_line(self, line: str) -> None:
-        """Collect constant names from the specified line, if any."""
+    def collect_line(self, line: str) -> bool:
+        """Collect constant names from the specified line, if any.
+
+        Return True if something was collected, otherwise False.
+        """
         m = self.MACRO_DEFINITION_RE.match(line)
         if m:
             category = self.MACRO_PREFIXES[m.group(2)]
             self.macros[category].add(m.group(1))
+            return True
+        return False
 
     # Match the printable ASCII bytes at the beginning of a byte string
     ASCII_BYTES_RE = re.compile(rb'[ -~]+')
@@ -77,7 +86,8 @@ class ConstantNames:
         for line_bytes in open(filename, 'rb'):
             m = self.ASCII_BYTES_RE.match(line_bytes)
             if m:
-                self.collect_line(m.group(0).decode('ascii'))
+                if self.collect_line(m.group(0).decode('ascii')):
+                    self.register_include(filename)
 
     def write_code_header(self, out: typing_util.Writable) -> None:
         out.write("""\
@@ -122,6 +132,8 @@ const char *mbedtls_test_get_name_of_{}({} value) {{
                 self.write_macro_type(out, type_name, value_names)
             self.write_code_footer(out)
 
+CONFIG_HEADER_RE = re.compile(r'[^A-Za-z0-9]config[^A-Za-z0-9]', re.A)
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', '-o', metavar='FILE',
@@ -131,7 +143,12 @@ def main() -> None:
     build_tree.chdir_to_root()
     constant_names = ConstantNames()
     for filename in glob.glob('include/*/*.h'):
-        constant_names.register_include(filename[filename.find('/')+1:])
+        # Skip configuration-related headers. They can't be included directly.
+        # They don't contain names we currently care about, so that's ok.
+        # If this code later needs configuration symbols, we should just
+        # include all non-config headers.
+        if re.search(CONFIG_HEADER_RE, filename):
+            continue
         constant_names.collect_from_file(filename)
     constant_names.write_code(options.output)
 

@@ -42,6 +42,7 @@
 #endif
 #endif
 
+#if defined(MBEDTLS_ARCH_IS_X86)
 #if defined(MBEDTLS_PADLOCK_C)
 #if !defined(MBEDTLS_HAVE_ASM)
 #error "MBEDTLS_PADLOCK_C defined, but not all prerequisites"

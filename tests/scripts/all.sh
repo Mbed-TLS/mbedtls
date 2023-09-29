@@ -3934,12 +3934,24 @@ component_build_tfm() {
     make lib CC="gcc" CFLAGS="-Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wformat-signedness -Wlogical-op -I../tests/include/spe"
 }
 
-component_build_aes_variations() { # ~45s
+component_build_aes_variations() { # 3m20s
     # aes.o has many #if defined(...) guards that intersect in complex ways.
     # Test that all the combinations build cleanly. The most common issue is
     # unused variables/functions, so ensure -Wunused is set.
 
     msg "build: aes.o for all combinations of relevant config options"
+
+    # check to see if we can enable MBEDTLS_AES_USE_HARDWARE_ONLY - require
+    # Linux (so we can check for CPU flags)
+    if [[ "$OSTYPE" == "linux-gnu" ]]; then
+        # Runtime detection is supported on Linux, so it's safe to set these here
+        AESNI_OPTIONS="set unset"
+        AESCE_OPTIONS="set unset"
+    else
+        # otherwise leave them unset
+        AESNI_OPTIONS="unset"
+        AESCE_OPTIONS="unset"
+    fi
 
     for a in set unset; do
     for b in set unset; do
@@ -3948,6 +3960,20 @@ component_build_aes_variations() { # ~45s
     for e in set unset; do
     for f in set unset; do
     for g in set unset; do
+    for h in set unset; do
+    for i in ${AESNI_OPTIONS}; do
+    for j in ${AESCE_OPTIONS}; do
+        if [[ "$h" == "set" ]]; then
+            if [[ !(("$HOSTTYPE" == "aarch64" && "$j" == "set") || ("$HOSTTYPE" == "x86_64" && "$i" == "set")) ]]; then
+                # MBEDTLS_AES_USE_HARDWARE_ONLY requires hw acceleration for the target platform
+                continue
+            fi
+            if [[ "$g" == "set" ]]; then
+                # MBEDTLS_AES_USE_HARDWARE_ONLY and MBEDTLS_PADLOCK_C is not supported
+                continue
+            fi
+        fi
+
         echo ./scripts/config.py $a MBEDTLS_AES_SETKEY_ENC_ALT
         echo ./scripts/config.py $b MBEDTLS_AES_DECRYPT_ALT
         echo ./scripts/config.py $c MBEDTLS_AES_ROM_TABLES
@@ -3955,6 +3981,9 @@ component_build_aes_variations() { # ~45s
         echo ./scripts/config.py $e MBEDTLS_AES_SETKEY_DEC_ALT
         echo ./scripts/config.py $f MBEDTLS_AES_FEWER_TABLES
         echo ./scripts/config.py $g MBEDTLS_PADLOCK_C
+        echo ./scripts/config.py $h MBEDTLS_AES_USE_HARDWARE_ONLY
+        echo ./scripts/config.py $i MBEDTLS_AESNI_C
+        echo ./scripts/config.py $j MBEDTLS_AESCE_C
 
         ./scripts/config.py $a MBEDTLS_AES_SETKEY_ENC_ALT
         ./scripts/config.py $b MBEDTLS_AES_DECRYPT_ALT
@@ -3963,9 +3992,15 @@ component_build_aes_variations() { # ~45s
         ./scripts/config.py $e MBEDTLS_AES_SETKEY_DEC_ALT
         ./scripts/config.py $f MBEDTLS_AES_FEWER_TABLES
         ./scripts/config.py $g MBEDTLS_PADLOCK_C
+        ./scripts/config.py $h MBEDTLS_AES_USE_HARDWARE_ONLY
+        ./scripts/config.py $i MBEDTLS_AESNI_C
+        ./scripts/config.py $j MBEDTLS_AESCE_C
 
         rm -f library/aes.o
         make -C library aes.o CC="clang" CFLAGS="-O0 -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused"
+    done
+    done
+    done
     done
     done
     done

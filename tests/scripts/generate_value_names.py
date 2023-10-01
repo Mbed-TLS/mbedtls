@@ -130,8 +130,8 @@ const char *mbedtls_test_get_name_of_{}({} value) {{
         """Write a C file that defines functions to get value names."""
         with open(filename, 'w') as out:
             self.write_code_header(out)
-            for type_name, value_names in self.macros.items():
-                self.write_macro_type(out, type_name, value_names)
+            for type_name in sorted(self.macros):
+                self.write_macro_type(out, type_name, self.macros[type_name])
             self.write_code_footer(out)
 
 CONFIG_HEADER_RE = re.compile(r'[^A-Za-z0-9]config[^A-Za-z0-9]', re.A)

@@ -3949,12 +3949,12 @@ component_build_aes_variations() {
     # Linux (so we can check for CPU flags)
     if [[ "$OSTYPE" == "linux-gnu" ]]; then
         # Runtime detection is supported on Linux, so it's safe to set these here
-        AESNI_OPTIONS="0 1"
-        AESCE_OPTIONS="0 1"
+        AESNI_OPTIONS=("" "-DMBEDTLS_AESNI_C")
+        AESCE_OPTIONS=("" "-DMBEDTLS_AESCE_C")
     else
         # otherwise leave them unset
-        AESNI_OPTIONS="0"
-        AESCE_OPTIONS="0"
+        AESNI_OPTIONS=("")
+        AESCE_OPTIONS=("")
     fi
 
     # clear all the variables, so that we can individually set them via clang
@@ -3968,25 +3968,25 @@ component_build_aes_variations() {
     MAKEFILE=$(mktemp)
     DEPS=""
 
-    for a in 0 1; do [[ $a == 0 ]] && A="" || A="-DMBEDTLS_AES_SETKEY_ENC_ALT"
-    for b in 0 1; do [[ $b == 0 ]] && B="" || B="-DMBEDTLS_AES_DECRYPT_ALT"
-    for c in 0 1; do [[ $c == 0 ]] && C="" || C="-DMBEDTLS_AES_ROM_TABLES"
-    for d in 0 1; do [[ $d == 0 ]] && D="" || D="-DMBEDTLS_AES_ENCRYPT_ALT"
-    for e in 0 1; do [[ $e == 0 ]] && E="" || E="-DMBEDTLS_AES_SETKEY_DEC_ALT"
-    for f in 0 1; do [[ $f == 0 ]] && F="" || F="-DMBEDTLS_AES_FEWER_TABLES"
-    for g in 0 1; do [[ $g == 0 ]] && G="" || G="-DMBEDTLS_PADLOCK_C"
-    for h in 0 1; do [[ $h == 0 ]] && H="" || H="-DMBEDTLS_AES_USE_HARDWARE_ONLY"
-    for i in $AESNI_OPTIONS; do [[ $i == 0 ]] && I="" || I="-DMBEDTLS_AESNI_C"
-    for j in $AESCE_OPTIONS; do [[ $j == 0 ]] && J="" || J="-DMBEDTLS_AESCE_C"
-    for k in 0 1; do [[ $k == 0 ]] && K="" || K="-DMBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"
+    for a in "" "-DMBEDTLS_AES_SETKEY_ENC_ALT"; do
+    for b in "" "-DMBEDTLS_AES_DECRYPT_ALT"; do
+    for c in "" "-DMBEDTLS_AES_ROM_TABLES"; do
+    for d in "" "-DMBEDTLS_AES_ENCRYPT_ALT"; do
+    for e in "" "-DMBEDTLS_AES_SETKEY_DEC_ALT"; do
+    for f in "" "-DMBEDTLS_AES_FEWER_TABLES"; do
+    for g in "" "-DMBEDTLS_PADLOCK_C"; do
+    for h in "" "-DMBEDTLS_AES_USE_HARDWARE_ONLY"; do
+    for i in "${AESNI_OPTIONS[@]}"; do
+    for j in "${AESCE_OPTIONS[@]}"; do
+    for k in "" "-DMBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"; do
 
         # skip invalid combinations
-        if [[ $h -eq 1 ]]; then
-            if [[ !(("$HOSTTYPE" == "aarch64" && $j -eq 1) || ("$HOSTTYPE" == "x86_64" && $i -eq 1)) ]]; then
+        if [[ "$h" != "" ]]; then
+            if [[ !(("$HOSTTYPE" == "aarch64" && "$j" != "") || ("$HOSTTYPE" == "x86_64" && "$i" != "")) ]]; then
                 # MBEDTLS_AES_USE_HARDWARE_ONLY requires hw acceleration for the target platform
                 continue
             fi
-            if [[ $g -eq 1 ]]; then
+            if [[ "$g" != "" ]]; then
                 # MBEDTLS_AES_USE_HARDWARE_ONLY and MBEDTLS_PADLOCK_C is not supported
                 continue
             fi
@@ -3995,7 +3995,7 @@ component_build_aes_variations() {
         # Check syntax only, for speed
         # Capture failures and continue, but hide successes to avoid spamming the log with 2^11 combinations
         CMD_FAILED=0
-        cmd="clang $A $B $C $D $E $F $G $H $I $J $K -fsyntax-only library/aes.c -Iinclude -std=c99 $WARNING_FLAGS"
+        cmd="clang $a $b $c $d $e $f $g $h $i $j $k -fsyntax-only library/aes.c -Iinclude -std=c99 $WARNING_FLAGS"
 
         TARGET="t$a$b$c$d$e$f$g$h$i$j$k"
         echo "${TARGET}:" >> $MAKEFILE
@@ -4016,8 +4016,7 @@ component_build_aes_variations() {
 
     echo "all: ${DEPS}" >> $MAKEFILE
 
-    NCPUS=$(lscpu -p|tail -n1|sed 's/,.*//')
-    make --quiet -j$((NCPUS * 2)) -f ${MAKEFILE} all
+    make --quiet -f ${MAKEFILE} all
     rm ${MAKEFILE}
 }
 

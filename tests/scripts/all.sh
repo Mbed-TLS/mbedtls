@@ -3945,18 +3945,6 @@ component_build_aes_variations() {
 
     WARNING_FLAGS="-Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused"
 
-    # check to see if we can enable MBEDTLS_AES_USE_HARDWARE_ONLY - require
-    # Linux (so we can check for CPU flags)
-    if [[ "$OSTYPE" == "linux-gnu" ]]; then
-        # Runtime detection is supported on Linux, so it's safe to set these here
-        AESNI_OPTIONS=("" "-DMBEDTLS_AESNI_C")
-        AESCE_OPTIONS=("" "-DMBEDTLS_AESCE_C")
-    else
-        # otherwise leave them unset
-        AESNI_OPTIONS=("")
-        AESCE_OPTIONS=("")
-    fi
-
     # clear all the variables, so that we can individually set them via clang
     for x in "MBEDTLS_AES_SETKEY_ENC_ALT" "MBEDTLS_AES_DECRYPT_ALT" "MBEDTLS_AES_ROM_TABLES" \
              "MBEDTLS_AES_ENCRYPT_ALT" "MBEDTLS_AES_SETKEY_DEC_ALT" "MBEDTLS_AES_FEWER_TABLES" \
@@ -3976,8 +3964,8 @@ component_build_aes_variations() {
     for f in "" "-DMBEDTLS_AES_FEWER_TABLES"; do
     for g in "" "-DMBEDTLS_PADLOCK_C"; do
     for h in "" "-DMBEDTLS_AES_USE_HARDWARE_ONLY"; do
-    for i in "${AESNI_OPTIONS[@]}"; do
-    for j in "${AESCE_OPTIONS[@]}"; do
+    for i in "" "-DMBEDTLS_AESNI_C"; do
+    for j in "" "-DMBEDTLS_AESCE_C"; do
     for k in "" "-DMBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"; do
 
         # skip invalid combinations

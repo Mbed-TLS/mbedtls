@@ -3934,78 +3934,92 @@ component_build_tfm() {
     make lib CC="gcc" CFLAGS="-Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wformat-signedness -Wlogical-op -I../tests/include/spe"
 }
 
-component_build_aes_variations() {
-    # 18s - around 90ms per clang invocation on M1 Pro
-    #
-    # aes.o has many #if defined(...) guards that intersect in complex ways.
-    # Test that all the combinations build cleanly. The most common issue is
-    # unused variables/functions, so ensure -Wunused is set.
+build_test_config_combos() {
+    # test that the given file builds with all (valid) combinations of the given options.
+    # syntax: build_test_config_combos FILE VALIDATOR_FUNCTION OPT1 OPT2 ...
+    # The validator function may be "" if all combinations are valid
 
-    msg "build: aes.o for all combinations of relevant config options"
+    FILE=$1
+    shift
+    # this function must echo something iff the clang "-DA -DB ..." string is invalid
+    VALIDATE_OPTIONS=$1
+    shift
+    OPTIONS=("$@")
 
+    # The most common issue is unused variables/functions, so ensure -Wunused is set.
     WARNING_FLAGS="-Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused"
-
-    # clear all the variables, so that we can individually set them via clang
-    for x in "MBEDTLS_AES_SETKEY_ENC_ALT" "MBEDTLS_AES_DECRYPT_ALT" "MBEDTLS_AES_ROM_TABLES" \
-             "MBEDTLS_AES_ENCRYPT_ALT" "MBEDTLS_AES_SETKEY_DEC_ALT" "MBEDTLS_AES_FEWER_TABLES" \
-             "MBEDTLS_PADLOCK_C" "MBEDTLS_AES_USE_HARDWARE_ONLY" "MBEDTLS_AESNI_C" "MBEDTLS_AESCE_C" \
-             "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"; do
-        ./scripts/config.py unset ${x}
-    done
 
     MAKEFILE=$(mktemp)
     DEPS=""
 
-    for a in "" "-DMBEDTLS_AES_SETKEY_ENC_ALT"; do
-    for b in "" "-DMBEDTLS_AES_DECRYPT_ALT"; do
-    for c in "" "-DMBEDTLS_AES_ROM_TABLES"; do
-    for d in "" "-DMBEDTLS_AES_ENCRYPT_ALT"; do
-    for e in "" "-DMBEDTLS_AES_SETKEY_DEC_ALT"; do
-    for f in "" "-DMBEDTLS_AES_FEWER_TABLES"; do
-    for g in "" "-DMBEDTLS_PADLOCK_C"; do
-    for h in "" "-DMBEDTLS_AES_USE_HARDWARE_ONLY"; do
-    for i in "" "-DMBEDTLS_AESNI_C"; do
-    for j in "" "-DMBEDTLS_AESCE_C"; do
-    for k in "" "-DMBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"; do
+    LEN=${#OPTIONS[@]}
 
-        # skip invalid combinations
-        if [[ "$h" != "" ]]; then
-            if [[ !(("$HOSTTYPE" == "aarch64" && "$j" != "") || ("$HOSTTYPE" == "x86_64" && "$i" != "")) ]]; then
-                # MBEDTLS_AES_USE_HARDWARE_ONLY requires hw acceleration for the target platform
-                continue
-            fi
-            if [[ "$g" != "" ]]; then
-                # MBEDTLS_AES_USE_HARDWARE_ONLY and MBEDTLS_PADLOCK_C is not supported
-                continue
-            fi
+    for ((i = 0; i < $((2**${LEN})); i++)); do
+        # generate each of 2^n combinations of options
+        # each bit of $i is used to determine if OPTIONS[i] will be set or not
+        TARGET="t"
+        CLANG_ARGS=""
+        for ((j = 0; j < ${LEN}; j++)); do
+            OPT=${OPTIONS[j]}
+            X=$(((i >> j) & 1))
+            [[ $X == 0 ]] && OPT="" || OPT="-D${OPT}"
+            CLANG_ARGS="${CLANG_ARGS} ${OPT}"
+            TARGET="${TARGET}${OPT}"
+        done
+
+        # check that combination is not known to be invalid
+        INVALID=""
+        [[ "$VALIDATE_OPTIONS" != "" ]] && INVALID=$(${VALIDATE_OPTIONS} "${CLANG_ARGS}")
+
+        # if valid, add it to the makefile
+        if [[ "$INVALID" == "" ]]; then
+            cmd="clang ${CLANG_ARGS} -fsyntax-only ${FILE} -Iinclude -std=c99 $WARNING_FLAGS"
+            echo "${TARGET}:" >> ${MAKEFILE}
+            echo -e "\t$cmd" >> ${MAKEFILE}
+
+            DEPS="${DEPS} ${TARGET}"
         fi
-
-        # Check syntax only, for speed
-        # Capture failures and continue, but hide successes to avoid spamming the log with 2^11 combinations
-        CMD_FAILED=0
-        cmd="clang $a $b $c $d $e $f $g $h $i $j $k -fsyntax-only library/aes.c -Iinclude -std=c99 $WARNING_FLAGS"
-
-        TARGET="t$a$b$c$d$e$f$g$h$i$j$k"
-        echo "${TARGET}:" >> $MAKEFILE
-        echo -e "\t$cmd" >> $MAKEFILE
-        echo >> $MAKEFILE
-        DEPS="${DEPS} ${TARGET}"
-    done
-    done
-    done
-    done
-    done
-    done
-    done
-    done
-    done
-    done
     done
 
-    echo "all: ${DEPS}" >> $MAKEFILE
+    echo "all: ${DEPS}" >> ${MAKEFILE}
 
-    make --quiet -f ${MAKEFILE} all
+    # clear all of the options so that they can be overridden on the clang commandline
+    for OPT in "${OPTIONS[@]}"; do
+        ./scripts/config.py unset ${OPT}
+    done
+
+    # execute all of the commands via Make (probably in parallel)
+    make -s -f ${MAKEFILE} all
+
+    # clean up the temporary makefile
     rm ${MAKEFILE}
+}
+
+build_aes_variations_validate_combo() {
+    if [[ "$1" == *"MBEDTLS_AES_USE_HARDWARE_ONLY"* ]]; then
+        if [[ "$1" == *"MBEDTLS_PADLOCK_C"* ]]; then
+            echo 1
+        fi
+        if [[ !(("$HOSTTYPE" == "aarch64" && "$1" != *"MBEDTLS_AESCE_C"*) || \
+                ("$HOSTTYPE" == "x86_64"  && "$1" != *"MBEDTLS_AESNI_C"*)) ]]; then
+            echo 1
+        fi
+    fi
+}
+
+component_build_aes_variations() {
+    # 18s - around 90ms per clang invocation on M1 Pro
+    #
+    # aes.o has many #if defined(...) guards that intersect in complex ways.
+    # Test that all the combinations build cleanly.
+
+    msg "build: aes.o for all combinations of relevant config options"
+
+    build_test_config_combos library/aes.c build_aes_variations_validate_combo \
+        "MBEDTLS_AES_SETKEY_ENC_ALT" "MBEDTLS_AES_DECRYPT_ALT" \
+        "MBEDTLS_AES_ROM_TABLES" "MBEDTLS_AES_ENCRYPT_ALT" "MBEDTLS_AES_SETKEY_DEC_ALT" \
+        "MBEDTLS_AES_FEWER_TABLES" "MBEDTLS_PADLOCK_C" "MBEDTLS_AES_USE_HARDWARE_ONLY" \
+        "MBEDTLS_AESNI_C" "MBEDTLS_AESCE_C" "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"
 }
 
 component_test_no_platform () {

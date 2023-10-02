@@ -3995,7 +3995,7 @@ build_test_config_combos() {
     rm ${MAKEFILE}
 }
 
-build_aes_variations_validate_combo() {
+validate_aes_config_variations() {
     if [[ "$1" == *"MBEDTLS_AES_USE_HARDWARE_ONLY"* ]]; then
         if [[ "$1" == *"MBEDTLS_PADLOCK_C"* ]]; then
             echo 1
@@ -4015,7 +4015,7 @@ component_build_aes_variations() {
 
     msg "build: aes.o for all combinations of relevant config options"
 
-    build_test_config_combos library/aes.c build_aes_variations_validate_combo \
+    build_test_config_combos library/aes.c validate_aes_config_variations \
         "MBEDTLS_AES_SETKEY_ENC_ALT" "MBEDTLS_AES_DECRYPT_ALT" \
         "MBEDTLS_AES_ROM_TABLES" "MBEDTLS_AES_ENCRYPT_ALT" "MBEDTLS_AES_SETKEY_DEC_ALT" \
         "MBEDTLS_AES_FEWER_TABLES" "MBEDTLS_PADLOCK_C" "MBEDTLS_AES_USE_HARDWARE_ONLY" \

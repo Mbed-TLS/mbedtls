@@ -1,6 +1,8 @@
 Security
    * Fix a remotely exploitable heap buffer overflow in TLS handshake parsing.
-     In TLS 1.3, all configurations are affected except PSK-only ones.
+     In TLS 1.3, all configurations are affected except PSK-only ones, and
+     both clients and servers are affected.
      In TLS 1.2, the affected configurations are those with
-     MBEDTLS_USE_PSA_CRYPTO and ECDH enabled but DHM and RSA disabled.
+     MBEDTLS_USE_PSA_CRYPTO and ECDH enabled but DHM and RSA disabled,
+     and only servers are affected, not clients.
      Credit to OSS-Fuzz.

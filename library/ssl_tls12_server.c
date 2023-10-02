@@ -3737,7 +3737,6 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
         }
 
         /* Store peer's ECDH public key. */
-        MBEDTLS_SSL_DEBUG_MSG(3, ("data_len=%zu sizeof(handshake->xxdh_psa_peerkey)=%zu", data_len, sizeof(handshake->xxdh_psa_peerkey)));
         if (data_len > sizeof(handshake->xxdh_psa_peerkey)) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("Invalid public key length: %" MBEDTLS_PRINTF_SIZET
                                       " > %" MBEDTLS_PRINTF_SIZET,

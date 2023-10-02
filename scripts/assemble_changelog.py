@@ -60,6 +60,11 @@ class LostContent(Exception):
         message = ('Lost content from {}: "{}"'.format(filename, line))
         super().__init__(message)
 
+class FilePathError(Exception):
+    def __init__(self, filenames):
+        message = ('Changelog filenames do not end with .txt: {}'.format(", ".join(filenames)))
+        super().__init__(message)
+
 # The category names we use in the changelog.
 # If you edit this, update ChangeLog.d/README.md.
 STANDARD_CATEGORIES = (
@@ -450,14 +455,23 @@ def list_files_to_merge(options):
     files_to_merge.sort(key=EntryFileSortKey)
     return files_to_merge
 
+def check_extensions(options):
+    files = glob.glob(os.path.join(options.dir, '*'))
+    files = {x for x in files if not x.endswith(".txt")}
+    files.discard("ChangeLog.d/00README.md")
+    if files:
+        raise FilePathError(files)
+
 def merge_entries(options):
     """Merge changelog entries into the changelog file.
 
     Read the changelog file from options.input.
+    Check that all entries have a .txt extension
     Read entries to merge from the directory options.dir.
     Write the new changelog to options.output.
     Remove the merged entries if options.keep_entries is false.
     """
+    check_extensions(options)
     with open(options.input, 'r', encoding='utf-8') as input_file:
         changelog = ChangeLog(input_file, TextChangelogFormat)
     files_to_merge = list_files_to_merge(options)

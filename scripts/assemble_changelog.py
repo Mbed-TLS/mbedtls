@@ -450,17 +450,23 @@ def list_files_to_merge(options):
     """List the entry files to merge, oldest first.
 
     "Oldest" is defined by `EntryFileSortKey`.
+
+    Also check for required .txt extension
     """
-    files_to_merge = glob.glob(os.path.join(options.dir, '*.txt'))
+    files_to_merge = glob.glob(os.path.join(options.dir, '*'))
+
+    # Ignore 00README.md
+    readme = os.path.join(options.dir, "00README.md")
+    if readme in files_to_merge:
+        files_to_merge.remove(readme)
+
+    # Identify files without the required .txt extension
+    bad_files = [x for x in files_to_merge if not x.endswith(".txt")]
+    if bad_files:
+        raise FilePathError(bad_files)
+
     files_to_merge.sort(key=EntryFileSortKey)
     return files_to_merge
-
-def check_extensions(options):
-    files = glob.glob(os.path.join(options.dir, '*'))
-    files = {x for x in files if not x.endswith(".txt")}
-    files.discard("ChangeLog.d/00README.md")
-    if files:
-        raise FilePathError(files)
 
 def merge_entries(options):
     """Merge changelog entries into the changelog file.
@@ -471,7 +477,6 @@ def merge_entries(options):
     Write the new changelog to options.output.
     Remove the merged entries if options.keep_entries is false.
     """
-    check_extensions(options)
     with open(options.input, 'r', encoding='utf-8') as input_file:
         changelog = ChangeLog(input_file, TextChangelogFormat)
     files_to_merge = list_files_to_merge(options)

@@ -432,6 +432,39 @@ static void write_outcome_result(FILE *outcome_file,
     fflush(outcome_file);
 }
 
+#if defined(__unix__) ||                                \
+    (defined(__APPLE__) && defined(__MACH__)) ||        \
+    defined(_WIN32)
+#define MBEDTLS_HAVE_CHDIR
+#endif
+
+#if defined(MBEDTLS_HAVE_CHDIR)
+/** Try chdir to the directory containing argv0.
+ *
+ * Failures are silent.
+ */
+static void try_chdir(const char *argv0)
+{
+    const char *slash = strrchr(argv0, '/');
+    if (slash == NULL) {
+        return;
+    }
+    size_t path_size = slash - argv0 + 1;
+    char *path = mbedtls_calloc(1, path_size);
+    if (path == NULL) {
+        return;
+    }
+    memcpy(path, argv0, path_size - 1);
+    path[path_size - 1] = 0;
+#if defined(_WIN32)
+    (void) _chdir(path);
+#else
+    (void) chdir(path);
+#endif
+    mbedtls_free(path);
+}
+#endif /* MBEDTLS_HAVE_CHDIR */
+
 /**
  * \brief       Desktop implementation of execute_tests().
  *              Parses command line and executes tests from

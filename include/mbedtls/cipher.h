@@ -33,7 +33,24 @@
 #include <stddef.h>
 #include "mbedtls/platform_util.h"
 
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+/* Support for GCM either through MbedTLS SW implementation or PSA */
+#if defined(MBEDTLS_GCM_C) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_GCM))
+#define MBEDTLS_CIPHER_HAVE_GCM
+#endif
+/* Support for CCM either through MbedTLS SW implementation or PSA */
+#if defined(MBEDTLS_CCM_C) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CCM))
+#define MBEDTLS_CIPHER_HAVE_CCM
+#endif
+/* Support for CHACHAPOLY either through MbedTLS SW implementation or PSA */
+#if defined(MBEDTLS_CHACHAPOLY_C) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CHACHA20_POLY1305))
+#define MBEDTLS_CIPHER_HAVE_CHACHAPOLY
+#endif
+
+#if defined(MBEDTLS_CIPHER_HAVE_GCM) || defined(MBEDTLS_CIPHER_HAVE_CCM) || \
+    defined(MBEDTLS_CIPHER_HAVE_CHACHAPOLY)
 #define MBEDTLS_CIPHER_MODE_AEAD
 #endif
 

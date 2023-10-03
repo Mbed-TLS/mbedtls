@@ -1,6 +1,6 @@
 Mbed TLS ChangeLog (Sorted per branch, date)
 
-= Mbed TLS x.x.x branch released xxxx-xx-xx
+= Mbed TLS 2.28.5 branch released 2023-10-05
 
 Features
    * The documentation of mbedtls_ecp_group now describes the optimized

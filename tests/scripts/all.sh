@@ -3532,7 +3532,7 @@ component_test_psa_crypto_config_accel_cipher () {
     # ---------
 
     # Start from the default config (no TLS 1.3, no USE_PSA)
-    helper_libtestdriver1_adjust_config "default"
+    helper_libtestdriver1_adjust_config "full"
 
     # There is no intended accelerator support for ALG CMAC. Therefore, asking
     # for it in the build implies the inclusion of the Mbed TLS cipher

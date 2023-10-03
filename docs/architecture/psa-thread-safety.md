@@ -53,7 +53,7 @@ We need to define clear policies so that driver implementers know what to expect
 * Driver entry points may be called concurrently from multiple threads, even if they're using the same key, and even including destroying a key while an operation is in progress on it.
 * At most one driver entry point is active at any given time.
 
-A more reasonable policy could be:
+Combining the two we arrive at the following policy:
 
 * By default, each driver only has at most one entry point active at any given time. In other words, each driver has its own exclusive lock.
 * Drivers have an optional `"thread_safe"` boolean property. If true, it allows concurrent calls to this driver.
@@ -293,8 +293,72 @@ There is currently no indication of when a slot is in the WRITING state. This on
 
 ### Destruction of a key in use
 
-Problem: a key slot is destroyed (by `psa_wipe_key_slot`) while it's in use (READING or WRITING).
+Problem: In #key-destruction-long-term-requirements we require that the key slot is destroyed (by `psa_wipe_key_slot`) even while it's in use (READING or WRITING).
 
-TODO: how do we ensure that? This needs something more sophisticated than mutexes (concurrency number >2)! Even a per-slot mutex isn't enough (we'd need a reader-writer lock).
+How do we ensure that? This needs something more sophisticated than mutexes (concurrency number >2)! Even a per-slot mutex isn't enough (we'd need a reader-writer lock).
 
 Solution: after some team discussion, we've decided to rely on a new threading abstraction which mimics C11 (i.e. `mbedtls_fff` where `fff` is the C11 function name, having the same parameters and return type, with default implementations for C11, pthreads and Windows). We'll likely use condition variables in addition to mutexes.
+
+#### Mutex only
+
+When calling `psa_wipe_key_slot` it is the callers responsibility to set the slot state to WRITING first. For most functions this is a clean UNUSED -> WRITING transition: psa_get_empty_key_slot, psa_get_and_lock_key_slot, psa_close_key, psa_purge_key.
+
+`psa_wipe_all_key_slots` is only called from `mbedtls_psa_crypto_free`, here we will need to return an error as we won't be able to free the key store if a key is in use without compromising the state of the secure side. This opens up the way for an untrusted application to launch a DoS attack against the crypto service, but this is still better than compromising confidentiality or integrity and this is the most we can do with mutexes only. Also, this is the current behaviour.
+
+`psa_destroy_key` marks the slot as deleted, deletes persistent keys and opaque keys and returns. This only works if drivers are protected by a mutex (and the persistent storage as well if needed). When the last reading operation finishes, it wipes the key slot. This will free the key ID, but the slot might be still in use. In case of volatile keys freeing up the ID while the slot is still in use does not provide any benefit and we don't need to do it.
+
+These are serious limitations, but this can be implemented with mutexes only and arguably satisfies the #key-destruction-short-term-requirements.
+
+Variations:
+
+1. As a first step the multipart operations would lock the keys for reading on setup and release on free
+2. In a later stage this would be improved by locking the keys on entry into multi-part API calls and released before exiting.
+
+The second variant can't be implemented as a backward compatible improvement on the first as multipart operations that were successfully completed in the first case, would fail in the second. If we want to implement these incrementally, multipart operations in a multithreaded environment must left unsupported in the first variant.
+
+### Condition variables
+
+Clean UNUSED -> WRITING transition works as before.
+
+`psa_wipe_all_key_slots` and `psa_destroy_key` mark the slot as deleted and go to sleep until the slot state becomes UNUSED. When waking up, they wipe the slot, and return.
+
+If the slot is already marked as deleted the threads calling `psa_wipe_all_key_slots` and `psa_destroy_key` go to sleep until the deletion completes. To satisfy #key-destruction-long-term-requirements none of the threads may return from the call until the slot is deleted completely. This can be achieved by signalling them when the slot has already been whiped and ready for use, that is not marked for deletion anymore. To handle spurious wake-ups, these threads need to be able to tell whether the slot was already deleted. This is not trivial, because by the time the thread wakes up, theoretically the slot might be in any state. It might have been reused and maybe even marked for deletion again.
+
+To resolve this, we can either:
+
+1. Depend on the deletion marker. If the slot has been reused and is marked for deletion again, the threads keep waiting until the second deletion completes.
+2. Introduce a uuid (eg a global counter plus a slot ID), which is recorded by the thread waiting for deletion and checks whether it matches. If it doesn't, the function can return as the slot was already reallocated. If it does match, it can check whether it is still marked for deletion, if it is, the thread goes back to sleep, if it isn't, the function can return.
+
+#### Platform abstraction
+
+Introducing condition variables to the platform abstraction layer would be best done in a major version. If we can't wait until that, we will need to introduce a new compile time flag. Considering that this only will be needed on the PSA Crypto side and the upcoming split, it makes sense to make this flag responsible for the entire PSA Crypto threading support. Therefore if we want to keep the option open for implementing this in a backward compatible manner, we need to introduce and use this new flag already when implementing #mutex-only. (If we keep the abstraction layer for mutexes the same, this shouldn't mean increase in code size and would mean only minimal effort on the porting side.)
+
+### Operation contexts
+
+Concurrent access to the same operation context can compromise the crypto service for example if the operation context has a pointer (depending on the compiler and the platform, the pointer assignment may or may not be atomic). This violates the functional correctness requirement. (Concurrent calls to operations is undefined behaviour, but still should not compromise the CIA of the crypto service.)
+
+Operations will have a status field protected by a global mutex similarly to key slots. On entry, API calls check the state and return an error if it is already ACTIVE. Otherwise they set it to ACTIVE and restore it to INACTIVE before returning.
+
+### Drivers
+
+Each driver that hasn’t got the "thread_safe” property set  has a dedicated mutex.
+
+Implementing "thread_safe” drivers depends on the condition variable protection in the key store, as we must guarantee that the core never starts the destruction of a key while there are operations in progress on it.
+
+Start with implementing threading for drivers without the "thread_safe” property (all drivers behave like the property wasn't set). Add "thread_safe" drivers at some point after the #condition-variables approach is implemented in the core.
+
+### Global Data
+
+PSA Crypto makes use of a `global_data` variable that will be accessible from multiple threads and needs to be protected. Any function accessing this variable (or its members) must take the corresponding lock first. Since `global_data` holds the RNG state, these will involve relatively expensive operations and therefore ideally `global_data` should be protected by its own, dedicated lock (different from the one protecting the key store).
+
+Note that this does not protect access to the RNG via `mbedtls_psa_get_random`, which is guaranteed to be thread-safe when `MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG` is disabled. Still, doing so is conceptually simpler and we probably will want to remove the lower level mutex in the long run, since the corresponding interface will be removed from the public API. The two mutexes are different and are always taken in the same order, there is no risk of deadlock.
+
+The purpose of `MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG` is very similar to the driver interface (and might even be added to it in the long run), therefore it makes sense to handle it the same way. In particular, we can use the `global_data` mutex to protect it as a default and when we implement the "thread_safe” property for drivers, we implement it for `MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG` as well.
+
+### Implementation notes
+
+Since we only have simple mutexes, locking the same mutex from the same thread is a deadlock. Therefore functions taking the global mutex must not be called while holding the same mutex. Functions taking the mutex will document this fact and the implications.
+
+Releasing the mutex before a function call might introduce race conditions. Therefore might not be practical to take the mutex in low level access functions. If functions like that don't take the mutex, they need to rely on the caller to take it for them. These functions will document that the caller is required to hold the mutex.
+
+To avoid performance degradation, functions must not start expensive operations (eg. doing cryptography) while holding the mutex.

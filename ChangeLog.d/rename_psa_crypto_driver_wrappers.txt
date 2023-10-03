@@ -1,0 +1,5 @@
+Changes
+   * Users intergrating their own PSA drivers should be aware that
+     the file library/psa_crypto_driver_wrappers.c has been renamed
+     to psa_crypto_driver_wrappers_no_static.c.
+

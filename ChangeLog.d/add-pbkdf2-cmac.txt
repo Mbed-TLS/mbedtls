@@ -1,2 +1,0 @@
-Features
-   * Add support for PBKDF2-CMAC through the PSA API.

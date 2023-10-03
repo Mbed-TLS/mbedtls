@@ -1,3 +1,0 @@
-Security
-   * Fix a buffer overread when parsing short TLS application data records in
-     null-cipher cipher suites. Credit to OSS-Fuzz.

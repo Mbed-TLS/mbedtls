@@ -1,3 +1,0 @@
-Bugfix
-   * Fix a potential corruption of the passed-in IV when mbedtls_aes_crypt_cbc()
-     is called with zero length and padlock is not enabled.

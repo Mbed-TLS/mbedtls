@@ -1,5 +1,0 @@
-Changes
-   * When using CBC with the cipher module, the requirement to call
-     mbedtls_cipher_set_padding_mode() is now enforced. Previously, omitting
-     this call accidentally applied a default padding mode chosen at compile
-     time.

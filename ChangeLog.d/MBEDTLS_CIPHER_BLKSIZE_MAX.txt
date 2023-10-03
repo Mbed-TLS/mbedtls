@@ -1,7 +1,0 @@
-Changes
-   * In configurations with ARIA or Camellia but not AES, the value of
-     MBEDTLS_CIPHER_BLKSIZE_MAX was 8, rather than 16 as the name might
-     suggest. This did not affect any library code, because this macro was
-     only used in relation with CMAC which does not support these ciphers.
-     Its value is now 16 if ARIA or Camellia are present. This may affect
-     application code that uses this macro.

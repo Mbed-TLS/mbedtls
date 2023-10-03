@@ -1,0 +1,6 @@
+Security
+   * Improve padding calculations in CBC decryption, NIST key unwrapping and
+     RSA OAEP decryption. With the previous implementation, some compilers
+     (notably recent versions of Clang and IAR) could produce non-constant
+     time code, which could allow a padding oracle attack if the attacker
+     has access to precise timing measurements.

@@ -30,6 +30,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 #include "mbedtls/constant_time.h"
+#include "constant_time_internal.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -267,17 +268,6 @@ int mbedtls_cipher_setup(mbedtls_cipher_context_t *ctx,
     }
 
     ctx->cipher_info = cipher_info;
-
-#if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
-    /*
-     * Ignore possible errors caused by a cipher mode that doesn't use padding
-     */
-#if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
-    (void) mbedtls_cipher_set_padding_mode(ctx, MBEDTLS_PADDING_PKCS7);
-#else
-    (void) mbedtls_cipher_set_padding_mode(ctx, MBEDTLS_PADDING_NONE);
-#endif
-#endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
 
     return 0;
 }
@@ -848,7 +838,7 @@ static int get_pkcs_padding(unsigned char *input, size_t input_len,
                             size_t *data_len)
 {
     size_t i, pad_idx;
-    unsigned char padding_len, bad = 0;
+    unsigned char padding_len;
 
     if (NULL == input || NULL == data_len) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
@@ -857,18 +847,19 @@ static int get_pkcs_padding(unsigned char *input, size_t input_len,
     padding_len = input[input_len - 1];
     *data_len = input_len - padding_len;
 
-    /* Avoid logical || since it results in a branch */
-    bad |= padding_len > input_len;
-    bad |= padding_len == 0;
+    mbedtls_ct_condition_t bad = mbedtls_ct_uint_gt(padding_len, input_len);
+    bad = mbedtls_ct_bool_or(bad, mbedtls_ct_uint_eq(padding_len, 0));
 
     /* The number of bytes checked must be independent of padding_len,
      * so pick input_len, which is usually 8 or 16 (one block) */
     pad_idx = input_len - padding_len;
     for (i = 0; i < input_len; i++) {
-        bad |= (input[i] ^ padding_len) * (i >= pad_idx);
+        mbedtls_ct_condition_t in_padding = mbedtls_ct_uint_ge(i, pad_idx);
+        mbedtls_ct_condition_t different  = mbedtls_ct_uint_ne(input[i], padding_len);
+        bad = mbedtls_ct_bool_or(bad, mbedtls_ct_bool_and(in_padding, different));
     }
 
-    return MBEDTLS_ERR_CIPHER_INVALID_PADDING * (bad != 0);
+    return mbedtls_ct_error_if_else_0(bad, MBEDTLS_ERR_CIPHER_INVALID_PADDING);
 }
 #endif /* MBEDTLS_CIPHER_PADDING_PKCS7 */
 
@@ -891,24 +882,28 @@ static void add_one_and_zeros_padding(unsigned char *output,
 static int get_one_and_zeros_padding(unsigned char *input, size_t input_len,
                                      size_t *data_len)
 {
-    size_t i;
-    unsigned char done = 0, prev_done, bad;
-
     if (NULL == input || NULL == data_len) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-    bad = 0x80;
+    mbedtls_ct_condition_t in_padding = MBEDTLS_CT_TRUE;
+    mbedtls_ct_condition_t bad = MBEDTLS_CT_TRUE;
+
     *data_len = 0;
-    for (i = input_len; i > 0; i--) {
-        prev_done = done;
-        done |= (input[i - 1] != 0);
-        *data_len |= (i - 1) * (done != prev_done);
-        bad ^= input[i - 1] * (done != prev_done);
+
+    for (ptrdiff_t i = (ptrdiff_t) (input_len) - 1; i >= 0; i--) {
+        mbedtls_ct_condition_t is_nonzero = mbedtls_ct_bool(input[i]);
+
+        mbedtls_ct_condition_t hit_first_nonzero = mbedtls_ct_bool_and(is_nonzero, in_padding);
+
+        *data_len = mbedtls_ct_size_if(hit_first_nonzero, i, *data_len);
+
+        bad = mbedtls_ct_bool_if(hit_first_nonzero, mbedtls_ct_uint_ne(input[i], 0x80), bad);
+
+        in_padding = mbedtls_ct_bool_and(in_padding, mbedtls_ct_bool_not(is_nonzero));
     }
 
-    return MBEDTLS_ERR_CIPHER_INVALID_PADDING * (bad != 0);
-
+    return mbedtls_ct_error_if_else_0(bad, MBEDTLS_ERR_CIPHER_INVALID_PADDING);
 }
 #endif /* MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS */
 
@@ -932,7 +927,8 @@ static int get_zeros_and_len_padding(unsigned char *input, size_t input_len,
                                      size_t *data_len)
 {
     size_t i, pad_idx;
-    unsigned char padding_len, bad = 0;
+    unsigned char padding_len;
+    mbedtls_ct_condition_t bad;
 
     if (NULL == input || NULL == data_len) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
@@ -942,16 +938,19 @@ static int get_zeros_and_len_padding(unsigned char *input, size_t input_len,
     *data_len = input_len - padding_len;
 
     /* Avoid logical || since it results in a branch */
-    bad |= padding_len > input_len;
-    bad |= padding_len == 0;
+    bad = mbedtls_ct_uint_gt(padding_len, input_len);
+    bad = mbedtls_ct_bool_or(bad, mbedtls_ct_uint_eq(padding_len, 0));
 
     /* The number of bytes checked must be independent of padding_len */
     pad_idx = input_len - padding_len;
     for (i = 0; i < input_len - 1; i++) {
-        bad |= input[i] * (i >= pad_idx);
+        mbedtls_ct_condition_t is_padding = mbedtls_ct_uint_ge(i, pad_idx);
+        mbedtls_ct_condition_t nonzero_pad_byte;
+        nonzero_pad_byte = mbedtls_ct_bool_if_else_0(is_padding, mbedtls_ct_bool(input[i]));
+        bad = mbedtls_ct_bool_or(bad, nonzero_pad_byte);
     }
 
-    return MBEDTLS_ERR_CIPHER_INVALID_PADDING * (bad != 0);
+    return mbedtls_ct_error_if_else_0(bad, MBEDTLS_ERR_CIPHER_INVALID_PADDING);
 }
 #endif /* MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN */
 
@@ -962,18 +961,14 @@ static int get_zeros_and_len_padding(unsigned char *input, size_t input_len,
 static void add_zeros_padding(unsigned char *output,
                               size_t output_len, size_t data_len)
 {
-    size_t i;
-
-    for (i = data_len; i < output_len; i++) {
-        output[i] = 0x00;
-    }
+    memset(output + data_len, 0, output_len - data_len);
 }
 
 static int get_zeros_padding(unsigned char *input, size_t input_len,
                              size_t *data_len)
 {
     size_t i;
-    unsigned char done = 0, prev_done;
+    mbedtls_ct_condition_t done = MBEDTLS_CT_FALSE, prev_done;
 
     if (NULL == input || NULL == data_len) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
@@ -982,8 +977,8 @@ static int get_zeros_padding(unsigned char *input, size_t input_len,
     *data_len = 0;
     for (i = input_len; i > 0; i--) {
         prev_done = done;
-        done |= (input[i-1] != 0);
-        *data_len |= i * (done != prev_done);
+        done = mbedtls_ct_bool_or(done, mbedtls_ct_uint_ne(input[i-1], 0));
+        *data_len = mbedtls_ct_size_if(mbedtls_ct_bool_ne(done, prev_done), i, *data_len);
     }
 
     return 0;
@@ -1026,6 +1021,16 @@ int mbedtls_cipher_finish(mbedtls_cipher_context_t *ctx,
 #endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
     *olen = 0;
+
+#if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
+    /* CBC mode requires padding so we make sure a call to
+     * mbedtls_cipher_set_padding_mode has been done successfully. */
+    if (MBEDTLS_MODE_CBC == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
+        if (ctx->get_padding == NULL) {
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+        }
+    }
+#endif
 
     if (MBEDTLS_MODE_CFB == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
         MBEDTLS_MODE_OFB == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||

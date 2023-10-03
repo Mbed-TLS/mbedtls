@@ -158,12 +158,10 @@ static int mbedtls_ct_rsaes_pkcs1_v15_unpadding(unsigned char *input,
      * - OUTPUT_TOO_LARGE if the padding is good but the decrypted
      *   plaintext does not fit in the output buffer.
      * - 0 if the padding is correct. */
-    ret = -(int) mbedtls_ct_uint_if(
+    ret = mbedtls_ct_error_if(
         bad,
-        (unsigned) (-(MBEDTLS_ERR_RSA_INVALID_PADDING)),
-        mbedtls_ct_uint_if_else_0(
-            output_too_large,
-            (unsigned) (-(MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE)))
+        MBEDTLS_ERR_RSA_INVALID_PADDING,
+        mbedtls_ct_error_if_else_0(output_too_large, MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE)
         );
 
     /* If the padding is bad or the plaintext is too large, zero the
@@ -1541,7 +1539,8 @@ int mbedtls_rsa_rsaes_oaep_decrypt(mbedtls_rsa_context *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t ilen, i, pad_len;
-    unsigned char *p, bad, pad_done;
+    unsigned char *p;
+    mbedtls_ct_condition_t bad, in_padding;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     unsigned char lhash[MBEDTLS_MD_MAX_SIZE];
     unsigned int hlen;
@@ -1601,28 +1600,26 @@ int mbedtls_rsa_rsaes_oaep_decrypt(mbedtls_rsa_context *ctx,
      * Check contents, in "constant-time"
      */
     p = buf;
-    bad = 0;
 
-    bad |= *p++; /* First byte must be 0 */
+    bad = mbedtls_ct_bool(*p++); /* First byte must be 0 */
 
     p += hlen; /* Skip seed */
 
     /* Check lHash */
-    for (i = 0; i < hlen; i++) {
-        bad |= lhash[i] ^ *p++;
-    }
+    bad = mbedtls_ct_bool_or(bad, mbedtls_ct_bool(mbedtls_ct_memcmp(lhash, p, hlen)));
+    p += hlen;
 
     /* Get zero-padding len, but always read till end of buffer
      * (minus one, for the 01 byte) */
     pad_len = 0;
-    pad_done = 0;
+    in_padding = MBEDTLS_CT_TRUE;
     for (i = 0; i < ilen - 2 * hlen - 2; i++) {
-        pad_done |= p[i];
-        pad_len += ((pad_done | (unsigned char) -pad_done) >> 7) ^ 1;
+        in_padding = mbedtls_ct_bool_and(in_padding, mbedtls_ct_uint_eq(p[i], 0));
+        pad_len += mbedtls_ct_uint_if_else_0(in_padding, 1);
     }
 
     p += pad_len;
-    bad |= *p++ ^ 0x01;
+    bad = mbedtls_ct_bool_or(bad, mbedtls_ct_uint_ne(*p++, 0x01));
 
     /*
      * The only information "leaked" is whether the padding was correct or not
@@ -1630,7 +1627,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt(mbedtls_rsa_context *ctx,
      * recommendations in PKCS#1 v2.2: an opponent cannot distinguish between
      * the different error conditions.
      */
-    if (bad != 0) {
+    if (bad != MBEDTLS_CT_FALSE) {
         ret = MBEDTLS_ERR_RSA_INVALID_PADDING;
         goto cleanup;
     }

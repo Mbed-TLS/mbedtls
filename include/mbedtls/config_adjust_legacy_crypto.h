@@ -184,4 +184,12 @@
 #define MBEDTLS_PK_HAVE_ECC_KEYS
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA || MBEDTLS_ECP_C */
 
+/* Historically pkparse did not check the CBC padding when decrypting
+ * a key. This was a bug, which is now fixed. As a consequence, pkparse
+ * now needs PKCS7 padding support, but existing configurations might not
+ * enable it, so we enable it here. */
+#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PKCS5_C) && defined(MBEDTLS_CIPHER_MODE_CBC)
+#define MBEDTLS_CIPHER_PADDING_PKCS7
+#endif
+
 #endif /* MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H */

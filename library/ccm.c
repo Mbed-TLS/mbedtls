@@ -33,6 +33,7 @@
 #include "mbedtls/ccm.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+#include "mbedtls/constant_time.h"
 
 #include <string.h>
 
@@ -532,13 +533,8 @@ static int mbedtls_ccm_compare_tags(const unsigned char *tag1,
                                     const unsigned char *tag2,
                                     size_t tag_len)
 {
-    unsigned char i;
-    int diff;
-
     /* Check tag in "constant-time" */
-    for (diff = 0, i = 0; i < tag_len; i++) {
-        diff |= tag1[i] ^ tag2[i];
-    }
+    int diff = mbedtls_ct_memcmp(tag1, tag2, tag_len);
 
     if (diff != 0) {
         return MBEDTLS_ERR_CCM_AUTH_FAILED;

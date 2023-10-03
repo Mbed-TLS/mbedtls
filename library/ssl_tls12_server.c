@@ -3718,22 +3718,32 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
         psa_status_t status = PSA_ERROR_GENERIC_ERROR;
         mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
-        MBEDTLS_SSL_DEBUG_MSG(1, ("Read the peer's public key."));
+        MBEDTLS_SSL_DEBUG_MSG(3, ("Read the peer's public key."));
 
         /*
          * We must have at least two bytes (1 for length, at least 1 for data)
          */
         if (buf_len < 2) {
-            MBEDTLS_SSL_DEBUG_MSG(1, ("Invalid buffer length"));
-            return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+            MBEDTLS_SSL_DEBUG_MSG(1, ("Invalid buffer length: %" MBEDTLS_PRINTF_SIZET,
+                                      buf_len));
+            return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
         }
 
         if (data_len < 1 || data_len > buf_len) {
-            MBEDTLS_SSL_DEBUG_MSG(1, ("Invalid data length"));
-            return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+            MBEDTLS_SSL_DEBUG_MSG(1, ("Invalid data length: %" MBEDTLS_PRINTF_SIZET
+                                      " > %" MBEDTLS_PRINTF_SIZET,
+                                      data_len, buf_len));
+            return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
         }
 
         /* Store peer's ECDH public key. */
+        if (data_len > sizeof(handshake->xxdh_psa_peerkey)) {
+            MBEDTLS_SSL_DEBUG_MSG(1, ("Invalid public key length: %" MBEDTLS_PRINTF_SIZET
+                                      " > %" MBEDTLS_PRINTF_SIZET,
+                                      data_len,
+                                      sizeof(handshake->xxdh_psa_peerkey)));
+            return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+        }
         memcpy(handshake->xxdh_psa_peerkey, p, data_len);
         handshake->xxdh_psa_peerkey_len = data_len;
 

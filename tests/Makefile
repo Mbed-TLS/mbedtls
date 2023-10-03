@@ -66,7 +66,7 @@ PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; els
 endif
 
 # See root Makefile
-GEN_FILES ?= yes
+GEN_FILES ?=
 ifdef GEN_FILES
 gen_file_dep =
 else

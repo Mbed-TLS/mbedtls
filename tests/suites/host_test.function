@@ -433,8 +433,7 @@ static void write_outcome_result(FILE *outcome_file,
 }
 
 #if defined(__unix__) ||                                \
-    (defined(__APPLE__) && defined(__MACH__)) ||        \
-    defined(_WIN32)
+    (defined(__APPLE__) && defined(__MACH__))
 #define MBEDTLS_HAVE_CHDIR
 #endif
 
@@ -456,11 +455,11 @@ static void try_chdir(const char *argv0)
     }
     memcpy(path, argv0, path_size - 1);
     path[path_size - 1] = 0;
-#if defined(_WIN32)
-    (void) _chdir(path);
-#else
-    (void) chdir(path);
-#endif
+    int ret = chdir(path);
+    if (ret != 0) {
+        mbedtls_fprintf(stderr, "%s: note: chdir(\"%s\") failed.\n",
+                        __func__, path);
+    }
     mbedtls_free(path);
 }
 #endif /* MBEDTLS_HAVE_CHDIR */

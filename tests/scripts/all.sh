@@ -3962,7 +3962,7 @@ build_test_config_combos() {
     # This ensures that we have any include paths, macro definitions, etc
     # that may be applied by make.
     # Add -fsyntax-only as we only want a syntax check and don't need to generate a file.
-    MAKE_CMD=$(make -B -n ${FILE} CC=clang CFLAGS="${WARNING_FLAGS} -fsyntax-only" | egrep "^clang")
+    COMPILE_CMD=$(make -B -n ${FILE} CC=clang CFLAGS="${WARNING_FLAGS} -fsyntax-only" | egrep "^clang")
 
     MAKEFILE=$(mktemp)
     DEPS=""
@@ -3988,7 +3988,7 @@ build_test_config_combos() {
 
         # if valid, add it to the makefile
         if [[ "$INVALID" == "" ]]; then
-            cmd="${MAKE_CMD} ${CLANG_ARGS}"
+            cmd="${COMPILE_CMD} ${CLANG_ARGS}"
             echo "${TARGET}:" >> ${MAKEFILE}
             echo -e "\t$cmd" >> ${MAKEFILE}
 

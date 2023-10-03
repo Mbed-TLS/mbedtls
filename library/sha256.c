@@ -56,7 +56,7 @@
 
 #include "mbedtls/platform.h"
 
-#if defined(__aarch64__)
+#if defined(MBEDTLS_ARCH_IS_ARMV8)
 
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
     defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)

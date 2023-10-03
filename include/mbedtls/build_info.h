@@ -74,6 +74,17 @@
 #define MBEDTLS_ARCH_IS_X86
 #endif
 
+/* This is defined if the architecture is Armv8, or higher */
+#if !defined(MBEDTLS_ARCH_IS_ARMV8)
+#if defined(__ARM_ARCH)
+#if __ARM_ARCH >= 8
+#define MBEDTLS_ARCH_IS_ARMV8
+#endif
+#elif defined(MBEDTLS_ARCH_IS_ARM64)
+#define MBEDTLS_ARCH_IS_ARMV8
+#endif
+#endif
+
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif

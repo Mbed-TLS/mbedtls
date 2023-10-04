@@ -69,7 +69,7 @@
 #       error "Target does not support NEON instructions"
 #   endif
 
-#    if !defined(__ARM_FEATURE_CRYPTO) || defined(MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG)
+#   if !defined(__ARM_FEATURE_CRYPTO) || defined(MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG)
 #      if defined(__ARMCOMPILER_VERSION)
 #        if __ARMCOMPILER_VERSION <= 6090000
 #          error "Must use minimum -march=armv8-a+crypto for MBEDTLS_SHA256_USE_A64_CRYPTO_*"

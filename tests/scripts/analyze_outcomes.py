@@ -214,6 +214,17 @@ KNOWN_TASKS = {
             }
         }
     },
+    'analyze_driver_vs_reference_cipher_aead': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_psa_crypto_config_reference_cipher_aead',
+            'component_driver': 'test_psa_crypto_config_accel_cipher_aead',
+            'ignored_suites': [
+            ],
+            'ignored_tests': {
+            }
+        }
+    },
     'analyze_driver_vs_reference_ecp_light_only': {
         'test_function': do_analyze_driver_vs_reference,
         'args': {

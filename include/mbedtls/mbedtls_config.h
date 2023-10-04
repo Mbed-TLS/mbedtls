@@ -3280,7 +3280,8 @@
  * for a non-Aarch64 build it will be silently ignored.
  *
  * \note    Minimum compiler versions for this feature are Clang 4.0,
- * armclang 6.6 or GCC 6.0.
+ * armclang 6.6 or GCC 6.0. Targetting Thumb or 32-bit arm with GCC is not
+ * supported.
  *
  * \note \c CFLAGS must be set to a minimum of \c -march=armv8-a+crypto for
  * armclang <= 6.9

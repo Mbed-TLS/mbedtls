@@ -334,4 +334,11 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 #define MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
 #endif
 
+/* Suppress compiler warnings for unused functions and variables. */
+#if defined(__GNUC__)
+#define MBEDTLS_MAYBE_UNUSED __attribute__((unused))
+#else
+#define MBEDTLS_MAYBE_UNUSED
+#endif
+
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

@@ -89,7 +89,7 @@ Features
      described in 7.4 of RFC5280, will result in a positive URI verification.
    * Add function mbedtls_oid_from_numeric_string() to parse an OID from a
      string to a DER-encoded mbedtls_asn1_buf.
-    * Add SHA-3 family hash functions.
+   * Add SHA-3 family hash functions.
    * Add support to restrict AES to 128-bit keys in order to save code size.
      A new configuration option, MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH, can be
      used to enable this feature.
@@ -265,6 +265,8 @@ Bugfix
      error code on failure. Before, they returned 1 to indicate failure in
      some cases involving a missing entry or a full cache.
    * mbedtls_pk_parse_key() now rejects trailing garbage in encrypted keys.
+   * Fix the build with CMake when Everest or P256-m is enabled through
+     a user configuration file or the compiler command line. Fixes #8165.
 
 Changes
    * Enable Arm / Thumb bignum assembly for most Arm platforms when
@@ -278,7 +280,7 @@ Changes
      ensure that conversions between size_t, ULONG, and int are
      always done safely.  Original contribution by Kevin Kane #635, #730
      followed by Simon Butcher #1453.
-   * Users intergrating their own PSA drivers should be aware that
+   * Users integrating their own PSA drivers should be aware that
      the file library/psa_crypto_driver_wrappers.c has been renamed
      to psa_crypto_driver_wrappers_no_static.c.
    * When using CBC with the cipher module, the requirement to call

@@ -1,0 +1,4 @@
+Bugfix
+   * Respect the MBEDTLS_TARGET_PREFIX CMake variable with 3rdparty targets.
+	 Previously this was ignored for 3rdparty targets, preventing projects from
+	 including mbedtls multiple times when using 3rdparty targets.

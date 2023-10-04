@@ -97,7 +97,7 @@ void *thread_random_function( void* ctx )
     memset(out, 0, sizeof(out));
 
     for(int i = 0; i < thread_random_reps; i++) {
-        TEST_EQUAL(mbedtls_ctr_drbg_random_with_add((mbedtls_ctr_drbg_context*) ctx, out, sizeof(out), NULL, 0), 0);
+        TEST_EQUAL(mbedtls_ctr_drbg_random((mbedtls_ctr_drbg_context*) ctx, out, sizeof(out)), 0);
     }
 
 exit:

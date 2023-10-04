@@ -177,7 +177,7 @@ GENERATED_FILES = psa/psa_constant_names_generated.c test/query_config.c
 generated_files: $(GENERATED_FILES)
 
 # See root Makefile
-GEN_FILES ?=
+GEN_FILES ?= yes
 ifdef GEN_FILES
 gen_file_dep =
 else

@@ -1,5 +1,54 @@
 Mbed TLS ChangeLog (Sorted per branch, date)
 
+= Mbed TLS 2.28.5 branch released 2023-10-05
+
+Features
+   * The documentation of mbedtls_ecp_group now describes the optimized
+     representation of A for some curves. Fixes #8045.
+
+Security
+   * Developers using mbedtls_pkcs5_pbes2() or mbedtls_pkcs12_pbe() should
+     review the size of the output buffer passed to this function, and note
+     that the output after decryption may include CBC padding. Consider moving
+     to the new functions mbedtls_pkcs5_pbes2_ext() or mbedtls_pkcs12_pbe_ext()
+     which checks for overflow of the output buffer and reports the actual
+     length of the output.
+   * Improve padding calculations in CBC decryption, NIST key unwrapping and
+     RSA OAEP decryption. With the previous implementation, some compilers
+     (notably recent versions of Clang and IAR) could produce non-constant
+     time code, which could allow a padding oracle attack if the attacker
+     has access to precise timing measurements.
+   * Fix a buffer overread when parsing short TLS application data records in
+     ARC4 or null-cipher cipher suites. Credit to OSS-Fuzz.
+
+Bugfix
+   * Fix x509 certificate generation to conform to RFC 5480 / RFC 5758 when
+     using ECC key. The certificate was rejected by some crypto frameworks.
+     Fixes #2924.
+   * Fix some cases where mbedtls_mpi_mod_exp, RSA key construction or ECDSA
+     signature can silently return an incorrect result in low memory conditions.
+   * Fix IAR compiler warnings. Fixes #7873, #4300.
+   * Fix an issue when parsing an otherName subject alternative name into a
+     mbedtls_x509_san_other_name struct. The type-id of the otherName was not
+     copied to the struct. This meant that the struct had incomplete
+     information about the otherName SAN and contained uninitialized memory.
+   * Fix the detection of HardwareModuleName otherName SANs. These were being
+     detected by comparing the wrong field and the check was erroneously
+     inverted.
+   * Fix an error when MBEDTLS_ECDSA_SIGN_ALT is defined but not
+     MBEDTLS_ECDSA_VERIFY_ALT, causing ecdsa verify to fail. Fixes #7498.
+   * Functions in the ssl_cache module now return a negative MBEDTLS_ERR_xxx
+     error code on failure. Before, they returned 1 to indicate failure in
+     some cases involving a missing entry or a full cache.
+
+Changes
+   * In configurations with ARIA or Camellia but not AES, the value of
+     MBEDTLS_CIPHER_BLKSIZE_MAX was 8, rather than 16 as the name might
+     suggest. This did not affect any library code, because this macro was
+     only used in relation with CMAC which does not support these ciphers.
+     Its value is now 16 if ARIA or Camellia are present. This may affect
+     application code that uses this macro.
+
 = Mbed TLS 2.28.4 branch released 2023-08-04
 
 Features

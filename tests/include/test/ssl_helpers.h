@@ -468,6 +468,27 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
                                       size_t cid0_len,
                                       size_t cid1_len);
 
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+/**
+ * \param[in,out] record        The record to prepare.
+ *                              It must contain the data to MAC at offset
+ *                              `record->data_offset`, of length
+ *                              `record->data_length`.
+ *                              On success, write the MAC immediately
+ *                              after the data and increment
+ *                              `record->data_length` accordingly.
+ * \param[in,out] transform_out The out transform, typically prepared by
+ *                              mbedtls_test_ssl_build_transforms().
+ *                              Its HMAC context may be used. Other than that
+ *                              it is treated as an input parameter.
+ *
+ * \return                      0 on success, an `MBEDTLS_ERR_xxx` error code
+ *                              or -1 on error.
+ */
+int mbedtls_test_ssl_prepare_record_mac(mbedtls_record *record,
+                                        mbedtls_ssl_transform *transform_out);
+#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
+
 /*
  * Populate a session structure for serialization tests.
  * Choose dummy values, mostly non-0 to distinguish from the init default.

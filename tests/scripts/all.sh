@@ -3934,14 +3934,17 @@ component_build_tfm() {
     make lib CC="gcc" CFLAGS="-Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wformat-signedness -Wlogical-op -I../tests/include/spe"
 }
 
+# Test that the given .o file builds with all (valid) combinations of the given options.
+#
+# Syntax: build_test_config_combos FILE VALIDATOR_FUNCTION OPT1 OPT2 ...
+#
+# The validator function is the name of a function to validate the combination of options.
+# It may be "" if all combinations are valid.
+# It receives a string containing a combination of options, as passed to the compiler,
+# e.g. "-DOPT1 -DOPT2 ...". It must echo something iff the combination is invalid.
 build_test_config_combos() {
-    # test that the given file builds with all (valid) combinations of the given options.
-    # syntax: build_test_config_combos FILE VALIDATOR_FUNCTION OPT1 OPT2 ...
-    # The validator function may be "" if all combinations are valid
-
     file=$1
     shift
-    # this function must echo something iff the clang "-DA -DB ..." string is invalid
     validate_options=$1
     shift
     options=("$@")

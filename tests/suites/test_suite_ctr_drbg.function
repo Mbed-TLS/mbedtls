@@ -90,6 +90,19 @@ exit:
     mbedtls_ctr_drbg_free(&ctx);
 }
 
+static const int thread_random_reps = 10;
+void *thread_random_function( void* ctx )
+{
+    unsigned char out[16];
+    memset(out, 0, sizeof(out));
+
+    for(int i = 0; i < thread_random_reps; i++) {
+        TEST_EQUAL(mbedtls_ctr_drbg_random_with_add((mbedtls_ctr_drbg_context*) ctx, out, sizeof(out), NULL, 0), 0);
+    }
+
+exit:
+    return NULL;
+}
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -323,6 +336,57 @@ exit:
     mbedtls_ctr_drbg_free(&ctx);
     AES_PSA_DONE();
 }
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_THREADING_PTHREAD */
+void ctr_drbg_threads(data_t *expected_result, int reseed_interval)
+{
+#define THREAD_CNT 5
+    pthread_t threads[THREAD_CNT];
+
+    unsigned char out[16];
+    memset(out, 0, sizeof(out));
+
+    unsigned char entropy[1024];
+    memset(entropy, 0, sizeof(entropy));
+
+    test_offset_idx = 0;
+    test_max_idx = sizeof(entropy);
+
+    mbedtls_ctr_drbg_context ctx;
+    mbedtls_ctr_drbg_init(&ctx);
+
+    mbedtls_ctr_drbg_set_reseed_interval(&ctx, reseed_interval);
+
+    /* There are too many calls in this test to conveniently provide enough
+     * entropy for this to be on. Test cases can trigger reseeding by setting
+     * \p reseed_interval appropriately. */
+    mbedtls_ctr_drbg_set_prediction_resistance(&ctx, MBEDTLS_CTR_DRBG_PR_OFF);
+
+    TEST_EQUAL(
+        mbedtls_ctr_drbg_seed(&ctx, mbedtls_test_entropy_func, entropy, NULL, 0),
+        0);
+
+    for (size_t i = 0; i < THREAD_CNT; i++) {
+        TEST_EQUAL(
+            pthread_create(&threads[i], NULL,
+                           thread_random_function, (void*) &ctx),
+            0);
+    }
+
+    for (size_t i = 0; i < THREAD_CNT; i++) {
+        TEST_EQUAL(pthread_join(threads[i], NULL), 0);
+    }
+
+    /* Take a last output for comparing and thus verifying the DRBG state */
+    TEST_EQUAL(mbedtls_ctr_drbg_random(&ctx, out, sizeof(out)), 0);
+
+    TEST_MEMORY_COMPARE(out, sizeof(out), expected_result->x, expected_result->len);
+
+exit:
+    mbedtls_ctr_drbg_free(&ctx);
+}
+#undef THREAD_CNT
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO */

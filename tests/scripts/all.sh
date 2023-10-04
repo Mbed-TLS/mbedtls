@@ -4354,6 +4354,27 @@ component_build_aes_aesce_armcc () {
     armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto"
 }
 
+component_build_sha_armce () {
+    # Test variations of SHA256 Armv8 crypto extensions
+    scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+    scripts/config.py set MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
+
+    msg "MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY clang, aarch64"
+    make -B library/sha256.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a"
+
+    msg "MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY clang, arm"
+    make -B library/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm"
+
+    msg "MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY clang, thumb"
+    make -B library/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
+
+    scripts/config.py set MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+    scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
+
+    msg "MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT clang, aarch64"
+    make -B library/sha256.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a"
+}
+
 # For timebeing, no VIA Padlock platform available.
 component_build_aes_via_padlock () {
 

@@ -3978,19 +3978,16 @@ build_test_config_combos() {
         target="t"
         clang_args=""
         for ((j = 0; j < ${len}; j++)); do
-            opt=${options[j]}
-            X=$(((i >> j) & 1))
-            [[ $X == 0 ]] && opt="" || opt="-D${opt}"
+            opt=
+            if (((i >> j) & 1)); then
+                opt=-D${options[j]}
+            fi
             clang_args="${clang_args} ${opt}"
             target="${target}${opt}"
         done
 
-        # check that combination is not known to be invalid
-        invalid=""
-        [[ "$validate_options" != "" ]] && invalid=$(${validate_options} "${clang_args}")
-
-        # if valid, add it to the makefile
-        if [[ "$invalid" == "" ]]; then
+        # if combination is not known to be invalid, add it to the makefile
+        if [[ -z $validate_options ]] || [[ $($validate_options "${clang_args}") == "" ]] ; then
             cmd="${compile_cmd} ${clang_args}"
             echo "${target}:" >> ${makefile}
             echo -e "\t$cmd" >> ${makefile}

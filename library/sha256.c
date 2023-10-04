@@ -102,7 +102,8 @@
 #  endif
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT)
 #    if defined(MBEDTLS_COMPILER_IS_GCC) && !defined(MBEDTLS_ARCH_IS_ARM64)
-#           warning "GCC only supports aarch64 for MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT, using C code only"
+#           warning \
+    "GCC only supports aarch64 for MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT, using C code only"
 #           undef MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
 #    endif
 #    if defined(__unix__)

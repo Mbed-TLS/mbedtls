@@ -268,17 +268,20 @@ if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
         ${mbedtls_static_target})
 endif()
 
+set(p256m_target "${MBEDTLS_TARGET_PREFIX}p256m")
+set(everest_target "${MBEDTLS_TARGET_PREFIX}everest")
+
 if(USE_STATIC_MBEDTLS_LIBRARY)
     add_library(${mbedcrypto_static_target} STATIC ${src_crypto})
     set_target_properties(${mbedcrypto_static_target} PROPERTIES OUTPUT_NAME mbedcrypto)
     target_link_libraries(${mbedcrypto_static_target} PUBLIC ${libs})
 
-    if(TARGET everest)
-        target_link_libraries(${mbedcrypto_static_target} PUBLIC everest)
+    if(TARGET ${everest_target})
+        target_link_libraries(${mbedcrypto_static_target} PUBLIC ${everest_target})
     endif()
 
-    if(TARGET p256m)
-        target_link_libraries(${mbedcrypto_static_target} PUBLIC p256m)
+    if(TARGET ${p256m_target})
+        target_link_libraries(${mbedcrypto_static_target} PUBLIC ${p256m_target})
     endif()
 
     add_library(${mbedx509_static_target} STATIC ${src_x509})
@@ -296,12 +299,12 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
     set_target_properties(${mbedcrypto_target} PROPERTIES VERSION 3.5.0 SOVERSION 14)
     target_link_libraries(${mbedcrypto_target} PUBLIC ${libs})
 
-    if(TARGET everest)
-        target_link_libraries(${mbedcrypto_target} PUBLIC everest)
+    if(TARGET ${everest_target})
+        target_link_libraries(${mbedcrypto_target} PUBLIC ${everest_target})
     endif()
 
-    if(TARGET p256m)
-        target_link_libraries(${mbedcrypto_target} PUBLIC p256m)
+    if(TARGET ${p256m_target})
+        target_link_libraries(${mbedcrypto_target} PUBLIC ${p256m_target})
     endif()
 
     add_library(${mbedx509_target} SHARED ${src_x509})

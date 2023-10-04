@@ -4354,6 +4354,12 @@ component_build_aes_aesce_armcc () {
     armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto"
 }
 
+support_build_sha_armce() {
+    # clang >= 4 is required to build with SHA extensions
+    ver="$(clang --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#')"
+    [ "${ver}" -ge 4 ]
+}
+
 component_build_sha_armce () {
     # Test variations of SHA256 Armv8 crypto extensions
     scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT

@@ -3978,12 +3978,11 @@ build_test_config_combos() {
         target="t"
         clang_args=""
         for ((j = 0; j < ${len}; j++)); do
-            opt=
             if (((i >> j) & 1)); then
                 opt=-D${options[j]}
+                clang_args="${clang_args} ${opt}"
+                target="${target}${opt}"
             fi
-            clang_args="${clang_args} ${opt}"
-            target="${target}${opt}"
         done
 
         # if combination is not known to be invalid, add it to the makefile

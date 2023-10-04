@@ -1,3 +1,0 @@
-Features
-   * The documentation of mbedtls_ecp_group now describes the optimized
-     representation of A for some curves. Fixes #8045.

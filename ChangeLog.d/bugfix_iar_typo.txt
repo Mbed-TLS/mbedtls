@@ -1,3 +1,0 @@
-Bugfix
-   * Fixed an issue that caused compile errors when using CMake and the IAR
-     toolchain.

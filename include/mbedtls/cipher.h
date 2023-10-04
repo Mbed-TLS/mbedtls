@@ -852,7 +852,6 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
  * \brief               This function sets the padding mode, for cipher modes
  *                      that use padding.
  *
- *                      The default passing mode is PKCS7 padding.
  *
  * \param ctx           The generic cipher context. This must be initialized and
  *                      bound to a cipher information structure.

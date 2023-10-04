@@ -83,7 +83,7 @@ int mbedtls_mpi_lt_mpi_ct(const mbedtls_mpi *X,
      * That is if X is negative (X_is_negative == 1), then X < Y is true and it
      * is false if X is positive (X_is_negative == 0).
      */
-    different_sign = mbedtls_ct_bool_xor(X_is_negative, Y_is_negative); // true if different sign
+    different_sign = mbedtls_ct_bool_ne(X_is_negative, Y_is_negative); // true if different sign
     result = mbedtls_ct_bool_and(different_sign, X_is_negative);
 
     /*

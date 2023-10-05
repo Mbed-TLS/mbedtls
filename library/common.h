@@ -335,7 +335,7 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 #endif
 
 /* Suppress compiler warnings for unused functions and variables. */
-#if !defined(MBEDTLS_MAYBE_UNUSED) && defined(__GNUC__)
+#if !defined(MBEDTLS_MAYBE_UNUSED) && (defined(__GNUC__) || defined(__clang__))
 #define MBEDTLS_MAYBE_UNUSED __attribute__((unused))
 #endif
 #if !defined(MBEDTLS_MAYBE_UNUSED) && defined(__IAR_SYSTEMS_ICC__) && defined(__VER__)

@@ -1,2 +1,0 @@
-Bugfix
-   * Fix IAR compiler warnings. Fixes #7873, #4300.

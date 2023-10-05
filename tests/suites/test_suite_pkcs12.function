@@ -1,6 +1,7 @@
 /* BEGIN_HEADER */
 #include "mbedtls/pkcs12.h"
 #include "mbedtls/error.h"
+#include "common.h"
 
 typedef enum {
     USE_NULL_INPUT = 0,
@@ -64,5 +65,106 @@ void pkcs12_derive_key(int md_type, int key_size_arg,
 exit:
     mbedtls_free(output_data);
 
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ASN1_PARSE_C */
+void pkcs12_pbe_encrypt(int params_tag, int cipher, int md, data_t *params_hex, data_t *pw,
+                        data_t *data, int outsize, int ref_ret, data_t *ref_out)
+{
+    int my_ret;
+    mbedtls_asn1_buf pbe_params;
+    unsigned char *my_out = NULL;
+    mbedtls_cipher_type_t cipher_alg = (mbedtls_cipher_type_t) cipher;
+    mbedtls_md_type_t md_alg = (mbedtls_md_type_t) md;
+#if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+    size_t my_out_len = 0;
+#endif
+
+    ASSERT_ALLOC(my_out, outsize);
+
+    pbe_params.tag = params_tag;
+    pbe_params.len = params_hex->len;
+    pbe_params.p = params_hex->x;
+
+    if (ref_ret != MBEDTLS_ERR_ASN1_BUF_TOO_SMALL) {
+        my_ret = mbedtls_pkcs12_pbe(&pbe_params, MBEDTLS_PKCS12_PBE_ENCRYPT, cipher_alg,
+                                    md_alg, pw->x, pw->len, data->x, data->len, my_out);
+        TEST_EQUAL(my_ret, ref_ret);
+    }
+    if (ref_ret == 0) {
+        ASSERT_COMPARE(my_out, ref_out->len,
+                       ref_out->x, ref_out->len);
+    }
+
+#if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+
+    pbe_params.tag = params_tag;
+    pbe_params.len = params_hex->len;
+    pbe_params.p = params_hex->x;
+
+    my_ret = mbedtls_pkcs12_pbe_ext(&pbe_params, MBEDTLS_PKCS12_PBE_ENCRYPT, cipher_alg,
+                                    md_alg, pw->x, pw->len, data->x, data->len, my_out,
+                                    outsize, &my_out_len);
+    TEST_EQUAL(my_ret, ref_ret);
+    if (ref_ret == 0) {
+        ASSERT_COMPARE(my_out, my_out_len,
+                       ref_out->x, ref_out->len);
+    }
+#endif
+
+exit:
+    mbedtls_free(my_out);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ASN1_PARSE_C */
+void pkcs12_pbe_decrypt(int params_tag, int cipher, int md, data_t *params_hex, data_t *pw,
+                        data_t *data, int outsize, int ref_ret, data_t *ref_out)
+{
+    int my_ret;
+    mbedtls_asn1_buf pbe_params;
+    unsigned char *my_out = NULL;
+    mbedtls_cipher_type_t cipher_alg = (mbedtls_cipher_type_t) cipher;
+    mbedtls_md_type_t md_alg = (mbedtls_md_type_t) md;
+#if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+    size_t my_out_len = 0;
+#endif
+
+    ASSERT_ALLOC(my_out, outsize);
+
+    pbe_params.tag = params_tag;
+    pbe_params.len = params_hex->len;
+    pbe_params.p = params_hex->x;
+
+    if (ref_ret != MBEDTLS_ERR_ASN1_BUF_TOO_SMALL) {
+        my_ret = mbedtls_pkcs12_pbe(&pbe_params, MBEDTLS_PKCS12_PBE_DECRYPT, cipher_alg,
+                                    md_alg, pw->x, pw->len, data->x, data->len, my_out);
+        TEST_EQUAL(my_ret, ref_ret);
+    }
+
+    if (ref_ret == 0) {
+        ASSERT_COMPARE(my_out, ref_out->len,
+                       ref_out->x, ref_out->len);
+    }
+
+#if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+
+    pbe_params.tag = params_tag;
+    pbe_params.len = params_hex->len;
+    pbe_params.p = params_hex->x;
+
+    my_ret = mbedtls_pkcs12_pbe_ext(&pbe_params, MBEDTLS_PKCS12_PBE_DECRYPT, cipher_alg,
+                                    md_alg, pw->x, pw->len, data->x, data->len, my_out,
+                                    outsize, &my_out_len);
+    TEST_EQUAL(my_ret, ref_ret);
+    if (ref_ret == 0) {
+        ASSERT_COMPARE(my_out, my_out_len,
+                       ref_out->x, ref_out->len);
+    }
+#endif
+
+exit:
+    mbedtls_free(my_out);
 }
 /* END_CASE */

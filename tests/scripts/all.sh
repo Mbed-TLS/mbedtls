@@ -4379,6 +4379,13 @@ component_build_sha_armce () {
 
     msg "MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT clang, aarch64"
     make -B library/sha256.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a"
+
+    msg "MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT clang, arm"
+    make -B library/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm -std=c99"
+
+    msg "MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT clang, thumb"
+    make -B library/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
+
 }
 
 # For timebeing, no VIA Padlock platform available.

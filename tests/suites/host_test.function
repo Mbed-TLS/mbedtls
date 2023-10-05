@@ -444,6 +444,11 @@ static void write_outcome_result(FILE *outcome_file,
  */
 static void try_chdir(const char *argv0)
 {
+    /* We might want to allow backslash as well, for Windows. But then we also
+     * need to consider chdir() vs _chdir(), and different conventions
+     * regarding paths in argv[0] (naively enabling this code with
+     * backslash support on Windows leads to chdir into the wrong directory
+     * on the CI). */
     const char *slash = strrchr(argv0, '/');
     if (slash == NULL) {
         return;

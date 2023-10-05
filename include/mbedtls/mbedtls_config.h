@@ -3277,7 +3277,7 @@
  * If not, the library will fall back to the C implementation.
  *
  * \note If MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT is defined when building
- * for a non-Aarch64 build it will be silently ignored.
+ * for a non-Armv8 build it will be silently ignored.
  *
  * \note    Minimum compiler versions for this feature are Clang 4.0,
  * armclang 6.6 or GCC 6.0. Targetting Thumb or 32-bit arm with GCC is not

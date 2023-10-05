@@ -14,12 +14,12 @@ libpsaff.so:
 	$(CC) $(INCLUDE) $(CFLAGS) -c -fpic src/service.c -o server.o
 	$(CC) -shared -o libpsaff.so common.o client.o server.o
 
-ifeq ($(DEBUG),1) 
-  CFLAGS += -DDEBUG -g 
+ifeq ($(DEBUG),1)
+  CFLAGS += -DDEBUG -g
 endif
 
 clean:
-	rm -rf $(BUILDDIR) 
+	rm -rf $(BUILDDIR)
 	rm -f *.so *.o
 	rm -rf test/*dSYM
 	cd test && make clean

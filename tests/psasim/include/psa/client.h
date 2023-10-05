@@ -27,10 +27,10 @@ extern "C" {
 #define PSA_DROP_CONNECTION    PSA_ERROR_PROGRAMMER_ERROR
 
 /* PSA message handles */
-#define PSA_NULL_HANDLE        ((psa_handle_t)0)
+#define PSA_NULL_HANDLE        ((psa_handle_t) 0)
 
-#define PSA_HANDLE_IS_VALID(handle) ((psa_handle_t)(handle) > 0)
-#define PSA_HANDLE_TO_ERROR(handle) ((psa_status_t)(handle))
+#define PSA_HANDLE_IS_VALID(handle) ((psa_handle_t) (handle) > 0)
+#define PSA_HANDLE_TO_ERROR(handle) ((psa_status_t) (handle))
 
 #define PSA_MAX_IOVEC (4u)
 
@@ -63,7 +63,7 @@ uint32_t psa_version(uint32_t sid);
 psa_handle_t psa_connect(uint32_t sid, uint32_t version);
 
 psa_status_t psa_call(psa_handle_t handle,
-		      int32_t type,
+                      int32_t type,
                       const psa_invec *in_vec,
                       size_t in_len,
                       psa_outvec *out_vec,

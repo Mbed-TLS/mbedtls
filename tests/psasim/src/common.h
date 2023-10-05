@@ -14,15 +14,18 @@
 #endif
 
 #define PRINT(...) \
-            do { if (DEBUG_TEST) fprintf(stderr, __VA_ARGS__); } while (0)
+    do { if (DEBUG_TEST) fprintf(stderr, __VA_ARGS__); } while (0)
 #define INFO(...) \
-	    do { if (DEBUG_TEST) { PRINT("%s", __FILE__); PRINT(" INFO: " __VA_ARGS__); printf("\n"); } } while (0)
+    do { if (DEBUG_TEST) { PRINT("%s", __FILE__); PRINT(" INFO: " __VA_ARGS__); printf("\n"); \
+         } } while (0)
 
 #define PROGRAMMER_ERROR(...) \
-          	do { if (DEBUG_TEST) { PRINT( "%s:%d:%s(): PROGRAMMER ERROR", __FILE__, __LINE__, __func__ ); PRINT(__VA_ARGS__);} abort();} while (0)
+    do { if (DEBUG_TEST) { PRINT("%s:%d:%s(): PROGRAMMER ERROR", __FILE__, __LINE__, __func__); \
+                           PRINT(__VA_ARGS__); } abort(); } while (0)
 
 #define FATAL(...) \
-          	do { if (DEBUG_TEST) { PRINT( "%s:%d:%s(): INTERNAL ERROR", __FILE__, __LINE__, __func__ ); PRINT(__VA_ARGS__);} abort();} while (0)
+    do { if (DEBUG_TEST) { PRINT("%s:%d:%s(): INTERNAL ERROR", __FILE__, __LINE__, __func__); PRINT( \
+                               __VA_ARGS__); } abort(); } while (0)
 
 
 #define PROJECT_ID 'M'
@@ -50,7 +53,7 @@ extern int __psa_ff_client_security_state;
 struct message_text {
     int qid;
     int32_t psa_type;
-    char buf [MAX_FRAGMENT_SIZE];
+    char buf[MAX_FRAGMENT_SIZE];
 };
 
 

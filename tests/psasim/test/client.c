@@ -10,9 +10,10 @@
 #include <stdio.h>
 #include <unistd.h>
 
-int main() {
+int main()
+{
 
-    const char* text = "FOOBARCOOL!!";
+    const char *text = "FOOBARCOOL!!";
 
     char output[100] = { 0 };
     printf("My PID is %d\n", getpid());
@@ -21,10 +22,10 @@ int main() {
     psa_handle_t h = psa_connect(PSA_SID_SHA256_SID, 1);
 
     if (h < 0) {
-        printf ("Couldn't connect %d\n", h);
+        printf("Couldn't connect %d\n", h);
         return 1;
     } else {
-	    int type = 2;
+        int type = 2;
         puts("Calling!");
         puts("Trying without invec");
         printf("Answer to my call was %d (no invec)\n", psa_call(h, type, NULL, 0, NULL, 0));

@@ -278,6 +278,8 @@ EXCLUDE_FROM_BAREMETAL = frozenset([
     'MBEDTLS_THREADING_C', # requires a threading interface
     'MBEDTLS_THREADING_PTHREAD', # requires pthread
     'MBEDTLS_TIMING_C', # requires a clock
+    'MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT', # requires an OS for runtime-detection
+    'MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT', # requires an OS for runtime-detection
 ])
 
 def keep_in_baremetal(name):

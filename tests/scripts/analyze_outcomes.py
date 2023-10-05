@@ -206,6 +206,7 @@ TASKS = {
             'ignored_suites': [
                 'shax', 'mdx', # the software implementations that are being excluded
                 'md.psa',  # purposefully depends on whether drivers are present
+                'psa_crypto_low_hash.generated', # testing the builtins
             ],
             'ignored_tests': {
             }

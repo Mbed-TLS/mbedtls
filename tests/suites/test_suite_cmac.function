@@ -20,9 +20,9 @@ void mbedtls_cmac_null_args()
 {
     mbedtls_cipher_context_t ctx;
     const mbedtls_cipher_info_t *cipher_info;
-    unsigned char test_key[MBEDTLS_CIPHER_BLKSIZE_MAX];
-    unsigned char test_data[MBEDTLS_CIPHER_BLKSIZE_MAX];
-    unsigned char test_output[MBEDTLS_CIPHER_BLKSIZE_MAX];
+    unsigned char test_key[MBEDTLS_CMAC_MAX_BLOCK_SIZE];
+    unsigned char test_data[MBEDTLS_CMAC_MAX_BLOCK_SIZE];
+    unsigned char test_output[MBEDTLS_CMAC_MAX_BLOCK_SIZE];
 
     mbedtls_cipher_init(&ctx);
 
@@ -111,6 +111,12 @@ void mbedtls_cmac_setkey(int cipher_type, int key_size, int result)
 
     TEST_ASSERT((cipher_info = mbedtls_cipher_info_from_type(cipher_type))
                 != NULL);
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+    TEST_LE_U(mbedtls_cipher_info_get_block_size(cipher_info),
+              MBEDTLS_CIPHER_BLKSIZE_MAX);
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
+    TEST_LE_U(mbedtls_cipher_info_get_block_size(cipher_info),
+              MBEDTLS_CMAC_MAX_BLOCK_SIZE);
 
     memset(buf, 0x2A, sizeof(buf));
     TEST_ASSERT((result == mbedtls_cipher_cmac(cipher_info, key, key_size,
@@ -129,7 +135,7 @@ void mbedtls_cmac_multiple_blocks(int cipher_type, data_t *key,
 {
     const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_context_t ctx;
-    unsigned char output[MBEDTLS_CIPHER_BLKSIZE_MAX];
+    unsigned char output[MBEDTLS_CMAC_MAX_BLOCK_SIZE];
 
     /* Convert the test parameters to binary data */
 
@@ -208,7 +214,7 @@ void mbedtls_cmac_multiple_operations_same_key(int cipher_type,
 {
     const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_context_t ctx;
-    unsigned char output[MBEDTLS_CIPHER_BLKSIZE_MAX];
+    unsigned char output[MBEDTLS_CMAC_MAX_BLOCK_SIZE];
 
     /* Convert the test parameters to binary data */
 

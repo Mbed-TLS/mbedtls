@@ -336,10 +336,10 @@ static size_t mbedtls_internal_sha256_process_many_a64_crypto(
         uint32x4_t abcd_orig = abcd;
         uint32x4_t efgh_orig = efgh;
 
-        uint32x4_t sched0 = (uint32x4_t) vld1q_u8(msg + 16 * 0);
-        uint32x4_t sched1 = (uint32x4_t) vld1q_u8(msg + 16 * 1);
-        uint32x4_t sched2 = (uint32x4_t) vld1q_u8(msg + 16 * 2);
-        uint32x4_t sched3 = (uint32x4_t) vld1q_u8(msg + 16 * 3);
+        uint32x4_t sched0 = vreinterpretq_u32_u8(vld1q_u8(msg + 16 * 0));
+        uint32x4_t sched1 = vreinterpretq_u32_u8(vld1q_u8(msg + 16 * 1));
+        uint32x4_t sched2 = vreinterpretq_u32_u8(vld1q_u8(msg + 16 * 2));
+        uint32x4_t sched3 = vreinterpretq_u32_u8(vld1q_u8(msg + 16 * 3));
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__  /* Will be true if not defined */
                                                /* Untested on BE */

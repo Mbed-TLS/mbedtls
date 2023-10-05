@@ -61,17 +61,24 @@
 
 #if defined(MBEDTLS_ARCH_IS_ARMV8)
 
-#  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
-    defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
-
 /* *INDENT-OFF* */
 
-#   ifdef __ARM_NEON
-#       include <arm_neon.h>
-#   else
-#       error "Target does not support NEON instructions"
+#  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
+    defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
+#       ifdef __ARM_NEON
+#           include <arm_neon.h>
+#       else
+#           if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT)
+#               warning "Target does not support NEON instructions"
+#               undef MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+#           else
+#               error "Target does not support NEON instructions"
+#           endif
+#       endif
 #   endif
 
+#  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
+    defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
 #   if !defined(__ARM_FEATURE_CRYPTO) || defined(MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG)
 #      if defined(__ARMCOMPILER_VERSION)
 #        if __ARMCOMPILER_VERSION <= 6090000

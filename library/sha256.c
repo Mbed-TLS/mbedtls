@@ -44,6 +44,9 @@
 #define MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG
 #endif
 
+/* Ensure that SIG_SETMASK is defined when -std=c99 is used. */
+#define _GNU_SOURCE
+
 #include "common.h"
 
 #if defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA224_C)
@@ -101,11 +104,6 @@
 
 #  endif
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT)
-#    if defined(MBEDTLS_COMPILER_IS_GCC) && !defined(MBEDTLS_ARCH_IS_ARM64)
-#           warning \
-    "GCC only supports aarch64 for MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT, using C code only"
-#           undef MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
-#    endif
 #    if defined(__unix__)
 #      if defined(__linux__)
 /* Our preferred method of detection is getauxval() */
@@ -185,7 +183,11 @@ static int mbedtls_a64_crypto_sha256_determine_support(void)
 
     if (setjmp(return_from_sigill) == 0) {         /* First return only */
         /* If this traps, we will return a second time from setjmp() with 1 */
+#if defined(MBEDTLS_ARCH_IS_ARM64)
         asm ("sha256h q0, q0, v0.4s" : : : "v0");
+#else
+        asm ("sha256h.32 q0, q0, q0" : : : "q0");
+#endif
         ret = 1;
     }
 

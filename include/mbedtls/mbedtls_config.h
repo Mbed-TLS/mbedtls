@@ -3280,8 +3280,11 @@
  * for a non-Armv8 build it will be silently ignored.
  *
  * \note    Minimum compiler versions for this feature are Clang 4.0,
- * armclang 6.6 or GCC 6.0. Targetting Thumb or 32-bit arm with GCC is not
- * supported.
+ * armclang 6.6 or GCC 6.0.
+ *
+ * \note GCC for Thumb or 32-bit Armv8 targets supports accelerated SHA-256
+ * via #MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY, but does not support runtime
+ * detection via #MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT.
  *
  * \note \c CFLAGS must be set to a minimum of \c -march=armv8-a+crypto for
  * armclang <= 6.9

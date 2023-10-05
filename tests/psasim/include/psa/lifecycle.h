@@ -1,3 +1,10 @@
+/* PSA lifecycle states used by psasim. */
+
+/*
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+ */
+
 #define PSA_LIFECYCLE_PSA_STATE_MASK (0xff00u)
 #define PSA_LIFECYCLE_IMP_STATE_MASK (0x00ffu)
 #define PSA_LIFECYCLE_UNKNOWN (0x0000u)

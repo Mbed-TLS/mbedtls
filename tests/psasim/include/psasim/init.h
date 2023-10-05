@@ -1,3 +1,10 @@
+/* Declarations of internal functions. */
+
+/*
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+ */
+
 #include <stdint.h>
 #include <psa/service.h>
 void raise_signal(psa_signal_t signal);

@@ -1,3 +1,10 @@
+/* PSA status codes used by psasim. */
+
+/*
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+ */
+
 #ifndef PSA_ERROR_H
 #define PSA_ERROR_H
 #include <stdint.h>

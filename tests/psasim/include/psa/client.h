@@ -1,3 +1,10 @@
+/* PSA Firmware Framework client header for psasim. */
+
+/*
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+ */
+
 #ifndef __PSA_CLIENT_H__
 #define __PSA_CLIENT_H__
 

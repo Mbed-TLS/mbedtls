@@ -1,3 +1,10 @@
+/* PSA Firmware Framework service API */
+
+/*
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+ */
+
 #include <psa/service.h>
 #include <sys/types.h>
 #include <sys/ipc.h>

@@ -369,7 +369,7 @@ int mbedtls_ssl_tls13_process_certificate_verify(mbedtls_ssl_context *ssl)
      */
     ret = mbedtls_ssl_get_handshake_transcript(
         ssl,
-        ssl->handshake->ciphersuite_info->mac,
+        (mbedtls_md_type_t) ssl->handshake->ciphersuite_info->mac,
         transcript, sizeof(transcript),
         &transcript_len);
     if (ret != 0) {
@@ -967,7 +967,7 @@ cleanup:
 int mbedtls_ssl_tls13_check_sig_alg_cert_key_match(uint16_t sig_alg,
                                                    mbedtls_pk_context *key)
 {
-    mbedtls_pk_type_t pk_type = mbedtls_ssl_sig_from_pk(key);
+    mbedtls_pk_type_t pk_type = (mbedtls_pk_type_t) mbedtls_ssl_sig_from_pk(key);
     size_t key_size = mbedtls_pk_get_bitlen(key);
 
     switch (pk_type) {
@@ -1035,7 +1035,7 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
     }
 
     ret = mbedtls_ssl_get_handshake_transcript(
-        ssl, ssl->handshake->ciphersuite_info->mac,
+        ssl, (mbedtls_md_type_t) ssl->handshake->ciphersuite_info->mac,
         handshake_hash, sizeof(handshake_hash), &handshake_hash_len);
     if (ret != 0) {
         return ret;
@@ -1464,7 +1464,7 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("Reset SSL session for HRR"));
 
-    ret = mbedtls_ssl_get_handshake_transcript(ssl, ciphersuite_info->mac,
+    ret = mbedtls_ssl_get_handshake_transcript(ssl, (mbedtls_md_type_t) ciphersuite_info->mac,
                                                hash_transcript + 4,
                                                PSA_HASH_MAX_SIZE,
                                                &hash_len);

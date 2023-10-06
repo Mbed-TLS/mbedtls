@@ -79,7 +79,7 @@
 #define MBEDTLS_ECP_LIGHT
 #endif
 
-/* MBEDTLS_PK_PARSE_EC_COMPRESSED is introduced in MbedTLS version 3.5, while
+/* MBEDTLS_PK_PARSE_EC_COMPRESSED is introduced in Mbed TLS version 3.5, while
  * in previous version compressed points were automatically supported as long
  * as PK_PARSE_C and ECP_C were enabled. As a consequence, for backward
  * compatibility, we auto-enable PK_PARSE_EC_COMPRESSED when these conditions

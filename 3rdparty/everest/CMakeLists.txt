@@ -18,11 +18,11 @@ target_include_directories(${everest_target}
 # everest is not directly linked against any mbedtls targets
 # so does not inherit the compile definitions.
 if(MBEDTLS_CONFIG_FILE)
-    target_compile_definitions(everest
+    target_compile_definitions(${everest_target}
         PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
 endif()
 if(MBEDTLS_USER_CONFIG_FILE)
-    target_compile_definitions(everest
+    target_compile_definitions(${everest_target}
         PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
 endif()
 

@@ -1,0 +1,3 @@
+Bugfix
+   * Fix accidental omission of MBEDTLS_TARGET_PREFIX in 3rdparty modules
+     in CMake.

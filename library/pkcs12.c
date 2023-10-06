@@ -169,6 +169,7 @@ int mbedtls_pkcs12_pbe_ext(mbedtls_asn1_buf *pbe_params, int mode,
     unsigned char iv[16];
     const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_context_t cipher_ctx;
+    size_t iv_len = 0;
     size_t finish_olen = 0;
     unsigned int padlen = 0;
 
@@ -196,9 +197,10 @@ int mbedtls_pkcs12_pbe_ext(mbedtls_asn1_buf *pbe_params, int mode,
         }
     }
 
+    iv_len = mbedtls_cipher_info_get_iv_size(cipher_info);
     if ((ret = pkcs12_pbe_derive_key_iv(pbe_params, md_type, pwd, pwdlen,
                                         key, keylen,
-                                        iv, mbedtls_cipher_info_get_iv_size(cipher_info))) != 0) {
+                                        iv, iv_len)) != 0) {
         return ret;
     }
 
@@ -208,9 +210,8 @@ int mbedtls_pkcs12_pbe_ext(mbedtls_asn1_buf *pbe_params, int mode,
         goto exit;
     }
 
-    if ((ret =
-             mbedtls_cipher_setkey(&cipher_ctx, key, 8 * keylen,
-                                   (mbedtls_operation_t) mode)) != 0) {
+    if ((ret = mbedtls_cipher_setkey(&cipher_ctx, key, 8 * keylen,
+                                     (mbedtls_operation_t) mode)) != 0) {
         goto exit;
     }
 
@@ -233,22 +234,8 @@ int mbedtls_pkcs12_pbe_ext(mbedtls_asn1_buf *pbe_params, int mode,
     }
 #endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
 
-    if ((ret =
-             mbedtls_cipher_set_iv(&cipher_ctx, iv,
-                                   mbedtls_cipher_info_get_iv_size(cipher_info))) != 0) {
-        goto exit;
-    }
-
-    if ((ret = mbedtls_cipher_reset(&cipher_ctx)) != 0) {
-        goto exit;
-    }
-
-    if ((ret = mbedtls_cipher_update(&cipher_ctx, data, len,
-                                     output, output_len)) != 0) {
-        goto exit;
-    }
-
-    if ((ret = mbedtls_cipher_finish(&cipher_ctx, output + (*output_len), &finish_olen)) != 0) {
+    ret = mbedtls_cipher_crypt(&cipher_ctx, iv, iv_len, data, len, output, &finish_olen);
+    if (ret == MBEDTLS_ERR_CIPHER_INVALID_PADDING) {
         ret = MBEDTLS_ERR_PKCS12_PASSWORD_MISMATCH;
     }
 

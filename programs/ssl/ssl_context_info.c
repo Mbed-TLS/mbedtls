@@ -1,5 +1,5 @@
 /*
- *  MbedTLS SSL context deserializer from base64 code
+ *  Mbed TLS SSL context deserializer from base64 code
  *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0

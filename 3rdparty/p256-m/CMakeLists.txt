@@ -16,11 +16,11 @@ target_include_directories(${p256m_target}
 # p256m is not directly linked against any mbedtls targets
 # so does not inherit the compile definitions.
 if(MBEDTLS_CONFIG_FILE)
-    target_compile_definitions(p256m
+    target_compile_definitions(${p256m_target}
         PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
 endif()
 if(MBEDTLS_USER_CONFIG_FILE)
-    target_compile_definitions(p256m
+    target_compile_definitions(${p256m_target}
         PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
 endif()
 

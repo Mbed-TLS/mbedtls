@@ -28,9 +28,6 @@
 #include <psa/crypto.h>
 #endif
 
-#if defined(MBEDTLS_MD_LIGHT)
-#include "mbedtls/md.h"
-#endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 /** Initialize the PSA Crypto subsystem. */

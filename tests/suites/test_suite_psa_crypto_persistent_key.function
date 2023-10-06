@@ -17,8 +17,6 @@
 #include "psa_crypto_slot_management.h"
 #include "psa_crypto_storage.h"
 
-#include "mbedtls/md.h"
-
 #define PSA_KEY_STORAGE_MAGIC_HEADER "PSA\0KEY"
 #define PSA_KEY_STORAGE_MAGIC_HEADER_LENGTH (sizeof(PSA_KEY_STORAGE_MAGIC_HEADER))
 

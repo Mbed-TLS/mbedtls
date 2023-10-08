@@ -190,6 +190,16 @@ int mbedtls_aesce_has_support_impl(void)
      * once, but that is harmless.
      */
     if (mbedtls_aesce_has_support_result == -1) {
+#if defined(MBEDTLS_ARCH_IS_ARM32)
+        unsigned long auxval  = getauxval(AT_HWCAP);
+        unsigned long auxval2 = getauxval(AT_HWCAP2);
+        if (((auxval  & HWCAP_NEON) == HWCAP_NEON) &&
+            ((auxval2 & HWCAP2_AES) == HWCAP2_AES)) {
+            mbedtls_aesce_has_support_result = 1;
+        } else {
+            mbedtls_aesce_has_support_result = 0;
+        }
+#else
         unsigned long auxval = getauxval(AT_HWCAP);
         if ((auxval & (HWCAP_ASIMD | HWCAP_AES)) ==
             (HWCAP_ASIMD | HWCAP_AES)) {
@@ -197,6 +207,7 @@ int mbedtls_aesce_has_support_impl(void)
         } else {
             mbedtls_aesce_has_support_result = 0;
         }
+#endif
     }
     return mbedtls_aesce_has_support_result;
 }

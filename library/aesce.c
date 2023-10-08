@@ -108,7 +108,7 @@ typedef uint8x16_t poly128_t;
 static inline poly128_t vmull_p64(poly64_t a, poly64_t b)
 {
     poly128_t r;
-    asm ("vmull.p64	%[r], %[a], %[b]": [r] "=w" (r) : [a] "w" (a), [b] "w" (b) :);
+    asm ("vmull.p64 %[r], %[a], %[b]": [r] "=w" (r) : [a] "w" (a), [b] "w" (b) :);
     return r;
 }
 

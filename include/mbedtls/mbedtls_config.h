@@ -2247,7 +2247,7 @@
 /**
  * \def MBEDTLS_AESCE_C
  *
- * Enable AES cryptographic extension support on 64-bit Arm.
+ * Enable AES cryptographic extension support on Armv8.
  *
  * Module:  library/aesce.c
  * Caller:  library/aes.c

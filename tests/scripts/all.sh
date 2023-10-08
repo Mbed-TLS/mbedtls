@@ -5044,6 +5044,9 @@ component_build_armcc () {
     # armc[56] don't support SHA-512 intrinsics
     scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
 
+    # older versions of armcc/armclang don't support AESCE_C on 32-bit Arm
+    scripts/config.py unset MBEDTLS_AESCE_C
+
     # Stop armclang warning about feature detection for A64_CRYPTO.
     # With this enabled, the library does build correctly under armclang,
     # but in baremetal builds (as tested here), feature detection is
@@ -5078,14 +5081,18 @@ component_build_armcc () {
     # ARM Compiler 6 - Target ARMv8-M
     armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv8-m.main"
 
-    # ARM Compiler 6 - Target ARMv8.2-A - AArch64
-    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
-
     # ARM Compiler 6 - Target Cortex-M0 - no optimisation
     armc6_build_test "-O0 --target=arm-arm-none-eabi -mcpu=cortex-m0"
 
     # ARM Compiler 6 - Target Cortex-M0
     armc6_build_test "-Os --target=arm-arm-none-eabi -mcpu=cortex-m0"
+
+    # ARM Compiler 6 - Target ARMv8.2-A - AArch64
+    #
+    # Re-enable MBEDTLS_AESCE_C as this should be supported by the version of armclang
+    # that we have in our CI
+    scripts/config.py set MBEDTLS_AESCE_C
+    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
 }
 
 support_build_armcc () {

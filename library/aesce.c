@@ -75,6 +75,15 @@
 #   if _MSC_VER < 1929
 #       error "Minimum version of MSVC for MBEDTLS_AESCE_C is 2019 version 16.11.2."
 #   endif
+#elif defined(__ARMCC_VERSION)
+#    if defined(MBEDTLS_ARCH_IS_ARM32) && (__ARMCC_VERSION < 6200002)
+/* TODO: We haven't verified armclang for 32-bit Arm/Thumb prior to 6.20.
+ * If someone verified that, please update this and document of
+ * `MBEDTLS_AESCE_C` in `mbedtls_config.h`. */
+#         error "Minimum version of armclang for MBEDTLS_AESCE_C on 32-bit Arm is 6.20."
+#    elif defined(MBEDTLS_ARCH_IS_ARM64) && (__ARMCC_VERSION < 6060000)
+#         error "Minimum version of armclang for MBEDTLS_AESCE_C on aarch64 is 6.6."
+#    endif
 #endif
 
 #ifdef __ARM_NEON

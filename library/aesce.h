@@ -130,7 +130,7 @@ int mbedtls_aesce_setkey_enc(unsigned char *rk,
 
 #else
 
-#if defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#if defined(MBEDTLS_AES_USE_HARDWARE_ONLY) && defined(MBEDTLS_ARCH_IS_ARMV8)
 #error "AES hardware acceleration not supported on this platform"
 #endif
 

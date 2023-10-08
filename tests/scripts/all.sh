@@ -4403,7 +4403,7 @@ component_build_aes_armce () {
     scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
 
     msg "MBEDTLS_AES_USE_HARDWARE_ONLY, clang, aarch64"
-    make -B library/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a"
+    make -B library/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a+crypto"
 
     msg "MBEDTLS_AES_USE_HARDWARE_ONLY, clang, arm"
     make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm"
@@ -4414,7 +4414,7 @@ component_build_aes_armce () {
     scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
 
     msg "no MBEDTLS_AES_USE_HARDWARE_ONLY, clang, aarch64"
-    make -B library/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a"
+    make -B library/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a+crypto"
 
     msg "no MBEDTLS_AES_USE_HARDWARE_ONLY, clang, arm"
     make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm"

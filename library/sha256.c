@@ -22,8 +22,17 @@
  *  http://csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf
  */
 
-#if defined(__aarch64__) && !defined(__ARM_FEATURE_CRYPTO) && \
-    defined(__clang__) && __clang_major__ >= 4
+#if defined(__clang__) &&  (__clang_major__ >= 4)
+
+/* Ideally, we would simply use MBEDTLS_ARCH_IS_ARMV8 in the following #if,
+ * but that is defined by build_info.h, and we need this block to happen first. */
+#if defined(__ARM_ARCH)
+#if __ARM_ARCH >= 8
+#define MBEDTLS_SHA256_ARCH_IS_ARMV8
+#endif
+#endif
+
+#if defined(MBEDTLS_SHA256_ARCH_IS_ARMV8) && !defined(__ARM_FEATURE_CRYPTO)
 /* TODO: Re-consider above after https://reviews.llvm.org/D131064 merged.
  *
  * The intrinsic declaration are guarded by predefined ACLE macros in clang:
@@ -43,6 +52,8 @@
 #define __ARM_FEATURE_SHA2   1
 #define MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG
 #endif
+
+#endif /* defined(__clang__) &&  (__clang_major__ >= 4) */
 
 /* Ensure that SIG_SETMASK is defined when -std=c99 is used. */
 #define _GNU_SOURCE

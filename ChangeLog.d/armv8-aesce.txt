@@ -1,0 +1,3 @@
+Features
+   * Support use of Arm Crypto Extensions for hardware acclerated AES on
+     Thumb and Arm targets.

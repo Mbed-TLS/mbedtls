@@ -17,8 +17,17 @@
  *  limitations under the License.
  */
 
-#if defined(__aarch64__) && !defined(__ARM_FEATURE_CRYPTO) && \
-    defined(__clang__) && __clang_major__ >= 4
+#if defined(__clang__) &&  (__clang_major__ >= 4)
+
+/* Ideally, we would simply use MBEDTLS_ARCH_IS_ARMV8 in the following #if,
+ * but that is defined by build_info.h, and we need this block to happen first. */
+#if defined(__ARM_ARCH)
+#if __ARM_ARCH >= 8
+#define MBEDTLS_AESCE_ARCH_IS_ARMV8
+#endif
+#endif
+
+#if defined(MBEDTLS_AESCE_ARCH_IS_ARMV8) && !defined(__ARM_FEATURE_CRYPTO)
 /* TODO: Re-consider above after https://reviews.llvm.org/D131064 merged.
  *
  * The intrinsic declaration are guarded by predefined ACLE macros in clang:
@@ -39,6 +48,8 @@
 #define MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG
 #endif
 
+#endif /* defined(__clang__) &&  (__clang_major__ >= 4) */
+
 #include <string.h>
 #include "common.h"
 
@@ -46,7 +57,7 @@
 
 #include "aesce.h"
 
-#if defined(MBEDTLS_ARCH_IS_ARM64)
+#if defined(MBEDTLS_ARCH_IS_ARMV8)
 
 /* Compiler version checks. */
 #if defined(__clang__)
@@ -68,6 +79,71 @@
 
 #ifdef __ARM_NEON
 #include <arm_neon.h>
+
+#if defined(MBEDTLS_ARCH_IS_ARM32)
+#if defined(__clang__)
+/* On clang for A32/T32, work around some missing intrinsics and types */
+
+#ifndef vreinterpretq_p64_u8
+#define vreinterpretq_p64_u8 (poly64x2_t)
+#endif
+#ifndef vreinterpretq_u8_p128
+#define vreinterpretq_u8_p128 (uint8x16_t)
+#endif
+#ifndef vreinterpretq_u64_p64
+#define vreinterpretq_u64_p64 (uint64x2_t)
+#endif
+
+typedef uint8x16_t poly128_t;
+
+static inline poly128_t vmull_p64(poly64_t a, poly64_t b)
+{
+    poly128_t r;
+    asm ("vmull.p64	%[r], %[a], %[b]": [r] "=w" (r) : [a] "w" (a), [b] "w" (b) :);
+    return r;
+}
+
+static inline poly64x1_t vget_low_p64(poly64x2_t a)
+{
+    return (poly64x1_t) vget_low_u64(vreinterpretq_u64_p64(a));
+}
+
+static inline poly128_t vmull_high_p64(poly64x2_t a, poly64x2_t b)
+{
+    return vmull_p64((poly64_t) (vget_high_u64((uint64x2_t) a)),
+                     (poly64_t) (vget_high_u64((uint64x2_t) b)));
+}
+
+#endif /* defined(__clang__) */
+
+static inline uint8x16_t vrbitq_u8(uint8x16_t x)
+{
+    /* There is no vrbitq_u8 instruction in A32/T32, so provide
+     * an equivalent non-Neon implementation. Reverse bit order in each
+     * byte with 4x rbit, rev. */
+    asm ("ldm  %[p], { r2-r5 } \n\t"
+         "rbit r2, r2          \n\t"
+         "rev  r2, r2          \n\t"
+         "rbit r3, r3          \n\t"
+         "rev  r3, r3          \n\t"
+         "rbit r4, r4          \n\t"
+         "rev  r4, r4          \n\t"
+         "rbit r5, r5          \n\t"
+         "rev  r5, r5          \n\t"
+         "stm  %[p], { r2-r5 } \n\t"
+         :
+         /* Output: 16 bytes of memory pointed to by &x */
+         "+m" (*(uint8_t(*)[16]) &x)
+         :
+         [p] "r" (&x)
+         :
+         "r2", "r3", "r4", "r5"
+         );
+    return x;
+}
+
+#endif /* defined(MBEDTLS_ARCH_IS_ARM32) */
+
 #else
 #error "Target does not support NEON instructions"
 #endif
@@ -510,6 +586,6 @@ void mbedtls_aesce_gcm_mult(unsigned char c[16],
 #undef MBEDTLS_POP_TARGET_PRAGMA
 #endif
 
-#endif /* MBEDTLS_ARCH_IS_ARM64 */
+#endif /* MBEDTLS_ARCH_IS_ARMV8 */
 
 #endif /* MBEDTLS_AESCE_C */

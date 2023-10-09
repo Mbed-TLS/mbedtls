@@ -436,6 +436,7 @@ int main(int argc, char *argv[])
 #if defined(MBEDTLS_ARC4_C)
     if (todo.arc4) {
         mbedtls_arc4_context arc4;
+
         mbedtls_arc4_init(&arc4);
         mbedtls_arc4_setup(&arc4, tmp, 32);
         TIME_AND_TSC("ARC4", mbedtls_arc4_crypt(&arc4, BUFSIZE, buf, buf));
@@ -447,6 +448,7 @@ int main(int argc, char *argv[])
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     if (todo.des3) {
         mbedtls_des3_context des3;
+
         mbedtls_des3_init(&des3);
         if (mbedtls_des3_set3key_enc(&des3, tmp) != 0) {
             mbedtls_exit(1);
@@ -458,6 +460,7 @@ int main(int argc, char *argv[])
 
     if (todo.des) {
         mbedtls_des_context des;
+
         mbedtls_des_init(&des);
         if (mbedtls_des_setkey_enc(&des, tmp) != 0) {
             mbedtls_exit(1);
@@ -490,6 +493,7 @@ int main(int argc, char *argv[])
     if (todo.aes_cbc) {
         int keysize;
         mbedtls_aes_context aes;
+
         mbedtls_aes_init(&aes);
         for (keysize = 128; keysize <= 256; keysize += 64) {
             mbedtls_snprintf(title, sizeof(title), "AES-CBC-%d", keysize);
@@ -509,6 +513,7 @@ int main(int argc, char *argv[])
         int keysize;
         size_t iv_off = 0;
         mbedtls_aes_context aes;
+
         mbedtls_aes_init(&aes);
         for (keysize = 128; keysize <= 256; keysize += 64) {
             mbedtls_snprintf(title, sizeof(title), "AES-CFB128-%d", keysize);
@@ -526,6 +531,7 @@ int main(int argc, char *argv[])
     if (todo.aes_cfb8) {
         int keysize;
         mbedtls_aes_context aes;
+
         mbedtls_aes_init(&aes);
         for (keysize = 128; keysize <= 256; keysize += 64) {
             mbedtls_snprintf(title, sizeof(title), "AES-CFB8-%d", keysize);
@@ -657,6 +663,7 @@ int main(int argc, char *argv[])
     if (todo.aria) {
         int keysize;
         mbedtls_aria_context aria;
+
         mbedtls_aria_init(&aria);
         for (keysize = 128; keysize <= 256; keysize += 64) {
             mbedtls_snprintf(title, sizeof(title), "ARIA-CBC-%d", keysize);
@@ -677,6 +684,7 @@ int main(int argc, char *argv[])
     if (todo.camellia) {
         int keysize;
         mbedtls_camellia_context camellia;
+
         mbedtls_camellia_init(&camellia);
         for (keysize = 128; keysize <= 256; keysize += 64) {
             mbedtls_snprintf(title, sizeof(title), "CAMELLIA-CBC-%d", keysize);
@@ -709,6 +717,7 @@ int main(int argc, char *argv[])
     if (todo.blowfish) {
         int keysize;
         mbedtls_blowfish_context blowfish;
+
         mbedtls_blowfish_init(&blowfish);
 
         for (keysize = 128; keysize <= 256; keysize += 64) {
@@ -730,6 +739,7 @@ int main(int argc, char *argv[])
 #if defined(MBEDTLS_HAVEGE_C)
     if (todo.havege) {
         mbedtls_havege_state hs;
+
         mbedtls_havege_init(&hs);
         TIME_AND_TSC("HAVEGE", mbedtls_havege_random(&hs, buf, BUFSIZE));
         mbedtls_havege_free(&hs);
@@ -814,6 +824,7 @@ int main(int argc, char *argv[])
     if (todo.rsa) {
         int keysize;
         mbedtls_rsa_context rsa;
+
         for (keysize = 2048; keysize <= 4096; keysize *= 2) {
             mbedtls_snprintf(title, sizeof(title), "RSA-%d", keysize);
 
@@ -855,6 +866,7 @@ int main(int argc, char *argv[])
 
         mbedtls_dhm_context dhm;
         size_t olen;
+
         for (i = 0; (size_t) i < sizeof(dhm_sizes) / sizeof(dhm_sizes[0]); i++) {
             mbedtls_dhm_init(&dhm);
 
@@ -968,6 +980,7 @@ int main(int argc, char *argv[])
 
         if (curve_list == (const mbedtls_ecp_curve_info *) &single_curve) {
             mbedtls_ecp_group grp;
+
             mbedtls_ecp_group_init(&grp);
             if (mbedtls_ecp_group_load(&grp, curve_list->grp_id) != 0) {
                 mbedtls_exit(1);

@@ -90,65 +90,6 @@
 
 #ifdef __ARM_NEON
 #include <arm_neon.h>
-
-#if defined(MBEDTLS_ARCH_IS_ARM32)
-#if defined(__clang__)
-/* On clang for A32/T32, work around some missing intrinsics and types which are listed in [ACLE](https://arm-software.github.io/acle/neon_intrinsics/advsimd.html#polynomial-1) */
-
-#define vreinterpretq_p64_u8 (poly64x2_t)
-#define vreinterpretq_u8_p128 (uint8x16_t)
-#define vreinterpretq_u64_p64 (uint64x2_t)
-
-typedef uint8x16_t poly128_t;
-
-static inline poly128_t vmull_p64(poly64_t a, poly64_t b)
-{
-    poly128_t r;
-    asm ("vmull.p64 %[r], %[a], %[b]" : [r] "=w" (r) : [a] "w" (a), [b] "w" (b) :);
-    return r;
-}
-
-static inline poly64x1_t vget_low_p64(poly64x2_t a)
-{
-    return (poly64x1_t) vget_low_u64(vreinterpretq_u64_p64(a));
-}
-
-static inline poly128_t vmull_high_p64(poly64x2_t a, poly64x2_t b)
-{
-    return vmull_p64((poly64_t) (vget_high_u64((uint64x2_t) a)),
-                     (poly64_t) (vget_high_u64((uint64x2_t) b)));
-}
-
-#endif /* defined(__clang__) */
-
-static inline uint8x16_t vrbitq_u8(uint8x16_t x)
-{
-    /* There is no vrbitq_u8 instruction in A32/T32, so provide
-     * an equivalent non-Neon implementation. Reverse bit order in each
-     * byte with 4x rbit, rev. */
-    asm ("ldm  %[p], { r2-r5 } \n\t"
-         "rbit r2, r2          \n\t"
-         "rev  r2, r2          \n\t"
-         "rbit r3, r3          \n\t"
-         "rev  r3, r3          \n\t"
-         "rbit r4, r4          \n\t"
-         "rev  r4, r4          \n\t"
-         "rbit r5, r5          \n\t"
-         "rev  r5, r5          \n\t"
-         "stm  %[p], { r2-r5 } \n\t"
-         :
-         /* Output: 16 bytes of memory pointed to by &x */
-         "+m" (*(uint8_t(*)[16]) &x)
-         :
-         [p] "r" (&x)
-         :
-         "r2", "r3", "r4", "r5"
-         );
-    return x;
-}
-
-#endif /* defined(MBEDTLS_ARCH_IS_ARM32) */
-
 #else
 #error "Target does not support NEON instructions"
 #endif
@@ -457,24 +398,87 @@ int mbedtls_aesce_setkey_enc(unsigned char *rk,
 
 #if defined(MBEDTLS_GCM_C)
 
-#if !defined(__clang__) && defined(__GNUC__) && __GNUC__ == 5
+#if defined(MBEDTLS_ARCH_IS_ARM32)
+
+#if defined(__clang__)
+/* On clang for A32/T32, work around some missing intrinsics and types which are listed in
+ * [ACLE](https://arm-software.github.io/acle/neon_intrinsics/advsimd.html#polynomial-1)
+ * These are only required for GCM.
+ */
+#define vreinterpretq_p64_u8(a)  ((poly64x2_t) a)
+#define vreinterpretq_u8_p128(a) ((uint8x16_t) a)
+#define vreinterpretq_u64_p64(a) ((uint64x2_t) a)
+
+typedef uint8x16_t poly128_t;
+
+static inline poly128_t vmull_p64(poly64_t a, poly64_t b)
+{
+    poly128_t r;
+    asm ("vmull.p64 %[r], %[a], %[b]" : [r] "=w" (r) : [a] "w" (a), [b] "w" (b) :);
+    return r;
+}
+
+static inline poly64x1_t vget_low_p64(poly64x2_t a)
+{
+    uint64x1_t r = vget_low_u64(vreinterpretq_u64_p64(a));
+    return (poly64x1_t) r;
+}
+
+static inline poly128_t vmull_high_p64(poly64x2_t a, poly64x2_t b)
+{
+    return vmull_p64((poly64_t) (vget_high_u64((uint64x2_t) a)),
+                     (poly64_t) (vget_high_u64((uint64x2_t) b)));
+}
+
+#endif /* defined(__clang__) */
+
+static inline uint8x16_t vrbitq_u8(uint8x16_t x)
+{
+    /* There is no vrbitq_u8 instruction in A32/T32, so provide
+     * an equivalent non-Neon implementation. Reverse bit order in each
+     * byte with 4x rbit, rev. */
+    asm ("ldm  %[p], { r2-r5 } \n\t"
+         "rbit r2, r2          \n\t"
+         "rev  r2, r2          \n\t"
+         "rbit r3, r3          \n\t"
+         "rev  r3, r3          \n\t"
+         "rbit r4, r4          \n\t"
+         "rev  r4, r4          \n\t"
+         "rbit r5, r5          \n\t"
+         "rev  r5, r5          \n\t"
+         "stm  %[p], { r2-r5 } \n\t"
+         :
+         /* Output: 16 bytes of memory pointed to by &x */
+         "+m" (*(uint8_t(*)[16]) &x)
+         :
+         [p] "r" (&x)
+         :
+         "r2", "r3", "r4", "r5"
+         );
+    return x;
+}
+#endif /* defined(MBEDTLS_ARCH_IS_ARM32) */
+
+
+#if defined(MBEDTLS_COMPILER_IS_GCC) && __GNUC__ == 5
 /* Some intrinsics are not available for GCC 5.X. */
 #define vreinterpretq_p64_u8(a) ((poly64x2_t) a)
 #define vreinterpretq_u8_p128(a) ((uint8x16_t) a)
+
 static inline poly64_t vget_low_p64(poly64x2_t __a)
 {
     uint64x2_t tmp = (uint64x2_t) (__a);
     uint64x1_t lo = vcreate_u64(vgetq_lane_u64(tmp, 0));
     return (poly64_t) (lo);
 }
-#endif /* !__clang__ && __GNUC__ && __GNUC__ == 5*/
+#endif /* MBEDTLS_COMPILER_IS_GCC && __GNUC__ == 5 */
 
 /* vmull_p64/vmull_high_p64 wrappers.
  *
  * Older compilers miss some intrinsic functions for `poly*_t`. We use
  * uint8x16_t and uint8x16x3_t as input/output parameters.
  */
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(MBEDTLS_COMPILER_IS_GCC)
 /* GCC reports incompatible type error without cast. GCC think poly64_t and
  * poly64x1_t are different, that is different with MSVC and Clang. */
 #define MBEDTLS_VMULL_P64(a, b) vmull_p64((poly64_t) a, (poly64_t) b)
@@ -483,7 +487,8 @@ static inline poly64_t vget_low_p64(poly64x2_t __a)
  * error with/without cast. And I think poly64_t and poly64x1_t are same, no
  * cast for clang also. */
 #define MBEDTLS_VMULL_P64(a, b) vmull_p64(a, b)
-#endif
+#endif /* MBEDTLS_COMPILER_IS_GCC */
+
 static inline uint8x16_t pmull_low(uint8x16_t a, uint8x16_t b)
 {
 

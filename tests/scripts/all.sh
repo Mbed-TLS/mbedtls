@@ -4394,7 +4394,7 @@ component_build_aes_aesce_armcc () {
 support_build_aes_armce() {
     # clang >= 4 is required to build with AES extensions
     ver="$(clang --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#')"
-    [ "${ver}" -ge 4 ]
+    [ "${ver}" -ge 11 ]
 }
 
 component_build_aes_armce () {

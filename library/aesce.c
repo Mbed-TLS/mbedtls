@@ -61,8 +61,10 @@
 
 /* Compiler version checks. */
 #if defined(__clang__)
-#   if __clang_major__ < 4
-#       error "Minimum version of Clang for MBEDTLS_AESCE_C is 4.0."
+#   if defined(MBEDTLS_ARCH_IS_ARM32) && (__clang_major__ < 11)
+#       error "Minimum version of Clang for MBEDTLS_AESCE_C on 32-bit Arm or Thumb is 111.0."
+#   elif defined(MBEDTLS_ARCH_IS_ARM64) && (__clang_major__ < 4)
+#       error "Minimum version of Clang for MBEDTLS_AESCE_C on aarch64 is 4.0."
 #   endif
 #elif defined(__GNUC__)
 #   if __GNUC__ < 6

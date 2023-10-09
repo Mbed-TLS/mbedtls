@@ -2258,9 +2258,10 @@
  *          system, Armv8-A Cryptographic Extensions must be supported by
  *          the CPU when this option is enabled.
  *
- * \note    Minimum compiler versions for this feature are Clang 4.0;
- *          armclang 6.6 when targeting aarch64, or 6.20 when targeting
- *          Thumb or 32-bit Arm; GCC 6.0; or MSVC 2019 version 16.11.2.
+ * \note    Minimum compiler versions for this feature when targeting aarch64
+ *          are Clang 4.0; armclang 6.6; GCC 6.0; or MSVC 2019 version 16.11.2.
+ *          Minimum compiler versions for this feature when targeting 32-bit
+ *          Arm or Thumb are Clang 11.0; armclang 6.20; or GCC 6.0.
  *
  * \note \c CFLAGS must be set to a minimum of \c -march=armv8-a+crypto for
  * armclang <= 6.9

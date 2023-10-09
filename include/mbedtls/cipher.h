@@ -33,17 +33,17 @@
 #include <stddef.h>
 #include "mbedtls/platform_util.h"
 
-/* Support for GCM either through MbedTLS SW implementation or PSA */
+/* Support for GCM either through Mbed TLS SW implementation or PSA */
 #if defined(MBEDTLS_GCM_C) || \
     (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_GCM))
 #define MBEDTLS_CIPHER_HAVE_GCM
 #endif
-/* Support for CCM either through MbedTLS SW implementation or PSA */
+/* Support for CCM either through Mbed TLS SW implementation or PSA */
 #if defined(MBEDTLS_CCM_C) || \
     (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CCM))
 #define MBEDTLS_CIPHER_HAVE_CCM
 #endif
-/* Support for CHACHAPOLY either through MbedTLS SW implementation or PSA */
+/* Support for CHACHAPOLY either through Mbed TLS SW implementation or PSA */
 #if defined(MBEDTLS_CHACHAPOLY_C) || \
     (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CHACHA20_POLY1305))
 #define MBEDTLS_CIPHER_HAVE_CHACHAPOLY

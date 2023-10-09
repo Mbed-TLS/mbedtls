@@ -527,6 +527,7 @@ static inline psa_status_t psa_driver_wrapper_sign_hash_start(
     size_t key_buffer_size, psa_algorithm_t alg,
     const uint8_t *hash, size_t hash_length )
 {
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(
                                                     attributes->core.lifetime );
 
@@ -548,18 +549,21 @@ static inline psa_status_t psa_driver_wrapper_sign_hash_start(
 
             /* Fell through, meaning no accelerator supports this operation */
             operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
-            return( mbedtls_psa_sign_hash_start( &operation->ctx.mbedtls_ctx,
-                                                 attributes,
-                                                 key_buffer, key_buffer_size,
-                                                 alg, hash, hash_length ) );
+            status = mbedtls_psa_sign_hash_start( &operation->ctx.mbedtls_ctx,
+                                                  attributes,
+                                                  key_buffer, key_buffer_size,
+                                                  alg, hash, hash_length );
             break;
 
             /* Add cases for opaque driver here */
 
         default:
             /* Key is declared with a lifetime not known to us */
-            return( PSA_ERROR_INVALID_ARGUMENT );
+            status = PSA_ERROR_INVALID_ARGUMENT;
+            break;
     }
+
+    return( status );
 }
 
 static inline psa_status_t psa_driver_wrapper_sign_hash_complete(
@@ -615,6 +619,7 @@ static inline psa_status_t psa_driver_wrapper_verify_hash_start(
     const uint8_t *hash, size_t hash_length,
     const uint8_t *signature, size_t signature_length )
 {
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(
                                                     attributes->core.lifetime );
 
@@ -636,20 +641,22 @@ static inline psa_status_t psa_driver_wrapper_verify_hash_start(
 
             /* Fell through, meaning no accelerator supports this operation */
             operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
-            return( mbedtls_psa_verify_hash_start( &operation->ctx.mbedtls_ctx,
-                                                   attributes,
-                                                   key_buffer, key_buffer_size,
-                                                   alg, hash, hash_length,
-                                                   signature, signature_length
-                                                   ) );
+            status = mbedtls_psa_verify_hash_start( &operation->ctx.mbedtls_ctx,
+                                                    attributes,
+                                                    key_buffer, key_buffer_size,
+                                                    alg, hash, hash_length,
+                                                    signature, signature_length );
             break;
 
             /* Add cases for opaque driver here */
 
         default:
             /* Key is declared with a lifetime not known to us */
-            return( PSA_ERROR_INVALID_ARGUMENT );
+            status = PSA_ERROR_INVALID_ARGUMENT;
+            break;
     }
+
+    return( status );
 }
 
 static inline psa_status_t psa_driver_wrapper_verify_hash_complete(

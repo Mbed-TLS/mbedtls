@@ -34,23 +34,15 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
-#if defined(MBEDTLS_ARCH_IS_ARM64)
-#if !defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-#error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
-#endif
-#endif
-
-#if defined(MBEDTLS_ARCH_IS_X64)
-#if !defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#if defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#if !((defined(MBEDTLS_ARCH_IS_ARM64) && defined(MBEDTLS_AESCE_C)) || \
+    (defined(MBEDTLS_ARCH_IS_X64)   && defined(MBEDTLS_AESNI_C)) || \
+    (defined(MBEDTLS_ARCH_IS_X86)   && defined(MBEDTLS_AESNI_C)))
 #error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
 #endif
 #endif
 
 #if defined(MBEDTLS_ARCH_IS_X86)
-#if defined(MBEDTLS_AES_USE_HARDWARE_ONLY) && !defined(MBEDTLS_AESNI_C)
-#error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_PADLOCK_C)
 #if !defined(MBEDTLS_HAVE_ASM)
 #error "MBEDTLS_PADLOCK_C defined, but not all prerequisites"

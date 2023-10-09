@@ -93,7 +93,7 @@
 
 #if defined(MBEDTLS_ARCH_IS_ARM32)
 #if defined(__clang__)
-/* On clang for A32/T32, work around some missing intrinsics and types */
+/* On clang for A32/T32, work around some missing intrinsics and types which are listed in [ACLE](https://arm-software.github.io/acle/neon_intrinsics/advsimd.html#polynomial-1) */
 
 #ifndef vreinterpretq_p64_u8
 #define vreinterpretq_p64_u8 (poly64x2_t)

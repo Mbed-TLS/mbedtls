@@ -95,15 +95,9 @@
 #if defined(__clang__)
 /* On clang for A32/T32, work around some missing intrinsics and types which are listed in [ACLE](https://arm-software.github.io/acle/neon_intrinsics/advsimd.html#polynomial-1) */
 
-#ifndef vreinterpretq_p64_u8
 #define vreinterpretq_p64_u8 (poly64x2_t)
-#endif
-#ifndef vreinterpretq_u8_p128
 #define vreinterpretq_u8_p128 (uint8x16_t)
-#endif
-#ifndef vreinterpretq_u64_p64
 #define vreinterpretq_u64_p64 (uint64x2_t)
-#endif
 
 typedef uint8x16_t poly128_t;
 

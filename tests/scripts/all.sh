@@ -127,13 +127,13 @@ in_mbedtls_repo () {
     test -d include -a -d library -a -d programs -a -d tests
 }
 
-in_psa_crypto_repo () {
+in_tf_psa_crypto_repo () {
     test -d include -a -d core -a -d drivers -a -d programs -a -d tests
 }
 
 pre_check_environment () {
-    if in_mbedtls_repo || in_psa_crypto_repo; then :; else
-        echo "Must be run from Mbed TLS / psa-crypto root" >&2
+    if in_mbedtls_repo || in_tf_psa_crypto_repo; then :; else
+        echo "Must be run from Mbed TLS / TF-PSA-Crypto root" >&2
         exit 1
     fi
 }

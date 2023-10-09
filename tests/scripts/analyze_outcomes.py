@@ -179,7 +179,7 @@ def do_analyze_driver_vs_reference(outcome_file, args):
                                        args['ignored_tests'])
 
 # List of tasks with a function that can handle this task and additional arguments if required
-TASKS = {
+KNOWN_TASKS = {
     'analyze_coverage':                 {
         'test_function': do_analyze_coverage,
         'args': {
@@ -645,7 +645,7 @@ def main():
         parser = argparse.ArgumentParser(description=__doc__)
         parser.add_argument('outcomes', metavar='OUTCOMES.CSV',
                             help='Outcome file to analyze')
-        parser.add_argument('task', default='all', nargs='?',
+        parser.add_argument('specified_tasks', default='all', nargs='?',
                             help='Analysis to be done. By default, run all tasks. '
                                  'With one or more TASK, run only those. '
                                  'TASK can be the name of a single task or '
@@ -660,31 +660,28 @@ def main():
         options = parser.parse_args()
 
         if options.list:
-            for task in TASKS:
+            for task in KNOWN_TASKS:
                 Results.log(task)
             sys.exit(0)
 
-        result = True
-
-        if options.task == 'all':
-            tasks = TASKS.keys()
+        if options.specified_tasks == 'all':
+            tasks_list = KNOWN_TASKS.keys()
         else:
-            tasks = re.split(r'[, ]+', options.task)
+            tasks_list = re.split(r'[, ]+', options.specified_tasks)
 
-            for task in tasks:
-                if task not in TASKS:
-                    Results.log('Error: invalid task: {}'.format(task))
-                    sys.exit(1)
+            for task in tasks_list:
+                if task not in KNOWN_TASKS:
 
-        TASKS['analyze_coverage']['args']['full_coverage'] = \
-            options.full_coverage
+        KNOWN_TASKS['analyze_coverage']['args']['full_coverage'] = options.full_coverage
 
-        for task in TASKS:
-            if task in tasks:
-                if not TASKS[task]['test_function'](options.outcomes, TASKS[task]['args']):
-                    result = False
+        all_succeeded = True
 
-        if result is False:
+        for task in KNOWN_TASKS:
+            if task in tasks_list:
+                if not KNOWN_TASKS[task]['test_function'](options.outcomes, KNOWN_TASKS[task]['args']):
+                    all_succeeded = False
+
+        if all_succeeded is False:
             sys.exit(1)
         Results.log("SUCCESS :-)")
     except Exception: # pylint: disable=broad-except

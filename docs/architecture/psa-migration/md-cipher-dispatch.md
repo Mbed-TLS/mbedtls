@@ -118,9 +118,11 @@ Hashes and HMAC (after the work on driver-only hashes):
 * ECDSA (HMAC\_DRBG; `md.h` exposed through API)
 * ECJPAKE (hashes via MD-light; `md.h` exposed through API)
 * MD (hashes and HMAC)
+* HKDF (HMAC via `md.h`; `md.h` exposed through API)
 * HMAC\_DRBG (hashes and HMAC via `md.h`; `md.h` exposed through API)
 * PKCS12 (hashes via MD-light)
 * PKCS5 (HMAC via `md.h`; `md.h` exposed through API)
+* PKCS7 (hashes via MD)
 * RSA (hash via MD-light for PSS and OAEP; `md.h` exposed through API)
 * PEM (MD5 hash via MD-light)
 

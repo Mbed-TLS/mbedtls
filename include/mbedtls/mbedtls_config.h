@@ -3345,7 +3345,7 @@
  * This name is now deprecated, but may still be used as an alternative form for
  * this option.
  */
-//#define MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+//#define MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
 
 /**
  * \def MBEDTLS_SHA384_C

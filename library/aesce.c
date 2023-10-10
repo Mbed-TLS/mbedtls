@@ -568,7 +568,7 @@ static inline uint8x16_t poly_mult_reduce(uint8x16x3_t input)
     /* use 'asm' as an optimisation barrier to prevent loading MODULO from
      * memory. It is for GNUC compatible compilers.
      */
-    asm ("" : "+w" (r));
+    asm volatile ("" : "+w" (r));
 #endif
     uint8x16_t const MODULO = vreinterpretq_u8_u64(vshrq_n_u64(r, 64 - 8));
     uint8x16_t h, m, l; /* input high/middle/low 128b */

@@ -84,7 +84,11 @@ int main(void)
     /* Compute hash using multi-part operation */
 
     status = psa_hash_setup(&hash_operation, HASH_ALG);
-    if (status != PSA_SUCCESS) {
+    if (status == PSA_ERROR_NOT_SUPPORTED){
+        mbedtls_printf("unknown hash algorithm supplied\n");
+        return EXIT_FAILURE;
+    }
+    else if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_setup failed\n");
         return EXIT_FAILURE;
     }

@@ -51,8 +51,7 @@ void mbedtls_ctr_drbg_init(mbedtls_ctr_drbg_context *ctx)
 {
     memset(ctx, 0, sizeof(mbedtls_ctr_drbg_context));
 #if defined(MBEDTLS_CIPHER_C)
-    mbedtls_cipher_setup(&ctx->cipher_ctx,
-                         mbedtls_cipher_info_from_type(CTR_DRBG_AES_TYPE));
+    mbedtls_cipher_init(&ctx->cipher_ctx);
 #else /* MBEDTLS_CIPHER_C */
     mbedtls_aes_init(&ctx->aes_ctx);
 #endif /* MBEDTLS_CIPHER_C */
@@ -542,6 +541,10 @@ int mbedtls_ctr_drbg_seed(mbedtls_ctr_drbg_context *ctx,
 
     /* Initialize with an empty key. */
 #if defined(MBEDTLS_CIPHER_C)
+    if ((ret = mbedtls_cipher_setup(&ctx->cipher_ctx,
+                                    mbedtls_cipher_info_from_type(CTR_DRBG_AES_TYPE))) != 0) {
+        return ret;
+    }
     if ((ret = mbedtls_cipher_setkey(&ctx->cipher_ctx, key,
                                      MBEDTLS_CTR_DRBG_KEYBITS,
                                      MBEDTLS_ENCRYPT)) != 0) {

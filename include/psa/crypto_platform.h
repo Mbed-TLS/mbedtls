@@ -35,7 +35,7 @@
 #include "mbedtls/private_access.h"
 
 /*
- * Include the build-time configuration information file. Here, we do not
+ * Include the build-time configuration information header. Here, we do not
  * include `"mbedtls/build_info.h"` directly but `"psa/build_info.h"`, which
  * is basically just an alias to it. This is to ease the maintenance of the
  * TF-PSA-Crypto repository which has a different build system and

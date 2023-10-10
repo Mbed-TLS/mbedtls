@@ -323,8 +323,6 @@ These problems are easily solvable.
 
 ### MD light
 
-https://github.com/Mbed-TLS/mbedtls/pull/6474 implements part of this specification, but it's based on Mbed TLS 3.2, so it needs to be rewritten for 3.3.
-
 #### Definition of MD light
 
 MD light is a subset of `md.h` that implements the hash calculation interface described in ”[Designing an interface for hashes](#designing-an-interface-for-hashes)”. It is activated by `MBEDTLS_MD_LIGHT` in `mbedtls_config.h`.
@@ -454,31 +452,7 @@ Note that this assumes that an operation that has been started via PSA can be co
 
 #### Error code conversion
 
-After calling a PSA function, call `mbedtls_md_error_from_psa` to convert its status code. This function is currently defined in `hash_info.c`.
-
-### Migration to MD light
-
-#### Migration of modules that used to call MD and now do the legacy-or-PSA dance
-
-Get rid of the case where `MBEDTLS_MD_C` is undefined. Enable `MBEDTLS_MD_LIGHT` in `build_info.h`.
-
-#### Migration of modules that used to call a low-level hash module and now do the legacy-or-PSA dance
-
-Switch to calling MD (light) unconditionally. Enable `MBEDTLS_MD_LIGHT` in `build_info.h`.
-
-#### Migration of modules that call a low-level hash module
-
-Switch to calling MD (light). Enable `MBEDTLS_MD_LIGHT` in `build_info.h`.
-
-#### Migration of use-PSA mixed code
-
-Instead of calling `hash_info.h` functions to obtain metadata, get it from `md.h`.
-
-Optionally, code that currently tests on `MBEDTLS_USE_PSA_CRYPTO` just to determine whether to call MD or PSA to calculate hashes can switch to just having the MD variant.
-
-#### Remove `legacy_or_psa.h`
-
-It's no longer used.
+After calling a PSA function, call `mbedtls_md_error_from_psa` to convert its status code.
 
 ### Support all legacy algorithms in PSA
 
@@ -516,10 +490,6 @@ static inline psa_algorithm_t psa_alg_of_md_info(
 ```
 
 Work in progress on this conversion is at https://github.com/gilles-peskine-arm/mbedtls/tree/hash-unify-ids-wip-1
-
-#### Get rid of the hash_info module
-
-The hash_info module is redundant with MD light. Move `mbedtls_md_error_from_psa` to `md.c`, defined only when `MBEDTLS_MD_SOME_PSA` is defined. The rest is no longer used.
 
 #### Unify HMAC with PSA
 

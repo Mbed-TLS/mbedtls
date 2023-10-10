@@ -405,8 +405,6 @@ int mbedtls_aesce_setkey_enc(unsigned char *rk,
  * [ACLE](https://arm-software.github.io/acle/neon_intrinsics/advsimd.html#polynomial-1)
  * These are only required for GCM.
  */
-#define vreinterpretq_p64_u8(a)  ((poly64x2_t) a)
-#define vreinterpretq_u8_p128(a) ((uint8x16_t) a)
 #define vreinterpretq_u64_p64(a) ((uint64x2_t) a)
 
 typedef uint8x16_t poly128_t;
@@ -418,11 +416,8 @@ static inline poly128_t vmull_p64(poly64_t a, poly64_t b)
     return r;
 }
 
-static inline poly64x1_t vget_low_p64(poly64x2_t a)
-{
-    uint64x1_t r = vget_low_u64(vreinterpretq_u64_p64(a));
-    return (poly64x1_t) r;
-}
+/* This is set to cause some more missing intrinsics to be defined below */
+#define COMMON_MISSING_INTRINSICS
 
 static inline poly128_t vmull_high_p64(poly64x2_t a, poly64x2_t b)
 {
@@ -457,21 +452,30 @@ static inline uint8x16_t vrbitq_u8(uint8x16_t x)
          );
     return x;
 }
-#endif /* defined(MBEDTLS_ARCH_IS_ARM32) */
 
+#endif /* defined(MBEDTLS_ARCH_IS_ARM32) */
 
 #if defined(MBEDTLS_COMPILER_IS_GCC) && __GNUC__ == 5
 /* Some intrinsics are not available for GCC 5.X. */
-#define vreinterpretq_p64_u8(a) ((poly64x2_t) a)
+#define COMMON_MISSING_INTRINSICS
+#endif /* MBEDTLS_COMPILER_IS_GCC && __GNUC__ == 5 */
+
+
+#if defined(COMMON_MISSING_INTRINSICS)
+
+/* Missing intrinsics common to both GCC 5, and Clang on 32-bit */
+
+#define vreinterpretq_p64_u8(a)  ((poly64x2_t) a)
 #define vreinterpretq_u8_p128(a) ((uint8x16_t) a)
 
-static inline poly64_t vget_low_p64(poly64x2_t __a)
+static inline poly64x1_t vget_low_p64(poly64x2_t a)
 {
-    uint64x2_t tmp = (uint64x2_t) (__a);
-    uint64x1_t lo = vcreate_u64(vgetq_lane_u64(tmp, 0));
-    return (poly64_t) (lo);
+    uint64x1_t r = vget_low_u64(vreinterpretq_u64_p64(a));
+    return (poly64x1_t) r;
+
 }
-#endif /* MBEDTLS_COMPILER_IS_GCC && __GNUC__ == 5 */
+
+#endif /* COMMON_MISSING_INTRINSICS */
 
 /* vmull_p64/vmull_high_p64 wrappers.
  *

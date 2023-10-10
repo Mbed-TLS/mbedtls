@@ -19,15 +19,15 @@
 
 #if defined(__clang__) &&  (__clang_major__ >= 4)
 
-/* Ideally, we would simply use MBEDTLS_ARCH_IS_ARMV8 in the following #if,
+/* Ideally, we would simply use MBEDTLS_ARCH_IS_ARMV8_A in the following #if,
  * but that is defined by build_info.h, and we need this block to happen first. */
 #if defined(__ARM_ARCH)
 #if __ARM_ARCH >= 8
-#define MBEDTLS_AESCE_ARCH_IS_ARMV8
+#define MBEDTLS_AESCE_ARCH_IS_ARMV8_A
 #endif
 #endif
 
-#if defined(MBEDTLS_AESCE_ARCH_IS_ARMV8) && !defined(__ARM_FEATURE_CRYPTO)
+#if defined(MBEDTLS_AESCE_ARCH_IS_ARMV8_A) && !defined(__ARM_FEATURE_CRYPTO)
 /* TODO: Re-consider above after https://reviews.llvm.org/D131064 merged.
  *
  * The intrinsic declaration are guarded by predefined ACLE macros in clang:
@@ -57,7 +57,7 @@
 
 #include "aesce.h"
 
-#if defined(MBEDTLS_ARCH_IS_ARMV8) && defined(__ARM_NEON)
+#if defined(MBEDTLS_ARCH_IS_ARMV8_A) && defined(__ARM_NEON)
 
 /* Compiler version checks. */
 #if defined(__clang__)
@@ -611,6 +611,6 @@ void mbedtls_aesce_gcm_mult(unsigned char c[16],
 #undef MBEDTLS_POP_TARGET_PRAGMA
 #endif
 
-#endif /* MBEDTLS_ARCH_IS_ARMV8 */
+#endif /* MBEDTLS_ARCH_IS_ARMV8_A */
 
 #endif /* MBEDTLS_AESCE_C */

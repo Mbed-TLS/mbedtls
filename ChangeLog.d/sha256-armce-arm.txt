@@ -1,4 +1,3 @@
 Features
     * Support Armv8 Crypto Extension acceleration for SHA-256
       when compiling for Thumb or 32-bit Arm.
-

@@ -3277,7 +3277,7 @@
  * If not, the library will fall back to the C implementation.
  *
  * \note If MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT is defined when building
- * for a non-Armv8 build it will be silently ignored.
+ * for a non-Armv8-A build it will be silently ignored.
  *
  * \note    Minimum compiler versions for this feature are Clang 4.0,
  * armclang 6.6 or GCC 6.0.
@@ -3296,7 +3296,7 @@
  *
  * Module:  library/sha256.c
  *
- * Uncomment to have the library check for the Armv8 SHA-256 crypto extensions
+ * Uncomment to have the library check for the Armv8-A SHA-256 crypto extensions
  * and use them if available.
  */
 //#define MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT
@@ -3335,7 +3335,7 @@
  *
  * Module:  library/sha256.c
  *
- * Uncomment to have the library use the Armv8 SHA-256 crypto extensions
+ * Uncomment to have the library use the Armv8-A SHA-256 crypto extensions
  * unconditionally.
  */
 //#define MBEDTLS_SHA256_USE_ARMV8_CRYPTO_ONLY
@@ -3416,7 +3416,7 @@
  *
  * Module:  library/sha512.c
  *
- * Uncomment to have the library check for the Armv8 SHA-512 crypto extensions
+ * Uncomment to have the library check for the Armv8-A SHA-512 crypto extensions
  * and use them if available.
  */
 //#define MBEDTLS_SHA512_USE_ARMV8_CRYPTO_IF_PRESENT
@@ -3455,7 +3455,7 @@
  *
  * Module:  library/sha512.c
  *
- * Uncomment to have the library use the Armv8 SHA-512 crypto extensions
+ * Uncomment to have the library use the Armv8-A SHA-512 crypto extensions
  * unconditionally.
  */
 //#define MBEDTLS_SHA512_USE_ARMV8_CRYPTO_ONLY

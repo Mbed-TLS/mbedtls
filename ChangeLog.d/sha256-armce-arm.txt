@@ -1,5 +1,5 @@
 Features
-    * Support Armv8 Crypto Extension acceleration for SHA-256
+    * Support Armv8-A Crypto Extension acceleration for SHA-256
       when compiling for Thumb or 32-bit Arm.
 New deprecations
     * Rename the SHAxxx_USE_A64_CRYPTO_yyy config options to

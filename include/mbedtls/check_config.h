@@ -866,7 +866,7 @@
 #endif
 
 #if defined(MBEDTLS_SHA256_USE_ARMV8_CRYPTO_ONLY) && !defined(MBEDTLS_ARCH_IS_ARMV8)
-#error "MBEDTLS_SHA256_USE_ARMV8_CRYPTO_ONLY defined on non-Armv8 system"
+#error "MBEDTLS_SHA256_USE_ARMV8_CRYPTO_ONLY defined on non-Armv8-A system"
 #endif
 
 /* TLS 1.3 requires separate HKDF parts from PSA,

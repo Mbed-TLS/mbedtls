@@ -537,48 +537,51 @@ The architecture can be extended to support `MBEDTLS_PSA_CRYPTO_CLIENT` with a l
 #### Definition
 
 **Note:** this definition is tentative an may be refined when implementing and
-testing, based and what's needed by internal users of Cipher light.
+testing, based and what's needed by internal users of Cipher light. The new
+config symbol will not be considered public so its definition may change.
 
 Cipher light will be automatically enabled in `build_info.h` by modules that
-need it. (Tentative list: PEM, PCKS12, PKCS5, CTR\_DRBG, CCM, CMAC, GCM,
-NIS\_KW, PSA Crypto.) Note: some of these modules currently depend on the
-full `CIPHER_C` (enforced by `check_config.h`); this hard dependency would be
-replace by the above auto-enablement.
+need it, namely: CTR\_DRBG, CCM, GCM. Note: CCM and GCM currently depend on
+the full `CIPHER_C` (enforced by `check_config.h`); this hard dependency would
+be replaced by the above auto-enablement.
 
 Cipher light includes:
 - info functions;
-- support for block ciphers in ECB mode (to be confirmed: supporting one block
-  at a time could be enough);
-- support for block ciphers in CBC mode with no padding (to be confirmed: do
-  we need a padding mode?);
-- support for both the "one-shot" and "streaming" APIs for block ciphers.
+- support for block ciphers in ECB mode, encrypt only (note: in Cipher, "ECB"
+  means just one block, contrary to PSA);
+- the one-shot API as well as (part of) the streaming API;
+- only AES, Aria and Camellia.
 
 This excludes:
 - the AEAD/KW API (both one-shot and streaming);
 - support for stream ciphers;
-- support for other modes of block ciphers (CTR, CFB, etc.);
-- support for (other) padding modes of CBC.
+- support for other modes of block ciphers (CBC, CTR, CFB, etc.);
+- DES and variants (3DES).
 
 The following API functions, and supporting types, are candidates for
 inclusion in the Cipher light API, with limited features as above:
 ```
-mbedtls_cipher_info_from_psa
 mbedtls_cipher_info_from_type
-mbedtls_cipher_info_from_values
-
 mbedtls_cipher_info_get_block_size
-mbedtls_cipher_info_get_iv_size
-mbedtls_cipher_info_get_key_bitlen
 
 mbedtls_cipher_init
 mbedtls_cipher_setup
 mbedtls_cipher_setkey
-mbedtls_cipher_set_padding_mode
 mbedtls_cipher_crypt
 mbedtls_cipher_free
 
-mbedtls_cipher_set_iv
-mbedtls_cipher_reset
 mbedtls_cipher_update
-mbedtls_cipher_finish
+(mbedtls_cipher_finish)
 ```
+
+Note: `mbedtls_cipher_info_get_block_size()` can be hard-coded to return 16,
+as all three supported block ciphers have the same block size (DES was
+excluded).
+
+Note: `mbedtls_cipher_finish()` is not required by any of the modules using
+Cipher light, but it might be convenient to include it anyway as it's used in
+the implementation of `mbedtls_cipher_crypt()`.
+
+#### Cipher light dual dispatch
+
+This is likely to come in the future, but has not been defined yet.

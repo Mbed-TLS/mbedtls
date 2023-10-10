@@ -33,11 +33,15 @@
 #include "mbedtls/build_info.h"
 #include "mbedtls/platform.h"
 
-/* The algorithm used by this demo is SHA 256.
+/* Information about hashing with the PSA API can be
+ * found here:
+ * https://arm-software.github.io/psa-api/crypto/1.1/api/ops/hashes.html
+ * 
+ * The algorithm used by this demo is SHA 256.
  * Please see include/psa/crypto_values.h to see the other
- * algorithms that are supported. If you switch to a different
- * algorithm you will need to update the hash data in the
- * SAMPLE_HASH_DATA macro below.*/
+ * algorithms that are supported by Mbed TLS.
+ * If you switch to a different algorithm you will need to update
+ * the hash data in the SAMPLE_HASH_DATA macro below. */
 
 #define HASH_ALG PSA_ALG_SHA_256
 

@@ -202,9 +202,9 @@ static int mbedtls_a64_crypto_sha256_determine_support(void)
     if (setjmp(return_from_sigill) == 0) {         /* First return only */
         /* If this traps, we will return a second time from setjmp() with 1 */
 #if defined(MBEDTLS_ARCH_IS_ARM64)
-        asm ("sha256h q0, q0, v0.4s" : : : "v0");
+        asm volatile ("sha256h q0, q0, v0.4s" : : : "v0");
 #else
-        asm ("sha256h.32 q0, q0, q0" : : : "q0");
+        asm volatile ("sha256h.32 q0, q0, q0" : : : "q0");
 #endif
         ret = 1;
     }

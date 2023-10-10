@@ -3270,13 +3270,13 @@
 #define MBEDTLS_SHA256_C
 
 /**
- * \def MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT
+ * \def MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
  *
  * Enable acceleration of the SHA-256 and SHA-224 cryptographic hash algorithms
  * with the ARMv8 cryptographic extensions if they are available at runtime.
  * If not, the library will fall back to the C implementation.
  *
- * \note If MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT is defined when building
+ * \note If MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT is defined when building
  * for a non-Armv8-A build it will be silently ignored.
  *
  * \note    Minimum compiler versions for this feature are Clang 4.0,
@@ -3289,8 +3289,8 @@
  * That name is deprecated, but may still be used as an alternative form for this
  * option.
  *
- * \warning MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT cannot be defined at the
- * same time as MBEDTLS_SHA256_USE_ARMV8_CRYPTO_ONLY.
+ * \warning MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT cannot be defined at the
+ * same time as MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY.
  *
  * Requires: MBEDTLS_SHA256_C.
  *
@@ -3299,24 +3299,24 @@
  * Uncomment to have the library check for the Armv8-A SHA-256 crypto extensions
  * and use them if available.
  */
-//#define MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT
+//#define MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
 
 /*
- * \deprecated This is now known as MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT.
+ * \deprecated This is now known as MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT.
  * This name is now deprecated, but may still be used as an alternative form for
  * this option.
  */
 //#define MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
 
 /**
- * \def MBEDTLS_SHA256_USE_ARMV8_CRYPTO_ONLY
+ * \def MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
  *
  * Enable acceleration of the SHA-256 and SHA-224 cryptographic hash algorithms
  * with the ARMv8 cryptographic extensions, which must be available at runtime
  * or else an illegal instruction fault will occur.
  *
  * \note This allows builds with a smaller code size than with
- * MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT
+ * MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
  *
  * \note    Minimum compiler versions for this feature are Clang 4.0,
  * armclang 6.6 or GCC 6.0.
@@ -3328,8 +3328,8 @@
  * That name is deprecated, but may still be used as an alternative form for this
  * option.
  *
- * \warning MBEDTLS_SHA256_USE_ARMV8_CRYPTO_ONLY cannot be defined at the same
- * time as MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT.
+ * \warning MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY cannot be defined at the same
+ * time as MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT.
  *
  * Requires: MBEDTLS_SHA256_C.
  *
@@ -3338,10 +3338,10 @@
  * Uncomment to have the library use the Armv8-A SHA-256 crypto extensions
  * unconditionally.
  */
-//#define MBEDTLS_SHA256_USE_ARMV8_CRYPTO_ONLY
+//#define MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
 
 /*
- * \deprecated This is now known as MBEDTLS_SHA256_USE_ARMV8_CRYPTO_ONLY.
+ * \deprecated This is now known as MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY.
  * This name is now deprecated, but may still be used as an alternative form for
  * this option.
  */
@@ -3390,13 +3390,13 @@
 #define MBEDTLS_SHA3_C
 
 /**
- * \def MBEDTLS_SHA512_USE_ARMV8_CRYPTO_IF_PRESENT
+ * \def MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT
  *
  * Enable acceleration of the SHA-512 and SHA-384 cryptographic hash algorithms
  * with the ARMv8 cryptographic extensions if they are available at runtime.
  * If not, the library will fall back to the C implementation.
  *
- * \note If MBEDTLS_SHA512_USE_ARMV8_CRYPTO_IF_PRESENT is defined when building
+ * \note If MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT is defined when building
  * for a non-Aarch64 build it will be silently ignored.
  *
  * \note    Minimum compiler versions for this feature are Clang 7.0,
@@ -3409,8 +3409,8 @@
  * That name is deprecated, but may still be used as an alternative form for this
  * option.
  *
- * \warning MBEDTLS_SHA512_USE_ARMV8_CRYPTO_IF_PRESENT cannot be defined at the
- * same time as MBEDTLS_SHA512_USE_ARMV8_CRYPTO_ONLY.
+ * \warning MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT cannot be defined at the
+ * same time as MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_ONLY.
  *
  * Requires: MBEDTLS_SHA512_C.
  *
@@ -3419,24 +3419,24 @@
  * Uncomment to have the library check for the Armv8-A SHA-512 crypto extensions
  * and use them if available.
  */
-//#define MBEDTLS_SHA512_USE_ARMV8_CRYPTO_IF_PRESENT
+//#define MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT
 
 /*
- * \deprecated This is now known as MBEDTLS_SHA512_USE_ARMV8_CRYPTO_IF_PRESENT.
+ * \deprecated This is now known as MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT.
  * This name is now deprecated, but may still be used as an alternative form for
  * this option.
  */
 //#define MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
 
 /**
- * \def MBEDTLS_SHA512_USE_ARMV8_CRYPTO_ONLY
+ * \def MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_ONLY
  *
  * Enable acceleration of the SHA-512 and SHA-384 cryptographic hash algorithms
  * with the ARMv8 cryptographic extensions, which must be available at runtime
  * or else an illegal instruction fault will occur.
  *
  * \note This allows builds with a smaller code size than with
- * MBEDTLS_SHA512_USE_ARMV8_CRYPTO_IF_PRESENT
+ * MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT
  *
  * \note    Minimum compiler versions for this feature are Clang 7.0,
  * armclang 6.9 or GCC 8.0.
@@ -3448,8 +3448,8 @@
  * That name is deprecated, but may still be used as an alternative form for this
  * option.
  *
- * \warning MBEDTLS_SHA512_USE_ARMV8_CRYPTO_ONLY cannot be defined at the same
- * time as MBEDTLS_SHA512_USE_ARMV8_CRYPTO_IF_PRESENT.
+ * \warning MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_ONLY cannot be defined at the same
+ * time as MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT.
  *
  * Requires: MBEDTLS_SHA512_C.
  *
@@ -3458,10 +3458,10 @@
  * Uncomment to have the library use the Armv8-A SHA-512 crypto extensions
  * unconditionally.
  */
-//#define MBEDTLS_SHA512_USE_ARMV8_CRYPTO_ONLY
+//#define MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_ONLY
 
 /*
- * \deprecated This is now known as MBEDTLS_SHA512_USE_ARMV8_CRYPTO_ONLY.
+ * \deprecated This is now known as MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_ONLY.
  * This name is now deprecated, but may still be used as an alternative form for
  * this option.
  */

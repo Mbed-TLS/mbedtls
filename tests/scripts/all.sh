@@ -2245,12 +2245,12 @@ component_build_module_alt () {
     # The SpecifiedECDomain parsing code accesses mbedtls_ecp_group fields
     # directly and assumes the implementation works with partial groups.
     scripts/config.py unset MBEDTLS_PK_PARSE_EC_EXTENDED
-    # MBEDTLS_SHA256_*ALT can't be used with MBEDTLS_SHA256_USE_ARMV8_CRYPTO_*
-    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT
-    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_CRYPTO_ONLY
-    # MBEDTLS_SHA512_*ALT can't be used with MBEDTLS_SHA512_USE_ARMV8_CRYPTO_*
-    scripts/config.py unset MBEDTLS_SHA512_USE_ARMV8_CRYPTO_IF_PRESENT
-    scripts/config.py unset MBEDTLS_SHA512_USE_ARMV8_CRYPTO_ONLY
+    # MBEDTLS_SHA256_*ALT can't be used with MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_*
+    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
+    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
+    # MBEDTLS_SHA512_*ALT can't be used with MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_*
+    scripts/config.py unset MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT
+    scripts/config.py unset MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_ONLY
 
     # Enable all MBEDTLS_XXX_ALT for whole modules. Do not enable
     # MBEDTLS_XXX_YYY_ALT which are for single functions.
@@ -3464,10 +3464,10 @@ config_psa_crypto_hash_use_psa () {
         scripts/config.py unset MBEDTLS_SHA1_C
         scripts/config.py unset MBEDTLS_SHA224_C
         scripts/config.py unset MBEDTLS_SHA256_C # see external RNG below
-        scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT
+        scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
         scripts/config.py unset MBEDTLS_SHA384_C
         scripts/config.py unset MBEDTLS_SHA512_C
-        scripts/config.py unset MBEDTLS_SHA512_USE_ARMV8_CRYPTO_IF_PRESENT
+        scripts/config.py unset MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT
         scripts/config.py unset MBEDTLS_SHA3_C
     fi
 }
@@ -4332,7 +4332,7 @@ component_build_aes_aesce_armcc () {
     scripts/config.py baremetal
 
     # armc[56] don't support SHA-512 intrinsics
-    scripts/config.py unset MBEDTLS_SHA512_USE_ARMV8_CRYPTO_IF_PRESENT
+    scripts/config.py unset MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT
 
     # Stop armclang warning about feature detection for A64_CRYPTO.
     # With this enabled, the library does build correctly under armclang,
@@ -4340,7 +4340,7 @@ component_build_aes_aesce_armcc () {
     # unavailable, and the user is notified via a #warning. So enabling
     # this feature would prevent us from building with -Werror on
     # armclang. Tracked in #7198.
-    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT
+    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
     scripts/config.py set MBEDTLS_HAVE_ASM
 
     msg "AESCE, build with default configuration."
@@ -4362,36 +4362,36 @@ support_build_sha_armce() {
 
 component_build_sha_armce () {
     # Test variations of SHA256 Armv8 crypto extensions
-    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT
-    scripts/config.py set MBEDTLS_SHA256_USE_ARMV8_CRYPTO_ONLY
+    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
+    scripts/config.py set MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
 
-    msg "MBEDTLS_SHA256_USE_ARMV8_CRYPTO_ONLY clang, aarch64"
+    msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY clang, aarch64"
     make -B library/sha256.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a"
 
-    msg "MBEDTLS_SHA256_USE_ARMV8_CRYPTO_ONLY clang, arm"
+    msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY clang, arm"
     make -B library/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm"
 
     # test the deprecated form of the config option
-    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_CRYPTO_ONLY
+    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
     scripts/config.py set MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
 
-    msg "MBEDTLS_SHA256_USE_ARMV8_CRYPTO_ONLY clang, thumb"
+    msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY clang, thumb"
     make -B library/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
 
-    scripts/config.py set MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT
-    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_CRYPTO_ONLY
+    scripts/config.py set MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
+    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
 
-    msg "MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT clang, aarch64"
+    msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT clang, aarch64"
     make -B library/sha256.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a"
 
     # test the deprecated form of the config option
-    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT
+    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
     scripts/config.py set MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
 
-    msg "MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT clang, arm"
+    msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT clang, arm"
     make -B library/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm -std=c99"
 
-    msg "MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT clang, thumb"
+    msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT clang, thumb"
     make -B library/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
 }
 
@@ -4936,7 +4936,7 @@ component_build_armcc () {
     msg "build: ARM Compiler 5"
     scripts/config.py baremetal
     # armc[56] don't support SHA-512 intrinsics
-    scripts/config.py unset MBEDTLS_SHA512_USE_ARMV8_CRYPTO_IF_PRESENT
+    scripts/config.py unset MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT
 
     # Stop armclang warning about feature detection for A64_CRYPTO.
     # With this enabled, the library does build correctly under armclang,
@@ -4944,7 +4944,7 @@ component_build_armcc () {
     # unavailable, and the user is notified via a #warning. So enabling
     # this feature would prevent us from building with -Werror on
     # armclang. Tracked in #7198.
-    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT
+    scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
 
     scripts/config.py set MBEDTLS_HAVE_ASM
 

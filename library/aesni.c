@@ -57,7 +57,7 @@ int mbedtls_aesni_has_support(unsigned int what)
 
     if (!done) {
 #if MBEDTLS_AESNI_HAVE_CODE == 2
-        static unsigned info[4] = { 0, 0, 0, 0 };
+        static int info[4] = { 0, 0, 0, 0 };
 #if defined(_WIN32)
         __cpuid(info, 1);
 #else

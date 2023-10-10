@@ -38,10 +38,12 @@
 
 #include "mbedtls/platform.h"
 
+#define CTR_DRBG_CIPHER_ID          MBEDTLS_CIPHER_ID_AES
+#define CTR_DRBG_CIPHER_MODE        MBEDTLS_MODE_ECB
 #if defined(MBEDTLS_CTR_DRBG_USE_128_BIT_KEY)
-#define CTR_DRBG_AES_TYPE   MBEDTLS_CIPHER_AES_128_ECB
+#define CTR_DRBG_CIPHER_BIT_LEN     128
 #else
-#define CTR_DRBG_AES_TYPE   MBEDTLS_CIPHER_AES_256_ECB
+#define CTR_DRBG_CIPHER_BIT_LEN     256
 #endif
 
 /*
@@ -160,9 +162,12 @@ static int block_cipher_df(unsigned char *output,
 
     memset(buf, 0, sizeof(buf));
 #if defined(MBEDTLS_CIPHER_C)
+    const mbedtls_cipher_info_t *cipher_info;
+    cipher_info = mbedtls_cipher_info_from_values(CTR_DRBG_CIPHER_ID,
+                                                  CTR_DRBG_CIPHER_BIT_LEN,
+                                                  CTR_DRBG_CIPHER_MODE);
     mbedtls_cipher_init(&cipher_ctx);
-    ret = mbedtls_cipher_setup(&cipher_ctx,
-                               mbedtls_cipher_info_from_type(CTR_DRBG_AES_TYPE));
+    ret = mbedtls_cipher_setup(&cipher_ctx, cipher_info);
     if (ret != 0) {
         return ret;
     }
@@ -542,8 +547,11 @@ int mbedtls_ctr_drbg_seed(mbedtls_ctr_drbg_context *ctx,
 
     /* Initialize with an empty key. */
 #if defined(MBEDTLS_CIPHER_C)
-    if ((ret = mbedtls_cipher_setup(&ctx->cipher_ctx,
-                                    mbedtls_cipher_info_from_type(CTR_DRBG_AES_TYPE))) != 0) {
+    const mbedtls_cipher_info_t *cipher_info;
+    cipher_info = mbedtls_cipher_info_from_values(CTR_DRBG_CIPHER_ID,
+                                                  CTR_DRBG_CIPHER_BIT_LEN,
+                                                  CTR_DRBG_CIPHER_MODE);
+    if ((ret = mbedtls_cipher_setup(&ctx->cipher_ctx, cipher_info)) != 0) {
         return ret;
     }
     if ((ret = mbedtls_cipher_setkey(&ctx->cipher_ctx, key,

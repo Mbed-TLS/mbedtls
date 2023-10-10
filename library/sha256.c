@@ -24,15 +24,15 @@
 
 #if defined(__clang__) &&  (__clang_major__ >= 4)
 
-/* Ideally, we would simply use MBEDTLS_ARCH_IS_ARMV8 in the following #if,
+/* Ideally, we would simply use MBEDTLS_ARCH_IS_ARMV8_A in the following #if,
  * but that is defined by build_info.h, and we need this block to happen first. */
-#if defined(__ARM_ARCH)
+#if defined(__ARM_ARCH) && (__ARM_ARCH_PROFILE == 'A')
 #if __ARM_ARCH >= 8
-#define MBEDTLS_SHA256_ARCH_IS_ARMV8
+#define MBEDTLS_SHA256_ARCH_IS_ARMV8_A
 #endif
 #endif
 
-#if defined(MBEDTLS_SHA256_ARCH_IS_ARMV8) && !defined(__ARM_FEATURE_CRYPTO)
+#if defined(MBEDTLS_SHA256_ARCH_IS_ARMV8_A) && !defined(__ARM_FEATURE_CRYPTO)
 /* TODO: Re-consider above after https://reviews.llvm.org/D131064 merged.
  *
  * The intrinsic declaration are guarded by predefined ACLE macros in clang:
@@ -70,7 +70,7 @@
 
 #include "mbedtls/platform.h"
 
-#if defined(MBEDTLS_ARCH_IS_ARMV8)
+#if defined(MBEDTLS_ARCH_IS_ARMV8_A)
 
 #  if defined(MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT) || \
     defined(MBEDTLS_SHA256_USE_ARMV8_CRYPTO_ONLY)

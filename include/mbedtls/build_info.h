@@ -74,14 +74,19 @@
 #define MBEDTLS_ARCH_IS_X86
 #endif
 
-/* This is defined if the architecture is Armv8, or higher */
-#if !defined(MBEDTLS_ARCH_IS_ARMV8)
-#if defined(__ARM_ARCH)
-#if __ARM_ARCH >= 8
-#define MBEDTLS_ARCH_IS_ARMV8
+/* This is defined if the architecture is Armv8-A, or higher */
+#if !defined(MBEDTLS_ARCH_IS_ARMV8_A)
+#if defined(__ARM_ARCH) && defined(__ARM_ARCH_PROFILE)
+#if (__ARM_ARCH >= 8) && (__ARM_ARCH_PROFILE == 'A')
+/* GCC, clang, armclang and IAR */
+#define MBEDTLS_ARCH_IS_ARMV8_A
 #endif
-#elif defined(MBEDTLS_ARCH_IS_ARM64)
-#define MBEDTLS_ARCH_IS_ARMV8
+#elif defined(__ARM_ARCH_8A)
+/* Alternative defined by clang */
+#define MBEDTLS_ARCH_IS_ARMV8_A
+#elif defined(_M_ARM64) || defined(_M_ARM64EC)
+/* MSVC ARM64 is at least Armv8.0-A */
+#define MBEDTLS_ARCH_IS_ARMV8_A
 #endif
 #endif
 

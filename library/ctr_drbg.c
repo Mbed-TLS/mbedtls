@@ -160,6 +160,7 @@ static int block_cipher_df(unsigned char *output,
 
     memset(buf, 0, sizeof(buf));
 #if defined(MBEDTLS_CIPHER_C)
+    mbedtls_cipher_init(&cipher_ctx);
     ret = mbedtls_cipher_setup(&cipher_ctx,
                                mbedtls_cipher_info_from_type(CTR_DRBG_AES_TYPE));
     if (ret != 0) {

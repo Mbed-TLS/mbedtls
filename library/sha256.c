@@ -126,6 +126,7 @@
 #      if defined(__linux__)
 /* Our preferred method of detection is getauxval() */
 #        include <sys/auxv.h>
+#        include <asm/hwcap.h>
 #      endif
 /* Use SIGILL on Unix, and fall back to it on Linux */
 #      include <signal.h>
@@ -146,10 +147,15 @@
  * Capability detection code comes early, so we can disable
  * MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT if no detection mechanism found
  */
-#if defined(HWCAP_SHA2)
+#if defined(MBEDTLS_ARCH_IS_ARM64) && defined(HWCAP_SHA2)
 static int mbedtls_a64_crypto_sha256_determine_support(void)
 {
     return (getauxval(AT_HWCAP) & HWCAP_SHA2) ? 1 : 0;
+}
+#elif defined(MBEDTLS_ARCH_IS_ARM32) && defined(HWCAP2_SHA2)
+static int mbedtls_a64_crypto_sha256_determine_support(void)
+{
+    return (getauxval(AT_HWCAP2) & HWCAP2_SHA2) ? 1 : 0;
 }
 #elif defined(__APPLE__)
 static int mbedtls_a64_crypto_sha256_determine_support(void)

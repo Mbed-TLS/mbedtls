@@ -184,4 +184,19 @@
 #define MBEDTLS_PK_HAVE_ECC_KEYS
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA || MBEDTLS_ECP_C */
 
+/* Backwards compatibility for some macros which were renamed to reflect that
+ * they are related to Armv8, not aarch64. */
+#if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT)
+#define MBEDTLS_SHA256_USE_ARMV8_CRYPTO_IF_PRESENT
+#endif
+#if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
+#define MBEDTLS_SHA256_USE_ARMV8_CRYPTO_ONLY
+#endif
+#if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT)
+#define MBEDTLS_SHA512_USE_ARMV8_CRYPTO_IF_PRESENT
+#endif
+#if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
+#define MBEDTLS_SHA512_USE_ARMV8_CRYPTO_ONLY
+#endif
+
 #endif /* MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H */

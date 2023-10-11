@@ -1,5 +1,0 @@
-Features
-   * Add support for server-side TLS version negotiation. If both TLS 1.2 and
-     TLS 1.3 protocols are enabled, the TLS server now selects TLS 1.2 or
-     TLS 1.3 depending on the capabilities and preferences of TLS clients.
-     Fixes #6867.

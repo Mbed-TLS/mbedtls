@@ -1,3 +1,0 @@
-Features
-   * When parsing X.509 certificates, support the extensions
-     SignatureKeyIdentifier and AuthorityKeyIdentifier.

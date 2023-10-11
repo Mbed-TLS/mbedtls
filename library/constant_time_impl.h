@@ -429,7 +429,6 @@ static inline unsigned char mbedtls_ct_uchar_in_range_if(unsigned char low,
     return (unsigned char) (~(low_mask | high_mask)) & to;
 }
 
-
 /* ============================================================================
  * Everything below here is trivial wrapper functions
  */
@@ -446,6 +445,14 @@ static inline unsigned mbedtls_ct_uint_if(mbedtls_ct_condition_t condition,
                                           unsigned if0)
 {
     return (unsigned) mbedtls_ct_if(condition, (mbedtls_ct_uint_t) if1, (mbedtls_ct_uint_t) if0);
+}
+
+static inline mbedtls_ct_condition_t mbedtls_ct_bool_if(mbedtls_ct_condition_t condition,
+                                                        mbedtls_ct_condition_t if1,
+                                                        mbedtls_ct_condition_t if0)
+{
+    return (mbedtls_ct_condition_t) mbedtls_ct_if(condition, (mbedtls_ct_uint_t) if1,
+                                                  (mbedtls_ct_uint_t) if0);
 }
 
 #if defined(MBEDTLS_BIGNUM_C)
@@ -471,6 +478,12 @@ static inline unsigned mbedtls_ct_uint_if_else_0(mbedtls_ct_condition_t conditio
     return (unsigned) (condition & if1);
 }
 
+static inline mbedtls_ct_condition_t mbedtls_ct_bool_if_else_0(mbedtls_ct_condition_t condition,
+                                                               mbedtls_ct_condition_t if1)
+{
+    return (mbedtls_ct_condition_t) (condition & if1);
+}
+
 #if defined(MBEDTLS_BIGNUM_C)
 
 static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if_else_0(mbedtls_ct_condition_t condition,
@@ -480,6 +493,23 @@ static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if_else_0(mbedtls_ct_conditio
 }
 
 #endif /* MBEDTLS_BIGNUM_C */
+
+static inline int mbedtls_ct_error_if(mbedtls_ct_condition_t condition, int if1, int if0)
+{
+    /* Coverting int -> uint -> int here is safe, because we require if1 and if0 to be
+     * in the range -32767..0, and we require 32-bit int and uint types.
+     *
+     * This means that (0 <= -if0 < INT_MAX), so negating if0 is safe, and similarly for
+     * converting back to int.
+     */
+    return -((int) mbedtls_ct_if(condition, (mbedtls_ct_uint_t) (-if1),
+                                 (mbedtls_ct_uint_t) (-if0)));
+}
+
+static inline int mbedtls_ct_error_if_else_0(mbedtls_ct_condition_t condition, int if1)
+{
+    return -((int) (condition & (-if1)));
+}
 
 static inline mbedtls_ct_condition_t mbedtls_ct_uint_eq(mbedtls_ct_uint_t x,
                                                         mbedtls_ct_uint_t y)
@@ -505,8 +535,8 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_le(mbedtls_ct_uint_t x,
     return ~mbedtls_ct_uint_gt(x, y);
 }
 
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_xor(mbedtls_ct_condition_t x,
-                                                         mbedtls_ct_condition_t y)
+static inline mbedtls_ct_condition_t mbedtls_ct_bool_ne(mbedtls_ct_condition_t x,
+                                                        mbedtls_ct_condition_t y)
 {
     return (mbedtls_ct_condition_t) (x ^ y);
 }

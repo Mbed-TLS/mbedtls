@@ -1,4 +1,0 @@
-Bugfix
-   * Functions in the ssl_cache module now return a negative MBEDTLS_ERR_xxx
-     error code on failure. Before, they returned 1 to indicate failure in
-     some cases involving a missing entry or a full cache.

@@ -1920,7 +1920,7 @@ size_t mbedtls_ssl_ciphersuite_get_cipher_key_bitlen(const mbedtls_ssl_ciphersui
     psa_algorithm_t alg;
     size_t key_bits;
 
-    status = mbedtls_ssl_cipher_to_psa(info->cipher,
+    status = mbedtls_ssl_cipher_to_psa((mbedtls_cipher_type_t) info->cipher,
                                        info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16,
                                        &alg, &key_type, &key_bits);
 
@@ -1969,10 +1969,10 @@ psa_algorithm_t mbedtls_ssl_get_ciphersuite_sig_pk_psa_alg(const mbedtls_ssl_cip
         case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
             return PSA_ALG_RSA_PKCS1V15_SIGN(
-                mbedtls_md_psa_alg_from_type(info->mac));
+                mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) info->mac));
 
         case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
-            return PSA_ALG_ECDSA(mbedtls_md_psa_alg_from_type(info->mac));
+            return PSA_ALG_ECDSA(mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) info->mac));
 
         case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:

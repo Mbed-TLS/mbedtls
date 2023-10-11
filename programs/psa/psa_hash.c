@@ -51,10 +51,14 @@
         0x4a, 0xdd, 0xd2, 0x00, 0x12, 0x6d, 0x90, 0x69 \
 }
 
-const uint8_t sample_message[] = "Hello World!";
-
 const uint8_t sample_hash[] = SAMPLE_HASH_DATA;
 const size_t sample_hash_len = sizeof(sample_hash);
+
+const uint8_t sample_message[] = "Hello World!";
+/* sample_message is terminated with a null byte which is not part of
+ * the message itself so we make sure to subtract it in order to get
+ * the message length. */
+const size_t sample_message_length = sizeof(sample_message) - 1;
 
 #if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(PSA_WANT_ALG_SHA_256)
 int main(void)
@@ -95,7 +99,7 @@ int main(void)
 
     /* Note: Here we use sizeof(sample_message) - 1 since we don't wish to
      * include the null byte in the hash computation */
-    status = psa_hash_update(&hash_operation, sample_message, sizeof(sample_message) - 1);
+    status = psa_hash_update(&hash_operation, sample_message, sample_message_length);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_update failed\n");
         goto cleanup;
@@ -135,7 +139,7 @@ int main(void)
 
     /* Compute hash using one-shot function call */
     status = psa_hash_compute(HASH_ALG,
-                              sample_message, sizeof(sample_message) - 1,
+                              sample_message, sample_message_length,
                               hash, sizeof(hash),
                               &hash_length);
     if (status != PSA_SUCCESS) {

@@ -864,7 +864,7 @@ pre_generate_files() {
 #        Example:
 #          loc_extra_list="ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
 #          helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
-#    4b. Call helper_libtestdriver1_make_main "$loc_accel_list". Any
+#    3b. Call helper_libtestdriver1_make_main "$loc_accel_list". Any
 #        additional arguments will be passed to make: this can be useful if
 #        you don't want to build everything when iterating during development.
 #        Example:

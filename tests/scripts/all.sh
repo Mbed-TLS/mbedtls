@@ -2248,9 +2248,9 @@ component_build_module_alt () {
     # MBEDTLS_SHA256_*ALT can't be used with MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_*
     scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
     scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
-    # MBEDTLS_SHA512_*ALT can't be used with MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_*
-    scripts/config.py unset MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT
-    scripts/config.py unset MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_ONLY
+    # MBEDTLS_SHA512_*ALT can't be used with MBEDTLS_SHA512_USE_A64_CRYPTO_*
+    scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
+    scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY
 
     # Enable all MBEDTLS_XXX_ALT for whole modules. Do not enable
     # MBEDTLS_XXX_YYY_ALT which are for single functions.
@@ -3467,7 +3467,7 @@ config_psa_crypto_hash_use_psa () {
         scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
         scripts/config.py unset MBEDTLS_SHA384_C
         scripts/config.py unset MBEDTLS_SHA512_C
-        scripts/config.py unset MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT
+        scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
         scripts/config.py unset MBEDTLS_SHA3_C
     fi
 }
@@ -4332,7 +4332,7 @@ component_build_aes_aesce_armcc () {
     scripts/config.py baremetal
 
     # armc[56] don't support SHA-512 intrinsics
-    scripts/config.py unset MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT
+    scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
 
     # Stop armclang warning about feature detection for A64_CRYPTO.
     # With this enabled, the library does build correctly under armclang,
@@ -4936,7 +4936,7 @@ component_build_armcc () {
     msg "build: ARM Compiler 5"
     scripts/config.py baremetal
     # armc[56] don't support SHA-512 intrinsics
-    scripts/config.py unset MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT
+    scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
 
     # Stop armclang warning about feature detection for A64_CRYPTO.
     # With this enabled, the library does build correctly under armclang,

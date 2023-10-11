@@ -57,8 +57,8 @@
 #include "mbedtls/platform.h"
 
 #if defined(__aarch64__)
-#  if defined(MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT) || \
-    defined(MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_ONLY)
+#  if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT) || \
+    defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
 /* *INDENT-OFF* */
 #   ifdef __ARM_NEON
 #       include <arm_neon.h>
@@ -83,35 +83,35 @@
        /* Test Clang first, as it defines __GNUC__ */
 #      if defined(__ARMCOMPILER_VERSION)
 #        if __ARMCOMPILER_VERSION < 6090000
-#          error "A more recent armclang is required for MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_*"
+#          error "A more recent armclang is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
 #        elif __ARMCOMPILER_VERSION == 6090000
-#          error "Must use minimum -march=armv8.2-a+sha3 for MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_*"
+#          error "Must use minimum -march=armv8.2-a+sha3 for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
 #        else
 #          pragma clang attribute push (__attribute__((target("sha3"))), apply_to=function)
 #          define MBEDTLS_POP_TARGET_PRAGMA
 #        endif
 #      elif defined(__clang__)
 #        if __clang_major__ < 7
-#          error "A more recent Clang is required for MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_*"
+#          error "A more recent Clang is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
 #        else
 #          pragma clang attribute push (__attribute__((target("sha3"))), apply_to=function)
 #          define MBEDTLS_POP_TARGET_PRAGMA
 #        endif
 #      elif defined(__GNUC__)
 #        if __GNUC__ < 8
-#          error "A more recent GCC is required for MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_*"
+#          error "A more recent GCC is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
 #        else
 #          pragma GCC push_options
 #          pragma GCC target ("arch=armv8.2-a+sha3")
 #          define MBEDTLS_POP_TARGET_PRAGMA
 #        endif
 #      else
-#        error "Only GCC and Clang supported for MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_*"
+#        error "Only GCC and Clang supported for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
 #      endif
 #    endif
 /* *INDENT-ON* */
 #  endif
-#  if defined(MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT)
+#  if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT)
 #    if defined(__unix__)
 #      if defined(__linux__)
 /* Our preferred method of detection is getauxval() */
@@ -122,19 +122,19 @@
 #    endif
 #  endif
 #elif defined(_M_ARM64)
-#  if defined(MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT) || \
-    defined(MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_ONLY)
+#  if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT) || \
+    defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
 #    include <arm64_neon.h>
 #  endif
 #else
-#  undef MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_ONLY
-#  undef MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT
+#  undef MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY
+#  undef MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
 #endif
 
-#if defined(MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT)
+#if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT)
 /*
  * Capability detection code comes early, so we can disable
- * MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT if no detection mechanism found
+ * MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT if no detection mechanism found
  */
 #if defined(HWCAP_SHA512)
 static int mbedtls_a64_crypto_sha512_determine_support(void)
@@ -161,9 +161,9 @@ static int mbedtls_a64_crypto_sha512_determine_support(void)
  * SHA-512 support. So we fall back to the C code only.
  */
 #if defined(_MSC_VER)
-#pragma message "No mechanism to detect ARMV8_CRYPTO found, using C code only"
+#pragma message "No mechanism to detect A64_CRYPTO found, using C code only"
 #else
-#warning "No mechanism to detect ARMV8_CRYPTO found, using C code only"
+#warning "No mechanism to detect A64_CRYPTO found, using C code only"
 #endif
 #elif defined(__unix__) && defined(SIG_SETMASK)
 /* Detection with SIGILL, setjmp() and longjmp() */
@@ -173,7 +173,7 @@ static int mbedtls_a64_crypto_sha512_determine_support(void)
 static jmp_buf return_from_sigill;
 
 /*
- * Armv8 SHA512 support detection via SIGILL
+ * A64 SHA512 support detection via SIGILL
  */
 static void sigill_handler(int signal)
 {
@@ -210,11 +210,11 @@ static int mbedtls_a64_crypto_sha512_determine_support(void)
     return ret;
 }
 #else
-#warning "No mechanism to detect ARMV8_CRYPTO found, using C code only"
-#undef MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT
+#warning "No mechanism to detect A64_CRYPTO found, using C code only"
+#undef MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
 #endif  /* HWCAP_SHA512, __APPLE__, __unix__ && SIG_SETMASK */
 
-#endif  /* MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT */
+#endif  /* MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT */
 
 #if !defined(MBEDTLS_SHA512_ALT)
 
@@ -352,10 +352,10 @@ static const uint64_t K[80] =
 };
 #endif
 
-#if defined(MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT) || \
-    defined(MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_ONLY)
+#if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT) || \
+    defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
 
-#if defined(MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_ONLY)
+#if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
 #  define mbedtls_internal_sha512_process_many_a64_crypto mbedtls_internal_sha512_process_many
 #  define mbedtls_internal_sha512_process_a64_crypto      mbedtls_internal_sha512_process
 #endif
@@ -567,9 +567,9 @@ static size_t mbedtls_internal_sha512_process_many_a64_crypto(
     return processed;
 }
 
-#if defined(MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT)
+#if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT)
 /*
- * This function is for internal use only if we are building both C and Armv8
+ * This function is for internal use only if we are building both C and A64
  * versions, otherwise it is renamed to be the public mbedtls_internal_sha512_process()
  */
 static
@@ -582,7 +582,7 @@ int mbedtls_internal_sha512_process_a64_crypto(mbedtls_sha512_context *ctx,
             SHA512_BLOCK_SIZE) ? 0 : -1;
 }
 
-#endif /* MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT || MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_ONLY */
+#endif /* MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT || MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY */
 
 #if defined(MBEDTLS_POP_TARGET_PRAGMA)
 #if defined(__clang__)
@@ -594,17 +594,17 @@ int mbedtls_internal_sha512_process_a64_crypto(mbedtls_sha512_context *ctx,
 #endif
 
 
-#if !defined(MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT)
+#if !defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT)
 #define mbedtls_internal_sha512_process_many_c mbedtls_internal_sha512_process_many
 #define mbedtls_internal_sha512_process_c      mbedtls_internal_sha512_process
 #endif
 
 
-#if !defined(MBEDTLS_SHA512_PROCESS_ALT) && !defined(MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_ONLY)
+#if !defined(MBEDTLS_SHA512_PROCESS_ALT) && !defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
 
-#if defined(MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT)
+#if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT)
 /*
- * This function is for internal use only if we are building both C and Armv8
+ * This function is for internal use only if we are building both C and A64
  * versions, otherwise it is renamed to be the public mbedtls_internal_sha512_process()
  */
 static
@@ -701,10 +701,10 @@ int mbedtls_internal_sha512_process_c(mbedtls_sha512_context *ctx,
     return 0;
 }
 
-#endif /* !MBEDTLS_SHA512_PROCESS_ALT && !MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_ONLY */
+#endif /* !MBEDTLS_SHA512_PROCESS_ALT && !MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY */
 
 
-#if !defined(MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_ONLY)
+#if !defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
 
 static size_t mbedtls_internal_sha512_process_many_c(
     mbedtls_sha512_context *ctx, const uint8_t *data, size_t len)
@@ -725,10 +725,10 @@ static size_t mbedtls_internal_sha512_process_many_c(
     return processed;
 }
 
-#endif /* !MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_ONLY */
+#endif /* !MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY */
 
 
-#if defined(MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT)
+#if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT)
 
 static int mbedtls_a64_crypto_sha512_has_support(void)
 {
@@ -763,7 +763,7 @@ int mbedtls_internal_sha512_process(mbedtls_sha512_context *ctx,
     }
 }
 
-#endif /* MBEDTLS_SHA512_USE_ARMV8_A_CRYPTO_IF_PRESENT */
+#endif /* MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT */
 
 /*
  * SHA-512 process buffer

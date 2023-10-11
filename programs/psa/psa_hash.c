@@ -107,7 +107,7 @@ int main(void)
 
     status = psa_hash_clone(&hash_operation, &cloned_hash_operation);
     if (status != PSA_SUCCESS) {
-        mbedtls_printf("PSA hash clone failed");
+        mbedtls_printf("PSA hash clone failed\n");
         goto cleanup;
     }
 

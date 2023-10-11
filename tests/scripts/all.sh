@@ -4426,6 +4426,31 @@ component_build_aes_armce () {
     else
         msg "can't include <asm/hwcap.h> - skipping runtime detection tests"
     fi
+
+    # test for presence of AES instructions
+    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
+    msg "clang, test A32 crypto instructions built"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm -S"
+    grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' library/aesce.o
+    msg "clang, test T32 crypto instructions built"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb -S"
+    grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' library/aesce.o
+    msg "clang, test aarch64 crypto instructions built"
+    make -B library/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a -S"
+    grep -E 'aes[a-z]+\s*[qv]' library/aesce.o
+
+    # test for absence of AES instructions
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
+    scripts/config.py unset MBEDTLS_AESCE_C
+    msg "clang, test A32 crypto instructions not built"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm -S"
+    not grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' library/aesce.o
+    msg "clang, test T32 crypto instructions not built"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb -S"
+    not grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' library/aesce.o
+    msg "clang, test aarch64 crypto instructions not built"
+    make -B library/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a -S"
+    not grep -E 'aes[a-z]+\s*[qv]' library/aesce.o
 }
 
 support_build_sha_armce() {

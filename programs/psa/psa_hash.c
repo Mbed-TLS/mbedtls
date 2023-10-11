@@ -36,7 +36,7 @@
 /* Information about hashing with the PSA API can be
  * found here:
  * https://arm-software.github.io/psa-api/crypto/1.1/api/ops/hashes.html
- * 
+ *
  * The algorithm used by this demo is SHA 256.
  * Please see include/psa/crypto_values.h to see the other
  * algorithms that are supported by Mbed TLS.

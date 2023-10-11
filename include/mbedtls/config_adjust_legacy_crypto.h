@@ -192,4 +192,24 @@
 #define MBEDTLS_CIPHER_PADDING_PKCS7
 #endif
 
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_GCM_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_GCM))
+#define MBEDTLS_SSL_HAVE_GCM
+#endif
+
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CCM_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CCM))
+#define MBEDTLS_SSL_HAVE_CCM
+#endif
+
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CHACHAPOLY_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CHACHA20_POLY1305))
+#define MBEDTLS_SSL_HAVE_CHACHAPOLY
+#endif
+
+#if defined(MBEDTLS_SSL_HAVE_GCM) || defined(MBEDTLS_SSL_HAVE_CCM) || \
+    defined(MBEDTLS_SSL_HAVE_CHACHAPOLY)
+#define MBEDTLS_SSL_HAVE_AEAD
+#endif
+
 #endif /* MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H */

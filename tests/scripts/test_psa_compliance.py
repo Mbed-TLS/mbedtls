@@ -2,7 +2,7 @@
 """Run the PSA Crypto API compliance test suite.
 Clone the repo and check out the commit specified by PSA_ARCH_TEST_REPO and PSA_ARCH_TEST_REF,
 then compile and run the test suite. The clone is stored at <repository root>/psa-arch-tests.
-Known defects in either the test suite or mbedtls / psa-crypto - identified by their test
+Known defects in either the test suite or mbedtls / TF-PSA-Crypto - identified by their test
 number - are ignored, while unexpected failures AND successes are reported as errors, to help
 keep the list of known defects as up to date as possible.
 """
@@ -34,8 +34,8 @@ from typing import List
 import scripts_path
 from mbedtls_dev import build_tree
 
-# PSA Compliance tests we expect to fail due to known defects in Mbed TLS / PSA Crypto
-# (or the test suite).
+# PSA Compliance tests we expect to fail due to known defects in Mbed TLS /
+# TF-PSA-Crypto (or the test suite).
 # The test numbers correspond to the numbers used by the console output of the test suite.
 # Test number 2xx corresponds to the files in the folder
 # psa-arch-tests/api-tests/dev_apis/crypto/test_c0xx
@@ -60,10 +60,10 @@ PSA_ARCH_TESTS_REF = 'fix-pr-5736'
 def main(library_build_dir: str):
     root_dir = os.getcwd()
 
-    in_psa_crypto_repo = build_tree.looks_like_psa_crypto_root(root_dir)
+    in_tf_psa_crypto_repo = build_tree.looks_like_tf_psa_crypto_root(root_dir)
 
-    if in_psa_crypto_repo:
-        crypto_name = 'psacrypto'
+    if in_tf_psa_crypto_repo:
+        crypto_name = 'tfpsacrypto'
         library_subdir = 'core'
     else:
         crypto_name = 'mbedcrypto'
@@ -102,7 +102,7 @@ def main(library_build_dir: str):
         os.chdir(build_dir)
 
         extra_includes = (';{}/drivers/builtin/include'.format(root_dir)
-                          if in_psa_crypto_repo else '')
+                          if in_tf_psa_crypto_repo else '')
 
         #pylint: disable=bad-continuation
         subprocess.check_call([
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     # pylint: disable=invalid-name
     parser = argparse.ArgumentParser()
     parser.add_argument('--build-dir', nargs=1,
-                        help='path to Mbed TLS / PSA Crypto build directory')
+                        help='path to Mbed TLS / TF-PSA-Crypto build directory')
     args = parser.parse_args()
 
     if args.build_dir is not None:

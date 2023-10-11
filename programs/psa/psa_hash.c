@@ -24,7 +24,6 @@
  *  limitations under the License.
  */
 
-
 #include "psa/crypto.h"
 #include <string.h>
 #include <stdio.h>

@@ -97,8 +97,6 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    /* Note: Here we use sizeof(sample_message) - 1 since we don't wish to
-     * include the null byte in the hash computation */
     status = psa_hash_update(&hash_operation, sample_message, sample_message_length);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_update failed\n");

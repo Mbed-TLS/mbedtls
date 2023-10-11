@@ -36,6 +36,42 @@
 extern "C" {
 #endif
 
+/* Support for GCM either through Mbed TLS SW implementation or PSA */
+#if defined(MBEDTLS_GCM_C) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_GCM))
+#define MBEDTLS_CIPHER_HAVE_GCM
+#endif
+
+#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_AES_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_GCM) && defined(PSA_WANT_KEY_TYPE_AES))
+#define MBEDTLS_CIPHER_HAVE_GCM_AES
+#endif
+
+#if defined(MBEDTLS_CCM_C) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CCM))
+#define MBEDTLS_CIPHER_HAVE_CCM
+#endif
+
+#if (defined(MBEDTLS_CCM_C) && defined(MBEDTLS_AES_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CCM) && defined(PSA_WANT_KEY_TYPE_AES))
+#define MBEDTLS_CIPHER_HAVE_CCM_AES
+#endif
+
+#if defined(MBEDTLS_CCM_C) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CCM_STAR_NO_TAG))
+#define MBEDTLS_CIPHER_HAVE_CCM_STAR_NO_TAG
+#endif
+
+#if defined(MBEDTLS_CHACHAPOLY_C) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CHACHA20_POLY1305))
+#define MBEDTLS_CIPHER_HAVE_CHACHAPOLY
+#endif
+
+#if defined(MBEDTLS_CIPHER_HAVE_GCM) || defined(MBEDTLS_CIPHER_HAVE_CCM) || \
+    defined(MBEDTLS_CIPHER_HAVE_CCM_STAR_NO_TAG) || defined(MBEDTLS_CIPHER_HAVE_CHACHAPOLY)
+#define MBEDTLS_CIPHER_HAVE_SOME_AEAD
+#endif
+
 /**
  * Base cipher information. The non-mode specific functions and values.
  */

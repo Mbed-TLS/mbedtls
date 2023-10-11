@@ -6,7 +6,7 @@
 #include "mbedtls/gcm.h"
 #endif
 
-#if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)
+#if defined(MBEDTLS_CIPHER_HAVE_SOME_AEAD) || defined(MBEDTLS_NIST_KW_C)
 #define MBEDTLS_CIPHER_AUTH_CRYPT
 #endif
 

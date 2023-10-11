@@ -80,8 +80,7 @@ enum mbedtls_cipher_base_index {
 #if defined(MBEDTLS_CAMELLIA_C)
     MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA,
 #endif
-#if (defined(MBEDTLS_CCM_C) && defined(MBEDTLS_AES_C)) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CCM))
+#if defined(MBEDTLS_CIPHER_HAVE_CCM_AES)
     MBEDTLS_CIPHER_BASE_INDEX_CCM_AES,
 #endif
 #if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_ARIA_C)
@@ -105,8 +104,7 @@ enum mbedtls_cipher_base_index {
 #if defined(MBEDTLS_DES_C)
     MBEDTLS_CIPHER_BASE_INDEX_DES,
 #endif
-#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_AES_C)) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_GCM))
+#if defined(MBEDTLS_CIPHER_HAVE_GCM_AES)
     MBEDTLS_CIPHER_BASE_INDEX_GCM_AES,
 #endif
 #if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_ARIA_C)
@@ -580,8 +578,7 @@ static int gcm_aes_setkey_wrap(void *ctx, const unsigned char *key,
 }
 #endif /* MBEDTLS_GCM_C */
 
-#if defined(MBEDTLS_GCM_C) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_GCM))
+#if defined(MBEDTLS_CIPHER_HAVE_GCM)
 static const mbedtls_cipher_base_t gcm_aes_info = {
     MBEDTLS_CIPHER_ID_AES,
     NULL,
@@ -615,10 +612,9 @@ static const mbedtls_cipher_base_t gcm_aes_info = {
     NULL,
 #endif /* MBEDTLS_GCM_C */
 };
-#endif /* MBEDTLS_GCM_C || (MBEDTLS_USE_PSA_CRYPTO && PSA_WANT_ALG_GCM) */
+#endif /* MBEDTLS_CIPHER_HAVE_GCM */
 
-#if defined(MBEDTLS_GCM_C) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_GCM))
+#if defined(MBEDTLS_CIPHER_HAVE_GCM)
 static const mbedtls_cipher_info_t aes_128_gcm_info = {
     "AES-128-GCM",
     16,
@@ -653,7 +649,7 @@ static const mbedtls_cipher_info_t aes_256_gcm_info = {
     MBEDTLS_CIPHER_BASE_INDEX_GCM_AES
 };
 #endif
-#endif /* MBEDTLS_GCM_C || PSA_WANT_ALG_GCM */
+#endif /* MBEDTLS_CIPHER_HAVE_GCM */
 
 #if defined(MBEDTLS_CCM_C)
 static int ccm_aes_setkey_wrap(void *ctx, const unsigned char *key,
@@ -664,8 +660,7 @@ static int ccm_aes_setkey_wrap(void *ctx, const unsigned char *key,
 }
 #endif /* MBEDTLS_CCM_C */
 
-#if defined(MBEDTLS_CCM_C) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CCM))
+#if defined(MBEDTLS_CIPHER_HAVE_CCM)
 static const mbedtls_cipher_base_t ccm_aes_info = {
     MBEDTLS_CIPHER_ID_AES,
     NULL,
@@ -699,10 +694,9 @@ static const mbedtls_cipher_base_t ccm_aes_info = {
     NULL,
 #endif
 };
-#endif /* MBEDTLS_CCM_C || (MBEDTLS_USE_PSA_CRYPTO && PSA_WANT_ALG_CCM) */
+#endif /* MBEDTLS_CIPHER_HAVE_CCM */
 
-#if defined(MBEDTLS_CCM_C) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CCM))
+#if defined(MBEDTLS_CIPHER_HAVE_CCM)
 static const mbedtls_cipher_info_t aes_128_ccm_info = {
     "AES-128-CCM",
     16,
@@ -737,10 +731,9 @@ static const mbedtls_cipher_info_t aes_256_ccm_info = {
     MBEDTLS_CIPHER_BASE_INDEX_CCM_AES
 };
 #endif
-#endif /* MBEDTLS_CCM_C || PSA_WANT_ALG_CCM */
+#endif /* MBEDTLS_CIPHER_HAVE_CCM */
 
-#if defined(MBEDTLS_CCM_C) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CCM_STAR_NO_TAG))
+#if defined(MBEDTLS_CIPHER_HAVE_CCM_STAR_NO_TAG)
 static const mbedtls_cipher_info_t aes_128_ccm_star_no_tag_info = {
     "AES-128-CCM*-NO-TAG",
     16,
@@ -775,7 +768,7 @@ static const mbedtls_cipher_info_t aes_256_ccm_star_no_tag_info = {
     MBEDTLS_CIPHER_BASE_INDEX_CCM_AES
 };
 #endif
-#endif /* MBEDTLS_CCM_C || PSA_WANT_ALG_CCM_STAR_NO_TAG */
+#endif /* MBEDTLS_CIPHER_HAVE_CCM_STAR_NO_TAG */
 
 #endif /* MBEDTLS_AES_C */
 
@@ -2276,24 +2269,21 @@ const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
     { MBEDTLS_CIPHER_AES_256_XTS,          &aes_256_xts_info },
 #endif
 #endif
-#if defined(MBEDTLS_GCM_C) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_GCM))
+#if defined(MBEDTLS_CIPHER_HAVE_GCM)
     { MBEDTLS_CIPHER_AES_128_GCM,          &aes_128_gcm_info },
 #if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_GCM,          &aes_192_gcm_info },
     { MBEDTLS_CIPHER_AES_256_GCM,          &aes_256_gcm_info },
 #endif
 #endif
-#if defined(MBEDTLS_CCM_C) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CCM))
+#if defined(MBEDTLS_CIPHER_HAVE_CCM)
     { MBEDTLS_CIPHER_AES_128_CCM,          &aes_128_ccm_info },
 #if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_CCM,          &aes_192_ccm_info },
     { MBEDTLS_CIPHER_AES_256_CCM,          &aes_256_ccm_info },
 #endif
 #endif
-#if defined(MBEDTLS_CCM_C) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CCM_STAR_NO_TAG))
+#if defined(MBEDTLS_CIPHER_HAVE_CCM_STAR_NO_TAG)
     { MBEDTLS_CIPHER_AES_128_CCM_STAR_NO_TAG,          &aes_128_ccm_star_no_tag_info },
 #if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_CCM_STAR_NO_TAG,          &aes_192_ccm_star_no_tag_info },
@@ -2423,8 +2413,7 @@ const mbedtls_cipher_base_t *mbedtls_cipher_base_lookup_table[] = {
 #if defined(MBEDTLS_CAMELLIA_C)
     [MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA] = &camellia_info,
 #endif
-#if (defined(MBEDTLS_CCM_C) && defined(MBEDTLS_AES_C)) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CCM) && defined(PSA_WANT_KEY_TYPE_AES))
+#if defined(MBEDTLS_CIPHER_HAVE_CCM_AES)
     [MBEDTLS_CIPHER_BASE_INDEX_CCM_AES] = &ccm_aes_info,
 #endif
 #if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_ARIA_C)
@@ -2448,8 +2437,7 @@ const mbedtls_cipher_base_t *mbedtls_cipher_base_lookup_table[] = {
 #if defined(MBEDTLS_DES_C)
     [MBEDTLS_CIPHER_BASE_INDEX_DES] = &des_info,
 #endif
-#if (defined(MBEDTLS_GCM_C) && defined(MBEDTLS_AES_C)) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_GCM) && defined(PSA_WANT_KEY_TYPE_AES))
+#if defined(MBEDTLS_CIPHER_HAVE_GCM_AES)
     [MBEDTLS_CIPHER_BASE_INDEX_GCM_AES] = &gcm_aes_info,
 #endif
 #if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_ARIA_C)

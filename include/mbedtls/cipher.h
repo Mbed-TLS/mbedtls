@@ -33,27 +33,6 @@
 #include <stddef.h>
 #include "mbedtls/platform_util.h"
 
-/* Support for GCM either through Mbed TLS SW implementation or PSA */
-#if defined(MBEDTLS_GCM_C) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_GCM))
-#define MBEDTLS_CIPHER_HAVE_GCM
-#endif
-/* Support for CCM either through Mbed TLS SW implementation or PSA */
-#if defined(MBEDTLS_CCM_C) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CCM))
-#define MBEDTLS_CIPHER_HAVE_CCM
-#endif
-/* Support for CHACHAPOLY either through Mbed TLS SW implementation or PSA */
-#if defined(MBEDTLS_CHACHAPOLY_C) || \
-    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CHACHA20_POLY1305))
-#define MBEDTLS_CIPHER_HAVE_CHACHAPOLY
-#endif
-
-#if defined(MBEDTLS_CIPHER_HAVE_GCM) || defined(MBEDTLS_CIPHER_HAVE_CCM) || \
-    defined(MBEDTLS_CIPHER_HAVE_CHACHAPOLY)
-#define MBEDTLS_CIPHER_MODE_AEAD
-#endif
-
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 #define MBEDTLS_CIPHER_MODE_WITH_PADDING
 #endif
@@ -1097,7 +1076,7 @@ int mbedtls_cipher_crypt(mbedtls_cipher_context_t *ctx,
                          const unsigned char *input, size_t ilen,
                          unsigned char *output, size_t *olen);
 
-#if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)
+#if defined(MBEDTLS_CIPHER_HAVE_SOME_AEAD) || defined(MBEDTLS_NIST_KW_C)
 /**
  * \brief               The authenticated encryption (AEAD/NIST_KW) function.
  *
@@ -1204,7 +1183,7 @@ int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
                                     const unsigned char *input, size_t ilen,
                                     unsigned char *output, size_t output_len,
                                     size_t *olen, size_t tag_len);
-#endif /* MBEDTLS_CIPHER_MODE_AEAD || MBEDTLS_NIST_KW_C */
+#endif /* MBEDTLS_CIPHER_HAVE_SOME_AEAD || MBEDTLS_NIST_KW_C */
 #ifdef __cplusplus
 }
 #endif

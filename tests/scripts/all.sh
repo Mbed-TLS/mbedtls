@@ -4360,7 +4360,7 @@ component_build_sha_armce () {
     scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
     scripts/config.py set MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
 
-    msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY clang, thumb"
+    msg "MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY clang, thumb"
     make -B library/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
 
     scripts/config.py set MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
@@ -4373,10 +4373,10 @@ component_build_sha_armce () {
     scripts/config.py unset MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
     scripts/config.py set MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
 
-    msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT clang, arm"
+    msg "MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT clang, arm"
     make -B library/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm -std=c99"
 
-    msg "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT clang, thumb"
+    msg "MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT clang, thumb"
     make -B library/sha256.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
 }
 

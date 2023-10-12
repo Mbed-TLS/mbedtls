@@ -40,24 +40,7 @@
  * Please see include/psa/crypto_values.h to see the other
  * algorithms that are supported by Mbed TLS.
  * If you switch to a different algorithm you will need to update
- * the hash data in the SAMPLE_HASH_DATA macro below. */
-
-#define HASH_ALG PSA_ALG_SHA_256
-
-#define SAMPLE_HASH_DATA {                                                      \
-        0x7f, 0x83, 0xb1, 0x65, 0x7f, 0xf1, 0xfc, 0x53, 0xb9, 0x2d, 0xc1, 0x81, \
-        0x48, 0xa1, 0xd6, 0x5d, 0xfc, 0x2d, 0x4b, 0x1f, 0xa3, 0xd6, 0x77, 0x28, \
-        0x4a, 0xdd, 0xd2, 0x00, 0x12, 0x6d, 0x90, 0x69 \
-}
-
-const uint8_t sample_hash[] = SAMPLE_HASH_DATA;
-const size_t sample_hash_len = sizeof(sample_hash);
-
-const uint8_t sample_message[] = "Hello World!";
-/* sample_message is terminated with a null byte which is not part of
- * the message itself so we make sure to subtract it in order to get
- * the message length. */
-const size_t sample_message_length = sizeof(sample_message) - 1;
+ * the hash data in the EXAMPLE_HASH_VALUE macro below. */
 
 #if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(PSA_WANT_ALG_SHA_256)
 int main(void)
@@ -67,6 +50,23 @@ int main(void)
     return EXIT_SUCCESS;
 }
 #else
+
+#define HASH_ALG PSA_ALG_SHA_256
+
+const uint8_t sample_message[] = "Hello World!";
+/* sample_message is terminated with a null byte which is not part of
+ * the message itself so we make sure to subtract it in order to get
+ * the message length. */
+const size_t sample_message_length = sizeof(sample_message) - 1;
+
+#define EXPECTED_HASH_VALUE {                                                    \
+        0x7f, 0x83, 0xb1, 0x65, 0x7f, 0xf1, 0xfc, 0x53, 0xb9, 0x2d, 0xc1, 0x81, \
+        0x48, 0xa1, 0xd6, 0x5d, 0xfc, 0x2d, 0x4b, 0x1f, 0xa3, 0xd6, 0x77, 0x28, \
+        0x4a, 0xdd, 0xd2, 0x00, 0x12, 0x6d, 0x90, 0x69 \
+}
+
+const uint8_t expected_hash[] = EXPECTED_HASH_VALUE;
+const size_t expected_hash_len = sizeof(expected_hash);
 
 int main(void)
 {
@@ -85,13 +85,11 @@ int main(void)
     }
 
     /* Compute hash using multi-part operation */
-
     status = psa_hash_setup(&hash_operation, HASH_ALG);
-    if (status == PSA_ERROR_NOT_SUPPORTED){
+    if (status == PSA_ERROR_NOT_SUPPORTED) {
         mbedtls_printf("unknown hash algorithm supplied\n");
         return EXIT_FAILURE;
-    }
-    else if (status != PSA_SUCCESS) {
+    } else if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_setup failed\n");
         return EXIT_FAILURE;
     }
@@ -115,14 +113,15 @@ int main(void)
     }
 
     /* Check the result of the operation against the sample */
-    if (hash_length != sample_hash_len || (memcmp(hash, sample_hash, sample_hash_len) != 0)) {
+    if (hash_length != expected_hash_len ||
+        (memcmp(hash, expected_hash, expected_hash_len) != 0)) {
         mbedtls_printf("Multi-part hash operation gave the wrong result!\n\n");
         goto cleanup;
     }
 
     status =
-        psa_hash_verify(&cloned_hash_operation, sample_hash,
-                        sample_hash_len);
+        psa_hash_verify(&cloned_hash_operation, expected_hash,
+                        expected_hash_len);
     if (status != PSA_SUCCESS) {
         mbedtls_printf("psa_hash_verify failed\n");
         goto cleanup;
@@ -144,7 +143,8 @@ int main(void)
         goto cleanup;
     }
 
-    if (hash_length != sample_hash_len || (memcmp(hash, sample_hash, sample_hash_len) != 0)) {
+    if (hash_length != expected_hash_len ||
+        (memcmp(hash, expected_hash, expected_hash_len) != 0)) {
         mbedtls_printf("One-shot hash operation gave the wrong result!\n\n");
         goto cleanup;
     }
@@ -154,7 +154,7 @@ int main(void)
     /* Print out result */
     mbedtls_printf("The SHA-256( '%s' ) is: ", sample_message);
 
-    for (size_t j = 0; j < sample_hash_len; j++) {
+    for (size_t j = 0; j < expected_hash_len; j++) {
         mbedtls_printf("%02x", hash[j]);
     }
 
@@ -168,4 +168,4 @@ cleanup:
     psa_hash_abort(&cloned_hash_operation);
     return EXIT_FAILURE;
 }
-#endif /* MBEDTLS_PSA_CRYPTO_C && PSA_WANT_ALG_SHA_256 */
+#endif /* !MBEDTLS_PSA_CRYPTO_C || !PSA_WANT_ALG_SHA_256 */

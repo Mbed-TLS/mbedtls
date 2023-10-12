@@ -261,6 +261,9 @@ usage:
 
                 if ((subtype_value = strchr(q, ':')) != NULL) {
                     *subtype_value++ = '\0';
+                } else {
+                    mbedtls_printf("Invalid argument for option SAN: Entry should be separated by a colon\n");
+                    goto usage;
                 }
                 if (strcmp(q, "RFC822") == 0) {
                     cur->node.type = MBEDTLS_X509_SAN_RFC822_NAME;

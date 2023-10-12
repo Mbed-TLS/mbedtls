@@ -1727,7 +1727,7 @@ static int ssl_parse_server_ecdh_params(mbedtls_ssl_context *ssl,
                                         unsigned char *end)
 {
     uint16_t tls_id;
-    uint8_t ecpoint_len;
+    size_t ecpoint_len;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
     size_t ec_bits = 0;
@@ -1779,7 +1779,7 @@ static int ssl_parse_server_ecdh_params(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
 
-    if (ecpoint_len > PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)) {
+    if (ecpoint_len > sizeof(handshake->xxdh_psa_peerkey)) {
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
 
@@ -2059,7 +2059,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
     ret = mbedtls_ecp_point_write_binary(&peer_key->grp, &peer_key->Q,
                                          MBEDTLS_ECP_PF_UNCOMPRESSED, &olen,
                                          ssl->handshake->xxdh_psa_peerkey,
-                                         MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH);
+                                         sizeof(ssl->handshake->xxdh_psa_peerkey));
 
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ecp_point_write_binary"), ret);

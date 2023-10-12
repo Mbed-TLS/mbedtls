@@ -79,7 +79,7 @@
 #define MBEDTLS_ECP_LIGHT
 #endif
 
-/* MBEDTLS_PK_PARSE_EC_COMPRESSED is introduced in MbedTLS version 3.5, while
+/* MBEDTLS_PK_PARSE_EC_COMPRESSED is introduced in Mbed TLS version 3.5, while
  * in previous version compressed points were automatically supported as long
  * as PK_PARSE_C and ECP_C were enabled. As a consequence, for backward
  * compatibility, we auto-enable PK_PARSE_EC_COMPRESSED when these conditions
@@ -183,5 +183,13 @@
     (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY))
 #define MBEDTLS_PK_HAVE_ECC_KEYS
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA || MBEDTLS_ECP_C */
+
+/* Historically pkparse did not check the CBC padding when decrypting
+ * a key. This was a bug, which is now fixed. As a consequence, pkparse
+ * now needs PKCS7 padding support, but existing configurations might not
+ * enable it, so we enable it here. */
+#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PKCS5_C) && defined(MBEDTLS_CIPHER_MODE_CBC)
+#define MBEDTLS_CIPHER_PADDING_PKCS7
+#endif
 
 #endif /* MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H */

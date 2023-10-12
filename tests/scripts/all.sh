@@ -204,7 +204,7 @@ pre_initialize_variables () {
 
     # CFLAGS and LDFLAGS for Asan builds that don't use CMake
     # default to -O2, use -Ox _after_ this if you want another level
-    ASAN_CFLAGS='-O0 -g -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
+    ASAN_CFLAGS='-O2 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
 
     # Platform tests have an allocation that returns null
     export ASAN_OPTIONS="allocator_may_return_null=1"
@@ -3652,10 +3652,10 @@ component_test_psa_crypto_config_accel_cipher_aead () {
     helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure this was not re-enabled by accident (additive config)
-    not grep mbedtls_des* library/des.o
-    not grep mbedtls_aes* library/aes.o
-    not grep mbedtls_aria* library/aria.o
-    not grep mbedtls_camellia* library/camellia.o
+    not grep mbedtls_des library/des.o
+    not grep mbedtls_aes library/aes.o
+    not grep mbedtls_aria library/aria.o
+    not grep mbedtls_camellia library/camellia.o
     not grep mbedtls_ccm library/ccm.o
     not grep mbedtls_gcm library/gcm.o
     not grep mbedtls_chachapoly library/chachapoly.o

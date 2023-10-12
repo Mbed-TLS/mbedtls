@@ -180,7 +180,7 @@ static int mbedtls_a64_crypto_sha256_determine_support(void)
 static jmp_buf return_from_sigill;
 
 /*
- * Armv8 SHA256 support detection via SIGILL
+ * Armv8-A SHA256 support detection via SIGILL
  */
 static void sigill_handler(int signal)
 {
@@ -432,7 +432,7 @@ static size_t mbedtls_internal_sha256_process_many_a64_crypto(
 
 #if defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT)
 /*
- * This function is for internal use only if we are building both C and Armv8
+ * This function is for internal use only if we are building both C and Armv8-A
  * versions, otherwise it is renamed to be the public mbedtls_internal_sha256_process()
  */
 static

@@ -1,0 +1,2 @@
+Features
+   * Added an example program showing the use of HKDF with the PSA API.

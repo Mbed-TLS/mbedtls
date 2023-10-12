@@ -135,7 +135,7 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_values(
 
     for (def = mbedtls_cipher_definitions; def->info != NULL; def++) {
         if (mbedtls_cipher_get_base(def->info)->cipher == cipher_id &&
-            mbedtls_cipher_info_get_key_bitlen(def->info) == (unsigned) key_bitlen &&
+            mbedtls_cipher_info_get_key_bitlen(def->info) == (size_t) key_bitlen &&
             def->info->mode == mode) {
             return def->info;
         }

@@ -152,6 +152,7 @@ int mbedtls_pkcs5_pbes2_ext(const mbedtls_asn1_buf *pbe_params, int mode,
     mbedtls_cipher_type_t cipher_alg;
     mbedtls_cipher_context_t cipher_ctx;
     unsigned int padlen = 0;
+    mbedtls_cipher_padding_t padding;
 
     p = pbe_params->p;
     end = p + pbe_params->len;
@@ -246,7 +247,7 @@ int mbedtls_pkcs5_pbes2_ext(const mbedtls_asn1_buf *pbe_params, int mode,
      * "PKCS5 padding" except that it's typically only called PKCS5
      * with 64-bit-block ciphers).
      */
-    mbedtls_cipher_padding_t padding = MBEDTLS_PADDING_PKCS7;
+    padding = MBEDTLS_PADDING_PKCS7;
 #if !defined(MBEDTLS_CIPHER_PADDING_PKCS7)
     /* For historical reasons, when decrypting, this function works when
      * decrypting even when support for PKCS7 padding is disabled. In this

@@ -243,6 +243,8 @@ static int parse_attribute_value_hex_der_encoded(const char *s,
         return MBEDTLS_ERR_X509_ALLOC_FAILED;
     }
     /* Beyond this point, der needs to be freed on exit. */
+    unsigned char *p = der + 1;
+
     for (size_t i = 0; i < der_length; i++) {
         int c = hexpair_to_int(s + 2 * i);
         if (c < 0) {
@@ -254,7 +256,6 @@ static int parse_attribute_value_hex_der_encoded(const char *s,
     /* Step 3: decode the DER. */
     /* We've checked that der_length >= 1 above. */
     *tag = der[0];
-    unsigned char *p = der + 1;
     if (mbedtls_asn1_get_len(&p, der + der_length, data_len) != 0) {
         goto error;
     }

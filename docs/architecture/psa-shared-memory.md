@@ -253,3 +253,11 @@ TODO: when there is a requirement on drivers, how to we validate that our built-
 ## Analysis of argument protection in built-in drivers
 
 TODO: analyze the built-in implementations of mechanisms for which there is a requirement on drivers. By code inspection, how satisfied are we that they meet the requirement?
+
+## Copy bypass
+
+For efficiency, we are likely to want mechanisms to bypass the copy and process buffers directly in builds that are not affected by shared memory considerations.
+
+Expand this section to document any mechanisms that bypass the copy.
+
+Make sure that such mechanisms preserve the guarantees when buffers overlap.

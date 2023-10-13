@@ -262,7 +262,8 @@ usage:
                 if ((subtype_value = strchr(q, ':')) != NULL) {
                     *subtype_value++ = '\0';
                 } else {
-                    mbedtls_printf("Invalid argument for option SAN: Entry should be separated by a colon\n");
+                    mbedtls_printf(
+                        "Invalid argument for option SAN: Entry should be separated by a colon\n");
                     goto usage;
                 }
                 if (strcmp(q, "RFC822") == 0) {

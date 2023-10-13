@@ -3950,12 +3950,16 @@ build_test_config_combos() {
     # This ensures that we have any include paths, macro definitions, etc
     # that may be applied by make.
     # Add -fsyntax-only as we only want a syntax check and don't need to generate a file.
-    compile_cmd=$(make -B -n ${file} CC=clang CFLAGS="${warning_flags} -fsyntax-only" | egrep "^clang")
+    compile_cmd="clang \$(LOCAL_CFLAGS) ${warning_flags} -fsyntax-only -c"
 
-    makefile=$(mktemp)
+    makefile=$(TMPDIR=. mktemp)
     deps=""
 
     len=${#options[@]}
+    source_file=${file%.o}.c
+
+    targets=0
+    echo 'include Makefile' >${makefile}
 
     for ((i = 0; i < $((2**${len})); i++)); do
         # generate each of 2^n combinations of options
@@ -3973,17 +3977,18 @@ build_test_config_combos() {
         # if combination is not known to be invalid, add it to the makefile
         if [[ -z $validate_options ]] || [[ $($validate_options "${clang_args}") == "" ]] ; then
             cmd="${compile_cmd} ${clang_args}"
-            echo "${target}:" >> ${makefile}
-            echo -e "\t$cmd" >> ${makefile}
+            echo "${target}: ${source_file}; $cmd ${source_file}" >> ${makefile}
 
             deps="${deps} ${target}"
+            ((++targets))
         fi
     done
 
-    echo "all: ${deps}" >> ${makefile}
+    echo "build_test_config_combos: ${deps}" >> ${makefile}
 
     # execute all of the commands via Make (probably in parallel)
-    make -s -f ${makefile} all
+    make -s -f ${makefile} build_test_config_combos
+    echo "$targets targets checked"
 
     # clean up the temporary makefile
     rm ${makefile}

@@ -254,31 +254,33 @@ static int parse_attribute_value_hex_der_encoded(const char *s,
     /* Step 3: decode the DER. */
     /* We've checked that der_length >= 1 above. */
     *tag = der[0];
-    unsigned char *p = der + 1;
-    if (mbedtls_asn1_get_len(&p, der + der_length, data_len) != 0) {
-        goto error;
-    }
-    /* Now p points to the first byte of the payload inside der,
-     * and *data_len is the length of the payload. */
+    {
+        unsigned char *p = der + 1;
+        if (mbedtls_asn1_get_len(&p, der + der_length, data_len) != 0) {
+            goto error;
+        }
+        /* Now p points to the first byte of the payload inside der,
+         * and *data_len is the length of the payload. */
 
-    /* Step 4: payload validation */
-    if (*data_len > MBEDTLS_X509_MAX_DN_NAME_SIZE) {
-        goto error;
-    }
-    /* Strings must not contain null bytes. */
-    if (MBEDTLS_ASN1_IS_STRING_TAG(*tag)) {
-        for (size_t i = 0; i < *data_len; i++) {
-            if (p[i] == 0) {
-                goto error;
+        /* Step 4: payload validation */
+        if (*data_len > MBEDTLS_X509_MAX_DN_NAME_SIZE) {
+            goto error;
+        }
+        /* Strings must not contain null bytes. */
+        if (MBEDTLS_ASN1_IS_STRING_TAG(*tag)) {
+            for (size_t i = 0; i < *data_len; i++) {
+                if (p[i] == 0) {
+                    goto error;
+                }
             }
         }
-    }
 
-    /* Step 5: output the payload. */
-    if (*data_len > data_size) {
-        goto error;
+        /* Step 5: output the payload. */
+        if (*data_len > data_size) {
+            goto error;
+        }
+        memcpy(data, p, *data_len);
     }
-    memcpy(data, p, *data_len);
     mbedtls_free(der);
 
     return 0;

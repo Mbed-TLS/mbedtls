@@ -119,7 +119,7 @@ A call to a crypto service to perform a crypto operation involves the following 
 1. The remote procedure call framework provided by the operating system.
 2. The code of the crypto service.
 3. The code of the PSA Crypto dispatch layer (also known as the core), which is provided by Mbed TLS.
-4. The implementation of the cryptographic mechanism, which may be provided by Mbed TLS or by a third-party driver.
+4. The driver implementing the cryptographic mechanism, which may be provided by Mbed TLS (built-in driver) or by a third-party driver.
 
 The [PSA Crypto API specification](https://arm-software.github.io/psa-api/crypto/1.1/overview/conventions.html#stability-of-parameters) puts the responsibility for protection on the implementation of the PSA Crypto API, i.e. (3) or (4).
 
@@ -223,10 +223,10 @@ Proposed general idea: have tests where the test code calling API functions allo
 
 TODO: write document and reference it here.
 
-### Validation of protection for built-in mechanisms
+### Validation of protection for built-in drivers
 
 TODO
 
-## Analysis of argument protection in built-in mechanisms
+## Analysis of argument protection in built-in drivers
 
 TODO

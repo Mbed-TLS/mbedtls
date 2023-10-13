@@ -16,11 +16,11 @@ We assume the following scope limitations:
 
 ### Architecture overview
 
-We consider a system that memory separation between partitions: a partition can't access another partition's memory directly. Partitions are meant to be isolated from each other: a partition may only affect the integrity of another partition via well-defined system interfaces. For example, this can be a Unix/POSIX-like system that isolates processes, or isolation between the secure world and the non-secure world relying on a mechanism such as TrustZone, or isolation between secure-world applications on such a system.
+We consider a system that has memory separation between partitions: a partition can't access another partition's memory directly. Partitions are meant to be isolated from each other: a partition may only affect the integrity of another partition via well-defined system interfaces. For example, this can be a Unix/POSIX-like system that isolates processes, or isolation between the secure world and the non-secure world relying on a mechanism such as TrustZone, or isolation between secure-world applications on such a system.
 
 More precisely, we consider such a system where our PSA Crypto implementation is running inside one partition, called the **crypto service**. The crypto service receives remote procedure calls from other partitions, validates their arguments (e.g. validation of key identifier ownership), and calls a PSA Crypto API function. This document is concerned with environments where the arguments passed to a PSA Crypto API function may be in shared memory (as opposed to environments where the inputs are always copied into memory that is solely accessible by the crypto service before calling the API function, and likewise with output buffers after the function returns).
 
-When the data is accessible to another partition, there is a risk that this other partition will access it while the crypto implementation is working. Although this could be prevented by suspending the whole system while crypto is working, such a limitation is rarely desirable and most systems don't offer a way to do it. (Even systems that hav absolute thread priorities, and where crypto has a higher priority than any untrusted partition, may be vulnerable due to having multiple cores or asynchronous data transfers with peripherals.)
+When the data is accessible to another partition, there is a risk that this other partition will access it while the crypto implementation is working. Although this could be prevented by suspending the whole system while crypto is working, such a limitation is rarely desirable and most systems don't offer a way to do it. (Even systems that have absolute thread priorities, and where crypto has a higher priority than any untrusted partition, may be vulnerable due to having multiple cores or asynchronous data transfers with peripherals.)
 
 ### Risks and vulnerabilities
 
@@ -46,7 +46,7 @@ If an output argument is in shared memory, there is a risk of a **write-read inc
 
 1. The crypto code writes some intermediate data into the output buffer.
 2. The client (or client's client) modifies the intermediate data.
-3. The crypto code reads the intermediata data back and continues the calculation, leading to an outcome that would not be possible if the intermediate data had not been modified.
+3. The crypto code reads the intermediate data back and continues the calculation, leading to an outcome that would not be possible if the intermediate data had not been modified.
 
 Vulnerability example: suppose that an RSA signature function works by formatting the data in place in the output buffer, then applying the RSA private-key operation in place. (This is how `mbedtls_rsa_pkcs1_sign` works.) A malicious client may write badly formatted data into the buffer, so that the private-key operation is not a valid signature (e.g. it could be a decryption), violating the RSA key's usage policy.
 
@@ -90,7 +90,7 @@ Example: these are the rules that a GlobalPlatform TEE Trusted Application (appl
 
 ### Responsibility for protection
 
-A call to a crypto service to perform a crypto operation involes the following components:
+A call to a crypto service to perform a crypto operation involves the following components:
 
 1. The remote procedure call framework provided by the operating system.
 2. The code of the crypto service.
@@ -160,13 +160,13 @@ Key derivation typically emits its output as a stream, with no error condition d
 
 AEAD decryption is at risk of [write-write disclosure](#write-write-disclosure) when the tag does not match.
 
-Cipher and AEAD outputs are at risk of [write-write disclosure](#write-read-inconsistency) and [write-write disclosure](#write-write-disclosure) if they are implemented by copying the input into the output buffer with `memmove`, then processing the data in place. In particular, this approach makes it easy to fully support overlapping, since `memmove` will take care of overlapping cases correctly, which is otherwise hard to do portably (C99 does not offer an efficient, portable way to check whether two buffers overlap).
+Cipher and AEAD outputs are at risk of [write-read-inconsistency](#write-read-inconsistency) and [write-write disclosure](#write-write-disclosure) if they are implemented by copying the input into the output buffer with `memmove`, then processing the data in place. In particular, this approach makes it easy to fully support overlapping, since `memmove` will take care of overlapping cases correctly, which is otherwise hard to do portably (C99 does not offer an efficient, portable way to check whether two buffers overlap).
 
 **Design decision: the dispatch layer shall allocate an intermediate buffer for cipher and AEAD outputs**.
 
 ## Design of shared memory protection
 
-This section explains how Mbed TLS implements the shared memory protection stragegy summarized below.
+This section explains how Mbed TLS implements the shared memory protection strategy summarized below.
 
 ### Shared memory protection strategy
 

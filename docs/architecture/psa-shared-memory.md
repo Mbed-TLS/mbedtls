@@ -238,9 +238,33 @@ Copy what needs copying. This seems straightforward.
 
 TODO: how to we validate that we didn't forget to copy?
 
+#### Validation of copying with memory pools
+
 Proposed general idea: have tests where the test code calling API functions allocates memory in a certain pool, and code in the library allocates memory in a different pool. Test drivers check that needs-copying arguments are within the library pool, not within the test pool.
 
-Note: we could also validate by unmapping or poisoning the memory containing the API function arguments while the driver is working. But how would we validate that we have poison/unmap calls in the right places?
+#### Validation of copying by memory poisoning
+
+Proposed general idea: in test code, “poison” the memory area used by input and output parameters that must be copied. Poisoning means something that prevents accessing memory while it is poisoned. This could be via memory protection (allocate with `mmap` then disable access with `mprotect`), or some kind of poisoning for an analyzer such as MSan or Valgrind.
+
+In the library, the code that does the copying temporarily unpoisons the memory by calling a test hook.
+
+```
+static void copy_to_user(void *copy_buffer, void *const input_buffer, size_t length) {
+#if defined(MBEDTLS_TEST_HOOKS)
+    if (mbedtls_psa_core_poison_memory != NULL) {
+        mbedtls_psa_core_poison_memory(copy_buffer, length, 0);
+    }
+#endif
+    memcpy(copy_buffer, input_buffer, length);
+#if defined(MBEDTLS_TEST_HOOKS)
+    if (mbedtls_psa_core_poison_memory != NULL) {
+        mbedtls_psa_core_poison_memory(copy_buffer, length, 1);
+    }
+#endif
+}
+```
+
+The reason to poison the memory before calling the library, rather than after the copy-in (and symmetrically for output buffers) is so that the test will fail if we forget to copy, or we copy the wrong thing. This would not be the case if we relied on the library's copy function to do the poisoning: that would only validate that the driver code does not access the memory on the condition that the copy is done as expected.
 
 ### Shared memory protection requirements
 

@@ -158,9 +158,10 @@ Note that in this context, a “small buffer” is one with a size limit that is
 
 The following buffers are considered small buffers:
 
-* Any input or output from asymmetric cryptography (signature, encryption/decryption, key exchange, PAKE), including key import and export.
-* The output of a hash or MAC operation.
+* Any input or output directly related to asymmetric cryptography (signature, encryption/decryption, key exchange, PAKE), including key import and export.
+    * Note that this does not include inputs or outputs that are not processed by an asymmetric primitives, for example the message input to `psa_sign_message` or `psa_verify_message`.
 * Cooked key derivation output.
+* The output of a hash or MAC operation.
 
 **Design decision: the dispatch layer shall copy all small buffers**.
 
@@ -199,6 +200,12 @@ Note that this can be a single buffer for the input and the output if the driver
 For all currently implemented AEAD modes, the associated data is only processed once to calculate an intermedidate value of the authentication tag.
 
 **Design decision: for now, require AEAD drivers to read their input without a risk of read-read inconsistency**. Make a note to revisit this when we start supporting an SIV mode, at which point the dispatch layer shall copy the input for modes that are not known to be low-risk.
+
+#### Message signature
+
+For signature algorithms with a hash-and-sign framework, the input to sign/verify-message is passed to a hash, and thus can follow the same rules as [symmetric cryptography inputs with small output](#symmetric-cryptography-inputs-with-small-output). This is also true for `PSA_ALG_RSA_PKCS1V15_SIGN_RAW`, which is the only non-hash-and-sign signature mechanism implemented in Mbed TLS 3.5. This is not true for PureEdDSA (`#PSA_ALG_PURE_EDDSA`), which is not yet implemented: [PureEdDSA signature](https://www.rfc-editor.org/rfc/rfc8032#section-5.1.6) processes the message twice. (However, PureEdDSA verification only processes the message once.)
+
+**Design decision: for now, require sign/verify-message drivers to read their input without a risk of read-read inconsistency**. Make a note to revisit this when we start supporting PureEdDSA, at which point the dispatch layer shall copy the input for algorithms such as PureEdDSA that are not known to be low-risk.
 
 ## Design of shared memory protection
 

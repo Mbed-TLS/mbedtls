@@ -260,7 +260,7 @@ static int parse_attribute_value_hex_der_encoded(const char *s,
             goto error;
         }
         /* Now p points to the first byte of the payload inside der,
-        * and *data_len is the length of the payload. */
+         * and *data_len is the length of the payload. */
 
         /* Step 4: payload validation */
         if (*data_len > MBEDTLS_X509_MAX_DN_NAME_SIZE) {

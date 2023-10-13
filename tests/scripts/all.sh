@@ -204,7 +204,7 @@ pre_initialize_variables () {
 
     # CFLAGS and LDFLAGS for Asan builds that don't use CMake
     # default to -O2, use -Ox _after_ this if you want another level
-    ASAN_CFLAGS='-O0 -g -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
+    ASAN_CFLAGS='-O2 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
 
     # Platform tests have an allocation that returns null
     export ASAN_OPTIONS="allocator_may_return_null=1"
@@ -3596,6 +3596,19 @@ component_test_psa_crypto_config_accel_aead () {
     make test
 }
 
+# This is a common configuration function used in:
+# - component_test_psa_crypto_config_accel_cipher_aead
+# - component_test_psa_crypto_config_reference_cipher_aead
+common_psa_crypto_config_accel_cipher_aead() {
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CMAC
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
+    scripts/config.py unset MBEDTLS_CTR_DRBG_C
+    scripts/config.py unset MBEDTLS_CMAC_C
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+}
+
 # The 2 following test components, i.e.
 # - component_test_psa_crypto_config_accel_cipher_aead
 # - component_test_psa_crypto_config_reference_cipher_aead
@@ -3614,14 +3627,7 @@ component_test_psa_crypto_config_accel_cipher_aead () {
     # Start from the crypto config (no X509 and TLS)
     helper_libtestdriver1_adjust_config "crypto_full"
 
-    # There is no intended accelerator support for ALG CMAC. Therefore, asking
-    # for it in the build implies the inclusion of the Mbed TLS cipher
-    # operations. As we want to test here with cipher operations solely
-    # supported by accelerators, disabled this PSA configuration option.
-    # (Note: the same applies to STREAM_CIPHER and ECB_NO_PADDING, which are
-    # already disabled by helper_libtestdriver1_adjust_config above.)
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CMAC
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
+    common_psa_crypto_config_accel_cipher_aead
 
     # Disable the things that are being accelerated
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
@@ -3638,11 +3644,6 @@ component_test_psa_crypto_config_accel_cipher_aead () {
     scripts/config.py unset MBEDTLS_ARIA_C
     scripts/config.py unset MBEDTLS_CHACHA20_C
     scripts/config.py unset MBEDTLS_CAMELLIA_C
-
-    # Disable dependencies
-    scripts/config.py unset MBEDTLS_CTR_DRBG_C
-    scripts/config.py unset MBEDTLS_CMAC_C
-    scripts/config.py unset MBEDTLS_NIST_KW_C
 
     # Build
     # -----
@@ -3671,15 +3672,7 @@ component_test_psa_crypto_config_accel_cipher_aead () {
 component_test_psa_crypto_config_reference_cipher_aead () {
     helper_libtestdriver1_adjust_config "crypto_full"
 
-    # Disable the same dependencies and undesired components as in the
-    # accelerated counterpart
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CMAC
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
-    scripts/config.py unset MBEDTLS_CTR_DRBG_C
-    scripts/config.py unset MBEDTLS_CMAC_C
-    scripts/config.py unset MBEDTLS_NIST_KW_C
+    common_psa_crypto_config_accel_cipher_aead
 
     msg "test: crypto config with non-accelerated cipher and AEAD"
     make test

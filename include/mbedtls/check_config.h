@@ -1040,7 +1040,7 @@
 #endif
 
 #if defined(MBEDTLS_SSL_TICKET_C) && \
-    !( defined(MBEDTLS_SSL_HAVE_GCM) || defined(MBEDTLS_SSL_HAVE_GCM) || \
+    !( defined(MBEDTLS_SSL_HAVE_CCM) || defined(MBEDTLS_SSL_HAVE_GCM) || \
     defined(MBEDTLS_SSL_HAVE_CHACHAPOLY) )
 #error "MBEDTLS_SSL_TICKET_C defined, but not all prerequisites"
 #endif
@@ -1143,7 +1143,7 @@
 #endif
 
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION) && \
-    !( defined(MBEDTLS_SSL_HAVE_GCM) || defined(MBEDTLS_SSL_HAVE_GCM) || \
+    !( defined(MBEDTLS_SSL_HAVE_CCM) || defined(MBEDTLS_SSL_HAVE_GCM) || \
     defined(MBEDTLS_SSL_HAVE_CHACHAPOLY) )
 #error "MBEDTLS_SSL_CONTEXT_SERIALIZATION defined, but not all prerequisites"
 #endif

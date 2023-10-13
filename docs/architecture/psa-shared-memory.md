@@ -164,9 +164,9 @@ The following buffers are considered small buffers:
 
 **Design decision: the dispatch layer shall copy all small buffers**.
 
-#### Symmetric cryptography inputs
+#### Symmetric cryptography inputs with small output
 
-Message inputs to hash, MAC, cipher (plaintext or ciphertext), AEAD (associated data, plaintext, ciphertext) and key derivation operations are at a low risk of [read-read inconsistency](#read-read-inconsistency) because they are unformatted data, and for all specified algorithms, it is natural to process the input one byte at a time.
+Message inputs to hash, MAC and key derivation operations are at a low risk of [read-read inconsistency](#read-read-inconsistency) because they are unformatted data, and for all specified algorithms, it is natural to process the input one byte at a time.
 
 **Design decision: require symmetric cryptography drivers to read their input without a risk of read-read inconsistency**.
 
@@ -180,13 +180,25 @@ Key derivation typically emits its output as a stream, with no error condition d
 
 **Design decision: require key derivation drivers to emit their output without reading back from the output buffer**.
 
-#### Cipher and AEAD outputs
+#### Cipher and AEAD
 
 AEAD decryption is at risk of [write-write disclosure](#write-write-disclosure) when the tag does not match.
 
+AEAD encryption and decryption are at risk of [read-read inconsistency](#read-read-inconsistency) if they process the input multiple times, which is natural in a number of cases:
+
+* when encrypting with an encrypt-and-authenticate or authenticate-then-encrypt structure (one read to calculate the authentication tag and another read to encrypt);
+* when decrypting with an encrypt-then-authenticate structure (one read to decrypt and one read to calculate the authentication tag);
+* with SIV modes (not yet present in the PSA API, but likely to come one day) (one full pass to calculate the IV, then another full pass for the core authenticated encryption);
+
 Cipher and AEAD outputs are at risk of [write-read-inconsistency](#write-read-inconsistency) and [write-write disclosure](#write-write-disclosure) if they are implemented by copying the input into the output buffer with `memmove`, then processing the data in place. In particular, this approach makes it easy to fully support overlapping, since `memmove` will take care of overlapping cases correctly, which is otherwise hard to do portably (C99 does not offer an efficient, portable way to check whether two buffers overlap).
 
-**Design decision: the dispatch layer shall allocate an intermediate buffer for cipher and AEAD outputs**.
+**Design decision: the dispatch layer shall allocate an intermediate buffer for cipher and AEAD plaintext/ciphertext inputs and outputs**.
+
+Note that this can be a single buffer for the input and the output if the driver supports in-place operation (which it is supposed to, since it is supposed to support arbitrary overlap, although this is not always the case in Mbed TLS, a [known issue](https://github.com/Mbed-TLS/mbedtls/issues/3266)). A side benefit of doing this intermediate copy is that overlap will be supported.
+
+For all currently implemented AEAD modes, the associated data is only processed once to calculate an intermedidate value of the authentication tag.
+
+**Design decision: for now, require AEAD drivers to read their input without a risk of read-read inconsistency**. Make a note to revisit this when we start supporting an SIV mode, at which point the dispatch layer shall copy the input for modes that are not known to be low-risk.
 
 ## Design of shared memory protection
 
@@ -196,12 +208,14 @@ This section explains how Mbed TLS implements the shared memory protection strat
 
 * The core (dispatch layer) shall make a copy of the following buffers, so that drivers do not receive arguments that are in shared memory:
     * Any input or output from asymmetric cryptography (signature, encryption/decryption, key exchange, PAKE), including key import and export.
+    * Plaintext/ciphertext inputs and outputs for cipher and AEAD.
     * The output of a hash or MAC operation.
     * Cooked key derivation output.
 
 * A document shall explain the requirements on drivers for arguments whose access needs to be protected:
     * Hash and MAC input.
     * Cipher/AEAD IV/nonce (to be confirmed).
+    * AEAD associated data (to be confirmed).
     * Key derivation input (excluding key agreement).
     * Raw key derivation output (excluding cooked key derivation output).
 

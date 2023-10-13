@@ -18,9 +18,11 @@ We assume the following scope limitations:
 
 We consider a system that has memory separation between partitions: a partition can't access another partition's memory directly. Partitions are meant to be isolated from each other: a partition may only affect the integrity of another partition via well-defined system interfaces. For example, this can be a Unix/POSIX-like system that isolates processes, or isolation between the secure world and the non-secure world relying on a mechanism such as TrustZone, or isolation between secure-world applications on such a system.
 
-More precisely, we consider such a system where our PSA Crypto implementation is running inside one partition, called the **crypto service**. The crypto service receives remote procedure calls from other partitions, validates their arguments (e.g. validation of key identifier ownership), and calls a PSA Crypto API function. This document is concerned with environments where the arguments passed to a PSA Crypto API function may be in shared memory (as opposed to environments where the inputs are always copied into memory that is solely accessible by the crypto service before calling the API function, and likewise with output buffers after the function returns).
+More precisely, we consider such a system where our PSA Crypto implementation is running inside one partition, called the **crypto service**. The crypto service receives remote procedure calls (RPC) from other partitions, validates their arguments (e.g. validation of key identifier ownership), and calls a PSA Crypto API function. This document is concerned with environments where the arguments passed to a PSA Crypto API function may be in shared memory (as opposed to environments where the inputs are always copied into memory that is solely accessible by the crypto service before calling the API function, and likewise with output buffers after the function returns).
 
 When the data is accessible to another partition, there is a risk that this other partition will access it while the crypto implementation is working. Although this could be prevented by suspending the whole system while crypto is working, such a limitation is rarely desirable and most systems don't offer a way to do it. (Even systems that have absolute thread priorities, and where crypto has a higher priority than any untrusted partition, may be vulnerable due to having multiple cores or asynchronous data transfers with peripherals.)
+
+The crypto service must guarantee that it behaves as if the rest of the world was suspended while it is executed. A behavior that is only possible if an untrusted entity accesses a buffer while the crypto service is processing the data is a security violation.
 
 ### Risks and vulnerabilities
 
@@ -30,6 +32,8 @@ We consider a security architecture with two or three entities:
 * a client of the crypto service, which makes a RPC to the crypto service;
 * in some scenarios, a client of the client, which makes a RPC to the crypto client which re-shares the memory with the crypto service.
 
+The behavior of RPC is defined for in terms of values of inputs and outputs. This models an ideal world where the content of input and output buffers is not accessible outside the crypto service while it is processing an RPC. It is a security violation if the crypto service behaves in a way that cannot be achieved by setting the inputs before the RPC call, and reading the outputs after the RPC call is finished.
+
 #### Read-read inconsistency
 
 If an input argument is in shared memory, there is a risk of a **read-read inconsistency**:
@@ -38,7 +42,12 @@ If an input argument is in shared memory, there is a risk of a **read-read incon
 2. The client (or client's client) modifies the input.
 3. The crypto code reads the same part again, and performs an action which would be impossible if the input had had the same value all along.
 
-Vulnerability example: suppose the input contains data with a type-length-value or length-value encoding (for example, importing an RSA key). The crypto code reads the length field and checks that it fits within the buffer. (This could be the length of the overall data, or the length of an embedded field) Later, the crypto code reads the length again and uses it without validation. A malicious client can modify the length field in the shared memory between the two reads and thus cause a buffer overread on the second read.
+Vulnerability example (parsing): suppose the input contains data with a type-length-value or length-value encoding (for example, importing an RSA key). The crypto code reads the length field and checks that it fits within the buffer. (This could be the length of the overall data, or the length of an embedded field) Later, the crypto code reads the length again and uses it without validation. A malicious client can modify the length field in the shared memory between the two reads and thus cause a buffer overread on the second read.
+
+Vulnerability example (dual processing): consider an RPC to perform authenticated encryption, using a mechanism with an encrypt-and-MAC structure. The authenticated encryption implementation separately calculates the ciphertext and the MAC from the plantext. A client sets the plaintext input to `"PPPP"`, then starts the RPC call, then changes the input buffer to `"QQQQ"` while the crypto service is working.
+
+* Any of `enc("PPPP")+mac("PPPP")`, `enc("PPQQ")+mac("PPQQ")` or `enc("QQQQ")+mac("QQQQ")` are valid outputs: they are outputs that can be produced by this authenticated encryption RPC.
+* If the authenticated encryption calculates the ciphertext before the client changes the output buffer and calculates the MAC after that change, reading the input buffer again each time, the output will be `enc("PPPP")+mac("QQQQ")`. There is no input that can lead to this output, hence this behavior violates the security guarantees of the crypto service.
 
 #### Write-read inconsistency
 
@@ -60,7 +69,9 @@ If an output argument is in shared memory, there is a risk of a **write-write di
 2. The client (or client's client) reads the intermediate data.
 3. The crypto code overwrites the intermediate data.
 
-Vulnerability example with chained calls: we consider a provisioning application that provides a data encryption service on behalf of multiple clients, using a single shared key. Clients are not allowed to access each other's data. The provisioning application isolates clients by including the client identity in the associated data. Suppose that an AEAD decryption function processes the ciphertext incrementally by simultaneously writing the plaintext to the output buffer and calculating the tag. (This is how AEAD decryption usually works.) At the end, if the tag is wrong, the decryption function wipes the output buffer. Assume that the output buffer for the plaintext is shared from the client to the provisioning application, which re-shares it with the crypto service. A malicious client can read another client (the victim)'s encrypted data by passing the ciphertext to the provisioning application, which will attempt to decrypt it with associated data identifying the requesting client. Although the operation will fail beacuse the tag is wrong, the malicious client still reads the victim plaintext.
+Vulnerability example with chained calls (temporary exposure): an application encrypts some data, and lets its clients store the ciphertext. Clients may not have access to the plaintext. To save memory, when it calls the crypto service, it passes an output buffer that is in the final client's memory. Suppose the encryption mechanism works by copying its input to the output buffer then encrypting in place (for example, to simplify considerations related to overlap, or because the implementation relies on a low-level API that works in place). In this scenario, the plaintext is exposed to the final client while the encryption in progress, which violates the confidentiality of the plaintext.
+
+Vulnerability example with chained calls (backtrack): we consider a provisioning application that provides a data encryption service on behalf of multiple clients, using a single shared key. Clients are not allowed to access each other's data. The provisioning application isolates clients by including the client identity in the associated data. Suppose that an AEAD decryption function processes the ciphertext incrementally by simultaneously writing the plaintext to the output buffer and calculating the tag. (This is how AEAD decryption usually works.) At the end, if the tag is wrong, the decryption function wipes the output buffer. Assume that the output buffer for the plaintext is shared from the client to the provisioning application, which re-shares it with the crypto service. A malicious client can read another client (the victim)'s encrypted data by passing the ciphertext to the provisioning application, which will attempt to decrypt it with associated data identifying the requesting client. Although the operation will fail beacuse the tag is wrong, the malicious client still reads the victim plaintext.
 
 ### Possible countermeasures
 

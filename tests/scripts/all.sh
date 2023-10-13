@@ -3681,11 +3681,6 @@ component_test_psa_crypto_config_reference_cipher_aead () {
     scripts/config.py unset MBEDTLS_CMAC_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
 
-    # ALG_PBKDF2_AES_CMAC_PRF_128 is disabled on the accelerated counterpart
-    # so we disable PKCS5/12 here for simmetry
-    scripts/config.py unset MBEDTLS_PKCS5_C
-    scripts/config.py unset MBEDTLS_PKCS12_C
-
     msg "test: crypto config with non-accelerated cipher and AEAD"
     make test
 }

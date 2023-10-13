@@ -236,9 +236,11 @@ Copy what needs copying. This seems straightforward.
 
 ### Validation of copying
 
-TODO
+TODO: how to we validate that we didn't forget to copy?
 
 Proposed general idea: have tests where the test code calling API functions allocates memory in a certain pool, and code in the library allocates memory in a different pool. Test drivers check that needs-copying arguments are within the library pool, not within the test pool.
+
+Note: we could also validate by unmapping or poisoning the memory containing the API function arguments while the driver is working. But how would we validate that we have poison/unmap calls in the right places?
 
 ### Shared memory protection requirements
 
@@ -246,8 +248,8 @@ TODO: write document and reference it here.
 
 ### Validation of protection for built-in drivers
 
-TODO
+TODO: when there is a requirement on drivers, how to we validate that our built-in implementation meets these requirements? (This may be through testing, review, static analysis or any other means or a combination.)
 
 ## Analysis of argument protection in built-in drivers
 
-TODO
+TODO: analyze the built-in implementations of mechanisms for which there is a requirement on drivers. By code inspection, how satisfied are we that they meet the requirement?

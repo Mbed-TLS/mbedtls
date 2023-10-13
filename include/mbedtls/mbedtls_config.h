@@ -3327,7 +3327,7 @@
  * armclang <= 6.9
  *
  * \note This was previously known as MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY.
- * That name is \deprecated, but may still be used as an alternative form for this
+ * That name is deprecated, but may still be used as an alternative form for this
  * option.
  *
  * \warning MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY cannot be defined at the same

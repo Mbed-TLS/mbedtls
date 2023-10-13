@@ -4341,8 +4341,13 @@ component_build_aes_aesce_armcc () {
 
 support_build_sha_armce() {
     # clang >= 4 is required to build with SHA extensions
-    ver="$(clang --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#')"
-    [ "${ver}" -ge 4 ]
+    clang_ver="$(clang --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#')"
+
+    # we need asm/hwcap.h available for runtime detection
+    echo '#include <asm/hwcap.h>' | clang -E - >/dev/null 2>&1
+    have_hwcap=$?
+
+    [[ "${clang_ver}" -ge 4 && "${have_hwcap}" -eq 0 ]]
 }
 
 component_build_sha_armce () {

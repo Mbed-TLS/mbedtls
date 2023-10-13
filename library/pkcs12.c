@@ -172,7 +172,6 @@ int mbedtls_pkcs12_pbe_ext(mbedtls_asn1_buf *pbe_params, int mode,
     size_t iv_len = 0;
     size_t finish_olen = 0;
     unsigned int padlen = 0;
-    mbedtls_cipher_padding_t padding;
 
     if (pwd == NULL && pwdlen != 0) {
         return MBEDTLS_ERR_PKCS12_BAD_INPUT_DATA;
@@ -219,7 +218,7 @@ int mbedtls_pkcs12_pbe_ext(mbedtls_asn1_buf *pbe_params, int mode,
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
     /* PKCS12 uses CBC with PKCS7 padding */
 
-    padding = MBEDTLS_PADDING_PKCS7;
+    mbedtls_cipher_padding_t padding = MBEDTLS_PADDING_PKCS7;
 #if !defined(MBEDTLS_CIPHER_PADDING_PKCS7)
     /* For historical reasons, when decrypting, this function works when
      * decrypting even when support for PKCS7 padding is disabled. In this

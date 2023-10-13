@@ -109,6 +109,7 @@ APPS = \
 	psa/hmac_demo \
 	psa/key_ladder_demo \
 	psa/psa_constant_names \
+	psa/psa_hash \
 	random/gen_entropy \
 	random/gen_random_ctr_drbg \
 	ssl/dtls_client \
@@ -323,6 +324,10 @@ psa/key_ladder_demo$(EXEXT): psa/key_ladder_demo.c $(DEP)
 psa/psa_constant_names$(EXEXT): psa/psa_constant_names.c psa/psa_constant_names_generated.c $(DEP)
 	echo "  CC    psa/psa_constant_names.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/psa_constant_names.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+psa/psa_hash$(EXEXT): psa/psa_hash.c $(DEP)
+	echo "  CC    psa/psa_hash.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/psa_hash.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 random/gen_entropy$(EXEXT): random/gen_entropy.c $(DEP)
 	echo "  CC    random/gen_entropy.c"

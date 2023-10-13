@@ -1390,7 +1390,7 @@ int mbedtls_cipher_crypt(mbedtls_cipher_context_t *ctx,
     return 0;
 }
 
-#if defined(MBEDTLS_CIPHER_HAVE_SOME_AEAD)
+#if defined(MBEDTLS_CIPHER_HAVE_AEAD_LEGACY)
 /*
  * Packet-oriented encryption for AEAD modes: internal function used by
  * mbedtls_cipher_auth_encrypt_ext().
@@ -1569,9 +1569,9 @@ static int mbedtls_cipher_aead_decrypt(mbedtls_cipher_context_t *ctx,
 
     return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
 }
-#endif /* MBEDTLS_CIPHER_HAVE_SOME_AEAD */
+#endif /* MBEDTLS_CIPHER_HAVE_AEAD_LEGACY */
 
-#if defined(MBEDTLS_CIPHER_HAVE_SOME_AEAD) || defined(MBEDTLS_NIST_KW_C)
+#if defined(MBEDTLS_CIPHER_HAVE_AEAD_LEGACY) || defined(MBEDTLS_NIST_KW_C)
 /*
  * Packet-oriented encryption for AEAD/NIST_KW: public function.
  */
@@ -1671,6 +1671,6 @@ int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
     return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
 #endif /* MBEDTLS_CIPHER_HAVE_SOME_AEAD */
 }
-#endif /* MBEDTLS_CIPHER_HAVE_SOME_AEAD || MBEDTLS_NIST_KW_C */
+#endif /* MBEDTLS_CIPHER_HAVE_AEAD_LEGACY || MBEDTLS_NIST_KW_C */
 
 #endif /* MBEDTLS_CIPHER_C */

@@ -91,7 +91,8 @@ The following rules guarantee that shared memory cannot result in a security vio
 
 * Never read the same input twice at the same index.
 * Never read back from an output.
-* Once potentially confidential data has been written to an output, it may not be overwritten. (This rule is more complex to allow writing non-confidential data first, for example to pre-initialize an output to zero for robustness.)
+* Never write to the output twice at the same index.
+    * This rule can usefully be relaxed in many circumstances. It is ok to write data that is independent of the inputs (and not otherwise confidential), then overwrite it. For example, it is ok to zero the output buffer before starting to process the input.
 
 These rules are very difficult to enforce.
 

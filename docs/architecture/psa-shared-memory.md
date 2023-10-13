@@ -73,6 +73,18 @@ Vulnerability example with chained calls (temporary exposure): an application en
 
 Vulnerability example with chained calls (backtrack): we consider a provisioning application that provides a data encryption service on behalf of multiple clients, using a single shared key. Clients are not allowed to access each other's data. The provisioning application isolates clients by including the client identity in the associated data. Suppose that an AEAD decryption function processes the ciphertext incrementally by simultaneously writing the plaintext to the output buffer and calculating the tag. (This is how AEAD decryption usually works.) At the end, if the tag is wrong, the decryption function wipes the output buffer. Assume that the output buffer for the plaintext is shared from the client to the provisioning application, which re-shares it with the crypto service. A malicious client can read another client (the victim)'s encrypted data by passing the ciphertext to the provisioning application, which will attempt to decrypt it with associated data identifying the requesting client. Although the operation will fail beacuse the tag is wrong, the malicious client still reads the victim plaintext.
 
+#### Write-read feedback
+
+If a function both has an input argument and an output argument in shared memory, and processes its input incrementally to emit output incrementally, the following sequence of events is possible:
+
+1. The crypto code processes part of the input and writes the corresponding part of the output.
+2. The client reads the early output and uses that to calculate the next part of the input.
+3. The crypto code processes the rest of the input.
+
+There are cryptographic mechanisms for which this breaks security properties. An example is [CBC encryption](https://link.springer.com/content/pdf/10.1007/3-540-45708-9_2.pdf): if the client can choose the content of a plaintext block after seeing the immediately preceding ciphertext block, this gives the client a decryption oracle. This is a security violation if the key policy only allowed the client to encrypt, not to decrypt.
+
+TODO: is this a risk we want to take into account? Although this extends the possible behaviors of the one-shot interface, the client can do the same thing legitimately with the multipart interface.
+
 ### Possible countermeasures
 
 In this section, we briefly discuss generic countermeasures.
@@ -87,7 +99,7 @@ Example: the PSA Firmware Framework 1.0 forbids shared memory between partitions
 
 #### Careful accesses
 
-The following rules guarantee that shared memory cannot result in a security violation:
+The following rules guarantee that shared memory cannot result in a security violation other than [write-read feedback](#write-read feedback):
 
 * Never read the same input twice at the same index.
 * Never read back from an output.

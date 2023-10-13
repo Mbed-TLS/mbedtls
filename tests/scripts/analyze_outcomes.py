@@ -328,6 +328,7 @@ KNOWN_TASKS = {
                     'PBES2 Encrypt, pad=8 (OK)',
                 ],
                 # Following tests depends on DES
+                # pylint: disable=line-too-long
                 'test_suite_pkparse': [
                     'Key ASN1 (Encrypted key PKCS12, trailing garbage data)',
                     'Key ASN1 (Encrypted key PKCS5, trailing garbage data)',

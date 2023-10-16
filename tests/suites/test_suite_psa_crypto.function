@@ -296,17 +296,6 @@ exit:
 
 #define INPUT_INTEGER 0x10000   /* Out of range of psa_key_type_t */
 
-uint64_t parse_binary_string(data_t *bin_string)
-{
-    uint64_t result = 0;
-    TEST_LE_U(bin_string->len, 8);
-    for (size_t i = 0; i < bin_string->len; i++) {
-        result = result << 8 | bin_string->x[i];
-    }
-exit:
-    return result; /* returns 0 if len > 8 */
-}
-
 /* An overapproximation of the amount of storage needed for a key of the
  * given type and with the given content. The API doesn't make it easy
  * to find a good value for the size. The current implementation doesn't
@@ -1366,7 +1355,21 @@ void import_with_data(data_t *data, int type_arg,
     psa_set_key_bits(&attributes, attr_bits);
 
     status = psa_import_key(&attributes, data->x, data->len, &key);
-    TEST_EQUAL(status, expected_status);
+    /* When expecting INVALID_ARGUMENT, also accept NOT_SUPPORTED.
+     *
+     * This can happen with a type supported only by a driver:
+     * - the driver sees the invalid data (for example wrong size) and thinks
+     *   "well perhaps this is a key size I don't support" so it returns
+     *   NOT_SUPPORTED which is correct at this point;
+     * - we fallback to built-ins, which don't support this type, so return
+     *   NOT_SUPPORTED which again is correct at this point.
+     */
+    if (expected_status == PSA_ERROR_INVALID_ARGUMENT &&
+        status == PSA_ERROR_NOT_SUPPORTED) {
+        ; // OK
+    } else {
+        TEST_EQUAL(status, expected_status);
+    }
     if (status != PSA_SUCCESS) {
         goto exit;
     }
@@ -8474,7 +8477,7 @@ exit:
 void parse_binary_string_test(data_t *input, int output)
 {
     uint64_t value;
-    value = parse_binary_string(input);
+    value = mbedtls_test_parse_binary_string(input);
     TEST_EQUAL(value, output);
 }
 /* END_CASE */
@@ -8540,7 +8543,7 @@ void derive_input(int alg_arg,
             if (key_types[i] == INPUT_INTEGER) {
                 TEST_EQUAL(psa_key_derivation_input_integer(
                                &operation, steps[i],
-                               parse_binary_string(inputs[i])),
+                               mbedtls_test_parse_binary_string(inputs[i])),
                            expected_statuses[i]);
             } else {
                 TEST_EQUAL(psa_key_derivation_input_bytes(
@@ -8740,7 +8743,7 @@ void derive_output(int alg_arg,
             case PSA_KEY_DERIVATION_INPUT_COST:
                 TEST_EQUAL(psa_key_derivation_input_integer(
                                &operation, steps[i],
-                               parse_binary_string(inputs[i])),
+                               mbedtls_test_parse_binary_string(inputs[i])),
                            statuses[i]);
                 if (statuses[i] != PSA_SUCCESS) {
                     goto exit;
@@ -9764,7 +9767,7 @@ void persistent_key_load_key_from_storage(data_t *data,
     unsigned char *first_export = NULL;
     unsigned char *second_export = NULL;
     size_t export_size = PSA_EXPORT_KEY_OUTPUT_SIZE(type, bits);
-    size_t first_exported_length;
+    size_t first_exported_length = 0;
     size_t second_exported_length;
 
     if (usage_flags & PSA_KEY_USAGE_EXPORT) {

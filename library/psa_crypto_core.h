@@ -21,7 +21,14 @@
 #ifndef PSA_CRYPTO_CORE_H
 #define PSA_CRYPTO_CORE_H
 
-#include "mbedtls/build_info.h"
+/*
+ * Include the build-time configuration information header. Here, we do not
+ * include `"mbedtls/build_info.h"` directly but `"psa/build_info.h"`, which
+ * is basically just an alias to it. This is to ease the maintenance of the
+ * TF-PSA-Crypto repository which has a different build system and
+ * configuration.
+ */
+#include "psa/build_info.h"
 
 #include "psa/crypto.h"
 #include "psa/crypto_se_driver.h"
@@ -225,12 +232,12 @@ psa_status_t psa_copy_key_material_into_slot(psa_key_slot_t *slot,
                                              const uint8_t *data,
                                              size_t data_length);
 
-/** Convert an mbed TLS error code to a PSA error code
+/** Convert an Mbed TLS error code to a PSA error code
  *
  * \note This function is provided solely for the convenience of
  *       Mbed TLS and may be removed at any time without notice.
  *
- * \param ret           An mbed TLS-thrown error code
+ * \param ret           An Mbed TLS-thrown error code
  *
  * \return              The corresponding PSA error code
  */

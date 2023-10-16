@@ -1,7 +1,7 @@
 ## This file contains a record of how some of the test data was
 ## generated. The final build products are committed to the repository
 ## as well to make sure that the test data is identical. You do not
-## need to use this makefile unless you're extending mbed TLS's tests.
+## need to use this makefile unless you're extending Mbed TLS's tests.
 
 ## Many data files were generated prior to the existence of this
 ## makefile, so the method of their generation was not recorded.
@@ -1441,6 +1441,14 @@ all_final += server1.req.cert_type_empty
 parse_input/server1.req.commas.sha256: server1.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL\, Commas,CN=PolarSSL Server 1" md=SHA256
 
+parse_input/server1.req.hashsymbol.sha256: server1.key
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=\#PolarSSL,CN=PolarSSL Server 1" md=SHA256
+
+parse_input/server1.req.spaces.sha256: server1.key
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O= PolarSSL ,CN=PolarSSL Server 1" md=SHA256
+
+parse_input/server1.req.asciichars.sha256: server1.key
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=极地SSL,CN=PolarSSL Server 1" md=SHA256
 # server2*
 
 server2_pwd_ec = PolarSSLTest
@@ -1590,7 +1598,13 @@ server1.der: server1.crt
 	$(OPENSSL) x509 -inform PEM -in $< -outform DER -out $@
 server1.commas.crt: server1.key parse_input/server1.req.commas.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
 	$(MBEDTLS_CERT_WRITE) request_file=parse_input/server1.req.commas.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) version=1 not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
-all_final += server1.crt server1.noauthid.crt parse_input/server1.crt.der server1.commas.crt
+server1.hashsymbol.crt: server1.key parse_input/server1.req.hashsymbol.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(MBEDTLS_CERT_WRITE) request_file=parse_input/server1.req.hashsymbol.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) version=1 not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
+server1.spaces.crt: server1.key parse_input/server1.req.spaces.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(MBEDTLS_CERT_WRITE) request_file=parse_input/server1.req.spaces.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) version=1 not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
+server1.asciichars.crt: server1.key parse_input/server1.req.asciichars.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(MBEDTLS_CERT_WRITE) request_file=parse_input/server1.req.asciichars.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) version=1 not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
+all_final += server1.crt server1.noauthid.crt parse_input/server1.crt.der server1.commas.crt server1.hashsymbol.crt server1.spaces.crt server1.asciichars.crt
 
 parse_input/server1.key_usage.crt: parse_input/server1.req.sha256
 server1.key_usage.crt: server1.req.sha256

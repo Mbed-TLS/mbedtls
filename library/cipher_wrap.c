@@ -1,7 +1,7 @@
 /**
  * \file cipher_wrap.c
  *
- * \brief Generic cipher wrapper for mbed TLS
+ * \brief Generic cipher wrapper for Mbed TLS
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
@@ -311,6 +311,7 @@ static const mbedtls_cipher_info_t aes_128_ecb_info = {
     MBEDTLS_CIPHER_BASE_INDEX_AES
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_192_ecb_info = {
     "AES-192-ECB",
     16,
@@ -332,6 +333,7 @@ static const mbedtls_cipher_info_t aes_256_ecb_info = {
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
 };
+#endif
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 static const mbedtls_cipher_info_t aes_128_cbc_info = {
@@ -345,6 +347,7 @@ static const mbedtls_cipher_info_t aes_128_cbc_info = {
     MBEDTLS_CIPHER_BASE_INDEX_AES
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_192_cbc_info = {
     "AES-192-CBC",
     16,
@@ -366,6 +369,7 @@ static const mbedtls_cipher_info_t aes_256_cbc_info = {
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
 };
+#endif
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
@@ -380,6 +384,7 @@ static const mbedtls_cipher_info_t aes_128_cfb128_info = {
     MBEDTLS_CIPHER_BASE_INDEX_AES
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_192_cfb128_info = {
     "AES-192-CFB128",
     16,
@@ -401,6 +406,7 @@ static const mbedtls_cipher_info_t aes_256_cfb128_info = {
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
 };
+#endif
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
 #if defined(MBEDTLS_CIPHER_MODE_OFB)
@@ -415,6 +421,7 @@ static const mbedtls_cipher_info_t aes_128_ofb_info = {
     MBEDTLS_CIPHER_BASE_INDEX_AES
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_192_ofb_info = {
     "AES-192-OFB",
     16,
@@ -436,6 +443,7 @@ static const mbedtls_cipher_info_t aes_256_ofb_info = {
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
 };
+#endif
 #endif /* MBEDTLS_CIPHER_MODE_OFB */
 
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
@@ -450,6 +458,7 @@ static const mbedtls_cipher_info_t aes_128_ctr_info = {
     MBEDTLS_CIPHER_BASE_INDEX_AES
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_192_ctr_info = {
     "AES-192-CTR",
     16,
@@ -471,6 +480,7 @@ static const mbedtls_cipher_info_t aes_256_ctr_info = {
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
 };
+#endif
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
@@ -549,6 +559,7 @@ static const mbedtls_cipher_info_t aes_128_xts_info = {
     MBEDTLS_CIPHER_BASE_INDEX_XTS_AES
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_256_xts_info = {
     "AES-256-XTS",
     16,
@@ -559,6 +570,7 @@ static const mbedtls_cipher_info_t aes_256_xts_info = {
     0,
     MBEDTLS_CIPHER_BASE_INDEX_XTS_AES
 };
+#endif
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
 
 #if defined(MBEDTLS_GCM_C)
@@ -609,6 +621,7 @@ static const mbedtls_cipher_info_t aes_128_gcm_info = {
     MBEDTLS_CIPHER_BASE_INDEX_GCM_AES
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_192_gcm_info = {
     "AES-192-GCM",
     16,
@@ -630,6 +643,7 @@ static const mbedtls_cipher_info_t aes_256_gcm_info = {
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_GCM_AES
 };
+#endif
 #endif /* MBEDTLS_GCM_C */
 
 #if defined(MBEDTLS_CCM_C)
@@ -680,6 +694,7 @@ static const mbedtls_cipher_info_t aes_128_ccm_info = {
     MBEDTLS_CIPHER_BASE_INDEX_CCM_AES
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_192_ccm_info = {
     "AES-192-CCM",
     16,
@@ -701,6 +716,7 @@ static const mbedtls_cipher_info_t aes_256_ccm_info = {
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_AES
 };
+#endif
 
 static const mbedtls_cipher_info_t aes_128_ccm_star_no_tag_info = {
     "AES-128-CCM*-NO-TAG",
@@ -713,6 +729,7 @@ static const mbedtls_cipher_info_t aes_128_ccm_star_no_tag_info = {
     MBEDTLS_CIPHER_BASE_INDEX_CCM_AES
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_192_ccm_star_no_tag_info = {
     "AES-192-CCM*-NO-TAG",
     16,
@@ -734,6 +751,7 @@ static const mbedtls_cipher_info_t aes_256_ccm_star_no_tag_info = {
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_AES
 };
+#endif
 #endif /* MBEDTLS_CCM_C */
 
 #endif /* MBEDTLS_AES_C */
@@ -2167,6 +2185,7 @@ static const mbedtls_cipher_info_t aes_128_nist_kw_info = {
     MBEDTLS_CIPHER_BASE_INDEX_KW_AES
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_192_nist_kw_info = {
     "AES-192-KW",
     16,
@@ -2188,6 +2207,7 @@ static const mbedtls_cipher_info_t aes_256_nist_kw_info = {
     0,
     MBEDTLS_CIPHER_BASE_INDEX_KW_AES
 };
+#endif
 
 static const mbedtls_cipher_info_t aes_128_nist_kwp_info = {
     "AES-128-KWP",
@@ -2200,6 +2220,7 @@ static const mbedtls_cipher_info_t aes_128_nist_kwp_info = {
     MBEDTLS_CIPHER_BASE_INDEX_KW_AES
 };
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const mbedtls_cipher_info_t aes_192_nist_kwp_info = {
     "AES-192-KWP",
     16,
@@ -2221,50 +2242,69 @@ static const mbedtls_cipher_info_t aes_256_nist_kwp_info = {
     0,
     MBEDTLS_CIPHER_BASE_INDEX_KW_AES
 };
+#endif
 #endif /* MBEDTLS_NIST_KW_C */
 
 const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
 {
 #if defined(MBEDTLS_AES_C)
     { MBEDTLS_CIPHER_AES_128_ECB,          &aes_128_ecb_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_ECB,          &aes_192_ecb_info },
     { MBEDTLS_CIPHER_AES_256_ECB,          &aes_256_ecb_info },
+#endif
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     { MBEDTLS_CIPHER_AES_128_CBC,          &aes_128_cbc_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_CBC,          &aes_192_cbc_info },
     { MBEDTLS_CIPHER_AES_256_CBC,          &aes_256_cbc_info },
 #endif
+#endif
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
     { MBEDTLS_CIPHER_AES_128_CFB128,       &aes_128_cfb128_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_CFB128,       &aes_192_cfb128_info },
     { MBEDTLS_CIPHER_AES_256_CFB128,       &aes_256_cfb128_info },
 #endif
+#endif
 #if defined(MBEDTLS_CIPHER_MODE_OFB)
     { MBEDTLS_CIPHER_AES_128_OFB,          &aes_128_ofb_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_OFB,          &aes_192_ofb_info },
     { MBEDTLS_CIPHER_AES_256_OFB,          &aes_256_ofb_info },
 #endif
+#endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
     { MBEDTLS_CIPHER_AES_128_CTR,          &aes_128_ctr_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_CTR,          &aes_192_ctr_info },
     { MBEDTLS_CIPHER_AES_256_CTR,          &aes_256_ctr_info },
 #endif
+#endif
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
     { MBEDTLS_CIPHER_AES_128_XTS,          &aes_128_xts_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_256_XTS,          &aes_256_xts_info },
+#endif
 #endif
 #if defined(MBEDTLS_GCM_C)
     { MBEDTLS_CIPHER_AES_128_GCM,          &aes_128_gcm_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_GCM,          &aes_192_gcm_info },
     { MBEDTLS_CIPHER_AES_256_GCM,          &aes_256_gcm_info },
 #endif
+#endif
 #if defined(MBEDTLS_CCM_C)
     { MBEDTLS_CIPHER_AES_128_CCM,          &aes_128_ccm_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_CCM,          &aes_192_ccm_info },
     { MBEDTLS_CIPHER_AES_256_CCM,          &aes_256_ccm_info },
+#endif
     { MBEDTLS_CIPHER_AES_128_CCM_STAR_NO_TAG,          &aes_128_ccm_star_no_tag_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_CCM_STAR_NO_TAG,          &aes_192_ccm_star_no_tag_info },
     { MBEDTLS_CIPHER_AES_256_CCM_STAR_NO_TAG,          &aes_256_ccm_star_no_tag_info },
+#endif
 #endif
 #endif /* MBEDTLS_AES_C */
 
@@ -2357,11 +2397,15 @@ const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
 
 #if defined(MBEDTLS_NIST_KW_C)
     { MBEDTLS_CIPHER_AES_128_KW,          &aes_128_nist_kw_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_KW,          &aes_192_nist_kw_info },
     { MBEDTLS_CIPHER_AES_256_KW,          &aes_256_nist_kw_info },
+#endif
     { MBEDTLS_CIPHER_AES_128_KWP,         &aes_128_nist_kwp_info },
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_KWP,         &aes_192_nist_kwp_info },
     { MBEDTLS_CIPHER_AES_256_KWP,         &aes_256_nist_kwp_info },
+#endif
 #endif
 
 #if defined(MBEDTLS_CIPHER_NULL_CIPHER)

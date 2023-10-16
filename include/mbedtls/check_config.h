@@ -30,7 +30,7 @@
  */
 #include <limits.h>
 #if CHAR_BIT != 8
-#error "mbed TLS requires a platform with 8-bit chars"
+#error "Mbed TLS requires a platform with 8-bit chars"
 #endif
 
 #include <stdint.h>
@@ -65,6 +65,105 @@
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_HAVE_TIME)
 #error "MBEDTLS_HAVE_TIME_DATE without MBEDTLS_HAVE_TIME does not make sense"
 #endif
+
+/* Check that each MBEDTLS_ECP_DP_xxx symbol has its PSA_WANT_ECC_xxx counterpart
+ * when PSA crypto is enabled. */
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG) || defined(MBEDTLS_PSA_CRYPTO_C)
+
+#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED) && !defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
+#error "MBEDTLS_ECP_DP_BP256R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED) && !defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
+#error "MBEDTLS_ECP_DP_BP384R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED) && !defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
+#error "MBEDTLS_ECP_DP_BP512R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) && !defined(PSA_WANT_ECC_MONTGOMERY_255)
+#error "MBEDTLS_ECP_DP_CURVE25519_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) && !defined(PSA_WANT_ECC_MONTGOMERY_448)
+#error "MBEDTLS_ECP_DP_CURVE448_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) && !defined(PSA_WANT_ECC_SECP_R1_192)
+#error "MBEDTLS_ECP_DP_SECP192R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) && !defined(PSA_WANT_ECC_SECP_R1_224)
+#error "MBEDTLS_ECP_DP_SECP224R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) && !defined(PSA_WANT_ECC_SECP_R1_256)
+#error "MBEDTLS_ECP_DP_SECP256R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) && !defined(PSA_WANT_ECC_SECP_R1_384)
+#error "MBEDTLS_ECP_DP_SECP384R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) && !defined(PSA_WANT_ECC_SECP_R1_521)
+#error "MBEDTLS_ECP_DP_SECP521R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) && !defined(PSA_WANT_ECC_SECP_K1_192)
+#error "MBEDTLS_ECP_DP_SECP192K1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+/* SECP224K1 is buggy in PSA API so we skip this check */
+#if 0 && defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) && !defined(PSA_WANT_ECC_SECP_K1_224)
+#error "MBEDTLS_ECP_DP_SECP224K1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) && !defined(PSA_WANT_ECC_SECP_K1_256)
+#error "MBEDTLS_ECP_DP_SECP256K1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#endif /* MBEDTLS_PSA_CRYPTO_CONFIG || MBEDTLS_PSA_CRYPTO_C */
+
+/* Limitations on ECC key types acceleration: if we have any of `PUBLIC_KEY`,
+ * `KEY_PAIR_BASIC`, `KEY_PAIR_IMPORT`, `KEY_PAIR_EXPORT` then we must have
+ * all 4 of them.
+ */
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_BASIC) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_IMPORT) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_EXPORT)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) || \
+    !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_BASIC) || \
+    !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_IMPORT) || \
+    !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_EXPORT)
+#error "Unsupported partial support for ECC key type acceleration, see docs/driver-only-builds.md"
+#endif /* not all of public, basic, import, export */
+#endif /* one of public, basic, import, export */
+
+/* Limitations on ECC curves acceleration: partial curve acceleration is only
+ * supported with crypto excluding PK, X.509 or TLS.
+ * Note: no need to check X.509 as it depends on PK. */
+#if defined(MBEDTLS_PSA_ACCEL_ECC_BRAINPOOL_P_R1_256) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_BRAINPOOL_P_R1_384) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_BRAINPOOL_P_R1_512) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_MONTGOMERY_255) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_MONTGOMERY_448) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_192) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_224) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_256) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_192) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_224) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_256) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_384) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_521)
+#if defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES)
+#if defined(MBEDTLS_PK_C) || \
+    defined(MBEDTLS_SSL_TLS_C)
+#error "Unsupported partial support for ECC curves acceleration, see docs/driver-only-builds.md"
+#endif /* modules beyond what's supported */
+#endif /* not all curves accelerated */
+#endif /* some curve accelerated */
 
 #if defined(MBEDTLS_CTR_DRBG_C) && !defined(MBEDTLS_AES_C)
 #error "MBEDTLS_CTR_DRBG_C defined, but not all prerequisites"
@@ -838,10 +937,10 @@
 #endif
 
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_SRV_C) && \
-    ( !defined(MBEDTLS_SSL_MAX_EARLY_DATA_SIZE)     || \
-      ( MBEDTLS_SSL_MAX_EARLY_DATA_SIZE < 0 )       || \
-      ( MBEDTLS_SSL_MAX_EARLY_DATA_SIZE > UINT32_MAX ) )
-#error "MBEDTLS_SSL_MAX_EARLY_DATA_SIZE MUST be defined and in range(0..UINT32_MAX)"
+    defined(MBEDTLS_SSL_MAX_EARLY_DATA_SIZE) &&                      \
+        ((MBEDTLS_SSL_MAX_EARLY_DATA_SIZE < 0) ||                    \
+         (MBEDTLS_SSL_MAX_EARLY_DATA_SIZE > UINT32_MAX))
+#error "MBEDTLS_SSL_MAX_EARLY_DATA_SIZE must be in the range(0..UINT32_MAX)"
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)     && \

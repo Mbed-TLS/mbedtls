@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_ASN1_PARSE_C)
+#if defined(MBEDTLS_ASN1_PARSE_C) || defined(MBEDTLS_X509_CREATE_C)
 
 #include "mbedtls/asn1.h"
 #include "mbedtls/platform_util.h"
@@ -47,47 +47,18 @@ int mbedtls_asn1_get_len(unsigned char **p,
     if ((**p & 0x80) == 0) {
         *len = *(*p)++;
     } else {
-        switch (**p & 0x7F) {
-            case 1:
-                if ((end - *p) < 2) {
-                    return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
-                }
-
-                *len = (*p)[1];
-                (*p) += 2;
-                break;
-
-            case 2:
-                if ((end - *p) < 3) {
-                    return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
-                }
-
-                *len = ((size_t) (*p)[1] << 8) | (*p)[2];
-                (*p) += 3;
-                break;
-
-            case 3:
-                if ((end - *p) < 4) {
-                    return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
-                }
-
-                *len = ((size_t) (*p)[1] << 16) |
-                       ((size_t) (*p)[2] << 8) | (*p)[3];
-                (*p) += 4;
-                break;
-
-            case 4:
-                if ((end - *p) < 5) {
-                    return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
-                }
-
-                *len = ((size_t) (*p)[1] << 24) | ((size_t) (*p)[2] << 16) |
-                       ((size_t) (*p)[3] << 8) |           (*p)[4];
-                (*p) += 5;
-                break;
-
-            default:
-                return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+        int n = (**p) & 0x7F;
+        if (n == 0 || n > 4) {
+            return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+        }
+        if ((end - *p) <= n) {
+            return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
+        }
+        *len = 0;
+        (*p)++;
+        while (n--) {
+            *len = (*len << 8) | **p;
+            (*p)++;
         }
     }
 
@@ -114,7 +85,9 @@ int mbedtls_asn1_get_tag(unsigned char **p,
 
     return mbedtls_asn1_get_len(p, end, len);
 }
+#endif /* MBEDTLS_ASN1_PARSE_C || MBEDTLS_X509_CREATE_C */
 
+#if defined(MBEDTLS_ASN1_PARSE_C)
 int mbedtls_asn1_get_bool(unsigned char **p,
                           const unsigned char *end,
                           int *val)

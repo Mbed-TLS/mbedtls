@@ -901,7 +901,7 @@ def main():
         '-c', '--config', type=str, default=SupportedConfig.DEFAULT.value,
         choices=list(map(lambda s: s.value, SupportedConfig)),
         help='Specify configuration type for code size comparison. '
-             '(Default is the current MbedTLS configuration.)')
+             '(Default is the current Mbed TLS configuration.)')
     group_optional.add_argument(
         '--markdown', action='store_true', dest='markdown',
         help='Show comparision of code size in a markdown table. '

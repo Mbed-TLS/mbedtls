@@ -1504,7 +1504,8 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
 
     int auth_done = 0;
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
-    size_t padlen = 0, correct = 1;
+    size_t padlen = 0;
+    mbedtls_ct_condition_t correct = MBEDTLS_CT_TRUE;
 #endif
     unsigned char *data;
     /* For an explanation of the additional data length see
@@ -1546,8 +1547,16 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_STREAM)
     if (ssl_mode == MBEDTLS_SSL_MODE_STREAM) {
+        if (rec->data_len < transform->maclen) {
+            MBEDTLS_SSL_DEBUG_MSG(1,
+                                  ("Record too short for MAC:"
+                                   " %" MBEDTLS_PRINTF_SIZET " < %" MBEDTLS_PRINTF_SIZET,
+                                   rec->data_len, transform->maclen));
+            return MBEDTLS_ERR_SSL_INVALID_MAC;
+        }
+
         /* The only supported stream cipher is "NULL",
-         * so there's nothing to do here.*/
+         * so there's no encryption to do here.*/
     } else
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_STREAM */
 #if defined(MBEDTLS_GCM_C) || \
@@ -1921,7 +1930,7 @@ hmac_failed_etm_enabled:
             const mbedtls_ct_condition_t ge = mbedtls_ct_uint_ge(
                 rec->data_len,
                 padlen + 1);
-            correct = mbedtls_ct_size_if_else_0(ge, correct);
+            correct = mbedtls_ct_bool_and(ge, correct);
             padlen  = mbedtls_ct_size_if_else_0(ge, padlen);
         } else {
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
@@ -1937,7 +1946,7 @@ hmac_failed_etm_enabled:
             const mbedtls_ct_condition_t ge = mbedtls_ct_uint_ge(
                 rec->data_len,
                 transform->maclen + padlen + 1);
-            correct = mbedtls_ct_size_if_else_0(ge, correct);
+            correct = mbedtls_ct_bool_and(ge, correct);
             padlen  = mbedtls_ct_size_if_else_0(ge, padlen);
         }
 
@@ -1973,14 +1982,14 @@ hmac_failed_etm_enabled:
             increment = mbedtls_ct_size_if_else_0(b, increment);
             pad_count += increment;
         }
-        correct = mbedtls_ct_size_if_else_0(mbedtls_ct_uint_eq(pad_count, padlen), padlen);
+        correct = mbedtls_ct_bool_and(mbedtls_ct_uint_eq(pad_count, padlen), correct);
 
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
-        if (padlen > 0 && correct == 0) {
+        if (padlen > 0 && correct == MBEDTLS_CT_FALSE) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("bad padding byte detected"));
         }
 #endif
-        padlen = mbedtls_ct_size_if_else_0(mbedtls_ct_bool(correct), padlen);
+        padlen = mbedtls_ct_size_if_else_0(correct, padlen);
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
@@ -2010,7 +2019,7 @@ hmac_failed_etm_enabled:
         unsigned char mac_expect[MBEDTLS_SSL_MAC_ADD] = { 0 };
         unsigned char mac_peer[MBEDTLS_SSL_MAC_ADD] = { 0 };
 
-        /* If the initial value of padlen was such that
+        /* For CBC+MAC, If the initial value of padlen was such that
          * data_len < maclen + padlen + 1, then padlen
          * got reset to 1, and the initial check
          * data_len >= minlen + maclen + 1
@@ -2022,6 +2031,9 @@ hmac_failed_etm_enabled:
          * subtracted either padlen + 1 (if the padding was correct)
          * or 0 (if the padding was incorrect) since then,
          * hence data_len >= maclen in any case.
+         *
+         * For stream ciphers, we checked above that
+         * data_len >= maclen.
          */
         rec->data_len -= transform->maclen;
         ssl_extract_add_data_from_record(add_data, &add_data_len, rec,
@@ -2075,7 +2087,7 @@ hmac_failed_etm_enabled:
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
             MBEDTLS_SSL_DEBUG_MSG(1, ("message mac does not match"));
 #endif
-            correct = 0;
+            correct = MBEDTLS_CT_FALSE;
         }
         auth_done++;
 
@@ -2090,7 +2102,7 @@ hmac_failed_etm_disabled:
     /*
      * Finally check the correct flag
      */
-    if (correct == 0) {
+    if (correct == MBEDTLS_CT_FALSE) {
         return MBEDTLS_ERR_SSL_INVALID_MAC;
     }
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */

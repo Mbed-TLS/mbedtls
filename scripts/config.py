@@ -190,6 +190,7 @@ def realfull_adapter(_name, active, section):
 EXCLUDE_FROM_FULL = frozenset([
     #pylint: disable=line-too-long
     'MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH', # interacts with CTR_DRBG_128_BIT_KEY
+    'MBEDTLS_AES_USE_HARDWARE_ONLY', # hardware dependency
     'MBEDTLS_CTR_DRBG_USE_128_BIT_KEY', # interacts with ENTROPY_FORCE_SHA256
     'MBEDTLS_DEPRECATED_REMOVED', # conflicts with deprecated options
     'MBEDTLS_DEPRECATED_WARNING', # conflicts with deprecated options
@@ -205,9 +206,8 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES', # removes a feature
     'MBEDTLS_NO_PLATFORM_ENTROPY', # removes a feature
     'MBEDTLS_NO_UDBL_DIVISION', # influences anything that uses bignum
-    'MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED', # influences SECP256R1 KeyGen/ECDH/ECDSA
+    'MBEDTLS_PSA_P256M_DRIVER_ENABLED', # influences SECP256R1 KeyGen/ECDH/ECDSA
     'MBEDTLS_PLATFORM_NO_STD_FUNCTIONS', # removes a feature
-    'MBEDTLS_PSA_CRYPTO_CONFIG', # toggles old/new style PSA config
     'MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG', # behavior change + build dependency
     'MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER', # incompatible with USE_PSA_CRYPTO
     'MBEDTLS_PSA_CRYPTO_SPM', # platform dependency (PSA SPM)
@@ -233,7 +233,12 @@ def is_seamless_alt(name):
     Exclude alternative implementations of library functions since they require
     an implementation of the relevant functions and an xxx_alt.h header.
     """
-    if name in ('MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT', 'MBEDTLS_PLATFORM_MS_TIME_ALT'):
+    if name in (
+            'MBEDTLS_PLATFORM_GMTIME_R_ALT',
+            'MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT',
+            'MBEDTLS_PLATFORM_MS_TIME_ALT',
+            'MBEDTLS_PLATFORM_ZEROIZE_ALT',
+    ):
         # Similar to non-platform xxx_ALT, requires platform_alt.h
         return False
     return name.startswith('MBEDTLS_PLATFORM_')

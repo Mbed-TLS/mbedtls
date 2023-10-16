@@ -681,6 +681,7 @@ int mbedtls_sha256_finish(mbedtls_sha256_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     uint32_t used;
     uint32_t high, low;
+    int truncated = 0;
 
     /*
      * Add padding: 0x80 then 0x00 until 8 bytes remain for the length
@@ -697,7 +698,7 @@ int mbedtls_sha256_finish(mbedtls_sha256_context *ctx,
         memset(ctx->buffer + used, 0, SHA256_BLOCK_SIZE - used);
 
         if ((ret = mbedtls_internal_sha256_process(ctx, ctx->buffer)) != 0) {
-            return ret;
+            goto exit;
         }
 
         memset(ctx->buffer, 0, 56);
@@ -714,7 +715,7 @@ int mbedtls_sha256_finish(mbedtls_sha256_context *ctx,
     MBEDTLS_PUT_UINT32_BE(low,  ctx->buffer, 60);
 
     if ((ret = mbedtls_internal_sha256_process(ctx, ctx->buffer)) != 0) {
-        return ret;
+        goto exit;
     }
 
     /*
@@ -728,7 +729,6 @@ int mbedtls_sha256_finish(mbedtls_sha256_context *ctx,
     MBEDTLS_PUT_UINT32_BE(ctx->state[5], output, 20);
     MBEDTLS_PUT_UINT32_BE(ctx->state[6], output, 24);
 
-    int truncated = 0;
 #if defined(MBEDTLS_SHA224_C)
     truncated = ctx->is224;
 #endif
@@ -736,7 +736,11 @@ int mbedtls_sha256_finish(mbedtls_sha256_context *ctx,
         MBEDTLS_PUT_UINT32_BE(ctx->state[7], output, 28);
     }
 
-    return 0;
+    ret = 0;
+
+exit:
+    mbedtls_sha256_free(ctx);
+    return ret;
 }
 
 #endif /* !MBEDTLS_SHA256_ALT */

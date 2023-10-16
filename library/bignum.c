@@ -72,7 +72,7 @@ int mbedtls_mpi_lt_mpi_ct(const mbedtls_mpi *X,
     }
 
     /*
-     * Set sign_N to 1 if N >= 0, 0 if N < 0.
+     * Set N_is_negative to MBEDTLS_CT_FALSE if N >= 0, MBEDTLS_CT_TRUE if N < 0.
      * We know that N->s == 1 if N >= 0 and N->s == -1 if N < 0.
      */
     X_is_negative = mbedtls_ct_bool((X->s & 2) >> 1);
@@ -83,7 +83,7 @@ int mbedtls_mpi_lt_mpi_ct(const mbedtls_mpi *X,
      * That is if X is negative (X_is_negative == 1), then X < Y is true and it
      * is false if X is positive (X_is_negative == 0).
      */
-    different_sign = mbedtls_ct_bool_xor(X_is_negative, Y_is_negative); // non-zero if different sign
+    different_sign = mbedtls_ct_bool_ne(X_is_negative, Y_is_negative); // true if different sign
     result = mbedtls_ct_bool_and(different_sign, X_is_negative);
 
     /*
@@ -131,15 +131,17 @@ int mbedtls_mpi_safe_cond_assign(mbedtls_mpi *X,
 
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(X, Y->n));
 
-    mbedtls_ct_condition_t do_assign = mbedtls_ct_bool(assign);
+    {
+        mbedtls_ct_condition_t do_assign = mbedtls_ct_bool(assign);
 
-    X->s = (int) mbedtls_ct_uint_if(do_assign, Y->s, X->s);
+        X->s = (int) mbedtls_ct_uint_if(do_assign, Y->s, X->s);
 
-    mbedtls_mpi_core_cond_assign(X->p, Y->p, Y->n, do_assign);
+        mbedtls_mpi_core_cond_assign(X->p, Y->p, Y->n, do_assign);
 
-    mbedtls_ct_condition_t do_not_assign = mbedtls_ct_bool_not(do_assign);
-    for (size_t i = Y->n; i < X->n; i++) {
-        X->p[i] = mbedtls_ct_mpi_uint_if_else_0(do_not_assign, X->p[i]);
+        mbedtls_ct_condition_t do_not_assign = mbedtls_ct_bool_not(do_assign);
+        for (size_t i = Y->n; i < X->n; i++) {
+            X->p[i] = mbedtls_ct_mpi_uint_if_else_0(do_not_assign, X->p[i]);
+        }
     }
 
 cleanup:
@@ -386,7 +388,7 @@ static inline mbedtls_mpi_uint mpi_sint_abs(mbedtls_mpi_sint z)
 
 /* Convert x to a sign, i.e. to 1, if x is positive, or -1, if x is negative.
  * This looks awkward but generates smaller code than (x < 0 ? -1 : 1) */
-#define TO_SIGN(x) ((((mbedtls_mpi_uint) x) >> (biL - 1)) * -2 + 1)
+#define TO_SIGN(x) ((mbedtls_mpi_sint) (((mbedtls_mpi_uint) x) >> (biL - 1)) * -2 + 1)
 
 /*
  * Set value from integer

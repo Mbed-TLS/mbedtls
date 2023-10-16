@@ -44,7 +44,7 @@ If an input argument is in shared memory, there is a risk of a **read-read incon
 
 Vulnerability example (parsing): suppose the input contains data with a type-length-value or length-value encoding (for example, importing an RSA key). The crypto code reads the length field and checks that it fits within the buffer. (This could be the length of the overall data, or the length of an embedded field) Later, the crypto code reads the length again and uses it without validation. A malicious client can modify the length field in the shared memory between the two reads and thus cause a buffer overread on the second read.
 
-Vulnerability example (dual processing): consider an RPC to perform authenticated encryption, using a mechanism with an encrypt-and-MAC structure. The authenticated encryption implementation separately calculates the ciphertext and the MAC from the plantext. A client sets the plaintext input to `"PPPP"`, then starts the RPC call, then changes the input buffer to `"QQQQ"` while the crypto service is working.
+Vulnerability example (dual processing): consider an RPC to perform authenticated encryption, using a mechanism with an encrypt-and-MAC structure. The authenticated encryption implementation separately calculates the ciphertext and the MAC from the plaintext. A client sets the plaintext input to `"PPPP"`, then starts the RPC call, then changes the input buffer to `"QQQQ"` while the crypto service is working.
 
 * Any of `enc("PPPP")+mac("PPPP")`, `enc("PPQQ")+mac("PPQQ")` or `enc("QQQQ")+mac("QQQQ")` are valid outputs: they are outputs that can be produced by this authenticated encryption RPC.
 * If the authenticated encryption calculates the ciphertext before the client changes the output buffer and calculates the MAC after that change, reading the input buffer again each time, the output will be `enc("PPPP")+mac("QQQQ")`. There is no input that can lead to this output, hence this behavior violates the security guarantees of the crypto service.
@@ -191,13 +191,13 @@ AEAD encryption and decryption are at risk of [read-read inconsistency](#read-re
 * when decrypting with an encrypt-then-authenticate structure (one read to decrypt and one read to calculate the authentication tag);
 * with SIV modes (not yet present in the PSA API, but likely to come one day) (one full pass to calculate the IV, then another full pass for the core authenticated encryption);
 
-Cipher and AEAD outputs are at risk of [write-read-inconsistency](#write-read-inconsistency) and [write-write disclosure](#write-write-disclosure) if they are implemented by copying the input into the output buffer with `memmove`, then processing the data in place. In particular, this approach makes it easy to fully support overlapping, since `memmove` will take care of overlapping cases correctly, which is otherwise hard to do portably (C99 does not offer an efficient, portable way to check whether two buffers overlap).
+Cipher and AEAD outputs are at risk of [write-read inconsistency](#write-read-inconsistency) and [write-write disclosure](#write-write-disclosure) if they are implemented by copying the input into the output buffer with `memmove`, then processing the data in place. In particular, this approach makes it easy to fully support overlapping, since `memmove` will take care of overlapping cases correctly, which is otherwise hard to do portably (C99 does not offer an efficient, portable way to check whether two buffers overlap).
 
 **Design decision: the dispatch layer shall allocate an intermediate buffer for cipher and AEAD plaintext/ciphertext inputs and outputs**.
 
 Note that this can be a single buffer for the input and the output if the driver supports in-place operation (which it is supposed to, since it is supposed to support arbitrary overlap, although this is not always the case in Mbed TLS, a [known issue](https://github.com/Mbed-TLS/mbedtls/issues/3266)). A side benefit of doing this intermediate copy is that overlap will be supported.
 
-For all currently implemented AEAD modes, the associated data is only processed once to calculate an intermedidate value of the authentication tag.
+For all currently implemented AEAD modes, the associated data is only processed once to calculate an intermediate value of the authentication tag.
 
 **Design decision: for now, require AEAD drivers to read their input without a risk of read-read inconsistency**. Make a note to revisit this when we start supporting an SIV mode, at which point the dispatch layer shall copy the input for modes that are not known to be low-risk.
 

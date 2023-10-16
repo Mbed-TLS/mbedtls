@@ -676,11 +676,7 @@ static int ssl_check_key_curve(mbedtls_pk_context *pk,
                                uint16_t *curves_tls_id)
 {
     uint16_t *curr_tls_id = curves_tls_id;
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    mbedtls_ecp_group_id grp_id = mbedtls_ecc_group_of_psa(pk->ec_family, pk->ec_bits, 0);
-#else
-    mbedtls_ecp_group_id grp_id = mbedtls_pk_ec_ro(*pk)->grp.id;
-#endif
+    mbedtls_ecp_group_id grp_id = mbedtls_pk_get_group_id(pk);
     mbedtls_ecp_group_id curr_grp_id;
 
     while (*curr_tls_id != 0) {

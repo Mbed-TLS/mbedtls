@@ -199,7 +199,7 @@ Note that this can be a single buffer for the input and the output if the driver
 
 For all currently implemented AEAD modes, the associated data is only processed once to calculate an intermediate value of the authentication tag.
 
-**Design decision: for now, require AEAD drivers to read their input without a risk of read-read inconsistency**. Make a note to revisit this when we start supporting an SIV mode, at which point the dispatch layer shall copy the input for modes that are not known to be low-risk.
+**Design decision: for now, require AEAD drivers to read the additional data without a risk of read-read inconsistency**. Make a note to revisit this when we start supporting an SIV mode, at which point the dispatch layer shall copy the input for modes that are not known to be low-risk.
 
 #### Message signature
 

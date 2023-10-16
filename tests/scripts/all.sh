@@ -4626,7 +4626,8 @@ component_test_m32_o0 () {
     # build) and not the i386-specific inline assembly.
     msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
     scripts/config.py full
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O0 -maes -msse2 -mpclmul" LDFLAGS="-m32 $ASAN_CFLAGS"
+    scripts/config.py unset MBEDTLS_AESNI_C # AESNI for 32-bit is tested in test_aesni_m32
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O0" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, make, gcc -O0 (ASan build)"
     make test
@@ -4643,7 +4644,8 @@ component_test_m32_o2 () {
     # and go faster for tests.
     msg "build: i386, make, gcc -O2 (ASan build)" # ~ 30s
     scripts/config.py full
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2 -maes -msse2 -mpclmul" LDFLAGS="-m32 $ASAN_CFLAGS"
+    scripts/config.py unset MBEDTLS_AESNI_C # AESNI for 32-bit is tested in test_aesni_m32
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, make, gcc -O2 (ASan build)"
     make test
@@ -4658,7 +4660,8 @@ support_test_m32_o2 () {
 component_test_m32_everest () {
     msg "build: i386, Everest ECDH context (ASan build)" # ~ 6 min
     scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2 -maes -msse2 -mpclmul" LDFLAGS="-m32 $ASAN_CFLAGS"
+    scripts/config.py unset MBEDTLS_AESNI_C # AESNI for 32-bit is tested in test_aesni_m32
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
     make test

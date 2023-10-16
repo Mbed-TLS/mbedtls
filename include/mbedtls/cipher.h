@@ -34,7 +34,7 @@
 #include "mbedtls/platform_util.h"
 
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-#define MBEDTLS_CIPHER_HAVE_AEAD_LEGACY
+#define MBEDTLS_CIPHER_HAVE_AEAD
 #endif
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -1080,7 +1080,7 @@ int mbedtls_cipher_crypt(mbedtls_cipher_context_t *ctx,
                          const unsigned char *input, size_t ilen,
                          unsigned char *output, size_t *olen);
 
-#if defined(MBEDTLS_CIPHER_HAVE_AEAD_LEGACY) || defined(MBEDTLS_NIST_KW_C)
+#if defined(MBEDTLS_CIPHER_HAVE_AEAD) || defined(MBEDTLS_NIST_KW_C)
 /**
  * \brief               The authenticated encryption (AEAD/NIST_KW) function.
  *
@@ -1187,7 +1187,7 @@ int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
                                     const unsigned char *input, size_t ilen,
                                     unsigned char *output, size_t output_len,
                                     size_t *olen, size_t tag_len);
-#endif /* MBEDTLS_CIPHER_HAVE_AEAD_LEGACY || MBEDTLS_NIST_KW_C */
+#endif /* MBEDTLS_CIPHER_HAVE_AEAD || MBEDTLS_NIST_KW_C */
 #ifdef __cplusplus
 }
 #endif

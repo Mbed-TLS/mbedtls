@@ -274,6 +274,30 @@ TODO: write document and reference it here.
 
 TODO: when there is a requirement on drivers, how to we validate that our built-in implementation meets these requirements? (This may be through testing, review, static analysis or any other means or a combination.)
 
+Note: focusing on read-read inconsistencies for now, as most of the cases where we aren't copying are inputs.
+
+#### Linux mprotect+ptrace
+
+Idea: call `mmap` to allocate memory for arguments and `mprotect` to deny or reenable access. Use `ptrace` from a parent process to react to SIGSEGV from a denied access. On SIGSEGV happening in the faulting region:
+
+1. Use `ptrace` to execute a `mprotect` system call in the child to enable access. TODO: How? `ptrace` can modify registers and memory in the child, which includes changing parameters of a syscall that's about to be executed, but not directly cause the child process to execute a syscall that it wasn't about to execute.
+2. Use `ptrace` with `PTRACE_SINGLESTEP` to re-execute the failed load/store instrution.
+3. Use `ptrace` to execute a `mprotect` system call in the child to disable access.
+4. Use `PTRACE_CONT` to resume the child execution.
+
+Record the addresses that are accessed. Mark the test as failed if the same address is read twice.
+
+#### Debugger + mprotect
+
+Idea: call `mmap` to allocate memory for arguments and `mprotect` to deny or reenable access. Use a debugger to handle SIGSEGV (Gdb: set signal catchpoint). If the segfault was due to accessing the protected region:
+
+1. Execute `mprotect` to allow access.
+2. Single-step the load/store instruction.
+3. Execute `mprotect` to disable access.
+4. Continue execution.
+
+Record the addresses that are accessed. Mark the test as failed if the same address is read twice. This part might be hard to do in the gdb language, so we may want to just log the addresses and then use a separate program to analyze the logs, or do the gdb tasks from Python.
+
 ## Analysis of argument protection in built-in drivers
 
 TODO: analyze the built-in implementations of mechanisms for which there is a requirement on drivers. By code inspection, how satisfied are we that they meet the requirement?

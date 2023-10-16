@@ -57,7 +57,7 @@ int mbedtls_aesni_has_support(unsigned int what)
 
     if (!done) {
 #if MBEDTLS_AESNI_HAVE_CODE == 2
-        static unsigned info[4] = { 0, 0, 0, 0 };
+        static int info[4] = { 0, 0, 0, 0 };
 #if defined(_MSC_VER)
         __cpuid(info, 1);
 #else
@@ -191,7 +191,7 @@ void mbedtls_aesni_gcm_mult(unsigned char c[16],
                             const unsigned char a[16],
                             const unsigned char b[16])
 {
-    __m128i aa, bb, cc, dd;
+    __m128i aa = { 0 }, bb = { 0 }, cc, dd;
 
     /* The inputs are in big-endian order, so byte-reverse them */
     for (size_t i = 0; i < 16; i++) {

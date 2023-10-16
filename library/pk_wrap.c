@@ -220,6 +220,7 @@ static int rsa_verify_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
 
     /* mbedtls_pk_write_pubkey_der() expects a full PK context;
      * re-construct one to make it happy */
+    mbedtls_pk_init(&key);
     key.pk_info = &mbedtls_rsa_info;
     key.pk_ctx = rsa;
     key_len = mbedtls_pk_write_pubkey_der(&key, buf, sizeof(buf));
@@ -321,6 +322,7 @@ int  mbedtls_pk_psa_rsa_sign_ext(psa_algorithm_t alg,
 
     /* mbedtls_pk_write_key_der() expects a full PK context;
      * re-construct one to make it happy */
+    mbedtls_pk_init(&key);
     key.pk_info = &pk_info;
     key.pk_ctx = rsa_ctx;
     key_len = mbedtls_pk_write_key_der(&key, buf, MBEDTLS_PK_RSA_PRV_DER_MAX_BYTES);
@@ -433,6 +435,7 @@ static int rsa_decrypt_wrap(mbedtls_pk_context *pk,
 
     /* mbedtls_pk_write_key_der() expects a full PK context;
      * re-construct one to make it happy */
+    mbedtls_pk_init(&key);
     key.pk_info = &mbedtls_rsa_info;
     key.pk_ctx = rsa;
     key_len = mbedtls_pk_write_key_der(&key, buf, sizeof(buf));
@@ -519,6 +522,7 @@ static int rsa_encrypt_wrap(mbedtls_pk_context *pk,
 
     /* mbedtls_pk_write_pubkey_der() expects a full PK context;
      * re-construct one to make it happy */
+    mbedtls_pk_init(&key);
     key.pk_info = &mbedtls_rsa_info;
     key.pk_ctx = rsa;
     key_len = mbedtls_pk_write_pubkey_der(&key, buf, sizeof(buf));

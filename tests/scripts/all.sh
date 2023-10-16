@@ -3997,13 +3997,14 @@ build_test_config_combos() {
 validate_aes_config_variations() {
     if [[ "$1" == *"MBEDTLS_AES_USE_HARDWARE_ONLY"* ]]; then
         if [[ "$1" == *"MBEDTLS_PADLOCK_C"* ]]; then
-            false
+            return 1
         fi
         if [[ !(("$HOSTTYPE" == "aarch64" && "$1" != *"MBEDTLS_AESCE_C"*) || \
                 ("$HOSTTYPE" == "x86_64"  && "$1" != *"MBEDTLS_AESNI_C"*)) ]]; then
-            false
+            return 1
         fi
     fi
+    return 0
 }
 
 component_build_aes_variations() {

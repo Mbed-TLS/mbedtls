@@ -4340,7 +4340,7 @@ component_build_aes_aesce_armcc () {
 }
 
 support_build_sha_armce() {
-    if ( $(which clang > /dev/null) ); then
+    if command -v clang > /dev/null ; then
         # clang >= 4 is required to build with SHA extensions
         clang_ver="$(clang --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#')"
 

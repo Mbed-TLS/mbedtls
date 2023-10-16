@@ -34,6 +34,7 @@
 #include "mbedtls/cipher.h"
 #endif
 
+#include "mbedtls/md.h"
 
 /** OID is not found. */
 #define MBEDTLS_ERR_OID_NOT_FOUND                         -0x002E

@@ -1,4 +1,5 @@
 /* BEGIN_HEADER */
+#include "mbedtls/md.h"
 #include "md_psa.h"
 
 #include "mbedtls/oid.h"

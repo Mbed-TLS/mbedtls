@@ -33,6 +33,7 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/md.h"
 
 #include <string.h>
 #include <stdint.h>

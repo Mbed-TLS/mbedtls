@@ -27,6 +27,7 @@
 
 #include "mbedtls/pk.h"
 #include "mbedtls/cipher.h"
+#include "mbedtls/md.h"
 
 #ifdef __cplusplus
 extern "C" {

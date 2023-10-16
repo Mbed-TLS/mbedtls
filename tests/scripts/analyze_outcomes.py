@@ -27,7 +27,7 @@ class TestLog:
         self.output = self.output + (fmt + '\n').format(*args, **kwargs)
 
     def info(self, fmt, *args, **kwargs):
-        self.add_line(fmt, *args, **kwargs)
+        self.add_line('Info: ' + fmt, *args, **kwargs)
 
     def error(self, fmt, *args, **kwargs):
         self.info('Error: ' + fmt, *args, **kwargs)
@@ -176,6 +176,9 @@ def do_analyze_driver_vs_reference(outcome_file, args):
     """Perform driver vs reference analyze."""
     log = TestLog()
 
+    log.info("\n*** Analyze driver {} vs reference {} ***\n".format(
+        args['component_driver'], args['component_ref']))
+
     log = execute_reference_driver_tests(log, args['component_ref'], \
                                          args['component_driver'], outcome_file)
     if log.error_count != 0:
@@ -185,8 +188,6 @@ def do_analyze_driver_vs_reference(outcome_file, args):
 
     outcomes = read_outcome_file(outcome_file)
 
-    log.info("\n*** Analyze driver {} vs reference {} ***\n".format(
-        args['component_driver'], args['component_ref']))
     log = analyze_driver_vs_reference(log, outcomes,
                                       args['component_ref'], args['component_driver'],
                                       ignored_suites, args['ignored_tests'])

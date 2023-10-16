@@ -232,11 +232,60 @@ Justification: see “[Susceptibility of different mechanisms](susceptibility-of
 
 ### Implementation of copying
 
-Copy what needs copying. This seems straightforward.
+Copy what needs copying. This is broadly straightforward, however there are a few things to consider.
+
+#### Compiler optimization of copies
+
+It is unclear whether the compiler will attempt to optimize away copying operations.
+
+Once the copying code is implemented, it should be evaluated to see whether compiler optimization is a problem. Specifically, for the major compilers and platforms supported by Mbed TLS:
+* Build Mbed TLS with the compiler set to a high level of optimization (e.g. `-O2` for `gcc`).
+* Inspect the generated code with `objdump` or a similar tool to see if copying operations are preserved.
+
+If copying behaviour is preserved by all major compilers and platforms then assume that compiler optimization is not a problem.
+
+If copying behaviour is optimized away by the compiler, further investigation is needed. Experiment with using the `volatile` keyword to force the compiler not to optimize accesses to the copied buffers.
+
+**Open questions: Will the compiler optimize away copies? If so, can it be prevented from doing so in a portable way?**
+
+#### Copying code
+
+We may either copy buffers on an ad-hoc basis using `memcpy()` in each PSA function, or use a unified set of functions for copying input and output data. The advantages of the latter are obvious:
+
+* Any test hooks need only be added in one place.
+* Copying code must only be reviewed for correctness in one place, rather than in all functions where it occurs.
+* Copy bypass is simpler as we can just replace these functions with no-ops in a single place.
+* Any complexity needed to prevent the compiler optimizing copies away does not have to be duplicated.
+
+On the other hand, the only advantage of ad-hoc copying is slightly greater flexibility.
+
+**Design decision: Create a unified set of functions for copying input and output data.**
+
+#### Copying in multipart APIs
+
+Multipart APIs may follow one of 2 possible approaches for copying of input:
+
+##### 1. Allocate a buffer and copy input on each call to `update()`
+
+This is simple and mirrors the approach for one-shot APIs nicely. However, allocating memory in the middle of a multi-part operation is likely to be bad for performance. Multipart APIs are designed in part for systems that do not have time to perform an operation at once, so introducing poor performance may be a problem here.
+
+**Open question: Does memory allocation in `update()` cause a performance problem? If so, to what extent?**
+
+##### 2. Allocate a buffer at the start of the operation and subdivide calls to `update()`
+
+In this approach, input and output buffers are allocated at the start of the operation that are large enough to hold the expected average call to `update()`. When `update()` is called with larger buffers than these, the PSA API layer makes multiple calls to the driver, chopping the input into chunks of the temporary buffer size and filling the output from the results until the operation is finished.
+
+This would be more complicated than approach (1) and introduces some extra issues. For example, if one of the intermediate calls to the driver's `update()` returns an error, it is not possible for the driver's state to be rolled back to before the first call to `update()`. It is unclear how this could be solved.
+
+However, this approach would reduce memory usage in some cases and prevent memory allocation during an operation. Additionally, since the input and output buffers would be fixed-size it would be possible to allocate them statically, avoiding the need for any dynamic memory allocation at all.
+
+**Design decision: Initially use approach (1) and treat approach (2) as an optimization to be done if necessary.**
 
 ### Validation of copying
 
-TODO: how to we validate that we didn't forget to copy?
+#### Validation of copying by review
+
+This is fairly self-explanatory. Review all functions that use shared memory and ensure that they each copy memory. This is the simplest strategy to implement but is less reliable than automated validation.
 
 #### Validation of copying with memory pools
 
@@ -263,8 +312,61 @@ static void copy_to_user(void *copy_buffer, void *const input_buffer, size_t len
 #endif
 }
 ```
-
 The reason to poison the memory before calling the library, rather than after the copy-in (and symmetrically for output buffers) is so that the test will fail if we forget to copy, or we copy the wrong thing. This would not be the case if we relied on the library's copy function to do the poisoning: that would only validate that the driver code does not access the memory on the condition that the copy is done as expected.
+
+Note: Extra work may be needed when allocating buffers to ensure that each shared buffer lies in its own separate page, allowing its permissions to be set independently.
+
+**Question: Should we try to build memory poisoning validation on existing Mbed TLS tests, or write new tests for this?**
+
+##### Validation with existing tests
+
+It should be possible to integrate memory poisoning validation with existing tests. This has two main advantages:
+* All of the tests are written already, potentially saving development time.
+* The code coverage of these tests is already much greater than would be achievable writing new tests from scratch.
+
+In an ideal world, we would be able to take a grand, encompassing approach whereby we would simply replace the implementation of `mbedtls_calloc()` and all tests would transparently run with memory poisoning enabled. Unfortunately, there are some significant difficulties with this idea:
+* We cannot automatically distinguish which allocated buffers are shared buffers that need memory poisoning enabled.
+* Some input buffers to tested functions may be stack allocated so cannot be poisoned automatically.
+
+Instead, consider a more modest strategy. Create a function:
+```c
+uint8_t *mbedtls_test_get_poisoned_copy(uint8_t *buffer, size_t len)
+```
+that creates a poisoned copy of a buffer ready to be passed to the PSA function. Also create:
+```c
+uint8_t *mbedtls_test_copy_free_poisoned_buffer(uint8_t *poisoned_buffer, uint8_t *original_buffer, size_t len)
+```
+which copies the poisoned buffer contents back into the original buffer and frees the poisoned copy.
+
+In each test case, manually wrap any calls to PSA functions in code that substitutes a poisoned buffer. For example, the code:
+```c
+psa_api_do_some_operation(input, input_len, output, output_len);
+```
+Would be transformed to:
+```c
+input_poisoned = mbedtls_test_get_poisoned_copy(input, input_len);
+output_poisoned = mbedtls_test_get_poisoned_copy(output, output_len);
+psa_api_do_some_operation(input_poisoned, input_len, output_poisoned, output_len);
+mbedtls_test_copy_free_poisoned_buffer(input_poisoned, input, input_len);
+mbedtls_test_copy_free_poisoned_buffer(output_poisoned, output, output_len);
+```
+Further interface design or careful use of macros may make this a little less cumbersome than it seems in this example.
+
+The poison copying functions should be written so as to evaluate to no-ops based on the value of a config option. They also need not be added to all tests, only to a 'covering set' of important tests.
+
+##### Validation with new tests
+
+Validation with newly created tests is initially simpler to implement than using the existing tests, since the tests can know about memory poisoning from the start. However, re-implementing testing for most PSA interfaces (even only basic positive testing) is a large undertaking. Furthermore, not much is gained over the previous approach, given that it seems straightforward to wrap PSA function calls in existing tests with poisoning code.
+
+**Design decision: Add memory poisoning code to existing tests rather than creating new ones, since this is simpler and produces greater coverage.**
+
+#### Discussion
+
+Of all discussed approaches, validation by memory poisoning appears as the best. This is because it:
+* Does not require complex linking against different versions of `malloc()` (as is the case with the memory pool approach).
+* Allows automated testing (unlike the review approach).
+
+**Design decision: Use a memory poisoning approach to validate copying.**
 
 ### Shared memory protection requirements
 
@@ -298,6 +400,12 @@ Idea: call `mmap` to allocate memory for arguments and `mprotect` to deny or ree
 
 Record the addresses that are accessed. Mark the test as failed if the same address is read twice. This part might be hard to do in the gdb language, so we may want to just log the addresses and then use a separate program to analyze the logs, or do the gdb tasks from Python.
 
+#### Discussion
+
+The best approach for validating the correctness of memory accesses is an open question that requires further investigation and prototyping. The above sections discuss some possibilities.
+
+However, there is one additional consideration that may make this easier. The careful-access approach to memory protection is only planned for hash and MAC algorithms. These lend themselves to a linear access pattern on input data; it may be simpler to test that a linear pattern is followed, rather than a random-access single-access-per-location pattern.
+
 ## Analysis of argument protection in built-in drivers
 
 TODO: analyze the built-in implementations of mechanisms for which there is a requirement on drivers. By code inspection, how satisfied are we that they meet the requirement?
@@ -309,3 +417,65 @@ For efficiency, we are likely to want mechanisms to bypass the copy and process 
 Expand this section to document any mechanisms that bypass the copy.
 
 Make sure that such mechanisms preserve the guarantees when buffers overlap.
+
+## Detailed design
+
+### Copying functions
+
+As discussed above, it is simpler to use a single unified API for copying. Therefore, we create the following functions:
+
+* `psa_crypto_copy_input(const uint8_t *input, size_t input_length, uint8_t *input_copy, size_t input_copy_length)`
+* `psa_crypto_copy_output(const uint8_t *output_copy, size_t output_copy_length, uint8_t *output, size_t output_length)`
+
+These seem to be a repeat of the same function, however it is useful to retain two separate functions for input and output parameters so that we can use different test hooks in each when using memory poisoning for tests.
+
+Given that the majority of functions will be allocating memory on the heap to copy, it may help to build convenience functions that allocate the memory as well. One function allocates and copies the buffers:
+
+* `psa_crypto_alloc_and_copy(const uint8_t *input, size_t input_length, uint8_t *output, size_t output_length, struct {uint8_t *inp, uint8_t *out} *buffers)`
+
+This function allocates an input and output buffer in `buffers` and copy the input from the user-supplied input buffer to `buffers->inp`.
+
+An analogous function is needed to copy and free the buffers:
+
+* `psa_crypto_copy_and_free(struct {uint8_t *inp, uint8_t *out} buffers, const uint8_t *input, size_t input_length, const uint8_t *output, size_t output_length)`
+
+This function would first copy the `buffers->out` buffer to the user-supplied output buffer and then free `buffers->inp` and `buffers->out`.
+
+Some PSA functions may not use these convenience functions as they may have local optimizations that reduce memory usage. For example, ciphers may be able to use a single intermediate buffer for both input and output.
+
+### Implementation by module
+
+Module | Input protection strategy | Output protection strategy | Notes
+---|---|---|---
+Hash and MAC | Careful access | Careful access | Low risk of multiple-access as the input and output are raw unformatted data.
+Cipher | Copying | Copying |
+AEAD | Copying (careful access for additional data) | Copying |
+Key derivation | Careful access | Careful access |
+Asymmetric signature | Careful access | Copying | Inputs to signatures are passed to a hash. This will no longer hold once PureEdDSA support is implemented.
+Asymmetric encryption | Copying | Copying |
+Key agreement | Copying | Copying |
+PAKE | Copying | Copying |
+Key import / export | Copying | Copying | Keys may be imported and exported in DER format, which is a structured format and therefore susceptible to read-read inconsistencies and potentially write-read inconsistencies.
+
+### Validation of copying
+
+As discussed above, the best strategy for validation of copies appears to be validation by memory poisoning.
+
+To implement this validation, we need several things:
+1. The ability to allocate memory in individual pages.
+2. The ability to poison memory pages in the copy functions.
+3. Tests that exercise this functionality.
+
+We can implement (1) as a test helper function that allocates full pages of memory so that we can safely set permissions on them:
+```c
+unsigned char *mbedtls_test_get_buffer_poisoned_page(size_t nmemb, size_t size)
+```
+This allocates a buffer of the requested size that is guaranteed to lie entirely within its own memory page. It also calls `mprotect()` so that the page is inaccessible.
+
+Requirement (2) can be implemented by creating a function as alluded to above:
+```c
+void mbedtls_psa_core_poison_memory(unsigned char *buffer, size_t len, int poisoned)
+```
+This function should call `mprotect()` on the buffer to prevent it from being accessed (when `poisoned == 1`) or to allow it to be accessed (when `poisoned == 0`). Note that `mprotect()` requires a page-aligned address, so the function may have to do some preliminary work to find the correct page-aligned address that contains `buffer`.
+
+### Validation of protection by careful access

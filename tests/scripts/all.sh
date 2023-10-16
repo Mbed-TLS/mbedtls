@@ -3926,7 +3926,7 @@ component_build_tfm() {
 # The validator function is the name of a function to validate the combination of options.
 # It may be "" if all combinations are valid.
 # It receives a string containing a combination of options, as passed to the compiler,
-# e.g. "-DOPT1 -DOPT2 ...". It must echo something iff the combination is invalid.
+# e.g. "-DOPT1 -DOPT2 ...". It must return 0 iff the combination is valid, non-zero if invalid.
 build_test_config_combos() {
     file=$1
     shift
@@ -3975,7 +3975,7 @@ build_test_config_combos() {
         done
 
         # if combination is not known to be invalid, add it to the makefile
-        if [[ -z $validate_options ]] || [[ $($validate_options "${clang_args}") == "" ]] ; then
+        if [[ -z $validate_options ]] || $validate_options "${clang_args}"; then
             cmd="${compile_cmd} ${clang_args}"
             echo "${target}: ${source_file}; $cmd ${source_file}" >> ${makefile}
 
@@ -3997,11 +3997,11 @@ build_test_config_combos() {
 validate_aes_config_variations() {
     if [[ "$1" == *"MBEDTLS_AES_USE_HARDWARE_ONLY"* ]]; then
         if [[ "$1" == *"MBEDTLS_PADLOCK_C"* ]]; then
-            echo INVALID
+            false
         fi
         if [[ !(("$HOSTTYPE" == "aarch64" && "$1" != *"MBEDTLS_AESCE_C"*) || \
                 ("$HOSTTYPE" == "x86_64"  && "$1" != *"MBEDTLS_AESNI_C"*)) ]]; then
-            echo INVALID
+            false
         fi
     fi
 }

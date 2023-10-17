@@ -78,6 +78,7 @@ static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
     int ret;
     size_t len;
     unsigned char *end_ext_data;
+    int critical;
     while (*p < end) {
         mbedtls_x509_buf extn_oid = { 0, 0, NULL };
         int ext_type = 0;
@@ -99,6 +100,9 @@ static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
         extn_oid.tag = MBEDTLS_ASN1_OID;
         extn_oid.p = *p;
         *p += extn_oid.len;
+
+        /* Get and ignore optional critical flag */
+        (void)mbedtls_asn1_get_bool(p, end_ext_data, &critical);
 
         /* Data should be octet string type */
         if ((ret = mbedtls_asn1_get_tag(p, end_ext_data, &len,

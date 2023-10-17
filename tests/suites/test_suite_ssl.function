@@ -19,6 +19,7 @@ void test_callback_buffer_sanity()
 {
     enum { MSGLEN = 10 };
     mbedtls_test_ssl_buffer buf;
+    mbedtls_test_ssl_buffer_init(&buf);
     unsigned char input[MSGLEN];
     unsigned char output[MSGLEN];
 
@@ -38,8 +39,6 @@ void test_callback_buffer_sanity()
 
     /* Make sure calling put and get on a buffer that hasn't been set up results
      * in error. */
-    mbedtls_test_ssl_buffer_init(&buf);
-
     TEST_ASSERT(mbedtls_test_ssl_buffer_put(&buf, input, sizeof(input))
                 == -1);
     TEST_ASSERT(mbedtls_test_ssl_buffer_get(&buf, output, sizeof(output))

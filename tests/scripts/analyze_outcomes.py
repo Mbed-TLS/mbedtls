@@ -1,4 +1,4 @@
-  #!/usr/bin/env python3
+#!/usr/bin/env python3
 
 """Analyze the test outcomes from a full CI run.
 
@@ -694,7 +694,7 @@ def main():
                       "{} warnings | ".format(main_results.warning_count) + \
                       "{} errors".format(main_results.error_count))
 
-        sys.exit(0 if (main_results.error_count == 0) else 2)
+        sys.exit(0 if (main_results.error_count == 0) else 1)
 
     except Exception: # pylint: disable=broad-except
         # Print the backtrace and exit explicitly with our chosen status.

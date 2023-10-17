@@ -381,3 +381,18 @@ Since we only have simple mutexes, locking the same mutex from the same thread i
 Releasing the mutex before a function call might introduce race conditions. Therefore might not be practical to take the mutex in low level access functions. If functions like that don't take the mutex, they need to rely on the caller to take it for them. These functions will document that the caller is required to hold the mutex.
 
 To avoid performance degradation, functions must not start expensive operations (eg. doing cryptography) while holding the mutex.
+
+## Strategy for 3.6
+
+The goal is to provide viable threading support without extending the platform abstraction. (Condition variables should be added in 4.0.) This means that we will be relying on mutexes only.
+
+- Key Store
+    - Slot states guarantee safe concurrent access to slot contents
+    - Slot states will be protected by a global mutex
+    - Simple key destruction strategy as described in #mutex-only (variant 2.)
+- Concurrent calls to operation contexts will be prevented by state fields which shall be protected by a global mutex
+- Drivers
+    - The solution shall use the pre-existing MBEDTLS_THREADING_C threading abstraction
+    - Drivers will be protected by their own dedicated lock - only non-thread safe drivers are supported
+    - Constraints on the drivers and the core will be in place and documented as proposed in #reentrancy
+- The main `global_data` (the one in `psa_crypto.c`) shall be protected by its own mutex

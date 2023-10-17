@@ -688,24 +688,24 @@ def main():
             tasks_list = re.split(r'[, ]+', options.specified_tasks)
             for task in tasks_list:
                 if task not in KNOWN_TASKS:
-                    main_log.error('invalid task: {}'.format(task))
+                    sys.stderr.write('invalid task: {}'.format(task))
+                    sys.exit(2)
 
         KNOWN_TASKS['analyze_coverage']['args']['full_coverage'] = options.full_coverage
 
         all_succeeded = True
 
-        for task in KNOWN_TASKS:
-            if task in tasks_list:
-                test_function = KNOWN_TASKS[task]['test_function']
-                test_args = KNOWN_TASKS[task]['args']
-                test_log = test_function(options.outcomes, test_args)
-                # Merge the output of this task with the main one
-                main_log.output = main_log.output + test_log.output
-                main_log.info("Task {} completed with:\n".format(task) + \
-                              "{} warnings\n".format(test_log.warning_count) + \
-                              "{} errors\n".format(test_log.error_count))
-                if test_log.error_count != 0:
-                    all_succeeded = False
+        for task in tasks_list:
+            test_function = KNOWN_TASKS[task]['test_function']
+            test_args = KNOWN_TASKS[task]['args']
+            test_log = test_function(options.outcomes, test_args)
+            # Merge the output of this task with the main one
+            main_log.output = main_log.output + test_log.output
+            main_log.info("Task {} completed with:\n".format(task) + \
+                            "{} warnings\n".format(test_log.warning_count) + \
+                            "{} errors\n".format(test_log.error_count))
+            if test_log.error_count != 0:
+                all_succeeded = False
 
         main_log.print_output()
         sys.exit(0 if all_succeeded else 1)

@@ -679,8 +679,7 @@ def main():
 
         if options.list:
             for task in KNOWN_TASKS:
-                main_log.info(task)
-            main_log.print_output()
+                print(task)
             sys.exit(0)
 
         if options.specified_tasks == 'all':

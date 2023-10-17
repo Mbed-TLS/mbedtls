@@ -21,24 +21,21 @@ class TestLog:
     def __init__(self):
         self.error_count = 0
         self.warning_count = 0
-        self.output = ""
-
-    def add_line(self, fmt, *args, **kwargs):
-        self.output = self.output + (fmt + '\n').format(*args, **kwargs)
 
     def info(self, fmt, *args, **kwargs):
-        self.add_line('Info: ' + fmt, *args, **kwargs)
+        self.print_line('Info: ' + fmt, *args, **kwargs)
 
     def error(self, fmt, *args, **kwargs):
-        self.info('Error: ' + fmt, *args, **kwargs)
         self.error_count += 1
+        self.print_line('Error: ' + fmt, *args, **kwargs)
 
     def warning(self, fmt, *args, **kwargs):
-        self.info('Warning: ' + fmt, *args, **kwargs)
         self.warning_count += 1
+        self.print_line('Warning: ' + fmt, *args, **kwargs)
 
-    def print_output(self):
-        sys.stderr.write(self.output)
+    @staticmethod
+    def print_line(fmt, *args, **kwargs):
+        sys.stderr.write(fmt, *args, **kwargs)
 
 class TestCaseOutcomes:
     """The outcomes of one test case across many configurations."""
@@ -164,25 +161,20 @@ by a semicolon.
                 outcomes[key].failures.append(setup)
     return outcomes
 
-def do_analyze_coverage(outcome_file, args):
+def do_analyze_coverage(log: TestLog, outcome_file, args) -> TestLog:
     """Perform coverage analysis."""
-    log = TestLog()
     log.info("\n*** Analyze coverage ***\n")
     outcomes = read_outcome_file(outcome_file)
     log = analyze_outcomes(log, outcomes, args)
     return log
 
-def do_analyze_driver_vs_reference(outcome_file, args):
+def do_analyze_driver_vs_reference(log: TestLog, outcome_file, args) -> TestLog:
     """Perform driver vs reference analyze."""
-    log = TestLog()
-
     log.info("\n*** Analyze driver {} vs reference {} ***\n".format(
         args['component_driver'], args['component_ref']))
 
     log = execute_reference_driver_tests(log, args['component_ref'], \
                                          args['component_driver'], outcome_file)
-    if log.error_count != 0:
-        return log
 
     ignored_suites = ['test_suite_' + x for x in args['ignored_suites']]
 
@@ -693,22 +685,17 @@ def main():
 
         KNOWN_TASKS['analyze_coverage']['args']['full_coverage'] = options.full_coverage
 
-        all_succeeded = True
-
         for task in tasks_list:
             test_function = KNOWN_TASKS[task]['test_function']
             test_args = KNOWN_TASKS[task]['args']
-            test_log = test_function(options.outcomes, test_args)
-            # Merge the output of this task with the main one
-            main_log.output = main_log.output + test_log.output
-            main_log.info("Task {} completed with:\n".format(task) + \
-                            "{} warnings\n".format(test_log.warning_count) + \
-                            "{} errors\n".format(test_log.error_count))
-            if test_log.error_count != 0:
-                all_succeeded = False
+            main_log = test_function(main_log, options.outcomes, test_args)
+        
+        main_log.info("Overall results:\n" + \
+                      "{} warnings\n".format(main_log.warning_count) + \
+                      "{} errors\n".format(main_log.error_count))
 
         main_log.print_output()
-        sys.exit(0 if all_succeeded else 1)
+        sys.exit(0 if (main_log.error_count == 0) else 2)
 
     except Exception: # pylint: disable=broad-except
         # Print the backtrace and exit explicitly with our chosen status.

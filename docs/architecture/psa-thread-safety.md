@@ -347,6 +347,25 @@ Implementing "thread_safe” drivers depends on the condition variable protectio
 
 Start with implementing threading for drivers without the "thread_safe” property (all drivers behave like the property wasn't set). Add "thread_safe" drivers at some point after the #condition-variables approach is implemented in the core.
 
+#### Reentrancy
+
+It is natural sometimes to want to perform cryptographic operations from a driver, for example calculating a hash as part of various other crypto primitives, or using a block cipher in a driver for a mode, etc. Also encrypting/authenticating communication with a secure element.
+
+If the driver is thread safe, it is the drivers responsibility to handle re-entrancy.
+
+In the non-thread-safe case we have these natural assumptions/requirements:
+1. Drivers don't call the core for any operation for which they provide an entry point
+2. The core doesn't hold the driver mutex between calls to entry points
+
+With these, the only way of a deadlock is when we have several drivers and they have circular dependencies. That is, Driver A makes a call that is despatched to Driver B and upon executing that Driver B makes a call that is despatched to Driver A. For example Driver A does CCM calls Driver B to do CBC-MAC, which in turn calls Driver A to do AES. This example is pretty contrived and it is hard to find a more practical example.
+
+Potential ways for resolving this:
+1. Non-thread-safe drivers must not call the core
+2. Provide a new public API that drivers can safely call
+3. There is a whitelist of core APIs that drivers can call. Drivers providing entry points to these must not make a call to the core when handling these calls. (Drivers are still allowed to call any core API that can't have a driver entry point.)
+
+The first is too restrictive, the second is too expensive, the only viable option is the third.
+
 ### Global Data
 
 PSA Crypto makes use of a `global_data` variable that will be accessible from multiple threads and needs to be protected. Any function accessing this variable (or its members) must take the corresponding lock first. Since `global_data` holds the RNG state, these will involve relatively expensive operations and therefore ideally `global_data` should be protected by its own, dedicated lock (different from the one protecting the key store).

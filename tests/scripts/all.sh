@@ -5536,6 +5536,7 @@ pseudo_component_error_test () {
 # Run one component and clean up afterwards.
 run_component () {
     current_component="$1"
+    build_dir="mbedtls_${current_component#component_}_build_dir"
     export MBEDTLS_TEST_CONFIGURATION="$current_component"
 
     # Unconditionally create a seedfile that's sufficiently long.
@@ -5547,6 +5548,11 @@ run_component () {
         linux*|freebsd*|openbsd*) dd_cmd+=(status=none)
     esac
     "${dd_cmd[@]}"
+
+    if in_tf_psa_crypto_repo; then
+        mkdir "$build_dir"
+        cd "$build_dir"
+    fi
 
     # Run the component in a subshell, with error trapping and output
     # redirection set up based on the relevant options.
@@ -5581,9 +5587,14 @@ run_component () {
         fi
     fi
 
+    cd "$MBEDTLS_TEST_REPO_ROOT_DIR"
+    if in_tf_psa_crypto_repo; then
+        rm -rf "$build_dir"
+    fi
     # Restore the build tree to a clean state.
     cleanup
     unset current_component
+    unset build_dir
 }
 
 # Preliminary setup

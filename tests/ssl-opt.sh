@@ -841,7 +841,7 @@ if [ "$MAX_OUT_LEN" -lt "$MAX_CONTENT_LEN" ]; then
     MAX_CONTENT_LEN="$MAX_OUT_LEN"
 fi
 
-# skip the next test if the SSL output buffer is less than 16KB
+# skip the next test if the SSL output buffer isn't equal to 16KB
 requires_full_size_output_buffer() {
     if [ "$MAX_OUT_LEN" -ne 16384 ]; then
         SKIP_NEXT="YES"

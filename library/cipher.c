@@ -1390,7 +1390,7 @@ int mbedtls_cipher_crypt(mbedtls_cipher_context_t *ctx,
     return 0;
 }
 
-#if defined(MBEDTLS_CIPHER_HAVE_AEAD)
+#if defined(MBEDTLS_CIPHER_MODE_AEAD)
 /*
  * Packet-oriented encryption for AEAD modes: internal function used by
  * mbedtls_cipher_auth_encrypt_ext().
@@ -1569,9 +1569,9 @@ static int mbedtls_cipher_aead_decrypt(mbedtls_cipher_context_t *ctx,
 
     return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
 }
-#endif /* MBEDTLS_CIPHER_HAVE_AEAD */
+#endif /* MBEDTLS_CIPHER_MODE_AEAD */
 
-#if defined(MBEDTLS_CIPHER_HAVE_AEAD) || defined(MBEDTLS_NIST_KW_C)
+#if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)
 /*
  * Packet-oriented encryption for AEAD/NIST_KW: public function.
  */
@@ -1607,7 +1607,7 @@ int mbedtls_cipher_auth_encrypt_ext(mbedtls_cipher_context_t *ctx,
     }
 #endif /* MBEDTLS_NIST_KW_C */
 
-#if defined(MBEDTLS_CIPHER_HAVE_AEAD)
+#if defined(MBEDTLS_CIPHER_MODE_AEAD)
     /* AEAD case: check length before passing on to shared function */
     if (output_len < ilen + tag_len) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
@@ -1620,7 +1620,7 @@ int mbedtls_cipher_auth_encrypt_ext(mbedtls_cipher_context_t *ctx,
     return ret;
 #else
     return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
-#endif /* MBEDTLS_CIPHER_HAVE_AEAD */
+#endif /* MBEDTLS_CIPHER_MODE_AEAD */
 }
 
 /*
@@ -1658,7 +1658,7 @@ int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
     }
 #endif /* MBEDTLS_NIST_KW_C */
 
-#if defined(MBEDTLS_CIPHER_HAVE_AEAD)
+#if defined(MBEDTLS_CIPHER_MODE_AEAD)
     /* AEAD case: check length before passing on to shared function */
     if (ilen < tag_len || output_len < ilen - tag_len) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
@@ -1669,8 +1669,8 @@ int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
                                        input + ilen - tag_len, tag_len);
 #else
     return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
-#endif /* MBEDTLS_CIPHER_HAVE_AEAD */
+#endif /* MBEDTLS_CIPHER_MODE_AEAD */
 }
-#endif /* MBEDTLS_CIPHER_HAVE_AEAD || MBEDTLS_NIST_KW_C */
+#endif /* MBEDTLS_CIPHER_MODE_AEAD || MBEDTLS_NIST_KW_C */
 
 #endif /* MBEDTLS_CIPHER_C */

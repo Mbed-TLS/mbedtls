@@ -349,11 +349,21 @@ cleanup()
     done
 }
 
+cleanup_component_build_dirs () {
+    for dir in */; do
+        case "$dir" in
+            mbedtls_*_build_dir/)
+            rm -rf "$dir"
+        esac
+    done
+}
+
 # Final cleanup when this script exits (except when exiting on a failure
 # in non-keep-going mode).
 final_cleanup () {
+    cd "$MBEDTLS_TEST_REPO_ROOT_DIR"
     cleanup
-
+    cleanup_component_build_dirs
     for x in $files_to_back_up; do
         rm -f "$x$backup_suffix"
     done
@@ -560,6 +570,7 @@ pre_check_git () {
         rm -rf "$OUT_OF_SOURCE_DIR"
         git checkout-index -f -q $CONFIG_H
         cleanup
+        cleanup_component_build_dirs
     else
 
         if [ -d "$OUT_OF_SOURCE_DIR" ]; then
@@ -568,6 +579,17 @@ pre_check_git () {
             echo "the script as: $0 --force --out-of-source-dir $OUT_OF_SOURCE_DIR"
             exit 1
         fi
+
+        for dir in */; do
+            case "$dir" in
+                mbedtls_*_build_dir/)
+                echo "Warning - there is a component out of source build directory '$dir'" >&2
+                echo "You can either delete it manually, or force the test by rerunning"
+                echo "the script as: $0 --force"
+                exit 1
+                ;;
+            esac
+        done
 
         if ! git diff --quiet "$CONFIG_H"; then
             err_msg "Warning - the configuration file '$CONFIG_H' has been edited. "

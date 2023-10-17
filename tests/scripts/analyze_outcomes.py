@@ -690,9 +690,8 @@ def main():
             test_args = KNOWN_TASKS[task]['args']
             main_results = test_function(main_results, options.outcomes, test_args)
 
-        main_results.info("Overall results: " + \
-                      "{} warnings | ".format(main_results.warning_count) + \
-                      "{} errors".format(main_results.error_count))
+        main_results.info("Overall results: {} warnings and {} errors",
+                          main_results.warning_count, main_results.error_count)
 
         sys.exit(0 if (main_results.error_count == 0) else 1)
 

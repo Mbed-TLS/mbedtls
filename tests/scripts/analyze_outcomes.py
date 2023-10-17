@@ -23,18 +23,18 @@ class Results:
         self.warning_count = 0
 
     def info(self, fmt, *args, **kwargs):
-        self.print_line('Info: ' + fmt, *args, **kwargs)
+        self._print_line('Info: ' + fmt, *args, **kwargs)
 
     def error(self, fmt, *args, **kwargs):
         self.error_count += 1
-        self.print_line('Error: ' + fmt, *args, **kwargs)
+        self._print_line('Error: ' + fmt, *args, **kwargs)
 
     def warning(self, fmt, *args, **kwargs):
         self.warning_count += 1
-        self.print_line('Warning: ' + fmt, *args, **kwargs)
+        self._print_line('Warning: ' + fmt, *args, **kwargs)
 
     @staticmethod
-    def print_line(fmt, *args, **kwargs):
+    def _print_line(fmt, *args, **kwargs):
         sys.stderr.write(fmt + '\n', *args, **kwargs)
 
 class TestCaseOutcomes:

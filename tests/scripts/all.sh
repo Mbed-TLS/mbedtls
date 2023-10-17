@@ -3531,7 +3531,7 @@ component_test_psa_crypto_config_accel_cipher () {
     # Configure
     # ---------
 
-    # Start from the default config (no TLS 1.3, no USE_PSA)
+    # Start from the full config
     helper_libtestdriver1_adjust_config "full"
 
     # There is no intended accelerator support for ALG CMAC. Therefore, asking

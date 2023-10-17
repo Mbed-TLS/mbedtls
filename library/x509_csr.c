@@ -75,13 +75,13 @@ static int x509_csr_get_version(unsigned char **p,
 static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
                                      unsigned char **p, const unsigned char *end)
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
     unsigned char *end_ext_data;
-    int critical;
 
     while (*p < end) {
         mbedtls_x509_buf extn_oid = { 0, 0, NULL };
+        int is_critical = 0; /* DEFAULT FALSE */
         int ext_type = 0;
 
         /* Read sequence tag */
@@ -102,8 +102,11 @@ static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
         extn_oid.p = *p;
         *p += extn_oid.len;
 
-        /* Get and ignore optional critical flag */
-        (void)mbedtls_asn1_get_bool(p, end_ext_data, &critical);
+        /* Get optional critical */
+        if ((ret = mbedtls_asn1_get_bool(p, end_ext_data, &is_critical)) != 0 &&
+            (ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG)) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+        }
 
         /* Data should be octet string type */
         if ((ret = mbedtls_asn1_get_tag(p, end_ext_data, &len,
@@ -156,6 +159,12 @@ static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
                     break;
                 default:
                     break;
+            }
+        } else {
+            if (is_critical) {
+                /* Data is marked as critical: fail */
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                         MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
             }
         }
         *p = end_ext_data;

@@ -928,15 +928,17 @@ void mbedtls_x509_dn_get_next(char *name_str,
     int ret = 0, i;
     size_t len = 0, out_size;
     mbedtls_asn1_named_data *names = NULL;
-    mbedtls_x509_name parsed, *parsed_cur;
+    mbedtls_x509_name parsed;
+    memset(&parsed, 0, sizeof(parsed));
+    mbedtls_x509_name *parsed_cur;
     // Size of buf is maximum required for test cases
-    unsigned char buf[80], *out = NULL, *c;
+    unsigned char buf[80] = {0};
+    unsigned char *out = NULL;
+    unsigned char *c = buf + sizeof(buf);
     const char *short_name;
 
     USE_PSA_INIT();
-    memset(&parsed, 0, sizeof(parsed));
-    memset(buf, 0, sizeof(buf));
-    c = buf + sizeof(buf);
+
     // Additional size required for trailing space
     out_size = strlen(expected_oids) + 2;
     TEST_CALLOC(out, out_size);

@@ -35,7 +35,7 @@ class Results:
 
     @staticmethod
     def print_line(fmt, *args, **kwargs):
-        sys.stderr.write(fmt, *args, **kwargs)
+        sys.stderr.write(fmt + '\n', *args, **kwargs)
 
 class TestCaseOutcomes:
     """The outcomes of one test case across many configurations."""
@@ -163,14 +163,14 @@ by a semicolon.
 
 def do_analyze_coverage(results: Results, outcome_file, args) -> Results:
     """Perform coverage analysis."""
-    results.info("\n*** Analyze coverage ***\n")
+    results.info("*** Analyze coverage ***")
     outcomes = read_outcome_file(outcome_file)
     results = analyze_outcomes(results, outcomes, args)
     return results
 
 def do_analyze_driver_vs_reference(results: Results, outcome_file, args) -> Results:
     """Perform driver vs reference analyze."""
-    results.info("\n*** Analyze driver {} vs reference {} ***\n".format(
+    results.info("*** Analyze driver {} vs reference {} ***".format(
         args['component_driver'], args['component_ref']))
 
     results = execute_reference_driver_tests(results, args['component_ref'], \
@@ -690,9 +690,9 @@ def main():
             test_args = KNOWN_TASKS[task]['args']
             main_results = test_function(main_results, options.outcomes, test_args)
 
-        main_results.info("Overall results:\n" + \
-                      "{} warnings\n".format(main_results.warning_count) + \
-                      "{} errors\n".format(main_results.error_count))
+        main_results.info("Overall results: " + \
+                      "{} warnings | ".format(main_results.warning_count) + \
+                      "{} errors".format(main_results.error_count))
 
         sys.exit(0 if (main_results.error_count == 0) else 2)
 

@@ -403,6 +403,7 @@ detect_required_features() {
 
     case "$CMD_LINE" in
         *server5*|\
+        *server6*|\
         *dir-maxpath*)
             if [ "$TLS_VERSION" = "TLS13" ]; then
                 # In case of TLS13 the support for ECDSA is enough

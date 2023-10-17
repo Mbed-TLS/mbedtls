@@ -57,7 +57,7 @@ class TestCaseOutcomes:
         return len(self.successes) + len(self.failures)
 
 def execute_reference_driver_tests(results: Results, ref_component, driver_component, \
-                                   outcome_file) -> Results:
+                                   outcome_file):
     """Run the tests specified in ref_component and driver_component. Results
     are stored in the output_file and they will be used for the following
     coverage analysis"""
@@ -66,7 +66,7 @@ def execute_reference_driver_tests(results: Results, ref_component, driver_compo
     if os.path.exists(outcome_file):
         results.info("Outcome file (" + outcome_file + ") already exists. " + \
                  "Tests will be skipped.")
-        return results
+        return
 
     shell_command = "tests/scripts/all.sh --outcome-file " + outcome_file + \
                     " " + ref_component + " " + driver_component
@@ -75,8 +75,6 @@ def execute_reference_driver_tests(results: Results, ref_component, driver_compo
 
     if ret_val != 0:
         results.error("failed to run reference/driver components")
-
-    return results
 
 def analyze_coverage(results, outcomes, allow_list, full_coverage):
     """Check that all available test cases are executed at least once."""
@@ -132,13 +130,10 @@ def analyze_driver_vs_reference(results: Results, outcomes,
         if(reference_test_passed and not driver_test_passed):
             results.error(key)
 
-    return results
-
-def analyze_outcomes(results: Results, outcomes, args) -> Results:
+def analyze_outcomes(results: Results, outcomes, args):
     """Run all analyses on the given outcome collection."""
     analyze_coverage(results, outcomes, args['allow_list'],
                      args['full_coverage'])
-    return results
 
 def read_outcome_file(outcome_file):
     """Parse an outcome file and return an outcome collection.
@@ -161,30 +156,27 @@ by a semicolon.
                 outcomes[key].failures.append(setup)
     return outcomes
 
-def do_analyze_coverage(results: Results, outcome_file, args) -> Results:
+def do_analyze_coverage(results: Results, outcome_file, args):
     """Perform coverage analysis."""
     results.info("*** Analyze coverage ***")
     outcomes = read_outcome_file(outcome_file)
-    results = analyze_outcomes(results, outcomes, args)
-    return results
+    analyze_outcomes(results, outcomes, args)
 
-def do_analyze_driver_vs_reference(results: Results, outcome_file, args) -> Results:
+def do_analyze_driver_vs_reference(results: Results, outcome_file, args):
     """Perform driver vs reference analyze."""
     results.info("*** Analyze driver {} vs reference {} ***".format(
         args['component_driver'], args['component_ref']))
 
-    results = execute_reference_driver_tests(results, args['component_ref'], \
-                                         args['component_driver'], outcome_file)
+    execute_reference_driver_tests(results, args['component_ref'], \
+                                   args['component_driver'], outcome_file)
 
     ignored_suites = ['test_suite_' + x for x in args['ignored_suites']]
 
     outcomes = read_outcome_file(outcome_file)
 
-    results = analyze_driver_vs_reference(results, outcomes,
-                                          args['component_ref'], args['component_driver'],
-                                          ignored_suites, args['ignored_tests'])
-
-    return results
+    analyze_driver_vs_reference(results, outcomes,
+                                args['component_ref'], args['component_driver'],
+                                ignored_suites, args['ignored_tests'])
 
 # List of tasks with a function that can handle this task and additional arguments if required
 KNOWN_TASKS = {
@@ -688,7 +680,7 @@ def main():
         for task in tasks_list:
             test_function = KNOWN_TASKS[task]['test_function']
             test_args = KNOWN_TASKS[task]['args']
-            main_results = test_function(main_results, options.outcomes, test_args)
+            test_function(main_results, options.outcomes, test_args)
 
         main_results.info("Overall results: {} warnings and {} errors",
                           main_results.warning_count, main_results.error_count)

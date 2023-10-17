@@ -79,6 +79,7 @@ static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
     size_t len;
     unsigned char *end_ext_data;
     int critical;
+
     while (*p < end) {
         mbedtls_x509_buf extn_oid = { 0, 0, NULL };
         int ext_type = 0;

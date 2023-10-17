@@ -231,7 +231,7 @@
 #error "MBEDTLS_ECDSA_DETERMINISTIC defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_ECP_C) && ( !defined(MBEDTLS_BIGNUM_C) || (    \
+#if defined(MBEDTLS_ECP_LIGHT) && ( !defined(MBEDTLS_BIGNUM_C) || (    \
     !defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) &&                  \
     !defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) &&                  \
     !defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) &&                  \
@@ -245,7 +245,7 @@
     !defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) &&                  \
     !defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) &&                 \
     !defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) ) )
-#error "MBEDTLS_ECP_C defined, but not all prerequisites"
+#error "MBEDTLS_ECP_C defined (or a subset enabled), but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_PK_PARSE_C) && !defined(MBEDTLS_ASN1_PARSE_C)

@@ -303,7 +303,7 @@ Solution: after some team discussion, we've decided to rely on a new threading a
 
 When calling `psa_wipe_key_slot` it is the callers responsibility to set the slot state to WRITING first. For most functions this is a clean UNUSED -> WRITING transition: psa_get_empty_key_slot, psa_get_and_lock_key_slot, psa_close_key, psa_purge_key.
 
-`psa_wipe_all_key_slots` is only called from `mbedtls_psa_crypto_free`, here we will need to return an error as we won't be able to free the key store if a key is in use without compromising the state of the secure side. This opens up the way for an untrusted application to launch a DoS attack against the crypto service, but this is still better than compromising confidentiality or integrity and this is the most we can do with mutexes only. Also, this is the current behaviour.
+`psa_wipe_all_key_slots` is only called from `mbedtls_psa_crypto_free`, here we will need to return an error as we won't be able to free the key store if a key is in use without compromising the state of the secure side. This is acceptable as an untrusted application cannot call `mbedtls_psa_crypto_free` in a crypto service. In a service integration, `mbedtls_psa_crypto_free` on the client cuts the communication with the crypto service. Also, this is the current behaviour.
 
 `psa_destroy_key` marks the slot as deleted, deletes persistent keys and opaque keys and returns. This only works if drivers are protected by a mutex (and the persistent storage as well if needed). When the last reading operation finishes, it wipes the key slot. This will free the key ID, but the slot might be still in use. In case of volatile keys freeing up the ID while the slot is still in use does not provide any benefit and we don't need to do it.
 
@@ -314,7 +314,7 @@ Variations:
 1. As a first step the multipart operations would lock the keys for reading on setup and release on free
 2. In a later stage this would be improved by locking the keys on entry into multi-part API calls and released before exiting.
 
-The second variant can't be implemented as a backward compatible improvement on the first as multipart operations that were successfully completed in the first case, would fail in the second. If we want to implement these incrementally, multipart operations in a multithreaded environment must left unsupported in the first variant.
+The second variant can't be implemented as a backward compatible improvement on the first as multipart operations that were successfully completed in the first case, would fail in the second. If we want to implement these incrementally, multipart operations in a multithreaded environment must be left unsupported in the first variant. This makes the first variant impractical (multipart operations returning an error in builds with multithreading enabled is not a behaviour that would be very useful to release).
 
 ### Condition variables
 

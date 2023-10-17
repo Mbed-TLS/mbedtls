@@ -135,7 +135,9 @@ in_tf_psa_crypto_repo () {
 }
 
 pre_check_environment () {
-    if in_mbedtls_repo || in_tf_psa_crypto_repo; then :; else
+    if in_mbedtls_repo || in_tf_psa_crypto_repo; then
+        export MBEDTLS_TEST_REPO_ROOT_DIR="$PWD"
+    else
         echo "Must be run from Mbed TLS / TF-PSA-Crypto root" >&2
         exit 1
     fi
@@ -5278,11 +5280,10 @@ component_test_cmake_out_of_source () {
     make neat
 
     msg "build: cmake 'out-of-source' build"
-    MBEDTLS_ROOT_DIR="$PWD"
     mkdir "$OUT_OF_SOURCE_DIR"
     cd "$OUT_OF_SOURCE_DIR"
     # Note: Explicitly generate files as these are turned off in releases
-    cmake -D CMAKE_BUILD_TYPE:String=Check -D GEN_FILES=ON "$MBEDTLS_ROOT_DIR"
+    cmake -D CMAKE_BUILD_TYPE:String=Check -D GEN_FILES=ON "$MBEDTLS_TEST_REPO_ROOT_DIR"
     make
 
     msg "test: cmake 'out-of-source' build"
@@ -5298,7 +5299,7 @@ component_test_cmake_out_of_source () {
     # If ssl-opt.err is non-empty, record an error and keep going.
     [ ! -s ssl-opt.err ]
     rm ssl-opt.out ssl-opt.err
-    cd "$MBEDTLS_ROOT_DIR"
+    cd "$MBEDTLS_TEST_REPO_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
 }
 
@@ -5352,18 +5353,17 @@ component_build_cmake_custom_config_file () {
     # Make a copy of config file to use for the in-tree test
     cp "$CONFIG_H" include/mbedtls_config_in_tree_copy.h
 
-    MBEDTLS_ROOT_DIR="$PWD"
     mkdir "$OUT_OF_SOURCE_DIR"
     cd "$OUT_OF_SOURCE_DIR"
 
     # Build once to get the generated files (which need an intact config file)
-    cmake "$MBEDTLS_ROOT_DIR"
+    cmake "$MBEDTLS_TEST_REPO_ROOT_DIR"
     make
 
     msg "build: cmake with -DMBEDTLS_CONFIG_FILE"
     scripts/config.py -w full_config.h full
-    echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_ROOT_DIR/$CONFIG_H"
-    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h "$MBEDTLS_ROOT_DIR"
+    echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_TEST_REPO_ROOT_DIR/$CONFIG_H"
+    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h "$MBEDTLS_TEST_REPO_ROOT_DIR"
     make
 
     msg "build: cmake with -DMBEDTLS_CONFIG_FILE + -DMBEDTLS_USER_CONFIG_FILE"
@@ -5371,13 +5371,13 @@ component_build_cmake_custom_config_file () {
     # that nothing else depends on).
     echo '#undef MBEDTLS_NIST_KW_C' >user_config.h
 
-    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h -DMBEDTLS_USER_CONFIG_FILE=user_config.h "$MBEDTLS_ROOT_DIR"
+    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h -DMBEDTLS_USER_CONFIG_FILE=user_config.h "$MBEDTLS_TEST_REPO_ROOT_DIR"
     make
     not programs/test/query_compile_time_config MBEDTLS_NIST_KW_C
 
     rm -f user_config.h full_config.h
 
-    cd "$MBEDTLS_ROOT_DIR"
+    cd "$MBEDTLS_TEST_REPO_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
 
     # Now repeat the test for an in-tree build:
@@ -5391,7 +5391,7 @@ component_build_cmake_custom_config_file () {
 
     msg "build: cmake (in-tree) with -DMBEDTLS_CONFIG_FILE"
     scripts/config.py -w full_config.h full
-    echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_ROOT_DIR/$CONFIG_H"
+    echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_TEST_REPO_ROOT_DIR/$CONFIG_H"
     cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h .
     make
 

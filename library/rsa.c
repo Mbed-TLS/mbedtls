@@ -2431,7 +2431,6 @@ void mbedtls_rsa_free(mbedtls_rsa_context *ctx)
 
 #if defined(MBEDTLS_SELF_TEST)
 
-#include "mbedtls/md.h"
 
 /*
  * Example RSA-1024 keypair, for test purposes

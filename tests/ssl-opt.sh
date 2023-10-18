@@ -81,14 +81,6 @@ TCP_CLIENT="$PERL scripts/tcp_client.pl"
 
 # alternative versions of OpenSSL and GnuTLS (no default path)
 
-if [ -n "${OPENSSL_LEGACY:-}" ]; then
-    O_LEGACY_SRV="$OPENSSL_LEGACY s_server -www -cert data_files/server5.crt -key data_files/server5.key"
-    O_LEGACY_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_LEGACY s_client"
-else
-    O_LEGACY_SRV=false
-    O_LEGACY_CLI=false
-fi
-
 if [ -n "${OPENSSL_NEXT:-}" ]; then
     O_NEXT_SRV="$OPENSSL_NEXT s_server -www -cert data_files/server5.crt -key data_files/server5.key"
     O_NEXT_SRV_EARLY_DATA="$OPENSSL_NEXT s_server -early_data -cert data_files/server5.crt -key data_files/server5.key"
@@ -640,20 +632,6 @@ requires_gnutls_next() {
         fi
     fi
     if [ "$GNUTLS_NEXT_AVAILABLE" = "NO" ]; then
-        SKIP_NEXT="YES"
-    fi
-}
-
-# skip next test if OpenSSL-legacy isn't available
-requires_openssl_legacy() {
-    if [ -z "${OPENSSL_LEGACY_AVAILABLE:-}" ]; then
-        if which "${OPENSSL_LEGACY:-}" >/dev/null 2>&1; then
-            OPENSSL_LEGACY_AVAILABLE="YES"
-        else
-            OPENSSL_LEGACY_AVAILABLE="NO"
-        fi
-    fi
-    if [ "$OPENSSL_LEGACY_AVAILABLE" = "NO" ]; then
         SKIP_NEXT="YES"
     fi
 }
@@ -1914,11 +1892,6 @@ O_SRV="$O_SRV -accept $SRV_PORT"
 O_CLI="$O_CLI -connect 127.0.0.1:+SRV_PORT"
 G_SRV="$G_SRV -p $SRV_PORT"
 G_CLI="$G_CLI -p +SRV_PORT"
-
-if [ -n "${OPENSSL_LEGACY:-}" ]; then
-    O_LEGACY_SRV="$O_LEGACY_SRV -accept $SRV_PORT -dhparam data_files/dhparams.pem"
-    O_LEGACY_CLI="$O_LEGACY_CLI -connect 127.0.0.1:+SRV_PORT"
-fi
 
 # Newer versions of OpenSSL have a syntax to enable all "ciphers", even
 # low-security ones. This covers not just cipher suites but also protocol

@@ -1218,6 +1218,8 @@ void check_set_padding(int cipher_id)
     const mbedtls_cipher_info_t *cipher_info;
     size_t keylen = 0;
 
+    mbedtls_cipher_init(&ctx);
+
     cipher_info = mbedtls_cipher_info_from_type(cipher_id);
 
     if (cipher_info->mode != MBEDTLS_MODE_CBC) {
@@ -1227,8 +1229,6 @@ void check_set_padding(int cipher_id)
     keylen = mbedtls_cipher_info_get_key_bitlen(cipher_info);
     TEST_CALLOC(key, keylen/8);
     memset(key, 0, keylen/8);
-
-    mbedtls_cipher_init(&ctx);
 
     TEST_EQUAL(0, mbedtls_cipher_setup(&ctx, cipher_info));
 

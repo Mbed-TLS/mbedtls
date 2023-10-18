@@ -67,7 +67,7 @@ def main():
     return generate(**vars(args))
 
 def generate(**kwargs):
-    """Generate different slt length certificate file."""
+    """Generate different salt length certificate file."""
     ca_password = kwargs.get('ca_password', '')
     if ca_password:
         kwargs['ca_password'] = r'-passin "pass:{ca_password}"'.format(

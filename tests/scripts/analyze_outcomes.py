@@ -22,6 +22,9 @@ class Results:
         self.error_count = 0
         self.warning_count = 0
 
+    def new_section(self, fmt, *args, **kwargs):
+        self._print_line('\n*** ' + fmt + ' ***\n', *args, **kwargs)
+
     def info(self, fmt, *args, **kwargs):
         self._print_line('Info: ' + fmt, *args, **kwargs)
 
@@ -157,14 +160,14 @@ by a semicolon.
 
 def do_analyze_coverage(results: Results, outcome_file, args):
     """Perform coverage analysis."""
-    results.info("*** Analyze coverage ***")
+    results.new_section("Analyze coverage")
     outcomes = read_outcome_file(outcome_file)
     analyze_outcomes(results, outcomes, args)
 
 def do_analyze_driver_vs_reference(results: Results, outcome_file, args):
     """Perform driver vs reference analyze."""
-    results.info("*** Analyze driver {} vs reference {} ***",
-                 args['component_driver'], args['component_ref'])
+    results.new_section("Analyze driver {} vs reference {}",
+                        args['component_driver'], args['component_ref'])
 
     execute_reference_driver_tests(results, args['component_ref'], \
                                    args['component_driver'], outcome_file)

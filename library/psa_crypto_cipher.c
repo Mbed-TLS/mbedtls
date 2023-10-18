@@ -31,15 +31,15 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_CIPHER_C)
-const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
+psa_status_t mbedtls_cipher_values_from_psa(
     psa_algorithm_t alg,
     psa_key_type_t key_type,
-    size_t key_bits,
+    size_t *key_bits,
+    mbedtls_cipher_mode_t *mode,
     mbedtls_cipher_id_t *cipher_id)
 {
-    mbedtls_cipher_mode_t mode;
     mbedtls_cipher_id_t cipher_id_tmp;
+    (void) key_bits;
 
     if (PSA_ALG_IS_AEAD(alg)) {
         alg = PSA_ALG_AEAD_WITH_SHORTENED_TAG(alg, 0);
@@ -49,66 +49,66 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
         switch (alg) {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER)
             case PSA_ALG_STREAM_CIPHER:
-                mode = MBEDTLS_MODE_STREAM;
+                *mode = MBEDTLS_MODE_STREAM;
                 break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CTR)
             case PSA_ALG_CTR:
-                mode = MBEDTLS_MODE_CTR;
+                *mode = MBEDTLS_MODE_CTR;
                 break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CFB)
             case PSA_ALG_CFB:
-                mode = MBEDTLS_MODE_CFB;
+                *mode = MBEDTLS_MODE_CFB;
                 break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_OFB)
             case PSA_ALG_OFB:
-                mode = MBEDTLS_MODE_OFB;
+                *mode = MBEDTLS_MODE_OFB;
                 break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING)
             case PSA_ALG_ECB_NO_PADDING:
-                mode = MBEDTLS_MODE_ECB;
+                *mode = MBEDTLS_MODE_ECB;
                 break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING)
             case PSA_ALG_CBC_NO_PADDING:
-                mode = MBEDTLS_MODE_CBC;
+                *mode = MBEDTLS_MODE_CBC;
                 break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7)
             case PSA_ALG_CBC_PKCS7:
-                mode = MBEDTLS_MODE_CBC;
+                *mode = MBEDTLS_MODE_CBC;
                 break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM_STAR_NO_TAG)
             case PSA_ALG_CCM_STAR_NO_TAG:
-                mode = MBEDTLS_MODE_CCM_STAR_NO_TAG;
+                *mode = MBEDTLS_MODE_CCM_STAR_NO_TAG;
                 break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
             case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, 0):
-                mode = MBEDTLS_MODE_CCM;
+                *mode = MBEDTLS_MODE_CCM;
                 break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
             case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, 0):
-                mode = MBEDTLS_MODE_GCM;
+                *mode = MBEDTLS_MODE_GCM;
                 break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
             case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CHACHA20_POLY1305, 0):
-                mode = MBEDTLS_MODE_CHACHAPOLY;
+                *mode = MBEDTLS_MODE_CHACHAPOLY;
                 break;
 #endif
             default:
-                return NULL;
+                return PSA_ERROR_NOT_SUPPORTED;
         }
     } else if (alg == PSA_ALG_CMAC) {
-        mode = MBEDTLS_MODE_ECB;
+        *mode = MBEDTLS_MODE_ECB;
     } else {
-        return NULL;
+        return PSA_ERROR_NOT_SUPPORTED;
     }
 
     switch (key_type) {
@@ -126,7 +126,7 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
         case PSA_KEY_TYPE_DES:
             /* key_bits is 64 for Single-DES, 128 for two-key Triple-DES,
              * and 192 for three-key Triple-DES. */
-            if (key_bits == 64) {
+            if (*key_bits == 64) {
                 cipher_id_tmp = MBEDTLS_CIPHER_ID_DES;
             } else {
                 cipher_id_tmp = MBEDTLS_CIPHER_ID_3DES;
@@ -134,8 +134,8 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
             /* mbedtls doesn't recognize two-key Triple-DES as an algorithm,
              * but two-key Triple-DES is functionally three-key Triple-DES
              * with K1=K3, so that's how we present it to mbedtls. */
-            if (key_bits == 128) {
-                key_bits = 192;
+            if (*key_bits == 128) {
+                *key_bits = 192;
             }
             break;
 #endif
@@ -150,14 +150,35 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
             break;
 #endif
         default:
-            return NULL;
+            return PSA_ERROR_NOT_SUPPORTED;
     }
     if (cipher_id != NULL) {
         *cipher_id = cipher_id_tmp;
     }
 
-    return mbedtls_cipher_info_from_values(cipher_id_tmp,
-                                           (int) key_bits, mode);
+    return PSA_SUCCESS;
+}
+
+#if defined(MBEDTLS_CIPHER_C)
+const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
+    psa_algorithm_t alg,
+    psa_key_type_t key_type,
+    size_t key_bits,
+    mbedtls_cipher_id_t *cipher_id)
+{
+    mbedtls_cipher_mode_t mode;
+    psa_status_t status;
+    mbedtls_cipher_id_t cipher_id_tmp;
+
+    status = mbedtls_cipher_values_from_psa(alg, key_type, &key_bits, &mode, &cipher_id_tmp);
+    if (status != PSA_SUCCESS) {
+        return NULL;
+    }
+    if (cipher_id != NULL) {
+        *cipher_id = cipher_id_tmp;
+    }
+
+    return mbedtls_cipher_info_from_values(cipher_id_tmp, (int) key_bits, mode);
 }
 #endif /* MBEDTLS_CIPHER_C */
 

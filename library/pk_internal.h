@@ -44,7 +44,7 @@
                                                                     psa_pk_status_to_mbedtls)
 #endif
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 /**
  * Public function mbedtls_pk_ec() can be used to get direct access to the
  * wrapped ecp_keypair structure pointed to the pk_ctx. However this is not
@@ -80,7 +80,9 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec_rw(const mbedtls_pk_context pk)
             return NULL;
     }
 }
+#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
 
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 static inline mbedtls_ecp_group_id mbedtls_pk_get_group_id(const mbedtls_pk_context *pk)
 {
     mbedtls_ecp_group_id id;

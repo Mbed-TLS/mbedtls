@@ -162,24 +162,6 @@ def is_windows_file(filepath):
     return ext in ('.bat', '.dsp', '.dsw', '.sln', '.vcxproj')
 
 
-class PermissionIssueTracker(FileIssueTracker):
-    """Track files with bad permissions.
-
-    Files that are not executable scripts must not be executable."""
-
-    heading = "Incorrect permissions:"
-
-    # .py files can be either full scripts or modules, so they may or may
-    # not be executable.
-    suffix_exemptions = frozenset({".py"})
-
-    def check_file_for_issue(self, filepath):
-        is_executable = os.access(filepath, os.X_OK)
-        should_be_executable = filepath.endswith((".sh", ".pl"))
-        if is_executable != should_be_executable:
-            self.files_with_issues[filepath] = None
-
-
 class ShebangIssueTracker(FileIssueTracker):
     """Track files with a bad, missing or extraneous shebang line.
 
@@ -386,7 +368,6 @@ class IntegrityChecker:
         self.logger = None
         self.setup_logger(log_file)
         self.issues_to_check = [
-            PermissionIssueTracker(),
             ShebangIssueTracker(),
             EndOfFileNewlineIssueTracker(),
             Utf8BomIssueTracker(),

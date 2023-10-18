@@ -64,13 +64,12 @@ def execute_reference_driver_tests(results: Results, ref_component, driver_compo
     # If the outcome file already exists, we assume that the user wants to
     # perform the comparison analysis again without repeating the tests.
     if os.path.exists(outcome_file):
-        results.info("Outcome file (" + outcome_file + ") already exists. " + \
-                 "Tests will be skipped.")
+        results.info("Outcome file ({}) already exists. Tests will be skipped.", outcome_file)
         return
 
     shell_command = "tests/scripts/all.sh --outcome-file " + outcome_file + \
                     " " + ref_component + " " + driver_component
-    results.info("Running: " + shell_command)
+    results.info("Running: {}", shell_command)
     ret_val = subprocess.run(shell_command.split(), check=False).returncode
 
     if ret_val != 0:
@@ -128,7 +127,7 @@ def analyze_driver_vs_reference(results: Results, outcomes,
             if component_ref in entry:
                 reference_test_passed = True
         if(reference_test_passed and not driver_test_passed):
-            results.error(key)
+            results.error("Did not pass with driver: {}", key)
 
 def analyze_outcomes(results: Results, outcomes, args):
     """Run all analyses on the given outcome collection."""
@@ -164,8 +163,8 @@ def do_analyze_coverage(results: Results, outcome_file, args):
 
 def do_analyze_driver_vs_reference(results: Results, outcome_file, args):
     """Perform driver vs reference analyze."""
-    results.info("*** Analyze driver {} vs reference {} ***".format(
-        args['component_driver'], args['component_ref']))
+    results.info("*** Analyze driver {} vs reference {} ***",
+                 args['component_driver'], args['component_ref'])
 
     execute_reference_driver_tests(results, args['component_ref'], \
                                    args['component_driver'], outcome_file)

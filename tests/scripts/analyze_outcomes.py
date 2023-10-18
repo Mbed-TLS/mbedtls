@@ -35,7 +35,7 @@ class Results:
 
     @staticmethod
     def _print_line(fmt, *args, **kwargs):
-        sys.stderr.write(fmt + '\n', *args, **kwargs)
+        sys.stderr.write((fmt + '\n').format(*args, **kwargs))
 
 class TestCaseOutcomes:
     """The outcomes of one test case across many configurations."""

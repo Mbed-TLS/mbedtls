@@ -1757,28 +1757,13 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
     if ((handshake->received_extensions &
          MBEDTLS_SSL_EXT_MASK(EARLY_DATA)) == 0) {
         MBEDTLS_SSL_DEBUG_MSG(
-            1, ("EarlyData: early data extension is not received."));
+            1, ("EarlyData: no early data extension received."));
         ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_RECEIVED;
         return;
     }
 
+    /* We do not accept early data for the time being */
     ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED;
-
-    if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_DISABLED) {
-        MBEDTLS_SSL_DEBUG_MSG(
-            1, ("EarlyData: rejected. configured disabled."));
-        return;
-    }
-
-    MBEDTLS_SSL_DEBUG_MSG(
-        3, ("EarlyData: conf->max_early_data_size = %u",
-            (unsigned int) ssl->conf->max_early_data_size));
-
-    /* TODO: Add more checks here. */
-
-    MBEDTLS_SSL_DEBUG_MSG(
-        1, ("EarlyData: For time being, it should not happen."));
-    ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
 
 }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
@@ -1812,7 +1797,6 @@ static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     /* There is enough information, update early data state. */
     ssl_tls13_update_early_data_status(ssl);
-
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
     return 0;

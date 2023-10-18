@@ -3521,8 +3521,8 @@ component_test_psa_crypto_config_accel_cipher () {
     # Configure
     # ---------
 
-    # Start from the default config (no TLS 1.3, no USE_PSA)
-    helper_libtestdriver1_adjust_config "default"
+    # Start from the full config
+    helper_libtestdriver1_adjust_config "full"
 
     # There is no intended accelerator support for ALG CMAC. Therefore, asking
     # for it in the build implies the inclusion of the Mbed TLS cipher
@@ -3561,21 +3561,19 @@ component_test_psa_crypto_config_accel_cipher () {
 component_test_psa_crypto_config_accel_aead () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated AEAD"
 
-    loc_accel_list="ALG_GCM ALG_CCM ALG_CHACHA20_POLY1305 KEY_TYPE_AES KEY_TYPE_CHACHA20 KEY_TYPE_ARIA KEY_TYPE_CAMELLIA"
+    loc_accel_list="ALG_GCM ALG_CCM ALG_CHACHA20_POLY1305 \
+                    KEY_TYPE_AES KEY_TYPE_CHACHA20 KEY_TYPE_ARIA KEY_TYPE_CAMELLIA"
 
     # Configure
     # ---------
 
-    # Start from default config (no TLS 1.3, no USE_PSA)
-    helper_libtestdriver1_adjust_config "default"
+    # Start from full config
+    helper_libtestdriver1_adjust_config "full"
 
     # Disable things that are being accelerated
     scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
-    # Features that depend on AEAD
-    scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
-    scripts/config.py unset MBEDTLS_SSL_TICKET_C
 
     # Build
     # -----

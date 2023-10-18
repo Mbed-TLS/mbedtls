@@ -22,7 +22,7 @@ Functions for generating TLSv1.3 Compat test cases
 
 import itertools
 from .core import CIPHER_SUITE_IANA_VALUE, NAMED_GROUP_IANA_VALUE, SIG_ALG_IANA_VALUE, \
-    GnuTLSCli, GnuTLSServ, MbedTLSBase, MbedTLSCli, MbedTLSServ, OpenSSLCli, OpenSSLServ
+    GnuTLSCli, GnuTLSServ, KexMode, MbedTLSBase, MbedTLSCli, MbedTLSServ, OpenSSLCli, OpenSSLServ
 
 SERVER_CLASSES = [OpenSSLServ, GnuTLSServ, MbedTLSServ]
 CLIENT_CLASSES = [OpenSSLCli, GnuTLSCli, MbedTLSCli]
@@ -42,11 +42,13 @@ def generate_compat_test(client=None, server=None, cipher=None, named_group=None
     server_object = server(ciphersuite=cipher,
                            named_group=named_group,
                            signature_algorithm=sig_alg,
-                           cert_sig_alg=sig_alg)
+                           cert_sig_alg=sig_alg,
+                           kex_mode=KexMode.ephemeral if KexMode.ephemeral in server.SUPPORT_KEX_MODES else KexMode.all)
     client_object = client(ciphersuite=cipher,
                            named_group=named_group,
                            signature_algorithm=sig_alg,
-                           cert_sig_alg=sig_alg)
+                           cert_sig_alg=sig_alg,
+                           kex_mode=KexMode.ephemeral if KexMode.ephemeral in client.SUPPORT_KEX_MODES else KexMode.all)
 
     cmd = ['run_test "{}"'.format(name),
            '"{}"'.format(' '.join(server_object.cmd())),
@@ -89,13 +91,15 @@ def generate_hrr_compat_test(client=None, server=None,
     if client_named_group == server_named_group:
         return None
     name_fmt_string = 'TLS 1.3 {client[0]}->{server[0]}:' + \
-                      ' ephemeral HRR {c_named_group} -> {s_named_group}'
+                      ' ephemeral group({c_named_group} -> {s_named_group})'
     name = name_fmt_string.format(client=client.PROG_NAME, server=server.PROG_NAME,
                                   c_named_group=client_named_group,
                                   s_named_group=server_named_group)
-    server_object = server(named_group=server_named_group, cert_sig_alg=cert_sig_alg)
+    server_object = server(named_group=server_named_group, cert_sig_alg=cert_sig_alg,
+                           kex_mode=KexMode.ephemeral if KexMode.ephemeral in server.SUPPORT_KEX_MODES else KexMode.all)
 
-    client_object = client(named_group=client_named_group, cert_sig_alg=cert_sig_alg)
+    client_object = client(named_group=client_named_group, cert_sig_alg=cert_sig_alg,
+                           kex_mode=KexMode.ephemeral if KexMode.ephemeral in client.SUPPORT_KEX_MODES else KexMode.all)
     # Add server name_group that will be selected by second client hello.
     client_object.add_named_groups(server_named_group)
 
@@ -104,10 +108,11 @@ def generate_hrr_compat_test(client=None, server=None,
            '"{}"'.format(' '.join(client_object.cmd())),
            '0']
     cmd += server_object.post_checks()
+    cmd += client_object.post_checks()
+
     if isinstance(server_object, MbedTLSServ):
         cmd += ['-s "HRR selected_group: {:s}"'.format(server_named_group)]
 
-    cmd += client_object.post_checks()
     if isinstance(client_object, MbedTLSCli):
         cmd += ['-c "received HelloRetryRequest message"', '-c "selected_group ( {:d} )"'.format(
             NAMED_GROUP_IANA_VALUE[server_named_group])]
@@ -134,6 +139,7 @@ def generate_all_hrr_compat_tests():
                                        client_named_group=client_named_group,
                                        server_named_group=server_named_group,
                                        cert_sig_alg="ecdsa_secp256r1_sha256")
+
 
 def generate_tests_of_hrr_and_compt():
     yield from generate_tls13_compat_tests()

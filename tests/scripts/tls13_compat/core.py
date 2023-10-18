@@ -62,10 +62,13 @@ NAMED_GROUP_IANA_VALUE = {
     'secp521r1': 0x19,
     'x25519': 0x1d,
     'x448': 0x1e,
+    # Only one finite field group to keep testing time within reasonable bounds.
+    'ffdhe2048': 0x100,
 }
 
 
 class KexMode(IntEnum):
+    none = 0
     psk = 1
     ephemeral = 2
     psk_or_ephemeral = 3
@@ -73,6 +76,11 @@ class KexMode(IntEnum):
     psk_all = 5
     ephemeral_all = 6
     all = 7
+
+
+class TLSProtocol(IntEnum):
+    tls1_2 = 1
+    tls1_3 = 2
 
 
 PSK_DEFAULT_IDENTITIES = {
@@ -87,7 +95,8 @@ class TLSProgram:
     Base class for generate server/client command.
     """
 
-    SUPPORT_KEX_MODES = list(KexMode)
+    SUPPORT_KEX_MODES = [KexMode.psk, KexMode.ephemeral, KexMode.psk_ephemeral,
+                         KexMode.psk_or_ephemeral, KexMode.psk_all, KexMode.ephemeral_all, KexMode.all]
 
     def __init__(self, **kwargs):
         """
@@ -104,11 +113,11 @@ class TLSProgram:
             cli_auth (bool) : Enable/disable cli_auth.
             kex_mode (KexMode, None): Set kex mode or None to use default
         """
-        def get_list_arg(arg):
-            arg = kwargs.get(arg, [])
+        def get_list_arg(arg, default=[]):
+            arg = kwargs.get(arg, None)
             if arg is None:
-                return []
-            if isinstance(arg, list):
+                return default or []
+            if isinstance(arg, list) or isinstance(arg, set):
                 return arg
             return [arg]
 
@@ -116,12 +125,17 @@ class TLSProgram:
         self._sig_algs = get_list_arg('signature_algorithm')
         self._named_groups = get_list_arg('named_group')
         self._cert_sig_algs = get_list_arg('cert_sig_alg')
-        self._psk_identities = get_list_arg('psk') or PSK_DEFAULT_IDENTITIES.values()
+        self._psk_identities = get_list_arg(
+            'psk') or PSK_DEFAULT_IDENTITIES.values()
         self._compat_mode = kwargs.get('compat_mode', True)
         self._tls_version = get_list_arg('tls_version') or ['tls13']
         self._num_tickets = kwargs.get('num_tickets', None)
         self._cli_auth = kwargs.get('cli_auth', False)
-        self._kex_mode = kwargs.get('kex_mode', None)
+        self._kex_mode = kwargs.get('kex_mode', KexMode.all)
+        assert self._kex_mode in self.SUPPORT_KEX_MODES, (
+            self.SUPPORT_KEX_MODES, self._kex_mode, self)
+        self._protocols = get_list_arg('protocols', {TLSProtocol.tls1_3})
+        self._enable_tickets = kwargs.get('enable_tickets', True)
 
     # add_ciphersuites should not be overridden by sub class
     def add_ciphersuites(self, *ciphersuites):
@@ -147,6 +161,12 @@ class TLSProgram:
     def add_psk_identities(self, *psk_identities):
         self._psk_identities.extend(
             [psks for psks in psk_identities if psks not in self._psk_identities])
+
+    @property
+    def psk_identities(self):
+        if self._kex_mode & KexMode.psk_all:
+            return list(self._psk_identities)
+        return []
 
     # pylint: disable=no-self-use
     def pre_checks(self):
@@ -178,6 +198,7 @@ class OpenSSLBase(TLSProgram):
         'secp521r1': 'P-521',
         'x25519': 'X25519',
         'x448': 'X448',
+        'ffdhe2048': 'ffdhe2048',
     }
 
     SUPPORT_KEX_MODES = [KexMode.ephemeral_all, KexMode.all]
@@ -217,7 +238,13 @@ class OpenSSLBase(TLSProgram):
         return ret
 
     def pre_checks(self):
-        return ["requires_openssl_tls1_3"]
+        ret = ["requires_openssl_tls1_3"]
+
+        # ffdh groups require at least openssl 3.0
+        if {'ffdhe2048'} & set(self._named_groups):
+            ret = ["requires_openssl_tls1_3_with_ffdh"]
+
+        return ret
 
 
 class OpenSSLServ(OpenSSLBase):
@@ -235,8 +262,9 @@ class OpenSSLServ(OpenSSLBase):
 
     def pre_cmd(self):
         ret = ['$O_NEXT_SRV_NO_CERT']
-        for _, cert, key in map(lambda sig_alg: CERTIFICATES[sig_alg], self._cert_sig_algs):
-            ret += ['-cert {cert} -key {key}'.format(cert=cert, key=key)]
+        if self._cert_sig_algs and self._kex_mode & KexMode.ephemeral:
+            for _, cert, key in map(lambda sig_alg: CERTIFICATES[sig_alg], self._cert_sig_algs):
+                ret += ['-cert {cert} -key {key}'.format(cert=cert, key=key)]
         return ret
 
 
@@ -247,7 +275,7 @@ class OpenSSLCli(OpenSSLBase):
 
     def pre_cmd(self):
         ret = ['$O_NEXT_CLI_NO_CERT']
-        if self._cert_sig_algs:
+        if self._cert_sig_algs and self._kex_mode & KexMode.ephemeral:
             ret.append(
                 '-CAfile {cafile}'.format(cafile=CERTIFICATES[self._cert_sig_algs[0]].cafile))
         return ret
@@ -258,7 +286,7 @@ class GnuTLSBase(TLSProgram):
     Generate base test commands for GnuTLS.
     """
     PROG_NAME = 'GnuTLS'
-    SUPPORT_KEX_MODES = [KexMode.ephemeral_all, KexMode.all]
+    SUPPORT_KEX_MODES = [KexMode.ephemeral_all, KexMode.all, KexMode.ephemeral]
 
     CIPHER_SUITE = {
         'TLS_AES_256_GCM_SHA384': [
@@ -294,16 +322,33 @@ class GnuTLSBase(TLSProgram):
         'secp521r1': ['GROUP-SECP521R1'],
         'x25519': ['GROUP-X25519'],
         'x448': ['GROUP-X448'],
+        'ffdhe2048': ['GROUP-FFDHE2048'],
     }
 
+    PROTOCOLS = {
+        TLSProtocol.tls1_2: ['VERS-TLS1.2'],
+        TLSProtocol.tls1_3: ['VERS-TLS1.3']
+    }
+
+    def _update_configuration(self):
+        if self._kex_mode & KexMode.psk_all:
+            return
+        # When psk/psk_ephemeral are disabled, tickets MUST be disable also for GnuTLS
+        self._enable_tickets = False
+
     def pre_checks(self):
-        return ["requires_gnutls_tls1_3",
-                "requires_gnutls_next_no_ticket",
-                "requires_gnutls_next_disable_tls13_compat", ]
+        self._update_configuration()
+        ret = ["requires_gnutls_tls1_3"]
+        if not self._enable_tickets:
+            ret += ['requires_gnutls_next_no_ticket']
 
-    def cmd(self):
-        ret = super().cmd()
+        if not self._compat_mode:
+            ret += ['requires_gnutls_next_disable_tls13_compat']
 
+        return ret
+
+    def get_priority_string(self):
+        self._update_configuration()
         priority_string_list = []
 
         def update_priority_string_list(items, map_table):
@@ -311,6 +356,10 @@ class GnuTLSBase(TLSProgram):
                 for i in map_table[item]:
                     if i not in priority_string_list:
                         yield i
+
+        if self._protocols:
+            priority_string_list.extend(update_priority_string_list(
+                self._protocols, self.PROTOCOLS))
 
         if self._ciphers:
             priority_string_list.extend(update_priority_string_list(
@@ -331,17 +380,21 @@ class GnuTLSBase(TLSProgram):
         else:
             priority_string_list.append('GROUP-ALL')
 
-        priority_string_list = ['NONE'] + \
-            priority_string_list + ['VERS-TLS1.3']
+        priority_string_list = ['NONE'] + priority_string_list
 
         priority_string = ':+'.join(priority_string_list)
-        priority_string += ':%NO_TICKETS'
+
+        if not self._enable_tickets:
+            priority_string += ':%NO_TICKETS'
 
         if not self._compat_mode:
-            priority_string += [':%DISABLE_TLS13_COMPAT_MODE']
+            priority_string += ':%DISABLE_TLS13_COMPAT_MODE'
+        return priority_string
 
+    def cmd(self):
+        ret = super().cmd()
         ret += ['--priority={priority_string}'.format(
-            priority_string=priority_string)]
+            priority_string=self.get_priority_string())]
         return ret
 
 
@@ -353,10 +406,10 @@ class GnuTLSServ(GnuTLSBase):
     def pre_cmd(self):
         ret = ['$G_NEXT_SRV_NO_CERT', '--http',
                '--disable-client-cert', '--debug=4']
-
-        for _, cert, key in map(lambda sig_alg: CERTIFICATES[sig_alg], self._cert_sig_algs):
-            ret += ['--x509certfile {cert} --x509keyfile {key}'.format(
-                cert=cert, key=key)]
+        if self._cert_sig_algs and self._kex_mode & KexMode.ephemeral:
+            for _, cert, key in map(lambda sig_alg: CERTIFICATES[sig_alg], self._cert_sig_algs):
+                ret += ['--x509certfile {cert} --x509keyfile {key}'.format(
+                    cert=cert, key=key)]
         return ret
 
     def post_checks(self, *args, **kwargs):
@@ -370,7 +423,7 @@ class GnuTLSCli(GnuTLSBase):
 
     def pre_cmd(self):
         ret = ['$G_NEXT_CLI_NO_CERT', '--debug=4', '--single-key-share']
-        if self._cert_sig_algs:
+        if self._cert_sig_algs and self._kex_mode & KexMode.ephemeral:
             ret.append(
                 '--x509cafile {cafile}'.format(cafile=CERTIFICATES[self._cert_sig_algs[0]].cafile))
         return ret
@@ -405,12 +458,20 @@ class MbedTLSBase(TLSProgram):
 
         if self._named_groups:
             named_groups = ','.join(self._named_groups)
-            ret += ["curves={named_groups}".format(named_groups=named_groups)]
+            ret += ["groups={named_groups}".format(named_groups=named_groups)]
         return ret
 
     def pre_checks(self):
-        ret = ['requires_config_enabled MBEDTLS_DEBUG_C',
-               'requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED']
+        # Always require MBEDTLS_DEBUG_C
+        ret = ['requires_config_enabled MBEDTLS_DEBUG_C']
+        for protocol in self._protocols:
+            ret += ['requires_config_enabled MBEDTLS_SSL_PROTO_{}'.format(
+                protocol.name.upper())]
+
+        kex_fmt = 'requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_{}_ENABLED'
+        for kex in (KexMode.psk, KexMode.ephemeral, KexMode.psk_ephemeral):
+            if kex & self._kex_mode:
+                ret += [kex_fmt.format(kex.name.upper())]
 
         if self._compat_mode:
             ret += ['requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE']
@@ -418,6 +479,15 @@ class MbedTLSBase(TLSProgram):
         if 'rsa_pss_rsae_sha256' in self._sig_algs + self._cert_sig_algs:
             ret.append(
                 'requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT')
+
+        ec_groups = {'secp256r1', 'secp384r1', 'secp521r1', 'x25519', 'x448'}
+        ffdh_groups = {'ffdhe2048'}
+        if ec_groups & set(self._named_groups):
+            ret.append('requires_config_enabled PSA_WANT_ALG_ECDH')
+
+        if ffdh_groups & set(self._named_groups):
+            ret.append('requires_config_enabled PSA_WANT_ALG_FFDH')
+
         return ret
 
 
@@ -428,7 +498,8 @@ class MbedTLSServ(MbedTLSBase):
 
     def cmd(self):
         ret = super().cmd()
-        ret += ['tls13_kex_modes=ephemeral cookies=0 tickets=0']
+        ret += ['tls13_kex_modes={} cookies=0 tickets=0'.format(
+            self._kex_mode.name)]
         return ret
 
     def pre_checks(self):
@@ -456,9 +527,10 @@ class MbedTLSServ(MbedTLSBase):
 
     def pre_cmd(self):
         ret = ['$P_SRV']
-        for _, cert, key in map(lambda sig_alg: CERTIFICATES[sig_alg], self._cert_sig_algs):
-            ret += ['crt_file={cert} key_file={key}'.format(
-                cert=cert, key=key)]
+        if self._cert_sig_algs and self._kex_mode & KexMode.ephemeral:
+            for _, cert, key in map(lambda sig_alg: CERTIFICATES[sig_alg], self._cert_sig_algs):
+                ret += ['crt_file={cert} key_file={key}'.format(
+                    cert=cert, key=key)]
         return ret
 
 
@@ -469,7 +541,7 @@ class MbedTLSCli(MbedTLSBase):
 
     def pre_cmd(self):
         ret = ['$P_CLI']
-        if self._cert_sig_algs:
+        if self._cert_sig_algs and self._kex_mode & KexMode.ephemeral:
             ret.append('ca_file={cafile}'.format(
                 cafile=CERTIFICATES[self._cert_sig_algs[0]].cafile))
         return ret

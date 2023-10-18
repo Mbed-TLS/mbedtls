@@ -95,9 +95,22 @@ def analyze_coverage(results, outcomes, allow_list, full_coverage):
             else:
                 results.warning('Allow listed test case was executed: {}', key)
 
+def name_matches_pattern(name, str_or_re):
+    """Check if name matches a pattern, that may be a string or regex.
+    - If the pattern is a string, name must be equal to match.
+    - If the pattern is a regex, name must fully match.
+    """
+    if isinstance(str_or_re, re.Pattern):
+        if str_or_re.fullmatch(name):
+            return True
+    else:
+        if str_or_re == name:
+            return True
+    return False
+
 def analyze_driver_vs_reference(results: Results, outcomes,
                                 component_ref, component_driver,
-                                ignored_suites, ignored_test=None):
+                                ignored_suites, ignored_tests=None):
     """Check that all tests executed in the reference component are also
     executed in the corresponding driver component.
     Skip:
@@ -120,9 +133,10 @@ def analyze_driver_vs_reference(results: Results, outcomes,
         if test_suite in ignored_suites or full_test_suite in ignored_suites:
             continue
         # Skip ignored test cases inside test suites
-        if ((full_test_suite in ignored_test) and
-                (test_string in ignored_test[full_test_suite])):
-            continue
+        if full_test_suite in ignored_tests:
+            for str_or_re in ignored_tests[full_test_suite]:
+                if name_matches_pattern(test_string, str_or_re):
+                    continue
 
         # Search for tests that run in reference component and not in driver component
         driver_test_passed = False
@@ -921,21 +935,7 @@ KNOWN_TASKS = {
                 ],
                 'test_suite_asn1write': [
                     # Following tests depends on BIGNUM_C
-                    'ASN.1 Write mpi 0 (1 limb)',
-                    'ASN.1 Write mpi 0 (null)',
-                    'ASN.1 Write mpi 0x100',
-                    'ASN.1 Write mpi 0x7f',
-                    'ASN.1 Write mpi 0x7f with leading 0 limb',
-                    'ASN.1 Write mpi 0x80',
-                    'ASN.1 Write mpi 0x80 with leading 0 limb',
-                    'ASN.1 Write mpi 0xff',
-                    'ASN.1 Write mpi 1',
-                    'ASN.1 Write mpi, 127*8 bits',
-                    'ASN.1 Write mpi, 127*8+1 bits',
-                    'ASN.1 Write mpi, 127*8-1 bits',
-                    'ASN.1 Write mpi, 255*8 bits',
-                    'ASN.1 Write mpi, 255*8-1 bits',
-                    'ASN.1 Write mpi, 256*8-1 bits',
+                    re.compile('ASN.1 Write mpi.*'),
                 ],
             }
         }

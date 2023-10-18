@@ -20,7 +20,7 @@ This module is entirely based on the PSA API.
 
 import enum
 import re
-from typing import FrozenSet, Iterable, List, Optional, Tuple
+from typing import FrozenSet, Iterable, List, Optional, Tuple, Dict
 
 from .asymmetric_key_data import ASYMMETRIC_KEY_DATA
 
@@ -34,7 +34,7 @@ def short_expression(original: str, level: int = 0) -> str:
     unambiguous, but ad hoc way.
     """
     short = original
-    short = re.sub(r'\bPSA_(?:ALG|ECC_FAMILY|KEY_[A-Z]+)_', r'', short)
+    short = re.sub(r'\bPSA_(?:ALG|DH_FAMILY|ECC_FAMILY|KEY_[A-Z]+)_', r'', short)
     short = re.sub(r' +', r'', short)
     if level >= 1:
         short = re.sub(r'PUBLIC_KEY\b', r'PUB', short)
@@ -138,6 +138,9 @@ class KeyType:
         """Whether the key type is for public keys."""
         return self.name.endswith('_PUBLIC_KEY')
 
+    DH_KEY_SIZES = {
+        'PSA_DH_FAMILY_RFC7919': (2048, 3072, 4096, 6144, 8192),
+    } # type: Dict[str, Tuple[int, ...]]
     ECC_KEY_SIZES = {
         'PSA_ECC_FAMILY_SECP_K1': (192, 224, 256),
         'PSA_ECC_FAMILY_SECP_R1': (225, 256, 384, 521),
@@ -148,7 +151,7 @@ class KeyType:
         'PSA_ECC_FAMILY_BRAINPOOL_P_R1': (160, 192, 224, 256, 320, 384, 512),
         'PSA_ECC_FAMILY_MONTGOMERY': (255, 448),
         'PSA_ECC_FAMILY_TWISTED_EDWARDS': (255, 448),
-    }
+    } # type: Dict[str, Tuple[int, ...]]
     KEY_TYPE_SIZES = {
         'PSA_KEY_TYPE_AES': (128, 192, 256), # exhaustive
         'PSA_KEY_TYPE_ARIA': (128, 192, 256), # exhaustive
@@ -162,7 +165,7 @@ class KeyType:
         'PSA_KEY_TYPE_PEPPER': (128, 256), # sample
         'PSA_KEY_TYPE_RAW_DATA': (8, 40, 128), # sample
         'PSA_KEY_TYPE_RSA_KEY_PAIR': (1024, 1536), # small sample
-    }
+    } # type: Dict[str, Tuple[int, ...]]
     def sizes_to_test(self) -> Tuple[int, ...]:
         """Return a tuple of key sizes to test.
 
@@ -175,6 +178,9 @@ class KeyType:
         if self.private_type == 'PSA_KEY_TYPE_ECC_KEY_PAIR':
             assert self.params is not None
             return self.ECC_KEY_SIZES[self.params[0]]
+        if self.private_type == 'PSA_KEY_TYPE_DH_KEY_PAIR':
+            assert self.params is not None
+            return self.DH_KEY_SIZES[self.params[0]]
         return self.KEY_TYPE_SIZES[self.private_type]
 
     # "48657265006973206b6579a064617461"
@@ -214,9 +220,7 @@ class KeyType:
         This function does not currently handle key derivation or PAKE.
         """
         #pylint: disable=too-many-branches,too-many-return-statements
-        if alg.is_wildcard:
-            return False
-        if alg.is_invalid_truncation():
+        if not alg.is_valid_for_operation():
             return False
         if self.head == 'HMAC' and alg.head == 'HMAC':
             return True
@@ -248,6 +252,8 @@ class KeyType:
             # So a public key object with a key agreement algorithm is not
             # a valid combination.
             return False
+        if alg.is_invalid_key_agreement_with_derivation():
+            return False
         if self.head == 'ECC':
             assert self.params is not None
             eccc = EllipticCurveCategory.from_family(self.params[0])
@@ -261,6 +267,8 @@ class KeyType:
             if alg.head in {'PURE_EDDSA', 'EDDSA_PREHASH'} and \
                eccc == EllipticCurveCategory.TWISTED_EDWARDS:
                 return True
+        if self.head == 'DH' and alg.head == 'FFDH':
+            return True
         return False
 
 
@@ -414,17 +422,38 @@ class Algorithm:
         self.category = self.determine_category(self.base_expression, self.head)
         self.is_wildcard = self.determine_wildcard(self.expression)
 
-    def is_key_agreement_with_derivation(self) -> bool:
-        """Whether this is a combined key agreement and key derivation algorithm."""
+    def get_key_agreement_derivation(self) -> Optional[str]:
+        """For a combined key agreement and key derivation algorithm, get the derivation part.
+
+        For anything else, return None.
+        """
         if self.category != AlgorithmCategory.KEY_AGREEMENT:
-            return False
+            return None
         m = re.match(r'PSA_ALG_KEY_AGREEMENT\(\w+,\s*(.*)\)\Z', self.expression)
         if not m:
-            return False
+            return None
         kdf_alg = m.group(1)
         # Assume kdf_alg is either a valid KDF or 0.
-        return not re.match(r'(?:0[Xx])?0+\s*\Z', kdf_alg)
+        if re.match(r'(?:0[Xx])?0+\s*\Z', kdf_alg):
+            return None
+        return kdf_alg
 
+    KEY_DERIVATIONS_INCOMPATIBLE_WITH_AGREEMENT = frozenset([
+        'PSA_ALG_TLS12_ECJPAKE_TO_PMS', # secret input in specific format
+    ])
+    def is_valid_key_agreement_with_derivation(self) -> bool:
+        """Whether this is a valid combined key agreement and key derivation algorithm."""
+        kdf_alg = self.get_key_agreement_derivation()
+        if kdf_alg is None:
+            return False
+        return kdf_alg not in self.KEY_DERIVATIONS_INCOMPATIBLE_WITH_AGREEMENT
+
+    def is_invalid_key_agreement_with_derivation(self) -> bool:
+        """Whether this is an invalid combined key agreement and key derivation algorithm."""
+        kdf_alg = self.get_key_agreement_derivation()
+        if kdf_alg is None:
+            return False
+        return kdf_alg in self.KEY_DERIVATIONS_INCOMPATIBLE_WITH_AGREEMENT
 
     def short_expression(self, level: int = 0) -> str:
         """Abbreviate the expression, keeping it human-readable.
@@ -498,13 +527,26 @@ class Algorithm:
                 return True
         return False
 
+    def is_valid_for_operation(self) -> bool:
+        """Whether this algorithm construction is valid for an operation.
+
+        This function assumes that the algorithm is constructed in a
+        "grammatically" correct way, and only rejects semantically invalid
+        combinations.
+        """
+        if self.is_wildcard:
+            return False
+        if self.is_invalid_truncation():
+            return False
+        return True
+
     def can_do(self, category: AlgorithmCategory) -> bool:
         """Whether this algorithm can perform operations in the given category.
         """
         if category == self.category:
             return True
         if category == AlgorithmCategory.KEY_DERIVATION and \
-           self.is_key_agreement_with_derivation():
+           self.is_valid_key_agreement_with_derivation():
             return True
         return False
 

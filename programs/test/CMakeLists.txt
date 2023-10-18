@@ -3,6 +3,7 @@ set(libs
 )
 
 set(executables_libs
+    query_included_headers
     selftest
     udp_proxy
 )
@@ -44,11 +45,13 @@ if(GEN_FILES)
             ${PERL}
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/generate_query_config.pl
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../include/mbedtls/mbedtls_config.h
+                ${CMAKE_CURRENT_SOURCE_DIR}/../../include/psa/crypto_config.h
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/data_files/query_config.fmt
                 ${CMAKE_CURRENT_BINARY_DIR}/query_config.c
         DEPENDS
             ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/generate_query_config.pl
             ${CMAKE_CURRENT_SOURCE_DIR}/../../include/mbedtls/mbedtls_config.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../include/psa/crypto_config.h
             ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/data_files/query_config.fmt
     )
     # this file will also be used in another directory, so create a target, see

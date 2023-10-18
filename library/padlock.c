@@ -31,13 +31,7 @@
 
 #include <string.h>
 
-/* *INDENT-OFF* */
-#ifndef asm
-#define asm __asm
-#endif
-/* *INDENT-ON* */
-
-#if defined(MBEDTLS_HAVE_X86)
+#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
 
 /*
  * PadLock detection routine
@@ -168,6 +162,6 @@ int mbedtls_padlock_xcryptcbc(mbedtls_aes_context *ctx,
     return 0;
 }
 
-#endif /* MBEDTLS_HAVE_X86 */
+#endif /* MBEDTLS_VIA_PADLOCK_HAVE_CODE */
 
 #endif /* MBEDTLS_PADLOCK_C */

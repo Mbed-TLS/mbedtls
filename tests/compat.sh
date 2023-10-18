@@ -30,6 +30,11 @@ set -u
 # where it may output seemingly unlimited length error logs.
 ulimit -f 20971520
 
+ORIGINAL_PWD=$PWD
+if ! cd "$(dirname "$0")"; then
+    exit 125
+fi
+
 # initialise counters
 TESTS=0
 FAILED=0
@@ -77,6 +82,17 @@ else
     PEER_GNUTLS=""
 fi
 
+guess_config_name() {
+    if git diff --quiet ../include/mbedtls/mbedtls_config.h 2>/dev/null; then
+        echo "default"
+    else
+        echo "unknown"
+    fi
+}
+: ${MBEDTLS_TEST_OUTCOME_FILE=}
+: ${MBEDTLS_TEST_CONFIGURATION:="$(guess_config_name)"}
+: ${MBEDTLS_TEST_PLATFORM:="$(uname -s | tr -c \\n0-9A-Za-z _)-$(uname -m | tr -c \\n0-9A-Za-z _)"}
+
 # default values for options
 # /!\ keep this synchronised with:
 # - basic-build-test.sh
@@ -89,7 +105,7 @@ FILTER=""
 # - NULL: excluded from our default config + requires OpenSSL legacy
 # - ARIA: requires OpenSSL >= 1.1.1
 # - ChachaPoly: requires OpenSSL >= 1.1.0
-EXCLUDE='NULL\|ARIA\|CHACHA20-POLY1305'
+EXCLUDE='NULL\|ARIA\|CHACHA20_POLY1305'
 VERBOSE=""
 MEMCHECK=0
 PEERS="OpenSSL$PEER_GNUTLS mbedTLS"
@@ -110,6 +126,39 @@ print_usage() {
     printf "            \tAlso available: GnuTLS (needs v3.2.15 or higher)\n"
     printf "  -M|--memcheck\tCheck memory leaks and errors.\n"
     printf "  -v|--verbose\tSet verbose output.\n"
+    printf "     --list-test-case\tList all potential test cases (No Execution)\n"
+    printf "     --outcome-file\tFile where test outcomes are written\n"
+    printf "                   \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
+}
+
+# print_test_case <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
+print_test_case() {
+    for i in $3; do
+        uniform_title $1 $2 $i
+        echo $TITLE
+    done
+}
+
+# list_test_case lists all potential test cases in compat.sh without execution
+list_test_case() {
+    reset_ciphersuites
+    for TYPE in $TYPES; do
+        add_common_ciphersuites
+        add_openssl_ciphersuites
+        add_gnutls_ciphersuites
+        add_mbedtls_ciphersuites
+    done
+
+    for VERIFY in $VERIFIES; do
+        VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
+        for MODE in $MODES; do
+            print_test_case m O "$O_CIPHERS"
+            print_test_case O m "$O_CIPHERS"
+            print_test_case m G "$G_CIPHERS"
+            print_test_case G m "$G_CIPHERS"
+            print_test_case m m "$M_CIPHERS"
+        done
+    done
 }
 
 get_options() {
@@ -138,6 +187,15 @@ get_options() {
                 ;;
             -M|--memcheck)
                 MEMCHECK=1
+                ;;
+            # Please check scripts/check_test_cases.py correspondingly
+            # if you have to modify option, --list-test-case
+            --list-test-case)
+                list_test_case
+                exit $?
+                ;;
+            --outcome-file)
+                shift; MBEDTLS_TEST_OUTCOME_FILE=$1
                 ;;
             -h|--help)
                 print_usage
@@ -200,22 +258,11 @@ filter()
   echo "$NEW_LIST" | sed -e 's/[[:space:]][[:space:]]*/ /g' -e 's/^ //' -e 's/ $//'
 }
 
-# OpenSSL 1.0.1h with -Verify wants a ClientCertificate message even for
-# PSK ciphersuites with DTLS, which is incorrect, so disable them for now
-check_openssl_server_bug()
-{
-    if test "X$VERIFY" = "XYES" && is_dtls "$MODE" && \
-        echo "$1" | grep "^TLS-PSK" >/dev/null;
-    then
-        SKIP_NEXT="YES"
-    fi
-}
-
 filter_ciphersuites()
 {
     if [ "X" != "X$FILTER" -o "X" != "X$EXCLUDE" ];
     then
-        # Ciphersuite for mbed TLS
+        # Ciphersuite for Mbed TLS
         M_CIPHERS=$( filter "$M_CIPHERS" )
 
         # Ciphersuite for OpenSSL
@@ -225,9 +272,9 @@ filter_ciphersuites()
         G_CIPHERS=$( filter "$G_CIPHERS" )
     fi
 
-    # For GnuTLS client -> mbed TLS server,
+    # For GnuTLS client -> Mbed TLS server,
     # we need to force IPv4 by connecting to 127.0.0.1 but then auth fails
-    if [ "X$VERIFY" = "XYES" ] && is_dtls "$MODE"; then
+    if is_dtls "$MODE" && [ "X$VERIFY" = "XYES" ]; then
         G_CIPHERS=""
     fi
 }
@@ -239,9 +286,14 @@ reset_ciphersuites()
     G_CIPHERS=""
 }
 
-check_translation()
+# translate_ciphers {g|m|o} {STANDARD_CIPHER_SUITE_NAME...}
+# Set $ciphers to the cipher suite name translations for the specified
+# program (gnutls, mbedtls or openssl). $ciphers is a space-separated
+# list of entries of the form "STANDARD_NAME=PROGRAM_NAME".
+translate_ciphers()
 {
-    if [ $1 -ne 0 ]; then
+    ciphers=$(scripts/translate_ciphers.py "$@")
+    if [ $? -ne 0 ]; then
         echo "translate_ciphers.py failed with exit code $1" >&2
         echo "$2" >&2
         exit 1
@@ -258,71 +310,66 @@ add_common_ciphersuites()
 
         "ECDSA")
             CIPHERS="$CIPHERS                           \
-                TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA    \
-                TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256 \
-                TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
-                TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA    \
-                TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384 \
-                TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384 \
-                TLS-ECDHE-ECDSA-WITH-NULL-SHA           \
+                TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA    \
+                TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 \
+                TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 \
+                TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA    \
+                TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384 \
+                TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 \
+                TLS_ECDHE_ECDSA_WITH_NULL_SHA           \
                 "
             ;;
 
         "RSA")
             CIPHERS="$CIPHERS                           \
-                TLS-DHE-RSA-WITH-AES-128-CBC-SHA        \
-                TLS-DHE-RSA-WITH-AES-128-CBC-SHA256     \
-                TLS-DHE-RSA-WITH-AES-128-GCM-SHA256     \
-                TLS-DHE-RSA-WITH-AES-256-CBC-SHA        \
-                TLS-DHE-RSA-WITH-AES-256-CBC-SHA256     \
-                TLS-DHE-RSA-WITH-AES-256-GCM-SHA384     \
-                TLS-DHE-RSA-WITH-CAMELLIA-128-CBC-SHA   \
-                TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA   \
-                TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA      \
-                TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256   \
-                TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256   \
-                TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA      \
-                TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384   \
-                TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384   \
-                TLS-ECDHE-RSA-WITH-NULL-SHA             \
-                TLS-RSA-WITH-AES-128-CBC-SHA            \
-                TLS-RSA-WITH-AES-128-CBC-SHA256         \
-                TLS-RSA-WITH-AES-128-GCM-SHA256         \
-                TLS-RSA-WITH-AES-256-CBC-SHA            \
-                TLS-RSA-WITH-AES-256-CBC-SHA256         \
-                TLS-RSA-WITH-AES-256-GCM-SHA384         \
-                TLS-RSA-WITH-CAMELLIA-128-CBC-SHA       \
-                TLS-RSA-WITH-CAMELLIA-256-CBC-SHA       \
-                TLS-RSA-WITH-NULL-MD5                   \
-                TLS-RSA-WITH-NULL-SHA                   \
-                TLS-RSA-WITH-NULL-SHA256                \
+                TLS_DHE_RSA_WITH_AES_128_CBC_SHA        \
+                TLS_DHE_RSA_WITH_AES_128_CBC_SHA256     \
+                TLS_DHE_RSA_WITH_AES_128_GCM_SHA256     \
+                TLS_DHE_RSA_WITH_AES_256_CBC_SHA        \
+                TLS_DHE_RSA_WITH_AES_256_CBC_SHA256     \
+                TLS_DHE_RSA_WITH_AES_256_GCM_SHA384     \
+                TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA   \
+                TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA   \
+                TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA      \
+                TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256   \
+                TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256   \
+                TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA      \
+                TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384   \
+                TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384   \
+                TLS_ECDHE_RSA_WITH_NULL_SHA             \
+                TLS_RSA_WITH_AES_128_CBC_SHA            \
+                TLS_RSA_WITH_AES_128_CBC_SHA256         \
+                TLS_RSA_WITH_AES_128_GCM_SHA256         \
+                TLS_RSA_WITH_AES_256_CBC_SHA            \
+                TLS_RSA_WITH_AES_256_CBC_SHA256         \
+                TLS_RSA_WITH_AES_256_GCM_SHA384         \
+                TLS_RSA_WITH_CAMELLIA_128_CBC_SHA       \
+                TLS_RSA_WITH_CAMELLIA_256_CBC_SHA       \
+                TLS_RSA_WITH_NULL_MD5                   \
+                TLS_RSA_WITH_NULL_SHA                   \
+                TLS_RSA_WITH_NULL_SHA256                \
                 "
             ;;
 
         "PSK")
             CIPHERS="$CIPHERS                           \
-                TLS-PSK-WITH-AES-128-CBC-SHA            \
-                TLS-PSK-WITH-AES-256-CBC-SHA            \
+                TLS_PSK_WITH_AES_128_CBC_SHA            \
+                TLS_PSK_WITH_AES_256_CBC_SHA            \
                 "
             ;;
     esac
 
+    O_CIPHERS="$O_CIPHERS $CIPHERS"
+    G_CIPHERS="$G_CIPHERS $CIPHERS"
     M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-    T=$(./scripts/translate_ciphers.py g $CIPHERS)
-    check_translation $? "$T"
-    G_CIPHERS="$G_CIPHERS $T"
-
-    T=$(./scripts/translate_ciphers.py o $CIPHERS)
-    check_translation $? "$T"
-    O_CIPHERS="$O_CIPHERS $T"
 }
 
 # Ciphersuites usable only with Mbed TLS and OpenSSL
-# A list of ciphersuites in the Mbed TLS convention is compiled and
-# appended to the list of Mbed TLS ciphersuites $M_CIPHERS. The same list
-# is translated to the OpenSSL naming convention and appended to the list of
-# OpenSSL ciphersuites $O_CIPHERS.
+# A list of ciphersuites in the standard naming convention is appended
+# to the list of Mbed TLS ciphersuites $M_CIPHERS and
+# to the list of OpenSSL ciphersuites $O_CIPHERS respectively.
+# Based on client's naming convention, all ciphersuite names will be
+# translated into another naming format before sent to the client.
 #
 # NOTE: for some reason RSA-PSK doesn't work with OpenSSL,
 # so RSA-PSK ciphersuites need to go in other sections, see
@@ -337,57 +384,55 @@ add_openssl_ciphersuites()
 
         "ECDSA")
             CIPHERS="$CIPHERS                                   \
-                TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA             \
-                TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA256          \
-                TLS-ECDH-ECDSA-WITH-AES-128-GCM-SHA256          \
-                TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA             \
-                TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA384          \
-                TLS-ECDH-ECDSA-WITH-AES-256-GCM-SHA384          \
-                TLS-ECDH-ECDSA-WITH-NULL-SHA                    \
-                TLS-ECDHE-ECDSA-WITH-ARIA-128-GCM-SHA256        \
-                TLS-ECDHE-ECDSA-WITH-ARIA-256-GCM-SHA384        \
-                TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256   \
+                TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA             \
+                TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256          \
+                TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256          \
+                TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA             \
+                TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384          \
+                TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384          \
+                TLS_ECDH_ECDSA_WITH_NULL_SHA                    \
+                TLS_ECDHE_ECDSA_WITH_ARIA_128_GCM_SHA256        \
+                TLS_ECDHE_ECDSA_WITH_ARIA_256_GCM_SHA384        \
+                TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256   \
                 "
             ;;
 
         "RSA")
             CIPHERS="$CIPHERS                                   \
-                TLS-DHE-RSA-WITH-ARIA-128-GCM-SHA256            \
-                TLS-DHE-RSA-WITH-ARIA-256-GCM-SHA384            \
-                TLS-DHE-RSA-WITH-CHACHA20-POLY1305-SHA256       \
-                TLS-ECDHE-RSA-WITH-ARIA-128-GCM-SHA256          \
-                TLS-ECDHE-RSA-WITH-ARIA-256-GCM-SHA384          \
-                TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256     \
-                TLS-RSA-WITH-ARIA-128-GCM-SHA256                \
-                TLS-RSA-WITH-ARIA-256-GCM-SHA384                \
+                TLS_DHE_RSA_WITH_ARIA_128_GCM_SHA256            \
+                TLS_DHE_RSA_WITH_ARIA_256_GCM_SHA384            \
+                TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256       \
+                TLS_ECDHE_RSA_WITH_ARIA_128_GCM_SHA256          \
+                TLS_ECDHE_RSA_WITH_ARIA_256_GCM_SHA384          \
+                TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256     \
+                TLS_RSA_WITH_ARIA_128_GCM_SHA256                \
+                TLS_RSA_WITH_ARIA_256_GCM_SHA384                \
                 "
             ;;
 
         "PSK")
             CIPHERS="$CIPHERS                                   \
-                TLS-DHE-PSK-WITH-ARIA-128-GCM-SHA256            \
-                TLS-DHE-PSK-WITH-ARIA-256-GCM-SHA384            \
-                TLS-DHE-PSK-WITH-CHACHA20-POLY1305-SHA256       \
-                TLS-ECDHE-PSK-WITH-CHACHA20-POLY1305-SHA256     \
-                TLS-PSK-WITH-ARIA-128-GCM-SHA256                \
-                TLS-PSK-WITH-ARIA-256-GCM-SHA384                \
-                TLS-PSK-WITH-CHACHA20-POLY1305-SHA256           \
+                TLS_DHE_PSK_WITH_ARIA_128_GCM_SHA256            \
+                TLS_DHE_PSK_WITH_ARIA_256_GCM_SHA384            \
+                TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256       \
+                TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256     \
+                TLS_PSK_WITH_ARIA_128_GCM_SHA256                \
+                TLS_PSK_WITH_ARIA_256_GCM_SHA384                \
+                TLS_PSK_WITH_CHACHA20_POLY1305_SHA256           \
                 "
             ;;
     esac
 
+    O_CIPHERS="$O_CIPHERS $CIPHERS"
     M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-    T=$(./scripts/translate_ciphers.py o $CIPHERS)
-    check_translation $? "$T"
-    O_CIPHERS="$O_CIPHERS $T"
 }
 
 # Ciphersuites usable only with Mbed TLS and GnuTLS
-# A list of ciphersuites in the Mbed TLS convention is compiled and
-# appended to the list of Mbed TLS ciphersuites $M_CIPHERS. The same list
-# is translated to the GnuTLS naming convention and appended to the list of
-# GnuTLS ciphersuites $G_CIPHERS.
+# A list of ciphersuites in the standard naming convention is appended
+# to the list of Mbed TLS ciphersuites $M_CIPHERS and
+# to the list of GnuTLS ciphersuites $G_CIPHERS respectively.
+# Based on client's naming convention, all ciphersuite names will be
+# translated into another naming format before sent to the client.
 add_gnutls_ciphersuites()
 {
     CIPHERS=""
@@ -395,107 +440,104 @@ add_gnutls_ciphersuites()
 
         "ECDSA")
             CIPHERS="$CIPHERS                                       \
-                TLS-ECDHE-ECDSA-WITH-AES-128-CCM                    \
-                TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8                  \
-                TLS-ECDHE-ECDSA-WITH-AES-256-CCM                    \
-                TLS-ECDHE-ECDSA-WITH-AES-256-CCM-8                  \
-                TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-CBC-SHA256        \
-                TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-GCM-SHA256        \
-                TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-CBC-SHA384        \
-                TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-GCM-SHA384        \
+                TLS_ECDHE_ECDSA_WITH_AES_128_CCM                    \
+                TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8                  \
+                TLS_ECDHE_ECDSA_WITH_AES_256_CCM                    \
+                TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8                  \
+                TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256        \
+                TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_GCM_SHA256        \
+                TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_CBC_SHA384        \
+                TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_GCM_SHA384        \
                 "
             ;;
 
         "RSA")
             CIPHERS="$CIPHERS                               \
-                TLS-DHE-RSA-WITH-AES-128-CCM                \
-                TLS-DHE-RSA-WITH-AES-128-CCM-8              \
-                TLS-DHE-RSA-WITH-AES-256-CCM                \
-                TLS-DHE-RSA-WITH-AES-256-CCM-8              \
-                TLS-DHE-RSA-WITH-CAMELLIA-128-CBC-SHA256    \
-                TLS-DHE-RSA-WITH-CAMELLIA-128-GCM-SHA256    \
-                TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA256    \
-                TLS-DHE-RSA-WITH-CAMELLIA-256-GCM-SHA384    \
-                TLS-ECDHE-RSA-WITH-CAMELLIA-128-CBC-SHA256  \
-                TLS-ECDHE-RSA-WITH-CAMELLIA-128-GCM-SHA256  \
-                TLS-ECDHE-RSA-WITH-CAMELLIA-256-CBC-SHA384  \
-                TLS-ECDHE-RSA-WITH-CAMELLIA-256-GCM-SHA384  \
-                TLS-RSA-WITH-AES-128-CCM                    \
-                TLS-RSA-WITH-AES-128-CCM-8                  \
-                TLS-RSA-WITH-AES-256-CCM                    \
-                TLS-RSA-WITH-AES-256-CCM-8                  \
-                TLS-RSA-WITH-CAMELLIA-128-CBC-SHA256        \
-                TLS-RSA-WITH-CAMELLIA-128-GCM-SHA256        \
-                TLS-RSA-WITH-CAMELLIA-256-CBC-SHA256        \
-                TLS-RSA-WITH-CAMELLIA-256-GCM-SHA384        \
+                TLS_DHE_RSA_WITH_AES_128_CCM                \
+                TLS_DHE_RSA_WITH_AES_128_CCM_8              \
+                TLS_DHE_RSA_WITH_AES_256_CCM                \
+                TLS_DHE_RSA_WITH_AES_256_CCM_8              \
+                TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256    \
+                TLS_DHE_RSA_WITH_CAMELLIA_128_GCM_SHA256    \
+                TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256    \
+                TLS_DHE_RSA_WITH_CAMELLIA_256_GCM_SHA384    \
+                TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256  \
+                TLS_ECDHE_RSA_WITH_CAMELLIA_128_GCM_SHA256  \
+                TLS_ECDHE_RSA_WITH_CAMELLIA_256_CBC_SHA384  \
+                TLS_ECDHE_RSA_WITH_CAMELLIA_256_GCM_SHA384  \
+                TLS_RSA_WITH_AES_128_CCM                    \
+                TLS_RSA_WITH_AES_128_CCM_8                  \
+                TLS_RSA_WITH_AES_256_CCM                    \
+                TLS_RSA_WITH_AES_256_CCM_8                  \
+                TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256        \
+                TLS_RSA_WITH_CAMELLIA_128_GCM_SHA256        \
+                TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256        \
+                TLS_RSA_WITH_CAMELLIA_256_GCM_SHA384        \
                 "
             ;;
 
         "PSK")
             CIPHERS="$CIPHERS                               \
-                TLS-DHE-PSK-WITH-AES-128-CBC-SHA            \
-                TLS-DHE-PSK-WITH-AES-128-CBC-SHA256         \
-                TLS-DHE-PSK-WITH-AES-128-CCM                \
-                TLS-DHE-PSK-WITH-AES-128-CCM-8              \
-                TLS-DHE-PSK-WITH-AES-128-GCM-SHA256         \
-                TLS-DHE-PSK-WITH-AES-256-CBC-SHA            \
-                TLS-DHE-PSK-WITH-AES-256-CBC-SHA384         \
-                TLS-DHE-PSK-WITH-AES-256-CCM                \
-                TLS-DHE-PSK-WITH-AES-256-CCM-8              \
-                TLS-DHE-PSK-WITH-AES-256-GCM-SHA384         \
-                TLS-DHE-PSK-WITH-CAMELLIA-128-CBC-SHA256    \
-                TLS-DHE-PSK-WITH-CAMELLIA-128-GCM-SHA256    \
-                TLS-DHE-PSK-WITH-CAMELLIA-256-CBC-SHA384    \
-                TLS-DHE-PSK-WITH-CAMELLIA-256-GCM-SHA384    \
-                TLS-DHE-PSK-WITH-NULL-SHA256                \
-                TLS-DHE-PSK-WITH-NULL-SHA384                \
-                TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA          \
-                TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256       \
-                TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA          \
-                TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384       \
-                TLS-ECDHE-PSK-WITH-CAMELLIA-128-CBC-SHA256  \
-                TLS-ECDHE-PSK-WITH-CAMELLIA-256-CBC-SHA384  \
-                TLS-ECDHE-PSK-WITH-NULL-SHA256              \
-                TLS-ECDHE-PSK-WITH-NULL-SHA384              \
-                TLS-PSK-WITH-AES-128-CBC-SHA256             \
-                TLS-PSK-WITH-AES-128-CCM                    \
-                TLS-PSK-WITH-AES-128-CCM-8                  \
-                TLS-PSK-WITH-AES-128-GCM-SHA256             \
-                TLS-PSK-WITH-AES-256-CBC-SHA384             \
-                TLS-PSK-WITH-AES-256-CCM                    \
-                TLS-PSK-WITH-AES-256-CCM-8                  \
-                TLS-PSK-WITH-AES-256-GCM-SHA384             \
-                TLS-PSK-WITH-CAMELLIA-128-CBC-SHA256        \
-                TLS-PSK-WITH-CAMELLIA-128-GCM-SHA256        \
-                TLS-PSK-WITH-CAMELLIA-256-CBC-SHA384        \
-                TLS-PSK-WITH-CAMELLIA-256-GCM-SHA384        \
-                TLS-PSK-WITH-NULL-SHA256                    \
-                TLS-PSK-WITH-NULL-SHA384                    \
-                TLS-RSA-PSK-WITH-AES-128-CBC-SHA            \
-                TLS-RSA-PSK-WITH-AES-128-CBC-SHA256         \
-                TLS-RSA-PSK-WITH-AES-128-GCM-SHA256         \
-                TLS-RSA-PSK-WITH-AES-256-CBC-SHA            \
-                TLS-RSA-PSK-WITH-AES-256-CBC-SHA384         \
-                TLS-RSA-PSK-WITH-AES-256-GCM-SHA384         \
-                TLS-RSA-PSK-WITH-CAMELLIA-128-CBC-SHA256    \
-                TLS-RSA-PSK-WITH-CAMELLIA-128-GCM-SHA256    \
-                TLS-RSA-PSK-WITH-CAMELLIA-256-CBC-SHA384    \
-                TLS-RSA-PSK-WITH-CAMELLIA-256-GCM-SHA384    \
-                TLS-RSA-PSK-WITH-NULL-SHA256                \
-                TLS-RSA-PSK-WITH-NULL-SHA384                \
+                TLS_DHE_PSK_WITH_AES_128_CBC_SHA            \
+                TLS_DHE_PSK_WITH_AES_128_CBC_SHA256         \
+                TLS_DHE_PSK_WITH_AES_128_CCM                \
+                TLS_DHE_PSK_WITH_AES_128_CCM_8              \
+                TLS_DHE_PSK_WITH_AES_128_GCM_SHA256         \
+                TLS_DHE_PSK_WITH_AES_256_CBC_SHA            \
+                TLS_DHE_PSK_WITH_AES_256_CBC_SHA384         \
+                TLS_DHE_PSK_WITH_AES_256_CCM                \
+                TLS_DHE_PSK_WITH_AES_256_CCM_8              \
+                TLS_DHE_PSK_WITH_AES_256_GCM_SHA384         \
+                TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256    \
+                TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256    \
+                TLS_DHE_PSK_WITH_CAMELLIA_256_CBC_SHA384    \
+                TLS_DHE_PSK_WITH_CAMELLIA_256_GCM_SHA384    \
+                TLS_DHE_PSK_WITH_NULL_SHA256                \
+                TLS_DHE_PSK_WITH_NULL_SHA384                \
+                TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA          \
+                TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256       \
+                TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA          \
+                TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384       \
+                TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256  \
+                TLS_ECDHE_PSK_WITH_CAMELLIA_256_CBC_SHA384  \
+                TLS_ECDHE_PSK_WITH_NULL_SHA256              \
+                TLS_ECDHE_PSK_WITH_NULL_SHA384              \
+                TLS_PSK_WITH_AES_128_CBC_SHA256             \
+                TLS_PSK_WITH_AES_128_CCM                    \
+                TLS_PSK_WITH_AES_128_CCM_8                  \
+                TLS_PSK_WITH_AES_128_GCM_SHA256             \
+                TLS_PSK_WITH_AES_256_CBC_SHA384             \
+                TLS_PSK_WITH_AES_256_CCM                    \
+                TLS_PSK_WITH_AES_256_CCM_8                  \
+                TLS_PSK_WITH_AES_256_GCM_SHA384             \
+                TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256        \
+                TLS_PSK_WITH_CAMELLIA_128_GCM_SHA256        \
+                TLS_PSK_WITH_CAMELLIA_256_CBC_SHA384        \
+                TLS_PSK_WITH_CAMELLIA_256_GCM_SHA384        \
+                TLS_PSK_WITH_NULL_SHA256                    \
+                TLS_PSK_WITH_NULL_SHA384                    \
+                TLS_RSA_PSK_WITH_AES_128_CBC_SHA            \
+                TLS_RSA_PSK_WITH_AES_128_CBC_SHA256         \
+                TLS_RSA_PSK_WITH_AES_128_GCM_SHA256         \
+                TLS_RSA_PSK_WITH_AES_256_CBC_SHA            \
+                TLS_RSA_PSK_WITH_AES_256_CBC_SHA384         \
+                TLS_RSA_PSK_WITH_AES_256_GCM_SHA384         \
+                TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256    \
+                TLS_RSA_PSK_WITH_CAMELLIA_128_GCM_SHA256    \
+                TLS_RSA_PSK_WITH_CAMELLIA_256_CBC_SHA384    \
+                TLS_RSA_PSK_WITH_CAMELLIA_256_GCM_SHA384    \
+                TLS_RSA_PSK_WITH_NULL_SHA256                \
+                TLS_RSA_PSK_WITH_NULL_SHA384                \
                 "
             ;;
     esac
 
+    G_CIPHERS="$G_CIPHERS $CIPHERS"
     M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-    T=$(./scripts/translate_ciphers.py g $CIPHERS)
-    check_translation $? "$T"
-    G_CIPHERS="$G_CIPHERS $T"
 }
 
 # Ciphersuites usable only with Mbed TLS (not currently supported by another
-# peer usable in this script). This provide only very rudimentaty testing, as
+# peer usable in this script). This provides only very rudimentaty testing, as
 # this is not interop testing, but it's better than nothing.
 add_mbedtls_ciphersuites()
 {
@@ -503,51 +545,61 @@ add_mbedtls_ciphersuites()
 
         "ECDSA")
             M_CIPHERS="$M_CIPHERS                               \
-                TLS-ECDH-ECDSA-WITH-ARIA-128-CBC-SHA256         \
-                TLS-ECDH-ECDSA-WITH-ARIA-128-GCM-SHA256         \
-                TLS-ECDH-ECDSA-WITH-ARIA-256-CBC-SHA384         \
-                TLS-ECDH-ECDSA-WITH-ARIA-256-GCM-SHA384         \
-                TLS-ECDH-ECDSA-WITH-CAMELLIA-128-CBC-SHA256     \
-                TLS-ECDH-ECDSA-WITH-CAMELLIA-128-GCM-SHA256     \
-                TLS-ECDH-ECDSA-WITH-CAMELLIA-256-CBC-SHA384     \
-                TLS-ECDH-ECDSA-WITH-CAMELLIA-256-GCM-SHA384     \
-                TLS-ECDHE-ECDSA-WITH-ARIA-128-CBC-SHA256        \
-                TLS-ECDHE-ECDSA-WITH-ARIA-256-CBC-SHA384        \
+                TLS_ECDH_ECDSA_WITH_ARIA_128_CBC_SHA256         \
+                TLS_ECDH_ECDSA_WITH_ARIA_128_GCM_SHA256         \
+                TLS_ECDH_ECDSA_WITH_ARIA_256_CBC_SHA384         \
+                TLS_ECDH_ECDSA_WITH_ARIA_256_GCM_SHA384         \
+                TLS_ECDH_ECDSA_WITH_CAMELLIA_128_CBC_SHA256     \
+                TLS_ECDH_ECDSA_WITH_CAMELLIA_128_GCM_SHA256     \
+                TLS_ECDH_ECDSA_WITH_CAMELLIA_256_CBC_SHA384     \
+                TLS_ECDH_ECDSA_WITH_CAMELLIA_256_GCM_SHA384     \
+                TLS_ECDHE_ECDSA_WITH_ARIA_128_CBC_SHA256        \
+                TLS_ECDHE_ECDSA_WITH_ARIA_256_CBC_SHA384        \
                 "
             ;;
 
         "RSA")
             M_CIPHERS="$M_CIPHERS                               \
-                TLS-DHE-RSA-WITH-ARIA-128-CBC-SHA256            \
-                TLS-DHE-RSA-WITH-ARIA-256-CBC-SHA384            \
-                TLS-ECDHE-RSA-WITH-ARIA-128-CBC-SHA256          \
-                TLS-ECDHE-RSA-WITH-ARIA-256-CBC-SHA384          \
-                TLS-RSA-WITH-ARIA-128-CBC-SHA256                \
-                TLS-RSA-WITH-ARIA-256-CBC-SHA384                \
+                TLS_DHE_RSA_WITH_ARIA_128_CBC_SHA256            \
+                TLS_DHE_RSA_WITH_ARIA_256_CBC_SHA384            \
+                TLS_ECDHE_RSA_WITH_ARIA_128_CBC_SHA256          \
+                TLS_ECDHE_RSA_WITH_ARIA_256_CBC_SHA384          \
+                TLS_RSA_WITH_ARIA_128_CBC_SHA256                \
+                TLS_RSA_WITH_ARIA_256_CBC_SHA384                \
                 "
             ;;
 
         "PSK")
-            # *PSK-NULL-SHA suites supported by GnuTLS 3.3.5 but not 3.2.15
+            # *PSK_NULL_SHA suites supported by GnuTLS 3.3.5 but not 3.2.15
             M_CIPHERS="$M_CIPHERS                               \
-                TLS-DHE-PSK-WITH-ARIA-128-CBC-SHA256            \
-                TLS-DHE-PSK-WITH-ARIA-256-CBC-SHA384            \
-                TLS-DHE-PSK-WITH-NULL-SHA                       \
-                TLS-ECDHE-PSK-WITH-ARIA-128-CBC-SHA256          \
-                TLS-ECDHE-PSK-WITH-ARIA-256-CBC-SHA384          \
-                TLS-ECDHE-PSK-WITH-NULL-SHA                     \
-                TLS-PSK-WITH-ARIA-128-CBC-SHA256                \
-                TLS-PSK-WITH-ARIA-256-CBC-SHA384                \
-                TLS-PSK-WITH-NULL-SHA                           \
-                TLS-RSA-PSK-WITH-ARIA-128-CBC-SHA256            \
-                TLS-RSA-PSK-WITH-ARIA-128-GCM-SHA256            \
-                TLS-RSA-PSK-WITH-ARIA-256-CBC-SHA384            \
-                TLS-RSA-PSK-WITH-ARIA-256-GCM-SHA384            \
-                TLS-RSA-PSK-WITH-CHACHA20-POLY1305-SHA256       \
-                TLS-RSA-PSK-WITH-NULL-SHA                       \
+                TLS_DHE_PSK_WITH_ARIA_128_CBC_SHA256            \
+                TLS_DHE_PSK_WITH_ARIA_256_CBC_SHA384            \
+                TLS_DHE_PSK_WITH_NULL_SHA                       \
+                TLS_ECDHE_PSK_WITH_ARIA_128_CBC_SHA256          \
+                TLS_ECDHE_PSK_WITH_ARIA_256_CBC_SHA384          \
+                TLS_ECDHE_PSK_WITH_NULL_SHA                     \
+                TLS_PSK_WITH_ARIA_128_CBC_SHA256                \
+                TLS_PSK_WITH_ARIA_256_CBC_SHA384                \
+                TLS_PSK_WITH_NULL_SHA                           \
+                TLS_RSA_PSK_WITH_ARIA_128_CBC_SHA256            \
+                TLS_RSA_PSK_WITH_ARIA_128_GCM_SHA256            \
+                TLS_RSA_PSK_WITH_ARIA_256_CBC_SHA384            \
+                TLS_RSA_PSK_WITH_ARIA_256_GCM_SHA384            \
+                TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256       \
+                TLS_RSA_PSK_WITH_NULL_SHA                       \
                 "
             ;;
     esac
+}
+
+# o_check_ciphersuite STANDARD_CIPHER_SUITE
+o_check_ciphersuite()
+{
+    if [ "${O_SUPPORT_ECDH}" = "NO" ]; then
+        case "$1" in
+            *ECDH_*) SKIP_NEXT="YES"
+        esac
+    fi
 }
 
 setup_arguments()
@@ -604,7 +656,6 @@ setup_arguments()
     M_CLIENT_ARGS="server_port=$PORT server_addr=127.0.0.1 force_version=$MODE"
     O_CLIENT_ARGS="-connect localhost:$PORT -$O_MODE"
     G_CLIENT_ARGS="-p $PORT --debug 3 $G_MODE"
-    G_CLIENT_PRIO="NONE:$G_PRIO_MODE:+COMP-NULL:+CURVE-ALL:+SIGN-ALL"
 
     # Newer versions of OpenSSL have a syntax to enable all "ciphers", even
     # low-security ones. This covers not just cipher suites but also protocol
@@ -618,6 +669,11 @@ setup_arguments()
             O_CLIENT_ARGS="$O_CLIENT_ARGS -cipher ALL@SECLEVEL=0"
             O_SERVER_ARGS="$O_SERVER_ARGS -cipher ALL@SECLEVEL=0"
             ;;
+    esac
+
+    case $($OPENSSL ciphers ALL) in
+        *ECDH-ECDSA*|*ECDH-RSA*) O_SUPPORT_ECDH="YES";;
+        *) O_SUPPORT_ECDH="NO";;
     esac
 
     if [ "X$VERIFY" = "XYES" ];
@@ -684,7 +740,11 @@ setup_arguments()
 
 # is_mbedtls <cmd_line>
 is_mbedtls() {
-    echo "$1" | grep 'ssl_server2\|ssl_client2' > /dev/null
+    case $1 in
+        *ssl_client2*) true;;
+        *ssl_server2*) true;;
+        *) false;;
+    esac
 }
 
 # has_mem_err <log_file_name>
@@ -753,15 +813,17 @@ start_server() {
     echo "$SERVER_CMD" > $SRV_OUT
     # for servers without -www or equivalent
     while :; do echo bla; sleep 1; done | $SERVER_CMD >> $SRV_OUT 2>&1 &
-    PROCESS_ID=$!
+    SRV_PID=$!
 
-    wait_server_start "$PORT" "$PROCESS_ID"
+    wait_server_start "$PORT" "$SRV_PID"
 }
 
 # terminate the running server
 stop_server() {
-    kill $PROCESS_ID 2>/dev/null
-    wait $PROCESS_ID 2>/dev/null
+    # For Ubuntu 22.04, `Terminated` message is outputed by wait command.
+    # To remove it from stdout, redirect stdout/stderr to SRV_OUT
+    kill $SRV_PID >/dev/null 2>&1
+    wait $SRV_PID >> $SRV_OUT 2>&1
 
     if [ "$MEMCHECK" -gt 0 ]; then
         if is_mbedtls "$SERVER_CMD" && has_mem_err $SRV_OUT; then
@@ -777,7 +839,7 @@ stop_server() {
 # kill the running server (used when killed by signal)
 cleanup() {
     rm -f $SRV_OUT $CLI_OUT
-    kill $PROCESS_ID >/dev/null 2>&1
+    kill $SRV_PID >/dev/null 2>&1
     kill $WATCHDOG_PID >/dev/null 2>&1
     exit 1
 }
@@ -790,30 +852,70 @@ wait_client_done() {
     ( sleep "$DOG_DELAY"; echo "TIMEOUT" >> $CLI_OUT; kill $CLI_PID ) &
     WATCHDOG_PID=$!
 
-    wait $CLI_PID
+    # For Ubuntu 22.04, `Terminated` message is outputed by wait command.
+    # To remove it from stdout, redirect stdout/stderr to CLI_OUT
+    wait $CLI_PID >> $CLI_OUT 2>&1
     EXIT=$?
 
-    kill $WATCHDOG_PID
-    wait $WATCHDOG_PID
+    kill $WATCHDOG_PID >/dev/null 2>&1
+    wait $WATCHDOG_PID >> $CLI_OUT 2>&1
 
     echo "EXIT: $EXIT" >> $CLI_OUT
 }
 
-# run_client <name> <cipher>
+# uniform_title <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
+# $TITLE is considered as test case description for both --list-test-case and
+# MBEDTLS_TEST_OUTCOME_FILE. This function aims to control the format of
+# each test case description.
+uniform_title() {
+    TITLE="$1->$2 $MODE,$VERIF $3"
+}
+
+# record_outcome <outcome> [<failure-reason>]
+record_outcome() {
+    echo "$1"
+    if [ -n "$MBEDTLS_TEST_OUTCOME_FILE" ]; then
+        # The test outcome file has the format (in single line):
+        # platform;configuration;
+        # test suite name;test case description;
+        # PASS/FAIL/SKIP;[failure cause]
+        printf '%s;%s;%s;%s;%s;%s\n'                                    \
+            "$MBEDTLS_TEST_PLATFORM" "$MBEDTLS_TEST_CONFIGURATION"      \
+            "compat" "$TITLE"                                           \
+            "$1" "${2-}"                                                \
+            >> "$MBEDTLS_TEST_OUTCOME_FILE"
+    fi
+}
+
+# display additional information if test case fails
+report_fail() {
+    FAIL_PROMPT="outputs saved to c-srv-${TESTS}.log, c-cli-${TESTS}.log"
+    record_outcome "FAIL" "$FAIL_PROMPT"
+    cp $SRV_OUT c-srv-${TESTS}.log
+    cp $CLI_OUT c-cli-${TESTS}.log
+    echo "  ! $FAIL_PROMPT"
+
+    if [ "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
+        echo "  ! server output:"
+        cat c-srv-${TESTS}.log
+        echo "  ! ==================================================="
+        echo "  ! client output:"
+        cat c-cli-${TESTS}.log
+    fi
+}
+
+# run_client PROGRAM_NAME STANDARD_CIPHER_SUITE PROGRAM_CIPHER_SUITE
 run_client() {
     # announce what we're going to do
     TESTS=$(( $TESTS + 1 ))
-    VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
-    TITLE="`echo $1 | head -c1`->`echo $SERVER_NAME | head -c1`"
-    TITLE="$TITLE $MODE,$VERIF $2"
-    printf "%s " "$TITLE"
-    LEN=$(( 72 - `echo "$TITLE" | wc -c` ))
-    for i in `seq 1 $LEN`; do printf '.'; done; printf ' '
+    uniform_title "${1%"${1#?}"}" "${SERVER_NAME%"${SERVER_NAME#?}"}" $2
+    DOTS72="........................................................................"
+    printf "%s %.*s " "$TITLE" "$((71 - ${#TITLE}))" "$DOTS72"
 
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then
         SKIP_NEXT="NO"
-        echo "SKIP"
+        record_outcome "SKIP"
         SKIPPED=$(( $SKIPPED + 1 ))
         return
     fi
@@ -821,7 +923,7 @@ run_client() {
     # run the command and interpret result
     case $1 in
         [Oo]pen*)
-            CLIENT_CMD="$OPENSSL s_client $O_CLIENT_ARGS -cipher $2"
+            CLIENT_CMD="$OPENSSL s_client $O_CLIENT_ARGS -cipher $3"
             log "$CLIENT_CMD"
             echo "$CLIENT_CMD" > $CLI_OUT
             printf 'GET HTTP/1.0\r\n\r\n' | $CLIENT_CMD >> $CLI_OUT 2>&1 &
@@ -830,7 +932,7 @@ run_client() {
             if [ $EXIT -eq 0 ]; then
                 RESULT=0
             else
-                # If the cipher isn't supported...
+                # If it is NULL cipher ...
                 if grep 'Cipher is (NONE)' $CLI_OUT >/dev/null; then
                     RESULT=1
                 else
@@ -846,7 +948,7 @@ run_client() {
             else
                 G_HOST="localhost"
             fi
-            CLIENT_CMD="$GNUTLS_CLI $G_CLIENT_ARGS --priority $G_PRIO_MODE:$2 $G_HOST"
+            CLIENT_CMD="$GNUTLS_CLI $G_CLIENT_ARGS --priority $G_PRIO_MODE:$3 $G_HOST"
             log "$CLIENT_CMD"
             echo "$CLIENT_CMD" > $CLI_OUT
             printf 'GET HTTP/1.0\r\n\r\n' | $CLIENT_CMD >> $CLI_OUT 2>&1 &
@@ -868,7 +970,7 @@ run_client() {
             ;;
 
         mbed*)
-            CLIENT_CMD="$M_CLI $M_CLIENT_ARGS force_ciphersuite=$2"
+            CLIENT_CMD="$M_CLI $M_CLIENT_ARGS force_ciphersuite=$3"
             if [ "$MEMCHECK" -gt 0 ]; then
                 CLIENT_CMD="valgrind --leak-check=full $CLIENT_CMD"
             fi
@@ -907,26 +1009,14 @@ run_client() {
     # report and count result
     case $RESULT in
         "0")
-            echo PASS
+            record_outcome "PASS"
             ;;
         "1")
-            echo SKIP
+            record_outcome "SKIP"
             SKIPPED=$(( $SKIPPED + 1 ))
             ;;
         "2")
-            echo FAIL
-            cp $SRV_OUT c-srv-${TESTS}.log
-            cp $CLI_OUT c-cli-${TESTS}.log
-            echo "  ! outputs saved to c-srv-${TESTS}.log, c-cli-${TESTS}.log"
-
-            if [ "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
-                echo "  ! server output:"
-                cat c-srv-${TESTS}.log
-                echo "  ! ==================================================="
-                echo "  ! client output:"
-                cat c-cli-${TESTS}.log
-            fi
-
+            report_fail
             FAILED=$(( $FAILED + 1 ))
             ;;
     esac
@@ -938,12 +1028,15 @@ run_client() {
 # MAIN
 #
 
-if cd $( dirname $0 ); then :; else
-    echo "cd $( dirname $0 ) failed" >&2
-    exit 1
-fi
-
 get_options "$@"
+
+# Make the outcome file path relative to the original directory, not
+# to .../tests
+case "$MBEDTLS_TEST_OUTCOME_FILE" in
+    [!/]*)
+        MBEDTLS_TEST_OUTCOME_FILE="$ORIGINAL_PWD/$MBEDTLS_TEST_OUTCOME_FILE"
+        ;;
+esac
 
 # sanity checks, avoid an avalanche of errors
 if [ ! -x "$M_SRV" ]; then
@@ -1000,9 +1093,20 @@ SKIP_NEXT="NO"
 
 trap cleanup INT TERM HUP
 
-for VERIFY in $VERIFIES; do
-    for MODE in $MODES; do
-        for TYPE in $TYPES; do
+for MODE in $MODES; do
+    for TYPE in $TYPES; do
+
+        # PSK cipher suites do not allow client certificate verification.
+        # This means PSK test cases with VERIFY=YES should be replaced by
+        # VERIFY=NO or be ignored. SUB_VERIFIES variable is used to constrain
+        # verification option for PSK test cases.
+        SUB_VERIFIES=$VERIFIES
+        if [ "$TYPE" = "PSK" ]; then
+            SUB_VERIFIES="NO"
+        fi
+
+        for VERIFY in $SUB_VERIFIES; do
+            VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
             for PEER in $PEERS; do
 
             setup_arguments
@@ -1031,17 +1135,20 @@ for VERIFY in $VERIFIES; do
 
                     if [ "X" != "X$M_CIPHERS" ]; then
                         start_server "OpenSSL"
-                        for i in $M_CIPHERS; do
-                            check_openssl_server_bug $i
-                            run_client mbedTLS $i
+                        translate_ciphers m $M_CIPHERS
+                        for i in $ciphers; do
+                            o_check_ciphersuite "${i%%=*}"
+                            run_client mbedTLS ${i%%=*} ${i#*=}
                         done
                         stop_server
                     fi
 
                     if [ "X" != "X$O_CIPHERS" ]; then
                         start_server "mbedTLS"
-                        for i in $O_CIPHERS; do
-                            run_client OpenSSL $i
+                        translate_ciphers o $O_CIPHERS
+                        for i in $ciphers; do
+                            o_check_ciphersuite "${i%%=*}"
+                            run_client OpenSSL ${i%%=*} ${i#*=}
                         done
                         stop_server
                     fi
@@ -1057,16 +1164,18 @@ for VERIFY in $VERIFIES; do
 
                     if [ "X" != "X$M_CIPHERS" ]; then
                         start_server "GnuTLS"
-                        for i in $M_CIPHERS; do
-                            run_client mbedTLS $i
+                        translate_ciphers m $M_CIPHERS
+                        for i in $ciphers; do
+                            run_client mbedTLS ${i%%=*} ${i#*=}
                         done
                         stop_server
                     fi
 
                     if [ "X" != "X$G_CIPHERS" ]; then
                         start_server "mbedTLS"
-                        for i in $G_CIPHERS; do
-                            run_client GnuTLS $i
+                        translate_ciphers g $G_CIPHERS
+                        for i in $ciphers; do
+                            run_client GnuTLS ${i%%=*} ${i#*=}
                         done
                         stop_server
                     fi
@@ -1084,8 +1193,9 @@ for VERIFY in $VERIFIES; do
 
                     if [ "X" != "X$M_CIPHERS" ]; then
                         start_server "mbedTLS"
-                        for i in $M_CIPHERS; do
-                            run_client mbedTLS $i
+                        translate_ciphers m $M_CIPHERS
+                        for i in $ciphers; do
+                            run_client mbedTLS ${i%%=*} ${i#*=}
                         done
                         stop_server
                     fi
@@ -1106,8 +1216,7 @@ done
 
 echo "------------------------------------------------------------------------"
 
-if [ $FAILED -ne 0 -o $SRVMEM -ne 0 ];
-then
+if [ $FAILED -ne 0 -o $SRVMEM -ne 0 ]; then
     printf "FAILED"
 else
     printf "PASSED"
@@ -1123,4 +1232,9 @@ PASSED=$(( $TESTS - $FAILED ))
 echo " ($PASSED / $TESTS tests ($SKIPPED skipped$MEMREPORT))"
 
 FAILED=$(( $FAILED + $SRVMEM ))
+if [ $FAILED -gt 255 ]; then
+    # Clamp at 255 as caller gets exit code & 0xFF
+    # (so 256 would be 0, or success, etc)
+    FAILED=255
+fi
 exit $FAILED

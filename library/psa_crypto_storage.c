@@ -79,11 +79,11 @@ static psa_storage_uid_t psa_its_identifier_of_slot(mbedtls_svc_key_id_t key)
  * \param[out] data         Buffer where the data is to be written.
  * \param data_size         Size of the \c data buffer in bytes.
  *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_DATA_INVALID
- * \retval #PSA_ERROR_DATA_CORRUPT
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_DOES_NOT_EXIST
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DOES_NOT_EXIST \emptydescription
  */
 static psa_status_t psa_crypto_storage_load(
     const mbedtls_svc_key_id_t key, uint8_t *data, size_t data_size)
@@ -131,11 +131,11 @@ int psa_is_key_present_in_storage(const mbedtls_svc_key_id_t key)
  * \param data_length   The number of bytes
  *                      that make up the data.
  *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
- * \retval #PSA_ERROR_ALREADY_EXISTS
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_DATA_INVALID
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE \emptydescription
+ * \retval #PSA_ERROR_ALREADY_EXISTS \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
  */
 static psa_status_t psa_crypto_storage_store(const mbedtls_svc_key_id_t key,
                                              const uint8_t *data,
@@ -205,10 +205,10 @@ psa_status_t psa_destroy_persistent_key(const mbedtls_svc_key_id_t key)
  *                          is to be obtained.
  * \param[out] data_length  The number of bytes that make up the data.
  *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_DOES_NOT_EXIST
- * \retval #PSA_ERROR_DATA_CORRUPT
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DOES_NOT_EXIST \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
  */
 static psa_status_t psa_crypto_storage_get_data_length(
     const mbedtls_svc_key_id_t key,
@@ -354,18 +354,14 @@ psa_status_t psa_save_persistent_key(const psa_core_key_attributes_t *attr,
     status = psa_crypto_storage_store(attr->id,
                                       storage_data, storage_data_length);
 
-    mbedtls_platform_zeroize(storage_data, storage_data_length);
-    mbedtls_free(storage_data);
+    mbedtls_zeroize_and_free(storage_data, storage_data_length);
 
     return status;
 }
 
 void psa_free_persistent_key_data(uint8_t *key_data, size_t key_data_length)
 {
-    if (key_data != NULL) {
-        mbedtls_platform_zeroize(key_data, key_data_length);
-    }
-    mbedtls_free(key_data);
+    mbedtls_zeroize_and_free(key_data, key_data_length);
 }
 
 psa_status_t psa_load_persistent_key(psa_core_key_attributes_t *attr,
@@ -403,8 +399,7 @@ psa_status_t psa_load_persistent_key(psa_core_key_attributes_t *attr,
     }
 
 exit:
-    mbedtls_platform_zeroize(loaded_data, storage_data_length);
-    mbedtls_free(loaded_data);
+    mbedtls_zeroize_and_free(loaded_data, storage_data_length);
     return status;
 }
 

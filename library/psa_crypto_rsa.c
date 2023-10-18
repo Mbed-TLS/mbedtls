@@ -28,6 +28,7 @@
 #include "psa_crypto_random_impl.h"
 #include "psa_crypto_rsa.h"
 #include "psa_crypto_hash.h"
+#include "md_psa.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -37,13 +38,13 @@
 #include <mbedtls/error.h>
 #include <mbedtls/pk.h>
 #include "pk_wrap.h"
-#include "hash_info.h"
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
 
 /* Mbed TLS doesn't support non-byte-aligned key sizes (i.e. key sizes
@@ -123,12 +124,13 @@ exit:
         * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) ||
-        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
+#if (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) && \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
-
 psa_status_t mbedtls_psa_rsa_import_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *data, size_t data_length,
@@ -165,14 +167,18 @@ exit:
 
     return status;
 }
+#endif /* (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) &&
+        *  defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
 
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
 psa_status_t mbedtls_psa_rsa_export_key(psa_key_type_t type,
                                         mbedtls_rsa_context *rsa,
                                         uint8_t *data,
                                         size_t data_size,
                                         size_t *data_length)
 {
-#if defined(MBEDTLS_PK_WRITE_C)
     int ret;
     mbedtls_pk_context pk;
     uint8_t *pos = data + data_size;
@@ -209,14 +215,6 @@ psa_status_t mbedtls_psa_rsa_export_key(psa_key_type_t type,
 
     *data_length = ret;
     return PSA_SUCCESS;
-#else
-    (void) type;
-    (void) rsa;
-    (void) data;
-    (void) data_size;
-    (void) data_length;
-    return PSA_ERROR_NOT_SUPPORTED;
-#endif /* MBEDTLS_PK_WRITE_C */
 }
 
 psa_status_t mbedtls_psa_rsa_export_public_key(
@@ -244,11 +242,10 @@ psa_status_t mbedtls_psa_rsa_export_public_key(
 
     return status;
 }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) && \
-    defined(MBEDTLS_GENPRIME)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
 static psa_status_t psa_rsa_read_exponent(const uint8_t *domain_parameters,
                                           size_t domain_parameters_size,
                                           int *exponent)
@@ -310,8 +307,7 @@ psa_status_t mbedtls_psa_rsa_generate_key(
 
     return status;
 }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR)
-        * defined(MBEDTLS_GENPRIME) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_GENERATE) */
 
 /****************************************************************/
 /* Sign/verify hashes */
@@ -327,7 +323,7 @@ static psa_status_t psa_rsa_decode_md_type(psa_algorithm_t alg,
                                            mbedtls_md_type_t *md_alg)
 {
     psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH(alg);
-    *md_alg = mbedtls_hash_info_md_from_psa(hash_alg);
+    *md_alg = mbedtls_md_type_from_psa_alg(hash_alg);
 
     /* The Mbed TLS RSA module uses an unsigned int for hash length
      * parameters. Validate that it fits so that we don't risk an
@@ -343,7 +339,7 @@ static psa_status_t psa_rsa_decode_md_type(psa_algorithm_t alg,
         if (*md_alg == MBEDTLS_MD_NONE) {
             return PSA_ERROR_NOT_SUPPORTED;
         }
-        if (mbedtls_hash_info_get_size(*md_alg) != hash_length) {
+        if (mbedtls_md_get_size_from_type(*md_alg) != hash_length) {
             return PSA_ERROR_INVALID_ARGUMENT;
         }
     }
@@ -538,7 +534,13 @@ static int psa_rsa_oaep_set_padding_mode(psa_algorithm_t alg,
                                          mbedtls_rsa_context *rsa)
 {
     psa_algorithm_t hash_alg = PSA_ALG_RSA_OAEP_GET_HASH(alg);
-    mbedtls_md_type_t md_alg = mbedtls_hash_info_md_from_psa(hash_alg);
+    mbedtls_md_type_t md_alg = mbedtls_md_type_from_psa_alg(hash_alg);
+
+    /* Just to get the error status right, as rsa_set_padding() doesn't
+     * distinguish between "bad RSA algorithm" and "unknown hash". */
+    if (mbedtls_md_info_from_type(md_alg) == NULL) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
 
     return mbedtls_rsa_set_padding(rsa, MBEDTLS_RSA_PKCS_V21, md_alg);
 }

@@ -23,6 +23,11 @@ the API of 3.(x+1) is backward compatible with 3.x). We only break API
 compatibility on major version changes (e.g. from 3.x to 4.0). We also maintain
 ABI compatibility within LTS branches; see the next section for details.
 
+Every major version will become an LTS branch when the next major version is
+released. We may occasionally create LTS branches from other releases at our
+discretion.
+When a new LTS branch is created, it usually remains supported for three years.
+
 ## Backwards Compatibility for application code
 
 We maintain API compatibility in released versions of Mbed TLS. If you have
@@ -101,6 +106,6 @@ The following branches are currently maintained:
 - [`development`](https://github.com/Mbed-TLS/mbedtls/)
 - [`mbedtls-2.28`](https://github.com/Mbed-TLS/mbedtls/tree/mbedtls-2.28)
  maintained until at least the end of 2024, see
-  <https://github.com/Mbed-TLS/mbedtls/releases/tag/v2.28.2>.
+  <https://github.com/Mbed-TLS/mbedtls/releases/tag/v2.28.5>.
 
 Users are urged to always use the latest version of a maintained branch.

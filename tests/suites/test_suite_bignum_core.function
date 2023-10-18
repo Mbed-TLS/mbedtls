@@ -34,45 +34,45 @@ static int mpi_core_verify_add(mbedtls_mpi_uint *A,
 
     /* A + B => correct result and carry */
     TEST_EQUAL(carry, mbedtls_mpi_core_add(X, A, B, limbs));
-    ASSERT_COMPARE(X, bytes, S, bytes);
+    TEST_MEMORY_COMPARE(X, bytes, S, bytes);
 
     /* A + B; alias output and first operand => correct result and carry */
     memcpy(X, A, bytes);
     TEST_EQUAL(carry, mbedtls_mpi_core_add(X, X, B, limbs));
-    ASSERT_COMPARE(X, bytes, S, bytes);
+    TEST_MEMORY_COMPARE(X, bytes, S, bytes);
 
     /* A + B; alias output and second operand => correct result and carry */
     memcpy(X, B, bytes);
     TEST_EQUAL(carry, mbedtls_mpi_core_add(X, A, X, limbs));
-    ASSERT_COMPARE(X, bytes, S, bytes);
+    TEST_MEMORY_COMPARE(X, bytes, S, bytes);
 
     if (memcmp(A, B, bytes) == 0) {
         /* A == B, so test where A and B are aliased */
 
         /* A + A => correct result and carry */
         TEST_EQUAL(carry, mbedtls_mpi_core_add(X, A, A, limbs));
-        ASSERT_COMPARE(X, bytes, S, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, S, bytes);
 
         /* A + A, output aliased to both operands => correct result and carry */
         memcpy(X, A, bytes);
         TEST_EQUAL(carry, mbedtls_mpi_core_add(X, X, X, limbs));
-        ASSERT_COMPARE(X, bytes, S, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, S, bytes);
     } else {
         /* A != B, so test B + A */
 
         /* B + A => correct result and carry */
         TEST_EQUAL(carry, mbedtls_mpi_core_add(X, B, A, limbs));
-        ASSERT_COMPARE(X, bytes, S, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, S, bytes);
 
         /* B + A; alias output and first operand => correct result and carry */
         memcpy(X, B, bytes);
         TEST_EQUAL(carry, mbedtls_mpi_core_add(X, X, A, limbs));
-        ASSERT_COMPARE(X, bytes, S, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, S, bytes);
 
         /* B + A; alias output and second operand => correct result and carry */
         memcpy(X, A, bytes);
         TEST_EQUAL(carry, mbedtls_mpi_core_add(X, B, X, limbs));
-        ASSERT_COMPARE(X, bytes, S, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, S, bytes);
     }
 
     ret = 1;
@@ -111,11 +111,11 @@ static int mpi_core_verify_add_if(mbedtls_mpi_uint *A,
     /* cond = 0 => X unchanged, no carry */
     memcpy(X, A, bytes);
     TEST_EQUAL(0, mbedtls_mpi_core_add_if(X, B, limbs, 0));
-    ASSERT_COMPARE(X, bytes, A, bytes);
+    TEST_MEMORY_COMPARE(X, bytes, A, bytes);
 
     /* cond = 1 => correct result and carry */
     TEST_EQUAL(carry, mbedtls_mpi_core_add_if(X, B, limbs, 1));
-    ASSERT_COMPARE(X, bytes, S, bytes);
+    TEST_MEMORY_COMPARE(X, bytes, S, bytes);
 
     if (memcmp(A, B, bytes) == 0) {
         /* A == B, so test where A and B are aliased */
@@ -123,22 +123,22 @@ static int mpi_core_verify_add_if(mbedtls_mpi_uint *A,
         /* cond = 0 => X unchanged, no carry */
         memcpy(X, B, bytes);
         TEST_EQUAL(0, mbedtls_mpi_core_add_if(X, X, limbs, 0));
-        ASSERT_COMPARE(X, bytes, B, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, B, bytes);
 
         /* cond = 1 => correct result and carry */
         TEST_EQUAL(carry, mbedtls_mpi_core_add_if(X, X, limbs, 1));
-        ASSERT_COMPARE(X, bytes, S, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, S, bytes);
     } else {
         /* A != B, so test B + A */
 
         /* cond = 0 => d unchanged, no carry */
         memcpy(X, B, bytes);
         TEST_EQUAL(0, mbedtls_mpi_core_add_if(X, A, limbs, 0));
-        ASSERT_COMPARE(X, bytes, B, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, B, bytes);
 
         /* cond = 1 => correct result and carry */
         TEST_EQUAL(carry, mbedtls_mpi_core_add_if(X, A, limbs, 1));
-        ASSERT_COMPARE(X, bytes, S, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, S, bytes);
     }
 
     ret = 1;
@@ -309,6 +309,36 @@ exit:
 }
 /* END_CASE */
 
+
+/* BEGIN_CASE */
+void mpi_core_clz(int leading_zeros, int trailing_zeros)
+{
+    if ((size_t) (leading_zeros + trailing_zeros) >= (sizeof(mbedtls_mpi_uint) * 8)) {
+        // can't fit required number of leading and trailing zeros - skip test
+        goto exit;
+    }
+
+    // Construct a test input value where the count of leading zeros and
+    // trailing zeros is given in the test case, and we add ones to fill
+    // the gap.
+    mbedtls_mpi_uint x;
+    if ((leading_zeros + trailing_zeros) > 0) {
+        // some zero bits
+        uint32_t s = (sizeof(mbedtls_mpi_uint) * 8 - leading_zeros - trailing_zeros);
+        x = ((((mbedtls_mpi_uint) 1) << s) - 1) << trailing_zeros;
+    } else {
+        // all bits set
+        x = ~((mbedtls_mpi_uint) 0);
+    }
+
+    size_t n = mbedtls_mpi_core_clz(x);
+    TEST_EQUAL(n, leading_zeros);
+exit:
+    ;
+}
+/* END_CASE */
+
+
 /* BEGIN_CASE */
 void mpi_core_lt_ct(char *input_X, char *input_Y, int exp_ret)
 {
@@ -328,7 +358,7 @@ void mpi_core_lt_ct(char *input_X, char *input_Y, int exp_ret)
     TEST_CF_SECRET(Y, X_limbs * sizeof(mbedtls_mpi_uint));
 
     ret = mbedtls_mpi_core_lt_ct(X, Y, X_limbs);
-    TEST_EQUAL(ret, exp_ret);
+    TEST_EQUAL(!!ret, exp_ret);
 
 exit:
     mbedtls_free(X);
@@ -354,25 +384,25 @@ void mpi_core_uint_le_mpi(char *input_A)
 
     TEST_CF_SECRET(A, A_limbs * sizeof(*A));
 
-    TEST_EQUAL(mbedtls_mpi_core_uint_le_mpi(0, A, A_limbs), 1);
-    TEST_EQUAL(mbedtls_mpi_core_uint_le_mpi(A[0], A, A_limbs), 1);
+    TEST_EQUAL(!!mbedtls_mpi_core_uint_le_mpi(0, A, A_limbs), 1);
+    TEST_EQUAL(!!mbedtls_mpi_core_uint_le_mpi(A[0], A, A_limbs), 1);
 
     if (is_large) {
-        TEST_EQUAL(mbedtls_mpi_core_uint_le_mpi(A[0] + 1,
-                                                A, A_limbs), 1);
-        TEST_EQUAL(mbedtls_mpi_core_uint_le_mpi((mbedtls_mpi_uint) (-1) >> 1,
-                                                A, A_limbs), 1);
-        TEST_EQUAL(mbedtls_mpi_core_uint_le_mpi((mbedtls_mpi_uint) (-1),
-                                                A, A_limbs), 1);
+        TEST_EQUAL(!!mbedtls_mpi_core_uint_le_mpi(A[0] + 1,
+                                                  A, A_limbs), 1);
+        TEST_EQUAL(!!mbedtls_mpi_core_uint_le_mpi((mbedtls_mpi_uint) (-1) >> 1,
+                                                  A, A_limbs), 1);
+        TEST_EQUAL(!!mbedtls_mpi_core_uint_le_mpi((mbedtls_mpi_uint) (-1),
+                                                  A, A_limbs), 1);
     } else {
-        TEST_EQUAL(mbedtls_mpi_core_uint_le_mpi(A[0] + 1,
-                                                A, A_limbs),
+        TEST_EQUAL(!!mbedtls_mpi_core_uint_le_mpi(A[0] + 1,
+                                                  A, A_limbs),
                    A[0] + 1 <= A[0]);
-        TEST_EQUAL(mbedtls_mpi_core_uint_le_mpi((mbedtls_mpi_uint) (-1) >> 1,
-                                                A, A_limbs),
+        TEST_EQUAL(!!mbedtls_mpi_core_uint_le_mpi((mbedtls_mpi_uint) (-1) >> 1,
+                                                  A, A_limbs),
                    (mbedtls_mpi_uint) (-1) >> 1 <= A[0]);
-        TEST_EQUAL(mbedtls_mpi_core_uint_le_mpi((mbedtls_mpi_uint) (-1),
-                                                A, A_limbs),
+        TEST_EQUAL(!!mbedtls_mpi_core_uint_le_mpi((mbedtls_mpi_uint) (-1),
+                                                  A, A_limbs),
                    (mbedtls_mpi_uint) (-1) <= A[0]);
     }
 
@@ -417,7 +447,7 @@ void mpi_core_cond_assign(char *input_X,
     TEST_CF_SECRET(X, bytes);
     TEST_CF_SECRET(Y, bytes);
 
-    mbedtls_mpi_core_cond_assign(X, Y, copy_limbs, 1);
+    mbedtls_mpi_core_cond_assign(X, Y, copy_limbs, mbedtls_ct_bool(1));
 
     TEST_CF_PUBLIC(X, bytes);
     TEST_CF_PUBLIC(Y, bytes);
@@ -428,10 +458,10 @@ void mpi_core_cond_assign(char *input_X,
         TEST_CF_PUBLIC(X, bytes);
         TEST_CF_PUBLIC(Y, bytes);
 
-        ASSERT_COMPARE(X, copy_bytes, Y, copy_bytes);
+        TEST_MEMORY_COMPARE(X, copy_bytes, Y, copy_bytes);
         TEST_ASSERT(memcmp(X, Y, bytes) != 0);
     } else {
-        ASSERT_COMPARE(X, bytes, Y, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, Y, bytes);
     }
 
 exit:
@@ -463,10 +493,10 @@ void mpi_core_cond_swap(char *input_X,
     TEST_EQUAL(limbs_X, limbs_Y);
     TEST_ASSERT(copy_limbs <= limbs);
 
-    ASSERT_ALLOC(X, limbs);
+    TEST_CALLOC(X, limbs);
     memcpy(X, tmp_X, bytes);
 
-    ASSERT_ALLOC(Y, limbs);
+    TEST_CALLOC(Y, limbs);
     memcpy(Y, tmp_Y, bytes);
 
     /* condition is false */
@@ -478,14 +508,14 @@ void mpi_core_cond_swap(char *input_X,
     TEST_CF_PUBLIC(X, bytes);
     TEST_CF_PUBLIC(Y, bytes);
 
-    ASSERT_COMPARE(X, bytes, tmp_X, bytes);
-    ASSERT_COMPARE(Y, bytes, tmp_Y, bytes);
+    TEST_MEMORY_COMPARE(X, bytes, tmp_X, bytes);
+    TEST_MEMORY_COMPARE(Y, bytes, tmp_Y, bytes);
 
     /* condition is true */
     TEST_CF_SECRET(X, bytes);
     TEST_CF_SECRET(Y, bytes);
 
-    mbedtls_mpi_core_cond_swap(X, Y, copy_limbs, 1);
+    mbedtls_mpi_core_cond_swap(X, Y, copy_limbs, mbedtls_ct_bool(1));
 
     TEST_CF_PUBLIC(X, bytes);
     TEST_CF_PUBLIC(Y, bytes);
@@ -493,15 +523,15 @@ void mpi_core_cond_swap(char *input_X,
     /* Check if the given length is copied even it is smaller
        than the length of the given MPIs. */
     if (copy_limbs < limbs) {
-        ASSERT_COMPARE(X, copy_bytes, tmp_Y, copy_bytes);
-        ASSERT_COMPARE(Y, copy_bytes, tmp_X, copy_bytes);
+        TEST_MEMORY_COMPARE(X, copy_bytes, tmp_Y, copy_bytes);
+        TEST_MEMORY_COMPARE(Y, copy_bytes, tmp_X, copy_bytes);
         TEST_ASSERT(memcmp(X, tmp_X, bytes) != 0);
         TEST_ASSERT(memcmp(X, tmp_Y, bytes) != 0);
         TEST_ASSERT(memcmp(Y, tmp_X, bytes) != 0);
         TEST_ASSERT(memcmp(Y, tmp_Y, bytes) != 0);
     } else {
-        ASSERT_COMPARE(X, bytes, tmp_Y, bytes);
-        ASSERT_COMPARE(Y, bytes, tmp_X, bytes);
+        TEST_MEMORY_COMPARE(X, bytes, tmp_Y, bytes);
+        TEST_MEMORY_COMPARE(Y, bytes, tmp_X, bytes);
     }
 
 exit:
@@ -524,7 +554,27 @@ void mpi_core_shift_r(char *input, int count, char *result)
     TEST_EQUAL(limbs, n);
 
     mbedtls_mpi_core_shift_r(X, limbs, count);
-    ASSERT_COMPARE(X, limbs * ciL, Y, limbs * ciL);
+    TEST_MEMORY_COMPARE(X, limbs * ciL, Y, limbs * ciL);
+
+exit:
+    mbedtls_free(X);
+    mbedtls_free(Y);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_core_shift_l(char *input, int count, char *result)
+{
+    mbedtls_mpi_uint *X = NULL;
+    mbedtls_mpi_uint *Y = NULL;
+    size_t limbs, n;
+
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&X, &limbs, input));
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&Y, &n, result));
+    TEST_EQUAL(limbs, n);
+
+    mbedtls_mpi_core_shift_l(X, limbs, count);
+    TEST_MEMORY_COMPARE(X, limbs * ciL, Y, limbs * ciL);
 
 exit:
     mbedtls_free(X);
@@ -551,7 +601,7 @@ void mpi_core_add_and_add_if(char *input_A, char *input_B,
     TEST_EQUAL(A_limbs, S_limbs);
 
     size_t limbs = A_limbs;
-    ASSERT_ALLOC(X, limbs);
+    TEST_CALLOC(X, limbs);
 
     TEST_ASSERT(mpi_core_verify_add(A, B, limbs, S, carry, X));
     TEST_ASSERT(mpi_core_verify_add_if(A, B, limbs, S, carry, X));
@@ -596,15 +646,15 @@ void mpi_core_sub(char *input_A, char *input_B,
 
     /* Now let's get arrays of mbedtls_mpi_uints, rather than MPI structures */
 
-    /* ASSERT_ALLOC() uses calloc() under the hood, so these do get zeroed */
-    ASSERT_ALLOC(a, bytes);
-    ASSERT_ALLOC(b, bytes);
-    ASSERT_ALLOC(x, bytes);
-    ASSERT_ALLOC(r, bytes);
+    /* TEST_CALLOC() uses calloc() under the hood, so these do get zeroed */
+    TEST_CALLOC(a, bytes);
+    TEST_CALLOC(b, bytes);
+    TEST_CALLOC(x, bytes);
+    TEST_CALLOC(r, bytes);
 
     /* Populate the arrays. As the mbedtls_mpi_uint[]s in mbedtls_mpis (and as
      * processed by mbedtls_mpi_core_sub()) are little endian, we can just
-     * copy what we have as long as MSBs are 0 (which they are from ASSERT_ALLOC())
+     * copy what we have as long as MSBs are 0 (which they are from TEST_CALLOC())
      */
     memcpy(a, A.p, A.n * sizeof(mbedtls_mpi_uint));
     memcpy(b, B.p, B.n * sizeof(mbedtls_mpi_uint));
@@ -614,7 +664,7 @@ void mpi_core_sub(char *input_A, char *input_B,
     TEST_EQUAL(carry, mbedtls_mpi_core_sub(r, a, b, limbs));
 
     /* 1b) r = a - b => we should get the correct result */
-    ASSERT_COMPARE(r, bytes, x, bytes);
+    TEST_MEMORY_COMPARE(r, bytes, x, bytes);
 
     /* 2 and 3 test "r may be aliased to a or b" */
     /* 2a) r = a; r -= b => we should get the correct carry (use r to avoid clobbering a) */
@@ -622,20 +672,20 @@ void mpi_core_sub(char *input_A, char *input_B,
     TEST_EQUAL(carry, mbedtls_mpi_core_sub(r, r, b, limbs));
 
     /* 2b) r -= b => we should get the correct result */
-    ASSERT_COMPARE(r, bytes, x, bytes);
+    TEST_MEMORY_COMPARE(r, bytes, x, bytes);
 
     /* 3a) r = b; r = a - r => we should get the correct carry (use r to avoid clobbering b) */
     memcpy(r, b, bytes);
     TEST_EQUAL(carry, mbedtls_mpi_core_sub(r, a, r, limbs));
 
     /* 3b) r = a - b => we should get the correct result */
-    ASSERT_COMPARE(r, bytes, x, bytes);
+    TEST_MEMORY_COMPARE(r, bytes, x, bytes);
 
     /* 4 tests "r may be aliased to [...] both" */
     if (A.n == B.n && memcmp(A.p, B.p, bytes) == 0) {
         memcpy(r, b, bytes);
         TEST_EQUAL(carry, mbedtls_mpi_core_sub(r, r, r, limbs));
-        ASSERT_COMPARE(r, bytes, x, bytes);
+        TEST_MEMORY_COMPARE(r, bytes, x, bytes);
     }
 
 exit:
@@ -709,13 +759,13 @@ void mpi_core_mla(char *input_A, char *input_B, char *input_S,
 
     /* Now let's get arrays of mbedtls_mpi_uints, rather than MPI structures */
 
-    /* ASSERT_ALLOC() uses calloc() under the hood, so these do get zeroed */
-    ASSERT_ALLOC(a, bytes);
-    ASSERT_ALLOC(x, bytes);
+    /* TEST_CALLOC() uses calloc() under the hood, so these do get zeroed */
+    TEST_CALLOC(a, bytes);
+    TEST_CALLOC(x, bytes);
 
     /* Populate the arrays. As the mbedtls_mpi_uint[]s in mbedtls_mpis (and as
      * processed by mbedtls_mpi_core_mla()) are little endian, we can just
-     * copy what we have as long as MSBs are 0 (which they are from ASSERT_ALLOC()).
+     * copy what we have as long as MSBs are 0 (which they are from TEST_CALLOC()).
      */
     memcpy(a, A.p, A.n * sizeof(mbedtls_mpi_uint));
     memcpy(x, X->p, X->n * sizeof(mbedtls_mpi_uint));
@@ -724,13 +774,13 @@ void mpi_core_mla(char *input_A, char *input_B, char *input_S,
     TEST_EQUAL(mbedtls_mpi_core_mla(a, limbs, B.p, B.n, *S.p), *cy->p);
 
     /* 1b) A += B * s => we should get the correct result */
-    ASSERT_COMPARE(a, bytes, x, bytes);
+    TEST_MEMORY_COMPARE(a, bytes, x, bytes);
 
     if (A.n == B.n && memcmp(A.p, B.p, bytes) == 0) {
         /* Check when A and B are aliased */
         memcpy(a, A.p, A.n * sizeof(mbedtls_mpi_uint));
         TEST_EQUAL(mbedtls_mpi_core_mla(a, limbs, a, limbs, *S.p), *cy->p);
-        ASSERT_COMPARE(a, bytes, x, bytes);
+        TEST_MEMORY_COMPARE(a, bytes, x, bytes);
     }
 
 exit:
@@ -840,14 +890,14 @@ void mpi_core_montmul(int limbs_AN4, int limbs_B4,
 
     mbedtls_mpi_core_montmul(R.p, A.p, B.p, B.n, N.p, N.n, mm, T.p);
     size_t bytes = N.n * sizeof(mbedtls_mpi_uint);
-    ASSERT_COMPARE(R.p, bytes, X->p, bytes);
+    TEST_MEMORY_COMPARE(R.p, bytes, X->p, bytes);
 
     /* The output (R, above) may be aliased to A - use R to save the value of A */
 
     memcpy(R.p, A.p, bytes);
 
     mbedtls_mpi_core_montmul(A.p, A.p, B.p, B.n, N.p, N.n, mm, T.p);
-    ASSERT_COMPARE(A.p, bytes, X->p, bytes);
+    TEST_MEMORY_COMPARE(A.p, bytes, X->p, bytes);
 
     memcpy(A.p, R.p, bytes);    /* restore A */
 
@@ -856,7 +906,7 @@ void mpi_core_montmul(int limbs_AN4, int limbs_B4,
     memcpy(R.p, N.p, bytes);
 
     mbedtls_mpi_core_montmul(N.p, A.p, B.p, B.n, N.p, N.n, mm, T.p);
-    ASSERT_COMPARE(N.p, bytes, X->p, bytes);
+    TEST_MEMORY_COMPARE(N.p, bytes, X->p, bytes);
 
     memcpy(N.p, R.p, bytes);
 
@@ -867,7 +917,7 @@ void mpi_core_montmul(int limbs_AN4, int limbs_B4,
              * don't bother with yet another test with only A and B aliased */
 
             mbedtls_mpi_core_montmul(B.p, B.p, B.p, B.n, N.p, N.n, mm, T.p);
-            ASSERT_COMPARE(B.p, bytes, X->p, bytes);
+            TEST_MEMORY_COMPARE(B.p, bytes, X->p, bytes);
 
             memcpy(B.p, A.p, bytes);    /* restore B from equal value A */
         }
@@ -875,7 +925,7 @@ void mpi_core_montmul(int limbs_AN4, int limbs_B4,
         /* The output may be aliased to B - last test, so we don't save B */
 
         mbedtls_mpi_core_montmul(B.p, A.p, B.p, B.n, N.p, N.n, mm, T.p);
-        ASSERT_COMPARE(B.p, bytes, X->p, bytes);
+        TEST_MEMORY_COMPARE(B.p, bytes, X->p, bytes);
     }
 
 exit:
@@ -967,8 +1017,8 @@ void mpi_core_ct_uint_table_lookup(int bitlen, int window_size)
     mbedtls_mpi_uint *table = NULL;
     mbedtls_mpi_uint *dest = NULL;
 
-    ASSERT_ALLOC(table, limbs * count);
-    ASSERT_ALLOC(dest, limbs);
+    TEST_CALLOC(table, limbs * count);
+    TEST_CALLOC(dest, limbs);
 
     /*
      * Fill the table with a unique counter so that differences are easily
@@ -996,8 +1046,8 @@ void mpi_core_ct_uint_table_lookup(int bitlen, int window_size)
 
         TEST_CF_PUBLIC(dest, limbs * sizeof(*dest));
         TEST_CF_PUBLIC(table, count * limbs * sizeof(*table));
-        ASSERT_COMPARE(dest, limbs * sizeof(*dest),
-                       current, limbs * sizeof(*current));
+        TEST_MEMORY_COMPARE(dest, limbs * sizeof(*dest),
+                            current, limbs * sizeof(*current));
         TEST_CF_PUBLIC(&i, sizeof(i));
     }
 
@@ -1020,7 +1070,7 @@ void mpi_core_fill_random(int wanted_bytes_arg, int extra_rng_bytes,
     int ret;
 
     /* Prepare an RNG with known output, limited to rng_bytes. */
-    ASSERT_ALLOC(rnd_data, rng_bytes);
+    TEST_CALLOC(rnd_data, rng_bytes);
     TEST_EQUAL(0, mbedtls_test_rnd_std_rand(NULL, rnd_data, rng_bytes));
     rnd_info.buf = rnd_data;
 
@@ -1028,7 +1078,7 @@ void mpi_core_fill_random(int wanted_bytes_arg, int extra_rng_bytes,
      * extra_limbs may be negative but the total limb count must be positive.
      * Fill the MPI with the byte value in before. */
     TEST_LE_U(1, X_limbs);
-    ASSERT_ALLOC(X, X_limbs);
+    TEST_CALLOC(X, X_limbs);
     memset(X, before, X_limbs * sizeof(*X));
 
     ret = mbedtls_mpi_core_fill_random(X, X_limbs, wanted_bytes,
@@ -1057,7 +1107,71 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN MERGE SLOT 1 */
+/* BEGIN_CASE */
+void mpi_core_mul(char *input_A,
+                  char *input_B,
+                  char *result)
+{
+    mbedtls_mpi_uint *A      = NULL;
+    mbedtls_mpi_uint *A_orig = NULL;
+    mbedtls_mpi_uint *B      = NULL;
+    mbedtls_mpi_uint *B_orig = NULL;
+    mbedtls_mpi_uint *R      = NULL;
+    mbedtls_mpi_uint *X      = NULL;
+    size_t A_limbs, B_limbs, R_limbs;
+
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&A, &A_limbs, input_A), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&B, &B_limbs, input_B), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&R, &R_limbs, result), 0);
+
+    TEST_EQUAL(R_limbs, A_limbs + B_limbs);
+
+    const size_t X_limbs = A_limbs + B_limbs;
+    const size_t X_bytes = X_limbs * sizeof(mbedtls_mpi_uint);
+    TEST_CALLOC(X, X_limbs);
+
+    const size_t A_bytes = A_limbs * sizeof(mbedtls_mpi_uint);
+    TEST_CALLOC(A_orig, A_limbs);
+    memcpy(A_orig, A, A_bytes);
+
+    const size_t B_bytes = B_limbs * sizeof(mbedtls_mpi_uint);
+    TEST_CALLOC(B_orig, B_limbs);
+    memcpy(B_orig, B, B_bytes);
+
+    /* Set result to something that is unlikely to be correct */
+    memset(X, '!', X_bytes);
+
+    /* 1. X = A * B - result should be correct, A and B unchanged */
+    mbedtls_mpi_core_mul(X, A, A_limbs, B, B_limbs);
+    TEST_MEMORY_COMPARE(X, X_bytes, R, X_bytes);
+    TEST_MEMORY_COMPARE(A, A_bytes, A_orig, A_bytes);
+    TEST_MEMORY_COMPARE(B, B_bytes, B_orig, B_bytes);
+
+    /* 2. A == B: alias A and B - result should be correct, A and B unchanged */
+    if (A_bytes == B_bytes && memcmp(A, B, A_bytes) == 0) {
+        memset(X, '!', X_bytes);
+        mbedtls_mpi_core_mul(X, A, A_limbs, A, A_limbs);
+        TEST_MEMORY_COMPARE(X, X_bytes, R, X_bytes);
+        TEST_MEMORY_COMPARE(A, A_bytes, A_orig, A_bytes);
+    }
+    /* 3. X = B * A - result should be correct, A and B unchanged */
+    else {
+        memset(X, '!', X_bytes);
+        mbedtls_mpi_core_mul(X, B, B_limbs, A, A_limbs);
+        TEST_MEMORY_COMPARE(X, X_bytes, R, X_bytes);
+        TEST_MEMORY_COMPARE(A, A_bytes, A_orig, A_bytes);
+        TEST_MEMORY_COMPARE(B, B_bytes, B_orig, B_bytes);
+    }
+
+exit:
+    mbedtls_free(A);
+    mbedtls_free(A_orig);
+    mbedtls_free(B);
+    mbedtls_free(B_orig);
+    mbedtls_free(R);
+    mbedtls_free(X);
+}
+/* END_CASE */
 
 /* BEGIN_CASE */
 void mpi_core_exp_mod(char *input_N, char *input_A,
@@ -1081,7 +1195,7 @@ void mpi_core_exp_mod(char *input_N, char *input_A,
     TEST_EQUAL(0, mbedtls_test_read_mpi_core(&E, &E_limbs, input_E));
     TEST_EQUAL(0, mbedtls_test_read_mpi_core(&N, &N_limbs, input_N));
     TEST_EQUAL(0, mbedtls_test_read_mpi_core(&X, &X_limbs, input_X));
-    ASSERT_ALLOC(Y, N_limbs);
+    TEST_CALLOC(Y, N_limbs);
 
     TEST_EQUAL(A_limbs, N_limbs);
     TEST_EQUAL(X_limbs, N_limbs);
@@ -1113,7 +1227,7 @@ void mpi_core_exp_mod(char *input_N, char *input_A,
     TEST_LE_U(mbedtls_mpi_core_montmul_working_limbs(N_limbs),
               working_limbs);
 
-    ASSERT_ALLOC(T, working_limbs);
+    TEST_CALLOC(T, working_limbs);
 
     mbedtls_mpi_core_exp_mod(Y, A, N, N_limbs, E, E_limbs, R2, T);
 
@@ -1137,14 +1251,6 @@ exit:
     // R2 doesn't need to be freed as it is only aliasing R2_mpi
 }
 /* END_CASE */
-
-/* END MERGE SLOT 1 */
-
-/* BEGIN MERGE SLOT 2 */
-
-/* END MERGE SLOT 2 */
-
-/* BEGIN MERGE SLOT 3 */
 
 /* BEGIN_CASE */
 void mpi_core_sub_int(char *input_A, char *input_B,
@@ -1171,10 +1277,11 @@ void mpi_core_sub_int(char *input_A, char *input_B,
     TEST_EQUAL(A_limbs, X_limbs);
     size_t limbs = A_limbs;
 
-    ASSERT_ALLOC(R, limbs);
+    TEST_CALLOC(R, limbs);
 
 #define TEST_COMPARE_CORE_MPIS(A, B, limbs) \
-    ASSERT_COMPARE(A, (limbs) * sizeof(mbedtls_mpi_uint), B, (limbs) * sizeof(mbedtls_mpi_uint))
+    TEST_MEMORY_COMPARE(A, (limbs) * sizeof(mbedtls_mpi_uint), \
+                        B, (limbs) * sizeof(mbedtls_mpi_uint))
 
     /* 1. R = A - b. Result and borrow should be correct */
     TEST_EQUAL(mbedtls_mpi_core_sub_int(R, A, B[0], limbs), borrow);
@@ -1210,33 +1317,3 @@ exit:
     mbedtls_free(X);
 }
 /* END_CASE */
-
-/* END MERGE SLOT 3 */
-
-/* BEGIN MERGE SLOT 4 */
-
-/* END MERGE SLOT 4 */
-
-/* BEGIN MERGE SLOT 5 */
-
-/* END MERGE SLOT 5 */
-
-/* BEGIN MERGE SLOT 6 */
-
-/* END MERGE SLOT 6 */
-
-/* BEGIN MERGE SLOT 7 */
-
-/* END MERGE SLOT 7 */
-
-/* BEGIN MERGE SLOT 8 */
-
-/* END MERGE SLOT 8 */
-
-/* BEGIN MERGE SLOT 9 */
-
-/* END MERGE SLOT 9 */
-
-/* BEGIN MERGE SLOT 10 */
-
-/* END MERGE SLOT 10 */

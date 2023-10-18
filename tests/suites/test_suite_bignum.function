@@ -133,7 +133,7 @@ void mpi_read_write_string(int radix_X, char *input_X, int radix_A,
         TEST_ASSERT(sign_is_valid(&X));
         TEST_ASSERT(mbedtls_mpi_write_string(&X, radix_A, str, output_size, &len) == result_write);
         if (result_write == 0) {
-            TEST_ASSERT(strcasecmp(str, input_A) == 0);
+            TEST_ASSERT(strcmp(str, input_A) == 0);
             TEST_ASSERT(str[len] == '!');
         }
     }
@@ -438,7 +438,7 @@ void mpi_lt_mpi_ct(int size_X, char *input_X,
 
     TEST_ASSERT(mbedtls_mpi_lt_mpi_ct(&X, &Y, &ret) == input_err);
     if (input_err == 0) {
-        TEST_ASSERT(ret == input_uret);
+        TEST_EQUAL(ret, input_uret);
     }
 
 exit:
@@ -834,7 +834,7 @@ void mpi_mul_int(char *input_X, int input_Y,
     } else if (strcmp(result_comparison, "!=") == 0) {
         TEST_ASSERT(mbedtls_mpi_cmp_mpi(&Z, &A) != 0);
     } else {
-        TEST_ASSERT("unknown operator" == 0);
+        TEST_FAIL("unknown operator");
     }
 
 exit:
@@ -923,47 +923,16 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_mod_int(char *input_X, char *input_Y,
-                 char *input_A, int mod_result)
+void mpi_mod_int(char *input_X, mbedtls_mpi_sint y,
+                 mbedtls_mpi_sint a, int mod_result)
 {
     mbedtls_mpi X;
-    mbedtls_mpi Y;
-    mbedtls_mpi A;
     int res;
     mbedtls_mpi_uint r;
 
     mbedtls_mpi_init(&X);
-    mbedtls_mpi_init(&Y);
-    mbedtls_mpi_init(&A);
 
-    /* We use MPIs to read Y and A since the test framework limits us to
-     * ints, so we can't have 64-bit values */
     TEST_EQUAL(mbedtls_test_read_mpi(&X, input_X), 0);
-    TEST_EQUAL(mbedtls_test_read_mpi(&Y, input_Y), 0);
-    TEST_EQUAL(mbedtls_test_read_mpi(&A, input_A), 0);
-
-    TEST_EQUAL(Y.n, 1);
-    TEST_EQUAL(A.n, 1);
-
-    /* Convert the MPIs for Y and A to (signed) mbedtls_mpi_sints */
-
-    /* Since we're converting sign+magnitude to two's complement, we lose one
-     * bit of value in the output. This means there are some values we can't
-     * represent, e.g. (hex) -A0000000 on 32-bit systems. These are technically
-     * invalid test cases, so could be considered "won't happen", but they are
-     * easy to test for, and this helps guard against human error. */
-
-    mbedtls_mpi_sint y = (mbedtls_mpi_sint) Y.p[0];
-    TEST_ASSERT(y >= 0);        /* If y < 0 here, we can't make negative y */
-    if (Y.s == -1) {
-        y = -y;
-    }
-
-    mbedtls_mpi_sint a = (mbedtls_mpi_sint) A.p[0];
-    TEST_ASSERT(a >= 0);        /* Same goes for a */
-    if (A.s == -1) {
-        a = -a;
-    }
 
     res = mbedtls_mpi_mod_int(&r, &X, y);
     TEST_EQUAL(res, mod_result);
@@ -973,8 +942,6 @@ void mpi_mod_int(char *input_X, char *input_Y,
 
 exit:
     mbedtls_mpi_free(&X);
-    mbedtls_mpi_free(&Y);
-    mbedtls_mpi_free(&A);
 }
 /* END_CASE */
 

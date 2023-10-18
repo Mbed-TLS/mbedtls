@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 {
     int i;
 
-    if (argc == 1 || strcmp(argv[1], "-h") == 0) {
+    if (argc < 2 || strcmp(argv[1], "-h") == 0) {
         mbedtls_printf(USAGE, argv[0]);
         return MBEDTLS_EXIT_FAILURE;
     }

@@ -10,3 +10,11 @@ pylint == 2.4.4
 # Use the earliest version of mypy that works with our code base.
 # See https://github.com/Mbed-TLS/mbedtls/pull/3953 .
 mypy >= 0.780
+
+# At the time of writing, only needed for tests/scripts/audit-validity-dates.py.
+# It needs >=35.0.0 for correct operation, and that requires Python >=3.6,
+# but our CI has Python 3.5. So let pip install the newest version that's
+# compatible with the running Python: this way we get something good enough
+# for mypy and pylint under Python 3.5, and we also get something good enough
+# to run audit-validity-dates.py on Python >=3.6.
+cryptography # >= 35.0.0

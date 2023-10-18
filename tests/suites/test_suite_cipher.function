@@ -63,6 +63,9 @@ static int check_cipher_info(mbedtls_cipher_type_t type,
                     key_bitlen == 192 ||
                     key_bitlen == 256);
     }
+    TEST_LE_U(key_bitlen, MBEDTLS_MAX_KEY_LENGTH * 8);
+    TEST_LE_U(block_size, MBEDTLS_MAX_BLOCK_LENGTH);
+    TEST_LE_U(iv_size, MBEDTLS_MAX_IV_LENGTH);
 
     if (strstr(info->name, "-ECB") != NULL) {
         TEST_ASSERT(iv_size == 0);
@@ -583,20 +586,27 @@ void dec_empty_buf(int cipher,
         iv_len = 12;
     }
 
-    ASSERT_ALLOC(iv, iv_len);
+    TEST_CALLOC(iv, iv_len);
     memset(iv, 0, iv_len);
 
-    TEST_ASSERT(sizeof(key) * 8 >= cipher_info->key_bitlen);
+    TEST_ASSERT(sizeof(key) * 8 >= mbedtls_cipher_info_get_key_bitlen(cipher_info));
 
     TEST_ASSERT(0 == mbedtls_cipher_setup(&ctx_dec, cipher_info));
 
     TEST_ASSERT(0 == mbedtls_cipher_setkey(&ctx_dec,
-                                           key, cipher_info->key_bitlen,
+                                           key, mbedtls_cipher_info_get_key_bitlen(cipher_info),
                                            MBEDTLS_DECRYPT));
 
     TEST_ASSERT(0 == mbedtls_cipher_set_iv(&ctx_dec, iv, iv_len));
 
     TEST_ASSERT(0 == mbedtls_cipher_reset(&ctx_dec));
+
+#if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING) && defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+    if (ctx_dec.cipher_info->mode == MBEDTLS_MODE_CBC) {
+        TEST_ASSERT(0 == mbedtls_cipher_set_padding_mode(&ctx_dec,
+                                                         MBEDTLS_PADDING_PKCS7));
+    }
+#endif
 
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
     int expected = (cipher_info->mode == MBEDTLS_MODE_GCM ||
@@ -905,7 +915,7 @@ void auth_crypt_tv(int cipher_id, data_t *key, data_t *iv,
      * (we need the tag appended to the ciphertext)
      */
     cipher_plus_tag_len = cipher->len + tag->len;
-    ASSERT_ALLOC(cipher_plus_tag, cipher_plus_tag_len);
+    TEST_CALLOC(cipher_plus_tag, cipher_plus_tag_len);
     memcpy(cipher_plus_tag, cipher->x, cipher->len);
     memcpy(cipher_plus_tag + cipher->len, tag->x, tag->len);
 
@@ -923,7 +933,7 @@ void auth_crypt_tv(int cipher_id, data_t *key, data_t *iv,
      * Try decrypting to a buffer that's 1B too small
      */
     if (decrypt_buf_len != 0) {
-        ASSERT_ALLOC(decrypt_buf, decrypt_buf_len - 1);
+        TEST_CALLOC(decrypt_buf, decrypt_buf_len - 1);
 
         outlen = 0;
         ret = mbedtls_cipher_auth_decrypt_ext(&ctx, iv->x, iv->len,
@@ -938,7 +948,7 @@ void auth_crypt_tv(int cipher_id, data_t *key, data_t *iv,
     /*
      * Authenticate and decrypt, and check result
      */
-    ASSERT_ALLOC(decrypt_buf, decrypt_buf_len);
+    TEST_CALLOC(decrypt_buf, decrypt_buf_len);
 
     outlen = 0;
     ret = mbedtls_cipher_auth_decrypt_ext(&ctx, iv->x, iv->len,
@@ -950,7 +960,7 @@ void auth_crypt_tv(int cipher_id, data_t *key, data_t *iv,
         TEST_ASSERT(buffer_is_all_zero(decrypt_buf, decrypt_buf_len));
     } else {
         TEST_ASSERT(ret == 0);
-        ASSERT_COMPARE(decrypt_buf, outlen, clear->x, clear->len);
+        TEST_MEMORY_COMPARE(decrypt_buf, outlen, clear->x, clear->len);
     }
 
     mbedtls_free(decrypt_buf);
@@ -981,7 +991,7 @@ void auth_crypt_tv(int cipher_id, data_t *key, data_t *iv,
         /*
          * Try encrypting with an output buffer that's 1B too small
          */
-        ASSERT_ALLOC(encrypt_buf, encrypt_buf_len - 1);
+        TEST_CALLOC(encrypt_buf, encrypt_buf_len - 1);
 
         outlen = 0;
         ret = mbedtls_cipher_auth_encrypt_ext(&ctx, iv->x, iv->len,
@@ -995,7 +1005,7 @@ void auth_crypt_tv(int cipher_id, data_t *key, data_t *iv,
         /*
          * Encrypt and check the result
          */
-        ASSERT_ALLOC(encrypt_buf, encrypt_buf_len);
+        TEST_CALLOC(encrypt_buf, encrypt_buf_len);
 
         outlen = 0;
         ret = mbedtls_cipher_auth_encrypt_ext(&ctx, iv->x, iv->len,
@@ -1193,5 +1203,48 @@ void iv_len_validity(int cipher_id, char *cipher_string,
 exit:
     mbedtls_cipher_free(&ctx_dec);
     mbedtls_cipher_free(&ctx_enc);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_WITH_PADDING */
+void check_set_padding(int cipher_id)
+{
+    mbedtls_cipher_context_t ctx;
+    unsigned char *key = NULL;
+    unsigned char iv[16] = { 0 };
+    unsigned char input[16] = { 0 };
+    unsigned char output[32] = { 0 };
+    size_t outlen = 0;
+    const mbedtls_cipher_info_t *cipher_info;
+    size_t keylen = 0;
+
+    cipher_info = mbedtls_cipher_info_from_type(cipher_id);
+
+    if (cipher_info->mode != MBEDTLS_MODE_CBC) {
+        TEST_FAIL("Cipher mode must be CBC");
+    }
+
+    keylen = mbedtls_cipher_info_get_key_bitlen(cipher_info);
+    TEST_CALLOC(key, keylen/8);
+    memset(key, 0, keylen/8);
+
+    mbedtls_cipher_init(&ctx);
+
+    TEST_EQUAL(0, mbedtls_cipher_setup(&ctx, cipher_info));
+
+    TEST_EQUAL(0, mbedtls_cipher_setkey(&ctx, key, keylen,
+                                        MBEDTLS_ENCRYPT));
+
+    TEST_EQUAL(MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+               mbedtls_cipher_crypt(&ctx, iv, sizeof(iv), input,
+                                    sizeof(input), output, &outlen));
+
+    TEST_EQUAL(0, mbedtls_cipher_set_padding_mode(&ctx, MBEDTLS_PADDING_NONE));
+    TEST_EQUAL(0, mbedtls_cipher_crypt(&ctx, iv, sizeof(iv), input,
+                                       sizeof(input), output, &outlen));
+
+exit:
+    mbedtls_cipher_free(&ctx);
+    mbedtls_free(key);
 }
 /* END_CASE */

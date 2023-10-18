@@ -17,11 +17,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Abort on errors (and uninitiliased variables)
+# Abort on errors (and uninitialised variables)
 set -eu
 
 if [ -d library -a -d include -a -d tests ]; then :; else
-    echo "Must be run from mbed TLS root" >&2
+    echo "Must be run from Mbed TLS root" >&2
     exit 1
 fi
 
@@ -35,7 +35,7 @@ cat doc.out doc.err | \
     grep -v "warning: ignoring unsupported tag" \
     > doc.filtered
 
-if egrep "(warning|error):" doc.filtered; then
+if grep -E "(warning|error):" doc.filtered; then
     echo "FAIL" >&2
     exit 1;
 fi

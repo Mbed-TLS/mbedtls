@@ -335,6 +335,13 @@
  */
 #define PSA_ERROR_DATA_INVALID          ((psa_status_t)-153)
 
+/** The function that returns this status is defined as interruptible and
+ *  still has work to do, thus the user should call the function again with the
+ *  same operation context until it either returns #PSA_SUCCESS or any other
+ *  error. This is not an error per se, more a notification of status.
+ */
+#define PSA_OPERATION_INCOMPLETE           ((psa_status_t)-248)
+
 /* *INDENT-ON* */
 
 /**@}*/
@@ -2095,7 +2102,8 @@
  */
 #define PSA_ALG_IS_PBKDF2_HMAC(alg)                                    \
     (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_PBKDF2_HMAC_BASE)
-
+#define PSA_ALG_PBKDF2_HMAC_GET_HASH(pbkdf2_alg)                         \
+    (PSA_ALG_CATEGORY_HASH | ((pbkdf2_alg) & PSA_ALG_HASH_MASK))
 /** The PBKDF2-AES-CMAC-PRF-128 password hashing / key stretching algorithm.
  *
  * PBKDF2 is defined by PKCS#5, republished as RFC 8018 (section 5.2).
@@ -2106,6 +2114,10 @@
  * #PSA_ALG_PBKDF2_HMAC() with the same constraints.
  */
 #define PSA_ALG_PBKDF2_AES_CMAC_PRF_128         ((psa_algorithm_t) 0x08800200)
+
+#define PSA_ALG_IS_PBKDF2(kdf_alg)                                      \
+    (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg) || \
+     ((kdf_alg) == PSA_ALG_PBKDF2_AES_CMAC_PRF_128))
 
 #define PSA_ALG_KEY_DERIVATION_MASK             ((psa_algorithm_t) 0xfe00ffff)
 #define PSA_ALG_KEY_AGREEMENT_MASK              ((psa_algorithm_t) 0xffff0000)
@@ -2736,6 +2748,20 @@ static inline int mbedtls_svc_key_id_is_null(mbedtls_svc_key_id_t key)
 #define MBEDTLS_PSA_ALG_AEAD_EQUAL(aead_alg_1, aead_alg_2) \
     (!(((aead_alg_1) ^ (aead_alg_2)) & \
        ~(PSA_ALG_AEAD_TAG_LENGTH_MASK | PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG)))
+
+/**@}*/
+
+/**@}*/
+
+/** \defgroup interruptible Interruptible operations
+ * @{
+ */
+
+/** Maximum value for use with \c psa_interruptible_set_max_ops() to determine
+ *  the maximum number of ops allowed to be executed by an interruptible
+ *  function in a single call.
+ */
+#define PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED UINT32_MAX
 
 /**@}*/
 

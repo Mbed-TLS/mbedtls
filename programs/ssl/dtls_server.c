@@ -119,6 +119,16 @@ int main(void)
     mbedtls_entropy_init(&entropy);
     mbedtls_ctr_drbg_init(&ctr_drbg);
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
+                        (int) status);
+        ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+        goto exit;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #if defined(MBEDTLS_DEBUG_C)
     mbedtls_debug_set_threshold(DEBUG_LEVEL);
 #endif
@@ -253,7 +263,7 @@ reset:
     mbedtls_ssl_session_reset(&ssl);
 
     /*
-     * 3. Wait until a client connects
+     * 5. Wait until a client connects
      */
     printf("  . Waiting for a remote connection ...");
     fflush(stdout);
@@ -278,7 +288,7 @@ reset:
     printf(" ok\n");
 
     /*
-     * 5. Handshake
+     * 6. Handshake
      */
     printf("  . Performing the DTLS handshake...");
     fflush(stdout);
@@ -300,7 +310,7 @@ reset:
     printf(" ok\n");
 
     /*
-     * 6. Read the echo Request
+     * 7. Read the echo Request
      */
     printf("  < Read from client:");
     fflush(stdout);
@@ -321,7 +331,6 @@ reset:
 
             case MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY:
                 printf(" connection was closed gracefully\n");
-                ret = 0;
                 goto close_notify;
 
             default:
@@ -334,7 +343,7 @@ reset:
     printf(" %d bytes read\n\n%s\n\n", len, buf);
 
     /*
-     * 7. Write the 200 Response
+     * 8. Write the 200 Response
      */
     printf("  > Write to client:");
     fflush(stdout);
@@ -353,7 +362,7 @@ reset:
     printf(" %d bytes written\n\n%s\n\n", len, buf);
 
     /*
-     * 8. Done, cleanly close the connection
+     * 9. Done, cleanly close the connection
      */
 close_notify:
     printf("  . Closing the connection...");
@@ -394,6 +403,9 @@ exit:
 #endif
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_psa_crypto_free();
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     /* Shell can not handle large exit numbers -> 1 for errors */
     if (ret < 0) {

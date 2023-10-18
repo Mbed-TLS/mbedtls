@@ -272,7 +272,7 @@ int send_cb(void *ctx, unsigned char const *buf, size_t len)
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_RSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME) && defined(MBEDTLS_RSA_C)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /*
  *   When GnuTLS/Openssl server is configured in TLS 1.2 mode with a certificate
@@ -289,7 +289,7 @@ int send_cb(void *ctx, unsigned char const *buf, size_t len)
 #define MBEDTLS_SSL_SIG_ALG(hash) ((hash << 8) | MBEDTLS_SSL_SIG_ECDSA), \
     ((hash << 8) | MBEDTLS_SSL_SIG_RSA),
 #endif
-#elif defined(MBEDTLS_ECDSA_C)
+#elif defined(MBEDTLS_PK_CAN_ECDSA_SOME)
 #define MBEDTLS_SSL_SIG_ALG(hash) ((hash << 8) | MBEDTLS_SSL_SIG_ECDSA),
 #elif defined(MBEDTLS_RSA_C)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
@@ -304,22 +304,22 @@ int send_cb(void *ctx, unsigned char const *buf, size_t len)
 #endif
 
 uint16_t ssl_sig_algs_for_test[] = {
-#if defined(MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+#if defined(MBEDTLS_MD_CAN_SHA512)
     MBEDTLS_SSL_SIG_ALG(MBEDTLS_SSL_HASH_SHA512)
 #endif
-#if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+#if defined(MBEDTLS_MD_CAN_SHA384)
     MBEDTLS_SSL_SIG_ALG(MBEDTLS_SSL_HASH_SHA384)
 #endif
-#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+#if defined(MBEDTLS_MD_CAN_SHA256)
     MBEDTLS_SSL_SIG_ALG(MBEDTLS_SSL_HASH_SHA256)
 #endif
-#if defined(MBEDTLS_HAS_ALG_SHA_224_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+#if defined(MBEDTLS_MD_CAN_SHA224)
     MBEDTLS_SSL_SIG_ALG(MBEDTLS_SSL_HASH_SHA224)
 #endif
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_MD_CAN_SHA256)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
-#endif /* MBEDTLS_RSA_C && MBEDTLS_SHA256_C */
-#if defined(MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+#endif /* MBEDTLS_RSA_C && MBEDTLS_MD_CAN_SHA256 */
+#if defined(MBEDTLS_MD_CAN_SHA1)
     /* Allow SHA-1 as we use it extensively in tests. */
     MBEDTLS_SSL_SIG_ALG(MBEDTLS_SSL_HASH_SHA1)
 #endif

@@ -1,5 +1,0 @@
-Changes
-   * When MBEDTLS_USE_PSA_CRYPTO and MBEDTLS_ECDSA_DETERMINISTIC are both
-     defined, mbedtls_pk_sign() now use deterministic ECDSA for ECDSA
-     signatures. This aligns the behaviour with MBEDTLS_USE_PSA_CRYPTO to
-     the behaviour without it, where deterministic ECDSA was already used.

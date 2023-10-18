@@ -3,7 +3,7 @@
  *
  * \brief DES block cipher
  *
- * \warning   DES is considered a weak cipher and its use constitutes a
+ * \warning   DES/3DES are considered weak ciphers and their use constitutes a
  *            security risk. We recommend considering stronger ciphers
  *            instead.
  */
@@ -53,7 +53,7 @@ extern "C" {
 /**
  * \brief          DES context structure
  *
- * \warning        DES is considered a weak cipher and its use constitutes a
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
  *                 security risk. We recommend considering stronger ciphers
  *                 instead.
  */
@@ -64,6 +64,10 @@ mbedtls_des_context;
 
 /**
  * \brief          Triple-DES context structure
+ *
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 typedef struct mbedtls_des3_context {
     uint32_t MBEDTLS_PRIVATE(sk)[96];            /*!<  3DES subkeys      */
@@ -79,7 +83,7 @@ mbedtls_des3_context;
  *
  * \param ctx      DES context to be initialized
  *
- * \warning        DES is considered a weak cipher and its use constitutes a
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
  *                 security risk. We recommend considering stronger ciphers
  *                 instead.
  */
@@ -90,7 +94,7 @@ void mbedtls_des_init(mbedtls_des_context *ctx);
  *
  * \param ctx      DES context to be cleared
  *
- * \warning        DES is considered a weak cipher and its use constitutes a
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
  *                 security risk. We recommend considering stronger ciphers
  *                 instead.
  */
@@ -100,6 +104,10 @@ void mbedtls_des_free(mbedtls_des_context *ctx);
  * \brief          Initialize Triple-DES context
  *
  * \param ctx      DES3 context to be initialized
+ *
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 void mbedtls_des3_init(mbedtls_des3_context *ctx);
 
@@ -107,6 +115,10 @@ void mbedtls_des3_init(mbedtls_des3_context *ctx);
  * \brief          Clear Triple-DES context
  *
  * \param ctx      DES3 context to be cleared
+ *
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 void mbedtls_des3_free(mbedtls_des3_context *ctx);
 
@@ -118,7 +130,7 @@ void mbedtls_des3_free(mbedtls_des3_context *ctx);
  *
  * \param key      8-byte secret key
  *
- * \warning        DES is considered a weak cipher and its use constitutes a
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
  *                 security risk. We recommend considering stronger ciphers
  *                 instead.
  */
@@ -134,7 +146,7 @@ void mbedtls_des_key_set_parity(unsigned char key[MBEDTLS_DES_KEY_SIZE]);
  *
  * \return         0 is parity was ok, 1 if parity was not correct.
  *
- * \warning        DES is considered a weak cipher and its use constitutes a
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
  *                 security risk. We recommend considering stronger ciphers
  *                 instead.
  */
@@ -148,7 +160,7 @@ int mbedtls_des_key_check_key_parity(const unsigned char key[MBEDTLS_DES_KEY_SIZ
  *
  * \return         0 if no weak key was found, 1 if a weak key was identified.
  *
- * \warning        DES is considered a weak cipher and its use constitutes a
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
  *                 security risk. We recommend considering stronger ciphers
  *                 instead.
  */
@@ -163,7 +175,7 @@ int mbedtls_des_key_check_weak(const unsigned char key[MBEDTLS_DES_KEY_SIZE]);
  *
  * \return         0
  *
- * \warning        DES is considered a weak cipher and its use constitutes a
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
  *                 security risk. We recommend considering stronger ciphers
  *                 instead.
  */
@@ -178,7 +190,7 @@ int mbedtls_des_setkey_enc(mbedtls_des_context *ctx, const unsigned char key[MBE
  *
  * \return         0
  *
- * \warning        DES is considered a weak cipher and its use constitutes a
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
  *                 security risk. We recommend considering stronger ciphers
  *                 instead.
  */
@@ -192,6 +204,10 @@ int mbedtls_des_setkey_dec(mbedtls_des_context *ctx, const unsigned char key[MBE
  * \param key      16-byte secret key
  *
  * \return         0
+ *
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_des3_set2key_enc(mbedtls_des3_context *ctx,
@@ -204,6 +220,10 @@ int mbedtls_des3_set2key_enc(mbedtls_des3_context *ctx,
  * \param key      16-byte secret key
  *
  * \return         0
+ *
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_des3_set2key_dec(mbedtls_des3_context *ctx,
@@ -216,6 +236,10 @@ int mbedtls_des3_set2key_dec(mbedtls_des3_context *ctx,
  * \param key      24-byte secret key
  *
  * \return         0
+ *
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_des3_set3key_enc(mbedtls_des3_context *ctx,
@@ -228,6 +252,10 @@ int mbedtls_des3_set3key_enc(mbedtls_des3_context *ctx,
  * \param key      24-byte secret key
  *
  * \return         0
+ *
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_des3_set3key_dec(mbedtls_des3_context *ctx,
@@ -242,7 +270,7 @@ int mbedtls_des3_set3key_dec(mbedtls_des3_context *ctx,
  *
  * \return         0 if successful
  *
- * \warning        DES is considered a weak cipher and its use constitutes a
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
  *                 security risk. We recommend considering stronger ciphers
  *                 instead.
  */
@@ -270,7 +298,7 @@ int mbedtls_des_crypt_ecb(mbedtls_des_context *ctx,
  * \param input    buffer holding the input data
  * \param output   buffer holding the output data
  *
- * \warning        DES is considered a weak cipher and its use constitutes a
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
  *                 security risk. We recommend considering stronger ciphers
  *                 instead.
  */
@@ -291,6 +319,10 @@ int mbedtls_des_crypt_cbc(mbedtls_des_context *ctx,
  * \param output   64-bit output block
  *
  * \return         0 if successful
+ *
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_des3_crypt_ecb(mbedtls_des3_context *ctx,
@@ -317,6 +349,10 @@ int mbedtls_des3_crypt_ecb(mbedtls_des3_context *ctx,
  * \param output   buffer holding the output data
  *
  * \return         0 if successful, or MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH
+ *
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
  */
 MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
@@ -335,7 +371,7 @@ int mbedtls_des3_crypt_cbc(mbedtls_des3_context *ctx,
  * \param SK       Round keys
  * \param key      Base key
  *
- * \warning        DES is considered a weak cipher and its use constitutes a
+ * \warning        DES/3DES are considered weak ciphers and their use constitutes a
  *                 security risk. We recommend considering stronger ciphers
  *                 instead.
  */

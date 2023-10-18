@@ -34,7 +34,7 @@
  */
 #if defined(PSA_WANT_ALG_MD5)
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_MD5
-/* MBEDTLS_RIPEMD160_C omitted. This is necessary for the sake of
+/* PSA_WANT_ALG_RIPEMD160 omitted. This is necessary for the sake of
  * exercise_signature_key() because Mbed TLS doesn't support RIPEMD160
  * in RSA PKCS#1v1.5 signatures. A RIPEMD160-only configuration would be
  * implausible anyway. */
@@ -119,6 +119,7 @@
  * The inputs \p input1 and \p input2 are, in order:
  * - HKDF: salt, info.
  * - TKS 1.2 PRF, TLS 1.2 PSK-to-MS: seed, label.
+ * - PBKDF2: input cost, salt.
  *
  * \param operation         The operation object to use.
  *                          It must be in the initialized state.

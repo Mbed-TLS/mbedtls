@@ -33,6 +33,7 @@
 #include "mbedtls/ccm.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+#include "mbedtls/constant_time.h"
 
 #include <string.h>
 
@@ -70,7 +71,7 @@ int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
         return MBEDTLS_ERR_CCM_BAD_INPUT;
     }
 
-    if (cipher_info->block_size != 16) {
+    if (mbedtls_cipher_info_get_block_size(cipher_info) != 16) {
         return MBEDTLS_ERR_CCM_BAD_INPUT;
     }
 
@@ -400,7 +401,6 @@ int mbedtls_ccm_update(mbedtls_ccm_context *ctx,
             mbedtls_xor(ctx->y + offset, ctx->y + offset, local_output, use_len);
 
             memcpy(output, local_output, use_len);
-            mbedtls_platform_zeroize(local_output, 16);
 
             if (use_len + offset == 16 || ctx->processed == ctx->plaintext_len) {
                 if ((ret =
@@ -533,13 +533,8 @@ static int mbedtls_ccm_compare_tags(const unsigned char *tag1,
                                     const unsigned char *tag2,
                                     size_t tag_len)
 {
-    unsigned char i;
-    int diff;
-
     /* Check tag in "constant-time" */
-    for (diff = 0, i = 0; i < tag_len; i++) {
-        diff |= tag1[i] ^ tag2[i];
-    }
+    int diff = mbedtls_ct_memcmp(tag1, tag2, tag_len);
 
     if (diff != 0) {
         return MBEDTLS_ERR_CCM_AUTH_FAILED;
@@ -659,7 +654,7 @@ int mbedtls_ccm_self_test(int verbose)
     mbedtls_ccm_init(&ctx);
 
     if (mbedtls_ccm_setkey(&ctx, MBEDTLS_CIPHER_ID_AES, key_test_data,
-                           8 * sizeof key_test_data) != 0) {
+                           8 * sizeof(key_test_data)) != 0) {
         if (verbose != 0) {
             mbedtls_printf("  CCM: setup failed");
         }

@@ -124,9 +124,9 @@ void mpi_core_random_basic(int min, char *bound_bytes, int expected_ret)
 
     TEST_EQUAL(0, mbedtls_test_read_mpi_core(&upper_bound, &limbs,
                                              bound_bytes));
-    ASSERT_ALLOC(lower_bound, limbs);
+    TEST_CALLOC(lower_bound, limbs);
     lower_bound[0] = min;
-    ASSERT_ALLOC(result, limbs);
+    TEST_CALLOC(result, limbs);
 
     TEST_EQUAL(expected_ret,
                mbedtls_mpi_core_random(result, min, upper_bound, limbs,
@@ -134,7 +134,7 @@ void mpi_core_random_basic(int min, char *bound_bytes, int expected_ret)
 
     if (expected_ret == 0) {
         TEST_EQUAL(0, mbedtls_mpi_core_lt_ct(result, lower_bound, limbs));
-        TEST_EQUAL(1, mbedtls_mpi_core_lt_ct(result, upper_bound, limbs));
+        TEST_ASSERT(0 != mbedtls_mpi_core_lt_ct(result, upper_bound, limbs));
     }
 
 exit:
@@ -159,7 +159,7 @@ void mpi_legacy_random_values(int min, char *max_hex)
 
     TEST_EQUAL(0, mbedtls_test_read_mpi(&max_legacy, max_hex));
     size_t limbs = max_legacy.n;
-    ASSERT_ALLOC(R_core, limbs);
+    TEST_CALLOC(R_core, limbs);
 
     /* Call the legacy function and the core function with the same random
      * stream. */
@@ -174,16 +174,16 @@ void mpi_legacy_random_values(int min, char *max_hex)
      * same number, with the same limb count. */
     TEST_EQUAL(core_ret, legacy_ret);
     if (core_ret == 0) {
-        ASSERT_COMPARE(R_core, limbs * ciL,
-                       R_legacy.p, R_legacy.n * ciL);
+        TEST_MEMORY_COMPARE(R_core, limbs * ciL,
+                            R_legacy.p, R_legacy.n * ciL);
     }
 
     /* Also check that they have consumed the RNG in the same way. */
     /* This may theoretically fail on rare platforms with padding in
      * the structure! If this is a problem in practice, change to a
      * field-by-field comparison. */
-    ASSERT_COMPARE(&rnd_core, sizeof(rnd_core),
-                   &rnd_legacy, sizeof(rnd_legacy));
+    TEST_MEMORY_COMPARE(&rnd_core, sizeof(rnd_core),
+                        &rnd_legacy, sizeof(rnd_legacy));
 
 exit:
     mbedtls_mpi_free(&max_legacy);
@@ -192,7 +192,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_WITH_MPI_UINT */
 void mpi_mod_random_values(int min, char *max_hex, int rep)
 {
     /* Same RNG as in mpi_core_random_basic */
@@ -209,9 +209,9 @@ void mpi_mod_random_values(int min, char *max_hex, int rep)
     mbedtls_mpi_mod_modulus_init(&N);
 
     TEST_EQUAL(mbedtls_test_read_mpi_modulus(&N, max_hex, rep), 0);
-    ASSERT_ALLOC(R_core, N.limbs);
-    ASSERT_ALLOC(R_mod_raw, N.limbs);
-    ASSERT_ALLOC(R_mod_digits, N.limbs);
+    TEST_CALLOC(R_core, N.limbs);
+    TEST_CALLOC(R_mod_raw, N.limbs);
+    TEST_CALLOC(R_mod_digits, N.limbs);
     TEST_EQUAL(mbedtls_mpi_mod_residue_setup(&R_mod, &N,
                                              R_mod_digits, N.limbs),
                0);
@@ -237,22 +237,22 @@ void mpi_mod_random_values(int min, char *max_hex, int rep)
     if (core_ret == 0) {
         TEST_EQUAL(mbedtls_mpi_mod_raw_modulus_to_canonical_rep(R_mod_raw, &N),
                    0);
-        ASSERT_COMPARE(R_core, N.limbs * ciL,
-                       R_mod_raw, N.limbs * ciL);
+        TEST_MEMORY_COMPARE(R_core, N.limbs * ciL,
+                            R_mod_raw, N.limbs * ciL);
         TEST_EQUAL(mbedtls_mpi_mod_raw_modulus_to_canonical_rep(R_mod_digits, &N),
                    0);
-        ASSERT_COMPARE(R_core, N.limbs * ciL,
-                       R_mod_digits, N.limbs * ciL);
+        TEST_MEMORY_COMPARE(R_core, N.limbs * ciL,
+                            R_mod_digits, N.limbs * ciL);
     }
 
     /* Also check that they have consumed the RNG in the same way. */
     /* This may theoretically fail on rare platforms with padding in
      * the structure! If this is a problem in practice, change to a
      * field-by-field comparison. */
-    ASSERT_COMPARE(&rnd_core, sizeof(rnd_core),
-                   &rnd_mod_raw, sizeof(rnd_mod_raw));
-    ASSERT_COMPARE(&rnd_core, sizeof(rnd_core),
-                   &rnd_mod, sizeof(rnd_mod));
+    TEST_MEMORY_COMPARE(&rnd_core, sizeof(rnd_core),
+                        &rnd_mod_raw, sizeof(rnd_mod_raw));
+    TEST_MEMORY_COMPARE(&rnd_core, sizeof(rnd_core),
+                        &rnd_mod, sizeof(rnd_mod));
 
 exit:
     mbedtls_test_mpi_mod_modulus_free_with_limbs(&N);
@@ -287,7 +287,7 @@ void mpi_random_many(int min, char *bound_hex, int iterations)
 
     TEST_EQUAL(0, mbedtls_test_read_mpi_core(&upper_bound, &limbs,
                                              bound_hex));
-    ASSERT_ALLOC(result, limbs);
+    TEST_CALLOC(result, limbs);
 
     n_bits = mbedtls_mpi_core_bitlen(upper_bound, limbs);
     /* Consider a bound "small" if it's less than 2^5. This value is chosen
@@ -302,7 +302,7 @@ void mpi_random_many(int min, char *bound_hex, int iterations)
         full_stats = 0;
         stats_len = n_bits;
     }
-    ASSERT_ALLOC(stats, stats_len);
+    TEST_CALLOC(stats, stats_len);
 
     for (i = 0; i < (size_t) iterations; i++) {
         mbedtls_test_set_step(i);
@@ -312,8 +312,8 @@ void mpi_random_many(int min, char *bound_hex, int iterations)
 
         /* Temporarily use a legacy MPI for analysis, because the
          * necessary auxiliary functions don't exist yet in core. */
-        mbedtls_mpi B = { 1, limbs, upper_bound };
-        mbedtls_mpi R = { 1, limbs, result };
+        mbedtls_mpi B = { .s = 1, .n = limbs, .p = upper_bound };
+        mbedtls_mpi R = { .s = 1, .n = limbs, .p = result };
 
         TEST_ASSERT(mbedtls_mpi_cmp_mpi(&R, &B) < 0);
         TEST_ASSERT(mbedtls_mpi_cmp_int(&R, min) >= 0);
@@ -340,7 +340,7 @@ void mpi_random_many(int min, char *bound_hex, int iterations)
         }
     } else {
         bound_bytes.len = limbs * sizeof(mbedtls_mpi_uint);
-        ASSERT_ALLOC(bound_bytes.x, bound_bytes.len);
+        TEST_CALLOC(bound_bytes.x, bound_bytes.len);
         mbedtls_mpi_core_write_be(upper_bound, limbs,
                                   bound_bytes.x, bound_bytes.len);
         int statistically_safe_all_the_way =
@@ -403,7 +403,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_WITH_MPI_UINT */
 void mpi_mod_random_validation(int min, char *bound_hex,
                                int result_limbs_delta,
                                int expected_ret)
@@ -416,7 +416,7 @@ void mpi_mod_random_validation(int min, char *bound_hex,
                                              MBEDTLS_MPI_MOD_REP_OPT_RED),
                0);
     size_t result_limbs = N.limbs + result_limbs_delta;
-    ASSERT_ALLOC(result_digits, result_limbs);
+    TEST_CALLOC(result_digits, result_limbs);
     /* Build a reside that might not match the modulus, to test that
      * the library function rejects that as expected. */
     mbedtls_mpi_mod_residue result = { result_digits, result_limbs };
@@ -429,8 +429,7 @@ void mpi_mod_random_validation(int min, char *bound_hex,
          * size as the modulus, otherwise it's a mistake in the test data. */
         TEST_EQUAL(result_limbs, N.limbs);
         /* Sanity check: check that the result is in range */
-        TEST_EQUAL(mbedtls_mpi_core_lt_ct(result_digits, N.p, N.limbs),
-                   1);
+        TEST_ASSERT(0 != mbedtls_mpi_core_lt_ct(result_digits, N.p, N.limbs));
         /* Check result >= min (changes result) */
         TEST_EQUAL(mbedtls_mpi_core_sub_int(result_digits, result_digits, min,
                                             result_limbs),
@@ -444,8 +443,7 @@ void mpi_mod_random_validation(int min, char *bound_hex,
                                               mbedtls_test_rnd_std_rand, NULL),
                    expected_ret);
         if (expected_ret == 0) {
-            TEST_EQUAL(mbedtls_mpi_core_lt_ct(result_digits, N.p, N.limbs),
-                       1);
+            TEST_ASSERT(0 != mbedtls_mpi_core_lt_ct(result_digits, N.p, N.limbs));
             TEST_EQUAL(mbedtls_mpi_core_sub_int(result_digits, result.p, min,
                                                 result_limbs),
                        0);

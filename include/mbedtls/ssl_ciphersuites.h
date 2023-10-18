@@ -1,7 +1,7 @@
 /**
  * \file ssl_ciphersuites.h
  *
- * \brief SSL Ciphersuites for mbed TLS
+ * \brief SSL Ciphersuites for Mbed TLS
  */
 /*
  *  Copyright The Mbed TLS Contributors
@@ -292,19 +292,47 @@ typedef enum {
 #define MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED
 #endif
 
+/* Key exchanges in either TLS 1.2 or 1.3 which are using an ECDSA
+ * signature */
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) || \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
+#define MBEDTLS_KEY_EXCHANGE_WITH_ECDSA_ANY_ENABLED
+#endif
+
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED) || \
     defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 #define MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED
 #endif
 
-/* Key exchanges allowing client certificate requests */
+/* Key exchanges allowing client certificate requests.
+ *
+ * Note: that's almost the same as MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED
+ * above, except RSA-PSK uses a server certificate but no client cert.
+ *
+ * Note: this difference is specific to TLS 1.2, as with TLS 1.3, things are
+ * more symmetrical: client certs and server certs are either both allowed
+ * (Ephemeral mode) or both disallowed (PSK and PKS-Ephemeral modes).
+ */
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)           ||       \
     defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)       ||       \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)      ||       \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)     ||       \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)   ||       \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)    ||       \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED
+#endif
+
+/* Helper to state that certificate-based client authentication through ECDSA
+ * is supported in TLS 1.2 */
+#if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED) && \
+    defined(MBEDTLS_PK_CAN_ECDSA_SIGN) && defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)
+#define MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED
+#endif
+
+/* ECDSA required for certificates in either TLS 1.2 or 1.3 */
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED) || \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
+#define MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED
 #endif
 
 /* Key exchanges involving server signature in ServerKeyExchange */
@@ -346,11 +374,6 @@ typedef enum {
 #define MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED) || \
-    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
-#define MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED
-#endif
-
 /* Key exchanges using DHE */
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)       || \
     defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
@@ -362,6 +385,62 @@ typedef enum {
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)   || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
 #define MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED
+#endif
+
+/* TLS 1.2 key exchanges using ECDH or ECDHE*/
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_ENABLED) || \
+    defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
+#define MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED
+#endif
+
+/* TLS 1.3 PSK key exchanges */
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED) || \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED)
+#define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED
+#endif
+
+/* TLS 1.2 or 1.3 key exchanges with PSK */
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED) || \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
+#define MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED
+#endif
+
+/* TLS 1.3 ephemeral key exchanges */
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED) || \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED)
+#define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED
+#endif
+
+/* TLS 1.3 key exchanges using ECDHE */
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
+    defined(PSA_WANT_ALG_ECDH)
+#define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_ECDHE_ENABLED
+#endif
+
+/* TLS 1.2 or 1.3 key exchanges using ECDH or ECDHE */
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED) || \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_ECDHE_ENABLED)
+#define MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED
+#endif
+
+/* TLS 1.2 XXDH key exchanges: ECDH or ECDHE or FFDH */
+#if (defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED) || \
+    defined(MBEDTLS_KEY_EXCHANGE_SOME_DHE_ENABLED))
+#define MBEDTLS_KEY_EXCHANGE_SOME_XXDH_1_2_ENABLED
+#endif
+
+/* The handshake params structure has a set of fields called xxdh_psa which are used:
+ * - by TLS 1.2 with `USE_PSA` to do ECDH or ECDHE;
+ * - by TLS 1.3 to do ECDHE or FFDHE.
+ * The following macros can be used to guard their declaration and use.
+ */
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_1_2_ENABLED) && \
+    defined(MBEDTLS_USE_PSA_CRYPTO)
+#define MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_1_2_ENABLED
+#endif
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_1_2_ENABLED) || \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
+#define MBEDTLS_KEY_EXCHANGE_SOME_XXDH_PSA_ANY_ENABLED
 #endif
 
 typedef struct mbedtls_ssl_ciphersuite_t mbedtls_ssl_ciphersuite_t;

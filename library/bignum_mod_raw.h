@@ -145,10 +145,10 @@ void mbedtls_mpi_mod_raw_cond_swap(mbedtls_mpi_uint *X,
  * The MPI needs to have enough limbs to store the full value (including any
  * most significant zero bytes in the input).
  *
- * \param[out] X        The address of the MPI. The size is determined by \p m.
+ * \param[out] X        The address of the MPI. The size is determined by \p N.
  *                      (In particular, it must have at least as many limbs as
- *                      the modulus \p m.)
- * \param[in] m         The address of the modulus related to \p X.
+ *                      the modulus \p N.)
+ * \param[in] N         The address of the modulus related to \p X.
  * \param[in] input     The input buffer to import from.
  * \param input_length  The length in bytes of \p input.
  * \param ext_rep       The endianness of the number in the input buffer.
@@ -157,20 +157,20 @@ void mbedtls_mpi_mod_raw_cond_swap(mbedtls_mpi_uint *X,
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p X isn't
  *               large enough to hold the value in \p input.
  * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
- *               of \p m is invalid or \p X is not less than \p m.
+ *               of \p N is invalid or \p X is not less than \p N.
  */
 int mbedtls_mpi_mod_raw_read(mbedtls_mpi_uint *X,
-                             const mbedtls_mpi_mod_modulus *m,
+                             const mbedtls_mpi_mod_modulus *N,
                              const unsigned char *input,
                              size_t input_length,
                              mbedtls_mpi_mod_ext_rep ext_rep);
 
 /** Export A into unsigned binary data.
  *
- * \param[in] A         The address of the MPI. The size is determined by \p m.
+ * \param[in] A         The address of the MPI. The size is determined by \p N.
  *                      (In particular, it must have at least as many limbs as
- *                      the modulus \p m.)
- * \param[in] m         The address of the modulus related to \p A.
+ *                      the modulus \p N.)
+ * \param[in] N         The address of the modulus related to \p A.
  * \param[out] output   The output buffer to export to.
  * \param output_length The length in bytes of \p output.
  * \param ext_rep       The endianness in which the number should be written into the output buffer.
@@ -179,19 +179,13 @@ int mbedtls_mpi_mod_raw_read(mbedtls_mpi_uint *X,
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p output isn't
  *               large enough to hold the value of \p A.
  * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
- *               of \p m is invalid.
+ *               of \p N is invalid.
  */
 int mbedtls_mpi_mod_raw_write(const mbedtls_mpi_uint *A,
-                              const mbedtls_mpi_mod_modulus *m,
+                              const mbedtls_mpi_mod_modulus *N,
                               unsigned char *output,
                               size_t output_length,
                               mbedtls_mpi_mod_ext_rep ext_rep);
-
-/* BEGIN MERGE SLOT 1 */
-
-/* END MERGE SLOT 1 */
-
-/* BEGIN MERGE SLOT 2 */
 
 /** \brief  Subtract two MPIs, returning the residue modulo the specified
  *          modulus.
@@ -250,10 +244,6 @@ void mbedtls_mpi_mod_raw_mul(mbedtls_mpi_uint *X,
                              const mbedtls_mpi_mod_modulus *N,
                              mbedtls_mpi_uint *T);
 
-/* END MERGE SLOT 2 */
-
-/* BEGIN MERGE SLOT 3 */
-
 /**
  * \brief          Returns the number of limbs of working memory required for
  *                 a call to `mbedtls_mpi_mod_raw_inv_prime()`.
@@ -303,13 +293,6 @@ void mbedtls_mpi_mod_raw_inv_prime(mbedtls_mpi_uint *X,
                                    const mbedtls_mpi_uint *RR,
                                    mbedtls_mpi_uint *T);
 
-/* END MERGE SLOT 3 */
-
-/* BEGIN MERGE SLOT 4 */
-
-/* END MERGE SLOT 4 */
-
-/* BEGIN MERGE SLOT 5 */
 /**
  * \brief Perform a known-size modular addition.
  *
@@ -332,9 +315,6 @@ void mbedtls_mpi_mod_raw_add(mbedtls_mpi_uint *X,
                              const mbedtls_mpi_uint *A,
                              const mbedtls_mpi_uint *B,
                              const mbedtls_mpi_mod_modulus *N);
-/* END MERGE SLOT 5 */
-
-/* BEGIN MERGE SLOT 6 */
 
 /** Convert an MPI from canonical representation (little-endian limb array)
  * to the representation associated with the modulus.
@@ -346,7 +326,7 @@ void mbedtls_mpi_mod_raw_add(mbedtls_mpi_uint *X,
  *                  is unspecified.
  * \param[in] N     The modulus structure.
  *
- *\ return          \c 0 if successful.
+ * \return          \c 0 if successful.
  *                  Otherwise an \c MBEDTLS_ERR_MPI_xxx error code.
  */
 int mbedtls_mpi_mod_raw_canonical_to_modulus_rep(
@@ -363,7 +343,7 @@ int mbedtls_mpi_mod_raw_canonical_to_modulus_rep(
  *                  is unspecified.
  * \param[in] N     The modulus structure.
  *
- *\ return          \c 0 if successful.
+ * \return          \c 0 if successful.
  *                  Otherwise an \c MBEDTLS_ERR_MPI_xxx error code.
  */
 int mbedtls_mpi_mod_raw_modulus_to_canonical_rep(
@@ -404,61 +384,45 @@ int mbedtls_mpi_mod_raw_random(mbedtls_mpi_uint *X,
                                int (*f_rng)(void *, unsigned char *, size_t),
                                void *p_rng);
 
-/* END MERGE SLOT 6 */
-
-/* BEGIN MERGE SLOT 7 */
 /** Convert an MPI into Montgomery form.
  *
  * \param X      The address of the MPI.
- *               Must have the same number of limbs as \p m.
- * \param m      The address of the modulus, which gives the size of
- *               the base `R` = 2^(biL*m->limbs).
+ *               Must have the same number of limbs as \p N.
+ * \param N      The address of the modulus, which gives the size of
+ *               the base `R` = 2^(biL*N->limbs).
  *
  * \return       \c 0 if successful.
  */
 int mbedtls_mpi_mod_raw_to_mont_rep(mbedtls_mpi_uint *X,
-                                    const mbedtls_mpi_mod_modulus *m);
+                                    const mbedtls_mpi_mod_modulus *N);
 
 /** Convert an MPI back from Montgomery representation.
  *
  * \param X      The address of the MPI.
- *               Must have the same number of limbs as \p m.
- * \param m      The address of the modulus, which gives the size of
- *               the base `R`= 2^(biL*m->limbs).
+ *               Must have the same number of limbs as \p N.
+ * \param N      The address of the modulus, which gives the size of
+ *               the base `R`= 2^(biL*N->limbs).
  *
  * \return       \c 0 if successful.
  */
 int mbedtls_mpi_mod_raw_from_mont_rep(mbedtls_mpi_uint *X,
-                                      const mbedtls_mpi_mod_modulus *m);
+                                      const mbedtls_mpi_mod_modulus *N);
 
 /** \brief  Perform fixed width modular negation.
  *
- * The size of the operation is determined by \p m. \p A must have
- * the same number of limbs as \p m.
+ * The size of the operation is determined by \p N. \p A must have
+ * the same number of limbs as \p N.
  *
  * \p X may be aliased to \p A.
  *
  * \param[out] X        The result of the modular negation.
  *                      This must be initialized.
  * \param[in] A         Little-endian presentation of the input operand. This
- *                      must be less than or equal to \p m.
- * \param[in] m         The modulus to use.
+ *                      must be less than or equal to \p N.
+ * \param[in] N         The modulus to use.
  */
 void mbedtls_mpi_mod_raw_neg(mbedtls_mpi_uint *X,
                              const mbedtls_mpi_uint *A,
-                             const mbedtls_mpi_mod_modulus *m);
-/* END MERGE SLOT 7 */
-
-/* BEGIN MERGE SLOT 8 */
-
-/* END MERGE SLOT 8 */
-
-/* BEGIN MERGE SLOT 9 */
-
-/* END MERGE SLOT 9 */
-
-/* BEGIN MERGE SLOT 10 */
-
-/* END MERGE SLOT 10 */
+                             const mbedtls_mpi_mod_modulus *N);
 
 #endif /* MBEDTLS_BIGNUM_MOD_RAW_H */

@@ -48,6 +48,15 @@ psa_status_t mbedtls_psa_ecp_load_representation(psa_key_type_t type,
                                                  size_t data_length,
                                                  mbedtls_ecp_keypair **p_ecp);
 
+/** Load the public part of an internal ECP, if required.
+ *
+ * \param ecp               The ECP context to load the public part for.
+ *
+ * \return PSA_SUCCESS on success, otherwise an MPI error.
+ */
+
+psa_status_t mbedtls_psa_ecp_load_public_part(mbedtls_ecp_keypair *ecp);
+
 /** Import an ECP key in binary format.
  *
  * \note The signature of this function is that of a PSA driver
@@ -70,9 +79,9 @@ psa_status_t mbedtls_psa_ecp_load_representation(psa_key_type_t type,
  * \retval #PSA_SUCCESS  The ECP key was imported successfully.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The key data is not correctly formatted.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  */
 psa_status_t mbedtls_psa_ecp_import_key(
     const psa_key_attributes_t *attributes,
@@ -111,12 +120,12 @@ psa_status_t mbedtls_psa_ecp_export_key(psa_key_type_t type,
  *                              \p data
  *
  * \retval #PSA_SUCCESS  The ECP public key was exported successfully.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  */
 psa_status_t mbedtls_psa_ecp_export_public_key(
     const psa_key_attributes_t *attributes,
@@ -166,17 +175,17 @@ psa_status_t mbedtls_psa_ecp_generate_key(
  * \param[out] signature_length On success, the number of bytes
  *                              that make up the returned signature value.
  *
- * \retval #PSA_SUCCESS
+ * \retval #PSA_SUCCESS \emptydescription
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p signature buffer is too small. You can
  *         determine a sufficient buffer size by calling
  *         #PSA_SIGN_OUTPUT_SIZE(\c PSA_KEY_TYPE_ECC_KEY_PAIR, \c key_bits,
  *         \p alg) where \c key_bits is the bit-size of the ECC key.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY \emptydescription
  */
 psa_status_t mbedtls_psa_ecdsa_sign_hash(
     const psa_key_attributes_t *attributes,
@@ -209,9 +218,9 @@ psa_status_t mbedtls_psa_ecdsa_sign_hash(
  * \retval #PSA_ERROR_INVALID_SIGNATURE
  *         The calculation was performed successfully, but the passed
  *         signature is not a valid signature.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  */
 psa_status_t mbedtls_psa_ecdsa_verify_hash(
     const psa_key_attributes_t *attributes,
@@ -247,8 +256,8 @@ psa_status_t mbedtls_psa_ecdsa_verify_hash(
  *                                  up the returned shared secret.
  * \retval #PSA_SUCCESS
  *         Success. Shared secret successfully calculated.
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED \emptydescription
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p alg is not a key agreement algorithm, or
  *         \p private_key is not compatible with \p alg,
@@ -258,8 +267,8 @@ psa_status_t mbedtls_psa_ecdsa_verify_hash(
  *         \p shared_secret_size is too small
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not a supported key agreement algorithm.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  */
 psa_status_t mbedtls_psa_key_agreement_ecdh(
     const psa_key_attributes_t *attributes,

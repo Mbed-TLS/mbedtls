@@ -175,7 +175,7 @@ mbedtls_ecp_point;
 
 #if !defined(MBEDTLS_ECP_ALT)
 /*
- * default mbed TLS elliptic curve arithmetic implementation
+ * default Mbed TLS elliptic curve arithmetic implementation
  *
  * (in case MBEDTLS_ECP_ALT is defined then the developer has to provide an
  * alternative implementation for the whole module and it will replace this
@@ -196,6 +196,27 @@ mbedtls_ecp_point;
  * cardinality is denoted by \p N. Our code requires that \p N is an
  * odd prime as mbedtls_ecp_mul() requires an odd number, and
  * mbedtls_ecdsa_sign() requires that it is prime for blinding purposes.
+ *
+ * The default implementation only initializes \p A without setting it to the
+ * authentic value for curves with <code>A = -3</code>(SECP256R1, etc), in which
+ * case you need to load \p A by yourself when using domain parameters directly,
+ * for example:
+ * \code
+ * mbedtls_mpi_init(&A);
+ * mbedtls_ecp_group_init(&grp);
+ * CHECK_RETURN(mbedtls_ecp_group_load(&grp, grp_id));
+ * if (mbedtls_ecp_group_a_is_minus_3(&grp)) {
+ *     CHECK_RETURN(mbedtls_mpi_sub_int(&A, &grp.P, 3));
+ * } else {
+ *     CHECK_RETURN(mbedtls_mpi_copy(&A, &grp.A));
+ * }
+ *
+ * do_something_with_a(&A);
+ *
+ * cleanup:
+ * mbedtls_mpi_free(&A);
+ * mbedtls_ecp_group_free(&grp);
+ * \endcode
  *
  * For Montgomery curves, we do not store \p A, but <code>(A + 2) / 4</code>,
  * which is the quantity used in the formulas. Additionally, \p nbits is
@@ -223,8 +244,11 @@ mbedtls_ecp_point;
 typedef struct mbedtls_ecp_group {
     mbedtls_ecp_group_id id;    /*!< An internal group identifier. */
     mbedtls_mpi P;              /*!< The prime modulus of the base field. */
-    mbedtls_mpi A;              /*!< For Short Weierstrass: \p A in the equation. For
-                                     Montgomery curves: <code>(A + 2) / 4</code>. */
+    mbedtls_mpi A;              /*!< For Short Weierstrass: \p A in the equation. Note that
+                                     \p A is not set to the authentic value in some cases.
+                                     Refer to detailed description of ::mbedtls_ecp_group if
+                                     using domain parameters in the structure.
+                                     For Montgomery curves: <code>(A + 2) / 4</code>. */
     mbedtls_mpi B;              /*!< For Short Weierstrass: \p B in the equation.
                                      For Montgomery curves: unused. */
     mbedtls_ecp_point G;        /*!< The generator of the subgroup used. */
@@ -303,7 +327,7 @@ mbedtls_ecp_group;
 /**
  * The maximum size of the groups, that is, of \c N and \c P.
  */
-#if !defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_ECP_LIGHT)
 /* Dummy definition to help code that has optional ECP support and
  * defines an MBEDTLS_ECP_MAX_BYTES-sized array unconditionally. */
 #define MBEDTLS_ECP_MAX_BITS 1
@@ -334,9 +358,9 @@ mbedtls_ecp_group;
 #define MBEDTLS_ECP_MAX_BITS 192
 #elif defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
 #define MBEDTLS_ECP_MAX_BITS 192
-#else
+#else /* !MBEDTLS_ECP_LIGHT */
 #error "Missing definition of MBEDTLS_ECP_MAX_BITS"
-#endif
+#endif /* !MBEDTLS_ECP_LIGHT */
 
 #define MBEDTLS_ECP_MAX_BYTES    ((MBEDTLS_ECP_MAX_BITS + 7) / 8)
 #define MBEDTLS_ECP_MAX_PT_LEN   (2 * MBEDTLS_ECP_MAX_BYTES + 1)
@@ -419,11 +443,22 @@ typedef struct mbedtls_ecp_keypair {
 }
 mbedtls_ecp_keypair;
 
-/*
- * Point formats, from RFC 4492's enum ECPointFormat
+/**
+ * The uncompressed point format for Short Weierstrass curves
+ * (MBEDTLS_ECP_DP_SECP_XXX and MBEDTLS_ECP_DP_BP_XXX).
  */
-#define MBEDTLS_ECP_PF_UNCOMPRESSED    0   /**< Uncompressed point format. */
-#define MBEDTLS_ECP_PF_COMPRESSED      1   /**< Compressed point format. */
+#define MBEDTLS_ECP_PF_UNCOMPRESSED    0
+/**
+ * The compressed point format for Short Weierstrass curves
+ * (MBEDTLS_ECP_DP_SECP_XXX and MBEDTLS_ECP_DP_BP_XXX).
+ *
+ * \warning     While this format is supported for all concerned curves for
+ *              writing, when it comes to parsing, it is not supported for all
+ *              curves. Specifically, parsing compressed points on
+ *              MBEDTLS_ECP_DP_SECP224R1 and MBEDTLS_ECP_DP_SECP224K1 is not
+ *              supported.
+ */
+#define MBEDTLS_ECP_PF_COMPRESSED      1
 
 /*
  * Some other constants from RFC 4492
@@ -460,6 +495,12 @@ mbedtls_ecp_keypair;
  *                  that context. For function in the SSL module, restart is
  *                  only enabled for specific sides and key exchanges
  *                  (currently only for clients and ECDHE-ECDSA).
+ *
+ * \warning         Using the PSA interruptible interfaces with keys in local
+ *                  storage and no accelerator driver will also call this
+ *                  function to set the values specified via those interfaces,
+ *                  overwriting values previously set. Care should be taken if
+ *                  mixing these two interfaces.
  *
  * \param max_ops   Maximum number of basic operations done in a row.
  *                  Default: 0 (unlimited).
@@ -752,6 +793,9 @@ int mbedtls_ecp_point_write_binary(const mbedtls_ecp_group *grp,
  *                  belongs to the given group, see mbedtls_ecp_check_pubkey()
  *                  for that.
  *
+ * \note            For compressed points, see #MBEDTLS_ECP_PF_COMPRESSED for
+ *                  limitations.
+ *
  * \param grp       The group to which the point should belong.
  *                  This must be initialized and have group parameters
  *                  set, for example through mbedtls_ecp_group_load().
@@ -972,6 +1016,26 @@ int mbedtls_ecp_mul_restartable(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 /**
+ * \brief           This function checks if domain parameter A of the curve is
+ *                  \c -3.
+ *
+ * \note            This function is only defined for short Weierstrass curves.
+ *                  It may not be included in builds without any short
+ *                  Weierstrass curve.
+ *
+ * \param grp       The ECP group to use.
+ *                  This must be initialized and have group parameters
+ *                  set, for example through mbedtls_ecp_group_load().
+ *
+ * \return          \c 1 if <code>A = -3</code>.
+ * \return          \c 0 Otherwise.
+ */
+static inline int mbedtls_ecp_group_a_is_minus_3(const mbedtls_ecp_group *grp)
+{
+    return grp->A.MBEDTLS_PRIVATE(p) == NULL;
+}
+
+/**
  * \brief           This function performs multiplication and addition of two
  *                  points by integers: \p R = \p m * \p P + \p n * \p Q
  *
@@ -1063,7 +1127,7 @@ int mbedtls_ecp_muladd_restartable(
  *
  *                  It only checks that the point is non-zero, has
  *                  valid coordinates and lies on the curve. It does not verify
- *                  that it is indeed a multiple of \p G. This additional
+ *                  that it is indeed a multiple of \c G. This additional
  *                  check is computationally more expensive, is not required
  *                  by standards, and should not be necessary if the group
  *                  used has a small cofactor. In particular, it is useless for
@@ -1088,7 +1152,7 @@ int mbedtls_ecp_check_pubkey(const mbedtls_ecp_group *grp,
                              const mbedtls_ecp_point *pt);
 
 /**
- * \brief           This function checks that an \p mbedtls_mpi is a
+ * \brief           This function checks that an \c mbedtls_mpi is a
  *                  valid private key for this curve.
  *
  * \note            This function uses bare components rather than an

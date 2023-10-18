@@ -1,6 +1,420 @@
 /* BEGIN_HEADER */
 #include "test/drivers/test_driver.h"
 
+/* Auxiliary variables for pake tests.
+   Global to silent the compiler when unused. */
+size_t pake_expected_hit_count = 0;
+int pake_in_driver = 0;
+
+/* The only two JPAKE user/peer identifiers supported for the time being. */
+static const uint8_t jpake_server_id[] = { 's', 'e', 'r', 'v', 'e', 'r' };
+static const uint8_t jpake_client_id[] = { 'c', 'l', 'i', 'e', 'n', 't' };
+
+#if defined(PSA_WANT_ALG_JPAKE) && \
+    defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC) && \
+    defined(PSA_WANT_ECC_SECP_R1_256) && defined(PSA_WANT_ALG_SHA_256)
+static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
+                             psa_pake_operation_t *server,
+                             psa_pake_operation_t *client,
+                             int client_input_first,
+                             int round)
+{
+    unsigned char *buffer0 = NULL, *buffer1 = NULL;
+    size_t buffer_length = (
+        PSA_PAKE_OUTPUT_SIZE(alg, primitive, PSA_PAKE_STEP_KEY_SHARE) +
+        PSA_PAKE_OUTPUT_SIZE(alg, primitive, PSA_PAKE_STEP_ZK_PUBLIC) +
+        PSA_PAKE_OUTPUT_SIZE(alg, primitive, PSA_PAKE_STEP_ZK_PROOF)) * 2;
+    /* The output should be exactly this size according to the spec */
+    const size_t expected_size_key_share =
+        PSA_PAKE_OUTPUT_SIZE(alg, primitive, PSA_PAKE_STEP_KEY_SHARE);
+    /* The output should be exactly this size according to the spec */
+    const size_t expected_size_zk_public =
+        PSA_PAKE_OUTPUT_SIZE(alg, primitive, PSA_PAKE_STEP_ZK_PUBLIC);
+    /* The output can be smaller: the spec allows stripping leading zeroes */
+    const size_t max_expected_size_zk_proof =
+        PSA_PAKE_OUTPUT_SIZE(alg, primitive, PSA_PAKE_STEP_ZK_PROOF);
+    size_t buffer0_off = 0;
+    size_t buffer1_off = 0;
+    size_t s_g1_len, s_g2_len, s_a_len;
+    size_t s_g1_off, s_g2_off, s_a_off;
+    size_t s_x1_pk_len, s_x2_pk_len, s_x2s_pk_len;
+    size_t s_x1_pk_off, s_x2_pk_off, s_x2s_pk_off;
+    size_t s_x1_pr_len, s_x2_pr_len, s_x2s_pr_len;
+    size_t s_x1_pr_off, s_x2_pr_off, s_x2s_pr_off;
+    size_t c_g1_len, c_g2_len, c_a_len;
+    size_t c_g1_off, c_g2_off, c_a_off;
+    size_t c_x1_pk_len, c_x2_pk_len, c_x2s_pk_len;
+    size_t c_x1_pk_off, c_x2_pk_off, c_x2s_pk_off;
+    size_t c_x1_pr_len, c_x2_pr_len, c_x2s_pr_len;
+    size_t c_x1_pr_off, c_x2_pr_off, c_x2s_pr_off;
+    psa_status_t status;
+
+    TEST_CALLOC(buffer0, buffer_length);
+    TEST_CALLOC(buffer1, buffer_length);
+
+    switch (round) {
+        case 1:
+            /* Server first round Output */
+            PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_KEY_SHARE,
+                                       buffer0 + buffer0_off,
+                                       512 - buffer0_off, &s_g1_len));
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(s_g1_len, expected_size_key_share);
+            s_g1_off = buffer0_off;
+            buffer0_off += s_g1_len;
+            PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PUBLIC,
+                                       buffer0 + buffer0_off,
+                                       512 - buffer0_off, &s_x1_pk_len));
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(s_x1_pk_len, expected_size_zk_public);
+            s_x1_pk_off = buffer0_off;
+            buffer0_off += s_x1_pk_len;
+            PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PROOF,
+                                       buffer0 + buffer0_off,
+                                       512 - buffer0_off, &s_x1_pr_len));
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_LE_U(s_x1_pr_len, max_expected_size_zk_proof);
+            s_x1_pr_off = buffer0_off;
+            buffer0_off += s_x1_pr_len;
+            PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_KEY_SHARE,
+                                       buffer0 + buffer0_off,
+                                       512 - buffer0_off, &s_g2_len));
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(s_g2_len, expected_size_key_share);
+            s_g2_off = buffer0_off;
+            buffer0_off += s_g2_len;
+            PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PUBLIC,
+                                       buffer0 + buffer0_off,
+                                       512 - buffer0_off, &s_x2_pk_len));
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(s_x2_pk_len, expected_size_zk_public);
+            s_x2_pk_off = buffer0_off;
+            buffer0_off += s_x2_pk_len;
+            PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PROOF,
+                                       buffer0 + buffer0_off,
+                                       512 - buffer0_off, &s_x2_pr_len));
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_LE_U(s_x2_pr_len, max_expected_size_zk_proof);
+            s_x2_pr_off = buffer0_off;
+            buffer0_off += s_x2_pr_len;
+
+            if (client_input_first == 1) {
+                /* Client first round Input */
+                status = psa_pake_input(client, PSA_PAKE_STEP_KEY_SHARE,
+                                        buffer0 + s_g1_off, s_g1_len);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                           pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+                TEST_EQUAL(status, PSA_SUCCESS);
+
+                status = psa_pake_input(client, PSA_PAKE_STEP_ZK_PUBLIC,
+                                        buffer0 + s_x1_pk_off,
+                                        s_x1_pk_len);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                           pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+                TEST_EQUAL(status, PSA_SUCCESS);
+
+                status = psa_pake_input(client, PSA_PAKE_STEP_ZK_PROOF,
+                                        buffer0 + s_x1_pr_off,
+                                        s_x1_pr_len);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                           pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+                TEST_EQUAL(status, PSA_SUCCESS);
+
+                status = psa_pake_input(client, PSA_PAKE_STEP_KEY_SHARE,
+                                        buffer0 + s_g2_off,
+                                        s_g2_len);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                           pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+                TEST_EQUAL(status, PSA_SUCCESS);
+
+                status = psa_pake_input(client, PSA_PAKE_STEP_ZK_PUBLIC,
+                                        buffer0 + s_x2_pk_off,
+                                        s_x2_pk_len);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                           pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+                TEST_EQUAL(status, PSA_SUCCESS);
+
+                status = psa_pake_input(client, PSA_PAKE_STEP_ZK_PROOF,
+                                        buffer0 + s_x2_pr_off,
+                                        s_x2_pr_len);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                           pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+                TEST_EQUAL(status, PSA_SUCCESS);
+            }
+
+            /* Adjust for indirect client driver setup in first pake_output call. */
+            pake_expected_hit_count++;
+
+            /* Client first round Output */
+            PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_KEY_SHARE,
+                                       buffer1 + buffer1_off,
+                                       512 - buffer1_off, &c_g1_len));
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(c_g1_len, expected_size_key_share);
+            c_g1_off = buffer1_off;
+            buffer1_off += c_g1_len;
+            PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PUBLIC,
+                                       buffer1 + buffer1_off,
+                                       512 - buffer1_off, &c_x1_pk_len));
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(c_x1_pk_len, expected_size_zk_public);
+            c_x1_pk_off = buffer1_off;
+            buffer1_off += c_x1_pk_len;
+            PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PROOF,
+                                       buffer1 + buffer1_off,
+                                       512 - buffer1_off, &c_x1_pr_len));
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_LE_U(c_x1_pr_len, max_expected_size_zk_proof);
+            c_x1_pr_off = buffer1_off;
+            buffer1_off += c_x1_pr_len;
+            PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_KEY_SHARE,
+                                       buffer1 + buffer1_off,
+                                       512 - buffer1_off, &c_g2_len));
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(c_g2_len, expected_size_key_share);
+            c_g2_off = buffer1_off;
+            buffer1_off += c_g2_len;
+            PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PUBLIC,
+                                       buffer1 + buffer1_off,
+                                       512 - buffer1_off, &c_x2_pk_len));
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(c_x2_pk_len, expected_size_zk_public);
+            c_x2_pk_off = buffer1_off;
+            buffer1_off += c_x2_pk_len;
+            PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PROOF,
+                                       buffer1 + buffer1_off,
+                                       512 - buffer1_off, &c_x2_pr_len));
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_LE_U(c_x2_pr_len, max_expected_size_zk_proof);
+            c_x2_pr_off = buffer1_off;
+            buffer1_off += c_x2_pr_len;
+
+            if (client_input_first == 0) {
+                /* Client first round Input */
+                status = psa_pake_input(client, PSA_PAKE_STEP_KEY_SHARE,
+                                        buffer0 + s_g1_off, s_g1_len);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                           pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+                TEST_EQUAL(status, PSA_SUCCESS);
+
+                status = psa_pake_input(client, PSA_PAKE_STEP_ZK_PUBLIC,
+                                        buffer0 + s_x1_pk_off,
+                                        s_x1_pk_len);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                           pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+                TEST_EQUAL(status, PSA_SUCCESS);
+
+                status = psa_pake_input(client, PSA_PAKE_STEP_ZK_PROOF,
+                                        buffer0 + s_x1_pr_off,
+                                        s_x1_pr_len);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                           pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+                TEST_EQUAL(status, PSA_SUCCESS);
+
+                status = psa_pake_input(client, PSA_PAKE_STEP_KEY_SHARE,
+                                        buffer0 + s_g2_off,
+                                        s_g2_len);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                           pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+                TEST_EQUAL(status, PSA_SUCCESS);
+
+                status = psa_pake_input(client, PSA_PAKE_STEP_ZK_PUBLIC,
+                                        buffer0 + s_x2_pk_off,
+                                        s_x2_pk_len);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                           pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+                TEST_EQUAL(status, PSA_SUCCESS);
+
+                status = psa_pake_input(client, PSA_PAKE_STEP_ZK_PROOF,
+                                        buffer0 + s_x2_pr_off,
+                                        s_x2_pr_len);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                           pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+                TEST_EQUAL(status, PSA_SUCCESS);
+            }
+
+            /* Server first round Input */
+            status = psa_pake_input(server, PSA_PAKE_STEP_KEY_SHARE,
+                                    buffer1 + c_g1_off, c_g1_len);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(status, PSA_SUCCESS);
+
+            status = psa_pake_input(server, PSA_PAKE_STEP_ZK_PUBLIC,
+                                    buffer1 + c_x1_pk_off, c_x1_pk_len);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(status, PSA_SUCCESS);
+
+            status = psa_pake_input(server, PSA_PAKE_STEP_ZK_PROOF,
+                                    buffer1 + c_x1_pr_off, c_x1_pr_len);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(status, PSA_SUCCESS);
+
+            status = psa_pake_input(server, PSA_PAKE_STEP_KEY_SHARE,
+                                    buffer1 + c_g2_off, c_g2_len);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(status, PSA_SUCCESS);
+
+            status = psa_pake_input(server, PSA_PAKE_STEP_ZK_PUBLIC,
+                                    buffer1 + c_x2_pk_off, c_x2_pk_len);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(status, PSA_SUCCESS);
+
+            status = psa_pake_input(server, PSA_PAKE_STEP_ZK_PROOF,
+                                    buffer1 + c_x2_pr_off, c_x2_pr_len);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(status, PSA_SUCCESS);
+
+            break;
+
+        case 2:
+            /* Server second round Output */
+            buffer0_off = 0;
+
+            PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_KEY_SHARE,
+                                       buffer0 + buffer0_off,
+                                       512 - buffer0_off, &s_a_len));
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(s_a_len, expected_size_key_share);
+            s_a_off = buffer0_off;
+            buffer0_off += s_a_len;
+            PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PUBLIC,
+                                       buffer0 + buffer0_off,
+                                       512 - buffer0_off, &s_x2s_pk_len));
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(s_x2s_pk_len, expected_size_zk_public);
+            s_x2s_pk_off = buffer0_off;
+            buffer0_off += s_x2s_pk_len;
+            PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PROOF,
+                                       buffer0 + buffer0_off,
+                                       512 - buffer0_off, &s_x2s_pr_len));
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_LE_U(s_x2s_pr_len, max_expected_size_zk_proof);
+            s_x2s_pr_off = buffer0_off;
+            buffer0_off += s_x2s_pr_len;
+
+            if (client_input_first == 1) {
+                /* Client second round Input */
+                status = psa_pake_input(client, PSA_PAKE_STEP_KEY_SHARE,
+                                        buffer0 + s_a_off, s_a_len);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                           pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+                TEST_EQUAL(status, PSA_SUCCESS);
+
+                status = psa_pake_input(client, PSA_PAKE_STEP_ZK_PUBLIC,
+                                        buffer0 + s_x2s_pk_off,
+                                        s_x2s_pk_len);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                           pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+                TEST_EQUAL(status, PSA_SUCCESS);
+
+                status = psa_pake_input(client, PSA_PAKE_STEP_ZK_PROOF,
+                                        buffer0 + s_x2s_pr_off,
+                                        s_x2s_pr_len);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                           pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+                TEST_EQUAL(status, PSA_SUCCESS);
+            }
+
+            /* Client second round Output */
+            buffer1_off = 0;
+
+            PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_KEY_SHARE,
+                                       buffer1 + buffer1_off,
+                                       512 - buffer1_off, &c_a_len));
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(c_a_len, expected_size_key_share);
+            c_a_off = buffer1_off;
+            buffer1_off += c_a_len;
+            PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PUBLIC,
+                                       buffer1 + buffer1_off,
+                                       512 - buffer1_off, &c_x2s_pk_len));
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(c_x2s_pk_len, expected_size_zk_public);
+            c_x2s_pk_off = buffer1_off;
+            buffer1_off += c_x2s_pk_len;
+            PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PROOF,
+                                       buffer1 + buffer1_off,
+                                       512 - buffer1_off, &c_x2s_pr_len));
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_LE_U(c_x2s_pr_len, max_expected_size_zk_proof);
+            c_x2s_pr_off = buffer1_off;
+            buffer1_off += c_x2s_pr_len;
+
+            if (client_input_first == 0) {
+                /* Client second round Input */
+                status = psa_pake_input(client, PSA_PAKE_STEP_KEY_SHARE,
+                                        buffer0 + s_a_off, s_a_len);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                           pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+                TEST_EQUAL(status, PSA_SUCCESS);
+
+                status = psa_pake_input(client, PSA_PAKE_STEP_ZK_PUBLIC,
+                                        buffer0 + s_x2s_pk_off,
+                                        s_x2s_pk_len);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                           pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+                TEST_EQUAL(status, PSA_SUCCESS);
+
+                status = psa_pake_input(client, PSA_PAKE_STEP_ZK_PROOF,
+                                        buffer0 + s_x2s_pr_off,
+                                        s_x2s_pr_len);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                           pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+                TEST_EQUAL(status, PSA_SUCCESS);
+            }
+
+            /* Server second round Input */
+            status = psa_pake_input(server, PSA_PAKE_STEP_KEY_SHARE,
+                                    buffer1 + c_a_off, c_a_len);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(status, PSA_SUCCESS);
+
+            status = psa_pake_input(server, PSA_PAKE_STEP_ZK_PUBLIC,
+                                    buffer1 + c_x2s_pk_off, c_x2s_pk_len);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(status, PSA_SUCCESS);
+
+            status = psa_pake_input(server, PSA_PAKE_STEP_ZK_PROOF,
+                                    buffer1 + c_x2s_pr_off, c_x2s_pr_len);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+                       pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+            TEST_EQUAL(status, PSA_SUCCESS);
+
+            break;
+    }
+
+exit:
+    mbedtls_free(buffer0);
+    mbedtls_free(buffer1);
+}
+#endif /* PSA_WANT_ALG_JPAKE */
+
 #if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY)
 /* Sanity checks on the output of RSA encryption.
  *
@@ -46,13 +460,13 @@ static int sanity_check_rsa_encryption_result(
         TEST_EQUAL(buf[0], 0x00);
         TEST_EQUAL(buf[1], 0x02);
         TEST_EQUAL(buf[length - input_data->len - 1], 0x00);
-        ASSERT_COMPARE(buf + length - input_data->len, input_data->len,
-                       input_data->x, input_data->len);
+        TEST_MEMORY_COMPARE(buf + length - input_data->len, input_data->len,
+                            input_data->x, input_data->len);
     } else if (PSA_ALG_IS_RSA_OAEP(alg)) {
         TEST_EQUAL(buf[0], 0x00);
         /* The rest is too hard to check */
     } else {
-        TEST_ASSERT(!"Encryption result sanity check not implemented for RSA algorithm");
+        TEST_FAIL("Encryption result sanity check not implemented for RSA algorithm");
     }
 #endif /* MBEDTLS_BIGNUM_C */
 
@@ -71,7 +485,7 @@ exit:
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_PSA_CRYPTO_DRIVERS:PSA_CRYPTO_DRIVER_TEST
+ * depends_on:MBEDTLS_PSA_CRYPTO_C:PSA_CRYPTO_DRIVER_TEST
  * END_DEPENDENCIES
  */
 
@@ -124,7 +538,7 @@ void sign_hash(int key_type_arg,
 
     TEST_ASSERT(signature_size != 0);
     TEST_ASSERT(signature_size <= PSA_SIGNATURE_MAX_SIZE);
-    ASSERT_ALLOC(signature, signature_size);
+    TEST_CALLOC(signature, signature_size);
 
     actual_status = psa_sign_hash(key, alg,
                                   data_input->x, data_input->len,
@@ -132,8 +546,8 @@ void sign_hash(int key_type_arg,
                                   &signature_length);
     TEST_EQUAL(actual_status, expected_status);
     if (expected_status == PSA_SUCCESS) {
-        ASSERT_COMPARE(signature, signature_length,
-                       expected_output->x, expected_output->len);
+        TEST_MEMORY_COMPARE(signature, signature_length,
+                            expected_output->x, expected_output->len);
     }
     TEST_EQUAL(mbedtls_test_driver_signature_sign_hooks.hits, 1);
 
@@ -251,7 +665,7 @@ void sign_message(int key_type_arg,
 
     TEST_ASSERT(signature_size != 0);
     TEST_ASSERT(signature_size <= PSA_SIGNATURE_MAX_SIZE);
-    ASSERT_ALLOC(signature, signature_size);
+    TEST_CALLOC(signature, signature_size);
 
     actual_status = psa_sign_message(key, alg,
                                      data_input->x, data_input->len,
@@ -259,8 +673,8 @@ void sign_message(int key_type_arg,
                                      &signature_length);
     TEST_EQUAL(actual_status, expected_status);
     if (expected_status == PSA_SUCCESS) {
-        ASSERT_COMPARE(signature, signature_length,
-                       expected_output->x, expected_output->len);
+        TEST_MEMORY_COMPARE(signature, signature_length,
+                            expected_output->x, expected_output->len);
     }
     /* In the builtin algorithm the driver is called twice. */
     TEST_EQUAL(mbedtls_test_driver_signature_sign_hooks.hits,
@@ -334,10 +748,10 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256 */
-void generate_key(int force_status_arg,
-                  data_t *fake_output,
-                  int expected_status_arg)
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256:MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE */
+void generate_ec_key(int force_status_arg,
+                     data_t *fake_output,
+                     int expected_status_arg)
 {
     psa_status_t force_status = force_status_arg;
     psa_status_t expected_status = expected_status_arg;
@@ -381,8 +795,8 @@ void generate_key(int force_status_arg,
         psa_export_key(key, actual_output, sizeof(actual_output), &actual_output_length);
 
         if (fake_output->len > 0) {
-            ASSERT_COMPARE(actual_output, actual_output_length,
-                           expected_output, expected_output_length);
+            TEST_MEMORY_COMPARE(actual_output, actual_output_length,
+                                expected_output, expected_output_length);
         } else {
             size_t zeroes = 0;
             for (size_t i = 0; i < sizeof(actual_output); i++) {
@@ -513,8 +927,8 @@ void export_key(int force_status_arg,
     }
 
     if (actual_status == PSA_SUCCESS) {
-        ASSERT_COMPARE(actual_output, actual_output_length,
-                       expected_output_ptr, expected_output_length);
+        TEST_MEMORY_COMPARE(actual_output, actual_output_length,
+                            expected_output_ptr, expected_output_length);
     }
 exit:
     psa_reset_key_attributes(&attributes);
@@ -583,7 +997,7 @@ void key_agreement(int alg_arg,
     mbedtls_test_driver_key_agreement_hooks.hits = 0;
     mbedtls_test_driver_key_agreement_hooks.forced_status = force_status;
 
-    ASSERT_ALLOC(actual_output, expected_output->len);
+    TEST_CALLOC(actual_output, expected_output->len);
     actual_status = psa_raw_key_agreement(alg, our_key,
                                           peer_key_data->x, peer_key_data->len,
                                           actual_output, expected_output->len,
@@ -592,8 +1006,8 @@ void key_agreement(int alg_arg,
     TEST_EQUAL(mbedtls_test_driver_key_agreement_hooks.hits, 1);
 
     if (actual_status == PSA_SUCCESS) {
-        ASSERT_COMPARE(actual_output, actual_output_length,
-                       expected_output_ptr, expected_output_length);
+        TEST_MEMORY_COMPARE(actual_output, actual_output_length,
+                            expected_output_ptr, expected_output_length);
     }
     mbedtls_free(actual_output);
     actual_output = NULL;
@@ -639,8 +1053,8 @@ void cipher_encrypt_validation(int alg_arg,
     output1_buffer_size = PSA_CIPHER_ENCRYPT_OUTPUT_SIZE(key_type, alg, input->len);
     output2_buffer_size = PSA_CIPHER_UPDATE_OUTPUT_SIZE(key_type, alg, input->len) +
                           PSA_CIPHER_FINISH_OUTPUT_SIZE(key_type, alg);
-    ASSERT_ALLOC(output1, output1_buffer_size);
-    ASSERT_ALLOC(output2, output2_buffer_size);
+    TEST_CALLOC(output1, output1_buffer_size);
+    TEST_CALLOC(output2, output2_buffer_size);
 
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
                               &key));
@@ -679,8 +1093,8 @@ void cipher_encrypt_validation(int alg_arg,
     PSA_ASSERT(psa_cipher_abort(&operation));
     // driver function should've been called as part of the finish() core routine
     TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits, 0);
-    ASSERT_COMPARE(output1 + iv_size, output1_length - iv_size,
-                   output2, output2_length);
+    TEST_MEMORY_COMPARE(output1 + iv_size, output1_length - iv_size,
+                        output2, output2_length);
 
 exit:
     psa_cipher_abort(&operation);
@@ -757,7 +1171,7 @@ void cipher_encrypt_multipart(int alg_arg,
 
     output_buffer_size = ((size_t) input->len +
                           PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type));
-    ASSERT_ALLOC(output, output_buffer_size);
+    TEST_CALLOC(output, output_buffer_size);
 
     if (mock_output_arg) {
         mbedtls_test_driver_cipher_hooks.forced_output = expected_output->x;
@@ -807,8 +1221,8 @@ void cipher_encrypt_multipart(int alg_arg,
         PSA_ASSERT(psa_cipher_abort(&operation));
         TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits, 0);
 
-        ASSERT_COMPARE(expected_output->x, expected_output->len,
-                       output, total_output_length);
+        TEST_MEMORY_COMPARE(expected_output->x, expected_output->len,
+                            output, total_output_length);
     }
 
 exit:
@@ -885,7 +1299,7 @@ void cipher_decrypt_multipart(int alg_arg,
 
     output_buffer_size = ((size_t) input->len +
                           PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type));
-    ASSERT_ALLOC(output, output_buffer_size);
+    TEST_CALLOC(output, output_buffer_size);
 
     if (mock_output_arg) {
         mbedtls_test_driver_cipher_hooks.forced_output = expected_output->x;
@@ -936,8 +1350,8 @@ void cipher_decrypt_multipart(int alg_arg,
         PSA_ASSERT(psa_cipher_abort(&operation));
         TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits, 0);
 
-        ASSERT_COMPARE(expected_output->x, expected_output->len,
-                       output, total_output_length);
+        TEST_MEMORY_COMPARE(expected_output->x, expected_output->len,
+                            output, total_output_length);
     }
 
 exit:
@@ -984,13 +1398,13 @@ void cipher_decrypt(int alg_arg,
     /* Allocate input buffer and copy the iv and the plaintext */
     input_buffer_size = ((size_t) input_arg->len + (size_t) iv->len);
     if (input_buffer_size > 0) {
-        ASSERT_ALLOC(input, input_buffer_size);
+        TEST_CALLOC(input, input_buffer_size);
         memcpy(input, iv->x, iv->len);
         memcpy(input + iv->len, input_arg->x, input_arg->len);
     }
 
     output_buffer_size = PSA_CIPHER_DECRYPT_OUTPUT_SIZE(key_type, alg, input_buffer_size);
-    ASSERT_ALLOC(output, output_buffer_size);
+    TEST_CALLOC(output, output_buffer_size);
 
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
                               &key));
@@ -1008,8 +1422,8 @@ void cipher_decrypt(int alg_arg,
     TEST_EQUAL(status, expected_status);
 
     if (expected_status == PSA_SUCCESS) {
-        ASSERT_COMPARE(expected_output->x, expected_output->len,
-                       output, output_length);
+        TEST_MEMORY_COMPARE(expected_output->x, expected_output->len,
+                            output, output_length);
     }
 
 exit:
@@ -1037,7 +1451,7 @@ void cipher_entry_points(int alg_arg, int key_type_arg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_test_driver_cipher_hooks = mbedtls_test_driver_cipher_hooks_init();
 
-    ASSERT_ALLOC(output, input->len + 16);
+    TEST_CALLOC(output, input->len + 16);
     output_buffer_size = input->len + 16;
 
     PSA_ASSERT(psa_crypto_init());
@@ -1277,7 +1691,7 @@ void aead_encrypt(int key_type_arg, data_t *key_data,
                PSA_AEAD_ENCRYPT_OUTPUT_SIZE(key_type, alg, input_data->len));
     TEST_ASSERT(output_size <=
                 PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE(input_data->len));
-    ASSERT_ALLOC(output_data, output_size);
+    TEST_CALLOC(output_data, output_size);
 
     mbedtls_test_driver_aead_hooks.forced_status = forced_status;
     status = psa_aead_encrypt(key, alg,
@@ -1293,8 +1707,8 @@ void aead_encrypt(int key_type_arg, data_t *key_data,
                PSA_SUCCESS : forced_status);
 
     if (status == PSA_SUCCESS) {
-        ASSERT_COMPARE(expected_result->x, expected_result->len,
-                       output_data, output_length);
+        TEST_MEMORY_COMPARE(expected_result->x, expected_result->len,
+                            output_data, output_length);
     }
 
 exit:
@@ -1339,7 +1753,7 @@ void aead_decrypt(int key_type_arg, data_t *key_data,
 
     output_size = input_data->len - PSA_AEAD_TAG_LENGTH(key_type, key_bits,
                                                         alg);
-    ASSERT_ALLOC(output_data, output_size);
+    TEST_CALLOC(output_data, output_size);
 
     mbedtls_test_driver_aead_hooks.forced_status = forced_status;
     status = psa_aead_decrypt(key, alg,
@@ -1356,8 +1770,8 @@ void aead_decrypt(int key_type_arg, data_t *key_data,
                PSA_SUCCESS : forced_status);
 
     if (status == PSA_SUCCESS) {
-        ASSERT_COMPARE(expected_data->x, expected_data->len,
-                       output_data, output_length);
+        TEST_MEMORY_COMPARE(expected_data->x, expected_data->len,
+                            output_data, output_length);
     }
 
 exit:
@@ -1402,7 +1816,7 @@ void mac_sign(int key_type_arg,
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
                               &key));
 
-    ASSERT_ALLOC(actual_mac, mac_buffer_size);
+    TEST_CALLOC(actual_mac, mac_buffer_size);
     mbedtls_test_driver_mac_hooks.forced_status = forced_status;
 
     /*
@@ -1425,8 +1839,8 @@ void mac_sign(int key_type_arg,
     TEST_EQUAL(mbedtls_test_driver_mac_hooks.hits, 1);
 
     if (forced_status == PSA_SUCCESS) {
-        ASSERT_COMPARE(expected_mac->x, expected_mac->len,
-                       actual_mac, mac_length);
+        TEST_MEMORY_COMPARE(expected_mac->x, expected_mac->len,
+                            actual_mac, mac_length);
     }
 
     mbedtls_free(actual_mac);
@@ -1477,7 +1891,7 @@ void mac_sign_multipart(int key_type_arg,
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
                               &key));
 
-    ASSERT_ALLOC(actual_mac, mac_buffer_size);
+    TEST_CALLOC(actual_mac, mac_buffer_size);
     mbedtls_test_driver_mac_hooks.forced_status = forced_status;
 
     /*
@@ -1543,8 +1957,8 @@ void mac_sign_multipart(int key_type_arg,
     }
 
     if (forced_status == PSA_SUCCESS) {
-        ASSERT_COMPARE(expected_mac->x, expected_mac->len,
-                       actual_mac, mac_length);
+        TEST_MEMORY_COMPARE(expected_mac->x, expected_mac->len,
+                            actual_mac, mac_length);
     }
 
     mbedtls_free(actual_mac);
@@ -1717,7 +2131,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_CRYPTO_DRIVER_TEST:MBEDTLS_PSA_CRYPTO_DRIVERS:MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
+/* BEGIN_CASE depends_on:PSA_CRYPTO_DRIVER_TEST:MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 void builtin_key_export(int builtin_key_id_arg,
                         int builtin_key_type_arg,
                         int builtin_key_bits_arg,
@@ -1738,15 +2152,15 @@ void builtin_key_export(int builtin_key_id_arg,
     psa_status_t actual_status;
 
     PSA_ASSERT(psa_crypto_init());
-    ASSERT_ALLOC(output_buffer, expected_output->len);
+    TEST_CALLOC(output_buffer, expected_output->len);
 
     actual_status = psa_export_key(key, output_buffer, expected_output->len, &output_size);
 
     if (expected_status == PSA_SUCCESS) {
         PSA_ASSERT(actual_status);
         TEST_EQUAL(output_size, expected_output->len);
-        ASSERT_COMPARE(output_buffer, output_size,
-                       expected_output->x, expected_output->len);
+        TEST_MEMORY_COMPARE(output_buffer, output_size,
+                            expected_output->x, expected_output->len);
 
         PSA_ASSERT(psa_get_key_attributes(key, &attributes));
         TEST_EQUAL(psa_get_key_bits(&attributes), builtin_key_bits);
@@ -1768,7 +2182,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_CRYPTO_DRIVER_TEST:MBEDTLS_PSA_CRYPTO_DRIVERS:MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
+/* BEGIN_CASE depends_on:PSA_CRYPTO_DRIVER_TEST:MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 void builtin_pubkey_export(int builtin_key_id_arg,
                            int builtin_key_type_arg,
                            int builtin_key_bits_arg,
@@ -1789,15 +2203,15 @@ void builtin_pubkey_export(int builtin_key_id_arg,
     psa_status_t actual_status;
 
     PSA_ASSERT(psa_crypto_init());
-    ASSERT_ALLOC(output_buffer, expected_output->len);
+    TEST_CALLOC(output_buffer, expected_output->len);
 
     actual_status = psa_export_public_key(key, output_buffer, expected_output->len, &output_size);
 
     if (expected_status == PSA_SUCCESS) {
         PSA_ASSERT(actual_status);
         TEST_EQUAL(output_size, expected_output->len);
-        ASSERT_COMPARE(output_buffer, output_size,
-                       expected_output->x, expected_output->len);
+        TEST_MEMORY_COMPARE(output_buffer, output_size,
+                            expected_output->x, expected_output->len);
 
         PSA_ASSERT(psa_get_key_attributes(key, &attributes));
         TEST_EQUAL(psa_get_key_bits(&attributes), builtin_key_bits);
@@ -1828,11 +2242,13 @@ void hash_compute(int alg_arg,
     unsigned char *output = NULL;
     size_t output_length;
 
-    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    mbedtls_test_driver_hash_hooks.forced_status = forced_status;
 
     PSA_ASSERT(psa_crypto_init());
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
+    TEST_CALLOC(output, PSA_HASH_LENGTH(alg));
+
+    /* Do this after psa_crypto_init() which may call hash drivers */
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+    mbedtls_test_driver_hash_hooks.forced_status = forced_status;
 
     TEST_EQUAL(psa_hash_compute(alg, input->x, input->len,
                                 output, PSA_HASH_LENGTH(alg),
@@ -1841,7 +2257,7 @@ void hash_compute(int alg_arg,
     TEST_EQUAL(mbedtls_test_driver_hash_hooks.driver_status, forced_status);
 
     if (expected_status == PSA_SUCCESS) {
-        ASSERT_COMPARE(output, output_length, hash->x, hash->len);
+        TEST_MEMORY_COMPARE(output, output_length, hash->x, hash->len);
     }
 
 exit:
@@ -1864,12 +2280,14 @@ void hash_multipart_setup(int alg_arg,
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     size_t output_length;
 
-    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
 
     PSA_ASSERT(psa_crypto_init());
+    TEST_CALLOC(output, PSA_HASH_LENGTH(alg));
 
+    /* Do this after psa_crypto_init() which may call hash drivers */
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
     mbedtls_test_driver_hash_hooks.forced_status = forced_status;
+
     TEST_EQUAL(psa_hash_setup(&operation, alg), expected_status);
     TEST_EQUAL(mbedtls_test_driver_hash_hooks.hits, 1);
     TEST_EQUAL(mbedtls_test_driver_hash_hooks.driver_status, forced_status);
@@ -1887,7 +2305,7 @@ void hash_multipart_setup(int alg_arg,
                    forced_status == PSA_ERROR_NOT_SUPPORTED ? 1 : 4);
         TEST_EQUAL(mbedtls_test_driver_hash_hooks.driver_status, forced_status);
 
-        ASSERT_COMPARE(output, output_length, hash->x, hash->len);
+        TEST_MEMORY_COMPARE(output, output_length, hash->x, hash->len);
     }
 
 exit:
@@ -1909,10 +2327,12 @@ void hash_multipart_update(int alg_arg,
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     size_t output_length;
 
-    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
 
     PSA_ASSERT(psa_crypto_init());
+    TEST_CALLOC(output, PSA_HASH_LENGTH(alg));
+
+    /* Do this after psa_crypto_init() which may call hash drivers */
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
 
     /*
      * Update inactive operation, the driver shouldn't be called.
@@ -1942,7 +2362,7 @@ void hash_multipart_update(int alg_arg,
         TEST_EQUAL(mbedtls_test_driver_hash_hooks.hits, 2);
         TEST_EQUAL(mbedtls_test_driver_hash_hooks.driver_status, PSA_SUCCESS);
 
-        ASSERT_COMPARE(output, output_length, hash->x, hash->len);
+        TEST_MEMORY_COMPARE(output, output_length, hash->x, hash->len);
     }
 
 exit:
@@ -1964,10 +2384,11 @@ void hash_multipart_finish(int alg_arg,
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     size_t output_length;
 
-    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
-
     PSA_ASSERT(psa_crypto_init());
+    TEST_CALLOC(output, PSA_HASH_LENGTH(alg));
+
+    /* Do this after psa_crypto_init() which may call hash drivers */
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
 
     /*
      * Finish inactive operation, the driver shouldn't be called.
@@ -1995,7 +2416,7 @@ void hash_multipart_finish(int alg_arg,
     TEST_EQUAL(mbedtls_test_driver_hash_hooks.driver_status, forced_status);
 
     if (forced_status == PSA_SUCCESS) {
-        ASSERT_COMPARE(output, output_length, hash->x, hash->len);
+        TEST_MEMORY_COMPARE(output, output_length, hash->x, hash->len);
     }
 
 exit:
@@ -2018,10 +2439,11 @@ void hash_clone(int alg_arg,
     psa_hash_operation_t target_operation = PSA_HASH_OPERATION_INIT;
     size_t output_length;
 
-    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
-
     PSA_ASSERT(psa_crypto_init());
+    TEST_CALLOC(output, PSA_HASH_LENGTH(alg));
+
+    /* Do this after psa_crypto_init() which may call hash drivers */
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
 
     /*
      * Clone inactive operation, the driver shouldn't be called.
@@ -2054,7 +2476,7 @@ void hash_clone(int alg_arg,
         TEST_EQUAL(mbedtls_test_driver_hash_hooks.hits, 3);
         TEST_EQUAL(mbedtls_test_driver_hash_hooks.driver_status, PSA_SUCCESS);
 
-        ASSERT_COMPARE(output, output_length, hash->x, hash->len);
+        TEST_MEMORY_COMPARE(output, output_length, hash->x, hash->len);
     }
 
 exit:
@@ -2117,11 +2539,11 @@ void asymmetric_encrypt_decrypt(int alg_arg,
         mbedtls_test_driver_asymmetric_encryption_hooks.forced_output_length =
             fake_output_encrypt->len;
         output_size = fake_output_encrypt->len;
-        ASSERT_ALLOC(output, output_size);
+        TEST_CALLOC(output, output_size);
     } else {
         output_size = PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE(key_type, key_bits, alg);
         TEST_ASSERT(output_size <= PSA_ASYMMETRIC_ENCRYPT_OUTPUT_MAX_SIZE);
-        ASSERT_ALLOC(output, output_size);
+        TEST_CALLOC(output, output_size);
     }
 
     /* We test encryption by checking that encrypt-then-decrypt gives back
@@ -2138,8 +2560,8 @@ void asymmetric_encrypt_decrypt(int alg_arg,
 
     if (expected_status_encrypt == PSA_SUCCESS) {
         if (fake_output_encrypt->len > 0) {
-            ASSERT_COMPARE(fake_output_encrypt->x, fake_output_encrypt->len,
-                           output, output_length);
+            TEST_MEMORY_COMPARE(fake_output_encrypt->x, fake_output_encrypt->len,
+                                output, output_length);
         } else {
             mbedtls_test_driver_asymmetric_encryption_hooks.forced_status =
                 forced_status_decrypt;
@@ -2149,13 +2571,13 @@ void asymmetric_encrypt_decrypt(int alg_arg,
                 mbedtls_test_driver_asymmetric_encryption_hooks.forced_output_length =
                     fake_output_decrypt->len;
                 output2_size = fake_output_decrypt->len;
-                ASSERT_ALLOC(output2, output2_size);
+                TEST_CALLOC(output2, output2_size);
             } else {
                 output2_size = input_data->len;
                 TEST_ASSERT(output2_size <=
                             PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(key_type, key_bits, alg));
                 TEST_ASSERT(output2_size <= PSA_ASYMMETRIC_DECRYPT_OUTPUT_MAX_SIZE);
-                ASSERT_ALLOC(output2, output2_size);
+                TEST_CALLOC(output2, output2_size);
             }
 
             TEST_EQUAL(psa_asymmetric_decrypt(key, alg,
@@ -2165,11 +2587,11 @@ void asymmetric_encrypt_decrypt(int alg_arg,
                                               &output2_length), expected_status_decrypt);
             if (expected_status_decrypt == PSA_SUCCESS) {
                 if (fake_output_decrypt->len > 0) {
-                    ASSERT_COMPARE(fake_output_decrypt->x, fake_output_decrypt->len,
-                                   output2, output2_length);
+                    TEST_MEMORY_COMPARE(fake_output_decrypt->x, fake_output_decrypt->len,
+                                        output2, output2_length);
                 } else {
-                    ASSERT_COMPARE(input_data->x, input_data->len,
-                                   output2, output2_length);
+                    TEST_MEMORY_COMPARE(input_data->x, input_data->len,
+                                        output2, output2_length);
                 }
             }
         }
@@ -2229,10 +2651,10 @@ void asymmetric_decrypt(int alg_arg,
         mbedtls_test_driver_asymmetric_encryption_hooks.forced_output_length =
             fake_output_decrypt->len;
         output_size = fake_output_decrypt->len;
-        ASSERT_ALLOC(output, output_size);
+        TEST_CALLOC(output, output_size);
     } else {
         output_size = expected_output_data->len;
-        ASSERT_ALLOC(output, expected_output_data->len);
+        TEST_CALLOC(output, expected_output_data->len);
     }
 
     TEST_EQUAL(psa_asymmetric_decrypt(key, alg,
@@ -2242,8 +2664,8 @@ void asymmetric_decrypt(int alg_arg,
                                       &output_length), expected_status_decrypt);
     if (expected_status_decrypt == PSA_SUCCESS) {
         TEST_EQUAL(output_length, expected_output_data->len);
-        ASSERT_COMPARE(expected_output_data->x, expected_output_data->len,
-                       output, output_length);
+        TEST_MEMORY_COMPARE(expected_output_data->x, expected_output_data->len,
+                            output, output_length);
     }
 exit:
     /*
@@ -2302,10 +2724,10 @@ void asymmetric_encrypt(int alg_arg,
         mbedtls_test_driver_asymmetric_encryption_hooks.forced_output_length =
             fake_output_encrypt->len;
         output_size = fake_output_encrypt->len;
-        ASSERT_ALLOC(output, output_size);
+        TEST_CALLOC(output, output_size);
     } else {
         output_size = PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE(key_type, key_bits, alg);
-        ASSERT_ALLOC(output, output_size);
+        TEST_CALLOC(output, output_size);
     }
 
     TEST_EQUAL(psa_asymmetric_encrypt(key, alg,
@@ -2316,8 +2738,8 @@ void asymmetric_encrypt(int alg_arg,
     if (expected_status_encrypt == PSA_SUCCESS) {
         if (fake_output_encrypt->len > 0) {
             TEST_EQUAL(fake_output_encrypt->len, output_length);
-            ASSERT_COMPARE(fake_output_encrypt->x, fake_output_encrypt->len,
-                           output, output_length);
+            TEST_MEMORY_COMPARE(fake_output_encrypt->x, fake_output_encrypt->len,
+                                output, output_length);
         } else {
             /* Perform sanity checks on the output */
 #if PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
@@ -2333,7 +2755,7 @@ void asymmetric_encrypt(int alg_arg,
             {
                 (void) modulus;
                 (void) private_exponent;
-                TEST_ASSERT(!"Encryption sanity checks not implemented for this key type");
+                TEST_FAIL("Encryption sanity checks not implemented for this key type");
             }
         }
     }
@@ -2402,7 +2824,7 @@ void aead_encrypt_setup(int key_type_arg, data_t *key_data,
                PSA_AEAD_ENCRYPT_OUTPUT_SIZE(key_type, alg, input_data->len));
     TEST_ASSERT(output_size <=
                 PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE(input_data->len));
-    ASSERT_ALLOC(output_data, output_size);
+    TEST_CALLOC(output_data, output_size);
 
     status = psa_aead_encrypt_setup(&operation, key, alg);
 
@@ -2451,11 +2873,11 @@ void aead_encrypt_setup(int key_type_arg, data_t *key_data,
                    forced_status == PSA_SUCCESS ? 1 : 0);
 
         /* Compare output_data and expected_ciphertext */
-        ASSERT_COMPARE(expected_ciphertext->x, expected_ciphertext->len,
-                       output_data, output_length + finish_output_length);
+        TEST_MEMORY_COMPARE(expected_ciphertext->x, expected_ciphertext->len,
+                            output_data, output_length + finish_output_length);
 
         /* Compare tag and expected_tag */
-        ASSERT_COMPARE(expected_tag->x, expected_tag->len, tag_buffer, tag_length);
+        TEST_MEMORY_COMPARE(expected_tag->x, expected_tag->len, tag_buffer, tag_length);
     }
 
 exit:
@@ -2504,7 +2926,7 @@ void aead_decrypt_setup(int key_type_arg, data_t *key_data,
 
     output_size = input_ciphertext->len;
 
-    ASSERT_ALLOC(output_data, output_size);
+    TEST_CALLOC(output_data, output_size);
 
     mbedtls_test_driver_aead_hooks.forced_status = forced_status;
 
@@ -2557,13 +2979,316 @@ void aead_decrypt_setup(int key_type_arg, data_t *key_data,
         TEST_EQUAL(mbedtls_test_driver_aead_hooks.hits_abort,
                    forced_status == PSA_SUCCESS ? 1 : 0);
 
-        ASSERT_COMPARE(expected_result->x, expected_result->len,
-                       output_data, output_length + verify_output_length);
+        TEST_MEMORY_COMPARE(expected_result->x, expected_result->len,
+                            output_data, output_length + verify_output_length);
     }
 
 exit:
     PSA_ASSERT(psa_destroy_key(key));
     mbedtls_free(output_data);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
+void pake_operations(data_t *pw_data, int forced_status_setup_arg, int forced_status_arg,
+                     data_t *forced_output, int expected_status_arg,
+                     int fut)
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_status_t forced_status = forced_status_arg;
+    psa_status_t forced_status_setup = forced_status_setup_arg;
+    psa_status_t expected_status = expected_status_arg;
+    psa_pake_operation_t operation = psa_pake_operation_init();
+    psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
+    psa_key_derivation_operation_t implicit_key =
+        PSA_KEY_DERIVATION_OPERATION_INIT;
+    psa_pake_primitive_t primitive = PSA_PAKE_PRIMITIVE(
+        PSA_PAKE_PRIMITIVE_TYPE_ECC,
+        PSA_ECC_FAMILY_SECP_R1, 256);
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    unsigned char *input_buffer = NULL;
+    const size_t size_key_share = PSA_PAKE_INPUT_SIZE(PSA_ALG_JPAKE, primitive,
+                                                      PSA_PAKE_STEP_KEY_SHARE);
+    unsigned char *output_buffer = NULL;
+    size_t output_len = 0;
+    size_t output_size = PSA_PAKE_OUTPUT_SIZE(PSA_ALG_JPAKE, primitive,
+                                              PSA_PAKE_STEP_KEY_SHARE);
+    int in_driver = (forced_status_setup_arg == PSA_SUCCESS);
+
+    TEST_CALLOC(input_buffer,
+                PSA_PAKE_INPUT_SIZE(PSA_ALG_JPAKE, primitive,
+                                    PSA_PAKE_STEP_KEY_SHARE));
+    memset(input_buffer, 0xAA, size_key_share);
+
+    TEST_CALLOC(output_buffer,
+                PSA_PAKE_INPUT_SIZE(PSA_ALG_JPAKE, primitive,
+                                    PSA_PAKE_STEP_KEY_SHARE));
+    memset(output_buffer, 0x55, output_size);
+
+    PSA_INIT();
+
+    mbedtls_test_driver_pake_hooks = mbedtls_test_driver_pake_hooks_init();
+
+    if (pw_data->len > 0) {
+        psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DERIVE);
+        psa_set_key_algorithm(&attributes, PSA_ALG_JPAKE);
+        psa_set_key_type(&attributes, PSA_KEY_TYPE_PASSWORD);
+        PSA_ASSERT(psa_import_key(&attributes, pw_data->x, pw_data->len,
+                                  &key));
+    }
+
+    psa_pake_cs_set_algorithm(&cipher_suite, PSA_ALG_JPAKE);
+    psa_pake_cs_set_primitive(&cipher_suite, primitive);
+    psa_pake_cs_set_hash(&cipher_suite, PSA_ALG_SHA_256);
+
+    mbedtls_test_driver_pake_hooks.forced_status = forced_status_setup;
+
+    /* Collecting input stage (no driver entry points) */
+
+    TEST_EQUAL(psa_pake_setup(&operation, &cipher_suite),
+               PSA_SUCCESS);
+
+    PSA_ASSERT(psa_pake_set_user(&operation, jpake_server_id, sizeof(jpake_server_id)));
+    PSA_ASSERT(psa_pake_set_peer(&operation, jpake_client_id, sizeof(jpake_client_id)));
+
+    TEST_EQUAL(psa_pake_set_password_key(&operation, key),
+               PSA_SUCCESS);
+
+    TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 0);
+
+    /* Computation stage (driver entry points) */
+
+    switch (fut) {
+        case 0: /* setup (via input) */
+            /* --- psa_pake_input (driver: setup, input) --- */
+            mbedtls_test_driver_pake_hooks.forced_setup_status = forced_status_setup;
+            mbedtls_test_driver_pake_hooks.forced_status = forced_status;
+            TEST_EQUAL(psa_pake_input(&operation, PSA_PAKE_STEP_KEY_SHARE,
+                                      input_buffer, size_key_share),
+                       expected_status);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 1);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.setup, 1);
+            break;
+
+        case 1: /* setup (via output) */
+            /* --- psa_pake_output (driver: setup, output) --- */
+            mbedtls_test_driver_pake_hooks.forced_setup_status = forced_status_setup;
+            mbedtls_test_driver_pake_hooks.forced_status = forced_status;
+            TEST_EQUAL(psa_pake_output(&operation, PSA_PAKE_STEP_KEY_SHARE,
+                                       output_buffer, output_size, &output_len),
+                       expected_status);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 1);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.setup, 1);
+            break;
+
+        case 2: /* input */
+            /* --- psa_pake_input (driver: setup, input, abort) --- */
+            mbedtls_test_driver_pake_hooks.forced_setup_status = forced_status_setup;
+            mbedtls_test_driver_pake_hooks.forced_status = forced_status;
+            TEST_EQUAL(psa_pake_input(&operation, PSA_PAKE_STEP_KEY_SHARE,
+                                      input_buffer, size_key_share),
+                       expected_status);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, in_driver ? 3 : 1);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.setup, 1);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.input, in_driver ? 1 : 0);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.abort, in_driver ? 1 : 0);
+            break;
+
+        case 3: /* output */
+            /* --- psa_pake_output (driver: setup, output, (abort)) --- */
+            mbedtls_test_driver_pake_hooks.forced_setup_status = forced_status_setup;
+            mbedtls_test_driver_pake_hooks.forced_status = forced_status;
+            if (forced_output->len > 0) {
+                mbedtls_test_driver_pake_hooks.forced_output = forced_output->x;
+                mbedtls_test_driver_pake_hooks.forced_output_length = forced_output->len;
+            }
+            TEST_EQUAL(psa_pake_output(&operation, PSA_PAKE_STEP_KEY_SHARE,
+                                       output_buffer, output_size, &output_len),
+                       expected_status);
+
+            if (forced_output->len > 0) {
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, in_driver ? 2 : 1);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.setup, 1);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.output, in_driver ? 1 : 0);
+                TEST_EQUAL(output_len, forced_output->len);
+                TEST_EQUAL(memcmp(output_buffer, forced_output->x, output_len), 0);
+            } else {
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, in_driver ? 3 : 1);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.setup, 1);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.output, in_driver ? 1 : 0);
+                TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.abort, in_driver ? 1 : 0);
+            }
+            break;
+
+        case 4: /* get_implicit_key */
+            /* Call driver setup indirectly */
+            TEST_EQUAL(psa_pake_input(&operation, PSA_PAKE_STEP_KEY_SHARE,
+                                      input_buffer, size_key_share),
+                       PSA_SUCCESS);
+
+            /* Simulate that we are ready to get implicit key. */
+            operation.computation_stage.jpake.round = PSA_JPAKE_FINISHED;
+            operation.computation_stage.jpake.inputs = 0;
+            operation.computation_stage.jpake.outputs = 0;
+            operation.computation_stage.jpake.step = PSA_PAKE_STEP_KEY_SHARE;
+
+            /* --- psa_pake_get_implicit_key --- */
+            mbedtls_test_driver_pake_hooks.forced_status = forced_status;
+            memset(&mbedtls_test_driver_pake_hooks.hits, 0,
+                   sizeof(mbedtls_test_driver_pake_hooks.hits));
+            TEST_EQUAL(psa_pake_get_implicit_key(&operation, &implicit_key),
+                       expected_status);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 2);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.implicit_key, 1);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.abort, 1);
+
+            break;
+
+        case 5: /* abort */
+            /* Call driver setup indirectly */
+            TEST_EQUAL(psa_pake_input(&operation, PSA_PAKE_STEP_KEY_SHARE,
+                                      input_buffer, size_key_share),
+                       PSA_SUCCESS);
+
+            /* --- psa_pake_abort --- */
+            mbedtls_test_driver_pake_hooks.forced_status = forced_status;
+            memset(&mbedtls_test_driver_pake_hooks.hits, 0,
+                   sizeof(mbedtls_test_driver_pake_hooks.hits));
+            TEST_EQUAL(psa_pake_abort(&operation), expected_status);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 1);
+            TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.abort, 1);
+            break;
+
+        default:
+            break;
+    }
+
+    /* Clean up */
+    mbedtls_test_driver_pake_hooks.forced_setup_status = PSA_SUCCESS;
+    mbedtls_test_driver_pake_hooks.forced_status = PSA_SUCCESS;
+    TEST_EQUAL(psa_pake_abort(&operation), PSA_SUCCESS);
+exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes(&attributes);
+    mbedtls_free(input_buffer);
+    mbedtls_free(output_buffer);
+    psa_destroy_key(key);
+    mbedtls_test_driver_pake_hooks =
+        mbedtls_test_driver_pake_hooks_init();
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256 */
+void ecjpake_rounds(int alg_arg, int primitive_arg, int hash_arg,
+                    int derive_alg_arg, data_t *pw_data,
+                    int client_input_first, int in_driver)
+{
+    psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
+    psa_pake_operation_t server = psa_pake_operation_init();
+    psa_pake_operation_t client = psa_pake_operation_init();
+    psa_algorithm_t alg = alg_arg;
+    psa_algorithm_t hash_alg = hash_arg;
+    psa_algorithm_t derive_alg = derive_alg_arg;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_derivation_operation_t server_derive =
+        PSA_KEY_DERIVATION_OPERATION_INIT;
+    psa_key_derivation_operation_t client_derive =
+        PSA_KEY_DERIVATION_OPERATION_INIT;
+    pake_in_driver = in_driver;
+    /* driver setup is called indirectly through pake_output/pake_input */
+    if (pake_in_driver) {
+        pake_expected_hit_count = 2;
+    } else {
+        pake_expected_hit_count = 1;
+    }
+
+    PSA_INIT();
+
+    mbedtls_test_driver_pake_hooks = mbedtls_test_driver_pake_hooks_init();
+
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DERIVE);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_PASSWORD);
+    PSA_ASSERT(psa_import_key(&attributes, pw_data->x, pw_data->len,
+                              &key));
+
+    psa_pake_cs_set_algorithm(&cipher_suite, alg);
+    psa_pake_cs_set_primitive(&cipher_suite, primitive_arg);
+    psa_pake_cs_set_hash(&cipher_suite, hash_alg);
+
+    /* Get shared key */
+    PSA_ASSERT(psa_key_derivation_setup(&server_derive, derive_alg));
+    PSA_ASSERT(psa_key_derivation_setup(&client_derive, derive_alg));
+
+    if (PSA_ALG_IS_TLS12_PSK_TO_MS(derive_alg)) {
+        PSA_ASSERT(psa_key_derivation_input_bytes(&server_derive,
+                                                  PSA_KEY_DERIVATION_INPUT_SEED,
+                                                  (const uint8_t *) "", 0));
+        PSA_ASSERT(psa_key_derivation_input_bytes(&client_derive,
+                                                  PSA_KEY_DERIVATION_INPUT_SEED,
+                                                  (const uint8_t *) "", 0));
+    }
+
+    if (!pake_in_driver) {
+        mbedtls_test_driver_pake_hooks.forced_setup_status = PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    PSA_ASSERT(psa_pake_setup(&server, &cipher_suite));
+    TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 0);
+    PSA_ASSERT(psa_pake_setup(&client, &cipher_suite));
+    TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 0);
+
+
+    PSA_ASSERT(psa_pake_set_user(&server, jpake_server_id, sizeof(jpake_server_id)));
+    PSA_ASSERT(psa_pake_set_peer(&server, jpake_client_id, sizeof(jpake_client_id)));
+    TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 0);
+    PSA_ASSERT(psa_pake_set_user(&client, jpake_client_id, sizeof(jpake_client_id)));
+    PSA_ASSERT(psa_pake_set_peer(&client, jpake_server_id, sizeof(jpake_server_id)));
+    TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 0);
+    PSA_ASSERT(psa_pake_set_password_key(&server, key));
+    TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 0);
+    PSA_ASSERT(psa_pake_set_password_key(&client, key));
+    TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 0);
+
+    /* First round */
+    ecjpake_do_round(alg, primitive_arg, &server, &client,
+                     client_input_first, 1);
+
+    /* Second round */
+    ecjpake_do_round(alg, primitive_arg, &server, &client,
+                     client_input_first, 2);
+
+    /* After the key is obtained operation is aborted.
+       Adapt counter of expected hits. */
+    if (pake_in_driver) {
+        pake_expected_hit_count++;
+    }
+
+    PSA_ASSERT(psa_pake_get_implicit_key(&server, &server_derive));
+    TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+               pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+
+    /* After the key is obtained operation is aborted.
+       Adapt counter of expected hits. */
+    if (pake_in_driver) {
+        pake_expected_hit_count++;
+    }
+
+    PSA_ASSERT(psa_pake_get_implicit_key(&client, &client_derive));
+    TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total,
+               pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
+exit:
+    psa_key_derivation_abort(&server_derive);
+    psa_key_derivation_abort(&client_derive);
+    psa_destroy_key(key);
+    psa_pake_abort(&server);
+    psa_pake_abort(&client);
     PSA_DONE();
 }
 /* END_CASE */

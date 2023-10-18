@@ -7,10 +7,10 @@
  * \note This file may not be included directly. Applications must
  * include psa/crypto.h.
  *
- * \note This header and its content is not part of the Mbed TLS API and
+ * \note This header and its content are not part of the Mbed TLS API and
  * applications must not depend on it. Its main purpose is to define the
  * multi-part state objects of the Mbed TLS software-based PSA drivers. The
- * definition of these objects are then used by crypto_struct.h to define the
+ * definitions of these objects are then used by crypto_struct.h to define the
  * implementation-defined types of PSA multi-part state objects.
  */
 /*
@@ -45,6 +45,7 @@
 #include "mbedtls/sha1.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
+#include "mbedtls/sha3.h"
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_MD5) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RIPEMD160) || \
@@ -52,7 +53,11 @@
     defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_256) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512)
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_224) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_256) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_384) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_512)
 #define MBEDTLS_PSA_BUILTIN_HASH
 #endif
 
@@ -77,6 +82,12 @@ typedef struct {
         defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384)
         mbedtls_sha512_context sha512;
 #endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_224) || \
+        defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_256) || \
+        defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_384) || \
+        defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_512)
+        mbedtls_sha3_context sha3;
+#endif
     } MBEDTLS_PRIVATE(ctx);
 } mbedtls_psa_hash_operation_t;
 
@@ -94,7 +105,8 @@ typedef struct {
     defined(MBEDTLS_PSA_BUILTIN_ALG_OFB) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7)
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CCM_STAR_NO_TAG)
 #define MBEDTLS_PSA_BUILTIN_CIPHER  1
 #endif
 

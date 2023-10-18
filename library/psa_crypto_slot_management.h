@@ -88,9 +88,9 @@ static inline int psa_key_id_is_volatile(psa_key_id_t key_id)
  *         due to a lack of empty key slot, or available memory.
  * \retval #PSA_ERROR_DOES_NOT_EXIST
  *         There is no key with key identifier \p key.
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_DATA_CORRUPT
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
  */
 psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
                                        psa_key_slot_t **p_slot);
@@ -118,9 +118,9 @@ void psa_wipe_all_key_slots(void);
  *                               associated to the returned slot.
  * \param[out] p_slot            On success, a pointer to the slot.
  *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_BAD_STATE
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE \emptydescription
  */
 psa_status_t psa_get_empty_key_slot(psa_key_id_t *volatile_key_id,
                                     psa_key_slot_t **p_slot);
@@ -195,8 +195,8 @@ static inline int psa_key_lifetime_is_external(psa_key_lifetime_t lifetime)
  *                          storage, returns a pointer to the driver table
  *                          associated with the key's storage location.
  *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INVALID_ARGUMENT
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
  */
 psa_status_t psa_validate_key_location(psa_key_lifetime_t lifetime,
                                        psa_se_drv_table_entry_t **p_drv);
@@ -205,7 +205,7 @@ psa_status_t psa_validate_key_location(psa_key_lifetime_t lifetime,
  *
  * \param[in] lifetime  The key lifetime attribute.
  *
- * \retval #PSA_SUCCESS
+ * \retval #PSA_SUCCESS \emptydescription
  * \retval #PSA_ERROR_NOT_SUPPORTED The key is persistent but persistent keys
  *             are not supported.
  */

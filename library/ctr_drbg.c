@@ -19,7 +19,7 @@
 /*
  *  The NIST SP 800-90 DRBGs are described in the following publication.
  *
- *  http://csrc.nist.gov/publications/nistpubs/800-90/SP800-90revised_March2007.pdf
+ *  https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-90r.pdf
  */
 
 #include "common.h"
@@ -98,14 +98,13 @@ int mbedtls_ctr_drbg_set_nonce_len(mbedtls_ctr_drbg_context *ctx,
     if (len > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT) {
         return MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG;
     }
-#if SIZE_MAX > INT_MAX
+
     /* This shouldn't be an issue because
      * MBEDTLS_CTR_DRBG_MAX_SEED_INPUT < INT_MAX in any sensible
      * configuration, but make sure anyway. */
     if (len > INT_MAX) {
         return MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG;
     }
-#endif
 
     /* For backward compatibility with Mbed TLS <= 2.19, store the
      * entropy nonce length in a field that already exists, but isn't

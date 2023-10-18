@@ -18,13 +18,17 @@ needs to be changed to use new APIs. For a more detailed account of what's
 implemented, see `docs/use-psa-crypto.md`, where new APIs are about (G2), and
 internal changes implement (G1).
 
+As of early 2023, work towards G5 is in progress: Mbed TLS 3.3 and 3.4 saw
+some improvements in this area, and more will be coming in future releases.
+
 Generally speaking, the numbering above doesn't mean that each goal requires
 the preceding ones to be completed.
+
 
 Compile-time options
 ====================
 
-We currently have two compile-time options that are relevant to the migration:
+We currently have a few compile-time options that are relevant to the migration:
 
 - `MBEDTLS_PSA_CRYPTO_C` - enabled by default, controls the presence of the PSA
   Crypto APIs.
@@ -36,7 +40,9 @@ We currently have two compile-time options that are relevant to the migration:
 
 The reasons why `MBEDTLS_USE_PSA_CRYPTO` is optional and disabled by default
 are:
-- it's incompatible with `MBEDTLS_ECP_RESTARTABLE`;
+- it's not fully compatible with `MBEDTLS_ECP_RESTARTABLE`: you can enable
+  both, but then you won't get the full effect of RESTARTBLE (see the
+documentation of this option in `mbedtls_config.h`);
 - to avoid a hard/default dependency of TLS, X.509 and PK on
   `MBEDTLS_PSA_CRYPTO_C`, for backward compatibility reasons:
   - When `MBEDTLS_PSA_CRYPTO_C` is enabled and used, applications need to call
@@ -71,10 +77,10 @@ Crypto does not support restartable operations, there's a clear conflict: the
 TLS and X.509 layers can't both use only PSA APIs and get restartable
 behaviour.
 
-Supporting this in PSA is on our roadmap and currently planned for end of
-2022, see <https://github.com/orgs/Mbed-TLS/projects/1#column-18883250>.
+Support for restartable (aka interruptible) ECDSA sign/verify operation was
+added to PSA in Mbed TLS 3.4, but support for ECDH is not present yet.
 
-It will then require follow-up work to make use of the new PSA API in
+It will then require follow-up work to make use of the new PSA APIs in
 PK/X.509/TLS in all places where we currently allow restartable operations.
 
 ### Backward compatibility issues with making `MBEDTLS_USE_PSA_CRYPTO` always on
@@ -137,8 +143,11 @@ crypto API.
 - Downside: tricky to implement if the PSA implementation is currently done on
   top of that layer (dependency loop).
 
-This strategy is currently (early 2022) used for all operations in the PK
-layer.
+This strategy is currently (early 2023) used for all operations in the PK
+layer; the MD layer uses a variant where it dispatches to PSA if a driver is
+available and the driver subsystem has been initialized, regardless of whether
+`USE_PSA_CRYPTO` is enabled; see `md-cipher-dispatch.md` in the same directory
+for details.
 
 This strategy is not very well suited to the Cipher layer, as the PSA
 implementation is currently done on top of that layer.
@@ -161,8 +170,9 @@ Replace calls for each operation
   code size.
 - Downside: TLS/X.509 code has to be done for each operation.
 
-This strategy is currently (early 2022) used for the MD layer and the Cipher
-layer.
+This strategy is currently (early 2023) used for the MD layer and the Cipher
+layer in X.509 and TLS. Crypto modules however always call to MD which may
+then dispatch to PSA, see `md-cipher-dispatch.md`.
 
 Opt-in use of PSA from the abstraction layer
 --------------------------------------------
@@ -210,7 +220,10 @@ Strategies currently (early 2022) used with each abstraction layer:
 - PK (for G1): silently call PSA
 - PK (for G2): opt-in use of PSA (new key type)
 - Cipher (G1): replace calls at each call site
-- MD (G1): replace calls at each call site
+- MD (G1, X.509 and TLS): replace calls at each call site (depending on
+  `USE_PSA_CRYPTO`)
+- MD (G5): silently call PSA when a driver is available, see
+  `md-cipher-dispatch.md`.
 
 
 Supporting builds with drivers without the software implementation
@@ -218,10 +231,6 @@ Supporting builds with drivers without the software implementation
 
 This section presents a plan towards G5: save code size by compiling out our
 software implementation when a driver is available.
-
-Additionally, we want to save code size by compiling out the
-abstractions layers that we are not using when `MBEDTLS_USE_PSA_CRYPTO` is
-enabled (see previous section): MD and Cipher.
 
 Let's expand a bit on the definition of the goal: in such a configuration
 (driver used, software implementation and abstraction layer compiled out),
@@ -238,9 +247,10 @@ at feature parity with software-based builds.
 We can roughly divide the work needed to get there in the following steps:
 
 0. Have a working driver interface for the algorithms we want to replace.
-1. Have users of these algorithms call to PSA, not the legacy API, for all
-   operations. (This is G1, and for PK, X.509 and TLS this is controlled by
-   `MBEDTLS_USE_PSA_CRYPTO`.) This needs to be done in the library and tests.
+1. Have users of these algorithms call to PSA or an abstraction layer than can
+   dispatch to PSA, but not the low-level legacy API, for all operations.
+(This is G1, and for PK, X.509 and TLS this is controlled by
+`MBEDTLS_USE_PSA_CRYPTO`.) This needs to be done in the library and tests.
 2. Have users of these algorithms not depend on the legacy API for information
    management (getting a size for a given algorithm, etc.)
 3. Adapt compile-time guards used to query availability of a given algorithm;
@@ -262,50 +272,32 @@ not possible to achieve good test coverage at the end of step 1 or step 2, it
 is preferable to group with the next step(s) in the same PR until good test
 coverage can be reached.
 
-**Status as of Mbed TLS 3.2:**
+**Status as of end of March 2023 (shortly after 3.4):**
 
 - Step 0 is achieved for most algorithms, with only a few gaps remaining.
 - Step 1 is achieved for most of PK, X.509, and TLS when
   `MBEDTLS_USE_PSA_CRYPTO` is enabled with only a few gaps remaining (see
   docs/use-psa-crypto.md).
-- Step 1 is not achieved for a lot of the crypto library including the PSA
-  core. For example, `entropy.c` calls the legacy API
-  `mbedtls_sha256` (or `mbedtls_sha512` optionally); `hmac_drbg.c` calls the
-  legacy API `mbedtls_md` and `ctr_drbg.c` calls the legacy API `mbedtls_aes`;
-  the PSA core depends on the entropy module and at least one of the DRBG
-  modules (unless `MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG` is used). Further, several
-  crypto modules have similar issues, for example RSA PKCS#1 v2.1 calls
-  `mbedtls_md` directly.
+- Step 1 is achieved for the crypto library regarding hashes: everything uses
+  MD (not low-level hash APIs), which then dispatches to PSA if applicable.
+- Step 1 is not achieved for all of the crypto library when it come to
+  ciphers. For example,`ctr_drbg.c` calls the legacy API `mbedtls_aes`.
 - Step 2 is achieved for most of X.509 and TLS (same gaps as step 1) when
-  `MBEDTLS_USE_PSA_CRYPTO` is enabled - this was tasks like #5795, #5796,
-  #5797. It is being done in PK and RSA PKCS#1 v1.5 by PR #6065.
-- Step 3 was mostly not started at all before 3.2; it is being done for PK by
-  PR #6065.
+  `MBEDTLS_USE_PSA_CRYPTO` is enabled.
+- Step 3 is done for hashes and top-level ECC modules (ECDSA, ECDH, ECJPAKE).
 
 **Strategy for step 1:**
 
 Regarding PK, X.509, and TLS, this is mostly achieved with only a few gaps.
 (The strategy was outlined in the previous section.)
 
-Regarding libmbedcrypto, outside of the RNG subsystem, for modules that
-currently depend on other legacy crypto modules, this can be achieved without
-backwards compatibility issues, by using the software implementation if
-available, and "falling back" to PSA only if it's not. The compile-time
-dependency changes from the current one (say, `MD_C` or `AES_C`) to "the
-previous dependency OR PSA Crypto with needed algorithms". When building
-without software implementation, users need to call `psa_crypto_init()` before
-calling any function from these modules. This condition does not constitute a
-break of backwards compatibility, as it was previously impossible to build in
-those configurations, and in configurations were the build was possible,
-application code keeps working unchanged. An work-in-progress example of
-applying this strategy, for RSA PKCS#1 v2.1, is here:
-<https://github.com/Mbed-TLS/mbedtls/pull/6141>
-
-There is a problem with the modules used for the PSA RNG, as currently the RNG
-is initialized before drivers and the key store. This part will need further
-study, but in the meantime we can proceed with everything that's not the
-entropy module of one of the DRBG modules, and that does not depend on one of
-those modules.
+Regarding libmbedcrypto:
+- for hashes and ciphers, see `md-cipher-dispatch.md` in the same directory;
+- for ECC, we have no internal uses of the top-level algorithms (ECDSA, ECDH,
+  ECJPAKE), however they all depend on `ECP_C` which in turn depends on
+`BIGNUM_C`. So, direct calls from TLS, X.509 and PK to ECP and Bignum will
+need to be replaced; see <https://github.com/Mbed-TLS/mbedtls/issues/6839> and
+linked issues for a summary of intermediate steps and open points.
 
 **Strategy for step 2:**
 
@@ -315,14 +307,11 @@ convenient, for example in parts of the code that accept old-style identifiers
 (such as `mbedtls_md_type_t`) in their API and can't assume PSA to be
 compiled in (such as `rsa.c`).
 
-It is suggested that, as a temporary solution until we clean this up
-later when removing the legacy API including its identifiers (G4), we may
-occasionally use ad-hoc internal functions, such as the ones introduced by PR
-6065 in `library/hash_info.[ch]`.
-
-An alternative would be to have two different code paths depending on whether
-`MBEDTLS_PSA_CRYPTO_C` is defined or not. However this is not great for
-readability or testability.
+When using an existing abstraction layer such as MD, it can provide
+information management functions. In other cases, information that was in a
+low-level module but logically belongs in a higher-level module can be moved
+to that module (for example, TLS identifiers of curves and there conversion
+to/from PSA or legacy identifiers belongs in TLS, not `ecp.c`).
 
 **Strategy for step 3:**
 
@@ -338,35 +327,15 @@ dependencies above depending on whether `MBEDTLS_USE_PSA_CRYPTO` is defined:
 if it is, the code want the algorithm available in PSA, otherwise, it wants it
 available via the legacy API(s) is it using (MD and/or low-level).
 
-The strategy for steps 1 and 2 above will introduce new situations: code that
-currently compute hashes using MD (resp. a low-level hash module) will gain
-the ability to "fall back" to using PSA if the legacy dependency isn't
-available. Data related to a certain hash (OID, sizes, translations) should
-only be included in the build if it is possible to use that hash in some way.
+As much as possible, we're trying to create for each algorithm a single new
+macro that can be used to express dependencies everywhere (except pure PSA
+code that should always use `PSA_WANT`). For example, for hashes this is the
+`MBEDTLS_MD_CAN_xxx` family. For ECC algorithms, we have similar
+`MBEDTLS_PK_CAN_xxx` macros.
 
-In order to cater to these new needs, new families of macros are introduced in
-`legacy_or_psa.h`, see its documentation for details.
-
-It should be noted that there are currently:
-- too many different ways of computing a hash (low-level, MD, PSA);
-- too many different ways to configure the library that influence which of
-  these ways is available and will be used (`MBEDTLS_USE_PSA_CRYPTO`,
-  `MBEDTLS_PSA_CRYPTO_CONFIG`, `mbedtls_config.h` + `psa/crypto_config.h`).
-
-As a result, we need more families of dependency macros than we'd like to.
-This is a temporary situation until we move to a place where everything is
-based on PSA Crypto. In the meantime, long and explicit names where chosen for
-the new macros in the hope of avoiding confusion.
-
-Note: the new macros supplement but do not replace the existing macros:
-- code that always uses PSA Crypto (for example, code specific to TLS 1.3)
-  should use `PSA_WANT_xxx`;
-- code that always uses the legacy API (for example, crypto modules that have
-  not undergone step 1 yet) should use `MBEDTLS_xxx_C`;
-- code that may use one of the two APIs, either based on
-  `MBEDTLS_USE_PSA_CRYPTO` (X.509, TLS 1.2, shared between TLS 1.2 and 1.3),
-  or based on availability (crypto modules after step 1), should use one of
-  the new macros from `legacy_or_psa.h`.
+Note that in order to achieve that goal, even for code that obeys
+`USE_PSA_CRYPTO`, it is useful to impose that all algorithms that are
+available via the legacy APIs are also available via PSA.
 
 Executing step 3 will mostly consist of using the right dependency macros in
 the right places (once the previous steps are done).
@@ -386,15 +355,16 @@ are expressed (sometimes in bulk), to get things wrong in a way that would
 result in more tests being skipped, which is easy to miss. Care must be
 taken to ensure this does not happen. The following criteria can be used:
 
-- the sets of tests skipped in the default config and the full config must be
-  the same before and after the PR that implements step 3;
-- the set of tests skipped in the driver-only build is the same as in an
-  equivalent software-based configuration, or the difference is small enough,
-  justified, and a github issue is created to track it.
-
-Note that the favourable case is when the number of tests skipped is 0 in the
-driver-only build. In other cases, analysis of the outcome files is needed,
-see the example script `outcome-analysis.sh` in the same directory.
+1. The sets of tests skipped in the default config and the full config must be
+  the same before and after the PR that implements step 3. This is tested
+manually for each PR that changes dependency declarations by using the script
+`outcome-analysis.sh` in the present directory.
+2. The set of tests skipped in the driver-only build is the same as in an
+  equivalent software-based configuration. This is tested automatically by the
+CI in the "Results analysis" stage, by running
+`tests/scripts/analyze_outcomes.py`. See the
+`analyze_driver_vs_reference_xxx` actions in the script and the comments above
+their declaration for how to do that locally.
 
 
 Migrating away from the legacy API

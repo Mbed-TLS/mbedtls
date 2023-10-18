@@ -40,7 +40,7 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_PSA_CRYPTO_C)
 #include "psa/crypto.h"
 #endif
 
@@ -98,8 +98,24 @@ typedef enum {
  *                  See \c mbedtls_rsa_rsassa_pss_verify_ext()
  */
 typedef struct mbedtls_pk_rsassa_pss_options {
-    mbedtls_md_type_t MBEDTLS_PRIVATE(mgf1_hash_id);
-    int MBEDTLS_PRIVATE(expected_salt_len);
+    /** The digest to use for MGF1 in PSS.
+     *
+     * \note When #MBEDTLS_USE_PSA_CRYPTO is enabled and #MBEDTLS_RSA_C is
+     *       disabled, this must be equal to the \c md_alg argument passed
+     *       to mbedtls_pk_verify_ext(). In a future version of the library,
+     *       this constraint may apply whenever #MBEDTLS_USE_PSA_CRYPTO is
+     *       enabled regardless of the status of #MBEDTLS_RSA_C.
+     */
+    mbedtls_md_type_t mgf1_hash_id;
+
+    /** The expected length of the salt, in bytes. This may be
+     * #MBEDTLS_RSA_SALT_LEN_ANY to accept any salt length.
+     *
+     * \note When #MBEDTLS_USE_PSA_CRYPTO is enabled, only
+     *       #MBEDTLS_RSA_SALT_LEN_ANY is valid. Any other value may be
+     *       ignored (allowing any salt length).
+     */
+    int expected_salt_len;
 
 } mbedtls_pk_rsassa_pss_options;
 
@@ -155,6 +171,35 @@ typedef struct mbedtls_pk_rsassa_pss_options {
 #endif
 #endif /* defined(MBEDTLS_USE_PSA_CRYPTO) */
 
+/* Internal helper to define which fields in the pk_context structure below
+ * should be used for EC keys: legacy ecp_keypair or the raw (PSA friendly)
+ * format. It should be noted that this only affects how data is stored, not
+ * which functions are used for various operations. The overall picture looks
+ * like this:
+ * - if USE_PSA is not defined and ECP_C is defined then use ecp_keypair data
+ *   structure and legacy functions
+ * - if USE_PSA is defined and
+ *     - if ECP_C then use ecp_keypair structure, convert data to a PSA friendly
+ *       format and use PSA functions
+ *     - if !ECP_C then use new raw data and PSA functions directly.
+ *
+ * The main reason for the "intermediate" (USE_PSA + ECP_C) above is that as long
+ * as ECP_C is defined mbedtls_pk_ec() gives the user a read/write access to the
+ * ecp_keypair structure inside the pk_context so they can modify it using
+ * ECP functions which are not under PK module's control.
+ */
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) && \
+    !defined(MBEDTLS_ECP_C)
+#define MBEDTLS_PK_USE_PSA_EC_DATA
+#endif
+
+/* Helper symbol to state that the PK module has support for EC keys. This
+ * can either be provided through the legacy ECP solution or through the
+ * PSA friendly MBEDTLS_PK_USE_PSA_EC_DATA. */
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA) || defined(MBEDTLS_ECP_C)
+#define MBEDTLS_PK_HAVE_ECC_KEYS
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA || MBEDTLS_ECP_C */
+
 /**
  * \brief           Types for interfacing with the debug module
  */
@@ -162,6 +207,7 @@ typedef enum {
     MBEDTLS_PK_DEBUG_NONE = 0,
     MBEDTLS_PK_DEBUG_MPI,
     MBEDTLS_PK_DEBUG_ECP,
+    MBEDTLS_PK_DEBUG_PSA_EC,
 } mbedtls_pk_debug_type;
 
 /**
@@ -185,12 +231,59 @@ typedef struct mbedtls_pk_debug_item {
  */
 typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
 
+#define MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN \
+    PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)
 /**
  * \brief           Public key container
  */
 typedef struct mbedtls_pk_context {
     const mbedtls_pk_info_t *MBEDTLS_PRIVATE(pk_info);    /**< Public key information         */
     void *MBEDTLS_PRIVATE(pk_ctx);                        /**< Underlying public key context  */
+    /* The following field is used to store the ID of a private key in the
+     * following cases:
+     * - opaque key when MBEDTLS_PSA_CRYPTO_C is defined
+     * - normal key when MBEDTLS_PK_USE_PSA_EC_DATA is defined. In this case:
+     *    - the pk_ctx above is not not used to store the private key anymore.
+     *      Actually that field not populated at all in this case because also
+     *      the public key will be stored in raw format as explained below
+     *    - this ID is used for all private key operations (ex: sign, check
+     *      key pair, key write, etc) using PSA functions
+     *
+     * Note: this private key storing solution only affects EC keys, not the
+     *       other ones. The latters still use the pk_ctx to store their own
+     *       context.
+     *
+     * Note: this priv_id is guarded by MBEDTLS_PSA_CRYPTO_C and not by
+     *       MBEDTLS_PK_USE_PSA_EC_DATA (as the public counterpart below) because,
+     *       when working with opaque keys, it can be used also in
+     *       mbedtls_pk_sign_ext for RSA keys. */
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_svc_key_id_t MBEDTLS_PRIVATE(priv_id);      /**< Key ID for opaque keys */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
+    /* The following fields are meant for storing the public key in raw format
+     * which is handy for:
+     * - easily importing it into the PSA context
+     * - reducing the ECP module dependencies in the PK one.
+     *
+     * When MBEDTLS_PK_USE_PSA_EC_DATA is enabled:
+     * - the pk_ctx above is not used anymore for storing the public key
+     *   inside the ecp_keypair structure
+     * - the following fields are used for all public key operations: signature
+     *   verify, key pair check and key write.
+     * Of course, when MBEDTLS_PK_USE_PSA_EC_DATA is not enabled, the legacy
+     * ecp_keypair structure is used for storing the public key and performing
+     * all the operations.
+     *
+     * Note: This new public key storing solution only works for EC keys, not
+     *       other ones. The latters still use pk_ctx to store their own
+     *       context.
+     */
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    uint8_t MBEDTLS_PRIVATE(pub_raw)[MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN]; /**< Raw public key   */
+    size_t MBEDTLS_PRIVATE(pub_raw_len);            /**< Valid bytes in "pub_raw" */
+    psa_ecc_family_t MBEDTLS_PRIVATE(ec_family);    /**< EC family of pk */
+    size_t MBEDTLS_PRIVATE(ec_bits);                /**< Curve's bits of pk */
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 } mbedtls_pk_context;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
@@ -428,7 +521,7 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
  *
  * \return          0 on success (signature is valid),
  *                  #MBEDTLS_ERR_PK_SIG_LEN_MISMATCH if there is a valid
- *                  signature in sig but its length is less than \p siglen,
+ *                  signature in \p sig but its length is less than \p sig_len,
  *                  or a specific error code.
  *
  * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
@@ -482,7 +575,7 @@ int mbedtls_pk_verify_restartable(mbedtls_pk_context *ctx,
  *                  #MBEDTLS_ERR_PK_TYPE_MISMATCH if the PK context can't be
  *                  used for this type of signatures,
  *                  #MBEDTLS_ERR_PK_SIG_LEN_MISMATCH if there is a valid
- *                  signature in sig but its length is less than \p siglen,
+ *                  signature in \p sig but its length is less than \p sig_len,
  *                  or a specific error code.
  *
  * \note            If hash_len is 0, then the length associated with md_alg
@@ -754,6 +847,10 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec(const mbedtls_pk_context pk)
 /**
  * \brief           Parse a private key in PEM or DER format
  *
+ * \note            If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                  subsystem must have been initialized by calling
+ *                  psa_crypto_init() before calling this function.
+ *
  * \param ctx       The PK context to fill. It must have been initialized
  *                  but not set up.
  * \param key       Input buffer to parse.
@@ -790,6 +887,10 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *ctx,
 /**
  * \brief           Parse a public key in PEM or DER format
  *
+ * \note            If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                  subsystem must have been initialized by calling
+ *                  psa_crypto_init() before calling this function.
+ *
  * \param ctx       The PK context to fill. It must have been initialized
  *                  but not set up.
  * \param key       Input buffer to parse.
@@ -804,6 +905,9 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *ctx,
  *                  with mbedtls_pk_init() or reset with mbedtls_pk_free(). If you need a
  *                  specific key type, check the result with mbedtls_pk_can_do().
  *
+ * \note            For compressed points, see #MBEDTLS_ECP_PF_COMPRESSED for
+ *                  limitations.
+ *
  * \note            The key is also checked for correctness.
  *
  * \return          0 if successful, or a specific PK or PEM error code
@@ -815,6 +919,10 @@ int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
 /** \ingroup pk_module */
 /**
  * \brief           Load and parse a private key
+ *
+ * \note            If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                  subsystem must have been initialized by calling
+ *                  psa_crypto_init() before calling this function.
  *
  * \param ctx       The PK context to fill. It must have been initialized
  *                  but not set up.

@@ -39,8 +39,7 @@
 #include "mbedtls/des.h"
 #endif
 
-#include "hash_info.h"
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
 
@@ -130,18 +129,49 @@ static int pkcs12_pbe_derive_key_iv(mbedtls_asn1_buf *pbe_params, mbedtls_md_typ
 
 #undef PKCS12_MAX_PWDLEN
 
+#if !defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+int mbedtls_pkcs12_pbe_ext(mbedtls_asn1_buf *pbe_params, int mode,
+                           mbedtls_cipher_type_t cipher_type, mbedtls_md_type_t md_type,
+                           const unsigned char *pwd,  size_t pwdlen,
+                           const unsigned char *data, size_t len,
+                           unsigned char *output, size_t output_size,
+                           size_t *output_len);
+#endif
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 int mbedtls_pkcs12_pbe(mbedtls_asn1_buf *pbe_params, int mode,
                        mbedtls_cipher_type_t cipher_type, mbedtls_md_type_t md_type,
                        const unsigned char *pwd,  size_t pwdlen,
                        const unsigned char *data, size_t len,
                        unsigned char *output)
 {
+    size_t output_len = 0;
+
+    /* We assume caller of the function is providing a big enough output buffer
+     * so we pass output_size as SIZE_MAX to pass checks, However, no guarantees
+     * for the output size actually being correct.
+     */
+    return mbedtls_pkcs12_pbe_ext(pbe_params, mode, cipher_type, md_type,
+                                  pwd, pwdlen, data, len, output, SIZE_MAX,
+                                  &output_len);
+}
+#endif
+
+int mbedtls_pkcs12_pbe_ext(mbedtls_asn1_buf *pbe_params, int mode,
+                           mbedtls_cipher_type_t cipher_type, mbedtls_md_type_t md_type,
+                           const unsigned char *pwd,  size_t pwdlen,
+                           const unsigned char *data, size_t len,
+                           unsigned char *output, size_t output_size,
+                           size_t *output_len)
+{
     int ret, keylen = 0;
     unsigned char key[32];
     unsigned char iv[16];
     const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_context_t cipher_ctx;
-    size_t olen = 0;
+    size_t iv_len = 0;
+    size_t finish_olen = 0;
+    unsigned int padlen = 0;
 
     if (pwd == NULL && pwdlen != 0) {
         return MBEDTLS_ERR_PKCS12_BAD_INPUT_DATA;
@@ -152,11 +182,25 @@ int mbedtls_pkcs12_pbe(mbedtls_asn1_buf *pbe_params, int mode,
         return MBEDTLS_ERR_PKCS12_FEATURE_UNAVAILABLE;
     }
 
-    keylen = cipher_info->key_bitlen / 8;
+    keylen = (int) mbedtls_cipher_info_get_key_bitlen(cipher_info) / 8;
 
+    if (mode == MBEDTLS_PKCS12_PBE_DECRYPT) {
+        if (output_size < len) {
+            return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
+        }
+    }
+
+    if (mode == MBEDTLS_PKCS12_PBE_ENCRYPT) {
+        padlen = cipher_info->block_size - (len % cipher_info->block_size);
+        if (output_size < (len + padlen)) {
+            return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
+        }
+    }
+
+    iv_len = mbedtls_cipher_info_get_iv_size(cipher_info);
     if ((ret = pkcs12_pbe_derive_key_iv(pbe_params, md_type, pwd, pwdlen,
                                         key, keylen,
-                                        iv, cipher_info->iv_size)) != 0) {
+                                        iv, iv_len)) != 0) {
         return ret;
     }
 
@@ -166,28 +210,36 @@ int mbedtls_pkcs12_pbe(mbedtls_asn1_buf *pbe_params, int mode,
         goto exit;
     }
 
-    if ((ret =
-             mbedtls_cipher_setkey(&cipher_ctx, key, 8 * keylen,
-                                   (mbedtls_operation_t) mode)) != 0) {
+    if ((ret = mbedtls_cipher_setkey(&cipher_ctx, key, 8 * keylen,
+                                     (mbedtls_operation_t) mode)) != 0) {
         goto exit;
     }
 
-    if ((ret = mbedtls_cipher_set_iv(&cipher_ctx, iv, cipher_info->iv_size)) != 0) {
+#if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
+    /* PKCS12 uses CBC with PKCS7 padding */
+
+    mbedtls_cipher_padding_t padding = MBEDTLS_PADDING_PKCS7;
+#if !defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+    /* For historical reasons, when decrypting, this function works when
+     * decrypting even when support for PKCS7 padding is disabled. In this
+     * case, it ignores the padding, and so will never report a
+     * password mismatch.
+     */
+    if (mode == MBEDTLS_PKCS12_PBE_DECRYPT) {
+        padding = MBEDTLS_PADDING_NONE;
+    }
+#endif
+    if ((ret = mbedtls_cipher_set_padding_mode(&cipher_ctx, padding)) != 0) {
         goto exit;
     }
+#endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
 
-    if ((ret = mbedtls_cipher_reset(&cipher_ctx)) != 0) {
-        goto exit;
-    }
-
-    if ((ret = mbedtls_cipher_update(&cipher_ctx, data, len,
-                                     output, &olen)) != 0) {
-        goto exit;
-    }
-
-    if ((ret = mbedtls_cipher_finish(&cipher_ctx, output + olen, &olen)) != 0) {
+    ret = mbedtls_cipher_crypt(&cipher_ctx, iv, iv_len, data, len, output, &finish_olen);
+    if (ret == MBEDTLS_ERR_CIPHER_INVALID_PADDING) {
         ret = MBEDTLS_ERR_PKCS12_PASSWORD_MISMATCH;
     }
+
+    *output_len += finish_olen;
 
 exit:
     mbedtls_platform_zeroize(key, sizeof(key));
@@ -227,7 +279,6 @@ static int calculate_hashes(mbedtls_md_type_t md_type, int iterations,
                             unsigned char *pwd_block, unsigned char *hash_output, int use_salt,
                             int use_password, size_t hlen, size_t v)
 {
-#if defined(MBEDTLS_MD_C)
     int ret = -1;
     size_t i;
     const mbedtls_md_info_t *md_info;
@@ -278,58 +329,6 @@ static int calculate_hashes(mbedtls_md_type_t md_type, int iterations,
 exit:
     mbedtls_md_free(&md_ctx);
     return ret;
-#else
-    psa_hash_operation_t op = PSA_HASH_OPERATION_INIT;
-    psa_algorithm_t alg = mbedtls_psa_translate_md(md_type);
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_status_t status_abort = PSA_ERROR_CORRUPTION_DETECTED;
-    size_t i, out_len, out_size = PSA_HASH_LENGTH(alg);
-
-    if (alg == PSA_ALG_NONE) {
-        return MBEDTLS_ERR_PKCS12_FEATURE_UNAVAILABLE;
-    }
-
-    if ((status = psa_hash_setup(&op, alg)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    // Calculate hash( diversifier || salt_block || pwd_block )
-    if ((status = psa_hash_update(&op, diversifier, v)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if (use_salt != 0) {
-        if ((status = psa_hash_update(&op, salt_block, v)) != PSA_SUCCESS) {
-            goto exit;
-        }
-    }
-
-    if (use_password != 0) {
-        if ((status = psa_hash_update(&op, pwd_block, v)) != PSA_SUCCESS) {
-            goto exit;
-        }
-    }
-
-    if ((status = psa_hash_finish(&op, hash_output, out_size, &out_len))
-        != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    // Perform remaining ( iterations - 1 ) recursive hash calculations
-    for (i = 1; i < (size_t) iterations; i++) {
-        if ((status = psa_hash_compute(alg, hash_output, hlen, hash_output,
-                                       out_size, &out_len)) != PSA_SUCCESS) {
-            goto exit;
-        }
-    }
-
-exit:
-    status_abort = psa_hash_abort(&op);
-    if (status == PSA_SUCCESS) {
-        status = status_abort;
-    }
-    return mbedtls_md_error_from_psa(status);
-#endif /* !MBEDTLS_MD_C */
 }
 
 
@@ -343,7 +342,7 @@ int mbedtls_pkcs12_derivation(unsigned char *data, size_t datalen,
 
     unsigned char diversifier[128];
     unsigned char salt_block[128], pwd_block[128], hash_block[128] = { 0 };
-    unsigned char hash_output[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char hash_output[MBEDTLS_MD_MAX_SIZE];
     unsigned char *p;
     unsigned char c;
     int           use_password = 0;
@@ -367,7 +366,7 @@ int mbedtls_pkcs12_derivation(unsigned char *data, size_t datalen,
     use_password = (pwd && pwdlen != 0);
     use_salt = (salt && saltlen != 0);
 
-    hlen = mbedtls_hash_info_get_size(md_type);
+    hlen = mbedtls_md_get_size_from_type(md_type);
 
     if (hlen <= 32) {
         v = 64;

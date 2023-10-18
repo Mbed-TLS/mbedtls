@@ -130,15 +130,28 @@ extern "C" {
 #endif
 #endif /* MBEDTLS_PLATFORM_NO_STD_FUNCTIONS */
 
+/* Enable certain documented defines only when generating doxygen to avoid
+ * an "unrecognized define" error. */
+#if defined(__DOXYGEN__) && !defined(MBEDTLS_PLATFORM_STD_CALLOC)
+#define MBEDTLS_PLATFORM_STD_CALLOC
+#endif
+
+#if defined(__DOXYGEN__) && !defined(MBEDTLS_PLATFORM_STD_FREE)
+#define MBEDTLS_PLATFORM_STD_FREE
+#endif
 
 /** \} name SECTION: Module settings */
 
 /*
  * The function pointers for calloc and free.
+ * Please see MBEDTLS_PLATFORM_STD_CALLOC and MBEDTLS_PLATFORM_STD_FREE
+ * in mbedtls_config.h for more information about behaviour and requirements.
  */
 #if defined(MBEDTLS_PLATFORM_MEMORY)
 #if defined(MBEDTLS_PLATFORM_FREE_MACRO) && \
     defined(MBEDTLS_PLATFORM_CALLOC_MACRO)
+#undef mbedtls_free
+#undef mbedtls_calloc
 #define mbedtls_free       MBEDTLS_PLATFORM_FREE_MACRO
 #define mbedtls_calloc     MBEDTLS_PLATFORM_CALLOC_MACRO
 #else
@@ -160,6 +173,8 @@ int mbedtls_platform_set_calloc_free(void *(*calloc_func)(size_t, size_t),
                                      void (*free_func)(void *));
 #endif /* MBEDTLS_PLATFORM_FREE_MACRO && MBEDTLS_PLATFORM_CALLOC_MACRO */
 #else /* !MBEDTLS_PLATFORM_MEMORY */
+#undef mbedtls_free
+#undef mbedtls_calloc
 #define mbedtls_free       free
 #define mbedtls_calloc     calloc
 #endif /* MBEDTLS_PLATFORM_MEMORY && !MBEDTLS_PLATFORM_{FREE,CALLOC}_MACRO */
@@ -184,6 +199,7 @@ extern int (*mbedtls_fprintf)(FILE *stream, const char *format, ...);
 int mbedtls_platform_set_fprintf(int (*fprintf_func)(FILE *stream, const char *,
                                                      ...));
 #else
+#undef mbedtls_fprintf
 #if defined(MBEDTLS_PLATFORM_FPRINTF_MACRO)
 #define mbedtls_fprintf    MBEDTLS_PLATFORM_FPRINTF_MACRO
 #else
@@ -208,6 +224,7 @@ extern int (*mbedtls_printf)(const char *format, ...);
  */
 int mbedtls_platform_set_printf(int (*printf_func)(const char *, ...));
 #else /* !MBEDTLS_PLATFORM_PRINTF_ALT */
+#undef mbedtls_printf
 #if defined(MBEDTLS_PLATFORM_PRINTF_MACRO)
 #define mbedtls_printf     MBEDTLS_PLATFORM_PRINTF_MACRO
 #else
@@ -243,6 +260,7 @@ extern int (*mbedtls_snprintf)(char *s, size_t n, const char *format, ...);
 int mbedtls_platform_set_snprintf(int (*snprintf_func)(char *s, size_t n,
                                                        const char *format, ...));
 #else /* MBEDTLS_PLATFORM_SNPRINTF_ALT */
+#undef mbedtls_snprintf
 #if defined(MBEDTLS_PLATFORM_SNPRINTF_MACRO)
 #define mbedtls_snprintf   MBEDTLS_PLATFORM_SNPRINTF_MACRO
 #else
@@ -279,6 +297,7 @@ extern int (*mbedtls_vsnprintf)(char *s, size_t n, const char *format, va_list a
 int mbedtls_platform_set_vsnprintf(int (*vsnprintf_func)(char *s, size_t n,
                                                          const char *format, va_list arg));
 #else /* MBEDTLS_PLATFORM_VSNPRINTF_ALT */
+#undef mbedtls_vsnprintf
 #if defined(MBEDTLS_PLATFORM_VSNPRINTF_MACRO)
 #define mbedtls_vsnprintf   MBEDTLS_PLATFORM_VSNPRINTF_MACRO
 #else
@@ -320,7 +339,9 @@ extern void (*mbedtls_setbuf)(FILE *stream, char *buf);
  */
 int mbedtls_platform_set_setbuf(void (*setbuf_func)(
                                     FILE *stream, char *buf));
-#elif defined(MBEDTLS_PLATFORM_SETBUF_MACRO)
+#else
+#undef mbedtls_setbuf
+#if defined(MBEDTLS_PLATFORM_SETBUF_MACRO)
 /**
  * \brief                  Macro defining the function for the library to
  *                         call for `setbuf` functionality (changing the
@@ -334,7 +355,8 @@ int mbedtls_platform_set_setbuf(void (*setbuf_func)(
 #define mbedtls_setbuf    MBEDTLS_PLATFORM_SETBUF_MACRO
 #else
 #define mbedtls_setbuf    setbuf
-#endif /* MBEDTLS_PLATFORM_SETBUF_ALT / MBEDTLS_PLATFORM_SETBUF_MACRO */
+#endif /* MBEDTLS_PLATFORM_SETBUF_MACRO */
+#endif /* MBEDTLS_PLATFORM_SETBUF_ALT */
 
 /*
  * The function pointers for exit
@@ -353,6 +375,7 @@ extern void (*mbedtls_exit)(int status);
  */
 int mbedtls_platform_set_exit(void (*exit_func)(int status));
 #else
+#undef mbedtls_exit
 #if defined(MBEDTLS_PLATFORM_EXIT_MACRO)
 #define mbedtls_exit   MBEDTLS_PLATFORM_EXIT_MACRO
 #else
@@ -405,6 +428,8 @@ int mbedtls_platform_set_nv_seed(
     int (*nv_seed_write_func)(unsigned char *buf, size_t buf_len)
     );
 #else
+#undef mbedtls_nv_seed_read
+#undef mbedtls_nv_seed_write
 #if defined(MBEDTLS_PLATFORM_NV_SEED_READ_MACRO) && \
     defined(MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO)
 #define mbedtls_nv_seed_read    MBEDTLS_PLATFORM_NV_SEED_READ_MACRO

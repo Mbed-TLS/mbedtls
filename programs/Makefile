@@ -45,7 +45,7 @@ endif
 ifdef WINDOWS_BUILD
 DLEXT=dll
 EXEXT=.exe
-LOCAL_LDFLAGS += -lws2_32
+LOCAL_LDFLAGS += -lws2_32 -lbcrypt
 ifdef SHARED
 SHARED_SUFFIX=.$(DLEXT)
 endif
@@ -109,6 +109,7 @@ APPS = \
 	psa/hmac_demo \
 	psa/key_ladder_demo \
 	psa/psa_constant_names \
+	psa/psa_hash \
 	random/gen_entropy \
 	random/gen_random_ctr_drbg \
 	ssl/dtls_client \
@@ -123,6 +124,7 @@ APPS = \
 	ssl/ssl_server2 \
 	test/benchmark \
 	test/query_compile_time_config \
+	test/query_included_headers \
 	test/selftest \
 	test/udp_proxy \
 	test/zeroize \
@@ -175,22 +177,30 @@ ${MBEDTLS_TEST_OBJS}:
 GENERATED_FILES = psa/psa_constant_names_generated.c test/query_config.c
 generated_files: $(GENERATED_FILES)
 
-psa/psa_constant_names_generated.c: ../scripts/generate_psa_constants.py
-psa/psa_constant_names_generated.c: ../include/psa/crypto_values.h
-psa/psa_constant_names_generated.c: ../include/psa/crypto_extra.h
-psa/psa_constant_names_generated.c: ../tests/suites/test_suite_psa_crypto_metadata.data
+# See root Makefile
+GEN_FILES ?= yes
+ifdef GEN_FILES
+gen_file_dep =
+else
+gen_file_dep = |
+endif
+
+psa/psa_constant_names_generated.c: $(gen_file_dep) ../scripts/generate_psa_constants.py
+psa/psa_constant_names_generated.c: $(gen_file_dep) ../include/psa/crypto_values.h
+psa/psa_constant_names_generated.c: $(gen_file_dep) ../include/psa/crypto_extra.h
+psa/psa_constant_names_generated.c: $(gen_file_dep) ../tests/suites/test_suite_psa_crypto_metadata.data
 psa/psa_constant_names_generated.c:
 	echo "  Gen   $@"
 	$(PYTHON) ../scripts/generate_psa_constants.py
 
-test/query_config.c: ../scripts/generate_query_config.pl
+test/query_config.c: $(gen_file_dep) ../scripts/generate_query_config.pl
 ## The generated file only depends on the options that are present in mbedtls_config.h,
 ## not on which options are set. To avoid regenerating this file all the time
 ## when switching between configurations, don't declare mbedtls_config.h as a
 ## dependency. Remove this file from your working tree if you've just added or
 ## removed an option in mbedtls_config.h.
-#test/query_config.c: ../include/mbedtls/mbedtls_config.h
-test/query_config.c: ../scripts/data_files/query_config.fmt
+#test/query_config.c: $(gen_file_dep) ../include/mbedtls/mbedtls_config.h
+test/query_config.c: $(gen_file_dep) ../scripts/data_files/query_config.fmt
 test/query_config.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_query_config.pl
@@ -315,6 +325,10 @@ psa/psa_constant_names$(EXEXT): psa/psa_constant_names.c psa/psa_constant_names_
 	echo "  CC    psa/psa_constant_names.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/psa_constant_names.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
+psa/psa_hash$(EXEXT): psa/psa_hash.c $(DEP)
+	echo "  CC    psa/psa_hash.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/psa_hash.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
 random/gen_entropy$(EXEXT): random/gen_entropy.c $(DEP)
 	echo "  CC    random/gen_entropy.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) random/gen_entropy.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
@@ -402,6 +416,10 @@ endif
 test/query_config.o: test/query_config.c test/query_config.h $(DEP)
 	echo "  CC    test/query_config.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -c test/query_config.c -o $@
+
+test/query_included_headers$(EXEXT): test/query_included_headers.c $(DEP)
+	echo "  CC    test/query_included_headers.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/query_included_headers.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/selftest$(EXEXT): test/selftest.c $(DEP)
 	echo "  CC    test/selftest.c"

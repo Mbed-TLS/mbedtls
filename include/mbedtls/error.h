@@ -73,6 +73,7 @@
  * SHA1      1                  0x0035-0x0035 0x0073-0x0073
  * SHA256    1                  0x0037-0x0037 0x0074-0x0074
  * SHA512    1                  0x0039-0x0039 0x0075-0x0075
+ * SHA-3     1                  0x0076-0x0076
  * CHACHA20  3                  0x0051-0x0055
  * POLY1305  3                  0x0057-0x005B
  * CHACHAPOLY 2 0x0054-0x0056
@@ -165,9 +166,9 @@ static inline int mbedtls_error_add(int high, int low,
 }
 
 /**
- * \brief Translate a mbed TLS error code into a string representation,
- *        Result is truncated if necessary and always includes a terminating
- *        null byte.
+ * \brief Translate an Mbed TLS error code into a string representation.
+ *        The result is truncated if necessary and always includes a
+ *        terminating null byte.
  *
  * \param errnum    error code
  * \param buffer    buffer to place representation in

@@ -1,8 +1,7 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ecjpake.h"
-#include "mbedtls/legacy_or_psa.h"
 
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) && defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA)
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) && defined(MBEDTLS_MD_CAN_SHA256)
 static const unsigned char ecjpake_test_x1[] = {
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c,
     0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
@@ -91,7 +90,7 @@ cleanup:
 }
 
 #define ADD_SIZE(x)   x, sizeof(x)
-#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED && MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA */
+#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED && MBEDTLS_MD_CAN_SHA256 */
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -109,6 +108,8 @@ void ecjpake_invalid_param()
     mbedtls_md_type_t valid_md = MBEDTLS_MD_SHA256;
     mbedtls_ecp_group_id valid_group = MBEDTLS_ECP_DP_SECP256R1;
 
+    MD_PSA_INIT();
+
     mbedtls_ecjpake_init(&ctx);
 
     TEST_EQUAL(MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
@@ -118,24 +119,31 @@ void ecjpake_invalid_param()
                                      valid_group,
                                      buf, len));
 exit:
-    return;
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void ecjpake_selftest()
 {
+    MD_PSA_INIT();
+
     TEST_ASSERT(mbedtls_ecjpake_self_test(1) == 0);
+
+exit:
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256 */
 void read_bad_md(data_t *msg)
 {
     mbedtls_ecjpake_context corrupt_ctx;
     const unsigned char *pw = NULL;
     const size_t pw_len = 0;
     int any_role = MBEDTLS_ECJPAKE_CLIENT;
+
+    MD_PSA_INIT();
 
     mbedtls_ecjpake_init(&corrupt_ctx);
     TEST_ASSERT(mbedtls_ecjpake_setup(&corrupt_ctx, any_role,
@@ -148,15 +156,18 @@ void read_bad_md(data_t *msg)
 
 exit:
     mbedtls_ecjpake_free(&corrupt_ctx);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256 */
 void read_round_one(int role, data_t *msg, int ref_ret)
 {
     mbedtls_ecjpake_context ctx;
     const unsigned char *pw = NULL;
     const size_t pw_len = 0;
+
+    MD_PSA_INIT();
 
     mbedtls_ecjpake_init(&ctx);
 
@@ -168,15 +179,18 @@ void read_round_one(int role, data_t *msg, int ref_ret)
 
 exit:
     mbedtls_ecjpake_free(&ctx);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256 */
 void read_round_two_cli(data_t *msg, int ref_ret)
 {
     mbedtls_ecjpake_context ctx;
     const unsigned char *pw = NULL;
     const size_t pw_len = 0;
+
+    MD_PSA_INIT();
 
     mbedtls_ecjpake_init(&ctx);
 
@@ -194,15 +208,18 @@ void read_round_two_cli(data_t *msg, int ref_ret)
 
 exit:
     mbedtls_ecjpake_free(&ctx);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256 */
 void read_round_two_srv(data_t *msg, int ref_ret)
 {
     mbedtls_ecjpake_context ctx;
     const unsigned char *pw = NULL;
     const size_t pw_len = 0;
+
+    MD_PSA_INIT();
 
     mbedtls_ecjpake_init(&ctx);
 
@@ -220,5 +237,6 @@ void read_round_two_srv(data_t *msg, int ref_ret)
 
 exit:
     mbedtls_ecjpake_free(&ctx);
+    MD_PSA_DONE();
 }
 /* END_CASE */

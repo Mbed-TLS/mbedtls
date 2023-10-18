@@ -14,7 +14,7 @@ if not "%~1"=="" set "retarget=,PlatformToolset=%1"
 @rem vcvarsall.bat will silently change the directory to that directory.
 @rem Setting the VSCMD_START_DIR environment variable causes it to change
 @rem to that directory instead.
-set "VSCMD_START_DIR=%~dp0\..\visualc\VS2010"
+set "VSCMD_START_DIR=%~dp0\..\visualc\VS2013"
 
 "%vcvarsall%" x64 && ^
 msbuild /t:Rebuild /p:Configuration=%cfg%%retarget% /m mbedTLS.sln

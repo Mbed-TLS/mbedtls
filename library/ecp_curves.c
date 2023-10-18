@@ -19,7 +19,9 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_ECP_WITH_MPI_UINT)
+
+#if defined(MBEDTLS_ECP_LIGHT)
 
 #include "mbedtls/ecp.h"
 #include "mbedtls/platform_util.h"
@@ -39,15 +41,15 @@
 #define ECP_VALIDATE(cond)        \
     MBEDTLS_INTERNAL_VALIDATE(cond)
 
-#define ECP_MPI_INIT(s, n, p) { s, (n), (mbedtls_mpi_uint *) (p) }
+#define ECP_MPI_INIT(_p, _n) { .p = (mbedtls_mpi_uint *) (_p), .s = 1, .n = (_n) }
 
 #define ECP_MPI_INIT_ARRAY(x)   \
-    ECP_MPI_INIT(1, sizeof(x) / sizeof(mbedtls_mpi_uint), x)
+    ECP_MPI_INIT(x, sizeof(x) / sizeof(mbedtls_mpi_uint))
 
 #define ECP_POINT_INIT_XY_Z0(x, y) { \
-        ECP_MPI_INIT_ARRAY(x), ECP_MPI_INIT_ARRAY(y), ECP_MPI_INIT(1, 0, NULL) }
+        ECP_MPI_INIT_ARRAY(x), ECP_MPI_INIT_ARRAY(y), ECP_MPI_INIT(NULL, 0) }
 #define ECP_POINT_INIT_XY_Z1(x, y) { \
-        ECP_MPI_INIT_ARRAY(x), ECP_MPI_INIT_ARRAY(y), ECP_MPI_INIT(1, 1, mpi_one) }
+        ECP_MPI_INIT_ARRAY(x), ECP_MPI_INIT_ARRAY(y), ECP_MPI_INIT(mpi_one, 1) }
 
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||   \
@@ -4505,12 +4507,12 @@ static const mbedtls_ecp_point brainpoolP512r1_T[32] = {
 #if defined(ECP_LOAD_GROUP)
 /*
  * Create an MPI from embedded constants
- * (assumes len is an exact multiple of sizeof mbedtls_mpi_uint)
+ * (assumes len is an exact multiple of sizeof(mbedtls_mpi_uint))
  */
 static inline void ecp_mpi_load(mbedtls_mpi *X, const mbedtls_mpi_uint *p, size_t len)
 {
     X->s = 1;
-    X->n = len / sizeof(mbedtls_mpi_uint);
+    X->n = (unsigned short) (len / sizeof(mbedtls_mpi_uint));
     X->p = (mbedtls_mpi_uint *) p;
 }
 
@@ -4995,8 +4997,7 @@ static inline void sub32(uint32_t *dst, uint32_t src, signed char *carry)
  * If the result is negative, we get it in the form
  * c * 2^bits + N, with c negative and N positive shorter than 'bits'
  */
-MBEDTLS_STATIC_TESTABLE
-void mbedtls_ecp_fix_negative(mbedtls_mpi *N, signed char c, size_t bits)
+static void mbedtls_ecp_fix_negative(mbedtls_mpi *N, signed char c, size_t bits)
 {
     size_t i;
 
@@ -5247,8 +5248,9 @@ static int ecp_mod_p255(mbedtls_mpi *N)
 
 /* Number of limbs fully occupied by 2^224 (max), and limbs used by it (min) */
 #define DIV_ROUND_UP(X, Y) (((X) + (Y) -1) / (Y))
-#define P224_WIDTH_MIN   (28 / sizeof(mbedtls_mpi_uint))
-#define P224_WIDTH_MAX   DIV_ROUND_UP(28, sizeof(mbedtls_mpi_uint))
+#define P224_SIZE        (224 / 8)
+#define P224_WIDTH_MIN   (P224_SIZE / sizeof(mbedtls_mpi_uint))
+#define P224_WIDTH_MAX   DIV_ROUND_UP(P224_SIZE, sizeof(mbedtls_mpi_uint))
 #define P224_UNUSED_BITS ((P224_WIDTH_MAX * sizeof(mbedtls_mpi_uint) * 8) - 224)
 
 /*
@@ -5350,11 +5352,11 @@ static inline int ecp_mod_koblitz(mbedtls_mpi *N, mbedtls_mpi_uint *Rp, size_t p
     M.p = Mp;
 
     /* M = A1 */
-    M.n = N->n - (p_limbs - adjust);
+    M.n = (unsigned short) (N->n - (p_limbs - adjust));
     if (M.n > p_limbs + adjust) {
-        M.n = p_limbs + adjust;
+        M.n = (unsigned short) (p_limbs + adjust);
     }
-    memset(Mp, 0, sizeof Mp);
+    memset(Mp, 0, sizeof(Mp));
     memcpy(Mp, N->p + p_limbs - adjust, M.n * sizeof(mbedtls_mpi_uint));
     if (shift != 0) {
         MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(&M, shift));
@@ -5376,11 +5378,11 @@ static inline int ecp_mod_koblitz(mbedtls_mpi *N, mbedtls_mpi_uint *Rp, size_t p
     /* Second pass */
 
     /* M = A1 */
-    M.n = N->n - (p_limbs - adjust);
+    M.n = (unsigned short) (N->n - (p_limbs - adjust));
     if (M.n > p_limbs + adjust) {
-        M.n = p_limbs + adjust;
+        M.n = (unsigned short) (p_limbs + adjust);
     }
-    memset(Mp, 0, sizeof Mp);
+    memset(Mp, 0, sizeof(Mp));
     memcpy(Mp, N->p + p_limbs - adjust, M.n * sizeof(mbedtls_mpi_uint));
     if (shift != 0) {
         MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(&M, shift));
@@ -5409,7 +5411,7 @@ cleanup:
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
 /*
  * Fast quasi-reduction modulo p192k1 = 2^192 - R,
- * with R = 2^32 + 2^12 + 2^8 + 2^7 + 2^6 + 2^3 + 1 = 0x0100001119
+ * with R = 2^32 + 2^12 + 2^8 + 2^7 + 2^6 + 2^3 + 1 = 0x01000011C9
  */
 static int ecp_mod_p192k1(mbedtls_mpi *N)
 {
@@ -5461,6 +5463,17 @@ static int ecp_mod_p256k1(mbedtls_mpi *N)
 }
 #endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
 
+#if defined(MBEDTLS_TEST_HOOKS)
+
+MBEDTLS_STATIC_TESTABLE
+mbedtls_ecp_variant mbedtls_ecp_get_variant(void)
+{
+    return MBEDTLS_ECP_VARIANT_WITH_MPI_STRUCT;
+}
+
+#endif /* MBEDTLS_TEST_HOOKS */
+
 #endif /* !MBEDTLS_ECP_ALT */
 
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_ECP_WITH_MPI_UINT */

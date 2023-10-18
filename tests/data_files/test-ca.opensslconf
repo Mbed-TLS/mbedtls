@@ -12,6 +12,11 @@ subjectKeyIdentifier=hash
 authorityKeyIdentifier=keyid:always,issuer:always
 basicConstraints = CA:true
 
+[no_subj_auth_id]
+subjectKeyIdentifier=none
+authorityKeyIdentifier=none
+basicConstraints = CA:true
+
 [othername_san]
 subjectAltName=otherName:1.3.6.1.5.5.7.8.4;SEQ:hw_module_name
 
@@ -24,6 +29,9 @@ subjectAltName=otherName:1.2.3.4;UTF8:some other identifier
 [dns_alt_names]
 subjectAltName=DNS:example.com, DNS:example.net, DNS:*.example.org
 
+[rfc822name_names]
+subjectAltName=email:my@other.address,email:second@other.address
+
 [alt_names]
 DNS.1=example.com
 otherName.1=1.3.6.1.5.5.7.8.4;SEQ:hw_module_name
@@ -32,6 +40,11 @@ DNS.3=*.example.org
 
 [multiple_san]
 subjectAltName=@alt_names
+
+[ext_multi_nocn]
+basicConstraints = CA:false
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment
+subjectAltName = DNS:www.shotokan-braunschweig.de,DNS:www.massimo-abate.eu,IP:192.168.1.1,IP:192.168.69.144
 
 [hw_module_name]
 hwtype = OID:1.3.6.1.4.1.17.3
@@ -82,3 +95,31 @@ fullname=URI:http://pki.example.com/
 # these IPs are the ascii values for 'abcd' and 'abcd.example.com'
 [tricky_ip_san]
 subjectAltName=IP:97.98.99.100,IP:6162:6364:2e65:7861:6d70:6c65:2e63:6f6d
+
+[csr_ext_v3_keyUsage]
+keyUsage = digitalSignature, keyEncipherment
+
+[csr_ext_v3_subjectAltName]
+subjectAltName=DNS:example.com, DNS:example.net, DNS:*.example.org
+
+[csr_ext_v3_nsCertType]
+nsCertType=server
+
+[csr_ext_v3_all]
+keyUsage = cRLSign
+subjectAltName=otherName:1.3.6.1.5.5.7.8.4;SEQ:nonprintable_hw_module_name
+nsCertType=client
+
+[directory_name_san]
+subjectAltName=dirName:dirname_sect
+
+[two_directorynames]
+subjectAltName=dirName:dirname_sect, dirName:dirname_to_malform
+
+[dirname_sect]
+C=UK
+O=Mbed TLS
+CN=Mbed TLS directoryName SAN
+
+[dirname_to_malform]
+O=MALFORM_ME

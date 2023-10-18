@@ -587,14 +587,6 @@ KNOWN_TASKS = {
                     'ECP test vectors secp384r1 rfc 5114',
                     'ECP test vectors secp521r1 rfc 5114',
                 ],
-                'test_suite_psa_crypto': [
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1 (1 redraw)',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1, exercise ECDSA',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp384r1',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp521r1 #0',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp521r1 #1',
-                ],
                 'test_suite_ssl': [
                     'Test configuration of groups for DHE through mbedtls_ssl_conf_curves()',
                 ],
@@ -617,21 +609,6 @@ KNOWN_TASKS = {
             'ignored_tests': {
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',
-                ],
-                'test_suite_psa_crypto': [
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1 (1 redraw)',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1, exercise ECDSA',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp384r1',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp521r1 #0',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp521r1 #1',
-                    'PSA key derivation: bits=7 invalid for ECC BRAINPOOL_P_R1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECP_K1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECP_R1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECP_R2 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECT_K1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECT_R1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECT_R2 (ECC enabled)',
                 ],
                 'test_suite_pkparse': [
                     # When PK_PARSE_C and ECP_C are defined then PK_PARSE_EC_COMPRESSED
@@ -685,21 +662,6 @@ KNOWN_TASKS = {
             'ignored_tests': {
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',
-                ],
-                'test_suite_psa_crypto': [
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1 (1 redraw)',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1, exercise ECDSA',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp384r1',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp521r1 #0',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp521r1 #1',
-                    'PSA key derivation: bits=7 invalid for ECC BRAINPOOL_P_R1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECP_K1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECP_R1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECP_R2 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECT_K1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECT_R1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECT_R2 (ECC enabled)',
                 ],
                 'test_suite_pkparse': [
                     # See the description provided above in the
@@ -782,21 +744,6 @@ KNOWN_TASKS = {
             'ignored_tests': {
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',
-                ],
-                'test_suite_psa_crypto': [
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1 (1 redraw)',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1, exercise ECDSA',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp384r1',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp521r1 #0',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp521r1 #1',
-                    'PSA key derivation: bits=7 invalid for ECC BRAINPOOL_P_R1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECP_K1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECP_R1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECP_R2 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECT_K1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECT_R1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECT_R2 (ECC enabled)',
                 ],
                 'test_suite_pkparse': [
                     # See the description provided above in the
@@ -887,54 +834,8 @@ KNOWN_TASKS = {
             'ignored_tests': {
                 # Ignore all tests that require DERIVE support which is disabled
                 # in the driver version
-                'test_suite_psa_crypto': [
-                    'PSA key agreement setup: ECDH + HKDF-SHA-256: good',
-                    ('PSA key agreement setup: ECDH + HKDF-SHA-256: good, key algorithm broader '
-                     'than required'),
-                    'PSA key agreement setup: ECDH + HKDF-SHA-256: public key not on curve',
-                    'PSA key agreement setup: KDF instead of a key agreement algorithm',
-                    'PSA key agreement setup: bad key agreement algorithm',
-                    'PSA key agreement: ECDH SECP256R1 (RFC 5903) + HKDF-SHA-256: capacity=8160',
-                    'PSA key agreement: ECDH SECP256R1 (RFC 5903) + HKDF-SHA-256: read 0+32',
-                    'PSA key agreement: ECDH SECP256R1 (RFC 5903) + HKDF-SHA-256: read 1+31',
-                    'PSA key agreement: ECDH SECP256R1 (RFC 5903) + HKDF-SHA-256: read 31+1',
-                    'PSA key agreement: ECDH SECP256R1 (RFC 5903) + HKDF-SHA-256: read 32+0',
-                    'PSA key agreement: ECDH SECP256R1 (RFC 5903) + HKDF-SHA-256: read 32+32',
-                    'PSA key agreement: ECDH SECP256R1 (RFC 5903) + HKDF-SHA-256: read 64+0',
-                    'PSA key derivation: ECDH on P256 with HKDF-SHA256, info first',
-                    'PSA key derivation: ECDH on P256 with HKDF-SHA256, key output',
-                    'PSA key derivation: ECDH on P256 with HKDF-SHA256, missing info',
-                    'PSA key derivation: ECDH on P256 with HKDF-SHA256, omitted salt',
-                    'PSA key derivation: ECDH on P256 with HKDF-SHA256, raw output',
-                    'PSA key derivation: ECDH on P256 with HKDF-SHA256, salt after secret',
-                    'PSA key derivation: ECDH with TLS 1.2 PRF SHA-256, good case',
-                    'PSA key derivation: ECDH with TLS 1.2 PRF SHA-256, missing label',
-                    'PSA key derivation: ECDH with TLS 1.2 PRF SHA-256, missing label and secret',
-                    'PSA key derivation: ECDH with TLS 1.2 PRF SHA-256, no inputs',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1 (1 redraw)',
-                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1, exercise ECDSA',
-                    'PSA key derivation: TLS 1.2 Mix-PSK-to-MS, SHA-256, 0+48, ka',
-                    'PSA key derivation: TLS 1.2 Mix-PSK-to-MS, SHA-256, 24+24, ka',
-                    'PSA key derivation: TLS 1.2 Mix-PSK-to-MS, SHA-256, 48+0, ka',
-                    'PSA key derivation: TLS 1.2 Mix-PSK-to-MS, bad state #1, ka',
-                    'PSA key derivation: TLS 1.2 Mix-PSK-to-MS, bad state #3, ka',
-                    'PSA key derivation: TLS 1.2 Mix-PSK-to-MS, bad state #4, ka',
-                    'PSA key derivation: bits=7 invalid for ECC BRAINPOOL_P_R1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC MONTGOMERY (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECP_K1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECP_R1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECP_R2 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECT_K1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECT_R1 (ECC enabled)',
-                    'PSA key derivation: bits=7 invalid for ECC SECT_R2 (ECC enabled)',
-                    'PSA raw key agreement: ECDH SECP256R1 (RFC 5903)',
-                ],
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',
-                ],
-                'test_suite_psa_crypto_pake': [
-                    'PSA PAKE: ecjpake size macros',
                 ],
                 'test_suite_asn1parse': [
                     # This test depends on BIGNUM_C

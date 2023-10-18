@@ -703,8 +703,8 @@ void mbedtls_x509_string_to_names(char *name, char *parsed_name,
     memset(&parsed, 0, sizeof(parsed));
     mbedtls_x509_name *parsed_cur = NULL;
     mbedtls_x509_name *parsed_prv = NULL;
-    unsigned char buf[1024] = {0};
-    unsigned char out[1024] = {0};
+    unsigned char buf[1024] = { 0 };
+    unsigned char out[1024] = { 0 };
     unsigned char *c = buf + sizeof(buf);
 
     USE_PSA_INIT();

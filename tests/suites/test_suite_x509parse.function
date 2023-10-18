@@ -932,7 +932,7 @@ void mbedtls_x509_dn_get_next(char *name_str,
     memset(&parsed, 0, sizeof(parsed));
     mbedtls_x509_name *parsed_cur;
     // Size of buf is maximum required for test cases
-    unsigned char buf[80] = {0};
+    unsigned char buf[80] = { 0 };
     unsigned char *out = NULL;
     unsigned char *c = buf + sizeof(buf);
     const char *short_name;

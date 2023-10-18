@@ -218,8 +218,9 @@ static int rsa_verify_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
         return MBEDTLS_ERR_RSA_VERIFY_FAILED;
     }
 
-    /* mbedtls_pk_write_pubkey_der() expects a full PK context;
-     * re-construct one to make it happy */
+    /* mbedtls_pk_write_pubkey_der() needs a working PK context, but for
+     * non-opaque RSA keys this only requires pk_info and pk_ctx set, as
+     * below. */
     mbedtls_pk_init(&key);
     key.pk_info = &mbedtls_rsa_info;
     key.pk_ctx = rsa;
@@ -320,8 +321,9 @@ int  mbedtls_pk_psa_rsa_sign_ext(psa_algorithm_t alg,
         return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
     }
 
-    /* mbedtls_pk_write_key_der() expects a full PK context;
-     * re-construct one to make it happy */
+    /* mbedtls_pk_write_pubkey_der() needs a working PK context, but for
+     * non-opaque RSA keys this only requires pk_info and pk_ctx set, as
+     * below. */
     mbedtls_pk_init(&key);
     key.pk_info = &pk_info;
     key.pk_ctx = rsa_ctx;
@@ -433,8 +435,9 @@ static int rsa_decrypt_wrap(mbedtls_pk_context *pk,
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
 
-    /* mbedtls_pk_write_key_der() expects a full PK context;
-     * re-construct one to make it happy */
+    /* mbedtls_pk_write_pubkey_der() needs a working PK context, but for
+     * non-opaque RSA keys this only requires pk_info and pk_ctx set, as
+     * below. */
     mbedtls_pk_init(&key);
     key.pk_info = &mbedtls_rsa_info;
     key.pk_ctx = rsa;
@@ -520,8 +523,9 @@ static int rsa_encrypt_wrap(mbedtls_pk_context *pk,
         return MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE;
     }
 
-    /* mbedtls_pk_write_pubkey_der() expects a full PK context;
-     * re-construct one to make it happy */
+    /* mbedtls_pk_write_pubkey_der() needs a working PK context, but for
+     * non-opaque RSA keys this only requires pk_info and pk_ctx set, as
+     * below. */
     mbedtls_pk_init(&key);
     key.pk_info = &mbedtls_rsa_info;
     key.pk_ctx = rsa;

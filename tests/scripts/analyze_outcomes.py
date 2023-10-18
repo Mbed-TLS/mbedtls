@@ -112,15 +112,18 @@ def analyze_driver_vs_reference(results: Results, outcomes,
         hits = outcomes[key].hits() if key in outcomes else 0
         if hits == 0:
             continue
-        # Skip ignored test suites
-        full_test_suite = key.split(';')[0] # retrieve full test suite name
-        test_string = key.split(';')[1] # retrieve the text string of this test
+
+        # key is like "test_suite_foo.bar;Description of test case"
+        (full_test_suite, test_string) = key.split(';')
         test_suite = full_test_suite.split('.')[0] # retrieve main part of test suite name
+        # Skip fully-ignored test suites
         if test_suite in ignored_suites or full_test_suite in ignored_suites:
             continue
+        # Skip ignored test cases inside test suites
         if ((full_test_suite in ignored_test) and
                 (test_string in ignored_test[full_test_suite])):
             continue
+
         # Search for tests that run in reference component and not in driver component
         driver_test_passed = False
         reference_test_passed = False

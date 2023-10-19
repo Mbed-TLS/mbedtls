@@ -412,7 +412,9 @@ int parse_crt_ext_cb(void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf 
                                  MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
     }
 }
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+#if defined(MBEDTLS_X509_CSR_PARSE_C)
 int parse_csr_ext_accept_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbedtls_x509_buf const *oid,
                      int critical, const unsigned char *cp, const unsigned char *end)
 {
@@ -439,7 +441,7 @@ int parse_csr_ext_reject_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbedtls_x5
     return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
                              MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
 }
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CSR_PARSE_C */
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */

@@ -1,7 +1,0 @@
-Features
-   * AES performance improvements. Uplift varies by platform,
-     toolchain, optimisation flags and mode.
-     Aarch64, gcc -Os and CCM, GCM and XTS benefit the most.
-     On Aarch64, uplift is typically around 20 - 110%.
-     When compiling with gcc -Os on Aarch64, AES-XTS improves
-     by 4.5x.

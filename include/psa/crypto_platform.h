@@ -35,10 +35,10 @@
 #include "mbedtls/private_access.h"
 
 /*
- * Include the build-time configuration information file. Here, we do not
+ * Include the build-time configuration information header. Here, we do not
  * include `"mbedtls/build_info.h"` directly but `"psa/build_info.h"`, which
  * is basically just an alias to it. This is to ease the maintenance of the
- * PSA cryptography repository which has a different build system and
+ * TF-PSA-Crypto repository which has a different build system and
  * configuration.
  */
 #include "psa/build_info.h"
@@ -83,7 +83,7 @@ static inline int mbedtls_key_owner_id_equal(mbedtls_key_owner_id_t id1,
  */
 #if defined(MBEDTLS_PSA_CRYPTO_SPM)
 #define PSA_CRYPTO_SECURE 1
-#include "../tests/include/spe/crypto_spe.h"
+#include "crypto_spe.h"
 #endif // MBEDTLS_PSA_CRYPTO_SPM
 
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)

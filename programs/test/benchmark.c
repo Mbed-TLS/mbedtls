@@ -113,13 +113,13 @@ static void mbedtls_set_alarm(int seconds);
 #define HEADER_FORMAT   "  %-24s :  "
 #define TITLE_LEN       25
 
-#define OPTIONS                                                         \
-    "md5, ripemd160, sha1, sha256, sha512,\n"                           \
-    "sha3_224, sha3_256, sha3_384, sha3_512,\n"                         \
-    "des3, des, camellia, chacha20,\n"                                  \
-    "aes_cbc, aes_gcm, aes_ccm, aes_xts, chachapoly,\n"                 \
-    "aes_cmac, des3_cmac, poly1305\n"                                   \
-    "ctr_drbg, hmac_drbg\n"                                             \
+#define OPTIONS                                                              \
+    "md5, ripemd160, sha1, sha256, sha512,\n"                                \
+    "sha3_224, sha3_256, sha3_384, sha3_512,\n"                              \
+    "des3, des, camellia, chacha20,\n"                                       \
+    "aes_cbc, aes_cfb128, aes_cfb8, aes_gcm, aes_ccm, aes_xts, chachapoly\n" \
+    "aes_cmac, des3_cmac, poly1305\n"                                        \
+    "ctr_drbg, hmac_drbg\n"                                                  \
     "rsa, dhm, ecdsa, ecdh.\n"
 
 #if defined(MBEDTLS_ERROR_C)
@@ -510,7 +510,7 @@ typedef struct {
     char md5, ripemd160, sha1, sha256, sha512,
          sha3_224, sha3_256, sha3_384, sha3_512,
          des3, des,
-         aes_cbc, aes_gcm, aes_ccm, aes_xts, chachapoly,
+         aes_cbc, aes_cfb128, aes_cfb8, aes_gcm, aes_ccm, aes_xts, chachapoly,
          aes_cmac, des3_cmac,
          aria, camellia, chacha20,
          poly1305,
@@ -570,6 +570,10 @@ int main(int argc, char *argv[])
                 todo.des = 1;
             } else if (strcmp(argv[i], "aes_cbc") == 0) {
                 todo.aes_cbc = 1;
+            } else if (strcmp(argv[i], "aes_cfb128") == 0) {
+                todo.aes_cfb128 = 1;
+            } else if (strcmp(argv[i], "aes_cfb8") == 0) {
+                todo.aes_cfb8 = 1;
             } else if (strcmp(argv[i], "aes_xts") == 0) {
                 todo.aes_xts = 1;
             } else if (strcmp(argv[i], "aes_gcm") == 0) {
@@ -675,6 +679,7 @@ int main(int argc, char *argv[])
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     if (todo.des3) {
         mbedtls_des3_context des3;
+
         mbedtls_des3_init(&des3);
         if (mbedtls_des3_set3key_enc(&des3, tmp) != 0) {
             mbedtls_exit(1);
@@ -686,6 +691,7 @@ int main(int argc, char *argv[])
 
     if (todo.des) {
         mbedtls_des_context des;
+
         mbedtls_des_init(&des);
         if (mbedtls_des_setkey_enc(&des, tmp) != 0) {
             mbedtls_exit(1);
@@ -718,6 +724,7 @@ int main(int argc, char *argv[])
     if (todo.aes_cbc) {
         int keysize;
         mbedtls_aes_context aes;
+
         mbedtls_aes_init(&aes);
         for (keysize = 128; keysize <= 256; keysize += 64) {
             mbedtls_snprintf(title, sizeof(title), "AES-CBC-%d", keysize);
@@ -728,6 +735,44 @@ int main(int argc, char *argv[])
 
             TIME_AND_TSC(title,
                          mbedtls_aes_crypt_cbc(&aes, MBEDTLS_AES_ENCRYPT, BUFSIZE, tmp, buf, buf));
+        }
+        mbedtls_aes_free(&aes);
+    }
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+    if (todo.aes_cfb128) {
+        int keysize;
+        size_t iv_off = 0;
+        mbedtls_aes_context aes;
+
+        mbedtls_aes_init(&aes);
+        for (keysize = 128; keysize <= 256; keysize += 64) {
+            mbedtls_snprintf(title, sizeof(title), "AES-CFB128-%d", keysize);
+
+            memset(buf, 0, sizeof(buf));
+            memset(tmp, 0, sizeof(tmp));
+            CHECK_AND_CONTINUE(mbedtls_aes_setkey_enc(&aes, tmp, keysize));
+
+            TIME_AND_TSC(title,
+                         mbedtls_aes_crypt_cfb128(&aes, MBEDTLS_AES_ENCRYPT, BUFSIZE,
+                                                  &iv_off, tmp, buf, buf));
+        }
+        mbedtls_aes_free(&aes);
+    }
+    if (todo.aes_cfb8) {
+        int keysize;
+        mbedtls_aes_context aes;
+
+        mbedtls_aes_init(&aes);
+        for (keysize = 128; keysize <= 256; keysize += 64) {
+            mbedtls_snprintf(title, sizeof(title), "AES-CFB8-%d", keysize);
+
+            memset(buf, 0, sizeof(buf));
+            memset(tmp, 0, sizeof(tmp));
+            CHECK_AND_CONTINUE(mbedtls_aes_setkey_enc(&aes, tmp, keysize));
+
+            TIME_AND_TSC(title,
+                         mbedtls_aes_crypt_cfb8(&aes, MBEDTLS_AES_ENCRYPT, BUFSIZE, tmp, buf, buf));
         }
         mbedtls_aes_free(&aes);
     }
@@ -849,6 +894,7 @@ int main(int argc, char *argv[])
     if (todo.aria) {
         int keysize;
         mbedtls_aria_context aria;
+
         mbedtls_aria_init(&aria);
         for (keysize = 128; keysize <= 256; keysize += 64) {
             mbedtls_snprintf(title, sizeof(title), "ARIA-CBC-%d", keysize);
@@ -869,6 +915,7 @@ int main(int argc, char *argv[])
     if (todo.camellia) {
         int keysize;
         mbedtls_camellia_context camellia;
+
         mbedtls_camellia_init(&camellia);
         for (keysize = 128; keysize <= 256; keysize += 64) {
             mbedtls_snprintf(title, sizeof(title), "CAMELLIA-CBC-%d", keysize);
@@ -975,6 +1022,7 @@ int main(int argc, char *argv[])
     if (todo.rsa) {
         int keysize;
         mbedtls_rsa_context rsa;
+
         for (keysize = 2048; keysize <= 4096; keysize *= 2) {
             mbedtls_snprintf(title, sizeof(title), "RSA-%d", keysize);
 
@@ -1017,6 +1065,7 @@ int main(int argc, char *argv[])
         mbedtls_dhm_context dhm;
         size_t olen;
         size_t n;
+
         for (i = 0; (size_t) i < sizeof(dhm_sizes) / sizeof(dhm_sizes[0]); i++) {
             mbedtls_dhm_init(&dhm);
 
@@ -1130,6 +1179,7 @@ int main(int argc, char *argv[])
 
         if (curve_list == (const mbedtls_ecp_curve_info *) &single_curve) {
             mbedtls_ecp_group grp;
+
             mbedtls_ecp_group_init(&grp);
             if (mbedtls_ecp_group_load(&grp, curve_list->grp_id) != 0) {
                 mbedtls_exit(1);

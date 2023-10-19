@@ -34,6 +34,7 @@
 #include "psa_crypto_core.h"
 #include "psa_crypto_invasive.h"
 #include "psa_crypto_driver_wrappers.h"
+#include "psa_crypto_driver_wrappers_no_static.h"
 #include "psa_crypto_ecp.h"
 #include "psa_crypto_ffdh.h"
 #include "psa_crypto_hash.h"
@@ -72,7 +73,6 @@
 #include "mbedtls/error.h"
 #include "mbedtls/gcm.h"
 #include "mbedtls/md5.h"
-#include "mbedtls/md.h"
 #include "mbedtls/pk.h"
 #include "pk_wrap.h"
 #include "mbedtls/platform_util.h"
@@ -431,67 +431,67 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
                                           size_t *bits)
 {
     switch (grpid) {
-#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP192R1)
         case MBEDTLS_ECP_DP_SECP192R1:
             *bits = 192;
             return PSA_ECC_FAMILY_SECP_R1;
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP224R1)
         case MBEDTLS_ECP_DP_SECP224R1:
             *bits = 224;
             return PSA_ECC_FAMILY_SECP_R1;
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP256R1)
         case MBEDTLS_ECP_DP_SECP256R1:
             *bits = 256;
             return PSA_ECC_FAMILY_SECP_R1;
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP384R1)
         case MBEDTLS_ECP_DP_SECP384R1:
             *bits = 384;
             return PSA_ECC_FAMILY_SECP_R1;
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP521R1)
         case MBEDTLS_ECP_DP_SECP521R1:
             *bits = 521;
             return PSA_ECC_FAMILY_SECP_R1;
 #endif
-#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_BP256R1)
         case MBEDTLS_ECP_DP_BP256R1:
             *bits = 256;
             return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
 #endif
-#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_BP384R1)
         case MBEDTLS_ECP_DP_BP384R1:
             *bits = 384;
             return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
 #endif
-#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_BP512R1)
         case MBEDTLS_ECP_DP_BP512R1:
             *bits = 512;
             return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
 #endif
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_CURVE25519)
         case MBEDTLS_ECP_DP_CURVE25519:
             *bits = 255;
             return PSA_ECC_FAMILY_MONTGOMERY;
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP192K1)
         case MBEDTLS_ECP_DP_SECP192K1:
             *bits = 192;
             return PSA_ECC_FAMILY_SECP_K1;
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP224K1)
         case MBEDTLS_ECP_DP_SECP224K1:
             *bits = 224;
             return PSA_ECC_FAMILY_SECP_K1;
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP256K1)
         case MBEDTLS_ECP_DP_SECP256K1:
             *bits = 256;
             return PSA_ECC_FAMILY_SECP_K1;
 #endif
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_CURVE448)
         case MBEDTLS_ECP_DP_CURVE448:
             *bits = 448;
             return PSA_ECC_FAMILY_MONTGOMERY;

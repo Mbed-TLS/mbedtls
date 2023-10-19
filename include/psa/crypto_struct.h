@@ -66,9 +66,14 @@
 extern "C" {
 #endif
 
-/* Include the Mbed TLS configuration file, the way Mbed TLS does it
- * in each of its header files. */
-#include "mbedtls/build_info.h"
+/*
+ * Include the build-time configuration information header. Here, we do not
+ * include `"mbedtls/build_info.h"` directly but `"psa/build_info.h"`, which
+ * is basically just an alias to it. This is to ease the maintenance of the
+ * TF-PSA-Crypto repository which has a different build system and
+ * configuration.
+ */
+#include "psa/build_info.h"
 
 /* Include the context definition for the compiled-in drivers for the primitive
  * algorithms. */

@@ -81,14 +81,6 @@ TCP_CLIENT="$PERL scripts/tcp_client.pl"
 
 # alternative versions of OpenSSL and GnuTLS (no default path)
 
-if [ -n "${OPENSSL_LEGACY:-}" ]; then
-    O_LEGACY_SRV="$OPENSSL_LEGACY s_server -www -cert data_files/server5.crt -key data_files/server5.key"
-    O_LEGACY_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_LEGACY s_client"
-else
-    O_LEGACY_SRV=false
-    O_LEGACY_CLI=false
-fi
-
 if [ -n "${OPENSSL_NEXT:-}" ]; then
     O_NEXT_SRV="$OPENSSL_NEXT s_server -www -cert data_files/server5.crt -key data_files/server5.key"
     O_NEXT_SRV_EARLY_DATA="$OPENSSL_NEXT s_server -early_data -cert data_files/server5.crt -key data_files/server5.key"
@@ -640,20 +632,6 @@ requires_gnutls_next() {
         fi
     fi
     if [ "$GNUTLS_NEXT_AVAILABLE" = "NO" ]; then
-        SKIP_NEXT="YES"
-    fi
-}
-
-# skip next test if OpenSSL-legacy isn't available
-requires_openssl_legacy() {
-    if [ -z "${OPENSSL_LEGACY_AVAILABLE:-}" ]; then
-        if which "${OPENSSL_LEGACY:-}" >/dev/null 2>&1; then
-            OPENSSL_LEGACY_AVAILABLE="YES"
-        else
-            OPENSSL_LEGACY_AVAILABLE="NO"
-        fi
-    fi
-    if [ "$OPENSSL_LEGACY_AVAILABLE" = "NO" ]; then
         SKIP_NEXT="YES"
     fi
 }
@@ -1915,11 +1893,6 @@ O_CLI="$O_CLI -connect 127.0.0.1:+SRV_PORT"
 G_SRV="$G_SRV -p $SRV_PORT"
 G_CLI="$G_CLI -p +SRV_PORT"
 
-if [ -n "${OPENSSL_LEGACY:-}" ]; then
-    O_LEGACY_SRV="$O_LEGACY_SRV -accept $SRV_PORT -dhparam data_files/dhparams.pem"
-    O_LEGACY_CLI="$O_LEGACY_CLI -connect 127.0.0.1:+SRV_PORT"
-fi
-
 # Newer versions of OpenSSL have a syntax to enable all "ciphers", even
 # low-security ones. This covers not just cipher suites but also protocol
 # versions. It is necessary, for example, to use (D)TLS 1.0/1.1 on
@@ -1973,7 +1946,8 @@ trap cleanup INT TERM HUP
 # - the expected parameters are selected
 requires_ciphersuite_enabled TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256
 requires_hash_alg SHA_512 # "signature_algorithm ext: 6"
-requires_config_enabled MBEDTLS_ECP_DP_CURVE25519_ENABLED
+requires_any_configs_enabled "MBEDTLS_ECP_DP_CURVE25519_ENABLED \
+                              PSA_WANT_ECC_MONTGOMERY_255"
 run_test    "Default, TLS 1.2" \
             "$P_SRV debug_level=3" \
             "$P_CLI force_version=tls12" \
@@ -2644,7 +2618,8 @@ run_test    "Unique IV in GCM" \
             -U "IV used"
 
 # Test for correctness of sent single supported algorithm
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_any_configs_enabled "MBEDTLS_ECP_DP_SECP256R1_ENABLED \
+                              PSA_WANT_ECC_SECP_R1_256"
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2659,7 +2634,8 @@ run_test    "Single supported algorithm sending: mbedtls client" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_any_configs_enabled "MBEDTLS_ECP_DP_SECP256R1_ENABLED \
+                              PSA_WANT_ECC_SECP_R1_256"
 requires_hash_alg SHA_256
 run_test    "Single supported algorithm sending: openssl client" \
             "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required" \
@@ -11305,8 +11281,8 @@ run_test    "TLS 1.3: Test gnutls tls1_3 feature" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_ciphersuite_enabled TLS1-3-CHACHA20-POLY1305-SHA256
-requires_config_enabled MBEDTLS_ECP_DP_CURVE25519_ENABLED
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_any_configs_enabled "PSA_WANT_ECC_MONTGOMERY_255"
+requires_any_configs_enabled "PSA_WANT_ECC_SECP_R1_256"
 run_test    "TLS 1.3: Default" \
             "$P_SRV allow_sha1=0 debug_level=3 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13" \
             "$P_CLI allow_sha1=0" \

@@ -3327,7 +3327,10 @@ component_build_mingw () {
     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 lib programs
     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 tests
     make WINDOWS_BUILD=1 clean
-}
+
+    msg "build: Windows cross build - mingw64, make (Library only, AESNI intrinsics)" # ~ 30s
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 lib
+ }
 support_build_mingw() {
     case $(i686-w64-mingw32-gcc -dumpversion 2>/dev/null) in
         [0-5]*|"") false;;

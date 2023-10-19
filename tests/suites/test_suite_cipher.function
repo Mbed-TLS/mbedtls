@@ -183,9 +183,7 @@ void cipher_invalid_param_unconditional()
     mbedtls_cipher_init(&invalid_ctx);
 
     /* Ensure that there is at least 1 supported cipher, otherwise exit gracefully */
-    if (*cipher_list == 0) {
-        goto exit;
-    }
+    TEST_ASSUME(*cipher_list != 0);
     valid_info = mbedtls_cipher_info_from_type(*cipher_list);
 
     TEST_ASSERT(mbedtls_cipher_setup(&valid_ctx, valid_info) == 0);

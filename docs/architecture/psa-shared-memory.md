@@ -373,13 +373,27 @@ Of all discussed approaches, validation by memory poisoning appears as the best.
 
 TODO: write document and reference it here.
 
-### Validation of protection for built-in drivers
+### Validation of careful access for built-in drivers
 
-TODO: when there is a requirement on drivers, how to we validate that our built-in implementation meets these requirements? (This may be through testing, review, static analysis or any other means or a combination.)
+For PSA functions whose inputs and outputs are not copied, it is important that we validate that the builtin drivers are correctly accessing their inputs and outputs so as not to cause a security issue. Specifically, we must check that each memory location in a shared buffer is not accessed more than once by a driver function. In this section we examine various possible methods for performing this validation.
 
-Note: focusing on read-read inconsistencies for now, as most of the cases where we aren't copying are inputs.
+Note: We are focusing on read-read inconsistencies for now, as most of the cases where we aren't copying are inputs.
 
-#### Linux mprotect+ptrace
+#### Review
+
+As with validation of copying, the simplest method of validation we can implement is careful code review. This is the least desirable method of validation for several reasons:
+1. It is tedious for the reviewers.
+2. Reviewers are prone to make mistakes (especially when performing tedious tasks).
+3. It requires engineering time linear in the number of PSA functions to be tested.
+4. It cannot assure the quality of third-party drivers, whereas automated tests can be ported to any driver implementation in principle.
+
+If all other approaches turn out to be prohibitively difficult, code review exists as a fallback option. However, it should be understood that this is far from ideal.
+
+#### Tests using `mprotect()`
+
+Checking that a memory location is not accessed more than once may be achieved by using `mprotect()` on a Linux system to cause a segmentation fault whenever a memory access happens. Tests based on this approach are sketched below.
+
+##### Linux mprotect+ptrace
 
 Idea: call `mmap` to allocate memory for arguments and `mprotect` to deny or reenable access. Use `ptrace` from a parent process to react to SIGSEGV from a denied access. On SIGSEGV happening in the faulting region:
 
@@ -390,7 +404,7 @@ Idea: call `mmap` to allocate memory for arguments and `mprotect` to deny or ree
 
 Record the addresses that are accessed. Mark the test as failed if the same address is read twice.
 
-#### Debugger + mprotect
+##### Debugger + mprotect
 
 Idea: call `mmap` to allocate memory for arguments and `mprotect` to deny or reenable access. Use a debugger to handle SIGSEGV (Gdb: set signal catchpoint). If the segfault was due to accessing the protected region:
 

@@ -415,6 +415,24 @@ Idea: call `mmap` to allocate memory for arguments and `mprotect` to deny or ree
 
 Record the addresses that are accessed. Mark the test as failed if the same address is read twice. This part might be hard to do in the gdb language, so we may want to just log the addresses and then use a separate program to analyze the logs, or do the gdb tasks from Python.
 
+#### Instrumentation (Valgrind)
+
+An alternative approach is to use a dynamic instrumentation tool (the most obvious being Valgrind) to trace memory accesses and check that each of the important memory addresses is accessed no more than once.
+
+Valgrind has no tool specifically that checks the property that we are looking for. However, it is possible to generate a memory trace with Valgrind using the following:
+
+```
+valgrind --tool=lackey --trace-mem=yes --log-file=logfile ./myprogram
+```
+This will execute `myprogram` and dump a record of every memory access to `logfile`, with its address and data width. If `myprogram` is a test that does the following:
+1. Set up input and output buffers for a PSA function call.
+2. Leak the start and end address of each buffer via `print()`.
+3. Write data into the input buffer exactly once.
+4. Call the PSA function.
+5. Read data from the output buffer exactly once.
+
+Then it should be possible to parse the output from the program and from Valgrind and check that each location was accessed exactly twice: once by the program's setup and once by the PSA function.
+
 #### Discussion
 
 The best approach for validating the correctness of memory accesses is an open question that requires further investigation and prototyping. The above sections discuss some possibilities.

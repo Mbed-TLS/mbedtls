@@ -505,6 +505,6 @@ run_test "TLS 1.3 G->m: EarlyData: feature is disabled, fail." \
          "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+GROUP-ALL -d 10 -r --earlydata $EARLY_DATA_INPUT" \
          1 \
          -s "ClientHello: early_data(42) extension exists."                     \
-         -s "EncryptedExtensions: early_data(42) extension does not exists."    \
+         -s "EncryptedExtensions: early_data(42) extension does not exist."    \
          -s "NewSessionTicket: early_data(42) extension does not exist."        \
          -s "Last error was: -29056 - SSL - Verification of the message MAC failed"

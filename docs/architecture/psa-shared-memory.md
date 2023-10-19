@@ -420,6 +420,20 @@ Make sure that such mechanisms preserve the guarantees when buffers overlap.
 
 ## Detailed design
 
+### Implementation by module
+
+Module | Input protection strategy | Output protection strategy | Notes
+---|---|---|---
+Hash and MAC | Careful access | Careful access | Low risk of multiple-access as the input and output are raw unformatted data.
+Cipher | Copying | Copying |
+AEAD | Copying (careful access for additional data) | Copying |
+Key derivation | Careful access | Careful access |
+Asymmetric signature | Careful access | Copying | Inputs to signatures are passed to a hash. This will no longer hold once PureEdDSA support is implemented.
+Asymmetric encryption | Copying | Copying |
+Key agreement | Copying | Copying |
+PAKE | Copying | Copying |
+Key import / export | Copying | Copying | Keys may be imported and exported in DER format, which is a structured format and therefore susceptible to read-read inconsistencies and potentially write-read inconsistencies.
+
 ### Copying functions
 
 As discussed above, it is simpler to use a single unified API for copying. Therefore, we create the following functions:
@@ -442,20 +456,6 @@ An analogous function is needed to copy and free the buffers:
 This function would first copy the `buffers->out` buffer to the user-supplied output buffer and then free `buffers->inp` and `buffers->out`.
 
 Some PSA functions may not use these convenience functions as they may have local optimizations that reduce memory usage. For example, ciphers may be able to use a single intermediate buffer for both input and output.
-
-### Implementation by module
-
-Module | Input protection strategy | Output protection strategy | Notes
----|---|---|---
-Hash and MAC | Careful access | Careful access | Low risk of multiple-access as the input and output are raw unformatted data.
-Cipher | Copying | Copying |
-AEAD | Copying (careful access for additional data) | Copying |
-Key derivation | Careful access | Careful access |
-Asymmetric signature | Careful access | Copying | Inputs to signatures are passed to a hash. This will no longer hold once PureEdDSA support is implemented.
-Asymmetric encryption | Copying | Copying |
-Key agreement | Copying | Copying |
-PAKE | Copying | Copying |
-Key import / export | Copying | Copying | Keys may be imported and exported in DER format, which is a structured format and therefore susceptible to read-read inconsistencies and potentially write-read inconsistencies.
 
 ### Validation of copying
 

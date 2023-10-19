@@ -868,6 +868,9 @@ component_test_default_out_of_box () {
 
     msg "selftest: make, default config (out-of-box)" # ~10s
     programs/test/selftest
+
+    msg "program demos: make, default config (out-of-box)" # ~10s
+    tests/scripts/run_demos.py
 }
 
 component_test_default_cmake_gcc_asan () {
@@ -877,6 +880,9 @@ component_test_default_cmake_gcc_asan () {
 
     msg "test: main suites (inc. selftests) (ASan build)" # ~ 50s
     make test
+
+    msg "program demos (ASan build)" # ~10s
+    tests/scripts/run_demos.py
 
     msg "test: selftest (ASan build)" # ~ 10s
     programs/test/selftest
@@ -1578,6 +1584,9 @@ component_test_full_cmake_clang () {
     msg "test: cpp_dummy_build (full config, clang)" # ~ 1s
     programs/test/cpp_dummy_build
 
+    msg "program demos (full config, clang)" # ~10s
+    tests/scripts/run_demos.py
+
     msg "test: psa_constant_names (full config, clang)" # ~ 1s
     tests/scripts/test_psa_constant_names.py
 
@@ -1698,6 +1707,9 @@ component_test_full_deprecated_warning () {
 
     msg "test: full config + MBEDTLS_TEST_DEPRECATED" # ~ 30s
     make test
+
+    msg "program demos: full config + MBEDTLS_TEST_DEPRECATED" # ~10s
+    tests/scripts/run_demos.py
 }
 
 # Check that the specified libraries exist and are empty.
@@ -3343,6 +3355,9 @@ component_test_memsan () {
 
     msg "test: main suites (MSan)" # ~ 10s
     make test
+
+    msg "program demos (MSan)" # ~20s
+    tests/scripts/run_demos.py
 
     msg "test: ssl-opt.sh (MSan)" # ~ 1 min
     tests/ssl-opt.sh

@@ -472,10 +472,24 @@ uint8_t *mbedtls_test_get_buffer_poisoned_page(size_t nmemb, size_t size)
 ```
 This allocates a buffer of the requested size that is guaranteed to lie entirely within its own memory page. It also calls `mprotect()` so that the page is inaccessible.
 
+We also need a function to reset the permissions and free the memory:
+```c
+void mbedtls_test_free_buffer_poisoned_page(uint8_t *buffer, size_t len)
+```
+This calls `mprotect()` to restore read and write permissions to the pages of the buffer and then frees the buffer.
+
+On top of this function we can build the functions for testing mentioned above:
+```c
+uint8_t *mbedtls_test_get_poisoned_copy(uint8_t *buffer, size_t len)
+uint8_t *mbedtls_test_copy_free_poisoned_buffer(uint8_t *poisoned_buffer, uint8_t *original_buffer, size_t len)
+```
+
 Requirement (2) can be implemented by creating a function as alluded to above:
 ```c
 void mbedtls_psa_core_poison_memory(uint8_t *buffer, size_t len, int poisoned)
 ```
 This function should call `mprotect()` on the buffer to prevent it from being accessed (when `poisoned == 1`) or to allow it to be accessed (when `poisoned == 0`). Note that `mprotect()` requires a page-aligned address, so the function may have to do some preliminary work to find the correct page-aligned address that contains `buffer`.
+
+Requirement (3) is implemented by wrapping calls to PSA functions with code that creates poisoned copies of its inputs and outputs as described above.
 
 ### Validation of protection by careful access

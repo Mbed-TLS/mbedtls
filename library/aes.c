@@ -68,10 +68,6 @@
 
 #if !defined(MBEDTLS_AES_ALT)
 
-#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
-static int aes_padlock_ace = -1;
-#endif
-
 #if defined(MBEDTLS_AES_ROM_TABLES)
 /*
  * Forward S-box
@@ -526,8 +522,8 @@ void mbedtls_aes_xts_free(mbedtls_aes_xts_context *ctx)
  * Note that the offset is in units of elements of buf, i.e. 32-bit words,
  * i.e. an offset of 1 means 4 bytes and so on.
  */
-#if (defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)) ||        \
-    (defined(MBEDTLS_AESNI_C) && MBEDTLS_AESNI_HAVE_CODE == 2)
+#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE) ||        \
+    defined(MBEDTLS_AESNI_HAVE_INTRINSICS)
 #define MAY_NEED_TO_ALIGN
 #endif
 
@@ -537,16 +533,13 @@ MBEDTLS_MAYBE_UNUSED static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
     int align_16_bytes = 0;
 
 #if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
-    if (aes_padlock_ace == -1) {
-        aes_padlock_ace = mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE);
-    }
-    if (aes_padlock_ace) {
+    if (MBEDTLS_PADLOCK_HAS_SUPPORT()) {
         align_16_bytes = 1;
     }
 #endif
 
-#if defined(MBEDTLS_AESNI_C) && MBEDTLS_AESNI_HAVE_CODE == 2
-    if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
+#if defined(MBEDTLS_AESNI_HAVE_INTRINSICS)
+    if (MBEDTLS_AESNI_AES_HAS_SUPPORT()) {
         align_16_bytes = 1;
     }
 #endif
@@ -597,7 +590,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
     RK = ctx->buf + ctx->rk_offset;
 
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
-    if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
+    if (MBEDTLS_AESNI_AES_HAS_SUPPORT()) {
         return mbedtls_aesni_setkey_enc((unsigned char *) RK, key, keybits);
     }
 #endif
@@ -707,7 +700,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
     ctx->nr = cty.nr;
 
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
-    if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
+    if (MBEDTLS_AESNI_AES_HAS_SUPPORT()) {
         mbedtls_aesni_inverse_key((unsigned char *) RK,
                                   (const unsigned char *) (cty.buf + cty.rk_offset), ctx->nr);
         goto exit;
@@ -1034,7 +1027,7 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
 #endif
 
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
-    if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
+    if (MBEDTLS_AESNI_AES_HAS_SUPPORT()) {
         return mbedtls_aesni_crypt_ecb(ctx, mode, input, output);
     }
 #endif
@@ -1046,7 +1039,7 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
 #endif
 
 #if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
-    if (aes_padlock_ace > 0) {
+    if (MBEDTLS_PADLOCK_HAS_SUPPORT()) {
         return mbedtls_padlock_xcryptecb(ctx, mode, input, output);
     }
 #endif
@@ -1090,7 +1083,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     }
 
 #if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
-    if (aes_padlock_ace > 0) {
+    if (MBEDTLS_PADLOCK_HAS_SUPPORT()) {
         if (mbedtls_padlock_xcryptcbc(ctx, mode, length, iv, input, output) == 0) {
             return 0;
         }
@@ -1842,19 +1835,17 @@ int mbedtls_aes_self_test(int verbose)
         mbedtls_printf("  AES note: alternative implementation.\n");
 #else /* MBEDTLS_AES_ALT */
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
-#if MBEDTLS_AESNI_HAVE_CODE == 1
-        mbedtls_printf("  AES note: AESNI code present (assembly implementation).\n");
-#elif MBEDTLS_AESNI_HAVE_CODE == 2
+#if defined(MBEDTLS_AESNI_HAVE_INTRINSICS)
         mbedtls_printf("  AES note: AESNI code present (intrinsics implementation).\n");
 #else
-#error "Unrecognised value for MBEDTLS_AESNI_HAVE_CODE"
+        mbedtls_printf("  AES note: AESNI code present (assembly implementation).\n");
 #endif
-        if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
+        if (MBEDTLS_AESNI_AES_HAS_SUPPORT()) {
             mbedtls_printf("  AES note: using AESNI.\n");
         } else
 #endif
 #if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
-        if (mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE)) {
+        if (MBEDTLS_PADLOCK_HAS_SUPPORT()) {
             mbedtls_printf("  AES note: using VIA Padlock.\n");
         } else
 #endif

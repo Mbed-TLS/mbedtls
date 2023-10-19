@@ -28,12 +28,9 @@
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/aes.h"
+#include "cpuid_internal.h"
 
-#define MBEDTLS_AESNI_AES      0x02000000u
-#define MBEDTLS_AESNI_CLMUL    0x00000002u
-
-#if defined(MBEDTLS_AESNI_C) && \
-    (defined(MBEDTLS_ARCH_IS_X64) || defined(MBEDTLS_ARCH_IS_X86))
+#if defined(MBEDTLS_AESNI_HAVE_CODE)
 
 /* Can we do AESNI with intrinsics?
  * (Only implemented with certain compilers, only for certain targets.)
@@ -57,42 +54,42 @@
  * maintainability.
  * Performance is about the same (see #7380).
  * In the long run, we will likely remove the assembly implementation. */
-#if defined(MBEDTLS_AESNI_HAVE_INTRINSICS)
-#define MBEDTLS_AESNI_HAVE_CODE 2 // via intrinsics
-#elif defined(MBEDTLS_HAVE_ASM) && \
-    defined(__GNUC__) && defined(MBEDTLS_ARCH_IS_X64)
+#if !defined(MBEDTLS_AESNI_HAVE_INTRINSICS)
 /* Can we do AESNI with inline assembly?
  * (Only implemented with gas syntax, only for 64-bit.)
  */
-#define MBEDTLS_AESNI_HAVE_CODE 1 // via assembly
-#elif defined(__GNUC__)
+#if !(defined(MBEDTLS_HAVE_ASM) && defined(MBEDTLS_ARCH_IS_X64))
+#if defined(__GNUC__)
 #   error "Must use `-mpclmul -msse2 -maes` for MBEDTLS_AESNI_C"
 #else
 #error "MBEDTLS_AESNI_C defined, but neither intrinsics nor assembly available"
 #endif
-
-#if defined(MBEDTLS_AESNI_HAVE_CODE)
+#endif
+#endif /* !MBEDTLS_AESNI_HAVE_INTRINSICS */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * \brief          Internal function to detect the AES-NI feature in CPUs.
- *
- * \note           This function is only for internal use by other library
- *                 functions; you must not call it directly.
- *
- * \param what     The feature to detect
- *                 (MBEDTLS_AESNI_AES or MBEDTLS_AESNI_CLMUL)
- *
- * \return         1 if CPU has support for the feature, 0 otherwise
- */
-#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-int mbedtls_aesni_has_support(unsigned int what);
-#else
-#define mbedtls_aesni_has_support(what) 1
+#if defined(MBEDTLS_AES_CPUID_HAVE_CODE)
+
+#define MBEDTLS_AESNI_AES_HAS_SUPPORT() \
+    mbedtls_cpu_has_support(MBEDTLS_HWCAP_AESNI_AES)
+#if defined(MBEDTLS_GCM_C)
+#define MBEDTLS_AESNI_CLMUL_HAS_SUPPORT() \
+    mbedtls_cpu_has_support(MBEDTLS_HWCAP_AESNI_CLMUL)
 #endif
+
+
+#else /* MBEDTLS_AES_CPUID_HAVE_CODE */
+
+#define MBEDTLS_AESNI_AES_HAS_SUPPORT() 1
+
+#if defined(MBEDTLS_GCM_C)
+#define MBEDTLS_AESNI_CLMUL_HAS_SUPPORT() 1
+#endif
+
+#endif /* !MBEDTLS_AES_CPUID_HAVE_CODE  */
 
 /**
  * \brief          Internal AES-NI AES-ECB block encryption and decryption
@@ -164,7 +161,6 @@ int mbedtls_aesni_setkey_enc(unsigned char *rk,
 }
 #endif
 
-#endif /* MBEDTLS_AESNI_HAVE_CODE */
-#endif  /* MBEDTLS_AESNI_C */
+#endif  /* MBEDTLS_AESNI_HAVE_CODE */
 
 #endif /* MBEDTLS_AESNI_H */

@@ -30,24 +30,11 @@
 
 #include "mbedtls/aes.h"
 
+#include "cpuid_internal.h"
+
 #define MBEDTLS_ERR_PADLOCK_DATA_MISALIGNED               -0x0030  /**< Input data should be aligned. */
 
-#if defined(__has_feature)
-#if __has_feature(address_sanitizer)
-#define MBEDTLS_HAVE_ASAN
-#endif
-#endif
-
-/*
- * - `padlock` is implements with GNUC assembly for x86 target.
- * - Some versions of ASan result in errors about not enough registers.
- */
-#if defined(MBEDTLS_PADLOCK_C) && \
-    defined(__GNUC__) && defined(MBEDTLS_ARCH_IS_X86) && \
-    defined(MBEDTLS_HAVE_ASM) && \
-    !defined(MBEDTLS_HAVE_ASAN)
-
-#define MBEDTLS_VIA_PADLOCK_HAVE_CODE
+#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
 
 #include <stdint.h>
 
@@ -62,17 +49,15 @@
 extern "C" {
 #endif
 
-/**
- * \brief          Internal PadLock detection routine
- *
- * \note           This function is only for internal use by other library
- *                 functions; you must not call it directly.
- *
- * \param feature  The feature to detect
- *
- * \return         non-zero if CPU has support for the feature, 0 otherwise
- */
-int mbedtls_padlock_has_support(int feature);
+#if defined(MBEDTLS_AES_CPUID_HAVE_CODE)
+
+#define MBEDTLS_PADLOCK_HAS_SUPPORT() \
+    mbedtls_cpu_has_support(MBEDTLS_HWCAP_PADLOCK_ACE)
+#else /* MBEDTLS_AES_CPUID_HAVE_CODE */
+
+#define MBEDTLS_PADLOCK_HAS_SUPPORT() 1
+
+#endif /* !MBEDTLS_AES_CPUID_HAVE_CODE */
 
 /**
  * \brief          Internal PadLock AES-ECB block en(de)cryption
@@ -118,6 +103,6 @@ int mbedtls_padlock_xcryptcbc(mbedtls_aes_context *ctx,
 }
 #endif
 
-#endif /* HAVE_X86  */
+#endif /* MBEDTLS_VIA_PADLOCK_HAVE_CODE  */
 
 #endif /* padlock.h */

@@ -1,0 +1,5 @@
+Features
+   * New configuration option MBEDTLS_CPUID_GET_ALT and `mbedtls_cpuid_get()`
+     are introduced. `mbedtls_cpuid_get()` is used to get CPU features sets and
+     will be replaced with external function when MBEDTLS_CPUID_GET_ALT is
+     enabled.

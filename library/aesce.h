@@ -30,38 +30,27 @@
 
 #include "mbedtls/aes.h"
 
+#include "cpuid_internal.h"
 
-#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_ARCH_IS_ARM64)
-
-#define MBEDTLS_AESCE_HAVE_CODE
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#if defined(MBEDTLS_AES_CPUID_HAVE_CODE)
 
-extern signed char mbedtls_aesce_has_support_result;
+#define MBEDTLS_AESCE_HAS_SUPPORT() \
+    mbedtls_cpu_has_support(MBEDTLS_HWCAP_ASIMD | MBEDTLS_HWCAP_AES)
 
-/**
- * \brief          Internal function to detect the crypto extension in CPUs.
- *
- * \return         1 if CPU has support for the feature, 0 otherwise
- */
-int mbedtls_aesce_has_support_impl(void);
-
-#define MBEDTLS_AESCE_HAS_SUPPORT() (mbedtls_aesce_has_support_result == -1 ? \
-                                     mbedtls_aesce_has_support_impl() : \
-                                     mbedtls_aesce_has_support_result)
-
-#else /* defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY) */
+#else /* MBEDTLS_AES_CPUID_HAVE_CODE */
 
 /* If we are not on Linux, we can't detect support so assume that it's supported.
  * Similarly, assume support if MBEDTLS_AES_USE_HARDWARE_ONLY is set.
  */
 #define MBEDTLS_AESCE_HAS_SUPPORT() 1
 
-#endif /* defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY) */
+#endif /* !MBEDTLS_AES_CPUID_HAVE_CODE */
 
 /**
  * \brief          Internal AES-ECB block encryption and decryption
@@ -128,6 +117,6 @@ int mbedtls_aesce_setkey_enc(unsigned char *rk,
 }
 #endif
 
-#endif /* MBEDTLS_AESCE_C && MBEDTLS_ARCH_IS_ARM64 */
+#endif /* MBEDTLS_AESCE_HAVE_CODE */
 
 #endif /* MBEDTLS_AESCE_H */

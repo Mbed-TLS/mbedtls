@@ -82,6 +82,7 @@ set(src_crypto
     ripemd160.c
     rsa.c
     rsa_alt_helpers.c
+    cpuid.c
     sha1.c
     sha256.c
     sha512.c

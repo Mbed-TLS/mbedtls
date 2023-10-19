@@ -410,6 +410,13 @@
 //#define MBEDTLS_SHA512_ALT
 
 /*
+ * Uncomment to enable alternative core CPU feature sets detection function.
+ *
+ * When enabled, `mbedtls_cpuid_get()` MUST be provided.
+ */
+//#define MBEDTLS_CPUID_GET_ALT
+
+/*
  * When replacing the elliptic curve module, please consider, that it is
  * implemented with two .c files:
  *      - ecp.c
@@ -2962,7 +2969,12 @@
  *
  * Requires: MBEDTLS_HAVE_ASM
  *
- * This modules adds support for the VIA PadLock on x86.
+ * This module adds support for the VIA PadLock on x86.
+ *
+ * \warning This module will be disabled silently when
+ *          - Not build for x86 target
+ *          - Compiler is not GNUC compatible
+ *          - ASAN is enabled.
  */
 #define MBEDTLS_PADLOCK_C
 

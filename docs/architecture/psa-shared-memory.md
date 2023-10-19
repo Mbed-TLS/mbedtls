@@ -468,13 +468,13 @@ To implement this validation, we need several things:
 
 We can implement (1) as a test helper function that allocates full pages of memory so that we can safely set permissions on them:
 ```c
-unsigned char *mbedtls_test_get_buffer_poisoned_page(size_t nmemb, size_t size)
+uint8_t *mbedtls_test_get_buffer_poisoned_page(size_t nmemb, size_t size)
 ```
 This allocates a buffer of the requested size that is guaranteed to lie entirely within its own memory page. It also calls `mprotect()` so that the page is inaccessible.
 
 Requirement (2) can be implemented by creating a function as alluded to above:
 ```c
-void mbedtls_psa_core_poison_memory(unsigned char *buffer, size_t len, int poisoned)
+void mbedtls_psa_core_poison_memory(uint8_t *buffer, size_t len, int poisoned)
 ```
 This function should call `mprotect()` on the buffer to prevent it from being accessed (when `poisoned == 1`) or to allow it to be accessed (when `poisoned == 0`). Note that `mprotect()` requires a page-aligned address, so the function may have to do some preliminary work to find the correct page-aligned address that contains `buffer`.
 

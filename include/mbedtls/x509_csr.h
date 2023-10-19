@@ -156,9 +156,9 @@ typedef int (*mbedtls_x509_csr_ext_cb_t)(void *p_ctx,
  * \return         0 if successful, or a specific X509 error code
  */
 int mbedtls_x509_csr_parse_der_with_ext_cb(mbedtls_x509_csr *csr,
-                               const unsigned char *buf, size_t buflen,
-                               mbedtls_x509_csr_ext_cb_t cb,
-                               void *p_ctx);
+                                           const unsigned char *buf, size_t buflen,
+                                           mbedtls_x509_csr_ext_cb_t cb,
+                                           void *p_ctx);
 
 /**
  * \brief          Load a Certificate Signing Request (CSR), DER or PEM format

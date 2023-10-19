@@ -250,7 +250,8 @@ int verify_parse_san(mbedtls_x509_subject_alternative_name *san,
 
                 ret = mbedtls_oid_get_numeric_string(p,
                                                      n,
-                                                     &san->san.other_name.value.hardware_module_name.oid);
+                                                     &san->san.other_name.value.hardware_module_name
+                                                     .oid);
                 MBEDTLS_X509_SAFE_SNPRINTF;
 
                 ret = mbedtls_snprintf(p, n, ", hardware serial number : ");
@@ -416,7 +417,7 @@ int parse_crt_ext_cb(void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf 
 
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
 int parse_csr_ext_accept_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbedtls_x509_buf const *oid,
-                     int critical, const unsigned char *cp, const unsigned char *end)
+                            int critical, const unsigned char *cp, const unsigned char *end)
 {
     (void) p_ctx;
     (void) csr;
@@ -429,7 +430,7 @@ int parse_csr_ext_accept_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbedtls_x5
 }
 
 int parse_csr_ext_reject_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbedtls_x509_buf const *oid,
-                     int critical, const unsigned char *cp, const unsigned char *end)
+                            int critical, const unsigned char *cp, const unsigned char *end)
 {
     (void) p_ctx;
     (void) csr;
@@ -1288,7 +1289,7 @@ void mbedtls_x509_csr_parse_with_ext_cb(data_t *csr_der, char *ref_out, int ref_
 
     my_ret = mbedtls_x509_csr_parse_der_with_ext_cb(&csr, csr_der->x, csr_der->len,
                                                     accept ? parse_csr_ext_accept_cb :
-                                                             parse_csr_ext_reject_cb,
+                                                    parse_csr_ext_reject_cb,
                                                     NULL);
     TEST_EQUAL(my_ret, ref_ret);
 

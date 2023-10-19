@@ -153,7 +153,7 @@ static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
         /* Forbid repeated extensions */
         if ((csr->ext_types & ext_type) != 0) {
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                        MBEDTLS_ERR_ASN1_INVALID_DATA);
+                                     MBEDTLS_ERR_ASN1_INVALID_DATA);
         }
 
         csr->ext_types |= ext_type;
@@ -162,7 +162,7 @@ static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
             case MBEDTLS_X509_EXT_KEY_USAGE:
                 /* Parse key usage */
                 if ((ret = mbedtls_x509_get_key_usage(p, end_ext_data,
-                                                        &csr->key_usage)) != 0) {
+                                                      &csr->key_usage)) != 0) {
                     return ret;
                 }
                 break;
@@ -170,7 +170,7 @@ static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
             case MBEDTLS_X509_EXT_SUBJECT_ALT_NAME:
                 /* Parse subject alt name */
                 if ((ret = mbedtls_x509_get_subject_alt_name(p, end_ext_data,
-                                                                &csr->subject_alt_names)) != 0) {
+                                                             &csr->subject_alt_names)) != 0) {
                     return ret;
                 }
                 break;
@@ -178,16 +178,16 @@ static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
             case MBEDTLS_X509_EXT_NS_CERT_TYPE:
                 /* Parse netscape certificate type */
                 if ((ret = mbedtls_x509_get_ns_cert_type(p, end_ext_data,
-                                                            &csr->ns_cert_type)) != 0) {
+                                                         &csr->ns_cert_type)) != 0) {
                     return ret;
                 }
                 break;
             default:
                 /*
-                * If this is a non-critical extension, which the oid layer
-                * supports, but there isn't an x509 parser for it,
-                * skip the extension.
-                */
+                 * If this is a non-critical extension, which the oid layer
+                 * supports, but there isn't an x509 parser for it,
+                 * skip the extension.
+                 */
                 if (is_critical) {
                     return MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE;
                 } else {
@@ -274,9 +274,9 @@ static int x509_csr_parse_attributes(mbedtls_x509_csr *csr,
  * Parse a CSR in DER format
  */
 static int mbedtls_x509_csr_parse_der_internal(mbedtls_x509_csr *csr,
-                               const unsigned char *buf, size_t buflen,
-                               mbedtls_x509_csr_ext_cb_t cb,
-                               void *p_ctx)
+                                               const unsigned char *buf, size_t buflen,
+                                               mbedtls_x509_csr_ext_cb_t cb,
+                                               void *p_ctx)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
@@ -452,9 +452,9 @@ int mbedtls_x509_csr_parse_der(mbedtls_x509_csr *csr,
  * Parse a CSR in DER format with callback for unknown extensions
  */
 int mbedtls_x509_csr_parse_der_with_ext_cb(mbedtls_x509_csr *csr,
-                               const unsigned char *buf, size_t buflen,
-                               mbedtls_x509_csr_ext_cb_t cb,
-                               void *p_ctx)
+                                           const unsigned char *buf, size_t buflen,
+                                           mbedtls_x509_csr_ext_cb_t cb,
+                                           void *p_ctx)
 {
     return mbedtls_x509_csr_parse_der_internal(csr, buf, buflen, cb, p_ctx);
 }

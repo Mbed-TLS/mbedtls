@@ -315,7 +315,25 @@ static void copy_to_user(void *copy_buffer, void *const input_buffer, size_t len
 ```
 The reason to poison the memory before calling the library, rather than after the copy-in (and symmetrically for output buffers) is so that the test will fail if we forget to copy, or we copy the wrong thing. This would not be the case if we relied on the library's copy function to do the poisoning: that would only validate that the driver code does not access the memory on the condition that the copy is done as expected.
 
-Note: Extra work may be needed when allocating buffers to ensure that each shared buffer lies in its own separate page, allowing its permissions to be set independently.
+##### Options for implementing poisoning
+
+There are several different ways that poisoning could be implemented:
+1. Using Valgrind's memcheck tool. Valgrind provides a macro `VALGRIND_MAKE_MEM_NO_ACCESS` that allows manual memory poisoning. Valgrind memory poisoning is already used for constant-flow testing in Mbed TLS.
+2. Using Memory Sanitizer (MSan), which allows us to mark memory as uninitialized. This is also used for constant-flow testing. It is suitable for input buffers only, since it allows us to detect when a poisoned buffer is read but not when it is written.
+3. Using Address Sanitizer (ASan). This provides `ASAN_POISON_MEMORY_REGION` which marks memory as inaccessible.
+4. Allocating buffers separate pages and calling `mprotect()` to set pages as inaccessible. This has the disadvantage that we will have to manually ensure that buffers sit in their own pages, which likely means making a copy.
+
+Approach (2) is insufficient for the full testing we require as we need to be able to check both input and output buffers.
+
+All three remaining approaches are suitable for our purposes. However, approach (4) is more complex than the other two. To implement it, we would need to allocate poisoned buffers in separate memory pages. They would require special handling and test code would likely have to be designed around this special handling.
+
+Meanwhile, approaches (1) and (3) are much more convenient. We are simply required to call a special macro on some buffer that was allocated by us and the sanitizer takes care of everything else. Of these two, ASan appears to have a limitation related to buffer alignment. From code comments quoted in [the documentation](https://github.com/google/sanitizers/wiki/AddressSanitizerManualPoisoning):
+
+> This function is not guaranteed to poison the whole region - it may poison only subregion of [addr, addr+size) due to ASan alignment restrictions.
+
+It is not clear how easy it would be to work around this. Valgrind does not appear to have this limitation (unless Valgrind is simply more poorly documented). Valgrind is therefore slightly preferable compared with ASan, but ASan is an acceptable fallback option.
+
+**Design decision: Use Valgrind's memcheck tool to implement memory poisoning tests.**
 
 **Question: Should we try to build memory poisoning validation on existing Mbed TLS tests, or write new tests for this?**
 

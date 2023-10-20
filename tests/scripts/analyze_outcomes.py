@@ -541,11 +541,13 @@ KNOWN_TASKS = {
             'component_ref': 'test_psa_crypto_config_reference_ecc_ecp_light_only',
             'component_driver': 'test_psa_crypto_config_accel_ecc_ecp_light_only',
             'ignored_suites': [
-                'ecdsa',
-                'ecdh',
-                'ecjpake',
+                # Modules replaced by drivers
+                'ecdsa', 'ecdh', 'ecjpake',
             ],
             'ignored_tests': {
+                # This test wants a legacy function that takes f_rng, p_rng
+                # arguments, and uses legacy ECDSA for that. The test is
+                # really about the wrapper around the PSA RNG, not ECDSA.
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',
                 ],
@@ -553,41 +555,14 @@ KNOWN_TASKS = {
                 # so we must ignore disparities in the tests for which ECP_C
                 # is required.
                 'test_suite_ecp': [
-                    'ECP check public-private #1 (OK)',
-                    'ECP check public-private #2 (group none)',
-                    'ECP check public-private #3 (group mismatch)',
-                    'ECP check public-private #4 (Qx mismatch)',
-                    'ECP check public-private #5 (Qy mismatch)',
-                    'ECP check public-private #6 (wrong Qx)',
-                    'ECP check public-private #7 (wrong Qy)',
-                    'ECP gen keypair [#1]',
-                    'ECP gen keypair [#2]',
-                    'ECP gen keypair [#3]',
-                    'ECP gen keypair wrapper',
-                    'ECP point muladd secp256r1 #1',
-                    'ECP point muladd secp256r1 #2',
-                    'ECP point multiplication Curve25519 (element of order 2: origin) #3',
-                    'ECP point multiplication Curve25519 (element of order 4: 1) #4',
-                    'ECP point multiplication Curve25519 (element of order 8) #5',
-                    'ECP point multiplication Curve25519 (normalized) #1',
-                    'ECP point multiplication Curve25519 (not normalized) #2',
-                    'ECP point multiplication rng fail Curve25519',
-                    'ECP point multiplication rng fail secp256r1',
-                    'ECP test vectors Curve25519',
-                    'ECP test vectors Curve448 (RFC 7748 6.2, after decodeUCoordinate)',
-                    'ECP test vectors brainpoolP256r1 rfc 7027',
-                    'ECP test vectors brainpoolP384r1 rfc 7027',
-                    'ECP test vectors brainpoolP512r1 rfc 7027',
-                    'ECP test vectors secp192k1',
-                    'ECP test vectors secp192r1 rfc 5114',
-                    'ECP test vectors secp224k1',
-                    'ECP test vectors secp224r1 rfc 5114',
-                    'ECP test vectors secp256k1',
-                    'ECP test vectors secp256r1 rfc 5114',
-                    'ECP test vectors secp384r1 rfc 5114',
-                    'ECP test vectors secp521r1 rfc 5114',
+                    re.compile(r'ECP check public-private .*'),
+                    re.compile(r'ECP gen keypair .*'),
+                    re.compile(r'ECP point muladd .*'),
+                    re.compile(r'ECP point multiplication .*'),
+                    re.compile(r'ECP test vectors .*'),
                 ],
                 'test_suite_ssl': [
+                    # This deprecated function is only present when ECP_C is On.
                     'Test configuration of groups for DHE through mbedtls_ssl_conf_curves()',
                 ],
             }
@@ -599,14 +574,11 @@ KNOWN_TASKS = {
             'component_ref': 'test_psa_crypto_config_reference_ecc_no_ecp_at_all',
             'component_driver': 'test_psa_crypto_config_accel_ecc_no_ecp_at_all',
             'ignored_suites': [
-                # Ignore test suites for the modules that are disabled in the
-                # accelerated test case.
-                'ecp',
-                'ecdsa',
-                'ecdh',
-                'ecjpake',
+                # Modules replaced by drivers
+                'ecp', 'ecdsa', 'ecdh', 'ecjpake',
             ],
             'ignored_tests': {
+                # See ecp_light_only
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',
                 ],
@@ -617,23 +589,10 @@ KNOWN_TASKS = {
                     # consequence compressed points are supported in the reference
                     # component but not in the accelerated one, so they should be skipped
                     # while checking driver's coverage.
-                    'Parse EC Key #10a (SEC1 PEM, secp384r1, compressed)',
-                    'Parse EC Key #11a (SEC1 PEM, secp521r1, compressed)',
-                    'Parse EC Key #12a (SEC1 PEM, bp256r1, compressed)',
-                    'Parse EC Key #13a (SEC1 PEM, bp384r1, compressed)',
-                    'Parse EC Key #14a (SEC1 PEM, bp512r1, compressed)',
-                    'Parse EC Key #2a (SEC1 PEM, secp192r1, compressed)',
-                    'Parse EC Key #8a (SEC1 PEM, secp224r1, compressed)',
-                    'Parse EC Key #9a (SEC1 PEM, secp256r1, compressed)',
-                    'Parse Public EC Key #2a (RFC 5480, PEM, secp192r1, compressed)',
-                    'Parse Public EC Key #3a (RFC 5480, secp224r1, compressed)',
-                    'Parse Public EC Key #4a (RFC 5480, secp256r1, compressed)',
-                    'Parse Public EC Key #5a (RFC 5480, secp384r1, compressed)',
-                    'Parse Public EC Key #6a (RFC 5480, secp521r1, compressed)',
-                    'Parse Public EC Key #7a (RFC 5480, brainpoolP256r1, compressed)',
-                    'Parse Public EC Key #8a (RFC 5480, brainpoolP384r1, compressed)',
-                    'Parse Public EC Key #9a (RFC 5480, brainpoolP512r1, compressed)',
+                    re.compile(r'Parse EC Key .*compressed\)'),
+                    re.compile(r'Parse Public EC Key .*compressed\)'),
                 ],
+                # See ecp_light_only
                 'test_suite_ssl': [
                     'Test configuration of groups for DHE through mbedtls_ssl_conf_curves()',
                 ],
@@ -646,75 +605,31 @@ KNOWN_TASKS = {
             'component_ref': 'test_psa_crypto_config_reference_ecc_no_bignum',
             'component_driver': 'test_psa_crypto_config_accel_ecc_no_bignum',
             'ignored_suites': [
-                # Ignore test suites for the modules that are disabled in the
-                # accelerated test case.
-                'ecp',
-                'ecdsa',
-                'ecdh',
-                'ecjpake',
-                'bignum_core',
-                'bignum_random',
-                'bignum_mod',
-                'bignum_mod_raw',
-                'bignum.generated',
-                'bignum.misc',
+                # Modules replaced by drivers
+                'ecp', 'ecdsa', 'ecdh', 'ecjpake',
+                'bignum_core', 'bignum_random', 'bignum_mod', 'bignum_mod_raw',
+                'bignum.generated', 'bignum.misc',
             ],
             'ignored_tests': {
+                # See ecp_light_only
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',
                 ],
+                # See no_ecp_at_all
                 'test_suite_pkparse': [
-                    # See the description provided above in the
-                    # analyze_driver_vs_reference_no_ecp_at_all component.
-                    'Parse EC Key #10a (SEC1 PEM, secp384r1, compressed)',
-                    'Parse EC Key #11a (SEC1 PEM, secp521r1, compressed)',
-                    'Parse EC Key #12a (SEC1 PEM, bp256r1, compressed)',
-                    'Parse EC Key #13a (SEC1 PEM, bp384r1, compressed)',
-                    'Parse EC Key #14a (SEC1 PEM, bp512r1, compressed)',
-                    'Parse EC Key #2a (SEC1 PEM, secp192r1, compressed)',
-                    'Parse EC Key #8a (SEC1 PEM, secp224r1, compressed)',
-                    'Parse EC Key #9a (SEC1 PEM, secp256r1, compressed)',
-                    'Parse Public EC Key #2a (RFC 5480, PEM, secp192r1, compressed)',
-                    'Parse Public EC Key #3a (RFC 5480, secp224r1, compressed)',
-                    'Parse Public EC Key #4a (RFC 5480, secp256r1, compressed)',
-                    'Parse Public EC Key #5a (RFC 5480, secp384r1, compressed)',
-                    'Parse Public EC Key #6a (RFC 5480, secp521r1, compressed)',
-                    'Parse Public EC Key #7a (RFC 5480, brainpoolP256r1, compressed)',
-                    'Parse Public EC Key #8a (RFC 5480, brainpoolP384r1, compressed)',
-                    'Parse Public EC Key #9a (RFC 5480, brainpoolP512r1, compressed)',
+                    re.compile(r'Parse EC Key .*compressed\)'),
+                    re.compile(r'Parse Public EC Key .*compressed\)'),
                 ],
                 'test_suite_asn1parse': [
-                    # This test depends on BIGNUM_C
                     'INTEGER too large for mpi',
                 ],
                 'test_suite_asn1write': [
-                    # Following tests depends on BIGNUM_C
-                    'ASN.1 Write mpi 0 (1 limb)',
-                    'ASN.1 Write mpi 0 (null)',
-                    'ASN.1 Write mpi 0x100',
-                    'ASN.1 Write mpi 0x7f',
-                    'ASN.1 Write mpi 0x7f with leading 0 limb',
-                    'ASN.1 Write mpi 0x80',
-                    'ASN.1 Write mpi 0x80 with leading 0 limb',
-                    'ASN.1 Write mpi 0xff',
-                    'ASN.1 Write mpi 1',
-                    'ASN.1 Write mpi, 127*8 bits',
-                    'ASN.1 Write mpi, 127*8+1 bits',
-                    'ASN.1 Write mpi, 127*8-1 bits',
-                    'ASN.1 Write mpi, 255*8 bits',
-                    'ASN.1 Write mpi, 255*8-1 bits',
-                    'ASN.1 Write mpi, 256*8-1 bits',
+                    re.compile(r'ASN.1 Write mpi.*'),
                 ],
                 'test_suite_debug': [
-                    # Following tests depends on BIGNUM_C
-                    'Debug print mbedtls_mpi #2: 3 bits',
-                    'Debug print mbedtls_mpi: 0 (empty representation)',
-                    'Debug print mbedtls_mpi: 0 (non-empty representation)',
-                    'Debug print mbedtls_mpi: 49 bits',
-                    'Debug print mbedtls_mpi: 759 bits',
-                    'Debug print mbedtls_mpi: 764 bits #1',
-                    'Debug print mbedtls_mpi: 764 bits #2',
+                    re.compile(r'Debug print mbedtls_mpi.*'),
                 ],
+                # See ecp_light_only
                 'test_suite_ssl': [
                     'Test configuration of groups for DHE through mbedtls_ssl_conf_curves()',
                 ],
@@ -727,76 +642,31 @@ KNOWN_TASKS = {
             'component_ref': 'test_psa_crypto_config_reference_ecc_ffdh_no_bignum',
             'component_driver': 'test_psa_crypto_config_accel_ecc_ffdh_no_bignum',
             'ignored_suites': [
-                # Ignore test suites for the modules that are disabled in the
-                # accelerated test case.
-                'ecp',
-                'ecdsa',
-                'ecdh',
-                'ecjpake',
-                'bignum_core',
-                'bignum_random',
-                'bignum_mod',
-                'bignum_mod_raw',
-                'bignum.generated',
-                'bignum.misc',
-                'dhm',
+                # Modules replaced by drivers
+                'ecp', 'ecdsa', 'ecdh', 'ecjpake', 'dhm',
+                'bignum_core', 'bignum_random', 'bignum_mod', 'bignum_mod_raw',
+                'bignum.generated', 'bignum.misc',
             ],
             'ignored_tests': {
+                # See ecp_light_only
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',
                 ],
+                # See no_ecp_at_all
                 'test_suite_pkparse': [
-                    # See the description provided above in the
-                    # analyze_driver_vs_reference_no_ecp_at_all component.
-                    'Parse EC Key #10a (SEC1 PEM, secp384r1, compressed)',
-                    'Parse EC Key #11a (SEC1 PEM, secp521r1, compressed)',
-                    'Parse EC Key #12a (SEC1 PEM, bp256r1, compressed)',
-                    'Parse EC Key #13a (SEC1 PEM, bp384r1, compressed)',
-                    'Parse EC Key #14a (SEC1 PEM, bp512r1, compressed)',
-                    'Parse EC Key #2a (SEC1 PEM, secp192r1, compressed)',
-                    'Parse EC Key #8a (SEC1 PEM, secp224r1, compressed)',
-                    'Parse EC Key #9a (SEC1 PEM, secp256r1, compressed)',
-                    'Parse Public EC Key #2a (RFC 5480, PEM, secp192r1, compressed)',
-                    'Parse Public EC Key #3a (RFC 5480, secp224r1, compressed)',
-                    'Parse Public EC Key #4a (RFC 5480, secp256r1, compressed)',
-                    'Parse Public EC Key #5a (RFC 5480, secp384r1, compressed)',
-                    'Parse Public EC Key #6a (RFC 5480, secp521r1, compressed)',
-                    'Parse Public EC Key #7a (RFC 5480, brainpoolP256r1, compressed)',
-                    'Parse Public EC Key #8a (RFC 5480, brainpoolP384r1, compressed)',
-                    'Parse Public EC Key #9a (RFC 5480, brainpoolP512r1, compressed)',
+                    re.compile(r'Parse EC Key .*compressed\)'),
+                    re.compile(r'Parse Public EC Key .*compressed\)'),
                 ],
                 'test_suite_asn1parse': [
-                    # This test depends on BIGNUM_C
                     'INTEGER too large for mpi',
                 ],
                 'test_suite_asn1write': [
-                    # Following tests depends on BIGNUM_C
-                    'ASN.1 Write mpi 0 (1 limb)',
-                    'ASN.1 Write mpi 0 (null)',
-                    'ASN.1 Write mpi 0x100',
-                    'ASN.1 Write mpi 0x7f',
-                    'ASN.1 Write mpi 0x7f with leading 0 limb',
-                    'ASN.1 Write mpi 0x80',
-                    'ASN.1 Write mpi 0x80 with leading 0 limb',
-                    'ASN.1 Write mpi 0xff',
-                    'ASN.1 Write mpi 1',
-                    'ASN.1 Write mpi, 127*8 bits',
-                    'ASN.1 Write mpi, 127*8+1 bits',
-                    'ASN.1 Write mpi, 127*8-1 bits',
-                    'ASN.1 Write mpi, 255*8 bits',
-                    'ASN.1 Write mpi, 255*8-1 bits',
-                    'ASN.1 Write mpi, 256*8-1 bits',
+                    re.compile(r'ASN.1 Write mpi.*'),
                 ],
                 'test_suite_debug': [
-                    # Following tests depends on BIGNUM_C
-                    'Debug print mbedtls_mpi #2: 3 bits',
-                    'Debug print mbedtls_mpi: 0 (empty representation)',
-                    'Debug print mbedtls_mpi: 0 (non-empty representation)',
-                    'Debug print mbedtls_mpi: 49 bits',
-                    'Debug print mbedtls_mpi: 759 bits',
-                    'Debug print mbedtls_mpi: 764 bits #1',
-                    'Debug print mbedtls_mpi: 764 bits #2',
+                    re.compile(r'Debug print mbedtls_mpi.*'),
                 ],
+                # See ecp_light_only
                 'test_suite_ssl': [
                     'Test configuration of groups for DHE through mbedtls_ssl_conf_curves()',
                 ],
@@ -818,32 +688,21 @@ KNOWN_TASKS = {
             'component_ref': 'test_tfm_config',
             'component_driver': 'test_tfm_config_p256m_driver_accel_ec',
             'ignored_suites': [
-                # Ignore test suites for the modules that are disabled in the
-                # accelerated test case.
-                'ecp',
-                'ecdsa',
-                'ecdh',
-                'ecjpake',
-                'bignum_core',
-                'bignum_random',
-                'bignum_mod',
-                'bignum_mod_raw',
-                'bignum.generated',
-                'bignum.misc',
+                # Modules replaced by drivers
+                'ecp', 'ecdsa', 'ecdh', 'ecjpake',
+                'bignum_core', 'bignum_random', 'bignum_mod', 'bignum_mod_raw',
+                'bignum.generated', 'bignum.misc',
             ],
             'ignored_tests': {
-                # Ignore all tests that require DERIVE support which is disabled
-                # in the driver version
+                # See ecp_light_only
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',
                 ],
                 'test_suite_asn1parse': [
-                    # This test depends on BIGNUM_C
                     'INTEGER too large for mpi',
                 ],
                 'test_suite_asn1write': [
-                    # Following tests depends on BIGNUM_C
-                    re.compile('ASN.1 Write mpi.*'),
+                    re.compile(r'ASN.1 Write mpi.*'),
                 ],
             }
         }

@@ -31,6 +31,58 @@
 
 #include <string.h>
 
+/* mbedtls_cipher_values_from_psa() below only checks if the proper build symbols
+ * are enabled, but it does not provide any compatibility check between them
+ * (i.e. if the specified key works with the specified algorithm). This helper
+ * function is meant to provide this support.
+ * mbedtls_cipher_info_from_psa() might be used for the same purpose, but it
+ * requires CIPHER_C to be enabled.
+ */
+static psa_status_t mbedtls_cipher_validate_values(
+    psa_algorithm_t alg,
+    psa_key_type_t key_type)
+{
+    switch (alg) {
+        case PSA_ALG_STREAM_CIPHER:
+        case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CHACHA20_POLY1305, 0):
+            if (key_type != PSA_KEY_TYPE_CHACHA20) {
+                return PSA_ERROR_NOT_SUPPORTED;
+            }
+            break;
+
+        case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, 0):
+        case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, 0):
+        case PSA_ALG_CCM_STAR_NO_TAG:
+            if ((key_type != PSA_KEY_TYPE_AES) &&
+                (key_type != PSA_KEY_TYPE_ARIA) &&
+                (key_type != PSA_KEY_TYPE_CAMELLIA)) {
+                return PSA_ERROR_NOT_SUPPORTED;
+            }
+            break;
+
+        case PSA_ALG_CTR:
+        case PSA_ALG_CFB:
+        case PSA_ALG_OFB:
+        case PSA_ALG_XTS:
+        case PSA_ALG_ECB_NO_PADDING:
+        case PSA_ALG_CBC_NO_PADDING:
+        case PSA_ALG_CBC_PKCS7:
+        case PSA_ALG_CMAC:
+            if ((key_type != PSA_KEY_TYPE_AES) &&
+                (key_type != PSA_KEY_TYPE_ARIA) &&
+                (key_type != PSA_KEY_TYPE_DES) &&
+                (key_type != PSA_KEY_TYPE_CAMELLIA)) {
+                return PSA_ERROR_NOT_SUPPORTED;
+            }
+            break;
+
+        default:
+            return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    return PSA_SUCCESS;
+}
+
 psa_status_t mbedtls_cipher_values_from_psa(
     psa_algorithm_t alg,
     psa_key_type_t key_type,
@@ -156,7 +208,7 @@ psa_status_t mbedtls_cipher_values_from_psa(
         *cipher_id = cipher_id_tmp;
     }
 
-    return PSA_SUCCESS;
+    return mbedtls_cipher_validate_values(alg, key_type);
 }
 
 #if defined(MBEDTLS_CIPHER_C)

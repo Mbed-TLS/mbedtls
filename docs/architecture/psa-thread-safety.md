@@ -57,10 +57,10 @@ At the time of writing, the driver interface specification does not consider mul
 
 We need to define clear policies so that driver implementers know what to expect. Here are two possible policies at two ends of the spectrum; what is desirable is probably somewhere in between.
 
-* Driver entry points may be called concurrently from multiple threads, even if they're using the same key, and even including destroying a key while an operation is in progress on it.
-* At most one driver entry point is active at any given time.
+* **Policy 1:** Driver entry points may be called concurrently from multiple threads, even if they're using the same key, and even including destroying a key while an operation is in progress on it.
+* **Policy 2:** At most one driver entry point is active at any given time.
 
-Combining the two we arrive at the following policy:
+Combining the two we arrive at **Policy 3**:
 
 * By default, each driver only has at most one entry point active at any given time. In other words, each driver has its own exclusive lock.
 * Drivers have an optional `"thread_safe"` boolean property. If true, it allows concurrent calls to this driver.
@@ -411,12 +411,11 @@ To avoid performance degradation, functions must not start expensive operations 
 The goal is to provide viable threading support without extending the platform abstraction. (Condition variables should be added in 4.0.) This means that we will be relying on mutexes only.
 
 - Key Store
-    - Slot states guarantee safe concurrent access to slot contents
-    - Slot states will be protected by a global mutex
-    - Simple key destruction strategy as described in #mutex-only (variant 2.)
-- Concurrent calls to operation contexts will be prevented by state fields which shall be protected by a global mutex
-- Drivers
-    - The solution shall use the pre-existing MBEDTLS_THREADING_C threading abstraction
-    - Drivers will be protected by their own dedicated lock - only non-thread safe drivers are supported
-    - Constraints on the drivers and the core will be in place and documented as proposed in #reentrancy
-- The main `global_data` (the one in `psa_crypto.c`) shall be protected by its own mutex
+    - Slot states are described in #slot-states. They guarantee safe concurrent access to slot contents.
+    - Slot states will be protected by a global mutex as described in the introduction of #global-lock-excluding-slot-content.
+    - Simple key destruction strategy as described in #mutex-only (variant 2).
+    - The slot state and key attributes will be separated as described in the last paragraph of #determining-whether-a-key-slot-is-occupied.
+- Concurrent calls to operation contexts will be prevented by state fields which shall be protected by a global mutex as in #operation-contexts.
+- The main `global_data` (the one in `psa_crypto.c`) shall be protected by its own mutex as described in #global-data.
+- The solution shall use the pre-existing `MBEDTLS_THREADING_C` threading abstraction. That is, the flag proposed in #platform-abstraction won't be implemented.
+- The core makes no additional guarantees for drivers. That is, Policy 1 in #driver-requirements applies.

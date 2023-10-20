@@ -351,7 +351,9 @@ Start with implementing threading for drivers without the "thread_safe” proper
 
 It is natural sometimes to want to perform cryptographic operations from a driver, for example calculating a hash as part of various other crypto primitives, or using a block cipher in a driver for a mode, etc. Also encrypting/authenticating communication with a secure element.
 
-If the driver is thread safe, it is the drivers responsibility to handle re-entrancy.
+**Non-thread-safe drivers:**
+
+A driver is non-thread-safe if the `thread-safe` property (see #driver-requirements) is set to false.
 
 In the non-thread-safe case we have these natural assumptions/requirements:
 1. Drivers don't call the core for any operation for which they provide an entry point
@@ -362,9 +364,20 @@ With these, the only way of a deadlock is when we have several drivers and they 
 Potential ways for resolving this:
 1. Non-thread-safe drivers must not call the core
 2. Provide a new public API that drivers can safely call
-3. There is a whitelist of core APIs that drivers can call. Drivers providing entry points to these must not make a call to the core when handling these calls. (Drivers are still allowed to call any core API that can't have a driver entry point.)
+3. Make the dispatch layer public for drivers to call
+4. There is a whitelist of core APIs that drivers can call. Drivers providing entry points to these must not make a call to the core when handling these calls. (Drivers are still allowed to call any core API that can't have a driver entry point.)
 
-The first is too restrictive, the second is too expensive, the only viable option is the third.
+The first is too restrictive, the second and the third would require making it a stable API, and would likely increase the code size for a relatively rare feature. Choosing the fourth as that is the most viable option.
+
+**Thread-safe drivers:**
+
+A driver is non-thread-safe if the `thread-safe` property (see #driver-requirements) is set to true.
+
+To make reentrancy in non-thread-safe drivers work, thread-safe drivers must not make a call to the core when handling a call that is on the non-thread-safe driver whitelist.
+
+Thread-safe drivers have less guarantees from the core and need to implement more complex logic and we can reasonably expect them to be more flexible in terms of reentrancy as well. At this point hard to see what further guarantees would be useful and feasible. Therefore, we don't provide any further guarantees for now.
+
+Thread-safe drivers must not make any assumption about the operation of the core beyond what is discussed in the #reentrancy and #driver-requirements sections.
 
 ### Global Data
 

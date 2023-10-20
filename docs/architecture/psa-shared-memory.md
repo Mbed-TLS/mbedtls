@@ -238,12 +238,12 @@ Copy what needs copying. This is broadly straightforward, however there are a fe
 
 It is unclear whether the compiler will attempt to optimize away copying operations.
 
-Once the copying code is implemented, it should be evaluated to see whether compiler optimization is a problem. Specifically, for the major compilers and platforms supported by Mbed TLS:
+Once the copying code is implemented, it should be evaluated to see whether compiler optimization is a problem. Specifically, for the major compilers supported by Mbed TLS:
 * Write a small program that uses a PSA function which copies inputs or outputs.
-* Build the program with link-time optimization / full-program optimization enabled (e.g. `-flto` with `gcc`).
+* Build the program with link-time optimization / full-program optimization enabled (e.g. `-flto` with `gcc`). Try also enabling the most extreme optimization options such as `-Ofast` (`gcc`) and `-Oz` (`clang`).
 * Inspect the generated code with `objdump` or a similar tool to see if copying operations are preserved.
 
-If copying behaviour is preserved by all major compilers and platforms then assume that compiler optimization is not a problem.
+If copying behaviour is preserved by all major compilers then assume that compiler optimization is not a problem.
 
 If copying behaviour is optimized away by the compiler, further investigation is needed. Experiment with using the `volatile` keyword to force the compiler not to optimize accesses to the copied buffers.
 

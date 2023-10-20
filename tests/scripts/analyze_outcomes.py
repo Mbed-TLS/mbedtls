@@ -741,7 +741,7 @@ def main():
             tasks_list = re.split(r'[, ]+', options.specified_tasks)
             for task in tasks_list:
                 if task not in KNOWN_TASKS:
-                    sys.stderr.write('invalid task: {}'.format(task))
+                    sys.stderr.write('invalid task: {}\n'.format(task))
                     sys.exit(2)
 
         KNOWN_TASKS['analyze_coverage']['args']['full_coverage'] = options.full_coverage

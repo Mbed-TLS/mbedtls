@@ -207,6 +207,8 @@ The following functions modify a slot's usage state:
 
 Instead, `psa_is_key_slot_occupied` should use the key identifier to decide whether a slot is occupied. The key identifier is always readily available: when allocating a slot for a persistent key, it's an input of the function that allocates the key slot; when allocating a slot for a volatile key, the identifier is calculated from the choice of slot.
 
+Alternatively, we could use a dedicated indicator that the slot is occupied. The advantage of this is that no field of the `attr` structure would be needed to determine the slot state. This would be a clean separation between key attributes and slot state and `attr` could be treated exactly like key slot content. This would save code size and maintenance effort. The cost of it would be that each slot would need an extra field to indicate whether it is occupied.
+
 ##### Key slot content
 
 Other than what is used to determine the [“key slot state”](#key-slot-state), the contents of a key slot are only accessed as follows:
@@ -322,6 +324,8 @@ Variations:
 2. In a later stage this would be improved by locking the keys on entry into multi-part API calls and released before exiting.
 
 The second variant can't be implemented as a backward compatible improvement on the first as multipart operations that were successfully completed in the first case, would fail in the second. If we want to implement these incrementally, multipart operations in a multithreaded environment must be left unsupported in the first variant. This makes the first variant impractical (multipart operations returning an error in builds with multithreading enabled is not a behaviour that would be very useful to release).
+
+We can't reuse the `lock_count` field to mark key slots deleted, as we still need to keep track the lock count while the slot is marked for deletion. This means that we will need to add a new field to key slots. This new field can be reused to indicate whether the slot is occupied (see #determining-whether-a-key-slot-is-occupied). (There would be three states: deleted, occupied, empty.)
 
 #### Condition variables
 

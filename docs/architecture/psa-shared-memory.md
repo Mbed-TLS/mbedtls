@@ -337,47 +337,26 @@ It is not clear how easy it would be to work around this. Valgrind does not appe
 
 **Question: Should we try to build memory poisoning validation on existing Mbed TLS tests, or write new tests for this?**
 
-##### Validation with existing tests
-
-It should be possible to integrate memory poisoning validation with existing tests. This has two main advantages:
-* All of the tests are written already, potentially saving development time.
-* The code coverage of these tests is already much greater than would be achievable writing new tests from scratch.
-
-In an ideal world, we would be able to take a grand, encompassing approach whereby we would simply replace the implementation of `mbedtls_calloc()` and all tests would transparently run with memory poisoning enabled. Unfortunately, there are some significant difficulties with this idea:
-* We cannot automatically distinguish which allocated buffers are shared buffers that need memory poisoning enabled.
-* Some input buffers to tested functions may be stack allocated so cannot be poisoned automatically.
-
-Instead, consider a more modest strategy. Create a function:
-```c
-uint8_t *mbedtls_test_get_poisoned_copy(uint8_t *buffer, size_t len)
-```
-that creates a poisoned copy of a buffer ready to be passed to the PSA function. Also create:
-```c
-uint8_t *mbedtls_test_copy_free_poisoned_buffer(uint8_t *poisoned_buffer, uint8_t *original_buffer, size_t len)
-```
-which copies the poisoned buffer contents back into the original buffer and frees the poisoned copy.
-
-In each test case, manually wrap any calls to PSA functions in code that substitutes a poisoned buffer. For example, the code:
-```c
-psa_api_do_some_operation(input, input_len, output, output_len);
-```
-Would be transformed to:
-```c
-input_poisoned = mbedtls_test_get_poisoned_copy(input, input_len);
-output_poisoned = mbedtls_test_get_poisoned_copy(output, output_len);
-psa_api_do_some_operation(input_poisoned, input_len, output_poisoned, output_len);
-mbedtls_test_copy_free_poisoned_buffer(input_poisoned, input, input_len);
-mbedtls_test_copy_free_poisoned_buffer(output_poisoned, output, output_len);
-```
-Further interface design or careful use of macros may make this a little less cumbersome than it seems in this example.
-
-The poison copying functions should be written so as to evaluate to no-ops based on the value of a config option. They also need not be added to all tests, only to a 'covering set' of important tests.
-
 ##### Validation with new tests
 
-Validation with newly created tests is initially simpler to implement than using the existing tests, since the tests can know about memory poisoning from the start. However, re-implementing testing for most PSA interfaces (even only basic positive testing) is a large undertaking. Furthermore, not much is gained over the previous approach, given that it seems straightforward to wrap PSA function calls in existing tests with poisoning code.
+Validation with newly created tests would be simpler to implement than using existing tests, since the tests can be written to take into account memory poisoning. It is also possible to build such a testsuite on top of existing tests - `mbedtls_test_psa_exercise_key` is a test helper that already exercises most PSA interfaces, so implementing the tests could be as simple as extending it.
 
-**Design decision: Add memory poisoning code to existing tests rather than creating new ones, since this is simpler and produces greater coverage.**
+Additionally, we can ensure that all functions are exercised by automatically generating test data files.
+
+##### Validation with existing tests
+
+An alternative approach would be to integrate memory poisoning validation with existing tests. This has two main advantages:
+* All of the tests are written already, potentially saving development time.
+* The code coverage of these tests is greater than would be achievable writing new tests from scratch. In practice this advantage is small as buffer copying will take place in the dispatch layer. The tests are therefore independent of the values of parameters passed to the driver, so extra coverage in these parameters does not gain anything.
+
+It may be possible to transparently implement memory poisoning so that existing tests can work without modification. This would be achieved by replacing the implementation of `malloc()` with one that allocates poisoned buffers. However, there are some difficulties with this:
+* Not all buffers allocated by tests are used as inputs and outputs to PSA functions being tested.
+* Those buffers that are inputs to a PSA function need to be unpoisoned right up until the function is called, so that they can be filled with input data.
+* Those buffers that are outputs from a PSA function need to be unpoisoned straight after the function returns, so that they can be read to check the output is correct.
+
+These issues may be solved by creating some kind of test wrapper around every PSA function call that poisons the memory. However, it is unclear how straightforward this will be in practice. If this is simple to achieve, the extra coverage and time saved on new tests will be a benefit. If not, writing new tests is the best strategy.
+
+**Design decision: Attempt to add memory poisoning transparently to existing tests. If this proves difficult, write new tests instead.**
 
 #### Discussion
 

@@ -539,5 +539,8 @@ psa_status_t mem_poison_psa_aead_update(psa_aead_operation_t *operation,
 
 #### Memory poisoning functions and a new testsuite
 
+#### Configuration of poisoning tests
+
+Since the memory poisoning tests will require the use of interfaces specific to the sanitizers used to poison memory, they must be guarded by new config options, for example `PSA_TEST_COPYING_ASAN` and `PSA_TEST_COPYING_VALGRIND`, as well as `MBEDTLS_TEST_HOOKS`. These would be analogous to the existing `MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN` and `MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND`. Since they require special tooling, these options should not be enabled in either the `default` or `full` configurations. Instead, as with the constant flow testing options, they should be enabled in a new component in `all.sh` that performs the copy testing with Valgrind or ASan.
 
 ### Validation of protection by careful access

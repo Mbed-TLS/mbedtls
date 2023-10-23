@@ -298,7 +298,7 @@ Proposed general idea: in test code, “poison” the memory area used by input 
 
 In the library, the code that does the copying temporarily unpoisons the memory by calling a test hook.
 
-```
+```c
 static void copy_to_user(void *copy_buffer, void *const input_buffer, size_t length) {
 #if defined(MBEDTLS_TEST_HOOKS)
     if (mbedtls_psa_core_poison_memory != NULL) {

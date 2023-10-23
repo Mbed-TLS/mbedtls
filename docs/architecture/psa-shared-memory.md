@@ -99,7 +99,7 @@ Example: the PSA Firmware Framework 1.0 forbids shared memory between partitions
 
 #### Careful accesses
 
-The following rules guarantee that shared memory cannot result in a security violation other than [write-read feedback](#write-read feedback):
+The following rules guarantee that shared memory cannot result in a security violation other than [write-read feedback](#write-read-feedback):
 
 * Never read the same input twice at the same index.
 * Never read back from an output.

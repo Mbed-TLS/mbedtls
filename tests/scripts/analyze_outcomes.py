@@ -100,7 +100,9 @@ def name_matches_pattern(name, str_or_re):
     - If the pattern is a string, name must be equal to match.
     - If the pattern is a regex, name must fully match.
     """
-    if isinstance(str_or_re, re.Pattern):
+    # The CI's python is too old for re.Pattern
+    #if isinstance(str_or_re, re.Pattern):
+    if not isinstance(str_or_re, str):
         if str_or_re.fullmatch(name):
             return True
     else:

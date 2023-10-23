@@ -346,9 +346,11 @@ Introducing condition variables to the platform abstraction layer would be best 
 
 #### Operation contexts
 
-Concurrent access to the same operation context can compromise the crypto service for example if the operation context has a pointer (depending on the compiler and the platform, the pointer assignment may or may not be atomic). This violates the functional correctness requirement. (Concurrent calls to operations is undefined behaviour, but still should not compromise the CIA of the crypto service.)
+Concurrent access to the same operation context can compromise the crypto service for example if the operation context has a pointer (depending on the compiler and the platform, the pointer assignment may or may not be atomic). This violates the functional correctness requirement of the crypto service. (Concurrent calls to operations is undefined behaviour, but still should not compromise the CIA of the crypto service.)
 
-Operations will have a status field protected by a global mutex similarly to key slots. On entry, API calls check the state and return an error if it is already ACTIVE. Otherwise they set it to ACTIVE and restore it to INACTIVE before returning.
+If we want to protect against this in the library, operations will need a status field protected by a global mutex similarly to key slots. On entry, API calls would check the state and return an error if it is already ACTIVE. Otherwise they set it to ACTIVE and restore it to INACTIVE before returning.
+
+Alternatively, protecting operation contexts can be left as the responsibility of the crypto service. The [PSA Crypto API Specification](https://arm-software.github.io/psa-api/crypto/1.1/overview/conventions.html#concurrent-calls) does not require the library to provide any protection in this case. A crypto service can easily add its own mutex in its operation structure wrapper (the same structure where it keeps track of which client connection owns that operation object).
 
 #### Drivers
 
@@ -415,7 +417,6 @@ The goal is to provide viable threading support without extending the platform a
     - Slot states will be protected by a global mutex as described in the introduction of #global-lock-excluding-slot-content.
     - Simple key destruction strategy as described in #mutex-only (variant 2).
     - The slot state and key attributes will be separated as described in the last paragraph of #determining-whether-a-key-slot-is-occupied.
-- Concurrent calls to operation contexts will be prevented by state fields which shall be protected by a global mutex as in #operation-contexts.
 - The main `global_data` (the one in `psa_crypto.c`) shall be protected by its own mutex as described in #global-data.
 - The solution shall use the pre-existing `MBEDTLS_THREADING_C` threading abstraction. That is, the flag proposed in #platform-abstraction won't be implemented.
 - The core makes no additional guarantees for drivers. That is, Policy 1 in #driver-requirements applies.

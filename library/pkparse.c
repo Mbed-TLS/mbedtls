@@ -25,21 +25,26 @@
 #include "mbedtls/asn1.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/platform.h"
 #include "mbedtls/error.h"
-#include "pk_internal.h"
 
 #include <string.h>
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "mbedtls/psa_util.h"
+#include "psa/crypto.h"
+#endif
+
+/* Key types */
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"
 #endif
-#include "mbedtls/ecp.h"
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#include "mbedtls/ecp.h"
 #include "pk_internal.h"
 #endif
-#if defined(MBEDTLS_ECDSA_C)
-#include "mbedtls/ecdsa.h"
-#endif
+
+/* Extended formats */
 #if defined(MBEDTLS_PEM_PARSE_C)
 #include "mbedtls/pem.h"
 #endif
@@ -50,174 +55,346 @@
 #include "mbedtls/pkcs12.h"
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
-#include "psa_util_internal.h"
-#endif
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "psa/crypto.h"
-#endif
-
-#include "mbedtls/platform.h"
-
-/* Helper for Montgomery curves */
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
-#define MBEDTLS_PK_IS_RFC8410_GROUP_ID(id)  \
-    ((id == MBEDTLS_ECP_DP_CURVE25519) || (id == MBEDTLS_ECP_DP_CURVE448))
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS && MBEDTLS_PK_HAVE_RFC8410_CURVES */
-
-#if defined(MBEDTLS_FS_IO)
-/*
- * Load all data from a file into a given buffer.
+/***********************************************************************
  *
- * The file is expected to contain either PEM or DER encoded data.
- * A terminating null byte is always appended. It is included in the announced
- * length only if the data looks like it is PEM encoded.
+ *      ECC setters
+ *
+ * 1. This is an abstraction layer around MBEDTLS_PK_USE_PSA_EC_DATA:
+ *    this macro will not appear outside this section.
+ * 2. All inputs are raw: no metadata, no ASN.1 until the next section.
+ *
+ **********************************************************************/
+
+/*
+ * Set the group used by this key.
+ *
+ * [in/out] pk: in: must have been pk_setup() to an ECC type
+ *              out: will have group (curve) information set
+ * [in] grp_in: a supported group ID (not NONE)
  */
-int mbedtls_pk_load_file(const char *path, unsigned char **buf, size_t *n)
+static int pk_ecc_set_group(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id)
 {
-    FILE *f;
-    long size;
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    size_t ec_bits;
+    psa_ecc_family_t ec_family = mbedtls_ecc_group_to_psa(grp_id, &ec_bits);
 
-    if ((f = fopen(path, "rb")) == NULL) {
-        return MBEDTLS_ERR_PK_FILE_IO_ERROR;
+    /* group may already be initialized; if so, make sure IDs match */
+    if ((pk->ec_family != 0 && pk->ec_family != ec_family) ||
+        (pk->ec_bits != 0 && pk->ec_bits != ec_bits)) {
+        return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
     }
 
-    /* Ensure no stdio buffering of secrets, as such buffers cannot be wiped. */
-    mbedtls_setbuf(f, NULL);
-
-    fseek(f, 0, SEEK_END);
-    if ((size = ftell(f)) == -1) {
-        fclose(f);
-        return MBEDTLS_ERR_PK_FILE_IO_ERROR;
-    }
-    fseek(f, 0, SEEK_SET);
-
-    *n = (size_t) size;
-
-    if (*n + 1 == 0 ||
-        (*buf = mbedtls_calloc(1, *n + 1)) == NULL) {
-        fclose(f);
-        return MBEDTLS_ERR_PK_ALLOC_FAILED;
-    }
-
-    if (fread(*buf, 1, *n, f) != *n) {
-        fclose(f);
-
-        mbedtls_zeroize_and_free(*buf, *n);
-
-        return MBEDTLS_ERR_PK_FILE_IO_ERROR;
-    }
-
-    fclose(f);
-
-    (*buf)[*n] = '\0';
-
-    if (strstr((const char *) *buf, "-----BEGIN ") != NULL) {
-        ++*n;
-    }
+    /* set group */
+    pk->ec_family = ec_family;
+    pk->ec_bits = ec_bits;
 
     return 0;
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+    mbedtls_ecp_keypair *ecp = mbedtls_pk_ec_rw(*pk);
+
+    /* grp may already be initialized; if so, make sure IDs match */
+    if (mbedtls_pk_ec_ro(*pk)->grp.id != MBEDTLS_ECP_DP_NONE &&
+        mbedtls_pk_ec_ro(*pk)->grp.id != grp_id) {
+        return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
+    }
+
+    /* set group */
+    return mbedtls_ecp_group_load(&(ecp->grp), grp_id);
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 }
 
 /*
- * Load and parse a private key
- */
-int mbedtls_pk_parse_keyfile(mbedtls_pk_context *ctx,
-                             const char *path, const char *pwd,
-                             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t n;
-    unsigned char *buf;
-
-    if ((ret = mbedtls_pk_load_file(path, &buf, &n)) != 0) {
-        return ret;
-    }
-
-    if (pwd == NULL) {
-        ret = mbedtls_pk_parse_key(ctx, buf, n, NULL, 0, f_rng, p_rng);
-    } else {
-        ret = mbedtls_pk_parse_key(ctx, buf, n,
-                                   (const unsigned char *) pwd, strlen(pwd), f_rng, p_rng);
-    }
-
-    mbedtls_zeroize_and_free(buf, n);
-
-    return ret;
-}
-
-/*
- * Load and parse a public key
- */
-int mbedtls_pk_parse_public_keyfile(mbedtls_pk_context *ctx, const char *path)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t n;
-    unsigned char *buf;
-
-    if ((ret = mbedtls_pk_load_file(path, &buf, &n)) != 0) {
-        return ret;
-    }
-
-    ret = mbedtls_pk_parse_public_key(ctx, buf, n);
-
-    mbedtls_zeroize_and_free(buf, n);
-
-    return ret;
-}
-#endif /* MBEDTLS_FS_IO */
-
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
-/* Minimally parse an ECParameters buffer to and mbedtls_asn1_buf
+ * Set the private key material
  *
- * ECParameters ::= CHOICE {
- *   namedCurve         OBJECT IDENTIFIER
- *   specifiedCurve     SpecifiedECDomain -- = SEQUENCE { ... }
- *   -- implicitCurve   NULL
- * }
+ * [in/out] pk: in: must have the group set already, see pk_ecc_set_group().
+ *              out: will have the private key set.
+ * [in] key, key_len: the raw private key (no ASN.1 wrapping).
  */
-static int pk_get_ecparams(unsigned char **p, const unsigned char *end,
-                           mbedtls_asn1_buf *params)
+static int pk_ecc_set_key(mbedtls_pk_context *pk,
+                          unsigned char *key, size_t key_len)
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status;
 
-    if (end - *p < 1) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT,
-                                 MBEDTLS_ERR_ASN1_OUT_OF_DATA);
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(pk->ec_family));
+    psa_set_key_algorithm(&attributes, PSA_ALG_ECDH);
+    psa_key_usage_t flags = PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_DERIVE;
+    /* Montgomery allows only ECDH, others ECDSA too */
+    if (pk->ec_family != PSA_ECC_FAMILY_MONTGOMERY) {
+        flags |= PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_SIGN_MESSAGE;
+        psa_set_key_enrollment_algorithm(&attributes,
+                                         MBEDTLS_PK_PSA_ALG_ECDSA_MAYBE_DET(PSA_ALG_ANY_HASH));
     }
+    psa_set_key_usage_flags(&attributes, flags);
 
-    /* Tag may be either OID or SEQUENCE */
-    params->tag = **p;
-    if (params->tag != MBEDTLS_ASN1_OID
-#if defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
-        && params->tag != (MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)
-#endif
-        ) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT,
-                                 MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
-    }
+    status = psa_import_key(&attributes, key, key_len, &pk->priv_id);
+    return psa_pk_status_to_mbedtls(status);
 
-    if ((ret = mbedtls_asn1_get_tag(p, end, &params->len, params->tag)) != 0) {
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+
+    mbedtls_ecp_keypair *eck = mbedtls_pk_ec_rw(*pk);
+    int ret = mbedtls_ecp_read_key(eck->grp.id, eck, key, key_len);
+    if (ret != 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
     }
+    return 0;
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+}
 
-    params->p = *p;
-    *p += params->len;
+/*
+ * Derive a public key from its private counterpart.
+ * Computationally intensive, only use when public key is not available.
+ *
+ * [in/out] pk: in: must have the private key set, see pk_ecc_set_key().
+ *              out: will have the public key set.
+ * [in] prv, prv_len: the raw private key (see note below).
+ * [in] f_rng, p_rng: RNG function and context.
+ *
+ * Note: the private key information is always available from pk,
+ * however for convenience the serialized version is also passed,
+ * as it's available at each calling site, and useful in some configs
+ * (as otherwise we would have to re-serialize it from the pk context).
+ *
+ * There are three implementations of this function:
+ * 1. MBEDTLS_PK_USE_PSA_EC_DATA,
+ * 2. MBEDTLS_USE_PSA_CRYPTO but not MBEDTLS_PK_USE_PSA_EC_DATA,
+ * 3. not MBEDTLS_USE_PSA_CRYPTO.
+ */
+static int pk_ecc_set_pubkey_from_prv(mbedtls_pk_context *pk,
+                                      const unsigned char *prv, size_t prv_len,
+                                      int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
+{
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 
-    if (*p != end) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT,
-                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+    (void) f_rng;
+    (void) p_rng;
+    (void) prv;
+    (void) prv_len;
+    psa_status_t status;
+
+    status = psa_export_public_key(pk->priv_id, pk->pub_raw, sizeof(pk->pub_raw),
+                                   &pk->pub_raw_len);
+    return psa_pk_status_to_mbedtls(status);
+
+#elif defined(MBEDTLS_USE_PSA_CRYPTO) /* && !MBEDTLS_PK_USE_PSA_EC_DATA */
+
+    (void) f_rng;
+    (void) p_rng;
+    psa_status_t status;
+
+    mbedtls_ecp_keypair *eck = (mbedtls_ecp_keypair *) pk->pk_ctx;
+    size_t curve_bits;
+    psa_ecc_family_t curve = mbedtls_ecc_group_to_psa(eck->grp.id, &curve_bits);
+
+    /* Import private key into PSA, from serialized input */
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
+    psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
+    psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_EXPORT);
+    status = psa_import_key(&key_attr, prv, prv_len, &key_id);
+    if (status != PSA_SUCCESS) {
+        return psa_pk_status_to_mbedtls(status);
+    }
+
+    /* Export public key from PSA */
+    unsigned char pub[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
+    size_t pub_len;
+    status = psa_export_public_key(key_id, pub, sizeof(pub), &pub_len);
+    psa_status_t destruction_status = psa_destroy_key(key_id);
+    if (status != PSA_SUCCESS) {
+        return psa_pk_status_to_mbedtls(status);
+    } else if (destruction_status != PSA_SUCCESS) {
+        return psa_pk_status_to_mbedtls(destruction_status);
+    }
+
+    /* Load serialized public key into ecp_keypair structure */
+    return mbedtls_ecp_point_read_binary(&eck->grp, &eck->Q, pub, pub_len);
+
+#else /* MBEDTLS_USE_PSA_CRYPTO */
+
+    (void) prv;
+    (void) prv_len;
+
+    mbedtls_ecp_keypair *eck = (mbedtls_ecp_keypair *) pk->pk_ctx;
+    return mbedtls_ecp_mul(&eck->grp, &eck->Q, &eck->d, &eck->grp.G, f_rng, p_rng);
+
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+}
+
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+/*
+ * Set the public key: fallback using ECP_LIGHT in the USE_PSA_EC_DATA case.
+ *
+ * Normally, when MBEDTLS_PK_USE_PSA_EC_DATA is enabled, we only use PSA
+ * functions to handle keys. However, currently psa_import_key() does not
+ * support compressed points. In case that support was explicitly requested,
+ * this fallback uses ECP functions to get the job done. This is the reason
+ * why MBEDTLS_PK_PARSE_EC_COMPRESSED auto-enables MBEDTLS_ECP_LIGHT.
+ *
+ * [in/out] pk: in: must have the group set, see pk_ecc_set_group().
+ *              out: will have the public key set.
+ * [in] pub, pub_len: the public key as an ECPoint,
+ *                    in any format supported by ECP.
+ *
+ * Return:
+ * - 0 on success;
+ * - MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the format is potentially valid
+ *   but not supported;
+ * - another error code otherwise.
+ */
+static int pk_ecc_set_pubkey_psa_ecp_fallback(mbedtls_pk_context *pk,
+                                              const unsigned char *pub,
+                                              size_t pub_len)
+{
+#if !defined(MBEDTLS_PK_PARSE_EC_COMPRESSED)
+    (void) pk;
+    (void) pub;
+    (void) pub_len;
+    return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+#else /* MBEDTLS_PK_PARSE_EC_COMPRESSED */
+    mbedtls_ecp_keypair ecp_key;
+    mbedtls_ecp_group_id ecp_group_id;
+    int ret;
+
+    ecp_group_id = mbedtls_ecc_group_of_psa(pk->ec_family, pk->ec_bits, 0);
+
+    mbedtls_ecp_keypair_init(&ecp_key);
+    ret = mbedtls_ecp_group_load(&(ecp_key.grp), ecp_group_id);
+    if (ret != 0) {
+        goto exit;
+    }
+    ret = mbedtls_ecp_point_read_binary(&(ecp_key.grp), &ecp_key.Q,
+                                        pub, pub_len);
+    if (ret != 0) {
+        goto exit;
+    }
+    ret = mbedtls_ecp_point_write_binary(&(ecp_key.grp), &ecp_key.Q,
+                                         MBEDTLS_ECP_PF_UNCOMPRESSED,
+                                         &pk->pub_raw_len, pk->pub_raw,
+                                         sizeof(pk->pub_raw));
+
+exit:
+    mbedtls_ecp_keypair_free(&ecp_key);
+    return ret;
+#endif /* MBEDTLS_PK_PARSE_EC_COMPRESSED */
+}
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+
+/*
+ * Set the public key.
+ *
+ * [in/out] pk: in: must have its group set, see pk_ecc_set_group().
+ *              out: will have the public key set.
+ * [in] pub, pub_len: the raw public key (an ECPoint).
+ *
+ * Return:
+ * - 0 on success;
+ * - MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the format is potentially valid
+ *   but not supported;
+ * - another error code otherwise.
+ */
+static int pk_ecc_set_pubkey(mbedtls_pk_context *pk,
+                             const unsigned char *pub, size_t pub_len)
+{
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+
+    /* Load the key */
+    if (!PSA_ECC_FAMILY_IS_WEIERSTRASS(pk->ec_family) || *pub == 0x04) {
+        /* Format directly supported by PSA:
+         * - non-Weierstrass curves that only have one format;
+         * - uncompressed format for Weierstrass curves. */
+        if (pub_len > sizeof(pk->pub_raw)) {
+            return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
+        }
+        memcpy(pk->pub_raw, pub, pub_len);
+        pk->pub_raw_len = pub_len;
+    } else {
+        /* Other format, try the fallback */
+        int ret = pk_ecc_set_pubkey_psa_ecp_fallback(pk, pub, pub_len);
+        if (ret != 0) {
+            return ret;
+        }
+    }
+
+    /* Validate the key by trying to import it */
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t key_attrs = PSA_KEY_ATTRIBUTES_INIT;
+
+    psa_set_key_usage_flags(&key_attrs, 0);
+    psa_set_key_type(&key_attrs, PSA_KEY_TYPE_ECC_PUBLIC_KEY(pk->ec_family));
+    psa_set_key_bits(&key_attrs, pk->ec_bits);
+
+    if ((psa_import_key(&key_attrs, pk->pub_raw, pk->pub_raw_len,
+                        &key_id) != PSA_SUCCESS) ||
+        (psa_destroy_key(key_id) != PSA_SUCCESS)) {
+        return MBEDTLS_ERR_PK_INVALID_PUBKEY;
     }
 
     return 0;
+
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+
+    int ret;
+    mbedtls_ecp_keypair *ec_key = (mbedtls_ecp_keypair *) pk->pk_ctx;
+    ret = mbedtls_ecp_point_read_binary(&ec_key->grp, &ec_key->Q, pub, pub_len);
+    if (ret != 0) {
+        return ret;
+    }
+    return mbedtls_ecp_check_pubkey(&ec_key->grp, &ec_key->Q);
+
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 }
 
-#if defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
+/***********************************************************************
+ *
+ *      Low-level ECC parsing: optional support for SpecifiedECDomain
+ *
+ * There are two functions here that are used by the rest of the code:
+ * - pk_ecc_tag_is_speficied_ec_domain()
+ * - pk_ecc_group_id_from_specified()
+ *
+ * All the other functions are internal to this section.
+ *
+ * The two "public" functions have a dummy variant provided
+ * in configs without MBEDTLS_PK_PARSE_EC_EXTENDED. This acts as an
+ * abstraction layer for this macro, which should not appear outside
+ * this section.
+ *
+ **********************************************************************/
+
+#if !defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
+/* See the "real" version for documentation */
+static int pk_ecc_tag_is_specified_ec_domain(int tag)
+{
+    (void) tag;
+    return 0;
+}
+
+/* See the "real" version for documentation */
+static int pk_ecc_group_id_from_specified(const mbedtls_asn1_buf *params,
+                                          mbedtls_ecp_group_id *grp_id)
+{
+    (void) params;
+    (void) grp_id;
+    return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+}
+#else /* MBEDTLS_PK_PARSE_EC_EXTENDED */
+/*
+ * Tell if the passed tag might be the start of SpecifiedECDomain
+ * (that is, a sequence).
+ */
+static int pk_ecc_tag_is_specified_ec_domain(int tag)
+{
+    return tag == (MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
+}
+
 /*
  * Parse a SpecifiedECDomain (SEC 1 C.2) and (mostly) fill the group with it.
  * WARNING: the resulting group should only be used with
- * pk_group_id_from_specified(), since its base point may not be set correctly
+ * pk_ecc_group_id_from_specified(), since its base point may not be set correctly
  * if it was encoded compressed.
  *
  *  SpecifiedECDomain ::= SEQUENCE {
@@ -426,8 +603,8 @@ cleanup:
 /*
  * Parse a SpecifiedECDomain (SEC 1 C.2) and find the associated group ID
  */
-static int pk_group_id_from_specified(const mbedtls_asn1_buf *params,
-                                      mbedtls_ecp_group_id *grp_id)
+static int pk_ecc_group_id_from_specified(const mbedtls_asn1_buf *params,
+                                          mbedtls_ecp_group_id *grp_id)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_group grp;
@@ -442,7 +619,7 @@ static int pk_group_id_from_specified(const mbedtls_asn1_buf *params,
 
 cleanup:
     /* The API respecting lifecycle for mbedtls_ecp_group struct is
-     * _init(), _load() and _free(). In pk_group_id_from_specified() the
+     * _init(), _load() and _free(). In pk_ecc_group_id_from_specified() the
      * temporary grp breaks that flow and it's members are populated
      * by pk_group_id_from_group(). As such mbedtls_ecp_group_free()
      * which is assuming a group populated by _setup() may not clean-up
@@ -458,28 +635,52 @@ cleanup:
 }
 #endif /* MBEDTLS_PK_PARSE_EC_EXTENDED */
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-/* Functions pk_use_ecparams() and pk_use_ecparams_rfc8410() update the
- * ecp_keypair structure with proper group ID. The purpose of this helper
- * function is to update ec_family and ec_bits accordingly. */
-static int pk_update_psa_ecparams(mbedtls_pk_context *pk,
-                                  mbedtls_ecp_group_id grp_id)
+/***********************************************************************
+ *
+ * Unsorted (yet!) from this point on until the next section header
+ *
+ **********************************************************************/
+
+/* Minimally parse an ECParameters buffer to and mbedtls_asn1_buf
+ *
+ * ECParameters ::= CHOICE {
+ *   namedCurve         OBJECT IDENTIFIER
+ *   specifiedCurve     SpecifiedECDomain -- = SEQUENCE { ... }
+ *   -- implicitCurve   NULL
+ * }
+ */
+static int pk_get_ecparams(unsigned char **p, const unsigned char *end,
+                           mbedtls_asn1_buf *params)
 {
-    psa_ecc_family_t ec_family;
-    size_t bits;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    ec_family = mbedtls_ecc_group_to_psa(grp_id, &bits);
-
-    if ((pk->ec_family != 0) && (pk->ec_family != ec_family)) {
-        return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
+    if (end - *p < 1) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT,
+                                 MBEDTLS_ERR_ASN1_OUT_OF_DATA);
     }
 
-    pk->ec_family = ec_family;
-    pk->ec_bits = bits;
+    /* Acceptable tags: OID for namedCurve, or specifiedECDomain */
+    params->tag = **p;
+    if (params->tag != MBEDTLS_ASN1_OID &&
+        !pk_ecc_tag_is_specified_ec_domain(params->tag)) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT,
+                                 MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
+    }
+
+    if ((ret = mbedtls_asn1_get_tag(p, end, &params->len, params->tag)) != 0) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
+    }
+
+    params->p = *p;
+    *p += params->len;
+
+    if (*p != end) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+    }
 
     return 0;
 }
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
 /*
  * Use EC parameters to initialise an EC group
@@ -499,89 +700,13 @@ static int pk_use_ecparams(const mbedtls_asn1_buf *params, mbedtls_pk_context *p
             return MBEDTLS_ERR_PK_UNKNOWN_NAMED_CURVE;
         }
     } else {
-#if defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
-        if ((ret = pk_group_id_from_specified(params, &grp_id)) != 0) {
+        ret = pk_ecc_group_id_from_specified(params, &grp_id);
+        if (ret != 0) {
             return ret;
         }
-#else
-        return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
-#endif
     }
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    ret = pk_update_psa_ecparams(pk, grp_id);
-#else
-    /* grp may already be initialized; if so, make sure IDs match */
-    if (mbedtls_pk_ec_ro(*pk)->grp.id != MBEDTLS_ECP_DP_NONE &&
-        mbedtls_pk_ec_ro(*pk)->grp.id != grp_id) {
-        return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
-    }
-
-    if ((ret = mbedtls_ecp_group_load(&(mbedtls_pk_ec_rw(*pk)->grp),
-                                      grp_id)) != 0) {
-        return ret;
-    }
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
-
-    return ret;
-}
-
-/*
- * Helper function for deriving a public key from its private counterpart.
- */
-static int pk_derive_public_key(mbedtls_pk_context *pk,
-                                const unsigned char *d, size_t d_len,
-                                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
-{
-    int ret;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_status_t status;
-    (void) f_rng;
-    (void) p_rng;
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    (void) d;
-    (void) d_len;
-
-    status = psa_export_public_key(pk->priv_id, pk->pub_raw, sizeof(pk->pub_raw),
-                                   &pk->pub_raw_len);
-    ret = psa_pk_status_to_mbedtls(status);
-#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
-    mbedtls_ecp_keypair *eck = (mbedtls_ecp_keypair *) pk->pk_ctx;
-    unsigned char key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
-    size_t key_len;
-    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
-    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
-    size_t curve_bits;
-    psa_ecc_family_t curve = mbedtls_ecc_group_to_psa(eck->grp.id, &curve_bits);
-    psa_status_t destruction_status;
-
-    psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
-    psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_EXPORT);
-
-    status = psa_import_key(&key_attr, d, d_len, &key_id);
-    ret = psa_pk_status_to_mbedtls(status);
-    if (ret != 0) {
-        return ret;
-    }
-
-    status = psa_export_public_key(key_id, key_buf, sizeof(key_buf), &key_len);
-    ret = psa_pk_status_to_mbedtls(status);
-    destruction_status = psa_destroy_key(key_id);
-    if (ret != 0) {
-        return ret;
-    } else if (destruction_status != PSA_SUCCESS) {
-        return psa_pk_status_to_mbedtls(destruction_status);
-    }
-    ret = mbedtls_ecp_point_read_binary(&eck->grp, &eck->Q, key_buf, key_len);
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
-#else /* MBEDTLS_USE_PSA_CRYPTO */
-    mbedtls_ecp_keypair *eck = (mbedtls_ecp_keypair *) pk->pk_ctx;
-    (void) d;
-    (void) d_len;
-
-    ret = mbedtls_ecp_mul(&eck->grp, &eck->Q, &eck->d, &eck->grp.G, f_rng, p_rng);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-    return ret;
+    return pk_ecc_set_group(pk, grp_id);
 }
 
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
@@ -593,22 +718,11 @@ static int pk_use_ecparams_rfc8410(const mbedtls_asn1_buf *params,
                                    mbedtls_ecp_group_id grp_id,
                                    mbedtls_pk_context *pk)
 {
-    int ret;
-
     if (params->tag != 0 || params->len != 0) {
         return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
     }
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    ret = pk_update_psa_ecparams(pk, grp_id);
-#else
-    mbedtls_ecp_keypair *ecp = mbedtls_pk_ec_rw(*pk);
-    ret = mbedtls_ecp_group_load(&(ecp->grp), grp_id);
-    if (ret != 0) {
-        return ret;
-    }
-#endif
-    return ret;
+    return pk_ecc_set_group(pk, grp_id);
 }
 
 /*
@@ -631,32 +745,18 @@ static int pk_parse_key_rfc8410_der(mbedtls_pk_context *pk,
         return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
     }
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_status_t status;
-
-    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(pk->ec_family));
-    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_EXPORT |
-                            PSA_KEY_USAGE_DERIVE);
-    psa_set_key_algorithm(&attributes, PSA_ALG_ECDH);
-
-    status = psa_import_key(&attributes, key, len, &pk->priv_id);
-    if (status != PSA_SUCCESS) {
-        ret = psa_pk_status_to_mbedtls(status);
+    /*
+     * Load the private key
+     */
+    ret = pk_ecc_set_key(pk, key, len);
+    if (ret != 0) {
         return ret;
     }
-#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
-    mbedtls_ecp_keypair *eck = mbedtls_pk_ec_rw(*pk);
-
-    if ((ret = mbedtls_ecp_read_key(eck->grp.id, eck, key, len)) != 0) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
-    }
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
     /* pk_parse_key_pkcs8_unencrypted_der() only supports version 1 PKCS8 keys,
      * which never contain a public key. As such, derive the public key
      * unconditionally. */
-    if ((ret = pk_derive_public_key(pk, key, len, f_rng, p_rng)) != 0) {
+    if ((ret = pk_ecc_set_pubkey_from_prv(pk, key, len, f_rng, p_rng)) != 0) {
         return ret;
     }
 
@@ -664,116 +764,6 @@ static int pk_parse_key_rfc8410_der(mbedtls_pk_context *pk,
 }
 #endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA) && defined(MBEDTLS_PK_PARSE_EC_COMPRESSED)
-/*
- * Create a temporary ecp_keypair for converting an EC point in compressed
- * format to an uncompressed one
- */
-static int pk_convert_compressed_ec(mbedtls_pk_context *pk,
-                                    const unsigned char *in_start, size_t in_len,
-                                    size_t *out_buf_len, unsigned char *out_buf,
-                                    size_t out_buf_size)
-{
-    mbedtls_ecp_keypair ecp_key;
-    mbedtls_ecp_group_id ecp_group_id;
-    int ret;
-
-    ecp_group_id = mbedtls_ecc_group_of_psa(pk->ec_family, pk->ec_bits, 0);
-
-    mbedtls_ecp_keypair_init(&ecp_key);
-    ret = mbedtls_ecp_group_load(&(ecp_key.grp), ecp_group_id);
-    if (ret != 0) {
-        return ret;
-    }
-    ret = mbedtls_ecp_point_read_binary(&(ecp_key.grp), &ecp_key.Q,
-                                        in_start, in_len);
-    if (ret != 0) {
-        goto exit;
-    }
-    ret = mbedtls_ecp_point_write_binary(&(ecp_key.grp), &ecp_key.Q,
-                                         MBEDTLS_ECP_PF_UNCOMPRESSED,
-                                         out_buf_len, out_buf, out_buf_size);
-
-exit:
-    mbedtls_ecp_keypair_free(&ecp_key);
-    return ret;
-}
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA && MBEDTLS_PK_PARSE_EC_COMPRESSED */
-
-/*
- * EC public key is an EC point
- *
- * The caller is responsible for clearing the structure upon failure if
- * desired. Take care to pass along the possible ECP_FEATURE_UNAVAILABLE
- * return code of mbedtls_ecp_point_read_binary() and leave p in a usable state.
- */
-static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
-                           mbedtls_pk_context *pk)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    mbedtls_svc_key_id_t key;
-    psa_key_attributes_t key_attrs = PSA_KEY_ATTRIBUTES_INIT;
-    size_t len = (end - *p);
-
-    if (len > PSA_EXPORT_PUBLIC_KEY_MAX_SIZE) {
-        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-    }
-
-    /* Compressed point format are not supported yet by PSA crypto. As a
-     * consequence ecp functions are used to "convert" the point to
-     * uncompressed format */
-    if ((**p == 0x02) || (**p == 0x03)) {
-#if defined(MBEDTLS_PK_PARSE_EC_COMPRESSED)
-        ret = pk_convert_compressed_ec(pk, *p, len,
-                                       &(pk->pub_raw_len), pk->pub_raw,
-                                       PSA_EXPORT_PUBLIC_KEY_MAX_SIZE);
-        if (ret != 0) {
-            return ret;
-        }
-#else /* MBEDTLS_PK_PARSE_EC_COMPRESSED */
-        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-#endif /* MBEDTLS_PK_PARSE_EC_COMPRESSED */
-    } else {
-        /* Uncompressed format */
-        if ((size_t) (end - *p) > MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN) {
-            return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
-        }
-        memcpy(pk->pub_raw, *p, (end - *p));
-        pk->pub_raw_len = end - *p;
-    }
-
-    /* Validate the key by trying to importing it */
-    psa_set_key_usage_flags(&key_attrs, 0);
-    psa_set_key_algorithm(&key_attrs, PSA_ALG_ECDSA_ANY);
-    psa_set_key_type(&key_attrs, PSA_KEY_TYPE_ECC_PUBLIC_KEY(pk->ec_family));
-    psa_set_key_bits(&key_attrs, pk->ec_bits);
-
-    if ((psa_import_key(&key_attrs, pk->pub_raw, pk->pub_raw_len,
-                        &key) != PSA_SUCCESS) ||
-        (psa_destroy_key(key) != PSA_SUCCESS)) {
-        mbedtls_platform_zeroize(pk->pub_raw, MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
-        pk->pub_raw_len = 0;
-        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-    }
-    ret = 0;
-#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
-    mbedtls_ecp_keypair *ec_key = (mbedtls_ecp_keypair *) pk->pk_ctx;
-    if ((ret = mbedtls_ecp_point_read_binary(&ec_key->grp, &ec_key->Q,
-                                             (const unsigned char *) *p,
-                                             end - *p)) == 0) {
-        ret = mbedtls_ecp_check_pubkey(&ec_key->grp, &ec_key->Q);
-    }
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
-
-    /*
-     * We know mbedtls_ecp_point_read_binary consumed all bytes or failed
-     */
-    *p = (unsigned char *) end;
-
-    return ret;
-}
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
 #if defined(MBEDTLS_RSA_C)
@@ -885,6 +875,12 @@ static int pk_get_pk_alg(unsigned char **p,
     return 0;
 }
 
+/* Helper for Montgomery curves */
+#if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
+#define MBEDTLS_PK_IS_RFC8410_GROUP_ID(id)  \
+    ((id == MBEDTLS_ECP_DP_CURVE25519) || (id == MBEDTLS_ECP_DP_CURVE448))
+#endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
+
 /*
  *  SubjectPublicKeyInfo  ::=  SEQUENCE  {
  *       algorithm            AlgorithmIdentifier,
@@ -944,7 +940,8 @@ int mbedtls_pk_parse_subpubkey(unsigned char **p, const unsigned char *end,
             ret = pk_use_ecparams(&alg_params, pk);
         }
         if (ret == 0) {
-            ret = pk_get_ecpubkey(p, end, pk);
+            ret = pk_ecc_set_pubkey(pk, *p, end - *p);
+            *p += end - *p;
         }
     } else
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
@@ -1167,12 +1164,6 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
     unsigned char *d;
     unsigned char *end = p + keylen;
     unsigned char *end2;
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_status_t status;
-#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
-    mbedtls_ecp_keypair *eck = mbedtls_pk_ec_rw(*pk);
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
     /*
      * RFC 5915, or SEC1 Appendix C.4
@@ -1227,12 +1218,13 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
         }
     }
 
-
-#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    if ((ret = mbedtls_ecp_read_key(eck->grp.id, eck, d, d_len)) != 0) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
+    /*
+     * Load the private key
+     */
+    ret = pk_ecc_set_key(pk, d, d_len);
+    if (ret != 0) {
+        return ret;
     }
-#endif
 
     if (p != end) {
         /*
@@ -1253,11 +1245,11 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
                                          MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
             }
 
-            if ((ret = pk_get_ecpubkey(&p, end2, pk)) == 0) {
+            if ((ret = pk_ecc_set_pubkey(pk, p, end2 - p)) == 0) {
                 pubkey_done = 1;
             } else {
                 /*
-                 * The only acceptable failure mode of pk_get_ecpubkey() above
+                 * The only acceptable failure mode of pk_ecc_set_pubkey() above
                  * is if the point format is not recognized.
                  */
                 if (ret != MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE) {
@@ -1269,29 +1261,8 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
         }
     }
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(pk->ec_family));
-    /* Setting largest masks for usage and key algorithms */
-    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH |
-                            PSA_KEY_USAGE_SIGN_MESSAGE |
-                            PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_DERIVE);
-#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
-    psa_set_key_algorithm(&attributes,
-                          PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_ANY_HASH));
-#else
-    psa_set_key_algorithm(&attributes, PSA_ALG_ECDSA(PSA_ALG_ANY_HASH));
-#endif
-    psa_set_key_enrollment_algorithm(&attributes, PSA_ALG_ECDH);
-
-    status = psa_import_key(&attributes, d, d_len, &pk->priv_id);
-    if (status != PSA_SUCCESS) {
-        ret = psa_pk_status_to_mbedtls(status);
-        return ret;
-    }
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
-
     if (!pubkey_done) {
-        if ((ret = pk_derive_public_key(pk, d, d_len, f_rng, p_rng)) != 0) {
+        if ((ret = pk_ecc_set_pubkey_from_prv(pk, d, d_len, f_rng, p_rng)) != 0) {
             return ret;
         }
     }
@@ -1299,6 +1270,12 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
     return 0;
 }
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+
+/***********************************************************************
+ *
+ *      PKCS#8 parsing functions
+ *
+ **********************************************************************/
 
 /*
  * Parse an unencrypted PKCS#8 encoded private key
@@ -1534,6 +1511,12 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_pk_parse_key_pkcs8_encrypted_der(
     return pk_parse_key_pkcs8_unencrypted_der(pk, buf, outlen, f_rng, p_rng);
 }
 #endif /* MBEDTLS_PKCS12_C || MBEDTLS_PKCS5_C */
+
+/***********************************************************************
+ *
+ *      Top-level functions, with format auto-discovery
+ *
+ **********************************************************************/
 
 /*
  * Parse a private key
@@ -1853,5 +1836,113 @@ int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
 
     return ret;
 }
+
+/***********************************************************************
+ *
+ *      Top-level functions, with filesystem support
+ *
+ **********************************************************************/
+
+#if defined(MBEDTLS_FS_IO)
+/*
+ * Load all data from a file into a given buffer.
+ *
+ * The file is expected to contain either PEM or DER encoded data.
+ * A terminating null byte is always appended. It is included in the announced
+ * length only if the data looks like it is PEM encoded.
+ */
+int mbedtls_pk_load_file(const char *path, unsigned char **buf, size_t *n)
+{
+    FILE *f;
+    long size;
+
+    if ((f = fopen(path, "rb")) == NULL) {
+        return MBEDTLS_ERR_PK_FILE_IO_ERROR;
+    }
+
+    /* Ensure no stdio buffering of secrets, as such buffers cannot be wiped. */
+    mbedtls_setbuf(f, NULL);
+
+    fseek(f, 0, SEEK_END);
+    if ((size = ftell(f)) == -1) {
+        fclose(f);
+        return MBEDTLS_ERR_PK_FILE_IO_ERROR;
+    }
+    fseek(f, 0, SEEK_SET);
+
+    *n = (size_t) size;
+
+    if (*n + 1 == 0 ||
+        (*buf = mbedtls_calloc(1, *n + 1)) == NULL) {
+        fclose(f);
+        return MBEDTLS_ERR_PK_ALLOC_FAILED;
+    }
+
+    if (fread(*buf, 1, *n, f) != *n) {
+        fclose(f);
+
+        mbedtls_zeroize_and_free(*buf, *n);
+
+        return MBEDTLS_ERR_PK_FILE_IO_ERROR;
+    }
+
+    fclose(f);
+
+    (*buf)[*n] = '\0';
+
+    if (strstr((const char *) *buf, "-----BEGIN ") != NULL) {
+        ++*n;
+    }
+
+    return 0;
+}
+
+/*
+ * Load and parse a private key
+ */
+int mbedtls_pk_parse_keyfile(mbedtls_pk_context *ctx,
+                             const char *path, const char *pwd,
+                             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t n;
+    unsigned char *buf;
+
+    if ((ret = mbedtls_pk_load_file(path, &buf, &n)) != 0) {
+        return ret;
+    }
+
+    if (pwd == NULL) {
+        ret = mbedtls_pk_parse_key(ctx, buf, n, NULL, 0, f_rng, p_rng);
+    } else {
+        ret = mbedtls_pk_parse_key(ctx, buf, n,
+                                   (const unsigned char *) pwd, strlen(pwd), f_rng, p_rng);
+    }
+
+    mbedtls_zeroize_and_free(buf, n);
+
+    return ret;
+}
+
+/*
+ * Load and parse a public key
+ */
+int mbedtls_pk_parse_public_keyfile(mbedtls_pk_context *ctx, const char *path)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t n;
+    unsigned char *buf;
+
+    if ((ret = mbedtls_pk_load_file(path, &buf, &n)) != 0) {
+        return ret;
+    }
+
+    ret = mbedtls_pk_parse_public_key(ctx, buf, n);
+
+    mbedtls_zeroize_and_free(buf, n);
+
+    return ret;
+}
+#endif /* MBEDTLS_FS_IO */
 
 #endif /* MBEDTLS_PK_PARSE_C */

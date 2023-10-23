@@ -270,15 +270,6 @@ KNOWN_TASKS = {
                     'Low and high error',
                     'Single low error'
                 ],
-                # Following tests depends on AES_C/DES_C/GCM_C/CTR
-                'test_suite_psa_crypto': [
-                    'PSA AEAD encrypt/decrypt: DES-CCM not supported',
-                    'PSA AEAD encrypt/decrypt: invalid algorithm (CTR)',
-                    'PSA cipher setup: bad algorithm (unknown cipher algorithm)',
-                    'PSA cipher setup: incompatible key ChaCha20 for CTR',
-                    'PSA cipher setup: invalid key type, CTR',
-                    'PSA symmetric decrypt: CCM*-no-tag, input too short (15 bytes)',
-                ],
                 # Following test depends on AES_C
                 'test_suite_version': [
                     'Check for MBEDTLS_AES_C when already present',

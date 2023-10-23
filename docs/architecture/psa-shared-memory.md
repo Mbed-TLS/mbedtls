@@ -466,7 +466,7 @@ Key import / export | Copying | Copying | Keys may be imported and exported in D
 
 ### Copying functions
 
-As discussed above, it is simpler to use a single unified API for copying. Therefore, we create the following functions:
+As discussed in [Copying code](#copying-code), it is simpler to use a single unified API for copying. Therefore, we create the following functions:
 
 * `psa_crypto_copy_input(const uint8_t *input, size_t input_length, uint8_t *input_copy, size_t input_copy_length)`
 * `psa_crypto_copy_output(const uint8_t *output_copy, size_t output_copy_length, uint8_t *output, size_t output_length)`

@@ -1576,18 +1576,7 @@ common_test_full_no_cipher_with_crypto () {
     scripts/config.py unset MBEDTLS_CAMELLIA_C
     # Dependencies on AES_C
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
-    # Disable dependencies on the AEAD algs
-    scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
-    # Indirect dependencies
-    scripts/config.py unset MBEDTLS_SSL_CLI_C
-    scripts/config.py unset MBEDTLS_SSL_DTLS_ANTI_REPLAY
-    scripts/config.py unset MBEDTLS_SSL_DTLS_CONNECTION_ID
-    scripts/config.py unset MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py unset MBEDTLS_SSL_SRV_C
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_LMS_C
-    scripts/config.py unset MBEDTLS_LMS_PRIVATE
+
     make
 
     # Ensure that CIPHER_C was not re-enabled

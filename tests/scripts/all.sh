@@ -1488,7 +1488,7 @@ component_test_crypto_full_md_light_only () {
 }
 
 component_test_full_no_cipher () {
-    msg "build: full - CIPHER - PSA_CRYPTO_C"
+    msg "build: full no CIPHER no PSA_CRYPTO_C"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_CIPHER_C
     # Don't pull in cipher via PSA mechanisms
@@ -1518,7 +1518,7 @@ component_test_full_no_cipher () {
     scripts/config.py unset MBEDTLS_LMS_PRIVATE
     make
 
-    msg "test: full - CIPHER - PSA_CRYPTO_C"
+    msg "test: full no CIPHER no PSA_CRYPTO_C"
     make test
 }
 
@@ -1598,11 +1598,11 @@ common_test_full_no_cipher_with_crypto () {
 }
 
 component_test_full_no_cipher_with_crypto() {
-    common_test_full_no_cipher_with_crypto 0 "full - CIPHER - CRYPTO_CONFIG"
+    common_test_full_no_cipher_with_crypto 0 "full no CIPHER no CRYPTO_CONFIG"
 }
 
 component_test_full_no_cipher_with_crypto_config() {
-    common_test_full_no_cipher_with_crypto 1 "full - CIPHER"
+    common_test_full_no_cipher_with_crypto 1 "full no CIPHER"
 }
 
 component_test_full_no_bignum () {

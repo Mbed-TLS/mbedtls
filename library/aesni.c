@@ -33,10 +33,12 @@
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
 
 #if MBEDTLS_AESNI_HAVE_CODE == 2
-#if !defined(_WIN32)
+#if defined(__GNUC__)
 #include <cpuid.h>
-#else
+#elif defined(_MSC_VER)
 #include <intrin.h>
+#else
+#error "`__cpuid` required by MBEDTLS_AESNI_C is not supported by the compiler"
 #endif
 #include <immintrin.h>
 #endif
@@ -52,7 +54,7 @@ int mbedtls_aesni_has_support(unsigned int what)
 
     if (!done) {
 #if MBEDTLS_AESNI_HAVE_CODE == 2
-        static unsigned info[4] = { 0, 0, 0, 0 };
+        static int info[4] = { 0, 0, 0, 0 };
 #if defined(_MSC_VER)
         __cpuid(info, 1);
 #else

@@ -91,7 +91,10 @@ psa_status_t mbedtls_cipher_values_from_psa(
     mbedtls_cipher_id_t *cipher_id)
 {
     mbedtls_cipher_id_t cipher_id_tmp;
+    /* Only DES modifies key_bits */
+#if !defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES)
     (void) key_bits;
+#endif
 
     if (PSA_ALG_IS_AEAD(alg)) {
         alg = PSA_ALG_AEAD_WITH_SHORTENED_TAG(alg, 0);

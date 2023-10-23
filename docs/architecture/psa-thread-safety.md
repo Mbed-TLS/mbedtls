@@ -404,7 +404,7 @@ Since we only have simple mutexes, locking the same mutex from the same thread i
 
 Releasing the mutex before a function call might introduce race conditions. Therefore might not be practical to take the mutex in low level access functions. If functions like that don't take the mutex, they need to rely on the caller to take it for them. These functions will document that the caller is required to hold the mutex.
 
-To avoid performance degradation, functions must not start expensive operations (eg. doing cryptography) while holding the mutex.
+To avoid performance degradation, functions must hold mutexes for as short time as possible. In particular, they must not start expensive operations (eg. doing cryptography) while holding the mutex.
 
 ## Strategy for 3.6
 

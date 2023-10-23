@@ -118,8 +118,19 @@
 
 #if defined(__linux__) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 
-#include <asm/hwcap.h>
 #include <sys/auxv.h>
+#if !defined(HWCAP_NEON)
+#define HWCAP_NEON  (1 << 12)
+#endif
+#if !defined(HWCAP2_AES)
+#define HWCAP2_AES  (1 << 0)
+#endif
+#if !defined(HWCAP_AES)
+#define HWCAP_AES   (1 << 3)
+#endif
+#if !defined(HWCAP_ASIMD)
+#define HWCAP_ASIMD (1 << 1)
+#endif
 
 signed char mbedtls_aesce_has_support_result = -1;
 

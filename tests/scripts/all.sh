@@ -4411,21 +4411,16 @@ component_build_aes_armce () {
     msg "MBEDTLS_AES_USE_HARDWARE_ONLY, clang, thumb"
     make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
 
-    # we need asm/hwcap.h available for runtime detection
-    if (echo '#include <asm/hwcap.h>' | clang -E - >/dev/null 2>&1); then
-        scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
 
-        msg "no MBEDTLS_AES_USE_HARDWARE_ONLY, clang, aarch64"
-        make -B library/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a+crypto"
+    msg "no MBEDTLS_AES_USE_HARDWARE_ONLY, clang, aarch64"
+    make -B library/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a+crypto"
 
-        msg "no MBEDTLS_AES_USE_HARDWARE_ONLY, clang, arm"
-        make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm"
+    msg "no MBEDTLS_AES_USE_HARDWARE_ONLY, clang, arm"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm"
 
-        msg "no MBEDTLS_AES_USE_HARDWARE_ONLY, clang, thumb"
-        make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
-    else
-        msg "can't include <asm/hwcap.h> - skipping runtime detection tests"
-    fi
+    msg "no MBEDTLS_AES_USE_HARDWARE_ONLY, clang, thumb"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
 
     # test for presence of AES instructions
     scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY

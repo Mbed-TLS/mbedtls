@@ -477,13 +477,13 @@ These seem to be a repeat of the same function, however it is useful to retain t
 
 Given that the majority of functions will be allocating memory on the heap to copy, it may help to build convenience functions that allocate the memory as well. One function allocates and copies the buffers:
 
-* `psa_crypto_alloc_and_copy(const uint8_t *input, size_t input_length, uint8_t *output, size_t output_length, struct {uint8_t *inp, uint8_t *out} *buffers)`
+* `psa_crypto_alloc_and_copy(const uint8_t *input, size_t input_length, uint8_t *output, size_t output_length, struct {uint8_t *inp, size_t inp_len, uint8_t *out, size_t out_len} *buffers)`
 
 This function allocates an input and output buffer in `buffers` and copy the input from the user-supplied input buffer to `buffers->inp`.
 
 An analogous function is needed to copy and free the buffers:
 
-* `psa_crypto_copy_and_free(struct {uint8_t *inp, uint8_t *out} buffers, const uint8_t *input, size_t input_length, const uint8_t *output, size_t output_length)`
+* `psa_crypto_copy_and_free(struct {uint8_t *inp, size_t inp_len, uint8_t *out, size_t out_len} buffers, const uint8_t *input, size_t input_length, const uint8_t *output, size_t output_length)`
 
 This function would first copy the `buffers->out` buffer to the user-supplied output buffer and then free `buffers->inp` and `buffers->out`.
 

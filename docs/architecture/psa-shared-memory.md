@@ -341,7 +341,7 @@ It should be possible to work around this by manually rounding buffer lengths up
 
 ##### Validation with new tests
 
-Validation with newly created tests would be simpler to implement than using existing tests, since the tests can be written to take into account memory poisoning. It is also possible to build such a testsuite on top of existing tests - `mbedtls_test_psa_exercise_key` is a test helper that already exercises most PSA interfaces, so implementing the tests could be as simple as extending it.
+Validation with newly created tests would be simpler to implement than using existing tests, since the tests can be written to take into account memory poisoning. It is also possible to build such a testsuite using existing tests as a starting point - `mbedtls_test_psa_exercise_key` is a test helper that already exercises many PSA operations on a key. This would need to be extended to cover operations without keys (e.g. hashes) and multipart operations, but it provides a good base from which to build all of the required testing.
 
 Additionally, we can ensure that all functions are exercised by automatically generating test data files.
 

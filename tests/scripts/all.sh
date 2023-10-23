@@ -4344,10 +4344,7 @@ support_build_sha_armce() {
         # clang >= 4 is required to build with SHA extensions
         clang_ver="$(clang --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#')"
 
-        # we need asm/hwcap.h available for runtime detection
-        echo '#include <asm/hwcap.h>' | clang -E - >/dev/null 2>&1 && have_hwcap=1 || have_hwcap=0
-
-        [[ "${clang_ver}" -ge 4 && "${have_hwcap}" -eq 1 ]]
+        [[ "${clang_ver}" -ge 4 ]]
     else
         # clang not available
         false

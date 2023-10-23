@@ -126,7 +126,13 @@
 #      if defined(__linux__)
 /* Our preferred method of detection is getauxval() */
 #        include <sys/auxv.h>
-#        include <asm/hwcap.h>
+/* These are not always defined via sys/auxv.h */
+#        if !defined(HWCAP_SHA2)
+#          define HWCAP_SHA2  (1 << 6)
+#        endif
+#        if !defined(HWCAP2_SHA2)
+#          define HWCAP2_SHA2 (1 << 3)
+#        endif
 #      endif
 /* Use SIGILL on Unix, and fall back to it on Linux */
 #      include <signal.h>

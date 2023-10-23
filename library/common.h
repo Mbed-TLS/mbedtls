@@ -334,4 +334,25 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 #define MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
 #endif
 
+/* Suppress compiler warnings for unused functions and variables. */
+#if !defined(MBEDTLS_MAYBE_UNUSED) && defined(__has_attribute)
+#    if __has_attribute(unused)
+#        define MBEDTLS_MAYBE_UNUSED __attribute__((unused))
+#    endif
+#endif
+#if !defined(MBEDTLS_MAYBE_UNUSED) && defined(__GNUC__)
+#    define MBEDTLS_MAYBE_UNUSED __attribute__((unused))
+#endif
+#if !defined(MBEDTLS_MAYBE_UNUSED) && defined(__IAR_SYSTEMS_ICC__) && defined(__VER__)
+#    if (__VER__ >= 8010000) // IAR 8.1 or later
+#        define MBEDTLS_MAYBE_UNUSED __attribute__((unused))
+#    endif
+#endif
+#if !defined(MBEDTLS_MAYBE_UNUSED) && defined(_MSC_VER)
+#    define MBEDTLS_MAYBE_UNUSED __pragma(warning(suppress:4189))
+#endif
+#if !defined(MBEDTLS_MAYBE_UNUSED)
+#    define MBEDTLS_MAYBE_UNUSED
+#endif
+
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

@@ -81,14 +81,6 @@ TCP_CLIENT="$PERL scripts/tcp_client.pl"
 
 # alternative versions of OpenSSL and GnuTLS (no default path)
 
-if [ -n "${OPENSSL_LEGACY:-}" ]; then
-    O_LEGACY_SRV="$OPENSSL_LEGACY s_server -www -cert data_files/server5.crt -key data_files/server5.key"
-    O_LEGACY_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_LEGACY s_client"
-else
-    O_LEGACY_SRV=false
-    O_LEGACY_CLI=false
-fi
-
 if [ -n "${OPENSSL_NEXT:-}" ]; then
     O_NEXT_SRV="$OPENSSL_NEXT s_server -www -cert data_files/server5.crt -key data_files/server5.key"
     O_NEXT_SRV_EARLY_DATA="$OPENSSL_NEXT s_server -early_data -cert data_files/server5.crt -key data_files/server5.key"
@@ -640,20 +632,6 @@ requires_gnutls_next() {
         fi
     fi
     if [ "$GNUTLS_NEXT_AVAILABLE" = "NO" ]; then
-        SKIP_NEXT="YES"
-    fi
-}
-
-# skip next test if OpenSSL-legacy isn't available
-requires_openssl_legacy() {
-    if [ -z "${OPENSSL_LEGACY_AVAILABLE:-}" ]; then
-        if which "${OPENSSL_LEGACY:-}" >/dev/null 2>&1; then
-            OPENSSL_LEGACY_AVAILABLE="YES"
-        else
-            OPENSSL_LEGACY_AVAILABLE="NO"
-        fi
-    fi
-    if [ "$OPENSSL_LEGACY_AVAILABLE" = "NO" ]; then
         SKIP_NEXT="YES"
     fi
 }
@@ -1915,11 +1893,6 @@ O_CLI="$O_CLI -connect 127.0.0.1:+SRV_PORT"
 G_SRV="$G_SRV -p $SRV_PORT"
 G_CLI="$G_CLI -p +SRV_PORT"
 
-if [ -n "${OPENSSL_LEGACY:-}" ]; then
-    O_LEGACY_SRV="$O_LEGACY_SRV -accept $SRV_PORT -dhparam data_files/dhparams.pem"
-    O_LEGACY_CLI="$O_LEGACY_CLI -connect 127.0.0.1:+SRV_PORT"
-fi
-
 # Newer versions of OpenSSL have a syntax to enable all "ciphers", even
 # low-security ones. This covers not just cipher suites but also protocol
 # versions. It is necessary, for example, to use (D)TLS 1.0/1.1 on
@@ -2599,32 +2572,32 @@ run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA
 run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256
 run_test_psa TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384
 
-requires_config_enabled MBEDTLS_ECP_DP_SECP521R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_521
 run_test_psa_force_curve "secp521r1"
-requires_config_enabled MBEDTLS_ECP_DP_BP512R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_BRAINPOOL_P_R1_512
 run_test_psa_force_curve "brainpoolP512r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP384R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_384
 run_test_psa_force_curve "secp384r1"
-requires_config_enabled MBEDTLS_ECP_DP_BP384R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_BRAINPOOL_P_R1_384
 run_test_psa_force_curve "brainpoolP384r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 run_test_psa_force_curve "secp256r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP256K1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_K1_256
 run_test_psa_force_curve "secp256k1"
-requires_config_enabled MBEDTLS_ECP_DP_BP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_BRAINPOOL_P_R1_256
 run_test_psa_force_curve "brainpoolP256r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP224R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_224
 run_test_psa_force_curve "secp224r1"
 ## SECP224K1 is buggy via the PSA API
 ## (https://github.com/Mbed-TLS/mbedtls/issues/3541),
 ## so it is disabled in PSA even when it's enabled in Mbed TLS.
 ## The proper dependency would be on PSA_WANT_ECC_SECP_K1_224 but
 ## dependencies on PSA symbols in ssl-opt.sh are not implemented yet.
-#requires_config_enabled MBEDTLS_ECP_DP_SECP224K1_ENABLED
+#requires_config_enabled PSA_WANT_ECC_SECP_K1_224
 #run_test_psa_force_curve "secp224k1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP192R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_192
 run_test_psa_force_curve "secp192r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP192K1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_K1_192
 run_test_psa_force_curve "secp192k1"
 
 # Test current time in ServerHello

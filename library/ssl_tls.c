@@ -8287,9 +8287,7 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
     keylen = mbedtls_cipher_info_get_key_bitlen(cipher_info) / 8;
 #endif
 
-#if defined(MBEDTLS_GCM_C) ||                           \
-    defined(MBEDTLS_CCM_C) ||                           \
-    defined(MBEDTLS_CHACHAPOLY_C)
+#if defined(MBEDTLS_SSL_HAVE_AEAD)
     if (ssl_mode == MBEDTLS_SSL_MODE_AEAD) {
         size_t explicit_ivlen;
 
@@ -8324,7 +8322,7 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
         explicit_ivlen = transform->ivlen - transform->fixed_ivlen;
         transform->minlen = explicit_ivlen + transform->taglen;
     } else
-#endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C || MBEDTLS_CHACHAPOLY_C */
+#endif /* MBEDTLS_SSL_HAVE_AEAD */
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     if (ssl_mode == MBEDTLS_SSL_MODE_STREAM ||
         ssl_mode == MBEDTLS_SSL_MODE_CBC ||

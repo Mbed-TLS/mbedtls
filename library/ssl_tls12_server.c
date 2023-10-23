@@ -676,7 +676,7 @@ static int ssl_check_key_curve(mbedtls_pk_context *pk,
                                uint16_t *curves_tls_id)
 {
     uint16_t *curr_tls_id = curves_tls_id;
-    mbedtls_ecp_group_id grp_id = mbedtls_pk_ec_ro(*pk)->grp.id;
+    mbedtls_ecp_group_id grp_id = mbedtls_pk_get_group_id(pk);
     mbedtls_ecp_group_id curr_grp_id;
 
     while (*curr_tls_id != 0) {
@@ -2600,9 +2600,9 @@ static int ssl_write_certificate_request(mbedtls_ssl_context *ssl)
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) &&                      \
-    (defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
+#if (defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED))
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 {
@@ -2712,8 +2712,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 
     return ret;
 }
-#elif defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+#else /* MBEDTLS_USE_PSA_CRYPTO */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 {
@@ -2739,6 +2738,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 
     return 0;
 }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 

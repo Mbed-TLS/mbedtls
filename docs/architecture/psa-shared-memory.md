@@ -331,9 +331,11 @@ Meanwhile, approaches (1) and (3) are much more convenient. We are simply requir
 
 > This function is not guaranteed to poison the whole region - it may poison only subregion of [addr, addr+size) due to ASan alignment restrictions.
 
-It is not clear how easy it would be to work around this. Valgrind does not appear to have this limitation (unless Valgrind is simply more poorly documented). Valgrind is therefore slightly preferable compared with ASan, but ASan is an acceptable fallback option.
+Specifically, ASan will round the buffer size down to 8 bytes before poisoning due to details of its implementation. For more information on this, see [Microsoft documentation of this feature](https://learn.microsoft.com/en-us/cpp/sanitizers/asan-runtime?view=msvc-170#alignment-requirements-for-addresssanitizer-poisoning).
 
-**Design decision: Use Valgrind's memcheck tool to implement memory poisoning tests.**
+It should be possible to work around this by manually rounding buffer lengths up to the nearest multiple of 8 in the poisoning function, although it's remotely possible that this will cause other problems. Valgrind does not appear to have this limitation (unless Valgrind is simply more poorly documented). However, running tests under Valgrind causes a much greater slowdown compared with ASan. As a result, it would be beneficial to implement support for both Valgrind and ASan, to give the extra flexibility to choose either performance or accuracy as required. This should be simple as both have very similar memory poisoning interfaces.
+
+**Design decision: Implement memory poisoning tests with both Valgrind's memcheck and ASan manual poisoning.**
 
 **Question: Should we try to build memory poisoning validation on existing Mbed TLS tests, or write new tests for this?**
 
@@ -489,15 +491,15 @@ Some PSA functions may not use these convenience functions as they may have loca
 
 ### Validation of copying
 
-As discussed in the [design exploration of copying validation](#validation-of-copying), the best strategy for validation of copies appears to be validation by memory poisoning, implemented using Valgrind.
+As discussed in the [design exploration of copying validation](#validation-of-copying), the best strategy for validation of copies appears to be validation by memory poisoning, implemented using Valgrind and ASan.
 
 To perform memory poisoning, we must implement the function alluded to in [Validation of copying by memory poisoning](#validation-of-copying-by-memory-poisoning):
 ```c
 mbedtls_psa_core_poison_memory(uint8_t *buffer, size_t length, int should_poison);
 ```
 This should either poison or unpoison the given buffer based on the value of `should_poison`:
-* When `should_poison == 1`, this is equivalent to calling `VALGRIND_MAKE_MEM_NOACCESS(buffer, length)`.
-* When `should_poison == 0`, this is equivalent to calling `VALGRIND_MAKE_MEM_DEFINED(buffer, length)`.
+* When `should_poison == 1`, this is equivalent to calling `VALGRIND_MAKE_MEM_NOACCESS(buffer, length)` or `ASAN_POISON_MEMORY_REGION(buffer, length)`.
+* When `should_poison == 0`, this is equivalent to calling `VALGRIND_MAKE_MEM_DEFINED(buffer, length)` or `ASAN_UNPOISON_MEMORY_REGION(buffer, length)`.
 
 We may choose one of two approaches. As discussed in [the design exploration](#validation-with-existing-tests), the first is preferred:
 * Use transparent allocation-based memory poisoning.

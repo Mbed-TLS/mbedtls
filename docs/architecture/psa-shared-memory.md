@@ -509,7 +509,27 @@ We will specify the particularities of each approach's implementation below.
 
 In order to implement transparent memory poisoning we require a wrapper around all PSA function calls that poisons any input and output buffers.
 
-The easiest way to do this is to create a header that `#define`s PSA function names to be wrapped versions of themselves.
+The easiest way to do this is to create wrapper functions that poison the memory and then `#define` PSA function names to be wrapped versions of themselves. For example, to replace `psa_aead_update()`:
+```c
+psa_status_t mem_poison_psa_aead_update(psa_aead_operation_t *operation,
+                                        const uint8_t *input,
+                                        size_t input_length,
+                                        uint8_t *output,
+                                        size_t output_size,
+                                        size_t *output_length)
+{
+    mbedtls_psa_core_poison_memory(input, input_length, 1);
+    mbedtls_psa_core_poison_memory(output, output_size, 1);
+    psa_status_t status = psa_aead_update(operation, input, input_length,
+                                          output, output_size, output_length);
+    mbedtls_psa_core_poison_memory(input, input_length, 0);
+    mbedtls_psa_core_poison_memory(output, output_size, 0);
+
+    return status;
+}
+
+#define psa_aead_update(...) mem_poison_psa_aead_update(__VA_ARGS__)
+```
 
 #### Memory poisoning functions and a new testsuite
 

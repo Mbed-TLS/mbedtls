@@ -432,6 +432,14 @@ This will execute `myprogram` and dump a record of every memory access to `logfi
 
 Then it should be possible to parse the output from the program and from Valgrind and check that each location was accessed exactly twice: once by the program's setup and once by the PSA function.
 
+#### Fixed Virtual Platform testing
+
+It may be possible to measure double accesses by running tests on a Fixed Virtual Platform such as Corstone 310 ecosystem FVP, available [here](https://developer.arm.com/downloads/-/arm-ecosystem-fvps). There exists a pre-packaged example program for the Corstone 310 FVP available as part of the Open IoT SDK [here](https://git.gitlab.arm.com/iot/open-iot-sdk/examples/sdk-examples/-/tree/main/examples/mbedtls/cmsis-rtx/corstone-310) that could provide a starting point for a set of tests.
+
+Running on an FVP allows two approaches to careful-access testing:
+* Convenient scripted use of a debugger with [Iris](https://developer.arm.com/documentation/101196/latest/). This allows memory watchpoints to be set, perhaps more flexibly than with GDB.
+* Tracing of all memory accesses with [Tarmac Trace](https://developer.arm.com/documentation/100964/1123/Plug-ins-for-Fast-Models/TarmacTrace). To validate the single-access properties, the [processor memory access trace source](https://developer.arm.com/documentation/100964/1123/Plug-ins-for-Fast-Models/TarmacTrace/Processor-memory-access-trace) can be used to output all memory accesses happening on the FVP. This output can then be easily parsed and processed to ensure that the input and output buffers are accessed only once. The addresses of buffers can either be leaked by the program through printing to the serial port or set to fixed values in the FVP's linker script.
+
 #### Discussion
 
 The best approach for validating the correctness of memory accesses is an open question that requires further investigation and prototyping. The above sections discuss some possibilities.

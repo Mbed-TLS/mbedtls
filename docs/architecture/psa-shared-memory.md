@@ -489,37 +489,29 @@ Some PSA functions may not use these convenience functions as they may have loca
 
 ### Validation of copying
 
-As discussed above, the best strategy for validation of copies appears to be validation by memory poisoning.
+As discussed in the [design exploration of copying validation](#validation-of-copying), the best strategy for validation of copies appears to be validation by memory poisoning, implemented using Valgrind.
 
-To implement this validation, we need several things:
-1. The ability to allocate memory in individual pages.
-2. The ability to poison memory pages in the copy functions.
-3. Tests that exercise this functionality.
-
-We can implement (1) as a test helper function that allocates full pages of memory so that we can safely set permissions on them:
+To perform memory poisoning, we must implement the function alluded to in [Validation of copying by memory poisoning](#validation-of-copying-by-memory-poisoning):
 ```c
-uint8_t *mbedtls_test_get_buffer_poisoned_page(size_t nmemb, size_t size)
+mbedtls_psa_core_poison_memory(uint8_t *buffer, size_t length, int should_poison);
 ```
-This allocates a buffer of the requested size that is guaranteed to lie entirely within its own memory page. It also calls `mprotect()` so that the page is inaccessible.
+This should either poison or unpoison the given buffer based on the value of `should_poison`:
+* When `should_poison == 1`, this is equivalent to calling `VALGRIND_MAKE_MEM_NOACCESS(buffer, length)`.
+* When `should_poison == 0`, this is equivalent to calling `VALGRIND_MAKE_MEM_DEFINED(buffer, length)`.
 
-We also need a function to reset the permissions and free the memory:
-```c
-void mbedtls_test_free_buffer_poisoned_page(uint8_t *buffer, size_t len)
-```
-This calls `mprotect()` to restore read and write permissions to the pages of the buffer and then frees the buffer.
+We may choose one of two approaches. As discussed in [the design exploration](#validation-with-existing-tests), the first is preferred:
+* Use transparent allocation-based memory poisoning.
+* Use memory poisoning functions and a new testsuite.
 
-On top of this function we can build the functions for testing mentioned above:
-```c
-uint8_t *mbedtls_test_get_poisoned_copy(uint8_t *buffer, size_t len)
-uint8_t *mbedtls_test_copy_free_poisoned_buffer(uint8_t *poisoned_buffer, uint8_t *original_buffer, size_t len)
-```
+We will specify the particularities of each approach's implementation below.
 
-Requirement (2) can be implemented by creating a function as alluded to above:
-```c
-void mbedtls_psa_core_poison_memory(uint8_t *buffer, size_t len, int poisoned)
-```
-This function should call `mprotect()` on the buffer to prevent it from being accessed (when `poisoned == 1`) or to allow it to be accessed (when `poisoned == 0`). Note that `mprotect()` requires a page-aligned address, so the function may have to do some preliminary work to find the correct page-aligned address that contains `buffer`.
+#### Transparent allocation-based memory poisoning
 
-Requirement (3) is implemented by wrapping calls to PSA functions with code that creates poisoned copies of its inputs and outputs as described above.
+In order to implement transparent memory poisoning we require a wrapper around all PSA function calls that poisons any input and output buffers.
+
+The easiest way to do this is to create a header that `#define`s PSA function names to be wrapped versions of themselves.
+
+#### Memory poisoning functions and a new testsuite
+
 
 ### Validation of protection by careful access

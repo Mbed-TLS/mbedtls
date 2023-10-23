@@ -43,8 +43,8 @@ EOF
 set -eu
 
 # Repository detection
-in_mbedtls_repo () {
-     test -d include -a -d library -a -d programs -a -d tests
+in_mbedtls_build_dir () {
+     test -d library
  }
 
 # Collect stats and build a HTML report.
@@ -74,11 +74,11 @@ if [ $# -gt 0 ] && [ "$1" = "--help" ]; then
     exit
 fi
 
-if in_mbedtls_repo; then
+if in_mbedtls_build_dir; then
     library_dir='library'
     title='Mbed TLS'
 else
-    library_dir='build/core'
+    library_dir='core'
     title='TF-PSA-Crypto'
 fi
 

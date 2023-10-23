@@ -333,7 +333,7 @@ Clean UNUSED -> WRITING transition works as before.
 
 `psa_wipe_all_key_slots` and `psa_destroy_key` mark the slot as deleted and go to sleep until the slot state becomes UNUSED. When waking up, they wipe the slot, and return.
 
-If the slot is already marked as deleted the threads calling `psa_wipe_all_key_slots` and `psa_destroy_key` go to sleep until the deletion completes. To satisfy #key-destruction-long-term-requirements none of the threads may return from the call until the slot is deleted completely. This can be achieved by signalling them when the slot has already been whiped and ready for use, that is not marked for deletion anymore. To handle spurious wake-ups, these threads need to be able to tell whether the slot was already deleted. This is not trivial, because by the time the thread wakes up, theoretically the slot might be in any state. It might have been reused and maybe even marked for deletion again.
+If the slot is already marked as deleted the threads calling `psa_wipe_all_key_slots` and `psa_destroy_key` go to sleep until the deletion completes. To satisfy #key-destruction-long-term-requirements none of the threads may return from the call until the slot is deleted completely. This can be achieved by signalling them when the slot has already been wiped and ready for use, that is not marked for deletion anymore. To handle spurious wake-ups, these threads need to be able to tell whether the slot was already deleted. This is not trivial, because by the time the thread wakes up, theoretically the slot might be in any state. It might have been reused and maybe even marked for deletion again.
 
 To resolve this, we can either:
 
@@ -378,15 +378,15 @@ Potential ways for resolving this:
 3. Make the dispatch layer public for drivers to call
 4. There is a whitelist of core APIs that drivers can call. Drivers providing entry points to these must not make a call to the core when handling these calls. (Drivers are still allowed to call any core API that can't have a driver entry point.)
 
-The first is too restrictive, the second and the third would require making it a stable API, and would likely increase the code size for a relatively rare feature. Choosing the fourth as that is the most viable option.
+The first is too restrictive, the second and the third would require making it a stable API, and would likely increase the code size for a relatively rare feature. We are choosing the fourth as that is the most viable option.
 
 **Thread-safe drivers:**
 
 A driver is non-thread-safe if the `thread-safe` property (see #driver-requirements) is set to true.
 
-To make reentrancy in non-thread-safe drivers work, thread-safe drivers must not make a call to the core when handling a call that is on the non-thread-safe driver whitelist.
+To make reentrancy in non-thread-safe drivers work, thread-safe drivers must not make a call to the core when handling a call that is on the non-thread-safe driver core API whitelist.
 
-Thread-safe drivers have less guarantees from the core and need to implement more complex logic and we can reasonably expect them to be more flexible in terms of reentrancy as well. At this point hard to see what further guarantees would be useful and feasible. Therefore, we don't provide any further guarantees for now.
+Thread-safe drivers have less guarantees from the core and need to implement more complex logic and we can reasonably expect them to be more flexible in terms of reentrancy as well. At this point it is hard to see what further guarantees would be useful and feasible. Therefore, we don't provide any further guarantees for now.
 
 Thread-safe drivers must not make any assumption about the operation of the core beyond what is discussed in the #reentrancy and #driver-requirements sections.
 

@@ -1,8 +1,8 @@
 # Thread safety of the PSA subsystem
 
-Currently PSA Crypto API calls in Mbed TLS releases are not thread-safe. In Mbed TLS 3.6 we are planning to add a minimal support for thread-safety of the PSA Crypto API (see #strategy-for-3.6).
+Currently PSA Crypto API calls in Mbed TLS releases are not thread-safe. In Mbed TLS 3.6 we are planning to add a minimal support for thread-safety of the PSA Crypto API (see section [Strategy for 3.6](#strategy-for-36)).
 
-In the #design-analysis section we analyse design choices. This discussion is not constrained to what is planned for 3.6 and considers future developments. It also leaves some questions open and discusses options that have been (or probably will be) rejected.
+In the [Design analysis](#design-analysis) section we analyse design choices. This discussion is not constrained to what is planned for 3.6 and considers future developments. It also leaves some questions open and discusses options that have been (or probably will be) rejected.
 
 ## Design analysis
 
@@ -294,7 +294,7 @@ A high-level view of state transitions:
 * `psa_unlock_key_slot`: READING → UNUSED or READING.
 * `psa_finish_key_creation`: WRITING → READING.
 * `psa_fail_key_creation`: WRITING → UNUSED.
-* `psa_wipe_key_slot`: any → UNUSED. If the slot is READING or WRITING on entry, this function must wait until the writer or all readers have finished. (By the way, the WRITING state is possible if `mbedtls_psa_crypto_free` is called while a key creation is in progress.) See [“Destruction of a key in use”](#destruction of a key in use).
+* `psa_wipe_key_slot`: any → UNUSED. If the slot is READING or WRITING on entry, this function must wait until the writer or all readers have finished. (By the way, the WRITING state is possible if `mbedtls_psa_crypto_free` is called while a key creation is in progress.) See [“Destruction of a key in use”](#destruction-of-a-key-in-use).
 
 The current `state->lock_count` corresponds to the difference between UNUSED and READING: a slot is in use iff its lock count is nonzero, so `lock_count == 0` corresponds to UNUSED and `lock_count != 0` corresponds to READING.
 
@@ -302,7 +302,7 @@ There is currently no indication of when a slot is in the WRITING state. This on
 
 #### Destruction of a key in use
 
-Problem: In #key-destruction-long-term-requirements we require that the key slot is destroyed (by `psa_wipe_key_slot`) even while it's in use (READING or WRITING).
+Problem: In [Key destruction long-term requirements](#key-destruction-long-term-requirements) we require that the key slot is destroyed (by `psa_wipe_key_slot`) even while it's in use (READING or WRITING).
 
 How do we ensure that? This needs something more sophisticated than mutexes (concurrency number >2)! Even a per-slot mutex isn't enough (we'd need a reader-writer lock).
 
@@ -316,7 +316,7 @@ When calling `psa_wipe_key_slot` it is the callers responsibility to set the slo
 
 `psa_destroy_key` marks the slot as deleted, deletes persistent keys and opaque keys and returns. This only works if drivers are protected by a mutex (and the persistent storage as well if needed). When the last reading operation finishes, it wipes the key slot. This will free the key ID, but the slot might be still in use. In case of volatile keys freeing up the ID while the slot is still in use does not provide any benefit and we don't need to do it.
 
-These are serious limitations, but this can be implemented with mutexes only and arguably satisfies the #key-destruction-short-term-requirements.
+These are serious limitations, but this can be implemented with mutexes only and arguably satisfies the [Key destruction short-term requirements](#key-destruction-short-term-requirements).
 
 Variations:
 
@@ -325,7 +325,7 @@ Variations:
 
 The second variant can't be implemented as a backward compatible improvement on the first as multipart operations that were successfully completed in the first case, would fail in the second. If we want to implement these incrementally, multipart operations in a multithreaded environment must be left unsupported in the first variant. This makes the first variant impractical (multipart operations returning an error in builds with multithreading enabled is not a behaviour that would be very useful to release).
 
-We can't reuse the `lock_count` field to mark key slots deleted, as we still need to keep track the lock count while the slot is marked for deletion. This means that we will need to add a new field to key slots. This new field can be reused to indicate whether the slot is occupied (see #determining-whether-a-key-slot-is-occupied). (There would be three states: deleted, occupied, empty.)
+We can't reuse the `lock_count` field to mark key slots deleted, as we still need to keep track the lock count while the slot is marked for deletion. This means that we will need to add a new field to key slots. This new field can be reused to indicate whether the slot is occupied (see section [Determining whether a key slot is occupied](#determining-whether-a-key-slot-is-occupied)). (There would be three states: deleted, occupied, empty.)
 
 #### Condition variables
 
@@ -333,7 +333,7 @@ Clean UNUSED -> WRITING transition works as before.
 
 `psa_wipe_all_key_slots` and `psa_destroy_key` mark the slot as deleted and go to sleep until the slot state becomes UNUSED. When waking up, they wipe the slot, and return.
 
-If the slot is already marked as deleted the threads calling `psa_wipe_all_key_slots` and `psa_destroy_key` go to sleep until the deletion completes. To satisfy #key-destruction-long-term-requirements none of the threads may return from the call until the slot is deleted completely. This can be achieved by signalling them when the slot has already been wiped and ready for use, that is not marked for deletion anymore. To handle spurious wake-ups, these threads need to be able to tell whether the slot was already deleted. This is not trivial, because by the time the thread wakes up, theoretically the slot might be in any state. It might have been reused and maybe even marked for deletion again.
+If the slot is already marked as deleted the threads calling `psa_wipe_all_key_slots` and `psa_destroy_key` go to sleep until the deletion completes. To satisfy [Key destruction long-term requirements](#key-destruction-long-term-requirements) none of the threads may return from the call until the slot is deleted completely. This can be achieved by signalling them when the slot has already been wiped and ready for use, that is not marked for deletion anymore. To handle spurious wake-ups, these threads need to be able to tell whether the slot was already deleted. This is not trivial, because by the time the thread wakes up, theoretically the slot might be in any state. It might have been reused and maybe even marked for deletion again.
 
 To resolve this, we can either:
 
@@ -342,7 +342,7 @@ To resolve this, we can either:
 
 ##### Platform abstraction
 
-Introducing condition variables to the platform abstraction layer would be best done in a major version. If we can't wait until that, we will need to introduce a new compile time flag. Considering that this only will be needed on the PSA Crypto side and the upcoming split, it makes sense to make this flag responsible for the entire PSA Crypto threading support. Therefore if we want to keep the option open for implementing this in a backward compatible manner, we need to introduce and use this new flag already when implementing #mutex-only. (If we keep the abstraction layer for mutexes the same, this shouldn't mean increase in code size and would mean only minimal effort on the porting side.)
+Introducing condition variables to the platform abstraction layer would be best done in a major version. If we can't wait until that, we will need to introduce a new compile time flag. Considering that this only will be needed on the PSA Crypto side and the upcoming split, it makes sense to make this flag responsible for the entire PSA Crypto threading support. Therefore if we want to keep the option open for implementing this in a backward compatible manner, we need to introduce and use this new flag already when implementing [Mutex only](#mutex-only). (If we keep the abstraction layer for mutexes the same, this shouldn't mean increase in code size and would mean only minimal effort on the porting side.)
 
 #### Operation contexts
 
@@ -358,7 +358,7 @@ Each driver that hasn’t got the "thread_safe” property set  has a dedicated 
 
 Implementing "thread_safe” drivers depends on the condition variable protection in the key store, as we must guarantee that the core never starts the destruction of a key while there are operations in progress on it.
 
-Start with implementing threading for drivers without the "thread_safe” property (all drivers behave like the property wasn't set). Add "thread_safe" drivers at some point after the #condition-variables approach is implemented in the core.
+Start with implementing threading for drivers without the "thread_safe” property (all drivers behave like the property wasn't set). Add "thread_safe" drivers at some point after the [Condition variables](#condition-variables) approach is implemented in the core.
 
 ##### Reentrancy
 
@@ -366,7 +366,7 @@ It is natural sometimes to want to perform cryptographic operations from a drive
 
 **Non-thread-safe drivers:**
 
-A driver is non-thread-safe if the `thread-safe` property (see #driver-requirements) is set to false.
+A driver is non-thread-safe if the `thread-safe` property (see [Driver requirements](#driver-requirements)) is set to false.
 
 In the non-thread-safe case we have these natural assumptions/requirements:
 1. Drivers don't call the core for any operation for which they provide an entry point
@@ -384,15 +384,15 @@ The first is too restrictive, the second and the third would require making it a
 
 **Thread-safe drivers:**
 
-A driver is non-thread-safe if the `thread-safe` property (see #driver-requirements) is set to true.
+A driver is non-thread-safe if the `thread-safe` property (see [Driver requirements](#driver-requirements)) is set to true.
 
 To make reentrancy in non-thread-safe drivers work, thread-safe drivers must not make a call to the core when handling a call that is on the non-thread-safe driver core API whitelist.
 
 Thread-safe drivers have less guarantees from the core and need to implement more complex logic and we can reasonably expect them to be more flexible in terms of reentrancy as well. At this point it is hard to see what further guarantees would be useful and feasible. Therefore, we don't provide any further guarantees for now.
 
-Thread-safe drivers must not make any assumption about the operation of the core beyond what is discussed in the #reentrancy and #driver-requirements sections.
+Thread-safe drivers must not make any assumption about the operation of the core beyond what is discussed in the [Reentrancy](#reentrancy) and [Driver requirements](#driver-requirements) sections.
 
-#### Global Data
+#### Global data
 
 PSA Crypto makes use of a `global_data` variable that will be accessible from multiple threads and needs to be protected. Any function accessing this variable (or its members) must take the corresponding lock first. Since `global_data` holds the RNG state, these will involve relatively expensive operations and therefore ideally `global_data` should be protected by its own, dedicated lock (different from the one protecting the key store).
 
@@ -413,10 +413,10 @@ To avoid performance degradation, functions must hold mutexes for as short time 
 The goal is to provide viable threading support without extending the platform abstraction. (Condition variables should be added in 4.0.) This means that we will be relying on mutexes only.
 
 - Key Store
-    - Slot states are described in #slot-states. They guarantee safe concurrent access to slot contents.
-    - Slot states will be protected by a global mutex as described in the introduction of #global-lock-excluding-slot-content.
-    - Simple key destruction strategy as described in #mutex-only (variant 2).
-    - The slot state and key attributes will be separated as described in the last paragraph of #determining-whether-a-key-slot-is-occupied.
-- The main `global_data` (the one in `psa_crypto.c`) shall be protected by its own mutex as described in #global-data.
-- The solution shall use the pre-existing `MBEDTLS_THREADING_C` threading abstraction. That is, the flag proposed in #platform-abstraction won't be implemented.
-- The core makes no additional guarantees for drivers. That is, Policy 1 in #driver-requirements applies.
+    - Slot states are described in the [Slot states](#slot-states) section. They guarantee safe concurrent access to slot contents.
+    - Slot states will be protected by a global mutex as described in the introduction of the [Global lock excluding slot content](#global-lock-excluding-slot-content) section.
+    - Simple key destruction strategy as described in the [Mutex only](#mutex-only) section (variant 2).
+    - The slot state and key attributes will be separated as described in the last paragraph of the [Determining whether a key slot is occupied](#determining-whether-a-key-slot-is-occupied) section.
+- The main `global_data` (the one in `psa_crypto.c`) shall be protected by its own mutex as described in the [Global data](#global-data) section.
+- The solution shall use the pre-existing `MBEDTLS_THREADING_C` threading abstraction. That is, the flag proposed in the [Platform abstraction](#platform-abstraction) section won't be implemented.
+- The core makes no additional guarantees for drivers. That is, Policy 1 in section [Driver requirements](#driver-requirements) applies.

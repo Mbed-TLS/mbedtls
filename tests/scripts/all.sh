@@ -1538,7 +1538,7 @@ common_test_full_no_cipher_with_crypto () {
     scripts/config.py unset MBEDTLS_CIPHER_C
 
     if [ "$USE_CRYPTO_CONFIG" -eq 1 ]; then
-        # Direct dependencies from PSA config
+        # The built-in implementation of these modes currently depends on CIPHER_C
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM_STAR_NO_TAG
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_GCM
@@ -1558,7 +1558,7 @@ common_test_full_no_cipher_with_crypto () {
         # Don't pull in cipher via PSA mechanisms
         scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
     fi
-    # Direct dependencies
+    # The following modules directly depends on CIPHER_C
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CMAC_C
     scripts/config.py unset MBEDTLS_GCM_C

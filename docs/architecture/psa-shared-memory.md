@@ -501,9 +501,11 @@ This should either poison or unpoison the given buffer based on the value of `sh
 * When `should_poison == 1`, this is equivalent to calling `VALGRIND_MAKE_MEM_NOACCESS(buffer, length)` or `ASAN_POISON_MEMORY_REGION(buffer, length)`.
 * When `should_poison == 0`, this is equivalent to calling `VALGRIND_MAKE_MEM_DEFINED(buffer, length)` or `ASAN_UNPOISON_MEMORY_REGION(buffer, length)`.
 
-We may choose one of two approaches. As discussed in [the design exploration](#validation-with-existing-tests), the first is preferred:
+We may choose one of two approaches:
 * Use transparent allocation-based memory poisoning.
 * Use memory poisoning functions and a new testsuite.
+
+As discussed in [the design exploration](#validation-with-existing-tests), the transparent approach is preferred.
 
 We will specify the particularities of each approach's implementation below.
 

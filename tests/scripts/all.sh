@@ -864,7 +864,7 @@ pre_generate_files() {
 #        Example:
 #          loc_extra_list="ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
 #          helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
-#    4b. Call helper_libtestdriver1_make_main "$loc_accel_list". Any
+#    3b. Call helper_libtestdriver1_make_main "$loc_accel_list". Any
 #        additional arguments will be passed to make: this can be useful if
 #        you don't want to build everything when iterating during development.
 #        Example:
@@ -3528,21 +3528,21 @@ component_test_psa_crypto_config_reference_hash_use_psa() {
 component_test_psa_crypto_config_accel_cipher () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated cipher"
 
-    loc_accel_list="ALG_CBC_NO_PADDING ALG_CBC_PKCS7 ALG_CTR ALG_CFB ALG_OFB ALG_XTS KEY_TYPE_DES"
+    loc_accel_list="ALG_CBC_NO_PADDING ALG_CBC_PKCS7 \
+                    ALG_CTR ALG_CFB ALG_OFB ALG_XTS \
+                    KEY_TYPE_DES ALG_CMAC"
 
     # Configure
     # ---------
 
+    # There is no intended accelerator support for STREAM_CIPHER and
+    # ECB_NO_PADDING. Therefore, asking for them in the build implies the
+    # inclusion of the Mbed TLS cipher operations. As we want to test here with
+    # cipher operations solely supported by accelerators, disabled those
+    # PSA configuration options by helper_libtestdriver1_adjust_config.
+
     # Start from the full config
     helper_libtestdriver1_adjust_config "full"
-
-    # There is no intended accelerator support for ALG CMAC. Therefore, asking
-    # for it in the build implies the inclusion of the Mbed TLS cipher
-    # operations. As we want to test here with cipher operations solely
-    # supported by accelerators, disabled this PSA configuration option.
-    # (Note: the same applies to STREAM_CIPHER and ECB_NO_PADDING, which are
-    # already disabled by helper_libtestdriver1_adjust_config above.)
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CMAC
 
     # Disable the things that are being accelerated
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
@@ -3552,6 +3552,7 @@ component_test_psa_crypto_config_accel_cipher () {
     scripts/config.py unset MBEDTLS_CIPHER_MODE_OFB
     scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
     scripts/config.py unset MBEDTLS_DES_C
+    scripts/config.py unset MBEDTLS_CMAC_C
 
     # Build
     # -----

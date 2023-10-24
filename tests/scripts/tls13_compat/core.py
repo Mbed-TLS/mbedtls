@@ -96,7 +96,8 @@ class TLSProgram:
     """
 
     SUPPORT_KEX_MODES = [KexMode.psk, KexMode.ephemeral, KexMode.psk_ephemeral,
-                         KexMode.psk_or_ephemeral, KexMode.psk_all, KexMode.ephemeral_all, KexMode.all]
+                         KexMode.psk_or_ephemeral, KexMode.psk_all, KexMode.ephemeral_all,
+                         KexMode.all]
 
     def __init__(self, **kwargs):
         """
@@ -113,11 +114,12 @@ class TLSProgram:
             cli_auth (bool) : Enable/disable cli_auth.
             kex_mode (KexMode, None): Set kex mode or None to use default
         """
+        # pylint: disable=dangerous-default-value
         def get_list_arg(arg, default=[]):
             arg = kwargs.get(arg, None)
             if arg is None:
                 return default or []
-            if isinstance(arg, list) or isinstance(arg, set):
+            if isinstance(arg, (list, set)):
                 return arg
             return [arg]
 
@@ -168,7 +170,11 @@ class TLSProgram:
             return list(self._psk_identities)
         return []
 
-    # pylint: disable=no-self-use
+    @property
+    def kex_mode(self):
+        return self._kex_mode
+
+    # pylint: disable=no-self-use, unused-argument
     def pre_checks(self, *args, **kwargs):
         return []
 
@@ -337,6 +343,9 @@ class GnuTLSBase(TLSProgram):
         self._enable_tickets = False
 
     def pre_checks(self, *args, **kwargs):
+        """
+        Generate pre condition
+        """
         self._update_configuration()
         ret = ["requires_gnutls_tls1_3"]
         if not self._enable_tickets:
@@ -348,6 +357,9 @@ class GnuTLSBase(TLSProgram):
         return ret
 
     def get_priority_string(self):
+        """
+        Construct GnuTLS priority string
+        """
         self._update_configuration()
         priority_string_list = []
 

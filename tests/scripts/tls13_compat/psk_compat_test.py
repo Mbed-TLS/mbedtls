@@ -60,6 +60,9 @@ class PSKOpenSSLServ(OpenSSLServ):
         return []
 
     def select_expected_kex_mode(self, peer_kex_mode, psk_mode=0):
+        """
+        Caculate the key exchange mode used in handshake.
+        """
         common_kex_mode = KexMode(self._kex_mode & peer_kex_mode)
         if common_kex_mode == KexMode.none:
             return KexMode.none
@@ -69,7 +72,8 @@ class PSKOpenSSLServ(OpenSSLServ):
             else:
                 return KexMode.none
         elif psk_mode == 2:
-            if peer_kex_mode == KexMode.psk_or_ephemeral and self._kex_mode == KexMode.ephemeral_all:
+            if (peer_kex_mode, self._kex_mode) == \
+                    (KexMode.psk_or_ephemeral, KexMode.ephemeral_all):
                 # special case
                 return KexMode.ephemeral
             return KexMode.none
@@ -148,9 +152,15 @@ class PSKGnuTLSServ(GnuTLSServ):
         return ret
 
     def post_checks(self, *args, **kwargs):
+        """
+        Return post checks.
+        """
         return []
 
     def select_expected_kex_mode(self, peer_kex_mode, psk_mode=0):
+        """
+        Return expected key exchange mode.
+        """
         common_kex_mode = KexMode(self._kex_mode & peer_kex_mode)
         if common_kex_mode == KexMode.none:
             return KexMode.none
@@ -161,24 +171,13 @@ class PSKGnuTLSServ(GnuTLSServ):
             # - Fallback tests of GnuTLS server depends on session ticket,
             #   verified on `gnutls-serv 3.7.3`
             # - `material mismatch` always fail
-            if peer_kex_mode == KexMode.psk_or_ephemeral and self._kex_mode == KexMode.ephemeral_all:
+            if (self._kex_mode, peer_kex_mode) == (KexMode.psk_or_ephemeral, KexMode.ephemeral_all):
                 # special case
                 return KexMode.ephemeral
             return KexMode.none
-        # if common_kex_mode == KexMode.psk_or_ephemeral:
-        #     return KexMode.ephemeral
 
         return KexMode(list(filter(lambda a: a != 0, [common_kex_mode & i for i in (
             KexMode.psk_ephemeral, KexMode.psk, KexMode.ephemeral, )]))[0])
-
-
-def mbedtls_get_kex_config_option(kex_mode):
-    ret = []
-    for kex in (KexMode.psk, KexMode.psk_ephemeral, KexMode.ephemeral):
-        if kex & kex_mode:
-            ret += ['MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_{}_ENABLED'.format(
-                kex.name.upper())]
-    return ret
 
 
 class PSKMbedTLSServ(MbedTLSServ):
@@ -239,6 +238,9 @@ class PSKMbedTLSServ(MbedTLSServ):
         return ret
 
     def select_expected_kex_mode(self, peer_kex_mode, psk_mode=0):
+        """
+        Caculate the key exchange mode used in handshake.
+        """
         common_kex_mode = KexMode(self._kex_mode & peer_kex_mode)
         if common_kex_mode == KexMode.none:
             return common_kex_mode
@@ -381,13 +383,13 @@ def generate_psk_ephemeral_test(client=None, server=None, client_named_group=Non
             cmd.append('-c "received HelloRetryRequest message"')
 
     cmd += server_object.post_checks(expected_kex_mode=KexMode.psk_ephemeral,
-                                     client_kex_mode=client_object._kex_mode)
+                                     client_kex_mode=client_object.kex_mode)
     cmd += client_object.post_checks()
 
     prefix = ' \\\n' + (' '*9)
     cmd = prefix.join(cmd)
-    return '\n'.join(server_object.pre_checks(peer_kex_mode=client_object._kex_mode) +
-                     client_object.pre_checks(peer_kex_mode=server_object._kex_mode) +
+    return '\n'.join(server_object.pre_checks(peer_kex_mode=client_object.kex_mode) +
+                     client_object.pre_checks(peer_kex_mode=server_object.kex_mode) +
                      [cmd])
 
 
@@ -406,7 +408,7 @@ def generate_all_psk_ephemeral_group_tests():
                                           server_named_group=server_named_group)
 
 
-# pylint: disable=too-many-arguments,too-many-locals
+# pylint: disable=too-many-arguments,too-many-locals,too-many-branches
 def generate_kex_modes_test(client, server, c_kex_mode, s_kex_mode, c_psk, s_psk):
     """
     Generate a key exchange mode test

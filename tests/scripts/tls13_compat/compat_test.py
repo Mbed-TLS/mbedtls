@@ -39,16 +39,18 @@ def generate_compat_test(client=None, server=None, cipher=None, named_group=None
         client=client.PROG_NAME, server=server.PROG_NAME, cipher=cipher[4:], sig_alg=sig_alg,
         named_group=named_group)
 
+    def get_kex_mode(obj):
+        return KexMode.ephemeral if KexMode.ephemeral in obj.SUPPORT_KEX_MODES else KexMode.all
     server_object = server(ciphersuite=cipher,
                            named_group=named_group,
                            signature_algorithm=sig_alg,
                            cert_sig_alg=sig_alg,
-                           kex_mode=KexMode.ephemeral if KexMode.ephemeral in server.SUPPORT_KEX_MODES else KexMode.all)
+                           kex_mode=get_kex_mode(server))
     client_object = client(ciphersuite=cipher,
                            named_group=named_group,
                            signature_algorithm=sig_alg,
                            cert_sig_alg=sig_alg,
-                           kex_mode=KexMode.ephemeral if KexMode.ephemeral in client.SUPPORT_KEX_MODES else KexMode.all)
+                           kex_mode=get_kex_mode(client))
 
     cmd = ['run_test "{}"'.format(name),
            '"{}"'.format(' '.join(server_object.cmd())),
@@ -95,11 +97,14 @@ def generate_hrr_compat_test(client=None, server=None,
     name = name_fmt_string.format(client=client.PROG_NAME, server=server.PROG_NAME,
                                   c_named_group=client_named_group,
                                   s_named_group=server_named_group)
+
+    def get_kex_mode(obj):
+        return KexMode.ephemeral if KexMode.ephemeral in obj.SUPPORT_KEX_MODES else KexMode.all
     server_object = server(named_group=server_named_group, cert_sig_alg=cert_sig_alg,
-                           kex_mode=KexMode.ephemeral if KexMode.ephemeral in server.SUPPORT_KEX_MODES else KexMode.all)
+                           kex_mode=get_kex_mode(server))
 
     client_object = client(named_group=client_named_group, cert_sig_alg=cert_sig_alg,
-                           kex_mode=KexMode.ephemeral if KexMode.ephemeral in client.SUPPORT_KEX_MODES else KexMode.all)
+                           kex_mode=get_kex_mode(client))
     # Add server name_group that will be selected by second client hello.
     client_object.add_named_groups(server_named_group)
 

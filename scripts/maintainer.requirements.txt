@@ -9,6 +9,3 @@ clang
 # For building some test vectors
 pycryptodomex
 pycryptodome-test-vectors
-
-# For building `tests/data_files/server9-bad-saltlen.crt`
-asn1crypto

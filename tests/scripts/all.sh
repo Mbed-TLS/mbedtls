@@ -1554,6 +1554,15 @@ common_test_full_no_cipher_with_psa_crypto () {
     else
         # Don't pull in cipher via PSA mechanisms
         scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
+        # Disable cipher modes/keys that make PSA depend on CIPHER_C.
+        # Keep CHACHA20 and CHACHAPOLY enabled since they do not depend on CIPHER_C.
+        scripts/config.py unset-all MBEDTLS_CIPHER_MODE
+        scripts/config.py unset MBEDTLS_AES_C
+        scripts/config.py unset MBEDTLS_DES_C
+        scripts/config.py unset MBEDTLS_ARIA_C
+        scripts/config.py unset MBEDTLS_CAMELLIA_C
+        # Dependencies on AES_C
+        scripts/config.py unset MBEDTLS_CTR_DRBG_C
     fi
     # The following modules directly depends on CIPHER_C
     scripts/config.py unset MBEDTLS_CCM_C
@@ -1564,15 +1573,6 @@ common_test_full_no_cipher_with_psa_crypto () {
     scripts/config.py unset MBEDTLS_PKCS5_C
     scripts/config.py unset MBEDTLS_SSL_TLS_C
     scripts/config.py unset MBEDTLS_SSL_TICKET_C
-    # Disable cipher modes/keys that make PSA depend on CIPHER_C.
-    # Keep CHACHA20 and CHACHAPOLY enabled since they do not depend on CIPHER_C.
-    scripts/config.py unset-all MBEDTLS_CIPHER_MODE
-    scripts/config.py unset MBEDTLS_AES_C
-    scripts/config.py unset MBEDTLS_DES_C
-    scripts/config.py unset MBEDTLS_ARIA_C
-    scripts/config.py unset MBEDTLS_CAMELLIA_C
-    # Dependencies on AES_C
-    scripts/config.py unset MBEDTLS_CTR_DRBG_C
 
     make
 

@@ -1522,7 +1522,7 @@ component_test_full_no_cipher () {
 # It accepts 2 input parameters:
 # - $1: boolean value which basically reflects status of MBEDTLS_PSA_CRYPTO_CONFIG
 # - $2: a text string which describes the test component
-common_test_full_no_cipher_with_crypto () {
+common_test_full_no_cipher_with_psa_crypto () {
     USE_CRYPTO_CONFIG="$1"
     COMPONENT_DESCRIPTION="$2"
 
@@ -1581,11 +1581,11 @@ common_test_full_no_cipher_with_crypto () {
 }
 
 component_test_full_no_cipher_with_crypto() {
-    common_test_full_no_cipher_with_crypto 0 "full no CIPHER no CRYPTO_CONFIG"
+    common_test_full_no_cipher_with_psa_crypto 0 "full no CIPHER no CRYPTO_CONFIG"
 }
 
 component_test_full_no_cipher_with_crypto_config() {
-    common_test_full_no_cipher_with_crypto 1 "full no CIPHER"
+    common_test_full_no_cipher_with_psa_crypto 1 "full no CIPHER"
 }
 
 component_test_full_no_bignum () {

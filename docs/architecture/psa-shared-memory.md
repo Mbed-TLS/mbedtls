@@ -446,6 +446,12 @@ The best approach for validating the correctness of memory accesses is an open q
 
 However, there is one additional consideration that may make this easier. The careful-access approach to memory protection is only planned for hash and MAC algorithms. These lend themselves to a linear access pattern on input data; it may be simpler to test that a linear pattern is followed, rather than a random-access single-access-per-location pattern.
 
+##### New vs existing tests
+
+Most of the test methods discussed above need extra setup. Some require leaking of buffer bounds, predictable memory access patterns or allocation of special buffers. FVP testing even requires the tests to be run on a non-host target.
+
+With this complexity in mind it does not seem feasible to run careful-access tests using existing testsuites. Instead, new tests should be written that exercise the drivers in the required way. Fortunately, the only interfaces that need testing are hash, MAC, AEAD (testing over AD only), Key derivation and Asymmetric signature, which limits the number of new tests that must be written.
+
 ## Analysis of argument protection in built-in drivers
 
 TODO: analyze the built-in implementations of mechanisms for which there is a requirement on drivers. By code inspection, how satisfied are we that they meet the requirement?

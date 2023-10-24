@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Generate server9-bad-saltlen.crt
 
-`server9-bad-saltlen.crt (announcing saltlen = 0xDE, signed with another len)`. It can not generate
-with normal command. This script is to generate the file.
+Generate a certificate signed with RSA-PSS, with an incorrect salt length.
 """
 
 # Copyright The Mbed TLS Contributors

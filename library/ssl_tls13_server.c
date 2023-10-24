@@ -998,7 +998,7 @@ static int ssl_tls13_ticket_permission_check(mbedtls_ssl_context *ssl,
 {
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     if (ssl->handshake->resume) {
-        if (!mbedtls_ssl_session_get_ticket_flags(
+        if (mbedtls_ssl_session_check_ticket_flags(
                 ssl->session_negotiate, kex_mode)) {
             return 0;
         }

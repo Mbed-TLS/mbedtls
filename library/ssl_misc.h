@@ -2779,6 +2779,12 @@ static inline unsigned int mbedtls_ssl_session_get_ticket_flags(
            (flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
 }
 
+static inline unsigned int mbedtls_ssl_session_check_ticket_flags(
+    mbedtls_ssl_session *session, unsigned int flags)
+{
+    return mbedtls_ssl_session_get_ticket_flags(session, flags) == 0;
+}
+
 static inline void mbedtls_ssl_session_set_ticket_flags(
     mbedtls_ssl_session *session, unsigned int flags)
 {

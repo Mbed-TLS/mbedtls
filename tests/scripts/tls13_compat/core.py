@@ -169,7 +169,7 @@ class TLSProgram:
         return []
 
     # pylint: disable=no-self-use
-    def pre_checks(self):
+    def pre_checks(self, *args, **kwargs):
         return []
 
     # pylint: disable=no-self-use
@@ -237,7 +237,7 @@ class OpenSSLBase(TLSProgram):
         ret += ['-msg -tls1_3']
         return ret
 
-    def pre_checks(self):
+    def pre_checks(self, *args, **kwargs):
         ret = ["requires_openssl_tls1_3"]
 
         # ffdh groups require at least openssl 3.0
@@ -336,7 +336,7 @@ class GnuTLSBase(TLSProgram):
         # When psk/psk_ephemeral are disabled, tickets MUST be disable also for GnuTLS
         self._enable_tickets = False
 
-    def pre_checks(self):
+    def pre_checks(self, *args, **kwargs):
         self._update_configuration()
         ret = ["requires_gnutls_tls1_3"]
         if not self._enable_tickets:
@@ -461,7 +461,7 @@ class MbedTLSBase(TLSProgram):
             ret += ["groups={named_groups}".format(named_groups=named_groups)]
         return ret
 
-    def pre_checks(self):
+    def pre_checks(self, *args, **kwargs):
         # Always require MBEDTLS_DEBUG_C
         ret = ['requires_config_enabled MBEDTLS_DEBUG_C']
         for protocol in self._protocols:
@@ -469,8 +469,9 @@ class MbedTLSBase(TLSProgram):
                 protocol.name.upper())]
 
         kex_fmt = 'requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_{}_ENABLED'
+        kex_mode = kwargs.get("peer_kex_mode", KexMode.none) | self._kex_mode
         for kex in (KexMode.psk, KexMode.ephemeral, KexMode.psk_ephemeral):
-            if kex & self._kex_mode:
+            if kex & kex_mode:
                 ret += [kex_fmt.format(kex.name.upper())]
 
         if self._compat_mode:
@@ -502,8 +503,8 @@ class MbedTLSServ(MbedTLSBase):
             self._kex_mode.name)]
         return ret
 
-    def pre_checks(self):
-        return ['requires_config_enabled MBEDTLS_SSL_SRV_C'] + super().pre_checks()
+    def pre_checks(self, *args, **kwargs):
+        return ['requires_config_enabled MBEDTLS_SSL_SRV_C'] + super().pre_checks(*args, **kwargs)
 
     def post_checks(self, *args, **kwargs):
         check_strings = ["Protocol is TLSv1.3"]
@@ -546,8 +547,8 @@ class MbedTLSCli(MbedTLSBase):
                 cafile=CERTIFICATES[self._cert_sig_algs[0]].cafile))
         return ret
 
-    def pre_checks(self):
-        return ['requires_config_enabled MBEDTLS_SSL_CLI_C'] + super().pre_checks()
+    def pre_checks(self, *args, **kwargs):
+        return ['requires_config_enabled MBEDTLS_SSL_CLI_C'] + super().pre_checks(*args, **kwargs)
 
     def post_checks(self, *args, **kwargs):
         check_strings = ["Protocol is TLSv1.3"]

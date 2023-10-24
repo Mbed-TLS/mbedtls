@@ -200,13 +200,6 @@ class PSKMbedTLSServ(MbedTLSServ):
             ret += ["groups={named_groups}".format(named_groups=named_groups)]
         return ret
 
-    # def pre_checks(self):
-    #     configs = ['MBEDTLS_SSL_PROTO_TLS1_3',
-    #                'MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE', 'MBEDTLS_SSL_SRV_C', 'MBEDTLS_DEBUG_C']
-    #     configs += mbedtls_get_kex_config_option(self._kex_mode)
-
-    #     return ['requires_config_enabled {}'.format(i) for i in configs] + super().pre_checks()
-
     def post_checks(self, *args, **kwargs):
         expected_kex_mode = kwargs.get(
             'expected_kex_mode', KexMode.psk_ephemeral)
@@ -290,13 +283,6 @@ class PSKMbedTLSCli(MbedTLSCli):
             ret += ["groups={named_groups}".format(named_groups=named_groups)]
 
         return ret
-
-    # def pre_checks(self):
-    #     configs = ['MBEDTLS_SSL_PROTO_TLS1_3',
-    #                'MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE', 'MBEDTLS_SSL_CLI_C', 'MBEDTLS_DEBUG_C']
-    #     configs += mbedtls_get_kex_config_option(self._kex_mode)
-
-    #     return ['requires_config_enabled {}'.format(i) for i in configs]
 
     def post_checks(self, *args, **kwargs):
         # raise 'Err'
@@ -400,8 +386,8 @@ def generate_psk_ephemeral_test(client=None, server=None, client_named_group=Non
 
     prefix = ' \\\n' + (' '*9)
     cmd = prefix.join(cmd)
-    return '\n'.join(server_object.pre_checks() +
-                     client_object.pre_checks() +
+    return '\n'.join(server_object.pre_checks(peer_kex_mode=client_object._kex_mode) +
+                     client_object.pre_checks(peer_kex_mode=server_object._kex_mode) +
                      [cmd])
 
 
@@ -501,7 +487,9 @@ def generate_kex_modes_test(client, server, c_kex_mode, s_kex_mode, c_psk, s_psk
     cmd += client_object.post_checks(expected_kex_mode=expected_kex_mode)
     prefix = ' \\\n' + (' '*9)
     cmd = prefix.join(cmd)
-    return '\n'.join(server_object.pre_checks() + client_object.pre_checks() + [cmd])
+    ret = '\n'.join(server_object.pre_checks(peer_kex_mode=c_kex_mode) +
+                    client_object.pre_checks(peer_kex_mode=s_kex_mode) + [cmd])
+    return ret
 
 
 def generate_all_kex_mode_tests():

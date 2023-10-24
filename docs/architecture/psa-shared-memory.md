@@ -552,3 +552,22 @@ psa_status_t mem_poison_psa_aead_update(psa_aead_operation_t *operation,
 Since the memory poisoning tests will require the use of interfaces specific to the sanitizers used to poison memory, they must be guarded by new config options, for example `PSA_TEST_COPYING_ASAN` and `PSA_TEST_COPYING_VALGRIND`, as well as `MBEDTLS_TEST_HOOKS`. These would be analogous to the existing `MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN` and `MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND`. Since they require special tooling, these options should not be enabled in either the `default` or `full` configurations. Instead, as with the constant flow testing options, they should be enabled in a new component in `all.sh` that performs the copy testing with Valgrind or ASan.
 
 ### Validation of protection by careful access
+
+As concluded in [Validation of careful access for built-in drivers](validation-of-careful-access-for-built-in-drivers), the best approach to validation of careful accesses is an open question. Designing this will involve prototyping each possible approach and choosing the one that seems most fruitful.
+
+For each of the test strategies discussed:
+1. Take 1-2 days to create a basic prototype of a test that uses the approach.
+2. Document the prototype - write a short guide that can be followed to arrive at the same prototype.
+3. Evaluate the prototype according to its usefulness. The criteria of evaluation should include:
+   * Ease of implementation - Was the prototype simple to implement? Having implemented it, is it simple to extend it to do all of the required testing?
+   * Flexibility - Could the prototype be extended to cover other careful-access testing that may be needed in future?
+   * Performance - Does the test method perform well? Will it cause significant slowdown to CI jobs?
+   * Ease of reproduction - Does the prototype require a particular platform or tool to be set up? How easy would it be for an external user to run the prototype?
+   * Comprehensibility - Accounting for the lower code quality of a prototype, would developers unfamiliar with the tests based on the prototype be able to understand them easily?
+
+Once each prototype is complete, choose the best approach to implement the careful-access testing. Implement tests using this approach for each of the PSA interfaces that require careful-access testing:
+* Hash
+* MAC
+* AEAD (additional data only)
+* Key derivation
+* Asymmetric signature (input only)

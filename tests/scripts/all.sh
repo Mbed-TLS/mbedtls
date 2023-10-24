@@ -1494,7 +1494,7 @@ component_test_full_no_cipher () {
     # Don't pull in cipher via PSA mechanisms
     # (currently ignored anyway because we completely disable PSA)
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
-    # Direct dependencies
+    # Disable features that depend on CIPHER_C
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CMAC_C
     scripts/config.py unset MBEDTLS_GCM_C
@@ -1504,15 +1504,9 @@ component_test_full_no_cipher () {
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
     scripts/config.py unset MBEDTLS_SSL_TLS_C
     scripts/config.py unset MBEDTLS_SSL_TICKET_C
-    # Indirect dependencies
-    scripts/config.py unset MBEDTLS_SSL_CLI_C
+    # Disable features that depend on PSA_CRYPTO_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    scripts/config.py unset MBEDTLS_SSL_DTLS_ANTI_REPLAY
-    scripts/config.py unset MBEDTLS_SSL_DTLS_CONNECTION_ID
-    scripts/config.py unset MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py unset MBEDTLS_SSL_SRV_C
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_LMS_C
     scripts/config.py unset MBEDTLS_LMS_PRIVATE

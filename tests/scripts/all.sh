@@ -883,11 +883,6 @@ helper_libtestdriver1_adjust_config() {
     # Enable PSA-based config (necessary to use drivers)
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
 
-    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
-    # partial support for cipher operations in the driver test library.
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
-
     # Dynamic secure element support is a deprecated feature and needs to be disabled here.
     # This is done to have the same form of psa_key_attributes_s for libdriver and library.
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
@@ -3528,18 +3523,12 @@ component_test_psa_crypto_config_reference_hash_use_psa() {
 component_test_psa_crypto_config_accel_cipher () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated cipher"
 
-    loc_accel_list="ALG_CBC_NO_PADDING ALG_CBC_PKCS7 \
-                    ALG_CTR ALG_CFB ALG_OFB ALG_XTS \
-                    KEY_TYPE_DES ALG_CMAC"
+    loc_accel_list="ALG_ECB_NO_PADDING ALG_CBC_NO_PADDING ALG_CBC_PKCS7 \
+                    ALG_CTR ALG_CFB ALG_OFB ALG_XTS ALG_CMAC \
+                    KEY_TYPE_DES"
 
     # Configure
     # ---------
-
-    # There is no intended accelerator support for STREAM_CIPHER and
-    # ECB_NO_PADDING. Therefore, asking for them in the build implies the
-    # inclusion of the Mbed TLS cipher operations. As we want to test here with
-    # cipher operations solely supported by accelerators, disabled those
-    # PSA configuration options by helper_libtestdriver1_adjust_config.
 
     # Start from the full config
     helper_libtestdriver1_adjust_config "full"

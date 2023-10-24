@@ -1532,7 +1532,10 @@ common_test_full_no_cipher_with_psa_crypto () {
     scripts/config.py unset MBEDTLS_CIPHER_C
 
     if [ "$USE_CRYPTO_CONFIG" -eq 1 ]; then
-        # The built-in implementation of these modes currently depends on CIPHER_C
+        # The built-in implementation of the following algs/key-types depends
+        # on CIPHER_C so we disable them.
+        # This does not hold for KEY_TYPE_CHACHA20 and ALG_CHACHA20_POLY1305
+        # so we keep them enabled.
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM_STAR_NO_TAG
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_GCM
@@ -1562,7 +1565,7 @@ common_test_full_no_cipher_with_psa_crypto () {
     scripts/config.py unset MBEDTLS_SSL_TLS_C
     scripts/config.py unset MBEDTLS_SSL_TICKET_C
     # Disable cipher modes/keys that make PSA depend on CIPHER_C.
-    # Keep CHACHA20 enabled since it does not depend on CIPHER_C.
+    # Keep CHACHA20 and CHACHAPOLY enabled since they do not depend on CIPHER_C.
     scripts/config.py unset-all MBEDTLS_CIPHER_MODE
     scripts/config.py unset MBEDTLS_AES_C
     scripts/config.py unset MBEDTLS_DES_C

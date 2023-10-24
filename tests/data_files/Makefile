@@ -522,8 +522,8 @@ all_final += server9-bad-mgfhash.crt
 
 server9-bad-saltlen.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa) \
 			 opensslcnf/server9.crt.v3_ext \
-			 ../../scripts/mbedtls_dev/generate_server9_bad_saltlen.py
-	../../scripts/mbedtls_dev/generate_server9_bad_saltlen.py --ca-name test-ca \
+			 ../scripts/generate_server9_bad_saltlen.py
+	../scripts/generate_server9_bad_saltlen.py --ca-name test-ca \
 		--ca-password $(test_ca_pwd_rsa) --csr server9.csr \
 		--openssl-extfile opensslcnf/server9.crt.v3_ext \
 		--anounce_saltlen 0xde --actual_saltlen 0x20 \

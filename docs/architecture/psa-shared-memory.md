@@ -525,14 +525,7 @@ This should either poison or unpoison the given buffer based on the value of `sh
 
 The PSA copying function must then have test hooks implemented as outlined in [Validation of copying by memory poisoning](#validation-of-copying-by-memory-poisoning).
 
-For test implementation, we may choose one of two approaches:
-
-* Use transparent allocation-based memory poisoning.
-* Use memory poisoning functions and a new testsuite.
-
-As discussed in [the design exploration](#validation-with-existing-tests), the transparent approach is preferred.
-
-We will specify the particularities of each approach's implementation below.
+As discussed in [the design exploration](#validation-with-existing-tests), the preferred approach for implementing copy-testing is to implement it transparently using existing tests. This is specified in more detail below.
 
 #### Transparent allocation-based memory poisoning
 
@@ -559,8 +552,6 @@ psa_status_t mem_poison_psa_aead_update(psa_aead_operation_t *operation,
 
 #define psa_aead_update(...) mem_poison_psa_aead_update(__VA_ARGS__)
 ```
-
-#### Memory poisoning functions and a new testsuite
 
 #### Configuration of poisoning tests
 

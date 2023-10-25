@@ -228,7 +228,7 @@ This section explains how Mbed TLS implements the shared memory protection strat
 
 * The built-in implementations of cryptographic mechanisms with arguments whose access needs to be protected shall protect those arguments.
 
-Justification: see “[Susceptibility of different mechanisms](susceptibility-of-different-mechanisms)”.
+Justification: see “[Susceptibility of different mechanisms](#susceptibility-of-different-mechanisms)”.
 
 ### Implementation of copying
 
@@ -559,7 +559,7 @@ Since the memory poisoning tests will require the use of interfaces specific to 
 
 ### Validation of protection by careful access
 
-As concluded in [Validation of careful access for built-in drivers](validation-of-careful-access-for-built-in-drivers), the best approach to validation of careful accesses is an open question. Designing this will involve prototyping each possible approach and choosing the one that seems most fruitful.
+As concluded in [Validation of careful access for built-in drivers](#validation-of-careful-access-for-built-in-drivers), the best approach to validation of careful accesses is an open question. Designing this will involve prototyping each possible approach and choosing the one that seems most fruitful.
 
 For each of the test strategies discussed:
 1. Take 1-2 days to create a basic prototype of a test that uses the approach.

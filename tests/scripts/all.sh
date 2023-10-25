@@ -3600,8 +3600,6 @@ component_test_psa_crypto_config_accel_aead () {
 # - component_test_psa_crypto_config_accel_cipher_aead
 # - component_test_psa_crypto_config_reference_cipher_aead
 common_psa_crypto_config_accel_cipher_aead() {
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
 }
@@ -3614,7 +3612,8 @@ common_psa_crypto_config_accel_cipher_aead() {
 component_test_psa_crypto_config_accel_cipher_aead () {
     msg "test: crypto config with accelerated cipher and AEAD"
 
-    loc_accel_list="ALG_CBC_NO_PADDING ALG_CBC_PKCS7 ALG_CTR ALG_CFB ALG_OFB ALG_XTS \
+    loc_accel_list="ALG_ECB_NO_PADDING ALG_CBC_NO_PADDING ALG_CBC_PKCS7 ALG_CTR ALG_CFB \
+                    ALG_OFB ALG_XTS ALG_STREAM_CIPHER \
                     ALG_GCM ALG_CCM ALG_CHACHA20_POLY1305 ALG_CMAC \
                     KEY_TYPE_DES KEY_TYPE_AES KEY_TYPE_ARIA KEY_TYPE_CHACHA20 KEY_TYPE_CAMELLIA"
 

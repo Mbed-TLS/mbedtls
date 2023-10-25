@@ -237,7 +237,6 @@ int main(int argc, const char *argv[])
 #endif
 #endif
 
-#ifdef MBEDTLS_HAVE_CHDIR
     /* Try changing to the directory containing the executable, if
      * using the default data file. This allows running the executable
      * from another directory (e.g. the project root) and still access
@@ -249,8 +248,7 @@ int main(int argc, const char *argv[])
      * test-specific files such as the outcome file, which is arguably
      * not desirable and should be fixed later.
      */
-    try_chdir(argv[0]);
-#endif /* MBEDTLS_HAVE_CHDIR */
+    try_chdir_if_supported(argv[0]);
 
     int ret = mbedtls_test_platform_setup();
     if (ret != 0) {

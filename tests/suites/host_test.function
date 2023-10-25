@@ -442,7 +442,7 @@ static void write_outcome_result(FILE *outcome_file,
  *
  * Failures are silent.
  */
-static void try_chdir(const char *argv0)
+static void try_chdir_if_supported(const char *argv0)
 {
     /* We might want to allow backslash as well, for Windows. But then we also
      * need to consider chdir() vs _chdir(), and different conventions
@@ -466,6 +466,13 @@ static void try_chdir(const char *argv0)
                         __func__, path);
     }
     mbedtls_free(path);
+}
+#else /* MBEDTLS_HAVE_CHDIR */
+/* No chdir() or no support for parsing argv[0] on this platform. */
+static void try_chdir_if_supported(const char *argv0)
+{
+    (void) argv0;
+    return;
 }
 #endif /* MBEDTLS_HAVE_CHDIR */
 

@@ -363,7 +363,7 @@ These issues may be solved by creating some kind of test wrapper around every PS
 
 **Design decision: Attempt to add memory poisoning transparently to existing tests. If this proves difficult, write new tests instead.**
 
-#### Discussion
+#### Discussion of copying validation
 
 Of all discussed approaches, validation by memory poisoning appears as the best. This is because it:
 
@@ -447,7 +447,7 @@ Running on an FVP allows two approaches to careful-access testing:
 * Convenient scripted use of a debugger with [Iris](https://developer.arm.com/documentation/101196/latest/). This allows memory watchpoints to be set, perhaps more flexibly than with GDB.
 * Tracing of all memory accesses with [Tarmac Trace](https://developer.arm.com/documentation/100964/1123/Plug-ins-for-Fast-Models/TarmacTrace). To validate the single-access properties, the [processor memory access trace source](https://developer.arm.com/documentation/100964/1123/Plug-ins-for-Fast-Models/TarmacTrace/Processor-memory-access-trace) can be used to output all memory accesses happening on the FVP. This output can then be easily parsed and processed to ensure that the input and output buffers are accessed only once. The addresses of buffers can either be leaked by the program through printing to the serial port or set to fixed values in the FVP's linker script.
 
-#### Discussion
+#### Discussion of careful-access validation
 
 The best approach for validating the correctness of memory accesses is an open question that requires further investigation and prototyping. The above sections discuss some possibilities.
 
@@ -510,7 +510,7 @@ This function would first copy the `buffers->out` buffer to the user-supplied ou
 
 Some PSA functions may not use these convenience functions as they may have local optimizations that reduce memory usage. For example, ciphers may be able to use a single intermediate buffer for both input and output.
 
-### Validation of copying
+### Implementation of copying validation
 
 As discussed in the [design exploration of copying validation](#validation-of-copying), the best strategy for validation of copies appears to be validation by memory poisoning, implemented using Valgrind and ASan.
 

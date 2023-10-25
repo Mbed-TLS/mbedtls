@@ -22,17 +22,23 @@ class Results:
         self.error_count = 0
         self.warning_count = 0
 
-    @staticmethod
-    def log(fmt, *args, **kwargs):
-        sys.stderr.write((fmt + '\n').format(*args, **kwargs))
+    def new_section(self, fmt, *args, **kwargs):
+        self._print_line('\n*** ' + fmt + ' ***\n', *args, **kwargs)
+
+    def info(self, fmt, *args, **kwargs):
+        self._print_line('Info: ' + fmt, *args, **kwargs)
 
     def error(self, fmt, *args, **kwargs):
-        self.log('Error: ' + fmt, *args, **kwargs)
         self.error_count += 1
+        self._print_line('Error: ' + fmt, *args, **kwargs)
 
     def warning(self, fmt, *args, **kwargs):
-        self.log('Warning: ' + fmt, *args, **kwargs)
         self.warning_count += 1
+        self._print_line('Warning: ' + fmt, *args, **kwargs)
+
+    @staticmethod
+    def _print_line(fmt, *args, **kwargs):
+        sys.stderr.write((fmt + '\n').format(*args, **kwargs))
 
 class TestCaseOutcomes:
     """The outcomes of one test case across many configurations."""
@@ -53,25 +59,24 @@ class TestCaseOutcomes:
         """
         return len(self.successes) + len(self.failures)
 
-def execute_reference_driver_tests(ref_component, driver_component, outcome_file):
+def execute_reference_driver_tests(results: Results, ref_component, driver_component, \
+                                   outcome_file):
     """Run the tests specified in ref_component and driver_component. Results
     are stored in the output_file and they will be used for the following
     coverage analysis"""
     # If the outcome file already exists, we assume that the user wants to
     # perform the comparison analysis again without repeating the tests.
     if os.path.exists(outcome_file):
-        Results.log("Outcome file (" + outcome_file + ") already exists. " + \
-                    "Tests will be skipped.")
+        results.info("Outcome file ({}) already exists. Tests will be skipped.", outcome_file)
         return
 
     shell_command = "tests/scripts/all.sh --outcome-file " + outcome_file + \
                     " " + ref_component + " " + driver_component
-    Results.log("Running: " + shell_command)
+    results.info("Running: {}", shell_command)
     ret_val = subprocess.run(shell_command.split(), check=False).returncode
 
     if ret_val != 0:
-        Results.log("Error: failed to run reference/driver components")
-        sys.exit(ret_val)
+        results.error("failed to run reference/driver components")
 
 def analyze_coverage(results, outcomes, allow_list, full_coverage):
     """Check that all available test cases are executed at least once."""
@@ -90,7 +95,8 @@ def analyze_coverage(results, outcomes, allow_list, full_coverage):
             else:
                 results.warning('Allow listed test case was executed: {}', key)
 
-def analyze_driver_vs_reference(outcomes, component_ref, component_driver,
+def analyze_driver_vs_reference(results: Results, outcomes,
+                                component_ref, component_driver,
                                 ignored_suites, ignored_test=None):
     """Check that all tests executed in the reference component are also
     executed in the corresponding driver component.
@@ -100,7 +106,6 @@ def analyze_driver_vs_reference(outcomes, component_ref, component_driver,
       output string is provided
     """
     available = check_test_cases.collect_available_test_cases()
-    result = True
 
     for key in available:
         # Continue if test was not executed by any component
@@ -125,16 +130,12 @@ def analyze_driver_vs_reference(outcomes, component_ref, component_driver,
             if component_ref in entry:
                 reference_test_passed = True
         if(reference_test_passed and not driver_test_passed):
-            Results.log(key)
-            result = False
-    return result
+            results.error("Did not pass with driver: {}", key)
 
-def analyze_outcomes(outcomes, args):
+def analyze_outcomes(results: Results, outcomes, args):
     """Run all analyses on the given outcome collection."""
-    results = Results()
     analyze_coverage(results, outcomes, args['allow_list'],
                      args['full_coverage'])
-    return results
 
 def read_outcome_file(outcome_file):
     """Parse an outcome file and return an outcome collection.
@@ -157,29 +158,30 @@ by a semicolon.
                 outcomes[key].failures.append(setup)
     return outcomes
 
-def do_analyze_coverage(outcome_file, args):
+def do_analyze_coverage(results: Results, outcome_file, args):
     """Perform coverage analysis."""
+    results.new_section("Analyze coverage")
     outcomes = read_outcome_file(outcome_file)
-    Results.log("\n*** Analyze coverage ***\n")
-    results = analyze_outcomes(outcomes, args)
-    return results.error_count == 0
+    analyze_outcomes(results, outcomes, args)
 
-def do_analyze_driver_vs_reference(outcome_file, args):
+def do_analyze_driver_vs_reference(results: Results, outcome_file, args):
     """Perform driver vs reference analyze."""
-    execute_reference_driver_tests(args['component_ref'], \
-                                    args['component_driver'], outcome_file)
+    results.new_section("Analyze driver {} vs reference {}",
+                        args['component_driver'], args['component_ref'])
+
+    execute_reference_driver_tests(results, args['component_ref'], \
+                                   args['component_driver'], outcome_file)
 
     ignored_suites = ['test_suite_' + x for x in args['ignored_suites']]
 
     outcomes = read_outcome_file(outcome_file)
-    Results.log("\n*** Analyze driver {} vs reference {} ***\n".format(
-        args['component_driver'], args['component_ref']))
-    return analyze_driver_vs_reference(outcomes, args['component_ref'],
-                                       args['component_driver'], ignored_suites,
-                                       args['ignored_tests'])
+
+    analyze_driver_vs_reference(results, outcomes,
+                                args['component_ref'], args['component_driver'],
+                                ignored_suites, args['ignored_tests'])
 
 # List of tasks with a function that can handle this task and additional arguments if required
-TASKS = {
+KNOWN_TASKS = {
     'analyze_coverage':                 {
         'test_function': do_analyze_coverage,
         'args': {
@@ -641,11 +643,13 @@ TASKS = {
 }
 
 def main():
+    main_results = Results()
+
     try:
         parser = argparse.ArgumentParser(description=__doc__)
         parser.add_argument('outcomes', metavar='OUTCOMES.CSV',
                             help='Outcome file to analyze')
-        parser.add_argument('task', default='all', nargs='?',
+        parser.add_argument('specified_tasks', default='all', nargs='?',
                             help='Analysis to be done. By default, run all tasks. '
                                  'With one or more TASK, run only those. '
                                  'TASK can be the name of a single task or '
@@ -660,33 +664,31 @@ def main():
         options = parser.parse_args()
 
         if options.list:
-            for task in TASKS:
-                Results.log(task)
+            for task in KNOWN_TASKS:
+                print(task)
             sys.exit(0)
 
-        result = True
-
-        if options.task == 'all':
-            tasks = TASKS.keys()
+        if options.specified_tasks == 'all':
+            tasks_list = KNOWN_TASKS.keys()
         else:
-            tasks = re.split(r'[, ]+', options.task)
+            tasks_list = re.split(r'[, ]+', options.specified_tasks)
+            for task in tasks_list:
+                if task not in KNOWN_TASKS:
+                    sys.stderr.write('invalid task: {}'.format(task))
+                    sys.exit(2)
 
-            for task in tasks:
-                if task not in TASKS:
-                    Results.log('Error: invalid task: {}'.format(task))
-                    sys.exit(1)
+        KNOWN_TASKS['analyze_coverage']['args']['full_coverage'] = options.full_coverage
 
-        TASKS['analyze_coverage']['args']['full_coverage'] = \
-            options.full_coverage
+        for task in tasks_list:
+            test_function = KNOWN_TASKS[task]['test_function']
+            test_args = KNOWN_TASKS[task]['args']
+            test_function(main_results, options.outcomes, test_args)
 
-        for task in TASKS:
-            if task in tasks:
-                if not TASKS[task]['test_function'](options.outcomes, TASKS[task]['args']):
-                    result = False
+        main_results.info("Overall results: {} warnings and {} errors",
+                          main_results.warning_count, main_results.error_count)
 
-        if result is False:
-            sys.exit(1)
-        Results.log("SUCCESS :-)")
+        sys.exit(0 if (main_results.error_count == 0) else 1)
+
     except Exception: # pylint: disable=broad-except
         # Print the backtrace and exit explicitly with our chosen status.
         traceback.print_exc()

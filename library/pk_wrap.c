@@ -976,16 +976,17 @@ static int ecdsa_sign_psa(mbedtls_svc_key_id_t key_id, mbedtls_md_type_t md_alg,
     psa_status_t status;
     psa_algorithm_t psa_sig_md;
     psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
-    psa_algorithm_t alg;
+    psa_algorithm_t alg, alg2;
 
     status = psa_get_key_attributes(key_id, &key_attr);
     if (status != PSA_SUCCESS) {
         return PSA_PK_ECDSA_TO_MBEDTLS_ERR(status);
     }
     alg = psa_get_key_algorithm(&key_attr);
+    alg2 = psa_get_key_enrollment_algorithm(&key_attr);
     psa_reset_key_attributes(&key_attr);
 
-    if (PSA_ALG_IS_DETERMINISTIC_ECDSA(alg)) {
+    if (PSA_ALG_IS_DETERMINISTIC_ECDSA(alg) || PSA_ALG_IS_DETERMINISTIC_ECDSA(alg2)) {
         psa_sig_md = PSA_ALG_DETERMINISTIC_ECDSA(mbedtls_md_psa_alg_from_type(md_alg));
     } else {
         psa_sig_md = PSA_ALG_ECDSA(mbedtls_md_psa_alg_from_type(md_alg));
@@ -1037,13 +1038,8 @@ static int ecdsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     psa_ecc_family_t curve =
         mbedtls_ecc_group_to_psa(ctx->grp.id, &curve_bits);
     size_t key_len = PSA_BITS_TO_BYTES(curve_bits);
-#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
-    psa_algorithm_t psa_sig_md =
-        PSA_ALG_DETERMINISTIC_ECDSA(mbedtls_md_psa_alg_from_type(md_alg));
-#else
-    psa_algorithm_t psa_sig_md =
-        PSA_ALG_ECDSA(mbedtls_md_psa_alg_from_type(md_alg));
-#endif
+    psa_algorithm_t psa_hash = mbedtls_md_psa_alg_from_type(md_alg);
+    psa_algorithm_t psa_sig_md = MBEDTLS_PK_PSA_ALG_ECDSA_MAYBE_DET(psa_hash);
     ((void) f_rng);
     ((void) p_rng);
 

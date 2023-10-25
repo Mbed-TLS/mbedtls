@@ -1904,37 +1904,37 @@ int mbedtls_ssl_tls13_handshake_server_step(mbedtls_ssl_context *ssl);
 static inline unsigned mbedtls_ssl_conf_tls13_check_kex_modes(mbedtls_ssl_context *ssl,
                                                               int kex_mode_mask)
 {
-    return (ssl->conf->tls13_kex_modes & kex_mode_mask) != 0;
+    return (ssl->conf->tls13_kex_modes & kex_mode_mask) == 0;
 }
 
 static inline int mbedtls_ssl_conf_tls13_psk_enabled(mbedtls_ssl_context *ssl)
 {
-    return mbedtls_ssl_conf_tls13_check_kex_modes(ssl,
-                                                  MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK);
+    return !mbedtls_ssl_conf_tls13_check_kex_modes(ssl,
+                                                   MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK);
 }
 
 static inline int mbedtls_ssl_conf_tls13_psk_ephemeral_enabled(mbedtls_ssl_context *ssl)
 {
-    return mbedtls_ssl_conf_tls13_check_kex_modes(ssl,
-                                                  MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL);
+    return !mbedtls_ssl_conf_tls13_check_kex_modes(ssl,
+                                                   MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL);
 }
 
 static inline int mbedtls_ssl_conf_tls13_ephemeral_enabled(mbedtls_ssl_context *ssl)
 {
-    return mbedtls_ssl_conf_tls13_check_kex_modes(ssl,
-                                                  MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL);
+    return !mbedtls_ssl_conf_tls13_check_kex_modes(ssl,
+                                                   MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL);
 }
 
 static inline int mbedtls_ssl_conf_tls13_some_ephemeral_enabled(mbedtls_ssl_context *ssl)
 {
-    return mbedtls_ssl_conf_tls13_check_kex_modes(ssl,
-                                                  MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ALL);
+    return !mbedtls_ssl_conf_tls13_check_kex_modes(ssl,
+                                                   MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ALL);
 }
 
 static inline int mbedtls_ssl_conf_tls13_some_psk_enabled(mbedtls_ssl_context *ssl)
 {
-    return mbedtls_ssl_conf_tls13_check_kex_modes(ssl,
-                                                  MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL);
+    return !mbedtls_ssl_conf_tls13_check_kex_modes(ssl,
+                                                   MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL);
 }
 
 #if defined(MBEDTLS_SSL_SRV_C) && \

@@ -346,8 +346,11 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 #if !defined(MBEDTLS_MAYBE_UNUSED) && defined(__IAR_SYSTEMS_ICC__) && defined(__VER__)
 /* IAR does support __attribute__((unused)), but only if the -e flag (extended language support)
  * is given; the pragma always works.
- * Unfortunately the pragma affects the rest of the file where it is used, but this is harmless. */
-#    if (__VER__ >= 8010000) // IAR 8.1 or later
+ * Unfortunately the pragma affects the rest of the file where it is used, but this is harmless.
+ * Check for version 5.2 or later - this pragma may be supported by earlier versions, but I wasn't
+ * able to find documentation).
+ */
+#    if (__VER__ >= 5020000)
 #        define MBEDTLS_MAYBE_UNUSED _Pragma("diag_suppress=Pe177")
 #    endif
 #endif

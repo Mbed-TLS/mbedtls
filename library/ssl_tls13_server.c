@@ -95,9 +95,9 @@ static int ssl_tls13_parse_key_exchange_modes_ext(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_check_psk_key_exchange(mbedtls_ssl_context *ssl);
+static int ssl_tls13_key_exchange_psk_available(mbedtls_ssl_context *ssl);
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_check_psk_ephemeral_key_exchange(mbedtls_ssl_context *ssl);
+static int ssl_tls13_key_exchange_psk_ephemeral_available(mbedtls_ssl_context *ssl);
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_offered_psks_check_identity_match_ticket(
@@ -176,11 +176,11 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 
     key_exchanges = 0;
     if (mbedtls_ssl_session_ticket_allow_psk_ephemeral(session) &&
-        ssl_tls13_check_psk_ephemeral_key_exchange(ssl)) {
+        ssl_tls13_key_exchange_psk_ephemeral_available(ssl)) {
         key_exchanges |= MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
     }
     if (mbedtls_ssl_session_ticket_allow_psk(session) &&
-        ssl_tls13_check_psk_key_exchange(ssl)) {
+        ssl_tls13_key_exchange_psk_available(ssl)) {
         key_exchanges |= MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
     }
 
@@ -1022,7 +1022,7 @@ static int ssl_tls13_ticket_permission_check(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_check_ephemeral_key_exchange(mbedtls_ssl_context *ssl)
+static int ssl_tls13_key_exchange_ephemeral_available(mbedtls_ssl_context *ssl)
 {
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
     return mbedtls_ssl_conf_tls13_ephemeral_enabled(ssl) &&
@@ -1034,7 +1034,7 @@ static int ssl_tls13_check_ephemeral_key_exchange(mbedtls_ssl_context *ssl)
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_check_psk_key_exchange(mbedtls_ssl_context *ssl)
+static int ssl_tls13_key_exchange_psk_available(mbedtls_ssl_context *ssl)
 {
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED)
     return ssl_tls13_ticket_permission_check(
@@ -1049,7 +1049,7 @@ static int ssl_tls13_check_psk_key_exchange(mbedtls_ssl_context *ssl)
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_check_psk_ephemeral_key_exchange(mbedtls_ssl_context *ssl)
+static int ssl_tls13_key_exchange_psk_ephemeral_available(mbedtls_ssl_context *ssl)
 {
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED)
     return ssl_tls13_ticket_permission_check(
@@ -1083,17 +1083,17 @@ static int ssl_tls13_determine_key_exchange_mode(mbedtls_ssl_context *ssl)
     ssl->handshake->key_exchange_mode =
         MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE;
 
-    if (ssl_tls13_check_psk_ephemeral_key_exchange(ssl)) {
+    if (ssl_tls13_key_exchange_psk_ephemeral_available(ssl)) {
         ssl->handshake->key_exchange_mode =
             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
         MBEDTLS_SSL_DEBUG_MSG(2, ("key exchange mode: psk_ephemeral"));
     } else
-    if (ssl_tls13_check_ephemeral_key_exchange(ssl)) {
+    if (ssl_tls13_key_exchange_ephemeral_available(ssl)) {
         ssl->handshake->key_exchange_mode =
             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL;
         MBEDTLS_SSL_DEBUG_MSG(2, ("key exchange mode: ephemeral"));
     } else
-    if (ssl_tls13_check_psk_key_exchange(ssl)) {
+    if (ssl_tls13_key_exchange_psk_available(ssl)) {
         ssl->handshake->key_exchange_mode =
             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
         MBEDTLS_SSL_DEBUG_MSG(2, ("key exchange mode: psk"));
@@ -1737,8 +1737,8 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
      * - The content up to but excluding the PSK extension, if present.
      */
     /* If we've settled on a PSK-based exchange, parse PSK identity ext */
-    if (ssl_tls13_check_psk_key_exchange(ssl) ||
-        ssl_tls13_check_psk_ephemeral_key_exchange(ssl)) {
+    if (ssl_tls13_key_exchange_psk_available(ssl) ||
+        ssl_tls13_key_exchange_psk_ephemeral_available(ssl)) {
         ret = handshake->update_checksum(ssl, buf,
                                          pre_shared_key_ext - buf);
         if (0 != ret) {

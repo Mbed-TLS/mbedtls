@@ -251,6 +251,7 @@ KNOWN_TASKS = {
                 'gcm.aes256_en',
                 'gcm.camellia',
                 'gcm.misc',
+                'cmac',
             ],
             'ignored_tests': {
                 # Following tests depends on AES_C/DES_C

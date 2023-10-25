@@ -248,7 +248,9 @@ int main(int argc, const char *argv[])
      * test-specific files such as the outcome file, which is arguably
      * not desirable and should be fixed later.
      */
-    try_chdir_if_supported(argv[0]);
+    if (argc == 1) {
+        try_chdir_if_supported(argv[0]);
+    }
 
     int ret = mbedtls_test_platform_setup();
     if (ret != 0) {

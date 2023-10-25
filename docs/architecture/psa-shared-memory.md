@@ -318,6 +318,7 @@ The reason to poison the memory before calling the library, rather than after th
 ##### Options for implementing poisoning
 
 There are several different ways that poisoning could be implemented:
+
 1. Using Valgrind's memcheck tool. Valgrind provides a macro `VALGRIND_MAKE_MEM_NO_ACCESS` that allows manual memory poisoning. Valgrind memory poisoning is already used for constant-flow testing in Mbed TLS.
 2. Using Memory Sanitizer (MSan), which allows us to mark memory as uninitialized. This is also used for constant-flow testing. It is suitable for input buffers only, since it allows us to detect when a poisoned buffer is read but not when it is written.
 3. Using Address Sanitizer (ASan). This provides `ASAN_POISON_MEMORY_REGION` which marks memory as inaccessible.
@@ -348,10 +349,12 @@ Additionally, we can ensure that all functions are exercised by automatically ge
 ##### Validation with existing tests
 
 An alternative approach would be to integrate memory poisoning validation with existing tests. This has two main advantages:
+
 * All of the tests are written already, potentially saving development time.
 * The code coverage of these tests is greater than would be achievable writing new tests from scratch. In practice this advantage is small as buffer copying will take place in the dispatch layer. The tests are therefore independent of the values of parameters passed to the driver, so extra coverage in these parameters does not gain anything.
 
 It may be possible to transparently implement memory poisoning so that existing tests can work without modification. This would be achieved by replacing the implementation of `malloc()` with one that allocates poisoned buffers. However, there are some difficulties with this:
+
 * Not all buffers allocated by tests are used as inputs and outputs to PSA functions being tested.
 * Those buffers that are inputs to a PSA function need to be unpoisoned right up until the function is called, so that they can be filled with input data.
 * Those buffers that are outputs from a PSA function need to be unpoisoned straight after the function returns, so that they can be read to check the output is correct.
@@ -363,6 +366,7 @@ These issues may be solved by creating some kind of test wrapper around every PS
 #### Discussion
 
 Of all discussed approaches, validation by memory poisoning appears as the best. This is because it:
+
 * Does not require complex linking against different versions of `malloc()` (as is the case with the memory pool approach).
 * Allows automated testing (unlike the review approach).
 
@@ -381,6 +385,7 @@ Note: We are focusing on read-read inconsistencies for now, as most of the cases
 #### Review
 
 As with validation of copying, the simplest method of validation we can implement is careful code review. This is the least desirable method of validation for several reasons:
+
 1. It is tedious for the reviewers.
 2. Reviewers are prone to make mistakes (especially when performing tedious tasks).
 3. It requires engineering time linear in the number of PSA functions to be tested.
@@ -424,6 +429,7 @@ Valgrind has no tool specifically that checks the property that we are looking f
 valgrind --tool=lackey --trace-mem=yes --log-file=logfile ./myprogram
 ```
 This will execute `myprogram` and dump a record of every memory access to `logfile`, with its address and data width. If `myprogram` is a test that does the following:
+
 1. Set up input and output buffers for a PSA function call.
 2. Leak the start and end address of each buffer via `print()`.
 3. Write data into the input buffer exactly once.
@@ -437,6 +443,7 @@ Then it should be possible to parse the output from the program and from Valgrin
 It may be possible to measure double accesses by running tests on a Fixed Virtual Platform such as Corstone 310 ecosystem FVP, available [here](https://developer.arm.com/downloads/-/arm-ecosystem-fvps). There exists a pre-packaged example program for the Corstone 310 FVP available as part of the Open IoT SDK [here](https://git.gitlab.arm.com/iot/open-iot-sdk/examples/sdk-examples/-/tree/main/examples/mbedtls/cmsis-rtx/corstone-310) that could provide a starting point for a set of tests.
 
 Running on an FVP allows two approaches to careful-access testing:
+
 * Convenient scripted use of a debugger with [Iris](https://developer.arm.com/documentation/101196/latest/). This allows memory watchpoints to be set, perhaps more flexibly than with GDB.
 * Tracing of all memory accesses with [Tarmac Trace](https://developer.arm.com/documentation/100964/1123/Plug-ins-for-Fast-Models/TarmacTrace). To validate the single-access properties, the [processor memory access trace source](https://developer.arm.com/documentation/100964/1123/Plug-ins-for-Fast-Models/TarmacTrace/Processor-memory-access-trace) can be used to output all memory accesses happening on the FVP. This output can then be easily parsed and processed to ensure that the input and output buffers are accessed only once. The addresses of buffers can either be leaked by the program through printing to the serial port or set to fixed values in the FVP's linker script.
 
@@ -512,12 +519,14 @@ To perform memory poisoning, we must implement the function alluded to in [Valid
 mbedtls_psa_core_poison_memory(uint8_t *buffer, size_t length, int should_poison);
 ```
 This should either poison or unpoison the given buffer based on the value of `should_poison`:
+
 * When `should_poison == 1`, this is equivalent to calling `VALGRIND_MAKE_MEM_NOACCESS(buffer, length)` or `ASAN_POISON_MEMORY_REGION(buffer, length)`.
 * When `should_poison == 0`, this is equivalent to calling `VALGRIND_MAKE_MEM_DEFINED(buffer, length)` or `ASAN_UNPOISON_MEMORY_REGION(buffer, length)`.
 
 The PSA copying function must then have test hooks implemented as outlined in [Validation of copying by memory poisoning](#validation-of-copying-by-memory-poisoning).
 
 For test implementation, we may choose one of two approaches:
+
 * Use transparent allocation-based memory poisoning.
 * Use memory poisoning functions and a new testsuite.
 
@@ -562,6 +571,7 @@ Since the memory poisoning tests will require the use of interfaces specific to 
 As concluded in [Validation of careful access for built-in drivers](#validation-of-careful-access-for-built-in-drivers), the best approach to validation of careful accesses is an open question. Designing this will involve prototyping each possible approach and choosing the one that seems most fruitful.
 
 For each of the test strategies discussed:
+
 1. Take 1-2 days to create a basic prototype of a test that uses the approach.
 2. Document the prototype - write a short guide that can be followed to arrive at the same prototype.
 3. Evaluate the prototype according to its usefulness. The criteria of evaluation should include:
@@ -572,6 +582,7 @@ For each of the test strategies discussed:
    * Comprehensibility - Accounting for the lower code quality of a prototype, would developers unfamiliar with the tests based on the prototype be able to understand them easily?
 
 Once each prototype is complete, choose the best approach to implement the careful-access testing. Implement tests using this approach for each of the PSA interfaces that require careful-access testing:
+
 * Hash
 * MAC
 * AEAD (additional data only)

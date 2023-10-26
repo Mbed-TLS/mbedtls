@@ -364,7 +364,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-#if defined(MBEDTLS_CIPHER_MODE_CBC)
+#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
     if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_CBC) {
         size_t copy_len = 0;
 
@@ -451,7 +451,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
     }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-#if defined(MBEDTLS_CIPHER_MODE_CFB)
+#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
     if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_CFB) {
         if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->cfb_func(ctx->cipher_ctx,
                                                                             ctx->operation, ilen,
@@ -467,7 +467,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
     }
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
-#if defined(MBEDTLS_CIPHER_MODE_OFB)
+#if defined(MBEDTLS_CIPHER_MODE_OFB) && defined(MBEDTLS_CIPHER_C)
     if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_OFB) {
         if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->ofb_func(ctx->cipher_ctx,
                                                                             ilen,
@@ -483,7 +483,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
     }
 #endif /* MBEDTLS_CIPHER_MODE_OFB */
 
-#if defined(MBEDTLS_CIPHER_MODE_CTR)
+#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
     if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_CTR) {
         if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->ctr_func(ctx->cipher_ctx,
                                                                             ilen,
@@ -500,7 +500,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
     }
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
-#if defined(MBEDTLS_CIPHER_MODE_XTS)
+#if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_CIPHER_C)
     if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_XTS) {
         if (ctx->unprocessed_len > 0) {
             /* We can only process an entire data unit at a time. */
@@ -523,7 +523,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
     }
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
 
-#if defined(MBEDTLS_CIPHER_MODE_STREAM)
+#if defined(MBEDTLS_CIPHER_MODE_STREAM) && defined(MBEDTLS_CIPHER_C)
     if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_STREAM) {
         if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->stream_func(ctx->cipher_ctx,
                                                                                ilen, input,

@@ -219,42 +219,18 @@ KNOWN_TASKS = {
         'args': {
             'component_ref': 'test_psa_crypto_config_reference_cipher_aead',
             'component_driver': 'test_psa_crypto_config_accel_cipher_aead',
-            # Ignore suites that are being accelerated
+            # Modules replaced by drivers.
             'ignored_suites': [
-                'aes.cbc',
-                'aes.cfb',
-                'aes.ecb',
-                'aes.ofb',
-                'aes.rest',
-                'aes.xts',
-                'aria',
-                'camellia',
-                'ccm',
-                'chacha20',
-                'chachapoly',
-                'cipher.aes',
-                'cipher.aria',
-                'cipher.camellia',
-                'cipher.ccm',
-                'cipher.chacha20',
-                'cipher.chachapoly',
-                'cipher.des',
-                'cipher.gcm',
-                'cipher.nist_kw',
-                'cipher.padding',
-                'des',
-                'gcm.aes128_de',
-                'gcm.aes128_en',
-                'gcm.aes192_de',
-                'gcm.aes192_en',
-                'gcm.aes256_de',
-                'gcm.aes256_en',
-                'gcm.camellia',
-                'gcm.misc',
-                'cmac',
+                # low-level (block/stream) cipher modules
+                'aes', 'aria', 'camellia', 'des', 'chacha20',
+                # AEAD modes
+                'ccm', 'chachapoly', 'cmac', 'gcm',
+                # The Cipher abstraction layer
+                'cipher',
             ],
             'ignored_tests': {
-                # Following tests depends on AES_C/DES_C
+                # PEM decryption is not supported so far.
+                # The rest of PEM (write, unencrypted read) works though.
                 'test_suite_pem': [
                     'PEM read (AES-128-CBC + invalid iv)'
                     'PEM read (DES-CBC + invalid iv)',
@@ -266,16 +242,18 @@ KNOWN_TASKS = {
                     'PEM read (AES-128-CBC + invalid iv)',
                     'PEM read (DES-CBC + invalid iv)',
                 ],
-                # Following tests depends on AES_C/DES_C
+                # Following tests depend on AES_C/DES_C but are not about
+                # them really, just need to know some error code is there.
                 'test_suite_error': [
                     'Low and high error',
                     'Single low error'
                 ],
-                # Following test depends on AES_C
+                # Similar to test_suite_error above.
                 'test_suite_version': [
                     'Check for MBEDTLS_AES_C when already present',
                 ],
-                # Following tests depends on PCKS7
+                # The en/decryption part of PKCS#12 is not supported so far.
+                # The rest of PKCS#12 (key derivation) works though.
                 'test_suite_pkcs12': [
                     'PBE Decrypt, (Invalid padding & PKCS7 padding enabled)',
                     'PBE Decrypt, pad = 7 (OK)',
@@ -285,7 +263,8 @@ KNOWN_TASKS = {
                     'PBE Encrypt, pad = 8 (Invalid output size)',
                     'PBE Encrypt, pad = 8 (OK)',
                 ],
-                # Following tests depends on PCKS7
+                # The en/decryption part of PKCS#5 is not supported so far.
+                # The rest of PKCS#5 (PBKDF2) works though.
                 'test_suite_pkcs5': [
                     'PBES2 Decrypt (Invalid output size)',
                     'PBES2 Decrypt (Invalid padding & PKCS7 padding enabled)',
@@ -319,7 +298,7 @@ KNOWN_TASKS = {
                     'PBES2 Encrypt, pad=8 (Invalid output size)',
                     'PBES2 Encrypt, pad=8 (OK)',
                 ],
-                # Following tests depends on DES
+                # Encrypted keys are not supported so far.
                 # pylint: disable=line-too-long
                 'test_suite_pkparse': [
                     'Key ASN1 (Encrypted key PKCS12, trailing garbage data)',

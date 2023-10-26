@@ -518,13 +518,14 @@ need it, namely: CCM, GCM. Note: CCM and GCM currently depend on the full
 replaced by the above auto-enablement.
 
 Cipher light includes:
-- info functions;
+- some info functions;
 - support for block ciphers in ECB mode, encrypt only (note: in Cipher, "ECB"
   means just one block, contrary to PSA);
-- the one-shot API as well as (part of) the streaming API;
+- part of the streaming API for unauthenticated ciphers;
 - only AES, Aria and Camellia.
 
 This excludes:
+- the one-shot API for unauthenticated ciphers;
 - the AEAD/KW API (both one-shot and streaming);
 - support for stream ciphers;
 - support for other modes of block ciphers (CBC, CTR, CFB, etc.);

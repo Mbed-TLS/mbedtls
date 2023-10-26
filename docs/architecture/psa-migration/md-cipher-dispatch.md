@@ -99,8 +99,8 @@ We can classify code that implements or uses cryptographic mechanisms into sever
 * Software implementations of primitive cryptographic mechanisms. These are not expected to change.
 * Software implementations of constructed cryptographic mechanisms (e.g. HMAC, CTR_DRBG, RSA (calling a hash for PSS/OAEP, and needing to know the hash length in PKCS1v1.5 sign/verify), …). These need to keep working whenever a legacy implementation of the auxiliary mechanism is available, regardless of whether a PSA implementation is also available.
 * Code implementing the PSA crypto interface. This is not expected to change, except perhaps to expose some internal functionality to overhauled glue code.
-* Code that's subject to `MBEDTLS_USE_PSA_CRYPTO`: `pk.h`, X.509, TLS (excluding TLS 1.3).
-* Code that always uses PSA for crypto: TLS 1.3, LMS.
+* Code that's subject to `MBEDTLS_USE_PSA_CRYPTO`: `pk.h`, X.509, TLS (excluding parts specific TLS 1.3).
+* Code that always uses PSA for crypto: TLS 1.3 (except things common with 1.2), LMS.
 
 For the purposes of this work, three domains emerge:
 
@@ -318,6 +318,35 @@ These problems are easily solvable.
 * `mbedtls_md_info_t` can become a very thin type. We can't remove the extra function call from the source code of callers, but we can make it a very thin abstraction that compilers can often optimize.
 * We can make names and HMAC optional. The mixed-domain hash interface won't be the full `MBEDTLS_MD_C` but a subset.
 * We can optimize `md.c` without making API changes to `md.h`.
+
+### Scope reductions and priorities for 3.x
+
+This section documents things that we chose to temporarily exclude from the scope in the 3.x branch (which will eventually be in scope again after 4.0) as well as things we chose to prioritize if we don't have time to support everything.
+
+#### Don't support PK, X.509 and TLS without `MBEDTLS_USE_PSA_CRYPTO`
+
+We do not need to support driver-only hashes and ciphers in PK. X.509 and TLS without `MBEDTLS_USE_PSA_CRYPTO`. Users who want to take full advantage of drivers will need to enabled this macro.
+
+Note that this applies to TLS 1.3 as well, as some uses of hashes and all uses of ciphers there are common with TLS 1.2, hence governed by `MBEDTLS_USE_PSA_CRYPTO`, see [this macro's extended documentation](../../docs/use-psa-crypto.html).
+
+This will go away naturally in 4.0 when this macros is not longer an option (because it's always on).
+
+#### Don't support for `MBEDTLS_PSA_CRYPTO_CLIENT` without `MBEDTLS_PSA_CRYPTO_C`
+
+We generally don't really support builds with `MBEDTLS_PSA_CRYPTO_CLIENT` without `MBEDTLS_PSA_CRYPTO_C`. For example, both `MBEDTLS_USE_PSA_CRYPTO` and `MBEDTLS_SSL_PROTO_TLS1_3` require `MBEDTLS_PSA_CRYPTO_C`, while in principle they should only require `MBEDTLS_PSA_CRYPTO_CLIENT`.
+
+Considering this existing restriction which we do not plan to lift before 4.0, it is acceptable driver-only hashes and cipher support to have the same restriction in 3.x.
+
+It is however desirable for the design to keep support for `MBEDTLS_PSA_CRYPTO_CLIENT` in mind, in order to avoid making it more difficult to add in the future.
+
+#### For cipher: prioritize constrained devices and modern TLS
+
+The primary target is a configuration like TF-M's medium profile, plus TLS with only AEAD ciphersuites.
+
+This excludes things like:
+- Support for encrypted PEM, PKCS5 and PKCS12 encryption, and PKCS8 encrypted keys in PK parse. (Not widely used on highly constrained devices.)
+- Support for NIST-KW. (Same justification.)
+- Support for CBC ciphersuites in TLS. (They've been recommended against for a while now.)
 
 ## Specification
 

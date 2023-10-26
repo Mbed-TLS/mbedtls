@@ -23,7 +23,7 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_LIGHT)
 
 #include "mbedtls/cipher.h"
 #include "cipher_wrap.h"
@@ -65,65 +65,10 @@
 
 #include "mbedtls/platform.h"
 
-static int supported_init = 0;
-
 static inline const mbedtls_cipher_base_t *mbedtls_cipher_get_base(
     const mbedtls_cipher_info_t *info)
 {
     return mbedtls_cipher_base_lookup_table[info->base_idx];
-}
-
-const int *mbedtls_cipher_list(void)
-{
-    const mbedtls_cipher_definition_t *def;
-    int *type;
-
-    if (!supported_init) {
-        def = mbedtls_cipher_definitions;
-        type = mbedtls_cipher_supported;
-
-        while (def->type != 0) {
-            *type++ = (*def++).type;
-        }
-
-        *type = 0;
-
-        supported_init = 1;
-    }
-
-    return mbedtls_cipher_supported;
-}
-
-const mbedtls_cipher_info_t *mbedtls_cipher_info_from_type(
-    const mbedtls_cipher_type_t cipher_type)
-{
-    const mbedtls_cipher_definition_t *def;
-
-    for (def = mbedtls_cipher_definitions; def->info != NULL; def++) {
-        if (def->type == cipher_type) {
-            return def->info;
-        }
-    }
-
-    return NULL;
-}
-
-const mbedtls_cipher_info_t *mbedtls_cipher_info_from_string(
-    const char *cipher_name)
-{
-    const mbedtls_cipher_definition_t *def;
-
-    if (NULL == cipher_name) {
-        return NULL;
-    }
-
-    for (def = mbedtls_cipher_definitions; def->info != NULL; def++) {
-        if (!strcmp(def->info->name, cipher_name)) {
-            return def->info;
-        }
-    }
-
-    return NULL;
 }
 
 const mbedtls_cipher_info_t *mbedtls_cipher_info_from_values(
@@ -143,72 +88,6 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_values(
 
     return NULL;
 }
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
-static inline psa_key_type_t mbedtls_psa_translate_cipher_type(
-    mbedtls_cipher_type_t cipher)
-{
-    switch (cipher) {
-        case MBEDTLS_CIPHER_AES_128_CCM:
-        case MBEDTLS_CIPHER_AES_192_CCM:
-        case MBEDTLS_CIPHER_AES_256_CCM:
-        case MBEDTLS_CIPHER_AES_128_CCM_STAR_NO_TAG:
-        case MBEDTLS_CIPHER_AES_192_CCM_STAR_NO_TAG:
-        case MBEDTLS_CIPHER_AES_256_CCM_STAR_NO_TAG:
-        case MBEDTLS_CIPHER_AES_128_GCM:
-        case MBEDTLS_CIPHER_AES_192_GCM:
-        case MBEDTLS_CIPHER_AES_256_GCM:
-        case MBEDTLS_CIPHER_AES_128_CBC:
-        case MBEDTLS_CIPHER_AES_192_CBC:
-        case MBEDTLS_CIPHER_AES_256_CBC:
-        case MBEDTLS_CIPHER_AES_128_ECB:
-        case MBEDTLS_CIPHER_AES_192_ECB:
-        case MBEDTLS_CIPHER_AES_256_ECB:
-            return PSA_KEY_TYPE_AES;
-
-        /* ARIA not yet supported in PSA. */
-        /* case MBEDTLS_CIPHER_ARIA_128_CCM:
-           case MBEDTLS_CIPHER_ARIA_192_CCM:
-           case MBEDTLS_CIPHER_ARIA_256_CCM:
-           case MBEDTLS_CIPHER_ARIA_128_CCM_STAR_NO_TAG:
-           case MBEDTLS_CIPHER_ARIA_192_CCM_STAR_NO_TAG:
-           case MBEDTLS_CIPHER_ARIA_256_CCM_STAR_NO_TAG:
-           case MBEDTLS_CIPHER_ARIA_128_GCM:
-           case MBEDTLS_CIPHER_ARIA_192_GCM:
-           case MBEDTLS_CIPHER_ARIA_256_GCM:
-           case MBEDTLS_CIPHER_ARIA_128_CBC:
-           case MBEDTLS_CIPHER_ARIA_192_CBC:
-           case MBEDTLS_CIPHER_ARIA_256_CBC:
-               return( PSA_KEY_TYPE_ARIA ); */
-
-        default:
-            return 0;
-    }
-}
-
-static inline psa_algorithm_t mbedtls_psa_translate_cipher_mode(
-    mbedtls_cipher_mode_t mode, size_t taglen)
-{
-    switch (mode) {
-        case MBEDTLS_MODE_ECB:
-            return PSA_ALG_ECB_NO_PADDING;
-        case MBEDTLS_MODE_GCM:
-            return PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, taglen);
-        case MBEDTLS_MODE_CCM:
-            return PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, taglen);
-        case MBEDTLS_MODE_CCM_STAR_NO_TAG:
-            return PSA_ALG_CCM_STAR_NO_TAG;
-        case MBEDTLS_MODE_CBC:
-            if (taglen == 0) {
-                return PSA_ALG_CBC_NO_PADDING;
-            } else {
-                return 0;
-            }
-        default:
-            return 0;
-    }
-}
-#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
 void mbedtls_cipher_init(mbedtls_cipher_context_t *ctx)
 {
@@ -276,38 +155,45 @@ int mbedtls_cipher_setup(mbedtls_cipher_context_t *ctx,
 }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
-int mbedtls_cipher_setup_psa(mbedtls_cipher_context_t *ctx,
-                             const mbedtls_cipher_info_t *cipher_info,
-                             size_t taglen)
+static inline psa_key_type_t mbedtls_psa_translate_cipher_type(
+    mbedtls_cipher_type_t cipher)
 {
-    psa_algorithm_t alg;
-    mbedtls_cipher_context_psa *cipher_psa;
+    switch (cipher) {
+        case MBEDTLS_CIPHER_AES_128_CCM:
+        case MBEDTLS_CIPHER_AES_192_CCM:
+        case MBEDTLS_CIPHER_AES_256_CCM:
+        case MBEDTLS_CIPHER_AES_128_CCM_STAR_NO_TAG:
+        case MBEDTLS_CIPHER_AES_192_CCM_STAR_NO_TAG:
+        case MBEDTLS_CIPHER_AES_256_CCM_STAR_NO_TAG:
+        case MBEDTLS_CIPHER_AES_128_GCM:
+        case MBEDTLS_CIPHER_AES_192_GCM:
+        case MBEDTLS_CIPHER_AES_256_GCM:
+        case MBEDTLS_CIPHER_AES_128_CBC:
+        case MBEDTLS_CIPHER_AES_192_CBC:
+        case MBEDTLS_CIPHER_AES_256_CBC:
+        case MBEDTLS_CIPHER_AES_128_ECB:
+        case MBEDTLS_CIPHER_AES_192_ECB:
+        case MBEDTLS_CIPHER_AES_256_ECB:
+            return PSA_KEY_TYPE_AES;
 
-    if (NULL == cipher_info || NULL == ctx) {
-        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
-    }
+        /* ARIA not yet supported in PSA. */
+        /* case MBEDTLS_CIPHER_ARIA_128_CCM:
+           case MBEDTLS_CIPHER_ARIA_192_CCM:
+           case MBEDTLS_CIPHER_ARIA_256_CCM:
+           case MBEDTLS_CIPHER_ARIA_128_CCM_STAR_NO_TAG:
+           case MBEDTLS_CIPHER_ARIA_192_CCM_STAR_NO_TAG:
+           case MBEDTLS_CIPHER_ARIA_256_CCM_STAR_NO_TAG:
+           case MBEDTLS_CIPHER_ARIA_128_GCM:
+           case MBEDTLS_CIPHER_ARIA_192_GCM:
+           case MBEDTLS_CIPHER_ARIA_256_GCM:
+           case MBEDTLS_CIPHER_ARIA_128_CBC:
+           case MBEDTLS_CIPHER_ARIA_192_CBC:
+           case MBEDTLS_CIPHER_ARIA_256_CBC:
+               return( PSA_KEY_TYPE_ARIA ); */
 
-    /* Check that the underlying cipher mode and cipher type are
-     * supported by the underlying PSA Crypto implementation. */
-    alg = mbedtls_psa_translate_cipher_mode(((mbedtls_cipher_mode_t) cipher_info->mode), taglen);
-    if (alg == 0) {
-        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+        default:
+            return 0;
     }
-    if (mbedtls_psa_translate_cipher_type(((mbedtls_cipher_type_t) cipher_info->type)) == 0) {
-        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
-    }
-
-    memset(ctx, 0, sizeof(mbedtls_cipher_context_t));
-
-    cipher_psa = mbedtls_calloc(1, sizeof(mbedtls_cipher_context_psa));
-    if (cipher_psa == NULL) {
-        return MBEDTLS_ERR_CIPHER_ALLOC_FAILED;
-    }
-    cipher_psa->alg  = alg;
-    ctx->cipher_ctx  = cipher_psa;
-    ctx->cipher_info = cipher_info;
-    ctx->psa_enabled = 1;
-    return 0;
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
@@ -407,173 +293,6 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
 
     return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
 }
-
-int mbedtls_cipher_set_iv(mbedtls_cipher_context_t *ctx,
-                          const unsigned char *iv,
-                          size_t iv_len)
-{
-    size_t actual_iv_size;
-
-    if (ctx->cipher_info == NULL) {
-        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
-    }
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
-    if (ctx->psa_enabled == 1) {
-        /* While PSA Crypto has an API for multipart
-         * operations, we currently don't make it
-         * accessible through the cipher layer. */
-        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
-    }
-#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
-
-    /* avoid buffer overflow in ctx->iv */
-    if (iv_len > MBEDTLS_MAX_IV_LENGTH) {
-        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
-    }
-
-    if ((ctx->cipher_info->flags & MBEDTLS_CIPHER_VARIABLE_IV_LEN) != 0) {
-        actual_iv_size = iv_len;
-    } else {
-        actual_iv_size = mbedtls_cipher_info_get_iv_size(ctx->cipher_info);
-
-        /* avoid reading past the end of input buffer */
-        if (actual_iv_size > iv_len) {
-            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
-        }
-    }
-
-#if defined(MBEDTLS_CHACHA20_C)
-    if (((mbedtls_cipher_type_t) ctx->cipher_info->type) == MBEDTLS_CIPHER_CHACHA20) {
-        /* Even though the actual_iv_size is overwritten with a correct value
-         * of 12 from the cipher info, return an error to indicate that
-         * the input iv_len is wrong. */
-        if (iv_len != 12) {
-            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
-        }
-
-        if (0 != mbedtls_chacha20_starts((mbedtls_chacha20_context *) ctx->cipher_ctx,
-                                         iv,
-                                         0U)) {   /* Initial counter value */
-            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
-        }
-    }
-#if defined(MBEDTLS_CHACHAPOLY_C)
-    if (((mbedtls_cipher_type_t) ctx->cipher_info->type) == MBEDTLS_CIPHER_CHACHA20_POLY1305 &&
-        iv_len != 12) {
-        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
-    }
-#endif
-#endif
-
-#if defined(MBEDTLS_GCM_C)
-    if (MBEDTLS_MODE_GCM == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
-        return mbedtls_gcm_starts((mbedtls_gcm_context *) ctx->cipher_ctx,
-                                  ctx->operation,
-                                  iv, iv_len);
-    }
-#endif
-
-#if defined(MBEDTLS_CCM_C)
-    if (MBEDTLS_MODE_CCM_STAR_NO_TAG == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
-        int set_lengths_result;
-        int ccm_star_mode;
-
-        set_lengths_result = mbedtls_ccm_set_lengths(
-            (mbedtls_ccm_context *) ctx->cipher_ctx,
-            0, 0, 0);
-        if (set_lengths_result != 0) {
-            return set_lengths_result;
-        }
-
-        if (ctx->operation == MBEDTLS_DECRYPT) {
-            ccm_star_mode = MBEDTLS_CCM_STAR_DECRYPT;
-        } else if (ctx->operation == MBEDTLS_ENCRYPT) {
-            ccm_star_mode = MBEDTLS_CCM_STAR_ENCRYPT;
-        } else {
-            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
-        }
-
-        return mbedtls_ccm_starts((mbedtls_ccm_context *) ctx->cipher_ctx,
-                                  ccm_star_mode,
-                                  iv, iv_len);
-    }
-#endif
-
-    if (actual_iv_size != 0) {
-        memcpy(ctx->iv, iv, actual_iv_size);
-        ctx->iv_size = actual_iv_size;
-    }
-
-    return 0;
-}
-
-int mbedtls_cipher_reset(mbedtls_cipher_context_t *ctx)
-{
-    if (ctx->cipher_info == NULL) {
-        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
-    }
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
-    if (ctx->psa_enabled == 1) {
-        /* We don't support resetting PSA-based
-         * cipher contexts, yet. */
-        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
-    }
-#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
-
-    ctx->unprocessed_len = 0;
-
-    return 0;
-}
-
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-int mbedtls_cipher_update_ad(mbedtls_cipher_context_t *ctx,
-                             const unsigned char *ad, size_t ad_len)
-{
-    if (ctx->cipher_info == NULL) {
-        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
-    }
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
-    if (ctx->psa_enabled == 1) {
-        /* While PSA Crypto has an API for multipart
-         * operations, we currently don't make it
-         * accessible through the cipher layer. */
-        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
-    }
-#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
-
-#if defined(MBEDTLS_GCM_C)
-    if (MBEDTLS_MODE_GCM == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
-        return mbedtls_gcm_update_ad((mbedtls_gcm_context *) ctx->cipher_ctx,
-                                     ad, ad_len);
-    }
-#endif
-
-#if defined(MBEDTLS_CHACHAPOLY_C)
-    if (MBEDTLS_CIPHER_CHACHA20_POLY1305 == ((mbedtls_cipher_type_t) ctx->cipher_info->type)) {
-        int result;
-        mbedtls_chachapoly_mode_t mode;
-
-        mode = (ctx->operation == MBEDTLS_ENCRYPT)
-                ? MBEDTLS_CHACHAPOLY_ENCRYPT
-                : MBEDTLS_CHACHAPOLY_DECRYPT;
-
-        result = mbedtls_chachapoly_starts((mbedtls_chachapoly_context *) ctx->cipher_ctx,
-                                           ctx->iv,
-                                           mode);
-        if (result != 0) {
-            return result;
-        }
-
-        return mbedtls_chachapoly_update_aad((mbedtls_chachapoly_context *) ctx->cipher_ctx,
-                                             ad, ad_len);
-    }
-#endif
-
-    return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
-}
-#endif /* MBEDTLS_GCM_C || MBEDTLS_CHACHAPOLY_C */
 
 int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *input,
                           size_t ilen, unsigned char *output, size_t *olen)
@@ -820,6 +539,291 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
 
     return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
 }
+
+#if defined(MBEDTLS_CIPHER_C)
+
+static int supported_init = 0;
+
+const int *mbedtls_cipher_list(void)
+{
+    const mbedtls_cipher_definition_t *def;
+    int *type;
+
+    if (!supported_init) {
+        def = mbedtls_cipher_definitions;
+        type = mbedtls_cipher_supported;
+
+        while (def->type != 0) {
+            *type++ = (*def++).type;
+        }
+
+        *type = 0;
+
+        supported_init = 1;
+    }
+
+    return mbedtls_cipher_supported;
+}
+
+const mbedtls_cipher_info_t *mbedtls_cipher_info_from_type(
+    const mbedtls_cipher_type_t cipher_type)
+{
+    const mbedtls_cipher_definition_t *def;
+
+    for (def = mbedtls_cipher_definitions; def->info != NULL; def++) {
+        if (def->type == cipher_type) {
+            return def->info;
+        }
+    }
+
+    return NULL;
+}
+
+const mbedtls_cipher_info_t *mbedtls_cipher_info_from_string(
+    const char *cipher_name)
+{
+    const mbedtls_cipher_definition_t *def;
+
+    if (NULL == cipher_name) {
+        return NULL;
+    }
+
+    for (def = mbedtls_cipher_definitions; def->info != NULL; def++) {
+        if (!strcmp(def->info->name, cipher_name)) {
+            return def->info;
+        }
+    }
+
+    return NULL;
+}
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+static inline psa_algorithm_t mbedtls_psa_translate_cipher_mode(
+    mbedtls_cipher_mode_t mode, size_t taglen)
+{
+    switch (mode) {
+        case MBEDTLS_MODE_ECB:
+            return PSA_ALG_ECB_NO_PADDING;
+        case MBEDTLS_MODE_GCM:
+            return PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, taglen);
+        case MBEDTLS_MODE_CCM:
+            return PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, taglen);
+        case MBEDTLS_MODE_CCM_STAR_NO_TAG:
+            return PSA_ALG_CCM_STAR_NO_TAG;
+        case MBEDTLS_MODE_CBC:
+            if (taglen == 0) {
+                return PSA_ALG_CBC_NO_PADDING;
+            } else {
+                return 0;
+            }
+        default:
+            return 0;
+    }
+}
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+int mbedtls_cipher_setup_psa(mbedtls_cipher_context_t *ctx,
+                             const mbedtls_cipher_info_t *cipher_info,
+                             size_t taglen)
+{
+    psa_algorithm_t alg;
+    mbedtls_cipher_context_psa *cipher_psa;
+
+    if (NULL == cipher_info || NULL == ctx) {
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+    }
+
+    /* Check that the underlying cipher mode and cipher type are
+     * supported by the underlying PSA Crypto implementation. */
+    alg = mbedtls_psa_translate_cipher_mode(((mbedtls_cipher_mode_t) cipher_info->mode), taglen);
+    if (alg == 0) {
+        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    }
+    if (mbedtls_psa_translate_cipher_type(((mbedtls_cipher_type_t) cipher_info->type)) == 0) {
+        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    }
+
+    memset(ctx, 0, sizeof(mbedtls_cipher_context_t));
+
+    cipher_psa = mbedtls_calloc(1, sizeof(mbedtls_cipher_context_psa));
+    if (cipher_psa == NULL) {
+        return MBEDTLS_ERR_CIPHER_ALLOC_FAILED;
+    }
+    cipher_psa->alg  = alg;
+    ctx->cipher_ctx  = cipher_psa;
+    ctx->cipher_info = cipher_info;
+    ctx->psa_enabled = 1;
+    return 0;
+}
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
+
+int mbedtls_cipher_set_iv(mbedtls_cipher_context_t *ctx,
+                          const unsigned char *iv,
+                          size_t iv_len)
+{
+    size_t actual_iv_size;
+
+    if (ctx->cipher_info == NULL) {
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+    }
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+    if (ctx->psa_enabled == 1) {
+        /* While PSA Crypto has an API for multipart
+         * operations, we currently don't make it
+         * accessible through the cipher layer. */
+        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
+
+    /* avoid buffer overflow in ctx->iv */
+    if (iv_len > MBEDTLS_MAX_IV_LENGTH) {
+        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    }
+
+    if ((ctx->cipher_info->flags & MBEDTLS_CIPHER_VARIABLE_IV_LEN) != 0) {
+        actual_iv_size = iv_len;
+    } else {
+        actual_iv_size = mbedtls_cipher_info_get_iv_size(ctx->cipher_info);
+
+        /* avoid reading past the end of input buffer */
+        if (actual_iv_size > iv_len) {
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+        }
+    }
+
+#if defined(MBEDTLS_CHACHA20_C)
+    if (((mbedtls_cipher_type_t) ctx->cipher_info->type) == MBEDTLS_CIPHER_CHACHA20) {
+        /* Even though the actual_iv_size is overwritten with a correct value
+         * of 12 from the cipher info, return an error to indicate that
+         * the input iv_len is wrong. */
+        if (iv_len != 12) {
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+        }
+
+        if (0 != mbedtls_chacha20_starts((mbedtls_chacha20_context *) ctx->cipher_ctx,
+                                         iv,
+                                         0U)) {   /* Initial counter value */
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+        }
+    }
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    if (((mbedtls_cipher_type_t) ctx->cipher_info->type) == MBEDTLS_CIPHER_CHACHA20_POLY1305 &&
+        iv_len != 12) {
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+    }
+#endif
+#endif
+
+#if defined(MBEDTLS_GCM_C)
+    if (MBEDTLS_MODE_GCM == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
+        return mbedtls_gcm_starts((mbedtls_gcm_context *) ctx->cipher_ctx,
+                                  ctx->operation,
+                                  iv, iv_len);
+    }
+#endif
+
+#if defined(MBEDTLS_CCM_C)
+    if (MBEDTLS_MODE_CCM_STAR_NO_TAG == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
+        int set_lengths_result;
+        int ccm_star_mode;
+
+        set_lengths_result = mbedtls_ccm_set_lengths(
+            (mbedtls_ccm_context *) ctx->cipher_ctx,
+            0, 0, 0);
+        if (set_lengths_result != 0) {
+            return set_lengths_result;
+        }
+
+        if (ctx->operation == MBEDTLS_DECRYPT) {
+            ccm_star_mode = MBEDTLS_CCM_STAR_DECRYPT;
+        } else if (ctx->operation == MBEDTLS_ENCRYPT) {
+            ccm_star_mode = MBEDTLS_CCM_STAR_ENCRYPT;
+        } else {
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+        }
+
+        return mbedtls_ccm_starts((mbedtls_ccm_context *) ctx->cipher_ctx,
+                                  ccm_star_mode,
+                                  iv, iv_len);
+    }
+#endif
+
+    if (actual_iv_size != 0) {
+        memcpy(ctx->iv, iv, actual_iv_size);
+        ctx->iv_size = actual_iv_size;
+    }
+
+    return 0;
+}
+
+int mbedtls_cipher_reset(mbedtls_cipher_context_t *ctx)
+{
+    if (ctx->cipher_info == NULL) {
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+    }
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+    if (ctx->psa_enabled == 1) {
+        /* We don't support resetting PSA-based
+         * cipher contexts, yet. */
+        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
+
+    ctx->unprocessed_len = 0;
+
+    return 0;
+}
+
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+int mbedtls_cipher_update_ad(mbedtls_cipher_context_t *ctx,
+                             const unsigned char *ad, size_t ad_len)
+{
+    if (ctx->cipher_info == NULL) {
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+    }
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+    if (ctx->psa_enabled == 1) {
+        /* While PSA Crypto has an API for multipart
+         * operations, we currently don't make it
+         * accessible through the cipher layer. */
+        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
+
+#if defined(MBEDTLS_GCM_C)
+    if (MBEDTLS_MODE_GCM == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
+        return mbedtls_gcm_update_ad((mbedtls_gcm_context *) ctx->cipher_ctx,
+                                     ad, ad_len);
+    }
+#endif
+
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    if (MBEDTLS_CIPHER_CHACHA20_POLY1305 == ((mbedtls_cipher_type_t) ctx->cipher_info->type)) {
+        int result;
+        mbedtls_chachapoly_mode_t mode;
+
+        mode = (ctx->operation == MBEDTLS_ENCRYPT)
+                ? MBEDTLS_CHACHAPOLY_ENCRYPT
+                : MBEDTLS_CHACHAPOLY_DECRYPT;
+
+        result = mbedtls_chachapoly_starts((mbedtls_chachapoly_context *) ctx->cipher_ctx,
+                                           ctx->iv,
+                                           mode);
+        if (result != 0) {
+            return result;
+        }
+
+        return mbedtls_chachapoly_update_aad((mbedtls_chachapoly_context *) ctx->cipher_ctx,
+                                             ad, ad_len);
+    }
+#endif
+
+    return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+}
+#endif /* MBEDTLS_GCM_C || MBEDTLS_CHACHAPOLY_C */
 
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
 #if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
@@ -1677,3 +1681,5 @@ int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
 #endif /* MBEDTLS_CIPHER_MODE_AEAD || MBEDTLS_NIST_KW_C */
 
 #endif /* MBEDTLS_CIPHER_C */
+
+#endif /* MBEDTLS_CIPHER_LIGHT */

@@ -346,7 +346,38 @@ The primary target is a configuration like TF-M's medium profile, plus TLS with 
 This excludes things like:
 - Support for encrypted PEM, PKCS5 and PKCS12 encryption, and PKCS8 encrypted keys in PK parse. (Not widely used on highly constrained devices.)
 - Support for NIST-KW. (Same justification.)
+- Support for CMAC. (Same justification, plus can be directly accelerated.)
 - Support for CBC ciphersuites in TLS. (They've been recommended against for a while now.)
+
+### Dual-dispatch for block cipher primitives
+
+Considering the priorities stated above, initially we want to support GCM, CCM and CTR-DRBG. All trhee of them use the block cipher primitive only in the encrypt direction. Currently, GCM and CCM use the Cipher layer in order to work with AES, Aria and Camellia (DES is excluded by the standards due to its smaller block size) and CTR-DRBG directly uses the low-level API from `aes.h`. In all cases, access to the "block cipher primitive" is done by using "ECB mode" (which for both Cipher and `aes.h` only allows a single block, contrary to PSA which implements actual ECB mode).
+
+The two AEAD modes, GCM and CCM, have very similar needs and positions in the stack, strongly suggesting using the same design for both. On the other hand, there are a number of differences between CTR-DRBG and them.
+- CTR-DRBG only uses AES (and there is no plan to extend it to other block ciphers at the moment), while GCM and CCM need to work with 3 block ciphers already.
+- CTR-DRBG holds a special position in the stack: most users don't care about it per se, they only care about getting random numbers - in fact PSA users don't even need to know what DRBG is used. In particular, no part of the stack is asking questions like "is CTR-DRBG-AES available?" - an RNG needs to be available and that's it - contrary to similar questions about AES-GCM etc. which are asked for example by TLS.
+
+So, it makes sense to use different designs for CTR-DRBG on one hand, and GCM/CCM on the other hand:
+- CTR-DRBG can just check if `AES_C` is present and "fall back" to PSA is not.
+- GCM and CCM need an common abstraction layer that allows:
+  - Using AES, Aria or Camellia in a uniform way.
+  - Dispatching to built-in or driver.
+
+The abstraction layer used by GCM and CCM may either be a new internal module, or a subset of the existing Cipher API, extended with the ability to dispatch to a PSA driver.
+
+Reasons for making this layer's API a subset of the existing Cipher API:
+- No need to design, implement and test a new module. (Will need to test the new subset though, as well as the extended behaviour.)
+- No code change in GCM and CCM - only need to update dependencies.
+- No risk for code duplication between a potential new module and Cipher: source-level, and in in particular in builds that still have `CIPHER_C` enabled. (Compiled-code duplication could be avoided by excluding the new module in such builds, though.)
+- If want to support other users of Cipher later (such as NIST-KW, CMAC, PKCS5 and PKCS12), we can just extend dual-dispatch support to other modes/operations in Cipher and keep those extra modules unchanged as well.
+
+Possible costs of re-using (a subset of) the existing Cipher API instead of defining a new one:
+- We carry over costs associated with `cipher_info_t` structures. (Currently the info structure is used for 3 things: (1) to check if the cipher is supported, (2) to check its block size, (3) because `setup()` requires it).
+- We carry over questionable implementation decisions, like dynamic allocation of context.
+
+Those costs could be avoided by refactoring (parts of) Cipher, but that would probably mean either:
+- significant differences in how the `cipher.h` API is implemented between builds with the full Cipher or only a subset;
+- or more work to apply the simplifications to all of Cipher.
 
 ## Specification
 

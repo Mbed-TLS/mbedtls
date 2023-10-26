@@ -1487,7 +1487,7 @@ component_test_crypto_full_md_light_only () {
     make test
 }
 
-component_test_full_no_cipher () {
+component_test_full_no_cipher_at_all () {
     msg "build: full no CIPHER no PSA_CRYPTO_C"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_CIPHER_C
@@ -1511,6 +1511,41 @@ component_test_full_no_cipher () {
     scripts/config.py unset MBEDTLS_LMS_C
     scripts/config.py unset MBEDTLS_LMS_PRIVATE
     make
+
+    # Ensure that CIPHER_C was not accidentally re-enabled
+    not grep mbedtls_cipher library/cipher.o
+
+    msg "test: full no CIPHER no PSA_CRYPTO_C"
+    make test
+}
+
+component_test_full_cipher_light_only () {
+    msg "build: full no CIPHER no PSA_CRYPTO_C"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_CIPHER_C
+    # Don't pull in cipher via PSA mechanisms
+    # (currently ignored anyway because we completely disable PSA)
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
+    # Disable features that depend on CIPHER_C
+    scripts/config.py unset MBEDTLS_CCM_C
+    scripts/config.py unset MBEDTLS_CMAC_C
+    scripts/config.py unset MBEDTLS_GCM_C
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+    scripts/config.py unset MBEDTLS_PKCS12_C
+    scripts/config.py unset MBEDTLS_PKCS5_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
+    scripts/config.py unset MBEDTLS_SSL_TLS_C
+    scripts/config.py unset MBEDTLS_SSL_TICKET_C
+    # Disable features that depend on PSA_CRYPTO_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.py unset MBEDTLS_LMS_C
+    scripts/config.py unset MBEDTLS_LMS_PRIVATE
+    make CFLAGS="-DMBEDTLS_CIPHER_LIGHT"
+
+    # Ensure that CIPHER_C was not accidentally re-enabled
+    not grep mbedtls_cipher_auth library/cipher.o
 
     msg "test: full no CIPHER no PSA_CRYPTO_C"
     make test

@@ -1937,7 +1937,19 @@ component_test_memsan_constant_flow_psa () {
     make test
 }
 
+valgrind_parallel () {
+    if type valgrind > /dev/null 2>&1; then
+        # pick up valgrind wrapper to enable parallel tests
+        export PATH=${PWD}/tests/scripts/vg_wrap:${PATH}
+
+        # instruct ctest to run in parallel
+        export CTEST_PARALLEL_LEVEL=$(all_sh_nproc)
+    fi
+}
+
 component_test_valgrind_constant_flow () {
+    valgrind_parallel
+
     # This tests both (1) everything that valgrind's memcheck usually checks
     # (heap buffer overflows, use of uninitialized memory, use-after-free,
     # etc.) and (2) branches or memory access depending on secret values,
@@ -1972,6 +1984,8 @@ component_test_valgrind_constant_flow () {
 }
 
 component_test_valgrind_constant_flow_psa () {
+    valgrind_parallel
+
     # This tests both (1) everything that valgrind's memcheck usually checks
     # (heap buffer overflows, use of uninitialized memory, use-after-free,
     # etc.) and (2) branches or memory access depending on secret values,
@@ -5371,6 +5385,9 @@ component_test_memsan () {
 
 component_test_valgrind () {
     msg "build: Release (clang)"
+
+    valgrind_parallel
+
     # default config, in particular without MBEDTLS_USE_PSA_CRYPTO
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
     make
@@ -5401,6 +5418,9 @@ component_test_valgrind_psa () {
     msg "build: Release, full (clang)"
     # full config, in particular with MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py full
+
+    valgrind_parallel
+
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
     make
 

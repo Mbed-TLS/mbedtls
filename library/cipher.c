@@ -263,8 +263,11 @@ int mbedtls_cipher_setup(mbedtls_cipher_context_t *ctx,
 
     memset(ctx, 0, sizeof(mbedtls_cipher_context_t));
 
-    if (NULL == (ctx->cipher_ctx = mbedtls_cipher_get_base(cipher_info)->ctx_alloc_func())) {
-        return MBEDTLS_ERR_CIPHER_ALLOC_FAILED;
+    if (mbedtls_cipher_get_base(cipher_info)->ctx_alloc_func != NULL) {
+        ctx->cipher_ctx = mbedtls_cipher_get_base(cipher_info)->ctx_alloc_func();
+        if (ctx->cipher_ctx == NULL) {
+            return MBEDTLS_ERR_CIPHER_ALLOC_FAILED;
+        }
     }
 
     ctx->cipher_info = cipher_info;

@@ -3596,6 +3596,85 @@ component_test_psa_crypto_config_accel_aead () {
     make test
 }
 
+# This is a common configuration function used in:
+# - component_test_psa_crypto_config_accel_cipher_aead
+# - component_test_psa_crypto_config_reference_cipher_aead
+common_psa_crypto_config_accel_cipher_aead() {
+    scripts/config.py unset MBEDTLS_CTR_DRBG_C
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+}
+
+# The 2 following test components, i.e.
+# - component_test_psa_crypto_config_accel_cipher_aead
+# - component_test_psa_crypto_config_reference_cipher_aead
+# are meant to be used together in analyze_outcomes.py script in order to test
+# driver's coverage for ciphers and AEADs.
+component_test_psa_crypto_config_accel_cipher_aead () {
+    msg "test: crypto config with accelerated cipher and AEAD"
+
+    loc_accel_list="ALG_ECB_NO_PADDING ALG_CBC_NO_PADDING ALG_CBC_PKCS7 ALG_CTR ALG_CFB \
+                    ALG_OFB ALG_XTS ALG_STREAM_CIPHER \
+                    ALG_GCM ALG_CCM ALG_CHACHA20_POLY1305 ALG_CMAC \
+                    KEY_TYPE_DES KEY_TYPE_AES KEY_TYPE_ARIA KEY_TYPE_CHACHA20 KEY_TYPE_CAMELLIA"
+
+    # Configure
+    # ---------
+
+    # Start from the crypto config (no X509 and TLS)
+    helper_libtestdriver1_adjust_config "crypto_full"
+
+    common_psa_crypto_config_accel_cipher_aead
+
+    # Disable the things that are being accelerated
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_CIPHER_PADDING_PKCS7
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CTR
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CFB
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_OFB
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+    scripts/config.py unset MBEDTLS_GCM_C
+    scripts/config.py unset MBEDTLS_CCM_C
+    scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+    scripts/config.py unset MBEDTLS_CMAC_C
+    scripts/config.py unset MBEDTLS_DES_C
+    scripts/config.py unset MBEDTLS_AES_C
+    scripts/config.py unset MBEDTLS_ARIA_C
+    scripts/config.py unset MBEDTLS_CHACHA20_C
+    scripts/config.py unset MBEDTLS_CAMELLIA_C
+
+    # Build
+    # -----
+
+    helper_libtestdriver1_make_drivers "$loc_accel_list"
+
+    helper_libtestdriver1_make_main "$loc_accel_list"
+
+    # Make sure this was not re-enabled by accident (additive config)
+    not grep mbedtls_des library/des.o
+    not grep mbedtls_aes library/aes.o
+    not grep mbedtls_aria library/aria.o
+    not grep mbedtls_camellia library/camellia.o
+    not grep mbedtls_ccm library/ccm.o
+    not grep mbedtls_gcm library/gcm.o
+    not grep mbedtls_chachapoly library/chachapoly.o
+    not grep mbedtls_cmac library/cmac.o
+
+    # Run the tests
+    # -------------
+
+    msg "test: crypto config with accelerated cipher and AEAD"
+    make test
+}
+
+component_test_psa_crypto_config_reference_cipher_aead () {
+    helper_libtestdriver1_adjust_config "crypto_full"
+
+    common_psa_crypto_config_accel_cipher_aead
+
+    msg "test: crypto config with non-accelerated cipher and AEAD"
+    make test
+}
+
 component_test_aead_chachapoly_disabled() {
     msg "build: full minus CHACHAPOLY"
     scripts/config.py full

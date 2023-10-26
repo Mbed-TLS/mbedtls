@@ -7,37 +7,17 @@ ORIGINAL_ARGS="$@"
 TOOL=$(basename $0)
 ORIGINAL_VG=$(type -a ${TOOL} | grep -v $PWD | head -n 1 | perl -pe 's/.* //')
 
-if [[ $ORIGINAL_ARGS =~ "--tool=memcheck" ]]; then
-    pushd . > /dev/null
+pushd . > /dev/null
 
-    # create a temp dir
-    TMP_VG_DIR=$(mktemp -d /tmp/VG_XXXX)
+# cd into temp directory
+TMP_VG_DIR=$(mktemp -d /tmp/VG_XXXX)
+cd ${TMP_VG_DIR}
 
-    # original test dir
-    TESTDIR=`echo $@|perl -pe 's/.* (.*?)\/test_suite_.*/\1/'`
+# run valgrind from temp directory
+${ORIGINAL_VG} ${ORIGINAL_ARGS}
+EXITCODE=$?
 
-    # test leafname
-    TEST=`echo $@|perl -pe 's/.*(test_suite_[^ ]*).*/\1/'`
-
-    # modify args to use full paths in temp dir
-    ARGS=`echo $@|perl -pe "s#${TESTDIR}\/${TEST}#${TMP_VG_DIR}\/${TEST}#"`
-
-    # copy tests and supporting files to test dir
-    mkdir ${TMP_VG_DIR}
-    cp -a ${TESTDIR}/seedfile ${TMP_VG_DIR}
-    cp -a ${TESTDIR}/data_files ${TMP_VG_DIR}
-    cp -a ${TESTDIR}/$TEST ${TMP_VG_DIR}/$TEST
-    cp -a ${TESTDIR}/$TEST.datax ${TMP_VG_DIR}/$TEST.datax
-    cd ${TMP_VG_DIR}
-
-    # run valgrind in temp directory
-    ${ORIGINAL_VG} $ARGS
-    EXITCODE=$?
-
-    # cleanup - remove temp directory
-    popd
-    rm -rf ${TMP_VG_DIR}
-    exit ${EXITCODE}
-else
-    ${ORIGINAL_VG} ${ORIGINAL_ARGS}
-fi
+# cleanup - remove temp directory
+popd > /dev/null
+rm -rf ${TMP_VG_DIR}
+exit ${EXITCODE}

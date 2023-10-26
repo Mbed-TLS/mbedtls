@@ -1,0 +1,48 @@
+/* BEGIN_HEADER */
+#include "mbedtls/cipher.h"
+#include "mbedtls/aes.h"
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_CIPHER_LIGHT
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void test_vec_ecb(int cipher_id_arg, int bitlen_arg, int mode_arg, int operation,
+                  data_t *key, data_t *input, data_t *result, int finish_result)
+{
+    mbedtls_cipher_context_t ctx;
+    mbedtls_cipher_id_t cipher_id = cipher_id_arg;
+    size_t bitlen = bitlen_arg;
+    mbedtls_cipher_mode_t cipher_mode = mode_arg;
+    unsigned char output[32];
+    size_t outlen;
+
+    mbedtls_cipher_init(&ctx);
+
+    memset(output, 0x00, sizeof(output));
+
+    /* Prepare context */
+    TEST_ASSERT(0 == mbedtls_cipher_setup(&ctx,
+                                          mbedtls_cipher_info_from_values(cipher_id, bitlen,
+                                                                          cipher_mode)));
+
+    TEST_ASSERT(0 == mbedtls_cipher_setkey(&ctx, key->x, 8 * key->len, operation));
+
+    TEST_ASSERT(0 == mbedtls_cipher_update(&ctx, input->x,
+                                           mbedtls_cipher_get_block_size(&ctx),
+                                           output, &outlen));
+    TEST_ASSERT(outlen == mbedtls_cipher_get_block_size(&ctx));
+
+    /* check plaintext only if everything went fine */
+    if (0 == finish_result) {
+        TEST_ASSERT(0 == memcmp(output, result->x,
+                                mbedtls_cipher_get_block_size(&ctx)));
+    }
+
+exit:
+    mbedtls_cipher_free(&ctx);
+}
+/* END_CASE */

@@ -126,6 +126,11 @@ BINARY_FILE_PATH_RE_LIST = [
 ]
 BINARY_FILE_PATH_RE = re.compile('|'.join(BINARY_FILE_PATH_RE_LIST))
 
+SHEBANG_IGNORE_RE_LIST = [
+    r'tests/scripts/vg_wrap/.*\Z',
+]
+SHEBANG_IGNORE_RE = re.compile('|'.join(SHEBANG_IGNORE_RE_LIST))
+
 class LineIssueTracker(FileIssueTracker):
     """Base class for line-by-line issue tracking.
 
@@ -169,6 +174,8 @@ class ShebangIssueTracker(FileIssueTracker):
     """
 
     heading = "Invalid shebang line:"
+
+    path_exemptions = SHEBANG_IGNORE_RE
 
     # Allow either /bin/sh, /bin/bash, or /usr/bin/env.
     # Allow at most one argument (this is a Linux limitation).

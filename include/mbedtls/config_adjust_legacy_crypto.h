@@ -170,6 +170,20 @@
 
 #endif /* MBEDTLS_MD_LIGHT */
 
+/* Cipher module's support is mainly controlled via 2 symbols:
+ * - CIPHER_LIGHT: this is the most generic whose scope is to allow support for
+ *                 builtin AEAD algorithms. As such it supports:
+ *                 - AES, Aria and Camellia keys only in ECB mode
+ *                 - streaming functions (init, setup, setkey, free)
+ *  - CIPHER_C: it enables full support (all key/algs supported by MbedTLS)
+ *
+ * From the code point of view, this means that CIPHER_C requires CIPHER_LIGHT so
+ * we automatically enable it when CIPHER_C is enabled (backward compatibility).
+ */
+#if defined(MBEDTLS_CIPHER_C)
+#define MBEDTLS_CIPHER_LIGHT
+#endif
+
 /* MBEDTLS_ECP_LIGHT is auto-enabled by the following symbols:
  * - MBEDTLS_ECP_C because now it consists of MBEDTLS_ECP_LIGHT plus functions
  *   for curve arithmetic. As a consequence if MBEDTLS_ECP_C is required for

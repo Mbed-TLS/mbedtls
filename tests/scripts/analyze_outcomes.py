@@ -103,12 +103,9 @@ def name_matches_pattern(name, str_or_re):
     # The CI's python is too old for re.Pattern
     #if isinstance(str_or_re, re.Pattern):
     if not isinstance(str_or_re, str):
-        if str_or_re.fullmatch(name):
-            return True
+        return str_or_re.fullmatch(name)
     else:
-        if str_or_re == name:
-            return True
-    return False
+        return str_or_re == name
 
 def analyze_driver_vs_reference(results: Results, outcomes,
                                 component_ref, component_driver,

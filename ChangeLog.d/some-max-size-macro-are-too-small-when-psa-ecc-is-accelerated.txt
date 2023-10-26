@@ -1,5 +1,0 @@
-Bugfix
-   * Fix proper sizing for PSA_EXPORT_[KEY_PAIR/PUBLIC_KEY]_MAX_SIZE and
-     PSA_SIGNATURE_MAX_SIZE buffers when at least one accelerated EC is bigger
-     than all built-in ones and RSA is disabled.
-     Resolves #6622.

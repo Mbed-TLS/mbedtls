@@ -1526,8 +1526,7 @@ int mbedtls_x509_crt_parse_file(mbedtls_x509_crt *chain, const char *path)
 
     ret = mbedtls_x509_crt_parse(chain, buf, n);
 
-    mbedtls_platform_zeroize(buf, n);
-    mbedtls_free(buf);
+    mbedtls_zeroize_and_free(buf, n);
 
     return ret;
 }
@@ -1536,7 +1535,6 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
 {
     int ret = 0;
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
-#if _WIN32_WINNT >= 0x0501 /* _WIN32_WINNT_XP */
     int w_ret;
     WCHAR szDir[MAX_PATH];
     char filename[MAX_PATH];
@@ -1557,6 +1555,11 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
     p = filename + len;
     filename[len++] = '*';
 
+    /*
+     * Note this function uses the code page CP_ACP which is the system default
+     * ANSI codepage. The input string is always described in BYTES and the
+     * output length is described in WCHARs.
+     */
     w_ret = MultiByteToWideChar(CP_ACP, 0, filename, (int) len, szDir,
                                 MAX_PATH - 3);
     if (w_ret == 0) {
@@ -1575,11 +1578,8 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
         if (file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
             continue;
         }
-
         w_ret = WideCharToMultiByte(CP_ACP, 0, file_data.cFileName,
-                                    -1,
-                                    p, (int) len,
-                                    NULL, NULL);
+                                    -1, p, (int) len, NULL, NULL);
         if (w_ret == 0) {
             ret = MBEDTLS_ERR_X509_FILE_IO_ERROR;
             goto cleanup;
@@ -1599,9 +1599,6 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
 
 cleanup:
     FindClose(hFind);
-#else /* !_WIN32_WINNT_XP */
-#error mbedtls_x509_crt_parse_path not available before Windows XP
-#endif /* !_WIN32_WINNT_XP */
 #else /* _WIN32 */
     int t_ret;
     int snp_ret;
@@ -2755,8 +2752,8 @@ static int x509_inet_pton_ipv6(const char *src, void *dst)
             p++;
         }
         if (num_digits != 0) {
-            addr[nonzero_groups++] = MBEDTLS_IS_BIG_ENDIAN ? group :
-                                     (group << 8) | (group >> 8);
+            MBEDTLS_PUT_UINT16_BE(group, addr, nonzero_groups);
+            nonzero_groups++;
             if (*p == '\0') {
                 break;
             } else if (*p == '.') {
@@ -3258,8 +3255,7 @@ void mbedtls_x509_crt_free(mbedtls_x509_crt *crt)
         mbedtls_asn1_sequence_free(cert_cur->authority_key_id.authorityCertIssuer.next);
 
         if (cert_cur->raw.p != NULL && cert_cur->own_buffer) {
-            mbedtls_platform_zeroize(cert_cur->raw.p, cert_cur->raw.len);
-            mbedtls_free(cert_cur->raw.p);
+            mbedtls_zeroize_and_free(cert_cur->raw.p, cert_cur->raw.len);
         }
 
         cert_prv = cert_cur;

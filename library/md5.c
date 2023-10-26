@@ -286,7 +286,7 @@ int mbedtls_md5_finish(mbedtls_md5_context *ctx,
         memset(ctx->buffer + used, 0, 64 - used);
 
         if ((ret = mbedtls_internal_md5_process(ctx, ctx->buffer)) != 0) {
-            return ret;
+            goto exit;
         }
 
         memset(ctx->buffer, 0, 56);
@@ -303,7 +303,7 @@ int mbedtls_md5_finish(mbedtls_md5_context *ctx,
     MBEDTLS_PUT_UINT32_LE(high, ctx->buffer, 60);
 
     if ((ret = mbedtls_internal_md5_process(ctx, ctx->buffer)) != 0) {
-        return ret;
+        goto exit;
     }
 
     /*
@@ -314,7 +314,11 @@ int mbedtls_md5_finish(mbedtls_md5_context *ctx,
     MBEDTLS_PUT_UINT32_LE(ctx->state[2], output,  8);
     MBEDTLS_PUT_UINT32_LE(ctx->state[3], output, 12);
 
-    return 0;
+    ret = 0;
+
+exit:
+    mbedtls_md5_free(ctx);
+    return ret;
 }
 
 #endif /* !MBEDTLS_MD5_ALT */

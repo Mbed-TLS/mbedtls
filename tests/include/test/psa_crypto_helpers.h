@@ -28,9 +28,6 @@
 #include <psa/crypto.h>
 #endif
 
-#if defined(MBEDTLS_MD_LIGHT)
-#include "mbedtls/md.h"
-#endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 /** Initialize the PSA Crypto subsystem. */
@@ -241,7 +238,9 @@ int mbedtls_test_inject_entropy_seed_write(unsigned char *buf, size_t len);
 int mbedtls_test_inject_entropy_restore(void);
 #endif /* MBEDTLS_PSA_INJECT_ENTROPY */
 
-
+/** Parse binary string and convert it to a long integer
+ */
+uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
 
 /** Skip a test case if the given key is a 192 bits AES key and the AES
  *  implementation is at least partially provided by an accelerator or

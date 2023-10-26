@@ -81,14 +81,6 @@ TCP_CLIENT="$PERL scripts/tcp_client.pl"
 
 # alternative versions of OpenSSL and GnuTLS (no default path)
 
-if [ -n "${OPENSSL_LEGACY:-}" ]; then
-    O_LEGACY_SRV="$OPENSSL_LEGACY s_server -www -cert data_files/server5.crt -key data_files/server5.key"
-    O_LEGACY_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_LEGACY s_client"
-else
-    O_LEGACY_SRV=false
-    O_LEGACY_CLI=false
-fi
-
 if [ -n "${OPENSSL_NEXT:-}" ]; then
     O_NEXT_SRV="$OPENSSL_NEXT s_server -www -cert data_files/server5.crt -key data_files/server5.key"
     O_NEXT_SRV_EARLY_DATA="$OPENSSL_NEXT s_server -early_data -cert data_files/server5.crt -key data_files/server5.key"
@@ -435,6 +427,13 @@ detect_required_features() {
             ;;
     esac
 
+    case "$CMD_LINE" in
+        *server2*|\
+        *server7*)
+            # server2 and server7 certificates use RSA encryption
+            requires_config_enabled "MBEDTLS_RSA_C"
+    esac
+
     unset tmp
 }
 
@@ -633,20 +632,6 @@ requires_gnutls_next() {
         fi
     fi
     if [ "$GNUTLS_NEXT_AVAILABLE" = "NO" ]; then
-        SKIP_NEXT="YES"
-    fi
-}
-
-# skip next test if OpenSSL-legacy isn't available
-requires_openssl_legacy() {
-    if [ -z "${OPENSSL_LEGACY_AVAILABLE:-}" ]; then
-        if which "${OPENSSL_LEGACY:-}" >/dev/null 2>&1; then
-            OPENSSL_LEGACY_AVAILABLE="YES"
-        else
-            OPENSSL_LEGACY_AVAILABLE="NO"
-        fi
-    fi
-    if [ "$OPENSSL_LEGACY_AVAILABLE" = "NO" ]; then
         SKIP_NEXT="YES"
     fi
 }
@@ -1628,13 +1613,18 @@ run_test() {
         requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
     fi
 
-    # If the client or server requires certain features that can be detected
-    # from their command-line arguments, check that they're enabled.
-    TLS_VERSION=$(get_tls_version "$SRV_CMD" "$CLI_CMD")
-
     # Check if we are trying to use an external tool wich does not support ECDH
     EXT_WO_ECDH=$(use_ext_tool_without_ecdh_support "$SRV_CMD" "$CLI_CMD")
 
+    # Guess the TLS version which is going to be used
+    if [ "$EXT_WO_ECDH" = "no" ]; then
+        TLS_VERSION=$(get_tls_version "$SRV_CMD" "$CLI_CMD")
+    else
+        TLS_VERSION="TLS12"
+    fi
+
+    # If the client or server requires certain features that can be detected
+    # from their command-line arguments, check whether they're enabled.
     detect_required_features "$SRV_CMD" "server" "$TLS_VERSION" "$EXT_WO_ECDH" "$@"
     detect_required_features "$CLI_CMD" "client" "$TLS_VERSION" "$EXT_WO_ECDH" "$@"
 
@@ -1903,11 +1893,6 @@ O_CLI="$O_CLI -connect 127.0.0.1:+SRV_PORT"
 G_SRV="$G_SRV -p $SRV_PORT"
 G_CLI="$G_CLI -p +SRV_PORT"
 
-if [ -n "${OPENSSL_LEGACY:-}" ]; then
-    O_LEGACY_SRV="$O_LEGACY_SRV -accept $SRV_PORT -dhparam data_files/dhparams.pem"
-    O_LEGACY_CLI="$O_LEGACY_CLI -connect 127.0.0.1:+SRV_PORT"
-fi
-
 # Newer versions of OpenSSL have a syntax to enable all "ciphers", even
 # low-security ones. This covers not just cipher suites but also protocol
 # versions. It is necessary, for example, to use (D)TLS 1.0/1.1 on
@@ -1961,7 +1946,8 @@ trap cleanup INT TERM HUP
 # - the expected parameters are selected
 requires_ciphersuite_enabled TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256
 requires_hash_alg SHA_512 # "signature_algorithm ext: 6"
-requires_config_enabled MBEDTLS_ECP_DP_CURVE25519_ENABLED
+requires_any_configs_enabled "MBEDTLS_ECP_DP_CURVE25519_ENABLED \
+                              PSA_WANT_ECC_MONTGOMERY_255"
 run_test    "Default, TLS 1.2" \
             "$P_SRV debug_level=3" \
             "$P_CLI force_version=tls12" \
@@ -2586,32 +2572,32 @@ run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA
 run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256
 run_test_psa TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384
 
-requires_config_enabled MBEDTLS_ECP_DP_SECP521R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_521
 run_test_psa_force_curve "secp521r1"
-requires_config_enabled MBEDTLS_ECP_DP_BP512R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_BRAINPOOL_P_R1_512
 run_test_psa_force_curve "brainpoolP512r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP384R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_384
 run_test_psa_force_curve "secp384r1"
-requires_config_enabled MBEDTLS_ECP_DP_BP384R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_BRAINPOOL_P_R1_384
 run_test_psa_force_curve "brainpoolP384r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 run_test_psa_force_curve "secp256r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP256K1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_K1_256
 run_test_psa_force_curve "secp256k1"
-requires_config_enabled MBEDTLS_ECP_DP_BP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_BRAINPOOL_P_R1_256
 run_test_psa_force_curve "brainpoolP256r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP224R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_224
 run_test_psa_force_curve "secp224r1"
 ## SECP224K1 is buggy via the PSA API
 ## (https://github.com/Mbed-TLS/mbedtls/issues/3541),
 ## so it is disabled in PSA even when it's enabled in Mbed TLS.
 ## The proper dependency would be on PSA_WANT_ECC_SECP_K1_224 but
 ## dependencies on PSA symbols in ssl-opt.sh are not implemented yet.
-#requires_config_enabled MBEDTLS_ECP_DP_SECP224K1_ENABLED
+#requires_config_enabled PSA_WANT_ECC_SECP_K1_224
 #run_test_psa_force_curve "secp224k1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP192R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_192
 run_test_psa_force_curve "secp192r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP192K1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_K1_192
 run_test_psa_force_curve "secp192k1"
 
 # Test current time in ServerHello
@@ -2632,7 +2618,8 @@ run_test    "Unique IV in GCM" \
             -U "IV used"
 
 # Test for correctness of sent single supported algorithm
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_any_configs_enabled "MBEDTLS_ECP_DP_SECP256R1_ENABLED \
+                              PSA_WANT_ECC_SECP_R1_256"
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2647,7 +2634,8 @@ run_test    "Single supported algorithm sending: mbedtls client" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_any_configs_enabled "MBEDTLS_ECP_DP_SECP256R1_ENABLED \
+                              PSA_WANT_ECC_SECP_R1_256"
 requires_hash_alg SHA_256
 run_test    "Single supported algorithm sending: openssl client" \
             "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required" \
@@ -11293,8 +11281,8 @@ run_test    "TLS 1.3: Test gnutls tls1_3 feature" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_ciphersuite_enabled TLS1-3-CHACHA20-POLY1305-SHA256
-requires_config_enabled MBEDTLS_ECP_DP_CURVE25519_ENABLED
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_any_configs_enabled "PSA_WANT_ECC_MONTGOMERY_255"
+requires_any_configs_enabled "PSA_WANT_ECC_SECP_R1_256"
 run_test    "TLS 1.3: Default" \
             "$P_SRV allow_sha1=0 debug_level=3 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13" \
             "$P_CLI allow_sha1=0" \

@@ -828,6 +828,7 @@ int mbedtls_sha512_finish(mbedtls_sha512_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned used;
     uint64_t high, low;
+    int truncated = 0;
 
     /*
      * Add padding: 0x80 then 0x00 until 16 bytes remain for the length
@@ -844,7 +845,7 @@ int mbedtls_sha512_finish(mbedtls_sha512_context *ctx,
         memset(ctx->buffer + used, 0, SHA512_BLOCK_SIZE - used);
 
         if ((ret = mbedtls_internal_sha512_process(ctx, ctx->buffer)) != 0) {
-            return ret;
+            goto exit;
         }
 
         memset(ctx->buffer, 0, 112);
@@ -861,7 +862,7 @@ int mbedtls_sha512_finish(mbedtls_sha512_context *ctx,
     sha512_put_uint64_be(low,  ctx->buffer, 120);
 
     if ((ret = mbedtls_internal_sha512_process(ctx, ctx->buffer)) != 0) {
-        return ret;
+        goto exit;
     }
 
     /*
@@ -874,7 +875,6 @@ int mbedtls_sha512_finish(mbedtls_sha512_context *ctx,
     sha512_put_uint64_be(ctx->state[4], output, 32);
     sha512_put_uint64_be(ctx->state[5], output, 40);
 
-    int truncated = 0;
 #if defined(MBEDTLS_SHA384_C)
     truncated = ctx->is384;
 #endif
@@ -883,7 +883,11 @@ int mbedtls_sha512_finish(mbedtls_sha512_context *ctx,
         sha512_put_uint64_be(ctx->state[7], output, 56);
     }
 
-    return 0;
+    ret = 0;
+
+exit:
+    mbedtls_sha512_free(ctx);
+    return ret;
 }
 
 #endif /* !MBEDTLS_SHA512_ALT */

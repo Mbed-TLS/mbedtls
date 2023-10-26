@@ -554,72 +554,72 @@ typedef struct {
 
 static const oid_ecp_grp_t oid_ecp_grp[] =
 {
-#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP192R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP192R1, "secp192r1",    "secp192r1"),
         MBEDTLS_ECP_DP_SECP192R1,
     },
-#endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_SECP192R1 */
+#if defined(MBEDTLS_ECP_HAVE_SECP224R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP224R1, "secp224r1",    "secp224r1"),
         MBEDTLS_ECP_DP_SECP224R1,
     },
-#endif /* MBEDTLS_ECP_DP_SECP224R1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_SECP224R1 */
+#if defined(MBEDTLS_ECP_HAVE_SECP256R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP256R1, "secp256r1",    "secp256r1"),
         MBEDTLS_ECP_DP_SECP256R1,
     },
-#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_SECP256R1 */
+#if defined(MBEDTLS_ECP_HAVE_SECP384R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP384R1, "secp384r1",    "secp384r1"),
         MBEDTLS_ECP_DP_SECP384R1,
     },
-#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_SECP384R1 */
+#if defined(MBEDTLS_ECP_HAVE_SECP521R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP521R1, "secp521r1",    "secp521r1"),
         MBEDTLS_ECP_DP_SECP521R1,
     },
-#endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_SECP521R1 */
+#if defined(MBEDTLS_ECP_HAVE_SECP192K1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP192K1, "secp192k1",    "secp192k1"),
         MBEDTLS_ECP_DP_SECP192K1,
     },
-#endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_SECP192K1 */
+#if defined(MBEDTLS_ECP_HAVE_SECP224K1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP224K1, "secp224k1",    "secp224k1"),
         MBEDTLS_ECP_DP_SECP224K1,
     },
-#endif /* MBEDTLS_ECP_DP_SECP224K1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_SECP224K1 */
+#if defined(MBEDTLS_ECP_HAVE_SECP256K1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_SECP256K1, "secp256k1",    "secp256k1"),
         MBEDTLS_ECP_DP_SECP256K1,
     },
-#endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_SECP256K1 */
+#if defined(MBEDTLS_ECP_HAVE_BP256R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_BP256R1,   "brainpoolP256r1", "brainpool256r1"),
         MBEDTLS_ECP_DP_BP256R1,
     },
-#endif /* MBEDTLS_ECP_DP_BP256R1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_BP256R1 */
+#if defined(MBEDTLS_ECP_HAVE_BP384R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_BP384R1,   "brainpoolP384r1", "brainpool384r1"),
         MBEDTLS_ECP_DP_BP384R1,
     },
-#endif /* MBEDTLS_ECP_DP_BP384R1_ENABLED */
-#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_BP384R1 */
+#if defined(MBEDTLS_ECP_HAVE_BP512R1)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_EC_GRP_BP512R1,   "brainpoolP512r1", "brainpool512r1"),
         MBEDTLS_ECP_DP_BP512R1,
     },
-#endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
+#endif /* MBEDTLS_ECP_HAVE_BP512R1 */
     {
         NULL_OID_DESCRIPTOR,
         MBEDTLS_ECP_DP_NONE,
@@ -645,18 +645,18 @@ typedef struct {
 
 static const oid_ecp_grp_algid_t oid_ecp_grp_algid[] =
 {
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_CURVE25519)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_X25519,               "X25519",       "X25519"),
         MBEDTLS_ECP_DP_CURVE25519,
     },
-#endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+#endif /* MBEDTLS_ECP_HAVE_CURVE25519 */
+#if defined(MBEDTLS_ECP_HAVE_CURVE448)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_X448,                 "X448",         "X448"),
         MBEDTLS_ECP_DP_CURVE448,
     },
-#endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */
+#endif /* MBEDTLS_ECP_HAVE_CURVE448 */
     {
         NULL_OID_DESCRIPTOR,
         MBEDTLS_ECP_DP_NONE,
@@ -761,6 +761,30 @@ static const oid_md_alg_t oid_md_alg[] =
         MBEDTLS_MD_RIPEMD160,
     },
 #endif
+#if defined(MBEDTLS_MD_CAN_SHA3_224)
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_DIGEST_ALG_SHA3_224,    "id-sha3-224",    "SHA-3-224"),
+        MBEDTLS_MD_SHA3_224,
+    },
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_256)
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_DIGEST_ALG_SHA3_256,    "id-sha3-256",    "SHA-3-256"),
+        MBEDTLS_MD_SHA3_256,
+    },
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_384)
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_DIGEST_ALG_SHA3_384,    "id-sha3-384",    "SHA-3-384"),
+        MBEDTLS_MD_SHA3_384,
+    },
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_512)
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_DIGEST_ALG_SHA3_512,    "id-sha3-512",    "SHA-3-512"),
+        MBEDTLS_MD_SHA3_512,
+    },
+#endif
     {
         NULL_OID_DESCRIPTOR,
         MBEDTLS_MD_NONE,
@@ -796,7 +820,7 @@ static const oid_md_hmac_t oid_md_hmac[] =
         OID_DESCRIPTOR(MBEDTLS_OID_HMAC_SHA224,    "hmacSHA224",    "HMAC-SHA-224"),
         MBEDTLS_MD_SHA224,
     },
-#endif
+#endif /* MBEDTLS_MD_CAN_SHA224 */
 #if defined(MBEDTLS_MD_CAN_SHA256)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_HMAC_SHA256,    "hmacSHA256",    "HMAC-SHA-256"),
@@ -815,6 +839,36 @@ static const oid_md_hmac_t oid_md_hmac[] =
         MBEDTLS_MD_SHA512,
     },
 #endif /* MBEDTLS_MD_CAN_SHA512 */
+#if defined(MBEDTLS_MD_CAN_SHA3_224)
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_HMAC_SHA3_224,    "hmacSHA3-224",    "HMAC-SHA3-224"),
+        MBEDTLS_MD_SHA3_224,
+    },
+#endif /* MBEDTLS_MD_CAN_SHA3_224 */
+#if defined(MBEDTLS_MD_CAN_SHA3_256)
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_HMAC_SHA3_256,    "hmacSHA3-256",    "HMAC-SHA3-256"),
+        MBEDTLS_MD_SHA3_256,
+    },
+#endif /* MBEDTLS_MD_CAN_SHA3_256 */
+#if defined(MBEDTLS_MD_CAN_SHA3_384)
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_HMAC_SHA3_384,    "hmacSHA3-384",    "HMAC-SHA3-384"),
+        MBEDTLS_MD_SHA3_384,
+    },
+#endif /* MBEDTLS_MD_CAN_SHA3_384 */
+#if defined(MBEDTLS_MD_CAN_SHA3_512)
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_HMAC_SHA3_512,    "hmacSHA3-512",    "HMAC-SHA3-512"),
+        MBEDTLS_MD_SHA3_512,
+    },
+#endif /* MBEDTLS_MD_CAN_SHA3_512 */
+#if defined(MBEDTLS_MD_CAN_RIPEMD160)
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_HMAC_RIPEMD160,    "hmacRIPEMD160",    "HMAC-RIPEMD160"),
+        MBEDTLS_MD_RIPEMD160,
+    },
+#endif /* MBEDTLS_MD_CAN_RIPEMD160 */
     {
         NULL_OID_DESCRIPTOR,
         MBEDTLS_MD_NONE,

@@ -186,6 +186,15 @@ typedef uint64_t mbedtls_t_udbl;
     #endif /* !MBEDTLS_NO_UDBL_DIVISION */
 #endif /* !MBEDTLS_HAVE_INT64 */
 
+/*
+ * Sanity check that exactly one of MBEDTLS_HAVE_INT32 or MBEDTLS_HAVE_INT64 is defined,
+ * so that code elsewhere doesn't have to check.
+ */
+#if (!(defined(MBEDTLS_HAVE_INT32) || defined(MBEDTLS_HAVE_INT64))) || \
+    (defined(MBEDTLS_HAVE_INT32) && defined(MBEDTLS_HAVE_INT64))
+#error "Only 32-bit or 64-bit limbs are supported in bignum"
+#endif
+
 /** \typedef mbedtls_mpi_uint
  * \brief The type of machine digits in a bignum, called _limbs_.
  *

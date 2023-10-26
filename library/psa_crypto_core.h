@@ -21,7 +21,14 @@
 #ifndef PSA_CRYPTO_CORE_H
 #define PSA_CRYPTO_CORE_H
 
-#include "mbedtls/build_info.h"
+/*
+ * Include the build-time configuration information header. Here, we do not
+ * include `"mbedtls/build_info.h"` directly but `"psa/build_info.h"`, which
+ * is basically just an alias to it. This is to ease the maintenance of the
+ * TF-PSA-Crypto repository which has a different build system and
+ * configuration.
+ */
+#include "psa/build_info.h"
 
 #include "psa/crypto.h"
 #include "psa/crypto_se_driver.h"
@@ -37,27 +44,6 @@
  * \return 1 if the driver subsytem is ready, 0 otherwise.
  */
 int psa_can_do_hash(psa_algorithm_t hash_alg);
-
-/** Constant-time buffer comparison
- *
- * \param[in]  a    Left-hand buffer for comparison.
- * \param[in]  b    Right-hand buffer for comparison.
- * \param n         Amount of bytes to compare.
- *
- * \return 0 if the buffer contents are equal, non-zero otherwise
- */
-static inline int mbedtls_psa_safer_memcmp(
-    const uint8_t *a, const uint8_t *b, size_t n)
-{
-    size_t i;
-    unsigned char diff = 0;
-
-    for (i = 0; i < n; i++) {
-        diff |= a[i] ^ b[i];
-    }
-
-    return diff;
-}
 
 /** The data structure representing a key slot, containing key material
  * and metadata for one key.
@@ -246,12 +232,12 @@ psa_status_t psa_copy_key_material_into_slot(psa_key_slot_t *slot,
                                              const uint8_t *data,
                                              size_t data_length);
 
-/** Convert an mbed TLS error code to a PSA error code
+/** Convert an Mbed TLS error code to a PSA error code
  *
  * \note This function is provided solely for the convenience of
  *       Mbed TLS and may be removed at any time without notice.
  *
- * \param ret           An mbed TLS-thrown error code
+ * \param ret           An Mbed TLS-thrown error code
  *
  * \return              The corresponding PSA error code
  */

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.5.1)
 
 #
 # Simulate configuring and building Mbed TLS as the user might do it. We'll
@@ -15,6 +15,8 @@ execute_process(
         "-B${MbedTLS_BINARY_DIR}"
         "-DENABLE_PROGRAMS=NO"
         "-DENABLE_TESTING=NO"
+        # Turn on generated files explicitly in case this is a release
+        "-DGEN_FILES=ON"
         "-DCMAKE_INSTALL_PREFIX=${MbedTLS_INSTALL_DIR}")
 
 execute_process(

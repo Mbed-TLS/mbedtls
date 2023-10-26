@@ -30,7 +30,7 @@
  */
 #include <limits.h>
 #if CHAR_BIT != 8
-#error "mbed TLS requires a platform with 8-bit chars"
+#error "Mbed TLS requires a platform with 8-bit chars"
 #endif
 
 #include <stdint.h>
@@ -65,6 +65,105 @@
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_HAVE_TIME)
 #error "MBEDTLS_HAVE_TIME_DATE without MBEDTLS_HAVE_TIME does not make sense"
 #endif
+
+/* Check that each MBEDTLS_ECP_DP_xxx symbol has its PSA_WANT_ECC_xxx counterpart
+ * when PSA crypto is enabled. */
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG) || defined(MBEDTLS_PSA_CRYPTO_C)
+
+#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED) && !defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
+#error "MBEDTLS_ECP_DP_BP256R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED) && !defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
+#error "MBEDTLS_ECP_DP_BP384R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED) && !defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
+#error "MBEDTLS_ECP_DP_BP512R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) && !defined(PSA_WANT_ECC_MONTGOMERY_255)
+#error "MBEDTLS_ECP_DP_CURVE25519_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) && !defined(PSA_WANT_ECC_MONTGOMERY_448)
+#error "MBEDTLS_ECP_DP_CURVE448_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) && !defined(PSA_WANT_ECC_SECP_R1_192)
+#error "MBEDTLS_ECP_DP_SECP192R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) && !defined(PSA_WANT_ECC_SECP_R1_224)
+#error "MBEDTLS_ECP_DP_SECP224R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) && !defined(PSA_WANT_ECC_SECP_R1_256)
+#error "MBEDTLS_ECP_DP_SECP256R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) && !defined(PSA_WANT_ECC_SECP_R1_384)
+#error "MBEDTLS_ECP_DP_SECP384R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) && !defined(PSA_WANT_ECC_SECP_R1_521)
+#error "MBEDTLS_ECP_DP_SECP521R1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) && !defined(PSA_WANT_ECC_SECP_K1_192)
+#error "MBEDTLS_ECP_DP_SECP192K1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+/* SECP224K1 is buggy in PSA API so we skip this check */
+#if 0 && defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) && !defined(PSA_WANT_ECC_SECP_K1_224)
+#error "MBEDTLS_ECP_DP_SECP224K1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) && !defined(PSA_WANT_ECC_SECP_K1_256)
+#error "MBEDTLS_ECP_DP_SECP256K1_ENABLED defined, but not its PSA counterpart"
+#endif
+
+#endif /* MBEDTLS_PSA_CRYPTO_CONFIG || MBEDTLS_PSA_CRYPTO_C */
+
+/* Limitations on ECC key types acceleration: if we have any of `PUBLIC_KEY`,
+ * `KEY_PAIR_BASIC`, `KEY_PAIR_IMPORT`, `KEY_PAIR_EXPORT` then we must have
+ * all 4 of them.
+ */
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_BASIC) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_IMPORT) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_EXPORT)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) || \
+    !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_BASIC) || \
+    !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_IMPORT) || \
+    !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_EXPORT)
+#error "Unsupported partial support for ECC key type acceleration, see docs/driver-only-builds.md"
+#endif /* not all of public, basic, import, export */
+#endif /* one of public, basic, import, export */
+
+/* Limitations on ECC curves acceleration: partial curve acceleration is only
+ * supported with crypto excluding PK, X.509 or TLS.
+ * Note: no need to check X.509 as it depends on PK. */
+#if defined(MBEDTLS_PSA_ACCEL_ECC_BRAINPOOL_P_R1_256) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_BRAINPOOL_P_R1_384) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_BRAINPOOL_P_R1_512) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_MONTGOMERY_255) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_MONTGOMERY_448) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_192) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_224) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_K1_256) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_192) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_224) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_256) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_384) || \
+    defined(MBEDTLS_PSA_ACCEL_ECC_SECP_R1_521)
+#if defined(MBEDTLS_PSA_ECC_ACCEL_INCOMPLETE_CURVES)
+#if defined(MBEDTLS_PK_C) || \
+    defined(MBEDTLS_SSL_TLS_C)
+#error "Unsupported partial support for ECC curves acceleration, see docs/driver-only-builds.md"
+#endif /* modules beyond what's supported */
+#endif /* not all curves accelerated */
+#endif /* some curve accelerated */
 
 #if defined(MBEDTLS_CTR_DRBG_C) && !defined(MBEDTLS_AES_C)
 #error "MBEDTLS_CTR_DRBG_C defined, but not all prerequisites"
@@ -132,7 +231,7 @@
 #error "MBEDTLS_ECDSA_DETERMINISTIC defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_ECP_C) && ( !defined(MBEDTLS_BIGNUM_C) || (    \
+#if defined(MBEDTLS_ECP_LIGHT) && ( !defined(MBEDTLS_BIGNUM_C) || (    \
     !defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) &&                  \
     !defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) &&                  \
     !defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) &&                  \
@@ -146,7 +245,7 @@
     !defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) &&                  \
     !defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) &&                 \
     !defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) ) )
-#error "MBEDTLS_ECP_C defined, but not all prerequisites"
+#error "MBEDTLS_ECP_C defined (or a subset enabled), but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_PK_PARSE_C) && !defined(MBEDTLS_ASN1_PARSE_C)
@@ -275,19 +374,6 @@
 #error "MBEDTLS_HMAC_DRBG_C defined, but not all prerequisites"
 #endif
 
-/* Helper for ECDSA dependencies, will be undefined at the end of the file */
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if (defined(PSA_WANT_ALG_ECDSA) || \
-     defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)) && \
-    defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC)
-#define MBEDTLS_PK_HAVE_ECDSA
-#endif
-#else /* MBEDTLS_USE_PSA_CRYPTO */
-#if defined(MBEDTLS_ECDSA_C)
-#define MBEDTLS_PK_HAVE_ECDSA
-#endif
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
 /* Helper for JPAKE dependencies, will be undefined at the end of the file */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #if defined(PSA_WANT_ALG_JPAKE) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC)
@@ -296,17 +382,6 @@
 #else /* MBEDTLS_USE_PSA_CRYPTO */
 #if defined(MBEDTLS_ECJPAKE_C)
 #define MBEDTLS_PK_HAVE_JPAKE
-#endif
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
-/* Helper for ECDH dependencies, will be undefined at the end of the file */
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(PSA_WANT_ALG_ECDH) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC)
-#define MBEDTLS_PK_HAVE_ECDH
-#endif
-#else /* MBEDTLS_USE_PSA_CRYPTO */
-#if defined(MBEDTLS_ECDH_C)
-#define MBEDTLS_PK_HAVE_ECDH
 #endif
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
@@ -322,14 +397,14 @@
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_PK_HAVE_ECDH) ||                                       \
-      !defined(MBEDTLS_PK_HAVE_ECDSA) ||                                \
+    ( !defined(MBEDTLS_CAN_ECDH) ||                                       \
+      !defined(MBEDTLS_PK_CAN_ECDSA_SIGN) ||                                \
       !defined(MBEDTLS_X509_CRT_PARSE_C) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_PK_HAVE_ECDH) || !defined(MBEDTLS_RSA_C) ||          \
+    ( !defined(MBEDTLS_CAN_ECDH) || !defined(MBEDTLS_RSA_C) ||          \
       !defined(MBEDTLS_X509_CRT_PARSE_C) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED defined, but not all prerequisites"
 #endif
@@ -339,7 +414,7 @@
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) &&                     \
-    !defined(MBEDTLS_PK_HAVE_ECDH)
+    !defined(MBEDTLS_CAN_ECDH)
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED defined, but not all prerequisites"
 #endif
 
@@ -350,14 +425,14 @@
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_PK_HAVE_ECDH) || !defined(MBEDTLS_RSA_C) ||          \
+    ( !defined(MBEDTLS_CAN_ECDH) || !defined(MBEDTLS_RSA_C) ||          \
       !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_PKCS1_V15) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) &&                \
-    ( !defined(MBEDTLS_PK_HAVE_ECDH) ||                                       \
-      !defined(MBEDTLS_PK_HAVE_ECDSA) ||                                \
+    ( !defined(MBEDTLS_CAN_ECDH) ||                                       \
+      !defined(MBEDTLS_PK_CAN_ECDSA_SIGN) ||                                \
       !defined(MBEDTLS_X509_CRT_PARSE_C) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED defined, but not all prerequisites"
 #endif
@@ -436,10 +511,6 @@
 #error "MBEDTLS_MEMORY_DEBUG defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PADLOCK_C) && !defined(MBEDTLS_HAVE_ASM)
-#error "MBEDTLS_PADLOCK_C defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_PEM_PARSE_C) && !defined(MBEDTLS_BASE64_C)
 #error "MBEDTLS_PEM_PARSE_C defined, but not all prerequisites"
 #endif
@@ -449,7 +520,7 @@
 #endif
 
 #if defined(MBEDTLS_PK_C) && \
-    !defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_ECP_LIGHT)
+    !defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #error "MBEDTLS_PK_C defined, but not all prerequisites"
 #endif
 
@@ -778,25 +849,24 @@
 #error "MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY defined on non-Aarch64 system"
 #endif
 
-#if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) && \
-    defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
-#error "Must only define one of MBEDTLS_SHA256_USE_A64_CRYPTO_*"
+#if defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT) && \
+    defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY)
+#error "Must only define one of MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_*"
 #endif
 
-#if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
-    defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
+#if defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT) || \
+    defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY)
 #if !defined(MBEDTLS_SHA256_C)
-#error "MBEDTLS_SHA256_USE_A64_CRYPTO_* defined without MBEDTLS_SHA256_C"
+#error "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_* defined without MBEDTLS_SHA256_C"
 #endif
 #if defined(MBEDTLS_SHA256_ALT) || defined(MBEDTLS_SHA256_PROCESS_ALT)
-#error "MBEDTLS_SHA256_*ALT can't be used with MBEDTLS_SHA256_USE_A64_CRYPTO_*"
+#error "MBEDTLS_SHA256_*ALT can't be used with MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_*"
 #endif
 
 #endif
 
-#if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY) && \
-    !defined(__aarch64__) && !defined(_M_ARM64)
-#error "MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY defined on non-Aarch64 system"
+#if defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY) && !defined(MBEDTLS_ARCH_IS_ARMV8_A)
+#error "MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY defined on non-Armv8-A system"
 #endif
 
 /* TLS 1.3 requires separate HKDF parts from PSA,
@@ -814,8 +884,9 @@
 #endif
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
-#if !( (defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)) && defined(MBEDTLS_X509_CRT_PARSE_C) && \
-       ( defined(MBEDTLS_PK_HAVE_ECDSA) || defined(MBEDTLS_PKCS1_V21) ) )
+#if !( (defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)) && \
+       defined(MBEDTLS_X509_CRT_PARSE_C) && \
+       ( defined(MBEDTLS_PK_CAN_ECDSA_SIGN) || defined(MBEDTLS_PKCS1_V21) ) )
 #error "MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED defined, but not all prerequisites"
 #endif
 #endif
@@ -857,10 +928,10 @@
 #endif
 
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_SRV_C) && \
-    ( !defined(MBEDTLS_SSL_MAX_EARLY_DATA_SIZE)     || \
-      ( MBEDTLS_SSL_MAX_EARLY_DATA_SIZE < 0 )       || \
-      ( MBEDTLS_SSL_MAX_EARLY_DATA_SIZE > UINT32_MAX ) )
-#error "MBEDTLS_SSL_MAX_EARLY_DATA_SIZE MUST be defined and in range(0..UINT32_MAX)"
+    defined(MBEDTLS_SSL_MAX_EARLY_DATA_SIZE) &&                      \
+        ((MBEDTLS_SSL_MAX_EARLY_DATA_SIZE < 0) ||                    \
+         (MBEDTLS_SSL_MAX_EARLY_DATA_SIZE > UINT32_MAX))
+#error "MBEDTLS_SSL_MAX_EARLY_DATA_SIZE must be in the range(0..UINT32_MAX)"
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)     && \
@@ -968,7 +1039,8 @@
 #endif
 
 #if defined(MBEDTLS_SSL_TICKET_C) && \
-    !( defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C) || defined(MBEDTLS_CHACHAPOLY_C) )
+    !( defined(MBEDTLS_SSL_HAVE_CCM) || defined(MBEDTLS_SSL_HAVE_GCM) || \
+    defined(MBEDTLS_SSL_HAVE_CHACHAPOLY) )
 #error "MBEDTLS_SSL_TICKET_C defined, but not all prerequisites"
 #endif
 
@@ -1009,15 +1081,15 @@
 #error "MBEDTLS_VERSION_FEATURES defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_X509_USE_C) && ( !defined(MBEDTLS_BIGNUM_C) ||  \
-    !defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_PARSE_C) ||    \
+#if defined(MBEDTLS_X509_USE_C) && \
+    (!defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_PARSE_C) ||   \
     !defined(MBEDTLS_PK_PARSE_C) ||                                 \
     ( !defined(MBEDTLS_MD_C) && !defined(MBEDTLS_USE_PSA_CRYPTO) ) )
 #error "MBEDTLS_X509_USE_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_X509_CREATE_C) && ( !defined(MBEDTLS_BIGNUM_C) ||  \
-    !defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_WRITE_C) ||       \
+#if defined(MBEDTLS_X509_CREATE_C) && \
+    (!defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_WRITE_C) ||      \
     !defined(MBEDTLS_PK_PARSE_C) ||                                    \
     ( !defined(MBEDTLS_MD_C) && !defined(MBEDTLS_USE_PSA_CRYPTO) ) )
 #error "MBEDTLS_X509_CREATE_C defined, but not all prerequisites"
@@ -1069,7 +1141,9 @@
 #error "MBEDTLS_SSL_RECORD_SIZE_LIMIT defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION) && !( defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C) || defined(MBEDTLS_CHACHAPOLY_C) )
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION) && \
+    !( defined(MBEDTLS_SSL_HAVE_CCM) || defined(MBEDTLS_SSL_HAVE_GCM) || \
+    defined(MBEDTLS_SSL_HAVE_CHACHAPOLY) )
 #error "MBEDTLS_SSL_CONTEXT_SERIALIZATION defined, but not all prerequisites"
 #endif
 
@@ -1122,16 +1196,14 @@
 
 #if defined(MBEDTLS_PKCS7_C) && ( ( !defined(MBEDTLS_ASN1_PARSE_C) ) || \
     ( !defined(MBEDTLS_OID_C) ) || ( !defined(MBEDTLS_PK_PARSE_C) ) || \
-    ( !defined(MBEDTLS_X509_CRT_PARSE_C) ) ||\
-    ( !defined(MBEDTLS_X509_CRL_PARSE_C) ) || ( !defined(MBEDTLS_BIGNUM_C) ) || \
+    ( !defined(MBEDTLS_X509_CRT_PARSE_C) ) || \
+    ( !defined(MBEDTLS_X509_CRL_PARSE_C) ) || \
     ( !defined(MBEDTLS_MD_C) ) )
 #error  "MBEDTLS_PKCS7_C is defined, but not all prerequisites"
 #endif
 
 /* Undefine helper symbols */
-#undef MBEDTLS_PK_HAVE_ECDSA
 #undef MBEDTLS_PK_HAVE_JPAKE
-#undef MBEDTLS_PK_HAVE_ECDH
 #undef MBEDTLS_MD_HAVE_SHA256
 #undef MBEDTLS_MD_HAVE_SHA384
 #undef MBEDTLS_MD_HAVE_SHA512

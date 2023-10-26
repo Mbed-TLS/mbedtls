@@ -667,6 +667,11 @@ def parse_function_code(funcs_f, dependencies, suite_dependencies):
     code = code.replace(name, 'test_' + name, 1)
     name = 'test_' + name
 
+    # If a test function has no arguments then add 'void' argument to
+    # avoid "-Wstrict-prototypes" warnings from clang
+    if len(args) == 0:
+        code = code.replace('()', '(void)', 1)
+
     for line in funcs_f:
         if re.search(END_CASE_REGEX, line):
             break

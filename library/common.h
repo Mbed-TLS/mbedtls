@@ -114,6 +114,20 @@ extern void (*mbedtls_test_hook_test_fail)(const char *test, int line, const cha
  */
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
+/**
+ * \brief       Securely zeroize a buffer then free it.
+ *
+ *              Similar to making consecutive calls to
+ *              \c mbedtls_platform_zeroize() and \c mbedtls_free(), but has
+ *              code size savings, and potential for optimisation in the future.
+ *
+ *              Guaranteed to be a no-op if \p buf is \c NULL and \p len is 0.
+ *
+ * \param buf   Buffer to be zeroized then freed.
+ * \param len   Length of the buffer in bytes
+ */
+void mbedtls_zeroize_and_free(void *buf, size_t len);
+
 /** Return an offset into a buffer.
  *
  * This is just the addition of an offset to a pointer, except that this
@@ -274,7 +288,7 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 /* Normal case (64-bit pointers): use "r" as the constraint for pointer operands to asm */
 #define MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT "r"
 #else
-#error Unrecognised pointer size for aarch64
+#error "Unrecognised pointer size for aarch64"
 #endif
 #endif
 
@@ -318,6 +332,27 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 #define MBEDTLS_OPTIMIZE_FOR_PERFORMANCE __attribute__((optimize("-O2")))
 #else
 #define MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
+#endif
+
+/* Suppress compiler warnings for unused functions and variables. */
+#if !defined(MBEDTLS_MAYBE_UNUSED) && defined(__has_attribute)
+#    if __has_attribute(unused)
+#        define MBEDTLS_MAYBE_UNUSED __attribute__((unused))
+#    endif
+#endif
+#if !defined(MBEDTLS_MAYBE_UNUSED) && defined(__GNUC__)
+#    define MBEDTLS_MAYBE_UNUSED __attribute__((unused))
+#endif
+#if !defined(MBEDTLS_MAYBE_UNUSED) && defined(__IAR_SYSTEMS_ICC__) && defined(__VER__)
+#    if (__VER__ >= 8010000) // IAR 8.1 or later
+#        define MBEDTLS_MAYBE_UNUSED __attribute__((unused))
+#    endif
+#endif
+#if !defined(MBEDTLS_MAYBE_UNUSED) && defined(_MSC_VER)
+#    define MBEDTLS_MAYBE_UNUSED __pragma(warning(suppress:4189))
+#endif
+#if !defined(MBEDTLS_MAYBE_UNUSED)
+#    define MBEDTLS_MAYBE_UNUSED
 #endif
 
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

@@ -7,22 +7,18 @@
  */
 
 #include "p256-m.h"
+#include "mbedtls/platform_util.h"
 #include "psa/crypto.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#if defined (MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED)
+#if defined (MBEDTLS_PSA_P256M_DRIVER_ENABLED)
 
 /*
  * Zeroize memory - this should not be optimized away
  */
-static void zeroize(void *d, size_t n)
-{
-    volatile char *p = d;
-    while( n-- )
-        *p++ = 0;
-}
+#define zeroize mbedtls_platform_zeroize
 
 /*
  * Helpers to test constant-time behaviour with valgrind or MemSan.
@@ -199,10 +195,12 @@ static uint64_t u32_muladd64(uint32_t x, uint32_t y, uint32_t z, uint32_t t);
  * Currently assembly optimisations are only supported with GCC/Clang for
  * Arm's Cortex-A and Cortex-M lines of CPUs, which start with the v6-M and
  * v7-M architectures. __ARM_ARCH_PROFILE is not defined for v6 and earlier.
+ * Thumb and 32-bit assembly is supported; aarch64 is not supported.
  */
 #if defined(__GNUC__) &&\
     defined(__ARM_ARCH) && __ARM_ARCH >= 6 && defined(__ARM_ARCH_PROFILE) && \
-    ( __ARM_ARCH_PROFILE == 77 || __ARM_ARCH_PROFILE == 65 ) /* 'M' or 'A' */
+    ( __ARM_ARCH_PROFILE == 77 || __ARM_ARCH_PROFILE == 65 ) /* 'M' or 'A' */ && \
+    !defined(__aarch64__)
 
 /*
  * This set of CPUs is conveniently partitioned as follows:
@@ -1466,6 +1464,51 @@ int p256_ecdsa_verify(const uint8_t sig[64], const uint8_t pub[64],
         return P256_SUCCESS;
 
     return P256_INVALID_SIGNATURE;
+}
+
+/**********************************************************************
+ *
+ * Key management utilities
+ *
+ **********************************************************************/
+
+int p256_validate_pubkey(const uint8_t pub[64])
+{
+    uint32_t x[8], y[8];
+    int ret = point_from_bytes(x, y, pub);
+
+    return ret == 0 ? P256_SUCCESS : P256_INVALID_PUBKEY;
+}
+
+int p256_validate_privkey(const uint8_t priv[32])
+{
+    uint32_t s[8];
+    int ret = scalar_from_bytes(s, priv);
+    zeroize(s, sizeof(s));
+
+    return ret == 0 ? P256_SUCCESS : P256_INVALID_PRIVKEY;
+}
+
+int p256_public_from_private(uint8_t pub[64], const uint8_t priv[32])
+{
+    int ret;
+    uint32_t s[8];
+
+    ret = scalar_from_bytes(s, priv);
+    if (ret != 0)
+        return P256_INVALID_PRIVKEY;
+
+    /* compute and ouput the associated public key */
+    uint32_t x[8], y[8];
+    scalar_mult(x, y, p256_gx, p256_gy, s);
+
+    /* the associated public key is not a secret, the scalar was */
+    CT_UNPOISON(x, 32);
+    CT_UNPOISON(y, 32);
+    zeroize(s, sizeof(s));
+
+    point_to_bytes(pub, x, y);
+    return P256_SUCCESS;
 }
 
 #endif

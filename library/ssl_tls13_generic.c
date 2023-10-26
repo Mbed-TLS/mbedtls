@@ -39,8 +39,7 @@
 #include "psa/crypto.h"
 #include "psa_util_internal.h"
 
-#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED) || \
-    defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
 /* Define a local translating function to save code size by not using too many
  * arguments in each translating place. */
 static int local_err_translation(psa_status_t status)
@@ -370,7 +369,7 @@ int mbedtls_ssl_tls13_process_certificate_verify(mbedtls_ssl_context *ssl)
      */
     ret = mbedtls_ssl_get_handshake_transcript(
         ssl,
-        ssl->handshake->ciphersuite_info->mac,
+        (mbedtls_md_type_t) ssl->handshake->ciphersuite_info->mac,
         transcript, sizeof(transcript),
         &transcript_len);
     if (ret != 0) {
@@ -838,6 +837,8 @@ int mbedtls_ssl_tls13_process_certificate(mbedtls_ssl_context *ssl)
                              ssl, MBEDTLS_SSL_HS_CERTIFICATE, buf, buf_len));
 
 cleanup:
+#else /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
+    (void) ssl;
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("<= parse certificate"));
@@ -966,7 +967,7 @@ cleanup:
 int mbedtls_ssl_tls13_check_sig_alg_cert_key_match(uint16_t sig_alg,
                                                    mbedtls_pk_context *key)
 {
-    mbedtls_pk_type_t pk_type = mbedtls_ssl_sig_from_pk(key);
+    mbedtls_pk_type_t pk_type = (mbedtls_pk_type_t) mbedtls_ssl_sig_from_pk(key);
     size_t key_size = mbedtls_pk_get_bitlen(key);
 
     switch (pk_type) {
@@ -1034,7 +1035,7 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
     }
 
     ret = mbedtls_ssl_get_handshake_transcript(
-        ssl, ssl->handshake->ciphersuite_info->mac,
+        ssl, (mbedtls_md_type_t) ssl->handshake->ciphersuite_info->mac,
         handshake_hash, sizeof(handshake_hash), &handshake_hash_len);
     if (ret != 0) {
         return ret;
@@ -1463,7 +1464,7 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("Reset SSL session for HRR"));
 
-    ret = mbedtls_ssl_get_handshake_transcript(ssl, ciphersuite_info->mac,
+    ret = mbedtls_ssl_get_handshake_transcript(ssl, (mbedtls_md_type_t) ciphersuite_info->mac,
                                                hash_transcript + 4,
                                                PSA_HASH_MAX_SIZE,
                                                &hash_len);
@@ -1497,7 +1498,7 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl)
     return ret;
 }
 
-#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
 
 int mbedtls_ssl_tls13_read_public_xxdhe_share(mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,
@@ -1515,13 +1516,20 @@ int mbedtls_ssl_tls13_read_public_xxdhe_share(mbedtls_ssl_context *ssl,
     /* Check if key size is consistent with given buffer length. */
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, peerkey_len);
 
-    /* Store peer's ECDH public key. */
+    /* Store peer's ECDH/FFDH public key. */
+    if (peerkey_len > sizeof(handshake->xxdh_psa_peerkey)) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("Invalid public key length: %u > %" MBEDTLS_PRINTF_SIZET,
+                                  (unsigned) peerkey_len,
+                                  sizeof(handshake->xxdh_psa_peerkey)));
+        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+    }
     memcpy(handshake->xxdh_psa_peerkey, p, peerkey_len);
     handshake->xxdh_psa_peerkey_len = peerkey_len;
 
     return 0;
 }
 
+#if defined(PSA_WANT_ALG_FFDH)
 static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
     uint16_t tls_id, size_t *bits, psa_key_type_t *key_type)
 {
@@ -1550,6 +1558,7 @@ static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
             return PSA_ERROR_NOT_SUPPORTED;
     }
 }
+#endif /* PSA_WANT_ALG_FFDH */
 
 int mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
     mbedtls_ssl_context *ssl,
@@ -1593,13 +1602,13 @@ int mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
     }
 
     handshake->xxdh_psa_type = key_type;
-    ssl->handshake->xxdh_bits = bits;
+    ssl->handshake->xxdh_psa_bits = bits;
 
     key_attributes = psa_key_attributes_init();
     psa_set_key_usage_flags(&key_attributes, PSA_KEY_USAGE_DERIVE);
     psa_set_key_algorithm(&key_attributes, alg);
     psa_set_key_type(&key_attributes, handshake->xxdh_psa_type);
-    psa_set_key_bits(&key_attributes, handshake->xxdh_bits);
+    psa_set_key_bits(&key_attributes, handshake->xxdh_psa_bits);
 
     /* Generate ECDH/FFDH private key. */
     status = psa_generate_key(&key_attributes,
@@ -1626,7 +1635,7 @@ int mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
 
     return 0;
 }
-#endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
 
 /* RFC 8446 section 4.2
  *

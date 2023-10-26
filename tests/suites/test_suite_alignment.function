@@ -121,7 +121,7 @@ void mbedtls_byteswap(char *input_str, int size, char *expected_str)
             r = MBEDTLS_BSWAP64(input);
             break;
         default:
-            TEST_ASSERT(!"size must be 16, 32 or 64");
+            TEST_FAIL("size must be 16, 32 or 64");
     }
     TEST_EQUAL(r, expected);
 

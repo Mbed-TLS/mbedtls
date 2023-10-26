@@ -1,7 +1,7 @@
 /**
  * \file md.c
  *
- * \brief Generic message digest wrapper for mbed TLS
+ * \brief Generic message digest wrapper for Mbed TLS
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
@@ -232,6 +232,22 @@ static psa_algorithm_t psa_alg_of_md(const mbedtls_md_info_t *info)
         case MBEDTLS_MD_SHA512:
             return PSA_ALG_SHA_512;
 #endif
+#if defined(MBEDTLS_MD_SHA3_224_VIA_PSA)
+        case MBEDTLS_MD_SHA3_224:
+            return PSA_ALG_SHA3_224;
+#endif
+#if defined(MBEDTLS_MD_SHA3_256_VIA_PSA)
+        case MBEDTLS_MD_SHA3_256:
+            return PSA_ALG_SHA3_256;
+#endif
+#if defined(MBEDTLS_MD_SHA3_384_VIA_PSA)
+        case MBEDTLS_MD_SHA3_384:
+            return PSA_ALG_SHA3_384;
+#endif
+#if defined(MBEDTLS_MD_SHA3_512_VIA_PSA)
+        case MBEDTLS_MD_SHA3_512:
+            return PSA_ALG_SHA3_512;
+#endif
         default:
             return PSA_ALG_NONE;
     }
@@ -319,9 +335,8 @@ void mbedtls_md_free(mbedtls_md_context_t *ctx)
 
 #if defined(MBEDTLS_MD_C)
     if (ctx->hmac_ctx != NULL) {
-        mbedtls_platform_zeroize(ctx->hmac_ctx,
+        mbedtls_zeroize_and_free(ctx->hmac_ctx,
                                  2 * ctx->md_info->block_size);
-        mbedtls_free(ctx->hmac_ctx);
     }
 #endif
 

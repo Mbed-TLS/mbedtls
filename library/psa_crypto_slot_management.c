@@ -25,7 +25,7 @@
 #include "psa/crypto.h"
 
 #include "psa_crypto_core.h"
-#include "psa_crypto_driver_wrappers.h"
+#include "psa_crypto_driver_wrappers_no_static.h"
 #include "psa_crypto_slot_management.h"
 #include "psa_crypto_storage.h"
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -38,7 +38,7 @@
 
 typedef struct {
     psa_key_slot_t key_slots[MBEDTLS_PSA_KEY_SLOT_COUNT];
-    unsigned key_slots_initialized : 1;
+    uint8_t key_slots_initialized;
 } psa_global_data_t;
 
 static psa_global_data_t global_data;

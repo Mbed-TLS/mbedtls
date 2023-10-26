@@ -132,7 +132,7 @@ def analyze_driver_vs_reference(results: Results, outcomes,
         # but issue an error if they're not (means we have a bad entry).
         ignored = False
         if full_test_suite in ignored_tests:
-            for str_or_re in ignored_tests[full_test_suite]:
+            for str_or_re in ignored_tests[test_suite]:
                 if name_matches_pattern(test_string, str_or_re):
                     ignored = True
 

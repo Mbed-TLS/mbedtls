@@ -39,7 +39,7 @@
  * (Only implemented with certain compilers, only for certain targets.)
  */
 #undef MBEDTLS_AESNI_HAVE_INTRINSICS
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
 /* Visual Studio supports AESNI intrinsics since VS 2008 SP1. We only support
  * VS 2013 and up for other reasons anyway, so no need to check the version. */
 #define MBEDTLS_AESNI_HAVE_INTRINSICS
@@ -47,7 +47,7 @@
 /* GCC-like compilers: currently, we only support intrinsics if the requisite
  * target flag is enabled when building the library (e.g. `gcc -mpclmul -msse2`
  * or `clang -maes -mpclmul`). */
-#if defined(__GNUC__) && defined(__AES__) && defined(__PCLMUL__)
+#if (defined(__GNUC__) || defined(__clang__)) && defined(__AES__) && defined(__PCLMUL__)
 #define MBEDTLS_AESNI_HAVE_INTRINSICS
 #endif
 
@@ -65,7 +65,7 @@
  * (Only implemented with gas syntax, only for 64-bit.)
  */
 #define MBEDTLS_AESNI_HAVE_CODE 1 // via assembly
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) || defined(__clang__)
 #   error "Must use `-mpclmul -msse2 -maes` for MBEDTLS_AESNI_C"
 #else
 #error "MBEDTLS_AESNI_C defined, but neither intrinsics nor assembly available"

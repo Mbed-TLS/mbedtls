@@ -1571,8 +1571,6 @@ common_test_full_no_cipher_with_psa_crypto () {
     scripts/config.py unset MBEDTLS_NIST_KW_C
     scripts/config.py unset MBEDTLS_PKCS12_C
     scripts/config.py unset MBEDTLS_PKCS5_C
-    scripts/config.py unset MBEDTLS_SSL_TLS_C
-    scripts/config.py unset MBEDTLS_SSL_TICKET_C
 
     make
 

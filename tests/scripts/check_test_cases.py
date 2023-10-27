@@ -107,7 +107,7 @@ option"""
         # test case description between --list-test-cases and its OUTCOME.CSV
         #
         # idx indicates the number of test case since there is no line number
-        # in `compat.sh` for each test case.
+        # in the script for each test case.
         for idx, description in enumerate(listed.splitlines()):
             self.process_test_case(descriptions,
                                    file_name,

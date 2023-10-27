@@ -3751,6 +3751,8 @@ void mbedtls_ssl_conf_groups(mbedtls_ssl_config *conf,
  *                 used for certificate signature are controlled by the
  *                 verification profile, see \c mbedtls_ssl_conf_cert_profile().
  *
+ * \deprecated     Superseded by mbedtls_ssl_conf_sig_algs().
+ *
  * \note           This list should be ordered by decreasing preference
  *                 (preferred hash first).
  *

@@ -1938,7 +1938,9 @@ component_test_memsan_constant_flow_psa () {
 }
 
 valgrind_parallel () {
-    if type valgrind > /dev/null 2>&1; then
+    # Only parallelise on Unix-like systems (this requires the ability to run tests
+    # from outside the Mbed TLS tree, which isn't supported on e.g. Windows).
+    if [[ "$OSTYPE" =~ darwin|bsd|linux ]] && type valgrind > /dev/null 2>&1; then
         # pick up valgrind wrapper to enable parallel tests
         export PATH=${PWD}/tests/scripts/vg_wrap:${PATH}
 

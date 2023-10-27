@@ -248,7 +248,15 @@ int main(int argc, const char *argv[])
      * test-specific files such as the outcome file, which is arguably
      * not desirable and should be fixed later.
      */
-    if (argc == 1) {
+    int have_alternate_datax = 0;
+    for (int i = 1; i < argc; i++) {
+        char *dot = strrchr(argv[i], '.');
+        if (dot != NULL && strcmp(dot, ".datax") == 0) {
+            have_alternate_datax = 1;
+            break;
+        }
+    }
+    if (!have_alternate_datax) {
         try_chdir_if_supported(argv[0]);
     }
 

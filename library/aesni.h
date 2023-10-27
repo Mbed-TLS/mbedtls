@@ -50,6 +50,10 @@
 #if (defined(__GNUC__) || defined(__clang__)) && defined(__AES__) && defined(__PCLMUL__)
 #define MBEDTLS_AESNI_HAVE_INTRINSICS
 #endif
+/* For 32-bit, we only support intrinsics */
+#if defined(MBEDTLS_ARCH_IS_X86) && (defined(__GNUC__) || defined(__clang__))
+#define MBEDTLS_AESNI_HAVE_INTRINSICS
+#endif
 
 /* Choose the implementation of AESNI, if one is available.
  *
@@ -60,13 +64,11 @@
 #if defined(MBEDTLS_AESNI_HAVE_INTRINSICS)
 #define MBEDTLS_AESNI_HAVE_CODE 2 // via intrinsics
 #elif defined(MBEDTLS_HAVE_ASM) && \
-    defined(__GNUC__) && defined(MBEDTLS_ARCH_IS_X64)
+    (defined(__GNUC__) || defined(__clang__)) && defined(MBEDTLS_ARCH_IS_X64)
 /* Can we do AESNI with inline assembly?
  * (Only implemented with gas syntax, only for 64-bit.)
  */
 #define MBEDTLS_AESNI_HAVE_CODE 1 // via assembly
-#elif defined(__GNUC__) || defined(__clang__)
-#   error "Must use `-mpclmul -msse2 -maes` for MBEDTLS_AESNI_C"
 #else
 #error "MBEDTLS_AESNI_C defined, but neither intrinsics nor assembly available"
 #endif

@@ -1946,6 +1946,9 @@ valgrind_parallel () {
 
         # instruct ctest to run in parallel
         export CTEST_PARALLEL_LEVEL=$(all_sh_nproc)
+
+        # required to get a unique filename for the ITS storage
+        scripts/config.py set MBEDTLS_TEST_HOOKS
     fi
 }
 

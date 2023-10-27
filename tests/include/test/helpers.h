@@ -74,7 +74,81 @@ typedef struct {
 #endif
 }
 mbedtls_test_info_t;
-extern mbedtls_test_info_t mbedtls_test_info;
+
+/**
+ * \brief           Get the current test result status
+ *
+ * \return          The current test result status
+ */
+mbedtls_test_result_t mbedtls_test_get_result(void);
+
+/**
+ * \brief           Get the current test name/description
+ *
+ * \return          The current test name/description
+ */
+const char *mbedtls_test_get_test(void);
+
+/**
+ * \brief           Get the current test filename
+ *
+ * \return          The current test filename
+ */
+const char *mbedtls_get_test_filename(void);
+
+/**
+ * \brief           Get the current test file line number (for failure / skip)
+ *
+ * \return          The current test file line number (for failure / skip)
+ */
+int mbedtls_test_get_line_no(void);
+
+/**
+ * \brief           Increment the current test step.
+ */
+void mbedtls_test_increment_step(void);
+
+/**
+ * \brief           Get the current test step
+ *
+ * \return          The current test step
+ */
+unsigned long mbedtls_test_get_step(void);
+
+/**
+ * \brief           Get the current test line buffer 1
+ *
+ * \return          The current test line buffer 1
+ */
+const char *mbedtls_test_get_line1(void);
+
+/**
+ * \brief           Get the current test line buffer 2
+ *
+ * \return          The current test line buffer 2
+ */
+const char *mbedtls_test_get_line2(void);
+
+#if defined(MBEDTLS_TEST_MUTEX_USAGE)
+/**
+ * \brief           Get the current mutex usage error message
+ *
+ * \return          The current mutex error message (may be NULL if no error)
+ */
+const char *mbedtls_test_get_mutex_usage_error(void);
+
+/**
+ * \brief           Set the current mutex usage error message
+ *
+ * \note            This will only set the mutex error message if one has not
+ *                  already been set, or if we are clearing the message (msg is
+ *                  NULL)
+ *
+ * \param msg       Error message to set (can be NULL to clear)
+ */
+void mbedtls_test_set_mutex_usage_error(const char *msg);
+#endif
+
 
 int mbedtls_test_platform_setup(void);
 void mbedtls_test_platform_teardown(void);

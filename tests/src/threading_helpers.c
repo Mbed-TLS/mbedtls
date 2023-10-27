@@ -109,9 +109,7 @@ static void mbedtls_test_mutex_usage_error(mbedtls_threading_mutex_t *mutex,
 {
     (void) mutex;
 
-    if (mbedtls_test_info.mutex_usage_error == NULL) {
-        mbedtls_test_info.mutex_usage_error = msg;
-    }
+    mbedtls_test_set_mutex_usage_error(msg);
     mbedtls_fprintf(stdout, "[mutex: %s] ", msg);
     /* Don't mark the test as failed yet. This way, if the test fails later
      * for a functional reason, the test framework will report the message
@@ -233,17 +231,15 @@ void mbedtls_test_mutex_usage_check(void)
          * negative number means a missing init somewhere. */
         mbedtls_fprintf(stdout, "[mutex: %d leaked] ", live_mutexes);
         live_mutexes = 0;
-        if (mbedtls_test_info.mutex_usage_error == NULL) {
-            mbedtls_test_info.mutex_usage_error = "missing free";
-        }
+        mbedtls_test_set_mutex_usage_error("missing free");
     }
-    if (mbedtls_test_info.mutex_usage_error != NULL &&
-        mbedtls_test_info.result != MBEDTLS_TEST_RESULT_FAILED) {
+    if (mbedtls_test_get_mutex_usage_error() != NULL &&
+        mbedtls_test_get_result() != MBEDTLS_TEST_RESULT_FAILED) {
         /* Functionally, the test passed. But there was a mutex usage error,
          * so mark the test as failed after all. */
         mbedtls_test_fail("Mutex usage error", __LINE__, __FILE__);
     }
-    mbedtls_test_info.mutex_usage_error = NULL;
+    mbedtls_test_set_mutex_usage_error(NULL);
 }
 
 void mbedtls_test_mutex_usage_end(void)

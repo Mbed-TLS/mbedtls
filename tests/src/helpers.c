@@ -23,6 +23,61 @@ static mbedtls_platform_context platform_ctx;
 mbedtls_test_info_t mbedtls_test_info;
 
 /*----------------------------------------------------------------------------*/
+/* Mbedtls Test Info accessors */
+
+mbedtls_test_result_t mbedtls_test_get_result(void)
+{
+    return mbedtls_test_info.result;
+}
+
+const char *mbedtls_test_get_test(void)
+{
+    return mbedtls_test_info.test;
+}
+const char *mbedtls_get_test_filename(void)
+{
+    return mbedtls_test_info.filename;
+}
+
+int mbedtls_test_get_line_no(void)
+{
+    return mbedtls_test_info.line_no;
+}
+
+void mbedtls_test_increment_step(void)
+{
+    ++mbedtls_test_info.step;
+}
+
+unsigned long mbedtls_test_get_step(void)
+{
+    return mbedtls_test_info.step;
+}
+
+const char *mbedtls_test_get_line1(void)
+{
+    return mbedtls_test_info.line1;
+}
+const char *mbedtls_test_get_line2(void)
+{
+    return mbedtls_test_info.line2;
+}
+
+#if defined(MBEDTLS_TEST_MUTEX_USAGE)
+const char *mbedtls_test_get_mutex_usage_error(void)
+{
+    return mbedtls_test_info.mutex_usage_error;
+}
+
+void mbedtls_test_set_mutex_usage_error(const char *msg)
+{
+    if (mbedtls_test_info.mutex_usage_error == NULL || msg == NULL) {
+        mbedtls_test_info.mutex_usage_error = msg;
+    }
+}
+#endif // #if defined(MBEDTLS_TEST_MUTEX_USAGE)
+
+/*----------------------------------------------------------------------------*/
 /* Helper Functions */
 
 int mbedtls_test_platform_setup(void)

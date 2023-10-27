@@ -6110,11 +6110,6 @@ static psa_status_t psa_key_derivation_setup_kdf(
         return status;
     }
 
-    if ((PSA_ALG_IS_TLS12_PRF(kdf_alg) ||
-         PSA_ALG_IS_TLS12_PSK_TO_MS(kdf_alg)) &&
-        !(hash_alg == PSA_ALG_SHA_256 || hash_alg == PSA_ALG_SHA_384)) {
-        return PSA_ERROR_NOT_SUPPORTED;
-    }
     if (PSA_ALG_IS_HKDF(kdf_alg)) {
         operation->capacity = 255 * hash_size;
     }
@@ -6128,12 +6123,17 @@ static psa_status_t psa_key_derivation_setup_kdf(
         operation->capacity = 255 * hash_size;
     }
 #endif
+    if ((PSA_ALG_IS_TLS12_PRF(kdf_alg) ||
+         PSA_ALG_IS_TLS12_PSK_TO_MS(kdf_alg)) &&
+        !(hash_alg == PSA_ALG_SHA_256 || hash_alg == PSA_ALG_SHA_384)) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
     if (PSA_ALG_IS_TLS12_PRF(kdf_alg)) {
         operation->capacity = UINT_MAX;
     }
     if (PSA_ALG_IS_TLS12_PSK_TO_MS(kdf_alg)) {
-        /* Master Secret consists of 2-byte version number
-         * and a 46-byte random value */
+        /* Master Secret is always 48 bytes
+         * https://datatracker.ietf.org/doc/html/rfc5246.html#section-8.1 */
         operation->capacity = 48U;
     }
     if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {

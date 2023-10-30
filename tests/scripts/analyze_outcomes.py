@@ -145,12 +145,10 @@ def analyze_driver_vs_reference(results: Results, outcomes,
             if component_ref in entry:
                 reference_test_passed = True
                 seen_reference_passing = True
-        if(reference_test_passed and not driver_test_passed):
-            if not ignored:
-                results.error("PASS -> SKIP/FAIL: {}", key)
-        else:
-            if ignored:
-                results.error("uselessly ignored: {}", key)
+        if reference_test_passed and not driver_test_passed and not ignored:
+            results.error("PASS -> SKIP/FAIL: {}", key)
+        if ignored and driver_test_passed:
+            results.error("uselessly ignored: {}", key)
 
     if not seen_reference_passing:
         results.error("no passing test in reference component: bad outcome file?")

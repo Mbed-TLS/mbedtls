@@ -323,8 +323,11 @@ There are several different ways that poisoning could be implemented:
 2. Using Memory Sanitizer (MSan), which allows us to mark memory as uninitialized. This is also used for constant-flow testing. It is suitable for input buffers only, since it allows us to detect when a poisoned buffer is read but not when it is written.
 3. Using Address Sanitizer (ASan). This provides `ASAN_POISON_MEMORY_REGION` which marks memory as inaccessible.
 4. Allocating buffers separate pages and calling `mprotect()` to set pages as inaccessible. This has the disadvantage that we will have to manually ensure that buffers sit in their own pages, which likely means making a copy.
+5. Filling buffers with random data, keeping a copy of the original. For input buffers, keep a copy of the original and copy it back once the PSA function returns. For output buffers, fill them with random data and keep a separate copy of it. In the memory poisoning hooks, compare the copy of random data with the original to ensure that the output buffer has not been written directly.
 
 Approach (2) is insufficient for the full testing we require as we need to be able to check both input and output buffers.
+
+Approach (5) is simple and requires no extra tooling. It is likely to have good performance as it does not use any sanitizers. However, it requires the memory poisoning test hooks to maintain extra copies of the buffers, which seems difficult to implement in practice. Additionally, it does not precisely test the property we want to validate, so we are relying on the tests to fail if given random data as input. It is possible (if unlikely) that the PSA function will access the poisoned buffer without causing the test to fail. This becomes more likely when we consider test cases that call PSA functions on incorrect inputs to check that the correct error is returned. For these reasons, this memory poisoning approach seems unsuitable.
 
 All three remaining approaches are suitable for our purposes. However, approach (4) is more complex than the other two. To implement it, we would need to allocate poisoned buffers in separate memory pages. They would require special handling and test code would likely have to be designed around this special handling.
 

@@ -3751,8 +3751,7 @@ void mbedtls_ssl_conf_groups(mbedtls_ssl_config *conf,
  *                 used for certificate signature are controlled by the
  *                 verification profile, see \c mbedtls_ssl_conf_cert_profile().
  *
- * \deprecated     Superseded by `mbedtls_ssl_conf_sig_algs()`. See
- *                 `mbedtls_ssl_conf_sig_algs()` also.
+ * \deprecated     Superseded by mbedtls_ssl_conf_sig_algs().
  *
  * \note           This list should be ordered by decreasing preference
  *                 (preferred hash first).
@@ -3778,7 +3777,7 @@ void MBEDTLS_DEPRECATED mbedtls_ssl_conf_sig_hashes(mbedtls_ssl_config *conf,
 #endif /* !MBEDTLS_DEPRECATED_REMOVED && MBEDTLS_SSL_PROTO_TLS1_2 */
 
 /**
- * \brief          Configure allowed signature algorithms for use in TLS 1.3
+ * \brief          Configure allowed signature algorithms
  *
  * \param conf     The SSL configuration to use.
  * \param sig_algs List of allowed IANA values for TLS 1.3 signature algorithms,
@@ -3786,7 +3785,7 @@ void MBEDTLS_DEPRECATED mbedtls_ssl_conf_sig_hashes(mbedtls_ssl_config *conf,
  *                 available throughout the lifetime of the conf object. Supported
  *                 values are available as \c MBEDTLS_TLS1_3_SIG_XXXX . Using
  *                 this for TLS 1.2, items in this parameter should be
- *                 `(HashAlgorithm << 8) | SignatureAlgorithm`.
+ *                 "(HashAlgorithm << 8) | SignatureAlgorithm".
  */
 void mbedtls_ssl_conf_sig_algs(mbedtls_ssl_config *conf,
                                const uint16_t *sig_algs);

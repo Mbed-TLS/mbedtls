@@ -245,7 +245,7 @@ Once the copying code is implemented, it should be evaluated to see whether comp
 
 If copying behaviour is preserved by all major compilers then assume that compiler optimization is not a problem.
 
-If copying behaviour is optimized away by the compiler, further investigation is needed. Experiment with using the `volatile` keyword to force the compiler not to optimize accesses to the copied buffers.
+If copying behaviour is optimized away by the compiler, further investigation is needed. Experiment with using the `volatile` keyword to force the compiler not to optimize accesses to the copied buffers. If the `volatile` keyword is not sufficient, we may be able to use compiler or target-specific techniques to prevent optimization, for example memory barriers or empty `asm` blocks. These may be implemented and verified for important platforms while retaining a C implementation that is likely to be correct on most platforms as a fallback - the same approach taken by the constant-time module.
 
 **Open questions: Will the compiler optimize away copies? If so, can it be prevented from doing so in a portable way?**
 

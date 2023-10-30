@@ -1242,9 +1242,7 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-#endif
-
-#if defined(MBEDTLS_CIPHER_C)
+#else
     mbedtls_cipher_info_t const *cipher_info;
 #endif
 
@@ -1278,13 +1276,13 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
     memset(key0, 0x1, keylen);
     memset(key1, 0x2, keylen);
 
-#if defined(MBEDTLS_CIPHER_C)
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
     /* Pick cipher */
     cipher_info = mbedtls_cipher_info_from_type((mbedtls_cipher_type_t) cipher_type);
     CHK(cipher_info != NULL);
     CHK(mbedtls_cipher_info_get_iv_size(cipher_info) <= 16);
     CHK(mbedtls_cipher_info_get_key_bitlen(cipher_info) % 8 == 0);
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+
     /* Setup cipher contexts */
     CHK(mbedtls_cipher_setup(&t_in->cipher_ctx_enc,  cipher_info) == 0);
     CHK(mbedtls_cipher_setup(&t_in->cipher_ctx_dec,  cipher_info) == 0);
@@ -1321,7 +1319,6 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
                               MBEDTLS_DECRYPT)
         == 0);
 #endif /* !MBEDTLS_USE_PSA_CRYPTO */
-#endif /* MBEDTLS_CIPHER_C */
 
     /* Setup MAC contexts */
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)

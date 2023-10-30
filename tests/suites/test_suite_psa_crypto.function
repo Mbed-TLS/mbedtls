@@ -13,6 +13,9 @@
 #include "psa/crypto.h"
 #include "psa_crypto_slot_management.h"
 
+/* For psa_can_do_hash() and buffer copying functions */
+#include "psa_crypto_core.h"
+
 #include "test/asn1_helpers.h"
 #include "test/psa_crypto_helpers.h"
 #include "test/psa_exercise_key.h"
@@ -5637,5 +5640,34 @@ exit:
     psa_destroy_key(base_key);
     psa_destroy_key(key);
     PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void psa_crypto_copy_input(int src_len, int dst_len, int exp_ret)
+{
+    uint8_t data[] = {0x12, 0x34, 0x56, 0x78};
+    uint8_t *src_buffer = NULL;
+    uint8_t *dst_buffer = NULL;
+    psa_status_t ret;
+
+    TEST_CALLOC(src_buffer, src_len);
+    TEST_CALLOC(dst_buffer, dst_len);
+
+    for (int i = 0; i < src_len; i++) {
+        src_buffer[i] = data[i % sizeof(data)];
+    }
+
+    ret = psa_crypto_copy_input(src_buffer, src_len, dst_buffer, dst_len);
+    TEST_EQUAL((int) ret, exp_ret);
+
+    if (exp_ret == (int) PSA_SUCCESS) {
+        /* Note: We compare the first src_len bytes of each buffer, as this is what was copied. */
+        TEST_MEMORY_COMPARE(src_buffer, src_len, dst_buffer, src_len);
+    }
+
+exit:
+    mbedtls_free(src_buffer);
+    mbedtls_free(dst_buffer);
 }
 /* END_CASE */

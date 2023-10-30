@@ -2169,8 +2169,8 @@ usage:
             }
 
             /* get size of the buffer needed */
-            mbedtls_ssl_session_save(mbedtls_ssl_get_session_pointer(&ssl),
-                                     NULL, 0, &session_data_len);
+            (void) mbedtls_ssl_session_save(mbedtls_ssl_get_session_pointer(&ssl),
+                                            NULL, 0, &session_data_len);
             session_data = mbedtls_calloc(1, session_data_len);
             if (session_data == NULL) {
                 mbedtls_printf(" failed\n  ! alloc %u bytes for session data\n",

@@ -265,7 +265,7 @@ mbedtls_ms_time_t mbedtls_ms_time(void)
     struct timespec tv;
     mbedtls_ms_time_t current_ms;
 
-#if defined(__linux__)
+#if defined(__linux__) && defined(CLOCK_BOOTTIME)
     ret = clock_gettime(CLOCK_BOOTTIME, &tv);
 #else
     ret = clock_gettime(CLOCK_MONOTONIC, &tv);

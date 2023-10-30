@@ -1944,8 +1944,8 @@ valgrind_parallel () {
         # pick up valgrind wrapper to enable parallel tests
         export PATH=${PWD}/tests/scripts/vg_wrap:${PATH}
 
-        # instruct ctest to run in parallel
-        export CTEST_PARALLEL_LEVEL=$(all_sh_nproc)
+        # instruct ctest to run in parallel (with a minimum level of parallelism)
+        export CTEST_PARALLEL_LEVEL=$(($(all_sh_nproc) > 4 ? $(all_sh_nproc) : 4))
 
         # required to get a unique filename for the ITS storage
         scripts/config.py set MBEDTLS_TEST_HOOKS

@@ -478,6 +478,15 @@ Most of the test methods discussed above need extra setup. Some require leaking 
 
 With this complexity in mind it does not seem feasible to run careful-access tests using existing testsuites. Instead, new tests should be written that exercise the drivers in the required way. Fortunately, the only interfaces that need testing are hash, MAC, AEAD (testing over AD only), Key derivation and Asymmetric signature, which limits the number of new tests that must be written.
 
+#### Validation of validation for careful-access
+
+In order to ensure that the careful-access validation works, it is necessary to write tests to check that we can correctly detect careful-access violations when they occur. To do this, write a test function that:
+
+* Reads its input multiple times at the same location.
+* Writes to its output multiple times at the same location.
+
+Then, write a careful-access test for this function and ensure that it fails.
+
 ## Analysis of argument protection in built-in drivers
 
 TODO: analyze the built-in implementations of mechanisms for which there is a requirement on drivers. By code inspection, how satisfied are we that they meet the requirement?
@@ -575,3 +584,12 @@ psa_status_t mem_poison_psa_aead_update(psa_aead_operation_t *operation,
 #### Configuration of poisoning tests
 
 Since the memory poisoning tests will require the use of interfaces specific to the sanitizers used to poison memory, they must be guarded by new config options, for example `MBEDTLS_TEST_PSA_COPYING_ASAN` and `MBEDTLS_TEST_PSA_COPYING_VALGRIND`, as well as `MBEDTLS_TEST_HOOKS`. These would be analogous to the existing `MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN` and `MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND`. Since they require special tooling and are for testing only, these options should not be present in `mbedtls_config.h`. Instead, they should be set only in a new component in `all.sh` that performs the copy testing with Valgrind or ASan.
+
+#### Validation of validation for copying
+
+To make sure that we can correctly detect functions that access their input/output buffers rather than the copies, it is necessary to write a test function that misbehaves and test it with memory poisoning. Specifically, the function should:
+
+* Read its input buffer and after calling the input-buffer-copying function to create a local copy of its input.
+* Write to its output buffer before and after calling the output-buffer-copying function to copy-back its output.
+
+Then, write a test that uses this function with memory poisoning and ensure that it fails. Since we are expecting a failure due to memory-poisoning, run this test separately from the rest of the memory-poisoning testing.

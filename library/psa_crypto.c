@@ -5523,4 +5523,16 @@ exit:
     return status;
 }
 
+psa_status_t psa_crypto_copy_input(const uint8_t *input, size_t input_len,
+                                   uint8_t *input_copy, size_t input_copy_len)
+{
+    if (input_len > input_copy_len) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
+    }
+
+    memcpy(input_copy, input, input_len);
+
+    return PSA_SUCCESS;
+}
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

@@ -1352,6 +1352,15 @@
  */
 //#define MBEDTLS_PSA_CRYPTO_CLIENT
 
+/**
+ * \def MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT
+ *
+ * Enable support for set/get key enrollment functions in PSA.
+ *
+ * \warning This is an Mbed TLS extension to the standard PSA interface.
+ */
+// #define MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT
+
 /** \def MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
  *
  * Make the PSA Crypto module use an external random generator provided

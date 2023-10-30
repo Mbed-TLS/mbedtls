@@ -453,10 +453,12 @@ int mbedtls_internal_sha256_process_a64_crypto(mbedtls_sha256_context *ctx,
 
 #endif /* MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT || MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY */
 
+/* *INDENT-OFF* - otherwise a bug in Uncrustify wrecks the file after this */
 #if defined(MBEDTLS_POP_TARGET_PRAGMA)
 MBEDTLS_POP_TARGET_PRAGMA
 #undef MBEDTLS_POP_TARGET_PRAGMA
 #endif
+/* *INDENT-ON* */
 
 #if !defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT)
 #define mbedtls_internal_sha256_process_many_c mbedtls_internal_sha256_process_many

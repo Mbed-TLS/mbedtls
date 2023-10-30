@@ -2351,7 +2351,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT */
 void key_policy_alg2(int key_type_arg, data_t *key_data,
                      int usage_arg, int alg_arg, int alg2_arg)
 {
@@ -2449,19 +2449,27 @@ void copy_success(int source_usage_arg,
     psa_key_attributes_t target_attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_usage_t expected_usage = expected_usage_arg;
     psa_algorithm_t expected_alg = expected_alg_arg;
-    psa_algorithm_t expected_alg2 = expected_alg2_arg;
     psa_key_lifetime_t source_lifetime = source_lifetime_arg;
     psa_key_lifetime_t target_lifetime = target_lifetime_arg;
     mbedtls_svc_key_id_t source_key = MBEDTLS_SVC_KEY_ID_INIT;
     mbedtls_svc_key_id_t target_key = MBEDTLS_SVC_KEY_ID_INIT;
     uint8_t *export_buffer = NULL;
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+    psa_algorithm_t expected_alg2 = expected_alg2_arg;
+#else
+    (void) source_alg2_arg;
+    (void) target_alg2_arg;
+    (void) expected_alg2_arg;
+#endif
 
     PSA_ASSERT(psa_crypto_init());
 
     /* Prepare the source key. */
     psa_set_key_usage_flags(&source_attributes, source_usage_arg);
     psa_set_key_algorithm(&source_attributes, source_alg_arg);
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
     psa_set_key_enrollment_algorithm(&source_attributes, source_alg2_arg);
+#endif
     psa_set_key_type(&source_attributes, type_arg);
     psa_set_key_lifetime(&source_attributes, source_lifetime);
     PSA_ASSERT(psa_import_key(&source_attributes,
@@ -2481,9 +2489,11 @@ void copy_success(int source_usage_arg,
     if (target_alg_arg != -1) {
         psa_set_key_algorithm(&target_attributes, target_alg_arg);
     }
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
     if (target_alg2_arg != -1) {
         psa_set_key_enrollment_algorithm(&target_attributes, target_alg2_arg);
     }
+#endif
 
 
     /* Copy the key. */
@@ -2501,8 +2511,10 @@ void copy_success(int source_usage_arg,
                psa_get_key_bits(&target_attributes));
     TEST_EQUAL(expected_usage, psa_get_key_usage_flags(&target_attributes));
     TEST_EQUAL(expected_alg, psa_get_key_algorithm(&target_attributes));
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
     TEST_EQUAL(expected_alg2,
                psa_get_key_enrollment_algorithm(&target_attributes));
+#endif
     if (expected_usage & PSA_KEY_USAGE_EXPORT) {
         size_t length;
         TEST_CALLOC(export_buffer, material->len);
@@ -2516,9 +2528,11 @@ void copy_success(int source_usage_arg,
         if (!mbedtls_test_psa_exercise_key(target_key, expected_usage, expected_alg)) {
             goto exit;
         }
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
         if (!mbedtls_test_psa_exercise_key(target_key, expected_usage, expected_alg2)) {
             goto exit;
         }
+#endif
     }
 
     PSA_ASSERT(psa_destroy_key(target_key));
@@ -2552,13 +2566,19 @@ void copy_fail(int source_usage_arg,
     mbedtls_svc_key_id_t source_key = MBEDTLS_SVC_KEY_ID_INIT;
     mbedtls_svc_key_id_t target_key = MBEDTLS_SVC_KEY_ID_INIT;
     mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make(1, target_id_arg);
+#if !defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+    (void) source_alg2_arg;
+    (void) target_alg2_arg;
+#endif
 
     PSA_ASSERT(psa_crypto_init());
 
     /* Prepare the source key. */
     psa_set_key_usage_flags(&source_attributes, source_usage_arg);
     psa_set_key_algorithm(&source_attributes, source_alg_arg);
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
     psa_set_key_enrollment_algorithm(&source_attributes, source_alg2_arg);
+#endif
     psa_set_key_type(&source_attributes, type_arg);
     psa_set_key_lifetime(&source_attributes, source_lifetime_arg);
     PSA_ASSERT(psa_import_key(&source_attributes,
@@ -2572,7 +2592,9 @@ void copy_fail(int source_usage_arg,
     psa_set_key_bits(&target_attributes, target_bits_arg);
     psa_set_key_usage_flags(&target_attributes, target_usage_arg);
     psa_set_key_algorithm(&target_attributes, target_alg_arg);
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
     psa_set_key_enrollment_algorithm(&target_attributes, target_alg2_arg);
+#endif
 
     /* Try to copy the key. */
     TEST_EQUAL(psa_copy_key(source_key,

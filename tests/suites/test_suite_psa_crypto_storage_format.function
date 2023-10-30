@@ -10,6 +10,7 @@
 #define TEST_FLAG_EXERCISE      0x00000001
 #define TEST_FLAG_READ_ONLY     0x00000002
 
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
 /** Write a key with the given attributes and key material to storage.
  * Test that it has the expected representation.
  *
@@ -153,7 +154,7 @@ static int has_builtin_hash(psa_algorithm_t alg)
     (void) alg;
     return 1;
 }
-#endif
+#endif /* MBEDTLS_TEST_LIBTESTDRIVER1 */
 
 /* Mbed TLS doesn't support certain combinations of key type and algorithm
  * in certain configurations. */
@@ -256,8 +257,10 @@ static int test_read_key(const psa_key_attributes_t *expected_attributes,
                psa_get_key_usage_flags(&actual_attributes));
     TEST_EQUAL(psa_get_key_algorithm(expected_attributes),
                psa_get_key_algorithm(&actual_attributes));
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
     TEST_EQUAL(psa_get_key_enrollment_algorithm(expected_attributes),
                psa_get_key_enrollment_algorithm(&actual_attributes));
+#endif
     if (can_export(expected_attributes)) {
         TEST_CALLOC(exported_material, expected_material->len);
         PSA_ASSERT(psa_export_key(key_id,
@@ -302,7 +305,7 @@ exit:
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT*/
 void key_storage_save(int lifetime_arg, int type_arg, int bits_arg,
                       int usage_arg, int alg_arg, int alg2_arg,
                       data_t *material,
@@ -361,7 +364,11 @@ void key_storage_read(int lifetime_arg, int type_arg, int bits_arg,
     size_t bits = bits_arg;
     psa_key_usage_t usage = usage_arg;
     psa_algorithm_t alg = alg_arg;
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
     psa_algorithm_t alg2 = alg2_arg;
+#else
+    (void) alg2_arg;
+#endif
     mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make(0, 1);
     psa_storage_uid_t uid = 1;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -375,7 +382,9 @@ void key_storage_read(int lifetime_arg, int type_arg, int bits_arg,
     psa_set_key_bits(&attributes, bits);
     psa_set_key_usage_flags(&attributes, usage);
     psa_set_key_algorithm(&attributes, alg);
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
     psa_set_key_enrollment_algorithm(&attributes, alg2);
+#endif
 
     /* Test that we can use a key with the given representation. This
      * guarantees backward compatibility with keys that were stored by

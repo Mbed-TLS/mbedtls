@@ -542,8 +542,10 @@ static int check_key_attributes(
                psa_get_key_usage_flags(reference_attributes));
     TEST_EQUAL(psa_get_key_algorithm(&actual_attributes),
                psa_get_key_algorithm(reference_attributes));
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
     TEST_EQUAL(psa_get_key_enrollment_algorithm(&actual_attributes),
                psa_get_key_enrollment_algorithm(reference_attributes));
+#endif
     if (psa_get_key_bits(reference_attributes) != 0) {
         TEST_EQUAL(psa_get_key_bits(&actual_attributes),
                    psa_get_key_bits(reference_attributes));

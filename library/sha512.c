@@ -88,14 +88,14 @@
 #          error "Must use minimum -march=armv8.2-a+sha3 for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
 #        else
 #          pragma clang attribute push (__attribute__((target("sha3"))), apply_to=function)
-#          define MBEDTLS_POP_TARGET_PRAGMA
+#          define MBEDTLS_POP_TARGET_PRAGMA _Pragma("clang attribute pop")
 #        endif
 #      elif defined(__clang__)
 #        if __clang_major__ < 7
 #          error "A more recent Clang is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
 #        else
 #          pragma clang attribute push (__attribute__((target("sha3"))), apply_to=function)
-#          define MBEDTLS_POP_TARGET_PRAGMA
+#          define MBEDTLS_POP_TARGET_PRAGMA _Pragma("clang attribute pop")
 #        endif
 #      elif defined(__GNUC__)
 #        if __GNUC__ < 8
@@ -103,7 +103,7 @@
 #        else
 #          pragma GCC push_options
 #          pragma GCC target ("arch=armv8.2-a+sha3")
-#          define MBEDTLS_POP_TARGET_PRAGMA
+#          define MBEDTLS_POP_TARGET_PRAGMA _Pragma("GCC pop_options")
 #        endif
 #      else
 #        error "Only GCC and Clang supported for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
@@ -585,11 +585,7 @@ int mbedtls_internal_sha512_process_a64_crypto(mbedtls_sha512_context *ctx,
 #endif /* MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT || MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY */
 
 #if defined(MBEDTLS_POP_TARGET_PRAGMA)
-#if defined(__clang__)
-#pragma clang attribute pop
-#elif defined(__GNUC__)
-#pragma GCC pop_options
-#endif
+MBEDTLS_POP_TARGET_PRAGMA
 #undef MBEDTLS_POP_TARGET_PRAGMA
 #endif
 

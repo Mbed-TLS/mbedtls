@@ -705,7 +705,7 @@ static int ssl_save_session_serialize(mbedtls_ssl_context *ssl,
     }
 
     /* get size of the buffer needed */
-    mbedtls_ssl_session_save(&exported_session, NULL, 0, session_data_len);
+    (void) mbedtls_ssl_session_save(&exported_session, NULL, 0, session_data_len);
     *session_data = mbedtls_calloc(1, *session_data_len);
     if (*session_data == NULL) {
         mbedtls_printf(" failed\n  ! alloc %u bytes for session data\n",

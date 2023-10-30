@@ -311,7 +311,10 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
     }
 
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_algorithm_t key_alg, key_alg2;
+    psa_algorithm_t key_alg;
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+    psa_algorithm_t key_alg2;
+#endif
     psa_status_t status;
 
     status = psa_get_key_attributes(ctx->priv_id, &attributes);
@@ -320,7 +323,9 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
     }
 
     key_alg = psa_get_key_algorithm(&attributes);
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
     key_alg2 = psa_get_key_enrollment_algorithm(&attributes);
+#endif
     key_usage = psa_get_key_usage_flags(&attributes);
     psa_reset_key_attributes(&attributes);
 
@@ -335,7 +340,11 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
      * This would also match ECDSA/RSA_PKCS1V15_SIGN/RSA_PSS with
      * a fixed hash on key_alg/key_alg2.
      */
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
     if (alg == key_alg || alg == key_alg2) {
+#else
+    if (alg == key_alg) {
+#endif
         return 1;
     }
 
@@ -352,11 +361,13 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
             return 1;
         }
 
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
         if (PSA_ALG_IS_SIGN_HASH(key_alg2) &&
             PSA_ALG_SIGN_GET_HASH(key_alg2) == PSA_ALG_ANY_HASH &&
             (alg & ~PSA_ALG_HASH_MASK) == (key_alg2 & ~PSA_ALG_HASH_MASK)) {
             return 1;
         }
+#endif
     }
 
     return 0;
@@ -905,9 +916,13 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
         psa_set_key_bits(&attributes, bits);
         psa_set_key_usage_flags(&attributes, usage);
         psa_set_key_algorithm(&attributes, alg);
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
         if (alg2 != PSA_ALG_NONE) {
             psa_set_key_enrollment_algorithm(&attributes, alg2);
         }
+#else
+        (void) alg2;
+#endif
 
         /* import private key into PSA */
         status = psa_import_key(&attributes, d, d_len, key);
@@ -941,9 +956,11 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
         psa_set_key_bits(&attributes, mbedtls_pk_get_bitlen(pk));
         psa_set_key_usage_flags(&attributes, usage);
         psa_set_key_algorithm(&attributes, alg);
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
         if (alg2 != PSA_ALG_NONE) {
             psa_set_key_enrollment_algorithm(&attributes, alg2);
         }
+#endif
 
         /* import private key into PSA */
         status = psa_import_key(&attributes,

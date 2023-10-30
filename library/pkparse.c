@@ -113,8 +113,10 @@ static int pk_ecc_set_key(mbedtls_pk_context *pk,
     /* Montgomery allows only ECDH, others ECDSA too */
     if (pk->ec_family != PSA_ECC_FAMILY_MONTGOMERY) {
         flags |= PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_SIGN_MESSAGE;
+#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
         psa_set_key_enrollment_algorithm(&attributes,
                                          MBEDTLS_PK_PSA_ALG_ECDSA_MAYBE_DET(PSA_ALG_ANY_HASH));
+#endif
     }
     psa_set_key_usage_flags(&attributes, flags);
 

@@ -462,6 +462,7 @@ The best approach for validating the correctness of memory accesses is an open q
    * Performance - Does the test method perform well? Will it cause significant slowdown to CI jobs?
    * Ease of reproduction - Does the prototype require a particular platform or tool to be set up? How easy would it be for an external user to run the prototype?
    * Comprehensibility - Accounting for the lower code quality of a prototype, would developers unfamiliar with the tests based on the prototype be able to understand them easily?
+   * Portability - How well can this approach be ported to multiple platforms? This would allow us to ensure that there are no double-accesses due to a bug that only affects a specific target.
 
 Once each prototype is complete, choose the best approach to implement the careful-access testing. Implement tests using this approach for each of the PSA interfaces that require careful-access testing:
 

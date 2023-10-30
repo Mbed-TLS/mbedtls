@@ -195,8 +195,9 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 
     if (now < session->start) {
         MBEDTLS_SSL_DEBUG_MSG(
-            3, ("Invalid ticket start time ( now=%" MBEDTLS_PRINTF_MS_TIME
-                ", start=%" MBEDTLS_PRINTF_MS_TIME " )", now, session->start));
+            3, ("Invalid ticket start time ( now = %" MBEDTLS_PRINTF_MS_TIME
+                ", start = %" MBEDTLS_PRINTF_MS_TIME " )",
+                now, session->start));
         goto exit;
     }
 
@@ -213,7 +214,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      *
      * For time being, the age MUST be less than 604800 seconds (7 days).
      */
-    if (server_age > 604800*1000) {
+    if (server_age > 604800 * 1000) {
         MBEDTLS_SSL_DEBUG_MSG(
             3, ("Ticket age exceeds limitation ticket_age=%" MBEDTLS_PRINTF_MS_TIME,
                 server_age));
@@ -238,7 +239,8 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     if (age_diff < -1000 ||
         age_diff > MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE) {
         MBEDTLS_SSL_DEBUG_MSG(
-            3, ("Ticket age outside tolerance window ( diff=%" MBEDTLS_PRINTF_MS_TIME ")",
+            3, ("Ticket age outside tolerance window ( diff = %"
+                MBEDTLS_PRINTF_MS_TIME ")",
                 age_diff));
         goto exit;
     }

@@ -1728,9 +1728,8 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
      * - The content up to but excluding the PSK extension, if present.
      */
     /* If we've settled on a PSK-based exchange, parse PSK identity ext */
-    if (mbedtls_ssl_tls13_some_psk_enabled(ssl) &&
-        mbedtls_ssl_conf_tls13_some_psk_enabled(ssl) &&
-        (handshake->received_extensions & MBEDTLS_SSL_EXT_MASK(PRE_SHARED_KEY))) {
+    if (ssl_tls13_check_psk_key_exchange(ssl) ||
+        ssl_tls13_check_psk_ephemeral_key_exchange(ssl)) {
         ret = handshake->update_checksum(ssl, buf,
                                          pre_shared_key_ext - buf);
         if (0 != ret) {

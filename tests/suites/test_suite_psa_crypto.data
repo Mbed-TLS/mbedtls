@@ -4029,3 +4029,12 @@ psa_crypto_copy_input:10:20:PSA_SUCCESS
 
 PSA input buffer copy: copy buffer too small
 psa_crypto_copy_input:20:10:PSA_ERROR_BUFFER_TOO_SMALL
+
+PSA output buffer copy: straightforward copy
+psa_crypto_copy_output:20:20:PSA_SUCCESS
+
+PSA output buffer copy: output buffer larger than required
+psa_crypto_copy_output:10:20:PSA_SUCCESS
+
+PSA output buffer copy: output buffer too small
+psa_crypto_copy_output:20:10:PSA_ERROR_BUFFER_TOO_SMALL

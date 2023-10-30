@@ -263,7 +263,7 @@ uint32_t mbedtls_ssl_get_extension_mask(unsigned int extension_type);
 
 /* Some internal helpers to determine which keys are availble for CBC mode. */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(PSA_WANT_ALG_CBC_NO_PADDING) || defined(PSA_WANT_ALG_CBC_PKCS7)
+#if defined(PSA_WANT_ALG_CBC_NO_PADDING)
 #if defined(PSA_WANT_KEY_TYPE_AES)
 #define MBEDTLS_SSL_HAVE_AES_CBC
 #endif
@@ -273,7 +273,7 @@ uint32_t mbedtls_ssl_get_extension_mask(unsigned int extension_type);
 #if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
 #define MBEDTLS_SSL_HAVE_CAMELLIA_CBC
 #endif
-#endif /* PSA_WANT_ALG_CBC_NO_PADDING || PSA_WANT_ALG_CBC_PKCS7 */
+#endif /* PSA_WANT_ALG_CBC_NO_PADDING */
 #else /* MBEDTLS_USE_PSA_CRYPTO */
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 #if defined(MEDTLS_AES_C)

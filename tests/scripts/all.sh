@@ -4469,8 +4469,6 @@ component_test_aesni () { # ~ 60s
     not grep -q "AES note: built-in implementation." ./programs/test/selftest
 }
 
-
-
 support_test_aesni_m32() {
     support_test_m32_o0 && (lscpu | grep -qw aes)
 }
@@ -4486,10 +4484,10 @@ component_test_aesni_m32 () { # ~ 60s
     scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
     scripts/config.py set MBEDTLS_HAVE_ASM
 
-    # test the intrinsics implementation
-    msg "AES tests, test intrinsics"
+    # test the intrinsics implementation with gcc
+    msg "AES tests, test intrinsics (gcc)"
     make clean
-    make CC=gcc CFLAGS='-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes' LDFLAGS='-m32'
+    make CC=gcc CFLAGS='-m32 -Werror -Wall -Wextra' LDFLAGS='-m32'
     # check that we built intrinsics - this should be used by default when supported by the compiler
     ./programs/test/selftest aes | grep "AESNI code" | grep -q "intrinsics"
     grep -q "AES note: using AESNI" ./programs/test/selftest
@@ -4509,6 +4507,36 @@ component_test_aesni_m32 () { # ~ 60s
     not grep -q "AES note: built-in implementation." ./programs/test/selftest
     not grep -q "AES note: using VIA Padlock" ./programs/test/selftest
     not grep -q mbedtls_aesni_has_support ./programs/test/selftest
+}
+
+support_test_aesni_m32_clang() {
+    support_test_aesni_m32 && if command -v clang > /dev/null ; then
+        # clang >= 4 is required to build with target attributes
+        clang_ver="$(clang --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#')"
+        [[ "${clang_ver}" -ge 4 ]]
+    else
+        # clang not available
+        false
+    fi
+}
+
+component_test_aesni_m32_clang() {
+
+    scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py set MBEDTLS_PADLOCK_C
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
+    scripts/config.py set MBEDTLS_HAVE_ASM
+
+    # test the intrinsics implementation with clang
+    msg "AES tests, test intrinsics (clang)"
+    make clean
+    make CC=clang CFLAGS='-m32 -Werror -Wall -Wextra' LDFLAGS='-m32'
+    # check that we built intrinsics - this should be used by default when supported by the compiler
+    ./programs/test/selftest aes | grep "AESNI code" | grep -q "intrinsics"
+    grep -q "AES note: using AESNI" ./programs/test/selftest
+    grep -q "AES note: built-in implementation." ./programs/test/selftest
+    grep -q "AES note: using VIA Padlock" ./programs/test/selftest
+    grep -q mbedtls_aesni_has_support ./programs/test/selftest
 }
 
 # For timebeing, no aarch64 gcc available in CI and no arm64 CI node.

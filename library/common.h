@@ -330,7 +330,7 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 #endif
 #endif
 #if !defined(MBEDTLS_ASSUME)
-#define MBEDTLS_ASSUME(x)
+#define MBEDTLS_ASSUME(x)       do { } while (0)
 #endif
 
 #if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \

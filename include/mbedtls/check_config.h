@@ -184,11 +184,12 @@
 #endif
 
 #if defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT) && \
-    (!defined(MBEDTLS_PSA_CRYPTO_CONFIG) || \
     (defined(MBEDTLS_CIPHER_MODE_CBC) || \
      defined(MBEDTLS_CIPHER_MODE_XTS) || \
-     defined(MBEDTLS_NIST_KW_C)))
-#error "MBEDTLS_BLOCK_CIPHER_NO_DECRYPT defined, but not all prerequisites"
+     defined(MBEDTLS_DES_C) || \
+     defined(MBEDTLS_NIST_KW_C))
+#error "MBEDTLS_BLOCK_CIPHER_NO_DECRYPT and MBEDTLS_CIPHER_MODE_CBC/MBEDTLS_CIPHER_MODE_XTS/MBEDTLS_DES_C/MBEDTLS_NIST_KW_C \
+cannot be defined simultaneously"
 #endif
 
 #if defined(MBEDTLS_ECDH_C) && !defined(MBEDTLS_ECP_C)

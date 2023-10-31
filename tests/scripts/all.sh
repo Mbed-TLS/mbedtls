@@ -2609,7 +2609,7 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
                     ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+    helper_libtestdriver1_make_main "$loc_accel_list"
 
     # We expect ECDH to be re-enabled for the missing curves
     grep mbedtls_ecdh_ library/ecdh.o

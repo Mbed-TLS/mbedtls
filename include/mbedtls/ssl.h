@@ -1217,7 +1217,7 @@ struct mbedtls_ssl_session {
     mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(tls_version);
 
 #if defined(MBEDTLS_HAVE_TIME)
-    mbedtls_ms_time_t MBEDTLS_PRIVATE(start);    /*!< starting time      */
+    mbedtls_time_t MBEDTLS_PRIVATE(start);       /*!< start time of current session */
 #endif
     int MBEDTLS_PRIVATE(ciphersuite);            /*!< chosen ciphersuite */
     size_t MBEDTLS_PRIVATE(id_len);              /*!< session id length  */
@@ -1248,6 +1248,7 @@ struct mbedtls_ssl_session {
     uint8_t MBEDTLS_PRIVATE(ticket_flags);      /*!< Ticket flags */
     uint32_t MBEDTLS_PRIVATE(ticket_age_add);               /*!< Randomly generated value used to obscure the age of the ticket */
     uint8_t MBEDTLS_PRIVATE(resumption_key_len);            /*!< resumption_key length */
+    mbedtls_ms_time_t MBEDTLS_PRIVATE(ticket_creation);     /*!< create time of ticket */
     unsigned char MBEDTLS_PRIVATE(resumption_key)[MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN];
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && defined(MBEDTLS_SSL_CLI_C)

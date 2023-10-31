@@ -306,36 +306,34 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 #define MBEDTLS_STATIC_ASSERT(expr, msg)
 #endif
 
-/* Define compiler branch hints */
 #if defined(__has_builtin)
-#if __has_builtin(__builtin_expect)
+#define MBEDTLS_HAS_BUILTIN(x) __has_builtin(x)
+#else
+#define MBEDTLS_HAS_BUILTIN(x) 0
+#endif
+
+/* Define compiler branch hints */
+#if MBEDTLS_HAS_BUILTIN(__builtin_expect)
 #define MBEDTLS_LIKELY(x)       __builtin_expect(!!(x), 1)
 #define MBEDTLS_UNLIKELY(x)     __builtin_expect(!!(x), 0)
-#endif
-#endif
-#if !defined(MBEDTLS_LIKELY)
+#else
 #define MBEDTLS_LIKELY(x)       x
 #define MBEDTLS_UNLIKELY(x)     x
 #endif
 
 /* MBEDTLS_ASSUME may be used to provide additional information to the compiler
  * which can result in smaller code-size. */
-#if defined(__has_builtin)
-#if __has_builtin(__builtin_assume)
+#if MBEDTLS_HAS_BUILTIN(__builtin_assume)
 /* clang provides __builtin_assume */
 #define MBEDTLS_ASSUME(x)       __builtin_assume(x)
-#elif __has_builtin(__builtin_unreachable)
+#elif MBEDTLS_HAS_BUILTIN(__builtin_unreachable)
 /* gcc can use __builtin_unreachable */
 #define MBEDTLS_ASSUME(x)       do { if (!(x)) __builtin_unreachable(); } while (0)
-#endif
-#endif
-#if !defined(MBEDTLS_ASSUME)
-#if defined(_MSC_VER)
+#elif defined(_MSC_VER)
 /* Supported by MSVC since VS 2005 */
 #define MBEDTLS_ASSUME(x)       __assume(x)
 #else
 #define MBEDTLS_ASSUME(x)       do { } while (0)
-#endif
 #endif
 
 #if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \

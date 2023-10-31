@@ -29,7 +29,8 @@
 #include "mbedtls/platform.h"
 #include "mbedtls/error.h"
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_LEGACY) ||   \
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_EXPORT) ||   \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_GENERATE) ||   \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_FFDH)
 static psa_status_t mbedtls_psa_ffdh_set_prime_generator(size_t key_size,
@@ -118,11 +119,12 @@ cleanup:
 
     return PSA_SUCCESS;
 }
-#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_LEGACY ||
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_EXPORT ||
+          MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_GENERATE ||
           MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY ||
           MBEDTLS_PSA_BUILTIN_ALG_FFDH */
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_LEGACY) || \
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_EXPORT) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY)
 psa_status_t mbedtls_psa_ffdh_export_public_key(
     const psa_key_attributes_t *attributes,
@@ -178,7 +180,10 @@ cleanup:
 
     return status;
 }
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_EXPORT ||
+          MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY */
 
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_GENERATE)
 psa_status_t mbedtls_psa_ffdh_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length)
@@ -212,7 +217,9 @@ cleanup:
 
     return status;
 }
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_GENERATE */
 
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_IMPORT)
 psa_status_t mbedtls_psa_ffdh_import_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *data, size_t data_length,
@@ -230,9 +237,7 @@ psa_status_t mbedtls_psa_ffdh_import_key(
 
     return PSA_SUCCESS;
 }
-
-#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_LEGACY ||
-          MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY */
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_IMPORT */
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_FFDH)
 psa_status_t mbedtls_psa_ffdh_key_agreement(

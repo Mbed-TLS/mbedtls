@@ -114,6 +114,20 @@ extern void (*mbedtls_test_hook_test_fail)(const char *test, int line, const cha
  */
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
+/**
+ * \brief       Securely zeroize a buffer then free it.
+ *
+ *              Similar to making consecutive calls to
+ *              \c mbedtls_platform_zeroize() and \c mbedtls_free(), but has
+ *              code size savings, and potential for optimisation in the future.
+ *
+ *              Guaranteed to be a no-op if \p buf is \c NULL and \p len is 0.
+ *
+ * \param buf   Buffer to be zeroized then freed.
+ * \param len   Length of the buffer in bytes
+ */
+void mbedtls_zeroize_and_free(void *buf, size_t len);
+
 /** Return an offset into a buffer.
  *
  * This is just the addition of an offset to a pointer, except that this
@@ -242,7 +256,11 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 /* Define `asm` for compilers which don't define it. */
 /* *INDENT-OFF* */
 #ifndef asm
+#if defined(__IAR_SYSTEMS_ICC__)
+#define asm __asm
+#else
 #define asm __asm__
+#endif
 #endif
 /* *INDENT-ON* */
 
@@ -270,7 +288,7 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 /* Normal case (64-bit pointers): use "r" as the constraint for pointer operands to asm */
 #define MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT "r"
 #else
-#error Unrecognised pointer size for aarch64
+#error "Unrecognised pointer size for aarch64"
 #endif
 #endif
 
@@ -291,8 +309,8 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 /* Define compiler branch hints */
 #if defined(__has_builtin)
 #if __has_builtin(__builtin_expect)
-#define MBEDTLS_LIKELY(x)       __builtin_expect((x), 1)
-#define MBEDTLS_UNLIKELY(x)     __builtin_expect((x), 0)
+#define MBEDTLS_LIKELY(x)       __builtin_expect(!!(x), 1)
+#define MBEDTLS_UNLIKELY(x)     __builtin_expect(!!(x), 0)
 #endif
 #endif
 #if !defined(MBEDTLS_LIKELY)
@@ -314,6 +332,33 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 #define MBEDTLS_OPTIMIZE_FOR_PERFORMANCE __attribute__((optimize("-O2")))
 #else
 #define MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
+#endif
+
+/* Suppress compiler warnings for unused functions and variables. */
+#if !defined(MBEDTLS_MAYBE_UNUSED) && defined(__has_attribute)
+#    if __has_attribute(unused)
+#        define MBEDTLS_MAYBE_UNUSED __attribute__((unused))
+#    endif
+#endif
+#if !defined(MBEDTLS_MAYBE_UNUSED) && defined(__GNUC__)
+#    define MBEDTLS_MAYBE_UNUSED __attribute__((unused))
+#endif
+#if !defined(MBEDTLS_MAYBE_UNUSED) && defined(__IAR_SYSTEMS_ICC__) && defined(__VER__)
+/* IAR does support __attribute__((unused)), but only if the -e flag (extended language support)
+ * is given; the pragma always works.
+ * Unfortunately the pragma affects the rest of the file where it is used, but this is harmless.
+ * Check for version 5.2 or later - this pragma may be supported by earlier versions, but I wasn't
+ * able to find documentation).
+ */
+#    if (__VER__ >= 5020000)
+#        define MBEDTLS_MAYBE_UNUSED _Pragma("diag_suppress=Pe177")
+#    endif
+#endif
+#if !defined(MBEDTLS_MAYBE_UNUSED) && defined(_MSC_VER)
+#    define MBEDTLS_MAYBE_UNUSED __pragma(warning(suppress:4189))
+#endif
+#if !defined(MBEDTLS_MAYBE_UNUSED)
+#    define MBEDTLS_MAYBE_UNUSED
 #endif
 
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

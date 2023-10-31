@@ -135,11 +135,11 @@ int get_len_step(const data_t *input, size_t buffer_size,
     /* Allocate a new buffer of exactly the length to parse each time.
      * This gives memory sanitizers a chance to catch buffer overreads. */
     if (buffer_size == 0) {
-        ASSERT_ALLOC(buf, 1);
+        TEST_CALLOC(buf, 1);
         end = buf + 1;
         p = end;
     } else {
-        ASSERT_ALLOC_WEAK(buf, buffer_size);
+        TEST_CALLOC_OR_SKIP(buf, buffer_size);
         if (buffer_size > input->len) {
             memcpy(buf, input->x, input->len);
             memset(buf + input->len, 'A', buffer_size - input->len);
@@ -247,7 +247,7 @@ void parse_prefixes(const data_t *input,
         mbedtls_test_set_step(buffer_size);
         /* Allocate a new buffer of exactly the length to parse each time.
          * This gives memory sanitizers a chance to catch buffer overreads. */
-        ASSERT_ALLOC(buf, buffer_size);
+        TEST_CALLOC(buf, buffer_size);
         memcpy(buf, input->x, buffer_size);
         p = buf;
         ret = nested_parse(&p, buf + buffer_size);
@@ -506,7 +506,7 @@ void get_mpi_too_large()
 
     mbedtls_mpi_init(&actual_mpi);
 
-    ASSERT_ALLOC(buf, size);
+    TEST_CALLOC(buf, size);
     buf[0] = 0x02; /* tag: INTEGER */
     buf[1] = 0x84; /* 4-octet length */
     buf[2] = (too_many_octets >> 24) & 0xff;
@@ -729,10 +729,10 @@ void free_named_data(int with_oid, int with_val, int with_next)
     { { 0x06, 0, NULL }, { 0, 0, NULL }, NULL, 0 };
 
     if (with_oid) {
-        ASSERT_ALLOC(head.oid.p, 1);
+        TEST_CALLOC(head.oid.p, 1);
     }
     if (with_val) {
-        ASSERT_ALLOC(head.val.p, 1);
+        TEST_CALLOC(head.val.p, 1);
     }
     if (with_next) {
         head.next = &next;
@@ -758,7 +758,7 @@ void free_named_data_list(int length)
 
     for (i = 0; i < length; i++) {
         mbedtls_asn1_named_data *new = NULL;
-        ASSERT_ALLOC(new, 1);
+        TEST_CALLOC(new, 1);
         new->next = head;
         head = new;
     }

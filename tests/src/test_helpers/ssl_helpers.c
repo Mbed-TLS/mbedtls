@@ -91,7 +91,7 @@ void mbedtls_test_init_handshake_options(
     opts->resize_buffers = 1;
 #if defined(MBEDTLS_SSL_CACHE_C)
     opts->cache = NULL;
-    ASSERT_ALLOC(opts->cache, 1);
+    TEST_CALLOC(opts->cache, 1);
     mbedtls_ssl_cache_init(opts->cache);
 #if defined(MBEDTLS_HAVE_TIME)
     TEST_EQUAL(mbedtls_ssl_cache_get_timeout(opts->cache),
@@ -627,9 +627,9 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
     }
 
     cert = &(ep->cert);
-    ASSERT_ALLOC(cert->ca_cert, 1);
-    ASSERT_ALLOC(cert->cert, 1);
-    ASSERT_ALLOC(cert->pkey, 1);
+    TEST_CALLOC(cert->ca_cert, 1);
+    TEST_CALLOC(cert->cert, 1);
+    TEST_CALLOC(cert->pkey, 1);
 
     mbedtls_x509_crt_init(cert->ca_cert);
     mbedtls_x509_crt_init(cert->cert);
@@ -930,13 +930,14 @@ int mbedtls_ssl_write_fragment(mbedtls_ssl_context *ssl,
                                int *written,
                                const int expected_fragments)
 {
+    int ret;
     /* Verify that calling mbedtls_ssl_write with a NULL buffer and zero length is
      * a valid no-op for TLS connections. */
     if (ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
         TEST_ASSERT(mbedtls_ssl_write(ssl, NULL, 0) == 0);
     }
 
-    int ret = mbedtls_ssl_write(ssl, buf + *written, buf_len - *written);
+    ret = mbedtls_ssl_write(ssl, buf + *written, buf_len - *written);
     if (ret > 0) {
         *written += ret;
     }
@@ -976,13 +977,14 @@ int mbedtls_ssl_read_fragment(mbedtls_ssl_context *ssl,
                               int *read, int *fragments,
                               const int expected_fragments)
 {
+    int ret;
     /* Verify that calling mbedtls_ssl_write with a NULL buffer and zero length is
      * a valid no-op for TLS connections. */
     if (ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
         TEST_ASSERT(mbedtls_ssl_read(ssl, NULL, 0) == 0);
     }
 
-    int ret = mbedtls_ssl_read(ssl, buf + *read, buf_len - *read);
+    ret = mbedtls_ssl_read(ssl, buf + *read, buf_len - *read);
     if (ret > 0) {
         (*fragments)++;
         *read += ret;
@@ -1024,10 +1026,10 @@ static void set_ciphersuite(mbedtls_ssl_config *conf, const char *cipher,
     TEST_ASSERT(ciphersuite_info->max_tls_version >= conf->min_tls_version);
 
     if (conf->max_tls_version > ciphersuite_info->max_tls_version) {
-        conf->max_tls_version = ciphersuite_info->max_tls_version;
+        conf->max_tls_version = (mbedtls_ssl_protocol_version) ciphersuite_info->max_tls_version;
     }
     if (conf->min_tls_version < ciphersuite_info->min_tls_version) {
-        conf->min_tls_version = ciphersuite_info->min_tls_version;
+        conf->min_tls_version = (mbedtls_ssl_protocol_version) ciphersuite_info->min_tls_version;
     }
 
     mbedtls_ssl_conf_ciphersuites(conf, forced_ciphersuite);
@@ -1144,7 +1146,7 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
     maclen = 0;
 
     /* Pick cipher */
-    cipher_info = mbedtls_cipher_info_from_type(cipher_type);
+    cipher_info = mbedtls_cipher_info_from_type((mbedtls_cipher_type_t) cipher_type);
     CHK(cipher_info != NULL);
     CHK(mbedtls_cipher_info_get_iv_size(cipher_info) <= 16);
     CHK(mbedtls_cipher_info_get_key_bitlen(cipher_info) % 8 == 0);
@@ -1202,10 +1204,10 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
     if (cipher_info->mode == MBEDTLS_MODE_CBC ||
         cipher_info->mode == MBEDTLS_MODE_STREAM) {
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
-        mbedtls_md_info_t const *md_info = mbedtls_md_info_from_type(hash_id);
+        mbedtls_md_info_t const *md_info = mbedtls_md_info_from_type((mbedtls_md_type_t) hash_id);
         CHK(md_info != NULL);
 #endif
-        maclen = mbedtls_md_get_size_from_type(hash_id);
+        maclen = mbedtls_md_get_size_from_type((mbedtls_md_type_t) hash_id);
         CHK(maclen != 0);
         /* Pick hash keys */
         CHK((md0 = mbedtls_calloc(1, maclen)) != NULL);
@@ -1464,6 +1466,64 @@ cleanup:
 
     return ret;
 }
+
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
+int mbedtls_test_ssl_prepare_record_mac(mbedtls_record *record,
+                                        mbedtls_ssl_transform *transform_out)
+{
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+#endif
+
+    /* Serialized version of record header for MAC purposes */
+    unsigned char add_data[13];
+    memcpy(add_data, record->ctr, 8);
+    add_data[8] = record->type;
+    add_data[9] = record->ver[0];
+    add_data[10] = record->ver[1];
+    add_data[11] = (record->data_len >> 8) & 0xff;
+    add_data[12] = (record->data_len >> 0) & 0xff;
+
+    /* MAC with additional data */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    size_t sign_mac_length = 0;
+    TEST_EQUAL(PSA_SUCCESS, psa_mac_sign_setup(&operation,
+                                               transform_out->psa_mac_enc,
+                                               transform_out->psa_mac_alg));
+    TEST_EQUAL(PSA_SUCCESS, psa_mac_update(&operation, add_data, 13));
+    TEST_EQUAL(PSA_SUCCESS, psa_mac_update(&operation,
+                                           record->buf + record->data_offset,
+                                           record->data_len));
+    /* Use a temporary buffer for the MAC, because with the truncated HMAC
+     * extension, there might not be enough room in the record for the
+     * full-length MAC. */
+    unsigned char mac[PSA_HASH_MAX_SIZE];
+    TEST_EQUAL(PSA_SUCCESS, psa_mac_sign_finish(&operation,
+                                                mac, sizeof(mac),
+                                                &sign_mac_length));
+#else
+    TEST_EQUAL(0, mbedtls_md_hmac_update(&transform_out->md_ctx_enc, add_data, 13));
+    TEST_EQUAL(0, mbedtls_md_hmac_update(&transform_out->md_ctx_enc,
+                                         record->buf + record->data_offset,
+                                         record->data_len));
+    /* Use a temporary buffer for the MAC, because with the truncated HMAC
+     * extension, there might not be enough room in the record for the
+     * full-length MAC. */
+    unsigned char mac[MBEDTLS_MD_MAX_SIZE];
+    TEST_EQUAL(0, mbedtls_md_hmac_finish(&transform_out->md_ctx_enc, mac));
+#endif
+    memcpy(record->buf + record->data_offset + record->data_len, mac, transform_out->maclen);
+    record->data_len += transform_out->maclen;
+
+    return 0;
+
+exit:
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_mac_abort(&operation);
+#endif
+    return -1;
+}
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
 int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
                                             int ticket_len,
@@ -1757,8 +1817,8 @@ static int check_ssl_version(
             break;
 
         default:
-            TEST_ASSERT(
-                !"Version check not implemented for this protocol version");
+            TEST_FAIL(
+                "Version check not implemented for this protocol version");
     }
 
     return 1;

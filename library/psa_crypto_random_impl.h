@@ -30,7 +30,7 @@
 #ifndef PSA_CRYPTO_RANDOM_IMPL_H
 #define PSA_CRYPTO_RANDOM_IMPL_H
 
-#include <psa_util_internal.h>
+#include "psa_util_internal.h"
 
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 

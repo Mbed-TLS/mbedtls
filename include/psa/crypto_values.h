@@ -2115,6 +2115,10 @@
  */
 #define PSA_ALG_PBKDF2_AES_CMAC_PRF_128         ((psa_algorithm_t) 0x08800200)
 
+#define PSA_ALG_IS_PBKDF2(kdf_alg)                                      \
+    (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg) || \
+     ((kdf_alg) == PSA_ALG_PBKDF2_AES_CMAC_PRF_128))
+
 #define PSA_ALG_KEY_DERIVATION_MASK             ((psa_algorithm_t) 0xfe00ffff)
 #define PSA_ALG_KEY_AGREEMENT_MASK              ((psa_algorithm_t) 0xffff0000)
 

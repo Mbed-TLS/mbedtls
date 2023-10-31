@@ -34,7 +34,7 @@ def short_expression(original: str, level: int = 0) -> str:
     unambiguous, but ad hoc way.
     """
     short = original
-    short = re.sub(r'\bPSA_(?:ALG|ECC_FAMILY|KEY_[A-Z]+)_', r'', short)
+    short = re.sub(r'\bPSA_(?:ALG|DH_FAMILY|ECC_FAMILY|KEY_[A-Z]+)_', r'', short)
     short = re.sub(r' +', r'', short)
     if level >= 1:
         short = re.sub(r'PUBLIC_KEY\b', r'PUB', short)
@@ -138,6 +138,9 @@ class KeyType:
         """Whether the key type is for public keys."""
         return self.name.endswith('_PUBLIC_KEY')
 
+    DH_KEY_SIZES = {
+        'PSA_DH_FAMILY_RFC7919': (2048, 3072, 4096, 6144, 8192),
+    } # type: Dict[str, Tuple[int, ...]]
     ECC_KEY_SIZES = {
         'PSA_ECC_FAMILY_SECP_K1': (192, 224, 256),
         'PSA_ECC_FAMILY_SECP_R1': (225, 256, 384, 521),
@@ -175,6 +178,9 @@ class KeyType:
         if self.private_type == 'PSA_KEY_TYPE_ECC_KEY_PAIR':
             assert self.params is not None
             return self.ECC_KEY_SIZES[self.params[0]]
+        if self.private_type == 'PSA_KEY_TYPE_DH_KEY_PAIR':
+            assert self.params is not None
+            return self.DH_KEY_SIZES[self.params[0]]
         return self.KEY_TYPE_SIZES[self.private_type]
 
     # "48657265006973206b6579a064617461"
@@ -261,6 +267,8 @@ class KeyType:
             if alg.head in {'PURE_EDDSA', 'EDDSA_PREHASH'} and \
                eccc == EllipticCurveCategory.TWISTED_EDWARDS:
                 return True
+        if self.head == 'DH' and alg.head == 'FFDH':
+            return True
         return False
 
 

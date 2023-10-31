@@ -35,6 +35,7 @@
 #include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+#include "mbedtls/constant_time.h"
 
 #include <string.h>
 
@@ -97,8 +98,8 @@ static int gcm_gen_table(mbedtls_gcm_context *ctx)
     }
 #endif
 
-#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
-    if (mbedtls_aesce_has_support()) {
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
+    if (MBEDTLS_AESCE_HAS_SUPPORT()) {
         return 0;
     }
 #endif
@@ -208,8 +209,8 @@ static void gcm_mult(mbedtls_gcm_context *ctx, const unsigned char x[16],
     }
 #endif /* MBEDTLS_AESNI_HAVE_CODE */
 
-#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
-    if (mbedtls_aesce_has_support()) {
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
+    if (MBEDTLS_AESCE_HAS_SUPPORT()) {
         unsigned char h[16];
 
         /* mbedtls_aesce_gcm_mult needs big-endian input */
@@ -601,7 +602,6 @@ int mbedtls_gcm_auth_decrypt(mbedtls_gcm_context *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char check_tag[16];
-    size_t i;
     int diff;
 
     if ((ret = mbedtls_gcm_crypt_and_tag(ctx, MBEDTLS_GCM_DECRYPT, length,
@@ -611,9 +611,7 @@ int mbedtls_gcm_auth_decrypt(mbedtls_gcm_context *ctx,
     }
 
     /* Check tag in "constant-time" */
-    for (diff = 0, i = 0; i < tag_len; i++) {
-        diff |= tag[i] ^ check_tag[i];
-    }
+    diff = mbedtls_ct_memcmp(tag, check_tag, tag_len);
 
     if (diff != 0) {
         mbedtls_platform_zeroize(output, length);
@@ -884,6 +882,13 @@ int mbedtls_gcm_self_test(int verbose)
             mbedtls_printf("  GCM note: using AESNI.\n");
         } else
 #endif
+
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
+        if (MBEDTLS_AESCE_HAS_SUPPORT()) {
+            mbedtls_printf("  GCM note: using AESCE.\n");
+        } else
+#endif
+
         mbedtls_printf("  GCM note: built-in implementation.\n");
 #endif /* MBEDTLS_GCM_ALT */
     }

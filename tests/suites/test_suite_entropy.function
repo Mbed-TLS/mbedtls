@@ -102,6 +102,7 @@ static int write_nv_seed(unsigned char *buf, size_t buf_len)
 
     if (fwrite(buf, 1, MBEDTLS_ENTROPY_BLOCK_SIZE, f) !=
         MBEDTLS_ENTROPY_BLOCK_SIZE) {
+        fclose(f);
         return -1;
     }
 
@@ -124,6 +125,7 @@ int read_nv_seed(unsigned char *buf, size_t buf_len)
 
     if (fread(buf, 1, MBEDTLS_ENTROPY_BLOCK_SIZE, f) !=
         MBEDTLS_ENTROPY_BLOCK_SIZE) {
+        fclose(f);
         return -1;
     }
 
@@ -135,7 +137,7 @@ int read_nv_seed(unsigned char *buf, size_t buf_len)
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_ENTROPY_C
+ * depends_on:MBEDTLS_ENTROPY_C:!MBEDTLS_PSA_INJECT_ENTROPY
  * END_DEPENDENCIES
  */
 
@@ -166,10 +168,9 @@ void entropy_init_free(int reinit)
 void entropy_seed_file(char *path, int ret)
 {
     mbedtls_entropy_context ctx;
+    mbedtls_entropy_init(&ctx);
 
     MD_PSA_INIT();
-
-    mbedtls_entropy_init(&ctx);
 
     TEST_ASSERT(mbedtls_entropy_write_seed_file(&ctx, path) == ret);
     TEST_ASSERT(mbedtls_entropy_update_seed_file(&ctx, path) == ret);
@@ -184,10 +185,9 @@ exit:
 void entropy_write_base_seed_file(int ret)
 {
     mbedtls_entropy_context ctx;
+    mbedtls_entropy_init(&ctx);
 
     MD_PSA_INIT();
-
-    mbedtls_entropy_init(&ctx);
 
     TEST_ASSERT(mbedtls_entropy_write_seed_file(&ctx, MBEDTLS_PLATFORM_STD_NV_SEED_FILE) == ret);
     TEST_ASSERT(mbedtls_entropy_update_seed_file(&ctx, MBEDTLS_PLATFORM_STD_NV_SEED_FILE) == ret);
@@ -249,9 +249,9 @@ void entropy_func_len(int len, int ret)
     unsigned char acc[MBEDTLS_ENTROPY_BLOCK_SIZE + 10] = { 0 };
     size_t i, j;
 
-    MD_PSA_INIT();
-
     mbedtls_entropy_init(&ctx);
+
+    MD_PSA_INIT();
 
     /*
      * See comments in mbedtls_entropy_self_test()
@@ -286,9 +286,9 @@ void entropy_source_fail(char *path)
     unsigned char buf[16];
     entropy_dummy_context dummy = { DUMMY_FAIL, 0, 0 };
 
-    MD_PSA_INIT();
-
     mbedtls_entropy_init(&ctx);
+
+    MD_PSA_INIT();
 
     TEST_ASSERT(mbedtls_entropy_add_source(&ctx, entropy_dummy_source,
                                            &dummy, 16,
@@ -324,10 +324,10 @@ void entropy_threshold(int threshold, int chunk_size, int result)
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE] = { 0 };
     int ret;
 
-    MD_PSA_INIT();
-
     mbedtls_entropy_init(&ctx);
     entropy_clear_sources(&ctx);
+
+    MD_PSA_INIT();
 
     /* Set strong source that reaches its threshold immediately and
      * a weak source whose threshold is a test parameter. */
@@ -374,10 +374,10 @@ void entropy_calls(int strength1, int strength2,
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE] = { 0 };
     int ret;
 
-    MD_PSA_INIT();
-
     mbedtls_entropy_init(&ctx);
     entropy_clear_sources(&ctx);
+
+    MD_PSA_INIT();
 
     TEST_ASSERT(mbedtls_entropy_add_source(&ctx, entropy_dummy_source,
                                            &dummy1, threshold,
@@ -473,8 +473,6 @@ void entropy_nv_seed(data_t *read_seed)
     unsigned char check_seed[MBEDTLS_ENTROPY_BLOCK_SIZE];
     unsigned char check_entropy[MBEDTLS_ENTROPY_BLOCK_SIZE];
 
-    MD_PSA_INIT();
-
     memset(entropy, 0, MBEDTLS_ENTROPY_BLOCK_SIZE);
     memset(buf, 0, MBEDTLS_ENTROPY_BLOCK_SIZE);
     memset(empty, 0, MBEDTLS_ENTROPY_BLOCK_SIZE);
@@ -487,6 +485,8 @@ void entropy_nv_seed(data_t *read_seed)
     mbedtls_md_init(&accumulator);
     mbedtls_entropy_init(&ctx);
     entropy_clear_sources(&ctx);
+
+    MD_PSA_INIT();
 
     TEST_ASSERT(mbedtls_entropy_add_source(&ctx, mbedtls_nv_seed_poll, NULL,
                                            MBEDTLS_ENTROPY_BLOCK_SIZE,

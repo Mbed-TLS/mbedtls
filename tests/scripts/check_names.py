@@ -284,7 +284,7 @@ class CodeParser():
             "library/*.c",
             "3rdparty/everest/library/everest.c",
             "3rdparty/everest/library/x25519.c"
-        ], ["library/psa_crypto_driver_wrappers.c"])
+        ], ["library/psa_crypto_driver_wrappers.h"])
         symbols = self.parse_symbols()
 
         # Remove identifier macros like mbedtls_printf or mbedtls_calloc
@@ -941,7 +941,7 @@ def main():
             "This script confirms that the naming of all symbols and identifiers "
             "in Mbed TLS are consistent with the house style and are also "
             "self-consistent.\n\n"
-            "Expected to be run from the MbedTLS root directory.")
+            "Expected to be run from the Mbed TLS root directory.")
     )
     parser.add_argument(
         "-v", "--verbose",

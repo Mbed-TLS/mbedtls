@@ -2,6 +2,7 @@ PSA Cryptoprocessor driver developer's guide
 ============================================
 
 **This is a specification of work in progress. The implementation is not yet merged into Mbed TLS.**
+For a description of the current state of drivers Mbed TLS, see our [PSA Cryptoprocessor driver development examples](../psa-driver-example-and-guide.html).
 
 This document describes how to write drivers of cryptoprocessors such as accelerators and secure elements for the PSA cryptography subsystem of Mbed TLS.
 

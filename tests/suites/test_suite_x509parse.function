@@ -242,7 +242,7 @@ int verify_parse_san(mbedtls_x509_subject_alternative_name *san,
             MBEDTLS_X509_SAFE_SNPRINTF;
 
             if (MBEDTLS_OID_CMP(MBEDTLS_OID_ON_HW_MODULE_NAME,
-                                &san->san.other_name.value.hardware_module_name.oid) != 0) {
+                                &san->san.other_name.type_id) == 0) {
                 ret = mbedtls_snprintf(p, n, " hardware module name :");
                 MBEDTLS_X509_SAFE_SNPRINTF;
                 ret = mbedtls_snprintf(p, n, " hardware type : ");
@@ -415,11 +415,6 @@ int parse_crt_ext_cb(void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf 
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 /* END_HEADER */
 
-/* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_BIGNUM_C
- * END_DEPENDENCIES
- */
-
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
 void x509_accessor_ext_types(int ext_type, int has_ext_type)
 {
@@ -447,7 +442,7 @@ void x509_crt_parse_cn_inet_pton(const char *cn, data_t *exp, int ref_ret)
     TEST_EQUAL(addrlen, (size_t) ref_ret);
 
     if (addrlen) {
-        ASSERT_COMPARE(exp->x, exp->len, addr, addrlen);
+        TEST_MEMORY_COMPARE(exp->x, exp->len, addr, addrlen);
     }
 }
 /* END_CASE */
@@ -624,7 +619,7 @@ void x509_verify_restart(char *crt_file, char *ca_file,
     /*
      * See comments on ecp_test_vect_restart() for op count precision.
      *
-     * For reference, with mbed TLS 2.6 and default settings:
+     * For reference, with Mbed TLS 2.6 and default settings:
      * - ecdsa_verify() for P-256:  ~  6700
      * - ecdsa_verify() for P-384:  ~ 18800
      * - x509_verify() for server5 -> test-ca2:             ~ 18800
@@ -702,7 +697,7 @@ void x509_verify(char *crt_file, char *ca_file, char *crl_file,
     } else if (strcmp(profile_str, "all") == 0) {
         profile = &profile_all;
     } else {
-        TEST_ASSERT("Unknown algorithm profile" == 0);
+        TEST_FAIL("Unknown algorithm profile");
     }
 
     if (strcmp(verify_callback, "NULL") == 0) {
@@ -712,7 +707,7 @@ void x509_verify(char *crt_file, char *ca_file, char *crl_file,
     } else if (strcmp(verify_callback, "verify_all") == 0) {
         f_vrfy = verify_all;
     } else {
-        TEST_ASSERT("No known verify callback selected" == 0);
+        TEST_FAIL("No known verify callback selected");
     }
 
     TEST_EQUAL(mbedtls_x509_crt_parse_file(&crt, crt_file), 0);
@@ -734,7 +729,7 @@ void x509_verify(char *crt_file, char *ca_file, char *crl_file,
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
     /* CRLs aren't supported with CA callbacks, so skip the CA callback
      * version of the test if CRLs are in use. */
-    if (crl_file == NULL || strcmp(crl_file, "") == 0) {
+    if (strcmp(crl_file, "") == 0) {
         flags = 0;
 
         res = mbedtls_x509_crt_verify_with_ca_cb(&crt,
@@ -881,7 +876,7 @@ void mbedtls_x509_dn_gets(char *crt_file, char *entity, char *result_str)
     } else if (strcmp(entity, "issuer") == 0) {
         res =  mbedtls_x509_dn_gets(buf, 2000, &crt.issuer);
     } else {
-        TEST_ASSERT("Unknown entity" == 0);
+        TEST_FAIL("Unknown entity");
     }
 
     TEST_ASSERT(res != -1);
@@ -933,18 +928,20 @@ void mbedtls_x509_dn_get_next(char *name_str,
     int ret = 0, i;
     size_t len = 0, out_size;
     mbedtls_asn1_named_data *names = NULL;
-    mbedtls_x509_name parsed, *parsed_cur;
+    mbedtls_x509_name parsed;
+    memset(&parsed, 0, sizeof(parsed));
+    mbedtls_x509_name *parsed_cur;
     // Size of buf is maximum required for test cases
-    unsigned char buf[80], *out = NULL, *c;
+    unsigned char buf[80] = { 0 };
+    unsigned char *out = NULL;
+    unsigned char *c = buf + sizeof(buf);
     const char *short_name;
 
     USE_PSA_INIT();
-    memset(&parsed, 0, sizeof(parsed));
-    memset(buf, 0, sizeof(buf));
-    c = buf + sizeof(buf);
+
     // Additional size required for trailing space
     out_size = strlen(expected_oids) + 2;
-    ASSERT_ALLOC(out, out_size);
+    TEST_CALLOC(out, out_size);
 
     TEST_EQUAL(mbedtls_x509_string_to_names(&names, name_str), 0);
 
@@ -979,7 +976,7 @@ void mbedtls_x509_dn_get_next(char *name_str,
     out = NULL;
 
     out_size = strlen(exp_dn_gets) + 1;
-    ASSERT_ALLOC(out, out_size);
+    TEST_CALLOC(out, out_size);
 
     TEST_LE_S(0, mbedtls_x509_dn_gets((char *) out, out_size, &parsed));
     TEST_EQUAL(strcmp((char *) out, exp_dn_gets), 0);
@@ -1006,7 +1003,7 @@ void mbedtls_x509_time_is_past(char *crt_file, char *entity, int result)
     } else if (strcmp(entity, "valid_to") == 0) {
         TEST_EQUAL(mbedtls_x509_time_is_past(&crt.valid_to), result);
     } else {
-        TEST_ASSERT("Unknown entity" == 0);
+        TEST_FAIL("Unknown entity");
     }
 
 exit:
@@ -1030,7 +1027,7 @@ void mbedtls_x509_time_is_future(char *crt_file, char *entity, int result)
     } else if (strcmp(entity, "valid_to") == 0) {
         TEST_EQUAL(mbedtls_x509_time_is_future(&crt.valid_to), result);
     } else {
-        TEST_ASSERT("Unknown entity" == 0);
+        TEST_FAIL("Unknown entity");
     }
 
 exit:

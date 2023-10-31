@@ -108,6 +108,7 @@ FILTER=""
 EXCLUDE='NULL\|ARIA\|CHACHA20_POLY1305'
 VERBOSE=""
 MEMCHECK=0
+PRESERVE_LOGS=0
 PEERS="OpenSSL$PEER_GNUTLS mbedTLS"
 
 # hidden option: skip DTLS with OpenSSL
@@ -126,8 +127,40 @@ print_usage() {
     printf "            \tAlso available: GnuTLS (needs v3.2.15 or higher)\n"
     printf "  -M|--memcheck\tCheck memory leaks and errors.\n"
     printf "  -v|--verbose\tSet verbose output.\n"
+    printf "     --list-test-case\tList all potential test cases (No Execution)\n"
     printf "     --outcome-file\tFile where test outcomes are written\n"
     printf "                   \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
+    printf "     --preserve-logs\tPreserve logs of successful tests as well\n"
+}
+
+# print_test_case <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
+print_test_case() {
+    for i in $3; do
+        uniform_title $1 $2 $i
+        echo $TITLE
+    done
+}
+
+# list_test_case lists all potential test cases in compat.sh without execution
+list_test_case() {
+    reset_ciphersuites
+    for TYPE in $TYPES; do
+        add_common_ciphersuites
+        add_openssl_ciphersuites
+        add_gnutls_ciphersuites
+        add_mbedtls_ciphersuites
+    done
+
+    for VERIFY in $VERIFIES; do
+        VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
+        for MODE in $MODES; do
+            print_test_case m O "$O_CIPHERS"
+            print_test_case O m "$O_CIPHERS"
+            print_test_case m G "$G_CIPHERS"
+            print_test_case G m "$G_CIPHERS"
+            print_test_case m m "$M_CIPHERS"
+        done
+    done
 }
 
 get_options() {
@@ -157,8 +190,17 @@ get_options() {
             -M|--memcheck)
                 MEMCHECK=1
                 ;;
+            # Please check scripts/check_test_cases.py correspondingly
+            # if you have to modify option, --list-test-case
+            --list-test-case)
+                list_test_case
+                exit $?
+                ;;
             --outcome-file)
                 shift; MBEDTLS_TEST_OUTCOME_FILE=$1
+                ;;
+            --preserve-logs)
+                PRESERVE_LOGS=1
                 ;;
             -h|--help)
                 print_usage
@@ -225,7 +267,7 @@ filter_ciphersuites()
 {
     if [ "X" != "X$FILTER" -o "X" != "X$EXCLUDE" ];
     then
-        # Ciphersuite for mbed TLS
+        # Ciphersuite for Mbed TLS
         M_CIPHERS=$( filter "$M_CIPHERS" )
 
         # Ciphersuite for OpenSSL
@@ -235,7 +277,7 @@ filter_ciphersuites()
         G_CIPHERS=$( filter "$G_CIPHERS" )
     fi
 
-    # For GnuTLS client -> mbed TLS server,
+    # For GnuTLS client -> Mbed TLS server,
     # we need to force IPv4 by connecting to 127.0.0.1 but then auth fails
     if is_dtls "$MODE" && [ "X$VERIFY" = "XYES" ]; then
         G_CIPHERS=""
@@ -592,7 +634,7 @@ setup_arguments()
     fi
 
     M_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE"
-    O_SERVER_ARGS="-accept $PORT -cipher NULL,ALL -$O_MODE"
+    O_SERVER_ARGS="-accept $PORT -cipher ALL,COMPLEMENTOFALL -$O_MODE"
     G_SERVER_ARGS="-p $PORT --http $G_MODE"
     G_SERVER_PRIO="NORMAL:${G_PRIO_CCM}+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+SHA256:+SHA384:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
 
@@ -826,6 +868,14 @@ wait_client_done() {
     echo "EXIT: $EXIT" >> $CLI_OUT
 }
 
+# uniform_title <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
+# $TITLE is considered as test case description for both --list-test-case and
+# MBEDTLS_TEST_OUTCOME_FILE. This function aims to control the format of
+# each test case description.
+uniform_title() {
+    TITLE="$1->$2 $MODE,$VERIF $3"
+}
+
 # record_outcome <outcome> [<failure-reason>]
 record_outcome() {
     echo "$1"
@@ -842,12 +892,16 @@ record_outcome() {
     fi
 }
 
+save_logs() {
+    cp $SRV_OUT c-srv-${TESTS}.log
+    cp $CLI_OUT c-cli-${TESTS}.log
+}
+
 # display additional information if test case fails
 report_fail() {
     FAIL_PROMPT="outputs saved to c-srv-${TESTS}.log, c-cli-${TESTS}.log"
     record_outcome "FAIL" "$FAIL_PROMPT"
-    cp $SRV_OUT c-srv-${TESTS}.log
-    cp $CLI_OUT c-cli-${TESTS}.log
+    save_logs
     echo "  ! $FAIL_PROMPT"
 
     if [ "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
@@ -863,8 +917,7 @@ report_fail() {
 run_client() {
     # announce what we're going to do
     TESTS=$(( $TESTS + 1 ))
-    TITLE="${1%"${1#?}"}->${SERVER_NAME%"${SERVER_NAME#?}"}"
-    TITLE="$TITLE $MODE,$VERIF $2"
+    uniform_title "${1%"${1#?}"}" "${SERVER_NAME%"${SERVER_NAME#?}"}" $2
     DOTS72="........................................................................"
     printf "%s %.*s " "$TITLE" "$((71 - ${#TITLE}))" "$DOTS72"
 
@@ -966,6 +1019,9 @@ run_client() {
     case $RESULT in
         "0")
             record_outcome "PASS"
+            if [ "$PRESERVE_LOGS" -gt 0 ]; then
+                save_logs
+            fi
             ;;
         "1")
             record_outcome "SKIP"

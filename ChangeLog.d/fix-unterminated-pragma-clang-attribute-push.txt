@@ -1,4 +1,0 @@
-Bugfix
-   * Fix "unterminated '#pragma clang attribute push'" in sha256/sha512.c when
-     built with MBEDTLS_SHAxxx_USE_A64_CRYPTO_IF_PRESENT but don't have a
-     way to detect the crypto extensions required. A warning is still issued.

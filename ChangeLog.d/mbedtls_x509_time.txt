@@ -1,3 +1,0 @@
-Features
-   * Improve mbedtls_x509_time performance and reduce memory use.
-   * Reduce syscalls to time() during certificate verification.

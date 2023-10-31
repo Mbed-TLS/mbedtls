@@ -19,7 +19,7 @@
 /*
  *  The AES block cipher was designed by Vincent Rijmen and Joan Daemen.
  *
- *  http://csrc.nist.gov/encryption/aes/rijndael/Rijndael.pdf
+ *  https://csrc.nist.gov/csrc/media/projects/cryptographic-standards-and-guidelines/documents/aes-development/rijndael-ammended.pdf
  *  http://csrc.nist.gov/publications/fips/fips197/fips-197.pdf
  */
 
@@ -33,6 +33,27 @@
 #include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+
+#if defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#if !((defined(MBEDTLS_ARCH_IS_ARM64) && defined(MBEDTLS_AESCE_C)) || \
+    (defined(MBEDTLS_ARCH_IS_X64)   && defined(MBEDTLS_AESNI_C)) || \
+    (defined(MBEDTLS_ARCH_IS_X86)   && defined(MBEDTLS_AESNI_C)))
+#error "MBEDTLS_AES_USE_HARDWARE_ONLY defined, but not all prerequisites"
+#endif
+#endif
+
+#if defined(MBEDTLS_ARCH_IS_X86)
+#if defined(MBEDTLS_PADLOCK_C)
+#if !defined(MBEDTLS_HAVE_ASM)
+#error "MBEDTLS_PADLOCK_C defined, but not all prerequisites"
+#endif
+#if defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#error "MBEDTLS_AES_USE_HARDWARE_ONLY cannot be defined when " \
+    "MBEDTLS_PADLOCK_C is set"
+#endif
+#endif
+#endif
+
 #if defined(MBEDTLS_PADLOCK_C)
 #include "padlock.h"
 #endif
@@ -47,7 +68,7 @@
 
 #if !defined(MBEDTLS_AES_ALT)
 
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
+#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
 static int aes_padlock_ace = -1;
 #endif
 
@@ -55,9 +76,7 @@ static int aes_padlock_ace = -1;
 /*
  * Forward S-box
  */
-#if !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
-    !defined(MBEDTLS_AES_SETKEY_DEC_ALT)
-static const unsigned char FSb[256] =
+MBEDTLS_MAYBE_UNUSED static const unsigned char FSb[256] =
 {
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5,
     0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
@@ -92,8 +111,6 @@ static const unsigned char FSb[256] =
     0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68,
     0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
 };
-#endif /* !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
-          !defined(MBEDTLS_AES_SETKEY_DEC_ALT) */
 
 /*
  * Forward tables
@@ -165,36 +182,28 @@ static const unsigned char FSb[256] =
     V(C3, 41, 41, 82), V(B0, 99, 99, 29), V(77, 2D, 2D, 5A), V(11, 0F, 0F, 1E), \
     V(CB, B0, B0, 7B), V(FC, 54, 54, A8), V(D6, BB, BB, 6D), V(3A, 16, 16, 2C)
 
-#if !defined(MBEDTLS_AES_ENCRYPT_ALT)
 #define V(a, b, c, d) 0x##a##b##c##d
-static const uint32_t FT0[256] = { FT };
+MBEDTLS_MAYBE_UNUSED static const uint32_t FT0[256] = { FT };
 #undef V
 
-#if !defined(MBEDTLS_AES_FEWER_TABLES)
-
 #define V(a, b, c, d) 0x##b##c##d##a
-static const uint32_t FT1[256] = { FT };
+MBEDTLS_MAYBE_UNUSED static const uint32_t FT1[256] = { FT };
 #undef V
 
 #define V(a, b, c, d) 0x##c##d##a##b
-static const uint32_t FT2[256] = { FT };
+MBEDTLS_MAYBE_UNUSED static const uint32_t FT2[256] = { FT };
 #undef V
 
 #define V(a, b, c, d) 0x##d##a##b##c
-static const uint32_t FT3[256] = { FT };
+MBEDTLS_MAYBE_UNUSED static const uint32_t FT3[256] = { FT };
 #undef V
-
-#endif /* !MBEDTLS_AES_FEWER_TABLES */
-
-#endif /* !defined(MBEDTLS_AES_ENCRYPT_ALT) */
 
 #undef FT
 
-#if !defined(MBEDTLS_AES_DECRYPT_ALT)
 /*
  * Reverse S-box
  */
-static const unsigned char RSb[256] =
+MBEDTLS_MAYBE_UNUSED static const unsigned char RSb[256] =
 {
     0x52, 0x09, 0x6A, 0xD5, 0x30, 0x36, 0xA5, 0x38,
     0xBF, 0x40, 0xA3, 0x9E, 0x81, 0xF3, 0xD7, 0xFB,
@@ -229,7 +238,6 @@ static const unsigned char RSb[256] =
     0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26,
     0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D
 };
-#endif /* defined(MBEDTLS_AES_DECRYPT_ALT)) */
 
 /*
  * Reverse tables
@@ -301,84 +309,60 @@ static const unsigned char RSb[256] =
     V(71, 01, A8, 39), V(DE, B3, 0C, 08), V(9C, E4, B4, D8), V(90, C1, 56, 64), \
     V(61, 84, CB, 7B), V(70, B6, 32, D5), V(74, 5C, 6C, 48), V(42, 57, B8, D0)
 
-#if !defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT)
 
 #define V(a, b, c, d) 0x##a##b##c##d
-static const uint32_t RT0[256] = { RT };
+MBEDTLS_MAYBE_UNUSED static const uint32_t RT0[256] = { RT };
 #undef V
 
-#if !defined(MBEDTLS_AES_FEWER_TABLES)
-
 #define V(a, b, c, d) 0x##b##c##d##a
-static const uint32_t RT1[256] = { RT };
+MBEDTLS_MAYBE_UNUSED static const uint32_t RT1[256] = { RT };
 #undef V
 
 #define V(a, b, c, d) 0x##c##d##a##b
-static const uint32_t RT2[256] = { RT };
+MBEDTLS_MAYBE_UNUSED static const uint32_t RT2[256] = { RT };
 #undef V
 
 #define V(a, b, c, d) 0x##d##a##b##c
-static const uint32_t RT3[256] = { RT };
+MBEDTLS_MAYBE_UNUSED static const uint32_t RT3[256] = { RT };
 #undef V
-
-#endif /* !MBEDTLS_AES_FEWER_TABLES */
-
-#endif /* !defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) */
 
 #undef RT
 
-#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 /*
  * Round constants
  */
-static const uint32_t RCON[10] =
+MBEDTLS_MAYBE_UNUSED static const uint32_t round_constants[10] =
 {
     0x00000001, 0x00000002, 0x00000004, 0x00000008,
     0x00000010, 0x00000020, 0x00000040, 0x00000080,
     0x0000001B, 0x00000036
 };
-#endif /* !defined(MBEDTLS_AES_SETKEY_ENC_ALT) */
 
 #else /* MBEDTLS_AES_ROM_TABLES */
 
 /*
  * Forward S-box & tables
  */
-#if !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
-    !defined(MBEDTLS_AES_SETKEY_DEC_ALT)
-static unsigned char FSb[256];
-#endif /* !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) || \
-          !defined(MBEDTLS_AES_SETKEY_DEC_ALT) */
-#if !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
-static uint32_t FT0[256];
-#if !defined(MBEDTLS_AES_FEWER_TABLES)
-static uint32_t FT1[256];
-static uint32_t FT2[256];
-static uint32_t FT3[256];
-#endif /* !MBEDTLS_AES_FEWER_TABLES */
-#endif /* !defined(MBEDTLS_AES_ENCRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_ENC_ALT) */
+MBEDTLS_MAYBE_UNUSED static unsigned char FSb[256];
+MBEDTLS_MAYBE_UNUSED static uint32_t FT0[256];
+MBEDTLS_MAYBE_UNUSED static uint32_t FT1[256];
+MBEDTLS_MAYBE_UNUSED static uint32_t FT2[256];
+MBEDTLS_MAYBE_UNUSED static uint32_t FT3[256];
 
 /*
  * Reverse S-box & tables
  */
-#if !(defined(MBEDTLS_AES_SETKEY_ENC_ALT) && defined(MBEDTLS_AES_DECRYPT_ALT))
-static unsigned char RSb[256];
-#endif /* !(defined(MBEDTLS_AES_SETKEY_ENC_ALT) && defined(MBEDTLS_AES_DECRYPT_ALT)) */
+MBEDTLS_MAYBE_UNUSED static unsigned char RSb[256];
 
-#if !defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT)
-static uint32_t RT0[256];
-#if !defined(MBEDTLS_AES_FEWER_TABLES)
-static uint32_t RT1[256];
-static uint32_t RT2[256];
-static uint32_t RT3[256];
-#endif /* !MBEDTLS_AES_FEWER_TABLES */
-#endif /* !defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) */
+MBEDTLS_MAYBE_UNUSED static uint32_t RT0[256];
+MBEDTLS_MAYBE_UNUSED static uint32_t RT1[256];
+MBEDTLS_MAYBE_UNUSED static uint32_t RT2[256];
+MBEDTLS_MAYBE_UNUSED static uint32_t RT3[256];
 
-#if !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
 /*
  * Round constants
  */
-static uint32_t RCON[10];
+MBEDTLS_MAYBE_UNUSED static uint32_t round_constants[10];
 
 /*
  * Tables generation code
@@ -387,9 +371,9 @@ static uint32_t RCON[10];
 #define XTIME(x) (((x) << 1) ^ (((x) & 0x80) ? 0x1B : 0x00))
 #define MUL(x, y) (((x) && (y)) ? pow[(log[(x)]+log[(y)]) % 255] : 0)
 
-static int aes_init_done = 0;
+MBEDTLS_MAYBE_UNUSED static int aes_init_done = 0;
 
-static void aes_gen_tables(void)
+MBEDTLS_MAYBE_UNUSED static void aes_gen_tables(void)
 {
     int i;
     uint8_t x, y, z;
@@ -409,7 +393,7 @@ static void aes_gen_tables(void)
      * calculate the round constants
      */
     for (i = 0, x = 1; i < 10; i++) {
-        RCON[i] = x;
+        round_constants[i] = x;
         x = XTIME(x);
     }
 
@@ -453,7 +437,8 @@ static void aes_gen_tables(void)
 
         x = RSb[i];
 
-#if !defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT)
+#if !defined(MBEDTLS_AES_DECRYPT_ALT) || \
+        (!defined(MBEDTLS_AES_SETKEY_DEC_ALT) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY))
         RT0[i] = ((uint32_t) MUL(0x0E, x)) ^
                  ((uint32_t) MUL(0x09, x) <<  8) ^
                  ((uint32_t) MUL(0x0D, x) << 16) ^
@@ -464,11 +449,10 @@ static void aes_gen_tables(void)
         RT2[i] = ROTL8(RT1[i]);
         RT3[i] = ROTL8(RT2[i]);
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
-#endif /* !defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) */
+#endif \
+        /* !defined(MBEDTLS_AES_DECRYPT_ALT) || (!defined(MBEDTLS_AES_SETKEY_DEC_ALT) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)) */
     }
 }
-
-#endif /* !defined(MBEDTLS_AES_SETKEY_ENC_ALT) */
 
 #undef ROTL8
 
@@ -542,19 +526,17 @@ void mbedtls_aes_xts_free(mbedtls_aes_xts_context *ctx)
  * Note that the offset is in units of elements of buf, i.e. 32-bit words,
  * i.e. an offset of 1 means 4 bytes and so on.
  */
-#if (defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)) ||        \
+#if (defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)) ||        \
     (defined(MBEDTLS_AESNI_C) && MBEDTLS_AESNI_HAVE_CODE == 2)
 #define MAY_NEED_TO_ALIGN
 #endif
 
-#if defined(MAY_NEED_TO_ALIGN) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) || \
-    !defined(MBEDTLS_AES_SETKEY_ENC_ALT)
-static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
+MBEDTLS_MAYBE_UNUSED static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
 {
 #if defined(MAY_NEED_TO_ALIGN)
     int align_16_bytes = 0;
 
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
+#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
     if (aes_padlock_ace == -1) {
         aes_padlock_ace = mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE);
     }
@@ -585,8 +567,6 @@ static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
 
     return 0;
 }
-#endif /* defined(MAY_NEED_TO_ALIGN) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT) || \
-          !defined(MBEDTLS_AES_SETKEY_ENC_ALT) */
 
 /*
  * AES key schedule (encryption)
@@ -595,7 +575,6 @@ static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
 int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
                            unsigned int keybits)
 {
-    unsigned int i;
     uint32_t *RK;
 
     switch (keybits) {
@@ -623,21 +602,22 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
     }
 #endif
 
-#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
-    if (mbedtls_aesce_has_support()) {
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
+    if (MBEDTLS_AESCE_HAS_SUPPORT()) {
         return mbedtls_aesce_setkey_enc((unsigned char *) RK, key, keybits);
     }
 #endif
 
-    for (i = 0; i < (keybits >> 5); i++) {
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+    for (unsigned int i = 0; i < (keybits >> 5); i++) {
         RK[i] = MBEDTLS_GET_UINT32_LE(key, i << 2);
     }
 
     switch (ctx->nr) {
         case 10:
 
-            for (i = 0; i < 10; i++, RK += 4) {
-                RK[4]  = RK[0] ^ RCON[i] ^
+            for (unsigned int i = 0; i < 10; i++, RK += 4) {
+                RK[4]  = RK[0] ^ round_constants[i] ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_1(RK[3])]) ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_2(RK[3])] <<  8) ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_3(RK[3])] << 16) ^
@@ -652,8 +632,8 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 #if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
         case 12:
 
-            for (i = 0; i < 8; i++, RK += 6) {
-                RK[6]  = RK[0] ^ RCON[i] ^
+            for (unsigned int i = 0; i < 8; i++, RK += 6) {
+                RK[6]  = RK[0] ^ round_constants[i] ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_1(RK[5])]) ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_2(RK[5])] <<  8) ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_3(RK[5])] << 16) ^
@@ -669,8 +649,8 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 
         case 14:
 
-            for (i = 0; i < 7; i++, RK += 8) {
-                RK[8]  = RK[0] ^ RCON[i] ^
+            for (unsigned int i = 0; i < 7; i++, RK += 8) {
+                RK[8]  = RK[0] ^ round_constants[i] ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_1(RK[7])]) ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_2(RK[7])] <<  8) ^
                          ((uint32_t) FSb[MBEDTLS_BYTE_3(RK[7])] << 16) ^
@@ -695,6 +675,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
     }
 
     return 0;
+#endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 }
 #endif /* !MBEDTLS_AES_SETKEY_ENC_ALT */
 
@@ -705,10 +686,13 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
                            unsigned int keybits)
 {
-    int i, j, ret;
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+    uint32_t *SK;
+#endif
+    int ret;
     mbedtls_aes_context cty;
     uint32_t *RK;
-    uint32_t *SK;
+
 
     mbedtls_aes_init(&cty);
 
@@ -730,8 +714,8 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
     }
 #endif
 
-#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
-    if (mbedtls_aesce_has_support()) {
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
+    if (MBEDTLS_AESCE_HAS_SUPPORT()) {
         mbedtls_aesce_inverse_key(
             (unsigned char *) RK,
             (const unsigned char *) (cty.buf + cty.rk_offset),
@@ -740,15 +724,16 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
     }
 #endif
 
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
     SK = cty.buf + cty.rk_offset + cty.nr * 4;
 
     *RK++ = *SK++;
     *RK++ = *SK++;
     *RK++ = *SK++;
     *RK++ = *SK++;
-
-    for (i = ctx->nr - 1, SK -= 8; i > 0; i--, SK -= 8) {
-        for (j = 0; j < 4; j++, SK++) {
+    SK -= 8;
+    for (int i = ctx->nr - 1; i > 0; i--, SK -= 8) {
+        for (int j = 0; j < 4; j++, SK++) {
             *RK++ = AES_RT0(FSb[MBEDTLS_BYTE_0(*SK)]) ^
                     AES_RT1(FSb[MBEDTLS_BYTE_1(*SK)]) ^
                     AES_RT2(FSb[MBEDTLS_BYTE_2(*SK)]) ^
@@ -760,7 +745,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
     *RK++ = *SK++;
     *RK++ = *SK++;
     *RK++ = *SK++;
-
+#endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 exit:
     mbedtls_aes_free(&cty);
 
@@ -1014,7 +999,6 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
 }
 #endif /* !MBEDTLS_AES_DECRYPT_ALT */
 
-#if defined(MAY_NEED_TO_ALIGN)
 /* VIA Padlock and our intrinsics-based implementation of AESNI require
  * the round keys to be aligned on a 16-byte boundary. We take care of this
  * before creating them, but the AES context may have moved (this can happen
@@ -1022,7 +1006,7 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
  * calls it might have a different alignment with respect to 16-byte memory.
  * So we may need to realign.
  */
-static void aes_maybe_realign(mbedtls_aes_context *ctx)
+MBEDTLS_MAYBE_UNUSED static void aes_maybe_realign(mbedtls_aes_context *ctx)
 {
     unsigned new_offset = mbedtls_aes_rk_offset(ctx->buf);
     if (new_offset != ctx->rk_offset) {
@@ -1032,7 +1016,6 @@ static void aes_maybe_realign(mbedtls_aes_context *ctx)
         ctx->rk_offset = new_offset;
     }
 }
-#endif
 
 /*
  * AES-ECB block encryption/decryption
@@ -1056,23 +1039,26 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
     }
 #endif
 
-#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
-    if (mbedtls_aesce_has_support()) {
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
+    if (MBEDTLS_AESCE_HAS_SUPPORT()) {
         return mbedtls_aesce_crypt_ecb(ctx, mode, input, output);
     }
 #endif
 
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
+#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
     if (aes_padlock_ace > 0) {
         return mbedtls_padlock_xcryptecb(ctx, mode, input, output);
     }
 #endif
 
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
     if (mode == MBEDTLS_AES_ENCRYPT) {
         return mbedtls_internal_aes_encrypt(ctx, input, output);
     } else {
         return mbedtls_internal_aes_decrypt(ctx, input, output);
     }
+#endif
+
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -1094,11 +1080,16 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
         return MBEDTLS_ERR_AES_BAD_INPUT_DATA;
     }
 
+    /* Nothing to do if length is zero. */
+    if (length == 0) {
+        return 0;
+    }
+
     if (length % 16) {
         return MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH;
     }
 
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
+#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
     if (aes_padlock_ace > 0) {
         if (mbedtls_padlock_xcryptcbc(ctx, mode, length, iv, input, output) == 0) {
             return 0;
@@ -1850,29 +1841,33 @@ int mbedtls_aes_self_test(int verbose)
 #if defined(MBEDTLS_AES_ALT)
         mbedtls_printf("  AES note: alternative implementation.\n");
 #else /* MBEDTLS_AES_ALT */
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
-        if (mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE)) {
-            mbedtls_printf("  AES note: using VIA Padlock.\n");
-        } else
-#endif
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
 #if MBEDTLS_AESNI_HAVE_CODE == 1
         mbedtls_printf("  AES note: AESNI code present (assembly implementation).\n");
 #elif MBEDTLS_AESNI_HAVE_CODE == 2
         mbedtls_printf("  AES note: AESNI code present (intrinsics implementation).\n");
 #else
-#error Unrecognised value for MBEDTLS_AESNI_HAVE_CODE
+#error "Unrecognised value for MBEDTLS_AESNI_HAVE_CODE"
 #endif
         if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
             mbedtls_printf("  AES note: using AESNI.\n");
         } else
 #endif
-#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
-        if (mbedtls_aesce_has_support()) {
+#if defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)
+        if (mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE)) {
+            mbedtls_printf("  AES note: using VIA Padlock.\n");
+        } else
+#endif
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
+        if (MBEDTLS_AESCE_HAS_SUPPORT()) {
             mbedtls_printf("  AES note: using AESCE.\n");
         } else
 #endif
-        mbedtls_printf("  AES note: built-in implementation.\n");
+        {
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+            mbedtls_printf("  AES note: built-in implementation.\n");
+#endif
+        }
 #endif /* MBEDTLS_AES_ALT */
     }
 

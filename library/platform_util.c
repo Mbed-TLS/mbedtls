@@ -97,7 +97,8 @@
  * mbedtls_platform_zeroize() to use a suitable implementation for their
  * platform and needs.
  */
-#if !defined(MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO) && !defined(__STDC_LIB_EXT1__) \
+#if !defined(MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO) && !(defined(__STDC_LIB_EXT1__) && \
+    !defined(__IAR_SYSTEMS_ICC__)) \
     && !defined(_WIN32)
 static void *(*const volatile memset_func)(void *, int, size_t) = memset;
 #endif
@@ -118,16 +119,45 @@ void mbedtls_platform_zeroize(void *buf, size_t len)
          */
         __msan_unpoison(buf, len);
 #endif
-#elif defined(__STDC_LIB_EXT1__)
+#elif defined(__STDC_LIB_EXT1__) && !defined(__IAR_SYSTEMS_ICC__)
         memset_s(buf, len, 0, len);
 #elif defined(_WIN32)
         SecureZeroMemory(buf, len);
 #else
         memset_func(buf, 0, len);
 #endif
+
+#if defined(__GNUC__)
+        /* For clang and recent gcc, pretend that we have some assembly that reads the
+         * zero'd memory as an additional protection against being optimised away. */
+#if defined(__clang__) || (__GNUC__ >= 10)
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wvla"
+#elif defined(MBEDTLS_COMPILER_IS_GCC)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wvla"
+#endif
+        asm volatile ("" : : "m" (*(char (*)[len]) buf) :);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(MBEDTLS_COMPILER_IS_GCC)
+#pragma GCC diagnostic pop
+#endif
+#endif
+#endif
     }
 }
 #endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT */
+
+void mbedtls_zeroize_and_free(void *buf, size_t len)
+{
+    if (buf != NULL) {
+        mbedtls_platform_zeroize(buf, len);
+    }
+
+    mbedtls_free(buf);
+}
 
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)
 #include <time.h>
@@ -235,7 +265,7 @@ mbedtls_ms_time_t mbedtls_ms_time(void)
     struct timespec tv;
     mbedtls_ms_time_t current_ms;
 
-#if defined(__linux__)
+#if defined(__linux__) && defined(CLOCK_BOOTTIME)
     ret = clock_gettime(CLOCK_BOOTTIME, &tv);
 #else
     ret = clock_gettime(CLOCK_MONOTONIC, &tv);

@@ -81,11 +81,15 @@ def get_src_files(since: Optional[str]) -> List[str]:
                                      universal_newlines=True)
     src_files = output.split()
     if since:
-        output = subprocess.check_output(["git", "diff", "--name-only",
-                                          since, "--"] +
-                                         src_files,
-                                         universal_newlines=True)
-        src_files = output.split()
+        # get all files changed in commits since the starting point
+        cmd = ["git", "log", since + "..HEAD", "--name-only", "--pretty=", "--"] + src_files
+        output = subprocess.check_output(cmd, universal_newlines=True)
+        committed_changed_files = output.split()
+        # and also get all files with uncommitted changes
+        cmd = ["git", "diff", "--name-only", "--"] + src_files
+        output = subprocess.check_output(cmd, universal_newlines=True)
+        uncommitted_changed_files = output.split()
+        src_files = list(set(committed_changed_files + uncommitted_changed_files))
 
     generated_files = list_generated_files()
     # Don't correct style for third-party files (and, for simplicity,
@@ -189,9 +193,10 @@ def main() -> int:
     parser.add_argument('-f', '--fix', action='store_true',
                         help=('modify source files to fix the code style '
                               '(default: print diff, do not modify files)'))
-    parser.add_argument('-s', '--since', metavar='COMMIT',
+    parser.add_argument('-s', '--since', metavar='COMMIT', const='development', nargs='?',
                         help=('only check files modified since the specified commit'
-                              ' (e.g. --since=HEAD~3 or --since=development)'))
+                              ' (e.g. --since=HEAD~3 or --since=development). If no'
+                              ' commit is specified, default to development.'))
     # --subset is almost useless: it only matters if there are no files
     # ('code_style.py' without arguments checks all files known to Git,
     # 'code_style.py --subset' does nothing). In particular,

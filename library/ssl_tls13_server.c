@@ -408,7 +408,8 @@ static int ssl_tls13_select_ciphersuite_for_psk(
         /* MAC of selected ciphersuite MUST be same with PSK binder if exist.
          * Otherwise, client should reject.
          */
-        if (psk_hash_alg == mbedtls_md_psa_alg_from_type(ciphersuite_info->mac)) {
+        if (psk_hash_alg ==
+            mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) ciphersuite_info->mac)) {
             *selected_ciphersuite = cipher_suite;
             *selected_ciphersuite_info = ciphersuite_info;
             return 0;
@@ -614,7 +615,7 @@ static int ssl_tls13_parse_pre_shared_key_ext(
 
         ret = ssl_tls13_offered_psks_check_binder_match(
             ssl, binder, binder_len, psk_type,
-            mbedtls_md_psa_alg_from_type(ciphersuite_info->mac));
+            mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) ciphersuite_info->mac));
         if (ret != SSL_TLS1_3_OFFERED_PSK_MATCH) {
             /* For security reasons, the handshake should be aborted when we
              * fail to validate a binder value. See RFC 8446 section 4.2.11.2
@@ -838,7 +839,7 @@ static int ssl_tls13_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
 
 #define SSL_TLS1_3_PARSE_KEY_SHARES_EXT_NO_MATCH 1
 
-#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
 /*
  *  ssl_tls13_parse_key_shares_ext() verifies whether the information in the
  *  extension is correct and stores the first acceptable key share and its
@@ -941,7 +942,7 @@ static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
     }
     return 0;
 }
-#endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_client_hello_has_exts(mbedtls_ssl_context *ssl,
@@ -1565,7 +1566,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                 break;
 #endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH*/
 
-#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
             case MBEDTLS_TLS_EXT_KEY_SHARE:
                 MBEDTLS_SSL_DEBUG_MSG(3, ("found key share extension"));
 
@@ -1590,7 +1591,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                 }
 
                 break;
-#endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
 
             case MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS:
                 /* Already parsed */
@@ -1748,6 +1749,25 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     return hrr_required ? SSL_CLIENT_HELLO_HRR_REQUIRED : SSL_CLIENT_HELLO_OK;
 }
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
+{
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+
+    if ((handshake->received_extensions &
+         MBEDTLS_SSL_EXT_MASK(EARLY_DATA)) == 0) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("EarlyData: no early data extension received."));
+        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_RECEIVED;
+        return;
+    }
+
+    /* We do not accept early data for the time being */
+    ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED;
+
+}
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
 /* Update the handshake state machine */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -1773,6 +1793,11 @@ static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl)
                               "mbedtls_ssl_tls1_3_key_schedule_stage_early", ret);
         return ret;
     }
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    /* There is enough information, update early data state. */
+    ssl_tls13_update_early_data_status(ssl);
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
     return 0;
 
@@ -1920,7 +1945,7 @@ static int ssl_tls13_generate_and_write_key_share(mbedtls_ssl_context *ssl,
 
     *out_len = 0;
 
-#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(named_group) ||
         mbedtls_ssl_tls13_named_group_is_ffdh(named_group)) {
         ret = mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
@@ -1932,7 +1957,7 @@ static int ssl_tls13_generate_and_write_key_share(mbedtls_ssl_context *ssl,
             return ret;
         }
     } else
-#endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
     if (0 /* Other kinds of KEMs */) {
     } else {
         ((void) ssl);
@@ -2793,7 +2818,7 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
 
     ciphersuite_info =
         (mbedtls_ssl_ciphersuite_t *) ssl->handshake->ciphersuite_info;
-    psa_hash_alg = mbedtls_md_psa_alg_from_type(ciphersuite_info->mac);
+    psa_hash_alg = mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) ciphersuite_info->mac);
     hash_length = PSA_HASH_LENGTH(psa_hash_alg);
     if (hash_length == -1 ||
         (size_t) hash_length > sizeof(session->resumption_key)) {
@@ -3015,7 +3040,7 @@ int mbedtls_ssl_tls13_handshake_server_step(mbedtls_ssl_context *ssl)
     }
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("tls13 server state: %s(%d)",
-                              mbedtls_ssl_states_str(ssl->state),
+                              mbedtls_ssl_states_str((mbedtls_ssl_states) ssl->state),
                               ssl->state));
 
     switch (ssl->state) {

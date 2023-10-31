@@ -94,7 +94,7 @@ typedef struct {
  *
  * The union members are the driver's context structures, and the member names
  * are formatted as `'drivername'_ctx`. This allows for procedural generation
- * of both this file and the content of psa_crypto_driver_wrappers.c */
+ * of both this file and the content of psa_crypto_driver_wrappers.h */
 
 typedef union {
     unsigned dummy; /* Make sure this union is always non-empty */

@@ -33,12 +33,25 @@
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
 
 #if MBEDTLS_AESNI_HAVE_CODE == 2
-#if !defined(_WIN32)
+#if defined(__GNUC__)
 #include <cpuid.h>
-#else
+#elif defined(_MSC_VER)
 #include <intrin.h>
+#else
+#error "`__cpuid` required by MBEDTLS_AESNI_C is not supported by the compiler"
 #endif
 #include <immintrin.h>
+#endif
+
+#if defined(MBEDTLS_ARCH_IS_X86)
+#if defined(MBEDTLS_COMPILER_IS_GCC)
+#pragma GCC push_options
+#pragma GCC target ("pclmul,sse2,aes")
+#define MBEDTLS_POP_TARGET_PRAGMA
+#elif defined(__clang__)
+#pragma clang attribute push (__attribute__((target("pclmul,sse2,aes"))), apply_to=function)
+#define MBEDTLS_POP_TARGET_PRAGMA
+#endif
 #endif
 
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
@@ -52,7 +65,7 @@ int mbedtls_aesni_has_support(unsigned int what)
 
     if (!done) {
 #if MBEDTLS_AESNI_HAVE_CODE == 2
-        static unsigned info[4] = { 0, 0, 0, 0 };
+        static int info[4] = { 0, 0, 0, 0 };
 #if defined(_MSC_VER)
         __cpuid(info, 1);
 #else
@@ -187,7 +200,7 @@ void mbedtls_aesni_gcm_mult(unsigned char c[16],
                             const unsigned char a[16],
                             const unsigned char b[16])
 {
-    __m128i aa, bb, cc, dd;
+    __m128i aa = { 0 }, bb = { 0 }, cc, dd;
 
     /* The inputs are in big-endian order, so byte-reverse them */
     for (size_t i = 0; i < 16; i++) {
@@ -395,6 +408,15 @@ static void aesni_setkey_enc_256(unsigned char *rk_bytes,
     aesni_set_rk_256(rk[12], rk[13], _mm_aeskeygenassist_si128(rk[13], 0x40), &rk[14], &rk[15]);
 }
 #endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
+
+#if defined(MBEDTLS_POP_TARGET_PRAGMA)
+#if defined(__clang__)
+#pragma clang attribute pop
+#elif defined(__GNUC__)
+#pragma GCC pop_options
+#endif
+#undef MBEDTLS_POP_TARGET_PRAGMA
+#endif
 
 #else /* MBEDTLS_AESNI_HAVE_CODE == 1 */
 

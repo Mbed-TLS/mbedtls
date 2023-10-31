@@ -72,6 +72,7 @@ guess_config_name() {
 : ${MBEDTLS_TEST_OUTCOME_FILE=}
 : ${MBEDTLS_TEST_CONFIGURATION:="$(guess_config_name)"}
 : ${MBEDTLS_TEST_PLATFORM:="$(uname -s | tr -c \\n0-9A-Za-z _)-$(uname -m | tr -c \\n0-9A-Za-z _)"}
+: ${EARLY_DATA_INPUT:=data_files/tls13_early_data.txt}
 
 O_SRV="$OPENSSL s_server -www -cert data_files/server5.crt -key data_files/server5.key"
 O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL s_client"
@@ -2572,32 +2573,32 @@ run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA
 run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256
 run_test_psa TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384
 
-requires_config_enabled MBEDTLS_ECP_DP_SECP521R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_521
 run_test_psa_force_curve "secp521r1"
-requires_config_enabled MBEDTLS_ECP_DP_BP512R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_BRAINPOOL_P_R1_512
 run_test_psa_force_curve "brainpoolP512r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP384R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_384
 run_test_psa_force_curve "secp384r1"
-requires_config_enabled MBEDTLS_ECP_DP_BP384R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_BRAINPOOL_P_R1_384
 run_test_psa_force_curve "brainpoolP384r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_256
 run_test_psa_force_curve "secp256r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP256K1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_K1_256
 run_test_psa_force_curve "secp256k1"
-requires_config_enabled MBEDTLS_ECP_DP_BP256R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_BRAINPOOL_P_R1_256
 run_test_psa_force_curve "brainpoolP256r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP224R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_224
 run_test_psa_force_curve "secp224r1"
 ## SECP224K1 is buggy via the PSA API
 ## (https://github.com/Mbed-TLS/mbedtls/issues/3541),
 ## so it is disabled in PSA even when it's enabled in Mbed TLS.
 ## The proper dependency would be on PSA_WANT_ECC_SECP_K1_224 but
 ## dependencies on PSA symbols in ssl-opt.sh are not implemented yet.
-#requires_config_enabled MBEDTLS_ECP_DP_SECP224K1_ENABLED
+#requires_config_enabled PSA_WANT_ECC_SECP_K1_224
 #run_test_psa_force_curve "secp224k1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP192R1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_R1_192
 run_test_psa_force_curve "secp192r1"
-requires_config_enabled MBEDTLS_ECP_DP_SECP192K1_ENABLED
+requires_config_enabled PSA_WANT_ECC_SECP_K1_192
 run_test_psa_force_curve "secp192k1"
 
 # Test current time in ServerHello

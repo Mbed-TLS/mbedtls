@@ -1787,6 +1787,35 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
         return;
     }
 
+    /* RFC 8446 4.2.10
+     *
+     * In order to accept early data, the server MUST have accepted a PSK cipher
+     * suite and selected the first key offered in the client's "pre_shared_key"
+     * extension. In addition, it MUST verify that the following values are the
+     * same as those associated with the selected PSK:
+     * - The TLS version number
+     * - The selected cipher suite
+     * - The selected ALPN [RFC7301] protocol, if any
+     *
+     * NOTE:
+     *  - ALPN hasn't been checked.
+     *  - TLS version is checked in
+     *    ssl_tls13_offered_psks_check_identity_match_ticket()
+     */
+
+    if (handshake->selected_identity != 0) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("EarlyData: rejected, first psk key is not offered."));
+        return;
+    }
+
+    if (handshake->ciphersuite_info->id !=
+        ssl->session_negotiate->ciphersuite) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("EarlyData: rejected, selected ciphersuite mismatch."));
+        return;
+
+    }
 
     /* TODO: Add more checks here. */
 

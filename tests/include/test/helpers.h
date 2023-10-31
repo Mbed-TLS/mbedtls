@@ -61,14 +61,16 @@ typedef enum {
     MBEDTLS_TEST_RESULT_SKIPPED
 } mbedtls_test_result_t;
 
+#define MBEDTLS_TEST_LINE_LENGTH 76
+
 typedef struct {
     mbedtls_test_result_t result;
     const char *test;
     const char *filename;
     int line_no;
     unsigned long step;
-    char line1[76];
-    char line2[76];
+    char line1[MBEDTLS_TEST_LINE_LENGTH];
+    char line2[MBEDTLS_TEST_LINE_LENGTH];
 #if defined(MBEDTLS_TEST_MUTEX_USAGE)
     const char *mutex_usage_error;
 #endif

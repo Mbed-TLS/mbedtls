@@ -599,9 +599,11 @@ Since the memory poisoning tests will require the use of interfaces specific to 
 
 #### Validation of validation for copying
 
-To make sure that we can correctly detect functions that access their input/output buffers rather than the copies, it is necessary to write a test function that misbehaves and test it with memory poisoning. Specifically, the function should:
+To make sure that we can correctly detect functions that access their input/output buffers rather than the copies, it would be best to write a test function that misbehaves and test it with memory poisoning. Specifically, the function should:
 
 * Read its input buffer and after calling the input-buffer-copying function to create a local copy of its input.
 * Write to its output buffer before and after calling the output-buffer-copying function to copy-back its output.
 
-Then, write a test that uses this function with memory poisoning and ensure that it fails. Since we are expecting a failure due to memory-poisoning, run this test separately from the rest of the memory-poisoning testing.
+Then, we could write a test that uses this function with memory poisoning and ensure that it fails. Since we are expecting a failure due to memory-poisoning, we would run this test separately from the rest of the memory-poisoning testing.
+
+However, performing this testing automatically is not urgent. It will suffice to manually verify that the test framework works, automatic tests are a 'nice to have' feature that may be left to future work.

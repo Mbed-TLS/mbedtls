@@ -580,18 +580,6 @@ psa_status_t mem_poison_psa_aead_update(psa_aead_operation_t *operation,
 
 #define psa_aead_update(...) mem_poison_psa_aead_update(__VA_ARGS__)
 ```
-A header containing these wrappers should be auto-generated using a template and annotations to the input and output parameters to the PSA API. This will look something like the following:
-```c
-MBEDTLS_PSA_SHARED_BUFFER(input, input_length)
-MBEDTLS_PSA_SHARED_BUFFER(output, output_size)
-psa_status_t psa_aead_update(psa_aead_operation_t *operation,
-                             const uint8_t *input,
-                             size_t input_length,
-                             uint8_t *output,
-                             size_t output_size,
-                             size_t *output_length);
-```
-The `MBEDTLS_PSA_SHARED_BUFFER()` annotation expands to an empty expression but can be parsed by the wrapper generation script, which generates a new header file with the wrappers.
 
 #### Configuration of poisoning tests
 

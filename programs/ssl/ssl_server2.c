@@ -1421,22 +1421,23 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
         case 2:
             /* Callback function return ticket expired */
             return MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         case 3:
             /* Built-in check, the start time is in future. */
-            session->start = mbedtls_ms_time() + 10 * 1000;
+            session->ticket_creation = mbedtls_ms_time() + 10 * 1000;
             break;
         case 4:
             /* Built-in check, ticket expired due to too old. */
-            session->start = mbedtls_ms_time() - 10 * 1000 - 7 * 24 * 3600 * 1000;
+            session->ticket_creation = mbedtls_ms_time() - 10 * 1000 - 7 * 24 * 3600 * 1000;
             break;
         case 5:
             /* Built-in check, age outside tolerance window, too young. */
-            session->start = mbedtls_ms_time() - 10 * 1000;
+            session->ticket_creation = mbedtls_ms_time() - 10 * 1000;
             break;
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+
         case 6:
             /* Built-in check, age outside tolerance window, too old. */
-            session->start = mbedtls_ms_time();
+            session->ticket_creation = mbedtls_ms_time();
             session->ticket_age_add -= 1000;
             break;
         case 7:

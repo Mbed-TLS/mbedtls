@@ -330,7 +330,12 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 #endif
 #endif
 #if !defined(MBEDTLS_ASSUME)
+#if defined(_MSC_VER)
+/* Supported by MSVC since VS 2005 */
+#define MBEDTLS_ASSUME(x)       __assume(x)
+#else
 #define MBEDTLS_ASSUME(x)       do { } while (0)
+#endif
 #endif
 
 #if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \

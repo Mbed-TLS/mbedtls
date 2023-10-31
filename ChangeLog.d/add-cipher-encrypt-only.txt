@@ -1,7 +1,7 @@
 Features
    * Add support to remove xxx_setkey_dec and xxx_decrypt for cipher type of
      AES, ARIA, CAMELLIA and DES. This is achieved by implicitly enabling
-     MBEDTLS_CIPHER_ENCRYPT_ONLY when
+     MBEDTLS_BLOCK_CIPHER_NO_DECRYPT when
      - ECB and CBC cipher modes are not requested via the PSA API.
      - ECB, CBC, XTS and KW are not enabled in the legacy API.
      - DES is not requested in the PSA API and the legacy API.

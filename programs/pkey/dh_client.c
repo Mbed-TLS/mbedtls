@@ -57,10 +57,10 @@ int main(void)
     mbedtls_exit(0);
 }
 
-#elif defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#elif defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 int main(void)
 {
-    mbedtls_printf("MBEDTLS_CIPHER_ENCRYPT_ONLY implicitly defined.\n");
+    mbedtls_printf("MBEDTLS_BLOCK_CIPHER_NO_DECRYPT implicitly defined.\n");
     mbedtls_exit(0);
 }
 #else

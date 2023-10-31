@@ -167,7 +167,7 @@ MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
                            unsigned int keybits);
 
-#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 /**
  * \brief          This function sets the decryption key.
  *
@@ -186,7 +186,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
                            unsigned int keybits);
-#endif /* !MBEDTLS_CIPHER_ENCRYPT_ONLY */
+#endif /* !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
 /**
@@ -606,7 +606,7 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
                                  const unsigned char input[16],
                                  unsigned char output[16]);
 
-#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 /**
  * \brief           Internal AES block decryption function. This is only
  *                  exposed to allow overriding it using see
@@ -622,7 +622,7 @@ MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
                                  const unsigned char input[16],
                                  unsigned char output[16]);
-#endif /* !MBEDTLS_CIPHER_ENCRYPT_ONLY */
+#endif /* !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 
 #if defined(MBEDTLS_SELF_TEST)
 /**

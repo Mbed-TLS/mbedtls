@@ -93,7 +93,7 @@ struct mbedtls_cipher_base_t {
     int (*setkey_enc_func)(void *ctx, const unsigned char *key,
                            unsigned int key_bitlen);
 
-#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
     /** Set key for decryption purposes */
     int (*setkey_dec_func)(void *ctx, const unsigned char *key,
                            unsigned int key_bitlen);

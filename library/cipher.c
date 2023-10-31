@@ -386,7 +386,7 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
     ctx->key_bitlen = key_bitlen;
     ctx->operation = operation;
 
-#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
     /*
      * For OFB, CFB and CTR mode always use the encryption key schedule
      */

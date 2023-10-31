@@ -425,7 +425,7 @@ int mbedtls_aria_setkey_enc(mbedtls_aria_context *ctx,
 /*
  * Set decryption key
  */
-#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 int mbedtls_aria_setkey_dec(mbedtls_aria_context *ctx,
                             const unsigned char *key, unsigned int keybits)
 {
@@ -455,7 +455,7 @@ int mbedtls_aria_setkey_dec(mbedtls_aria_context *ctx,
 
     return 0;
 }
-#endif /* !MBEDTLS_CIPHER_ENCRYPT_ONLY */
+#endif /* !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 
 /*
  * Encrypt a block
@@ -886,12 +886,12 @@ int mbedtls_aria_self_test(int verbose)
         /* test ECB decryption */
         if (verbose) {
             mbedtls_printf("  ARIA-ECB-%d (dec): ", 128 + 64 * i);
-#if defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
             mbedtls_printf("skipped\n");
 #endif
         }
 
-#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
         mbedtls_aria_setkey_dec(&ctx, aria_test1_ecb_key, 128 + 64 * i);
         mbedtls_aria_crypt_ecb(&ctx, aria_test1_ecb_ct[i], blk);
         ARIA_SELF_TEST_ASSERT(

@@ -93,7 +93,7 @@ int mbedtls_camellia_setkey_enc(mbedtls_camellia_context *ctx,
                                 const unsigned char *key,
                                 unsigned int keybits);
 
-#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 /**
  * \brief          Perform a CAMELLIA key schedule operation for decryption.
  *
@@ -109,7 +109,7 @@ int mbedtls_camellia_setkey_enc(mbedtls_camellia_context *ctx,
 int mbedtls_camellia_setkey_dec(mbedtls_camellia_context *ctx,
                                 const unsigned char *key,
                                 unsigned int keybits);
-#endif /* !MBEDTLS_CIPHER_ENCRYPT_ONLY */
+#endif /* !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 
 /**
  * \brief          Perform a CAMELLIA-ECB block encryption/decryption operation.

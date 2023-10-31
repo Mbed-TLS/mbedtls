@@ -93,7 +93,7 @@ int mbedtls_aesni_crypt_ecb(mbedtls_aes_context *ctx,
     ++rk;
     --nr;
 
-#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
     if (mode == MBEDTLS_AES_ENCRYPT) {
         while (nr != 0) {
             state = _mm_aesenc_si128(state, *rk);
@@ -118,7 +118,7 @@ int mbedtls_aesni_crypt_ecb(mbedtls_aes_context *ctx,
         --nr;
     }
     state = _mm_aesenclast_si128(state, *rk);
-#endif /* !MBEDTLS_CIPHER_ENCRYPT_ONLY */
+#endif /* !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 
     memcpy(output, &state, 16);
     return 0;
@@ -228,7 +228,7 @@ void mbedtls_aesni_gcm_mult(unsigned char c[16],
 /*
  * Compute decryption round keys from encryption round keys
  */
-#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 void mbedtls_aesni_inverse_key(unsigned char *invkey,
                                const unsigned char *fwdkey, int nr)
 {
@@ -468,7 +468,7 @@ int mbedtls_aesni_crypt_ecb(mbedtls_aes_context *ctx,
          "jnz       1b              \n\t"
          "movdqu    (%1), %%xmm1    \n\t" // load round key
          AESENCLAST(xmm1_xmm0)            // last round
-#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
          "jmp       3f              \n\t"
 
          "2:                        \n\t" // decryption loop
@@ -606,7 +606,7 @@ void mbedtls_aesni_gcm_mult(unsigned char c[16],
 /*
  * Compute decryption round keys from encryption round keys
  */
-#if !defined(MBEDTLS_CIPHER_ENCRYPT_ONLY)
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 void mbedtls_aesni_inverse_key(unsigned char *invkey,
                                const unsigned char *fwdkey, int nr)
 {

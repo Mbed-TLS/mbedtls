@@ -8464,4 +8464,49 @@ psa_status_t psa_crypto_copy_output(const uint8_t *output_copy, size_t output_co
     return PSA_SUCCESS;
 }
 
+psa_status_t psa_crypto_alloc_and_copy(const uint8_t *input, size_t input_len,
+                                       uint8_t *output, size_t output_len,
+                                       psa_crypto_buffer_copy_t *buffers)
+{
+    psa_status_t ret;
+    /* Zeroize the buffers struct to ensure we can call free()
+     * on any pointers safely. */
+    memset(buffers, 0, sizeof(*buffers));
+
+    if (output != NULL) {
+        buffers->output = mbedtls_calloc(output_len, 1);
+        if (buffers->output == NULL) {
+            ret = PSA_ERROR_INSUFFICIENT_MEMORY;
+            goto error;
+        }
+        buffers->output_len = output_len;
+
+        buffers->output_original = output;
+    }
+
+    if (input != NULL) {
+        buffers->input = mbedtls_calloc(input_len, 1);
+        if (buffers->input == NULL) {
+            ret = PSA_ERROR_INSUFFICIENT_MEMORY;
+            goto error;
+        }
+        buffers->input_len = input_len;
+
+        if (psa_crypto_copy_input(input, input_len,
+                                  buffers->input, buffers->input_len)
+            != PSA_SUCCESS) {
+            ret = PSA_ERROR_CORRUPTION_DETECTED;
+            goto error;
+        }
+    }
+
+    return PSA_SUCCESS;
+
+error:
+    mbedtls_free(buffers->input);
+    mbedtls_free(buffers->output);
+    memset(buffers, 0, sizeof(*buffers));
+    return ret;
+}
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

@@ -500,7 +500,7 @@ requires_gnutls_next
 requires_all_configs_enabled MBEDTLS_SSL_EARLY_DATA MBEDTLS_SSL_SESSION_TICKETS     \
                              MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME    \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_ECP_LIGHT
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 G->m: EarlyData: feature is disabled, fail." \
@@ -513,17 +513,19 @@ run_test "TLS 1.3 G->m: EarlyData: feature is disabled, fail." \
          -s "Last error was: -29056 - SSL - Verification of the message MAC failed"
 
 requires_gnutls_next
+
 requires_all_configs_enabled MBEDTLS_SSL_EARLY_DATA MBEDTLS_SSL_SESSION_TICKETS \
                              MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME \
-                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_ECP_LIGHT
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 G->m: EarlyData: psk*: feature is enabled, fail." \
-         "$P_SRV force_version=tls13 debug_level=4 max_early_data_size=$EARLY_DATA_INPUT_LEN $(get_srv_psk_list)" \
-         "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+GROUP-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK \
-                      -d 10 -r --earlydata $EARLY_DATA_INPUT \
-                      --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70" \
+run_test "TLS 1.3 G->m: EarlyData: feature is enabled, fail." \
+         "$P_SRV force_version=tls13 debug_level=4 max_early_data_size=$EARLY_DATA_INPUT_LEN" \
+         "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+GROUP-ALL:+KX-ALL \
+                      -d 10 -r --earlydata $EARLY_DATA_INPUT " \
          1 \
          -s "ClientHello: early_data(42) extension exists."                 \
          -s "EncryptedExtensions: early_data(42) extension exists."         \
-         -s "NewSessionTicket: early_data(42) extension does not exist."
+         -s "NewSessionTicket: early_data(42) extension does not exist."    \
+         -s "Last error was: -29056 - SSL - Verification of the message MAC failed"

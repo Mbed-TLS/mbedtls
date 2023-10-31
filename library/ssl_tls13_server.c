@@ -1767,31 +1767,24 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
 
     if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_DISABLED) {
         MBEDTLS_SSL_DEBUG_MSG(
-            1, ("EarlyData: rejected. configured disabled."));
-        return;
-    }
-
-    MBEDTLS_SSL_DEBUG_MSG(
-        3, ("EarlyData: conf->max_early_data_size = %u",
-            (unsigned int) ssl->conf->max_early_data_size));
-
-    if (!mbedtls_ssl_conf_tls13_some_psk_enabled(ssl)) {
-        MBEDTLS_SSL_DEBUG_MSG(
             1,
-            ("EarlyData: rejected. psk or psk_ephemeral is not available."));
+            ("EarlyData: rejected, feature disabled in server configuration."));
         return;
     }
 
-    if (handshake && handshake->resume != 1) {
+    if (!handshake->resume) {
+        /* We currently support early data only in the case of PSKs established
+           via a NewSessionTicket message thus in the case of a session
+           resumption. */
         MBEDTLS_SSL_DEBUG_MSG(
-            1, ("EarlyData: rejected. not resumption session."));
+            1, ("EarlyData: rejected, not resumption session."));
         return;
     }
 
     if (session->tls_version != MBEDTLS_SSL_VERSION_TLS1_3) {
         MBEDTLS_SSL_DEBUG_MSG(
             1,
-            ("EarlyData: rejected. not a TLS 1.3 ticket."));
+            ("EarlyData: rejected, not a TLS 1.3 ticket."));
         return;
     }
 

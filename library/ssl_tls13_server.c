@@ -159,6 +159,13 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     /* We delete the temporary buffer */
     mbedtls_free(ticket_buffer);
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if (ret == 0 && session->tls_version != MBEDTLS_SSL_VERSION_TLS1_3) {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("ticket version invalid."));
+        ret = MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
+    }
+#endif
+
     if (ret != 0) {
         goto exit;
     }
@@ -1752,7 +1759,6 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
 {
-    mbedtls_ssl_session *session = ssl->session_negotiate;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
     if ((handshake->received_extensions &
@@ -1781,12 +1787,6 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
         return;
     }
 
-    if (session->tls_version != MBEDTLS_SSL_VERSION_TLS1_3) {
-        MBEDTLS_SSL_DEBUG_MSG(
-            1,
-            ("EarlyData: rejected, not a TLS 1.3 ticket."));
-        return;
-    }
 
     /* TODO: Add more checks here. */
 

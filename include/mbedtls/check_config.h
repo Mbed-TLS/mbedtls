@@ -192,6 +192,16 @@
 cannot be defined simultaneously"
 #endif
 
+#if defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT) && \
+    defined(MBEDTLS_PSA_CRYPTO_CONFIG) && \
+    (defined(PSA_WANT_ALG_CBC_NO_PADDING) || \
+     defined(PSA_WANT_ALG_CBC_PKCS7) || \
+     defined(PSA_WANT_ALG_ECB_NO_PADDING) || \
+     defined(PSA_WANT_KEY_TYPE_DES))
+#error "MBEDTLS_BLOCK_CIPHER_NO_DECRYPT, MBEDTLS_PSA_CRYPTO_CONFIG and \
+PSA_WANT_ALG_CBC_NO_PADDING/PSA_WANT_ALG_CBC_PKCS7/PSA_WANT_ALG_ECB_NO_PADDING/PSA_WANT_KEY_TYPE_DES cannot be defined simultaneously"
+#endif
+
 #if defined(MBEDTLS_ECDH_C) && !defined(MBEDTLS_ECP_C)
 #error "MBEDTLS_ECDH_C defined, but not all prerequisites"
 #endif

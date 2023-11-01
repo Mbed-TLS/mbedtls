@@ -60,7 +60,7 @@ int main(void)
 #elif defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 int main(void)
 {
-    mbedtls_printf("MBEDTLS_BLOCK_CIPHER_NO_DECRYPT implicitly defined.\n");
+    mbedtls_printf("MBEDTLS_BLOCK_CIPHER_NO_DECRYPT defined.\n");
     mbedtls_exit(0);
 }
 #else

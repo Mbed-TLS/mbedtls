@@ -8519,4 +8519,18 @@ error:
     return ret;
 }
 
+psa_status_t psa_crypto_copy_and_free(psa_crypto_buffer_copy_t *buffers)
+{
+    if (buffers->output != NULL) {
+        memcpy(buffers->output_original, buffers->output, buffers->output_len);
+    }
+
+    mbedtls_free(buffers->input);
+    buffers->input = NULL;
+    mbedtls_free(buffers->output);
+    buffers->output = NULL;
+
+    return PSA_SUCCESS;
+}
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

@@ -8522,6 +8522,12 @@ error:
 psa_status_t psa_crypto_copy_and_free(psa_crypto_buffer_copy_t *buffers)
 {
     if (buffers->output != NULL) {
+        if (buffers->output_original == NULL) {
+            /* Output is non-NULL but original output is NULL. The argument
+             * buffers is invalid. Return an error as we have no original to
+             * copy back to. */
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
         memcpy(buffers->output_original, buffers->output, buffers->output_len);
     }
 

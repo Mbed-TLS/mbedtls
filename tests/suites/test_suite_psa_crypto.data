@@ -7466,3 +7466,9 @@ psa_crypto_copy_and_free:1:0:0:20:0:PSA_SUCCESS
 
 PSA buffers copy and free, null output
 psa_crypto_copy_and_free:0:20:1:0:0:PSA_SUCCESS
+
+PSA buffers copy and free, null output_original
+psa_crypto_copy_and_free:0:20:0:20:1:PSA_ERROR_INVALID_ARGUMENT
+
+PSA buffers copy and free, null output_original and null output
+psa_crypto_copy_and_free:0:20:1:0:1:PSA_SUCCESS

@@ -7457,3 +7457,12 @@ psa_crypto_alloc_and_copy_zero_length:0:1
 
 PSA buffers alloc and copy both zero length
 psa_crypto_alloc_and_copy_zero_length:1:1
+
+PSA buffers copy and free
+psa_crypto_copy_and_free:0:20:0:20:0:PSA_SUCCESS
+
+PSA buffers copy and free, null input
+psa_crypto_copy_and_free:1:0:0:20:0:PSA_SUCCESS
+
+PSA buffers copy and free, null output
+psa_crypto_copy_and_free:0:20:1:0:0:PSA_SUCCESS

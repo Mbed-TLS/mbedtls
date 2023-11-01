@@ -10446,3 +10446,74 @@ exit:
     mbedtls_free(buffer_copies.output);
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void psa_crypto_copy_and_free(int input_null, int input_len,
+                              int output_null, int output_len,
+                              int orig_output_null,
+                              int exp_ret)
+{
+    uint8_t data[] = {0x12, 0x34, 0x56, 0x78};
+    psa_crypto_buffer_copy_t buffer_copies = { 0 };
+
+    uint8_t *input = NULL;
+    uint8_t *output = NULL;
+    uint8_t *output_for_comparison = NULL;
+    uint8_t *orig_output = NULL;
+    size_t calloc_len;
+    psa_status_t ret;
+
+    if (!input_null) {
+        /* If zero-length, ensure we actually allocate something
+         * rather than getting NULL. */
+        calloc_len = input_len == 0 ? 1 : input_len;
+        TEST_CALLOC(input, calloc_len);
+    }
+    if (!output_null) {
+        /* If zero-length, ensure we actually allocate something
+         * rather than getting NULL. */
+        calloc_len = output_len == 0 ? 1 : output_len;
+        TEST_CALLOC(output, calloc_len);
+        TEST_CALLOC(output_for_comparison, calloc_len);
+
+        for (int i = 0; i < output_len; i++) {
+            output[i] = data[i % sizeof(data)];
+        }
+        /* We expect the output buffer to be freed, so keep a copy
+         * for comparison. */
+        memcpy(output_for_comparison, output, output_len);
+    }
+    if (!orig_output_null) {
+        /* If zero-length, ensure we actually allocate something
+         * rather than getting NULL. */
+        calloc_len = output_len == 0 ? 1 : output_len;
+        TEST_CALLOC(orig_output, calloc_len);
+    }
+
+    buffer_copies.input = input;
+    buffer_copies.input_len = input_len;
+    buffer_copies.output = output;
+    buffer_copies.output_len = output_len;
+    buffer_copies.output_original = orig_output;
+
+    ret = psa_crypto_copy_and_free(&buffer_copies);
+
+    TEST_EQUAL((int) ret, exp_ret);
+
+    if (exp_ret == PSA_SUCCESS) {
+        TEST_ASSERT(buffer_copies.input == NULL);
+        TEST_ASSERT(buffer_copies.output == NULL);
+
+        if (!output_null) {
+            TEST_MEMORY_COMPARE(output_for_comparison, output_len,
+                                buffer_copies.output_original, buffer_copies.output_len);
+        }
+    }
+
+exit:
+    mbedtls_free(buffer_copies.input);
+    mbedtls_free(buffer_copies.output);
+    mbedtls_free(output_for_comparison);
+    mbedtls_free(orig_output);
+}
+/* END_CASE */

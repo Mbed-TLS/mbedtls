@@ -508,7 +508,8 @@ class StorageFormat:
             key.alg.string, key.alg2.string,
         )
         dependencies = psa_information.finish_family_dependencies(dependencies, key.bits)
-        dependencies += psa_information.generate_key_dependencies(key.description)
+        dependencies = psa_information.generate_description_dependencies(dependencies,
+                                                                         key.description)
         dependencies = psa_information.fix_key_pair_dependencies(dependencies, 'BASIC')
         tc.set_dependencies(dependencies)
         tc.set_function('key_storage_' + verb)

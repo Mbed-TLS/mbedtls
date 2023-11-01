@@ -1022,6 +1022,8 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
 
     MBEDTLS_SSL_DEBUG_BUF(3, "pre_shared_key identities", buf, p - buf);
 
+    mbedtls_ssl_tls13_set_hs_sent_ext_mask(ssl, MBEDTLS_TLS_EXT_PRE_SHARED_KEY);
+
     return 0;
 }
 

@@ -293,14 +293,13 @@ static psa_status_t psa_mac_setup(mbedtls_psa_mac_operation_t *operation,
         return PSA_ERROR_BAD_STATE;
     }
 
-    /* Force truncation for the MAC algorithm so that we can get the expected
+    /* Save the truncation for the MAC algorithm so that we can get the expected
      * output mac length when the psa_mac_finish_internal() function gets
-     * called. This may be done via PSA_MAC_TRUNCATED_LENGTH(operation->alg).
+     * called.
      */
-    size_t length = PSA_MAC_LENGTH(psa_get_key_type(attributes),
-                                   psa_get_key_bits(attributes),
-                                   alg);
-    alg = PSA_ALG_TRUNCATED_MAC(alg, length);
+    operation->truncation_length = PSA_MAC_LENGTH(psa_get_key_type(attributes),
+                                                  psa_get_key_bits(attributes),
+                                                  alg);
 
     status = mac_init(operation, alg);
     if (status != PSA_SUCCESS) {
@@ -395,16 +394,7 @@ static psa_status_t psa_mac_finish_internal(
     uint8_t *mac, size_t mac_size, size_t *mac_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
-    size_t actual_mac_length = PSA_MAC_TRUNCATED_LENGTH(operation->alg);
-    /* We know that operation->alg is truncated after the mac setup function has
-     * been called. Hence, if the PSA_MAC_TRUNCATED_LENGTH returns 0  this means
-     * that the mac length should be 64 as specified in the definition of
-     * PSA_ALG_MAC_TRUNCATION_MASK
-     */
-    if (actual_mac_length == 0) {
-        actual_mac_length = 64;
-    }
+    size_t actual_mac_length = operation->truncation_length;
 
     if (mac_size < actual_mac_length) {
         return PSA_ERROR_BUFFER_TOO_SMALL;

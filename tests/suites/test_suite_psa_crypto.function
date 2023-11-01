@@ -10430,8 +10430,16 @@ void psa_crypto_alloc_and_copy_zero_length(int input_zero_length,
                                                  &buffer_copies);
     TEST_EQUAL(ret, PSA_SUCCESS);
 
-    TEST_MEMORY_COMPARE(input_buffer, input_len, buffer_copies.input, buffer_copies.input_len);
-    TEST_EQUAL(output_len, buffer_copies.output_len);
+    if (input_zero_length) {
+        TEST_ASSERT(buffer_copies.input == NULL);
+    } else {
+        TEST_MEMORY_COMPARE(input_buffer, input_len, buffer_copies.input, buffer_copies.input_len);
+    }
+    if (output_zero_length) {
+        TEST_ASSERT(buffer_copies.output == NULL);
+    } else {
+        TEST_EQUAL(output_len, buffer_copies.output_len);
+    }
 
 exit:
     mbedtls_free(buffer_copies.input);

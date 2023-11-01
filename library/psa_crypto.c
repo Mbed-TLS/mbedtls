@@ -8473,6 +8473,16 @@ psa_status_t psa_crypto_alloc_and_copy(const uint8_t *input, size_t input_len,
      * on any pointers safely. */
     memset(buffers, 0, sizeof(*buffers));
 
+    /* Since calloc() may return NULL if we try to allocate zero-length
+     * buffers anyway, deal with this corner case explicitly to ensure
+     * predictable behaviour. Represent zero-length buffers as NULL. */
+    if (input_len == 0) {
+        input = NULL;
+    }
+    if (output_len == 0) {
+        output = NULL;
+    }
+
     if (output != NULL) {
         buffers->output = mbedtls_calloc(output_len, 1);
         if (buffers->output == NULL) {

@@ -4488,7 +4488,7 @@ component_test_aes_fewer_tables_and_rom_tables () {
     make test
 }
 
-component_test_block_cipher_no_decrypt_aesni () {
+component_test_block_cipher_no_decrypt_aesni_legacy () {
     # enable BLOCK_CIPHER_NO_DECRYPT and disable its incompatible configs
     scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
@@ -4554,13 +4554,144 @@ component_test_block_cipher_no_decrypt_aesni () {
     programs/test/selftest
 }
 
-component_test_block_cipher_no_decrypt_aesni_m32 () {
+component_test_block_cipher_no_decrypt_aesni_use_psa () {
     # enable BLOCK_CIPHER_NO_DECRYPT and disable its incompatible configs
     scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
     scripts/config.py unset MBEDTLS_DES_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
+
+    # Enable support for cryptographic mechanisms through the PSA API.
+    # Note: XTS, KW are not yet supported via the PSA API in Mbed TLS.
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_DES
+
+    # test AESNI intrinsics
+    scripts/config.py set MBEDTLS_AESNI_C
+    msg "build: default config + BLOCK_CIPHER_NO_DECRYPT with AESNI intrinsics"
+    make clean
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
+
+    # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
+    not grep mbedtls_aes_setkey_dec library/aes.o
+    not grep mbedtls_aria_setkey_dec library/aria.o
+    not grep mbedtls_camellia_setkey_dec library/camellia.o
+    # Make sure we don't have mbedtls_internal_aes_decrypt in AES
+    not grep mbedtls_internal_aes_decrypt library/aes.o
+
+    msg "test: default config + BLOCK_CIPHER_NO_DECRYPT with AESNI intrinsics"
+    make test
+
+    msg "selftest: default config + BLOCK_CIPHER_NO_DECRYPT with AESNI intrinsics"
+    programs/test/selftest
+
+    # test AESNI assembly
+    scripts/config.py set MBEDTLS_AESNI_C
+    msg "build: default config + BLOCK_CIPHER_NO_DECRYPT with AESNI assembly"
+    make clean
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mno-pclmul -mno-sse2 -mno-aes'
+
+    # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
+    not grep mbedtls_aes_setkey_dec library/aes.o
+    not grep mbedtls_aria_setkey_dec library/aria.o
+    not grep mbedtls_camellia_setkey_dec library/camellia.o
+    # Make sure we don't have mbedtls_internal_aes_decrypt in AES
+    not grep mbedtls_internal_aes_decrypt library/aes.o
+
+    msg "test: default config + BLOCK_CIPHER_NO_DECRYPT with AESNI assembly"
+    make test
+
+    msg "selftest: default config + BLOCK_CIPHER_NO_DECRYPT with AESNI assembly"
+    programs/test/selftest
+
+    # test AES C implementation
+    msg "build: default config + BLOCK_CIPHER_NO_DECRYPT with AES C Implementation"
+    scripts/config.py unset MBEDTLS_AESNI_C
+    make clean
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+
+    # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
+    not grep mbedtls_aes_setkey_dec library/aes.o
+    not grep mbedtls_aria_setkey_dec library/aria.o
+    not grep mbedtls_camellia_setkey_dec library/camellia.o
+    # Make sure we don't have mbedtls_internal_aes_decrypt in AES
+    not grep mbedtls_internal_aes_decrypt library/aes.o
+
+    msg "test: default config + BLOCK_CIPHER_NO_DECRYPT with AES C Implementation"
+    make test
+
+    msg "selftest: default config + BLOCK_CIPHER_NO_DECRYPT with AES C Implementation"
+    programs/test/selftest
+}
+
+component_test_block_cipher_no_decrypt_aesni_m32_legacy () {
+    # enable BLOCK_CIPHER_NO_DECRYPT and disable its incompatible configs
+    scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+    scripts/config.py unset MBEDTLS_DES_C
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+
+    # test AESNI intrinsics for i386 with VIA PADLOCK
+    scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py set MBEDTLS_PADLOCK_C
+    msg "build: default config + BLOCK_CIPHER_NO_DECRYPT for i386 with VIA PADLOCK"
+    make clean
+    make CC=gcc LDFLAGS='-m32' CFLAGS='-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes'
+
+    # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
+    not grep mbedtls_aes_setkey_dec library/aes.o
+    not grep mbedtls_aria_setkey_dec library/aria.o
+    not grep mbedtls_camellia_setkey_dec library/camellia.o
+    # Make sure we don't have mbedtls_internal_aes_decrypt in AES
+    not grep mbedtls_internal_aes_decrypt library/aes.o
+
+    msg "test: default config + BLOCK_CIPHER_NO_DECRYPT for i386 with VIA PADLOCK"
+    make test
+
+    msg "selftest: default config + BLOCK_CIPHER_NO_DECRYPT for i386 with VIA PADLOCK"
+    programs/test/selftest
+
+    # test AESNI intrinsics for i386 without VIA PADLOCK
+    scripts/config.py set MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_PADLOCK_C
+    msg "build: default config + BLOCK_CIPHER_NO_DECRYPT for i386 without VIA PADLOCK"
+    make clean
+    make CC=gcc LDFLAGS='-m32' CFLAGS='-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes'
+
+    # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
+    not grep mbedtls_aes_setkey_dec library/aes.o
+    not grep mbedtls_aria_setkey_dec library/aria.o
+    not grep mbedtls_camellia_setkey_dec library/camellia.o
+    # Make sure we don't have mbedtls_internal_aes_decrypt in AES
+    not grep mbedtls_internal_aes_decrypt library/aes.o
+
+    msg "test: default config + BLOCK_CIPHER_NO_DECRYPT for i386 without VIA PADLOCK"
+    make test
+
+    msg "selftest: default config + BLOCK_CIPHER_NO_DECRYPT for i386 without VIA PADLOCK"
+    programs/test/selftest
+}
+
+component_test_block_cipher_no_decrypt_aesni_m32_use_psa () {
+    # enable BLOCK_CIPHER_NO_DECRYPT and disable its incompatible configs
+    scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+    scripts/config.py unset MBEDTLS_DES_C
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+
+    # Enable support for cryptographic mechanisms through the PSA API.
+    # Note: XTS, KW are not yet supported via the PSA API in Mbed TLS.
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_DES
 
     # test AESNI intrinsics for i386 with VIA PADLOCK
     scripts/config.py set MBEDTLS_AESNI_C

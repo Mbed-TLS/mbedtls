@@ -1625,7 +1625,6 @@ static int des3_crypt_cbc_wrap(void *ctx, mbedtls_operation_t operation, size_t 
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 static int des_setkey_dec_wrap(void *ctx, const unsigned char *key,
                                unsigned int key_bitlen)
 {
@@ -1633,7 +1632,6 @@ static int des_setkey_dec_wrap(void *ctx, const unsigned char *key,
 
     return mbedtls_des_setkey_dec((mbedtls_des_context *) ctx, key);
 }
-#endif
 
 static int des_setkey_enc_wrap(void *ctx, const unsigned char *key,
                                unsigned int key_bitlen)
@@ -1643,7 +1641,6 @@ static int des_setkey_enc_wrap(void *ctx, const unsigned char *key,
     return mbedtls_des_setkey_enc((mbedtls_des_context *) ctx, key);
 }
 
-#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 static int des3_set2key_dec_wrap(void *ctx, const unsigned char *key,
                                  unsigned int key_bitlen)
 {
@@ -1651,7 +1648,6 @@ static int des3_set2key_dec_wrap(void *ctx, const unsigned char *key,
 
     return mbedtls_des3_set2key_dec((mbedtls_des3_context *) ctx, key);
 }
-#endif
 
 static int des3_set2key_enc_wrap(void *ctx, const unsigned char *key,
                                  unsigned int key_bitlen)
@@ -1661,7 +1657,6 @@ static int des3_set2key_enc_wrap(void *ctx, const unsigned char *key,
     return mbedtls_des3_set2key_enc((mbedtls_des3_context *) ctx, key);
 }
 
-#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 static int des3_set3key_dec_wrap(void *ctx, const unsigned char *key,
                                  unsigned int key_bitlen)
 {
@@ -1669,7 +1664,6 @@ static int des3_set3key_dec_wrap(void *ctx, const unsigned char *key,
 
     return mbedtls_des3_set3key_dec((mbedtls_des3_context *) ctx, key);
 }
-#endif
 
 static int des3_set3key_enc_wrap(void *ctx, const unsigned char *key,
                                  unsigned int key_bitlen)
@@ -1740,9 +1734,7 @@ static const mbedtls_cipher_base_t des_info = {
     NULL,
 #endif
     des_setkey_enc_wrap,
-#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
     des_setkey_dec_wrap,
-#endif
     des_ctx_alloc,
     des_ctx_free
 };
@@ -1793,9 +1785,7 @@ static const mbedtls_cipher_base_t des_ede_info = {
     NULL,
 #endif
     des3_set2key_enc_wrap,
-#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
     des3_set2key_dec_wrap,
-#endif
     des3_ctx_alloc,
     des3_ctx_free
 };
@@ -1846,9 +1836,7 @@ static const mbedtls_cipher_base_t des_ede3_info = {
     NULL,
 #endif
     des3_set3key_enc_wrap,
-#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
     des3_set3key_dec_wrap,
-#endif
     des3_ctx_alloc,
     des3_ctx_free
 };

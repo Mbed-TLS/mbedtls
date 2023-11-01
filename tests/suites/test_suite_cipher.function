@@ -173,14 +173,18 @@ void cipher_invalid_param_unconditional()
     unsigned char valid_buffer[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
     int valid_size = sizeof(valid_buffer);
     int valid_bitlen = valid_size * 8;
-    const mbedtls_cipher_info_t *valid_info = mbedtls_cipher_info_from_type(
-        *(mbedtls_cipher_list()));
+    const int *cipher_list = mbedtls_cipher_list();
+    const mbedtls_cipher_info_t *valid_info;
     size_t size_t_var;
 
     (void) valid_mode; /* In some configurations this is unused */
 
     mbedtls_cipher_init(&valid_ctx);
     mbedtls_cipher_init(&invalid_ctx);
+
+    /* Ensure that there is at least 1 supported cipher, otherwise exit gracefully */
+    TEST_ASSUME(*cipher_list != 0);
+    valid_info = mbedtls_cipher_info_from_type(*cipher_list);
 
     TEST_ASSERT(mbedtls_cipher_setup(&valid_ctx, valid_info) == 0);
 

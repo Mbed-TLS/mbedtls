@@ -4,7 +4,7 @@ Migrating to an auto generated psa_crypto_driver_wrappers.h file
 This document describes how to migrate to the auto generated psa_crypto_driver_wrappers.h file.
 It is meant to give the library user migration guidelines while the Mbed TLS project tides over multiple minor revs of version 1.0, after which this will be merged into psa-driver-interface.md.
 
-For a practical guide with a description of the current state of drivers Mbed TLS, see our [PSA Cryptoprocessor driver development examples](../psa-driver-example-and-guide.html).
+For a practical guide with a description of the current state of drivers Mbed TLS, see our [PSA Cryptoprocessor driver development examples](../psa-driver-example-and-guide.md).
 
 ## Introduction
 

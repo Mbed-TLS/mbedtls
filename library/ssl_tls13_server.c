@@ -1749,6 +1749,25 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     return hrr_required ? SSL_CLIENT_HELLO_HRR_REQUIRED : SSL_CLIENT_HELLO_OK;
 }
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
+{
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+
+    if ((handshake->received_extensions &
+         MBEDTLS_SSL_EXT_MASK(EARLY_DATA)) == 0) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("EarlyData: no early data extension received."));
+        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_RECEIVED;
+        return;
+    }
+
+    /* We do not accept early data for the time being */
+    ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED;
+
+}
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
 /* Update the handshake state machine */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -1774,6 +1793,11 @@ static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl)
                               "mbedtls_ssl_tls1_3_key_schedule_stage_early", ret);
         return ret;
     }
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    /* There is enough information, update early data state. */
+    ssl_tls13_update_early_data_status(ssl);
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
     return 0;
 

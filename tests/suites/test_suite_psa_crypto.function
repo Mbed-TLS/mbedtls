@@ -5749,3 +5749,29 @@ exit:
     mbedtls_free(buffer_copies.output);
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void psa_crypto_alloc_and_copy_zero_length(int input_zero_length,
+                                           int output_zero_length)
+{
+    uint8_t input_buffer[] = { 0x12 };
+    uint8_t output_buffer[] = { 0x34 };
+
+    psa_crypto_buffer_copy_t buffer_copies;
+
+    size_t input_len = input_zero_length ? 0 : 1;
+    size_t output_len = output_zero_length ? 0 : 1;
+
+    psa_status_t ret = psa_crypto_alloc_and_copy(input_buffer, input_len,
+                                                 output_buffer, output_len,
+                                                 &buffer_copies);
+    TEST_EQUAL(ret, PSA_SUCCESS);
+
+    TEST_MEMORY_COMPARE(input_buffer, input_len, buffer_copies.input, buffer_copies.input_len);
+    TEST_EQUAL(output_len, buffer_copies.output_len);
+
+exit:
+    mbedtls_free(buffer_copies.input);
+    mbedtls_free(buffer_copies.output);
+}
+/* END_CASE */

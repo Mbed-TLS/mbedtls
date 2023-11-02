@@ -43,27 +43,19 @@ inline static int mbedtls_ecp_group_cmp(mbedtls_ecp_group *grp1,
     if (grp1->nbits != grp2->nbits) {
         return 1;
     }
-    if (grp1->h != grp2->h) {
+    if (grp1->a_b_g_static != grp2->a_b_g_static) {
         return 1;
     }
     if (grp1->modp != grp2->modp) {
         return 1;
     }
-    if (grp1->t_pre != grp2->t_pre) {
-        return 1;
-    }
-    if (grp1->t_post != grp2->t_post) {
-        return 1;
-    }
-    if (grp1->t_data != grp2->t_data) {
-        return 1;
-    }
-    if (grp1->T_size != grp2->T_size) {
-        return 1;
-    }
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) && \
+    MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
+    /* Comparing pointers: will either be NULL or point to a static table. */
     if (grp1->T != grp2->T) {
         return 1;
     }
+#endif
 
     return 0;
 }

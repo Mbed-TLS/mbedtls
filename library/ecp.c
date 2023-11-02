@@ -531,13 +531,12 @@ void mbedtls_ecp_group_init(mbedtls_ecp_group *grp)
     mbedtls_mpi_init(&grp->N);
     grp->pbits = 0;
     grp->nbits = 0;
-    grp->h = 0;
+    grp->a_b_g_static = 0;
     grp->modp = NULL;
-    grp->t_pre = NULL;
-    grp->t_post = NULL;
-    grp->t_data = NULL;
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) && \
+    MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
     grp->T = NULL;
-    grp->T_size = 0;
+#endif
 }
 
 /*
@@ -565,30 +564,15 @@ void mbedtls_ecp_point_free(mbedtls_ecp_point *pt)
 }
 
 /*
- * Check that the comb table (grp->T) is static initialized.
- */
-static int ecp_group_is_static_comb_table(const mbedtls_ecp_group *grp)
-{
-#if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
-    return grp->T != NULL && grp->T_size == 0;
-#else
-    (void) grp;
-    return 0;
-#endif
-}
-
-/*
  * Unallocate (the components of) a group
  */
 void mbedtls_ecp_group_free(mbedtls_ecp_group *grp)
 {
-    size_t i;
-
     if (grp == NULL) {
         return;
     }
 
-    if (grp->h != 1) {
+    if (grp->a_b_g_static != 1) {
         mbedtls_mpi_free(&grp->A);
         mbedtls_mpi_free(&grp->B);
         mbedtls_ecp_point_free(&grp->G);
@@ -599,12 +583,7 @@ void mbedtls_ecp_group_free(mbedtls_ecp_group *grp)
 #endif
     }
 
-    if (!ecp_group_is_static_comb_table(grp) && grp->T != NULL) {
-        for (i = 0; i < grp->T_size; i++) {
-            mbedtls_ecp_point_free(&grp->T[i]);
-        }
-        mbedtls_free(grp->T);
-    }
+    /* Never free T as it's either NULL or static */
 
     mbedtls_platform_zeroize(grp, sizeof(mbedtls_ecp_group));
 }
@@ -1868,10 +1847,11 @@ static void ecp_comb_recode_core(unsigned char x[], size_t d,
  * value, it's useful to set MBEDTLS_ECP_WINDOW_SIZE to a lower value in order
  * to minimize maximum blocking time.
  */
-static int ecp_precompute_comb(const mbedtls_ecp_group *grp,
-                               mbedtls_ecp_point T[], const mbedtls_ecp_point *P,
-                               unsigned char w, size_t d,
-                               mbedtls_ecp_restart_ctx *rs_ctx)
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_precompute_comb(const mbedtls_ecp_group *grp,
+                                mbedtls_ecp_point T[], const mbedtls_ecp_point *P,
+                                unsigned char w, size_t d,
+                                mbedtls_ecp_restart_ctx *rs_ctx)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char i;
@@ -2254,7 +2234,7 @@ cleanup:
  * Pick window size based on curve size and whether we optimize for base point
  */
 static unsigned char ecp_pick_window_size(const mbedtls_ecp_group *grp,
-                                          unsigned char p_eq_g)
+                                          unsigned char table_is_static)
 {
     unsigned char w;
 
@@ -2266,31 +2246,27 @@ static unsigned char ecp_pick_window_size(const mbedtls_ecp_group *grp,
     w = grp->nbits >= 384 ? 5 : 4;
 
     /*
-     * If P == G, pre-compute a bit more, since this may be re-used later.
-     * Just adding one avoids upping the cost of the first mul too much,
-     * and the memory cost too.
+     * If P == G and fixed-point opitmisation is enabled, we pick a slightly
+     * larger table since it's static.
      */
-    if (p_eq_g) {
+#if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
+    if (table_is_static) {
         w++;
     }
+#endif
 
     /*
-     * If static comb table may not be used (!p_eq_g) or static comb table does
-     * not exists, make sure w is within bounds.
-     * (The last test is useful only for very small curves in the test suite.)
+     * If the table is not static, make sure w is within bounds.
      *
      * The user reduces MBEDTLS_ECP_WINDOW_SIZE does not changes the size of
      * static comb table, because the size of static comb table is fixed when
      * it is generated.
      */
 #if (MBEDTLS_ECP_WINDOW_SIZE < 6)
-    if ((!p_eq_g || !ecp_group_is_static_comb_table(grp)) && w > MBEDTLS_ECP_WINDOW_SIZE) {
+    if (!table_is_static && w > MBEDTLS_ECP_WINDOW_SIZE) {
         w = MBEDTLS_ECP_WINDOW_SIZE;
     }
 #endif
-    if (w >= grp->nbits) {
-        w = 2;
-    }
 
     return w;
 }
@@ -2300,114 +2276,99 @@ static unsigned char ecp_pick_window_size(const mbedtls_ecp_group *grp,
  *
  * This function is mainly responsible for administrative work:
  * - managing the restart context if enabled
- * - managing the table of precomputed points (passed between the below two
- *   functions): allocation, computation, ownership transfer, freeing.
+ * - managing the table of precomputed points
  *
  * It delegates the actual arithmetic work to:
  *      ecp_precompute_comb() and ecp_mul_comb_with_precomp()
  *
  * See comments on ecp_comb_recode_core() regarding the computation strategy.
  */
-static int ecp_mul_comb(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+static int ecp_mul_comb(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                         const mbedtls_mpi *m, const mbedtls_ecp_point *P,
                         int (*f_rng)(void *, unsigned char *, size_t),
                         void *p_rng,
                         mbedtls_ecp_restart_ctx *rs_ctx)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char w, p_eq_g, i;
+    unsigned char w, use_static_table, i;
     size_t d;
     unsigned char T_size = 0, T_ok = 0;
-    mbedtls_ecp_point *T = NULL;
+    mbedtls_ecp_point *T_local = NULL;
+    mbedtls_ecp_point **T = NULL;
 
     ECP_RS_ENTER(rsm);
 
-    /* Is P the base point ? */
+    /* Use a static table if enabled and P is the base point */
 #if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
-    p_eq_g = (MPI_ECP_CMP(&P->Y, &grp->G.Y) == 0 &&
-              MPI_ECP_CMP(&P->X, &grp->G.X) == 0);
+    use_static_table = (MPI_ECP_CMP(&P->Y, &grp->G.Y) == 0 &&
+                        MPI_ECP_CMP(&P->X, &grp->G.X) == 0);
 #else
-    p_eq_g = 0;
+    use_static_table = 0;
 #endif
 
     /* Pick window size and deduce related sizes */
-    w = ecp_pick_window_size(grp, p_eq_g);
+    w = ecp_pick_window_size(grp, use_static_table);
     T_size = 1U << (w - 1);
     d = (grp->nbits + w - 1) / w;
 
-    /* Pre-computed table: do we have it already for the base point? */
-    if (p_eq_g && grp->T != NULL) {
-        /* second pointer to the same table, will be deleted on exit */
-        T = grp->T;
+    /* The table can be:
+     * - static in the group (already populated);
+     * - dynamically allocated, stored in the restart context
+     *   (allocated on first run, populated possibly over several runs);
+     * - dynamically allocated locally, need to allocate and populate.
+     */
+#if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
+    if (use_static_table) {
+        /* Discard the const qualifier, but we know we won't modify it */
+        T = (mbedtls_ecp_point **) &grp->T;
         T_ok = 1;
     } else
+#endif
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    /* Pre-computed table: do we have one in progress? complete? */
-    if (rs_ctx != NULL && rs_ctx->rsm != NULL && rs_ctx->rsm->T != NULL) {
-        /* transfer ownership of T from rsm to local function */
-        T = rs_ctx->rsm->T;
-        rs_ctx->rsm->T = NULL;
-        rs_ctx->rsm->T_size = 0;
-
-        /* This effectively jumps to the call to mul_comb_after_precomp() */
+    if (rs_ctx != NULL && rs_ctx->rsm != NULL) {
+        T = &rs_ctx->rsm->T;
         T_ok = rs_ctx->rsm->state >= ecp_rsm_comb_core;
+
+        /* Remember this for the benefit of ecp_restart_rsm_free() */
+        rs_ctx->rsm->T_size = T_size;
     } else
 #endif
-    /* Allocate table if we didn't have any */
     {
-        T = mbedtls_calloc(T_size, sizeof(mbedtls_ecp_point));
-        if (T == NULL) {
+        T = &T_local;
+        T_ok = 0;
+    }
+
+    /* If not allocated (local, or restartartable first run), do it */
+    if (*T == NULL) {
+        *T = mbedtls_calloc(T_size, sizeof(mbedtls_ecp_point));
+        if (*T == NULL) {
             ret = MBEDTLS_ERR_ECP_ALLOC_FAILED;
             goto cleanup;
         }
 
         for (i = 0; i < T_size; i++) {
-            mbedtls_ecp_point_init(&T[i]);
+            mbedtls_ecp_point_init((*T) + i);
         }
-
-        T_ok = 0;
     }
 
-    /* Compute table (or finish computing it) if not done already */
+    /* If not populated (local, or restartable first/early runs), do it */
     if (!T_ok) {
-        MBEDTLS_MPI_CHK(ecp_precompute_comb(grp, T, P, w, d, rs_ctx));
-
-        if (p_eq_g) {
-            /* almost transfer ownership of T to the group, but keep a copy of
-             * the pointer to use for calling the next function more easily */
-            grp->T = T;
-            grp->T_size = T_size;
-        }
+        MBEDTLS_MPI_CHK(mbedtls_ecp_precompute_comb(grp, *T, P, w, d, rs_ctx));
     }
 
     /* Actual comb multiplication using precomputed points */
     MBEDTLS_MPI_CHK(ecp_mul_comb_after_precomp(grp, R, m,
-                                               T, T_size, w, d,
+                                               *T, T_size, w, d,
                                                f_rng, p_rng, rs_ctx));
 
 cleanup:
-
-    /* does T belong to the group? */
-    if (T == grp->T) {
-        T = NULL;
-    }
-
-    /* does T belong to the restart context? */
-#if defined(MBEDTLS_ECP_RESTARTABLE)
-    if (rs_ctx != NULL && rs_ctx->rsm != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS && T != NULL) {
-        /* transfer ownership of T from local function to rsm */
-        rs_ctx->rsm->T_size = T_size;
-        rs_ctx->rsm->T = T;
-        T = NULL;
-    }
-#endif
-
-    /* did T belong to us? then let's destroy it! */
-    if (T != NULL) {
+    /* Free the locally-allocated table if any.
+     * Note: ECP_RS_LEAVE(rsm) below takes care of the restart context. */
+    if (T_local != NULL) {
         for (i = 0; i < T_size; i++) {
-            mbedtls_ecp_point_free(&T[i]);
+            mbedtls_ecp_point_free(T_local + i);
         }
-        mbedtls_free(T);
+        mbedtls_free(T_local);
     }
 
     /* prevent caller from using invalid value */
@@ -2564,7 +2525,7 @@ cleanup:
  * Multiplication with Montgomery ladder in x/z coordinates,
  * for curves in Montgomery form
  */
-static int ecp_mul_mxz(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+static int ecp_mul_mxz(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                        const mbedtls_mpi *m, const mbedtls_ecp_point *P,
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng)
@@ -2645,7 +2606,7 @@ cleanup:
  * This internal function can be called without an RNG in case where we know
  * the inputs are not sensitive.
  */
-static int ecp_mul_restartable_internal(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+static int ecp_mul_restartable_internal(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                                         const mbedtls_mpi *m, const mbedtls_ecp_point *P,
                                         int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                                         mbedtls_ecp_restart_ctx *rs_ctx)
@@ -2716,7 +2677,7 @@ cleanup:
 /*
  * Restartable multiplication R = m * P
  */
-int mbedtls_ecp_mul_restartable(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+int mbedtls_ecp_mul_restartable(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                                 const mbedtls_mpi *m, const mbedtls_ecp_point *P,
                                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                                 mbedtls_ecp_restart_ctx *rs_ctx)
@@ -2731,7 +2692,7 @@ int mbedtls_ecp_mul_restartable(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 /*
  * Multiplication R = m * P
  */
-int mbedtls_ecp_mul(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+int mbedtls_ecp_mul(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                     const mbedtls_mpi *m, const mbedtls_ecp_point *P,
                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
@@ -2784,7 +2745,7 @@ cleanup:
  * R = m * P with shortcuts for m == 0, m == 1 and m == -1
  * NOT constant-time - ONLY for short Weierstrass!
  */
-static int mbedtls_ecp_mul_shortcuts(mbedtls_ecp_group *grp,
+static int mbedtls_ecp_mul_shortcuts(const mbedtls_ecp_group *grp,
                                      mbedtls_ecp_point *R,
                                      const mbedtls_mpi *m,
                                      const mbedtls_ecp_point *P,
@@ -2820,7 +2781,7 @@ cleanup:
  * NOT constant-time
  */
 int mbedtls_ecp_muladd_restartable(
-    mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+    const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     const mbedtls_mpi *m, const mbedtls_ecp_point *P,
     const mbedtls_mpi *n, const mbedtls_ecp_point *Q,
     mbedtls_ecp_restart_ctx *rs_ctx)
@@ -2923,7 +2884,7 @@ cleanup:
  * Linear combination
  * NOT constant-time
  */
-int mbedtls_ecp_muladd(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+int mbedtls_ecp_muladd(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                        const mbedtls_mpi *m, const mbedtls_ecp_point *P,
                        const mbedtls_mpi *n, const mbedtls_ecp_point *Q)
 {
@@ -3180,7 +3141,7 @@ int mbedtls_ecp_gen_privkey(const mbedtls_ecp_group *grp,
 /*
  * Generate a keypair with configurable base point
  */
-int mbedtls_ecp_gen_keypair_base(mbedtls_ecp_group *grp,
+int mbedtls_ecp_gen_keypair_base(const mbedtls_ecp_group *grp,
                                  const mbedtls_ecp_point *G,
                                  mbedtls_mpi *d, mbedtls_ecp_point *Q,
                                  int (*f_rng)(void *, unsigned char *, size_t),
@@ -3197,7 +3158,7 @@ cleanup:
 /*
  * Generate key pair, wrapper for conventional base point
  */
-int mbedtls_ecp_gen_keypair(mbedtls_ecp_group *grp,
+int mbedtls_ecp_gen_keypair(const mbedtls_ecp_group *grp,
                             mbedtls_mpi *d, mbedtls_ecp_point *Q,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng)

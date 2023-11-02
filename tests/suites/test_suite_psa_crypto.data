@@ -7472,3 +7472,9 @@ psa_crypto_copy_and_free:0:20:0:20:1:PSA_ERROR_INVALID_ARGUMENT
 
 PSA buffers copy and free, null output_original and null output
 psa_crypto_copy_and_free:0:20:1:0:1:PSA_SUCCESS
+
+PSA buffers copy and free, zero-length input
+psa_crypto_copy_and_free:0:0:0:20:0:PSA_ERROR_INVALID_ARGUMENT
+
+PSA buffers copy and free, zero-length output
+psa_crypto_copy_and_free:20:0:0:0:0:PSA_ERROR_INVALID_ARGUMENT

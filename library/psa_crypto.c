@@ -8521,7 +8521,17 @@ error:
 
 psa_status_t psa_crypto_copy_and_free(psa_crypto_buffer_copy_t *buffers)
 {
+    if ((buffers->input != NULL) && (buffers->input_len == 0)) {
+        /* Reject zero-length buffers, these should have been represented by
+         * NULL in psa_crypto_alloc_and_copy() */
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
     if (buffers->output != NULL) {
+        if (buffers->output_len == 0) {
+            /* Reject zero-length buffers, these should have been represented
+             * by NULL in psa_crypto_alloc_and_copy() */
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
         if (buffers->output_original == NULL) {
             /* Output is non-NULL but original output is NULL. The argument
              * buffers is invalid. Return an error as we have no original to

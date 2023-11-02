@@ -249,7 +249,7 @@ Future releases of this library will include:
 License
 -------
 
-Unless specifically indicated otherwise in a file, Mbed TLS files are provided under the [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) license. See the [LICENSE](LICENSE) file for the full text of this license, and [the 'License and Copyright' section in the contributing guidelines](CONTRIBUTING.md#License-and-Copyright) for more information.
+Unless specifically indicated otherwise in a file, Mbed TLS files are provided under a dual [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) OR [GPL-2.0-or-later](https://spdx.org/licenses/GPL-2.0-or-later.html) license. See the [LICENSE](LICENSE) file for the full text of these licenses, and [the 'License and Copyright' section in the contributing guidelines](CONTRIBUTING.md#License-and-Copyright) for more information.
 
 Contributing
 ------------

@@ -10442,8 +10442,10 @@ void psa_crypto_alloc_and_copy(int input_null, int input_len,
 {
     uint8_t *input_buffer = NULL;
     uint8_t *output_buffer = NULL;
-    psa_crypto_buffer_copy_t buffer_copies = { 0 };
     psa_status_t ret;
+
+    psa_crypto_buffer_copy_t buffer_copies;
+    memset(&buffer_copies, 0, sizeof(buffer_copies));
 
     if (!input_null) {
         TEST_CALLOC(input_buffer, input_len);
@@ -10478,10 +10480,11 @@ void psa_crypto_alloc_and_copy_zero_length(int input_zero_length,
     uint8_t input_buffer[] = { 0x12 };
     uint8_t output_buffer[] = { 0x34 };
 
-    psa_crypto_buffer_copy_t buffer_copies;
-
     size_t input_len = input_zero_length ? 0 : 1;
     size_t output_len = output_zero_length ? 0 : 1;
+
+    psa_crypto_buffer_copy_t buffer_copies;
+    memset(&buffer_copies, 0, sizeof(buffer_copies));
 
     psa_status_t ret = psa_crypto_alloc_and_copy(input_buffer, input_len,
                                                  output_buffer, output_len,
@@ -10510,13 +10513,14 @@ exit:
 void psa_crypto_alloc_and_copy_overlapping(int input_len, int output_len,
                                            int ptr_diff, int exp_ret)
 {
-    psa_crypto_buffer_copy_t buffer_copies = { 0 };
-
     uint8_t *full_buffer = NULL;
     uint8_t *input = NULL;
     uint8_t *output = NULL;
 
     psa_status_t ret;
+
+    psa_crypto_buffer_copy_t buffer_copies;
+    memset(&buffer_copies, 0, sizeof(buffer_copies));
 
     TEST_EQUAL(setup_overlapping_buffers(input_len, output_len, ptr_diff,
                                          &full_buffer, &input, &output), 0);
@@ -10554,14 +10558,15 @@ void psa_crypto_copy_and_free(int input_null, int input_len,
                               int orig_output_null,
                               int exp_ret)
 {
-    psa_crypto_buffer_copy_t buffer_copies = { 0 };
-
     uint8_t *input = NULL;
     uint8_t *output = NULL;
     uint8_t *output_for_comparison = NULL;
     uint8_t *orig_output = NULL;
     size_t calloc_len;
     psa_status_t ret;
+
+    psa_crypto_buffer_copy_t buffer_copies;
+    memset(&buffer_copies, 0, sizeof(buffer_copies));
 
     if (!input_null) {
         /* If zero-length, ensure we actually allocate something
@@ -10622,8 +10627,10 @@ void psa_crypto_buffer_copy_round_trip()
     uint8_t input[100];
     uint8_t output[100];
     uint8_t output_for_comparison[100];
-    psa_crypto_buffer_copy_t buffer_copies = { 0 };
     psa_status_t ret;
+
+    psa_crypto_buffer_copy_t buffer_copies;
+    memset(&buffer_copies, 0, sizeof(buffer_copies));
 
     fill_buffer_pattern(input, sizeof(input));
 

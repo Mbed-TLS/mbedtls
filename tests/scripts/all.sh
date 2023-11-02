@@ -1527,9 +1527,7 @@ component_test_full_cipher_light_only () {
     # (currently ignored anyway because we completely disable PSA)
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
     # Disable features that depend on CIPHER_C
-    scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CMAC_C
-    scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
     scripts/config.py unset MBEDTLS_PKCS12_C
     scripts/config.py unset MBEDTLS_PKCS5_C

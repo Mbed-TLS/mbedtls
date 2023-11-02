@@ -52,6 +52,50 @@ void null_pointer_call(const char *name)
 
 
 /****************************************************************/
+/* Sanitizers */
+/****************************************************************/
+
+void read_after_free(const char *name)
+{
+    (void) name;
+    volatile char *p = mbedtls_calloc(1, 1);
+    *p = 'a';
+    mbedtls_free((void *) p);
+    mbedtls_printf("%u\n", (unsigned) *p);
+}
+
+void double_free(const char *name)
+{
+    (void) name;
+    volatile char *p = mbedtls_calloc(1, 1);
+    *p = 'a';
+    mbedtls_free((void *) p);
+    mbedtls_free((void *) p);
+}
+
+void read_uninitialized_stack(const char *name)
+{
+    (void) name;
+    volatile char buf[1];
+    static int false_but_the_compiler_does_not_know = 0;
+    if (false_but_the_compiler_does_not_know) {
+        buf[0] = '!';
+    }
+    if (*buf != 0) {
+        mbedtls_printf("%u\n", (unsigned) *buf);
+    }
+}
+
+void memory_leak(const char *name)
+{
+    (void) name;
+    volatile char *p = mbedtls_calloc(1, 1);
+    /* Hint to the compiler that calloc must not be optimized away. */
+    (void) *p;
+}
+
+
+/****************************************************************/
 /* Command line entry point */
 /****************************************************************/
 
@@ -65,6 +109,10 @@ metatest_t metatests[] = {
     { "test_fail", "any", meta_test_fail },
     { "null_dereference", "any", null_pointer_dereference },
     { "null_call", "any", null_pointer_call },
+    { "read_after_free", "asan", read_after_free },
+    { "double_free", "asan", double_free },
+    { "read_uninitialized_stack", "msan", read_uninitialized_stack },
+    { "memory_leak", "asan", memory_leak },
     { NULL, NULL, NULL }
 };
 

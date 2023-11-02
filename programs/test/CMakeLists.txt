@@ -3,6 +3,7 @@ set(libs
 )
 
 set(executables_libs
+    metatest
     query_included_headers
     selftest
     udp_proxy

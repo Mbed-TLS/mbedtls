@@ -27,6 +27,7 @@ set(src_crypto
     chacha20.c
     chachapoly.c
     cipher.c
+    cipher_light.c
     cipher_wrap.c
     constant_time.c
     cmac.c

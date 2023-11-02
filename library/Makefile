@@ -96,6 +96,7 @@ OBJS_CRYPTO= \
 	     chacha20.o \
 	     chachapoly.o \
 	     cipher.o \
+	     cipher_light.o \
 	     cipher_wrap.o \
 	     cmac.o \
 	     constant_time.o \

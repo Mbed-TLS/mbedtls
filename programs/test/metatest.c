@@ -11,10 +11,19 @@
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
 #include <mbedtls/platform.h>
+#include <mbedtls/platform_util.h>
 #include "test/helpers.h"
 
 #include <stdio.h>
 #include <string.h>
+
+
+/* This is an external variable, so the compiler doesn't know that we're never
+ * changing its value.
+ *
+ * TODO: LTO (link-time-optimization) would defeat this.
+ */
+int false_but_the_compiler_does_not_know = 0;
 
 
 /****************************************************************/
@@ -35,19 +44,17 @@ void meta_test_fail(const char *name)
 void null_pointer_dereference(const char *name)
 {
     (void) name;
-    char *p;
-    memset(&p, 0, sizeof(p));
-    volatile char c;
-    c = *p;
-    (void) c;
+    volatile char *p;
+    mbedtls_platform_zeroize(&p, sizeof(p));
+    mbedtls_printf("%p -> %u\n", p, (unsigned) *p);
 }
 
 void null_pointer_call(const char *name)
 {
     (void) name;
-    void (*p)(void);
-    memset(&p, 0, sizeof(p));
-    p();
+    unsigned (*p)(void);
+    mbedtls_platform_zeroize(&p, sizeof(p));
+    mbedtls_printf("%p() -> %u\n", p, p());
 }
 
 
@@ -77,7 +84,6 @@ void read_uninitialized_stack(const char *name)
 {
     (void) name;
     volatile char buf[1];
-    static int false_but_the_compiler_does_not_know = 0;
     if (false_but_the_compiler_does_not_know) {
         buf[0] = '!';
     }

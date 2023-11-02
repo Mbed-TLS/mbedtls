@@ -18,6 +18,17 @@
 
 
 /****************************************************************/
+/* Test framework features */
+/****************************************************************/
+
+void meta_test_fail(const char *name)
+{
+    (void) name;
+    mbedtls_test_fail("Forced test failure", __LINE__, __FILE__);
+}
+
+
+/****************************************************************/
 /* Command line entry point */
 /****************************************************************/
 
@@ -28,6 +39,7 @@ typedef struct {
 } metatest_t;
 
 metatest_t metatests[] = {
+    { "test_fail", "any", meta_test_fail },
     { NULL, NULL, NULL }
 };
 

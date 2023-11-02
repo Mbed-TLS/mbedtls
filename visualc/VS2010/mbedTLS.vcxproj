@@ -243,6 +243,7 @@
     <ClInclude Include="..\..\tests\include\test\fake_external_rng_for_test.h" />
     <ClInclude Include="..\..\tests\include\test\helpers.h" />
     <ClInclude Include="..\..\tests\include\test\macros.h" />
+    <ClInclude Include="..\..\tests\include\test\memory.h" />
     <ClInclude Include="..\..\tests\include\test\psa_crypto_helpers.h" />
     <ClInclude Include="..\..\tests\include\test\psa_exercise_key.h" />
     <ClInclude Include="..\..\tests\include\test\psa_helpers.h" />
@@ -390,6 +391,7 @@
     <ClCompile Include="..\..\tests\src\psa_crypto_helpers.c" />
     <ClCompile Include="..\..\tests\src\psa_exercise_key.c" />
     <ClCompile Include="..\..\tests\src\random.c" />
+    <ClCompile Include="..\..\tests\src\test_memory.c" />
     <ClCompile Include="..\..\tests\src\threading_helpers.c" />
     <ClCompile Include="..\..\tests\src\drivers\hash.c" />
     <ClCompile Include="..\..\tests\src\drivers\platform_builtin_keys.c" />

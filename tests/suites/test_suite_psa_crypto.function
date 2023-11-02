@@ -5956,3 +5956,47 @@ exit:
     mbedtls_free(orig_output);
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void psa_crypto_buffer_copy_round_trip()
+{
+    uint8_t data[] = {0x12, 0x34, 0x56, 0x78};
+    uint8_t input[100];
+    uint8_t output[100];
+    uint8_t output_for_comparison[100];
+    psa_crypto_buffer_copy_t buffer_copies = { 0 };
+    psa_status_t ret;
+
+    for (size_t i = 0; i < sizeof(input); i++) {
+        input[i] = data[i % sizeof(data)];
+    }
+
+    ret = psa_crypto_alloc_and_copy(input, sizeof(input),
+                                    output, sizeof(output),
+                                    &buffer_copies);
+
+    TEST_ASSERT(ret == PSA_SUCCESS);
+    TEST_MEMORY_COMPARE(input, sizeof(input),
+                        buffer_copies.input, buffer_copies.input_len);
+    TEST_EQUAL(sizeof(output), buffer_copies.output_len);
+
+    /* Simulate the PSA function filling the (internal) output buffer. */
+    for (size_t i = 0; i < buffer_copies.output_len; i++) {
+        buffer_copies.output[i] = data[i % sizeof(data)];
+    }
+    /* Make a copy of output to compare the copy-back */
+    memcpy(output_for_comparison, buffer_copies.output,
+           sizeof(output_for_comparison));
+
+    ret = psa_crypto_copy_and_free(&buffer_copies);
+
+    TEST_EQUAL(ret, PSA_SUCCESS);
+    /* Check that the output was copied back correctly. */
+    TEST_MEMORY_COMPARE(output_for_comparison, sizeof(output_for_comparison),
+                        output, sizeof(output));
+
+exit:
+    mbedtls_free(buffer_copies.input);
+    mbedtls_free(buffer_copies.output);
+}
+/* END_CASE */

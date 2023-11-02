@@ -4107,3 +4107,6 @@ psa_crypto_copy_and_free:0:0:0:20:0:PSA_ERROR_INVALID_ARGUMENT
 
 PSA buffers copy and free, zero-length output
 psa_crypto_copy_and_free:20:0:0:0:0:PSA_ERROR_INVALID_ARGUMENT
+
+PSA buffers round-trip
+psa_crypto_buffer_copy_round_trip

@@ -71,29 +71,81 @@ typedef struct {
     uint8_t flags[sizeof(psa_storage_create_flags_t)];
 } psa_its_file_header_t;
 
-static void psa_its_fill_filename(psa_storage_uid_t uid, char *filename)
+MBEDTLS_STATIC_TESTABLE
+void psa_its_fill_filename(psa_storage_uid_t uid, int temp, char **filename)
 {
     /* Break up the UID into two 32-bit pieces so as not to rely on
      * long long support in snprintf. */
-    mbedtls_snprintf(filename, PSA_ITS_STORAGE_FILENAME_LENGTH,
-                     "%s" PSA_ITS_STORAGE_FILENAME_PATTERN "%s",
-                     PSA_ITS_STORAGE_PREFIX,
-                     (unsigned) (uid >> 32),
-                     (unsigned) (uid & 0xffffffff),
-                     PSA_ITS_STORAGE_SUFFIX);
+
+    /* leaf_len includes a byte for the NULL terminator */
+    size_t leaf_len = (temp ? sizeof(PSA_ITS_STORAGE_TEMP) + 1 : PSA_ITS_STORAGE_FILENAME_LENGTH);
+
+#if defined(MBEDTLS_TEST_HOOKS)
+    char *test_tmpdir = getenv("MBEDTLS_TEST_TMPDIR");
+
+    if (test_tmpdir != NULL) {
+        size_t length = strlen(test_tmpdir) + 1 + leaf_len;
+        *filename = mbedtls_calloc(length, 1);
+        if (*filename == NULL) {
+            return;
+        }
+        if (temp) {
+            mbedtls_snprintf(*filename, length,
+#if defined(_WIN32)
+                             "%s\\%s",
+#else
+                             "%s/%s",
+#endif
+                             test_tmpdir, PSA_ITS_STORAGE_TEMP);
+
+        } else {
+            mbedtls_snprintf(*filename, length,
+#if defined(_WIN32)
+                             "%s\\%s" PSA_ITS_STORAGE_FILENAME_PATTERN "%s",
+#else
+                             "%s/%s" PSA_ITS_STORAGE_FILENAME_PATTERN "%s",
+#endif
+                             test_tmpdir,
+                             PSA_ITS_STORAGE_PREFIX,
+                             (unsigned) (uid >> 32),
+                             (unsigned) (uid & 0xffffffff),
+                             PSA_ITS_STORAGE_SUFFIX);
+        }
+        return;
+    }
+#endif
+
+    *filename = mbedtls_calloc(leaf_len, 1);
+    if (*filename == NULL) {
+        return;
+    }
+    if (temp) {
+        mbedtls_snprintf(*filename, leaf_len, "%s", PSA_ITS_STORAGE_TEMP);
+    } else {
+        mbedtls_snprintf(*filename, leaf_len,
+                         "%s" PSA_ITS_STORAGE_FILENAME_PATTERN "%s",
+                         PSA_ITS_STORAGE_PREFIX,
+                         (unsigned) (uid >> 32),
+                         (unsigned) (uid & 0xffffffff),
+                         PSA_ITS_STORAGE_SUFFIX);
+    }
 }
 
 static psa_status_t psa_its_read_file(psa_storage_uid_t uid,
                                       struct psa_storage_info_t *p_info,
                                       FILE **p_stream)
 {
-    char filename[PSA_ITS_STORAGE_FILENAME_LENGTH];
+    char *filename = NULL;
     psa_its_file_header_t header;
     size_t n;
 
     *p_stream = NULL;
-    psa_its_fill_filename(uid, filename);
+    psa_its_fill_filename(uid, 0, &filename);
+    if (filename == NULL) {
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+    }
     *p_stream = fopen(filename, "rb");
+    mbedtls_free(filename);
     if (*p_stream == NULL) {
         return PSA_ERROR_DOES_NOT_EXIST;
     }
@@ -199,7 +251,8 @@ psa_status_t psa_its_set(psa_storage_uid_t uid,
     }
 
     psa_status_t status = PSA_ERROR_STORAGE_FAILURE;
-    char filename[PSA_ITS_STORAGE_FILENAME_LENGTH];
+    char *filename = NULL;
+    char *temp_filename = NULL;
     FILE *stream = NULL;
     psa_its_file_header_t header;
     size_t n;
@@ -208,8 +261,15 @@ psa_status_t psa_its_set(psa_storage_uid_t uid,
     MBEDTLS_PUT_UINT32_LE(data_length, header.size, 0);
     MBEDTLS_PUT_UINT32_LE(create_flags, header.flags, 0);
 
-    psa_its_fill_filename(uid, filename);
-    stream = fopen(PSA_ITS_STORAGE_TEMP, "wb");
+    psa_its_fill_filename(uid, 0, &filename);
+    psa_its_fill_filename(uid, 1, &temp_filename);
+
+    if (filename == NULL || temp_filename == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto exit;
+    }
+
+    stream = fopen(temp_filename, "wb");
 
     if (stream == NULL) {
         goto exit;
@@ -238,34 +298,50 @@ exit:
             status = PSA_ERROR_INSUFFICIENT_STORAGE;
         }
     }
-    if (status == PSA_SUCCESS) {
-        if (rename_replace_existing(PSA_ITS_STORAGE_TEMP, filename) != 0) {
+    if (status == PSA_SUCCESS && filename != NULL && temp_filename != NULL) {
+        if (rename_replace_existing(temp_filename, filename) != 0) {
             status = PSA_ERROR_STORAGE_FAILURE;
         }
     }
+
     /* The temporary file may still exist, but only in failure cases where
      * we're already reporting an error. So there's nothing we can do on
      * failure. If the function succeeded, and in some error cases, the
      * temporary file doesn't exist and so remove() is expected to fail.
      * Thus we just ignore the return status of remove(). */
-    (void) remove(PSA_ITS_STORAGE_TEMP);
+    (void) remove(temp_filename);
+
+    mbedtls_free(filename);
+    mbedtls_free(temp_filename);
+
     return status;
 }
 
 psa_status_t psa_its_remove(psa_storage_uid_t uid)
 {
-    char filename[PSA_ITS_STORAGE_FILENAME_LENGTH];
+    char *filename = NULL;
     FILE *stream;
-    psa_its_fill_filename(uid, filename);
+    psa_status_t status = PSA_ERROR_STORAGE_FAILURE;
+
+    psa_its_fill_filename(uid, 0, &filename);
+    if (filename == NULL) {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto exit;
+    }
     stream = fopen(filename, "rb");
     if (stream == NULL) {
-        return PSA_ERROR_DOES_NOT_EXIST;
+        status = PSA_ERROR_DOES_NOT_EXIST;
+        goto exit;
     }
     fclose(stream);
     if (remove(filename) != 0) {
-        return PSA_ERROR_STORAGE_FAILURE;
+        status = PSA_ERROR_STORAGE_FAILURE;
+        goto exit;
     }
-    return PSA_SUCCESS;
+    status = PSA_SUCCESS;
+exit:
+    mbedtls_free(filename);
+    return status;
 }
 
 #endif /* MBEDTLS_PSA_ITS_FILE_C */

@@ -136,6 +136,12 @@ psa_status_t psa_its_get_info(psa_storage_uid_t uid,
  */
 psa_status_t psa_its_remove(psa_storage_uid_t uid);
 
+#if defined(MBEDTLS_TEST_HOOKS)
+
+void psa_its_fill_filename(psa_storage_uid_t uid, int temp, char **filename);
+
+#endif
+
 #ifdef __cplusplus
 }
 #endif

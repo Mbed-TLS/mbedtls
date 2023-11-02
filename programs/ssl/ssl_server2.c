@@ -2155,18 +2155,18 @@ usage:
             if (opt.ticket_timeout < 0) {
                 goto usage;
             }
-        } else
+        }
 #if defined(MBEDTLS_CIPHER_C)
-        if (strcmp(p, "ticket_aead") == 0) {
+        else if (strcmp(p, "ticket_aead") == 0) {
             const mbedtls_cipher_info_t *ci = mbedtls_cipher_info_from_string(q);
 
             if (ci == NULL) {
                 goto usage;
             }
             opt.ticket_aead = mbedtls_cipher_info_get_type(ci);
-        } else
+        }
 #endif
-        if (strcmp(p, "cache_max") == 0) {
+        else if (strcmp(p, "cache_max") == 0) {
             opt.cache_max = atoi(q);
             if (opt.cache_max < 0) {
                 goto usage;

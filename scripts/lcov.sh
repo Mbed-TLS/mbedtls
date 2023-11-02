@@ -42,16 +42,21 @@ EOF
 
 set -eu
 
+# Repository detection
+in_mbedtls_build_dir () {
+     test -d library
+ }
+
 # Collect stats and build a HTML report.
 lcov_library_report () {
     rm -rf Coverage
     mkdir Coverage Coverage/tmp
-    lcov --capture --initial --directory library -o Coverage/tmp/files.info
-    lcov --rc lcov_branch_coverage=1 --capture --directory library -o Coverage/tmp/tests.info
+    lcov --capture --initial --directory $library_dir -o Coverage/tmp/files.info
+    lcov --rc lcov_branch_coverage=1 --capture --directory $library_dir -o Coverage/tmp/tests.info
     lcov --rc lcov_branch_coverage=1 --add-tracefile Coverage/tmp/files.info --add-tracefile Coverage/tmp/tests.info -o Coverage/tmp/all.info
     lcov --rc lcov_branch_coverage=1 --remove Coverage/tmp/all.info -o Coverage/tmp/final.info '*.h'
     gendesc tests/Descriptions.txt -o Coverage/tmp/descriptions
-    genhtml --title "Mbed TLS" --description-file Coverage/tmp/descriptions --keep-descriptions --legend --branch-coverage -o Coverage Coverage/tmp/final.info
+    genhtml --title "$title" --description-file Coverage/tmp/descriptions --keep-descriptions --legend --branch-coverage -o Coverage Coverage/tmp/final.info
     rm -f Coverage/tmp/*.info Coverage/tmp/descriptions
     echo "Coverage report in: Coverage/index.html"
 }
@@ -59,14 +64,22 @@ lcov_library_report () {
 # Reset the traces to 0.
 lcov_reset_traces () {
     # Location with plain make
-    rm -f library/*.gcda
+    rm -f $library_dir/*.gcda
     # Location with CMake
-    rm -f library/CMakeFiles/*.dir/*.gcda
+    rm -f $library_dir/CMakeFiles/*.dir/*.gcda
 }
 
 if [ $# -gt 0 ] && [ "$1" = "--help" ]; then
     help
     exit
+fi
+
+if in_mbedtls_build_dir; then
+    library_dir='library'
+    title='Mbed TLS'
+else
+    library_dir='core'
+    title='TF-PSA-Crypto'
 fi
 
 main=lcov_library_report

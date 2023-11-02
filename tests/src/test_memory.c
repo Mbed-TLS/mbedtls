@@ -19,11 +19,27 @@
 #endif
 
 #if defined(MBEDTLS_TEST_HAVE_ASAN)
+static void align_for_asan(const unsigned char **p_ptr, size_t *p_size)
+{
+    uintptr_t start = (uintptr_t) *p_ptr;
+    uintptr_t end = start + (uintptr_t) *p_size;
+    /* ASan can only poison regions with 8-byte alignment, and only poisons a
+     * region if it's fully within the requested range. We want to poison the
+     * whole requested region and don't mind a few extra bytes. Therefore,
+     * align start down to an 8-byte boundary, and end up to an 8-byte
+     * boundary. */
+    start = start & ~(uintptr_t) 7;
+    end = (end + 7) & ~(uintptr_t) 7;
+    *p_ptr = (const unsigned char *) start;
+    *p_size = end - start;
+}
+
 void mbedtls_test_memory_poison(const unsigned char *ptr, size_t size)
 {
     if (size == 0) {
         return;
     }
+    align_for_asan(&ptr, &size);
     __asan_poison_memory_region(ptr, size);
 }
 
@@ -32,6 +48,7 @@ void mbedtls_test_memory_unpoison(const unsigned char *ptr, size_t size)
     if (size == 0) {
         return;
     }
+    align_for_asan(&ptr, &size);
     __asan_unpoison_memory_region(ptr, size);
 }
 #endif /* Asan */

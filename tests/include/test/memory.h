@@ -40,6 +40,10 @@
  * Poison a memory area so that any attempt to read or write from it will
  * cause a runtime failure.
  *
+ * Depending on the implementation, this may poison a few bytes beyond the
+ * indicated region, but will never poison a separate object on the heap
+ * or a separate object with more than the alignment of a long long.
+ *
  * The behavior is undefined if any part of the memory area is invalid.
  *
  * This is a no-op in builds without a poisoning method.

@@ -1253,6 +1253,18 @@ static void interruptible_signverify_get_minmax_completes(uint32_t max_ops,
 }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
+/* Helper to fill a buffer with a data pattern. The pattern is not
+ * important, it just allows a basic check that the correct thing has
+ * been written, in a way that will detect an error in offset. */
+static void fill_buffer_pattern(uint8_t *buffer, size_t len)
+{
+    uint8_t data[] = { 0x12, 0x34, 0x56, 0x78 };
+
+    for (size_t i = 0; i < len; i++) {
+        buffer[i] = data[i % sizeof(data)];
+    }
+}
+
 /* Helper to get 2 buffers that overlap by the specified amount.
  * The parameter ptr_diff may be negative, in which case the start of
  * buf2 is allocated before the start of buf1. */
@@ -10366,7 +10378,6 @@ void ecjpake_size_macros()
 /* BEGIN_CASE */
 void psa_crypto_copy_input(int src_len, int dst_len, int exp_ret)
 {
-    uint8_t data[] = {0x12, 0x34, 0x56, 0x78};
     uint8_t *src_buffer = NULL;
     uint8_t *dst_buffer = NULL;
     psa_status_t ret;
@@ -10378,9 +10389,7 @@ void psa_crypto_copy_input(int src_len, int dst_len, int exp_ret)
     TEST_CALLOC(src_buffer, src_calloc_len);
     TEST_CALLOC(dst_buffer, dst_calloc_len);
 
-    for (int i = 0; i < src_len; i++) {
-        src_buffer[i] = data[i % sizeof(data)];
-    }
+    fill_buffer_pattern(src_buffer, src_len);
 
     ret = psa_crypto_copy_input(src_buffer, src_len, dst_buffer, dst_len);
     TEST_EQUAL((int) ret, exp_ret);
@@ -10399,7 +10408,6 @@ exit:
 /* BEGIN_CASE */
 void psa_crypto_copy_output(int src_len, int dst_len, int exp_ret)
 {
-    uint8_t data[] = {0x12, 0x34, 0x56, 0x78};
     uint8_t *src_buffer = NULL;
     uint8_t *dst_buffer = NULL;
     psa_status_t ret;
@@ -10411,9 +10419,7 @@ void psa_crypto_copy_output(int src_len, int dst_len, int exp_ret)
     TEST_CALLOC(src_buffer, src_calloc_len);
     TEST_CALLOC(dst_buffer, dst_calloc_len);
 
-    for (int i = 0; i < src_len; i++) {
-        src_buffer[i] = data[i % sizeof(data)];
-    }
+    fill_buffer_pattern(src_buffer, src_len);
 
     ret = psa_crypto_copy_output(src_buffer, src_len, dst_buffer, dst_len);
     TEST_EQUAL((int) ret, exp_ret);
@@ -10434,7 +10440,6 @@ void psa_crypto_alloc_and_copy(int input_null, int input_len,
                                int output_null, int output_len,
                                int exp_ret)
 {
-    uint8_t data[] = {0x12, 0x34, 0x56, 0x78};
     uint8_t *input_buffer = NULL;
     uint8_t *output_buffer = NULL;
     psa_crypto_buffer_copy_t buffer_copies = { 0 };
@@ -10442,15 +10447,11 @@ void psa_crypto_alloc_and_copy(int input_null, int input_len,
 
     if (!input_null) {
         TEST_CALLOC(input_buffer, input_len);
-        for (int i = 0; i < input_len; i++) {
-            input_buffer[i] = data[i % sizeof(data)];
-        }
+        fill_buffer_pattern(input_buffer, input_len);
     }
     if (!output_null) {
         TEST_CALLOC(output_buffer, output_len);
-        for (int i = 0; i < output_len; i++) {
-            output_buffer[i] = data[i % sizeof(data)];
-        }
+        fill_buffer_pattern(output_buffer, output_len);
     }
     ret = psa_crypto_alloc_and_copy(input_buffer, input_len,
                                     output_buffer, output_len,
@@ -10509,7 +10510,6 @@ exit:
 void psa_crypto_alloc_and_copy_overlapping(int input_len, int output_len,
                                            int ptr_diff, int exp_ret)
 {
-    uint8_t data[] = {0x12, 0x34, 0x56, 0x78};
     psa_crypto_buffer_copy_t buffer_copies = { 0 };
 
     uint8_t *full_buffer = NULL;
@@ -10521,9 +10521,7 @@ void psa_crypto_alloc_and_copy_overlapping(int input_len, int output_len,
     TEST_EQUAL(setup_overlapping_buffers(input_len, output_len, ptr_diff,
                                          &full_buffer, &input, &output), 0);
 
-    for (int i = 0; i < input_len; i++) {
-        input[i] = data[i % sizeof(data)];
-    }
+    fill_buffer_pattern(input, input_len);
 
     ret = psa_crypto_alloc_and_copy(input, input_len, output, output_len,
                                     &buffer_copies);
@@ -10556,7 +10554,6 @@ void psa_crypto_copy_and_free(int input_null, int input_len,
                               int orig_output_null,
                               int exp_ret)
 {
-    uint8_t data[] = {0x12, 0x34, 0x56, 0x78};
     psa_crypto_buffer_copy_t buffer_copies = { 0 };
 
     uint8_t *input = NULL;
@@ -10579,9 +10576,7 @@ void psa_crypto_copy_and_free(int input_null, int input_len,
         TEST_CALLOC(output, calloc_len);
         TEST_CALLOC(output_for_comparison, calloc_len);
 
-        for (int i = 0; i < output_len; i++) {
-            output[i] = data[i % sizeof(data)];
-        }
+        fill_buffer_pattern(output, output_len);
         /* We expect the output buffer to be freed, so keep a copy
          * for comparison. */
         memcpy(output_for_comparison, output, output_len);
@@ -10624,16 +10619,13 @@ exit:
 /* BEGIN_CASE */
 void psa_crypto_buffer_copy_round_trip()
 {
-    uint8_t data[] = {0x12, 0x34, 0x56, 0x78};
     uint8_t input[100];
     uint8_t output[100];
     uint8_t output_for_comparison[100];
     psa_crypto_buffer_copy_t buffer_copies = { 0 };
     psa_status_t ret;
 
-    for (size_t i = 0; i < sizeof(input); i++) {
-        input[i] = data[i % sizeof(data)];
-    }
+    fill_buffer_pattern(input, sizeof(input));
 
     ret = psa_crypto_alloc_and_copy(input, sizeof(input),
                                     output, sizeof(output),
@@ -10645,9 +10637,8 @@ void psa_crypto_buffer_copy_round_trip()
     TEST_EQUAL(sizeof(output), buffer_copies.output_len);
 
     /* Simulate the PSA function filling the (internal) output buffer. */
-    for (size_t i = 0; i < buffer_copies.output_len; i++) {
-        buffer_copies.output[i] = data[i % sizeof(data)];
-    }
+    fill_buffer_pattern(buffer_copies.output, buffer_copies.output_len);
+
     /* Make a copy of output to compare the copy-back */
     memcpy(output_for_comparison, buffer_copies.output,
            sizeof(output_for_comparison));

@@ -32,6 +32,7 @@
 #include <mbedtls/platform_util.h>
 #include "test/helpers.h"
 #include "test/macros.h"
+#include "test/memory.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -141,6 +142,45 @@ void memory_leak(const char *name)
     volatile char *p = calloc_but_the_compiler_does_not_know(1, 1);
     mbedtls_printf("%u\n", (unsigned) *p);
     /* Leak of a heap object */
+}
+
+/* name = "test_memory_poison_%(start)_%(offset)_%(count)"
+ * Poison a region starting at start from an 8-byte aligned origin,
+ * encompassing count bytes. Access the region at offset from the start.
+ */
+void test_memory_poison(const char *name)
+{
+    size_t start = 0, offset = 0, count = 0;
+    if (sscanf(name, "%*[^0-9]%zu%*[^0-9]%zu%*[^0-9]%zu",
+               &start, &offset, &count) != 3) {
+        mbedtls_fprintf(stderr, "%s: Bad name format: %s\n", __func__, name);
+        return;
+    }
+
+    union {
+        long long ll;
+        unsigned char buf[32];
+    } aligned;
+    memset(aligned.buf, 'a', sizeof(aligned.buf));
+
+    if (start > sizeof(aligned.buf)) {
+        mbedtls_fprintf(stderr, "%s: start=%zu > size=%zu", __func__,
+                        start, sizeof(aligned.buf));
+        return;
+    }
+    if (start + count > sizeof(aligned.buf)) {
+        mbedtls_fprintf(stderr, "%s: start+count=%zu > size=%zu", __func__,
+                        start + count, sizeof(aligned.buf));
+        return;
+    }
+    if (offset >= count) {
+        mbedtls_fprintf(stderr, "%s: offset=%zu >= count=%zu", __func__,
+                        offset, count);
+        return;
+    }
+
+    MBEDTLS_TEST_MEMORY_POISON(aligned.buf + start, count);
+    mbedtls_printf("%u\n", (unsigned) aligned.buf[start + offset]);
 }
 
 
@@ -291,6 +331,7 @@ metatest_t metatests[] = {
     { "double_free", "asan", double_free },
     { "read_uninitialized_stack", "msan", read_uninitialized_stack },
     { "memory_leak", "asan", memory_leak },
+    { "test_memory_poison_0_0_8", "asan", test_memory_poison },
     { "mutex_lock_not_initialized", "pthread", mutex_lock_not_initialized },
     { "mutex_unlock_not_initialized", "pthread", mutex_unlock_not_initialized },
     { "mutex_free_not_initialized", "pthread", mutex_free_not_initialized },

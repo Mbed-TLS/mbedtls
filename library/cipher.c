@@ -319,6 +319,17 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
     if (ctx->cipher_info == NULL) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
+#if defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
+    /* CBC, XTS, KW and KWP mode always need decryption, return an error to
+     * indicate those modes are not available under
+     * MBEDTLS_BLOCK_CIPHER_NO_DECRYPT. */
+    if (MBEDTLS_MODE_CBC == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
+        MBEDTLS_MODE_XTS == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
+        MBEDTLS_MODE_KW == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
+        MBEDTLS_MODE_KWP == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
+        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    }
+#endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ctx->psa_enabled == 1) {
@@ -402,12 +413,14 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
         return mbedtls_cipher_get_base(ctx->cipher_info)->setkey_dec_func(ctx->cipher_ctx, key,
                                                                           ctx->key_bitlen);
     }
+#else
+    if (operation == MBEDTLS_ENCRYPT || operation == MBEDTLS_DECRYPT) {
+        return mbedtls_cipher_get_base(ctx->cipher_info)->setkey_enc_func(ctx->cipher_ctx, key,
+                                                                          ctx->key_bitlen);
+    }
+#endif
 
     return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
-#else
-    return mbedtls_cipher_get_base(ctx->cipher_info)->setkey_enc_func(ctx->cipher_ctx, key,
-                                                                      ctx->key_bitlen);
-#endif
 }
 
 int mbedtls_cipher_set_iv(mbedtls_cipher_context_t *ctx,

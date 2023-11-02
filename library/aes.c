@@ -1061,15 +1061,16 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
 #endif
 
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
     if (mode == MBEDTLS_AES_ENCRYPT) {
         return mbedtls_internal_aes_encrypt(ctx, input, output);
     } else {
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
         return mbedtls_internal_aes_decrypt(ctx, input, output);
-    }
 #else
-    return mbedtls_internal_aes_encrypt(ctx, input, output);
+        return MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE;
 #endif
+    }
+    return mbedtls_internal_aes_encrypt(ctx, input, output);
 #endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 }
 

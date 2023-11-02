@@ -490,6 +490,20 @@ int mbedtls_platform_setup(mbedtls_platform_context *ctx);
  */
 void mbedtls_platform_teardown(mbedtls_platform_context *ctx);
 
+#if defined MBEDTLS_TEST_HOOKS
+/**
+ * \brief Open the seed file.
+ *
+ * \note If MBEDTLS_TEST_HOOKS is set and MBEDTLS_TEST_TMPDIR is non-empty,
+ * use MBEDTLS_TEST_TMPDIR to locate the file.
+ *
+ * \param write Open for writing if non-zero, otherwise in read mode.
+ *
+ * \return FILE pointer as returned by fopen, or NULL on error.
+ */
+FILE *mbedtls_platform_std_nv_open_seedfile(int write);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

@@ -299,6 +299,34 @@ int mbedtls_platform_set_time(mbedtls_time_t (*time_func)(mbedtls_time_t *timer)
 
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
 #if !defined(MBEDTLS_PLATFORM_NO_STD_FUNCTIONS) && defined(MBEDTLS_FS_IO)
+MBEDTLS_STATIC_TESTABLE
+FILE *mbedtls_platform_std_nv_open_seedfile(int write)
+{
+#if defined(MBEDTLS_TEST_HOOKS)
+    char *test_tmpdir = getenv("MBEDTLS_TEST_TMPDIR");
+
+    if (test_tmpdir != NULL) {
+        size_t pathlen = strlen(test_tmpdir) + 1 + strlen(MBEDTLS_PLATFORM_STD_NV_SEED_FILE) + 1;
+        char *path = mbedtls_calloc(pathlen, 1);
+        if (path != NULL) {
+            mbedtls_snprintf(path, pathlen,
+#if defined(_WIN32)
+                             "%s\\%s",
+#else
+                             "%s/%s",
+#endif
+                             test_tmpdir, MBEDTLS_PLATFORM_STD_NV_SEED_FILE);
+            FILE *file = fopen(path, write ? "w" : "rb");
+            mbedtls_free(path);
+            return file;
+        } else {
+            return NULL;
+        }
+    }
+#endif
+    return fopen(MBEDTLS_PLATFORM_STD_NV_SEED_FILE, write ? "w" : "rb");
+}
+
 /* Default implementations for the platform independent seed functions use
  * standard libc file functions to read from and write to a pre-defined filename
  */
@@ -307,7 +335,8 @@ int mbedtls_platform_std_nv_seed_read(unsigned char *buf, size_t buf_len)
     FILE *file;
     size_t n;
 
-    if ((file = fopen(MBEDTLS_PLATFORM_STD_NV_SEED_FILE, "rb")) == NULL) {
+    file = mbedtls_platform_std_nv_open_seedfile(0);
+    if (file == NULL) {
         return -1;
     }
 
@@ -329,7 +358,8 @@ int mbedtls_platform_std_nv_seed_write(unsigned char *buf, size_t buf_len)
     FILE *file;
     size_t n;
 
-    if ((file = fopen(MBEDTLS_PLATFORM_STD_NV_SEED_FILE, "w")) == NULL) {
+    file = mbedtls_platform_std_nv_open_seedfile(1);
+    if (file == NULL) {
         return -1;
     }
 

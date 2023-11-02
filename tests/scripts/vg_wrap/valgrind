@@ -13,6 +13,10 @@ pushd . > /dev/null
 TMP_VG_DIR=$(mktemp -d /tmp/VG_XXXX)
 cd ${TMP_VG_DIR}
 
+# get tests to use this for temp files
+export MBEDTLS_TEST_TMPDIR=${TMP_VG_DIR}
+dd if=/dev/urandom of=seedfile bs=64 count=1
+
 # run valgrind from temp directory
 ${ORIGINAL_VG} ${ORIGINAL_ARGS}
 EXITCODE=$?

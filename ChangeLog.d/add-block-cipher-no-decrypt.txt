@@ -1,0 +1,6 @@
+Features
+   * Add support to remove decryption operation for cipher type of AES, ARIA
+     and CAMELLIA. A new configuration option, MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
+     can be used to enable this feature.
+     Note that this configuration option is incompatible with MBEDTLS_DES_C,
+     MBEDTLS_CIPHER_MODE_CBC, MBEDTLS_CIPHER_MODE_XTS and MBEDTLS_NIST_KW_C.

@@ -226,7 +226,7 @@ KNOWN_TASKS = {
                 # AEAD modes
                 'ccm', 'chachapoly', 'cmac', 'gcm',
                 # The Cipher abstraction layer
-                'cipher',
+                'cipher', 'cipher_light'
             ],
             'ignored_tests': {
                 # PEM decryption is not supported so far.

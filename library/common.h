@@ -327,7 +327,7 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 /* clang provides __builtin_assume */
 #define MBEDTLS_ASSUME(x)       __builtin_assume(x)
 #elif MBEDTLS_HAS_BUILTIN(__builtin_unreachable)
-/* gcc can use __builtin_unreachable */
+/* gcc and IAR can use __builtin_unreachable */
 #define MBEDTLS_ASSUME(x)       do { if (!(x)) __builtin_unreachable(); } while (0)
 #elif defined(_MSC_VER)
 /* Supported by MSVC since VS 2005 */

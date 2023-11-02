@@ -45,7 +45,7 @@ void null_pointer_dereference(const char *name)
 {
     (void) name;
     volatile char *p;
-    mbedtls_platform_zeroize(&p, sizeof(p));
+    mbedtls_platform_zeroize((void *) &p, sizeof(p));
     mbedtls_printf("%p -> %u\n", p, (unsigned) *p);
 }
 
@@ -54,7 +54,7 @@ void null_pointer_call(const char *name)
     (void) name;
     unsigned (*p)(void);
     mbedtls_platform_zeroize(&p, sizeof(p));
-    mbedtls_printf("%p() -> %u\n", p, p());
+    mbedtls_printf("%p() -> %u\n", (void *) p, p());
 }
 
 

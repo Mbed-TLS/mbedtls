@@ -279,6 +279,62 @@ typedef enum {
     DERIVE_KEY = 2
 } generate_method;
 
+/* Helper to get 2 buffers that overlap by the specified amount.
+ * The parameter ptr_diff may be negative, in which case the start of
+ * buf2 is allocated before the start of buf1. */
+static int setup_overlapping_buffers(size_t buf1_len, size_t buf2_len,
+                                     int ptr_diff,
+                                     uint8_t **full_buffer,
+                                     uint8_t **buf1, uint8_t **buf2)
+{
+    size_t total_len;
+    int buf1_offset;
+    int buf2_offset;
+
+    *full_buffer = NULL;
+    *buf1 = NULL;
+    *buf2 = NULL;
+
+    if (ptr_diff >= 0) {
+        /*
+         * |---------- buf1 ----------|
+         *  <-- ptr_diff -->|---------- buf2 ----------|
+         */
+        total_len = ptr_diff + buf2_len;
+        if (buf1_len > total_len) {
+            total_len = buf1_len;
+        }
+        buf1_offset = 0;
+        buf2_offset = ptr_diff;
+    } else {
+        /*
+         *  <-- (-ptr_diff) -->|---------- buf1 ----------|
+         * |---------- buf2 ----------|
+         */
+        total_len = (-ptr_diff) + buf1_len;
+        if (buf2_len > total_len) {
+            total_len = buf2_len;
+        }
+        buf1_offset = -ptr_diff;
+        buf2_offset = 0;
+    }
+
+    /* Edge case: if the length is zero, allocate a 1-byte buffer to avoid
+     * calloc returning NULL. */
+    if (total_len == 0) {
+        total_len = 1;
+    }
+
+    TEST_CALLOC(*full_buffer, total_len);
+
+    *buf1 = *full_buffer + buf1_offset;
+    *buf2 = *full_buffer + buf2_offset;
+
+    return 0;
+
+exit:
+    return -1;
+}
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -5779,6 +5835,52 @@ void psa_crypto_alloc_and_copy_zero_length(int input_zero_length,
     }
 
 exit:
+    mbedtls_free(buffer_copies.input);
+    mbedtls_free(buffer_copies.output);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+/* Ensure that overlapping buffers can be copied correctly. */
+void psa_crypto_alloc_and_copy_overlapping(int input_len, int output_len,
+                                           int ptr_diff, int exp_ret)
+{
+    uint8_t data[] = {0x12, 0x34, 0x56, 0x78};
+    psa_crypto_buffer_copy_t buffer_copies = { 0 };
+
+    uint8_t *full_buffer = NULL;
+    uint8_t *input = NULL;
+    uint8_t *output = NULL;
+
+    psa_status_t ret;
+
+    TEST_EQUAL(setup_overlapping_buffers(input_len, output_len, ptr_diff,
+                                         &full_buffer, &input, &output), 0);
+
+    for (int i = 0; i < input_len; i++) {
+        input[i] = data[i % sizeof(data)];
+    }
+
+    ret = psa_crypto_alloc_and_copy(input, input_len, output, output_len,
+                                    &buffer_copies);
+
+    TEST_EQUAL((int) ret, exp_ret);
+
+    if (exp_ret == PSA_SUCCESS) {
+        if (input_len == 0) {
+            TEST_ASSERT(buffer_copies.input == NULL);
+        } else {
+            TEST_MEMORY_COMPARE(input, input_len, buffer_copies.input, buffer_copies.input_len);
+        }
+        if (output_len == 0) {
+            TEST_ASSERT(buffer_copies.output == NULL);
+        } else {
+            TEST_EQUAL(output_len, buffer_copies.output_len);
+        }
+    }
+
+exit:
+    mbedtls_free(full_buffer);
     mbedtls_free(buffer_copies.input);
     mbedtls_free(buffer_copies.output);
 }

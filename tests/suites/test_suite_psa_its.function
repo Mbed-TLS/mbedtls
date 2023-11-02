@@ -66,7 +66,7 @@ static psa_status_t psa_its_set_wrap(psa_storage_uid_t uid,
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_PSA_ITS_FILE_C
+ * depends_on:MBEDTLS_PSA_ITS_FILE_C:MBEDTLS_TEST_HOOKS
  * END_DEPENDENCIES
  */
 

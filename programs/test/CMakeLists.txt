@@ -11,6 +11,7 @@ if(ENABLE_ZLIB_SUPPORT)
 endif(ENABLE_ZLIB_SUPPORT)
 
 set(executables_libs
+    metatest
     selftest
     udp_proxy
 )

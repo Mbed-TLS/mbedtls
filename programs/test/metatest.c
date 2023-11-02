@@ -29,6 +29,29 @@ void meta_test_fail(const char *name)
 
 
 /****************************************************************/
+/* Platform features */
+/****************************************************************/
+
+void null_pointer_dereference(const char *name)
+{
+    (void) name;
+    char *p;
+    memset(&p, 0, sizeof(p));
+    volatile char c;
+    c = *p;
+    (void) c;
+}
+
+void null_pointer_call(const char *name)
+{
+    (void) name;
+    void (*p)(void);
+    memset(&p, 0, sizeof(p));
+    p();
+}
+
+
+/****************************************************************/
 /* Command line entry point */
 /****************************************************************/
 
@@ -40,6 +63,8 @@ typedef struct {
 
 metatest_t metatests[] = {
     { "test_fail", "any", meta_test_fail },
+    { "null_dereference", "any", null_pointer_dereference },
+    { "null_call", "any", null_pointer_call },
     { NULL, NULL, NULL }
 };
 

@@ -3099,8 +3099,8 @@ curve_matching_done:
         mbedtls_pk_type_t sig_alg =
             mbedtls_ssl_get_ciphersuite_sig_pk_alg(ciphersuite_info);
 
-        unsigned int sig_hash =
-            mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
+        unsigned char sig_hash =
+            (unsigned char) mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
                 ssl, mbedtls_ssl_sig_from_pk_alg(sig_alg));
 
         mbedtls_md_type_t md_alg = mbedtls_ssl_md_alg_from_hash(sig_hash);

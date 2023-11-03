@@ -4466,7 +4466,7 @@ int mbedtls_ssl_context_save(mbedtls_ssl_context *ssl,
     }
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    used += 2 + ssl->transform->in_cid_len + ssl->transform->out_cid_len;
+    used += 2U + ssl->transform->in_cid_len + ssl->transform->out_cid_len;
     if (used <= buf_len) {
         *p++ = ssl->transform->in_cid_len;
         memcpy(p, ssl->transform->in_cid, ssl->transform->in_cid_len);
@@ -5692,7 +5692,7 @@ int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
                                  uint32_t *flags)
 {
     int ret = 0;
-    int usage = 0;
+    unsigned int usage = 0;
     const char *ext_oid;
     size_t ext_len;
 
@@ -7665,7 +7665,7 @@ static int ssl_calc_finished_tls_generic(mbedtls_ssl_context *ssl, void *ctx,
                                          unsigned char *padbuf, size_t hlen,
                                          unsigned char *buf, int from)
 {
-    int len = 12;
+    unsigned int len = 12;
     const char *sender;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status;
@@ -7865,7 +7865,8 @@ void mbedtls_ssl_handshake_wrapup(mbedtls_ssl_context *ssl)
 
 int mbedtls_ssl_write_finished(mbedtls_ssl_context *ssl)
 {
-    int ret, hash_len;
+    int ret;
+    unsigned int hash_len;
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write finished"));
 

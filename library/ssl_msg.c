@@ -2731,7 +2731,7 @@ void mbedtls_ssl_send_flight_completed(mbedtls_ssl_context *ssl)
 /*
  * Handshake layer functions
  */
-int mbedtls_ssl_start_handshake_msg(mbedtls_ssl_context *ssl, unsigned hs_type,
+int mbedtls_ssl_start_handshake_msg(mbedtls_ssl_context *ssl, unsigned char hs_type,
                                     unsigned char **buf, size_t *buf_len)
 {
     /*

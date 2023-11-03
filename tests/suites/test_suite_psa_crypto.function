@@ -5717,12 +5717,8 @@ void copy_input(int src_len, int dst_len, psa_status_t exp_status)
     uint8_t *dst_buffer = NULL;
     psa_status_t status;
 
-    /* Special case, when src_len or dst_len is 0, we want to test on a real
-     * buffer. Calling TEST_CALLOC with 0 will return NULL. */
-    size_t src_calloc_len = (src_len == 0 ? 1 : src_len);
-    size_t dst_calloc_len = (dst_len == 0 ? 1 : dst_len);
-    TEST_CALLOC(src_buffer, src_calloc_len);
-    TEST_CALLOC(dst_buffer, dst_calloc_len);
+    TEST_CALLOC_NONNULL(src_buffer, src_len);
+    TEST_CALLOC_NONNULL(dst_buffer, dst_len);
 
     fill_buffer_pattern(src_buffer, src_len);
 
@@ -5747,12 +5743,8 @@ void copy_output(int src_len, int dst_len, psa_status_t exp_status)
     uint8_t *dst_buffer = NULL;
     psa_status_t status;
 
-    /* Special case, when src_len or dst_len is 0, we want to test on a real
-     * buffer. Calling TEST_CALLOC with 0 will return NULL. */
-    size_t src_calloc_len = (src_len == 0 ? 1 : src_len);
-    size_t dst_calloc_len = (dst_len == 0 ? 1 : dst_len);
-    TEST_CALLOC(src_buffer, src_calloc_len);
-    TEST_CALLOC(dst_buffer, dst_calloc_len);
+    TEST_CALLOC_NONNULL(src_buffer, src_len);
+    TEST_CALLOC_NONNULL(dst_buffer, dst_len);
 
     fill_buffer_pattern(src_buffer, src_len);
 

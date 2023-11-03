@@ -20,9 +20,9 @@
 #ifndef MBEDTLS_CIPHER_LIGHT_H
 #define MBEDTLS_CIPHER_LIGHT_H
 
-#include "mbedtls/build_info.h"
+#include "mbedtls/private_access.h"
 
-#include "mbedtls/cipher.h"
+#include "mbedtls/build_info.h"
 
 #if defined(MBEDTLS_AES_C)
 #include "mbedtls/aes.h"
@@ -46,37 +46,20 @@ typedef enum {
 } mbedtls_cipher_light_id_t;
 
 typedef struct {
-    mbedtls_cipher_light_id_t id;
+    mbedtls_cipher_light_id_t MBEDTLS_PRIVATE(id);
     union {
         unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
 #if defined(MBEDTLS_AES_C)
-        mbedtls_aes_context aes;
+        mbedtls_aes_context MBEDTLS_PRIVATE(aes);
 #endif
 #if defined(MBEDTLS_ARIA_C)
-        mbedtls_aria_context aria;
+        mbedtls_aria_context MBEDTLS_PRIVATE(aria);
 #endif
 #if defined(MBEDTLS_CAMELLIA_C)
-        mbedtls_camellia_context camellia;
+        mbedtls_camellia_context MBEDTLS_PRIVATE(camellia);
 #endif
-    } ctx;
+    } MBEDTLS_PRIVATE(ctx);
 } mbedtls_cipher_light_context_t;
-
-static inline void mbedtls_cipher_light_init(mbedtls_cipher_light_context_t *ctx)
-{
-    ctx->id = MBEDTLS_CIPHER_LIGHT_ID_NONE;
-    ctx->ctx.dummy = 0;
-}
-
-void mbedtls_cipher_light_free(mbedtls_cipher_light_context_t *ctx);
-
-int mbedtls_cipher_light_setkey(mbedtls_cipher_light_context_t *ctx,
-                                mbedtls_cipher_id_t cipher_id,
-                                const unsigned char *key,
-                                unsigned key_bitlen);
-
-int mbedtls_cipher_light_encrypt(mbedtls_cipher_light_context_t *ctx,
-                                 const unsigned char input[16],
-                                 unsigned char output[16]);
 
 #ifdef __cplusplus
 }

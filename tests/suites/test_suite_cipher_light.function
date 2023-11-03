@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include "cipher_light.h"
+#include "cipher_light_internal.h"
 
 #define BLOCK_SIZE 16
 /* END_HEADER */

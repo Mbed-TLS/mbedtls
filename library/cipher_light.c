@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-#include "cipher_light.h"
+#include "cipher_light_internal.h"
 
 #if defined(MBEDTLS_CIPHER_LIGHT)
 

@@ -342,11 +342,13 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
      */
 #if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     if (alg == key_alg || alg == key_alg2) {
-#else
-    if (alg == key_alg) {
-#endif
         return 1;
     }
+#else
+    if (alg == key_alg) {
+        return 1;
+    }
+#endif
 
     /*
      * If key_alg or key_alg2 is a hash-and-sign with a wildcard for the hash,

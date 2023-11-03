@@ -2109,6 +2109,16 @@ component_test_full_deprecated_warning () {
     tests/scripts/run_demos.py
 }
 
+component_test_full_no_psa_key_enrollment () {
+    msg "build: build full without PSA key enrollment support"
+    scripts/config.py full
+    scripts/config.py set  MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT
+    make CC=gcc CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: test full without PSA key enrollment support"
+    make test
+}
+
 # Check that the specified libraries exist and are empty.
 are_empty_libraries () {
   nm "$@" >/dev/null 2>/dev/null

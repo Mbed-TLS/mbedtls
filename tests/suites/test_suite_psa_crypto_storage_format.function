@@ -297,6 +297,7 @@ exit:
     mbedtls_free(exported_material);
     return ok;
 }
+#endif /* !MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT */
 
 /* END_HEADER */
 
@@ -350,7 +351,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on: !MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT*/
 void key_storage_read(int lifetime_arg, int type_arg, int bits_arg,
                       int usage_arg, int alg_arg, int alg2_arg,
                       data_t *material,

@@ -862,8 +862,8 @@ psa_status_t mbedtls_psa_verify_hash_abort(
  * \param[out] input_copy_len   Length of the local copy buffer.
  * \return                      #PSA_SUCCESS, if the buffer was successfully
  *                              copied.
- * \return                      #PSA_ERROR_BUFFER_TOO_SMALL, if the local copy
- *                              is too small to hold contents of the
+ * \return                      #PSA_ERROR_CORRUPTION_DETECTED, if the local
+ *                              copy is too small to hold contents of the
  *                              input buffer.
  */
 psa_status_t psa_crypto_copy_input(const uint8_t *input, size_t input_len,
@@ -877,7 +877,7 @@ psa_status_t psa_crypto_copy_input(const uint8_t *input, size_t input_len,
  * \param[out] output_len       Length of the user-supplied output buffer.
  * \return                      #PSA_SUCCESS, if the buffer was successfully
  *                              copied.
- * \return                      #PSA_ERROR_BUFFER_TOO_SMALL, if the
+ * \return                      #PSA_ERROR_CORRUPTION_DETECTED, if the
  *                              user-supplied output buffer is too small to
  *                              hold the contents of the local buffer.
  */

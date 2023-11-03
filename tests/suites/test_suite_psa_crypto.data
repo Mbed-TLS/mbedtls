@@ -7414,7 +7414,7 @@ PSA input buffer copy: copy buffer larger than required
 copy_input:10:20:PSA_SUCCESS
 
 PSA input buffer copy: copy buffer too small
-copy_input:20:10:PSA_ERROR_BUFFER_TOO_SMALL
+copy_input:20:10:PSA_ERROR_CORRUPTION_DETECTED
 
 PSA input buffer copy: zero-length source buffer
 copy_input:0:10:PSA_SUCCESS
@@ -7429,7 +7429,7 @@ PSA output buffer copy: output buffer larger than required
 copy_output:10:20:PSA_SUCCESS
 
 PSA output buffer copy: output buffer too small
-copy_output:20:10:PSA_ERROR_BUFFER_TOO_SMALL
+copy_output:20:10:PSA_ERROR_CORRUPTION_DETECTED
 
 PSA output buffer copy: zero-length source buffer
 copy_output:0:10:PSA_SUCCESS

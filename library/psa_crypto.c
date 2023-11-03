@@ -8446,7 +8446,7 @@ psa_status_t psa_crypto_copy_input(const uint8_t *input, size_t input_len,
                                    uint8_t *input_copy, size_t input_copy_len)
 {
     if (input_len > input_copy_len) {
-        return PSA_ERROR_BUFFER_TOO_SMALL;
+        return PSA_ERROR_CORRUPTION_DETECTED;
     }
 
     memcpy(input_copy, input, input_len);
@@ -8458,7 +8458,7 @@ psa_status_t psa_crypto_copy_output(const uint8_t *output_copy, size_t output_co
                                     uint8_t *output, size_t output_len)
 {
     if (output_len < output_copy_len) {
-        return PSA_ERROR_BUFFER_TOO_SMALL;
+        return PSA_ERROR_CORRUPTION_DETECTED;
     }
     memcpy(output, output_copy, output_copy_len);
     return PSA_SUCCESS;

@@ -2,7 +2,7 @@
  *  TLS 1.3 key schedule
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  *
  *  Licensed under the Apache License, Version 2.0 ( the "License" ); you may
  *  not use this file except in compliance with the License.

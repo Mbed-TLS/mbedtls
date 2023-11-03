@@ -1,0 +1,54 @@
+/* BEGIN_HEADER */
+#include "cipher_light.h"
+
+#define BLOCK_SIZE 16
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_CIPHER_LIGHT
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void invalid()
+{
+    /* This size can be used as key, intput or output buffer */
+    unsigned char buf[16] = { 0 };
+
+    mbedtls_cipher_light_context_t ctx;
+
+    mbedtls_cipher_light_init(&ctx);
+
+    TEST_EQUAL(MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+               mbedtls_cipher_light_setkey(&ctx, MBEDTLS_CIPHER_ID_DES,
+                                           buf, 8 * sizeof(buf)));
+
+    TEST_EQUAL(MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+               mbedtls_cipher_light_encrypt(&ctx, buf, buf));
+
+exit:
+    mbedtls_cipher_light_free(&ctx);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void test_vec(int cipher_id_arg, data_t *key, data_t *input, data_t *outref)
+{
+    mbedtls_cipher_light_context_t ctx;
+    mbedtls_cipher_id_t cipher_id = cipher_id_arg;
+    unsigned char output[BLOCK_SIZE];
+
+    mbedtls_cipher_light_init(&ctx);
+
+    memset(output, 0x00, sizeof(output));
+
+    TEST_EQUAL(0, mbedtls_cipher_light_setkey(&ctx, cipher_id,
+                                              key->x, 8 * key->len));
+
+    TEST_EQUAL(0, mbedtls_cipher_light_encrypt(&ctx, input->x, output));
+    ASSERT_COMPARE(output, BLOCK_SIZE, outref->x, outref->len);
+
+exit:
+    mbedtls_cipher_light_free(&ctx);
+}
+/* END_CASE */

@@ -109,6 +109,25 @@ void mbedtls_test_set_mutex_usage_error(const char *msg)
 }
 #endif // #if defined(MBEDTLS_TEST_MUTEX_USAGE)
 
+#if defined(MBEDTLS_BIGNUM_C)
+
+unsigned mbedtls_test_get_case_uses_negative_0(void)
+{
+    return mbedtls_test_info.case_uses_negative_0;
+}
+
+void mbedtls_test_set_case_uses_negative_0(unsigned uses)
+{
+    mbedtls_test_info.case_uses_negative_0 = uses;
+}
+
+void mbedtls_test_increment_case_uses_negative_0(void)
+{
+    ++mbedtls_test_info.case_uses_negative_0;
+}
+
+#endif
+
 /*----------------------------------------------------------------------------*/
 /* Helper Functions */
 
@@ -171,10 +190,6 @@ void mbedtls_test_skip(const char *test, int line_no, const char *filename)
     mbedtls_test_set_result(MBEDTLS_TEST_RESULT_SKIPPED, test, line_no, filename);
 }
 
-#if defined(MBEDTLS_BIGNUM_C)
-unsigned mbedtls_test_case_uses_negative_0 = 0;
-#endif
-
 void mbedtls_test_info_reset(void)
 {
     mbedtls_test_set_result(MBEDTLS_TEST_RESULT_SUCCESS, 0, 0, 0);
@@ -183,7 +198,7 @@ void mbedtls_test_info_reset(void)
     mbedtls_test_set_line2(NULL);
 
 #if defined(MBEDTLS_BIGNUM_C)
-    mbedtls_test_case_uses_negative_0 = 0;
+    mbedtls_test_set_case_uses_negative_0(0);
 #endif
 }
 

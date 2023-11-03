@@ -74,6 +74,9 @@ typedef struct {
 #if defined(MBEDTLS_TEST_MUTEX_USAGE)
     const char *mutex_usage_error;
 #endif
+#if defined(MBEDTLS_BIGNUM_C)
+    unsigned case_uses_negative_0;
+#endif
 }
 mbedtls_test_info_t;
 
@@ -151,6 +154,28 @@ const char *mbedtls_test_get_mutex_usage_error(void);
 void mbedtls_test_set_mutex_usage_error(const char *msg);
 #endif
 
+#if defined(MBEDTLS_BIGNUM_C)
+
+/**
+ * \brief           Get whether the current test is a bignum test that uses
+ *                  negative zero.
+ *
+ * \return          non zero if the current test uses bignum negative zero.
+ */
+unsigned mbedtls_test_get_case_uses_negative_0(void);
+
+/**
+ * \brief           Indicate that the current test uses bignum negative zero.
+ *
+ * \note            This function is called if the current test case had an
+ *                  input parsed with mbedtls_test_read_mpi() that is a negative
+ *                  0 (`"-"`, `"-0"`, `"-00"`, etc., constructing a result with
+ *                  the sign bit set to -1 and the value being all-limbs-0,
+ *                  which is not a valid representation in #mbedtls_mpi but is
+ *                  tested for robustness). *
+ */
+void  mbedtls_test_increment_case_uses_negative_0(void);
+#endif
 
 int mbedtls_test_platform_setup(void);
 void mbedtls_test_platform_teardown(void);

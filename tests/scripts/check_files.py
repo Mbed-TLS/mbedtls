@@ -10,10 +10,10 @@ trailing whitespace, and presence of UTF-8 BOM.
 Note: requires python 3, must be run from Mbed TLS root.
 """
 
-import os
 import argparse
-import logging
 import codecs
+import logging
+import os
 import re
 import subprocess
 import sys

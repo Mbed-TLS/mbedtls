@@ -4022,34 +4022,34 @@ PSA derive persistent key: HKDF SHA-256, exportable
 persistent_key_load_key_from_storage:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":PSA_KEY_TYPE_RAW_DATA:1024:PSA_KEY_USAGE_EXPORT:0:DERIVE_KEY
 
 PSA input buffer copy: straightforward copy
-psa_crypto_copy_input:20:20:PSA_SUCCESS
+copy_input:20:20:PSA_SUCCESS
 
 PSA input buffer copy: copy buffer larger than required
-psa_crypto_copy_input:10:20:PSA_SUCCESS
+copy_input:10:20:PSA_SUCCESS
 
 PSA input buffer copy: copy buffer too small
-psa_crypto_copy_input:20:10:PSA_ERROR_BUFFER_TOO_SMALL
+copy_input:20:10:PSA_ERROR_BUFFER_TOO_SMALL
 
 PSA input buffer copy: zero-length source buffer
-psa_crypto_copy_input:0:10:PSA_SUCCESS
+copy_input:0:10:PSA_SUCCESS
 
 PSA input buffer copy: zero-length both buffers
-psa_crypto_copy_input:0:0:PSA_SUCCESS
+copy_input:0:0:PSA_SUCCESS
 
 PSA output buffer copy: straightforward copy
-psa_crypto_copy_output:20:20:PSA_SUCCESS
+copy_output:20:20:PSA_SUCCESS
 
 PSA output buffer copy: output buffer larger than required
-psa_crypto_copy_output:10:20:PSA_SUCCESS
+copy_output:10:20:PSA_SUCCESS
 
 PSA output buffer copy: output buffer too small
-psa_crypto_copy_output:20:10:PSA_ERROR_BUFFER_TOO_SMALL
+copy_output:20:10:PSA_ERROR_BUFFER_TOO_SMALL
 
 PSA output buffer copy: zero-length source buffer
-psa_crypto_copy_output:0:10:PSA_SUCCESS
+copy_output:0:10:PSA_SUCCESS
 
 PSA output buffer copy: zero-length both buffers
-psa_crypto_copy_output:0:0:PSA_SUCCESS
+copy_output:0:0:PSA_SUCCESS
 
 PSA buffers alloc and copy
 psa_crypto_alloc_and_copy:0:20:0:20:PSA_SUCCESS

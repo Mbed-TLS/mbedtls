@@ -28,6 +28,7 @@
 
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
+#include <mbedtls/debug.h>
 #include <mbedtls/platform.h>
 #include <mbedtls/platform_util.h>
 #include "test/helpers.h"
@@ -156,7 +157,10 @@ void memory_leak(const char *name)
 void test_memory_poison(const char *name)
 {
     size_t start = 0, offset = 0, count = 0;
-    if (sscanf(name, "%*[^0-9]%zu%*[^0-9]%zu%*[^0-9]%zu",
+    if (sscanf(name,
+               "%*[^0-9]%" MBEDTLS_PRINTF_SIZET
+               "%*[^0-9]%" MBEDTLS_PRINTF_SIZET
+               "%*[^0-9]%" MBEDTLS_PRINTF_SIZET,
                &start, &offset, &count) != 3) {
         mbedtls_fprintf(stderr, "%s: Bad name format: %s\n", __func__, name);
         return;
@@ -169,18 +173,24 @@ void test_memory_poison(const char *name)
     memset(aligned.buf, 'a', sizeof(aligned.buf));
 
     if (start > sizeof(aligned.buf)) {
-        mbedtls_fprintf(stderr, "%s: start=%zu > size=%zu", __func__,
-                        start, sizeof(aligned.buf));
+        mbedtls_fprintf(stderr,
+                        "%s: start=%" MBEDTLS_PRINTF_SIZET
+                        " > size=%" MBEDTLS_PRINTF_SIZET,
+                        __func__, start, sizeof(aligned.buf));
         return;
     }
     if (start + count > sizeof(aligned.buf)) {
-        mbedtls_fprintf(stderr, "%s: start+count=%zu > size=%zu", __func__,
-                        start + count, sizeof(aligned.buf));
+        mbedtls_fprintf(stderr,
+                        "%s: start+count=%" MBEDTLS_PRINTF_SIZET
+                        " > size=%" MBEDTLS_PRINTF_SIZET,
+                        __func__, start + count, sizeof(aligned.buf));
         return;
     }
     if (offset >= count) {
-        mbedtls_fprintf(stderr, "%s: offset=%zu >= count=%zu", __func__,
-                        offset, count);
+        mbedtls_fprintf(stderr,
+                        "%s: offset=%" MBEDTLS_PRINTF_SIZET
+                        " >= count=%" MBEDTLS_PRINTF_SIZET,
+                        __func__, offset, count);
         return;
     }
 

@@ -997,10 +997,17 @@ static psa_status_t psa_key_policy_permits(const psa_key_policy_t *policy,
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     if (psa_key_algorithm_permits(key_type, policy->alg, alg) ||
         psa_key_algorithm_permits(key_type, policy->alg2, alg)) {
         return PSA_SUCCESS;
-    } else {
+    }
+#else
+    if (psa_key_algorithm_permits(key_type, policy->alg, alg)) {
+        return PSA_SUCCESS;
+    }
+#endif
+    else {
         return PSA_ERROR_NOT_PERMITTED;
     }
 }
@@ -1031,18 +1038,25 @@ static psa_status_t psa_restrict_key_policy(
     psa_algorithm_t intersection_alg =
         psa_key_policy_algorithm_intersection(key_type, policy->alg,
                                               constraint->alg);
+
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     psa_algorithm_t intersection_alg2 =
         psa_key_policy_algorithm_intersection(key_type, policy->alg2,
                                               constraint->alg2);
+#endif
     if (intersection_alg == 0 && policy->alg != 0 && constraint->alg != 0) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     if (intersection_alg2 == 0 && policy->alg2 != 0 && constraint->alg2 != 0) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
+#endif
     policy->usage &= constraint->usage;
     policy->alg = intersection_alg;
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     policy->alg2 = intersection_alg2;
+#endif
     return PSA_SUCCESS;
 }
 

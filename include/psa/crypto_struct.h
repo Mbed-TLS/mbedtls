@@ -188,11 +188,17 @@ static inline struct psa_key_derivation_s psa_key_derivation_operation_init(
 struct psa_key_policy_s {
     psa_key_usage_t MBEDTLS_PRIVATE(usage);
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     psa_algorithm_t MBEDTLS_PRIVATE(alg2);
+#endif
 };
 typedef struct psa_key_policy_s psa_key_policy_t;
 
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
 #define PSA_KEY_POLICY_INIT { 0, 0, 0 }
+#else
+#define PSA_KEY_POLICY_INIT { 0, 0 }
+#endif
 static inline struct psa_key_policy_s psa_key_policy_init(void)
 {
     const struct psa_key_policy_s v = PSA_KEY_POLICY_INIT;

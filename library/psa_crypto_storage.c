@@ -249,7 +249,9 @@ void psa_format_key_data_for_storage(const uint8_t *data,
     MBEDTLS_PUT_UINT16_LE((uint16_t) attr->bits, storage_format->bits, 0);
     MBEDTLS_PUT_UINT32_LE(attr->policy.usage, storage_format->policy, 0);
     MBEDTLS_PUT_UINT32_LE(attr->policy.alg, storage_format->policy, sizeof(uint32_t));
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     MBEDTLS_PUT_UINT32_LE(attr->policy.alg2, storage_format->policy, 2 * sizeof(uint32_t));
+#endif
     MBEDTLS_PUT_UINT32_LE(data_length, storage_format->data_len, 0);
     memcpy(storage_format->key_data, data, data_length);
 }
@@ -309,7 +311,9 @@ psa_status_t psa_parse_key_data_from_storage(const uint8_t *storage_data,
     attr->bits = MBEDTLS_GET_UINT16_LE(storage_format->bits, 0);
     attr->policy.usage = MBEDTLS_GET_UINT32_LE(storage_format->policy, 0);
     attr->policy.alg = MBEDTLS_GET_UINT32_LE(storage_format->policy, sizeof(uint32_t));
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     attr->policy.alg2 = MBEDTLS_GET_UINT32_LE(storage_format->policy, 2 * sizeof(uint32_t));
+#endif
 
     return PSA_SUCCESS;
 }

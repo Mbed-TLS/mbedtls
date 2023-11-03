@@ -54,7 +54,10 @@ void null_pointer_call(const char *name)
     (void) name;
     unsigned (*p)(void);
     mbedtls_platform_zeroize(&p, sizeof(p));
-    mbedtls_printf("%llx() -> %u\n", (unsigned long long) (uintptr_t) p, p());
+    /* The pointer representation may be truncated, but we don't care:
+     * the only point of printing it is to have some use of the pointer
+     * to dissuade the compiler from optimizing it away. */
+    mbedtls_printf("%lx() -> %u\n", (unsigned long) (uintptr_t) p, p());
 }
 
 

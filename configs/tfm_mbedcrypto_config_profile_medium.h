@@ -8,10 +8,8 @@
  *  memory footprint.
  */
 /*
- *  Copyright (C) 2006-2022, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
 #ifndef PROFILE_M_MBEDTLS_CONFIG_H

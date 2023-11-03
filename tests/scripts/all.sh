@@ -1579,7 +1579,7 @@ component_test_full_cmake_clang () {
     programs/test/cpp_dummy_build
 
     msg "test: metatests (clang)"
-    tests/scripts/run-metatests.sh any
+    tests/scripts/run-metatests.sh any pthread
 
     msg "program demos (full config, clang)" # ~10s
     tests/scripts/run_demos.py

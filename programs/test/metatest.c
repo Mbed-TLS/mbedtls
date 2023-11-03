@@ -13,9 +13,14 @@
 #include <mbedtls/platform.h>
 #include <mbedtls/platform_util.h>
 #include "test/helpers.h"
+#include "test/macros.h"
 
 #include <stdio.h>
 #include <string.h>
+
+#if defined(MBEDTLS_THREADING_C)
+#include <mbedtls/threading.h>
+#endif
 
 
 /* This is an external variable, so the compiler doesn't know that we're never
@@ -62,7 +67,7 @@ void null_pointer_call(const char *name)
 
 
 /****************************************************************/
-/* Sanitizers */
+/* Memory */
 /****************************************************************/
 
 void read_after_free(const char *name)
@@ -105,6 +110,84 @@ void memory_leak(const char *name)
 
 
 /****************************************************************/
+/* Threading */
+/****************************************************************/
+
+void mutex_lock_not_initialized(const char *name)
+{
+    (void) name;
+    /* Mutex usage verification is only done with pthread, not with other
+     * threading implementations. See tests/src/threading_helpers.c. */
+#if defined(MBEDTLS_THREADING_PTHREAD)
+    mbedtls_threading_mutex_t mutex;
+    memset(&mutex, 0, sizeof(mutex));
+    TEST_ASSERT(mbedtls_mutex_lock(&mutex) == 0);
+exit:
+    ;
+#endif
+}
+
+void mutex_unlock_not_initialized(const char *name)
+{
+    (void) name;
+    /* Mutex usage verification is only done with pthread, not with other
+     * threading implementations. See tests/src/threading_helpers.c. */
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_threading_mutex_t mutex;
+    memset(&mutex, 0, sizeof(mutex));
+    TEST_ASSERT(mbedtls_mutex_unlock(&mutex) == 0);
+exit:
+    ;
+#endif
+}
+
+void mutex_free_not_initialized(const char *name)
+{
+    (void) name;
+    /* Mutex usage verification is only done with pthread, not with other
+     * threading implementations. See tests/src/threading_helpers.c. */
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_threading_mutex_t mutex;
+    memset(&mutex, 0, sizeof(mutex));
+    mbedtls_mutex_free(&mutex);
+#endif
+}
+
+void mutex_double_init(const char *name)
+{
+    (void) name;
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_threading_mutex_t mutex;
+    mbedtls_mutex_init(&mutex);
+    mbedtls_mutex_init(&mutex);
+    mbedtls_mutex_free(&mutex);
+#endif
+}
+
+void mutex_double_free(const char *name)
+{
+    (void) name;
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_threading_mutex_t mutex;
+    mbedtls_mutex_init(&mutex);
+    mbedtls_mutex_free(&mutex);
+    mbedtls_mutex_free(&mutex);
+#endif
+}
+
+void mutex_leak(const char *name)
+{
+    (void) name;
+    /* Mutex usage verification is only done with pthread, not with other
+     * threading implementations. See tests/src/threading_helpers.c. */
+#if defined(MBEDTLS_THREADING_PTHREAD)
+    mbedtls_threading_mutex_t mutex;
+    mbedtls_mutex_init(&mutex);
+#endif
+}
+
+
+/****************************************************************/
 /* Command line entry point */
 /****************************************************************/
 
@@ -122,6 +205,14 @@ metatest_t metatests[] = {
     { "double_free", "asan", double_free },
     { "read_uninitialized_stack", "msan", read_uninitialized_stack },
     { "memory_leak", "asan", memory_leak },
+    /* Mutex usage verification is only done with pthread, not with other
+     * threading implementations. See tests/src/threading_helpers.c. */
+    { "mutex_lock_not_initialized", "pthread", mutex_lock_not_initialized },
+    { "mutex_unlock_not_initialized", "pthread", mutex_unlock_not_initialized },
+    { "mutex_free_not_initialized", "pthread", mutex_free_not_initialized },
+    { "mutex_double_init", "pthread", mutex_double_init },
+    { "mutex_double_free", "pthread", mutex_double_free },
+    { "mutex_leak", "pthread", mutex_leak },
     { NULL, NULL, NULL }
 };
 
@@ -157,10 +248,17 @@ int main(int argc, char *argv[])
         mbedtls_exit(MBEDTLS_EXIT_SUCCESS);
     }
 
+#if defined(MBEDTLS_TEST_MUTEX_USAGE)
+    mbedtls_test_mutex_usage_init();
+#endif
+
     for (const metatest_t *p = metatests; p->name != NULL; p++) {
         if (strcmp(argv[1], p->name) == 0) {
             mbedtls_printf("Running metatest %s...\n", argv[1]);
             p->entry_point(argv[1]);
+#if defined(MBEDTLS_TEST_MUTEX_USAGE)
+            mbedtls_test_mutex_usage_check();
+#endif
             mbedtls_printf("Running metatest %s... done, result=%d\n",
                            argv[1], (int) mbedtls_test_info.result);
             mbedtls_exit(mbedtls_test_info.result == MBEDTLS_TEST_RESULT_SUCCESS ?

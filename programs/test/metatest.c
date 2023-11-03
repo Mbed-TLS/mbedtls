@@ -54,7 +54,7 @@ void null_pointer_call(const char *name)
     (void) name;
     unsigned (*p)(void);
     mbedtls_platform_zeroize(&p, sizeof(p));
-    mbedtls_printf("%llx() -> %u\n", (unsigned long long) p, p());
+    mbedtls_printf("%llx() -> %u\n", (unsigned long long) (uintptr_t) p, p());
 }
 
 

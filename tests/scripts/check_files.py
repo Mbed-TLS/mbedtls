@@ -386,6 +386,11 @@ class LicenseIssueTracker(LineIssueTracker):
                          re.escape(SPDX_HEADER_KEY) +
                          br')(:\s*(.*?)\W*\Z|.*)', re.I)
 
+    LICENSE_MENTION_RE = re.compile(rb'.*(?:' + rb'|'.join([
+        rb'Apache License',
+        rb'General Public License',
+    ]) + rb')', re.I)
+
     def __init__(self):
         super().__init__()
         # Record what problem was caused. We can't easily report it due to
@@ -394,6 +399,8 @@ class LicenseIssueTracker(LineIssueTracker):
         self.problem = None
 
     def issue_with_line(self, line, filepath, line_number):
+        #pylint: disable=too-many-return-statements
+
         # Use endswith() rather than the more correct os.path.basename()
         # because experimentally, it makes a significant difference to
         # the running time.
@@ -421,6 +428,12 @@ class LicenseIssueTracker(LineIssueTracker):
             if m.group(3) != self.LICENSE_IDENTIFIER:
                 self.problem = 'Wrong SPDX license identifier'
                 return True
+
+        m = self.LICENSE_MENTION_RE.match(line)
+        if m:
+            self.problem = 'Suspicious license mention'
+            return True
+
         return False
 
 

@@ -10375,11 +10375,11 @@ void ecjpake_size_macros()
 /* END_CASE */
 
 /* BEGIN_CASE */
-void copy_input(int src_len, int dst_len, psa_status_t exp_ret)
+void copy_input(int src_len, int dst_len, psa_status_t exp_status)
 {
     uint8_t *src_buffer = NULL;
     uint8_t *dst_buffer = NULL;
-    psa_status_t ret;
+    psa_status_t status;
 
     /* Special case, when src_len or dst_len is 0, we want to test on a real
      * buffer. Calling TEST_CALLOC with 0 will return NULL. */
@@ -10390,10 +10390,10 @@ void copy_input(int src_len, int dst_len, psa_status_t exp_ret)
 
     fill_buffer_pattern(src_buffer, src_len);
 
-    ret = psa_crypto_copy_input(src_buffer, src_len, dst_buffer, dst_len);
-    TEST_EQUAL(ret, exp_ret);
+    status = psa_crypto_copy_input(src_buffer, src_len, dst_buffer, dst_len);
+    TEST_EQUAL(status, exp_status);
 
-    if (exp_ret == PSA_SUCCESS) {
+    if (exp_status == PSA_SUCCESS) {
         /* Note: We compare the first src_len bytes of each buffer, as this is what was copied. */
         TEST_MEMORY_COMPARE(src_buffer, src_len, dst_buffer, src_len);
     }
@@ -10405,11 +10405,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void copy_output(int src_len, int dst_len, psa_status_t exp_ret)
+void copy_output(int src_len, int dst_len, psa_status_t exp_status)
 {
     uint8_t *src_buffer = NULL;
     uint8_t *dst_buffer = NULL;
-    psa_status_t ret;
+    psa_status_t status;
 
     /* Special case, when src_len or dst_len is 0, we want to test on a real
      * buffer. Calling TEST_CALLOC with 0 will return NULL. */
@@ -10420,10 +10420,10 @@ void copy_output(int src_len, int dst_len, psa_status_t exp_ret)
 
     fill_buffer_pattern(src_buffer, src_len);
 
-    ret = psa_crypto_copy_output(src_buffer, src_len, dst_buffer, dst_len);
-    TEST_EQUAL(ret, exp_ret);
+    status = psa_crypto_copy_output(src_buffer, src_len, dst_buffer, dst_len);
+    TEST_EQUAL(status, exp_status);
 
-    if (exp_ret == PSA_SUCCESS) {
+    if (exp_status == PSA_SUCCESS) {
         /* Note: We compare the first src_len bytes of each buffer, as this is what was copied. */
         TEST_MEMORY_COMPARE(src_buffer, src_len, dst_buffer, src_len);
     }

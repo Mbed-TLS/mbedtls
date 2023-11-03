@@ -144,6 +144,7 @@ sub gen_app {
     my $guid = gen_app_guid( $path );
     $path =~ s!/!\\!g;
     (my $appname = $path) =~ s/.*\\//;
+    my $is_test_app = ($path =~ m/^test\\/);
 
     my $srcs = "<ClCompile Include=\"..\\..\\programs\\$path.c\" \/>";
     if( $appname eq "ssl_client2" or $appname eq "ssl_server2" or
@@ -158,7 +159,9 @@ sub gen_app {
     $content =~ s/<SOURCES>/$srcs/g;
     $content =~ s/<APPNAME>/$appname/g;
     $content =~ s/<GUID>/$guid/g;
-    $content =~ s/INCLUDE_DIRECTORIES\n/$include_directories/g;
+    $content =~ s/INCLUDE_DIRECTORIES\n/($is_test_app ?
+                                         $library_include_directories :
+                                         $include_directories)/ge;
 
     content_to_file( $content, "$dir/$appname.$ext" );
 }

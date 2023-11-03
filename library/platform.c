@@ -303,7 +303,7 @@ MBEDTLS_STATIC_TESTABLE
 FILE *mbedtls_platform_std_nv_open_seedfile(int write)
 {
 #if defined(MBEDTLS_TEST_HOOKS)
-    char *test_tmpdir = getenv("MBEDTLS_TEST_TMPDIR");
+    char *test_tmpdir = getenv("MBEDTLS_TEST_TMPDIR"); //no-check-names
 
     if (test_tmpdir != NULL) {
         size_t pathlen = strlen(test_tmpdir) + 1 + strlen(MBEDTLS_PLATFORM_STD_NV_SEED_FILE) + 1;

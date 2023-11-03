@@ -81,7 +81,7 @@ void psa_its_fill_filename(psa_storage_uid_t uid, int temp, char **filename)
     size_t leaf_len = (temp ? sizeof(PSA_ITS_STORAGE_TEMP) + 1 : PSA_ITS_STORAGE_FILENAME_LENGTH);
 
 #if defined(MBEDTLS_TEST_HOOKS)
-    char *test_tmpdir = getenv("MBEDTLS_TEST_TMPDIR");
+    char *test_tmpdir = getenv("MBEDTLS_TEST_TMPDIR"); //no-check-names
 
     if (test_tmpdir != NULL) {
         size_t length = strlen(test_tmpdir) + 1 + leaf_len;

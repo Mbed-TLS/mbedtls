@@ -494,8 +494,8 @@ void mbedtls_platform_teardown(mbedtls_platform_context *ctx);
 /**
  * \brief Open the seed file.
  *
- * \note If MBEDTLS_TEST_HOOKS is set and MBEDTLS_TEST_TMPDIR is non-empty,
- * use MBEDTLS_TEST_TMPDIR to locate the file.
+ * \note If MBEDTLS_TEST_HOOKS is set and the environment variable
+ * MBEDTLS_TEST_TMPDIR is non-empty, use MBEDTLS_TEST_TMPDIR to locate the file.   //no-check-names
  *
  * \param write Open for writing if non-zero, otherwise in read mode.
  *

@@ -318,10 +318,6 @@
 #error "MBEDTLS_GCM_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_GCM_C) && !defined(MBEDTLS_CIPHER_C)
-#error "MBEDTLS_GCM_C defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_CHACHAPOLY_C) && !defined(MBEDTLS_CHACHA20_C)
 #error "MBEDTLS_CHACHAPOLY_C defined, but not all prerequisites"
 #endif

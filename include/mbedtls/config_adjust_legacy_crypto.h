@@ -34,6 +34,10 @@
 #ifndef MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
 #define MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
 
+#if defined(MBEDTLS_GCM_C) && !defined(MBEDTLS_CIPHER_C)
+#define MBEDTLS_CIPHER_LIGHT
+#endif
+
 /* Auto-enable MBEDTLS_MD_LIGHT based on MBEDTLS_MD_C.
  * This allows checking for MD_LIGHT rather than MD_LIGHT || MD_C.
  */

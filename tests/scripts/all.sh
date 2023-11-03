@@ -1529,7 +1529,7 @@ component_test_full_cipher_light_only () {
     # Disable features that depend on CIPHER_C
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CMAC_C
-    scripts/config.py unset MBEDTLS_GCM_C
+    #scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
     scripts/config.py unset MBEDTLS_PKCS12_C
     scripts/config.py unset MBEDTLS_PKCS5_C
@@ -1542,7 +1542,7 @@ component_test_full_cipher_light_only () {
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_LMS_C
     scripts/config.py unset MBEDTLS_LMS_PRIVATE
-    make CFLAGS="-DMBEDTLS_CIPHER_LIGHT"
+    make
 
     # Ensure that CIPHER_C was not accidentally re-enabled
     not grep mbedtls_cipher_auth library/cipher.o

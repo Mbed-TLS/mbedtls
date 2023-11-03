@@ -852,7 +852,7 @@ static const unsigned char camellia_test_ctr_ct[3][48] =
       0xDF, 0x50, 0x86, 0x96 }
 };
 
-static const int camellia_test_ctr_len[3] =
+static const unsigned int camellia_test_ctr_len[3] =
 { 16, 32, 36 };
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
@@ -861,7 +861,7 @@ static const int camellia_test_ctr_len[3] =
  */
 int mbedtls_camellia_self_test(int verbose)
 {
-    int i, j, u, v;
+    unsigned int i, j, u, v;
     unsigned char key[32];
     unsigned char buf[64];
     unsigned char src[16];
@@ -886,7 +886,7 @@ int mbedtls_camellia_self_test(int verbose)
         v = j & 1;
 
         if (verbose != 0) {
-            mbedtls_printf("  CAMELLIA-ECB-%3d (%s): ", 128 + u * 64,
+            mbedtls_printf("  CAMELLIA-ECB-%3u (%s): ", 128 + u * 64,
                            (v == MBEDTLS_CAMELLIA_DECRYPT) ? "dec" : "enc");
         }
 
@@ -943,7 +943,7 @@ int mbedtls_camellia_self_test(int verbose)
         v = j  & 1;
 
         if (verbose != 0) {
-            mbedtls_printf("  CAMELLIA-CBC-%3d (%s): ", 128 + u * 64,
+            mbedtls_printf("  CAMELLIA-CBC-%3u (%s): ", 128 + u * 64,
                            (v == MBEDTLS_CAMELLIA_DECRYPT) ? "dec" : "enc");
         }
 

@@ -1739,7 +1739,7 @@ static const unsigned char aes_test_ctr_ct[][48] =
       0x25, 0xB2, 0x07, 0x2F }
 };
 
-static const int aes_test_ctr_len[3] =
+static const unsigned int aes_test_ctr_len[3] =
 { 16, 32, 36 };
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
@@ -1816,7 +1816,8 @@ static const unsigned char aes_test_xts_data_unit[][16] =
  */
 int mbedtls_aes_self_test(int verbose)
 {
-    int ret = 0, i, j, u, mode;
+    int ret = 0, j, mode;
+    unsigned int u, i;
     unsigned int keybits;
     unsigned char key[32];
     unsigned char buf[64];
@@ -1833,7 +1834,7 @@ int mbedtls_aes_self_test(int verbose)
     size_t offset;
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR) || defined(MBEDTLS_CIPHER_MODE_XTS)
-    int len;
+    unsigned int len;
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
     unsigned char nonce_counter[16];
@@ -1882,7 +1883,7 @@ int mbedtls_aes_self_test(int verbose)
      * ECB mode
      */
     {
-        static const int num_tests =
+        static const unsigned int num_tests =
             sizeof(aes_test_ecb_enc) / sizeof(*aes_test_ecb_enc);
 
         for (i = 0; i < num_tests << 1; i++) {
@@ -1955,7 +1956,7 @@ int mbedtls_aes_self_test(int verbose)
      * CBC mode
      */
     {
-        static const int num_tests =
+        static const unsigned int num_tests =
             sizeof(aes_test_cbc_dec) / sizeof(*aes_test_cbc_dec);
 
         for (i = 0; i < num_tests << 1; i++) {
@@ -2029,7 +2030,7 @@ int mbedtls_aes_self_test(int verbose)
      * CFB128 mode
      */
     {
-        static const int num_tests =
+        static const unsigned int num_tests =
             sizeof(aes_test_cfb128_key) / sizeof(*aes_test_cfb128_key);
 
         for (i = 0; i < num_tests << 1; i++) {
@@ -2093,7 +2094,7 @@ int mbedtls_aes_self_test(int verbose)
      * OFB mode
      */
     {
-        static const int num_tests =
+        static const unsigned int num_tests =
             sizeof(aes_test_ofb_key) / sizeof(*aes_test_ofb_key);
 
         for (i = 0; i < num_tests << 1; i++) {
@@ -2157,7 +2158,7 @@ int mbedtls_aes_self_test(int verbose)
      * CTR mode
      */
     {
-        static const int num_tests =
+        static const unsigned int num_tests =
             sizeof(aes_test_ctr_key) / sizeof(*aes_test_ctr_key);
 
         for (i = 0; i < num_tests << 1; i++) {
@@ -2214,7 +2215,7 @@ int mbedtls_aes_self_test(int verbose)
      * XTS mode
      */
     {
-        static const int num_tests =
+        static const unsigned int num_tests =
             sizeof(aes_test_xts_key) / sizeof(*aes_test_xts_key);
         mbedtls_aes_xts_context ctx_xts;
 

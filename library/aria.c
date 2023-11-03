@@ -810,7 +810,7 @@ static const uint8_t aria_test2_ctr_ct[3][48] =         // CTR ciphertext
  */
 int mbedtls_aria_self_test(int verbose)
 {
-    int i;
+    unsigned int i;
     uint8_t blk[MBEDTLS_ARIA_BLOCKSIZE];
     mbedtls_aria_context ctx;
     int ret = 1;
@@ -833,7 +833,7 @@ int mbedtls_aria_self_test(int verbose)
     for (i = 0; i < 3; i++) {
         /* test ECB encryption */
         if (verbose) {
-            mbedtls_printf("  ARIA-ECB-%d (enc): ", 128 + 64 * i);
+            mbedtls_printf("  ARIA-ECB-%u (enc): ", 128 + 64 * i);
         }
         mbedtls_aria_setkey_enc(&ctx, aria_test1_ecb_key, 128 + 64 * i);
         mbedtls_aria_crypt_ecb(&ctx, aria_test1_ecb_pt, blk);
@@ -843,7 +843,7 @@ int mbedtls_aria_self_test(int verbose)
 
         /* test ECB decryption */
         if (verbose) {
-            mbedtls_printf("  ARIA-ECB-%d (dec): ", 128 + 64 * i);
+            mbedtls_printf("  ARIA-ECB-%u (dec): ", 128 + 64 * i);
 #if defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
             mbedtls_printf("skipped\n");
 #endif
@@ -868,7 +868,7 @@ int mbedtls_aria_self_test(int verbose)
     for (i = 0; i < 3; i++) {
         /* Test CBC encryption */
         if (verbose) {
-            mbedtls_printf("  ARIA-CBC-%d (enc): ", 128 + 64 * i);
+            mbedtls_printf("  ARIA-CBC-%u (enc): ", 128 + 64 * i);
         }
         mbedtls_aria_setkey_enc(&ctx, aria_test2_key, 128 + 64 * i);
         memcpy(iv, aria_test2_iv, MBEDTLS_ARIA_BLOCKSIZE);
@@ -880,7 +880,7 @@ int mbedtls_aria_self_test(int verbose)
 
         /* Test CBC decryption */
         if (verbose) {
-            mbedtls_printf("  ARIA-CBC-%d (dec): ", 128 + 64 * i);
+            mbedtls_printf("  ARIA-CBC-%u (dec): ", 128 + 64 * i);
         }
         mbedtls_aria_setkey_dec(&ctx, aria_test2_key, 128 + 64 * i);
         memcpy(iv, aria_test2_iv, MBEDTLS_ARIA_BLOCKSIZE);
@@ -899,7 +899,7 @@ int mbedtls_aria_self_test(int verbose)
     for (i = 0; i < 3; i++) {
         /* Test CFB encryption */
         if (verbose) {
-            mbedtls_printf("  ARIA-CFB-%d (enc): ", 128 + 64 * i);
+            mbedtls_printf("  ARIA-CFB-%u (enc): ", 128 + 64 * i);
         }
         mbedtls_aria_setkey_enc(&ctx, aria_test2_key, 128 + 64 * i);
         memcpy(iv, aria_test2_iv, MBEDTLS_ARIA_BLOCKSIZE);
@@ -911,7 +911,7 @@ int mbedtls_aria_self_test(int verbose)
 
         /* Test CFB decryption */
         if (verbose) {
-            mbedtls_printf("  ARIA-CFB-%d (dec): ", 128 + 64 * i);
+            mbedtls_printf("  ARIA-CFB-%u (dec): ", 128 + 64 * i);
         }
         mbedtls_aria_setkey_enc(&ctx, aria_test2_key, 128 + 64 * i);
         memcpy(iv, aria_test2_iv, MBEDTLS_ARIA_BLOCKSIZE);
@@ -930,7 +930,7 @@ int mbedtls_aria_self_test(int verbose)
     for (i = 0; i < 3; i++) {
         /* Test CTR encryption */
         if (verbose) {
-            mbedtls_printf("  ARIA-CTR-%d (enc): ", 128 + 64 * i);
+            mbedtls_printf("  ARIA-CTR-%u (enc): ", 128 + 64 * i);
         }
         mbedtls_aria_setkey_enc(&ctx, aria_test2_key, 128 + 64 * i);
         memset(iv, 0, MBEDTLS_ARIA_BLOCKSIZE);                      // IV = 0
@@ -942,7 +942,7 @@ int mbedtls_aria_self_test(int verbose)
 
         /* Test CTR decryption */
         if (verbose) {
-            mbedtls_printf("  ARIA-CTR-%d (dec): ", 128 + 64 * i);
+            mbedtls_printf("  ARIA-CTR-%u (dec): ", 128 + 64 * i);
         }
         mbedtls_aria_setkey_enc(&ctx, aria_test2_key, 128 + 64 * i);
         memset(iv, 0, MBEDTLS_ARIA_BLOCKSIZE);                      // IV = 0

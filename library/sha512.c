@@ -1009,7 +1009,8 @@ static sha_test_sum_t sha512_test_sum[] =
 
 static int mbedtls_sha512_common_self_test(int verbose, int is384)
 {
-    int i, buflen, ret = 0;
+    int i, ret = 0;
+    size_t buflen;
     unsigned char *buf;
     unsigned char sha512sum[64];
     mbedtls_sha512_context ctx;

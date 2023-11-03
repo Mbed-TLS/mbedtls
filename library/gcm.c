@@ -904,7 +904,8 @@ int mbedtls_gcm_self_test(int verbose)
     mbedtls_gcm_context ctx;
     unsigned char buf[64];
     unsigned char tag_buf[16];
-    int i, j, ret;
+    int ret;
+    unsigned int i, j;
     mbedtls_cipher_id_t cipher = MBEDTLS_CIPHER_ID_AES;
     size_t olen;
 
@@ -928,15 +929,15 @@ int mbedtls_gcm_self_test(int verbose)
 #endif /* MBEDTLS_GCM_ALT */
     }
 
-    static const int loop_limit =
+    static const unsigned int loop_limit =
         (sizeof(ct_test_data) / sizeof(*ct_test_data)) / MAX_TESTS;
 
     for (j = 0; j < loop_limit; j++) {
-        int key_len = 128 + 64 * j;
+        unsigned int key_len = 128 + 64 * j;
 
         for (i = 0; i < MAX_TESTS; i++) {
             if (verbose != 0) {
-                mbedtls_printf("  AES-GCM-%3d #%d (%s): ",
+                mbedtls_printf("  AES-GCM-%3u #%u (%s): ",
                                key_len, i, "enc");
             }
 
@@ -993,7 +994,7 @@ int mbedtls_gcm_self_test(int verbose)
             mbedtls_gcm_init(&ctx);
 
             if (verbose != 0) {
-                mbedtls_printf("  AES-GCM-%3d #%d (%s): ",
+                mbedtls_printf("  AES-GCM-%3u #%u (%s): ",
                                key_len, i, "dec");
             }
 
@@ -1032,7 +1033,7 @@ int mbedtls_gcm_self_test(int verbose)
             mbedtls_gcm_init(&ctx);
 
             if (verbose != 0) {
-                mbedtls_printf("  AES-GCM-%3d #%d split (%s): ",
+                mbedtls_printf("  AES-GCM-%3u #%u split (%s): ",
                                key_len, i, "enc");
             }
 
@@ -1114,7 +1115,7 @@ int mbedtls_gcm_self_test(int verbose)
             mbedtls_gcm_init(&ctx);
 
             if (verbose != 0) {
-                mbedtls_printf("  AES-GCM-%3d #%d split (%s): ",
+                mbedtls_printf("  AES-GCM-%3u #%u split (%s): ",
                                key_len, i, "dec");
             }
 

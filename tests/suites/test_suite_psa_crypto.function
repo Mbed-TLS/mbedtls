@@ -10375,7 +10375,7 @@ void ecjpake_size_macros()
 /* END_CASE */
 
 /* BEGIN_CASE */
-void psa_crypto_copy_input(int src_len, int dst_len, int exp_ret)
+void copy_input(int src_len, int dst_len, int exp_ret)
 {
     uint8_t *src_buffer = NULL;
     uint8_t *dst_buffer = NULL;
@@ -10405,7 +10405,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void psa_crypto_copy_output(int src_len, int dst_len, int exp_ret)
+void copy_output(int src_len, int dst_len, int exp_ret)
 {
     uint8_t *src_buffer = NULL;
     uint8_t *dst_buffer = NULL;

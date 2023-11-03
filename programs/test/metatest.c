@@ -41,6 +41,11 @@
 #include <mbedtls/threading.h>
 #endif
 
+/* C99 feature missing from older versions of MSVC */
+#if (defined(_MSC_VER) && (_MSC_VER <= 1900))
+#define /*no-check-names*/ __func__ __FUNCTION__
+#endif
+
 
 /* This is an external variable, so the compiler doesn't know that we're never
  * changing its value.

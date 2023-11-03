@@ -346,10 +346,13 @@ class MergeArtifactIssueTracker(LineIssueTracker):
         return False
 
 
-THIS_FILE_BASE_NAME = \
-    os.path.basename(inspect.getframeinfo(inspect.currentframe()).filename)
-LINE_NUMBER_BEFORE_LICENSE_ISSUE_TRACKER = \
-    inspect.getframeinfo(inspect.currentframe()).lineno
+def this_location():
+    frame = inspect.currentframe()
+    assert frame is not None
+    info = inspect.getframeinfo(frame)
+    return os.path.basename(info.filename), info.lineno
+THIS_FILE_BASE_NAME, LINE_NUMBER_BEFORE_LICENSE_ISSUE_TRACKER = this_location()
+
 class LicenseIssueTracker(LineIssueTracker):
     """Check copyright statements and license indications.
 

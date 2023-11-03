@@ -1,8 +1,6 @@
 /*
- * Copyright (c) 2018-2022, Arm Limited. All rights reserved.
- *
- * SPDX-License-Identifier: BSD-3-Clause
- *
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 /**
  * \file psa/crypto_config.h

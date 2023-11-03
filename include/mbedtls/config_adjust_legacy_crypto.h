@@ -34,7 +34,8 @@
 #ifndef MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
 #define MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
 
-#if defined(MBEDTLS_GCM_C) && !defined(MBEDTLS_CIPHER_C)
+#if (defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)) && \
+    !defined(MBEDTLS_CIPHER_C)
 #define MBEDTLS_CIPHER_LIGHT
 #endif
 

@@ -13,7 +13,6 @@
 #include "psa/crypto.h"
 #include "psa_crypto_slot_management.h"
 
-/* For psa_can_do_hash() and buffer copying functions */
 #include "psa_crypto_core.h"
 
 #include "test/asn1_helpers.h"

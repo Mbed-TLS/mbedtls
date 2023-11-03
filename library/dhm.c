@@ -48,7 +48,7 @@ static int dhm_read_bignum(mbedtls_mpi *X,
         return MBEDTLS_ERR_DHM_BAD_INPUT_DATA;
     }
 
-    n = ((*p)[0] << 8) | (*p)[1];
+    n = MBEDTLS_GET_UINT16_BE(*p, 0);
     (*p) += 2;
 
     if ((size_t) (end - *p) < (size_t) n) {

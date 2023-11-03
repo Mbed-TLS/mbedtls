@@ -192,7 +192,7 @@ static int ssl_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR);
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
-    list_size = ((buf[0] << 8) | (buf[1]));
+    list_size = MBEDTLS_GET_UINT16_BE(buf, 0);
     if (list_size + 2 != len ||
         list_size % 2 != 0) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
@@ -957,7 +957,7 @@ read_record_header:
     }
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("client hello, message len.: %d",
-                              (ssl->in_len[0] << 8) | ssl->in_len[1]));
+                              MBEDTLS_GET_UINT16_BE(ssl->in_len, 0)));
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("client hello, protocol version: [%d:%d]",
                               buf[1], buf[2]));
@@ -993,7 +993,7 @@ read_record_header:
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-    msg_len = (ssl->in_len[0] << 8) | ssl->in_len[1];
+    msg_len = MBEDTLS_GET_UINT16_BE(ssl->in_len, 0);
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     if (ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE) {
@@ -1251,8 +1251,7 @@ read_record_header:
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
     ciph_offset = 35 + sess_len;
 
-    ciph_len = (buf[ciph_offset + 0] << 8)
-               | (buf[ciph_offset + 1]);
+    ciph_len = MBEDTLS_GET_UINT16_BE(buf, ciph_offset);
 
     if (ciph_len < 2 ||
         ciph_len + 2 + ciph_offset + 1 > msg_len || /* 1 for comp. alg. len */
@@ -1300,8 +1299,7 @@ read_record_header:
             return MBEDTLS_ERR_SSL_DECODE_ERROR;
         }
 
-        ext_len = (buf[ext_offset + 0] << 8)
-                  | (buf[ext_offset + 1]);
+        ext_len = MBEDTLS_GET_UINT16_BE(buf, ext_offset);
 
         if (msg_len != ext_offset + 2 + ext_len) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
@@ -1325,8 +1323,8 @@ read_record_header:
                                            MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR);
             return MBEDTLS_ERR_SSL_DECODE_ERROR;
         }
-        ext_id   = ((ext[0] <<  8) | (ext[1]));
-        ext_size = ((ext[2] <<  8) | (ext[3]));
+        ext_id   = MBEDTLS_GET_UINT16_BE(ext, 0);
+        ext_size = MBEDTLS_GET_UINT16_BE(ext, 2);
 
         if (ext_size + 4 > ext_len) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
@@ -3360,7 +3358,7 @@ static int ssl_parse_client_dh_public(mbedtls_ssl_context *ssl, unsigned char **
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
 
-    n = ((*p)[0] << 8) | (*p)[1];
+    n = MBEDTLS_GET_UINT16_BE(*p, 0);
     *p += 2;
 
     if (*p + n > end) {
@@ -3593,7 +3591,7 @@ static int ssl_parse_client_psk_identity(mbedtls_ssl_context *ssl, unsigned char
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
 
-    n = ((*p)[0] << 8) | (*p)[1];
+    n = MBEDTLS_GET_UINT16_BE(*p, 0);
     *p += 2;
 
     if (n == 0 || n > end - *p) {
@@ -4189,7 +4187,7 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
 
-    sig_len = (ssl->in_msg[i] << 8) | ssl->in_msg[i+1];
+    sig_len = MBEDTLS_GET_UINT16_BE(ssl->in_msg, i);
     i += 2;
 
     if (i + sig_len != ssl->in_hslen) {

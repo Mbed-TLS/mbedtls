@@ -4747,7 +4747,7 @@ static int ssl_context_load(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
-    ssl->mtu = (p[0] << 8) | p[1];
+    ssl->mtu = MBEDTLS_GET_UINT16_BE(p, 0);
     p += 2;
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
@@ -7103,7 +7103,7 @@ static int ssl_parse_certificate_chain(mbedtls_ssl_context *ssl,
     /*
      * Same message structure as in mbedtls_ssl_write_certificate()
      */
-    n = (ssl->in_msg[i+1] << 8) | ssl->in_msg[i+2];
+    n = MBEDTLS_GET_UINT16_BE(ssl->in_msg, i + 1);
 
     if (ssl->in_msg[i] != 0 ||
         ssl->in_hslen != n + 3 + mbedtls_ssl_hs_hdr_len(ssl)) {
@@ -7137,8 +7137,7 @@ static int ssl_parse_certificate_chain(mbedtls_ssl_context *ssl,
         }
 
         /* Read length of the next CRT in the chain. */
-        n = ((unsigned int) ssl->in_msg[i + 1] << 8)
-            | (unsigned int) ssl->in_msg[i + 2];
+        n = MBEDTLS_GET_UINT16_BE(ssl->in_msg, i + 1);
         i += 3;
 
         if (n < 128 || i + n > ssl->in_hslen) {
@@ -9038,7 +9037,7 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
-    session->ciphersuite = (p[0] << 8) | p[1];
+    session->ciphersuite = MBEDTLS_GET_UINT16_BE(p, 0);
     p += 2;
 
     session->id_len = *p++;
@@ -9074,7 +9073,7 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
-    cert_len = (p[0] << 16) | (p[1] << 8) | p[2];
+    cert_len = MBEDTLS_GET_UINT24_BE(p, 0);
     p += 3;
 
     if (cert_len != 0) {
@@ -9146,7 +9145,7 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
-    session->ticket_len = (p[0] << 16) | (p[1] << 8) | p[2];
+    session->ticket_len = MBEDTLS_GET_UINT24_BE(p, 0);
     p += 3;
 
     if (session->ticket_len != 0) {

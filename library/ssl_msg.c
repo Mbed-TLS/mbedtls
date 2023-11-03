@@ -3097,16 +3097,12 @@ static int ssl_hs_is_proper_fragment(mbedtls_ssl_context *ssl)
 
 static uint32_t ssl_get_hs_frag_len(mbedtls_ssl_context const *ssl)
 {
-    return (ssl->in_msg[9] << 16) |
-           (ssl->in_msg[10] << 8) |
-           ssl->in_msg[11];
+    return MBEDTLS_GET_UINT24_BE(ssl->in_msg, 9);
 }
 
 static uint32_t ssl_get_hs_frag_off(mbedtls_ssl_context const *ssl)
 {
-    return (ssl->in_msg[6] << 16) |
-           (ssl->in_msg[7] << 8) |
-           ssl->in_msg[8];
+    return MBEDTLS_GET_UINT24_BE(ssl->in_msg, 6);
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -3219,9 +3215,7 @@ static size_t ssl_get_reassembly_buffer_size(size_t msg_len,
 
 static uint32_t ssl_get_hs_total_len(mbedtls_ssl_context const *ssl)
 {
-    return (ssl->in_msg[1] << 16) |
-           (ssl->in_msg[2] << 8) |
-           ssl->in_msg[3];
+    return MBEDTLS_GET_UINT24_BE(ssl->in_msg, 1);
 }
 
 int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
@@ -3242,7 +3236,7 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-        unsigned int recv_msg_seq = (ssl->in_msg[4] << 8) | ssl->in_msg[5];
+        unsigned int recv_msg_seq = MBEDTLS_GET_UINT16_BE(ssl->in_msg, 4);
 
         if (ssl_check_hs_header(ssl) != 0) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("invalid handshake header"));
@@ -3857,8 +3851,7 @@ static int ssl_parse_record_header(mbedtls_ssl_context const *ssl,
      */
 
     rec->data_offset = rec_hdr_len_offset + rec_hdr_len_len;
-    rec->data_len    = ((size_t) buf[rec_hdr_len_offset + 0] << 8) |
-                       ((size_t) buf[rec_hdr_len_offset + 1] << 0);
+    rec->data_len    = MBEDTLS_GET_UINT16_BE(buf, rec_hdr_len_offset);
     MBEDTLS_SSL_DEBUG_BUF(4, "input record header", buf, rec->data_offset);
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("input record: msgtype = %u, "
@@ -3886,7 +3879,7 @@ static int ssl_parse_record_header(mbedtls_ssl_context const *ssl,
      */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
-        rec_epoch = (rec->ctr[0] << 8) | rec->ctr[1];
+        rec_epoch = MBEDTLS_GET_UINT16_BE(rec->ctr, 0);
 
         /* Check that the datagram is large enough to contain a record
          * of the advertised length. */
@@ -3936,7 +3929,7 @@ static int ssl_parse_record_header(mbedtls_ssl_context const *ssl,
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_check_client_reconnect(mbedtls_ssl_context *ssl)
 {
-    unsigned int rec_epoch = (ssl->in_ctr[0] << 8) | ssl->in_ctr[1];
+    unsigned int rec_epoch = MBEDTLS_GET_UINT16_BE(ssl->in_ctr, 0);
 
     /*
      * Check for an epoch 0 ClientHello. We can't use in_msg here to
@@ -4258,9 +4251,7 @@ static int ssl_load_buffered_message(mbedtls_ssl_context *ssl)
     hs_buf = &hs->buffering.hs[0];
     if ((hs_buf->is_valid == 1) && (hs_buf->is_complete == 1)) {
         /* Synthesize a record containing the buffered HS message. */
-        size_t msg_len = (hs_buf->data[1] << 16) |
-                         (hs_buf->data[2] << 8) |
-                         hs_buf->data[3];
+        size_t msg_len = MBEDTLS_GET_UINT24_BE(hs_buf->data, 1);
 
         /* Double-check that we haven't accidentally buffered
          * a message that doesn't fit into the input buffer. */
@@ -4357,7 +4348,7 @@ static int ssl_buffer_message(mbedtls_ssl_context *ssl)
         case MBEDTLS_SSL_MSG_HANDSHAKE:
         {
             unsigned recv_msg_seq_offset;
-            unsigned recv_msg_seq = (ssl->in_msg[4] << 8) | ssl->in_msg[5];
+            unsigned recv_msg_seq = MBEDTLS_GET_UINT16_BE(ssl->in_msg, 4);
             mbedtls_ssl_hs_buffer *hs_buf;
             size_t msg_len = ssl->in_hslen - 12;
 

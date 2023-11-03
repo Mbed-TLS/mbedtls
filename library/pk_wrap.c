@@ -965,7 +965,7 @@ static int ecdsa_sign_psa(mbedtls_svc_key_id_t key_id, mbedtls_md_type_t md_alg,
     psa_algorithm_t psa_sig_md;
     psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg;
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     psa_algorithm_t alg2;
 #endif
 
@@ -974,12 +974,12 @@ static int ecdsa_sign_psa(mbedtls_svc_key_id_t key_id, mbedtls_md_type_t md_alg,
         return PSA_PK_ECDSA_TO_MBEDTLS_ERR(status);
     }
     alg = psa_get_key_algorithm(&key_attr);
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     alg2 = psa_get_key_enrollment_algorithm(&key_attr);
 #endif
     psa_reset_key_attributes(&key_attr);
 
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     if (PSA_ALG_IS_DETERMINISTIC_ECDSA(alg) || PSA_ALG_IS_DETERMINISTIC_ECDSA(alg2)) {
 #else
     if (PSA_ALG_IS_DETERMINISTIC_ECDSA(alg)) {

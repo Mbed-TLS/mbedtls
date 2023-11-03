@@ -2351,7 +2351,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT */
+/* BEGIN_CASE depends_on:!MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT */
 void key_policy_alg2(int key_type_arg, data_t *key_data,
                      int usage_arg, int alg_arg, int alg2_arg)
 {
@@ -2454,7 +2454,7 @@ void copy_success(int source_usage_arg,
     mbedtls_svc_key_id_t source_key = MBEDTLS_SVC_KEY_ID_INIT;
     mbedtls_svc_key_id_t target_key = MBEDTLS_SVC_KEY_ID_INIT;
     uint8_t *export_buffer = NULL;
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     psa_algorithm_t expected_alg2 = expected_alg2_arg;
 #else
     (void) source_alg2_arg;
@@ -2467,7 +2467,7 @@ void copy_success(int source_usage_arg,
     /* Prepare the source key. */
     psa_set_key_usage_flags(&source_attributes, source_usage_arg);
     psa_set_key_algorithm(&source_attributes, source_alg_arg);
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     psa_set_key_enrollment_algorithm(&source_attributes, source_alg2_arg);
 #endif
     psa_set_key_type(&source_attributes, type_arg);
@@ -2489,7 +2489,7 @@ void copy_success(int source_usage_arg,
     if (target_alg_arg != -1) {
         psa_set_key_algorithm(&target_attributes, target_alg_arg);
     }
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     if (target_alg2_arg != -1) {
         psa_set_key_enrollment_algorithm(&target_attributes, target_alg2_arg);
     }
@@ -2511,7 +2511,7 @@ void copy_success(int source_usage_arg,
                psa_get_key_bits(&target_attributes));
     TEST_EQUAL(expected_usage, psa_get_key_usage_flags(&target_attributes));
     TEST_EQUAL(expected_alg, psa_get_key_algorithm(&target_attributes));
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     TEST_EQUAL(expected_alg2,
                psa_get_key_enrollment_algorithm(&target_attributes));
 #endif
@@ -2528,7 +2528,7 @@ void copy_success(int source_usage_arg,
         if (!mbedtls_test_psa_exercise_key(target_key, expected_usage, expected_alg)) {
             goto exit;
         }
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
         if (!mbedtls_test_psa_exercise_key(target_key, expected_usage, expected_alg2)) {
             goto exit;
         }
@@ -2566,7 +2566,7 @@ void copy_fail(int source_usage_arg,
     mbedtls_svc_key_id_t source_key = MBEDTLS_SVC_KEY_ID_INIT;
     mbedtls_svc_key_id_t target_key = MBEDTLS_SVC_KEY_ID_INIT;
     mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make(1, target_id_arg);
-#if !defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     (void) source_alg2_arg;
     (void) target_alg2_arg;
 #endif
@@ -2576,7 +2576,7 @@ void copy_fail(int source_usage_arg,
     /* Prepare the source key. */
     psa_set_key_usage_flags(&source_attributes, source_usage_arg);
     psa_set_key_algorithm(&source_attributes, source_alg_arg);
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     psa_set_key_enrollment_algorithm(&source_attributes, source_alg2_arg);
 #endif
     psa_set_key_type(&source_attributes, type_arg);
@@ -2592,7 +2592,7 @@ void copy_fail(int source_usage_arg,
     psa_set_key_bits(&target_attributes, target_bits_arg);
     psa_set_key_usage_flags(&target_attributes, target_usage_arg);
     psa_set_key_algorithm(&target_attributes, target_alg_arg);
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     psa_set_key_enrollment_algorithm(&target_attributes, target_alg2_arg);
 #endif
 

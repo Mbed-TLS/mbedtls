@@ -321,7 +321,7 @@ void pk_can_do_ext(int opaque_key, int key_type, int key_usage, int key_alg,
     if (opaque_key == 1) {
         psa_set_key_usage_flags(&attributes, key_usage);
         psa_set_key_algorithm(&attributes, key_alg);
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
         if (key_alg2 != 0) {
             psa_set_key_enrollment_algorithm(&attributes, key_alg2);
         }

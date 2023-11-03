@@ -198,7 +198,7 @@ void persistent_slot_lifecycle(int lifetime_arg, int owner_id_arg, int id_arg,
     psa_key_lifetime_t lifetime = lifetime_arg;
     mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make(owner_id_arg, id_arg);
     psa_algorithm_t alg = alg_arg;
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     psa_algorithm_t alg2 = alg2_arg;
 #else
     (void) alg2_arg;
@@ -229,7 +229,7 @@ void persistent_slot_lifecycle(int lifetime_arg, int owner_id_arg, int id_arg,
     psa_set_key_type(&attributes, type);
     psa_set_key_usage_flags(&attributes, usage_flags);
     psa_set_key_algorithm(&attributes, alg);
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     psa_set_key_enrollment_algorithm(&attributes, alg2);
 #endif
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
@@ -248,7 +248,7 @@ void persistent_slot_lifecycle(int lifetime_arg, int owner_id_arg, int id_arg,
     TEST_EQUAL(psa_get_key_usage_flags(&attributes),
                mbedtls_test_update_key_usage_flags(usage_flags));
     TEST_EQUAL(psa_get_key_algorithm(&attributes), alg);
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     TEST_EQUAL(psa_get_key_enrollment_algorithm(&attributes), alg2);
 #endif
     TEST_EQUAL(psa_get_key_type(&attributes), type);
@@ -270,7 +270,7 @@ void persistent_slot_lifecycle(int lifetime_arg, int owner_id_arg, int id_arg,
     TEST_EQUAL(psa_get_key_usage_flags(&attributes),
                mbedtls_test_update_key_usage_flags(usage_flags));
     TEST_EQUAL(psa_get_key_algorithm(&attributes), alg);
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     TEST_EQUAL(psa_get_key_enrollment_algorithm(&attributes), alg2);
 #endif
     TEST_EQUAL(psa_get_key_type(&attributes), type);
@@ -307,7 +307,7 @@ void persistent_slot_lifecycle(int lifetime_arg, int owner_id_arg, int id_arg,
                        mbedtls_test_update_key_usage_flags(usage_flags));
             TEST_EQUAL(psa_get_key_algorithm(&attributes),
                        psa_get_key_algorithm(&read_attributes));
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
             TEST_EQUAL(psa_get_key_enrollment_algorithm(&attributes),
                        psa_get_key_enrollment_algorithm(&read_attributes));
 #endif
@@ -517,7 +517,7 @@ void copy_across_lifetimes(int source_lifetime_arg, int source_owner_id_arg,
     psa_key_usage_t expected_usage = expected_usage_arg;
     psa_algorithm_t expected_alg = expected_alg_arg;
     uint8_t *export_buffer = NULL;
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     psa_algorithm_t expected_alg2 = expected_alg2_arg;
 #else
     (void) expected_alg2_arg;
@@ -537,7 +537,7 @@ void copy_across_lifetimes(int source_lifetime_arg, int source_owner_id_arg,
     psa_set_key_type(&source_attributes, source_type);
     psa_set_key_usage_flags(&source_attributes, source_usage);
     psa_set_key_algorithm(&source_attributes, source_alg);
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     psa_set_key_enrollment_algorithm(&source_attributes, source_alg2_arg);
 #endif
     PSA_ASSERT(psa_import_key(&source_attributes,
@@ -553,7 +553,7 @@ void copy_across_lifetimes(int source_lifetime_arg, int source_owner_id_arg,
 
     psa_set_key_usage_flags(&target_attributes, target_usage);
     psa_set_key_algorithm(&target_attributes, target_alg);
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     psa_set_key_enrollment_algorithm(&target_attributes, target_alg2_arg);
 #endif
 
@@ -593,7 +593,7 @@ void copy_across_lifetimes(int source_lifetime_arg, int source_owner_id_arg,
                psa_get_key_bits(&target_attributes));
     TEST_EQUAL(expected_usage, psa_get_key_usage_flags(&target_attributes));
     TEST_EQUAL(expected_alg, psa_get_key_algorithm(&target_attributes));
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     TEST_EQUAL(expected_alg2,
                psa_get_key_enrollment_algorithm(&target_attributes));
 #endif

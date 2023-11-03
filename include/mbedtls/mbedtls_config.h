@@ -1353,13 +1353,13 @@
 //#define MBEDTLS_PSA_CRYPTO_CLIENT
 
 /**
- * \def MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT
+ * \def MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT
  *
- * Enable support for set/get key enrollment functions in PSA.
+ * Disable support for set/get key enrollment functions in PSA.
  *
  * \warning This is an Mbed TLS extension to the standard PSA interface.
  */
-// #define MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT
+// #define MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT
 
 /** \def MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
  *

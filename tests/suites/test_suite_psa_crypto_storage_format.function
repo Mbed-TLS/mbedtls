@@ -10,7 +10,7 @@
 #define TEST_FLAG_EXERCISE      0x00000001
 #define TEST_FLAG_READ_ONLY     0x00000002
 
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
 /** Write a key with the given attributes and key material to storage.
  * Test that it has the expected representation.
  *
@@ -257,7 +257,7 @@ static int test_read_key(const psa_key_attributes_t *expected_attributes,
                psa_get_key_usage_flags(&actual_attributes));
     TEST_EQUAL(psa_get_key_algorithm(expected_attributes),
                psa_get_key_algorithm(&actual_attributes));
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     TEST_EQUAL(psa_get_key_enrollment_algorithm(expected_attributes),
                psa_get_key_enrollment_algorithm(&actual_attributes));
 #endif
@@ -305,7 +305,7 @@ exit:
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT*/
+/* BEGIN_CASE depends_on:!MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT*/
 void key_storage_save(int lifetime_arg, int type_arg, int bits_arg,
                       int usage_arg, int alg_arg, int alg2_arg,
                       data_t *material,
@@ -364,7 +364,7 @@ void key_storage_read(int lifetime_arg, int type_arg, int bits_arg,
     size_t bits = bits_arg;
     psa_key_usage_t usage = usage_arg;
     psa_algorithm_t alg = alg_arg;
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     psa_algorithm_t alg2 = alg2_arg;
 #else
     (void) alg2_arg;
@@ -382,7 +382,7 @@ void key_storage_read(int lifetime_arg, int type_arg, int bits_arg,
     psa_set_key_bits(&attributes, bits);
     psa_set_key_usage_flags(&attributes, usage);
     psa_set_key_algorithm(&attributes, alg);
-#if defined(MBEDTLS_PSA_ENABLE_KEY_ENROLLMENT)
+#if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
     psa_set_key_enrollment_algorithm(&attributes, alg2);
 #endif
 

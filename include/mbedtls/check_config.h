@@ -937,7 +937,8 @@
 #error "MBEDTLS_SSL_ASYNC_PRIVATE defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_SSL_TLS_C) && !defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_SSL_TLS_C) && !(defined(MBEDTLS_CIPHER_C) || \
+    defined(MBEDTLS_USE_PSA_CRYPTO))
 #error "MBEDTLS_SSL_TLS_C defined, but not all prerequisites"
 #endif
 

@@ -547,7 +547,6 @@ void print_deserialized_ssl_session(const uint8_t *ssl, uint32_t len,
     if (ciphersuite_info == NULL) {
         printf_err("Cannot find ciphersuite info\n");
     } else {
-        const mbedtls_cipher_info_t *cipher_info;
 #if defined(MBEDTLS_MD_C)
         const mbedtls_md_info_t *md_info;
 #endif
@@ -555,12 +554,18 @@ void print_deserialized_ssl_session(const uint8_t *ssl, uint32_t len,
         printf("\tciphersuite    : %s\n", ciphersuite_info->name);
         printf("\tcipher flags   : 0x%02X\n", ciphersuite_info->flags);
 
+#if defined(MBEDTLS_CIPHER_C)
+        const mbedtls_cipher_info_t *cipher_info;
         cipher_info = mbedtls_cipher_info_from_type(ciphersuite_info->cipher);
         if (cipher_info == NULL) {
             printf_err("Cannot find cipher info\n");
         } else {
             printf("\tcipher         : %s\n", cipher_info->name);
         }
+#else /* MBEDTLS_CIPHER_C */
+        printf("\tcipher type     : %d\n", ciphersuite_info->cipher);
+#endif /* MBEDTLS_CIPHER_C */
+
 #if defined(MBEDTLS_MD_C)
         md_info = mbedtls_md_info_from_type(ciphersuite_info->mac);
         if (md_info == NULL) {

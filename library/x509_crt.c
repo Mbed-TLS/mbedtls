@@ -1108,7 +1108,7 @@ static int x509_crt_parse_der_core(mbedtls_x509_crt *crt,
     }
 
     end = crt_end = p + len;
-    crt->raw.len = crt_end - buf;
+    crt->raw.len = (size_t) (crt_end - buf);
     if (make_copy != 0) {
         /* Create and populate a new buffer for the raw field. */
         crt->raw.p = p = mbedtls_calloc(1, crt->raw.len);
@@ -1138,7 +1138,7 @@ static int x509_crt_parse_der_core(mbedtls_x509_crt *crt,
     }
 
     end = p + len;
-    crt->tbs.len = end - crt->tbs.p;
+    crt->tbs.len = (size_t) (end - crt->tbs.p);
 
     /*
      * Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
@@ -1185,7 +1185,7 @@ static int x509_crt_parse_der_core(mbedtls_x509_crt *crt,
         return ret;
     }
 
-    crt->issuer_raw.len = p - crt->issuer_raw.p;
+    crt->issuer_raw.len = (size_t) (p - crt->issuer_raw.p);
 
     /*
      * Validity ::= SEQUENCE {
@@ -1215,7 +1215,7 @@ static int x509_crt_parse_der_core(mbedtls_x509_crt *crt,
         return ret;
     }
 
-    crt->subject_raw.len = p - crt->subject_raw.p;
+    crt->subject_raw.len = (size_t) (p - crt->subject_raw.p);
 
     /*
      * SubjectPublicKeyInfo
@@ -1225,7 +1225,7 @@ static int x509_crt_parse_der_core(mbedtls_x509_crt *crt,
         mbedtls_x509_crt_free(crt);
         return ret;
     }
-    crt->pk_raw.len = p - crt->pk_raw.p;
+    crt->pk_raw.len = (size_t) (p - crt->pk_raw.p);
 
     /*
      *  issuerUniqueID  [1]  IMPLICIT UniqueIdentifier OPTIONAL,

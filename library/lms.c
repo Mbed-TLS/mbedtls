@@ -505,7 +505,7 @@ static int get_merkle_path(mbedtls_lms_private_t *ctx,
     unsigned int height;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    tree = mbedtls_calloc(MERKLE_TREE_NODE_AM(ctx->params.type),
+    tree = mbedtls_calloc((size_t) MERKLE_TREE_NODE_AM(ctx->params.type),
                           node_bytes);
     if (tree == NULL) {
         return MBEDTLS_ERR_LMS_ALLOC_FAILED;
@@ -530,7 +530,7 @@ static int get_merkle_path(mbedtls_lms_private_t *ctx,
 
 exit:
     mbedtls_zeroize_and_free(tree, node_bytes *
-                             MERKLE_TREE_NODE_AM(ctx->params.type));
+                             (size_t) MERKLE_TREE_NODE_AM(ctx->params.type));
 
     return ret;
 }
@@ -669,7 +669,7 @@ int mbedtls_lms_calculate_public_key(mbedtls_lms_public_t *ctx,
         return MBEDTLS_ERR_LMS_BAD_INPUT_DATA;
     }
 
-    tree = mbedtls_calloc(MERKLE_TREE_NODE_AM(priv_ctx->params.type),
+    tree = mbedtls_calloc((size_t) MERKLE_TREE_NODE_AM(priv_ctx->params.type),
                           node_bytes);
     if (tree == NULL) {
         return MBEDTLS_ERR_LMS_ALLOC_FAILED;
@@ -692,7 +692,7 @@ int mbedtls_lms_calculate_public_key(mbedtls_lms_public_t *ctx,
 
 exit:
     mbedtls_zeroize_and_free(tree, node_bytes *
-                             MERKLE_TREE_NODE_AM(priv_ctx->params.type));
+                             (size_t) MERKLE_TREE_NODE_AM(priv_ctx->params.type));
 
     return ret;
 }

@@ -316,7 +316,7 @@ static int pkcs7_get_signer_info(unsigned char **p, unsigned char *end,
         goto out;
     }
 
-    signer->issuer_raw.len =  *p - signer->issuer_raw.p;
+    signer->issuer_raw.len =  (size_t) (*p - signer->issuer_raw.p);
 
     ret = mbedtls_x509_get_serial(p, end_issuer_and_sn, &signer->serial);
     if (ret != 0) {

@@ -607,7 +607,7 @@ int mbedtls_ssl_tls12_write_client_hello_exts(mbedtls_ssl_context *ssl,
     p += ext_len;
 #endif
 
-    *out_len = p - buf;
+    *out_len = (size_t) (p - buf);
 
     return 0;
 }
@@ -2174,7 +2174,7 @@ start_processing:
 #endif
     p   = ssl->in_msg + mbedtls_ssl_hs_hdr_len(ssl);
     end = ssl->in_msg + ssl->in_hslen;
-    MBEDTLS_SSL_DEBUG_BUF(3,   "server key exchange", p, end - p);
+    MBEDTLS_SSL_DEBUG_BUF(3,   "server key exchange", p, (size_t) (end - p));
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
@@ -2299,7 +2299,7 @@ start_processing:
         mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
         mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
         unsigned char *params = ssl->in_msg + mbedtls_ssl_hs_hdr_len(ssl);
-        size_t params_len = p - params;
+        size_t params_len = (size_t) (p - params);
         void *rs_ctx = NULL;
         uint16_t sig_alg;
 
@@ -3252,9 +3252,9 @@ static int ssl_write_certificate_verify(mbedtls_ssl_context *ssl)
     size_t hashlen;
     void *rs_ctx = NULL;
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
-    size_t out_buf_len = ssl->out_buf_len - (ssl->out_msg - ssl->out_buf);
+    size_t out_buf_len = ssl->out_buf_len - (size_t) (ssl->out_msg - ssl->out_buf);
 #else
-    size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN - (ssl->out_msg - ssl->out_buf);
+    size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN - (size_t) (ssl->out_msg - ssl->out_buf);
 #endif
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write certificate verify"));

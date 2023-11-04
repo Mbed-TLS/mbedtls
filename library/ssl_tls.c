@@ -3755,7 +3755,7 @@ static int ssl_session_load(mbedtls_ssl_session *session,
     session->tls_version = (mbedtls_ssl_protocol_version) (0x0300 | *p++);
 
     /* Dispatch according to TLS version. */
-    remaining_len = (end - p);
+    remaining_len = (size_t) (end - p);
     switch (session->tls_version) {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         case MBEDTLS_SSL_VERSION_TLS1_2:
@@ -6795,7 +6795,7 @@ int mbedtls_ssl_psk_derive_premaster(mbedtls_ssl_context *ssl, mbedtls_key_excha
 
         /* Write length only when we know the actual value */
         if ((ret = mbedtls_dhm_calc_secret(&ssl->handshake->dhm_ctx,
-                                           p + 2, end - (p + 2), &len,
+                                           p + 2, (size_t) (end - (p + 2)), &len,
                                            ssl->conf->f_rng, ssl->conf->p_rng)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_dhm_calc_secret", ret);
             return ret;
@@ -6812,7 +6812,7 @@ int mbedtls_ssl_psk_derive_premaster(mbedtls_ssl_context *ssl, mbedtls_key_excha
         size_t zlen;
 
         if ((ret = mbedtls_ecdh_calc_secret(&ssl->handshake->ecdh_ctx, &zlen,
-                                            p + 2, end - (p + 2),
+                                            p + 2, (size_t) (end - (p + 2)),
                                             ssl->conf->f_rng, ssl->conf->p_rng)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ecdh_calc_secret", ret);
             return ret;
@@ -6845,7 +6845,7 @@ int mbedtls_ssl_psk_derive_premaster(mbedtls_ssl_context *ssl, mbedtls_key_excha
     memcpy(p, psk, psk_len);
     p += psk_len;
 
-    ssl->handshake->pmslen = p - ssl->handshake->premaster;
+    ssl->handshake->pmslen = (size_t) (p - ssl->handshake->premaster);
 
     return 0;
 }
@@ -9328,7 +9328,7 @@ int mbedtls_ssl_write_sig_alg_ext(mbedtls_ssl_context *ssl, unsigned char *buf,
     }
 
     /* Length of supported_signature_algorithms */
-    supported_sig_alg_len = p - supported_sig_alg;
+    supported_sig_alg_len = (size_t) (p - supported_sig_alg);
     if (supported_sig_alg_len == 0) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("No signature algorithms defined."));
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
@@ -9338,7 +9338,7 @@ int mbedtls_ssl_write_sig_alg_ext(mbedtls_ssl_context *ssl, unsigned char *buf,
     MBEDTLS_PUT_UINT16_BE(supported_sig_alg_len + 2, buf, 2);
     MBEDTLS_PUT_UINT16_BE(supported_sig_alg_len, buf, 4);
 
-    *out_len = p - buf;
+    *out_len = (size_t) (p - buf);
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     mbedtls_ssl_tls13_set_hs_sent_ext_mask(ssl, MBEDTLS_TLS_EXT_SIG_ALG);

@@ -531,7 +531,7 @@ static int ssl_write_client_hello_body(mbedtls_ssl_context *ssl,
             cookie_len = handshake->cookie_len;
         }
 
-        MBEDTLS_SSL_CHK_BUF_PTR(p, end, cookie_len + 1);
+        MBEDTLS_SSL_CHK_BUF_PTR(p, end, cookie_len + 1u);
         *p++ = (unsigned char) cookie_len;
         if (cookie_len > 0) {
             memcpy(p, handshake->cookie, cookie_len);

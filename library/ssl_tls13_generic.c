@@ -876,7 +876,7 @@ static int ssl_tls13_write_certificate_body(mbedtls_ssl_context *ssl,
      * opaque certificate_request_context<0..2^8-1>;
      * ...
      */
-    MBEDTLS_SSL_CHK_BUF_PTR(p, end, certificate_request_context_len + 1);
+    MBEDTLS_SSL_CHK_BUF_PTR(p, end, certificate_request_context_len + 1u);
     *p++ = certificate_request_context_len;
     if (certificate_request_context_len > 0) {
         memcpy(p, certificate_request_context, certificate_request_context_len);
@@ -914,7 +914,7 @@ static int ssl_tls13_write_certificate_body(mbedtls_ssl_context *ssl,
     MBEDTLS_PUT_UINT24_BE(p - p_certificate_list_len - 3,
                           p_certificate_list_len, 0);
 
-    *out_len = p - buf;
+    *out_len = (size_t) (p - buf);
 
     MBEDTLS_SSL_PRINT_EXTS(
         3, MBEDTLS_SSL_HS_CERTIFICATE, ssl->handshake->sent_extensions);
@@ -1724,7 +1724,7 @@ int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
 {
     const unsigned char *p = buf;
     uint16_t record_size_limit;
-    const size_t extension_data_len = end - buf;
+    const size_t extension_data_len = (size_t) (end - buf);
 
     if (extension_data_len !=
         MBEDTLS_SSL_RECORD_SIZE_LIMIT_EXTENSION_DATA_LENGTH) {

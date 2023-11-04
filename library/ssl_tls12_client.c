@@ -166,7 +166,7 @@ static int ssl_write_ecjpake_kkpp_ext(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         ret = mbedtls_psa_ecjpake_write_round(&ssl->handshake->psa_pake_ctx,
-                                              p + 2, end - p - 2, &kkpp_len,
+                                              p + 2, (size_t) (end - p - 2), &kkpp_len,
                                               MBEDTLS_ECJPAKE_ROUND_ONE);
         if (ret != 0) {
             psa_destroy_key(ssl->handshake->psa_pake_password);
@@ -176,7 +176,7 @@ static int ssl_write_ecjpake_kkpp_ext(mbedtls_ssl_context *ssl,
         }
 #else
         ret = mbedtls_ecjpake_write_round_one(&ssl->handshake->ecjpake_ctx,
-                                              p + 2, end - p - 2, &kkpp_len,
+                                              p + 2, (size_t) (end - p - 2), &kkpp_len,
                                               ssl->conf->f_rng, ssl->conf->p_rng);
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(1,
@@ -248,7 +248,7 @@ static int ssl_write_cid_ext(mbedtls_ssl_context *ssl,
     *p++ = (uint8_t) ssl->own_cid_len;
     memcpy(p, ssl->own_cid, ssl->own_cid_len);
 
-    *olen = ssl->own_cid_len + 5;
+    *olen = ssl->own_cid_len + 5u;
 
     return 0;
 }
@@ -483,7 +483,7 @@ static int ssl_write_use_srtp_ext(mbedtls_ssl_context *ssl,
         }
     }
 
-    *p++ = mki_len & 0xFF;
+    *p++ = (unsigned char) (mki_len & 0xFF);
 
     if (mki_len != 0) {
         memcpy(p, ssl->dtls_srtp_info.mki_value, mki_len);
@@ -503,7 +503,7 @@ static int ssl_write_use_srtp_ext(mbedtls_ssl_context *ssl,
      *                         + srtp_mki vector length(1 byte)
      *                         + mki value
      */
-    *olen = p - buf;
+    *olen = (size_t) (p - buf);
 
     return 0;
 }
@@ -1025,7 +1025,7 @@ static int ssl_parse_use_srtp_ext(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
 
-    server_protection_profile_value = (buf[2] << 8) | buf[3];
+    server_protection_profile_value = MBEDTLS_GET_UINT16_BE(buf, 2);
     server_protection = mbedtls_ssl_check_srtp_profile_value(
         server_protection_profile_value);
     if (server_protection != MBEDTLS_TLS_SRTP_UNSET) {
@@ -2256,7 +2256,7 @@ start_processing:
         p += 3;
 
         if ((ret = mbedtls_psa_ecjpake_read_round(
-                 &ssl->handshake->psa_pake_ctx, p, end - p,
+                 &ssl->handshake->psa_pake_ctx, p, (size_t) (end - p),
                  MBEDTLS_ECJPAKE_ROUND_TWO)) != 0) {
             psa_destroy_key(ssl->handshake->psa_pake_password);
             psa_pake_abort(&ssl->handshake->psa_pake_ctx);
@@ -2270,7 +2270,7 @@ start_processing:
         }
 #else
         ret = mbedtls_ecjpake_read_round_two(&ssl->handshake->ecjpake_ctx,
-                                             p, end - p);
+                                             p, (size_t) (end - p));
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ecjpake_read_round_two", ret);
             mbedtls_ssl_send_alert_message(
@@ -2998,7 +2998,7 @@ ecdh_calc_secret:
                                        handshake->xxdh_psa_peerkey,
                                        handshake->xxdh_psa_peerkey_len,
                                        pms + zlen_size,
-                                       pms_end - (pms + zlen_size),
+                                       (size_t) (pms_end - (pms + zlen_size)),
                                        &zlen);
 
         destruction_status = psa_destroy_key(handshake->xxdh_psa_privkey);
@@ -3091,7 +3091,7 @@ ecdh_calc_secret:
 
             /* Write length only when we know the actual value */
             if ((ret = mbedtls_dhm_calc_secret(&ssl->handshake->dhm_ctx,
-                                               pms + 2, pms_end - (pms + 2), &pms_len,
+                                               pms + 2, (size_t) (pms_end - (pms + 2)), &pms_len,
                                                ssl->conf->f_rng, ssl->conf->p_rng)) != 0) {
                 MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_dhm_calc_secret", ret);
                 return ret;
@@ -3157,7 +3157,7 @@ ecdh_calc_secret:
         unsigned char *end_p = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN -
                                header_len;
         ret = mbedtls_psa_ecjpake_write_round(&ssl->handshake->psa_pake_ctx,
-                                              out_p, end_p - out_p, &content_len,
+                                              out_p, (size_t) (end_p - out_p), &content_len,
                                               MBEDTLS_ECJPAKE_ROUND_TWO);
         if (ret != 0) {
             psa_destroy_key(ssl->handshake->psa_pake_password);

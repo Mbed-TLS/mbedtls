@@ -118,7 +118,8 @@ int mbedtls_x509_write_set_san_common(mbedtls_asn1_named_data **extensions,
                 MBEDTLS_ASN1_CHK_CLEANUP_ADD(single_san_len,
                                              mbedtls_asn1_write_tag(
                                                  &p, buf,
-                                                 MBEDTLS_ASN1_CONTEXT_SPECIFIC | cur->node.type));
+                                                 (unsigned char) (MBEDTLS_ASN1_CONTEXT_SPECIFIC |
+                                                                  cur->node.type)));
             }
             break;
             case MBEDTLS_X509_SAN_DIRECTORY_NAME:

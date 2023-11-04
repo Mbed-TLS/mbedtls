@@ -154,15 +154,15 @@ static int parse_attribute_value_string(const char *s,
                 if (n == 0) {
                     return MBEDTLS_ERR_X509_INVALID_NAME;
                 }
-                *(d++) = n;
+                *(d++) = (unsigned char) n;
                 c++;
             } else if (c < end && strchr(" ,=+<>#;\"\\", *c)) {
-                *(d++) = *c;
+                *(d++) = (unsigned char) *c;
             } else {
                 return MBEDTLS_ERR_X509_INVALID_NAME;
             }
         } else {
-            *(d++) = *c;
+            *(d++) = (unsigned char) *c;
         }
 
         if (d - data == MBEDTLS_X509_MAX_DN_NAME_SIZE) {
@@ -236,7 +236,7 @@ static int parse_attribute_value_hex_der_encoded(const char *s,
         if (c < 0) {
             goto error;
         }
-        der[i] = c;
+        der[i] = (unsigned char) c;
     }
 
     /* Step 3: decode the DER. */
@@ -391,7 +391,7 @@ int mbedtls_x509_set_extension(mbedtls_asn1_named_data **head, const char *oid, 
         return MBEDTLS_ERR_X509_ALLOC_FAILED;
     }
 
-    cur->val.p[0] = critical;
+    cur->val.p[0] = (unsigned char) critical;
     memcpy(cur->val.p + 1, val, val_len);
 
     return 0;

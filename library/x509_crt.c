@@ -175,7 +175,7 @@ static int x509_profile_check_md_alg(const mbedtls_x509_crt_profile *profile,
         return -1;
     }
 
-    if ((profile->allowed_mds & MBEDTLS_X509_ID_FLAG(md_alg)) != 0) {
+    if ((profile->allowed_mds & (uint32_t) MBEDTLS_X509_ID_FLAG(md_alg)) != 0) {
         return 0;
     }
 
@@ -193,7 +193,7 @@ static int x509_profile_check_pk_alg(const mbedtls_x509_crt_profile *profile,
         return -1;
     }
 
-    if ((profile->allowed_pks & MBEDTLS_X509_ID_FLAG(pk_alg)) != 0) {
+    if ((profile->allowed_pks & (uint32_t) MBEDTLS_X509_ID_FLAG(pk_alg)) != 0) {
         return 0;
     }
 
@@ -229,7 +229,7 @@ static int x509_profile_check_key(const mbedtls_x509_crt_profile *profile,
             return -1;
         }
 
-        if ((profile->allowed_curves & MBEDTLS_X509_ID_FLAG(gid)) != 0) {
+        if ((profile->allowed_curves & (uint32_t) MBEDTLS_X509_ID_FLAG(gid)) != 0) {
             return 0;
         }
 
@@ -1886,7 +1886,7 @@ int mbedtls_x509_crt_info(char *buf, size_t size, const char *prefix,
 }
 
 struct x509_crt_verify_string {
-    int code;
+    unsigned int code;
     const char *string;
 };
 
@@ -2005,12 +2005,12 @@ int mbedtls_x509_crt_is_revoked(const mbedtls_x509_crt *crt, const mbedtls_x509_
  * Check that the given certificate is not revoked according to the CRL.
  * Skip validation if no CRL for the given CA is present.
  */
-static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
-                              mbedtls_x509_crl *crl_list,
-                              const mbedtls_x509_crt_profile *profile,
-                              const mbedtls_x509_time *now)
+static unsigned int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
+                                       mbedtls_x509_crl *crl_list,
+                                       const mbedtls_x509_crt_profile *profile,
+                                       const mbedtls_x509_time *now)
 {
-    int flags = 0;
+    unsigned int flags = 0;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_algorithm_t psa_algorithm;
@@ -2536,7 +2536,7 @@ static int x509_crt_verify_chain(
     if (rs_ctx != NULL && rs_ctx->in_progress == x509_crt_rs_find_parent) {
         /* restore saved state */
         *ver_chain = rs_ctx->ver_chain; /* struct copy */
-        self_cnt = rs_ctx->self_cnt;
+        self_cnt = (unsigned int) rs_ctx->self_cnt;
 
         /* restore derived state */
         cur = &ver_chain->items[ver_chain->len - 1];
@@ -2627,7 +2627,7 @@ find_parent:
         if (rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS) {
             /* save state */
             rs_ctx->in_progress = x509_crt_rs_find_parent;
-            rs_ctx->self_cnt = self_cnt;
+            rs_ctx->self_cnt = (int) self_cnt;
             rs_ctx->ver_chain = *ver_chain; /* struct copy */
 
             return ret;
@@ -2723,7 +2723,9 @@ find_parent:
 static int x509_inet_pton_ipv4(const char *src, void *dst);
 
 #define li_cton(c, n) \
-    (((n) = (c) - '0') <= 9 || (((n) = ((c)&0xdf) - 'A') <= 5 ? ((n) += 10) : 0))
+    (((n) = (uint8_t) ((c) - '0')) <= 9 || \
+     (((n) = (uint8_t) (((c)&0xdf) - 'A')) <= 5 ? \
+      (uint8_t) ((n) = (uint8_t) ((n) + 10u)) : 0))
 
 static int x509_inet_pton_ipv6(const char *src, void *dst)
 {
@@ -2732,12 +2734,12 @@ static int x509_inet_pton_ipv6(const char *src, void *dst)
     uint16_t addr[8];
     do {
         /* note: allows excess leading 0's, e.g. 1:0002:3:... */
-        uint16_t group = num_digits = 0;
+        uint16_t group = (uint16_t) (num_digits = 0);
         for (uint8_t digit; num_digits < 4; num_digits++) {
             if (li_cton(*p, digit) == 0) {
                 break;
             }
-            group = (group << 4) | digit;
+            group = (uint16_t) ((group << 4) | digit);
             p++;
         }
         if (num_digits != 0) {
@@ -2810,9 +2812,9 @@ static int x509_inet_pton_ipv6(const char *src, void *dst)
         if (groups_after_zero) {
             memmove(addr + zero_group_start + zero_groups,
                     addr + zero_group_start,
-                    groups_after_zero * sizeof(*addr));
+                    (size_t) groups_after_zero * sizeof(*addr));
         }
-        memset(addr + zero_group_start, 0, zero_groups * sizeof(*addr));
+        memset(addr + zero_group_start, 0, (size_t) zero_groups * sizeof(*addr));
     } else {
         if (nonzero_groups != 8) {
             return -1;
@@ -2833,7 +2835,7 @@ static int x509_inet_pton_ipv4(const char *src, void *dst)
     do {
         octet = num_digits = 0;
         do {
-            digit = *p - '0';
+            digit = (uint8_t) (*p - '0');
             if (digit > 9) {
                 break;
             }
@@ -2844,7 +2846,7 @@ static int x509_inet_pton_ipv4(const char *src, void *dst)
                 return -1;
             }
 
-            octet = octet * 10 + digit;
+            octet = (uint16_t) (octet * 10 + digit);
             num_digits++;
             p++;
         } while (num_digits < 3);

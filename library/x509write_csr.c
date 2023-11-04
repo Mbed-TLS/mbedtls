@@ -319,8 +319,8 @@ int mbedtls_x509write_csr_pem(mbedtls_x509write_csr *ctx, unsigned char *buf, si
     }
 
     if ((ret = mbedtls_pem_write_buffer(PEM_BEGIN_CSR, PEM_END_CSR,
-                                        buf + size - ret,
-                                        ret, buf, size, &olen)) != 0) {
+                                        buf + size - (size_t) ret,
+                                        (size_t) ret, buf, size, &olen)) != 0) {
         return ret;
     }
 

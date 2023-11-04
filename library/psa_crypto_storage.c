@@ -44,7 +44,7 @@ static psa_storage_uid_t psa_its_identifier_of_slot(mbedtls_svc_key_id_t key)
      * owner values are nonzero (as they are on a PSA platform),
      * no key file will ever have a value less than 0x100000000, so
      * the whole range 0..0xffffffff is available for non-key files. */
-    uint32_t unsigned_owner_id = MBEDTLS_SVC_KEY_ID_GET_OWNER_ID(key);
+    mbedtls_key_owner_id_t unsigned_owner_id = MBEDTLS_SVC_KEY_ID_GET_OWNER_ID(key);
     return ((uint64_t) unsigned_owner_id << 32) |
            MBEDTLS_SVC_KEY_ID_GET_KEY_ID(key);
 #else

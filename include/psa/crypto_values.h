@@ -557,7 +557,7 @@
  *                  identifies the ECC curve to be used.
  */
 #define PSA_KEY_TYPE_ECC_KEY_PAIR(curve)         \
-    (PSA_KEY_TYPE_ECC_KEY_PAIR_BASE | (curve))
+    ((psa_key_type_t) (PSA_KEY_TYPE_ECC_KEY_PAIR_BASE | (curve)))
 /** Elliptic curve public key.
  *
  * The size of an elliptic curve public key is the same as the corresponding
@@ -568,7 +568,7 @@
  *                  identifies the ECC curve to be used.
  */
 #define PSA_KEY_TYPE_ECC_PUBLIC_KEY(curve)              \
-    (PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE | (curve))
+    ((psa_key_type_t) (PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE | (curve)))
 
 /** Whether a key type is an elliptic curve key (pair or public-only). */
 #define PSA_KEY_TYPE_IS_ECC(type)                                       \
@@ -1065,10 +1065,10 @@
  *                      MAC algorithm or if \p mac_length is too small or
  *                      too large for the specified MAC algorithm.
  */
-#define PSA_ALG_TRUNCATED_MAC(mac_alg, mac_length)              \
-    (((mac_alg) & ~(PSA_ALG_MAC_TRUNCATION_MASK |               \
-                    PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG)) |   \
-     ((mac_length) << PSA_MAC_TRUNCATION_OFFSET & PSA_ALG_MAC_TRUNCATION_MASK))
+#define PSA_ALG_TRUNCATED_MAC(mac_alg, mac_length)                               \
+    ((psa_algorithm_t) (((mac_alg) & ~(PSA_ALG_MAC_TRUNCATION_MASK |             \
+                                       PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG)) | \
+                        ((mac_length) << PSA_MAC_TRUNCATION_OFFSET & PSA_ALG_MAC_TRUNCATION_MASK)))
 
 /** Macro to build the base MAC algorithm corresponding to a truncated
  * MAC algorithm.
@@ -1324,11 +1324,11 @@
  *                      AEAD algorithm or if \p tag_length is not valid
  *                      for the specified AEAD algorithm.
  */
-#define PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, tag_length)           \
-    (((aead_alg) & ~(PSA_ALG_AEAD_TAG_LENGTH_MASK |                     \
-                     PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG)) |         \
-     ((tag_length) << PSA_AEAD_TAG_LENGTH_OFFSET &                      \
-        PSA_ALG_AEAD_TAG_LENGTH_MASK))
+#define PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, tag_length)                      \
+    ((psa_algorithm_t) (((aead_alg) & ~(PSA_ALG_AEAD_TAG_LENGTH_MASK |             \
+                                        PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG)) | \
+                        ((tag_length) << PSA_AEAD_TAG_LENGTH_OFFSET &              \
+                         PSA_ALG_AEAD_TAG_LENGTH_MASK)))
 
 /** Retrieve the tag length of a specified AEAD algorithm
  *
@@ -1387,9 +1387,9 @@
  *                        AEAD algorithm or if \p min_tag_length is less than 1
  *                        or too large for the specified AEAD algorithm.
  */
-#define PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG(aead_alg, min_tag_length) \
-    (PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, min_tag_length) |            \
-     PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG)
+#define PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG(aead_alg, min_tag_length)        \
+    ((psa_algorithm_t) (PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, min_tag_length) | \
+                        PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG))
 
 #define PSA_ALG_RSA_PKCS1V15_SIGN_BASE          ((psa_algorithm_t) 0x06000200)
 /** RSA PKCS#1 v1.5 signature with hashing.

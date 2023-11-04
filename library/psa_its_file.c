@@ -153,7 +153,7 @@ psa_status_t psa_its_get(psa_storage_uid_t uid,
         data_offset -= LONG_MAX;
     }
 #endif
-    if (fseek(stream, data_offset, SEEK_CUR) != 0) {
+    if (fseek(stream, (long) data_offset, SEEK_CUR) != 0) {
         goto exit;
     }
     n = fread(p_data, 1, data_length, stream);

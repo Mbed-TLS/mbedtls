@@ -54,8 +54,8 @@ int mbedtls_mpi_lt_mpi_ct(const mbedtls_mpi *X,
      * Set N_is_negative to MBEDTLS_CT_FALSE if N >= 0, MBEDTLS_CT_TRUE if N < 0.
      * We know that N->s == 1 if N >= 0 and N->s == -1 if N < 0.
      */
-    X_is_negative = mbedtls_ct_bool((X->s & 2) >> 1);
-    Y_is_negative = mbedtls_ct_bool((Y->s & 2) >> 1);
+    X_is_negative = mbedtls_ct_bool(((unsigned int) X->s & 2u) >> 1);
+    Y_is_negative = mbedtls_ct_bool(((unsigned int) Y->s & 2u) >> 1);
 
     /*
      * If the signs are different, then the positive operand is the bigger.
@@ -112,7 +112,7 @@ int mbedtls_mpi_safe_cond_assign(mbedtls_mpi *X,
     {
         mbedtls_ct_condition_t do_assign = mbedtls_ct_bool(assign);
 
-        X->s = (int) mbedtls_ct_uint_if(do_assign, Y->s, X->s);
+        X->s = (short) mbedtls_ct_uint_if(do_assign, (unsigned int) Y->s, (unsigned int) X->s);
 
         mbedtls_mpi_core_cond_assign(X->p, Y->p, Y->n, do_assign);
 
@@ -149,8 +149,8 @@ int mbedtls_mpi_safe_cond_swap(mbedtls_mpi *X,
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(Y, X->n));
 
     s = X->s;
-    X->s = (int) mbedtls_ct_uint_if(do_swap, Y->s, X->s);
-    Y->s = (int) mbedtls_ct_uint_if(do_swap, s, Y->s);
+    X->s = (short) mbedtls_ct_uint_if(do_swap, (unsigned int) Y->s, (unsigned int) X->s);
+    Y->s = (short) mbedtls_ct_uint_if(do_swap, (unsigned int) s, (unsigned int) Y->s);
 
     mbedtls_mpi_core_cond_swap(X->p, Y->p, X->n, do_swap);
 
@@ -238,7 +238,7 @@ int mbedtls_mpi_shrink(mbedtls_mpi *X, size_t nblimbs)
     }
     /* After this point, then X->n > nblimbs and in particular X->n > 0. */
 
-    for (i = X->n - 1; i > 0; i--) {
+    for (i = X->n - 1u; i > 0; i--) {
         if (X->p[i] != 0) {
             break;
         }
@@ -308,7 +308,7 @@ int mbedtls_mpi_copy(mbedtls_mpi *X, const mbedtls_mpi *Y)
         return 0;
     }
 
-    for (i = Y->n - 1; i > 0; i--) {
+    for (i = Y->n - 1u; i > 0; i--) {
         if (Y->p[i] != 0) {
             break;
         }
@@ -345,7 +345,7 @@ void mbedtls_mpi_swap(mbedtls_mpi *X, mbedtls_mpi *Y)
 static inline mbedtls_mpi_uint mpi_sint_abs(mbedtls_mpi_sint z)
 {
     if (z >= 0) {
-        return z;
+        return (mbedtls_mpi_uint) z;
     }
     /* Take care to handle the most negative value (-2^(biL-1)) correctly.
      * A naive -z would have undefined behavior.
@@ -356,7 +356,7 @@ static inline mbedtls_mpi_uint mpi_sint_abs(mbedtls_mpi_sint z)
 
 /* Convert x to a sign, i.e. to 1, if x is positive, or -1, if x is negative.
  * This looks awkward but generates smaller code than (x < 0 ? -1 : 1) */
-#define TO_SIGN(x) ((mbedtls_mpi_sint) (((mbedtls_mpi_uint) x) >> (biL - 1)) * -2 + 1)
+#define TO_SIGN(x) ((short) ((mbedtls_mpi_sint) (((mbedtls_mpi_uint) x) >> (biL - 1)) * -2 + 1))
 
 /*
  * Set value from integer
@@ -385,7 +385,7 @@ int mbedtls_mpi_get_bit(const mbedtls_mpi *X, size_t pos)
         return 0;
     }
 
-    return (X->p[pos / biL] >> (pos % biL)) & 0x01;
+    return (int) ((X->p[pos / biL] >> (pos % biL)) & 0x01);
 }
 
 /*
@@ -437,7 +437,7 @@ size_t mbedtls_mpi_lsb(const mbedtls_mpi *X)
 #if defined(mbedtls_mpi_uint_ctz)
     for (i = 0; i < X->n; i++) {
         if (X->p[i] != 0) {
-            return i * biL + mbedtls_mpi_uint_ctz(X->p[i]);
+            return i * biL + (unsigned int) mbedtls_mpi_uint_ctz(X->p[i]);
         }
     }
 #else
@@ -478,13 +478,13 @@ static int mpi_get_digit(mbedtls_mpi_uint *d, int radix, char c)
     *d = 255;
 
     if (c >= 0x30 && c <= 0x39) {
-        *d = c - 0x30;
+        *d = (mbedtls_mpi_uint) (c - 0x30);
     }
     if (c >= 0x41 && c <= 0x46) {
-        *d = c - 0x37;
+        *d = (mbedtls_mpi_uint) (c - 0x37);
     }
     if (c >= 0x61 && c <= 0x66) {
-        *d = c - 0x57;
+        *d = (mbedtls_mpi_uint) (c - 0x57);
     }
 
     if (*d >= (mbedtls_mpi_uint) radix) {
@@ -542,8 +542,8 @@ int mbedtls_mpi_read_string(mbedtls_mpi *X, int radix, const char *s)
 
         for (i = 0; i < slen; i++) {
             MBEDTLS_MPI_CHK(mpi_get_digit(&d, radix, s[i]));
-            MBEDTLS_MPI_CHK(mbedtls_mpi_mul_int(&T, X, radix));
-            MBEDTLS_MPI_CHK(mbedtls_mpi_add_int(X, &T, d));
+            MBEDTLS_MPI_CHK(mbedtls_mpi_mul_int(&T, X, (mbedtls_mpi_uint) radix));
+            MBEDTLS_MPI_CHK(mbedtls_mpi_add_int(X, &T, (mbedtls_mpi_sint) d));
         }
     }
 
@@ -644,12 +644,12 @@ int mbedtls_mpi_write_string(const mbedtls_mpi *X, int radix,
     }
 
     if (radix == 16) {
-        int c;
+        unsigned int c;
         size_t i, j, k;
 
         for (i = X->n, k = 0; i > 0; i--) {
             for (j = ciL; j > 0; j--) {
-                c = (X->p[i - 1] >> ((j - 1) << 3)) & 0xFF;
+                c = (unsigned int) ((X->p[i - 1] >> ((j - 1) << 3)) & 0xFF);
 
                 if (c == 0 && k == 0 && (i + j) != 2) {
                     continue;
@@ -1071,7 +1071,7 @@ int mbedtls_mpi_sub_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
         memcpy(X->p + n, A->p + n, (A->n - n) * ciL);
     }
     if (X->n > A->n) {
-        memset(X->p + A->n, 0, (X->n - A->n) * ciL);
+        memset(X->p + A->n, 0, (size_t) (X->n - A->n) * ciL);
     }
 
     carry = mbedtls_mpi_core_sub(X->p, A->p, B->p, n);
@@ -1100,7 +1100,8 @@ static int add_sub_mpi(mbedtls_mpi *X,
                        const mbedtls_mpi *A, const mbedtls_mpi *B,
                        int flip_B)
 {
-    int ret, s;
+    int ret;
+    short s;
 
     s = A->s;
     if (A->s * B->s * flip_B < 0) {
@@ -1110,11 +1111,11 @@ static int add_sub_mpi(mbedtls_mpi *X,
             /* If |A| = |B|, the result is 0 and we must set the sign bit
              * to +1 regardless of which of A or B was negative. Otherwise,
              * since |A| > |B|, the sign is the sign of A. */
-            X->s = cmp == 0 ? 1 : s;
+            X->s = (short) (cmp == 0 ? 1 : s);
         } else {
             MBEDTLS_MPI_CHK(mbedtls_mpi_sub_abs(X, B, A));
             /* Since |A| < |B|, the sign is the opposite of A. */
-            X->s = -s;
+            X->s = (short) -s;
         }
     } else {
         MBEDTLS_MPI_CHK(mbedtls_mpi_add_abs(X, A, B));
@@ -1224,7 +1225,7 @@ int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
     if (result_is_zero) {
         X->s = 1;
     } else {
-        X->s = A->s * B->s;
+        X->s = (short) (A->s * B->s);
     }
 
 cleanup:
@@ -1416,9 +1417,9 @@ int mbedtls_mpi_div_mpi(mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
     MBEDTLS_MPI_CHK(mbedtls_mpi_copy(&Y, B));
     X.s = Y.s = 1;
 
-    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&Z, A->n + 2));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&Z, A->n + 2u));
     MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&Z,  0));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&T1, A->n + 2));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&T1, A->n + 2u));
 
     k = mbedtls_mpi_bitlen(&Y) % biL;
     if (k < biL - 1) {
@@ -1429,8 +1430,8 @@ int mbedtls_mpi_div_mpi(mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
         k = 0;
     }
 
-    n = X.n - 1;
-    t = Y.n - 1;
+    n = X.n - 1u;
+    t = Y.n - 1u;
     MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(&Y, biL * (n - t)));
 
     while (mbedtls_mpi_cmp_mpi(&X, &Y) >= 0) {
@@ -1475,7 +1476,7 @@ int mbedtls_mpi_div_mpi(mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
 
     if (Q != NULL) {
         MBEDTLS_MPI_CHK(mbedtls_mpi_copy(Q, &Z));
-        Q->s = A->s * B->s;
+        Q->s = (short) (A->s * B->s);
     }
 
     if (R != NULL) {
@@ -1576,13 +1577,13 @@ int mbedtls_mpi_mod_int(mbedtls_mpi_uint *r, const mbedtls_mpi *A, mbedtls_mpi_s
     for (i = A->n, y = 0; i > 0; i--) {
         x  = A->p[i - 1];
         y  = (y << biH) | (x >> biH);
-        z  = y / b;
-        y -= z * b;
+        z  = y / (mbedtls_mpi_uint) b;
+        y -= z * (mbedtls_mpi_uint) b;
 
         x <<= biH;
         y  = (y << biH) | (x >> biH);
-        z  = y / b;
-        y -= z * b;
+        z  = y / (mbedtls_mpi_uint) b;
+        y -= z * (mbedtls_mpi_uint) b;
     }
 
     /*
@@ -1590,7 +1591,7 @@ int mbedtls_mpi_mod_int(mbedtls_mpi_uint *r, const mbedtls_mpi *A, mbedtls_mpi_s
      * Flipping it to the positive side.
      */
     if (A->s < 0 && y != 0) {
-        y = b - y;
+        y = ((mbedtls_mpi_uint) b) - y;
     }
 
     *r = y;
@@ -1759,7 +1760,7 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
     const size_t x_index = 0;
     mbedtls_mpi_init(&W[x_index]);
 
-    j = N->n + 1;
+    j = N->n + 1u;
     /* All W[i] including the accumulator must have at least N->n limbs for
      * the mpi_montmul() and mpi_montred() calls later. Here we ensure that
      * W[1] and the accumulator W[x_index] are large enough. later we'll grow
@@ -1785,7 +1786,7 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
      */
     if (prec_RR == NULL || prec_RR->p == NULL) {
         MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&RR, 1));
-        MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(&RR, N->n * 2 * biL));
+        MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(&RR, N->n * 2u * biL));
         MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(&RR, &RR, N));
 
         if (prec_RR != NULL) {
@@ -1803,7 +1804,7 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
         /* This should be a no-op because W[1] is already that large before
          * mbedtls_mpi_mod_mpi(), but it's necessary to avoid an overflow
          * in mpi_montmul() below, so let's make sure. */
-        MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&W[1], N->n + 1));
+        MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&W[1], N->n + 1u));
     } else {
         MBEDTLS_MPI_CHK(mbedtls_mpi_copy(&W[1], A));
     }
@@ -1832,7 +1833,7 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
          */
         j = w_table_used_size / 2;
 
-        MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&W[j], N->n + 1));
+        MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&W[j], N->n + 1u));
         MBEDTLS_MPI_CHK(mbedtls_mpi_copy(&W[j], &W[1]));
 
         for (i = 0; i < window_bitsize - 1; i++) {
@@ -1843,7 +1844,7 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
          * W[i] = W[i - 1] * W[1]
          */
         for (i = j + 1; i < w_table_used_size; i++) {
-            MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&W[i], N->n + 1));
+            MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&W[i], N->n + 1u));
             MBEDTLS_MPI_CHK(mbedtls_mpi_copy(&W[i], &W[i - 1]));
 
             mpi_montmul(&W[i], &W[1], N, mm, &T);
@@ -2120,7 +2121,7 @@ int mbedtls_mpi_random(mbedtls_mpi *X,
         return ret;
     }
 
-    return mbedtls_mpi_core_random(X->p, min, N->p, X->n, f_rng, p_rng);
+    return mbedtls_mpi_core_random(X->p, (mbedtls_mpi_uint) min, N->p, X->n, f_rng, p_rng);
 }
 
 /*
@@ -2309,7 +2310,7 @@ static int mpi_miller_rabin(const mbedtls_mpi *X, size_t rounds,
             j = mbedtls_mpi_bitlen(&A);
             k = mbedtls_mpi_bitlen(&W);
             if (j > k) {
-                A.p[A.n - 1] &= ((mbedtls_mpi_uint) 1 << (k - (A.n - 1) * biL - 1)) - 1;
+                A.p[A.n - 1] &= ((mbedtls_mpi_uint) 1 << (k - (A.n - 1u) * biL - 1)) - 1;
             }
 
             if (count++ > 30) {
@@ -2394,7 +2395,7 @@ int mbedtls_mpi_is_prime_ext(const mbedtls_mpi *X, int rounds,
         return ret;
     }
 
-    return mpi_miller_rabin(&XX, rounds, f_rng, p_rng);
+    return mpi_miller_rabin(&XX, (mbedtls_mpi_uint) rounds, f_rng, p_rng);
 }
 
 /*
@@ -2417,7 +2418,7 @@ int mbedtls_mpi_gen_prime(mbedtls_mpi *X, size_t nbits, int flags,
 #endif
     int ret = MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
     size_t k, n;
-    int rounds;
+    unsigned int rounds;
     mbedtls_mpi_uint r;
     mbedtls_mpi Y;
 
@@ -2461,7 +2462,7 @@ int mbedtls_mpi_gen_prime(mbedtls_mpi *X, size_t nbits, int flags,
         X->p[0] |= 1;
 
         if ((flags & MBEDTLS_MPI_GEN_PRIME_FLAG_DH) == 0) {
-            ret = mbedtls_mpi_is_prime_ext(X, rounds, f_rng, p_rng);
+            ret = mbedtls_mpi_is_prime_ext(X, (int) rounds, f_rng, p_rng);
 
             if (ret != MBEDTLS_ERR_MPI_NOT_ACCEPTABLE) {
                 goto cleanup;

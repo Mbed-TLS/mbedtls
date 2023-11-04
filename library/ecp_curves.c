@@ -4935,12 +4935,12 @@ cleanup:
 static inline void add32(uint32_t *dst, uint32_t src, signed char *carry)
 {
     *dst += src;
-    *carry += (*dst < src);
+    *carry = (signed char) (*carry + (*dst < src));
 }
 
 static inline void sub32(uint32_t *dst, uint32_t src, signed char *carry)
 {
-    *carry -= (*dst < src);
+    *carry = (signed char) (*carry - (*dst < src));
     *dst -= src;
 }
 
@@ -4950,28 +4950,28 @@ static inline void sub32(uint32_t *dst, uint32_t src, signed char *carry)
 /*
  * Helpers for the main 'loop'
  */
-#define INIT(b)                                                       \
+#define INIT(b)                                                         \
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;                    \
     signed char c = 0, cc;                                              \
     uint32_t cur;                                                       \
     size_t i = 0, bits = (b);                                           \
     /* N is the size of the product of two b-bit numbers, plus one */   \
     /* limb for fix_negative */                                         \
-    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, (b) * 2 / biL + 1));      \
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, (b) * 2 / biL + 1));            \
     LOAD32;
 
-#define NEXT                    \
-    STORE32; i++; LOAD32;       \
-    cc = c; c = 0;              \
-    if (cc < 0)                \
-    sub32(&cur, -cc, &c); \
-    else                        \
-    add32(&cur, cc, &c);  \
+#define NEXT                         \
+    STORE32; i++; LOAD32;            \
+    cc = c; c = 0;                   \
+    if (cc < 0)                      \
+    sub32(&cur, (uint32_t) -cc, &c); \
+    else                             \
+    add32(&cur, (uint32_t) cc, &c);  \
 
 #define LAST                                    \
     STORE32; i++;                               \
-    cur = c > 0 ? c : 0; STORE32;               \
-    cur = 0; while (++i < MAX32) { STORE32; }  \
+    cur = c > 0 ? (uint32_t) c : 0; STORE32;    \
+    cur = 0; while (++i < MAX32) { STORE32; }   \
     if (c < 0) mbedtls_ecp_fix_negative(N, c, bits);
 
 /*
@@ -5159,7 +5159,7 @@ static int ecp_mod_p521(mbedtls_mpi *N)
 
     /* M = A1 */
     M.s = 1;
-    M.n = N->n - (P521_WIDTH - 1);
+    M.n = (unsigned short) (N->n - (P521_WIDTH - 1));
     if (M.n > P521_WIDTH + 1) {
         M.n = P521_WIDTH + 1;
     }
@@ -5258,7 +5258,7 @@ static int ecp_mod_p448(mbedtls_mpi *N)
 
     /* M = A1 */
     M.s = 1;
-    M.n = N->n - (P448_WIDTH);
+    M.n = (unsigned short) (N->n - (P448_WIDTH));
     if (M.n > P448_WIDTH) {
         /* Shouldn't be called with N larger than 2^896! */
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
@@ -5342,7 +5342,7 @@ static inline int ecp_mod_koblitz(mbedtls_mpi *N, const mbedtls_mpi_uint *Rp, si
     if (shift != 0) {
         MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(&M, shift));
     }
-    M.n += R.n; /* Make room for multiplication by R */
+    M.n = (unsigned short) (M.n + R.n); /* Make room for multiplication by R */
 
     /* N = A0 */
     if (mask != 0) {
@@ -5368,7 +5368,7 @@ static inline int ecp_mod_koblitz(mbedtls_mpi *N, const mbedtls_mpi_uint *Rp, si
     if (shift != 0) {
         MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(&M, shift));
     }
-    M.n += R.n; /* Make room for multiplication by R */
+    M.n = (unsigned short) (M.n + R.n); /* Make room for multiplication by R */
 
     /* N = A0 */
     if (mask != 0) {

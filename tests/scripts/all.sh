@@ -2351,12 +2351,8 @@ component_test_psa_crypto_config_accel_ecdsa () {
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
-                    $(helper_get_psa_key_type_list "ECC")"
-
-    # Note: Those are handled in a special way by the libtestdriver machinery,
-    # so we only want to include them in the accel list when building the main
-    # libraries, hence the use of a separate variable.
-    loc_curve_list="$(helper_get_psa_curve_list)"
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
@@ -2381,7 +2377,7 @@ component_test_psa_crypto_config_accel_ecdsa () {
 
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+    helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure this was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
@@ -2398,12 +2394,8 @@ component_test_psa_crypto_config_accel_ecdh () {
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDH \
-                    $(helper_get_psa_key_type_list "ECC")"
-
-    # Note: Those are handled in a special way by the libtestdriver machinery,
-    # so we only want to include them in the accel list when building the main
-    # libraries, hence the use of a separate variable.
-    loc_curve_list="$(helper_get_psa_curve_list)"
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
@@ -2426,7 +2418,7 @@ component_test_psa_crypto_config_accel_ecdh () {
 
     helper_libtestdriver1_make_drivers "$loc_accel_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+    helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure this was not re-enabled by accident (additive config)
     not grep mbedtls_ecdh_ library/ecdh.o
@@ -2500,12 +2492,8 @@ component_test_psa_crypto_config_accel_pake() {
     msg "build: full with accelerated PAKE"
 
     loc_accel_list="ALG_JPAKE \
-                    $(helper_get_psa_key_type_list "ECC")"
-
-    # Note: Those are handled in a special way by the libtestdriver machinery,
-    # so we only want to include them in the accel list when building the main
-    # libraries, hence the use of a separate variable.
-    loc_curve_list="$(helper_get_psa_curve_list)"
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
@@ -2521,7 +2509,7 @@ component_test_psa_crypto_config_accel_pake() {
 
     helper_libtestdriver1_make_drivers "$loc_accel_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+    helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure this was not re-enabled by accident (additive config)
     not grep mbedtls_ecjpake_init library/ecjpake.o
@@ -2544,12 +2532,8 @@ component_test_psa_crypto_config_accel_ecc_some_key_types () {
                     KEY_TYPE_ECC_PUBLIC_KEY \
                     KEY_TYPE_ECC_KEY_PAIR_BASIC \
                     KEY_TYPE_ECC_KEY_PAIR_IMPORT \
-                    KEY_TYPE_ECC_KEY_PAIR_EXPORT"
-
-    # Note: Curves are handled in a special way by the libtestdriver machinery,
-    # so we only want to include them in the accel list when building the main
-    # libraries, hence the use of a separate variable.
-    loc_curve_list="$(helper_get_psa_curve_list)"
+                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
+                    $(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
@@ -2582,7 +2566,7 @@ component_test_psa_crypto_config_accel_ecc_some_key_types () {
                     ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+    helper_libtestdriver1_make_main "$loc_accel_list"
 
     # ECP should be re-enabled but not the others
     not grep mbedtls_ecdh_ library/ecdh.o
@@ -2611,12 +2595,6 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
 
     msg "build: crypto_full minus PK with accelerated EC algs and $desc curves"
 
-    # Algorithms and key types to accelerate
-    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
-                    ALG_ECDH \
-                    ALG_JPAKE \
-                    $(helper_get_psa_key_type_list "ECC")"
-
     # Note: Curves are handled in a special way by the libtestdriver machinery,
     # so we only want to include them in the accel list when building the main
     # libraries, hence the use of a separate variable.
@@ -2639,6 +2617,13 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     else
         loc_curve_list=$loc_non_weierstrass_list
     fi
+
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
+                    ALG_ECDH \
+                    ALG_JPAKE \
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $loc_curve_list"
 
     # Configure
     # ---------
@@ -2681,7 +2666,7 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
                     ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+    helper_libtestdriver1_make_main "$loc_accel_list"
 
     # We expect ECDH to be re-enabled for the missing curves
     grep mbedtls_ecdh_ library/ecdh.o
@@ -2759,12 +2744,8 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
                     ALG_JPAKE \
-                    $(helper_get_psa_key_type_list "ECC")"
-
-    # Note: Those are handled in a special way by the libtestdriver machinery,
-    # so we only want to include them in the accel list when building the main
-    # libraries, hence the use of a separate variable.
-    loc_curve_list="$(helper_get_psa_curve_list)"
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
@@ -2784,7 +2765,7 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
                     ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+    helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
@@ -2867,12 +2848,8 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
                     ALG_JPAKE \
-                    $(helper_get_psa_key_type_list "ECC")"
-
-    # Note: Those are handled in a special way by the libtestdriver machinery,
-    # so we only want to include them in the accel list when building the main
-    # libraries, hence the use of a separate variable.
-    loc_curve_list="$(helper_get_psa_curve_list)"
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
@@ -2892,7 +2869,7 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
 
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+    helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
@@ -3038,18 +3015,14 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
                     ALG_JPAKE \
-                    $(helper_get_psa_key_type_list "ECC")"
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
     # Optionally we can also add DH to the list of accelerated items
     if [ "$test_target" = "ECC_DH" ]; then
         loc_accel_list="$loc_accel_list \
                         ALG_FFDH \
                         $(helper_get_psa_key_type_list "DH")"
     fi
-
-    # Note: Those are handled in a special way by the libtestdriver machinery,
-    # so we only want to include them in the accel list when building the main
-    # libraries, hence the use of a separate variable.
-    loc_curve_list="$(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
@@ -3069,7 +3042,7 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
 
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+    helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o

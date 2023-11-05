@@ -5229,6 +5229,35 @@ component_test_cmake_shared () {
 
 test_build_opt () {
     info=$1 cc=$2; shift 2
+
+    # Extra strict flags for build-testing the library (tests do not currently build with these flags).
+    # Note that "-Wstatic-in-inline" generates a lot of warnings, so for now, we turn this off (clang only)
+    # Older versions of compilers don't support all the flags, so we adjust flags depending on compiler version.
+    warning_flags_common="-std=c99 -pedantic -Wall -Wextra -Werror -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wconversion -Wsign-conversion"
+    warning_flags_clang="-Wasm-operand-widths -Wunreachable-code -Wshorten-64-to-32 -Wno-static-in-inline"
+    warning_flags_gcc="-Wformat-signedness -Wformat-overflow=2 -Wformat-truncation -Wlogical-op"
+    if [[ $cc == *clang* ]]; then
+        # match things like "/usr/bin/clang-15"
+        warning_flags="${warning_flags_common} ${warning_flags_clang}"
+        # get major version
+        clang_ver="$($cc --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#')"
+        # remove unsupported warning flags
+        if [ $clang_ver -lt 4 ]; then
+            warning_flags=$(echo "$warning_flags" | sed -e 's/-Wimplicit-fallthrough//' | sed -e 's/-Wasm-operand-widths//' )
+        fi
+    elif [[ $cc == *gcc* ]]; then
+        gcc_ver=$($cc --version |grep '^gcc'|sed -E 's/.* ([0-9]+)\.[0-9]+\.[0-9]+.*/\1/')
+        warning_flags="${warning_flags_common} ${warning_flags_gcc}"
+        if [ $gcc_ver -lt 6 ]; then
+            warning_flags=$(echo "$warning_flags" | sed -e 's/-Wimplicit-fallthrough//' | sed -e 's/-Wformat-overflow=2//' | sed -e 's/-Wformat-truncation//' )
+        fi
+        if [ $gcc_ver -lt 5 ]; then
+            warning_flags=$(echo "$warning_flags" | sed -e 's/-Wformat-signedness//' )
+        fi
+    else
+        warning_flags="${warning_flags_common}"
+    fi
+
     $cc --version
     for opt in "$@"; do
           msg "build/test: $cc $opt, $info" # ~ 30s
@@ -5238,6 +5267,14 @@ test_build_opt () {
           # optimizations use inline assembly whereas runs with -O0
           # skip inline assembly.
           make test # ~30s
+
+          # The library builds cleanly with the extended warnings (e.g., -Wsign-conversion),
+          # but as of November 2023, the tests do not. We therefore build and run tests
+          # (above), and build only the library with extended warnings (below)
+          msg "build library with extended warnings: $cc $opt $warning_flags, $info" # ~ 5s
+          make clean
+          make --keep-going CC="$cc" CFLAGS="$opt $warning_flags" lib
+
           make clean
     done
 }

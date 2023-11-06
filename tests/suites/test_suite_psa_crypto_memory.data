@@ -27,3 +27,9 @@ copy_output:0:10:PSA_SUCCESS
 
 PSA output buffer copy: zero-length both buffers
 copy_output:0:0:PSA_SUCCESS
+
+PSA crypto input copy alloc
+input_copy_alloc:200:PSA_SUCCESS
+
+PSA crypto input copy alloc, NULL buffer
+input_copy_alloc:0:PSA_SUCCESS

@@ -42,9 +42,7 @@ if ! which docker > /dev/null; then
     exit 1 # Exit the script with a non-zero status code to indicate an error
 fi
 
-fi
-
-# Check if we require 'sudo docker'.
+# Figure out if we need to 'sudo docker'
 if groups | grep docker > /dev/null; then
     DOCKER="docker"
 else

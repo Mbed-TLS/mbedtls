@@ -80,6 +80,7 @@ enum mbedtls_cipher_base_index {
 #if defined(MBEDTLS_CAMELLIA_C)
     MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA,
 #endif
+#if defined(MBEDTLS_CIPHER_C)
 #if defined(MBEDTLS_CIPHER_HAVE_CCM_AES_VIA_LEGACY_OR_USE_PSA)
     MBEDTLS_CIPHER_BASE_INDEX_CCM_AES,
 #endif
@@ -98,7 +99,6 @@ enum mbedtls_cipher_base_index {
 #if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_CAMELLIA_C)
     MBEDTLS_CIPHER_BASE_INDEX_GCM_CAMELLIA,
 #endif
-#if defined(MBEDTLS_CIPHER_C)
 #if defined(MBEDTLS_DES_C)
     MBEDTLS_CIPHER_BASE_INDEX_DES_EDE3,
 #endif
@@ -128,6 +128,7 @@ enum mbedtls_cipher_base_index {
     MBEDTLS_CIPHER_BASE_PREVENT_EMPTY_ENUM
 };
 
+#if defined(MBEDTLS_CIPHER_C)
 #if defined(MBEDTLS_GCM_C)
 /* shared by all GCM ciphers */
 static void *gcm_ctx_alloc(void)
@@ -167,6 +168,7 @@ static void ccm_ctx_free(void *ctx)
     mbedtls_free(ctx);
 }
 #endif /* MBEDTLS_CCM_C */
+#endif /* MBEDTLS_CIPHER_C */
 
 #if defined(MBEDTLS_AES_C)
 
@@ -176,7 +178,8 @@ static int aes_crypt_ecb_wrap(void *ctx, mbedtls_operation_t operation,
     return mbedtls_aes_crypt_ecb((mbedtls_aes_context *) ctx, operation, input, output);
 }
 
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
 static int aes_crypt_cbc_wrap(void *ctx, mbedtls_operation_t operation, size_t length,
                               unsigned char *iv, const unsigned char *input, unsigned char *output)
 {
@@ -185,7 +188,7 @@ static int aes_crypt_cbc_wrap(void *ctx, mbedtls_operation_t operation, size_t l
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
 static int aes_crypt_cfb128_wrap(void *ctx, mbedtls_operation_t operation,
                                  size_t length, size_t *iv_off, unsigned char *iv,
                                  const unsigned char *input, unsigned char *output)
@@ -195,7 +198,7 @@ static int aes_crypt_cfb128_wrap(void *ctx, mbedtls_operation_t operation,
 }
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
-#if defined(MBEDTLS_CIPHER_MODE_OFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
 static int aes_crypt_ofb_wrap(void *ctx, size_t length, size_t *iv_off,
                               unsigned char *iv, const unsigned char *input, unsigned char *output)
 {
@@ -204,7 +207,7 @@ static int aes_crypt_ofb_wrap(void *ctx, size_t length, size_t *iv_off,
 }
 #endif /* MBEDTLS_CIPHER_MODE_OFB */
 
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
 static int aes_crypt_ctr_wrap(void *ctx, size_t length, size_t *nc_off,
                               unsigned char *nonce_counter, unsigned char *stream_block,
                               const unsigned char *input, unsigned char *output)
@@ -214,7 +217,7 @@ static int aes_crypt_ctr_wrap(void *ctx, size_t length, size_t *nc_off,
 }
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
-#if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
 static int aes_crypt_xts_wrap(void *ctx, mbedtls_operation_t operation,
                               size_t length,
                               const unsigned char data_unit[16],
@@ -239,6 +242,7 @@ static int aes_crypt_xts_wrap(void *ctx, mbedtls_operation_t operation,
                                  data_unit, input, output);
 }
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
+#endif /* MBEDTLS_CIPHER_C */
 
 static int aes_setkey_dec_wrap(void *ctx, const unsigned char *key,
                                unsigned int key_bitlen)
@@ -274,24 +278,26 @@ static void aes_ctx_free(void *ctx)
 static const mbedtls_cipher_base_t aes_info = {
     MBEDTLS_CIPHER_ID_AES,
     aes_crypt_ecb_wrap,
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
     aes_crypt_cbc_wrap,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
     aes_crypt_cfb128_wrap,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_OFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
     aes_crypt_ofb_wrap,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
     aes_crypt_ctr_wrap,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_STREAM) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
     NULL,
 #endif
+#endif /* MBEDTLS_CIPHER_C */
     aes_setkey_enc_wrap,
     aes_setkey_dec_wrap,
     aes_ctx_alloc,
@@ -333,7 +339,8 @@ static const mbedtls_cipher_info_t aes_256_ecb_info = {
 };
 #endif
 
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
 static const mbedtls_cipher_info_t aes_128_cbc_info = {
     "AES-128-CBC",
     16,
@@ -370,7 +377,7 @@ static const mbedtls_cipher_info_t aes_256_cbc_info = {
 #endif
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
 static const mbedtls_cipher_info_t aes_128_cfb128_info = {
     "AES-128-CFB128",
     16,
@@ -407,7 +414,7 @@ static const mbedtls_cipher_info_t aes_256_cfb128_info = {
 #endif
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
-#if defined(MBEDTLS_CIPHER_MODE_OFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
 static const mbedtls_cipher_info_t aes_128_ofb_info = {
     "AES-128-OFB",
     16,
@@ -444,7 +451,7 @@ static const mbedtls_cipher_info_t aes_256_ofb_info = {
 #endif
 #endif /* MBEDTLS_CIPHER_MODE_OFB */
 
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
 static const mbedtls_cipher_info_t aes_128_ctr_info = {
     "AES-128-CTR",
     16,
@@ -481,7 +488,7 @@ static const mbedtls_cipher_info_t aes_256_ctr_info = {
 #endif
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
-#if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
 static int xts_aes_setkey_enc_wrap(void *ctx, const unsigned char *key,
                                    unsigned int key_bitlen)
 {
@@ -522,22 +529,22 @@ static void xts_aes_ctx_free(void *ctx)
 static const mbedtls_cipher_base_t xts_aes_info = {
     MBEDTLS_CIPHER_ID_AES,
     NULL,
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_OFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
     aes_crypt_xts_wrap,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_STREAM) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
     NULL,
 #endif
     xts_aes_setkey_enc_wrap,
@@ -570,8 +577,10 @@ static const mbedtls_cipher_info_t aes_256_xts_info = {
 };
 #endif
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
+#endif /* MBEDTLS_CIPHER_C */
 #endif /* MBEDTLS_AES_C */
 
+#if defined(MBEDTLS_CIPHER_C)
 #if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_AES_C)
 static int gcm_aes_setkey_wrap(void *ctx, const unsigned char *key,
                                unsigned int key_bitlen)
@@ -585,22 +594,22 @@ static int gcm_aes_setkey_wrap(void *ctx, const unsigned char *key,
 static const mbedtls_cipher_base_t gcm_aes_info = {
     MBEDTLS_CIPHER_ID_AES,
     NULL,
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_OFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_STREAM) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
     NULL,
 #endif
 #if defined(MBEDTLS_GCM_C)
@@ -615,9 +624,7 @@ static const mbedtls_cipher_base_t gcm_aes_info = {
     NULL,
 #endif /* MBEDTLS_GCM_C */
 };
-#endif /* MBEDTLS_CIPHER_HAVE_GCM_AES_VIA_LEGACY_OR_USE_PSA */
 
-#if defined(MBEDTLS_CIPHER_HAVE_GCM_AES_VIA_LEGACY_OR_USE_PSA)
 static const mbedtls_cipher_info_t aes_128_gcm_info = {
     "AES-128-GCM",
     16,
@@ -667,22 +674,22 @@ static int ccm_aes_setkey_wrap(void *ctx, const unsigned char *key,
 static const mbedtls_cipher_base_t ccm_aes_info = {
     MBEDTLS_CIPHER_ID_AES,
     NULL,
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_OFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_STREAM) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
     NULL,
 #endif
 #if defined(MBEDTLS_CCM_C)
@@ -697,9 +704,7 @@ static const mbedtls_cipher_base_t ccm_aes_info = {
     NULL,
 #endif
 };
-#endif /* MBEDTLS_CIPHER_HAVE_CCM_AES_VIA_LEGACY_OR_USE_PSA */
 
-#if defined(MBEDTLS_CIPHER_HAVE_CCM_AES_VIA_LEGACY_OR_USE_PSA)
 static const mbedtls_cipher_info_t aes_128_ccm_info = {
     "AES-128-CCM",
     16,
@@ -772,6 +777,7 @@ static const mbedtls_cipher_info_t aes_256_ccm_star_no_tag_info = {
 };
 #endif
 #endif /* MBEDTLS_CIPHER_HAVE_CCM_STAR_NO_TAG_AES_VIA_LEGACY_OR_USE_PSA */
+#endif /* MBEDTLS_CIPHER_C */
 
 
 #if defined(MBEDTLS_CAMELLIA_C)
@@ -783,7 +789,8 @@ static int camellia_crypt_ecb_wrap(void *ctx, mbedtls_operation_t operation,
                                       output);
 }
 
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
 static int camellia_crypt_cbc_wrap(void *ctx, mbedtls_operation_t operation,
                                    size_t length, unsigned char *iv,
                                    const unsigned char *input, unsigned char *output)
@@ -793,7 +800,7 @@ static int camellia_crypt_cbc_wrap(void *ctx, mbedtls_operation_t operation,
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
 static int camellia_crypt_cfb128_wrap(void *ctx, mbedtls_operation_t operation,
                                       size_t length, size_t *iv_off, unsigned char *iv,
                                       const unsigned char *input, unsigned char *output)
@@ -803,7 +810,7 @@ static int camellia_crypt_cfb128_wrap(void *ctx, mbedtls_operation_t operation,
 }
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
 static int camellia_crypt_ctr_wrap(void *ctx, size_t length, size_t *nc_off,
                                    unsigned char *nonce_counter, unsigned char *stream_block,
                                    const unsigned char *input, unsigned char *output)
@@ -812,6 +819,7 @@ static int camellia_crypt_ctr_wrap(void *ctx, size_t length, size_t *nc_off,
                                       nonce_counter, stream_block, input, output);
 }
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
+#endif /* MBEDTLS_CIPHER_C */
 
 static int camellia_setkey_dec_wrap(void *ctx, const unsigned char *key,
                                     unsigned int key_bitlen)
@@ -848,24 +856,26 @@ static void camellia_ctx_free(void *ctx)
 static const mbedtls_cipher_base_t camellia_info = {
     MBEDTLS_CIPHER_ID_CAMELLIA,
     camellia_crypt_ecb_wrap,
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
     camellia_crypt_cbc_wrap,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
     camellia_crypt_cfb128_wrap,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_OFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
     camellia_crypt_ctr_wrap,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_STREAM) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
     NULL,
 #endif
+#endif /* MBEDTLS_CIPHER_C */
     camellia_setkey_enc_wrap,
     camellia_setkey_dec_wrap,
     camellia_ctx_alloc,
@@ -905,7 +915,8 @@ static const mbedtls_cipher_info_t camellia_256_ecb_info = {
     MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA
 };
 
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
 static const mbedtls_cipher_info_t camellia_128_cbc_info = {
     "CAMELLIA-128-CBC",
     16,
@@ -940,7 +951,7 @@ static const mbedtls_cipher_info_t camellia_256_cbc_info = {
 };
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
 static const mbedtls_cipher_info_t camellia_128_cfb128_info = {
     "CAMELLIA-128-CFB128",
     16,
@@ -975,7 +986,7 @@ static const mbedtls_cipher_info_t camellia_256_cfb128_info = {
 };
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
 static const mbedtls_cipher_info_t camellia_128_ctr_info = {
     "CAMELLIA-128-CTR",
     16,
@@ -1009,7 +1020,9 @@ static const mbedtls_cipher_info_t camellia_256_ctr_info = {
     MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA
 };
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
+#endif /* MBEDTLS_CIPHER_C */
 
+#if defined(MBEDTLS_CIPHER_C)
 #if defined(MBEDTLS_GCM_C)
 static int gcm_camellia_setkey_wrap(void *ctx, const unsigned char *key,
                                     unsigned int key_bitlen)
@@ -1021,22 +1034,22 @@ static int gcm_camellia_setkey_wrap(void *ctx, const unsigned char *key,
 static const mbedtls_cipher_base_t gcm_camellia_info = {
     MBEDTLS_CIPHER_ID_CAMELLIA,
     NULL,
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_OFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_STREAM) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
     NULL,
 #endif
     gcm_camellia_setkey_wrap,
@@ -1090,22 +1103,22 @@ static int ccm_camellia_setkey_wrap(void *ctx, const unsigned char *key,
 static const mbedtls_cipher_base_t ccm_camellia_info = {
     MBEDTLS_CIPHER_ID_CAMELLIA,
     NULL,
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_OFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_STREAM) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
     NULL,
 #endif
     ccm_camellia_setkey_wrap,
@@ -1180,6 +1193,7 @@ static const mbedtls_cipher_info_t camellia_256_ccm_star_no_tag_info = {
     MBEDTLS_CIPHER_BASE_INDEX_CCM_CAMELLIA
 };
 #endif /* MBEDTLS_CCM_C */
+#endif /* MBEDTLS_CIPHER_C */
 
 #endif /* MBEDTLS_CAMELLIA_C */
 
@@ -1193,7 +1207,8 @@ static int aria_crypt_ecb_wrap(void *ctx, mbedtls_operation_t operation,
                                   output);
 }
 
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
 static int aria_crypt_cbc_wrap(void *ctx, mbedtls_operation_t operation,
                                size_t length, unsigned char *iv,
                                const unsigned char *input, unsigned char *output)
@@ -1203,7 +1218,7 @@ static int aria_crypt_cbc_wrap(void *ctx, mbedtls_operation_t operation,
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
 static int aria_crypt_cfb128_wrap(void *ctx, mbedtls_operation_t operation,
                                   size_t length, size_t *iv_off, unsigned char *iv,
                                   const unsigned char *input, unsigned char *output)
@@ -1213,7 +1228,7 @@ static int aria_crypt_cfb128_wrap(void *ctx, mbedtls_operation_t operation,
 }
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
 static int aria_crypt_ctr_wrap(void *ctx, size_t length, size_t *nc_off,
                                unsigned char *nonce_counter, unsigned char *stream_block,
                                const unsigned char *input, unsigned char *output)
@@ -1222,6 +1237,7 @@ static int aria_crypt_ctr_wrap(void *ctx, size_t length, size_t *nc_off,
                                   nonce_counter, stream_block, input, output);
 }
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
+#endif /* MBEDTLS_CIPHER_C */
 
 static int aria_setkey_dec_wrap(void *ctx, const unsigned char *key,
                                 unsigned int key_bitlen)
@@ -1258,24 +1274,26 @@ static void aria_ctx_free(void *ctx)
 static const mbedtls_cipher_base_t aria_info = {
     MBEDTLS_CIPHER_ID_ARIA,
     aria_crypt_ecb_wrap,
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
     aria_crypt_cbc_wrap,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
     aria_crypt_cfb128_wrap,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_OFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
     aria_crypt_ctr_wrap,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_STREAM) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
     NULL,
 #endif
+#endif /* MBEDTLS_CIPHER_C */
     aria_setkey_enc_wrap,
     aria_setkey_dec_wrap,
     aria_ctx_alloc,
@@ -1315,7 +1333,8 @@ static const mbedtls_cipher_info_t aria_256_ecb_info = {
     MBEDTLS_CIPHER_BASE_INDEX_ARIA
 };
 
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
 static const mbedtls_cipher_info_t aria_128_cbc_info = {
     "ARIA-128-CBC",
     16,
@@ -1350,7 +1369,7 @@ static const mbedtls_cipher_info_t aria_256_cbc_info = {
 };
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
 static const mbedtls_cipher_info_t aria_128_cfb128_info = {
     "ARIA-128-CFB128",
     16,
@@ -1385,7 +1404,7 @@ static const mbedtls_cipher_info_t aria_256_cfb128_info = {
 };
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
 static const mbedtls_cipher_info_t aria_128_ctr_info = {
     "ARIA-128-CTR",
     16,
@@ -1419,7 +1438,9 @@ static const mbedtls_cipher_info_t aria_256_ctr_info = {
     MBEDTLS_CIPHER_BASE_INDEX_ARIA
 };
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
+#endif /* MBEDTLS_CIPHER_C */
 
+#if defined(MBEDTLS_CIPHER_C)
 #if defined(MBEDTLS_GCM_C)
 static int gcm_aria_setkey_wrap(void *ctx, const unsigned char *key,
                                 unsigned int key_bitlen)
@@ -1431,22 +1452,22 @@ static int gcm_aria_setkey_wrap(void *ctx, const unsigned char *key,
 static const mbedtls_cipher_base_t gcm_aria_info = {
     MBEDTLS_CIPHER_ID_ARIA,
     NULL,
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_OFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_STREAM) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
     NULL,
 #endif
     gcm_aria_setkey_wrap,
@@ -1488,7 +1509,9 @@ static const mbedtls_cipher_info_t aria_256_gcm_info = {
     MBEDTLS_CIPHER_BASE_INDEX_GCM_ARIA
 };
 #endif /* MBEDTLS_GCM_C */
+#endif /* MBEDTLS_CIPHER_C */
 
+#if defined(MBEDTLS_CIPHER_C)
 #if defined(MBEDTLS_CCM_C)
 static int ccm_aria_setkey_wrap(void *ctx, const unsigned char *key,
                                 unsigned int key_bitlen)
@@ -1500,22 +1523,22 @@ static int ccm_aria_setkey_wrap(void *ctx, const unsigned char *key,
 static const mbedtls_cipher_base_t ccm_aria_info = {
     MBEDTLS_CIPHER_ID_ARIA,
     NULL,
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_OFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_STREAM) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
     NULL,
 #endif
     ccm_aria_setkey_wrap,
@@ -1590,10 +1613,12 @@ static const mbedtls_cipher_info_t aria_256_ccm_star_no_tag_info = {
     MBEDTLS_CIPHER_BASE_INDEX_CCM_ARIA
 };
 #endif /* MBEDTLS_CCM_C */
+#endif /* MBEDTLS_CIPHER_C */
 
 #endif /* MBEDTLS_ARIA_C */
 
-#if defined(MBEDTLS_DES_C) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_DES_C)
 
 static int des_crypt_ecb_wrap(void *ctx, mbedtls_operation_t operation,
                               const unsigned char *input, unsigned char *output)
@@ -1867,7 +1892,7 @@ static const mbedtls_cipher_info_t des_ede3_cbc_info = {
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 #endif /* MBEDTLS_DES_C */
 
-#if defined(MBEDTLS_CHACHA20_C) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CHACHA20_C)
 
 static int chacha20_setkey_wrap(void *ctx, const unsigned char *key,
                                 unsigned int key_bitlen)
@@ -1955,7 +1980,7 @@ static const mbedtls_cipher_info_t chacha20_info = {
 };
 #endif /* MBEDTLS_CHACHA20_C */
 
-#if defined(MBEDTLS_CHACHAPOLY_C) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CHACHAPOLY_C)
 
 static int chachapoly_setkey_wrap(void *ctx,
                                   const unsigned char *key,
@@ -2030,7 +2055,7 @@ static const mbedtls_cipher_info_t chachapoly_info = {
 };
 #endif /* MBEDTLS_CHACHAPOLY_C */
 
-#if defined(MBEDTLS_CIPHER_NULL_CIPHER) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_NULL_CIPHER)
 static int null_crypt_stream(void *ctx, size_t length,
                              const unsigned char *input,
                              unsigned char *output)
@@ -2099,7 +2124,7 @@ static const mbedtls_cipher_info_t null_cipher_info = {
 };
 #endif /* defined(MBEDTLS_CIPHER_NULL_CIPHER) */
 
-#if defined(MBEDTLS_NIST_KW_C) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_NIST_KW_C)
 static void *kw_ctx_alloc(void)
 {
     void *ctx = mbedtls_calloc(1, sizeof(mbedtls_nist_kw_context));
@@ -2228,6 +2253,7 @@ static const mbedtls_cipher_info_t aes_256_nist_kwp_info = {
 };
 #endif
 #endif /* MBEDTLS_NIST_KW_C */
+#endif /* MBEDTLS_CIPHER_C */
 
 const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
 {
@@ -2237,41 +2263,44 @@ const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
     { MBEDTLS_CIPHER_AES_192_ECB,          &aes_192_ecb_info },
     { MBEDTLS_CIPHER_AES_256_ECB,          &aes_256_ecb_info },
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
     { MBEDTLS_CIPHER_AES_128_CBC,          &aes_128_cbc_info },
 #if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_CBC,          &aes_192_cbc_info },
     { MBEDTLS_CIPHER_AES_256_CBC,          &aes_256_cbc_info },
 #endif
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
     { MBEDTLS_CIPHER_AES_128_CFB128,       &aes_128_cfb128_info },
 #if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_CFB128,       &aes_192_cfb128_info },
     { MBEDTLS_CIPHER_AES_256_CFB128,       &aes_256_cfb128_info },
 #endif
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_OFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
     { MBEDTLS_CIPHER_AES_128_OFB,          &aes_128_ofb_info },
 #if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_OFB,          &aes_192_ofb_info },
     { MBEDTLS_CIPHER_AES_256_OFB,          &aes_256_ofb_info },
 #endif
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
     { MBEDTLS_CIPHER_AES_128_CTR,          &aes_128_ctr_info },
 #if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_CTR,          &aes_192_ctr_info },
     { MBEDTLS_CIPHER_AES_256_CTR,          &aes_256_ctr_info },
 #endif
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
     { MBEDTLS_CIPHER_AES_128_XTS,          &aes_128_xts_info },
 #if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_256_XTS,          &aes_256_xts_info },
 #endif
 #endif
+#endif /* MBEDTLS_CIPHER_C */
 #endif /* MBEDTLS_AES_C */
+#if defined(MBEDTLS_CIPHER_C)
 #if defined(MBEDTLS_CIPHER_HAVE_GCM_AES_VIA_LEGACY_OR_USE_PSA)
     { MBEDTLS_CIPHER_AES_128_GCM,          &aes_128_gcm_info },
 #if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
@@ -2293,22 +2322,24 @@ const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
     { MBEDTLS_CIPHER_AES_256_CCM_STAR_NO_TAG,          &aes_256_ccm_star_no_tag_info },
 #endif
 #endif
+#endif /* MBEDTLS_CIPHER_C */
 
 #if defined(MBEDTLS_CAMELLIA_C)
     { MBEDTLS_CIPHER_CAMELLIA_128_ECB,     &camellia_128_ecb_info },
     { MBEDTLS_CIPHER_CAMELLIA_192_ECB,     &camellia_192_ecb_info },
     { MBEDTLS_CIPHER_CAMELLIA_256_ECB,     &camellia_256_ecb_info },
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
     { MBEDTLS_CIPHER_CAMELLIA_128_CBC,     &camellia_128_cbc_info },
     { MBEDTLS_CIPHER_CAMELLIA_192_CBC,     &camellia_192_cbc_info },
     { MBEDTLS_CIPHER_CAMELLIA_256_CBC,     &camellia_256_cbc_info },
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
     { MBEDTLS_CIPHER_CAMELLIA_128_CFB128,  &camellia_128_cfb128_info },
     { MBEDTLS_CIPHER_CAMELLIA_192_CFB128,  &camellia_192_cfb128_info },
     { MBEDTLS_CIPHER_CAMELLIA_256_CFB128,  &camellia_256_cfb128_info },
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
     { MBEDTLS_CIPHER_CAMELLIA_128_CTR,     &camellia_128_ctr_info },
     { MBEDTLS_CIPHER_CAMELLIA_192_CTR,     &camellia_192_ctr_info },
     { MBEDTLS_CIPHER_CAMELLIA_256_CTR,     &camellia_256_ctr_info },
@@ -2326,23 +2357,25 @@ const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
     { MBEDTLS_CIPHER_CAMELLIA_192_CCM_STAR_NO_TAG,     &camellia_192_ccm_star_no_tag_info },
     { MBEDTLS_CIPHER_CAMELLIA_256_CCM_STAR_NO_TAG,     &camellia_256_ccm_star_no_tag_info },
 #endif
+#endif /* MBEDTLS_CIPHER_C */
 #endif /* MBEDTLS_CAMELLIA_C */
 
 #if defined(MBEDTLS_ARIA_C)
     { MBEDTLS_CIPHER_ARIA_128_ECB,     &aria_128_ecb_info },
     { MBEDTLS_CIPHER_ARIA_192_ECB,     &aria_192_ecb_info },
     { MBEDTLS_CIPHER_ARIA_256_ECB,     &aria_256_ecb_info },
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
     { MBEDTLS_CIPHER_ARIA_128_CBC,     &aria_128_cbc_info },
     { MBEDTLS_CIPHER_ARIA_192_CBC,     &aria_192_cbc_info },
     { MBEDTLS_CIPHER_ARIA_256_CBC,     &aria_256_cbc_info },
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CFB) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
     { MBEDTLS_CIPHER_ARIA_128_CFB128,  &aria_128_cfb128_info },
     { MBEDTLS_CIPHER_ARIA_192_CFB128,  &aria_192_cfb128_info },
     { MBEDTLS_CIPHER_ARIA_256_CFB128,  &aria_256_cfb128_info },
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CTR) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
     { MBEDTLS_CIPHER_ARIA_128_CTR,     &aria_128_ctr_info },
     { MBEDTLS_CIPHER_ARIA_192_CTR,     &aria_192_ctr_info },
     { MBEDTLS_CIPHER_ARIA_256_CTR,     &aria_256_ctr_info },
@@ -2360,28 +2393,30 @@ const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
     { MBEDTLS_CIPHER_ARIA_192_CCM_STAR_NO_TAG,     &aria_192_ccm_star_no_tag_info },
     { MBEDTLS_CIPHER_ARIA_256_CCM_STAR_NO_TAG,     &aria_256_ccm_star_no_tag_info },
 #endif
+#endif /* MBEDTLS_CIPHER_C */
 #endif /* MBEDTLS_ARIA_C */
 
-#if defined(MBEDTLS_DES_C) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_DES_C)
     { MBEDTLS_CIPHER_DES_ECB,              &des_ecb_info },
     { MBEDTLS_CIPHER_DES_EDE_ECB,          &des_ede_ecb_info },
     { MBEDTLS_CIPHER_DES_EDE3_ECB,         &des_ede3_ecb_info },
-#if defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
     { MBEDTLS_CIPHER_DES_CBC,              &des_cbc_info },
     { MBEDTLS_CIPHER_DES_EDE_CBC,          &des_ede_cbc_info },
     { MBEDTLS_CIPHER_DES_EDE3_CBC,         &des_ede3_cbc_info },
 #endif
 #endif /* MBEDTLS_DES_C */
 
-#if defined(MBEDTLS_CHACHA20_C) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CHACHA20_C)
     { MBEDTLS_CIPHER_CHACHA20,             &chacha20_info },
 #endif
 
-#if defined(MBEDTLS_CHACHAPOLY_C) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CHACHAPOLY_C)
     { MBEDTLS_CIPHER_CHACHA20_POLY1305,    &chachapoly_info },
 #endif
 
-#if defined(MBEDTLS_NIST_KW_C) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_NIST_KW_C)
     { MBEDTLS_CIPHER_AES_128_KW,          &aes_128_nist_kw_info },
 #if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     { MBEDTLS_CIPHER_AES_192_KW,          &aes_192_nist_kw_info },
@@ -2394,9 +2429,10 @@ const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
 #endif
 #endif
 
-#if defined(MBEDTLS_CIPHER_NULL_CIPHER) && defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_CIPHER_NULL_CIPHER)
     { MBEDTLS_CIPHER_NULL,                 &null_cipher_info },
 #endif /* MBEDTLS_CIPHER_NULL_CIPHER */
+#endif /* MBEDTLS_CIPHER_C */
 
     { MBEDTLS_CIPHER_NONE, NULL }
 };
@@ -2415,6 +2451,7 @@ const mbedtls_cipher_base_t *mbedtls_cipher_base_lookup_table[] = {
 #if defined(MBEDTLS_CAMELLIA_C)
     [MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA] = &camellia_info,
 #endif
+#if defined(MBEDTLS_CIPHER_C)
 #if defined(MBEDTLS_CIPHER_HAVE_CCM_AES_VIA_LEGACY_OR_USE_PSA)
     [MBEDTLS_CIPHER_BASE_INDEX_CCM_AES] = &ccm_aes_info,
 #endif
@@ -2433,7 +2470,6 @@ const mbedtls_cipher_base_t *mbedtls_cipher_base_lookup_table[] = {
 #if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_CAMELLIA_C)
     [MBEDTLS_CIPHER_BASE_INDEX_GCM_CAMELLIA] = &gcm_camellia_info,
 #endif
-#if defined(MBEDTLS_CIPHER_C)
 #if defined(MBEDTLS_DES_C)
     [MBEDTLS_CIPHER_BASE_INDEX_DES_EDE3] = &des_ede3_info,
 #endif

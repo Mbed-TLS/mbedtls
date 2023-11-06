@@ -22,6 +22,7 @@
  * might be translated to branches by some compilers on some platforms.
  */
 
+#include <stdint.h>
 #include <limits.h>
 
 #include "common.h"
@@ -120,8 +121,55 @@ int mbedtls_ct_memcmp(const void *a,
         diff |= x ^ y;
     }
 
+
+#if (INT_MAX < INT32_MAX)
+    /* We don't support int smaller than 32-bits, but if someone tried to build
+     * with this configuration, there is a risk that, for differing data, the
+     * only bits set in diff are in the top 16-bits, and would be lost by a
+     * simple cast from uint32 to int.
+     * This would have significant security implications, so protect against it. */
+#error "mbedtls_ct_memcmp() requires minimum 32-bit ints"
+#else
+    /* The bit-twiddling ensures that when we cast uint32_t to int, we are casting
+     * a value that is in the range 0..INT_MAX - a value larger than this would
+     * result in implementation defined behaviour.
+     *
+     * This ensures that the value returned by the function is non-zero iff
+     * diff is non-zero.
+     */
+    return (int) ((diff & 0xffff) | (diff >> 16));
+#endif
+}
+
+#if defined(MBEDTLS_NIST_KW_C)
+
+int mbedtls_ct_memcmp_partial(const void *a,
+                              const void *b,
+                              size_t n,
+                              size_t skip_head,
+                              size_t skip_tail)
+{
+    unsigned int diff = 0;
+
+    volatile const unsigned char *A = (volatile const unsigned char *) a;
+    volatile const unsigned char *B = (volatile const unsigned char *) b;
+
+    size_t valid_end = n - skip_tail;
+
+    for (size_t i = 0; i < n; i++) {
+        unsigned char x = A[i], y = B[i];
+        unsigned int d = x ^ y;
+        mbedtls_ct_condition_t valid = mbedtls_ct_bool_and(mbedtls_ct_uint_ge(i, skip_head),
+                                                           mbedtls_ct_uint_lt(i, valid_end));
+        diff |= mbedtls_ct_uint_if_else_0(valid, d);
+    }
+
+    /* Since we go byte-by-byte, the only bits set will be in the bottom 8 bits, so the
+     * cast from uint to int is safe. */
     return (int) diff;
 }
+
+#endif
 
 #if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
 

@@ -40,6 +40,10 @@
 
 /* Require built-in implementations based on PSA requirements */
 
+/* We need this to have a complete list of requirements
+ * before we deduce what built-ins are required. */
+#include "psa/crypto_adjust_config_key_pair_types.h"
+
 #include "mbedtls/config_adjust_legacy_from_psa.h"
 
 #else /* MBEDTLS_PSA_CRYPTO_CONFIG */
@@ -48,52 +52,14 @@
 
 #include "mbedtls/config_adjust_psa_from_legacy.h"
 
+/* Hopefully the file above will have enabled keypair symbols in a consistent
+ * way, but including this here fixes them if that wasn't the case. */
+#include "psa/crypto_adjust_config_key_pair_types.h"
+
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG */
 
 #if defined(PSA_WANT_ALG_JPAKE)
 #define PSA_WANT_ALG_SOME_PAKE 1
-#endif
-
-/* Even though KEY_PAIR symbols' feature several level of support (BASIC, IMPORT,
- * EXPORT, GENERATE, DERIVE) we're not planning to have support only for BASIC
- * without IMPORT/EXPORT since these last 2 features are strongly used in tests.
- * In general it is allowed to include more feature than what is strictly
- * requested.
- * As a consequence IMPORT and EXPORT features will be automatically enabled
- * as soon as the BASIC one is. */
-#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC)
-#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT 1
-#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT 1
-#endif
-
-/* See description above */
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC)
-#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_IMPORT 1
-#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_EXPORT 1
-#endif
-
-/* See description above */
-#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
-#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT 1
-#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT 1
-#endif
-
-/* See description above */
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_BASIC)
-#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT 1
-#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT 1
-#endif
-
-/* See description above */
-#if defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_BASIC)
-#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT 1
-#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT 1
-#endif
-
-/* See description above */
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_BASIC)
-#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_IMPORT 1
-#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_EXPORT 1
 #endif
 
 #include "psa/crypto_adjust_auto_enabled.h"

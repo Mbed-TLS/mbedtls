@@ -185,51 +185,107 @@ static int parse_attribute_value_string(const char *s,
     return 0;
 }
 
-static int parse_attribute_value_der_encoded(const char *s,
-                                             int len,
-                                             unsigned char *data,
-                                             size_t *data_len,
-                                             int *tag)
+/** Parse a hexstring containing a DER-encoded string.
+ *
+ * \param s         A string of \p len bytes hexadecimal digits.
+ * \param len       Number of bytes to read from \p s.
+ * \param data      Output buffer of size \p data_size.
+ *                  On success, it contains the payload that's DER-encoded
+ *                  in the input (content without the tag and length).
+ *                  If the DER tag is a string tag, the payload is guaranteed
+ *                  not to contain null bytes.
+ * \param data_size Length of the \p data buffer.
+ * \param data_len  On success, the length of the parsed string.
+ *                  It is guaranteed to be less than
+ *                  #MBEDTLS_X509_MAX_DN_NAME_SIZE.
+ * \param tag       The ASN.1 tag that the payload in \p data is encoded in.
+ *
+ * \retval          0 on success.
+ * \retval          #MBEDTLS_ERR_X509_INVALID_NAME if \p s does not contain
+ *                  a valid hexstring,
+ *                  or if the decoded hexstring is not valid DER,
+ *                  or if the payload does not fit in \p data,
+ *                  or if the payload is more than
+ *                  #MBEDTLS_X509_MAX_DN_NAME_SIZE bytes,
+ *                  of if \p *tag is an ASN.1 string tag and the payload
+ *                  contains a null byte.
+ * \retval          #MBEDTLS_ERR_X509_ALLOC_FAILED on low memory.
+ */
+static int parse_attribute_value_hex_der_encoded(const char *s,
+                                                 size_t len,
+                                                 unsigned char *data,
+                                                 size_t data_size,
+                                                 size_t *data_len,
+                                                 int *tag)
 {
-    const char *c = s;
-    const char *end = c + len;
-    unsigned char asn1_der_buf[MBEDTLS_X509_MAX_DN_NAME_SIZE];
-    unsigned char *asn1_der_end;
-    unsigned char *p;
-    unsigned char *d = data;
-    int n;
+    /* Step 1: preliminary length checks. */
+    /* Each byte is encoded by exactly two hexadecimal digits. */
+    if (len % 2 != 0) {
+        /* Odd number of hex digits */
+        return MBEDTLS_ERR_X509_INVALID_NAME;
+    }
+    size_t const der_length = len / 2;
+    if (der_length > MBEDTLS_X509_MAX_DN_NAME_SIZE + 4) {
+        /* The payload would be more than MBEDTLS_X509_MAX_DN_NAME_SIZE
+         * (after subtracting the ASN.1 tag and length). Reject this early
+         * to avoid allocating a large intermediate buffer. */
+        return MBEDTLS_ERR_X509_INVALID_NAME;
+    }
+    if (der_length < 1) {
+        /* Avoid empty-buffer shenanigans. A valid DER encoding is never
+         * empty. */
+        return MBEDTLS_ERR_X509_INVALID_NAME;
+    }
 
-    /* Converting from hexstring to raw binary so we can use asn1parse.c */
-    if ((len < 5) || (*c != '#')) {
-        return MBEDTLS_ERR_X509_INVALID_NAME;
+    /* Step 2: Decode the hex string into an intermediate buffer. */
+    unsigned char *der = mbedtls_calloc(1, der_length);
+    if (der == NULL) {
+        return MBEDTLS_ERR_X509_ALLOC_FAILED;
     }
-    c++;
-    if ((*tag = hexpair_to_int(c)) == -1) {
-        return MBEDTLS_ERR_X509_INVALID_NAME;
-    }
-    c += 2;
-    p = asn1_der_buf;
-    for (p = asn1_der_buf; c < end; c += 2) {
-        if ((c + 1 >= end) || (n = hexpair_to_int(c)) == -1) {
-            return MBEDTLS_ERR_X509_INVALID_NAME;
+    /* Beyond this point, der needs to be freed on exit. */
+    for (size_t i = 0; i < der_length; i++) {
+        int c = hexpair_to_int(s + 2 * i);
+        if (c < 0) {
+            goto error;
         }
-        if (MBEDTLS_ASN1_IS_STRING_TAG(*tag) && n == 0) {
-            return MBEDTLS_ERR_X509_INVALID_NAME;
+        der[i] = c;
+    }
+
+    /* Step 3: decode the DER. */
+    /* We've checked that der_length >= 1 above. */
+    *tag = der[0];
+    unsigned char *p = der + 1;
+    if (mbedtls_asn1_get_len(&p, der + der_length, data_len) != 0) {
+        goto error;
+    }
+    /* Now p points to the first byte of the payload inside der,
+     * and *data_len is the length of the payload. */
+
+    /* Step 4: payload validation */
+    if (*data_len > MBEDTLS_X509_MAX_DN_NAME_SIZE) {
+        goto error;
+    }
+    /* Strings must not contain null bytes. */
+    if (MBEDTLS_ASN1_IS_STRING_TAG(*tag)) {
+        for (size_t i = 0; i < *data_len; i++) {
+            if (p[i] == 0) {
+                goto error;
+            }
         }
-        *(p++) = n;
-    }
-    asn1_der_end = p;
-
-    p = asn1_der_buf;
-    if (mbedtls_asn1_get_len(&p, asn1_der_end, data_len) != 0) {
-        return MBEDTLS_ERR_X509_INVALID_NAME;
     }
 
-    while (p < asn1_der_end) {
-        *(d++) = *(p++);
+    /* Step 5: output the payload. */
+    if (*data_len > data_size) {
+        goto error;
     }
+    memcpy(data, p, *data_len);
+    mbedtls_free(der);
 
     return 0;
+
+error:
+    mbedtls_free(der);
+    return MBEDTLS_ERR_X509_INVALID_NAME;
 }
 
 int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *name)
@@ -273,11 +329,14 @@ int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *nam
                 mbedtls_free(oid.p);
                 return MBEDTLS_ERR_X509_INVALID_NAME;
             } else if (*s == '#') {
-                if ((parse_ret =
-                         parse_attribute_value_der_encoded(s, (int) (c - s), data, &data_len,
-                                                           &tag)) != 0) {
+                /* We know that c >= s (loop invariant) and c != s (in this
+                 * else branch), hence c - s - 1 >= 0. */
+                parse_ret = parse_attribute_value_hex_der_encoded(
+                    s + 1, c - s - 1,
+                    data, sizeof(data), &data_len, &tag);
+                if (parse_ret != 0) {
                     mbedtls_free(oid.p);
-                    return MBEDTLS_ERR_X509_INVALID_NAME;
+                    return parse_ret;
                 }
             } else {
                 if (numericoid) {

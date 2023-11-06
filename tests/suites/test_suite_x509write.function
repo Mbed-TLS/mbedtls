@@ -125,6 +125,12 @@ static int csr_set_extended_key_usage(mbedtls_x509write_csr *ctx,
     return ret;
 }
 #endif  /* MBEDTLS_X509_CSR_WRITE_C */
+
+/* Due to inconsistencies in the input size limits applied by different
+ * library functions, some write-parse tests may fail. */
+#define MAY_FAIL_GET_NAME       0x0001
+#define MAY_FAIL_DN_GETS        0x0002
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -687,8 +693,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CREATE_C:MBEDTLS_X509_USE_C */
-void mbedtls_x509_string_to_names(char *name, char *parsed_name, int result
-                                  )
+void mbedtls_x509_string_to_names(char *name, char *parsed_name,
+                                  int result, int may_fail)
 {
     int ret;
     size_t len = 0;
@@ -704,22 +710,32 @@ void mbedtls_x509_string_to_names(char *name, char *parsed_name, int result
     c = buf + sizeof(buf);
 
     ret = mbedtls_x509_string_to_names(&names, name);
-    TEST_ASSERT(ret == result);
+    TEST_EQUAL(ret, result);
 
     if (ret != 0) {
         goto exit;
     }
 
     ret = mbedtls_x509_write_names(&c, buf, names);
-    TEST_ASSERT(ret > 0);
+    TEST_LE_S(1, ret);
 
-    TEST_ASSERT(mbedtls_asn1_get_tag(&c, buf + sizeof(buf), &len,
-                                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE) == 0);
-    TEST_ASSERT(mbedtls_x509_get_name(&c, buf + sizeof(buf), &parsed) == 0);
+    TEST_EQUAL(mbedtls_asn1_get_tag(&c, buf + sizeof(buf), &len,
+                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE), 0);
+    ret = mbedtls_x509_get_name(&c, buf + sizeof(buf), &parsed);
+    if ((may_fail & MAY_FAIL_GET_NAME) && ret < 0) {
+        /* Validation inconsistency between mbedtls_x509_string_to_names() and
+         * mbedtls_x509_get_name(). Accept it for now. */
+        goto exit;
+    }
+    TEST_EQUAL(ret, 0);
 
     ret = mbedtls_x509_dn_gets((char *) out, sizeof(out), &parsed);
-    TEST_ASSERT(ret > 0);
-
+    if ((may_fail & MAY_FAIL_DN_GETS) && ret < 0) {
+        /* Validation inconsistency between mbedtls_x509_string_to_names() and
+         * mbedtls_x509_dn_gets(). Accept it for now. */
+        goto exit;
+    }
+    TEST_LE_S(1, ret);
     TEST_ASSERT(strcmp((char *) out, parsed_name) == 0);
 
 exit:

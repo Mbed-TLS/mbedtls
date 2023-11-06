@@ -1,6 +1,0 @@
-Features
-   * Support for "opaque" (PSA-held) ECC keys in the PK module has been
-     extended: it is now possible to use mbedtls_pk_write_key_der(),
-     mbedtls_pk_write_key_pem(), mbedtls_pk_check_pair(), and
-     mbedtls_pk_verify() with opaque ECC keys (provided the PSA attributes
-     allow it).

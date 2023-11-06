@@ -1,6 +1,0 @@
-Features
-   * New configuration option MBEDTLS_AES_USE_HARDWARE_ONLY introduced. When
-     using CPU-accelerated AES (e.g., Arm Crypto Extensions), this option
-     disables the plain C implementation and the run-time detection for the
-     CPU feature, which reduces code size and avoids the vulnerability of the
-     plain C implementation.

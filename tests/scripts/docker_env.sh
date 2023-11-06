@@ -36,13 +36,15 @@
 
 DOCKER_IMAGE_TAG="armmbed/mbedtls-test:${MBEDTLS_DOCKER_GUEST}"
 
-# Make sure docker is available
+# Check if Docker is installed
 if ! which docker > /dev/null; then
     echo "Docker is required but doesn't seem to be installed. See https://www.docker.com/ to get started"
-    exit 1
+    exit 1 # Exit the script with a non-zero status code to indicate an error
 fi
 
-# Figure out if we need to 'sudo docker'
+fi
+
+# Check if we require 'sudo docker'.
 if groups | grep docker > /dev/null; then
     DOCKER="docker"
 else
@@ -50,7 +52,7 @@ else
     DOCKER="sudo docker"
 fi
 
-# Figure out the number of processors available
+# Determine how many processors are currently available
 if [ "$(uname)" == "Darwin" ]; then
     NUM_PROC="$(sysctl -n hw.logicalcpu)"
 else

@@ -860,20 +860,6 @@
 //#define MBEDTLS_ECP_WITH_MPI_UINT
 
 /**
- * Uncomment to enable p256-m, which implements ECC key generation, ECDH,
- * and ECDSA for SECP256R1 curves. This driver is used as an example to
- * document how a third-party driver or software accelerator can be integrated
- * to work alongside Mbed TLS.
- *
- * \warning p256-m has only been included to serve as a sample implementation
- * of how a driver/accelerator can be integrated alongside Mbed TLS. It is not
- * intended for use in production. p256-m files in Mbed TLS are not updated
- * regularly, so they may not contain upstream fixes/improvements.
- * DO NOT ENABLE/USE THIS MACRO IN PRODUCTION BUILDS!
- */
-//#define MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED
-
-/**
  * \def MBEDTLS_ECDSA_DETERMINISTIC
  *
  * Enable deterministic ECDSA (RFC 6979).
@@ -1428,11 +1414,59 @@
  * NSPE (Non-Secure Process Environment) and an SPE (Secure Process
  * Environment).
  *
+ * If you enable this option, your build environment must include a header
+ * file `"crypto_spe.h"` (either in the `psa` subdirectory of the Mbed TLS
+ * header files, or in another directory on the compiler's include search
+ * path). Alternatively, your platform may customize the header
+ * `psa/crypto_platform.h`, in which case it can skip or replace the
+ * inclusion of `"crypto_spe.h"`.
+ *
  * Module:  library/psa_crypto.c
  * Requires: MBEDTLS_PSA_CRYPTO_C
  *
  */
 //#define MBEDTLS_PSA_CRYPTO_SPM
+
+/**
+ * Uncomment to enable p256-m. This is an alternative implementation of
+ * key generation, ECDH and (randomized) ECDSA on the curve SECP256R1.
+ * Compared to the default implementation:
+ *
+ * - p256-m has a much smaller code size and RAM footprint.
+ * - p256-m is only available via the PSA API. This includes the pk module
+ *   when #MBEDTLS_USE_PSA_CRYPTO is enabled.
+ * - p256-m does not support deterministic ECDSA, EC-JPAKE, custom protocols
+ *   over the core arithmetic, or deterministic derivation of keys.
+ *
+ * We recommend enabling this option if your application uses the PSA API
+ * and the only elliptic curve support it needs is ECDH and ECDSA over
+ * SECP256R1.
+ *
+ * If you enable this option, you do not need to enable any ECC-related
+ * MBEDTLS_xxx option. You do need to separately request support for the
+ * cryptographic mechanisms through the PSA API:
+ * - #MBEDTLS_PSA_CRYPTO_C and #MBEDTLS_PSA_CRYPTO_CONFIG for PSA-based
+ *   configuration;
+ * - #MBEDTLS_USE_PSA_CRYPTO if you want to use p256-m from PK, X.509 or TLS;
+ * - #PSA_WANT_ECC_SECP_R1_256;
+ * - #PSA_WANT_ALG_ECDH and/or #PSA_WANT_ALG_ECDSA as needed;
+ * - #PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY, #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC,
+ *   #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT,
+ *   #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT and/or
+ *   #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE as needed.
+ *
+ * \note To benefit from the smaller code size of p256-m, make sure that you
+ *       do not enable any ECC-related option not supported by p256-m: this
+ *       would cause the built-in ECC implementation to be built as well, in
+ *       order to provide the required option.
+ *       Make sure #PSA_WANT_ALG_DETERMINISTIC_ECDSA, #PSA_WANT_ALG_JPAKE and
+ *       #PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE, and curves other than
+ *       SECP256R1 are disabled as they are not supported by this driver.
+ *       Also, avoid defining #MBEDTLS_PK_PARSE_EC_COMPRESSED or
+ *       #MBEDTLS_PK_PARSE_EC_EXTENDED as those currently require a subset of
+ *       the built-in ECC implementation, see docs/driver-only-builds.md.
+ */
+//#define MBEDTLS_PSA_P256M_DRIVER_ENABLED
 
 /**
  * \def MBEDTLS_PSA_INJECT_ENTROPY
@@ -1675,6 +1709,8 @@
  * If you don't need renegotiation, it's probably better to disable it, since
  * it has been associated with security issues in the past and is easy to
  * misuse/misunderstand.
+ *
+ * Requires: MBEDTLS_SSL_PROTO_TLS1_2
  *
  * Comment this to disable support for renegotiation.
  *

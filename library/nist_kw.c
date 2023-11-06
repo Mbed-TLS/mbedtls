@@ -35,6 +35,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 #include "mbedtls/constant_time.h"
+#include "constant_time_internal.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -333,9 +334,9 @@ int mbedtls_nist_kw_unwrap(mbedtls_nist_kw_context *ctx,
                            unsigned char *output, size_t *out_len, size_t out_size)
 {
     int ret = 0;
-    size_t i, olen;
+    size_t olen;
     unsigned char A[KW_SEMIBLOCK_LENGTH];
-    unsigned char diff, bad_padding = 0;
+    int diff;
 
     *out_len = 0;
     if (out_size < in_len - KW_SEMIBLOCK_LENGTH) {
@@ -420,19 +421,15 @@ int mbedtls_nist_kw_unwrap(mbedtls_nist_kw_context *ctx,
          * larger than 8, because of the type wrap around.
          */
         padlen = in_len - KW_SEMIBLOCK_LENGTH - Plen;
-        if (padlen > 7) {
-            padlen &= 7;
-            ret = MBEDTLS_ERR_CIPHER_AUTH_FAILED;
-        }
+        ret = mbedtls_ct_error_if(mbedtls_ct_uint_gt(padlen, 7),
+                                  MBEDTLS_ERR_CIPHER_AUTH_FAILED, ret);
+        padlen &= 7;
 
         /* Check padding in "constant-time" */
-        for (diff = 0, i = 0; i < KW_SEMIBLOCK_LENGTH; i++) {
-            if (i >= KW_SEMIBLOCK_LENGTH - padlen) {
-                diff |= output[*out_len - KW_SEMIBLOCK_LENGTH + i];
-            } else {
-                bad_padding |= output[*out_len - KW_SEMIBLOCK_LENGTH + i];
-            }
-        }
+        const uint8_t zero[KW_SEMIBLOCK_LENGTH] = { 0 };
+        diff = mbedtls_ct_memcmp_partial(
+            &output[*out_len - KW_SEMIBLOCK_LENGTH], zero,
+            KW_SEMIBLOCK_LENGTH, KW_SEMIBLOCK_LENGTH - padlen, 0);
 
         if (diff != 0) {
             ret = MBEDTLS_ERR_CIPHER_AUTH_FAILED;
@@ -454,7 +451,6 @@ cleanup:
         *out_len = 0;
     }
 
-    mbedtls_platform_zeroize(&bad_padding, sizeof(bad_padding));
     mbedtls_platform_zeroize(&diff, sizeof(diff));
     mbedtls_platform_zeroize(A, sizeof(A));
 

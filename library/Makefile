@@ -39,6 +39,10 @@ APPLE_BUILD ?= 1
 endif
 endif
 
+ifdef WINDOWS_BUILD
+LOCAL_LDFLAGS += -lbcrypt
+endif
+
 # To compile as a shared library:
 ifdef SHARED
 # all code is position-indep with mingw, avoid warning about useless flag
@@ -47,9 +51,9 @@ LOCAL_CFLAGS += -fPIC -fpic
 endif
 endif
 
-SOEXT_TLS?=so.19
-SOEXT_X509?=so.5
-SOEXT_CRYPTO?=so.14
+SOEXT_TLS?=so.20
+SOEXT_X509?=so.6
+SOEXT_CRYPTO?=so.15
 
 # Set AR_DASH= (empty string) to use an ar implementation that does not accept
 # the - prefix for command line options (e.g. llvm-ar)
@@ -133,7 +137,7 @@ OBJS_CRYPTO= \
 	     psa_crypto_aead.o \
 	     psa_crypto_cipher.o \
 	     psa_crypto_client.o \
-	     psa_crypto_driver_wrappers.o \
+	     psa_crypto_driver_wrappers_no_static.o \
 	     psa_crypto_ecp.o \
 	     psa_crypto_ffdh.o \
 	     psa_crypto_hash.o \
@@ -168,7 +172,7 @@ OBJS_X509= \
 	   x509_crl.o \
 	   x509_crt.o \
 	   x509_csr.o \
-   	   x509write.o \
+	   x509write.o \
 	   x509write_crt.o \
 	   x509write_csr.o \
 	   pkcs7.o \
@@ -313,24 +317,33 @@ libmbedcrypto.dll: $(OBJS_CRYPTO)
 GENERATED_FILES = \
 	error.c version_features.c \
 	ssl_debug_helpers_generated.c \
-        psa_crypto_driver_wrappers.c
+	psa_crypto_driver_wrappers.h \
+	psa_crypto_driver_wrappers_no_static.c
 generated_files: $(GENERATED_FILES)
 
-error.c: ../scripts/generate_errors.pl
-error.c: ../scripts/data_files/error.fmt
-error.c: $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
+# See root Makefile
+GEN_FILES ?=
+ifdef GEN_FILES
+gen_file_dep =
+else
+gen_file_dep = |
+endif
+
+error.c: $(gen_file_dep) ../scripts/generate_errors.pl
+error.c: $(gen_file_dep) ../scripts/data_files/error.fmt
+error.c: $(gen_file_dep) $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
 error.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_errors.pl
 
-ssl_debug_helpers_generated.c: ../scripts/generate_ssl_debug_helpers.py
-ssl_debug_helpers_generated.c: $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
+ssl_debug_helpers_generated.c: $(gen_file_dep) ../scripts/generate_ssl_debug_helpers.py
+ssl_debug_helpers_generated.c: $(gen_file_dep) $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
 ssl_debug_helpers_generated.c:
 	echo "  Gen   $@"
 	$(PYTHON) ../scripts/generate_ssl_debug_helpers.py --mbedtls-root .. .
 
-version_features.c: ../scripts/generate_features.pl
-version_features.c: ../scripts/data_files/version_features.fmt
+version_features.c: $(gen_file_dep) ../scripts/generate_features.pl
+version_features.c: $(gen_file_dep) ../scripts/data_files/version_features.fmt
 ## The generated file only depends on the options that are present in mbedtls_config.h,
 ## not on which options are set. To avoid regenerating this file all the time
 ## when switching between configurations, don't declare mbedtls_config.h as a
@@ -341,11 +354,17 @@ version_features.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_features.pl
 
-psa_crypto_driver_wrappers.c: ../scripts/generate_driver_wrappers.py
-psa_crypto_driver_wrappers.c: ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.c.jinja
-psa_crypto_driver_wrappers.c:
-	echo "  Gen   $@"
+GENERATED_WRAPPER_FILES = \
+                    psa_crypto_driver_wrappers.h \
+                    psa_crypto_driver_wrappers_no_static.c
+$(GENERATED_WRAPPER_FILES): ../scripts/generate_driver_wrappers.py
+$(GENERATED_WRAPPER_FILES): ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.h.jinja
+$(GENERATED_WRAPPER_FILES): ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers_no_static.c.jinja
+$(GENERATED_WRAPPER_FILES):
+	echo "  Gen   $(GENERATED_WRAPPER_FILES)"
 	$(PYTHON) ../scripts/generate_driver_wrappers.py
+
+psa_crypto.o:psa_crypto_driver_wrappers.h
 
 clean:
 ifndef WINDOWS

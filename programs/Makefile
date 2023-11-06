@@ -45,7 +45,7 @@ endif
 ifdef WINDOWS_BUILD
 DLEXT=dll
 EXEXT=.exe
-LOCAL_LDFLAGS += -lws2_32
+LOCAL_LDFLAGS += -lws2_32 -lbcrypt
 ifdef SHARED
 SHARED_SUFFIX=.$(DLEXT)
 endif
@@ -176,22 +176,30 @@ ${MBEDTLS_TEST_OBJS}:
 GENERATED_FILES = psa/psa_constant_names_generated.c test/query_config.c
 generated_files: $(GENERATED_FILES)
 
-psa/psa_constant_names_generated.c: ../scripts/generate_psa_constants.py
-psa/psa_constant_names_generated.c: ../include/psa/crypto_values.h
-psa/psa_constant_names_generated.c: ../include/psa/crypto_extra.h
-psa/psa_constant_names_generated.c: ../tests/suites/test_suite_psa_crypto_metadata.data
+# See root Makefile
+GEN_FILES ?=
+ifdef GEN_FILES
+gen_file_dep =
+else
+gen_file_dep = |
+endif
+
+psa/psa_constant_names_generated.c: $(gen_file_dep) ../scripts/generate_psa_constants.py
+psa/psa_constant_names_generated.c: $(gen_file_dep) ../include/psa/crypto_values.h
+psa/psa_constant_names_generated.c: $(gen_file_dep) ../include/psa/crypto_extra.h
+psa/psa_constant_names_generated.c: $(gen_file_dep) ../tests/suites/test_suite_psa_crypto_metadata.data
 psa/psa_constant_names_generated.c:
 	echo "  Gen   $@"
 	$(PYTHON) ../scripts/generate_psa_constants.py
 
-test/query_config.c: ../scripts/generate_query_config.pl
+test/query_config.c: $(gen_file_dep) ../scripts/generate_query_config.pl
 ## The generated file only depends on the options that are present in mbedtls_config.h,
 ## not on which options are set. To avoid regenerating this file all the time
 ## when switching between configurations, don't declare mbedtls_config.h as a
 ## dependency. Remove this file from your working tree if you've just added or
 ## removed an option in mbedtls_config.h.
-#test/query_config.c: ../include/mbedtls/mbedtls_config.h
-test/query_config.c: ../scripts/data_files/query_config.fmt
+#test/query_config.c: $(gen_file_dep) ../include/mbedtls/mbedtls_config.h
+test/query_config.c: $(gen_file_dep) ../scripts/data_files/query_config.fmt
 test/query_config.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_query_config.pl

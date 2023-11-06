@@ -1516,7 +1516,13 @@ int mbedtls_ssl_tls13_read_public_xxdhe_share(mbedtls_ssl_context *ssl,
     /* Check if key size is consistent with given buffer length. */
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, peerkey_len);
 
-    /* Store peer's ECDH public key. */
+    /* Store peer's ECDH/FFDH public key. */
+    if (peerkey_len > sizeof(handshake->xxdh_psa_peerkey)) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("Invalid public key length: %u > %" MBEDTLS_PRINTF_SIZET,
+                                  (unsigned) peerkey_len,
+                                  sizeof(handshake->xxdh_psa_peerkey)));
+        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+    }
     memcpy(handshake->xxdh_psa_peerkey, p, peerkey_len);
     handshake->xxdh_psa_peerkey_len = peerkey_len;
 

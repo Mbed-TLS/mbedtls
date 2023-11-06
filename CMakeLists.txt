@@ -57,9 +57,12 @@ option(ENABLE_PROGRAMS "Build Mbed TLS programs." ON)
 option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)
 option(MBEDTLS_FATAL_WARNINGS "Compiler warnings treated as errors" ON)
 if(CMAKE_HOST_WIN32)
-    option(GEN_FILES "Generate the auto-generated files as needed" OFF)
+    # N.B. The comment on the next line is significant! If you change it,
+    # edit the sed command in prepare_release.sh that modifies
+    # CMakeLists.txt.
+    option(GEN_FILES "Generate the auto-generated files as needed" OFF) # off in development
 else()
-    option(GEN_FILES "Generate the auto-generated files as needed" ON)
+    option(GEN_FILES "Generate the auto-generated files as needed" OFF)
 endif()
 
 option(DISABLE_PACKAGE_CONFIG_AND_INSTALL "Disable package configuration, target export and installation" ${MBEDTLS_AS_SUBPROJECT})
@@ -374,7 +377,7 @@ if(NOT DISABLE_PACKAGE_CONFIG_AND_INSTALL)
     write_basic_package_version_file(
         "cmake/MbedTLSConfigVersion.cmake"
             COMPATIBILITY SameMajorVersion
-            VERSION 3.4.1)
+            VERSION 3.5.0)
 
     install(
         FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfig.cmake"

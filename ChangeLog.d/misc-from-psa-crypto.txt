@@ -1,3 +1,0 @@
-Bugfix
-   * Fix CCM* with no tag being not supported in a build with CCM as the only
-     symmetric encryption algorithm and the PSA configuration enabled.

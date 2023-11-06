@@ -128,48 +128,6 @@ enum mbedtls_cipher_base_index {
     MBEDTLS_CIPHER_BASE_PREVENT_EMPTY_ENUM
 };
 
-#if defined(MBEDTLS_CIPHER_C)
-#if defined(MBEDTLS_GCM_C)
-/* shared by all GCM ciphers */
-static void *gcm_ctx_alloc(void)
-{
-    void *ctx = mbedtls_calloc(1, sizeof(mbedtls_gcm_context));
-
-    if (ctx != NULL) {
-        mbedtls_gcm_init((mbedtls_gcm_context *) ctx);
-    }
-
-    return ctx;
-}
-
-static void gcm_ctx_free(void *ctx)
-{
-    mbedtls_gcm_free(ctx);
-    mbedtls_free(ctx);
-}
-#endif /* MBEDTLS_GCM_C */
-
-#if defined(MBEDTLS_CCM_C)
-/* shared by all CCM ciphers */
-static void *ccm_ctx_alloc(void)
-{
-    void *ctx = mbedtls_calloc(1, sizeof(mbedtls_ccm_context));
-
-    if (ctx != NULL) {
-        mbedtls_ccm_init((mbedtls_ccm_context *) ctx);
-    }
-
-    return ctx;
-}
-
-static void ccm_ctx_free(void *ctx)
-{
-    mbedtls_ccm_free(ctx);
-    mbedtls_free(ctx);
-}
-#endif /* MBEDTLS_CCM_C */
-#endif /* MBEDTLS_CIPHER_C */
-
 #if defined(MBEDTLS_AES_C)
 
 static int aes_crypt_ecb_wrap(void *ctx, mbedtls_operation_t operation,
@@ -581,6 +539,46 @@ static const mbedtls_cipher_info_t aes_256_xts_info = {
 #endif /* MBEDTLS_AES_C */
 
 #if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_GCM_C)
+/* shared by all GCM ciphers */
+static void *gcm_ctx_alloc(void)
+{
+    void *ctx = mbedtls_calloc(1, sizeof(mbedtls_gcm_context));
+
+    if (ctx != NULL) {
+        mbedtls_gcm_init((mbedtls_gcm_context *) ctx);
+    }
+
+    return ctx;
+}
+
+static void gcm_ctx_free(void *ctx)
+{
+    mbedtls_gcm_free(ctx);
+    mbedtls_free(ctx);
+}
+#endif /* MBEDTLS_GCM_C */
+
+#if defined(MBEDTLS_CCM_C)
+/* shared by all CCM ciphers */
+static void *ccm_ctx_alloc(void)
+{
+    void *ctx = mbedtls_calloc(1, sizeof(mbedtls_ccm_context));
+
+    if (ctx != NULL) {
+        mbedtls_ccm_init((mbedtls_ccm_context *) ctx);
+    }
+
+    return ctx;
+}
+
+static void ccm_ctx_free(void *ctx)
+{
+    mbedtls_ccm_free(ctx);
+    mbedtls_free(ctx);
+}
+#endif /* MBEDTLS_CCM_C */
+
 #if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_AES_C)
 static int gcm_aes_setkey_wrap(void *ctx, const unsigned char *key,
                                unsigned int key_bitlen)
@@ -1020,9 +1018,7 @@ static const mbedtls_cipher_info_t camellia_256_ctr_info = {
     MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA
 };
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
-#endif /* MBEDTLS_CIPHER_C */
 
-#if defined(MBEDTLS_CIPHER_C)
 #if defined(MBEDTLS_GCM_C)
 static int gcm_camellia_setkey_wrap(void *ctx, const unsigned char *key,
                                     unsigned int key_bitlen)
@@ -1438,9 +1434,7 @@ static const mbedtls_cipher_info_t aria_256_ctr_info = {
     MBEDTLS_CIPHER_BASE_INDEX_ARIA
 };
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
-#endif /* MBEDTLS_CIPHER_C */
 
-#if defined(MBEDTLS_CIPHER_C)
 #if defined(MBEDTLS_GCM_C)
 static int gcm_aria_setkey_wrap(void *ctx, const unsigned char *key,
                                 unsigned int key_bitlen)
@@ -1509,9 +1503,7 @@ static const mbedtls_cipher_info_t aria_256_gcm_info = {
     MBEDTLS_CIPHER_BASE_INDEX_GCM_ARIA
 };
 #endif /* MBEDTLS_GCM_C */
-#endif /* MBEDTLS_CIPHER_C */
 
-#if defined(MBEDTLS_CIPHER_C)
 #if defined(MBEDTLS_CCM_C)
 static int ccm_aria_setkey_wrap(void *ctx, const unsigned char *key,
                                 unsigned int key_bitlen)

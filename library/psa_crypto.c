@@ -3238,8 +3238,9 @@ psa_status_t psa_asymmetric_encrypt(mbedtls_svc_key_id_t key,
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    status = psa_get_and_lock_transparent_key_slot_with_policy(
-        key, &slot, PSA_KEY_USAGE_ENCRYPT, alg);
+    status = psa_get_and_lock_key_slot_with_policy(key, &slot,
+                                                   PSA_KEY_USAGE_ENCRYPT,
+                                                   alg);
     if (status != PSA_SUCCESS) {
         return status;
     }
@@ -3290,8 +3291,9 @@ psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    status = psa_get_and_lock_transparent_key_slot_with_policy(
-        key, &slot, PSA_KEY_USAGE_DECRYPT, alg);
+    status = psa_get_and_lock_key_slot_with_policy(key, &slot,
+                                                   PSA_KEY_USAGE_DECRYPT,
+                                                   alg);
     if (status != PSA_SUCCESS) {
         return status;
     }

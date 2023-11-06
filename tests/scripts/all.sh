@@ -3628,6 +3628,12 @@ component_test_psa_crypto_config_accel_aead () {
 # - component_test_psa_crypto_config_accel_cipher_aead
 # - component_test_psa_crypto_config_reference_cipher_aead
 common_psa_crypto_config_accel_cipher_aead() {
+    # Start from the full config
+    helper_libtestdriver1_adjust_config "full"
+
+    # For time being, we don't support SSL module.
+    scripts/config.py unset MBEDTLS_SSL_TLS_C
+
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
 }
@@ -3647,9 +3653,6 @@ component_test_psa_crypto_config_accel_cipher_aead () {
 
     # Configure
     # ---------
-
-    # Start from the crypto config (no X509 and TLS)
-    helper_libtestdriver1_adjust_config "crypto_full"
 
     common_psa_crypto_config_accel_cipher_aead
 
@@ -3695,8 +3698,6 @@ component_test_psa_crypto_config_accel_cipher_aead () {
 }
 
 component_test_psa_crypto_config_reference_cipher_aead () {
-    helper_libtestdriver1_adjust_config "crypto_full"
-
     common_psa_crypto_config_accel_cipher_aead
 
     msg "test: crypto config with non-accelerated cipher and AEAD"

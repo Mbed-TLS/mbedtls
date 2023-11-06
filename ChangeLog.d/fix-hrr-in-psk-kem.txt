@@ -1,5 +1,0 @@
-Bugfix
-   * In TLS 1.3, fix handshake failure when a client in its ClientHello
-     proposes an handshake based on PSK only key exchange mode or at least
-     one of the key exchange modes using ephemeral keys to a server that
-     supports only the PSK key exchange mode.

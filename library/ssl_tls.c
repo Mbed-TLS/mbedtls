@@ -1150,7 +1150,7 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
  * mbedtls_ssl_conf_curves returns void and so can't return
  * any error codes.
  */
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(MBEDTLS_ECP_C)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
     /* Heap allocate and translate curve_list from internal to IANA group ids */
     if (ssl->conf->curve_list != NULL) {
@@ -1185,7 +1185,7 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
         ssl->handshake->group_list_heap_allocated = 0;
     }
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -1207,7 +1207,7 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
             if (mbedtls_ssl_hash_from_md_alg(*md) == MBEDTLS_SSL_HASH_NONE) {
                 continue;
             }
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
             sig_algs_len += sizeof(uint16_t);
 #endif
 
@@ -1235,7 +1235,7 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
             if (hash == MBEDTLS_SSL_HASH_NONE) {
                 continue;
             }
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
             *p = ((hash << 8) | MBEDTLS_SSL_SIG_ECDSA);
             p++;
 #endif
@@ -2921,7 +2921,7 @@ void mbedtls_ssl_conf_sig_algs(mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(MBEDTLS_ECP_C)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /*
  * Set the allowed elliptic curves
@@ -2938,7 +2938,7 @@ void mbedtls_ssl_conf_curves(mbedtls_ssl_config *conf,
     conf->group_list = NULL;
 }
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* MBEDTLS_ECP_C */
 
 /*
  * Set the allowed groups
@@ -2946,7 +2946,7 @@ void mbedtls_ssl_conf_curves(mbedtls_ssl_config *conf,
 void mbedtls_ssl_conf_groups(mbedtls_ssl_config *conf,
                              const uint16_t *group_list)
 {
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     conf->curve_list = NULL;
 #endif
     conf->group_list = group_list;
@@ -4156,7 +4156,7 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_OR_ECDHE_ANY_ENABLED) || \
-    defined(MBEDTLS_PK_CAN_ECDSA_SOME) || \
+    defined(MBEDTLS_KEY_EXCHANGE_WITH_ECDSA_ANY_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     /* explicit void pointer cast for buggy MS compiler */
     mbedtls_free((void *) handshake->curves_tls_id);
@@ -4921,28 +4921,28 @@ void mbedtls_ssl_config_init(mbedtls_ssl_config *conf)
  * about this list.
  */
 static uint16_t ssl_preset_default_groups[] = {
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_CURVE25519)
     MBEDTLS_SSL_IANA_TLS_GROUP_X25519,
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP256R1)
     MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP384R1)
     MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
 #endif
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_CURVE448)
     MBEDTLS_SSL_IANA_TLS_GROUP_X448,
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP521R1)
     MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1,
 #endif
-#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_BP256R1)
     MBEDTLS_SSL_IANA_TLS_GROUP_BP256R1,
 #endif
-#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_BP384R1)
     MBEDTLS_SSL_IANA_TLS_GROUP_BP384R1,
 #endif
-#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_BP512R1)
     MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1,
 #endif
 #if defined(PSA_WANT_ALG_FFDH)
@@ -4973,26 +4973,26 @@ static const int ssl_preset_suiteb_ciphersuites[] = {
  */
 static uint16_t ssl_preset_default_sig_algs[] = {
 
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME) &&  \
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED) && \
     defined(MBEDTLS_MD_CAN_SHA256) && \
-    defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+    defined(PSA_WANT_ECC_SECP_R1_256)
     MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256,
-#endif /* MBEDTLS_PK_CAN_ECDSA_SOME && MBEDTLS_MD_CAN_SHA256 &&
-          MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+    // == MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA256)
+#endif
 
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME) && \
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED) && \
     defined(MBEDTLS_MD_CAN_SHA384) && \
-    defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+    defined(PSA_WANT_ECC_SECP_R1_384)
     MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384,
-#endif /* MBEDTLS_PK_CAN_ECDSA_SOME && MBEDTLS_MD_CAN_SHA384&&
-          MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+    // == MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA384)
+#endif
 
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME) && \
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED) && \
     defined(MBEDTLS_MD_CAN_SHA512) && \
-    defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+    defined(PSA_WANT_ECC_SECP_R1_521)
     MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512,
-#endif /* MBEDTLS_PK_CAN_ECDSA_SOME && MBEDTLS_MD_CAN_SHA384&&
-          MBEDTLS_ECP_DP_SECP521R1_ENABLED */
+    // == MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA512)
+#endif
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && \
     defined(MBEDTLS_MD_CAN_SHA512)
@@ -5031,7 +5031,7 @@ static uint16_t ssl_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 static uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_MD_CAN_SHA512)
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA512),
 #endif
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
@@ -5042,7 +5042,7 @@ static uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #endif
 #endif /* MBEDTLS_MD_CAN_SHA512*/
 #if defined(MBEDTLS_MD_CAN_SHA384)
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA384),
 #endif
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
@@ -5053,7 +5053,7 @@ static uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #endif
 #endif /* MBEDTLS_MD_CAN_SHA384*/
 #if defined(MBEDTLS_MD_CAN_SHA256)
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA256),
 #endif
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
@@ -5069,17 +5069,19 @@ static uint16_t ssl_tls12_preset_default_sig_algs[] = {
 /* NOTICE: see above */
 static uint16_t ssl_preset_suiteb_sig_algs[] = {
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_MD_CAN_SHA256) && \
-    defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED) && \
+    defined(MBEDTLS_MD_CAN_SHA256) && \
+    defined(MBEDTLS_ECP_HAVE_SECP256R1)
     MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256,
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_MD_CAN_SHA256&&
-          MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+    // == MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA256)
+#endif
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_MD_CAN_SHA384) && \
-    defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED) && \
+    defined(MBEDTLS_MD_CAN_SHA384) && \
+    defined(MBEDTLS_ECP_HAVE_SECP384R1)
     MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384,
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_MD_CAN_SHA384&&
-          MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+    // == MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA384)
+#endif
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && \
     defined(MBEDTLS_MD_CAN_SHA256)
@@ -5098,7 +5100,7 @@ static uint16_t ssl_preset_suiteb_sig_algs[] = {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 static uint16_t ssl_tls12_preset_suiteb_sig_algs[] = {
 #if defined(MBEDTLS_MD_CAN_SHA256)
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA256),
 #endif
 #if defined(MBEDTLS_RSA_C)
@@ -5106,7 +5108,7 @@ static uint16_t ssl_tls12_preset_suiteb_sig_algs[] = {
 #endif
 #endif /* MBEDTLS_MD_CAN_SHA256*/
 #if defined(MBEDTLS_MD_CAN_SHA384)
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA384),
 #endif
 #if defined(MBEDTLS_RSA_C)
@@ -5120,10 +5122,10 @@ static uint16_t ssl_tls12_preset_suiteb_sig_algs[] = {
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 static uint16_t ssl_preset_suiteb_groups[] = {
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP256R1)
     MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP384R1)
     MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
 #endif
     MBEDTLS_SSL_IANA_TLS_GROUP_NONE
@@ -5319,7 +5321,7 @@ int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
             conf->sig_algs = ssl_preset_suiteb_sig_algs;
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
             conf->curve_list = NULL;
 #endif
             conf->group_list = ssl_preset_suiteb_groups;
@@ -5345,7 +5347,7 @@ int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
             conf->sig_algs = ssl_preset_default_sig_algs;
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
             conf->curve_list = NULL;
 #endif
             conf->group_list = ssl_preset_default_groups;
@@ -5395,7 +5397,7 @@ void mbedtls_ssl_config_free(mbedtls_ssl_config *conf)
 }
 
 #if defined(MBEDTLS_PK_C) && \
-    (defined(MBEDTLS_RSA_C) || defined(MBEDTLS_PK_CAN_ECDSA_SOME))
+    (defined(MBEDTLS_RSA_C) || defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED))
 /*
  * Convert between MBEDTLS_PK_XXX and SSL_SIG_XXX
  */
@@ -5406,7 +5408,7 @@ unsigned char mbedtls_ssl_sig_from_pk(mbedtls_pk_context *pk)
         return MBEDTLS_SSL_SIG_RSA;
     }
 #endif
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED)
     if (mbedtls_pk_can_do(pk, MBEDTLS_PK_ECDSA)) {
         return MBEDTLS_SSL_SIG_ECDSA;
     }
@@ -5434,7 +5436,7 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig(unsigned char sig)
         case MBEDTLS_SSL_SIG_RSA:
             return MBEDTLS_PK_RSA;
 #endif
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED)
         case MBEDTLS_SSL_SIG_ECDSA:
             return MBEDTLS_PK_ECDSA;
 #endif
@@ -5442,7 +5444,8 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig(unsigned char sig)
             return MBEDTLS_PK_NONE;
     }
 }
-#endif /* MBEDTLS_PK_C && ( MBEDTLS_RSA_C || MBEDTLS_PK_CAN_ECDSA_SOME ) */
+#endif /* MBEDTLS_PK_C &&
+          ( MBEDTLS_RSA_C || MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED ) */
 
 /*
  * Convert from MBEDTLS_SSL_HASH_XXX to MBEDTLS_MD_XXX
@@ -5558,43 +5561,43 @@ static const struct {
     uint16_t bits;
 } tls_id_match_table[] =
 {
-#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_521)
+#if defined(MBEDTLS_ECP_HAVE_SECP521R1)
     { 25, MBEDTLS_ECP_DP_SECP521R1, PSA_ECC_FAMILY_SECP_R1, 521 },
 #endif
-#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
+#if defined(MBEDTLS_ECP_HAVE_BP512R1)
     { 28, MBEDTLS_ECP_DP_BP512R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 512 },
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_384)
+#if defined(MBEDTLS_ECP_HAVE_SECP384R1)
     { 24, MBEDTLS_ECP_DP_SECP384R1, PSA_ECC_FAMILY_SECP_R1, 384 },
 #endif
-#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
+#if defined(MBEDTLS_ECP_HAVE_BP384R1)
     { 27, MBEDTLS_ECP_DP_BP384R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 384 },
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_256)
+#if defined(MBEDTLS_ECP_HAVE_SECP256R1)
     { 23, MBEDTLS_ECP_DP_SECP256R1, PSA_ECC_FAMILY_SECP_R1, 256 },
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_256)
+#if defined(MBEDTLS_ECP_HAVE_SECP256K1)
     { 22, MBEDTLS_ECP_DP_SECP256K1, PSA_ECC_FAMILY_SECP_K1, 256 },
 #endif
-#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
+#if defined(MBEDTLS_ECP_HAVE_BP256R1)
     { 26, MBEDTLS_ECP_DP_BP256R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 256 },
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_224)
+#if defined(MBEDTLS_ECP_HAVE_SECP224R1)
     { 21, MBEDTLS_ECP_DP_SECP224R1, PSA_ECC_FAMILY_SECP_R1, 224 },
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_224)
+#if defined(MBEDTLS_ECP_HAVE_SECP224K1)
     { 20, MBEDTLS_ECP_DP_SECP224K1, PSA_ECC_FAMILY_SECP_K1, 224 },
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_192)
+#if defined(MBEDTLS_ECP_HAVE_SECP192R1)
     { 19, MBEDTLS_ECP_DP_SECP192R1, PSA_ECC_FAMILY_SECP_R1, 192 },
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_192)
+#if defined(MBEDTLS_ECP_HAVE_SECP192K1)
     { 18, MBEDTLS_ECP_DP_SECP192K1, PSA_ECC_FAMILY_SECP_K1, 192 },
 #endif
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || defined(PSA_WANT_ECC_MONTGOMERY_255)
+#if defined(MBEDTLS_ECP_HAVE_CURVE25519)
     { 29, MBEDTLS_ECP_DP_CURVE25519, PSA_ECC_FAMILY_MONTGOMERY, 255 },
 #endif
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) || defined(PSA_WANT_ECC_MONTGOMERY_448)
+#if defined(MBEDTLS_ECP_HAVE_CURVE448)
     { 30, MBEDTLS_ECP_DP_CURVE448, PSA_ECC_FAMILY_MONTGOMERY, 448 },
 #endif
     { 0, MBEDTLS_ECP_DP_NONE, 0, 0 },

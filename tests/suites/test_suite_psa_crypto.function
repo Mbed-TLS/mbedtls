@@ -10304,4 +10304,3 @@ void ecjpake_size_macros()
               PSA_PAKE_INPUT_MAX_SIZE);
 }
 /* END_CASE */
-

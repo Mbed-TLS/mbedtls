@@ -13,7 +13,9 @@ execute_process(
         "-H${MbedTLS_SOURCE_DIR}"
         "-B${MbedTLS_BINARY_DIR}"
         "-DENABLE_PROGRAMS=NO"
-        "-DENABLE_TESTING=NO")
+        "-DENABLE_TESTING=NO"
+        # Turn on generated files explicitly in case this is a release
+        "-DGEN_FILES=ON")
 
 execute_process(
     COMMAND "${CMAKE_COMMAND}"

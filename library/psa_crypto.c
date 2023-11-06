@@ -34,6 +34,7 @@
 #include "psa_crypto_core.h"
 #include "psa_crypto_invasive.h"
 #include "psa_crypto_driver_wrappers.h"
+#include "psa_crypto_driver_wrappers_no_static.h"
 #include "psa_crypto_ecp.h"
 #include "psa_crypto_ffdh.h"
 #include "psa_crypto_hash.h"
@@ -431,67 +432,67 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
                                           size_t *bits)
 {
     switch (grpid) {
-#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP192R1)
         case MBEDTLS_ECP_DP_SECP192R1:
             *bits = 192;
             return PSA_ECC_FAMILY_SECP_R1;
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP224R1)
         case MBEDTLS_ECP_DP_SECP224R1:
             *bits = 224;
             return PSA_ECC_FAMILY_SECP_R1;
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP256R1)
         case MBEDTLS_ECP_DP_SECP256R1:
             *bits = 256;
             return PSA_ECC_FAMILY_SECP_R1;
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP384R1)
         case MBEDTLS_ECP_DP_SECP384R1:
             *bits = 384;
             return PSA_ECC_FAMILY_SECP_R1;
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP521R1)
         case MBEDTLS_ECP_DP_SECP521R1:
             *bits = 521;
             return PSA_ECC_FAMILY_SECP_R1;
 #endif
-#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_BP256R1)
         case MBEDTLS_ECP_DP_BP256R1:
             *bits = 256;
             return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
 #endif
-#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_BP384R1)
         case MBEDTLS_ECP_DP_BP384R1:
             *bits = 384;
             return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
 #endif
-#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_BP512R1)
         case MBEDTLS_ECP_DP_BP512R1:
             *bits = 512;
             return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
 #endif
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_CURVE25519)
         case MBEDTLS_ECP_DP_CURVE25519:
             *bits = 255;
             return PSA_ECC_FAMILY_MONTGOMERY;
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP192K1)
         case MBEDTLS_ECP_DP_SECP192K1:
             *bits = 192;
             return PSA_ECC_FAMILY_SECP_K1;
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP224K1)
         case MBEDTLS_ECP_DP_SECP224K1:
             *bits = 224;
             return PSA_ECC_FAMILY_SECP_K1;
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_SECP256K1)
         case MBEDTLS_ECP_DP_SECP256K1:
             *bits = 256;
             return PSA_ECC_FAMILY_SECP_K1;
 #endif
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+#if defined(MBEDTLS_ECP_HAVE_CURVE448)
         case MBEDTLS_ECP_DP_CURVE448:
             *bits = 448;
             return PSA_ECC_FAMILY_MONTGOMERY;
@@ -6749,20 +6750,17 @@ static psa_status_t psa_pbkdf2_set_salt(psa_pbkdf2_key_derivation_t *pbkdf2,
                                         const uint8_t *data,
                                         size_t data_length)
 {
-    if (pbkdf2->state != PSA_PBKDF2_STATE_INPUT_COST_SET &&
-        pbkdf2->state != PSA_PBKDF2_STATE_SALT_SET) {
+    if (pbkdf2->state == PSA_PBKDF2_STATE_INPUT_COST_SET) {
+        pbkdf2->state = PSA_PBKDF2_STATE_SALT_SET;
+    } else if (pbkdf2->state == PSA_PBKDF2_STATE_SALT_SET) {
+        /* Appending to existing salt. No state change. */
+    } else {
         return PSA_ERROR_BAD_STATE;
     }
 
-    if (pbkdf2->state == PSA_PBKDF2_STATE_INPUT_COST_SET) {
-        pbkdf2->salt = mbedtls_calloc(1, data_length);
-        if (pbkdf2->salt == NULL) {
-            return PSA_ERROR_INSUFFICIENT_MEMORY;
-        }
-
-        memcpy(pbkdf2->salt, data, data_length);
-        pbkdf2->salt_length = data_length;
-    } else if (pbkdf2->state == PSA_PBKDF2_STATE_SALT_SET) {
+    if (data_length == 0) {
+        /* Appending an empty string, nothing to do. */
+    } else {
         uint8_t *next_salt;
 
         next_salt = mbedtls_calloc(1, data_length + pbkdf2->salt_length);
@@ -6770,15 +6768,14 @@ static psa_status_t psa_pbkdf2_set_salt(psa_pbkdf2_key_derivation_t *pbkdf2,
             return PSA_ERROR_INSUFFICIENT_MEMORY;
         }
 
-        memcpy(next_salt, pbkdf2->salt, pbkdf2->salt_length);
+        if (pbkdf2->salt_length != 0) {
+            memcpy(next_salt, pbkdf2->salt, pbkdf2->salt_length);
+        }
         memcpy(next_salt + pbkdf2->salt_length, data, data_length);
         pbkdf2->salt_length += data_length;
         mbedtls_free(pbkdf2->salt);
         pbkdf2->salt = next_salt;
     }
-
-    pbkdf2->state = PSA_PBKDF2_STATE_SALT_SET;
-
     return PSA_SUCCESS;
 }
 

@@ -1,4 +1,0 @@
-Features
-   * Add support to restrict AES to 128-bit keys in order to save code size.
-     A new configuration option, MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH, can be
-     used to enable this feature.

@@ -1,3 +1,0 @@
-Features
-   * Add a driver dispatch layer for FFDH keys, enabling alternative
-     implementations of FFDH through the driver entry points.

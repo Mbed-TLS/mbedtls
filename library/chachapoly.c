@@ -25,6 +25,7 @@
 #include "mbedtls/chachapoly.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+#include "mbedtls/constant_time.h"
 
 #include <string.h>
 
@@ -310,7 +311,6 @@ int mbedtls_chachapoly_auth_decrypt(mbedtls_chachapoly_context *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char check_tag[16];
-    size_t i;
     int diff;
 
     if ((ret = chachapoly_crypt_and_tag(ctx,
@@ -320,9 +320,7 @@ int mbedtls_chachapoly_auth_decrypt(mbedtls_chachapoly_context *ctx,
     }
 
     /* Check tag in "constant-time" */
-    for (diff = 0, i = 0; i < sizeof(check_tag); i++) {
-        diff |= tag[i] ^ check_tag[i];
-    }
+    diff = mbedtls_ct_memcmp(tag, check_tag, sizeof(check_tag));
 
     if (diff != 0) {
         mbedtls_platform_zeroize(output, length);

@@ -545,4 +545,31 @@ psa_status_t psa_crypto_copy_input(const uint8_t *input, size_t input_len,
 psa_status_t psa_crypto_copy_output(const uint8_t *output_copy, size_t output_copy_len,
                                     uint8_t *output, size_t output_len);
 
+typedef struct psa_crypto_input_copy_s {
+    uint8_t *buffer;
+    size_t len;
+} psa_crypto_input_copy_t;
+
+/** Allocate a local copy of an input buffer.
+ *
+ * \param[in] input             Pointer to input buffer.
+ * \param[in] input_len         Length of the input buffer.
+ * \param[out] input_copy       Pointer to a psa_crypto_input_copy_t struct to
+ *                              populate with the input copy.
+ * \return                      #PSA_SUCCESS, if the buffer was successfully
+ *                              copied.
+ * \return                      #PSA_ERROR_INSUFFICIENT_MEMORY, if a copy of
+ *                              the buffer cannot be allocated.
+ */
+psa_status_t psa_crypto_input_copy_alloc(const uint8_t *input, size_t input_len,
+                                         psa_crypto_input_copy_t *input_copy);
+
+/** Free a local copy of an input buffer.
+ *
+ * \param[in] input_copy        Pointer to a psa_crypto_input_copy_t struct
+ *                              populated by a previous call to
+ *                              psa_crypto_input_copy_alloc().
+ */
+void psa_crypto_input_copy_free(psa_crypto_input_copy_t *input_copy);
+
 #endif /* PSA_CRYPTO_CORE_H */

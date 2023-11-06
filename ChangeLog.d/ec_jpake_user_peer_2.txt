@@ -1,3 +1,0 @@
-Bugfix
-   * Fix the J-PAKE driver interface for user and peer to accept any values
-     (previously accepted values were limited to "client" or "server").

@@ -437,6 +437,17 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
         PSA_ASSERT(psa_key_derivation_input_bytes(operation,
                                                   PSA_KEY_DERIVATION_INPUT_LABEL,
                                                   input2, input2_length));
+    } else if (PSA_ALG_IS_PBKDF2(alg)) {
+        PSA_ASSERT(psa_key_derivation_input_integer(operation,
+                                                    PSA_KEY_DERIVATION_INPUT_COST,
+                                                    1U));
+        PSA_ASSERT(psa_key_derivation_input_bytes(operation,
+                                                  PSA_KEY_DERIVATION_INPUT_SALT,
+                                                  input2,
+                                                  input2_length));
+        PSA_ASSERT(psa_key_derivation_input_key(operation,
+                                                PSA_KEY_DERIVATION_INPUT_PASSWORD,
+                                                key));
     } else {
         TEST_FAIL("Key derivation algorithm not supported");
     }

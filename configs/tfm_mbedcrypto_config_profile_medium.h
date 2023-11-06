@@ -408,6 +408,39 @@
 #define MBEDTLS_HKDF_C /* Used for HUK deriviation */
 
 /**
+ * \def MBEDTLS_MD_C
+ *
+ * Enable the generic layer for message digest (hashing) and HMAC.
+ *
+ * Requires: one of: MBEDTLS_MD5_C, MBEDTLS_RIPEMD160_C, MBEDTLS_SHA1_C,
+ *                   MBEDTLS_SHA224_C, MBEDTLS_SHA256_C, MBEDTLS_SHA384_C,
+ *                   MBEDTLS_SHA512_C, or MBEDTLS_PSA_CRYPTO_C with at least
+ *                   one hash.
+ * Module:  library/md.c
+ * Caller:  library/constant_time.c
+ *          library/ecdsa.c
+ *          library/ecjpake.c
+ *          library/hkdf.c
+ *          library/hmac_drbg.c
+ *          library/pk.c
+ *          library/pkcs5.c
+ *          library/pkcs12.c
+ *          library/psa_crypto_ecp.c
+ *          library/psa_crypto_rsa.c
+ *          library/rsa.c
+ *          library/ssl_cookie.c
+ *          library/ssl_msg.c
+ *          library/ssl_tls.c
+ *          library/x509.c
+ *          library/x509_crt.c
+ *          library/x509write_crt.c
+ *          library/x509write_csr.c
+ *
+ * Uncomment to enable generic message digest wrappers.
+ */
+#define MBEDTLS_MD_C
+
+/**
  * \def MBEDTLS_MEMORY_BUFFER_ALLOC_C
  *
  * Enable the buffer allocator implementation that makes use of a (stack)
@@ -422,45 +455,6 @@
  * Enable this module to enable the buffer memory allocator.
  */
 #define MBEDTLS_MEMORY_BUFFER_ALLOC_C
-
-/**
- * \def MBEDTLS_PK_C
- *
- * Enable the generic public (asymetric) key layer.
- *
- * Module:  library/pk.c
- *
- * Requires: MBEDTLS_RSA_C or MBEDTLS_ECP_C
- *
- * Uncomment to enable generic public key wrappers.
- */
-#define MBEDTLS_PK_C
-
-/**
- * \def MBEDTLS_PK_PARSE_C
- *
- * Enable the generic public (asymetric) key parser.
- *
- * Module:  library/pkparse.c
- *
- * Requires: MBEDTLS_PK_C
- *
- * Uncomment to enable generic public key parse functions.
- */
-#define MBEDTLS_PK_PARSE_C
-
-/**
- * \def MBEDTLS_PK_WRITE_C
- *
- * Enable the generic public (asymetric) key writer.
- *
- * Module:  library/pkwrite.c
- *
- * Requires: MBEDTLS_PK_C
- *
- * Uncomment to enable generic public key write functions.
- */
-#define MBEDTLS_PK_WRITE_C
 
 /**
  * \def MBEDTLS_PLATFORM_C

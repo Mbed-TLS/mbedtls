@@ -119,6 +119,7 @@
  * The inputs \p input1 and \p input2 are, in order:
  * - HKDF: salt, info.
  * - TKS 1.2 PRF, TLS 1.2 PSK-to-MS: seed, label.
+ * - PBKDF2: input cost, salt.
  *
  * \param operation         The operation object to use.
  *                          It must be in the initialized state.

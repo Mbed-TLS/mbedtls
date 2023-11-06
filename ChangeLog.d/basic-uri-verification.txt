@@ -1,4 +1,0 @@
-Features
-   * X.509 hostname verification now partially supports URI Subject Alternate
-     Names. Only exact matching, without any normalization procedures
-     described in 7.4 of RFC5280, will result in a positive URI verification.

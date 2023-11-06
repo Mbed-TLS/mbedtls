@@ -5,6 +5,11 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/psa_util.h"
 #include "pk_internal.h"
+
+#if defined(MBEDTLS_PKCS12_C) || defined(MBEDTLS_PKCS5_C)
+#define HAVE_mbedtls_pk_parse_key_pkcs8_encrypted_der
+#endif
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -144,6 +149,24 @@ void pk_parse_key(data_t *buf, int result)
     TEST_ASSERT(mbedtls_pk_parse_key(&pk, buf->x, buf->len, NULL, 0,
                                      mbedtls_test_rnd_std_rand, NULL) == result);
 
+exit:
+    mbedtls_pk_free(&pk);
+    USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:HAVE_mbedtls_pk_parse_key_pkcs8_encrypted_der */
+void pk_parse_key_encrypted(data_t *buf, data_t *pass, int result)
+{
+    mbedtls_pk_context pk;
+
+    mbedtls_pk_init(&pk);
+    USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_pk_parse_key_pkcs8_encrypted_der(&pk, buf->x, buf->len,
+                                                        pass->x, pass->len,
+                                                        mbedtls_test_rnd_std_rand,
+                                                        NULL), result);
 exit:
     mbedtls_pk_free(&pk);
     USE_PSA_DONE();

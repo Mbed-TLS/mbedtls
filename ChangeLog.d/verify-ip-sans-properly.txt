@@ -1,2 +1,0 @@
-Features
-   * X.509 hostname verification now supports IPAddress Subject Alternate Names.

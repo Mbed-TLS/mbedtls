@@ -335,7 +335,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
         return 0;
     }
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_CIPHER_C)
     if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_GCM) {
         return mbedtls_gcm_update((mbedtls_gcm_context *) ctx->cipher_ctx,
                                   input, ilen,
@@ -343,7 +343,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
     }
 #endif
 
-#if defined(MBEDTLS_CCM_C)
+#if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_CIPHER_C)
     if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_CCM_STAR_NO_TAG) {
         return mbedtls_ccm_update((mbedtls_ccm_context *) ctx->cipher_ctx,
                                   input, ilen,
@@ -351,7 +351,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
     }
 #endif
 
-#if defined(MBEDTLS_CHACHAPOLY_C)
+#if defined(MBEDTLS_CHACHAPOLY_C) && defined(MBEDTLS_CIPHER_C)
     if (((mbedtls_cipher_type_t) ctx->cipher_info->type) == MBEDTLS_CIPHER_CHACHA20_POLY1305) {
         *olen = ilen;
         return mbedtls_chachapoly_update((mbedtls_chachapoly_context *) ctx->cipher_ctx,

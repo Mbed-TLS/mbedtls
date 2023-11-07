@@ -5584,4 +5584,11 @@ error:
     return status;
 }
 
+void psa_crypto_input_copy_free(psa_crypto_input_copy_t *input_copy)
+{
+    mbedtls_free(input_copy->buffer);
+    input_copy->buffer = NULL;
+    input_copy->len = 0;
+}
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

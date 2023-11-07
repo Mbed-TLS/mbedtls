@@ -2351,6 +2351,7 @@ requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_disabled MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT
 run_test    "TLS 1.3 opaque key: suitable algorithm found" \
             "$P_SRV debug_level=4 auth_mode=required key_opaque=1 key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
             "$P_CLI debug_level=4 key_opaque=1 key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
@@ -2380,6 +2381,7 @@ requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_disabled MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT
 run_test    "TLS 1.3 opaque key: 2 keys on server, suitable algorithm found" \
             "$P_SRV debug_level=4 auth_mode=required key_opaque=1 key_opaque_algs2=ecdsa-sign,none key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
             "$P_CLI debug_level=4 key_opaque=1 key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
@@ -11975,6 +11977,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_disabled MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, rsa_pss_rsae_sha256 - openssl" \
@@ -11993,6 +11996,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_disabled MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, rsa_pss_rsae_sha256 - gnutls" \
@@ -12010,6 +12014,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_disabled MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, rsa_pss_rsae_sha384 - openssl" \
@@ -12028,6 +12033,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_disabled MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, rsa_pss_rsae_sha384 - gnutls" \
@@ -12045,6 +12051,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_disabled MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, rsa_pss_rsae_sha512 - openssl" \
@@ -12063,6 +12070,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_disabled MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Client authentication - opaque key, rsa_pss_rsae_sha512 - gnutls" \

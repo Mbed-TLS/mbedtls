@@ -159,12 +159,10 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     /* We delete the temporary buffer */
     mbedtls_free(ticket_buffer);
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if (ret == 0 && session->tls_version != MBEDTLS_SSL_VERSION_TLS1_3) {
         MBEDTLS_SSL_DEBUG_MSG(3, ("ticket version invalid."));
         ret = MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
     }
-#endif
 
     if (ret != 0) {
         goto exit;

@@ -923,7 +923,9 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
             psa_set_key_enrollment_algorithm(&attributes, alg2);
         }
 #else
-        (void) alg2;
+        if (alg2 != PSA_ALG_NONE) {
+            return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+        }
 #endif
 
         /* import private key into PSA */
@@ -961,6 +963,10 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
 #if !defined(MBEDTLS_PSA_DISABLE_KEY_ENROLLMENT)
         if (alg2 != PSA_ALG_NONE) {
             psa_set_key_enrollment_algorithm(&attributes, alg2);
+        }
+#else
+        if (alg2 != PSA_ALG_NONE) {
+            return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
         }
 #endif
 

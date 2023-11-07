@@ -94,6 +94,10 @@ static int ssl_tls13_parse_key_exchange_modes_ext(mbedtls_ssl_context *ssl,
 #define SSL_TLS1_3_OFFERED_PSK_MATCH       0
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_check_psk_key_exchange(mbedtls_ssl_context *ssl);
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_check_psk_ephemeral_key_exchange(mbedtls_ssl_context *ssl);
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_offered_psks_check_identity_match_ticket(
@@ -105,6 +109,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *ticket_buffer;
+    unsigned int key_exchanges;
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t now;
     uint64_t age_in_s;
@@ -160,13 +165,19 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      * We regard the ticket with incompatible key exchange modes as not match.
      */
     ret = MBEDTLS_ERR_ERROR_GENERIC_ERROR;
-    MBEDTLS_SSL_PRINT_TICKET_FLAGS(4,
-                                   session->ticket_flags);
-    if (mbedtls_ssl_tls13_check_kex_modes(
-            ssl,
-            mbedtls_ssl_session_get_ticket_flags(
-                session,
-                MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL))) {
+    MBEDTLS_SSL_PRINT_TICKET_FLAGS(4, session->ticket_flags);
+
+    key_exchanges = 0;
+    if (mbedtls_ssl_session_ticket_allow_psk_ephemeral(session) &&
+        ssl_tls13_check_psk_ephemeral_key_exchange(ssl)) {
+        key_exchanges |= MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
+    }
+    if (mbedtls_ssl_session_ticket_allow_psk(session) &&
+        ssl_tls13_check_psk_key_exchange(ssl)) {
+        key_exchanges |= MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
+    }
+
+    if (key_exchanges == 0) {
         MBEDTLS_SSL_DEBUG_MSG(3, ("No suitable key exchange mode"));
         goto exit;
     }
@@ -979,6 +990,26 @@ static int ssl_tls13_client_hello_has_exts_for_psk_ephemeral_key_exchange(
 }
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED */
 
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_ticket_permission_check(mbedtls_ssl_context *ssl,
+                                             unsigned int kex_mode)
+{
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    if (ssl->handshake->resume) {
+        if (mbedtls_ssl_session_check_ticket_flags(
+                ssl->session_negotiate, kex_mode)) {
+            return 0;
+        }
+    }
+#else
+    ((void) ssl);
+    ((void) kex_mode);
+#endif
+    return 1;
+}
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED */
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_check_ephemeral_key_exchange(mbedtls_ssl_context *ssl)
 {
@@ -995,7 +1026,9 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_check_psk_key_exchange(mbedtls_ssl_context *ssl)
 {
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED)
-    return mbedtls_ssl_conf_tls13_psk_enabled(ssl) &&
+    return ssl_tls13_ticket_permission_check(
+        ssl, MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK) &&
+           mbedtls_ssl_conf_tls13_psk_enabled(ssl) &&
            mbedtls_ssl_tls13_psk_enabled(ssl) &&
            ssl_tls13_client_hello_has_exts_for_psk_key_exchange(ssl);
 #else
@@ -1008,7 +1041,9 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_check_psk_ephemeral_key_exchange(mbedtls_ssl_context *ssl)
 {
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED)
-    return mbedtls_ssl_conf_tls13_psk_ephemeral_enabled(ssl) &&
+    return ssl_tls13_ticket_permission_check(
+        ssl, MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL) &&
+           mbedtls_ssl_conf_tls13_psk_ephemeral_enabled(ssl) &&
            mbedtls_ssl_tls13_psk_ephemeral_enabled(ssl) &&
            ssl_tls13_client_hello_has_exts_for_psk_ephemeral_key_exchange(ssl);
 #else
@@ -1691,9 +1726,8 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
      * - The content up to but excluding the PSK extension, if present.
      */
     /* If we've settled on a PSK-based exchange, parse PSK identity ext */
-    if (mbedtls_ssl_tls13_some_psk_enabled(ssl) &&
-        mbedtls_ssl_conf_tls13_some_psk_enabled(ssl) &&
-        (handshake->received_extensions & MBEDTLS_SSL_EXT_MASK(PRE_SHARED_KEY))) {
+    if (ssl_tls13_check_psk_key_exchange(ssl) ||
+        ssl_tls13_check_psk_ephemeral_key_exchange(ssl)) {
         ret = handshake->update_checksum(ssl, buf,
                                          pre_shared_key_ext - buf);
         if (0 != ret) {

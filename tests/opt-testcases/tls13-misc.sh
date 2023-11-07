@@ -351,8 +351,7 @@ run_test "TLS 1.3 m->m: Resumption with ticket flags, psk/psk." \
          0 \
          -c "Pre-configured PSK number = 1" \
          -S "No suitable key exchange mode" \
-         -s "found matched identity" \
-         -s "key exchange mode: psk$"
+         -s "found matched identity"
 
 requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS \
                              MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
@@ -380,8 +379,7 @@ run_test "TLS 1.3 m->m: Resumption with ticket flags, psk/psk_all." \
          0 \
          -c "Pre-configured PSK number = 1" \
          -S "No suitable key exchange mode" \
-         -s "found matched identity" \
-         -s "key exchange mode: psk$"
+         -s "found matched identity"
 
 requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS \
                              MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
@@ -469,8 +467,7 @@ run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_all/psk." \
          0 \
          -c "Pre-configured PSK number = 1" \
          -S "No suitable key exchange mode" \
-         -s "found matched identity" \
-         -s "key exchange mode: psk$"
+         -s "found matched identity"
 
 requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS \
                              MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \

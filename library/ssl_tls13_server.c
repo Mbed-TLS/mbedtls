@@ -160,7 +160,8 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     mbedtls_free(ticket_buffer);
 
     if (ret == 0 && session->tls_version != MBEDTLS_SSL_VERSION_TLS1_3) {
-        MBEDTLS_SSL_DEBUG_MSG(3, ("ticket version invalid."));
+        MBEDTLS_SSL_DEBUG_MSG(3, ("Ticket TLS version is not 1.3."));
+        /* TODO: Define new return value for this case. */
         ret = MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
     }
 
@@ -1781,7 +1782,7 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
            via a NewSessionTicket message thus in the case of a session
            resumption. */
         MBEDTLS_SSL_DEBUG_MSG(
-            1, ("EarlyData: rejected, not resumption session."));
+            1, ("EarlyData: rejected, not a session resumption."));
         return;
     }
 
@@ -1796,26 +1797,27 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
      * - The selected ALPN [RFC7301] protocol, if any
      *
      * NOTE:
-     *  - ALPN hasn't been checked.
-     *  - TLS version is checked in
-     *    ssl_tls13_offered_psks_check_identity_match_ticket()
+     *  - The TLS version number is checked in
+     *    ssl_tls13_offered_psks_check_identity_match_ticket().
+     *  - ALPN is not checked for the time being (TODO).
      */
 
     if (handshake->selected_identity != 0) {
         MBEDTLS_SSL_DEBUG_MSG(
-            1, ("EarlyData: rejected, first psk key is not offered."));
+            1, ("EarlyData: rejected, the selected key in "
+                "`pre_shared_key` is not the first one."));
         return;
     }
 
     if (handshake->ciphersuite_info->id !=
         ssl->session_negotiate->ciphersuite) {
         MBEDTLS_SSL_DEBUG_MSG(
-            1, ("EarlyData: rejected, selected ciphersuite mismatch."));
+            1, ("EarlyData: rejected, the selected ciphersuite is not the one "
+                "of the selected pre-shared key."));
         return;
 
     }
 
-    /* TODO: Add more checks here. */
 
     ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
 

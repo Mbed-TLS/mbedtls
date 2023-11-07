@@ -513,7 +513,6 @@ run_test "TLS 1.3 G->m: EarlyData: feature is disabled, fail." \
          -s "Last error was: -29056 - SSL - Verification of the message MAC failed"
 
 requires_gnutls_next
-
 requires_all_configs_enabled MBEDTLS_SSL_EARLY_DATA MBEDTLS_SSL_SESSION_TICKETS \
                              MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \

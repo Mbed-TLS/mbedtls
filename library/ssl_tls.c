@@ -1777,7 +1777,7 @@ void mbedtls_ssl_conf_early_data(mbedtls_ssl_config *conf,
 }
 
 #if defined(MBEDTLS_SSL_SRV_C)
-void mbedtls_ssl_tls13_conf_max_early_data_size(
+void mbedtls_ssl_conf_max_early_data_size(
     mbedtls_ssl_config *conf, uint32_t max_early_data_size)
 {
     conf->max_early_data_size = max_early_data_size;
@@ -5249,8 +5249,7 @@ int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     mbedtls_ssl_conf_early_data(conf, MBEDTLS_SSL_EARLY_DATA_DISABLED);
 #if defined(MBEDTLS_SSL_SRV_C)
-    mbedtls_ssl_tls13_conf_max_early_data_size(
-        conf, MBEDTLS_SSL_MAX_EARLY_DATA_SIZE);
+    mbedtls_ssl_conf_max_early_data_size(conf, MBEDTLS_SSL_MAX_EARLY_DATA_SIZE);
 #endif
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 

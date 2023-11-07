@@ -109,3 +109,24 @@ exit:
     mbedtls_free(input);
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void input_copy_free(int input_len)
+{
+    psa_crypto_input_copy_t input_copy;
+
+    input_copy.buffer = NULL;
+    input_copy.len = input_len;
+    TEST_CALLOC(input_copy.buffer, input_copy.len);
+
+    psa_crypto_input_copy_free(&input_copy);
+
+    TEST_ASSERT(input_copy.buffer == NULL);
+    TEST_EQUAL(input_copy.len, 0);
+
+exit:
+    mbedtls_free(input_copy.buffer);
+    input_copy.buffer = NULL;
+    input_copy.len = 0;
+}
+/* END_CASE */

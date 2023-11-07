@@ -152,6 +152,12 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     /* We delete the temporary buffer */
     mbedtls_free(ticket_buffer);
 
+    if (ret == 0 && session->tls_version != MBEDTLS_SSL_VERSION_TLS1_3) {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("Ticket TLS version is not 1.3."));
+        /* TODO: Define new return value for this case. */
+        ret = MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
+    }
+
     if (ret != 0) {
         goto exit;
     }
@@ -1784,8 +1790,58 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
         return;
     }
 
-    /* We do not accept early data for the time being */
     ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED;
+
+    if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_DISABLED) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1,
+            ("EarlyData: rejected, feature disabled in server configuration."));
+        return;
+    }
+
+    if (!handshake->resume) {
+        /* We currently support early data only in the case of PSKs established
+           via a NewSessionTicket message thus in the case of a session
+           resumption. */
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("EarlyData: rejected, not a session resumption."));
+        return;
+    }
+
+    /* RFC 8446 4.2.10
+     *
+     * In order to accept early data, the server MUST have accepted a PSK cipher
+     * suite and selected the first key offered in the client's "pre_shared_key"
+     * extension. In addition, it MUST verify that the following values are the
+     * same as those associated with the selected PSK:
+     * - The TLS version number
+     * - The selected cipher suite
+     * - The selected ALPN [RFC7301] protocol, if any
+     *
+     * NOTE:
+     *  - The TLS version number is checked in
+     *    ssl_tls13_offered_psks_check_identity_match_ticket().
+     *  - ALPN is not checked for the time being (TODO).
+     */
+
+    if (handshake->selected_identity != 0) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("EarlyData: rejected, the selected key in "
+                "`pre_shared_key` is not the first one."));
+        return;
+    }
+
+    if (handshake->ciphersuite_info->id !=
+        ssl->session_negotiate->ciphersuite) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("EarlyData: rejected, the selected ciphersuite is not the one "
+                "of the selected pre-shared key."));
+        return;
+
+    }
+
+
+    ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
 
 }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
@@ -2445,6 +2501,16 @@ static int ssl_tls13_write_encrypted_extensions_body(mbedtls_ssl_context *ssl,
     }
     p += output_len;
 #endif /* MBEDTLS_SSL_ALPN */
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
+        ret = mbedtls_ssl_tls13_write_early_data_ext(ssl, p, end, &output_len);
+        if (ret != 0) {
+            return ret;
+        }
+        p += output_len;
+    }
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
     extensions_len = (p - p_extensions_len) - 2;
     MBEDTLS_PUT_UINT16_BE(extensions_len, p_extensions_len, 0);

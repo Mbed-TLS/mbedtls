@@ -1892,36 +1892,6 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
             ret = MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
             goto cleanup;
     }
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (handshake->received_extensions & MBEDTLS_SSL_EXT_MASK(EARLY_DATA) &&
-        (handshake->selected_identity != 0 ||
-         handshake->ciphersuite_info->id !=
-         ssl->session_negotiate->ciphersuite)) {
-        /* RFC8446 4.2.11
-         * If the server supplies an "early_data" extension, the
-         * client MUST verify that the server's selected_identity
-         * is 0. If any other value is returned, the client MUST
-         * abort the handshake with an "illegal_parameter" alert.
-         *
-         * RFC 8446 4.2.10
-         * In order to accept early data, the server MUST have accepted a PSK
-         * cipher suite and selected the first key offered in the client's
-         * "pre_shared_key" extension. In addition, it MUST verify that the
-         * following values are the same as those associated with the
-         * selected PSK:
-         * - The TLS version number
-         * - The selected cipher suite
-         * - The selected ALPN [RFC7301] protocol, if any
-         *
-         * We check here that when early data is involved the server
-         * selected the cipher suite associated to the pre-shared key
-         * as it must have.
-         */
-        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                                     MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
-        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
-    }
-#endif
 
     if (!mbedtls_ssl_conf_tls13_check_kex_modes(
             ssl, handshake->key_exchange_mode)) {
@@ -2197,6 +2167,9 @@ static int ssl_tls13_process_encrypted_extensions(mbedtls_ssl_context *ssl)
     int ret;
     unsigned char *buf;
     size_t buf_len;
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+#endif
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> parse encrypted extensions"));
 
@@ -2209,8 +2182,37 @@ static int ssl_tls13_process_encrypted_extensions(mbedtls_ssl_context *ssl)
         ssl_tls13_parse_encrypted_extensions(ssl, buf, buf + buf_len));
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (ssl->handshake->received_extensions &
-        MBEDTLS_SSL_EXT_MASK(EARLY_DATA)) {
+    if (handshake->received_extensions & MBEDTLS_SSL_EXT_MASK(EARLY_DATA)) {
+        /* RFC8446 4.2.11
+         * If the server supplies an "early_data" extension, the
+         * client MUST verify that the server's selected_identity
+         * is 0. If any other value is returned, the client MUST
+         * abort the handshake with an "illegal_parameter" alert.
+         *
+         * RFC 8446 4.2.10
+         * In order to accept early data, the server MUST have accepted a PSK
+         * cipher suite and selected the first key offered in the client's
+         * "pre_shared_key" extension. In addition, it MUST verify that the
+         * following values are the same as those associated with the
+         * selected PSK:
+         * - The TLS version number
+         * - The selected cipher suite
+         * - The selected ALPN [RFC7301] protocol, if any
+         *
+         * We check here that when early data is involved the server
+         * selected the cipher suite associated to the pre-shared key
+         * as it must have.
+         */
+        if (handshake->selected_identity != 0 ||
+            handshake->ciphersuite_info->id !=
+            ssl->session_negotiate->ciphersuite) {
+
+            MBEDTLS_SSL_PEND_FATAL_ALERT(
+                MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+            return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+        }
+
         ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
     }
 #endif

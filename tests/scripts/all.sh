@@ -3631,9 +3631,6 @@ common_psa_crypto_config_accel_cipher_aead() {
     # Start from the full config
     helper_libtestdriver1_adjust_config "full"
 
-    # For time being, we don't support SSL module.
-    scripts/config.py unset MBEDTLS_SSL_TLS_C
-
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
 }

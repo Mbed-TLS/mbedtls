@@ -705,11 +705,6 @@ static int ssl_write_client_hello_body(mbedtls_ssl_context *ssl,
                               p_extensions_len, extensions_len);
     }
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    MBEDTLS_SSL_PRINT_EXTS(
-        3, MBEDTLS_SSL_HS_CLIENT_HELLO, handshake->sent_extensions);
-#endif
-
     *out_len = p - buf;
     return 0;
 }
@@ -1020,6 +1015,11 @@ int mbedtls_ssl_write_client_hello(mbedtls_ssl_context *ssl)
         }
 #endif
     }
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    MBEDTLS_SSL_PRINT_EXTS(
+        3, MBEDTLS_SSL_HS_CLIENT_HELLO, ssl->handshake->sent_extensions);
+#endif
 
 cleanup:
 

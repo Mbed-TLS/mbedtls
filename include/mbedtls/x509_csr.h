@@ -87,7 +87,9 @@ mbedtls_x509write_csr;
 /**
  * \brief          Load a Certificate Signing Request (CSR) in DER format
  *
- * \note           CSR attributes (if any) are currently silently ignored.
+ * \note           Any unsupported requested extensions are silently
+ *                 ignored, unless the critical flag is set, in which case
+ *                 the CSR is rejected.
  *
  * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
  *                 subsystem must have been initialized by calling
@@ -140,7 +142,10 @@ typedef int (*mbedtls_x509_csr_ext_cb_t)(void *p_ctx,
 /**
  * \brief          Load a Certificate Signing Request (CSR) in DER format
  *
- * \note           CSR attributes (if any) are currently silently ignored.
+ * \note           Any unsupported requested extensions are silently
+ *                 ignored, unless the critical flag is set, in which case
+ *                 the result of the callback function decides whether
+ *                 CSR is rejected.
  *
  * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
  *                 subsystem must have been initialized by calling

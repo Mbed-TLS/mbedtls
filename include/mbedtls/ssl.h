@@ -2000,8 +2000,8 @@ void mbedtls_ssl_conf_authmode(mbedtls_ssl_config *conf, int authmode);
  * \warning This interface is experimental and may change without notice.
  *
  */
-void mbedtls_ssl_tls13_conf_early_data(mbedtls_ssl_config *conf,
-                                       int early_data_enabled);
+void mbedtls_ssl_conf_early_data(mbedtls_ssl_config *conf,
+                                 int early_data_enabled);
 
 #if defined(MBEDTLS_SSL_SRV_C)
 /**

@@ -329,6 +329,10 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
         MBEDTLS_MODE_KWP == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
         return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     }
+    if (MBEDTLS_MODE_ECB == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) &&
+        MBEDTLS_DECRYPT == operation) {
+        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    }
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)

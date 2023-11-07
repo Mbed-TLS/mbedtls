@@ -1632,6 +1632,57 @@ component_test_full_no_cipher_with_crypto_config() {
     common_test_full_no_cipher_with_psa_crypto 1 "full no CIPHER"
 }
 
+component_test_full_no_ccm() {
+    msg "build: full no PSA_WANT_ALG_CCM"
+
+    # Full config enables:
+    # - USE_PSA_CRYPTO so that TLS code dispatches cipher/AEAD to PSA
+    # - CRYPTO_CONFIG so that PSA_WANT config symbols are evaluated
+    scripts/config.py full
+
+    # Disable PSA_WANT_ALG_CCM so that CCM is not supported in PSA. CCM_C is still
+    # enabled, but not used from TLS since USE_PSA is set.
+    # This is helpful to ensure that TLS tests below have proper dependencies.
+    #
+    # Note: also PSA_WANT_ALG_CCM_STAR_NO_TAG is enabled, but it does not cause
+    # PSA_WANT_ALG_CCM to be re-enabled.
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM
+
+    make tests
+
+    msg "test: full no PSA_WANT_ALG_CCM"
+    ( cd tests; ./test_suite_ssl )
+}
+
+component_test_full_no_ccm_star_no_tag() {
+    msg "build: full no PSA_WANT_ALG_CCM_STAR_NO_TAG"
+
+    # Full config enables CRYPTO_CONFIG so that PSA_WANT config symbols are evaluated
+    scripts/config.py full
+
+    # Disable CCM_STAR_NO_TAG, which is the target of this test, as well as all
+    # other components that enable MBEDTLS_PSA_BUILTIN_CIPHER internal symbol.
+    # This basically disables all unauthenticated ciphers on the PSA side, while
+    # keeping AEADs enabled.
+    #
+    # Note: PSA_WANT_ALG_CCM is enabled, but it does not cause
+    # PSA_WANT_ALG_CCM_STAR_NO_TAG to be re-enabled.
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CTR
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CFB
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_OFB
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
+
+    make tests
+
+    # Ensure MBEDTLS_PSA_BUILTIN_CIPHER was not enabled
+    msg "verify: full no PSA_WANT_ALG_CCM_STAR_NO_TAG"
+    not grep mbedtls_psa_cipher library/psa_crypto_cipher.o
+}
+
 component_test_full_no_bignum () {
     msg "build: full minus bignum"
     scripts/config.py full

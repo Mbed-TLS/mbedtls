@@ -73,7 +73,7 @@ void mbedtls_test_init_handshake_options(
     opts->renegotiate = 0;
     opts->legacy_renegotiation = MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION;
     opts->srv_log_obj = NULL;
-    opts->srv_log_obj = NULL;
+    opts->cli_log_obj = NULL;
     opts->srv_log_fun = NULL;
     opts->cli_log_fun = NULL;
     opts->resize_buffers = 1;

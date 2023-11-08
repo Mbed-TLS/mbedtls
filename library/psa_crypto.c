@@ -8510,4 +8510,28 @@ void psa_crypto_input_copy_free(psa_crypto_input_copy_t *input_copy)
     input_copy->len = 0;
 }
 
+psa_status_t psa_crypto_output_copy_alloc(uint8_t *output, size_t output_len,
+                                          psa_crypto_output_copy_t *output_copy)
+{
+    output_copy->original = NULL;
+    output_copy->buffer = NULL;
+    output_copy->len = 0;
+
+    /* Treat NULL and zero-length input the same.
+     * This is simpler than potentially calling calloc(0). */
+    if (output == NULL || output_len == 0) {
+        return PSA_SUCCESS;
+    }
+    output_copy->buffer = mbedtls_calloc(output_len, 1);
+    if (output_copy->buffer == NULL) {
+        /* Since we dealt with the zero-length case above, we know that
+         * a NULL return value means a failure of allocation. */
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+    }
+    output_copy->len = output_len;
+    output_copy->original = output;
+
+    return PSA_SUCCESS;
+}
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

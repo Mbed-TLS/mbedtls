@@ -1070,7 +1070,6 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
         return MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE;
 #endif
     }
-    return mbedtls_internal_aes_encrypt(ctx, input, output);
 #endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 }
 

@@ -99,7 +99,7 @@ Example: the PSA Firmware Framework 1.0 forbids shared memory between partitions
 
 #### Careful accesses
 
-The following rules guarantee that shared memory cannot result in a security violation other than [write-read feedback](#write-read feedback):
+The following rules guarantee that shared memory cannot result in a security violation other than [write-read feedback](#write-read-feedback):
 
 * Never read the same input twice at the same index.
 * Never read back from an output.
@@ -228,15 +228,65 @@ This section explains how Mbed TLS implements the shared memory protection strat
 
 * The built-in implementations of cryptographic mechanisms with arguments whose access needs to be protected shall protect those arguments.
 
-Justification: see “[Susceptibility of different mechanisms](susceptibility-of-different-mechanisms)”.
+Justification: see “[Susceptibility of different mechanisms](#susceptibility-of-different-mechanisms)”.
 
 ### Implementation of copying
 
-Copy what needs copying. This seems straightforward.
+Copy what needs copying. This is broadly straightforward, however there are a few things to consider.
+
+#### Compiler optimization of copies
+
+It is unclear whether the compiler will attempt to optimize away copying operations.
+
+Once the copying code is implemented, it should be evaluated to see whether compiler optimization is a problem. Specifically, for the major compilers supported by Mbed TLS:
+* Write a small program that uses a PSA function which copies inputs or outputs.
+* Build the program with link-time optimization / full-program optimization enabled (e.g. `-flto` with `gcc`). Try also enabling the most extreme optimization options such as `-Ofast` (`gcc`) and `-Oz` (`clang`).
+* Inspect the generated code with `objdump` or a similar tool to see if copying operations are preserved.
+
+If copying behaviour is preserved by all major compilers then assume that compiler optimization is not a problem.
+
+If copying behaviour is optimized away by the compiler, further investigation is needed. Experiment with using the `volatile` keyword to force the compiler not to optimize accesses to the copied buffers. If the `volatile` keyword is not sufficient, we may be able to use compiler or target-specific techniques to prevent optimization, for example memory barriers or empty `asm` blocks. These may be implemented and verified for important platforms while retaining a C implementation that is likely to be correct on most platforms as a fallback - the same approach taken by the constant-time module.
+
+**Open questions: Will the compiler optimize away copies? If so, can it be prevented from doing so in a portable way?**
+
+#### Copying code
+
+We may either copy buffers on an ad-hoc basis using `memcpy()` in each PSA function, or use a unified set of functions for copying input and output data. The advantages of the latter are obvious:
+
+* Any test hooks need only be added in one place.
+* Copying code must only be reviewed for correctness in one place, rather than in all functions where it occurs.
+* Copy bypass is simpler as we can just replace these functions with no-ops in a single place.
+* Any complexity needed to prevent the compiler optimizing copies away does not have to be duplicated.
+
+On the other hand, the only advantage of ad-hoc copying is slightly greater flexibility.
+
+**Design decision: Create a unified set of functions for copying input and output data.**
+
+#### Copying in multipart APIs
+
+Multipart APIs may follow one of 2 possible approaches for copying of input:
+
+##### 1. Allocate a buffer and copy input on each call to `update()`
+
+This is simple and mirrors the approach for one-shot APIs nicely. However, allocating memory in the middle of a multi-part operation is likely to be bad for performance. Multipart APIs are designed in part for systems that do not have time to perform an operation at once, so introducing poor performance may be a problem here.
+
+**Open question: Does memory allocation in `update()` cause a performance problem? If so, to what extent?**
+
+##### 2. Allocate a buffer at the start of the operation and subdivide calls to `update()`
+
+In this approach, input and output buffers are allocated at the start of the operation that are large enough to hold the expected average call to `update()`. When `update()` is called with larger buffers than these, the PSA API layer makes multiple calls to the driver, chopping the input into chunks of the temporary buffer size and filling the output from the results until the operation is finished.
+
+This would be more complicated than approach (1) and introduces some extra issues. For example, if one of the intermediate calls to the driver's `update()` returns an error, it is not possible for the driver's state to be rolled back to before the first call to `update()`. It is unclear how this could be solved.
+
+However, this approach would reduce memory usage in some cases and prevent memory allocation during an operation. Additionally, since the input and output buffers would be fixed-size it would be possible to allocate them statically, avoiding the need for any dynamic memory allocation at all.
+
+**Design decision: Initially use approach (1) and treat approach (2) as an optimization to be done if necessary.**
 
 ### Validation of copying
 
-TODO: how to we validate that we didn't forget to copy?
+#### Validation of copying by review
+
+This is fairly self-explanatory. Review all functions that use shared memory and ensure that they each copy memory. This is the simplest strategy to implement but is less reliable than automated validation.
 
 #### Validation of copying with memory pools
 
@@ -248,7 +298,7 @@ Proposed general idea: in test code, “poison” the memory area used by input 
 
 In the library, the code that does the copying temporarily unpoisons the memory by calling a test hook.
 
-```
+```c
 static void copy_to_user(void *copy_buffer, void *const input_buffer, size_t length) {
 #if defined(MBEDTLS_TEST_HOOKS)
     if (mbedtls_psa_core_poison_memory != NULL) {
@@ -263,20 +313,94 @@ static void copy_to_user(void *copy_buffer, void *const input_buffer, size_t len
 #endif
 }
 ```
-
 The reason to poison the memory before calling the library, rather than after the copy-in (and symmetrically for output buffers) is so that the test will fail if we forget to copy, or we copy the wrong thing. This would not be the case if we relied on the library's copy function to do the poisoning: that would only validate that the driver code does not access the memory on the condition that the copy is done as expected.
+
+##### Options for implementing poisoning
+
+There are several different ways that poisoning could be implemented:
+
+1. Using Valgrind's memcheck tool. Valgrind provides a macro `VALGRIND_MAKE_MEM_NO_ACCESS` that allows manual memory poisoning. Valgrind memory poisoning is already used for constant-flow testing in Mbed TLS.
+2. Using Memory Sanitizer (MSan), which allows us to mark memory as uninitialized. This is also used for constant-flow testing. It is suitable for input buffers only, since it allows us to detect when a poisoned buffer is read but not when it is written.
+3. Using Address Sanitizer (ASan). This provides `ASAN_POISON_MEMORY_REGION` which marks memory as inaccessible.
+4. Allocating buffers separate pages and calling `mprotect()` to set pages as inaccessible. This has the disadvantage that we will have to manually ensure that buffers sit in their own pages, which likely means making a copy.
+5. Filling buffers with random data, keeping a copy of the original. For input buffers, keep a copy of the original and copy it back once the PSA function returns. For output buffers, fill them with random data and keep a separate copy of it. In the memory poisoning hooks, compare the copy of random data with the original to ensure that the output buffer has not been written directly.
+
+Approach (2) is insufficient for the full testing we require as we need to be able to check both input and output buffers.
+
+Approach (5) is simple and requires no extra tooling. It is likely to have good performance as it does not use any sanitizers. However, it requires the memory poisoning test hooks to maintain extra copies of the buffers, which seems difficult to implement in practice. Additionally, it does not precisely test the property we want to validate, so we are relying on the tests to fail if given random data as input. It is possible (if unlikely) that the PSA function will access the poisoned buffer without causing the test to fail. This becomes more likely when we consider test cases that call PSA functions on incorrect inputs to check that the correct error is returned. For these reasons, this memory poisoning approach seems unsuitable.
+
+All three remaining approaches are suitable for our purposes. However, approach (4) is more complex than the other two. To implement it, we would need to allocate poisoned buffers in separate memory pages. They would require special handling and test code would likely have to be designed around this special handling.
+
+Meanwhile, approaches (1) and (3) are much more convenient. We are simply required to call a special macro on some buffer that was allocated by us and the sanitizer takes care of everything else. Of these two, ASan appears to have a limitation related to buffer alignment. From code comments quoted in [the documentation](https://github.com/google/sanitizers/wiki/AddressSanitizerManualPoisoning):
+
+> This function is not guaranteed to poison the whole region - it may poison only subregion of [addr, addr+size) due to ASan alignment restrictions.
+
+Specifically, ASan will round the buffer size down to 8 bytes before poisoning due to details of its implementation. For more information on this, see [Microsoft documentation of this feature](https://learn.microsoft.com/en-us/cpp/sanitizers/asan-runtime?view=msvc-170#alignment-requirements-for-addresssanitizer-poisoning).
+
+It should be possible to work around this by manually rounding buffer lengths up to the nearest multiple of 8 in the poisoning function, although it's remotely possible that this will cause other problems. Valgrind does not appear to have this limitation (unless Valgrind is simply more poorly documented). However, running tests under Valgrind causes a much greater slowdown compared with ASan. As a result, it would be beneficial to implement support for both Valgrind and ASan, to give the extra flexibility to choose either performance or accuracy as required. This should be simple as both have very similar memory poisoning interfaces.
+
+**Design decision: Implement memory poisoning tests with both Valgrind's memcheck and ASan manual poisoning.**
+
+**Question: Should we try to build memory poisoning validation on existing Mbed TLS tests, or write new tests for this?**
+
+##### Validation with new tests
+
+Validation with newly created tests would be simpler to implement than using existing tests, since the tests can be written to take into account memory poisoning. It is also possible to build such a testsuite using existing tests as a starting point - `mbedtls_test_psa_exercise_key` is a test helper that already exercises many PSA operations on a key. This would need to be extended to cover operations without keys (e.g. hashes) and multipart operations, but it provides a good base from which to build all of the required testing.
+
+Additionally, we can ensure that all functions are exercised by automatically generating test data files.
+
+##### Validation with existing tests
+
+An alternative approach would be to integrate memory poisoning validation with existing tests. This has two main advantages:
+
+* All of the tests are written already, potentially saving development time.
+* The code coverage of these tests is greater than would be achievable writing new tests from scratch. In practice this advantage is small as buffer copying will take place in the dispatch layer. The tests are therefore independent of the values of parameters passed to the driver, so extra coverage in these parameters does not gain anything.
+
+It may be possible to transparently implement memory poisoning so that existing tests can work without modification. This would be achieved by replacing the implementation of `malloc()` with one that allocates poisoned buffers. However, there are some difficulties with this:
+
+* Not all buffers allocated by tests are used as inputs and outputs to PSA functions being tested.
+* Those buffers that are inputs to a PSA function need to be unpoisoned right up until the function is called, so that they can be filled with input data.
+* Those buffers that are outputs from a PSA function need to be unpoisoned straight after the function returns, so that they can be read to check the output is correct.
+
+These issues may be solved by creating some kind of test wrapper around every PSA function call that poisons the memory. However, it is unclear how straightforward this will be in practice. If this is simple to achieve, the extra coverage and time saved on new tests will be a benefit. If not, writing new tests is the best strategy.
+
+**Design decision: Attempt to add memory poisoning transparently to existing tests. If this proves difficult, write new tests instead.**
+
+#### Discussion of copying validation
+
+Of all discussed approaches, validation by memory poisoning appears as the best. This is because it:
+
+* Does not require complex linking against different versions of `malloc()` (as is the case with the memory pool approach).
+* Allows automated testing (unlike the review approach).
+
+**Design decision: Use a memory poisoning approach to validate copying.**
 
 ### Shared memory protection requirements
 
 TODO: write document and reference it here.
 
-### Validation of protection for built-in drivers
+### Validation of careful access for built-in drivers
 
-TODO: when there is a requirement on drivers, how to we validate that our built-in implementation meets these requirements? (This may be through testing, review, static analysis or any other means or a combination.)
+For PSA functions whose inputs and outputs are not copied, it is important that we validate that the builtin drivers are correctly accessing their inputs and outputs so as not to cause a security issue. Specifically, we must check that each memory location in a shared buffer is not accessed more than once by a driver function. In this section we examine various possible methods for performing this validation.
 
-Note: focusing on read-read inconsistencies for now, as most of the cases where we aren't copying are inputs.
+Note: We are focusing on read-read inconsistencies for now, as most of the cases where we aren't copying are inputs.
 
-#### Linux mprotect+ptrace
+#### Review
+
+As with validation of copying, the simplest method of validation we can implement is careful code review. This is the least desirable method of validation for several reasons:
+
+1. It is tedious for the reviewers.
+2. Reviewers are prone to make mistakes (especially when performing tedious tasks).
+3. It requires engineering time linear in the number of PSA functions to be tested.
+4. It cannot assure the quality of third-party drivers, whereas automated tests can be ported to any driver implementation in principle.
+
+If all other approaches turn out to be prohibitively difficult, code review exists as a fallback option. However, it should be understood that this is far from ideal.
+
+#### Tests using `mprotect()`
+
+Checking that a memory location is not accessed more than once may be achieved by using `mprotect()` on a Linux system to cause a segmentation fault whenever a memory access happens. Tests based on this approach are sketched below.
+
+##### Linux mprotect+ptrace
 
 Idea: call `mmap` to allocate memory for arguments and `mprotect` to deny or reenable access. Use `ptrace` from a parent process to react to SIGSEGV from a denied access. On SIGSEGV happening in the faulting region:
 
@@ -287,7 +411,7 @@ Idea: call `mmap` to allocate memory for arguments and `mprotect` to deny or ree
 
 Record the addresses that are accessed. Mark the test as failed if the same address is read twice.
 
-#### Debugger + mprotect
+##### Debugger + mprotect
 
 Idea: call `mmap` to allocate memory for arguments and `mprotect` to deny or reenable access. Use a debugger to handle SIGSEGV (Gdb: set signal catchpoint). If the segfault was due to accessing the protected region:
 
@@ -297,6 +421,71 @@ Idea: call `mmap` to allocate memory for arguments and `mprotect` to deny or ree
 4. Continue execution.
 
 Record the addresses that are accessed. Mark the test as failed if the same address is read twice. This part might be hard to do in the gdb language, so we may want to just log the addresses and then use a separate program to analyze the logs, or do the gdb tasks from Python.
+
+#### Instrumentation (Valgrind)
+
+An alternative approach is to use a dynamic instrumentation tool (the most obvious being Valgrind) to trace memory accesses and check that each of the important memory addresses is accessed no more than once.
+
+Valgrind has no tool specifically that checks the property that we are looking for. However, it is possible to generate a memory trace with Valgrind using the following:
+
+```
+valgrind --tool=lackey --trace-mem=yes --log-file=logfile ./myprogram
+```
+This will execute `myprogram` and dump a record of every memory access to `logfile`, with its address and data width. If `myprogram` is a test that does the following:
+
+1. Set up input and output buffers for a PSA function call.
+2. Leak the start and end address of each buffer via `print()`.
+3. Write data into the input buffer exactly once.
+4. Call the PSA function.
+5. Read data from the output buffer exactly once.
+
+Then it should be possible to parse the output from the program and from Valgrind and check that each location was accessed exactly twice: once by the program's setup and once by the PSA function.
+
+#### Fixed Virtual Platform testing
+
+It may be possible to measure double accesses by running tests on a Fixed Virtual Platform such as Corstone 310 ecosystem FVP, available [here](https://developer.arm.com/downloads/-/arm-ecosystem-fvps). There exists a pre-packaged example program for the Corstone 310 FVP available as part of the Open IoT SDK [here](https://git.gitlab.arm.com/iot/open-iot-sdk/examples/sdk-examples/-/tree/main/examples/mbedtls/cmsis-rtx/corstone-310) that could provide a starting point for a set of tests.
+
+Running on an FVP allows two approaches to careful-access testing:
+
+* Convenient scripted use of a debugger with [Iris](https://developer.arm.com/documentation/101196/latest/). This allows memory watchpoints to be set, perhaps more flexibly than with GDB.
+* Tracing of all memory accesses with [Tarmac Trace](https://developer.arm.com/documentation/100964/1123/Plug-ins-for-Fast-Models/TarmacTrace). To validate the single-access properties, the [processor memory access trace source](https://developer.arm.com/documentation/100964/1123/Plug-ins-for-Fast-Models/TarmacTrace/Processor-memory-access-trace) can be used to output all memory accesses happening on the FVP. This output can then be easily parsed and processed to ensure that the input and output buffers are accessed only once. The addresses of buffers can either be leaked by the program through printing to the serial port or set to fixed values in the FVP's linker script.
+
+#### Discussion of careful-access validation
+
+The best approach for validating the correctness of memory accesses is an open question that requires further investigation. To answer this question, each of the test strategies discussed above must be prototyped as follows:
+
+1. Take 1-2 days to create a basic prototype of a test that uses the approach.
+2. Document the prototype - write a short guide that can be followed to arrive at the same prototype.
+3. Evaluate the prototype according to its usefulness. The criteria of evaluation should include:
+   * Ease of implementation - Was the prototype simple to implement? Having implemented it, is it simple to extend it to do all of the required testing?
+   * Flexibility - Could the prototype be extended to cover other careful-access testing that may be needed in future?
+   * Performance - Does the test method perform well? Will it cause significant slowdown to CI jobs?
+   * Ease of reproduction - Does the prototype require a particular platform or tool to be set up? How easy would it be for an external user to run the prototype?
+   * Comprehensibility - Accounting for the lower code quality of a prototype, would developers unfamiliar with the tests based on the prototype be able to understand them easily?
+   * Portability - How well can this approach be ported to multiple platforms? This would allow us to ensure that there are no double-accesses due to a bug that only affects a specific target.
+
+Once each prototype is complete, choose the best approach to implement the careful-access testing. Implement tests using this approach for each of the PSA interfaces that require careful-access testing:
+
+* Hash
+* MAC
+* AEAD (additional data only)
+* Key derivation
+* Asymmetric signature (input only)
+
+##### New vs existing tests
+
+Most of the test methods discussed above need extra setup. Some require leaking of buffer bounds, predictable memory access patterns or allocation of special buffers. FVP testing even requires the tests to be run on a non-host target.
+
+With this complexity in mind it does not seem feasible to run careful-access tests using existing testsuites. Instead, new tests should be written that exercise the drivers in the required way. Fortunately, the only interfaces that need testing are hash, MAC, AEAD (testing over AD only), Key derivation and Asymmetric signature, which limits the number of new tests that must be written.
+
+#### Validation of validation for careful-access
+
+In order to ensure that the careful-access validation works, it is necessary to write tests to check that we can correctly detect careful-access violations when they occur. To do this, write a test function that:
+
+* Reads its input multiple times at the same location.
+* Writes to its output multiple times at the same location.
+
+Then, write a careful-access test for this function and ensure that it fails.
 
 ## Analysis of argument protection in built-in drivers
 
@@ -309,3 +498,100 @@ For efficiency, we are likely to want mechanisms to bypass the copy and process 
 Expand this section to document any mechanisms that bypass the copy.
 
 Make sure that such mechanisms preserve the guarantees when buffers overlap.
+
+## Detailed design
+
+### Implementation by module
+
+Module | Input protection strategy | Output protection strategy | Notes
+---|---|---|---
+Hash and MAC | Careful access | Careful access | Low risk of multiple-access as the input and output are raw unformatted data.
+Cipher | Copying | Copying |
+AEAD | Copying (careful access for additional data) | Copying |
+Key derivation | Careful access | Careful access |
+Asymmetric signature | Careful access | Copying | Inputs to signatures are passed to a hash. This will no longer hold once PureEdDSA support is implemented.
+Asymmetric encryption | Copying | Copying |
+Key agreement | Copying | Copying |
+PAKE | Copying | Copying |
+Key import / export | Copying | Copying | Keys may be imported and exported in DER format, which is a structured format and therefore susceptible to read-read inconsistencies and potentially write-read inconsistencies.
+
+### Copying functions
+
+As discussed in [Copying code](#copying-code), it is simpler to use a single unified API for copying. Therefore, we create the following functions:
+
+* `psa_crypto_copy_input(const uint8_t *input, size_t input_length, uint8_t *input_copy, size_t input_copy_length)`
+* `psa_crypto_copy_output(const uint8_t *output_copy, size_t output_copy_length, uint8_t *output, size_t output_length)`
+
+These seem to be a repeat of the same function, however it is useful to retain two separate functions for input and output parameters so that we can use different test hooks in each when using memory poisoning for tests.
+
+Given that the majority of functions will be allocating memory on the heap to copy, it may help to build convenience functions that allocate the memory as well. One function allocates and copies the buffers:
+
+* `psa_crypto_alloc_and_copy(const uint8_t *input, size_t input_length, uint8_t *output, size_t output_length, struct {uint8_t *inp, size_t inp_len, uint8_t *out, size_t out_len} *buffers)`
+
+This function allocates an input and output buffer in `buffers` and copy the input from the user-supplied input buffer to `buffers->inp`.
+
+An analogous function is needed to copy and free the buffers:
+
+* `psa_crypto_copy_and_free(struct {uint8_t *inp, size_t inp_len, uint8_t *out, size_t out_len} buffers, const uint8_t *input, size_t input_length, const uint8_t *output, size_t output_length)`
+
+This function would first copy the `buffers->out` buffer to the user-supplied output buffer and then free `buffers->inp` and `buffers->out`.
+
+Some PSA functions may not use these convenience functions as they may have local optimizations that reduce memory usage. For example, ciphers may be able to use a single intermediate buffer for both input and output.
+
+### Implementation of copying validation
+
+As discussed in the [design exploration of copying validation](#validation-of-copying), the best strategy for validation of copies appears to be validation by memory poisoning, implemented using Valgrind and ASan.
+
+To perform memory poisoning, we must implement the function alluded to in [Validation of copying by memory poisoning](#validation-of-copying-by-memory-poisoning):
+```c
+mbedtls_psa_core_poison_memory(uint8_t *buffer, size_t length, int should_poison);
+```
+This should either poison or unpoison the given buffer based on the value of `should_poison`:
+
+* When `should_poison == 1`, this is equivalent to calling `VALGRIND_MAKE_MEM_NOACCESS(buffer, length)` or `ASAN_POISON_MEMORY_REGION(buffer, length)`.
+* When `should_poison == 0`, this is equivalent to calling `VALGRIND_MAKE_MEM_DEFINED(buffer, length)` or `ASAN_UNPOISON_MEMORY_REGION(buffer, length)`.
+
+The PSA copying function must then have test hooks implemented as outlined in [Validation of copying by memory poisoning](#validation-of-copying-by-memory-poisoning).
+
+As discussed in [the design exploration](#validation-with-existing-tests), the preferred approach for implementing copy-testing is to implement it transparently using existing tests. This is specified in more detail below.
+
+#### Transparent allocation-based memory poisoning
+
+In order to implement transparent memory poisoning we require a wrapper around all PSA function calls that poisons any input and output buffers.
+
+The easiest way to do this is to create wrapper functions that poison the memory and then `#define` PSA function names to be wrapped versions of themselves. For example, to replace `psa_aead_update()`:
+```c
+psa_status_t mem_poison_psa_aead_update(psa_aead_operation_t *operation,
+                                        const uint8_t *input,
+                                        size_t input_length,
+                                        uint8_t *output,
+                                        size_t output_size,
+                                        size_t *output_length)
+{
+    mbedtls_psa_core_poison_memory(input, input_length, 1);
+    mbedtls_psa_core_poison_memory(output, output_size, 1);
+    psa_status_t status = psa_aead_update(operation, input, input_length,
+                                          output, output_size, output_length);
+    mbedtls_psa_core_poison_memory(input, input_length, 0);
+    mbedtls_psa_core_poison_memory(output, output_size, 0);
+
+    return status;
+}
+
+#define psa_aead_update(...) mem_poison_psa_aead_update(__VA_ARGS__)
+```
+
+#### Configuration of poisoning tests
+
+Since the memory poisoning tests will require the use of interfaces specific to the sanitizers used to poison memory, they must be guarded by new config options, for example `MBEDTLS_TEST_PSA_COPYING_ASAN` and `MBEDTLS_TEST_PSA_COPYING_VALGRIND`, as well as `MBEDTLS_TEST_HOOKS`. These would be analogous to the existing `MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN` and `MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND`. Since they require special tooling and are for testing only, these options should not be present in `mbedtls_config.h`. Instead, they should be set only in a new component in `all.sh` that performs the copy testing with Valgrind or ASan.
+
+#### Validation of validation for copying
+
+To make sure that we can correctly detect functions that access their input/output buffers rather than the copies, it would be best to write a test function that misbehaves and test it with memory poisoning. Specifically, the function should:
+
+* Read its input buffer and after calling the input-buffer-copying function to create a local copy of its input.
+* Write to its output buffer before and after calling the output-buffer-copying function to copy-back its output.
+
+Then, we could write a test that uses this function with memory poisoning and ensure that it fails. Since we are expecting a failure due to memory-poisoning, we would run this test separately from the rest of the memory-poisoning testing.
+
+However, performing this testing automatically is not urgent. It will suffice to manually verify that the test framework works, automatic tests are a 'nice to have' feature that may be left to future work.

@@ -3603,8 +3603,21 @@ component_check_python_files () {
     tests/scripts/check-python-files.sh
 }
 
+support_check_python_files () {
+    python3 - <<EOF
+import sys
+if sys.version_info.major >= 3 and sys.version_info.minor >= 6:
+    sys.exit(0)
+sys.exit(1)
+EOF
+}
+
 component_check_generate_test_code () {
     msg "uint test: generate_test_code.py"
+}
+
+component_check_test_helpers () {
+    msg "unit test: generate_test_code.py"
     # unittest writes out mundane stuff like number or tests run on stderr.
     # Our convention is to reserve stderr for actual errors, and write
     # harmless info on stdout so it can be suppress with --quiet.

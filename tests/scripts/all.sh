@@ -3756,7 +3756,7 @@ component_test_psa_crypto_config_accel_cipher_aead () {
     msg "build: crypto config with accelerated cipher and AEAD"
 
     loc_accel_list="ALG_ECB_NO_PADDING ALG_CBC_NO_PADDING ALG_CBC_PKCS7 ALG_CTR ALG_CFB \
-                    ALG_OFB ALG_XTS ALG_STREAM_CIPHER \
+                    ALG_OFB ALG_XTS ALG_STREAM_CIPHER ALG_CCM_STAR_NO_TAG \
                     ALG_GCM ALG_CCM ALG_CHACHA20_POLY1305 ALG_CMAC \
                     KEY_TYPE_DES KEY_TYPE_AES KEY_TYPE_ARIA KEY_TYPE_CHACHA20 KEY_TYPE_CAMELLIA"
 

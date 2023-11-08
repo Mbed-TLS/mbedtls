@@ -229,3 +229,34 @@ exit:
     output_copy.len = 0;
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void output_copy_round_trip()
+{
+    psa_crypto_output_copy_t output_copy;
+    uint8_t output[200];
+    uint8_t *buffer_copy_for_comparison = NULL;
+    psa_status_t status;
+
+    status = psa_crypto_output_copy_alloc(output, sizeof(output), &output_copy);
+    TEST_EQUAL(status, PSA_SUCCESS);
+    TEST_ASSERT(output_copy.buffer != output);
+
+    /* Simulate the function generating output */
+    fill_buffer_pattern(output_copy.buffer, output_copy.len);
+
+    TEST_CALLOC(buffer_copy_for_comparison, output_copy.len);
+    memcpy(buffer_copy_for_comparison, output_copy.buffer, output_copy.len);
+
+    psa_crypto_output_copy_free(&output_copy);
+    TEST_ASSERT(output_copy.buffer == NULL);
+    TEST_EQUAL(output_copy.len, 0);
+
+    /* Check that the buffer was correctly copied back */
+    TEST_MEMORY_COMPARE(output, sizeof(output),
+                        buffer_copy_for_comparison, sizeof(output));
+
+exit:
+    mbedtls_free(buffer_copy_for_comparison);
+}
+/* END_CASE */

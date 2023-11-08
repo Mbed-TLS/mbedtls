@@ -57,3 +57,6 @@ output_copy_free:0:0:PSA_SUCCESS
 
 PSA crypto output copy free, NULL original buffer
 output_copy_free:200:1:PSA_ERROR_CORRUPTION_DETECTED
+
+PSA crypto output copy round-trip
+output_copy_round_trip

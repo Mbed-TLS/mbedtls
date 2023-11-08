@@ -263,6 +263,12 @@ uint32_t mbedtls_ssl_get_extension_mask(unsigned int extension_type);
 #define MBEDTLS_SSL_HAVE_ARIA
 #endif
 
+/* Some internal helpers to determine which operation modes are availble. */
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CIPHER_MODE_CBC)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CBC_NO_PADDING))
+#define MBEDTLS_SSL_HAVE_CBC
+#endif
+
 /* Some internal helpers to determine which keys are availble for CBC mode. */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)

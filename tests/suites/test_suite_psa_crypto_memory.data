@@ -40,6 +40,9 @@ input_copy_free:200
 PSA crypto input copy free, NULL buffer
 input_copy_free:0
 
+PSA crypto input copy round-trip
+input_copy_round_trip
+
 PSA crypto output copy alloc
 output_copy_alloc:200:PSA_SUCCESS
 

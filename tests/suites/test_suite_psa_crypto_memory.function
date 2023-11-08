@@ -132,6 +132,27 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void input_copy_round_trip()
+{
+    psa_crypto_input_copy_t input_copy;
+    uint8_t input[200];
+    psa_status_t status;
+
+    fill_buffer_pattern(input, sizeof(input));
+
+    status = psa_crypto_input_copy_alloc(input, sizeof(input), &input_copy);
+    TEST_EQUAL(status, PSA_SUCCESS);
+    TEST_MEMORY_COMPARE(input_copy.buffer, input_copy.len,
+                        input, sizeof(input));
+    TEST_ASSERT(input_copy.buffer != input);
+
+    psa_crypto_input_copy_free(&input_copy);
+    TEST_ASSERT(input_copy.buffer == NULL);
+    TEST_EQUAL(input_copy.len, 0);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void output_copy_alloc(int output_len, psa_status_t exp_status)
 {
     uint8_t *output = NULL;

@@ -859,7 +859,7 @@
 #define MBEDTLS_PSA_BUILTIN_ALG_CCM_STAR_NO_TAG 1
 #define MBEDTLS_CCM_C
 #endif
-#endif /* PSA_WANT_ALG_CCM */
+#endif /* PSA_WANT_ALG_CCM_STAR_NO_TAG */
 
 #if defined(PSA_WANT_ALG_GCM)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_GCM) || \

@@ -45,3 +45,12 @@ output_copy_alloc:200:PSA_SUCCESS
 
 PSA crypto output copy alloc, NULL buffer
 output_copy_alloc:0:PSA_SUCCESS
+
+PSA crypto output copy free
+output_copy_free:200:0:PSA_SUCCESS
+
+PSA crypto output copy free, NULL buffer
+output_copy_free:0:0:PSA_SUCCESS
+
+PSA crypto output copy free, NULL original buffer
+output_copy_free:200:1:PSA_ERROR_CORRUPTION_DETECTED

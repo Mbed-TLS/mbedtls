@@ -4856,10 +4856,13 @@ run_test    "Record Size Limit: TLS 1.3: Client-side parsing and debug output" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%DISABLE_TLS13_COMPAT_MODE --disable-client-cert -d 4" \
             "$P_CLI debug_level=4 force_version=tls13" \
             0 \
-            -s "Preparing extension (Record Size Limit/28) for 'encrypted extensions'"
-# The P_CLI can not yet send the Record Size Limit extension. Thus, the G_NEXT_SRV does not send
-# a response in its EncryptedExtensions record.
-#            -c "RecordSizeLimit: 16385 Bytes"
+            -c "Sent RecordSizeLimit: 16384 Bytes"                                      \
+            -c "ClientHello: record_size_limit(28) extension exists."                   \
+            -c "found record_size_limit extension"                                      \
+            -c "RecordSizeLimit: 16385 Bytes"                                           \
+            -c "EncryptedExtensions: record_size_limit(28) extension received."         \
+            -s "Parsing extension 'Record Size Limit/28' (2 bytes)"                     \
+            -s "record_size_limit 16384 negotiated"
 
 # In the following (9) tests, --recordsize is the value used by the G_NEXT_CLI (3.7.2) to configure the
 # maximum record size using "https://gnutls.org/reference/gnutls-gnutls.html#gnutls-record-set-max-size".

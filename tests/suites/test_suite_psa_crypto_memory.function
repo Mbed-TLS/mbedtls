@@ -130,3 +130,36 @@ exit:
     input_copy.len = 0;
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void output_copy_alloc(int output_len, psa_status_t exp_status)
+{
+    uint8_t *output = NULL;
+    psa_crypto_output_copy_t output_copy;
+    psa_status_t status;
+
+    output_copy.buffer = NULL;
+
+    TEST_CALLOC(output, output_len);
+
+    status = psa_crypto_output_copy_alloc(output, output_len, &output_copy);
+    TEST_EQUAL(status, exp_status);
+
+    if (exp_status == PSA_SUCCESS) {
+        TEST_ASSERT(output_copy.original == output);
+        if (output == NULL) {
+            TEST_ASSERT(output_copy.buffer == NULL);
+        } else {
+            TEST_EQUAL(output_copy.len, output_len);
+        }
+    }
+
+exit:
+    mbedtls_free(output_copy.buffer);
+    output_copy.original = NULL;
+    output_copy.buffer = NULL;
+    output_copy.len = 0;
+    mbedtls_free(output);
+    output = NULL;
+}
+/* END_CASE */

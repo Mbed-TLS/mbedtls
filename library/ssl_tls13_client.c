@@ -2,21 +2,7 @@
  *  TLS 1.3 client-side functions
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *  This file is part of Mbed TLS ( https://tls.mbed.org )
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -686,7 +672,7 @@ static psa_algorithm_t ssl_tls13_get_ciphersuite_hash_alg(int ciphersuite)
     ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(ciphersuite);
 
     if (ciphersuite_info != NULL) {
-        return mbedtls_md_psa_alg_from_type(ciphersuite_info->mac);
+        return mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) ciphersuite_info->mac);
     }
 
     return PSA_ALG_NONE;
@@ -1140,7 +1126,7 @@ static int ssl_tls13_parse_server_pre_shared_key_ext(mbedtls_ssl_context *ssl,
         return ret;
     }
 
-    if (mbedtls_md_psa_alg_from_type(ssl->handshake->ciphersuite_info->mac)
+    if (mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) ssl->handshake->ciphersuite_info->mac)
         != hash_alg) {
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("Invalid ciphersuite for external psk."));
@@ -2858,7 +2844,7 @@ static int ssl_tls13_postprocess_new_session_ticket(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
-    psa_hash_alg = mbedtls_md_psa_alg_from_type(ciphersuite_info->mac);
+    psa_hash_alg = mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) ciphersuite_info->mac);
     hash_length = PSA_HASH_LENGTH(psa_hash_alg);
     if (hash_length == -1 ||
         (size_t) hash_length > sizeof(session->resumption_key)) {

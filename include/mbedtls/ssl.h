@@ -5,19 +5,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 #ifndef MBEDTLS_SSL_H
 #define MBEDTLS_SSL_H
@@ -1840,7 +1828,7 @@ struct mbedtls_ssl_context {
                                              *   and #MBEDTLS_SSL_CID_DISABLED. */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_EARLY_DATA)
     int MBEDTLS_PRIVATE(early_data_status);
 #endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
 
@@ -5013,6 +5001,10 @@ int mbedtls_ssl_close_notify(mbedtls_ssl_context *ssl);
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT  0
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED  1
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED  2
+
 #if defined(MBEDTLS_SSL_SRV_C)
 /**
  * \brief          Read at most 'len' application data bytes while performing
@@ -5122,9 +5114,6 @@ int mbedtls_ssl_read_early_data(mbedtls_ssl_context *ssl,
 int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
                                  const unsigned char *buf, size_t len);
 
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT  0
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED  1
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED  2
 /**
  * \brief Get the status of the negotiation of the use of early data.
  *

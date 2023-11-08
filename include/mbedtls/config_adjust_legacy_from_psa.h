@@ -10,19 +10,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_CONFIG_ADJUST_LEGACY_FROM_PSA_H
@@ -697,11 +685,9 @@
 #if (defined(PSA_WANT_ALG_CTR) && !defined(MBEDTLS_PSA_ACCEL_ALG_CTR)) || \
     (defined(PSA_WANT_ALG_CFB) && !defined(MBEDTLS_PSA_ACCEL_ALG_CFB)) || \
     (defined(PSA_WANT_ALG_OFB) && !defined(MBEDTLS_PSA_ACCEL_ALG_OFB)) || \
-    defined(PSA_WANT_ALG_ECB_NO_PADDING) || \
-    (defined(PSA_WANT_ALG_CBC_NO_PADDING) && \
-    !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING)) || \
-    (defined(PSA_WANT_ALG_CBC_PKCS7) && \
-    !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_PKCS7)) || \
+    (defined(PSA_WANT_ALG_ECB_NO_PADDING) && !defined(MBEDTLS_PSA_ACCEL_ALG_ECB_NO_PADDING)) || \
+    (defined(PSA_WANT_ALG_CBC_NO_PADDING) && !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING)) || \
+    (defined(PSA_WANT_ALG_CBC_PKCS7) && !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_PKCS7)) || \
     (defined(PSA_WANT_ALG_CMAC) && !defined(MBEDTLS_PSA_ACCEL_ALG_CMAC))
 #define PSA_HAVE_SOFT_BLOCK_MODE 1
 #endif
@@ -724,8 +710,7 @@
 #endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_AES */
 #if defined(PSA_HAVE_SOFT_KEY_TYPE_AES) || \
     defined(PSA_HAVE_SOFT_BLOCK_MODE) || \
-    defined(PSA_HAVE_SOFT_BLOCK_AEAD) || \
-    defined(PSA_HAVE_SOFT_PBKDF2_CMAC)
+    defined(PSA_HAVE_SOFT_BLOCK_AEAD)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_AES 1
 #define MBEDTLS_AES_C
 #endif /* PSA_HAVE_SOFT_KEY_TYPE_AES || PSA_HAVE_SOFT_BLOCK_MODE */
@@ -766,8 +751,15 @@
 #endif /*PSA_HAVE_SOFT_KEY_TYPE_DES || PSA_HAVE_SOFT_BLOCK_MODE */
 #endif /* PSA_WANT_KEY_TYPE_DES */
 
+#if defined(PSA_WANT_ALG_STREAM_CIPHER)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_STREAM_CIPHER)
+#define MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER 1
+#endif /* MBEDTLS_PSA_ACCEL_ALG_STREAM_CIPHER */
+#endif /* PSA_WANT_ALG_STREAM_CIPHER */
+
 #if defined(PSA_WANT_KEY_TYPE_CHACHA20)
-#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_CHACHA20)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_CHACHA20) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_CHACHA20 1
 #define MBEDTLS_CHACHA20_C
 #endif /*!MBEDTLS_PSA_ACCEL_KEY_TYPE_CHACHA20 */
@@ -783,10 +775,6 @@
 #define PSA_HAVE_SOFT_BLOCK_CIPHER 1
 #endif
 
-#if defined(PSA_WANT_ALG_STREAM_CIPHER)
-#define MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER 1
-#endif /* PSA_WANT_ALG_STREAM_CIPHER */
-
 #if defined(PSA_WANT_ALG_CBC_MAC)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_MAC)
 #error "CBC-MAC is not yet supported via the PSA API in Mbed TLS."
@@ -796,8 +784,7 @@
 
 #if defined(PSA_WANT_ALG_CMAC)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_CMAC) || \
-    defined(PSA_HAVE_SOFT_BLOCK_CIPHER) || \
-    defined(PSA_HAVE_SOFT_PBKDF2_CMAC)
+    defined(PSA_HAVE_SOFT_BLOCK_CIPHER)
 #define MBEDTLS_PSA_BUILTIN_ALG_CMAC 1
 #define MBEDTLS_CMAC_C
 #endif /* !MBEDTLS_PSA_ACCEL_ALG_CMAC */

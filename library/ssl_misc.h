@@ -5,19 +5,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 #ifndef MBEDTLS_SSL_MISC_H
 #define MBEDTLS_SSL_MISC_H
@@ -260,6 +248,33 @@ uint32_t mbedtls_ssl_get_extension_mask(unsigned int extension_type);
  * Allow extra bytes for record, authentication and encryption overhead:
  * counter (8) + header (5) + IV(16) + MAC (16-48) + padding (0-256).
  */
+
+/* Some internal helpers to determine which keys are availble for CBC mode. */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(PSA_WANT_ALG_CBC_NO_PADDING)
+#if defined(PSA_WANT_KEY_TYPE_AES)
+#define MBEDTLS_SSL_HAVE_AES_CBC
+#endif
+#if defined(PSA_WANT_KEY_TYPE_ARIA)
+#define MBEDTLS_SSL_HAVE_ARIA_CBC
+#endif
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
+#define MBEDTLS_SSL_HAVE_CAMELLIA_CBC
+#endif
+#endif /* PSA_WANT_ALG_CBC_NO_PADDING */
+#else /* MBEDTLS_USE_PSA_CRYPTO */
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+#if defined(MEDTLS_AES_C)
+#define MBEDTLS_SSL_HAVE_AES_CBC
+#endif
+#if defined(MEDTLS_ARIA_C)
+#define MBEDTLS_SSL_HAVE_ARIA_CBC
+#endif
+#if defined(MEDTLS_CAMELLIA_C)
+#define MBEDTLS_SSL_HAVE_CAMELLIA_CBC
+#endif
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
+#endif /* MBEDTLS_USE_PSA_CRYPTO*/
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
@@ -2129,6 +2144,12 @@ int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
                                            unsigned char *buf,
                                            const unsigned char *end,
                                            size_t *out_len);
+
+#if defined(MBEDTLS_SSL_SRV_C)
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_RECEIVED \
+    MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT
+#endif /* MBEDTLS_SSL_SRV_C */
+
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

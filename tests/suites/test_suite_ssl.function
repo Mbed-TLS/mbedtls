@@ -24,6 +24,7 @@ void test_callback_buffer_sanity()
 {
     enum { MSGLEN = 10 };
     mbedtls_test_ssl_buffer buf;
+    mbedtls_test_ssl_buffer_init(&buf);
     unsigned char input[MSGLEN];
     unsigned char output[MSGLEN];
 
@@ -43,8 +44,6 @@ void test_callback_buffer_sanity()
 
     /* Make sure calling put and get on a buffer that hasn't been set up results
      * in error. */
-    mbedtls_test_ssl_buffer_init(&buf);
-
     TEST_ASSERT(mbedtls_test_ssl_buffer_put(&buf, input, sizeof(input))
                 == -1);
     TEST_ASSERT(mbedtls_test_ssl_buffer_get(&buf, output, sizeof(output))
@@ -1200,7 +1199,7 @@ void ssl_crypt_record(int cipher_type, int hash_id,
 
     TEST_ASSERT(ret == 0);
 
-    TEST_ASSERT((buf = mbedtls_calloc(1, buflen)) != NULL);
+    TEST_CALLOC(buf, buflen);
 
     while (num_records-- > 0) {
         mbedtls_ssl_transform *t_dec, *t_enc;
@@ -1354,7 +1353,7 @@ void ssl_crypt_record_small(int cipher_type, int hash_id,
 
     TEST_ASSERT(ret == 0);
 
-    TEST_ASSERT((buf = mbedtls_calloc(1, buflen)) != NULL);
+    TEST_CALLOC(buf, buflen);
 
     for (mode = 1; mode <= 3; mode++) {
         seen_success = 0;
@@ -1787,7 +1786,9 @@ void ssl_tls13_record_protection(int ciphersuite,
 {
     mbedtls_ssl_key_set keys;
     mbedtls_ssl_transform transform_send;
+    mbedtls_ssl_transform_init(&transform_send);
     mbedtls_ssl_transform transform_recv;
+    mbedtls_ssl_transform_init(&transform_recv);
     mbedtls_record rec;
     unsigned char *buf = NULL;
     size_t buf_len;
@@ -1818,8 +1819,6 @@ void ssl_tls13_record_protection(int ciphersuite,
     keys.key_len = server_write_key->len;
     keys.iv_len  = server_write_iv->len;
 
-    mbedtls_ssl_transform_init(&transform_recv);
-    mbedtls_ssl_transform_init(&transform_send);
     MD_OR_USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_ssl_tls13_populate_transform(
@@ -1958,7 +1957,7 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
     /* Serialize it */
     TEST_ASSERT(mbedtls_ssl_session_save(&original, NULL, 0, &len)
                 == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
-    TEST_ASSERT((buf = mbedtls_calloc(1, len)) != NULL);
+    TEST_CALLOC(buf, len);
     TEST_ASSERT(mbedtls_ssl_session_save(&original, buf, len, &len)
                 == 0);
 
@@ -2172,7 +2171,8 @@ void ssl_serialize_session_save_buf_size(int ticket_len, char *crt_file,
     for (bad_len = 1; bad_len < good_len; bad_len++) {
         /* Allocate exact size so that asan/valgrind can detect any overwrite */
         mbedtls_free(buf);
-        TEST_ASSERT((buf = mbedtls_calloc(1, bad_len)) != NULL);
+        buf = NULL;
+        TEST_CALLOC(buf, bad_len);
         TEST_ASSERT(mbedtls_ssl_session_save(&session, buf, bad_len,
                                              &test_len)
                     == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
@@ -2215,7 +2215,7 @@ void ssl_serialize_session_load_buf_size(int ticket_len, char *crt_file,
     }
     TEST_ASSERT(mbedtls_ssl_session_save(&session, NULL, 0, &good_len)
                 == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
-    TEST_ASSERT((good_buf = mbedtls_calloc(1, good_len)) != NULL);
+    TEST_CALLOC(good_buf, good_len);
     TEST_ASSERT(mbedtls_ssl_session_save(&session, good_buf, good_len,
                                          &good_len) == 0);
     mbedtls_ssl_session_free(&session);
@@ -2224,8 +2224,8 @@ void ssl_serialize_session_load_buf_size(int ticket_len, char *crt_file,
     for (bad_len = 0; bad_len < good_len; bad_len++) {
         /* Allocate exact size so that asan/valgrind can detect any overread */
         mbedtls_free(bad_buf);
-        bad_buf = mbedtls_calloc(1, bad_len ? bad_len : 1);
-        TEST_ASSERT(bad_buf != NULL);
+        bad_buf = NULL;
+        TEST_CALLOC_NONNULL(bad_buf, bad_len);
         memcpy(bad_buf, good_buf, bad_len);
 
         TEST_ASSERT(mbedtls_ssl_session_load(&session, bad_buf, bad_len)
@@ -3122,6 +3122,7 @@ void raw_key_agreement_fail(int bad_server_ecdhe_key)
     mbedtls_psa_stats_t stats;
     size_t free_slots_before = -1;
     mbedtls_test_handshake_test_options options;
+    mbedtls_test_init_handshake_options(&options);
 
     uint16_t iana_tls_group_list[] = { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
                                        MBEDTLS_SSL_IANA_TLS_GROUP_NONE };
@@ -3129,7 +3130,6 @@ void raw_key_agreement_fail(int bad_server_ecdhe_key)
     mbedtls_platform_zeroize(&client, sizeof(client));
     mbedtls_platform_zeroize(&server, sizeof(server));
 
-    mbedtls_test_init_handshake_options(&options);
     options.pk_alg = MBEDTLS_PK_ECDSA;
     options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
     options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;

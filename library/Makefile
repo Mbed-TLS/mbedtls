@@ -321,7 +321,7 @@ GENERATED_FILES = \
 generated_files: $(GENERATED_FILES)
 
 # See root Makefile
-GEN_FILES ?=
+GEN_FILES ?= yes
 ifdef GEN_FILES
 gen_file_dep =
 else

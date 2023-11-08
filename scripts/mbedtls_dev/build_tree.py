@@ -2,24 +2,13 @@
 """
 
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 #
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import os
 import inspect
 
-def looks_like_psa_crypto_root(path: str) -> bool:
+def looks_like_tf_psa_crypto_root(path: str) -> bool:
     """Whether the given directory looks like the root of the PSA Crypto source tree."""
     return all(os.path.isdir(os.path.join(path, subdir))
                for subdir in ['include', 'core', 'drivers', 'programs', 'tests'])
@@ -30,7 +19,7 @@ def looks_like_mbedtls_root(path: str) -> bool:
                for subdir in ['include', 'library', 'programs', 'tests'])
 
 def looks_like_root(path: str) -> bool:
-    return looks_like_psa_crypto_root(path) or looks_like_mbedtls_root(path)
+    return looks_like_tf_psa_crypto_root(path) or looks_like_mbedtls_root(path)
 
 def check_repo_path():
     """

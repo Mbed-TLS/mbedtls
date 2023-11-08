@@ -2,19 +2,7 @@
  *  TLS 1.3 functionality shared between client and server
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -369,7 +357,7 @@ int mbedtls_ssl_tls13_process_certificate_verify(mbedtls_ssl_context *ssl)
      */
     ret = mbedtls_ssl_get_handshake_transcript(
         ssl,
-        ssl->handshake->ciphersuite_info->mac,
+        (mbedtls_md_type_t) ssl->handshake->ciphersuite_info->mac,
         transcript, sizeof(transcript),
         &transcript_len);
     if (ret != 0) {
@@ -967,7 +955,7 @@ cleanup:
 int mbedtls_ssl_tls13_check_sig_alg_cert_key_match(uint16_t sig_alg,
                                                    mbedtls_pk_context *key)
 {
-    mbedtls_pk_type_t pk_type = mbedtls_ssl_sig_from_pk(key);
+    mbedtls_pk_type_t pk_type = (mbedtls_pk_type_t) mbedtls_ssl_sig_from_pk(key);
     size_t key_size = mbedtls_pk_get_bitlen(key);
 
     switch (pk_type) {
@@ -1035,7 +1023,7 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
     }
 
     ret = mbedtls_ssl_get_handshake_transcript(
-        ssl, ssl->handshake->ciphersuite_info->mac,
+        ssl, (mbedtls_md_type_t) ssl->handshake->ciphersuite_info->mac,
         handshake_hash, sizeof(handshake_hash), &handshake_hash_len);
     if (ret != 0) {
         return ret;
@@ -1464,7 +1452,7 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("Reset SSL session for HRR"));
 
-    ret = mbedtls_ssl_get_handshake_transcript(ssl, ciphersuite_info->mac,
+    ret = mbedtls_ssl_get_handshake_transcript(ssl, (mbedtls_md_type_t) ciphersuite_info->mac,
                                                hash_transcript + 4,
                                                PSA_HASH_MAX_SIZE,
                                                &hash_len);

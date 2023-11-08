@@ -742,6 +742,9 @@
  * contexts and therefore is a compatibility break for applications that access
  * fields of a mbedtls_ecdh_context structure directly. See also
  * MBEDTLS_ECDH_LEGACY_CONTEXT in include/mbedtls/ecdh.h.
+ *
+ * The Everest code is provided under the Apache 2.0 license only; therefore enabling this
+ * option is not compatible with taking the library under the GPL v2.0-or-later license.
  */
 //#define MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
 

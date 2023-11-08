@@ -1,5 +1,15 @@
 Mbed TLS ChangeLog (Sorted per branch, date)
 
+= Mbed TLS 3.5.1 branch released 2023-11-06
+
+Changes
+   *  Mbed TLS is now released under a dual Apache-2.0 OR GPL-2.0-or-later
+      license. Users may choose which license they take the code under.
+
+Bugfix
+   * Fix accidental omission of MBEDTLS_TARGET_PREFIX in 3rdparty modules
+     in CMake.
+
 = Mbed TLS 3.5.0 branch released 2023-10-05
 
 API changes

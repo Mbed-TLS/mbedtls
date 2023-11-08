@@ -3713,6 +3713,9 @@ component_test_psa_crypto_config_accel_aead () {
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
 
+    # Disable CCM_STAR_NO_TAG because this re-enables CCM_C.
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+
     # Build
     # -----
 

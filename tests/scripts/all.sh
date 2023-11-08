@@ -1648,10 +1648,10 @@ component_test_full_no_ccm() {
     # PSA_WANT_ALG_CCM to be re-enabled.
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM
 
-    make tests
+    make
 
     msg "test: full no PSA_WANT_ALG_CCM"
-    ( cd tests; ./test_suite_ssl )
+    make test
 }
 
 component_test_full_no_ccm_star_no_tag() {
@@ -1676,11 +1676,13 @@ component_test_full_no_ccm_star_no_tag() {
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
 
-    make tests
+    make
 
     # Ensure MBEDTLS_PSA_BUILTIN_CIPHER was not enabled
-    msg "verify: full no PSA_WANT_ALG_CCM_STAR_NO_TAG"
     not grep mbedtls_psa_cipher library/psa_crypto_cipher.o
+
+    msg "test: full no PSA_WANT_ALG_CCM_STAR_NO_TAG"
+    make test
 }
 
 component_test_full_no_bignum () {

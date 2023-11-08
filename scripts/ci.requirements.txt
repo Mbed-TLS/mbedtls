@@ -12,3 +12,7 @@ pylint == 2.4.4
 # Use the earliest version of mypy that works with our code base.
 # See https://github.com/Mbed-TLS/mbedtls/pull/3953 .
 mypy >= 0.780
+
+# For building `tests/data_files/server9-bad-saltlen.crt` and check python
+# files.
+asn1crypto

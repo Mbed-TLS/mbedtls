@@ -2,19 +2,7 @@
  *  SSL client with options
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
@@ -283,6 +271,7 @@ int main(void)
 #else
 #define USAGE_PSK ""
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
+
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 #define USAGE_CA_CALLBACK                       \
     "   ca_callback=%%d       default: 0 (disabled)\n"      \
@@ -290,13 +279,21 @@ int main(void)
 #else
 #define USAGE_CA_CALLBACK ""
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
+
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
+#if defined(MBEDTLS_CIPHER_C)
 #define USAGE_TICKETS                                       \
     "    tickets=%%d          default: 1 (enabled)\n"       \
     "    ticket_rotate=%%d    default: 0 (disabled)\n"      \
     "    ticket_timeout=%%d   default: 86400 (one day)\n"   \
     "    ticket_aead=%%s      default: \"AES-256-GCM\"\n"
-#else
+#else /* MBEDTLS_CIPHER_C */
+#define USAGE_TICKETS                                       \
+    "    tickets=%%d          default: 1 (enabled)\n"       \
+    "    ticket_rotate=%%d    default: 0 (disabled)\n"      \
+    "    ticket_timeout=%%d   default: 86400 (one day)\n"
+#endif /* MBEDTLS_CIPHER_C */
+#else /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_TICKET_C */
 #define USAGE_TICKETS ""
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_TICKET_C */
 
@@ -2146,14 +2143,18 @@ usage:
             if (opt.ticket_timeout < 0) {
                 goto usage;
             }
-        } else if (strcmp(p, "ticket_aead") == 0) {
+        }
+#if defined(MBEDTLS_CIPHER_C)
+        else if (strcmp(p, "ticket_aead") == 0) {
             const mbedtls_cipher_info_t *ci = mbedtls_cipher_info_from_string(q);
 
             if (ci == NULL) {
                 goto usage;
             }
             opt.ticket_aead = mbedtls_cipher_info_get_type(ci);
-        } else if (strcmp(p, "cache_max") == 0) {
+        }
+#endif
+        else if (strcmp(p, "cache_max") == 0) {
             opt.cache_max = atoi(q);
             if (opt.cache_max < 0) {
                 goto usage;

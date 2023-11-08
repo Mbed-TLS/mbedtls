@@ -3,19 +3,7 @@
 # all.sh
 #
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
 
 
@@ -1571,8 +1559,6 @@ common_test_full_no_cipher_with_psa_crypto () {
     scripts/config.py unset MBEDTLS_NIST_KW_C
     scripts/config.py unset MBEDTLS_PKCS12_C
     scripts/config.py unset MBEDTLS_PKCS5_C
-    scripts/config.py unset MBEDTLS_SSL_TLS_C
-    scripts/config.py unset MBEDTLS_SSL_TICKET_C
 
     make
 
@@ -2363,12 +2349,8 @@ component_test_psa_crypto_config_accel_ecdsa () {
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
-                    $(helper_get_psa_key_type_list "ECC")"
-
-    # Note: Those are handled in a special way by the libtestdriver machinery,
-    # so we only want to include them in the accel list when building the main
-    # libraries, hence the use of a separate variable.
-    loc_curve_list="$(helper_get_psa_curve_list)"
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
@@ -2393,7 +2375,7 @@ component_test_psa_crypto_config_accel_ecdsa () {
 
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+    helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure this was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
@@ -2410,12 +2392,8 @@ component_test_psa_crypto_config_accel_ecdh () {
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDH \
-                    $(helper_get_psa_key_type_list "ECC")"
-
-    # Note: Those are handled in a special way by the libtestdriver machinery,
-    # so we only want to include them in the accel list when building the main
-    # libraries, hence the use of a separate variable.
-    loc_curve_list="$(helper_get_psa_curve_list)"
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
@@ -2438,7 +2416,7 @@ component_test_psa_crypto_config_accel_ecdh () {
 
     helper_libtestdriver1_make_drivers "$loc_accel_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+    helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure this was not re-enabled by accident (additive config)
     not grep mbedtls_ecdh_ library/ecdh.o
@@ -2512,12 +2490,8 @@ component_test_psa_crypto_config_accel_pake() {
     msg "build: full with accelerated PAKE"
 
     loc_accel_list="ALG_JPAKE \
-                    $(helper_get_psa_key_type_list "ECC")"
-
-    # Note: Those are handled in a special way by the libtestdriver machinery,
-    # so we only want to include them in the accel list when building the main
-    # libraries, hence the use of a separate variable.
-    loc_curve_list="$(helper_get_psa_curve_list)"
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
@@ -2533,7 +2507,7 @@ component_test_psa_crypto_config_accel_pake() {
 
     helper_libtestdriver1_make_drivers "$loc_accel_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+    helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure this was not re-enabled by accident (additive config)
     not grep mbedtls_ecjpake_init library/ecjpake.o
@@ -2556,12 +2530,8 @@ component_test_psa_crypto_config_accel_ecc_some_key_types () {
                     KEY_TYPE_ECC_PUBLIC_KEY \
                     KEY_TYPE_ECC_KEY_PAIR_BASIC \
                     KEY_TYPE_ECC_KEY_PAIR_IMPORT \
-                    KEY_TYPE_ECC_KEY_PAIR_EXPORT"
-
-    # Note: Curves are handled in a special way by the libtestdriver machinery,
-    # so we only want to include them in the accel list when building the main
-    # libraries, hence the use of a separate variable.
-    loc_curve_list="$(helper_get_psa_curve_list)"
+                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
+                    $(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
@@ -2594,7 +2564,7 @@ component_test_psa_crypto_config_accel_ecc_some_key_types () {
                     ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+    helper_libtestdriver1_make_main "$loc_accel_list"
 
     # ECP should be re-enabled but not the others
     not grep mbedtls_ecdh_ library/ecdh.o
@@ -2623,12 +2593,6 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
 
     msg "build: crypto_full minus PK with accelerated EC algs and $desc curves"
 
-    # Algorithms and key types to accelerate
-    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
-                    ALG_ECDH \
-                    ALG_JPAKE \
-                    $(helper_get_psa_key_type_list "ECC")"
-
     # Note: Curves are handled in a special way by the libtestdriver machinery,
     # so we only want to include them in the accel list when building the main
     # libraries, hence the use of a separate variable.
@@ -2651,6 +2615,13 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     else
         loc_curve_list=$loc_non_weierstrass_list
     fi
+
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
+                    ALG_ECDH \
+                    ALG_JPAKE \
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $loc_curve_list"
 
     # Configure
     # ---------
@@ -2693,7 +2664,7 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
                     ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+    helper_libtestdriver1_make_main "$loc_accel_list"
 
     # We expect ECDH to be re-enabled for the missing curves
     grep mbedtls_ecdh_ library/ecdh.o
@@ -2771,12 +2742,8 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
                     ALG_JPAKE \
-                    $(helper_get_psa_key_type_list "ECC")"
-
-    # Note: Those are handled in a special way by the libtestdriver machinery,
-    # so we only want to include them in the accel list when building the main
-    # libraries, hence the use of a separate variable.
-    loc_curve_list="$(helper_get_psa_curve_list)"
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
@@ -2796,7 +2763,7 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
                     ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+    helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
@@ -2879,12 +2846,8 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
                     ALG_JPAKE \
-                    $(helper_get_psa_key_type_list "ECC")"
-
-    # Note: Those are handled in a special way by the libtestdriver machinery,
-    # so we only want to include them in the accel list when building the main
-    # libraries, hence the use of a separate variable.
-    loc_curve_list="$(helper_get_psa_curve_list)"
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
@@ -2904,7 +2867,7 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
 
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+    helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
@@ -3050,18 +3013,14 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
                     ALG_ECDH \
                     ALG_JPAKE \
-                    $(helper_get_psa_key_type_list "ECC")"
+                    $(helper_get_psa_key_type_list "ECC") \
+                    $(helper_get_psa_curve_list)"
     # Optionally we can also add DH to the list of accelerated items
     if [ "$test_target" = "ECC_DH" ]; then
         loc_accel_list="$loc_accel_list \
                         ALG_FFDH \
                         $(helper_get_psa_key_type_list "DH")"
     fi
-
-    # Note: Those are handled in a special way by the libtestdriver machinery,
-    # so we only want to include them in the accel list when building the main
-    # libraries, hence the use of a separate variable.
-    loc_curve_list="$(helper_get_psa_curve_list)"
 
     # Configure
     # ---------
@@ -3081,7 +3040,7 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
 
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
-    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
+    helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
@@ -3649,6 +3608,12 @@ component_test_psa_crypto_config_accel_aead () {
 # - component_test_psa_crypto_config_accel_cipher_aead
 # - component_test_psa_crypto_config_reference_cipher_aead
 common_psa_crypto_config_accel_cipher_aead() {
+    # Start from the full config
+    helper_libtestdriver1_adjust_config "full"
+
+    # For time being, we don't support SSL module.
+    scripts/config.py unset MBEDTLS_SSL_TLS_C
+
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
 }
@@ -3668,9 +3633,6 @@ component_test_psa_crypto_config_accel_cipher_aead () {
 
     # Configure
     # ---------
-
-    # Start from the crypto config (no X509 and TLS)
-    helper_libtestdriver1_adjust_config "crypto_full"
 
     common_psa_crypto_config_accel_cipher_aead
 
@@ -3716,8 +3678,6 @@ component_test_psa_crypto_config_accel_cipher_aead () {
 }
 
 component_test_psa_crypto_config_reference_cipher_aead () {
-    helper_libtestdriver1_adjust_config "crypto_full"
-
     common_psa_crypto_config_accel_cipher_aead
 
     msg "test: crypto config with non-accelerated cipher and AEAD"
@@ -4149,23 +4109,14 @@ component_test_no_platform () {
     # This should catch missing mbedtls_printf definitions, and by disabling file
     # IO, it should catch missing '#include <stdio.h>'
     msg "build: full config except platform/fsio/net, make, gcc, C99" # ~ 30s
-    scripts/config.py full
+    scripts/config.py full_no_platform
     scripts/config.py unset MBEDTLS_PLATFORM_C
     scripts/config.py unset MBEDTLS_NET_C
-    scripts/config.py unset MBEDTLS_PLATFORM_MEMORY
-    scripts/config.py unset MBEDTLS_PLATFORM_PRINTF_ALT
-    scripts/config.py unset MBEDTLS_PLATFORM_FPRINTF_ALT
-    scripts/config.py unset MBEDTLS_PLATFORM_SNPRINTF_ALT
-    scripts/config.py unset MBEDTLS_PLATFORM_VSNPRINTF_ALT
-    scripts/config.py unset MBEDTLS_PLATFORM_TIME_ALT
-    scripts/config.py unset MBEDTLS_PLATFORM_EXIT_ALT
-    scripts/config.py unset MBEDTLS_PLATFORM_SETBUF_ALT
-    scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
-    scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.py unset MBEDTLS_FS_IO
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
+    scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
     # Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
     # to re-enable platform integration features otherwise disabled in C99 builds
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -Os -D_DEFAULT_SOURCE' lib programs

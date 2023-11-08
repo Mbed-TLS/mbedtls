@@ -31,13 +31,13 @@ static void fix_new_lines(unsigned char *in_str, size_t *len)
 static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
 {
     mbedtls_pk_context key;
+    mbedtls_pk_init(&key);
     unsigned char *buf = NULL;
     unsigned char *check_buf = NULL;
     unsigned char *start_buf;
     size_t buf_len, check_buf_len;
     int ret;
 
-    mbedtls_pk_init(&key);
     USE_PSA_INIT();
 
     /* Note: if mbedtls_pk_load_file() successfully reads the file, then

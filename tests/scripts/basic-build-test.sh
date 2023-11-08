@@ -3,19 +3,7 @@
 # basic-build-test.sh
 #
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 #
 # Purpose
 #
@@ -51,8 +39,6 @@ fi
 : ${OPENSSL_LEGACY:="$OPENSSL"}
 : ${GNUTLS_CLI:="gnutls-cli"}
 : ${GNUTLS_SERV:="gnutls-serv"}
-: ${GNUTLS_LEGACY_CLI:="$GNUTLS_CLI"}
-: ${GNUTLS_LEGACY_SERV:="$GNUTLS_SERV"}
 
 # Used to make ssl-opt.sh deterministic.
 #
@@ -81,8 +67,6 @@ OPENSSL="$OPENSSL"                           \
     OPENSSL_LEGACY="$OPENSSL_LEGACY"         \
     GNUTLS_CLI="$GNUTLS_CLI"                 \
     GNUTLS_SERV="$GNUTLS_SERV"               \
-    GNUTLS_LEGACY_CLI="$GNUTLS_LEGACY_CLI"   \
-    GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV" \
     scripts/output_env.sh
 echo
 
@@ -120,17 +104,12 @@ echo
 # Step 2c - Compatibility tests (keep going even if some tests fail)
 echo '################ compat.sh ################'
 {
-    echo '#### compat.sh: Default versions'
-    sh compat.sh -m 'tls1 tls1_1 tls12 dtls1 dtls12'
-    echo
-
-    echo '#### compat.sh: legacy (SSLv3)'
-    OPENSSL="$OPENSSL_LEGACY" sh compat.sh -m 'ssl3'
+    echo '#### compat.sh: Default ciphers'
+    sh compat.sh -m 'ssl3 tls1 tls1_1 tls12 dtls1 dtls12'
     echo
 
     echo '#### compat.sh: legacy (null, DES, RC4)'
     OPENSSL="$OPENSSL_LEGACY" \
-    GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" \
     sh compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR'
     echo
 

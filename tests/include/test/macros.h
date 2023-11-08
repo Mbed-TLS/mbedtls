@@ -6,19 +6,7 @@
 
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef TEST_MACROS_H
@@ -151,6 +139,38 @@
                                        (item_count));       \
             TEST_ASSERT((pointer) != NULL);                 \
         }                                                   \
+    } while (0)
+
+/** Allocate memory dynamically and fail the test case if this fails.
+ * The allocated memory will be filled with zeros.
+ *
+ * You must set \p pointer to \c NULL before calling this macro and
+ * put `mbedtls_free(pointer)` in the test's cleanup code.
+ *
+ * If \p item_count is zero, the resulting \p pointer will not be \c NULL.
+ *
+ * This macro expands to an instruction, not an expression.
+ * It may jump to the \c exit label.
+ *
+ * \param pointer    An lvalue where the address of the allocated buffer
+ *                   will be stored.
+ *                   This expression may be evaluated multiple times.
+ * \param item_count Number of elements to allocate.
+ *                   This expression may be evaluated multiple times.
+ *
+ * Note: if passing size 0, mbedtls_calloc may return NULL. In this case,
+ * we reattempt to allocate with the smallest possible buffer to assure a
+ * non-NULL pointer.
+ */
+#define TEST_CALLOC_NONNULL(pointer, item_count)            \
+    do {                                                    \
+        TEST_ASSERT((pointer) == NULL);                     \
+        (pointer) = mbedtls_calloc(sizeof(*(pointer)),      \
+                                   (item_count));           \
+        if (((pointer) == NULL) && ((item_count) == 0)) {   \
+            (pointer) = mbedtls_calloc(1, 1);               \
+        }                                                   \
+        TEST_ASSERT((pointer) != NULL);                     \
     } while (0)
 
 /* For backwards compatibility */

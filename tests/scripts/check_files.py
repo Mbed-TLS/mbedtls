@@ -1,19 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
 """
 This script checks the current state of the source code for minor issues,
@@ -160,24 +148,6 @@ class LineIssueTracker(FileIssueTracker):
 def is_windows_file(filepath):
     _root, ext = os.path.splitext(filepath)
     return ext in ('.bat', '.dsp', '.dsw', '.sln', '.vcxproj')
-
-
-class PermissionIssueTracker(FileIssueTracker):
-    """Track files with bad permissions.
-
-    Files that are not executable scripts must not be executable."""
-
-    heading = "Incorrect permissions:"
-
-    # .py files can be either full scripts or modules, so they may or may
-    # not be executable.
-    suffix_exemptions = frozenset({".py"})
-
-    def check_file_for_issue(self, filepath):
-        is_executable = os.access(filepath, os.X_OK)
-        should_be_executable = filepath.endswith((".sh", ".pl"))
-        if is_executable != should_be_executable:
-            self.files_with_issues[filepath] = None
 
 
 class ShebangIssueTracker(FileIssueTracker):
@@ -386,7 +356,6 @@ class IntegrityChecker:
         self.logger = None
         self.setup_logger(log_file)
         self.issues_to_check = [
-            PermissionIssueTracker(),
             ShebangIssueTracker(),
             EndOfFileNewlineIssueTracker(),
             Utf8BomIssueTracker(),

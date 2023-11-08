@@ -5615,4 +5615,24 @@ psa_status_t psa_crypto_output_copy_alloc(uint8_t *output, size_t output_len,
     return PSA_SUCCESS;
 }
 
+psa_status_t psa_crypto_output_copy_free(psa_crypto_output_copy_t *output_copy)
+{
+    if (output_copy->buffer == NULL) {
+        output_copy->len = 0;
+        return PSA_SUCCESS;
+    }
+    if (output_copy->original == NULL) {
+        /* We have an internal copy but nothing to copy back to. */
+        return PSA_ERROR_CORRUPTION_DETECTED;
+    }
+
+    memcpy(output_copy->original, output_copy->buffer, output_copy->len);
+
+    mbedtls_free(output_copy->buffer);
+    output_copy->buffer = NULL;
+    output_copy->len = 0;
+
+    return PSA_SUCCESS;
+}
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

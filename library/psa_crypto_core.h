@@ -39,6 +39,11 @@ int psa_can_do_hash(psa_algorithm_t hash_alg);
 typedef struct {
     psa_core_key_attributes_t attr;
 
+    enum {
+        PSA_SLOT_EMPTY = 0,
+        PSA_SLOT_OCCUPIED,
+    } status;
+
     /*
      * Number of locks on the key slot held by the library.
      *
@@ -88,7 +93,7 @@ typedef struct {
  */
 static inline int psa_is_key_slot_occupied(const psa_key_slot_t *slot)
 {
-    return slot->attr.type != 0;
+    return slot->status == PSA_SLOT_OCCUPIED;
 }
 
 /** Test whether a key slot is locked.

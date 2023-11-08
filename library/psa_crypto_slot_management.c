@@ -221,6 +221,7 @@ static psa_status_t psa_load_persistent_key_into_slot(psa_key_slot_t *slot)
     if (status != PSA_SUCCESS) {
         goto exit;
     }
+    slot->status = PSA_SLOT_OCCUPIED;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* Special handling is required for loading keys associated with a
@@ -315,6 +316,7 @@ static psa_status_t psa_load_builtin_key_into_slot(psa_key_slot_t *slot)
     /* Copy actual key length and core attributes into the slot on success */
     slot->key.bytes = key_buffer_length;
     slot->attr = attributes.core;
+    slot->status = PSA_SLOT_OCCUPIED;
 
 exit:
     if (status != PSA_SUCCESS) {

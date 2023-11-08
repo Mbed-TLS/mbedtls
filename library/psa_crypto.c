@@ -1786,6 +1786,7 @@ static psa_status_t psa_start_key_creation(
      * definition. */
 
     slot->attr = attributes->core;
+    slot->status = PSA_SLOT_OCCUPIED;
     if (PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) {
 #if !defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
         slot->attr.id = volatile_key_id;

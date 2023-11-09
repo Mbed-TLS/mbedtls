@@ -3641,7 +3641,7 @@ common_psa_crypto_config_accel_cipher_aead() {
 # are meant to be used together in analyze_outcomes.py script in order to test
 # driver's coverage for ciphers and AEADs.
 component_test_psa_crypto_config_accel_cipher_aead () {
-    msg "test: crypto config with accelerated cipher and AEAD"
+    msg "build: crypto config with accelerated cipher and AEAD"
 
     loc_accel_list="ALG_ECB_NO_PADDING ALG_CBC_NO_PADDING ALG_CBC_PKCS7 ALG_CTR ALG_CFB \
                     ALG_OFB ALG_XTS ALG_STREAM_CIPHER \
@@ -3687,18 +3687,29 @@ component_test_psa_crypto_config_accel_cipher_aead () {
     not grep mbedtls_chachapoly library/chachapoly.o
     not grep mbedtls_cmac library/cmac.o
 
+    make
+
     # Run the tests
     # -------------
 
     msg "test: crypto config with accelerated cipher and AEAD"
     make test
+
+    msg "ssl-opt: crypto config with accelerated cipher and AEAD"
+    tests/ssl-opt.sh
 }
 
 component_test_psa_crypto_config_reference_cipher_aead () {
+    msg "build: crypto config with non-accelerated cipher and AEAD"
     common_psa_crypto_config_accel_cipher_aead
+
+    make
 
     msg "test: crypto config with non-accelerated cipher and AEAD"
     make test
+
+    msg "ssl-opt: crypto config with non-accelerated cipher and AEAD"
+    tests/ssl-opt.sh
 }
 
 component_test_aead_chachapoly_disabled() {

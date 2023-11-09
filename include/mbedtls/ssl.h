@@ -3781,11 +3781,12 @@ void MBEDTLS_DEPRECATED mbedtls_ssl_conf_sig_hashes(mbedtls_ssl_config *conf,
  *
  * \param conf     The SSL configuration to use.
  * \param sig_algs List of allowed IANA values for TLS 1.3 signature algorithms,
- *                 terminated by \c MBEDTLS_TLS1_3_SIG_NONE. The list must remain
- *                 available throughout the lifetime of the conf object. Supported
- *                 values are available as \c MBEDTLS_TLS1_3_SIG_XXXX . Using
- *                 this for TLS 1.2, items in this parameter should be
- *                 "(HashAlgorithm << 8) | SignatureAlgorithm".
+ *                 terminated by #MBEDTLS_TLS1_3_SIG_NONE. The list must remain
+ *                 available throughout the lifetime of the conf object.
+ *                 - For TLS 1.3, values of \c MBEDTLS_TLS1_3_SIG_XXXX should be
+ *                   used.
+ *                 - For TLS 1.2, values should be given as
+ *                   "(HashAlgorithm << 8) | SignatureAlgorithm".
  */
 void mbedtls_ssl_conf_sig_algs(mbedtls_ssl_config *conf,
                                const uint16_t *sig_algs);

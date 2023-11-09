@@ -66,7 +66,12 @@
 
 #include "mbedtls/platform.h"
 
-#if (!defined(MBEDTLS_AES_DECRYPT_ALT) || !defined(MBEDTLS_AES_SETKEY_DEC_ALT)) && \
+/*
+ * This is a convenience shorthand macro to check if we need reverse S-box and
+ * reverse tables. It's private and only defined in this file.
+ */
+#if (!defined(MBEDTLS_AES_DECRYPT_ALT) || \
+    (!defined(MBEDTLS_AES_SETKEY_DEC_ALT) && !defined(MBEDTLS_AES_USE_HARDWARE_ONLY))) && \
     !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 #define MBEDTLS_AES_NEED_REVERSE_TABLES
 #endif
@@ -447,7 +452,6 @@ MBEDTLS_MAYBE_UNUSED static void aes_gen_tables(void)
 #if defined(MBEDTLS_AES_NEED_REVERSE_TABLES)
         x = RSb[i];
 
-#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
         RT0[i] = ((uint32_t) MUL(0x0E, x)) ^
                  ((uint32_t) MUL(0x09, x) <<  8) ^
                  ((uint32_t) MUL(0x0D, x) << 16) ^
@@ -458,7 +462,6 @@ MBEDTLS_MAYBE_UNUSED static void aes_gen_tables(void)
         RT2[i] = ROTL8(RT1[i]);
         RT3[i] = ROTL8(RT2[i]);
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
-#endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 #endif /* MBEDTLS_AES_NEED_REVERSE_TABLES */
     }
 }

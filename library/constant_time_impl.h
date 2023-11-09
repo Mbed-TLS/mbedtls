@@ -31,7 +31,7 @@
  * Disable -Wredundant-decls so that gcc does not warn about this. This is re-enabled
  * at the bottom of this file.
  */
-#ifdef __GNUC__
+#ifdef __GNUC__ > 4
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wredundant-decls"
 #endif

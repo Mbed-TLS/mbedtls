@@ -2090,6 +2090,11 @@ run_test    "key size: TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
             -c "Key size is 128"
 
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_MD_CAN_MD5
+# server5.key.enc is in PEM format and AES-256-CBC crypted. Unfortunately PEM
+# module does not support PSA dispatching so we need builtin support.
+requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
+requires_config_enabled MBEDTLS_AES_C
 requires_hash_alg SHA_256
 run_test    "TLS: password protected client key" \
             "$P_SRV force_version=tls12 auth_mode=required" \
@@ -2097,6 +2102,11 @@ run_test    "TLS: password protected client key" \
             0
 
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_MD_CAN_MD5
+# server5.key.enc is in PEM format and AES-256-CBC crypted. Unfortunately PEM
+# module does not support PSA dispatching so we need builtin support.
+requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
+requires_config_enabled MBEDTLS_AES_C
 requires_hash_alg SHA_256
 run_test    "TLS: password protected server key" \
             "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key.enc key_pwd=PolarSSLTest" \
@@ -2105,6 +2115,11 @@ run_test    "TLS: password protected server key" \
 
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_MD_CAN_MD5
+# server5.key.enc is in PEM format and AES-256-CBC crypted. Unfortunately PEM
+# module does not support PSA dispatching so we need builtin support.
+requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
+requires_config_enabled MBEDTLS_AES_C
 requires_hash_alg SHA_256
 run_test    "TLS: password protected server key, two certificates" \
             "$P_SRV force_version=tls12\

@@ -25,10 +25,15 @@
 
 /* This is an external variable, so the compiler doesn't know that we're never
  * changing its value.
- *
- * TODO: LTO (link-time-optimization) would defeat this.
  */
-int false_but_the_compiler_does_not_know = 0;
+volatile int false_but_the_compiler_does_not_know = 0;
+
+/* Set n bytes at the address p to all-bits-zero, in such a way that
+ * the compiler should not know that p is all-bits-zero. */
+static void set_to_zero_but_the_compiler_does_not_know(void *p, size_t n)
+{
+    memset(p, false_but_the_compiler_does_not_know, n);
+}
 
 
 /****************************************************************/
@@ -50,7 +55,7 @@ void null_pointer_dereference(const char *name)
 {
     (void) name;
     volatile char *p;
-    mbedtls_platform_zeroize((void *) &p, sizeof(p));
+    set_to_zero_but_the_compiler_does_not_know(&p, sizeof(p));
     mbedtls_printf("%p -> %u\n", p, (unsigned) *p);
 }
 
@@ -58,7 +63,7 @@ void null_pointer_call(const char *name)
 {
     (void) name;
     unsigned (*p)(void);
-    mbedtls_platform_zeroize(&p, sizeof(p));
+    set_to_zero_but_the_compiler_does_not_know(&p, sizeof(p));
     /* The pointer representation may be truncated, but we don't care:
      * the only point of printing it is to have some use of the pointer
      * to dissuade the compiler from optimizing it away. */
@@ -104,8 +109,7 @@ void memory_leak(const char *name)
 {
     (void) name;
     volatile char *p = mbedtls_calloc(1, 1);
-    /* Hint to the compiler that calloc must not be optimized away. */
-    (void) *p;
+    mbedtls_printf("%u\n", (unsigned) *p);
 }
 
 

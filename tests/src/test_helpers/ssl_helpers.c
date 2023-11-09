@@ -73,7 +73,7 @@ void mbedtls_test_init_handshake_options(
     opts->renegotiate = 0;
     opts->legacy_renegotiation = MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION;
     opts->srv_log_obj = NULL;
-    opts->srv_log_obj = NULL;
+    opts->cli_log_obj = NULL;
     opts->srv_log_fun = NULL;
     opts->cli_log_fun = NULL;
     opts->resize_buffers = 1;
@@ -1045,7 +1045,7 @@ static int psk_dummy_callback(void *p_info, mbedtls_ssl_context *ssl,
           MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_AES_C)
+    defined(MBEDTLS_SSL_HAVE_CBC) && defined(MBEDTLS_SSL_HAVE_AES)
 int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
                                            const unsigned char *iv,
                                            size_t iv_len,
@@ -1093,8 +1093,8 @@ int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
                                 iv, iv_len, input, ilen, output, olen);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_CIPHER_MODE_CBC &&
-          MBEDTLS_AES_C */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_HAVE_CBC &&
+          MBEDTLS_SSL_HAVE_AES */
 
 static void mbedtls_test_ssl_cipher_info_from_type(mbedtls_cipher_type_t cipher_type,
                                                    mbedtls_cipher_mode_t *cipher_mode,

@@ -102,11 +102,11 @@ def automatic_dependencies(*expressions: str) -> List[str]:
 
 # Skip AES test cases which require 192- or 256-bit key
 # if MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH defined
-AES_128BIT_ONLY_DEP_REGEX = r'AES\s(192|256)'
+AES_128BIT_ONLY_DEP_REGEX = re.compile(r'AES\s(192|256)')
 AES_128BIT_ONLY_DEP = ['!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH']
 # Skip AES/ARIA/CAMELLIA test cases which require decrypt operation in ECB mode
 # if MBEDTLS_BLOCK_CIPHER_NO_DECRYPT enabled.
-ECB_NO_PADDING_DEP_REGEX = r'(AES|ARIA|CAMELLIA).*ECB_NO_PADDING'
+ECB_NO_PADDING_DEP_REGEX = re.compile(r'(AES|ARIA|CAMELLIA).*ECB_NO_PADDING')
 ECB_NO_PADDING_DEP = ['!MBEDTLS_BLOCK_CIPHER_NO_DECRYPT']
 
 DEPENDENCY_FROM_DESCRIPTION = OrderedDict()

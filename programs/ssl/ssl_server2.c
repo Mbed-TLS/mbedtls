@@ -281,18 +281,11 @@ int main(void)
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
-#if defined(MBEDTLS_CIPHER_C)
 #define USAGE_TICKETS                                       \
     "    tickets=%%d          default: 1 (enabled)\n"       \
     "    ticket_rotate=%%d    default: 0 (disabled)\n"      \
     "    ticket_timeout=%%d   default: 86400 (one day)\n"   \
     "    ticket_aead=%%s      default: \"AES-256-GCM\"\n"
-#else /* MBEDTLS_CIPHER_C */
-#define USAGE_TICKETS                                       \
-    "    tickets=%%d          default: 1 (enabled)\n"       \
-    "    ticket_rotate=%%d    default: 0 (disabled)\n"      \
-    "    ticket_timeout=%%d   default: 86400 (one day)\n"
-#endif /* MBEDTLS_CIPHER_C */
 #else /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_TICKET_C */
 #define USAGE_TICKETS ""
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_TICKET_C */
@@ -1463,6 +1456,42 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
 }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_HAVE_TIME */
 
+int parse_cipher(char *buf)
+{
+    if (strcmp(buf, "AES-128-CCM")) {
+        return MBEDTLS_CIPHER_AES_128_CCM;
+    } else if (strcmp(buf, "AES-128-GCM")) {
+        return MBEDTLS_CIPHER_AES_128_GCM;
+    } else if (strcmp(buf, "AES-192-CCM")) {
+        return MBEDTLS_CIPHER_AES_192_CCM;
+    } else if (strcmp(buf, "AES-192-GCM")) {
+        return MBEDTLS_CIPHER_AES_192_GCM;
+    } else if (strcmp(buf, "AES-256-CCM")) {
+        return MBEDTLS_CIPHER_AES_256_CCM;
+    } else if (strcmp(buf, "ARIA-128-CCM")) {
+        return MBEDTLS_CIPHER_ARIA_128_CCM;
+    } else if (strcmp(buf, "ARIA-128-GCM")) {
+        return MBEDTLS_CIPHER_ARIA_128_GCM;
+    } else if (strcmp(buf, "ARIA-192-CCM")) {
+        return MBEDTLS_CIPHER_ARIA_192_CCM;
+    } else if (strcmp(buf, "ARIA-192-GCM")) {
+        return MBEDTLS_CIPHER_ARIA_192_GCM;
+    } else if (strcmp(buf, "ARIA-256-CCM")) {
+        return MBEDTLS_CIPHER_ARIA_256_CCM;
+    } else if (strcmp(buf, "ARIA-256-GCM")) {
+        return MBEDTLS_CIPHER_ARIA_256_GCM;
+    } else if (strcmp(buf, "CAMELLIA-128-CCM")) {
+        return MBEDTLS_CIPHER_CAMELLIA_128_CCM;
+    } else if (strcmp(buf, "CAMELLIA-192-CCM")) {
+        return MBEDTLS_CIPHER_CAMELLIA_192_CCM;
+    } else if (strcmp(buf, "CAMELLIA-256-CCM")) {
+        return MBEDTLS_CIPHER_CAMELLIA_256_CCM;
+    } else if (strcmp(buf, "CHACHA20-POLY1305")) {
+        return MBEDTLS_CIPHER_CHACHA20_POLY1305;
+    }
+    return MBEDTLS_CIPHER_NONE;
+}
+
 int main(int argc, char *argv[])
 {
     int ret = 0, len, written, frags, exchanges_left;
@@ -2143,18 +2172,13 @@ usage:
             if (opt.ticket_timeout < 0) {
                 goto usage;
             }
-        }
-#if defined(MBEDTLS_CIPHER_C)
-        else if (strcmp(p, "ticket_aead") == 0) {
-            const mbedtls_cipher_info_t *ci = mbedtls_cipher_info_from_string(q);
+        } else if (strcmp(p, "ticket_aead") == 0) {
+            opt.ticket_aead = parse_cipher(q);
 
-            if (ci == NULL) {
+            if (opt.ticket_aead == MBEDTLS_CIPHER_NONE) {
                 goto usage;
             }
-            opt.ticket_aead = mbedtls_cipher_info_get_type(ci);
-        }
-#endif
-        else if (strcmp(p, "cache_max") == 0) {
+        } else if (strcmp(p, "cache_max") == 0) {
             opt.cache_max = atoi(q);
             if (opt.cache_max < 0) {
                 goto usage;

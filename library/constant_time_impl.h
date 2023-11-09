@@ -123,7 +123,7 @@ static inline mbedtls_ct_uint_t mbedtls_ct_compiler_opaque(mbedtls_ct_uint_t x)
  * For gcc, restore divided syntax afterwards - otherwise old versions of gcc
  * seem to apply unified syntax globally, which breaks other asm code.
  */
-#if !defined(__clang__)
+#if !defined(__clang__) && !(__GNUC__ == 4 && __GNUC_MINOR__ == 9)
 #define RESTORE_ASM_SYNTAX  ".syntax divided                      \n\t"
 #else
 #define RESTORE_ASM_SYNTAX

@@ -234,7 +234,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      */
     client_age = obfuscated_ticket_age - session->ticket_age_add;
     age_diff = server_age - client_age;
-    if (age_diff < -1000 ||
+    if (age_diff < -MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE ||
         age_diff > MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE) {
         MBEDTLS_SSL_DEBUG_MSG(
             3, ("Ticket age outside tolerance window ( diff = %"

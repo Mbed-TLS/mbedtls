@@ -67,6 +67,24 @@ int mbedtls_block_cipher_setup(mbedtls_block_cipher_context_t *ctx,
 int mbedtls_block_cipher_setkey(mbedtls_block_cipher_context_t *ctx,
                                 const unsigned char *key,
                                 unsigned key_bitlen);
+
+/**
+ * \brief           Encrypt one block (16 bytes) with the configured key.
+ *
+ * \param ctx       The context holding the key.
+ * \param input     The buffer holding the input block. Must be 16 bytes.
+ * \param output    The buffer to which the output block will be written.
+ *                  Must be writable and 16 bytes long.
+ *                  This must either not overlap with \p input, or be equal.
+ *
+ * \retval          \c 0 on success.
+ * \retval          #MBEDTLS_ERR_CIPHER_INVALID_CONTEXT if the context was not
+ *                  properly set up before calling this function.
+ * \retval          Another negative value if encryption failed.
+ */
+int mbedtls_block_cipher_encrypt(mbedtls_block_cipher_context_t *ctx,
+                                 const unsigned char input[16],
+                                 unsigned char output[16]);
 /**
  * \brief           Clear the context.
  *

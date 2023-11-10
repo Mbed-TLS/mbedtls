@@ -87,4 +87,30 @@ int mbedtls_block_cipher_setkey(mbedtls_block_cipher_context_t *ctx,
             return MBEDTLS_ERR_CIPHER_INVALID_CONTEXT;
     }
 }
+
+int mbedtls_block_cipher_encrypt(mbedtls_block_cipher_context_t *ctx,
+                                 const unsigned char input[16],
+                                 unsigned char output[16])
+{
+    switch (ctx->id) {
+#if defined(MBEDTLS_AES_C)
+        case MBEDTLS_BLOCK_CIPHER_ID_AES:
+            return mbedtls_aes_crypt_ecb(&ctx->ctx.aes, MBEDTLS_AES_ENCRYPT,
+                                         input, output);
+#endif
+#if defined(MBEDTLS_ARIA_C)
+        case MBEDTLS_BLOCK_CIPHER_ID_ARIA:
+            return mbedtls_aria_crypt_ecb(&ctx->ctx.aria, input, output);
+#endif
+#if defined(MBEDTLS_CAMELLIA_C)
+        case MBEDTLS_BLOCK_CIPHER_ID_CAMELLIA:
+            return mbedtls_camellia_crypt_ecb(&ctx->ctx.camellia,
+                                              MBEDTLS_CAMELLIA_ENCRYPT,
+                                              input, output);
+#endif
+        default:
+            return MBEDTLS_ERR_CIPHER_INVALID_CONTEXT;
+    }
+}
+
 #endif /* MBEDTLS_BLOCK_CIPHER_C */

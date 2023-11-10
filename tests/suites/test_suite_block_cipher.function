@@ -42,12 +42,51 @@ void invalid()
     TEST_EQUAL(MBEDTLS_ERR_CIPHER_INVALID_CONTEXT,
                mbedtls_block_cipher_setkey(&ctx, buf, 128));
 
+    /* encrypt() before successful setup() */
+    TEST_EQUAL(MBEDTLS_ERR_CIPHER_INVALID_CONTEXT,
+               mbedtls_block_cipher_encrypt(&ctx, buf, buf));
+
+    /* free() before successful setup()
+     * No return value to check, but shouldn't cause memory errors. */
+    mbedtls_block_cipher_free(&ctx);
+
     /* Now properly setup the context */
+    mbedtls_block_cipher_init(&ctx);
     TEST_EQUAL(0, mbedtls_block_cipher_setup(&ctx, VALID_CIPHER_ID));
 
     /* Bad parameters to setkey() */
     TEST_EQUAL(BADKEY_ERROR,
                mbedtls_block_cipher_setkey(&ctx, buf, 42));
+
+exit:
+    mbedtls_block_cipher_free(&ctx);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void test_vec(int cipher_id_arg, data_t *key, data_t *input, data_t *outref)
+{
+    mbedtls_block_cipher_context_t ctx;
+    mbedtls_cipher_id_t cipher_id = cipher_id_arg;
+    unsigned char output[BLOCK_SIZE];
+
+    mbedtls_block_cipher_init(&ctx);
+
+    memset(output, 0x00, sizeof(output));
+
+    TEST_EQUAL(0, mbedtls_block_cipher_setup(&ctx, cipher_id));
+    TEST_EQUAL(0, mbedtls_block_cipher_setkey(&ctx, key->x, 8 * key->len));
+
+    /* Encrypt with input != output */
+    TEST_EQUAL(0, mbedtls_block_cipher_encrypt(&ctx, input->x, output));
+    ASSERT_COMPARE(output, BLOCK_SIZE, outref->x, outref->len);
+
+    /* Encrypt with input == output.
+     * (Also, encrypting again ensures the previous call to encrypt()
+     * did not change the state of the context.) */
+    memcpy(output, input->x, BLOCK_SIZE);
+    TEST_EQUAL(0, mbedtls_block_cipher_encrypt(&ctx, output, output));
+    ASSERT_COMPARE(output, BLOCK_SIZE, outref->x, outref->len);
 
 exit:
     mbedtls_block_cipher_free(&ctx);

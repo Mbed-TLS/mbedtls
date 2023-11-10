@@ -938,7 +938,7 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
          * 7 days (enforced in ssl_tls13_parse_new_session_ticket()) . Thus the
          * cast to `uint32_t` of the ticket age is safe. */
         uint32_t obfuscated_ticket_age =
-            (uint32_t) (now - session->ticket_received);
+            (uint32_t) (now - session->ticket_reception_time);
         obfuscated_ticket_age += session->ticket_age_add;
 
         ret = ssl_tls13_write_identity(ssl, p, end,
@@ -2829,7 +2829,7 @@ static int ssl_tls13_postprocess_new_session_ticket(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_HAVE_TIME)
     /* Store ticket creation time */
-    session->ticket_received = mbedtls_ms_time();
+    session->ticket_reception_time = mbedtls_ms_time();
 #endif
 
     ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(session->ciphersuite);

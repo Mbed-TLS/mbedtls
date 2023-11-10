@@ -2443,7 +2443,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
  *
  *     struct {
  *       opaque hostname<0..2^16-1>;
- *       uint64 ticket_received;
+ *       uint64 ticket_reception_time;
  *       uint32 ticket_lifetime;
  *       opaque ticket<1..2^16-1>;
  *     } ClientOnlyData;
@@ -2492,7 +2492,7 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
 #endif
 
 #if defined(MBEDTLS_HAVE_TIME)
-    needed += 8; /* start_time or ticket_received */
+    needed += 8; /* start_time or ticket_reception_time */
 #endif
 
 #if defined(MBEDTLS_SSL_CLI_C)
@@ -2555,7 +2555,7 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
 #if defined(MBEDTLS_HAVE_TIME)
-        MBEDTLS_PUT_UINT64_BE((uint64_t) session->ticket_received, p, 0);
+        MBEDTLS_PUT_UINT64_BE((uint64_t) session->ticket_reception_time, p, 0);
         p += 8;
 #endif
         MBEDTLS_PUT_UINT32_BE(session->ticket_lifetime, p, 0);
@@ -2651,7 +2651,7 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
         if (end - p < 8) {
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
         }
-        session->ticket_received = MBEDTLS_GET_UINT64_BE(p, 0);
+        session->ticket_reception_time = MBEDTLS_GET_UINT64_BE(p, 0);
         p += 8;
 #endif
         if (end - p < 4) {

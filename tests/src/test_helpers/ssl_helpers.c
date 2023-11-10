@@ -1761,7 +1761,7 @@ int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
 #if defined(MBEDTLS_SSL_CLI_C)
     if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
 #if defined(MBEDTLS_HAVE_TIME)
-        session->ticket_received = mbedtls_ms_time() - 40;
+        session->ticket_reception_time = mbedtls_ms_time() - 40;
 #endif
         session->ticket_lifetime = 0xfedcba98;
 

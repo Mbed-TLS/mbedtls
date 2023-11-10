@@ -2072,7 +2072,7 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
         if (endpoint_type == MBEDTLS_SSL_IS_CLIENT) {
 #if defined(MBEDTLS_HAVE_TIME)
-            TEST_ASSERT(original.ticket_received == restored.ticket_received);
+            TEST_ASSERT(original.ticket_reception_time == restored.ticket_reception_time);
 #endif
             TEST_ASSERT(original.ticket_lifetime == restored.ticket_lifetime);
             TEST_ASSERT(original.ticket_len == restored.ticket_len);

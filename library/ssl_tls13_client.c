@@ -684,7 +684,7 @@ static int ssl_tls13_has_configured_ticket(mbedtls_ssl_context *ssl)
     mbedtls_ssl_session *session = ssl->session_negotiate;
     return ssl->handshake->resume &&
            session != NULL && session->ticket != NULL &&
-           !mbedtls_ssl_conf_tls13_check_kex_modes(
+           mbedtls_ssl_conf_tls13_is_kex_mode_enabled(
         ssl, mbedtls_ssl_session_get_ticket_flags(
             session, MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL));
 }
@@ -1879,7 +1879,7 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
             goto cleanup;
     }
 
-    if (mbedtls_ssl_conf_tls13_check_kex_modes(
+    if (!mbedtls_ssl_conf_tls13_is_kex_mode_enabled(
             ssl, handshake->key_exchange_mode)) {
         ret = MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
         MBEDTLS_SSL_DEBUG_MSG(

@@ -244,14 +244,13 @@ int mbedtls_aesce_crypt_ecb(mbedtls_aes_context *ctx,
     uint8x16_t block = vld1q_u8(&input[0]);
     unsigned char *keys = (unsigned char *) (ctx->buf + ctx->rk_offset);
 
-    if (mode == MBEDTLS_AES_ENCRYPT) {
-        block = aesce_encrypt_block(block, keys, ctx->nr);
-    } else {
 #if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
+    if (mode == MBEDTLS_AES_DECRYPT) {
         block = aesce_decrypt_block(block, keys, ctx->nr);
-#else
-        return MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE;
+    } else
 #endif
+    {
+        block = aesce_encrypt_block(block, keys, ctx->nr);
     }
     vst1q_u8(&output[0], block);
 

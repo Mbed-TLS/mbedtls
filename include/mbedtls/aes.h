@@ -60,8 +60,6 @@
 /* Error codes in range 0x0021-0x0025 */
 /** Invalid input data. */
 #define MBEDTLS_ERR_AES_BAD_INPUT_DATA                    -0x0021
-/** The requested feature is not available. */
-#define MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE               -0x0023
 
 #ifdef __cplusplus
 extern "C" {

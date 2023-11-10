@@ -157,7 +157,6 @@ psa_status_t mbedtls_to_psa_error(int ret)
 #if defined(MBEDTLS_AES_C)
         case MBEDTLS_ERR_AES_INVALID_KEY_LENGTH:
         case MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH:
-        case MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE:
             return PSA_ERROR_NOT_SUPPORTED;
         case MBEDTLS_ERR_AES_BAD_INPUT_DATA:
             return PSA_ERROR_INVALID_ARGUMENT;

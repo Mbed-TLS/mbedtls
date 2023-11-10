@@ -1032,7 +1032,8 @@ component_check_test_dependencies () {
     expected="check-test-deps-expected-$$"
 
     # Find legacy dependencies in PSA tests
-    grep 'depends_on' tests/suites/test_suite_psa* |
+    grep 'depends_on' \
+        tests/suites/test_suite_psa*.data tests/suites/test_suite_psa*.function |
         grep -Eo '!?MBEDTLS_[^: ]*' |
         grep -v MBEDTLS_PSA_ |
         sort -u > $found

@@ -1,6 +1,24 @@
 /** \file metatest.c
  *
  *  \brief Test features of the test framework.
+ *
+ * When you run this program, it runs a single "meta-test". A meta-test
+ * performs an operation which should be caught as a failure by our
+ * test framework. The meta-test passes if this program calls `exit` with
+ * a nonzero status, or aborts, or is terminated by a signal, or if the
+ * framework running the program considers the run an error (this happens
+ * with Valgrind for a memory leak). The non-success of the meta-test
+ * program means that the test failure has been caught correctly.
+ *
+ * Some failures are purely functional: the logic of the code causes the
+ * test result to be set to FAIL. Other failures come from extra
+ * instrumentation which is not present in a normal build; for example,
+ * Asan or Valgrind to detect memory leaks. This is reflected by the
+ * "platform" associated with each meta-test.
+ *
+ * Use the companion script `tests/scripts/run-metatests.sh` to run all
+ * the meta-tests for a given platform and validate that they trigger a
+ * detected failure as expected.
  */
 
 /*
@@ -197,11 +215,41 @@ void mutex_leak(const char *name)
 /****************************************************************/
 
 typedef struct {
+    /** Command line argument that will trigger that metatest.
+     *
+     * Conventionally matches "[a-z0-9_]+". */
     const char *name;
+
+    /** Platform under which that metatest is valid.
+     *
+     * - "any": should work anywhere.
+     * - "asan": triggers ASan (Address Sanitizer).
+     * - "msan": triggers MSan (Memory Sanitizer).
+     * - "pthread": requires MBEDTLS_THREADING_PTHREAD and MBEDTLS_TEST_HOOKS.
+     */
     const char *platform;
+
+    /** Function that performs the metatest.
+     *
+     * The function receives the name as an argument. This allows using the
+     * same function to perform multiple variants of a test based on the name.
+     *
+     * When executed on a conforming platform, the function is expected to
+     * either cause a test failure (mbedtls_test_fail()), or cause the
+     * program to abort in some way (e.g. by causing a segfault or by
+     * triggering a sanitizer).
+     *
+     * When executed on a non-conforming platform, the function may return
+     * normally or may have unpredictable behavior.
+     */
     void (*entry_point)(const char *name);
 } metatest_t;
 
+/* The list of availble meta-tests. Remember to register new functions here!
+ *
+ * Note that we always compile all the functions, so that `metatest --list`
+ * will always list all the available meta-tests.
+ */
 metatest_t metatests[] = {
     { "test_fail", "any", meta_test_fail },
     { "null_dereference", "any", null_pointer_dereference },

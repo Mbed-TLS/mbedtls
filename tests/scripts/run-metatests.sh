@@ -6,6 +6,14 @@ Usage: $0 [OPTION] [PLATFORM]...
 Run all the metatests whose platform matches any of the given PLATFORM.
 A PLATFORM can contain shell wildcards.
 
+Expected output: a lot of scary-looking error messages, since each
+metatest is expected to report a failure. The final line should be
+"Ran N metatests, all good."
+
+If something goes wrong: the final line should be
+"Ran N metatests, X unexpected successes". Look for "Unexpected success"
+in the logs above.
+
   -l  List the available metatests, don't run them.
 EOF
 }

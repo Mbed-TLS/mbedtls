@@ -64,9 +64,9 @@ enum value_of_mutex_is_valid_field {
      * compatibility with threading_mutex_init_pthread() and
      * threading_mutex_free_pthread(). MUTEX_LOCKED could be any nonzero
      * value. */
-    MUTEX_FREED = 0, //!< Set by threading_mutex_free_pthread
-    MUTEX_IDLE = 1, //!< Set by threading_mutex_init_pthread and by our unlock
-    MUTEX_LOCKED = 2, //!< Set by our lock
+    MUTEX_FREED = 0, //! < Set by mbedtls_test_wrap_mutex_free
+    MUTEX_IDLE = 1, //! < Set by mbedtls_test_wrap_mutex_init and by mbedtls_test_wrap_mutex_unlock
+    MUTEX_LOCKED = 2, //! < Set by mbedtls_test_wrap_mutex_lock
 };
 
 typedef struct {
@@ -101,8 +101,12 @@ static void mbedtls_test_mutex_usage_error(mbedtls_threading_mutex_t *mutex,
 static void mbedtls_test_wrap_mutex_init(mbedtls_threading_mutex_t *mutex)
 {
     mutex_functions.init(mutex);
-    if (mutex->is_valid) {
+
+    if (mutex_functions.lock(&mbedtls_test_mutex_mutex) == 0) {
+        mutex->state = MUTEX_IDLE;
         ++live_mutexes;
+
+        mutex_functions.unlock(&mbedtls_test_mutex_mutex);
     }
 }
 
@@ -123,7 +127,11 @@ static void mbedtls_test_wrap_mutex_free(mbedtls_threading_mutex_t *mutex)
             mbedtls_test_mutex_usage_error(mutex, "corrupted state");
             break;
     }
+
+    /* Mark mutex as free'd first, because we need to release the mutex. If
+     * free fails, this could end up with inconsistent state. */
     if (mutex->is_valid) {
+        mutex->is_valid = MUTEX_FREED;
         --live_mutexes;
     }
     mutex_functions.free(mutex);
@@ -138,7 +146,7 @@ static int mbedtls_test_wrap_mutex_lock(mbedtls_threading_mutex_t *mutex)
             break;
         case MUTEX_IDLE:
             if (ret == 0) {
-                mutex->is_valid = 2;
+                mutex->is_valid = MUTEX_LOCKED;
             }
             break;
         case MUTEX_LOCKED:

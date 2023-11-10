@@ -2457,7 +2457,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
  *       uint32 max_early_data_size;
  *       select ( endpoint ) {
  *            case client: ClientOnlyData;
- *            case server: uint64 start_time;
+ *            case server: uint64 ticket_creation_time_time;
  *        };
  *     } serialized_session_tls13;
  *
@@ -2537,7 +2537,7 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
 
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
     if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
-        MBEDTLS_PUT_UINT64_BE((uint64_t) session->ticket_creation, p, 0);
+        MBEDTLS_PUT_UINT64_BE((uint64_t) session->ticket_creation_time, p, 0);
         p += 8;
     }
 #endif /* MBEDTLS_HAVE_TIME */
@@ -2616,7 +2616,7 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
         if (end - p < 8) {
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
         }
-        session->ticket_creation = MBEDTLS_GET_UINT64_BE(p, 0);
+        session->ticket_creation_time = MBEDTLS_GET_UINT64_BE(p, 0);
         p += 8;
     }
 #endif /* MBEDTLS_HAVE_TIME */

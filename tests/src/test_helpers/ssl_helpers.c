@@ -1754,7 +1754,7 @@ int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
 
 #if defined(MBEDTLS_HAVE_TIME)
     if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
-        session->ticket_creation = mbedtls_ms_time() - 42;
+        session->ticket_creation_time = mbedtls_ms_time() - 42;
     }
 #endif
 

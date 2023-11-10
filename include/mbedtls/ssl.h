@@ -1248,18 +1248,20 @@ struct mbedtls_ssl_session {
     uint8_t MBEDTLS_PRIVATE(ticket_flags);      /*!< Ticket flags */
     uint32_t MBEDTLS_PRIVATE(ticket_age_add);               /*!< Randomly generated value used to obscure the age of the ticket */
     uint8_t MBEDTLS_PRIVATE(resumption_key_len);            /*!< resumption_key length */
-#if defined(MBEDTLS_HAVE_TIME)
-    mbedtls_ms_time_t MBEDTLS_PRIVATE(ticket_creation);     /*!< create time of ticket */
-#endif
     unsigned char MBEDTLS_PRIVATE(resumption_key)[MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN];
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && defined(MBEDTLS_SSL_CLI_C)
     char *MBEDTLS_PRIVATE(hostname);             /*!< host name binded with tickets */
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION && MBEDTLS_SSL_CLI_C */
 
-#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_CLI_C)
-    mbedtls_ms_time_t MBEDTLS_PRIVATE(ticket_received);        /*!< time ticket was received */
-#endif /* MBEDTLS_HAVE_TIME && MBEDTLS_SSL_CLI_C */
+#if defined(MBEDTLS_HAVE_TIME)
+#if defined(MBEDTLS_SSL_CLI_C)
+    mbedtls_ms_time_t MBEDTLS_PRIVATE(ticket_received);        /*!< time that ticket was received */
+#endif
+#if defined(MBEDTLS_SSL_SRV_C)
+    mbedtls_ms_time_t MBEDTLS_PRIVATE(ticket_creation_time);     /*!< create time of ticket */
+#endif
+#endif /* MBEDTLS_HAVE_TIME */
 
 #endif /*  MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
 

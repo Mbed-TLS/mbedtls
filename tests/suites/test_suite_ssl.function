@@ -1975,7 +1975,7 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
 #if defined(MBEDTLS_HAVE_TIME)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
-        TEST_ASSERT(original.ticket_creation == restored.ticket_creation);
+        TEST_ASSERT(original.ticket_creation_time == restored.ticket_creation_time);
     }
 #endif
 
@@ -2066,7 +2066,7 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
 
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
         if (endpoint_type == MBEDTLS_SSL_IS_SERVER) {
-            TEST_ASSERT(original.ticket_creation == restored.ticket_creation);
+            TEST_ASSERT(original.ticket_creation_time == restored.ticket_creation_time);
         }
 #endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)

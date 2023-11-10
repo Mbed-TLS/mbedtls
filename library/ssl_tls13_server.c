@@ -193,15 +193,15 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 #if defined(MBEDTLS_HAVE_TIME)
     now = mbedtls_ms_time();
 
-    if (now < session->ticket_creation) {
+    if (now < session->ticket_creation_time) {
         MBEDTLS_SSL_DEBUG_MSG(
             3, ("Invalid ticket start time ( now = %" MBEDTLS_PRINTF_MS_TIME
                 ", start = %" MBEDTLS_PRINTF_MS_TIME " )",
-                now, session->ticket_creation));
+                now, session->ticket_creation_time));
         goto exit;
     }
 
-    server_age = now - session->ticket_creation;
+    server_age = now - session->ticket_creation_time;
 
     /* RFC 8446 section 4.6.1
      *
@@ -2878,7 +2878,7 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> prepare NewSessionTicket msg"));
 
 #if defined(MBEDTLS_HAVE_TIME)
-    session->ticket_creation = mbedtls_ms_time();
+    session->ticket_creation_time = mbedtls_ms_time();
 #endif
 
     /* Set ticket_flags depends on the advertised psk key exchange mode */

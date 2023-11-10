@@ -3631,6 +3631,12 @@ common_psa_crypto_config_accel_cipher_aead() {
     # Start from the full config
     helper_libtestdriver1_adjust_config "full"
 
+    # CIPHER_C is disabled in the accelerated test component so we disable
+    # all the features that depend on it both in the accelerated and in the
+    # reference components.
+    scripts/config.py unset MBEDTLS_PKCS5_C
+    scripts/config.py unset MBEDTLS_PKCS12_C
+
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
 }
@@ -3670,6 +3676,10 @@ component_test_psa_crypto_config_accel_cipher_aead () {
     scripts/config.py unset MBEDTLS_CHACHA20_C
     scripts/config.py unset MBEDTLS_CAMELLIA_C
 
+    # Disable CIPHER_C entirely as all ciphers/AEADs are accelerated and PSA
+    # does not depend on it.
+    scripts/config.py unset MBEDTLS_CIPHER_C
+
     # Build
     # -----
 
@@ -3678,6 +3688,7 @@ component_test_psa_crypto_config_accel_cipher_aead () {
     helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure this was not re-enabled by accident (additive config)
+    not grep mbedtls_cipher library/cipher.o
     not grep mbedtls_des library/des.o
     not grep mbedtls_aes library/aes.o
     not grep mbedtls_aria library/aria.o

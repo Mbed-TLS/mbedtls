@@ -96,12 +96,13 @@ void double_free(const char *name)
 void read_uninitialized_stack(const char *name)
 {
     (void) name;
-    volatile char buf[1];
+    char buf[1];
     if (false_but_the_compiler_does_not_know) {
         buf[0] = '!';
     }
-    if (*buf != 0) {
-        mbedtls_printf("%u\n", (unsigned) *buf);
+    char *volatile p = buf;
+    if (*p != 0) {
+        mbedtls_printf("%u\n", (unsigned) *p);
     }
 }
 

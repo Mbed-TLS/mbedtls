@@ -30,9 +30,9 @@ volatile int false_but_the_compiler_does_not_know = 0;
 
 /* Set n bytes at the address p to all-bits-zero, in such a way that
  * the compiler should not know that p is all-bits-zero. */
-static void set_to_zero_but_the_compiler_does_not_know(void *p, size_t n)
+static void set_to_zero_but_the_compiler_does_not_know(volatile void *p, size_t n)
 {
-    memset(p, false_but_the_compiler_does_not_know, n);
+    memset((void *) p, false_but_the_compiler_does_not_know, n);
 }
 
 
@@ -54,7 +54,7 @@ void meta_test_fail(const char *name)
 void null_pointer_dereference(const char *name)
 {
     (void) name;
-    volatile char *p;
+    volatile char *volatile p;
     set_to_zero_but_the_compiler_does_not_know(&p, sizeof(p));
     mbedtls_printf("%p -> %u\n", p, (unsigned) *p);
 }
@@ -62,7 +62,7 @@ void null_pointer_dereference(const char *name)
 void null_pointer_call(const char *name)
 {
     (void) name;
-    unsigned (*p)(void);
+    unsigned(*volatile p)(void);
     set_to_zero_but_the_compiler_does_not_know(&p, sizeof(p));
     /* The pointer representation may be truncated, but we don't care:
      * the only point of printing it is to have some use of the pointer

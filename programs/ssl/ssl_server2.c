@@ -1416,44 +1416,45 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
 
     switch (opt.dummy_ticket % 11) {
         case 1:
-            /* Callback function return INVALID_MAC */
             return MBEDTLS_ERR_SSL_INVALID_MAC;
         case 2:
-            /* Callback function return ticket expired */
             return MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         case 3:
-            /* Built-in check, the start time is in future. */
-            session->ticket_creation = mbedtls_ms_time() + 10 * 1000;
+            /* Creation time in the future. */
+            session->ticket_creation = mbedtls_ms_time() +
+                                       MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE +
+                                       4 * 1000;
             break;
         case 4:
-            /* Built-in check, ticket expired due to too old. */
-            session->ticket_creation = mbedtls_ms_time() - 10 * 1000 - 7 * 24 * 3600 * 1000;
+            /* Ticket reaches the end of lifetime. */
+            session->ticket_creation = mbedtls_ms_time() - session->ticket_lifetime -
+                                       MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE - 4 * 1000;
             break;
         case 5:
-            /* Built-in check, age outside tolerance window, too young. */
-            session->ticket_creation = mbedtls_ms_time() - 10 * 1000;
+            /* Ticket is valid, but client age is beyond the upper bound of tolerance window. */
+
+            session->ticket_age_add += MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE + 4 * 1000;
+            /* Make sure the execution time does not affect the result */
+            session->ticket_creation = mbedtls_ms_time();
             break;
 
         case 6:
-            /* Built-in check, age outside tolerance window, too old. */
+            /* Ticket is valid, but client age is beyond the lower bound of tolerance window. */
+            session->ticket_age_add -= MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE + 4 * 1000;
+            /* Make sure the execution time does not affect the result */
             session->ticket_creation = mbedtls_ms_time();
-            session->ticket_age_add -= 1000;
             break;
         case 7:
-            /* Built-in check, ticket permission check. */
             session->ticket_flags = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE;
             break;
         case 8:
-            /* Built-in check, ticket permission check. */
             session->ticket_flags = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
             break;
         case 9:
-            /* Built-in check, ticket permission check. */
             session->ticket_flags = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
             break;
         case 10:
-            /* Built-in check, ticket permission check. */
             session->ticket_flags = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;
             break;
 #endif

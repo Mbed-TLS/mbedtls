@@ -933,6 +933,10 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
 #if defined(MBEDTLS_HAVE_TIME)
         mbedtls_ms_time_t now = mbedtls_ms_time();
         mbedtls_ssl_session *session = ssl->session_negotiate;
+        /* The ticket age has been checked to be smaller that the
+         * `ticket_lifetime` in ssl_prepare_client_hello() which is smaller than
+         * 7 days (enforced in ssl_tls13_parse_new_session_ticket()) . Thus the
+         * cast to `uint32_t` of the ticket age is safe. */
         uint32_t obfuscated_ticket_age =
             (uint32_t) (now - session->ticket_received);
         obfuscated_ticket_age += session->ticket_age_add;
@@ -2744,6 +2748,12 @@ static int ssl_tls13_parse_new_session_ticket(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG(3,
                           ("ticket_lifetime: %u",
                            (unsigned int) session->ticket_lifetime));
+    if (session->ticket_lifetime >
+        MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME) {
+        /* TODO: Add new return value here? */
+        MBEDTLS_SSL_DEBUG_MSG(3, ("ticket_lifetime exceeds 7 days."));
+        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    }
 
     session->ticket_age_add = MBEDTLS_GET_UINT32_BE(p, 4);
     MBEDTLS_SSL_DEBUG_MSG(3,

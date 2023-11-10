@@ -518,7 +518,7 @@ int mbedtls_ssl_ticket_parse(void *p_ticket,
             goto cleanup;
         }
     }
-#endif
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 #endif /* MBEDTLS_HAVE_TIME */
 
 cleanup:

@@ -212,7 +212,6 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      * Clients MUST NOT attempt to use tickets which have ages greater than
      * the "ticket_lifetime" value which was provided with the ticket.
      *
-     * For time being, the age MUST be less than 604800 seconds (7 days).
      */
     if (server_age > 604800 * 1000) {
         MBEDTLS_SSL_DEBUG_MSG(
@@ -228,11 +227,10 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      * ticket_age_add from PskIdentity.obfuscated_ticket_age modulo 2^32) is
      * within a small tolerance of the time since the ticket was issued.
      *
-     * NOTE: Typical crystal RTC accuracy specifications are from ±100 to ±20
-     *       parts per million (360 to 72 million seconds per hour). Defualt
-     *       tolerance windows is 6000 millionsections, that means client host
-     *       MUST sync up system time every 16 hours. Otherwise, the ticket will
-     *       be invalid.
+     * NOTE: The typical accuracy of an RTC crystal is ±100 to ±20 parts per
+     *       million (360 to 72 milliseconds per hour). Default tolerance
+     *       windows is 6s, thus in the worst case client and servers must
+     *       sync up their system time every 6000/360/2~=8 hours.
      */
     client_age = obfuscated_ticket_age - session->ticket_age_add;
     age_diff = server_age - client_age;

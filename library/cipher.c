@@ -320,15 +320,6 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 #if defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
-    /* CBC, XTS, KW and KWP mode always need decryption, return an error to
-     * indicate those modes are not available under
-     * MBEDTLS_BLOCK_CIPHER_NO_DECRYPT. */
-    if (MBEDTLS_MODE_CBC == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
-        MBEDTLS_MODE_XTS == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
-        MBEDTLS_MODE_KW == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
-        MBEDTLS_MODE_KWP == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
-        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
-    }
     if (MBEDTLS_MODE_ECB == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) &&
         MBEDTLS_DECRYPT == operation) {
         return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;

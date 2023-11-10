@@ -622,6 +622,7 @@ pre_setup_keep_going () {
         case "$1" in
             "msg "*) false;;
             "cd "*) false;;
+            "diff "*) true;;
             *make*[\ /]tests*) false;; # make tests, make CFLAGS=-I../tests, ...
             *test*) true;; # make test, tests/stuff, env V=v tests/stuff, ...
             *make*check*) true;;

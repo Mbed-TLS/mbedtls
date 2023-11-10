@@ -1519,7 +1519,7 @@ do_run_test_once() {
 # $1 and $2 contain the server and client command lines, respectively.
 #
 # Note: this function only provides some guess about TLS version by simply
-#       looking at the server/client command lines. Even thought this works
+#       looking at the server/client command lines. Even though this works
 #       for the sake of tests' filtering (especially in conjunction with the
 #       detect_required_features() function), it does NOT guarantee that the
 #       result is accurate. It does not check other conditions, such as:
@@ -1639,7 +1639,7 @@ run_test() {
         requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
     fi
 
-    # Check if we are trying to use an external tool wich does not support ECDH
+    # Check if we are trying to use an external tool which does not support ECDH
     EXT_WO_ECDH=$(use_ext_tool_without_ecdh_support "$SRV_CMD" "$CLI_CMD")
 
     # Guess the TLS version which is going to be used

@@ -2776,9 +2776,9 @@ usage:
     }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    mbedtls_ssl_tls13_conf_early_data(&conf, tls13_early_data_enabled);
+    mbedtls_ssl_conf_early_data(&conf, tls13_early_data_enabled);
     if (tls13_early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED) {
-        mbedtls_ssl_tls13_conf_max_early_data_size(
+        mbedtls_ssl_conf_max_early_data_size(
             &conf, opt.max_early_data_size);
     }
 #endif /* MBEDTLS_SSL_EARLY_DATA */

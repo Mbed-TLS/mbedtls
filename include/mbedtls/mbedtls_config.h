@@ -4083,7 +4083,7 @@
  * \def MBEDTLS_SSL_MAX_EARLY_DATA_SIZE
  *
  * The default maximum amount of 0-RTT data. See the documentation of
- * \c mbedtls_ssl_tls13_conf_max_early_data_size() for more information.
+ * \c mbedtls_ssl_conf_max_early_data_size() for more information.
  *
  * It must be positive and smaller than UINT32_MAX.
  *

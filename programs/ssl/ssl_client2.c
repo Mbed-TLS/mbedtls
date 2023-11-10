@@ -1971,7 +1971,7 @@ usage:
     }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    mbedtls_ssl_tls13_conf_early_data(&conf, opt.early_data);
+    mbedtls_ssl_conf_early_data(&conf, opt.early_data);
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
     if ((ret = mbedtls_ssl_setup(&ssl, &conf)) != 0) {

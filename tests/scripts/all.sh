@@ -3891,8 +3891,7 @@ component_build_psa_accel_key_type_rsa_public_key() {
 
 
 support_build_tfm_armcc () {
-    armc6_cc="$ARMC6_BIN_DIR/armclang"
-    (check_tools "$armc6_cc" > /dev/null 2>&1)
+    support_build_armcc
 }
 
 component_build_tfm_armcc() {
@@ -4026,7 +4025,6 @@ component_build_aes_variations() {
     # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT is incompatible with CBC/XTS/DES/NIST_KW,
     # manually set or unset those configurations to check
     # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT with various combinations in aes.o.
-
     scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
@@ -4625,8 +4623,7 @@ component_test_block_cipher_no_decrypt_aesni_use_psa () {
 }
 
 support_test_block_cipher_no_decrypt_aesce_armcc () {
-    armc6_cc="$ARMC6_BIN_DIR/armclang"
-    (check_tools "$armc6_cc" > /dev/null 2>&1)
+    support_build_armcc
 }
 
 component_test_block_cipher_no_decrypt_aesce_armcc () {

@@ -4670,6 +4670,9 @@ component_test_block_cipher_no_decrypt_aesce_armcc () {
     not grep mbedtls_camellia_setkey_dec library/camellia.o
     # Make sure we don't have mbedtls_internal_aes_decrypt in AES
     not grep mbedtls_internal_aes_decrypt library/aes.o
+    # Make sure we don't have mbedtls_aesce_inverse_key and aesce_decrypt_block in aesce
+    not grep mbedtls_aesce_inverse_key library/aesce.o
+    not grep aesce_decrypt_block library/aesce.o
 }
 
 component_test_ctr_drbg_aes_256_sha_256 () {

@@ -2,6 +2,19 @@
 #include "block_cipher_internal.h"
 
 #define BLOCK_SIZE 16
+
+#if defined(MBEDTLS_AES_C)
+#define VALID_CIPHER_ID MBEDTLS_CIPHER_ID_AES
+#define BADKEY_ERROR MBEDTLS_ERR_AES_INVALID_KEY_LENGTH
+#elif defined(MBEDTLS_ARIA_C)
+#define VALID_CIPHER_ID MBEDTLS_CIPHER_ID_ARIA
+#define BADKEY_ERROR MBEDTLS_ERR_ARIA_BAD_INPUT_DATA
+#elif defined(MBEDTLS_CAMELLIA_C)
+#define VALID_CIPHER_ID MBEDTLS_CIPHER_ID_CAMELLIA
+#define BADKEY_ERROR MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA
+#else
+#undef VALID_CIPHER_ID
+#endif
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -9,18 +22,32 @@
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:VALID_CIPHER_ID */
 void invalid()
 {
+    /* That size is valid for a key or an input/output block. */
+    unsigned char buf[16] = { 0 };
+
     mbedtls_block_cipher_context_t ctx;
 
     mbedtls_block_cipher_init(&ctx);
 
+    /* Bad parameters to setup */
     TEST_EQUAL(MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
                mbedtls_block_cipher_setup(&ctx, MBEDTLS_CIPHER_ID_NONE));
-
     TEST_EQUAL(MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
                mbedtls_block_cipher_setup(&ctx, MBEDTLS_CIPHER_ID_DES));
+
+    /* setkey() before successful setup() */
+    TEST_EQUAL(MBEDTLS_ERR_CIPHER_INVALID_CONTEXT,
+               mbedtls_block_cipher_setkey(&ctx, buf, 128));
+
+    /* Now properly setup the context */
+    TEST_EQUAL(0, mbedtls_block_cipher_setup(&ctx, VALID_CIPHER_ID));
+
+    /* Bad parameters to setkey() */
+    TEST_EQUAL(BADKEY_ERROR,
+               mbedtls_block_cipher_setkey(&ctx, buf, 42));
 
 exit:
     mbedtls_block_cipher_free(&ctx);

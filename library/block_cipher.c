@@ -66,4 +66,25 @@ int mbedtls_block_cipher_setup(mbedtls_block_cipher_context_t *ctx,
     }
 }
 
+int mbedtls_block_cipher_setkey(mbedtls_block_cipher_context_t *ctx,
+                                const unsigned char *key,
+                                unsigned key_bitlen)
+{
+    switch (ctx->id) {
+#if defined(MBEDTLS_AES_C)
+        case MBEDTLS_BLOCK_CIPHER_ID_AES:
+            return mbedtls_aes_setkey_enc(&ctx->ctx.aes, key, key_bitlen);
+#endif
+#if defined(MBEDTLS_ARIA_C)
+        case MBEDTLS_BLOCK_CIPHER_ID_ARIA:
+            return mbedtls_aria_setkey_enc(&ctx->ctx.aria, key, key_bitlen);
+#endif
+#if defined(MBEDTLS_CAMELLIA_C)
+        case MBEDTLS_BLOCK_CIPHER_ID_CAMELLIA:
+            return mbedtls_camellia_setkey_enc(&ctx->ctx.camellia, key, key_bitlen);
+#endif
+        default:
+            return MBEDTLS_ERR_CIPHER_INVALID_CONTEXT;
+    }
+}
 #endif /* MBEDTLS_BLOCK_CIPHER_C */

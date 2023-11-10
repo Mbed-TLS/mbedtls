@@ -50,6 +50,24 @@ int mbedtls_block_cipher_setup(mbedtls_block_cipher_context_t *ctx,
                                mbedtls_cipher_id_t cipher_id);
 
 /**
+ * \brief           Set the key into the context.
+ *
+ * \param ctx       The context to configure.
+ * \param key       The buffer holding the key material.
+ * \param key_bitlen    The size of the key in bits.
+ *
+ * \retval          \c 0 on success.
+ * \retval          #MBEDTLS_ERR_CIPHER_INVALID_CONTEXT if the context was not
+ *                  properly set up before calling this function.
+ * \retval          One of #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH,
+ *                  #MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+ *                  #MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA if \p key_bitlen is
+ *                  invalid.
+ */
+int mbedtls_block_cipher_setkey(mbedtls_block_cipher_context_t *ctx,
+                                const unsigned char *key,
+                                unsigned key_bitlen);
+/**
  * \brief           Clear the context.
  *
  * \param ctx       The context to clear.

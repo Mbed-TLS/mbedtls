@@ -1,0 +1,28 @@
+/* BEGIN_HEADER */
+#include "block_cipher_internal.h"
+
+#define BLOCK_SIZE 16
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_BLOCK_CIPHER_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void invalid()
+{
+    mbedtls_block_cipher_context_t ctx;
+
+    mbedtls_block_cipher_init(&ctx);
+
+    TEST_EQUAL(MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+               mbedtls_block_cipher_setup(&ctx, MBEDTLS_CIPHER_ID_NONE));
+
+    TEST_EQUAL(MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+               mbedtls_block_cipher_setup(&ctx, MBEDTLS_CIPHER_ID_DES));
+
+exit:
+    mbedtls_block_cipher_free(&ctx);
+}
+/* END_CASE */

@@ -77,6 +77,8 @@ typedef struct {
 } mutex_functions_t;
 static mutex_functions_t mutex_functions;
 
+mbedtls_threading_mutex_t mbedtls_test_mutex_mutex;
+
 /** The total number of calls to mbedtls_mutex_init(), minus the total number
  * of calls to mbedtls_mutex_free().
  *
@@ -88,6 +90,7 @@ static void mbedtls_test_mutex_usage_error(mbedtls_threading_mutex_t *mutex,
                                            const char *msg)
 {
     (void) mutex;
+
     if (mbedtls_test_info.mutex_usage_error == NULL) {
         mbedtls_test_info.mutex_usage_error = msg;
     }
@@ -112,73 +115,81 @@ static void mbedtls_test_wrap_mutex_init(mbedtls_threading_mutex_t *mutex)
 
 static void mbedtls_test_wrap_mutex_free(mbedtls_threading_mutex_t *mutex)
 {
-    switch (mutex->is_valid) {
-        case MUTEX_FREED:
-            mbedtls_test_mutex_usage_error(mutex, "free without init or double free");
-            break;
-        case MUTEX_IDLE:
-            /* Do nothing. The underlying free function will reset is_valid
-             * to 0. */
-            break;
-        case MUTEX_LOCKED:
-            mbedtls_test_mutex_usage_error(mutex, "free without unlock");
-            break;
-        default:
-            mbedtls_test_mutex_usage_error(mutex, "corrupted state");
-            break;
-    }
+    if (mutex_functions.lock(&mbedtls_test_mutex_mutex) == 0) {
 
-    /* Mark mutex as free'd first, because we need to release the mutex. If
-     * free fails, this could end up with inconsistent state. */
-    if (mutex->is_valid) {
-        mutex->is_valid = MUTEX_FREED;
-        --live_mutexes;
+        switch (mutex->is_valid) {
+            case MUTEX_FREED:
+                mbedtls_test_mutex_usage_error(mutex, "free without init or double free");
+                break;
+            case MUTEX_IDLE:
+                mutex->is_valid = MUTEX_FREED;
+                --live_mutexes;
+                break;
+            case MUTEX_LOCKED:
+                mbedtls_test_mutex_usage_error(mutex, "free without unlock");
+                break;
+            default:
+                mbedtls_test_mutex_usage_error(mutex, "corrupted state");
+                break;
+        }
+
+        mutex_functions.unlock(&mbedtls_test_mutex_mutex);
     }
     mutex_functions.free(mutex);
 }
 
 static int mbedtls_test_wrap_mutex_lock(mbedtls_threading_mutex_t *mutex)
 {
+    /* Lock the passed in mutex first, so that the only way to change the state
+     * is to hold the passed in and internal mutex - otherwise we create a race
+     * condition. */
     int ret = mutex_functions.lock(mutex);
-    switch (mutex->is_valid) {
-        case MUTEX_FREED:
-            mbedtls_test_mutex_usage_error(mutex, "lock without init");
-            break;
-        case MUTEX_IDLE:
-            if (ret == 0) {
-                mutex->is_valid = MUTEX_LOCKED;
-            }
-            break;
-        case MUTEX_LOCKED:
-            mbedtls_test_mutex_usage_error(mutex, "double lock");
-            break;
-        default:
-            mbedtls_test_mutex_usage_error(mutex, "corrupted state");
-            break;
+    if (mutex_functions.lock(&mbedtls_test_mutex_mutex) == 0) {
+        switch (mutex->is_valid) {
+            case MUTEX_FREED:
+                mbedtls_test_mutex_usage_error(mutex, "lock without init");
+                break;
+            case MUTEX_IDLE:
+                if (ret == 0) {
+                    mutex->is_valid = MUTEX_LOCKED;
+                }
+                break;
+            case MUTEX_LOCKED:
+                mbedtls_test_mutex_usage_error(mutex, "double lock");
+                break;
+            default:
+                mbedtls_test_mutex_usage_error(mutex, "corrupted state");
+                break;
+        }
+
+        mutex_functions.unlock(&mbedtls_test_mutex_mutex);
     }
     return ret;
 }
 
 static int mbedtls_test_wrap_mutex_unlock(mbedtls_threading_mutex_t *mutex)
 {
-    int ret = mutex_functions.unlock(mutex);
-    switch (mutex->is_valid) {
-        case MUTEX_FREED:
-            mbedtls_test_mutex_usage_error(mutex, "unlock without init");
-            break;
-        case MUTEX_IDLE:
-            mbedtls_test_mutex_usage_error(mutex, "unlock without lock");
-            break;
-        case MUTEX_LOCKED:
-            if (ret == 0) {
+    /* Lock the internal mutex first and change state, so that the only way to
+     * change the state is to hold the passed in and internal mutex - otherwise
+     * we create a race condition. */
+    if (mutex_functions.lock(&mbedtls_test_mutex_mutex) == 0) {
+        switch (mutex->is_valid) {
+            case MUTEX_FREED:
+                mbedtls_test_mutex_usage_error(mutex, "unlock without init");
+                break;
+            case MUTEX_IDLE:
+                mbedtls_test_mutex_usage_error(mutex, "unlock without lock");
+                break;
+            case MUTEX_LOCKED:
                 mutex->is_valid = MUTEX_IDLE;
-            }
-            break;
-        default:
-            mbedtls_test_mutex_usage_error(mutex, "corrupted state");
-            break;
+                break;
+            default:
+                mbedtls_test_mutex_usage_error(mutex, "corrupted state");
+                break;
+        }
+        mutex_functions.unlock(&mbedtls_test_mutex_mutex);
     }
-    return ret;
+    return mutex_functions.unlock(mutex);
 }
 
 void mbedtls_test_mutex_usage_init(void)
@@ -191,6 +202,8 @@ void mbedtls_test_mutex_usage_init(void)
     mbedtls_mutex_free = &mbedtls_test_wrap_mutex_free;
     mbedtls_mutex_lock = &mbedtls_test_wrap_mutex_lock;
     mbedtls_mutex_unlock = &mbedtls_test_wrap_mutex_unlock;
+
+    mutex_functions.init(&mbedtls_test_mutex_mutex);
 }
 
 void mbedtls_test_mutex_usage_check(void)

@@ -112,12 +112,12 @@ ECB_NO_PADDING_DEP = ['!MBEDTLS_BLOCK_CIPHER_NO_DECRYPT']
 DEPENDENCY_FROM_DESCRIPTION = OrderedDict()
 DEPENDENCY_FROM_DESCRIPTION[AES_128BIT_ONLY_DEP_REGEX] = AES_128BIT_ONLY_DEP
 DEPENDENCY_FROM_DESCRIPTION[ECB_NO_PADDING_DEP_REGEX] = ECB_NO_PADDING_DEP
-def generate_description_dependencies(
-        dep_list: List[str],
+def generate_deps_from_description(
         description: str
     ) -> List[str]:
     """Return additional dependencies based on test case description and REGEX.
     """
+    dep_list = []
     for regex, deps in DEPENDENCY_FROM_DESCRIPTION.items():
         if re.search(regex, description):
             dep_list += deps

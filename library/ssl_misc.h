@@ -2776,24 +2776,30 @@ static inline unsigned int mbedtls_ssl_session_get_ticket_flags(
            (flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
 }
 
-static inline unsigned int mbedtls_ssl_session_check_ticket_flags(
+/**
+ * Check if at least one of the given flags is set in
+ * the session ticket. See the definition of
+ * `MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK` to get all
+ * permitted flags.
+ */
+static inline int mbedtls_ssl_session_ticket_has_flags(
     mbedtls_ssl_session *session, unsigned int flags)
 {
-    return mbedtls_ssl_session_get_ticket_flags(session, flags) == 0;
+    return mbedtls_ssl_session_get_ticket_flags(session, flags) != 0;
 }
 
-static inline unsigned int mbedtls_ssl_session_ticket_allow_psk(
+static inline int mbedtls_ssl_session_ticket_allow_psk(
     mbedtls_ssl_session *session)
 {
-    return !mbedtls_ssl_session_check_ticket_flags(session,
-                                                   MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_RESUMPTION);
+    return mbedtls_ssl_session_ticket_has_flags(session,
+                                                MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_RESUMPTION);
 }
 
-static inline unsigned int mbedtls_ssl_session_ticket_allow_psk_ephemeral(
+static inline int mbedtls_ssl_session_ticket_allow_psk_ephemeral(
     mbedtls_ssl_session *session)
 {
-    return !mbedtls_ssl_session_check_ticket_flags(session,
-                                                   MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_EPHEMERAL_RESUMPTION);
+    return mbedtls_ssl_session_ticket_has_flags(session,
+                                                MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_EPHEMERAL_RESUMPTION);
 }
 
 static inline unsigned int mbedtls_ssl_session_ticket_allow_early_data(

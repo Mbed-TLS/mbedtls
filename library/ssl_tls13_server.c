@@ -1008,7 +1008,7 @@ static int ssl_tls13_ticket_is_kex_mode_permitted(mbedtls_ssl_context *ssl,
 {
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     if (ssl->handshake->resume) {
-        if (mbedtls_ssl_session_check_ticket_flags(
+        if (!mbedtls_ssl_session_ticket_has_flags(
                 ssl->session_negotiate, kex_mode)) {
             return 0;
         }

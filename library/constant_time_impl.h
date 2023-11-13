@@ -125,7 +125,7 @@ static inline mbedtls_ct_uint_t mbedtls_ct_compiler_opaque(mbedtls_ct_uint_t x)
  * seem to apply unified syntax globally, which breaks other asm code.
  */
 #if defined(MBEDTLS_COMPILER_IS_GCC) && defined(__thumb__) && !defined(__thumb2__) && \
-    (__GNUC__ < 11) && !((__GNUC__ == 4) && ((__GNUC_MINOR__ == 8) || (__GNUC_MINOR__ == 9)))
+    (__GNUC__ < 11) && !defined(__ARM_ARCH_2__)
 #define RESTORE_ASM_SYNTAX  ".syntax divided                      \n\t"
 #else
 #define RESTORE_ASM_SYNTAX

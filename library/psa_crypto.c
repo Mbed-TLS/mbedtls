@@ -7327,14 +7327,16 @@ static void mbedtls_psa_random_init(mbedtls_psa_random_context_t *rng)
 
 /** Deinitialize the PSA random generator.
  */
-static void mbedtls_psa_random_free(mbedtls_psa_random_context_t *rng)
+void mbedtls_psa_random_free(void)
 {
+    if (global_data.rng_state != RNG_NOT_INITIALIZED) {
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
-    memset(rng, 0, sizeof(*rng));
+        memset(&global_data.rng, 0, sizeof(global_data.rng));
 #else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
-    mbedtls_psa_drbg_free(MBEDTLS_PSA_RANDOM_STATE);
-    rng->entropy_free(&rng->entropy);
+        mbedtls_psa_drbg_free(MBEDTLS_PSA_RANDOM_STATE);
+        global_data.rng.entropy_free(&global_data.rng.entropy);
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+    }
 }
 
 /** Seed the PSA random generator.
@@ -7661,9 +7663,7 @@ psa_status_t mbedtls_psa_crypto_configure_entropy_sources(
 void mbedtls_psa_crypto_free(void)
 {
     psa_wipe_all_key_slots();
-    if (global_data.rng_state != RNG_NOT_INITIALIZED) {
-        mbedtls_psa_random_free(&global_data.rng);
-    }
+    mbedtls_psa_random_free();
     /* Wipe all remaining data, including configuration.
      * In particular, this sets all state indicator to the value
      * indicating "uninitialized". */
@@ -7714,6 +7714,11 @@ psa_status_t psa_crypto_init(void)
     }
     global_data.drivers_initialized = 1;
 
+    status = psa_initialize_key_slots();
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
     /* Initialize and seed the random generator. */
     mbedtls_psa_random_init(&global_data.rng);
     global_data.rng_state = RNG_INITIALIZED;
@@ -7722,11 +7727,6 @@ psa_status_t psa_crypto_init(void)
         goto exit;
     }
     global_data.rng_state = RNG_SEEDED;
-
-    status = psa_initialize_key_slots();
-    if (status != PSA_SUCCESS) {
-        goto exit;
-    }
 
 #if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)
     status = psa_crypto_load_transaction();

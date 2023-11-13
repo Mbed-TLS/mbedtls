@@ -4587,33 +4587,36 @@ common_block_cipher_no_decrypt () {
         -l "-m32"
 }
 
-component_test_block_cipher_no_decrypt_aesni () {
-    # enable BLOCK_CIPHER_NO_DECRYPT and disable its incompatible configs
+# This is a configuration function used in component_test_block_cipher_no_decrypt_xxx:
+# usage: 0: no PSA crypto configuration
+#        1: use PSA crypto configuration
+config_block_cipher_no_decrypt () {
+    use_psa=$1
+
     scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
     scripts/config.py unset MBEDTLS_DES_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
 
+    if [ "$use_psa" -eq 1 ]; then
+        # Enable support for cryptographic mechanisms through the PSA API.
+        # Note: XTS, KW are not yet supported via the PSA API in Mbed TLS.
+        scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+        scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
+        scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
+        scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
+        scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_DES
+    fi
+}
+
+component_test_block_cipher_no_decrypt_aesni () {
+    config_block_cipher_no_decrypt 0
     common_block_cipher_no_decrypt
 }
 
 component_test_block_cipher_no_decrypt_aesni_use_psa () {
-    # enable BLOCK_CIPHER_NO_DECRYPT and disable its incompatible configs
-    scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
-    scripts/config.py unset MBEDTLS_DES_C
-    scripts/config.py unset MBEDTLS_NIST_KW_C
-
-    # Enable support for cryptographic mechanisms through the PSA API.
-    # Note: XTS, KW are not yet supported via the PSA API in Mbed TLS.
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_DES
-
+    config_block_cipher_no_decrypt 1
     common_block_cipher_no_decrypt
 }
 
@@ -4636,20 +4639,7 @@ component_test_block_cipher_no_decrypt_aesce_armcc () {
     scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
     scripts/config.py set MBEDTLS_HAVE_ASM
 
-    # enable BLOCK_CIPHER_NO_DECRYPT and disable its incompatible configs
-    scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
-    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
-    scripts/config.py unset MBEDTLS_DES_C
-    scripts/config.py unset MBEDTLS_NIST_KW_C
-
-    # Enable support for cryptographic mechanisms through the PSA API.
-    # Note: XTS, KW are not yet supported via the PSA API in Mbed TLS.
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_DES
+    config_block_cipher_no_decrypt 1
 
     # test AESCE baremetal build
     scripts/config.py set MBEDTLS_AESCE_C

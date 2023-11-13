@@ -120,10 +120,12 @@ static inline mbedtls_ct_uint_t mbedtls_ct_compiler_opaque(mbedtls_ct_uint_t x)
  * On Thumb 2 and Arm, both compilers are happy with the "s" suffix,
  * although we don't actually care about setting the flags.
  *
- * For gcc, restore divided syntax afterwards - otherwise old versions of gcc
+ * For old versions of gcc excluding 4.8 and 4.9 (see #8516 for details),
+ * restore divided syntax afterwards - otherwise old versions of gcc
  * seem to apply unified syntax globally, which breaks other asm code.
  */
-#if !defined(__clang__) && !(__GNUC__ == 4 && __GNUC_MINOR__ == 9)
+#if defined(MBEDTLS_COMPILER_IS_GCC) && defined(__thumb__) && !defined(__thumb2__) && \
+    (__GNUC__ < 11) && !((__GNUC__ == 4) && ((__GNUC_MINOR__ == 8) || (__GNUC_MINOR__ == 9)))
 #define RESTORE_ASM_SYNTAX  ".syntax divided                      \n\t"
 #else
 #define RESTORE_ASM_SYNTAX

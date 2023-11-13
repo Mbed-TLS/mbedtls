@@ -4536,14 +4536,8 @@ helper_block_cipher_no_decrypt_build_test () {
     cflags="${cflags:-}"
     ldflags="${ldflags:-}"
 
-    for opt in $set_opts; do
-        echo "Enabling $opt"
-        scripts/config.py set $opt
-    done
-    for opt in $unset_opts; do
-        echo "Disabling $opt"
-        scripts/config.py unset $opt
-    done
+    [ -n "$set_opts" ] && echo "Enabling: $set_opts" && scripts/config.py set-all $set_opts
+    [ -n "$unset_opts" ] && echo "Disabling: $unset_opts" && scripts/config.py unset-all $unset_opts
 
     msg "build: default config + BLOCK_CIPHER_NO_DECRYPT${set_opts:+ + $set_opts}${unset_opts:+ - $unset_opts} with $cflags${ldflags:+, $ldflags}"
     make clean

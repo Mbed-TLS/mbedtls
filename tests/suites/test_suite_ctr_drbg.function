@@ -137,10 +137,12 @@ void ctr_drbg_validate_no_reseed(data_t *add_init, data_t *entropy,
                                  data_t *result_string)
 {
     data_t empty = { 0, 0 };
+    AES_PSA_INIT();
     ctr_drbg_validate_internal(RESEED_NEVER, add_init,
                                entropy->len, entropy,
                                &empty, add1, add2,
                                result_string);
+    AES_PSA_DONE();
     goto exit; // goto is needed to avoid warning ( no test assertions in func)
 }
 /* END_CASE */
@@ -151,10 +153,12 @@ void ctr_drbg_validate_pr(data_t *add_init, data_t *entropy,
                           data_t *result_string)
 {
     data_t empty = { 0, 0 };
+    AES_PSA_INIT();
     ctr_drbg_validate_internal(RESEED_ALWAYS, add_init,
                                entropy->len / 3, entropy,
                                &empty, add1, add2,
                                result_string);
+    AES_PSA_DONE();
     goto exit; // goto is needed to avoid warning ( no test assertions in func)
 }
 /* END_CASE */
@@ -164,10 +168,12 @@ void ctr_drbg_validate_reseed_between(data_t *add_init, data_t *entropy,
                                       data_t *add1, data_t *add_reseed,
                                       data_t *add2, data_t *result_string)
 {
+    AES_PSA_INIT();
     ctr_drbg_validate_internal(RESEED_SECOND, add_init,
                                entropy->len / 2, entropy,
                                add_reseed, add1, add2,
                                result_string);
+    AES_PSA_DONE();
     goto exit; // goto is needed to avoid warning ( no test assertions in func)
 }
 /* END_CASE */
@@ -177,10 +183,12 @@ void ctr_drbg_validate_reseed_first(data_t *add_init, data_t *entropy,
                                     data_t *add1, data_t *add_reseed,
                                     data_t *add2, data_t *result_string)
 {
+    AES_PSA_INIT();
     ctr_drbg_validate_internal(RESEED_FIRST, add_init,
                                entropy->len / 2, entropy,
                                add_reseed, add1, add2,
                                result_string);
+    AES_PSA_DONE();
     goto exit; // goto is needed to avoid warning ( no test assertions in func)
 }
 /* END_CASE */
@@ -196,6 +204,8 @@ void ctr_drbg_entropy_strength(int expected_bit_strength)
     size_t byte_strength = expected_bit_strength / 8;
 
     mbedtls_ctr_drbg_init(&ctx);
+
+    AES_PSA_INIT();
     test_offset_idx = 0;
     test_max_idx = sizeof(entropy);
     memset(entropy, 0, sizeof(entropy));
@@ -214,6 +224,7 @@ void ctr_drbg_entropy_strength(int expected_bit_strength)
 
 exit:
     mbedtls_ctr_drbg_free(&ctx);
+    AES_PSA_DONE();
 }
 /* END_CASE */
 
@@ -228,6 +239,9 @@ void ctr_drbg_entropy_usage(int entropy_nonce_len)
     size_t expected_idx = 0;
 
     mbedtls_ctr_drbg_init(&ctx);
+
+    AES_PSA_INIT();
+
     test_offset_idx = 0;
     test_max_idx = sizeof(entropy);
     memset(entropy, 0, sizeof(entropy));
@@ -307,6 +321,7 @@ void ctr_drbg_entropy_usage(int entropy_nonce_len)
 
 exit:
     mbedtls_ctr_drbg_free(&ctx);
+    AES_PSA_DONE();
 }
 /* END_CASE */
 
@@ -317,6 +332,8 @@ void ctr_drbg_seed_file(char *path, int ret)
 
     mbedtls_ctr_drbg_init(&ctx);
 
+    AES_PSA_INIT();
+
     TEST_ASSERT(mbedtls_ctr_drbg_seed(&ctx, mbedtls_test_rnd_std_rand,
                                       NULL, NULL, 0) == 0);
     TEST_ASSERT(mbedtls_ctr_drbg_write_seed_file(&ctx, path) == ret);
@@ -324,12 +341,15 @@ void ctr_drbg_seed_file(char *path, int ret)
 
 exit:
     mbedtls_ctr_drbg_free(&ctx);
+    AES_PSA_DONE();
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void ctr_drbg_selftest()
 {
+    AES_PSA_INIT();
     TEST_ASSERT(mbedtls_ctr_drbg_self_test(1) == 0);
+    AES_PSA_DONE();
 }
 /* END_CASE */

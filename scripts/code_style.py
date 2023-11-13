@@ -90,16 +90,18 @@ def get_src_files(since: Optional[str]) -> List[str]:
 
 def get_uncrustify_version() -> str:
     """
-    Get the version string from Uncrustify
+    Get the version string from Uncrustify.
+
+    Return an empty string if Uncrustify is not found.
     """
-    result = subprocess.run([UNCRUSTIFY_EXE, "--version"],
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                            check=False)
-    if result.returncode != 0:
-        print_err("Could not get Uncrustify version:", str(result.stderr, "utf-8"))
-        return ""
-    else:
-        return str(result.stdout, "utf-8")
+    try:
+        output = subprocess.check_output([UNCRUSTIFY_EXE, "--version"],
+                                         stderr=subprocess.PIPE)
+        return str(output, "utf-8").strip()
+    except FileNotFoundError:
+        sys.stderr.write('Fatal: command {} not found in PATH.\n'
+                         .format(UNCRUSTIFY_EXE))
+        return ''
 
 def check_style_is_correct(src_file_list: List[str]) -> bool:
     """
@@ -170,12 +172,14 @@ def main() -> int:
     """
     Main with command line arguments.
     """
-    uncrustify_version = get_uncrustify_version().strip()
+    uncrustify_version = get_uncrustify_version()
     if UNCRUSTIFY_SUPPORTED_VERSION not in uncrustify_version:
-        print("Warning: Using unsupported Uncrustify version '" +
-              uncrustify_version + "'")
-        print("Note: The only supported version is " +
-              UNCRUSTIFY_SUPPORTED_VERSION)
+        if uncrustify_version != '':
+            sys.stderr.write('Fatal: wrong uncrustify version ({}).\n'
+                             .format(uncrustify_version))
+        sys.stderr.write('You need uncrustify {} for correct results.\n'
+                         .format(UNCRUSTIFY_SUPPORTED_VERSION))
+        return 2
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--fix', action='store_true',

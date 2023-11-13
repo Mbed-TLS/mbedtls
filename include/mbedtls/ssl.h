@@ -3777,7 +3777,7 @@ void MBEDTLS_DEPRECATED mbedtls_ssl_conf_sig_hashes(mbedtls_ssl_config *conf,
 #endif /* !MBEDTLS_DEPRECATED_REMOVED && MBEDTLS_SSL_PROTO_TLS1_2 */
 
 /**
- * \brief          Configure allowed signature algorithms
+ * \brief          Configure allowed signature algorithms for use in TLS
  *
  * \param conf     The SSL configuration to use.
  * \param sig_algs List of allowed IANA values for TLS 1.3 signature algorithms,

@@ -128,7 +128,7 @@ Every cryptographic mechanism for which a transparent driver interface exists (k
 
 The driver interface includes a fallback mechanism so that a driver can reject a request at runtime and let another driver handle the request. For each entry point, there must be at least three test runs with two or more drivers available with driver A configured to fall back to driver B, with one run where A returns `PSA_SUCCESS`, one where A returns `PSA_ERROR_NOT_SUPPORTED` and B is invoked, and one where A returns a different error and B is not invoked.
 
-### Test framework
+### Test drivers
 
 We have test drivers that are enabled by `PSA_CRYPTO_DRIVER_TEST` (not present
 in the usual config files, must be defined on the command line or in a custom
@@ -145,8 +145,9 @@ transparent test driver.
 
 Each entry point is instrumented to record the number of hits for each part of
 the driver (same division as the files) and the status of the last call. It is
-also possible to force the next call to return a specified status. See the
-various `mbedtls_test_driver_XXX_hooks_t` structures declared by each driver.
+also possible to force the next call to return a specified status, and
+sometimes more things can be forced: see the various
+`mbedtls_test_driver_XXX_hooks_t` structures declared by each driver.
 
 The drivers can use one of two back-ends:
 - internal: this requires the built-in implementation to be present.
@@ -172,6 +173,12 @@ corresponding `mbedtls_psa_xxx()` function that it can call as its
 implementation - with the `libtestdriver1` back-end the function is called
 `libtestdriver1_mbedtls_psa_xxx()` instead.
 
+A nice consequence of that strategy is that when an entry point has
+test-driver support, most of the time, it automatically works for all
+algorithms and key types supported by the library. (The exception being when
+the driver needs to call a different function for different key types, as is
+the case with some asymmetric key management operations.)
+
 The renaming process for `libtestdriver1` is implemented as a few Perl regexes
 applied to a copy of the library code, see the `libtestdriver1.a` target in
 `tests/Makefile`. Another modification that's done to this copy is appending
@@ -188,47 +195,220 @@ following sub-sections describe the status of the test driver support, mostly
 following the structure and order of sections 9.6 and 10.2 to 10.10 of the
 [PSA Crypto standard](https://arm-software.github.io/psa-api/crypto/1.1/) as
 that is also a natural division for implementing test drivers (that's how the
-code is divided into files). It should be noted that the implementation
-strategy ensures that when and entry point has test-driver support, it
-automatically works for all algorithms and key types supported by the library,
-thanks to the implementation strategy mentioned above.
+code is divided into files).
 
 #### Key management
 
-TODO
+The following entry points are declared in `test/drivers/key_management.h`:
+
+- `"init"` (transparent and opaque)
+- `"generate_key"` (transparent and opaque)
+- `"export_public_key"` (transparent and opaque)
+- `"import_key"` (transparent and opaque)
+- `"export_key"` (opaque only)
+- `"get_builtin_key"` (opaque only)
+- `"copy_key"` (opaque only)
+
+The transparent driver fully implements the declared entry points, and can use
+any backend: internal or libtestdriver1.
+
+The opaque's driver implementation status is as follows:
+- `"generate_key"`: not implemented, always returns `NOT_SUPPORTED`.
+- `"export_public_key"`: implemented only for ECC and RSA keys, both backends.
+- `"import_key"`: implemented except for DH keys, both backends.
+- `"export_key"`: implemented for built-in keys (ECC and AES), and for
+  non-builtin keys except DH keys. (Backend not relevant.)
+- `"get_builtin_key"`: implemented - provisioned keys: AES-128 and ECC
+  secp2456r1. (Backend not relevant.)
+- `"copy_key"`: implemented - emulates a SE without storage. (Backend not
+  relevant.)
+
+Note: the `"init"` entry point is not part of the "key management" family, but
+listed here as it's declared and implemented in the same file. With the
+transparent driver and the libtestdriver1 backend, it calls
+`libtestdriver1_psa_crypto_init()`, which partially but not fully ensures
+that this entry point is called before other entry points in the test drivers.
+With the opaque driver, this entry point just does nothing an returns success.
+
+The following entry points are defined by the driver interface but missing
+from our test drivers:
+- `"allocate_key"`, `"destroy_key"`: this is for opaque drivers that store the
+  key material internally.
+
+Note: the instrumentation also allows forcing the output and its length.
 
 #### Message digests (Hashes)
 
-TODO
+The following entry points are declared (transparent only):
+- `"hash_compute"`
+- `"hash_setup"`
+- `"hash_clone"`
+- `"hash_update"`
+- `"hash_finish"`
+- `"hash_abort"`
+
+The transparent driver fully implements the declared entry points, and can use
+any backend: internal or libtestdriver1.
+
+This familly is not part of the opaque driver as it doesn't use keys.
 
 #### Message authentication codes (MAC)
 
-TODO
+The following entry points are declared (transparent and opaque):
+- `"mac_compute"`
+- `"mac_sign_setup"`
+- `"mac_verify_setup"`
+- `"mac_update"`
+- `"mac_sign_finish"`
+- `"mac_verify_finish"`
+- `"mac_abort"`
+
+The transparent driver fully implements the declared entry points, and can use
+any backend: internal or libtestdriver1.
+
+The opaque driver only implements the instrumentation but not the actual
+operations: entry points will always return `NOT_SUPPORTED`, unless another
+status is forced.
+
+The following entry points are not implemented:
+- `mac_verify`: this mostly makes sense for opaque drivers; the code will fall
+  back to using `"mac_compute"` if this is not implemented. So, perhaps
+ideally we should test both with `"mac_verify"` implemented and with it not
+implemented? Anyway, we have a test gap here.
 
 #### Unauthenticated ciphers
 
-TODO
+The following entry points are declared (transparent and opaque):
+- `"cipher_encrypt"`
+- `"cipher_decrypt"`
+- `"cipher_encrypt_setup"`
+- `"cipher_decrypt_setup"`
+- `"cipher_set_iv"`
+- `"cipher_update"`
+- `"cipher_finish"`
+- `"cipher_abort"`
+
+The transparent driver fully implements the declared entry points, and can use
+any backend: internal or libtestdriver1.
+
+The opaque driver is not implemented at all, neither instumentation nor the
+operation: entry points always return `NOT_SUPPORTED`.
+
+Note: the instrumentation also allows forcing a specific output and output
+length.
 
 #### Authenticated encryption with associated data (AEAD)
 
-TODO
+The following entry points are declared (transparent only):
+- `"aead_encrypt"`
+- `"aead_decrypt"`
+- `"aead_encrypt_setup"`
+- `"aead_decrypt_setup"`
+- `"aead_set_nonce"`
+- `"aead_set_lengths"`
+- `"aead_update_ad"`
+- `"aead_update"`
+- `"aead_finish"`
+- `"aead_verify"`
+- `"aead_abort"`
+
+The transparent driver fully implements the declared entry points, and can use
+any backend: internal or libtestdriver1.
+
+The opaque driver does not implement or even declare entry points for this
+family.
+
+Note: the instrumentation records the number of hits per entry point, not just
+the total number of hits for this family.
 
 #### Key derivation
 
-TODO
+Not covered at all by the test drivers.
+
+That's a gap in our testing, as the driver interface does define a key
+derivation family of entry points. This gap is probably related to the fact
+that our internal code structure doesn't obey the guidelines and is not
+aligned with the driver interface, see #5488 and related issues.
 
 #### Asymmetric signature
 
-TODO
+The following entry points are declared (transparent and opaque):
+
+- `"sign_message"`
+- `"verify_message"`
+- `"sign_hash"`
+- `"verify_hash"`
+
+The transparent driver fully implements the declared entry points, and can use
+any backend: internal or libtestdriver1.
+
+The opaque driver is not implemented at all, neither instumentation nor the
+operation: entry points always return `NOT_SUPPORTED`.
+
+Note: the instrumentation also allows forcing a specific output and output
+length, and has two instance of the hooks structure: one for sign, the other
+for verify.
+
+Note: when a driver implements only the `"xxx_hash"` entry points, the core is
+supposed to implement the `psa_xxx_message()` functions by computing the hash
+itself before calling the `"xxx_hash"` entry point. Since the test driver does
+implement the `"xxx_message"` entry point, it's not exercising that part of
+the core's expected behaviour.
 
 #### Asymmetric encryption
 
-TODO
+The following entry points are declared (transparent and opaque):
+
+- `"asymmetric_encrypt"`
+- `"asymmetric_decrypt"`
+
+The transparent driver fully implements the declared entry points, and can use
+any backend: internal or libtestdriver1.
+
+The opaque driver is not implemented at all, neither instumentation nor the
+operation: entry points always return `NOT_SUPPORTED`.
+
+Note: the instrumentation also allows forcing a specific output and output
+length.
 
 #### Key agreement
 
-TODO
+The following entry points are declared (transparent and opaque):
+
+- `"key_agreement"`
+
+The transparent driver fully implements the declared entry points, and can use
+any backend: internal or libtestdriver1.
+
+The opaque driver is not implemented at all, neither instumentation nor the
+operation: entry points always return `NOT_SUPPORTED`.
+
+Note: the instrumentation also allows forcing a specific output and output
+length.
 
 #### Other cryptographic services (Random number generation)
 
-TODO
+Not covered at all by the test drivers.
+
+The driver interface defines a `"get_entropy"` entry point, as well as a
+"Random generation" family of entry points. None of those are currently
+implemented in the library. Part of it will be planned for 4.0, see #8150.
+
+#### PAKE extension
+
+The following entry points are declared (transparent only):
+- `"pake_setup"`
+- `"pake_output"`
+- `"pake_input"`
+- `"pake_get_implicit_key"`
+- `"pake_abort"`
+
+Note: the instrumentation records hits per entry point and allows forcing the
+output and its length, as well as forcing the status of setup independently
+from the others.
+
+The transparent driver fully implements the declared entry points, and can use
+any backend: internal or libtestdriver1.
+
+The opaque driver does not implement or even declare entry points for this
+family.

@@ -4525,7 +4525,7 @@ helper_block_cipher_no_decrypt_build_test () {
             -u)
                 shift; local unset_opts="$1";;
             -c)
-                shift; local cflags="$1";;
+                shift; local cflags="-Werror -Wall -Wextra $1";;
             -l)
                 shift; local ldflags="$1";;
         esac
@@ -4569,22 +4569,21 @@ common_block_cipher_no_decrypt () {
     # test AESNI intrinsics
     helper_block_cipher_no_decrypt_build_test \
         -s "MBEDTLS_AESNI_C" \
-        -c "-Werror -Wall -Wextra -mpclmul -msse2 -maes"
+        -c "-mpclmul -msse2 -maes"
 
     # test AESNI assembly
     helper_block_cipher_no_decrypt_build_test \
         -s "MBEDTLS_AESNI_C" \
-        -c "-Werror -Wall -Wextra -mno-pclmul -mno-sse2 -mno-aes"
+        -c "-mno-pclmul -mno-sse2 -mno-aes"
 
     # test AES C implementation
     helper_block_cipher_no_decrypt_build_test \
-        -u "MBEDTLS_AESNI_C" \
-        -c "-Werror -Wall -Wextra"
+        -u "MBEDTLS_AESNI_C"
 
     # test AESNI intrinsics for i386 target
     helper_block_cipher_no_decrypt_build_test \
         -s "MBEDTLS_AESNI_C" \
-        -c "-m32 -Werror -Wall -Wextra -mpclmul -msse2 -maes" \
+        -c "-m32 -mpclmul -msse2 -maes" \
         -l "-m32"
 }
 

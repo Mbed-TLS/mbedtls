@@ -890,34 +890,14 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
 
     AES_FROUND(t.Y[0], t.Y[1], t.Y[2], t.Y[3], t.X[0], t.X[1], t.X[2], t.X[3]);
 
-    t.X[0] = *RK++ ^ \
-             ((uint32_t) FSb[MBEDTLS_BYTE_0(t.Y[0])]) ^
-             ((uint32_t) FSb[MBEDTLS_BYTE_1(t.Y[1])] <<  8) ^
-             ((uint32_t) FSb[MBEDTLS_BYTE_2(t.Y[2])] << 16) ^
-             ((uint32_t) FSb[MBEDTLS_BYTE_3(t.Y[3])] << 24);
+    uint8_t *y8 = (uint8_t *) t.Y;
+    uint8_t *r8 = (uint8_t *) RK;
 
-    t.X[1] = *RK++ ^ \
-             ((uint32_t) FSb[MBEDTLS_BYTE_0(t.Y[1])]) ^
-             ((uint32_t) FSb[MBEDTLS_BYTE_1(t.Y[2])] <<  8) ^
-             ((uint32_t) FSb[MBEDTLS_BYTE_2(t.Y[3])] << 16) ^
-             ((uint32_t) FSb[MBEDTLS_BYTE_3(t.Y[0])] << 24);
-
-    t.X[2] = *RK++ ^ \
-             ((uint32_t) FSb[MBEDTLS_BYTE_0(t.Y[2])]) ^
-             ((uint32_t) FSb[MBEDTLS_BYTE_1(t.Y[3])] <<  8) ^
-             ((uint32_t) FSb[MBEDTLS_BYTE_2(t.Y[0])] << 16) ^
-             ((uint32_t) FSb[MBEDTLS_BYTE_3(t.Y[1])] << 24);
-
-    t.X[3] = *RK++ ^ \
-             ((uint32_t) FSb[MBEDTLS_BYTE_0(t.Y[3])]) ^
-             ((uint32_t) FSb[MBEDTLS_BYTE_1(t.Y[0])] <<  8) ^
-             ((uint32_t) FSb[MBEDTLS_BYTE_2(t.Y[1])] << 16) ^
-             ((uint32_t) FSb[MBEDTLS_BYTE_3(t.Y[2])] << 24);
-
-    MBEDTLS_PUT_UINT32_LE(t.X[0], output,  0);
-    MBEDTLS_PUT_UINT32_LE(t.X[1], output,  4);
-    MBEDTLS_PUT_UINT32_LE(t.X[2], output,  8);
-    MBEDTLS_PUT_UINT32_LE(t.X[3], output, 12);
+    for (i = 0; i < 16; i++) {
+        // adjust output address for byte-order on big-endian platforms
+        int j = i + (MBEDTLS_IS_BIG_ENDIAN ? 3 - (2 * (i % 4)) : 0);
+        output[j] = FSb[y8[(MBEDTLS_IS_BIG_ENDIAN ? (i * 13 + 12) : (i * 5)) % 16]] ^ r8[i];
+    }
 
     mbedtls_platform_zeroize(&t, sizeof(t));
 
@@ -952,34 +932,14 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
 
     AES_RROUND(t.Y[0], t.Y[1], t.Y[2], t.Y[3], t.X[0], t.X[1], t.X[2], t.X[3]);
 
-    t.X[0] = *RK++ ^ \
-             ((uint32_t) RSb[MBEDTLS_BYTE_0(t.Y[0])]) ^
-             ((uint32_t) RSb[MBEDTLS_BYTE_1(t.Y[3])] <<  8) ^
-             ((uint32_t) RSb[MBEDTLS_BYTE_2(t.Y[2])] << 16) ^
-             ((uint32_t) RSb[MBEDTLS_BYTE_3(t.Y[1])] << 24);
+    uint8_t *y8 = (uint8_t *) t.Y;
+    uint8_t *r8 = (uint8_t *) RK;
 
-    t.X[1] = *RK++ ^ \
-             ((uint32_t) RSb[MBEDTLS_BYTE_0(t.Y[1])]) ^
-             ((uint32_t) RSb[MBEDTLS_BYTE_1(t.Y[0])] <<  8) ^
-             ((uint32_t) RSb[MBEDTLS_BYTE_2(t.Y[3])] << 16) ^
-             ((uint32_t) RSb[MBEDTLS_BYTE_3(t.Y[2])] << 24);
-
-    t.X[2] = *RK++ ^ \
-             ((uint32_t) RSb[MBEDTLS_BYTE_0(t.Y[2])]) ^
-             ((uint32_t) RSb[MBEDTLS_BYTE_1(t.Y[1])] <<  8) ^
-             ((uint32_t) RSb[MBEDTLS_BYTE_2(t.Y[0])] << 16) ^
-             ((uint32_t) RSb[MBEDTLS_BYTE_3(t.Y[3])] << 24);
-
-    t.X[3] = *RK++ ^ \
-             ((uint32_t) RSb[MBEDTLS_BYTE_0(t.Y[3])]) ^
-             ((uint32_t) RSb[MBEDTLS_BYTE_1(t.Y[2])] <<  8) ^
-             ((uint32_t) RSb[MBEDTLS_BYTE_2(t.Y[1])] << 16) ^
-             ((uint32_t) RSb[MBEDTLS_BYTE_3(t.Y[0])] << 24);
-
-    MBEDTLS_PUT_UINT32_LE(t.X[0], output,  0);
-    MBEDTLS_PUT_UINT32_LE(t.X[1], output,  4);
-    MBEDTLS_PUT_UINT32_LE(t.X[2], output,  8);
-    MBEDTLS_PUT_UINT32_LE(t.X[3], output, 12);
+    for (i = 0; i < 16; i++) {
+        // adjust output address for byte-order on big-endian platforms
+        int j = i + (MBEDTLS_IS_BIG_ENDIAN ? 3 - (2 * (i % 4)) : 0);
+        output[j] = RSb[y8[(MBEDTLS_IS_BIG_ENDIAN ? i * 5 + 4 : i * 13) % 16]] ^ r8[i];
+    }
 
     mbedtls_platform_zeroize(&t, sizeof(t));
 

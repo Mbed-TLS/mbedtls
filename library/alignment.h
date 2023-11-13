@@ -222,7 +222,11 @@ static inline uint64_t mbedtls_bswap64(uint64_t x)
 static const uint16_t mbedtls_byte_order_detector = { 0x100 };
 #define MBEDTLS_IS_BIG_ENDIAN (*((unsigned char *) (&mbedtls_byte_order_detector)) == 0x01)
 #else
-#define MBEDTLS_IS_BIG_ENDIAN ((__BYTE_ORDER__) == (__ORDER_BIG_ENDIAN__))
+#if (__BYTE_ORDER__) == (__ORDER_BIG_ENDIAN__)
+#define MBEDTLS_IS_BIG_ENDIAN 1
+#else
+#define MBEDTLS_IS_BIG_ENDIAN 0
+#endif
 #endif /* !defined(__BYTE_ORDER__) */
 
 /**

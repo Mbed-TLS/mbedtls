@@ -114,7 +114,7 @@ We should have at least one driver that covers the whole interface:
 
 A PKCS#11 driver would be a good candidate. It would be useful as part of our product offering.
 
-## Transparent driver interface testing
+## Unified driver interface testing
 
 The [unified driver interface](../../proposed/psa-driver-interface.md) defines interfaces for accelerators.
 
@@ -128,6 +128,107 @@ Every cryptographic mechanism for which a transparent driver interface exists (k
 
 The driver interface includes a fallback mechanism so that a driver can reject a request at runtime and let another driver handle the request. For each entry point, there must be at least three test runs with two or more drivers available with driver A configured to fall back to driver B, with one run where A returns `PSA_SUCCESS`, one where A returns `PSA_ERROR_NOT_SUPPORTED` and B is invoked, and one where A returns a different error and B is not invoked.
 
-## Entropy and randomness interface testing
+### Test framework
+
+We have test drivers that are enabled by `PSA_CRYPTO_DRIVER_TEST` (not present
+in the usual config files, must be defined on the command line or in a custom
+config file). Those test drivers are implemented in `tests/src/drivers/*.c`
+and their API is declared in `tests/include/test/drivers/*.h`.
+
+We have two test driver registered: `mbedtls_test_opaque_driver` and
+`mbedtls_test_transparent_driver`. These are described in
+`scripts/data_files/driver_jsons/mbedtls_test_xxx_driver.json` (as much as our
+JSON support currently allows). Each of the drivers can potentially implement
+support for several mechanism; conversely, each of the file mentioned in the
+previous paragraph can potentially contribute to both the opaque and the
+transparent test driver.
+
+Each entry point is instrumented to record the number of hits for each part of
+the driver (same division as the files) and the status of the last call. It is
+also possible to force the next call to return a specified status. See the
+various `mbedtls_test_driver_XXX_hooks_t` structures declared by each driver.
+
+The drivers can use one of two back-ends:
+- internal: this requires the built-in implementation to be present.
+- libtestdriver1: this allows the built-in implementation to be omitted from
+  the build.
+
+Historical note: internal was initially the only back-end; then support for
+libtestdriver1 was added gradually.
+
+Question: if/when we have complete libtestdriver1 support, do we still need
+internal? Thoughts:
+- It's useful to have builds with both a driver and the built-in, in
+order to test fallback to built-in, but this could be achieved with
+libtestdriver1 too.
+  - Performance might be better with internal though?
+- The instrumentation works the same with both back-ends.
+
+Our implementation of PSA Crypto is structured in a way that the built-in
+implementation of each operation follows the driver API, see
+[`../architecture/psa-crypto-implementation-structure.md`](../architecture/psa-crypto-implementation-structure.html).
+This makes implementing the test drivers very easy: each entry point has a
+corresponding `mbedtls_psa_xxx()` function that it can call as its
+implementation - with the `libtestdriver1` back-end the function is called
+`libtestdriver1_mbedtls_psa_xxx()` instead.
+
+The renaming process for `libtestdriver1` is implemented as a few Perl regexes
+applied to a copy of the library code, see the `libtestdriver1.a` target in
+`tests/Makefile`. Another modification that's done to this copy is appending
+`tests/include/test/drivers/crypto_config_test_driver_extension.h` to
+`psa/crypto_config.h`. This file reverses the `ACCEL`/`BUILTIN` macros so that
+`libtestdriver1` includes as built-in what the main `libmbedcrypto.a` will
+have accelerated; see that file's initial comment for details. See also
+`helper_libtestdriver1_` functions and the preceding comment in `all.sh` for
+how libtestdriver is used in practice.
+
+This general framework needs specific code for each family of operations. At a
+given point in time, not all operations have the same level of support. The
+following sub-sections describe the status of the test driver support, mostly
+following the structure and order of sections 9.6 and 10.2 to 10.10 of the
+[PSA Crypto standard](https://arm-software.github.io/psa-api/crypto/1.1/) as
+that is also a natural division for implementing test drivers (that's how the
+code is divided into files). It should be noted that the implementation
+strategy ensures that when and entry point has test-driver support, it
+automatically works for all algorithms and key types supported by the library,
+thanks to the implementation strategy mentioned above.
+
+#### Key management
+
+TODO
+
+#### Message digests (Hashes)
+
+TODO
+
+#### Message authentication codes (MAC)
+
+TODO
+
+#### Unauthenticated ciphers
+
+TODO
+
+#### Authenticated encryption with associated data (AEAD)
+
+TODO
+
+#### Key derivation
+
+TODO
+
+#### Asymmetric signature
+
+TODO
+
+#### Asymmetric encryption
+
+TODO
+
+#### Key agreement
+
+TODO
+
+#### Other cryptographic services (Random number generation)
 
 TODO

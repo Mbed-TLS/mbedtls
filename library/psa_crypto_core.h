@@ -33,16 +33,18 @@
  */
 int psa_can_do_hash(psa_algorithm_t hash_alg);
 
+typedef enum {
+    PSA_SLOT_EMPTY = 0,
+    PSA_SLOT_OCCUPIED,
+} psa_key_slot_status_t;
+
 /** The data structure representing a key slot, containing key material
  * and metadata for one key.
  */
 typedef struct {
     psa_core_key_attributes_t attr;
 
-    enum {
-        PSA_SLOT_EMPTY = 0,
-        PSA_SLOT_OCCUPIED,
-    } status;
+    psa_key_slot_status_t status;
 
     /*
      * Number of locks on the key slot held by the library.

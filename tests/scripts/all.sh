@@ -4555,6 +4555,8 @@ helper_block_cipher_no_decrypt_build_test () {
     not grep mbedtls_camellia_setkey_dec library/camellia.o
     # Make sure we don't have mbedtls_internal_aes_decrypt in AES
     not grep mbedtls_internal_aes_decrypt library/aes.o
+    # Make sure we don't have mbedtls_aesni_inverse_key in AESNI
+    not grep mbedtls_aesni_inverse_key library/aesni.o
 
     msg "test: default config + BLOCK_CIPHER_NO_DECRYPT${set_opts:+ + $set_opts}${unset_opts:+ - $unset_opts} with $cflags${ldflags:+, $ldflags}"
     make test
@@ -4592,7 +4594,7 @@ common_block_cipher_no_decrypt () {
         -l "-m32"
 }
 
-component_test_block_cipher_no_decrypt_aesni_legacy () {
+component_test_block_cipher_no_decrypt_aesni () {
     # enable BLOCK_CIPHER_NO_DECRYPT and disable its incompatible configs
     scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
@@ -4667,7 +4669,7 @@ component_test_block_cipher_no_decrypt_aesce_armcc () {
     not grep mbedtls_camellia_setkey_dec library/camellia.o
     # Make sure we don't have mbedtls_internal_aes_decrypt in AES
     not grep mbedtls_internal_aes_decrypt library/aes.o
-    # Make sure we don't have mbedtls_aesce_inverse_key and aesce_decrypt_block in aesce
+    # Make sure we don't have mbedtls_aesce_inverse_key and aesce_decrypt_block in AESCE
     not grep mbedtls_aesce_inverse_key library/aesce.o
     not grep aesce_decrypt_block library/aesce.o
 }

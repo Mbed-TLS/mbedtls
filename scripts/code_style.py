@@ -88,29 +88,30 @@ def get_src_files(since: Optional[str]) -> List[str]:
                          filename in generated_files)]
     return src_files
 
-def get_uncrustify_version() -> str:
+def get_uncrustify_version(uncrustify_exe: str) -> str:
     """
     Get the version string from Uncrustify.
 
     Return an empty string if Uncrustify is not found.
     """
     try:
-        output = subprocess.check_output([UNCRUSTIFY_EXE, "--version"],
+        output = subprocess.check_output([uncrustify_exe, "--version"],
                                          stderr=subprocess.PIPE)
         return str(output, "utf-8").strip()
     except FileNotFoundError:
         sys.stderr.write('Fatal: command {} not found in PATH.\n'
-                         .format(UNCRUSTIFY_EXE))
+                         .format(uncrustify_exe))
         return ''
 
-def check_style_is_correct(src_file_list: List[str]) -> bool:
+def check_style_is_correct(uncrustify_exe: str,
+                           src_file_list: List[str]) -> bool:
     """
     Check the code style and output a diff for each file whose style is
     incorrect.
     """
     style_correct = True
     for src_file in src_file_list:
-        uncrustify_cmd = [UNCRUSTIFY_EXE] + UNCRUSTIFY_ARGS + [src_file]
+        uncrustify_cmd = [uncrustify_exe] + UNCRUSTIFY_ARGS + [src_file]
         result = subprocess.run(uncrustify_cmd, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, check=False)
         if result.returncode != 0:
@@ -151,7 +152,7 @@ def fix_style_single_pass(src_file_list: List[str]) -> bool:
             return False
     return True
 
-def fix_style(src_file_list: List[str]) -> int:
+def fix_style(uncrustify_exe: str, src_file_list: List[str]) -> int:
     """
     Fix the code style. This takes 2 passes of Uncrustify.
     """
@@ -162,7 +163,7 @@ def fix_style(src_file_list: List[str]) -> int:
 
     # Guard against future changes that cause the codebase to require
     # more passes.
-    if not check_style_is_correct(src_file_list):
+    if not check_style_is_correct(uncrustify_exe, src_file_list):
         print_err("Code style still incorrect after second run of Uncrustify.")
         return 1
     else:
@@ -172,15 +173,6 @@ def main() -> int:
     """
     Main with command line arguments.
     """
-    uncrustify_version = get_uncrustify_version()
-    if UNCRUSTIFY_SUPPORTED_VERSION not in uncrustify_version:
-        if uncrustify_version != '':
-            sys.stderr.write('Fatal: wrong uncrustify version ({}).\n'
-                             .format(uncrustify_version))
-        sys.stderr.write('You need uncrustify {} for correct results.\n'
-                         .format(UNCRUSTIFY_SUPPORTED_VERSION))
-        return 2
-
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--fix', action='store_true',
                         help=('modify source files to fix the code style '
@@ -196,10 +188,22 @@ def main() -> int:
     # way to restyle a possibly empty set of files.
     parser.add_argument('--subset', action='store_true',
                         help='only check the specified files (default with non-option arguments)')
+    parser.add_argument('--uncrustify',
+                        default='uncrustify',
+                        help='uncrustify command to run (default: uncrustify)')
     parser.add_argument('operands', nargs='*', metavar='FILE',
                         help='files to check (files MUST be known to git, if none: check all)')
 
     args = parser.parse_args()
+
+    uncrustify_version = get_uncrustify_version(args.uncrustify)
+    if UNCRUSTIFY_SUPPORTED_VERSION not in uncrustify_version:
+        if uncrustify_version != '':
+            sys.stderr.write('Fatal: wrong uncrustify version ({}).\n'
+                             .format(uncrustify_version))
+        sys.stderr.write('You need uncrustify {} for correct results.\n'
+                         .format(UNCRUSTIFY_SUPPORTED_VERSION))
+        return 2
 
     covered = frozenset(get_src_files(args.since))
     # We only check files that are known to git
@@ -213,10 +217,10 @@ def main() -> int:
 
     if args.fix:
         # Fix mode
-        return fix_style(src_files)
+        return fix_style(args.uncrustify, src_files)
     else:
         # Check mode
-        if check_style_is_correct(src_files):
+        if check_style_is_correct(args.uncrustify, src_files):
             print("Checked {} files, style ok.".format(len(src_files)))
             return 0
         else:

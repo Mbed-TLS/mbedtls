@@ -3687,8 +3687,6 @@ component_test_psa_crypto_config_accel_cipher_aead () {
     not grep mbedtls_chachapoly library/chachapoly.o
     not grep mbedtls_cmac library/cmac.o
 
-    make
-
     # Run the tests
     # -------------
 

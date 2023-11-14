@@ -2449,9 +2449,9 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
  *
  *     struct {
  *       uint8 endpoint;
+ *       uint8 ticket_flags;
  *       uint8 ciphersuite[2];
  *       uint32 ticket_age_add;
- *       uint8 ticket_flags;
  *       uint32 ticket_lifetime;
  *       opaque resumption_key<0..255>;
  *       uint32 max_early_data_size;
@@ -2476,9 +2476,9 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
                           0 : strlen(session->hostname) + 1;
 #endif
     size_t needed =   1                             /* endpoint */
+                    + 1                             /* ticket_flags */
                     + 2                             /* ciphersuite */
                     + 4                             /* ticket_age_add */
-                    + 1                             /* ticket_flags */
                     + 4                             /* ticket_lifetime */
                     + 1;                            /* resumption_key length */
     *olen = 0;
@@ -2522,14 +2522,15 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
     }
 
     p[0] = session->endpoint;
-    MBEDTLS_PUT_UINT16_BE(session->ciphersuite, p, 1);
-    MBEDTLS_PUT_UINT32_BE(session->ticket_age_add, p, 3);
-    p[7] = session->ticket_flags;
+    p[1] = session->ticket_flags;
+    MBEDTLS_PUT_UINT16_BE(session->ciphersuite, p, 2);
+    MBEDTLS_PUT_UINT32_BE(session->ticket_age_add, p, 4);
     MBEDTLS_PUT_UINT32_BE(session->ticket_lifetime, p, 8);
+    p += 12;
 
     /* save resumption_key */
-    p[12] = session->resumption_key_len;
-    p += 13;
+    p[0] = session->resumption_key_len;
+    p += 1;
     memcpy(p, session->resumption_key, session->resumption_key_len);
     p += session->resumption_key_len;
 
@@ -2587,15 +2588,15 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
     session->endpoint = p[0];
-    session->ciphersuite = MBEDTLS_GET_UINT16_BE(p, 1);
-    session->ticket_age_add = MBEDTLS_GET_UINT32_BE(p, 3);
-    session->ticket_flags = p[7];
+    session->ticket_flags = p[1];
+    session->ciphersuite = MBEDTLS_GET_UINT16_BE(p, 2);
+    session->ticket_age_add = MBEDTLS_GET_UINT32_BE(p, 4);
     session->ticket_lifetime = MBEDTLS_GET_UINT32_BE(p, 8);
+    p += 12;
 
     /* load resumption_key */
-    session->resumption_key_len = p[12];
-    p += 13;
-
+    session->resumption_key_len = p[0];
+    p += 1;
     if (end - p < session->resumption_key_len) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }

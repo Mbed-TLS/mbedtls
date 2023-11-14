@@ -22,13 +22,23 @@ EOF
     exit
 fi
 
-IN_MBEDTLS=0
-if [ -d library -a -d include -a -d tests ]; then
-    IN_MBEDTLS=1
+# Detect whether we are in one of Mbed TLS or TF-PSA-Crypto and exit if not
+if [ -d library -a -d include -a -d tests ]; then :;
 elif [ -d core -a -d include -a -d tests ]; then :;
 else
     echo "Must be run from Mbed TLS root or TF-PSA-Crypto root" >&2
     exit 1
+fi
+
+# Now we know we are in one of Mbed TLS or TF-PSA-Crypto, determine which one
+in_mbedtls_build_dir () {
+    test -d library
+}
+
+if in_mbedtls_build_dir; then
+    library_dir='library'
+else
+    library_dir='core'
 fi
 
 UPDATE=
@@ -123,12 +133,12 @@ check scripts/generate_psa_constants.py programs/psa/psa_constant_names_generate
 check tests/scripts/generate_bignum_tests.py $(tests/scripts/generate_bignum_tests.py --list)
 check tests/scripts/generate_ecp_tests.py $(tests/scripts/generate_ecp_tests.py --list)
 check tests/scripts/generate_psa_tests.py $(tests/scripts/generate_psa_tests.py --list)
+check scripts/generate_driver_wrappers.py $library_dir/psa_crypto_driver_wrappers.h $library_dir/psa_crypto_driver_wrappers_no_static.c
 
 # Additional checks for Mbed TLS only
-if [ $IN_MBEDTLS -eq 1 ]; then
+if in_mbedtls_build_dir; then
     check scripts/generate_errors.pl library/error.c
     check scripts/generate_query_config.pl programs/test/query_config.c
-    check scripts/generate_driver_wrappers.py library/psa_crypto_driver_wrappers.h library/psa_crypto_driver_wrappers_no_static.c
     check scripts/generate_features.pl library/version_features.c
     check scripts/generate_ssl_debug_helpers.py library/ssl_debug_helpers_generated.c
     # generate_visualc_files enumerates source files (library/*.c). It doesn't

@@ -546,7 +546,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool_not(mbedtls_ct_condition_t 
     return (mbedtls_ct_condition_t) (~x);
 }
 
-#if __GNUC__ > 4
+#if defined(MBEDTLS_COMPILER_IS_GCC) && (__GNUC__ > 4)
 /* Restore warnings for -Wredundant-decls on gcc */
     #pragma GCC diagnostic pop
 #endif

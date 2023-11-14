@@ -1256,10 +1256,10 @@ struct mbedtls_ssl_session {
 
 #if defined(MBEDTLS_HAVE_TIME)
 #if defined(MBEDTLS_SSL_CLI_C)
-    mbedtls_ms_time_t MBEDTLS_PRIVATE(ticket_reception_time);        /*!< time that ticket was received */
+    mbedtls_ms_time_t MBEDTLS_PRIVATE(ticket_reception_time);   /*!< time when ticket was received. */
 #endif
 #if defined(MBEDTLS_SSL_SRV_C)
-    mbedtls_ms_time_t MBEDTLS_PRIVATE(ticket_creation_time);     /*!< create time of ticket */
+    mbedtls_ms_time_t MBEDTLS_PRIVATE(ticket_creation_time);    /*!< time when ticket was created. */
 #endif
 #endif /* MBEDTLS_HAVE_TIME */
 

@@ -1422,18 +1422,15 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         case 3:
             /* Creation time in the future. */
-            session->ticket_creation_time = mbedtls_ms_time() +
-                                            MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE +
-                                            4 * 1000;
+            session->ticket_creation_time = mbedtls_ms_time() + 1000;
             break;
         case 4:
-            /* Ticket reaches the end of lifetime. */
-            session->ticket_creation_time = mbedtls_ms_time() - session->ticket_lifetime -
-                                            MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE - 4 * 1000;
+            /* Ticket has reached the end of lifetime. */
+            session->ticket_creation_time = mbedtls_ms_time() -
+                                            (7 * 24 * 3600 * 1000 + 1000);
             break;
         case 5:
-            /* Ticket is valid, but client age is beyond the upper bound of tolerance window. */
-
+            /* Ticket is valid, but client age is below the upper bound of tolerance window. */
             session->ticket_age_add += MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE + 4 * 1000;
             /* Make sure the execution time does not affect the result */
             session->ticket_creation_time = mbedtls_ms_time();

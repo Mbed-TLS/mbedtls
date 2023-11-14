@@ -2457,7 +2457,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
  *       uint32 max_early_data_size;
  *       select ( endpoint ) {
  *            case client: ClientOnlyData;
- *            case server: uint64 ticket_creation_time_time;
+ *            case server: uint64 ticket_creation_time;
  *        };
  *     } serialized_session_tls13;
  *
@@ -2492,7 +2492,7 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
 #endif
 
 #if defined(MBEDTLS_HAVE_TIME)
-    needed += 8; /* start_time or ticket_reception_time */
+    needed += 8; /* ticket_creation_time or ticket_reception_time */
 #endif
 
 #if defined(MBEDTLS_SSL_CLI_C)

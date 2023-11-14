@@ -895,7 +895,7 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
 
     for (i = 0; i < 16; i++) {
         // adjust output address for byte-order on big-endian platforms
-        int j = i + (MBEDTLS_IS_BIG_ENDIAN ? 3 - (2 * (i % 4)) : 0);
+        int j = MBEDTLS_IS_BIG_ENDIAN ? i ^ 3 : i;
         output[j] = FSb[y8[(MBEDTLS_IS_BIG_ENDIAN ? (i * 13 + 12) : (i * 5)) % 16]] ^ r8[i];
     }
 
@@ -937,7 +937,7 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
 
     for (i = 0; i < 16; i++) {
         // adjust output address for byte-order on big-endian platforms
-        int j = i + (MBEDTLS_IS_BIG_ENDIAN ? 3 - (2 * (i % 4)) : 0);
+        int j = MBEDTLS_IS_BIG_ENDIAN ? i ^ 3 : i;
         output[j] = RSb[y8[(MBEDTLS_IS_BIG_ENDIAN ? i * 5 + 4 : i * 13) % 16]] ^ r8[i];
     }
 

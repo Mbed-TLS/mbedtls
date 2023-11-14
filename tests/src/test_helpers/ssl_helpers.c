@@ -1752,7 +1752,7 @@ int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
     session->max_early_data_size = 0x87654321;
 #endif
 
-#if defined(MBEDTLS_HAVE_TIME)
+#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
     if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
         session->ticket_creation_time = mbedtls_ms_time() - 42;
     }

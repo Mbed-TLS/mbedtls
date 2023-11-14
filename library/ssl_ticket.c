@@ -498,7 +498,18 @@ int mbedtls_ssl_ticket_parse(void *p_ticket,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if (session->tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
         /* Check for expiration */
-        mbedtls_ms_time_t ticket_age = mbedtls_ms_time() - session->ticket_creation_time;
+        mbedtls_ms_time_t ticket_age = -1;
+#if defined(MBEDTLS_SSL_SRV_C)
+        if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
+            ticket_age = mbedtls_ms_time() - session->ticket_creation_time;
+        }
+#endif
+#if defined(MBEDTLS_SSL_CLI_C)
+        if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
+            ticket_age = mbedtls_ms_time() - session->ticket_reception_time;
+        }
+#endif
+
         mbedtls_ms_time_t ticket_lifetime = ctx->ticket_lifetime * 1000;
 
         if (ticket_age < 0 || ticket_age > ticket_lifetime) {

@@ -125,7 +125,7 @@ check()
 #   - **/CMakeLists.txt (to (re)build them with cmake)
 #   - scripts/make_generated_files.bat (to generate them under Windows)
 
-# These checks are common to Mbed TLS and TF PSA Crypto
+# These checks are common to Mbed TLS and TF-PSA-Crypto
 check scripts/generate_psa_constants.py programs/psa/psa_constant_names_generated.c
 check tests/scripts/generate_bignum_tests.py $(tests/scripts/generate_bignum_tests.py --list)
 check tests/scripts/generate_ecp_tests.py $(tests/scripts/generate_ecp_tests.py --list)

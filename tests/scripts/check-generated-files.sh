@@ -22,23 +22,20 @@ EOF
     exit
 fi
 
-# Detect whether we are in one of Mbed TLS or TF-PSA-Crypto and exit if not
-if [ -d library -a -d include -a -d tests ]; then :;
-elif [ -d core -a -d include -a -d tests ]; then :;
+in_mbedtls_repo () {
+    test -d include -a -d library -a -d programs -a -d tests
+}
+
+in_tf_psa_crypto_repo () {
+    test -d include -a -d core -a -d drivers -a -d programs -a -d tests
+} 
+if in_mbedtls_repo; then
+    library_dir='library'
+elif in_tf_psa_crypto_repo; then 
+    library_dir='core'
 else
     echo "Must be run from Mbed TLS root or TF-PSA-Crypto root" >&2
     exit 1
-fi
-
-# Now we know we are in one of Mbed TLS or TF-PSA-Crypto, determine which one
-in_mbedtls_build_dir () {
-    test -d library
-}
-
-if in_mbedtls_build_dir; then
-    library_dir='library'
-else
-    library_dir='core'
 fi
 
 UPDATE=

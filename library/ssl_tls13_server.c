@@ -1040,7 +1040,7 @@ static int ssl_tls13_key_exchange_psk_available(mbedtls_ssl_context *ssl)
     return ssl_tls13_ticket_is_kex_mode_permitted(
         ssl, MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK) &&
            mbedtls_ssl_conf_tls13_is_psk_enabled(ssl) &&
-           mbedtls_ssl_tls13_psk_enabled(ssl) &&
+           mbedtls_ssl_tls13_is_psk_supported(ssl) &&
            ssl_tls13_client_hello_has_exts_for_psk_key_exchange(ssl);
 #else
     ((void) ssl);
@@ -1055,7 +1055,7 @@ static int ssl_tls13_key_exchange_psk_ephemeral_available(mbedtls_ssl_context *s
     return ssl_tls13_ticket_is_kex_mode_permitted(
         ssl, MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL) &&
            mbedtls_ssl_conf_tls13_is_psk_ephemeral_enabled(ssl) &&
-           mbedtls_ssl_tls13_psk_ephemeral_enabled(ssl) &&
+           mbedtls_ssl_tls13_is_psk_ephemeral_supported(ssl) &&
            ssl_tls13_client_hello_has_exts_for_psk_ephemeral_key_exchange(ssl);
 #else
     ((void) ssl);
@@ -3072,7 +3072,7 @@ static int ssl_tls13_handshake_wrapup(mbedtls_ssl_context *ssl)
  *       expected to be resolved with issue#6395.
  */
     /* Sent NewSessionTicket message only when client supports PSK */
-    if (mbedtls_ssl_tls13_some_psk_enabled(ssl)) {
+    if (mbedtls_ssl_tls13_is_some_psk_supported(ssl)) {
         mbedtls_ssl_handshake_set_state(
             ssl, MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET);
     } else

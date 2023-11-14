@@ -7,7 +7,19 @@
    based on template files in script/data_files/driver_templates/.
 """
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import sys
 import os
@@ -178,8 +190,15 @@ def main() -> int:
 
     mbedtls_root = os.path.abspath(args.mbedtls_root)
 
+    library_dir = ''
+    if build_tree.looks_like_mbedtls_root(mbedtls_root):
+        library_dir = 'library'
+    elif build_tree.looks_like_tf_psa_crypto_root(mbedtls_root):
+        library_dir = 'core'
+        
     output_directory = args.output_directory if args.output_directory is not None else \
-        os.path.join(mbedtls_root, 'library')
+        os.path.join(mbedtls_root, library_dir)
+    
     template_directory = args.template_dir if args.template_dir is not None else \
         os.path.join(mbedtls_root,
                      'scripts',

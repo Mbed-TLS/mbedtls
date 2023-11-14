@@ -1025,7 +1025,7 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_key_exchange_ephemeral_available(mbedtls_ssl_context *ssl)
 {
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
-    return mbedtls_ssl_conf_tls13_ephemeral_enabled(ssl) &&
+    return mbedtls_ssl_conf_tls13_is_ephemeral_enabled(ssl) &&
            ssl_tls13_client_hello_has_exts_for_ephemeral_key_exchange(ssl);
 #else
     ((void) ssl);
@@ -1039,7 +1039,7 @@ static int ssl_tls13_key_exchange_psk_available(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED)
     return ssl_tls13_ticket_is_kex_mode_permitted(
         ssl, MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK) &&
-           mbedtls_ssl_conf_tls13_psk_enabled(ssl) &&
+           mbedtls_ssl_conf_tls13_is_psk_enabled(ssl) &&
            mbedtls_ssl_tls13_psk_enabled(ssl) &&
            ssl_tls13_client_hello_has_exts_for_psk_key_exchange(ssl);
 #else
@@ -1054,7 +1054,7 @@ static int ssl_tls13_key_exchange_psk_ephemeral_available(mbedtls_ssl_context *s
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED)
     return ssl_tls13_ticket_is_kex_mode_permitted(
         ssl, MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL) &&
-           mbedtls_ssl_conf_tls13_psk_ephemeral_enabled(ssl) &&
+           mbedtls_ssl_conf_tls13_is_psk_ephemeral_enabled(ssl) &&
            mbedtls_ssl_tls13_psk_ephemeral_enabled(ssl) &&
            ssl_tls13_client_hello_has_exts_for_psk_ephemeral_key_exchange(ssl);
 #else

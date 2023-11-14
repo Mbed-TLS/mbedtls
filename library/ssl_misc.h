@@ -1907,31 +1907,31 @@ static inline int mbedtls_ssl_conf_tls13_is_kex_mode_enabled(mbedtls_ssl_context
     return (ssl->conf->tls13_kex_modes & kex_mode_mask) != 0;
 }
 
-static inline int mbedtls_ssl_conf_tls13_psk_enabled(mbedtls_ssl_context *ssl)
+static inline int mbedtls_ssl_conf_tls13_is_psk_enabled(mbedtls_ssl_context *ssl)
 {
     return mbedtls_ssl_conf_tls13_is_kex_mode_enabled(ssl,
                                                       MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK);
 }
 
-static inline int mbedtls_ssl_conf_tls13_psk_ephemeral_enabled(mbedtls_ssl_context *ssl)
+static inline int mbedtls_ssl_conf_tls13_is_psk_ephemeral_enabled(mbedtls_ssl_context *ssl)
 {
     return mbedtls_ssl_conf_tls13_is_kex_mode_enabled(ssl,
                                                       MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL);
 }
 
-static inline int mbedtls_ssl_conf_tls13_ephemeral_enabled(mbedtls_ssl_context *ssl)
+static inline int mbedtls_ssl_conf_tls13_is_ephemeral_enabled(mbedtls_ssl_context *ssl)
 {
     return mbedtls_ssl_conf_tls13_is_kex_mode_enabled(ssl,
                                                       MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL);
 }
 
-static inline int mbedtls_ssl_conf_tls13_some_ephemeral_enabled(mbedtls_ssl_context *ssl)
+static inline int mbedtls_ssl_conf_tls13_is_some_ephemeral_enabled(mbedtls_ssl_context *ssl)
 {
     return mbedtls_ssl_conf_tls13_is_kex_mode_enabled(ssl,
                                                       MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ALL);
 }
 
-static inline int mbedtls_ssl_conf_tls13_some_psk_enabled(mbedtls_ssl_context *ssl)
+static inline int mbedtls_ssl_conf_tls13_is_some_psk_enabled(mbedtls_ssl_context *ssl)
 {
     return mbedtls_ssl_conf_tls13_is_kex_mode_enabled(ssl,
                                                       MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL);

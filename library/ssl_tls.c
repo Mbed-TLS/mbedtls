@@ -1342,7 +1342,7 @@ static int ssl_conf_check(const mbedtls_ssl_context *ssl)
      * bad config.
      *
      */
-    if (mbedtls_ssl_conf_tls13_ephemeral_enabled(
+    if (mbedtls_ssl_conf_tls13_is_ephemeral_enabled(
             (mbedtls_ssl_context *) ssl)                            &&
         ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT                &&
         ssl->conf->max_tls_version == MBEDTLS_SSL_VERSION_TLS1_3    &&

@@ -621,7 +621,7 @@ static int ssl_tls13_write_psk_key_exchange_modes_ext(mbedtls_ssl_context *ssl,
     /* Skip writing extension if no PSK key exchange mode
      * is enabled in the config.
      */
-    if (!mbedtls_ssl_conf_tls13_some_psk_enabled(ssl)) {
+    if (!mbedtls_ssl_conf_tls13_is_some_psk_enabled(ssl)) {
         MBEDTLS_SSL_DEBUG_MSG(3, ("skip psk_key_exchange_modes extension"));
         return 0;
     }
@@ -640,14 +640,14 @@ static int ssl_tls13_write_psk_key_exchange_modes_ext(mbedtls_ssl_context *ssl,
      */
     p += 5;
 
-    if (mbedtls_ssl_conf_tls13_psk_ephemeral_enabled(ssl)) {
+    if (mbedtls_ssl_conf_tls13_is_psk_ephemeral_enabled(ssl)) {
         *p++ = MBEDTLS_SSL_TLS1_3_PSK_MODE_ECDHE;
         ke_modes_len++;
 
         MBEDTLS_SSL_DEBUG_MSG(4, ("Adding PSK-ECDHE key exchange mode"));
     }
 
-    if (mbedtls_ssl_conf_tls13_psk_enabled(ssl)) {
+    if (mbedtls_ssl_conf_tls13_is_psk_enabled(ssl)) {
         *p++ = MBEDTLS_SSL_TLS1_3_PSK_MODE_PURE;
         ke_modes_len++;
 
@@ -1161,7 +1161,7 @@ int mbedtls_ssl_tls13_write_client_hello_exts(mbedtls_ssl_context *ssl,
     p += ext_len;
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
-    if (mbedtls_ssl_conf_tls13_some_ephemeral_enabled(ssl)) {
+    if (mbedtls_ssl_conf_tls13_is_some_ephemeral_enabled(ssl)) {
         ret = ssl_tls13_write_key_share_ext(ssl, p, end, &ext_len);
         if (ret != 0) {
             return ret;
@@ -1171,7 +1171,7 @@ int mbedtls_ssl_tls13_write_client_hello_exts(mbedtls_ssl_context *ssl,
 #endif
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (mbedtls_ssl_conf_tls13_some_psk_enabled(ssl) &&
+    if (mbedtls_ssl_conf_tls13_is_some_psk_enabled(ssl) &&
         ssl_tls13_early_data_has_valid_ticket(ssl) &&
         ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED) {
 
@@ -1457,7 +1457,7 @@ static int ssl_tls13_preprocess_server_hello(mbedtls_ssl_context *ssl,
                                  ssl, MBEDTLS_SSL_HS_SERVER_HELLO,
                                  buf, (size_t) (end - buf)));
 
-        if (mbedtls_ssl_conf_tls13_some_ephemeral_enabled(ssl)) {
+        if (mbedtls_ssl_conf_tls13_is_some_ephemeral_enabled(ssl)) {
             ret = ssl_tls13_reset_key_share(ssl);
             if (ret != 0) {
                 return ret;
@@ -1499,7 +1499,7 @@ static int ssl_tls13_preprocess_server_hello(mbedtls_ssl_context *ssl,
              * in the ClientHello.
              * In a PSK only key exchange that what we expect.
              */
-            if (!mbedtls_ssl_conf_tls13_some_ephemeral_enabled(ssl)) {
+            if (!mbedtls_ssl_conf_tls13_is_some_ephemeral_enabled(ssl)) {
                 MBEDTLS_SSL_DEBUG_MSG(1,
                                       ("Unexpected HRR in pure PSK key exchange."));
                 MBEDTLS_SSL_PEND_FATAL_ALERT(
@@ -1776,7 +1776,7 @@ static int ssl_tls13_parse_server_hello(mbedtls_ssl_context *ssl,
 
             case MBEDTLS_TLS_EXT_KEY_SHARE:
                 MBEDTLS_SSL_DEBUG_MSG(3, ("found key_shares extension"));
-                if (!mbedtls_ssl_conf_tls13_some_ephemeral_enabled(ssl)) {
+                if (!mbedtls_ssl_conf_tls13_is_some_ephemeral_enabled(ssl)) {
                     fatal_alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT;
                     goto cleanup;
                 }

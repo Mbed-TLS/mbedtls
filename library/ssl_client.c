@@ -609,7 +609,7 @@ static int ssl_write_client_hello_body(mbedtls_ssl_context *ssl,
         int ssl_write_supported_groups_ext_flags = 0;
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
-        if (propose_tls13 && mbedtls_ssl_conf_tls13_some_ephemeral_enabled(ssl)) {
+        if (propose_tls13 && mbedtls_ssl_conf_tls13_is_some_ephemeral_enabled(ssl)) {
             ssl_write_supported_groups_ext_flags |=
                 SSL_WRITE_SUPPORTED_GROUPS_EXT_TLS1_3_FLAG;
         }
@@ -637,7 +637,7 @@ static int ssl_write_client_hello_body(mbedtls_ssl_context *ssl,
     int write_sig_alg_ext = 0;
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     write_sig_alg_ext = write_sig_alg_ext ||
-                        (propose_tls13 && mbedtls_ssl_conf_tls13_ephemeral_enabled(ssl));
+                        (propose_tls13 && mbedtls_ssl_conf_tls13_is_ephemeral_enabled(ssl));
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     write_sig_alg_ext = write_sig_alg_ext || propose_tls12;
@@ -668,7 +668,7 @@ static int ssl_write_client_hello_body(mbedtls_ssl_context *ssl,
     /* The "pre_shared_key" extension (RFC 8446 Section 4.2.11)
      * MUST be the last extension in the ClientHello.
      */
-    if (propose_tls13 && mbedtls_ssl_conf_tls13_some_psk_enabled(ssl)) {
+    if (propose_tls13 && mbedtls_ssl_conf_tls13_is_some_psk_enabled(ssl)) {
         ret = mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
             ssl, p, end, &output_len, binders_len);
         if (ret != 0) {

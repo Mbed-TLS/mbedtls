@@ -3761,6 +3761,9 @@ component_test_psa_crypto_config_accel_cipher_aead () {
 
     msg "ssl-opt: crypto config with accelerated cipher and AEAD"
     tests/ssl-opt.sh
+
+    msg "compat.sh: crypto config with accelerated cipher and AEAD"
+    tests/compat.sh -V NO -p mbedTLS
 }
 
 component_test_psa_crypto_config_reference_cipher_aead () {
@@ -3774,6 +3777,9 @@ component_test_psa_crypto_config_reference_cipher_aead () {
 
     msg "ssl-opt: crypto config with non-accelerated cipher and AEAD"
     tests/ssl-opt.sh
+
+    msg "compat.sh: crypto config with non-accelerated cipher and AEAD"
+    tests/compat.sh -V NO -p mbedTLS
 }
 
 component_test_aead_chachapoly_disabled() {

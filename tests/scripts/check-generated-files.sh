@@ -32,7 +32,7 @@ in_tf_psa_crypto_repo () {
 
 if in_mbedtls_repo; then
     library_dir='library'
-elif in_tf_psa_crypto_repo; then 
+elif in_tf_psa_crypto_repo; then
     library_dir='core'
 else
     echo "Must be run from Mbed TLS root or TF-PSA-Crypto root" >&2

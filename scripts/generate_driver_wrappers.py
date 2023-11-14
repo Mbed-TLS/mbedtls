@@ -183,10 +183,10 @@ def main() -> int:
         library_dir = 'library'
     elif build_tree.looks_like_tf_psa_crypto_root(mbedtls_root):
         library_dir = 'core'
-        
+
     output_directory = args.output_directory if args.output_directory is not None else \
         os.path.join(mbedtls_root, library_dir)
-    
+
     template_directory = args.template_dir if args.template_dir is not None else \
         os.path.join(mbedtls_root,
                      'scripts',

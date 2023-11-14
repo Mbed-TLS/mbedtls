@@ -4644,7 +4644,7 @@ component_test_block_cipher_no_decrypt_aesce_armcc () {
     # test AESCE baremetal build
     scripts/config.py set MBEDTLS_AESCE_C
     msg "build: default config + BLOCK_CIPHER_NO_DECRYPT with AESCE"
-    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto"
+    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto -Werror -Wall -Wextra"
 
     # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
     not grep mbedtls_aes_setkey_dec library/aes.o

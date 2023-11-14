@@ -248,6 +248,8 @@ int mbedtls_aesce_crypt_ecb(mbedtls_aes_context *ctx,
     if (mode == MBEDTLS_AES_DECRYPT) {
         block = aesce_decrypt_block(block, keys, ctx->nr);
     } else
+#else
+    (void) mode;
 #endif
     {
         block = aesce_encrypt_block(block, keys, ctx->nr);

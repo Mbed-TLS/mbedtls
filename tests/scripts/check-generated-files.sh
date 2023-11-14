@@ -28,7 +28,8 @@ in_mbedtls_repo () {
 
 in_tf_psa_crypto_repo () {
     test -d include -a -d core -a -d drivers -a -d programs -a -d tests
-} 
+}
+
 if in_mbedtls_repo; then
     library_dir='library'
 elif in_tf_psa_crypto_repo; then 
@@ -133,7 +134,7 @@ check tests/scripts/generate_psa_tests.py $(tests/scripts/generate_psa_tests.py 
 check scripts/generate_driver_wrappers.py $library_dir/psa_crypto_driver_wrappers.h $library_dir/psa_crypto_driver_wrappers_no_static.c
 
 # Additional checks for Mbed TLS only
-if in_mbedtls_build_dir; then
+if in_mbedtls_repo; then
     check scripts/generate_errors.pl library/error.c
     check scripts/generate_query_config.pl programs/test/query_config.c
     check scripts/generate_features.pl library/version_features.c

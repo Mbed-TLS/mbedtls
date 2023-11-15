@@ -229,7 +229,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      *
      * NOTE: The typical accuracy of an RTC crystal is ±100 to ±20 parts per
      *       million (360 to 72 milliseconds per hour). Default tolerance
-     *       windows is 6s, thus in the worst case client and servers must
+     *       window is 6s, thus in the worst case clients and servers must
      *       sync up their system time every 6000/360/2~=8 hours.
      */
     client_age = obfuscated_ticket_age - session->ticket_age_add;

@@ -58,8 +58,8 @@
  * indicate the exact location of the problematic call. To locate the error,
  * use a debugger and set a breakpoint on mbedtls_test_mutex_usage_error().
  */
-enum value_of_mutex_is_valid_field {
-    /* Potential values for the is_valid field of mbedtls_threading_mutex_t.
+enum value_of_mutex_state_field {
+    /* Potential values for the state field of mbedtls_threading_mutex_t.
      * Note that MUTEX_FREED must be 0 and MUTEX_IDLE must be 1 for
      * compatibility with threading_mutex_init_pthread() and
      * threading_mutex_free_pthread(). MUTEX_LOCKED could be any nonzero
@@ -117,12 +117,12 @@ static void mbedtls_test_wrap_mutex_free(mbedtls_threading_mutex_t *mutex)
 {
     if (mutex_functions.lock(&mbedtls_test_mutex_mutex) == 0) {
 
-        switch (mutex->is_valid) {
+        switch (mutex->state) {
             case MUTEX_FREED:
                 mbedtls_test_mutex_usage_error(mutex, "free without init or double free");
                 break;
             case MUTEX_IDLE:
-                mutex->is_valid = MUTEX_FREED;
+                mutex->state = MUTEX_FREED;
                 --live_mutexes;
                 break;
             case MUTEX_LOCKED:
@@ -145,13 +145,13 @@ static int mbedtls_test_wrap_mutex_lock(mbedtls_threading_mutex_t *mutex)
      * condition. */
     int ret = mutex_functions.lock(mutex);
     if (mutex_functions.lock(&mbedtls_test_mutex_mutex) == 0) {
-        switch (mutex->is_valid) {
+        switch (mutex->state) {
             case MUTEX_FREED:
                 mbedtls_test_mutex_usage_error(mutex, "lock without init");
                 break;
             case MUTEX_IDLE:
                 if (ret == 0) {
-                    mutex->is_valid = MUTEX_LOCKED;
+                    mutex->state = MUTEX_LOCKED;
                 }
                 break;
             case MUTEX_LOCKED:
@@ -173,7 +173,7 @@ static int mbedtls_test_wrap_mutex_unlock(mbedtls_threading_mutex_t *mutex)
      * change the state is to hold the passed in and internal mutex - otherwise
      * we create a race condition. */
     if (mutex_functions.lock(&mbedtls_test_mutex_mutex) == 0) {
-        switch (mutex->is_valid) {
+        switch (mutex->state) {
             case MUTEX_FREED:
                 mbedtls_test_mutex_usage_error(mutex, "unlock without init");
                 break;
@@ -181,7 +181,7 @@ static int mbedtls_test_wrap_mutex_unlock(mbedtls_threading_mutex_t *mutex)
                 mbedtls_test_mutex_usage_error(mutex, "unlock without lock");
                 break;
             case MUTEX_LOCKED:
-                mutex->is_valid = MUTEX_IDLE;
+                mutex->state = MUTEX_IDLE;
                 break;
             default:
                 mbedtls_test_mutex_usage_error(mutex, "corrupted state");

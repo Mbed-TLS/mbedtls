@@ -29,12 +29,12 @@ extern "C" {
 typedef struct mbedtls_threading_mutex_t {
     pthread_mutex_t MBEDTLS_PRIVATE(mutex);
 
-    /* WARNING - is_valid should only be accessed when holding the mutex lock in
+    /* WARNING - state should only be accessed when holding the mutex lock in
      * tests/src/threading_helpers.c, otherwise corruption can occur.
-     * is_valid will be 0 after a failed init or a free, and nonzero after a
+     * state will be 0 after a failed init or a free, and nonzero after a
      * successful init. This field is for testing only and thus not considered
      * part of the public API of Mbed TLS and may change without notice.*/
-    char MBEDTLS_PRIVATE(is_valid);
+    char MBEDTLS_PRIVATE(state);
 
 } mbedtls_threading_mutex_t;
 #endif

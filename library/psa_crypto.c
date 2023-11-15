@@ -5585,9 +5585,7 @@ psa_status_t psa_crypto_input_copy_alloc(const uint8_t *input, size_t input_len,
     input_copy->buffer = NULL;
     input_copy->len = 0;
 
-    /* Treat NULL and zero-length input the same.
-     * This is simpler than potentially calling calloc(0). */
-    if (input == NULL || input_len == 0) {
+    if (input_len == 0) {
         return PSA_SUCCESS;
     }
 
@@ -5630,9 +5628,7 @@ psa_status_t psa_crypto_output_copy_alloc(uint8_t *output, size_t output_len,
     output_copy->buffer = NULL;
     output_copy->len = 0;
 
-    /* Treat NULL and zero-length input the same.
-     * This is simpler than potentially calling calloc(0). */
-    if (output == NULL || output_len == 0) {
+    if (output_len == 0) {
         return PSA_SUCCESS;
     }
     output_copy->buffer = mbedtls_calloc(output_len, 1);

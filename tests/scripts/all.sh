@@ -1553,7 +1553,7 @@ component_test_full_no_cipher () {
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_LMS_C
     scripts/config.py unset MBEDTLS_LMS_PRIVATE
-    make
+    make CFLAGS='-DMBEDTLS_BLOCK_CIPHER_C'
 
     msg "test: full no CIPHER no PSA_CRYPTO_C"
     make test

@@ -22,6 +22,7 @@ set(src_crypto
     bignum_core.c
     bignum_mod.c
     bignum_mod_raw.c
+    block_cipher.c
     camellia.c
     ccm.c
     chacha20.c

@@ -22,6 +22,13 @@
 #ifndef MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
 #define MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
 
+/* Temporary hack to pacify check_names.py.
+ * (GCM and CCM still hard-depend on CIPHER_C for now.) */
+#if (defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)) && \
+    !defined(MBEDTLS_CIPHER_C)
+#define MBEDTLS_BLOCK_CIPHER_C
+#endif
+
 /* Auto-enable MBEDTLS_MD_LIGHT based on MBEDTLS_MD_C.
  * This allows checking for MD_LIGHT rather than MD_LIGHT || MD_C.
  */

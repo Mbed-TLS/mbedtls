@@ -3985,6 +3985,31 @@ static int ssl_prepare_record_content(mbedtls_ssl_context *ssl,
                                            rec)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "ssl_decrypt_buf", ret);
 
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_SRV_C)
+            /* Although early_data was reject, server might receive early
+             * application data, it is encrypted with early keys and should be
+             * ignore.
+             *
+             * RFC 8446 section 4.2.10
+             *
+             * Ignore the extension and return a regular 1-RTT response. The
+             * server then skips past early data by attempting to deprotect
+             * received records using the handshake traffic key, discarding
+             * records which fail deprotection (up to the configured
+             * max_early_data_size). Once a record is deprotected successfully,
+             * it is treated as the start of the client's second flight and the
+             * server proceeds as with an ordinary 1-RTT handshake.
+             */
+            if (ssl->early_data_status ==
+                MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED) {
+                MBEDTLS_SSL_DEBUG_MSG(
+                    3, ("EarlyData: Ignore application message "
+                        "when rejected"));
+                /* TODO: Add max_early_data_size check here. */
+                ret = MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
+            }
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_SRV_C */
+
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
             if (ret == MBEDTLS_ERR_SSL_UNEXPECTED_CID &&
                 ssl->conf->ignore_unexpected_cid

@@ -3254,14 +3254,6 @@ common_tfm_config () {
     #
     # Enable filesystem I/O for the benefit of PK parse/write tests.
     echo "#define MBEDTLS_FS_IO" >> "$CONFIG_H"
-
-    # Config adjustments for features that are not supported
-    # when using only drivers / by p256-m
-    #
-    # Disable all the features that auto-enable ECP_LIGHT (see config_adjust_legacy_crypto.h)
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
-    # Disable deterministic ECDSA as p256-m only does randomized
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
 }
 
 # Keep this in sync with component_test_tfm_config() as they are both meant
@@ -3271,8 +3263,8 @@ component_test_tfm_config_p256m_driver_accel_ec () {
 
     common_tfm_config
 
-    # Build crypto library specifying we want to use P256M code for EC operations
-    make CFLAGS="$ASAN_CFLAGS -DMBEDTLS_PSA_P256M_DRIVER_ENABLED -I../tests/include/spe" LDFLAGS="$ASAN_CFLAGS"
+    # Build crypto library
+    make CFLAGS="$ASAN_CFLAGS -I../tests/include/spe" LDFLAGS="$ASAN_CFLAGS"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
@@ -3283,6 +3275,8 @@ component_test_tfm_config_p256m_driver_accel_ec () {
     not grep mbedtls_rsa_ library/rsa.o
     not grep mbedtls_dhm_ library/dhm.o
     not grep mbedtls_mpi_ library/bignum.o
+    # Check that p256m was built
+    grep -q p256_ecdsa_verify library/libmbedcrypto.a
 
     # Run the tests
     msg "test: TF-M config + p256m driver + accel ECDH(E)/ECDSA"
@@ -3295,8 +3289,15 @@ component_test_tfm_config_p256m_driver_accel_ec () {
 component_test_tfm_config() {
     common_tfm_config
 
+    # Disable P256M driver, which is on by default, so that analyze_outcomes
+    # can compare this test with test_tfm_config_p256m_driver_accel_ec
+    echo "#undef MBEDTLS_PSA_P256M_DRIVER_ENABLED" >> "$CONFIG_H"
+
     msg "build: TF-M config"
     make CFLAGS='-Werror -Wall -Wextra -I../tests/include/spe' tests
+
+    # Check that p256m was not built
+    not grep p256_ecdsa_verify library/libmbedcrypto.a
 
     msg "test: TF-M config"
     make test

@@ -1100,6 +1100,9 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
     /* Initialize structures */
     mbedtls_ssl_session_init(ssl->session_negotiate);
     ssl_handshake_params_init(ssl->handshake);
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_SRV_C)
+    ssl->session_negotiate->max_early_data_size = ssl->conf->max_early_data_size;
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     mbedtls_ssl_transform_init(ssl->transform_negotiate);

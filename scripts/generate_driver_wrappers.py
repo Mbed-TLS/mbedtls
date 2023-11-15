@@ -108,17 +108,17 @@ def load_driver(schemas: Dict[str, Any], driver_file: str) -> Any:
         return json_data
 
 
-def load_schemas(mbedtls_root: str) -> Dict[str, Any]:
+def load_schemas(repo_root: str) -> Dict[str, Any]:
     """
     Load schemas map
     """
     schema_file_paths = {
-        'transparent': os.path.join(mbedtls_root,
+        'transparent': os.path.join(repo_root,
                                     'scripts',
                                     'data_files',
                                     'driver_jsons',
                                     'driver_transparent_schema.json'),
-        'opaque': os.path.join(mbedtls_root,
+        'opaque': os.path.join(repo_root,
                                'scripts',
                                'data_files',
                                'driver_jsons',
@@ -131,13 +131,13 @@ def load_schemas(mbedtls_root: str) -> Dict[str, Any]:
     return driver_schema
 
 
-def read_driver_descriptions(mbedtls_root: str,
+def read_driver_descriptions(repo_root: str,
                              json_directory: str,
                              jsondriver_list: str) -> list:
     """
     Merge driver JSON files into a single ordered JSON after validation.
     """
-    driver_schema = load_schemas(mbedtls_root)
+    driver_schema = load_schemas(repo_root)
 
     with open(file=os.path.join(json_directory, jsondriver_list),
               mode='r',
@@ -163,11 +163,11 @@ def main() -> int:
     """
     Main with command line arguments.
     """
-    def_arg_mbedtls_root = build_tree.guess_mbedtls_root()
+    def_arg_repo_root = build_tree.guess_mbedtls_root()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mbedtls-root', default=def_arg_mbedtls_root,
-                        help='root directory of mbedtls source code')
+    parser.add_argument('--repo-root', default=def_arg_repo_root,
+                        help='root directory of repo source code')
     parser.add_argument('--template-dir',
                         help='directory holding the driver templates')
     parser.add_argument('--json-dir',
@@ -176,31 +176,31 @@ def main() -> int:
                         help='output file\'s location')
     args = parser.parse_args()
 
-    mbedtls_root = os.path.abspath(args.mbedtls_root)
+    repo_root = os.path.abspath(args.repo_root)
 
     library_dir = ''
-    if build_tree.looks_like_mbedtls_root(mbedtls_root):
+    if build_tree.looks_like_mbedtls_root(repo_root):
         library_dir = 'library'
-    elif build_tree.looks_like_tf_psa_crypto_root(mbedtls_root):
+    elif build_tree.looks_like_tf_psa_crypto_root(repo_root):
         library_dir = 'core'
 
     output_directory = args.output_directory if args.output_directory is not None else \
-        os.path.join(mbedtls_root, library_dir)
+        os.path.join(repo_root, library_dir)
 
     template_directory = args.template_dir if args.template_dir is not None else \
-        os.path.join(mbedtls_root,
+        os.path.join(repo_root,
                      'scripts',
                      'data_files',
                      'driver_templates')
     json_directory = args.json_dir if args.json_dir is not None else \
-        os.path.join(mbedtls_root,
+        os.path.join(repo_root,
                      'scripts',
                      'data_files',
                      'driver_jsons')
 
     try:
         # Read and validate list of driver jsons from driverlist.json
-        merged_driver_json = read_driver_descriptions(mbedtls_root,
+        merged_driver_json = read_driver_descriptions(repo_root,
                                                       json_directory,
                                                       'driverlist.json')
     except DriverReaderException as e:

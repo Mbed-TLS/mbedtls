@@ -8462,7 +8462,9 @@ psa_status_t psa_crypto_copy_input(const uint8_t *input, size_t input_len,
         return PSA_ERROR_CORRUPTION_DETECTED;
     }
 
-    memcpy(input_copy, input, input_len);
+    if (input_len > 0) {
+        memcpy(input_copy, input, input_len);
+    }
 
     return PSA_SUCCESS;
 }
@@ -8486,7 +8488,11 @@ psa_status_t psa_crypto_copy_output(const uint8_t *output_copy, size_t output_co
     if (output_len < output_copy_len) {
         return PSA_ERROR_CORRUPTION_DETECTED;
     }
-    memcpy(output, output_copy, output_copy_len);
+
+    if (output_copy_len > 0) {
+        memcpy(output, output_copy, output_copy_len);
+    }
+
     return PSA_SUCCESS;
 }
 

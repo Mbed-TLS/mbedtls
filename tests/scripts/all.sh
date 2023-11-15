@@ -912,6 +912,39 @@ helper_libtestdriver1_adjust_config() {
     fi
 }
 
+# Build the drivers library libtestdriver1.a (with ASan).
+#
+# Parameters:
+# 1. a space-separated list of things to accelerate;
+# 2. optional: a space-separate list of things to also support.
+# Here "things" are PSA_WANT_ symbols but with PSA_WANT_ removed.
+helper_libtestdriver1_make_drivers() {
+    loc_accel_flags=$( echo "$1 ${2-}" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    make CC=$ASAN_CC -C tests libtestdriver1.a CFLAGS=" $ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
+}
+
+# Build the main libraries, programs and tests,
+# linking to the drivers library (with ASan).
+#
+# Parameters:
+# 1. a space-separated list of things to accelerate;
+# *. remaining arguments if any are passed directly to make
+#    (examples: lib, -C tests test_suite_xxx, etc.)
+# Here "things" are PSA_WANT_ symbols but with PSA_WANT_ removed.
+helper_libtestdriver1_make_main() {
+    loc_accel_list=$1
+    shift
+
+    # we need flags both with and without the LIBTESTDRIVER1_ prefix
+    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" "$@"
+}
+
+################################################################
+#### Configuration helpers
+################################################################
+
 # When called with no parameter this function disables all builtin curves.
 # The function optionally accepts 1 parameter: a space-separated list of the
 # curves that should be kept enabled.
@@ -963,35 +996,6 @@ helper_get_psa_key_type_list() {
     done
 
     echo "$loc_list"
-}
-
-# Build the drivers library libtestdriver1.a (with ASan).
-#
-# Parameters:
-# 1. a space-separated list of things to accelerate;
-# 2. optional: a space-separate list of things to also support.
-# Here "things" are PSA_WANT_ symbols but with PSA_WANT_ removed.
-helper_libtestdriver1_make_drivers() {
-    loc_accel_flags=$( echo "$1 ${2-}" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
-    make CC=$ASAN_CC -C tests libtestdriver1.a CFLAGS=" $ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
-}
-
-# Build the main libraries, programs and tests,
-# linking to the drivers library (with ASan).
-#
-# Parameters:
-# 1. a space-separated list of things to accelerate;
-# *. remaining arguments if any are passed directly to make
-#    (examples: lib, -C tests test_suite_xxx, etc.)
-# Here "things" are PSA_WANT_ symbols but with PSA_WANT_ removed.
-helper_libtestdriver1_make_main() {
-    loc_accel_list=$1
-    shift
-
-    # we need flags both with and without the LIBTESTDRIVER1_ prefix
-    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
-    loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" "$@"
 }
 
 ################################################################

@@ -1253,7 +1253,7 @@ struct mbedtls_ssl_session {
 #endif /*  MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    uint32_t MBEDTLS_PRIVATE(max_early_data_size);          /*!< max_early_data_size of ticket */
+    uint32_t MBEDTLS_PRIVATE(max_early_data_size);          /*!< maximum amount of early data in tickets */
 #endif
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
@@ -2041,6 +2041,10 @@ void mbedtls_ssl_tls13_conf_early_data(mbedtls_ssl_config *conf,
  * \param[in] max_early_data_size   The maximum amount of 0-RTT data.
  *
  * \warning This interface is experimental and may change without notice.
+ *
+ * \warning This interface DOES NOT influence/limit the amount of early data
+ *          that can be received with tickets that were previously created and
+ *          emitted and that clients may have stored.
  *
  */
 void mbedtls_ssl_tls13_conf_max_early_data_size(

@@ -144,8 +144,8 @@ def detect_arch() -> str:
         print("Unknown host architecture, cannot auto-detect arch.")
         sys.exit(1)
 
-TFM_MEDIUM_CONFIG_H = 'configs/tfm_mbedcrypto_config_profile_medium.h'
-TFM_MEDIUM_CRYPTO_CONFIG_H = 'configs/crypto_config_profile_medium.h'
+TFM_MEDIUM_CONFIG_H = 'configs/ext/tfm_mbedcrypto_config_profile_medium.h'
+TFM_MEDIUM_CRYPTO_CONFIG_H = 'configs/ext/crypto_config_profile_medium.h'
 
 CONFIG_H = 'include/mbedtls/mbedtls_config.h'
 CRYPTO_CONFIG_H = 'include/psa/crypto_config.h'

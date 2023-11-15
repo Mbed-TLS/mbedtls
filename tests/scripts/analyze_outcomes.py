@@ -441,6 +441,7 @@ KNOWN_TASKS = {
             'component_driver': 'test_tfm_config_p256m_driver_accel_ec',
             'ignored_suites': [
                 # Modules replaced by drivers
+                'asn1parse', 'asn1write',
                 'ecp', 'ecdsa', 'ecdh', 'ecjpake',
                 'bignum_core', 'bignum_random', 'bignum_mod', 'bignum_mod_raw',
                 'bignum.generated', 'bignum.misc',
@@ -449,12 +450,6 @@ KNOWN_TASKS = {
                 # See ecp_light_only
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',
-                ],
-                'test_suite_asn1parse': [
-                    'INTEGER too large for mpi',
-                ],
-                'test_suite_asn1write': [
-                    re.compile(r'ASN.1 Write mpi.*'),
                 ],
             }
         }

@@ -3173,49 +3173,29 @@ component_test_psa_crypto_config_reference_ecc_ffdh_no_bignum () {
 # - component_test_tfm_config()
 common_tfm_config () {
     # Enable TF-M config
-    cp configs/tfm_mbedcrypto_config_profile_medium.h "$CONFIG_H"
-    cp configs/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
+    cp configs/config-tfm.h "$CONFIG_H"
+    echo "#undef MBEDTLS_PSA_CRYPTO_CONFIG_FILE" >> "$CONFIG_H"
+    cp configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
 
-    # Adjust for the fact that we're building outside the TF-M environment.
-    #
-    # TF-M has separation, our build doesn't
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SPM
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
-    # TF-M provdes its own (dummy) implemenation, from their tree
-    scripts/config.py unset MBEDTLS_AES_DECRYPT_ALT
-    scripts/config.py unset MBEDTLS_AES_SETKEY_DEC_ALT
-    # We have an OS that provides entropy, use it
-    scripts/config.py unset MBEDTLS_NO_PLATFORM_ENTROPY
-
-    # Other config adjustments to make the tests pass.
-    # Those should probably be adopted upstream.
+    # Other config adjustment to make the tests pass.
+    # This should probably be adopted upstream.
     #
     # - USE_PSA_CRYPTO for PK_HAVE_ECC_KEYS
     echo "#define MBEDTLS_USE_PSA_CRYPTO" >> "$CONFIG_H"
-    # pkparse.c and pkwrite.c fail to link without this
-    echo "#define MBEDTLS_OID_C" >> "$CONFIG_H"
-    # - ASN1_[PARSE/WRITE]_C found by check_config.h for pkparse/pkwrite
-    echo "#define MBEDTLS_ASN1_PARSE_C" >> "$CONFIG_H"
-    echo "#define MBEDTLS_ASN1_WRITE_C" >> "$CONFIG_H"
-    # - MD_C for HKDF_C
-    echo "#define MBEDTLS_MD_C" >> "$CONFIG_H"
 
-    # Config adjustments for better test coverage in our environment.
-    # These are not needed just to build and pass tests.
+    # Config adjustment for better test coverage in our environment.
+    # This is not needed just to build and pass tests.
     #
     # Enable filesystem I/O for the benefit of PK parse/write tests.
     echo "#define MBEDTLS_FS_IO" >> "$CONFIG_H"
-    # Disable this for maximal ASan efficiency
-    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
 
     # Config adjustments for features that are not supported
     # when using only drivers / by p256-m
     #
-    # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
+    # Disable all the features that auto-enable ECP_LIGHT (see config_adjust_legacy_crypto.h)
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
     # Disable deterministic ECDSA as p256-m only does randomized
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
-
 }
 
 # Keep this in sync with component_test_tfm_config() as they are both meant
@@ -4068,8 +4048,8 @@ support_build_tfm_armcc () {
 
 component_build_tfm_armcc() {
     # test the TF-M configuration can build cleanly with various warning flags enabled
-    cp configs/tfm_mbedcrypto_config_profile_medium.h "$CONFIG_H"
-    cp configs/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
+    cp configs/ext/tfm_mbedcrypto_config_profile_medium.h "$CONFIG_H"
+    cp configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
 
     msg "build: TF-M config, armclang armv7-m thumb2"
     make clean
@@ -4077,9 +4057,13 @@ component_build_tfm_armcc() {
 }
 
 component_build_tfm() {
-    # test the TF-M configuration can build cleanly with various warning flags enabled
-    cp configs/tfm_mbedcrypto_config_profile_medium.h "$CONFIG_H"
-    cp configs/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
+    # Check that the TF-M configuration can build cleanly with various
+    # warning flags enabled. We don't build or run tests, since the
+    # TF-M configuration needs a TF-M platform. A tweaked version of
+    # the configuration that works on mainstream platforms is in
+    # configs/config-tfm.h, tested via test-ref-configs.pl.
+    cp configs/ext/tfm_mbedcrypto_config_profile_medium.h "$CONFIG_H"
+    cp configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
 
     msg "build: TF-M config, clang, armv7-m thumb2"
     make lib CC="clang" CFLAGS="--target=arm-linux-gnueabihf -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../tests/include/spe"

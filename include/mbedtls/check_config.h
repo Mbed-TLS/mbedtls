@@ -193,6 +193,15 @@
 #error "MBEDTLS_ECDSA_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_PK_C) && defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN) && !defined(MBEDTLS_ASN1_WRITE_C)
+#error "MBEDTLS_PK_C with MBEDTLS_USE_PSA_CRYPTO needs MBEDTLS_ASN1_WRITE_C for ECDSA signature"
+#endif
+#if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY) && !defined(MBEDTLS_ASN1_PARSE_C)
+#error "MBEDTLS_PK_C with MBEDTLS_USE_PSA_CRYPTO needs MBEDTLS_ASN1_PARSE_C for ECDSA verification"
+#endif
+#endif /* MBEDTLS_PK_C && MBEDTLS_USE_PSA_CRYPTO */
+
 #if defined(MBEDTLS_ECJPAKE_C) &&           \
     ( !defined(MBEDTLS_ECP_C) ||            \
       !( defined(MBEDTLS_MD_C) || defined(MBEDTLS_PSA_CRYPTO_C) ) )

@@ -4115,6 +4115,7 @@
  * 6s, thus in the worst case clients and servers must sync up their system time
  * every 6000/360/2~=8 hours.
  *
+ * See section 8.3 of the TLS 1.3 specification(RFC 8446) for more information.
  */
 //#define MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE 6000
 

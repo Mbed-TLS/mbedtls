@@ -593,6 +593,34 @@ server9-bad-mgfhash.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
 		-in $< -out $@
 all_final += server9-bad-mgfhash.crt
 
+# generate crl-rsa-pss-sha*.pem: CA=test-ca.crt, revoke server6.crt server9.crt
+define _generate_crl-rsa-pss
+$(1).pem: $(1).opensslconf $(1).db $(3).crt $(3).key
+	cp $(1).opensslconf $(1).opensslconf.bak
+	$$(OPENSSL) ca -config $(1).opensslconf -crlexts crl_ext \
+		-passin "pass:$(test_ca_pwd_rsa)" -gencrl -days 3650 \
+		-sigopt rsa_padding_mode:pss \
+		-sigopt rsa_pss_saltlen:max -md $(2) \
+		-out $(1).pem
+$(1).opensslconf: ca.opensslconf.jinja2 ../scripts/generate_crl_env_files.py
+	../scripts/generate_crl_env_files.py ca --output $(1).opensslconf --ca_name $(3) --database $(1).db
+$(1).db: $(4) ../scripts/generate_crl_env_files.py
+	../scripts/generate_crl_env_files.py revoke --database $(1).db $(4)
+
+all_intermediate += $(1).opensslconf $(1).db
+all_final += $(1).pem
+
+endef
+define generate-crl-rsa-pss
+$(eval $(call _generate_crl-rsa-pss,crl-rsa-pss-$(1),$(1), test-ca, server6.crt server9.crt))
+endef
+
+$(foreach i, sha1 sha224 sha256 sha384 sha512, $(call generate-crl-rsa-pss,$(i)))
+
+crl-rsa-pss-sha1-badsign.pem: crl-rsa-pss-sha1.pem
+	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
+all_final += crl-rsa-pss-sha1-badsign.pem
+
 # server10*
 
 server10.crt: server10.key test-int-ca3.crt test-int-ca3.key
@@ -1710,8 +1738,36 @@ server1.v1.der.openssl: server1.v1.crt.openssl
 #
 # $(OPENSSL) ca -gencrl -batch -cert $(test_ca_crt) -keyfile $(test_ca_key_file_rsa) -key $(test_ca_pwd_rsa) -config $(test_ca_server1_config_file) -md sha256 -crldays 365 -revoke server1.crt
 
-crl.pem: $(test_ca_crt) $(test_ca_key_file_rsa) $(test_ca_config_file)
-	$(OPENSSL) ca -gencrl -batch -cert $(test_ca_crt) -keyfile $(test_ca_key_file_rsa) -key $(test_ca_pwd_rsa) -config $(test_ca_server1_config_file) -md sha1 -crldays 3653 -out $@
+crl.pem: $(test_ca_crt) $(test_ca_key_file_rsa) crl.pem.opensslconf crl.pem.db
+	$(OPENSSL) ca -config $(filter %.opensslconf,$^) -key $(test_ca_pwd_rsa) \
+		-gencrl -md sha1 -out $@
+crl.pem.opensslconf: ca.opensslconf.jinja2 ../scripts/generate_crl_env_files.py
+	../scripts/generate_crl_env_files.py ca --output $@ --ca_name test-ca --database crl.pem.db
+crl.pem.db: server1.crt test-ca.crt ../scripts/generate_crl_env_files.py
+	../scripts/generate_crl_env_files.py revoke --database $@ $(filter %.crt,$^)
+all_intermediate += crl.pem.opensslconf crl.pem.db
+all_final += crl.pem
+
+define _generate_crl-ec
+$(1).pem: $(1).opensslconf $(1).db $(3).crt $(3).key
+	$$(OPENSSL) ca -config $(1).opensslconf -crlexts crl_ext \
+		-gencrl -md $(2) -out $(1).pem
+$(1).opensslconf: ca.opensslconf.jinja2 ../scripts/generate_crl_env_files.py
+	../scripts/generate_crl_env_files.py ca --output $(1).opensslconf --ca_name $(3) --database $(1).db
+$(1).db: $(4) ../scripts/generate_crl_env_files.py
+	../scripts/generate_crl_env_files.py revoke --database $(1).db $(4)
+
+all_intermediate += $(1).opensslconf $(1).db
+all_final += $(1).pem
+
+endef
+# generate crl-ec-sha*.pem: CA=test-ca2.crt, revoke server6.crt
+define generate-crl-ec
+$(eval $(call _generate_crl-ec,crl-ec-$(1), $(1), test-ca2, server6.crt))
+endef
+
+$(foreach i, sha1 sha224 sha256 sha384 sha512, $(call generate-crl-ec,$(i)))
+
 
 crl-futureRevocationDate.pem: $(test_ca_crt) $(test_ca_key_file_rsa) \
 							  $(test_ca_config_file) 				\

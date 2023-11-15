@@ -2043,8 +2043,8 @@ void mbedtls_ssl_tls13_conf_early_data(mbedtls_ssl_config *conf,
  * \warning This interface is experimental and may change without notice.
  *
  * \warning This interface DOES NOT influence/limit the amount of early data
- *          that can be received with tickets that were previously created and
- *          emitted and that clients may have stored.
+ *          that can be received through previously created and issued tickets,
+ *          which clients may have stored.
  *
  */
 void mbedtls_ssl_tls13_conf_max_early_data_size(

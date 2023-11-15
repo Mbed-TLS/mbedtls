@@ -1,0 +1,3 @@
+Bugfix
+   * Fix the error handling in psa_start_key_creation so that
+     out of memory issues are properly handled. Fixes #8537.

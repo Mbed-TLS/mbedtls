@@ -115,7 +115,7 @@ void pk_parse_keyfile_ec(char *key_file, char *password, int result)
     int res;
 
     mbedtls_pk_init(&ctx);
-    USE_PSA_INIT();
+    MD_PSA_INIT();
 
     res = mbedtls_pk_parse_keyfile(&ctx, key_file, password,
                                    mbedtls_test_rnd_std_rand, NULL);
@@ -134,7 +134,7 @@ void pk_parse_keyfile_ec(char *key_file, char *password, int result)
 
 exit:
     mbedtls_pk_free(&ctx);
-    USE_PSA_DONE();
+    MD_PSA_DONE();
 }
 /* END_CASE */
 

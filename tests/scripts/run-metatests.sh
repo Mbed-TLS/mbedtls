@@ -46,7 +46,7 @@ shift $((OPTIND - 1))
 
 list_matches () {
     while read name platform junk; do
-        for pattern; do
+        for pattern in "$@"; do
             case $platform in
                 $pattern) echo "$name"; break;;
             esac

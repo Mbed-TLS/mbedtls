@@ -5523,6 +5523,19 @@ exit:
     return status;
 }
 
+/** Copy from an input buffer to a local copy.
+ *
+ * \param[in] input             Pointer to input buffer.
+ * \param[in] input_len         Length of the input buffer.
+ * \param[out] input_copy       Pointer to a local copy in which to store the input data.
+ * \param[out] input_copy_len   Length of the local copy buffer.
+ * \return                      #PSA_SUCCESS, if the buffer was successfully
+ *                              copied.
+ * \return                      #PSA_ERROR_CORRUPTION_DETECTED, if the local
+ *                              copy is too small to hold contents of the
+ *                              input buffer.
+ */
+MBEDTLS_STATIC_TESTABLE
 psa_status_t psa_crypto_copy_input(const uint8_t *input, size_t input_len,
                                    uint8_t *input_copy, size_t input_copy_len)
 {
@@ -5535,6 +5548,19 @@ psa_status_t psa_crypto_copy_input(const uint8_t *input, size_t input_len,
     return PSA_SUCCESS;
 }
 
+/** Copy from a local output buffer into a user-supplied one.
+ *
+ * \param[in] output_copy       Pointer to a local buffer containing the output.
+ * \param[in] output_copy_len   Length of the local buffer.
+ * \param[out] output           Pointer to user-supplied output buffer.
+ * \param[out] output_len       Length of the user-supplied output buffer.
+ * \return                      #PSA_SUCCESS, if the buffer was successfully
+ *                              copied.
+ * \return                      #PSA_ERROR_CORRUPTION_DETECTED, if the
+ *                              user-supplied output buffer is too small to
+ *                              hold the contents of the local buffer.
+ */
+MBEDTLS_STATIC_TESTABLE
 psa_status_t psa_crypto_copy_output(const uint8_t *output_copy, size_t output_copy_len,
                                     uint8_t *output, size_t output_len)
 {

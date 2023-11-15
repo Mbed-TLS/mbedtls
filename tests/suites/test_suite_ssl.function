@@ -3674,6 +3674,11 @@ void tls13_early_data(char *scenario_string)
     mbedtls_test_handshake_test_options server_options;
     mbedtls_ssl_session saved_session;
     mbedtls_test_ssl_log_pattern server_pattern = { NULL, 0 };
+    uint16_t group_list[3] = {
+        MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_NONE
+    };
 
     /*
      * Determine scenario.
@@ -3682,6 +3687,8 @@ void tls13_early_data(char *scenario_string)
         scenario = 0;
     } else if (strcmp(scenario_string, "deprotect and discard") == 0) {
         scenario = 1;
+    } else if (strcmp(scenario_string, "discard after HRR") == 0) {
+        scenario = 2;
     } else {
         TEST_FAIL("Unknown scenario.");
     }
@@ -3700,7 +3707,7 @@ void tls13_early_data(char *scenario_string)
     client_options.pk_alg = MBEDTLS_PK_ECDSA;
     ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
                                          &client_options, NULL, NULL, NULL,
-                                         NULL);
+                                         group_list);
     TEST_EQUAL(ret, 0);
     mbedtls_ssl_conf_early_data(&client_ep.conf, MBEDTLS_SSL_EARLY_DATA_ENABLED);
 
@@ -3709,7 +3716,7 @@ void tls13_early_data(char *scenario_string)
     server_options.srv_log_obj = &server_pattern;
     ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
                                          &server_options, NULL, NULL, NULL,
-                                         NULL);
+                                         group_list);
     TEST_EQUAL(ret, 0);
     mbedtls_ssl_conf_early_data(&server_ep.conf, MBEDTLS_SSL_EARLY_DATA_ENABLED);
     mbedtls_ssl_conf_session_tickets_cb(&server_ep.conf,
@@ -3763,6 +3770,19 @@ void tls13_early_data(char *scenario_string)
             mbedtls_ssl_conf_early_data(&server_ep.conf,
                                         MBEDTLS_SSL_EARLY_DATA_DISABLED);
             break;
+
+        case 2: /* discard after HRR */
+            mbedtls_debug_set_threshold(3);
+            server_pattern.pattern =
+                "EarlyData: Ignore application message before 2nd ClientHello";
+            mbedtls_ssl_conf_groups(&server_ep.conf, group_list + 1);
+            /*
+             * Need to reset again to reconstruct the group list in the
+             * handshake structure from the configured one.
+             */
+            ret = mbedtls_ssl_session_reset(&(server_ep.ssl));
+            TEST_EQUAL(ret, 0);
+            break;
     }
 
     TEST_EQUAL(mbedtls_test_move_handshake_to_state(
@@ -3793,7 +3813,8 @@ void tls13_early_data(char *scenario_string)
                            MBEDTLS_SSL_HANDSHAKE_WRAPUP), 0);
             break;
 
-        case 1:
+        case 1: /* Intentional fallthrough */
+        case 2:
             TEST_EQUAL(ret, 0);
             TEST_EQUAL(server_ep.ssl.handshake->early_data_accepted, 0);
             TEST_EQUAL(server_pattern.counter, 1);

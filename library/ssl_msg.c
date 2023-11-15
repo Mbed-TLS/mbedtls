@@ -4070,6 +4070,32 @@ static int ssl_prepare_record_content(mbedtls_ssl_context *ssl,
 
     }
 
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_SRV_C)
+    /* When early data indication is received, and HRR is sent.
+     *
+     * RFC 8446 section 4.2.10
+     *
+     * - Request that the client send another ClientHello by responding with a
+     *   HelloRetryRequest.  A client MUST NOT include the "early_data"
+     *   extension in its followup ClientHello.  The server then ignores early
+     *   data by skipping all records with an external content type of
+     *   "application_data" (indicating that they are encrypted), up to the
+     *   configured max_early_data_size. Ignore application data message before
+     *   2nd ClientHello when early_data was received in 1st ClientHello.
+     */
+    if (ssl->transform_in == NULL &&
+        rec->type ==  MBEDTLS_SSL_MSG_APPLICATION_DATA &&
+        ssl->handshake->hello_retry_request_count > 0 &&
+        (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED ||
+         ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED)) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            3, ("EarlyData: Ignore application message "
+                "before 2nd ClientHello"));
+        /* TODO: Add max_early_data_size check here. */
+        return MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
+    }
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_SRV_C */
+
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
     if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
         mbedtls_ssl_dtls_replay_update(ssl);

@@ -98,9 +98,9 @@ void input_copy_alloc(int input_len, psa_status_t exp_status)
             TEST_ASSERT(input_copy.buffer == NULL);
         } else {
             TEST_ASSERT(input_copy.buffer != input);
-            TEST_MEMORY_COMPARE(input, input_len,
-                                input_copy.buffer, input_copy.len);
         }
+        TEST_MEMORY_COMPARE(input, input_len,
+                            input_copy.buffer, input_copy.len);
     }
 
 exit:
@@ -169,9 +169,8 @@ void output_copy_alloc(int output_len, psa_status_t exp_status)
         TEST_ASSERT(output_copy.original == output);
         if (output == NULL) {
             TEST_ASSERT(output_copy.buffer == NULL);
-        } else {
-            TEST_EQUAL(output_copy.len, output_len);
         }
+        TEST_EQUAL(output_copy.len, output_len);
     }
 
 exit:
@@ -215,10 +214,8 @@ void output_copy_free(int output_len, int original_is_null,
     if (exp_status == PSA_SUCCESS) {
         TEST_ASSERT(output_copy.buffer == NULL);
         TEST_EQUAL(output_copy.len, 0);
-        if (output != NULL) {
-            TEST_MEMORY_COMPARE(buffer_copy_for_comparison, output_len,
-                                output, output_len);
-        }
+        TEST_MEMORY_COMPARE(buffer_copy_for_comparison, output_len,
+                            output, output_len);
     }
 
 exit:

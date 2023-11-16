@@ -141,7 +141,7 @@ void mutex_lock_not_initialized(const char *name)
     (void) name;
     /* Mutex usage verification is only done with pthread, not with other
      * threading implementations. See tests/src/threading_helpers.c. */
-#if defined(MBEDTLS_THREADING_PTHREAD)
+#if defined(MBEDTLS_THREADING_C)
     mbedtls_threading_mutex_t mutex;
     memset(&mutex, 0, sizeof(mutex));
     TEST_ASSERT(mbedtls_mutex_lock(&mutex) == 0);
@@ -203,7 +203,7 @@ void mutex_leak(const char *name)
     (void) name;
     /* Mutex usage verification is only done with pthread, not with other
      * threading implementations. See tests/src/threading_helpers.c. */
-#if defined(MBEDTLS_THREADING_PTHREAD)
+#if defined(MBEDTLS_THREADING_C)
     mbedtls_threading_mutex_t mutex;
     mbedtls_mutex_init(&mutex);
 #endif

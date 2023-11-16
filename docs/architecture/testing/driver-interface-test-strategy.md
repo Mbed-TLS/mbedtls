@@ -412,3 +412,152 @@ any backend: internal or libtestdriver1.
 
 The opaque driver does not implement or even declare entry points for this
 family.
+
+### Driver wrapper test suite
+
+We have a test suite dedicated to driver dispatch, which takes advantage of the
+instrumentation in the test drivers described in the previous section, in
+order to check that drivers are called when they're supposed to, and that the
+core behaves as expected when they return errors (in particular, that we fall
+back to the built-in implementation when the driver returns `NOT_SUPPORTED).
+
+This is `test_suite_psa_crypto_driver_wrappers`, which is maintained manually
+(that is, the test cases in the `.data` files are not auto-generated). The
+entire test suite depends on the test drivers being enabled
+(`PSA_CRYPTO_DRIVER_TEST`), which is not the case in the default or full
+config.
+
+#### Configurations coverage
+
+The driver wrappers test suite has cases that expect both the driver and the
+built-in to be present, and also cases that expect the driver to be present
+but not the built-in. As such, it's impossible for a single configuration to
+run all test cases, and we need at least two: driver+built-in, and
+driver-only.
+
+- The driver+built-in case is covered by `test_psa_crypto_drivers` in `all.sh`.
+This covers all areas (key types and algs) at once.
+- The driver-only case is split into multiple `all.sh` components whose names
+  start with `test_psa_crypto_config_accel`; we have one or more component per
+area, see below.
+
+Here's a summary of driver-only coverage, grouped by families of key types.
+
+Hash (key types: none)
+- `test_psa_crypto_config_accel_hash`: all algs, default config, no parity
+  testing.
+- `test_psa_crypto_config_accel_hash_use_psa`: all algs, full config, with
+  parity testing.
+
+HMAC (key type: HMAC)
+- No driver-only testing here, see #8564.
+
+Cipher, AEAD and CMAC (key types: DES, AES, ARIA, CHACHA20, CAMELLIA):
+- `test_psa_crypto_config_accel_cipher_aead`: all key types and algs, full
+  config with a few exclusions (PKCS5, PKCS12, NIST-KW), with parity testing.
+- `test_psa_crypto_config_accel_cipher`: only DES (with all algs), full
+  config, no parity testing.
+- `test_psa_crypto_config_accel_aead`: only AEAD algs (with all relevant key
+  types), full config, no parity testing.
+
+Key derivation (key types: `DERIVE`, `RAW_DATA`, `PASSWORD`, `PEPPER`,
+`PASSWORD_HASH`):
+- No testing as we don't have test driver support yet (see previous section).
+
+RSA (key types: `RSA_KEY_PAIR_xxx`, `RSA_PUBLIC_KEY`):
+- `test_psa_crypto_config_accel_rsa_signature`: only signature algorithms,
+  default config, no parity testing.
+- No testing of driver-only encryption yet, see #8553.
+
+DH (key types: `DH_KEY_PAIR_xxx`, `DH_PUBLIC_KEY`):
+- `test_psa_crypto_config_accel_ffdh`: all key types and algs, full config,
+  with parity testing.
+- `test_psa_crypto_config_accel_ecc_ffdh_no_bignum`: with also bignum removed.
+
+ECC (key types: `ECC_KEY_PAIR_xxx`, `ECC_PUBLIC_KEY`):
+- Single algorithm accelerated (both key types, all curves):
+  - `test_psa_crypto_config_accel_ecdh`: default config, no parity testing.
+  - `test_psa_crypto_config_accel_ecdsa`: default config, no parity testing.
+  - `test_psa_crypto_config_accel_pake`: full config, no parity testing.
+- All key types, algs and curves accelerated (full config with exceptions,
+  with parity testing):
+  - `test_psa_crypto_config_accel_ecc_ecp_light_only`: `ECP_C` mostly disabled
+  - `test_psa_crypto_config_accel_ecc_no_ecp_at_all`: `ECP_C` fully disabled
+  - `test_psa_crypto_config_accel_ecc_no_bignum`: `BIGNUM_C` disabled (DH disabled)
+  - `test_psa_crypto_config_accel_ecc_ffdh_no_bignum`: `BIGNUM_C` disabled (DH accelerated)
+- Other - all algs accelerated but only some algs/curves (full config with
+  exceptions, no parity testing):
+  - `test_psa_crypto_config_accel_ecc_some_key_types`
+  - `test_psa_crypto_config_accel_ecc_non_weierstrass_curves`
+  - `test_psa_crypto_config_accel_ecc_weierstrass_curves`
+
+Note: `analyze_outcomes.py` provides a list of test cases that are not
+executed in any configuration tested on the CI. Currently it flags some RSA
+"fallback not available" tests, which is consistent with the fact that we're
+missing testing driver-only RSA-encrypt testing. However, we're also missing
+driver-only HMAC testing, but no test is flagged as never executed there; this
+reveals we don't have "fallback not available" cases for MAC, see #8565.
+
+#### Test case coverage
+
+Since `test_suite_psa_crypto_driver_wrappers.data` is maintained manually,
+we need to make sure it exercises all the cases that need to be tested.
+
+One way to evaluate this is to look at line coverage in test driver
+implementaitons - this doesn't reveal all gaps, but it does reveal cases where
+we thought about something when writing the test driver, but not when writing
+test functions/data.
+
+Key management:
+- `mbedtls_test_opaque_unwrap_key()` is never called.
+- `mbedtls_test_transparent_generate_key()` is not tested with RSA keys.
+- `mbedtls_test_transparent_import_key()` is not tested with DH keys.
+- `mbedtls_test_opaque_import_key()` is not tested with unstructured keys nor
+  with RSA keys (nor DH keys since that's not implemented).
+- `mbedtls_test_opaque_export_key()` is not tested with non-built-in keys.
+- `mbedtls_test_transparent_export_public_key()` is not tested with RSA or DH keys.
+- `mbedtls_test_opaque_export_public_key()` is not tested with non-built-in keys.
+- `mbedtls_test_opaque_copy_key()` is not tested at all.
+
+Hash:
+- `mbedtls_test_transparent_hash_finish()` is not tested with a forced status.
+
+MAC:
+- The following are not tested with a forced status:
+  - `mbedtls_test_transparent_mac_sign_setup()`
+  - `mbedtls_test_transparent_mac_verify_setup()`
+  - `mbedtls_test_transparent_mac_update()`
+  - `mbedtls_test_transparent_mac_verify_finish()`
+  - `mbedtls_test_transparent_mac_abort()`
+- No opaque entry point is tested (they're not implemented either).
+
+Cipher:
+- The following are not tested with a forced status nor with a forced output:
+  - `mbedtls_test_transparent_cipher_encrypt()`
+  - `mbedtls_test_transparent_cipher_finish()`
+- No opaque entry point is tested (they're not implemented either).
+
+AEAD:
+- The following are not tested with a forced status:
+  - `mbedtls_test_transparent_aead_set_nonce()`
+  - `mbedtls_test_transparent_aead_set_lengths()`
+  - `mbedtls_test_transparent_aead_update_ad()`
+  - `mbedtls_test_transparent_aead_update()`
+  - `mbedtls_test_transparent_aead_finish()`
+  - `mbedtls_test_transparent_aead_verify()`
+- `mbedtls_test_transparent_aead_verify()` is not tested with an invalid tag
+  (though it might be in another test suite).
+
+Signature:
+- `sign_hash()` is not tested with RSA-PSS
+- No opaque entry point is tested (they're not implemented either).
+
+Asymmetric encryption:
+- No opaque entry point is tested (they're not implemented either).
+
+Key agreement:
+- `mbedtls_test_transparent_key_agreement()` is not tested with FFDH.
+- No opaque entry point is tested (they're not implemented either).
+
+PAKE:
+- All lines are covered.

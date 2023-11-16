@@ -1248,8 +1248,7 @@ struct mbedtls_ssl_session {
     uint32_t MBEDTLS_PRIVATE(max_early_data_size);          /*!< maximum amount of early data in tickets */
 
 #if defined(MBEDTLS_SSL_ALPN) && defined(MBEDTLS_SSL_SRV_C)
-    union
-    {
+    union {
         const char **alpn_list;                /*!< Configured ALPN list */
         const char *alpn;                      /*!< ALPN for ticket */
     } MBEDTLS_PRIVATE(ticket_alpn);

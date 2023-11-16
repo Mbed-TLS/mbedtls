@@ -2483,8 +2483,8 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
 #if defined(MBEDTLS_SSL_SRV_C) && \
     defined(MBEDTLS_SSL_EARLY_DATA) && \
     defined(MBEDTLS_SSL_ALPN)
-    const uint8_t alpn_len = ( session->ticket_alpn.alpn == NULL ) ?
-                               0 : strlen( session->ticket_alpn.alpn );
+    const uint8_t alpn_len = (session->ticket_alpn.alpn == NULL) ?
+                             0 : strlen(session->ticket_alpn.alpn);
 #endif
     size_t needed =   1                             /* endpoint */
                     + 2                             /* ciphersuite */
@@ -2507,12 +2507,10 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
 #endif
 
 #if defined(MBEDTLS_SSL_SRV_C)
-    if( session->endpoint == MBEDTLS_SSL_IS_SERVER )
-    {
-#if defined(MBEDTLS_SSL_EARLY_DATA) && \
-    defined(MBEDTLS_SSL_ALPN)
-        needed += 1                         /* alpn_len */
-               +  alpn_len;                 /* alpn */
+    if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
+        needed +=   1                         /* alpn_len */
+                  + alpn_len;                 /* alpn */
 #endif
     }
 #endif /* MBEDTLS_SSL_SRV_C */
@@ -2564,13 +2562,11 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
         p += 8;
 #endif
 
-#if defined(MBEDTLS_SSL_EARLY_DATA) && \
-    defined(MBEDTLS_SSL_ALPN)
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
         *p++ = alpn_len;
-        if( alpn_len > 0 )
-        {
+        if (alpn_len > 0) {
             /* save chosen alpn */
-            memcpy( p, session->ticket_alpn.alpn, alpn_len );
+            memcpy(p, session->ticket_alpn.alpn, alpn_len);
             p += alpn_len;
         }
 #endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_ALPN */
@@ -2656,29 +2652,26 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
         p += 8;
 #endif /* MBEDTLS_HAVE_TIME */
 
-#if defined(MBEDTLS_SSL_EARLY_DATA) && \
-    defined(MBEDTLS_SSL_ALPN)
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
         uint8_t alpn_len;
         const char **cur;
         /* load alpn */
-        if( end - p < 1 )
-            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        if (end - p < 1) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
         alpn_len = *p++;
 
-        if( end - p < alpn_len )
-            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-        if( alpn_len > 0 )
-        {
+        if (end - p < alpn_len) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+        if (alpn_len > 0) {
             /* ticket_alpn MUST points to the first item of the configured
-             * list and chose the items in the list.
-             */
+             * list and chose the items in the list. */
             cur = session->ticket_alpn.alpn_list;
             session->ticket_alpn.alpn = NULL;
-            while( *cur != NULL )
-            {
-                if( strlen( *cur ) == alpn_len &&
-                    memcmp( p, *cur, alpn_len ) == 0)
-                {
+            while (*cur != NULL) {
+                if (strlen(*cur) == alpn_len &&
+                    memcmp(p, *cur, alpn_len) == 0) {
                     session->ticket_alpn.alpn = *cur;
                     break;
                 }

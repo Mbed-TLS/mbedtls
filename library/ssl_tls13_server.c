@@ -1857,11 +1857,9 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
     }
 
 #if defined(MBEDTLS_SSL_ALPN)
-    if( session->ticket_alpn.alpn != ssl->alpn_chosen )
-    {
+    if (session->ticket_alpn.alpn != ssl->alpn_chosen) {
         MBEDTLS_SSL_DEBUG_MSG(
-            1,
-            ( "EarlyData: rejected. chosen alpn differs from the ticket." ) );
+            1, ("EarlyData: rejected. chosen alpn differs from the ticket."));
         return;
     }
 #endif

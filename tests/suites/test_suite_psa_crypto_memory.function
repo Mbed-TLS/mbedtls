@@ -15,10 +15,8 @@
  * been written, in a way that will detect an error in offset. */
 static void fill_buffer_pattern(uint8_t *buffer, size_t len)
 {
-    uint8_t data[] = { 0x12, 0x34, 0x56, 0x78 };
-
     for (size_t i = 0; i < len; i++) {
-        buffer[i] = data[i % sizeof(data)];
+        buffer[i] = (uint8_t) (i % 256);
     }
 }
 /* END_HEADER */

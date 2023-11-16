@@ -882,9 +882,9 @@ psa_status_t psa_crypto_input_copy_alloc(const uint8_t *input, size_t input_len,
 void psa_crypto_input_copy_free(psa_crypto_input_copy_t *input_copy);
 
 typedef struct psa_crypto_output_copy_s {
-  uint8_t *original;
-  uint8_t *buffer;
-  size_t len;
+    uint8_t *original;
+    uint8_t *buffer;
+    size_t len;
 } psa_crypto_output_copy_t;
 
 /** Allocate a local copy of an output buffer.

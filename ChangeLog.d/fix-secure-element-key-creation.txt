@@ -1,3 +1,5 @@
 Bugfix
-   * Fix the error handling in psa_start_key_creation so that
-     out of memory issues are properly handled. Fixes #8537.
+   * Fix error handling when creating a key in a dynamic secure element
+     (feature enabled by MBEDTLS_PSA_CRYPTO_SE_C). In a low memory condition,
+     the creation could return PSA_SUCCESS but using or destroying the key
+     would not work. Fixes #8537.

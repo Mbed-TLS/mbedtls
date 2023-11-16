@@ -83,7 +83,14 @@ struct _hr_time {
 #include "mbedtls/memory_buffer_alloc.h"
 #endif
 
+#ifdef MBEDTLS_TIMING_ALT
+void mbedtls_set_alarm(int seconds);
+unsigned long mbedtls_timing_hardclock(void);
+extern volatile int mbedtls_timing_alarmed;
+#else
 static void mbedtls_set_alarm(int seconds);
+static unsigned long mbedtls_timing_hardclock(void);
+#endif
 
 /*
  * For heap usage estimates, we need an estimate of the overhead per allocated
@@ -227,6 +234,7 @@ static void mbedtls_set_alarm(int seconds);
         }                                                                   \
     } while (0)
 
+#if !defined(MBEDTLS_TIMING_ALT)
 #if !defined(HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
     (defined(_MSC_VER) && defined(_M_IX86)) || defined(__WATCOMC__)
 
@@ -441,6 +449,7 @@ static void mbedtls_set_alarm(int seconds)
 }
 
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
+#endif /* !MBEDTLS_TIMING_ALT */
 
 static int myrand(void *rng_state, unsigned char *output, size_t len)
 {

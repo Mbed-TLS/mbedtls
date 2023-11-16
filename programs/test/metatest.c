@@ -74,6 +74,7 @@ void null_pointer_dereference(const char *name)
     (void) name;
     volatile char *volatile p;
     set_to_zero_but_the_compiler_does_not_know(&p, sizeof(p));
+    /* Undefined behavior (read from null data pointer) */
     mbedtls_printf("%p -> %u\n", p, (unsigned) *p);
 }
 
@@ -82,6 +83,7 @@ void null_pointer_call(const char *name)
     (void) name;
     unsigned(*volatile p)(void);
     set_to_zero_but_the_compiler_does_not_know(&p, sizeof(p));
+    /* Undefined behavior (execute null function pointer) */
     /* The pointer representation may be truncated, but we don't care:
      * the only point of printing it is to have some use of the pointer
      * to dissuade the compiler from optimizing it away. */
@@ -99,6 +101,7 @@ void read_after_free(const char *name)
     volatile char *p = mbedtls_calloc(1, 1);
     *p = 'a';
     mbedtls_free((void *) p);
+    /* Undefined behavior (read after free) */
     mbedtls_printf("%u\n", (unsigned) *p);
 }
 
@@ -108,6 +111,7 @@ void double_free(const char *name)
     volatile char *p = mbedtls_calloc(1, 1);
     *p = 'a';
     mbedtls_free((void *) p);
+    /* Undefined behavior (double free) */
     mbedtls_free((void *) p);
 }
 
@@ -120,6 +124,7 @@ void read_uninitialized_stack(const char *name)
     }
     char *volatile p = buf;
     if (*p != 0) {
+        /* Unspecified result (read from uninitialized memory) */
         mbedtls_printf("%u\n", (unsigned) *p);
     }
 }
@@ -129,6 +134,7 @@ void memory_leak(const char *name)
     (void) name;
     volatile char *p = mbedtls_calloc(1, 1);
     mbedtls_printf("%u\n", (unsigned) *p);
+    /* Leak of a heap object */
 }
 
 
@@ -139,11 +145,13 @@ void memory_leak(const char *name)
 void mutex_lock_not_initialized(const char *name)
 {
     (void) name;
-    /* Mutex usage verification is only done with pthread, not with other
-     * threading implementations. See tests/src/threading_helpers.c. */
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_threading_mutex_t mutex;
     memset(&mutex, 0, sizeof(mutex));
+    /* This mutex usage error is detected by our test framework's mutex usage
+     * verification framework. See tests/src/threading_helpers.c. Other
+     * threading implementations (e.g. pthread without our instrumentation)
+     * might consider this normal usage. */
     TEST_ASSERT(mbedtls_mutex_lock(&mutex) == 0);
 exit:
     ;
@@ -153,11 +161,13 @@ exit:
 void mutex_unlock_not_initialized(const char *name)
 {
     (void) name;
-    /* Mutex usage verification is only done with pthread, not with other
-     * threading implementations. See tests/src/threading_helpers.c. */
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_threading_mutex_t mutex;
     memset(&mutex, 0, sizeof(mutex));
+    /* This mutex usage error is detected by our test framework's mutex usage
+     * verification framework. See tests/src/threading_helpers.c. Other
+     * threading implementations (e.g. pthread without our instrumentation)
+     * might consider this normal usage. */
     TEST_ASSERT(mbedtls_mutex_unlock(&mutex) == 0);
 exit:
     ;
@@ -167,11 +177,13 @@ exit:
 void mutex_free_not_initialized(const char *name)
 {
     (void) name;
-    /* Mutex usage verification is only done with pthread, not with other
-     * threading implementations. See tests/src/threading_helpers.c. */
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_threading_mutex_t mutex;
     memset(&mutex, 0, sizeof(mutex));
+    /* This mutex usage error is detected by our test framework's mutex usage
+     * verification framework. See tests/src/threading_helpers.c. Other
+     * threading implementations (e.g. pthread without our instrumentation)
+     * might consider this normal usage. */
     mbedtls_mutex_free(&mutex);
 #endif
 }
@@ -182,6 +194,10 @@ void mutex_double_init(const char *name)
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_threading_mutex_t mutex;
     mbedtls_mutex_init(&mutex);
+    /* This mutex usage error is detected by our test framework's mutex usage
+     * verification framework. See tests/src/threading_helpers.c. Other
+     * threading implementations (e.g. pthread without our instrumentation)
+     * might consider this normal usage. */
     mbedtls_mutex_init(&mutex);
     mbedtls_mutex_free(&mutex);
 #endif
@@ -194,6 +210,10 @@ void mutex_double_free(const char *name)
     mbedtls_threading_mutex_t mutex;
     mbedtls_mutex_init(&mutex);
     mbedtls_mutex_free(&mutex);
+    /* This mutex usage error is detected by our test framework's mutex usage
+     * verification framework. See tests/src/threading_helpers.c. Other
+     * threading implementations (e.g. pthread without our instrumentation)
+     * might consider this normal usage. */
     mbedtls_mutex_free(&mutex);
 #endif
 }
@@ -201,12 +221,14 @@ void mutex_double_free(const char *name)
 void mutex_leak(const char *name)
 {
     (void) name;
-    /* Mutex usage verification is only done with pthread, not with other
-     * threading implementations. See tests/src/threading_helpers.c. */
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_threading_mutex_t mutex;
     mbedtls_mutex_init(&mutex);
 #endif
+    /* This mutex usage error is detected by our test framework's mutex usage
+     * verification framework. See tests/src/threading_helpers.c. Other
+     * threading implementations (e.g. pthread without our instrumentation)
+     * might consider this normal usage. */
 }
 
 
@@ -225,7 +247,9 @@ typedef struct {
      * - "any": should work anywhere.
      * - "asan": triggers ASan (Address Sanitizer).
      * - "msan": triggers MSan (Memory Sanitizer).
-     * - "pthread": requires MBEDTLS_THREADING_PTHREAD and MBEDTLS_TEST_HOOKS.
+     * - "pthread": requires MBEDTLS_THREADING_PTHREAD and MBEDTLS_TEST_HOOKS,
+     *   which enables MBEDTLS_TEST_MUTEX_USAGE internally in the test
+     *   framework (see tests/src/threading_helpers.c).
      */
     const char *platform;
 
@@ -249,6 +273,9 @@ typedef struct {
  *
  * Note that we always compile all the functions, so that `metatest --list`
  * will always list all the available meta-tests.
+ *
+ * See the documentation of metatest_t::platform for the meaning of
+ * platform values.
  */
 metatest_t metatests[] = {
     { "test_fail", "any", meta_test_fail },
@@ -258,8 +285,6 @@ metatest_t metatests[] = {
     { "double_free", "asan", double_free },
     { "read_uninitialized_stack", "msan", read_uninitialized_stack },
     { "memory_leak", "asan", memory_leak },
-    /* Mutex usage verification is only done with pthread, not with other
-     * threading implementations. See tests/src/threading_helpers.c. */
     { "mutex_lock_not_initialized", "pthread", mutex_lock_not_initialized },
     { "mutex_unlock_not_initialized", "pthread", mutex_unlock_not_initialized },
     { "mutex_free_not_initialized", "pthread", mutex_free_not_initialized },

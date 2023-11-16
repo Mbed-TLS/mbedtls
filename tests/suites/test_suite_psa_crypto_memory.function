@@ -94,7 +94,7 @@ void input_copy_alloc(int input_len, psa_status_t exp_status)
     TEST_EQUAL(status, exp_status);
 
     if (exp_status == PSA_SUCCESS) {
-        if (input == NULL) {
+        if (input_len == 0) {
             TEST_ASSERT(input_copy.buffer == NULL);
         } else {
             TEST_ASSERT(input_copy.buffer != input);
@@ -167,7 +167,7 @@ void output_copy_alloc(int output_len, psa_status_t exp_status)
 
     if (exp_status == PSA_SUCCESS) {
         TEST_ASSERT(output_copy.original == output);
-        if (output == NULL) {
+        if (output_len == 0) {
             TEST_ASSERT(output_copy.buffer == NULL);
         }
         TEST_EQUAL(output_copy.len, output_len);
@@ -203,7 +203,7 @@ void output_copy_free(int output_len, int original_is_null,
     output_copy.len = output_len;
     output_copy.original = output;
 
-    if (output_copy.buffer != NULL) {
+    if (output_copy.len != 0) {
         fill_buffer_pattern(output_copy.buffer, output_copy.len);
         memcpy(buffer_copy_for_comparison, output_copy.buffer, output_copy.len);
     }

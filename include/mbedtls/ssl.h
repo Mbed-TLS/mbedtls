@@ -1252,7 +1252,7 @@ struct mbedtls_ssl_session {
         const char **alpn_list;                /*!< Configured ALPN list */
         const char *alpn;                      /*!< ALPN for ticket */
     } MBEDTLS_PRIVATE(ticket_alpn);
-#endif /* MBEDTLS_SSL_ALPN */
+#endif /* MBEDTLS_SSL_ALPN && MBEDTLS_SSL_SRV_C */
 
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 

@@ -2481,8 +2481,7 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
                           0 : strlen(session->hostname) + 1;
 #endif
 #if defined(MBEDTLS_SSL_SRV_C) && \
-    defined(MBEDTLS_SSL_EARLY_DATA) && \
-    defined(MBEDTLS_SSL_ALPN)
+    defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
     const uint8_t alpn_len = (session->ticket_alpn.alpn == NULL) ?
                              0 : strlen(session->ticket_alpn.alpn);
 #endif
@@ -2665,8 +2664,9 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
         }
         if (alpn_len > 0) {
-            /* ticket_alpn MUST points to the first item of the configured
-             * list and chose the items in the list. */
+            /* ticket_alpn.alpn_list MUST point to the first item of the
+             * configured list.
+             * ticket_alpn.alpn points to the matched ALPN in the list. */
             cur = session->ticket_alpn.alpn_list;
             session->ticket_alpn.alpn = NULL;
             while (*cur != NULL) {

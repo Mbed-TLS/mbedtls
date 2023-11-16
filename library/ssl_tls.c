@@ -2697,6 +2697,9 @@ psa_status_t mbedtls_ssl_cipher_to_psa(mbedtls_cipher_type_t mbedtls_cipher_type
                                        psa_key_type_t *key_type,
                                        size_t *key_size)
 {
+#if !defined(MBEDTLS_SSL_HAVE_CCM)
+    (void) taglen;
+#endif
     switch (mbedtls_cipher_type) {
 #if defined(MBEDTLS_SSL_HAVE_AES) && defined(MBEDTLS_SSL_HAVE_CBC)
         case MBEDTLS_CIPHER_AES_128_CBC:

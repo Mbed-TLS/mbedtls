@@ -21,6 +21,14 @@ def looks_like_mbedtls_root(path: str) -> bool:
 def looks_like_root(path: str) -> bool:
     return looks_like_tf_psa_crypto_root(path) or looks_like_mbedtls_root(path)
 
+def crypto_core_directory() -> str:
+    if looks_like_tf_psa_crypto_root(os.path.curdir):
+        return "core"
+    elif looks_like_mbedtls_root(os.path.curdir):
+        return "library"
+    else:
+        raise Exception('Neither Mbed TLS nor TF-PSA-Crypto source tree found')
+
 def check_repo_path():
     """
     Check that the current working directory is the project root, and throw

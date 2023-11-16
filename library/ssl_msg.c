@@ -3952,6 +3952,30 @@ static int ssl_check_client_reconnect(mbedtls_ssl_context *ssl)
 }
 #endif /* MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE && MBEDTLS_SSL_SRV_C */
 
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_SRV_C)
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_early_data_check_received_size(mbedtls_ssl_context *ssl,
+                                                    mbedtls_record *rec)
+{
+    /* up to the configured max_early_data_size */
+    ssl->handshake->received_early_data_size += rec->data_len;
+    if (ssl->handshake->received_early_data_size >
+        ssl->session_negotiate->max_early_data_size) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            2, ("EarlyData: Received size exceeds configured limitation."
+                "(%" MBEDTLS_PRINTF_SIZET " > %u )",
+                ssl->handshake->received_early_data_size,
+                (unsigned int) ssl->conf->max_early_data_size));
+        MBEDTLS_SSL_PEND_FATAL_ALERT(
+            MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
+            MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE);
+        return MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+    }
+
+    return MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
+}
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_SRV_C */
+
 /*
  * If applicable, decrypt record content
  */
@@ -4005,8 +4029,7 @@ static int ssl_prepare_record_content(mbedtls_ssl_context *ssl,
                 MBEDTLS_SSL_DEBUG_MSG(
                     3, ("EarlyData: Ignore application message "
                         "when rejected"));
-                /* TODO: Add max_early_data_size check here. */
-                ret = MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
+                ret = ssl_tls13_early_data_check_received_size(ssl, rec);
             }
 #endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_SRV_C */
 
@@ -4116,8 +4139,7 @@ static int ssl_prepare_record_content(mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG(
             3, ("EarlyData: Ignore application message "
                 "before 2nd ClientHello"));
-        /* TODO: Add max_early_data_size check here. */
-        return MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
+        return ssl_tls13_early_data_check_received_size(ssl, rec);
     }
 #endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_SRV_C */
 

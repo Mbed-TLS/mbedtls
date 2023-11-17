@@ -2189,7 +2189,6 @@ void ssl_serialize_session_save_buf_size(int ticket_len, char *crt_file,
 
     /* Prepare dummy session and get serialized size */
     ((void) endpoint_type);
-    ((void) tls_version);
     ((void) ticket_len);
     ((void) crt_file);
 
@@ -2250,7 +2249,6 @@ void ssl_serialize_session_load_buf_size(int ticket_len, char *crt_file,
 
     /* Prepare serialized session data */
     ((void) endpoint_type);
-    ((void) tls_version);
     ((void) ticket_len);
     ((void) crt_file);
 
@@ -2323,7 +2321,6 @@ void ssl_session_serialize_version_check(int corrupt_major,
     mbedtls_ssl_session_init(&session);
     USE_PSA_INIT();
     ((void) endpoint_type);
-    ((void) tls_version);
 
     switch (tls_version) {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)

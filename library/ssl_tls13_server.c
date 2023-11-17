@@ -113,7 +113,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_ms_time_t now;
     mbedtls_ms_time_t server_age;
-    mbedtls_ms_time_t client_age;
+    uint32_t client_age;
     mbedtls_ms_time_t age_diff;
 #endif
 
@@ -195,8 +195,8 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 
     if (now < session->ticket_creation_time) {
         MBEDTLS_SSL_DEBUG_MSG(
-            3, ("Invalid ticket start time ( now = %" MBEDTLS_PRINTF_MS_TIME
-                ", start = %" MBEDTLS_PRINTF_MS_TIME " )",
+            3, ("Invalid ticket creation time ( now = %" MBEDTLS_PRINTF_MS_TIME
+                ", creation_time = %" MBEDTLS_PRINTF_MS_TIME " )",
                 now, session->ticket_creation_time));
         goto exit;
     }
@@ -233,7 +233,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      *       sync up their system time every 6000/360/2~=8 hours.
      */
     client_age = obfuscated_ticket_age - session->ticket_age_add;
-    age_diff = server_age - client_age;
+    age_diff = server_age - (mbedtls_ms_time_t)client_age;
     if (age_diff < -MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE ||
         age_diff > MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE) {
         MBEDTLS_SSL_DEBUG_MSG(

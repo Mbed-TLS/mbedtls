@@ -233,7 +233,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      *       sync up their system time every 6000/360/2~=8 hours.
      */
     client_age = obfuscated_ticket_age - session->ticket_age_add;
-    age_diff = server_age - (mbedtls_ms_time_t)client_age;
+    age_diff = server_age - (mbedtls_ms_time_t) client_age;
     if (age_diff < -MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE ||
         age_diff > MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE) {
         MBEDTLS_SSL_DEBUG_MSG(

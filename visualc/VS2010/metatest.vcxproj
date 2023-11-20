@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\programs\test\selftest.c" />
+    <ClCompile Include="..\..\programs\test\metatest.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="mbedTLS.vcxproj">
@@ -28,9 +28,9 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{7DBC5F77-3DA1-5F73-8421-E693D95FC66A}</ProjectGuid>
+    <ProjectGuid>{95B15C5B-0EB4-4353-7990-22F6965A9437}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>selftest</RootNamespace>
+    <RootNamespace>metatest</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

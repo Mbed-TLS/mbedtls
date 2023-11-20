@@ -14,7 +14,6 @@ from typing import FrozenSet, List, Optional
 
 UNCRUSTIFY_SUPPORTED_VERSION = "0.75.1"
 CONFIG_FILE = ".uncrustify.cfg"
-UNCRUSTIFY_EXE = "uncrustify"
 UNCRUSTIFY_ARGS = ["-c", CONFIG_FILE]
 CHECK_GENERATED_FILES = "tests/scripts/check-generated-files.sh"
 
@@ -137,13 +136,14 @@ def check_style_is_correct(uncrustify_exe: str,
 
     return style_correct
 
-def fix_style_single_pass(src_file_list: List[str]) -> bool:
+def fix_style_single_pass(uncrustify_exe: str,
+                          src_file_list: List[str]) -> bool:
     """
     Run Uncrustify once over the source files.
     """
     code_change_args = UNCRUSTIFY_ARGS + ["--no-backup"]
     for src_file in src_file_list:
-        uncrustify_cmd = [UNCRUSTIFY_EXE] + code_change_args + [src_file]
+        uncrustify_cmd = [uncrustify_exe] + code_change_args + [src_file]
         result = subprocess.run(uncrustify_cmd, check=False)
         if result.returncode != 0:
             print_err("Uncrustify with file returned: " +
@@ -156,9 +156,9 @@ def fix_style(uncrustify_exe: str, src_file_list: List[str]) -> int:
     """
     Fix the code style. This takes 2 passes of Uncrustify.
     """
-    if not fix_style_single_pass(src_file_list):
+    if not fix_style_single_pass(uncrustify_exe, src_file_list):
         return 1
-    if not fix_style_single_pass(src_file_list):
+    if not fix_style_single_pass(uncrustify_exe, src_file_list):
         return 1
 
     # Guard against future changes that cause the codebase to require

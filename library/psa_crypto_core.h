@@ -856,7 +856,7 @@ psa_status_t mbedtls_psa_verify_hash_abort(
 
 typedef struct psa_crypto_input_copy_s {
     uint8_t *buffer;
-    size_t len;
+    size_t length;
 } psa_crypto_input_copy_t;
 
 #define PSA_CRYPTO_INPUT_COPY_INIT { NULL, 0 }
@@ -886,7 +886,7 @@ void psa_crypto_input_copy_free(psa_crypto_input_copy_t *input_copy);
 typedef struct psa_crypto_output_copy_s {
     uint8_t *original;
     uint8_t *buffer;
-    size_t len;
+    size_t length;
 } psa_crypto_output_copy_t;
 
 #define PSA_CRYPTO_OUTPUT_COPY_INIT { NULL, NULL, 0 }

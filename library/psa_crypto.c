@@ -8502,7 +8502,7 @@ psa_status_t psa_crypto_input_copy_alloc(const uint8_t *input, size_t input_len,
     psa_status_t status;
 
     input_copy->buffer = NULL;
-    input_copy->len = 0;
+    input_copy->length = 0;
 
     if (input_len == 0) {
         return PSA_SUCCESS;
@@ -8516,10 +8516,10 @@ psa_status_t psa_crypto_input_copy_alloc(const uint8_t *input, size_t input_len,
     }
     /* From now on, we must free input_copy->buffer on error. */
 
-    input_copy->len = input_len;
+    input_copy->length = input_len;
 
     status = psa_crypto_copy_input(input, input_len,
-                                   input_copy->buffer, input_copy->len);
+                                   input_copy->buffer, input_copy->length);
     if (status != PSA_SUCCESS) {
         goto error;
     }
@@ -8529,7 +8529,7 @@ psa_status_t psa_crypto_input_copy_alloc(const uint8_t *input, size_t input_len,
 error:
     mbedtls_free(input_copy->buffer);
     input_copy->buffer = NULL;
-    input_copy->len = 0;
+    input_copy->length = 0;
     return status;
 }
 
@@ -8537,7 +8537,7 @@ void psa_crypto_input_copy_free(psa_crypto_input_copy_t *input_copy)
 {
     mbedtls_free(input_copy->buffer);
     input_copy->buffer = NULL;
-    input_copy->len = 0;
+    input_copy->length = 0;
 }
 
 psa_status_t psa_crypto_output_copy_alloc(uint8_t *output, size_t output_len,
@@ -8545,7 +8545,7 @@ psa_status_t psa_crypto_output_copy_alloc(uint8_t *output, size_t output_len,
 {
     output_copy->original = NULL;
     output_copy->buffer = NULL;
-    output_copy->len = 0;
+    output_copy->length = 0;
 
     if (output_len == 0) {
         return PSA_SUCCESS;
@@ -8556,7 +8556,7 @@ psa_status_t psa_crypto_output_copy_alloc(uint8_t *output, size_t output_len,
          * a NULL return value means a failure of allocation. */
         return PSA_ERROR_INSUFFICIENT_MEMORY;
     }
-    output_copy->len = output_len;
+    output_copy->length = output_len;
     output_copy->original = output;
 
     return PSA_SUCCESS;
@@ -8567,7 +8567,7 @@ psa_status_t psa_crypto_output_copy_free(psa_crypto_output_copy_t *output_copy)
     psa_status_t status;
 
     if (output_copy->buffer == NULL) {
-        output_copy->len = 0;
+        output_copy->length = 0;
         return PSA_SUCCESS;
     }
     if (output_copy->original == NULL) {
@@ -8575,15 +8575,15 @@ psa_status_t psa_crypto_output_copy_free(psa_crypto_output_copy_t *output_copy)
         return PSA_ERROR_CORRUPTION_DETECTED;
     }
 
-    status = psa_crypto_copy_output(output_copy->buffer, output_copy->len,
-                                    output_copy->original, output_copy->len);
+    status = psa_crypto_copy_output(output_copy->buffer, output_copy->length,
+                                    output_copy->original, output_copy->length);
     if (status != PSA_SUCCESS) {
         return status;
     }
 
     mbedtls_free(output_copy->buffer);
     output_copy->buffer = NULL;
-    output_copy->len = 0;
+    output_copy->length = 0;
 
     return PSA_SUCCESS;
 }

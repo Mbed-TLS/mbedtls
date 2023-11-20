@@ -1711,7 +1711,7 @@ static psa_status_t psa_start_key_creation(
         status = psa_copy_key_material_into_slot(
             slot, (uint8_t *) (&slot_number), sizeof(slot_number));
         if (status != PSA_SUCCESS) {
-                return status;
+            return status;
         }
     }
 

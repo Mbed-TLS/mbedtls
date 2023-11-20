@@ -515,34 +515,34 @@ psa_status_t psa_verify_hash_builtin(
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
     const uint8_t *signature, size_t signature_length);
 
-typedef struct psa_crypto_input_copy_s {
+typedef struct psa_crypto_local_input_s {
     uint8_t *buffer;
     size_t length;
-} psa_crypto_input_copy_t;
+} psa_crypto_local_input_t;
 
-#define PSA_CRYPTO_INPUT_COPY_INIT { NULL, 0 }
+#define PSA_CRYPTO_LOCAL_INPUT_INIT { NULL, 0 }
 
 /** Allocate a local copy of an input buffer.
  *
  * \param[in] input             Pointer to input buffer.
  * \param[in] input_len         Length of the input buffer.
- * \param[out] input_copy       Pointer to a psa_crypto_input_copy_t struct to
- *                              populate with the input copy.
+ * \param[out] local_input      Pointer to a psa_crypto_local_input_t struct to
+ *                              populate with the local input copy.
  * \return                      #PSA_SUCCESS, if the buffer was successfully
  *                              copied.
  * \return                      #PSA_ERROR_INSUFFICIENT_MEMORY, if a copy of
  *                              the buffer cannot be allocated.
  */
-psa_status_t psa_crypto_input_copy_alloc(const uint8_t *input, size_t input_len,
-                                         psa_crypto_input_copy_t *input_copy);
+psa_status_t psa_crypto_local_input_alloc(const uint8_t *input, size_t input_len,
+                                          psa_crypto_local_input_t *local_input);
 
 /** Free a local copy of an input buffer.
  *
- * \param[in] input_copy        Pointer to a psa_crypto_input_copy_t struct
+ * \param[in] local_input       Pointer to a psa_crypto_local_input_t struct
  *                              populated by a previous call to
- *                              psa_crypto_input_copy_alloc().
+ *                              psa_crypto_local_input_alloc().
  */
-void psa_crypto_input_copy_free(psa_crypto_input_copy_t *input_copy);
+void psa_crypto_local_input_free(psa_crypto_local_input_t *local_input);
 
 typedef struct psa_crypto_output_copy_s {
     uint8_t *original;

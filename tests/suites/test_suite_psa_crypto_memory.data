@@ -28,20 +28,20 @@ copy_output:0:10:PSA_SUCCESS
 PSA output buffer copy: zero-length both buffers
 copy_output:0:0:PSA_SUCCESS
 
-PSA crypto input copy alloc
-input_copy_alloc:200:PSA_SUCCESS
+PSA crypto local input alloc
+local_input_alloc:200:PSA_SUCCESS
 
-PSA crypto input copy alloc, NULL buffer
-input_copy_alloc:0:PSA_SUCCESS
+PSA crypto local input alloc, NULL buffer
+local_input_alloc:0:PSA_SUCCESS
 
-PSA crypto input copy free
-input_copy_free:200
+PSA crypto local input free
+local_input_free:200
 
-PSA crypto input copy free, NULL buffer
-input_copy_free:0
+PSA crypto local input free, NULL buffer
+local_input_free:0
 
-PSA crypto input copy round-trip
-input_copy_round_trip
+PSA crypto local input round-trip
+local_input_round_trip
 
 PSA crypto output copy alloc
 output_copy_alloc:200:PSA_SUCCESS

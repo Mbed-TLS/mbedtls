@@ -8496,30 +8496,30 @@ psa_status_t psa_crypto_copy_output(const uint8_t *output_copy, size_t output_co
     return PSA_SUCCESS;
 }
 
-psa_status_t psa_crypto_input_copy_alloc(const uint8_t *input, size_t input_len,
-                                         psa_crypto_input_copy_t *input_copy)
+psa_status_t psa_crypto_local_input_alloc(const uint8_t *input, size_t input_len,
+                                          psa_crypto_local_input_t *local_input)
 {
     psa_status_t status;
 
-    input_copy->buffer = NULL;
-    input_copy->length = 0;
+    local_input->buffer = NULL;
+    local_input->length = 0;
 
     if (input_len == 0) {
         return PSA_SUCCESS;
     }
 
-    input_copy->buffer = mbedtls_calloc(input_len, 1);
-    if (input_copy->buffer == NULL) {
+    local_input->buffer = mbedtls_calloc(input_len, 1);
+    if (local_input->buffer == NULL) {
         /* Since we dealt with the zero-length case above, we know that
          * a NULL return value means a failure of allocation. */
         return PSA_ERROR_INSUFFICIENT_MEMORY;
     }
-    /* From now on, we must free input_copy->buffer on error. */
+    /* From now on, we must free local_input->buffer on error. */
 
-    input_copy->length = input_len;
+    local_input->length = input_len;
 
     status = psa_crypto_copy_input(input, input_len,
-                                   input_copy->buffer, input_copy->length);
+                                   local_input->buffer, local_input->length);
     if (status != PSA_SUCCESS) {
         goto error;
     }
@@ -8527,17 +8527,17 @@ psa_status_t psa_crypto_input_copy_alloc(const uint8_t *input, size_t input_len,
     return PSA_SUCCESS;
 
 error:
-    mbedtls_free(input_copy->buffer);
-    input_copy->buffer = NULL;
-    input_copy->length = 0;
+    mbedtls_free(local_input->buffer);
+    local_input->buffer = NULL;
+    local_input->length = 0;
     return status;
 }
 
-void psa_crypto_input_copy_free(psa_crypto_input_copy_t *input_copy)
+void psa_crypto_local_input_free(psa_crypto_local_input_t *local_input)
 {
-    mbedtls_free(input_copy->buffer);
-    input_copy->buffer = NULL;
-    input_copy->length = 0;
+    mbedtls_free(local_input->buffer);
+    local_input->buffer = NULL;
+    local_input->length = 0;
 }
 
 psa_status_t psa_crypto_output_copy_alloc(uint8_t *output, size_t output_len,

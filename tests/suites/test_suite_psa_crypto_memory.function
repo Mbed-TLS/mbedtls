@@ -79,73 +79,73 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void input_copy_alloc(int input_len, psa_status_t exp_status)
+void local_input_alloc(int input_len, psa_status_t exp_status)
 {
     uint8_t *input = NULL;
-    psa_crypto_input_copy_t input_copy;
+    psa_crypto_local_input_t local_input;
     psa_status_t status;
 
-    input_copy.buffer = NULL;
+    local_input.buffer = NULL;
 
     TEST_CALLOC(input, input_len);
     fill_buffer_pattern(input, input_len);
 
-    status = psa_crypto_input_copy_alloc(input, input_len, &input_copy);
+    status = psa_crypto_local_input_alloc(input, input_len, &local_input);
     TEST_EQUAL(status, exp_status);
 
     if (exp_status == PSA_SUCCESS) {
         if (input_len != 0) {
-            TEST_ASSERT(input_copy.buffer != input);
+            TEST_ASSERT(local_input.buffer != input);
         }
         TEST_MEMORY_COMPARE(input, input_len,
-                            input_copy.buffer, input_copy.length);
+                            local_input.buffer, local_input.length);
     }
 
 exit:
-    mbedtls_free(input_copy.buffer);
+    mbedtls_free(local_input.buffer);
     mbedtls_free(input);
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void input_copy_free(int input_len)
+void local_input_free(int input_len)
 {
-    psa_crypto_input_copy_t input_copy;
+    psa_crypto_local_input_t local_input;
 
-    input_copy.buffer = NULL;
-    input_copy.length = input_len;
-    TEST_CALLOC(input_copy.buffer, input_copy.length);
+    local_input.buffer = NULL;
+    local_input.length = input_len;
+    TEST_CALLOC(local_input.buffer, local_input.length);
 
-    psa_crypto_input_copy_free(&input_copy);
+    psa_crypto_local_input_free(&local_input);
 
-    TEST_ASSERT(input_copy.buffer == NULL);
-    TEST_EQUAL(input_copy.length, 0);
+    TEST_ASSERT(local_input.buffer == NULL);
+    TEST_EQUAL(local_input.length, 0);
 
 exit:
-    mbedtls_free(input_copy.buffer);
-    input_copy.buffer = NULL;
-    input_copy.length = 0;
+    mbedtls_free(local_input.buffer);
+    local_input.buffer = NULL;
+    local_input.length = 0;
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void input_copy_round_trip()
+void local_input_round_trip()
 {
-    psa_crypto_input_copy_t input_copy;
+    psa_crypto_local_input_t local_input;
     uint8_t input[200];
     psa_status_t status;
 
     fill_buffer_pattern(input, sizeof(input));
 
-    status = psa_crypto_input_copy_alloc(input, sizeof(input), &input_copy);
+    status = psa_crypto_local_input_alloc(input, sizeof(input), &local_input);
     TEST_EQUAL(status, PSA_SUCCESS);
-    TEST_MEMORY_COMPARE(input_copy.buffer, input_copy.length,
+    TEST_MEMORY_COMPARE(local_input.buffer, local_input.length,
                         input, sizeof(input));
-    TEST_ASSERT(input_copy.buffer != input);
+    TEST_ASSERT(local_input.buffer != input);
 
-    psa_crypto_input_copy_free(&input_copy);
-    TEST_ASSERT(input_copy.buffer == NULL);
-    TEST_EQUAL(input_copy.length, 0);
+    psa_crypto_local_input_free(&local_input);
+    TEST_ASSERT(local_input.buffer == NULL);
+    TEST_EQUAL(local_input.length, 0);
 }
 /* END_CASE */
 

@@ -5558,7 +5558,7 @@ psa_status_t psa_crypto_copy_input(const uint8_t *input, size_t input_len,
  * \param[out] output_len       Length of the user-supplied output buffer.
  * \return                      #PSA_SUCCESS, if the buffer was successfully
  *                              copied.
- * \return                      #PSA_ERROR_CORRUPTION_DETECTED, if the
+ * \return                      #PSA_ERROR_BUFFER_TOO_SMALL, if the
  *                              user-supplied output buffer is too small to
  *                              hold the contents of the local buffer.
  */
@@ -5567,7 +5567,7 @@ psa_status_t psa_crypto_copy_output(const uint8_t *output_copy, size_t output_co
                                     uint8_t *output, size_t output_len)
 {
     if (output_len < output_copy_len) {
-        return PSA_ERROR_CORRUPTION_DETECTED;
+        return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
     if (output_copy_len > 0) {

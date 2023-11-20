@@ -240,28 +240,28 @@ requires_config_disabled() {
 }
 
 requires_all_configs_enabled() {
-    if ! $P_QUERY -all $*
+    if ! $P_QUERY -all $* 2>&1 > /dev/null
     then
         SKIP_NEXT="YES"
     fi
 }
 
 requires_all_configs_disabled() {
-    if $P_QUERY -any $*
+    if $P_QUERY -any $* 2>&1 > /dev/null
     then
         SKIP_NEXT="YES"
     fi
 }
 
 requires_any_configs_enabled() {
-    if ! $P_QUERY -any $*
+    if ! $P_QUERY -any $* 2>&1 > /dev/null
     then
         SKIP_NEXT="YES"
     fi
 }
 
 requires_any_configs_disabled() {
-    if $P_QUERY -all $*
+    if $P_QUERY -all $* 2>&1 > /dev/null
     then
         SKIP_NEXT="YES"
     fi

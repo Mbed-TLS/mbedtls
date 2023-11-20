@@ -859,6 +859,8 @@ typedef struct psa_crypto_input_copy_s {
     size_t len;
 } psa_crypto_input_copy_t;
 
+#define PSA_CRYPTO_INPUT_COPY_INIT { NULL, 0 }
+
 /** Allocate a local copy of an input buffer.
  *
  * \param[in] input             Pointer to input buffer.
@@ -886,6 +888,8 @@ typedef struct psa_crypto_output_copy_s {
     uint8_t *buffer;
     size_t len;
 } psa_crypto_output_copy_t;
+
+#define PSA_CRYPTO_OUTPUT_COPY_INIT { NULL, NULL, 0 }
 
 /** Allocate a local copy of an output buffer.
  *

@@ -255,8 +255,7 @@ uint32_t mbedtls_ssl_get_extension_mask(unsigned int extension_type);
 #if defined(MBEDTLS_SSL_HAVE_CBC)      &&                                  \
     (defined(MBEDTLS_SSL_HAVE_AES)     ||                                  \
     defined(MBEDTLS_SSL_HAVE_CAMELLIA) ||                                  \
-    defined(MBEDTLS_SSL_HAVE_ARIA)     ||                                  \
-    defined(MBEDTLS_DES_C))
+    defined(MBEDTLS_SSL_HAVE_ARIA))
 #define MBEDTLS_SSL_SOME_SUITES_USE_CBC
 #endif
 

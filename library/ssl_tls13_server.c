@@ -472,6 +472,10 @@ static int ssl_tls13_session_copy_ticket(mbedtls_ssl_session *dst,
     }
     memcpy(dst->resumption_key, src->resumption_key, src->resumption_key_len);
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    dst->max_early_data_size = src->max_early_data_size;
+#endif
+
     return 0;
 }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */

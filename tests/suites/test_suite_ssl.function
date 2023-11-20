@@ -2041,6 +2041,12 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
                                restored.resumption_key,
                                original.resumption_key_len) == 0);
         }
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        TEST_ASSERT(
+            original.max_early_data_size == restored.max_early_data_size);
+#endif
+
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
         if (endpoint_type == MBEDTLS_SSL_IS_SERVER) {
             TEST_ASSERT(original.start == restored.start);

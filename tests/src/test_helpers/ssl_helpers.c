@@ -1746,6 +1746,10 @@ int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
     session->resumption_key_len = 32;
     memset(session->resumption_key, 0x99, sizeof(session->resumption_key));
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    session->max_early_data_size = 0x87654321;
+#endif
+
 #if defined(MBEDTLS_HAVE_TIME)
     if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
         session->start = mbedtls_time(NULL) - 42;

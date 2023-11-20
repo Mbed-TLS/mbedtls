@@ -130,20 +130,15 @@ static int mbedtls_ccm_crypt(mbedtls_ccm_context *ctx,
 
 #if defined(MBEDTLS_CIPHER_C)
     size_t olen = 0;
-
-    if ((ret = mbedtls_cipher_update(&ctx->cipher_ctx, ctx->ctr, 16, tmp_buf,
-                                     &olen)) != 0) {
-        ctx->state |= CCM_STATE__ERROR;
-        mbedtls_platform_zeroize(tmp_buf, sizeof(tmp_buf));
-        return ret;
-    }
+    ret = mbedtls_cipher_update(&ctx->cipher_ctx, ctx->ctr, 16, tmp_buf, &olen);
 #else
-    if ((ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, ctx->ctr, tmp_buf)) != 0) {
+    ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, ctx->ctr, tmp_buf);
+#endif
+    if (ret != 0) {
         ctx->state |= CCM_STATE__ERROR;
         mbedtls_platform_zeroize(tmp_buf, sizeof(tmp_buf));
         return ret;
     }
-#endif
 
     mbedtls_xor(output, input, tmp_buf + offset, use_len);
 
@@ -212,16 +207,14 @@ static int ccm_calculate_first_block_if_ready(mbedtls_ccm_context *ctx)
 
     /* Start CBC-MAC with first block*/
 #if defined(MBEDTLS_CIPHER_C)
-    if ((ret = mbedtls_cipher_update(&ctx->cipher_ctx, ctx->y, 16, ctx->y, &olen)) != 0) {
-        ctx->state |= CCM_STATE__ERROR;
-        return ret;
-    }
+    ret = mbedtls_cipher_update(&ctx->cipher_ctx, ctx->y, 16, ctx->y, &olen);
 #else
-    if ((ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, ctx->y, ctx->y)) != 0) {
+    ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, ctx->y, ctx->y);
+#endif
+    if (ret != 0) {
         ctx->state |= CCM_STATE__ERROR;
         return ret;
     }
-#endif
 
     return 0;
 }

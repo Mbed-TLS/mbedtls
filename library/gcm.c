@@ -68,15 +68,13 @@ static int gcm_gen_table(mbedtls_gcm_context *ctx)
 
 #if defined(MBEDTLS_CIPHER_C)
     size_t olen = 0;
-
-    if ((ret = mbedtls_cipher_update(&ctx->cipher_ctx, h, 16, h, &olen)) != 0) {
-        return ret;
-    }
+    ret = mbedtls_cipher_update(&ctx->cipher_ctx, h, 16, h, &olen);
 #else
-    if ((ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, h, h)) != 0) {
+    ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, h, h);
+#endif
+    if (ret != 0) {
         return ret;
     }
-#endif
 
     /* pack h as two 64-bits ints, big-endian */
     hi = MBEDTLS_GET_UINT32_BE(h,  0);
@@ -323,16 +321,13 @@ int mbedtls_gcm_starts(mbedtls_gcm_context *ctx,
 
 
 #if defined(MBEDTLS_CIPHER_C)
-    if ((ret = mbedtls_cipher_update(&ctx->cipher_ctx, ctx->y, 16,
-                                     ctx->base_ectr, &olen)) != 0) {
-        return ret;
-    }
+    ret = mbedtls_cipher_update(&ctx->cipher_ctx, ctx->y, 16, ctx->base_ectr, &olen);
 #else
-    if ((ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, ctx->y,
-                                            ctx->base_ectr)) != 0) {
+    ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, ctx->y, ctx->base_ectr);
+#endif
+    if (ret != 0) {
         return ret;
     }
-#endif
 
     return 0;
 }
@@ -423,22 +418,17 @@ static int gcm_mask(mbedtls_gcm_context *ctx,
                     unsigned char *output)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
 #if defined(MBEDTLS_CIPHER_C)
     size_t olen = 0;
-
-    if ((ret = mbedtls_cipher_update(&ctx->cipher_ctx, ctx->y, 16, ectr,
-                                     &olen)) != 0) {
-        mbedtls_platform_zeroize(ectr, 16);
-        return ret;
-    }
-
+    ret = mbedtls_cipher_update(&ctx->cipher_ctx, ctx->y, 16, ectr, &olen);
 #else
-
-    if ((ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, ctx->y, ectr)) != 0) {
+    ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, ctx->y, ectr);
+#endif
+    if (ret != 0) {
         mbedtls_platform_zeroize(ectr, 16);
         return ret;
     }
-#endif
 
     if (ctx->mode == MBEDTLS_GCM_DECRYPT) {
         mbedtls_xor(ctx->buf + offset, ctx->buf + offset, input, use_len);

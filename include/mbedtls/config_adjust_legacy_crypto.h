@@ -16,23 +16,18 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
 #define MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
+
+/* Temporary hack to pacify check_names.py.
+ * (GCM and CCM still hard-depend on CIPHER_C for now.) */
+#if (defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)) && \
+    !defined(MBEDTLS_CIPHER_C)
+#define MBEDTLS_BLOCK_CIPHER_C
+#endif
 
 /* Auto-enable MBEDTLS_MD_LIGHT based on MBEDTLS_MD_C.
  * This allows checking for MD_LIGHT rather than MD_LIGHT || MD_C.
@@ -55,6 +50,120 @@
     defined(MBEDTLS_X509_CREATE_C)
 #define MBEDTLS_MD_LIGHT
 #endif
+
+#if defined(MBEDTLS_MD_LIGHT)
+/*
+ * - MBEDTLS_MD_CAN_xxx is defined if the md module can perform xxx.
+ * - MBEDTLS_MD_xxx_VIA_PSA is defined if the md module may perform xxx via PSA
+ *   (see below).
+ * - MBEDTLS_MD_SOME_PSA is defined if at least one algorithm may be performed
+ *   via PSA (see below).
+ * - MBEDTLS_MD_SOME_LEGACY is defined if at least one algorithm may be performed
+ *   via a direct legacy call (see below).
+ *
+ * The md module performs an algorithm via PSA if there is a PSA hash
+ * accelerator and the PSA driver subsytem is initialized at the time the
+ * operation is started, and makes a direct legacy call otherwise.
+ */
+
+/* PSA accelerated implementations */
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+
+#if defined(MBEDTLS_PSA_ACCEL_ALG_MD5)
+#define MBEDTLS_MD_CAN_MD5
+#define MBEDTLS_MD_MD5_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_1)
+#define MBEDTLS_MD_CAN_SHA1
+#define MBEDTLS_MD_SHA1_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_224)
+#define MBEDTLS_MD_CAN_SHA224
+#define MBEDTLS_MD_SHA224_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_256)
+#define MBEDTLS_MD_CAN_SHA256
+#define MBEDTLS_MD_SHA256_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_384)
+#define MBEDTLS_MD_CAN_SHA384
+#define MBEDTLS_MD_SHA384_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_512)
+#define MBEDTLS_MD_CAN_SHA512
+#define MBEDTLS_MD_SHA512_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_RIPEMD160)
+#define MBEDTLS_MD_CAN_RIPEMD160
+#define MBEDTLS_MD_RIPEMD160_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_224)
+#define MBEDTLS_MD_CAN_SHA3_224
+#define MBEDTLS_MD_SHA3_224_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_256)
+#define MBEDTLS_MD_CAN_SHA3_256
+#define MBEDTLS_MD_SHA3_256_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_384)
+#define MBEDTLS_MD_CAN_SHA3_384
+#define MBEDTLS_MD_SHA3_384_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_512)
+#define MBEDTLS_MD_CAN_SHA3_512
+#define MBEDTLS_MD_SHA3_512_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#endif /* MBEDTLS_PSA_CRYPTO_C */
+
+/* Built-in implementations */
+#if defined(MBEDTLS_MD5_C)
+#define MBEDTLS_MD_CAN_MD5
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_SHA1_C)
+#define MBEDTLS_MD_CAN_SHA1
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_SHA224_C)
+#define MBEDTLS_MD_CAN_SHA224
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_SHA256_C)
+#define MBEDTLS_MD_CAN_SHA256
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_SHA384_C)
+#define MBEDTLS_MD_CAN_SHA384
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_SHA512_C)
+#define MBEDTLS_MD_CAN_SHA512
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_SHA3_C)
+#define MBEDTLS_MD_CAN_SHA3_224
+#define MBEDTLS_MD_CAN_SHA3_256
+#define MBEDTLS_MD_CAN_SHA3_384
+#define MBEDTLS_MD_CAN_SHA3_512
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_RIPEMD160_C)
+#define MBEDTLS_MD_CAN_RIPEMD160
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+
+#endif /* MBEDTLS_MD_LIGHT */
 
 /* MBEDTLS_ECP_LIGHT is auto-enabled by the following symbols:
  * - MBEDTLS_ECP_C because now it consists of MBEDTLS_ECP_LIGHT plus functions
@@ -190,6 +299,36 @@
  * enable it, so we enable it here. */
 #if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PKCS5_C) && defined(MBEDTLS_CIPHER_MODE_CBC)
 #define MBEDTLS_CIPHER_PADDING_PKCS7
+#endif
+
+/* Backwards compatibility for some macros which were renamed to reflect that
+ * they are related to Armv8, not aarch64. */
+#if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) && \
+    !defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT)
+#define MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
+#endif
+#if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY) && !defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY)
+#define MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
+#endif
+
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_GCM_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_GCM))
+#define MBEDTLS_SSL_HAVE_GCM
+#endif
+
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CCM_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CCM))
+#define MBEDTLS_SSL_HAVE_CCM
+#endif
+
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CHACHAPOLY_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CHACHA20_POLY1305))
+#define MBEDTLS_SSL_HAVE_CHACHAPOLY
+#endif
+
+#if defined(MBEDTLS_SSL_HAVE_GCM) || defined(MBEDTLS_SSL_HAVE_CCM) || \
+    defined(MBEDTLS_SSL_HAVE_CHACHAPOLY)
+#define MBEDTLS_SSL_HAVE_AEAD
 #endif
 
 #endif /* MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H */

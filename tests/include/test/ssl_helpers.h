@@ -5,19 +5,7 @@
 
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef SSL_HELPERS_H
@@ -50,21 +38,21 @@
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-#if defined(MBEDTLS_AES_C)
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_SSL_HAVE_AES)
+#if defined(MBEDTLS_SSL_HAVE_GCM)
 #if defined(MBEDTLS_MD_CAN_SHA384)
 #define MBEDTLS_TEST_HAS_TLS1_3_AES_256_GCM_SHA384
 #endif
 #if defined(MBEDTLS_MD_CAN_SHA256)
 #define MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256
 #endif
-#endif /* MBEDTLS_GCM_C */
-#if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_MD_CAN_SHA256)
+#endif /* MBEDTLS_SSL_HAVE_GCM */
+#if defined(MBEDTLS_SSL_HAVE_CCM) && defined(MBEDTLS_MD_CAN_SHA256)
 #define MBEDTLS_TEST_HAS_TLS1_3_AES_128_CCM_SHA256
 #define MBEDTLS_TEST_HAS_TLS1_3_AES_128_CCM_8_SHA256
 #endif
-#endif /* MBEDTLS_AES_C */
-#if defined(MBEDTLS_CHACHAPOLY_C) && defined(MBEDTLS_MD_CAN_SHA256)
+#endif /* MBEDTLS_SSL_HAVE_AES */
+#if defined(MBEDTLS_SSL_HAVE_CHACHAPOLY) && defined(MBEDTLS_MD_CAN_SHA256)
 #define MBEDTLS_TEST_HAS_TLS1_3_CHACHA20_POLY1305_SHA256
 #endif
 
@@ -497,7 +485,7 @@ int mbedtls_test_move_handshake_to_state(mbedtls_ssl_context *ssl,
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_AES_C)
+    defined(MBEDTLS_SSL_HAVE_CBC) && defined(MBEDTLS_SSL_HAVE_AES)
 int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
                                            const unsigned char *iv,
                                            size_t iv_len,
@@ -505,8 +493,8 @@ int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
                                            size_t ilen,
                                            unsigned char *output,
                                            size_t *olen);
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_CIPHER_MODE_CBC &&
-          MBEDTLS_AES_C */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_HAVE_CBC &&
+          MBEDTLS_SSL_HAVE_AES */
 
 int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
                                       mbedtls_ssl_transform *t_out,

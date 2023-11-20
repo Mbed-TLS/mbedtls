@@ -9,19 +9,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 /**
@@ -754,6 +742,9 @@
  * contexts and therefore is a compatibility break for applications that access
  * fields of a mbedtls_ecdh_context structure directly. See also
  * MBEDTLS_ECDH_LEGACY_CONTEXT in include/mbedtls/ecdh.h.
+ *
+ * The Everest code is provided under the Apache 2.0 license only; therefore enabling this
+ * option is not compatible with taking the library under the GPL v2.0-or-later license.
  */
 //#define MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
 
@@ -3270,14 +3261,14 @@
 #define MBEDTLS_SHA256_C
 
 /**
- * \def MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+ * \def MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
  *
  * Enable acceleration of the SHA-256 and SHA-224 cryptographic hash algorithms
  * with the ARMv8 cryptographic extensions if they are available at runtime.
  * If not, the library will fall back to the C implementation.
  *
- * \note If MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT is defined when building
- * for a non-Aarch64 build it will be silently ignored.
+ * \note If MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT is defined when building
+ * for a non-Armv8-A build it will be silently ignored.
  *
  * \note    Minimum compiler versions for this feature are Clang 4.0,
  * armclang 6.6 or GCC 6.0.
@@ -3285,27 +3276,40 @@
  * \note \c CFLAGS must be set to a minimum of \c -march=armv8-a+crypto for
  * armclang <= 6.9
  *
- * \warning MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT cannot be defined at the
- * same time as MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY.
+ * \note This was previously known as MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT.
+ * That name is deprecated, but may still be used as an alternative form for this
+ * option.
+ *
+ * \warning MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT cannot be defined at the
+ * same time as MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY.
  *
  * Requires: MBEDTLS_SHA256_C.
  *
  * Module:  library/sha256.c
  *
- * Uncomment to have the library check for the A64 SHA-256 crypto extensions
+ * Uncomment to have the library check for the Armv8-A SHA-256 crypto extensions
  * and use them if available.
+ */
+//#define MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
+
+/**
+ * \def MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+ *
+ * \deprecated This is now known as MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT.
+ * This name is now deprecated, but may still be used as an alternative form for
+ * this option.
  */
 //#define MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
 
 /**
- * \def MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
+ * \def MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
  *
  * Enable acceleration of the SHA-256 and SHA-224 cryptographic hash algorithms
  * with the ARMv8 cryptographic extensions, which must be available at runtime
  * or else an illegal instruction fault will occur.
  *
  * \note This allows builds with a smaller code size than with
- * MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+ * MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
  *
  * \note    Minimum compiler versions for this feature are Clang 4.0,
  * armclang 6.6 or GCC 6.0.
@@ -3313,15 +3317,28 @@
  * \note \c CFLAGS must be set to a minimum of \c -march=armv8-a+crypto for
  * armclang <= 6.9
  *
- * \warning MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY cannot be defined at the same
- * time as MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT.
+ * \note This was previously known as MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY.
+ * That name is deprecated, but may still be used as an alternative form for this
+ * option.
+ *
+ * \warning MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY cannot be defined at the same
+ * time as MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT.
  *
  * Requires: MBEDTLS_SHA256_C.
  *
  * Module:  library/sha256.c
  *
- * Uncomment to have the library use the A64 SHA-256 crypto extensions
+ * Uncomment to have the library use the Armv8-A SHA-256 crypto extensions
  * unconditionally.
+ */
+//#define MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
+
+/**
+ * \def MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
+ *
+ * \deprecated This is now known as MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY.
+ * This name is now deprecated, but may still be used as an alternative form for
+ * this option.
  */
 //#define MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
 
@@ -4066,7 +4083,7 @@
  * \def MBEDTLS_SSL_MAX_EARLY_DATA_SIZE
  *
  * The default maximum amount of 0-RTT data. See the documentation of
- * \c mbedtls_ssl_tls13_conf_max_early_data_size() for more information.
+ * \c mbedtls_ssl_conf_max_early_data_size() for more information.
  *
  * It must be positive and smaller than UINT32_MAX.
  *

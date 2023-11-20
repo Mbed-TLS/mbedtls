@@ -5,19 +5,7 @@
 
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include <test/ssl_helpers.h>
@@ -85,7 +73,7 @@ void mbedtls_test_init_handshake_options(
     opts->renegotiate = 0;
     opts->legacy_renegotiation = MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION;
     opts->srv_log_obj = NULL;
-    opts->srv_log_obj = NULL;
+    opts->cli_log_obj = NULL;
     opts->srv_log_fun = NULL;
     opts->cli_log_fun = NULL;
     opts->resize_buffers = 1;
@@ -1057,7 +1045,7 @@ static int psk_dummy_callback(void *p_info, mbedtls_ssl_context *ssl,
           MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_AES_C)
+    defined(MBEDTLS_SSL_HAVE_CBC) && defined(MBEDTLS_SSL_HAVE_AES)
 int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
                                            const unsigned char *iv,
                                            size_t iv_len,
@@ -1105,8 +1093,125 @@ int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
                                 iv, iv_len, input, ilen, output, olen);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_CIPHER_MODE_CBC &&
-          MBEDTLS_AES_C */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_HAVE_CBC &&
+          MBEDTLS_SSL_HAVE_AES */
+
+static void mbedtls_test_ssl_cipher_info_from_type(mbedtls_cipher_type_t cipher_type,
+                                                   mbedtls_cipher_mode_t *cipher_mode,
+                                                   size_t *key_bits, size_t *iv_len)
+{
+    switch (cipher_type) {
+        case MBEDTLS_CIPHER_AES_128_CBC:
+            *cipher_mode = MBEDTLS_MODE_CBC;
+            *key_bits = 128;
+            *iv_len = 16;
+            break;
+        case MBEDTLS_CIPHER_AES_256_CBC:
+            *cipher_mode = MBEDTLS_MODE_CBC;
+            *key_bits = 256;
+            *iv_len = 16;
+            break;
+        case MBEDTLS_CIPHER_ARIA_128_CBC:
+            *cipher_mode = MBEDTLS_MODE_CBC;
+            *key_bits = 128;
+            *iv_len = 16;
+            break;
+        case MBEDTLS_CIPHER_ARIA_256_CBC:
+            *cipher_mode = MBEDTLS_MODE_CBC;
+            *key_bits = 256;
+            *iv_len = 16;
+            break;
+        case MBEDTLS_CIPHER_CAMELLIA_128_CBC:
+            *cipher_mode = MBEDTLS_MODE_CBC;
+            *key_bits = 128;
+            *iv_len = 16;
+            break;
+        case MBEDTLS_CIPHER_CAMELLIA_256_CBC:
+            *cipher_mode = MBEDTLS_MODE_CBC;
+            *key_bits = 256;
+            *iv_len = 16;
+            break;
+
+        case MBEDTLS_CIPHER_AES_128_CCM:
+            *cipher_mode = MBEDTLS_MODE_CCM;
+            *key_bits = 128;
+            *iv_len = 12;
+            break;
+        case MBEDTLS_CIPHER_AES_192_CCM:
+            *cipher_mode = MBEDTLS_MODE_CCM;
+            *key_bits = 192;
+            *iv_len = 12;
+            break;
+        case MBEDTLS_CIPHER_AES_256_CCM:
+            *cipher_mode = MBEDTLS_MODE_CCM;
+            *key_bits = 256;
+            *iv_len = 12;
+            break;
+        case MBEDTLS_CIPHER_CAMELLIA_128_CCM:
+            *cipher_mode = MBEDTLS_MODE_CCM;
+            *key_bits = 128;
+            *iv_len = 12;
+            break;
+        case MBEDTLS_CIPHER_CAMELLIA_192_CCM:
+            *cipher_mode = MBEDTLS_MODE_CCM;
+            *key_bits = 192;
+            *iv_len = 12;
+            break;
+        case MBEDTLS_CIPHER_CAMELLIA_256_CCM:
+            *cipher_mode = MBEDTLS_MODE_CCM;
+            *key_bits = 256;
+            *iv_len = 12;
+            break;
+
+        case MBEDTLS_CIPHER_AES_128_GCM:
+            *cipher_mode = MBEDTLS_MODE_GCM;
+            *key_bits = 128;
+            *iv_len = 12;
+            break;
+        case MBEDTLS_CIPHER_AES_192_GCM:
+            *cipher_mode = MBEDTLS_MODE_GCM;
+            *key_bits = 192;
+            *iv_len = 12;
+            break;
+        case MBEDTLS_CIPHER_AES_256_GCM:
+            *cipher_mode = MBEDTLS_MODE_GCM;
+            *key_bits = 256;
+            *iv_len = 12;
+            break;
+        case MBEDTLS_CIPHER_CAMELLIA_128_GCM:
+            *cipher_mode = MBEDTLS_MODE_GCM;
+            *key_bits = 128;
+            *iv_len = 12;
+            break;
+        case MBEDTLS_CIPHER_CAMELLIA_192_GCM:
+            *cipher_mode = MBEDTLS_MODE_GCM;
+            *key_bits = 192;
+            *iv_len = 12;
+            break;
+        case MBEDTLS_CIPHER_CAMELLIA_256_GCM:
+            *cipher_mode = MBEDTLS_MODE_GCM;
+            *key_bits = 256;
+            *iv_len = 12;
+            break;
+
+        case MBEDTLS_CIPHER_CHACHA20_POLY1305:
+            *cipher_mode = MBEDTLS_MODE_CHACHAPOLY;
+            *key_bits = 256;
+            *iv_len = 12;
+            break;
+
+        case MBEDTLS_CIPHER_NULL:
+            *cipher_mode = MBEDTLS_MODE_STREAM;
+            *key_bits = 0;
+            *iv_len = 0;
+            break;
+
+        default:
+            *cipher_mode = MBEDTLS_MODE_NONE;
+            *key_bits = 0;
+            *iv_len = 0;
+    }
+}
 
 int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
                                       mbedtls_ssl_transform *t_out,
@@ -1116,18 +1221,20 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
                                       size_t cid0_len,
                                       size_t cid1_len)
 {
-    mbedtls_cipher_info_t const *cipher_info;
+    mbedtls_cipher_mode_t cipher_mode = MBEDTLS_MODE_NONE;
+    size_t key_bits = 0;
     int ret = 0;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_key_type_t key_type;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg;
-    size_t key_bits;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+#else
+    mbedtls_cipher_info_t const *cipher_info;
 #endif
 
-    size_t keylen, maclen, ivlen;
+    size_t keylen, maclen, ivlen = 0;
     unsigned char *key0 = NULL, *key1 = NULL;
     unsigned char *md0 = NULL, *md1 = NULL;
     unsigned char iv_enc[16], iv_dec[16];
@@ -1144,15 +1251,11 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
     maclen = 0;
-
-    /* Pick cipher */
-    cipher_info = mbedtls_cipher_info_from_type((mbedtls_cipher_type_t) cipher_type);
-    CHK(cipher_info != NULL);
-    CHK(mbedtls_cipher_info_get_iv_size(cipher_info) <= 16);
-    CHK(mbedtls_cipher_info_get_key_bitlen(cipher_info) % 8 == 0);
+    mbedtls_test_ssl_cipher_info_from_type((mbedtls_cipher_type_t) cipher_type,
+                                           &cipher_mode, &key_bits, &ivlen);
 
     /* Pick keys */
-    keylen = mbedtls_cipher_info_get_key_bitlen(cipher_info) / 8;
+    keylen = key_bits / 8;
     /* Allocate `keylen + 1` bytes to ensure that we get
      * a non-NULL pointers from `mbedtls_calloc` even if
      * `keylen == 0` in the case of the NULL cipher. */
@@ -1162,6 +1265,12 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
     memset(key1, 0x2, keylen);
 
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
+    /* Pick cipher */
+    cipher_info = mbedtls_cipher_info_from_type((mbedtls_cipher_type_t) cipher_type);
+    CHK(cipher_info != NULL);
+    CHK(mbedtls_cipher_info_get_iv_size(cipher_info) <= 16);
+    CHK(mbedtls_cipher_info_get_key_bitlen(cipher_info) % 8 == 0);
+
     /* Setup cipher contexts */
     CHK(mbedtls_cipher_setup(&t_in->cipher_ctx_enc,  cipher_info) == 0);
     CHK(mbedtls_cipher_setup(&t_in->cipher_ctx_dec,  cipher_info) == 0);
@@ -1169,7 +1278,7 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
     CHK(mbedtls_cipher_setup(&t_out->cipher_ctx_dec, cipher_info) == 0);
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
-    if (cipher_info->mode == MBEDTLS_MODE_CBC) {
+    if (cipher_mode == MBEDTLS_MODE_CBC) {
         CHK(mbedtls_cipher_set_padding_mode(&t_in->cipher_ctx_enc,
                                             MBEDTLS_PADDING_NONE) == 0);
         CHK(mbedtls_cipher_set_padding_mode(&t_in->cipher_ctx_dec,
@@ -1197,12 +1306,12 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
                               (keylen << 3 > INT_MAX) ? INT_MAX : (int) keylen << 3,
                               MBEDTLS_DECRYPT)
         == 0);
-#endif
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
 
     /* Setup MAC contexts */
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
-    if (cipher_info->mode == MBEDTLS_MODE_CBC ||
-        cipher_info->mode == MBEDTLS_MODE_STREAM) {
+    if (cipher_mode == MBEDTLS_MODE_CBC ||
+        cipher_mode == MBEDTLS_MODE_STREAM) {
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
         mbedtls_md_info_t const *md_info = mbedtls_md_info_from_type((mbedtls_md_type_t) hash_id);
         CHK(md_info != NULL);
@@ -1240,7 +1349,7 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
                            md1, maclen,
                            &t_out->psa_mac_enc) == PSA_SUCCESS);
 
-        if (cipher_info->mode == MBEDTLS_MODE_STREAM ||
+        if (cipher_mode == MBEDTLS_MODE_STREAM ||
             etm == MBEDTLS_SSL_ETM_DISABLED) {
             /* mbedtls_ct_hmac() requires the key to be exportable */
             psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_EXPORT |
@@ -1279,7 +1388,6 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
 
     /* Pick IV's (regardless of whether they
      * are being used by the transform). */
-    ivlen = mbedtls_cipher_info_get_iv_size(cipher_info);
     memset(iv_enc, 0x3, sizeof(iv_enc));
     memset(iv_dec, 0x4, sizeof(iv_dec));
 
@@ -1300,7 +1408,7 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
     t_out->ivlen = ivlen;
     t_in->ivlen = ivlen;
 
-    switch (cipher_info->mode) {
+    switch (cipher_mode) {
         case MBEDTLS_MODE_GCM:
         case MBEDTLS_MODE_CCM:
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
@@ -1637,6 +1745,10 @@ int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
 
     session->resumption_key_len = 32;
     memset(session->resumption_key, 0x99, sizeof(session->resumption_key));
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    session->max_early_data_size = 0x87654321;
+#endif
 
 #if defined(MBEDTLS_HAVE_TIME)
     if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {

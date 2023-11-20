@@ -2,19 +2,7 @@
  *  TLS server-side functions
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -676,7 +664,7 @@ static int ssl_check_key_curve(mbedtls_pk_context *pk,
                                uint16_t *curves_tls_id)
 {
     uint16_t *curr_tls_id = curves_tls_id;
-    mbedtls_ecp_group_id grp_id = mbedtls_pk_ec_ro(*pk)->grp.id;
+    mbedtls_ecp_group_id grp_id = mbedtls_pk_get_group_id(pk);
     mbedtls_ecp_group_id curr_grp_id;
 
     while (*curr_tls_id != 0) {
@@ -2600,9 +2588,9 @@ static int ssl_write_certificate_request(mbedtls_ssl_context *ssl)
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) &&                      \
-    (defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
+#if (defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED))
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 {
@@ -2712,8 +2700,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 
     return ret;
 }
-#elif defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+#else /* MBEDTLS_USE_PSA_CRYPTO */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 {
@@ -2739,6 +2726,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 
     return 0;
 }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 

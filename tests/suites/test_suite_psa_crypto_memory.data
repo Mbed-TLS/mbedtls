@@ -43,20 +43,20 @@ local_input_free:0
 PSA crypto local input round-trip
 local_input_round_trip
 
-PSA crypto output copy alloc
-output_copy_alloc:200:PSA_SUCCESS
+PSA crypto local output alloc
+local_output_alloc:200:PSA_SUCCESS
 
-PSA crypto output copy alloc, NULL buffer
-output_copy_alloc:0:PSA_SUCCESS
+PSA crypto local output alloc, NULL buffer
+local_output_alloc:0:PSA_SUCCESS
 
-PSA crypto output copy free
-output_copy_free:200:0:PSA_SUCCESS
+PSA crypto local output free
+local_output_free:200:0:PSA_SUCCESS
 
-PSA crypto output copy free, NULL buffer
-output_copy_free:0:0:PSA_SUCCESS
+PSA crypto local output free, NULL buffer
+local_output_free:0:0:PSA_SUCCESS
 
-PSA crypto output copy free, NULL original buffer
-output_copy_free:200:1:PSA_ERROR_CORRUPTION_DETECTED
+PSA crypto local output free, NULL original buffer
+local_output_free:200:1:PSA_ERROR_CORRUPTION_DETECTED
 
-PSA crypto output copy round-trip
-output_copy_round_trip
+PSA crypto local output round-trip
+local_output_round_trip

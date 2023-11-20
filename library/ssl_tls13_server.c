@@ -1837,7 +1837,6 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
      * NOTE:
      *  - The TLS version number is checked in
      *    ssl_tls13_offered_psks_check_identity_match_ticket().
-     *  - ALPN is not checked for the time being (TODO).
      */
 
     if (handshake->selected_identity != 0) {
@@ -1857,9 +1856,11 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
     }
 
 #if defined(MBEDTLS_SSL_ALPN)
-    if (session->ticket_alpn.alpn != ssl->alpn_chosen) {
+    if (mbedtls_ssl_get_alpn_protocol(ssl) !=
+        ssl->session_negotiate->ticket_alpn.alpn) {
         MBEDTLS_SSL_DEBUG_MSG(
-            1, ("EarlyData: rejected. chosen alpn differs from the ticket."));
+            1, ("EarlyData: rejected, the selected ALPN differs from the one "
+                "associated with the pre-shared key."));
         return;
     }
 #endif

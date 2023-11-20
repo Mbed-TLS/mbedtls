@@ -507,3 +507,27 @@ run_test "TLS 1.3 G->m: EarlyData: feature is enabled, good." \
          -s "ClientHello: early_data(42) extension exists."                 \
          -s "EncryptedExtensions: early_data(42) extension exists."         \
          -s "$( tail -1 $EARLY_DATA_INPUT )"
+
+requires_all_configs_enabled MBEDTLS_SSL_EARLY_DATA MBEDTLS_SSL_SESSION_TICKETS     \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C                    \
+                             MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME                      \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED       \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test "TLS 1.3 m->m: EarlyData: alpn mismatch, rejected, good."                                              \
+         "$P_SRV force_version=tls13 debug_level=4 max_early_data_size=$EARLY_DATA_INPUT_LEN alpn=h1,h2"        \
+         "$P_CLI debug_level=4 early_data=1 reco_mode=1 reconnect=1 reco_delay=900 alpn=h1-h2"                  \
+         0 \
+         -c "Application Layer Protocol is h1"                                                                  \
+         -c "Reconnecting with saved session"                                                                   \
+         -c "NewSessionTicket: early_data(42) extension received."                                              \
+         -c "ClientHello: early_data(42) extension exists."                                                     \
+         -c "EncryptedExtensions: early_data(42) extension does not exist."                                     \
+         -c "Renegotiated application Layer Protocol is h2"                                                     \
+         -s "Application Layer Protocol is h1"                                                                  \
+         -s "NewSessionTicket: early_data(42) extension exists."                                                \
+         -s "ClientHello: early_data(42) extension exists."                                                     \
+         -s "EarlyData: rejected, the selected ALPN differs from the one associated with the pre-shared key."   \
+         -s "EncryptedExtensions: early_data(42) extension does not exist."                                     \
+         -s "Application Layer Protocol is h2"                                                                  \

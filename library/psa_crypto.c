@@ -5621,50 +5621,50 @@ void psa_crypto_local_input_free(psa_crypto_local_input_t *local_input)
     local_input->length = 0;
 }
 
-psa_status_t psa_crypto_output_copy_alloc(uint8_t *output, size_t output_len,
-                                          psa_crypto_output_copy_t *output_copy)
+psa_status_t psa_crypto_local_output_alloc(uint8_t *output, size_t output_len,
+                                           psa_crypto_local_output_t *local_output)
 {
-    output_copy->original = NULL;
-    output_copy->buffer = NULL;
-    output_copy->length = 0;
+    local_output->original = NULL;
+    local_output->buffer = NULL;
+    local_output->length = 0;
 
     if (output_len == 0) {
         return PSA_SUCCESS;
     }
-    output_copy->buffer = mbedtls_calloc(output_len, 1);
-    if (output_copy->buffer == NULL) {
+    local_output->buffer = mbedtls_calloc(output_len, 1);
+    if (local_output->buffer == NULL) {
         /* Since we dealt with the zero-length case above, we know that
          * a NULL return value means a failure of allocation. */
         return PSA_ERROR_INSUFFICIENT_MEMORY;
     }
-    output_copy->length = output_len;
-    output_copy->original = output;
+    local_output->length = output_len;
+    local_output->original = output;
 
     return PSA_SUCCESS;
 }
 
-psa_status_t psa_crypto_output_copy_free(psa_crypto_output_copy_t *output_copy)
+psa_status_t psa_crypto_local_output_free(psa_crypto_local_output_t *local_output)
 {
     psa_status_t status;
 
-    if (output_copy->buffer == NULL) {
-        output_copy->length = 0;
+    if (local_output->buffer == NULL) {
+        local_output->length = 0;
         return PSA_SUCCESS;
     }
-    if (output_copy->original == NULL) {
+    if (local_output->original == NULL) {
         /* We have an internal copy but nothing to copy back to. */
         return PSA_ERROR_CORRUPTION_DETECTED;
     }
 
-    status = psa_crypto_copy_output(output_copy->buffer, output_copy->length,
-                                    output_copy->original, output_copy->length);
+    status = psa_crypto_copy_output(local_output->buffer, local_output->length,
+                                    local_output->original, local_output->length);
     if (status != PSA_SUCCESS) {
         return status;
     }
 
-    mbedtls_free(output_copy->buffer);
-    output_copy->buffer = NULL;
-    output_copy->length = 0;
+    mbedtls_free(local_output->buffer);
+    local_output->buffer = NULL;
+    local_output->length = 0;
 
     return PSA_SUCCESS;
 }

@@ -1120,6 +1120,9 @@ component_test_default_cmake_gcc_asan () {
     msg "test: selftest (ASan build)" # ~ 10s
     programs/test/selftest
 
+    msg "test: metatests (GCC, ASan build)"
+    tests/scripts/run-metatests.sh any asan
+
     msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
     tests/ssl-opt.sh
 
@@ -1885,6 +1888,9 @@ component_test_everest () {
     msg "test: Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
     make test
 
+    msg "test: metatests (clang, ASan)"
+    tests/scripts/run-metatests.sh any asan
+
     msg "test: Everest ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
     tests/ssl-opt.sh -f ECDH
 
@@ -1972,6 +1978,9 @@ component_test_full_cmake_clang () {
 
     msg "test: cpp_dummy_build (full config, clang)" # ~ 1s
     programs/test/cpp_dummy_build
+
+    msg "test: metatests (clang)"
+    tests/scripts/run-metatests.sh any pthread
 
     msg "program demos (full config, clang)" # ~10s
     tests/scripts/run_demos.py
@@ -5464,6 +5473,9 @@ component_test_memsan () {
 
     msg "test: main suites (MSan)" # ~ 10s
     make test
+
+    msg "test: metatests (MSan)"
+    tests/scripts/run-metatests.sh any msan
 
     msg "program demos (MSan)" # ~20s
     tests/scripts/run_demos.py

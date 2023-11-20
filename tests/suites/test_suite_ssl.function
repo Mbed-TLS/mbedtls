@@ -2120,23 +2120,28 @@ void ssl_serialize_session_load_save(int ticket_len, char *crt_file,
 
     /* Prepare a dummy session to work on */
     ((void) endpoint_type);
-    ((void) tls_version);
     ((void) ticket_len);
     ((void) crt_file);
+
+    switch (tls_version) {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
-        TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
-                        &session, 0, endpoint_type) == 0);
-    }
+        case MBEDTLS_SSL_VERSION_TLS1_3:
+            TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
+                            &session, 0, endpoint_type) == 0);
+            break;
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_2) {
-
-        TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
-                        &session, ticket_len, crt_file) == 0);
-    }
+        case MBEDTLS_SSL_VERSION_TLS1_2:
+            TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
+                            &session, ticket_len, crt_file) == 0);
+            break;
 #endif
+        default:
+            /* should never happen */
+            TEST_ASSERT(0);
+            break;
+    }
 
     /* Get desired buffer size for serializing */
     TEST_ASSERT(mbedtls_ssl_session_save(&session, NULL, 0, &len0)

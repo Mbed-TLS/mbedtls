@@ -3214,10 +3214,10 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
  * } EarlyDataIndication;
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_write_early_data_ext_of_nst(mbedtls_ssl_context *ssl,
-                                                 unsigned char *buf,
-                                                 const unsigned char *end,
-                                                 size_t *out_len)
+static int ssl_tls13_write_nst_early_data_ext(mbedtls_ssl_context *ssl,
+                                              unsigned char *buf,
+                                              const unsigned char *end,
+                                              size_t *out_len)
 {
     unsigned char *p = buf;
     *out_len = 0;
@@ -3363,9 +3363,9 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
     p += 2;
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if ((ret = ssl_tls13_write_early_data_ext_of_nst(
+    if ((ret = ssl_tls13_write_nst_early_data_ext(
              ssl, p, end, &output_len)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "ssl_tls13_write_early_data_ext_of_nst", ret);
+        MBEDTLS_SSL_DEBUG_RET(1, "ssl_tls13_write_nst_early_data_ext", ret);
         return ret;
     }
     p += output_len;

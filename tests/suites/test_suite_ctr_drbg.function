@@ -343,29 +343,37 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_THREADING_PTHREAD */
-void ctr_drbg_threads(data_t *expected_result, int reseed_interval)
+void ctr_drbg_threads(data_t *expected_result, int reseed)
 {
 #define THREAD_CNT 5
     pthread_t threads[THREAD_CNT];
 
     unsigned char out[16];
+    unsigned char *entropy = NULL;
+
+    const size_t n_random_calls = THREAD_CNT * thread_random_reps + 1;
+
     memset(out, 0, sizeof(out));
-
-    unsigned char entropy[1024];
-    memset(entropy, 0, sizeof(entropy));
-
-    test_offset_idx = 0;
-    test_max_idx = sizeof(entropy);
 
     mbedtls_ctr_drbg_context ctx;
     mbedtls_ctr_drbg_init(&ctx);
 
-    mbedtls_ctr_drbg_set_reseed_interval(&ctx, reseed_interval);
+    test_offset_idx = 0;
 
-    /* There are too many calls in this test to conveniently provide enough
-     * entropy for this to be on. Test cases can trigger reseeding by setting
-     * \p reseed_interval appropriately. */
-    mbedtls_ctr_drbg_set_prediction_resistance(&ctx, MBEDTLS_CTR_DRBG_PR_OFF);
+    if (reseed == 0) {
+        mbedtls_ctr_drbg_set_prediction_resistance(&ctx, MBEDTLS_CTR_DRBG_PR_OFF);
+        mbedtls_ctr_drbg_set_reseed_interval(&ctx, n_random_calls + 1);
+
+        TEST_CALLOC(entropy, MBEDTLS_CTR_DRBG_ENTROPY_LEN);
+        test_max_idx = MBEDTLS_CTR_DRBG_ENTROPY_LEN;
+    } else {
+        const size_t entropy_size = (n_random_calls + 1) * MBEDTLS_CTR_DRBG_ENTROPY_LEN;
+
+        mbedtls_ctr_drbg_set_prediction_resistance(&ctx, MBEDTLS_CTR_DRBG_PR_ON);
+
+        TEST_CALLOC(entropy, entropy_size);
+        test_max_idx = entropy_size;
+    }
 
     TEST_EQUAL(
         mbedtls_ctr_drbg_seed(&ctx, mbedtls_test_entropy_func, entropy, NULL, 0),
@@ -389,6 +397,7 @@ void ctr_drbg_threads(data_t *expected_result, int reseed_interval)
 
 exit:
     mbedtls_ctr_drbg_free(&ctx);
+    mbedtls_free(entropy);
 }
 #undef THREAD_CNT
 /* END_CASE */

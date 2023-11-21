@@ -2160,9 +2160,6 @@ exit:
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
 {
-#if defined(MBEDTLS_HAVE_TIME)
-    mbedtls_time_t t;
-#endif
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t olen, ext_len = 0, n;
     unsigned char *buf, *p;
@@ -2179,17 +2176,10 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
     }
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY */
 
-    if (ssl->conf->f_rng == NULL) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("no RNG provided"));
-        return MBEDTLS_ERR_SSL_NO_RNG;
-    }
-
     /*
      *     0  .   0   handshake type
      *     1  .   3   handshake length
      *     4  .   5   protocol version
-     *     6  .   9   UNIX time()
-     *    10  .  37   random bytes
      */
     buf = ssl->out_msg;
     p = buf + 4;
@@ -2199,57 +2189,6 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("server hello, chosen version: [%d:%d]",
                               buf[4], buf[5]));
-
-#if defined(MBEDTLS_HAVE_TIME)
-    t = mbedtls_time(NULL);
-    MBEDTLS_PUT_UINT32_BE(t, p, 0);
-    p += 4;
-
-    MBEDTLS_SSL_DEBUG_MSG(3, ("server hello, current time: %" MBEDTLS_PRINTF_LONGLONG,
-                              (long long) t));
-#else
-    if ((ret = ssl->conf->f_rng(ssl->conf->p_rng, p, 4)) != 0) {
-        return ret;
-    }
-
-    p += 4;
-#endif /* MBEDTLS_HAVE_TIME */
-
-    if ((ret = ssl->conf->f_rng(ssl->conf->p_rng, p, 20)) != 0) {
-        return ret;
-    }
-    p += 20;
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    /*
-     * RFC 8446
-     * TLS 1.3 has a downgrade protection mechanism embedded in the server's
-     * random value. TLS 1.3 servers which negotiate TLS 1.2 or below in
-     * response to a ClientHello MUST set the last 8 bytes of their Random
-     * value specially in their ServerHello.
-     */
-    if (mbedtls_ssl_conf_is_tls13_enabled(ssl->conf)) {
-        static const unsigned char magic_tls12_downgrade_string[] =
-        { 'D', 'O', 'W', 'N', 'G', 'R', 'D', 1 };
-
-        MBEDTLS_STATIC_ASSERT(
-            sizeof(magic_tls12_downgrade_string) == 8,
-            "magic_tls12_downgrade_string does not have the expected size");
-
-        memcpy(p, magic_tls12_downgrade_string,
-               sizeof(magic_tls12_downgrade_string));
-    } else
-#endif
-    {
-        if ((ret = ssl->conf->f_rng(ssl->conf->p_rng, p, 8)) != 0) {
-            return ret;
-        }
-    }
-    p += 8;
-
-    memcpy(ssl->handshake->randbytes + 32, buf + 6, 32);
-
-    MBEDTLS_SSL_DEBUG_BUF(3, "server hello, random bytes", buf + 6, 32);
 
     ssl_handle_id_based_session_resumption(ssl);
 

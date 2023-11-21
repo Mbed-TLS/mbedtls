@@ -878,6 +878,37 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
         uint32_t Y[4];
     } t;
 
+#if defined(MBEDTLS_AES_FEWER_TABLES)
+    /* This implementation is slower, but saves 516 bytes of code size */
+
+    if (MBEDTLS_IS_BIG_ENDIAN) {
+        t.X[0] = MBEDTLS_GET_UINT32_LE(input,  0); t.X[0] ^= *RK++;
+        t.X[1] = MBEDTLS_GET_UINT32_LE(input,  4); t.X[1] ^= *RK++;
+        t.X[2] = MBEDTLS_GET_UINT32_LE(input,  8); t.X[2] ^= *RK++;
+        t.X[3] = MBEDTLS_GET_UINT32_LE(input, 12); t.X[3] ^= *RK++;
+    } else {
+        mbedtls_xor((uint8_t *) t.X, input, (uint8_t *) RK, 16);
+        RK += 4;
+    }
+
+    uint32_t *a = t.X, *b = t.Y;
+    for (i = 1; i < ctx->nr; i++) {
+        AES_FROUND(b[0], b[1], b[2], b[3], a[0], a[1], a[2], a[3]);
+
+        uint32_t *tmp = a;
+        a = b;
+        b = tmp;
+    }
+
+    uint8_t *y8 = (uint8_t *) t.Y;
+    uint8_t *r8 = (uint8_t *) RK;
+
+    for (i = 0; i < 16; i++) {
+        // adjust output address for byte-order on big-endian platforms
+        int j = MBEDTLS_IS_BIG_ENDIAN ? i ^ 3 : i;
+        output[j] = FSb[y8[(MBEDTLS_IS_BIG_ENDIAN ? (i * 13 + 12) : (i * 5)) % 16]] ^ r8[i];
+    }
+#else
     t.X[0] = MBEDTLS_GET_UINT32_LE(input,  0); t.X[0] ^= *RK++;
     t.X[1] = MBEDTLS_GET_UINT32_LE(input,  4); t.X[1] ^= *RK++;
     t.X[2] = MBEDTLS_GET_UINT32_LE(input,  8); t.X[2] ^= *RK++;
@@ -890,17 +921,6 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
 
     AES_FROUND(t.Y[0], t.Y[1], t.Y[2], t.Y[3], t.X[0], t.X[1], t.X[2], t.X[3]);
 
-#if defined(MBEDTLS_AES_FEWER_TABLES)
-    /* This implementation is about 10% slower, but saves 120 bytes of code size */
-    uint8_t *y8 = (uint8_t *) t.Y;
-    uint8_t *r8 = (uint8_t *) RK;
-
-    for (i = 0; i < 16; i++) {
-        // adjust output address for byte-order on big-endian platforms
-        int j = MBEDTLS_IS_BIG_ENDIAN ? i ^ 3 : i;
-        output[j] = FSb[y8[(MBEDTLS_IS_BIG_ENDIAN ? (i * 13 + 12) : (i * 5)) % 16]] ^ r8[i];
-    }
-#else
     t.X[0] = *RK++ ^ \
              ((uint32_t) FSb[MBEDTLS_BYTE_0(t.Y[0])]) ^
              ((uint32_t) FSb[MBEDTLS_BYTE_1(t.Y[1])] <<  8) ^
@@ -952,6 +972,35 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
         uint32_t Y[4];
     } t;
 
+#if defined(MBEDTLS_AES_FEWER_TABLES)
+    if (MBEDTLS_IS_BIG_ENDIAN) {
+        t.X[0] = MBEDTLS_GET_UINT32_LE(input,  0); t.X[0] ^= *RK++;
+        t.X[1] = MBEDTLS_GET_UINT32_LE(input,  4); t.X[1] ^= *RK++;
+        t.X[2] = MBEDTLS_GET_UINT32_LE(input,  8); t.X[2] ^= *RK++;
+        t.X[3] = MBEDTLS_GET_UINT32_LE(input, 12); t.X[3] ^= *RK++;
+    } else {
+        mbedtls_xor((uint8_t *) t.X, input, (uint8_t *) RK, 16);
+        RK += 4;
+    }
+
+    uint32_t *a = t.X, *b = t.Y;
+    for (i = 1; i < ctx->nr; i++) {
+        AES_RROUND(b[0], b[1], b[2], b[3], a[0], a[1], a[2], a[3]);
+
+        uint32_t *tmp = a;
+        a = b;
+        b = tmp;
+    }
+
+    uint8_t *y8 = (uint8_t *) t.Y;
+    uint8_t *r8 = (uint8_t *) RK;
+
+    for (i = 0; i < 16; i++) {
+        // adjust output address for byte-order on big-endian platforms
+        int j = MBEDTLS_IS_BIG_ENDIAN ? i ^ 3 : i;
+        output[j] = RSb[y8[(MBEDTLS_IS_BIG_ENDIAN ? i * 5 + 4 : i * 13) % 16]] ^ r8[i];
+    }
+#else
     t.X[0] = MBEDTLS_GET_UINT32_LE(input,  0); t.X[0] ^= *RK++;
     t.X[1] = MBEDTLS_GET_UINT32_LE(input,  4); t.X[1] ^= *RK++;
     t.X[2] = MBEDTLS_GET_UINT32_LE(input,  8); t.X[2] ^= *RK++;
@@ -964,16 +1013,6 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
 
     AES_RROUND(t.Y[0], t.Y[1], t.Y[2], t.Y[3], t.X[0], t.X[1], t.X[2], t.X[3]);
 
-#if defined(MBEDTLS_AES_FEWER_TABLES)
-    uint8_t *y8 = (uint8_t *) t.Y;
-    uint8_t *r8 = (uint8_t *) RK;
-
-    for (i = 0; i < 16; i++) {
-        // adjust output address for byte-order on big-endian platforms
-        int j = MBEDTLS_IS_BIG_ENDIAN ? i ^ 3 : i;
-        output[j] = RSb[y8[(MBEDTLS_IS_BIG_ENDIAN ? i * 5 + 4 : i * 13) % 16]] ^ r8[i];
-    }
-#else
     t.X[0] = *RK++ ^ \
              ((uint32_t) RSb[MBEDTLS_BYTE_0(t.Y[0])]) ^
              ((uint32_t) RSb[MBEDTLS_BYTE_1(t.Y[3])] <<  8) ^

@@ -2765,6 +2765,9 @@ int mbedtls_ssl_session_set_hostname(mbedtls_ssl_session *session,
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+
+#define MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME (604800)
+
 static inline unsigned int mbedtls_ssl_session_get_ticket_flags(
     mbedtls_ssl_session *session, unsigned int flags)
 {

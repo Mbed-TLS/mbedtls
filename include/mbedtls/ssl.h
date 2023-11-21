@@ -1217,7 +1217,7 @@ struct mbedtls_ssl_session {
     mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(tls_version);
 
 #if defined(MBEDTLS_HAVE_TIME)
-    mbedtls_time_t MBEDTLS_PRIVATE(start);       /*!< starting time      */
+    mbedtls_time_t MBEDTLS_PRIVATE(start);       /*!< start time of current session */
 #endif
     int MBEDTLS_PRIVATE(ciphersuite);            /*!< chosen ciphersuite */
     size_t MBEDTLS_PRIVATE(id_len);              /*!< session id length  */
@@ -1254,9 +1254,14 @@ struct mbedtls_ssl_session {
     char *MBEDTLS_PRIVATE(hostname);             /*!< host name binded with tickets */
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION && MBEDTLS_SSL_CLI_C */
 
-#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_CLI_C)
-    mbedtls_time_t MBEDTLS_PRIVATE(ticket_received);        /*!< time ticket was received */
-#endif /* MBEDTLS_HAVE_TIME && MBEDTLS_SSL_CLI_C */
+#if defined(MBEDTLS_HAVE_TIME)
+#if defined(MBEDTLS_SSL_CLI_C)
+    mbedtls_ms_time_t MBEDTLS_PRIVATE(ticket_reception_time);   /*!< time when ticket was received. */
+#endif
+#if defined(MBEDTLS_SSL_SRV_C)
+    mbedtls_ms_time_t MBEDTLS_PRIVATE(ticket_creation_time);    /*!< time when ticket was created. */
+#endif
+#endif /* MBEDTLS_HAVE_TIME */
 
 #endif /*  MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
 

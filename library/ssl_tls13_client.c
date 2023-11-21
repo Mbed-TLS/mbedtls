@@ -931,28 +931,14 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
     if (ssl_tls13_ticket_get_identity(
             ssl, &hash_alg, &identity, &identity_len) == 0) {
 #if defined(MBEDTLS_HAVE_TIME)
-        mbedtls_time_t now = mbedtls_time(NULL);
+        mbedtls_ms_time_t now = mbedtls_ms_time();
         mbedtls_ssl_session *session = ssl->session_negotiate;
+        /* The ticket age has been checked to be smaller than the
+         * `ticket_lifetime` in ssl_prepare_client_hello() which is smaller than
+         * 7 days (enforced in ssl_tls13_parse_new_session_ticket()) . Thus the
+         * cast to `uint32_t` of the ticket age is safe. */
         uint32_t obfuscated_ticket_age =
-            (uint32_t) (now - session->ticket_received);
-
-        /*
-         * The ticket timestamp is in seconds but the ticket age is in
-         * milliseconds. If the ticket was received at the end of a second and
-         * re-used here just at the beginning of the next second, the computed
-         * age `now - session->ticket_received` is equal to 1s thus 1000 ms
-         * while the actual age could be just a few milliseconds or tens of
-         * milliseconds. If the server has more accurate ticket timestamps
-         * (typically timestamps in milliseconds), as part of the processing of
-         * the ClientHello, it may compute a ticket lifetime smaller than the
-         * one computed here and potentially reject the ticket. To avoid that,
-         * remove one second to the ticket age if possible.
-         */
-        if (obfuscated_ticket_age > 0) {
-            obfuscated_ticket_age -= 1;
-        }
-
-        obfuscated_ticket_age *= 1000;
+            (uint32_t) (now - session->ticket_reception_time);
         obfuscated_ticket_age += session->ticket_age_add;
 
         ret = ssl_tls13_write_identity(ssl, p, end,
@@ -2762,6 +2748,11 @@ static int ssl_tls13_parse_new_session_ticket(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG(3,
                           ("ticket_lifetime: %u",
                            (unsigned int) session->ticket_lifetime));
+    if (session->ticket_lifetime >
+        MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME) {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("ticket_lifetime exceeds 7 days."));
+        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+    }
 
     session->ticket_age_add = MBEDTLS_GET_UINT32_BE(p, 4);
     MBEDTLS_SSL_DEBUG_MSG(3,
@@ -2837,7 +2828,7 @@ static int ssl_tls13_postprocess_new_session_ticket(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_HAVE_TIME)
     /* Store ticket creation time */
-    session->ticket_received = mbedtls_time(NULL);
+    session->ticket_reception_time = mbedtls_ms_time();
 #endif
 
     ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(session->ciphersuite);

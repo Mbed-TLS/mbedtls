@@ -4099,20 +4099,23 @@
 /**
  * \def MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE
  *
- * Maximum time difference in milliseconds tolerated between the age of a
- * ticket from the server and client point of view.
- * From the client point of view, the age of a ticket is the time difference
- * between the time when the client proposes to the server to use the ticket
- * (time of writing of the Pre-Shared Key Extension including the ticket) and
- * the time the client received the ticket from the server.
- * From the server point of view, the age of a ticket is the time difference
- * between the time when the server receives a proposition from the client
- * to use the ticket and the time when the ticket was created by the server.
- * The server age is expected to be always greater than the client one and
- * MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE defines the
- * maximum difference tolerated for the server to accept the ticket.
- * This is not used in TLS 1.2.
+ * Maximum allowed ticket age difference in milliseconds tolerated between
+ * server and client. Default value is 6000. This is not used in TLS 1.2.
  *
+ * - The client ticket age is the time difference between the time when the
+ *   client proposes to the server to use the ticket and the time the client
+ *   received the ticket from the server.
+ * - The server ticket age is the time difference between the time when the
+ *   server receives a proposition from the client to use the ticket and the
+ *   time when the ticket was created by the server.
+ *
+ * The ages might be different due to the client and server clocks not running
+ * at the same pace. The typical accuracy of an RTC crystal is ±100 to ±20 parts
+ * per million (360 to 72 milliseconds per hour). Default tolerance window is
+ * 6s, thus in the worst case clients and servers must sync up their system time
+ * every 6000/360/2~=8 hours.
+ *
+ * See section 8.3 of the TLS 1.3 specification(RFC 8446) for more information.
  */
 //#define MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE 6000
 

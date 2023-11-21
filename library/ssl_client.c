@@ -756,10 +756,9 @@ static int ssl_prepare_client_hello(mbedtls_ssl_context *ssl)
     if (ssl->handshake->resume != 0 &&
         session_negotiate->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 &&
         session_negotiate->ticket != NULL) {
-        mbedtls_time_t now = mbedtls_time(NULL);
-        uint64_t age = (uint64_t) (now - session_negotiate->ticket_received);
-        if (session_negotiate->ticket_received > now ||
-            age > session_negotiate->ticket_lifetime) {
+        mbedtls_ms_time_t now = mbedtls_ms_time();
+        mbedtls_ms_time_t age = now - session_negotiate->ticket_reception_time;
+        if (age < 0 || age > session_negotiate->ticket_lifetime * 1000) {
             /* Without valid ticket, disable session resumption.*/
             MBEDTLS_SSL_DEBUG_MSG(
                 3, ("Ticket expired, disable session resumption"));

@@ -3,6 +3,10 @@
 #include "mbedtls/ctr_drbg.h"
 #include "string.h"
 
+#if defined(MBEDTLS_THREADING_PTHREAD)
+#include "mbedtls/threading.h"
+#endif
+
 /* Modes for ctr_drbg_validate */
 enum reseed_mode {
     RESEED_NEVER, /* never reseed */

@@ -2,19 +2,7 @@
  *  X.509 base functions for creating certificates / CSRs
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -254,31 +242,33 @@ static int parse_attribute_value_hex_der_encoded(const char *s,
     /* Step 3: decode the DER. */
     /* We've checked that der_length >= 1 above. */
     *tag = der[0];
-    unsigned char *p = der + 1;
-    if (mbedtls_asn1_get_len(&p, der + der_length, data_len) != 0) {
-        goto error;
-    }
-    /* Now p points to the first byte of the payload inside der,
-     * and *data_len is the length of the payload. */
+    {
+        unsigned char *p = der + 1;
+        if (mbedtls_asn1_get_len(&p, der + der_length, data_len) != 0) {
+            goto error;
+        }
+        /* Now p points to the first byte of the payload inside der,
+         * and *data_len is the length of the payload. */
 
-    /* Step 4: payload validation */
-    if (*data_len > MBEDTLS_X509_MAX_DN_NAME_SIZE) {
-        goto error;
-    }
-    /* Strings must not contain null bytes. */
-    if (MBEDTLS_ASN1_IS_STRING_TAG(*tag)) {
-        for (size_t i = 0; i < *data_len; i++) {
-            if (p[i] == 0) {
-                goto error;
+        /* Step 4: payload validation */
+        if (*data_len > MBEDTLS_X509_MAX_DN_NAME_SIZE) {
+            goto error;
+        }
+        /* Strings must not contain null bytes. */
+        if (MBEDTLS_ASN1_IS_STRING_TAG(*tag)) {
+            for (size_t i = 0; i < *data_len; i++) {
+                if (p[i] == 0) {
+                    goto error;
+                }
             }
         }
-    }
 
-    /* Step 5: output the payload. */
-    if (*data_len > data_size) {
-        goto error;
+        /* Step 5: output the payload. */
+        if (*data_len > data_size) {
+            goto error;
+        }
+        memcpy(data, p, *data_len);
     }
-    memcpy(data, p, *data_len);
     mbedtls_free(der);
 
     return 0;

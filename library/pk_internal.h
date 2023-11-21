@@ -6,19 +6,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 #ifndef MBEDTLS_PK_INTERNAL_H
 #define MBEDTLS_PK_INTERNAL_H
@@ -44,7 +32,7 @@
                                                                     psa_pk_status_to_mbedtls)
 #endif
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 /**
  * Public function mbedtls_pk_ec() can be used to get direct access to the
  * wrapped ecp_keypair structure pointed to the pk_ctx. However this is not
@@ -80,7 +68,9 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec_rw(const mbedtls_pk_context pk)
             return NULL;
     }
 }
+#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
 
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 static inline mbedtls_ecp_group_id mbedtls_pk_get_group_id(const mbedtls_pk_context *pk)
 {
     mbedtls_ecp_group_id id;
@@ -117,14 +107,19 @@ static inline mbedtls_ecp_group_id mbedtls_pk_get_group_id(const mbedtls_pk_cont
 #endif /* MBEDTLS_ECP_HAVE_CURVE25519 || MBEDTLS_ECP_DP_CURVE448 */
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
-#if defined(MBEDTLS_TEST_HOOKS)
+/* Helper for (deterministic) ECDSA */
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
+#define MBEDTLS_PK_PSA_ALG_ECDSA_MAYBE_DET  PSA_ALG_DETERMINISTIC_ECDSA
+#else
+#define MBEDTLS_PK_PSA_ALG_ECDSA_MAYBE_DET  PSA_ALG_ECDSA
+#endif
 
+#if defined(MBEDTLS_TEST_HOOKS)
 MBEDTLS_STATIC_TESTABLE int mbedtls_pk_parse_key_pkcs8_encrypted_der(
     mbedtls_pk_context *pk,
     unsigned char *key, size_t keylen,
     const unsigned char *pwd, size_t pwdlen,
     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng);
-
 #endif
 
 #endif /* MBEDTLS_PK_INTERNAL_H */

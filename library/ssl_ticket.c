@@ -75,6 +75,10 @@ static int ssl_ticket_gen_key(mbedtls_ssl_ticket_context *ctx,
 #if defined(MBEDTLS_HAVE_TIME)
     key->generation_time = mbedtls_time(NULL);
 #endif
+    /* The lifetime of a key is the configured lifetime of the tickets when
+     * the key is created.
+     */
+    key->lifetime = ctx->ticket_lifetime;
 
     if ((ret = ctx->f_rng(ctx->p_rng, key->name, sizeof(key->name))) != 0) {
         return ret;
@@ -116,16 +120,17 @@ static int ssl_ticket_update_keys(mbedtls_ssl_ticket_context *ctx)
 #if !defined(MBEDTLS_HAVE_TIME)
     ((void) ctx);
 #else
-    if (ctx->ticket_lifetime != 0) {
+    mbedtls_ssl_ticket_key * const key = ctx->keys + ctx->active;
+    if (key->lifetime != 0) {
         mbedtls_time_t current_time = mbedtls_time(NULL);
-        mbedtls_time_t key_time = ctx->keys[ctx->active].generation_time;
+        mbedtls_time_t key_time = key->generation_time;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 #endif
 
         if (current_time >= key_time &&
-            (uint64_t) (current_time - key_time) < ctx->ticket_lifetime) {
+            (uint64_t) (current_time - key_time) < key->lifetime) {
             return 0;
         }
 
@@ -198,6 +203,8 @@ int mbedtls_ssl_ticket_rotate(mbedtls_ssl_ticket_context *ctx,
 #if defined(MBEDTLS_HAVE_TIME)
     key->generation_time = mbedtls_time(NULL);
 #endif
+    key->lifetime = lifetime;
+
     return 0;
 }
 
@@ -331,7 +338,7 @@ int mbedtls_ssl_ticket_write(void *p_ticket,
 
     key = &ctx->keys[ctx->active];
 
-    *ticket_lifetime = ctx->ticket_lifetime;
+    *ticket_lifetime = key->lifetime;
 
     memcpy(key_name, key->name, TICKET_KEY_NAME_BYTES);
 
@@ -500,7 +507,7 @@ int mbedtls_ssl_ticket_parse(void *p_ticket,
         /* Check for expiration */
         mbedtls_ms_time_t ticket_age = mbedtls_ms_time() -
                                        session->ticket_creation_time;
-        mbedtls_ms_time_t ticket_lifetime = ctx->ticket_lifetime * 1000;
+        mbedtls_ms_time_t ticket_lifetime = key->lifetime * 1000;
 
         if (ticket_age < 0 || ticket_age > ticket_lifetime) {
             ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
@@ -514,7 +521,7 @@ int mbedtls_ssl_ticket_parse(void *p_ticket,
         mbedtls_time_t current_time = mbedtls_time(NULL);
 
         if (current_time < session->start ||
-            (uint32_t) (current_time - session->start) > ctx->ticket_lifetime) {
+            (uint32_t) (current_time - session->start) > key->lifetime) {
             ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
             goto cleanup;
         }

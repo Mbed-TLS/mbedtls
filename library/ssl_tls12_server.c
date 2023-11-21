@@ -2177,13 +2177,38 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY */
 
     /*
-     *     0  .   0   handshake type
-     *     1  .   3   handshake length
-     *     4  .   5   protocol version
+     * RFC 5246 section 7.4
+     *
+     * enum {
+     *     ..., (255)
+     * } HandshakeType;
+     *
+     * struct {
+     *     HandshakeType msg_type;    // handshake type
+     *     uint24 length;             // bytes in message
+     *     ...
+     * } Handshake;
+     *
+     * Reserve 4 bytes for msg_type and length
      */
     buf = ssl->out_msg;
     p = buf + 4;
 
+    /*
+     * RFC 5246 section 7.4.1.3
+     *
+     * struct {
+     *     ProtocolVersion server_version;
+     *     ...
+     * } ServerHello;
+     *
+     * RFC 5246 section 6.2.1
+     *
+     * struct {
+     *     uint8 major;
+     *     uint8 minor;
+     * } ProtocolVersion;
+     */
     mbedtls_ssl_write_version(p, ssl->conf->transport, ssl->tls_version);
     p += 2;
 

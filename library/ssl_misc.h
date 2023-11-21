@@ -2795,6 +2795,13 @@ static inline unsigned int mbedtls_ssl_session_ticket_allow_psk_ephemeral(
                                                    MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_EPHEMERAL_RESUMPTION);
 }
 
+static inline unsigned int mbedtls_ssl_session_ticket_allow_early_data(
+    mbedtls_ssl_session *session)
+{
+    return !mbedtls_ssl_session_check_ticket_flags(session,
+                                                   MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
+}
+
 static inline void mbedtls_ssl_session_set_ticket_flags(
     mbedtls_ssl_session *session, unsigned int flags)
 {

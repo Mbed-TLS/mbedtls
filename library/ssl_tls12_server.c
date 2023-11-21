@@ -2158,6 +2158,15 @@ exit:
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_server_generate_random(mbedtls_ssl_context *ssl)
+{
+
+    int ret =  MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    return 0;
+}
+
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -2214,6 +2223,33 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("server hello, chosen version: [%d:%d]",
                               buf[4], buf[5]));
+
+    /* RFC 5246, 7.4.1.2
+     *
+     * ...
+     * struct {
+     *     uint32 gmt_unix_time;
+     *     opaque random_bytes[28];
+     * } Random;
+     * ...
+     *
+     * ...
+     * struct {
+     *     ...
+     *     Random random;
+     *     ...
+     * } ClientHello;
+     * ...
+     */
+    if ((ret = ssl_server_generate_random(ssl)) != 0) {
+        MBEDTLS_SSL_DEBUG_RET(2, "ssl_generate_random", ret);
+        return ret;
+    }
+    memcpy(p, &ssl->handshake->randbytes[MBEDTLS_CLIENT_HELLO_RANDOM_LEN],
+           MBEDTLS_SERVER_HELLO_RANDOM_LEN);
+    MBEDTLS_SSL_DEBUG_BUF(3, "server hello, random bytes", p,
+                          MBEDTLS_SERVER_HELLO_RANDOM_LEN);
+    p += MBEDTLS_SERVER_HELLO_RANDOM_LEN;
 
     ssl_handle_id_based_session_resumption(ssl);
 

@@ -974,7 +974,7 @@ cleanup:
  * Unblind
  * T = T * Vf mod N
  */
-int rsa_unblind(mbedtls_mpi* T, mbedtls_mpi* Vf, mbedtls_mpi* N)
+static int rsa_unblind(mbedtls_mpi* T, mbedtls_mpi* Vf, mbedtls_mpi* N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_mpi_uint mm = mbedtls_mpi_core_montmul_init(N->p);

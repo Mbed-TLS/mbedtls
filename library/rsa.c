@@ -1125,8 +1125,6 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
         goto cleanup;
     }
 
-    MBEDTLS_MPI_CHK(mbedtls_mpi_copy(&I, &T));
-
     /*
      * Blinding
      * T = T * Vi mod N
@@ -1134,6 +1132,8 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
     MBEDTLS_MPI_CHK(rsa_prepare_blinding(ctx, f_rng, p_rng));
     MBEDTLS_MPI_CHK(mbedtls_mpi_mul_mpi(&T, &T, &ctx->Vi));
     MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(&T, &T, &ctx->N));
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_copy(&I, &T));
 
     /*
      * Exponent blinding
@@ -1203,12 +1203,6 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
     MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(&T, &TQ, &TP));
 #endif /* MBEDTLS_RSA_NO_CRT */
 
-    /*
-     * Unblind
-     * T = T * Vf mod N
-     */
-    MBEDTLS_MPI_CHK(rsa_unblind(&T, &ctx->Vf, &ctx->N));
-
     /* Verify the result to prevent glitching attacks. */
     MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&C, &T, &ctx->E,
                                         &ctx->N, &ctx->RN));
@@ -1216,6 +1210,12 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
         ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
         goto cleanup;
     }
+
+    /*
+     * Unblind
+     * T = T * Vf mod N
+     */
+    MBEDTLS_MPI_CHK(rsa_unblind(&T, &ctx->Vf, &ctx->N));
 
     olen = ctx->len;
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&T, output, olen));

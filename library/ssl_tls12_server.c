@@ -2164,7 +2164,7 @@ static int ssl_server_generate_random(mbedtls_ssl_context *ssl)
     int ret =  MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *p =
         &ssl->handshake->randbytes[MBEDTLS_CLIENT_HELLO_RANDOM_LEN];
-    unsigned char *end = p + MBEDTLS_CLIENT_HELLO_RANDOM_LEN;
+    unsigned char *end = p + MBEDTLS_SERVER_HELLO_RANDOM_LEN;
 
     if (ssl->conf->f_rng == NULL) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("no RNG provided"));

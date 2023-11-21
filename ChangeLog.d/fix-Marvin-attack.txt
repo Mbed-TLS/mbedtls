@@ -1,0 +1,6 @@
+Security
+   * Fix a timing side channel in RSA private operations. This side channel
+     could be sufficient for a local attacker to recover the plaintext. It
+     requires the attecker to send a large number of messages for decryption.
+     For details, see "Everlasting ROBOT: the Marvin Attack", Hubert Kario.
+     Reported by Hubert Kario, Red Hat.

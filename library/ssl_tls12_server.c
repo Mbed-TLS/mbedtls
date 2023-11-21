@@ -2210,15 +2210,8 @@ static int ssl_server_generate_random(mbedtls_ssl_context *ssl)
      *   44 4F 57 4E 47 52 44 01
      */
     if (mbedtls_ssl_conf_is_tls13_enabled(ssl->conf)) {
-        static const unsigned char magic_tls12_downgrade_string[] =
-        { 'D', 'O', 'W', 'N', 'G', 'R', 'D', 1 };
-
-        MBEDTLS_STATIC_ASSERT(
-            sizeof(magic_tls12_downgrade_string) == 8,
-            "magic_tls12_downgrade_string does not have the expected size");
         end -= 8;
-        memcpy(end, magic_tls12_downgrade_string,
-               sizeof(magic_tls12_downgrade_string));
+        MBEDTLS_PUT_UINT64_BE(mbedtls_ssl_tls13_downgrade_magic_tls12, end, 0);
     }
 #endif
 

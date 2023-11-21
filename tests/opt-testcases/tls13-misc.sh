@@ -523,5 +523,3 @@ run_test "TLS 1.3 G->m: EarlyData: feature is enabled, good." \
          -s "ClientHello: early_data(42) extension exists."                 \
          -s "EncryptedExtensions: early_data(42) extension exists."         \
          -s "$( tail -1 $EARLY_DATA_INPUT )"
-
-

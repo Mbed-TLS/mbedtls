@@ -435,7 +435,9 @@ int main(void)
     "                            The max amount of 0-RTT data for 1st and 2nd connection\n" \
     "                            format:  1st_connection_value[,2nd_connection_value]\n" \
     "                            available values:  < 0 (disabled), >= 0 (enabled).\n"             \
-    "                                               The absolute value is the max amount of 0-RTT data.\n"
+    "                                               The absolute value is the max amount of 0-RTT data \n" \
+    "                                               up to UINT32_MAX. \n"
+
 #else
 #define USAGE_EARLY_DATA ""
 #endif /* MBEDTLS_SSL_EARLY_DATA */

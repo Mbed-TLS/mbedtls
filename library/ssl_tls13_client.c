@@ -2715,7 +2715,7 @@ static int ssl_tls13_parse_new_session_ticket_exts(mbedtls_ssl_context *ssl,
                     ssl, p, p + extension_data_len);
                 if (ret != 0) {
                     MBEDTLS_SSL_DEBUG_RET(
-                        1, "ssl_tls13_parse_max_early_data_size_ext", ret);
+                        1, "ssl_tls13_parse_nst_early_data_ext", ret);
                 }
                 break;
 #endif /* MBEDTLS_SSL_EARLY_DATA */

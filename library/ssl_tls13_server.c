@@ -3140,10 +3140,6 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> prepare NewSessionTicket msg"));
 
-#if defined(MBEDTLS_HAVE_TIME)
-    session->ticket_creation_time = mbedtls_ms_time();
-#endif
-
     /* Set ticket_flags depends on the advertised psk key exchange mode */
     mbedtls_ssl_tls13_session_clear_ticket_flags(
         session, MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
@@ -3278,6 +3274,9 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_CHK_BUF_PTR(p, end, 4 + 4 + 1 + ticket_nonce_size + 2);
 
     /* Generate ticket and ticket_lifetime */
+#if defined(MBEDTLS_HAVE_TIME)
+    session->ticket_creation_time = mbedtls_ms_time();
+#endif
     ret = ssl->conf->f_ticket_write(ssl->conf->p_ticket,
                                     session,
                                     p + 9 + ticket_nonce_size + 2,

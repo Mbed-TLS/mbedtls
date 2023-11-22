@@ -1230,7 +1230,22 @@ struct mbedtls_ssl_session {
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_SRV_C) && \
     defined(MBEDTLS_HAVE_TIME)
-    /*! Time in milliseconds when the ticket was created. */
+    /*! When a ticket is created by a TLS server as part of an established TLS
+     *  session, the ticket creation time may need to be saved for the ticket
+     *  module to be able to check the ticket age when the ticket is used.
+     *  That's the purpose of this field.
+     *  Before creating a new ticket, an Mbed TLS server set this field with
+     *  its current time in milliseconds. This time may then be saved in the
+     *  session ticket data by the session ticket writing function and
+     *  recovered by the ticket parsing function later when the ticket is used.
+     *  The ticket module may then use this time to compute the ticket age and
+     *  determine if it has expired or not.
+     *  The Mbed TLS implementations of the session ticket writing and parsing
+     *  functions save and retrieve the ticket creation time as part of the
+     *  session ticket data. The session ticket parsing function relies on
+     *  the mbedtls_ssl_session_get_ticket_creation_time() API to get the
+     *  ticket creation time from the session ticket data.
+     */
     mbedtls_ms_time_t MBEDTLS_PRIVATE(ticket_creation_time);
 #endif
 
@@ -2573,6 +2588,34 @@ void mbedtls_ssl_conf_session_tickets_cb(mbedtls_ssl_config *conf,
                                          mbedtls_ssl_ticket_write_t *f_ticket_write,
                                          mbedtls_ssl_ticket_parse_t *f_ticket_parse,
                                          void *p_ticket);
+
+#if defined(MBEDTLS_HAVE_TIME)
+/**
+ * \brief Get the creation time of a session ticket.
+ *
+ * \note See the documentation of \c ticket_creation_time for information about
+ *       the intended usage of this function.
+ *
+ * \param session  SSL session
+ * \param ticket_creation_time  On exit, holds the ticket creation time in
+ *                              milliseconds.
+ *
+ * \return         0 on success,
+ *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if an input is not valid.
+ */
+static inline int mbedtls_ssl_session_get_ticket_creation_time(
+    mbedtls_ssl_session *session, mbedtls_ms_time_t *ticket_creation_time)
+{
+    if (session == NULL || ticket_creation_time == NULL ||
+        session->MBEDTLS_PRIVATE(endpoint) != MBEDTLS_SSL_IS_SERVER) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    *ticket_creation_time = session->MBEDTLS_PRIVATE(ticket_creation_time);
+
+    return 0;
+}
+#endif /* MBEDTLS_HAVE_TIME */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
 
 /**

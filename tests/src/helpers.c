@@ -415,3 +415,16 @@ int mbedtls_test_start_outcome_entry(FILE *output_file,
     return mbedtls_fprintf(output_file, "%s;%s;%s;%s;",
                            platform, configuration, test_suite, test_case);
 }
+
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_FS_IO)
+int mbedtls_test_log_test_case(FILE *output_file)
+{
+    int ret = mbedtls_test_start_outcome_entry(output_file,
+                                               mbedtls_test_info.test_suite,
+                                               mbedtls_test_info.test_case);
+    if (ret < 0) {
+        return ret;
+    }
+    return mbedtls_fprintf(output_file, "%ld;", mbedtls_test_info.step);
+}
+#endif /* defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_FS_IO) */

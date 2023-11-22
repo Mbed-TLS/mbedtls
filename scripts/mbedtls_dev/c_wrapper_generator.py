@@ -8,7 +8,7 @@ import os
 import re
 import sys
 import typing
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Iterator, List, Optional, Tuple
 
 from .c_parsing_helper import ArgumentInfo, FunctionInfo
 from . import typing_util
@@ -55,6 +55,9 @@ class Base:
         # header. Must be set before writing output to a header.
         # Not used when writing .c output.
         self.header_guard = None #type: Optional[str]
+        # If true, the wrapper functions take extra arguments specifying the
+        # calling site (file, line, function).
+        self.calling_site_arguments = False
 
     def _write_prologue(self, out: typing_util.Writable, header: bool) -> None:
         """Write the prologue of a C file.
@@ -242,8 +245,11 @@ extern "C" {{
                                                             wrapper.wrapper_name)
         arg_indent = '    '
         terminator = ';\n' if header else '\n'
-        if function.arguments:
+        if function.arguments or self.calling_site_arguments:
             out.write(declaration_start + '(\n')
+            if self.calling_site_arguments:
+                out.write('    const char *file_name, int line_number, const char *caller_name' +
+                          (',\n' if function.arguments else ')' + terminator))
             for num in range(len(function.arguments)):
                 arg_def = self._wrapper_declaration_argument(
                     function.name,
@@ -294,11 +300,16 @@ extern "C" {{
                        wrapper: WrapperInfo) -> None:
         """Write the macro definition for one wrapper.
         """
-        arg_list = ', '.join(wrapper.argument_names)
-        out.write('#define {function_name}({args}) \\\n    {wrapper_name}({args})\n'
-                  .format(function_name=function.name,
+        def wrapper_args() -> Iterator[str]:
+            if self.calling_site_arguments:
+                yield from ['__FILE__', '__LINE__', ' __func__']
+            yield from wrapper.argument_names
+        out.write('#define {public_name}({public_args}) \\\n'
+                  '    {wrapper_name}({wrapper_args})\n'
+                  .format(public_name=function.name,
+                          public_args=', '.join(wrapper.argument_names),
                           wrapper_name=wrapper.wrapper_name,
-                          args=arg_list))
+                          wrapper_args=', '.join(wrapper_args())))
 
     def write_c_file(self, filename: str) -> None:
         """Output a whole C file containing function wrapper definitions."""
@@ -346,6 +357,7 @@ class Logging(Base):
         """
         super().__init__()
         self.stream = 'stdout'
+        self.calling_site_arguments = True
 
     def set_stream(self, stream: str) -> None:
         """Set the stdio stream to log to.
@@ -424,8 +436,23 @@ class Logging(Base):
     def _write_function_logging(self, out: typing_util.Writable,
                                 function: FunctionInfo,
                                 argument_names: List[str]) -> None:
-        """Write code to log the function's inputs and outputs."""
-        formats, values = '%s', ['"' + function.name + '"']
+        """Write code to log the function's inputs and outputs.
+
+        Each log line has the following format:
+
+            PLATFORM;CONFIGURATION;SUITE;DESCRIPTION;STEP;FILE:LINE:CALLER: FUNCTION NAME=VALUE...
+
+        * PLATFORM, CONFIGURATION, SUITE, DESCRIPTION are the same first
+          four columns as in the outcome file, describing the test case and
+          where it is running.
+        * STEP is the current test step (-1 if no test step was set).
+        * FILE, LINE, CALLER identify the place where the wrapped function
+          was called.
+        * NAME=VALUE are the wrapped function's inputs and outputs. The last
+          entry is the return value.
+        """
+        formats = '%s:%d:%s: ' + function.name
+        values = ['file_name', 'line_number', 'caller_name']
         for arg_info, arg_name in zip(function.arguments, argument_names):
             fmt, vals = self._printf_parameters(arg_info.type, arg_name)
             if fmt:
@@ -440,9 +467,15 @@ class Logging(Base):
         out.write("""\
 #if defined(MBEDTLS_FS_IO) && defined(MBEDTLS_TEST_HOOKS)
     if ({stream}) {{
-        mbedtls_fprintf({stream}, "{formats}\\n",
-                        {values});
+        (void) mbedtls_test_log_test_case({stream});
+        (void) mbedtls_fprintf({stream},
+                               "{formats}\\n",
+                               {values});
     }}
+#else
+    (void) file_name;
+    (void) line_number;
+    (void) caller_name;
 #endif /* defined(MBEDTLS_FS_IO) && defined(MBEDTLS_TEST_HOOKS) */
 """
                   .format(stream=self.stream,

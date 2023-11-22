@@ -281,4 +281,18 @@ int mbedtls_test_start_outcome_entry(FILE *output_file,
                                      const char *test_suite,
                                      const char *test_case);
 
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_FS_IO)
+#include <stdio.h>
+/** Write text describing the current test case and step.
+ *
+ * Use this as a prefix to lines when tracing things that happen during tests.
+ *
+ * \param stream     The output stream to log to.
+ *
+ * \return           On success, the number of characters written.
+ *                   -1 on error.
+ */
+int mbedtls_test_log_test_case(FILE *stream);
+#endif
+
 #endif /* TEST_HELPERS_H */

@@ -37,10 +37,6 @@ ifdef DEBUG
 LOCAL_CFLAGS += -g3
 endif
 
-ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-LOCAL_CFLAGS += -Werror -DRECORD_PSA_STATUS_COVERAGE_LOG
-endif
-
 # if we're running on Windows, build for Windows
 ifdef WINDOWS
 WINDOWS_BUILD=1
@@ -186,12 +182,6 @@ MBEDTLS_TEST_OBJS = $(sort $(patsubst %.c,%.o,$(TEST_SRC_C_FOUND) $(TEST_SRC_C_G
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
 TEST_OBJS_DEPS = $(wildcard include/test/*.h include/test/*/*.h)
-ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-# Explicitly depend on this header because on a clean copy of the source tree,
-# it doesn't exist yet and must be generated as part of the build, and
-# therefore the wildcard enumeration above doesn't include it.
-TEST_OBJS_DEPS += include/test/instrument_record_status.h
-endif
 
 src/psa_test_wrappers.c include/test/psa_test_wrappers.h: $(gen_file_dep) ../include/psa/crypto.h
 src/psa_test_wrappers.c include/test/psa_test_wrappers.h: $(gen_file_dep) ../include/psa/crypto_extra.h
@@ -330,9 +320,3 @@ libtestdriver1.a:
 
 	$(MAKE) -C ./libtestdriver1/library CFLAGS="-I../../ $(CFLAGS)" LDFLAGS="$(LDFLAGS)" libmbedcrypto.a
 	cp ./libtestdriver1/library/libmbedcrypto.a ../library/libtestdriver1.a
-
-ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-include/test/instrument_record_status.h: ../include/psa/crypto.h Makefile
-	echo "  Gen  $@"
-	sed <../include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
-endif

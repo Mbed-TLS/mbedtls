@@ -147,43 +147,6 @@ const char *mbedtls_test_helper_is_psa_leaking(void);
 extern FILE *mbedtls_test_psa_wrappers_log_file;
 #endif
 
-#if defined(RECORD_PSA_STATUS_COVERAGE_LOG)
-psa_status_t mbedtls_test_record_status(psa_status_t status,
-                                        const char *func,
-                                        const char *file, int line,
-                                        const char *expr);
-
-/** Return value logging wrapper macro.
- *
- * Evaluate \p expr. Write a line recording its value to the log file
- * #STATUS_LOG_FILE_NAME and return the value. The line is a colon-separated
- * list of fields:
- * ```
- * value of expr:string:__FILE__:__LINE__:expr
- * ```
- *
- * The test code does not call this macro explicitly because that would
- * be very invasive. Instead, we instrument the source code by defining
- * a bunch of wrapper macros like
- * ```
- * #define psa_crypto_init() RECORD_STATUS("psa_crypto_init", psa_crypto_init())
- * ```
- * These macro definitions must be present in `instrument_record_status.h`
- * when building the test suites.
- *
- * \param string    A string, normally a function name.
- * \param expr      An expression to evaluate, normally a call of the function
- *                  whose name is in \p string. This expression must return
- *                  a value of type #psa_status_t.
- * \return          The value of \p expr.
- */
-#define RECORD_STATUS(string, expr)                                   \
-    mbedtls_test_record_status((expr), string, __FILE__, __LINE__, #expr)
-
-#include "instrument_record_status.h"
-
-#endif /* defined(RECORD_PSA_STATUS_COVERAGE_LOG) */
-
 /** Return extended key usage policies.
  *
  * Do a key policy permission extension on key usage policies always involves

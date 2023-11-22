@@ -89,28 +89,6 @@ const char *mbedtls_test_helper_is_psa_leaking(void)
     return NULL;
 }
 
-#if defined(RECORD_PSA_STATUS_COVERAGE_LOG)
-/** Name of the file where return statuses are logged by #RECORD_STATUS. */
-#define STATUS_LOG_FILE_NAME "statuses.log"
-
-psa_status_t mbedtls_test_record_status(psa_status_t status,
-                                        const char *func,
-                                        const char *file, int line,
-                                        const char *expr)
-{
-    /* We open the log file on first use.
-     * We never close the log file, so the record_status feature is not
-     * compatible with resource leak detectors such as Asan.
-     */
-    static FILE *log;
-    if (log == NULL) {
-        log = fopen(STATUS_LOG_FILE_NAME, "a");
-    }
-    fprintf(log, "%d:%s:%s:%d:%s\n", (int) status, func, file, line, expr);
-    return status;
-}
-#endif /* defined(RECORD_PSA_STATUS_COVERAGE_LOG) */
-
 psa_key_usage_t mbedtls_test_update_key_usage_flags(psa_key_usage_t usage_flags)
 {
     psa_key_usage_t updated_usage = usage_flags;

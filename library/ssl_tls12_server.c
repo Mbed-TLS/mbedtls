@@ -2279,25 +2279,23 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_MSG(3, ("server hello, chosen version: [%d:%d]",
                               buf[4], buf[5]));
 
-    /* RFC 5246, 7.4.1.2
+    /* RFC 5246 section 7.4.1.2
      *
-     * ...
      * struct {
      *     uint32 gmt_unix_time;
      *     opaque random_bytes[28];
      * } Random;
-     * ...
      *
-     * ...
+     * RFC 5246 section 7.4.1.3
+     *
      * struct {
      *     ...
      *     Random random;
      *     ...
-     * } ClientHello;
-     * ...
+     * } ServerHello;
      */
     if ((ret = ssl_server_generate_random(ssl)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(2, "ssl_generate_random", ret);
+        MBEDTLS_SSL_DEBUG_RET(1, "ssl_server_generate_random", ret);
         return ret;
     }
     memcpy(p, &ssl->handshake->randbytes[MBEDTLS_CLIENT_HELLO_RANDOM_LEN],

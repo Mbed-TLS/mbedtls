@@ -1438,7 +1438,7 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
         case 4:
             /* Ticket has reached the end of lifetime. */
             session->ticket_creation_time = mbedtls_ms_time() -
-                                            (7 * 24 * 3600 * 1000 + 1000);
+                                            (session->ticket_lifetime + 1) * 1000;
             break;
         case 5:
             /* Ticket is valid, but client age is below the lower bound of the tolerance window. */

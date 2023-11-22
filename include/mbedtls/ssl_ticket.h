@@ -111,6 +111,13 @@ void mbedtls_ssl_ticket_init(mbedtls_ssl_ticket_context *ctx);
  * \note            It is recommended to pick a reasonable lifetime so as not
  *                  to negate the benefits of forward secrecy.
  *
+ * \note            The TLS 1.3 specification states that ticket lifetime must
+ *                  be smaller than seven days. If ticket lifetime has been
+ *                  set to a value greater than seven days in this module then
+ *                  if the TLS 1.3 is configured to send tickets after the
+ *                  handshake it will fail the connection when trying to send
+ *                  the first ticket.
+ *
  * \return          0 if successful,
  *                  or a specific MBEDTLS_ERR_XXX error code
  */
@@ -146,6 +153,13 @@ int mbedtls_ssl_ticket_setup(mbedtls_ssl_ticket_context *ctx,
  *
  * \note            It is recommended to pick a reasonable lifetime so as not
  *                  to negate the benefits of forward secrecy.
+ *
+ * \note            The TLS 1.3 specification states that ticket lifetime must
+ *                  be smaller than seven days. If ticket lifetime has been
+ *                  set to a value greater than seven days in this module then
+ *                  if the TLS 1.3 is configured to send tickets after the
+ *                  handshake it will fail the connection when trying to send
+ *                  the first ticket.
  *
  * \return          0 if successful,
  *                  or a specific MBEDTLS_ERR_XXX error code

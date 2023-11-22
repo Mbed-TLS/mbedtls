@@ -3206,10 +3206,10 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
 /* RFC 8446 section 4.2.10
  *
  * struct {
- *   select ( Handshake.msg_type ) {
- *     case new_session_ticket:   uint32 max_early_data_size;
- *     ...
- *   };
+ *     select (Handshake.msg_type) {
+ *         case new_session_ticket:   uint32 max_early_data_size;
+ *         ...
+ *     };
  * } EarlyDataIndication;
  */
 MBEDTLS_CHECK_RETURN_CRITICAL

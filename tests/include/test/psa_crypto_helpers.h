@@ -14,6 +14,7 @@
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 #include "test/psa_helpers.h"
 #include <psa/crypto.h>
+#include "test/psa_test_wrappers.h"
 #endif
 
 
@@ -139,6 +140,12 @@ const char *mbedtls_test_helper_is_psa_leaking(void);
     while (0)
 
 
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_FS_IO)
+#include <stdio.h>
+/** Output stream where PSA accesses going through the wrapper functions in
+ * psa_test_wrappers.c are logged. */
+extern FILE *mbedtls_test_psa_wrappers_log_file;
+#endif
 
 #if defined(RECORD_PSA_STATUS_COVERAGE_LOG)
 psa_status_t mbedtls_test_record_status(psa_status_t status,

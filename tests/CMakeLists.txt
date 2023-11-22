@@ -75,6 +75,21 @@ endforeach()
 if(GEN_FILES)
     add_custom_command(
         OUTPUT
+            ${CMAKE_CURRENT_BINARY_DIR}/include/test/psa_test_wrappers.h
+            ${CMAKE_CURRENT_BINARY_DIR}/src/psa_test_wrappers.c
+        COMMAND
+            ${MBEDTLS_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_psa_wrappers.py
+                --output-h ${CMAKE_CURRENT_BINARY_DIR}/include/test/psa_test_wrappers.h
+                --output-c ${CMAKE_CURRENT_BINARY_DIR}/src/psa_test_wrappers.c
+        DEPENDS
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_psa_wrappers.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/c_wrapper_generator.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_extra.h
+    )
+    add_custom_command(
+        OUTPUT
             ${bignum_generated_data_files}
         WORKING_DIRECTORY
             ${CMAKE_CURRENT_SOURCE_DIR}/..

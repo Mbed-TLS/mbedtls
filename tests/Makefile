@@ -177,6 +177,7 @@ $(MBEDLIBS):
 
 TEST_SRC_C_FOUND = $(wildcard src/*.c src/drivers/*.c src/test_helpers/*.c)
 TEST_SRC_C_GENERATED = \
+	src/psa_test_wrappers.c \
 	# This line is intentionally left blank
 # $(TEST_SRC_C_FOUND) may or may not include the generated files.
 # In case it does, call the sort function to remove duplicates.
@@ -191,6 +192,14 @@ ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 # therefore the wildcard enumeration above doesn't include it.
 TEST_OBJS_DEPS += include/test/instrument_record_status.h
 endif
+
+src/psa_test_wrappers.c include/test/psa_test_wrappers.h: $(gen_file_dep) ../include/psa/crypto.h
+src/psa_test_wrappers.c include/test/psa_test_wrappers.h: $(gen_file_dep) ../include/psa/crypto_extra.h
+src/psa_test_wrappers.c include/test/psa_test_wrappers.h: $(gen_file_dep) scripts/generate_psa_wrappers.py
+src/psa_test_wrappers.c include/test/psa_test_wrappers.h: $(gen_file_dep) ../scripts/mbedtls_dev/c_wrapper_generator.py
+src/psa_test_wrappers.c include/test/psa_test_wrappers.h:
+	echo "  Gen   $@"
+	$(PYTHON) scripts/generate_psa_wrappers.py --output-c=src/psa_test_wrappers.c --output-h=include/test/psa_test_wrappers.h
 
 # Rule to compile common test C files in src folder
 src/%.o : src/%.c $(TEST_OBJS_DEPS)

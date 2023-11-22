@@ -120,6 +120,7 @@ check scripts/generate_driver_wrappers.py library/psa_crypto_driver_wrappers.h l
 check scripts/generate_features.pl library/version_features.c
 check scripts/generate_ssl_debug_helpers.py library/ssl_debug_helpers_generated.c
 check scripts/generate_psa_constants.py programs/psa/psa_constant_names_generated.c
+check tests/scripts/generate_psa_wrappers.py tests/include/test/psa_test_wrappers.h tests/src/psa_test_wrappers.c
 check tests/scripts/generate_bignum_tests.py $(tests/scripts/generate_bignum_tests.py --list)
 check tests/scripts/generate_ecp_tests.py $(tests/scripts/generate_ecp_tests.py --list)
 check tests/scripts/generate_psa_tests.py $(tests/scripts/generate_psa_tests.py --list)

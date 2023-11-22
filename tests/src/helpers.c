@@ -8,8 +8,7 @@
 #include <test/macros.h>
 #include <string.h>
 
-#if defined(MBEDTLS_PSA_INJECT_ENTROPY)
-#include <psa/crypto.h>
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 #include <test/psa_crypto_helpers.h>
 #endif
 
@@ -21,6 +20,11 @@ static mbedtls_platform_context platform_ctx;
 #endif
 
 mbedtls_test_info_t mbedtls_test_info;
+
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_FS_IO) &&    \
+    defined(MBEDTLS_PSA_CRYPTO_C)
+FILE *mbedtls_test_psa_wrappers_log_file = NULL;
+#endif
 
 /*----------------------------------------------------------------------------*/
 /* Helper Functions */

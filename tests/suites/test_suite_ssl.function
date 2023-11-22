@@ -1972,26 +1972,13 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
      * Make sure both session structures are identical
      */
 #if defined(MBEDTLS_HAVE_TIME)
-    switch (tls_version) {
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SRV_C)
-        case MBEDTLS_SSL_VERSION_TLS1_3:
-            TEST_ASSERT(original.ticket_creation_time == restored.ticket_creation_time);
-            break;
-#endif
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        case MBEDTLS_SSL_VERSION_TLS1_2:
-            TEST_ASSERT(original.start == restored.start);
-            break;
-#endif
-
-        default:
-            /* should never happen */
-            TEST_ASSERT(0);
-            break;
+    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_2) {
+        TEST_ASSERT(original.start == restored.start);
     }
-
-
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_SRV_C)
+    TEST_ASSERT(original.ticket_creation_time == restored.ticket_creation_time);
 #endif
+#endif /* MBEDTLS_HAVE_TIME */
 
     TEST_ASSERT(original.tls_version == restored.tls_version);
     TEST_ASSERT(original.endpoint == restored.endpoint);
@@ -2070,11 +2057,6 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
             original.max_early_data_size == restored.max_early_data_size);
 #endif
 
-#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
-        if (endpoint_type == MBEDTLS_SSL_IS_SERVER) {
-            TEST_ASSERT(original.ticket_creation_time == restored.ticket_creation_time);
-        }
-#endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
         if (endpoint_type == MBEDTLS_SSL_IS_CLIENT) {
 #if defined(MBEDTLS_HAVE_TIME)

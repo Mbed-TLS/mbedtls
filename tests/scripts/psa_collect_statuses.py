@@ -19,6 +19,7 @@ import argparse
 import os
 import subprocess
 import sys
+from typing import Dict, List, Set
 
 DEFAULT_STATUS_LOG_FILE = 'tests/statuses.log'
 DEFAULT_PSA_CONSTANT_NAMES = 'programs/psa/psa_constant_names'
@@ -26,12 +27,12 @@ DEFAULT_PSA_CONSTANT_NAMES = 'programs/psa/psa_constant_names'
 class Statuses:
     """Information about observed return statues of API functions."""
 
-    def __init__(self):
-        self.functions = {}
-        self.codes = set()
-        self.status_names = {}
+    def __init__(self) -> None:
+        self.functions = {} #type: Dict[str, Dict[str, List[str]]]
+        self.codes = set() #type: Set[int]
+        self.status_names = {} #type: Dict[str, str]
 
-    def collect_log(self, log_file_name):
+    def collect_log(self, log_file_name: str) -> None:
         """Read logs from RECORD_PSA_STATUS_COVERAGE_LOG.
 
         Read logs produced by running Mbed TLS test suites built with
@@ -48,7 +49,7 @@ class Statuses:
                 fdata[value].append(tail)
                 self.codes.add(int(value))
 
-    def get_constant_names(self, psa_constant_names):
+    def get_constant_names(self, psa_constant_names: str) -> None:
         """Run psa_constant_names to obtain names for observed numerical values."""
         values = [str(value) for value in self.codes]
         cmd = [psa_constant_names, 'status'] + values
@@ -56,7 +57,7 @@ class Statuses:
         for value, name in zip(values, output.rstrip().split('\n')):
             self.status_names[value] = name
 
-    def report(self):
+    def report(self) -> None:
         """Report observed return values for each function.
 
         The report is a series of line of the form "psa_foo PSA_ERROR_XXX".
@@ -67,7 +68,7 @@ class Statuses:
             for name in sorted(names):
                 sys.stdout.write('{} {}\n'.format(function, name))
 
-def collect_status_logs(options):
+def collect_status_logs(options) -> Statuses:
     """Build and run unit tests and report observed function return statuses.
 
     Build Mbed TLS with -DRECORD_PSA_STATUS_COVERAGE_LOG, run the
@@ -99,7 +100,7 @@ def collect_status_logs(options):
                               stdout=sys.stderr)
     return data
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description=globals()['__doc__'])
     parser.add_argument('--clean-after',
                         action='store_true',

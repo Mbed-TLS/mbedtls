@@ -1389,8 +1389,19 @@ int dummy_ticket_write(void *p_ticket, const mbedtls_ssl_session *session,
     if (end - p < 4) {
         return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
     }
+
     put_unaligned_uint32(p, 7 * 24 * 3600);
-    *ticket_lifetime = 7 * 24 * 3600;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SRV_C)
+    if (session->tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
+        if ((ret = mbedtls_ssl_session_conf_ticket_lifetime(
+                 (mbedtls_ssl_session *) session, 7 * 24 * 3600)) != 0) {
+            return ret;;
+        }
+    } else
+#endif
+    {
+        *ticket_lifetime = 7 * 24 * 3600;
+    }
     p += 4;
 
     /* Dump session state */

@@ -331,7 +331,17 @@ int mbedtls_ssl_ticket_write(void *p_ticket,
 
     key = &ctx->keys[ctx->active];
 
-    *ticket_lifetime = ctx->ticket_lifetime;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SRV_C)
+    if (session->tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
+        if ((ret = mbedtls_ssl_session_conf_ticket_lifetime(
+                 (mbedtls_ssl_session *) session, ctx->ticket_lifetime)) != 0) {
+            goto cleanup;
+        }
+    } else
+#endif
+    {
+        *ticket_lifetime = ctx->ticket_lifetime;
+    }
 
     memcpy(key_name, key->name, TICKET_KEY_NAME_BYTES);
 

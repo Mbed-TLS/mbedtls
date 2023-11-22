@@ -2567,6 +2567,9 @@ typedef int mbedtls_ssl_ticket_parse_t(void *p_ticket,
  * \param f_ticket_write    Callback for writing a ticket
  * \param f_ticket_parse    Callback for parsing a ticket
  * \param p_ticket          Context shared by the two callbacks
+ *
+ * \warning         For TLS 1.3, \p f_ticket_write MUST set ticket_lifetime via
+ *                  \c mbedtls_ssl_session_conf_ticket_lifetime()
  */
 void mbedtls_ssl_conf_session_tickets_cb(mbedtls_ssl_config *conf,
                                          mbedtls_ssl_ticket_write_t *f_ticket_write,

@@ -8951,6 +8951,7 @@ unsigned int mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
  *    opaque peer_cert<0..2^24-1>;    // length 0 means no peer cert
  *    opaque ticket<0..2^24-1>;       // length 0 means no ticket
  *    uint32 ticket_lifetime;
+ *    uint64 ticket_creation_time;
  *    uint8 mfl_code;                 // up to 255 according to standard
  *    uint8 encrypt_then_mac;         // 0 or 1
  * } serialized_session_tls12;
@@ -9058,7 +9059,8 @@ static size_t ssl_tls12_session_save(const mbedtls_ssl_session *session,
     /*
      * Session ticket if any, plus associated data
      */
-#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_CLI_C)
     if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
         used += 3 + session->ticket_len + 4; /* len + ticket + lifetime */
 
@@ -9076,7 +9078,18 @@ static size_t ssl_tls12_session_save(const mbedtls_ssl_session *session,
             p += 4;
         }
     }
-#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
+#endif /* MBEDTLS_SSL_CLI_C */
+#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
+    if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
+        used += 8;
+
+        if (used <= buf_len) {
+            MBEDTLS_PUT_UINT64_BE((uint64_t) session->ticket_creation_time, p, 0);
+            p += 8;
+        }
+    }
+#endif /* MBEDTLS_HAVE_TIME && MBEDTLS_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
     /*
      * Misc extension-related info
@@ -9242,7 +9255,8 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
     /*
      * Session ticket and associated data
      */
-#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_CLI_C)
     if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
         if (3 > (size_t) (end - p)) {
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
@@ -9272,7 +9286,17 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
         session->ticket_lifetime = MBEDTLS_GET_UINT32_BE(p, 0);
         p += 4;
     }
-#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
+#endif /* MBEDTLS_SSL_CLI_C */
+#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
+    if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
+        if (8 > (size_t) (end - p)) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+        session->ticket_creation_time = MBEDTLS_GET_UINT64_BE(p, 0);
+        p += 8;
+    }
+#endif /* MBEDTLS_HAVE_TIME && MBEDTLS_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
     /*
      * Misc extension-related info

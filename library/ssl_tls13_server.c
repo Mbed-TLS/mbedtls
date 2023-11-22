@@ -3292,7 +3292,8 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED) {
-        session->ticket_flags |= MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA;
+        mbedtls_ssl_session_set_ticket_flags(
+            session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
     }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 

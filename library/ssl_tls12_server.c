@@ -4249,6 +4249,9 @@ static int ssl_write_new_session_ticket(mbedtls_ssl_context *ssl)
      * 10 .  9+n ticket content
      */
 
+#if defined(MBEDTLS_HAVE_TIME)
+    ssl->session_negotiate->ticket_creation_time = mbedtls_ms_time();
+#endif
     if ((ret = ssl->conf->f_ticket_write(ssl->conf->p_ticket,
                                          ssl->session_negotiate,
                                          ssl->out_msg + 10,

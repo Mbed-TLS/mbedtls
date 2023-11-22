@@ -207,6 +207,15 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      *
      * Servers MUST NOT use any value greater than 604800 seconds (7 days).
      *
+     * `ssl->conf->f_ticket_parse()` might return an illegal `ticket_lifetime`.
+     */
+    if (session->ticket_lifetime >
+        MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            3, ("Ticket lifetime exceeds maximum allowed value."));
+        goto exit;
+    }
+    /*
      * RFC 8446 section 4.2.11.1
      *
      * Clients MUST NOT attempt to use tickets which have ages greater than

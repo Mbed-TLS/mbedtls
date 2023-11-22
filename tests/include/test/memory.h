@@ -14,6 +14,7 @@
 
 #include "mbedtls/build_info.h"
 #include "mbedtls/platform.h"
+#include "test/helpers.h"
 
 /** \def MBEDTLS_TEST_MEMORY_CAN_POISON
  *
@@ -23,14 +24,6 @@
  *
  * Currently, only Asan (Address Sanitizer) is supported.
  */
-#if defined(__SANITIZE_ADDRESS__)
-#  define MBEDTLS_TEST_HAVE_ASAN
-#endif
-#if defined(__has_feature)
-#  if __has_feature(address_sanitizer)
-#    define MBEDTLS_TEST_HAVE_ASAN
-#  endif
-#endif
 #if defined(MBEDTLS_TEST_HAVE_ASAN)
 #  define MBEDTLS_TEST_MEMORY_CAN_POISON
 #endif

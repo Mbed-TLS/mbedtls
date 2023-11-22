@@ -83,8 +83,8 @@ void mbedtls_test_memory_unpoison(const unsigned char *ptr, size_t size);
     mbedtls_test_memory_unpoison(ptr, size)
 
 #else /* MBEDTLS_TEST_MEMORY_CAN_POISON */
-#define MBEDTLS_TEST_MEMORY_POISON(ptr, size) ((void) 0)
-#define MBEDTLS_TEST_MEMORY_UNPOISON(ptr, size) ((void) 0)
+#define MBEDTLS_TEST_MEMORY_POISON(ptr, size) ((void) (ptr), (void) (size))
+#define MBEDTLS_TEST_MEMORY_UNPOISON(ptr, size) ((void) (ptr), (void) (size))
 #endif /* MBEDTLS_TEST_MEMORY_CAN_POISON */
 
 #endif /* TEST_MEMORY_H */

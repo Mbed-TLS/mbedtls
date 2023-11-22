@@ -2661,8 +2661,7 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
             memcpy(session->ticket, p, session->ticket_len);
             p += session->ticket_len;
         }
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && \
-        defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
         size_t hostname_len;
         /* load host name */
         if (end - p < 2) {
@@ -2682,8 +2681,7 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
             memcpy(session->hostname, p, hostname_len);
             p += hostname_len;
         }
-#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION &&
-          MBEDTLS_SSL_SESSION_TICKETS */
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
     }
 #endif /* MBEDTLS_SSL_CLI_C */
 

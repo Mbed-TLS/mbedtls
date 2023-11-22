@@ -128,19 +128,11 @@ class TextChangelogFormat(ChangelogFormat):
     def extract_top_version(cls, changelog_file_content):
         """A version section starts with a line starting with '='."""
         m = re.search(cls._top_version_re, changelog_file_content)
-        if m:
-            top_version_start = m.start(1)
-            top_version_end = m.end(2)
-            top_version_title = m.group(1)
-            top_version_body = m.group(2)
-            name = re.match(cls._name_re, top_version_title).group(1)
-        # No entries found
-        else:
-            top_version_start = None
-            top_version_end = None
-            name = 'xxx'
-            top_version_title = ''
-            top_version_body = ''
+        top_version_start = m.start(1)
+        top_version_end = m.end(2)
+        top_version_title = m.group(1)
+        top_version_body = m.group(2)
+        name = re.match(cls._name_re, top_version_title).group(1)
         if cls.is_released_version(top_version_title):
             top_version_end = top_version_start
             top_version_title = cls._unreleased_version_text.format(name) + '\n\n'
@@ -272,10 +264,8 @@ class ChangeLog:
         """Write the changelog to the specified file.
         """
         with open(filename, 'w', encoding='utf-8') as out:
-            if self.header:
-                out.write(self.header)
-            if self.top_version_title:
-                out.write(self.top_version_title)
+            out.write(self.header)
+            out.write(self.top_version_title)
             for title, body in self.categories.items():
                 if not body:
                     continue

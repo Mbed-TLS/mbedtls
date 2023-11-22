@@ -179,23 +179,26 @@ by a semicolon.
                 outcomes[key].failures.append(setup)
     return outcomes
 
-def do_analyze_coverage(results: Results, outcome_file, args):
+def do_analyze_coverage(results: Results, outcomes_or_file, args):
     """Perform coverage analysis."""
     results.new_section("Analyze coverage")
-    outcomes = read_outcome_file(outcome_file)
+    outcomes = read_outcome_file(outcomes_or_file) \
+               if isinstance(outcomes_or_file, str) else outcomes_or_file
     analyze_outcomes(results, outcomes, args)
 
-def do_analyze_driver_vs_reference(results: Results, outcome_file, args):
+def do_analyze_driver_vs_reference(results: Results, outcomes_or_file, args):
     """Perform driver vs reference analyze."""
     results.new_section("Analyze driver {} vs reference {}",
                         args['component_driver'], args['component_ref'])
 
-    execute_reference_driver_tests(results, args['component_ref'], \
-                                   args['component_driver'], outcome_file)
-
     ignored_suites = ['test_suite_' + x for x in args['ignored_suites']]
 
-    outcomes = read_outcome_file(outcome_file)
+    if isinstance(outcomes_or_file, str):
+        execute_reference_driver_tests(results, args['component_ref'], \
+                                       args['component_driver'], outcomes_or_file)
+        outcomes = read_outcome_file(outcomes_or_file)
+    else:
+        outcomes = outcomes_or_file
 
     analyze_driver_vs_reference(results, outcomes,
                                 args['component_ref'], args['component_driver'],
@@ -493,10 +496,19 @@ def main():
 
         KNOWN_TASKS['analyze_coverage']['args']['full_coverage'] = options.full_coverage
 
+        # If the outcome file already exists, we assume that the user wants to
+        # perform the comparison.
+        # Share the contents among tasks to improve performance.
+        if os.path.exists(options.outcomes):
+            main_results.info("Read outcome file from {}.", options.outcomes)
+            outcomes_or_file = read_outcome_file(options.outcomes)
+        else:
+            outcomes_or_file = options.outcomes
+
         for task in tasks_list:
             test_function = KNOWN_TASKS[task]['test_function']
             test_args = KNOWN_TASKS[task]['args']
-            test_function(main_results, options.outcomes, test_args)
+            test_function(main_results, outcomes_or_file, test_args)
 
         main_results.info("Overall results: {} warnings and {} errors",
                           main_results.warning_count, main_results.error_count)

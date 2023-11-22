@@ -1845,9 +1845,7 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
 
     }
 
-    if (mbedtls_ssl_session_get_ticket_flags(
-            ssl->session_negotiate,
-            MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA) == 0) {
+    if (!mbedtls_ssl_session_ticket_allow_early_data(ssl->session_negotiate)) {
         MBEDTLS_SSL_DEBUG_MSG(
             1,
             ("EarlyData: rejected, early_data not allowed in ticket "
@@ -3223,8 +3221,7 @@ static int ssl_tls13_write_nst_early_data_ext(mbedtls_ssl_context *ssl,
     unsigned char *p = buf;
     *out_len = 0;
 
-    if (mbedtls_ssl_session_get_ticket_flags(
-            ssl->session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA) == 0) {
+    if (!mbedtls_ssl_session_ticket_allow_early_data(ssl->session)) {
         MBEDTLS_SSL_DEBUG_MSG(
             4, ("early_data not allowed, skip early_data extension in "
                 "NewSessionTicket"));

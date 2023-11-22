@@ -1392,7 +1392,7 @@ int dummy_ticket_write(void *p_ticket, const mbedtls_ssl_session *session,
 
     put_unaligned_uint32(p, 7 * 24 * 3600);
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SRV_C)
-    if (session->tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
+    if (session->MBEDTLS_PRIVATE(tls_version) == MBEDTLS_SSL_VERSION_TLS1_3) {
         if ((ret = mbedtls_ssl_session_conf_ticket_lifetime(
                  (mbedtls_ssl_session *) session, 7 * 24 * 3600)) != 0) {
             return ret;;
@@ -1433,37 +1433,41 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         case 3:
             /* Creation time in the future. */
-            session->ticket_creation_time = mbedtls_ms_time() + 1000;
+            session->MBEDTLS_PRIVATE(ticket_creation_time) = mbedtls_ms_time() + 1000;
             break;
         case 4:
             /* Ticket has reached the end of lifetime. */
-            session->ticket_creation_time = mbedtls_ms_time() -
-                                            (session->ticket_lifetime + 1) * 1000;
+            session->MBEDTLS_PRIVATE(ticket_creation_time) = mbedtls_ms_time() -
+                                                             (session->MBEDTLS_PRIVATE(
+                                                                  ticket_lifetime) + 1) * 1000;
             break;
         case 5:
             /* Ticket is valid, but client age is below the lower bound of the tolerance window. */
-            session->ticket_age_add += MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE + 4 * 1000;
+            session->MBEDTLS_PRIVATE(ticket_age_add) += MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE +
+                                                        4 * 1000;
             /* Make sure the execution time does not affect the result */
-            session->ticket_creation_time = mbedtls_ms_time();
+            session->MBEDTLS_PRIVATE(ticket_creation_time) = mbedtls_ms_time();
             break;
 
         case 6:
             /* Ticket is valid, but client age is beyond the upper bound of the tolerance window. */
-            session->ticket_age_add -= MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE + 4 * 1000;
+            session->MBEDTLS_PRIVATE(ticket_age_add) -= MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE +
+                                                        4 * 1000;
             /* Make sure the execution time does not affect the result */
-            session->ticket_creation_time = mbedtls_ms_time();
+            session->MBEDTLS_PRIVATE(ticket_creation_time) = mbedtls_ms_time();
             break;
         case 7:
-            session->ticket_flags = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE;
+            session->MBEDTLS_PRIVATE(ticket_flags) = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE;
             break;
         case 8:
-            session->ticket_flags = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
+            session->MBEDTLS_PRIVATE(ticket_flags) = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
             break;
         case 9:
-            session->ticket_flags = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
+            session->MBEDTLS_PRIVATE(ticket_flags) =
+                MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
             break;
         case 10:
-            session->ticket_flags = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;
+            session->MBEDTLS_PRIVATE(ticket_flags) = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;
             break;
 #endif
         default:
@@ -4163,7 +4167,9 @@ close_notify:
 
 #if defined(MBEDTLS_SSL_CACHE_C)
     if (opt.cache_remove > 0) {
-        mbedtls_ssl_cache_remove(&cache, ssl.session->id, ssl.session->id_len);
+        mbedtls_ssl_cache_remove(&cache,
+                                 ssl.session->MBEDTLS_PRIVATE(id),
+                                 ssl.session->MBEDTLS_PRIVATE(id_len));
     }
 #endif
 

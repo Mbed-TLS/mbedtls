@@ -213,7 +213,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      * the "ticket_lifetime" value which was provided with the ticket.
      *
      */
-    if (server_age > MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME * 1000) {
+    if (server_age > session->ticket_lifetime * 1000) {
         MBEDTLS_SSL_DEBUG_MSG(
             3, ("Ticket age exceeds limitation ticket_age = %" MBEDTLS_PRINTF_MS_TIME,
                 server_age));

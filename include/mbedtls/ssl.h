@@ -3099,6 +3099,33 @@ void mbedtls_ssl_conf_session_cache(mbedtls_ssl_config *conf,
 int mbedtls_ssl_set_session(mbedtls_ssl_context *ssl, const mbedtls_ssl_session *session);
 #endif /* MBEDTLS_SSL_CLI_C */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SRV_C)
+/**
+ * \brief Set lifetime of session ticket (TLS 1.3 server only)
+ *
+ * \param session SSL session
+ * \param ticket_lifetime lifetime of tickets in seconds which MUST be lower
+ *                        than 7 days (604800 seconds).
+ *
+ * \return         0 on success,
+ *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA when
+ *                 - \p session is NULL
+ *                 - \p session is not TLS 1.3 server session.
+ *                 - \p ticket_lifetime is greater than 7 days
+ */
+static inline int mbedtls_ssl_session_conf_ticket_lifetime(
+    mbedtls_ssl_session *session, uint32_t ticket_lifetime)
+{
+    if (session == NULL || ticket_lifetime > 7 * 24 * 3600                    ||
+        session->MBEDTLS_PRIVATE(tls_version) != MBEDTLS_SSL_VERSION_TLS1_3   ||
+        session->MBEDTLS_PRIVATE(endpoint) != MBEDTLS_SSL_IS_SERVER) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+    session->MBEDTLS_PRIVATE(ticket_lifetime) = ticket_lifetime;
+    return 0;
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SRV_C */
+
 /**
  * \brief          Load serialized session data into a session structure.
  *                 On client, this can be used for loading saved sessions

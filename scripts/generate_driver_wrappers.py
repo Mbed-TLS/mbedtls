@@ -108,17 +108,17 @@ def load_driver(schemas: Dict[str, Any], driver_file: str) -> Any:
         return json_data
 
 
-def load_schemas(repo_root: str) -> Dict[str, Any]:
+def load_schemas(project_root: str) -> Dict[str, Any]:
     """
     Load schemas map
     """
     schema_file_paths = {
-        'transparent': os.path.join(repo_root,
+        'transparent': os.path.join(project_root,
                                     'scripts',
                                     'data_files',
                                     'driver_jsons',
                                     'driver_transparent_schema.json'),
-        'opaque': os.path.join(repo_root,
+        'opaque': os.path.join(project_root,
                                'scripts',
                                'data_files',
                                'driver_jsons',
@@ -131,13 +131,13 @@ def load_schemas(repo_root: str) -> Dict[str, Any]:
     return driver_schema
 
 
-def read_driver_descriptions(repo_root: str,
+def read_driver_descriptions(project_root: str,
                              json_directory: str,
                              jsondriver_list: str) -> list:
     """
     Merge driver JSON files into a single ordered JSON after validation.
     """
-    driver_schema = load_schemas(repo_root)
+    driver_schema = load_schemas(project_root)
 
     with open(file=os.path.join(json_directory, jsondriver_list),
               mode='r',
@@ -163,10 +163,10 @@ def main() -> int:
     """
     Main with command line arguments.
     """
-    def_arg_repo_root = build_tree.guess_mbedtls_root()
+    def_arg_project_root = build_tree.guess_mbedtls_root()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--repo-root', default=def_arg_repo_root,
+    parser.add_argument('--project-root', default=def_arg_project_root,
                         help='root directory of repo source code')
     parser.add_argument('--template-dir',
                         help='directory holding the driver templates')
@@ -176,27 +176,27 @@ def main() -> int:
                         help='output file\'s location')
     args = parser.parse_args()
 
-    repo_root = os.path.abspath(args.repo_root)
+    project_root = os.path.abspath(args.project_root)
 
-    library_dir = build_tree.crypto_core_directory(repo_root)
+    library_dir = build_tree.crypto_core_directory(project_root)
 
     output_directory = args.output_directory if args.output_directory is not None else \
-        os.path.join(repo_root, library_dir)
+        os.path.join(project_root, library_dir)
 
     template_directory = args.template_dir if args.template_dir is not None else \
-        os.path.join(repo_root,
+        os.path.join(project_root,
                      'scripts',
                      'data_files',
                      'driver_templates')
     json_directory = args.json_dir if args.json_dir is not None else \
-        os.path.join(repo_root,
+        os.path.join(project_root,
                      'scripts',
                      'data_files',
                      'driver_jsons')
 
     try:
         # Read and validate list of driver jsons from driverlist.json
-        merged_driver_json = read_driver_descriptions(repo_root,
+        merged_driver_json = read_driver_descriptions(project_root,
                                                       json_directory,
                                                       'driverlist.json')
     except DriverReaderException as e:

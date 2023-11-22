@@ -2058,6 +2058,7 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
         TEST_ASSERT(original.ticket_age_add == restored.ticket_age_add);
         TEST_ASSERT(original.ticket_flags == restored.ticket_flags);
         TEST_ASSERT(original.resumption_key_len == restored.resumption_key_len);
+        TEST_ASSERT(original.ticket_lifetime == restored.ticket_lifetime);
         if (original.resumption_key_len != 0) {
             TEST_ASSERT(original.resumption_key != NULL);
             TEST_ASSERT(restored.resumption_key != NULL);
@@ -2081,7 +2082,6 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
 #if defined(MBEDTLS_HAVE_TIME)
             TEST_ASSERT(original.ticket_reception_time == restored.ticket_reception_time);
 #endif
-            TEST_ASSERT(original.ticket_lifetime == restored.ticket_lifetime);
             TEST_ASSERT(original.ticket_len == restored.ticket_len);
             if (original.ticket_len != 0) {
                 TEST_ASSERT(original.ticket != NULL);

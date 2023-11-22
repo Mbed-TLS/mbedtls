@@ -1958,23 +1958,26 @@ component_test_small_mbedtls_ssl_dtls_max_buffering () {
     tests/ssl-opt.sh -f "DTLS reordering: Buffer encrypted Finished message, drop for fragmented NewSessionTicket"
 }
 
-component_test_psa_collect_statuses () {
-  msg "build+test: psa_collect_statuses" # ~30s
-  scripts/config.py full
-  tests/scripts/psa_collect_statuses.py
-  # Check that psa_crypto_init() succeeded at least once
-  grep -q '^0:psa_crypto_init:' tests/statuses.log
-  rm -f tests/statuses.log
-}
-
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
     scripts/config.py full
     CC=clang CXX=clang cmake -D CMAKE_BUILD_TYPE:String=Release -D ENABLE_TESTING=On -D TEST_CPP=1 .
     make
 
+    # Log PSA API calls in the full configuration. Only for the unit tests,
+    # not for the SSL tests which would make the log huge. This should provide
+    # full coverage except for not-supported cases.
+    export MBEDTLS_TEST_PSA_WRAPPERS_LOG_FILE="$PWD/psa_calls.txt"
+    rm -f "$MBEDTLS_TEST_PSA_WRAPPERS_LOG_FILE"
+
     msg "test: main suites (full config, clang)" # ~ 5s
     make test
+
+    msg "test: sanity checks on PSA call log"
+    tests/scripts/psa_collect_statuses.py "$MBEDTLS_TEST_PSA_WRAPPERS_LOG_FILE" >psa_statuses.txt
+    grep -x 'psa_mac_verify PSA_ERROR_INVALID_SIGNATURE' psa_statuses.txt
+    rm "$MBEDTLS_TEST_PSA_WRAPPERS_LOG_FILE" psa_statuses.txt
+    unset MBEDTLS_TEST_PSA_WRAPPERS_LOG_FILE
 
     msg "test: cpp_dummy_build (full config, clang)" # ~ 1s
     programs/test/cpp_dummy_build

@@ -1,60 +1,62 @@
 #!/usr/bin/env python3
 """Describe the test coverage of PSA functions in terms of return statuses.
 
-1. Build Mbed TLS with -DRECORD_PSA_STATUS_COVERAGE_LOG
-2. Run psa_collect_statuses.py
+1. Build Mbed TLS with MBEDLTS_TEST_HOOKS enabled.
+2. Run unit tests with the environment variable
+   MBEDTLS_TEST_PSA_WRAPPERS_LOG_FILE set to a file name.
+2. Run psa_collect_statuses.py on the log file.
 
 The output is a series of line of the form "psa_foo PSA_ERROR_XXX". Each
 function/status combination appears only once.
-
-This script must be run from the top of an Mbed TLS source tree.
-The build command is "make -DRECORD_PSA_STATUS_COVERAGE_LOG", which is
-only supported with make (as opposed to CMake or other build methods).
 """
 
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
 import argparse
-import os
+import re
 import subprocess
 import sys
-from typing import Dict, List, Set
+from typing import Dict, Set
 
-DEFAULT_STATUS_LOG_FILE = 'tests/statuses.log'
 DEFAULT_PSA_CONSTANT_NAMES = 'programs/psa/psa_constant_names'
 
 class Statuses:
     """Information about observed return statues of API functions."""
 
     def __init__(self) -> None:
-        self.functions = {} #type: Dict[str, Dict[str, List[str]]]
+        self.functions = {} #type: Dict[str, Set[int]]
         self.codes = set() #type: Set[int]
-        self.status_names = {} #type: Dict[str, str]
+        self.status_names = {} #type: Dict[int, str]
+
+    _LOG_LINE_RE = re.compile(r'(?:[^;]*;){5}' # test case identification
+                              r'(?:[^;:]*:){3}\s*' # calling site
+                              r'(\w+)' # function name
+                              r'[^;:]*?' # arguments
+                              r'\bstatus=([-+][0-9]+|0[Xx][0-9A-Fa-f]+)'
+                              r'(?:$|;)', re.A)
 
     def collect_log(self, log_file_name: str) -> None:
-        """Read logs from RECORD_PSA_STATUS_COVERAGE_LOG.
-
-        Read logs produced by running Mbed TLS test suites built with
-        -DRECORD_PSA_STATUS_COVERAGE_LOG.
+        """Read logs from PSA test wrappers.
         """
         with open(log_file_name) as log:
             for line in log:
-                value, function, tail = line.split(':', 2)
+                m = self._LOG_LINE_RE.match(line)
+                if not m:
+                    continue
+                function = m.group(1)
+                value = int(m.group(2), 0)
                 if function not in self.functions:
-                    self.functions[function] = {}
-                fdata = self.functions[function]
-                if value not in self.functions[function]:
-                    fdata[value] = []
-                fdata[value].append(tail)
-                self.codes.add(int(value))
+                    self.functions[function] = set()
+                self.functions[function].add(value)
+                self.codes.add(value)
 
     def get_constant_names(self, psa_constant_names: str) -> None:
         """Run psa_constant_names to obtain names for observed numerical values."""
         values = [str(value) for value in self.codes]
         cmd = [psa_constant_names, 'status'] + values
         output = subprocess.check_output(cmd).decode('ascii')
-        for value, name in zip(values, output.rstrip().split('\n')):
+        for value, name in zip(self.codes, output.rstrip().split('\n')):
             self.status_names[value] = name
 
     def report(self) -> None:
@@ -64,63 +66,27 @@ class Statuses:
         """
         for function in sorted(self.functions.keys()):
             fdata = self.functions[function]
-            names = [self.status_names[value] for value in fdata.keys()]
+            names = [self.status_names[value] for value in fdata]
             for name in sorted(names):
                 sys.stdout.write('{} {}\n'.format(function, name))
 
 def collect_status_logs(options) -> Statuses:
-    """Build and run unit tests and report observed function return statuses.
-
-    Build Mbed TLS with -DRECORD_PSA_STATUS_COVERAGE_LOG, run the
-    test suites and display information about observed return statuses.
+    """Report observed function return statuses by reading call logs.
     """
-    rebuilt = False
-    if not options.use_existing_log and os.path.exists(options.log_file):
-        os.remove(options.log_file)
-    if not os.path.exists(options.log_file):
-        if options.clean_before:
-            subprocess.check_call(['make', 'clean'],
-                                  cwd='tests',
-                                  stdout=sys.stderr)
-        with open(os.devnull, 'w') as devnull:
-            make_q_ret = subprocess.call(['make', '-q', 'lib', 'tests'],
-                                         stdout=devnull, stderr=devnull)
-        if make_q_ret != 0:
-            subprocess.check_call(['make', 'RECORD_PSA_STATUS_COVERAGE_LOG=1'],
-                                  stdout=sys.stderr)
-            rebuilt = True
-        subprocess.check_call(['make', 'test'],
-                              stdout=sys.stderr)
     data = Statuses()
     data.collect_log(options.log_file)
     data.get_constant_names(options.psa_constant_names)
-    if rebuilt and options.clean_after:
-        subprocess.check_call(['make', 'clean'],
-                              cwd='tests',
-                              stdout=sys.stderr)
     return data
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=globals()['__doc__'])
-    parser.add_argument('--clean-after',
-                        action='store_true',
-                        help='Run "make clean" after rebuilding')
-    parser.add_argument('--clean-before',
-                        action='store_true',
-                        help='Run "make clean" before regenerating the log file)')
-    parser.add_argument('--log-file', metavar='FILE',
-                        default=DEFAULT_STATUS_LOG_FILE,
-                        help='Log file location (default: {})'.format(
-                            DEFAULT_STATUS_LOG_FILE
-                        ))
     parser.add_argument('--psa-constant-names', metavar='PROGRAM',
                         default=DEFAULT_PSA_CONSTANT_NAMES,
                         help='Path to psa_constant_names (default: {})'.format(
                             DEFAULT_PSA_CONSTANT_NAMES
                         ))
-    parser.add_argument('--use-existing-log', '-e',
-                        action='store_true',
-                        help='Don\'t regenerate the log file if it exists')
+    parser.add_argument('log_file', metavar='FILE',
+                        help='Log file to read')
     options = parser.parse_args()
     data = collect_status_logs(options)
     data.report()

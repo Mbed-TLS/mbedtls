@@ -2444,7 +2444,6 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
  *     struct {
  *       opaque hostname<0..2^16-1>;
  *       uint64 ticket_reception_time;
- *       uint32 ticket_lifetime;
  *       opaque ticket<1..2^16-1>;
  *     } ClientOnlyData;
  *
@@ -2453,6 +2452,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
  *       uint8 ciphersuite[2];
  *       uint32 ticket_age_add;
  *       uint8 ticket_flags;
+ *       uint32 ticket_lifetime;
  *       opaque resumption_key<0..255>;
  *       uint32 max_early_data_size;
  *       select ( endpoint ) {
@@ -2479,6 +2479,7 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
                     + 2                             /* ciphersuite */
                     + 4                             /* ticket_age_add */
                     + 1                             /* ticket_flags */
+                    + 4                             /* ticket_lifetime */
                     + 1;                            /* resumption_key length */
     *olen = 0;
 
@@ -2502,8 +2503,7 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
                   + hostname_len;           /* hostname */
 #endif
 
-        needed +=   4                       /* ticket_lifetime */
-                  + 2;                      /* ticket_len */
+        needed +=   2;                      /* ticket_len */
 
         /* Check size_t overflow */
         if (session->ticket_len > SIZE_MAX - needed) {
@@ -2523,10 +2523,11 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
     MBEDTLS_PUT_UINT16_BE(session->ciphersuite, p, 1);
     MBEDTLS_PUT_UINT32_BE(session->ticket_age_add, p, 3);
     p[7] = session->ticket_flags;
+    MBEDTLS_PUT_UINT32_BE(session->ticket_lifetime, p, 8);
 
     /* save resumption_key */
-    p[8] = session->resumption_key_len;
-    p += 9;
+    p[12] = session->resumption_key_len;
+    p += 13;
     memcpy(p, session->resumption_key, session->resumption_key_len);
     p += session->resumption_key_len;
 
@@ -2558,8 +2559,6 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
         MBEDTLS_PUT_UINT64_BE((uint64_t) session->ticket_reception_time, p, 0);
         p += 8;
 #endif
-        MBEDTLS_PUT_UINT32_BE(session->ticket_lifetime, p, 0);
-        p += 4;
 
         MBEDTLS_PUT_UINT16_BE(session->ticket_len, p, 0);
         p += 2;
@@ -2581,17 +2580,18 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
     const unsigned char *p = buf;
     const unsigned char *end = buf + len;
 
-    if (end - p < 9) {
+    if (end - p < 13) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
     session->endpoint = p[0];
     session->ciphersuite = MBEDTLS_GET_UINT16_BE(p, 1);
     session->ticket_age_add = MBEDTLS_GET_UINT32_BE(p, 3);
     session->ticket_flags = p[7];
+    session->ticket_lifetime = MBEDTLS_GET_UINT32_BE(p, 8);
 
     /* load resumption_key */
-    session->resumption_key_len = p[8];
-    p += 9;
+    session->resumption_key_len = p[12];
+    p += 13;
 
     if (end - p < session->resumption_key_len) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
@@ -2654,11 +2654,6 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
         session->ticket_reception_time = MBEDTLS_GET_UINT64_BE(p, 0);
         p += 8;
 #endif
-        if (end - p < 4) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-        session->ticket_lifetime = MBEDTLS_GET_UINT32_BE(p, 0);
-        p += 4;
 
         if (end - p <  2) {
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;

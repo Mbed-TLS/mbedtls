@@ -2663,12 +2663,6 @@ static int ssl_tls13_parse_nst_early_data_ext(mbedtls_ssl_context *ssl,
                                               const unsigned char *end)
 {
     MBEDTLS_SSL_CHK_BUF_READ_PTR(buf, end, 4);
-    if ((end - buf) != 4) {
-        MBEDTLS_SSL_PEND_FATAL_ALERT(
-            MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
-            MBEDTLS_ERR_SSL_DECODE_ERROR);
-        return MBEDTLS_ERR_SSL_DECODE_ERROR;
-    }
 
     if (ssl->session != NULL) {
         ssl->session->max_early_data_size = MBEDTLS_GET_UINT32_BE(buf, 0);

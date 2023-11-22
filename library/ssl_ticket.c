@@ -499,12 +499,9 @@ int mbedtls_ssl_ticket_parse(void *p_ticket,
     if (session->tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
         /* Check for expiration */
         mbedtls_ms_time_t ticket_age = -1;
-#if defined(MBEDTLS_SSL_SRV_C)
         if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
             ticket_age = mbedtls_ms_time() - session->ticket_creation_time;
         }
-#endif
-
         mbedtls_ms_time_t ticket_lifetime =
             (mbedtls_ms_time_t) ctx->ticket_lifetime * 1000;
 

@@ -1268,6 +1268,7 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
     ssl->tls_version = (mbedtls_ssl_protocol_version) mbedtls_ssl_read_version(buf,
                                                                                ssl->conf->transport);
     ssl->session_negotiate->tls_version = ssl->tls_version;
+    ssl->session_negotiate->endpoint = ssl->conf->endpoint;
 
     if (ssl->tls_version < ssl->conf->min_tls_version ||
         ssl->tls_version > ssl->conf->max_tls_version) {

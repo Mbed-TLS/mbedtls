@@ -306,7 +306,7 @@ static int resize_buffer(unsigned char **buffer, size_t len_new, size_t *len_old
 {
     unsigned char *resized_buffer = mbedtls_calloc(1, len_new);
     if (resized_buffer == NULL) {
-        return -1;
+        return MBEDTLS_ERR_SSL_ALLOC_FAILED;
     }
 
     /* We want to copy len_new bytes when downsizing the buffer, and

@@ -178,10 +178,7 @@ def main() -> int:
 
     repo_root = os.path.abspath(args.repo_root)
 
-    if build_tree.looks_like_mbedtls_root(repo_root):
-        library_dir = 'library'
-    elif build_tree.looks_like_tf_psa_crypto_root(repo_root):
-        library_dir = 'core'
+    library_dir = build_tree.crypto_core_directory(repo_root)
 
     output_directory = args.output_directory if args.output_directory is not None else \
         os.path.join(repo_root, library_dir)

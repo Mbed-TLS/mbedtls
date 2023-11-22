@@ -40,25 +40,6 @@ class Results:
     def _print_line(fmt, *args, **kwargs):
         sys.stderr.write((fmt + '\n').format(*args, **kwargs))
 
-class TestCaseOutcomes:
-    """The outcomes of one test case across many configurations."""
-    # pylint: disable=too-few-public-methods
-
-    def __init__(self):
-        # Collect a list of witnesses of the test case succeeding or failing.
-        # Currently we don't do anything with witnesses except count them.
-        # The format of a witness is determined by the read_outcome_file
-        # function; it's the platform and configuration joined by ';'.
-        self.successes = []
-        self.failures = []
-
-    def hits(self):
-        """Return the number of times a test case has been run.
-
-        This includes passes and failures, but not skips.
-        """
-        return len(self.successes) + len(self.failures)
-
 def execute_reference_driver_tests(results: Results, ref_component, driver_component, \
                                    outcome_file):
     """Run the tests specified in ref_component and driver_component. Results
@@ -82,7 +63,12 @@ def analyze_coverage(results, outcomes, allow_list, full_coverage):
     """Check that all available test cases are executed at least once."""
     available = check_test_cases.collect_available_test_cases()
     for key in available:
-        hits = outcomes[key].hits() if key in outcomes else 0
+        hits = 0
+        for _comp, comp_outcomes in outcomes.items():
+            if key in comp_outcomes["successes"] or \
+               key in comp_outcomes["failures"]:
+                hits += 1
+
         if hits == 0 and key not in allow_list:
             if full_coverage:
                 results.error('Test case not executed: {}', key)
@@ -117,8 +103,14 @@ def analyze_driver_vs_reference(results: Results, outcomes,
     - only some specific test inside a test suite, for which the corresponding
       output string is provided
     """
-    seen_reference_passing = False
-    for key in outcomes:
+    ref_outcomes = outcomes.get("component_" + component_ref)
+    driver_outcomes = outcomes.get("component_" + component_driver)
+
+    if ref_outcomes is None or not ref_outcomes['successes']:
+        results.error("no passing test in reference component: bad outcome file?")
+        return
+
+    for key in ref_outcomes["successes"]:
         # key is like "test_suite_foo.bar;Description of test case"
         (full_test_suite, test_string) = key.split(';')
         test_suite = full_test_suite.split('.')[0] # retrieve main part of test suite name
@@ -136,22 +128,10 @@ def analyze_driver_vs_reference(results: Results, outcomes,
                 if name_matches_pattern(test_string, str_or_re):
                     ignored = True
 
-        # Search for tests that run in reference component and not in driver component
-        driver_test_passed = False
-        reference_test_passed = False
-        for entry in outcomes[key].successes:
-            if component_driver in entry:
-                driver_test_passed = True
-            if component_ref in entry:
-                reference_test_passed = True
-                seen_reference_passing = True
-        if reference_test_passed and not driver_test_passed and not ignored:
+        if not ignored and not key in driver_outcomes['successes']:
             results.error("PASS -> SKIP/FAIL: {}", key)
-        if ignored and driver_test_passed:
+        if ignored and key in driver_outcomes['successes']:
             results.error("uselessly ignored: {}", key)
-
-    if not seen_reference_passing:
-        results.error("no passing test in reference component: bad outcome file?")
 
 def analyze_outcomes(results: Results, outcomes, args):
     """Run all analyses on the given outcome collection."""
@@ -168,15 +148,19 @@ by a semicolon.
     outcomes = {}
     with open(outcome_file, 'r', encoding='utf-8') as input_file:
         for line in input_file:
-            (platform, config, suite, case, result, _cause) = line.split(';')
+            (_platform, config, suite, case, result, _cause) = line.split(';')
             key = ';'.join([suite, case])
-            setup = ';'.join([platform, config])
-            if key not in outcomes:
-                outcomes[key] = TestCaseOutcomes()
+            if config not in outcomes:
+                outcomes[config] = {"successes":[], "failures":[]}
             if result == 'PASS':
-                outcomes[key].successes.append(setup)
+                outcomes[config]['successes'].append(key)
             elif result == 'FAIL':
-                outcomes[key].failures.append(setup)
+                outcomes[config]['failures'].append(key)
+
+    for config in outcomes:
+        outcomes[config]['successes'] = frozenset(outcomes[config]['successes'])
+        outcomes[config]['failures'] = frozenset(outcomes[config]['failures'])
+
     return outcomes
 
 def do_analyze_coverage(results: Results, outcomes_or_file, args):

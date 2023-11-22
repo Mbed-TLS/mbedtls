@@ -163,7 +163,7 @@ def main() -> int:
     """
     Main with command line arguments.
     """
-    def_arg_project_root = build_tree.guess_mbedtls_root()
+    def_arg_project_root = build_tree.guess_project_root()
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--project-root', default=def_arg_project_root,

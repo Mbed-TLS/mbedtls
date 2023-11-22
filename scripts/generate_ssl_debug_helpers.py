@@ -367,7 +367,7 @@ def generate_ssl_debug_helpers(output_directory, mbedtls_root):
         Generate functions of debug helps
     """
     mbedtls_root = os.path.abspath(
-        mbedtls_root or build_tree.guess_mbedtls_root())
+        mbedtls_root or build_tree.guess_project_root())
     with open(os.path.join(mbedtls_root, 'include/mbedtls/ssl.h')) as f:
         source_code = remove_c_comments(f.read())
 

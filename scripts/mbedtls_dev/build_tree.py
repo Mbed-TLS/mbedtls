@@ -24,7 +24,7 @@ def looks_like_root(path: str) -> bool:
 
 def crypto_core_directory(root: Optional[str] = None) -> str:
     if root is None:
-        root = guess_mbedtls_root()
+        root = guess_project_root()
     if looks_like_tf_psa_crypto_root(root):
         return "core"
     elif looks_like_mbedtls_root(root):
@@ -55,10 +55,10 @@ def chdir_to_root() -> None:
     raise Exception('Mbed TLS source tree not found')
 
 
-def guess_mbedtls_root():
-    """Guess mbedTLS source code directory.
+def guess_project_root():
+    """Guess project source code directory.
 
-    Return the first possible mbedTLS root directory
+    Return the first possible project root directory.
     """
     dirs = set({})
     for frame in inspect.stack():
@@ -71,4 +71,4 @@ def guess_mbedtls_root():
             dirs.add(d)
             if looks_like_root(d):
                 return d
-    raise Exception('Mbed TLS source tree not found')
+    raise Exception('Neither Mbed TLS nor TF-PSA-Crypto source tree found')

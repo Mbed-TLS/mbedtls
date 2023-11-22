@@ -6,6 +6,7 @@
 #include <test/constant_flow.h>
 #include <test/helpers.h>
 #include <test/macros.h>
+#include <stdlib.h>
 #include <string.h>
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
@@ -33,6 +34,17 @@ int mbedtls_test_platform_setup(void)
 {
     int ret = 0;
 
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_FS_IO) &&    \
+    defined(MBEDTLS_PSA_CRYPTO_C)
+    const char *filename = getenv("MBEDTLS_TEST_PSA_WRAPPERS_LOG_FILE");
+    if (filename != NULL && filename[0] != 0) {
+        mbedtls_test_psa_wrappers_log_file = fopen(filename, "a");
+        if (mbedtls_test_psa_wrappers_log_file == NULL) {
+            return -1;
+        }
+    }
+#endif
+
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
     /* Make sure that injected entropy is present. Otherwise
      * psa_crypto_init() will fail. This is not necessary for test suites
@@ -56,6 +68,14 @@ void mbedtls_test_platform_teardown(void)
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_teardown(&platform_ctx);
 #endif /* MBEDTLS_PLATFORM_C */
+
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_FS_IO) &&    \
+    defined(MBEDTLS_PSA_CRYPTO_C)
+    if (mbedtls_test_psa_wrappers_log_file != NULL) {
+        fclose(mbedtls_test_psa_wrappers_log_file);
+        mbedtls_test_psa_wrappers_log_file = NULL;
+    }
+#endif
 }
 
 int mbedtls_test_ascii2uc(const char c, unsigned char *uc)

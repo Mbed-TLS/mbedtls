@@ -7,6 +7,7 @@
 
 import os
 import inspect
+from typing import Optional
 
 def looks_like_tf_psa_crypto_root(path: str) -> bool:
     """Whether the given directory looks like the root of the PSA Crypto source tree."""
@@ -21,10 +22,12 @@ def looks_like_mbedtls_root(path: str) -> bool:
 def looks_like_root(path: str) -> bool:
     return looks_like_tf_psa_crypto_root(path) or looks_like_mbedtls_root(path)
 
-def crypto_core_directory() -> str:
-    if looks_like_tf_psa_crypto_root(os.path.curdir):
+def crypto_core_directory(root: Optional[str] = None) -> str:
+    if root is None:
+        root = guess_mbedtls_root()
+    if looks_like_tf_psa_crypto_root(root):
         return "core"
-    elif looks_like_mbedtls_root(os.path.curdir):
+    elif looks_like_mbedtls_root(root):
         return "library"
     else:
         raise Exception('Neither Mbed TLS nor TF-PSA-Crypto source tree found')

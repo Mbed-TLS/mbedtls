@@ -125,6 +125,10 @@ unsigned mbedtls_test_case_uses_negative_0 = 0;
 
 void mbedtls_test_info_reset(void)
 {
+    if (mbedtls_test_info.test_case != NULL) {
+        mbedtls_free(mbedtls_test_info.test_case);
+        mbedtls_test_info.test_case = NULL;
+    }
     mbedtls_test_info.result = MBEDTLS_TEST_RESULT_SUCCESS;
     mbedtls_test_info.step = (unsigned long) (-1);
     mbedtls_test_info.test = 0;
@@ -375,3 +379,39 @@ void mbedtls_test_err_add_check(int high, int low,
     }
 }
 #endif /* MBEDTLS_TEST_HOOKS */
+
+/** \brief Write the description of the test case to the outcome CSV file.
+ *
+ * \param output_file   The file to write to.
+ *                      If this is \c NULL, this function does nothing.
+ * \param test_suite    The test suite name.
+ * \param test_case     The test case description.
+ */
+int mbedtls_test_start_outcome_entry(FILE *output_file,
+                                     const char *test_suite,
+                                     const char *test_case)
+{
+    /* The non-varying fields are initialized on first use. */
+    static const char *platform = NULL;
+    static const char *configuration = NULL;
+
+    if (output_file == NULL) {
+        return 0;
+    }
+
+    if (platform == NULL) {
+        platform = getenv("MBEDTLS_TEST_PLATFORM");
+        if (platform == NULL) {
+            platform = "unknown";
+        }
+    }
+    if (configuration == NULL) {
+        configuration = getenv("MBEDTLS_TEST_CONFIGURATION");
+        if (configuration == NULL) {
+            configuration = "unknown";
+        }
+    }
+
+    return mbedtls_fprintf(output_file, "%s;%s;%s;%s;",
+                           platform, configuration, test_suite, test_case);
+}

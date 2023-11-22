@@ -47,6 +47,8 @@ typedef enum {
 } mbedtls_test_result_t;
 
 typedef struct {
+    const char *test_suite;
+    char *test_case;
     mbedtls_test_result_t result;
     const char *test;
     const char *filename;
@@ -264,5 +266,19 @@ void mbedtls_test_mutex_usage_check(void);
 void mbedtls_test_err_add_check(int high, int low,
                                 const char *file, int line);
 #endif
+
+/** \brief Write the description of the test case to the specified file.
+ *
+ * This is a suitable prefix for the outcome CSV file, to be followed by
+ * the SKIP/PASS/FAIL status.
+ *
+ * \param output_file   The file to write to.
+ *                      If this is \c NULL, this function does nothing.
+ * \param test_suite    The test suite name.
+ * \param test_case     The test case description.
+ */
+int mbedtls_test_start_outcome_entry(FILE *output_file,
+                                     const char *test_suite,
+                                     const char *test_case);
 
 #endif /* TEST_HELPERS_H */

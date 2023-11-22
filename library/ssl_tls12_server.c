@@ -1161,6 +1161,7 @@ read_record_header:
     ssl->tls_version = (mbedtls_ssl_protocol_version) mbedtls_ssl_read_version(buf,
                                                                                ssl->conf->transport);
     ssl->session_negotiate->tls_version = ssl->tls_version;
+    ssl->session_negotiate->endpoint = ssl->conf->endpoint;
 
     if (ssl->tls_version != MBEDTLS_SSL_VERSION_TLS1_2) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("server only supports TLS 1.2"));

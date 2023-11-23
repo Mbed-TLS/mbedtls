@@ -164,6 +164,44 @@ psa_key_usage_t mbedtls_test_update_key_usage_flags(psa_key_usage_t usage_flags)
 int mbedtls_test_fail_if_psa_leaking(int line_no, const char *filename);
 
 
+/** \def MBEDTLS_SVC_KEY_ID_PRINTF_FORMAT
+ *
+ * A suitable printf format for a value of type #mbedtls_svc_key_id_t.
+ * This is a string literal that can be concatenated with other literals.
+ * Note that this is a complete format including the leading `%` sign.
+ * It cannot be modified to customize the output formatting.
+ *
+ * Intended usage:
+ * ```
+ * mbedtls_svc_key_id_t key_id = ...;
+ * printf("key_id=" MBEDTLS_SVC_KEY_ID_PRINTF_FORMAT,
+ *        MBEDTLS_SVC_KEY_ID_PRINTF_ARGS(key_id));
+ * ```
+ * This is similar to `printf("%08x", key_id)`, but also works when
+ * #MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER is enabled.
+ */
+/** \def MBEDTLS_SVC_KEY_ID_PRINTF_ARGS
+ *
+ * \param svc_id    A expression yielding a value of type #mbedtls_svc_key_id_t.
+ *                  It may be expanded more than once.
+ *
+ * Use this macro in the argument list of a printf-like function
+ * in combination with #MBEDTLS_SVC_KEY_ID_PRINTF_FORMAT.
+ */
+#if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
+#define MBEDTLS_SVC_KEY_ID_PRINTF_FORMAT "%d:%08x"
+/* The expansion of this macro deliberately contains an unprotected comma,
+ * because it's meant to be used in the argument list of a printf-like
+ * function. */
+#define MBEDTLS_SVC_KEY_ID_PRINTF_ARGS(svc_id)  \
+    (int) ((svc_id).MBEDTLS_PRIVATE(owner)),    \
+    (unsigned) ((svc_id).MBEDTLS_PRIVATE(key_id))
+#else
+#define MBEDTLS_SVC_KEY_ID_PRINTF_FORMAT "%08x"
+#define MBEDTLS_SVC_KEY_ID_PRINTF_ARGS(svc_id)  \
+    ((unsigned) (svc_id))
+#endif
+
 
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
 /* The #MBEDTLS_PSA_INJECT_ENTROPY feature requires two extra platform

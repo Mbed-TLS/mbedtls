@@ -51,7 +51,6 @@ class PSAWrapperGenerator(c_wrapper_generator.Logging):
 
     _PRINTF_TYPE_CAST = c_wrapper_generator.Logging._PRINTF_TYPE_CAST.copy()
     _PRINTF_TYPE_CAST.update({
-        'mbedtls_svc_key_id_t': 'unsigned',
         'psa_algorithm_t': 'unsigned',
         'psa_drv_slot_number_t': 'unsigned long long',
         'psa_key_derivation_step_t': 'int',
@@ -72,6 +71,7 @@ class PSAWrapperGenerator(c_wrapper_generator.Logging):
     ])
 
     def _printf_parameters(self, typ: str, var: str) -> Tuple[str, List[str]]:
+        #pylint: disable=too-many-return-statements
         if typ.startswith('const '):
             typ = typ[6:]
         if typ == 'uint8_t *':
@@ -82,9 +82,16 @@ class PSAWrapperGenerator(c_wrapper_generator.Logging):
         if typ in self._PAKE_STUFF:
             return '', []
         if typ == 'psa_key_attributes_t *':
-            return (var + '={id=%u, lifetime=0x%08x, type=0x%08x, bits=%u, alg=%08x, usage=%08x}',
+            return (var +
+                    '={id="MBEDTLS_SVC_KEY_ID_PRINTF_FORMAT",' +
+                    ' lifetime=0x%08x, type=0x%08x, bits=%u, alg=%08x, usage=%08x}',
+                    ['MBEDTLS_SVC_KEY_ID_PRINTF_ARGS(psa_get_key_id(' + var + '))'] +
                     ['(unsigned) psa_get_key_{}({})'.format(field, var)
-                     for field in ['id', 'lifetime', 'type', 'bits', 'algorithm', 'usage_flags']])
+                     for field in ['lifetime', 'type', 'bits', 'algorithm', 'usage_flags']])
+        if typ == 'mbedtls_svc_key_id_t' or typ == 'mbedtls_svc_key_id_t *':
+            expr = '*' + var if typ.endswith('*') else var
+            return (var + '="MBEDTLS_SVC_KEY_ID_PRINTF_FORMAT"',
+                    ['MBEDTLS_SVC_KEY_ID_PRINTF_ARGS(' + expr + ')'])
         return super()._printf_parameters(typ, var)
 
     def _return_variable_name(self,

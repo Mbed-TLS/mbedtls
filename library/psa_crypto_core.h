@@ -859,7 +859,7 @@ typedef struct psa_crypto_local_input_s {
     size_t length;
 } psa_crypto_local_input_t;
 
-#define PSA_CRYPTO_LOCAL_INPUT_INIT { NULL, 0 }
+#define PSA_CRYPTO_LOCAL_INPUT_INIT ((psa_crypto_local_input_t) { NULL, 0 })
 
 /** Allocate a local copy of an input buffer.
  *
@@ -889,7 +889,7 @@ typedef struct psa_crypto_local_output_s {
     size_t length;
 } psa_crypto_local_output_t;
 
-#define PSA_CRYPTO_LOCAL_OUTPUT_INIT { NULL, NULL, 0 }
+#define PSA_CRYPTO_LOCAL_OUTPUT_INIT ((psa_crypto_local_output_t) { NULL, NULL, 0 })
 
 /** Allocate a local copy of an output buffer.
  *

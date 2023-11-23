@@ -3262,12 +3262,13 @@ static int ssl_tls13_write_nst_early_data_ext(mbedtls_ssl_context *ssl,
  * The following fields are placed inside the ticket by the
  * f_ticket_write() function:
  *
- *  - creation time (start)
- *  - flags (flags)
+ *  - creation time (ticket_creation_time)
+ *  - flags (ticket_flags)
  *  - age add (ticket_age_add)
- *  - key (key)
- *  - key length (key_len)
+ *  - key (resumption_key)
+ *  - key length (resumption_key_len)
  *  - ciphersuite (ciphersuite)
+ *  - max_early_data_size (max_early_data_size)
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,

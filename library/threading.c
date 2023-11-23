@@ -59,9 +59,9 @@ static void threading_mutex_init_pthread(mbedtls_threading_mutex_t *mutex)
     /* One problem here is that calling lock on a pthread mutex without first
      * having initialised it is undefined behaviour. Obviously we cannot check
      * this here in a thread safe manner without a significant performance
-     * hit, so state transitions are checked in tests only via the is_valid
-     * varaible. Please make sure any new mutex that gets added is exercised in
-     * tests; see tests/src/threading_helpers for more details. */
+     * hit, so state transitions are checked in tests only via the state
+     * variable. Please make sure any new mutex that gets added is exercised in
+     * tests; see tests/src/threading_helpers.c for more details. */
     (void) pthread_mutex_init(&mutex->mutex, NULL);
 }
 

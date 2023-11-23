@@ -277,21 +277,16 @@ extern "C" {{
         if wrapper.guard is not None:
             out.write('#endif /* {} */\n'.format(wrapper.guard))
 
-    def _write_h_function(self, out: typing_util.Writable,
-                          function: FunctionInfo,
-                          wrapper: WrapperInfo) -> None:
+    def _write_h_function_declaration(self, out: typing_util.Writable,
+                                      function: FunctionInfo,
+                                      wrapper: WrapperInfo) -> None:
         """Write the declaration of one wrapper function.
         """
-        out.write('\n')
-        if wrapper.guard is not None:
-            out.write('#if {}\n'.format(wrapper.guard))
         self._write_function_prototype(out, function, wrapper, True)
-        if wrapper.guard is not None:
-            out.write('#endif /* {} */\n'.format(wrapper.guard))
 
-    def _write_h_macro(self, out: typing_util.Writable,
-                       function: FunctionInfo,
-                       wrapper: WrapperInfo) -> None:
+    def _write_h_macro_definition(self, out: typing_util.Writable,
+                                  function: FunctionInfo,
+                                  wrapper: WrapperInfo) -> None:
         """Write the macro definition for one wrapper.
         """
         arg_list = ', '.join(wrapper.argument_names)
@@ -299,6 +294,26 @@ extern "C" {{
                   .format(function_name=function.name,
                           wrapper_name=wrapper.wrapper_name,
                           args=arg_list))
+
+    def _write_h_function(self, out: typing_util.Writable,
+                          function: FunctionInfo) -> None:
+        """Write the complete header content for one wrapper.
+
+        This is the declaration of the wrapper function, and the
+        definition of a function-like macro that calls the wrapper function.
+
+        Do nothing if the function is skipped.
+        """
+        wrapper = self._wrapper_info(function)
+        if wrapper is None:
+            return
+        out.write('\n')
+        if wrapper.guard is not None:
+            out.write('#if {}\n'.format(wrapper.guard))
+        self._write_h_function_declaration(out, function, wrapper)
+        self._write_h_macro_definition(out, function, wrapper)
+        if wrapper.guard is not None:
+            out.write('#endif /* {} */\n'.format(wrapper.guard))
 
     def write_c_file(self, filename: str) -> None:
         """Output a whole C file containing function wrapper definitions."""
@@ -319,13 +334,8 @@ extern "C" {{
         self.header_guard = self._header_guard_from_file_name(filename)
         with open(filename, 'w', encoding='utf-8') as out:
             self._write_prologue(out, True)
-            for name in sorted(self.functions.keys()):
-                function = self.functions[name]
-                wrapper = self._wrapper_info(function)
-                if wrapper is None:
-                    continue
-                self._write_h_function(out, function, wrapper)
-                self._write_h_macro(out, function, wrapper)
+            for name in sorted(self.functions):
+                self._write_h_function(out, self.functions[name])
             self._write_epilogue(out, True)
 
 

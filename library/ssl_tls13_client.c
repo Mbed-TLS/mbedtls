@@ -2662,19 +2662,18 @@ static int ssl_tls13_parse_nst_early_data_ext(mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,
                                               const unsigned char *end)
 {
+    mbedtls_ssl_session *session = ssl->session;
+
     MBEDTLS_SSL_CHK_BUF_READ_PTR(buf, end, 4);
 
-    if (ssl->session != NULL) {
-        ssl->session->max_early_data_size = MBEDTLS_GET_UINT32_BE(buf, 0);
-        mbedtls_ssl_session_set_ticket_flags(
-            ssl->session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
-        MBEDTLS_SSL_DEBUG_MSG(
-            3, ("received max_early_data_size: %u",
-                (unsigned int) ssl->session->max_early_data_size));
-        return 0;
-    }
+    session->max_early_data_size = MBEDTLS_GET_UINT32_BE(buf, 0);
+    mbedtls_ssl_session_set_ticket_flags(
+        session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
+    MBEDTLS_SSL_DEBUG_MSG(
+        3, ("received max_early_data_size: %u",
+            (unsigned int) session->max_early_data_size));
 
-    return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    return 0;
 }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 

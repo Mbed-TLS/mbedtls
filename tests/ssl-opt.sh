@@ -358,7 +358,7 @@ requires_protocol_version() {
 
 # Space-separated list of ciphersuites supported by this build of
 # Mbed TLS.
-P_CIPHERSUITES=" $($P_CLI --help 2>/dev/null |
+P_CIPHERSUITES=" $($P_CLI help_ciphersuites 2>/dev/null |
                    grep 'TLS-\|TLS1-3' |
                    tr -s ' \n' ' ')"
 requires_ciphersuite_enabled() {

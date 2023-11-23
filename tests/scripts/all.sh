@@ -1059,7 +1059,7 @@ component_check_test_dependencies () {
     # the test code and that's probably the most convenient way of achieving
     # the test's goal.
     echo "MBEDTLS_ASN1_WRITE_C" >> $expected
-    # No PSA equivalent - used to skip decryption tests in CBC/XTS/DES/NIST_KW
+    # No PSA equivalent - used to skip decryption tests in PSA-ECB, CBC/XTS/NIST_KW/DES
     echo "!MBEDTLS_BLOCK_CIPHER_NO_DECRYPT" >> $expected
     # No PSA equivalent - we should probably have one in the future.
     echo "MBEDTLS_ECP_RESTARTABLE" >> $expected
@@ -4252,7 +4252,7 @@ component_build_aes_variations() {
     cd "$MBEDTLS_ROOT_DIR"
     msg "build: aes.o for all combinations of relevant config options + BLOCK_CIPHER_NO_DECRYPT"
 
-    # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT is incompatible with CBC/XTS/DES/NIST_KW,
+    # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT is incompatible with ECB in PSA, CBC/XTS/NIST_KW/DES,
     # manually set or unset those configurations to check
     # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT with various combinations in aes.o.
     scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT

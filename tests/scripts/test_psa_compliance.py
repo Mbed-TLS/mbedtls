@@ -52,10 +52,10 @@ def main(library_build_dir: str):
 
     if in_tf_psa_crypto_repo:
         crypto_name = 'tfpsacrypto'
-        library_subdir = 'core'
     else:
         crypto_name = 'mbedcrypto'
-        library_subdir = 'library'
+
+    library_subdir = build_tree.crypto_core_directory()
 
     crypto_lib_filename = (library_build_dir + '/' +
                            library_subdir + '/' +

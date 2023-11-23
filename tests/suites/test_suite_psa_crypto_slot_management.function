@@ -142,7 +142,6 @@ void transient_slot_lifecycle(int owner_id_arg,
 
 #if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
     {
-        psa_key_handle_t handle;
         mbedtls_svc_key_id_t key_with_invalid_owner =
             mbedtls_svc_key_id_make(owner_id + 1,
                                     MBEDTLS_SVC_KEY_ID_GET_KEY_ID(key));
@@ -150,8 +149,8 @@ void transient_slot_lifecycle(int owner_id_arg,
         TEST_ASSERT(mbedtls_key_owner_id_equal(
                         owner_id,
                         MBEDTLS_SVC_KEY_ID_GET_OWNER_ID(key)));
-        TEST_EQUAL(psa_open_key(key_with_invalid_owner, &handle),
-                   PSA_ERROR_DOES_NOT_EXIST);
+        TEST_EQUAL(psa_get_key_attributes(key_with_invalid_owner, &attributes),
+                   PSA_ERROR_INVALID_HANDLE);
     }
 #endif
 

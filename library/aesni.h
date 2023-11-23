@@ -8,19 +8,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 #ifndef MBEDTLS_AESNI_H
 #define MBEDTLS_AESNI_H
@@ -39,7 +27,7 @@
  * (Only implemented with certain compilers, only for certain targets.)
  */
 #undef MBEDTLS_AESNI_HAVE_INTRINSICS
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
 /* Visual Studio supports AESNI intrinsics since VS 2008 SP1. We only support
  * VS 2013 and up for other reasons anyway, so no need to check the version. */
 #define MBEDTLS_AESNI_HAVE_INTRINSICS
@@ -47,7 +35,11 @@
 /* GCC-like compilers: currently, we only support intrinsics if the requisite
  * target flag is enabled when building the library (e.g. `gcc -mpclmul -msse2`
  * or `clang -maes -mpclmul`). */
-#if defined(__GNUC__) && defined(__AES__) && defined(__PCLMUL__)
+#if (defined(__GNUC__) || defined(__clang__)) && defined(__AES__) && defined(__PCLMUL__)
+#define MBEDTLS_AESNI_HAVE_INTRINSICS
+#endif
+/* For 32-bit, we only support intrinsics */
+#if defined(MBEDTLS_ARCH_IS_X86) && (defined(__GNUC__) || defined(__clang__))
 #define MBEDTLS_AESNI_HAVE_INTRINSICS
 #endif
 
@@ -60,13 +52,11 @@
 #if defined(MBEDTLS_AESNI_HAVE_INTRINSICS)
 #define MBEDTLS_AESNI_HAVE_CODE 2 // via intrinsics
 #elif defined(MBEDTLS_HAVE_ASM) && \
-    defined(__GNUC__) && defined(MBEDTLS_ARCH_IS_X64)
+    (defined(__GNUC__) || defined(__clang__)) && defined(MBEDTLS_ARCH_IS_X64)
 /* Can we do AESNI with inline assembly?
  * (Only implemented with gas syntax, only for 64-bit.)
  */
 #define MBEDTLS_AESNI_HAVE_CODE 1 // via assembly
-#elif defined(__GNUC__)
-#   error "Must use `-mpclmul -msse2 -maes` for MBEDTLS_AESNI_C"
 #else
 #error "MBEDTLS_AESNI_C defined, but neither intrinsics nor assembly available"
 #endif

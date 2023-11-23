@@ -2,19 +2,7 @@
  *  TLS server tickets callbacks implementation
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -507,7 +495,31 @@ int mbedtls_ssl_ticket_parse(void *p_ticket,
     }
 
 #if defined(MBEDTLS_HAVE_TIME)
-    {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    if (session->tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
+        /* Check for expiration */
+        mbedtls_ms_time_t ticket_age = -1;
+#if defined(MBEDTLS_SSL_SRV_C)
+        if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
+            ticket_age = mbedtls_ms_time() - session->ticket_creation_time;
+        }
+#endif
+#if defined(MBEDTLS_SSL_CLI_C)
+        if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
+            ticket_age = mbedtls_ms_time() - session->ticket_reception_time;
+        }
+#endif
+
+        mbedtls_ms_time_t ticket_lifetime = ctx->ticket_lifetime * 1000;
+
+        if (ticket_age < 0 || ticket_age > ticket_lifetime) {
+            ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
+            goto cleanup;
+        }
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if (session->tls_version == MBEDTLS_SSL_VERSION_TLS1_2) {
         /* Check for expiration */
         mbedtls_time_t current_time = mbedtls_time(NULL);
 
@@ -517,7 +529,8 @@ int mbedtls_ssl_ticket_parse(void *p_ticket,
             goto cleanup;
         }
     }
-#endif
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+#endif /* MBEDTLS_HAVE_TIME */
 
 cleanup:
 #if defined(MBEDTLS_THREADING_C)

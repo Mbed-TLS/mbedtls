@@ -2,21 +2,7 @@
  *  TLS 1.2 and 1.3 client-side functions
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *  This file is part of Mbed TLS ( https://tls.mbed.org )
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -705,11 +691,6 @@ static int ssl_write_client_hello_body(mbedtls_ssl_context *ssl,
                               p_extensions_len, extensions_len);
     }
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    MBEDTLS_SSL_PRINT_EXTS(
-        3, MBEDTLS_SSL_HS_CLIENT_HELLO, handshake->sent_extensions);
-#endif
-
     *out_len = p - buf;
     return 0;
 }
@@ -770,10 +751,9 @@ static int ssl_prepare_client_hello(mbedtls_ssl_context *ssl)
     if (ssl->handshake->resume != 0 &&
         session_negotiate->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 &&
         session_negotiate->ticket != NULL) {
-        mbedtls_time_t now = mbedtls_time(NULL);
-        uint64_t age = (uint64_t) (now - session_negotiate->ticket_received);
-        if (session_negotiate->ticket_received > now ||
-            age > session_negotiate->ticket_lifetime) {
+        mbedtls_ms_time_t now = mbedtls_ms_time();
+        mbedtls_ms_time_t age = now - session_negotiate->ticket_reception_time;
+        if (age < 0 || age > session_negotiate->ticket_lifetime * 1000) {
             /* Without valid ticket, disable session resumption.*/
             MBEDTLS_SSL_DEBUG_MSG(
                 3, ("Ticket expired, disable session resumption"));
@@ -1020,6 +1000,11 @@ int mbedtls_ssl_write_client_hello(mbedtls_ssl_context *ssl)
         }
 #endif
     }
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    MBEDTLS_SSL_PRINT_EXTS(
+        3, MBEDTLS_SSL_HS_CLIENT_HELLO, ssl->handshake->sent_extensions);
+#endif
 
 cleanup:
 

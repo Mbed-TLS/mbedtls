@@ -24,6 +24,7 @@ void test_callback_buffer_sanity()
 {
     enum { MSGLEN = 10 };
     mbedtls_test_ssl_buffer buf;
+    mbedtls_test_ssl_buffer_init(&buf);
     unsigned char input[MSGLEN];
     unsigned char output[MSGLEN];
 
@@ -43,8 +44,6 @@ void test_callback_buffer_sanity()
 
     /* Make sure calling put and get on a buffer that hasn't been set up results
      * in error. */
-    mbedtls_test_ssl_buffer_init(&buf);
-
     TEST_ASSERT(mbedtls_test_ssl_buffer_put(&buf, input, sizeof(input))
                 == -1);
     TEST_ASSERT(mbedtls_test_ssl_buffer_get(&buf, output, sizeof(output))
@@ -1200,7 +1199,7 @@ void ssl_crypt_record(int cipher_type, int hash_id,
 
     TEST_ASSERT(ret == 0);
 
-    TEST_ASSERT((buf = mbedtls_calloc(1, buflen)) != NULL);
+    TEST_CALLOC(buf, buflen);
 
     while (num_records-- > 0) {
         mbedtls_ssl_transform *t_dec, *t_enc;
@@ -1354,7 +1353,7 @@ void ssl_crypt_record_small(int cipher_type, int hash_id,
 
     TEST_ASSERT(ret == 0);
 
-    TEST_ASSERT((buf = mbedtls_calloc(1, buflen)) != NULL);
+    TEST_CALLOC(buf, buflen);
 
     for (mode = 1; mode <= 3; mode++) {
         seen_success = 0;
@@ -1787,7 +1786,9 @@ void ssl_tls13_record_protection(int ciphersuite,
 {
     mbedtls_ssl_key_set keys;
     mbedtls_ssl_transform transform_send;
+    mbedtls_ssl_transform_init(&transform_send);
     mbedtls_ssl_transform transform_recv;
+    mbedtls_ssl_transform_init(&transform_recv);
     mbedtls_record rec;
     unsigned char *buf = NULL;
     size_t buf_len;
@@ -1818,8 +1819,6 @@ void ssl_tls13_record_protection(int ciphersuite,
     keys.key_len = server_write_key->len;
     keys.iv_len  = server_write_iv->len;
 
-    mbedtls_ssl_transform_init(&transform_recv);
-    mbedtls_ssl_transform_init(&transform_send);
     MD_OR_USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_ssl_tls13_populate_transform(
@@ -1944,21 +1943,26 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
     /* Prepare a dummy session to work on */
     ((void) endpoint_type);
     ((void) tls_version);
+    ((void) ticket_len);
+    ((void) crt_file);
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
         TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
                         &original, 0, endpoint_type) == 0);
-    } else
+    }
 #endif
-    {
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_2) {
         TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
                         &original, ticket_len, crt_file) == 0);
     }
+#endif
 
     /* Serialize it */
     TEST_ASSERT(mbedtls_ssl_session_save(&original, NULL, 0, &len)
                 == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
-    TEST_ASSERT((buf = mbedtls_calloc(1, len)) != NULL);
+    TEST_CALLOC(buf, len);
     TEST_ASSERT(mbedtls_ssl_session_save(&original, buf, len, &len)
                 == 0);
 
@@ -1969,8 +1973,27 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
      * Make sure both session structures are identical
      */
 #if defined(MBEDTLS_HAVE_TIME)
-    TEST_ASSERT(original.start == restored.start);
+    switch (tls_version) {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SRV_C)
+        case MBEDTLS_SSL_VERSION_TLS1_3:
+            TEST_ASSERT(original.ticket_creation_time == restored.ticket_creation_time);
+            break;
 #endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        case MBEDTLS_SSL_VERSION_TLS1_2:
+            TEST_ASSERT(original.start == restored.start);
+            break;
+#endif
+
+        default:
+            /* should never happen */
+            TEST_ASSERT(0);
+            break;
+    }
+
+
+#endif
+
     TEST_ASSERT(original.tls_version == restored.tls_version);
     TEST_ASSERT(original.ciphersuite == restored.ciphersuite);
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
@@ -2042,15 +2065,21 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
                                restored.resumption_key,
                                original.resumption_key_len) == 0);
         }
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        TEST_ASSERT(
+            original.max_early_data_size == restored.max_early_data_size);
+#endif
+
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
         if (endpoint_type == MBEDTLS_SSL_IS_SERVER) {
-            TEST_ASSERT(original.start == restored.start);
+            TEST_ASSERT(original.ticket_creation_time == restored.ticket_creation_time);
         }
 #endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
         if (endpoint_type == MBEDTLS_SSL_IS_CLIENT) {
 #if defined(MBEDTLS_HAVE_TIME)
-            TEST_ASSERT(original.ticket_received == restored.ticket_received);
+            TEST_ASSERT(original.ticket_reception_time == restored.ticket_reception_time);
 #endif
             TEST_ASSERT(original.ticket_lifetime == restored.ticket_lifetime);
             TEST_ASSERT(original.ticket_len == restored.ticket_len);
@@ -2091,16 +2120,27 @@ void ssl_serialize_session_load_save(int ticket_len, char *crt_file,
 
     /* Prepare a dummy session to work on */
     ((void) endpoint_type);
-    ((void) tls_version);
+    ((void) ticket_len);
+    ((void) crt_file);
+
+    switch (tls_version) {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
-        TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
-                        &session, 0, endpoint_type) == 0);
-    } else
+        case MBEDTLS_SSL_VERSION_TLS1_3:
+            TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
+                            &session, 0, endpoint_type) == 0);
+            break;
 #endif
-    {
-        TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
-                        &session, ticket_len, crt_file) == 0);
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        case MBEDTLS_SSL_VERSION_TLS1_2:
+            TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
+                            &session, ticket_len, crt_file) == 0);
+            break;
+#endif
+        default:
+            /* should never happen */
+            TEST_ASSERT(0);
+            break;
     }
 
     /* Get desired buffer size for serializing */
@@ -2154,17 +2194,28 @@ void ssl_serialize_session_save_buf_size(int ticket_len, char *crt_file,
 
     /* Prepare dummy session and get serialized size */
     ((void) endpoint_type);
-    ((void) tls_version);
+    ((void) ticket_len);
+    ((void) crt_file);
+
+    switch (tls_version) {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
-        TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
-                        &session, 0, endpoint_type) == 0);
-    } else
+        case MBEDTLS_SSL_VERSION_TLS1_3:
+            TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
+                            &session, 0, endpoint_type) == 0);
+            break;
 #endif
-    {
-        TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
-                        &session, ticket_len, crt_file) == 0);
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        case MBEDTLS_SSL_VERSION_TLS1_2:
+            TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
+                            &session, ticket_len, crt_file) == 0);
+            break;
+#endif
+        default:
+            /* should never happen */
+            TEST_ASSERT(0);
+            break;
     }
+
     TEST_ASSERT(mbedtls_ssl_session_save(&session, NULL, 0, &good_len)
                 == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
 
@@ -2172,7 +2223,8 @@ void ssl_serialize_session_save_buf_size(int ticket_len, char *crt_file,
     for (bad_len = 1; bad_len < good_len; bad_len++) {
         /* Allocate exact size so that asan/valgrind can detect any overwrite */
         mbedtls_free(buf);
-        TEST_ASSERT((buf = mbedtls_calloc(1, bad_len)) != NULL);
+        buf = NULL;
+        TEST_CALLOC(buf, bad_len);
         TEST_ASSERT(mbedtls_ssl_session_save(&session, buf, bad_len,
                                              &test_len)
                     == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
@@ -2202,20 +2254,33 @@ void ssl_serialize_session_load_buf_size(int ticket_len, char *crt_file,
 
     /* Prepare serialized session data */
     ((void) endpoint_type);
-    ((void) tls_version);
+    ((void) ticket_len);
+    ((void) crt_file);
+
+    switch (tls_version) {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
-        TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
-                        &session, 0, endpoint_type) == 0);
-    } else
+        case MBEDTLS_SSL_VERSION_TLS1_3:
+            TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
+                            &session, 0, endpoint_type) == 0);
+            break;
 #endif
-    {
-        TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
-                        &session, ticket_len, crt_file) == 0);
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        case MBEDTLS_SSL_VERSION_TLS1_2:
+            TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
+                            &session, ticket_len, crt_file) == 0);
+            break;
+#endif
+
+        default:
+            /* should never happen */
+            TEST_ASSERT(0);
+            break;
     }
+
     TEST_ASSERT(mbedtls_ssl_session_save(&session, NULL, 0, &good_len)
                 == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
-    TEST_ASSERT((good_buf = mbedtls_calloc(1, good_len)) != NULL);
+    TEST_CALLOC(good_buf, good_len);
     TEST_ASSERT(mbedtls_ssl_session_save(&session, good_buf, good_len,
                                          &good_len) == 0);
     mbedtls_ssl_session_free(&session);
@@ -2224,8 +2289,8 @@ void ssl_serialize_session_load_buf_size(int ticket_len, char *crt_file,
     for (bad_len = 0; bad_len < good_len; bad_len++) {
         /* Allocate exact size so that asan/valgrind can detect any overread */
         mbedtls_free(bad_buf);
-        bad_buf = mbedtls_calloc(1, bad_len ? bad_len : 1);
-        TEST_ASSERT(bad_buf != NULL);
+        bad_buf = NULL;
+        TEST_CALLOC_NONNULL(bad_buf, bad_len);
         memcpy(bad_buf, good_buf, bad_len);
 
         TEST_ASSERT(mbedtls_ssl_session_load(&session, bad_buf, bad_len)
@@ -2261,16 +2326,26 @@ void ssl_session_serialize_version_check(int corrupt_major,
     mbedtls_ssl_session_init(&session);
     USE_PSA_INIT();
     ((void) endpoint_type);
-    ((void) tls_version);
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
-        TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
-                        &session, 0, endpoint_type) == 0);
-    } else
-#endif
-    TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
-                    &session, 0, NULL) == 0);
 
+    switch (tls_version) {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        case MBEDTLS_SSL_VERSION_TLS1_3:
+            TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
+                            &session, 0, endpoint_type) == 0);
+            break;
+#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        case MBEDTLS_SSL_VERSION_TLS1_2:
+            TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
+                            &session, 0, NULL) == 0);
+
+            break;
+#endif
+        default:
+            /* should never happen */
+            TEST_ASSERT(0);
+            break;
+    }
 
     /* Infer length of serialized session. */
     TEST_ASSERT(mbedtls_ssl_session_save(&session,
@@ -2583,7 +2658,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_AES_C:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_DEBUG_C:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_MD_CAN_SHA256:MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_SSL_HAVE_AES:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_DEBUG_C:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_SSL_HAVE_CBC:MBEDTLS_MD_CAN_SHA256:MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
 void handshake_fragmentation(int mfl,
                              int expected_srv_hs_fragmentation,
                              int expected_cli_hs_fragmentation)
@@ -3122,6 +3197,7 @@ void raw_key_agreement_fail(int bad_server_ecdhe_key)
     mbedtls_psa_stats_t stats;
     size_t free_slots_before = -1;
     mbedtls_test_handshake_test_options options;
+    mbedtls_test_init_handshake_options(&options);
 
     uint16_t iana_tls_group_list[] = { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
                                        MBEDTLS_SSL_IANA_TLS_GROUP_NONE };
@@ -3129,7 +3205,6 @@ void raw_key_agreement_fail(int bad_server_ecdhe_key)
     mbedtls_platform_zeroize(&client, sizeof(client));
     mbedtls_platform_zeroize(&server, sizeof(server));
 
-    mbedtls_test_init_handshake_options(&options);
     options.pk_alg = MBEDTLS_PK_ECDSA;
     options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
     options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;

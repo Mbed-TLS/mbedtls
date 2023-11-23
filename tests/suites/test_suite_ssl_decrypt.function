@@ -120,7 +120,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_AES_C:MBEDTLS_SSL_PROTO_TLS1_2 */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HAVE_CBC:MBEDTLS_SSL_HAVE_AES:MBEDTLS_SSL_PROTO_TLS1_2 */
 void ssl_decrypt_non_etm_cbc(int cipher_type, int hash_id, int trunc_hmac,
                              int length_selector)
 {

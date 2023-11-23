@@ -2,21 +2,7 @@
  *  TLS 1.3 client-side functions
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *  This file is part of Mbed TLS ( https://tls.mbed.org )
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -945,28 +931,14 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
     if (ssl_tls13_ticket_get_identity(
             ssl, &hash_alg, &identity, &identity_len) == 0) {
 #if defined(MBEDTLS_HAVE_TIME)
-        mbedtls_time_t now = mbedtls_time(NULL);
+        mbedtls_ms_time_t now = mbedtls_ms_time();
         mbedtls_ssl_session *session = ssl->session_negotiate;
+        /* The ticket age has been checked to be smaller than the
+         * `ticket_lifetime` in ssl_prepare_client_hello() which is smaller than
+         * 7 days (enforced in ssl_tls13_parse_new_session_ticket()) . Thus the
+         * cast to `uint32_t` of the ticket age is safe. */
         uint32_t obfuscated_ticket_age =
-            (uint32_t) (now - session->ticket_received);
-
-        /*
-         * The ticket timestamp is in seconds but the ticket age is in
-         * milliseconds. If the ticket was received at the end of a second and
-         * re-used here just at the beginning of the next second, the computed
-         * age `now - session->ticket_received` is equal to 1s thus 1000 ms
-         * while the actual age could be just a few milliseconds or tens of
-         * milliseconds. If the server has more accurate ticket timestamps
-         * (typically timestamps in milliseconds), as part of the processing of
-         * the ClientHello, it may compute a ticket lifetime smaller than the
-         * one computed here and potentially reject the ticket. To avoid that,
-         * remove one second to the ticket age if possible.
-         */
-        if (obfuscated_ticket_age > 0) {
-            obfuscated_ticket_age -= 1;
-        }
-
-        obfuscated_ticket_age *= 1000;
+            (uint32_t) (now - session->ticket_reception_time);
         obfuscated_ticket_age += session->ticket_age_add;
 
         ret = ssl_tls13_write_identity(ssl, p, end,
@@ -1906,36 +1878,6 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
             ret = MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
             goto cleanup;
     }
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (handshake->received_extensions & MBEDTLS_SSL_EXT_MASK(EARLY_DATA) &&
-        (handshake->selected_identity != 0 ||
-         handshake->ciphersuite_info->id !=
-         ssl->session_negotiate->ciphersuite)) {
-        /* RFC8446 4.2.11
-         * If the server supplies an "early_data" extension, the
-         * client MUST verify that the server's selected_identity
-         * is 0. If any other value is returned, the client MUST
-         * abort the handshake with an "illegal_parameter" alert.
-         *
-         * RFC 8446 4.2.10
-         * In order to accept early data, the server MUST have accepted a PSK
-         * cipher suite and selected the first key offered in the client's
-         * "pre_shared_key" extension. In addition, it MUST verify that the
-         * following values are the same as those associated with the
-         * selected PSK:
-         * - The TLS version number
-         * - The selected cipher suite
-         * - The selected ALPN [RFC7301] protocol, if any
-         *
-         * We check here that when early data is involved the server
-         * selected the cipher suite associated to the pre-shared key
-         * as it must have.
-         */
-        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                                     MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
-        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
-    }
-#endif
 
     if (!mbedtls_ssl_conf_tls13_check_kex_modes(
             ssl, handshake->key_exchange_mode)) {
@@ -2211,6 +2153,9 @@ static int ssl_tls13_process_encrypted_extensions(mbedtls_ssl_context *ssl)
     int ret;
     unsigned char *buf;
     size_t buf_len;
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+#endif
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> parse encrypted extensions"));
 
@@ -2223,8 +2168,37 @@ static int ssl_tls13_process_encrypted_extensions(mbedtls_ssl_context *ssl)
         ssl_tls13_parse_encrypted_extensions(ssl, buf, buf + buf_len));
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (ssl->handshake->received_extensions &
-        MBEDTLS_SSL_EXT_MASK(EARLY_DATA)) {
+    if (handshake->received_extensions & MBEDTLS_SSL_EXT_MASK(EARLY_DATA)) {
+        /* RFC8446 4.2.11
+         * If the server supplies an "early_data" extension, the
+         * client MUST verify that the server's selected_identity
+         * is 0. If any other value is returned, the client MUST
+         * abort the handshake with an "illegal_parameter" alert.
+         *
+         * RFC 8446 4.2.10
+         * In order to accept early data, the server MUST have accepted a PSK
+         * cipher suite and selected the first key offered in the client's
+         * "pre_shared_key" extension. In addition, it MUST verify that the
+         * following values are the same as those associated with the
+         * selected PSK:
+         * - The TLS version number
+         * - The selected cipher suite
+         * - The selected ALPN [RFC7301] protocol, if any
+         *
+         * We check here that when early data is involved the server
+         * selected the cipher suite associated to the pre-shared key
+         * as it must have.
+         */
+        if (handshake->selected_identity != 0 ||
+            handshake->ciphersuite_info->id !=
+            ssl->session_negotiate->ciphersuite) {
+
+            MBEDTLS_SSL_PEND_FATAL_ALERT(
+                MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+            return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+        }
+
         ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
     }
 #endif
@@ -2774,6 +2748,11 @@ static int ssl_tls13_parse_new_session_ticket(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG(3,
                           ("ticket_lifetime: %u",
                            (unsigned int) session->ticket_lifetime));
+    if (session->ticket_lifetime >
+        MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME) {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("ticket_lifetime exceeds 7 days."));
+        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+    }
 
     session->ticket_age_add = MBEDTLS_GET_UINT32_BE(p, 4);
     MBEDTLS_SSL_DEBUG_MSG(3,
@@ -2849,7 +2828,7 @@ static int ssl_tls13_postprocess_new_session_ticket(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_HAVE_TIME)
     /* Store ticket creation time */
-    session->ticket_received = mbedtls_time(NULL);
+    session->ticket_reception_time = mbedtls_ms_time();
 #endif
 
     ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(session->ciphersuite);

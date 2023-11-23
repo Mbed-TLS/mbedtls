@@ -4,6 +4,7 @@
 #include <mbedtls/md.h>
 #include <constant_time_internal.h>
 #include "md_psa.h"
+#include <ssl_misc.h>
 
 #include <test/constant_flow.h>
 /* END_HEADER */

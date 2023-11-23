@@ -123,6 +123,7 @@ APPS = \
 	ssl/ssl_server \
 	ssl/ssl_server2 \
 	test/benchmark \
+	test/metatest \
 	test/query_compile_time_config \
 	test/query_included_headers \
 	test/selftest \
@@ -412,6 +413,10 @@ test/dlopen$(EXEXT): test/dlopen.c $(DEP)
 # purpose of testing dynamic loading).
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/dlopen.c $(LDFLAGS) $(DLOPEN_LDFLAGS) -o $@
 endif
+
+test/metatest$(EXEXT): test/metatest.c $(DEP)
+	echo "  CC    test/metatest.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -I ../library test/metatest.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/query_config.o: test/query_config.c test/query_config.h $(DEP)
 	echo "  CC    test/query_config.c"

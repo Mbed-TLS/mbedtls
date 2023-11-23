@@ -564,9 +564,6 @@ static int ssl_tls13_parse_pre_shared_key_ext(
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
         mbedtls_ssl_session session;
         mbedtls_ssl_session_init(&session);
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-        session.max_early_data_size = ssl->conf->max_early_data_size;
-#endif
 #endif
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR(p_identity_len, identities_end, 2 + 1 + 4);

@@ -435,6 +435,9 @@ int test_hooks_failure_detected(void)
 
 void test_hooks_free(void)
 {
+#if defined(MBEDTLS_TEST_MUTEX_USAGE)
+    mbedtls_test_mutex_usage_end();
+#endif
 }
 
 #endif /* MBEDTLS_TEST_HOOKS */

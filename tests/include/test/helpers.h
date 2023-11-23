@@ -240,9 +240,17 @@ int mbedtls_test_hexcmp(uint8_t *a, uint8_t *b,
 #endif
 
 #if defined(MBEDTLS_TEST_MUTEX_USAGE)
-/** Permanently activate the mutex usage verification framework. See
- * threading_helpers.c for information. */
+/**
+ *  Activate the mutex usage verification framework. See threading_helpers.c for
+ *  information.
+ *  */
 void mbedtls_test_mutex_usage_init(void);
+
+/**
+ *  Deactivate the mutex usage verification framework. See threading_helpers.c
+ *  for information.
+ */
+void mbedtls_test_mutex_usage_end(void);
 
 /** Call this function after executing a test case to check for mutex usage
  * errors. */

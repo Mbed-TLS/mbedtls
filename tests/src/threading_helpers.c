@@ -228,4 +228,14 @@ void mbedtls_test_mutex_usage_check(void)
     mbedtls_test_info.mutex_usage_error = NULL;
 }
 
+void mbedtls_test_mutex_usage_end(void)
+{
+    mbedtls_mutex_init = mutex_functions.init;
+    mbedtls_mutex_free = mutex_functions.free;
+    mbedtls_mutex_lock = mutex_functions.lock;
+    mbedtls_mutex_unlock = mutex_functions.unlock;
+
+    mutex_functions.free(&mbedtls_test_mutex_mutex);
+}
+
 #endif /* MBEDTLS_TEST_MUTEX_USAGE */

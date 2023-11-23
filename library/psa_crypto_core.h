@@ -522,12 +522,12 @@ typedef struct psa_crypto_local_input_s {
 
 #define PSA_CRYPTO_LOCAL_INPUT_INIT ((psa_crypto_local_input_t) { NULL, 0 })
 
-/** Allocate a local copy of an input buffer.
+/** Allocate a local copy of an input buffer and copy the contents into it.
  *
  * \param[in] input             Pointer to input buffer.
  * \param[in] input_len         Length of the input buffer.
- * \param[out] local_input      Pointer to a psa_crypto_local_input_t struct to
- *                              populate with the local input copy.
+ * \param[out] local_input      Pointer to a psa_crypto_local_input_t struct
+ *                              containing a local input copy.
  * \return                      #PSA_SUCCESS, if the buffer was successfully
  *                              copied.
  * \return                      #PSA_ERROR_INSUFFICIENT_MEMORY, if a copy of

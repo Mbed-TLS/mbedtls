@@ -1044,7 +1044,10 @@ component_check_test_dependencies () {
         tests/suites/test_suite_psa*.data tests/suites/test_suite_psa*.function |
         grep -Eo '!?MBEDTLS_[^: ]*' |
         grep -v MBEDTLS_PSA_ |
-        sort -u > $found
+        # By default, sort (v8.25) on ubuntu-16 and sort (v8.30) on ubuntu-20
+        # sort text in different order. We use -d option to sort text in
+        # an order considering only blanks and alphanumeric characters.
+        sort -ud > $found
 
     # Expected ones with justification - keep in sorted order!
     rm -f $expected
@@ -1056,6 +1059,8 @@ component_check_test_dependencies () {
     # the test code and that's probably the most convenient way of achieving
     # the test's goal.
     echo "MBEDTLS_ASN1_WRITE_C" >> $expected
+    # No PSA equivalent - used to skip decryption tests in CBC/XTS/DES/NIST_KW
+    echo "!MBEDTLS_BLOCK_CIPHER_NO_DECRYPT" >> $expected
     # No PSA equivalent - we should probably have one in the future.
     echo "MBEDTLS_ECP_RESTARTABLE" >> $expected
     # No PSA equivalent - needed by some init tests

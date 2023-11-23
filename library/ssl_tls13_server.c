@@ -3291,7 +3291,8 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write NewSessionTicket msg"));
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED) {
+    if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED &&
+        ssl->conf->max_early_data_size > 0) {
         mbedtls_ssl_session_set_ticket_flags(
             session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
     }
@@ -3363,12 +3364,17 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
     p += 2;
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if ((ret = ssl_tls13_write_nst_early_data_ext(
-             ssl, p, end, &output_len)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "ssl_tls13_write_nst_early_data_ext", ret);
-        return ret;
+    if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED &&
+        ssl->conf->max_early_data_size > 0) {
+        if ((ret = mbedtls_ssl_tls13_write_early_data_ext(
+                 ssl, p, end, &output_len)) != 0) {
+            MBEDTLS_SSL_DEBUG_RET(
+                1, "mbedtls_ssl_tls13_write_early_data_ext", ret);
+            return ret;
+        }
+        p += output_len;
     }
-    p += output_len;
+
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
     MBEDTLS_PUT_UINT16_BE(p - p_extensions_len - 2, p_extensions_len, 0);

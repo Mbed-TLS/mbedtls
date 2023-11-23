@@ -171,6 +171,9 @@ all: $(BINARIES)
 $(MBEDLIBS):
 	$(MAKE) -C ../library
 
+TEST_SRC_H_GENERATED = \
+	include/test/psa_test_wrappers.h \
+	# This line is intentionally left blank
 TEST_SRC_C_FOUND = $(wildcard src/*.c src/drivers/*.c src/test_helpers/*.c)
 TEST_SRC_C_GENERATED = \
 	src/psa_test_wrappers.c \
@@ -182,6 +185,7 @@ MBEDTLS_TEST_OBJS = $(sort $(patsubst %.c,%.o,$(TEST_SRC_C_FOUND) $(TEST_SRC_C_G
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
 TEST_OBJS_DEPS = $(wildcard include/test/*.h include/test/*/*.h)
+TEST_OBJS_DEPS += $(TEST_SRC_H_GENERATED)
 
 src/psa_test_wrappers.c include/test/psa_test_wrappers.h: $(gen_file_dep) ../include/psa/crypto.h
 src/psa_test_wrappers.c include/test/psa_test_wrappers.h: $(gen_file_dep) ../include/psa/crypto_extra.h
@@ -204,7 +208,7 @@ src/test_helpers/%.o : src/test_helpers/%.c
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
-GENERATED_FILES := $(GENERATED_DATA_FILES) $(TEST_SRC_C_GENERATED)
+GENERATED_FILES := $(GENERATED_DATA_FILES) $(TEST_SRC_C_GENERATED) $(TEST_SRC_H_GENERATED)
 generated_files: $(GENERATED_FILES)
 
 C_FILES := $(addsuffix .c,$(APPS))

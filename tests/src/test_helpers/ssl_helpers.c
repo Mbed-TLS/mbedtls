@@ -1636,12 +1636,15 @@ exit:
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
                                             int ticket_len,
+                                            int endpoint_type,
                                             const char *crt_file)
 {
 #if defined(MBEDTLS_HAVE_TIME)
     session->start = mbedtls_time(NULL) - 42;
 #endif
     session->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    session->endpoint = endpoint_type == MBEDTLS_SSL_IS_CLIENT ?
+                        MBEDTLS_SSL_IS_CLIENT : MBEDTLS_SSL_IS_SERVER;
     session->ciphersuite = 0xabcd;
     session->id_len = sizeof(session->id);
     memset(session->id, 66, session->id_len);

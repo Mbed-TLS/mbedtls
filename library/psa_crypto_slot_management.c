@@ -234,10 +234,14 @@ static psa_status_t psa_load_persistent_key_into_slot(psa_key_slot_t *slot)
             status = PSA_ERROR_DATA_INVALID;
             goto exit;
         }
-
         data = (psa_se_key_data_storage_t *) key_data;
-        key_data = data->slot_number;
-        key_data_length = sizeof(key_data);
+        status = psa_copy_key_material_into_slot(
+            slot, data->slot_number, sizeof(data->slot_number));
+
+        if (status == PSA_SUCCESS) {
+            slot->status = PSA_SLOT_OCCUPIED;
+        }
+        goto exit;
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 

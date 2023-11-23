@@ -234,6 +234,7 @@ psa_status_t mbedtls_test_transparent_cipher_update(
     size_t *output_length)
 {
     mbedtls_test_driver_cipher_hooks.hits++;
+    mbedtls_test_driver_cipher_hooks.cipher_update_hits++;
 
     if (mbedtls_test_driver_cipher_hooks.forced_output != NULL) {
         if (output_size < mbedtls_test_driver_cipher_hooks.forced_output_length) {

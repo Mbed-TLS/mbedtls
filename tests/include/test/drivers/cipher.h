@@ -26,9 +26,10 @@ typedef struct {
     /* Count the amount of times one of the cipher driver functions is called. */
     unsigned long hits;
     unsigned long cipher_encrypt_hits;
+    unsigned long cipher_update_hits;
 } mbedtls_test_driver_cipher_hooks_t;
 
-#define MBEDTLS_TEST_DRIVER_CIPHER_INIT { NULL, 0, PSA_SUCCESS, 0, 0 }
+#define MBEDTLS_TEST_DRIVER_CIPHER_INIT { NULL, 0, PSA_SUCCESS, 0, 0, 0 }
 static inline mbedtls_test_driver_cipher_hooks_t
 mbedtls_test_driver_cipher_hooks_init(void)
 {

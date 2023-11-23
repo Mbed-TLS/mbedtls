@@ -66,6 +66,15 @@ static void set_to_zero_but_the_compiler_does_not_know(volatile void *p, size_t 
     memset((void *) p, false_but_the_compiler_does_not_know, n);
 }
 
+/* Simulate an access to the given object, to avoid compiler optimizations
+ * in code that prepares or consumes the object. */
+static void do_nothing_with_object(void *p)
+{
+    (void) p;
+}
+void(*volatile do_nothing_with_object_but_the_compiler_does_not_know)(void *) =
+    do_nothing_with_object;
+
 
 /****************************************************************/
 /* Test framework features */
@@ -202,7 +211,9 @@ void test_memory_poison(const char *name)
 
     if (direction == 'w') {
         aligned.buf[start + offset] = 'b';
+        do_nothing_with_object_but_the_compiler_does_not_know(aligned.buf);
     } else {
+        do_nothing_with_object_but_the_compiler_does_not_know(aligned.buf);
         mbedtls_printf("%u\n", (unsigned) aligned.buf[start + offset]);
     }
 }

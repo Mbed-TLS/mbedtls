@@ -32,6 +32,16 @@ def crypto_core_directory(root: Optional[str] = None) -> str:
     else:
         raise Exception('Neither Mbed TLS nor TF-PSA-Crypto source tree found')
 
+def project_crypto_name(root: Optional[str] = None) -> str:
+    if root is None:
+        root = guess_project_root()
+    if looks_like_tf_psa_crypto_root(root):
+        return "tfpsacrypto"
+    elif looks_like_mbedtls_root(root):
+        return "mbedcrypto"
+    else:
+        raise Exception('Neither Mbed TLS nor TF-PSA-Crypto source tree found')
+
 def check_repo_path():
     """
     Check that the current working directory is the project root, and throw

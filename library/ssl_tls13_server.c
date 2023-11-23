@@ -3232,10 +3232,10 @@ static int ssl_tls13_write_nst_early_data_ext(mbedtls_ssl_context *ssl,
 
     MBEDTLS_PUT_UINT16_BE(MBEDTLS_TLS_EXT_EARLY_DATA, p, 0);
     MBEDTLS_PUT_UINT16_BE(4, p, 2);
-    MBEDTLS_PUT_UINT32_BE(ssl->session->max_early_data_size, p, 4);
+    MBEDTLS_PUT_UINT32_BE(ssl->conf->max_early_data_size, p, 4);
     MBEDTLS_SSL_DEBUG_MSG(
         4, ("Sent max_early_data_size=%u",
-            (unsigned int) ssl->session->max_early_data_size));
+            (unsigned int) ssl->conf->max_early_data_size));
 
     *out_len = 8;
 

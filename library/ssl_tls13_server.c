@@ -3295,6 +3295,9 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
         ssl->conf->max_early_data_size > 0) {
         mbedtls_ssl_session_set_ticket_flags(
             session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
+        /* In resumption connection, server get `max_early_data_size` from
+         * ticket. */
+        session->max_early_data_size = ssl->conf->max_early_data_size;
     }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 

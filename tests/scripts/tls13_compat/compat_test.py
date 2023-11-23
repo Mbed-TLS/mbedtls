@@ -73,3 +73,61 @@ def generate_tls13_compat_test_cases():
                                          sig_alg=sig_alg)
         if test_case:
             yield test_case
+
+
+def generate_hrr_compat_test(client=None, server=None,
+                             client_named_group=None, server_named_group=None,
+                             cert_sig_alg=None):
+    """
+    Generate Hello Retry Request test case with `ssl-opt.sh` format.
+    """
+
+    if not has_mbedtls_prog(client, server):
+        return None
+
+    if client_named_group == server_named_group:
+        return None
+
+    name = 'TLS 1.3 {client.PROG_NAME[0]}->{server.PROG_NAME[0]}: ' \
+           'HRR {client_named_group} -> {server_named_group}'
+    name = name.format(client=client, client_named_group=client_named_group,
+                       server=server, server_named_group=server_named_group)
+
+    server_object = server(named_group=server_named_group,
+                           cert_sig_alg=cert_sig_alg)
+
+    client_object = client(named_group=client_named_group,
+                           cert_sig_alg=cert_sig_alg)
+    client_object.add_named_groups(server_named_group)
+
+    cmd, prefix_len = generate_basic_run_test(
+        name, server_object, client_object, 0)
+    if isinstance(server_object, MbedTLSBase):
+        cmd += ['-s "HRR selected_group: {server_named_group:s}"'.format(
+            server_named_group=server_named_group)]
+    if isinstance(client_object, MbedTLSBase):
+        cmd += ['-c "received HelloRetryRequest message"',
+                '-c "selected_group ( {value:d} )"'.format(
+                    value=NAMED_GROUP_IANA_VALUE[server_named_group])]
+
+    prefix = ' \\\n' + (' '*prefix_len)
+    cmd = prefix.join(cmd)
+    return '\n'.join(server_object.pre_checks() +
+                     client_object.pre_checks() +
+                     [cmd])
+
+
+def generate_tls13_hrr_ephemeral_test_cases():
+    """Generate Hello Retry Request  compat test cases"""
+    for client, server, client_named_group, server_named_group in \
+        itertools.product(CLIENT_CLASSES,
+                          SERVER_CLASSES,
+                          NAMED_GROUP_IANA_VALUE.keys(),
+                          NAMED_GROUP_IANA_VALUE.keys()):
+
+        test_case = generate_hrr_compat_test(client=client, server=server,
+                                             client_named_group=client_named_group,
+                                             server_named_group=server_named_group,
+                                             cert_sig_alg="ecdsa_secp256r1_sha256")
+        if test_case:
+            yield test_case

@@ -163,6 +163,9 @@ pre_initialize_variables () {
     # basic-build-test.sh as well.
     RELEASE_SEED=1
 
+    # Specify character collation for regular expressions and sorting with C locale
+    export LC_COLLATE=C
+
     : ${MBEDTLS_TEST_OUTCOME_FILE=}
     : ${MBEDTLS_TEST_PLATFORM="$(uname -s | tr -c \\n0-9A-Za-z _)-$(uname -m | tr -c \\n0-9A-Za-z _)"}
     export MBEDTLS_TEST_OUTCOME_FILE
@@ -1044,23 +1047,20 @@ component_check_test_dependencies () {
         tests/suites/test_suite_psa*.data tests/suites/test_suite_psa*.function |
         grep -Eo '!?MBEDTLS_[^: ]*' |
         grep -v MBEDTLS_PSA_ |
-        # By default, sort (v8.25) on ubuntu-16 and sort (v8.30) on ubuntu-20
-        # sort text in different order. We use -d option to sort text in
-        # an order considering only blanks and alphanumeric characters.
-        sort -ud > $found
+        sort -u > $found
 
-    # Expected ones with justification - keep in sorted order!
+    # Expected ones with justification - keep in sorted order by ASCII table!
     rm -f $expected
     # No PSA equivalent - WANT_KEY_TYPE_AES means all sizes
     echo "!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH" >> $expected
+    # No PSA equivalent - used to skip decryption tests in PSA-ECB, CBC/XTS/NIST_KW/DES
+    echo "!MBEDTLS_BLOCK_CIPHER_NO_DECRYPT" >> $expected
     # This is used by import_rsa_made_up() in test_suite_psa_crypto in order
     # to build a fake RSA key of the wanted size based on
     # PSA_VENDOR_RSA_MAX_KEY_BITS. The legacy module is only used by
     # the test code and that's probably the most convenient way of achieving
     # the test's goal.
     echo "MBEDTLS_ASN1_WRITE_C" >> $expected
-    # No PSA equivalent - used to skip decryption tests in PSA-ECB, CBC/XTS/NIST_KW/DES
-    echo "!MBEDTLS_BLOCK_CIPHER_NO_DECRYPT" >> $expected
     # No PSA equivalent - we should probably have one in the future.
     echo "MBEDTLS_ECP_RESTARTABLE" >> $expected
     # No PSA equivalent - needed by some init tests

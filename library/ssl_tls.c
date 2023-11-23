@@ -8900,6 +8900,7 @@ unsigned int mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
  *
  * struct {
  *    uint64 start_time;
+ *    uint8 endpoint;
  *    uint8 ciphersuite[2];           // defined by the standard
  *    uint8 session_id_len;           // at most 32
  *    opaque session_id[32];
@@ -8946,13 +8947,15 @@ static size_t ssl_tls12_session_save(const mbedtls_ssl_session *session,
     /*
      * Basic mandatory fields
      */
-    used += 2   /* ciphersuite */
+    used += 1   /* endpoint */
+            + 2 /* ciphersuite */
             + 1 /* id_len */
             + sizeof(session->id)
             + sizeof(session->master)
             + 4; /* verify_result */
 
     if (used <= buf_len) {
+        *p++ = session->endpoint;
         MBEDTLS_PUT_UINT16_BE(session->ciphersuite, p, 0);
         p += 2;
 
@@ -9087,10 +9090,11 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
     /*
      * Basic mandatory fields
      */
-    if (2 + 1 + 32 + 48 + 4 > (size_t) (end - p)) {
+    if (1 + 2 + 1 + 32 + 48 + 4 > (size_t) (end - p)) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
+    session->endpoint = *p++;
     session->ciphersuite = MBEDTLS_GET_UINT16_BE(p, 0);
     p += 2;
 

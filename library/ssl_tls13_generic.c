@@ -1402,28 +1402,48 @@ cleanup:
  *
  * struct {
  *   select ( Handshake.msg_type ) {
- *     ...
+ *     case new_session_ticket:   uint32 max_early_data_size;
  *     case client_hello:         Empty;
  *     case encrypted_extensions: Empty;
  *   };
  * } EarlyDataIndication;
+ *
+ * We use `mbedtls_ssl_is_handshake_over()` to decide if `max_early_data_size`
+ * should be sent for `new_session_ticket` is post-handshake message.
  */
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
                                            unsigned char *buf,
                                            const unsigned char *end,
-                                           size_t *out_len)
+                                           size_t *out_len,
+                                           const mbedtls_ssl_session *session)
 {
     unsigned char *p = buf;
-    *out_len = 0;
-    ((void) ssl);
 
-    MBEDTLS_SSL_CHK_BUF_PTR(p, end, 4);
+#if defined(MBEDTLS_SSL_SRV_C)
+    const size_t needed = session != NULL ? 8 : 4;
+#else
+    const size_t needed = 4;
+    ((void) session);
+#endif
+
+    *out_len = 0;
+
+    MBEDTLS_SSL_CHK_BUF_PTR(p, end, needed);
 
     MBEDTLS_PUT_UINT16_BE(MBEDTLS_TLS_EXT_EARLY_DATA, p, 0);
-    MBEDTLS_PUT_UINT16_BE(0, p, 2);
+    MBEDTLS_PUT_UINT16_BE(needed - 4, p, 2);
 
-    *out_len = 4;
+#if defined(MBEDTLS_SSL_SRV_C)
+    if (session != NULL) {
+        MBEDTLS_PUT_UINT32_BE(session->max_early_data_size, p, 4);
+        MBEDTLS_SSL_DEBUG_MSG(
+            4, ("Sent max_early_data_size=%u",
+                (unsigned int) session->max_early_data_size));
+    }
+#endif
+
+    *out_len = needed;
 
     mbedtls_ssl_tls13_set_hs_sent_ext_mask(ssl, MBEDTLS_TLS_EXT_EARLY_DATA);
 

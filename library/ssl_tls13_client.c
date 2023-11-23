@@ -1174,7 +1174,9 @@ int mbedtls_ssl_tls13_write_client_hello_exts(mbedtls_ssl_context *ssl,
     if (mbedtls_ssl_conf_tls13_some_psk_enabled(ssl) &&
         ssl_tls13_early_data_has_valid_ticket(ssl) &&
         ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED) {
-        ret = mbedtls_ssl_tls13_write_early_data_ext(ssl, p, end, &ext_len);
+
+        ret = mbedtls_ssl_tls13_write_early_data_ext(
+            ssl, p, end, &ext_len, NULL);
         if (ret != 0) {
             return ret;
         }

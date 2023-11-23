@@ -2524,7 +2524,8 @@ static int ssl_tls13_write_encrypted_extensions_body(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
-        ret = mbedtls_ssl_tls13_write_early_data_ext(ssl, p, end, &output_len);
+        ret = mbedtls_ssl_tls13_write_early_data_ext(
+            ssl, p, end, &output_len, NULL);
         if (ret != 0) {
             return ret;
         }
@@ -3202,49 +3203,6 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
     return 0;
 }
 
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-/* RFC 8446 section 4.2.10
- *
- * struct {
- *     select (Handshake.msg_type) {
- *         case new_session_ticket:   uint32 max_early_data_size;
- *         ...
- *     };
- * } EarlyDataIndication;
- */
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_write_nst_early_data_ext(mbedtls_ssl_context *ssl,
-                                              unsigned char *buf,
-                                              const unsigned char *end,
-                                              size_t *out_len)
-{
-    unsigned char *p = buf;
-    *out_len = 0;
-
-    if (!mbedtls_ssl_session_ticket_allow_early_data(ssl->session)) {
-        MBEDTLS_SSL_DEBUG_MSG(
-            4, ("early_data not allowed, skip early_data extension in "
-                "NewSessionTicket"));
-        return 0;
-    }
-
-    MBEDTLS_SSL_CHK_BUF_PTR(p, end, 8);
-
-    MBEDTLS_PUT_UINT16_BE(MBEDTLS_TLS_EXT_EARLY_DATA, p, 0);
-    MBEDTLS_PUT_UINT16_BE(4, p, 2);
-    MBEDTLS_PUT_UINT32_BE(ssl->conf->max_early_data_size, p, 4);
-    MBEDTLS_SSL_DEBUG_MSG(
-        4, ("Sent max_early_data_size=%u",
-            (unsigned int) ssl->conf->max_early_data_size));
-
-    *out_len = 8;
-
-    mbedtls_ssl_tls13_set_hs_sent_ext_mask(ssl, MBEDTLS_TLS_EXT_EARLY_DATA);
-
-    return 0;
-}
-#endif /* MBEDTLS_SSL_EARLY_DATA */
-
 /* This function creates a NewSessionTicket message in the following format:
  *
  * struct {
@@ -3371,7 +3329,7 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
     if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED &&
         ssl->conf->max_early_data_size > 0) {
         if ((ret = mbedtls_ssl_tls13_write_early_data_ext(
-                 ssl, p, end, &output_len)) != 0) {
+                 ssl, p, end, &output_len, session)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(
                 1, "mbedtls_ssl_tls13_write_early_data_ext", ret);
             return ret;

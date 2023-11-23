@@ -1140,8 +1140,8 @@ static int ssl_tls13_generate_early_key(mbedtls_ssl_context *ssl,
     size_t hash_len;
     unsigned char transcript[MBEDTLS_TLS1_3_MD_MAX_SIZE];
     size_t transcript_len;
-    size_t key_len;
-    size_t iv_len;
+    size_t key_len = 0;
+    size_t iv_len = 0;
     mbedtls_ssl_tls13_early_secrets tls13_early_secrets;
 
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
@@ -1341,8 +1341,8 @@ static int ssl_tls13_generate_handshake_keys(mbedtls_ssl_context *ssl,
     size_t hash_len;
     unsigned char transcript[MBEDTLS_TLS1_3_MD_MAX_SIZE];
     size_t transcript_len;
-    size_t key_len;
-    size_t iv_len;
+    size_t key_len = 0;
+    size_t iv_len = 0;
 
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
@@ -1592,7 +1592,7 @@ static int ssl_tls13_generate_application_keys(
     size_t hash_len;
 
     /* Variables relating to the cipher for the chosen ciphersuite. */
-    size_t key_len, iv_len;
+    size_t key_len = 0, iv_len = 0;
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> derive application traffic keys"));
 

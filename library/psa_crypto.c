@@ -5582,8 +5582,7 @@ psa_status_t psa_crypto_local_input_alloc(const uint8_t *input, size_t input_len
 {
     psa_status_t status;
 
-    local_input->buffer = NULL;
-    local_input->length = 0;
+    *local_input = PSA_CRYPTO_LOCAL_INPUT_INIT;
 
     if (input_len == 0) {
         return PSA_SUCCESS;
@@ -5624,9 +5623,7 @@ void psa_crypto_local_input_free(psa_crypto_local_input_t *local_input)
 psa_status_t psa_crypto_local_output_alloc(uint8_t *output, size_t output_len,
                                            psa_crypto_local_output_t *local_output)
 {
-    local_output->original = NULL;
-    local_output->buffer = NULL;
-    local_output->length = 0;
+    *local_output = PSA_CRYPTO_LOCAL_OUTPUT_INIT;
 
     if (output_len == 0) {
         return PSA_SUCCESS;

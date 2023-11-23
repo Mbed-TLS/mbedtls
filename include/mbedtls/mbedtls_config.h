@@ -2375,6 +2375,25 @@
 #define MBEDTLS_BASE64_C
 
 /**
+ * \def MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
+ *
+ * Remove decryption operation for AES, ARIA and Camellia block cipher.
+ *
+ * \note  This feature is incompatible with insecure block cipher,
+ *        MBEDTLS_DES_C, and cipher modes which always require decryption
+ *        operation, MBEDTLS_CIPHER_MODE_CBC, MBEDTLS_CIPHER_MODE_XTS and
+ *        MBEDTLS_NIST_KW_C.
+ *
+ * Module:  library/aes.c
+ *          library/aesce.c
+ *          library/aesni.c
+ *          library/aria.c
+ *          library/camellia.c
+ *          library/cipher.c
+ */
+//#define MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
+
+/**
  * \def MBEDTLS_BIGNUM_C
  *
  * Enable the multi-precision integer library.

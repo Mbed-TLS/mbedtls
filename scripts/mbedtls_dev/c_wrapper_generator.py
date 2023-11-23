@@ -474,13 +474,13 @@ class Logging(Base):
             if fmt:
                 formats += ' ' + fmt
                 values += vals
+        comma = ',\n' + '                               '
         out.write("""\
 #if defined(MBEDTLS_FS_IO) && defined(MBEDTLS_TEST_HOOKS)
     if ({stream}) {{
         (void) mbedtls_test_log_test_case({stream});
         (void) mbedtls_fprintf({stream},
-                               "{formats}\\n",
-                               {values});
+                               "{formats}\\n"{values});
     }}
 #else
     (void) file_name;
@@ -490,7 +490,7 @@ class Logging(Base):
 """
                   .format(stream=self.stream,
                           formats=formats,
-                          values=', '.join(values)))
+                          values=''.join([comma + val for val in values])))
 
     def _write_function_body(self, out: typing_util.Writable,
                              function: FunctionInfo,

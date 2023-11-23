@@ -62,24 +62,24 @@ def execute_reference_driver_tests(results: Results, ref_component, driver_compo
 def analyze_coverage(results, outcomes, allow_list, full_coverage):
     """Check that all available test cases are executed at least once."""
     available = check_test_cases.collect_available_test_cases()
-    for key in available:
+    for suite_case in available:
         hits = 0
         for _comp, comp_outcomes in outcomes.items():
-            if key in comp_outcomes["successes"] or \
-               key in comp_outcomes["failures"]:
+            if suite_case in comp_outcomes["successes"] or \
+               suite_case in comp_outcomes["failures"]:
                 hits += 1
 
-        if hits == 0 and key not in allow_list:
+        if hits == 0 and suite_case not in allow_list:
             if full_coverage:
-                results.error('Test case not executed: {}', key)
+                results.error('Test case not executed: {}', suite_case)
             else:
-                results.warning('Test case not executed: {}', key)
-        elif hits != 0 and key in allow_list:
+                results.warning('Test case not executed: {}', suite_case)
+        elif hits != 0 and suite_case in allow_list:
             # Test Case should be removed from the allow list.
             if full_coverage:
-                results.error('Allow listed test case was executed: {}', key)
+                results.error('Allow listed test case was executed: {}', suite_case)
             else:
-                results.warning('Allow listed test case was executed: {}', key)
+                results.warning('Allow listed test case was executed: {}', suite_case)
 
 def name_matches_pattern(name, str_or_re):
     """Check if name matches a pattern, that may be a string or regex.
@@ -96,8 +96,8 @@ def name_matches_pattern(name, str_or_re):
 def analyze_driver_vs_reference(results: Results, outcomes,
                                 component_ref, component_driver,
                                 ignored_suites, ignored_tests=None):
-    """Check that all tests executed in the reference component are also
-    executed in the corresponding driver component.
+    """Check that all tests passed in the reference component are also
+    passed in the corresponding driver component.
     Skip:
     - full test suites provided in ignored_suites list
     - only some specific test inside a test suite, for which the corresponding
@@ -110,9 +110,9 @@ def analyze_driver_vs_reference(results: Results, outcomes,
         results.error("no passing test in reference component: bad outcome file?")
         return
 
-    for key in ref_outcomes["successes"]:
-        # key is like "test_suite_foo.bar;Description of test case"
-        (full_test_suite, test_string) = key.split(';')
+    for suite_case in ref_outcomes["successes"]:
+        # suite_case is like "test_suite_foo.bar;Description of test case"
+        (full_test_suite, test_string) = suite_case.split(';')
         test_suite = full_test_suite.split('.')[0] # retrieve main part of test suite name
 
         # Immediately skip fully-ignored test suites
@@ -128,10 +128,10 @@ def analyze_driver_vs_reference(results: Results, outcomes,
                 if name_matches_pattern(test_string, str_or_re):
                     ignored = True
 
-        if not ignored and not key in driver_outcomes['successes']:
-            results.error("PASS -> SKIP/FAIL: {}", key)
-        if ignored and key in driver_outcomes['successes']:
-            results.error("uselessly ignored: {}", key)
+        if not ignored and not suite_case in driver_outcomes['successes']:
+            results.error("PASS -> SKIP/FAIL: {}", suite_case)
+        if ignored and suite_case in driver_outcomes['successes']:
+            results.error("uselessly ignored: {}", suite_case)
 
 def analyze_outcomes(results: Results, outcomes, args):
     """Run all analyses on the given outcome collection."""
@@ -141,22 +141,31 @@ def analyze_outcomes(results: Results, outcomes, args):
 def read_outcome_file(outcome_file):
     """Parse an outcome file and return an outcome collection.
 
-An outcome collection is a dictionary mapping keys to TestCaseOutcomes objects.
-The keys are the test suite name and the test case description, separated
-by a semicolon.
+An outcome collection is a dictionary presentation of the outcome file:
+```
+outcomes = {
+    "<config>": {
+        "successes": frozenset(["<suite_case>", ... ]),
+        "failures": frozenset(["<suite_case>", ...])
+    }
+    ...
+}
+suite_case = "<suite>;<case>"
+```
 """
     outcomes = {}
     with open(outcome_file, 'r', encoding='utf-8') as input_file:
         for line in input_file:
             (_platform, config, suite, case, result, _cause) = line.split(';')
-            key = ';'.join([suite, case])
+            suite_case = ';'.join([suite, case])
             if config not in outcomes:
                 outcomes[config] = {"successes":[], "failures":[]}
             if result == 'PASS':
-                outcomes[config]['successes'].append(key)
+                outcomes[config]['successes'].append(suite_case)
             elif result == 'FAIL':
-                outcomes[config]['failures'].append(key)
+                outcomes[config]['failures'].append(suite_case)
 
+    # Convert `list` to `frozenset` to improve search performance
     for config in outcomes:
         outcomes[config]['successes'] = frozenset(outcomes[config]['successes'])
         outcomes[config]['failures'] = frozenset(outcomes[config]['failures'])

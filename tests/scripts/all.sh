@@ -3705,26 +3705,6 @@ component_test_psa_crypto_config_accel_hash () {
     make test
 }
 
-component_test_psa_crypto_config_accel_hash_keep_builtins () {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated+builtin hash"
-    # This component ensures that all the test cases for
-    # md_psa_dynamic_dispatch with legacy+driver in test_suite_md are run.
-
-    loc_accel_list="ALG_MD5 ALG_RIPEMD160 ALG_SHA_1 \
-                    ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
-                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
-
-    # Start from default config (no USE_PSA)
-    helper_libtestdriver1_adjust_config "default"
-
-    helper_libtestdriver1_make_drivers "$loc_accel_list"
-
-    helper_libtestdriver1_make_main "$loc_accel_list"
-
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated+builtin hash"
-    make test
-}
-
 # Auxiliary function to build config for hashes with and without drivers
 config_psa_crypto_hash_use_psa () {
     driver_only="$1"

@@ -154,7 +154,8 @@ int mbedtls_pkcs12_pbe_ext(mbedtls_asn1_buf *pbe_params, int mode,
                            unsigned char *output, size_t output_size,
                            size_t *output_len)
 {
-    int ret, keylen = 0;
+    int ret;
+    size_t keylen = 0;
     unsigned char key[32];
     unsigned char iv[16];
     const mbedtls_cipher_info_t *cipher_info;
@@ -172,7 +173,7 @@ int mbedtls_pkcs12_pbe_ext(mbedtls_asn1_buf *pbe_params, int mode,
         return MBEDTLS_ERR_PKCS12_FEATURE_UNAVAILABLE;
     }
 
-    keylen = (int) mbedtls_cipher_info_get_key_bitlen(cipher_info) / 8;
+    keylen = mbedtls_cipher_info_get_key_bitlen(cipher_info) / 8;
 
     if (mode == MBEDTLS_PKCS12_PBE_DECRYPT) {
         if (output_size < len) {
@@ -181,7 +182,7 @@ int mbedtls_pkcs12_pbe_ext(mbedtls_asn1_buf *pbe_params, int mode,
     }
 
     if (mode == MBEDTLS_PKCS12_PBE_ENCRYPT) {
-        padlen = cipher_info->block_size - (len % cipher_info->block_size);
+        padlen = (unsigned int) (cipher_info->block_size - (len % cipher_info->block_size));
         if (output_size < (len + padlen)) {
             return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
         }
@@ -200,7 +201,7 @@ int mbedtls_pkcs12_pbe_ext(mbedtls_asn1_buf *pbe_params, int mode,
         goto exit;
     }
 
-    if ((ret = mbedtls_cipher_setkey(&cipher_ctx, key, 8 * keylen,
+    if ((ret = mbedtls_cipher_setkey(&cipher_ctx, key, (int) (8 * keylen),
                                      (mbedtls_operation_t) mode)) != 0) {
         goto exit;
     }
@@ -406,7 +407,7 @@ int mbedtls_pkcs12_derivation(unsigned char *data, size_t datalen,
             // salt_block += B
             c = 0;
             for (i = v; i > 0; i--) {
-                j = salt_block[i - 1] + hash_block[i - 1] + c;
+                j = (unsigned int) (salt_block[i - 1] + hash_block[i - 1] + c);
                 c = MBEDTLS_BYTE_1(j);
                 salt_block[i - 1] = MBEDTLS_BYTE_0(j);
             }
@@ -416,7 +417,7 @@ int mbedtls_pkcs12_derivation(unsigned char *data, size_t datalen,
             // pwd_block  += B
             c = 0;
             for (i = v; i > 0; i--) {
-                j = pwd_block[i - 1] + hash_block[i - 1] + c;
+                j = (unsigned int) (pwd_block[i - 1] + hash_block[i - 1] + c);
                 c = MBEDTLS_BYTE_1(j);
                 pwd_block[i - 1] = MBEDTLS_BYTE_0(j);
             }

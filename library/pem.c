@@ -53,13 +53,13 @@ static int pem_get_iv(const unsigned char *s, unsigned char *iv,
 
     for (i = 0; i < iv_len * 2; i++, s++) {
         if (*s >= '0' && *s <= '9') {
-            j = *s - '0';
+            j = (size_t) (*s - '0');
         } else
         if (*s >= 'A' && *s <= 'F') {
-            j = *s - '7';
+            j = (size_t) (*s - '7');
         } else
         if (*s >= 'a' && *s <= 'f') {
-            j = *s - 'W';
+            j = (size_t) (*s - 'W');
         } else {
             return MBEDTLS_ERR_PEM_INVALID_ENC_IV;
         }

@@ -34,7 +34,6 @@
 #define PSA_DONE()                                                      \
     do                                                                  \
     {                                                                   \
-        mbedtls_psa_random_free();                                      \
         mbedtls_test_fail_if_psa_leaking(__LINE__, __FILE__);           \
         mbedtls_test_psa_purge_key_storage();                           \
         mbedtls_psa_crypto_free();                                      \
@@ -126,21 +125,17 @@ const char *mbedtls_test_helper_is_psa_leaking(void);
 
 /** Shut down the PSA Crypto subsystem, allowing persistent keys to survive.
  * Expect a clean shutdown, with no slots in use.
- * mbedtls_psa_random_free() is called before any check for remaining open
- * keys because when AES_C is not defined, CTR_DRBG relies on PSA to perform
- * AES-ECB so it holds an open AES key for that since psa_crypto_init().
  *
  * If some key slots are still in use, record the test case as failed and
  * jump to the `exit` label.
  */
 #define PSA_SESSION_DONE()                                             \
-    do                                                                 \
-    {                                                                  \
-        mbedtls_psa_random_free();                                     \
+    do                                                                  \
+    {                                                                   \
         mbedtls_test_psa_purge_key_cache();                            \
         ASSERT_PSA_PRISTINE();                                         \
         mbedtls_psa_crypto_free();                                     \
-    }                                                                  \
+    }                                                                   \
     while (0)
 
 

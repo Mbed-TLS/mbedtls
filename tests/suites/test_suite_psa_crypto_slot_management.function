@@ -90,10 +90,10 @@ static int invalidate_psa(invalidate_method_t invalidate_method)
             break;
     }
 
-    /* When AES_C is not defined CTR_DRBG relies on PSA to get AES-ECB so it
-     * holds an open key once psa_crypto_init() is called. */
-    ASSERT_PSA_PRISTINE();
     PSA_ASSERT(psa_crypto_init());
+
+    ASSERT_PSA_PRISTINE();
+
     return 1;
 
 exit:

@@ -13,6 +13,8 @@
 #include "psa/crypto.h"
 #include "psa_crypto_slot_management.h"
 
+#include "psa_crypto_core.h"
+
 #include "test/asn1_helpers.h"
 #include "test/psa_crypto_helpers.h"
 #include "test/psa_exercise_key.h"

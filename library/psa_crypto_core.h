@@ -503,4 +503,74 @@ psa_status_t psa_verify_hash_builtin(
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
     const uint8_t *signature, size_t signature_length);
 
+typedef struct psa_crypto_local_input_s {
+    uint8_t *buffer;
+    size_t length;
+} psa_crypto_local_input_t;
+
+#define PSA_CRYPTO_LOCAL_INPUT_INIT ((psa_crypto_local_input_t) { NULL, 0 })
+
+/** Allocate a local copy of an input buffer and copy the contents into it.
+ *
+ * \param[in] input             Pointer to input buffer.
+ * \param[in] input_len         Length of the input buffer.
+ * \param[out] local_input      Pointer to a psa_crypto_local_input_t struct
+ *                              containing a local input copy.
+ * \return                      #PSA_SUCCESS, if the buffer was successfully
+ *                              copied.
+ * \return                      #PSA_ERROR_INSUFFICIENT_MEMORY, if a copy of
+ *                              the buffer cannot be allocated.
+ */
+psa_status_t psa_crypto_local_input_alloc(const uint8_t *input, size_t input_len,
+                                          psa_crypto_local_input_t *local_input);
+
+/** Free a local copy of an input buffer.
+ *
+ * \param[in] local_input       Pointer to a psa_crypto_local_input_t struct
+ *                              populated by a previous call to
+ *                              psa_crypto_local_input_alloc().
+ */
+void psa_crypto_local_input_free(psa_crypto_local_input_t *local_input);
+
+typedef struct psa_crypto_local_output_s {
+    uint8_t *original;
+    uint8_t *buffer;
+    size_t length;
+} psa_crypto_local_output_t;
+
+#define PSA_CRYPTO_LOCAL_OUTPUT_INIT ((psa_crypto_local_output_t) { NULL, NULL, 0 })
+
+/** Allocate a local copy of an output buffer.
+ *
+ * \note                        This does not copy any data from the original
+ *                              output buffer but only allocates a buffer
+ *                              whose contents will be copied back to the
+ *                              original in a future call to
+ *                              psa_crypto_local_output_free().
+ *
+ * \param[in] output            Pointer to output buffer.
+ * \param[in] output_len        Length of the output buffer.
+ * \param[out] local_output     Pointer to a psa_crypto_local_output_t struct to
+ *                              populate with the local output copy.
+ * \return                      #PSA_SUCCESS, if the buffer was successfully
+ *                              copied.
+ * \return                      #PSA_ERROR_INSUFFICIENT_MEMORY, if a copy of
+ *                              the buffer cannot be allocated.
+ */
+psa_status_t psa_crypto_local_output_alloc(uint8_t *output, size_t output_len,
+                                           psa_crypto_local_output_t *local_output);
+
+/** Copy from a local copy of an output buffer back to the original, then
+ *  free the local copy.
+ *
+ * \param[in] local_output      Pointer to a psa_crypto_local_output_t struct
+ *                              populated by a previous call to
+ *                              psa_crypto_local_output_alloc().
+ * \return                      #PSA_SUCCESS, if the local output was
+ *                              successfully copied back to the original.
+ * \return                      #PSA_ERROR_CORRUPTION_DETECTED, if the output
+ *                              could not be copied back to the original.
+ */
+psa_status_t psa_crypto_local_output_free(psa_crypto_local_output_t *local_output);
+
 #endif /* PSA_CRYPTO_CORE_H */

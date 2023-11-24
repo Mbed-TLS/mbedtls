@@ -29,9 +29,9 @@ unsigned char mbedtls_ct_base64_enc_char(unsigned char value)
     /* For each range of values, if value is in that range, mask digit with
      * the corresponding value. Since value can only be in a single range,
      * only at most one masking will change digit. */
-    digit |= mbedtls_ct_uchar_in_range_if(0, 25, value, 'A' + value);
-    digit |= mbedtls_ct_uchar_in_range_if(26, 51, value, 'a' + value - 26);
-    digit |= mbedtls_ct_uchar_in_range_if(52, 61, value, '0' + value - 52);
+    digit |= mbedtls_ct_uchar_in_range_if(0, 25, value, (unsigned char) ('A' + value));
+    digit |= mbedtls_ct_uchar_in_range_if(26, 51, value, (unsigned char) ('a' + value - 26));
+    digit |= mbedtls_ct_uchar_in_range_if(52, 61, value, (unsigned char) ('0' + value - 52));
     digit |= mbedtls_ct_uchar_in_range_if(62, 62, value, '+');
     digit |= mbedtls_ct_uchar_in_range_if(63, 63, value, '/');
     return digit;
@@ -45,14 +45,14 @@ signed char mbedtls_ct_base64_dec_value(unsigned char c)
      * the corresponding value. Since c can only be in a single range,
      * only at most one masking will change val. Set val to one plus
      * the desired value so that it stays 0 if c is in none of the ranges. */
-    val |= mbedtls_ct_uchar_in_range_if('A', 'Z', c, c - 'A' +  0 + 1);
-    val |= mbedtls_ct_uchar_in_range_if('a', 'z', c, c - 'a' + 26 + 1);
-    val |= mbedtls_ct_uchar_in_range_if('0', '9', c, c - '0' + 52 + 1);
-    val |= mbedtls_ct_uchar_in_range_if('+', '+', c, c - '+' + 62 + 1);
-    val |= mbedtls_ct_uchar_in_range_if('/', '/', c, c - '/' + 63 + 1);
+    val |= mbedtls_ct_uchar_in_range_if('A', 'Z', c, (unsigned char) (c - 'A' +  0 + 1));
+    val |= mbedtls_ct_uchar_in_range_if('a', 'z', c, (unsigned char) (c - 'a' + 26 + 1));
+    val |= mbedtls_ct_uchar_in_range_if('0', '9', c, (unsigned char) (c - '0' + 52 + 1));
+    val |= mbedtls_ct_uchar_in_range_if('+', '+', c, (unsigned char) (c - '+' + 62 + 1));
+    val |= mbedtls_ct_uchar_in_range_if('/', '/', c, (unsigned char) (c - '/' + 63 + 1));
     /* At this point, val is 0 if c is an invalid digit and v+1 if c is
      * a digit with the value v. */
-    return val - 1;
+    return (signed char) (val - 1);
 }
 
 /*
@@ -62,7 +62,7 @@ int mbedtls_base64_encode(unsigned char *dst, size_t dlen, size_t *olen,
                           const unsigned char *src, size_t slen)
 {
     size_t i, n;
-    int C1, C2, C3;
+    unsigned int C1, C2, C3;
     unsigned char *p;
 
     if (slen == 0) {
@@ -101,7 +101,7 @@ int mbedtls_base64_encode(unsigned char *dst, size_t dlen, size_t *olen,
 
     if (i < slen) {
         C1 = *src++;
-        C2 = ((i + 1) < slen) ? *src++ : 0;
+        C2 = (unsigned int) (((i + 1) < slen) ? *src++ : 0);
 
         *p++ = mbedtls_ct_base64_enc_char((C1 >> 2) & 0x3F);
         *p++ = mbedtls_ct_base64_enc_char((((C1 & 3) << 4) + (C2 >> 4))
@@ -210,7 +210,7 @@ int mbedtls_base64_decode(unsigned char *dst, size_t dlen, size_t *olen,
         if (*src == '=') {
             ++equals;
         } else {
-            x |= mbedtls_ct_base64_dec_value(*src);
+            x |= (unsigned char) mbedtls_ct_base64_dec_value(*src);
         }
 
         if (++accumulated_digits == 4) {

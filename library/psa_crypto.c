@@ -73,6 +73,10 @@
 #include "mbedtls/sha512.h"
 #include "mbedtls/xtea.h"
 
+#if defined(MBEDTLS_TEST_HOOKS)
+#include "test/memory.h"
+#endif
+
 #define ARRAY_LENGTH(array) (sizeof(array) / sizeof(*(array)))
 
 /****************************************************************/
@@ -5531,9 +5535,17 @@ psa_status_t psa_crypto_copy_input(const uint8_t *input, size_t input_len,
         return PSA_ERROR_CORRUPTION_DETECTED;
     }
 
+#if defined(MBEDTLS_TEST_HOOKS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(input, input_len);
+#endif
+
     if (input_len > 0) {
         memcpy(input_copy, input, input_len);
     }
+
+#if defined(MBEDTLS_TEST_HOOKS)
+    MBEDTLS_TEST_MEMORY_POISON(input, input_len);
+#endif
 
     return PSA_SUCCESS;
 }
@@ -5558,9 +5570,17 @@ psa_status_t psa_crypto_copy_output(const uint8_t *output_copy, size_t output_co
         return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
+#if defined(MBEDTLS_TEST_HOOKS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(output, output_len);
+#endif
+
     if (output_copy_len > 0) {
         memcpy(output, output_copy, output_copy_len);
     }
+
+#if defined(MBEDTLS_TEST_HOOKS)
+    MBEDTLS_TEST_MEMORY_POISON(output, output_len);
+#endif
 
     return PSA_SUCCESS;
 }

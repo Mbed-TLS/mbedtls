@@ -757,7 +757,7 @@ int mbedtls_pk_verify_ext(mbedtls_pk_type_t type, const void *options,
         psa_set_key_algorithm(&attributes, psa_sig_alg);
 
         status = psa_import_key(&attributes,
-                                buf + sizeof(buf) - key_len, key_len,
+                                buf + sizeof(buf) - key_len, (size_t) key_len,
                                 &key_id);
         if (status != PSA_SUCCESS) {
             psa_destroy_key(key_id);
@@ -1181,7 +1181,7 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
         /* import private key into PSA */
         status = psa_import_key(&attributes,
                                 buf + sizeof(buf) - key_len,
-                                key_len, key);
+                                (size_t) key_len, key);
 
         mbedtls_platform_zeroize(buf, sizeof(buf));
 

@@ -558,7 +558,7 @@ int mbedtls_pk_write_pubkey_pem(const mbedtls_pk_context *key, unsigned char *bu
 
     if ((ret = mbedtls_pem_write_buffer(PEM_BEGIN_PUBLIC_KEY "\n", PEM_END_PUBLIC_KEY "\n",
                                         output_buf + PUB_DER_MAX_BYTES - ret,
-                                        ret, buf, size, &olen)) != 0) {
+                                        (size_t) ret, buf, size, &olen)) != 0) {
         goto cleanup;
     }
 
@@ -607,7 +607,7 @@ int mbedtls_pk_write_key_pem(const mbedtls_pk_context *key, unsigned char *buf, 
 
     if ((ret = mbedtls_pem_write_buffer(begin, end,
                                         output_buf + PRV_DER_MAX_BYTES - ret,
-                                        ret, buf, size, &olen)) != 0) {
+                                        (size_t) ret, buf, size, &olen)) != 0) {
         goto cleanup;
     }
 

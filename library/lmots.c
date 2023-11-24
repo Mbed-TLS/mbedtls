@@ -84,13 +84,13 @@ static unsigned short lmots_checksum_calculate(const mbedtls_lmots_parameters_t 
                                                const unsigned char *digest)
 {
     size_t idx;
-    unsigned sum = 0;
+    unsigned int sum = 0;
 
     for (idx = 0; idx < MBEDTLS_LMOTS_N_HASH_LEN(params->type); idx++) {
-        sum += DIGIT_MAX_VALUE - digest[idx];
+        sum += (DIGIT_MAX_VALUE - digest[idx]);
     }
 
-    return sum;
+    return (unsigned short) sum;
 }
 
 /* Create the string of digest digits (in the base determined by the Winternitz
@@ -230,10 +230,10 @@ static int hash_digit_array(const mbedtls_lmots_parameters_t *params,
                &x_digit_array[i_digit_idx * MBEDTLS_LMOTS_N_HASH_LEN(params->type)],
                MBEDTLS_LMOTS_N_HASH_LEN(params->type));
 
-        j_hash_idx_min = hash_idx_min_values != NULL ?
-                         hash_idx_min_values[i_digit_idx] : 0;
-        j_hash_idx_max = hash_idx_max_values != NULL ?
-                         hash_idx_max_values[i_digit_idx] : DIGIT_MAX_VALUE;
+        j_hash_idx_min = (unsigned int) (hash_idx_min_values != NULL ?
+                                         hash_idx_min_values[i_digit_idx] : 0);
+        j_hash_idx_max = (unsigned int) (hash_idx_max_values != NULL ?
+                                         hash_idx_max_values[i_digit_idx] : DIGIT_MAX_VALUE);
 
         for (j_hash_idx = j_hash_idx_min;
              j_hash_idx < j_hash_idx_max;

@@ -637,7 +637,7 @@ static int ecjpake_mul_secret(mbedtls_mpi *R, int sign,
 
     /* R = sign * X * b mod N */
     MBEDTLS_MPI_CHK(mbedtls_mpi_mul_mpi(R, X, &b));
-    R->s *= sign;
+    R->s =  (short) (R->s * sign);
     MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(R, R, N));
 
 cleanup:

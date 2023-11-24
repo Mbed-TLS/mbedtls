@@ -1064,7 +1064,7 @@ static int mbedtls_sha512_common_self_test(int verbose, int is384)
             goto fail;
         }
 
-        if (memcmp(sha512sum, sha_test_sum[i], 64 - is384 * 16) != 0) {
+        if (memcmp(sha512sum, sha_test_sum[i], 64 - (unsigned) is384 * 16) != 0) {
             ret = 1;
             goto fail;
         }

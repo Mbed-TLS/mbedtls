@@ -367,7 +367,7 @@ MBEDTLS_MAYBE_UNUSED static uint32_t round_constants[10];
  * Tables generation code
  */
 #define ROTL8(x) (((x) << 8) & 0xFFFFFFFF) | ((x) >> 24)
-#define XTIME(x) (((x) << 1) ^ (((x) & 0x80) ? 0x1B : 0x00))
+#define XTIME(x) ((uint8_t) (((x) << 1) ^ (((x) & 0x80) ? 0x1B : 0x00)))
 #define MUL(x, y) (((x) && (y)) ? pow[(log[(x)]+log[(y)]) % 255] : 0)
 
 MBEDTLS_MAYBE_UNUSED static int aes_init_done = 0;
@@ -407,10 +407,10 @@ MBEDTLS_MAYBE_UNUSED static void aes_gen_tables(void)
     for (i = 1; i < 256; i++) {
         x = pow[255 - log[i]];
 
-        y  = x; y = (y << 1) | (y >> 7);
-        x ^= y; y = (y << 1) | (y >> 7);
-        x ^= y; y = (y << 1) | (y >> 7);
-        x ^= y; y = (y << 1) | (y >> 7);
+        y  = x; y = (uint8_t) ((y << 1) | (y >> 7));
+        x ^= y; y = (uint8_t) ((y << 1) | (y >> 7));
+        x ^= y; y = (uint8_t) ((y << 1) | (y >> 7));
+        x ^= y; y = (uint8_t) ((y << 1) | (y >> 7));
         x ^= y ^ 0x63;
 
         FSb[i] = x;
@@ -1011,9 +1011,9 @@ MBEDTLS_MAYBE_UNUSED static void aes_maybe_realign(mbedtls_aes_context *ctx)
 {
     unsigned new_offset = mbedtls_aes_rk_offset(ctx->buf);
     if (new_offset != ctx->rk_offset) {
-        memmove(ctx->buf + new_offset,     // new address
-                ctx->buf + ctx->rk_offset, // current address
-                (ctx->nr + 1) * 16);       // number of round keys * bytes per rk
+        memmove(ctx->buf + new_offset,              // new address
+                ctx->buf + ctx->rk_offset,          // current address
+                ((unsigned int) ctx->nr + 1) * 16); // number of round keys * bytes per rk
         ctx->rk_offset = new_offset;
     }
 }
@@ -1170,7 +1170,7 @@ static inline void mbedtls_gf128mul_x_ble(unsigned char r[16],
     a = MBEDTLS_GET_UINT64_LE(x, 0);
     b = MBEDTLS_GET_UINT64_LE(x, 8);
 
-    ra = (a << 1)  ^ 0x0087 >> (8 - ((b >> 63) << 3));
+    ra = (a << 1) ^ 0x0087u >> (8 - ((b >> 63) << 3));
     rb = (a >> 63) | (b << 1);
 
     MBEDTLS_PUT_UINT64_LE(ra, r, 0);

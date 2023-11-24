@@ -191,7 +191,7 @@ static int dhm_make_common(mbedtls_dhm_context *ctx, int x_size,
     }
 
     if ((unsigned) x_size < mbedtls_mpi_size(&ctx->P)) {
-        MBEDTLS_MPI_CHK(mbedtls_mpi_fill_random(&ctx->X, x_size, f_rng, p_rng));
+        MBEDTLS_MPI_CHK(mbedtls_mpi_fill_random(&ctx->X, (unsigned int) x_size, f_rng, p_rng));
     } else {
         /* Generate X as large as possible ( <= P - 2 ) */
         ret = dhm_random_below(&ctx->X, &ctx->P, f_rng, p_rng);

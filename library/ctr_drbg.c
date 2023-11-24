@@ -179,7 +179,7 @@ static int block_cipher_df(unsigned char *output,
     psa_ctx.operation = psa_cipher_operation_init();
 #endif
 
-    int i, j;
+    int j;
     size_t buf_len, use_len;
 
     if (data_len > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT) {
@@ -205,7 +205,7 @@ static int block_cipher_df(unsigned char *output,
 
     buf_len = MBEDTLS_CTR_DRBG_BLOCKSIZE + 8 + data_len + 1;
 
-    for (i = 0; i < MBEDTLS_CTR_DRBG_KEYSIZE; i++) {
+    for (uint8_t i = 0; i < MBEDTLS_CTR_DRBG_KEYSIZE; i++) {
         key[i] = i;
     }
 

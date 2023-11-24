@@ -70,7 +70,7 @@ static int cmac_multiply_by_u(unsigned char *output,
     }
 
     for (i = (int) blocksize - 1; i >= 0; i--) {
-        output[i] = input[i] << 1 | overflow;
+        output[i] = (unsigned char) (input[i] << 1 | overflow);
         overflow = input[i] >> 7;
     }
 
@@ -83,7 +83,7 @@ static int cmac_multiply_by_u(unsigned char *output,
 #pragma warning( push )
 #pragma warning( disable : 4146 )
 #endif
-    mask = -(input[0] >> 7);
+    mask = (unsigned char) (-(input[0] >> 7));
 #if defined(_MSC_VER)
 #pragma warning( pop )
 #endif

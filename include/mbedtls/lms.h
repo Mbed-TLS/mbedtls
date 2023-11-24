@@ -44,7 +44,7 @@
 
 
 #define MBEDTLS_LMS_TYPE_LEN            (4)
-#define MBEDTLS_LMS_H_TREE_HEIGHT(type) ((type) == MBEDTLS_LMS_SHA256_M32_H10 ? 10u : 0)
+#define MBEDTLS_LMS_H_TREE_HEIGHT(type) ((type) == MBEDTLS_LMS_SHA256_M32_H10 ? 10u : 0u)
 
 /* The length of a hash output, Currently only implemented for SHA256.
  * Max is 32 bytes.

@@ -930,7 +930,7 @@ static int mbedtls_sha256_common_self_test(int verbose, int is224)
         }
 
 
-        if (memcmp(sha256sum, sha_test_sum[i], 32 - is224 * 4) != 0) {
+        if (memcmp(sha256sum, sha_test_sum[i], 32 - (unsigned int) is224 * 4) != 0) {
             ret = 1;
             goto fail;
         }

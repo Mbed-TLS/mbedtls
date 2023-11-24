@@ -326,12 +326,12 @@ static void aria_rot128(uint32_t r[4], const uint32_t a[4],
     uint32_t t, u;
 
     const uint8_t n1 = n % 32;              // bit offset
-    const uint8_t n2 = n1 ? 32 - n1 : 0;    // reverse bit offset
+    const uint8_t n2 = (uint8_t) (n1 ? (32u - n1) : 0);  // reverse bit offset
 
     j = (n / 32) % 4;                       // initial word offset
     t = ARIA_P3(b[j]);                      // big endian
     for (i = 0; i < 4; i++) {
-        j = (j + 1) % 4;                    // get next word, big endian
+        j = (uint8_t) ((j + 1) % 4);        // get next word, big endian
         u = ARIA_P3(b[j]);
         t <<= n1;                           // rotate
         t |= u >> n2;
@@ -355,7 +355,7 @@ int mbedtls_aria_setkey_enc(mbedtls_aria_context *ctx,
         {   0x1D3792DB, 0x70E92621, 0x75972403, 0x0EC9E804  }
     };
 
-    int i;
+    unsigned int i;
     uint32_t w[4][4], *w2;
 
     if (keybits != 128 && keybits != 192 && keybits != 256) {
@@ -379,7 +379,7 @@ int mbedtls_aria_setkey_enc(mbedtls_aria_context *ctx,
     }
 
     i = (keybits - 128) >> 6;               // index: 0, 1, 2
-    ctx->nr = 12 + 2 * i;                   // no. rounds: 12, 14, 16
+    ctx->nr = (uint8_t) (12 + 2 * i);       // no. rounds: 12, 14, 16
 
     aria_fo_xor(w[1], w[0], rc[i], w[1]);   // W1 = FO(W0, CK1) ^ KR
     i = i < 2 ? i + 1 : 0;

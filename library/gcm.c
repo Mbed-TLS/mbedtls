@@ -107,7 +107,7 @@ static int gcm_gen_table(mbedtls_gcm_context *ctx)
     ctx->HL[0] = 0;
 
     for (i = 4; i > 0; i >>= 1) {
-        uint32_t T = (vl & 1) * 0xe1000000U;
+        uint32_t T = (uint32_t) ((vl & 1) * 0xe1000000U);
         vl  = (vh << 63) | (vl >> 1);
         vh  = (vh >> 1) ^ ((uint64_t) T << 32);
 
@@ -152,7 +152,7 @@ int mbedtls_gcm_setkey(mbedtls_gcm_context *ctx,
 #else
     const mbedtls_cipher_info_t *cipher_info;
 
-    cipher_info = mbedtls_cipher_info_from_values(cipher, keybits,
+    cipher_info = mbedtls_cipher_info_from_values(cipher, (int) keybits,
                                                   MBEDTLS_MODE_ECB);
     if (cipher_info == NULL) {
         return MBEDTLS_ERR_GCM_BAD_INPUT;
@@ -168,7 +168,7 @@ int mbedtls_gcm_setkey(mbedtls_gcm_context *ctx,
         return ret;
     }
 
-    if ((ret = mbedtls_cipher_setkey(&ctx->cipher_ctx, key, keybits,
+    if ((ret = mbedtls_cipher_setkey(&ctx->cipher_ctx, key, (int) keybits,
                                      MBEDTLS_ENCRYPT)) != 0) {
         return ret;
     }

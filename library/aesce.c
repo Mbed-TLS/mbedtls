@@ -309,7 +309,7 @@ static void aesce_setkey_enc(unsigned char *rk,
          rki + key_len_in_words < rko_end;
          rki += key_len_in_words) {
 
-        size_t iteration = (rki - (uint32_t *) rk) / key_len_in_words;
+        size_t iteration = (size_t) (rki - (uint32_t *) rk) / key_len_in_words;
         uint32_t *rko;
         rko = rki + key_len_in_words;
         rko[0] = aes_rot_word(aes_sub_word(rki[key_len_in_words - 1]));
@@ -394,8 +394,8 @@ static inline uint8x16_t pmull_low(uint8x16_t a, uint8x16_t b)
 
     return vreinterpretq_u8_p128(
         MBEDTLS_VMULL_P64(
-            vget_low_p64(vreinterpretq_p64_u8(a)),
-            vget_low_p64(vreinterpretq_p64_u8(b))
+            (poly64_t) vget_low_p64(vreinterpretq_p64_u8(a)),
+            (poly64_t) vget_low_p64(vreinterpretq_p64_u8(b))
             ));
 }
 

@@ -1409,7 +1409,7 @@ int mbedtls_ssl_fetch_input(mbedtls_ssl_context *ssl, size_t nb_want);
  * Write handshake message header
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
-int mbedtls_ssl_start_handshake_msg(mbedtls_ssl_context *ssl, unsigned hs_type,
+int mbedtls_ssl_start_handshake_msg(mbedtls_ssl_context *ssl, unsigned char hs_type,
                                     unsigned char **buf, size_t *buf_len);
 
 MBEDTLS_CHECK_RETURN_CRITICAL

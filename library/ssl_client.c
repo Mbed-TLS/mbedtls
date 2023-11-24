@@ -155,7 +155,7 @@ static int ssl_write_alpn_ext(mbedtls_ssl_context *ssl,
         p += protocol_name_len;
     }
 
-    *out_len = p - buf;
+    *out_len = (size_t) (p - buf);
 
     /* List length = *out_len - 2 (ext_type) - 2 (ext_len) - 2 (list_len) */
     MBEDTLS_PUT_UINT16_BE(*out_len - 6, buf, 4);
@@ -285,7 +285,7 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
     }
 
     /* Length of named_group_list */
-    named_group_list_len = p - named_group_list;
+    named_group_list_len = (size_t) (p - named_group_list);
     if (named_group_list_len == 0) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("No group available."));
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
@@ -301,7 +301,7 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF(3, "Supported groups extension",
                           buf + 4, named_group_list_len + 2);
 
-    *out_len = p - buf;
+    *out_len = (size_t) (p - buf);
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     mbedtls_ssl_tls13_set_hs_sent_ext_mask(
@@ -391,14 +391,14 @@ static int ssl_write_client_hello_cipher_suites(
     }
 
     /* Write the cipher_suites length in number of bytes */
-    cipher_suites_len = p - cipher_suites;
+    cipher_suites_len = (size_t) (p - cipher_suites);
     MBEDTLS_PUT_UINT16_BE(cipher_suites_len, buf, 0);
     MBEDTLS_SSL_DEBUG_MSG(3,
                           ("client hello, got %" MBEDTLS_PRINTF_SIZET " cipher suites",
                            cipher_suites_len/2));
 
     /* Output the total length of cipher_suites field. */
-    *out_len = p - buf;
+    *out_len = (size_t) (p - buf);
 
     return 0;
 }
@@ -679,7 +679,7 @@ static int ssl_write_client_hello_body(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED */
 
     /* Write the length of the list of extensions. */
-    extensions_len = p - p_extensions_len - 2;
+    extensions_len = (size_t) (p - p_extensions_len) - 2;
 
     if (extensions_len == 0) {
         p = p_extensions_len;
@@ -691,7 +691,7 @@ static int ssl_write_client_hello_body(mbedtls_ssl_context *ssl,
                               p_extensions_len, extensions_len);
     }
 
-    *out_len = p - buf;
+    *out_len = (size_t) (p - buf);
     return 0;
 }
 

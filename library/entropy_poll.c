@@ -88,7 +88,7 @@ static int getrandom_wrapper(void *buf, size_t buflen, unsigned int flags)
     memset(buf, 0, buflen);
 #endif
 #endif
-    return syscall(SYS_getrandom, buf, buflen, flags);
+    return (int) syscall(SYS_getrandom, buf, buflen, flags);
 }
 #endif /* SYS_getrandom */
 #endif /* __linux__ || __midipix__ */
@@ -102,7 +102,7 @@ static int getrandom_wrapper(void *buf, size_t buflen, unsigned int flags)
 #define HAVE_GETRANDOM
 static int getrandom_wrapper(void *buf, size_t buflen, unsigned int flags)
 {
-    return getrandom(buf, buflen, flags);
+    return (int) getrandom(buf, buflen, flags);
 }
 #endif /* (__FreeBSD__ && __FreeBSD_version >= 1200000) ||
           (__DragonFly__ && __DragonFly_version >= 500700) */
@@ -156,7 +156,7 @@ int mbedtls_platform_entropy_poll(void *data,
 #if defined(HAVE_GETRANDOM)
     ret = getrandom_wrapper(output, len, 0);
     if (ret >= 0) {
-        *olen = ret;
+        *olen = (size_t) ret;
         return 0;
     } else if (errno != ENOSYS) {
         return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;

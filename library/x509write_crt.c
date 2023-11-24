@@ -481,7 +481,7 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
      */
     MBEDTLS_ASN1_CHK_ADD(pub_len,
                          mbedtls_pk_write_pubkey_der(ctx->subject_key,
-                                                     buf, c - buf));
+                                                     buf, (size_t) (c - buf)));
     c -= pub_len;
     len += pub_len;
 

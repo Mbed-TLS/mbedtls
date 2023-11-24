@@ -341,7 +341,7 @@ int mbedtls_ssl_ticket_write(void *p_ticket,
 
     /* Dump session state */
     if ((ret = mbedtls_ssl_session_save(session,
-                                        state, end - state,
+                                        state, (size_t) (end - state),
                                         &clear_len)) != 0 ||
         (unsigned long) clear_len > 65535) {
         goto cleanup;
@@ -364,7 +364,7 @@ int mbedtls_ssl_ticket_write(void *p_ticket,
                                                /* Additional data: key name, IV and length */
                                                key_name, TICKET_ADD_DATA_LEN,
                                                state, clear_len,
-                                               state, end - state, &ciph_len,
+                                               state, (size_t) (end - state), &ciph_len,
                                                TICKET_AUTH_TAG_BYTES)) != 0) {
         goto cleanup;
     }
@@ -444,7 +444,7 @@ int mbedtls_ssl_ticket_parse(void *p_ticket,
         goto cleanup;
     }
 
-    enc_len = (enc_len_p[0] << 8) | enc_len_p[1];
+    enc_len = MBEDTLS_GET_UINT16_BE(enc_len_p, 0);
 
     if (len != TICKET_MIN_LEN + enc_len) {
         ret = MBEDTLS_ERR_SSL_BAD_INPUT_DATA;

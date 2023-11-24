@@ -1490,6 +1490,7 @@ void cipher_entry_points(int alg_arg, int key_type_arg,
     }
 
     mbedtls_test_driver_cipher_hooks.cipher_update_hits = 0;
+    mbedtls_test_driver_cipher_hooks.cipher_encrypt_hits = 0;
     status = psa_cipher_encrypt(
         key, alg, input->x, input->len,
         output, output_buffer_size, &function_output_length);

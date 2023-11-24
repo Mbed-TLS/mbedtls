@@ -999,7 +999,7 @@ static int oid_parse_number(unsigned int *num, const char **p, const char *bound
             return MBEDTLS_ERR_ASN1_INVALID_DATA;
         }
         *num *= 10;
-        *num += **p - '0';
+        *num += (unsigned int) (**p - '0');
         (*p)++;
     }
     return ret;
@@ -1030,7 +1030,7 @@ static int oid_subidentifier_encode_into(unsigned char **p,
     value >>= 7;
 
     for (size_t i = 2; i <= num_bytes; i++) {
-        (*p)[num_bytes - i] = 0x80 | (unsigned char) (value & 0x7f);
+        (*p)[num_bytes - i] = (unsigned char) (0x80 | (value & 0x7f));
         value >>= 7;
     }
     *p += num_bytes;

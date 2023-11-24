@@ -329,7 +329,8 @@ foreach(target IN LISTS target_libraries)
                $<INSTALL_INTERFACE:include/>
         PRIVATE ${MBEDTLS_DIR}/library/
                 # Needed to include psa_crypto_driver_wrappers.h
-                ${CMAKE_CURRENT_BINARY_DIR})
+                ${CMAKE_CURRENT_BINARY_DIR}
+                ${MBEDTLS_DIR}/tests/include/)
     # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
     if(MBEDTLS_CONFIG_FILE)
         target_compile_definitions(${target}

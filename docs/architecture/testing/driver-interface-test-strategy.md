@@ -165,6 +165,25 @@ libtestdriver1 too.
   - Performance might be better with internal though?
 - The instrumentation works the same with both back-ends.
 
+Note: our test drivers tend to provide all possible entry points (with a few
+exceptions that may not be intentional, see the next sections). However, in
+some cases, when an entry point is not available, the core is supposed to
+implement it using other entry points, for example:
+- `mac_verify` may use `mac_compute` if the driver does no provide verify;
+- for things that have both one-shot and multi-part API, the driver can
+  provide only the multi-part entry points, and the core is supposed to
+implement one-shot on top of it (but still call the one-shot entry points when
+they're available);
+- `sign/verify_message` can be implemented on top of `sign/verify_hash` for
+  some algorithms;
+- (not sure if the list is exhaustive).
+
+Ideally, we'd want build options for the test drivers so that we can test with
+different combinations of entry points present, and make sure the core behaves
+appropriately when some entry points are absent but other entry points allow
+implementing the operation. This is currently not supported by our test
+drivers.
+
 Our implementation of PSA Crypto is structured in a way that the built-in
 implementation of each operation follows the driver API, see
 [`../architecture/psa-crypto-implementation-structure.md`](../architecture/psa-crypto-implementation-structure.html).
@@ -271,7 +290,7 @@ operations: entry points will always return `NOT_SUPPORTED`, unless another
 status is forced.
 
 The following entry points are not implemented:
-- `mac_verify`: this mostly makes sense for opaque drivers; the code will fall
+- `mac_verify`: this mostly makes sense for opaque drivers; the core will fall
   back to using `"mac_compute"` if this is not implemented. So, perhaps
 ideally we should test both with `"mac_verify"` implemented and with it not
 implemented? Anyway, we have a test gap here.

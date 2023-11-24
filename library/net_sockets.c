@@ -78,8 +78,8 @@ static int wsa_init_done = 0;
 #endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
 /* Some MS functions want int and MSVC warns if we pass size_t,
- * but the standard functions use socklen_t, so cast only for MSVC */
-#if defined(_MSC_VER)
+ * but the standard functions use socklen_t, so cast only for MSVC or mingw */
+#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)
 #define MSVC_INT_CAST   (int)
 #else
 #define MSVC_INT_CAST
@@ -429,7 +429,7 @@ int mbedtls_net_set_block(mbedtls_net_context *ctx)
 #if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \
     !defined(EFI32)
     u_long n = 0;
-    return ioctlsocket((SOCKET) ctx->fd, FIONBIO, &n);
+    return ioctlsocket((SOCKET) ctx->fd, (long) FIONBIO, &n);
 #else
     return fcntl(ctx->fd, F_SETFL, fcntl(ctx->fd, F_GETFL) & ~O_NONBLOCK);
 #endif
@@ -440,7 +440,7 @@ int mbedtls_net_set_nonblock(mbedtls_net_context *ctx)
 #if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \
     !defined(EFI32)
     u_long n = 1;
-    return ioctlsocket((SOCKET) ctx->fd, FIONBIO, &n);
+    return ioctlsocket((SOCKET) ctx->fd, (long) FIONBIO, &n);
 #else
     return fcntl(ctx->fd, F_SETFL, fcntl(ctx->fd, F_GETFL) | O_NONBLOCK);
 #endif
@@ -477,13 +477,13 @@ int mbedtls_net_poll(mbedtls_net_context *ctx, uint32_t rw, uint32_t timeout)
 
     FD_ZERO(&read_fds);
     if (rw & MBEDTLS_NET_POLL_READ) {
-        rw &= ~MBEDTLS_NET_POLL_READ;
+        rw &= ~((uint32_t) MBEDTLS_NET_POLL_READ);
         FD_SET((SOCKET) fd, &read_fds);
     }
 
     FD_ZERO(&write_fds);
     if (rw & MBEDTLS_NET_POLL_WRITE) {
-        rw &= ~MBEDTLS_NET_POLL_WRITE;
+        rw &= ~((uint32_t) MBEDTLS_NET_POLL_WRITE);
         FD_SET((SOCKET) fd, &write_fds);
     }
 
@@ -491,8 +491,8 @@ int mbedtls_net_poll(mbedtls_net_context *ctx, uint32_t rw, uint32_t timeout)
         return MBEDTLS_ERR_NET_BAD_INPUT_DATA;
     }
 
-    tv.tv_sec  = timeout / 1000;
-    tv.tv_usec = (timeout % 1000) * 1000;
+    tv.tv_sec  = (long) (timeout / 1000);
+    tv.tv_usec = (long) ((timeout % 1000) * 1000);
 
     do {
         ret = select(fd + 1, &read_fds, &write_fds, NULL,
@@ -523,12 +523,12 @@ void mbedtls_net_usleep(unsigned long usec)
     Sleep((usec + 999) / 1000);
 #else
     struct timeval tv;
-    tv.tv_sec  = usec / 1000000;
+    tv.tv_sec  = (long) (usec / 1000000);
 #if defined(__unix__) || defined(__unix) || \
     (defined(__APPLE__) && defined(__MACH__))
-    tv.tv_usec = (suseconds_t) usec % 1000000;
+    tv.tv_usec = (long) (usec % 1000000);
 #else
-    tv.tv_usec = usec % 1000000;
+    tv.tv_usec = (long) (usec % 1000000);
 #endif
     select(0, NULL, NULL, NULL, &tv);
 #endif
@@ -594,8 +594,8 @@ int mbedtls_net_recv_timeout(void *ctx, unsigned char *buf,
     FD_ZERO(&read_fds);
     FD_SET((SOCKET) fd, &read_fds);
 
-    tv.tv_sec  = timeout / 1000;
-    tv.tv_usec = (timeout % 1000) * 1000;
+    tv.tv_sec  = (long) (timeout / 1000);
+    tv.tv_usec = (long) ((timeout % 1000) * 1000);
 
     ret = select(fd + 1, &read_fds, NULL, NULL, timeout == 0 ? NULL : &tv);
 

@@ -204,7 +204,7 @@ static void *buffer_alloc_calloc(size_t n, size_t size)
     size_t original_len, len;
 #if defined(MBEDTLS_MEMORY_BACKTRACE)
     void *trace_buffer[MAX_BT];
-    size_t trace_cnt;
+    int trace_cnt;
 #endif
 
     if (heap.buf == NULL || heap.first == NULL) {
@@ -280,7 +280,7 @@ static void *buffer_alloc_calloc(size_t n, size_t size)
 #if defined(MBEDTLS_MEMORY_BACKTRACE)
         trace_cnt = backtrace(trace_buffer, MAX_BT);
         cur->trace = backtrace_symbols(trace_buffer, trace_cnt);
-        cur->trace_count = trace_cnt;
+        cur->trace_count = (size_t) trace_cnt;
 #endif
 
         if ((heap.verify & MBEDTLS_MEMORY_VERIFY_ALLOC) && verify_chain() != 0) {
@@ -344,7 +344,7 @@ static void *buffer_alloc_calloc(size_t n, size_t size)
 #if defined(MBEDTLS_MEMORY_BACKTRACE)
     trace_cnt = backtrace(trace_buffer, MAX_BT);
     cur->trace = backtrace_symbols(trace_buffer, trace_cnt);
-    cur->trace_count = trace_cnt;
+    cur->trace_count = (size_t) trace_cnt;
 #endif
 
     if ((heap.verify & MBEDTLS_MEMORY_VERIFY_ALLOC) && verify_chain() != 0) {

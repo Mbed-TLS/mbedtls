@@ -94,8 +94,8 @@ unsigned long mbedtls_timing_get_timer(struct mbedtls_timing_hr_time *val, int r
         unsigned long delta;
         struct timeval now;
         gettimeofday(&now, NULL);
-        delta = (now.tv_sec  - t->start.tv_sec) * 1000ul
-                + (now.tv_usec - t->start.tv_usec) / 1000;
+        delta = (unsigned long) (((now.tv_sec - t->start.tv_sec) * 1000)
+                                 + ((now.tv_usec - t->start.tv_usec) / 1000));
         return delta;
     }
 }

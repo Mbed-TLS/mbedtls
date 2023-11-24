@@ -1489,7 +1489,7 @@ void cipher_entry_points(int alg_arg, int key_type_arg,
         output[i] = 0xa5;
     }
 
-    mbedtls_test_driver_cipher_hooks.cipher_update_hits = 0;
+    mbedtls_test_driver_cipher_hooks.cipher_update_forced_status_hits = 0;
     mbedtls_test_driver_cipher_hooks.cipher_encrypt_hits = 0;
     status = psa_cipher_encrypt(
         key, alg, input->x, input->len,
@@ -1501,7 +1501,7 @@ void cipher_entry_points(int alg_arg, int key_type_arg,
      * 1st access to the driver since "forced_status" is set. However this
      * initial access happens in psa_cipher_update() (random number generation
      * for IV) so psa_cipher_encrypt() never gets called. */
-    TEST_EQUAL(mbedtls_test_driver_cipher_hooks.cipher_update_hits, 1);
+    TEST_EQUAL(mbedtls_test_driver_cipher_hooks.cipher_update_forced_status_hits, 1);
 #endif
     TEST_EQUAL(status, PSA_ERROR_GENERIC_ERROR);
     /*

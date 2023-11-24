@@ -23,6 +23,7 @@ def looks_like_root(path: str) -> bool:
     return looks_like_tf_psa_crypto_root(path) or looks_like_mbedtls_root(path)
 
 def crypto_core_directory(root: Optional[str] = None) -> str:
+    """Return the path of the library code for either TF-PSA-Crypto or Mbed TLS."""
     if root is None:
         root = guess_project_root()
     if looks_like_tf_psa_crypto_root(root):
@@ -33,6 +34,7 @@ def crypto_core_directory(root: Optional[str] = None) -> str:
         raise Exception('Neither Mbed TLS nor TF-PSA-Crypto source tree found')
 
 def project_crypto_name(root: Optional[str] = None) -> str:
+    """Return the crypto library filename for either TF-PSA-Crypto or Mbed TLS."""
     if root is None:
         root = guess_project_root()
     if looks_like_tf_psa_crypto_root(root):

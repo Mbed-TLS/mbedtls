@@ -163,6 +163,9 @@ pre_initialize_variables () {
     # basic-build-test.sh as well.
     RELEASE_SEED=1
 
+    # Specify character collation for regular expressions and sorting with C locale
+    export LC_COLLATE=C
+
     : ${MBEDTLS_TEST_OUTCOME_FILE=}
     : ${MBEDTLS_TEST_PLATFORM="$(uname -s | tr -c \\n0-9A-Za-z _)-$(uname -m | tr -c \\n0-9A-Za-z _)"}
     export MBEDTLS_TEST_OUTCOME_FILE
@@ -397,13 +400,12 @@ armc6_build_test()
     FLAGS="$1"
 
     msg "build: ARM Compiler 6 ($FLAGS)"
+    make clean
     ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" CFLAGS="$FLAGS" \
                     WARNING_CFLAGS='-Werror -xc -std=c99' make lib
 
     msg "size: ARM Compiler 6 ($FLAGS)"
     "$ARMC6_FROMELF" -z library/*.o
-
-    make clean
 }
 
 err_msg()
@@ -1047,10 +1049,12 @@ component_check_test_dependencies () {
         grep -v MBEDTLS_PSA_ |
         sort -u > $found
 
-    # Expected ones with justification - keep in sorted order!
+    # Expected ones with justification - keep in sorted order by ASCII table!
     rm -f $expected
     # No PSA equivalent - WANT_KEY_TYPE_AES means all sizes
     echo "!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH" >> $expected
+    # No PSA equivalent - used to skip decryption tests in PSA-ECB, CBC/XTS/NIST_KW/DES
+    echo "!MBEDTLS_BLOCK_CIPHER_NO_DECRYPT" >> $expected
     # This is used by import_rsa_made_up() in test_suite_psa_crypto in order
     # to build a fake RSA key of the wanted size based on
     # PSA_VENDOR_RSA_MAX_KEY_BITS. The legacy module is only used by
@@ -4113,8 +4117,7 @@ component_build_psa_accel_key_type_rsa_public_key() {
 
 
 support_build_tfm_armcc () {
-    armc6_cc="$ARMC6_BIN_DIR/armclang"
-    (check_tools "$armc6_cc" > /dev/null 2>&1)
+    support_build_armcc
 }
 
 component_build_tfm_armcc() {
@@ -4123,7 +4126,6 @@ component_build_tfm_armcc() {
     cp configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
 
     msg "build: TF-M config, armclang armv7-m thumb2"
-    make clean
     armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../tests/include/spe"
 }
 
@@ -4238,8 +4240,26 @@ component_build_aes_variations() {
     # aes.o has many #if defined(...) guards that intersect in complex ways.
     # Test that all the combinations build cleanly.
 
+    MBEDTLS_ROOT_DIR="$PWD"
     msg "build: aes.o for all combinations of relevant config options"
 
+    build_test_config_combos library/aes.o validate_aes_config_variations \
+        "MBEDTLS_AES_SETKEY_ENC_ALT" "MBEDTLS_AES_DECRYPT_ALT" \
+        "MBEDTLS_AES_ROM_TABLES" "MBEDTLS_AES_ENCRYPT_ALT" "MBEDTLS_AES_SETKEY_DEC_ALT" \
+        "MBEDTLS_AES_FEWER_TABLES" "MBEDTLS_PADLOCK_C" "MBEDTLS_AES_USE_HARDWARE_ONLY" \
+        "MBEDTLS_AESNI_C" "MBEDTLS_AESCE_C" "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"
+
+    cd "$MBEDTLS_ROOT_DIR"
+    msg "build: aes.o for all combinations of relevant config options + BLOCK_CIPHER_NO_DECRYPT"
+
+    # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT is incompatible with ECB in PSA, CBC/XTS/NIST_KW/DES,
+    # manually set or unset those configurations to check
+    # MBEDTLS_BLOCK_CIPHER_NO_DECRYPT with various combinations in aes.o.
+    scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+    scripts/config.py unset MBEDTLS_DES_C
+    scripts/config.py unset MBEDTLS_NIST_KW_C
     build_test_config_combos library/aes.o validate_aes_config_variations \
         "MBEDTLS_AES_SETKEY_ENC_ALT" "MBEDTLS_AES_DECRYPT_ALT" \
         "MBEDTLS_AES_ROM_TABLES" "MBEDTLS_AES_ENCRYPT_ALT" "MBEDTLS_AES_SETKEY_DEC_ALT" \
@@ -4812,6 +4832,158 @@ component_test_aes_fewer_tables_and_rom_tables () {
     make test
 }
 
+# helper for common_block_cipher_no_decrypt() which:
+# - enable/disable the list of config options passed from -s/-u respectively.
+# - build
+# - test for tests_suite_xxx
+# - selftest
+#
+# Usage: helper_block_cipher_no_decrypt_build_test
+#        [-s set_opts] [-u unset_opts] [-c cflags] [-l ldflags] [option [...]]
+# Options:  -s set_opts     the list of config options to enable
+#           -u unset_opts   the list of config options to disable
+#           -c cflags       the list of options passed to CFLAGS
+#           -l ldflags      the list of options passed to LDFLAGS
+helper_block_cipher_no_decrypt_build_test () {
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -s)
+                shift; local set_opts="$1";;
+            -u)
+                shift; local unset_opts="$1";;
+            -c)
+                shift; local cflags="-Werror -Wall -Wextra $1";;
+            -l)
+                shift; local ldflags="$1";;
+        esac
+        shift
+    done
+    set_opts="${set_opts:-}"
+    unset_opts="${unset_opts:-}"
+    cflags="${cflags:-}"
+    ldflags="${ldflags:-}"
+
+    [ -n "$set_opts" ] && echo "Enabling: $set_opts" && scripts/config.py set-all $set_opts
+    [ -n "$unset_opts" ] && echo "Disabling: $unset_opts" && scripts/config.py unset-all $unset_opts
+
+    msg "build: default config + BLOCK_CIPHER_NO_DECRYPT${set_opts:+ + $set_opts}${unset_opts:+ - $unset_opts} with $cflags${ldflags:+, $ldflags}"
+    make clean
+    make CC=gcc CFLAGS="$cflags" LDFLAGS="$ldflags"
+
+    # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
+    not grep mbedtls_aes_setkey_dec library/aes.o
+    not grep mbedtls_aria_setkey_dec library/aria.o
+    not grep mbedtls_camellia_setkey_dec library/camellia.o
+    # Make sure we don't have mbedtls_internal_aes_decrypt in AES
+    not grep mbedtls_internal_aes_decrypt library/aes.o
+    # Make sure we don't have mbedtls_aesni_inverse_key in AESNI
+    not grep mbedtls_aesni_inverse_key library/aesni.o
+
+    msg "test: default config + BLOCK_CIPHER_NO_DECRYPT${set_opts:+ + $set_opts}${unset_opts:+ - $unset_opts} with $cflags${ldflags:+, $ldflags}"
+    make test
+
+    msg "selftest: default config + BLOCK_CIPHER_NO_DECRYPT${set_opts:+ + $set_opts}${unset_opts:+ - $unset_opts} with $cflags${ldflags:+, $ldflags}"
+    programs/test/selftest
+}
+
+# This is a common configuration function used in:
+# - component_test_block_cipher_no_decrypt_aesni_legacy()
+# - component_test_block_cipher_no_decrypt_aesni_use_psa()
+# in order to test BLOCK_CIPHER_NO_DECRYPT with AESNI intrinsics,
+# AESNI assembly and AES C implementation on x86_64 and with AESNI intrinsics
+# on x86.
+common_block_cipher_no_decrypt () {
+    # test AESNI intrinsics
+    helper_block_cipher_no_decrypt_build_test \
+        -s "MBEDTLS_AESNI_C" \
+        -c "-mpclmul -msse2 -maes"
+
+    # test AESNI assembly
+    helper_block_cipher_no_decrypt_build_test \
+        -s "MBEDTLS_AESNI_C" \
+        -c "-mno-pclmul -mno-sse2 -mno-aes"
+
+    # test AES C implementation
+    helper_block_cipher_no_decrypt_build_test \
+        -u "MBEDTLS_AESNI_C"
+
+    # test AESNI intrinsics for i386 target
+    helper_block_cipher_no_decrypt_build_test \
+        -s "MBEDTLS_AESNI_C" \
+        -c "-m32 -mpclmul -msse2 -maes" \
+        -l "-m32"
+}
+
+# This is a configuration function used in component_test_block_cipher_no_decrypt_xxx:
+# usage: 0: no PSA crypto configuration
+#        1: use PSA crypto configuration
+config_block_cipher_no_decrypt () {
+    use_psa=$1
+
+    scripts/config.py set MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+    scripts/config.py unset MBEDTLS_DES_C
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+
+    if [ "$use_psa" -eq 1 ]; then
+        # Enable support for cryptographic mechanisms through the PSA API.
+        # Note: XTS, KW are not yet supported via the PSA API in Mbed TLS.
+        scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+        scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
+        scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
+        scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
+        scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_DES
+    fi
+}
+
+component_test_block_cipher_no_decrypt_aesni () {
+    config_block_cipher_no_decrypt 0
+    common_block_cipher_no_decrypt
+}
+
+component_test_block_cipher_no_decrypt_aesni_use_psa () {
+    config_block_cipher_no_decrypt 1
+    common_block_cipher_no_decrypt
+}
+
+support_test_block_cipher_no_decrypt_aesce_armcc () {
+    support_build_armcc
+}
+
+component_test_block_cipher_no_decrypt_aesce_armcc () {
+    scripts/config.py baremetal
+
+    # armc[56] don't support SHA-512 intrinsics
+    scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
+
+    # Stop armclang warning about feature detection for A64_CRYPTO.
+    # With this enabled, the library does build correctly under armclang,
+    # but in baremetal builds (as tested here), feature detection is
+    # unavailable, and the user is notified via a #warning. So enabling
+    # this feature would prevent us from building with -Werror on
+    # armclang. Tracked in #7198.
+    scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+    scripts/config.py set MBEDTLS_HAVE_ASM
+
+    config_block_cipher_no_decrypt 1
+
+    # test AESCE baremetal build
+    scripts/config.py set MBEDTLS_AESCE_C
+    msg "build: default config + BLOCK_CIPHER_NO_DECRYPT with AESCE"
+    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto -Werror -Wall -Wextra"
+
+    # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
+    not grep mbedtls_aes_setkey_dec library/aes.o
+    not grep mbedtls_aria_setkey_dec library/aria.o
+    not grep mbedtls_camellia_setkey_dec library/camellia.o
+    # Make sure we don't have mbedtls_internal_aes_decrypt in AES
+    not grep mbedtls_internal_aes_decrypt library/aes.o
+    # Make sure we don't have mbedtls_aesce_inverse_key and aesce_decrypt_block in AESCE
+    not grep mbedtls_aesce_inverse_key library/aesce.o
+    not grep aesce_decrypt_block library/aesce.o
+}
+
 component_test_ctr_drbg_aes_256_sha_256 () {
     msg "build: full + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
     scripts/config.py full
@@ -5280,8 +5452,6 @@ component_build_armcc () {
 
     msg "size: ARM Compiler 5"
     "$ARMC5_FROMELF" -z library/*.o
-
-    make clean
 
     # Compile mostly with -O1 since some Arm inline assembly is disabled for -O0.
 

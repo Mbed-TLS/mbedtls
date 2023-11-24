@@ -77,12 +77,30 @@ typedef struct {
 } mutex_functions_t;
 static mutex_functions_t mutex_functions;
 
+/**
+ *  The mutex used to guard live_mutexes below and access to the status variable
+ *  in every mbedtls_threading_mutex_t.
+ *  Note that we are not reporting any errors when locking and unlocking this
+ *  mutex. This is for a couple of reasons:
+ *
+ *  1. We have no real way of reporting any errors with this mutex - we cannot
+ *  report it back to the caller, as the failure was not that of the mutex
+ *  passed in. We could fail the test, but again this would indicate a problem
+ *  with the test code that did not exist.
+ *
+ *  2. Any failure to lock is unlikely to be intermittent, and will thus not
+ *  give false test results - the overall result would be to turn off the
+ *  testing. This is not a situation that is likely to happen with normal
+ *  testing and we still have TSan to fall back on should this happen.
+ */
 mbedtls_threading_mutex_t mbedtls_test_mutex_mutex;
 
-/** The total number of calls to mbedtls_mutex_init(), minus the total number
- * of calls to mbedtls_mutex_free().
+/**
+ *  The total number of calls to mbedtls_mutex_init(), minus the total number
+ *  of calls to mbedtls_mutex_free().
  *
- * Reset to 0 after each test case.
+ *  Do not read or write without holding mbedtls_test_mutex_mutex (above). Reset
+ *  to 0 after each test case.
  */
 static int live_mutexes;
 

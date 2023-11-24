@@ -1,0 +1,3 @@
+Bugfix
+  * Use memcmp() to check that the signatureAlgorithm in the TBSCertificate is
+    equal to the signatureAlgorithm in the outer Certificate sequence.

@@ -48,6 +48,8 @@ PSA_ARCH_TESTS_REF = 'fix-pr-5736'
 def main(library_build_dir: str):
     root_dir = os.getcwd()
 
+    in_tf_psa_crypto_repo = build_tree.looks_like_tf_psa_crypto_root(root_dir)
+
     crypto_name = build_tree.project_crypto_name(root_dir)
     library_subdir = build_tree.crypto_core_directory(root_dir)
 

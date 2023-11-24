@@ -194,15 +194,6 @@ psa_status_t mbedtls_psa_register_se_key(
 /**@}*/
 
 /**
- * \brief PSA random deinitialization.
- *
- * This function frees the RNG implementation used by PSA.
- *
- * This is an Mbed TLS extension.
- */
-void mbedtls_psa_random_free(void);
-
-/**
  * \brief Library deinitialization.
  *
  * This function clears all data associated with the PSA layer,

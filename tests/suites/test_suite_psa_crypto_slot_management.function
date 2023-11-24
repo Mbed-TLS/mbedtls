@@ -91,9 +91,7 @@ static int invalidate_psa(invalidate_method_t invalidate_method)
     }
 
     PSA_ASSERT(psa_crypto_init());
-
     ASSERT_PSA_PRISTINE();
-
     return 1;
 
 exit:

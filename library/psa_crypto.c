@@ -1849,6 +1849,8 @@ static psa_status_t psa_start_key_creation(
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
+    slot->status = PSA_SLOT_OCCUPIED;
+
     return PSA_SUCCESS;
 }
 

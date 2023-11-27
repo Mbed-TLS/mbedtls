@@ -3340,6 +3340,10 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
             return ret;
         }
         p += output_len;
+    } else {
+        MBEDTLS_SSL_DEBUG_MSG(
+            4, ("early_data not allowed, "
+                "skip early_data extension in NewSessionTicket"));
     }
 
 #endif /* MBEDTLS_SSL_EARLY_DATA */

@@ -1061,10 +1061,10 @@ void cipher_encrypt_validation(int alg_arg,
                               &key));
 
     mbedtls_test_driver_cipher_hooks.hits = 0;
-    mbedtls_test_driver_cipher_hooks.cipher_encrypt_hits = 0;
+    mbedtls_test_driver_cipher_hooks.hits_encrypt = 0;
     PSA_ASSERT(psa_cipher_encrypt(key, alg, input->x, input->len, output1,
                                   output1_buffer_size, &output1_length));
-    TEST_EQUAL(mbedtls_test_driver_cipher_hooks.cipher_encrypt_hits, 1);
+    TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits_encrypt, 1);
     mbedtls_test_driver_cipher_hooks.hits = 0;
 
     PSA_ASSERT(psa_cipher_encrypt_setup(&operation, key, alg));
@@ -1475,34 +1475,25 @@ void cipher_entry_points(int alg_arg, int key_type_arg,
      * successful, then force driver error.
      */
     mbedtls_test_driver_cipher_hooks.hits = 0;
-    mbedtls_test_driver_cipher_hooks.cipher_encrypt_hits = 0;
+    mbedtls_test_driver_cipher_hooks.hits_encrypt = 0;
     status = psa_cipher_encrypt(
         key, alg, input->x, input->len,
         output, output_buffer_size, &function_output_length);
-    TEST_EQUAL(mbedtls_test_driver_cipher_hooks.cipher_encrypt_hits, 1);
+    TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits_encrypt, 1);
     TEST_EQUAL(status, PSA_SUCCESS);
     mbedtls_test_driver_cipher_hooks.hits = 0;
 
-    mbedtls_test_driver_cipher_hooks.forced_status = PSA_ERROR_GENERIC_ERROR;
+    mbedtls_test_driver_cipher_hooks.forced_status_encrypt = PSA_ERROR_GENERIC_ERROR;
     /* Set the output buffer in a given state. */
     for (size_t i = 0; i < output_buffer_size; i++) {
         output[i] = 0xa5;
     }
 
-    mbedtls_test_driver_cipher_hooks.cipher_update_forced_status_hits = 0;
-    mbedtls_test_driver_cipher_hooks.cipher_encrypt_hits = 0;
+    mbedtls_test_driver_cipher_hooks.hits_encrypt = 0;
     status = psa_cipher_encrypt(
         key, alg, input->x, input->len,
         output, output_buffer_size, &function_output_length);
-#if defined(MBEDTLS_AES_C)
-    TEST_EQUAL(mbedtls_test_driver_cipher_hooks.cipher_encrypt_hits, 1);
-#else
-    /* The call to psa_cipher_encrypt() is intentionally supposed to fail on the
-     * 1st access to the driver since "forced_status" is set. However this
-     * initial access happens in psa_cipher_update() (random number generation
-     * for IV) so psa_cipher_encrypt() never gets called. */
-    TEST_EQUAL(mbedtls_test_driver_cipher_hooks.cipher_update_forced_status_hits, 1);
-#endif
+    TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits_encrypt, 1);
     TEST_EQUAL(status, PSA_ERROR_GENERIC_ERROR);
     /*
      * Check that the output buffer is still in the same state.
@@ -1563,25 +1554,18 @@ void cipher_entry_points(int alg_arg, int key_type_arg,
     TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits, 1);
     TEST_EQUAL(status, mbedtls_test_driver_cipher_hooks.forced_status);
     mbedtls_test_driver_cipher_hooks.hits = 0;
+    mbedtls_test_driver_cipher_hooks.hits_set_iv = 0;
 
-    mbedtls_test_driver_cipher_hooks.forced_status = PSA_ERROR_GENERIC_ERROR;
+    mbedtls_test_driver_cipher_hooks.forced_status_set_iv = PSA_ERROR_GENERIC_ERROR;
     /* Set the output buffer in a given state. */
     for (size_t i = 0; i < 16; i++) {
         output[i] = 0xa5;
     }
 
     status = psa_cipher_generate_iv(&operation, output, 16, &function_output_length);
-    /* When generating the IV fails, it should call abort too */
-#if defined(MBEDTLS_AES_C)
-    TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits, 2);
-#else
-    /* Previously failed call to psa_cipher_encrypt() above caused PSA to abort
-     * the cipher operation related to RNG. Therefore this call to
-     * psa_cipher_generate_iv() will failed due to unitialized RNG. Only the
-     * last driver call to psa_cipher_abort() remains. */
-    TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits, 1);
-#endif
-    TEST_EQUAL(status, mbedtls_test_driver_cipher_hooks.forced_status);
+    TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits_set_iv, 1);
+    TEST_EQUAL(status, mbedtls_test_driver_cipher_hooks.forced_status_set_iv);
+    mbedtls_test_driver_cipher_hooks.forced_status_set_iv = PSA_SUCCESS;
     /*
      * Check that the output buffer is still in the same state.
      * This will fail if the output buffer is used by the core to pass the IV

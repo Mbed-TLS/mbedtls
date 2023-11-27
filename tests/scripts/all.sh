@@ -4665,6 +4665,63 @@ component_build_aes_aesce_armcc () {
     armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8-a+crypto"
 }
 
+support_build_aes_armce() {
+    # clang >= 4 is required to build with AES extensions
+    ver="$(clang --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#')"
+    [ "${ver}" -ge 11 ]
+}
+
+component_build_aes_armce () {
+    # Test variations of AES with Armv8 crypto extensions
+    scripts/config.py set MBEDTLS_AESCE_C
+    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
+
+    msg "MBEDTLS_AES_USE_HARDWARE_ONLY, clang, aarch64"
+    make -B library/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a+crypto"
+
+    msg "MBEDTLS_AES_USE_HARDWARE_ONLY, clang, arm"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm"
+
+    msg "MBEDTLS_AES_USE_HARDWARE_ONLY, clang, thumb"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
+
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
+
+    msg "no MBEDTLS_AES_USE_HARDWARE_ONLY, clang, aarch64"
+    make -B library/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a+crypto"
+
+    msg "no MBEDTLS_AES_USE_HARDWARE_ONLY, clang, arm"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm"
+
+    msg "no MBEDTLS_AES_USE_HARDWARE_ONLY, clang, thumb"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb"
+
+    # test for presence of AES instructions
+    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
+    msg "clang, test A32 crypto instructions built"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm -S"
+    grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' library/aesce.o
+    msg "clang, test T32 crypto instructions built"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb -S"
+    grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' library/aesce.o
+    msg "clang, test aarch64 crypto instructions built"
+    make -B library/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a -S"
+    grep -E 'aes[a-z]+\s*[qv]' library/aesce.o
+
+    # test for absence of AES instructions
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
+    scripts/config.py unset MBEDTLS_AESCE_C
+    msg "clang, test A32 crypto instructions not built"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a72+crypto -marm -S"
+    not grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' library/aesce.o
+    msg "clang, test T32 crypto instructions not built"
+    make -B library/aesce.o CC=clang CFLAGS="--target=arm-linux-gnueabihf -mcpu=cortex-a32+crypto -mthumb -S"
+    not grep -E 'aes[0-9a-z]+.[0-9]\s*[qv]' library/aesce.o
+    msg "clang, test aarch64 crypto instructions not built"
+    make -B library/aesce.o CC=clang CFLAGS="--target=aarch64-linux-gnu -march=armv8-a -S"
+    not grep -E 'aes[a-z]+\s*[qv]' library/aesce.o
+}
+
 support_build_sha_armce() {
     if command -v clang > /dev/null ; then
         # clang >= 4 is required to build with SHA extensions
@@ -5438,6 +5495,9 @@ component_build_armcc () {
     # armc[56] don't support SHA-512 intrinsics
     scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
 
+    # older versions of armcc/armclang don't support AESCE_C on 32-bit Arm
+    scripts/config.py unset MBEDTLS_AESCE_C
+
     # Stop armclang warning about feature detection for A64_CRYPTO.
     # With this enabled, the library does build correctly under armclang,
     # but in baremetal builds (as tested here), feature detection is
@@ -5470,14 +5530,18 @@ component_build_armcc () {
     # ARM Compiler 6 - Target ARMv8-M
     armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv8-m.main"
 
-    # ARM Compiler 6 - Target ARMv8.2-A - AArch64
-    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
-
     # ARM Compiler 6 - Target Cortex-M0 - no optimisation
     armc6_build_test "-O0 --target=arm-arm-none-eabi -mcpu=cortex-m0"
 
     # ARM Compiler 6 - Target Cortex-M0
     armc6_build_test "-Os --target=arm-arm-none-eabi -mcpu=cortex-m0"
+
+    # ARM Compiler 6 - Target ARMv8.2-A - AArch64
+    #
+    # Re-enable MBEDTLS_AESCE_C as this should be supported by the version of armclang
+    # that we have in our CI
+    scripts/config.py set MBEDTLS_AESCE_C
+    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
 }
 
 support_build_armcc () {

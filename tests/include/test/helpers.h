@@ -123,16 +123,18 @@ unsigned long mbedtls_test_get_step(void);
 /**
  * \brief           Get the current test line buffer 1
  *
- * \return          The current test line buffer 1
+ * \param line      Buffer of minimum size \c MBEDTLS_TEST_LINE_LENGTH,
+ *                  which will have line buffer 1 copied to it.
  */
-const char *mbedtls_test_get_line1(void);
+void mbedtls_test_get_line1(char *line);
 
 /**
  * \brief           Get the current test line buffer 2
  *
- * \return          The current test line buffer 2
+ * \param line      Buffer of minimum size \c MBEDTLS_TEST_LINE_LENGTH,
+ *                  which will have line buffer 1 copied to it.
  */
-const char *mbedtls_test_get_line2(void);
+void mbedtls_test_get_line2(char *line);
 
 #if defined(MBEDTLS_TEST_MUTEX_USAGE)
 /**

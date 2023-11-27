@@ -13,6 +13,10 @@
 #include <test/psa_crypto_helpers.h>
 #endif
 
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#endif
+
 /*----------------------------------------------------------------------------*/
 /* Static global variables */
 
@@ -22,76 +26,200 @@ static mbedtls_platform_context platform_ctx;
 
 mbedtls_test_info_t mbedtls_test_info;
 
+#ifdef MBEDTLS_THREADING_C
+mbedtls_threading_mutex_t mbedtls_test_info_mutex;
+#endif /* MBEDTLS_THREADING_C */
+
 /*----------------------------------------------------------------------------*/
 /* Mbedtls Test Info accessors */
 
 mbedtls_test_result_t mbedtls_test_get_result(void)
 {
-    return mbedtls_test_info.result;
+    mbedtls_test_result_t result;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
+    result =  mbedtls_test_info.result;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
+    return result;
 }
 
 void mbedtls_test_set_result(mbedtls_test_result_t result, const char *test,
                              int line_no, const char *filename)
 {
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
     mbedtls_test_info.result = result;
     mbedtls_test_info.test = test;
     mbedtls_test_info.line_no = line_no;
     mbedtls_test_info.filename = filename;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
 }
 
 const char *mbedtls_test_get_test(void)
 {
-    return mbedtls_test_info.test;
+    const char *test;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
+    test = mbedtls_test_info.test;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
+    return test;
 }
 const char *mbedtls_get_test_filename(void)
 {
-    return mbedtls_test_info.filename;
+    const char *filename;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
+    /* It should be ok just to pass back the pointer here, as it is going to
+     * be a pointer into non changing data. */
+    filename = mbedtls_test_info.filename;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
+    return filename;
 }
 
 int mbedtls_test_get_line_no(void)
 {
-    return mbedtls_test_info.line_no;
+    int line_no;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
+    line_no = mbedtls_test_info.line_no;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
+    return line_no;
 }
 
 void mbedtls_test_increment_step(void)
 {
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
     ++mbedtls_test_info.step;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
 }
 
 unsigned long mbedtls_test_get_step(void)
 {
-    return mbedtls_test_info.step;
+    unsigned long step;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
+    step = mbedtls_test_info.step;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
+    return step;
 }
 
-void mbedtls_test_set_step(unsigned long step) {
-    mbedtls_test_info.step = step;
-}
-
-const char *mbedtls_test_get_line1(void)
+void mbedtls_test_set_step(unsigned long step)
 {
-    return mbedtls_test_info.line1;
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
+    mbedtls_test_info.step = step;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+}
+
+void mbedtls_test_get_line1(char *line)
+{
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
+    memcpy(line, mbedtls_test_info.line1, MBEDTLS_TEST_LINE_LENGTH);
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
 }
 
 void mbedtls_test_set_line1(const char *line)
 {
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
     if (line == NULL) {
-        memset(mbedtls_test_info.line1, 0, sizeof(mbedtls_test_info.line1));
+        memset(mbedtls_test_info.line1, 0, MBEDTLS_TEST_LINE_LENGTH);
     } else {
-        strncpy(mbedtls_test_info.line1, line, sizeof(mbedtls_test_info.line1));
+        memcpy(mbedtls_test_info.line1, line, MBEDTLS_TEST_LINE_LENGTH);
     }
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
 }
 
-const char *mbedtls_test_get_line2(void)
+void mbedtls_test_get_line2(char *line)
 {
-    return mbedtls_test_info.line2;
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
+    memcpy(line, mbedtls_test_info.line2, MBEDTLS_TEST_LINE_LENGTH);
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
 }
 
-void mbedtls_test_set_line2(const char *line) {
+void mbedtls_test_set_line2(const char *line)
+{
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
     if (line == NULL) {
-        memset(mbedtls_test_info.line2, 0, sizeof(mbedtls_test_info.line2));
+        memset(mbedtls_test_info.line2, 0, MBEDTLS_TEST_LINE_LENGTH);
     } else {
-        strncpy(mbedtls_test_info.line2, line, sizeof(mbedtls_test_info.line2));
+        memcpy(mbedtls_test_info.line2, line, MBEDTLS_TEST_LINE_LENGTH);
     }
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
 }
 
 
@@ -103,9 +231,17 @@ const char *mbedtls_test_get_mutex_usage_error(void)
 
 void mbedtls_test_set_mutex_usage_error(const char *msg)
 {
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
     if (mbedtls_test_info.mutex_usage_error == NULL || msg == NULL) {
         mbedtls_test_info.mutex_usage_error = msg;
     }
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
 }
 #endif // #if defined(MBEDTLS_TEST_MUTEX_USAGE)
 
@@ -113,17 +249,43 @@ void mbedtls_test_set_mutex_usage_error(const char *msg)
 
 unsigned mbedtls_test_get_case_uses_negative_0(void)
 {
-    return mbedtls_test_info.case_uses_negative_0;
+    unsigned test_case_uses_negative_0 = 0;
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+    test_case_uses_negative_0 = mbedtls_test_info.case_uses_negative_0;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
+    return test_case_uses_negative_0;
 }
 
 void mbedtls_test_set_case_uses_negative_0(unsigned uses)
 {
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
     mbedtls_test_info.case_uses_negative_0 = uses;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
 }
 
 void mbedtls_test_increment_case_uses_negative_0(void)
 {
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
     ++mbedtls_test_info.case_uses_negative_0;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
 }
 
 #endif
@@ -150,11 +312,19 @@ int mbedtls_test_platform_setup(void)
     ret = mbedtls_platform_setup(&platform_ctx);
 #endif /* MBEDTLS_PLATFORM_C */
 
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_init(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
     return ret;
 }
 
 void mbedtls_test_platform_teardown(void)
 {
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_free(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_teardown(&platform_ctx);
 #endif /* MBEDTLS_PLATFORM_C */

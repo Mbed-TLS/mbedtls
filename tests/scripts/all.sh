@@ -3276,7 +3276,7 @@ component_test_tfm_config_p256m_driver_accel_ec () {
     not grep mbedtls_dhm_ library/dhm.o
     not grep mbedtls_mpi_ library/bignum.o
     # Check that p256m was built
-    grep -q p256_ecdsa_verify library/libmbedcrypto.a
+    grep -q p256_ecdsa_ library/libmbedcrypto.a
 
     # Run the tests
     msg "test: TF-M config + p256m driver + accel ECDH(E)/ECDSA"
@@ -3297,7 +3297,7 @@ component_test_tfm_config() {
     make CFLAGS='-Werror -Wall -Wextra -I../tests/include/spe' tests
 
     # Check that p256m was not built
-    not grep p256_ecdsa_verify library/libmbedcrypto.a
+    not grep p256_ecdsa_ library/libmbedcrypto.a
 
     msg "test: TF-M config"
     make test

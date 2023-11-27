@@ -247,6 +247,11 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 
 #endif /* MBEDTLS_HAVE_TIME */
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    MBEDTLS_SSL_DEBUG_MSG(2, ("ticket->max_early_data_size=%u",
+                              (unsigned int) session->max_early_data_size));
+#endif
+
 exit:
     if (ret != 0) {
         mbedtls_ssl_session_free(session);

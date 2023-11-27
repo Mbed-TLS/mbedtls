@@ -3563,6 +3563,20 @@ psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
     uint8_t local_iv[PSA_CIPHER_IV_MAX_SIZE];
     size_t default_iv_length = 0;
 
+    psa_crypto_local_input_t local_input = PSA_CRYPTO_LOCAL_INPUT_INIT;
+    status = psa_crypto_local_input_alloc(input, input_length, &local_input);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+    input = local_input.buffer;
+
+    psa_crypto_local_output_t local_output = PSA_CRYPTO_LOCAL_OUTPUT_INIT;
+    status = psa_crypto_local_output_alloc(output, output_size, &local_output);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+    output = local_output.buffer;
+
     if (!PSA_ALG_IS_CIPHER(alg)) {
         status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
@@ -3617,6 +3631,9 @@ exit:
     } else {
         *output_length = 0;
     }
+
+    psa_crypto_local_input_free(&local_input);
+    psa_crypto_local_output_free(&local_output);
 
     return status;
 }

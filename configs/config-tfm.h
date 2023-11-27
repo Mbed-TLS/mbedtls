@@ -21,16 +21,6 @@
 /* MBEDTLS_PSA_CRYPTO_SPM needs third-party files, so disable it. */
 #undef MBEDTLS_PSA_CRYPTO_SPM
 
-/* TF-M provides its own dummy implementations to save code size.
- * We don't have any way to disable the tests that need these feature,
- * so we just keep AES decryption enabled. We will resolve this through
- * an official way to disable AES decryption, then this deviation
- * will no longer be needed:
- * https://github.com/Mbed-TLS/mbedtls/issues/7368
- */
-#undef MBEDTLS_AES_SETKEY_DEC_ALT
-#undef MBEDTLS_AES_DECRYPT_ALT
-
 /* Use built-in platform entropy functions (TF-M provides its own). */
 #undef MBEDTLS_NO_PLATFORM_ENTROPY
 

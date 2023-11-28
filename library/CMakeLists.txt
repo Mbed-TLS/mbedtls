@@ -22,6 +22,7 @@ set(src_crypto
     bignum_core.c
     bignum_mod.c
     bignum_mod_raw.c
+    block_cipher.c
     camellia.c
     ccm.c
     chacha20.c
@@ -296,7 +297,7 @@ endif(USE_STATIC_MBEDTLS_LIBRARY)
 if(USE_SHARED_MBEDTLS_LIBRARY)
     set(CMAKE_LIBRARY_PATH ${CMAKE_CURRENT_BINARY_DIR})
     add_library(${mbedcrypto_target} SHARED ${src_crypto})
-    set_target_properties(${mbedcrypto_target} PROPERTIES VERSION 3.5.0 SOVERSION 15)
+    set_target_properties(${mbedcrypto_target} PROPERTIES VERSION 3.5.1 SOVERSION 15)
     target_link_libraries(${mbedcrypto_target} PUBLIC ${libs})
 
     if(TARGET ${everest_target})
@@ -308,11 +309,11 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
     endif()
 
     add_library(${mbedx509_target} SHARED ${src_x509})
-    set_target_properties(${mbedx509_target} PROPERTIES VERSION 3.5.0 SOVERSION 6)
+    set_target_properties(${mbedx509_target} PROPERTIES VERSION 3.5.1 SOVERSION 6)
     target_link_libraries(${mbedx509_target} PUBLIC ${libs} ${mbedcrypto_target})
 
     add_library(${mbedtls_target} SHARED ${src_tls})
-    set_target_properties(${mbedtls_target} PROPERTIES VERSION 3.5.0 SOVERSION 20)
+    set_target_properties(${mbedtls_target} PROPERTIES VERSION 3.5.1 SOVERSION 20)
     target_link_libraries(${mbedtls_target} PUBLIC ${libs} ${mbedx509_target})
 endif(USE_SHARED_MBEDTLS_LIBRARY)
 

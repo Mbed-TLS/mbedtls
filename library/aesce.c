@@ -2,19 +2,7 @@
  *  Armv8-A Cryptographic Extension support functions for Aarch64
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #if defined(__aarch64__) && !defined(__ARM_FEATURE_CRYPTO) && \
@@ -199,6 +187,7 @@ rounds_10:
 /* Two rounds of AESCE decryption */
 #define AESCE_DECRYPT_ROUND_X2        AESCE_DECRYPT_ROUND; AESCE_DECRYPT_ROUND
 
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 static uint8x16_t aesce_decrypt_block(uint8x16_t block,
                                       unsigned char *keys,
                                       int rounds)
@@ -230,6 +219,7 @@ rounds_10:
 
     return block;
 }
+#endif
 
 /*
  * AES-ECB block en(de)cryption
@@ -242,10 +232,15 @@ int mbedtls_aesce_crypt_ecb(mbedtls_aes_context *ctx,
     uint8x16_t block = vld1q_u8(&input[0]);
     unsigned char *keys = (unsigned char *) (ctx->buf + ctx->rk_offset);
 
-    if (mode == MBEDTLS_AES_ENCRYPT) {
-        block = aesce_encrypt_block(block, keys, ctx->nr);
-    } else {
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
+    if (mode == MBEDTLS_AES_DECRYPT) {
         block = aesce_decrypt_block(block, keys, ctx->nr);
+    } else
+#else
+    (void) mode;
+#endif
+    {
+        block = aesce_encrypt_block(block, keys, ctx->nr);
     }
     vst1q_u8(&output[0], block);
 
@@ -255,6 +250,7 @@ int mbedtls_aesce_crypt_ecb(mbedtls_aes_context *ctx,
 /*
  * Compute decryption round keys from encryption round keys
  */
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 void mbedtls_aesce_inverse_key(unsigned char *invkey,
                                const unsigned char *fwdkey,
                                int nr)
@@ -269,6 +265,7 @@ void mbedtls_aesce_inverse_key(unsigned char *invkey,
     vst1q_u8(invkey + i * 16, vld1q_u8(fwdkey + j * 16));
 
 }
+#endif
 
 static inline uint32_t aes_rot_word(uint32_t word)
 {
@@ -312,7 +309,7 @@ static void aesce_setkey_enc(unsigned char *rk,
          rki + key_len_in_words < rko_end;
          rki += key_len_in_words) {
 
-        size_t iteration = (rki - (uint32_t *) rk) / key_len_in_words;
+        size_t iteration = (size_t) (rki - (uint32_t *) rk) / key_len_in_words;
         uint32_t *rko;
         rko = rki + key_len_in_words;
         rko[0] = aes_rot_word(aes_sub_word(rki[key_len_in_words - 1]));
@@ -397,8 +394,8 @@ static inline uint8x16_t pmull_low(uint8x16_t a, uint8x16_t b)
 
     return vreinterpretq_u8_p128(
         MBEDTLS_VMULL_P64(
-            vget_low_p64(vreinterpretq_p64_u8(a)),
-            vget_low_p64(vreinterpretq_p64_u8(b))
+            (poly64_t) vget_low_p64(vreinterpretq_p64_u8(a)),
+            (poly64_t) vget_low_p64(vreinterpretq_p64_u8(b))
             ));
 }
 

@@ -2,19 +2,7 @@
  *  Public Key layer for parsing key files and structures
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -940,7 +928,7 @@ int mbedtls_pk_parse_subpubkey(unsigned char **p, const unsigned char *end,
             ret = pk_use_ecparams(&alg_params, pk);
         }
         if (ret == 0) {
-            ret = pk_ecc_set_pubkey(pk, *p, end - *p);
+            ret = pk_ecc_set_pubkey(pk, *p, (size_t) (end - *p));
             *p += end - *p;
         }
     } else
@@ -1245,7 +1233,7 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
                                          MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
             }
 
-            if ((ret = pk_ecc_set_pubkey(pk, p, end2 - p)) == 0) {
+            if ((ret = pk_ecc_set_pubkey(pk, p, (size_t) (end2 - p))) == 0) {
                 pubkey_done = 1;
             } else {
                 /*
@@ -1424,7 +1412,7 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_pk_parse_key_pkcs8_encrypted_der(
     unsigned char *buf;
     unsigned char *p, *end;
     mbedtls_asn1_buf pbe_alg_oid, pbe_params;
-#if defined(MBEDTLS_PKCS12_C)
+#if defined(MBEDTLS_PKCS12_C) && defined(MBEDTLS_CIPHER_PADDING_PKCS7)
     mbedtls_cipher_type_t cipher_alg;
     mbedtls_md_type_t md_alg;
 #endif
@@ -1472,7 +1460,7 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_pk_parse_key_pkcs8_encrypted_der(
     /*
      * Decrypt EncryptedData with appropriate PBE
      */
-#if defined(MBEDTLS_PKCS12_C)
+#if defined(MBEDTLS_PKCS12_C) && defined(MBEDTLS_CIPHER_PADDING_PKCS7)
     if (mbedtls_oid_get_pkcs12_pbe_alg(&pbe_alg_oid, &md_alg, &cipher_alg) == 0) {
         if ((ret = mbedtls_pkcs12_pbe_ext(&pbe_params, MBEDTLS_PKCS12_PBE_DECRYPT,
                                           cipher_alg, md_alg,
@@ -1487,7 +1475,7 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_pk_parse_key_pkcs8_encrypted_der(
         decrypted = 1;
     } else
 #endif /* MBEDTLS_PKCS12_C */
-#if defined(MBEDTLS_PKCS5_C)
+#if defined(MBEDTLS_PKCS5_C) && defined(MBEDTLS_CIPHER_PADDING_PKCS7)
     if (MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS5_PBES2, &pbe_alg_oid) == 0) {
         if ((ret = mbedtls_pkcs5_pbes2_ext(&pbe_params, MBEDTLS_PKCS5_DECRYPT, pwd, pwdlen,
                                            p, len, buf, len, &outlen)) != 0) {

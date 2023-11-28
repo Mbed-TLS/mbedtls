@@ -24,6 +24,17 @@
 #define RSA_KEY_SIZE   MBEDTLS_RSA_GEN_KEY_MIN_BITS
 #define RSA_KEY_LEN   (MBEDTLS_RSA_GEN_KEY_MIN_BITS/8)
 
+/* MBEDTLS_TEST_PK_PSA_SIGN is enabled when:
+ * - The build has PK_[PARSE/WRITE]_C for RSA or ECDSA signature.
+ * - The build has built-in ECC and ECDSA signature.
+ */
+#if (defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PK_WRITE_C) && \
+    ((defined(MBEDTLS_RSA_C) && defined(MBEDTLS_GENPRIME)) || \
+    defined(MBEDTLS_PK_CAN_ECDSA_SIGN))) || \
+    (defined(MBEDTLS_ECP_C) && defined(MBEDTLS_PK_CAN_ECDSA_SIGN))
+#define MBEDTLS_TEST_PK_PSA_SIGN
+#endif
+
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static int pk_genkey_ec(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id)
 {
@@ -1274,7 +1285,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_USE_PSA_CRYPTO */
+/* BEGIN_CASE depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_TEST_PK_PSA_SIGN */
 void pk_psa_sign(int parameter_arg,
                  int psa_type_arg, int expected_bits_arg)
 {

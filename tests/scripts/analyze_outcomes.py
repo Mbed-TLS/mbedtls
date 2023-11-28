@@ -282,7 +282,7 @@ KNOWN_TASKS = {
                 'test_suite_pkparse': [
                     'Key ASN1 (Encrypted key PKCS12, trailing garbage data)',
                     'Key ASN1 (Encrypted key PKCS5, trailing garbage data)',
-                    re.compile(r'Parse RSA Key .*\(PKCS#8 encrypted .*\)'),
+                    re.compile(r'Parse (RSA|EC) Key .*\(.* ([Ee]ncrypted|password).*\)'),
                 ],
             }
         }

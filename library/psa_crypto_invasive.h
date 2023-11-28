@@ -79,6 +79,14 @@ psa_status_t psa_crypto_copy_input(const uint8_t *input, size_t input_len,
 psa_status_t psa_crypto_copy_output(const uint8_t *output_copy, size_t output_copy_len,
                                     uint8_t *output, size_t output_len);
 
+/*
+ * Test hooks to use for memory unpoisoning/poisoning in copy functions.
+ */
+extern void (*psa_input_pre_copy_hook)(const uint8_t *input, size_t input_len);
+extern void (*psa_input_post_copy_hook)(const uint8_t *input, size_t input_len);
+extern void (*psa_output_pre_copy_hook)(const uint8_t *output, size_t output_len);
+extern void (*psa_output_post_copy_hook)(const uint8_t *output, size_t output_len);
+
 #endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_PSA_CRYPTO_C */
 
 #endif /* PSA_CRYPTO_INVASIVE_H */

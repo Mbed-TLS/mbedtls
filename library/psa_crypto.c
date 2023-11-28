@@ -72,10 +72,6 @@
 #include "mbedtls/sha512.h"
 #include "md_psa.h"
 
-#if defined(MBEDTLS_TEST_HOOKS)
-#include "test/memory.h"
-#endif
-
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) ||          \
     defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) ||  \
     defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
@@ -8451,6 +8447,13 @@ psa_status_t psa_pake_abort(
 }
 #endif /* PSA_WANT_ALG_SOME_PAKE */
 
+/* Memory copying test hooks */
+#if defined(MBEDTLS_TEST_HOOKS)
+void (*psa_input_pre_copy_hook)(const uint8_t *input, size_t input_len) = NULL;
+void (*psa_input_post_copy_hook)(const uint8_t *input, size_t input_len) = NULL;
+void (*psa_output_pre_copy_hook)(const uint8_t *output, size_t output_len) = NULL;
+void (*psa_output_post_copy_hook)(const uint8_t *output, size_t output_len) = NULL;
+#endif
 
 /** Copy from an input buffer to a local copy.
  *
@@ -8473,7 +8476,9 @@ psa_status_t psa_crypto_copy_input(const uint8_t *input, size_t input_len,
     }
 
 #if defined(MBEDTLS_TEST_HOOKS)
-    MBEDTLS_TEST_MEMORY_UNPOISON(input, input_len);
+    if (psa_input_pre_copy_hook != NULL) {
+        psa_input_pre_copy_hook(input, input_len);
+    }
 #endif
 
     if (input_len > 0) {
@@ -8481,7 +8486,9 @@ psa_status_t psa_crypto_copy_input(const uint8_t *input, size_t input_len,
     }
 
 #if defined(MBEDTLS_TEST_HOOKS)
-    MBEDTLS_TEST_MEMORY_POISON(input, input_len);
+    if (psa_input_post_copy_hook != NULL) {
+        psa_input_post_copy_hook(input, input_len);
+    }
 #endif
 
     return PSA_SUCCESS;
@@ -8508,7 +8515,9 @@ psa_status_t psa_crypto_copy_output(const uint8_t *output_copy, size_t output_co
     }
 
 #if defined(MBEDTLS_TEST_HOOKS)
-    MBEDTLS_TEST_MEMORY_UNPOISON(output, output_len);
+    if (psa_output_pre_copy_hook != NULL) {
+        psa_output_pre_copy_hook(output, output_len);
+    }
 #endif
 
     if (output_copy_len > 0) {
@@ -8516,7 +8525,9 @@ psa_status_t psa_crypto_copy_output(const uint8_t *output_copy, size_t output_co
     }
 
 #if defined(MBEDTLS_TEST_HOOKS)
-    MBEDTLS_TEST_MEMORY_POISON(output, output_len);
+    if (psa_output_post_copy_hook != NULL) {
+        psa_output_post_copy_hook(output, output_len);
+    }
 #endif
 
     return PSA_SUCCESS;

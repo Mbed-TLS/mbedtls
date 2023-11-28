@@ -12,8 +12,13 @@ import traceback
 import re
 import subprocess
 import os
+import typing
 
 import check_test_cases
+
+ComponentOutcomes = typing.NamedTuple('ComponentOutcomes',
+                                      [('successes', typing.Set[str]),
+                                       ('failures', typing.Set[str])])
 
 class Results:
     """Process analysis results."""
@@ -65,8 +70,8 @@ def analyze_coverage(results, outcomes, allow_list, full_coverage):
     for suite_case in available:
         hits = 0
         for comp_outcomes in outcomes.values():
-            if suite_case in comp_outcomes["successes"] or \
-               suite_case in comp_outcomes["failures"]:
+            if suite_case in comp_outcomes.successes or \
+               suite_case in comp_outcomes.failures:
                 hits += 1
                 break
 
@@ -111,11 +116,11 @@ def analyze_driver_vs_reference(results: Results, outcomes,
         results.error("required components are missing: bad outcome file?")
         return
 
-    if not ref_outcomes['successes']:
+    if not ref_outcomes.successes:
         results.error("no passing test in reference component: bad outcome file?")
         return
 
-    for suite_case in ref_outcomes["successes"]:
+    for suite_case in ref_outcomes.successes:
         # suite_case is like "test_suite_foo.bar;Description of test case"
         (full_test_suite, test_string) = suite_case.split(';')
         test_suite = full_test_suite.split('.')[0] # retrieve main part of test suite name
@@ -133,9 +138,9 @@ def analyze_driver_vs_reference(results: Results, outcomes,
                 if name_matches_pattern(test_string, str_or_re):
                     ignored = True
 
-        if not ignored and not suite_case in driver_outcomes['successes']:
+        if not ignored and not suite_case in driver_outcomes.successes:
             results.error("PASS -> SKIP/FAIL: {}", suite_case)
-        if ignored and suite_case in driver_outcomes['successes']:
+        if ignored and suite_case in driver_outcomes.successes:
             results.error("uselessly ignored: {}", suite_case)
 
 def analyze_outcomes(results: Results, outcomes, args):
@@ -149,12 +154,23 @@ def read_outcome_file(outcome_file):
 An outcome collection is a dictionary presentation of the outcome file:
 ```
 outcomes = {
-    "<component>": {
-        "successes": frozenset(["<suite_case>", ... ]),
-        "failures": frozenset(["<suite_case>", ...])
-    }
+    "<component>": ComponentOutcomes,
     ...
 }
+
+CompoentOutcomes is a named tuple which is defined as:
+
+ComponentOutcomes(
+    successes = {
+        <suite_case>,
+        ...
+    },
+    failures = {
+        <suite_case>,
+        ...
+    }
+)
+
 suite_case = "<suite>;<case>"
 ```
 """
@@ -164,11 +180,11 @@ suite_case = "<suite>;<case>"
             (_platform, component, suite, case, result, _cause) = line.split(';')
             suite_case = ';'.join([suite, case])
             if component not in outcomes:
-                outcomes[component] = {"successes":set(), "failures":set()}
+                outcomes[component] = ComponentOutcomes(set(), set())
             if result == 'PASS':
-                outcomes[component]['successes'].add(suite_case)
+                outcomes[component].successes.add(suite_case)
             elif result == 'FAIL':
-                outcomes[component]['failures'].add(suite_case)
+                outcomes[component].failures.add(suite_case)
 
     return outcomes
 

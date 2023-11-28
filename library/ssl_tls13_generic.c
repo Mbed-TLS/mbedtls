@@ -1407,9 +1407,6 @@ cleanup:
  *     case encrypted_extensions: Empty;
  *   };
  * } EarlyDataIndication;
- *
- * We use `mbedtls_ssl_is_handshake_over()` to decide if `max_early_data_size`
- * should be sent for `new_session_ticket` is post-handshake message.
  */
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,

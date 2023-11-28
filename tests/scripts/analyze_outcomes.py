@@ -68,6 +68,7 @@ def analyze_coverage(results, outcomes, allow_list, full_coverage):
             if suite_case in comp_outcomes["successes"] or \
                suite_case in comp_outcomes["failures"]:
                 hits += 1
+                break
 
         if hits == 0 and suite_case not in allow_list:
             if full_coverage:

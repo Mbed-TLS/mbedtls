@@ -336,16 +336,8 @@
 #error "MBEDTLS_CCM_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_CCM_C) && !defined(MBEDTLS_CIPHER_C)
-#error "MBEDTLS_CCM_C defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_GCM_C) && (                                        \
     !defined(MBEDTLS_AES_C) && !defined(MBEDTLS_CAMELLIA_C) && !defined(MBEDTLS_ARIA_C) )
-#error "MBEDTLS_GCM_C defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_GCM_C) && !defined(MBEDTLS_CIPHER_C)
 #error "MBEDTLS_GCM_C defined, but not all prerequisites"
 #endif
 

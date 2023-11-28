@@ -39,6 +39,21 @@
 #endif
 #include "mbedtls/platform.h"
 
+/* Helpers for properly sizing buffers aimed at holding public keys or
+ * key-pairs based on build symbols. */
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+#define PK_MAX_EC_PUBLIC_KEY_SIZE       PSA_EXPORT_PUBLIC_KEY_MAX_SIZE
+#define PK_MAX_EC_KEY_PAIR_SIZE         MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH
+#else
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#define PK_MAX_EC_PUBLIC_KEY_SIZE       PSA_EXPORT_PUBLIC_KEY_MAX_SIZE
+#define PK_MAX_EC_KEY_PAIR_SIZE         MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH
+#else
+#define PK_MAX_EC_PUBLIC_KEY_SIZE       MBEDTLS_ECP_MAX_PT_LEN
+#define PK_MAX_EC_KEY_PAIR_SIZE         MBEDTLS_ECP_MAX_BYTES
+#endif
+#endif
+
 /******************************************************************************
  * Internal functions for RSA keys.
  ******************************************************************************/
@@ -205,7 +220,7 @@ static int pk_write_ec_pubkey(unsigned char **p, unsigned char *start,
                               const mbedtls_pk_context *pk)
 {
     size_t len = 0;
-    uint8_t buf[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
+    uint8_t buf[PK_MAX_EC_PUBLIC_KEY_SIZE];
 
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_OPAQUE) {
         if (psa_export_public_key(pk->priv_id, buf, sizeof(buf), &len) != PSA_SUCCESS) {
@@ -230,11 +245,7 @@ static int pk_write_ec_pubkey(unsigned char **p, unsigned char *start,
                               const mbedtls_pk_context *pk)
 {
     size_t len = 0;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    uint8_t buf[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
-#else
-    unsigned char buf[MBEDTLS_ECP_MAX_PT_LEN];
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+    unsigned char buf[PK_MAX_EC_PUBLIC_KEY_SIZE];
     mbedtls_ecp_keypair *ec = mbedtls_pk_ec(*pk);
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -276,7 +287,7 @@ static int pk_write_ec_private(unsigned char **p, unsigned char *start,
 {
     size_t byte_length;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char tmp[MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH];
+    unsigned char tmp[PK_MAX_EC_KEY_PAIR_SIZE];
     psa_status_t status;
 
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_OPAQUE) {
@@ -304,14 +315,10 @@ static int pk_write_ec_private(unsigned char **p, unsigned char *start,
 {
     size_t byte_length;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    unsigned char tmp[MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH];
-    psa_status_t status;
-#else
-    unsigned char tmp[MBEDTLS_ECP_MAX_BYTES];
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+    unsigned char tmp[PK_MAX_EC_KEY_PAIR_SIZE];
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status;
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_OPAQUE) {
         status = psa_export_key(pk->priv_id, tmp, sizeof(tmp), &byte_length);
         if (status != PSA_SUCCESS) {

@@ -21,6 +21,20 @@
 #include "psa/crypto.h"
 #endif
 
+/* Headers/footers for PEM files */
+#define PEM_BEGIN_PUBLIC_KEY    "-----BEGIN PUBLIC KEY-----"
+#define PEM_END_PUBLIC_KEY      "-----END PUBLIC KEY-----"
+#define PEM_BEGIN_PRIVATE_KEY_RSA   "-----BEGIN RSA PRIVATE KEY-----"
+#define PEM_END_PRIVATE_KEY_RSA     "-----END RSA PRIVATE KEY-----"
+#define PEM_BEGIN_PUBLIC_KEY_RSA     "-----BEGIN RSA PUBLIC KEY-----"
+#define PEM_END_PUBLIC_KEY_RSA     "-----END RSA PUBLIC KEY-----"
+#define PEM_BEGIN_PRIVATE_KEY_EC    "-----BEGIN EC PRIVATE KEY-----"
+#define PEM_END_PRIVATE_KEY_EC      "-----END EC PRIVATE KEY-----"
+#define PEM_BEGIN_PRIVATE_KEY_PKCS8 "-----BEGIN PRIVATE KEY-----"
+#define PEM_END_PRIVATE_KEY_PKCS8   "-----END PRIVATE KEY-----"
+#define PEM_BEGIN_ENCRYPTED_PRIVATE_KEY_PKCS8 "-----BEGIN ENCRYPTED PRIVATE KEY-----"
+#define PEM_END_ENCRYPTED_PRIVATE_KEY_PKCS8   "-----END ENCRYPTED PRIVATE KEY-----"
+
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 #include "psa_util_internal.h"
 #define PSA_PK_TO_MBEDTLS_ERR(status) psa_pk_status_to_mbedtls(status)

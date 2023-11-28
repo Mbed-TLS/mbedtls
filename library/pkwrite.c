@@ -366,23 +366,6 @@ static int pk_write_ec_param(unsigned char **p, unsigned char *start,
 }
 
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
-static inline int mbedtls_pk_is_rfc8410(const mbedtls_pk_context *pk)
-{
-    mbedtls_ecp_group_id id = mbedtls_pk_get_group_id(pk);
-
-#if defined(MBEDTLS_ECP_HAVE_CURVE25519)
-    if (id == MBEDTLS_ECP_DP_CURVE25519) {
-        return 1;
-    }
-#endif
-#if defined(MBEDTLS_ECP_HAVE_CURVE448)
-    if (id == MBEDTLS_ECP_DP_CURVE448) {
-        return 1;
-    }
-#endif
-    return 0;
-}
-
 /*
  * RFC8410 section 7
  *

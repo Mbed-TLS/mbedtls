@@ -863,12 +863,6 @@ static int pk_get_pk_alg(unsigned char **p,
     return 0;
 }
 
-/* Helper for Montgomery curves */
-#if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
-#define MBEDTLS_PK_IS_RFC8410_GROUP_ID(id)  \
-    ((id == MBEDTLS_ECP_DP_CURVE25519) || (id == MBEDTLS_ECP_DP_CURVE448))
-#endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
-
 /*
  *  SubjectPublicKeyInfo  ::=  SEQUENCE  {
  *       algorithm            AlgorithmIdentifier,

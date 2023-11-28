@@ -587,11 +587,11 @@ Applications currently using `mbedtls_pkcs5_pbkdf2_hmac` or `mbedtls_pkcs5_pbkdf
   If you want to verify the output against an expected value (for authentication, rather than to derive key material), call `psa_key_derivation_verify_bytes` or `psa_key_derivation_verify_key` instead of `psa_key_derivation_output_bytes`.
 6. Call [`psa_key_derivation_abort`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1ga90fdd2716124d0bd258826184824675f) to free the resources associated with the key derivation object.
 
-The function `mbedtls_pkcs5_pbes2` is only inteded as a support function to parse encrypted private keys in the PK module. It has no PSA equivalent.
+The function `mbedtls_pkcs5_pbes2` is only intended as a support function to parse encrypted private keys in the PK module. It has no PSA equivalent.
 
 ### PKCS#12 module
 
-The functions `mbedtls_pkcs12_derivation` and `mbedtls_pkcs12_pbes2` are only intended as supports function to parse encrypted private keys in the PK module. They have no PSA equivalent.
+The functions `mbedtls_pkcs12_derivation` and `mbedtls_pkcs12_pbes2` are only intended as support functions to parse encrypted private keys in the PK module. They have no PSA equivalent.
 
 ## Random generation
 

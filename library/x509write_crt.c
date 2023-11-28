@@ -651,8 +651,8 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
     return (int) len;
 }
 
-#define PEM_BEGIN_CRT           "-----BEGIN CERTIFICATE-----\n"
-#define PEM_END_CRT             "-----END CERTIFICATE-----\n"
+#define PEM_BEGIN_CRT           "-----BEGIN CERTIFICATE-----"
+#define PEM_END_CRT             "-----END CERTIFICATE-----"
 
 #if defined(MBEDTLS_PEM_WRITE_C)
 int mbedtls_x509write_crt_pem(mbedtls_x509write_cert *crt,

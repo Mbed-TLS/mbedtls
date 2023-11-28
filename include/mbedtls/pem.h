@@ -135,6 +135,9 @@ void mbedtls_pem_free(mbedtls_pem_context *ctx);
  * \param olen      The address at which to store the total length written
  *                  or required (if \p buf_len is not enough).
  *
+ * \note            Newlines are automatically appended to both header and
+ *                  footer.
+ *
  * \note            You may pass \c NULL for \p buf and \c 0 for \p buf_len
  *                  to request the length of the resulting PEM buffer in
  *                  `*olen`.

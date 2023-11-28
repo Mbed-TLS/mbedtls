@@ -174,6 +174,9 @@ def read_outcome_file(outcome_file: str) -> Outcomes:
     with open(outcome_file, 'r', encoding='utf-8') as input_file:
         for line in input_file:
             (_platform, component, suite, case, result, _cause) = line.split(';')
+            # Note that `component` is not unique. If a test case passes on Linux
+            # and fails on FreeBSD, it'll end up in both the successes set and
+            # the failures set.
             suite_case = ';'.join([suite, case])
             if component not in outcomes:
                 outcomes[component] = ComponentOutcomes(set(), set())

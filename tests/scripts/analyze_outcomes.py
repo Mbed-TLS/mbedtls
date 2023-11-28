@@ -232,6 +232,12 @@ KNOWN_TASKS = {
                 'psa_crypto_low_hash.generated', # testing the builtins
             ],
             'ignored_tests': {
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
             }
         }
     },
@@ -254,6 +260,12 @@ KNOWN_TASKS = {
                 # The rest of PEM (write, unencrypted read) works though.
                 'test_suite_pem': [
                     re.compile(r'PEM read .*(AES|DES|\bencrypt).*'),
+                ],
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
                 ],
                 # Following tests depend on AES_C/DES_C but are not about
                 # them really, just need to know some error code is there.
@@ -297,6 +309,12 @@ KNOWN_TASKS = {
                 'ecdsa', 'ecdh', 'ecjpake',
             ],
             'ignored_tests': {
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
                 # This test wants a legacy function that takes f_rng, p_rng
                 # arguments, and uses legacy ECDSA for that. The test is
                 # really about the wrapper around the PSA RNG, not ECDSA.
@@ -330,6 +348,12 @@ KNOWN_TASKS = {
                 'ecp', 'ecdsa', 'ecdh', 'ecjpake',
             ],
             'ignored_tests': {
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
                 # See ecp_light_only
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',
@@ -363,6 +387,12 @@ KNOWN_TASKS = {
                 'bignum.generated', 'bignum.misc',
             ],
             'ignored_tests': {
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
                 # See ecp_light_only
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',
@@ -400,6 +430,12 @@ KNOWN_TASKS = {
                 'bignum.generated', 'bignum.misc',
             ],
             'ignored_tests': {
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
                 # See ecp_light_only
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',
@@ -431,7 +467,14 @@ KNOWN_TASKS = {
             'component_ref': 'test_psa_crypto_config_reference_ffdh',
             'component_driver': 'test_psa_crypto_config_accel_ffdh',
             'ignored_suites': ['dhm'],
-            'ignored_tests': {}
+            'ignored_tests': {
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
+            }
         }
     },
     'analyze_driver_vs_reference_tfm_config': {
@@ -447,6 +490,12 @@ KNOWN_TASKS = {
                 'bignum.generated', 'bignum.misc',
             ],
             'ignored_tests': {
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
                 # See ecp_light_only
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',

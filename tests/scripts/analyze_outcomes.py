@@ -16,9 +16,31 @@ import typing
 
 import check_test_cases
 
+
+# `CompoentOutcomes` is a named tuple which is defined as:
+# ComponentOutcomes(
+#     successes = {
+#         "<suite_case>",
+#         ...
+#     },
+#     failures = {
+#         "<suite_case>",
+#         ...
+#     }
+# )
+# suite_case = "<suite>;<case>"
 ComponentOutcomes = typing.NamedTuple('ComponentOutcomes',
                                       [('successes', typing.Set[str]),
                                        ('failures', typing.Set[str])])
+
+# `Outcomes` is a representation of the outcomes file,
+# which defined as:
+# Outcomes = {
+#     "<component>": ComponentOutcomes,
+#     ...
+# }
+Outcomes = typing.Dict[str, ComponentOutcomes]
+
 
 class Results:
     """Process analysis results."""
@@ -45,8 +67,8 @@ class Results:
     def _print_line(fmt, *args, **kwargs):
         sys.stderr.write((fmt + '\n').format(*args, **kwargs))
 
-def execute_reference_driver_tests(results: Results, ref_component, driver_component, \
-                                   outcome_file):
+def execute_reference_driver_tests(results: Results, ref_component: str, driver_component: str, \
+                                   outcome_file: str) -> None:
     """Run the tests specified in ref_component and driver_component. Results
     are stored in the output_file and they will be used for the following
     coverage analysis"""
@@ -60,7 +82,8 @@ def execute_reference_driver_tests(results: Results, ref_component, driver_compo
     if ret_val != 0:
         results.error("failed to run reference/driver components")
 
-def analyze_coverage(results, outcomes, allow_list, full_coverage):
+def analyze_coverage(results: Results, outcomes: Outcomes,
+                     allow_list: typing.List[str], full_coverage: bool) -> None:
     """Check that all available test cases are executed at least once."""
     available = check_test_cases.collect_available_test_cases()
     for suite_case in available:
@@ -83,7 +106,7 @@ def analyze_coverage(results, outcomes, allow_list, full_coverage):
             else:
                 results.warning('Allow listed test case was executed: {}', suite_case)
 
-def name_matches_pattern(name, str_or_re):
+def name_matches_pattern(name: str, str_or_re) -> bool:
     """Check if name matches a pattern, that may be a string or regex.
     - If the pattern is a string, name must be equal to match.
     - If the pattern is a regex, name must fully match.
@@ -91,13 +114,13 @@ def name_matches_pattern(name, str_or_re):
     # The CI's python is too old for re.Pattern
     #if isinstance(str_or_re, re.Pattern):
     if not isinstance(str_or_re, str):
-        return str_or_re.fullmatch(name)
+        return str_or_re.fullmatch(name) is not None
     else:
         return str_or_re == name
 
-def analyze_driver_vs_reference(results: Results, outcomes,
-                                component_ref, component_driver,
-                                ignored_suites, ignored_tests=None):
+def analyze_driver_vs_reference(results: Results, outcomes: Outcomes,
+                                component_ref: str, component_driver: str,
+                                ignored_suites: typing.List[str], ignored_tests=None) -> None:
     """Check that all tests passing in the reference component are also
     passing in the corresponding driver component.
     Skip:
@@ -139,37 +162,14 @@ def analyze_driver_vs_reference(results: Results, outcomes,
         if ignored and suite_case in driver_outcomes.successes:
             results.error("uselessly ignored: {}", suite_case)
 
-def analyze_outcomes(results: Results, outcomes, args):
+def analyze_outcomes(results: Results, outcomes: Outcomes, args) -> None:
     """Run all analyses on the given outcome collection."""
     analyze_coverage(results, outcomes, args['allow_list'],
                      args['full_coverage'])
 
-def read_outcome_file(outcome_file):
+def read_outcome_file(outcome_file: str) -> Outcomes:
     """Parse an outcome file and return an outcome collection.
-
-An outcome collection is a dictionary presentation of the outcome file:
-```
-outcomes = {
-    "<component>": ComponentOutcomes,
-    ...
-}
-
-CompoentOutcomes is a named tuple which is defined as:
-
-ComponentOutcomes(
-    successes = {
-        <suite_case>,
-        ...
-    },
-    failures = {
-        <suite_case>,
-        ...
-    }
-)
-
-suite_case = "<suite>;<case>"
-```
-"""
+    """
     outcomes = {}
     with open(outcome_file, 'r', encoding='utf-8') as input_file:
         for line in input_file:
@@ -184,12 +184,12 @@ suite_case = "<suite>;<case>"
 
     return outcomes
 
-def do_analyze_coverage(results: Results, outcomes, args):
+def do_analyze_coverage(results: Results, outcomes: Outcomes, args) -> None:
     """Perform coverage analysis."""
     results.new_section("Analyze coverage")
     analyze_outcomes(results, outcomes, args)
 
-def do_analyze_driver_vs_reference(results: Results, outcomes, args):
+def do_analyze_driver_vs_reference(results: Results, outcomes: Outcomes, args) -> None:
     """Perform driver vs reference analyze."""
     results.new_section("Analyze driver {} vs reference {}",
                         args['component_driver'], args['component_ref'])
@@ -502,7 +502,7 @@ def main():
 
             task_name = tasks_list[0]
             task = KNOWN_TASKS[task_name]
-            if task['test_function'] != do_analyze_driver_vs_reference:
+            if task['test_function'] != do_analyze_driver_vs_reference: # pylint: disable=comparison-with-callable
                 sys.stderr.write("please provide valid outcomes file for {}.\n".format(task_name))
                 sys.exit(2)
 

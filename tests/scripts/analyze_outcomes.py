@@ -107,7 +107,11 @@ def analyze_driver_vs_reference(results: Results, outcomes,
     ref_outcomes = outcomes.get("component_" + component_ref)
     driver_outcomes = outcomes.get("component_" + component_driver)
 
-    if ref_outcomes is None or not ref_outcomes['successes']:
+    if ref_outcomes is None or driver_outcomes is None:
+        results.error("required components are missing: bad outcome file?")
+        return
+
+    if not ref_outcomes['successes']:
         results.error("no passing test in reference component: bad outcome file?")
         return
 

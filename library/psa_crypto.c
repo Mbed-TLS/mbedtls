@@ -4669,18 +4669,23 @@ exit:
 
 psa_status_t psa_aead_decrypt(mbedtls_svc_key_id_t key,
                               psa_algorithm_t alg,
-                              const uint8_t *nonce,
+                              const uint8_t *nonce_external,
                               size_t nonce_length,
-                              const uint8_t *additional_data,
+                              const uint8_t *additional_data_external,
                               size_t additional_data_length,
-                              const uint8_t *ciphertext,
+                              const uint8_t *ciphertext_external,
                               size_t ciphertext_length,
-                              uint8_t *plaintext,
+                              uint8_t *plaintext_external,
                               size_t plaintext_size,
                               size_t *plaintext_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
+
+    LOCAL_INPUT_DECLARE(nonce_external, nonce);
+    LOCAL_INPUT_DECLARE(additional_data_external, additional_data);
+    LOCAL_INPUT_DECLARE(ciphertext_external, ciphertext);
+    LOCAL_OUTPUT_DECLARE(plaintext_external, plaintext);
 
     *plaintext_length = 0;
 
@@ -4698,6 +4703,12 @@ psa_status_t psa_aead_decrypt(mbedtls_svc_key_id_t key,
     psa_key_attributes_t attributes = {
         .core = slot->attr
     };
+
+    LOCAL_INPUT_ALLOC(nonce_external, nonce_length, nonce);
+    LOCAL_INPUT_ALLOC(additional_data_external, additional_data_length,
+                      additional_data);
+    LOCAL_INPUT_ALLOC(ciphertext_external, ciphertext_length, ciphertext);
+    LOCAL_OUTPUT_ALLOC(plaintext_external, plaintext_size, plaintext);
 
     status = psa_aead_check_nonce_length(alg, nonce_length);
     if (status != PSA_SUCCESS) {
@@ -4717,6 +4728,11 @@ psa_status_t psa_aead_decrypt(mbedtls_svc_key_id_t key,
     }
 
 exit:
+    LOCAL_INPUT_FREE(nonce_external, nonce);
+    LOCAL_INPUT_FREE(additional_data_external, additional_data);
+    LOCAL_INPUT_FREE(ciphertext_external, ciphertext);
+    LOCAL_OUTPUT_FREE(plaintext_external, plaintext);
+
     psa_unregister_read(slot);
 
     return status;

@@ -2450,8 +2450,10 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
  *
  *     struct {
  *       uint64 ticket_creation_time;
- *       opaque alpn<0..2^8-1>;
+ *       ProtocolName ticket_alpn;
  *     } ServerOnlyData;
+ *
+ *     opaque ProtocolName<0..2^8-1>;
  *
  *     struct {
  *       uint8 endpoint;

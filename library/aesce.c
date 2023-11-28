@@ -45,7 +45,7 @@
 
 #include "aesce.h"
 
-#if defined(MBEDTLS_ARCH_IS_ARMV8_A) && defined(__ARM_NEON)
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
 
 /* Compiler version checks. */
 #if defined(__clang__)

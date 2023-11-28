@@ -164,16 +164,11 @@ suite_case = "<suite>;<case>"
             (_platform, component, suite, case, result, _cause) = line.split(';')
             suite_case = ';'.join([suite, case])
             if component not in outcomes:
-                outcomes[component] = {"successes":[], "failures":[]}
+                outcomes[component] = {"successes":set(), "failures":set()}
             if result == 'PASS':
-                outcomes[component]['successes'].append(suite_case)
+                outcomes[component]['successes'].add(suite_case)
             elif result == 'FAIL':
-                outcomes[component]['failures'].append(suite_case)
-
-    # Convert `list` to `frozenset` to improve search performance
-    for component in outcomes:
-        outcomes[component]['successes'] = frozenset(outcomes[component]['successes'])
-        outcomes[component]['failures'] = frozenset(outcomes[component]['failures'])
+                outcomes[component]['failures'].add(suite_case)
 
     return outcomes
 

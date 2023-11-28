@@ -4123,8 +4123,10 @@ support_build_tfm_armcc () {
 
 component_build_tfm_armcc() {
     # test the TF-M configuration can build cleanly with various warning flags enabled
-    cp configs/ext/tfm_mbedcrypto_config_profile_medium.h "$CONFIG_H"
-    cp configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
+    cp configs/config-tfm.h "$CONFIG_H"
+
+    # MBEDTLS_NO_PLATFORM_ENTROPY is needed as we are building for baremetal
+    ./scripts/config.py --force set MBEDTLS_NO_PLATFORM_ENTROPY
 
     msg "build: TF-M config, armclang armv7-m thumb2"
     armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../tests/include/spe"
@@ -4136,8 +4138,7 @@ component_build_tfm() {
     # TF-M configuration needs a TF-M platform. A tweaked version of
     # the configuration that works on mainstream platforms is in
     # configs/config-tfm.h, tested via test-ref-configs.pl.
-    cp configs/ext/tfm_mbedcrypto_config_profile_medium.h "$CONFIG_H"
-    cp configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
+    cp configs/config-tfm.h "$CONFIG_H"
 
     msg "build: TF-M config, clang, armv7-m thumb2"
     make lib CC="clang" CFLAGS="--target=arm-linux-gnueabihf -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../tests/include/spe"

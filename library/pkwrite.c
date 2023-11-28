@@ -18,9 +18,6 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_RSA_C)
-#include "mbedtls/rsa.h"
-#endif
 #if defined(MBEDTLS_ECP_C)
 #include "mbedtls/bignum.h"
 #include "mbedtls/ecp.h"
@@ -32,9 +29,6 @@
 #if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #include "pkwrite.h"
 #endif
-#if defined(MBEDTLS_ECDSA_C)
-#include "mbedtls/ecdsa.h"
-#endif
 #if defined(MBEDTLS_PEM_WRITE_C)
 #include "mbedtls/pem.h"
 #endif
@@ -45,62 +39,9 @@
 #endif
 #include "mbedtls/platform.h"
 
-/* Helper for Montgomery curves */
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
-#if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
-static inline int mbedtls_pk_is_rfc8410(const mbedtls_pk_context *pk)
-{
-    mbedtls_ecp_group_id id = mbedtls_pk_get_group_id(pk);
-
-#if defined(MBEDTLS_ECP_HAVE_CURVE25519)
-    if (id == MBEDTLS_ECP_DP_CURVE25519) {
-        return 1;
-    }
-#endif
-#if defined(MBEDTLS_ECP_HAVE_CURVE448)
-    if (id == MBEDTLS_ECP_DP_CURVE448) {
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_PEM_WRITE_C)
-/* It is assumed that the input key is opaque */
-static psa_ecc_family_t pk_get_opaque_ec_family(const mbedtls_pk_context *pk)
-{
-    psa_ecc_family_t ec_family = 0;
-    psa_key_attributes_t key_attrs = PSA_KEY_ATTRIBUTES_INIT;
-
-    if (psa_get_key_attributes(pk->priv_id, &key_attrs) != PSA_SUCCESS) {
-        return 0;
-    }
-    ec_family = PSA_KEY_TYPE_ECC_GET_FAMILY(psa_get_key_type(&key_attrs));
-    psa_reset_key_attributes(&key_attrs);
-
-    return ec_family;
-}
-#endif /* MBETLS_USE_PSA_CRYPTO && MBEDTLS_PEM_WRITE_C */
-#endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-/* It is assumed that the input key is opaque */
-static psa_key_type_t pk_get_opaque_key_type(const mbedtls_pk_context *pk)
-{
-    psa_key_attributes_t opaque_attrs = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_type_t opaque_key_type;
-
-    if (psa_get_key_attributes(pk->priv_id, &opaque_attrs) != PSA_SUCCESS) {
-        return 0;
-    }
-    opaque_key_type = psa_get_key_type(&opaque_attrs);
-    psa_reset_key_attributes(&opaque_attrs);
-
-    return opaque_key_type;
-}
-#endif /* MBETLS_USE_PSA_CRYPTO */
-
+/******************************************************************************
+ * Internal functions for RSA keys.
+ ******************************************************************************/
 #if defined(MBEDTLS_RSA_C)
 /*
  *  RSAPublicKey ::= SEQUENCE {
@@ -145,8 +86,119 @@ end_of_export:
 
     return (int) len;
 }
+
+static int pk_write_rsa_der(unsigned char **p, unsigned char *buf,
+                            const mbedtls_pk_context *pk)
+{
+    size_t len = 0;
+    int ret;
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_OPAQUE) {
+        uint8_t tmp[PSA_EXPORT_KEY_PAIR_MAX_SIZE];
+        size_t tmp_len = 0;
+
+        if (psa_export_key(pk->priv_id, tmp, sizeof(tmp), &tmp_len) != PSA_SUCCESS) {
+            return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+        }
+        *p -= tmp_len;
+        memcpy(*p, tmp, tmp_len);
+        len += tmp_len;
+        mbedtls_platform_zeroize(tmp, sizeof(tmp));
+    } else
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+    {
+        mbedtls_mpi T; /* Temporary holding the exported parameters */
+        mbedtls_rsa_context *rsa = mbedtls_pk_rsa(*pk);
+
+        /*
+         * Export the parameters one after another to avoid simultaneous copies.
+         */
+
+        mbedtls_mpi_init(&T);
+
+        /* Export QP */
+        if ((ret = mbedtls_rsa_export_crt(rsa, NULL, NULL, &T)) != 0 ||
+            (ret = mbedtls_asn1_write_mpi(p, buf, &T)) < 0) {
+            goto end_of_export;
+        }
+        len += ret;
+
+        /* Export DQ */
+        if ((ret = mbedtls_rsa_export_crt(rsa, NULL, &T, NULL)) != 0 ||
+            (ret = mbedtls_asn1_write_mpi(p, buf, &T)) < 0) {
+            goto end_of_export;
+        }
+        len += ret;
+
+        /* Export DP */
+        if ((ret = mbedtls_rsa_export_crt(rsa, &T, NULL, NULL)) != 0 ||
+            (ret = mbedtls_asn1_write_mpi(p, buf, &T)) < 0) {
+            goto end_of_export;
+        }
+        len += ret;
+
+        /* Export Q */
+        if ((ret = mbedtls_rsa_export(rsa, NULL, NULL,
+                                      &T, NULL, NULL)) != 0 ||
+            (ret = mbedtls_asn1_write_mpi(p, buf, &T)) < 0) {
+            goto end_of_export;
+        }
+        len += ret;
+
+        /* Export P */
+        if ((ret = mbedtls_rsa_export(rsa, NULL, &T,
+                                      NULL, NULL, NULL)) != 0 ||
+            (ret = mbedtls_asn1_write_mpi(p, buf, &T)) < 0) {
+            goto end_of_export;
+        }
+        len += ret;
+
+        /* Export D */
+        if ((ret = mbedtls_rsa_export(rsa, NULL, NULL,
+                                      NULL, &T, NULL)) != 0 ||
+            (ret = mbedtls_asn1_write_mpi(p, buf, &T)) < 0) {
+            goto end_of_export;
+        }
+        len += ret;
+
+        /* Export E */
+        if ((ret = mbedtls_rsa_export(rsa, NULL, NULL,
+                                      NULL, NULL, &T)) != 0 ||
+            (ret = mbedtls_asn1_write_mpi(p, buf, &T)) < 0) {
+            goto end_of_export;
+        }
+        len += ret;
+
+        /* Export N */
+        if ((ret = mbedtls_rsa_export(rsa, &T, NULL,
+                                      NULL, NULL, NULL)) != 0 ||
+            (ret = mbedtls_asn1_write_mpi(p, buf, &T)) < 0) {
+            goto end_of_export;
+        }
+        len += ret;
+
+end_of_export:
+
+        mbedtls_mpi_free(&T);
+        if (ret < 0) {
+            return ret;
+        }
+
+        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_int(p, buf, 0));
+        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, buf, len));
+        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(p,
+                                                         buf, MBEDTLS_ASN1_CONSTRUCTED |
+                                                         MBEDTLS_ASN1_SEQUENCE));
+    }
+
+    return (int) len;
+}
 #endif /* MBEDTLS_RSA_C */
 
+/******************************************************************************
+ * Internal functions for EC keys.
+ ******************************************************************************/
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static int pk_write_ec_pubkey(unsigned char **p, unsigned char *start,
@@ -216,28 +268,6 @@ static int pk_write_ec_pubkey(unsigned char **p, unsigned char *start,
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
 /*
- * ECParameters ::= CHOICE {
- *   namedCurve         OBJECT IDENTIFIER
- * }
- */
-static int pk_write_ec_param(unsigned char **p, unsigned char *start,
-                             mbedtls_ecp_group_id grp_id)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t len = 0;
-    const char *oid;
-    size_t oid_len;
-
-    if ((ret = mbedtls_oid_get_oid_by_ec_grp(grp_id, &oid, &oid_len)) != 0) {
-        return ret;
-    }
-
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_oid(p, start, oid, oid_len));
-
-    return (int) len;
-}
-
-/*
  * privateKey  OCTET STRING -- always of length ceil(log2(n)/8)
  */
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
@@ -305,9 +335,174 @@ exit:
     return ret;
 }
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+
+/*
+ * ECParameters ::= CHOICE {
+ *   namedCurve         OBJECT IDENTIFIER
+ * }
+ */
+static int pk_write_ec_param(unsigned char **p, unsigned char *start,
+                             mbedtls_ecp_group_id grp_id)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len = 0;
+    const char *oid;
+    size_t oid_len;
+
+    if ((ret = mbedtls_oid_get_oid_by_ec_grp(grp_id, &oid, &oid_len)) != 0) {
+        return ret;
+    }
+
+    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_oid(p, start, oid, oid_len));
+
+    return (int) len;
+}
+
+#if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
+static inline int mbedtls_pk_is_rfc8410(const mbedtls_pk_context *pk)
+{
+    mbedtls_ecp_group_id id = mbedtls_pk_get_group_id(pk);
+
+#if defined(MBEDTLS_ECP_HAVE_CURVE25519)
+    if (id == MBEDTLS_ECP_DP_CURVE25519) {
+        return 1;
+    }
+#endif
+#if defined(MBEDTLS_ECP_HAVE_CURVE448)
+    if (id == MBEDTLS_ECP_DP_CURVE448) {
+        return 1;
+    }
+#endif
+    return 0;
+}
+
+/*
+ * RFC8410 section 7
+ *
+ * OneAsymmetricKey ::= SEQUENCE {
+ *    version Version,
+ *    privateKeyAlgorithm PrivateKeyAlgorithmIdentifier,
+ *    privateKey PrivateKey,
+ *    attributes [0] IMPLICIT Attributes OPTIONAL,
+ *    ...,
+ *    [[2: publicKey [1] IMPLICIT PublicKey OPTIONAL ]],
+ *    ...
+ * }
+ * ...
+ * CurvePrivateKey ::= OCTET STRING
+ */
+static int pk_write_ec_rfc8410_der(unsigned char **p, unsigned char *buf,
+                                   const mbedtls_pk_context *pk)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len = 0;
+    size_t oid_len = 0;
+    const char *oid;
+    mbedtls_ecp_group_id grp_id;
+
+    /* privateKey */
+    MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_private(p, buf, pk));
+    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, buf, len));
+    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(p, buf, MBEDTLS_ASN1_OCTET_STRING));
+
+    grp_id = mbedtls_pk_get_group_id(pk);
+    /* privateKeyAlgorithm */
+    if ((ret = mbedtls_oid_get_oid_by_ec_grp_algid(grp_id, &oid, &oid_len)) != 0) {
+        return ret;
+    }
+    MBEDTLS_ASN1_CHK_ADD(len,
+                         mbedtls_asn1_write_algorithm_identifier_ext(p, buf, oid, oid_len, 0, 0));
+
+    /* version */
+    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_int(p, buf, 0));
+
+    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, buf, len));
+    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(p, buf, MBEDTLS_ASN1_CONSTRUCTED |
+                                                     MBEDTLS_ASN1_SEQUENCE));
+
+    return (int) len;
+}
+#endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
+
+/*
+ * RFC 5915, or SEC1 Appendix C.4
+ *
+ * ECPrivateKey ::= SEQUENCE {
+ *      version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+ *      privateKey     OCTET STRING,
+ *      parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+ *      publicKey  [1] BIT STRING OPTIONAL
+ *    }
+ */
+static int pk_write_ec_der(unsigned char **p, unsigned char *buf,
+                           const mbedtls_pk_context *pk)
+{
+    size_t len = 0;
+    int ret;
+    size_t pub_len = 0, par_len = 0;
+    mbedtls_ecp_group_id grp_id;
+
+    /* publicKey */
+    MBEDTLS_ASN1_CHK_ADD(pub_len, pk_write_ec_pubkey(p, buf, pk));
+
+    if (*p - buf < 1) {
+        return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
+    }
+    (*p)--;
+    **p = 0;
+    pub_len += 1;
+
+    MBEDTLS_ASN1_CHK_ADD(pub_len, mbedtls_asn1_write_len(p, buf, pub_len));
+    MBEDTLS_ASN1_CHK_ADD(pub_len, mbedtls_asn1_write_tag(p, buf, MBEDTLS_ASN1_BIT_STRING));
+
+    MBEDTLS_ASN1_CHK_ADD(pub_len, mbedtls_asn1_write_len(p, buf, pub_len));
+    MBEDTLS_ASN1_CHK_ADD(pub_len, mbedtls_asn1_write_tag(p, buf,
+                                                         MBEDTLS_ASN1_CONTEXT_SPECIFIC |
+                                                         MBEDTLS_ASN1_CONSTRUCTED | 1));
+    len += pub_len;
+
+    /* parameters */
+    grp_id = mbedtls_pk_get_group_id(pk);
+    MBEDTLS_ASN1_CHK_ADD(par_len, pk_write_ec_param(p, buf, grp_id));
+    MBEDTLS_ASN1_CHK_ADD(par_len, mbedtls_asn1_write_len(p, buf, par_len));
+    MBEDTLS_ASN1_CHK_ADD(par_len, mbedtls_asn1_write_tag(p, buf,
+                                                         MBEDTLS_ASN1_CONTEXT_SPECIFIC |
+                                                         MBEDTLS_ASN1_CONSTRUCTED | 0));
+    len += par_len;
+
+    /* privateKey */
+    MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_private(p, buf, pk));
+
+    /* version */
+    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_int(p, buf, 1));
+
+    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, buf, len));
+    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(p, buf, MBEDTLS_ASN1_CONSTRUCTED |
+                                                     MBEDTLS_ASN1_SEQUENCE));
+
+    return (int) len;
+}
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
+/******************************************************************************
+ * Internal functions for Opaque keys.
+ ******************************************************************************/
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+/* It is assumed that the input key is opaque */
+static psa_key_type_t pk_get_opaque_key_type(const mbedtls_pk_context *pk)
+{
+    psa_key_attributes_t opaque_attrs = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_type_t opaque_key_type;
+
+    if (psa_get_key_attributes(pk->priv_id, &opaque_attrs) != PSA_SUCCESS) {
+        return 0;
+    }
+    opaque_key_type = psa_get_key_type(&opaque_attrs);
+    psa_reset_key_attributes(&opaque_attrs);
+
+    return opaque_key_type;
+}
+
 static int pk_write_opaque_pubkey(unsigned char **p, unsigned char *start,
                                   const mbedtls_pk_context *pk)
 {
@@ -329,8 +524,28 @@ static int pk_write_opaque_pubkey(unsigned char **p, unsigned char *start,
 
     return (int) len;
 }
+
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && defined(MBEDTLS_PEM_WRITE_C)
+/* It is assumed that the input key is opaque */
+static psa_ecc_family_t pk_get_opaque_ec_family(const mbedtls_pk_context *pk)
+{
+    psa_ecc_family_t ec_family = 0;
+    psa_key_attributes_t key_attrs = PSA_KEY_ATTRIBUTES_INIT;
+
+    if (psa_get_key_attributes(pk->priv_id, &key_attrs) != PSA_SUCCESS) {
+        return 0;
+    }
+    ec_family = PSA_KEY_TYPE_ECC_GET_FAMILY(psa_get_key_type(&key_attrs));
+    psa_reset_key_attributes(&key_attrs);
+
+    return ec_family;
+}
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS && MBEDTLS_PEM_WRITE_C */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
+/******************************************************************************
+ * Public functions for writing private/public DER keys.
+ ******************************************************************************/
 int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
                             const mbedtls_pk_context *key)
 {
@@ -453,226 +668,6 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
     return (int) len;
 }
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
-#if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
-/*
- * RFC8410 section 7
- *
- * OneAsymmetricKey ::= SEQUENCE {
- *    version Version,
- *    privateKeyAlgorithm PrivateKeyAlgorithmIdentifier,
- *    privateKey PrivateKey,
- *    attributes [0] IMPLICIT Attributes OPTIONAL,
- *    ...,
- *    [[2: publicKey [1] IMPLICIT PublicKey OPTIONAL ]],
- *    ...
- * }
- * ...
- * CurvePrivateKey ::= OCTET STRING
- */
-static int pk_write_ec_rfc8410_der(unsigned char **p, unsigned char *buf,
-                                   const mbedtls_pk_context *pk)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t len = 0;
-    size_t oid_len = 0;
-    const char *oid;
-    mbedtls_ecp_group_id grp_id;
-
-    /* privateKey */
-    MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_private(p, buf, pk));
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, buf, len));
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(p, buf, MBEDTLS_ASN1_OCTET_STRING));
-
-    grp_id = mbedtls_pk_get_group_id(pk);
-    /* privateKeyAlgorithm */
-    if ((ret = mbedtls_oid_get_oid_by_ec_grp_algid(grp_id, &oid, &oid_len)) != 0) {
-        return ret;
-    }
-    MBEDTLS_ASN1_CHK_ADD(len,
-                         mbedtls_asn1_write_algorithm_identifier_ext(p, buf, oid, oid_len, 0, 0));
-
-    /* version */
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_int(p, buf, 0));
-
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, buf, len));
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(p, buf, MBEDTLS_ASN1_CONSTRUCTED |
-                                                     MBEDTLS_ASN1_SEQUENCE));
-
-    return (int) len;
-}
-#endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
-
-/*
- * RFC 5915, or SEC1 Appendix C.4
- *
- * ECPrivateKey ::= SEQUENCE {
- *      version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
- *      privateKey     OCTET STRING,
- *      parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
- *      publicKey  [1] BIT STRING OPTIONAL
- *    }
- */
-static int pk_write_ec_der(unsigned char **p, unsigned char *buf,
-                           const mbedtls_pk_context *pk)
-{
-    size_t len = 0;
-    int ret;
-    size_t pub_len = 0, par_len = 0;
-    mbedtls_ecp_group_id grp_id;
-
-    /* publicKey */
-    MBEDTLS_ASN1_CHK_ADD(pub_len, pk_write_ec_pubkey(p, buf, pk));
-
-    if (*p - buf < 1) {
-        return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
-    }
-    (*p)--;
-    **p = 0;
-    pub_len += 1;
-
-    MBEDTLS_ASN1_CHK_ADD(pub_len, mbedtls_asn1_write_len(p, buf, pub_len));
-    MBEDTLS_ASN1_CHK_ADD(pub_len, mbedtls_asn1_write_tag(p, buf, MBEDTLS_ASN1_BIT_STRING));
-
-    MBEDTLS_ASN1_CHK_ADD(pub_len, mbedtls_asn1_write_len(p, buf, pub_len));
-    MBEDTLS_ASN1_CHK_ADD(pub_len, mbedtls_asn1_write_tag(p, buf,
-                                                         MBEDTLS_ASN1_CONTEXT_SPECIFIC |
-                                                         MBEDTLS_ASN1_CONSTRUCTED | 1));
-    len += pub_len;
-
-    /* parameters */
-    grp_id = mbedtls_pk_get_group_id(pk);
-    MBEDTLS_ASN1_CHK_ADD(par_len, pk_write_ec_param(p, buf, grp_id));
-    MBEDTLS_ASN1_CHK_ADD(par_len, mbedtls_asn1_write_len(p, buf, par_len));
-    MBEDTLS_ASN1_CHK_ADD(par_len, mbedtls_asn1_write_tag(p, buf,
-                                                         MBEDTLS_ASN1_CONTEXT_SPECIFIC |
-                                                         MBEDTLS_ASN1_CONSTRUCTED | 0));
-    len += par_len;
-
-    /* privateKey */
-    MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_private(p, buf, pk));
-
-    /* version */
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_int(p, buf, 1));
-
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, buf, len));
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(p, buf, MBEDTLS_ASN1_CONSTRUCTED |
-                                                     MBEDTLS_ASN1_SEQUENCE));
-
-    return (int) len;
-}
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
-
-#if defined(MBEDTLS_RSA_C)
-static int pk_write_rsa_der(unsigned char **p, unsigned char *buf,
-                            const mbedtls_pk_context *pk)
-{
-    size_t len = 0;
-    int ret;
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_OPAQUE) {
-        uint8_t tmp[PSA_EXPORT_KEY_PAIR_MAX_SIZE];
-        size_t tmp_len = 0;
-
-        if (psa_export_key(pk->priv_id, tmp, sizeof(tmp), &tmp_len) != PSA_SUCCESS) {
-            return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-        }
-        *p -= tmp_len;
-        memcpy(*p, tmp, tmp_len);
-        len += tmp_len;
-        mbedtls_platform_zeroize(tmp, sizeof(tmp));
-    } else
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-    {
-        mbedtls_mpi T; /* Temporary holding the exported parameters */
-        mbedtls_rsa_context *rsa = mbedtls_pk_rsa(*pk);
-
-        /*
-         * Export the parameters one after another to avoid simultaneous copies.
-         */
-
-        mbedtls_mpi_init(&T);
-
-        /* Export QP */
-        if ((ret = mbedtls_rsa_export_crt(rsa, NULL, NULL, &T)) != 0 ||
-            (ret = mbedtls_asn1_write_mpi(p, buf, &T)) < 0) {
-            goto end_of_export;
-        }
-        len += ret;
-
-        /* Export DQ */
-        if ((ret = mbedtls_rsa_export_crt(rsa, NULL, &T, NULL)) != 0 ||
-            (ret = mbedtls_asn1_write_mpi(p, buf, &T)) < 0) {
-            goto end_of_export;
-        }
-        len += ret;
-
-        /* Export DP */
-        if ((ret = mbedtls_rsa_export_crt(rsa, &T, NULL, NULL)) != 0 ||
-            (ret = mbedtls_asn1_write_mpi(p, buf, &T)) < 0) {
-            goto end_of_export;
-        }
-        len += ret;
-
-        /* Export Q */
-        if ((ret = mbedtls_rsa_export(rsa, NULL, NULL,
-                                      &T, NULL, NULL)) != 0 ||
-            (ret = mbedtls_asn1_write_mpi(p, buf, &T)) < 0) {
-            goto end_of_export;
-        }
-        len += ret;
-
-        /* Export P */
-        if ((ret = mbedtls_rsa_export(rsa, NULL, &T,
-                                      NULL, NULL, NULL)) != 0 ||
-            (ret = mbedtls_asn1_write_mpi(p, buf, &T)) < 0) {
-            goto end_of_export;
-        }
-        len += ret;
-
-        /* Export D */
-        if ((ret = mbedtls_rsa_export(rsa, NULL, NULL,
-                                      NULL, &T, NULL)) != 0 ||
-            (ret = mbedtls_asn1_write_mpi(p, buf, &T)) < 0) {
-            goto end_of_export;
-        }
-        len += ret;
-
-        /* Export E */
-        if ((ret = mbedtls_rsa_export(rsa, NULL, NULL,
-                                      NULL, NULL, &T)) != 0 ||
-            (ret = mbedtls_asn1_write_mpi(p, buf, &T)) < 0) {
-            goto end_of_export;
-        }
-        len += ret;
-
-        /* Export N */
-        if ((ret = mbedtls_rsa_export(rsa, &T, NULL,
-                                      NULL, NULL, NULL)) != 0 ||
-            (ret = mbedtls_asn1_write_mpi(p, buf, &T)) < 0) {
-            goto end_of_export;
-        }
-        len += ret;
-
-end_of_export:
-
-        mbedtls_mpi_free(&T);
-        if (ret < 0) {
-            return ret;
-        }
-
-        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_int(p, buf, 0));
-        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, buf, len));
-        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(p,
-                                                         buf, MBEDTLS_ASN1_CONSTRUCTED |
-                                                         MBEDTLS_ASN1_SEQUENCE));
-    }
-
-    return (int) len;
-}
-#endif /* MBEDTLS_RSA_C */
-
 int mbedtls_pk_write_key_der(const mbedtls_pk_context *key, unsigned char *buf, size_t size)
 {
     unsigned char *c;
@@ -722,6 +717,9 @@ int mbedtls_pk_write_key_der(const mbedtls_pk_context *key, unsigned char *buf, 
     return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
 }
 
+/******************************************************************************
+ * Public functions for wrinting private/public PEM keys.
+ ******************************************************************************/
 #if defined(MBEDTLS_PEM_WRITE_C)
 
 #define PUB_DER_MAX_BYTES                                                   \

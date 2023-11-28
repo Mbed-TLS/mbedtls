@@ -2384,7 +2384,10 @@
  * \note  This feature is incompatible with insecure block cipher,
  *        MBEDTLS_DES_C, and cipher modes which always require decryption
  *        operation, MBEDTLS_CIPHER_MODE_CBC, MBEDTLS_CIPHER_MODE_XTS and
- *        MBEDTLS_NIST_KW_C.
+ *        MBEDTLS_NIST_KW_C. When #MBEDTLS_PSA_CRYPTO_CONFIG is enabled,
+ *        this feature is incompatible with following supported PSA equivalence,
+ *        PSA_WANT_ALG_ECB_NO_PADDING, PSA_WANT_ALG_CBC_NO_PADDING,
+ *        PSA_WANT_ALG_CBC_PKCS7 and PSA_WANT_KEY_TYPE_DES.
  *
  * Module:  library/aes.c
  *          library/aesce.c

@@ -17,7 +17,7 @@ import typing
 import check_test_cases
 
 
-# `CompoentOutcomes` is a named tuple which is defined as:
+# `ComponentOutcomes` is a named tuple which is defined as:
 # ComponentOutcomes(
 #     successes = {
 #         "<suite_case>",
@@ -87,19 +87,19 @@ def analyze_coverage(results: Results, outcomes: Outcomes,
     """Check that all available test cases are executed at least once."""
     available = check_test_cases.collect_available_test_cases()
     for suite_case in available:
-        hits = 0
+        hit = False
         for comp_outcomes in outcomes.values():
             if suite_case in comp_outcomes.successes or \
                suite_case in comp_outcomes.failures:
-                hits += 1
+                hit = True
                 break
 
-        if hits == 0 and suite_case not in allow_list:
+        if hit == 0 and suite_case not in allow_list:
             if full_coverage:
                 results.error('Test case not executed: {}', suite_case)
             else:
                 results.warning('Test case not executed: {}', suite_case)
-        elif hits != 0 and suite_case in allow_list:
+        elif hit != 0 and suite_case in allow_list:
             # Test Case should be removed from the allow list.
             if full_coverage:
                 results.error('Allow listed test case was executed: {}', suite_case)

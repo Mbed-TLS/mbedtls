@@ -165,10 +165,7 @@ static inline const unsigned char *mbedtls_buffer_offset_const(
  * \param   b Pointer to input (buffer of at least \p n bytes)
  * \param   n Number of bytes to process.
  */
-static inline void mbedtls_xor(unsigned char *r,
-                               const unsigned char *a,
-                               const unsigned char *b,
-                               size_t n)
+inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned char *b, size_t n)
 {
     size_t i = 0;
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)

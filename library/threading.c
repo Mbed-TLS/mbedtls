@@ -56,28 +56,27 @@ static void threading_mutex_init_pthread(mbedtls_threading_mutex_t *mutex)
         return;
     }
 
-    /* A nonzero value of is_valid indicates a successfully initialized
-     * mutex. This is a workaround for not being able to return an error
-     * code for this function. The lock/unlock functions return an error
-     * if is_valid is nonzero. The Mbed TLS unit test code uses this field
-     * to distinguish more states of the mutex; see
-     * tests/src/threading_helpers for details. */
-    mutex->is_valid = pthread_mutex_init(&mutex->mutex, NULL) == 0;
+    /* One problem here is that calling lock on a pthread mutex without first
+     * having initialised it is undefined behaviour. Obviously we cannot check
+     * this here in a thread safe manner without a significant performance
+     * hit, so state transitions are checked in tests only via the state
+     * variable. Please make sure any new mutex that gets added is exercised in
+     * tests; see tests/src/threading_helpers.c for more details. */
+    (void) pthread_mutex_init(&mutex->mutex, NULL);
 }
 
 static void threading_mutex_free_pthread(mbedtls_threading_mutex_t *mutex)
 {
-    if (mutex == NULL || !mutex->is_valid) {
+    if (mutex == NULL) {
         return;
     }
 
     (void) pthread_mutex_destroy(&mutex->mutex);
-    mutex->is_valid = 0;
 }
 
 static int threading_mutex_lock_pthread(mbedtls_threading_mutex_t *mutex)
 {
-    if (mutex == NULL || !mutex->is_valid) {
+    if (mutex == NULL) {
         return MBEDTLS_ERR_THREADING_BAD_INPUT_DATA;
     }
 
@@ -90,7 +89,7 @@ static int threading_mutex_lock_pthread(mbedtls_threading_mutex_t *mutex)
 
 static int threading_mutex_unlock_pthread(mbedtls_threading_mutex_t *mutex)
 {
-    if (mutex == NULL || !mutex->is_valid) {
+    if (mutex == NULL) {
         return MBEDTLS_ERR_THREADING_BAD_INPUT_DATA;
     }
 

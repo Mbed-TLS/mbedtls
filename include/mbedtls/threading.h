@@ -28,10 +28,14 @@ extern "C" {
 #include <pthread.h>
 typedef struct mbedtls_threading_mutex_t {
     pthread_mutex_t MBEDTLS_PRIVATE(mutex);
-    /* is_valid is 0 after a failed init or a free, and nonzero after a
-     * successful init. This field is not considered part of the public
-     * API of Mbed TLS and may change without notice. */
-    char MBEDTLS_PRIVATE(is_valid);
+
+    /* WARNING - state should only be accessed when holding the mutex lock in
+     * tests/src/threading_helpers.c, otherwise corruption can occur.
+     * state will be 0 after a failed init or a free, and nonzero after a
+     * successful init. This field is for testing only and thus not considered
+     * part of the public API of Mbed TLS and may change without notice.*/
+    char MBEDTLS_PRIVATE(state);
+
 } mbedtls_threading_mutex_t;
 #endif
 

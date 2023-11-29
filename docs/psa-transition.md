@@ -1276,7 +1276,7 @@ The PSA subsystem uses its internal random generator both for randomized algorit
 
 #### RSA functionality with no PSA equivalent
 
-The PSA API does not provide direct access to the exponentiation primitive as with `mbedtls_rsa_public` and `mbedtls_rsa_private`. If you need an RSA-based mechanism that is not supported by the PSA API, please contact us so that we can extend the API to support it.
+The PSA API does not provide direct access to the exponentiation primitive as with `mbedtls_rsa_public` and `mbedtls_rsa_private`. If you need an RSA-based mechanism that is not supported by the PSA API, please [submit an issue on GitHub](https://github.com/ARM-software/psa-api/issues) so that we can extend the API to support it.
 
 The PSA API does not support constructing RSA keys progressively from numbers with `mbedtls_rsa_import` or `mbedtls_rsa_import_raw` followed by `mbedtls_rsa_complete`. See “[Importing a PK key by wrapping](#importing-a-pk-key-by-wrapping)”.
 

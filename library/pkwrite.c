@@ -598,27 +598,24 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
     pk_type = pk_get_type_ext(key);
 
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
-    if (pk_type == MBEDTLS_PK_ECKEY) {
+    if (pk_get_type_ext(key) == MBEDTLS_PK_ECKEY) {
         mbedtls_ecp_group_id ec_grp_id = mbedtls_pk_get_ec_group_id(key);
-        /* Some groups have their own AlgorithmIdentifier OID, others are handled
-         * by mbedtls_oid_get_oid_by_pk_alg() below */
-        ret = mbedtls_oid_get_oid_by_ec_grp_algid(ec_grp_id, &oid, &oid_len);
-
-        if (ret == 0) {
-            /* Currently, none of the supported algorithms that have their own
-             * AlgorithmIdentifier OID have any parameters */
+        if (MBEDTLS_PK_IS_RFC8410_GROUP_ID(ec_grp_id)) {
+            ret = mbedtls_oid_get_oid_by_ec_grp_algid(ec_grp_id, &oid, &oid_len);
+            if (ret != 0) {
+                return ret;
+            }
             has_par = 0;
-        } else if (ret == MBEDTLS_ERR_OID_NOT_FOUND) {
-            MBEDTLS_ASN1_CHK_ADD(par_len, pk_write_ec_param(&c, buf, ec_grp_id));
         } else {
-            return ret;
+            MBEDTLS_ASN1_CHK_ADD(par_len, pk_write_ec_param(&c, buf, ec_grp_id));
         }
     }
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
+    /* At this point oid_len is not null only for EC Montgomery keys. */
     if (oid_len == 0) {
-        if ((ret = mbedtls_oid_get_oid_by_pk_alg(pk_type, &oid,
-                                                 &oid_len)) != 0) {
+        ret = mbedtls_oid_get_oid_by_pk_alg(pk_type, &oid, &oid_len);
+        if (ret != 0) {
             return ret;
         }
     }

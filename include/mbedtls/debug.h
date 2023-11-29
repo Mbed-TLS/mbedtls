@@ -120,7 +120,12 @@
     /* (defined(__MINGW32__)  && __USE_MINGW_ANSI_STDIO == 0) || (defined(_MSC_VER) && _MSC_VER < 1800) */
 
 #if !defined(MBEDTLS_PRINTF_MS_TIME)
+#include <inttypes.h>
+#if !defined(PRId64)
+#define MBEDTLS_PRINTF_MS_TIME MBEDTLS_PRINTF_LONGLONG
+#else
 #define MBEDTLS_PRINTF_MS_TIME PRId64
+#endif
 #endif /* MBEDTLS_PRINTF_MS_TIME */
 
 #ifdef __cplusplus

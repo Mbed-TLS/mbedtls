@@ -1419,22 +1419,29 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
             return MBEDTLS_ERR_SSL_INVALID_MAC;
         case 2:
             return MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         case 3:
-            session->start = mbedtls_time(NULL) + 10;
+            /* Creation time in the future. */
+            session->ticket_creation_time = mbedtls_ms_time() + 1000;
             break;
         case 4:
-            session->start = mbedtls_time(NULL) - 10 - 7 * 24 * 3600;
+            /* Ticket has reached the end of lifetime. */
+            session->ticket_creation_time = mbedtls_ms_time() -
+                                            (7 * 24 * 3600 * 1000 + 1000);
             break;
         case 5:
-            session->start = mbedtls_time(NULL) - 10;
+            /* Ticket is valid, but client age is below the lower bound of the tolerance window. */
+            session->ticket_age_add += MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE + 4 * 1000;
+            /* Make sure the execution time does not affect the result */
+            session->ticket_creation_time = mbedtls_ms_time();
             break;
+
         case 6:
-            session->start = mbedtls_time(NULL);
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-            session->ticket_age_add -= 1000;
-#endif
+            /* Ticket is valid, but client age is beyond the upper bound of the tolerance window. */
+            session->ticket_age_add -= MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE + 4 * 1000;
+            /* Make sure the execution time does not affect the result */
+            session->ticket_creation_time = mbedtls_ms_time();
             break;
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         case 7:
             session->ticket_flags = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE;
             break;

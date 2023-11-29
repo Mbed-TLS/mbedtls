@@ -1,0 +1,6 @@
+Features
+   * Enable the new option MBEDTLS_BLOCK_CIPHER_NO_DECRYPT to omit
+     the decryption direction of block ciphers (AES, ARIA, Camellia).
+     This affects both the low-level modules and the high-level APIs
+     (the cipher and PSA interfaces). This option is incompatible with modes
+     that use the decryption direction (ECB in PSA, CBC, XTS, KW) and with DES.

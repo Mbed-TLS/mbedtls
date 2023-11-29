@@ -2,7 +2,7 @@
  * \file aesce.h
  *
  * \brief Support hardware AES acceleration on Armv8-A processors with
- *        the Armv8-A Cryptographic Extension in AArch64 execution state.
+ *        the Armv8-A Cryptographic Extension.
  *
  * \warning These functions are only for internal use by other library
  *          functions; you must not call them directly.
@@ -19,7 +19,7 @@
 #include "mbedtls/aes.h"
 
 
-#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_ARCH_IS_ARM64)
+#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_ARCH_IS_ARMV8_A) && defined(__ARM_NEON)
 
 #define MBEDTLS_AESCE_HAVE_CODE
 
@@ -87,6 +87,7 @@ void mbedtls_aesce_gcm_mult(unsigned char c[16],
                             const unsigned char b[16]);
 
 
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 /**
  * \brief           Internal round key inversion. This function computes
  *                  decryption round keys from the encryption round keys.
@@ -98,6 +99,7 @@ void mbedtls_aesce_gcm_mult(unsigned char c[16],
 void mbedtls_aesce_inverse_key(unsigned char *invkey,
                                const unsigned char *fwdkey,
                                int nr);
+#endif /* !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 
 /**
  * \brief           Internal key expansion for encryption
@@ -116,6 +118,12 @@ int mbedtls_aesce_setkey_enc(unsigned char *rk,
 }
 #endif
 
-#endif /* MBEDTLS_AESCE_C && MBEDTLS_ARCH_IS_ARM64 */
+#else
+
+#if defined(MBEDTLS_AES_USE_HARDWARE_ONLY) && defined(MBEDTLS_ARCH_IS_ARMV8_A)
+#error "AES hardware acceleration not supported on this platform"
+#endif
+
+#endif /* MBEDTLS_AESCE_C && MBEDTLS_ARCH_IS_ARMV8_A && __ARM_NEON */
 
 #endif /* MBEDTLS_AESCE_H */

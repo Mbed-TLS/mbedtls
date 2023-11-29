@@ -39,11 +39,11 @@ done
 GITIGNORES=$(find . -name ".gitignore")
 for GITIGNORE in $GITIGNORES; do
     if [ -n "$unrelease" ]; then
-        sed -i '/###START_COMMENTED_GENERATED_FILES###/,/###END_COMMENTED_GENERATED_FILES###/s/^# //' $GITIGNORE
+        sed -i '/###START_COMMENTED_GENERATED_FILES###/,/###END_COMMENTED_GENERATED_FILES###/s/^#//' $GITIGNORE
         sed -i 's/###START_COMMENTED_GENERATED_FILES###/###START_GENERATED_FILES###/' $GITIGNORE
         sed -i 's/###END_COMMENTED_GENERATED_FILES###/###END_GENERATED_FILES###/' $GITIGNORE
     else
-        sed -i '/###START_GENERATED_FILES###/,/###END_GENERATED_FILES###/s/^/# /' $GITIGNORE
+        sed -i '/###START_GENERATED_FILES###/,/###END_GENERATED_FILES###/s/^/#/' $GITIGNORE
         sed -i 's/###START_GENERATED_FILES###/###START_COMMENTED_GENERATED_FILES###/' $GITIGNORE
         sed -i 's/###END_GENERATED_FILES###/###END_COMMENTED_GENERATED_FILES###/' $GITIGNORE
     fi

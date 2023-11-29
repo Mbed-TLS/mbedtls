@@ -44,6 +44,13 @@ int main(void)
                    "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_SHA1_C not defined.\n");
     mbedtls_exit(0);
 }
+
+#elif defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
+int main(void)
+{
+    mbedtls_printf("MBEDTLS_BLOCK_CIPHER_NO_DECRYPT defined.\n");
+    mbedtls_exit(0);
+}
 #else
 
 

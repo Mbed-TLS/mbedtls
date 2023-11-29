@@ -298,7 +298,7 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
     if (*end == '\n') {
         end++;
     }
-    *use_len = end - data;
+    *use_len = (size_t) (end - data);
 
     enc = 0;
 
@@ -383,7 +383,7 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
         return MBEDTLS_ERR_PEM_INVALID_DATA;
     }
 
-    ret = mbedtls_base64_decode(NULL, 0, &len, s1, s2 - s1);
+    ret = mbedtls_base64_decode(NULL, 0, &len, s1, (size_t) (s2 - s1));
 
     if (ret == MBEDTLS_ERR_BASE64_INVALID_CHARACTER) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PEM_INVALID_DATA, ret);
@@ -393,7 +393,7 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
         return MBEDTLS_ERR_PEM_ALLOC_FAILED;
     }
 
-    if ((ret = mbedtls_base64_decode(buf, len, &len, s1, s2 - s1)) != 0) {
+    if ((ret = mbedtls_base64_decode(buf, len, &len, s1, (size_t) (s2 - s1))) != 0) {
         mbedtls_zeroize_and_free(buf, len);
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PEM_INVALID_DATA, ret);
     }
@@ -508,7 +508,7 @@ int mbedtls_pem_write_buffer(const char *header, const char *footer,
     p += strlen(footer);
 
     *p++ = '\0';
-    *olen = p - buf;
+    *olen = (size_t) (p - buf);
 
     /* Clean any remaining data previously written to the buffer */
     memset(buf + *olen, 0, buf_len - *olen);

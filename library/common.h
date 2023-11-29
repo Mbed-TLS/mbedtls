@@ -23,6 +23,15 @@
 #include <arm_neon.h>
 #endif /* __ARM_NEON */
 
+
+#if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \
+    && !defined(__llvm__) && !defined(__INTEL_COMPILER)
+/* Defined if the compiler really is gcc and not clang, etc */
+#define MBEDTLS_COMPILER_IS_GCC
+#define MBEDTLS_GCC_VERSION \
+    (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#endif
+
 /** Helper to define a function as static except when building invasive tests.
  *
  * If a function is only used inside its own source file and should be
@@ -169,7 +178,9 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 {
     size_t i = 0;
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
-#if defined(__ARM_NEON)
+#if defined(__ARM_NEON) && \
+    (!defined(MBEDTLS_COMPILER_IS_GCC) || \
+    (defined(MBEDTLS_COMPILER_IS_GCC) && MBEDTLS_GCC_VERSION >= 70300))
     for (; (i + 16) <= n; i += 16) {
         uint8x16_t v1 = vld1q_u8(a + i);
         uint8x16_t v2 = vld1q_u8(b + i);
@@ -322,12 +333,6 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 #define MBEDTLS_ASSUME(x)       __assume(x)
 #else
 #define MBEDTLS_ASSUME(x)       do { } while (0)
-#endif
-
-#if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \
-    && !defined(__llvm__) && !defined(__INTEL_COMPILER)
-/* Defined if the compiler really is gcc and not clang, etc */
-#define MBEDTLS_COMPILER_IS_GCC
 #endif
 
 /* For gcc -Os, override with -O2 for a given function.

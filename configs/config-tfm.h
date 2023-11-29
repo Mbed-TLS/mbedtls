@@ -45,6 +45,15 @@
 #undef MBEDTLS_PLATFORM_STD_EXIT_SUCCESS
 #undef MBEDTLS_PLATFORM_STD_EXIT_FAILURE
 
+/*
+ * In order to get an example config that works cleanly out-of-the-box
+ * for both baremetal and non-baremetal builds, we detect baremetal builds
+ * and set this variable automatically.
+ */
+#if defined(__IAR_SYSTEMS_ICC__) || defined(__ARM_EABI__)
+#define MBEDTLS_NO_PLATFORM_ENTROPY
+#endif
+
 /***********************************************************************
  * Local changes to crypto config below this delimiter
  **********************************************************************/

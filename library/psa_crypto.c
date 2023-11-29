@@ -110,6 +110,7 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
     if (global_data.initialized == 0)  \
     return PSA_ERROR_BAD_STATE;
 
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
 /* Substitute an input buffer for a local copy of itself.
  * Assumptions:
  * - psa_status_t status exists
@@ -147,6 +148,12 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
     if (local_output_free_status != PSA_SUCCESS) { \
         status = local_output_free_status; \
     }
+#else /* MBEDTLS_PSA_COPY_CALLER_BUFFERS */
+#define SWAP_FOR_LOCAL_INPUT(input, length)
+#define FREE_LOCAL_INPUT(input)
+#define SWAP_FOR_LOCAL_OUTPUT(output, length)
+#define FREE_LOCAL_OUTPUT(output)
+#endif /* MBEDTLS_PSA_COPY_CALLER_BUFFERS */
 
 
 int psa_can_do_hash(psa_algorithm_t hash_alg)

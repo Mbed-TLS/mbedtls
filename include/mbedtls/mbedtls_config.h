@@ -1469,6 +1469,19 @@
 //#define MBEDTLS_PSA_INJECT_ENTROPY
 
 /**
+ * \def MBEDTLS_PSA_COPY_CALLER_BUFFERS
+ *
+ * Make local copies of buffers supplied by the callers of PSA functions.
+ *
+ * This should be enabled whenever caller-supplied buffers are owned by
+ * an untrusted party, for example where arguments to PSA calls are passed
+ * across a trust boundary.
+ *
+ * Note: Enabling this option increases memory usage and code size.
+ */
+#define MBEDTLS_PSA_COPY_CALLER_BUFFERS
+
+/**
  * \def MBEDTLS_RSA_NO_CRT
  *
  * Do not use the Chinese Remainder Theorem

@@ -279,9 +279,18 @@ requires_protocol_version() {
 
 # Space-separated list of ciphersuites supported by this build of
 # Mbed TLS.
-P_CIPHERSUITES=" $($P_CLI --help 2>/dev/null |
-                   grep TLS- |
-                   tr -s ' \n' ' ')"
+P_CIPHERSUITES=""
+if [ "$LIST_TESTS" -eq 0 ]; then
+    P_CIPHERSUITES=" $($P_CLI help_ciphersuites 2>/dev/null |
+                       grep 'TLS-' |
+                       tr -s ' \n' ' ')"
+
+    if [ -z "${P_CIPHERSUITES# }" ]; then
+        echo >&2 "$0: fatal error: no cipher suites found!"
+        exit 125
+    fi
+fi
+
 requires_ciphersuite_enabled() {
     case $P_CIPHERSUITES in
         *" $1 "*) :;;
@@ -8997,7 +9006,6 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_CHACHAPOLY_C
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, ChachaPoly renego" \
             -p "$P_PXY mtu=512" \
@@ -9011,7 +9019,7 @@ run_test    "DTLS fragmenting: proxy MTU, ChachaPoly renego" \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
              exchanges=2 renegotiation=1 renegotiate=1 \
-             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256 \
              hs_timeout=10000-60000 \
              mtu=512" \
             0 \
@@ -9029,8 +9037,6 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_GCM_C
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, AES-GCM renego" \
             -p "$P_PXY mtu=512" \
@@ -9062,8 +9068,6 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_CCM_C
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, AES-CCM renego" \
             -p "$P_PXY mtu=1024" \
@@ -9095,8 +9099,6 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_config_enabled MBEDTLS_SSL_ENCRYPT_THEN_MAC
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, AES-CBC EtM renego" \
@@ -9129,8 +9131,6 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, AES-CBC non-EtM renego" \
             -p "$P_PXY mtu=1024" \

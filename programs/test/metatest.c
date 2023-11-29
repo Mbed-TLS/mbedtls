@@ -46,6 +46,12 @@
  */
 volatile int false_but_the_compiler_does_not_know = 0;
 
+/* Hide calls to calloc/free from static checkers such as
+ * `gcc-12 -Wuse-after-free`, to avoid compile-time complaints about
+ * code where we do mean to cause a runtime error. */
+void * (* volatile calloc_but_the_compiler_does_not_know)(size_t, size_t) = mbedtls_calloc;
+void(*volatile free_but_the_compiler_does_not_know)(void *) = mbedtls_free;
+
 /* Set n bytes at the address p to all-bits-zero, in such a way that
  * the compiler should not know that p is all-bits-zero. */
 static void set_to_zero_but_the_compiler_does_not_know(volatile void *p, size_t n)
@@ -98,9 +104,9 @@ void null_pointer_call(const char *name)
 void read_after_free(const char *name)
 {
     (void) name;
-    volatile char *p = mbedtls_calloc(1, 1);
+    volatile char *p = calloc_but_the_compiler_does_not_know(1, 1);
     *p = 'a';
-    mbedtls_free((void *) p);
+    free_but_the_compiler_does_not_know((void *) p);
     /* Undefined behavior (read after free) */
     mbedtls_printf("%u\n", (unsigned) *p);
 }
@@ -108,11 +114,11 @@ void read_after_free(const char *name)
 void double_free(const char *name)
 {
     (void) name;
-    volatile char *p = mbedtls_calloc(1, 1);
+    volatile char *p = calloc_but_the_compiler_does_not_know(1, 1);
     *p = 'a';
-    mbedtls_free((void *) p);
+    free_but_the_compiler_does_not_know((void *) p);
     /* Undefined behavior (double free) */
-    mbedtls_free((void *) p);
+    free_but_the_compiler_does_not_know((void *) p);
 }
 
 void read_uninitialized_stack(const char *name)
@@ -132,7 +138,7 @@ void read_uninitialized_stack(const char *name)
 void memory_leak(const char *name)
 {
     (void) name;
-    volatile char *p = mbedtls_calloc(1, 1);
+    volatile char *p = calloc_but_the_compiler_does_not_know(1, 1);
     mbedtls_printf("%u\n", (unsigned) *p);
     /* Leak of a heap object */
 }

@@ -87,19 +87,16 @@ def analyze_coverage(results: Results, outcomes: Outcomes,
     """Check that all available test cases are executed at least once."""
     available = check_test_cases.collect_available_test_cases()
     for suite_case in available:
-        hit = False
-        for comp_outcomes in outcomes.values():
-            if suite_case in comp_outcomes.successes or \
-               suite_case in comp_outcomes.failures:
-                hit = True
-                break
+        hit = any(suite_case in comp_outcomes.successes or
+                  suite_case in comp_outcomes.failures
+                  for comp_outcomes in outcomes.values())
 
-        if hit == 0 and suite_case not in allow_list:
+        if not hit and suite_case not in allow_list:
             if full_coverage:
                 results.error('Test case not executed: {}', suite_case)
             else:
                 results.warning('Test case not executed: {}', suite_case)
-        elif hit != 0 and suite_case in allow_list:
+        elif hit and suite_case in allow_list:
             # Test Case should be removed from the allow list.
             if full_coverage:
                 results.error('Allow listed test case was executed: {}', suite_case)

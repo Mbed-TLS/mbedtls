@@ -2794,8 +2794,8 @@ static int ssl_tls13_write_server_finished(mbedtls_ssl_context *ssl)
          *
          * early transform is set after server finished in this section. But
          * it breaks our key computation, so we put early transform computation
-         * at the end of client hello. For time being, I am not sure the benifit
-         * for moving computation here.
+         * at the end of client hello. For the time being, I am not sure the
+         * benifit for moving computation here.
          */
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("Switch to early keys for inbound traffic. "
@@ -2911,7 +2911,7 @@ static int ssl_tls13_process_wait_eoed(mbedtls_ssl_context *ssl)
     /*
      * Output early data
      *
-     * For time being, we print received data via debug message.
+     * For the time being, we print received data via debug message.
      *
      * TODO: Remove it when `mbedtls_ssl_read_early_data` is ready.
      */

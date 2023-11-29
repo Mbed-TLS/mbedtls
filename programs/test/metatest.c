@@ -34,17 +34,13 @@
 #include "test/helpers.h"
 #include "test/macros.h"
 #include "test/memory.h"
+#include "common.h"
 
 #include <stdio.h>
 #include <string.h>
 
 #if defined(MBEDTLS_THREADING_C)
 #include <mbedtls/threading.h>
-#endif
-
-/* C99 feature missing from older versions of MSVC */
-#if (defined(_MSC_VER) && (_MSC_VER <= 1900))
-#define /*no-check-names*/ __func__ __FUNCTION__
 #endif
 
 

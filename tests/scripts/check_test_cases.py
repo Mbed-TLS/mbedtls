@@ -172,6 +172,15 @@ class DescriptionChecker(TestDescriptionExplorer):
         """Check test case descriptions for errors."""
         results = self.results
         seen = per_file_state
+        if not file_name.endswith('.data'):
+            script_output = description.split(b';', 1)
+            if len(script_output) == 2:
+                description = script_output[1]
+            else:
+                results.error(file_name, line_number,
+                              '"{}" should be listed in '
+                              '"<suite>;<description>" format',
+                              description.decode('ascii'))
         if description in seen:
             results.error(file_name, line_number,
                           'Duplicate description (also line {})',

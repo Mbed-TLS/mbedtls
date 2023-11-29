@@ -1046,7 +1046,7 @@ component_check_test_dependencies () {
     grep 'depends_on' \
         tests/suites/test_suite_psa*.data tests/suites/test_suite_psa*.function |
         grep -Eo '!?MBEDTLS_[^: ]*' |
-        grep -v MBEDTLS_PSA_ |
+        grep -v -e MBEDTLS_PSA_ -e MBEDTLS_TEST_ |
         sort -u > $found
 
     # Expected ones with justification - keep in sorted order by ASCII table!

@@ -45,9 +45,9 @@
 #undef MBEDTLS_PLATFORM_STD_EXIT_SUCCESS
 #undef MBEDTLS_PLATFORM_STD_EXIT_FAILURE
 
-// We expect TF-M to pick this up soon
-#define MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
-
 /***********************************************************************
  * Local changes to crypto config below this delimiter
  **********************************************************************/
+
+// We expect TF-M to pick this up soon
+#define MBEDTLS_BLOCK_CIPHER_NO_DECRYPT

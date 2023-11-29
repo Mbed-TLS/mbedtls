@@ -125,7 +125,7 @@ print_usage() {
 print_test_case() {
     for i in $3; do
         uniform_title $1 $2 $i
-        echo $TITLE
+        echo "compat;$TITLE"
     done
 }
 

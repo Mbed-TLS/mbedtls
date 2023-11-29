@@ -106,6 +106,44 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
     if (global_data.initialized == 0)  \
     return PSA_ERROR_BAD_STATE;
 
+/* Substitute an input buffer for a local copy of itself.
+ * Assumptions:
+ * - psa_status_t status exists
+ * - An exit label is declared
+ * - The name <buffer>_copy is not used for the given value of <buffer>
+ */
+#define SWAP_FOR_LOCAL_INPUT(input, length) \
+    psa_crypto_local_input_t input ## _copy = PSA_CRYPTO_LOCAL_INPUT_INIT; \
+    status = psa_crypto_local_input_alloc(input, length, &input ## _copy); \
+    if (status != PSA_SUCCESS) { \
+        goto exit; \
+    } \
+    input = input ## _copy.buffer;
+
+#define FREE_LOCAL_INPUT(input) \
+    psa_crypto_local_input_free(&input ## _copy);
+
+/* Substitute an output buffer for a local copy of itself.
+ * Assumptions:
+ * - psa_status_t status exists
+ * - An exit label is declared
+ * - The name <buffer>_copy is not used for the given value of <buffer>
+ */
+#define SWAP_FOR_LOCAL_OUTPUT(output, length) \
+    psa_crypto_local_output_t output ## _copy = PSA_CRYPTO_LOCAL_OUTPUT_INIT; \
+    status = psa_crypto_local_output_alloc(output, length, &output ## _copy); \
+    if (status != PSA_SUCCESS) { \
+        goto exit; \
+    } \
+    output = output ## _copy.buffer;
+
+#define FREE_LOCAL_OUTPUT(output) \
+    psa_status_t local_output_free_status; \
+    local_output_free_status = psa_crypto_local_output_free(&output ## _copy); \
+    if (local_output_free_status != PSA_SUCCESS) { \
+        status = local_output_free_status; \
+    }
+
 psa_status_t mbedtls_to_psa_error(int ret)
 {
     /* Mbed TLS error codes can combine a high-level error code and a
@@ -3559,19 +3597,8 @@ psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
     uint8_t local_iv[PSA_CIPHER_IV_MAX_SIZE];
     size_t default_iv_length = 0;
 
-    psa_crypto_local_input_t local_input = PSA_CRYPTO_LOCAL_INPUT_INIT;
-    status = psa_crypto_local_input_alloc(input, input_length, &local_input);
-    if (status != PSA_SUCCESS) {
-        goto exit;
-    }
-    input = local_input.buffer;
-
-    psa_crypto_local_output_t local_output = PSA_CRYPTO_LOCAL_OUTPUT_INIT;
-    status = psa_crypto_local_output_alloc(output, output_size, &local_output);
-    if (status != PSA_SUCCESS) {
-        goto exit;
-    }
-    output = local_output.buffer;
+    SWAP_FOR_LOCAL_INPUT(input, input_length);
+    SWAP_FOR_LOCAL_OUTPUT(output, output_size);
 
     if (!PSA_ALG_IS_CIPHER(alg)) {
         status = PSA_ERROR_INVALID_ARGUMENT;
@@ -3628,8 +3655,8 @@ exit:
         *output_length = 0;
     }
 
-    psa_crypto_local_input_free(&local_input);
-    psa_crypto_local_output_free(&local_output);
+    FREE_LOCAL_INPUT(input);
+    FREE_LOCAL_OUTPUT(output);
 
     return status;
 }

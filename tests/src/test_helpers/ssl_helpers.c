@@ -1639,6 +1639,7 @@ int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
                                             int endpoint_type,
                                             const char *crt_file)
 {
+    ((void) ticket_len);
 #if defined(MBEDTLS_HAVE_TIME)
     session->start = mbedtls_time(NULL) - 42;
 #endif

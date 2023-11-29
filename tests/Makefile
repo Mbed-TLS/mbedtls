@@ -57,6 +57,7 @@ else
 DLEXT ?= so
 EXEXT=
 SHARED_SUFFIX=
+LOCAL_LDFLAGS += -lpthread
 endif
 
 ifdef WINDOWS

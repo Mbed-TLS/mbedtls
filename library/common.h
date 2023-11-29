@@ -170,8 +170,8 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
     size_t i = 0;
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
 #if defined(__ARM_NEON) && \
-    (defined(__GNUC__) && !defined(__clang__) && \
-    __GNUC__ >= 7 && __GNUC_MINOR__ >= 3)
+    (!defined(MBEDTLS_COMPILER_IS_GCC) || \
+    (defined(MBEDTLS_COMPILER_IS_GCC) && __GNUC__ >= 7 && __GNUC_MINOR__ >= 3))
     for (; (i + 16) <= n; i += 16) {
         uint8x16_t v1 = vld1q_u8(a + i);
         uint8x16_t v2 = vld1q_u8(b + i);

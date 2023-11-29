@@ -51,18 +51,3 @@
 /***********************************************************************
  * Local changes to crypto config below this delimiter
  **********************************************************************/
-
-/* Between Mbed TLS 3.4 and 3.5, the PSA_WANT_KEY_TYPE_RSA_KEY_PAIR macro
- * (commented-out above) has been replaced with the following new macros: */
-//#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC      1
-//#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT     1
-//#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT     1
-//#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE   1
-//#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_DERIVE     1 /* Not supported */
-
-/* Between Mbed TLS 3.4 and 3.5, the following macros have been added: */
-//#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_BASIC       1
-//#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT    1
-//#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT    1
-//#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE  1
-//#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_DERIVE    1 // Not supported

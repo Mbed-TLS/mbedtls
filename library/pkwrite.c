@@ -395,7 +395,7 @@ static int pk_write_ec_rfc8410_der(unsigned char **p, unsigned char *buf,
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, buf, len));
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(p, buf, MBEDTLS_ASN1_OCTET_STRING));
 
-    grp_id = mbedtls_pk_get_group_id(pk);
+    grp_id = mbedtls_pk_get_ec_group_id(pk);
     /* privateKeyAlgorithm */
     if ((ret = mbedtls_oid_get_oid_by_ec_grp_algid(grp_id, &oid, &oid_len)) != 0) {
         return ret;
@@ -452,7 +452,7 @@ static int pk_write_ec_der(unsigned char **p, unsigned char *buf,
     len += pub_len;
 
     /* parameters */
-    grp_id = mbedtls_pk_get_group_id(pk);
+    grp_id = mbedtls_pk_get_ec_group_id(pk);
     MBEDTLS_ASN1_CHK_ADD(par_len, pk_write_ec_param(p, buf, grp_id));
     MBEDTLS_ASN1_CHK_ADD(par_len, mbedtls_asn1_write_len(p, buf, par_len));
     MBEDTLS_ASN1_CHK_ADD(par_len, mbedtls_asn1_write_tag(p, buf,
@@ -600,7 +600,7 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
     pk_type = mbedtls_pk_get_type(key);
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     if (pk_type == MBEDTLS_PK_ECKEY) {
-        ec_grp_id = mbedtls_pk_get_group_id(key);
+        ec_grp_id = mbedtls_pk_get_ec_group_id(key);
     }
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -609,7 +609,7 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
         if (PSA_KEY_TYPE_IS_ECC(opaque_key_type)) {
             pk_type = MBEDTLS_PK_ECKEY;
-            ec_grp_id = mbedtls_pk_get_group_id(key);
+            ec_grp_id = mbedtls_pk_get_ec_group_id(key);
         } else
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
         if (PSA_KEY_TYPE_IS_RSA(opaque_key_type)) {

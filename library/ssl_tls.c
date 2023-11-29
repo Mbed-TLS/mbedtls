@@ -7422,7 +7422,7 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
             /* and in the unlikely case the above assumption no longer holds
              * we are making sure that pk_ec() here does not return a NULL
              */
-            mbedtls_ecp_group_id grp_id = mbedtls_pk_get_group_id(pk);
+            mbedtls_ecp_group_id grp_id = mbedtls_pk_get_ec_group_id(pk);
             if (grp_id == MBEDTLS_ECP_DP_NONE) {
                 MBEDTLS_SSL_DEBUG_MSG(1, ("invalid group ID"));
                 return MBEDTLS_ERR_SSL_INTERNAL_ERROR;

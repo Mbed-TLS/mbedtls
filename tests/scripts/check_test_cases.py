@@ -137,8 +137,14 @@ class TestDescriptions(TestDescriptionExplorer):
     def process_test_case(self, _per_file_state,
                           file_name, _line_number, description):
         """Record an available test case."""
-        base_name = re.sub(r'\.[^.]*$', '', re.sub(r'.*/', '', file_name))
-        key = ';'.join([base_name, description.decode('utf-8')])
+        if file_name.endswith('.data'):
+            base_name = re.sub(r'\.[^.]*$', '', re.sub(r'.*/', '', file_name))
+            key = ';'.join([base_name, description.decode('utf-8')])
+        else:
+            # For test cases defined in scripts (i.e. ssl-op.sh and compat.sh),
+            # we need the script to list the suite name, and use the outputs
+            # as keys directly.
+            key = description.decode('utf-8')
         self.descriptions.add(key)
 
 def collect_available_test_cases():

@@ -958,9 +958,9 @@ Unlike the legacy API, where `mbedtls_pk_sign` and `mbedtls_ecdsa_write_signatur
 
 #### Restartable ECDSA signature
 
-There is a PSA API for interruptible public-key operations, offering similar functionality to the legacy restartable API (`mbedtls_pk_sign_restartable`, `mbedtls_pk_verify_restartable`, `mbedtls_ecdsa_sign_restartable`, `mbedtls_ecdsa_verify_restartable`, `mbedtls_ecdsa_write_signature_restartable`, `mbedtls_ecdsa_read_signature_restartable`).
+The legacy API includes an API for “restartable” ECC operations: the operation returns after doing partial computation, and can be resumed. This is intended for highly constrained devices where long cryptographic calculations need to be broken up to poll some inputs, where interrupt-based scheduling is not desired. The legacy API consists of the functions `mbedtls_pk_sign_restartable`, `mbedtls_pk_verify_restartable`, `mbedtls_ecdsa_sign_restartable`, `mbedtls_ecdsa_verify_restartable`, `mbedtls_ecdsa_write_signature_restartable`, `mbedtls_ecdsa_read_signature_restartable`, as well as several configuration and data manipulation functions.
 
-As of Mbed TLS 3.5, it is only implemented for ECDSA, for the same curves as the legacy API; this will likely be extended to ECDH in the short term. At the time of writing, no extension is planned to other curves or other algorithms.
+The PSA API offers similar functionality via “interruptible” public-key operations. As of Mbed TLS 3.5, it is only implemented for ECDSA, for the same curves as the legacy API. This will likely be extended to ECDH in the short term. At the time of writing, no extension is planned to other curves or other algorithms.
 
 The flow of operations for an interruptible signature operation is as follows:
 

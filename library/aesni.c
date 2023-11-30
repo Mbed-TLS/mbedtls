@@ -2,19 +2,7 @@
  *  AES-NI support functions
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 /*
@@ -106,14 +94,19 @@ int mbedtls_aesni_crypt_ecb(mbedtls_aes_context *ctx,
     ++rk;
     --nr;
 
-    if (mode == 0) {
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
+    if (mode == MBEDTLS_AES_DECRYPT) {
         while (nr != 0) {
             state = _mm_aesdec_si128(state, *rk);
             ++rk;
             --nr;
         }
         state = _mm_aesdeclast_si128(state, *rk);
-    } else {
+    } else
+#else
+    (void) mode;
+#endif
+    {
         while (nr != 0) {
             state = _mm_aesenc_si128(state, *rk);
             ++rk;
@@ -230,6 +223,7 @@ void mbedtls_aesni_gcm_mult(unsigned char c[16],
 /*
  * Compute decryption round keys from encryption round keys
  */
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 void mbedtls_aesni_inverse_key(unsigned char *invkey,
                                const unsigned char *fwdkey, int nr)
 {
@@ -242,6 +236,7 @@ void mbedtls_aesni_inverse_key(unsigned char *invkey,
     }
     *ik = *fk;
 }
+#endif
 
 /*
  * Key expansion, 128-bit case
@@ -477,6 +472,7 @@ int mbedtls_aesni_crypt_ecb(mbedtls_aes_context *ctx,
          "jnz       1b              \n\t"
          "movdqu    (%1), %%xmm1    \n\t" // load round key
          AESENCLAST(xmm1_xmm0)            // last round
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
          "jmp       3f              \n\t"
 
          "2:                        \n\t" // decryption loop
@@ -487,6 +483,7 @@ int mbedtls_aesni_crypt_ecb(mbedtls_aes_context *ctx,
          "jnz       2b              \n\t"
          "movdqu    (%1), %%xmm1    \n\t" // load round key
          AESDECLAST(xmm1_xmm0)            // last round
+#endif
 
          "3:                        \n\t"
          "movdqu    %%xmm0, (%4)    \n\t" // export output
@@ -613,6 +610,7 @@ void mbedtls_aesni_gcm_mult(unsigned char c[16],
 /*
  * Compute decryption round keys from encryption round keys
  */
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 void mbedtls_aesni_inverse_key(unsigned char *invkey,
                                const unsigned char *fwdkey, int nr)
 {
@@ -632,6 +630,7 @@ void mbedtls_aesni_inverse_key(unsigned char *invkey,
 
     memcpy(ik, fk, 16);
 }
+#endif
 
 /*
  * Key expansion, 128-bit case

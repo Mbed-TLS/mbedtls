@@ -5,19 +5,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_LIBRARY_COMMON_H
@@ -37,6 +25,15 @@
 #elif defined(MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64)
 #include <arm64_neon.h>
 #define MBEDTLS_HAVE_NEON_INTRINSICS
+#endif
+
+
+#if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \
+    && !defined(__llvm__) && !defined(__INTEL_COMPILER)
+/* Defined if the compiler really is gcc and not clang, etc */
+#define MBEDTLS_COMPILER_IS_GCC
+#define MBEDTLS_GCC_VERSION \
+    (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #endif
 
 /** Helper to define a function as static except when building invasive tests.
@@ -185,7 +182,9 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 {
     size_t i = 0;
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
-#if defined(MBEDTLS_HAVE_NEON_INTRINSICS)
+#if defined(MBEDTLS_HAVE_NEON_INTRINSICS) && \
+    (!defined(MBEDTLS_COMPILER_IS_GCC) || \
+    (defined(MBEDTLS_COMPILER_IS_GCC) && MBEDTLS_GCC_VERSION >= 70300))
     for (; (i + 16) <= n; i += 16) {
         uint8x16_t v1 = vld1q_u8(a + i);
         uint8x16_t v2 = vld1q_u8(b + i);
@@ -310,22 +309,34 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 #define MBEDTLS_STATIC_ASSERT(expr, msg)
 #endif
 
-/* Define compiler branch hints */
 #if defined(__has_builtin)
-#if __has_builtin(__builtin_expect)
+#define MBEDTLS_HAS_BUILTIN(x) __has_builtin(x)
+#else
+#define MBEDTLS_HAS_BUILTIN(x) 0
+#endif
+
+/* Define compiler branch hints */
+#if MBEDTLS_HAS_BUILTIN(__builtin_expect)
 #define MBEDTLS_LIKELY(x)       __builtin_expect(!!(x), 1)
 #define MBEDTLS_UNLIKELY(x)     __builtin_expect(!!(x), 0)
-#endif
-#endif
-#if !defined(MBEDTLS_LIKELY)
+#else
 #define MBEDTLS_LIKELY(x)       x
 #define MBEDTLS_UNLIKELY(x)     x
 #endif
 
-#if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \
-    && !defined(__llvm__) && !defined(__INTEL_COMPILER)
-/* Defined if the compiler really is gcc and not clang, etc */
-#define MBEDTLS_COMPILER_IS_GCC
+/* MBEDTLS_ASSUME may be used to provide additional information to the compiler
+ * which can result in smaller code-size. */
+#if MBEDTLS_HAS_BUILTIN(__builtin_assume)
+/* clang provides __builtin_assume */
+#define MBEDTLS_ASSUME(x)       __builtin_assume(x)
+#elif MBEDTLS_HAS_BUILTIN(__builtin_unreachable)
+/* gcc and IAR can use __builtin_unreachable */
+#define MBEDTLS_ASSUME(x)       do { if (!(x)) __builtin_unreachable(); } while (0)
+#elif defined(_MSC_VER)
+/* Supported by MSVC since VS 2005 */
+#define MBEDTLS_ASSUME(x)       __assume(x)
+#else
+#define MBEDTLS_ASSUME(x)       do { } while (0)
 #endif
 
 /* For gcc -Os, override with -O2 for a given function.

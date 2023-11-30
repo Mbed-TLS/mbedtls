@@ -3,19 +3,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef PSA_EXERCISE_KEY_H
@@ -58,12 +46,13 @@
  *
  * For simplicity's sake, stick to block ciphers with 16-byte blocks.
  */
-#if defined(MBEDTLS_AES_C)
+#if defined(PSA_WANT_KEY_TYPE_AES)
 #define KNOWN_SUPPORTED_BLOCK_CIPHER PSA_KEY_TYPE_AES
-#elif defined(MBEDTLS_ARIA_C)
+#elif defined(PSA_WANT_KEY_TYPE_ARIA)
 #define KNOWN_SUPPORTED_BLOCK_CIPHER PSA_KEY_TYPE_ARIA
-#elif defined(MBEDTLS_CAMELLIA_C)
+#elif defined(PSA_WANT_KEY_TYPE_CAMELLIA)
 #define KNOWN_SUPPORTED_BLOCK_CIPHER PSA_KEY_TYPE_CAMELLIA
+#else
 #undef KNOWN_SUPPORTED_BLOCK_CIPHER
 #endif
 
@@ -93,13 +82,13 @@
  *
  * This is used in some smoke tests.
  */
-#if defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(MBEDTLS_CIPHER_MODE_CTR)
+#if defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(PSA_WANT_ALG_CTR)
 #define KNOWN_SUPPORTED_BLOCK_CIPHER_ALG PSA_ALG_CTR
-#elif defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(MBEDTLS_CIPHER_MODE_CBC)
+#elif defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(PSA_WANT_ALG_CBC_NO_PADDING)
 #define KNOWN_SUPPORTED_BLOCK_CIPHER_ALG PSA_ALG_CBC_NO_PADDING
-#elif defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(MBEDTLS_CIPHER_MODE_CFB)
+#elif defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(PSA_WANT_ALG_CFB)
 #define KNOWN_SUPPORTED_BLOCK_CIPHER_ALG PSA_ALG_CFB
-#elif defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(MBEDTLS_CIPHER_MODE_OFB)
+#elif defined(KNOWN_SUPPORTED_BLOCK_CIPHER) && defined(PSA_WANT_ALG_OFB)
 #define KNOWN_SUPPORTED_BLOCK_CIPHER_ALG PSA_ALG_OFB
 #else
 #undef KNOWN_SUPPORTED_BLOCK_CIPHER_ALG

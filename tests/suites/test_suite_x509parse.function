@@ -250,7 +250,8 @@ int verify_parse_san(mbedtls_x509_subject_alternative_name *san,
 
                 ret = mbedtls_oid_get_numeric_string(p,
                                                      n,
-                                                     &san->san.other_name.value.hardware_module_name.oid);
+                                                     &san->san.other_name.value.hardware_module_name
+                                                     .oid);
                 MBEDTLS_X509_SAFE_SNPRINTF;
 
                 ret = mbedtls_snprintf(p, n, ", hardware serial number : ");
@@ -413,6 +414,35 @@ int parse_crt_ext_cb(void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf 
     }
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+#if defined(MBEDTLS_X509_CSR_PARSE_C)
+int parse_csr_ext_accept_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbedtls_x509_buf const *oid,
+                            int critical, const unsigned char *cp, const unsigned char *end)
+{
+    (void) p_ctx;
+    (void) csr;
+    (void) oid;
+    (void) critical;
+    (void) cp;
+    (void) end;
+
+    return 0;
+}
+
+int parse_csr_ext_reject_cb(void *p_ctx, mbedtls_x509_csr const *csr, mbedtls_x509_buf const *oid,
+                            int critical, const unsigned char *cp, const unsigned char *end)
+{
+    (void) p_ctx;
+    (void) csr;
+    (void) oid;
+    (void) critical;
+    (void) cp;
+    (void) end;
+
+    return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                             MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
+}
+#endif /* MBEDTLS_X509_CSR_PARSE_C */
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
@@ -1233,6 +1263,36 @@ void mbedtls_x509_csr_parse(data_t *csr_der, char *ref_out, int ref_ret)
     memset(my_out, 0, sizeof(my_out));
 
     my_ret = mbedtls_x509_csr_parse_der(&csr, csr_der->x, csr_der->len);
+    TEST_EQUAL(my_ret, ref_ret);
+
+    if (ref_ret == 0) {
+        size_t my_out_len = mbedtls_x509_csr_info(my_out, sizeof(my_out), "", &csr);
+        TEST_EQUAL(my_out_len, strlen(ref_out));
+        TEST_EQUAL(strcmp(my_out, ref_out), 0);
+    }
+
+exit:
+    mbedtls_x509_csr_free(&csr);
+    USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CSR_PARSE_C:!MBEDTLS_X509_REMOVE_INFO */
+void mbedtls_x509_csr_parse_with_ext_cb(data_t *csr_der, char *ref_out, int ref_ret, int accept)
+{
+    mbedtls_x509_csr csr;
+    char my_out[1000];
+    int my_ret;
+
+    mbedtls_x509_csr_init(&csr);
+    USE_PSA_INIT();
+
+    memset(my_out, 0, sizeof(my_out));
+
+    my_ret = mbedtls_x509_csr_parse_der_with_ext_cb(&csr, csr_der->x, csr_der->len,
+                                                    accept ? parse_csr_ext_accept_cb :
+                                                    parse_csr_ext_reject_cb,
+                                                    NULL);
     TEST_EQUAL(my_ret, ref_ret);
 
     if (ref_ret == 0) {

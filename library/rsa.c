@@ -2,19 +2,7 @@
  *  The RSA public-key cryptosystem
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 /*
@@ -1632,12 +1620,12 @@ int mbedtls_rsa_rsaes_oaep_decrypt(mbedtls_rsa_context *ctx,
         goto cleanup;
     }
 
-    if (ilen - (p - buf) > output_max_len) {
+    if (ilen - ((size_t) (p - buf)) > output_max_len) {
         ret = MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE;
         goto cleanup;
     }
 
-    *olen = ilen - (p - buf);
+    *olen = ilen - ((size_t) (p - buf));
     if (*olen != 0) {
         memcpy(output, p, *olen);
     }
@@ -2203,7 +2191,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext(mbedtls_rsa_context *ctx,
         return MBEDTLS_ERR_RSA_INVALID_PADDING;
     }
 
-    observed_salt_len = hash_start - p;
+    observed_salt_len = (size_t) (hash_start - p);
 
     if (expected_salt_len != MBEDTLS_RSA_SALT_LEN_ANY &&
         observed_salt_len != (size_t) expected_salt_len) {

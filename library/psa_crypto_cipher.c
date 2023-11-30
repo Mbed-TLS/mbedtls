@@ -3,19 +3,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -42,45 +30,97 @@ static psa_status_t mbedtls_cipher_validate_values(
     psa_algorithm_t alg,
     psa_key_type_t key_type)
 {
-    switch (alg) {
-        case PSA_ALG_STREAM_CIPHER:
-        case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CHACHA20_POLY1305, 0):
-            if (key_type != PSA_KEY_TYPE_CHACHA20) {
-                return PSA_ERROR_NOT_SUPPORTED;
-            }
-            break;
+    /* Reduce code size - hinting to the compiler about what it can assume allows the compiler to
+       eliminate bits of the logic below. */
+#if !defined(PSA_WANT_KEY_TYPE_AES)
+    MBEDTLS_ASSUME(key_type != PSA_KEY_TYPE_AES);
+#endif
+#if !defined(PSA_WANT_KEY_TYPE_ARIA)
+    MBEDTLS_ASSUME(key_type != PSA_KEY_TYPE_ARIA);
+#endif
+#if !defined(PSA_WANT_KEY_TYPE_CAMELLIA)
+    MBEDTLS_ASSUME(key_type != PSA_KEY_TYPE_CAMELLIA);
+#endif
+#if !defined(PSA_WANT_KEY_TYPE_CHACHA20)
+    MBEDTLS_ASSUME(key_type != PSA_KEY_TYPE_CHACHA20);
+#endif
+#if !defined(PSA_WANT_KEY_TYPE_DES)
+    MBEDTLS_ASSUME(key_type != PSA_KEY_TYPE_DES);
+#endif
+#if !defined(PSA_WANT_ALG_CCM)
+    MBEDTLS_ASSUME(alg != PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, 0));
+#endif
+#if !defined(PSA_WANT_ALG_GCM)
+    MBEDTLS_ASSUME(alg != PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, 0));
+#endif
+#if !defined(PSA_WANT_ALG_STREAM_CIPHER)
+    MBEDTLS_ASSUME(alg != PSA_ALG_STREAM_CIPHER);
+#endif
+#if !defined(PSA_WANT_ALG_CHACHA20_POLY1305)
+    MBEDTLS_ASSUME(alg != PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CHACHA20_POLY1305, 0));
+#endif
+#if !defined(PSA_WANT_ALG_CCM_STAR_NO_TAG)
+    MBEDTLS_ASSUME(alg != PSA_ALG_CCM_STAR_NO_TAG);
+#endif
+#if !defined(PSA_WANT_ALG_CTR)
+    MBEDTLS_ASSUME(alg != PSA_ALG_CTR);
+#endif
+#if !defined(PSA_WANT_ALG_CFB)
+    MBEDTLS_ASSUME(alg != PSA_ALG_CFB);
+#endif
+#if !defined(PSA_WANT_ALG_OFB)
+    MBEDTLS_ASSUME(alg != PSA_ALG_OFB);
+#endif
+#if !defined(PSA_WANT_ALG_XTS)
+    MBEDTLS_ASSUME(alg != PSA_ALG_XTS);
+#endif
+#if !defined(PSA_WANT_ALG_ECB_NO_PADDING)
+    MBEDTLS_ASSUME(alg != PSA_ALG_ECB_NO_PADDING);
+#endif
+#if !defined(PSA_WANT_ALG_CBC_NO_PADDING)
+    MBEDTLS_ASSUME(alg != PSA_ALG_CBC_NO_PADDING);
+#endif
+#if !defined(PSA_WANT_ALG_CBC_PKCS7)
+    MBEDTLS_ASSUME(alg != PSA_ALG_CBC_PKCS7);
+#endif
+#if !defined(PSA_WANT_ALG_CMAC)
+    MBEDTLS_ASSUME(alg != PSA_ALG_CMAC);
+#endif
 
-        case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, 0):
-        case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, 0):
-        case PSA_ALG_CCM_STAR_NO_TAG:
-            if ((key_type != PSA_KEY_TYPE_AES) &&
-                (key_type != PSA_KEY_TYPE_ARIA) &&
-                (key_type != PSA_KEY_TYPE_CAMELLIA)) {
-                return PSA_ERROR_NOT_SUPPORTED;
-            }
-            break;
-
-        case PSA_ALG_CTR:
-        case PSA_ALG_CFB:
-        case PSA_ALG_OFB:
-        case PSA_ALG_XTS:
-        case PSA_ALG_ECB_NO_PADDING:
-        case PSA_ALG_CBC_NO_PADDING:
-        case PSA_ALG_CBC_PKCS7:
-        case PSA_ALG_CMAC:
-            if ((key_type != PSA_KEY_TYPE_AES) &&
-                (key_type != PSA_KEY_TYPE_ARIA) &&
-                (key_type != PSA_KEY_TYPE_DES) &&
-                (key_type != PSA_KEY_TYPE_CAMELLIA)) {
-                return PSA_ERROR_NOT_SUPPORTED;
-            }
-            break;
-
-        default:
-            return PSA_ERROR_NOT_SUPPORTED;
+    if (alg == PSA_ALG_STREAM_CIPHER ||
+        alg == PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CHACHA20_POLY1305, 0)) {
+        if (key_type == PSA_KEY_TYPE_CHACHA20) {
+            return PSA_SUCCESS;
+        }
     }
 
-    return PSA_SUCCESS;
+    if (alg == PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, 0) ||
+        alg == PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, 0) ||
+        alg == PSA_ALG_CCM_STAR_NO_TAG) {
+        if (key_type == PSA_KEY_TYPE_AES ||
+            key_type == PSA_KEY_TYPE_ARIA ||
+            key_type == PSA_KEY_TYPE_CAMELLIA) {
+            return PSA_SUCCESS;
+        }
+    }
+
+    if (alg == PSA_ALG_CTR ||
+        alg == PSA_ALG_CFB ||
+        alg == PSA_ALG_OFB ||
+        alg == PSA_ALG_XTS ||
+        alg == PSA_ALG_ECB_NO_PADDING ||
+        alg == PSA_ALG_CBC_NO_PADDING ||
+        alg == PSA_ALG_CBC_PKCS7 ||
+        alg == PSA_ALG_CMAC) {
+        if (key_type == PSA_KEY_TYPE_AES ||
+            key_type == PSA_KEY_TYPE_ARIA ||
+            key_type == PSA_KEY_TYPE_DES ||
+            key_type == PSA_KEY_TYPE_CAMELLIA) {
+            return PSA_SUCCESS;
+        }
+    }
+
+    return PSA_ERROR_NOT_SUPPORTED;
 }
 
 psa_status_t mbedtls_cipher_values_from_psa(

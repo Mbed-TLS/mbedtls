@@ -15,6 +15,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/error.h"
+#include "pk_internal.h"
 
 #include <string.h>
 
@@ -29,7 +30,6 @@
 #endif
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #include "mbedtls/ecp.h"
-#include "pk_internal.h"
 #endif
 
 /* Extended formats */

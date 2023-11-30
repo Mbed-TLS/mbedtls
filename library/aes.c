@@ -330,11 +330,9 @@ MBEDTLS_MAYBE_UNUSED static const uint32_t RT3[256] = { RT };
 /*
  * Round constants
  */
-MBEDTLS_MAYBE_UNUSED static const uint32_t round_constants[10] =
+MBEDTLS_MAYBE_UNUSED static const uint8_t round_constants[10] =
 {
-    0x00000001, 0x00000002, 0x00000004, 0x00000008,
-    0x00000010, 0x00000020, 0x00000040, 0x00000080,
-    0x0000001B, 0x00000036
+    0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36
 };
 
 #else /* MBEDTLS_AES_ROM_TABLES */
@@ -361,7 +359,7 @@ MBEDTLS_MAYBE_UNUSED static uint32_t RT3[256];
 /*
  * Round constants
  */
-MBEDTLS_MAYBE_UNUSED static uint32_t round_constants[10];
+MBEDTLS_MAYBE_UNUSED static uint8_t round_constants[10];
 
 /*
  * Tables generation code

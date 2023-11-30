@@ -82,20 +82,20 @@ PSA functions return a status of type [`psa_status_t`](https://mbed-tls.readthed
 | `aes.h` | `mbedtls_aes_` | [Symmetric encryption](#symmetric-encryption) |
 | `aria.h` | `mbedtls_aria_` | [Symmetric encryption](#symmetric-encryption) |
 | `asn1.h` | `mbedtls_asn1_` | No change ([PK support interface](#pk-format-support-interfaces)) |
-| `asn1write.h` | `mbedtls_asn1_write_` | No change ([PK support interface](#pk-format-support-interfaces)) |
+| `asn1write.h` | `mbedtls_asn1write_` | No change ([PK support interface](#pk-format-support-interfaces)) |
 | `base64.h` | `mbedtls_base64_` | No change ([PK support interface](#pk-format-support-interfaces)) |
-| `bignum.h` | `mbedtls_bignum_` | None (no low-level arithmetic) |
+| `bignum.h` | `mbedtls_mpi_` | None (no low-level arithmetic) |
 | `build_info.h` | `MBEDTLS_` | No change (not a crypto API) |
 | `camellia.h` | `mbedtls_camellia_` | [Symmetric encryption](#symmetric-encryption) |
 | `ccm.h` | `mbedtls_ccm_` | [Symmetric encryption](#symmetric-encryption), [Authenticated cipher operations](#authenticated-cipher-operations) |
 | `chacha20.h` | `mbedtls_chacha20_` | [Symmetric encryption](#symmetric-encryption) |
-| `chachapoly.h` | `mbedtls_chachapoly_` | [Symmetric encryption](#symmetric-encryption) |
+| `chachapoly.h` | `mbedtls_chachapoly_` | [Symmetric encryption](#symmetric-encryption), [Authenticated cipher operations](#authenticated-cipher-operations) |
 | `check_config.h` | N/A | No public APIs (internal support header) |
 | `cipher.h` | `mbedtls_cipher_` | [Symmetric encryption](#symmetric-encryption) |
-| `cmac.h` | `mbedtls_cmac_` | [Hashes and MAC](#hashes-and-mac), [MAC calculation](#mac-calculation) |
+| `cmac.h` | `mbedtls_cipher_cmac_` | [Hashes and MAC](#hashes-and-mac), [MAC calculation](#mac-calculation) |
 | `compat-2.x.h` | various | None (transitional APIs) |
 | `config_psa.h` | N/A | No public APIs (internal support header) |
-| `constant_time.h` | `mbedtls_constant_time_` | [Constant-time functions](#constant-time-functions) |
+| `constant_time.h` | `mbedtls_ct_` | [Constant-time functions](#constant-time-functions) |
 | `ctr_drbg.h` | `mbedtls_ctr_drbg_` | [Random generation interface](#random-generation-interface), [Deterministic pseudorandom generation](#deterministic-pseudorandom-generation) |
 | `debug.h` | `mbedtls_debug_` | No change (not a crypto API) |
 | `des.h` | `mbedtls_des_` | [Symmetric encryption](#symmetric-encryption) |
@@ -105,7 +105,7 @@ PSA functions return a status of type [`psa_status_t`](https://mbed-tls.readthed
 | `ecjpake.h` | `mbedtls_ecjpake_` | [EC-JPAKE](#ec-jpake) |
 | `ecp.h` | `mbedtls_ecp_` | [Asymmetric cryptography](#asymmetric-cryptography) |
 | `entropy.h` | `mbedtls_entropy_` | [Random generation interface](#random-generation-interface), [Entropy sources](#entropy-sources) |
-| `error.h` | `mbedtls_error_` | [Error messages](#error-messages) |
+| `error.h` | `mbedtls_*err*` | [Error messages](#error-messages) |
 | `gcm.h` | `mbedtls_gcm_` | [Symmetric encryption](#symmetric-encryption), [Authenticated cipher operations](#authenticated-cipher-operations) |
 | `hkdf.h` | `mbedtls_hkdf_` | [HKDF](#hkdf) |
 | `hmac_drbg.h` | `mbedtls_hmac_drbg_` | [Random generation interface](#random-generation-interface), [Deterministic pseudorandom generation](#deterministic-pseudorandom-generation) |
@@ -123,11 +123,11 @@ PSA functions return a status of type [`psa_status_t`](https://mbed-tls.readthed
 | `pkcs7.h` | `mbedtls_pkcs7_` | No change (not a crypto API) |
 | `pkcs12.h` | `mbedtls_pkcs12_` | [PKCS#12 module](#pkcs12-module) |
 | `platform.h` | `mbedtls_platform_` | No change (not a crypto API) |
-| `platform_time.h` | `mbedtls_platform_time_` | No change (not a crypto API) |
-| `platform_util.h` | `mbedtls_platform_util_` | No change (not a crypto API) |
+| `platform_time.h` | `mbedtls_*time*` | No change (not a crypto API) |
+| `platform_util.h` | `mbedtls_platform_` | No change (not a crypto API) |
 | `poly1305.h` | `mbedtls_poly1305_` | None (but there is Chacha20-Poly1305 [AEAD](#symmetric-encryption)) |
 | `private_access.h` | N/A | No public APIs (internal support header) |
-| `psa_util.h` | `mbedtls_psa_` | No public APIs (internal support header) |
+| `psa_util.h` | N/A | No public APIs (internal support header) |
 | `ripemd160.h` | `mbedtls_ripemd160_` | [Hashes and MAC](#hashes-and-mac) |
 | `rsa.h` | `mbedtls_rsa_` | [Asymmetric cryptography](#asymmetric-cryptography) |
 | `sha1.h` | `mbedtls_sha1_` | [Hashes and MAC](#hashes-and-mac) |
@@ -136,7 +136,7 @@ PSA functions return a status of type [`psa_status_t`](https://mbed-tls.readthed
 | `sha512.h` | `mbedtls_sha512_` | [Hashes and MAC](#hashes-and-mac) |
 | `ssl.h` | `mbedtls_ssl_` | No change (not a crypto API) |
 | `ssl_cache.h` | `mbedtls_ssl_cache_` | No change (not a crypto API) |
-| `ssl_ciphersuites.h` | `mbedtls_ssl_ciphersuites_` | No change (not a crypto API) |
+| `ssl_ciphersuites.h` | `mbedtls_ssl_ciphersuite_` | No change (not a crypto API) |
 | `ssl_cookie.h` | `mbedtls_ssl_cookie_` | No change (not a crypto API) |
 | `ssl_ticket.h` | `mbedtls_ssl_ticket_` | No change (not a crypto API) |
 | `threading.h` | `mbedtls_threading_` | No change (not a crypto API) |

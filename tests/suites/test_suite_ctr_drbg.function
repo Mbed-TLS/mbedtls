@@ -364,10 +364,11 @@ void ctr_drbg_threads(data_t *expected_result, int reseed)
         mbedtls_ctr_drbg_set_prediction_resistance(&ctx, MBEDTLS_CTR_DRBG_PR_OFF);
         mbedtls_ctr_drbg_set_reseed_interval(&ctx, n_random_calls + 1);
 
-        TEST_CALLOC(entropy, MBEDTLS_CTR_DRBG_ENTROPY_LEN);
-        test_max_idx = MBEDTLS_CTR_DRBG_ENTROPY_LEN;
+        TEST_CALLOC(entropy, MBEDTLS_CTR_DRBG_ENTROPY_LEN + MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN);
+        test_max_idx = MBEDTLS_CTR_DRBG_ENTROPY_LEN + MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN;
     } else {
-        const size_t entropy_size = (n_random_calls + 1) * MBEDTLS_CTR_DRBG_ENTROPY_LEN;
+        const size_t entropy_size = ((n_random_calls + 1) * MBEDTLS_CTR_DRBG_ENTROPY_LEN)
+                                    + MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN;
 
         mbedtls_ctr_drbg_set_prediction_resistance(&ctx, MBEDTLS_CTR_DRBG_PR_ON);
 

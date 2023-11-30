@@ -15,11 +15,13 @@
 #define MBEDTLS_AESCE_H
 
 #include "mbedtls/build_info.h"
+#include "common.h"
 
 #include "mbedtls/aes.h"
 
 
-#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_ARCH_IS_ARMV8_A) && defined(__ARM_NEON)
+#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_ARCH_IS_ARMV8_A) && \
+    defined(MBEDTLS_HAVE_NEON_INTRINSICS)
 
 #define MBEDTLS_AESCE_HAVE_CODE
 
@@ -124,6 +126,6 @@ int mbedtls_aesce_setkey_enc(unsigned char *rk,
 #error "AES hardware acceleration not supported on this platform"
 #endif
 
-#endif /* MBEDTLS_AESCE_C && MBEDTLS_ARCH_IS_ARMV8_A && __ARM_NEON */
+#endif /* MBEDTLS_AESCE_C && MBEDTLS_ARCH_IS_ARMV8_A && MBEDTLS_HAVE_NEON_INTRINSICS */
 
 #endif /* MBEDTLS_AESCE_H */

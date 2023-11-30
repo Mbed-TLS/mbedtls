@@ -81,9 +81,9 @@ PSA functions return a status of type [`psa_status_t`](https://mbed-tls.readthed
 | ------ | --------------- | -------------- |
 | `aes.h` | `mbedtls_aes_` | [Symmetric encryption](#symmetric-encryption) |
 | `aria.h` | `mbedtls_aria_` | [Symmetric encryption](#symmetric-encryption) |
-| `asn1.h` | `mbedtls_asn1_` | No change (not a crypto API) |
-| `asn1write.h` | `mbedtls_asn1write_` | No change (not a crypto API) |
-| `base64.h` | `mbedtls_base64_` | [PK format support interfaces](#pk-format-support-interfaces) |
+| `asn1.h` | `mbedtls_asn1_` | No change ([PK support interface](#pk-format-support-interfaces)) |
+| `asn1write.h` | `mbedtls_asn1_write_` | No change ([PK support interface](#pk-format-support-interfaces)) |
+| `base64.h` | `mbedtls_base64_` | No change ([PK support interface](#pk-format-support-interfaces)) |
 | `bignum.h` | `mbedtls_bignum_` | None (no low-level arithmetic) |
 | `build_info.h` | `MBEDTLS_` | No change (not a crypto API) |
 | `camellia.h` | `mbedtls_camellia_` | [Symmetric encryption](#symmetric-encryption) |
@@ -109,15 +109,15 @@ PSA functions return a status of type [`psa_status_t`](https://mbed-tls.readthed
 | `gcm.h` | `mbedtls_gcm_` | [Symmetric encryption](#symmetric-encryption), [Authenticated cipher operations](#authenticated-cipher-operations) |
 | `hkdf.h` | `mbedtls_hkdf_` | [HKDF](#hkdf) |
 | `hmac_drbg.h` | `mbedtls_hmac_drbg_` | [Random generation interface](#random-generation-interface), [Deterministic pseudorandom generation](#deterministic-pseudorandom-generation) |
-| `lms.h` | `mbedtls_lms_` | No migration path yet |
+| `lms.h` | `mbedtls_lms_` | No change ([LMS signatures](#lms-signatures)) |
 | `mbedtls_config.h` | `MBEDTLS_` | [Compile-time configuration](#compile-time-configuration) |
 | `md.h` | `mbedtls_md_` | [Hashes and MAC](#hashes-and-mac) |
 | `md5.h` | `mbedtls_md5_` | [Hashes and MAC](#hashes-and-mac) |
 | `memory_buffer_alloc.h` | `mbedtls_memory_buffer_alloc_` | No change (not a crypto API) |
 | `net_sockets.h` | `mbedtls_net_` | No change (not a crypto API) |
-| `nist_kw.h` | `mbedtls_nist_kw_` | No migration path yet |
-| `oid.h` | `mbedtls_oid_` | [PK format support interfaces](#pk-format-support-interfaces) |
-| `pem.h` | `mbedtls_pem_` | [PK format support interfaces](#pk-format-support-interfaces) |
+| `nist_kw.h` | `mbedtls_nist_kw_` | Migration path not yet defined |
+| `oid.h` | `mbedtls_oid_` | No change ([PK support interface](#pk-format-support-interfaces)) |
+| `pem.h` | `mbedtls_pem_` | No change ([PK support interface](#pk-format-support-interfaces)) |
 | `pk.h` | `mbedtls_pk_` | [Asymmetric cryptography](#asymmetric-cryptography) |
 | `pkcs5.h` | `mbedtls_pkcs5_` | [PKCS#5 module](#pkcs5-module) |
 | `pkcs7.h` | `mbedtls_pkcs7_` | No change (not a crypto API) |
@@ -1289,9 +1289,15 @@ There is no direct equivalent of `mbedtls_rsa_export`, `mbedtls_rsa_export_raw` 
 
 A PSA key object is immutable, so there is no need for an equivalent of `mbedtls_rsa_copy`. (There is a function `psa_copy_key`, but it is only useful to make a copy of a key with a different policy of ownership; both concepts are out of scope of this document since they have no equivalent in the legacy API.)
 
+### LMS signatures
+
+A future version of Mbed TLS will support LMS keys and signatures through the PSA API (`psa_generate_key`, `psa_export_public_key`, `psa_import_key`, `psa_sign_hash`, `psa_verify_hash`, etc.). However, this is likely to happen after Mbed TLS 4.0, therefore the next major version of Mbed TLS will likely keep the existing `lms.h` interface.
+
 ### PK format support interfaces
 
-The interfaces in `base64.h`, `asn1.h`, `asn1write.h`, `oid.h` and `pem.h` are intended to support X.509 and key file formats. They have no PSA equivalent since they are not directly about cryptography. They remain unchanged in Mbed TLS 3.x. In the future, they are likely to move out of the cryptography part of Mbed TLS and into the public-key/X.509 part.
+The interfaces in `base64.h`, `asn1.h`, `asn1write.h`, `oid.h` and `pem.h` are intended to support X.509 and key file formats. They have no PSA equivalent since they are not directly about cryptography.
+
+In Mbed TLS 4.0, we are planning to keep the ASN.1 interfaces mostly unchanged. The evolution of Base64, OID and PEM as separate interfaces is still undecided at the time of writing.
 
 ## EC-JPAKE
 

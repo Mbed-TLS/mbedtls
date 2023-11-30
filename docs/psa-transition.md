@@ -52,7 +52,7 @@ To make the PSA API available, make sure that the configuration option [`MBEDTLS
 
 You should probably enable [`MBEDTLS_USE_PSA_CRYPTO`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/mbedtls__config_8h/#mbedtls__config_8h_1a70fd7b97d5f11170546583f2095942a6) as well (it is disabled by default). This option causes the PK, X.509 and TLS modules to use PSA crypto under the hood. Some functions that facilitate the transition (for example, to convert between metadata encodings or between key representations) are only available when `MBEDTLS_USE_PSA_CRYPTO` is enabled.
 
-By default, the PSA crypto API offers a similar set of cryptographic mechanisms as those offered by the legacy API. The PSA crypto API also has its own configuration mechanism; see “[Cryptographic mechanism availability](#cryptographic-mechanism-availability)”.
+By default, the PSA crypto API offers a similar set of cryptographic mechanisms as those offered by the legacy API (configured by `MBEDTLS_XXX` macros). The PSA crypto API also has its own configuration mechanism; see “[Cryptographic mechanism availability](#cryptographic-mechanism-availability)”.
 
 ### Header files
 

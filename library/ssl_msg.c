@@ -5946,6 +5946,74 @@ int mbedtls_ssl_write(mbedtls_ssl_context *ssl, const unsigned char *buf, size_t
     return ret;
 }
 
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+/*
+ * Write application data as early data (public-facing wrapper)
+ */
+int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
+                                 const unsigned char *buf, size_t len)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    int data_length = 0;
+
+    MBEDTLS_SSL_DEBUG_MSG(2, ("=> write early_data"));
+
+    if (ssl == NULL || ssl->conf == NULL) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+    ssl->early_data_can_write = 0;
+
+    // Perform early handshake if necessary
+    if (ssl->state == MBEDTLS_SSL_HELLO_REQUEST ||
+        ssl->state == MBEDTLS_SSL_CLIENT_HELLO) {
+        while (ssl->early_data_can_write == 0) {
+            ret = mbedtls_ssl_handshake_step(ssl);
+            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_handshake_step", ret);
+
+            if (ret != 0) {
+                break;
+            }
+        }
+    }
+
+    ret = mbedtls_ssl_flush_output(ssl);
+    if (ret != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_flush_output", ret);
+        return ret;
+    }
+
+    if (ssl->early_data_can_write != 2) {
+        data_length = ssl_write_real(ssl, buf, len);
+        MBEDTLS_SSL_DEBUG_MSG(2, ("write real early_data, length=%d", data_length));
+    } else {
+        MBEDTLS_SSL_DEBUG_MSG(2, ("cannot send early_data"));
+        return MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA;
+    }
+
+    if (ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER) {
+
+        ret = mbedtls_ssl_handshake(ssl);
+        if (ret != 0) {
+            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_handshake", ret);
+            return ret;
+        }
+    }
+
+
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    if ((ret = ssl_check_ctr_renegotiate(ssl)) != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "ssl_check_ctr_renegotiate", ret);
+        return ret;
+    }
+#endif
+
+
+    MBEDTLS_SSL_DEBUG_MSG(2, ("<= write early_data"));
+
+    return data_length;
+}
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
+
 /*
  * Notify the peer that the connection is being closed
  */

@@ -387,8 +387,10 @@ int mbedtls_aesce_setkey_enc(unsigned char *rk,
 {
     switch (bits) {
         case 128:
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
         case 192:
         case 256:
+#endif
             aesce_setkey_enc(rk, key, bits);
             break;
         default:

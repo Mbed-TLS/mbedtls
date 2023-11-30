@@ -716,6 +716,57 @@ exit:
     return ret;
 }
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_EARLY_DATA)
+static int write_early_data(mbedtls_ssl_context *ssl,
+                            const unsigned char *data_to_write,
+                            size_t data_to_write_len,
+                            size_t *data_written)
+{
+    int ret = 0;
+    *data_written = 0;
+
+    while (*data_written < data_to_write_len) {
+        ret = mbedtls_ssl_write_early_data(ssl, data_to_write + *data_written,
+                                           data_to_write_len - *data_written);
+
+        if (ret < 0 &&
+            ret != MBEDTLS_ERR_SSL_WANT_READ &&
+            ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
+            return ret;
+        }
+
+        *data_written += ret;
+    }
+
+    return 0;
+}
+
+static int ssl_write_early_data(mbedtls_ssl_context *ssl,
+                                const unsigned char *data_to_write,
+                                size_t data_to_write_len,
+                                int *data_written)
+{
+    int ret = 0;
+    size_t early_data_written = 0;
+    ret = write_early_data(ssl, data_to_write, data_to_write_len,
+                           &early_data_written);
+    if (ret < 0 &&
+        ret != MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA) {
+        return ret;
+    }
+    *data_written += (int) early_data_written;
+
+    ret = mbedtls_ssl_write(ssl, data_to_write + early_data_written,
+                            data_to_write_len - early_data_written);
+    if (ret < 0) {
+        return ret;
+    }
+
+    *data_written += ret;
+    return ret;
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_EARLY_DATA */
+
 int main(int argc, char *argv[])
 {
     int ret = 0, len, tail_len, i, written, frags, retry_left;
@@ -740,6 +791,10 @@ int main(int argc, char *argv[])
     size_t cid_len = 0;
     size_t cid_renego_len = 0;
 #endif
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    char early_data[] = "early data test";
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_SSL_ALPN)
     const char *alpn_list[ALPN_LIST_SIZE];
@@ -2349,6 +2404,11 @@ usage:
         }
     }
 
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+    mbedtls_printf("early data status = %d\n",
+                   mbedtls_ssl_get_early_data_status(&ssl));
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
+
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     /*
      * 5. Verify the server certificate
@@ -2995,18 +3055,31 @@ reconnect:
                            (unsigned int) -ret);
             goto exit;
         }
-
-        while ((ret = mbedtls_ssl_handshake(&ssl)) != 0) {
-            if (ret != MBEDTLS_ERR_SSL_WANT_READ &&
-                ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
-                ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) {
-                mbedtls_printf(" failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n",
-                               (unsigned int) -ret);
-                goto exit;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_EARLY_DATA)
+        if (opt.early_data == MBEDTLS_SSL_EARLY_DATA_ENABLED) {
+            int data_written = 0;
+            ssl_write_early_data(&ssl, (const unsigned char *) early_data,
+                                 strlen(early_data), &data_written);
+        } else
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_EARLY_DATA */
+        {
+            while ((ret = mbedtls_ssl_handshake(&ssl)) != 0) {
+                if (ret != MBEDTLS_ERR_SSL_WANT_READ &&
+                    ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
+                    ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) {
+                    mbedtls_printf(" failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n",
+                                   (unsigned int) -ret);
+                    goto exit;
+                }
             }
         }
 
         mbedtls_printf(" ok\n");
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+        mbedtls_printf("early data status = %d\n",
+                       mbedtls_ssl_get_early_data_status(&ssl));
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
 
         goto send_request;
     }

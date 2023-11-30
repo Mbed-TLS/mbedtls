@@ -420,7 +420,7 @@ psa_status_t psa_unlock_key_slot(psa_key_slot_t *slot)
         return PSA_SUCCESS;
     }
 
-    if (slot->lock_count > 0) {
+    if (slot->lock_count > 0 && slot->lock_count != SIZE_MAX) {
         slot->lock_count--;
         return PSA_SUCCESS;
     }
@@ -433,7 +433,7 @@ psa_status_t psa_unlock_key_slot(psa_key_slot_t *slot)
      * the function is called as part of the execution of a test suite, the
      * execution of the test suite is stopped in error if the assertion fails.
      */
-    MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->lock_count > 0);
+    MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->lock_count > 0 && slot->lock_count != SIZE_MAX);
     return PSA_ERROR_CORRUPTION_DETECTED;
 }
 

@@ -113,21 +113,23 @@ void psa_wipe_all_key_slots(void);
 psa_status_t psa_get_empty_key_slot(psa_key_id_t *volatile_key_id,
                                     psa_key_slot_t **p_slot);
 
-/** Lock a key slot.
+/** Lock a key slot for reading.
  *
  * This function increments the key slot lock counter by one.
+ * If slot is in a WRITING state, this will fail.
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
  *
  * \param[in] slot  The key slot.
  *
  * \retval #PSA_SUCCESS
                The key slot lock counter was incremented.
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- *             The lock counter already reached its maximum value and was not
- *             increased.
+ *             The slot was in a writing state.
  */
 static inline psa_status_t psa_lock_key_slot(psa_key_slot_t *slot)
 {
-    if (slot->lock_count >= SIZE_MAX) {
+    if (slot->lock_count == SIZE_MAX) {
         return PSA_ERROR_CORRUPTION_DETECTED;
     }
 
@@ -136,9 +138,35 @@ static inline psa_status_t psa_lock_key_slot(psa_key_slot_t *slot)
     return PSA_SUCCESS;
 }
 
+/** Lock a key slot for writing.
+ *
+ * This function sets the slot's lock_count to SIZE_MAX.
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
+ *
+ * \param[in] slot  The key slot.
+ *
+ * \retval #PSA_SUCCESS
+               The key slot lock counter was set to SIZE_MAX.
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ *             The lock counter was already in a writing state.
+ */
+static inline psa_status_t psa_lock_key_slot_for_writing(psa_key_slot_t *slot)
+{
+    if (slot->lock_count == SIZE_MAX) {
+        return PSA_ERROR_CORRUPTION_DETECTED;
+    }
+    slot->lock_count = SIZE_MAX;
+
+    return PSA_SUCCESS;
+}
+
 /** Unlock a key slot.
  *
  * This function decrements the key slot lock counter by one.
+ * If slot is in a WRITING state, this will fail.
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
  *
  * \note To ease the handling of errors in retrieving a key slot
  *       a NULL input pointer is valid, and the function returns
@@ -149,7 +177,8 @@ static inline psa_status_t psa_lock_key_slot(psa_key_slot_t *slot)
  *             \p slot is NULL or the key slot lock counter has been
  *             decremented successfully.
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- *             The lock counter was equal to 0.
+ *             The lock counter was equal to 0, or the slot was in a
+ *             writing state.
  *
  */
 psa_status_t psa_unlock_key_slot(psa_key_slot_t *slot);
@@ -166,6 +195,31 @@ psa_status_t psa_unlock_key_slot(psa_key_slot_t *slot);
  *         The lifetime designates a key that is volatile or in internal
  *         storage.
  */
+
+/** Lock a key slot for writing.
+ *
+ * This function sets the slot's lock_count to 0.
+ * If slot is not in a WRITING state, this will fail.
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
+ *
+ * \param[in] slot  The key slot.
+ *
+ * \retval #PSA_SUCCESS
+               The key slot lock counter was set to 0.
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ *             The lock counter was not in a WRITING state.
+ */
+static inline psa_status_t psa_unlock_key_slot_for_writing(psa_key_slot_t *slot)
+{
+    if (slot->lock_count != SIZE_MAX) {
+        return PSA_ERROR_CORRUPTION_DETECTED;
+    }
+    slot->lock_count = 0;
+
+    return PSA_SUCCESS;
+}
+
 static inline int psa_key_lifetime_is_external(psa_key_lifetime_t lifetime)
 {
     return PSA_KEY_LIFETIME_GET_LOCATION(lifetime)

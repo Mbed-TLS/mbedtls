@@ -50,12 +50,27 @@ typedef struct {
      * Number of locks on the key slot held by the library.
      *
      * This counter is incremented by one each time a library function
-     * retrieves through one of the dedicated internal API a pointer to the
-     * key slot.
+     * calls the psa_lock_key_slot() API, library functions must do this
+     * before they read the current content of the slot for an operation.
+     *
+     * This counter is set to SIZE_MAX by a call to
+     * psa_lock_key_slot_for_writing(), library functions must do this
+     * before they write to any field in the slot other than lock_count.
      *
      * This counter is decremented by one each time a library function stops
-     * accessing the key slot and states it by calling the
+     * reading the key slot and states it by calling the
      * psa_unlock_key_slot() API.
+     *
+     * This counter is set to 0 when a library function stops
+     * writing to the key slot and states it by calling
+     * psa_unlock_key_slot_for_writing().
+     *
+     * If this counter is equal to 0, the slot is UNUSED.
+     * If the counter is equal to SIZE_MAX, the slot is in a WRITING state.
+     * In this state, calls to psa_lock_key_slot() or psa_unlock_key_slot()
+     * will fail.
+     * Else the counter is equal to some n, and there are n operations with
+     * a reading lock on the slot.
      *
      * This counter is used to prevent resetting the key slot while the library
      * may access it. For example, such control is needed in the following
@@ -66,7 +81,7 @@ typedef struct {
      *   the library cannot be reclaimed to free a key slot to load the
      *   persistent key.
      * . In case of a multi-threaded application where one thread asks to close
-     *   or purge or destroy a key while it is in used by the library through
+     *   or purge or destroy a key while it is in use by the library through
      *   another thread.
      */
     size_t lock_count;
@@ -101,6 +116,8 @@ static inline int psa_is_key_slot_occupied(const psa_key_slot_t *slot)
 /** Test whether a key slot is locked.
  *
  * A key slot is locked iff its lock counter is strictly greater than 0.
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
  *
  * \param[in] slot  The key slot to test.
  *
@@ -109,6 +126,22 @@ static inline int psa_is_key_slot_occupied(const psa_key_slot_t *slot)
 static inline int psa_is_key_slot_locked(const psa_key_slot_t *slot)
 {
     return slot->lock_count > 0;
+}
+
+/** Test whether a key slot is locked for writing.
+ *
+ * A key slot is locked for writing iff its lock counter is
+ * equal to SIZE_MAX.
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
+ *
+ * \param[in] slot  The key slot to test.
+ *
+ * \return 1 if the slot is locked for writing, 0 otherwise.
+ */
+static inline int psa_is_key_slot_locked_for_writing(const psa_key_slot_t *slot)
+{
+    return slot->lock_count == SIZE_MAX;
 }
 
 /** Retrieve flags from psa_key_slot_t::attr::core::flags.

@@ -2658,9 +2658,10 @@ static int ssl_tls13_handshake_wrapup(mbedtls_ssl_context *ssl)
  * } EarlyDataIndication;
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_parse_nst_early_data_ext(mbedtls_ssl_context *ssl,
-                                              const unsigned char *buf,
-                                              const unsigned char *end)
+static int ssl_tls13_parse_new_session_ticket_early_data_ext(
+    mbedtls_ssl_context *ssl,
+    const unsigned char *buf,
+    const unsigned char *end)
 {
     mbedtls_ssl_session *session = ssl->session;
 
@@ -2710,11 +2711,12 @@ static int ssl_tls13_parse_new_session_ticket_exts(mbedtls_ssl_context *ssl,
         switch (extension_type) {
 #if defined(MBEDTLS_SSL_EARLY_DATA)
             case MBEDTLS_TLS_EXT_EARLY_DATA:
-                ret = ssl_tls13_parse_nst_early_data_ext(
+                ret = ssl_tls13_parse_new_session_ticket_early_data_ext(
                     ssl, p, p + extension_data_len);
                 if (ret != 0) {
                     MBEDTLS_SSL_DEBUG_RET(
-                        1, "ssl_tls13_parse_nst_early_data_ext", ret);
+                        1, "ssl_tls13_parse_new_session_ticket_early_data_ext",
+                        ret);
                 }
                 break;
 #endif /* MBEDTLS_SSL_EARLY_DATA */

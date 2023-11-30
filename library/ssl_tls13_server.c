@@ -207,13 +207,22 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      *
      * Servers MUST NOT use any value greater than 604800 seconds (7 days).
      *
+     * `ssl->conf->f_ticket_parse()` might return an illegal `ticket_lifetime`.
+     */
+    if (session->ticket_lifetime >
+        MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            3, ("Ticket lifetime exceeds maximum allowed value."));
+        goto exit;
+    }
+    /*
      * RFC 8446 section 4.2.11.1
      *
      * Clients MUST NOT attempt to use tickets which have ages greater than
      * the "ticket_lifetime" value which was provided with the ticket.
      *
      */
-    if (server_age > MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME * 1000) {
+    if (server_age > session->ticket_lifetime * 1000) {
         MBEDTLS_SSL_DEBUG_MSG(
             3, ("Ticket age exceeds limitation ticket_age = %" MBEDTLS_PRINTF_MS_TIME,
                 server_age));
@@ -2990,7 +2999,6 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
     unsigned char *p = buf;
     mbedtls_ssl_session *session = ssl->session;
     size_t ticket_len;
-    uint32_t ticket_lifetime;
 
     *out_len = 0;
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write NewSessionTicket msg"));
@@ -3009,28 +3017,37 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
                                     p + 9 + ticket_nonce_size + 2,
                                     end,
                                     &ticket_len,
-                                    &ticket_lifetime);
+                                    NULL);
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "write_ticket", ret);
         return ret;
     }
-    /* RFC 8446 4.6.1
+
+    /* RFC 8446 section 4.6.1
+     *
      *  ticket_lifetime:  Indicates the lifetime in seconds as a 32-bit
-     *      unsigned integer in network byte order from the time of ticket
-     *      issuance.  Servers MUST NOT use any value greater than
-     *      604800 seconds (7 days).  The value of zero indicates that the
-     *      ticket should be discarded immediately.  Clients MUST NOT cache
-     *      tickets for longer than 7 days, regardless of the ticket_lifetime,
-     *      and MAY delete tickets earlier based on local policy.  A server
-     *      MAY treat a ticket as valid for a shorter period of time than what
-     *      is stated in the ticket_lifetime.
+     *     unsigned integer in network byte order from the time of ticket
+     *     issuance.  Servers MUST NOT use any value greater than
+     *     604800 seconds (7 days).  The value of zero indicates that the
+     *     ticket should be discarded immediately.  Clients MUST NOT cache
+     *     tickets for longer than 7 days, regardless of the ticket_lifetime,
+     *     and MAY delete tickets earlier based on local policy.  A server
+     *     MAY treat a ticket as valid for a shorter period of time than what
+     *     is stated in the ticket_lifetime.
+     *
+     * `ticket_lifetime` MUST NOT be greater than 7 days. It should not be
+     * changed for that will cause difference between server stored and client
+     * received.
      */
-    if (ticket_lifetime > MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME) {
-        ticket_lifetime = MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME;
+    if (session->ticket_lifetime > MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("`ticket_lifetime`(%u) is greater than 7 days.",
+                session->ticket_lifetime));
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
-    MBEDTLS_PUT_UINT32_BE(ticket_lifetime, p, 0);
+    MBEDTLS_PUT_UINT32_BE(session->ticket_lifetime, p, 0);
     MBEDTLS_SSL_DEBUG_MSG(3, ("ticket_lifetime: %u",
-                              (unsigned int) ticket_lifetime));
+                              session->ticket_lifetime));
 
     /* Write ticket_age_add */
     MBEDTLS_PUT_UINT32_BE(session->ticket_age_add, p, 4);

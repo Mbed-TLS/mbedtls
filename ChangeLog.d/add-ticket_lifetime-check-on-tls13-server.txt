@@ -1,0 +1,10 @@
+Bugfix
+   * For the time being, when ticket age is lower than maximum allowed age and
+     greater than lifetime, client can still do a resumption connection. That is
+     unexpected.
+
+API changes
+   * Add mbedtls_ssl_session_conf_ticket_lifetime() to configure lifetime in
+     f_ticket_write() callback
+   * ticket_lifetime parameter of f_ticket_write() is deprecated for tls13
+     server.

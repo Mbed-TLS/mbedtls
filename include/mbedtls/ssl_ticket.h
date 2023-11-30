@@ -99,6 +99,9 @@ void mbedtls_ssl_ticket_init(mbedtls_ssl_ticket_context *ctx);
  *                  Recommended value: MBEDTLS_CIPHER_AES_256_GCM.
  * \param lifetime  Tickets lifetime in seconds
  *                  Recommended value: 86400 (one day).
+ *                  When TLS 1.3 enabled, it MUST NOT be greater than 7 days.
+ *                  Otherwise, \c MBEDTLS_ERR_SSL_BAD_INPUT_DATA will be raised
+ *                  when create new session tickets in TLS 1.3 connection.
  *
  * \note            It is highly recommended to select a cipher that is at
  *                  least as strong as the strongest ciphersuite

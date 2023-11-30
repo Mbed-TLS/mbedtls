@@ -2184,9 +2184,14 @@ static int ssl_tls13_process_encrypted_extensions(mbedtls_ssl_context *ssl)
          * - The selected cipher suite
          * - The selected ALPN [RFC7301] protocol, if any
          *
-         * We check here that when early data is involved the server
-         * selected the cipher suite associated to the pre-shared key
-         * as it must have.
+         * When parsing EncryptedExtensions, the client does not know if
+         * the server will accept early data and select the first proposed
+         * pre-shared key with a cipher suite that is different from the
+         * cipher suite associated to the selected pre-shared key. To address
+         * aforementioned case, when early data is involved, we check:
+         * - the selected pre-shared key is the first proposed one
+         * - the selected cipher suite same as the one associated with the
+         *   pre-shared key.
          */
         if (handshake->selected_identity != 0 ||
             handshake->ciphersuite_info->id !=
@@ -2203,16 +2208,14 @@ static int ssl_tls13_process_encrypted_extensions(mbedtls_ssl_context *ssl)
 #endif
 
     /*
-     * When early_data extension is enabled and sent in ClientHello, the client
-     * does not know if the server will accept early data and select the first
-     * proposed pre-shared key with a ciphersuite that is different from the
-     * ciphersuite associated to the selected pre-shared key. To address
-     * aforementioned case, we do associated verification when parsing
-     * early_data ext in EncryptedExtensions. Therefore we have to assign
-     * the ciphersuite in current handshake to session_negotiate later than
-     * the associated verification. This won't impact decryption of
-     * EncryptedExtensions since we compute handshake keys by the ciphersuite
-     * in handshake not via the one in session_negotiate.
+     * Move `session_negotiate->ciphersuite` assignment here which after
+     * early data cipher suite check when receiving "early_data" extension
+     * in EncryptedExtensions.
+     *
+     * We compute transform_handshake by the cipher suite chosen from
+     * the server in `handshake`. `session_negotiate->ciphersuite` is the
+     * cipher suite negotiated in previous connection and it is not used for
+     * computing transform_handshake.
      */
     ssl->session_negotiate->ciphersuite = handshake->ciphersuite_info->id;
 

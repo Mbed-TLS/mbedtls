@@ -1414,6 +1414,8 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
         return ret;
     }
 
+    session->ticket_lifetime = 7 * 24 * 3600;
+
     switch (opt.dummy_ticket % 11) {
         case 1:
             return MBEDTLS_ERR_SSL_INVALID_MAC;

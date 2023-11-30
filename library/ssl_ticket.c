@@ -505,6 +505,8 @@ int mbedtls_ssl_ticket_parse(void *p_ticket,
     mbedtls_ms_time_t ticket_creation_time, ticket_age;
     mbedtls_ms_time_t ticket_lifetime = key->lifetime * 1000;
 
+    session->ticket_lifetime = key->lifetime;
+
     ret = mbedtls_ssl_session_get_ticket_creation_time(session,
                                                        &ticket_creation_time);
     if (ret != 0) {

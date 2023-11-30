@@ -444,6 +444,16 @@
 #error "MBEDTLS_PK_WRITE_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PK_HAVE_ECC_KEYS) && \
+    !defined(MBEDTLS_OID_C)
+#error "MBEDTLS_PK_PARSE_C and MBEDTLS_PK_HAVE_ECC_KEYS require MBEDTLS_OID_C"
+#endif
+
+#if defined(MBEDTLS_PK_WRITE_C) && defined(MBEDTLS_PK_HAVE_ECC_KEYS) && \
+    !defined(MBEDTLS_OID_C)
+#error "MBEDTLS_PK_WRITE_C and MBEDTLS_PK_HAVE_ECC_KEYS require MBEDTLS_OID_C"
+#endif
+
 #if defined(MBEDTLS_PLATFORM_EXIT_ALT) && !defined(MBEDTLS_PLATFORM_C)
 #error "MBEDTLS_PLATFORM_EXIT_ALT defined, but not all prerequisites"
 #endif

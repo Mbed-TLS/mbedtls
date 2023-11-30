@@ -1391,6 +1391,7 @@ int dummy_ticket_write(void *p_ticket, const mbedtls_ssl_session *session,
     }
     put_unaligned_uint32(p, 7 * 24 * 3600);
     *ticket_lifetime = 7 * 24 * 3600;
+    ((mbedtls_ssl_session *) session)->ticket_lifetime = *ticket_lifetime;
     p += 4;
 
     /* Dump session state */

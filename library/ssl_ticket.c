@@ -339,6 +339,7 @@ int mbedtls_ssl_ticket_write(void *p_ticket,
     key = &ctx->keys[ctx->active];
 
     *ticket_lifetime = key->lifetime;
+    ((mbedtls_ssl_session *) session)->ticket_lifetime = *ticket_lifetime;
 
     memcpy(key_name, key->name, TICKET_KEY_NAME_BYTES);
 

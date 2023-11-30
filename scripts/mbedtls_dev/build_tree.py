@@ -48,8 +48,7 @@ def crypto_library_filename(root: Optional[str] = None) -> str:
         raise Exception('Neither Mbed TLS nor TF-PSA-Crypto source tree found')
 
 def check_repo_path():
-    """
-    Check that the current working directory is the project root, and throw
+    """Check that the current working directory is the project root, and throw
     an exception if not.
     """
     if not all(os.path.isdir(d) for d in ["include", "library", "tests"]):
@@ -69,7 +68,6 @@ def chdir_to_root() -> None:
             return
     raise Exception('Mbed TLS source tree not found')
 
-
 def guess_project_root():
     """Guess project source code directory.
 
@@ -87,3 +85,16 @@ def guess_project_root():
             if looks_like_root(d):
                 return d
     raise Exception('Neither Mbed TLS nor TF-PSA-Crypto source tree found')
+
+def guess_mbedtls_root(root: Optional[str] = None) -> str:
+    """Guess Mbed TLS source code directory.
+
+    Return the first possible Mbed TLS root directory.
+    Raise an exception if we are not in Mbed TLS.
+    """
+    if root is None:
+        root = guess_project_root()
+    if looks_like_mbedtls_root(root):
+        return root
+    else:
+        raise Exception('Mbed TLS source tree not found')

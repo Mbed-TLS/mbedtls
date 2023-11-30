@@ -527,7 +527,7 @@ static mbedtls_pk_type_t pk_get_type_ext(const mbedtls_pk_context *pk)
         } else if (PSA_KEY_TYPE_IS_RSA(opaque_key_type)) {
             return MBEDTLS_PK_RSA;
         } else {
-            return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+            return MBEDTLS_PK_NONE;
         }
     } else
 #endif

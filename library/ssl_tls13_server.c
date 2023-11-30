@@ -240,8 +240,9 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      */
     if (server_age > session->ticket_lifetime * 1000) {
         MBEDTLS_SSL_DEBUG_MSG(
-            3, ("Ticket age exceeds limitation ticket_age = %" MBEDTLS_PRINTF_MS_TIME,
-                server_age));
+            3, ("Ticket age exceeds limitation ticket_age = %" MBEDTLS_PRINTF_MS_TIME
+                "ms ticket_lifetime = %us",
+                server_age, session->ticket_lifetime));
         goto exit;
     }
 
@@ -3034,6 +3035,13 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_RET(1, "write_ticket", ret);
         return ret;
     }
+
+#if defined(MBEDTLS_HAVE_TIME)
+    MBEDTLS_SSL_DEBUG_MSG(3, ("ticket_creation_time: %" MBEDTLS_PRINTF_MS_TIME,
+                              session->ticket_creation_time));
+    MBEDTLS_SSL_DEBUG_MSG(3, ("ticket_lifetime: %u",
+                              (unsigned int) session->ticket_lifetime));
+#endif
 
     /* RFC 8446 section 4.6.1
      *

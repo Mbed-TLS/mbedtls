@@ -85,7 +85,12 @@ def execute_reference_driver_tests(results: Results, ref_component: str, driver_
 def analyze_coverage(results: Results, outcomes: Outcomes,
                      allow_list: typing.List[str], full_coverage: bool) -> None:
     """Check that all available test cases are executed at least once."""
-    available = check_test_cases.collect_available_test_cases()
+    try:
+        available = check_test_cases.collect_available_test_cases()
+    except check_test_cases.ScriptOutputError:
+        results.error("fail to collect available test cases")
+        return
+
     for suite_case in available:
         hit = any(suite_case in comp_outcomes.successes or
                   suite_case in comp_outcomes.failures

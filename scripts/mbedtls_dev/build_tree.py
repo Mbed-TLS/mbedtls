@@ -33,7 +33,7 @@ def crypto_core_directory(root: Optional[str] = None) -> str:
     else:
         raise Exception('Neither Mbed TLS nor TF-PSA-Crypto source tree found')
 
-def project_crypto_name(root: Optional[str] = None) -> str:
+def crypto_library_filename(root: Optional[str] = None) -> str:
     """Return the crypto library filename for either TF-PSA-Crypto or Mbed TLS."""
     if root is None:
         root = guess_project_root()

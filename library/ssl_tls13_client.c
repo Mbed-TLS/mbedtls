@@ -1925,7 +1925,6 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
 
     mbedtls_ssl_set_inbound_transform(ssl, handshake->transform_handshake);
     MBEDTLS_SSL_DEBUG_MSG(1, ("Switch to handshake keys for inbound traffic"));
-    ssl->session_negotiate->ciphersuite = handshake->ciphersuite_info->id;
     ssl->session_in = ssl->session_negotiate;
 
 cleanup:
@@ -2202,6 +2201,20 @@ static int ssl_tls13_process_encrypted_extensions(mbedtls_ssl_context *ssl)
         ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
     }
 #endif
+
+    /*
+     * When early_data extension is enabled and sent in ClientHello, the client
+     * does not know if the server will accept early data and select the first
+     * proposed pre-shared key with a ciphersuite that is different from the
+     * ciphersuite associated to the selected pre-shared key. To address
+     * aforementioned case, we do associated verification when parsing
+     * early_data ext in EncryptedExtensions. Therefore we have to assign
+     * the ciphersuite in current handshake to session_negotiate later than
+     * the associated verification. This won't impact decryption of
+     * EncryptedExtensions since we compute handshake keys by the ciphersuite
+     * in handshake not via the one in session_negotiate.
+     */
+    ssl->session_negotiate->ciphersuite = handshake->ciphersuite_info->id;
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(
                              ssl, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS,

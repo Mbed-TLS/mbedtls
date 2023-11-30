@@ -23,10 +23,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include "mbedtls/platform.h"
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#endif
 
 typedef struct {
     psa_key_slot_t key_slots[MBEDTLS_PSA_KEY_SLOT_COUNT];
     uint8_t key_slots_initialized;
+
+#if defined(MBEDTLS_THREADING_C)
+    /* key_slot_mutex protects key_slots[i].lock_count for all valid i.
+       This mutex must be held when any write to the lock_count field is
+       performed.
+     */
+    mbedtls_threading_mutex_t MBEDTLS_PRIVATE(key_slot_mutex);
+#endif
+
 } psa_global_data_t;
 
 static psa_global_data_t global_data;
@@ -128,10 +140,15 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
 
 psa_status_t psa_initialize_key_slots(void)
 {
-    /* Nothing to do: program startup and psa_wipe_all_key_slots() both
+    /* Program startup and psa_wipe_all_key_slots() both
      * guarantee that the key slots are initialized to all-zero, which
-     * means that all the key slots are in a valid, empty state. */
+     * means that all the key slots are in a valid, empty state.
+     * If multi-threading is enabled, then initialize the
+     * global key slot mutex. */
     global_data.key_slots_initialized = 1;
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_init(&global_data.key_slot_mutex);
+#endif
     return PSA_SUCCESS;
 }
 
@@ -145,6 +162,9 @@ void psa_wipe_all_key_slots(void)
         (void) psa_wipe_key_slot(slot);
     }
     global_data.key_slots_initialized = 0;
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_free(&global_data.key_slot_mutex);
+#endif
 }
 
 psa_status_t psa_get_empty_key_slot(psa_key_id_t *volatile_key_id,

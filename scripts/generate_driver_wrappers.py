@@ -178,10 +178,10 @@ def main() -> int:
 
     project_root = os.path.abspath(args.project_root)
 
-    library_dir = build_tree.crypto_core_directory(project_root)
+    crypto_core_directory = build_tree.crypto_core_directory(project_root)
 
     output_directory = args.output_directory if args.output_directory is not None else \
-        os.path.join(project_root, library_dir)
+        os.path.join(project_root, crypto_core_directory)
 
     template_directory = args.template_dir if args.template_dir is not None else \
         os.path.join(project_root,

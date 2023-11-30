@@ -681,7 +681,7 @@ void valid_parameters()
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PK_WRITE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_PK_WRITE_C:MBEDTLS_PK_PARSE_C */
 void valid_parameters_pkwrite(data_t *key_data)
 {
     mbedtls_pk_context pk;

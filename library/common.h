@@ -183,8 +183,8 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
     size_t i = 0;
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
 #if defined(MBEDTLS_HAVE_NEON_INTRINSICS) && \
-    (!defined(MBEDTLS_COMPILER_IS_GCC) || \
-    (defined(MBEDTLS_COMPILER_IS_GCC) && MBEDTLS_GCC_VERSION >= 70300))
+    (!(defined(MBEDTLS_COMPILER_IS_GCC) && MBEDTLS_GCC_VERSION < 70300))
+    /* Old GCC versions generate a warning here, so disable the NEON path for these compilers */
     for (; (i + 16) <= n; i += 16) {
         uint8x16_t v1 = vld1q_u8(a + i);
         uint8x16_t v2 = vld1q_u8(b + i);

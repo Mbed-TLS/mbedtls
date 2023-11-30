@@ -23,7 +23,10 @@ def looks_like_root(path: str) -> bool:
     return looks_like_tf_psa_crypto_root(path) or looks_like_mbedtls_root(path)
 
 def crypto_core_directory(root: Optional[str] = None) -> str:
-    """Return the path of the library code for either TF-PSA-Crypto or Mbed TLS."""
+    """
+    Return the path of the directory containing the PSA crypto core 
+    for either TF-PSA-Crypto or Mbed TLS.
+    """
     if root is None:
         root = guess_project_root()
     if looks_like_tf_psa_crypto_root(root):

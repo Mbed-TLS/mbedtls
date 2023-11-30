@@ -95,13 +95,13 @@ exit:
 }
 
 static const int thread_random_reps = 10;
-void *thread_random_function( void* ctx )
+void *thread_random_function(void *ctx)
 {
     unsigned char out[16];
     memset(out, 0, sizeof(out));
 
-    for(int i = 0; i < thread_random_reps; i++) {
-        TEST_EQUAL(mbedtls_ctr_drbg_random((mbedtls_ctr_drbg_context*) ctx, out, sizeof(out)), 0);
+    for (int i = 0; i < thread_random_reps; i++) {
+        TEST_EQUAL(mbedtls_ctr_drbg_random((mbedtls_ctr_drbg_context *) ctx, out, sizeof(out)), 0);
     }
 
 exit:
@@ -382,7 +382,7 @@ void ctr_drbg_threads(data_t *expected_result, int reseed)
     for (size_t i = 0; i < THREAD_CNT; i++) {
         TEST_EQUAL(
             pthread_create(&threads[i], NULL,
-                           thread_random_function, (void*) &ctx),
+                           thread_random_function, (void *) &ctx),
             0);
     }
 

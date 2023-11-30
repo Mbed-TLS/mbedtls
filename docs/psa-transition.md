@@ -1064,6 +1064,8 @@ There is no PSA equivalent to Mbed TLS's custom key type names exposed by `mbedt
 
 The PSA API has a generic interface for key agreement, covering the main use of both `ecdh.h` and `dhm.h`.
 
+<!-- TODO: `mbedtls_ecdh_get_params` -->
+
 #### Diffie-Hellman key pair management
 
 The PSA API manipulates keys as such, rather than via an operation context. Thus, to use Diffie-Hellman, you need to create a key object, then perform the key exchange, then destroy the key. There is no equivalent to the types `mbedtls_ecdh_context` and `mbedtls_dhm_context`.
@@ -1182,12 +1184,12 @@ The corresponding flow with the PSA API is as follows:
 
 #### ECDH and DHM metadata functions
 
-The legacy function `mbedtls_ecdh_get_params` allows the application to retrieve an `mbedtls_ecp_keypair` containing either our key pair, or the peer's public key. The PSA equivalent depends on the use case:
+You can obtain data and metadata from an ECDH key agreement through the PSA API as follows:
 
 * With either side, accessing the group: call [`psa_get_key_attributes`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1gacbbf5c11eac6cd70c87ffb936e1b9be2) on the key identifier, then [`psa_get_key_type`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1gae4fb812af4f57aa1ad85e335a865b918) and [`psa_get_key_bits`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1ga5bee85c2164ad3d4c0d42501241eeb06) to obtain metadata about the key.
-* With `MBEDTLS_ECDH_OURS`, accessing the public key: call [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) on the PSA key identifier.
-* With `MBEDTLS_ECDH_OURS`, accessing the private key: call [`psa_export_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga668e35be8d2852ad3feeef74ac6f75bf) on the key identifier. Note that the key policy must allow `PSA_KEY_USAGE_EXPORT` (see “[Public-key cryptography policies](#public-key-cryptography-policies)”).
-* With `MBEDTLS_ECDH_THEIRS`, accessing the public key (there is no private key): there is no PSA equivalent since the PSA API only uses the peer's public key to immediately calculate the shared secret. If your application needs the peer's public key for some other purpose, store it separately.
+* Accessing our public key: call [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) on the PSA key identifier.
+* Accessing our private key: call [`psa_export_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga668e35be8d2852ad3feeef74ac6f75bf) on the key identifier. Note that the key policy must allow `PSA_KEY_USAGE_EXPORT` (see “[Public-key cryptography policies](#public-key-cryptography-policies)”).
+* Accessing the peer's public key: there is no PSA equivalent since the PSA API only uses the peer's public key to immediately calculate the shared secret. If your application needs the peer's public key for some other purpose, store it separately.
 
 The functions `mbedtls_dhm_get_bitlen`, `mbedtls_dhm_get_len` and `mbedtls_dhm_get_value` allow the caller to obtain metadata about the keys used for the key exchange. The PSA equivalents access the key identifier:
 

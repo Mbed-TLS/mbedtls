@@ -1784,6 +1784,19 @@ void mbedtls_ssl_conf_max_early_data_size(
 }
 #endif /* MBEDTLS_SSL_SRV_C */
 
+#if defined(MBEDTLS_SSL_CLI_C)
+int mbedtls_ssl_get_early_data_status(mbedtls_ssl_context *ssl)
+{
+    if (ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+    if (ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+    return ssl->early_data_status;
+}
+#endif /* MBEDTLS_SSL_CLI_C */
+
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 

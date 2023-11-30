@@ -2746,10 +2746,22 @@ static int ssl_tls13_parse_new_session_ticket(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG(3,
                           ("ticket_lifetime: %u",
                            (unsigned int) session->ticket_lifetime));
+    /* RFC 8446 section 4.6.1
+     *
+     * The value of zero indicates that the ticket should be discarded
+     * immediately.  Clients MUST NOT cache tickets for longer than 7 days.
+     */
     if (session->ticket_lifetime >
         MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME) {
         MBEDTLS_SSL_DEBUG_MSG(3, ("ticket_lifetime exceeds 7 days."));
-        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+        session->exported = 1;
+        return 0;
+    }
+
+    if (session->ticket_lifetime == 0) {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("ticket_lifetime is zero."));
+        session->exported = 1;
+        return 0;
     }
 
     session->ticket_age_add = MBEDTLS_GET_UINT32_BE(p, 4);

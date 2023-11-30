@@ -216,6 +216,21 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
         goto exit;
     }
 
+    /* RFC 8446 section 4.6.1
+     *
+     * The value of zero indicates that the ticket should be discarded
+     * immediately.
+     *
+     * `session->ticket_lifetime == 0` is a internal error for we won't send
+     * this kind of ticket.
+     *
+     */
+    if (session->ticket_lifetime == 0) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            3, ("Ticket lifetime is zero"));
+        goto exit;
+    }
+
     /*
      * RFC 8446 section 4.2.11.1
      *
@@ -3042,6 +3057,13 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
                 (unsigned int) ticket_lifetime));
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
+
+    if (ticket_lifetime == 0) {
+        /* Don't send it. That's a internal error. */
+        MBEDTLS_SSL_DEBUG_MSG(1, ("`ticket_lifetime` is zero"));
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
     MBEDTLS_PUT_UINT32_BE(ticket_lifetime, p, 0);
     MBEDTLS_SSL_DEBUG_MSG(3, ("ticket_lifetime: %u",
                               (unsigned int) ticket_lifetime));

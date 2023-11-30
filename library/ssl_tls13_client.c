@@ -2255,6 +2255,9 @@ static int ssl_tls13_write_end_of_early_data(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_PROC_CHK(
         mbedtls_ssl_finish_handshake_msg(ssl, buf_len, 0));
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    ssl->early_data_can_write = 2;
+#endif
     mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
 
 cleanup:
@@ -3013,6 +3016,7 @@ int mbedtls_ssl_tls13_handshake_client_step(mbedtls_ssl_context *ssl)
                     1, ("Switch to early data keys for outbound traffic"));
                 mbedtls_ssl_set_outbound_transform(
                     ssl, ssl->handshake->transform_earlydata);
+                ssl->early_data_can_write = 1;
 #endif
             }
             break;

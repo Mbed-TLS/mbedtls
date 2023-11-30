@@ -1839,6 +1839,8 @@ struct mbedtls_ssl_context {
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     int MBEDTLS_PRIVATE(early_data_status);
+    int MBEDTLS_PRIVATE(early_data_can_write); /*!< Indicate the period from "send client hello"
+                                                *   to "send end of early data". */
 #endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
 
     /** Callback to export key block and master secret                      */

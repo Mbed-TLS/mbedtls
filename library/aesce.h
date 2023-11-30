@@ -20,9 +20,13 @@
 #include "mbedtls/aes.h"
 
 
-#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_ARCH_IS_ARMV8_A) && \
-    defined(MBEDTLS_HAVE_NEON_INTRINSICS)
+#if defined(MBEDTLS_AESCE_C) \
+    && defined(MBEDTLS_ARCH_IS_ARMV8_A) && defined(MBEDTLS_HAVE_NEON_INTRINSICS) \
+    && (defined(MBEDTLS_COMPILER_IS_GCC) || defined(__clang__) || defined(MSC_VER))
 
+/* MBEDTLS_AESCE_HAVE_CODE is defined if we have a suitable target platform, and a
+ * potentially suitable compiler (compiler version & flags are not checked when defining
+ * this). */
 #define MBEDTLS_AESCE_HAVE_CODE
 
 #ifdef __cplusplus
@@ -123,9 +127,10 @@ int mbedtls_aesce_setkey_enc(unsigned char *rk,
 #else
 
 #if defined(MBEDTLS_AES_USE_HARDWARE_ONLY) && defined(MBEDTLS_ARCH_IS_ARMV8_A)
-#error "AES hardware acceleration not supported on this platform"
+#error "AES hardware acceleration not supported on this platform / compiler"
 #endif
 
-#endif /* MBEDTLS_AESCE_C && MBEDTLS_ARCH_IS_ARMV8_A && MBEDTLS_HAVE_NEON_INTRINSICS */
+#endif /* MBEDTLS_AESCE_C && MBEDTLS_ARCH_IS_ARMV8_A && MBEDTLS_HAVE_NEON_INTRINSICS &&
+          (MBEDTLS_COMPILER_IS_GCC || __clang__ || MSC_VER) */
 
 #endif /* MBEDTLS_AESCE_H */

@@ -45,7 +45,7 @@
 
 #include "aesce.h"
 
-#if defined(MBEDTLS_ARCH_IS_ARMV8_A) && defined(MBEDTLS_HAVE_NEON_INTRINSICS)
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
 
 /* Compiler version checks. */
 #if defined(__clang__)
@@ -617,6 +617,6 @@ void mbedtls_aesce_gcm_mult(unsigned char c[16],
 #undef MBEDTLS_POP_TARGET_PRAGMA
 #endif
 
-#endif /* MBEDTLS_ARCH_IS_ARMV8_A */
+#endif /* MBEDTLS_AESCE_HAVE_CODE */
 
 #endif /* MBEDTLS_AESCE_C */

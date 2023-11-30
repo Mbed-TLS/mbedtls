@@ -98,3 +98,16 @@ def guess_mbedtls_root(root: Optional[str] = None) -> str:
         return root
     else:
         raise Exception('Mbed TLS source tree not found')
+
+def guess_tf_psa_crypto_root(root: Optional[str] = None) -> str:
+    """Guess TF-PSA-Crypto source code directory.
+
+    Return the first possible TF-PSA-Crypto root directory.
+    Raise an exception if we are not in TF-PSA-Crypto.
+    """
+    if root is None:
+        root = guess_project_root()
+    if looks_like_tf_psa_crypto_root(root):
+        return root
+    else:
+        raise Exception('TF-PSA-Crypto source tree not found')

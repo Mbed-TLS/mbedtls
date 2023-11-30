@@ -25,9 +25,11 @@
 
 #if defined(MBEDTLS_CCM_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_CCM 1
-#define MBEDTLS_PSA_BUILTIN_ALG_CCM_STAR_NO_TAG 1
 #define PSA_WANT_ALG_CCM 1
+#if defined(MBEDTLS_CIPHER_C)
+#define MBEDTLS_PSA_BUILTIN_ALG_CCM_STAR_NO_TAG 1
 #define PSA_WANT_ALG_CCM_STAR_NO_TAG 1
+#endif /* MBEDTLS_CIPHER_C */
 #endif /* MBEDTLS_CCM_C */
 
 #if defined(MBEDTLS_CMAC_C)
@@ -247,8 +249,9 @@
 #endif
 #endif
 
-#if defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C) || \
-    defined(MBEDTLS_ARIA_C) || defined(MBEDTLS_CAMELLIA_C)
+#if (defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C) || \
+    defined(MBEDTLS_ARIA_C) || defined(MBEDTLS_CAMELLIA_C)) && \
+    defined(MBEDTLS_CIPHER_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING 1
 #define PSA_WANT_ALG_ECB_NO_PADDING 1
 #endif

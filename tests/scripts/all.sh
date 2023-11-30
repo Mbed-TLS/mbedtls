@@ -1583,9 +1583,7 @@ common_test_full_no_cipher_with_psa_crypto () {
         # on CIPHER_C so we disable them.
         # This does not hold for KEY_TYPE_CHACHA20 and ALG_CHACHA20_POLY1305
         # so we keep them enabled.
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM_STAR_NO_TAG
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_GCM
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CMAC
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_NO_PADDING
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_PKCS7
@@ -1594,27 +1592,19 @@ common_test_full_no_cipher_with_psa_crypto () {
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_ECB_NO_PADDING
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_OFB
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_STREAM_CIPHER
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_AES
         scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_DES
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_CAMELLIA
-        scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_ARIA
     else
         # Don't pull in cipher via PSA mechanisms
         scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
         # Disable cipher modes/keys that make PSA depend on CIPHER_C.
         # Keep CHACHA20 and CHACHAPOLY enabled since they do not depend on CIPHER_C.
         scripts/config.py unset-all MBEDTLS_CIPHER_MODE
-        scripts/config.py unset MBEDTLS_AES_C
         scripts/config.py unset MBEDTLS_DES_C
-        scripts/config.py unset MBEDTLS_ARIA_C
-        scripts/config.py unset MBEDTLS_CAMELLIA_C
         # Dependencies on AES_C
         scripts/config.py unset MBEDTLS_CTR_DRBG_C
     fi
     # The following modules directly depends on CIPHER_C
-    scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CMAC_C
-    scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
     scripts/config.py unset MBEDTLS_PKCS12_C
     scripts/config.py unset MBEDTLS_PKCS5_C
@@ -3251,14 +3241,6 @@ common_tfm_config () {
     #
     # Enable filesystem I/O for the benefit of PK parse/write tests.
     echo "#define MBEDTLS_FS_IO" >> "$CONFIG_H"
-
-    # Config adjustments for features that are not supported
-    # when using only drivers / by p256-m
-    #
-    # Disable all the features that auto-enable ECP_LIGHT (see config_adjust_legacy_crypto.h)
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
-    # Disable deterministic ECDSA as p256-m only does randomized
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
 }
 
 # Keep this in sync with component_test_tfm_config() as they are both meant
@@ -3268,8 +3250,8 @@ component_test_tfm_config_p256m_driver_accel_ec () {
 
     common_tfm_config
 
-    # Build crypto library specifying we want to use P256M code for EC operations
-    make CFLAGS="$ASAN_CFLAGS -DMBEDTLS_PSA_P256M_DRIVER_ENABLED -I../tests/include/spe" LDFLAGS="$ASAN_CFLAGS"
+    # Build crypto library
+    make CFLAGS="$ASAN_CFLAGS -I../tests/include/spe" LDFLAGS="$ASAN_CFLAGS"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
@@ -3280,6 +3262,8 @@ component_test_tfm_config_p256m_driver_accel_ec () {
     not grep mbedtls_rsa_ library/rsa.o
     not grep mbedtls_dhm_ library/dhm.o
     not grep mbedtls_mpi_ library/bignum.o
+    # Check that p256m was built
+    grep -q p256_ecdsa_ library/libmbedcrypto.a
 
     # Run the tests
     msg "test: TF-M config + p256m driver + accel ECDH(E)/ECDSA"
@@ -3292,8 +3276,15 @@ component_test_tfm_config_p256m_driver_accel_ec () {
 component_test_tfm_config() {
     common_tfm_config
 
+    # Disable P256M driver, which is on by default, so that analyze_outcomes
+    # can compare this test with test_tfm_config_p256m_driver_accel_ec
+    echo "#undef MBEDTLS_PSA_P256M_DRIVER_ENABLED" >> "$CONFIG_H"
+
     msg "build: TF-M config"
     make CFLAGS='-Werror -Wall -Wextra -I../tests/include/spe' tests
+
+    # Check that p256m was not built
+    not grep p256_ecdsa_ library/libmbedcrypto.a
 
     msg "test: TF-M config"
     make test
@@ -4119,8 +4110,7 @@ support_build_tfm_armcc () {
 
 component_build_tfm_armcc() {
     # test the TF-M configuration can build cleanly with various warning flags enabled
-    cp configs/ext/tfm_mbedcrypto_config_profile_medium.h "$CONFIG_H"
-    cp configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
+    cp configs/config-tfm.h "$CONFIG_H"
 
     msg "build: TF-M config, armclang armv7-m thumb2"
     armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../tests/include/spe"
@@ -4132,8 +4122,7 @@ component_build_tfm() {
     # TF-M configuration needs a TF-M platform. A tweaked version of
     # the configuration that works on mainstream platforms is in
     # configs/config-tfm.h, tested via test-ref-configs.pl.
-    cp configs/ext/tfm_mbedcrypto_config_profile_medium.h "$CONFIG_H"
-    cp configs/ext/crypto_config_profile_medium.h "$CRYPTO_CONFIG_H"
+    cp configs/config-tfm.h "$CONFIG_H"
 
     msg "build: TF-M config, clang, armv7-m thumb2"
     make lib CC="clang" CFLAGS="--target=arm-linux-gnueabihf -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../tests/include/spe"

@@ -591,7 +591,7 @@ The function `mbedtls_pkcs5_pbes2` is only intended as a support function to par
 
 ### PKCS#12 module
 
-The functions `mbedtls_pkcs12_derivation` and `mbedtls_pkcs12_pbes2` are only intended as support functions to parse encrypted private keys in the PK module. They have no PSA equivalent.
+The functions `mbedtls_pkcs12_derivation` and `mbedtls_pkcs12_pbe` are only intended as support functions to parse encrypted private keys in the PK module. They have no PSA equivalent.
 
 ## Random generation
 

@@ -922,12 +922,14 @@ You can wrap a PSA key object in a PK key context with `mbedtls_pk_setup_opaque`
 
 ### Signature operations
 
-The equivalent of `mbedtls_pk_sign`, `mbedtls_rsa_pkcs1_sign`, `mbedtls_rsa_rsassa_pkcs1_v15_sign`, `mbedtls_rsa_rsassa_pss_sign` or `mbedtls_rsa_rsassa_pss_sign_ext` to sign an already calculated hash is [`psa_sign_hash`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__asymmetric/#group__asymmetric_1ga785e746a31a7b2a35ae5175c5ace3c5c).
+The equivalent of `mbedtls_pk_sign` or `mbedtls_pk_sign_ext` to sign an already calculated hash is [`psa_sign_hash`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__asymmetric/#group__asymmetric_1ga785e746a31a7b2a35ae5175c5ace3c5c).
 The key must be a key pair allowing the usage `PSA_KEY_USAGE_SIGN_HASH` (see “[Public-key cryptography policies](#public-key-cryptography-policies)”).
 Use [`PSA_SIGN_OUTPUT_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_SIGN_OUTPUT_SIZE) or [`PSA_SIGNATURE_MAX_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_SIGNATURE_MAX_SIZE) (similar to `MBEDTLS_PK_SIGNATURE_MAX_SIZE`) to determine the size of the output buffer.
+This is also the equivalent of the type-specific functions `mbedtls_rsa_pkcs1_sign`, `mbedtls_rsa_rsassa_pkcs1_v15_sign`, `mbedtls_rsa_rsassa_pss_sign`, `mbedtls_rsa_rsassa_pss_sign_ext`, `mbedtls_ecdsa_sign`, `mbedtls_ecdsa_sign_det_ext` and `mbedtls_ecdsa_write_signature`. Note that the PSA API uses the raw format for ECDSA signatures, not the ASN.1 format; see “[ECDSA signature](#ecdsa-signature)” for more details.
 
 The equivalent of `mbedtls_pk_verify` or `mbedtls_pk_verify_ext` to verify an already calculated hash is [`psa_verify_hash`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__asymmetric/#group__asymmetric_1gae2ffbf01e5266391aff22b101a49f5f5).
 The key must be a public key or a key pair allowing the usage `PSA_KEY_USAGE_VERIFY_HASH` (see “[Public-key cryptography policies](#public-key-cryptography-policies)”).
+This is also the equivalent of the type-specific functions `mbedtls_rsa_pkcs1_verify`, `mbedtls_rsa_rsassa_pkcs1_v15_verify`, `mbedtls_rsa_rsassa_pss_verify`, `mbedtls_rsa_rsassa_pss_verify_ext`, `mbedtls_ecdsa_verify` amd `mbedtls_ecdsa_read_signature`. Note that the PSA API uses the raw format for ECDSA signatures, not the ASN.1 format; see “[ECDSA signature](#ecdsa-signature)” for more details.
 
 Generally, `psa_sign_hash` and `psa_verify_hash` require the input to have the correct length for the hash (this has historically not always been enforced in the corresponding legacy APIs).
 
@@ -943,10 +945,10 @@ The following subsections describe the PSA signature mechanisms that correspond 
 
 #### ECDSA signature
 
-In the PSA API, **the format of an ECDSA signature is the raw fixed-size format. This is different from the legacy API** which uses the ASN.1 DER format for ECDSA signatures. A future version of Mbed TLS [will provide a way to convert between the two formats](https://github.com/Mbed-TLS/mbedtls/issues/7765).
+**Note: in the PSA API, the format of an ECDSA signature is the raw fixed-size format. This is different from the legacy API** which uses the ASN.1 DER format for ECDSA signatures. A future version of Mbed TLS [will provide a way to convert between the two formats](https://github.com/Mbed-TLS/mbedtls/issues/7765).
 <!-- The following are specific to the DER format and therefore have no PSA equivalent: MBEDTLS_ECDSA_MAX_SIG_LEN, MBEDTLS_ECDSA_MAX_LEN -->
 
-This is the mechanism provided by `mbedtls_pk_sign` and `mbedtls_pk_verify` for ECDSA keys, as well as by `mbedtls_ecdsa_sign`, `mbedtls_ecdsa_sign_det_ext`, `mbedtls_ecdsa_write_signature`, `mbedtls_ecdsa_write_signature` and `mbedtls_ecdsa_verify`.
+ECDSA is the mechanism provided by `mbedtls_pk_sign` and `mbedtls_pk_verify` for ECDSA keys, as well as by `mbedtls_ecdsa_sign`, `mbedtls_ecdsa_sign_det_ext`, `mbedtls_ecdsa_write_signature`, `mbedtls_ecdsa_verify` and `mbedtls_ecdsa_read_signature`.
 
 The PSA API offers three algorithm constructors for ECDSA. They differ only for signature, and have exactly the same behavior for verification.
 

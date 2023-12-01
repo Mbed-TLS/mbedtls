@@ -2207,8 +2207,7 @@ static int ssl_tls13_process_encrypted_extensions(mbedtls_ssl_context *ssl)
 
     /*
      * Move `session_negotiate->ciphersuite` assignment here which after
-     * early data cipher suite check when receiving "early_data" extension
-     * in EncryptedExtensions.
+     * early data cipher suite check.
      *
      * We compute transform_handshake by the cipher suite chosen from
      * the server in `handshake`. `session_negotiate->ciphersuite` is the

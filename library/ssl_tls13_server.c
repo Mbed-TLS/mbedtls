@@ -2815,37 +2815,6 @@ static int ssl_tls13_write_server_finished(mbedtls_ssl_context *ssl)
     return 0;
 }
 
-/*
- * Handler for MBEDTLS_SSL_WAIT_FLIGHT2
- *
- * RFC 8446 section A.2
- *
- *                      WAIT_FLIGHT2
- *                            |
- *                   +--------+--------+
- *           No auth |                 | Client auth
- *                   |                 |
- *                   |                 v
- *                   |             WAIT_CERT
- *                   |        Recv |       | Recv Certificate
- */
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_process_wait_flight2(mbedtls_ssl_context *ssl)
-{
-    MBEDTLS_SSL_DEBUG_MSG(2, ("=> ssl_tls13_process_wait_flight2"));
-
-    if (ssl->handshake->certificate_request_sent) {
-        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
-    } else {
-        MBEDTLS_SSL_DEBUG_MSG(2, ("skip parse certificate"));
-        MBEDTLS_SSL_DEBUG_MSG(2, ("skip parse certificate verify"));
-        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_FINISHED);
-    }
-
-    MBEDTLS_SSL_DEBUG_MSG(2, ("<= ssl_tls13_process_wait_flight2"));
-    return 0;
-}
-
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 /*
  * Handler for MBEDTLS_SSL_END_OF_EARLY_DATA( WAIT_EOED )
@@ -3376,10 +3345,6 @@ int mbedtls_ssl_tls13_handshake_server_step(mbedtls_ssl_context *ssl)
          */
         case MBEDTLS_SSL_SERVER_FINISHED:
             ret = ssl_tls13_write_server_finished(ssl);
-            break;
-
-        case MBEDTLS_SSL_WAIT_FLIGHT2:
-            ret = ssl_tls13_process_wait_flight2(ssl);
             break;
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)

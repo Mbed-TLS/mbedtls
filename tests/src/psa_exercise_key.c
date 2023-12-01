@@ -414,6 +414,21 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
                                                   PSA_KEY_DERIVATION_INPUT_INFO,
                                                   input2,
                                                   input2_length));
+    } else if (PSA_ALG_IS_HKDF_EXTRACT(alg)) {
+        PSA_ASSERT(psa_key_derivation_input_bytes(operation,
+                                                  PSA_KEY_DERIVATION_INPUT_SALT,
+                                                  input1, input1_length));
+        PSA_ASSERT(psa_key_derivation_input_key(operation,
+                                                PSA_KEY_DERIVATION_INPUT_SECRET,
+                                                key));
+    } else if (PSA_ALG_IS_HKDF_EXPAND(alg)) {
+        PSA_ASSERT(psa_key_derivation_input_key(operation,
+                                                PSA_KEY_DERIVATION_INPUT_SECRET,
+                                                key));
+        PSA_ASSERT(psa_key_derivation_input_bytes(operation,
+                                                  PSA_KEY_DERIVATION_INPUT_INFO,
+                                                  input2,
+                                                  input2_length));
     } else if (PSA_ALG_IS_TLS12_PRF(alg) ||
                PSA_ALG_IS_TLS12_PSK_TO_MS(alg)) {
         PSA_ASSERT(psa_key_derivation_input_bytes(operation,
@@ -436,6 +451,10 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
         PSA_ASSERT(psa_key_derivation_input_key(operation,
                                                 PSA_KEY_DERIVATION_INPUT_PASSWORD,
                                                 key));
+    } else if (alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS) {
+        PSA_ASSERT(psa_key_derivation_input_bytes(operation,
+                                                  PSA_KEY_DERIVATION_INPUT_SECRET,
+                                                  input1, input1_length));
     } else {
         TEST_FAIL("Key derivation algorithm not supported");
     }

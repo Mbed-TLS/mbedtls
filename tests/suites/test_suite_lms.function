@@ -4,11 +4,11 @@
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_LMS_C:!MBEDTLS_VALGRIND
+ * depends_on:MBEDTLS_LMS_C
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:MBEDTLS_LMS_PRIVATE */
+/* BEGIN_CASE depends_on:MBEDTLS_LMS_PRIVATE:!MBEDTLS_VALGRIND */
 void lms_sign_verify_test(data_t *msg, data_t *seed)
 {
     mbedtls_lms_public_t pub_ctx;

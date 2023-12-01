@@ -14,7 +14,7 @@
 #if defined(MBEDTLS_SSL_TLS_C)
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 static int rng_seed = 0xBEEF;
-static int rng_get(void *p_rng, unsigned char *output, size_t output_len)
+int rng_get(void *p_rng, unsigned char *output, size_t output_len)
 {
     (void) p_rng;
     for (size_t i = 0; i < output_len; i++) {

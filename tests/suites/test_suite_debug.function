@@ -2,6 +2,7 @@
 #include "mbedtls/debug.h"
 #include "string.h"
 #include "mbedtls/pk.h"
+#include <test/ssl_helpers.h>
 
 struct buffer_data {
     char buf[2000];
@@ -65,6 +66,8 @@ void debug_print_msg_threshold(int threshold, int level, char *file,
     memset(buffer.buf, 0, 2000);
     buffer.ptr = buffer.buf;
 
+    mbedtls_ssl_conf_rng(&conf, rng_get, NULL);
+
     mbedtls_ssl_config_defaults(&conf,
                                 MBEDTLS_SSL_IS_CLIENT,
                                 MBEDTLS_SSL_TRANSPORT_STREAM,
@@ -103,6 +106,8 @@ void mbedtls_debug_print_ret(char *file, int line, char *text, int value,
     memset(buffer.buf, 0, 2000);
     buffer.ptr = buffer.buf;
 
+    mbedtls_ssl_conf_rng(&conf, rng_get, NULL);
+
     mbedtls_ssl_config_defaults(&conf,
                                 MBEDTLS_SSL_IS_CLIENT,
                                 MBEDTLS_SSL_TRANSPORT_STREAM,
@@ -137,6 +142,8 @@ void mbedtls_debug_print_buf(char *file, int line, char *text,
     mbedtls_ssl_config_init(&conf);
     memset(buffer.buf, 0, 2000);
     buffer.ptr = buffer.buf;
+
+    mbedtls_ssl_conf_rng(&conf, rng_get, NULL);
 
     mbedtls_ssl_config_defaults(&conf,
                                 MBEDTLS_SSL_IS_CLIENT,
@@ -174,6 +181,8 @@ void mbedtls_debug_print_crt(char *crt_file, char *file, int line,
 
     memset(buffer.buf, 0, 2000);
     buffer.ptr = buffer.buf;
+
+    mbedtls_ssl_conf_rng(&conf, rng_get, NULL);
 
     mbedtls_ssl_config_defaults(&conf,
                                 MBEDTLS_SSL_IS_CLIENT,
@@ -213,6 +222,8 @@ void mbedtls_debug_print_mpi(char *value, char *file, int line,
     mbedtls_mpi_init(&val);
     memset(buffer.buf, 0, 2000);
     buffer.ptr = buffer.buf;
+
+    mbedtls_ssl_conf_rng(&conf, rng_get, NULL);
 
     mbedtls_ssl_config_defaults(&conf,
                                 MBEDTLS_SSL_IS_CLIENT,

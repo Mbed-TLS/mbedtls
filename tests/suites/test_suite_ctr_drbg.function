@@ -343,16 +343,17 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_THREADING_PTHREAD */
-void ctr_drbg_threads(data_t *expected_result, int reseed)
+void ctr_drbg_threads(data_t *expected_result, int reseed, int arg_thread_count)
 {
-#define THREAD_CNT 5
-    pthread_t threads[THREAD_CNT];
+    size_t thread_count = (size_t) arg_thread_count;
+    pthread_t *threads = NULL;
 
     unsigned char out[16];
     unsigned char *entropy = NULL;
 
-    const size_t n_random_calls = THREAD_CNT * thread_random_reps + 1;
+    const size_t n_random_calls = thread_count * thread_random_reps + 1;
 
+    TEST_CALLOC(threads, sizeof(pthread_t) * thread_count);
     memset(out, 0, sizeof(out));
 
     mbedtls_ctr_drbg_context ctx;
@@ -380,14 +381,14 @@ void ctr_drbg_threads(data_t *expected_result, int reseed)
         mbedtls_ctr_drbg_seed(&ctx, mbedtls_test_entropy_func, entropy, NULL, 0),
         0);
 
-    for (size_t i = 0; i < THREAD_CNT; i++) {
+    for (size_t i = 0; i < thread_count; i++) {
         TEST_EQUAL(
             pthread_create(&threads[i], NULL,
                            thread_random_function, (void *) &ctx),
             0);
     }
 
-    for (size_t i = 0; i < THREAD_CNT; i++) {
+    for (size_t i = 0; i < thread_count; i++) {
         TEST_EQUAL(pthread_join(threads[i], NULL), 0);
     }
 
@@ -399,8 +400,8 @@ void ctr_drbg_threads(data_t *expected_result, int reseed)
 exit:
     mbedtls_ctr_drbg_free(&ctx);
     mbedtls_free(entropy);
+    mbedtls_free(threads);
 }
-#undef THREAD_CNT
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO */

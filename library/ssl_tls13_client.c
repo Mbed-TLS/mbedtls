@@ -2187,12 +2187,14 @@ static int ssl_tls13_process_encrypted_extensions(mbedtls_ssl_context *ssl)
          * check here that the additional constraints on the handshake
          * parameters, when early data are exchanged, are met,
          * namely:
+         * - a PSK has been selected for the handshake
          * - the selected PSK for the handshake was the first one proposed
          *   by the client.
          * - the selected ciphersuite for the handshake is the ciphersuite
          *   associated with the selected PSK.
          */
-        if (handshake->selected_identity != 0 ||
+        if ((!mbedtls_ssl_tls13_key_exchange_mode_with_psk(ssl)) ||
+            handshake->selected_identity != 0 ||
             handshake->ciphersuite_info->id !=
             ssl->session_negotiate->ciphersuite) {
 

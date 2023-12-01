@@ -2886,8 +2886,27 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_end_of_early_data_coordinate(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    ((void) ssl);
-    return ret;
+
+    if ((ret = mbedtls_ssl_read_record(ssl, 0)) != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_read_record", ret);
+        return ret;
+    }
+    ssl->keep_current_message = 1;
+
+    if (ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE        &&
+        ssl->in_msg[0]  == MBEDTLS_SSL_HS_END_OF_EARLY_DATA) {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("got end_of_early_data message."));
+        return SSL_END_OF_EARLY_GOT_END_OF_EARLY_DATA;
+    }
+
+    if (ssl->in_msgtype == MBEDTLS_SSL_MSG_APPLICATION_DATA) {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("got application_data message"));
+        return SSL_END_OF_EARLY_GOT_APPLICATION_DATA;
+    }
+
+    MBEDTLS_SSL_DEBUG_MSG(1, ("got unexpected message."));
+
+    return MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL

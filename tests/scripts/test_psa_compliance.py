@@ -51,7 +51,7 @@ def main(library_build_dir: str):
     in_tf_psa_crypto_repo = build_tree.looks_like_tf_psa_crypto_root(root_dir)
 
     crypto_name = build_tree.crypto_library_filename(root_dir)
-    library_subdir = build_tree.crypto_core_directory(root_dir)
+    library_subdir = build_tree.crypto_core_directory(root_dir, relative = True)
 
     crypto_lib_filename = (library_build_dir + '/' +
                            library_subdir + '/' +

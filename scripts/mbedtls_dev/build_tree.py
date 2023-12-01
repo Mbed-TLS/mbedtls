@@ -22,16 +22,23 @@ def looks_like_mbedtls_root(path: str) -> bool:
 def looks_like_root(path: str) -> bool:
     return looks_like_tf_psa_crypto_root(path) or looks_like_mbedtls_root(path)
 
-def crypto_core_directory(root: Optional[str] = None) -> str:
+def crypto_core_directory(root: Optional[str] = None, relative: Optional[bool] = False) -> str:
     """
     Return the path of the directory containing the PSA crypto core
     for either TF-PSA-Crypto or Mbed TLS.
+
+    Returns either the full path or relative path depending on the
+    "relative" boolean argument.
     """
     if root is None:
         root = guess_project_root()
     if looks_like_tf_psa_crypto_root(root):
+        if relative:
+            return "core"
         return os.path.join(root, "core")
     elif looks_like_mbedtls_root(root):
+        if relative:
+            return "library"
         return os.path.join(root, "library")
     else:
         raise Exception('Neither Mbed TLS nor TF-PSA-Crypto source tree found')

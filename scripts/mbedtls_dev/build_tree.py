@@ -24,7 +24,7 @@ def looks_like_root(path: str) -> bool:
 
 def crypto_core_directory(root: Optional[str] = None) -> str:
     """
-    Return the path of the directory containing the PSA crypto core 
+    Return the path of the directory containing the PSA crypto core
     for either TF-PSA-Crypto or Mbed TLS.
     """
     if root is None:

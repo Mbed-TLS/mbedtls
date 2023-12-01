@@ -146,7 +146,7 @@ psa_status_t psa_initialize_key_slots(void)
      * If multi-threading is enabled, then initialize the
      * global key slot mutex. */
 #if defined(MBEDTLS_THREADING_C)
-    if(!global_data.key_slots_initialized) {
+    if (!global_data.key_slots_initialized) {
         mbedtls_mutex_init(&global_data.key_slot_mutex);
     }
 #endif
@@ -166,7 +166,7 @@ void psa_wipe_all_key_slots(void)
     }
 
 #if defined(MBEDTLS_THREADING_C)
-    if(global_data.key_slots_initialized) {
+    if (global_data.key_slots_initialized) {
         mbedtls_mutex_free(&global_data.key_slot_mutex);
     }
 #endif

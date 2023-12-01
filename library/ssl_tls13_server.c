@@ -2835,22 +2835,7 @@ static int ssl_tls13_write_server_finished(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
-        /* TODO: compute early transform here?
-         *
-         * RFC 8446, section A.2
-         *                      | Send Finished
-         *                      | K_send = application
-         *             +--------+--------+
-         *    No 0-RTT |                 | 0-RTT
-         *             |                 |
-         *             |                 | K_recv = early data
-         *             |    +------> WAIT_EOED -+
-         *
-         * early transform is set after server finished in this section. But
-         * it breaks our key computation, so we put early transform computation
-         * at the end of client hello. For the time being, I am not sure the
-         * benifit for moving computation here.
-         */
+        /* See RFC 8446 section A.2 for more information */
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("Switch to early keys for inbound traffic. "
                 "( K_recv = early data )"));
@@ -2860,8 +2845,9 @@ static int ssl_tls13_write_server_finished(mbedtls_ssl_context *ssl)
         return 0;
     }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
-
-    MBEDTLS_SSL_DEBUG_MSG(1, ("Switch to handshake keys for inbound traffic"));
+    MBEDTLS_SSL_DEBUG_MSG(
+        1, ("Switch to handshake keys for inbound traffic "
+            "( K_recv = handshake )"));
     mbedtls_ssl_set_inbound_transform(ssl, ssl->handshake->transform_handshake);
 
     ssl_tls13_process_wait_flight2(ssl);

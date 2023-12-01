@@ -85,6 +85,9 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
 
 /** Initialize the key slot structures,
  * if multi-threading is enabled then initialize the key slot mutex.
+ * This function is not thread-safe,
+ * if called by competing threads the key slot mutex may be initialized
+ * more than once.
  *
  * \retval #PSA_SUCCESS
  *         Currently this function always succeeds.
@@ -93,6 +96,9 @@ psa_status_t psa_initialize_key_slots(void);
 
 /** Delete all data from key slots in memory,
  * if multi-threading is enabled then free the key slot mutex.
+ * This function is not thread-safe,
+ * if called by competing threads the key slot mutex may be freed
+ * more than once.
  *
  * This does not affect persistent storage. */
 void psa_wipe_all_key_slots(void);

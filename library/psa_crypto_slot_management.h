@@ -83,14 +83,16 @@ static inline int psa_key_id_is_volatile(psa_key_id_t key_id)
 psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
                                        psa_key_slot_t **p_slot);
 
-/** Initialize the key slot structures.
+/** Initialize the key slot structures,
+ * if multi-threading is enabled then initialize the key slot mutex.
  *
  * \retval #PSA_SUCCESS
  *         Currently this function always succeeds.
  */
 psa_status_t psa_initialize_key_slots(void);
 
-/** Delete all data from key slots in memory.
+/** Delete all data from key slots in memory,
+ * if multi-threading is enabled then free the key slot mutex.
  *
  * This does not affect persistent storage. */
 void psa_wipe_all_key_slots(void);

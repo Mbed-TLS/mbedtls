@@ -145,10 +145,13 @@ psa_status_t psa_initialize_key_slots(void)
      * means that all the key slots are in a valid, empty state.
      * If multi-threading is enabled, then initialize the
      * global key slot mutex. */
-    global_data.key_slots_initialized = 1;
 #if defined(MBEDTLS_THREADING_C)
-    mbedtls_mutex_init(&global_data.key_slot_mutex);
+    if(!global_data.key_slots_initialized) {
+        mbedtls_mutex_init(&global_data.key_slot_mutex);
+    }
 #endif
+
+    global_data.key_slots_initialized = 1;
     return PSA_SUCCESS;
 }
 
@@ -161,10 +164,14 @@ void psa_wipe_all_key_slots(void)
         slot->lock_count = 1;
         (void) psa_wipe_key_slot(slot);
     }
-    global_data.key_slots_initialized = 0;
+
 #if defined(MBEDTLS_THREADING_C)
-    mbedtls_mutex_free(&global_data.key_slot_mutex);
+    if(global_data.key_slots_initialized) {
+        mbedtls_mutex_free(&global_data.key_slot_mutex);
+    }
 #endif
+
+    global_data.key_slots_initialized = 0;
 }
 
 psa_status_t psa_get_empty_key_slot(psa_key_id_t *volatile_key_id,

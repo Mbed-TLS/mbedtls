@@ -2987,9 +2987,16 @@ static int ssl_tls13_process_end_of_early_data(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_PROC_CHK(ssl_tls13_parse_end_of_early_data(
                                  ssl, buf, buf + buf_len));
 
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("Switch to handshake keys for inbound traffic"
+                "( K_recv = handshake )"));
+        mbedtls_ssl_set_inbound_transform(
+            ssl, ssl->handshake->transform_handshake);
+
         MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(
                                  ssl, MBEDTLS_SSL_HS_END_OF_EARLY_DATA,
                                  buf, buf_len));
+
         ssl_tls13_process_wait_flight2(ssl);
 
     } else if (ret == SSL_END_OF_EARLY_GOT_APPLICATION_DATA) {

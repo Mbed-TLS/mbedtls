@@ -21,7 +21,11 @@
 
 #if defined(__ARM_NEON)
 #include <arm_neon.h>
-#endif /* __ARM_NEON */
+#define MBEDTLS_HAVE_NEON_INTRINSICS
+#elif defined(MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64)
+#include <arm64_neon.h>
+#define MBEDTLS_HAVE_NEON_INTRINSICS
+#endif
 
 
 #if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \
@@ -178,16 +182,16 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 {
     size_t i = 0;
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
-#if defined(__ARM_NEON) && \
-    (!defined(MBEDTLS_COMPILER_IS_GCC) || \
-    (defined(MBEDTLS_COMPILER_IS_GCC) && MBEDTLS_GCC_VERSION >= 70300))
+#if defined(MBEDTLS_HAVE_NEON_INTRINSICS) && \
+    (!(defined(MBEDTLS_COMPILER_IS_GCC) && MBEDTLS_GCC_VERSION < 70300))
+    /* Old GCC versions generate a warning here, so disable the NEON path for these compilers */
     for (; (i + 16) <= n; i += 16) {
         uint8x16_t v1 = vld1q_u8(a + i);
         uint8x16_t v2 = vld1q_u8(b + i);
         uint8x16_t x = veorq_u8(v1, v2);
         vst1q_u8(r + i, x);
     }
-#elif defined(__amd64__) || defined(__x86_64__) || defined(__aarch64__)
+#elif defined(MBEDTLS_ARCH_IS_X64) || defined(MBEDTLS_ARCH_IS_ARM64)
     /* This codepath probably only makes sense on architectures with 64-bit registers */
     for (; (i + 8) <= n; i += 8) {
         uint64_t x = mbedtls_get_unaligned_uint64(a + i) ^ mbedtls_get_unaligned_uint64(b + i);
@@ -226,7 +230,7 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 {
     size_t i = 0;
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
-#if defined(__amd64__) || defined(__x86_64__) || defined(__aarch64__)
+#if defined(MBEDTLS_ARCH_IS_X64) || defined(MBEDTLS_ARCH_IS_ARM64)
     /* This codepath probably only makes sense on architectures with 64-bit registers */
     for (; (i + 8) <= n; i += 8) {
         uint64_t x = mbedtls_get_unaligned_uint64(a + i) ^ mbedtls_get_unaligned_uint64(b + i);

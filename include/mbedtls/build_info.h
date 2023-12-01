@@ -62,6 +62,11 @@
 #define MBEDTLS_ARCH_IS_X86
 #endif
 
+#if !defined(MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64) && \
+    (defined(_M_ARM64) || defined(_M_ARM64EC))
+#define MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64
+#endif
+
 /* This is defined if the architecture is Armv8-A, or higher */
 #if !defined(MBEDTLS_ARCH_IS_ARMV8_A)
 #if defined(__ARM_ARCH) && defined(__ARM_ARCH_PROFILE)

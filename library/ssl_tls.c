@@ -306,7 +306,7 @@ static int resize_buffer(unsigned char **buffer, size_t len_new, size_t *len_old
 {
     unsigned char *resized_buffer = mbedtls_calloc(1, len_new);
     if (resized_buffer == NULL) {
-        return -1;
+        return MBEDTLS_ERR_SSL_ALLOC_FAILED;
     }
 
     /* We want to copy len_new bytes when downsizing the buffer, and
@@ -2623,8 +2623,7 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
 
 #if defined(MBEDTLS_SSL_CLI_C)
     if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && \
-        defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
         size_t hostname_len;
         /* load host name */
         if (end - p < 2) {
@@ -2644,8 +2643,7 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
             memcpy(session->hostname, p, hostname_len);
             p += hostname_len;
         }
-#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION &&
-          MBEDTLS_SSL_SESSION_TICKETS */
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
 #if defined(MBEDTLS_HAVE_TIME)
         if (end - p < 8) {

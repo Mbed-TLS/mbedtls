@@ -2647,6 +2647,37 @@ static int ssl_tls13_handshake_wrapup(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+/* From RFC 8446 section 4.2.10
+ *
+ * struct {
+ *     select (Handshake.msg_type) {
+ *         case new_session_ticket:   uint32 max_early_data_size;
+ *         ...
+ *     };
+ * } EarlyDataIndication;
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_parse_new_session_ticket_early_data_ext(
+    mbedtls_ssl_context *ssl,
+    const unsigned char *buf,
+    const unsigned char *end)
+{
+    mbedtls_ssl_session *session = ssl->session;
+
+    MBEDTLS_SSL_CHK_BUF_READ_PTR(buf, end, 4);
+
+    session->max_early_data_size = MBEDTLS_GET_UINT32_BE(buf, 0);
+    mbedtls_ssl_session_set_ticket_flags(
+        session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
+    MBEDTLS_SSL_DEBUG_MSG(
+        3, ("received max_early_data_size: %u",
+            (unsigned int) session->max_early_data_size));
+
+    return 0;
+}
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_parse_new_session_ticket_exts(mbedtls_ssl_context *ssl,
                                                    const unsigned char *buf,
@@ -2680,15 +2711,12 @@ static int ssl_tls13_parse_new_session_ticket_exts(mbedtls_ssl_context *ssl,
         switch (extension_type) {
 #if defined(MBEDTLS_SSL_EARLY_DATA)
             case MBEDTLS_TLS_EXT_EARLY_DATA:
-                if (extension_data_len != 4) {
-                    MBEDTLS_SSL_PEND_FATAL_ALERT(
-                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
-                        MBEDTLS_ERR_SSL_DECODE_ERROR);
-                    return MBEDTLS_ERR_SSL_DECODE_ERROR;
-                }
-                if (ssl->session != NULL) {
-                    ssl->session->ticket_flags |=
-                        MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA;
+                ret = ssl_tls13_parse_new_session_ticket_early_data_ext(
+                    ssl, p, p + extension_data_len);
+                if (ret != 0) {
+                    MBEDTLS_SSL_DEBUG_RET(
+                        1, "ssl_tls13_parse_new_session_ticket_early_data_ext",
+                        ret);
                 }
                 break;
 #endif /* MBEDTLS_SSL_EARLY_DATA */

@@ -2207,13 +2207,14 @@ static int ssl_tls13_process_encrypted_extensions(mbedtls_ssl_context *ssl)
 #endif
 
     /*
-     * Move `session_negotiate->ciphersuite` assignment here which after
-     * early data cipher suite check.
-     *
-     * We compute transform_handshake by the cipher suite chosen from
-     * the server in `handshake`. `session_negotiate->ciphersuite` is the
-     * cipher suite negotiated in previous connection and it is not used for
-     * computing transform_handshake.
+     * In case the client has proposed a PSK associated with a ticket,
+     * `ssl->session_negotiate->ciphersuite` still contains at this point the
+     * identifier of the ciphersuite associated with the ticket. This is that
+     * way because, if an exchange of early data is agreed upon, we need
+     * it to check that the ciphersuite selected for the handshake is the
+     * ticket ciphersuite (see above). This information is not needed
+     * anymore thus we can now set it to the identifier of the ciphersuite
+     * used in this session under negotiation.
      */
     ssl->session_negotiate->ciphersuite = handshake->ciphersuite_info->id;
 

@@ -2152,9 +2152,7 @@ static int ssl_tls13_process_encrypted_extensions(mbedtls_ssl_context *ssl)
     int ret;
     unsigned char *buf;
     size_t buf_len;
-#if defined(MBEDTLS_SSL_EARLY_DATA)
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-#endif
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> parse encrypted extensions"));
 

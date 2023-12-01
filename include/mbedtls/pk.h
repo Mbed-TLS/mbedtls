@@ -181,13 +181,6 @@ typedef struct mbedtls_pk_rsassa_pss_options {
 #define MBEDTLS_PK_USE_PSA_EC_DATA
 #endif
 
-/* Helper symbol to state that the PK module has support for EC keys. This
- * can either be provided through the legacy ECP solution or through the
- * PSA friendly MBEDTLS_PK_USE_PSA_EC_DATA. */
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA) || defined(MBEDTLS_ECP_C)
-#define MBEDTLS_PK_HAVE_ECC_KEYS
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA || MBEDTLS_ECP_C */
-
 /**
  * \brief           Types for interfacing with the debug module
  */

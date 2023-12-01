@@ -2926,8 +2926,38 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_process_early_application_data(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    ((void) ssl);
-    return ret;
+
+    if ((ret = mbedtls_ssl_read_record(ssl, 0)) != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_read_record", ret);
+        return ret;
+    }
+
+    ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+    if (ssl->in_msgtype != MBEDTLS_SSL_MSG_APPLICATION_DATA) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            2, ("Unexpected message type %d", ssl->in_msgtype));
+        return ret;
+    }
+
+    /*
+     * Output early data
+     *
+     * For the time being, we print received data via debug message.
+     *
+     * TODO: Remove it when `mbedtls_ssl_read_early_data` is ready.
+     */
+    ssl->in_msg[ssl->in_msglen] = 0;
+    MBEDTLS_SSL_DEBUG_MSG(3, ("\n%s", ssl->in_msg));
+
+    /* RFC 8446 section 4.6.1
+     *
+     * A server receiving more than max_early_data_size bytes of 0-RTT data
+     * SHOULD terminate the connection with an "unexpected_message" alert.
+     *
+     * TODO: Add received data size check here.
+     */
+
+    return 0;
 }
 
 /*

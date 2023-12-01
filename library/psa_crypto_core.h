@@ -49,28 +49,17 @@ typedef struct {
     /*
      * Number of locks on the key slot held by the library.
      *
-     * This counter is incremented by one each time a library function
-     * calls the psa_acquire_key_slot_read_lock() API, library functions must do this
-     * before they read the current content of the slot for an operation.
+     * Library functions must not write directly to lock_count.
      *
-     * This counter is set to SIZE_MAX by a call to
-     * psa_acquire_key_slot_write_lock(), library functions must do this
-     * before they write to any field in the slot other than lock_count.
+     * A function must call psa_acquire_key_slot_read_lock()
+     * before reading the current contents of the slot for an operation.
+     * They then must call psa_release_key_slot_read_lock()
+     * once they have finished reading the current contents of the slot.
      *
-     * This counter is decremented by one each time a library function stops
-     * reading the key slot and states it by calling the
-     * psa_release_key_slot_read_lock() API.
-     *
-     * This counter is set to 0 when a library function stops
-     * writing to the key slot and states it by calling
-     * psa_release_key_slot_write_lock().
-     *
-     * If this counter is equal to 0, the slot is UNUSED.
-     * If the counter is equal to SIZE_MAX, the slot is in a WRITING state.
-     * In this state, calls to psa_acquire_key_slot_read_lock()
-     * or psa_release_key_slot_read_lock() will fail.
-     * Else the counter is equal to some n, and there are n operations with
-     * a reading lock on the slot.
+     * A function must call psa_acquire_key_slot_write_lock()
+     * before writing to the contents of the slot.
+     * They then must call psa_release_key_slot_write_lock()
+     * once they have finished writing to the contents of the slot.
      *
      * This counter is used to prevent resetting the key slot while the library
      * may access it. For example, such control is needed in the following

@@ -142,7 +142,8 @@ static inline psa_status_t psa_acquire_key_slot_read_lock(psa_key_slot_t *slot)
 
 /** Lock a key slot for writing.
  *
- * This function sets the slot's lock_count to SIZE_MAX.
+ * This function sets the slot's lock_count to SIZE_MAX,
+ * indicating that the slot is now in a WRITING state.
  * If multi-threading is enabled, the caller must hold the
  * global key slot mutex.
  *
@@ -151,7 +152,7 @@ static inline psa_status_t psa_acquire_key_slot_read_lock(psa_key_slot_t *slot)
  * \retval #PSA_SUCCESS
                The key slot lock counter was set to SIZE_MAX.
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- *             The lock counter was already in a writing state.
+ *             The lock counter was already in a WRITING state.
  */
 static inline psa_status_t psa_acquire_key_slot_write_lock(psa_key_slot_t *slot)
 {
@@ -163,7 +164,7 @@ static inline psa_status_t psa_acquire_key_slot_write_lock(psa_key_slot_t *slot)
     return PSA_SUCCESS;
 }
 
-/** Unlock a key slot.
+/** Unlock a key slot from a reading state.
  *
  * This function decrements the key slot lock counter by one.
  * If slot is in a WRITING state, this will fail.
@@ -180,25 +181,12 @@ static inline psa_status_t psa_acquire_key_slot_write_lock(psa_key_slot_t *slot)
  *             decremented successfully.
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  *             The lock counter was equal to 0, or the slot was in a
- *             writing state.
+ *             WRITING state.
  *
  */
 psa_status_t psa_release_key_slot_read_lock(psa_key_slot_t *slot);
 
-/** Test whether a lifetime designates a key in an external cryptoprocessor.
- *
- * \param lifetime      The lifetime to test.
- *
- * \retval 1
- *         The lifetime designates an external key. There should be a
- *         registered driver for this lifetime, otherwise the key cannot
- *         be created or manipulated.
- * \retval 0
- *         The lifetime designates a key that is volatile or in internal
- *         storage.
- */
-
-/** Lock a key slot for writing.
+/** Unlock a key slot from a writing state.
  *
  * This function sets the slot's lock_count to 0.
  * If slot is not in a WRITING state, this will fail.
@@ -221,6 +209,19 @@ static inline psa_status_t psa_release_key_slot_write_lock(psa_key_slot_t *slot)
 
     return PSA_SUCCESS;
 }
+
+/** Test whether a lifetime designates a key in an external cryptoprocessor.
+ *
+ * \param lifetime      The lifetime to test.
+ *
+ * \retval 1
+ *         The lifetime designates an external key. There should be a
+ *         registered driver for this lifetime, otherwise the key cannot
+ *         be created or manipulated.
+ * \retval 0
+ *         The lifetime designates a key that is volatile or in internal
+ *         storage.
+ */
 
 static inline int psa_key_lifetime_is_external(psa_key_lifetime_t lifetime)
 {

@@ -2914,11 +2914,12 @@ static int ssl_tls13_parse_end_of_early_data(mbedtls_ssl_context *ssl,
                                              const unsigned char *buf,
                                              const unsigned char *end)
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    /* RFC 8446 section 4.5
+     *
+     * struct {} EndOfEarlyData;
+     */
     ((void) ssl);
-    ((void) buf);
-    ((void) end);
-    return ret;
+    return buf == end ? 0 : MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL

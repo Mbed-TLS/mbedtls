@@ -129,7 +129,7 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
     }
 
     if (status == PSA_SUCCESS) {
-        status = psa_lock_key_slot(slot);
+        status = psa_acquire_key_slot_read_lock(slot);
         if (status == PSA_SUCCESS) {
             *p_slot = slot;
         }
@@ -216,7 +216,7 @@ psa_status_t psa_get_empty_key_slot(psa_key_id_t *volatile_key_id,
     }
 
     if (selected_slot != NULL) {
-        status = psa_lock_key_slot(selected_slot);
+        status = psa_acquire_key_slot_read_lock(selected_slot);
         if (status != PSA_SUCCESS) {
             goto error;
         }
@@ -421,7 +421,7 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 }
 
-psa_status_t psa_unlock_key_slot(psa_key_slot_t *slot)
+psa_status_t psa_release_key_slot_read_lock(psa_key_slot_t *slot)
 {
     if (slot == NULL) {
         return PSA_SUCCESS;
@@ -507,7 +507,7 @@ psa_status_t psa_open_key(mbedtls_svc_key_id_t key, psa_key_handle_t *handle)
 
     *handle = key;
 
-    return psa_unlock_key_slot(slot);
+    return psa_release_key_slot_read_lock(slot);
 
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
     (void) key;
@@ -536,7 +536,7 @@ psa_status_t psa_close_key(psa_key_handle_t handle)
     if (slot->lock_count <= 1) {
         return psa_wipe_key_slot(slot);
     } else {
-        return psa_unlock_key_slot(slot);
+        return psa_release_key_slot_read_lock(slot);
     }
 }
 
@@ -554,7 +554,7 @@ psa_status_t psa_purge_key(mbedtls_svc_key_id_t key)
         (slot->lock_count <= 1)) {
         return psa_wipe_key_slot(slot);
     } else {
-        return psa_unlock_key_slot(slot);
+        return psa_release_key_slot_read_lock(slot);
     }
 }
 

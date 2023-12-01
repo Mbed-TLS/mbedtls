@@ -129,7 +129,7 @@ psa_status_t psa_get_empty_key_slot(psa_key_id_t *volatile_key_id,
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  *             The slot was in a writing state.
  */
-static inline psa_status_t psa_lock_key_slot(psa_key_slot_t *slot)
+static inline psa_status_t psa_acquire_key_slot_read_lock(psa_key_slot_t *slot)
 {
     if (slot->lock_count == SIZE_MAX) {
         return PSA_ERROR_CORRUPTION_DETECTED;
@@ -153,7 +153,7 @@ static inline psa_status_t psa_lock_key_slot(psa_key_slot_t *slot)
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  *             The lock counter was already in a writing state.
  */
-static inline psa_status_t psa_lock_key_slot_for_writing(psa_key_slot_t *slot)
+static inline psa_status_t psa_acquire_key_slot_write_lock(psa_key_slot_t *slot)
 {
     if (slot->lock_count == SIZE_MAX) {
         return PSA_ERROR_CORRUPTION_DETECTED;
@@ -183,7 +183,7 @@ static inline psa_status_t psa_lock_key_slot_for_writing(psa_key_slot_t *slot)
  *             writing state.
  *
  */
-psa_status_t psa_unlock_key_slot(psa_key_slot_t *slot);
+psa_status_t psa_release_key_slot_read_lock(psa_key_slot_t *slot);
 
 /** Test whether a lifetime designates a key in an external cryptoprocessor.
  *
@@ -212,7 +212,7 @@ psa_status_t psa_unlock_key_slot(psa_key_slot_t *slot);
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  *             The lock counter was not in a WRITING state.
  */
-static inline psa_status_t psa_unlock_key_slot_for_writing(psa_key_slot_t *slot)
+static inline psa_status_t psa_release_key_slot_write_lock(psa_key_slot_t *slot)
 {
     if (slot->lock_count != SIZE_MAX) {
         return PSA_ERROR_CORRUPTION_DETECTED;

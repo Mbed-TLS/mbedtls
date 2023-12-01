@@ -2182,14 +2182,15 @@ static int ssl_tls13_process_encrypted_extensions(mbedtls_ssl_context *ssl)
          * - The selected cipher suite
          * - The selected ALPN [RFC7301] protocol, if any
          *
-         * When parsing EncryptedExtensions, the client does not know if
-         * the server will accept early data and select the first proposed
-         * pre-shared key with a cipher suite that is different from the
-         * cipher suite associated to the selected pre-shared key. To address
-         * aforementioned case, when early data is involved, we check:
-         * - the selected pre-shared key is the first proposed one
-         * - the selected cipher suite same as the one associated with the
-         *   pre-shared key.
+         * The server has sent an early data extension in its Encrypted
+         * Extension message thus accepted to receive early data. We
+         * check here that the additional constraints on the handshake
+         * parameters, when early data are exchanged, are met,
+         * namely:
+         * - the selected PSK for the handshake was the first one proposed
+         *   by the client.
+         * - the selected ciphersuite for the handshake is the ciphersuite
+         *   associated with the selected PSK.
          */
         if (handshake->selected_identity != 0 ||
             handshake->ciphersuite_info->id !=

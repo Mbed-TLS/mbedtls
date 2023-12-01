@@ -8679,7 +8679,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:!MBEDTLS_VALGRIND */
 void derive_output(int alg_arg,
                    int step1_arg, data_t *input1, int expected_status_arg1,
                    int step2_arg, data_t *input2, int expected_status_arg2,

@@ -2758,6 +2758,60 @@ static int ssl_tls13_write_certificate_verify(mbedtls_ssl_context *ssl)
 }
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
+
+/*
+ * RFC 8446 section A.2
+ *
+ *                                | Send ServerHello
+ *                                | K_send = handshake
+ *                                | Send EncryptedExtensions
+ *                                | [Send CertificateRequest]
+ * Can send                       | [Send Certificate + CertificateVerify]
+ * app data                       | Send Finished
+ * after   -->                    | K_send = application
+ * here                  +--------+--------+
+ *              No 0-RTT |                 | 0-RTT
+ *                       |                 |
+ *   K_recv = handshake  |                 | K_recv = early data
+ * [Skip decrypt errors] |    +------> WAIT_EOED -+
+ *                       |    |       Recv |      | Recv EndOfEarlyData
+ *                       |    | early data |      | K_recv = handshake
+ *                       |    +------------+      |
+ *                       |                        |
+ *                       +> WAIT_FLIGHT2 <--------+
+ *                                |
+ *                       +--------+--------+
+ *               No auth |                 | Client auth
+ *                       |                 |
+ *                       |                 v
+ *                       |             WAIT_CERT
+ *                       |        Recv |       | Recv Certificate
+ *                       |       empty |       v
+ *                       | Certificate |    WAIT_CV
+ *                       |             |       | Recv
+ *                       |             v       | CertificateVerify
+ *                       +-> WAIT_FINISHED <---+
+ *                                | Recv Finished
+ *
+ *
+ * The following function handles the state changes after WAIT_FLIGHT2 in the
+ * above diagram.
+ */
+static void ssl_tls13_process_wait_flight2(mbedtls_ssl_context *ssl)
+{
+    MBEDTLS_SSL_DEBUG_MSG(2, ("=> ssl_tls13_process_wait_flight2"));
+
+    if (ssl->handshake->certificate_request_sent) {
+        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
+    } else {
+        MBEDTLS_SSL_DEBUG_MSG(2, ("skip parse certificate"));
+        MBEDTLS_SSL_DEBUG_MSG(2, ("skip parse certificate verify"));
+        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_FINISHED);
+    }
+
+    MBEDTLS_SSL_DEBUG_MSG(2, ("<= ssl_tls13_process_wait_flight2"));
+}
+
 /*
  * Handler for MBEDTLS_SSL_SERVER_FINISHED
  */
@@ -2810,7 +2864,7 @@ static int ssl_tls13_write_server_finished(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_MSG(1, ("Switch to handshake keys for inbound traffic"));
     mbedtls_ssl_set_inbound_transform(ssl, ssl->handshake->transform_handshake);
 
-    mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_WAIT_FLIGHT2);
+    ssl_tls13_process_wait_flight2(ssl);
 
     return 0;
 }

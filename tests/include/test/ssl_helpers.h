@@ -193,9 +193,7 @@ typedef struct mbedtls_test_ssl_endpoint {
 
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 int rng_get(void *p_rng, unsigned char *output, size_t output_len);
-#endif
 
 /*
  * This function can be passed to mbedtls to receive output logs from it. In

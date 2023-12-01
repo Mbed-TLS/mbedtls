@@ -12,8 +12,6 @@
 #include "md_psa.h"
 
 #if defined(MBEDTLS_SSL_TLS_C)
-#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-static int rng_seed = 0xBEEF;
 int rng_get(void *p_rng, unsigned char *output, size_t output_len)
 {
     (void) p_rng;
@@ -23,7 +21,6 @@ int rng_get(void *p_rng, unsigned char *output, size_t output_len)
 
     return 0;
 }
-#endif
 
 void mbedtls_test_ssl_log_analyzer(void *ctx, int level,
                                    const char *file, int line,
@@ -46,6 +43,8 @@ void mbedtls_test_init_handshake_options(
     mbedtls_test_handshake_test_options *opts)
 {
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+    int rng_seed = 0xBEEF;
+
     srand(rng_seed);
     rng_seed += 0xD0;
 #endif

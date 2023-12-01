@@ -2873,11 +2873,116 @@ static int ssl_tls13_write_server_finished(mbedtls_ssl_context *ssl)
 /*
  * Handler for MBEDTLS_SSL_END_OF_EARLY_DATA
  */
+#define SSL_END_OF_EARLY_GOT_END_OF_EARLY_DATA      0
+#define SSL_END_OF_EARLY_GOT_APPLICATION_DATA       1
+/* Coordination:
+ * Deals with the ambiguity of not knowing if a EndOfEarlyData will be sent.
+ * Returns a negative code on failure, or
+ * - SSL_END_OF_EARLY_GOT_END_OF_EARLY_DATA
+ * - SSL_END_OF_EARLY_GOT_APPLICATION_DATA
+ * indicating which message is received.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_end_of_early_data_coordinate(mbedtls_ssl_context *ssl)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    ((void) ssl);
+    return ret;
+}
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_parse_end_of_early_data(mbedtls_ssl_context *ssl,
+                                             const unsigned char *buf,
+                                             const unsigned char *end)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    ((void) ssl);
+    ((void) buf);
+    ((void) end);
+    return ret;
+}
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_process_early_application_data(mbedtls_ssl_context *ssl)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    ((void) ssl);
+    return ret;
+}
+
+/*
+ * RFC 8446 section A.2
+ *
+ *                                | Send ServerHello
+ *                                | K_send = handshake
+ *                                | Send EncryptedExtensions
+ *                                | [Send CertificateRequest]
+ * Can send                       | [Send Certificate + CertificateVerify]
+ * app data                       | Send Finished
+ * after   -->                    | K_send = application
+ * here                  +--------+--------+
+ *              No 0-RTT |                 | 0-RTT
+ *                       |                 |
+ *   K_recv = handshake  |                 | K_recv = early data
+ * [Skip decrypt errors] |    +------> WAIT_EOED -+
+ *                       |    |       Recv |      | Recv EndOfEarlyData
+ *                       |    | early data |      | K_recv = handshake
+ *                       |    +------------+      |
+ *                       |                        |
+ *                       +> WAIT_FLIGHT2 <--------+
+ *                                |
+ *                       +--------+--------+
+ *               No auth |                 | Client auth
+ *                       |                 |
+ *                       |                 v
+ *                       |             WAIT_CERT
+ *                       |        Recv |       | Recv Certificate
+ *                       |       empty |       v
+ *                       | Certificate |    WAIT_CV
+ *                       |             |       | Recv
+ *                       |             v       | CertificateVerify
+ *                       +-> WAIT_FINISHED <---+
+ *                                | Recv Finished
+ *
+ * The function handles actions and state changes from 0-RTT to WAIT_FLIGHT2 in
+ * the above diagram.
+ */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_process_end_of_early_data(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    ((void) ssl);
+
+    MBEDTLS_SSL_DEBUG_MSG(2, ("=> ssl_tls13_process_end_of_early_data"));
+
+    MBEDTLS_SSL_PROC_CHK_NEG(ssl_tls13_end_of_early_data_coordinate(ssl));
+
+    if (ret == SSL_END_OF_EARLY_GOT_END_OF_EARLY_DATA) {
+        unsigned char *buf;
+        size_t buf_len;
+
+        MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_tls13_fetch_handshake_msg(
+                                 ssl, MBEDTLS_SSL_HS_END_OF_EARLY_DATA,
+                                 &buf, &buf_len));
+
+        MBEDTLS_SSL_PROC_CHK(ssl_tls13_parse_end_of_early_data(
+                                 ssl, buf, buf + buf_len));
+
+        MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(
+                                 ssl, MBEDTLS_SSL_HS_END_OF_EARLY_DATA,
+                                 buf, buf_len));
+        ssl_tls13_process_wait_flight2(ssl);
+
+    } else if (ret == SSL_END_OF_EARLY_GOT_APPLICATION_DATA) {
+        MBEDTLS_SSL_PROC_CHK(ssl_tls13_process_early_application_data(ssl));
+    } else {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
+        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+        goto cleanup;
+    }
+
+
+cleanup:
+    MBEDTLS_SSL_DEBUG_MSG(2, ("<= ssl_tls13_process_end_of_early_data"));
     return ret;
 }
 #endif /* MBEDTLS_SSL_EARLY_DATA */

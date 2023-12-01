@@ -135,17 +135,28 @@ print_test_case() {
 list_test_cases() {
     for MODE in $MODES; do
         for TYPE in $TYPES; do
-            for VERIFY in $VERIFIES; do
+            # PSK cipher suites do not allow client certificate verification.
+            SUB_VERIFIES=$VERIFIES
+            if [ "$TYPE" = "PSK" ]; then
+                SUB_VERIFIES="NO"
+            fi
+            for VERIFY in $SUB_VERIFIES; do
                 VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
                 reset_ciphersuites
                 add_common_ciphersuites
                 add_openssl_ciphersuites
                 add_gnutls_ciphersuites
                 add_mbedtls_ciphersuites
+                # For GnuTLS client -> Mbed TLS server,
+                # we need to force IPv4 by connecting to 127.0.0.1 but then auth fails
+                SUB_G_CIPHERS=$G_CIPHERS
+                if is_dtls "$MODE" && [ "X$VERIFY" = "XYES" ]; then
+                    SUB_G_CIPHERS=""
+                fi
                 print_test_case m O "$O_CIPHERS"
                 print_test_case O m "$O_CIPHERS"
                 print_test_case m G "$G_CIPHERS"
-                print_test_case G m "$G_CIPHERS"
+                print_test_case G m "$SUB_G_CIPHERS"
                 print_test_case m m "$M_CIPHERS"
             done
         done

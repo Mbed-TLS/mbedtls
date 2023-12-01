@@ -6063,6 +6063,86 @@ static psa_status_t psa_hash_try_support(psa_algorithm_t alg)
     return status;
 }
 
+static psa_status_t psa_key_derivation_set_maximum_capacity(
+    psa_key_derivation_operation_t *operation,
+    psa_algorithm_t kdf_alg)
+{
+#if defined(PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS)
+    if (kdf_alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS) {
+        operation->capacity = PSA_HASH_LENGTH(PSA_ALG_SHA_256);
+        return PSA_SUCCESS;
+    }
+#endif
+#if defined(PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128)
+    if (kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
+#if (SIZE_MAX > UINT32_MAX)
+        operation->capacity = UINT32_MAX * PSA_MAC_LENGTH(PSA_KEY_TYPE_AES,
+                                                          128U,
+                                                          PSA_ALG_CMAC);
+#else
+        operation->capacity = SIZE_MAX;
+#endif
+        return PSA_SUCCESS;
+    }
+#endif /* PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128 */
+
+    /* After this point, if kdf_alg is not valid then value of hash_alg may be
+     * invalid or meaningless but it does not affect this function */
+    psa_algorithm_t hash_alg = PSA_ALG_GET_HASH(kdf_alg);
+    size_t hash_size = PSA_HASH_LENGTH(hash_alg);
+
+    /* Make sure that hash_alg is a supported hash algorithm. Otherwise
+     * we might fail later, which is somewhat unfriendly and potentially
+     * risk-prone. */
+    psa_status_t status = psa_hash_try_support(hash_alg);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+#if defined(PSA_WANT_ALG_HKDF)
+    if (PSA_ALG_IS_HKDF(kdf_alg)) {
+        operation->capacity = 255 * hash_size;
+    } else
+#endif
+#if defined(PSA_WANT_ALG_HKDF_EXTRACT)
+    if (PSA_ALG_IS_HKDF_EXTRACT(kdf_alg)) {
+        operation->capacity = hash_size;
+    } else
+#endif
+#if defined(PSA_WANT_ALG_HKDF_EXPAND)
+    if (PSA_ALG_IS_HKDF_EXPAND(kdf_alg)) {
+        operation->capacity = 255 * hash_size;
+    } else
+#endif
+#if defined(PSA_WANT_ALG_TLS12_PRF)
+    if (PSA_ALG_IS_TLS12_PRF(kdf_alg) &&
+        (hash_alg == PSA_ALG_SHA_256 || hash_alg == PSA_ALG_SHA_384)) {
+        operation->capacity = SIZE_MAX;
+    } else
+#endif
+#if defined(PSA_WANT_ALG_TLS12_PSK_TO_MS)
+    if (PSA_ALG_IS_TLS12_PSK_TO_MS(kdf_alg) &&
+        (hash_alg == PSA_ALG_SHA_256 || hash_alg == PSA_ALG_SHA_384)) {
+        /* Master Secret is always 48 bytes
+         * https://datatracker.ietf.org/doc/html/rfc5246.html#section-8.1 */
+        operation->capacity = 48U;
+    } else
+#endif
+#if defined(PSA_WANT_ALG_PBKDF2_HMAC)
+    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
+#if (SIZE_MAX > UINT32_MAX)
+        operation->capacity = UINT32_MAX * hash_size;
+#else
+        operation->capacity = SIZE_MAX;
+#endif
+    } else
+#endif /* PSA_WANT_ALG_PBKDF2_HMAC */
+    {
+        status = PSA_ERROR_NOT_SUPPORTED;
+    }
+    return status;
+}
+
 static psa_status_t psa_key_derivation_setup_kdf(
     psa_key_derivation_operation_t *operation,
     psa_algorithm_t kdf_alg)
@@ -6075,74 +6155,9 @@ static psa_status_t psa_key_derivation_setup_kdf(
     if (!is_kdf_alg_supported(kdf_alg)) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
-    psa_status_t status = PSA_SUCCESS;
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS)
-    if (kdf_alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS) {
-        operation->capacity = PSA_HASH_LENGTH(PSA_ALG_SHA_256);
-        return PSA_SUCCESS;
-    }
-#endif
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128)
-    if (kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
-#if (UINT_MAX > UINT32_MAX)
-        operation->capacity = UINT32_MAX * PSA_MAC_LENGTH(PSA_KEY_TYPE_AES,
-                                                          128U,
-                                                          PSA_ALG_CMAC);
-#else
-        operation->capacity = UINT32_MAX;
-#endif
-        return PSA_SUCCESS;
-    }
-#endif
-
-    psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH(kdf_alg);
-    size_t hash_size = PSA_HASH_LENGTH(hash_alg);
-    if (hash_size == 0) {
-        return PSA_ERROR_NOT_SUPPORTED;
-    }
-
-    /* Make sure that hash_alg is a supported hash algorithm. Otherwise
-     * we might fail later, which is somewhat unfriendly and potentially
-     * risk-prone. */
-    status = psa_hash_try_support(hash_alg);
-    if (status != PSA_SUCCESS) {
-        return status;
-    }
-
-    if (PSA_ALG_IS_HKDF(kdf_alg)) {
-        operation->capacity = 255 * hash_size;
-    }
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT)
-    if (PSA_ALG_IS_HKDF_EXTRACT(kdf_alg)) {
-        operation->capacity = hash_size;
-    }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
-    if (PSA_ALG_IS_HKDF_EXPAND(kdf_alg)) {
-        operation->capacity = 255 * hash_size;
-    }
-#endif
-    if ((PSA_ALG_IS_TLS12_PRF(kdf_alg) ||
-         PSA_ALG_IS_TLS12_PSK_TO_MS(kdf_alg)) &&
-        !(hash_alg == PSA_ALG_SHA_256 || hash_alg == PSA_ALG_SHA_384)) {
-        return PSA_ERROR_NOT_SUPPORTED;
-    }
-    if (PSA_ALG_IS_TLS12_PRF(kdf_alg)) {
-        operation->capacity = UINT_MAX;
-    }
-    if (PSA_ALG_IS_TLS12_PSK_TO_MS(kdf_alg)) {
-        /* Master Secret is always 48 bytes
-         * https://datatracker.ietf.org/doc/html/rfc5246.html#section-8.1 */
-        operation->capacity = 48U;
-    }
-    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
-#if (UINT_MAX > UINT32_MAX)
-        operation->capacity = UINT32_MAX * hash_size;
-#else
-        operation->capacity = UINT32_MAX;
-#endif
-    }
+    psa_status_t status = psa_key_derivation_set_maximum_capacity(operation,
+                                                                  kdf_alg);
     return status;
 }
 

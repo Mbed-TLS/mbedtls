@@ -136,13 +136,13 @@ static int can_exercise(const psa_key_attributes_t *attributes)
     return 1;
 }
 
+#if !defined(MBEDTLS_VALGRIND)
 /** Write a key with the given representation to storage, then check
  * that it has the given attributes and (if exportable) key material.
  *
  * On error, including if the key representation in storage differs,
  * mark the test case as failed and return 0. On success, return 1.
  */
-MBEDTLS_MAYBE_UNUSED
 static int test_read_key(const psa_key_attributes_t *expected_attributes,
                          const data_t *expected_material,
                          psa_storage_uid_t uid,
@@ -211,6 +211,7 @@ exit:
     mbedtls_free(exported_material);
     return ok;
 }
+#endif
 
 /* END_HEADER */
 

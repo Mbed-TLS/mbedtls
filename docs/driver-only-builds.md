@@ -55,6 +55,7 @@ For now, only the following (families of) mechanisms are supported:
 - hashes: SHA-3, SHA-2, SHA-1, MD5, etc.
 - elliptic-curve cryptography (ECC): ECDH, ECDSA, EC J-PAKE, ECC key types.
 - finite-field Diffie-Hellman: FFDH algorithm, DH key types.
+- AEADs: GCM, CCM and ChachaPoly
 
 Supported means that when those are provided only by drivers, everything
 (including PK, X.509 and TLS if `MBEDTLS_USE_PSA_CRYPTO` is enabled) should
@@ -63,7 +64,7 @@ in the "Limitations" sub-sections of the sections dedicated to each family
 below.
 
 In the near future (end of 2023), we are planning to also add support for
-ciphers (AES) and AEADs (GCM, CCM, ChachaPoly).
+ciphers (AES, ARIA, Camellia).
 
 Currently (mid-2023) we don't have plans to extend this to RSA. If
 you're interested in driver-only support for RSA, please let us know.
@@ -240,3 +241,26 @@ removing builtin support (i.e. `MBEDTLS_DHM_C`).
 ### Limitations
 Support for deterministic derivation of a DH keypair
 (i.e. `PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_DERIVE`) is not supported.
+
+AEADs
+-----
+
+It is possible to have all AEADs operations provided only by a driver.
+
+More precisely you can:
+- enable desired PSA algorithm(s) and key type(s):
+  - `PSA_WANT_ALG_[CCM|GCM]` with `PSA_WANT_KEY_TYPE_[AES|ARIA|CAMELLIA]`
+  - `PSA_WANT_ALG_CHACHA20_POLY1305` with `PSA_WANT_KEY_TYPE_CHACHA20`;
+- enable `MBEDTLS_PSA_ACCEL_xxx` symbol(s) which correspond to the
+  `PSA_WANT_xxx` of the previous step;
+- disable builtin support of `MBEDTLS_[CCM|GCM|CHACHAPOLY]_C` algorithms and
+  key types `MBEDTLS_[AES|ARIA|CAMELLIA|CHACHA20]_C` for AEADs which are
+  accelerated.
+
+In such a build all AEADs operations requested through the PSA Crypto API
+(including those in TLS and X.509) will be performed by the provided driver.
+Of course direct calls to the disabled builtin modules
+(ex: `mbedtls_ccm_init()`, etc) won't be possible.
+
+If no other non-authenticated cipher is required, it is also possible to
+disable `MBEDTLS_CIPHER_C` in order to further reduce code's footprint.

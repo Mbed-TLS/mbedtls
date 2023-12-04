@@ -11613,6 +11613,22 @@ run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.2" \
             -S "Version: TLS1.2" \
             -C "Protocol  : TLSv1.2"
 
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_SRV_C
+run_test "TLS 1.3 m->m: Not supported version check: cli TLS 1.2 only, srv TLS 1.3 only, fail" \
+         "$P_SRV debug_level=4 max_version=tls13 min_version=tls13" \
+         "$P_CLI debug_level=4 max_version=tls12 min_version=tls12" \
+         1 \
+         -c "The SSL configuration is tls12 only"                   \
+         -c "supported_versions(43) extension does not exist."      \
+         -c "A fatal alert message was received from our peer"      \
+         -s "The SSL configuration is tls13 only"                   \
+         -s "Unsupported version of TLS 1.2 was received"           \
+         -s "! mbedtls_ssl_handshake returned"
+
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C

@@ -1,3 +1,6 @@
+# Signing is expensive to test under Valgrind, so we skip the signing tests
+# under Valgrind and rely on ASan and MSan.
+
 LMS sign-verify test
 # This test uses a fixed message, and then generates a private key, signs the
 # message, and verifies the signature.

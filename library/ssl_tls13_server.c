@@ -2897,6 +2897,8 @@ static int ssl_tls13_end_of_early_data_coordinate(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(1, ("got unexpected message."));
 
+    MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
+                                 MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE);
     return MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
 }
 

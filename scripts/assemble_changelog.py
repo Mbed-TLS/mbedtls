@@ -246,10 +246,7 @@ class ChangeLog:
         self.categories = OrderedDict()
         for category in STANDARD_CATEGORIES:
             self.categories[category] = ''
-        if self.header:
-            offset = (self.header + self.top_version_title).count('\n') + 1
-        else:
-            offset = 0
+        offset = (self.header + self.top_version_title).count('\n') + 1
 
         self.add_categories_from_text(input_stream.name, offset,
                                       top_version_body, True)

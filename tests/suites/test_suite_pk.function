@@ -1440,7 +1440,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_GENPRIME:!MBEDTLS_TEST_VALGRIND */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_GENPRIME */
 void pk_psa_sign_ext(int pk_type, int parameter, int key_pk_type, int md_alg)
 {
     /* See the description of pk_genkey() for the description of the `parameter` argument. */
@@ -1480,7 +1480,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_RSA_C:MBEDTLS_GENPRIME:MBEDTLS_USE_PSA_CRYPTO:!MBEDTLS_TEST_VALGRIND */
+/* BEGIN_CASE depends_on:MBEDTLS_RSA_C:MBEDTLS_GENPRIME:MBEDTLS_USE_PSA_CRYPTO */
 void pk_psa_wrap_sign_ext(int pk_type, int parameter, int key_pk_type, int md_alg)
 {
     /* See the description of mbedtls_rsa_gen_key() for the description of the `parameter` argument. */

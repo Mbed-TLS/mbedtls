@@ -27,7 +27,7 @@ typedef struct {
      * is called. */
     unsigned long hits;
     /* Subset of hits which only counts key operations with EC key */
-    unsigned long export_public_key_hits;
+    unsigned long hits_export_public_key;
     /* Location of the last key management driver called to import a key. */
     psa_key_location_t location;
 } mbedtls_test_driver_key_management_hooks_t;

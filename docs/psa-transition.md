@@ -1304,3 +1304,9 @@ In Mbed TLS 4.0, we are planning to keep the ASN.1 interfaces mostly unchanged. 
 ## EC-JPAKE
 
 The PSA API exposes EC-JPAKE via the algorithm [`PSA_ALG_JPAKE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__extra_8h/#c.PSA_ALG_JPAKE) and the PAKE API functions. At the time of writing, the PAKE API is still experimental, but it should offer the same functionality as the legacy `ecjpake.h`. Please consult the documentation of your version of Mbed TLS for more information.
+
+Please note a few differences between the two APIs: the legacy API is geared towards the use of EC-JPAKE in TLS 1.2, whereas the PSA API is protocol-agnostic.
+
+* The PSA API is finer-grained and offers more flexibility in message ordering. Where the legacy API makes a single function call, the PSA API may require multiple calls.
+* The legacy API uses the TLS 1.2 wire format in the input or output format of several functions. In particular, one of the messages embeds the curve identifier in the TLS protocol. The PSA API uses protocol-agnostic formats.
+* The legacy API always applies the key derivation specified by TLS 1.2 to the shared secret. With the PSA API, use a key derivation with `PSA_ALG_TLS12_ECJPAKE_TO_PMS` for the same calculation.

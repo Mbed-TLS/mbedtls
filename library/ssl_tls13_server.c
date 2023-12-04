@@ -1920,6 +1920,15 @@ static int ssl_tls13_process_client_hello(mbedtls_ssl_context *ssl)
      * will dispatch to the TLS 1.2 state machine.
      */
     if (SSL_CLIENT_HELLO_TLS1_2 == parse_client_hello_ret) {
+        /* Check if server supports TLS 1.2 */
+        if (ssl->conf->min_tls_version > MBEDTLS_SSL_VERSION_TLS1_2) {
+            MBEDTLS_SSL_DEBUG_MSG(
+                1, ("Unsupported version of TLS 1.2 was received"));
+            MBEDTLS_SSL_PEND_FATAL_ALERT(
+                MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+            return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+        }
         ssl->keep_current_message = 1;
         ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
         return 0;

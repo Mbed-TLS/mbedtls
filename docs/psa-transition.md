@@ -328,7 +328,7 @@ Here is an overview of the lifecycle of a key object.
 
 ### Unauthenticated cipher operations
 
-Recall the flow of an unauthenticated cipher operation in the legacy Mbed TLS cipher API:
+Recall the workflow of an unauthenticated cipher operation in the legacy Mbed TLS cipher API:
 
 1. Create a cipher context of type `mbedtls_cipher_context_t` and initialize it with `mbedtls_cipher_init`.
 2. Establish the operation parameters (algorithm, key, mode) with `mbedtls_cipher_setup`, `mbedtls_cipher_setkey` (or `mbedtls_cipher_setup_psa`), `mbedtls_cipher_set_padding_mode` if applicable.
@@ -336,12 +336,12 @@ Recall the flow of an unauthenticated cipher operation in the legacy Mbed TLS ci
 4. For a one-shot operation, call `mbedtls_cipher_crypt`. To pass the input in multiple parts, call `mbedtls_cipher_update` as many times as necessary followed by `mbedtls_cipher_finish`.
 5. Finally free the resources associated with the operation object by calling `mbedtls_cipher_free`.
 
-For a one-shot operation (where the whole plaintext or ciphertext is passed as a single input), the equivalent flow with the PSA API is to call a single function:
+For a one-shot operation (where the whole plaintext or ciphertext is passed as a single input), the equivalent workflow with the PSA API is to call a single function:
 
 * [`psa_cipher_encrypt`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__cipher/#group__cipher_1ga61f02fbfa681c2659546eca52277dbf1) to perform encryption with a random IV of the default size (indicated by [`PSA_CIPHER_IV_LENGTH`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_CIPHER_IV_LENGTH)). (To encrypt with a specified IV, use the multi-part API described below.) You can use the macro [`PSA_CIPHER_ENCRYPT_OUTPUT_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_CIPHER_ENCRYPT_OUTPUT_SIZE) or [`PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE) to determine the size of the output buffer.
 * [`psa_cipher_decrypt`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__cipher/#group__cipher_1gab3593f5f14d8c0431dd306d80929215e) to perform decryption with a specified IV. You can use the macro [`PSA_CIPHER_DECRYPT_OUTPUT_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_CIPHER_DECRYPT_OUTPUT_SIZE) or [`PSA_CIPHER_DECRYPT_OUTPUT_MAX_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_CIPHER_DECRYPT_OUTPUT_MAX_SIZE) to determine the size of the output buffer.
 
-For a multi-part operation, the equivalent flow with the PSA API is as follows:
+For a multi-part operation, the equivalent workflow with the PSA API is as follows:
 
 1. Create an operation object of type [`psa_cipher_operation_t`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__cipher/#group__cipher_1ga1399de29db657e3737bb09927aae51fa) and zero-initialize it (or use the corresponding `INIT` macro).
 2. Select the key and algorithm with [`psa_cipher_encrypt_setup`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__cipher/#group__cipher_1ga587374c0eb8137a572f8e2fc409bb2b4) or [`psa_cipher_decrypt_setup`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__cipher/#group__cipher_1gaa4ba3a167066eaef2ea49abc5dcd1d4b) depending on the desired direction.
@@ -353,7 +353,7 @@ If you need to interrupt the operation after calling the setup function without 
 
 ### Authenticated cipher operations
 
-Recall the flow of an authenticated cipher operation in the legacy Mbed TLS cipher API (or similar flows in the `chachapoly`, `ccm` and `gcm` modules):
+Recall the workflow of an authenticated cipher operation in the legacy Mbed TLS cipher API (or similar workflows in the `chachapoly`, `ccm` and `gcm` modules):
 
 1. Create a cipher context of type `mbedtls_cipher_context_t` and initialize it with `mbedtls_cipher_init`.
 2. Establish the operation parameters (algorithm, key, mode) with `mbedtls_cipher_setup`, `mbedtls_cipher_setkey` (or `mbedtls_cipher_setup_psa`), `mbedtls_cipher_set_padding_mode` if applicable.
@@ -370,7 +370,7 @@ For a one-shot operation, the PSA API allows you to call a single function:
 * [`psa_aead_encrypt`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__aead/#group__aead_1gae72e1eb3c2da3ebd843bb9c8db8df509) to perform authenticated encryption with a random nonce of the default size (indicated by [`PSA_AEAD_NONCE_LENGTH`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_AEAD_NONCE_LENGTH)), with the authentication tag written at the end of the output. (To encrypt with a specified nonce, or to separate the tag from the rest of the ciphertext, use the multi-part API described below.)  You can use the macro [`PSA_AEAD_ENCRYPT_OUTPUT_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_AEAD_ENCRYPT_OUTPUT_SIZE) or [`PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE) to determine the size of the output buffer.
 * [`psa_aead_decrypt`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__aead/#group__aead_1gae799f6196a22d50c216c947e0320d3ba) to perform authenticated decryption of a ciphertext with the authentication tag at the end. (If the tag is separate, use the multi-part API described below.) You can use the macro [`PSA_AEAD_DECRYPT_OUTPUT_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_CIPHER_DECRYPT_OUTPUT_SIZE) or [`PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_CIPHER_DECRYPT_OUTPUT_MAX_SIZE) to determine the size of the output buffer.
 
-For a multi-part operation, the equivalent flow with the PSA API is as follows:
+For a multi-part operation, the equivalent workflow with the PSA API is as follows:
 
 1. Create an operation object of type [`psa_aead_operation_t`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__aead/#group__aead_1ga14f6a01afbaa8c5b3d8c5d345cbaa3ed) and zero-initialize it (or use the corresponding `INIT` macro).
 2. Select the key and algorithm with [`psa_aead_encrypt_setup`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__aead/#group__aead_1ga2732c40ce8f3619d41359a329e9b46c4) or [`psa_aead_decrypt_setup`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__aead/#group__aead_1gaaa5c5018e67a7a6514b7e76b9a14de26) depending on the desired direction.
@@ -770,12 +770,12 @@ You can use glue functions in the PK module to create a key object using the leg
 
 #### Importing a PK key by wrapping
 
-If you have a PK object, you can call `mbedtls_pk_wrap_as_opaque` to create a PSA key object with the same key material. (This function is only present in builds with `MBEDTLS_USE_PSA_CRYPTO` enabled. It is experimental and [will likely be replaced by a slightly different interface in a future version of Mbed TLS](https://github.com/Mbed-TLS/mbedtls/issues/7760)). This function automatically determines the PSA key type and lets you specify the usage policy (see “[Public-key cryptography policies](#public-key-cryptography-policies)”). Once you've called this function, you can destroy the PK object. This function calls `psa_import_key` internally; call [`psa_destroy_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__management/#group__key__management_1ga5f52644312291335682fbc0292c43cd2) to destroy the PSA key object once your application no longer needs it. Common scenarios where this flow is useful are:
+If you have a PK object, you can call `mbedtls_pk_wrap_as_opaque` to create a PSA key object with the same key material. (This function is only present in builds with `MBEDTLS_USE_PSA_CRYPTO` enabled. It is experimental and [will likely be replaced by a slightly different interface in a future version of Mbed TLS](https://github.com/Mbed-TLS/mbedtls/issues/7760)). This function automatically determines the PSA key type and lets you specify the usage policy (see “[Public-key cryptography policies](#public-key-cryptography-policies)”). Once you've called this function, you can destroy the PK object. This function calls `psa_import_key` internally; call [`psa_destroy_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__management/#group__key__management_1ga5f52644312291335682fbc0292c43cd2) to destroy the PSA key object once your application no longer needs it. Common scenarios where this workflow is useful are:
 
 * You have working code that's calling `mbedtls_pk_parse_key`, `mbedtls_pk_parse_public_key`, `mbedtls_pk_parse_subpubkey`, `mbedtls_pk_parse_keyfile` or `mbedtls_pk_parse_public_keyfile` to create a PK object.
 * You have working code that's using the `rsa.h` or `ecp.h` API to create a key object, and there is no PSA equivalent.
 
-You can use this flow to import an RSA key via an `mbedtls_rsa_context` object or an ECC key via an `mbedtls_ecp_keypair` object:
+You can use this workflow to import an RSA key via an `mbedtls_rsa_context` object or an ECC key via an `mbedtls_ecp_keypair` object:
 
 1. Call `mbedtls_pk_init` then `mbedtls_pk_setup` to set up a PK context for the desired key type (`MBEDTLS_PK_RSA` or `MBEDTLS_PK_ECKEY`).
 2. Call `mbedtls_pk_rsa` or `mbedtls_pk_ec` to obtain the underlying low-level context.
@@ -1102,9 +1102,9 @@ Use the macros [`PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE`](https://mbed-tls.readthedoc
 
 Call [`psa_key_derivation_key_agreement`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1ga2cd5a8ac906747d3204ec442db78745f) instead of `psa_raw_key_agreement` to use the resulting shared secret as the secret input to a key derivation. See “[HKDF](#hkdf)” for an example of the key derivation interface.
 
-#### Translating a legacy key agreement contextless flow
+#### Translating a legacy key agreement contextless workflow
 
-A typical flow for ECDH using the legacy API without a context object is:
+A typical workflow for ECDH using the legacy API without a context object is:
 
 1. Initialize objects:
     * `mbedtls_ecp_group grp` for the curve;
@@ -1119,7 +1119,7 @@ A typical flow for ECDH using the legacy API without a context object is:
 6. Use the raw shared secret `z`, typically, to construct a shared key.
 7. Free `grp`, `our_priv`, `our_pub`, `their_pub` and `z`.
 
-The corresponding flow with the PSA API is as follows:
+The corresponding workflow with the PSA API is as follows:
 
 1. Initialize objects:
     * `psa_key_id_t our_key`: a handle to our key pair;
@@ -1136,9 +1136,9 @@ The corresponding flow with the PSA API is as follows:
 
 Steps 4–5 are only performed once for ephemeral Diffie-Hellman, but repeated multiple times for static Diffie-Hellman.
 
-#### Translating a legacy key agreement TLS server flow
+#### Translating a legacy key agreement TLS server workflow
 
-The legacy API offers the following flow for a Diffie-Hellman key agreement in a TLS server. This flow can also be used with other protocols, on the side of the party that selects the curve or group and sends its public key first.
+The legacy API offers the following workflow for a Diffie-Hellman key agreement in a TLS server. This workflow can also be used with other protocols, on the side of the party that selects the curve or group and sends its public key first.
 
 1. Setup phase:
     1. Initialize a context of type `mbedtls_ecdh_context` or `mbedtls_dhm_context` with `mbedtls_ecdh_init` or `mbedtls_dhm_init`.
@@ -1149,7 +1149,7 @@ The legacy API offers the following flow for a Diffie-Hellman key agreement in a
 4. Call `mbedtls_ecdh_read_public` or `mbedtls_dhm_read_public` on the peer's public key, then call `mbedtls_ecdh_calc_secret` or `mbedtls_dhm_calc_secret` to calculate the shared secret.
 5. Free the context with `mbedtls_ecdh_free` or `mbedtls_dhm_free`.
 
-The corresponding flow with the PSA API is as follows:
+The corresponding workflow with the PSA API is as follows:
 
 1. Setup phase:
     1. Generate an ECDH or DHM key pair with `psa_generate_key` as described in “[Diffie-Hellman key pair management](#diffie-hellman-key-pair-management)”.
@@ -1161,9 +1161,9 @@ The corresponding flow with the PSA API is as follows:
    Alternatively, call `psa_key_derivation_key_agreement` to use the shared secret directly in a key derivation operation (see “[Performing a key agreement](#performing-a-key-agreement)”).
 5. Call [`psa_destroy_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__management/#group__key__management_1ga5f52644312291335682fbc0292c43cd2) to free the resources associated with our key pair.
 
-#### Translating a legacy key agreement TLS client flow
+#### Translating a legacy key agreement TLS client workflow
 
-The legacy API offers the following flow for a Diffie-Hellman key agreement in a TLS client. This flow can also be used with other protocols, on the side of the party that receives a message indicating both the choice of curve or group, and the peer's public key.
+The legacy API offers the following workflow for a Diffie-Hellman key agreement in a TLS client. This workflow can also be used with other protocols, on the side of the party that receives a message indicating both the choice of curve or group, and the peer's public key.
 
 1. Upon reception of a TLS ServerKeyExchange message received from the peer, which encodes the selected curve/group and the peer's public key:
     1. Initialize a context of type `mbedtls_ecdh_context` or `mbedtls_dhm_context` with `mbedtls_ecdh_init` or `mbedtls_dhm_init`.
@@ -1173,7 +1173,7 @@ The legacy API offers the following flow for a Diffie-Hellman key agreement in a
 4. Call `mbedtls_ecdh_calc_secret` or `mbedtls_dhm_calc_secret` to calculate the shared secret.
 5. Free the context with `mbedtls_ecdh_free` or `mbedtls_dhm_free`.
 
-The corresponding flow with the PSA API is as follows:
+The corresponding workflow with the PSA API is as follows:
 
 1. Upon reception of a TLS ServerKeyExchange message received from the peer, which encodes the selected curve/group and the peer's public key:
     1. Decode the selected curve/group and use this to determine a PSA key type (`PSA_KEY_TYPE_ECC_KEY_PAIR(curve)` or `PSA_KEY_TYPE_DH_KEY_PAIR(group)`), a key size and an algorithm.

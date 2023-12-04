@@ -1115,9 +1115,8 @@ A typical workflow for ECDH using the legacy API without a context object is:
 2. Call `mbedtls_ecp_group_load` on `grp` to select the curve.
 3. Call `mbedtls_ecdh_gen_public` on `grp`, `our_priv` (output) and `our_pub` (output) to generate a key pair and retrieve the corresponding public key.
 4. Send `our_pub` to the peer. Retrieve the peer's public key and import it into `their_pub`. These two actions may be performed in either order.
-5. Call `mbedtls_ecdh_compute_shared` on `grp`, `z` (output), `their_pub` and `our_priv`.
-6. Use the raw shared secret `z`, typically, to construct a shared key.
-7. Free `grp`, `our_priv`, `our_pub`, `their_pub` and `z`.
+5. Call `mbedtls_ecdh_compute_shared` on `grp`, `z` (output), `their_pub` and `our_priv`. Use the raw shared secret `z`, typically, to construct a shared key.
+6. Free `grp`, `our_priv`, `our_pub`, `their_pub` and `z`.
 
 The corresponding workflow with the PSA API is as follows:
 
@@ -1134,11 +1133,11 @@ The corresponding workflow with the PSA API is as follows:
    Alternatively, call `psa_key_derivation_key_agreement` to use the shared secret directly in a key derivation operation (see “[Performing a key agreement](#performing-a-key-agreement)”).
 6. Call [`psa_destroy_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__management/#group__key__management_1ga5f52644312291335682fbc0292c43cd2) on `key_id`, and free the memory buffers.
 
-Steps 4–5 are only performed once for ephemeral Diffie-Hellman, but repeated multiple times for static Diffie-Hellman.
+Steps 4–6 are only performed once for a "true" ephemeral Diffie-Hellman. They may be repeated multiple times for a "fake ephemeral" Diffie-Hellman where the same private key is used for multiple key exchanges, but it not saved.
 
-#### Translating a legacy key agreement TLS server workflow
+#### Translating a legacy ephemeral key agreement TLS server workflow
 
-The legacy API offers the following workflow for a Diffie-Hellman key agreement in a TLS server. This workflow can also be used with other protocols, on the side of the party that selects the curve or group and sends its public key first.
+The legacy API offers the following workflow for an ephemeral Diffie-Hellman key agreement in a TLS 1.2 server. The PSA version of this workflow can also be used with other protocols, on the side of the party that selects the curve or group and sends its public key first.
 
 1. Setup phase:
     1. Initialize a context of type `mbedtls_ecdh_context` or `mbedtls_dhm_context` with `mbedtls_ecdh_init` or `mbedtls_dhm_init`.
@@ -1161,9 +1160,9 @@ The corresponding workflow with the PSA API is as follows:
    Alternatively, call `psa_key_derivation_key_agreement` to use the shared secret directly in a key derivation operation (see “[Performing a key agreement](#performing-a-key-agreement)”).
 5. Call [`psa_destroy_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__management/#group__key__management_1ga5f52644312291335682fbc0292c43cd2) to free the resources associated with our key pair.
 
-#### Translating a legacy key agreement TLS client workflow
+#### Translating a legacy ephemeral key agreement TLS client workflow
 
-The legacy API offers the following workflow for a Diffie-Hellman key agreement in a TLS client. This workflow can also be used with other protocols, on the side of the party that receives a message indicating both the choice of curve or group, and the peer's public key.
+The legacy API offers the following workflow for an ephemeral Diffie-Hellman key agreement in a TLS 1.2 client. The PSA version of this workflow can also be used with other protocols, on the side of the party that receives a message indicating both the choice of curve or group, and the peer's public key.
 
 1. Upon reception of a TLS ServerKeyExchange message received from the peer, which encodes the selected curve/group and the peer's public key:
     1. Initialize a context of type `mbedtls_ecdh_context` or `mbedtls_dhm_context` with `mbedtls_ecdh_init` or `mbedtls_dhm_init`.
@@ -1206,7 +1205,7 @@ The PSA API for finite-field Diffie-Hellman only supports predefined groups. The
 
 #### Restartable key agreement
 
-Restartable key agreement is not yet available through the PSA API. It will be added in a future version of the library.
+Restartable key agreement (enabled by `mbedtls_ecdh_enable_restart`) is not yet available through the PSA API. It will be added under the name “interruptible key agreement” in a future version of the library, with an interface that's similar to the interruptible signature interface described in “[Restartable ECDSA signature](#restartable-ecdsa-signature)”.
 
 ### Additional information about Elliptic-curve cryptography
 

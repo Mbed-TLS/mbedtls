@@ -18,6 +18,15 @@
 #include "mbedtls/ssl.h"
 #include "ssl_misc.h"
 
+#undef MBEDTLS_SSL_ASSERT
+
+#define MBEDTLS_SSL_ASSERT(cond)                                    \
+    do {                                                            \
+        if (!(cond)) {                                              \
+            MBEDTLS_SSL_DEBUG_MSG(1, ("`" #cond "` mismatch"));      \
+            return -1;                                              \
+        }                                                           \
+    } while (0)
 
 const char *mbedtls_ssl_states_str(mbedtls_ssl_states in);
 
@@ -64,6 +73,8 @@ void mbedtls_ssl_print_ticket_flags(const mbedtls_ssl_context *ssl,
 #endif
 
 #else
+
+#define MBEDTLS_SSL_ASSERT(cond)
 
 #define MBEDTLS_SSL_PRINT_EXTS(level, hs_msg_type, extension_mask)
 

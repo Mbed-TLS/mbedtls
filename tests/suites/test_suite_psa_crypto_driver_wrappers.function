@@ -748,7 +748,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256:MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE */
 void generate_ec_key(int force_status_arg,
                      data_t *fake_output,
                      int expected_status_arg)

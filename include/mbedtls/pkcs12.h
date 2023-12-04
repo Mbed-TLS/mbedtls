@@ -31,8 +31,8 @@
 #define MBEDTLS_PKCS12_DERIVE_IV        2   /**< initialization vector     */
 #define MBEDTLS_PKCS12_DERIVE_MAC_KEY   3   /**< integrity / MAC key       */
 
-#define MBEDTLS_PKCS12_PBE_DECRYPT      0
-#define MBEDTLS_PKCS12_PBE_ENCRYPT      1
+#define MBEDTLS_PKCS12_PBE_DECRYPT      MBEDTLS_DECRYPT
+#define MBEDTLS_PKCS12_PBE_ENCRYPT      MBEDTLS_ENCRYPT
 
 #ifdef __cplusplus
 extern "C" {

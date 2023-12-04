@@ -77,7 +77,27 @@ PSA functions return a status of type [`psa_status_t`](https://mbed-tls.readthed
 
 ### Memory management
 
+Apart from keys, as described in “[Key management](#key-management)” below, APIs that need to preserve state between function calls store this state in a structure allocated by the calling code. For example, multipart operations store state in a multipart operation object.
+
+All PSA operation objects must be zero-initialized (or equivalently, initialized with the provided `PSA_XXX_INIT` macro or `psa_xxx_init()` function) before calling any API function.
+
 Functions that output data require an output buffer of sufficient size. For all PSA crypto API functions that have an output buffer, there is a corresponding macro, generally called `PSA_XXX_OUTPUT_SIZE`, that calculates a sufficient size for the output buffer, given the relevant parameters. In some cases, there may be macros with less precision which can be resolved at compile time. For example, for the size of a buffer containing a hash, you can use `PSA_HASH_LENGTH(hash_alg)` where `hash_alg` is a specific hash algorithm, or `PSA_HASH_MAX_SIZE` for a buffer that is long enough for any supported hash. See the relevant sections of this document and of the reference documentation for more details.
+
+#### Key management
+
+One of the major differences between the legacy API and the PSA API is that in the PSA API, access to keys is indirect. Operations that require a key take a parameter of type [`psa_key_id_t`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__types_8h/#_CPPv412psa_key_id_t), which is an identifier for the key. This allows the API to be used with keys that are not directly accessible to the application, for example because they are stored in a secure environment that does not allow the key material to be exported.
+
+To use a key:
+
+1. First create a key object with a key creation function. The two most common ones are [`psa_import_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga0336ea76bf30587ab204a8296462327b) if you have the key material available and [`psa_generate_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__random/#group__random_1ga1985eae417dfbccedf50d5fff54ea8c5) to create a random key. The key creation function has the key identifier as an output parameter.
+2. Use the key as desired, passing the key identifier obtained during the key creation.
+3. Finally destroy the key object with [`psa_destroy_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__management/#group__key__management_1ga5f52644312291335682fbc0292c43cd2).
+
+See “[Cipher key management](#cipher-key-management)”, “[MAC key management](#mac-key-management)”, “[Key lifecycle for asymmetric cryptography](#key-lifecycle-for-asymmetric-cryptography)”, “[Creating keys for asymmetric cryptography](#creating-keys-for-asymmetric-cryptography)” and “[Diffie-Hellman key pair management](#diffie-hellman-key-pair-management)” for more details about key management in specific workflows, including information about choosing the key's attributes.
+
+If you need access to the key material, call [`psa_export_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga668e35be8d2852ad3feeef74ac6f75bf). If you need the public key corresponding to a key pair object, call [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062).
+
+Note that a key consumes a key store entry, which is distinct from heap memory, until it is destroyed or the application exits. (This is not true for persistent keys, which instead consume disk space. Since persistent keys have no analog in the legacy API, we will not discuss them further in this document.)
 
 ## Summary of API modules
 

@@ -136,7 +136,6 @@ static int can_exercise(const psa_key_attributes_t *attributes)
     return 1;
 }
 
-#if !defined(MBEDTLS_TEST_VALGRIND)
 /** Write a key with the given representation to storage, then check
  * that it has the given attributes and (if exportable) key material.
  *
@@ -211,12 +210,14 @@ exit:
     mbedtls_free(exported_material);
     return ok;
 }
-#endif
 
 /* END_HEADER */
 
+/* These tests are very slow under Valgrind, so instead rely on MSan / ASan testing to catch
+ * memory leaks. */
+
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_PSA_CRYPTO_STORAGE_C
+ * depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_PSA_CRYPTO_STORAGE_C:!MBEDTLS_TEST_VALGRIND
  * END_DEPENDENCIES
  */
 
@@ -265,7 +266,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:!MBEDTLS_TEST_VALGRIND */
+/* BEGIN_CASE */
 void key_storage_read(int lifetime_arg, int type_arg, int bits_arg,
                       int usage_arg, int alg_arg, int alg2_arg,
                       data_t *material,

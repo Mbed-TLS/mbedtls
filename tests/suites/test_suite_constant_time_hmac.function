@@ -85,7 +85,7 @@ void ssl_cf_hmac(int hash)
      * Under Valgrind, test a subset of lengths to save on CI time.
      */
     for (max_in_len = 0; max_in_len <= 255 + block_size; max_in_len++) {
-#if defined(MBEDTLS_VALGRIND)
+#if defined(MBEDTLS_TEST_VALGRIND)
         /* Test only values of max_in_len which are within 1 of a multiple of 64,
          *  plus the largest 2 values of max_in_len. */
         int no_skip = (((max_in_len + 65) % 64) < 3) ||

@@ -1047,7 +1047,7 @@ component_check_test_dependencies () {
         tests/suites/test_suite_psa*.data tests/suites/test_suite_psa*.function |
         grep -Eo '!?MBEDTLS_[^: ]*' |
         grep -v MBEDTLS_PSA_ |
-        grep -v MBEDTLS_VALGRIND |
+        grep -v MBEDTLS_TEST_VALGRIND |
         sort -u > $found
 
     # Expected ones with justification - keep in sorted order by ASCII table!
@@ -2115,7 +2115,7 @@ component_test_valgrind_constant_flow () {
     scripts/config.py full
     scripts/config.py set MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py --force set MBEDTLS_VALGRIND
+    scripts/config.py --force set MBEDTLS_TEST_VALGRIND
     skip_suites_without_constant_flow
     cmake -D CMAKE_BUILD_TYPE:String=Release .
     make
@@ -2129,7 +2129,7 @@ component_test_valgrind_constant_flow () {
     # path under Valgrind or Memsan. Running only the constant_time tests is fast (<1s)
     msg "test: valgrind asm constant_time"
     scripts/config.py --force set MBEDTLS_TEST_CONSTANT_FLOW_ASM
-    scripts/config.py --force set MBEDTLS_VALGRIND
+    scripts/config.py --force set MBEDTLS_TEST_VALGRIND
     skip_all_except_given_suite test_suite_constant_time
     cmake -D CMAKE_BUILD_TYPE:String=Release .
     make clean
@@ -2150,7 +2150,7 @@ component_test_valgrind_constant_flow_psa () {
     msg "build: cmake release GCC, full config with constant flow testing"
     scripts/config.py full
     scripts/config.py set MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND
-    scripts/config.py --force set MBEDTLS_VALGRIND
+    scripts/config.py --force set MBEDTLS_TEST_VALGRIND
     skip_suites_without_constant_flow
     cmake -D CMAKE_BUILD_TYPE:String=Release .
     make
@@ -5774,7 +5774,7 @@ component_test_memsan () {
 component_test_valgrind () {
     msg "build: Release (clang)"
     # default config, in particular without MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py --force set MBEDTLS_VALGRIND
+    scripts/config.py --force set MBEDTLS_TEST_VALGRIND
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
     make
 
@@ -5804,7 +5804,7 @@ component_test_valgrind_psa () {
     msg "build: Release, full (clang)"
     # full config, in particular with MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py full
-    scripts/config.py --force set MBEDTLS_VALGRIND
+    scripts/config.py --force set MBEDTLS_TEST_VALGRIND
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
     make
 

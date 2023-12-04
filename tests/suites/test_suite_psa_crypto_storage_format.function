@@ -136,7 +136,7 @@ static int can_exercise(const psa_key_attributes_t *attributes)
     return 1;
 }
 
-#if !defined(MBEDTLS_VALGRIND)
+#if !defined(MBEDTLS_TEST_VALGRIND)
 /** Write a key with the given representation to storage, then check
  * that it has the given attributes and (if exportable) key material.
  *
@@ -265,7 +265,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:!MBEDTLS_VALGRIND */
+/* BEGIN_CASE depends_on:!MBEDTLS_TEST_VALGRIND */
 void key_storage_read(int lifetime_arg, int type_arg, int bits_arg,
                       int usage_arg, int alg_arg, int alg2_arg,
                       data_t *material,

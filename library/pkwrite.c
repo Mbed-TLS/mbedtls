@@ -683,7 +683,7 @@ int mbedtls_pk_write_pubkey_pem(const mbedtls_pk_context *key, unsigned char *bu
         goto cleanup;
     }
 
-    if ((ret = mbedtls_pem_write_buffer(PEM_BEGIN_PUBLIC_KEY, PEM_END_PUBLIC_KEY,
+    if ((ret = mbedtls_pem_write_buffer(PEM_BEGIN_PUBLIC_KEY "\n", PEM_END_PUBLIC_KEY "\n",
                                         output_buf + PUB_DER_MAX_BYTES - ret,
                                         ret, buf, size, &olen)) != 0) {
         goto cleanup;
@@ -712,18 +712,18 @@ int mbedtls_pk_write_key_pem(const mbedtls_pk_context *key, unsigned char *buf, 
 
 #if defined(MBEDTLS_RSA_C)
     if (pk_get_type_ext(key) == MBEDTLS_PK_RSA) {
-        begin = PEM_BEGIN_PRIVATE_KEY_RSA;
-        end = PEM_END_PRIVATE_KEY_RSA;
+        begin = PEM_BEGIN_PRIVATE_KEY_RSA "\n";
+        end = PEM_END_PRIVATE_KEY_RSA "\n";
     } else
 #endif
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     if (pk_get_type_ext(key) == MBEDTLS_PK_ECKEY) {
         if (mbedtls_pk_is_rfc8410(key)) {
-            begin = PEM_BEGIN_PRIVATE_KEY_PKCS8;
-            end = PEM_END_PRIVATE_KEY_PKCS8;
+            begin = PEM_BEGIN_PRIVATE_KEY_PKCS8 "\n";
+            end = PEM_END_PRIVATE_KEY_PKCS8 "\n";
         } else {
-            begin = PEM_BEGIN_PRIVATE_KEY_EC;
-            end = PEM_END_PRIVATE_KEY_EC;
+            begin = PEM_BEGIN_PRIVATE_KEY_EC "\n";
+            end = PEM_END_PRIVATE_KEY_EC "\n";
         }
     } else
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */

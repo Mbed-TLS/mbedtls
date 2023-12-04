@@ -473,10 +473,7 @@ int mbedtls_pem_write_buffer(const char *header, const char *footer,
     size_t len = 0, use_len, add_len = 0;
 
     mbedtls_base64_encode(NULL, 0, &use_len, der_data, der_len);
-    /* Newlines are appended to the end of both header and footer, so we
-     * account for an extra +2. */
-    add_len = strlen(header) + strlen(footer) + 2 + \
-              (((use_len > 2) ? (use_len - 2) : 0) / 64) + 1;
+    add_len = strlen(header) + strlen(footer) + (((use_len > 2) ? (use_len - 2) : 0) / 64) + 1;
 
     if (use_len + add_len > buf_len) {
         *olen = use_len + add_len;
@@ -496,7 +493,6 @@ int mbedtls_pem_write_buffer(const char *header, const char *footer,
 
     memcpy(p, header, strlen(header));
     p += strlen(header);
-    *p++ = '\n';
     c = encode_buf;
 
     while (use_len) {
@@ -510,7 +506,6 @@ int mbedtls_pem_write_buffer(const char *header, const char *footer,
 
     memcpy(p, footer, strlen(footer));
     p += strlen(footer);
-    *p++ = '\n';
 
     *p++ = '\0';
     *olen = p - buf;

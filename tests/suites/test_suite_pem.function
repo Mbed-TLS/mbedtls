@@ -40,17 +40,17 @@ void mbedtls_pem_write_buffer_lengths()
     size_t olen_needed, olen;
     int ret;
     for (size_t l = 0; l <= sizeof(data); l++) {
-        ret = mbedtls_pem_write_buffer("", "", data, l, NULL, 0, &olen_needed);
+        ret = mbedtls_pem_write_buffer("\n", "\n", data, l, NULL, 0, &olen_needed);
         TEST_EQUAL(ret, MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL);
 
         /* Test that a bigger buffer still only requires `olen_needed` */
-        ret = mbedtls_pem_write_buffer("", "", data, l, buf, sizeof(buf), &olen);
+        ret = mbedtls_pem_write_buffer("\n", "\n", data, l, buf, sizeof(buf), &olen);
         TEST_EQUAL(ret, 0);
         TEST_EQUAL(olen_needed, olen);
 
         /* Test that a buffer of exactly `olen_needed` works */
         memset(buf, 1, sizeof(buf));
-        ret = mbedtls_pem_write_buffer("", "", data, l, buf, olen_needed, &olen);
+        ret = mbedtls_pem_write_buffer("\n", "\n", data, l, buf, olen_needed, &olen);
         TEST_EQUAL(ret, 0);
         TEST_EQUAL(olen_needed, olen);
         /* Test the function didn't overflow the given buffer */

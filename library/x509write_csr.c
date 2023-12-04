@@ -302,8 +302,8 @@ int mbedtls_x509write_csr_der(mbedtls_x509write_csr *ctx, unsigned char *buf,
     return ret;
 }
 
-#define PEM_BEGIN_CSR           "-----BEGIN CERTIFICATE REQUEST-----"
-#define PEM_END_CSR             "-----END CERTIFICATE REQUEST-----"
+#define PEM_BEGIN_CSR           "-----BEGIN CERTIFICATE REQUEST-----\n"
+#define PEM_END_CSR             "-----END CERTIFICATE REQUEST-----\n"
 
 #if defined(MBEDTLS_PEM_WRITE_C)
 int mbedtls_x509write_csr_pem(mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size,

@@ -2910,7 +2910,12 @@ static int ssl_tls13_parse_end_of_early_data(mbedtls_ssl_context *ssl,
      * struct {} EndOfEarlyData;
      */
     ((void) ssl);
-    return buf == end ? 0 : MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+    if (buf != end) {
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                     MBEDTLS_ERR_SSL_DECODE_ERROR);
+        return MBEDTLS_ERR_SSL_DECODE_ERROR;
+    }
+    return 0;
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL

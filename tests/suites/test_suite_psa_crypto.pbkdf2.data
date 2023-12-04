@@ -1,4 +1,5 @@
-# Note: most tests disabled under Valgrind to save on CI time.
+# Note: most tests disabled under Valgrind to save on CI time. This retains
+# 80% of Valgrind coverage.
 
 PSA key derivation: PBKDF2-HMAC(SHA-1), RFC6070 #4
 depends_on:PSA_WANT_ALG_PBKDF2_HMAC:PSA_WANT_ALG_SHA_1:!MBEDTLS_TEST_VALGRIND

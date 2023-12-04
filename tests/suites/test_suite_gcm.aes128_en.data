@@ -1,3 +1,6 @@
+# Full testing under Valgrind is expensive, so limit testing to the cases where
+# tag length is 32 bits.
+
 AES-GCM NIST Validation (AES-128,128,0,0,128) #0 [#1]
 depends_on:MBEDTLS_AES_C:!MBEDTLS_TEST_VALGRIND
 gcm_encrypt_and_tag:MBEDTLS_CIPHER_ID_AES:"1014f74310d1718d1cc8f65f033aaf83":"":"6bb54c9fd83c12f5ba76cc83f7650d2c":"":"":128:"0b6b57db309eff920c8133b8691e0cac":0

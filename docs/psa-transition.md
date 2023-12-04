@@ -82,7 +82,7 @@ PSA functions return a status of type [`psa_status_t`](https://mbed-tls.readthed
 | `aes.h` | `mbedtls_aes_` | [Symmetric encryption](#symmetric-encryption) |
 | `aria.h` | `mbedtls_aria_` | [Symmetric encryption](#symmetric-encryption) |
 | `asn1.h` | `mbedtls_asn1_` | No change ([PK support interface](#pk-format-support-interfaces)) |
-| `asn1write.h` | `mbedtls_asn1write_` | No change ([PK support interface](#pk-format-support-interfaces)) |
+| `asn1write.h` | `mbedtls_asn1_write_` | No change ([PK support interface](#pk-format-support-interfaces)) |
 | `base64.h` | `mbedtls_base64_` | No change ([PK support interface](#pk-format-support-interfaces)) |
 | `bignum.h` | `mbedtls_mpi_` | None (no low-level arithmetic) |
 | `build_info.h` | `MBEDTLS_` | No change (not a crypto API) |
@@ -709,7 +709,7 @@ A curve is fully determined by a curve family identifier and the private key siz
 | `MBEDTLS_ECP_DP_BP512R1` | [`PSA_ECC_FAMILY_BRAINPOOL_P_R1`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1gac1643f1baf38b30d07c20a6eac697f15) | 512 |
 | `MBEDTLS_ECP_DP_CURVE25519` | [`PSA_ECC_FAMILY_MONTGOMERY`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1ga1f624c5cdaf25b21287af33024e1aff8) | 255 |
 | `MBEDTLS_ECP_DP_SECP192K1` | [`PSA_ECC_FAMILY_SECP_K1`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1ga48bb340b5544ba617b0f5b89542665a7) | 192 |
-| `MBEDTLS_ECP_DP_SECP224K1` | not supported | 224 |
+| `MBEDTLS_ECP_DP_SECP224K1` | not supported | N/A |
 | `MBEDTLS_ECP_DP_SECP256K1` | [`PSA_ECC_FAMILY_SECP_K1`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1ga48bb340b5544ba617b0f5b89542665a7) | 256 |
 | `MBEDTLS_ECP_DP_CURVE448` | [`PSA_ECC_FAMILY_MONTGOMERY`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1ga1f624c5cdaf25b21287af33024e1aff8) | 448 |
 

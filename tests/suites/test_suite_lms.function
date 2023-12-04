@@ -8,7 +8,7 @@
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:MBEDTLS_LMS_PRIVATE:!MBEDTLS_TEST_VALGRIND */
+/* BEGIN_CASE depends_on:MBEDTLS_LMS_PRIVATE */
 void lms_sign_verify_test(data_t *msg, data_t *seed)
 {
     mbedtls_lms_public_t pub_ctx;

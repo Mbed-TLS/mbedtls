@@ -597,7 +597,7 @@ The functions `mbedtls_pkcs12_derivation` and `mbedtls_pkcs12_pbe` are only inte
 
 ### Random generation interface
 
-The PSA subsystem has an internal random generator. As a consequence, you do not need to instantiate one manually, so most applications using PSA crypto do not need the interfaces from `entropy.h`, `ctr_drbg.` and `hmac_drbg.h`. See the next sections for remaining use cases for [entropy](#entropy-sources) and [DRBG](#deterministic-pseudorandom-generation).
+The PSA subsystem has an internal random generator. As a consequence, you do not need to instantiate one manually, so most applications using PSA crypto do not need the interfaces from `entropy.h`, `ctr_drbg.h` and `hmac_drbg.h`. See the next sections for remaining use cases for [entropy](#entropy-sources) and [DRBG](#deterministic-pseudorandom-generation).
 
 The PSA API uses its internal random generator to generate keys (`psa_generate_key`), nonces for encryption (`psa_cipher_generate_iv`, `psa_cipher_encrypt`, `psa_aead_generate_nonce`, `psa_aead_encrypt`, `psa_asymmetric_encrypt`), and other random material as needed. If you need random data for some other purposes, call [`psa_generate_random`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__random/#group__random_1ga1985eae417dfbccedf50d5fff54ea8c5).
 
@@ -928,7 +928,7 @@ Use [`PSA_SIGN_OUTPUT_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/dev
 This is also the equivalent of the type-specific functions `mbedtls_rsa_pkcs1_sign`, `mbedtls_rsa_rsassa_pkcs1_v15_sign`, `mbedtls_rsa_rsassa_pss_sign`, `mbedtls_rsa_rsassa_pss_sign_ext`, `mbedtls_ecdsa_sign`, `mbedtls_ecdsa_sign_det_ext` and `mbedtls_ecdsa_write_signature`. Note that the PSA API uses the raw format for ECDSA signatures, not the ASN.1 format; see “[ECDSA signature](#ecdsa-signature)” for more details.
 
 The equivalent of `mbedtls_pk_verify` or `mbedtls_pk_verify_ext` to verify an already calculated hash is [`psa_verify_hash`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__asymmetric/#group__asymmetric_1gae2ffbf01e5266391aff22b101a49f5f5).
-The key must be a public key or a key pair allowing the usage `PSA_KEY_USAGE_VERIFY_HASH` (see “[Public-key cryptography policies](#public-key-cryptography-policies)”).
+The key must be a public key (or a key pair) allowing the usage `PSA_KEY_USAGE_VERIFY_HASH` (see “[Public-key cryptography policies](#public-key-cryptography-policies)”).
 This is also the equivalent of the type-specific functions `mbedtls_rsa_pkcs1_verify`, `mbedtls_rsa_rsassa_pkcs1_v15_verify`, `mbedtls_rsa_rsassa_pss_verify`, `mbedtls_rsa_rsassa_pss_verify_ext`, `mbedtls_ecdsa_verify` amd `mbedtls_ecdsa_read_signature`. Note that the PSA API uses the raw format for ECDSA signatures, not the ASN.1 format; see “[ECDSA signature](#ecdsa-signature)” for more details.
 
 Generally, `psa_sign_hash` and `psa_verify_hash` require the input to have the correct length for the hash (this has historically not always been enforced in the corresponding legacy APIs).
@@ -1006,7 +1006,7 @@ With respect to the salt length:
 ### Asymmetric encryption and decryption
 
 The equivalent of `mbedtls_pk_encrypt`, `mbedtls_rsa_pkcs1_encrypt`, `mbedtls_rsa_rsaes_pkcs1_v15_encrypt` or `mbedtls_rsa_rsaes_oaep_encrypt` to encrypt a short message (typically a symmetric key) is [`psa_asymmetric_encrypt`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__asymmetric/#group__asymmetric_1gaa17f61e4ddafd1823d2c834b3706c290).
-The key must be a public key or a key pair allowing the usage `PSA_KEY_USAGE_ENCRYPT` (see “[Public-key cryptography policies](#public-key-cryptography-policies)”).
+The key must be a public key (or a key pair) allowing the usage `PSA_KEY_USAGE_ENCRYPT` (see “[Public-key cryptography policies](#public-key-cryptography-policies)”).
 Use the macro [`PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#crypto__sizes_8h_1a66ba3bd93e5ec52870ccc3848778bad8) or [`PSA_ASYMMETRIC_ENCRYPT_OUTPUT_MAX_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_ASYMMETRIC_ENCRYPT_OUTPUT_MAX_SIZE) to determine the output buffer size.
 
 The equivalent of `mbedtls_pk_decrypt`, `mbedtls_rsa_pkcs1_decrypt`, `mbedtls_rsa_rsaes_pkcs1_v15_decrypt` or `mbedtls_rsa_rsaes_oaep_decrypt` to decrypt a short message (typically a symmetric key) is [`psa_asymmetric_decrypt`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__asymmetric/#group__asymmetric_1ga4f968756f6b22aab362b598b202d83d7).
@@ -1064,7 +1064,9 @@ There is no PSA equivalent to Mbed TLS's custom key type names exposed by `mbedt
 
 The PSA API has a generic interface for key agreement, covering the main use of both `ecdh.h` and `dhm.h`.
 
-<!-- TODO: `mbedtls_ecdh_get_params` -->
+<!-- TODO: static FFDH/ECDH (including `mbedtls_ecdh_get_params`)
+ https://github.com/Mbed-TLS/mbedtls/pull/7766#discussion_r1410568541
+ -->
 
 #### Diffie-Hellman key pair management
 
@@ -1125,7 +1127,7 @@ The corresponding flow with the PSA API is as follows:
     * `our_pub`: a buffer of size [`PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(key_type, bits)`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE) (where `key_type` is the value passed to `psa_set_key_size` in step 2) or [`PSA_EXPORT_PUBLIC_KEY_MAX_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_EXPORT_PUBLIC_KEY_MAX_SIZE) to hold our key.
     * `their_pub`: a buffer of the same size, to hold the peer's key. This can be the same as `our_pub` if the application does not need to hold both at the same time;
     * `shared_secret`: a buffer of size [`PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(key_type, bits)`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE) or [`PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE) (if not using a key derivation operation).
-2. Prepare an attribute structure as desccribed in “[Diffie-Hellman key pair management](#diffie-hellman-key-pair-management)”, in particular selecting the curve with `psa_set_key_type`.
+2. Prepare an attribute structure as described in “[Diffie-Hellman key pair management](#diffie-hellman-key-pair-management)”, in particular selecting the curve with `psa_set_key_type`.
 3. Call [`psa_generate_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__random/#group__random_1ga1985eae417dfbccedf50d5fff54ea8c5) on `attributes` and `our_key` (output) to generate a key pair, then [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) on `our_key` and `our_pub` (output) to obtain our public key.
 4. Send `our_pub` to the peer. Retrieve the peer's public key and import it into `their_pub`. These two actions may be performed in either order.
 5. Call [`psa_raw_key_agreement`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1ga90fdd2716124d0bd258826184824675f) on `our_key`, `their_pub` and `shared_secret` (output).  
@@ -1218,7 +1220,7 @@ The bit-size used by the PSA API is the size of the private key. For most curves
 
 | Curve | `grp->nbits` | `grp->pbits` | `curve_info->bit_size` | PSA bit-size |
 | ----- | ------------ | ------------ | ---------------------- | ------------ |
-| secp224k1 | 224 | 225 | 224 | not supported |
+| secp224k1 | 225 | 224 | 224 | not supported |
 | Curve25519 | 253 | 255 | 256 | 255 |
 | Curve448 | 446 | 448 | 448 | 448 |
 

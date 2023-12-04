@@ -1073,7 +1073,8 @@ static int mbedtls_status_is_ssl_in_progress(int ret)
 {
     return ret == MBEDTLS_ERR_SSL_WANT_READ ||
            ret == MBEDTLS_ERR_SSL_WANT_WRITE ||
-           ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS;
+           ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS ||
+           ret == MBEDTLS_ERR_SSL_HAS_EARLY_DATA;
 }
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)

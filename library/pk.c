@@ -311,7 +311,6 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
     }
 
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_algorithm_t key_alg, key_alg2;
     psa_status_t status;
 
     status = psa_get_key_attributes(ctx->priv_id, &attributes);
@@ -319,8 +318,15 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
         return 0;
     }
 
-    key_alg = psa_get_key_algorithm(&attributes);
-    key_alg2 = psa_get_key_enrollment_algorithm(&attributes);
+    psa_algorithm_t key_alg = psa_get_key_algorithm(&attributes);
+    /* Key's enrollment is available only when MBEDTLS_PSA_CRYPTO_CLIENT is
+     * defined, i.e. when the Mbed TLS implementation of PSA Crypto is being used.
+     * Even though we don't officially support using other implementations of PSA
+     * Crypto with TLS and X.509 (yet), we're still trying to simplify the life of
+     * people who would like to try it before it's officially supported. */
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+    psa_algorithm_t key_alg2 = psa_get_key_enrollment_algorithm(&attributes);
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
     key_usage = psa_get_key_usage_flags(&attributes);
     psa_reset_key_attributes(&attributes);
 
@@ -329,18 +335,23 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
     }
 
     /*
-     * Common case: the key alg or alg2 only allows alg.
+     * Common case: the key alg [or alg2] only allows alg.
      * This will match PSA_ALG_RSA_PKCS1V15_CRYPT & PSA_ALG_IS_ECDH
      * directly.
      * This would also match ECDSA/RSA_PKCS1V15_SIGN/RSA_PSS with
-     * a fixed hash on key_alg/key_alg2.
+     * a fixed hash on key_alg [or key_alg2].
      */
-    if (alg == key_alg || alg == key_alg2) {
+    if (alg == key_alg) {
         return 1;
     }
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+    if (alg == key_alg2) {
+        return 1;
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
     /*
-     * If key_alg or key_alg2 is a hash-and-sign with a wildcard for the hash,
+     * If key_alg [or key_alg2] is a hash-and-sign with a wildcard for the hash,
      * and alg is the same hash-and-sign family with any hash,
      * then alg is compliant with this key alg
      */
@@ -351,12 +362,13 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
             (alg & ~PSA_ALG_HASH_MASK) == (key_alg & ~PSA_ALG_HASH_MASK)) {
             return 1;
         }
-
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
         if (PSA_ALG_IS_SIGN_HASH(key_alg2) &&
             PSA_ALG_SIGN_GET_HASH(key_alg2) == PSA_ALG_ANY_HASH &&
             (alg & ~PSA_ALG_HASH_MASK) == (key_alg2 & ~PSA_ALG_HASH_MASK)) {
             return 1;
         }
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
     }
 
     return 0;

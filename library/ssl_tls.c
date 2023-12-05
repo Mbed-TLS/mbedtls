@@ -7004,6 +7004,7 @@ int mbedtls_ssl_write_certificate(mbedtls_ssl_context *ssl)
     const mbedtls_x509_crt *crt;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->handshake->ciphersuite_info;
+    int max_out_record_len = mbedtls_ssl_get_max_out_record_payload(ssl);
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write certificate"));
 
@@ -7048,10 +7049,10 @@ int mbedtls_ssl_write_certificate(mbedtls_ssl_context *ssl)
 
     while (crt != NULL) {
         n = crt->raw.len;
-        if (n > MBEDTLS_SSL_OUT_CONTENT_LEN - 3 - i) {
+        if (n > max_out_record_len - 3 - i) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("certificate too large, %" MBEDTLS_PRINTF_SIZET
                                       " > %" MBEDTLS_PRINTF_SIZET,
-                                      i + 3 + n, (size_t) MBEDTLS_SSL_OUT_CONTENT_LEN));
+                                      i + 3 + n, (size_t) max_out_record_len));
             return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
         }
 

@@ -441,9 +441,9 @@ size_t mbedtls_ssl_get_input_max_frag_len(const mbedtls_ssl_context *ssl);
 
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
 /**
- * \brief          Return the record size limit (in bytes) for
+ * \brief          Return the RecordSizeLimit (in bytes) for
  *                 the output buffer. This is less than the value requested by the
- *                 peer (using RFC 8449), since it subtracts the space required for the
+ *                 peer (see RFC 8449), since it subtracts the space required for the
  *                 content type and padding of the TLSInnerPlaintext struct (RFC 8446).
  *                 Returns MBEDTLS_SSL_OUT_CONTENT_LEN if no limit was requested by the peer.
  *

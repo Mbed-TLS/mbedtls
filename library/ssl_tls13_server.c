@@ -324,6 +324,8 @@ static int ssl_tls13_offered_psks_check_identity_match(
     return SSL_TLS1_3_OFFERED_PSK_NOT_MATCH;
 }
 
+#define SSL_TLS1_3_BINDER_DOES_NOT_MATCH 1
+#define SSL_TLS1_3_BINDER_MATCH 0
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_offered_psks_check_binder_match(
     mbedtls_ssl_context *ssl,
@@ -368,12 +370,12 @@ static int ssl_tls13_offered_psks_check_binder_match(
     MBEDTLS_SSL_DEBUG_BUF(3, "psk binder ( received ): ", binder, binder_len);
 
     if (mbedtls_ct_memcmp(server_computed_binder, binder, binder_len) == 0) {
-        return SSL_TLS1_3_OFFERED_PSK_MATCH;
+        return SSL_TLS1_3_BINDER_MATCH;
     }
 
     mbedtls_platform_zeroize(server_computed_binder,
                              sizeof(server_computed_binder));
-    return SSL_TLS1_3_OFFERED_PSK_NOT_MATCH;
+    return SSL_TLS1_3_BINDER_DOES_NOT_MATCH;
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -626,7 +628,7 @@ static int ssl_tls13_parse_pre_shared_key_ext(
         ret = ssl_tls13_offered_psks_check_binder_match(
             ssl, binder, binder_len, psk_type,
             mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) ciphersuite_info->mac));
-        if (ret != SSL_TLS1_3_OFFERED_PSK_MATCH) {
+        if (ret != SSL_TLS1_3_BINDER_MATCH) {
             /* For security reasons, the handshake should be aborted when we
              * fail to validate a binder value. See RFC 8446 section 4.2.11.2
              * and appendix E.6. */

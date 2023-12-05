@@ -90,8 +90,9 @@ static int ssl_tls13_parse_key_exchange_modes_ext(mbedtls_ssl_context *ssl,
     return 0;
 }
 
-#define SSL_TLS1_3_OFFERED_PSK_NOT_MATCH   1
-#define SSL_TLS1_3_OFFERED_PSK_MATCH       0
+#define SSL_TLS1_3_PSK_IDENTITY_DOES_NOT_MATCH 2
+#define SSL_TLS1_3_PSK_IDENTITY_MATCH_BUT_PSK_NOT_USABLE 1
+#define SSL_TLS1_3_PSK_IDENTITY_MATCH 0
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -123,7 +124,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 
     /* Ticket parser is not configured, Skip */
     if (ssl->conf->f_ticket_parse == NULL || identity_len == 0) {
-        return SSL_TLS1_3_OFFERED_PSK_NOT_MATCH;
+        return SSL_TLS1_3_PSK_IDENTITY_DOES_NOT_MATCH;
     }
 
     /* We create a copy of the encrypted ticket since the ticket parsing
@@ -138,28 +139,36 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     }
     memcpy(ticket_buffer, identity, identity_len);
 
-    if ((ret = ssl->conf->f_ticket_parse(ssl->conf->p_ticket,
-                                         session,
-                                         ticket_buffer, identity_len)) != 0) {
-        if (ret == MBEDTLS_ERR_SSL_INVALID_MAC) {
-            MBEDTLS_SSL_DEBUG_MSG(3, ("ticket is not authentic"));
-        } else if (ret == MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED) {
+    ret = ssl->conf->f_ticket_parse(ssl->conf->p_ticket,
+                                    session,
+                                    ticket_buffer, identity_len);
+    if (ret == 0) {
+        ret = SSL_TLS1_3_PSK_IDENTITY_MATCH;
+    } else {
+        if (ret == MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED) {
             MBEDTLS_SSL_DEBUG_MSG(3, ("ticket is expired"));
+            ret = SSL_TLS1_3_PSK_IDENTITY_MATCH_BUT_PSK_NOT_USABLE;
         } else {
-            MBEDTLS_SSL_DEBUG_RET(1, "ticket_parse", ret);
+            if (ret == MBEDTLS_ERR_SSL_INVALID_MAC) {
+                MBEDTLS_SSL_DEBUG_MSG(3, ("ticket is not authentic"));
+            } else {
+                MBEDTLS_SSL_DEBUG_RET(1, "ticket_parse", ret);
+            }
+            ret = SSL_TLS1_3_PSK_IDENTITY_DOES_NOT_MATCH;
         }
     }
 
     /* We delete the temporary buffer */
     mbedtls_free(ticket_buffer);
 
-    if (ret == 0 && session->tls_version != MBEDTLS_SSL_VERSION_TLS1_3) {
-        MBEDTLS_SSL_DEBUG_MSG(3, ("Ticket TLS version is not 1.3."));
-        /* TODO: Define new return value for this case. */
-        ret = MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
+    if (ret != SSL_TLS1_3_PSK_IDENTITY_MATCH) {
+        goto exit;
     }
 
-    if (ret != 0) {
+    ret = SSL_TLS1_3_PSK_IDENTITY_MATCH_BUT_PSK_NOT_USABLE;
+
+    if (session->tls_version != MBEDTLS_SSL_VERSION_TLS1_3) {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("Ticket TLS version is not 1.3."));
         goto exit;
     }
 
@@ -185,12 +194,10 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 
     if (key_exchanges == 0) {
         MBEDTLS_SSL_DEBUG_MSG(3, ("No suitable key exchange mode"));
-        ret = MBEDTLS_ERR_ERROR_GENERIC_ERROR;
         goto exit;
     }
 
 #if defined(MBEDTLS_HAVE_TIME)
-    ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
     now = mbedtls_ms_time();
 
     if (now < session->ticket_creation_time) {
@@ -242,12 +249,12 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
                 age_diff));
         goto exit;
     }
-
-    ret = 0;
 #endif /* MBEDTLS_HAVE_TIME */
 
+    ret = SSL_TLS1_3_PSK_IDENTITY_MATCH;
+
 exit:
-    if (ret != 0) {
+    if (ret != SSL_TLS1_3_PSK_IDENTITY_MATCH) {
         mbedtls_ssl_session_free(session);
     }
 
@@ -277,7 +284,7 @@ static int ssl_tls13_offered_psks_check_identity_match(
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     if (ssl_tls13_offered_psks_check_identity_match_ticket(
             ssl, identity, identity_len, obfuscated_ticket_age,
-            session) == SSL_TLS1_3_OFFERED_PSK_MATCH) {
+            session) == SSL_TLS1_3_PSK_IDENTITY_MATCH) {
         ssl->handshake->resume = 1;
         *psk_type = MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION;
         ret = mbedtls_ssl_set_hs_psk(ssl,
@@ -293,7 +300,7 @@ static int ssl_tls13_offered_psks_check_identity_match(
                               session->resumption_key_len);
         MBEDTLS_SSL_DEBUG_MSG(4, ("ticket: obfuscated_ticket_age: %u",
                                   (unsigned) obfuscated_ticket_age));
-        return SSL_TLS1_3_OFFERED_PSK_MATCH;
+        return SSL_TLS1_3_PSK_IDENTITY_MATCH;
     }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
@@ -301,9 +308,9 @@ static int ssl_tls13_offered_psks_check_identity_match(
     if (ssl->conf->f_psk != NULL) {
         if (ssl->conf->f_psk(
                 ssl->conf->p_psk, ssl, identity, identity_len) == 0) {
-            return SSL_TLS1_3_OFFERED_PSK_MATCH;
+            return SSL_TLS1_3_PSK_IDENTITY_MATCH;
         }
-        return SSL_TLS1_3_OFFERED_PSK_NOT_MATCH;
+        return SSL_TLS1_3_PSK_IDENTITY_DOES_NOT_MATCH;
     }
 
     MBEDTLS_SSL_DEBUG_BUF(5, "identity", identity, identity_len);
@@ -317,10 +324,10 @@ static int ssl_tls13_offered_psks_check_identity_match(
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_set_hs_psk", ret);
             return ret;
         }
-        return SSL_TLS1_3_OFFERED_PSK_MATCH;
+        return SSL_TLS1_3_PSK_IDENTITY_MATCH;
     }
 
-    return SSL_TLS1_3_OFFERED_PSK_NOT_MATCH;
+    return SSL_TLS1_3_PSK_IDENTITY_DOES_NOT_MATCH;
 }
 
 #define SSL_TLS1_3_BINDER_DOES_NOT_MATCH 1
@@ -588,7 +595,7 @@ static int ssl_tls13_parse_pre_shared_key_ext(
         ret = ssl_tls13_offered_psks_check_identity_match(
             ssl, identity, identity_len, obfuscated_ticket_age,
             &psk_type, &session);
-        if (ret != SSL_TLS1_3_OFFERED_PSK_MATCH) {
+        if (ret != SSL_TLS1_3_PSK_IDENTITY_MATCH) {
             continue;
         }
 

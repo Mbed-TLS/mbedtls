@@ -3059,7 +3059,7 @@
  * Caller:  library/x509_crt.c
  *          library/x509_csr.c
  *
- * Requires: MBEDTLS_PK_C, MBEDTLS_OID_C
+ * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_OID_C, MBEDTLS_PK_C
  *
  * Uncomment to enable generic public key parse functions.
  */

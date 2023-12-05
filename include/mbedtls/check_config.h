@@ -207,10 +207,6 @@
 #error "MBEDTLS_ECP_C defined (or a subset enabled), but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PK_PARSE_C) && !defined(MBEDTLS_ASN1_PARSE_C)
-#error "MBEDTLS_PK_PARSE_C defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_ENTROPY_C) && \
     !(defined(MBEDTLS_MD_CAN_SHA512) || defined(MBEDTLS_MD_CAN_SHA256))
 #error "MBEDTLS_ENTROPY_C defined, but not all prerequisites"
@@ -437,7 +433,9 @@
 #endif
 
 #if defined(MBEDTLS_PK_PARSE_C) && \
-    (!defined(MBEDTLS_PK_C) || !defined(MBEDTLS_OID_C))
+    (!defined(MBEDTLS_ASN1_PARSE_C) || \
+     !defined(MBEDTLS_OID_C)        || \
+     !defined(MBEDTLS_PK_C))
 #error "MBEDTLS_PK_PARSE_C defined, but not all prerequisites"
 #endif
 

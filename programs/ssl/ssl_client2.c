@@ -755,6 +755,79 @@ int ssl_early_data_read_file(const char *path, unsigned char **buffer, size_t *l
 
     return 0;
 }
+
+static int internal_write_early_data(mbedtls_ssl_context *ssl,
+                                     const unsigned char *data_to_write,
+                                     size_t data_to_write_len,
+                                     size_t *data_written)
+{
+    *data_written = 0;
+    ((void) ssl);
+    ((void) data_to_write);
+
+    while (*data_written < data_to_write_len) {
+        *data_written += data_to_write_len;
+        /*
+         * TODO: call mbedtls_ssl_write_early_data() here, and remove the above two lines.
+         *       This is currently not possible because mbedtls_ssl_write_early_data() will
+         *       be implemented in the next PR.
+         *       mbedtls_ssl_write_early_data() will initial the handshake and only step to
+         *       the client hello.
+         */
+    }
+
+    return 0;
+}
+
+static int ssl_write_early_data(mbedtls_ssl_context *ssl,
+                                const unsigned char *data_to_write,
+                                size_t data_to_write_len,
+                                int *data_written)
+{
+    int ret = 0;
+    size_t early_data_written = 0;
+    ret = internal_write_early_data(ssl, data_to_write, data_to_write_len,
+                                    &early_data_written);
+    if (ret < 0 &&
+        ret != MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA) {
+        return ret;
+    }
+
+    /*
+     * Make sure the handshake is completed as it is a requisite to
+     * mbedtls_ssl_get_early_data_status().
+     * mbedtls_ssl_write_early_data will initial the handshake and only step to
+     * the client hello.
+     */
+    while (!mbedtls_ssl_is_handshake_over(ssl)) {
+        ret = mbedtls_ssl_handshake(ssl);
+        if (ret < 0 &&
+            ret != MBEDTLS_ERR_SSL_WANT_READ &&
+            ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
+            return ret;
+        }
+    }
+
+    /* TODO:
+     * We will call mbedtls_ssl_get_early_data_status() to tell whether the early data is rejected
+     * or not. Once it's rejected, we will revert early_data_written to 0 and call mbedtls_ssl_write()
+     * to send the data.
+     */
+    if (ret == MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED) {
+        early_data_written = 0;
+    }
+
+    *data_written += (int) early_data_written;
+
+    ret = mbedtls_ssl_write(ssl, data_to_write + early_data_written,
+                            data_to_write_len - early_data_written);
+    if (ret < 0) {
+        return ret;
+    }
+
+    *data_written += ret;
+    return ret;
+}
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 int main(int argc, char *argv[])
@@ -2395,6 +2468,13 @@ usage:
         }
     }
 
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+    /* TODO:
+     *      Call mbedtls_ssl_get_early_data_status() to get current status of
+     *      early data.
+     */
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
+
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     /*
      * 5. Verify the server certificate
@@ -3042,6 +3122,13 @@ reconnect:
             goto exit;
         }
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_EARLY_DATA)
+        if (early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED) {
+            int data_written = 0;
+            ssl_write_early_data(&ssl, (const unsigned char *) early_data,
+                                 early_data_len, &data_written);
+        } else
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_EARLY_DATA */
         while ((ret = mbedtls_ssl_handshake(&ssl)) != 0) {
             if (ret != MBEDTLS_ERR_SSL_WANT_READ &&
                 ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
@@ -3053,6 +3140,13 @@ reconnect:
         }
 
         mbedtls_printf(" ok\n");
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+        /* TODO:
+         *      Call mbedtls_ssl_get_early_data_status() to get current status of
+         *      early data.
+         */
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
 
         goto send_request;
     }

@@ -1946,8 +1946,8 @@ static inline int mbedtls_ssl_conf_tls13_is_some_psk_enabled(mbedtls_ssl_context
  * \param[in] ssl  SSL context
  * \param kex_modes_mask  Mask of the key exchange modes to check
  *
- * \return Non-zero, if at least one of the key exchange modes is supported by
- *         the peer, otherwise \0.
+ * \return Non-zero if at least one of the key exchange modes is supported by
+ *         the peer, otherwise \c 0.
  */
 static inline int mbedtls_ssl_tls13_is_kex_mode_supported(mbedtls_ssl_context *ssl,
                                                           int kex_modes_mask)

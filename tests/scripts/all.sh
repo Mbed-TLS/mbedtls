@@ -172,9 +172,10 @@ pre_initialize_variables () {
     export MBEDTLS_TEST_PLATFORM
 
     if [[ "${JOB_TYPE:=_}" != "PR" ]]; then
-        # Enable extended testing in the nightlies and release jobs. In future we might
-        # want to move this into the Groovy scripts.
-        export MBEDTLS_TEST_EXTENDED=1
+        # Enable abridged testing in the PR jobs, and full testing in all other jobs
+        # (i.e., nightlies and release jobs).
+        # In future we might want to move this into the Groovy scripts.
+        export MBEDTLS_TEST_FULL=1
     fi
 
     # Default commands, can be overridden by the environment
@@ -823,14 +824,14 @@ pre_generate_files() {
     fi
 }
 
-check_test_extended () {
-    # Usage: put "check_test_extended || return" at the top of every test that should
-    # only run when extended tests are enabled. Doing this instead of using a
+check_test_full () {
+    # Usage: put "check_test_full || return" at the top of every test that should
+    # only run when full tests are enabled. Doing this instead of using a
     # supports_xxx function stops the CI from treating this as a not-tested component.
-    if [ -z ${MBEDTLS_TEST_EXTENDED+x} ]; then
-        msg "Test is a no-op because MBEDTLS_TEST_EXTENDED is not set"
+    if [ -z ${MBEDTLS_TEST_FULL+x} ]; then
+        msg "Test SKIPPED for abridged test run"
     fi
-    [ ! -z ${MBEDTLS_TEST_EXTENDED+x} ]
+    [ ! -z ${MBEDTLS_TEST_FULL+x} ]
 }
 
 ################################################################
@@ -2117,7 +2118,7 @@ component_test_memsan_constant_flow_psa () {
 }
 
 component_test_valgrind_constant_flow () {
-    check_test_extended || return
+    check_test_full || return
 
     # This tests both (1) everything that valgrind's memcheck usually checks
     # (heap buffer overflows, use of uninitialized memory, use-after-free,
@@ -2153,7 +2154,7 @@ component_test_valgrind_constant_flow () {
 }
 
 component_test_valgrind_constant_flow_psa () {
-    check_test_extended || return
+    check_test_full || return
 
     # This tests both (1) everything that valgrind's memcheck usually checks
     # (heap buffer overflows, use of uninitialized memory, use-after-free,
@@ -5788,7 +5789,7 @@ component_test_memsan () {
 }
 
 component_test_valgrind () {
-    check_test_extended || return
+    check_test_full || return
 
     msg "build: Release (clang)"
     # default config, in particular without MBEDTLS_USE_PSA_CRYPTO
@@ -5818,7 +5819,7 @@ component_test_valgrind () {
 }
 
 component_test_valgrind_psa () {
-    check_test_extended || return
+    check_test_full || return
 
     msg "build: Release, full (clang)"
     # full config, in particular with MBEDTLS_USE_PSA_CRYPTO

@@ -2802,9 +2802,8 @@ static void ssl_tls13_prepare_for_handshake_second_flight(
     if (ssl->handshake->certificate_request_sent) {
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
     } else {
+        MBEDTLS_SSL_DEBUG_MSG(2, ("skip parse certificate"));
         MBEDTLS_SSL_DEBUG_MSG(2, ("skip parse certificate verify"));
-        MBEDTLS_SSL_DEBUG_MSG(
-            2, ("Skip certificate and certificate verify parsing"));
 
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_FINISHED);
     }

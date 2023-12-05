@@ -2100,6 +2100,15 @@ component_test_memsan_constant_flow_psa () {
     make test
 }
 
+support_test_valgrind_constant_flow () {
+    # The MBEDTLS_TEST_EXTENDED environment variable enables a fuller set of tests
+    # which are run less frequently, to allow us to have an extended but slow set
+    # of tests. Currently, we set it for nightlies and release builds, but not PR jobs.
+    #
+    # Only run this test if MBEDTLS_TEST_EXTENDED has been set.
+    [ ! -z ${MBEDTLS_TEST_EXTENDED+x} ]
+}
+
 component_test_valgrind_constant_flow () {
     # This tests both (1) everything that valgrind's memcheck usually checks
     # (heap buffer overflows, use of uninitialized memory, use-after-free,
@@ -2132,6 +2141,11 @@ component_test_valgrind_constant_flow () {
     make clean
     make
     make memcheck
+}
+
+support_test_valgrind_constant_flow_psa () {
+    # Only run this test if MBEDTLS_TEST_EXTENDED has been set
+    [ ! -z ${MBEDTLS_TEST_EXTENDED+x} ]
 }
 
 component_test_valgrind_constant_flow_psa () {
@@ -5767,6 +5781,11 @@ component_test_memsan () {
     fi
 }
 
+support_test_valgrind () {
+    # Only run this test if MBEDTLS_TEST_EXTENDED has been set
+    [ ! -z ${MBEDTLS_TEST_EXTENDED+x} ]
+}
+
 component_test_valgrind () {
     msg "build: Release (clang)"
     # default config, in particular without MBEDTLS_USE_PSA_CRYPTO
@@ -5793,6 +5812,11 @@ component_test_valgrind () {
         msg "test: context-info.sh --memcheck (default config)"
         tests/context-info.sh --memcheck
     fi
+}
+
+support_test_valgrind_psa () {
+    # Only run this test if MBEDTLS_TEST_EXTENDED has been set
+    [ ! -z ${MBEDTLS_TEST_EXTENDED+x} ]
 }
 
 component_test_valgrind_psa () {

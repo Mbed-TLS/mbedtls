@@ -123,7 +123,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 
     /* Ticket parser is not configured, Skip */
     if (ssl->conf->f_ticket_parse == NULL || identity_len == 0) {
-        return 0;
+        return SSL_TLS1_3_OFFERED_PSK_NOT_MATCH;
     }
 
     /* We create a copy of the encrypted ticket since the ticket parsing
@@ -171,7 +171,6 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      *
      * We regard the ticket with incompatible key exchange modes as not match.
      */
-    ret = MBEDTLS_ERR_ERROR_GENERIC_ERROR;
     MBEDTLS_SSL_PRINT_TICKET_FLAGS(4, session->ticket_flags);
 
     key_exchanges = 0;
@@ -186,11 +185,12 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 
     if (key_exchanges == 0) {
         MBEDTLS_SSL_DEBUG_MSG(3, ("No suitable key exchange mode"));
+        ret = MBEDTLS_ERR_ERROR_GENERIC_ERROR;
         goto exit;
     }
 
-    ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
 #if defined(MBEDTLS_HAVE_TIME)
+    ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
     now = mbedtls_ms_time();
 
     if (now < session->ticket_creation_time) {
@@ -244,7 +244,6 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     }
 
     ret = 0;
-
 #endif /* MBEDTLS_HAVE_TIME */
 
 exit:

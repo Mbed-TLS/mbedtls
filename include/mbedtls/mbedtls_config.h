@@ -3073,7 +3073,7 @@
  * Module:  library/pkwrite.c
  * Caller:  library/x509write.c
  *
- * Requires: MBEDTLS_PK_C, MBEDTLS_OID_C
+ * Requires: MBEDTLS_ASN1_WRITE_C, MBEDTLS_OID_C, MBEDTLS_PK_C
  *
  * Uncomment to enable generic public key write functions.
  */

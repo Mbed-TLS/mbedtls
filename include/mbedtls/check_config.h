@@ -440,7 +440,9 @@
 #endif
 
 #if defined(MBEDTLS_PK_WRITE_C) && \
-    (!defined(MBEDTLS_PK_C) || !defined(MBEDTLS_OID_C))
+    (!defined(MBEDTLS_ASN1_WRITE_C) || \
+     !defined(MBEDTLS_OID_C)        || \
+     !defined(MBEDTLS_PK_C))
 #error "MBEDTLS_PK_WRITE_C defined, but not all prerequisites"
 #endif
 

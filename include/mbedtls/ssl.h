@@ -1350,7 +1350,8 @@ typedef int (*mbedtls_ssl_hs_cb_t)(mbedtls_ssl_context *ssl);
  *                  This callback should generate an encrypted and
  *                  authenticated ticket for the session and write it to the
  *                  output buffer. Here, ticket means the opaque ticket part
- *                  of the NewSessionTicket structure of RFC 5077.
+ *                  of the NewSessionTicket structure of RFC 5077 and RFC 8446.
+ *                  \c lifetime MUST be lower than 7 days for TLS 1.3.
  *
  * \param p_ticket  Context for the callback
  * \param session   SSL session to be written in the ticket
@@ -1374,9 +1375,11 @@ typedef int mbedtls_ssl_ticket_write_t(void *p_ticket,
  *
  * \note            This describes what a callback implementation should do.
  *                  This callback should parse a session ticket as generated
- *                  by the corresponding mbedtls_ssl_ticket_write_t function,
+ *                  by the corresponding \c mbedtls_ssl_ticket_write_t function,
  *                  and, if the ticket is authentic and valid, load the
- *                  session.
+ *                  session. When early data is enabled, \c max_early_data_size
+ *                  of \c session MUST be set, otherwise, early data will be
+ *                  rejected by server.
  *
  * \note            The implementation is allowed to modify the first len
  *                  bytes of the input buffer, eg to use it as a temporary
@@ -1391,6 +1394,10 @@ typedef int mbedtls_ssl_ticket_write_t(void *p_ticket,
  *                  MBEDTLS_ERR_SSL_INVALID_MAC if not authentic, or
  *                  MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED if expired, or
  *                  any other non-zero code for other failures.
+ *
+ * \note When early data feature is enabled and accepted, `max_early_data_size`
+ *       field MUST be set correctly. Otherwise, early data will be rejected by
+ *       server.
  */
 typedef int mbedtls_ssl_ticket_parse_t(void *p_ticket,
                                        mbedtls_ssl_session *session,

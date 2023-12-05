@@ -1889,11 +1889,9 @@ static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl)
             return ret;
         }
     }
-
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
     return 0;
-
 }
 
 /*
@@ -2801,19 +2799,12 @@ static int ssl_tls13_write_certificate_verify(mbedtls_ssl_context *ssl)
 static void ssl_tls13_prepare_for_handshake_second_flight(
     mbedtls_ssl_context *ssl)
 {
-    MBEDTLS_SSL_DEBUG_MSG(
-        2, ("=> ssl_tls13_prepare_for_handshake_second_flight"));
-
     if (ssl->handshake->certificate_request_sent) {
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
     } else {
-        MBEDTLS_SSL_DEBUG_MSG(2, ("skip parse certificate"));
-        MBEDTLS_SSL_DEBUG_MSG(2, ("skip parse certificate verify"));
+        MBEDTLS_SSL_DEBUG_MSG(2, ("Skip certificate and certificate verify parsing"));
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_FINISHED);
     }
-
-    MBEDTLS_SSL_DEBUG_MSG(
-        2, ("<= ssl_tls13_prepare_for_handshake_second_flight"));
 }
 
 /*
@@ -2864,13 +2855,13 @@ static int ssl_tls13_write_server_finished(mbedtls_ssl_context *ssl)
  * Handler for MBEDTLS_SSL_END_OF_EARLY_DATA
  */
 #define SSL_GOT_END_OF_EARLY_DATA      0
-#define SSL_GOT_APPLICATION_DATA       1
+#define SSL_GOT_EARLY_DATA             1
 /* Coordination:
  * Deals with the ambiguity of not knowing if the next message is an
  * EndOfEarlyData message or an application message containing early data.
  * Returns a negative code on failure, or
  * - SSL_GOT_END_OF_EARLY_DATA
- * - SSL_GOT_APPLICATION_DATA
+ * - SSL_GOT_EARLY_DATA
  * indicating which message is received.
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -2886,16 +2877,14 @@ static int ssl_tls13_end_of_early_data_coordinate(mbedtls_ssl_context *ssl)
 
     if (ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE        &&
         ssl->in_msg[0]  == MBEDTLS_SSL_HS_END_OF_EARLY_DATA) {
-        MBEDTLS_SSL_DEBUG_MSG(3, ("got end_of_early_data message."));
+        MBEDTLS_SSL_DEBUG_MSG(3, ("Received an end_of_early_data message."));
         return SSL_GOT_END_OF_EARLY_DATA;
     }
 
     if (ssl->in_msgtype == MBEDTLS_SSL_MSG_APPLICATION_DATA) {
-        MBEDTLS_SSL_DEBUG_MSG(3, ("got application_data message"));
-        return SSL_GOT_APPLICATION_DATA;
+        MBEDTLS_SSL_DEBUG_MSG(3, ("Received early data"));
+        return SSL_GOT_EARLY_DATA;
     }
-
-    MBEDTLS_SSL_DEBUG_MSG(1, ("got unexpected message."));
 
     MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
                                  MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE);
@@ -2911,7 +2900,6 @@ static int ssl_tls13_parse_end_of_early_data(mbedtls_ssl_context *ssl,
      *
      * struct {} EndOfEarlyData;
      */
-    ((void) ssl);
     if (buf != end) {
         MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
                                      MBEDTLS_ERR_SSL_DECODE_ERROR);
@@ -3020,7 +3008,7 @@ static int ssl_tls13_process_end_of_early_data(mbedtls_ssl_context *ssl)
 
         ssl_tls13_prepare_for_handshake_second_flight(ssl);
 
-    } else if (ret == SSL_GOT_APPLICATION_DATA) {
+    } else if (ret == SSL_GOT_EARLY_DATA) {
         MBEDTLS_SSL_PROC_CHK(ssl_tls13_process_early_application_data(ssl));
     } else {
         MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));

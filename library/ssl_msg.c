@@ -3960,7 +3960,7 @@ static int ssl_tls13_early_data_check_received_size(mbedtls_ssl_context *ssl,
     /* up to the configured max_early_data_size */
     ssl->handshake->received_early_data_size += rec->data_len;
     if (ssl->handshake->received_early_data_size >
-        ssl->session_negotiate->max_early_data_size) {
+        ssl->conf->max_early_data_size) {
         MBEDTLS_SSL_DEBUG_MSG(
             2, ("EarlyData: Received size exceeds configured limitation."
                 "(%" MBEDTLS_PRINTF_SIZET " > %u )",

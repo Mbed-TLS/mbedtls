@@ -180,6 +180,16 @@ inline void mbedtls_put_unaligned_uint64(void *p, uint64_t x)
 #define MBEDTLS_BSWAP32 __rev
 #endif
 
+/* Detect IAR built-in byteswap routine */
+#if defined(__IAR_SYSTEMS_ICC__)
+#if defined(__ARM_ACLE)
+#include <arm_acle.h>
+#define MBEDTLS_BSWAP16(x) ((uint16_t) __rev16((uint32_t) (x)))
+#define MBEDTLS_BSWAP32 __rev
+#define MBEDTLS_BSWAP64 __revll
+#endif
+#endif
+
 /*
  * Where compiler built-ins are not present, fall back to C code that the
  * compiler may be able to detect and transform into the relevant bswap or

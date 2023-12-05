@@ -2525,7 +2525,7 @@ static int ssl_tls13_write_encrypted_extensions_body(mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
         ret = mbedtls_ssl_tls13_write_early_data_ext(
-            ssl, p, end, &output_len, NULL);
+            ssl, 0, p, end, &output_len);
         if (ret != 0) {
             return ret;
         }
@@ -3326,7 +3326,7 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
     if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED &&
         ssl->conf->max_early_data_size > 0) {
         if ((ret = mbedtls_ssl_tls13_write_early_data_ext(
-                 ssl, p, end, &output_len, session)) != 0) {
+                 ssl, 1, p, end, &output_len)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(
                 1, "mbedtls_ssl_tls13_write_early_data_ext", ret);
             return ret;

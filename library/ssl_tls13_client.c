@@ -1176,7 +1176,7 @@ int mbedtls_ssl_tls13_write_client_hello_exts(mbedtls_ssl_context *ssl,
         ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED) {
 
         ret = mbedtls_ssl_tls13_write_early_data_ext(
-            ssl, p, end, &ext_len, NULL);
+            ssl, 0, p, end, &ext_len);
         if (ret != 0) {
             return ret;
         }

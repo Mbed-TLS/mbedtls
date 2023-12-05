@@ -2113,10 +2113,10 @@ int mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
+                                           int in_new_session_ticket,
                                            unsigned char *buf,
                                            const unsigned char *end,
-                                           size_t *out_len,
-                                           const mbedtls_ssl_session *session);
+                                           size_t *out_len);
 
 #if defined(MBEDTLS_SSL_SRV_C)
 #define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_RECEIVED \

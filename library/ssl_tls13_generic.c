@@ -1410,18 +1410,18 @@ cleanup:
  */
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
+                                           int in_new_session_ticket,
                                            unsigned char *buf,
                                            const unsigned char *end,
-                                           size_t *out_len,
-                                           const mbedtls_ssl_session *session)
+                                           size_t *out_len)
 {
     unsigned char *p = buf;
 
 #if defined(MBEDTLS_SSL_SRV_C)
-    const size_t needed = session != NULL ? 8 : 4;
+    const size_t needed = in_new_session_ticket ? 8 : 4;
 #else
     const size_t needed = 4;
-    ((void) session);
+    ((void) in_new_session_ticket);
 #endif
 
     *out_len = 0;
@@ -1432,11 +1432,11 @@ int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
     MBEDTLS_PUT_UINT16_BE(needed - 4, p, 2);
 
 #if defined(MBEDTLS_SSL_SRV_C)
-    if (session != NULL) {
-        MBEDTLS_PUT_UINT32_BE(session->max_early_data_size, p, 4);
+    if (in_new_session_ticket) {
+        MBEDTLS_PUT_UINT32_BE(ssl->conf->max_early_data_size, p, 4);
         MBEDTLS_SSL_DEBUG_MSG(
             4, ("Sent max_early_data_size=%u",
-                (unsigned int) session->max_early_data_size));
+                (unsigned int) ssl->conf->max_early_data_size));
     }
 #endif
 

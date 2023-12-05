@@ -171,7 +171,7 @@ pre_initialize_variables () {
     export MBEDTLS_TEST_OUTCOME_FILE
     export MBEDTLS_TEST_PLATFORM
 
-    if [[ "${JOB_TYPE}" != "PR" ]]; then
+    if [[ "${JOB_TYPE:=_}" != "PR" ]]; then
         # Enable extended testing in the nightlies and release jobs. In future we might
         # want to move this into the Groovy scripts.
         export MBEDTLS_TEST_EXTENDED=1

@@ -3059,7 +3059,7 @@
  * Caller:  library/x509_crt.c
  *          library/x509_csr.c
  *
- * Requires: MBEDTLS_PK_C
+ * Requires: MBEDTLS_PK_C, MBEDTLS_OID_C
  *
  * Uncomment to enable generic public key parse functions.
  */
@@ -3073,7 +3073,7 @@
  * Module:  library/pkwrite.c
  * Caller:  library/x509write.c
  *
- * Requires: MBEDTLS_PK_C
+ * Requires: MBEDTLS_PK_C, MBEDTLS_OID_C
  *
  * Uncomment to enable generic public key write functions.
  */

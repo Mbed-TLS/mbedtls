@@ -823,6 +823,16 @@ pre_generate_files() {
     fi
 }
 
+check_test_extended () {
+    # Usage: put "check_test_extended || return" at the top of every test that should
+    # only run when extended tests are enabled. Doing this instead of using a
+    # supports_xxx function stops the CI from treating this as a not-tested component.
+    if [ -z ${MBEDTLS_TEST_EXTENDED+x} ]; then
+        msg "Test is a no-op because MBEDTLS_TEST_EXTENDED is not set"
+    fi
+    [ ! -z ${MBEDTLS_TEST_EXTENDED+x} ]
+}
+
 ################################################################
 #### Helpers for components using libtestdriver1
 ################################################################
@@ -2106,16 +2116,9 @@ component_test_memsan_constant_flow_psa () {
     make test
 }
 
-support_test_valgrind_constant_flow () {
-    # The MBEDTLS_TEST_EXTENDED environment variable enables a fuller set of tests
-    # which are run less frequently, to allow us to have an extended but slow set
-    # of tests. Currently, we set it for nightlies and release builds, but not PR jobs.
-    #
-    # Only run this test if MBEDTLS_TEST_EXTENDED has been set.
-    [ ! -z ${MBEDTLS_TEST_EXTENDED+x} ]
-}
-
 component_test_valgrind_constant_flow () {
+    check_test_extended || return
+
     # This tests both (1) everything that valgrind's memcheck usually checks
     # (heap buffer overflows, use of uninitialized memory, use-after-free,
     # etc.) and (2) branches or memory access depending on secret values,
@@ -2149,12 +2152,9 @@ component_test_valgrind_constant_flow () {
     make memcheck
 }
 
-support_test_valgrind_constant_flow_psa () {
-    # Only run this test if MBEDTLS_TEST_EXTENDED has been set
-    [ ! -z ${MBEDTLS_TEST_EXTENDED+x} ]
-}
-
 component_test_valgrind_constant_flow_psa () {
+    check_test_extended || return
+
     # This tests both (1) everything that valgrind's memcheck usually checks
     # (heap buffer overflows, use of uninitialized memory, use-after-free,
     # etc.) and (2) branches or memory access depending on secret values,
@@ -5787,12 +5787,9 @@ component_test_memsan () {
     fi
 }
 
-support_test_valgrind () {
-    # Only run this test if MBEDTLS_TEST_EXTENDED has been set
-    [ ! -z ${MBEDTLS_TEST_EXTENDED+x} ]
-}
-
 component_test_valgrind () {
+    check_test_extended || return
+
     msg "build: Release (clang)"
     # default config, in particular without MBEDTLS_USE_PSA_CRYPTO
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
@@ -5820,12 +5817,9 @@ component_test_valgrind () {
     fi
 }
 
-support_test_valgrind_psa () {
-    # Only run this test if MBEDTLS_TEST_EXTENDED has been set
-    [ ! -z ${MBEDTLS_TEST_EXTENDED+x} ]
-}
-
 component_test_valgrind_psa () {
+    check_test_extended || return
+
     msg "build: Release, full (clang)"
     # full config, in particular with MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py full

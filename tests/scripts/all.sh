@@ -171,11 +171,13 @@ pre_initialize_variables () {
     export MBEDTLS_TEST_OUTCOME_FILE
     export MBEDTLS_TEST_PLATFORM
 
-    if [[ "${JOB_TYPE:=_}" != "PR" ]]; then
+    if [[ "${JOB_TYPE:=_}" == "PR" ]]; then
         # Enable abridged testing in the PR jobs, and full testing in all other jobs
         # (i.e., nightlies and release jobs).
         # In future we might want to move this into the Groovy scripts.
-        export MBEDTLS_TEST_FULL=1
+        export MBEDTLS_TEST_ABRIDGED=1
+    else
+        export MBEDTLS_TEST_ABRIDGED=0
     fi
 
     # Default commands, can be overridden by the environment
@@ -828,10 +830,10 @@ check_test_full () {
     # Usage: put "check_test_full || return" at the top of every test that should
     # only run when full tests are enabled. Doing this instead of using a
     # supports_xxx function stops the CI from treating this as a not-tested component.
-    if [ -z ${MBEDTLS_TEST_FULL+x} ]; then
+    if [ ${MBEDTLS_TEST_ABRIDGED} = "1" ]; then
         msg "Test SKIPPED for abridged test run"
     fi
-    [ ! -z ${MBEDTLS_TEST_FULL+x} ]
+    [ ${MBEDTLS_TEST_ABRIDGED} != "1" ]
 }
 
 ################################################################

@@ -226,6 +226,12 @@ When PSA Crypto mechanisms are implemented by the built-in code from Mbed TLS, t
 
 The PSA Crypto API may use accelerator drivers. In this case any options controlling the driver behavior are driver-specific.
 
+### Alternative implementations (`MBEDTLS_xxx_ALT` options)
+
+In the Mbed TLS legacy interface, you can replace some cryptographic primitives and modes by an alternative implementation, by enabling configuration options of the form `MBEDTLS_xxx_ALT` and linking with your own implementation of the affected function or module. Alternative implementations remain supported in Mbed TLS 3.x even if the application code uses the PSA API. However, they will be removed from the next version of the library.
+
+The corresponding PSA feature is accelerator drivers. To implement an accelerator driver, see the [PSA cryptoprocessor driver example and guide](https://github.com/Mbed-TLS/mbedtls/blob/development/docs/psa-driver-example-and-guide.md). In an application that uses both the legacy interface and the PSA interface for the same mechanism, only some algorithms support calling a PSA driver from the legacy interface. See the [Guide to driver-only builds](https://github.com/Mbed-TLS/mbedtls/blob/development/docs/driver-only-builds.md) for more information.
+
 ### Self-tests
 
 There is currently [no PSA equivalent to the self-tests](https://github.com/Mbed-TLS/mbedtls/issues/7781) enabled by `MBEDTLS_SELF_TEST`.

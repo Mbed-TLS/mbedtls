@@ -1342,6 +1342,61 @@ typedef void mbedtls_ssl_export_keys_t(void *p_expkey,
  *                  the handshake to be aborted.
  */
 typedef int (*mbedtls_ssl_hs_cb_t)(mbedtls_ssl_context *ssl);
+
+/**
+ * \brief           Callback type: generate and write session ticket
+ *
+ * \note            This describes what a callback implementation should do.
+ *                  This callback should generate an encrypted and
+ *                  authenticated ticket for the session and write it to the
+ *                  output buffer. Here, ticket means the opaque ticket part
+ *                  of the NewSessionTicket structure of RFC 5077.
+ *
+ * \param p_ticket  Context for the callback
+ * \param session   SSL session to be written in the ticket
+ * \param start     Start of the output buffer
+ * \param end       End of the output buffer
+ * \param tlen      On exit, holds the length written
+ * \param lifetime  On exit, holds the lifetime of the ticket in seconds
+ *
+ * \return          0 if successful, or
+ *                  a specific MBEDTLS_ERR_XXX code.
+ */
+typedef int mbedtls_ssl_ticket_write_t(void *p_ticket,
+                                       const mbedtls_ssl_session *session,
+                                       unsigned char *start,
+                                       const unsigned char *end,
+                                       size_t *tlen,
+                                       uint32_t *lifetime);
+
+/**
+ * \brief           Callback type: parse and load session ticket
+ *
+ * \note            This describes what a callback implementation should do.
+ *                  This callback should parse a session ticket as generated
+ *                  by the corresponding mbedtls_ssl_ticket_write_t function,
+ *                  and, if the ticket is authentic and valid, load the
+ *                  session.
+ *
+ * \note            The implementation is allowed to modify the first len
+ *                  bytes of the input buffer, eg to use it as a temporary
+ *                  area for the decrypted ticket contents.
+ *
+ * \param p_ticket  Context for the callback
+ * \param session   SSL session to be loaded
+ * \param buf       Start of the buffer containing the ticket
+ * \param len       Length of the ticket.
+ *
+ * \return          0 if successful, or
+ *                  MBEDTLS_ERR_SSL_INVALID_MAC if not authentic, or
+ *                  MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED if expired, or
+ *                  any other non-zero code for other failures.
+ */
+typedef int mbedtls_ssl_ticket_parse_t(void *p_ticket,
+                                       mbedtls_ssl_session *session,
+                                       unsigned char *buf,
+                                       size_t len);
+
 #endif
 
 /* A type for storing user data in a library structure.
@@ -1480,11 +1535,9 @@ struct mbedtls_ssl_config {
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_SRV_C)
     /** Callback to create & write a session ticket                         */
-    int(*MBEDTLS_PRIVATE(f_ticket_write))(void *, const mbedtls_ssl_session *,
-                                          unsigned char *, const unsigned char *, size_t *,
-                                          uint32_t *);
+    mbedtls_ssl_ticket_write_t *MBEDTLS_PRIVATE(f_ticket_write);
     /** Callback to parse a session ticket into a session structure         */
-    int(*MBEDTLS_PRIVATE(f_ticket_parse))(void *, mbedtls_ssl_session *, unsigned char *, size_t);
+    mbedtls_ssl_ticket_parse_t *MBEDTLS_PRIVATE(f_ticket_parse);
     void *MBEDTLS_PRIVATE(p_ticket);                 /*!< context for the ticket callbacks   */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -2515,60 +2568,6 @@ static inline void mbedtls_ssl_conf_cert_cb(mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_SSL_SRV_C */
 
-/**
- * \brief           Callback type: generate and write session ticket
- *
- * \note            This describes what a callback implementation should do.
- *                  This callback should generate an encrypted and
- *                  authenticated ticket for the session and write it to the
- *                  output buffer. Here, ticket means the opaque ticket part
- *                  of the NewSessionTicket structure of RFC 5077.
- *
- * \param p_ticket  Context for the callback
- * \param session   SSL session to be written in the ticket
- * \param start     Start of the output buffer
- * \param end       End of the output buffer
- * \param tlen      On exit, holds the length written
- * \param lifetime  On exit, holds the lifetime of the ticket in seconds
- *
- * \return          0 if successful, or
- *                  a specific MBEDTLS_ERR_XXX code.
- */
-typedef int mbedtls_ssl_ticket_write_t(void *p_ticket,
-                                       const mbedtls_ssl_session *session,
-                                       unsigned char *start,
-                                       const unsigned char *end,
-                                       size_t *tlen,
-                                       uint32_t *lifetime);
-
-/**
- * \brief           Callback type: parse and load session ticket
- *
- * \note            This describes what a callback implementation should do.
- *                  This callback should parse a session ticket as generated
- *                  by the corresponding mbedtls_ssl_ticket_write_t function,
- *                  and, if the ticket is authentic and valid, load the
- *                  session.
- *
- * \note            The implementation is allowed to modify the first len
- *                  bytes of the input buffer, eg to use it as a temporary
- *                  area for the decrypted ticket contents.
- *
- * \param p_ticket  Context for the callback
- * \param session   SSL session to be loaded
- * \param buf       Start of the buffer containing the ticket
- * \param len       Length of the ticket.
- *
- * \return          0 if successful, or
- *                  MBEDTLS_ERR_SSL_INVALID_MAC if not authentic, or
- *                  MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED if expired, or
- *                  any other non-zero code for other failures.
- */
-typedef int mbedtls_ssl_ticket_parse_t(void *p_ticket,
-                                       mbedtls_ssl_session *session,
-                                       unsigned char *buf,
-                                       size_t len);
-
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_SRV_C)
 /**
  * \brief           Configure SSL session ticket callbacks (server only).
@@ -2583,6 +2582,8 @@ typedef int mbedtls_ssl_ticket_parse_t(void *p_ticket,
  * \param f_ticket_write    Callback for writing a ticket
  * \param f_ticket_parse    Callback for parsing a ticket
  * \param p_ticket          Context shared by the two callbacks
+ *
+ * \note
  */
 void mbedtls_ssl_conf_session_tickets_cb(mbedtls_ssl_config *conf,
                                          mbedtls_ssl_ticket_write_t *f_ticket_write,

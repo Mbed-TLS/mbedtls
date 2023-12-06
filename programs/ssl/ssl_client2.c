@@ -720,21 +720,22 @@ exit:
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 
-#define MBEDTLS_ERR_EARLY_FILE_IO_ERROR -2
+#define MBEDTLS_ERR_FILE_IO_ERROR -2
 
-int ssl_early_data_read_file(const char *path, unsigned char **buffer, size_t *length)
+static int ssl_read_file_text(const char *path,
+                              unsigned char **buffer, size_t *length)
 {
     FILE *f;
     long size;
 
     if ((f = fopen(path, "rb")) == NULL) {
-        return MBEDTLS_ERR_EARLY_FILE_IO_ERROR;
+        return MBEDTLS_ERR_FILE_IO_ERROR;
     }
 
     fseek(f, 0, SEEK_END);
     if ((size = ftell(f)) == -1) {
         fclose(f);
-        return MBEDTLS_ERR_EARLY_FILE_IO_ERROR;
+        return MBEDTLS_ERR_FILE_IO_ERROR;
     }
     fseek(f, 0, SEEK_SET);
 
@@ -747,7 +748,7 @@ int ssl_early_data_read_file(const char *path, unsigned char **buffer, size_t *l
 
     if (fread(*buffer, 1, *length, f) != *length) {
         fclose(f);
-        return MBEDTLS_ERR_EARLY_FILE_IO_ERROR;
+        return MBEDTLS_ERR_FILE_IO_ERROR;
     }
 
     fclose(f);

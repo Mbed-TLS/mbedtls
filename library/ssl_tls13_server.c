@@ -3137,6 +3137,15 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
     mbedtls_ssl_session_set_ticket_flags(
         session, ssl->handshake->tls13_kex_modes);
 #endif
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED &&
+        ssl->conf->max_early_data_size > 0) {
+        mbedtls_ssl_session_set_ticket_flags(
+            session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
+    }
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
     MBEDTLS_SSL_PRINT_TICKET_FLAGS(4, session->ticket_flags);
 
     /* Generate ticket_age_add */
@@ -3242,20 +3251,9 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
     size_t ticket_len;
     uint32_t ticket_lifetime;
     unsigned char *p_extensions_len;
-    size_t output_len;
-
-    ((void) output_len);
 
     *out_len = 0;
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write NewSessionTicket msg"));
-
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED &&
-        ssl->conf->max_early_data_size > 0) {
-        mbedtls_ssl_session_set_ticket_flags(
-            session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
-    }
-#endif /* MBEDTLS_SSL_EARLY_DATA */
 
     /*
      *    ticket_lifetime   4 bytes
@@ -3323,8 +3321,9 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
     p += 2;
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED &&
-        ssl->conf->max_early_data_size > 0) {
+    if (mbedtls_ssl_session_ticket_allow_early_data(session)) {
+        size_t output_len;
+
         if ((ret = mbedtls_ssl_tls13_write_early_data_ext(
                  ssl, 1, p, end, &output_len)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(

@@ -2635,31 +2635,41 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
             ssl->handshake->xxdh_psa_type = psa_get_key_type(&key_attributes);
             ssl->handshake->xxdh_psa_bits = psa_get_key_bits(&key_attributes);
 
-            /* Now export and then re-import the same key with proper flags
-             * and algorithm. We also set key's type and bits that we just got
-             * above. */
-            key_attributes = psa_key_attributes_init();
-            psa_set_key_usage_flags(&key_attributes, PSA_KEY_USAGE_DERIVE);
-            psa_set_key_algorithm(&key_attributes, PSA_ALG_ECDH);
-            psa_set_key_type(&key_attributes,
-                             PSA_KEY_TYPE_ECC_KEY_PAIR(ssl->handshake->xxdh_psa_type));
-            psa_set_key_bits(&key_attributes, ssl->handshake->xxdh_psa_bits);
+            if (pk_type == MBEDTLS_PK_OPAQUE) {
+                /* Opaque key is created by the user (externally from Mbed TLS)
+                 * so we assume it already has the right algorithm and flags
+                 * set. Just copy its ID as reference. */
+                ssl->handshake->xxdh_psa_privkey = pk->priv_id;
+                ssl->handshake->xxdh_psa_privkey_is_external = 1;
+            } else {
+                /* PK_ECKEY[_DH] and PK_ECDSA instead as parsed from the PK
+                 * module and only have ECDSA capabilities. Since we need
+                 * them for ECDH later, we export and then re-import them with
+                 * proper flags and algorithm. Of course We also set key's type
+                 * and bits that we just got above. */
+                key_attributes = psa_key_attributes_init();
+                psa_set_key_usage_flags(&key_attributes, PSA_KEY_USAGE_DERIVE);
+                psa_set_key_algorithm(&key_attributes, PSA_ALG_ECDH);
+                psa_set_key_type(&key_attributes,
+                                 PSA_KEY_TYPE_ECC_KEY_PAIR(ssl->handshake->xxdh_psa_type));
+                psa_set_key_bits(&key_attributes, ssl->handshake->xxdh_psa_bits);
 
-            status = psa_export_key(pk->priv_id, buf, sizeof(buf), &key_len);
-            if (status != PSA_SUCCESS) {
-                ret = PSA_TO_MBEDTLS_ERR(status);
-                goto exit;
-            }
-            status = psa_import_key(&key_attributes, buf, key_len,
-                                    &ssl->handshake->xxdh_psa_privkey);
-            if (status != PSA_SUCCESS) {
-                ret = PSA_TO_MBEDTLS_ERR(status);
-                goto exit;
-            }
+                status = psa_export_key(pk->priv_id, buf, sizeof(buf), &key_len);
+                if (status != PSA_SUCCESS) {
+                    ret = PSA_TO_MBEDTLS_ERR(status);
+                    goto exit;
+                }
+                status = psa_import_key(&key_attributes, buf, key_len,
+                                        &ssl->handshake->xxdh_psa_privkey);
+                if (status != PSA_SUCCESS) {
+                    ret = PSA_TO_MBEDTLS_ERR(status);
+                    goto exit;
+                }
 
-            /* Set this key as owned by the TLS library: it will be its duty
-             * to clear it exit. */
-            ssl->handshake->xxdh_psa_privkey_is_external = 0;
+                /* Set this key as owned by the TLS library: it will be its duty
+                 * to clear it exit. */
+                ssl->handshake->xxdh_psa_privkey_is_external = 0;
+            }
 
             ret = 0;
             break;

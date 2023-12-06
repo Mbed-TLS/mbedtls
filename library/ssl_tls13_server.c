@@ -175,11 +175,11 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     MBEDTLS_SSL_PRINT_TICKET_FLAGS(4, session->ticket_flags);
 
     key_exchanges = 0;
-    if (mbedtls_ssl_session_ticket_allow_psk_ephemeral(session) &&
+    if (mbedtls_ssl_tls13_session_ticket_allow_psk_ephemeral(session) &&
         ssl_tls13_key_exchange_is_psk_ephemeral_available(ssl)) {
         key_exchanges |= MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
     }
-    if (mbedtls_ssl_session_ticket_allow_psk(session) &&
+    if (mbedtls_ssl_tls13_session_ticket_allow_psk(session) &&
         ssl_tls13_key_exchange_is_psk_available(ssl)) {
         key_exchanges |= MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
     }
@@ -1008,7 +1008,7 @@ static int ssl_tls13_ticket_is_kex_mode_permitted(mbedtls_ssl_context *ssl,
 {
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     if (ssl->handshake->resume) {
-        if (!mbedtls_ssl_session_ticket_has_flags(
+        if (!mbedtls_ssl_tls13_session_ticket_has_flags(
                 ssl->session_negotiate, kex_mode)) {
             return 0;
         }
@@ -1845,7 +1845,7 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
 
     }
 
-    if (!mbedtls_ssl_session_ticket_allow_early_data(ssl->session_negotiate)) {
+    if (!mbedtls_ssl_tls13_session_ticket_allow_early_data(ssl->session_negotiate)) {
         MBEDTLS_SSL_DEBUG_MSG(
             1,
             ("EarlyData: rejected, early_data not allowed in ticket "
@@ -3131,17 +3131,17 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
 #endif
 
     /* Set ticket_flags depends on the advertised psk key exchange mode */
-    mbedtls_ssl_session_clear_ticket_flags(
+    mbedtls_ssl_tls13_session_clear_ticket_flags(
         session, MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
-    mbedtls_ssl_session_set_ticket_flags(
+    mbedtls_ssl_tls13_session_set_ticket_flags(
         session, ssl->handshake->tls13_kex_modes);
 #endif
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED &&
         ssl->conf->max_early_data_size > 0) {
-        mbedtls_ssl_session_set_ticket_flags(
+        mbedtls_ssl_tls13_session_set_ticket_flags(
             session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
     }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
@@ -3321,7 +3321,7 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
     p += 2;
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (mbedtls_ssl_session_ticket_allow_early_data(session)) {
+    if (mbedtls_ssl_tls13_session_ticket_allow_early_data(session)) {
         size_t output_len;
 
         if ((ret = mbedtls_ssl_tls13_write_early_data_ext(

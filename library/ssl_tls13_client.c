@@ -685,7 +685,7 @@ static int ssl_tls13_has_configured_ticket(mbedtls_ssl_context *ssl)
     return ssl->handshake->resume &&
            session != NULL && session->ticket != NULL &&
            mbedtls_ssl_conf_tls13_is_kex_mode_enabled(
-        ssl, mbedtls_ssl_session_get_ticket_flags(
+        ssl, mbedtls_ssl_tls13_session_get_ticket_flags(
             session, MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL));
 }
 
@@ -695,7 +695,7 @@ static int ssl_tls13_early_data_has_valid_ticket(mbedtls_ssl_context *ssl)
     mbedtls_ssl_session *session = ssl->session_negotiate;
     return ssl->handshake->resume &&
            session->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 &&
-           mbedtls_ssl_session_ticket_allow_early_data(session) &&
+           mbedtls_ssl_tls13_session_ticket_allow_early_data(session) &&
            mbedtls_ssl_tls13_cipher_suite_is_offered(ssl, session->ciphersuite);
 }
 #endif
@@ -2685,7 +2685,7 @@ static int ssl_tls13_parse_new_session_ticket_early_data_ext(
     MBEDTLS_SSL_CHK_BUF_READ_PTR(buf, end, 4);
 
     session->max_early_data_size = MBEDTLS_GET_UINT32_BE(buf, 0);
-    mbedtls_ssl_session_set_ticket_flags(
+    mbedtls_ssl_tls13_session_set_ticket_flags(
         session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
     MBEDTLS_SSL_DEBUG_MSG(
         3, ("received max_early_data_size: %u",
@@ -2836,7 +2836,7 @@ static int ssl_tls13_parse_new_session_ticket(mbedtls_ssl_context *ssl,
     session->ticket_len = ticket_len;
 
     /* Clear all flags in ticket_flags */
-    mbedtls_ssl_session_clear_ticket_flags(
+    mbedtls_ssl_tls13_session_clear_ticket_flags(
         session, MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, 2);
@@ -2923,7 +2923,7 @@ static int ssl_tls13_postprocess_new_session_ticket(mbedtls_ssl_context *ssl,
                           session->resumption_key_len);
 
     /* Set ticket_flags depends on the selected key exchange modes */
-    mbedtls_ssl_session_set_ticket_flags(
+    mbedtls_ssl_tls13_session_set_ticket_flags(
         session, ssl->conf->tls13_kex_modes);
     MBEDTLS_SSL_PRINT_TICKET_FLAGS(4, session->ticket_flags);
 

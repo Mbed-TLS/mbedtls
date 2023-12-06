@@ -2769,7 +2769,7 @@ int mbedtls_ssl_session_set_hostname(mbedtls_ssl_session *session,
 
 #define MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME (604800)
 
-static inline unsigned int mbedtls_ssl_session_get_ticket_flags(
+static inline unsigned int mbedtls_ssl_tls13_session_get_ticket_flags(
     mbedtls_ssl_session *session, unsigned int flags)
 {
     return session->ticket_flags &
@@ -2782,40 +2782,40 @@ static inline unsigned int mbedtls_ssl_session_get_ticket_flags(
  * `MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK` to get all
  * permitted flags.
  */
-static inline int mbedtls_ssl_session_ticket_has_flags(
+static inline int mbedtls_ssl_tls13_session_ticket_has_flags(
     mbedtls_ssl_session *session, unsigned int flags)
 {
-    return mbedtls_ssl_session_get_ticket_flags(session, flags) != 0;
+    return mbedtls_ssl_tls13_session_get_ticket_flags(session, flags) != 0;
 }
 
-static inline int mbedtls_ssl_session_ticket_allow_psk(
+static inline int mbedtls_ssl_tls13_session_ticket_allow_psk(
     mbedtls_ssl_session *session)
 {
-    return mbedtls_ssl_session_ticket_has_flags(session,
-                                                MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_RESUMPTION);
+    return mbedtls_ssl_tls13_session_ticket_has_flags(
+        session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_RESUMPTION);
 }
 
-static inline int mbedtls_ssl_session_ticket_allow_psk_ephemeral(
+static inline int mbedtls_ssl_tls13_session_ticket_allow_psk_ephemeral(
     mbedtls_ssl_session *session)
 {
-    return mbedtls_ssl_session_ticket_has_flags(session,
-                                                MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_EPHEMERAL_RESUMPTION);
+    return mbedtls_ssl_tls13_session_ticket_has_flags(
+        session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_EPHEMERAL_RESUMPTION);
 }
 
-static inline unsigned int mbedtls_ssl_session_ticket_allow_early_data(
+static inline unsigned int mbedtls_ssl_tls13_session_ticket_allow_early_data(
     mbedtls_ssl_session *session)
 {
-    return !mbedtls_ssl_session_check_ticket_flags(session,
-                                                   MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
+    return mbedtls_ssl_tls13_session_ticket_has_flags(
+        session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
 }
 
-static inline void mbedtls_ssl_session_set_ticket_flags(
+static inline void mbedtls_ssl_tls13_session_set_ticket_flags(
     mbedtls_ssl_session *session, unsigned int flags)
 {
     session->ticket_flags |= (flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
 }
 
-static inline void mbedtls_ssl_session_clear_ticket_flags(
+static inline void mbedtls_ssl_tls13_session_clear_ticket_flags(
     mbedtls_ssl_session *session, unsigned int flags)
 {
     session->ticket_flags &= ~(flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);

@@ -9685,6 +9685,9 @@ void generate_key_rsa(int bits_arg,
     }
 
     /* Test the key information */
+#if (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) && \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
     PSA_ASSERT(psa_get_key_attributes(key, &attributes));
     TEST_EQUAL(psa_get_key_type(&attributes), type);
     TEST_EQUAL(psa_get_key_bits(&attributes), bits);
@@ -9696,6 +9699,10 @@ void generate_key_rsa(int bits_arg,
     } else {
         TEST_MEMORY_COMPARE(e_read_buffer, e_read_length, e_arg->x, e_arg->len);
     }
+#else
+    (void) e_read_length;
+    (void) is_default_public_exponent;
+#endif
 
     /* Do something with the key according to its type and permitted usage. */
     if (!mbedtls_test_psa_exercise_key(key, usage, alg)) {

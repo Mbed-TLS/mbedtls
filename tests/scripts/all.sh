@@ -3434,6 +3434,81 @@ component_test_psa_crypto_config_accel_rsa_signature () {
     make test
 }
 
+config_psa_crypto_accel_rsa () {
+    driver_only=$1
+
+    # Start from crypto_full config (no X.509, no TLS)
+    helper_libtestdriver1_adjust_config "crypto_full"
+
+    if [ "$driver_only" -eq 1 ]; then
+        # Remove RSA support and its dependencies
+        scripts/config.py unset MBEDTLS_RSA_C
+        scripts/config.py unset MBEDTLS_PKCS1_V15
+        scripts/config.py unset MBEDTLS_PKCS1_V21
+
+        # We need PEM parsing in the test library as well to support the import
+        # of PEM encoded RSA keys.
+        scripts/config.py -f "$CONFIG_TEST_DRIVER_H" set MBEDTLS_PEM_PARSE_C
+        scripts/config.py -f "$CONFIG_TEST_DRIVER_H" set MBEDTLS_BASE64_C
+    fi
+}
+
+component_test_psa_crypto_config_accel_rsa_crypto () {
+    msg "build: crypto_full with accelerated RSA"
+
+    loc_accel_list="ALG_RSA_OAEP ALG_RSA_PSS \
+                    ALG_RSA_PKCS1V15_CRYPT ALG_RSA_PKCS1V15_SIGN \
+                    KEY_TYPE_RSA_PUBLIC_KEY \
+                    KEY_TYPE_RSA_KEY_PAIR_BASIC \
+                    KEY_TYPE_RSA_KEY_PAIR_GENERATE \
+                    KEY_TYPE_RSA_KEY_PAIR_IMPORT \
+                    KEY_TYPE_RSA_KEY_PAIR_EXPORT"
+
+    # Configure
+    # ---------
+
+    config_psa_crypto_accel_rsa 1
+
+    # Build
+    # -----
+
+    # These hashes are needed for unit tests.
+    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512 ALG_MD5"
+    helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
+
+    helper_libtestdriver1_make_main "$loc_accel_list"
+
+    # Make sure this was not re-enabled by accident (additive config)
+    not grep mbedtls_rsa_rsassa_pkcs1_v15_sign library/rsa.o
+    not grep mbedtls_rsa_rsassa_pss_sign_ext library/rsa.o
+    not grep mbedtls_rsa_rsaes_pkcs1_v15_encrypt library/rsa.o
+    not grep mbedtls_rsa_rsaes_oaep_encrypt library/rsa.o
+
+    # Run the tests
+    # -------------
+
+    msg "test: crypto_full with accelerated RSA"
+    make test
+}
+
+component_test_psa_crypto_config_reference_rsa_crypto () {
+    msg "build: crypto_full with non-accelerated RSA"
+
+    # Configure
+    # ---------
+    config_psa_crypto_accel_rsa 0
+
+    # Build
+    # -----
+    make
+
+    # Run the tests
+    # -------------
+    msg "test: crypto_full with non-accelerated RSA"
+    make test
+}
+
 # This is a temporary test to verify that full RSA support is present even when
 # only one single new symbols (PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC) is defined.
 component_test_new_psa_want_key_pair_symbol() {

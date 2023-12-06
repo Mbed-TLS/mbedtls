@@ -718,47 +718,6 @@ exit:
     return ret;
 }
 
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-
-#define MBEDTLS_ERR_FILE_IO_ERROR -2
-
-static int ssl_read_file_text(const char *path,
-                              unsigned char **buffer, size_t *length)
-{
-    FILE *f;
-    long size;
-
-    if ((f = fopen(path, "rb")) == NULL) {
-        return MBEDTLS_ERR_FILE_IO_ERROR;
-    }
-
-    fseek(f, 0, SEEK_END);
-    if ((size = ftell(f)) == -1) {
-        fclose(f);
-        return MBEDTLS_ERR_FILE_IO_ERROR;
-    }
-    fseek(f, 0, SEEK_SET);
-
-    *length = (size_t) size;
-    if (*length + 1 == 0 ||
-        (*buffer = mbedtls_calloc(1, *length + 1)) == NULL) {
-        fclose(f);
-        return MBEDTLS_ERR_SSL_ALLOC_FAILED;
-    }
-
-    if (fread(*buffer, 1, *length, f) != *length) {
-        fclose(f);
-        return MBEDTLS_ERR_FILE_IO_ERROR;
-    }
-
-    fclose(f);
-
-    (*buffer)[*length] = '\0';
-
-    return 0;
-}
-#endif /* MBEDTLS_SSL_EARLY_DATA */
-
 int main(int argc, char *argv[])
 {
     int ret = 0, len, tail_len, i, written, frags, retry_left;
@@ -783,10 +742,6 @@ int main(int argc, char *argv[])
     size_t cid_len = 0;
     size_t cid_renego_len = 0;
 #endif
-
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-    unsigned char *early_data = NULL;
-#endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_SSL_ALPN)
     const char *alpn_list[ALPN_LIST_SIZE];
@@ -2011,11 +1966,18 @@ usage:
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     int early_data_enabled = MBEDTLS_SSL_EARLY_DATA_DISABLED;
-    size_t early_data_len;
-    if (strlen(opt.early_data_file) > 0 &&
-        ssl_read_file_text(opt.early_data_file,
-                           &early_data, &early_data_len) == 0) {
-        early_data_enabled = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+    FILE *early_data_fp = NULL;
+    size_t early_data_len = 0;
+    if (strlen(opt.early_data_file) > 0) {
+        if ((early_data_fp = fopen(opt.early_data_file, "rb")) == NULL) {
+            mbedtls_printf("failed\n  ! Cannot open '%s' for reading.\n",
+                           opt.early_data_file);
+            goto exit;
+        }
+        early_data_len = fread(buf, 1, sizeof(buf), early_data_fp);
+        if (early_data_len > 0) {
+            early_data_enabled = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+        }
     }
     mbedtls_ssl_conf_early_data(&conf, early_data_enabled);
 #endif /* MBEDTLS_SSL_EARLY_DATA */
@@ -3076,10 +3038,9 @@ exit:
     mbedtls_ssl_session_free(&saved_session);
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (early_data != NULL) {
-        mbedtls_platform_zeroize(early_data, early_data_len);
+    if (early_data_fp != NULL) {
+        fclose(early_data_fp);
     }
-    mbedtls_free(early_data);
 #endif
 
     if (session_data != NULL) {

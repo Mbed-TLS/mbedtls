@@ -544,8 +544,8 @@ struct options {
     int reproducible;           /* make communication reproducible          */
     int skip_close_notify;      /* skip sending the close_notify alert      */
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    const char *early_data_file; /* the path of the file containing the
-                                  * early data to send                      */
+    const char *early_data;     /* the path of the file containing the
+                                 * early data to send                       */
 #endif
     int query_config_mode;      /* whether to read config                   */
     int use_srtp;               /* Support SRTP                             */
@@ -914,7 +914,7 @@ int main(int argc, char *argv[])
     opt.groups              = DFL_GROUPS;
     opt.sig_algs            = DFL_SIG_ALGS;
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    opt.early_data_file     = DFL_EARLY_DATA_FILE;
+    opt.early_data          = DFL_EARLY_DATA_FILE;
 #endif
     opt.transport           = DFL_TRANSPORT;
     opt.hs_to_min           = DFL_HS_TO_MIN;
@@ -1198,7 +1198,7 @@ usage:
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #if defined(MBEDTLS_SSL_EARLY_DATA)
         else if (strcmp(p, "early_data") == 0) {
-            opt.early_data_file = q;
+            opt.early_data = q;
         }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
@@ -1968,10 +1968,10 @@ usage:
     int early_data_enabled = MBEDTLS_SSL_EARLY_DATA_DISABLED;
     FILE *early_data_fp = NULL;
     size_t early_data_len = 0;
-    if (strlen(opt.early_data_file) > 0) {
-        if ((early_data_fp = fopen(opt.early_data_file, "rb")) == NULL) {
+    if (strlen(opt.early_data) > 0) {
+        if ((early_data_fp = fopen(opt.early_data, "rb")) == NULL) {
             mbedtls_printf("failed\n  ! Cannot open '%s' for reading.\n",
-                           opt.early_data_file);
+                           opt.early_data);
             goto exit;
         }
         early_data_len = fread(buf, 1, sizeof(buf), early_data_fp);

@@ -2893,6 +2893,20 @@ static int ssl_tls13_end_of_early_data_coordinate(mbedtls_ssl_context *ssl)
 
     if (ssl->in_msgtype == MBEDTLS_SSL_MSG_APPLICATION_DATA) {
         MBEDTLS_SSL_DEBUG_MSG(3, ("Received early data"));
+        /* RFC 8446 section 4.6.1
+         *
+         * A server receiving more than max_early_data_size bytes of 0-RTT data
+         * SHOULD terminate the connection with an "unexpected_message" alert.
+         *
+         * TODO: Add received data size check here.
+         *
+         * suggestion:
+         * ```
+         * if(ssl->in_offt == NULL) early_data_size += ssl->in_msglen;
+         * if(early_data_size > max_early_data_size) { send alert and return;}
+         * ```
+         *
+         */
         return SSL_GOT_EARLY_DATA;
     }
 
@@ -2937,14 +2951,6 @@ static int ssl_tls13_process_early_application_data(mbedtls_ssl_context *ssl)
      */
     ssl->in_msg[ssl->in_msglen] = 0;
     MBEDTLS_SSL_DEBUG_MSG(3, ("\n%s", ssl->in_msg));
-
-    /* RFC 8446 section 4.6.1
-     *
-     * A server receiving more than max_early_data_size bytes of 0-RTT data
-     * SHOULD terminate the connection with an "unexpected_message" alert.
-     *
-     * TODO: Add received data size check here.
-     */
 
     return 0;
 }

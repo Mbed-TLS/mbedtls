@@ -46,8 +46,7 @@ psa_status_t mbedtls_test_transparent_asymmetric_encrypt(
         return mbedtls_test_driver_asymmetric_encryption_hooks.forced_status;
     }
 
-#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
-    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_CIPHER)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
     return libtestdriver1_mbedtls_psa_asymmetric_encrypt(
         (const libtestdriver1_psa_key_attributes_t *) attributes,
         key_buffer, key_buffer_size,
@@ -88,8 +87,7 @@ psa_status_t mbedtls_test_transparent_asymmetric_decrypt(
         return mbedtls_test_driver_asymmetric_encryption_hooks.forced_status;
     }
 
-#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
-    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_CIPHER)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
     return libtestdriver1_mbedtls_psa_asymmetric_decrypt(
         (const libtestdriver1_psa_key_attributes_t *) attributes,
         key_buffer, key_buffer_size,

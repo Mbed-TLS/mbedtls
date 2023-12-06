@@ -7714,6 +7714,11 @@ psa_status_t psa_crypto_init(void)
     }
     global_data.drivers_initialized = 1;
 
+    status = psa_initialize_key_slots();
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
     /* Initialize and seed the random generator. */
     mbedtls_psa_random_init(&global_data.rng);
     global_data.rng_state = RNG_INITIALIZED;
@@ -7722,11 +7727,6 @@ psa_status_t psa_crypto_init(void)
         goto exit;
     }
     global_data.rng_state = RNG_SEEDED;
-
-    status = psa_initialize_key_slots();
-    if (status != PSA_SUCCESS) {
-        goto exit;
-    }
 
 #if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)
     status = psa_crypto_load_transaction();

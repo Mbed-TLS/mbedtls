@@ -392,4 +392,27 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
 #define MD_OR_USE_PSA_DONE() ((void) 0)
 #endif
 
+/** \def AES_PSA_INIT
+ *
+ * Call this macro to initialize the PSA subsystem if AES_C is not defined,
+ * so that CTR_DRBG uses PSA implementation to get AES-ECB.
+ *
+ * If the initialization fails, mark the test case as failed and jump to the
+ * \p exit label.
+ */
+/** \def AES_PSA_DONE
+ *
+ * Call this macro at the end of a test case if you called #AES_PSA_INIT.
+ *
+ * This is like #PSA_DONE except it does nothing under the same conditions as
+ * #AES_PSA_INIT.
+ */
+#if defined(MBEDTLS_AES_C)
+#define AES_PSA_INIT() ((void) 0)
+#define AES_PSA_DONE() ((void) 0)
+#else /* MBEDTLS_AES_C */
+#define AES_PSA_INIT()   PSA_INIT()
+#define AES_PSA_DONE()   PSA_DONE()
+#endif /* MBEDTLS_AES_C */
+
 #endif /* PSA_CRYPTO_HELPERS_H */

@@ -3729,7 +3729,6 @@ common_psa_crypto_config_accel_cipher_aead() {
     scripts/config.py unset MBEDTLS_PKCS5_C
     scripts/config.py unset MBEDTLS_PKCS12_C
 
-    scripts/config.py unset MBEDTLS_CTR_DRBG_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
 }
 

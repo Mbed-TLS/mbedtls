@@ -2607,6 +2607,13 @@
  * The CTR_DRBG generator uses AES-256 by default.
  * To use AES-128 instead, enable \c MBEDTLS_CTR_DRBG_USE_128_BIT_KEY above.
  *
+ * AES support can either be achived through builtin (MBEDTLS_AES_C) or PSA.
+ * Builtin is the default option when MBEDTLS_AES_C is defined otherwise PSA
+ * is used.
+ *
+ * \warning When using PSA, the user should call `psa_crypto_init()` before
+ *          using any CTR_DRBG operation (except `mbedtls_ctr_drbg_init()`).
+ *
  * \note AES-128 will be used if \c MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH is set.
  *
  * \note To achieve a 256-bit security strength with CTR_DRBG,
@@ -2616,7 +2623,9 @@
  * Module:  library/ctr_drbg.c
  * Caller:
  *
- * Requires: MBEDTLS_AES_C
+ * Requires: MBEDTLS_AES_C or
+ *           (PSA_WANT_KEY_TYPE_AES and PSA_WANT_ALG_ECB_NO_PADDING and
+ *            MBEDTLS_PSA_CRYPTO_C)
  *
  * This module provides the CTR_DRBG AES random number generator.
  */
@@ -3155,8 +3164,7 @@
  *
  * Module:  library/psa_crypto.c
  *
- * Requires: MBEDTLS_CIPHER_C,
- *           either MBEDTLS_CTR_DRBG_C and MBEDTLS_ENTROPY_C,
+ * Requires: either MBEDTLS_CTR_DRBG_C and MBEDTLS_ENTROPY_C,
  *           or MBEDTLS_HMAC_DRBG_C and MBEDTLS_ENTROPY_C,
  *           or MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG.
  *

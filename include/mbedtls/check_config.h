@@ -153,7 +153,9 @@
 #endif /* not all curves accelerated */
 #endif /* some curve accelerated */
 
-#if defined(MBEDTLS_CTR_DRBG_C) && !defined(MBEDTLS_AES_C)
+#if defined(MBEDTLS_CTR_DRBG_C) && !(defined(MBEDTLS_AES_C) || \
+    (defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_KEY_TYPE_AES) && \
+    defined(PSA_WANT_ALG_ECB_NO_PADDING)))
 #error "MBEDTLS_CTR_DRBG_C defined, but not all prerequisites"
 #endif
 

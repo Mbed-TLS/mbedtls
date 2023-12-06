@@ -6076,9 +6076,10 @@ static psa_status_t psa_key_derivation_set_maximum_capacity(
 #if defined(PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128)
     if (kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
 #if (SIZE_MAX > UINT32_MAX)
-        operation->capacity = UINT32_MAX * PSA_MAC_LENGTH(PSA_KEY_TYPE_AES,
-                                                          128U,
-                                                          PSA_ALG_CMAC);
+        operation->capacity = UINT32_MAX * (size_t)PSA_MAC_LENGTH(
+            PSA_KEY_TYPE_AES,
+            128U,
+            PSA_ALG_CMAC);
 #else
         operation->capacity = SIZE_MAX;
 #endif
@@ -6090,6 +6091,9 @@ static psa_status_t psa_key_derivation_set_maximum_capacity(
      * invalid or meaningless but it does not affect this function */
     psa_algorithm_t hash_alg = PSA_ALG_GET_HASH(kdf_alg);
     size_t hash_size = PSA_HASH_LENGTH(hash_alg);
+    if (hash_size == 0) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
 
     /* Make sure that hash_alg is a supported hash algorithm. Otherwise
      * we might fail later, which is somewhat unfriendly and potentially
@@ -6138,6 +6142,7 @@ static psa_status_t psa_key_derivation_set_maximum_capacity(
     } else
 #endif /* PSA_WANT_ALG_PBKDF2_HMAC */
     {
+        (void) hash_size;
         status = PSA_ERROR_NOT_SUPPORTED;
     }
     return status;

@@ -348,8 +348,8 @@ int main(void)
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 #define USAGE_EARLY_DATA \
     "    early_data=%%s      The file path to read early data from\n" \
-    "                         default: \"\" (do nothing)\n"                    \
-    "                         option: a file path\n"
+    "                        default: \"\" (do nothing)\n"            \
+    "                        option: a file path\n"
 #else
 #define USAGE_EARLY_DATA ""
 #endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_PROTO_TLS1_3 */
@@ -544,7 +544,8 @@ struct options {
     int reproducible;           /* make communication reproducible          */
     int skip_close_notify;      /* skip sending the close_notify alert      */
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    const char *early_data_file; /* the file path of early data             */
+    const char *early_data_file; /* the path of the file containing the
+                                  * early data to send                      */
 #endif
     int query_config_mode;      /* whether to read config                   */
     int use_srtp;               /* Support SRTP                             */

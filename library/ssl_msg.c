@@ -5865,6 +5865,55 @@ int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len)
     return ret;
 }
 
+
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_EARLY_DATA)
+int mbedtls_ssl_read_early_data(mbedtls_ssl_context *ssl,
+                                unsigned char *buf, size_t len)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    const struct mbedtls_ssl_config *conf;
+    unsigned char *p = buf;
+
+    if (ssl == NULL || ((conf = ssl->conf) == NULL)) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    if ((!mbedtls_ssl_conf_is_tls13_enabled(conf)) ||
+        (conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) ||
+        (conf->early_data_enabled != MBEDTLS_SSL_EARLY_DATA_ENABLED)) {
+        return MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA;
+    }
+
+    if (ssl->tls_version != MBEDTLS_SSL_VERSION_TLS1_3) {
+        return MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA;
+    }
+
+    if ((ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN) &&
+        (ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED)) {
+        return MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA;
+    }
+
+    ret = mbedtls_ssl_handshake(ssl);
+    if (ret == MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA) {
+        if (ssl->in_offt == NULL) {
+            /* Set the reading pointer */
+            ssl->in_offt = ssl->in_msg;
+        }
+        ret = ssl_read_application_data(ssl, p, len);
+    } else if (ret == 0) {
+        /*
+         * If the handshake is completed, return immediately that early data
+         * cannot be read anymore. This potentially saves another call to this
+         * API and when the function returns 0, it only means that zero byte
+         * of early data has been received.
+         */
+        return MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA;
+    }
+
+    return ret;
+}
+#endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_EARLY_DATA */
+
 /*
  * Send application data to be encrypted by the SSL layer, taking care of max
  * fragment length and buffer size.

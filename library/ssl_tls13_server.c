@@ -2943,29 +2943,6 @@ static int ssl_tls13_parse_end_of_early_data(mbedtls_ssl_context *ssl,
     return 0;
 }
 
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_process_early_application_data(mbedtls_ssl_context *ssl)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-    if ((ret = mbedtls_ssl_read_record(ssl, 0)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_read_record", ret);
-        return ret;
-    }
-
-    /*
-     * Output early data
-     *
-     * For the time being, we print received data via debug message.
-     *
-     * TODO: Remove it when `mbedtls_ssl_read_early_data` is ready.
-     */
-    ssl->in_msg[ssl->in_msglen] = 0;
-    MBEDTLS_SSL_DEBUG_MSG(3, ("\n%s", ssl->in_msg));
-
-    return 0;
-}
-
 /*
  * RFC 8446 section A.2
  *
@@ -3039,7 +3016,8 @@ static int ssl_tls13_process_end_of_early_data(mbedtls_ssl_context *ssl)
         ssl_tls13_prepare_for_handshake_second_flight(ssl);
 
     } else if (ret == SSL_GOT_EARLY_DATA) {
-        MBEDTLS_SSL_PROC_CHK(ssl_tls13_process_early_application_data(ssl));
+        ret = MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA;
+        goto cleanup;
     } else {
         MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
         ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;

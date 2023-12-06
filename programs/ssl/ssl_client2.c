@@ -2010,14 +2010,12 @@ usage:
     }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    int early_data_enabled = 0;
+    int early_data_enabled = MBEDTLS_SSL_EARLY_DATA_DISABLED;
     size_t early_data_len;
     if (strlen(opt.early_data_file) > 0 &&
-        ssl_early_data_read_file(opt.early_data_file,
-                                 &early_data, &early_data_len) == 0) {
+        ssl_read_file_text(opt.early_data_file,
+                           &early_data, &early_data_len) == 0) {
         early_data_enabled = MBEDTLS_SSL_EARLY_DATA_ENABLED;
-    } else {
-        early_data_enabled = MBEDTLS_SSL_EARLY_DATA_DISABLED;
     }
     mbedtls_ssl_conf_early_data(&conf, early_data_enabled);
 #endif /* MBEDTLS_SSL_EARLY_DATA */

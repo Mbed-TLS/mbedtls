@@ -1057,16 +1057,16 @@ int main(int argc, char *argv[])
         for (i = 0; (size_t) i < sizeof(dhm_sizes) / sizeof(dhm_sizes[0]); i++) {
             mbedtls_dhm_init(&dhm);
 
-            if (mbedtls_mpi_read_binary(&dhm.P, dhm_P[i],
+            if (mbedtls_mpi_read_binary(&dhm.MBEDTLS_PRIVATE(P), dhm_P[i],
                                         dhm_P_size[i]) != 0 ||
-                mbedtls_mpi_read_binary(&dhm.G, dhm_G[i],
+                mbedtls_mpi_read_binary(&dhm.MBEDTLS_PRIVATE(G), dhm_G[i],
                                         dhm_G_size[i]) != 0) {
                 mbedtls_exit(1);
             }
 
-            n = mbedtls_mpi_size(&dhm.P);
+            n = mbedtls_mpi_size(&dhm.MBEDTLS_PRIVATE(P));
             mbedtls_dhm_make_public(&dhm, (int) n, buf, n, myrand, NULL);
-            if (mbedtls_mpi_copy(&dhm.GY, &dhm.GX) != 0) {
+            if (mbedtls_mpi_copy(&dhm.MBEDTLS_PRIVATE(GY), &dhm.MBEDTLS_PRIVATE(GX)) != 0) {
                 mbedtls_exit(1);
             }
 

@@ -1967,17 +1967,13 @@ usage:
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     int early_data_enabled = MBEDTLS_SSL_EARLY_DATA_DISABLED;
     FILE *early_data_fp = NULL;
-    size_t early_data_len = 0;
     if (strlen(opt.early_data) > 0) {
         if ((early_data_fp = fopen(opt.early_data, "rb")) == NULL) {
             mbedtls_printf("failed\n  ! Cannot open '%s' for reading.\n",
                            opt.early_data);
             goto exit;
         }
-        early_data_len = fread(buf, 1, sizeof(buf), early_data_fp);
-        if (early_data_len > 0) {
-            early_data_enabled = MBEDTLS_SSL_EARLY_DATA_ENABLED;
-        }
+        early_data_enabled = MBEDTLS_SSL_EARLY_DATA_ENABLED;
     }
     mbedtls_ssl_conf_early_data(&conf, early_data_enabled);
 #endif /* MBEDTLS_SSL_EARLY_DATA */

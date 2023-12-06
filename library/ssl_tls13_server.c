@@ -2861,6 +2861,50 @@ static int ssl_tls13_write_server_finished(mbedtls_ssl_context *ssl)
 }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
+
+int mbedtls_ssl_read_early_data(mbedtls_ssl_context *ssl,
+                                unsigned char *buf, size_t len)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char *p = buf;
+
+    if (buf == NULL || len == 0) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("EarlyData has been rejected."));
+        return MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA;
+    }
+
+    if (mbedtls_ssl_is_handshake_over(ssl) == 1) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("handshake is over"));
+        return MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA;
+    }
+
+    ret = mbedtls_ssl_handshake(ssl);
+    if (ret == MBEDTLS_ERR_SSL_HAS_EARLY_DATA) {
+
+        MBEDTLS_SSL_ASSERT(ssl->in_offt != NULL);
+
+        ret = mbedtls_ssl_read_inmsg(ssl, p, len);
+        p += ret;
+
+#if defined(MBEDTLS_DEBUG_C)
+        if (ssl->in_msglen > 0) {
+            MBEDTLS_SSL_ASSERT(ssl->in_offt != NULL);
+            MBEDTLS_SSL_ASSERT(ssl->keep_current_message == 1);
+        } else {
+            MBEDTLS_SSL_ASSERT(ssl->in_offt == NULL);
+            MBEDTLS_SSL_ASSERT(ssl->keep_current_message == 0);
+        }
+#endif
+        return (int) (p - buf);
+    }
+
+    return ret;
+}
+
 /*
  * Handler for MBEDTLS_SSL_END_OF_EARLY_DATA
  */
@@ -2942,17 +2986,14 @@ static int ssl_tls13_process_early_application_data(mbedtls_ssl_context *ssl)
         return ret;
     }
 
-    /*
-     * Output early data
-     *
-     * For the time being, we print received data via debug message.
-     *
-     * TODO: Remove it when `mbedtls_ssl_read_early_data` is ready.
-     */
-    ssl->in_msg[ssl->in_msglen] = 0;
-    MBEDTLS_SSL_DEBUG_MSG(3, ("\n%s", ssl->in_msg));
+    /* reserve current message for reading. */
+    ssl->keep_current_message = 1;
+    if (ssl->in_offt == NULL) {
+        /* Set the reading pointer */
+        ssl->in_offt = ssl->in_msg;
+    }
 
-    return 0;
+    return MBEDTLS_ERR_SSL_HAS_EARLY_DATA;
 }
 
 /*

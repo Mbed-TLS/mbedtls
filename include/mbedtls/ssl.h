@@ -90,8 +90,10 @@
 #define MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET       -0x7B00
 /** Not possible to read early data */
 #define MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA            -0x7B80
+/** Has early data to be read. */
+#define MBEDTLS_ERR_SSL_HAS_EARLY_DATA                    -0x7C00
 /** Not possible to write early data */
-#define MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA           -0x7C00
+#define MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA           -0x7C80
 /* Error space gap */
 /* Error space gap */
 /* Error space gap */

@@ -90,8 +90,17 @@
 #define MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET       -0x7B00
 /** Not possible to read early data */
 #define MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA            -0x7B80
+/**
+ * Early data has been received as part of an on-going handshake.
+ * This error code can be returned only on server side. This error code can be
+ * returned by mbedtls_ssl_handshake(), mbedtls_ssl_handshake_step(),
+ * mbedtls_ssl_read() and mbedtls_ssl_write() if early data has been received
+ * as part of the handshake sequence they triggered. To read the early
+ * data, call mbedtls_ssl_read_early_data().
+ */
+#define MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA               -0x7C00
 /** Not possible to write early data */
-#define MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA           -0x7C00
+#define MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA           -0x7C80
 /* Error space gap */
 /* Error space gap */
 /* Error space gap */
@@ -4749,6 +4758,11 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  * \return         #MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED if DTLS is in use
  *                 and the client did not demonstrate reachability yet - in
  *                 this case you must stop using the context (see below).
+ * \return         #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA if early data, as
+ *                 defined in RFC 8446 (TLS 1.3 specification), has been
+ *                 received as part of the handshake. This is server specific.
+ *                 You must call mbedtls_ssl_read_early_data() to read the
+ *                 early data before to resume the handshake.
  * \return         Another SSL error code - in this case you must stop using
  *                 the context (see below).
  *
@@ -4757,7 +4771,8 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                 #MBEDTLS_ERR_SSL_WANT_READ,
  *                 #MBEDTLS_ERR_SSL_WANT_WRITE,
  *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS or
- *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS,
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA,
  *                 you must stop using the SSL context for reading or writing,
  *                 and either free it or call \c mbedtls_ssl_session_reset()
  *                 on it before re-using it for a new connection; the current
@@ -4826,8 +4841,9 @@ static inline int mbedtls_ssl_is_handshake_over(mbedtls_ssl_context *ssl)
  *
  * \warning        If this function returns something other than \c 0,
  *                 #MBEDTLS_ERR_SSL_WANT_READ, #MBEDTLS_ERR_SSL_WANT_WRITE,
- *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS or
- *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS, you must stop using
+ *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS,
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA, you must stop using
  *                 the SSL context for reading or writing, and either free it
  *                 or call \c mbedtls_ssl_session_reset() on it before
  *                 re-using it for a new connection; the current connection
@@ -4895,6 +4911,12 @@ int mbedtls_ssl_renegotiate(mbedtls_ssl_context *ssl);
  * \return         #MBEDTLS_ERR_SSL_CLIENT_RECONNECT if we're at the server
  *                 side of a DTLS connection and the client is initiating a
  *                 new connection using the same source port. See below.
+ * \return         #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA if early data, as
+ *                 defined in RFC 8446 (TLS 1.3 specification), has been
+ *                 received as part of an handshake triggered by the function.
+ *                 This is server specific. You must call
+ *                 mbedtls_ssl_read_early_data() to read the early data before
+ *                 to resume the reading of post handshake application data.
  * \return         Another SSL error code - in this case you must stop using
  *                 the context (see below).
  *
@@ -4903,8 +4925,9 @@ int mbedtls_ssl_renegotiate(mbedtls_ssl_context *ssl);
  *                 #MBEDTLS_ERR_SSL_WANT_READ,
  *                 #MBEDTLS_ERR_SSL_WANT_WRITE,
  *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS,
- *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS or
- *                 #MBEDTLS_ERR_SSL_CLIENT_RECONNECT,
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS,
+ *                 #MBEDTLS_ERR_SSL_CLIENT_RECONNECT or
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA,
  *                 you must stop using the SSL context for reading or writing,
  *                 and either free it or call \c mbedtls_ssl_session_reset()
  *                 on it before re-using it for a new connection; the current
@@ -4969,6 +4992,12 @@ int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len);
  *                 operation is in progress (see mbedtls_ecp_set_max_ops()) -
  *                 in this case you must call this function again to complete
  *                 the handshake when you're done attending other tasks.
+ * \return         #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA if early data, as
+ *                 defined in RFC 8446 (TLS 1.3 specification), has been
+ *                 received as part of an handshake triggered by the function.
+ *                 This is server specific. You must call
+ *                 mbedtls_ssl_read_early_data() to read the early data before
+ *                 to resume the writing of application data.
  * \return         Another SSL error code - in this case you must stop using
  *                 the context (see below).
  *
@@ -4976,8 +5005,9 @@ int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len);
  *                 a non-negative value,
  *                 #MBEDTLS_ERR_SSL_WANT_READ,
  *                 #MBEDTLS_ERR_SSL_WANT_WRITE,
- *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS or
- *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS,
+ *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS,
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA,
  *                 you must stop using the SSL context for reading or writing,
  *                 and either free it or call \c mbedtls_ssl_session_reset()
  *                 on it before re-using it for a new connection; the current

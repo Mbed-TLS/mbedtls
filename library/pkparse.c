@@ -105,16 +105,21 @@ static int pk_ecc_set_key(mbedtls_pk_context *pk,
 {
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_usage_t flags;
     psa_status_t status;
 
     psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(pk->ec_family));
-    psa_set_key_algorithm(&attributes, PSA_ALG_ECDH);
-    psa_key_usage_t flags = PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_DERIVE;
-    /* Montgomery allows only ECDH, others ECDSA too */
-    if (pk->ec_family != PSA_ECC_FAMILY_MONTGOMERY) {
-        flags |= PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_SIGN_MESSAGE;
-        psa_set_key_enrollment_algorithm(&attributes,
-                                         MBEDTLS_PK_PSA_ALG_ECDSA_MAYBE_DET(PSA_ALG_ANY_HASH));
+    if (pk->ec_family == PSA_ECC_FAMILY_MONTGOMERY) {
+        /* Do not set algorithm here because Montgomery keys cannot do ECDSA and
+         * the PK module cannot do ECDH. When the key will be used in TLS for
+         * ECDH, it will be exported and then re-imported with proper flags
+         * and algorithm. */
+        flags = PSA_KEY_USAGE_EXPORT;
+    } else {
+        psa_set_key_algorithm(&attributes,
+                              MBEDTLS_PK_PSA_ALG_ECDSA_MAYBE_DET(PSA_ALG_ANY_HASH));
+        flags = PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_SIGN_MESSAGE |
+                PSA_KEY_USAGE_EXPORT;
     }
     psa_set_key_usage_flags(&attributes, flags);
 

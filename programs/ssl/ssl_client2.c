@@ -1217,6 +1217,12 @@ usage:
             }
         } else if (strcmp(p, "early_data_file") == 0) {
             opt.early_data_file = q;
+            if ((early_data_fp = fopen(opt.early_data_file, "rb")) == NULL) {
+                mbedtls_printf("failed\n  ! Cannot open '%s' for reading.\n",
+                               opt.early_data_file);
+                ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+                goto exit;
+            }
         }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
@@ -3007,25 +3013,6 @@ reconnect:
                            (unsigned int) -ret);
             goto exit;
         }
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_EARLY_DATA)
-        if (opt.early_data == MBEDTLS_SSL_EARLY_DATA_ENABLED
-            && strlen(opt.early_data_file) > 0) {
-            if ((early_data_fp = fopen(opt.early_data_file, "rb")) == NULL) {
-                mbedtls_printf("failed\n  ! Cannot open '%s' for reading.\n",
-                               opt.early_data_file);
-                ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
-                goto exit;
-            }
-
-            mbedtls_printf("Read early data successfully...");
-
-            /* TODO: read the early data from early_data_fp in chunks, and call
-             * mbedtls_ssl_write_early_data() to initial the handshake and send
-             * out the early data. Then finish the handshake.
-             */
-
-        } else
-#endif
 
         while ((ret = mbedtls_ssl_handshake(&ssl)) != 0) {
             if (ret != MBEDTLS_ERR_SSL_WANT_READ &&

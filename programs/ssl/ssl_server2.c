@@ -434,6 +434,8 @@ int main(void)
 #define USAGE_EARLY_DATA \
     "    max_early_data_size=%%d The max amount 0-RTT data. up to UINT64_MAX.\n"    \
     "                            default: MBEDTLS_SSL_MAX_EARLY_DATA_SIZE\n"        \
+    "    reco_max_early_data_size=%%d max_early_data_size for 2nd connection. \n"   \
+    "                            default: max_early_data_size\n"                    \
     "    early_data=%%s         default: disable, enable/disable early_data feature.\n"  \
     "                           available values: disable, enable\n"                \
     "    reco_early_data=%%s    default: early_data in 1st connection.\n"           \
@@ -704,8 +706,10 @@ struct options {
     int reproducible;           /* make communication reproducible          */
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     size_t max_early_data_size; /* max amount of early data                 */
-    int    early_data;          /* enable/disable early data feature        */
-    const char *reco_early_data;/* {en,dis}able early data in 2nd flight    */
+    const char *reco_max_early_data_size; /* max amount of early data when re-connection    */
+    int    early_data;          /* enable/disable early data feature */
+    const char *reco_early_data;/* {en,dis}able early data when re-connection  */
+
 #endif
     int query_config_mode;      /* whether to read config                   */
     int use_srtp;               /* Support SRTP                             */
@@ -1772,6 +1776,7 @@ int main(int argc, char *argv[])
     opt.reco_groups         = DFL_RECO_GROUPS;
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     opt.max_early_data_size = DFL_MAX_EARLY_DATA_SIZE;
+    opt.reco_max_early_data_size = NULL;
     opt.early_data          = DFL_EARLY_DATA;
     opt.reco_early_data     = DFL_RECO_EARLY_DATA;
 #endif
@@ -2011,6 +2016,8 @@ usage:
 #if defined(MBEDTLS_SSL_EARLY_DATA)
         else if (strcmp(p, "max_early_data_size") == 0) {
             opt.max_early_data_size = (size_t) strtoull(q, NULL, 0);
+        } else if (strcmp(p, "reco_max_early_data_size") == 0) {
+            opt.reco_max_early_data_size = q;
         } else if (strcmp(p, "early_data") == 0) {
             opt.early_data = parse_early_data(q);
             if (opt.early_data < 0) {
@@ -2845,7 +2852,9 @@ usage:
     mbedtls_ssl_conf_early_data(
         &conf, opt.early_data ? MBEDTLS_SSL_EARLY_DATA_ENABLED :
         MBEDTLS_SSL_EARLY_DATA_DISABLED);
-    mbedtls_ssl_conf_max_early_data_size(&conf, opt.max_early_data_size);
+
+    mbedtls_ssl_conf_max_early_data_size(
+        &conf, (uint32_t) opt.max_early_data_size);
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED)
@@ -3375,6 +3384,12 @@ reset:
 #if defined(MBEDTLS_SSL_EARLY_DATA)
         if (opt.reco_early_data) {
             mbedtls_ssl_conf_early_data(&conf, parse_early_data(opt.reco_early_data));
+        }
+
+        if (opt.reco_max_early_data_size) {
+            mbedtls_ssl_conf_max_early_data_size(
+                &conf,
+                (uint32_t) strtoull(opt.reco_max_early_data_size, NULL, 0));
         }
 #endif
         if (opt.reco_groups != NULL) {

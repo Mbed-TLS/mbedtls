@@ -122,7 +122,7 @@ int main(void)
 #define DFL_SNI                 NULL
 #define DFL_ALPN_STRING         NULL
 #define DFL_GROUPS              NULL
-#define DFL_MAX_EARLY_DATA_SIZE 0
+#define DFL_MAX_EARLY_DATA_SIZE MBEDTLS_SSL_MAX_EARLY_DATA_SIZE
 #define DFL_SIG_ALGS            NULL
 #define DFL_DHM_FILE            NULL
 #define DFL_TRANSPORT           MBEDTLS_SSL_TRANSPORT_STREAM
@@ -429,9 +429,8 @@ int main(void)
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 #define USAGE_EARLY_DATA \
-    "    max_early_data_size=%%d default: -1 (disabled)\n"             \
-    "                            options: -1 (disabled), "           \
-    "                                     >= 0 (enabled, max amount of early data )\n"
+    "    max_early_data_size=%%d The max amount 0-RTT data. up to UINT64_MAX.\n"    \
+    "                            default: MBEDTLS_SSL_MAX_EARLY_DATA_SIZE\n"
 #else
 #define USAGE_EARLY_DATA ""
 #endif /* MBEDTLS_SSL_EARLY_DATA */
@@ -694,7 +693,9 @@ struct options {
     const char *cid_val_renego; /* the CID to use for incoming messages
                                  * after renegotiation                      */
     int reproducible;           /* make communication reproducible          */
-    uint32_t max_early_data_size; /* max amount of early data               */
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    size_t max_early_data_size; /* max amount of early data                 */
+#endif
     int query_config_mode;      /* whether to read config                   */
     int use_srtp;               /* Support SRTP                             */
     int force_srtp_profile;     /* SRTP protection profile to use or all    */
@@ -1609,9 +1610,6 @@ int main(int argc, char *argv[])
     };
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-    int tls13_early_data_enabled = MBEDTLS_SSL_EARLY_DATA_DISABLED;
-#endif
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_init(alloc_buf, sizeof(alloc_buf));
 #if defined(MBEDTLS_MEMORY_DEBUG)
@@ -1746,7 +1744,9 @@ int main(int argc, char *argv[])
     opt.sni                 = DFL_SNI;
     opt.alpn_string         = DFL_ALPN_STRING;
     opt.groups              = DFL_GROUPS;
+#if defined(MBEDTLS_SSL_EARLY_DATA)
     opt.max_early_data_size = DFL_MAX_EARLY_DATA_SIZE;
+#endif
     opt.sig_algs            = DFL_SIG_ALGS;
     opt.dhm_file            = DFL_DHM_FILE;
     opt.transport           = DFL_TRANSPORT;
@@ -1980,13 +1980,7 @@ usage:
 #endif
 #if defined(MBEDTLS_SSL_EARLY_DATA)
         else if (strcmp(p, "max_early_data_size") == 0) {
-            long long value = atoll(q);
-            tls13_early_data_enabled =
-                value >= 0 ? MBEDTLS_SSL_EARLY_DATA_ENABLED :
-                MBEDTLS_SSL_EARLY_DATA_DISABLED;
-            if (tls13_early_data_enabled) {
-                opt.max_early_data_size = atoi(q);
-            }
+            opt.max_early_data_size = (size_t) strtoull(q, NULL, 0);
         }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
         else if (strcmp(p, "renegotiation") == 0) {
@@ -2808,11 +2802,7 @@ usage:
     }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    mbedtls_ssl_conf_early_data(&conf, tls13_early_data_enabled);
-    if (tls13_early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED) {
-        mbedtls_ssl_conf_max_early_data_size(
-            &conf, opt.max_early_data_size);
-    }
+    mbedtls_ssl_conf_max_early_data_size(&conf, opt.max_early_data_size);
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED)

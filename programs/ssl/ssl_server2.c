@@ -1627,6 +1627,7 @@ int main(int argc, char *argv[])
     };
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
+    int connection_counter = 0;
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_init(alloc_buf, sizeof(alloc_buf));
 #if defined(MBEDTLS_MEMORY_DEBUG)
@@ -3353,6 +3354,9 @@ reset:
 #endif
 
     mbedtls_net_free(&client_fd);
+
+    if (connection_counter++) {
+    }
 
     mbedtls_ssl_session_reset(&ssl);
 

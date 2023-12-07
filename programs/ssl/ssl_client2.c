@@ -34,6 +34,10 @@ int main(void)
 #define MAX_REQUEST_SIZE      20000
 #define MAX_REQUEST_SIZE_STR "20000"
 
+
+/* the max record size of TLS 1.3 is 2^14 */
+#define MAX_EARLY_DATA_CHUNK_SIZE 16384
+
 #define DFL_SERVER_NAME         "localhost"
 #define DFL_SERVER_ADDR         NULL
 #define DFL_SERVER_PORT         "4433"
@@ -720,6 +724,29 @@ exit:
     mbedtls_ssl_session_free(&exported_session);
     return ret;
 }
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+int ssl_write_early_data(mbedtls_ssl_context *ssl, FILE *fp,
+                         int *early_data_written)
+{
+
+    /* TODO: Will add code of calling mbedtls_ssl_write_early_data()
+     * to write real early data.
+     */
+    unsigned char early_data_buf[MAX_EARLY_DATA_CHUNK_SIZE];
+    unsigned char *p_early_data_start = &early_data_buf[0];
+    unsigned char *p_early_data_end = p_early_data_start +
+                                      MAX_EARLY_DATA_CHUNK_SIZE;
+    ((void) fp);
+    ((void) early_data_buf);
+    ((void) p_early_data_start);
+    ((void) p_early_data_end);
+    ((void) early_data_written);
+
+    return mbedtls_ssl_handshake(ssl);
+
+}
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
 int main(int argc, char *argv[])
 {
@@ -3014,7 +3041,14 @@ reconnect:
             goto exit;
         }
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+
+        int early_data_written = 0;
+        while ((ret = ssl_write_early_data(&ssl, early_data_fp,
+                                           &early_data_written)) != 0) {
+#else
         while ((ret = mbedtls_ssl_handshake(&ssl)) != 0) {
+#endif
             if (ret != MBEDTLS_ERR_SSL_WANT_READ &&
                 ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
                 ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) {

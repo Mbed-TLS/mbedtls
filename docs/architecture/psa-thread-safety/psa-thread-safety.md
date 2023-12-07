@@ -294,7 +294,7 @@ A counter field within each slot keeps track of how many readers have registered
 
 Library functions which operate on a slot will return `PSA_ERROR_BAD_STATE` if the slot is in an inappropriate state for the function at the linearization point.
 
-A state transition diagram can be found in docs/architecture/psa-thread-safety/key-slot-state-transitions.jpg. In this diagram, an arrow between two states `q1` and `q2` with label `f` indicates that if the state of a slot is `q1` immediately before `f`'s linearization point, it may be `q2` immediately after `f`'s linearization point. This means that the linearization point of a state changing call to a function must be a call to `psa_slot_state_transition`.
+A state transition diagram can be found in docs/architecture/psa-thread-safety/key-slot-state-transitions.jpg. In this diagram, an arrow between two states `q1` and `q2` with label `f` indicates that if the state of a slot is `q1` immediately before `f`'s linearization point, it may be `q2` immediately after `f`'s linearization point. The linearization point of a state changing call to a function must be a call to `psa_slot_state_transition`.
 
 #### Destruction of a key in use
 
@@ -310,7 +310,7 @@ When calling `psa_wipe_key_slot` it is the callers responsibility to set the slo
 
 `psa_wipe_all_key_slots` is only called from `mbedtls_psa_crypto_free`, here we will need to return an error as we won't be able to free the key store if a key is in use without compromising the state of the secure side. This is acceptable as an untrusted application cannot call `mbedtls_psa_crypto_free` in a crypto service. In a service integration, `mbedtls_psa_crypto_free` on the client cuts the communication with the crypto service. Also, this is the current behaviour.
 
-`psa_destroy_key` marks the slot as deleted, deletes persistent keys and opaque keys and returns. This only works if drivers are protected by a mutex (and the persistent storage as well if needed).`psa_destroy_key` transfers to PENDING_DELETION as an intermediate state, then, when the last reading operation finishes, it wipes the key slot. This will free the key ID, but the slot might be still in use. In case of volatile keys freeing up the ID while the slot is still in use does not provide any benefit and we don't need to do it.
+`psa_destroy_key` registers as a reader, marks the slot as deleted, deletes persistent keys and opaque keys and unregisters before returning. This will free the key ID, but the slot might be still in use. This only works if drivers are protected by a mutex (and the persistent storage as well if needed). `psa_destroy_key` transfers to PENDING_DELETION as an intermediate state. The last reading operation will wipe the key slot upon unregistering.  In case of volatile keys freeing up the ID while the slot is still in use does not provide any benefit and we don't need to do it.
 
 These are serious limitations, but this can be implemented with mutexes only and arguably satisfies the [Key destruction short-term requirements](#key-destruction-short-term-requirements).
 

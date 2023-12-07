@@ -379,6 +379,8 @@ Those costs could be avoided by refactoring (parts of) Cipher, but that would pr
 - significant differences in how the `cipher.h` API is implemented between builds with the full Cipher or only a subset;
 - or more work to apply the simplifications to all of Cipher.
 
+Prototyping both approaches showed better code size savings and cleaner code with a new internal module.
+
 ## Specification
 
 ### MD light
@@ -564,50 +566,32 @@ The architecture can be extended to support `MBEDTLS_PSA_CRYPTO_CLIENT` with a l
 * Compile-time dependencies: instead of checking `defined(MBEDTLS_PSA_CRYPTO_C)`, check `defined(MBEDTLS_PSA_CRYPTO_C) || defined(MBEDTLS_PSA_CRYPTO_CLIENT)`.
 * Implementers of `MBEDTLS_PSA_CRYPTO_CLIENT` will need to provide `psa_can_do_hash()` (or a more general function `psa_can_do`) alongside `psa_crypto_init()`. Note that at this point, it will become a public interface, hence we won't be able to change it at a whim.
 
-### Cipher light
+### Internal "block cipher" abstraction (Cipher light)
 
 #### Definition
 
-**Note:** this definition is tentative an may be refined when implementing and
-testing, based and what's needed by internal users of Cipher light. The new
-config symbol will not be considered public so its definition may change.
+The new module is automatically enabled in `build_info.h` by modules that need
+it, namely: CCM, GCM, only when `CIPHER_C` is not available. Note: CCM and GCM
+currently depend on the full `CIPHER_C` (enforced by `check_config.h`); this
+hard dependency would be replaced by the above auto-enablement.
 
-Cipher light will be automatically enabled in `build_info.h` by modules that
-need it, namely: CCM, GCM. Note: CCM and GCM currently depend on the full
-`CIPHER_C` (enforced by `check_config.h`); this hard dependency would be
-replaced by the above auto-enablement.
-
-Cipher light includes:
-- some info functions;
-- support for block ciphers in ECB mode, encrypt only (note: in Cipher, "ECB"
-  means just one block, contrary to PSA);
-- part of the streaming API for unauthenticated ciphers;
-- only AES, Aria and Camellia.
-
-This excludes:
-- the one-shot API for unauthenticated ciphers;
-- the AEAD/KW API (both one-shot and streaming);
-- support for stream ciphers;
-- support for other modes of block ciphers (CBC, CTR, CFB, etc.);
-- DES and variants (3DES).
-
-The following API functions, and supporting types, are candidates for
-inclusion in the Cipher light API, with limited features as above:
+The following API functions are offered:
 ```
-mbedtls_cipher_info_from_values
-mbedtls_cipher_info_get_block_size
-
-mbedtls_cipher_init
-mbedtls_cipher_setup
-mbedtls_cipher_setkey
-mbedtls_cipher_free
-
-mbedtls_cipher_update
+void mbedtls_block_cipher_init(mbedtls_block_cipher_context_t *ctx);
+void mbedtls_block_cipher_free(mbedtls_block_cipher_context_t *ctx);
+int mbedtls_block_cipher_setup(mbedtls_block_cipher_context_t *ctx,
+                               mbedtls_cipher_id_t cipher_id);
+int mbedtls_block_cipher_setkey(mbedtls_block_cipher_context_t *ctx,
+                                const unsigned char *key,
+                                unsigned key_bitlen);
+int mbedtls_block_cipher_encrypt(mbedtls_block_cipher_context_t *ctx,
+                                 const unsigned char input[16],
+                                 unsigned char output[16]);
 ```
 
-Note: `mbedtls_cipher_info_get_block_size()` can be hard-coded to return 16,
-as all three supported block ciphers have the same block size (DES was
-excluded).
+The only supported ciphers are AES, ARIA and Camellia. They are identified by
+an `mbedtls_cipher_id_t` in the `setup()` function, because that's how they're
+identifed by callers (GCM/CCM).
 
 #### Cipher light dual dispatch
 

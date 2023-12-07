@@ -5562,7 +5562,10 @@ exit:
     return status;
 }
 
-/* Memory copying test hooks */
+/* Memory copying test hooks. These are called before input copy, after input
+ * copy, before output copy and after output copy, respectively.
+ * They are used by memory-poisoning tests to temporarily unpoison buffers
+ * while they are copied. */
 #if defined(MBEDTLS_TEST_HOOKS)
 void (*psa_input_pre_copy_hook)(const uint8_t *input, size_t input_len) = NULL;
 void (*psa_input_post_copy_hook)(const uint8_t *input, size_t input_len) = NULL;

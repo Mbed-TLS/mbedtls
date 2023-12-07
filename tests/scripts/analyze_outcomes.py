@@ -510,7 +510,7 @@ KNOWN_TASKS = {
             'ignored_suites': [
                 # Modules replaced by drivers.
                 'rsa', 'pkcs1_v15', 'pkcs1_v21',
-                # We temporarily don't care about PK staff.
+                # We temporarily don't care about PK stuff.
                 'pk', 'pkwrite', 'pkparse'
             ],
             'ignored_tests': {

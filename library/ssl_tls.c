@@ -3472,6 +3472,10 @@ int mbedtls_ssl_get_max_out_record_payload(const mbedtls_ssl_context *ssl)
 {
     size_t max_len = MBEDTLS_SSL_OUT_CONTENT_LEN;
 
+    if (ssl == NULL || ssl->conf == NULL) {
+        return max_len;
+    }
+
 #if !defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH) && \
     !defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT) && \
     !defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -3479,10 +3483,14 @@ int mbedtls_ssl_get_max_out_record_payload(const mbedtls_ssl_context *ssl)
 #endif
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    const size_t mfl = mbedtls_ssl_get_output_max_frag_len(ssl);
+    /* MbedTLS currently does not support maximum fragment length
+       during handshake so we skip it for now. */
+    if (ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER) {
+        const size_t mfl = mbedtls_ssl_get_output_max_frag_len(ssl);
 
-    if (max_len > mfl) {
-        max_len = mfl;
+        if (max_len > mfl) {
+            max_len = mfl;
+        }
     }
 #endif
 

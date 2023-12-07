@@ -281,28 +281,24 @@ Note that a thread must hold the global mutex when it reads or changes a slot's 
 
 #### Slot states
 
-For concurrency purposes, a slot can be in one of three states:
+For concurrency purposes, a slot can be in one of four states:
 
-* UNUSED: no thread is currently accessing the slot. It may be occupied by a volatile key or a cached key.
-* WRITING: a thread has exclusive access to the slot. This can only happen in specific circumstances as detailed below.
-* READING: any thread may read from the slot.
+* EMPTY: no thread is currently accessing the slot, and no information is stored in the slot.
+* FILLING: one thread is currently loading or creating material to fill the slot, this thread is responsible for the next state transition.
+* FULL: the slot contains a key, and any thread is able to use the key after registering as a reader.
+* PENDING_DELETION: the key within the slot has been destroyed or marked for destruction, but at least one thread is still registered as a reader. No thread can register to read this slot. The slot must not be wiped until the last reader de-registers, wiping the slot by calling `psa_wipe_key_slot`.
 
-A high-level view of state transitions:
+To change `slot` to state `new_state`, a function must call `psa_slot_state_transition(slot, new_state)`.
 
-* `psa_get_empty_key_slot`: UNUSED → WRITING.
-* `psa_get_and_lock_key_slot_in_memory`: UNUSED or READING → READING. This function only accepts slots in the UNUSED or READING state. A slot with the correct id but in the WRITING state is considered free.
-* `psa_unlock_key_slot`: READING → UNUSED or READING.
-* `psa_finish_key_creation`: WRITING → READING.
-* `psa_fail_key_creation`: WRITING → UNUSED.
-* `psa_wipe_key_slot`: any → UNUSED. If the slot is READING or WRITING on entry, this function must wait until the writer or all readers have finished. (By the way, the WRITING state is possible if `mbedtls_psa_crypto_free` is called while a key creation is in progress.) See [“Destruction of a key in use”](#destruction-of-a-key-in-use).
+A counter field within each slot keeps track of how many readers have registered. Library functions must call `psa_register_read` before reading the key data witin a slot, and `psa_unregister_read` after they have finished operating.
 
-The current `state->lock_count` corresponds to the difference between UNUSED and READING: a slot is in use iff its lock count is nonzero, so `lock_count == 0` corresponds to UNUSED and `lock_count != 0` corresponds to READING.
+Library functions which operate on a slot will return `PSA_ERROR_BAD_STATE` if the slot is in an inappropriate state for the function at the linearization point.
 
-There is currently no indication of when a slot is in the WRITING state. This only happens between a call to `psa_start_key_creation` and a call to one of `psa_finish_key_creation` or `psa_fail_key_creation`. This new state can be conveyed by a new boolean flag, or by setting `lock_count` to `~0`.
+A state transition diagram can be found in docs/architecture/psa-thread-safety/key-slot-state-transitions.jpg. In this diagram, an arrow between two states `q1` and `q2` with label `f` indicates that if the state of a slot is `q1` immediately before `f`'s linearization point, it may be `q2` immediately after `f`'s linearization point. This means that the linearization point of a state changing call to a function must be a call to `psa_slot_state_transition`.
 
 #### Destruction of a key in use
 
-Problem: In [Key destruction long-term requirements](#key-destruction-long-term-requirements) we require that the key slot is destroyed (by `psa_wipe_key_slot`) even while it's in use (READING or WRITING).
+Problem: In [Key destruction long-term requirements](#key-destruction-long-term-requirements) we require that the key slot is destroyed (by `psa_wipe_key_slot`) even while it's in use (FILLING or with at least one reader).
 
 How do we ensure that? This needs something more sophisticated than mutexes (concurrency number >2)! Even a per-slot mutex isn't enough (we'd need a reader-writer lock).
 
@@ -310,11 +306,11 @@ Solution: after some team discussion, we've decided to rely on a new threading a
 
 ##### Mutex only
 
-When calling `psa_wipe_key_slot` it is the callers responsibility to set the slot state to WRITING first. For most functions this is a clean UNUSED -> WRITING transition: psa_get_empty_key_slot, psa_get_and_lock_key_slot, psa_close_key, psa_purge_key.
+When calling `psa_wipe_key_slot` it is the callers responsibility to set the slot state to PENDING_DELETION first. For most functions this is a clean {FULL, !has_readers} -> PENDING_DELETION transition: psa_get_empty_key_slot, psa_get_and_lock_key_slot, psa_close_key, psa_purge_key.
 
 `psa_wipe_all_key_slots` is only called from `mbedtls_psa_crypto_free`, here we will need to return an error as we won't be able to free the key store if a key is in use without compromising the state of the secure side. This is acceptable as an untrusted application cannot call `mbedtls_psa_crypto_free` in a crypto service. In a service integration, `mbedtls_psa_crypto_free` on the client cuts the communication with the crypto service. Also, this is the current behaviour.
 
-`psa_destroy_key` marks the slot as deleted, deletes persistent keys and opaque keys and returns. This only works if drivers are protected by a mutex (and the persistent storage as well if needed). When the last reading operation finishes, it wipes the key slot. This will free the key ID, but the slot might be still in use. In case of volatile keys freeing up the ID while the slot is still in use does not provide any benefit and we don't need to do it.
+`psa_destroy_key` marks the slot as deleted, deletes persistent keys and opaque keys and returns. This only works if drivers are protected by a mutex (and the persistent storage as well if needed).`psa_destroy_key` transfers to PENDING_DELETION as an intermediate state, then, when the last reading operation finishes, it wipes the key slot. This will free the key ID, but the slot might be still in use. In case of volatile keys freeing up the ID while the slot is still in use does not provide any benefit and we don't need to do it.
 
 These are serious limitations, but this can be implemented with mutexes only and arguably satisfies the [Key destruction short-term requirements](#key-destruction-short-term-requirements).
 
@@ -329,9 +325,9 @@ We can't reuse the `lock_count` field to mark key slots deleted, as we still nee
 
 #### Condition variables
 
-Clean UNUSED -> WRITING transition works as before.
+Clean UNUSED -> PENDING_DELETION transition works as before.
 
-`psa_wipe_all_key_slots` and `psa_destroy_key` mark the slot as deleted and go to sleep until the slot state becomes UNUSED. When waking up, they wipe the slot, and return.
+`psa_wipe_all_key_slots` and `psa_destroy_key` mark the slot as deleted and go to sleep until the slot has no registered readers. When waking up, they wipe the slot, and return.
 
 If the slot is already marked as deleted the threads calling `psa_wipe_all_key_slots` and `psa_destroy_key` go to sleep until the deletion completes. To satisfy [Key destruction long-term requirements](#key-destruction-long-term-requirements) none of the threads may return from the call until the slot is deleted completely. This can be achieved by signalling them when the slot has already been wiped and ready for use, that is not marked for deletion anymore. To handle spurious wake-ups, these threads need to be able to tell whether the slot was already deleted. This is not trivial, because by the time the thread wakes up, theoretically the slot might be in any state. It might have been reused and maybe even marked for deletion again.
 
@@ -354,7 +350,7 @@ Alternatively, protecting operation contexts can be left as the responsibility o
 
 #### Drivers
 
-Each driver that hasn’t got the "thread_safe” property set  has a dedicated mutex.
+Each driver that hasn’t got the "thread_safe” property set has a dedicated mutex.
 
 Implementing "thread_safe” drivers depends on the condition variable protection in the key store, as we must guarantee that the core never starts the destruction of a key while there are operations in progress on it.
 

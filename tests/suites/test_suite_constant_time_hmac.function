@@ -83,10 +83,10 @@ void ssl_cf_hmac(int hash)
      * by at least one block size.
      *
      * It is quite expensive to test all possible lengths, so we test values
-     * which are within 1 of a multiple of 64, plus loop end values.
+     * which are within 1 of a multiple of block_size, plus loop end values.
      */
     for (max_in_len = 0; max_in_len <= 255 + block_size; max_in_len++) {
-        int no_skip = (((max_in_len + 65) % 64) < 3) ||
+        int no_skip = (((max_in_len + block_size + 1) % block_size) < 3) ||
                       (max_in_len >= ((255 + block_size) - 1));
         if (!no_skip) {
             continue;

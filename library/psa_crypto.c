@@ -6076,7 +6076,7 @@ static psa_status_t psa_key_derivation_set_maximum_capacity(
 #if defined(PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128)
     if (kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
 #if (SIZE_MAX > UINT32_MAX)
-        operation->capacity = UINT32_MAX * (size_t)PSA_MAC_LENGTH(
+        operation->capacity = UINT32_MAX * (size_t) PSA_MAC_LENGTH(
             PSA_KEY_TYPE_AES,
             128U,
             PSA_ALG_CMAC);

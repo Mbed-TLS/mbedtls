@@ -351,7 +351,7 @@ This excludes things like:
 
 ### Dual-dispatch for block cipher primitives
 
-Considering the priorities stated above, initially we want to support GCM, CCM and CTR-DRBG. All trhee of them use the block cipher primitive only in the encrypt direction. Currently, GCM and CCM use the Cipher layer in order to work with AES, Aria and Camellia (DES is excluded by the standards due to its smaller block size) and CTR-DRBG directly uses the low-level API from `aes.h`. In all cases, access to the "block cipher primitive" is done by using "ECB mode" (which for both Cipher and `aes.h` only allows a single block, contrary to PSA which implements actual ECB mode).
+Considering the priorities stated above, initially we want to support GCM, CCM and CTR-DRBG. All three of them use the block cipher primitive only in the encrypt direction. Currently, GCM and CCM use the Cipher layer in order to work with AES, Aria and Camellia (DES is excluded by the standards due to its smaller block size) and CTR-DRBG directly uses the low-level API from `aes.h`. In all cases, access to the "block cipher primitive" is done by using "ECB mode" (which for both Cipher and `aes.h` only allows a single block, contrary to PSA which implements actual ECB mode).
 
 The two AEAD modes, GCM and CCM, have very similar needs and positions in the stack, strongly suggesting using the same design for both. On the other hand, there are a number of differences between CTR-DRBG and them.
 - CTR-DRBG only uses AES (and there is no plan to extend it to other block ciphers at the moment), while GCM and CCM need to work with 3 block ciphers already.

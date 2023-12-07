@@ -2113,6 +2113,7 @@ int mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
+                                           int in_new_session_ticket,
                                            unsigned char *buf,
                                            const unsigned char *end,
                                            size_t *out_len);
@@ -2793,6 +2794,13 @@ static inline unsigned int mbedtls_ssl_session_ticket_allow_psk_ephemeral(
 {
     return !mbedtls_ssl_session_check_ticket_flags(session,
                                                    MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_EPHEMERAL_RESUMPTION);
+}
+
+static inline unsigned int mbedtls_ssl_session_ticket_allow_early_data(
+    mbedtls_ssl_session *session)
+{
+    return !mbedtls_ssl_session_check_ticket_flags(session,
+                                                   MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
 }
 
 static inline void mbedtls_ssl_session_set_ticket_flags(

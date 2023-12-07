@@ -556,6 +556,7 @@ int main(void)
     USAGE_GROUPS                                            \
     USAGE_SIG_ALGS                                          \
     USAGE_KEY_OPAQUE_ALGS                                   \
+    USAGE_EARLY_DATA                                        \
     "\n"
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)

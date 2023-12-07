@@ -1845,6 +1845,13 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
 
     }
 
+    if (!mbedtls_ssl_session_ticket_allow_early_data(ssl->session_negotiate)) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1,
+            ("EarlyData: rejected, early_data not allowed in ticket "
+             "permission bits."));
+        return;
+    }
 
     ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
 
@@ -2517,7 +2524,8 @@ static int ssl_tls13_write_encrypted_extensions_body(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
-        ret = mbedtls_ssl_tls13_write_early_data_ext(ssl, p, end, &output_len);
+        ret = mbedtls_ssl_tls13_write_early_data_ext(
+            ssl, 0, p, end, &output_len);
         if (ret != 0) {
             return ret;
         }
@@ -3129,6 +3137,15 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
     mbedtls_ssl_session_set_ticket_flags(
         session, ssl->handshake->tls13_kex_modes);
 #endif
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED &&
+        ssl->conf->max_early_data_size > 0) {
+        mbedtls_ssl_session_set_ticket_flags(
+            session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
+    }
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
     MBEDTLS_SSL_PRINT_TICKET_FLAGS(4, session->ticket_flags);
 
     /* Generate ticket_age_add */
@@ -3212,12 +3229,13 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
  * The following fields are placed inside the ticket by the
  * f_ticket_write() function:
  *
- *  - creation time (start)
- *  - flags (flags)
+ *  - creation time (ticket_creation_time)
+ *  - flags (ticket_flags)
  *  - age add (ticket_age_add)
- *  - key (key)
- *  - key length (key_len)
+ *  - key (resumption_key)
+ *  - key length (resumption_key_len)
  *  - ciphersuite (ciphersuite)
+ *  - max_early_data_size (max_early_data_size)
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
@@ -3232,6 +3250,7 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
     mbedtls_ssl_session *session = ssl->session;
     size_t ticket_len;
     uint32_t ticket_lifetime;
+    unsigned char *p_extensions_len;
 
     *out_len = 0;
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write NewSessionTicket msg"));
@@ -3293,14 +3312,34 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
 
     /* Ticket Extensions
      *
-     * Note: We currently don't have any extensions.
-     * Set length to zero.
+     * Extension extensions<0..2^16-2>;
      */
     ssl->handshake->sent_extensions = MBEDTLS_SSL_EXT_MASK_NONE;
 
     MBEDTLS_SSL_CHK_BUF_PTR(p, end, 2);
-    MBEDTLS_PUT_UINT16_BE(0, p, 0);
+    p_extensions_len = p;
     p += 2;
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (mbedtls_ssl_session_ticket_allow_early_data(session)) {
+        size_t output_len;
+
+        if ((ret = mbedtls_ssl_tls13_write_early_data_ext(
+                 ssl, 1, p, end, &output_len)) != 0) {
+            MBEDTLS_SSL_DEBUG_RET(
+                1, "mbedtls_ssl_tls13_write_early_data_ext", ret);
+            return ret;
+        }
+        p += output_len;
+    } else {
+        MBEDTLS_SSL_DEBUG_MSG(
+            4, ("early_data not allowed, "
+                "skip early_data extension in NewSessionTicket"));
+    }
+
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
+    MBEDTLS_PUT_UINT16_BE(p - p_extensions_len - 2, p_extensions_len, 0);
 
     *out_len = p - buf;
     MBEDTLS_SSL_DEBUG_BUF(4, "ticket", buf, *out_len);

@@ -491,22 +491,6 @@ EARLY_DATA_INPUT_LEN_BLOCKS=$(( ( $( cat $EARLY_DATA_INPUT | wc -c ) + 31 ) / 32
 EARLY_DATA_INPUT_LEN=$(( $EARLY_DATA_INPUT_LEN_BLOCKS * 32 ))
 
 requires_gnutls_next
-requires_all_configs_enabled MBEDTLS_SSL_EARLY_DATA MBEDTLS_SSL_SESSION_TICKETS     \
-                             MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME    \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 G->m: EarlyData: feature is disabled, fail." \
-         "$P_SRV force_version=tls13 debug_level=4 max_early_data_size=-1" \
-         "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+GROUP-ALL -d 10 -r --earlydata $EARLY_DATA_INPUT" \
-         1 \
-         -s "ClientHello: early_data(42) extension exists."                     \
-         -s "EncryptedExtensions: early_data(42) extension does not exist."    \
-         -s "NewSessionTicket: early_data(42) extension does not exist."        \
-         -s "Last error was: -29056 - SSL - Verification of the message MAC failed"
-
-requires_gnutls_next
 requires_all_configs_enabled MBEDTLS_SSL_EARLY_DATA MBEDTLS_SSL_SESSION_TICKETS \
                              MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
@@ -518,7 +502,8 @@ run_test "TLS 1.3 G->m: EarlyData: feature is enabled, good." \
          "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+GROUP-ALL:+KX-ALL \
                       -d 10 -r --earlydata $EARLY_DATA_INPUT " \
          0 \
+         -s "NewSessionTicket: early_data(42) extension exists."            \
+         -s "Sent max_early_data_size=$EARLY_DATA_INPUT_LEN"                \
          -s "ClientHello: early_data(42) extension exists."                 \
          -s "EncryptedExtensions: early_data(42) extension exists."         \
-         -s "NewSessionTicket: early_data(42) extension does not exist."    \
          -s "$( tail -1 $EARLY_DATA_INPUT )"

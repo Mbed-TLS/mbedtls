@@ -238,6 +238,7 @@ generate_key through transparent driver: fake
 generate_key:PSA_SUCCESS:"ab45435712649cb30bbddac49197eebf2740ffc7f874d9244c3460f54f322d3a":PSA_SUCCESS
 
 generate_key through transparent driver: in-driver
+depends_on:MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR
 generate_key:PSA_SUCCESS:"":PSA_SUCCESS
 
 generate_key through transparent driver: fallback

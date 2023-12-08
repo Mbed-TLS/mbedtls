@@ -6,10 +6,10 @@
 #include <test/constant_flow.h>
 #include <test/helpers.h>
 #include <test/macros.h>
+#include <stdlib.h>
 #include <string.h>
 
-#if defined(MBEDTLS_PSA_INJECT_ENTROPY)
-#include <psa/crypto.h>
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 #include <test/psa_crypto_helpers.h>
 #endif
 
@@ -22,12 +22,28 @@ static mbedtls_platform_context platform_ctx;
 
 mbedtls_test_info_t mbedtls_test_info;
 
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_FS_IO) &&    \
+    defined(MBEDTLS_PSA_CRYPTO_C)
+FILE *mbedtls_test_psa_wrappers_log_file = NULL;
+#endif
+
 /*----------------------------------------------------------------------------*/
 /* Helper Functions */
 
 int mbedtls_test_platform_setup(void)
 {
     int ret = 0;
+
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_FS_IO) &&    \
+    defined(MBEDTLS_PSA_CRYPTO_C)
+    const char *filename = getenv("MBEDTLS_TEST_PSA_WRAPPERS_LOG_FILE");
+    if (filename != NULL && filename[0] != 0) {
+        mbedtls_test_psa_wrappers_log_file = fopen(filename, "a");
+        if (mbedtls_test_psa_wrappers_log_file == NULL) {
+            return -1;
+        }
+    }
+#endif
 
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
     /* Make sure that injected entropy is present. Otherwise
@@ -52,6 +68,14 @@ void mbedtls_test_platform_teardown(void)
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_teardown(&platform_ctx);
 #endif /* MBEDTLS_PLATFORM_C */
+
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_FS_IO) &&    \
+    defined(MBEDTLS_PSA_CRYPTO_C)
+    if (mbedtls_test_psa_wrappers_log_file != NULL) {
+        fclose(mbedtls_test_psa_wrappers_log_file);
+        mbedtls_test_psa_wrappers_log_file = NULL;
+    }
+#endif
 }
 
 int mbedtls_test_ascii2uc(const char c, unsigned char *uc)
@@ -101,6 +125,10 @@ unsigned mbedtls_test_case_uses_negative_0 = 0;
 
 void mbedtls_test_info_reset(void)
 {
+    if (mbedtls_test_info.test_case != NULL) {
+        mbedtls_free(mbedtls_test_info.test_case);
+        mbedtls_test_info.test_case = NULL;
+    }
     mbedtls_test_info.result = MBEDTLS_TEST_RESULT_SUCCESS;
     mbedtls_test_info.step = (unsigned long) (-1);
     mbedtls_test_info.test = 0;
@@ -351,3 +379,52 @@ void mbedtls_test_err_add_check(int high, int low,
     }
 }
 #endif /* MBEDTLS_TEST_HOOKS */
+
+/** \brief Write the description of the test case to the outcome CSV file.
+ *
+ * \param output_file   The file to write to.
+ *                      If this is \c NULL, this function does nothing.
+ * \param test_suite    The test suite name.
+ * \param test_case     The test case description.
+ */
+int mbedtls_test_start_outcome_entry(FILE *output_file,
+                                     const char *test_suite,
+                                     const char *test_case)
+{
+    /* The non-varying fields are initialized on first use. */
+    static const char *platform = NULL;
+    static const char *configuration = NULL;
+
+    if (output_file == NULL) {
+        return 0;
+    }
+
+    if (platform == NULL) {
+        platform = getenv("MBEDTLS_TEST_PLATFORM");
+        if (platform == NULL) {
+            platform = "unknown";
+        }
+    }
+    if (configuration == NULL) {
+        configuration = getenv("MBEDTLS_TEST_CONFIGURATION");
+        if (configuration == NULL) {
+            configuration = "unknown";
+        }
+    }
+
+    return mbedtls_fprintf(output_file, "%s;%s;%s;%s;",
+                           platform, configuration, test_suite, test_case);
+}
+
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_FS_IO)
+int mbedtls_test_log_test_case(FILE *output_file)
+{
+    int ret = mbedtls_test_start_outcome_entry(output_file,
+                                               mbedtls_test_info.test_suite,
+                                               mbedtls_test_info.test_case);
+    if (ret < 0) {
+        return ret;
+    }
+    return mbedtls_fprintf(output_file, "%ld;", mbedtls_test_info.step);
+}
+#endif /* defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_FS_IO) */

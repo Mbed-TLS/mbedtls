@@ -37,10 +37,6 @@ ifdef DEBUG
 LOCAL_CFLAGS += -g3
 endif
 
-ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-LOCAL_CFLAGS += -Werror -DRECORD_PSA_STATUS_COVERAGE_LOG
-endif
-
 # if we're running on Windows, build for Windows
 ifdef WINDOWS
 WINDOWS_BUILD=1
@@ -74,6 +70,8 @@ gen_file_dep = |
 endif
 
 .PHONY: generated_files
+GENERATED_DATA_FILES :=
+
 GENERATED_BIGNUM_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) scripts/generate_bignum_tests.py --list || \
 	echo FAILED \
@@ -81,6 +79,8 @@ GENERATED_BIGNUM_DATA_FILES := $(patsubst tests/%,%,$(shell \
 ifeq ($(GENERATED_BIGNUM_DATA_FILES),FAILED)
 $(error "$(PYTHON) scripts/generate_bignum_tests.py --list" failed)
 endif
+GENERATED_DATA_FILES += $(GENERATED_BIGNUM_DATA_FILES)
+
 GENERATED_ECP_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) scripts/generate_ecp_tests.py --list || \
 	echo FAILED \
@@ -88,6 +88,8 @@ GENERATED_ECP_DATA_FILES := $(patsubst tests/%,%,$(shell \
 ifeq ($(GENERATED_ECP_DATA_FILES),FAILED)
 $(error "$(PYTHON) scripts/generate_ecp_tests.py --list" failed)
 endif
+GENERATED_DATA_FILES += $(GENERATED_ECP_DATA_FILES)
+
 GENERATED_PSA_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) scripts/generate_psa_tests.py --list || \
 	echo FAILED \
@@ -95,8 +97,7 @@ GENERATED_PSA_DATA_FILES := $(patsubst tests/%,%,$(shell \
 ifeq ($(GENERATED_PSA_DATA_FILES),FAILED)
 $(error "$(PYTHON) scripts/generate_psa_tests.py --list" failed)
 endif
-GENERATED_FILES := $(GENERATED_PSA_DATA_FILES) $(GENERATED_ECP_DATA_FILES) $(GENERATED_BIGNUM_DATA_FILES)
-generated_files: $(GENERATED_FILES)
+GENERATED_DATA_FILES += $(GENERATED_PSA_DATA_FILES)
 
 # generate_bignum_tests.py and generate_psa_tests.py spend more time analyzing
 # inputs than generating outputs. Its inputs are the same no matter which files
@@ -155,7 +156,7 @@ generated_psa_test_data:
 DATA_FILES := $(wildcard suites/test_suite_*.data)
 # Make sure that generated data files are included even if they don't
 # exist yet when the makefile is parsed.
-DATA_FILES += $(filter-out $(DATA_FILES),$(GENERATED_FILES))
+DATA_FILES += $(filter-out $(DATA_FILES),$(GENERATED_DATA_FILES))
 APPS = $(basename $(subst suites/,,$(DATA_FILES)))
 
 # Construct executable name by adding OS specific suffix $(EXEXT).
@@ -170,17 +171,29 @@ all: $(BINARIES)
 $(MBEDLIBS):
 	$(MAKE) -C ../library
 
-MBEDTLS_TEST_OBJS=$(patsubst %.c,%.o,$(wildcard src/*.c src/drivers/*.c src/test_helpers/*.c))
+TEST_SRC_H_GENERATED = \
+	include/test/psa_test_wrappers.h \
+	# This line is intentionally left blank
+TEST_SRC_C_FOUND = $(wildcard src/*.c src/drivers/*.c src/test_helpers/*.c)
+TEST_SRC_C_GENERATED = \
+	src/psa_test_wrappers.c \
+	# This line is intentionally left blank
+# $(TEST_SRC_C_FOUND) may or may not include the generated files.
+# In case it does, call the sort function to remove duplicates.
+MBEDTLS_TEST_OBJS = $(sort $(patsubst %.c,%.o,$(TEST_SRC_C_FOUND) $(TEST_SRC_C_GENERATED)))
 
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
 TEST_OBJS_DEPS = $(wildcard include/test/*.h include/test/*/*.h)
-ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-# Explicitly depend on this header because on a clean copy of the source tree,
-# it doesn't exist yet and must be generated as part of the build, and
-# therefore the wildcard enumeration above doesn't include it.
-TEST_OBJS_DEPS += include/test/instrument_record_status.h
-endif
+TEST_OBJS_DEPS += $(TEST_SRC_H_GENERATED)
+
+src/psa_test_wrappers.c include/test/psa_test_wrappers.h: $(gen_file_dep) ../include/psa/crypto.h
+src/psa_test_wrappers.c include/test/psa_test_wrappers.h: $(gen_file_dep) ../include/psa/crypto_extra.h
+src/psa_test_wrappers.c include/test/psa_test_wrappers.h: $(gen_file_dep) scripts/generate_psa_wrappers.py
+src/psa_test_wrappers.c include/test/psa_test_wrappers.h: $(gen_file_dep) ../scripts/mbedtls_dev/c_wrapper_generator.py
+src/psa_test_wrappers.c include/test/psa_test_wrappers.h:
+	echo "  Gen   $@"
+	$(PYTHON) scripts/generate_psa_wrappers.py --output-c=src/psa_test_wrappers.c --output-h=include/test/psa_test_wrappers.h
 
 # Rule to compile common test C files in src folder
 src/%.o : src/%.c $(TEST_OBJS_DEPS)
@@ -194,6 +207,9 @@ src/drivers/%.o : src/drivers/%.c
 src/test_helpers/%.o : src/test_helpers/%.c
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
+
+GENERATED_FILES := $(GENERATED_DATA_FILES) $(TEST_SRC_C_GENERATED) $(TEST_SRC_H_GENERATED)
+generated_files: $(GENERATED_FILES)
 
 C_FILES := $(addsuffix .c,$(APPS))
 c: $(C_FILES)
@@ -308,9 +324,3 @@ libtestdriver1.a:
 
 	$(MAKE) -C ./libtestdriver1/library CFLAGS="-I../../ $(CFLAGS)" LDFLAGS="$(LDFLAGS)" libmbedcrypto.a
 	cp ./libtestdriver1/library/libmbedcrypto.a ../library/libtestdriver1.a
-
-ifdef RECORD_PSA_STATUS_COVERAGE_LOG
-include/test/instrument_record_status.h: ../include/psa/crypto.h Makefile
-	echo "  Gen  $@"
-	sed <../include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
-endif

@@ -1,5 +1,17 @@
 #line 2 "suites/host_test.function"
 
+/* Like the POSIX strdup. */
+static char *str_dup(const char *s)
+{
+    size_t n = strlen(s) + 1;
+    char *copy = mbedtls_calloc(1, n);
+    if (copy == NULL) {
+        return NULL;
+    }
+    memcpy(copy, s, n);
+    return copy;
+}
+
 /**
  * \brief       Verifies that string is in string parameter format i.e. "<str>"
  *              It also strips enclosing '"' from the input string.
@@ -315,53 +327,6 @@ static int run_test_snprintf(void)
            test_snprintf(5, "123",         3) != 0;
 }
 
-/** \brief Write the description of the test case to the outcome CSV file.
- *
- * \param outcome_file  The file to write to.
- *                      If this is \c NULL, this function does nothing.
- * \param argv0         The test suite name.
- * \param test_case     The test case description.
- */
-static void write_outcome_entry(FILE *outcome_file,
-                                const char *argv0,
-                                const char *test_case)
-{
-    /* The non-varying fields are initialized on first use. */
-    static const char *platform = NULL;
-    static const char *configuration = NULL;
-    static const char *test_suite = NULL;
-
-    if (outcome_file == NULL) {
-        return;
-    }
-
-    if (platform == NULL) {
-        platform = getenv("MBEDTLS_TEST_PLATFORM");
-        if (platform == NULL) {
-            platform = "unknown";
-        }
-    }
-    if (configuration == NULL) {
-        configuration = getenv("MBEDTLS_TEST_CONFIGURATION");
-        if (configuration == NULL) {
-            configuration = "unknown";
-        }
-    }
-    if (test_suite == NULL) {
-        test_suite = strrchr(argv0, '/');
-        if (test_suite != NULL) {
-            test_suite += 1; // skip the '/'
-        } else {
-            test_suite = argv0;
-        }
-    }
-
-    /* Write the beginning of the outcome line.
-     * Ignore errors: writing the outcome file is on a best-effort basis. */
-    mbedtls_fprintf(outcome_file, "%s;%s;%s;%s;",
-                    platform, configuration, test_suite, test_case);
-}
-
 /** \brief Write the result of the test case to the outcome CSV file.
  *
  * \param outcome_file  The file to write to.
@@ -579,7 +544,16 @@ int execute_tests(int argc, const char **argv)
     }
 
     /* Initialize the struct that holds information about the last test */
-    mbedtls_test_info_reset();
+    if (argv[0] == NULL) {
+        mbedtls_test_info.test_suite = "?";
+    } else {
+        mbedtls_test_info.test_suite = strrchr(argv[0], '/');
+        if (mbedtls_test_info.test_suite != NULL) {
+            mbedtls_test_info.test_suite += 1; // skip the '/'
+        } else {
+            mbedtls_test_info.test_suite = argv[0];
+        }
+    }
 
     /* Now begin to execute the tests in the testfiles */
     for (testfile_index = 0;
@@ -609,6 +583,7 @@ int execute_tests(int argc, const char **argv)
             }
             unmet_dep_count = 0;
             missing_unmet_dependencies = 0;
+            mbedtls_test_info_reset();
 
             if ((ret = get_line(file, buf, sizeof(buf))) != 0) {
                 break;
@@ -622,7 +597,13 @@ int execute_tests(int argc, const char **argv)
             }
             mbedtls_fprintf(stdout, " ");
             fflush(stdout);
-            write_outcome_entry(outcome_file, argv[0], buf);
+
+            /* Save the test case description for the sake of extra logging.
+             * If there is not enough memory, go on without a description. */
+            mbedtls_test_info.test_case = str_dup(buf);
+            mbedtls_test_start_outcome_entry(outcome_file,
+                                             mbedtls_test_info.test_suite,
+                                             buf);
 
             total_tests++;
 
@@ -655,8 +636,6 @@ int execute_tests(int argc, const char **argv)
 
             // If there are no unmet dependencies execute the test
             if (unmet_dep_count == 0) {
-                mbedtls_test_info_reset();
-
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
                 /* Suppress all output from the library unless we're verbose
                  * mode
@@ -757,6 +736,7 @@ int execute_tests(int argc, const char **argv)
         fclose(file);
     }
 
+    mbedtls_test_info_reset();
     if (outcome_file != NULL) {
         fclose(outcome_file);
     }

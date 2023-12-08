@@ -14,6 +14,7 @@
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 #include "test/psa_helpers.h"
 #include <psa/crypto.h>
+#include "test/psa_test_wrappers.h"
 #endif
 
 
@@ -139,43 +140,12 @@ const char *mbedtls_test_helper_is_psa_leaking(void);
     while (0)
 
 
-
-#if defined(RECORD_PSA_STATUS_COVERAGE_LOG)
-psa_status_t mbedtls_test_record_status(psa_status_t status,
-                                        const char *func,
-                                        const char *file, int line,
-                                        const char *expr);
-
-/** Return value logging wrapper macro.
- *
- * Evaluate \p expr. Write a line recording its value to the log file
- * #STATUS_LOG_FILE_NAME and return the value. The line is a colon-separated
- * list of fields:
- * ```
- * value of expr:string:__FILE__:__LINE__:expr
- * ```
- *
- * The test code does not call this macro explicitly because that would
- * be very invasive. Instead, we instrument the source code by defining
- * a bunch of wrapper macros like
- * ```
- * #define psa_crypto_init() RECORD_STATUS("psa_crypto_init", psa_crypto_init())
- * ```
- * These macro definitions must be present in `instrument_record_status.h`
- * when building the test suites.
- *
- * \param string    A string, normally a function name.
- * \param expr      An expression to evaluate, normally a call of the function
- *                  whose name is in \p string. This expression must return
- *                  a value of type #psa_status_t.
- * \return          The value of \p expr.
- */
-#define RECORD_STATUS(string, expr)                                   \
-    mbedtls_test_record_status((expr), string, __FILE__, __LINE__, #expr)
-
-#include "instrument_record_status.h"
-
-#endif /* defined(RECORD_PSA_STATUS_COVERAGE_LOG) */
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_FS_IO)
+#include <stdio.h>
+/** Output stream where PSA accesses going through the wrapper functions in
+ * psa_test_wrappers.c are logged. */
+extern FILE *mbedtls_test_psa_wrappers_log_file;
+#endif
 
 /** Return extended key usage policies.
  *
@@ -193,6 +163,44 @@ psa_key_usage_t mbedtls_test_update_key_usage_flags(psa_key_usage_t usage_flags)
  */
 int mbedtls_test_fail_if_psa_leaking(int line_no, const char *filename);
 
+
+/** \def MBEDTLS_SVC_KEY_ID_PRINTF_FORMAT
+ *
+ * A suitable printf format for a value of type #mbedtls_svc_key_id_t.
+ * This is a string literal that can be concatenated with other literals.
+ * Note that this is a complete format including the leading `%` sign.
+ * It cannot be modified to customize the output formatting.
+ *
+ * Intended usage:
+ * ```
+ * mbedtls_svc_key_id_t key_id = ...;
+ * printf("key_id=" MBEDTLS_SVC_KEY_ID_PRINTF_FORMAT,
+ *        MBEDTLS_SVC_KEY_ID_PRINTF_ARGS(key_id));
+ * ```
+ * This is similar to `printf("%08x", key_id)`, but also works when
+ * #MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER is enabled.
+ */
+/** \def MBEDTLS_SVC_KEY_ID_PRINTF_ARGS
+ *
+ * \param svc_id    A expression yielding a value of type #mbedtls_svc_key_id_t.
+ *                  It may be expanded more than once.
+ *
+ * Use this macro in the argument list of a printf-like function
+ * in combination with #MBEDTLS_SVC_KEY_ID_PRINTF_FORMAT.
+ */
+#if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
+#define MBEDTLS_SVC_KEY_ID_PRINTF_FORMAT "%d:%08x"
+/* The expansion of this macro deliberately contains an unprotected comma,
+ * because it's meant to be used in the argument list of a printf-like
+ * function. */
+#define MBEDTLS_SVC_KEY_ID_PRINTF_ARGS(svc_id)  \
+    (int) ((svc_id).MBEDTLS_PRIVATE(owner)),    \
+    (unsigned) ((svc_id).MBEDTLS_PRIVATE(key_id))
+#else
+#define MBEDTLS_SVC_KEY_ID_PRINTF_FORMAT "%08x"
+#define MBEDTLS_SVC_KEY_ID_PRINTF_ARGS(svc_id)  \
+    ((unsigned) (svc_id))
+#endif
 
 
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)

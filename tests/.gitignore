@@ -18,6 +18,8 @@ libtestdriver1/*
 
 ###START_GENERATED_FILES###
 # Generated source files
+/include/test/psa_test_wrappers.h
+/src/psa_test_wrappers.c
 /suites/*.generated.data
 /suites/test_suite_psa_crypto_storage_format.v[0-9]*.data
 /suites/test_suite_psa_crypto_storage_format.current.data

@@ -8,14 +8,28 @@
  *  memory footprint.
  */
 /*
- *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+ *  Copyright (C) 2006-2023, ARM Limited, All Rights Reserved
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may
+ *  not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
 #ifndef PROFILE_M_MBEDTLS_CONFIG_H
 #define PROFILE_M_MBEDTLS_CONFIG_H
 
-//#include "config_tfm.h"
+#include "config_tfm.h"
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
@@ -549,7 +563,7 @@
 #endif /* CRYPTO_NV_SEED */
 
 #if !defined(CRYPTO_HW_ACCELERATOR) && defined(MBEDTLS_ENTROPY_NV_SEED)
-//#include "mbedtls_entropy_nv_seed_config.h"
+#include "mbedtls_entropy_nv_seed_config.h"
 #endif
 
 #ifdef CRYPTO_HW_ACCELERATOR

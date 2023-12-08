@@ -507,3 +507,21 @@ run_test "TLS 1.3 G->m: EarlyData: feature is enabled, good." \
          -s "ClientHello: early_data(42) extension exists."                 \
          -s "EncryptedExtensions: early_data(42) extension exists."         \
          -s "$( tail -1 $EARLY_DATA_INPUT )"
+
+# GnuTLS has some known bug at https://gitlab.com/gnutls/gnutls/-/issues/1429
+# $G_NEXT_CLI can not exit with 0 in this test.
+requires_gnutls_next
+requires_all_configs_enabled MBEDTLS_SSL_EARLY_DATA MBEDTLS_SSL_SESSION_TICKETS \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+requires_config_value_at_least MBEDTLS_SSL_MAX_EARLY_DATA_SIZE $EARLY_DATA_INPUT_LEN
+run_test "TLS 1.3 G->m: EarlyData: ignore app data before 2nd ClientHello, fail." \
+         "$P_SRV force_version=tls13 debug_level=4 reco_groups=secp384r1 max_early_data_size=$EARLY_DATA_INPUT_LEN early_data=enable" \
+         "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1 -d 10 -r --earlydata $EARLY_DATA_INPUT" \
+         1 \
+         -s "ClientHello: early_data(42) extension exists."                 \
+         -s "tls13 server state: MBEDTLS_SSL_HELLO_RETRY_REQUEST"           \
+         -s "EarlyData: Ignore application message before 2nd ClientHello"

@@ -1400,6 +1400,12 @@ psa_status_t psa_get_key_attributes(mbedtls_svc_key_id_t key,
                 mbedtls_free(rsa);
             }
             break;
+#else
+        case PSA_KEY_TYPE_RSA_KEY_PAIR:
+        case PSA_KEY_TYPE_RSA_PUBLIC_KEY:
+            attributes->domain_parameters = NULL;
+            attributes->domain_parameters_size = SIZE_MAX;
+            break;
 #endif /* (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) && \
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */

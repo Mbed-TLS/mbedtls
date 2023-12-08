@@ -111,7 +111,7 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
  * Assumptions:
  * - psa_status_t status exists
  * - An exit label is declared
- * - The name <buffer>_copy is not used for the given value of <buffer>
+ * - The name <input>_copy is not used for the given value of <input>
  */
 #define SWAP_FOR_LOCAL_INPUT(input, length) \
     psa_crypto_local_input_t input ## _copy = PSA_CRYPTO_LOCAL_INPUT_INIT; \
@@ -121,14 +121,23 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
     } \
     input = input ## _copy.buffer;
 
+/* Free the substituted input buffer copy created by SWAP_FOR_LOCAL_INPUT().
+ * Note that this does not restore the pointer to the original buffer.
+ * Assumptions:
+ * - psa_crypto_local_input_t <input>_copy exists, for the given value of
+ *   <input>
+ * - <input>_copy was previously allocated by psa_crypto_local_input_alloc()
+ * - <input> points to <input>_copy.buffer
+ */
 #define FREE_LOCAL_INPUT(input) \
+    input = NULL; \
     psa_crypto_local_input_free(&input ## _copy);
 
 /* Substitute an output buffer for a local copy of itself.
  * Assumptions:
  * - psa_status_t status exists
  * - An exit label is declared
- * - The name <buffer>_copy is not used for the given value of <buffer>
+ * - The name <output>_copy is not used for the given value of <output>
  */
 #define SWAP_FOR_LOCAL_OUTPUT(output, length) \
     psa_crypto_local_output_t output ## _copy = PSA_CRYPTO_LOCAL_OUTPUT_INIT; \
@@ -138,10 +147,24 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
     } \
     output = output ## _copy.buffer;
 
+/* Free the substituted output buffer copy created by SWAP_FOR_LOCAL_OUTPUT()
+ * after first copying back its contents to the original buffer.
+ * Note that this does not restore the pointer to the original buffer.
+ * Assumptions:
+ * - psa_crypto_local_output_t <output>_copy exists, for the given value of
+ *   <output>
+ * - <output>_copy was previously allocated by psa_crypto_local_output_alloc()
+ * - <output> points to <output>_copy.buffer
+ * - psa_status_t status exists
+ */
 #define FREE_LOCAL_OUTPUT(output) \
+    output = NULL; \
     psa_status_t local_output_free_status; \
     local_output_free_status = psa_crypto_local_output_free(&output ## _copy); \
     if (local_output_free_status != PSA_SUCCESS) { \
+        /* Since this error case is an internal error, it's more serious than \
+         * any existing error code and so it's fine to overwrite the existing \
+         * status. */ \
         status = local_output_free_status; \
     }
 #else /* MBEDTLS_PSA_COPY_CALLER_BUFFERS */

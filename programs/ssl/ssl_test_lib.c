@@ -13,7 +13,7 @@
 #include "ssl_test_lib.h"
 
 #if defined(MBEDTLS_TEST_HOOKS)
-#include "test/helpers.h"
+#include "test/threading_helpers.h"
 #endif
 
 #if !defined(MBEDTLS_SSL_TEST_IMPOSSIBLE)

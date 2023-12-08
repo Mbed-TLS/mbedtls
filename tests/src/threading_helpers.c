@@ -6,6 +6,7 @@
  */
 
 #include <test/helpers.h>
+#include <test/threading_helpers.h>
 #include <test/macros.h>
 
 #if defined(MBEDTLS_TEST_MUTEX_USAGE)

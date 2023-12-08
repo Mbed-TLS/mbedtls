@@ -6,6 +6,8 @@
 #include <test/constant_flow.h>
 #include <test/helpers.h>
 #include <test/macros.h>
+#include <test/value_names.h>
+#include <limits.h>
 #include <string.h>
 
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
@@ -56,6 +58,8 @@ void mbedtls_test_platform_teardown(void)
 
 int mbedtls_test_ascii2uc(const char c, unsigned char *uc)
 {
+    /* Assume ASCII. Don't use ctype.h isxxx() functions because some
+     * embedded platforms don't have them. */
     if ((c >= '0') && (c <= '9')) {
         *uc = c - '0';
     } else if ((c >= 'a') && (c <= 'f')) {
@@ -113,6 +117,210 @@ void mbedtls_test_info_reset(void)
 #endif
 }
 
+typedef enum {
+    VALUE_CATEGORY_UNKNOWN,
+    VALUE_CATEGORY_error,
+    VALUE_CATEGORY_psa_status_t,
+} value_category_t;
+
+static int is_identifier_char(char c)
+{
+    /* Assume ASCII. Don't use ctype.h isxxx() functions because some
+     * embedded platforms don't have them. */
+    return (c >= '0' && c <= '9') ||
+           (c >= 'A' && c <= 'Z') ||
+           (c >= 'a' && c <= 'z') ||
+           c == '_';
+}
+
+static value_category_t guess_value_category_from_prefix(const char *code)
+{
+    if (!strncmp(code, "PSA_SUCCESS", 11)) {
+        return VALUE_CATEGORY_psa_status_t;
+    }
+    if (!strncmp(code, "PSA_ERROR_", 10)) {
+        return VALUE_CATEGORY_psa_status_t;
+    }
+    if (!strncmp(code, "MBEDTLS_ERR_", 12)) {
+        return VALUE_CATEGORY_error;
+    }
+
+    char word[64];
+    size_t n;
+    for (n = 0; is_identifier_char(code[n]) && n < sizeof(word) - 1; n++) {
+        word[n] = code[n];
+    }
+    if (n > 0) {
+        word[n] = 0;
+        if (!strcmp(word, "ret") || strstr(word, "_ret")) {
+            return VALUE_CATEGORY_error;
+        }
+        if (!strcmp(word, "status") || strstr(word, "_status")) {
+            return VALUE_CATEGORY_psa_status_t;
+        }
+    }
+
+    return VALUE_CATEGORY_UNKNOWN;
+}
+
+/** Guess the category of a value based on the C expression with
+ * that value.
+ *
+ * The category of a value is its semantic type. That is the C type if
+ * there is a dedicated C type (e.g. #psa_status_t), but it can be
+ * an arbitrary name (synched with `generate_value_names.py`) otherwise
+ * (e.g. `error` for `MBEDTLS_ERR_xxx` values and high+low combinations
+ * thereof).
+ *
+ * \param code      A C expression with the given value, or
+ *                  a C expression of the form `V1 == V2` where V1 and
+ *                  V2 are expressions with values in that category.
+ *
+ * \return          The guessed category, or #VALUE_CATEGORY_UNKNOWN if
+ *                  the guessing heuristics failed.
+ */
+static value_category_t guess_value_category(const char *code)
+{
+    const char *p = code;
+    while (*p == ' ' || *p == '(') {
+        ++p;
+    }
+    value_category_t category = guess_value_category_from_prefix(p);
+    if (category != VALUE_CATEGORY_UNKNOWN) {
+        return category;
+    }
+
+    p = strstr(p, "==");
+    if (p != NULL) {
+        p += 2; // skip "=="
+        while (*p == ' ' || *p == '(') {
+            ++p;
+        }
+        category = guess_value_category_from_prefix(p);
+        if (category != VALUE_CATEGORY_UNKNOWN) {
+            return category;
+        }
+    }
+
+    return VALUE_CATEGORY_UNKNOWN;
+}
+
+static const char *get_value_name(value_category_t category,
+                                  unsigned long long value)
+{
+    /* Naively, this would be `signed_value = value`. But do it carefully to
+     * avoid allowing implementation-defined behavior such as trapping on
+     * overflow. */
+    long long signed_value;
+    if (value <= LLONG_MAX) {
+        signed_value = value;
+    } else if (value >= (unsigned long long) LLONG_MIN) {
+        signed_value = value - ULLONG_MAX - 1;
+    } else {
+        /* Can't happen on architectures where signed integers are two's
+         * complement with no trap representations. */
+        return NULL;
+    }
+
+    switch (category) {
+        case VALUE_CATEGORY_error:
+            if (signed_value >= INT_MIN && signed_value <= INT_MAX) {
+                return mbedtls_test_get_name_of_error((int) value);
+            } else {
+                return NULL;
+            }
+            break;
+        case VALUE_CATEGORY_psa_status_t:
+            if (signed_value >= -0x80000000LL && signed_value <= 0x7fffffffLL) {
+                return mbedtls_test_get_name_of_psa_status_t((psa_status_t) signed_value);
+            } else {
+                return NULL;
+            }
+            break;
+        default:
+            return NULL;
+    }
+}
+
+/** Write a symbolic description of the specified integer value.
+ *
+ * \param[out] buffer   Output buffer for the symbolic description, which is
+ *                      a null-terminated string. The output string is
+ *                      truncated to fit if needed.
+ * \param size          Size available in \p buffer in bytes.
+ * \param category      The category to use for the symbolic description.
+ * \param value         The value to describe. Note that for signed types,
+ *                      negative values are mapped to a positive range.
+ *
+ * \return              The length of the output written to \p buffer,
+ *                      not including the terminating null byte.
+ *                      This is 0 if the function did not manage to
+ *                      construct a symbolic description.
+ */
+static size_t append_value_name(char *buffer, size_t size,
+                                value_category_t category,
+                                unsigned long long value)
+{
+    /* Try simple value names */
+    const char *name = get_value_name(category, value);
+    if (name != NULL) {
+        return mbedtls_snprintf(buffer, size, "%s", name);
+    }
+
+    /* Do more work with some types that have composite value names. */
+    if (category == VALUE_CATEGORY_error && value >= ULLONG_MAX - 0x7fff) {
+        int pos = (int) (0ull - value);
+        int high_value = -(pos & 0x7f80), low_value = -(pos & 0x7f);
+        const char *high_name = mbedtls_test_get_name_of_error(high_value);
+        const char *low_name = mbedtls_test_get_name_of_error(low_value);
+        if (high_name != NULL && low_name != NULL) {
+            return mbedtls_snprintf(buffer, size, "%s + %s", high_name, low_name);
+            return 1;
+        } else if (high_name != NULL) {
+            (void) mbedtls_snprintf(buffer, size, "%s + %d", high_name, low_value);
+            return 1;
+        } else if (low_name != NULL) {
+            (void) mbedtls_snprintf(buffer, size, "%d + %s", high_value, low_name);
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+/** Write a description of the specified integer value.
+ *
+ * This function writes the numerical value, and attempts to write
+ * a symbolic description as well.
+ *
+ * \param[out] line     Output buffer for the description, which is a
+ *                      null-terminated string. The output string is
+ *                      truncated to fit if needed.
+ * \param line_size     Size available in \p line in bytes.
+ * \param label         A string to print before the value.
+ * \param category      The category to use for the symbolic description.
+ * \param value         The value to describe. Note that for signed types,
+ *                      negative values are mapped to a positive range.
+ */
+static void record_value(char *line, size_t line_size,
+                         const char *label,
+                         value_category_t category,
+                         unsigned long long value)
+{
+    size_t n;
+    n = mbedtls_snprintf(line, line_size,
+                         "%s = 0x%016llx = %lld",
+                         label, value, (long long) value);
+    if (n + 3 < line_size && category != VALUE_CATEGORY_UNKNOWN) {
+        if (append_value_name(line + n + 3, line_size - n - 3,
+                              category, value) != 0) {
+            line[n] = ' ';
+            line[n + 1] = '=';
+            line[n + 2] = ' ';
+        }
+    }
+}
+
 int mbedtls_test_equal(const char *test, int line_no, const char *filename,
                        unsigned long long value1, unsigned long long value2)
 {
@@ -129,14 +337,15 @@ int mbedtls_test_equal(const char *test, int line_no, const char *filename,
         return 0;
     }
     mbedtls_test_fail(test, line_no, filename);
-    (void) mbedtls_snprintf(mbedtls_test_info.line1,
-                            sizeof(mbedtls_test_info.line1),
-                            "lhs = 0x%016llx = %lld",
-                            value1, (long long) value1);
-    (void) mbedtls_snprintf(mbedtls_test_info.line2,
-                            sizeof(mbedtls_test_info.line2),
-                            "rhs = 0x%016llx = %lld",
-                            value2, (long long) value2);
+
+    /* Display the numerical values, and try to guess a symbolic name
+     * for them as well. */
+    value_category_t category = guess_value_category(mbedtls_test_info.test);
+    record_value(mbedtls_test_info.line1, sizeof(mbedtls_test_info.line1),
+                 "lhs", category, value1);
+    record_value(mbedtls_test_info.line2, sizeof(mbedtls_test_info.line2),
+                 "rhs", category, value2);
+
     return 0;
 }
 

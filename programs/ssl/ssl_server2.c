@@ -125,6 +125,7 @@ int main(void)
 #define DFL_MAX_EARLY_DATA_SIZE MBEDTLS_SSL_MAX_EARLY_DATA_SIZE
 #define DFL_EARLY_DATA          0
 #define DFL_RECO_GROUPS         NULL
+#define DFL_RECO_EARLY_DATA     NULL
 #define DFL_SIG_ALGS            NULL
 #define DFL_DHM_FILE            NULL
 #define DFL_TRANSPORT           MBEDTLS_SSL_TRANSPORT_STREAM
@@ -434,7 +435,9 @@ int main(void)
     "    max_early_data_size=%%d The max amount 0-RTT data. up to UINT64_MAX.\n"    \
     "                            default: MBEDTLS_SSL_MAX_EARLY_DATA_SIZE\n"        \
     "    early_data=%%s         default: disable, enable/disable early_data feature.\n"  \
-    "                           available values: disable, enable\n"
+    "                           available values: disable, enable\n"                \
+    "    reco_early_data=%%s    default: early_data in 1st connection.\n"           \
+    "                           enable/disable early data when re-connection.\n"
 #else
 #define USAGE_EARLY_DATA ""
 #endif /* MBEDTLS_SSL_EARLY_DATA */
@@ -702,6 +705,7 @@ struct options {
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     size_t max_early_data_size; /* max amount of early data                 */
     int    early_data;          /* enable/disable early data feature        */
+    const char *reco_early_data;/* {en,dis}able early data in 2nd flight    */
 #endif
     int query_config_mode;      /* whether to read config                   */
     int use_srtp;               /* Support SRTP                             */
@@ -1769,6 +1773,7 @@ int main(int argc, char *argv[])
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     opt.max_early_data_size = DFL_MAX_EARLY_DATA_SIZE;
     opt.early_data          = DFL_EARLY_DATA;
+    opt.reco_early_data     = DFL_RECO_EARLY_DATA;
 #endif
     opt.sig_algs            = DFL_SIG_ALGS;
     opt.dhm_file            = DFL_DHM_FILE;
@@ -2011,6 +2016,11 @@ usage:
             if (opt.early_data < 0) {
                 goto usage;
             }
+        } else if (strcmp(p, "reco_early_data") == 0) {
+            if (parse_early_data(q) < 0) {
+                goto usage;
+            }
+            opt.reco_early_data = q;
         }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
         else if (strcmp(p, "renegotiation") == 0) {
@@ -3362,12 +3372,18 @@ reset:
     mbedtls_net_free(&client_fd);
 
     if (connection_counter++) {
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        if (opt.reco_early_data) {
+            mbedtls_ssl_conf_early_data(&conf, parse_early_data(opt.reco_early_data));
+        }
+#endif
         if (opt.reco_groups != NULL) {
             if (parse_groups(opt.reco_groups, group_list, GROUP_LIST_SIZE) != 0) {
                 goto exit;
             }
             mbedtls_ssl_conf_groups(&conf, group_list);
         }
+
     }
 
     mbedtls_ssl_session_reset(&ssl);

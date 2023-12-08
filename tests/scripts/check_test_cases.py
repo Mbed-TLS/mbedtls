@@ -149,8 +149,7 @@ option"""
 
             for sh_file in ['ssl-opt.sh', 'compat.sh']:
                 sh_file = os.path.join(directory, sh_file)
-                if os.path.exists(sh_file):
-                    self.collect_from_script(sh_file)
+                self.collect_from_script(sh_file)
 
 class TestDescriptions(TestDescriptionExplorer):
     """Collect the available test cases."""

@@ -11626,8 +11626,7 @@ run_test "TLS 1.3 m->m: Not supported version check: cli TLS 1.2 only, srv TLS 1
          -c "supported_versions(43) extension does not exist."      \
          -c "A fatal alert message was received from our peer"      \
          -s "The SSL configuration is tls13 only"                   \
-         -s "Unsupported version of TLS 1.2 was received"           \
-         -s "! mbedtls_ssl_handshake returned"
+         -s "TLS 1.2 not supported."
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C

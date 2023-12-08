@@ -1923,7 +1923,7 @@ static int ssl_tls13_process_client_hello(mbedtls_ssl_context *ssl)
         /* Check if server supports TLS 1.2 */
         if (!mbedtls_ssl_conf_is_tls12_enabled(ssl->conf)) {
             MBEDTLS_SSL_DEBUG_MSG(
-                1, ("Unsupported version of TLS 1.2 was received"));
+                1, ("TLS 1.2 not supported."));
             MBEDTLS_SSL_PEND_FATAL_ALERT(
                 MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
                 MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);

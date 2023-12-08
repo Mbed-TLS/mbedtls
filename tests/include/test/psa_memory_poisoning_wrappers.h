@@ -1,3 +1,9 @@
+/** Memory poisoning wrappers for PSA functions.
+ *
+ *  These wrappers poison the input and output buffers of each function
+ *  before calling it, to ensure that it does not access the buffers
+ *  except by calling the approved buffer-copying functions.
+ */
 /*
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later

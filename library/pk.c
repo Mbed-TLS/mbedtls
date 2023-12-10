@@ -18,6 +18,9 @@
 
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"
+#if defined(MBEDTLS_PKCS1_V21) && !defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "rsa_internal.h"
+#endif
 #endif
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #include "mbedtls/ecp.h"
@@ -728,8 +731,8 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
 
     mbedtls_rsa_context *const rsa_ctx = mbedtls_pk_rsa(*ctx);
 
-    const int ret = mbedtls_rsa_rsassa_pss_sign(rsa_ctx, f_rng, p_rng, md_alg,
-                                                (unsigned int) hash_len, hash, sig);
+    const int ret = mbedtls_rsa_rsassa_pss_sign_no_mode_check(rsa_ctx, f_rng, p_rng, md_alg,
+                                                              (unsigned int) hash_len, hash, sig);
     if (ret == 0) {
         *sig_len = rsa_ctx->len;
     }

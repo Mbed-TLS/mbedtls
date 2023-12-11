@@ -5192,14 +5192,20 @@ static psa_status_t psa_aead_final_checks(const psa_aead_operation_t *operation)
 
 /* Finish encrypting a message in a multipart AEAD operation. */
 psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
-                             uint8_t *ciphertext,
+                             uint8_t *ciphertext_external,
                              size_t ciphertext_size,
                              size_t *ciphertext_length,
-                             uint8_t *tag,
+                             uint8_t *tag_external,
                              size_t tag_size,
                              size_t *tag_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    LOCAL_OUTPUT_DECLARE(ciphertext_external, ciphertext);
+    LOCAL_OUTPUT_DECLARE(tag_external, tag);
+
+    LOCAL_OUTPUT_ALLOC(ciphertext_external, ciphertext_size, ciphertext);
+    LOCAL_OUTPUT_ALLOC(tag_external, tag_size, tag);
 
     *ciphertext_length = 0;
     *tag_length = tag_size;
@@ -5230,6 +5236,9 @@ exit:
     psa_wipe_tag_output_buffer(tag, status, tag_size, *tag_length);
 
     psa_aead_abort(operation);
+
+    LOCAL_OUTPUT_FREE(ciphertext_external, ciphertext);
+    LOCAL_OUTPUT_FREE(tag_external, tag);
 
     return status;
 }

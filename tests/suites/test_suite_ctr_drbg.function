@@ -353,6 +353,9 @@ void ctr_drbg_threads(data_t *expected_result, int reseed, int arg_thread_count)
 
     const size_t n_random_calls = thread_count * thread_random_reps + 1;
 
+    /* Based on the size of MBEDTLS_CTR_DRBG_ENTROPY_LEN for SHA512. */
+    const size_t entropy_len = 48;
+
     TEST_CALLOC(threads, sizeof(pthread_t) * thread_count);
     memset(out, 0, sizeof(out));
 
@@ -361,14 +364,18 @@ void ctr_drbg_threads(data_t *expected_result, int reseed, int arg_thread_count)
 
     test_offset_idx = 0;
 
+    /* Need to do this, otherwise if we are forced into using SHA256 for
+     * whaever reason, output will differ. */
+    mbedtls_ctr_drbg_set_entropy_len(&ctx, entropy_len);
+
     if (reseed == 0) {
         mbedtls_ctr_drbg_set_prediction_resistance(&ctx, MBEDTLS_CTR_DRBG_PR_OFF);
         mbedtls_ctr_drbg_set_reseed_interval(&ctx, n_random_calls + 1);
 
-        TEST_CALLOC(entropy, MBEDTLS_CTR_DRBG_ENTROPY_LEN + MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN);
-        test_max_idx = MBEDTLS_CTR_DRBG_ENTROPY_LEN + MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN;
+        TEST_CALLOC(entropy, entropy_len + MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN);
+        test_max_idx = entropy_len + MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN;
     } else {
-        const size_t entropy_size = ((n_random_calls + 1) * MBEDTLS_CTR_DRBG_ENTROPY_LEN)
+        const size_t entropy_size = ((n_random_calls + 1) * entropy_len)
                                     + MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN;
 
         mbedtls_ctr_drbg_set_prediction_resistance(&ctx, MBEDTLS_CTR_DRBG_PR_ON);

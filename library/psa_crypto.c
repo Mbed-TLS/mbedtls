@@ -5246,13 +5246,19 @@ exit:
 /* Finish authenticating and decrypting a message in a multipart AEAD
    operation.*/
 psa_status_t psa_aead_verify(psa_aead_operation_t *operation,
-                             uint8_t *plaintext,
+                             uint8_t *plaintext_external,
                              size_t plaintext_size,
                              size_t *plaintext_length,
-                             const uint8_t *tag,
+                             const uint8_t *tag_external,
                              size_t tag_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    LOCAL_OUTPUT_DECLARE(plaintext_external, plaintext);
+    LOCAL_INPUT_DECLARE(tag_external, tag);
+
+    LOCAL_OUTPUT_ALLOC(plaintext_external, plaintext_size, plaintext);
+    LOCAL_INPUT_ALLOC(tag_external, tag_length, tag);
 
     *plaintext_length = 0;
 
@@ -5273,6 +5279,9 @@ psa_status_t psa_aead_verify(psa_aead_operation_t *operation,
 
 exit:
     psa_aead_abort(operation);
+
+    LOCAL_OUTPUT_FREE(plaintext_external, plaintext);
+    LOCAL_INPUT_FREE(tag_external, tag);
 
     return status;
 }

@@ -742,6 +742,10 @@ int main(int argc, char *argv[])
     size_t cid_renego_len = 0;
 #endif
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    FILE *early_data_fp = NULL;
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
 #if defined(MBEDTLS_SSL_ALPN)
     const char *alpn_list[ALPN_LIST_SIZE];
 #endif
@@ -1965,7 +1969,6 @@ usage:
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     int early_data_enabled = MBEDTLS_SSL_EARLY_DATA_DISABLED;
-    FILE *early_data_fp = NULL;
     if (strlen(opt.early_data) > 0) {
         if ((early_data_fp = fopen(opt.early_data, "rb")) == NULL) {
             mbedtls_printf("failed\n  ! Cannot open '%s' for reading.\n",

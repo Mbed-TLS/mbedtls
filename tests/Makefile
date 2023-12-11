@@ -58,7 +58,7 @@ DLEXT ?= so
 EXEXT=
 SHARED_SUFFIX=
 
-ifdef PTHREAD
+ifeq ($(THREADING),pthread)
 LOCAL_LDFLAGS += -lpthread
 endif
 endif

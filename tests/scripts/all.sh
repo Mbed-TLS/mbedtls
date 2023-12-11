@@ -218,7 +218,7 @@ pre_initialize_variables () {
     done
 
     # Option to enable linking with pthreads under make
-    MAKE_THREADING_FLAGS="PTHREAD=1"
+    MAKE_THREADING_FLAGS="THREADING=pthread"
 }
 
 # Test whether the component $1 is included in the command line patterns.

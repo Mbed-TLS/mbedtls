@@ -4938,10 +4938,13 @@ exit:
 /* Set the nonce for a multipart authenticated encryption or decryption
    operation.*/
 psa_status_t psa_aead_set_nonce(psa_aead_operation_t *operation,
-                                const uint8_t *nonce,
+                                const uint8_t *nonce_external,
                                 size_t nonce_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    LOCAL_INPUT_DECLARE(nonce_external, nonce);
+    LOCAL_INPUT_ALLOC(nonce_external, nonce_length, nonce);
 
     if (operation->id == 0) {
         status = PSA_ERROR_BAD_STATE;
@@ -4968,6 +4971,8 @@ exit:
     } else {
         psa_aead_abort(operation);
     }
+
+    LOCAL_INPUT_FREE(nonce_external, nonce);
 
     return status;
 }

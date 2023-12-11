@@ -4876,13 +4876,16 @@ psa_status_t psa_aead_decrypt_setup(psa_aead_operation_t *operation,
 
 /* Generate a random nonce / IV for multipart AEAD operation */
 psa_status_t psa_aead_generate_nonce(psa_aead_operation_t *operation,
-                                     uint8_t *nonce,
+                                     uint8_t *nonce_external,
                                      size_t nonce_size,
                                      size_t *nonce_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     uint8_t local_nonce[PSA_AEAD_NONCE_MAX_SIZE];
     size_t required_nonce_size = 0;
+
+    LOCAL_OUTPUT_DECLARE(nonce_external, nonce);
+    LOCAL_OUTPUT_ALLOC(nonce_external, nonce_size, nonce);
 
     *nonce_length = 0;
 
@@ -4926,6 +4929,8 @@ exit:
     } else {
         psa_aead_abort(operation);
     }
+
+    LOCAL_OUTPUT_FREE(nonce_external, nonce);
 
     return status;
 }

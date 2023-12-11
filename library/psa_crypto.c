@@ -5058,10 +5058,13 @@ exit:
 
 /* Pass additional data to an active multipart AEAD operation. */
 psa_status_t psa_aead_update_ad(psa_aead_operation_t *operation,
-                                const uint8_t *input,
+                                const uint8_t *input_external,
                                 size_t input_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    LOCAL_INPUT_DECLARE(input_external, input);
+    LOCAL_INPUT_ALLOC(input_external, input_length, input);
 
     if (operation->id == 0) {
         status = PSA_ERROR_BAD_STATE;
@@ -5097,6 +5100,8 @@ exit:
     } else {
         psa_aead_abort(operation);
     }
+
+    LOCAL_INPUT_FREE(input_external, input);
 
     return status;
 }

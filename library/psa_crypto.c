@@ -5109,13 +5109,20 @@ exit:
 /* Encrypt or decrypt a message fragment in an active multipart AEAD
    operation.*/
 psa_status_t psa_aead_update(psa_aead_operation_t *operation,
-                             const uint8_t *input,
+                             const uint8_t *input_external,
                              size_t input_length,
-                             uint8_t *output,
+                             uint8_t *output_external,
                              size_t output_size,
                              size_t *output_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+
+    LOCAL_INPUT_DECLARE(input_external, input);
+    LOCAL_OUTPUT_DECLARE(output_external, output);
+
+    LOCAL_INPUT_ALLOC(input_external, input_length, input);
+    LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
 
     *output_length = 0;
 
@@ -5162,6 +5169,9 @@ exit:
     } else {
         psa_aead_abort(operation);
     }
+
+    LOCAL_INPUT_FREE(input_external, input);
+    LOCAL_OUTPUT_FREE(output_external, output);
 
     return status;
 }

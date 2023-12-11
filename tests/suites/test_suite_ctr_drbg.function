@@ -342,7 +342,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_THREADING_PTHREAD */
+/* BEGIN_CASE depends_on:MBEDTLS_THREADING_PTHREAD:!MBEDTLS_CTR_DRBG_USE_128_BIT_KEY:!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 void ctr_drbg_threads(data_t *expected_result, int reseed, int arg_thread_count)
 {
     size_t thread_count = (size_t) arg_thread_count;

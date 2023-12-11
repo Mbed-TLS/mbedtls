@@ -1097,7 +1097,6 @@ CTR_DRBG Special Behaviours
 ctr_drbg_special_behaviours:
 
 CTR_DRBG Threads: no reseed
-depends_on:!MBEDTLS_CTR_DRBG_USE_128_BIT_KEY:!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 ctr_drbg_threads:"1fafa98bc83d95e10f2d5ed339a553e1":0:5
 
 CTR_DRBG Threads: reseed

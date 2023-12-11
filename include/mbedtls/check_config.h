@@ -171,6 +171,36 @@
 #error "MBEDTLS_NIST_KW_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT) && defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(PSA_WANT_ALG_CBC_NO_PADDING)
+#error "MBEDTLS_BLOCK_CIPHER_NO_DECRYPT and PSA_WANT_ALG_CBC_NO_PADDING cannot be defined simultaneously"
+#endif
+#if defined(PSA_WANT_ALG_CBC_PKCS7)
+#error "MBEDTLS_BLOCK_CIPHER_NO_DECRYPT and PSA_WANT_ALG_CBC_PKCS7 cannot be defined simultaneously"
+#endif
+#if defined(PSA_WANT_ALG_ECB_NO_PADDING)
+#error "MBEDTLS_BLOCK_CIPHER_NO_DECRYPT and PSA_WANT_ALG_ECB_NO_PADDING cannot be defined simultaneously"
+#endif
+#if defined(PSA_WANT_KEY_TYPE_DES)
+#error "MBEDTLS_BLOCK_CIPHER_NO_DECRYPT and PSA_WANT_KEY_TYPE_DES cannot be defined simultaneously"
+#endif
+#endif
+
+#if defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+#error "MBEDTLS_BLOCK_CIPHER_NO_DECRYPT and MBEDTLS_CIPHER_MODE_CBC cannot be defined simultaneously"
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
+#error "MBEDTLS_BLOCK_CIPHER_NO_DECRYPT and MBEDTLS_CIPHER_MODE_XTS cannot be defined simultaneously"
+#endif
+#if defined(MBEDTLS_DES_C)
+#error "MBEDTLS_BLOCK_CIPHER_NO_DECRYPT and MBEDTLS_DES_C cannot be defined simultaneously"
+#endif
+#if defined(MBEDTLS_NIST_KW_C)
+#error "MBEDTLS_BLOCK_CIPHER_NO_DECRYPT and MBEDTLS_NIST_KW_C cannot be defined simultaneously"
+#endif
+#endif
+
 #if defined(MBEDTLS_ECDH_C) && !defined(MBEDTLS_ECP_C)
 #error "MBEDTLS_ECDH_C defined, but not all prerequisites"
 #endif
@@ -306,16 +336,8 @@
 #error "MBEDTLS_CCM_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_CCM_C) && !defined(MBEDTLS_CIPHER_C)
-#error "MBEDTLS_CCM_C defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_GCM_C) && (                                        \
     !defined(MBEDTLS_AES_C) && !defined(MBEDTLS_CAMELLIA_C) && !defined(MBEDTLS_ARIA_C) )
-#error "MBEDTLS_GCM_C defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_GCM_C) && !defined(MBEDTLS_CIPHER_C)
 #error "MBEDTLS_GCM_C defined, but not all prerequisites"
 #endif
 
@@ -763,9 +785,8 @@
 #error "MBEDTLS_PSA_CRYPTO_C defined, but not all prerequisites (missing RNG)"
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_C) && \
-    (defined(PSA_HAVE_SOFT_BLOCK_CIPHER) || defined(PSA_HAVE_SOFT_BLOCK_AEAD)) && \
-    !defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_HAVE_SOFT_BLOCK_MODE) && \
+    defined(PSA_HAVE_SOFT_BLOCK_CIPHER) && !defined(MBEDTLS_CIPHER_C)
 #error "MBEDTLS_PSA_CRYPTO_C defined, but not all prerequisites"
 #endif
 

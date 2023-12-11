@@ -23,6 +23,10 @@
 #include "mbedtls/error.h"
 #include "mbedtls/constant_time.h"
 
+#if !defined(MBEDTLS_CIPHER_C)
+#include "block_cipher_internal.h"
+#endif
+
 #include <string.h>
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -51,6 +55,8 @@ int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
                        unsigned int keybits)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+#if defined(MBEDTLS_CIPHER_C)
     const mbedtls_cipher_info_t *cipher_info;
 
     cipher_info = mbedtls_cipher_info_from_values(cipher, keybits,
@@ -73,6 +79,17 @@ int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
                                      MBEDTLS_ENCRYPT)) != 0) {
         return ret;
     }
+#else
+    mbedtls_block_cipher_free(&ctx->block_cipher_ctx);
+
+    if ((ret = mbedtls_block_cipher_setup(&ctx->block_cipher_ctx, cipher)) != 0) {
+        return MBEDTLS_ERR_CCM_BAD_INPUT;
+    }
+
+    if ((ret = mbedtls_block_cipher_setkey(&ctx->block_cipher_ctx, key, keybits)) != 0) {
+        return MBEDTLS_ERR_CCM_BAD_INPUT;
+    }
+#endif
 
     return 0;
 }
@@ -85,7 +102,11 @@ void mbedtls_ccm_free(mbedtls_ccm_context *ctx)
     if (ctx == NULL) {
         return;
     }
+#if defined(MBEDTLS_CIPHER_C)
     mbedtls_cipher_free(&ctx->cipher_ctx);
+#else
+    mbedtls_block_cipher_free(&ctx->block_cipher_ctx);
+#endif
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_ccm_context));
 }
 
@@ -104,12 +125,16 @@ static int mbedtls_ccm_crypt(mbedtls_ccm_context *ctx,
                              const unsigned char *input,
                              unsigned char *output)
 {
-    size_t olen = 0;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char tmp_buf[16] = { 0 };
 
-    if ((ret = mbedtls_cipher_update(&ctx->cipher_ctx, ctx->ctr, 16, tmp_buf,
-                                     &olen)) != 0) {
+#if defined(MBEDTLS_CIPHER_C)
+    size_t olen = 0;
+    ret = mbedtls_cipher_update(&ctx->cipher_ctx, ctx->ctr, 16, tmp_buf, &olen);
+#else
+    ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, ctx->ctr, tmp_buf);
+#endif
+    if (ret != 0) {
         ctx->state |= CCM_STATE__ERROR;
         mbedtls_platform_zeroize(tmp_buf, sizeof(tmp_buf));
         return ret;
@@ -132,7 +157,10 @@ static int ccm_calculate_first_block_if_ready(mbedtls_ccm_context *ctx)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char i;
-    size_t len_left, olen;
+    size_t len_left;
+#if defined(MBEDTLS_CIPHER_C)
+    size_t olen;
+#endif
 
     /* length calculation can be done only after both
      * mbedtls_ccm_starts() and mbedtls_ccm_set_lengths() have been executed
@@ -178,7 +206,12 @@ static int ccm_calculate_first_block_if_ready(mbedtls_ccm_context *ctx)
     }
 
     /* Start CBC-MAC with first block*/
-    if ((ret = mbedtls_cipher_update(&ctx->cipher_ctx, ctx->y, 16, ctx->y, &olen)) != 0) {
+#if defined(MBEDTLS_CIPHER_C)
+    ret = mbedtls_cipher_update(&ctx->cipher_ctx, ctx->y, 16, ctx->y, &olen);
+#else
+    ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, ctx->y, ctx->y);
+#endif
+    if (ret != 0) {
         ctx->state |= CCM_STATE__ERROR;
         return ret;
     }
@@ -258,7 +291,10 @@ int mbedtls_ccm_update_ad(mbedtls_ccm_context *ctx,
                           size_t add_len)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t olen, use_len, offset;
+    size_t use_len, offset;
+#if defined(MBEDTLS_CIPHER_C)
+    size_t olen;
+#endif
 
     if (ctx->state & CCM_STATE__ERROR) {
         return MBEDTLS_ERR_CCM_BAD_INPUT;
@@ -298,8 +334,12 @@ int mbedtls_ccm_update_ad(mbedtls_ccm_context *ctx,
             add += use_len;
 
             if (use_len + offset == 16 || ctx->processed == ctx->add_len) {
-                if ((ret =
-                         mbedtls_cipher_update(&ctx->cipher_ctx, ctx->y, 16, ctx->y, &olen)) != 0) {
+#if defined(MBEDTLS_CIPHER_C)
+                ret = mbedtls_cipher_update(&ctx->cipher_ctx, ctx->y, 16, ctx->y, &olen);
+#else
+                ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, ctx->y, ctx->y);
+#endif
+                if (ret != 0) {
                     ctx->state |= CCM_STATE__ERROR;
                     return ret;
                 }
@@ -322,7 +362,10 @@ int mbedtls_ccm_update(mbedtls_ccm_context *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char i;
-    size_t use_len, offset, olen;
+    size_t use_len, offset;
+#if defined(MBEDTLS_CIPHER_C)
+    size_t olen;
+#endif
 
     unsigned char local_output[16];
 
@@ -360,8 +403,12 @@ int mbedtls_ccm_update(mbedtls_ccm_context *ctx,
             mbedtls_xor(ctx->y + offset, ctx->y + offset, input, use_len);
 
             if (use_len + offset == 16 || ctx->processed == ctx->plaintext_len) {
-                if ((ret =
-                         mbedtls_cipher_update(&ctx->cipher_ctx, ctx->y, 16, ctx->y, &olen)) != 0) {
+#if defined(MBEDTLS_CIPHER_C)
+                ret = mbedtls_cipher_update(&ctx->cipher_ctx, ctx->y, 16, ctx->y, &olen);
+#else
+                ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, ctx->y, ctx->y);
+#endif
+                if (ret != 0) {
                     ctx->state |= CCM_STATE__ERROR;
                     goto exit;
                 }
@@ -391,8 +438,12 @@ int mbedtls_ccm_update(mbedtls_ccm_context *ctx,
             memcpy(output, local_output, use_len);
 
             if (use_len + offset == 16 || ctx->processed == ctx->plaintext_len) {
-                if ((ret =
-                         mbedtls_cipher_update(&ctx->cipher_ctx, ctx->y, 16, ctx->y, &olen)) != 0) {
+#if defined(MBEDTLS_CIPHER_C)
+                ret = mbedtls_cipher_update(&ctx->cipher_ctx, ctx->y, 16, ctx->y, &olen);
+#else
+                ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, ctx->y, ctx->y);
+#endif
+                if (ret != 0) {
                     ctx->state |= CCM_STATE__ERROR;
                     goto exit;
                 }

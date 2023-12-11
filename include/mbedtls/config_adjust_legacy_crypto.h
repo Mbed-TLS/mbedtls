@@ -22,8 +22,8 @@
 #ifndef MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
 #define MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
 
-/* Temporary hack to pacify check_names.py.
- * (GCM and CCM still hard-depend on CIPHER_C for now.) */
+/* GCM_C and CCM_C can either depend on (in order of preference) CIPHER_C or
+ * BLOCK_CIPHER_C. If the former is not defined, auto-enable the latter. */
 #if (defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)) && \
     !defined(MBEDTLS_CIPHER_C)
 #define MBEDTLS_BLOCK_CIPHER_C
@@ -309,6 +309,26 @@
 #endif
 #if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY) && !defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY)
 #define MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
+#endif
+
+/* Some internal helpers to determine which keys are availble. */
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_AES_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_AES))
+#define MBEDTLS_SSL_HAVE_AES
+#endif
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ARIA_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_ARIA))
+#define MBEDTLS_SSL_HAVE_ARIA
+#endif
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CAMELLIA_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_CAMELLIA))
+#define MBEDTLS_SSL_HAVE_CAMELLIA
+#endif
+
+/* Some internal helpers to determine which operation modes are availble. */
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CIPHER_MODE_CBC)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CBC_NO_PADDING))
+#define MBEDTLS_SSL_HAVE_CBC
 #endif
 
 #if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_GCM_C)) || \

@@ -2238,7 +2238,7 @@
 /**
  * \def MBEDTLS_AESCE_C
  *
- * Enable AES cryptographic extension support on 64-bit Arm.
+ * Enable AES cryptographic extension support on Armv8.
  *
  * Module:  library/aesce.c
  * Caller:  library/aes.c
@@ -2249,13 +2249,15 @@
  *          system, Armv8-A Cryptographic Extensions must be supported by
  *          the CPU when this option is enabled.
  *
- * \note    Minimum compiler versions for this feature are Clang 4.0,
- *          armclang 6.6, GCC 6.0 or MSVC 2019 version 16.11.2.
+ * \note    Minimum compiler versions for this feature when targeting aarch64
+ *          are Clang 4.0; armclang 6.6; GCC 6.0; or MSVC 2019 version 16.11.2.
+ *          Minimum compiler versions for this feature when targeting 32-bit
+ *          Arm or Thumb are Clang 11.0; armclang 6.20; or GCC 6.0.
  *
  * \note \c CFLAGS must be set to a minimum of \c -march=armv8-a+crypto for
  * armclang <= 6.9
  *
- * This module adds support for the AES Armv8-A Cryptographic Extensions on Aarch64 systems.
+ * This module adds support for the AES Armv8-A Cryptographic Extensions on Armv8 systems.
  */
 #define MBEDTLS_AESCE_C
 
@@ -2373,6 +2375,28 @@
  * This module is required for PEM support (required by X.509).
  */
 #define MBEDTLS_BASE64_C
+
+/**
+ * \def MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
+ *
+ * Remove decryption operation for AES, ARIA and Camellia block cipher.
+ *
+ * \note  This feature is incompatible with insecure block cipher,
+ *        MBEDTLS_DES_C, and cipher modes which always require decryption
+ *        operation, MBEDTLS_CIPHER_MODE_CBC, MBEDTLS_CIPHER_MODE_XTS and
+ *        MBEDTLS_NIST_KW_C. When #MBEDTLS_PSA_CRYPTO_CONFIG is enabled,
+ *        this feature is incompatible with following supported PSA equivalence,
+ *        PSA_WANT_ALG_ECB_NO_PADDING, PSA_WANT_ALG_CBC_NO_PADDING,
+ *        PSA_WANT_ALG_CBC_PKCS7 and PSA_WANT_KEY_TYPE_DES.
+ *
+ * Module:  library/aes.c
+ *          library/aesce.c
+ *          library/aesni.c
+ *          library/aria.c
+ *          library/camellia.c
+ *          library/cipher.c
+ */
+//#define MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
 
 /**
  * \def MBEDTLS_BIGNUM_C
@@ -4099,20 +4123,23 @@
 /**
  * \def MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE
  *
- * Maximum time difference in milliseconds tolerated between the age of a
- * ticket from the server and client point of view.
- * From the client point of view, the age of a ticket is the time difference
- * between the time when the client proposes to the server to use the ticket
- * (time of writing of the Pre-Shared Key Extension including the ticket) and
- * the time the client received the ticket from the server.
- * From the server point of view, the age of a ticket is the time difference
- * between the time when the server receives a proposition from the client
- * to use the ticket and the time when the ticket was created by the server.
- * The server age is expected to be always greater than the client one and
- * MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE defines the
- * maximum difference tolerated for the server to accept the ticket.
- * This is not used in TLS 1.2.
+ * Maximum allowed ticket age difference in milliseconds tolerated between
+ * server and client. Default value is 6000. This is not used in TLS 1.2.
  *
+ * - The client ticket age is the time difference between the time when the
+ *   client proposes to the server to use the ticket and the time the client
+ *   received the ticket from the server.
+ * - The server ticket age is the time difference between the time when the
+ *   server receives a proposition from the client to use the ticket and the
+ *   time when the ticket was created by the server.
+ *
+ * The ages might be different due to the client and server clocks not running
+ * at the same pace. The typical accuracy of an RTC crystal is ±100 to ±20 parts
+ * per million (360 to 72 milliseconds per hour). Default tolerance window is
+ * 6s, thus in the worst case clients and servers must sync up their system time
+ * every 6000/360/2~=8 hours.
+ *
+ * See section 8.3 of the TLS 1.3 specification(RFC 8446) for more information.
  */
 //#define MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE 6000
 

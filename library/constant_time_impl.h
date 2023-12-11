@@ -31,7 +31,7 @@
  * Disable -Wredundant-decls so that gcc does not warn about this. This is re-enabled
  * at the bottom of this file.
  */
-#ifdef __GNUC__
+#if defined(MBEDTLS_COMPILER_IS_GCC) && (__GNUC__ > 4)
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wredundant-decls"
 #endif
@@ -548,7 +548,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool_not(mbedtls_ct_condition_t 
     return (mbedtls_ct_condition_t) (~x);
 }
 
-#ifdef __GNUC__
+#if defined(MBEDTLS_COMPILER_IS_GCC) && (__GNUC__ > 4)
 /* Restore warnings for -Wredundant-decls on gcc */
     #pragma GCC diagnostic pop
 #endif

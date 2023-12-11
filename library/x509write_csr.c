@@ -185,7 +185,7 @@ static int x509write_csr_der_internal(mbedtls_x509write_csr *ctx,
                              MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC));
 
     MBEDTLS_ASN1_CHK_ADD(pub_len, mbedtls_pk_write_pubkey_der(ctx->key,
-                                                              buf, c - buf));
+                                                              buf, (size_t) (c - buf)));
     c -= pub_len;
     len += pub_len;
 
@@ -276,7 +276,7 @@ static int x509write_csr_der_internal(mbedtls_x509write_csr *ctx,
                              MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE));
 
     /* Zero the unused bytes at the start of buf */
-    memset(buf, 0, c2 - buf);
+    memset(buf, 0, (size_t) (c2 - buf));
 
     return (int) len;
 }

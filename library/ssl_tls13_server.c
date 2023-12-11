@@ -111,9 +111,10 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     unsigned char *ticket_buffer;
     unsigned int key_exchanges;
 #if defined(MBEDTLS_HAVE_TIME)
-    mbedtls_time_t now;
-    uint64_t age_in_s;
-    int64_t age_diff_in_ms;
+    mbedtls_ms_time_t now;
+    mbedtls_ms_time_t server_age;
+    uint32_t client_age;
+    mbedtls_ms_time_t age_diff;
 #endif
 
     ((void) obfuscated_ticket_age);
@@ -190,17 +191,17 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 
     ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
 #if defined(MBEDTLS_HAVE_TIME)
-    now = mbedtls_time(NULL);
+    now = mbedtls_ms_time();
 
-    if (now < session->start) {
+    if (now < session->ticket_creation_time) {
         MBEDTLS_SSL_DEBUG_MSG(
-            3, ("Invalid ticket start time ( now=%" MBEDTLS_PRINTF_LONGLONG
-                ", start=%" MBEDTLS_PRINTF_LONGLONG " )",
-                (long long) now, (long long) session->start));
+            3, ("Invalid ticket creation time ( now = %" MBEDTLS_PRINTF_MS_TIME
+                ", creation_time = %" MBEDTLS_PRINTF_MS_TIME " )",
+                now, session->ticket_creation_time));
         goto exit;
     }
 
-    age_in_s = (uint64_t) (now - session->start);
+    server_age = now - session->ticket_creation_time;
 
     /* RFC 8446 section 4.6.1
      *
@@ -211,12 +212,11 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      * Clients MUST NOT attempt to use tickets which have ages greater than
      * the "ticket_lifetime" value which was provided with the ticket.
      *
-     * For time being, the age MUST be less than 604800 seconds (7 days).
      */
-    if (age_in_s > 604800) {
+    if (server_age > MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME * 1000) {
         MBEDTLS_SSL_DEBUG_MSG(
-            3, ("Ticket age exceeds limitation ticket_age=%lu",
-                (long unsigned int) age_in_s));
+            3, ("Ticket age exceeds limitation ticket_age = %" MBEDTLS_PRINTF_MS_TIME,
+                server_age));
         goto exit;
     }
 
@@ -227,18 +227,19 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      * ticket_age_add from PskIdentity.obfuscated_ticket_age modulo 2^32) is
      * within a small tolerance of the time since the ticket was issued.
      *
-     * NOTE: When `now == session->start`, `age_diff_in_ms` may be negative
-     *       as the age units are different on the server (s) and in the
-     *       client (ms) side. Add a -1000 ms tolerance window to take this
-     *       into account.
+     * NOTE: The typical accuracy of an RTC crystal is ±100 to ±20 parts per
+     *       million (360 to 72 milliseconds per hour). Default tolerance
+     *       window is 6s, thus in the worst case clients and servers must
+     *       sync up their system time every 6000/360/2~=8 hours.
      */
-    age_diff_in_ms = age_in_s * 1000;
-    age_diff_in_ms -= (obfuscated_ticket_age - session->ticket_age_add);
-    if (age_diff_in_ms <= -1000 ||
-        age_diff_in_ms > MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE) {
+    client_age = obfuscated_ticket_age - session->ticket_age_add;
+    age_diff = server_age - (mbedtls_ms_time_t) client_age;
+    if (age_diff < -MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE ||
+        age_diff > MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE) {
         MBEDTLS_SSL_DEBUG_MSG(
-            3, ("Ticket age outside tolerance window ( diff=%d )",
-                (int) age_diff_in_ms));
+            3, ("Ticket age outside tolerance window ( diff = %"
+                MBEDTLS_PRINTF_MS_TIME ")",
+                age_diff));
         goto exit;
     }
 
@@ -2877,7 +2878,7 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> prepare NewSessionTicket msg"));
 
 #if defined(MBEDTLS_HAVE_TIME)
-    session->start = mbedtls_time(NULL);
+    session->ticket_creation_time = mbedtls_ms_time();
 #endif
 
     /* Set ticket_flags depends on the advertised psk key exchange mode */
@@ -3024,8 +3025,8 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
      *      MAY treat a ticket as valid for a shorter period of time than what
      *      is stated in the ticket_lifetime.
      */
-    if (ticket_lifetime > 604800) {
-        ticket_lifetime = 604800;
+    if (ticket_lifetime > MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME) {
+        ticket_lifetime = MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME;
     }
     MBEDTLS_PUT_UINT32_BE(ticket_lifetime, p, 0);
     MBEDTLS_SSL_DEBUG_MSG(3, ("ticket_lifetime: %u",

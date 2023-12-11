@@ -255,8 +255,7 @@ uint32_t mbedtls_ssl_get_extension_mask(unsigned int extension_type);
 #if defined(MBEDTLS_SSL_HAVE_CBC)      &&                                  \
     (defined(MBEDTLS_SSL_HAVE_AES)     ||                                  \
     defined(MBEDTLS_SSL_HAVE_CAMELLIA) ||                                  \
-    defined(MBEDTLS_SSL_HAVE_ARIA)     ||                                  \
-    defined(MBEDTLS_DES_C))
+    defined(MBEDTLS_SSL_HAVE_ARIA))
 #define MBEDTLS_SSL_SOME_SUITES_USE_CBC
 #endif
 
@@ -1410,7 +1409,7 @@ int mbedtls_ssl_fetch_input(mbedtls_ssl_context *ssl, size_t nb_want);
  * Write handshake message header
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
-int mbedtls_ssl_start_handshake_msg(mbedtls_ssl_context *ssl, unsigned hs_type,
+int mbedtls_ssl_start_handshake_msg(mbedtls_ssl_context *ssl, unsigned char hs_type,
                                     unsigned char **buf, size_t *buf_len);
 
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -2766,6 +2765,9 @@ int mbedtls_ssl_session_set_hostname(mbedtls_ssl_session *session,
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+
+#define MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME (604800)
+
 static inline unsigned int mbedtls_ssl_session_get_ticket_flags(
     mbedtls_ssl_session *session, unsigned int flags)
 {

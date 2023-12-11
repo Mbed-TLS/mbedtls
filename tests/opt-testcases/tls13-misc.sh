@@ -86,7 +86,7 @@ run_test "TLS 1.3 m->m: Session resumption failure, ticket authentication failed
          -S "key exchange mode: psk$" \
          -s "ticket is not authentic" \
          -S "ticket is expired" \
-         -S "Invalid ticket start time" \
+         -S "Invalid ticket creation time" \
          -S "Ticket age exceeds limitation" \
          -S "Ticket age outside tolerance window"
 
@@ -105,7 +105,7 @@ run_test "TLS 1.3 m->m: Session resumption failure, ticket expired." \
          -S "key exchange mode: psk$" \
          -S "ticket is not authentic" \
          -s "ticket is expired" \
-         -S "Invalid ticket start time" \
+         -S "Invalid ticket creation time" \
          -S "Ticket age exceeds limitation" \
          -S "Ticket age outside tolerance window"
 
@@ -124,7 +124,7 @@ run_test "TLS 1.3 m->m: Session resumption failure, invalid start time." \
          -S "key exchange mode: psk$" \
          -S "ticket is not authentic" \
          -S "ticket is expired" \
-         -s "Invalid ticket start time" \
+         -s "Invalid ticket creation time" \
          -S "Ticket age exceeds limitation" \
          -S "Ticket age outside tolerance window"
 
@@ -143,7 +143,7 @@ run_test "TLS 1.3 m->m: Session resumption failure, ticket expired. too old" \
          -S "key exchange mode: psk$" \
          -S "ticket is not authentic" \
          -S "ticket is expired" \
-         -S "Invalid ticket start time" \
+         -S "Invalid ticket creation time" \
          -s "Ticket age exceeds limitation" \
          -S "Ticket age outside tolerance window"
 
@@ -162,7 +162,7 @@ run_test "TLS 1.3 m->m: Session resumption failure, age outside tolerance window
          -S "key exchange mode: psk$" \
          -S "ticket is not authentic" \
          -S "ticket is expired" \
-         -S "Invalid ticket start time" \
+         -S "Invalid ticket creation time" \
          -S "Ticket age exceeds limitation" \
          -s "Ticket age outside tolerance window"
 
@@ -181,7 +181,7 @@ run_test "TLS 1.3 m->m: Session resumption failure, age outside tolerance window
          -S "key exchange mode: psk$" \
          -S "ticket is not authentic" \
          -S "ticket is expired" \
-         -S "Invalid ticket start time" \
+         -S "Invalid ticket creation time" \
          -S "Ticket age exceeds limitation" \
          -s "Ticket age outside tolerance window"
 

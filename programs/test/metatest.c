@@ -28,10 +28,12 @@
 
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
+#include <mbedtls/debug.h>
 #include <mbedtls/platform.h>
 #include <mbedtls/platform_util.h>
 #include "test/helpers.h"
 #include "test/macros.h"
+#include "test/memory.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -40,11 +42,22 @@
 #include <mbedtls/threading.h>
 #endif
 
+/* C99 feature missing from older versions of MSVC */
+#if (defined(_MSC_VER) && (_MSC_VER <= 1900))
+#define /*no-check-names*/ __func__ __FUNCTION__
+#endif
+
 
 /* This is an external variable, so the compiler doesn't know that we're never
  * changing its value.
  */
 volatile int false_but_the_compiler_does_not_know = 0;
+
+/* Hide calls to calloc/free from static checkers such as
+ * `gcc-12 -Wuse-after-free`, to avoid compile-time complaints about
+ * code where we do mean to cause a runtime error. */
+void * (* volatile calloc_but_the_compiler_does_not_know)(size_t, size_t) = mbedtls_calloc;
+void(*volatile free_but_the_compiler_does_not_know)(void *) = mbedtls_free;
 
 /* Set n bytes at the address p to all-bits-zero, in such a way that
  * the compiler should not know that p is all-bits-zero. */
@@ -52,6 +65,15 @@ static void set_to_zero_but_the_compiler_does_not_know(volatile void *p, size_t 
 {
     memset((void *) p, false_but_the_compiler_does_not_know, n);
 }
+
+/* Simulate an access to the given object, to avoid compiler optimizations
+ * in code that prepares or consumes the object. */
+static void do_nothing_with_object(void *p)
+{
+    (void) p;
+}
+void(*volatile do_nothing_with_object_but_the_compiler_does_not_know)(void *) =
+    do_nothing_with_object;
 
 
 /****************************************************************/
@@ -98,9 +120,9 @@ void null_pointer_call(const char *name)
 void read_after_free(const char *name)
 {
     (void) name;
-    volatile char *p = mbedtls_calloc(1, 1);
+    volatile char *p = calloc_but_the_compiler_does_not_know(1, 1);
     *p = 'a';
-    mbedtls_free((void *) p);
+    free_but_the_compiler_does_not_know((void *) p);
     /* Undefined behavior (read after free) */
     mbedtls_printf("%u\n", (unsigned) *p);
 }
@@ -108,11 +130,11 @@ void read_after_free(const char *name)
 void double_free(const char *name)
 {
     (void) name;
-    volatile char *p = mbedtls_calloc(1, 1);
+    volatile char *p = calloc_but_the_compiler_does_not_know(1, 1);
     *p = 'a';
-    mbedtls_free((void *) p);
+    free_but_the_compiler_does_not_know((void *) p);
     /* Undefined behavior (double free) */
-    mbedtls_free((void *) p);
+    free_but_the_compiler_does_not_know((void *) p);
 }
 
 void read_uninitialized_stack(const char *name)
@@ -132,9 +154,68 @@ void read_uninitialized_stack(const char *name)
 void memory_leak(const char *name)
 {
     (void) name;
-    volatile char *p = mbedtls_calloc(1, 1);
+    volatile char *p = calloc_but_the_compiler_does_not_know(1, 1);
     mbedtls_printf("%u\n", (unsigned) *p);
     /* Leak of a heap object */
+}
+
+/* name = "test_memory_poison_%(start)_%(offset)_%(count)_%(direction)"
+ * Poison a region starting at start from an 8-byte aligned origin,
+ * encompassing count bytes. Access the region at offset from the start.
+ * %(start), %(offset) and %(count) are decimal integers.
+ * %(direction) is either the character 'r' for read or 'w' for write.
+ */
+void test_memory_poison(const char *name)
+{
+    size_t start = 0, offset = 0, count = 0;
+    char direction = 'r';
+    if (sscanf(name,
+               "%*[^0-9]%" MBEDTLS_PRINTF_SIZET
+               "%*[^0-9]%" MBEDTLS_PRINTF_SIZET
+               "%*[^0-9]%" MBEDTLS_PRINTF_SIZET
+               "_%c",
+               &start, &offset, &count, &direction) != 4) {
+        mbedtls_fprintf(stderr, "%s: Bad name format: %s\n", __func__, name);
+        return;
+    }
+
+    union {
+        long long ll;
+        unsigned char buf[32];
+    } aligned;
+    memset(aligned.buf, 'a', sizeof(aligned.buf));
+
+    if (start > sizeof(aligned.buf)) {
+        mbedtls_fprintf(stderr,
+                        "%s: start=%" MBEDTLS_PRINTF_SIZET
+                        " > size=%" MBEDTLS_PRINTF_SIZET,
+                        __func__, start, sizeof(aligned.buf));
+        return;
+    }
+    if (start + count > sizeof(aligned.buf)) {
+        mbedtls_fprintf(stderr,
+                        "%s: start+count=%" MBEDTLS_PRINTF_SIZET
+                        " > size=%" MBEDTLS_PRINTF_SIZET,
+                        __func__, start + count, sizeof(aligned.buf));
+        return;
+    }
+    if (offset >= count) {
+        mbedtls_fprintf(stderr,
+                        "%s: offset=%" MBEDTLS_PRINTF_SIZET
+                        " >= count=%" MBEDTLS_PRINTF_SIZET,
+                        __func__, offset, count);
+        return;
+    }
+
+    MBEDTLS_TEST_MEMORY_POISON(aligned.buf + start, count);
+
+    if (direction == 'w') {
+        aligned.buf[start + offset] = 'b';
+        do_nothing_with_object_but_the_compiler_does_not_know(aligned.buf);
+    } else {
+        do_nothing_with_object_but_the_compiler_does_not_know(aligned.buf);
+        mbedtls_printf("%u\n", (unsigned) aligned.buf[start + offset]);
+    }
 }
 
 
@@ -285,6 +366,22 @@ metatest_t metatests[] = {
     { "double_free", "asan", double_free },
     { "read_uninitialized_stack", "msan", read_uninitialized_stack },
     { "memory_leak", "asan", memory_leak },
+    { "test_memory_poison_0_0_8_r", "asan", test_memory_poison },
+    { "test_memory_poison_0_0_8_w", "asan", test_memory_poison },
+    { "test_memory_poison_0_7_8_r", "asan", test_memory_poison },
+    { "test_memory_poison_0_7_8_w", "asan", test_memory_poison },
+    { "test_memory_poison_0_0_1_r", "asan", test_memory_poison },
+    { "test_memory_poison_0_0_1_w", "asan", test_memory_poison },
+    { "test_memory_poison_0_1_2_r", "asan", test_memory_poison },
+    { "test_memory_poison_0_1_2_w", "asan", test_memory_poison },
+    { "test_memory_poison_7_0_8_r", "asan", test_memory_poison },
+    { "test_memory_poison_7_0_8_w", "asan", test_memory_poison },
+    { "test_memory_poison_7_7_8_r", "asan", test_memory_poison },
+    { "test_memory_poison_7_7_8_w", "asan", test_memory_poison },
+    { "test_memory_poison_7_0_1_r", "asan", test_memory_poison },
+    { "test_memory_poison_7_0_1_w", "asan", test_memory_poison },
+    { "test_memory_poison_7_1_2_r", "asan", test_memory_poison },
+    { "test_memory_poison_7_1_2_w", "asan", test_memory_poison },
     { "mutex_lock_not_initialized", "pthread", mutex_lock_not_initialized },
     { "mutex_unlock_not_initialized", "pthread", mutex_unlock_not_initialized },
     { "mutex_free_not_initialized", "pthread", mutex_free_not_initialized },

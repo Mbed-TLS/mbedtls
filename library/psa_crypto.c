@@ -156,16 +156,18 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
  * - <output>_copy was previously allocated by psa_crypto_local_output_alloc()
  * - <output> points to <output>_copy.buffer
  * - psa_status_t status exists
+ * - The name <output>_local_output_status is not used for the given value of
+ *   <output>
  */
 #define FREE_LOCAL_OUTPUT(output) \
     output = NULL; \
-    psa_status_t local_output_free_status; \
-    local_output_free_status = psa_crypto_local_output_free(&output ## _copy); \
-    if (local_output_free_status != PSA_SUCCESS) { \
+    psa_status_t output ## _local_output_status; \
+    output ## _local_output_status = psa_crypto_local_output_free(&output ## _copy); \
+    if (output ## _local_output_status != PSA_SUCCESS) { \
         /* Since this error case is an internal error, it's more serious than \
          * any existing error code and so it's fine to overwrite the existing \
          * status. */ \
-        status = local_output_free_status; \
+        status = output ## _local_output_status; \
     }
 #else /* MBEDTLS_PSA_COPY_CALLER_BUFFERS */
 #define SWAP_FOR_LOCAL_INPUT(input, length)

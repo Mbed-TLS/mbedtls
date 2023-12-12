@@ -427,7 +427,7 @@ The PSA API does have a direct interface for the AES-CMAC-PRF-128 from RFC 4615 
 
 ### Hash mechanism selection
 
-The equivalent to `mbedtls_md_type_t` and `MBEDTLS_MD` constants is the type `psa_algorithm_t` and `PSA_ALG_xxx` constants (the type encompasses all categories of cryptographic algorithms, not just hashes). PSA offers a similar selection of algorithms, but note that SHA-1 and SHA-2 are spelled slightly differently.
+The equivalent to `mbedtls_md_type_t` and `MBEDTLS_MD_XXX` constants is the type `psa_algorithm_t` and `PSA_ALG_xxx` constants (the type encompasses all categories of cryptographic algorithms, not just hashes). PSA offers a similar selection of algorithms, but note that SHA-1 and SHA-2 are spelled slightly differently.
 
 | Mbed TLS constant      | PSA constant        |
 | ---------------------- | ------------------- |
@@ -574,7 +574,7 @@ To verify a MAC against an expected value, use the following process instead:
 
 If you need to interrupt the operation after calling the setup function without calling the finish function, call [`psa_mac_abort`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group___m_a_c/#group___m_a_c_1gacd8dd54855ba1bc0a03f104f252884fd).
 
-The PSA API also offers functions for a one-shot MAC calculation, similar to `mbedtls_cipher_cmac`:
+The PSA API also offers functions for a one-shot MAC calculation, similar to `mbedtls_cipher_cmac` and `mbedtls_md_hmac`:
 
 * [`psa_mac_compute`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group___m_a_c/#group___m_a_c_1gabf02ebd3595ea15436967092b5d52878) to calculate the MAC of a buffer in memory.
 * [`psa_mac_verify`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group___m_a_c/#group___m_a_c_1gaf6988545df5d5e2466c34d753443b15a) to verify the MAC of a buffer in memory against an expected value.

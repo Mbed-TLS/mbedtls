@@ -52,6 +52,10 @@ typedef struct {
 extern const mbedtls_error_pair_t psa_to_md_errors[4];
 #endif
 
+#if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
+extern const mbedtls_error_pair_t psa_to_cipher_errors[4];
+#endif
+
 #if defined(MBEDTLS_LMS_C)
 extern const mbedtls_error_pair_t psa_to_lms_errors[3];
 #endif

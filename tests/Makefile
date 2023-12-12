@@ -112,7 +112,7 @@ all: $(BINARIES)
 
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
-TEST_OBJS_DEPS = $(wildcard include/test/*.h include/test/*/*.h)
+TEST_OBJS_DEPS = $(wildcard include/test/*.h include/test/*/*.h framework/include/test/*.h)
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 # Explicitly depend on this header because on a clean copy of the source tree,
 # it doesn't exist yet and must be generated as part of the build, and
@@ -130,6 +130,10 @@ src/drivers/%.o : src/drivers/%.c
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
 src/test_helpers/%.o : src/test_helpers/%.c
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
+
+framework/src/%.o : framework/src/%.c $(TEST_OBJS_DEPS)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
@@ -170,6 +174,7 @@ clean:
 ifndef WINDOWS
 	rm -rf $(BINARIES) *.c *.datax
 	rm -f src/*.o src/drivers/*.o src/test_helpers/*.o src/libmbed*
+	rm -f framework/src/*.o
 	rm -f include/test/instrument_record_status.h
 	rm -f include/alt-extra/*/*_alt.h
 	rm -rf libtestdriver1
@@ -182,6 +187,7 @@ else
 	if exist src/drivers/*.o del /Q /F src/drivers/*.o
 	if exist src/test_helpers/*.o del /Q /F src/test_helpers/*.o
 	if exist src/libmbed* del /Q /F src/libmed*
+	if exist framework/src/*.o del /Q /F framework/src/*.o
 	if exist include/test/instrument_record_status.h del /Q /F include/test/instrument_record_status.h
 endif
 

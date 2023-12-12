@@ -1,9 +1,9 @@
-MBEDTLS_TEST_PATH:=../../tests/src
-MBEDTLS_TEST_OBJS:=$(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/*.c ${MBEDTLS_TEST_PATH}/drivers/*.c))
+MBEDTLS_TEST_PATH:=../../tests
+MBEDTLS_TEST_OBJS:=$(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/src/*.c ${MBEDTLS_TEST_PATH}/src/drivers/*.c) ${MBEDTLS_TEST_PATH}/framework/src/*.c)
 
 CFLAGS ?= -O2
 WARNING_CFLAGS ?= -Wall -Wextra
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../../tests/include -I../../include -D_FILE_OFFSET_BITS=64
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I${MBEDTLS_TEST_PATH}/include -I${MBEDTLS_TEST_PATH}/framework/include -I../../include -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS = ${MBEDTLS_TEST_OBJS}		\
 		-L../../library			\
 		-lmbedtls$(SHARED_SUFFIX)	\

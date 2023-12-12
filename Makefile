@@ -184,6 +184,8 @@ C_SOURCE_FILES = $(wildcard \
 	include/*/*.h \
 	library/*.[hc] \
 	programs/*/*.[hc] \
+	tests/framework/include/*/*.h \
+	tests/framework/src/*.c tests/framework/src/*/*.c \
 	tests/include/*/*.h tests/include/*/*/*.h \
 	tests/src/*.c tests/src/*/*.c \
 	tests/suites/*.function \

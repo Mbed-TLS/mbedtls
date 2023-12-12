@@ -5,8 +5,8 @@ WARNING_CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 WARNING_CXXFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
 
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I$(MBEDTLS_TEST_PATH)/include -I../include -D_FILE_OFFSET_BITS=64
-LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) -I../include -I../tests/include -D_FILE_OFFSET_BITS=64
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I$(MBEDTLS_TEST_PATH)/include -I$(MBEDTLS_TEST_PATH)/framework/include -I../include -D_FILE_OFFSET_BITS=64
+LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) -I$(MBEDTLS_TEST_PATH)/include -I$(MBEDTLS_TEST_PATH)/framework/include -I../include -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS = ${MBEDTLS_TEST_OBJS} 		\
 		-L../library			\
 		-lmbedtls$(SHARED_SUFFIX)	\
@@ -110,6 +110,7 @@ endif
 MBEDTLS_CORE_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard \
     ${MBEDTLS_TEST_PATH}/src/*.c \
     ${MBEDTLS_TEST_PATH}/src/drivers/*.c \
+    ${MBEDTLS_TEST_PATH}/framework/src/*.c \
   ))
 # Additional auxiliary modules for TLS testing
 MBEDTLS_TLS_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard \

@@ -165,6 +165,56 @@
 
 #endif /* MBEDTLS_MD_LIGHT */
 
+/* BLOCK_CIPHER module can dispatch to PSA when:
+ * - PSA is enabled and drivers have been initialized
+ * - desired key type is supported on the PSA side
+ * If the above conditions are not met, but the legacy support is enabled, then
+ * BLOCK_CIPHER will dinamically fallback to it.
+ */
+#if defined(MBEDTLS_BLOCK_CIPHER_C)
+
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
+#define MBEDTLS_BLOCK_CIPHER_AES_VIA_PSA
+#define MBEDTLS_BLOCK_CIPHER_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ARIA)
+#define MBEDTLS_BLOCK_CIPHER_ARIA_VIA_PSA
+#define MBEDTLS_BLOCK_CIPHER_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_CAMELLIA)
+#define MBEDTLS_BLOCK_CIPHER_CAMELLIA_VIA_PSA
+#define MBEDTLS_BLOCK_CIPHER_SOME_PSA
+#endif
+#endif /* MBEDTLS_PSA_CRYPTO_C */
+
+#if defined(MBEDTLS_AES_C)
+#define MBEDTLS_BLOCK_CIPHER_AES_VIA_LEGACY
+#endif
+#if defined(MBEDTLS_ARIA_C)
+#define MBEDTLS_BLOCK_CIPHER_ARIA_VIA_LEGACY
+#endif
+#if defined(MBEDTLS_CAMELLIA_C)
+#define MBEDTLS_BLOCK_CIPHER_CAMELLIA_VIA_LEGACY
+#endif
+
+#endif /* MBEDTLS_BLOCK_CIPHER_C */
+
+/* Generic helpers to state that BLOCK_CIPHER module supports AES, ARIA and/or
+ * Camellia block ciphers via either PSA or legacy. */
+#if defined(MBEDTLS_BLOCK_CIPHER_AES_VIA_PSA) || \
+    defined(MBEDTLS_BLOCK_CIPHER_AES_VIA_LEGACY)
+#define MBEDTLS_BLOCK_CIPHER_CAN_AES
+#endif
+#if defined(MBEDTLS_BLOCK_CIPHER_ARIA_VIA_PSA) || \
+    defined(MBEDTLS_BLOCK_CIPHER_ARIA_VIA_LEGACY)
+#define MBEDTLS_BLOCK_CIPHER_CAN_ARIA
+#endif
+#if defined(MBEDTLS_BLOCK_CIPHER_CAMELLIA_VIA_PSA) || \
+    defined(MBEDTLS_BLOCK_CIPHER_CAMELLIA_VIA_LEGACY)
+#define MBEDTLS_BLOCK_CIPHER_CAN_CAMELLIA
+#endif
+
 /* MBEDTLS_ECP_LIGHT is auto-enabled by the following symbols:
  * - MBEDTLS_ECP_C because now it consists of MBEDTLS_ECP_LIGHT plus functions
  *   for curve arithmetic. As a consequence if MBEDTLS_ECP_C is required for

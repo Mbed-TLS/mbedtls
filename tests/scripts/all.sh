@@ -3824,6 +3824,61 @@ component_test_psa_crypto_config_reference_cipher_aead () {
     tests/compat.sh -V NO -p mbedTLS
 }
 
+component_test_full_block_cipher_psa_dispatch () {
+    msg "build: full + PSA dispatch in block_cipher"
+
+    loc_accel_list="ALG_ECB_NO_PADDING \
+                    KEY_TYPE_AES KEY_TYPE_ARIA KEY_TYPE_CAMELLIA"
+
+    # Configure
+    # ---------
+
+    # Start from the full config
+    helper_libtestdriver1_adjust_config "full"
+
+    # Disable CCM/GCM support in PSA as we are testing dispatching of legacy
+    # modules (GCM_C/CCM_C through BLOCK_CIPHER_C) to PSA.
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_GCM
+
+    # Disable CIPHER_C because we want legacy GCM_C/CCM_C to use BLOCK_CIPHER_C.
+    scripts/config.py unset MBEDTLS_CIPHER_C
+
+    # Disable unauthenticated ciphers which are not accelerated in this
+    # test component because their builtin support depends on CIPHER_C.
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CMAC
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CFB
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CTR
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_OFB
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_XTS
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_STREAM_CIPHER
+
+    # Disable remaining direct dependencies on CIPHER_C.
+    scripts/config.py unset MBEDTLS_PKCS5_C
+    scripts/config.py unset MBEDTLS_PKCS12_C
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+    scripts/config.py unset MBEDTLS_CMAC_C
+
+    # Build
+    # -----
+
+    helper_libtestdriver1_make_drivers "$loc_accel_list"
+
+    helper_libtestdriver1_make_main "$loc_accel_list"
+
+    # Make sure cipher was not re-enabled by accident (additive config)
+    not grep mbedtls_cipher library/cipher.o
+
+    # Run the tests
+    # -------------
+
+    msg "test: full + PSA dispatch in block_cipher"
+    make test
+}
+
 component_test_aead_chachapoly_disabled() {
     msg "build: full minus CHACHAPOLY"
     scripts/config.py full

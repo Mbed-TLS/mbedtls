@@ -955,37 +955,34 @@ static int pk_ecdsa_sig_asn1_from_psa(unsigned char *sig, size_t *sig_len,
     return 0;
 }
 
-/* Common helper for ECDSA sign using PSA functions. */
+/* Common helper for ECDSA sign using PSA functions.
+ * Instead of extracting key's properties in order to check which kind of ECDSA
+ * signature it supports, we try both deterministic and non-deterministic.
+ */
 static int ecdsa_sign_psa(mbedtls_svc_key_id_t key_id, mbedtls_md_type_t md_alg,
                           const unsigned char *hash, size_t hash_len,
                           unsigned char *sig, size_t sig_size, size_t *sig_len)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_status_t status;
-    psa_algorithm_t psa_sig_md;
-    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
-    psa_algorithm_t alg, alg2;
 
-    status = psa_get_key_attributes(key_id, &key_attr);
-    if (status != PSA_SUCCESS) {
+    status = psa_sign_hash(key_id,
+                           PSA_ALG_DETERMINISTIC_ECDSA(mbedtls_md_psa_alg_from_type(md_alg)),
+                           hash, hash_len, sig, sig_size, sig_len);
+    if (status == PSA_SUCCESS) {
+        goto done;
+    } else if (status != PSA_ERROR_NOT_PERMITTED) {
         return PSA_PK_ECDSA_TO_MBEDTLS_ERR(status);
     }
-    alg = psa_get_key_algorithm(&key_attr);
-    alg2 = psa_get_key_enrollment_algorithm(&key_attr);
-    psa_reset_key_attributes(&key_attr);
 
-    if (PSA_ALG_IS_DETERMINISTIC_ECDSA(alg) || PSA_ALG_IS_DETERMINISTIC_ECDSA(alg2)) {
-        psa_sig_md = PSA_ALG_DETERMINISTIC_ECDSA(mbedtls_md_psa_alg_from_type(md_alg));
-    } else {
-        psa_sig_md = PSA_ALG_ECDSA(mbedtls_md_psa_alg_from_type(md_alg));
-    }
-
-    status = psa_sign_hash(key_id, psa_sig_md, hash, hash_len,
-                           sig, sig_size, sig_len);
+    status = psa_sign_hash(key_id,
+                           PSA_ALG_ECDSA(mbedtls_md_psa_alg_from_type(md_alg)),
+                           hash, hash_len, sig, sig_size, sig_len);
     if (status != PSA_SUCCESS) {
         return PSA_PK_ECDSA_TO_MBEDTLS_ERR(status);
     }
 
+done:
     ret = pk_ecdsa_sig_asn1_from_psa(sig, sig_len, sig_size);
 
     return ret;

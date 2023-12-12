@@ -423,7 +423,7 @@ There is no equivalent for the `mbedtls_cipher_get_xxx` functions to extract inf
 
 The PSA API groups functions by purpose rather than by underlying primitive: there is a MAC API (equivalent to `md.h` for HMAC, and `cmac.h` for CMAC) and a hash API (equivalent to `md.h` for hashing). There is no special API for a particular hash algorithm (`md5.h`, `sha1.h`, `sha256.h`, `sha512.h`, `sha3.h`). To migrate code using those low-level modules, please follow the recommendations in the following section, using the same principles as the corresponding `md.h` API.
 
-The PSA API does have a direct interface for the AES-CMAC-PRF-128 from RFC 4615 at the time of writing. You can calculate it using the interface to AES-CMAC.
+The PSA API does not have a direct interface for the AES-CMAC-PRF-128 algorithm from RFC 4615 calculated by `mbedtls_aes_cmac_prf_128` at the time of writing. You can implement it using the MAC interface with an AES key and the CMAC algorithm.
 
 ### Hash mechanism selection
 

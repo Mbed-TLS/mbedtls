@@ -97,6 +97,7 @@ exit:
 void block_cipher_psa_dynamic_dispatch(int cipher_type, int pre_psa_ret, int post_psa_engine)
 {
     mbedtls_block_cipher_context_t ctx;
+    (void) post_psa_engine;
 
     /* Intentionally no PSA init here! (Will be done later.) */
 

@@ -131,7 +131,7 @@ int mbedtls_block_cipher_setkey(mbedtls_block_cipher_context_t *ctx,
         psa_set_key_algorithm(&key_attr, PSA_ALG_ECB_NO_PADDING);
         psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_ENCRYPT);
 
-        status = psa_import_key(&key_attr, key, key_bitlen/8, &ctx->psa_key_id);
+        status = psa_import_key(&key_attr, key, PSA_BITS_TO_BYTES(key_bitlen), &ctx->psa_key_id);
         if (status != PSA_SUCCESS) {
             return mbedtls_cipher_error_from_psa(status);
         }

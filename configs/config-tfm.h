@@ -45,6 +45,11 @@
 #undef MBEDTLS_PLATFORM_STD_EXIT_SUCCESS
 #undef MBEDTLS_PLATFORM_STD_EXIT_FAILURE
 
+/* CCM is the only cipher/AEAD enabled in TF-M configuration files, but it
+ * does not need CIPHER_C to be enabled, so we can disable it in order
+ * to reduce code size further. */
+#undef MBEDTLS_CIPHER_C
+
 /*
  * In order to get an example config that works cleanly out-of-the-box
  * for both baremetal and non-baremetal builds, we detect baremetal builds

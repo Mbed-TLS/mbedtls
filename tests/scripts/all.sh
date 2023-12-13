@@ -3265,6 +3265,10 @@ component_test_tfm_config_p256m_driver_accel_ec () {
     # Check that p256m was built
     grep -q p256_ecdsa_ library/libmbedcrypto.a
 
+    # In "config-tfm.h" we disabled CIPHER_C tweaking TF-M's configuration
+    # files, so we want to ensure that it has not be re-enabled accidentally.
+    not grep mbedtls_cipher library/cipher.o
+
     # Run the tests
     msg "test: TF-M config + p256m driver + accel ECDH(E)/ECDSA"
     make test
@@ -3285,6 +3289,10 @@ component_test_tfm_config() {
 
     # Check that p256m was not built
     not grep p256_ecdsa_ library/libmbedcrypto.a
+
+    # In "config-tfm.h" we disabled CIPHER_C tweaking TF-M's configuration
+    # files, so we want to ensure that it has not be re-enabled accidentally.
+    not grep mbedtls_cipher library/cipher.o
 
     msg "test: TF-M config"
     make test

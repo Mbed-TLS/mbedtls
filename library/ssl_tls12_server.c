@@ -2597,12 +2597,12 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
     mbedtls_pk_context *pk;
     mbedtls_pk_type_t pk_type;
     psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    unsigned char buf[PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
+    size_t key_len;
 #if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     uint16_t tls_id = 0;
     psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
-    size_t key_len;
     mbedtls_ecp_group_id grp_id;
-    unsigned char buf[PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
     mbedtls_ecp_keypair *key;
 #endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
 
@@ -2625,22 +2625,51 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
                 return MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
             }
 
-            ssl->handshake->xxdh_psa_privkey = pk->priv_id;
-
-            /* Key should not be destroyed in the TLS library */
-            ssl->handshake->xxdh_psa_privkey_is_external = 1;
-
-            status = psa_get_key_attributes(ssl->handshake->xxdh_psa_privkey,
-                                            &key_attributes);
+            /* Get the attributes of the key previously parsed by PK module in
+             * order to extract its type and length (in bits). */
+            status = psa_get_key_attributes(pk->priv_id, &key_attributes);
             if (status != PSA_SUCCESS) {
-                ssl->handshake->xxdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
-                return PSA_TO_MBEDTLS_ERR(status);
+                ret = PSA_TO_MBEDTLS_ERR(status);
+                goto exit;
             }
-
             ssl->handshake->xxdh_psa_type = psa_get_key_type(&key_attributes);
             ssl->handshake->xxdh_psa_bits = psa_get_key_bits(&key_attributes);
 
-            psa_reset_key_attributes(&key_attributes);
+            if (pk_type == MBEDTLS_PK_OPAQUE) {
+                /* Opaque key is created by the user (externally from Mbed TLS)
+                 * so we assume it already has the right algorithm and flags
+                 * set. Just copy its ID as reference. */
+                ssl->handshake->xxdh_psa_privkey = pk->priv_id;
+                ssl->handshake->xxdh_psa_privkey_is_external = 1;
+            } else {
+                /* PK_ECKEY[_DH] and PK_ECDSA instead as parsed from the PK
+                 * module and only have ECDSA capabilities. Since we need
+                 * them for ECDH later, we export and then re-import them with
+                 * proper flags and algorithm. Of course We also set key's type
+                 * and bits that we just got above. */
+                key_attributes = psa_key_attributes_init();
+                psa_set_key_usage_flags(&key_attributes, PSA_KEY_USAGE_DERIVE);
+                psa_set_key_algorithm(&key_attributes, PSA_ALG_ECDH);
+                psa_set_key_type(&key_attributes,
+                                 PSA_KEY_TYPE_ECC_KEY_PAIR(ssl->handshake->xxdh_psa_type));
+                psa_set_key_bits(&key_attributes, ssl->handshake->xxdh_psa_bits);
+
+                status = psa_export_key(pk->priv_id, buf, sizeof(buf), &key_len);
+                if (status != PSA_SUCCESS) {
+                    ret = PSA_TO_MBEDTLS_ERR(status);
+                    goto exit;
+                }
+                status = psa_import_key(&key_attributes, buf, key_len,
+                                        &ssl->handshake->xxdh_psa_privkey);
+                if (status != PSA_SUCCESS) {
+                    ret = PSA_TO_MBEDTLS_ERR(status);
+                    goto exit;
+                }
+
+                /* Set this key as owned by the TLS library: it will be its duty
+                 * to clear it exit. */
+                ssl->handshake->xxdh_psa_privkey_is_external = 0;
+            }
 
             ret = 0;
             break;
@@ -2695,6 +2724,10 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         default:
             ret = MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
     }
+
+exit:
+    psa_reset_key_attributes(&key_attributes);
+    mbedtls_platform_zeroize(buf, sizeof(buf));
 
     return ret;
 }

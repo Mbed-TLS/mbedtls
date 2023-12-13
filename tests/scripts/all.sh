@@ -3836,11 +3836,6 @@ component_test_full_block_cipher_psa_dispatch () {
     # Start from the full config
     helper_libtestdriver1_adjust_config "full"
 
-    # Disable CCM/GCM support in PSA as we are testing dispatching of legacy
-    # modules (GCM_C/CCM_C through BLOCK_CIPHER_C) to PSA.
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
-    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_GCM
-
     # Disable CIPHER_C because we want legacy GCM_C/CCM_C to use BLOCK_CIPHER_C.
     scripts/config.py unset MBEDTLS_CIPHER_C
 

@@ -169,7 +169,7 @@
  * - PSA is enabled and drivers have been initialized
  * - desired key type is supported on the PSA side
  * If the above conditions are not met, but the legacy support is enabled, then
- * BLOCK_CIPHER will dinamically fallback to it.
+ * BLOCK_CIPHER will dynamically fallback to it.
  */
 #if defined(MBEDTLS_BLOCK_CIPHER_C)
 

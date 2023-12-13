@@ -12,8 +12,8 @@
 #include "common.h"
 
 #if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
-#include "psa_crypto_core.h"
 #include "psa/crypto.h"
+#include "psa_crypto_core.h"
 #include "psa_util_internal.h"
 #endif
 
@@ -53,7 +53,6 @@ void mbedtls_block_cipher_free(mbedtls_block_cipher_context_t *ctx)
 {
 #if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
     if (ctx->engine == MBEDTLS_BLOCK_CIPHER_ENGINE_PSA) {
-        psa_cipher_abort(&ctx->psa_operation);
         psa_destroy_key(ctx->psa_key_id);
         return;
     }
@@ -137,12 +136,6 @@ int mbedtls_block_cipher_setkey(mbedtls_block_cipher_context_t *ctx,
             return mbedtls_cipher_error_from_psa(status);
         }
         psa_reset_key_attributes(&key_attr);
-
-        status = psa_cipher_encrypt_setup(&ctx->psa_operation, ctx->psa_key_id,
-                                          PSA_ALG_ECB_NO_PADDING);
-        if (status != PSA_SUCCESS) {
-            return mbedtls_cipher_error_from_psa(status);
-        }
 
         return 0;
     }

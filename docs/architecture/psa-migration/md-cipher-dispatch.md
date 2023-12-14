@@ -358,7 +358,7 @@ The two AEAD modes, GCM and CCM, have very similar needs and positions in the st
 - CTR-DRBG holds a special position in the stack: most users don't care about it per se, they only care about getting random numbers - in fact PSA users don't even need to know what DRBG is used. In particular, no part of the stack is asking questions like "is CTR-DRBG-AES available?" - an RNG needs to be available and that's it - contrary to similar questions about AES-GCM etc. which are asked for example by TLS.
 
 So, it makes sense to use different designs for CTR-DRBG on one hand, and GCM/CCM on the other hand:
-- CTR-DRBG can just check if `AES_C` is present and "fall back" to PSA is not.
+- CTR-DRBG can just check if `AES_C` is present and "fall back" to PSA if not.
 - GCM and CCM need an common abstraction layer that allows:
   - Using AES, Aria or Camellia in a uniform way.
   - Dispatching to built-in or driver.
@@ -379,7 +379,7 @@ Those costs could be avoided by refactoring (parts of) Cipher, but that would pr
 - significant differences in how the `cipher.h` API is implemented between builds with the full Cipher or only a subset;
 - or more work to apply the simplifications to all of Cipher.
 
-Prototyping both approaches showed better code size savings and cleaner code with a new internal module.
+Prototyping both approaches showed better code size savings and cleaner code with a new internal module (see section "Internal "block cipher" abstraction (Cipher light)" below).
 
 ## Specification
 

@@ -917,7 +917,6 @@ int mbedtls_ssl_encrypt_buf(mbedtls_ssl_context *ssl,
 #endif
     size_t add_data_len;
     size_t post_avail;
-    int max_out_record_len = mbedtls_ssl_get_max_out_record_payload(ssl);
 
     /* The SSL context is only used for debugging purposes! */
 #if !defined(MBEDTLS_DEBUG_C)
@@ -958,11 +957,11 @@ int mbedtls_ssl_encrypt_buf(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF(4, "before encrypt: output payload",
                           data, rec->data_len);
 
-    if (rec->data_len > (size_t) max_out_record_len) {
+    if (rec->data_len > MBEDTLS_SSL_OUT_CONTENT_LEN) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("Record content %" MBEDTLS_PRINTF_SIZET
                                   " too large, maximum %" MBEDTLS_PRINTF_SIZET,
                                   rec->data_len,
-                                  (size_t) max_out_record_len));
+                                  (size_t) MBEDTLS_SSL_OUT_CONTENT_LEN));
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
@@ -2743,7 +2742,7 @@ int mbedtls_ssl_start_handshake_msg(mbedtls_ssl_context *ssl, unsigned char hs_t
      *    ...
      */
     *buf = ssl->out_msg + 4;
-    *buf_len = mbedtls_ssl_get_max_out_record_payload(ssl) - 4;
+    *buf_len = MBEDTLS_SSL_OUT_CONTENT_LEN - 4;
 
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = hs_type;
@@ -2780,7 +2779,6 @@ int mbedtls_ssl_write_handshake_msg_ext(mbedtls_ssl_context *ssl,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const size_t hs_len = ssl->out_msglen - 4;
     const unsigned char hs_type = ssl->out_msg[0];
-    int max_out_record_len = mbedtls_ssl_get_max_out_record_payload(ssl);
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write handshake message"));
 
@@ -2819,12 +2817,12 @@ int mbedtls_ssl_write_handshake_msg_ext(mbedtls_ssl_context *ssl,
      *
      * Note: We deliberately do not check for the MTU or MFL here.
      */
-    if (ssl->out_msglen > (size_t) max_out_record_len) {
+    if (ssl->out_msglen > MBEDTLS_SSL_OUT_CONTENT_LEN) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("Record too large: "
                                   "size %" MBEDTLS_PRINTF_SIZET
                                   ", maximum %" MBEDTLS_PRINTF_SIZET,
                                   ssl->out_msglen,
-                                  (size_t) max_out_record_len));
+                                  (size_t) MBEDTLS_SSL_OUT_CONTENT_LEN));
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 

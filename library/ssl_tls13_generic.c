@@ -1376,14 +1376,13 @@ static int ssl_tls13_write_change_cipher_spec_body(mbedtls_ssl_context *ssl,
 int mbedtls_ssl_tls13_write_change_cipher_spec(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    int max_out_record_len = mbedtls_ssl_get_max_out_record_payload(ssl);
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write change cipher spec"));
 
     /* Write CCS message */
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_write_change_cipher_spec_body(
                              ssl, ssl->out_msg,
-                             ssl->out_msg + max_out_record_len,
+                             ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN,
                              &ssl->out_msglen));
 
     ssl->out_msgtype = MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC;

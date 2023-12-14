@@ -4883,8 +4883,7 @@ run_test    "Record Size Limit: TLS 1.3: Client-side parsing and debug output" \
 
 # Currently test certificates being used do not fit in 513 record size limit
 # so 513 record size limit tests will not pass until certificates size
-# is reduced.
-# TODO: use smaller certificates in during MbedTLS TLS 1.3 server testing.
+# is reduced or handshake messages fragmentation is supported.
 
 # requires_gnutls_tls1_3
 # requires_gnutls_record_size_limit

@@ -30,11 +30,8 @@
 #include "pkwrite.h"
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
-#include "psa_util_internal.h"
-#endif
-
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa_util_internal.h"
 #include "psa/crypto.h"
 
 #if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
@@ -48,123 +45,6 @@
 #include <limits.h>
 #include <stdint.h>
 #include <string.h>
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-#if defined(MBEDTLS_PSA_CRYPTO_C)
-int mbedtls_pk_error_from_psa(psa_status_t status)
-{
-    switch (status) {
-        case PSA_SUCCESS:
-            return 0;
-        case PSA_ERROR_INVALID_HANDLE:
-            return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
-        case PSA_ERROR_NOT_PERMITTED:
-            return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
-        case PSA_ERROR_BUFFER_TOO_SMALL:
-            return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
-        case PSA_ERROR_NOT_SUPPORTED:
-            return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-        case PSA_ERROR_INVALID_ARGUMENT:
-            return MBEDTLS_ERR_PK_INVALID_ALG;
-        case PSA_ERROR_INSUFFICIENT_MEMORY:
-            return MBEDTLS_ERR_PK_ALLOC_FAILED;
-        case PSA_ERROR_BAD_STATE:
-            return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-        case PSA_ERROR_COMMUNICATION_FAILURE:
-        case PSA_ERROR_HARDWARE_FAILURE:
-            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-        case PSA_ERROR_DATA_CORRUPT:
-        case PSA_ERROR_DATA_INVALID:
-        case PSA_ERROR_STORAGE_FAILURE:
-            return MBEDTLS_ERR_PK_FILE_IO_ERROR;
-        case PSA_ERROR_CORRUPTION_DETECTED:
-            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-        default:
-            return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
-    }
-}
-
-#if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY) ||    \
-    defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
-int mbedtls_pk_error_from_psa_rsa(psa_status_t status)
-{
-    switch (status) {
-        case PSA_ERROR_NOT_PERMITTED:
-        case PSA_ERROR_INVALID_ARGUMENT:
-        case PSA_ERROR_INVALID_HANDLE:
-            return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
-        case PSA_ERROR_BUFFER_TOO_SMALL:
-            return MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE;
-        case PSA_ERROR_INSUFFICIENT_ENTROPY:
-            return MBEDTLS_ERR_RSA_RNG_FAILED;
-        case PSA_ERROR_INVALID_SIGNATURE:
-            return MBEDTLS_ERR_RSA_VERIFY_FAILED;
-        case PSA_ERROR_INVALID_PADDING:
-            return MBEDTLS_ERR_RSA_INVALID_PADDING;
-        case PSA_SUCCESS:
-            return 0;
-        case PSA_ERROR_NOT_SUPPORTED:
-            return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-        case PSA_ERROR_INSUFFICIENT_MEMORY:
-            return MBEDTLS_ERR_PK_ALLOC_FAILED;
-        case PSA_ERROR_BAD_STATE:
-            return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-        case PSA_ERROR_COMMUNICATION_FAILURE:
-        case PSA_ERROR_HARDWARE_FAILURE:
-            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-        case PSA_ERROR_DATA_CORRUPT:
-        case PSA_ERROR_DATA_INVALID:
-        case PSA_ERROR_STORAGE_FAILURE:
-            return MBEDTLS_ERR_PK_FILE_IO_ERROR;
-        case PSA_ERROR_CORRUPTION_DETECTED:
-            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-        default:
-            return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
-    }
-}
-#endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY || PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC */
-#endif /* MBEDTLS_PSA_CRYPTO_C */
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-int mbedtls_pk_error_from_psa_ecdsa(psa_status_t status)
-{
-    switch (status) {
-        case PSA_ERROR_NOT_PERMITTED:
-        case PSA_ERROR_INVALID_ARGUMENT:
-            return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-        case PSA_ERROR_INVALID_HANDLE:
-            return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
-        case PSA_ERROR_BUFFER_TOO_SMALL:
-            return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
-        case PSA_ERROR_INSUFFICIENT_ENTROPY:
-            return MBEDTLS_ERR_ECP_RANDOM_FAILED;
-        case PSA_ERROR_INVALID_SIGNATURE:
-            return MBEDTLS_ERR_ECP_VERIFY_FAILED;
-        case PSA_SUCCESS:
-            return 0;
-        case PSA_ERROR_NOT_SUPPORTED:
-            return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-        case PSA_ERROR_INSUFFICIENT_MEMORY:
-            return MBEDTLS_ERR_PK_ALLOC_FAILED;
-        case PSA_ERROR_BAD_STATE:
-            return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-        case PSA_ERROR_COMMUNICATION_FAILURE:
-        case PSA_ERROR_HARDWARE_FAILURE:
-            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-        case PSA_ERROR_DATA_CORRUPT:
-        case PSA_ERROR_DATA_INVALID:
-        case PSA_ERROR_STORAGE_FAILURE:
-            return MBEDTLS_ERR_PK_FILE_IO_ERROR;
-        case PSA_ERROR_CORRUPTION_DETECTED:
-            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-        default:
-            return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
-    }
-}
-#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_RSA_C)
 static int rsa_can_do(mbedtls_pk_type_t type)

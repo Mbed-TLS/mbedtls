@@ -1159,6 +1159,19 @@ component_test_default_cmake_gcc_asan_new_bignum () {
     tests/context-info.sh
 }
 
+# This is a common component testing the full config. Its purpose is to be used
+# as the "reference" for driver's acceleration tests below when possible (this
+# not always the case because some reference test require extra configuration
+# in addition to the default one)
+component_test_full_common_reference () {
+    msg "build: full config (common reference)"
+    helper_libtestdriver1_adjust_config "full"
+    make
+
+    msg "test: full config (common reference)"
+    make test
+}
+
 component_test_full_cmake_gcc_asan () {
     msg "build: full config, cmake, gcc, ASan"
     scripts/config.py full

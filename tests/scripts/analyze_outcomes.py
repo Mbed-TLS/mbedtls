@@ -533,6 +533,23 @@ KNOWN_TASKS = {
                 ],
             }
         }
+    },
+    'analyze_block_cipher_dispatch': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_full_common_reference',
+            'component_driver': 'test_full_block_cipher_psa_dispatch',
+            'ignored_suites': [
+            ],
+            'ignored_tests': {
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
+            }
+        }
     }
 }
 

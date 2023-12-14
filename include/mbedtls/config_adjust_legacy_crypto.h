@@ -22,13 +22,6 @@
 #ifndef MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
 #define MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
 
-/* GCM_C and CCM_C can either depend on (in order of preference) CIPHER_C or
- * BLOCK_CIPHER_C. If the former is not defined, auto-enable the latter. */
-#if (defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)) && \
-    !defined(MBEDTLS_CIPHER_C)
-#define MBEDTLS_BLOCK_CIPHER_C
-#endif
-
 /* Auto-enable MBEDTLS_MD_LIGHT based on MBEDTLS_MD_C.
  * This allows checking for MD_LIGHT rather than MD_LIGHT || MD_C.
  */
@@ -170,9 +163,16 @@
  * - desired key type is supported on the PSA side
  * If the above conditions are not met, but the legacy support is enabled, then
  * BLOCK_CIPHER will dynamically fallback to it.
+ *
+ * In case BLOCK_CIPHER is defined (see below) the following symbols/helpers
+ * can be used to define its capabilities:
+ * - MBEDTLS_BLOCK_CIPHER_SOME_PSA: there is at least 1 key type between AES,
+ *   ARIA and Camellia which is supported through a driver;
+ * - MBEDTLS_BLOCK_CIPHER_xxx_VIA_PSA: xxx key type is supported through a
+ *   driver;
+ * - MBEDTLS_BLOCK_CIPHER_xxx_VIA_LEGACY: xxx key type is supported through
+ *   a legacy module (i.e. MBEDTLS_xxx_C)
  */
-#if defined(MBEDTLS_BLOCK_CIPHER_C)
-
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 #if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
 #define MBEDTLS_BLOCK_CIPHER_AES_VIA_PSA
@@ -198,10 +198,8 @@
 #define MBEDTLS_BLOCK_CIPHER_CAMELLIA_VIA_LEGACY
 #endif
 
-#endif /* MBEDTLS_BLOCK_CIPHER_C */
-
-/* Generic helpers to state that BLOCK_CIPHER module supports AES, ARIA and/or
- * Camellia block ciphers via either PSA or legacy. */
+/* Helpers to state that BLOCK_CIPHER module supports AES, ARIA and/or Camellia
+ * block ciphers via either PSA or legacy. */
 #if defined(MBEDTLS_BLOCK_CIPHER_AES_VIA_PSA) || \
     defined(MBEDTLS_BLOCK_CIPHER_AES_VIA_LEGACY)
 #define MBEDTLS_BLOCK_CIPHER_CAN_AES
@@ -213,6 +211,17 @@
 #if defined(MBEDTLS_BLOCK_CIPHER_CAMELLIA_VIA_PSA) || \
     defined(MBEDTLS_BLOCK_CIPHER_CAMELLIA_VIA_LEGACY)
 #define MBEDTLS_BLOCK_CIPHER_CAN_CAMELLIA
+#endif
+
+/* GCM_C and CCM_C can either depend on (in order of preference) BLOCK_CIPHER_C
+ * or CIPHER_C. The former is auto-enabled when:
+ * - CIPHER_C is not defined, which is also the legacy solution;
+ * - BLOCK_CIPHER_SOME_PSA because in this case BLOCK_CIPHER can take advantage
+ *   of the driver's acceleration.
+ */
+#if (defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)) && \
+    (!defined(MBEDTLS_CIPHER_C) || defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA))
+#define MBEDTLS_BLOCK_CIPHER_C
 #endif
 
 /* MBEDTLS_ECP_LIGHT is auto-enabled by the following symbols:

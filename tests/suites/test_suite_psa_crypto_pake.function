@@ -44,7 +44,7 @@ typedef enum {
     ERR_INJECT_EXTRA_INPUT,
     ERR_INJECT_EXTRA_OUTPUT_AT_END,
     ERR_INJECT_EXTRA_INPUT_AT_END,
-    /* erros issued from the .data file */
+    /* errors issued from the .data file */
     ERR_IN_SETUP,
     ERR_IN_SET_USER,
     ERR_IN_SET_PEER,

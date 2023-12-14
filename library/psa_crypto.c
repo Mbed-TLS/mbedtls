@@ -112,7 +112,8 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
 
 #if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
 
-/* Declare a local copy of an input buffer.
+/* Declare a local copy of an input buffer and a variable that will be used
+ * to store a pointer to the start of the buffer.
  *
  * Note: This macro must be called before any operations which may jump to
  * the exit label, so that the local input copy object is safe to be freed.
@@ -120,39 +121,41 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
  * Assumptions:
  * - input is the name of a pointer to the buffer to be copied
  * - The name LOCAL_INPUT_COPY_OF_input is unused in the current scope
+ * - input_copy_name is a name that is unused in the current scope
  */
-#define LOCAL_INPUT_DECLARE(input) \
-    psa_crypto_local_input_t LOCAL_INPUT_COPY_OF_##input = PSA_CRYPTO_LOCAL_INPUT_INIT;
+#define LOCAL_INPUT_DECLARE(input, input_copy_name) \
+    psa_crypto_local_input_t LOCAL_INPUT_COPY_OF_##input = PSA_CRYPTO_LOCAL_INPUT_INIT; \
+    const uint8_t *input_copy_name = NULL;
 
-/* Allocate a copy of the buffer input and create a pointer with the name
- * input_copy_name that points to the start of the copy.
+/* Allocate a copy of the buffer input and set the pointer input_copy to
+ * point to the start of the copy.
  *
  * Assumptions:
  * - psa_status_t status exists
  * - An exit label is declared
  * - input is the name of a pointer to the buffer to be copied
- * - LOCAL_INPUT_DECLARE(input) has previously been called
- * - input_copy_name is a name that is not used in the current scope
+ * - LOCAL_INPUT_DECLARE(input, input_copy) has previously been called
  */
-#define LOCAL_INPUT_ALLOC(input, length, input_copy_name) \
+#define LOCAL_INPUT_ALLOC(input, length, input_copy) \
     status = psa_crypto_local_input_alloc(input, length, \
                                           &LOCAL_INPUT_COPY_OF_##input); \
     if (status != PSA_SUCCESS) { \
         goto exit; \
     } \
-    const uint8_t *input_copy_name = LOCAL_INPUT_COPY_OF_##input.buffer;
+    input_copy = LOCAL_INPUT_COPY_OF_##input.buffer;
 
 /* Free the local input copy allocated previously by LOCAL_INPUT_ALLOC()
  *
  * Assumptions:
- * - input_copy_name is the name of the input copy created by LOCAL_INPUT_ALLOC()
+ * - input_copy is the name of the input copy pointer set by LOCAL_INPUT_ALLOC()
  * - input is the name of the original buffer that was copied
  */
-#define LOCAL_INPUT_FREE(input_copy_name, input) \
-    input_copy_name = NULL; \
+#define LOCAL_INPUT_FREE(input, input_copy) \
+    input_copy = NULL; \
     psa_crypto_local_input_free(&LOCAL_INPUT_COPY_OF_##input);
 
-/* Declare a local copy of an output buffer.
+/* Declare a local copy of an output buffer and a variable that will be used
+ * to store a pointer to the start of the buffer.
  *
  * Note: This macro must be called before any operations which may jump to
  * the exit label, so that the local output copy object is safe to be freed.
@@ -160,38 +163,39 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
  * Assumptions:
  * - output is the name of a pointer to the buffer to be copied
  * - The name LOCAL_OUTPUT_COPY_OF_output is unused in the current scope
+ * - output_copy_name is a name that is unused in the current scope
  */
-#define LOCAL_OUTPUT_DECLARE(output) \
-    psa_crypto_local_output_t LOCAL_OUTPUT_COPY_OF_##output = PSA_CRYPTO_LOCAL_OUTPUT_INIT;
+#define LOCAL_OUTPUT_DECLARE(output, output_copy_name) \
+    psa_crypto_local_output_t LOCAL_OUTPUT_COPY_OF_##output = PSA_CRYPTO_LOCAL_OUTPUT_INIT; \
+    uint8_t *output_copy_name = NULL;
 
-/* Allocate a copy of the buffer output and create a pointer with the name
- * output_copy_name that points to the start of the copy.
+/* Allocate a copy of the buffer output and set the pointer output_copy to
+ * point to the start of the copy.
  *
  * Assumptions:
  * - psa_status_t status exists
  * - An exit label is declared
  * - output is the name of a pointer to the buffer to be copied
- * - LOCAL_OUTPUT_DECLARE(output) has previously been called
- * - output_copy_name is a name that is not used in the current scope
+ * - LOCAL_OUTPUT_DECLARE(output, output_copy) has previously been called
  */
-#define LOCAL_OUTPUT_ALLOC(output, length, output_copy_name) \
+#define LOCAL_OUTPUT_ALLOC(output, length, output_copy) \
     status = psa_crypto_local_output_alloc(output, length, \
                                            &LOCAL_OUTPUT_COPY_OF_##output); \
     if (status != PSA_SUCCESS) { \
         goto exit; \
     } \
-    uint8_t *output_copy_name = LOCAL_OUTPUT_COPY_OF_##output.buffer;
+    output_copy = LOCAL_OUTPUT_COPY_OF_##output.buffer;
 
-/* Free the local input copy allocated previously by LOCAL_INPUT_ALLOC()
+/* Free the local output copy allocated previously by LOCAL_OUTPUT_ALLOC()
  * after first copying back its contents to the original buffer.
  *
  * Assumptions:
  * - psa_status_t status exists
- * - input_copy_name is the name of the input copy created by LOCAL_INPUT_ALLOC()
- * - input is the name of the original buffer that was copied
+ * - output_copy is the name of the output copy pointer set by LOCAL_OUTPUT_ALLOC()
+ * - output is the name of the original buffer that was copied
  */
-#define LOCAL_OUTPUT_FREE(output_copy_name, output) \
-    output_copy_name = NULL; \
+#define LOCAL_OUTPUT_FREE(output, output_copy) \
+    output_copy = NULL; \
     do { \
         psa_status_t local_output_status; \
         local_output_status = psa_crypto_local_output_free(&LOCAL_OUTPUT_COPY_OF_##output); \
@@ -203,17 +207,18 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
         } \
     } while (0)
 #else /* MBEDTLS_PSA_COPY_CALLER_BUFFERS */
-#define LOCAL_INPUT_DECLARE(input)
-#define LOCAL_INPUT_ALLOC(input, length, input_copy_name) \
-    const uint8_t *input_copy_name = input;
-#define LOCAL_INPUT_FREE(input_copy_name, input) \
-    input_copy_name = NULL;
-#define LOCAL_OUTPUT_DECLARE(output)
-#define LOCAL_OUTPUT_ALLOC(output, length, output_copy_name) \
-    uint8_t *output_copy_name = output;
-#define LOCAL_OUTPUT_FREE(output_copy_name, output) \
-    output_copy_name = NULL;
-
+#define LOCAL_INPUT_DECLARE(input, input_copy_name) \
+    const uint8_t *input_copy_name = NULL;
+#define LOCAL_INPUT_ALLOC(input, length, input_copy) \
+    input_copy = input;
+#define LOCAL_INPUT_FREE(input, input_copy) \
+    input_copy = NULL;
+#define LOCAL_OUTPUT_DECLARE(output, output_copy_name) \
+    uint8_t *output_copy_name = NULL;
+#define LOCAL_OUTPUT_ALLOC(output, length, output_copy) \
+    output_copy = output;
+#define LOCAL_OUTPUT_FREE(output, output_copy) \
+    output_copy = NULL;
 #endif /* MBEDTLS_PSA_COPY_CALLER_BUFFERS */
 
 
@@ -4449,9 +4454,10 @@ psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
     size_t default_iv_length = 0;
     psa_key_attributes_t attributes;
 
-    LOCAL_INPUT_DECLARE(input_external);
+    LOCAL_INPUT_DECLARE(input_external, input);
+    LOCAL_OUTPUT_DECLARE(output_external, output);
+
     LOCAL_INPUT_ALLOC(input_external, input_length, input);
-    LOCAL_OUTPUT_DECLARE(output_external);
     LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
 
     if (!PSA_ALG_IS_CIPHER(alg)) {
@@ -4509,8 +4515,8 @@ exit:
         *output_length = 0;
     }
 
-    LOCAL_INPUT_FREE(input, input_external);
-    LOCAL_OUTPUT_FREE(output, output_external);
+    LOCAL_INPUT_FREE(input_external, input);
+    LOCAL_OUTPUT_FREE(output_external, output);
 
     return status;
 }

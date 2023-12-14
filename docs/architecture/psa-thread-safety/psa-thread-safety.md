@@ -292,9 +292,11 @@ To change `slot` to state `new_state`, a function must call `psa_slot_state_tran
 
 A counter field within each slot keeps track of how many readers have registered. Library functions must call `psa_register_read` before reading the key data witin a slot, and `psa_unregister_read` after they have finished operating.
 
+Any call to `psa_slot_state_transition`, `psa_register_read` or `psa_unregister_read` must be performed by a function which holds the global mutex.
+
 Library functions which operate on a slot will return `PSA_ERROR_BAD_STATE` if the slot is in an inappropriate state for the function at the linearization point.
 
-A state transition diagram can be found in docs/architecture/psa-thread-safety/key-slot-state-transitions.jpg. In this diagram, an arrow between two states `q1` and `q2` with label `f` indicates that if the state of a slot is `q1` immediately before `f`'s linearization point, it may be `q2` immediately after `f`'s linearization point. The linearization point of a state changing call to a function must be a call to `psa_slot_state_transition`.
+A state transition diagram can be found in docs/architecture/psa-thread-safety/key-slot-state-transitions.png. In this diagram, an arrow between two states `q1` and `q2` with label `f` indicates that if the state of a slot is `q1` immediately before `f`'s linearization point, it may be `q2` immediately after `f`'s linearization point. The linearization point of a state changing call to a function must be a call to `psa_slot_state_transition`. (A function which: locks the global mutex, performs some operation, calls `psa_slot_state_transition` and then unlocks the global mutex, cleans up and returns can satisfy this requirement).
 
 #### Generating the state transition diagram from source
 
@@ -316,7 +318,7 @@ When calling `psa_wipe_key_slot` it is the callers responsibility to set the slo
 
 `psa_wipe_all_key_slots` is only called from `mbedtls_psa_crypto_free`, here we will need to return an error as we won't be able to free the key store if a key is in use without compromising the state of the secure side. This is acceptable as an untrusted application cannot call `mbedtls_psa_crypto_free` in a crypto service. In a service integration, `mbedtls_psa_crypto_free` on the client cuts the communication with the crypto service. Also, this is the current behaviour.
 
-`psa_destroy_key` registers as a reader, marks the slot as deleted, deletes persistent keys and opaque keys and unregisters before returning. This will free the key ID, but the slot might be still in use. This only works if drivers are protected by a mutex (and the persistent storage as well if needed). `psa_destroy_key` transfers to PENDING_DELETION as an intermediate state. The last reading operation will wipe the key slot upon unregistering.  In case of volatile keys freeing up the ID while the slot is still in use does not provide any benefit and we don't need to do it.
+`psa_destroy_key` registers as a reader, marks the slot as deleted, deletes persistent keys and opaque keys and unregisters before returning. This will free the key ID, but the slot might be still in use. This only works if drivers are protected by a mutex (and the persistent storage as well if needed). `psa_destroy_key` transfers to PENDING_DELETION as an intermediate state. The last reading operation will wipe the key slot upon unregistering. In case of volatile keys freeing up the ID while the slot is still in use does not provide any benefit and we don't need to do it.
 
 These are serious limitations, but this can be implemented with mutexes only and arguably satisfies the [Key destruction short-term requirements](#key-destruction-short-term-requirements).
 

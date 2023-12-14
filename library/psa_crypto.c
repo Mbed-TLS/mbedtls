@@ -1378,9 +1378,9 @@ psa_status_t psa_get_key_attributes(mbedtls_svc_key_id_t key,
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
         case PSA_KEY_TYPE_RSA_KEY_PAIR:
         case PSA_KEY_TYPE_RSA_PUBLIC_KEY:
-            /* TODO: reporting the public exponent for opaque keys
-             * is not yet implemented.
-             * https://github.com/ARMmbed/mbed-crypto/issues/216
+            /* TODO: This is a temporary situation where domain parameters are deprecated,
+             * but we need it for namely generating an RSA key with a non-default exponent.
+             * This would be improved after https://github.com/Mbed-TLS/mbedtls/issues/6494.
              */
             if (!psa_key_lifetime_is_external(slot->attr.lifetime)) {
                 mbedtls_rsa_context *rsa = NULL;
@@ -1399,6 +1399,12 @@ psa_status_t psa_get_key_attributes(mbedtls_svc_key_id_t key,
                 mbedtls_rsa_free(rsa);
                 mbedtls_free(rsa);
             }
+            break;
+#else
+        case PSA_KEY_TYPE_RSA_KEY_PAIR:
+        case PSA_KEY_TYPE_RSA_PUBLIC_KEY:
+            attributes->domain_parameters = NULL;
+            attributes->domain_parameters_size = SIZE_MAX;
             break;
 #endif /* (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) && \
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) ||

@@ -501,6 +501,38 @@ KNOWN_TASKS = {
                 ],
             }
         }
+    },
+    'analyze_driver_vs_reference_rsa': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_psa_crypto_config_reference_rsa_crypto',
+            'component_driver': 'test_psa_crypto_config_accel_rsa_crypto',
+            'ignored_suites': [
+                # Modules replaced by drivers.
+                'rsa', 'pkcs1_v15', 'pkcs1_v21',
+                # We temporarily don't care about PK stuff.
+                'pk', 'pkwrite', 'pkparse'
+            ],
+            'ignored_tests': {
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
+                # Following tests depend on RSA_C but are not about
+                # them really, just need to know some error code is there.
+                'test_suite_error': [
+                    'Low and high error',
+                    'Single high error'
+                ],
+                # Constant time operations only used for PKCS1_V15
+                'test_suite_constant_time': [
+                    re.compile(r'mbedtls_ct_zeroize_if .*'),
+                    re.compile(r'mbedtls_ct_memmove_left .*')
+                ],
+            }
+        }
     }
 }
 

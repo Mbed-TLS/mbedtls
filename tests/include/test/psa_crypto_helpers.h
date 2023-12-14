@@ -16,6 +16,9 @@
 #include <psa/crypto.h>
 #endif
 
+#if defined(MBEDTLS_TEST_HOOKS)
+#include "test/psa_memory_poisoning_wrappers.h"
+#endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 /** Initialize the PSA Crypto subsystem. */

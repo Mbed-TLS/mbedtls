@@ -4561,7 +4561,7 @@ component_test_aesni () { # ~ 60s
 }
 
 support_test_aesni_m32() {
-    support_test_m32_o0 && (lscpu | grep -qw aes)
+    support_test_m32_no_asm && (lscpu | grep -qw aes)
 }
 
 component_test_aesni_m32 () { # ~ 60s
@@ -5227,18 +5227,20 @@ component_build_psa_alt_headers () {
     programs/test/query_included_headers | not grep -x PSA_CRYPTO_STRUCT_H
 }
 
-component_test_m32_o0 () {
-    # Build without optimization, so as to use portable C code (in a 32-bit
+component_test_m32_no_asm () {
+    # Build without assembly, so as to use portable C code (in a 32-bit
     # build) and not the i386-specific inline assembly.
-    msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
+    msg "build: i386, make, gcc, no asm (ASan build)" # ~ 30s
     scripts/config.py full
+    scripts/config.py unset MBEDTLS_HAVE_ASM
+    scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESNI_C # AESNI for 32-bit is tested in test_aesni_m32
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O0" LDFLAGS="-m32 $ASAN_CFLAGS"
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32" LDFLAGS="-m32 $ASAN_CFLAGS"
 
-    msg "test: i386, make, gcc -O0 (ASan build)"
+    msg "test: i386, make, gcc, no asm (ASan build)"
     make test
 }
-support_test_m32_o0 () {
+support_test_m32_no_asm () {
     case $(uname -m) in
         amd64|x86_64) true;;
         *) false;;
@@ -5260,7 +5262,7 @@ component_test_m32_o2 () {
     tests/ssl-opt.sh
 }
 support_test_m32_o2 () {
-    support_test_m32_o0 "$@"
+    support_test_m32_no_asm "$@"
 }
 
 component_test_m32_everest () {
@@ -5280,7 +5282,7 @@ component_test_m32_everest () {
     tests/compat.sh -f ECDH -V NO -e 'ARIA\|CAMELLIA\|CHACHA'
 }
 support_test_m32_everest () {
-    support_test_m32_o0 "$@"
+    support_test_m32_no_asm "$@"
 }
 
 component_test_mx32 () {

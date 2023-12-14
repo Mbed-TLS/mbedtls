@@ -4802,7 +4802,7 @@ component_build_aes_via_padlock () {
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py set MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -m32" LDFLAGS="-m32 $ASAN_CFLAGS"
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32" LDFLAGS="-m32 $ASAN_CFLAGS"
     grep -q mbedtls_padlock_has_support ./programs/test/selftest
 
 }
@@ -5271,7 +5271,7 @@ component_test_m32_everest () {
     msg "build: i386, Everest ECDH context (ASan build)" # ~ 6 min
     scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
     scripts/config.py unset MBEDTLS_AESNI_C # AESNI for 32-bit is tested in test_aesni_m32
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -m32" LDFLAGS="-m32 $ASAN_CFLAGS"
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
     make test

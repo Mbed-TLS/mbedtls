@@ -296,7 +296,9 @@ Any call to `psa_slot_state_transition`, `psa_register_read` or `psa_unregister_
 
 Library functions which operate on a slot will return `PSA_ERROR_BAD_STATE` if the slot is in an inappropriate state for the function at the linearization point.
 
-A state transition diagram can be found in docs/architecture/psa-thread-safety/key-slot-state-transitions.png. In this diagram, an arrow between two states `q1` and `q2` with label `f` indicates that if the state of a slot is `q1` immediately before `f`'s linearization point, it may be `q2` immediately after `f`'s linearization point. The linearization point of a state changing call to a function must be a call to `psa_slot_state_transition`. (A function which: locks the global mutex, performs some operation, calls `psa_slot_state_transition` and then unlocks the global mutex, cleans up and returns can satisfy this requirement).
+![](key-slot-state-transitions.png)
+
+In the state transition diagram above, an arrow between two states `q1` and `q2` with label `f` indicates that if the state of a slot is `q1` immediately before `f`'s linearization point, it may be `q2` immediately after `f`'s linearization point. The linearization point of a state changing call to a function must be a call to `psa_slot_state_transition`. (A function which: locks the global mutex, performs some operation, calls `psa_slot_state_transition` and then unlocks the global mutex, cleans up and returns can satisfy this requirement).
 
 #### Generating the state transition diagram from source
 

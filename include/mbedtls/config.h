@@ -1579,7 +1579,10 @@
  * an untrusted party, for example where arguments to PSA calls are passed
  * across a trust boundary.
  *
- * Note: Enabling this option increases memory usage and code size.
+ * \note Enabling this option increases memory usage and code size.
+ *
+ * \note Enabling this option enables full support for overlap of input and
+ *       output buffers passed to PSA functions.
  */
 #define MBEDTLS_PSA_COPY_CALLER_BUFFERS
 

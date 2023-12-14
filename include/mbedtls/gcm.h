@@ -24,7 +24,7 @@
 
 #include "mbedtls/cipher.h"
 
-#if !defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_BLOCK_CIPHER_C)
 #include "mbedtls/block_cipher.h"
 #endif
 
@@ -50,10 +50,10 @@ extern "C" {
  * \brief          The GCM context structure.
  */
 typedef struct mbedtls_gcm_context {
-#if defined(MBEDTLS_CIPHER_C)
-    mbedtls_cipher_context_t MBEDTLS_PRIVATE(cipher_ctx);  /*!< The cipher context used. */
-#else
+#if defined(MBEDTLS_BLOCK_CIPHER_C)
     mbedtls_block_cipher_context_t MBEDTLS_PRIVATE(block_cipher_ctx);  /*!< The cipher context used. */
+#else
+    mbedtls_cipher_context_t MBEDTLS_PRIVATE(cipher_ctx);  /*!< The cipher context used. */
 #endif
     uint64_t MBEDTLS_PRIVATE(HL)[16];                      /*!< Precalculated HTable low. */
     uint64_t MBEDTLS_PRIVATE(HH)[16];                      /*!< Precalculated HTable high. */

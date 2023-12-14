@@ -34,7 +34,6 @@ psa_status_t wrap_psa_cipher_encrypt(mbedtls_svc_key_id_t key,
                                      size_t output_size,
                                      size_t *output_length)
 {
-    mbedtls_poison_test_hooks_setup();
     MBEDTLS_TEST_MEMORY_POISON(input, input_length);
     MBEDTLS_TEST_MEMORY_POISON(output, output_size);
     psa_status_t status = psa_cipher_encrypt(key,
@@ -46,7 +45,6 @@ psa_status_t wrap_psa_cipher_encrypt(mbedtls_svc_key_id_t key,
                                              output_length);
     MBEDTLS_TEST_MEMORY_UNPOISON(input, input_length);
     MBEDTLS_TEST_MEMORY_UNPOISON(output, output_size);
-    mbedtls_poison_test_hooks_teardown();
     return status;
 }
 

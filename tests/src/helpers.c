@@ -13,6 +13,10 @@
 #include <test/psa_crypto_helpers.h>
 #endif
 
+#if defined(MBEDTLS_TEST_HOOKS)
+#include <test/psa_memory_poisoning_wrappers.h>
+#endif
+
 /*----------------------------------------------------------------------------*/
 /* Static global variables */
 
@@ -28,6 +32,10 @@ mbedtls_test_info_t mbedtls_test_info;
 int mbedtls_test_platform_setup(void)
 {
     int ret = 0;
+
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_TEST_MEMORY_CAN_POISON)
+    mbedtls_poison_test_hooks_setup();
+#endif
 
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
     /* Make sure that injected entropy is present. Otherwise
@@ -49,6 +57,10 @@ int mbedtls_test_platform_setup(void)
 
 void mbedtls_test_platform_teardown(void)
 {
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_TEST_MEMORY_CAN_POISON)
+    mbedtls_poison_test_hooks_teardown();
+#endif
+
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_teardown(&platform_ctx);
 #endif /* MBEDTLS_PLATFORM_C */

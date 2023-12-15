@@ -5232,6 +5232,9 @@ component_build_psa_alt_headers () {
 component_test_m32_no_asm () {
     # Build without assembly, so as to use portable C code (in a 32-bit
     # build) and not the i386-specific inline assembly.
+    #
+    # Note that we require gcc, because clang Asan builds fail to link for
+    # this target (cannot find libclang_rt.lsan-i386.a - this is a known clang issue).
     msg "build: i386, make, gcc, no asm (ASan build)" # ~ 30s
     scripts/config.py full
     scripts/config.py unset MBEDTLS_HAVE_ASM

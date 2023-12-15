@@ -8,7 +8,8 @@
 
 #include "psa_crypto_invasive.h"
 
-#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_TEST_MEMORY_CAN_POISON)
+#if defined(MBEDTLS_TEST_HOOKS)  && defined(MBEDTLS_PSA_CRYPTO_C) \
+    && defined(MBEDTLS_TEST_MEMORY_CAN_POISON)
 
 void mbedtls_poison_test_hooks_setup(void)
 {
@@ -48,4 +49,5 @@ psa_status_t wrap_psa_cipher_encrypt(mbedtls_svc_key_id_t key,
     return status;
 }
 
-#endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_TEST_MEMORY_CAN_POISON */
+#endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_PSA_CRYPTO_C &&
+          MBEDTLS_TEST_MEMORY_CAN_POISON */

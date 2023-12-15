@@ -711,7 +711,7 @@ pre_check_tools () {
         # Require OpenSSL and GnuTLS if running any tests (as opposed to
         # only doing builds). Not all tests run OpenSSL and GnuTLS, but this
         # is a good enough approximation in practice.
-        *" test_"*)
+        *" test_"* | *" release_test_"*)
             # To avoid setting OpenSSL and GnuTLS for each call to compat.sh
             # and ssl-opt.sh, we just export the variables they require.
             export OPENSSL="$OPENSSL"

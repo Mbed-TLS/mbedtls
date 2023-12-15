@@ -5243,7 +5243,7 @@ component_test_m32_no_asm () {
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, make, gcc, no asm (ASan build)"
-    #make test
+    make test
 }
 support_test_m32_no_asm () {
     case $(uname -m) in

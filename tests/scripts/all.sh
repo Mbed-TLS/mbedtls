@@ -75,6 +75,7 @@
 #      * component_check_XXX: quick tests that aren't worth parallelizing.
 #      * component_build_XXX: build things but don't run them.
 #      * component_test_XXX: build and test.
+#      * component_release_XXX: tests that the CI should skip during PR testing.
 #  * support_XXX: if support_XXX exists and returns false then
 #    component_XXX is not run by default.
 #  * post_XXX: things to do after running the tests.

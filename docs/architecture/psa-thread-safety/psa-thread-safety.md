@@ -283,8 +283,8 @@ Note that a thread must hold the global mutex when it reads or changes a slot's 
 
 For concurrency purposes, a slot can be in one of four states:
 
-* EMPTY: no thread is currently accessing the slot, and no information is stored in the slot.
-* FILLING: one thread is currently loading or creating material to fill the slot, this thread is responsible for the next state transition.
+* EMPTY: no thread is currently accessing the slot, and no information is stored in the slot. Any thread is able to change the slot's state to FILLING and begin loading data.
+* FILLING: one thread is currently loading or creating material to fill the slot, this thread is responsible for the next state transition. Other threads cannot read the contents of a slot which is in FILLING.
 * FULL: the slot contains a key, and any thread is able to use the key after registering as a reader.
 * PENDING_DELETION: the key within the slot has been destroyed or marked for destruction, but at least one thread is still registered as a reader. No thread can register to read this slot. The slot must not be wiped until the last reader de-registers, wiping the slot by calling `psa_wipe_key_slot`.
 
@@ -292,15 +292,32 @@ To change `slot` to state `new_state`, a function must call `psa_slot_state_tran
 
 A counter field within each slot keeps track of how many readers have registered. Library functions must call `psa_register_read` before reading the key data witin a slot, and `psa_unregister_read` after they have finished operating.
 
-Any call to `psa_slot_state_transition`, `psa_register_read` or `psa_unregister_read` must be performed by a function which holds the global mutex.
+Any call to `psa_slot_state_transition`, `psa_register_read` or `psa_unregister_read` must be performed by a thread which holds the global mutex.
+
+##### Linearizability of the system
+
+To satisfy the requirements in [Correctness out of the box](#correctness-out-of-the-box), we require our functions to be "linearizable" (under certain constraints). This means that any (constraint satisfying) set of concurrent calls are performed as if they were executed in some sequential order.
+
+The standard way of reasoning that this is the case is to identify a "linearization point" for each call, this is a single execution step where the function takes effect (this is usually a step in which the effects of the call become visible to other threads). If every call has a linearization point, the set of calls is equivalent to sequentially performing the calls in order of when their linearization point occured.
+
+We only access and modify a slot's state and reader count while we hold the global lock. This ensures the memory in which these fields are stored is correctly synchronized. It also ensures that the key data within the slot is synchronised where needed (the writer unlocks the mutex after filling the data, and any reader must lock the mutex before reading the data).
+
+To help justify that our system is linearizable, here is a list of key slot state changing functions and their linearization points (for the sake of brevity not all failure cases are covered, but those cases are not complex):
+* `psa_wipe_key_slot, psa_register_read, psa_unregister_read, psa_slot_state_transition,` - These functions are all always performed under the global mutex, so they have no effects visible to other threads (this implies that they are linearizable).
+* `psa_get_empty_key_slot, psa_get_and_lock_key_slot_in_memory, psa_load_X_key_into_slot, psa_fail_key_creation` - These functions hold the mutex for all non-setup/finalizing code, their linearization points are the release of the mutex.
+* `psa_get_and_lock_key_slot` - If the key is already in a slot, the linearization point is the linearization point of the call to `psa_get_and_lock_key_slot_in_memory`. If the key is not in a slot and is loaded into one, the linearization point is the linearization point of the call to `psa_load_X_key_into_slot`.
+* `psa_finish_key_creation` - On a successful load, we lock the mutex and set the state of the slot to FULL, the linearization point is then the following unlock. On an unsuccessful load, the linearization point is when we return - no action we have performed has been made visible to another thread as the slot is still in a FILLING state.
+* `psa_destroy_key, psa_close_key, psa_purge_key` - As per the requirements, we need only argue for the case where the key is not in use here. The linearization point is the unlock after wiping the data and setting the slot state to EMPTY.
 
 Library functions which operate on a slot will return `PSA_ERROR_BAD_STATE` if the slot is in an inappropriate state for the function at the linearization point.
 
+##### Key slot state transition diagram
+
 ![](key-slot-state-transitions.png)
 
-In the state transition diagram above, an arrow between two states `q1` and `q2` with label `f` indicates that if the state of a slot is `q1` immediately before `f`'s linearization point, it may be `q2` immediately after `f`'s linearization point. The linearization point of a state changing call to a function must be a call to `psa_slot_state_transition`. (A function which: locks the global mutex, performs some operation, calls `psa_slot_state_transition` and then unlocks the global mutex, cleans up and returns can satisfy this requirement).
+In the state transition diagram above, an arrow between two states `q1` and `q2` with label `f` indicates that if the state of a slot is `q1` immediately before `f`'s linearization point, it may be `q2` immediately after `f`'s linearization point.
 
-#### Generating the state transition diagram from source
+##### Generating the key slot state transition diagram from source
 
 To generate the state transition diagram in https://app.diagrams.net/, open the following url:
 

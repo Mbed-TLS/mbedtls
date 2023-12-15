@@ -53,7 +53,6 @@ typedef struct {
     mbedtls_block_cipher_id_t MBEDTLS_PRIVATE(id);
 #if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
     mbedtls_block_cipher_engine_t MBEDTLS_PRIVATE(engine);
-    psa_key_type_t MBEDTLS_PRIVATE(psa_key_type);
     mbedtls_svc_key_id_t MBEDTLS_PRIVATE(psa_key_id);
 #endif
     union {

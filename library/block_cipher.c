@@ -22,19 +22,19 @@
 #if defined(MBEDTLS_BLOCK_CIPHER_C)
 
 #if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
-static psa_key_type_t psa_key_type_from_cipher_id(mbedtls_cipher_id_t cipher_id)
+static psa_key_type_t psa_key_type_from_block_cipher_id(mbedtls_block_cipher_id_t cipher_id)
 {
     switch (cipher_id) {
 #if defined(MBEDTLS_BLOCK_CIPHER_AES_VIA_PSA)
-        case MBEDTLS_CIPHER_ID_AES:
+        case MBEDTLS_BLOCK_CIPHER_ID_AES:
             return PSA_KEY_TYPE_AES;
 #endif
 #if defined(MBEDTLS_BLOCK_CIPHER_ARIA_VIA_PSA)
-        case MBEDTLS_CIPHER_ID_ARIA:
+        case MBEDTLS_BLOCK_CIPHER_ID_ARIA:
             return PSA_KEY_TYPE_ARIA;
 #endif
 #if defined(MBEDTLS_BLOCK_CIPHER_CAMELLIA_VIA_PSA)
-        case MBEDTLS_CIPHER_ID_CAMELLIA:
+        case MBEDTLS_BLOCK_CIPHER_ID_CAMELLIA:
             return PSA_KEY_TYPE_CAMELLIA;
 #endif
         default:
@@ -82,37 +82,38 @@ void mbedtls_block_cipher_free(mbedtls_block_cipher_context_t *ctx)
 int mbedtls_block_cipher_setup(mbedtls_block_cipher_context_t *ctx,
                                mbedtls_cipher_id_t cipher_id)
 {
+    ctx->id = (cipher_id == MBEDTLS_CIPHER_ID_AES) ? MBEDTLS_BLOCK_CIPHER_ID_AES :
+              (cipher_id == MBEDTLS_CIPHER_ID_ARIA) ? MBEDTLS_BLOCK_CIPHER_ID_ARIA :
+              (cipher_id == MBEDTLS_CIPHER_ID_CAMELLIA) ? MBEDTLS_BLOCK_CIPHER_ID_CAMELLIA :
+              MBEDTLS_BLOCK_CIPHER_ID_NONE;
+
 #if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
-    if (psa_can_do_cipher(cipher_id)) {
-        ctx->psa_key_type = psa_key_type_from_cipher_id(cipher_id);
-        if (ctx->psa_key_type != PSA_KEY_TYPE_NONE) {
-            ctx->engine = MBEDTLS_BLOCK_CIPHER_ENGINE_PSA;
-            return 0;
-        }
+    if (psa_can_do_cipher(cipher_id) &&
+        (psa_key_type_from_block_cipher_id(ctx->id) != PSA_KEY_TYPE_NONE)) {
+        ctx->engine = MBEDTLS_BLOCK_CIPHER_ENGINE_PSA;
+        return 0;
     }
     ctx->engine = MBEDTLS_BLOCK_CIPHER_ENGINE_LEGACY;
 #endif
 
-    switch (cipher_id) {
+    switch (ctx->id) {
 #if defined(MBEDTLS_AES_C)
-        case MBEDTLS_CIPHER_ID_AES:
-            ctx->id = MBEDTLS_BLOCK_CIPHER_ID_AES;
+        case MBEDTLS_BLOCK_CIPHER_ID_AES:
             mbedtls_aes_init(&ctx->ctx.aes);
             return 0;
 #endif
 #if defined(MBEDTLS_ARIA_C)
-        case MBEDTLS_CIPHER_ID_ARIA:
-            ctx->id = MBEDTLS_BLOCK_CIPHER_ID_ARIA;
+        case MBEDTLS_BLOCK_CIPHER_ID_ARIA:
             mbedtls_aria_init(&ctx->ctx.aria);
             return 0;
 #endif
 #if defined(MBEDTLS_CAMELLIA_C)
-        case MBEDTLS_CIPHER_ID_CAMELLIA:
-            ctx->id = MBEDTLS_BLOCK_CIPHER_ID_CAMELLIA;
+        case MBEDTLS_BLOCK_CIPHER_ID_CAMELLIA:
             mbedtls_camellia_init(&ctx->ctx.camellia);
             return 0;
 #endif
         default:
+            ctx->id = MBEDTLS_BLOCK_CIPHER_ID_NONE;
             return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 }
@@ -126,7 +127,7 @@ int mbedtls_block_cipher_setkey(mbedtls_block_cipher_context_t *ctx,
         psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
         psa_status_t status;
 
-        psa_set_key_type(&key_attr, ctx->psa_key_type);
+        psa_set_key_type(&key_attr, psa_key_type_from_block_cipher_id(ctx->id));
         psa_set_key_bits(&key_attr, key_bitlen);
         psa_set_key_algorithm(&key_attr, PSA_ALG_ECB_NO_PADDING);
         psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_ENCRYPT);

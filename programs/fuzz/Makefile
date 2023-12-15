@@ -29,6 +29,10 @@ endif
 
 ifdef WINDOWS_BUILD
 LOCAL_LDFLAGS += -lbcrypt
+else
+ifeq ($(THREADING),pthread)
+LOCAL_LDFLAGS += -lpthread
+endif
 endif
 
 # A test application is built for each suites/test_suite_*.data file.

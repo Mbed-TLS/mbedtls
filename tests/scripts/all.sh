@@ -190,15 +190,8 @@ pre_initialize_variables () {
     # defined in this script whose name starts with "component_".
     ALL_COMPONENTS=$(compgen -A function component_ | sed 's/component_//')
 
-    # Exclude components that are not supported on this platform.
-    SUPPORTED_COMPONENTS=
-    for component in $ALL_COMPONENTS; do
-        case $(type "support_$component" 2>&1) in
-            *' function'*)
-                if ! support_$component; then continue; fi;;
-        esac
-        SUPPORTED_COMPONENTS="$SUPPORTED_COMPONENTS $component"
-    done
+    # Delay determinig SUPPORTED_COMPONENTS until the command line options have a chance to override
+    # the commands set by the environment
 }
 
 # Test whether the component $1 is included in the command line patterns.
@@ -401,6 +394,7 @@ pre_parse_command_line () {
     COMMAND_LINE_COMPONENTS=
     all_except=0
     error_test=0
+    list_components=0
     restore_first=0
     no_armcc=
 
@@ -429,7 +423,7 @@ pre_parse_command_line () {
             --help|-h) usage; exit;;
             --keep-going|-k) KEEP_GOING=1;;
             --list-all-components) printf '%s\n' $ALL_COMPONENTS; exit;;
-            --list-components) printf '%s\n' $SUPPORTED_COMPONENTS; exit;;
+            --list-components) list_components=1;;
             --memory|-m) MEMORY=1;;
             --no-append-outcome) append_outcome=0;;
             --no-armcc) no_armcc=1;;
@@ -456,6 +450,21 @@ pre_parse_command_line () {
         esac
         shift
     done
+
+    # Exclude components that are not supported on this platform.
+    SUPPORTED_COMPONENTS=
+    for component in $ALL_COMPONENTS; do
+        case $(type "support_$component" 2>&1) in
+            *' function'*)
+                if ! support_$component; then continue; fi;;
+        esac
+        SUPPORTED_COMPONENTS="$SUPPORTED_COMPONENTS $component"
+    done
+
+    if [ $list_components -eq 1 ]; then
+        printf '%s\n' $SUPPORTED_COMPONENTS
+        exit
+    fi
 
     # With no list of components, run everything.
     if [ -z "$COMMAND_LINE_COMPONENTS" ] && [ $restore_first -eq 0 ]; then

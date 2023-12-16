@@ -26,13 +26,13 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PSA_CRYPTO_C)
-#include "pkwrite.h"
-#endif
-
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa_util_internal.h"
 #include "psa/crypto.h"
+
+#if defined(MBEDTLS_RSA_C)
+#include "pkwrite.h"
+#endif
 
 #if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
 #include "mbedtls/asn1write.h"

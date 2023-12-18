@@ -3643,12 +3643,19 @@ component_test_psa_crypto_config_reference_hash_use_psa() {
     tests/ssl-opt.sh
 }
 
-component_test_psa_crypto_config_accel_cipher () {
+component_test_psa_crypto_config_accel_des () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated cipher"
 
+    # Albeit this components aims at accelerating DES which should only support
+    # CBC and ECB modes, we need to accelerate more than that otherwise DES_C
+    # would automatically be re-enabled by "config_adjust_legacy_from_psa.c"
     loc_accel_list="ALG_ECB_NO_PADDING ALG_CBC_NO_PADDING ALG_CBC_PKCS7 \
                     ALG_CTR ALG_CFB ALG_OFB ALG_XTS ALG_CMAC \
                     KEY_TYPE_DES"
+
+    # Note: we cannot accelerate all ciphers' key types otherwise we would also
+    # have to either disable CCM/GCM or accelerate them, but that's out of scope
+    # of this component. This limitation will be addressed by #8598.
 
     # Configure
     # ---------

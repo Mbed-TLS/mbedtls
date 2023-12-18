@@ -3582,9 +3582,10 @@ component_test_zeroize () {
 }
 
 component_test_psa_compliance () {
+    # The arch tests build with gcc, so require use of gcc here to link properly
     msg "build: make, default config + CMAC, libmbedcrypto.a only"
     scripts/config.py set MBEDTLS_CMAC_C
-    make -C library libmbedcrypto.a
+    CC=gcc make -C library libmbedcrypto.a
 
     msg "unit test: test_psa_compliance.py"
     ./tests/scripts/test_psa_compliance.py

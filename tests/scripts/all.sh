@@ -189,6 +189,10 @@ pre_initialize_variables () {
     if [ -z "${MAKEFLAGS+set}" ]; then
         export MAKEFLAGS="-j$(all_sh_nproc)"
     fi
+    # if CC is not set, use clang by default to improve build times
+    if [ -z "${CC+set}" ]; then
+        export CC="clang"
+    fi
 
     # Include more verbose output for failing tests run by CMake or make
     export CTEST_OUTPUT_ON_FAILURE=1

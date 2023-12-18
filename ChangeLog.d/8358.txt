@@ -1,0 +1,9 @@
+Features
+   * It is now possible to accelerate all ciphers and AEADs through a driver,
+     while completely removing legacy support and MBEDTLS_CIPHER_C, and still
+     get full functionality. Only unsupported features that still depend on
+     MBEDTLS_CIPHER_C are: MBEDTLS_PKCS[5|12]_C and MBEDTLS_NIST_KW_C.
+   * CTR-DRBG module can now take advantage of PSA driver. Legacy
+     MBEDTLS_AES_C is still the preferred solution, but when it's not available
+     it can rely on PSA if PSA_WANT_KEY_TYPE_AES and PSA_WANT_ALG_ECB_NO_PADDING
+     are defined.

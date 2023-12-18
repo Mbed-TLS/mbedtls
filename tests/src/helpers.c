@@ -13,7 +13,7 @@
 #include <test/psa_crypto_helpers.h>
 #endif
 
-#if defined(MBEDTLS_TEST_HOOKS)
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_PSA_CRYPTO_C)
 #include <test/psa_memory_poisoning_wrappers.h>
 #endif
 

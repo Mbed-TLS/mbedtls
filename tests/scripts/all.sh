@@ -3588,7 +3588,7 @@ component_test_psa_compliance () {
     CC=gcc make -C library libmbedcrypto.a
 
     msg "unit test: test_psa_compliance.py"
-    ./tests/scripts/test_psa_compliance.py
+    CC=gcc ./tests/scripts/test_psa_compliance.py
 }
 
 support_test_psa_compliance () {

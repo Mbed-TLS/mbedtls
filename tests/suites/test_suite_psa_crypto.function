@@ -9688,14 +9688,24 @@ void generate_key_rsa(int bits_arg,
     PSA_ASSERT(psa_get_key_attributes(key, &attributes));
     TEST_EQUAL(psa_get_key_type(&attributes), type);
     TEST_EQUAL(psa_get_key_bits(&attributes), bits);
-    PSA_ASSERT(psa_get_key_domain_parameters(&attributes,
-                                             e_read_buffer, e_read_size,
-                                             &e_read_length));
+    psa_status_t status = psa_get_key_domain_parameters(&attributes,
+                                                        e_read_buffer, e_read_size,
+                                                        &e_read_length);
+
+
+#if (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) && \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
     if (is_default_public_exponent) {
         TEST_EQUAL(e_read_length, 0);
     } else {
+        TEST_EQUAL(status, PSA_SUCCESS);
         TEST_MEMORY_COMPARE(e_read_buffer, e_read_length, e_arg->x, e_arg->len);
     }
+#else
+    (void) is_default_public_exponent;
+    TEST_EQUAL(status, PSA_ERROR_NOT_SUPPORTED);
+#endif
 
     /* Do something with the key according to its type and permitted usage. */
     if (!mbedtls_test_psa_exercise_key(key, usage, alg)) {

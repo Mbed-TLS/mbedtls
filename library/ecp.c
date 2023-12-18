@@ -1074,13 +1074,7 @@ cleanup:
         MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi((N), (N), &grp->P));      \
     } while (0)
 
-#if (defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) && \
-    !(defined(MBEDTLS_ECP_NO_FALLBACK) && \
-    defined(MBEDTLS_ECP_DOUBLE_JAC_ALT) && \
-    defined(MBEDTLS_ECP_ADD_MIXED_ALT))) || \
-    (defined(MBEDTLS_ECP_MONTGOMERY_ENABLED) && \
-    !(defined(MBEDTLS_ECP_NO_FALLBACK) && \
-    defined(MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT)))
+MBEDTLS_MAYBE_UNUSED
 static inline int mbedtls_mpi_sub_mod(const mbedtls_ecp_group *grp,
                                       mbedtls_mpi *X,
                                       const mbedtls_mpi *A,
@@ -1092,7 +1086,6 @@ static inline int mbedtls_mpi_sub_mod(const mbedtls_ecp_group *grp,
 cleanup:
     return ret;
 }
-#endif /* All functions referencing mbedtls_mpi_sub_mod() are alt-implemented without fallback */
 
 /*
  * Reduce a mbedtls_mpi mod p in-place, to use after mbedtls_mpi_add_mpi and mbedtls_mpi_mul_int.
@@ -1115,6 +1108,7 @@ cleanup:
     return ret;
 }
 
+MBEDTLS_MAYBE_UNUSED
 static inline int mbedtls_mpi_mul_int_mod(const mbedtls_ecp_group *grp,
                                           mbedtls_mpi *X,
                                           const mbedtls_mpi *A,
@@ -1128,6 +1122,7 @@ cleanup:
     return ret;
 }
 
+MBEDTLS_MAYBE_UNUSED
 static inline int mbedtls_mpi_sub_int_mod(const mbedtls_ecp_group *grp,
                                           mbedtls_mpi *X,
                                           const mbedtls_mpi *A,
@@ -1144,10 +1139,7 @@ cleanup:
 #define MPI_ECP_SUB_INT(X, A, c)             \
     MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int_mod(grp, X, A, c))
 
-#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) && \
-    !(defined(MBEDTLS_ECP_NO_FALLBACK) && \
-    defined(MBEDTLS_ECP_DOUBLE_JAC_ALT) && \
-    defined(MBEDTLS_ECP_ADD_MIXED_ALT))
+MBEDTLS_MAYBE_UNUSED
 static inline int mbedtls_mpi_shift_l_mod(const mbedtls_ecp_group *grp,
                                           mbedtls_mpi *X,
                                           size_t count)
@@ -1158,8 +1150,6 @@ static inline int mbedtls_mpi_shift_l_mod(const mbedtls_ecp_group *grp,
 cleanup:
     return ret;
 }
-#endif \
-    /* All functions referencing mbedtls_mpi_shift_l_mod() are alt-implemented without fallback */
 
 /*
  * Macro wrappers around ECP modular arithmetic

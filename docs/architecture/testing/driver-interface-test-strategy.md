@@ -484,9 +484,9 @@ Key derivation (key types: `DERIVE`, `RAW_DATA`, `PASSWORD`, `PEPPER`,
 - No testing as we don't have test driver support yet (see previous section).
 
 RSA (key types: `RSA_KEY_PAIR_xxx`, `RSA_PUBLIC_KEY`):
-- `test_psa_crypto_config_accel_rsa_signature`: only signature algorithms,
-  default config, no parity testing.
-- No testing of driver-only encryption yet, see #8553.
+- `test_psa_crypto_config_accel_rsa_crypto`: all 4 algs (encryption &
+  signature, v1.5 & v2.1), config `crypto_full`, with parity testing excluding
+PK.
 
 DH (key types: `DH_KEY_PAIR_xxx`, `DH_PUBLIC_KEY`):
 - `test_psa_crypto_config_accel_ffdh`: all key types and algs, full config,
@@ -511,11 +511,9 @@ ECC (key types: `ECC_KEY_PAIR_xxx`, `ECC_PUBLIC_KEY`):
   - `test_psa_crypto_config_accel_ecc_weierstrass_curves`
 
 Note: `analyze_outcomes.py` provides a list of test cases that are not
-executed in any configuration tested on the CI. Currently it flags some RSA
-"fallback not available" tests, which is consistent with the fact that we're
-missing testing driver-only RSA-encrypt testing. However, we're also missing
-driver-only HMAC testing, but no test is flagged as never executed there; this
-reveals we don't have "fallback not available" cases for MAC, see #8565.
+executed in any configuration tested on the CI. We're missing driver-only HMAC
+testing, but no test is flagged as never executed there; this reveals we don't
+have "fallback not available" cases for MAC, see #8565.
 
 #### Test case coverage
 

@@ -15,6 +15,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/error.h"
+#include "mbedtls/ecp.h"
 #include "pk_internal.h"
 
 #include <string.h>
@@ -27,9 +28,6 @@
 /* Key types */
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"
-#endif
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
-#include "mbedtls/ecp.h"
 #endif
 
 /* Extended formats */

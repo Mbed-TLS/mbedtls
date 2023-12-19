@@ -446,6 +446,9 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  * \note This is an experimental extension to the interface. It may change
  *       in future versions of the library.
  *
+ * \note Due to an implementation limitation, domain parameters are ignored
+ *       for keys that are managed by a driver.
+ *
  * \param[in,out] attributes    Attribute structure where the specified domain
  *                              parameters will be stored.
  *                              If this function fails, the content of
@@ -476,6 +479,9 @@ psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
  * \note This is an experimental extension to the interface. It may change
  *       in future versions of the library.
  *
+ * \note Due to an implementation limitation, domain parameters are not
+ *       supported with keys that are managed by a driver.
+ *
  * \param[in] attributes        The key attribute structure to query.
  * \param[out] data             On success, the key domain parameters.
  * \param data_size             Size of the \p data buffer in bytes.
@@ -488,6 +494,8 @@ psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
  *
  * \retval #PSA_SUCCESS \emptydescription
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL \emptydescription
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The key is managed by a driver.
  */
 psa_status_t psa_get_key_domain_parameters(
     const psa_key_attributes_t *attributes,

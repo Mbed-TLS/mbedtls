@@ -259,7 +259,7 @@ struct psa_key_attributes_s {
      * - domain_parameters_size == SIZE_MAX && domain_parameters == NULL:
      *   Access to domain parameters is not supported for this key.
      *   This is a hack which should not exist, intended for keys managed
-     *   by a driver that doesn't support domain parameters.
+     *   by a driver, because drivers don't support domain parameters.
      * - domain_parameters_size == 0 && domain_parameters == NULL:
      *   The domain parameters are empty.
      * - domain_parameters_size > 0 &&

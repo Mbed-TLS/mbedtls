@@ -176,7 +176,7 @@ pre_initialize_variables () {
     fi
     # if CC is not set, use clang by default (if present) to improve build times
     if [ -z "${CC+set}" ] && (type clang > /dev/null 2>&1); then
-        export CC=$(type -p clang)
+        export CC="clang"
     fi
 
     # Include more verbose output for failing tests run by CMake or make

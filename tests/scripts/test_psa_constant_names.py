@@ -19,7 +19,7 @@ import sys
 from typing import Iterable, List, Optional, Tuple
 
 import scripts_path # pylint: disable=unused-import
-from mbedtls_dev import c_build_helper
+from test_frm_dev import c_build_helper
 from mbedtls_dev.macro_collector import InputsForTest, PSAMacroEnumerator
 from mbedtls_dev import typing_util
 

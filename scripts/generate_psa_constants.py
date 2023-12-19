@@ -17,6 +17,7 @@ file is written:
 import os
 import sys
 
+import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import build_tree
 from mbedtls_dev import macro_collector
 

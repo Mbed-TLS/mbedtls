@@ -101,6 +101,7 @@ from types import SimpleNamespace
 
 import xml.etree.ElementTree as ET
 
+import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import build_tree
 
 

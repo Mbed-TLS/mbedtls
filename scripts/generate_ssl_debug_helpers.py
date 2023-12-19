@@ -14,6 +14,8 @@ import re
 import os
 import textwrap
 import argparse
+
+import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import build_tree
 
 

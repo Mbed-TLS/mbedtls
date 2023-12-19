@@ -9,7 +9,7 @@ import re
 from collections import OrderedDict
 from typing import FrozenSet, List, Optional
 
-from . import macro_collector
+from mbedtls_dev import macro_collector
 
 
 class Information:

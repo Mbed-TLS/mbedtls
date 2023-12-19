@@ -19,7 +19,7 @@ import inspect
 from abc import ABCMeta, abstractmethod
 from typing import Callable, Dict, Iterable, Iterator, List, Type, TypeVar
 
-from . import build_tree
+from mbedtls_dev import build_tree
 from . import test_case
 
 T = TypeVar('T') #pylint: disable=invalid-name

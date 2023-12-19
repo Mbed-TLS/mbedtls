@@ -16,7 +16,7 @@ from typing import Dict, List, Optional, Set, Union
 import unittest
 
 from . import c_build_helper
-from . import build_tree
+from mbedtls_dev import build_tree
 
 
 class Expr:

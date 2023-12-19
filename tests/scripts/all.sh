@@ -4922,7 +4922,7 @@ helper_block_cipher_no_decrypt_build_test () {
 
     msg "build: default config + BLOCK_CIPHER_NO_DECRYPT${set_opts:+ + $set_opts}${unset_opts:+ - $unset_opts} with $cflags${ldflags:+, $ldflags}"
     make clean
-    make CC=gcc CFLAGS="$cflags" LDFLAGS="$ldflags"
+    make CFLAGS="-O2 $cflags" LDFLAGS="$ldflags"
 
     # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
     not grep mbedtls_aes_setkey_dec library/aes.o

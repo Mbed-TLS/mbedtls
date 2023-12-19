@@ -114,7 +114,9 @@ enum mbedtls_cipher_base_index {
     MBEDTLS_CIPHER_BASE_PREVENT_EMPTY_ENUM
 };
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C) && \
+    (defined(MBEDTLS_CIPHER_HAVE_GCM_AES_VIA_LEGACY_OR_USE_PSA) || \
+    defined(MBEDTLS_ARIA_C) || defined(MBEDTLS_CAMELLIA_C))
 /* shared by all GCM ciphers */
 static void *gcm_ctx_alloc(void)
 {
@@ -134,7 +136,9 @@ static void gcm_ctx_free(void *ctx)
 }
 #endif /* MBEDTLS_GCM_C */
 
-#if defined(MBEDTLS_CCM_C)
+#if defined(MBEDTLS_CCM_C) && \
+    (defined(MBEDTLS_CIPHER_HAVE_CCM_AES_VIA_LEGACY_OR_USE_PSA) || \
+    defined(MBEDTLS_ARIA_C) || defined(MBEDTLS_CAMELLIA_C))
 /* shared by all CCM ciphers */
 static void *ccm_ctx_alloc(void)
 {

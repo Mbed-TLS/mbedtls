@@ -1159,19 +1159,6 @@ component_test_default_cmake_gcc_asan_new_bignum () {
     tests/context-info.sh
 }
 
-# This is a common component testing the full config. Its purpose is to be used
-# as the "reference" for driver's acceleration tests below when possible (this
-# not always the case because some reference test require extra configuration
-# in addition to the default one)
-component_test_full_common_reference () {
-    msg "build: full config (common reference)"
-    helper_libtestdriver1_adjust_config "full"
-    make
-
-    msg "test: full config (common reference)"
-    make test
-}
-
 component_test_full_cmake_gcc_asan () {
     msg "build: full config, cmake, gcc, ASan"
     scripts/config.py full
@@ -3837,6 +3824,46 @@ component_test_psa_crypto_config_reference_cipher_aead () {
     tests/compat.sh -V NO -p mbedTLS
 }
 
+common_block_cipher_dispatch() {
+    TEST_WITH_DRIVER="$1"
+
+    # Start from the full config
+    helper_libtestdriver1_adjust_config "full"
+
+    if [ "$TEST_WITH_DRIVER" -eq 1 ]; then
+        # Disable key types that are accelerated (there is no legacy equivalent
+        # symbol for ECB)
+        scripts/config.py unset MBEDTLS_AES_C
+        scripts/config.py unset MBEDTLS_ARIA_C
+        scripts/config.py unset MBEDTLS_CAMELLIA_C
+    fi
+
+    # Disable cipher's modes and AEADs that, when not accelerated, cause
+    # legacy key types to be re-enabled in "config_adjust_legacy_from_psa.h".
+    # Keep this also in the reference component in order to avoid re-enabling
+    # (in "config_adjust_legacy_from_psa.h") legacy cipher modes that were
+    # disabled in that component.
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CTR
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CFB
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_OFB
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_NO_PADDING
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CMAC
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM_STAR_NO_TAG
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_GCM
+
+    # Disable direct dependency on AES_C
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+
+    # Prevent the cipher module from using deprecated PSA path. The reason is
+    # that otherwise there will be tests relying on "aes_info" (defined in
+    # "cipher_wrap.c") whose functions are not available when AES_C is
+    # not defined. ARIA and Camellia are not a problem in this case because
+    # the PSA path is not tested for these key types.
+    scripts/config.py set MBEDTLS_DEPRECATED_REMOVED
+}
+
 component_test_full_block_cipher_psa_dispatch () {
     msg "build: full + PSA dispatch in block_cipher"
 
@@ -3846,8 +3873,7 @@ component_test_full_block_cipher_psa_dispatch () {
     # Configure
     # ---------
 
-    # Start from the full config
-    helper_libtestdriver1_adjust_config "full"
+    common_block_cipher_dispatch 1
 
     # Build
     # -----
@@ -3856,10 +3882,33 @@ component_test_full_block_cipher_psa_dispatch () {
 
     helper_libtestdriver1_make_main "$loc_accel_list"
 
+    # Make sure disabled components were not re-enabled by accident (additive
+    # config)
+    not grep mbedtls_aes_ library/aes.o
+    not grep mbedtls_aria_ library/aria.o
+    not grep mbedtls_camellia_ library/camellia.o
+
     # Run the tests
     # -------------
 
     msg "test: full + PSA dispatch in block_cipher"
+    make test
+}
+
+# This is the reference component of component_test_full_block_cipher_psa_dispatch
+component_test_full_block_cipher_legacy_dispatch () {
+    msg "build: full + legacy dispatch in block_cipher"
+
+    common_block_cipher_dispatch 0
+
+    # Disable cipher modes other than ECB as in the accelerated component. ECB
+    # does not have a configuration symbol and it's automatically enabled as
+    # long as underlying key types are.
+    scripts/config.py unset-all MBEDTLS_CIPHER_MODE
+
+    make
+
+    msg "test: full + legacy dispatch in block_cipher"
     make test
 }
 

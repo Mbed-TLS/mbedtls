@@ -537,9 +537,11 @@ KNOWN_TASKS = {
     'analyze_block_cipher_dispatch': {
         'test_function': do_analyze_driver_vs_reference,
         'args': {
-            'component_ref': 'test_full_common_reference',
+            'component_ref': 'test_full_block_cipher_legacy_dispatch',
             'component_driver': 'test_full_block_cipher_psa_dispatch',
             'ignored_suites': [
+                # Skipped in the accelerated component
+                'aes', 'aria', 'camellia',
             ],
             'ignored_tests': {
                 'test_suite_platform': [

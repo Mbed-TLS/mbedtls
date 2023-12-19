@@ -2207,14 +2207,16 @@ component_test_full_deprecated_warning () {
     scripts/config.py full
     scripts/config.py set MBEDTLS_DEPRECATED_WARNING
     # Expect warnings from '#warning' directives in check_config.h.
-    make CFLAGS='-O -Werror -Wall -Wextra -Wno-error=cpp' lib programs
+    # Note that gcc is required to allow the use of -Wno-error=cpp, which allows us to
+    # display #warning messages without them being treated as errors.
+    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-error=cpp' lib programs
 
     msg "build: make tests, full config + MBEDTLS_DEPRECATED_WARNING, expect warnings" # ~ 30s
     # Set MBEDTLS_TEST_DEPRECATED to enable tests for deprecated features.
     # By default those are disabled when MBEDTLS_DEPRECATED_WARNING is set.
     # Expect warnings from '#warning' directives in check_config.h and
     # from the use of deprecated functions in test suites.
-    make CFLAGS='-O -Werror -Wall -Wextra -Wno-error=deprecated-declarations -Wno-error=cpp -DMBEDTLS_TEST_DEPRECATED' tests
+    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-error=deprecated-declarations -Wno-error=cpp -DMBEDTLS_TEST_DEPRECATED' tests
 
     msg "test: full config + MBEDTLS_TEST_DEPRECATED" # ~ 30s
     make test

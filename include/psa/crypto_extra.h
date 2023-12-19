@@ -428,6 +428,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  * of psa_set_key_type() when you need to specify domain parameters.
  *
  * The format for the required domain parameters varies based on the key type.
+ * Mbed TLS supports the following key type with domain parameters:
  *
  * - For RSA keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY or #PSA_KEY_TYPE_RSA_KEY_PAIR),
  *   the domain parameter data consists of the public exponent,
@@ -437,32 +438,6 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  *   key data and the exponent recorded in the attribute structure is ignored.
  *   As an exception, the public exponent 65537 is represented by an empty
  *   byte string.
- * - For DSA keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY or #PSA_KEY_TYPE_DSA_KEY_PAIR),
- *   the `Dss-Params` format as defined by RFC 3279 &sect;2.3.2.
- *   ```
- *   Dss-Params ::= SEQUENCE  {
- *      p       INTEGER,
- *      q       INTEGER,
- *      g       INTEGER
- *   }
- *   ```
- * - For Diffie-Hellman key exchange keys
- *   (#PSA_KEY_TYPE_DH_PUBLIC_KEY(#PSA_DH_FAMILY_CUSTOM) or
- *   #PSA_KEY_TYPE_DH_KEY_PAIR(#PSA_DH_FAMILY_CUSTOM)), the
- *   `DomainParameters` format as defined by RFC 3279 &sect;2.3.3.
- *   ```
- *   DomainParameters ::= SEQUENCE {
- *      p               INTEGER,                    -- odd prime, p=jq +1
- *      g               INTEGER,                    -- generator, g
- *      q               INTEGER,                    -- factor of p-1
- *      j               INTEGER OPTIONAL,           -- subgroup factor
- *      validationParams ValidationParams OPTIONAL
- *   }
- *   ValidationParams ::= SEQUENCE {
- *      seed            BIT STRING,
- *      pgenCounter     INTEGER
- *   }
- *   ```
  *
  * \note This function may allocate memory or other resources.
  *       Once you have called this function on an attribute structure,

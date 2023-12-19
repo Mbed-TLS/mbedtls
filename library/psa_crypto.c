@@ -4874,6 +4874,41 @@ psa_status_t psa_aead_decrypt_setup(psa_aead_operation_t *operation,
     return psa_aead_setup(operation, 0, key, alg);
 }
 
+static psa_status_t psa_aead_set_nonce_internal(psa_aead_operation_t *operation,
+                                                const uint8_t *nonce,
+                                                size_t nonce_length)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if (operation->id == 0) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    if (operation->nonce_set) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    status = psa_aead_check_nonce_length(operation->alg, nonce_length);
+    if (status != PSA_SUCCESS) {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+
+    status = psa_driver_wrapper_aead_set_nonce(operation, nonce,
+                                               nonce_length);
+
+exit:
+    if (status == PSA_SUCCESS) {
+        operation->nonce_set = 1;
+    } else {
+        psa_aead_abort(operation);
+    }
+
+    return status;
+}
+
 /* Generate a random nonce / IV for multipart AEAD operation */
 psa_status_t psa_aead_generate_nonce(psa_aead_operation_t *operation,
                                      uint8_t *nonce_external,
@@ -4920,7 +4955,8 @@ psa_status_t psa_aead_generate_nonce(psa_aead_operation_t *operation,
         goto exit;
     }
 
-    status = psa_aead_set_nonce(operation, local_nonce, required_nonce_size);
+    status = psa_aead_set_nonce_internal(operation, local_nonce,
+                                         required_nonce_size);
 
 exit:
     if (status == PSA_SUCCESS) {
@@ -4941,36 +4977,14 @@ psa_status_t psa_aead_set_nonce(psa_aead_operation_t *operation,
                                 const uint8_t *nonce_external,
                                 size_t nonce_length)
 {
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status;
 
     LOCAL_INPUT_DECLARE(nonce_external, nonce);
     LOCAL_INPUT_ALLOC(nonce_external, nonce_length, nonce);
 
-    if (operation->id == 0) {
-        status = PSA_ERROR_BAD_STATE;
-        goto exit;
-    }
-
-    if (operation->nonce_set) {
-        status = PSA_ERROR_BAD_STATE;
-        goto exit;
-    }
-
-    status = psa_aead_check_nonce_length(operation->alg, nonce_length);
-    if (status != PSA_SUCCESS) {
-        status = PSA_ERROR_INVALID_ARGUMENT;
-        goto exit;
-    }
-
-    status = psa_driver_wrapper_aead_set_nonce(operation, nonce,
-                                               nonce_length);
+    status = psa_aead_set_nonce_internal(operation, nonce, nonce_length);
 
 exit:
-    if (status == PSA_SUCCESS) {
-        operation->nonce_set = 1;
-    } else {
-        psa_aead_abort(operation);
-    }
 
     LOCAL_INPUT_FREE(nonce_external, nonce);
 

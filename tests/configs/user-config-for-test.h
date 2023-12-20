@@ -38,7 +38,7 @@
 
 /* Use the accelerator driver for all cryptographic mechanisms for which
  * the test driver is implemented. This is copied from psa/crypto_config.h
- * with the parts not implmented by the test driver commented out. */
+ * with the parts not implemented by the test driver commented out. */
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_DERIVE
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_PASSWORD
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_PASSWORD_HASH

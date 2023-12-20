@@ -60,6 +60,8 @@ APPS = \
 	psa/psa_hash \
 	random/gen_entropy \
 	random/gen_random_ctr_drbg \
+	util/pem2der \
+	util/strerror \
 	ssl/dtls_client \
 	ssl/dtls_server \
 	ssl/mini_client \
@@ -77,8 +79,6 @@ APPS = \
 	test/selftest \
 	test/udp_proxy \
 	test/zeroize \
-	util/pem2der \
-	util/strerror \
 	x509/cert_app \
 	x509/cert_req \
 	x509/cert_write \
@@ -275,6 +275,16 @@ random/gen_random_ctr_drbg$(EXEXT): random/gen_random_ctr_drbg.c $(DEP)
 	echo "  CC    random/gen_random_ctr_drbg.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) random/gen_random_ctr_drbg.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
+util/pem2der$(EXEXT): util/pem2der.c $(DEP)
+	echo "  CC    util/pem2der.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) util/pem2der.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+util/strerror$(EXEXT): util/strerror.c $(DEP)
+	echo "  CC    util/strerror.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) util/strerror.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+
+
 ssl/dtls_client$(EXEXT): ssl/dtls_client.c $(DEP)
 	echo "  CC    ssl/dtls_client.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/dtls_client.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
@@ -378,14 +388,6 @@ test/zeroize$(EXEXT): test/zeroize.c $(DEP)
 test/query_compile_time_config$(EXEXT): test/query_compile_time_config.c test/query_config.o test/query_config.h $(DEP)
 	echo "  CC    test/query_compile_time_config.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/query_compile_time_config.c test/query_config.o $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-util/pem2der$(EXEXT): util/pem2der.c $(DEP)
-	echo "  CC    util/pem2der.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) util/pem2der.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-util/strerror$(EXEXT): util/strerror.c $(DEP)
-	echo "  CC    util/strerror.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) util/strerror.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 x509/cert_app$(EXEXT): x509/cert_app.c $(DEP)
 	echo "  CC    x509/cert_app.c"

@@ -290,6 +290,15 @@ operations of that type requested through the PSA Crypto API are performed by
 the driver. Only functions belonging to legacy modules which are disabled won't
 be available in this configuration.
 
+### Restrictions
+
+- If an algorithm other than GCM and CCM (see
+  ["Partial acceleration for CCM/GCM"](#partial-acceleration-for-ccmgcm) below)
+  is enabled but not accelerated, then all key types than can be used with it
+  will need to be built-in;
+- if a key type is enabled but not accelerated, then all algorithms than can be
+  used with it will need to be built-in.
+
 ### Legacy <-> PSA matching
 
 It should be noticed that the matching between legacy (i.e. `MBEDTLS_xxx_C`)
@@ -339,7 +348,7 @@ but they can also rely on the legacy modules (`MBEDTLS_[CCM|GCM|CHACHAPOLY]`)
 with the following conditions on the underlying key types:
 - CCM/GCM can either use legacy key type modules `MBEDTLS_[AES|ARIA|CAMELLIA]_C`
   or their accelerated version, as described in section
-  ["Partial acceleration for CCM/GCM"](#partial-acceleration-for-CCM/GCM).
+  ["Partial acceleration for CCM/GCM"](#partial-acceleration-for-ccmgcm).
 - ChaChaPoly instead can only rely on legacy key type module `MBEDTLS_CHACHA20_C`
   and algorithm `MBEDTLS_POLY1305_C`.
 

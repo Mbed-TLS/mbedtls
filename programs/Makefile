@@ -1,6 +1,10 @@
 MBEDTLS_TEST_PATH = ../tests
 include ../scripts/common.make
 
+ifneq ("$(wildcard $(MBEDTLS_TEST_PATH)/framework/scripts/project_name.txt)","")
+TEST_FRAMEWORK_PRESENT = 1
+endif
+
 ifeq ($(shell uname -s),Linux)
 DLOPEN_LDFLAGS ?= -ldl
 else
@@ -8,7 +12,6 @@ DLOPEN_LDFLAGS ?=
 endif
 
 DEP=${MBEDLIBS} ${MBEDTLS_TEST_OBJS}
-DEP_SAMPLE=${DEP}
 
 # Only build the dlopen test in shared library builds, and not when building
 # for Windows.
@@ -21,13 +24,6 @@ BUILD_DLOPEN = y
 else
 BUILD_DLOPEN =
 endif
-
-# Program sample do not rely on test code. Computing compilation and link
-# flags for them by removing from the flags for test suites, test and helper
-# programs, the include paths and test objects.
-TEST_INCLUDE_PATHS = -I$(MBEDTLS_TEST_PATH)/include -I$(MBEDTLS_TEST_PATH)/framework/include
-LOCAL_CFLAGS_SAMPLE = $(filter-out $(TEST_INCLUDE_PATHS),$(LOCAL_CFLAGS))
-LOCAL_LDFLAGS_SAMPLE = $(filter-out $(MBEDTLS_TEST_OBJS),$(LOCAL_LDFLAGS))
 
 ## The following assignment is the list of base names of applications that
 ## will be built on Windows. Extra Linux/Unix/POSIX-only applications can
@@ -70,7 +66,10 @@ APPS = \
 	random/gen_random_ctr_drbg \
 	util/pem2der \
 	util/strerror \
-	ssl/dtls_client \
+# End of APPS
+
+ifdef TEST_FRAMEWORK_PRESENT
+APPS += ssl/dtls_client \
 	ssl/dtls_server \
 	ssl/mini_client \
 	ssl/ssl_client1 \
@@ -93,10 +92,10 @@ APPS = \
 	x509/crl_app \
 	x509/load_roots \
 	x509/req_app \
-# End of APPS
 
 ifeq ($(THREADING),pthread)
 APPS +=	ssl/ssl_pthread_server
+endif
 endif
 
 ifdef BUILD_DLOPEN
@@ -114,18 +113,35 @@ EXES = $(patsubst %,%$(EXEXT),$(APPS))
 .PHONY: all clean list fuzz
 
 all: $(EXES)
+
+ifdef TEST_FRAMEWORK_PRESENT
+# If the test framework is present, build sample programs as other programs
+# allowing for the use of test code like the PSA crypto test drivers.
+DEP_SAMPLE=${DEP}
+LOCAL_CFLAGS_SAMPLE = $(LOCAL_CFLAGS)
+LOCAL_LDFLAGS_SAMPLE = $(LOCAL_LDFLAGS)
+
+${MBEDTLS_TEST_OBJS}:
+	$(MAKE) -C ../tests mbedtls_test
+
+fuzz: ${MBEDTLS_TEST_OBJS}
+	$(MAKE) -C fuzz THIRDPARTY_INCLUDES=$(THIRDPARTY_INCLUDES)
+
 ifndef WINDOWS
 # APPS doesn't include the fuzzing programs, which aren't "normal"
 # sample or test programs, and don't build with MSVC which is
 # warning about fopen
 all: fuzz
 endif
-
-fuzz: ${MBEDTLS_TEST_OBJS}
-	$(MAKE) -C fuzz THIRDPARTY_INCLUDES=$(THIRDPARTY_INCLUDES)
-
-${MBEDTLS_TEST_OBJS}:
-	$(MAKE) -C ../tests mbedtls_test
+else
+# Program sample can build without test code. Computing compilation and link
+# flags for them by removing from the flags for test suites, test and helper
+# programs, the include paths and test objects.
+DEP_SAMPLE=${MBEDLIBS}
+TEST_INCLUDE_PATHS = -I$(MBEDTLS_TEST_PATH)/include -I$(MBEDTLS_TEST_PATH)/framework/include
+LOCAL_CFLAGS_SAMPLE = $(filter-out $(TEST_INCLUDE_PATHS),$(LOCAL_CFLAGS))
+LOCAL_LDFLAGS_SAMPLE = $(filter-out $(MBEDTLS_TEST_OBJS),$(LOCAL_LDFLAGS))
+endif
 
 .PHONY: generated_files
 GENERATED_FILES = psa/psa_constant_names_generated.c test/query_config.c
@@ -292,7 +308,7 @@ util/strerror$(EXEXT): util/strerror.c $(DEP_SAMPLE)
 	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) util/strerror.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
 
-
+ifdef TEST_FRAMEWORK_PRESENT
 ssl/dtls_client$(EXEXT): ssl/dtls_client.c $(DEP)
 	echo "  CC    ssl/dtls_client.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/dtls_client.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
@@ -420,6 +436,7 @@ x509/load_roots$(EXEXT): x509/load_roots.c $(DEP)
 x509/req_app$(EXEXT): x509/req_app.c $(DEP)
 	echo "  CC    x509/req_app.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/req_app.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+endif
 
 clean:
 ifndef WINDOWS

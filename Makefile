@@ -2,6 +2,10 @@ DESTDIR=/usr/local
 PREFIX=mbedtls_
 PERL ?= perl
 
+ifneq ("$(wildcard ./tests/framework/scripts/project_name.txt)","")
+TEST_FRAMEWORK_PRESENT = 1
+endif
+
 .SILENT:
 
 .PHONY: all no_test programs lib tests install uninstall clean test check lcov apidoc apidoc_clean
@@ -11,30 +15,48 @@ all: programs tests
 
 no_test: programs
 
+ifdef TEST_FRAMEWORK_PRESENT
 programs: lib mbedtls_test
 	$(MAKE) -C programs
-
-lib:
-	$(MAKE) -C library
 
 tests: lib mbedtls_test
 	$(MAKE) -C tests
 
 mbedtls_test:
 	$(MAKE) -C tests mbedtls_test
+tests/%:
+	$(MAKE) -C tests $*
 
+check: lib tests
+	$(MAKE) -C tests check
+
+test: check
+else
+programs: lib
+	$(MAKE) -C programs
+
+tests:
+	echo "Test framework not present, tests cannot be built."
+
+tests/%: ;
+
+check: tests
+
+test: tests
+endif
+
+lib:
+	$(MAKE) -C library
 library/%:
 	$(MAKE) -C library $*
 programs/%:
 	$(MAKE) -C programs $*
-tests/%:
-	$(MAKE) -C tests $*
 
 .PHONY: generated_files
 generated_files: library/generated_files
 generated_files: programs/generated_files
-generated_files: tests/generated_files
 generated_files: visualc_files
+generated_files: tests/generated_files
 
 # Set GEN_FILES to the empty string to disable dependencies on generated
 # source files. Then `make generated_files` will only build files that
@@ -135,7 +157,9 @@ endif
 clean: clean_more_on_top
 	$(MAKE) -C library clean
 	$(MAKE) -C programs clean
+ifdef TEST_FRAMEWORK_PRESENT
 	$(MAKE) -C tests clean
+endif
 
 clean_more_on_top:
 ifndef WINDOWS
@@ -145,18 +169,15 @@ endif
 neat: clean_more_on_top
 	$(MAKE) -C library neat
 	$(MAKE) -C programs neat
+ifdef TEST_FRAMEWORK_PRESENT
 	$(MAKE) -C tests neat
+endif
 ifndef WINDOWS
 	rm -f visualc/VS2013/*.vcxproj visualc/VS2013/mbedTLS.sln
 else
 	if exist visualc\VS2013\*.vcxproj del /Q /F visualc\VS2013\*.vcxproj
 	if exist visualc\VS2013\mbedTLS.sln del /Q /F visualc\VS2013\mbedTLS.sln
 endif
-
-check: lib tests
-	$(MAKE) -C tests check
-
-test: check
 
 ifndef WINDOWS
 # For coverage testing:

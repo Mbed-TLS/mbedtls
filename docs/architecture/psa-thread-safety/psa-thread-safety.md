@@ -29,7 +29,7 @@ Tempting platform requirements that we cannot add to the default `MBEDTLS_THREAD
 
 If you build with `MBEDTLS_PSA_CRYPTO_C` and `MBEDTLS_THREADING_C`, the code must be functionally correct: no race conditions, deadlocks or livelocks.
 
-The [PSA Crypto API specification](https://armmbed.github.io/mbed-crypto/html/overview/conventions.html#concurrent-calls) defines minimum expectations for concurrent calls. They must work as if they had been executed one at a time, except that the following cases have undefined behavior:
+The [PSA Crypto API specification](https://armmbed.github.io/mbed-crypto/html/overview/conventions.html#concurrent-calls) defines minimum expectations for concurrent calls. They must work as if they had been executed one at a time (excluding resource-management errors), except that the following cases have undefined behavior:
 
 * Destroying a key while it's in use.
 * Concurrent calls using the same operation object. (An operation object may not be used by more than one thread at a time. But it can move from one thread to another between calls.)
@@ -290,7 +290,7 @@ For concurrency purposes, a slot can be in one of four states:
 
 To change `slot` to state `new_state`, a function must call `psa_slot_state_transition(slot, new_state)`.
 
-A counter field within each slot keeps track of how many readers have registered. Library functions must call `psa_register_read` before reading the key data witin a slot, and `psa_unregister_read` after they have finished operating.
+A counter field within each slot keeps track of how many readers have registered. Library functions must call `psa_register_read` before reading the key data within a slot, and `psa_unregister_read` after they have finished operating.
 
 Any call to `psa_slot_state_transition`, `psa_register_read` or `psa_unregister_read` must be performed by a thread which holds the global mutex.
 
@@ -298,7 +298,9 @@ Any call to `psa_slot_state_transition`, `psa_register_read` or `psa_unregister_
 
 To satisfy the requirements in [Correctness out of the box](#correctness-out-of-the-box), we require our functions to be "linearizable" (under certain constraints). This means that any (constraint satisfying) set of concurrent calls are performed as if they were executed in some sequential order.
 
-The standard way of reasoning that this is the case is to identify a "linearization point" for each call, this is a single execution step where the function takes effect (this is usually a step in which the effects of the call become visible to other threads). If every call has a linearization point, the set of calls is equivalent to sequentially performing the calls in order of when their linearization point occured.
+The standard way of reasoning that this is the case is to identify a "linearization point" for each call, this is a single execution step where the function takes effect (this is usually a step in which the effects of the call become visible to other threads). If every call has a linearization point, the set of calls is equivalent to sequentially performing the calls in order of when their linearization point occurred.
+
+We only require linearizability to hold in the case where a resource-management error is not returned. In a set of concurrent calls, it is permitted for a call c to fail with a PSA_ERROR_INSUFFICIENT_MEMORY return code even if there does not exist a sequential ordering of the calls in which c returns this error.
 
 We only access and modify a slot's state and reader count while we hold the global lock. This ensures the memory in which these fields are stored is correctly synchronized. It also ensures that the key data within the slot is synchronised where needed (the writer unlocks the mutex after filling the data, and any reader must lock the mutex before reading the data).
 
@@ -306,8 +308,11 @@ To help justify that our system is linearizable, here is a list of key slot stat
 * `psa_wipe_key_slot, psa_register_read, psa_unregister_read, psa_slot_state_transition,` - These functions are all always performed under the global mutex, so they have no effects visible to other threads (this implies that they are linearizable).
 * `psa_get_empty_key_slot, psa_get_and_lock_key_slot_in_memory, psa_load_X_key_into_slot, psa_fail_key_creation` - These functions hold the mutex for all non-setup/finalizing code, their linearization points are the release of the mutex.
 * `psa_get_and_lock_key_slot` - If the key is already in a slot, the linearization point is the linearization point of the call to `psa_get_and_lock_key_slot_in_memory`. If the key is not in a slot and is loaded into one, the linearization point is the linearization point of the call to `psa_load_X_key_into_slot`.
+* `psa_start_key_creation` - From the perspective of other threads, the only effect of a successful call to this function is that the amount of usable resources decreases (a key slot which was usable is now unusable). Since we do not consider resource management as linearizable behaviour, when arguing for linearizability of the system we consider this function to have no visible effect to other threads.
 * `psa_finish_key_creation` - On a successful load, we lock the mutex and set the state of the slot to FULL, the linearization point is then the following unlock. On an unsuccessful load, the linearization point is when we return - no action we have performed has been made visible to another thread as the slot is still in a FILLING state.
 * `psa_destroy_key, psa_close_key, psa_purge_key` - As per the requirements, we need only argue for the case where the key is not in use here. The linearization point is the unlock after wiping the data and setting the slot state to EMPTY.
+* `psa_import_key, psa_copy_key, psa_generate_key, mbedtls_psa_register_se_key` - These functions call both `psa_start_key_creation` and `psa_finish_key_creation`, the linearization point of a successful call is the linearization point of the call to `psa_finish_key_creation`. The linearization point of an unsuccessful call is the linearization point of the call to `psa_fail_key_creation`.
+* `psa_key_derivation_output_key` - Same as above. If the operation object is in use by multiple threads, the behaviour need not be linearizable.
 
 Library functions which operate on a slot will return `PSA_ERROR_BAD_STATE` if the slot is in an inappropriate state for the function at the linearization point.
 

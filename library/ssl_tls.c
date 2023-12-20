@@ -3530,7 +3530,7 @@ int mbedtls_ssl_get_max_out_record_payload(const mbedtls_ssl_context *ssl)
              */
             max_len = ((max_len / MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY) *
                        MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY) - 1;
-            }
+        }
     }
 #endif
 

@@ -224,6 +224,22 @@
 #define MBEDTLS_BLOCK_CIPHER_C
 #endif
 
+/* Helpers for GCM/CCM capabilities */
+#if (defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_AES_C)) || \
+    (defined(MBEDTLS_BLOCK_CIPHER_C) && defined(MBEDTLS_BLOCK_CIPHER_CAN_AES))
+#define MBEDTLS_CCM_GCM_CAN_AES
+#endif
+
+#if (defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_ARIA_C)) || \
+    (defined(MBEDTLS_BLOCK_CIPHER_C) && defined(MBEDTLS_BLOCK_CIPHER_CAN_ARIA))
+#define MBEDTLS_CCM_GCM_CAN_ARIA
+#endif
+
+#if (defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_CAMELLIA_C)) || \
+    (defined(MBEDTLS_BLOCK_CIPHER_C) && defined(MBEDTLS_BLOCK_CIPHER_CAN_CAMELLIA))
+#define MBEDTLS_CCM_GCM_CAN_CAMELLIA
+#endif
+
 /* MBEDTLS_ECP_LIGHT is auto-enabled by the following symbols:
  * - MBEDTLS_ECP_C because now it consists of MBEDTLS_ECP_LIGHT plus functions
  *   for curve arithmetic. As a consequence if MBEDTLS_ECP_C is required for

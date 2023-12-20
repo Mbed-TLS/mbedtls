@@ -5,9 +5,8 @@ set(executables
 )
 
 foreach(exe IN LISTS executables)
-    add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>)
+    add_executable(${exe} ${exe}.c)
     target_link_libraries(${exe} ${mbedcrypto_target})
-    target_include_directories(${exe} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
 endforeach()
 
 install(TARGETS ${executables}

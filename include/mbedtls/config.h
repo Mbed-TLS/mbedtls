@@ -1581,8 +1581,8 @@
  *
  * \note Enabling this option increases memory usage and code size.
  *
- * \note Enabling this option enables full support for overlap of input and
- *       output buffers passed to PSA functions.
+ * \note Disabling this option causes overlap of input and output buffers
+ *       not to be supported by PSA functions.
  */
 #define MBEDTLS_PSA_COPY_CALLER_BUFFERS
 

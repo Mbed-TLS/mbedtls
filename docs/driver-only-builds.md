@@ -240,10 +240,6 @@ The same holds for the associated algorithm:
 `[PSA_WANT|MBEDTLS_PSA_ACCEL]_ALG_FFDH` allow builds accelerating FFDH and
 removing builtin support (i.e. `MBEDTLS_DHM_C`).
 
-### Limitations
-Support for deterministic derivation of a DH keypair
-(i.e. `PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_DERIVE`) is not supported.
-
 Ciphers and AEADs
 -----------------
 

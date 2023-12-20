@@ -8,6 +8,7 @@ DLOPEN_LDFLAGS ?=
 endif
 
 DEP=${MBEDLIBS} ${MBEDTLS_TEST_OBJS}
+DEP_SAMPLE=${DEP}
 
 # Only build the dlopen test in shared library builds, and not when building
 # for Windows.
@@ -20,6 +21,13 @@ BUILD_DLOPEN = y
 else
 BUILD_DLOPEN =
 endif
+
+# Program sample do not rely on test code. Computing compilation and link
+# flags for them by removing from the flags for test suites, test and helper
+# programs, the include paths and test objects.
+TEST_INCLUDE_PATHS = -I$(MBEDTLS_TEST_PATH)/include -I$(MBEDTLS_TEST_PATH)/framework/include
+LOCAL_CFLAGS_SAMPLE = $(filter-out $(TEST_INCLUDE_PATHS),$(LOCAL_CFLAGS))
+LOCAL_LDFLAGS_SAMPLE = $(filter-out $(MBEDTLS_TEST_OBJS),$(LOCAL_LDFLAGS))
 
 ## The following assignment is the list of base names of applications that
 ## will be built on Windows. Extra Linux/Unix/POSIX-only applications can
@@ -143,159 +151,159 @@ test/query_config.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_query_config.pl
 
-aes/crypt_and_hash$(EXEXT): aes/crypt_and_hash.c $(DEP)
+aes/crypt_and_hash$(EXEXT): aes/crypt_and_hash.c $(DEP_SAMPLE)
 	echo "  CC    aes/crypt_and_hash.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) aes/crypt_and_hash.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) aes/crypt_and_hash.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-cipher/cipher_aead_demo$(EXEXT): cipher/cipher_aead_demo.c $(DEP)
+cipher/cipher_aead_demo$(EXEXT): cipher/cipher_aead_demo.c $(DEP_SAMPLE)
 	echo "  CC    cipher/cipher_aead_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) cipher/cipher_aead_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) cipher/cipher_aead_demo.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-hash/generic_sum$(EXEXT): hash/generic_sum.c $(DEP)
+hash/generic_sum$(EXEXT): hash/generic_sum.c $(DEP_SAMPLE)
 	echo "  CC    hash/generic_sum.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/generic_sum.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) hash/generic_sum.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-hash/hello$(EXEXT): hash/hello.c $(DEP)
+hash/hello$(EXEXT): hash/hello.c $(DEP_SAMPLE)
 	echo "  CC    hash/hello.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/hello.c       $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) hash/hello.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-hash/md_hmac_demo$(EXEXT): hash/md_hmac_demo.c $(DEP)
+hash/md_hmac_demo$(EXEXT): hash/md_hmac_demo.c $(DEP_SAMPLE)
 	echo "  CC    hash/md_hmac_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/md_hmac_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) hash/md_hmac_demo.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/dh_client$(EXEXT): pkey/dh_client.c $(DEP)
+pkey/dh_client$(EXEXT): pkey/dh_client.c $(DEP_SAMPLE)
 	echo "  CC    pkey/dh_client.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/dh_client.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/dh_client.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/dh_genprime$(EXEXT): pkey/dh_genprime.c $(DEP)
+pkey/dh_genprime$(EXEXT): pkey/dh_genprime.c $(DEP_SAMPLE)
 	echo "  CC    pkey/dh_genprime.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/dh_genprime.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/dh_genprime.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/dh_server$(EXEXT): pkey/dh_server.c $(DEP)
+pkey/dh_server$(EXEXT): pkey/dh_server.c $(DEP_SAMPLE)
 	echo "  CC    pkey/dh_server.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/dh_server.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/dh_server.c   $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/ecdh_curve25519$(EXEXT): pkey/ecdh_curve25519.c $(DEP)
+pkey/ecdh_curve25519$(EXEXT): pkey/ecdh_curve25519.c $(DEP_SAMPLE)
 	echo "  CC    pkey/ecdh_curve25519.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/ecdh_curve25519.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/ecdh_curve25519.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/ecdsa$(EXEXT): pkey/ecdsa.c $(DEP)
+pkey/ecdsa$(EXEXT): pkey/ecdsa.c $(DEP_SAMPLE)
 	echo "  CC    pkey/ecdsa.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/ecdsa.c       $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/ecdsa.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/gen_key$(EXEXT): pkey/gen_key.c $(DEP)
+pkey/gen_key$(EXEXT): pkey/gen_key.c $(DEP_SAMPLE)
 	echo "  CC    pkey/gen_key.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/gen_key.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/gen_key.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/key_app$(EXEXT): pkey/key_app.c $(DEP)
+pkey/key_app$(EXEXT): pkey/key_app.c $(DEP_SAMPLE)
 	echo "  CC    pkey/key_app.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/key_app.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/key_app.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/key_app_writer$(EXEXT): pkey/key_app_writer.c $(DEP)
+pkey/key_app_writer$(EXEXT): pkey/key_app_writer.c $(DEP_SAMPLE)
 	echo "  CC    pkey/key_app_writer.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/key_app_writer.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/key_app_writer.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/mpi_demo$(EXEXT): pkey/mpi_demo.c $(DEP)
+pkey/mpi_demo$(EXEXT): pkey/mpi_demo.c $(DEP_SAMPLE)
 	echo "  CC    pkey/mpi_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/mpi_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/mpi_demo.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/pk_decrypt$(EXEXT): pkey/pk_decrypt.c $(DEP)
+pkey/pk_decrypt$(EXEXT): pkey/pk_decrypt.c $(DEP_SAMPLE)
 	echo "  CC    pkey/pk_decrypt.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/pk_decrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/pk_decrypt.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/pk_encrypt$(EXEXT): pkey/pk_encrypt.c $(DEP)
+pkey/pk_encrypt$(EXEXT): pkey/pk_encrypt.c $(DEP_SAMPLE)
 	echo "  CC    pkey/pk_encrypt.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/pk_encrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/pk_encrypt.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/pk_sign$(EXEXT): pkey/pk_sign.c $(DEP)
+pkey/pk_sign$(EXEXT): pkey/pk_sign.c $(DEP_SAMPLE)
 	echo "  CC    pkey/pk_sign.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/pk_sign.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/pk_sign.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/pk_verify$(EXEXT): pkey/pk_verify.c $(DEP)
+pkey/pk_verify$(EXEXT): pkey/pk_verify.c $(DEP_SAMPLE)
 	echo "  CC    pkey/pk_verify.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/pk_verify.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/pk_verify.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/rsa_genkey$(EXEXT): pkey/rsa_genkey.c $(DEP)
+pkey/rsa_genkey$(EXEXT): pkey/rsa_genkey.c $(DEP_SAMPLE)
 	echo "  CC    pkey/rsa_genkey.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_genkey.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/rsa_genkey.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/rsa_sign$(EXEXT): pkey/rsa_sign.c $(DEP)
+pkey/rsa_sign$(EXEXT): pkey/rsa_sign.c $(DEP_SAMPLE)
 	echo "  CC    pkey/rsa_sign.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_sign.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/rsa_sign.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/rsa_verify$(EXEXT): pkey/rsa_verify.c $(DEP)
+pkey/rsa_verify$(EXEXT): pkey/rsa_verify.c $(DEP_SAMPLE)
 	echo "  CC    pkey/rsa_verify.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_verify.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/rsa_verify.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/rsa_sign_pss$(EXEXT): pkey/rsa_sign_pss.c $(DEP)
+pkey/rsa_sign_pss$(EXEXT): pkey/rsa_sign_pss.c $(DEP_SAMPLE)
 	echo "  CC    pkey/rsa_sign_pss.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_sign_pss.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/rsa_sign_pss.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/rsa_verify_pss$(EXEXT): pkey/rsa_verify_pss.c $(DEP)
+pkey/rsa_verify_pss$(EXEXT): pkey/rsa_verify_pss.c $(DEP_SAMPLE)
 	echo "  CC    pkey/rsa_verify_pss.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_verify_pss.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/rsa_verify_pss.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/rsa_decrypt$(EXEXT): pkey/rsa_decrypt.c $(DEP)
+pkey/rsa_decrypt$(EXEXT): pkey/rsa_decrypt.c $(DEP_SAMPLE)
 	echo "  CC    pkey/rsa_decrypt.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_decrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/rsa_decrypt.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-pkey/rsa_encrypt$(EXEXT): pkey/rsa_encrypt.c $(DEP)
+pkey/rsa_encrypt$(EXEXT): pkey/rsa_encrypt.c $(DEP_SAMPLE)
 	echo "  CC    pkey/rsa_encrypt.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_encrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) pkey/rsa_encrypt.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-psa/aead_demo$(EXEXT): psa/aead_demo.c $(DEP)
+psa/aead_demo$(EXEXT): psa/aead_demo.c $(DEP_SAMPLE)
 	echo "  CC    psa/aead_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/aead_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) psa/aead_demo.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-psa/crypto_examples$(EXEXT): psa/crypto_examples.c $(DEP)
+psa/crypto_examples$(EXEXT): psa/crypto_examples.c $(DEP_SAMPLE)
 	echo "  CC    psa/crypto_examples.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/crypto_examples.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) psa/crypto_examples.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-psa/hmac_demo$(EXEXT): psa/hmac_demo.c $(DEP)
+psa/hmac_demo$(EXEXT): psa/hmac_demo.c $(DEP_SAMPLE)
 	echo "  CC    psa/hmac_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/hmac_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) psa/hmac_demo.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-psa/key_ladder_demo$(EXEXT): psa/key_ladder_demo.c $(DEP)
+psa/key_ladder_demo$(EXEXT): psa/key_ladder_demo.c $(DEP_SAMPLE)
 	echo "  CC    psa/key_ladder_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/key_ladder_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) psa/key_ladder_demo.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-psa/psa_constant_names$(EXEXT): psa/psa_constant_names.c psa/psa_constant_names_generated.c $(DEP)
+psa/psa_constant_names$(EXEXT): psa/psa_constant_names.c psa/psa_constant_names_generated.c $(DEP_SAMPLE)
 	echo "  CC    psa/psa_constant_names.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/psa_constant_names.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) psa/psa_constant_names.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-psa/psa_hash$(EXEXT): psa/psa_hash.c $(DEP)
+psa/psa_hash$(EXEXT): psa/psa_hash.c $(DEP_SAMPLE)
 	echo "  CC    psa/psa_hash.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/psa_hash.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) psa/psa_hash.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-random/gen_entropy$(EXEXT): random/gen_entropy.c $(DEP)
+random/gen_entropy$(EXEXT): random/gen_entropy.c $(DEP_SAMPLE)
 	echo "  CC    random/gen_entropy.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) random/gen_entropy.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) random/gen_entropy.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-random/gen_random_ctr_drbg$(EXEXT): random/gen_random_ctr_drbg.c $(DEP)
+random/gen_random_ctr_drbg$(EXEXT): random/gen_random_ctr_drbg.c $(DEP_SAMPLE)
 	echo "  CC    random/gen_random_ctr_drbg.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) random/gen_random_ctr_drbg.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) random/gen_random_ctr_drbg.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-util/pem2der$(EXEXT): util/pem2der.c $(DEP)
+util/pem2der$(EXEXT): util/pem2der.c $(DEP_SAMPLE)
 	echo "  CC    util/pem2der.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) util/pem2der.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) util/pem2der.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
-util/strerror$(EXEXT): util/strerror.c $(DEP)
+util/strerror$(EXEXT): util/strerror.c $(DEP_SAMPLE)
 	echo "  CC    util/strerror.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) util/strerror.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) util/strerror.c $(LOCAL_LDFLAGS_SAMPLE) $(LDFLAGS) -o $@
 
 
 
 ssl/dtls_client$(EXEXT): ssl/dtls_client.c $(DEP)
 	echo "  CC    ssl/dtls_client.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/dtls_client.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/dtls_client.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ssl/dtls_server$(EXEXT): ssl/dtls_server.c $(DEP)
 	echo "  CC    ssl/dtls_server.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/dtls_server.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/dtls_server.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ssl/ssl_client1$(EXEXT): ssl/ssl_client1.c $(DEP)
 	echo "  CC    ssl/ssl_client1.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_client1.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_client1.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 SSL_TEST_OBJECTS = test/query_config.o ssl/ssl_test_lib.o
 SSL_TEST_DEPS = $(SSL_TEST_OBJECTS) \
@@ -314,7 +322,7 @@ ssl/ssl_client2$(EXEXT): ssl/ssl_client2.c $(SSL_TEST_DEPS)
 
 ssl/ssl_server$(EXEXT): ssl/ssl_server.c $(DEP)
 	echo "  CC    ssl/ssl_server.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ssl/ssl_server2$(EXEXT): ssl/ssl_server2.c $(SSL_TEST_DEPS)
 	echo "  CC    ssl/ssl_server2.c"
@@ -326,23 +334,23 @@ ssl/ssl_context_info$(EXEXT): ssl/ssl_context_info.c test/query_config.o test/qu
 
 ssl/ssl_fork_server$(EXEXT): ssl/ssl_fork_server.c $(DEP)
 	echo "  CC    ssl/ssl_fork_server.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_fork_server.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_fork_server.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ssl/ssl_pthread_server$(EXEXT): ssl/ssl_pthread_server.c $(DEP)
 	echo "  CC    ssl/ssl_pthread_server.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_pthread_server.c   $(LOCAL_LDFLAGS) -lpthread  $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_pthread_server.c $(LOCAL_LDFLAGS) -lpthread  $(LDFLAGS) -o $@
 
 ssl/ssl_mail_client$(EXEXT): ssl/ssl_mail_client.c $(DEP)
 	echo "  CC    ssl/ssl_mail_client.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_mail_client.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_mail_client.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ssl/mini_client$(EXEXT): ssl/mini_client.c $(DEP)
 	echo "  CC    ssl/mini_client.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/mini_client.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/mini_client.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/benchmark$(EXEXT): test/benchmark.c $(DEP)
 	echo "  CC    test/benchmark.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/benchmark.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/benchmark.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/cpp_dummy_build.cpp: test/generate_cpp_dummy_build.sh
 	echo "  Gen   test/cpp_dummy_build.cpp"
@@ -350,20 +358,20 @@ test/cpp_dummy_build.cpp: test/generate_cpp_dummy_build.sh
 
 test/cpp_dummy_build$(EXEXT): test/cpp_dummy_build.cpp $(DEP)
 	echo "  CXX   test/cpp_dummy_build.cpp"
-	$(CXX) $(LOCAL_CXXFLAGS) $(CXXFLAGS) test/cpp_dummy_build.cpp   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CXX) $(LOCAL_CXXFLAGS_EXT) $(CXXFLAGS) test/cpp_dummy_build.cpp $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ifdef BUILD_DLOPEN
-test/dlopen$(EXEXT): test/dlopen.c $(DEP)
+test/dlopen$(EXEXT): test/dlopen.c $(MBEDLIBS)
 	echo "  CC    test/dlopen.c"
 # Do not link any test objects (that would bring in a static dependency on
 # libmbedcrypto at least). Do not link with libmbed* (that would defeat the
 # purpose of testing dynamic loading).
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/dlopen.c $(LDFLAGS) $(DLOPEN_LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS_SAMPLE) $(CFLAGS) test/dlopen.c $(LDFLAGS) $(DLOPEN_LDFLAGS) -o $@
 endif
 
 test/metatest$(EXEXT): test/metatest.c $(DEP)
 	echo "  CC    test/metatest.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -I ../library test/metatest.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -I ../library test/metatest.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/query_config.o: test/query_config.c test/query_config.h $(DEP)
 	echo "  CC    test/query_config.c"
@@ -371,19 +379,19 @@ test/query_config.o: test/query_config.c test/query_config.h $(DEP)
 
 test/query_included_headers$(EXEXT): test/query_included_headers.c $(DEP)
 	echo "  CC    test/query_included_headers.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/query_included_headers.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/query_included_headers.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/selftest$(EXEXT): test/selftest.c $(DEP)
 	echo "  CC    test/selftest.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/selftest.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/selftest.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/udp_proxy$(EXEXT): test/udp_proxy.c $(DEP)
 	echo "  CC    test/udp_proxy.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/udp_proxy.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/udp_proxy.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/zeroize$(EXEXT): test/zeroize.c $(DEP)
 	echo "  CC    test/zeroize.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/zeroize.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/zeroize.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/query_compile_time_config$(EXEXT): test/query_compile_time_config.c test/query_config.o test/query_config.h $(DEP)
 	echo "  CC    test/query_compile_time_config.c"
@@ -391,27 +399,27 @@ test/query_compile_time_config$(EXEXT): test/query_compile_time_config.c test/qu
 
 x509/cert_app$(EXEXT): x509/cert_app.c $(DEP)
 	echo "  CC    x509/cert_app.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/cert_app.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/cert_app.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 x509/cert_write$(EXEXT): x509/cert_write.c $(DEP)
 	echo "  CC    x509/cert_write.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/cert_write.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/cert_write.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 x509/crl_app$(EXEXT): x509/crl_app.c $(DEP)
 	echo "  CC    x509/crl_app.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/crl_app.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/crl_app.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 x509/cert_req$(EXEXT): x509/cert_req.c $(DEP)
 	echo "  CC    x509/cert_req.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/cert_req.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/cert_req.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 x509/load_roots$(EXEXT): x509/load_roots.c $(DEP)
 	echo "  CC    x509/load_roots.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/load_roots.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/load_roots.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 x509/req_app$(EXEXT): x509/req_app.c $(DEP)
 	echo "  CC    x509/req_app.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/req_app.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/req_app.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 clean:
 ifndef WINDOWS

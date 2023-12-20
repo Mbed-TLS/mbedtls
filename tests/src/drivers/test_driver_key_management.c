@@ -193,6 +193,7 @@ psa_status_t mbedtls_test_transparent_generate_key(
     uint8_t *key, size_t key_size, size_t *key_length)
 {
     ++mbedtls_test_driver_key_management_hooks.hits;
+    ++mbedtls_test_driver_key_management_hooks.hits_generate_key;
 
     if (mbedtls_test_driver_key_management_hooks.forced_status != PSA_SUCCESS) {
         return mbedtls_test_driver_key_management_hooks.forced_status;

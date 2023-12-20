@@ -542,8 +542,38 @@ KNOWN_TASKS = {
             'ignored_suites': [
                 # Skipped in the accelerated component
                 'aes', 'aria', 'camellia',
+                # These require AES_C and CAMELLIA_C to be enabled in order for the cipher
+                # module (actually cipher_wrapper) to work properly. However these symbols
+                # are disabled in the accelerated component so we ignore them.
+                'cipher.ccm', 'cipher.gcm', 'cmac',
             ],
             'ignored_tests': {
+                'test_suite_cipher.aes': [
+                    # CCM*-NO-TAG is disabled in the accelerated component but
+                    # there is no way to get CCM without CCM*-NO-TAG with legacy symbols.
+                    re.compile(r'AES-\d+[- ]CCM\*-NO-TAG .*'),
+                    # Following test require AES_C to be enabled for CIPHER_C operations
+                    re.compile(r'AES-\d+-ECB .* NIST KAT .*'),
+                    # This test requires AES_C which is disabled in the accelerated component
+                    'Cipher Corner Case behaviours',
+                ],
+                'test_suite_cipher.aria': [
+                    # Same as for test_suite_cipher.aes
+                    re.compile(r'ARIA-\d+[- ]CCM\*-NO-TAG .*'),
+                ],
+                'test_suite_cipher.camellia': [
+                    # Same as for test_suite_cipher.aes
+                    re.compile(r'CAMELLIA-\d+[- ]CCM\*-NO-TAG .*'),
+                ],
+                'test_suite_error': [
+                    # Following tests require AES_C which is disabled in the accelerated component
+                    'Single low error',
+                    'Low and high error',
+                ],
+                'test_suite_version': [
+                    # Following tests require AES_C which is disabled in the accelerated component
+                    'Check for MBEDTLS_AES_C when already present',
+                ],
                 'test_suite_platform': [
                     # Incompatible with sanitizers (e.g. ASan). If the driver
                     # component uses a sanitizer but the reference component

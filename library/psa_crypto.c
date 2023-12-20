@@ -4984,7 +4984,10 @@ psa_status_t psa_aead_set_nonce(psa_aead_operation_t *operation,
 
     status = psa_aead_set_nonce_internal(operation, nonce, nonce_length);
 
+/* Exit label is only needed for buffer copying, prevent unused warnings. */
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
 exit:
+#endif
 
     LOCAL_INPUT_FREE(nonce_external, nonce);
 

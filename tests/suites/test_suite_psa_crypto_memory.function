@@ -9,6 +9,7 @@
 #include "psa_crypto_invasive.h"
 
 #include "test/psa_crypto_helpers.h"
+#include "test/memory.h"
 
 /* Helper to fill a buffer with a data pattern. The pattern is not
  * important, it just allows a basic check that the correct thing has
@@ -42,6 +43,7 @@ void copy_input(int src_len, int dst_len, psa_status_t exp_status)
     TEST_EQUAL(status, exp_status);
 
     if (exp_status == PSA_SUCCESS) {
+        MBEDTLS_TEST_MEMORY_UNPOISON(src_buffer, src_len);
         /* Note: We compare the first src_len bytes of each buffer, as this is what was copied. */
         TEST_MEMORY_COMPARE(src_buffer, src_len, dst_buffer, src_len);
     }
@@ -68,6 +70,7 @@ void copy_output(int src_len, int dst_len, psa_status_t exp_status)
     TEST_EQUAL(status, exp_status);
 
     if (exp_status == PSA_SUCCESS) {
+        MBEDTLS_TEST_MEMORY_UNPOISON(dst_buffer, dst_len);
         /* Note: We compare the first src_len bytes of each buffer, as this is what was copied. */
         TEST_MEMORY_COMPARE(src_buffer, src_len, dst_buffer, src_len);
     }
@@ -94,6 +97,7 @@ void local_input_alloc(int input_len, psa_status_t exp_status)
     TEST_EQUAL(status, exp_status);
 
     if (exp_status == PSA_SUCCESS) {
+        MBEDTLS_TEST_MEMORY_UNPOISON(input, input_len);
         if (input_len != 0) {
             TEST_ASSERT(local_input.buffer != input);
         }
@@ -139,6 +143,8 @@ void local_input_round_trip()
 
     status = psa_crypto_local_input_alloc(input, sizeof(input), &local_input);
     TEST_EQUAL(status, PSA_SUCCESS);
+
+    MBEDTLS_TEST_MEMORY_UNPOISON(input, sizeof(input));
     TEST_MEMORY_COMPARE(local_input.buffer, local_input.length,
                         input, sizeof(input));
     TEST_ASSERT(local_input.buffer != input);
@@ -204,6 +210,7 @@ void local_output_free(int output_len, int original_is_null,
     TEST_EQUAL(status, exp_status);
 
     if (exp_status == PSA_SUCCESS) {
+        MBEDTLS_TEST_MEMORY_UNPOISON(output, output_len);
         TEST_ASSERT(local_output.buffer == NULL);
         TEST_EQUAL(local_output.length, 0);
         TEST_MEMORY_COMPARE(buffer_copy_for_comparison, output_len,
@@ -240,6 +247,7 @@ void local_output_round_trip()
     TEST_ASSERT(local_output.buffer == NULL);
     TEST_EQUAL(local_output.length, 0);
 
+    MBEDTLS_TEST_MEMORY_UNPOISON(output, sizeof(output));
     /* Check that the buffer was correctly copied back */
     TEST_MEMORY_COMPARE(output, sizeof(output),
                         buffer_copy_for_comparison, sizeof(output));

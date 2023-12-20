@@ -82,6 +82,7 @@ void mbedtls_ccm_setkey(int cipher_id, int key_size, int result)
     unsigned char key[32];
     int ret;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
 
     memset(key, 0x2A, sizeof(key));
@@ -92,6 +93,7 @@ void mbedtls_ccm_setkey(int cipher_id, int key_size, int result)
 
 exit:
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -139,7 +141,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_AES_C */
+/* BEGIN_CASE depends_on:MBEDTLS_CCM_GCM_CAN_AES */
 void ccm_star_lengths(int msg_len, int iv_len, int add_len, int tag_len,
                       int res)
 {

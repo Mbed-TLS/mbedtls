@@ -300,7 +300,7 @@ To satisfy the requirements in [Correctness out of the box](#correctness-out-of-
 
 The standard way of reasoning that this is the case is to identify a "linearization point" for each call, this is a single execution step where the function takes effect (this is usually a step in which the effects of the call become visible to other threads). If every call has a linearization point, the set of calls is equivalent to sequentially performing the calls in order of when their linearization point occurred.
 
-We only require linearizability to hold in the case where a resource-management error is not returned. In a set of concurrent calls, it is permitted for a call c to fail with a PSA_ERROR_INSUFFICIENT_MEMORY return code even if there does not exist a sequential ordering of the calls in which c returns this error.
+We only require linearizability to hold in the case where a resource-management error is not returned. In a set of concurrent calls, it is permitted for a call c to fail with a PSA_ERROR_INSUFFICIENT_MEMORY return code even if there does not exist a sequential ordering of the calls in which c returns this error. Even if such an error occurs, all calls are still required to be functionally correct.
 
 We only access and modify a slot's state and reader count while we hold the global lock. This ensures the memory in which these fields are stored is correctly synchronized. It also ensures that the key data within the slot is synchronised where needed (the writer unlocks the mutex after filling the data, and any reader must lock the mutex before reading the data).
 

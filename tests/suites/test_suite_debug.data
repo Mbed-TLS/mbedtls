@@ -67,4 +67,10 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_BASE64_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_C:MB
 mbedtls_debug_print_crt:"data_files/test-ca2.crt":"MyFile":999:"PREFIX_":"MyFile(0999)\: PREFIX_ #1\:\nMyFile(0999)\: cert. version     \: 3\nMyFile(0999)\: serial number     \: C1\:43\:E2\:7E\:62\:43\:CC\:E8\nMyFile(0999)\: issuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nMyFile(0999)\: subject name      \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nMyFile(0999)\: issued  on        \: 2019-02-10 14\:44\:00\nMyFile(0999)\: expires on        \: 2029-02-10 14\:44\:00\nMyFile(0999)\: signed using      \: ECDSA with SHA256\nMyFile(0999)\: EC key size       \: 384 bits\nMyFile(0999)\: basic constraints \: CA=true\nMyFile(0999)\: value of 'crt->eckey.Q(X)' (384 bits) is\:\nMyFile(0999)\:  c3 da 2b 34 41 37 58 2f 87 56 fe fc 89 ba 29 43\nMyFile(0999)\:  4b 4e e0 6e c3 0e 57 53 33 39 58 d4 52 b4 91 95\nMyFile(0999)\:  39 0b 23 df 5f 17 24 62 48 fc 1a 95 29 ce 2c 2d\nMyFile(0999)\: value of 'crt->eckey.Q(Y)' (384 bits) is\:\nMyFile(0999)\:  87 c2 88 52 80 af d6 6a ab 21 dd b8 d3 1c 6e 58\nMyFile(0999)\:  b8 ca e8 b2 69 8e f3 41 ad 29 c3 b4 5f 75 a7 47\nMyFile(0999)\:  6f d5 19 29 55 69 9a 53 3b 20 b4 66 16 60 33 1e\n"
 
 Check mbedtls_calloc overallocation
+# This test case exercises an integer overflow in calloc. Under Asan, with
+# a modern Clang, this triggers an ASan/MSan/TSan complaint. The complaint
+# can be avoided with e.g. ASAN_OPTIONS=allocator_may_return_null=1,
+# but this has to be set in the environment before the program starts,
+# and could hide other errors.
+depends_on:!MBEDTLS_TEST_HAVE_ASAN:!MBEDTLS_TEST_HAVE_MSAN:!MBEDTLS_TEST_HAVE_TSAN
 check_mbedtls_calloc_overallocation:1:1

@@ -21,6 +21,11 @@
 #include "mbedtls/psa_util.h"
 #endif
 
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_PSA_CRYPTO_C) \
+    && defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+#include "test/psa_memory_poisoning_wrappers.h"
+#endif
+
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
 
 /* Internal function for #TEST_USES_KEY_ID. Return 1 on success, 0 on failure. */

@@ -331,12 +331,17 @@ PSA acceleration when:
 
 ### Disabling CIPHER_C
 
-This is possible when:
+This only depends on unauthenticated ciphers: they can be either completely
+accelerated or disabled in order to remove the dependency on `MBEDTLS_CIPHER_C`.
 
-- all ciphers and AEADs are accelerated, or
-- no legacy module, either cipher or AEAD, is enabled. The only exception being
-  CCM/GCM when key types are accelerated, as described in section
-  [Partial acceleration for CCM/GCM](#partial-acceleration-for-CCM/GCM).
+AEADs do not have such restriction. Of course they can be accelerated as well,
+but they can also rely on the legacy modules (`MBEDTLS_[CCM|GCM|CHACHAPOLY]`)
+with the following conditions on the underlying key types:
+- CCM/GCM can either use legacy key type modules `MBEDTLS_[AES|ARIA|CAMELLIA]_C`
+  or their accelerated version, as described in section
+  ["Partial acceleration for CCM/GCM"](#partial-acceleration-for-CCM/GCM).
+- ChaChaPoly instead can only rely on legacy key type module `MBEDTLS_CHACHA20_C`
+  and algorithm `MBEDTLS_POLY1305_C`.
 
 It should be noticed that disabling `MBEDTLS_CIPHER_C` helps in reducing code's
 footprint, but unfortunately it makes the following modules unavailable:

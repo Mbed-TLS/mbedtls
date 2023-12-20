@@ -1188,7 +1188,7 @@ struct mbedtls_ssl_session {
     unsigned char MBEDTLS_PRIVATE(mfl_code);     /*!< MaxFragmentLength negotiated by peer */
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
-/*!< RecordSizeLimit received by peer */
+/*!< RecordSizeLimit received from the peer */
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
     uint16_t MBEDTLS_PRIVATE(record_size_limit);
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */

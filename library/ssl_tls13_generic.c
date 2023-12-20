@@ -1732,43 +1732,6 @@ int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
     return 0;
 }
 
-static inline size_t ssl_compute_internal_record_size_limit(size_t record_size_limit)
-{
-    /* RFC 8449, section 4:
-     *
-     * This value [record_size_limit] is the length of the plaintext of a protected record.
-     * The value includes the content type and padding added in TLS 1.3 (that is, the complete
-     * length of TLSInnerPlaintext).
-     *
-     * Thus, round down to a multiple of MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY
-     * and subtract 1 (for the content type that will be added later)
-     */
-    return ((record_size_limit / MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY) *
-            MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY) - 1;
-}
-
-size_t mbedtls_ssl_get_output_record_size_limit(const mbedtls_ssl_context *ssl)
-{
-    const size_t max_len = MBEDTLS_SSL_OUT_CONTENT_LEN;
-    size_t record_size_limit = max_len;
-
-    if (ssl->session != NULL &&
-        ssl->session->record_size_limit >= MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN &&
-        ssl->session->record_size_limit < max_len) {
-        record_size_limit = ssl_compute_internal_record_size_limit(ssl->session->record_size_limit);
-    }
-
-    // TODO: this is currently untested
-    /* During a handshake, use the value being negotiated */
-    if (ssl->session_negotiate != NULL &&
-        ssl->session_negotiate->record_size_limit >= MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN &&
-        ssl->session_negotiate->record_size_limit < max_len) {
-        record_size_limit = ssl_compute_internal_record_size_limit(
-            ssl->session_negotiate->record_size_limit);
-    }
-
-    return record_size_limit;
-}
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
 #endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_PROTO_TLS1_3 */

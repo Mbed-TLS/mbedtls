@@ -2492,7 +2492,7 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
     needed += 4;                            /* max_early_data_size */
 #endif
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
-    needed += 2; /* record_size_limit */
+    needed += 2;                            /* record_size_limit */
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
 #if defined(MBEDTLS_HAVE_TIME)
@@ -3420,6 +3420,31 @@ size_t mbedtls_ssl_get_input_max_frag_len(const mbedtls_ssl_context *ssl)
     return max_len;
 }
 
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+
+size_t mbedtls_ssl_get_output_record_size_limit(const mbedtls_ssl_context *ssl)
+{
+    const size_t max_len = MBEDTLS_SSL_OUT_CONTENT_LEN;
+    size_t record_size_limit = max_len;
+
+    if (ssl->session != NULL &&
+        ssl->session->record_size_limit >= MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN &&
+        ssl->session->record_size_limit < max_len) {
+        record_size_limit = ssl->session->record_size_limit;
+    }
+
+    // TODO: this is currently untested
+    /* During a handshake, use the value being negotiated */
+    if (ssl->session_negotiate != NULL &&
+        ssl->session_negotiate->record_size_limit >= MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN &&
+        ssl->session_negotiate->record_size_limit < max_len) {
+        record_size_limit = ssl->session_negotiate->record_size_limit;
+    }
+
+    return record_size_limit;
+}
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
+
 size_t mbedtls_ssl_get_output_max_frag_len(const mbedtls_ssl_context *ssl)
 {
     size_t max_len;
@@ -3491,6 +3516,21 @@ int mbedtls_ssl_get_max_out_record_payload(const mbedtls_ssl_context *ssl)
 
     if (max_len > record_size_limit) {
         max_len = record_size_limit;
+        if (ssl->transform_out != NULL &&
+            ssl->transform_out->tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
+            /* RFC 8449, section 4:
+             *
+             * This value [record_size_limit] is the length of the plaintext
+             * of a protected record.
+             * The value includes the content type and padding added in TLS 1.3
+             * (that is, the complete length of TLSInnerPlaintext).
+             *
+             * Thus, round down to a multiple of MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY
+             * and subtract 1 (for the content type that will be added later)
+             */
+            max_len = ((max_len / MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY) *
+                       MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY) - 1;
+            }
     }
 #endif
 
@@ -3516,7 +3556,8 @@ int mbedtls_ssl_get_max_out_record_payload(const mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 #if !defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH) &&        \
-    !defined(MBEDTLS_SSL_PROTO_DTLS)
+    !defined(MBEDTLS_SSL_PROTO_DTLS) &&                 \
+    !defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
     ((void) ssl);
 #endif
 

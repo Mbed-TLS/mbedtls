@@ -15,6 +15,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/error.h"
+#include "pk_internal.h"
 
 #include <string.h>
 
@@ -29,7 +30,6 @@
 #endif
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #include "mbedtls/ecp.h"
-#include "pk_internal.h"
 #endif
 
 /* Extended formats */
@@ -868,12 +868,6 @@ static int pk_get_pk_alg(unsigned char **p,
     return 0;
 }
 
-/* Helper for Montgomery curves */
-#if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
-#define MBEDTLS_PK_IS_RFC8410_GROUP_ID(id)  \
-    ((id == MBEDTLS_ECP_DP_CURVE25519) || (id == MBEDTLS_ECP_DP_CURVE448))
-#endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
-
 /*
  *  SubjectPublicKeyInfo  ::=  SEQUENCE  {
  *       algorithm            AlgorithmIdentifier,
@@ -1539,8 +1533,7 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
         ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
     } else {
         ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN RSA PRIVATE KEY-----",
-                                      "-----END RSA PRIVATE KEY-----",
+                                      PEM_BEGIN_PRIVATE_KEY_RSA, PEM_END_PRIVATE_KEY_RSA,
                                       key, pwd, pwdlen, &len);
     }
 
@@ -1569,8 +1562,8 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
         ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
     } else {
         ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN EC PRIVATE KEY-----",
-                                      "-----END EC PRIVATE KEY-----",
+                                      PEM_BEGIN_PRIVATE_KEY_EC,
+                                      PEM_END_PRIVATE_KEY_EC,
                                       key, pwd, pwdlen, &len);
     }
     if (ret == 0) {
@@ -1599,8 +1592,7 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
         ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
     } else {
         ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN PRIVATE KEY-----",
-                                      "-----END PRIVATE KEY-----",
+                                      PEM_BEGIN_PRIVATE_KEY_PKCS8, PEM_END_PRIVATE_KEY_PKCS8,
                                       key, NULL, 0, &len);
     }
     if (ret == 0) {
@@ -1621,8 +1613,8 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
         ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
     } else {
         ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN ENCRYPTED PRIVATE KEY-----",
-                                      "-----END ENCRYPTED PRIVATE KEY-----",
+                                      PEM_BEGIN_ENCRYPTED_PRIVATE_KEY_PKCS8,
+                                      PEM_END_ENCRYPTED_PRIVATE_KEY_PKCS8,
                                       key, NULL, 0, &len);
     }
     if (ret == 0) {
@@ -1748,8 +1740,7 @@ int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
         ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
     } else {
         ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN RSA PUBLIC KEY-----",
-                                      "-----END RSA PUBLIC KEY-----",
+                                      PEM_BEGIN_PUBLIC_KEY_RSA, PEM_END_PUBLIC_KEY_RSA,
                                       key, NULL, 0, &len);
     }
 
@@ -1782,8 +1773,7 @@ int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
         ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
     } else {
         ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN PUBLIC KEY-----",
-                                      "-----END PUBLIC KEY-----",
+                                      PEM_BEGIN_PUBLIC_KEY, PEM_END_PUBLIC_KEY,
                                       key, NULL, 0, &len);
     }
 

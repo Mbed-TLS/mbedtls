@@ -203,6 +203,19 @@
 #endif
 #endif
 
+#if defined(MBEDTLS_PSA_CRYPTO_C) && \
+    (defined(MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CTR) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CFB) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_OFB) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CCM_STAR_NO_TAG)) && \
+    !defined(MBEDTLS_CIPHER_C)
+#error "Built-in unauthenticated ciphers are enabled in PSA, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_ECDH_C) && !defined(MBEDTLS_ECP_C)
 #error "MBEDTLS_ECDH_C defined, but not all prerequisites"
 #endif

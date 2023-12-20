@@ -3167,7 +3167,8 @@
  *
  * Requires: either MBEDTLS_CTR_DRBG_C and MBEDTLS_ENTROPY_C,
  *           or MBEDTLS_HMAC_DRBG_C and MBEDTLS_ENTROPY_C,
- *           or MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG.
+ *           or MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG;
+ *           MBEDTLS_CIPHER_C if any unauthenticated cipher is builtin in PSA.
  *
  */
 #define MBEDTLS_PSA_CRYPTO_C

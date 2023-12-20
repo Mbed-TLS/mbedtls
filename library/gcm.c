@@ -659,7 +659,7 @@ void mbedtls_gcm_free(mbedtls_gcm_context *ctx)
 
 #endif /* !MBEDTLS_GCM_ALT */
 
-#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
+#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_CCM_GCM_CAN_AES)
 /*
  * AES-GCM test vectors from:
  *

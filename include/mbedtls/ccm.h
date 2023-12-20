@@ -509,7 +509,7 @@ int mbedtls_ccm_update(mbedtls_ccm_context *ctx,
 int mbedtls_ccm_finish(mbedtls_ccm_context *ctx,
                        unsigned char *tag, size_t tag_len);
 
-#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
+#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_CCM_GCM_CAN_AES)
 /**
  * \brief          The CCM checkup routine.
  *

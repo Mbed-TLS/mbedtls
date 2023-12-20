@@ -19,7 +19,16 @@
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
-#endif
+
+#include "psa_util_internal.h"
+#define PSA_PK_TO_MBEDTLS_ERR(status) psa_pk_status_to_mbedtls(status)
+#define PSA_PK_RSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,     \
+                                                                  psa_to_pk_rsa_errors,            \
+                                                                  psa_pk_status_to_mbedtls)
+#define PSA_PK_ECDSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
+                                                                    psa_to_pk_ecdsa_errors,        \
+                                                                    psa_pk_status_to_mbedtls)
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /* Headers/footers for PEM files */
 #define PEM_BEGIN_PUBLIC_KEY    "-----BEGIN PUBLIC KEY-----"
@@ -35,18 +44,7 @@
 #define PEM_BEGIN_ENCRYPTED_PRIVATE_KEY_PKCS8 "-----BEGIN ENCRYPTED PRIVATE KEY-----"
 #define PEM_END_ENCRYPTED_PRIVATE_KEY_PKCS8   "-----END ENCRYPTED PRIVATE KEY-----"
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
-#include "psa_util_internal.h"
-#define PSA_PK_TO_MBEDTLS_ERR(status) psa_pk_status_to_mbedtls(status)
-#define PSA_PK_RSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,     \
-                                                                  psa_to_pk_rsa_errors,            \
-                                                                  psa_pk_status_to_mbedtls)
-#define PSA_PK_ECDSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
-                                                                    psa_to_pk_ecdsa_errors,        \
-                                                                    psa_pk_status_to_mbedtls)
-#endif
-
-#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 /**
  * Public function mbedtls_pk_ec() can be used to get direct access to the
  * wrapped ecp_keypair structure pointed to the pk_ctx. However this is not
@@ -82,7 +80,7 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec_rw(const mbedtls_pk_context pk)
             return NULL;
     }
 }
-#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS && !MBEDTLS_PK_USE_PSA_EC_DATA */
 
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 static inline mbedtls_ecp_group_id mbedtls_pk_get_ec_group_id(const mbedtls_pk_context *pk)

@@ -296,7 +296,7 @@ It should be noticed that the matching between legacy (i.e. `MBEDTLS_xxx_C`)
 and PSA (i.e. `PSA_WANT_xxx`) symbols is not always 1:1. For example:
 - ECB mode is always enabled in legacy configuration for each key type that
   allows it (AES, ARIA, Camellia, DES), whereas it must be explicitly enabled
-  in PSA with `PSA_WANT_ALG_ECB`;
+  in PSA with `PSA_WANT_ALG_ECB_NO_PADDING`;
 - similarly for stream ciphers, it is automatically enabled for key types that
   support it (`CHACHA20_C` and `NULL_CIPHER`) whereas it must be explicitly
   enabled in PSA with `PSA_WANT_ALG_STREAM_CIPHER`;
@@ -333,7 +333,7 @@ PSA acceleration when:
 
 This is possible when:
 
-- all ciphers and AEADs are accelerated;
+- all ciphers and AEADs are accelerated, or
 - no legacy module, either cipher or AEAD, is enabled. The only exception being
   CCM/GCM when key types are accelerated, as described in section
   [Partial acceleration for CCM/GCM](#partial-acceleration-for-CCM/GCM).

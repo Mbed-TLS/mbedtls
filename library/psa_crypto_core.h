@@ -35,8 +35,10 @@ int psa_can_do_hash(psa_algorithm_t hash_alg);
 
 typedef enum {
     PSA_SLOT_EMPTY = 0,
-    PSA_SLOT_OCCUPIED,
-} psa_key_slot_status_t;
+    PSA_SLOT_FILLING,
+    PSA_SLOT_FULL,
+    PSA_SLOT_PENDING_DELETION,
+} psa_key_slot_state_t;
 
 /** The data structure representing a key slot, containing key material
  * and metadata for one key.
@@ -44,18 +46,39 @@ typedef enum {
 typedef struct {
     psa_core_key_attributes_t attr;
 
-    psa_key_slot_status_t status;
+    /*
+     * The current state of the key slot, as described in
+     * docs/architecture/psa-thread-safety/psa-thread-safety.md.
+     *
+     * Library functions can modify the state of a key slot by calling
+     * psa_key_slot_state_transition.
+     *
+     * The state variable is used to help determine whether library functions
+     * which operate on the slot succeed. For example, psa_finish_key_creation,
+     * which transfers the state of a slot from PSA_SLOT_FILLING to
+     * PSA_SLOT_FULL, must fail with error code PSA_ERROR_BAD_STATE
+     * if the state of the slot is not PSA_SLOT_FILLING.
+     *
+     * Library functions which traverse the array of key slots only consider
+     * slots that are in a suitable state for the function.
+     * For example, psa_get_and_lock_key_slot_in_memory, which finds a slot
+     * containing a given key ID, will only check slots whose state variable is
+     * PSA_SLOT_FULL. */
+    psa_key_slot_state_t state;
 
     /*
-     * Number of locks on the key slot held by the library.
+     * Number of functions registered as reading the material in the key slot.
      *
-     * This counter is incremented by one each time a library function
-     * retrieves through one of the dedicated internal API a pointer to the
-     * key slot.
+     * Library functions must not write directly to registered_readers
+     * (unless the slot's state is PSA_SLOT_FILLING and the slot needs to be
+     * wiped following a failed key creation).
      *
-     * This counter is decremented by one each time a library function stops
-     * accessing the key slot and states it by calling the
-     * psa_unlock_key_slot() API.
+     * A function must call psa_register_read(slot) before reading the current
+     * contents of the slot for an operation.
+     * They then must call psa_unregister_read(slot) once they have finished
+     * reading the current contents of the slot.
+     * A function must call psa_key_slot_has_readers(slot) to check if
+     * the slot is in use for reading.
      *
      * This counter is used to prevent resetting the key slot while the library
      * may access it. For example, such control is needed in the following
@@ -66,10 +89,9 @@ typedef struct {
      *   the library cannot be reclaimed to free a key slot to load the
      *   persistent key.
      * . In case of a multi-threaded application where one thread asks to close
-     *   or purge or destroy a key while it is in used by the library through
-     *   another thread.
-     */
-    size_t lock_count;
+     *   or purge or destroy a key while it is in use by the library through
+     *   another thread. */
+    size_t registered_readers;
 
     /* Dynamically allocated key data buffer.
      * Format as specified in psa_export_key(). */

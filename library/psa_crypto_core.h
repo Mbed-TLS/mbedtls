@@ -200,13 +200,16 @@ static inline psa_key_slot_number_t psa_key_slot_get_slot_number(
 /** Completely wipe a slot in memory, including its policy.
  *
  * Persistent storage is not affected.
+ * Sets the slot's state to PSA_SLOT_EMPTY.
  *
  * \param[in,out] slot  The key slot to wipe.
  *
  * \retval #PSA_SUCCESS
- *         Success. This includes the case of a key slot that was
- *         already fully wiped.
- * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ *         The slot has been successfully wiped.
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ *         The amount of registered readers was not equal to 1.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The slot's state was not PSA_SLOT_PENDING_DELETION.
  */
 psa_status_t psa_wipe_key_slot(psa_key_slot_t *slot);
 

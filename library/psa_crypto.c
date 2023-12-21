@@ -981,18 +981,23 @@ psa_status_t psa_remove_key_data_from_memory(psa_key_slot_t *slot)
  * Persistent storage is not affected. */
 psa_status_t psa_wipe_key_slot(psa_key_slot_t *slot)
 {
+    if (slot->state != PSA_SLOT_PENDING_DELETION) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
     psa_status_t status = psa_remove_key_data_from_memory(slot);
 
     /*
      * As the return error code may not be handled in case of multiple errors,
-     * do our best to report an unexpected lock counter. Assert with
-     * MBEDTLS_TEST_HOOK_TEST_ASSERT that the lock counter is equal to one:
+     * do our best to report an unexpected amount of registered readers.
+     * Assert with MBEDTLS_TEST_HOOK_TEST_ASSERT that registered_readers is
+     * equal to one:
      * if the MBEDTLS_TEST_HOOKS configuration option is enabled and the
      * function is called as part of the execution of a test suite, the
      * execution of the test suite is stopped in error if the assertion fails.
      */
-    if (slot->lock_count != 1) {
-        MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->lock_count == 1);
+    if (slot->registered_readers != 1) {
+        MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->registered_readers == 1);
         status = PSA_ERROR_CORRUPTION_DETECTED;
     }
 
@@ -1003,7 +1008,8 @@ psa_status_t psa_wipe_key_slot(psa_key_slot_t *slot)
      * key material can linger until all operations are completed. */
     /* At this point, key material and other type-specific content has
      * been wiped. Clear remaining metadata. We can call memset and not
-     * zeroize because the metadata is not particularly sensitive. */
+     * zeroize because the metadata is not particularly sensitive.
+     * This memset also sets the slot's state to PSA_SLOT_EMPTY. */
     memset(slot, 0, sizeof(*slot));
     return status;
 }

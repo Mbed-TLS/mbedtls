@@ -139,7 +139,7 @@ APPS = \
 	x509/req_app \
 # End of APPS
 
-ifdef PTHREAD
+ifeq ($(THREADING),pthread)
 APPS +=	ssl/ssl_pthread_server
 endif
 

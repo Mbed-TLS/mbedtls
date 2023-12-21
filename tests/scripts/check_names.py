@@ -44,6 +44,8 @@ import shutil
 import subprocess
 import logging
 
+from typing import List
+
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import build_tree
 
@@ -55,7 +57,10 @@ INTERNAL_MACRO_PATTERN = r"^[0-9A-Za-z_]*[0-9A-Z]$"
 CONSTANTS_PATTERN = PUBLIC_MACRO_PATTERN
 IDENTIFIER_PATTERN = r"^(mbedtls|psa)_[0-9a-z_]*[0-9a-z]$"
 
-class MbedTLS():
+class MbedTLS(): # pylint: disable=too-few-public-methods
+    """
+    A class for Mbed TLS specific parsing options.
+    """
     config_files = [
         "include/mbedtls/mbedtls_config.h"
     ]
@@ -120,7 +125,10 @@ class MbedTLS():
         "library/psa_crypto_driver_wrappers.h"
     ]
 
-class TF_PSA_Crypto():
+class TFPSACrypto(): # pylint: disable=too-few-public-methods
+    """
+    A class for TF PSA Crypto specific parsing options.
+    """
     config_files = [
         "drivers/builtin/mbedtls_config.h"
     ]
@@ -163,7 +171,7 @@ class TF_PSA_Crypto():
     ]
 
     excluded_identifier_files = [
-    ]
+    ] # type: List[str]
 
     mbed_psa_word_files = [
         "drivers/builtin/include/mbedtls/*.h",
@@ -174,7 +182,7 @@ class TF_PSA_Crypto():
     ]
 
     excluded_mbed_psa_word_files = [
-    ]
+    ] # type: List[str]
 
 class Match(): # pylint: disable=too-few-public-methods
     """
@@ -338,7 +346,7 @@ class CodeParser():
         if build_tree.looks_like_mbedtls_root("."):
             self.project = MbedTLS()
         elif build_tree.looks_like_tf_psa_crypto_root("."):
-            self.project = TF_PSA_Crypto()
+            self.project = TFPSACrypto()
 
         # Memo for storing "glob expression": set(filepaths)
         self.files = {}

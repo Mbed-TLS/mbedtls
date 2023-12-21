@@ -285,10 +285,10 @@ algorithm/mode you can:
   - `MBEDTLS_CHACHAPOLY_C`
   - `MBEDTLS_NULL_CIPHER`
 
-Once a key type and related algorithm are accelerated, all cipher and AEADs
-operations of that type requested through the PSA Crypto API are performed by
-the driver. Only functions belonging to legacy modules which are disabled won't
-be available in this configuration.
+Once a key type and related algorithm are accelerated, all the PSA Crypto APIs
+will work, as well as X.509 and TLS (with MBEDTLS_USE_PSA_CRYPTO enabled) but
+some non-PSA APIs will be absent or have reduced functionality, see
+[Disabling CIPHER_C](#disabling-cipher_c) for details.
 
 ### Restrictions
 
@@ -353,8 +353,11 @@ with the following conditions on the underlying key types:
   `MBEDTLS_CHACHA20_C` and algorithm `MBEDTLS_POLY1305_C`.
 
 It should be noticed that disabling `MBEDTLS_CIPHER_C` helps to reduce the
-code's footprint, but unfortunately it makes the following modules unavailable:
-- `MBEDTLS_PKCS[5|12]_C`,
-- `MBEDTLS_NIST_KW_C`.
+code's footprint, but unfortunately it makes the following features unavailable:
+- encryption/decryption in PKCS5 and PKCS12 modules (key derivations will still
+  be available),
+- encrypted PEM (write and unecrypted read work normally),
+- parsing of encrypted keys (PKCS5 or PKCS12) in PK modules,
+- NIST-KW (`MBEDTLS_NIST_KW_C`).
 
 

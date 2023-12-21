@@ -82,10 +82,15 @@ def collect_status_logs(options):
                                   cwd='tests',
                                   stdout=sys.stderr)
         with open(os.devnull, 'w') as devnull:
-            make_q_ret = subprocess.call(['make', '-q', 'lib', 'tests'],
-                                         stdout=devnull, stderr=devnull)
+            build_command = ['make', '-q'] + options.make_vars.split(' ') + \
+                            ['lib', 'tests']
+            make_q_ret = subprocess.call(build_command, stdout=devnull,
+                                         stderr=devnull)
+            print("blagh")
         if make_q_ret != 0:
-            subprocess.check_call(['make', 'RECORD_PSA_STATUS_COVERAGE_LOG=1'],
+            build_command = ['make'] + options.make_vars.split(' ') + \
+                            ['RECORD_PSA_STATUS_COVERAGE_LOG=1']
+            subprocess.check_call(build_command,
                                   stdout=sys.stderr)
             rebuilt = True
         subprocess.check_call(['make', 'test'],
@@ -112,6 +117,9 @@ def main():
                         help='Log file location (default: {})'.format(
                             DEFAULT_STATUS_LOG_FILE
                         ))
+    parser.add_argument('--make-vars',
+                        help='optional variable/value pairs to pass to make',
+                        action='store', default='')
     parser.add_argument('--psa-constant-names', metavar='PROGRAM',
                         default=DEFAULT_PSA_CONSTANT_NAMES,
                         help='Path to psa_constant_names (default: {})'.format(

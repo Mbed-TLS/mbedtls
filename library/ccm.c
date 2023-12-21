@@ -91,7 +91,7 @@ int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
     }
 #endif
 
-    return 0;
+    return ret;
 }
 
 /*

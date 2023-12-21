@@ -57,6 +57,10 @@ else
 DLEXT ?= so
 EXEXT=
 SHARED_SUFFIX=
+
+ifeq ($(THREADING),pthread)
+LOCAL_LDFLAGS += -lpthread
+endif
 endif
 
 ifdef WINDOWS

@@ -5708,7 +5708,7 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
     psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY(
         slot->attr.type);
     mbedtls_ecp_group_id grp_id =
-        mbedtls_ecc_group_of_psa(curve, bits, 0);
+        mbedtls_ecc_group_from_psa(curve, bits, 0);
 
     if (grp_id == MBEDTLS_ECP_DP_NONE) {
         ret = MBEDTLS_ERR_ASN1_INVALID_DATA;

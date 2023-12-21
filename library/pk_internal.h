@@ -98,13 +98,13 @@ static inline mbedtls_ecp_group_id mbedtls_pk_get_ec_group_id(const mbedtls_pk_c
         }
         opaque_key_type = psa_get_key_type(&opaque_attrs);
         curve = PSA_KEY_TYPE_ECC_GET_FAMILY(opaque_key_type);
-        id = mbedtls_ecc_group_of_psa(curve, psa_get_key_bits(&opaque_attrs), 0);
+        id = mbedtls_ecc_group_from_psa(curve, psa_get_key_bits(&opaque_attrs), 0);
         psa_reset_key_attributes(&opaque_attrs);
     } else
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     {
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-        id = mbedtls_ecc_group_of_psa(pk->ec_family, pk->ec_bits, 0);
+        id = mbedtls_ecc_group_from_psa(pk->ec_family, pk->ec_bits, 0);
 #else /* MBEDTLS_PK_USE_PSA_EC_DATA */
         id = mbedtls_pk_ec_ro(*pk)->grp.id;
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */

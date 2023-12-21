@@ -83,8 +83,8 @@ psa_status_t mbedtls_psa_ecp_load_representation(
     mbedtls_ecp_keypair_init(ecp);
 
     /* Load the group. */
-    grp_id = mbedtls_ecc_group_of_psa(PSA_KEY_TYPE_ECC_GET_FAMILY(type),
-                                      curve_bits, !explicit_bits);
+    grp_id = mbedtls_ecc_group_from_psa(PSA_KEY_TYPE_ECC_GET_FAMILY(type),
+                                        curve_bits, !explicit_bits);
     if (grp_id == MBEDTLS_ECP_DP_NONE) {
         /* We can't distinguish between a nonsensical family/size combination
          * (which would warrant PSA_ERROR_INVALID_ARGUMENT) and a
@@ -285,7 +285,7 @@ psa_status_t mbedtls_psa_ecp_generate_key(
     psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY(
         attributes->core.type);
     mbedtls_ecp_group_id grp_id =
-        mbedtls_ecc_group_of_psa(curve, attributes->core.bits, 0);
+        mbedtls_ecc_group_from_psa(curve, attributes->core.bits, 0);
 
     const mbedtls_ecp_curve_info *curve_info =
         mbedtls_ecp_curve_info_from_grp_id(grp_id);

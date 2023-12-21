@@ -394,26 +394,37 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 }
 
-psa_status_t psa_unlock_key_slot(psa_key_slot_t *slot)
+psa_status_t psa_unregister_read(psa_key_slot_t *slot)
 {
     if (slot == NULL) {
         return PSA_SUCCESS;
     }
+    if ((slot->state != PSA_SLOT_FULL) &&
+        (slot->state != PSA_SLOT_PENDING_DELETION)) {
+        return PSA_ERROR_BAD_STATE;
+    }
 
-    if (slot->lock_count > 0) {
-        slot->lock_count--;
+    /* If we are the last reader and the slot is marked for deletion,
+     * we must wipe the slot here. */
+    if ((slot->state == PSA_SLOT_PENDING_DELETION) &&
+        (slot->registered_readers == 1)) {
+        return psa_wipe_key_slot(slot);
+    }
+
+    if (psa_key_slot_has_readers(slot)) {
+        slot->registered_readers--;
         return PSA_SUCCESS;
     }
 
     /*
      * As the return error code may not be handled in case of multiple errors,
-     * do our best to report if the lock counter is equal to zero. Assert with
-     * MBEDTLS_TEST_HOOK_TEST_ASSERT that the lock counter is strictly greater
-     * than zero: if the MBEDTLS_TEST_HOOKS configuration option is enabled and
+     * do our best to report if there are no registered readers. Assert with
+     * MBEDTLS_TEST_HOOK_TEST_ASSERT that there are registered readers:
+     * if the MBEDTLS_TEST_HOOKS configuration option is enabled and
      * the function is called as part of the execution of a test suite, the
      * execution of the test suite is stopped in error if the assertion fails.
      */
-    MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->lock_count > 0);
+    MBEDTLS_TEST_HOOK_TEST_ASSERT(psa_key_slot_has_readers(slot));
     return PSA_ERROR_CORRUPTION_DETECTED;
 }
 

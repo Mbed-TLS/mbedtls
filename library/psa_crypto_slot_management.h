@@ -113,32 +113,39 @@ void psa_wipe_all_key_slots(void);
 psa_status_t psa_get_empty_key_slot(psa_key_id_t *volatile_key_id,
                                     psa_key_slot_t **p_slot);
 
-/** Lock a key slot.
+/** Register as a reader of a key slot.
  *
- * This function increments the key slot lock counter by one.
+ * This function increments the key slot registered reader counter by one.
  *
  * \param[in] slot  The key slot.
  *
  * \retval #PSA_SUCCESS
-               The key slot lock counter was incremented.
+               The key slot registered reader counter was incremented.
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- *             The lock counter already reached its maximum value and was not
+ *             The reader counter already reached its maximum value and was not
  *             increased.
+ * \retval #PSA_ERROR_BAD_STATE
+ *             The slot's state was not PSA_SLOT_FULL.
  */
-static inline psa_status_t psa_lock_key_slot(psa_key_slot_t *slot)
+static inline psa_status_t psa_register_read(psa_key_slot_t *slot)
 {
-    if (slot->lock_count >= SIZE_MAX) {
+    if (slot->state != PSA_SLOT_FULL) {
+        return PSA_ERROR_BAD_STATE;
+    }
+    if (slot->registered_readers >= SIZE_MAX) {
         return PSA_ERROR_CORRUPTION_DETECTED;
     }
-
-    slot->lock_count++;
+    slot->registered_readers++;
 
     return PSA_SUCCESS;
 }
 
-/** Unlock a key slot.
+/** Unregister from reading a key slot.
  *
- * This function decrements the key slot lock counter by one.
+ * This function decrements the key slot registered reader counter by one.
+ * If the state of the slot is PSA_SLOT_PENDING_DELETION,
+ * and there is only one registered reader (the caller),
+ * this function will call psa_wipe_slot().
  *
  * \note To ease the handling of errors in retrieving a key slot
  *       a NULL input pointer is valid, and the function returns
@@ -146,13 +153,16 @@ static inline psa_status_t psa_lock_key_slot(psa_key_slot_t *slot)
  *
  * \param[in] slot  The key slot.
  * \retval #PSA_SUCCESS
- *             \p slot is NULL or the key slot lock counter has been
- *             decremented successfully.
+ *             \p slot is NULL or the key slot reader counter has been
+ *             decremented (and potentially wiped) successfully.
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- *             The lock counter was equal to 0.
- *
+ *             registered_readers was equal to 0.
+ * \retval #PSA_ERROR_BAD_STATE
+ *             The slot's state was neither PSA_SLOT_FULL nor
+ *             PSA_SLOT_PENDING_DELETION, or a wipe was attempted and
+ *             the slot's state was not PSA_SLOT_PENDING_DELETION.
  */
-psa_status_t psa_unlock_key_slot(psa_key_slot_t *slot);
+psa_status_t psa_unregister_read(psa_key_slot_t *slot);
 
 /** Test whether a lifetime designates a key in an external cryptoprocessor.
  *

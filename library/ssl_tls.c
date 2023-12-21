@@ -8215,14 +8215,6 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 #endif
 
-#if !defined(MBEDTLS_DEBUG_C) && \
-    !defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    if (ssl->f_export_keys == NULL) {
-        ssl = NULL; /* make sure we don't use it except for these cases */
-        (void) ssl;
-    }
-#endif
-
     /*
      * Some data just needs copying into the structure
      */
@@ -8494,7 +8486,7 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
         goto end;
     }
 
-    if (ssl != NULL && ssl->f_export_keys != NULL) {
+    if (ssl->f_export_keys != NULL) {
         ssl->f_export_keys(ssl->p_export_keys,
                            MBEDTLS_SSL_KEY_EXPORT_TLS12_MASTER_SECRET,
                            master, 48,

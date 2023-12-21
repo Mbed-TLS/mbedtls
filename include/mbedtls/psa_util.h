@@ -110,9 +110,6 @@ extern mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state;
 
 /** Convert an ECC curve identifier from the Mbed TLS encoding to PSA.
  *
- * \note This function is provided solely for the convenience of
- *       Mbed TLS and may be removed at any time without notice.
- *
  * \param grpid         An Mbed TLS elliptic curve identifier
  *                      (`MBEDTLS_ECP_DP_xxx`).
  * \param[out] bits     On success, the bit size of the curve.
@@ -125,9 +122,6 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
                                           size_t *bits);
 
 /** Convert an ECC curve identifier from the PSA encoding to Mbed TLS.
- *
- * \note This function is provided solely for the convenience of
- *       Mbed TLS and may be removed at any time without notice.
  *
  * \param curve         A PSA elliptic curve identifier
  *                      (`PSA_ECC_FAMILY_xxx`).

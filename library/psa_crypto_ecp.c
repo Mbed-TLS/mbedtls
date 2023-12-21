@@ -32,6 +32,60 @@
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+/* Helper function to verify if the provided EC's family and key bit size are
+ * valid. */
+static int check_ecc_parameters(psa_ecc_family_t family, size_t bits, int allow_bit_size_roundup)
+{
+    switch (family) {
+        case PSA_ECC_FAMILY_SECP_R1:
+            switch (bits) {
+                case 192:
+                case 224:
+                case 256:
+                case 384:
+                case 521:
+                    return PSA_SUCCESS;
+                case 528:
+                    if (allow_bit_size_roundup) {
+                        return PSA_SUCCESS;
+                    }
+            }
+            break;
+
+        case PSA_ECC_FAMILY_BRAINPOOL_P_R1:
+            switch (bits) {
+                case 256:
+                case 384:
+                case 512:
+                    return PSA_SUCCESS;
+            }
+            break;
+
+        case PSA_ECC_FAMILY_MONTGOMERY:
+            switch (bits) {
+                case 448:
+                case 255:
+                    return PSA_SUCCESS;
+                case 256:
+                    if (allow_bit_size_roundup) {
+                        return PSA_SUCCESS;
+                    }
+            }
+            break;
+
+        case PSA_ECC_FAMILY_SECP_K1:
+            switch (bits) {
+                case 192:
+                case 224:
+                case 256:
+                    return PSA_SUCCESS;
+            }
+            break;
+    }
+
+    return PSA_ERROR_INVALID_ARGUMENT;
+}
+
 psa_status_t mbedtls_psa_ecp_load_representation(
     psa_key_type_t type, size_t curve_bits,
     const uint8_t *data, size_t data_length,
@@ -41,7 +95,6 @@ psa_status_t mbedtls_psa_ecp_load_representation(
     psa_status_t status;
     mbedtls_ecp_keypair *ecp = NULL;
     size_t curve_bytes = data_length;
-    size_t curve_bits_check;
     int explicit_bits = (curve_bits != 0);
 
     if (PSA_KEY_TYPE_IS_PUBLIC_KEY(type) &&
@@ -83,27 +136,16 @@ psa_status_t mbedtls_psa_ecp_load_representation(
     }
     mbedtls_ecp_keypair_init(ecp);
 
+    status = check_ecc_parameters(PSA_KEY_TYPE_ECC_GET_FAMILY(type), curve_bits,
+                                  !explicit_bits);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
     /* Load the group. */
     grp_id = mbedtls_ecc_group_from_psa(PSA_KEY_TYPE_ECC_GET_FAMILY(type),
                                         curve_bits);
     if (grp_id == MBEDTLS_ECP_DP_NONE) {
-        /* We can't distinguish between a nonsensical family/size combination
-         * (which would warrant PSA_ERROR_INVALID_ARGUMENT) and a
-         * well-regarded curve that Mbed TLS just doesn't know about (which
-         * would warrant PSA_ERROR_NOT_SUPPORTED). For uniformity with how
-         * curves that Mbed TLS knows about but for which support is disabled
-         * at build time, return NOT_SUPPORTED. */
-        status = PSA_ERROR_NOT_SUPPORTED;
-        goto exit;
-    }
-
-    /* Get the exact number of bits which are necessary for this key. This is
-     * used to validate the "curve_bits" input parameter (only in case it was
-     * provided).
-     * Note: we intentionally ignore the return value of mbedtls_ecc_group_to_psa()
-     *       because we are only interested in the curve's bit size. */
-    mbedtls_ecc_group_to_psa(grp_id, &curve_bits_check);
-    if (explicit_bits && (curve_bits_check != curve_bits)) {
         status = PSA_ERROR_NOT_SUPPORTED;
         goto exit;
     }

@@ -243,7 +243,7 @@ removing builtin support (i.e. `MBEDTLS_DHM_C`).
 Ciphers and AEADs
 -----------------
 
-It is possible to have all ciphers and AEADs operations provided only by a
+It is possible to have all ciphers and AEAD operations provided only by a
 driver. More precisely, for each desired combination of key type and
 algorithm/mode you can:
 - enable desired PSA key type(s):
@@ -251,7 +251,7 @@ algorithm/mode you can:
   - `PSA_WANT_KEY_TYPE_ARIA`,
   - `PSA_WANT_KEY_TYPE_CAMELLIA`,
   - `PSA_WANT_KEY_TYPE_CHACHA20`,
-  - `PSA_WANT_KEY_TYPE_DES`;
+  - `PSA_WANT_KEY_TYPE_DES`.
 - enable desired PSA algorithm(s):
   - unauthenticated ciphers modes:
     - `PSA_WANT_ALG_CBC_NO_PADDING`,
@@ -261,13 +261,13 @@ algorithm/mode you can:
     - `PSA_WANT_ALG_CTR`,
     - `PSA_WANT_ALG_ECB_NO_PADDING`,
     - `PSA_WANT_ALG_OFB`,
-    - `PSA_WANT_ALG_STREAM_CIPHER`;
+    - `PSA_WANT_ALG_STREAM_CIPHER`.
   - AEADs:
     - `PSA_WANT_ALG_CCM`,
     - `PSA_WANT_ALG_GCM`,
-    - `PSA_WANT_ALG_CHACHA20_POLY1305`;
+    - `PSA_WANT_ALG_CHACHA20_POLY1305`.
 - enable `MBEDTLS_PSA_ACCEL_[KEY_TYPE_xxx|ALG_yyy]` symbol(s) which correspond
-   to the PSA_WANT_KEY_TYPE_xxx` and `PSA_WANT_ALG_yyy` of the previous steps;
+   to the PSA_WANT_KEY_TYPE_xxx` and `PSA_WANT_ALG_yyy` of the previous steps.
 - disable builtin support of key types:
   - `MBEDTLS_AES_C`,
   - `MBEDTLS_ARIA_C`,
@@ -334,8 +334,8 @@ algorithm) in order to work with a driver.
 
 Legacy CTR-DRBG module (enabled by `MBEDTLS_CTR_DRBG_C`) can also benefit from
 PSA acceleration when:
-- legacy AES module is not enabled (`MBEDTLS_AES_C`) and
-- AES is supported on PSA side together with ECB mode, i.e.
+- the legacy AES module is not enabled (`MBEDTLS_AES_C`) and
+- AES is supported on the PSA side together with ECB mode, i.e.
   `PSA_WANT_KEY_TYPE_AES` + `PSA_WANT_ALG_ECB_NO_PADDING`.
 
 ### Disabling CIPHER_C
@@ -343,17 +343,17 @@ PSA acceleration when:
 This only depends on unauthenticated ciphers: they can be either completely
 accelerated or disabled in order to remove the dependency on `MBEDTLS_CIPHER_C`.
 
-AEADs do not have such restriction. Of course they can be accelerated as well,
+AEADs do not have such a restriction. Of course they can be accelerated as well,
 but they can also rely on the legacy modules (`MBEDTLS_[CCM|GCM|CHACHAPOLY]`)
 with the following conditions on the underlying key types:
 - CCM/GCM can either use legacy key type modules `MBEDTLS_[AES|ARIA|CAMELLIA]_C`
   or their accelerated version, as described in section
   ["Partial acceleration for CCM/GCM"](#partial-acceleration-for-ccmgcm).
-- ChaChaPoly instead can only rely on legacy key type module `MBEDTLS_CHACHA20_C`
-  and algorithm `MBEDTLS_POLY1305_C`.
+- ChaChaPoly instead can only rely on the legacy key type module
+  `MBEDTLS_CHACHA20_C` and algorithm `MBEDTLS_POLY1305_C`.
 
-It should be noticed that disabling `MBEDTLS_CIPHER_C` helps in reducing code's
-footprint, but unfortunately it makes the following modules unavailable:
+It should be noticed that disabling `MBEDTLS_CIPHER_C` helps to reduce the
+code's footprint, but unfortunately it makes the following modules unavailable:
 - `MBEDTLS_PKCS[5|12]_C`,
 - `MBEDTLS_NIST_KW_C`.
 

@@ -250,7 +250,7 @@ static int pk_ecc_set_pubkey_psa_ecp_fallback(mbedtls_pk_context *pk,
     mbedtls_ecp_group_id ecp_group_id;
     int ret;
 
-    ecp_group_id = mbedtls_ecc_group_from_psa(pk->ec_family, pk->ec_bits, 0);
+    ecp_group_id = mbedtls_ecc_group_from_psa(pk->ec_family, pk->ec_bits);
 
     mbedtls_ecp_keypair_init(&ecp_key);
     ret = mbedtls_ecp_group_load(&(ecp_key.grp), ecp_group_id);

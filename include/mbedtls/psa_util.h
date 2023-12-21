@@ -144,8 +144,7 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
  *                      correct for \p curve.
  */
 mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t curve,
-                                                size_t bits,
-                                                int bits_is_sloppy);
+                                                size_t bits);
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 /**@}*/

@@ -253,8 +253,7 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
 }
 
 mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t curve,
-                                                size_t bits,
-                                                int bits_is_sloppy)
+                                                size_t bits)
 {
     switch (curve) {
         case PSA_ECC_FAMILY_SECP_R1:
@@ -277,12 +276,8 @@ mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t curve,
 #endif
 #if defined(PSA_WANT_ECC_SECP_R1_521)
                 case 521:
-                    return MBEDTLS_ECP_DP_SECP521R1;
                 case 528:
-                    if (bits_is_sloppy) {
-                        return MBEDTLS_ECP_DP_SECP521R1;
-                    }
-                    break;
+                    return MBEDTLS_ECP_DP_SECP521R1;
 #endif
             }
             break;
@@ -308,12 +303,8 @@ mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t curve,
             switch (bits) {
 #if defined(PSA_WANT_ECC_MONTGOMERY_255)
                 case 255:
-                    return MBEDTLS_ECP_DP_CURVE25519;
                 case 256:
-                    if (bits_is_sloppy) {
-                        return MBEDTLS_ECP_DP_CURVE25519;
-                    }
-                    break;
+                    return MBEDTLS_ECP_DP_CURVE25519;
 #endif
 #if defined(PSA_WANT_ECC_MONTGOMERY_448)
                 case 448:
@@ -340,7 +331,6 @@ mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t curve,
             break;
     }
 
-    (void) bits_is_sloppy;
     return MBEDTLS_ECP_DP_NONE;
 }
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */

@@ -41,6 +41,7 @@ psa_status_t mbedtls_psa_ecp_load_representation(
     psa_status_t status;
     mbedtls_ecp_keypair *ecp = NULL;
     size_t curve_bytes = data_length;
+    size_t curve_bits_check;
     int explicit_bits = (curve_bits != 0);
 
     if (PSA_KEY_TYPE_IS_PUBLIC_KEY(type) &&
@@ -84,7 +85,7 @@ psa_status_t mbedtls_psa_ecp_load_representation(
 
     /* Load the group. */
     grp_id = mbedtls_ecc_group_from_psa(PSA_KEY_TYPE_ECC_GET_FAMILY(type),
-                                        curve_bits, !explicit_bits);
+                                        curve_bits);
     if (grp_id == MBEDTLS_ECP_DP_NONE) {
         /* We can't distinguish between a nonsensical family/size combination
          * (which would warrant PSA_ERROR_INVALID_ARGUMENT) and a
@@ -92,6 +93,17 @@ psa_status_t mbedtls_psa_ecp_load_representation(
          * would warrant PSA_ERROR_NOT_SUPPORTED). For uniformity with how
          * curves that Mbed TLS knows about but for which support is disabled
          * at build time, return NOT_SUPPORTED. */
+        status = PSA_ERROR_NOT_SUPPORTED;
+        goto exit;
+    }
+
+    /* Get the exact number of bits which are necessary for this key. This is
+     * used to validate the "curve_bits" input parameter (only in case it was
+     * provided).
+     * Note: we intentionally ignore the return value of mbedtls_ecc_group_to_psa()
+     *       because we are only interested in the curve's bit size. */
+    mbedtls_ecc_group_to_psa(grp_id, &curve_bits_check);
+    if (explicit_bits && (curve_bits_check != curve_bits)) {
         status = PSA_ERROR_NOT_SUPPORTED;
         goto exit;
     }
@@ -285,7 +297,7 @@ psa_status_t mbedtls_psa_ecp_generate_key(
     psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY(
         attributes->core.type);
     mbedtls_ecp_group_id grp_id =
-        mbedtls_ecc_group_from_psa(curve, attributes->core.bits, 0);
+        mbedtls_ecc_group_from_psa(curve, attributes->core.bits);
 
     const mbedtls_ecp_curve_info *curve_info =
         mbedtls_ecp_curve_info_from_grp_id(grp_id);

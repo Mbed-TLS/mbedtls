@@ -1128,11 +1128,11 @@ read_record_header:
     msg_len -= mbedtls_ssl_hs_hdr_len(ssl);
 
     /*
-     * ClientHello layer:
+     * ClientHello layout:
      *     0  .   1   protocol version
      *     2  .  33   random bytes (starting with 4 bytes of Unix time)
-     *    34  .  35   session id length (1 byte)
-     *    35  . 34+x  session id
+     *    34  .  34   session id length (1 byte)
+     *    35  . 34+x  session id, where x = session id length from byte 34
      *   35+x . 35+x  DTLS only: cookie length (1 byte)
      *   36+x .  ..   DTLS only: cookie
      *    ..  .  ..   ciphersuite list length (2 bytes)

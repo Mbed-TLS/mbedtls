@@ -3365,6 +3365,29 @@ cleanup:
 #endif /* MBEDTLS_ECP_C */
 
 /*
+ * Import generic key-pair parameters.
+ */
+int mbedtls_ecp_import(mbedtls_ecp_keypair *key, const mbedtls_ecp_group *grp,
+                       const mbedtls_mpi *d, const mbedtls_ecp_point *Q)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    if ((ret = mbedtls_ecp_group_copy(&key->grp, grp)) != 0) {
+        return ret;
+    }
+
+    if ((ret = mbedtls_mpi_copy(&key->d, d)) != 0) {
+        return ret;
+    }
+
+    if ((ret = mbedtls_ecp_copy(&key->Q, Q)) != 0) {
+        return ret;
+    }
+
+    return 0;
+}
+
+/*
  * Export generic key-pair parameters.
  */
 int mbedtls_ecp_export(const mbedtls_ecp_keypair *key, mbedtls_ecp_group *grp,

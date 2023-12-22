@@ -1324,6 +1324,26 @@ int mbedtls_ecp_check_pub_priv(
     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng);
 
 /**
+ * \brief           This function imports generic key-pair parameters.
+ *
+ * \param key       The key pair to import to.
+ * \param grp       Slot for exported ECP group.
+ *                  It must point to an initialized ECP group.
+ * \param d         Slot for the exported secret value.
+ *                  It must point to an initialized mpi.
+ * \param Q         Slot for the exported public value.
+ *                  It must point to an initialized ECP point.
+ *
+ * \return          \c 0 on success,
+ * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
+ * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if key id doesn't
+ *                  correspond to a known group.
+ * \return          Another negative error code on other kinds of failure.
+ */
+int mbedtls_ecp_import(mbedtls_ecp_keypair *key, const mbedtls_ecp_group *grp,
+                       const mbedtls_mpi *d, const mbedtls_ecp_point *Q);
+
+/**
  * \brief           This function exports generic key-pair parameters.
  *
  * \param key       The key pair to export from.

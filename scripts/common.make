@@ -31,6 +31,27 @@ ifdef WINDOWS
 WINDOWS_BUILD=1
 endif
 
+## Usage: $(call remove_unset_options,PREPROCESSOR_INPUT)
+## Remove the preprocessor symbols that are not set in the current configuration
+## from PREPROCESSOR_INPUT. Also normalize whitespace.
+## Example:
+##   $(call remove_unset_options,MBEDTLS_FOO MBEDTLS_BAR)
+## This expands to an empty string "" if MBEDTLS_FOO and MBEDTLS_BAR are both
+## disabled, to "MBEDTLS_FOO" if MBEDTLS_BAR is enabled but MBEDTLS_FOO is
+## disabled, etc.
+##
+## This only works with a Unix-like shell environment (Bourne/POSIX-style shell
+## and standard commands) and a Unix-like compiler (supporting -E). In
+## other environments, the output is likely to be empty.
+define remove_unset_options
+$(strip $(shell
+  exec 2>/dev/null;
+  { echo '#include <mbedtls/build_info.h>'; echo $(1); } |
+  $(CC) $(LOCAL_CFLAGS) $(CFLAGS) -E - |
+  tail -n 1
+))
+endef
+
 ifdef WINDOWS_BUILD
   DLEXT=dll
   EXEXT=.exe
@@ -43,6 +64,12 @@ else # Not building for Windows
   DLEXT ?= so
   EXEXT=
   SHARED_SUFFIX=
+  ifndef THREADING
+    # Auto-detect configurations with pthread.
+    ifeq (control,$(call remove_unset_options,control MBEDTLS_THREADING_C MBEDTLS_THREADING_PTHREAD))
+      THREADING := pthread
+    endif
+  endif
 
   ifeq ($(THREADING),pthread)
     LOCAL_LDFLAGS += -lpthread

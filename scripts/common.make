@@ -62,3 +62,15 @@ gen_file_dep =
 else
 gen_file_dep = |
 endif
+
+default: all
+
+$(MBEDLIBS):
+	$(MAKE) -C ../library
+
+neat: clean
+ifndef WINDOWS
+	rm -f $(GENERATED_FILES)
+else
+	for %f in ($(subst /,\,$(GENERATED_FILES))) if exist %f del /Q /F %f
+endif

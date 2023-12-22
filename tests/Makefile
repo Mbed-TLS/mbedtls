@@ -3,8 +3,6 @@ include ../scripts/common.make
 # Set this to -v to see the details of failing test cases
 TEST_FLAGS ?= $(if $(filter-out 0 OFF Off off NO No no FALSE False false N n,$(CTEST_OUTPUT_ON_FAILURE)),-v,)
 
-default: all
-
 # Also include library headers, for the sake of invasive tests.
 LOCAL_CFLAGS += -I../library
 
@@ -111,9 +109,6 @@ BINARIES := $(addsuffix $(EXEXT),$(APPS))
 
 all: $(BINARIES)
 
-$(MBEDLIBS):
-	$(MAKE) -C ../library
-
 MBEDTLS_TEST_PATH = .
 MBEDTLS_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/src/*.c ${MBEDTLS_TEST_PATH}/src/drivers/*.c))
 MBEDTLS_TEST_OBJS += $(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/src/test_helpers/*.c))
@@ -191,13 +186,6 @@ else
 	if exist src/test_helpers/*.o del /Q /F src/test_helpers/*.o
 	if exist src/libmbed* del /Q /F src/libmed*
 	if exist include/test/instrument_record_status.h del /Q /F include/test/instrument_record_status.h
-endif
-
-neat: clean
-ifndef WINDOWS
-	rm -f $(GENERATED_FILES)
-else
-	for %f in ($(subst /,\,$(GENERATED_FILES))) if exist %f del /Q /F %f
 endif
 
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.

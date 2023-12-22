@@ -121,9 +121,6 @@ endif
 fuzz: ${MBEDTLS_TEST_OBJS}
 	$(MAKE) -C fuzz THIRDPARTY_INCLUDES=$(THIRDPARTY_INCLUDES)
 
-$(MBEDLIBS):
-	$(MAKE) -C ../library
-
 ${MBEDTLS_TEST_OBJS}:
 	$(MAKE) -C ../tests mbedtls_test
 
@@ -431,13 +428,6 @@ else
 	if exist test\cpp_dummy_build.cpp del /Q /F test\cpp_dummy_build.cpp
 endif
 	$(MAKE) -C fuzz clean
-
-neat: clean
-ifndef WINDOWS
-	rm -f $(GENERATED_FILES)
-else
-	for %f in ($(subst /,\,$(GENERATED_FILES))) if exist %f del /Q /F %f
-endif
 
 list:
 	echo $(EXES)

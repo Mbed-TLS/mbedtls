@@ -147,30 +147,31 @@ void psa_wipe_all_key_slots(void)
     global_data.key_slots_initialized = 0;
 }
 
-psa_status_t psa_get_empty_key_slot(psa_key_id_t *volatile_key_id,
-                                    psa_key_slot_t **p_slot)
+psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
+                                       psa_key_slot_t **p_slot)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t slot_idx;
-    psa_key_slot_t *selected_slot, *unlocked_persistent_key_slot;
+    psa_key_slot_t *selected_slot, *unused_persistent_key_slot;
 
     if (!global_data.key_slots_initialized) {
         status = PSA_ERROR_BAD_STATE;
         goto error;
     }
 
-    selected_slot = unlocked_persistent_key_slot = NULL;
+    selected_slot = unused_persistent_key_slot = NULL;
     for (slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++) {
         psa_key_slot_t *slot = &global_data.key_slots[slot_idx];
-        if (!psa_is_key_slot_occupied(slot)) {
+        if (slot->state == PSA_SLOT_EMPTY) {
             selected_slot = slot;
             break;
         }
 
-        if ((unlocked_persistent_key_slot == NULL) &&
-            (!PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) &&
-            (!psa_is_key_slot_locked(slot))) {
-            unlocked_persistent_key_slot = slot;
+        if ((unused_persistent_key_slot == NULL) &&
+            (slot->state == PSA_SLOT_FULL) &&
+            (!psa_key_slot_has_readers(slot)) &&
+            (!PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime))) {
+            unused_persistent_key_slot = slot;
         }
     }
 
@@ -182,16 +183,24 @@ psa_status_t psa_get_empty_key_slot(psa_key_id_t *volatile_key_id,
      * storage.
      */
     if ((selected_slot == NULL) &&
-        (unlocked_persistent_key_slot != NULL)) {
-        selected_slot = unlocked_persistent_key_slot;
-        selected_slot->lock_count = 1;
-        psa_wipe_key_slot(selected_slot);
+        (unused_persistent_key_slot != NULL)) {
+        selected_slot = unused_persistent_key_slot;
+        psa_register_read(selected_slot);
+        /* If the state is not changed then psa_wipe_key_slot
+         * will report an error. */
+        psa_key_slot_state_transition(selected_slot, PSA_SLOT_FULL,
+                                      PSA_SLOT_PENDING_DELETION);
+        status = psa_wipe_key_slot(selected_slot);
+        if (status != PSA_SUCCESS) {
+            goto error;
+        }
     }
 
     if (selected_slot != NULL) {
-        status = psa_lock_key_slot(selected_slot);
+        status = psa_key_slot_state_transition(selected_slot, PSA_SLOT_EMPTY,
+                                               PSA_SLOT_FILLING);
         if (status != PSA_SUCCESS) {
-            goto error;
+            return status;
         }
 
         *volatile_key_id = PSA_KEY_ID_VOLATILE_MIN +

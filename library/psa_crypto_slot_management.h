@@ -95,23 +95,29 @@ psa_status_t psa_initialize_key_slots(void);
  * This does not affect persistent storage. */
 void psa_wipe_all_key_slots(void);
 
-/** Find a free key slot.
+/** Find a free key slot and reserve it to be filled with a key.
  *
- * This function returns a key slot that is available for use and is in its
- * ground state (all-bits-zero). On success, the key slot is locked. It is
- * the responsibility of the caller to unlock the key slot when it does not
- * access it anymore.
+ * This function finds a key slot that is free,
+ * sets its state to PSA_SLOT_FILLING and then returns the slot.
+ *
+ * On success, the key slot's state is PSA_SLOT_FILLING.
+ * It is the responsibility of the caller to change the slot's state to
+ * PSA_SLOT_EMPTY/FULL once key creation has finished.
  *
  * \param[out] volatile_key_id   On success, volatile key identifier
  *                               associated to the returned slot.
  * \param[out] p_slot            On success, a pointer to the slot.
  *
  * \retval #PSA_SUCCESS \emptydescription
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
- * \retval #PSA_ERROR_BAD_STATE \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ *         There were no free key slots.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         This function attempted to operate on a key slot which was in an
+ *         unexpected state.
  */
-psa_status_t psa_get_empty_key_slot(psa_key_id_t *volatile_key_id,
-                                    psa_key_slot_t **p_slot);
+psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
+                                       psa_key_slot_t **p_slot);
+
 /** Change the state of a key slot.
  *
  * This function changes the state of the key slot from expected_state to

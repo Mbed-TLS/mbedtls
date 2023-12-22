@@ -19,9 +19,23 @@ DEP=../../library/libmbedcrypto.$(DLEXT) ../../library/libmbedx509.$(DLEXT) ../.
 endif
 
 
+# if we're running on Windows, build for Windows
+ifdef WINDOWS
+WINDOWS_BUILD=1
+endif
+
+ifdef WINDOWS_BUILD
+DLEXT=dll
+EXEXT=.exe
+LOCAL_LDFLAGS += -lws2_32 -lbcrypt
+ifdef SHARED
+SHARED_SUFFIX=.$(DLEXT)
+endif
+else
 DLEXT ?= so
 EXEXT=
 SHARED_SUFFIX=
+endif
 
 ifdef FUZZINGENGINE
 LOCAL_LDFLAGS += -lFuzzingEngine
@@ -46,7 +60,7 @@ BINARIES := $(addsuffix $(EXEXT),$(APPS))
 all: $(BINARIES)
 
 $(DEP):
-	$(MAKE) -C ../../library
+	$(MAKE) -C ../../library $(@F)
 
 C_FILES := $(addsuffix .c,$(APPS))
 

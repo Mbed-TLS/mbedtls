@@ -165,11 +165,11 @@ ifndef WINDOWS
 all: fuzz
 endif
 
-fuzz: ${MBEDTLS_TEST_OBJS}
+fuzz: ${MBEDLIBS} ${MBEDTLS_TEST_OBJS}
 	$(MAKE) -C fuzz THIRDPARTY_INCLUDES=$(THIRDPARTY_INCLUDES)
 
 $(MBEDLIBS):
-	$(MAKE) -C ../library
+	$(MAKE) -C ../library $(@F)
 
 ${MBEDTLS_TEST_OBJS}:
 	$(MAKE) -C ../tests mbedtls_test

@@ -11,7 +11,7 @@ MBEDTLS_TEST_PATH = ../tests
 # code which is in the src/test_helpers subdirectory.
 MBEDTLS_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/src/*.c ${MBEDTLS_TEST_PATH}/src/drivers/*.c))
 
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../tests/include -I../include -D_FILE_OFFSET_BITS=64
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I$(MBEDTLS_TEST_PATH)/include -I../include -D_FILE_OFFSET_BITS=64
 LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) -I../include -I../tests/include -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS = ${MBEDTLS_TEST_OBJS} 		\
 		-L../library 			\

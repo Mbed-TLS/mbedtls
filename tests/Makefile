@@ -10,10 +10,9 @@ TEST_FLAGS ?= $(if $(filter-out 0 OFF Off off NO No no FALSE False false N n,$(C
 
 default: all
 
-# Include public header files from ../include, test-specific header files
-# from ./include, and private header files (used by some invasive tests)
-# from ../library.
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I./include -I../include -I../library -D_FILE_OFFSET_BITS=64
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I$(MBEDTLS_TEST_PATH)/include -I../include -D_FILE_OFFSET_BITS=64
+# Also include library headers, for the sake of invasive tests.
+LOCAL_CFLAGS += -I../library
 LOCAL_LDFLAGS = ${MBEDTLS_TEST_OBJS} 		\
 		-L../library 			\
 		-lmbedtls$(SHARED_SUFFIX)	\

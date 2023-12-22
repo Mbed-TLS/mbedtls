@@ -7279,6 +7279,19 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
         p_vrfy = ssl->conf->p_vrfy;
     }
 
+    if (authmode == MBEDTLS_SSL_VERIFY_EXTERNAL) {
+        if (f_vrfy == NULL) {
+            MBEDTLS_SSL_DEBUG_MSG(1, ("No callback registered for external verification mode"));
+            return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+        }
+        MBEDTLS_SSL_DEBUG_MSG(3, ("Use callback for external verification"));
+        ret = f_vrfy(p_vrfy, ssl->session_negotiate->peer_cert, -1, &ssl->session_negotiate->verify_result);
+        if (ret != 0) {
+            MBEDTLS_SSL_DEBUG_RET(1, "x509_verify_cert", ret);
+        }
+        return ret;
+    }
+
     /*
      * Main check: verify certificate
      */

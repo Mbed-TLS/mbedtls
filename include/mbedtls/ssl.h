@@ -290,6 +290,7 @@
 #define MBEDTLS_SSL_VERIFY_OPTIONAL             1
 #define MBEDTLS_SSL_VERIFY_REQUIRED             2
 #define MBEDTLS_SSL_VERIFY_UNSET                3 /* Used only for sni_authmode */
+#define MBEDTLS_SSL_VERIFY_EXTERNAL             4
 
 #define MBEDTLS_SSL_LEGACY_RENEGOTIATION        0
 #define MBEDTLS_SSL_SECURE_RENEGOTIATION        1
@@ -1971,6 +1972,10 @@ void mbedtls_ssl_conf_transport(mbedtls_ssl_config *conf, int transport);
  *  MBEDTLS_SSL_VERIFY_REQUIRED:  peer *must* present a valid certificate,
  *                        handshake is aborted if verification failed.
  *                        (default on client)
+ * 
+ *  MBEDTLS_SSL_VERIFY_EXTERNAL:  external certificate validation mode,
+ *                        a verification callback *must* be registered using
+ *                        mbedtls_ssl_conf_verify() or mbedtls_ssl_set_verify().
  *
  * \note On client, MBEDTLS_SSL_VERIFY_REQUIRED is the recommended mode.
  * With MBEDTLS_SSL_VERIFY_OPTIONAL, the user needs to call mbedtls_ssl_get_verify_result() at

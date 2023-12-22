@@ -43,16 +43,17 @@ WINDOWS_BUILD=1
 endif
 
 ifdef WINDOWS_BUILD
-DLEXT=dll
-EXEXT=.exe
-LOCAL_LDFLAGS += -lws2_32 -lbcrypt
-ifdef SHARED
-SHARED_SUFFIX=.$(DLEXT)
-endif
-else
-DLEXT ?= so
-EXEXT=
-SHARED_SUFFIX=
+  DLEXT=dll
+  EXEXT=.exe
+  LOCAL_LDFLAGS += -lws2_32 -lbcrypt
+  ifdef SHARED
+    SHARED_SUFFIX=.$(DLEXT)
+  endif
+
+else # Not building for Windows
+  DLEXT ?= so
+  EXEXT=
+  SHARED_SUFFIX=
 endif
 
 ifdef WINDOWS

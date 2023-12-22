@@ -6,8 +6,10 @@ WARNING_CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 WARNING_CXXFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
 
-MBEDTLS_TEST_PATH:=../tests/src
-MBEDTLS_TEST_OBJS:=$(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/*.c ${MBEDTLS_TEST_PATH}/drivers/*.c))
+MBEDTLS_TEST_PATH = ../tests
+# Support code used by test programs and test builds, excluding TLS-specific
+# code which is in the src/test_helpers subdirectory.
+MBEDTLS_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/src/*.c ${MBEDTLS_TEST_PATH}/src/drivers/*.c))
 
 LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../tests/include -I../include -D_FILE_OFFSET_BITS=64
 LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) -I../include -I../tests/include -D_FILE_OFFSET_BITS=64

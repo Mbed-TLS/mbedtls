@@ -14,7 +14,8 @@ default: all
 # from ./include, and private header files (used by some invasive tests)
 # from ../library.
 LOCAL_CFLAGS = $(WARNING_CFLAGS) -I./include -I../include -I../library -D_FILE_OFFSET_BITS=64
-LOCAL_LDFLAGS = -L../library			\
+LOCAL_LDFLAGS = ${MBEDTLS_TEST_OBJS} 		\
+		-L../library 			\
 		-lmbedtls$(SHARED_SUFFIX)	\
 		-lmbedx509$(SHARED_SUFFIX)	\
 		-lmbedcrypto$(SHARED_SUFFIX)
@@ -175,7 +176,9 @@ all: $(BINARIES)
 $(MBEDLIBS):
 	$(MAKE) -C ../library
 
-MBEDTLS_TEST_OBJS=$(patsubst %.c,%.o,$(wildcard src/*.c src/drivers/*.c src/test_helpers/*.c))
+MBEDTLS_TEST_PATH = .
+MBEDTLS_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/src/*.c ${MBEDTLS_TEST_PATH}/src/drivers/*.c))
+MBEDTLS_TEST_OBJS += $(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/src/test_helpers/*.c))
 
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
@@ -231,7 +234,7 @@ c: $(C_FILES)
 
 $(BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(TEST_OBJS_DEPS) $(MBEDTLS_TEST_OBJS)
 	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $< $(MBEDTLS_TEST_OBJS) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $< $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 clean:
 ifndef WINDOWS

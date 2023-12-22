@@ -66,6 +66,10 @@ else # Not building for Windows
   SHARED_SUFFIX=
   ifndef THREADING
     # Auto-detect configurations with pthread.
+    # If the call to remove_unset_options returns "control", the symbols
+    # are confirmed set and we link with pthread.
+    # If the auto-detection fails, the result of the call is empty and
+    # we keep THREADING undefined.
     ifeq (control,$(call remove_unset_options,control MBEDTLS_THREADING_C MBEDTLS_THREADING_PTHREAD))
       THREADING := pthread
     endif

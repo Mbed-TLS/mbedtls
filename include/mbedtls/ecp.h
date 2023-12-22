@@ -1297,6 +1297,11 @@ int mbedtls_ecp_set_public_key(mbedtls_ecp_group_id grp_id,
  * \note            This function does not set the public key in the
  *                  key pair object. Without a public key, the key pair object
  *                  cannot be used with operations that require the public key.
+ *                  Call mbedtls_ecp_keypair_calc_public() to set the public
+ *                  key from the private key. Alternatively, you can call
+ *                  mbedtls_ecp_set_public_key() to set the public key part,
+ *                  and then optionally mbedtls_ecp_check_pub_priv() to check
+ *                  that the private and public parts are consistent.
  *
  * \note            If a public key has already been set in the key pair
  *                  object, this function does not check that it is consistent

@@ -12,44 +12,7 @@ else
 DLOPEN_LDFLAGS ?=
 endif
 
-include ../3rdparty/Makefile.inc
-LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
-
-ifndef SHARED
-MBEDLIBS=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
-else
-MBEDLIBS=../library/libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
-endif
 DEP=${MBEDLIBS} ${MBEDTLS_TEST_OBJS}
-
-ifdef DEBUG
-LOCAL_CFLAGS += -g3
-endif
-
-# if we're running on Windows, build for Windows
-ifdef WINDOWS
-WINDOWS_BUILD=1
-endif
-
-ifdef WINDOWS_BUILD
-  DLEXT=dll
-  EXEXT=.exe
-  LOCAL_LDFLAGS += -lws2_32 -lbcrypt
-  ifdef SHARED
-    SHARED_SUFFIX=.$(DLEXT)
-  endif
-
-else # Not building for Windows
-  DLEXT ?= so
-  EXEXT=
-  SHARED_SUFFIX=
-endif
-
-ifdef WINDOWS
-PYTHON ?= python
-else
-PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
-endif
 
 # Only build the dlopen test in shared library builds, and not when building
 # for Windows.
@@ -167,14 +130,6 @@ ${MBEDTLS_TEST_OBJS}:
 .PHONY: generated_files
 GENERATED_FILES = psa/psa_constant_names_generated.c test/query_config.c
 generated_files: $(GENERATED_FILES)
-
-# See root Makefile
-GEN_FILES ?= yes
-ifdef GEN_FILES
-gen_file_dep =
-else
-gen_file_dep = |
-endif
 
 psa/psa_constant_names_generated.c: $(gen_file_dep) ../scripts/generate_psa_constants.py
 psa/psa_constant_names_generated.c: $(gen_file_dep) ../include/psa/crypto_values.h

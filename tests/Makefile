@@ -8,63 +8,13 @@ default: all
 # Also include library headers, for the sake of invasive tests.
 LOCAL_CFLAGS += -I../library
 
-include ../3rdparty/Makefile.inc
-LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
-
 # Enable definition of various functions used throughout the testsuite
 # (gethostname, strdup, fileno...) even when compiling with -std=c99. Harmless
 # on non-POSIX platforms.
 LOCAL_CFLAGS += -D_POSIX_C_SOURCE=200809L
 
-ifndef SHARED
-MBEDLIBS=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
-else
-MBEDLIBS=../library/libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
-endif
-
-ifdef DEBUG
-LOCAL_CFLAGS += -g3
-endif
-
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 LOCAL_CFLAGS += -Werror -DRECORD_PSA_STATUS_COVERAGE_LOG
-endif
-
-# if we're running on Windows, build for Windows
-ifdef WINDOWS
-WINDOWS_BUILD=1
-endif
-
-ifdef WINDOWS_BUILD
-  DLEXT=dll
-  EXEXT=.exe
-  LOCAL_LDFLAGS += -lws2_32 -lbcrypt
-  ifdef SHARED
-    SHARED_SUFFIX=.$(DLEXT)
-  endif
-
-else # Not building for Windows
-  DLEXT ?= so
-  EXEXT=
-  SHARED_SUFFIX=
-
-  ifeq ($(THREADING),pthread)
-    LOCAL_LDFLAGS += -lpthread
-  endif
-endif
-
-ifdef WINDOWS
-PYTHON ?= python
-else
-PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
-endif
-
-# See root Makefile
-GEN_FILES ?= yes
-ifdef GEN_FILES
-gen_file_dep =
-else
-gen_file_dep = |
 endif
 
 .PHONY: generated_files

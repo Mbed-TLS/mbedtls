@@ -9,8 +9,19 @@
 
 #include "mbedtls/platform.h"
 
-#if defined(MBEDTLS_PK_WRITE_C) && defined(MBEDTLS_FS_IO) && \
-    defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_CTR_DRBG_C)
+#if !defined(MBEDTLS_PK_WRITE_C) || !defined(MBEDTLS_PEM_WRITE_C) ||    \
+    !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_ENTROPY_C) ||           \
+    !defined(MBEDTLS_CTR_DRBG_C) || !defined(MBEDTLS_BIGNUM_C)
+int main(void)
+{
+    mbedtls_printf("MBEDTLS_PK_WRITE_C and/or MBEDTLS_FS_IO and/or "
+                   "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
+                   "MBEDTLS_PEM_WRITE_C and/or MBEDTLS_BIGNUM_C "
+                   "not defined.\n");
+    mbedtls_exit(0);
+}
+#else
+
 #include "mbedtls/error.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/ecdsa.h"
@@ -61,7 +72,6 @@ int dev_random_entropy_poll(void *data, unsigned char *output,
     return 0;
 }
 #endif /* !_WIN32 */
-#endif
 
 #if defined(MBEDTLS_ECP_C)
 #define DFL_EC_CURVE            mbedtls_ecp_curve_list()->grp_id
@@ -95,19 +105,6 @@ int dev_random_entropy_poll(void *data, unsigned char *output,
     "    format=pem|der        default: pem\n"          \
     USAGE_DEV_RANDOM                                    \
     "\n"
-
-#if !defined(MBEDTLS_PK_WRITE_C) || !defined(MBEDTLS_PEM_WRITE_C) || \
-    !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_ENTROPY_C) || \
-    !defined(MBEDTLS_CTR_DRBG_C)
-int main(void)
-{
-    mbedtls_printf("MBEDTLS_PK_WRITE_C and/or MBEDTLS_FS_IO and/or "
-                   "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
-                   "MBEDTLS_PEM_WRITE_C"
-                   "not defined.\n");
-    mbedtls_exit(0);
-}
-#else
 
 
 /*
@@ -478,5 +475,4 @@ exit:
 
     mbedtls_exit(exit_code);
 }
-#endif /* MBEDTLS_PK_WRITE_C && MBEDTLS_PEM_WRITE_C && MBEDTLS_FS_IO &&
-        * MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */
+#endif /* program viability conditions */

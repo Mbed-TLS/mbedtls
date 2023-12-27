@@ -318,6 +318,7 @@ class TabIssueTracker(LineIssueTracker):
 
     heading = "Tabs present:"
     suffix_exemptions = frozenset([
+        ".make",
         ".pem", # some openssl dumps have tabs
         ".sln",
         "/Makefile",

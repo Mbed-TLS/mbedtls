@@ -1003,9 +1003,14 @@ static int rsa_unblind(mbedtls_mpi *T, mbedtls_mpi *Vf, mbedtls_mpi *N)
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(T, nlimbs));
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(Vf, nlimbs));
 
-    // T = T * R mod N
+    /* T = T * Vf mod N
+     * Reminder: montmul(A, B, N) = A * B * R^-1 mod N
+     * Usually both operands are multiplied by R mod N beforehand (by calling
+     * `to_mont_rep()` on them), yielding a result that's also * R mod N (aka
+     * "in the Montgomery domain"). Here we only multiply one operand by R mod
+     * N, so the result is directly what we want - no need to call
+     * `from_mont_rep()` on it. */
     mbedtls_mpi_core_to_mont_rep(T->p, T->p, N->p, nlimbs, mm, RR.p, M_T.p);
-    // T = T * Vf mod N
     mbedtls_mpi_core_montmul(T->p, T->p, Vf->p, nlimbs, N->p, nlimbs, mm, M_T.p);
 
 cleanup:

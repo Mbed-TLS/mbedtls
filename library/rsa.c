@@ -986,7 +986,7 @@ cleanup:
  * Unblind
  * T = T * Vf mod N
  */
-static int rsa_unblind(mbedtls_mpi *T, mbedtls_mpi *Vf, mbedtls_mpi *N)
+static int rsa_unblind(mbedtls_mpi *T, mbedtls_mpi *Vf, const mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_mpi_uint mm = mbedtls_mpi_core_montmul_init(N->p);
@@ -1075,7 +1075,7 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
 
     /* Temporaries holding the initial input and the double
      * checked result; should be the same in the end. */
-    mbedtls_mpi I, C;
+    mbedtls_mpi input_blinded, check_result_blinded;
 
     if (f_rng == NULL) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
@@ -1110,8 +1110,8 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
     mbedtls_mpi_init(&TP); mbedtls_mpi_init(&TQ);
 #endif
 
-    mbedtls_mpi_init(&I);
-    mbedtls_mpi_init(&C);
+    mbedtls_mpi_init(&input_blinded);
+    mbedtls_mpi_init(&check_result_blinded);
 
     /* End of MPI initialization */
 
@@ -1129,7 +1129,7 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
     MBEDTLS_MPI_CHK(mbedtls_mpi_mul_mpi(&T, &T, &ctx->Vi));
     MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(&T, &T, &ctx->N));
 
-    MBEDTLS_MPI_CHK(mbedtls_mpi_copy(&I, &T));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_copy(&input_blinded, &T));
 
     /*
      * Exponent blinding
@@ -1194,9 +1194,9 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
 #endif /* MBEDTLS_RSA_NO_CRT */
 
     /* Verify the result to prevent glitching attacks. */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&C, &T, &ctx->E,
+    MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&check_result_blinded, &T, &ctx->E,
                                         &ctx->N, &ctx->RN));
-    if (mbedtls_mpi_cmp_mpi(&C, &I) != 0) {
+    if (mbedtls_mpi_cmp_mpi(&check_result_blinded, &input_blinded) != 0) {
         ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
         goto cleanup;
     }
@@ -1234,8 +1234,8 @@ cleanup:
     mbedtls_mpi_free(&TP); mbedtls_mpi_free(&TQ);
 #endif
 
-    mbedtls_mpi_free(&C);
-    mbedtls_mpi_free(&I);
+    mbedtls_mpi_free(&check_result_blinded);
+    mbedtls_mpi_free(&input_blinded);
 
     if (ret != 0 && ret >= -0x007f) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_RSA_PRIVATE_FAILED, ret);

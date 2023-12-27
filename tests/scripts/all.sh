@@ -6177,6 +6177,11 @@ run_component () {
 
 # Preliminary setup
 pre_check_environment
+
+# Include tests for data files.
+#
+source tests/scripts/regenerate_data_files_tests.sh
+
 pre_parse_command_line_for_dirs "$@"
 pre_initialize_variables
 pre_parse_command_line "$@"

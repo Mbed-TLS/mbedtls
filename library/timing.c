@@ -399,7 +399,7 @@ int mbedtls_timing_self_test(int verbose)
     int hardfail = 0;
     struct mbedtls_timing_hr_time hires;
     uint32_t a = 0, b = 0;
-    mbedtls_timing_delay_context ctx;
+    mbedtls_timing_delay_context ctx = {};
 
     if (verbose != 0) {
         mbedtls_printf("  TIMING tests note: will take some time!\n");

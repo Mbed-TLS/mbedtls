@@ -2133,11 +2133,9 @@ static int ssl_tls13_parse_encrypted_extensions(mbedtls_ssl_context *ssl,
 
     if ((handshake->received_extensions & MBEDTLS_SSL_EXT_MASK(RECORD_SIZE_LIMIT)) &&
         (handshake->received_extensions & MBEDTLS_SSL_EXT_MASK(MAX_FRAGMENT_LENGTH))) {
-        mbedtls_debug_print_msg(ssl,
-                                3,
-                                __FILE__,
-                                __LINE__,
-                                "Record size limit extension cannot be used with max fragment length extension");
+        MBEDTLS_SSL_DEBUG_MSG(3,
+                              (
+                                  "Record size limit extension cannot be used with max fragment length extension"));
         MBEDTLS_SSL_PEND_FATAL_ALERT(
             MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
             MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);

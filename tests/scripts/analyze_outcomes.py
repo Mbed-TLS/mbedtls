@@ -542,28 +542,31 @@ KNOWN_TASKS = {
             'ignored_suites': [
                 # Skipped in the accelerated component
                 'aes', 'aria', 'camellia',
-                # These require AES_C and CAMELLIA_C to be enabled in order for the cipher
-                # module (actually cipher_wrapper) to work properly. However these symbols
-                # are disabled in the accelerated component so we ignore them.
-                'cipher.ccm', 'cipher.gcm', 'cmac',
+                # These require AES_C, ARIA_C or CAMELLIA_C to be enabled in
+                # order for the cipher module (actually cipher_wrapper) to work
+                # properly. However these symbols are disabled in the accelerated
+                # component so we ignore them.
+                'cipher.ccm', 'cipher.gcm', 'cmac', 'cipher.aes', 'cipher.aria',
+                'cipher.camellia',
             ],
             'ignored_tests': {
-                'test_suite_cipher.aes': [
-                    # CCM*-NO-TAG is disabled in the accelerated component but
-                    # there is no way to get CCM without CCM*-NO-TAG with legacy symbols.
-                    re.compile(r'AES-\d+[- ]CCM\*-NO-TAG .*'),
-                    # Following test require AES_C to be enabled for CIPHER_C operations
-                    re.compile(r'AES-\d+-ECB .* NIST KAT .*'),
-                    # This test requires AES_C which is disabled in the accelerated component
-                    'Cipher Corner Case behaviours',
+                'test_suite_cipher.padding': [
+                    # Following tests require AES_C/CAMELLIA_C to be enabled,
+                    # but these are not available in the accelerated component.
+                    re.compile('Set( non-existent)? padding with (AES|CAMELLIA).*'),
                 ],
-                'test_suite_cipher.aria': [
-                    # Same as for test_suite_cipher.aes
-                    re.compile(r'ARIA-\d+[- ]CCM\*-NO-TAG .*'),
+                'test_suite_pkparse': [
+                    # PEM (called by pkparse) requires AES_C in order to decrypt
+                    # the key, but this is not available in the accelerated
+                    # component.
+                    re.compile('Parse RSA Key.*(password|AES-).*'),
                 ],
-                'test_suite_cipher.camellia': [
-                    # Same as for test_suite_cipher.aes
-                    re.compile(r'CAMELLIA-\d+[- ]CCM\*-NO-TAG .*'),
+                'test_suite_pem': [
+                    # Following tests require AES_C, but this is diabled in the
+                    # accelerated component.
+                    'PEM read (AES-128-CBC + invalid iv)',
+                    'PEM read (malformed PEM AES-128-CBC)',
+                    'PEM read (unknown encryption algorithm)',
                 ],
                 'test_suite_error': [
                     # Following tests depend on AES_C but are not about them

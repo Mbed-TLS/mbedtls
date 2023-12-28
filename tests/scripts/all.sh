@@ -3840,9 +3840,8 @@ common_block_cipher_dispatch() {
 
     # Disable cipher's modes and AEADs that, when not accelerated, cause
     # legacy key types to be re-enabled in "config_adjust_legacy_from_psa.h".
-    # Keep this also in the reference component in order to avoid re-enabling
-    # (in "config_adjust_legacy_from_psa.h") legacy cipher modes that were
-    # disabled in that component.
+    # Keep this also in the reference component in order to skip the same tests
+    # that were skipped in the accelerated one.
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CTR
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CFB
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_OFB
@@ -3900,11 +3899,6 @@ component_test_full_block_cipher_legacy_dispatch () {
     msg "build: full + legacy dispatch in block_cipher"
 
     common_block_cipher_dispatch 0
-
-    # Disable cipher modes other than ECB as in the accelerated component. ECB
-    # does not have a configuration symbol and it's automatically enabled as
-    # long as underlying key types are.
-    scripts/config.py unset-all MBEDTLS_CIPHER_MODE
 
     make
 

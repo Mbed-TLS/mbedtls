@@ -1,9 +1,9 @@
 Features
-   * It is now possible to accelerate all ciphers and AEADs through a driver,
-     while completely removing legacy support and MBEDTLS_CIPHER_C, and still
-     get most things working, including TLS - see
-     docs/driver-only-builds.md for full details and current limitations.
-   * The CTR-DRBG module no longer depends on MBEDTLS_AES_C and can also use
-     AES from a PSA driver. This requires MBEDTLS_PSA_CRYPTO_C,
-     PSA_WANT_KEY_TYPE_AES and PSA_WANT_ALG_ECB_NO_PADDING to be enabled, and
-     MBEDTLS_AES_C to be disabled.
+   * If a cipher or AEAD mechanism has a PSA driver, you can now build the
+     library without the corresponding built-in implementation and without
+     enabling MBEDTLS_CIPHER_C.
+   * It is possible to disable MBEDTLS_CIPHER_C in some circumstances, please
+     see docs/driver-only-builds.md for full details and current limitations.
+   * The CTR_DRBG module will now use AES from a PSA driver if MBEDTLS_AES_C is
+     disabled. This requires PSA_WANT_ALG_ECB_NO_PADDING in addition to
+     MBEDTLS_PSA_CRYPTO_C and PSA_WANT_KEY_TYPE_AES.

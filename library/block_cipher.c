@@ -88,8 +88,9 @@ int mbedtls_block_cipher_setup(mbedtls_block_cipher_context_t *ctx,
               MBEDTLS_BLOCK_CIPHER_ID_NONE;
 
 #if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
-    if (psa_can_do_cipher(cipher_id) &&
-        (psa_key_type_from_block_cipher_id(ctx->id) != PSA_KEY_TYPE_NONE)) {
+    psa_key_type_t psa_key_type = psa_key_type_from_block_cipher_id(ctx->id);
+    if (psa_key_type != PSA_KEY_TYPE_NONE &&
+        psa_can_do_cipher(psa_key_type, PSA_ALG_ECB_NO_PADDING)) {
         ctx->engine = MBEDTLS_BLOCK_CIPHER_ENGINE_PSA;
         return 0;
     }

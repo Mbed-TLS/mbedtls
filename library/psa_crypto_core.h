@@ -43,7 +43,7 @@ int psa_can_do_hash(psa_algorithm_t hash_alg);
  *
  * \return 1 if the driver subsytem is ready, 0 otherwise.
  */
-int psa_can_do_cipher(psa_algorithm_t cipher_alg);
+int psa_can_do_cipher(psa_key_type_t key_type, psa_algorithm_t cipher_alg);
 
 typedef enum {
     PSA_SLOT_EMPTY = 0,

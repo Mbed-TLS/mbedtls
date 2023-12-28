@@ -116,8 +116,9 @@ int psa_can_do_hash(psa_algorithm_t hash_alg)
     return global_data.drivers_initialized;
 }
 
-int psa_can_do_cipher(psa_algorithm_t cipher_alg)
+int psa_can_do_cipher(psa_key_type_t key_type, psa_algorithm_t cipher_alg)
 {
+    (void) key_type;
     (void) cipher_alg;
     return global_data.drivers_initialized;
 }

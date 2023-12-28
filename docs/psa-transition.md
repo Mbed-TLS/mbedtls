@@ -743,6 +743,10 @@ A curve is fully determined by a curve family identifier and the private key siz
 | `MBEDTLS_ECP_DP_SECP256K1` | [`PSA_ECC_FAMILY_SECP_K1`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1ga48bb340b5544ba617b0f5b89542665a7) | 256 |
 | `MBEDTLS_ECP_DP_CURVE448` | [`PSA_ECC_FAMILY_MONTGOMERY`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1ga1f624c5cdaf25b21287af33024e1aff8) | 448 |
 
+The following helper functions can be used to convert between the 2 types:
+- `mbedtls_ecc_group_to_psa()` converts from the legacy curve type identifier to PSA curve family and bit-size.
+- `mbedtls_ecc_group_from_psa()` converts from PSA curve family and bit-size to the legacy identifier.
+
 The following cryptographic algorithms work with ECC keys:
 
 * ECDH key agreement (including X25519 and X448): [`PSA_ALG_ECDH`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1gab2dbcf71b63785e7dd7b54a100edee43).

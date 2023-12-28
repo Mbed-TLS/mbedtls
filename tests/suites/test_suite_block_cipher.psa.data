@@ -1,7 +1,3 @@
-# These tests behave differently depending on the presence of
-# drivers and/or built-in, so they're isolated here for the benefit of
-# analyze_outcomes.py (driver vs reference comparison).
-
 AES - legacy only
 depends_on:MBEDTLS_BLOCK_CIPHER_AES_VIA_LEGACY:!MBEDTLS_BLOCK_CIPHER_AES_VIA_PSA
 block_cipher_psa_dynamic_dispatch:MBEDTLS_CIPHER_ID_AES:0:MBEDTLS_BLOCK_CIPHER_ENGINE_LEGACY

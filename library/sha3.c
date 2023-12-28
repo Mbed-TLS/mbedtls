@@ -37,7 +37,7 @@ mbedtls_sha3_family_functions;
 /*
  * List of supported SHA-3 families
  */
-static mbedtls_sha3_family_functions sha3_families[] = {
+static const mbedtls_sha3_family_functions sha3_families[] = {
     { MBEDTLS_SHA3_224,      1152, 224 },
     { MBEDTLS_SHA3_256,      1088, 256 },
     { MBEDTLS_SHA3_384,       832, 384 },
@@ -180,7 +180,7 @@ void mbedtls_sha3_clone(mbedtls_sha3_context *dst,
  */
 int mbedtls_sha3_starts(mbedtls_sha3_context *ctx, mbedtls_sha3_id id)
 {
-    mbedtls_sha3_family_functions *p = NULL;
+    const mbedtls_sha3_family_functions *p = NULL;
 
     for (p = sha3_families; p->id != MBEDTLS_SHA3_NONE; p++) {
         if (p->id == id) {

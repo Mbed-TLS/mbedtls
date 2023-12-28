@@ -566,12 +566,13 @@ KNOWN_TASKS = {
                     re.compile(r'CAMELLIA-\d+[- ]CCM\*-NO-TAG .*'),
                 ],
                 'test_suite_error': [
-                    # Following tests require AES_C which is disabled in the accelerated component
+                    # Following tests depend on AES_C but are not about them
+                    # really, just need to know some error code is there.
                     'Single low error',
                     'Low and high error',
                 ],
                 'test_suite_version': [
-                    # Following tests require AES_C which is disabled in the accelerated component
+                    # Similar to test_suite_error above.
                     'Check for MBEDTLS_AES_C when already present',
                 ],
                 'test_suite_platform': [

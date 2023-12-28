@@ -58,9 +58,12 @@ For now, only the following (families of) mechanisms are supported:
 - AEADs:
   - GCM and CCM with AES, ARIA and Camellia key types
   - ChachaPoly with ChaCha20 Key type
-- Ciphers:
+- Unauthenticated ciphers:
   - key types: AES, ARIA, Camellia, DES
   - modes: ECB, CBC, CTR, CFB, OFB, XTS
+
+For each family listed above, all the mentioned alorithms/key types are also
+all the mechanisms that exist in PSA API.
 
 Supported means that when those are provided only by drivers, everything
 (including PK, X.509 and TLS if `MBEDTLS_USE_PSA_CRYPTO` is enabled) should
@@ -246,14 +249,14 @@ Ciphers and AEADs
 It is possible to have all ciphers and AEAD operations provided only by a
 driver. More precisely, for each desired combination of key type and
 algorithm/mode you can:
-- enable desired PSA key type(s):
+- Enable desired PSA key type(s):
   - `PSA_WANT_KEY_TYPE_AES`,
   - `PSA_WANT_KEY_TYPE_ARIA`,
   - `PSA_WANT_KEY_TYPE_CAMELLIA`,
   - `PSA_WANT_KEY_TYPE_CHACHA20`,
   - `PSA_WANT_KEY_TYPE_DES`.
-- enable desired PSA algorithm(s):
-  - unauthenticated ciphers modes:
+- Enable desired PSA algorithm(s):
+  - Unauthenticated ciphers modes:
     - `PSA_WANT_ALG_CBC_NO_PADDING`,
     - `PSA_WANT_ALG_CBC_PKCS7`,
     - `PSA_WANT_ALG_CCM_STAR_NO_TAG`,
@@ -266,9 +269,9 @@ algorithm/mode you can:
     - `PSA_WANT_ALG_CCM`,
     - `PSA_WANT_ALG_GCM`,
     - `PSA_WANT_ALG_CHACHA20_POLY1305`.
-- enable `MBEDTLS_PSA_ACCEL_[KEY_TYPE_xxx|ALG_yyy]` symbol(s) which correspond
+- Enable `MBEDTLS_PSA_ACCEL_[KEY_TYPE_xxx|ALG_yyy]` symbol(s) which correspond
    to the PSA_WANT_KEY_TYPE_xxx` and `PSA_WANT_ALG_yyy` of the previous steps.
-- disable builtin support of key types:
+- Disable builtin support of key types:
   - `MBEDTLS_AES_C`,
   - `MBEDTLS_ARIA_C`,
   - `MBEDTLS_CAMELLIA_C`,
@@ -295,36 +298,37 @@ some non-PSA APIs will be absent or have reduced functionality, see
 - If an algorithm other than GCM and CCM (see
   ["Partial acceleration for CCM/GCM"](#partial-acceleration-for-ccmgcm) below)
   is enabled but not accelerated, then all key types than can be used with it
-  will need to be built-in;
-- if a key type is enabled but not accelerated, then all algorithms than can be
+  will need to be built-in.
+- If a key type is enabled but not accelerated, then all algorithms than can be
   used with it will need to be built-in.
 
 ### Legacy <-> PSA matching
 
-It should be noticed that the matching between legacy (i.e. `MBEDTLS_xxx_C`)
-and PSA (i.e. `PSA_WANT_xxx`) symbols is not always 1:1. For example:
+Note that the matching between legacy (i.e. `MBEDTLS_xxx_C`) and PSA
+(i.e. `PSA_WANT_xxx`) symbols is not always 1:1. For example:
 - ECB mode is always enabled in legacy configuration for each key type that
   allows it (AES, ARIA, Camellia, DES), whereas it must be explicitly enabled
-  in PSA with `PSA_WANT_ALG_ECB_NO_PADDING`;
-- similarly for stream ciphers, it is automatically enabled for key types that
-  support it (`CHACHA20_C` and `NULL_CIPHER`) whereas it must be explicitly
-  enabled in PSA with `PSA_WANT_ALG_STREAM_CIPHER`;
-- legacy symbol `MBEDTLS_CCM_C` adds support for both cipher and AEAD, whereas
-  in PSA there are 2 different symbols: `PSA_WANT_ALG_CCM_STAR_NO_TAG` and
-  `PSA_WANT_ALG_CCM`, respectively.
+  in PSA with `PSA_WANT_ALG_ECB_NO_PADDING`.
+- In the legacy API, MBEDTLS_CHACHA20_C enables the ChaCha20 stream cipher, and
+  enabling MBEDTLS_CHACHAPOLY_C also enables the ChaCha20-Poly1305 AEAD. In the
+  PSA API, you need to enable PSA_KEY_TYPE_CHACHA20 for both, plus
+  PSA_ALG_STREAM_CIPHER or PSA_ALG_CHACHA20_POLY1305 as desired.
+- The legacy symbol `MBEDTLS_CCM_C` adds support for both cipher and AEAD,
+  whereas in PSA there are 2 different symbols: `PSA_WANT_ALG_CCM_STAR_NO_TAG`
+  and `PSA_WANT_ALG_CCM`, respectively.
 
 ### Partial acceleration for CCM/GCM
 
 [This section depends on #8598 so it might updated while that PR progresses.]
 
 In case legacy CCM/GCM algorithms are enabled it is still possible to benefit
-from PSA acceleration by enabling support for ECB mode
-(`PSA_WANT_ALG_ECB_NO_PADDING`) together with desired key type(s)
+from PSA acceleration of the underlying block cipher by enabling support for
+ECB mode (`PSA_WANT_ALG_ECB_NO_PADDING`) together with desired key type(s)
 (`PSA_WANT_KEY_TYPE_[AES|ARIA|CAMELLIA]`). In such configuration it is possible
 to:
-- still benefit from legacy functions belonging to CCM/GCM modules
-  (`mbedtls_[ccm|gcm]_xxx()`),
-- disable legacy key types (`MBEDTLS_[AES|ARIA|CAMELLIA]_C`) if there is no
+- Still benefit from legacy functions belonging to CCM/GCM modules
+  (`mbedtls_[ccm|gcm]_xxx()`).
+- Disable legacy key types (`MBEDTLS_[AES|ARIA|CAMELLIA]_C`) if there is no
   other dependency requiring them, of course.
 
 ChaChaPoly has not such feature, so it requires full acceleration (key type +
@@ -332,32 +336,29 @@ algorithm) in order to work with a driver.
 
 ### CTR-DRBG
 
-Legacy CTR-DRBG module (enabled by `MBEDTLS_CTR_DRBG_C`) can also benefit from
-PSA acceleration when:
-- the legacy AES module is not enabled (`MBEDTLS_AES_C`) and
+The legacy CTR-DRBG module (enabled by `MBEDTLS_CTR_DRBG_C`) can also benefit
+from PSA acceleration if both of the following conditions are met:
+- The legacy AES module (`MBEDTLS_AES_C`) is not enabled and
 - AES is supported on the PSA side together with ECB mode, i.e.
   `PSA_WANT_KEY_TYPE_AES` + `PSA_WANT_ALG_ECB_NO_PADDING`.
 
 ### Disabling CIPHER_C
 
-This only depends on unauthenticated ciphers: they can be either completely
-accelerated or disabled in order to remove the dependency on `MBEDTLS_CIPHER_C`.
+It is possible to save code size by disabling MBEDTLS_CIPHER_C when all of the 
+following conditions are met:
+- The application is not using the `mbedtls_cipher_` API.
+- In PSA, all unauthenticated (that is, non-AEAD) ciphers are either disabled or
+  fully accelerated (that is, all compatible key types are accelerated too).
+- Either TLS is disabled, or `MBEDTLS_USE_PSA_CRYPTO` is enabled.
+- `MBEDTLS_NIST_KW` is disabled.
 
-AEADs do not have such a restriction. Of course they can be accelerated as well,
-but they can also rely on the legacy modules (`MBEDTLS_[CCM|GCM|CHACHAPOLY]`)
-with the following conditions on the underlying key types:
-- CCM/GCM can either use legacy key type modules `MBEDTLS_[AES|ARIA|CAMELLIA]_C`
-  or their accelerated version, as described in section
-  ["Partial acceleration for CCM/GCM"](#partial-acceleration-for-ccmgcm).
-- ChaChaPoly instead can only rely on the legacy key type module
-  `MBEDTLS_CHACHA20_C` and algorithm `MBEDTLS_POLY1305_C`.
+In such a build, everything will work as usual except for the following:
+- Encryption/decryption functions from the PKCS5 and PKCS12 module will not be
+  available (only key derivation functions).
+- Parsing of PKCS5- or PKCS12-encrypted keys in PK parse will fail.
 
-It should be noticed that disabling `MBEDTLS_CIPHER_C` helps to reduce the
-code's footprint, but unfortunately it makes the following features unavailable:
-- encryption/decryption in PKCS5 and PKCS12 modules (key derivations will still
-  be available),
-- encrypted PEM (write and unecrypted read work normally),
-- parsing of encrypted keys (PKCS5 or PKCS12) in PK modules,
-- NIST-KW (`MBEDTLS_NIST_KW_C`).
+Note: AEAD ciphers (CCM, GCM, ChachaPoly) do not have a dependency on
+MBEDTLS_CIPHER_C even when using the built-in implementations.
+
 
 

@@ -334,16 +334,14 @@
 #undef MBEDTLS_HAS_MEMSAN
 
 #if defined(MBEDTLS_CCM_C) && \
-    !(defined(MBEDTLS_BLOCK_CIPHER_CAN_AES) || defined(MBEDTLS_AES_C) || \
-    defined(MBEDTLS_BLOCK_CIPHER_CAN_ARIA) || defined(MBEDTLS_ARIA_C) || \
-    defined(MBEDTLS_BLOCK_CIPHER_CAN_CAMELLIA) || defined(MBEDTLS_CAMELLIA_C))
+    !(defined(MBEDTLS_CCM_GCM_CAN_AES) || defined(MBEDTLS_CCM_GCM_CAN_ARIA) || \
+    defined(MBEDTLS_CCM_GCM_CAN_CAMELLIA))
 #error "MBEDTLS_CCM_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_GCM_C) && \
-    !(defined(MBEDTLS_BLOCK_CIPHER_CAN_AES) || defined(MBEDTLS_AES_C) || \
-    defined(MBEDTLS_BLOCK_CIPHER_CAN_ARIA) || defined(MBEDTLS_ARIA_C) || \
-    defined(MBEDTLS_BLOCK_CIPHER_CAN_CAMELLIA) || defined(MBEDTLS_CAMELLIA_C))
+    !(defined(MBEDTLS_CCM_GCM_CAN_AES) || defined(MBEDTLS_CCM_GCM_CAN_ARIA) || \
+    defined(MBEDTLS_CCM_GCM_CAN_CAMELLIA))
 #error "MBEDTLS_GCM_C defined, but not all prerequisites"
 #endif
 

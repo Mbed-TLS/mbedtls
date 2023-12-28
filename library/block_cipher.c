@@ -42,7 +42,7 @@ static psa_key_type_t psa_key_type_from_block_cipher_id(mbedtls_block_cipher_id_
     }
 }
 
-int mbedtls_cipher_error_from_psa(psa_status_t status)
+static int mbedtls_cipher_error_from_psa(psa_status_t status)
 {
     return PSA_TO_MBEDTLS_ERR_LIST(status, psa_to_cipher_errors,
                                    psa_generic_status_to_mbedtls);

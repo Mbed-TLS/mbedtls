@@ -1,0 +1,4 @@
+Features
+   * mbedtls_ecc_group_to_psa() and mbedtls_ecc_group_from_psa() helper
+     functions were added to convert from mbedtls_ecp_group_id to
+     psa_ecc_family_t and curve's bit size and viceversa, respectively.

@@ -3644,7 +3644,7 @@ component_test_psa_crypto_config_reference_hash_use_psa() {
 }
 
 component_test_psa_crypto_config_accel_des () {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated cipher"
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated DES"
 
     # Albeit this components aims at accelerating DES which should only support
     # CBC and ECB modes, we need to accelerate more than that otherwise DES_C
@@ -3686,7 +3686,7 @@ component_test_psa_crypto_config_accel_des () {
     # Run the tests
     # -------------
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated cipher"
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated DES"
     make test
 }
 

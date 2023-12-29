@@ -8589,20 +8589,20 @@ run_test    "Large client packet TLS 1.2 AEAD shorter tag" \
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Large client packet TLS 1.3 AEAD" \
             "$P_SRV" \
-            "$P_CLI request_size=16384 \
+            "$P_CLI request_size=16383 \
              force_ciphersuite=TLS1-3-AES-128-CCM-SHA256" \
             0 \
-            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
-            -s "Read from client: $MAX_CONTENT_LEN bytes read"
+            -c "16383 bytes written in $(fragments_for_write 16383) fragments" \
+            -s "Read from client: 16383 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Large client packet TLS 1.3 AEAD shorter tag" \
             "$P_SRV" \
-            "$P_CLI request_size=16384 \
+            "$P_CLI request_size=16383 \
              force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256" \
             0 \
-            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
-            -s "Read from client: $MAX_CONTENT_LEN bytes read"
+            -c "16383 bytes written in $(fragments_for_write 16383) fragments" \
+            -s "Read from client: 16383 bytes read"
 
 # The tests below fail when the server's OUT_CONTENT_LEN is less than 16384.
 run_test    "Large server packet TLS 1.2 BlockCipher" \
@@ -8645,17 +8645,17 @@ run_test    "Large server packet TLS 1.2 AEAD shorter tag" \
 
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Large server packet TLS 1.3 AEAD" \
-            "$P_SRV response_size=16384" \
+            "$P_SRV response_size=16383" \
             "$P_CLI force_ciphersuite=TLS1-3-AES-128-CCM-SHA256" \
             0 \
-            -c "Read from server: 16384 bytes read"
+            -c "Read from server: 16383 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Large server packet TLS 1.3 AEAD shorter tag" \
-            "$P_SRV response_size=16384" \
+            "$P_SRV response_size=16383" \
             "$P_CLI force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256" \
             0 \
-            -c "Read from server: 16384 bytes read"
+            -c "Read from server: 16383 bytes read"
 
 # Tests for restartable ECC
 

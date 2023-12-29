@@ -243,8 +243,8 @@ The same holds for the associated algorithm:
 `[PSA_WANT|MBEDTLS_PSA_ACCEL]_ALG_FFDH` allow builds accelerating FFDH and
 removing builtin support (i.e. `MBEDTLS_DHM_C`).
 
-Ciphers and AEADs
------------------
+Ciphers (unauthenticated and AEAD)
+----------------------------------
 
 It is possible to have all ciphers and AEAD operations provided only by a
 driver. More precisely, for each desired combination of key type and
@@ -291,7 +291,7 @@ algorithm/mode you can:
 Once a key type and related algorithm are accelerated, all the PSA Crypto APIs
 will work, as well as X.509 and TLS (with `MBEDTLS_USE_PSA_CRYPTO` enabled) but
 some non-PSA APIs will be absent or have reduced functionality, see
-[Disabling CIPHER_C](#disabling-cipher_c) for details.
+[Restrictions](#restrictions) for details.
 
 ### Restrictions
 
@@ -301,6 +301,29 @@ some non-PSA APIs will be absent or have reduced functionality, see
   will need to be built-in.
 - If a key type is enabled but not accelerated, then all algorithms than can be
   used with it will need to be built-in.
+
+Some legacy modules can't take advantage of PSA drivers yet, and will either
+need to be disabled, or have reduced features when the built-in implementations
+of some ciphers are removed:
+- `MBEDTLS_NIST_KW_C` needs built-in AES: it must be disabled when
+  `MBEDTLS_AES_C` is disabled.
+- `MBEDTLS_CMAC_C` needs built-in AES/DES: it must be disabled when
+  `MBEDTLS_AES_C` and `MBEDTLS_DES_C` are both disabled. When only one of them
+  is enabled, then only the corresponding cipher will be available at runtime
+  for use with `mbedtls_cipher_cmac_xxx`. (Note: if there is driver support for
+  CMAC and all compatible key types, then `PSA_WANT_ALG_CMAC` can be enabled
+  without `MBEDTLS_CMAC_C` and CMAC will be usable with `psa_max_xxx` APIs.)
+- `MBEDTLS_CIPHER_C`: the `mbedtls_cipher_xxx()` APIs will only work with
+  ciphers that are built-in - that is, both the underlying cipher
+  (eg `MBEDTLS_AES_C`) and the mode (eg `MBEDTLS_CIPHER_MODE_CBC` or
+  `MBEDTLS_GCM_C`).
+- `MBEDTLS_PKCS5_C`: encryption/decryption (PBES2, PBE) will only work with
+  ciphers that are built-in.
+- PEM decryption will only work with ciphers that are built-in.
+- PK parse will only be able to parse encrypted keys using built-in ciphers.
+
+Note that if you also disable `MBEDTLS_CIPHER_C`, there will be additional
+restrictions, see [Disabling `MBEDTLS_CIPHER_C`](#disabling-mbedtls_cipher_c).
 
 ### Legacy <-> PSA matching
 
@@ -323,11 +346,12 @@ Note that the relationship between legacy (i.e. `MBEDTLS_xxx_C`) and PSA
 
 In case legacy CCM/GCM algorithms are enabled, it is still possible to benefit
 from PSA acceleration of the underlying block cipher by enabling support for
-ECB mode (`PSA_WANT_ALG_ECB_NO_PADDING`) together with desired key type(s)
-(`PSA_WANT_KEY_TYPE_[AES|ARIA|CAMELLIA]`). In such configurations it is possible
-to:
-- Still benefit from legacy functions belonging to CCM/GCM modules
-  (`mbedtls_[ccm|gcm]_xxx()`).
+ECB mode (`PSA_WANT_ALG_ECB_NO_PADDING` + `MBEDTLS_PSA_ACCEL_ALG_ECB_NO_PADDING`)
+together with desired key type(s) (`PSA_WANT_KEY_TYPE_[AES|ARIA|CAMELLIA]` +
+`MBEDTLS_PSA_ACCEL_KEY_TYPE_[AES|ARIA|CAMELLIA]`).
+In such configurations it is possible to:
+- Use CCM and GCM via the PSA Crypto APIs.
+- Use CCM and GCM via legacy functions (`mbedtls_[ccm|gcm]_xxx()`).
 - Disable legacy key types (`MBEDTLS_[AES|ARIA|CAMELLIA]_C`) if there is no
   other dependency requiring them.
 
@@ -342,7 +366,7 @@ from PSA acceleration if both of the following conditions are met:
 - AES is supported on the PSA side together with ECB mode, i.e.
   `PSA_WANT_KEY_TYPE_AES` + `PSA_WANT_ALG_ECB_NO_PADDING`.
 
-### Disabling CIPHER_C
+### Disabling `MBEDTLS_CIPHER_C`
 
 It is possible to save code size by disabling MBEDTLS_CIPHER_C when all of the 
 following conditions are met:
@@ -351,6 +375,8 @@ following conditions are met:
   fully accelerated (that is, all compatible key types are accelerated too).
 - Either TLS is disabled, or `MBEDTLS_USE_PSA_CRYPTO` is enabled.
 - `MBEDTLS_NIST_KW` is disabled.
+- `MBEDTLS_CMAC_C` is disabled. (Note: support for CMAC in PSA can be provided by
+  a driver.)
 
 In such a build, everything will work as usual except for the following:
 - Encryption/decryption functions from the PKCS5 and PKCS12 module will not be
@@ -359,6 +385,9 @@ In such a build, everything will work as usual except for the following:
 
 Note: AEAD ciphers (CCM, GCM, ChachaPoly) do not have a dependency on
 MBEDTLS_CIPHER_C even when using the built-in implementations.
+
+If you also have some ciphers fully accelerated and the built-ins removed, see
+[Restrictions](#restrictions) for restrictions related to removing the built-ins.
 
 
 

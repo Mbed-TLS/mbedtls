@@ -276,7 +276,6 @@ mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t curve,
 #endif
 #if defined(PSA_WANT_ECC_SECP_R1_521)
                 case 521:
-                case 528:
                     return MBEDTLS_ECP_DP_SECP521R1;
 #endif
             }
@@ -303,7 +302,6 @@ mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t curve,
             switch (bits) {
 #if defined(PSA_WANT_ECC_MONTGOMERY_255)
                 case 255:
-                case 256:
                     return MBEDTLS_ECP_DP_CURVE25519;
 #endif
 #if defined(PSA_WANT_ECC_MONTGOMERY_448)

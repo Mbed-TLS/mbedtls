@@ -32,13 +32,16 @@
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
-/* Helper function to verify if the provided EC's family and key bit size are
- * valid. */
-static int check_ecc_parameters(psa_ecc_family_t family, size_t bits, int allow_bit_size_roundup)
+/* Helper function to verify if the provided EC's family and key bit size are valid.
+ *
+ * Note: "bits" parameter is used both as input and output and it might be updated
+ *       in case provided input value is not multiple of 8 ("sloppy" bits).
+ */
+static int check_ecc_parameters(psa_ecc_family_t family, size_t *bits)
 {
     switch (family) {
         case PSA_ECC_FAMILY_SECP_R1:
-            switch (bits) {
+            switch (*bits) {
                 case 192:
                 case 224:
                 case 256:
@@ -46,14 +49,13 @@ static int check_ecc_parameters(psa_ecc_family_t family, size_t bits, int allow_
                 case 521:
                     return PSA_SUCCESS;
                 case 528:
-                    if (allow_bit_size_roundup) {
-                        return PSA_SUCCESS;
-                    }
+                    *bits = 521;
+                    return PSA_SUCCESS;
             }
             break;
 
         case PSA_ECC_FAMILY_BRAINPOOL_P_R1:
-            switch (bits) {
+            switch (*bits) {
                 case 256:
                 case 384:
                 case 512:
@@ -62,19 +64,18 @@ static int check_ecc_parameters(psa_ecc_family_t family, size_t bits, int allow_
             break;
 
         case PSA_ECC_FAMILY_MONTGOMERY:
-            switch (bits) {
+            switch (*bits) {
                 case 448:
                 case 255:
                     return PSA_SUCCESS;
                 case 256:
-                    if (allow_bit_size_roundup) {
-                        return PSA_SUCCESS;
-                    }
+                    *bits = 255;
+                    return PSA_SUCCESS;
             }
             break;
 
         case PSA_ECC_FAMILY_SECP_K1:
-            switch (bits) {
+            switch (*bits) {
                 case 192:
                 case 224:
                 case 256:
@@ -136,8 +137,7 @@ psa_status_t mbedtls_psa_ecp_load_representation(
     }
     mbedtls_ecp_keypair_init(ecp);
 
-    status = check_ecc_parameters(PSA_KEY_TYPE_ECC_GET_FAMILY(type), curve_bits,
-                                  !explicit_bits);
+    status = check_ecc_parameters(PSA_KEY_TYPE_ECC_GET_FAMILY(type), &curve_bits);
     if (status != PSA_SUCCESS) {
         goto exit;
     }

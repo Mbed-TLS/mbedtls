@@ -546,10 +546,16 @@ KNOWN_TASKS = {
                 # order for the cipher module (actually cipher_wrapper) to work
                 # properly. However these symbols are disabled in the accelerated
                 # component so we ignore them.
-                'cipher.ccm', 'cipher.gcm', 'cmac', 'cipher.aes', 'cipher.aria',
+                'cipher.ccm', 'cipher.gcm', 'cipher.aes', 'cipher.aria',
                 'cipher.camellia',
             ],
             'ignored_tests': {
+                'test_suite_cmac': [
+                    # Following tests require AES_C/ARIA_C/CAMELLIA_C to be enabled,
+                    # but these are not available in the accelerated component.
+                    'CMAC null arguments',
+                    re.compile('CMAC.* (AES|ARIA|Camellia).*'),
+                ],
                 'test_suite_cipher.padding': [
                     # Following tests require AES_C/CAMELLIA_C to be enabled,
                     # but these are not available in the accelerated component.

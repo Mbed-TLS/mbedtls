@@ -1547,8 +1547,6 @@ component_test_full_no_cipher () {
     # Disable features that depend on CIPHER_C
     scripts/config.py unset MBEDTLS_CMAC_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
-    scripts/config.py unset MBEDTLS_PKCS12_C
-    scripts/config.py unset MBEDTLS_PKCS5_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
     scripts/config.py unset MBEDTLS_SSL_TLS_C
     scripts/config.py unset MBEDTLS_SSL_TICKET_C
@@ -1606,8 +1604,6 @@ common_test_full_no_cipher_with_psa_crypto () {
     # The following modules directly depends on CIPHER_C
     scripts/config.py unset MBEDTLS_CMAC_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
-    scripts/config.py unset MBEDTLS_PKCS12_C
-    scripts/config.py unset MBEDTLS_PKCS5_C
 
     make
 

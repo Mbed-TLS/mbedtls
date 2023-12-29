@@ -270,68 +270,68 @@ algorithm/mode you can:
     - `PSA_WANT_ALG_GCM`,
     - `PSA_WANT_ALG_CHACHA20_POLY1305`.
 - Enable `MBEDTLS_PSA_ACCEL_[KEY_TYPE_xxx|ALG_yyy]` symbol(s) which correspond
-   to the PSA_WANT_KEY_TYPE_xxx` and `PSA_WANT_ALG_yyy` of the previous steps.
+   to the `PSA_WANT_KEY_TYPE_xxx` and `PSA_WANT_ALG_yyy` of the previous steps.
 - Disable builtin support of key types:
   - `MBEDTLS_AES_C`,
   - `MBEDTLS_ARIA_C`,
   - `MBEDTLS_CAMELLIA_C`,
   - `MBEDTLS_DES_C`,
-  - `MBEDTLS_CHACHA20_C`;
+  - `MBEDTLS_CHACHA20_C`.
   and algorithms/modes:
-  - `MBEDTLS_CBC_C`
-  - `MBEDTLS_CFB_C`
-  - `MBEDTLS_CTR_C`
-  - `MBEDTLS_OFB_C`
-  - `MBEDTLS_XTS_C`
-  - `MBEDTLS_CCM_C`
-  - `MBEDTLS_GCM_C`
-  - `MBEDTLS_CHACHAPOLY_C`
-  - `MBEDTLS_NULL_CIPHER`
+  - `MBEDTLS_CBC_C`,
+  - `MBEDTLS_CFB_C`,
+  - `MBEDTLS_CTR_C`,
+  - `MBEDTLS_OFB_C`,
+  - `MBEDTLS_XTS_C`,
+  - `MBEDTLS_CCM_C`,
+  - `MBEDTLS_GCM_C`,
+  - `MBEDTLS_CHACHAPOLY_C`,
+  - `MBEDTLS_NULL_CIPHER`.
 
 Once a key type and related algorithm are accelerated, all the PSA Crypto APIs
-will work, as well as X.509 and TLS (with MBEDTLS_USE_PSA_CRYPTO enabled) but
+will work, as well as X.509 and TLS (with `MBEDTLS_USE_PSA_CRYPTO` enabled) but
 some non-PSA APIs will be absent or have reduced functionality, see
 [Disabling CIPHER_C](#disabling-cipher_c) for details.
 
 ### Restrictions
 
-- If an algorithm other than GCM and CCM (see
+- If an algorithm other than CCM and GCM (see
   ["Partial acceleration for CCM/GCM"](#partial-acceleration-for-ccmgcm) below)
-  is enabled but not accelerated, then all key types than can be used with it
+  is enabled but not accelerated, then all key types that can be used with it
   will need to be built-in.
 - If a key type is enabled but not accelerated, then all algorithms than can be
   used with it will need to be built-in.
 
 ### Legacy <-> PSA matching
 
-Note that the matching between legacy (i.e. `MBEDTLS_xxx_C`) and PSA
+Note that the relationship between legacy (i.e. `MBEDTLS_xxx_C`) and PSA
 (i.e. `PSA_WANT_xxx`) symbols is not always 1:1. For example:
-- ECB mode is always enabled in legacy configuration for each key type that
+- ECB mode is always enabled in the legacy configuration for each key type that
   allows it (AES, ARIA, Camellia, DES), whereas it must be explicitly enabled
   in PSA with `PSA_WANT_ALG_ECB_NO_PADDING`.
-- In the legacy API, MBEDTLS_CHACHA20_C enables the ChaCha20 stream cipher, and
-  enabling MBEDTLS_CHACHAPOLY_C also enables the ChaCha20-Poly1305 AEAD. In the
-  PSA API, you need to enable PSA_KEY_TYPE_CHACHA20 for both, plus
-  PSA_ALG_STREAM_CIPHER or PSA_ALG_CHACHA20_POLY1305 as desired.
+- In the legacy API, `MBEDTLS_CHACHA20_C` enables the ChaCha20 stream cipher, and
+  enabling `MBEDTLS_CHACHAPOLY_C` also enables the ChaCha20-Poly1305 AEAD. In the
+  PSA API, you need to enable `PSA_KEY_TYPE_CHACHA20` for both, plus
+  `PSA_ALG_STREAM_CIPHER` or `PSA_ALG_CHACHA20_POLY1305` as desired.
 - The legacy symbol `MBEDTLS_CCM_C` adds support for both cipher and AEAD,
   whereas in PSA there are 2 different symbols: `PSA_WANT_ALG_CCM_STAR_NO_TAG`
   and `PSA_WANT_ALG_CCM`, respectively.
 
 ### Partial acceleration for CCM/GCM
 
-[This section depends on #8598 so it might updated while that PR progresses.]
+[This section depends on #8598 so it might be updated while that PR progresses.]
 
-In case legacy CCM/GCM algorithms are enabled it is still possible to benefit
+In case legacy CCM/GCM algorithms are enabled, it is still possible to benefit
 from PSA acceleration of the underlying block cipher by enabling support for
 ECB mode (`PSA_WANT_ALG_ECB_NO_PADDING`) together with desired key type(s)
-(`PSA_WANT_KEY_TYPE_[AES|ARIA|CAMELLIA]`). In such configuration it is possible
+(`PSA_WANT_KEY_TYPE_[AES|ARIA|CAMELLIA]`). In such configurations it is possible
 to:
 - Still benefit from legacy functions belonging to CCM/GCM modules
   (`mbedtls_[ccm|gcm]_xxx()`).
 - Disable legacy key types (`MBEDTLS_[AES|ARIA|CAMELLIA]_C`) if there is no
-  other dependency requiring them, of course.
+  other dependency requiring them.
 
-ChaChaPoly has not such feature, so it requires full acceleration (key type +
+ChaChaPoly has no such feature, so it requires full acceleration (key type +
 algorithm) in order to work with a driver.
 
 ### CTR-DRBG

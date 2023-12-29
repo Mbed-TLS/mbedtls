@@ -9481,30 +9481,22 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
-void ecc_conversion_functions(int grp_id_arg)
+/* BEGIN_CASE depends_on:PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
+void ecc_conversion_functions(int grp_id_arg, int psa_family_arg, int bits_arg)
 {
     mbedtls_ecp_group_id grp_id = grp_id_arg;
-    psa_ecc_family_t ecc_family;
-    size_t bits;
+    psa_ecc_family_t ecc_family = psa_family_arg;
+    size_t bits = bits_arg;
+    size_t bits_tmp;
 
-    ecc_family = mbedtls_ecc_group_to_psa(grp_id, &bits);
-    TEST_ASSERT(ecc_family != 0);
-    TEST_EQUAL(grp_id, mbedtls_ecc_group_from_psa(ecc_family, bits));
-}
-/* END_CASE */
+    TEST_EQUAL(ecc_family, mbedtls_ecc_group_to_psa(grp_id, &bits_tmp));
+    TEST_EQUAL(bits, bits_tmp);
 
-/* BEGIN_CASE */
-void ecc_conversion_functions_fail(void)
-{
-    psa_ecc_family_t ecc_family;
-    size_t bits;
-
-    // Pick an invalid group ID (MBEDTLS_ECP_DP_CURVE448 is the last enum)
-    ecc_family = mbedtls_ecc_group_to_psa(MBEDTLS_ECP_DP_CURVE448 + 1, &bits);
-    TEST_EQUAL(ecc_family, 0);
-
-    TEST_EQUAL(MBEDTLS_ECP_DP_NONE, mbedtls_ecc_group_from_psa(PSA_ECC_FAMILY_SECP_R1, 0));
+    if (grp_id != MBEDTLS_ECP_DP_MAX) {
+        TEST_EQUAL(grp_id, mbedtls_ecc_group_from_psa(ecc_family, bits));
+    } else {
+        TEST_EQUAL(MBEDTLS_ECP_DP_NONE, mbedtls_ecc_group_from_psa(ecc_family, bits));
+    }
 }
 /* END_CASE */
 

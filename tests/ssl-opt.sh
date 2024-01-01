@@ -4481,7 +4481,7 @@ run_test    "Session resume using cache, DTLS: openssl server" \
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Max fragment length: enabled, default" \
-            "$P_SRV debug_level=3" \
+            "$P_SRV debug_level=3 force_version=tls12" \
             "$P_CLI debug_level=3" \
             0 \
             -c "Maximum incoming record payload length is $MAX_CONTENT_LEN" \
@@ -4496,7 +4496,7 @@ run_test    "Max fragment length: enabled, default" \
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Max fragment length: enabled, default, larger message" \
-            "$P_SRV debug_level=3" \
+            "$P_SRV debug_level=3 force_version=tls12" \
             "$P_CLI debug_level=3 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             0 \
             -c "Maximum incoming record payload length is $MAX_CONTENT_LEN" \
@@ -4534,7 +4534,7 @@ run_test    "Max fragment length, DTLS: enabled, default, larger message" \
 requires_config_disabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Max fragment length: disabled, larger message" \
-            "$P_SRV debug_level=3" \
+            "$P_SRV debug_level=3 force_version=tls12" \
             "$P_CLI debug_level=3 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             0 \
             -C "Maximum incoming record payload length is 16384" \
@@ -4548,7 +4548,7 @@ run_test    "Max fragment length: disabled, larger message" \
 requires_config_disabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Max fragment length, DTLS: disabled, larger message" \
-            "$P_SRV debug_level=3 dtls=1" \
+            "$P_SRV debug_level=3 dtls=1 force_version=tls12" \
             "$P_CLI debug_level=3 dtls=1 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             1 \
             -C "Maximum incoming record payload length is 16384" \

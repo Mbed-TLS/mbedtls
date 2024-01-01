@@ -8400,7 +8400,7 @@ run_test    "mbedtls_ssl_get_bytes_avail: extra data (*2)" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "mbedtls_ssl_get_bytes_avail: extra data (max)" \
-            "$P_SRV buffer_size=100" \
+            "$P_SRV buffer_size=100 force_version=tls12" \
             "$P_CLI request_size=$MAX_CONTENT_LEN" \
             0 \
             -s "Read from client: $MAX_CONTENT_LEN bytes read (100 + $((MAX_CONTENT_LEN - 100)))"

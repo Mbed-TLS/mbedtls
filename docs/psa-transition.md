@@ -443,6 +443,10 @@ The equivalent to `mbedtls_md_type_t` and `MBEDTLS_MD_XXX` constants is the type
 | `MBEDTLS_MD_SHA3_384`  | `PSA_ALG_SHA3_384`  |
 | `MBEDTLS_MD_SHA3_512`  | `PSA_ALG_SHA3_512`  |
 
+The following helper functions can be used to convert between the 2 types:
+- `mbedtls_md_psa_alg_from_type()` converts from legacy `mbedtls_md_type_t` to PSA's `psa_algorithm_t`.
+- `mbedtls_md_type_from_psa_alg()` converts from PSA's `psa_algorithm_t` to legacy `mbedtls_md_type_t`.
+
 ### MAC mechanism selection
 
 PSA Crypto has a generic API with the same functions for all MAC mechanisms. The mechanism is determined by a combination of an algorithm value of type [`psa_algorithm_t`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1gac2e4d47f1300d73c2f829a6d99252d69) and a key type value of type [`psa_key_type_t`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1ga63fce6880ca5933b5d6baa257febf1f6).

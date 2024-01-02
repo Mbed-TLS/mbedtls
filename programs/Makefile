@@ -1,8 +1,4 @@
 MBEDTLS_TEST_PATH = ../tests
-# Support code used by test programs and test builds, excluding TLS-specific
-# code which is in the src/test_helpers subdirectory.
-MBEDTLS_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/src/*.c ${MBEDTLS_TEST_PATH}/src/drivers/*.c))
-
 include ../scripts/common.make
 
 ifeq ($(shell uname -s),Linux)
@@ -10,6 +6,10 @@ DLOPEN_LDFLAGS ?= -ldl
 else
 DLOPEN_LDFLAGS ?=
 endif
+
+# Support code used by test programs and test builds, excluding TLS-specific
+# code which is in the src/test_helpers subdirectory.
+MBEDTLS_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/src/*.c ${MBEDTLS_TEST_PATH}/src/drivers/*.c))
 
 DEP=${MBEDLIBS} ${MBEDTLS_TEST_OBJS}
 

@@ -1,0 +1,4 @@
+Features
+   * mbedtls_md_psa_alg_from_type() and mbedtls_md_type_from_psa_alg() helper
+     functions were added to convert from mbedtls_md_type_t to psa_algorithm_t
+     and viceversa.

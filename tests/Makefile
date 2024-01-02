@@ -110,9 +110,6 @@ BINARIES := $(addsuffix $(EXEXT),$(APPS))
 
 all: $(BINARIES)
 
-MBEDTLS_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/src/*.c ${MBEDTLS_TEST_PATH}/src/drivers/*.c))
-MBEDTLS_TEST_OBJS += $(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/src/test_helpers/*.c))
-
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
 TEST_OBJS_DEPS = $(wildcard include/test/*.h include/test/*/*.h)

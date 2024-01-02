@@ -7,10 +7,6 @@ else
 DLOPEN_LDFLAGS ?=
 endif
 
-# Support code used by test programs and test builds, excluding TLS-specific
-# code which is in the src/test_helpers subdirectory.
-MBEDTLS_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/src/*.c ${MBEDTLS_TEST_PATH}/src/drivers/*.c))
-
 DEP=${MBEDLIBS} ${MBEDTLS_TEST_OBJS}
 
 # Only build the dlopen test in shared library builds, and not when building

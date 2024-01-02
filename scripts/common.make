@@ -105,3 +105,15 @@ ifndef WINDOWS
 else
 	for %f in ($(subst /,\,$(GENERATED_FILES))) if exist %f del /Q /F %f
 endif
+
+# Auxiliary modules used by tests and some sample programs
+MBEDTLS_CORE_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard \
+    ${MBEDTLS_TEST_PATH}/src/*.c \
+    ${MBEDTLS_TEST_PATH}/src/drivers/*.c \
+  ))
+# Additional auxiliary modules for TLS testing
+MBEDTLS_TLS_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard \
+    ${MBEDTLS_TEST_PATH}/src/test_helpers/*.c \
+  ))
+
+MBEDTLS_TEST_OBJS = $(MBEDTLS_CORE_TEST_OBJS) $(MBEDTLS_TLS_TEST_OBJS)

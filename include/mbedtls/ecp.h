@@ -1368,7 +1368,7 @@ int mbedtls_ecp_write_key(mbedtls_ecp_keypair *key,
  *                  or the export for the given group is not implemented.
  * \return          Another negative error code on other kinds of failure.
  */
-int mbedtls_ecp_write_public_key(mbedtls_ecp_keypair *key,
+int mbedtls_ecp_write_public_key(const mbedtls_ecp_keypair *key,
                                  int format, size_t *olen,
                                  unsigned char *buf, size_t buflen);
 

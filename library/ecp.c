@@ -3336,7 +3336,7 @@ cleanup:
 /*
  * Write a public key.
  */
-int mbedtls_ecp_write_public_key(mbedtls_ecp_keypair *key,
+int mbedtls_ecp_write_public_key(const mbedtls_ecp_keypair *key,
                                  int format, size_t *olen,
                                  unsigned char *buf, size_t buflen)
 {

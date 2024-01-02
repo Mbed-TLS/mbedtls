@@ -3838,7 +3838,7 @@ common_block_cipher_dispatch() {
         scripts/config.py unset MBEDTLS_CAMELLIA_C
     fi
 
-    # Disable cipher's modes and AEADs that, when not accelerated, cause
+    # Disable cipher's modes that, when not accelerated, cause
     # legacy key types to be re-enabled in "config_adjust_legacy_from_psa.h".
     # Keep this also in the reference component in order to skip the same tests
     # that were skipped in the accelerated one.
@@ -3849,8 +3849,6 @@ common_block_cipher_dispatch() {
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CBC_PKCS7
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CMAC
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM_STAR_NO_TAG
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CCM
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_GCM
 
     # Disable direct dependency on AES_C
     scripts/config.py unset MBEDTLS_NIST_KW_C

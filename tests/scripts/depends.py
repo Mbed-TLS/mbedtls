@@ -381,8 +381,7 @@ class DomainData:
 
     def __init__(self, options, conf):
         """Gather data about the library and establish a list of domains to test."""
-        build_command = [options.make_command] + options.make_vars.split(' ') + \
-            ['CFLAGS=-Werror -O2']
+        build_command = [options.make_command, 'CFLAGS=-Werror -O2']
         build_and_test = [build_command, [options.make_command, 'test']]
         self.all_config_symbols = set(conf.settings.keys())
         # Find hash modules by name.
@@ -527,9 +526,6 @@ def main():
         parser.add_argument('--make-command', metavar='CMD',
                             help='Command to run instead of make (e.g. gmake)',
                             action='store', default='make')
-        parser.add_argument('--make-vars',
-                            help='optional variable/value pairs to pass to make',
-                            action='store', default='')
         parser.add_argument('--unset-use-psa',
                             help='Unset MBEDTLS_USE_PSA_CRYPTO before any test',
                             action='store_true', dest='unset_use_psa')

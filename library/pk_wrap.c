@@ -13,7 +13,7 @@
 #include "pk_wrap.h"
 #include "pk_internal.h"
 #include "mbedtls/error.h"
-#include "md_psa.h"
+#include "mbedtls/psa_util.h"
 
 /* Even if RSA not activated, for the sake of RSA-alt */
 #include "mbedtls/rsa.h"

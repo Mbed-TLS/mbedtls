@@ -1011,7 +1011,7 @@ int main(int argc, char *argv[])
         int keysize;
         mbedtls_rsa_context rsa;
 
-        for (keysize = 2048; keysize <= 4096; keysize *= 2) {
+        for (keysize = 2048; keysize <= 4096; keysize += 1024) {
             mbedtls_snprintf(title, sizeof(title), "RSA-%d", keysize);
 
             mbedtls_rsa_init(&rsa);

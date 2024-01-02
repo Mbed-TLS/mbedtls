@@ -366,12 +366,19 @@ static inline psa_algorithm_t psa_get_key_algorithm(
     return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg);
 }
 
+#ifdef __GNUC__
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wredundant-decls"
+#endif
 /* This function is declared in crypto_extra.h, which comes after this
  * header file, but we need the function here, so repeat the declaration. */
 psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
                                            psa_key_type_t type,
                                            const uint8_t *data,
                                            size_t data_length);
+#ifdef __GNUC__
+    #pragma GCC diagnostic pop
+#endif
 
 static inline void psa_set_key_type(psa_key_attributes_t *attributes,
                                     psa_key_type_t type)

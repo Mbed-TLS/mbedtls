@@ -187,6 +187,8 @@ There is a design choice here: do we provide conversions functions for ECDSA spe
 
 Given the uncertainty, it would be nice to provide a sufficiently generic interface to convert between the PSA and the pk signature format, parametrized by the algorithm. However, it is difficult to predict exactly what parameters are needed. For example, converting from an ASN.1 ECDSA signature to (r,s) requires the knowledge of the curve, or at least the curve's size. Therefore we are not going to add a generic function at this stage.
 
+For ECDSA, there are two plausible APIs: follow the ASN.1/X.509 write/parse APIs, or present an ordinary input/output API. The ASN.1 APIs are the way they are to accommodate nested TLV structures. But ECDSA signatures do not appear nested in TLV structures in either TLS (there's just a signature field) or X.509 (the signature is inside a BITSTRING, not directly in a SEQUENCE). So there does not seem to be a need for an ASN.1-like API for the ASN.1 format, just the format conversion itself in a buffer that just contains the signature.
+
 #### Asymmetric cryptography TODO
 
 [TODO] Other gaps?
@@ -320,7 +322,3 @@ int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
 
 * These functions convert between the signature format used by `mbedtls_pk_{sign,verify}{,_ext}` and the signature format used by `psa_{sign,verify}_{hash,message}`.
 * The input and output buffers can overlap.
-* [OPEN] Should we maybe use a different interface that is better integrated with ASN.1 and X.509 parsing and writing functions in Mbed TLS? That is:
-    * DER production writes from right to left in the destination buffer.
-    * DER parsing takes a pointer-to-pointer to the start of the buffer and an end pointer, instead of pointer-to-start and size.
-    * Names should match the patterns found in X.509 and ASN.1 parsing and writing function.

@@ -207,15 +207,8 @@ pre_initialize_variables () {
     # defined in this script whose name starts with "component_".
     ALL_COMPONENTS=$(compgen -A function component_ | sed 's/component_//')
 
-    # Exclude components that are not supported on this platform.
-    SUPPORTED_COMPONENTS=
-    for component in $ALL_COMPONENTS; do
-        case $(type "support_$component" 2>&1) in
-            *' function'*)
-                if ! support_$component; then continue; fi;;
-        esac
-        SUPPORTED_COMPONENTS="$SUPPORTED_COMPONENTS $component"
-    done
+    # Delay determinig SUPPORTED_COMPONENTS until the command line options have a chance to override
+    # the commands set by the environment
 }
 
 # Test whether the component $1 is included in the command line patterns.
@@ -425,22 +418,11 @@ check_tools()
     done
 }
 
-pre_parse_command_line_for_dirs () {
-    # Make an early pass through the options given, so we can set directories
-    # for Arm compilers, before SUPPORTED_COMPONENTS is determined.
-    while [ $# -gt 0 ]; do
-        case "$1" in
-            --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
-            --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
-        esac
-        shift
-    done
-}
-
 pre_parse_command_line () {
     COMMAND_LINE_COMPONENTS=
     all_except=0
     error_test=0
+    list_components=0
     restore_first=0
     no_armcc=
 
@@ -453,8 +435,8 @@ pre_parse_command_line () {
             --arm-none-eabi-gcc-prefix) shift; ARM_NONE_EABI_GCC_PREFIX="$1";;
             --arm-linux-gnueabi-gcc-prefix) shift; ARM_LINUX_GNUEABI_GCC_PREFIX="$1";;
             --armcc) no_armcc=;;
-            --armc5-bin-dir) shift; ;; # assignment to ARMC5_BIN_DIR done in pre_parse_command_line_for_dirs
-            --armc6-bin-dir) shift; ;; # assignment to ARMC6_BIN_DIR done in pre_parse_command_line_for_dirs
+            --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
+            --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
             --clang-earliest) shift; CLANG_EARLIEST="$1";;
             --clang-latest) shift; CLANG_LATEST="$1";;
             --error-test) error_test=$((error_test + 1));;
@@ -469,7 +451,7 @@ pre_parse_command_line () {
             --help|-h) usage; exit;;
             --keep-going|-k) KEEP_GOING=1;;
             --list-all-components) printf '%s\n' $ALL_COMPONENTS; exit;;
-            --list-components) printf '%s\n' $SUPPORTED_COMPONENTS; exit;;
+            --list-components) list_components=1;;
             --memory|-m) MEMORY=1;;
             --no-append-outcome) append_outcome=0;;
             --no-armcc) no_armcc=1;;
@@ -495,6 +477,21 @@ pre_parse_command_line () {
         esac
         shift
     done
+
+    # Exclude components that are not supported on this platform.
+    SUPPORTED_COMPONENTS=
+    for component in $ALL_COMPONENTS; do
+        case $(type "support_$component" 2>&1) in
+            *' function'*)
+                if ! support_$component; then continue; fi;;
+        esac
+        SUPPORTED_COMPONENTS="$SUPPORTED_COMPONENTS $component"
+    done
+
+    if [ $list_components -eq 1 ]; then
+        printf '%s\n' $SUPPORTED_COMPONENTS
+        exit
+    fi
 
     # With no list of components, run everything.
     if [ -z "$COMMAND_LINE_COMPONENTS" ] && [ $restore_first -eq 0 ]; then
@@ -6177,7 +6174,6 @@ run_component () {
 
 # Preliminary setup
 pre_check_environment
-pre_parse_command_line_for_dirs "$@"
 pre_initialize_variables
 pre_parse_command_line "$@"
 

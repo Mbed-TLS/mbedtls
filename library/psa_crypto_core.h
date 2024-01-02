@@ -106,31 +106,15 @@ typedef struct {
 #define PSA_KA_MASK_INTERNAL_ONLY (     \
         0)
 
-/** Test whether a key slot is occupied.
- *
- * A key slot is occupied iff the key type is nonzero. This works because
- * no valid key can have 0 as its key type.
+/** Test whether a key slot has any registered readers.
  *
  * \param[in] slot      The key slot to test.
  *
- * \return 1 if the slot is occupied, 0 otherwise.
+ * \return 1 if the slot has any registered readers, 0 otherwise.
  */
-static inline int psa_is_key_slot_occupied(const psa_key_slot_t *slot)
+static inline int psa_key_slot_has_readers(const psa_key_slot_t *slot)
 {
-    return slot->status == PSA_SLOT_OCCUPIED;
-}
-
-/** Test whether a key slot is locked.
- *
- * A key slot is locked iff its lock counter is strictly greater than 0.
- *
- * \param[in] slot  The key slot to test.
- *
- * \return 1 if the slot is locked, 0 otherwise.
- */
-static inline int psa_is_key_slot_locked(const psa_key_slot_t *slot)
-{
-    return slot->lock_count > 0;
+    return slot->registered_readers > 0;
 }
 
 /** Retrieve flags from psa_key_slot_t::attr::core::flags.

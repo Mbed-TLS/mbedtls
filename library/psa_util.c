@@ -330,4 +330,110 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
 }
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
+psa_algorithm_t mbedtls_md_psa_alg_from_type(mbedtls_md_type_t md_type)
+{
+    switch (md_type) {
+#if defined(PSA_WANT_ALG_MD5)
+        case MBEDTLS_MD_MD5:
+            return PSA_ALG_MD5;
+#endif
+#if defined(PSA_WANT_ALG_RIPEMD160)
+        case MBEDTLS_MD_RIPEMD160:
+            return PSA_ALG_RIPEMD160;
+#endif
+#if defined(PSA_WANT_ALG_SHA_1)
+        case MBEDTLS_MD_SHA1:
+            return PSA_ALG_SHA_1;
+#endif
+#if defined(PSA_WANT_ALG_SHA_224)
+        case MBEDTLS_MD_SHA224:
+            return PSA_ALG_SHA_224;
+#endif
+#if defined(PSA_WANT_ALG_SHA_256)
+        case MBEDTLS_MD_SHA256:
+            return PSA_ALG_SHA_256;
+#endif
+#if defined(PSA_WANT_ALG_SHA_384)
+        case MBEDTLS_MD_SHA384:
+            return PSA_ALG_SHA_384;
+#endif
+#if defined(PSA_WANT_ALG_SHA_512)
+        case MBEDTLS_MD_SHA512:
+            return PSA_ALG_SHA_512;
+#endif
+#if defined(PSA_WANT_ALG_SHA3_224)
+        case MBEDTLS_MD_SHA3_224:
+            return PSA_ALG_SHA3_224;
+#endif
+#if defined(PSA_WANT_ALG_SHA3_256)
+        case MBEDTLS_MD_SHA3_256:
+            return PSA_ALG_SHA3_256;
+#endif
+#if defined(PSA_WANT_ALG_SHA3_384)
+        case MBEDTLS_MD_SHA3_384:
+            return PSA_ALG_SHA3_384;
+#endif
+#if defined(PSA_WANT_ALG_SHA3_512)
+        case MBEDTLS_MD_SHA3_512:
+            return PSA_ALG_SHA3_512;
+#endif
+        case MBEDTLS_MD_NONE:
+        default:
+            return PSA_ALG_NONE;
+    }
+}
+
+mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa_alg)
+{
+    switch (psa_alg) {
+#if defined(PSA_WANT_ALG_MD5)
+        case PSA_ALG_MD5:
+            return MBEDTLS_MD_MD5;
+#endif
+#if defined(PSA_WANT_ALG_RIPEMD160)
+        case PSA_ALG_RIPEMD160:
+            return MBEDTLS_MD_RIPEMD160;
+#endif
+#if defined(PSA_WANT_ALG_SHA_1)
+        case PSA_ALG_SHA_1:
+            return MBEDTLS_MD_SHA1;
+#endif
+#if defined(PSA_WANT_ALG_SHA_224)
+        case PSA_ALG_SHA_224:
+            return MBEDTLS_MD_SHA224;
+#endif
+#if defined(PSA_WANT_ALG_SHA_256)
+        case PSA_ALG_SHA_256:
+            return MBEDTLS_MD_SHA256;
+#endif
+#if defined(PSA_WANT_ALG_SHA_384)
+        case PSA_ALG_SHA_384:
+            return MBEDTLS_MD_SHA384;
+#endif
+#if defined(PSA_WANT_ALG_SHA_512)
+        case PSA_ALG_SHA_512:
+            return MBEDTLS_MD_SHA512;
+#endif
+#if defined(PSA_WANT_ALG_SHA3_224)
+        case PSA_ALG_SHA3_224:
+            return MBEDTLS_MD_SHA3_224;
+#endif
+#if defined(PSA_WANT_ALG_SHA3_256)
+        case PSA_ALG_SHA3_256:
+            return MBEDTLS_MD_SHA3_256;
+#endif
+#if defined(PSA_WANT_ALG_SHA3_384)
+        case PSA_ALG_SHA3_384:
+            return MBEDTLS_MD_SHA3_384;
+#endif
+#if defined(PSA_WANT_ALG_SHA3_512)
+        case PSA_ALG_SHA3_512:
+            return MBEDTLS_MD_SHA3_512;
+#endif
+        case PSA_ALG_NONE:
+        default:
+            return MBEDTLS_MD_NONE;
+    }
+}
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

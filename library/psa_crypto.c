@@ -1576,8 +1576,9 @@ static psa_status_t psa_validate_key_attributes(
  * In case of failure at any step, stop the sequence and call
  * psa_fail_key_creation().
  *
- * On success, the key slot is locked. It is the responsibility of the caller
- * to unlock the key slot when it does not access it anymore.
+ * On success, the key slot's state is PSA_SLOT_FILLING.
+ * It is the responsibility of the caller to change the slot's state to
+ * PSA_SLOT_EMPTY/FULL once key creation has finished.
  *
  * \param method            An identification of the calling function.
  * \param[in] attributes    Key attributes for the new key.
@@ -1608,7 +1609,7 @@ static psa_status_t psa_start_key_creation(
         return status;
     }
 
-    status = psa_get_empty_key_slot(&volatile_key_id, p_slot);
+    status = psa_reserve_free_key_slot(&volatile_key_id, p_slot);
     if (status != PSA_SUCCESS) {
         return status;
     }
@@ -1634,7 +1635,7 @@ static psa_status_t psa_start_key_creation(
     /* Erase external-only flags from the internal copy. To access
      * external-only flags, query `attributes`. Thanks to the check
      * in psa_validate_key_attributes(), this leaves the dual-use
-     * flags and any internal flag that psa_get_empty_key_slot()
+     * flags and any internal flag that psa_reserve_free_key_slot()
      * may have set. */
     slot->attr.flags &= ~MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY;
 
@@ -1686,8 +1687,6 @@ static psa_status_t psa_start_key_creation(
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-    slot->status = PSA_SLOT_OCCUPIED;
-
     return PSA_SUCCESS;
 }
 
@@ -1699,9 +1698,9 @@ static psa_status_t psa_start_key_creation(
  * See the documentation of psa_start_key_creation() for the intended use
  * of this function.
  *
- * If the finalization succeeds, the function unlocks the key slot (it was
- * locked by psa_start_key_creation()) and the key slot cannot be accessed
- * anymore as part of the key creation process.
+ * If the finalization succeeds, the function sets the key slot's state to
+ * PSA_SLOT_FULL, and the key slot can no longer be accessed as part of the
+ * key creation process.
  *
  * \param[in,out] slot  Pointer to the slot with key material.
  * \param[in] driver    The secure element driver for the key,
@@ -1717,6 +1716,7 @@ static psa_status_t psa_start_key_creation(
  * \retval #PSA_ERROR_DATA_INVALID \emptydescription
  * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
  * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE \emptydescription
  *
  * \return If this function fails, the key slot is an invalid state.
  *         You must call psa_fail_key_creation() to wipe and free the slot.
@@ -1777,7 +1777,8 @@ static psa_status_t psa_finish_key_creation(
 
     if (status == PSA_SUCCESS) {
         *key = slot->attr.id;
-        status = psa_unlock_key_slot(slot);
+        status = psa_key_slot_state_transition(slot, PSA_SLOT_FILLING,
+                                               PSA_SLOT_FULL);
         if (status != PSA_SUCCESS) {
             *key = MBEDTLS_SVC_KEY_ID_INIT;
         }
@@ -1792,7 +1793,7 @@ static psa_status_t psa_finish_key_creation(
  * or after psa_finish_key_creation() fails. In other circumstances, this
  * function may not clean up persistent storage.
  * See the documentation of psa_start_key_creation() for the intended use
- * of this function.
+ * of this function. Sets the slot's state to PSA_SLOT_EMPTY.
  *
  * \param[in,out] slot  Pointer to the slot with key material.
  * \param[in] driver    The secure element driver for the key,
@@ -1823,6 +1824,11 @@ static void psa_fail_key_creation(psa_key_slot_t *slot,
      * itself. */
     (void) psa_crypto_stop_transaction();
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
+    /* Prepare the key slot to be wiped, and then wipe it. */
+    slot->registered_readers = 1;
+    psa_key_slot_state_transition(slot, PSA_SLOT_FILLING,
+                                  PSA_SLOT_PENDING_DELETION);
 
     psa_wipe_key_slot(slot);
 }

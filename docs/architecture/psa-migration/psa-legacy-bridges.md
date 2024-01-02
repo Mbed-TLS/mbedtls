@@ -111,12 +111,12 @@ Gap: functions to convert between `psa_algorithm_t` hash algorithms and `mbedtls
 
 #### Asymmetric cryptography metadata
 
-The legacy API only has generic support for two key types: RSA and ECC, via the pk module. The type of ECC keys is divided in subtypes: one for each curve. The legacy API also supports DHM (Diffie-Hellman-Merkle = FFDH: finite-field Diffie-Hellman) keys, but those are not integrated in the pk module.
+The legacy API only has generic support for two key types: RSA and ECC, via the pk module. ECC keys can also be further classified according to their curve. The legacy API also supports DHM (Diffie-Hellman-Merkle = FFDH: finite-field Diffie-Hellman) keys, but those are not integrated in the pk module.
 
 An RSA or ECC key can potentially be used for different algorithms in the scope of the pk module:
 
 * RSA: PKCS#1v1.5 signature, PSS signature, PKCS#1v1.5 encryption, OAEP encryption.
-* ECC: ECDSA signature (randomized or deterministic), ECDH key agreement.
+* ECC: ECDSA signature (randomized or deterministic), ECDH key agreement (via `mbedtls_pk_ec`).
 
 ECC keys are also involved in EC-JPAKE, but this happens internally: the EC-JPAKE interface only needs one piece of metadata, namely, to identify a curve.
 
@@ -142,7 +142,7 @@ Since there is no algorithm that can be used with multiple types, and PSA keys h
 
 There are several scenarios where an application has a legacy key pair or public key (`mbedtls_pk_context`) and needs to create a PSA key object (`psa_key_id_t`).
 
-Reasons for creating a legacy key object, where it's impossible or impractical to directly create a PSA key:
+Reasons for first creating a legacy key object, where it's impossible or impractical to directly create a PSA key:
 
 * A very common case where the input is a legacy key object is parsing. PSA does not (yet) have an equivalent of the `mbedtls_pk_parse_xxx` functions.
 * The PSA key creation interface is less flexible in some cases. In particular, PSA RSA key generation does not (yet) allow choosing the public exponent.
@@ -157,13 +157,18 @@ Gap: a way to create a PSA key object from an `mbedtls_pk_context`. This partial
 
 #### Using a PSA key as a PK context
 
-There are several scenarios where an application has a PSA key and needs to use it through an interface that wants an `mbedtls_pk_context` object. Typically, there is an existing key in the PSA key store (possibly in a secure element and non-exportable), and the key needs to be used in an interface that requires a `mbedtls_pk_context *` input, such as Mbed TLS's X.509 API or a similar third-party interface, or the `mbedtls_pk_write_xxx` interfaces which do not (yet) have PSA equivalents.
+There are several scenarios where an application has a PSA key and needs to use it through an interface that wants an `mbedtls_pk_context` object. Typically, there is an existing key in the PSA key store (possibly in a secure element and non-exportable), and the key needs to be used in an interface that requires a `mbedtls_pk_context *` input, such as Mbed TLS's X.509 and TLS APIs or a similar third-party interface, or the `mbedtls_pk_write_xxx` interfaces which do not (yet) have PSA equivalents.
 
 There is a function `mbedtls_pk_setup_opaque` that mostly does this. However, it has several limitations:
 
 * It creates a PK key of type `MBEDTLS_PK_OPAQUE` that wraps the PSA key. This is good enough in some scenarios, but not others. For example, it's ok for pkwrite, because we've upgraded the pkwrite code to handle `MBEDTLS_PK_OPAQUE`. That doesn't help users of third-party libraries that haven't yet been upgraded.
 * It ties the lifetime of the PK object to the PSA key, which is error-prone: if the PSA key is destroyed but the PK object isn't, there is no way to reliably detect any subsequent misuse of the PK object.
 * It is only available under `MBEDTLS_USE_PSA_CRYPTO`. (Not a priority concern: we generally expect people to activate `MBEDTLS_USE_PSA_CRYPTO` at an early stage of their migration to PSA.)
+
+It therefore appears that we need two ways to “convert” a PSA key to PK:
+
+* Wrapping, which is what `mbedtls_pk_setup_opaque` does. This works for any PSA key but is limited by the key's lifetime and creates a PK object with limited functionality.
+* Copying, which requires a new function. This requires an exportable key but creates a fully independent, fully functional PK object.
 
 Gap: a way to copy a PSA key into a PK context. This can only be expected to work if the PSA key is exportable.
 
@@ -180,7 +185,7 @@ Gap: We need APIs to convert between these two formats. The conversion code alre
 
 There is a design choice here: do we provide conversions functions for ECDSA specifically, or do we provide conversion functions that take an algorithm as argument and just happen to be a no-op with RSA? One factor is plausible extensions. These conversions functions will remain useful in Mbed TLS 4.x and perhaps beyond. We will at least add EdDSA support, and its signature encoding is the fixed-size concatenation (r,s) even in X.509. We may well also add support for some post-quantum signatures, and their concrete format is still uncertain.
 
-Given the uncertainty, it would be nice to provide a sufficiently generic interface to convert between the PSA and the pk signature format, parametrized by the algorithm. However, it is difficult to predict exactly what parameters are needed. For example, converting from an ASN.1 ECDSA signature to (r,s) requires the knowledge of the curve, or at least the curve's size.
+Given the uncertainty, it would be nice to provide a sufficiently generic interface to convert between the PSA and the pk signature format, parametrized by the algorithm. However, it is difficult to predict exactly what parameters are needed. For example, converting from an ASN.1 ECDSA signature to (r,s) requires the knowledge of the curve, or at least the curve's size. Therefore we are not going to add a generic function at this stage.
 
 #### Asymmetric cryptography TODO
 
@@ -263,7 +268,7 @@ int mbedtls_pk_import_into_psa(const mbedtls_pk_context *pk,
     * The key type is a key pair if the context contains a private key, and a public key if the context only contains a public key.
 * `mbedtls_pk_get_psa_attributes` sets all the potentially applicable usage flags: `EXPORT`, `COPY`; `VERIFY_HASH | VERIFY_MESSAGE` or `ENCRYPT` as applicable for both public keys and key pairs; `SIGN` or `DECRYPT` as applicable for a key pair.
 * [OPEN] What is the default algorithm for `mbedtls_pk_get_psa_attributes`? Suggestion: assume signature by default. For RSA, either `PSA_RSA_PKCS1_V15_SIGN(PSA_ALG_ANY_HASH)` or `PSA_ALG_RSA_PSS(hash_alg)` depending on the RSA context's padding mode. For ECC, `PSA_ALG_DETERMINISTIC_ECDSA` if `MBEDTLS_ECDSA_DETERMINISTIC` is enabled and `PSA_ALG_ECDSA` otherwise.
-* [OPEN] Or does `mbedtls_pk_get_psa_attributes` need an extra argument indicating how to treat RSA and ECC keys?
+* [OPEN] Or does `mbedtls_pk_get_psa_attributes` need an extra argument that conveys some kind of policy for RSA keys and, independently, some kind of policy for ECC keys?
 * `mbedtls_pk_import_into_psa` checks that the type field in the attributes is consistent with the content of the `mbedtls_pk_context` object (RSA/ECC, and availability of the private key).
     * The key type can be a public key even if the private key is available.
 * `mbedtls_pk_import_into_psa` does not need to check the bit-size in the attributes: `psa_import_key` will do enough checks.

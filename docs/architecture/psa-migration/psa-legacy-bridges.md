@@ -150,7 +150,7 @@ Reasons for first creating a legacy key object, where it's impossible or impract
 
 Reasons for needing a PSA key object:
 
-* Using the key in TLS 1.3 or some third-party interface that takes a PSA key identifier as input.
+* Using the key with third-party interface that takes a PSA key identifier as input. (Mbed TLS itself has a few TLS functions that take PSA key identifiers, but as of Mbed TLS 3.5, it is always possible to use a legacy key instead.)
 * Benefiting from a PSA accelerator, or from PSA's world separation, even without `MBEDTLS_USE_PSA_CRYPTO`. (Not a priority scenario: we generally expect people to activate `MBEDTLS_USE_PSA_CRYPTO` at an early stage of their migration to PSA.)
 
 Gap: a way to create a PSA key object from an `mbedtls_pk_context`. This partially exists in the form of `mbedtls_pk_wrap_as_opaque`, but it is not fully satisfactory, for reasons that are detailed in “[API to create a PSA key from a PK context](#api-to-create-a-psa-key-from-a-pk-context)” below.

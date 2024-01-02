@@ -35,7 +35,7 @@ endif
 ## Remove the preprocessor symbols that are set in the current configuration
 ## from PREPROCESSOR_INPUT. Also normalize whitespace.
 ## Example:
-##   $(call remove_set_options,MBEDTLS_FOO MBEDTLS_BAR)
+##   $(call remove_enabled_options,MBEDTLS_FOO MBEDTLS_BAR)
 ## This expands to an empty string "" if MBEDTLS_FOO and MBEDTLS_BAR are both
 ## enabled, to "MBEDTLS_FOO" if MBEDTLS_BAR is enabled but MBEDTLS_FOO is
 ## disabled, etc.

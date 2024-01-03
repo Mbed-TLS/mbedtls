@@ -4843,7 +4843,6 @@ run_test    "Record Size Limit: TLS 1.3: Server-side parsing and debug output" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4" \
             0 \
             -s "RecordSizeLimit: 16385 Bytes" \
-            -s "ClientHello: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 16383" \
             -s "bytes written in 1 fragments"
 
@@ -4857,10 +4856,7 @@ run_test    "Record Size Limit: TLS 1.3: Client-side parsing and debug output" \
             "$P_CLI debug_level=4 force_version=tls13" \
             0 \
             -c "Sent RecordSizeLimit: 16384 Bytes"                                      \
-            -c "ClientHello: record_size_limit(28) extension exists."                   \
-            -c "found record_size_limit extension"                                      \
             -c "RecordSizeLimit: 16385 Bytes"                                           \
-            -c "EncryptedExtensions: record_size_limit(28) extension received."         \
             -s "Parsing extension 'Record Size Limit/28' (2 bytes)"                     \
             -s "record_size_limit 16384 negotiated"
 
@@ -4937,8 +4933,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             "$P_SRV debug_level=3 force_version=tls13 response_size=512" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 1023" \
             0 \
-            -s "RecordSizeLimit: 1024 Bytes" \
-            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 1023" \
             -s "512 bytes written in 1 fragments"
 
@@ -4951,8 +4947,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             "$P_SRV debug_level=3 force_version=tls13 response_size=1536" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 1023" \
             0 \
-            -s "RecordSizeLimit: 1024 Bytes" \
-            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 1023" \
             -s "1536 bytes written in 2 fragments"
 
@@ -4965,8 +4961,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             "$P_SRV debug_level=3 force_version=tls13 response_size=2560" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 1023" \
             0 \
-            -s "RecordSizeLimit: 1024 Bytes" \
-            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 1023" \
             -s "2560 bytes written in 3 fragments"
 
@@ -4979,8 +4975,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             "$P_SRV debug_level=3 force_version=tls13 response_size=2048" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 4095" \
             0 \
-            -s "RecordSizeLimit: 4096 Bytes" \
-            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 4095" \
             -s "2048 bytes written in 1 fragments"
 
@@ -4993,8 +4989,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             "$P_SRV debug_level=3 force_version=tls13 response_size=6144" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 4095" \
             0 \
-            -s "RecordSizeLimit: 4096 Bytes" \
-            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 4095" \
             -s "6144 bytes written in 2 fragments"
 

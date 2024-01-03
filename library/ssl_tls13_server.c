@@ -2530,6 +2530,15 @@ static int ssl_tls13_write_encrypted_extensions_body(mbedtls_ssl_context *ssl,
     }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    ret = mbedtls_ssl_tls13_write_record_size_limit_ext(
+        ssl, MBEDTLS_SSL_IN_CONTENT_LEN, p, end, &output_len);
+    if (ret != 0) {
+        return ret;
+    }
+    p += output_len;
+#endif
+
     extensions_len = (p - p_extensions_len) - 2;
     MBEDTLS_PUT_UINT16_BE(extensions_len, p_extensions_len, 0);
 

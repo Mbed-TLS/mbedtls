@@ -47,6 +47,8 @@ ASYMMETRIC_KEY_DATA = construct_asymmetric_key_data({
               "045c39154579efd667adc73a81015a797d2c8682cdfbd3c3553c4a185d481cdc50e42a0e1cbc3ca29a32a645e927f54beaed14c9dbbf8279d725f5495ca924b24d"),
     },
     'ECC(PSA_ECC_FAMILY_SECP_R1)': {
+        192: ("d83b57a59c51358d9c8bbb898aff507f44dd14cf16917190",
+              "04e35fcbee11cec3154f80a1a61df7d7612de4f2fd70c5608d0ee3a4a1a5719471adb33966dd9b035fdb774feeba94b04c"),
         224: ("872f203b3ad35b7f2ecc803c3a0e1e0b1ed61cc1afe71b189cd4c995",
               "046f00eadaa949fee3e9e1c7fa1247eecec86a0dce46418b9bd3117b981d4bd0ae7a990de912f9d060d6cb531a42d22e394ac29e81804bf160"),
         256: ("49c9a8c18c4b885638c431cf1df1c994131609b580d4fd43a0cab17db2f13eee",

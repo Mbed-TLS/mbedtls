@@ -1,3 +1,4 @@
+MBEDTLS_TEST_PATH = .
 include ../scripts/common.make
 
 # Set this to -v to see the details of failing test cases
@@ -108,10 +109,6 @@ BINARIES := $(addsuffix $(EXEXT),$(APPS))
 .PHONY: all check test clean
 
 all: $(BINARIES)
-
-MBEDTLS_TEST_PATH = .
-MBEDTLS_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/src/*.c ${MBEDTLS_TEST_PATH}/src/drivers/*.c))
-MBEDTLS_TEST_OBJS += $(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/src/test_helpers/*.c))
 
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 

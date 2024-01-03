@@ -5,7 +5,7 @@ WARNING_CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 WARNING_CXXFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
 
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../tests/include -I../include -D_FILE_OFFSET_BITS=64
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I$(MBEDTLS_TEST_PATH)/include -I../include -D_FILE_OFFSET_BITS=64
 LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) -I../include -I../tests/include -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS = ${MBEDTLS_TEST_OBJS} 		\
 		-L../library			\
@@ -35,7 +35,7 @@ endif
 ## Remove the preprocessor symbols that are set in the current configuration
 ## from PREPROCESSOR_INPUT. Also normalize whitespace.
 ## Example:
-##   $(call remove_set_options,MBEDTLS_FOO MBEDTLS_BAR)
+##   $(call remove_enabled_options,MBEDTLS_FOO MBEDTLS_BAR)
 ## This expands to an empty string "" if MBEDTLS_FOO and MBEDTLS_BAR are both
 ## enabled, to "MBEDTLS_FOO" if MBEDTLS_BAR is enabled but MBEDTLS_FOO is
 ## disabled, etc.
@@ -105,3 +105,15 @@ ifndef WINDOWS
 else
 	for %f in ($(subst /,\,$(GENERATED_FILES))) if exist %f del /Q /F %f
 endif
+
+# Auxiliary modules used by tests and some sample programs
+MBEDTLS_CORE_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard \
+    ${MBEDTLS_TEST_PATH}/src/*.c \
+    ${MBEDTLS_TEST_PATH}/src/drivers/*.c \
+  ))
+# Additional auxiliary modules for TLS testing
+MBEDTLS_TLS_TEST_OBJS = $(patsubst %.c,%.o,$(wildcard \
+    ${MBEDTLS_TEST_PATH}/src/test_helpers/*.c \
+  ))
+
+MBEDTLS_TEST_OBJS = $(MBEDTLS_CORE_TEST_OBJS) $(MBEDTLS_TLS_TEST_OBJS)

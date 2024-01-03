@@ -1123,7 +1123,6 @@ void ecp_set_public_key_good(int grp_id, data_t *public_data)
     TEST_EQUAL(key.grp.id, grp_id);
     TEST_EQUAL(mbedtls_ecp_point_cmp(&key.Q, &Q), 0);
 
-#if defined(MBEDTLS_BIGNUM_C)
     /* Key with a public key already set to a different value */
     TEST_EQUAL(mbedtls_mpi_add_int(&key.Q.X, &key.Q.X, 1), 0);
     TEST_EQUAL(mbedtls_mpi_add_int(&key.Q.Y, &key.Q.Y, 1), 0);
@@ -1131,7 +1130,6 @@ void ecp_set_public_key_good(int grp_id, data_t *public_data)
     TEST_EQUAL(mbedtls_ecp_set_public_key(grp_id, &key, &Q), 0);
     TEST_EQUAL(key.grp.id, grp_id);
     TEST_EQUAL(mbedtls_ecp_point_cmp(&key.Q, &Q), 0);
-#endif
 
 exit:
     mbedtls_ecp_keypair_free(&key);
@@ -1150,10 +1148,8 @@ void ecp_set_public_key_after_private(int private_grp_id, data_t *private_data,
     mbedtls_ecp_group_init(&grp);
     mbedtls_ecp_point Q;
     mbedtls_ecp_point_init(&Q);
-#if defined(MBEDTLS_BIGNUM_C)
     mbedtls_mpi d;
     mbedtls_mpi_init(&d);
-#endif
 
     TEST_EQUAL(mbedtls_ecp_group_load(&grp, public_grp_id), 0);
     TEST_EQUAL(mbedtls_ecp_point_read_binary(&grp, &Q,
@@ -1162,9 +1158,7 @@ void ecp_set_public_key_after_private(int private_grp_id, data_t *private_data,
     TEST_EQUAL(mbedtls_ecp_read_key(private_grp_id, &key,
                                     private_data->x, private_data->len),
                0);
-#if defined(MBEDTLS_BIGNUM_C)
     TEST_EQUAL(mbedtls_mpi_copy(&d, &key.d), 0);
-#endif
 
     int ret = mbedtls_ecp_set_public_key(public_grp_id, &key, &Q);
 
@@ -1172,9 +1166,7 @@ void ecp_set_public_key_after_private(int private_grp_id, data_t *private_data,
         TEST_EQUAL(ret, 0);
         TEST_EQUAL(key.grp.id, public_grp_id);
         TEST_EQUAL(mbedtls_ecp_point_cmp(&key.Q, &Q), 0);
-#if defined(MBEDTLS_BIGNUM_C)
         TEST_EQUAL(mbedtls_mpi_cmp_mpi(&d, &key.d), 0);
-#endif
     } else {
         TEST_EQUAL(ret, MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
     }
@@ -1183,9 +1175,7 @@ exit:
     mbedtls_ecp_keypair_free(&key);
     mbedtls_ecp_group_free(&grp);
     mbedtls_ecp_point_free(&Q);
-#if defined(MBEDTLS_BIGNUM_C)
     mbedtls_mpi_free(&d);
-#endif
 }
 /* END_CASE */
 
@@ -1198,11 +1188,9 @@ void mbedtls_ecp_read_key(int grp_id, data_t *in_key, int expected, int canonica
     mbedtls_ecp_keypair key2;
     mbedtls_ecp_keypair_init(&key2);
 
-#if defined(MBEDTLS_BIGNUM_C)
     TEST_EQUAL(mbedtls_mpi_lset(&key.Q.X, 1), 0);
     TEST_EQUAL(mbedtls_mpi_lset(&key.Q.Y, 2), 0);
     TEST_EQUAL(mbedtls_mpi_lset(&key.Q.Z, 3), 0);
-#endif
 
     ret = mbedtls_ecp_read_key(grp_id, &key, in_key->x, in_key->len);
     TEST_ASSERT(ret == expected);
@@ -1212,11 +1200,9 @@ void mbedtls_ecp_read_key(int grp_id, data_t *in_key, int expected, int canonica
         ret = mbedtls_ecp_check_privkey(&key.grp, &key.d);
         TEST_ASSERT(ret == 0);
 
-#if defined(MBEDTLS_BIGNUM_C)
         TEST_EQUAL(mbedtls_mpi_cmp_int(&key.Q.X, 1), 0);
         TEST_EQUAL(mbedtls_mpi_cmp_int(&key.Q.Y, 2), 0);
         TEST_EQUAL(mbedtls_mpi_cmp_int(&key.Q.Z, 3), 0);
-#endif
 
         if (canonical) {
             unsigned char buf[MBEDTLS_ECP_MAX_BYTES];

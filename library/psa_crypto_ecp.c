@@ -80,6 +80,11 @@ static int check_ecc_parameters(psa_ecc_family_t family, size_t *bits)
                 case 224:
                 case 256:
                     return PSA_SUCCESS;
+                /* secp224k1 has 224-bit coordinates but 225-bit private keys.
+                 * This means that private keys are represented with 232 bits. */
+                case 232:
+                    *bits = 225;
+                    return PSA_SUCCESS;
             }
             break;
     }

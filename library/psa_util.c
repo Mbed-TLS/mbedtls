@@ -232,8 +232,10 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
             return PSA_ECC_FAMILY_SECP_K1;
 #endif
 #if defined(MBEDTLS_ECP_HAVE_SECP224K1)
+        /* secp224k1 has 224-bit coordinates but 225-bit private keys.
+         * The nominal key size in PSA is the private key size, hence 225. */
         case MBEDTLS_ECP_DP_SECP224K1:
-            *bits = 224;
+            *bits = 225;
             return PSA_ECC_FAMILY_SECP_K1;
 #endif
 #if defined(MBEDTLS_ECP_HAVE_SECP256K1)
@@ -318,7 +320,9 @@ mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t curve,
                     return MBEDTLS_ECP_DP_SECP192K1;
 #endif
 #if defined(PSA_WANT_ECC_SECP_K1_224)
-                case 224:
+                /* secp224k1 has 224-bit coordinates but 225-bit private keys.
+                 * The nominal key size in PSA is the private key size, hence 225. */
+                case 225:
                     return MBEDTLS_ECP_DP_SECP224K1;
 #endif
 #if defined(PSA_WANT_ECC_SECP_K1_256)

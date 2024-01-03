@@ -600,7 +600,7 @@
 /** SEC random curves over prime fields.
  *
  * This family comprises the following curves:
- * secp192k1, secp224r1, secp256r1, secp384r1, secp521r1.
+ * secp192r1, secp224r1, secp256r1, secp384r1, secp521r1.
  * They are defined in _Standards for Efficient Cryptography_,
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf

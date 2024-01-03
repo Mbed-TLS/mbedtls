@@ -299,7 +299,7 @@ some non-PSA APIs will be absent or have reduced functionality, see
   ["Partial acceleration for CCM/GCM"](#partial-acceleration-for-ccmgcm) below)
   is enabled but not accelerated, then all key types that can be used with it
   will need to be built-in.
-- If a key type is enabled but not accelerated, then all algorithms than can be
+- If a key type is enabled but not accelerated, then all algorithms that can be
   used with it will need to be built-in.
 
 Some legacy modules can't take advantage of PSA drivers yet, and will either

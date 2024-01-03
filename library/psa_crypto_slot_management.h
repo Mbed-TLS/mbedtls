@@ -54,8 +54,9 @@ static inline int psa_key_id_is_volatile(psa_key_id_t key_id)
  * In case of a persistent key, the function loads the description of the key
  * into a key slot if not already done.
  *
- * On success, the returned key slot is locked. It is the responsibility of
- * the caller to unlock the key slot when it does not access it anymore.
+ * On success, the returned key slot has been registered for reading.
+ * It is the responsibility of the caller to call psa_unregister_read(slot)
+ * when they have finished reading the contents of the slot.
  *
  * \param key           Key identifier to query.
  * \param[out] p_slot   On success, `*p_slot` contains a pointer to the
@@ -67,7 +68,9 @@ static inline int psa_key_id_is_volatile(psa_key_id_t key_id)
  *         description of the key identified by \p key.
  *         The key slot counter has been incremented.
  * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been initialized.
+ *         The library has not been initialized. Or,
+ *         this call was operating on a key slot and found the slot in
+ *         an invalid state for the operation.
  * \retval #PSA_ERROR_INVALID_HANDLE
  *         \p key is not a valid key identifier.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY

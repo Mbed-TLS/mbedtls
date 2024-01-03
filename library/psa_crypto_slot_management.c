@@ -108,7 +108,9 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
 
         for (slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++) {
             slot = &global_data.key_slots[slot_idx];
-            if (mbedtls_svc_key_id_equal(key, slot->attr.id)) {
+            /* Only consider slots which are in a full state. */
+            if ((slot->state == PSA_SLOT_FULL) &&
+                (mbedtls_svc_key_id_equal(key, slot->attr.id))) {
                 break;
             }
         }
@@ -117,7 +119,7 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
     }
 
     if (status == PSA_SUCCESS) {
-        status = psa_lock_key_slot(slot);
+        status = psa_register_read(slot);
         if (status == PSA_SUCCESS) {
             *p_slot = slot;
         }
@@ -367,7 +369,7 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
     defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
     psa_key_id_t volatile_key_id;
 
-    status = psa_get_empty_key_slot(&volatile_key_id, p_slot);
+    status = psa_reserve_free_key_slot(&volatile_key_id, p_slot);
     if (status != PSA_SUCCESS) {
         return status;
     }
@@ -388,13 +390,24 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
     if (status != PSA_SUCCESS) {
+        /* Prepare the key slot to be wiped, and then wipe it.
+         * Don't overwrite status as a BAD_STATE error here
+         * can be reported in the psa_wipe_key_slot call. */
+        (*p_slot)->registered_readers = 1;
+        psa_key_slot_state_transition((*p_slot), PSA_SLOT_FILLING,
+                                      PSA_SLOT_PENDING_DELETION);
         psa_wipe_key_slot(*p_slot);
+
         if (status == PSA_ERROR_DOES_NOT_EXIST) {
             status = PSA_ERROR_INVALID_HANDLE;
         }
     } else {
         /* Add implicit usage flags. */
         psa_extend_key_usage_flags(&(*p_slot)->attr.policy.usage);
+
+        psa_key_slot_state_transition((*p_slot), PSA_SLOT_FILLING,
+                                      PSA_SLOT_FULL);
+        status = psa_register_read(*p_slot);
     }
 
     return status;

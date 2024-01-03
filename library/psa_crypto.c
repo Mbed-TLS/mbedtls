@@ -881,8 +881,9 @@ static psa_status_t psa_restrict_key_policy(
  * In case of a persistent key, the function loads the description of the key
  * into a key slot if not already done.
  *
- * On success, the returned key slot is locked. It is the responsibility of
- * the caller to unlock the key slot when it does not access it anymore.
+ * On success, the returned key slot has been registered for reading.
+ * It is the responsibility of the caller to call psa_unregister_read(slot)
+ * when they have finished reading the contents of the slot.
  */
 static psa_status_t psa_get_and_lock_key_slot_with_policy(
     mbedtls_svc_key_id_t key,
@@ -926,7 +927,7 @@ static psa_status_t psa_get_and_lock_key_slot_with_policy(
 
 error:
     *p_slot = NULL;
-    psa_unlock_key_slot(slot);
+    psa_unregister_read(slot);
 
     return status;
 }
@@ -941,8 +942,9 @@ error:
  * psa_get_and_lock_key_slot_with_policy() when there is no opaque key support
  * for a cryptographic operation.
  *
- * On success, the returned key slot is locked. It is the responsibility of the
- * caller to unlock the key slot when it does not access it anymore.
+ * On success, the returned key slot has been registered for reading.
+ * It is the responsibility of the caller to call psa_unregister_read(slot)
+ * when they have finished reading the contents of the slot.
  */
 static psa_status_t psa_get_and_lock_transparent_key_slot_with_policy(
     mbedtls_svc_key_id_t key,
@@ -957,7 +959,7 @@ static psa_status_t psa_get_and_lock_transparent_key_slot_with_policy(
     }
 
     if (psa_key_lifetime_is_external((*p_slot)->attr.lifetime)) {
-        psa_unlock_key_slot(*p_slot);
+        psa_unregister_read(*p_slot);
         *p_slot = NULL;
         return PSA_ERROR_NOT_SUPPORTED;
     }

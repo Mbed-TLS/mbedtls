@@ -142,7 +142,9 @@ psa_status_t psa_open_key(mbedtls_svc_key_id_t key,
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
+ *         results in this error code. Or,
+ *         this call was operating on a key slot and found the slot in
+ *         an invalid state for the operation.
  */
 psa_status_t psa_close_key(psa_key_handle_t handle);
 

@@ -539,11 +539,14 @@ psa_status_t psa_close_key(psa_key_handle_t handle)
 
         return status;
     }
-    if (slot->lock_count <= 1) {
-        return psa_wipe_key_slot(slot);
-    } else {
-        return psa_unlock_key_slot(slot);
+    if (slot->registered_readers == 1) {
+        status = psa_key_slot_state_transition(slot, PSA_SLOT_FULL,
+                                               PSA_SLOT_PENDING_DELETION);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
     }
+    return psa_unregister_read(slot);
 }
 
 psa_status_t psa_purge_key(mbedtls_svc_key_id_t key)
@@ -557,11 +560,11 @@ psa_status_t psa_purge_key(mbedtls_svc_key_id_t key)
     }
 
     if ((!PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) &&
-        (slot->lock_count <= 1)) {
-        return psa_wipe_key_slot(slot);
-    } else {
-        return psa_unlock_key_slot(slot);
+        (slot->registered_readers == 1)) {
+        psa_key_slot_state_transition(slot, PSA_SLOT_FULL,
+                                      PSA_SLOT_PENDING_DELETION);
     }
+    return psa_unregister_read(slot);
 }
 
 void mbedtls_psa_get_stats(mbedtls_psa_stats_t *stats)

@@ -1048,10 +1048,12 @@ psa_status_t psa_destroy_key(mbedtls_svc_key_id_t key)
      * implemented), the key should be destroyed when all accesses have
      * stopped.
      */
-    if (slot->lock_count > 1) {
-        psa_unlock_key_slot(slot);
+    if (slot->registered_readers > 1) {
+        psa_unregister_read(slot);
         return PSA_ERROR_GENERIC_ERROR;
     }
+
+    slot->state = PSA_SLOT_PENDING_DELETION;
 
     if (PSA_KEY_LIFETIME_IS_READ_ONLY(slot->attr.lifetime)) {
         /* Refuse the destruction of a read-only key (which may or may not work
@@ -1126,7 +1128,7 @@ psa_status_t psa_destroy_key(mbedtls_svc_key_id_t key)
 
 exit:
     status = psa_wipe_key_slot(slot);
-    /* Prioritize CORRUPTION_DETECTED from wiping over a storage error */
+    /* Prioritize an error from wiping over a storage error */
     if (status != PSA_SUCCESS) {
         overall_status = status;
     }

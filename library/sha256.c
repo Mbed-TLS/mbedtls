@@ -82,13 +82,13 @@
 #          error "Must use minimum -march=armv8-a+crypto for MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_*"
 #        endif
 #          pragma clang attribute push (__attribute__((target("sha2"))), apply_to=function)
-#          define MBEDTLS_POP_TARGET_PRAGMA
+#          define MBEDTLS_POP_TARGET_PRAGMA _Pragma("clang attribute pop")
 #      elif defined(__clang__)
 #        if __clang_major__ < 4
 #          error "A more recent Clang is required for MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_*"
 #        endif
 #        pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
-#        define MBEDTLS_POP_TARGET_PRAGMA
+#        define MBEDTLS_POP_TARGET_PRAGMA _Pragma("clang attribute pop")
 #      elif defined(__GNUC__)
          /* FIXME: GCC 5 claims to support Armv8 Crypto Extensions, but some
           *        intrinsics are missing. Missing intrinsics could be worked around.
@@ -98,7 +98,7 @@
 #        else
 #          pragma GCC push_options
 #          pragma GCC target ("arch=armv8-a+crypto")
-#          define MBEDTLS_POP_TARGET_PRAGMA
+#          define MBEDTLS_POP_TARGET_PRAGMA _Pragma("GCC pop_options")
 #        endif
 #      else
 #        error "Only GCC and Clang supported for MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_*"
@@ -434,14 +434,12 @@ int mbedtls_internal_sha256_process_a64_crypto(mbedtls_sha256_context *ctx,
 
 #endif /* MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT || MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY */
 
+/* *INDENT-OFF* - otherwise a bug in Uncrustify wrecks the file after this */
 #if defined(MBEDTLS_POP_TARGET_PRAGMA)
-#if defined(__clang__)
-#pragma clang attribute pop
-#elif defined(__GNUC__)
-#pragma GCC pop_options
-#endif
+MBEDTLS_POP_TARGET_PRAGMA
 #undef MBEDTLS_POP_TARGET_PRAGMA
 #endif
+/* *INDENT-ON* */
 
 #if !defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT)
 #define mbedtls_internal_sha256_process_many_c mbedtls_internal_sha256_process_many

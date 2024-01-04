@@ -35,10 +35,10 @@
 #if defined(MBEDTLS_COMPILER_IS_GCC)
 #pragma GCC push_options
 #pragma GCC target ("pclmul,sse2,aes")
-#define MBEDTLS_POP_TARGET_PRAGMA
+#define MBEDTLS_POP_TARGET_PRAGMA _Pragma("GCC pop_options")
 #elif defined(__clang__)
 #pragma clang attribute push (__attribute__((target("pclmul,sse2,aes"))), apply_to=function)
-#define MBEDTLS_POP_TARGET_PRAGMA
+#define MBEDTLS_POP_TARGET_PRAGMA _Pragma("clang attribute pop")
 #endif
 #endif
 
@@ -404,14 +404,12 @@ static void aesni_setkey_enc_256(unsigned char *rk_bytes,
 }
 #endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 
+/* *INDENT-OFF* - otherwise a bug in Uncrustify wrecks the file after this */
 #if defined(MBEDTLS_POP_TARGET_PRAGMA)
-#if defined(__clang__)
-#pragma clang attribute pop
-#elif defined(__GNUC__)
-#pragma GCC pop_options
-#endif
+MBEDTLS_POP_TARGET_PRAGMA
 #undef MBEDTLS_POP_TARGET_PRAGMA
 #endif
+/* *INDENT-ON* */
 
 #else /* MBEDTLS_AESNI_HAVE_CODE == 1 */
 

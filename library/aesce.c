@@ -83,15 +83,15 @@
 #           error "Must use minimum -march=armv8-a+crypto for MBEDTLS_AESCE_C"
 #       else
 #           pragma clang attribute push (__attribute__((target("aes"))), apply_to=function)
-#           define MBEDTLS_POP_TARGET_PRAGMA
+#           define MBEDTLS_POP_TARGET_PRAGMA _Pragma("clang attribute pop")
 #       endif
 #   elif defined(__clang__)
 #       pragma clang attribute push (__attribute__((target("aes"))), apply_to=function)
-#       define MBEDTLS_POP_TARGET_PRAGMA
+#       define MBEDTLS_POP_TARGET_PRAGMA _Pragma("clang attribute pop")
 #   elif defined(__GNUC__)
 #       pragma GCC push_options
 #       pragma GCC target ("+crypto")
-#       define MBEDTLS_POP_TARGET_PRAGMA
+#       define MBEDTLS_POP_TARGET_PRAGMA _Pragma("GCC pop_options")
 #   elif defined(_MSC_VER)
 #       error "Required feature(__ARM_FEATURE_AES) is not enabled."
 #   endif
@@ -605,11 +605,7 @@ void mbedtls_aesce_gcm_mult(unsigned char c[16],
 #endif /* MBEDTLS_GCM_C */
 
 #if defined(MBEDTLS_POP_TARGET_PRAGMA)
-#if defined(__clang__)
-#pragma clang attribute pop
-#elif defined(__GNUC__)
-#pragma GCC pop_options
-#endif
+MBEDTLS_POP_TARGET_PRAGMA
 #undef MBEDTLS_POP_TARGET_PRAGMA
 #endif
 

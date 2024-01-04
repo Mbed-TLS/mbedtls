@@ -1253,7 +1253,7 @@ psa_status_t psa_get_key_attributes(mbedtls_svc_key_id_t key,
         psa_reset_key_attributes(attributes);
     }
 
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -1349,7 +1349,7 @@ psa_status_t psa_export_key(mbedtls_svc_key_id_t key,
                                            slot->key.data, slot->key.bytes,
                                            data, data_size, data_length);
 
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -1463,7 +1463,7 @@ psa_status_t psa_export_public_key(mbedtls_svc_key_id_t key,
         data, data_size, data_length);
 
 exit:
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -2141,7 +2141,7 @@ exit:
         psa_fail_key_creation(target_slot, driver);
     }
 
-    unlock_status = psa_unlock_key_slot(source_slot);
+    unlock_status = psa_unregister_read(source_slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -2462,7 +2462,7 @@ exit:
         psa_mac_abort(operation);
     }
 
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -2648,7 +2648,7 @@ exit:
 
     psa_wipe_tag_output_buffer(mac, status, mac_size, *mac_length);
 
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -2792,7 +2792,7 @@ exit:
     psa_wipe_tag_output_buffer(signature, status, signature_size,
                                *signature_length);
 
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -2840,7 +2840,7 @@ static psa_status_t psa_verify_internal(mbedtls_svc_key_id_t key,
             signature, signature_length);
     }
 
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 
@@ -3107,7 +3107,7 @@ psa_status_t psa_asymmetric_encrypt(mbedtls_svc_key_id_t key,
         alg, input, input_length, salt, salt_length,
         output, output_size, output_length);
 exit:
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -3159,7 +3159,7 @@ psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
         output, output_size, output_length);
 
 exit:
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -3268,7 +3268,7 @@ exit:
         psa_sign_hash_abort_internal(operation);
     }
 
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
 
     if (unlock_status != PSA_SUCCESS) {
         operation->error_occurred = 1;
@@ -3413,7 +3413,7 @@ psa_status_t psa_verify_hash_start(
         psa_verify_hash_abort_internal(operation);
     }
 
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
 
     if (unlock_status != PSA_SUCCESS) {
         operation->error_occurred = 1;
@@ -3985,7 +3985,7 @@ exit:
         psa_cipher_abort(operation);
     }
 
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -4230,7 +4230,7 @@ psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
         output_size - default_iv_length, output_length);
 
 exit:
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
     if (status == PSA_SUCCESS) {
         status = unlock_status;
     }
@@ -4291,7 +4291,7 @@ psa_status_t psa_cipher_decrypt(mbedtls_svc_key_id_t key,
         output, output_size, output_length);
 
 exit:
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
     if (status == PSA_SUCCESS) {
         status = unlock_status;
     }
@@ -4417,7 +4417,7 @@ psa_status_t psa_aead_encrypt(mbedtls_svc_key_id_t key,
     }
 
 exit:
-    psa_unlock_key_slot(slot);
+    psa_unregister_read(slot);
 
     return status;
 }
@@ -4472,7 +4472,7 @@ psa_status_t psa_aead_decrypt(mbedtls_svc_key_id_t key,
     }
 
 exit:
-    psa_unlock_key_slot(slot);
+    psa_unregister_read(slot);
 
     return status;
 }
@@ -4584,7 +4584,7 @@ static psa_status_t psa_aead_setup(psa_aead_operation_t *operation,
     operation->key_type = psa_get_key_type(&attributes);
 
 exit:
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
 
     if (status == PSA_SUCCESS) {
         status = unlock_status;
@@ -6907,7 +6907,7 @@ psa_status_t psa_key_derivation_input_key(
                                                slot->key.data,
                                                slot->key.bytes);
 
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -7064,7 +7064,7 @@ psa_status_t psa_key_derivation_key_agreement(psa_key_derivation_operation_t *op
         }
     }
 
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -7125,7 +7125,7 @@ exit:
         *output_length = output_size;
     }
 
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -7799,7 +7799,7 @@ exit:
     if (status != PSA_SUCCESS) {
         psa_pake_abort(operation);
     }
-    unlock_status = psa_unlock_key_slot(slot);
+    unlock_status = psa_unregister_read(slot);
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 

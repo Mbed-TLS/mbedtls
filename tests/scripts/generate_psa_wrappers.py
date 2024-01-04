@@ -129,6 +129,20 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
             param.buffer_name, param.size_name
         ))
 
+    def _write_poison_buffer_parameters(self, out: typing_util.Writable,
+                                        buffer_parameters: List[BufferParameter],
+                                        poison: bool) -> None:
+        """Write poisoning or unpoisoning code for the buffer parameters.
+
+        Write poisoning code if poison is true, unpoisoning code otherwise.
+        """
+        if not buffer_parameters:
+            return
+        out.write('#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)\n')
+        for param in buffer_parameters:
+            self._write_poison_buffer_parameter(out, param, poison)
+        out.write('#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */\n')
+
     @staticmethod
     def _parameter_should_be_copied(function_name: str,
                                     _buffer_name: Optional[str]) -> bool:
@@ -148,11 +162,9 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
                                                         argument_names)
             if self._parameter_should_be_copied(function.name,
                                                 function.arguments[param.index].name))
-        for param in buffer_parameters:
-            self._write_poison_buffer_parameter(out, param, True)
+        self._write_poison_buffer_parameters(out, buffer_parameters, True)
         super()._write_function_call(out, function, argument_names)
-        for param in buffer_parameters:
-            self._write_poison_buffer_parameter(out, param, False)
+        self._write_poison_buffer_parameters(out, buffer_parameters, False)
 
     def _write_prologue(self, out: typing_util.Writable, header: bool) -> None:
         super()._write_prologue(out, header)

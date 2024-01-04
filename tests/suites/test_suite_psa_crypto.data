@@ -7459,6 +7459,9 @@ ECP group ID <-> PSA family - CURVE448
 depends_on:PSA_WANT_ECC_MONTGOMERY_448
 ecc_conversion_functions:MBEDTLS_ECP_DP_CURVE448:PSA_ECC_FAMILY_MONTGOMERY:448
 
+ECP group ID <-> PSA family - Null values
+ecc_conversion_functions:MBEDTLS_ECP_DP_NONE:0:0
+
 ECP group ID <-> PSA family - Wrong values
 ecc_conversion_functions:MBEDTLS_ECP_DP_MAX:0:0
 

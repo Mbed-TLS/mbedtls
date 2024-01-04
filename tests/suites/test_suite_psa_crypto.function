@@ -9491,14 +9491,32 @@ void ecc_conversion_functions(int grp_id_arg, int psa_family_arg, int bits_arg)
 
     TEST_EQUAL(ecc_family, mbedtls_ecc_group_to_psa(grp_id, &bits_tmp));
     TEST_EQUAL(bits, bits_tmp);
-
-    if (grp_id != MBEDTLS_ECP_DP_MAX) {
-        TEST_EQUAL(grp_id, mbedtls_ecc_group_from_psa(ecc_family, bits));
-    } else {
-        TEST_EQUAL(MBEDTLS_ECP_DP_NONE, mbedtls_ecc_group_from_psa(ecc_family, bits));
-    }
+    TEST_EQUAL(grp_id, mbedtls_ecc_group_from_psa(ecc_family, bits));
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
+void ecc_conversion_functions_fail()
+{
+    size_t bits;
+
+    /* Invalid legacy curve identifier. */
+    TEST_EQUAL(0, mbedtls_ecc_group_to_psa(MBEDTLS_ECP_DP_NONE, &bits));
+    TEST_EQUAL(0, bits);
+
+    /* Invalid PSA EC family. */
+    TEST_EQUAL(MBEDTLS_ECP_DP_NONE, mbedtls_ecc_group_from_psa(0, 192));
+    /* Invalid bit-size for a valid EC family. */
+    TEST_EQUAL(MBEDTLS_ECP_DP_NONE, mbedtls_ecc_group_from_psa(PSA_ECC_FAMILY_SECP_R1, 512));
+
+    /* Twisted-Edward curves are not supported yet. */
+    TEST_EQUAL(MBEDTLS_ECP_DP_NONE,
+               mbedtls_ecc_group_from_psa(PSA_ECC_FAMILY_TWISTED_EDWARDS, 255));
+    TEST_EQUAL(MBEDTLS_ECP_DP_NONE,
+               mbedtls_ecc_group_from_psa(PSA_ECC_FAMILY_TWISTED_EDWARDS, 448));
+}
+/* END_CASE */
+
 
 /* BEGIN_CASE */
 void key_agreement_output(int alg_arg,

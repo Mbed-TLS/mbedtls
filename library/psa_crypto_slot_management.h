@@ -112,6 +112,31 @@ void psa_wipe_all_key_slots(void);
  */
 psa_status_t psa_get_empty_key_slot(psa_key_id_t *volatile_key_id,
                                     psa_key_slot_t **p_slot);
+/** Change the state of a key slot.
+ *
+ * This function changes the state of the key slot from expected_state to
+ * new state. If the state of the slot was not expected_state, the state is
+ * unchanged.
+ *
+ * \param[in] slot            The key slot.
+ * \param[in] expected_state  The current state of the slot.
+ * \param[in] new_state       The new state of the slot.
+ *
+ * \retval #PSA_SUCCESS
+               The key slot's state variable is new_state.
+ * \retval #PSA_ERROR_BAD_STATE
+ *             The slot's state was not expected_state.
+ */
+static inline psa_status_t psa_key_slot_state_transition(
+    psa_key_slot_t *slot, psa_key_slot_state_t expected_state,
+    psa_key_slot_state_t new_state)
+{
+    if (slot->state != expected_state) {
+        return PSA_ERROR_BAD_STATE;
+    }
+    slot->state = new_state;
+    return PSA_SUCCESS;
+}
 
 /** Register as a reader of a key slot.
  *

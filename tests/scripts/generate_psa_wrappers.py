@@ -5,6 +5,10 @@
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
+### WARNING: the code in this file has not been extensively reviewed yet.
+### We do not think it is harmful, but it may be below our normal standards
+### for robustness and maintainability.
+
 import argparse
 import itertools
 import os

@@ -45,7 +45,9 @@ class BufferParameter:
 class PSAWrapperGenerator(c_wrapper_generator.Base):
     """Generate a C source file containing wrapper functions for PSA Crypto API calls."""
 
-    _CPP_GUARDS = 'defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_TEST_HOOKS)'
+    _CPP_GUARDS = ('defined(MBEDTLS_PSA_CRYPTO_C) && ' +
+                   'defined(MBEDTLS_TEST_HOOKS) && \\\n    ' +
+                   '!defined(RECORD_PSA_STATUS_COVERAGE_LOG)')
     _WRAPPER_NAME_PREFIX = 'mbedtls_test_wrap_'
     _WRAPPER_NAME_SUFFIX = ''
 

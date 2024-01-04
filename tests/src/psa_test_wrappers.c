@@ -6,7 +6,8 @@
 
 #include <mbedtls/build_info.h>
 
-#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_TEST_HOOKS)
+#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_TEST_HOOKS) && \
+    !defined(RECORD_PSA_STATUS_COVERAGE_LOG)
 
 #include <psa/crypto.h>
 
@@ -977,6 +978,7 @@ psa_status_t mbedtls_test_wrap_psa_verify_message(
     return status;
 }
 
-#endif /* defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_TEST_HOOKS) */
+#endif /* defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_TEST_HOOKS) && \
+    !defined(RECORD_PSA_STATUS_COVERAGE_LOG) */
 
 /* End of automatically generated file. */

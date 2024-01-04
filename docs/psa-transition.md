@@ -725,7 +725,11 @@ An ECC public key has the type [`PSA_KEY_TYPE_ECC_PUBLIC_KEY(curve)`](https://mb
 An ECC key pair has the type [`PSA_KEY_TYPE_ECC_KEY_PAIR(curve)`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1ga0b6f5d4d5037c54ffa850d8059c32df0) where `curve` is a curve family identifier. A key with this type can be used both for private-key and public-key operations (there is no separate key type for a private key without the corresponding public key).
 You can always use a private key for operations on the corresponding public key (as long as the policy permits it).
 
-A curve is fully determined by a curve family identifier and the private key size in bits. The following table gives the correspondence between legacy and PSA elliptic curve designations.
+A curve is fully determined by a curve family identifier and the private key size in bits. You can use the following functions to convert between the PSA and legacy elliptic curve designations:
+- [`mbedtls_ecc_group_to_psa()`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__psa__tls__helpers/#group__psa__tls__helpers_1ga9c83c095adfec7da99401cf81e164f99) converts from the legacy curve type identifier to PSA curve family and bit-size.
+- [`mbedtls_ecc_group_from_psa()`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__psa__tls__helpers/#group__psa__tls__helpers_1ga6243eb619d5b2f5fe4667811adeb8a12) converts from PSA curve family and bit-size to the legacy identifier.
+
+The following table gives the correspondence between legacy and PSA elliptic curve designations.
 
 | Mbed TLS legacy curve identifier | PSA curve family | Curve bit-size |
 | -------------------------------- | ---------------- | -------------- |
@@ -742,10 +746,6 @@ A curve is fully determined by a curve family identifier and the private key siz
 | `MBEDTLS_ECP_DP_SECP224K1` | not supported | N/A |
 | `MBEDTLS_ECP_DP_SECP256K1` | [`PSA_ECC_FAMILY_SECP_K1`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1ga48bb340b5544ba617b0f5b89542665a7) | 256 |
 | `MBEDTLS_ECP_DP_CURVE448` | [`PSA_ECC_FAMILY_MONTGOMERY`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1ga1f624c5cdaf25b21287af33024e1aff8) | 448 |
-
-The following helper functions can be used to convert between the 2 types:
-- `mbedtls_ecc_group_to_psa()` converts from the legacy curve type identifier to PSA curve family and bit-size.
-- `mbedtls_ecc_group_from_psa()` converts from PSA curve family and bit-size to the legacy identifier.
 
 The following cryptographic algorithms work with ECC keys:
 

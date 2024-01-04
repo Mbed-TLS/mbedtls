@@ -1,0 +1,44 @@
+#! /usr/bin/env bash
+#
+# Copyright The Mbed TLS Contributors
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+#
+# This swallows the output of the wrapped tool, unless there is an error.
+# This helps reduce excess logging in the CI.
+
+# If you are debugging a build / CI issue, you can get complete unsilenced logs
+# by un-commenting the following line (or setting VERBOSE_LOGS in your environment):
+# VERBOSE_LOGS=1
+
+# don't silence invocations containing these arguments
+NO_SILENCE=" --version | test "
+
+TOOL=$(basename "$0")
+
+# Locate original tool
+ORIGINAL_TOOL=$(type -ap ${TOOL} | grep -v "$0" | head -n1 )
+
+if [[ " $@ " =~ $NO_SILENCE || -n "${VERBOSE_LOGS}" ]]; then
+    ${ORIGINAL_TOOL} "$@"
+    EXIT_STATUS=$?
+else
+    # Display the command being invoked - if it succeeds, this is all that will
+    # be displayed.
+    echo "${TOOL} $@"
+
+    # Run original command and capture output & exit status
+    TMPFILE=$(mktemp /tmp/quiet-${TOOL}.XXXXXX)
+    ${ORIGINAL_TOOL} "$@" > ${TMPFILE} 2>&1
+    EXIT_STATUS=$?
+
+    if [[ $EXIT_STATUS -ne 0 ]]; then
+        # On error, display the full output
+        cat ${TMPFILE}
+    fi
+
+    # Remove tmpfile
+    rm ${TMPFILE}
+fi
+
+# Propagate the exit status
+exit $EXIT_STATUS

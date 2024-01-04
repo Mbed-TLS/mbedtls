@@ -143,7 +143,8 @@ void psa_wipe_all_key_slots(void)
 
     for (slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++) {
         psa_key_slot_t *slot = &global_data.key_slots[slot_idx];
-        slot->lock_count = 1;
+        slot->registered_readers = 1;
+        slot->state = PSA_SLOT_PENDING_DELETION;
         (void) psa_wipe_key_slot(slot);
     }
     global_data.key_slots_initialized = 0;

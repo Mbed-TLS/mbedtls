@@ -79,7 +79,11 @@ extern "C" {{
 """
                       .format(guard=self.header_guard))
         out.write("""
-#include <mbedtls/build_info.h>
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "mbedtls/config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
 """)
 
     def _write_epilogue(self, out: typing_util.Writable, header: bool) -> None:

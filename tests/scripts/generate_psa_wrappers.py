@@ -31,10 +31,18 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
 
     _SKIP_FUNCTIONS = frozenset([
         'mbedtls_psa_external_get_random', # not a library function
+        'psa_aead_abort', # not implemented yet
+        'psa_aead_decrypt_setup', # not implemented yet
+        'psa_aead_encrypt_setup', # not implemented yet
+        'psa_aead_finish', # not implemented yet
+        'psa_aead_generate_nonce', # not implemented yet
+        'psa_aead_set_lengths', # not implemented yet
+        'psa_aead_set_nonce', # not implemented yet
+        'psa_aead_update', # not implemented yet
+        'psa_aead_update_ad', # not implemented yet
+        'psa_aead_verify', # not implemented yet
         'psa_get_key_domain_parameters', # client-side function
         'psa_get_key_slot_number', # client-side function
-        'psa_key_derivation_verify_bytes', # not implemented yet
-        'psa_key_derivation_verify_key', # not implemented yet
         'psa_set_key_domain_parameters', # client-side function
     ])
 

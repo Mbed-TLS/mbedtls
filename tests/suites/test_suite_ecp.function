@@ -19,6 +19,7 @@
     mbedtls_ecp_point_init(x);
 
 /* Auxiliary function to compare two mbedtls_ecp_group objects. */
+MBEDTLS_MAYBE_UNUSED
 inline static int mbedtls_ecp_group_cmp(mbedtls_ecp_group *grp1,
                                         mbedtls_ecp_group *grp2)
 {

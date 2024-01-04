@@ -17,7 +17,8 @@ extern "C" {
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_TEST_HOOKS)
+#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_TEST_HOOKS) && \
+    !defined(RECORD_PSA_STATUS_COVERAGE_LOG)
 
 #include <psa/crypto.h>
 
@@ -476,7 +477,8 @@ psa_status_t mbedtls_test_wrap_psa_verify_message(
 #define psa_verify_message(arg0_key, arg1_alg, arg2_input, arg3_input_length, arg4_signature, arg5_signature_length) \
     mbedtls_test_wrap_psa_verify_message(arg0_key, arg1_alg, arg2_input, arg3_input_length, arg4_signature, arg5_signature_length)
 
-#endif /* defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_TEST_HOOKS) */
+#endif /* defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_TEST_HOOKS) && \
+    !defined(RECORD_PSA_STATUS_COVERAGE_LOG) */
 
 #ifdef __cplusplus
 }

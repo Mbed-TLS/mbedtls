@@ -69,29 +69,6 @@ static const unsigned char D_MESSAGE_CONSTANT_BYTES[D_CONST_LEN] = { 0x81, 0x81 
 int (*mbedtls_lmots_sign_private_key_invalidated_hook)(unsigned char *) = NULL;
 #endif /* defined(MBEDTLS_TEST_HOOKS) */
 
-void mbedtls_lms_unsigned_int_to_network_bytes(unsigned int val, size_t len,
-                                               unsigned char *bytes)
-{
-    size_t idx;
-
-    for (idx = 0; idx < len; idx++) {
-        bytes[idx] = (val >> ((len - 1 - idx) * 8)) & 0xFF;
-    }
-}
-
-unsigned int mbedtls_lms_network_bytes_to_unsigned_int(size_t len,
-                                                       const unsigned char *bytes)
-{
-    size_t idx;
-    unsigned int val = 0;
-
-    for (idx = 0; idx < len; idx++) {
-        val |= ((unsigned int) bytes[idx]) << (8 * (len - 1 - idx));
-    }
-
-    return val;
-}
-
 /* Calculate the checksum digits that are appended to the end of the LMOTS digit
  * string. See NIST SP800-208 section 3.1 or RFC8554 Algorithm 2 for details of
  * the checksum algorithm.
@@ -191,8 +168,7 @@ static int create_digit_array_with_checksum(const mbedtls_lmots_parameters_t *pa
     }
 
     checksum = lmots_checksum_calculate(params, out);
-    mbedtls_lms_unsigned_int_to_network_bytes(checksum, CHECKSUM_LEN,
-                                              out + MBEDTLS_LMOTS_N_HASH_LEN(params->type));
+    MBEDTLS_PUT_UINT16_BE(checksum, out, MBEDTLS_LMOTS_N_HASH_LEN(params->type));
 
 exit:
     psa_hash_abort(&op);
@@ -281,17 +257,13 @@ static int hash_digit_array(const mbedtls_lmots_parameters_t *params,
                 goto exit;
             }
 
-            mbedtls_lms_unsigned_int_to_network_bytes(i_digit_idx,
-                                                      I_DIGIT_IDX_LEN,
-                                                      i_digit_idx_bytes);
+            MBEDTLS_PUT_UINT16_BE(i_digit_idx, i_digit_idx_bytes, 0);
             status = psa_hash_update(&op, i_digit_idx_bytes, I_DIGIT_IDX_LEN);
             if (status != PSA_SUCCESS) {
                 goto exit;
             }
 
-            mbedtls_lms_unsigned_int_to_network_bytes(j_hash_idx,
-                                                      J_HASH_IDX_LEN,
-                                                      j_hash_idx_bytes);
+            j_hash_idx_bytes[0] = (uint8_t) j_hash_idx;
             status = psa_hash_update(&op, j_hash_idx_bytes, J_HASH_IDX_LEN);
             if (status != PSA_SUCCESS) {
                 goto exit;
@@ -425,11 +397,8 @@ int mbedtls_lmots_import_public_key(mbedtls_lmots_public_t *ctx,
         return MBEDTLS_ERR_LMS_BAD_INPUT_DATA;
     }
 
-    ctx->params.type =
-        (mbedtls_lmots_algorithm_type_t) mbedtls_lms_network_bytes_to_unsigned_int(
-            MBEDTLS_LMOTS_TYPE_LEN,
-            key +
-            MBEDTLS_LMOTS_SIG_TYPE_OFFSET);
+    ctx->params.type = (mbedtls_lmots_algorithm_type_t)
+                       MBEDTLS_GET_UINT32_BE(key, MBEDTLS_LMOTS_SIG_TYPE_OFFSET);
 
     if (key_len != MBEDTLS_LMOTS_PUBLIC_KEY_LEN(ctx->params.type)) {
         return MBEDTLS_ERR_LMS_BAD_INPUT_DATA;
@@ -464,9 +433,7 @@ int mbedtls_lmots_export_public_key(const mbedtls_lmots_public_t *ctx,
         return MBEDTLS_ERR_LMS_BAD_INPUT_DATA;
     }
 
-    mbedtls_lms_unsigned_int_to_network_bytes(ctx->params.type,
-                                              MBEDTLS_LMOTS_TYPE_LEN,
-                                              key + MBEDTLS_LMOTS_SIG_TYPE_OFFSET);
+    MBEDTLS_PUT_UINT32_BE(ctx->params.type, key, MBEDTLS_LMOTS_SIG_TYPE_OFFSET);
 
     memcpy(key + PUBLIC_KEY_I_KEY_ID_OFFSET,
            ctx->params.I_key_identifier,
@@ -559,9 +526,7 @@ int mbedtls_lmots_verify(const mbedtls_lmots_public_t *ctx,
         return MBEDTLS_ERR_LMS_VERIFY_FAILED;
     }
 
-    if (mbedtls_lms_network_bytes_to_unsigned_int(MBEDTLS_LMOTS_TYPE_LEN,
-                                                  sig + MBEDTLS_LMOTS_SIG_TYPE_OFFSET) !=
-        MBEDTLS_LMOTS_SHA256_N32_W8) {
+    if (MBEDTLS_GET_UINT32_BE(sig, MBEDTLS_LMOTS_SIG_TYPE_OFFSET) != MBEDTLS_LMOTS_SHA256_N32_W8) {
         return MBEDTLS_ERR_LMS_VERIFY_FAILED;
     }
 
@@ -607,7 +572,7 @@ int mbedtls_lmots_generate_private_key(mbedtls_lmots_private_t *ctx,
     size_t output_hash_len;
     unsigned int i_digit_idx;
     unsigned char i_digit_idx_bytes[2];
-    unsigned char const_bytes[1];
+    unsigned char const_bytes[1] = { 0xFF };
 
     if (ctx->have_private_key) {
         return MBEDTLS_ERR_LMS_BAD_INPUT_DATA;
@@ -623,12 +588,7 @@ int mbedtls_lmots_generate_private_key(mbedtls_lmots_private_t *ctx,
            I_key_identifier,
            sizeof(ctx->params.I_key_identifier));
 
-    mbedtls_lms_unsigned_int_to_network_bytes(q_leaf_identifier,
-                                              MBEDTLS_LMOTS_Q_LEAF_ID_LEN,
-                                              ctx->params.q_leaf_identifier);
-
-    mbedtls_lms_unsigned_int_to_network_bytes(0xFF, sizeof(const_bytes),
-                                              const_bytes);
+    MBEDTLS_PUT_UINT32_BE(q_leaf_identifier, ctx->params.q_leaf_identifier, 0);
 
     for (i_digit_idx = 0;
          i_digit_idx < MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT(ctx->params.type);
@@ -652,8 +612,7 @@ int mbedtls_lmots_generate_private_key(mbedtls_lmots_private_t *ctx,
             goto exit;
         }
 
-        mbedtls_lms_unsigned_int_to_network_bytes(i_digit_idx, I_DIGIT_IDX_LEN,
-                                                  i_digit_idx_bytes);
+        MBEDTLS_PUT_UINT16_BE(i_digit_idx, i_digit_idx_bytes, 0);
         status = psa_hash_update(&op, i_digit_idx_bytes, I_DIGIT_IDX_LEN);
         if (status != PSA_SUCCESS) {
             goto exit;
@@ -774,9 +733,7 @@ int mbedtls_lmots_sign(mbedtls_lmots_private_t *ctx,
         goto exit;
     }
 
-    mbedtls_lms_unsigned_int_to_network_bytes(ctx->params.type,
-                                              MBEDTLS_LMOTS_TYPE_LEN,
-                                              sig + MBEDTLS_LMOTS_SIG_TYPE_OFFSET);
+    MBEDTLS_PUT_UINT32_BE(ctx->params.type, sig, MBEDTLS_LMOTS_SIG_TYPE_OFFSET);
 
     /* Test hook to check if sig is being written to before we invalidate the
      * private key.

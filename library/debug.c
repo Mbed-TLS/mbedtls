@@ -366,7 +366,7 @@ static void debug_print_line_by_line(const mbedtls_ssl_context *ssl, int level,
     start = text;
     for (cur = text; *cur != '\0'; cur++) {
         if (*cur == '\n') {
-            size_t len = cur - start + 1;
+            size_t len = (size_t) (cur - start) + 1;
             if (len > DEBUG_BUF_SIZE - 1) {
                 len = DEBUG_BUF_SIZE - 1;
             }

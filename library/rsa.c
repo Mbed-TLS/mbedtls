@@ -29,6 +29,7 @@
 
 #include "mbedtls/rsa.h"
 #include "rsa_alt_helpers.h"
+#include "rsa_internal.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
@@ -1620,12 +1621,12 @@ int mbedtls_rsa_rsaes_oaep_decrypt(mbedtls_rsa_context *ctx,
         goto cleanup;
     }
 
-    if (ilen - (p - buf) > output_max_len) {
+    if (ilen - ((size_t) (p - buf)) > output_max_len) {
         ret = MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE;
         goto cleanup;
     }
 
-    *olen = ilen - (p - buf);
+    *olen = ilen - ((size_t) (p - buf));
     if (*olen != 0) {
         memcpy(output, p, *olen);
     }
@@ -1712,14 +1713,14 @@ int mbedtls_rsa_pkcs1_decrypt(mbedtls_rsa_context *ctx,
 }
 
 #if defined(MBEDTLS_PKCS1_V21)
-static int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
-                               int (*f_rng)(void *, unsigned char *, size_t),
-                               void *p_rng,
-                               mbedtls_md_type_t md_alg,
-                               unsigned int hashlen,
-                               const unsigned char *hash,
-                               int saltlen,
-                               unsigned char *sig)
+static int rsa_rsassa_pss_sign_no_mode_check(mbedtls_rsa_context *ctx,
+                                             int (*f_rng)(void *, unsigned char *, size_t),
+                                             void *p_rng,
+                                             mbedtls_md_type_t md_alg,
+                                             unsigned int hashlen,
+                                             const unsigned char *hash,
+                                             int saltlen,
+                                             unsigned char *sig)
 {
     size_t olen;
     unsigned char *p = sig;
@@ -1727,12 +1728,9 @@ static int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
     size_t slen, min_slen, hlen, offset = 0;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t msb;
+    mbedtls_md_type_t hash_id;
 
     if ((md_alg != MBEDTLS_MD_NONE || hashlen != 0) && hash == NULL) {
-        return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
-    }
-
-    if (ctx->padding != MBEDTLS_RSA_PKCS_V21) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
 
@@ -1754,7 +1752,11 @@ static int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
         }
     }
 
-    hlen = mbedtls_md_get_size_from_type((mbedtls_md_type_t) ctx->hash_id);
+    hash_id = (mbedtls_md_type_t) ctx->hash_id;
+    if (hash_id == MBEDTLS_MD_NONE) {
+        hash_id = md_alg;
+    }
+    hlen = mbedtls_md_get_size_from_type(hash_id);
     if (hlen == 0) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
@@ -1797,7 +1799,7 @@ static int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
     p += slen;
 
     /* Generate H = Hash( M' ) */
-    ret = hash_mprime(hash, hashlen, salt, slen, p, (mbedtls_md_type_t) ctx->hash_id);
+    ret = hash_mprime(hash, hashlen, salt, slen, p, hash_id);
     if (ret != 0) {
         return ret;
     }
@@ -1808,8 +1810,7 @@ static int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
     }
 
     /* maskedDB: Apply dbMask to DB */
-    ret = mgf_mask(sig + offset, olen - hlen - 1 - offset, p, hlen,
-                   (mbedtls_md_type_t) ctx->hash_id);
+    ret = mgf_mask(sig + offset, olen - hlen - 1 - offset, p, hlen, hash_id);
     if (ret != 0) {
         return ret;
     }
@@ -1821,6 +1822,37 @@ static int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
     *p++ = 0xBC;
 
     return mbedtls_rsa_private(ctx, f_rng, p_rng, sig, sig);
+}
+
+static int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
+                               int (*f_rng)(void *, unsigned char *, size_t),
+                               void *p_rng,
+                               mbedtls_md_type_t md_alg,
+                               unsigned int hashlen,
+                               const unsigned char *hash,
+                               int saltlen,
+                               unsigned char *sig)
+{
+    if (ctx->padding != MBEDTLS_RSA_PKCS_V21) {
+        return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
+    }
+    if (ctx->hash_id == MBEDTLS_MD_NONE) {
+        return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
+    }
+    return rsa_rsassa_pss_sign_no_mode_check(ctx, f_rng, p_rng, md_alg, hashlen, hash, saltlen,
+                                             sig);
+}
+
+int mbedtls_rsa_rsassa_pss_sign_no_mode_check(mbedtls_rsa_context *ctx,
+                                              int (*f_rng)(void *, unsigned char *, size_t),
+                                              void *p_rng,
+                                              mbedtls_md_type_t md_alg,
+                                              unsigned int hashlen,
+                                              const unsigned char *hash,
+                                              unsigned char *sig)
+{
+    return rsa_rsassa_pss_sign_no_mode_check(ctx, f_rng, p_rng, md_alg,
+                                             hashlen, hash, MBEDTLS_RSA_SALT_LEN_ANY, sig);
 }
 
 /*
@@ -1839,7 +1871,6 @@ int mbedtls_rsa_rsassa_pss_sign_ext(mbedtls_rsa_context *ctx,
     return rsa_rsassa_pss_sign(ctx, f_rng, p_rng, md_alg,
                                hashlen, hash, saltlen, sig);
 }
-
 
 /*
  * Implementation of the PKCS#1 v2.1 RSASSA-PSS-SIGN function
@@ -2191,7 +2222,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext(mbedtls_rsa_context *ctx,
         return MBEDTLS_ERR_RSA_INVALID_PADDING;
     }
 
-    observed_salt_len = hash_start - p;
+    observed_salt_len = (size_t) (hash_start - p);
 
     if (expected_salt_len != MBEDTLS_RSA_SALT_LEN_ANY &&
         observed_salt_len != (size_t) expected_salt_len) {

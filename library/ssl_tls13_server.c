@@ -111,9 +111,10 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     unsigned char *ticket_buffer;
     unsigned int key_exchanges;
 #if defined(MBEDTLS_HAVE_TIME)
-    mbedtls_time_t now;
-    uint64_t age_in_s;
-    int64_t age_diff_in_ms;
+    mbedtls_ms_time_t now;
+    mbedtls_ms_time_t server_age;
+    uint32_t client_age;
+    mbedtls_ms_time_t age_diff;
 #endif
 
     ((void) obfuscated_ticket_age);
@@ -190,17 +191,17 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 
     ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
 #if defined(MBEDTLS_HAVE_TIME)
-    now = mbedtls_time(NULL);
+    now = mbedtls_ms_time();
 
-    if (now < session->start) {
+    if (now < session->ticket_creation_time) {
         MBEDTLS_SSL_DEBUG_MSG(
-            3, ("Invalid ticket start time ( now=%" MBEDTLS_PRINTF_LONGLONG
-                ", start=%" MBEDTLS_PRINTF_LONGLONG " )",
-                (long long) now, (long long) session->start));
+            3, ("Invalid ticket creation time ( now = %" MBEDTLS_PRINTF_MS_TIME
+                ", creation_time = %" MBEDTLS_PRINTF_MS_TIME " )",
+                now, session->ticket_creation_time));
         goto exit;
     }
 
-    age_in_s = (uint64_t) (now - session->start);
+    server_age = now - session->ticket_creation_time;
 
     /* RFC 8446 section 4.6.1
      *
@@ -211,12 +212,11 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      * Clients MUST NOT attempt to use tickets which have ages greater than
      * the "ticket_lifetime" value which was provided with the ticket.
      *
-     * For time being, the age MUST be less than 604800 seconds (7 days).
      */
-    if (age_in_s > 604800) {
+    if (server_age > MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME * 1000) {
         MBEDTLS_SSL_DEBUG_MSG(
-            3, ("Ticket age exceeds limitation ticket_age=%lu",
-                (long unsigned int) age_in_s));
+            3, ("Ticket age exceeds limitation ticket_age = %" MBEDTLS_PRINTF_MS_TIME,
+                server_age));
         goto exit;
     }
 
@@ -227,18 +227,19 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      * ticket_age_add from PskIdentity.obfuscated_ticket_age modulo 2^32) is
      * within a small tolerance of the time since the ticket was issued.
      *
-     * NOTE: When `now == session->start`, `age_diff_in_ms` may be negative
-     *       as the age units are different on the server (s) and in the
-     *       client (ms) side. Add a -1000 ms tolerance window to take this
-     *       into account.
+     * NOTE: The typical accuracy of an RTC crystal is ±100 to ±20 parts per
+     *       million (360 to 72 milliseconds per hour). Default tolerance
+     *       window is 6s, thus in the worst case clients and servers must
+     *       sync up their system time every 6000/360/2~=8 hours.
      */
-    age_diff_in_ms = age_in_s * 1000;
-    age_diff_in_ms -= (obfuscated_ticket_age - session->ticket_age_add);
-    if (age_diff_in_ms <= -1000 ||
-        age_diff_in_ms > MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE) {
+    client_age = obfuscated_ticket_age - session->ticket_age_add;
+    age_diff = server_age - (mbedtls_ms_time_t) client_age;
+    if (age_diff < -MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE ||
+        age_diff > MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE) {
         MBEDTLS_SSL_DEBUG_MSG(
-            3, ("Ticket age outside tolerance window ( diff=%d )",
-                (int) age_diff_in_ms));
+            3, ("Ticket age outside tolerance window ( diff = %"
+                MBEDTLS_PRINTF_MS_TIME ")",
+                age_diff));
         goto exit;
     }
 
@@ -1844,6 +1845,13 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
 
     }
 
+    if (!mbedtls_ssl_session_ticket_allow_early_data(ssl->session_negotiate)) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1,
+            ("EarlyData: rejected, early_data not allowed in ticket "
+             "permission bits."));
+        return;
+    }
 
     ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
 
@@ -1879,10 +1887,18 @@ static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     /* There is enough information, update early data state. */
     ssl_tls13_update_early_data_status(ssl);
+
+    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
+        ret = mbedtls_ssl_tls13_compute_early_transform(ssl);
+        if (ret != 0) {
+            MBEDTLS_SSL_DEBUG_RET(
+                1, "mbedtls_ssl_tls13_compute_early_transform", ret);
+            return ret;
+        }
+    }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
     return 0;
-
 }
 
 /*
@@ -2508,7 +2524,8 @@ static int ssl_tls13_write_encrypted_extensions_body(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
-        ret = mbedtls_ssl_tls13_write_early_data_ext(ssl, p, end, &output_len);
+        ret = mbedtls_ssl_tls13_write_early_data_ext(
+            ssl, 0, p, end, &output_len);
         if (ret != 0) {
             return ret;
         }
@@ -2748,6 +2765,59 @@ static int ssl_tls13_write_certificate_verify(mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
 /*
+ * RFC 8446 section A.2
+ *
+ *                                | Send ServerHello
+ *                                | K_send = handshake
+ *                                | Send EncryptedExtensions
+ *                                | [Send CertificateRequest]
+ * Can send                       | [Send Certificate + CertificateVerify]
+ * app data                       | Send Finished
+ * after   -->                    | K_send = application
+ * here                  +--------+--------+
+ *              No 0-RTT |                 | 0-RTT
+ *                       |                 |
+ *   K_recv = handshake  |                 | K_recv = early data
+ * [Skip decrypt errors] |    +------> WAIT_EOED -+
+ *                       |    |       Recv |      | Recv EndOfEarlyData
+ *                       |    | early data |      | K_recv = handshake
+ *                       |    +------------+      |
+ *                       |                        |
+ *                       +> WAIT_FLIGHT2 <--------+
+ *                                |
+ *                       +--------+--------+
+ *               No auth |                 | Client auth
+ *                       |                 |
+ *                       |                 v
+ *                       |             WAIT_CERT
+ *                       |        Recv |       | Recv Certificate
+ *                       |       empty |       v
+ *                       | Certificate |    WAIT_CV
+ *                       |             |       | Recv
+ *                       |             v       | CertificateVerify
+ *                       +-> WAIT_FINISHED <---+
+ *                                | Recv Finished
+ *
+ *
+ * The following function handles the state changes after WAIT_FLIGHT2 in the
+ * above diagram. We are not going to receive early data related messages
+ * anymore, prepare to receive the first handshake message of the client
+ * second flight.
+ */
+static void ssl_tls13_prepare_for_handshake_second_flight(
+    mbedtls_ssl_context *ssl)
+{
+    if (ssl->handshake->certificate_request_sent) {
+        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
+    } else {
+        MBEDTLS_SSL_DEBUG_MSG(2, ("skip parse certificate"));
+        MBEDTLS_SSL_DEBUG_MSG(2, ("skip parse certificate verify"));
+
+        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_FINISHED);
+    }
+}
+
+/*
  * Handler for MBEDTLS_SSL_SERVER_FINISHED
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -2768,19 +2838,199 @@ static int ssl_tls13_write_server_finished(mbedtls_ssl_context *ssl)
         return ret;
     }
 
-    MBEDTLS_SSL_DEBUG_MSG(1, ("Switch to handshake keys for inbound traffic"));
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
+        /* See RFC 8446 section A.2 for more information */
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("Switch to early keys for inbound traffic. "
+                "( K_recv = early data )"));
+        mbedtls_ssl_set_inbound_transform(
+            ssl, ssl->handshake->transform_earlydata);
+        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_END_OF_EARLY_DATA);
+        return 0;
+    }
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+    MBEDTLS_SSL_DEBUG_MSG(
+        1, ("Switch to handshake keys for inbound traffic "
+            "( K_recv = handshake )"));
     mbedtls_ssl_set_inbound_transform(ssl, ssl->handshake->transform_handshake);
 
-    if (ssl->handshake->certificate_request_sent) {
-        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
-    } else {
-        MBEDTLS_SSL_DEBUG_MSG(2, ("skip parse certificate"));
-        MBEDTLS_SSL_DEBUG_MSG(2, ("skip parse certificate verify"));
-        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_FINISHED);
-    }
+    ssl_tls13_prepare_for_handshake_second_flight(ssl);
 
     return 0;
 }
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+/*
+ * Handler for MBEDTLS_SSL_END_OF_EARLY_DATA
+ */
+#define SSL_GOT_END_OF_EARLY_DATA      0
+#define SSL_GOT_EARLY_DATA             1
+/* Coordination:
+ * Deals with the ambiguity of not knowing if the next message is an
+ * EndOfEarlyData message or an application message containing early data.
+ * Returns a negative code on failure, or
+ * - SSL_GOT_END_OF_EARLY_DATA
+ * - SSL_GOT_EARLY_DATA
+ * indicating which message is received.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_end_of_early_data_coordinate(mbedtls_ssl_context *ssl)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    if ((ret = mbedtls_ssl_read_record(ssl, 0)) != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_read_record", ret);
+        return ret;
+    }
+    ssl->keep_current_message = 1;
+
+    if (ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE        &&
+        ssl->in_msg[0]  == MBEDTLS_SSL_HS_END_OF_EARLY_DATA) {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("Received an end_of_early_data message."));
+        return SSL_GOT_END_OF_EARLY_DATA;
+    }
+
+    if (ssl->in_msgtype == MBEDTLS_SSL_MSG_APPLICATION_DATA) {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("Received early data"));
+        return SSL_GOT_EARLY_DATA;
+    }
+
+    MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
+                                 MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE);
+    return MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+}
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_parse_end_of_early_data(mbedtls_ssl_context *ssl,
+                                             const unsigned char *buf,
+                                             const unsigned char *end)
+{
+    /* RFC 8446 section 4.5
+     *
+     * struct {} EndOfEarlyData;
+     */
+    if (buf != end) {
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                     MBEDTLS_ERR_SSL_DECODE_ERROR);
+        return MBEDTLS_ERR_SSL_DECODE_ERROR;
+    }
+    return 0;
+}
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_process_early_application_data(mbedtls_ssl_context *ssl)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    if ((ret = mbedtls_ssl_read_record(ssl, 0)) != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_read_record", ret);
+        return ret;
+    }
+
+    /*
+     * Output early data
+     *
+     * For the time being, we print received data via debug message.
+     *
+     * TODO: Remove it when `mbedtls_ssl_read_early_data` is ready.
+     */
+    ssl->in_msg[ssl->in_msglen] = 0;
+    MBEDTLS_SSL_DEBUG_MSG(3, ("\n%s", ssl->in_msg));
+
+    /* RFC 8446 section 4.6.1
+     *
+     * A server receiving more than max_early_data_size bytes of 0-RTT data
+     * SHOULD terminate the connection with an "unexpected_message" alert.
+     *
+     * TODO: Add received data size check here.
+     */
+
+    return 0;
+}
+
+/*
+ * RFC 8446 section A.2
+ *
+ *                                | Send ServerHello
+ *                                | K_send = handshake
+ *                                | Send EncryptedExtensions
+ *                                | [Send CertificateRequest]
+ * Can send                       | [Send Certificate + CertificateVerify]
+ * app data                       | Send Finished
+ * after   -->                    | K_send = application
+ * here                  +--------+--------+
+ *              No 0-RTT |                 | 0-RTT
+ *                       |                 |
+ *   K_recv = handshake  |                 | K_recv = early data
+ * [Skip decrypt errors] |    +------> WAIT_EOED -+
+ *                       |    |       Recv |      | Recv EndOfEarlyData
+ *                       |    | early data |      | K_recv = handshake
+ *                       |    +------------+      |
+ *                       |                        |
+ *                       +> WAIT_FLIGHT2 <--------+
+ *                                |
+ *                       +--------+--------+
+ *               No auth |                 | Client auth
+ *                       |                 |
+ *                       |                 v
+ *                       |             WAIT_CERT
+ *                       |        Recv |       | Recv Certificate
+ *                       |       empty |       v
+ *                       | Certificate |    WAIT_CV
+ *                       |             |       | Recv
+ *                       |             v       | CertificateVerify
+ *                       +-> WAIT_FINISHED <---+
+ *                                | Recv Finished
+ *
+ * The function handles actions and state changes from 0-RTT to WAIT_FLIGHT2 in
+ * the above diagram.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_process_end_of_early_data(mbedtls_ssl_context *ssl)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    MBEDTLS_SSL_DEBUG_MSG(2, ("=> ssl_tls13_process_end_of_early_data"));
+
+    MBEDTLS_SSL_PROC_CHK_NEG(ssl_tls13_end_of_early_data_coordinate(ssl));
+
+    if (ret == SSL_GOT_END_OF_EARLY_DATA) {
+        unsigned char *buf;
+        size_t buf_len;
+
+        MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_tls13_fetch_handshake_msg(
+                                 ssl, MBEDTLS_SSL_HS_END_OF_EARLY_DATA,
+                                 &buf, &buf_len));
+
+        MBEDTLS_SSL_PROC_CHK(ssl_tls13_parse_end_of_early_data(
+                                 ssl, buf, buf + buf_len));
+
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("Switch to handshake keys for inbound traffic"
+                "( K_recv = handshake )"));
+        mbedtls_ssl_set_inbound_transform(
+            ssl, ssl->handshake->transform_handshake);
+
+        MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(
+                                 ssl, MBEDTLS_SSL_HS_END_OF_EARLY_DATA,
+                                 buf, buf_len));
+
+        ssl_tls13_prepare_for_handshake_second_flight(ssl);
+
+    } else if (ret == SSL_GOT_EARLY_DATA) {
+        MBEDTLS_SSL_PROC_CHK(ssl_tls13_process_early_application_data(ssl));
+    } else {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
+        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+        goto cleanup;
+    }
+
+cleanup:
+    MBEDTLS_SSL_DEBUG_MSG(2, ("<= ssl_tls13_process_end_of_early_data"));
+    return ret;
+}
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
 /*
  * Handler for MBEDTLS_SSL_CLIENT_FINISHED
@@ -2877,7 +3127,7 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> prepare NewSessionTicket msg"));
 
 #if defined(MBEDTLS_HAVE_TIME)
-    session->start = mbedtls_time(NULL);
+    session->ticket_creation_time = mbedtls_ms_time();
 #endif
 
     /* Set ticket_flags depends on the advertised psk key exchange mode */
@@ -2887,6 +3137,15 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
     mbedtls_ssl_session_set_ticket_flags(
         session, ssl->handshake->tls13_kex_modes);
 #endif
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED &&
+        ssl->conf->max_early_data_size > 0) {
+        mbedtls_ssl_session_set_ticket_flags(
+            session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
+    }
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
     MBEDTLS_SSL_PRINT_TICKET_FLAGS(4, session->ticket_flags);
 
     /* Generate ticket_age_add */
@@ -2970,12 +3229,13 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
  * The following fields are placed inside the ticket by the
  * f_ticket_write() function:
  *
- *  - creation time (start)
- *  - flags (flags)
+ *  - creation time (ticket_creation_time)
+ *  - flags (ticket_flags)
  *  - age add (ticket_age_add)
- *  - key (key)
- *  - key length (key_len)
+ *  - key (resumption_key)
+ *  - key length (resumption_key_len)
  *  - ciphersuite (ciphersuite)
+ *  - max_early_data_size (max_early_data_size)
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
@@ -2990,6 +3250,7 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
     mbedtls_ssl_session *session = ssl->session;
     size_t ticket_len;
     uint32_t ticket_lifetime;
+    unsigned char *p_extensions_len;
 
     *out_len = 0;
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write NewSessionTicket msg"));
@@ -3024,8 +3285,8 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
      *      MAY treat a ticket as valid for a shorter period of time than what
      *      is stated in the ticket_lifetime.
      */
-    if (ticket_lifetime > 604800) {
-        ticket_lifetime = 604800;
+    if (ticket_lifetime > MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME) {
+        ticket_lifetime = MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME;
     }
     MBEDTLS_PUT_UINT32_BE(ticket_lifetime, p, 0);
     MBEDTLS_SSL_DEBUG_MSG(3, ("ticket_lifetime: %u",
@@ -3051,14 +3312,34 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
 
     /* Ticket Extensions
      *
-     * Note: We currently don't have any extensions.
-     * Set length to zero.
+     * Extension extensions<0..2^16-2>;
      */
     ssl->handshake->sent_extensions = MBEDTLS_SSL_EXT_MASK_NONE;
 
     MBEDTLS_SSL_CHK_BUF_PTR(p, end, 2);
-    MBEDTLS_PUT_UINT16_BE(0, p, 0);
+    p_extensions_len = p;
     p += 2;
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (mbedtls_ssl_session_ticket_allow_early_data(session)) {
+        size_t output_len;
+
+        if ((ret = mbedtls_ssl_tls13_write_early_data_ext(
+                 ssl, 1, p, end, &output_len)) != 0) {
+            MBEDTLS_SSL_DEBUG_RET(
+                1, "mbedtls_ssl_tls13_write_early_data_ext", ret);
+            return ret;
+        }
+        p += output_len;
+    } else {
+        MBEDTLS_SSL_DEBUG_MSG(
+            4, ("early_data not allowed, "
+                "skip early_data extension in NewSessionTicket"));
+    }
+
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
+    MBEDTLS_PUT_UINT16_BE(p - p_extensions_len - 2, p_extensions_len, 0);
 
     *out_len = p - buf;
     MBEDTLS_SSL_DEBUG_BUF(4, "ticket", buf, *out_len);
@@ -3205,6 +3486,12 @@ int mbedtls_ssl_tls13_handshake_server_step(mbedtls_ssl_context *ssl)
         case MBEDTLS_SSL_SERVER_FINISHED:
             ret = ssl_tls13_write_server_finished(ssl);
             break;
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        case MBEDTLS_SSL_END_OF_EARLY_DATA:
+            ret = ssl_tls13_process_end_of_early_data(ssl);
+            break;
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
         case MBEDTLS_SSL_CLIENT_FINISHED:
             ret = ssl_tls13_process_client_finished(ssl);

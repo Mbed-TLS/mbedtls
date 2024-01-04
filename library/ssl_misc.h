@@ -1409,7 +1409,7 @@ int mbedtls_ssl_fetch_input(mbedtls_ssl_context *ssl, size_t nb_want);
  * Write handshake message header
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
-int mbedtls_ssl_start_handshake_msg(mbedtls_ssl_context *ssl, unsigned hs_type,
+int mbedtls_ssl_start_handshake_msg(mbedtls_ssl_context *ssl, unsigned char hs_type,
                                     unsigned char **buf, size_t *buf_len);
 
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -2113,6 +2113,7 @@ int mbedtls_ssl_tls13_generate_and_write_xxdh_key_exchange(
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
+                                           int in_new_session_ticket,
                                            unsigned char *buf,
                                            const unsigned char *end,
                                            size_t *out_len);
@@ -2765,6 +2766,9 @@ int mbedtls_ssl_session_set_hostname(mbedtls_ssl_session *session,
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+
+#define MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME (604800)
+
 static inline unsigned int mbedtls_ssl_session_get_ticket_flags(
     mbedtls_ssl_session *session, unsigned int flags)
 {
@@ -2790,6 +2794,13 @@ static inline unsigned int mbedtls_ssl_session_ticket_allow_psk_ephemeral(
 {
     return !mbedtls_ssl_session_check_ticket_flags(session,
                                                    MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_EPHEMERAL_RESUMPTION);
+}
+
+static inline unsigned int mbedtls_ssl_session_ticket_allow_early_data(
+    mbedtls_ssl_session *session)
+{
+    return !mbedtls_ssl_session_check_ticket_flags(session,
+                                                   MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
 }
 
 static inline void mbedtls_ssl_session_set_ticket_flags(

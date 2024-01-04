@@ -408,181 +408,6 @@ static void psa_wipe_tag_output_buffer(uint8_t *output_buffer, psa_status_t stat
 }
 
 
-
-
-/****************************************************************/
-/* Key management */
-/****************************************************************/
-
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
-                                          size_t *bits)
-{
-    switch (grpid) {
-#if defined(MBEDTLS_ECP_HAVE_SECP192R1)
-        case MBEDTLS_ECP_DP_SECP192R1:
-            *bits = 192;
-            return PSA_ECC_FAMILY_SECP_R1;
-#endif
-#if defined(MBEDTLS_ECP_HAVE_SECP224R1)
-        case MBEDTLS_ECP_DP_SECP224R1:
-            *bits = 224;
-            return PSA_ECC_FAMILY_SECP_R1;
-#endif
-#if defined(MBEDTLS_ECP_HAVE_SECP256R1)
-        case MBEDTLS_ECP_DP_SECP256R1:
-            *bits = 256;
-            return PSA_ECC_FAMILY_SECP_R1;
-#endif
-#if defined(MBEDTLS_ECP_HAVE_SECP384R1)
-        case MBEDTLS_ECP_DP_SECP384R1:
-            *bits = 384;
-            return PSA_ECC_FAMILY_SECP_R1;
-#endif
-#if defined(MBEDTLS_ECP_HAVE_SECP521R1)
-        case MBEDTLS_ECP_DP_SECP521R1:
-            *bits = 521;
-            return PSA_ECC_FAMILY_SECP_R1;
-#endif
-#if defined(MBEDTLS_ECP_HAVE_BP256R1)
-        case MBEDTLS_ECP_DP_BP256R1:
-            *bits = 256;
-            return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
-#endif
-#if defined(MBEDTLS_ECP_HAVE_BP384R1)
-        case MBEDTLS_ECP_DP_BP384R1:
-            *bits = 384;
-            return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
-#endif
-#if defined(MBEDTLS_ECP_HAVE_BP512R1)
-        case MBEDTLS_ECP_DP_BP512R1:
-            *bits = 512;
-            return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
-#endif
-#if defined(MBEDTLS_ECP_HAVE_CURVE25519)
-        case MBEDTLS_ECP_DP_CURVE25519:
-            *bits = 255;
-            return PSA_ECC_FAMILY_MONTGOMERY;
-#endif
-#if defined(MBEDTLS_ECP_HAVE_SECP192K1)
-        case MBEDTLS_ECP_DP_SECP192K1:
-            *bits = 192;
-            return PSA_ECC_FAMILY_SECP_K1;
-#endif
-#if defined(MBEDTLS_ECP_HAVE_SECP224K1)
-        case MBEDTLS_ECP_DP_SECP224K1:
-            *bits = 224;
-            return PSA_ECC_FAMILY_SECP_K1;
-#endif
-#if defined(MBEDTLS_ECP_HAVE_SECP256K1)
-        case MBEDTLS_ECP_DP_SECP256K1:
-            *bits = 256;
-            return PSA_ECC_FAMILY_SECP_K1;
-#endif
-#if defined(MBEDTLS_ECP_HAVE_CURVE448)
-        case MBEDTLS_ECP_DP_CURVE448:
-            *bits = 448;
-            return PSA_ECC_FAMILY_MONTGOMERY;
-#endif
-        default:
-            *bits = 0;
-            return 0;
-    }
-}
-
-mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
-                                              size_t bits,
-                                              int bits_is_sloppy)
-{
-    switch (curve) {
-        case PSA_ECC_FAMILY_SECP_R1:
-            switch (bits) {
-#if defined(PSA_WANT_ECC_SECP_R1_192)
-                case 192:
-                    return MBEDTLS_ECP_DP_SECP192R1;
-#endif
-#if defined(PSA_WANT_ECC_SECP_R1_224)
-                case 224:
-                    return MBEDTLS_ECP_DP_SECP224R1;
-#endif
-#if defined(PSA_WANT_ECC_SECP_R1_256)
-                case 256:
-                    return MBEDTLS_ECP_DP_SECP256R1;
-#endif
-#if defined(PSA_WANT_ECC_SECP_R1_384)
-                case 384:
-                    return MBEDTLS_ECP_DP_SECP384R1;
-#endif
-#if defined(PSA_WANT_ECC_SECP_R1_521)
-                case 521:
-                    return MBEDTLS_ECP_DP_SECP521R1;
-                case 528:
-                    if (bits_is_sloppy) {
-                        return MBEDTLS_ECP_DP_SECP521R1;
-                    }
-                    break;
-#endif
-            }
-            break;
-
-        case PSA_ECC_FAMILY_BRAINPOOL_P_R1:
-            switch (bits) {
-#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
-                case 256:
-                    return MBEDTLS_ECP_DP_BP256R1;
-#endif
-#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
-                case 384:
-                    return MBEDTLS_ECP_DP_BP384R1;
-#endif
-#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
-                case 512:
-                    return MBEDTLS_ECP_DP_BP512R1;
-#endif
-            }
-            break;
-
-        case PSA_ECC_FAMILY_MONTGOMERY:
-            switch (bits) {
-#if defined(PSA_WANT_ECC_MONTGOMERY_255)
-                case 255:
-                    return MBEDTLS_ECP_DP_CURVE25519;
-                case 256:
-                    if (bits_is_sloppy) {
-                        return MBEDTLS_ECP_DP_CURVE25519;
-                    }
-                    break;
-#endif
-#if defined(PSA_WANT_ECC_MONTGOMERY_448)
-                case 448:
-                    return MBEDTLS_ECP_DP_CURVE448;
-#endif
-            }
-            break;
-
-        case PSA_ECC_FAMILY_SECP_K1:
-            switch (bits) {
-#if defined(PSA_WANT_ECC_SECP_K1_192)
-                case 192:
-                    return MBEDTLS_ECP_DP_SECP192K1;
-#endif
-#if defined(PSA_WANT_ECC_SECP_K1_224)
-                case 224:
-                    return MBEDTLS_ECP_DP_SECP224K1;
-#endif
-#if defined(PSA_WANT_ECC_SECP_K1_256)
-                case 256:
-                    return MBEDTLS_ECP_DP_SECP256K1;
-#endif
-            }
-            break;
-    }
-
-    (void) bits_is_sloppy;
-    return MBEDTLS_ECP_DP_NONE;
-}
-#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
-
 psa_status_t psa_validate_unstructured_key_bit_size(psa_key_type_t type,
                                                     size_t bits)
 {
@@ -1378,9 +1203,9 @@ psa_status_t psa_get_key_attributes(mbedtls_svc_key_id_t key,
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
         case PSA_KEY_TYPE_RSA_KEY_PAIR:
         case PSA_KEY_TYPE_RSA_PUBLIC_KEY:
-            /* TODO: reporting the public exponent for opaque keys
-             * is not yet implemented.
-             * https://github.com/ARMmbed/mbed-crypto/issues/216
+            /* TODO: This is a temporary situation where domain parameters are deprecated,
+             * but we need it for namely generating an RSA key with a non-default exponent.
+             * This would be improved after https://github.com/Mbed-TLS/mbedtls/issues/6494.
              */
             if (!psa_key_lifetime_is_external(slot->attr.lifetime)) {
                 mbedtls_rsa_context *rsa = NULL;
@@ -1399,6 +1224,12 @@ psa_status_t psa_get_key_attributes(mbedtls_svc_key_id_t key,
                 mbedtls_rsa_free(rsa);
                 mbedtls_free(rsa);
             }
+            break;
+#else
+        case PSA_KEY_TYPE_RSA_KEY_PAIR:
+        case PSA_KEY_TYPE_RSA_PUBLIC_KEY:
+            attributes->domain_parameters = NULL;
+            attributes->domain_parameters_size = SIZE_MAX;
             break;
 #endif /* (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) && \
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) ||
@@ -1848,6 +1679,8 @@ static psa_status_t psa_start_key_creation(
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
+    slot->status = PSA_SLOT_OCCUPIED;
 
     return PSA_SUCCESS;
 }
@@ -6625,7 +6458,7 @@ static psa_status_t psa_tls12_prf_psk_to_ms_set_key(
     memcpy(cur, data, data_length);
     cur += data_length;
 
-    status = psa_tls12_prf_set_key(prf, pms, cur - pms);
+    status = psa_tls12_prf_set_key(prf, pms, (size_t) (cur - pms));
 
     mbedtls_zeroize_and_free(pms, pms_len);
     return status;
@@ -7712,6 +7545,11 @@ psa_status_t psa_crypto_init(void)
     }
     global_data.drivers_initialized = 1;
 
+    status = psa_initialize_key_slots();
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
     /* Initialize and seed the random generator. */
     mbedtls_psa_random_init(&global_data.rng);
     global_data.rng_state = RNG_INITIALIZED;
@@ -7720,11 +7558,6 @@ psa_status_t psa_crypto_init(void)
         goto exit;
     }
     global_data.rng_state = RNG_SEEDED;
-
-    status = psa_initialize_key_slots();
-    if (status != PSA_SUCCESS) {
-        goto exit;
-    }
 
 #if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)
     status = psa_crypto_load_transaction();

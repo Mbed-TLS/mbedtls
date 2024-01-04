@@ -1,0 +1,5 @@
+Bugfix
+    * Switch to milliseconds as the unit for ticket creation and reception time
+      instead of seconds. That avoids rounding errors when computing the age of
+      tickets compared to peer using a millisecond clock (observed with GnuTLS).
+      Fixes #6623.

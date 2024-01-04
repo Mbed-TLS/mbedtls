@@ -28,7 +28,7 @@
  * By defining the macros ourselves we gain access to those declarations without
  * requiring -march on the command line.
  *
- * `arm_neon.h` could be included by any header file, so we put these defines
+ * `arm_neon.h` is included by common.h, so we put these defines
  * at the top of this file, before any includes.
  */
 #define __ARM_FEATURE_CRYPTO 1
@@ -62,9 +62,7 @@
 
 #  if defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT) || \
     defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY)
-#       ifdef __ARM_NEON
-#           include <arm_neon.h>
-#       else
+#       if !defined(MBEDTLS_HAVE_NEON_INTRINSICS)
 #           if defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT)
 #               warning "Target does not support NEON instructions"
 #               undef MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
@@ -126,12 +124,7 @@
 #      include <signal.h>
 #    endif
 #  endif
-#elif defined(_M_ARM64)
-#  if defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT) || \
-    defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY)
-#    include <arm64_neon.h>
-#  endif
-#else
+#elif !defined(MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64)
 #  undef MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
 #  undef MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
 #endif
@@ -156,7 +149,7 @@ static int mbedtls_a64_crypto_sha256_determine_support(void)
 {
     return 1;
 }
-#elif defined(_M_ARM64)
+#elif defined(MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64)
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <processthreadsapi.h>

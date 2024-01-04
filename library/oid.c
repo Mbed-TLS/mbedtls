@@ -1129,7 +1129,7 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
         }
     }
 
-    encoded_len = out_ptr - oid->p;
+    encoded_len = (size_t) (out_ptr - oid->p);
     resized_mem = mbedtls_calloc(encoded_len, 1);
     if (resized_mem == NULL) {
         ret = MBEDTLS_ERR_ASN1_ALLOC_FAILED;

@@ -105,6 +105,7 @@ class FileIssueTracker:
 
 BINARY_FILE_PATH_RE_LIST = [
     r'docs/.*\.pdf\Z',
+    r'docs/.*\.png\Z',
     r'programs/fuzz/corpuses/[^.]+\Z',
     r'tests/data_files/[^.]+\Z',
     r'tests/data_files/.*\.(crt|csr|db|der|key|pubkey)\Z',
@@ -317,6 +318,7 @@ class TabIssueTracker(LineIssueTracker):
 
     heading = "Tabs present:"
     suffix_exemptions = frozenset([
+        ".make",
         ".pem", # some openssl dumps have tabs
         ".sln",
         "/Makefile",
@@ -371,8 +373,9 @@ class LicenseIssueTracker(LineIssueTracker):
         r'(ChangeLog|LICENSE|[-0-9A-Z_a-z]+\.md)\Z',
         # Files imported from TF-M, and not used except in test builds,
         # may be under a different license.
-        r'configs/crypto_config_profile_medium\.h\Z',
-        r'configs/tfm_mbedcrypto_config_profile_medium\.h\Z',
+        r'configs/ext/crypto_config_profile_medium\.h\Z',
+        r'configs/ext/tfm_mbedcrypto_config_profile_medium\.h\Z',
+        r'configs/ext/README\.md\Z',
         # Third-party file.
         r'dco\.txt\Z',
     ]

@@ -1633,6 +1633,7 @@ exit:
 }
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
                                             int ticket_len,
                                             const char *crt_file)
@@ -1729,6 +1730,7 @@ int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
 
     return 0;
 }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
@@ -1750,16 +1752,16 @@ int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
     session->max_early_data_size = 0x87654321;
 #endif
 
-#if defined(MBEDTLS_HAVE_TIME)
+#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
     if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
-        session->start = mbedtls_time(NULL) - 42;
+        session->ticket_creation_time = mbedtls_ms_time() - 42;
     }
 #endif
 
 #if defined(MBEDTLS_SSL_CLI_C)
     if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
 #if defined(MBEDTLS_HAVE_TIME)
-        session->ticket_received = mbedtls_time(NULL) - 40;
+        session->ticket_reception_time = mbedtls_ms_time() - 40;
 #endif
         session->ticket_lifetime = 0xfedcba98;
 

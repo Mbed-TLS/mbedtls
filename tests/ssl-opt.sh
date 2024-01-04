@@ -4927,8 +4927,9 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (1024), 1 fragment" \
             "$P_SRV debug_level=3 force_version=tls13 response_size=512" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 1023" \
@@ -4940,8 +4941,9 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (1024), 2 fragments" \
             "$P_SRV debug_level=3 force_version=tls13 response_size=1536" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 1023" \
@@ -4953,8 +4955,9 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (1024), 3 fragments" \
             "$P_SRV debug_level=3 force_version=tls13 response_size=2560" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 1023" \
@@ -4966,8 +4969,9 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (4096), 1 fragment" \
             "$P_SRV debug_level=3 force_version=tls13 response_size=2048" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 4095" \
@@ -4979,8 +4983,9 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (4096), 2 fragments" \
             "$P_SRV debug_level=3 force_version=tls13 response_size=6144" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 4095" \
@@ -4992,8 +4997,9 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit (4096), 3 fragments" \
             "$P_SRV debug_level=3 force_version=tls13 response_size=10240" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 4095" \

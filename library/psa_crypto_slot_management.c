@@ -579,10 +579,10 @@ void mbedtls_psa_get_stats(mbedtls_psa_stats_t *stats)
 
     for (slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++) {
         const psa_key_slot_t *slot = &global_data.key_slots[slot_idx];
-        if (psa_is_key_slot_locked(slot)) {
+        if (psa_key_slot_has_readers(slot)) {
             ++stats->locked_slots;
         }
-        if (!psa_is_key_slot_occupied(slot)) {
+        if (slot->state == PSA_SLOT_EMPTY) {
             ++stats->empty_slots;
             continue;
         }

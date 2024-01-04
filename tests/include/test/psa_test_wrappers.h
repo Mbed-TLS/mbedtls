@@ -17,6 +17,7 @@ extern "C" {
 
 #include <psa/crypto.h>
 
+#include <test/memory.h>
 #include <test/psa_crypto_helpers.h>
 #include <test/psa_test_wrappers.h>
 

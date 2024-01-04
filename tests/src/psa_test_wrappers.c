@@ -10,6 +10,7 @@
 
 #include <psa/crypto.h>
 
+#include <test/memory.h>
 #include <test/psa_crypto_helpers.h>
 #include <test/psa_test_wrappers.h>
 
@@ -265,7 +266,11 @@ psa_status_t mbedtls_test_wrap_psa_cipher_encrypt(
     size_t arg5_output_size,
     size_t *arg6_output_length)
 {
+    MBEDTLS_TEST_MEMORY_POISON(arg2_input, arg3_input_length);
+    MBEDTLS_TEST_MEMORY_POISON(arg4_output, arg5_output_size);
     psa_status_t status = (psa_cipher_encrypt)(arg0_key, arg1_alg, arg2_input, arg3_input_length, arg4_output, arg5_output_size, arg6_output_length);
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg2_input, arg3_input_length);
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg4_output, arg5_output_size);
     return status;
 }
 

@@ -1,13 +1,14 @@
+/*
+ * Copyright (c) 2018-2023, Arm Limited. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ */
 /**
  * \file psa/crypto_config.h
  * \brief PSA crypto configuration options (set of defines)
  *
  */
-/*
- * Copyright The Mbed TLS Contributors
- * SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
- */
-
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 /**
  * When #MBEDTLS_PSA_CRYPTO_CONFIG is enabled in mbedtls_config.h,

@@ -21,9 +21,6 @@
 /* MBEDTLS_PSA_CRYPTO_SPM needs third-party files, so disable it. */
 #undef MBEDTLS_PSA_CRYPTO_SPM
 
-/* Use built-in platform entropy functions (TF-M provides its own). */
-#undef MBEDTLS_NO_PLATFORM_ENTROPY
-
 /* Disable buffer-based memory allocator. This isn't strictly required,
  * but using the native allocator is faster and works better with
  * memory management analysis frameworks such as ASan. */
@@ -45,18 +42,17 @@
 #undef MBEDTLS_PLATFORM_STD_EXIT_SUCCESS
 #undef MBEDTLS_PLATFORM_STD_EXIT_FAILURE
 
-/* CCM is the only cipher/AEAD enabled in TF-M configuration files, but it
- * does not need CIPHER_C to be enabled, so we can disable it in order
- * to reduce code size further. */
-#undef MBEDTLS_CIPHER_C
-
 /*
  * In order to get an example config that works cleanly out-of-the-box
  * for both baremetal and non-baremetal builds, we detect baremetal builds
- * and set this variable automatically.
+ * (either IAR, Arm compiler or __ARM_EABI__ defined), and adjust some
+ * variables accordingly.
  */
-#if defined(__IAR_SYSTEMS_ICC__) || defined(__ARM_EABI__)
+#if defined(__IAR_SYSTEMS_ICC__) || defined(__ARMCC_VERSION) || defined(__ARM_EABI__)
 #define MBEDTLS_NO_PLATFORM_ENTROPY
+#else
+/* Use built-in platform entropy functions (TF-M provides its own). */
+#undef MBEDTLS_NO_PLATFORM_ENTROPY
 #endif
 
 /***********************************************************************
@@ -65,3 +61,8 @@
 
 // We expect TF-M to pick this up soon
 #define MBEDTLS_BLOCK_CIPHER_NO_DECRYPT
+
+/* CCM is the only cipher/AEAD enabled in TF-M configuration files, but it
+ * does not need CIPHER_C to be enabled, so we can disable it in order
+ * to reduce code size further. */
+#undef MBEDTLS_CIPHER_C

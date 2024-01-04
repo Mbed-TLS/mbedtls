@@ -1409,7 +1409,7 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_pk_parse_key_pkcs8_encrypted_der(
     unsigned char *buf;
     unsigned char *p, *end;
     mbedtls_asn1_buf pbe_alg_oid, pbe_params;
-#if defined(MBEDTLS_PKCS12_C) && defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+#if defined(MBEDTLS_PKCS12_C) && defined(MBEDTLS_CIPHER_PADDING_PKCS7) && defined(MBEDTLS_CIPHER_C)
     mbedtls_cipher_type_t cipher_alg;
     mbedtls_md_type_t md_alg;
 #endif
@@ -1457,7 +1457,7 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_pk_parse_key_pkcs8_encrypted_der(
     /*
      * Decrypt EncryptedData with appropriate PBE
      */
-#if defined(MBEDTLS_PKCS12_C) && defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+#if defined(MBEDTLS_PKCS12_C) && defined(MBEDTLS_CIPHER_PADDING_PKCS7) && defined(MBEDTLS_CIPHER_C)
     if (mbedtls_oid_get_pkcs12_pbe_alg(&pbe_alg_oid, &md_alg, &cipher_alg) == 0) {
         if ((ret = mbedtls_pkcs12_pbe_ext(&pbe_params, MBEDTLS_PKCS12_PBE_DECRYPT,
                                           cipher_alg, md_alg,
@@ -1471,8 +1471,8 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_pk_parse_key_pkcs8_encrypted_der(
 
         decrypted = 1;
     } else
-#endif /* MBEDTLS_PKCS12_C */
-#if defined(MBEDTLS_PKCS5_C) && defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+#endif /* MBEDTLS_PKCS12_C && MBEDTLS_CIPHER_PADDING_PKCS7 && MBEDTLS_CIPHER_C */
+#if defined(MBEDTLS_PKCS5_C) && defined(MBEDTLS_CIPHER_PADDING_PKCS7) && defined(MBEDTLS_CIPHER_C)
     if (MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS5_PBES2, &pbe_alg_oid) == 0) {
         if ((ret = mbedtls_pkcs5_pbes2_ext(&pbe_params, MBEDTLS_PKCS5_DECRYPT, pwd, pwdlen,
                                            p, len, buf, len, &outlen)) != 0) {
@@ -1485,7 +1485,7 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_pk_parse_key_pkcs8_encrypted_der(
 
         decrypted = 1;
     } else
-#endif /* MBEDTLS_PKCS5_C */
+#endif /* MBEDTLS_PKCS5_C && MBEDTLS_CIPHER_PADDING_PKCS7 && MBEDTLS_CIPHER_C */
     {
         ((void) pwd);
     }

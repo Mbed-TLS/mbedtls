@@ -24,7 +24,9 @@
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
 #include "mbedtls/asn1.h"
+#if defined(MBEDTLS_CIPHER_C)
 #include "mbedtls/cipher.h"
+#endif /* MBEDTLS_CIPHER_C */
 #include "mbedtls/oid.h"
 #endif /* MBEDTLS_ASN1_PARSE_C */
 
@@ -34,7 +36,7 @@
 
 #include "psa_util_internal.h"
 
-#if defined(MBEDTLS_ASN1_PARSE_C)
+#if defined(MBEDTLS_ASN1_PARSE_C) && defined(MBEDTLS_CIPHER_C)
 static int pkcs5_parse_pbkdf2_params(const mbedtls_asn1_buf *params,
                                      mbedtls_asn1_buf *salt, int *iterations,
                                      int *keylen, mbedtls_md_type_t *md_type)
@@ -261,7 +263,7 @@ exit:
 
     return ret;
 }
-#endif /* MBEDTLS_ASN1_PARSE_C */
+#endif /* MBEDTLS_ASN1_PARSE_C && MBEDTLS_CIPHER_C */
 
 static int pkcs5_pbkdf2_hmac(mbedtls_md_context_t *ctx,
                              const unsigned char *password,

@@ -3084,7 +3084,6 @@
  *
  * Module:  library/pkcs5.c
  *
- * Requires: MBEDTLS_CIPHER_C
  * Auto-enables: MBEDTLS_MD_C
  *
  * \warning If using a hash that is only provided by PSA drivers, you must
@@ -3119,8 +3118,8 @@
  * Module:  library/pkcs12.c
  * Caller:  library/pkparse.c
  *
- * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_CIPHER_C and either
- * MBEDTLS_MD_C or MBEDTLS_PSA_CRYPTO_C.
+ * Requires: MBEDTLS_ASN1_PARSE_C and either MBEDTLS_MD_C or
+ *           MBEDTLS_PSA_CRYPTO_C.
  *
  * \warning If using a hash that is only provided by PSA drivers, you must
  * call psa_crypto_init() before doing any PKCS12 operations.

@@ -1546,8 +1546,6 @@ component_test_full_no_cipher () {
     # Disable features that depend on CIPHER_C
     scripts/config.py unset MBEDTLS_CMAC_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
-    scripts/config.py unset MBEDTLS_PKCS12_C
-    scripts/config.py unset MBEDTLS_PKCS5_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
     scripts/config.py unset MBEDTLS_SSL_TLS_C
     scripts/config.py unset MBEDTLS_SSL_TICKET_C
@@ -1598,15 +1596,10 @@ common_test_full_no_cipher_with_psa_crypto () {
         # Disable cipher modes/keys that make PSA depend on CIPHER_C.
         # Keep CHACHA20 and CHACHAPOLY enabled since they do not depend on CIPHER_C.
         scripts/config.py unset-all MBEDTLS_CIPHER_MODE
-        scripts/config.py unset MBEDTLS_DES_C
-        # Dependencies on AES_C
-        scripts/config.py unset MBEDTLS_CTR_DRBG_C
     fi
     # The following modules directly depends on CIPHER_C
     scripts/config.py unset MBEDTLS_CMAC_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
-    scripts/config.py unset MBEDTLS_PKCS12_C
-    scripts/config.py unset MBEDTLS_PKCS5_C
 
     make
 
@@ -3655,12 +3648,19 @@ component_test_psa_crypto_config_reference_hash_use_psa() {
     tests/ssl-opt.sh
 }
 
-component_test_psa_crypto_config_accel_cipher () {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated cipher"
+component_test_psa_crypto_config_accel_des () {
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated DES"
 
+    # Albeit this components aims at accelerating DES which should only support
+    # CBC and ECB modes, we need to accelerate more than that otherwise DES_C
+    # would automatically be re-enabled by "config_adjust_legacy_from_psa.c"
     loc_accel_list="ALG_ECB_NO_PADDING ALG_CBC_NO_PADDING ALG_CBC_PKCS7 \
                     ALG_CTR ALG_CFB ALG_OFB ALG_XTS ALG_CMAC \
                     KEY_TYPE_DES"
+
+    # Note: we cannot accelerate all ciphers' key types otherwise we would also
+    # have to either disable CCM/GCM or accelerate them, but that's out of scope
+    # of this component. This limitation will be addressed by #8598.
 
     # Configure
     # ---------
@@ -3691,7 +3691,7 @@ component_test_psa_crypto_config_accel_cipher () {
     # Run the tests
     # -------------
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated cipher"
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated DES"
     make test
 }
 
@@ -3740,12 +3740,6 @@ component_test_psa_crypto_config_accel_aead () {
 common_psa_crypto_config_accel_cipher_aead() {
     # Start from the full config
     helper_libtestdriver1_adjust_config "full"
-
-    # CIPHER_C is disabled in the accelerated test component so we disable
-    # all the features that depend on it both in the accelerated and in the
-    # reference components.
-    scripts/config.py unset MBEDTLS_PKCS5_C
-    scripts/config.py unset MBEDTLS_PKCS12_C
 
     scripts/config.py unset MBEDTLS_NIST_KW_C
 }

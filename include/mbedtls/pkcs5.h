@@ -38,7 +38,7 @@
 extern "C" {
 #endif
 
-#if defined(MBEDTLS_ASN1_PARSE_C)
+#if defined(MBEDTLS_ASN1_PARSE_C) && defined(MBEDTLS_CIPHER_C)
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
@@ -130,7 +130,7 @@ int mbedtls_pkcs5_pbes2_ext(const mbedtls_asn1_buf *pbe_params, int mode,
 
 #endif /* MBEDTLS_CIPHER_PADDING_PKCS7 */
 
-#endif /* MBEDTLS_ASN1_PARSE_C */
+#endif /* MBEDTLS_ASN1_PARSE_C && MBEDTLS_CIPHER_C*/
 
 /**
  * \brief          PKCS#5 PBKDF2 using HMAC without using the HMAC context

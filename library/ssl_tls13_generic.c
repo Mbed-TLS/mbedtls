@@ -1765,29 +1765,25 @@ int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_write_record_size_limit_ext(mbedtls_ssl_context *ssl,
-                                                  uint16_t record_size_limit,
                                                   unsigned char *buf,
                                                   const unsigned char *end,
                                                   size_t *out_len)
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *p = buf;
     *out_len = 0;
 
-    ret = mbedtls_ssl_is_record_size_limit_valid(ssl, record_size_limit);
-    if (ret != 0) {
-        return ret;
-    }
+    MBEDTLS_STATIC_ASSERT(MBEDTLS_SSL_IN_CONTENT_LEN >= MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN,
+                          "MBEDTLS_SSL_IN_CONTENT_LEN is less than the minimum record size limit");
 
     MBEDTLS_SSL_CHK_BUF_PTR(p, end, 6);
 
     MBEDTLS_PUT_UINT16_BE(MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT, p, 0);
     MBEDTLS_PUT_UINT16_BE(MBEDTLS_SSL_RECORD_SIZE_LIMIT_EXTENSION_DATA_LENGTH, p, 2);
-    MBEDTLS_PUT_UINT16_BE(record_size_limit, p, 4);
+    MBEDTLS_PUT_UINT16_BE(MBEDTLS_SSL_IN_CONTENT_LEN, p, 4);
 
     *out_len = 6;
 
-    MBEDTLS_SSL_DEBUG_MSG(2, ("Sent RecordSizeLimit: %u Bytes", record_size_limit));
+    MBEDTLS_SSL_DEBUG_MSG(2, ("Sent RecordSizeLimit: %u Bytes", MBEDTLS_SSL_IN_CONTENT_LEN));
 
     mbedtls_ssl_tls13_set_hs_sent_ext_mask(ssl, MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT);
 

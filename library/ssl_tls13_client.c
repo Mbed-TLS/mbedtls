@@ -1162,7 +1162,7 @@ int mbedtls_ssl_tls13_write_client_hello_exts(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
     ret = mbedtls_ssl_tls13_write_record_size_limit_ext(
-        ssl, MBEDTLS_SSL_IN_CONTENT_LEN, p, end, &ext_len);
+        ssl, p, end, &ext_len);
     if (ret != 0) {
         return ret;
     }

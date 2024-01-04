@@ -189,6 +189,10 @@ pre_initialize_variables () {
     if [ -z "${MAKEFLAGS+set}" ]; then
         export MAKEFLAGS="-j$(all_sh_nproc)"
     fi
+    # if CC is not set, use clang by default (if present) to improve build times
+    if [ -z "${CC+set}" ] && (type clang > /dev/null 2>&1); then
+        export CC="clang"
+    fi
 
     # Include more verbose output for failing tests run by CMake or make
     export CTEST_OUTPUT_ON_FAILURE=1
@@ -2167,7 +2171,7 @@ component_test_default_no_deprecated () {
     # configuration leaves something consistent.
     msg "build: make, default + MBEDTLS_DEPRECATED_REMOVED" # ~ 30s
     scripts/config.py set MBEDTLS_DEPRECATED_REMOVED
-    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra'
+    make CFLAGS='-O -Werror -Wall -Wextra'
 
     msg "test: make, default + MBEDTLS_DEPRECATED_REMOVED" # ~ 5s
     make test
@@ -2176,7 +2180,7 @@ component_test_default_no_deprecated () {
 component_test_full_no_deprecated () {
     msg "build: make, full_no_deprecated config" # ~ 30s
     scripts/config.py full_no_deprecated
-    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra'
+    make CFLAGS='-O -Werror -Wall -Wextra'
 
     msg "test: make, full_no_deprecated config" # ~ 5s
     make test
@@ -2193,7 +2197,7 @@ component_test_full_no_deprecated_deprecated_warning () {
     scripts/config.py full_no_deprecated
     scripts/config.py unset MBEDTLS_DEPRECATED_REMOVED
     scripts/config.py set MBEDTLS_DEPRECATED_WARNING
-    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra'
+    make CFLAGS='-O -Werror -Wall -Wextra'
 
     msg "test: make, full_no_deprecated config, MBEDTLS_DEPRECATED_WARNING" # ~ 5s
     make test
@@ -2206,6 +2210,8 @@ component_test_full_deprecated_warning () {
     scripts/config.py full
     scripts/config.py set MBEDTLS_DEPRECATED_WARNING
     # Expect warnings from '#warning' directives in check_config.h.
+    # Note that gcc is required to allow the use of -Wno-error=cpp, which allows us to
+    # display #warning messages without them being treated as errors.
     make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-error=cpp' lib programs
 
     msg "build: make tests, full config + MBEDTLS_DEPRECATED_WARNING, expect warnings" # ~ 30s
@@ -2376,7 +2382,7 @@ component_build_no_pk_rsa_alt_support () {
     scripts/config.py set MBEDTLS_X509_CRT_WRITE_C
 
     # Only compile - this is primarily to test for compile issues
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy'
+    make CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy'
 }
 
 component_build_module_alt () {
@@ -2409,7 +2415,7 @@ component_build_module_alt () {
 
     # We can only compile, not link, since we don't have any implementations
     # suitable for testing with the dummy alt headers.
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy' lib
+    make CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy' lib
 }
 
 component_build_dhm_alt () {
@@ -2420,7 +2426,7 @@ component_build_dhm_alt () {
     scripts/config.py unset MBEDTLS_DEBUG_C
     # We can only compile, not link, since we don't have any implementations
     # suitable for testing with the dummy alt headers.
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy' lib
+    make CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy' lib
 }
 
 component_test_no_use_psa_crypto_full_cmake_asan() {
@@ -3860,7 +3866,7 @@ component_test_ccm_aes_sha256() {
     cp "$CONFIG_TEST_DRIVER_H" "$CONFIG_H"
     cp configs/crypto-config-ccm-aes-sha256.h "$CRYPTO_CONFIG_H"
 
-    make CC=gcc
+    make
 
     msg "test: CCM + AES + SHA256 configuration"
     make test
@@ -4324,7 +4330,7 @@ component_test_memory_buffer_allocator_backtrace () {
     scripts/config.py set MBEDTLS_PLATFORM_MEMORY
     scripts/config.py set MBEDTLS_MEMORY_BACKTRACE
     scripts/config.py set MBEDTLS_MEMORY_DEBUG
-    CC=gcc cmake -DCMAKE_BUILD_TYPE:String=Release .
+    cmake -DCMAKE_BUILD_TYPE:String=Release .
     make
 
     msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C and MBEDTLS_MEMORY_BACKTRACE"
@@ -4335,7 +4341,7 @@ component_test_memory_buffer_allocator () {
     msg "build: default config with memory buffer allocator"
     scripts/config.py set MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py set MBEDTLS_PLATFORM_MEMORY
-    CC=gcc cmake -DCMAKE_BUILD_TYPE:String=Release .
+    cmake -DCMAKE_BUILD_TYPE:String=Release .
     make
 
     msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C"
@@ -4431,7 +4437,7 @@ component_test_ssl_alloc_buffer_and_mfl () {
     scripts/config.py set MBEDTLS_MEMORY_DEBUG
     scripts/config.py set MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
     scripts/config.py set MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
-    CC=gcc cmake -DCMAKE_BUILD_TYPE:String=Release .
+    cmake -DCMAKE_BUILD_TYPE:String=Release .
     make
 
     msg "test: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH, MBEDTLS_MEMORY_BUFFER_ALLOC_C, MBEDTLS_MEMORY_DEBUG and MBEDTLS_SSL_MAX_FRAGMENT_LENGTH"
@@ -4458,7 +4464,7 @@ component_test_when_no_ciphersuites_have_mac () {
 component_test_no_date_time () {
     msg "build: default config without MBEDTLS_HAVE_TIME_DATE"
     scripts/config.py unset MBEDTLS_HAVE_TIME_DATE
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Check .
+    cmake -D CMAKE_BUILD_TYPE:String=Check .
     make
 
     msg "test: !MBEDTLS_HAVE_TIME_DATE - main suites"
@@ -4824,7 +4830,7 @@ component_test_aes_only_128_bit_keys () {
     scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
     scripts/config.py unset MBEDTLS_PADLOCK_C
 
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+    make CFLAGS='-O2 -Werror -Wall -Wextra'
 
     msg "test: default config + AES_ONLY_128_BIT_KEY_LENGTH"
     make test
@@ -4849,7 +4855,7 @@ component_test_aes_only_128_bit_keys_have_builtins () {
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_AESCE_C
 
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+    make CFLAGS='-O2 -Werror -Wall -Wextra'
 
     msg "test: default config + AES_ONLY_128_BIT_KEY_LENGTH - AESNI_C - AESCE_C"
     make test
@@ -4861,7 +4867,7 @@ component_test_aes_only_128_bit_keys_have_builtins () {
 component_test_aes_fewer_tables () {
     msg "build: default config with AES_FEWER_TABLES enabled"
     scripts/config.py set MBEDTLS_AES_FEWER_TABLES
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+    make CFLAGS='-O2 -Werror -Wall -Wextra'
 
     msg "test: AES_FEWER_TABLES"
     make test
@@ -4870,7 +4876,7 @@ component_test_aes_fewer_tables () {
 component_test_aes_rom_tables () {
     msg "build: default config with AES_ROM_TABLES enabled"
     scripts/config.py set MBEDTLS_AES_ROM_TABLES
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+    make CFLAGS='-O2 -Werror -Wall -Wextra'
 
     msg "test: AES_ROM_TABLES"
     make test
@@ -4880,7 +4886,7 @@ component_test_aes_fewer_tables_and_rom_tables () {
     msg "build: default config with AES_ROM_TABLES and AES_FEWER_TABLES enabled"
     scripts/config.py set MBEDTLS_AES_FEWER_TABLES
     scripts/config.py set MBEDTLS_AES_ROM_TABLES
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+    make CFLAGS='-O2 -Werror -Wall -Wextra'
 
     msg "test: AES_FEWER_TABLES + AES_ROM_TABLES"
     make test
@@ -4922,7 +4928,7 @@ helper_block_cipher_no_decrypt_build_test () {
 
     msg "build: default config + BLOCK_CIPHER_NO_DECRYPT${set_opts:+ + $set_opts}${unset_opts:+ - $unset_opts} with $cflags${ldflags:+, $ldflags}"
     make clean
-    make CC=gcc CFLAGS="$cflags" LDFLAGS="$ldflags"
+    make CFLAGS="-O2 $cflags" LDFLAGS="$ldflags"
 
     # Make sure we don't have mbedtls_xxx_setkey_dec in AES/ARIA/CAMELLIA
     not grep mbedtls_aes_setkey_dec library/aes.o
@@ -4992,11 +4998,15 @@ config_block_cipher_no_decrypt () {
 }
 
 component_test_block_cipher_no_decrypt_aesni () {
+    # This consistently causes an llvm crash on clang 3.8, so use gcc
+    export CC=gcc
     config_block_cipher_no_decrypt 0
     common_block_cipher_no_decrypt
 }
 
 component_test_block_cipher_no_decrypt_aesni_use_psa () {
+    # This consistently causes an llvm crash on clang 3.8, so use gcc
+    export CC=gcc
     config_block_cipher_no_decrypt 1
     common_block_cipher_no_decrypt
 }
@@ -5295,7 +5305,7 @@ support_test_m32_everest () {
 component_test_mx32 () {
     msg "build: 64-bit ILP32, make, gcc" # ~ 30s
     scripts/config.py full
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32' LDFLAGS='-mx32'
+    make CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -mx32' LDFLAGS='-mx32'
 
     msg "test: 64-bit ILP32, make, gcc"
     make test
@@ -5323,7 +5333,7 @@ component_test_have_int32 () {
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESCE_C
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32'
+    make CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32'
 
     msg "test: gcc, force 32-bit bignum limbs"
     make test
@@ -5335,7 +5345,7 @@ component_test_have_int64 () {
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESCE_C
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64'
+    make CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64'
 
     msg "test: gcc, force 64-bit bignum limbs"
     make test
@@ -5997,7 +6007,7 @@ component_build_zeroize_checks () {
     scripts/config.py full
 
     # Only compile - we're looking for sizeof-pointer-memaccess warnings
-    make CC=gcc CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-zeroize-memset.h\"' -DMBEDTLS_TEST_DEFINES_ZEROIZE -Werror -Wsizeof-pointer-memaccess"
+    make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-zeroize-memset.h\"' -DMBEDTLS_TEST_DEFINES_ZEROIZE -Werror -Wsizeof-pointer-memaccess"
 }
 
 
@@ -6030,11 +6040,12 @@ component_test_zeroize () {
 }
 
 component_test_psa_compliance () {
+    # The arch tests build with gcc, so require use of gcc here to link properly
     msg "build: make, default config (out-of-box), libmbedcrypto.a only"
-    make -C library libmbedcrypto.a
+    CC=gcc make -C library libmbedcrypto.a
 
     msg "unit test: test_psa_compliance.py"
-    ./tests/scripts/test_psa_compliance.py
+    CC=gcc ./tests/scripts/test_psa_compliance.py
 }
 
 support_test_psa_compliance () {

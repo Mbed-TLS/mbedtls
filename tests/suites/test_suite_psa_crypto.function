@@ -9500,7 +9500,9 @@ void ecc_conversion_functions_fail()
 {
     size_t bits;
 
-    /* Invalid legacy curve identifier. */
+    /* Invalid legacy curve identifiers. */
+    TEST_EQUAL(0, mbedtls_ecc_group_to_psa(MBEDTLS_ECP_DP_MAX, &bits));
+    TEST_EQUAL(0, bits);
     TEST_EQUAL(0, mbedtls_ecc_group_to_psa(MBEDTLS_ECP_DP_NONE, &bits));
     TEST_EQUAL(0, bits);
 

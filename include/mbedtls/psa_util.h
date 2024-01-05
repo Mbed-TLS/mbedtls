@@ -155,7 +155,7 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
  * \param md_type   The type of digest to search for.
  *
  * \return          The PSA algorithm identifier associated with \p md_type;
- *                  #PSA_ALG_NONE if the algorithm is unuspported or invalid.
+ *                  #PSA_ALG_NONE if the algorithm is unsupported or invalid.
  */
 psa_algorithm_t mbedtls_md_psa_alg_from_type(mbedtls_md_type_t md_type);
 

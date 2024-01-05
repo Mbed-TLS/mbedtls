@@ -2500,9 +2500,6 @@ static int ssl_tls13_write_encrypted_extensions_body(mbedtls_ssl_context *ssl,
     size_t extensions_len = 0;
     unsigned char *p_extensions_len;
     size_t output_len;
-#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
-    uint32_t record_size_extension_mask;
-#endif
 
     *out_len = 0;
 
@@ -2534,8 +2531,7 @@ static int ssl_tls13_write_encrypted_extensions_body(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
-    record_size_extension_mask = mbedtls_ssl_get_extension_mask(MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT);
-    if (ssl->handshake->received_extensions | record_size_extension_mask) {
+    if (ssl->handshake->received_extensions & MBEDTLS_SSL_EXT_MASK(RECORD_SIZE_LIMIT)) {
         ret = mbedtls_ssl_tls13_write_record_size_limit_ext(
             ssl, p, end, &output_len);
         if (ret != 0) {

@@ -4843,6 +4843,7 @@ run_test    "Record Size Limit: TLS 1.3: Server-side parsing and debug output" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4" \
             0 \
             -s "RecordSizeLimit: 16385 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 16383" \
             -s "bytes written in 1 fragments"
 
@@ -4856,6 +4857,9 @@ run_test    "Record Size Limit: TLS 1.3: Client-side parsing and debug output" \
             "$P_CLI debug_level=4 force_version=tls13" \
             0 \
             -c "Sent RecordSizeLimit: 16384 Bytes"                                      \
+            -c "ClientHello: record_size_limit(28) extension exists."                   \
+            -c "found record_size_limit extension"                                      \
+            -c "EncryptedExtensions: record_size_limit(28) extension received."         \
             -c "RecordSizeLimit: 16385 Bytes"                                           \
             -s "Parsing extension 'Record Size Limit/28' (2 bytes)"                     \
             -s "record_size_limit 16384 negotiated"
@@ -4933,6 +4937,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             "$P_SRV debug_level=3 force_version=tls13 response_size=512" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 1023" \
             0 \
+            -s "RecordSizeLimit: 1024 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
             -s "Sent RecordSizeLimit: 16384 Bytes" \
             -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 1023" \
@@ -4947,6 +4953,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             "$P_SRV debug_level=3 force_version=tls13 response_size=1536" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 1023" \
             0 \
+            -s "RecordSizeLimit: 1024 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
             -s "Sent RecordSizeLimit: 16384 Bytes" \
             -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 1023" \
@@ -4961,6 +4969,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             "$P_SRV debug_level=3 force_version=tls13 response_size=2560" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 1023" \
             0 \
+            -s "RecordSizeLimit: 1024 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
             -s "Sent RecordSizeLimit: 16384 Bytes" \
             -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 1023" \
@@ -4975,6 +4985,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             "$P_SRV debug_level=3 force_version=tls13 response_size=2048" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 4095" \
             0 \
+            -s "RecordSizeLimit: 4096 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
             -s "Sent RecordSizeLimit: 16384 Bytes" \
             -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 4095" \
@@ -4989,6 +5001,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             "$P_SRV debug_level=3 force_version=tls13 response_size=6144" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 4095" \
             0 \
+            -s "RecordSizeLimit: 4096 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
             -s "Sent RecordSizeLimit: 16384 Bytes" \
             -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 4095" \
@@ -5003,6 +5017,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             "$P_SRV debug_level=3 force_version=tls13 response_size=10240" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4 --recordsize 4095" \
             0 \
+            -s "RecordSizeLimit: 4096 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
             -s "Sent RecordSizeLimit: 16384 Bytes" \
             -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 4095" \
@@ -5011,23 +5027,20 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
 # TODO: For time being, we send fixed value of RecordSizeLimit defined by
 # MBEDTLS_SSL_IN_CONTENT_LEN. Once we support variable buffer length of
 # RecordSizeLimit, we need to modify value of RecordSizeLimit in below test.
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_value_equals "MBEDTLS_SSL_IN_CONTENT_LEN" 16384
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test    "Record Size Limit: TLS 1.3 m->m: both peer comply with record size limit (16384)" \
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3 m->m: both peer comply with record size limit (default)" \
             "$P_SRV debug_level=4 force_version=tls13" \
-            "$P_CLI debug_level=4 force_version=tls13" \
+            "$P_CLI debug_level=4" \
             0 \
-            -c "Sent RecordSizeLimit: 16384 Bytes"                            \
-            -c "RecordSizeLimit: 16384 Bytes"                                 \
-            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
-            -c "Maximum outgoing record payload length is 16383"              \
-            -s "RecordSizeLimit: 16384 Bytes"                                 \
-            -s "Sent RecordSizeLimit: 16384 Bytes"                            \
-            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
-            -s "Maximum outgoing record payload length is 16383"              \
+            -c "Sent RecordSizeLimit: $MAX_IN_LEN Bytes"         \
+            -c "RecordSizeLimit: $MAX_IN_LEN Bytes"              \
+            -c "Maximum outgoing record payload length is 16383" \
+            -s "RecordSizeLimit: $MAX_IN_LEN Bytes"              \
+            -s "Sent RecordSizeLimit: $MAX_IN_LEN Bytes"         \
+            -s "Maximum outgoing record payload length is 16383" \
             -s "Maximum incoming record payload length is 16384"
 
 # Tests for renegotiation

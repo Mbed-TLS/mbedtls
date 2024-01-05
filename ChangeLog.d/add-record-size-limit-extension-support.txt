@@ -1,0 +1,2 @@
+Features
+   * Add support for sending and receiving Record Size Limit extension.

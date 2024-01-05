@@ -1644,6 +1644,26 @@ struct mbedtls_ssl_context {
      */
     mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(tls_version);
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    /**
+     *  On client side, status of the negotiation of the use of early data.
+     *  See the documentation of mbedtls_ssl_get_early_data_status() for more
+     *  information.
+     *
+     *  On server side, internal only, status of early data in the course of an
+     *  handshake. One of MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN,
+     *  #MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED,
+     *  #MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED,
+     *  MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_RECEIVED and
+     *  MBEDTLS_SSL_EARLY_DATA_STATUS_END_OF_EARLY_DATA_RECEIVED.
+     *
+     *  Reset to #MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT or
+     *  MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN, at the beginning of a new
+     *  handshake.
+     */
+    int MBEDTLS_PRIVATE(early_data_status);
+#endif
+
     unsigned MBEDTLS_PRIVATE(badmac_seen);       /*!< records with a bad MAC received    */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -1840,10 +1860,6 @@ struct mbedtls_ssl_context {
                                              *   Possible values are #MBEDTLS_SSL_CID_ENABLED
                                              *   and #MBEDTLS_SSL_CID_DISABLED. */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-    int MBEDTLS_PRIVATE(early_data_status);
-#endif
 
     /** Callback to export key block and master secret                      */
     mbedtls_ssl_export_keys_t *MBEDTLS_PRIVATE(f_export_keys);

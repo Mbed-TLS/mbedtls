@@ -3024,6 +3024,9 @@ static int ssl_tls13_process_end_of_early_data(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_PROC_CHK(ssl_tls13_parse_end_of_early_data(
                                  ssl, buf, buf + buf_len));
 
+        ssl->early_data_status =
+            MBEDTLS_SSL_EARLY_DATA_STATUS_END_OF_EARLY_DATA_RECEIVED;
+
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("Switch to handshake keys for inbound traffic"
                 "( K_recv = handshake )"));

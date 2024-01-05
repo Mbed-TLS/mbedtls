@@ -2132,8 +2132,26 @@ int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
                                            size_t *out_len);
 
 #if defined(MBEDTLS_SSL_SRV_C)
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_RECEIVED \
+/* Additional internal early data status, server side only. */
+/*
+ * The server has not received the ClientHello yet, the status of early data
+ * is thus unknown.
+ */
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN \
     MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT
+
+/*
+ * The server has received the ClientHello, it contained no early data
+ * extension.
+ */
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_RECEIVED 3
+
+/*
+ * The server has received the early data extension, it has accepted early
+ * data and received the end of early data message from the client marking the
+ * end of early data reception.
+ */
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_END_OF_EARLY_DATA_RECEIVED 4
 #endif /* MBEDTLS_SSL_SRV_C */
 
 #endif /* MBEDTLS_SSL_EARLY_DATA */

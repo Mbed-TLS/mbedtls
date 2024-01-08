@@ -28,7 +28,7 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 #include "psa/crypto.h"
 #endif
 
@@ -483,6 +483,109 @@ int mbedtls_pk_can_do(const mbedtls_pk_context *ctx, mbedtls_pk_type_t type);
 int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
                           psa_key_usage_t usage);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+/**
+ * \brief           Determine valid PSA attributes that can be used to
+ *                  import a key into PSA.
+ *
+ *                  The attributes determined by this function are suitable
+ *                  for calling mbedtls_pk_import_into_psa() to create
+ *                  a PSA key with the same key material.
+ *
+ *                  The typical flow of operations involving this function is
+ *                  ```
+ *                  psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+ *                  int ret = mbedtls_pk_guess_psa_attributes(pk, &attributes);
+ *                  if (ret != 0) ...; // error handling omitted
+ *                  // Tweak attributes if desired
+ *                  psa_key_id_t key_id = 0;
+ *                  ret = mbedtls_pk_import_into_psa(pk, &attributes, &key_id);
+ *                  if (ret != 0) ...; // error handling omitted
+ *                  ```
+ *
+ * \note            This function does not support RSA-alt contexts
+ *                  (set up with mbedtls_pk_setup_rsa_alt()).
+ *
+ * \param[in] pk    The PK context to use. It must have been set up.
+ *                  It can either contain a key pair or just a public key.
+ * \param[out] attributes
+ *                  On success, valid attributes to import the key into PSA.
+ *                  - The lifetime and key identifier are unchanged. If the
+ *                    attribute structure was initialized or reset before
+ *                    calling this function, this will result in a volatile
+ *                    key. Call psa_set_key_identifier() after this
+ *                    function if you wish to create a persistent key. Call
+ *                    psa_set_key_lifetime() after this function if
+ *                    you wish to import the key in a secure element.
+ *                  - The key type and bit-size are determined by the contents
+ *                    of the PK context. The key type is a key pair type
+ *                    (#PSA_KEY_TYPE_RSA_KEY_PAIR or
+ *                    #PSA_KEY_TYPE_ECC_KEY_PAIR(...)) if the PK context
+ *                    contains a private key, and a public key type
+ *                    (#PSA_KEY_TYPE_RSA_PUBLIC_KEY or
+ *                    #PSA_KEY_TYPE_ECC_PUBLIC_KEY(...)) otherwise.
+ *                  - The permitted algorithm is as follows (for signature
+ *                    algorithms, all hashes are permitted):
+ *                      - For an RSA key with the padding mode
+ *                        #MBEDTLS_RSA_PKCS_V21:
+ *                        PSS (#PSA_ALG_RSA_PSS_ANY_SALT).
+ *                      - For an RSA key with the padding mode
+ *                        #MBEDTLS_RSA_PKCS_V15:
+ *                        PKCS#1v1.5 signature (#PSA_ALG_RSA_PKCS1V15_SIGN).
+ *                      - For an ECDSA key (#MBEDTLS_PK_ECDSA), or for an
+ *                        unspecified ECC key (#MBEDTLS_PK_ECKEY) on a
+ *                        Weierstrass curve: ECDSA
+ *                        (#PSA_ALG_DETERMINISTIC_ECDSA if
+ *                        #MBEDTLS_ECDSA_DETERMINISTIC is enabled,
+ *                        otherwise #PSA_ALG_ECDSA).
+ *                      - For an ECDH key (#MBEDTLS_PK_ECKEY_DH), or for an
+ *                        unspecified ECC key (#MBEDTLS_PK_ECKEY) on a
+ *                        Montgomery curve: ECDH (#PSA_ALG_ECDH).
+ *                  - The usage policy always allows export and copy.
+ *                    For public keys with a signature algorithm, the usage
+ *                    policy allows signature verification.
+ *                    For key pairs with a signature algorithm, the usage
+ *                    policy allows signature and verification.
+ *                    For key pairs with the ECDH algorithm, the usage
+ *                    policy allows key derivation (which encompasses key
+ *                    agreement).
+ *                    For public keys with the ECDH algorithm, the usage
+ *                    policy does not allow any algorithm.
+ *
+ * \return          0 on success.
+ *                  #MBEDTLS_ERR_PK_TYPE_MISMATCH if \p pk does not contain
+ *                  a key of the type identified in \p attributes.
+ *                  Another error code on other failures.
+ */
+int mbedtls_pk_guess_psa_attributes(const mbedtls_pk_context *pk,
+                                    psa_key_attributes_t *attributes);
+
+/**
+ * \brief           Import a key from a PK context into the PSA key store.
+ *
+ *                  This function is equivalent to calling psa_import_key()
+ *                  after exporting the key material in the expected format.
+ *
+ * \param[in] pk    The PK context to use. It must have been set up.
+ *                  It can either contain a key pair or just a public key.
+ * \param[in] attributes
+ *                  The attributes to use for the new key.
+ *                  You can call mbedtls_pk_guess_psa_attributes() to determine
+ *                  valid attributes for a key in a PK context.
+ * \param[out] key_id
+ *                  On success, the key identifier of the imported key.
+ *                  \c PSA_KEY_ID_NULL on failure.
+ *
+ * \return          0 on success.
+ *                  #MBEDTLS_ERR_PK_BAD_INPUT_DATA if \p pk does not contain
+ *                  a key.
+ *                  Another error code on other failures.
+ */
+int mbedtls_pk_import_into_psa(const mbedtls_pk_context *pk,
+                               const psa_key_attributes_t *attributes,
+                               mbedtls_svc_key_id_t *key_id);
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
 /**
  * \brief           Verify signature (including padding if relevant).

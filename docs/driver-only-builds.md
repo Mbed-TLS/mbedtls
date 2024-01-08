@@ -349,9 +349,11 @@ from PSA acceleration of the underlying block cipher by enabling support for
 ECB mode (`PSA_WANT_ALG_ECB_NO_PADDING` + `MBEDTLS_PSA_ACCEL_ALG_ECB_NO_PADDING`)
 together with desired key type(s) (`PSA_WANT_KEY_TYPE_[AES|ARIA|CAMELLIA]` +
 `MBEDTLS_PSA_ACCEL_KEY_TYPE_[AES|ARIA|CAMELLIA]`).
+
 In such configurations it is possible to:
 - Use CCM and GCM via the PSA Crypto APIs.
-- Use CCM and GCM via legacy functions (`mbedtls_[ccm|gcm]_xxx()`).
+- Use CCM and GCM via legacy functions `mbedtls_[ccm|gcm]_xxx()` (but not the
+  legacy functions `mbedtls_cipher_xxx()`).
 - Disable legacy key types (`MBEDTLS_[AES|ARIA|CAMELLIA]_C`) if there is no
   other dependency requiring them.
 

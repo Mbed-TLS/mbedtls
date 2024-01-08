@@ -147,7 +147,14 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
 
 psa_status_t psa_initialize_key_slots(void)
 {
-    /* Nothing to do: program startup and psa_wipe_all_key_slots() both
+#if defined(MBEDTLS_THREADING_C)
+    /* Initialize the global key slot mutex. */
+    if (!global_data.key_slots_initialized) {
+        mbedtls_mutex_init(&global_data.key_slot_mutex);
+    }
+#endif
+
+    /* Program startup and psa_wipe_all_key_slots() both
      * guarantee that the key slots are initialized to all-zero, which
      * means that all the key slots are in a valid, empty state. */
     global_data.key_slots_initialized = 1;
@@ -164,6 +171,14 @@ void psa_wipe_all_key_slots(void)
         slot->state = PSA_SLOT_PENDING_DELETION;
         (void) psa_wipe_key_slot(slot);
     }
+
+#if defined(MBEDTLS_THREADING_C)
+    /* Free the global key slot mutex. */
+    if (global_data.key_slots_initialized) {
+        mbedtls_mutex_free(&global_data.key_slot_mutex);
+    }
+#endif
+
     global_data.key_slots_initialized = 0;
 }
 

@@ -23,10 +23,27 @@
 #include <stdlib.h>
 #include <string.h>
 #include "mbedtls/platform.h"
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#endif
 
 typedef struct {
     psa_key_slot_t key_slots[MBEDTLS_PSA_KEY_SLOT_COUNT];
     uint8_t key_slots_initialized;
+
+#if defined(MBEDTLS_THREADING_C)
+    /*
+     * A mutex used to make the PSA subsystem thread safe.
+     *
+     * key_slot_mutex protects key_slots[i].registered_readers and
+     * key_slots[i].state for all valid i.
+     *
+     * This mutex must be held when any read from or write to a state or
+     * registered_readers field is performed, i.e. when calling functions:
+     * psa_key_slot_state_transition, psa_register_read, psa_unregister_read,
+     * psa_key_slot_has_readers and psa_wipe_key_slot. */
+    mbedtls_threading_mutex_t MBEDTLS_PRIVATE(key_slot_mutex);
+#endif
 } psa_global_data_t;
 
 static psa_global_data_t global_data;

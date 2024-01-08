@@ -2039,6 +2039,20 @@ cleanup:
     return ret;
 }
 
+int mbedtls_mpi_get_mont_r2_unsafe(mbedtls_mpi *X,
+                                   const mbedtls_mpi *N)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(X, 1));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(X, N->n * 2 * biL));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(X, X, N));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_shrink(X, N->n));
+
+cleanup:
+    return ret;
+}
+
 /*
  * Sliding-window exponentiation: X = A^E mod N  (HAC 14.85)
  */
@@ -2153,9 +2167,7 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
      * If 1st call, pre-compute R^2 mod N
      */
     if (prec_RR == NULL || prec_RR->p == NULL) {
-        MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&RR, 1));
-        MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(&RR, N->n * 2 * biL));
-        MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(&RR, &RR, N));
+        mbedtls_mpi_get_mont_r2_unsafe(&RR, N);
 
         if (prec_RR != NULL) {
             memcpy(prec_RR, &RR, sizeof(mbedtls_mpi));

@@ -1,0 +1,44 @@
+/* BEGIN_HEADER */
+#include <stdint.h>
+#include <test/helpers.h>
+#include <mbedtls/psa_util.h>
+#include <mbedtls/asn1write.h>
+
+enum  {
+    ECDSA_RAW_TO_DER = 0,
+    ECDSA_DER_TO_RAW,
+};
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_ASN1_WRITE_C:MBEDTLS_ASN1_PARSE_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void ecdsa_raw_to_der(int direction, int key_bits, data_t *input, data_t *exp_result, int exp_ret)
+{
+    unsigned char *tmp_buf = NULL;
+    size_t tmp_buf_len = exp_result->len;
+    size_t ret_len;
+
+    TEST_CALLOC(tmp_buf, tmp_buf_len);
+
+    if (direction == ECDSA_RAW_TO_DER) {
+        TEST_EQUAL(mbedtls_ecdsa_raw_to_der(input->x, input->len,
+                                            tmp_buf, tmp_buf_len, &ret_len,
+                                            key_bits), exp_ret);
+    } else {
+        TEST_EQUAL(mbedtls_ecdsa_der_to_raw(input->x, input->len,
+                                            tmp_buf, tmp_buf_len, &ret_len,
+                                            key_bits), exp_ret);
+    }
+
+    if (exp_ret == 0) {
+        ASSERT_COMPARE(exp_result->x, exp_result->len, tmp_buf, ret_len);
+    }
+
+exit:
+    mbedtls_free(tmp_buf);
+}
+/* END_CASE */

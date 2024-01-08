@@ -2199,11 +2199,12 @@ rsa_exit:
 }
 
 psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
-                            const uint8_t *data,
+                            const uint8_t *data_external,
                             size_t data_length,
                             mbedtls_svc_key_id_t *key)
 {
     psa_status_t status;
+    LOCAL_INPUT_DECLARE(data_external, data);
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
     size_t bits;
@@ -2222,6 +2223,8 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
     if (data_length > SIZE_MAX / 8) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
+
+    LOCAL_INPUT_ALLOC(data_external, data_length, data);
 
     status = psa_start_key_creation(PSA_KEY_CREATION_IMPORT, attributes,
                                     &slot, &driver);
@@ -2277,6 +2280,7 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
 
     status = psa_finish_key_creation(slot, driver, key);
 exit:
+    LOCAL_INPUT_FREE(data_external, data);
     if (status != PSA_SUCCESS) {
         psa_fail_key_creation(slot, driver);
     }

@@ -4836,8 +4836,9 @@ run_test    "Max fragment length: DTLS client, larger message" \
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Server-side parsing and debug output" \
             "$P_SRV debug_level=3 force_version=tls13" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4" \
@@ -4849,20 +4850,17 @@ run_test    "Record Size Limit: TLS 1.3: Server-side parsing and debug output" \
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_gnutls_next_disable_tls13_compat
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Client-side parsing and debug output" \
-            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%DISABLE_TLS13_COMPAT_MODE --disable-client-cert -d 4" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL --disable-client-cert -d 4" \
             "$P_CLI debug_level=4 force_version=tls13" \
             0 \
             -c "Sent RecordSizeLimit: 16384 Bytes"                                      \
             -c "ClientHello: record_size_limit(28) extension exists."                   \
-            -c "found record_size_limit extension"                                      \
             -c "EncryptedExtensions: record_size_limit(28) extension received."         \
             -c "RecordSizeLimit: 16385 Bytes"                                           \
-            -s "Parsing extension 'Record Size Limit/28' (2 bytes)"                     \
-            -s "record_size_limit 16384 negotiated"
 
 # In the following (9) tests, --recordsize is the value used by the G_NEXT_CLI (3.7.2) to configure the
 # maximum record size using "https://gnutls.org/reference/gnutls-gnutls.html#gnutls-record-set-max-size".
@@ -4889,10 +4887,13 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             "$P_SRV debug_level=3 force_version=tls13 tls13_kex_modes=psk \
                     psk_list=Client_identity,6162636465666768696a6b6c6d6e6f70 \
                     response_size=256" \
-                    "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+PSK --recordsize 512 \
-                         --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+PSK --recordsize 512 \
+                    --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70" \
             0 \
             -s "RecordSizeLimit: 513 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 511" \
             -s "256 bytes written in 1 fragments"
 
@@ -4909,6 +4910,9 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70" \
             0 \
             -s "RecordSizeLimit: 513 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 511" \
             -s "768 bytes written in 2 fragments"
 
@@ -4925,6 +4929,9 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70" \
             0 \
             -s "RecordSizeLimit: 513 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 511" \
             -s "1280 bytes written in 3 fragments"
 

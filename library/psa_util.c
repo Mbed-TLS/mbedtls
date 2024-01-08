@@ -37,6 +37,9 @@
 #if defined(MBEDTLS_PK_C)
 #include <mbedtls/pk.h>
 #endif
+#if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
+#include <mbedtls/cipher.h>
+#endif
 
 /* PSA_SUCCESS is kept at the top of each error table since
  * it's the most common status when everything functions properly. */
@@ -49,6 +52,17 @@ const mbedtls_error_pair_t psa_to_md_errors[] =
     { PSA_ERROR_INSUFFICIENT_MEMORY,   MBEDTLS_ERR_MD_ALLOC_FAILED }
 };
 #endif
+
+#if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
+const mbedtls_error_pair_t psa_to_cipher_errors[] =
+{
+    { PSA_SUCCESS,                     0 },
+    { PSA_ERROR_NOT_SUPPORTED,         MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE },
+    { PSA_ERROR_INVALID_ARGUMENT,      MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA },
+    { PSA_ERROR_INSUFFICIENT_MEMORY,   MBEDTLS_ERR_CIPHER_ALLOC_FAILED }
+};
+#endif
+
 #if defined(MBEDTLS_LMS_C)
 const mbedtls_error_pair_t psa_to_lms_errors[] =
 {
@@ -57,6 +71,7 @@ const mbedtls_error_pair_t psa_to_lms_errors[] =
     { PSA_ERROR_INVALID_ARGUMENT,      MBEDTLS_ERR_LMS_BAD_INPUT_DATA }
 };
 #endif
+
 #if defined(MBEDTLS_SSL_TLS_C) && \
     (defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3))
 const mbedtls_error_pair_t psa_to_ssl_errors[] =

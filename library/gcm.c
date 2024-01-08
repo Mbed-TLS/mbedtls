@@ -25,7 +25,7 @@
 #include "mbedtls/error.h"
 #include "mbedtls/constant_time.h"
 
-#if !defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_BLOCK_CIPHER_C)
 #include "block_cipher_internal.h"
 #endif
 
@@ -66,11 +66,11 @@ static int gcm_gen_table(mbedtls_gcm_context *ctx)
 
     memset(h, 0, 16);
 
-#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_BLOCK_CIPHER_C)
+    ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, h, h);
+#else
     size_t olen = 0;
     ret = mbedtls_cipher_update(&ctx->cipher_ctx, h, 16, h, &olen);
-#else
-    ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, h, h);
 #endif
     if (ret != 0) {
         return ret;
@@ -139,7 +139,17 @@ int mbedtls_gcm_setkey(mbedtls_gcm_context *ctx,
         return MBEDTLS_ERR_GCM_BAD_INPUT;
     }
 
-#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_BLOCK_CIPHER_C)
+    mbedtls_block_cipher_free(&ctx->block_cipher_ctx);
+
+    if ((ret = mbedtls_block_cipher_setup(&ctx->block_cipher_ctx, cipher)) != 0) {
+        return ret;
+    }
+
+    if ((ret = mbedtls_block_cipher_setkey(&ctx->block_cipher_ctx, key, keybits)) != 0) {
+        return ret;
+    }
+#else
     const mbedtls_cipher_info_t *cipher_info;
 
     cipher_info = mbedtls_cipher_info_from_values(cipher, keybits,
@@ -160,16 +170,6 @@ int mbedtls_gcm_setkey(mbedtls_gcm_context *ctx,
 
     if ((ret = mbedtls_cipher_setkey(&ctx->cipher_ctx, key, keybits,
                                      MBEDTLS_ENCRYPT)) != 0) {
-        return ret;
-    }
-#else
-    mbedtls_block_cipher_free(&ctx->block_cipher_ctx);
-
-    if ((ret = mbedtls_block_cipher_setup(&ctx->block_cipher_ctx, cipher)) != 0) {
-        return ret;
-    }
-
-    if ((ret = mbedtls_block_cipher_setkey(&ctx->block_cipher_ctx, key, keybits)) != 0) {
         return ret;
     }
 #endif
@@ -277,7 +277,7 @@ int mbedtls_gcm_starts(mbedtls_gcm_context *ctx,
     const unsigned char *p;
     size_t use_len;
     uint64_t iv_bits;
-#if defined(MBEDTLS_CIPHER_C)
+#if !defined(MBEDTLS_BLOCK_CIPHER_C)
     size_t olen = 0;
 #endif
 
@@ -320,10 +320,10 @@ int mbedtls_gcm_starts(mbedtls_gcm_context *ctx,
     }
 
 
-#if defined(MBEDTLS_CIPHER_C)
-    ret = mbedtls_cipher_update(&ctx->cipher_ctx, ctx->y, 16, ctx->base_ectr, &olen);
-#else
+#if defined(MBEDTLS_BLOCK_CIPHER_C)
     ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, ctx->y, ctx->base_ectr);
+#else
+    ret = mbedtls_cipher_update(&ctx->cipher_ctx, ctx->y, 16, ctx->base_ectr, &olen);
 #endif
     if (ret != 0) {
         return ret;
@@ -419,11 +419,11 @@ static int gcm_mask(mbedtls_gcm_context *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_BLOCK_CIPHER_C)
+    ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, ctx->y, ectr);
+#else
     size_t olen = 0;
     ret = mbedtls_cipher_update(&ctx->cipher_ctx, ctx->y, 16, ectr, &olen);
-#else
-    ret = mbedtls_block_cipher_encrypt(&ctx->block_cipher_ctx, ctx->y, ectr);
 #endif
     if (ret != 0) {
         mbedtls_platform_zeroize(ectr, 16);
@@ -649,17 +649,17 @@ void mbedtls_gcm_free(mbedtls_gcm_context *ctx)
     if (ctx == NULL) {
         return;
     }
-#if defined(MBEDTLS_CIPHER_C)
-    mbedtls_cipher_free(&ctx->cipher_ctx);
-#else
+#if defined(MBEDTLS_BLOCK_CIPHER_C)
     mbedtls_block_cipher_free(&ctx->block_cipher_ctx);
+#else
+    mbedtls_cipher_free(&ctx->cipher_ctx);
 #endif
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_gcm_context));
 }
 
 #endif /* !MBEDTLS_GCM_ALT */
 
-#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
+#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_CCM_GCM_CAN_AES)
 /*
  * AES-GCM test vectors from:
  *

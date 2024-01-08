@@ -24,6 +24,10 @@
 #include "mbedtls/camellia.h"
 #endif
 
+#if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
+#include "psa/crypto_types.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -35,8 +39,22 @@ typedef enum {
     MBEDTLS_BLOCK_CIPHER_ID_ARIA,      /**< The Aria cipher. */
 } mbedtls_block_cipher_id_t;
 
+/**
+ * Used internally to indicate whether a context uses legacy or PSA.
+ *
+ * Internal use only.
+ */
+typedef enum {
+    MBEDTLS_BLOCK_CIPHER_ENGINE_LEGACY = 0,
+    MBEDTLS_BLOCK_CIPHER_ENGINE_PSA,
+} mbedtls_block_cipher_engine_t;
+
 typedef struct {
     mbedtls_block_cipher_id_t MBEDTLS_PRIVATE(id);
+#if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
+    mbedtls_block_cipher_engine_t MBEDTLS_PRIVATE(engine);
+    mbedtls_svc_key_id_t MBEDTLS_PRIVATE(psa_key_id);
+#endif
     union {
         unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
 #if defined(MBEDTLS_AES_C)

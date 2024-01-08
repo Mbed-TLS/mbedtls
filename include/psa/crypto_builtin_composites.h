@@ -25,8 +25,12 @@
 #include <psa/crypto_driver_common.h>
 
 #include "mbedtls/cmac.h"
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
 #include "mbedtls/gcm.h"
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
 #include "mbedtls/ccm.h"
+#endif
 #include "mbedtls/chachapoly.h"
 
 /*

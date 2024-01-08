@@ -367,6 +367,30 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
 #define MD_PSA_DONE() ((void) 0)
 #endif /* MBEDTLS_MD_SOME_PSA */
 
+/** \def BLOCK_CIPHER_PSA_INIT
+ *
+ * Call this macro to initialize the PSA subsystem if BLOCK_CIPHER uses a driver,
+ * and do nothing otherwise.
+ *
+ * If the initialization fails, mark the test case as failed and jump to the
+ * \p exit label.
+ */
+/** \def BLOCK_CIPHER_PSA_DONE
+ *
+ * Call this macro at the end of a test case if you called #BLOCK_CIPHER_PSA_INIT.
+ *
+ * This is like #PSA_DONE except it does nothing under the same conditions as
+ * #BLOCK_CIPHER_PSA_INIT.
+ */
+#if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
+#define BLOCK_CIPHER_PSA_INIT()   PSA_INIT()
+#define BLOCK_CIPHER_PSA_DONE()   PSA_DONE()
+#else /* MBEDTLS_MD_SOME_PSA */
+#define BLOCK_CIPHER_PSA_INIT() ((void) 0)
+#define BLOCK_CIPHER_PSA_DONE() ((void) 0)
+#endif /* MBEDTLS_MD_SOME_PSA */
+
+
 /** \def MD_OR_USE_PSA_INIT
  *
  * Call this macro to initialize the PSA subsystem if MD uses a driver,

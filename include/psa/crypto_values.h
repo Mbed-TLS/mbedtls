@@ -279,6 +279,11 @@
  * to read from a resource. */
 #define PSA_ERROR_INSUFFICIENT_DATA     ((psa_status_t)-143)
 
+/** This can be returned if a function can no longer operate correctly.
+ * For example, if an essential initialization operation failed or
+ * a mutex operation failed. */
+#define PSA_ERROR_SERVICE_FAILURE       ((psa_status_t)-144)
+
 /** The key identifier is not valid. See also :ref:\`key-handles\`.
  */
 #define PSA_ERROR_INVALID_HANDLE        ((psa_status_t)-136)

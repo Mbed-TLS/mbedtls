@@ -1540,7 +1540,7 @@ component_test_crypto_full_md_light_only () {
     make test
 }
 
-component_test_full_no_cipher () {
+component_test_full_no_cipher_no_psa_crypto () {
     msg "build: full no CIPHER no PSA_CRYPTO_C"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_CIPHER_C
@@ -1565,8 +1565,8 @@ component_test_full_no_cipher () {
 }
 
 # This is a common configurator and test function that is used in:
-# - component_test_full_no_cipher_with_crypto
-# - component_test_full_no_cipher_with_crypto_config
+# - component_test_full_no_cipher_with_psa_crypto
+# - component_test_full_no_cipher_with_psa_crypto_config
 # It accepts 2 input parameters:
 # - $1: boolean value which basically reflects status of MBEDTLS_PSA_CRYPTO_CONFIG
 # - $2: a text string which describes the test component
@@ -1614,11 +1614,11 @@ common_test_full_no_cipher_with_psa_crypto () {
     make test
 }
 
-component_test_full_no_cipher_with_crypto() {
+component_test_full_no_cipher_with_psa_crypto() {
     common_test_full_no_cipher_with_psa_crypto 0 "full no CIPHER no CRYPTO_CONFIG"
 }
 
-component_test_full_no_cipher_with_crypto_config() {
+component_test_full_no_cipher_with_psa_crypto_config() {
     common_test_full_no_cipher_with_psa_crypto 1 "full no CIPHER"
 }
 

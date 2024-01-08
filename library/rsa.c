@@ -909,7 +909,7 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
 
     /* Temporaries holding the initial input and the double
      * checked result; should be the same in the end. */
-    mbedtls_mpi I, C;
+    mbedtls_mpi input_blinded, check_result_blinded;
 
     RSA_VALIDATE_RET(ctx != NULL);
     RSA_VALIDATE_RET(input  != NULL);
@@ -946,8 +946,8 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
     mbedtls_mpi_init(&TP); mbedtls_mpi_init(&TQ);
 #endif
 
-    mbedtls_mpi_init(&I);
-    mbedtls_mpi_init(&C);
+    mbedtls_mpi_init(&input_blinded);
+    mbedtls_mpi_init(&check_result_blinded);
 
     /* End of MPI initialization */
 
@@ -956,8 +956,6 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
         ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
         goto cleanup;
     }
-
-    MBEDTLS_MPI_CHK(mbedtls_mpi_copy(&I, &T));
 
     if (f_rng != NULL) {
         /*
@@ -1010,6 +1008,9 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
 #endif /* MBEDTLS_RSA_NO_CRT */
     }
 
+    /* Make a copy of the input (after blinding if there was any) */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_copy(&input_blinded, &T));
+
 #if defined(MBEDTLS_RSA_NO_CRT)
     MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&T, &T, D, &ctx->N, &ctx->RN));
 #else
@@ -1037,20 +1038,20 @@ int mbedtls_rsa_private(mbedtls_rsa_context *ctx,
     MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(&T, &TQ, &TP));
 #endif /* MBEDTLS_RSA_NO_CRT */
 
+    /* Verify the result to prevent glitching attacks. */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&check_result_blinded, &T, &ctx->E,
+                                        &ctx->N, &ctx->RN));
+    if (mbedtls_mpi_cmp_mpi(&check_result_blinded, &input_blinded) != 0) {
+        ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
+        goto cleanup;
+    }
+
     if (f_rng != NULL) {
         /*
          * Unblind
          * T = T * Vf mod N
          */
         MBEDTLS_MPI_CHK(rsa_unblind(&T, &ctx->Vf, &ctx->N));
-    }
-
-    /* Verify the result to prevent glitching attacks. */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&C, &T, &ctx->E,
-                                        &ctx->N, &ctx->RN));
-    if (mbedtls_mpi_cmp_mpi(&C, &I) != 0) {
-        ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
-        goto cleanup;
     }
 
     olen = ctx->len;
@@ -1082,8 +1083,8 @@ cleanup:
     mbedtls_mpi_free(&TP); mbedtls_mpi_free(&TQ);
 #endif
 
-    mbedtls_mpi_free(&C);
-    mbedtls_mpi_free(&I);
+    mbedtls_mpi_free(&check_result_blinded);
+    mbedtls_mpi_free(&input_blinded);
 
     if (ret != 0 && ret >= -0x007f) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_RSA_PRIVATE_FAILED, ret);

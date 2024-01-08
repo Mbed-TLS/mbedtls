@@ -117,6 +117,8 @@ typedef struct {
         0)
 
 /** Test whether a key slot has any registered readers.
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
  *
  * \param[in] slot      The key slot to test.
  *
@@ -195,6 +197,8 @@ static inline psa_key_slot_number_t psa_key_slot_get_slot_number(
  *
  * Persistent storage is not affected.
  * Sets the slot's state to PSA_SLOT_EMPTY.
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
  *
  * \param[in,out] slot  The key slot to wipe.
  *

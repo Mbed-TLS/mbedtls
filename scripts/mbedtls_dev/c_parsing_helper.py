@@ -76,7 +76,7 @@ class FunctionInfo:
 # Match one C comment.
 # Note that we match both comment types, so things like // in a /*...*/
 # comment are handled correctly.
-_C_COMMENT_RE = re.compile(r'//[^n]*|/\*.*?\*/', re.S)
+_C_COMMENT_RE = re.compile(r'//(?:[^\n]|\\\n)*|/\*.*?\*/', re.S)
 _NOT_NEWLINES_RE = re.compile(r'[^\n]+')
 
 def read_logical_lines(filename: str) -> Iterator[Tuple[int, str]]:

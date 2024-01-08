@@ -5075,8 +5075,11 @@ int mbedtls_ssl_close_notify(mbedtls_ssl_context *ssl);
 
 #if defined(MBEDTLS_SSL_SRV_C)
 /**
- * \brief          Read at most 'len' application data bytes while performing
- *                 the handshake (early data).
+ * \brief          Read at most 'len' bytes of early data
+ *
+ * \note           This API is server specific.
+ *
+ * \note           Early data is defined in the TLS 1.3 specification, RFC 8446.
  *
  * \note           This function behaves mainly as mbedtls_ssl_read(). The
  *                 specification of mbedtls_ssl_read() relevant to TLS 1.3
@@ -5084,9 +5087,18 @@ int mbedtls_ssl_close_notify(mbedtls_ssl_context *ssl);
  *                 function and the present documentation is restricted to the
  *                 differences with mbedtls_ssl_read().
  *
+ * \note           This function can be used in conjunction with
+ *                 mbedtls_ssl_handshake(), mbedtls_ssl_handshake_step(),
+ *                 mbedtls_ssl_read() and mbedtls_ssl_write() to read early
+ *                 data when these functions return
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA.
+ *
  * \param ssl      SSL context
  * \param buf      buffer that will hold the data
  * \param len      maximum number of bytes to read
+ *
+ * \note           Unlike mbedtls_ssl_read(), this function does not return
+ *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA.
  *
  * \return         One additional specific return value:
  *                 #MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA.
@@ -5112,11 +5124,6 @@ int mbedtls_ssl_close_notify(mbedtls_ssl_context *ssl);
  *                 \p ssl but this does not preclude for using it with
  *                 mbedtls_ssl_write(), mbedtls_ssl_read() or
  *                 mbedtls_ssl_handshake().
- *
- * \note           When a server wants to retrieve early data, it is expected
- *                 that this function starts the handshake for the SSL context
- *                 \p ssl. But this is not mandatory.
- *
  */
 int mbedtls_ssl_read_early_data(mbedtls_ssl_context *ssl,
                                 unsigned char *buf, size_t len);

@@ -55,6 +55,8 @@ For now, only the following (families of) mechanisms are supported:
 - hashes: SHA-3, SHA-2, SHA-1, MD5, etc.
 - elliptic-curve cryptography (ECC): ECDH, ECDSA, EC J-PAKE, ECC key types.
 - finite-field Diffie-Hellman: FFDH algorithm, DH key types.
+- RSA: PKCS#1 v1.5 and v2.1 signature and encryption algorithms, RSA key types
+  (for now, only crypto, no X.509 or TLS support).
 - AEADs:
   - GCM and CCM with AES, ARIA and Camellia key types
   - ChachaPoly with ChaCha20 Key type
@@ -70,9 +72,6 @@ Supported means that when those are provided only by drivers, everything
 work in the same way as if the mechanisms where built-in, except as documented
 in the "Limitations" sub-sections of the sections dedicated to each family
 below.
-
-Currently (mid-2023) we don't have plans to extend this to RSA. If
-you're interested in driver-only support for RSA, please let us know.
 
 Hashes
 ------
@@ -138,9 +137,10 @@ then you can also disable `MBEDTLS_ECP_C`. However, a small subset of it might
 still be included in the build, see limitations sub-section below.
 
 In addition, if:
-- `MBEDTLS_ECP_C` is fully removed (see limitation sub-section below), and
-- support for RSA key types and algorithms is fully disabled, and
-- support for DH key types and the FFDH algorithm is either disabled, or
+- `MBEDTLS_ECP_C` is fully removed (see limitation sub-section below),
+- and support for RSA key types and algorithms is either fully disabled or
+  fully provided by a driver,
+- and support for DH key types and the FFDH algorithm is either disabled or
   fully provided by a driver,
 
 then you can also disable `MBEDTLS_BIGNUM_C`.
@@ -242,6 +242,29 @@ Key management and usage can be enabled by means of the usual `PSA_WANT` +
 The same holds for the associated algorithm:
 `[PSA_WANT|MBEDTLS_PSA_ACCEL]_ALG_FFDH` allow builds accelerating FFDH and
 removing builtin support (i.e. `MBEDTLS_DHM_C`).
+
+RSA
+---
+
+It is possible for all RSA operations to be provided only by a driver.
+
+More precisely, if:
+- all the RSA algorithms that are enabled (`PSA_WANT_ALG_RSA_*`) are also
+  accelerated (`MBEDTLS_PSA_ACCEL_ALG_RSA_*`),
+- and all the RSA key types that are enabled (`PSA_WANT_KEY_TYPE_RSA_*`) are
+  also accelerated (`MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_*`),
+
+then you can disable `MBEDTLS_RSA_C`, `MBEDTLS_PKCS1_V15` and
+`MBEDTLS_PKCS1_V21`, and RSA will still work in PSA Crypto.
+
+### Limitations on RSA acceleration
+
+Unlike other mechanisms, for now in configurations with driver-only RSA, only
+PSA Crypto works. In particular, PK, X.509 and TLS will _not_ work with
+driver-only RSA even if `MBEDTLS_USE_PSA_CRYPTO` is enabled.
+
+Currently (early 2024) we don't have plans to extend this support. If you're
+interested in wider driver-only support for RSA, please let us know.
 
 Ciphers (unauthenticated and AEAD)
 ----------------------------------

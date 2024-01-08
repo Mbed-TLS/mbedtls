@@ -176,6 +176,42 @@ static inline mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa
     return (mbedtls_md_type_t) (psa_alg & PSA_ALG_HASH_MASK);
 }
 
+#if defined(MBEDTLS_ASN1_WRITE_C)
+/** Convert an ECDSA signature from raw format to DER ASN.1 one.
+ *
+ * \param       raw         Buffer that contains the signature in raw format.
+ * \param       raw_len     Length of raw buffer in bytes
+ * \param[out]  der         Buffer that will be filled with the converted DER
+ *                          output. It can overlap with raw buffer.
+ * \param       der_size    Size of the output der buffer in bytes.
+ * \param[out]  der_len     On success it contains the amount of valid data
+ *                          (in bytes) written to der buffer. It's undefined
+ *                          in case of failure.
+ * \param       bits        Size of each raw coordinate in bits.
+ */
+int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
+                             unsigned char *der, size_t der_size, size_t *der_len,
+                             size_t bits);
+#endif /* MBEDTLS_ASN1_WRITE_C */
+
+#if defined(MBEDTLS_ASN1_PARSE_C)
+/** Convert an ECDSA signature from DER ASN.1 format to raw.
+ *
+ * \param       der         Buffer that contains the signature in DER format.
+ * \param       der_len     Size of the der buffer in bytes.
+ * \param[out]  raw         Buffer that will be filled with the converted raw
+ *                          signature. It can overlap with der buffer.
+ * \param       raw_size    Size of the raw buffer in bytes.
+ * \param[out]  raw_len     On success it is updated with the amount of valid
+ *                          data (in bytes) written to raw buffer. It's undefined
+ *                          in case of failure.
+ * \param       bits        Size of each raw coordinate in bits.
+ */
+int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
+                             unsigned char *raw, size_t raw_size, size_t *raw_len,
+                             size_t bits);
+#endif /* MBEDTLS_ASN1_PARSE_C */
+
 /**@}*/
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

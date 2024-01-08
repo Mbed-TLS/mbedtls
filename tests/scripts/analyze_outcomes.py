@@ -240,16 +240,16 @@ KNOWN_TASKS = {
             }
         }
     },
-    'analyze_driver_vs_reference_cipher_aead': {
+    'analyze_driver_vs_reference_cipher_aead_cmac': {
         'test_function': do_analyze_driver_vs_reference,
         'args': {
-            'component_ref': 'test_psa_crypto_config_reference_cipher_aead',
-            'component_driver': 'test_psa_crypto_config_accel_cipher_aead',
+            'component_ref': 'test_psa_crypto_config_reference_cipher_aead_cmac',
+            'component_driver': 'test_psa_crypto_config_accel_cipher_aead_cmac',
             # Modules replaced by drivers.
             'ignored_suites': [
                 # low-level (block/stream) cipher modules
                 'aes', 'aria', 'camellia', 'des', 'chacha20',
-                # AEAD modes
+                # AEAD modes and CMAC
                 'ccm', 'chachapoly', 'cmac', 'gcm',
                 # The Cipher abstraction layer
                 'cipher',

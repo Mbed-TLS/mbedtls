@@ -3741,9 +3741,9 @@ component_test_psa_crypto_config_accel_aead () {
 }
 
 # This is a common configuration function used in:
-# - component_test_psa_crypto_config_accel_cipher_aead
-# - component_test_psa_crypto_config_reference_cipher_aead
-common_psa_crypto_config_accel_cipher_aead() {
+# - component_test_psa_crypto_config_accel_cipher_aead_cmac
+# - component_test_psa_crypto_config_reference_cipher_aead_cmac
+common_psa_crypto_config_accel_cipher_aead_cmac() {
     # Start from the full config
     helper_libtestdriver1_adjust_config "full"
 
@@ -3751,12 +3751,12 @@ common_psa_crypto_config_accel_cipher_aead() {
 }
 
 # The 2 following test components, i.e.
-# - component_test_psa_crypto_config_accel_cipher_aead
-# - component_test_psa_crypto_config_reference_cipher_aead
+# - component_test_psa_crypto_config_accel_cipher_aead_cmac
+# - component_test_psa_crypto_config_reference_cipher_aead_cmac
 # are meant to be used together in analyze_outcomes.py script in order to test
 # driver's coverage for ciphers and AEADs.
-component_test_psa_crypto_config_accel_cipher_aead () {
-    msg "build: full config with accelerated cipher and AEAD"
+component_test_psa_crypto_config_accel_cipher_aead_cmac () {
+    msg "build: full config with accelerated cipher inc. AEAD and CMAC"
 
     loc_accel_list="ALG_ECB_NO_PADDING ALG_CBC_NO_PADDING ALG_CBC_PKCS7 ALG_CTR ALG_CFB \
                     ALG_OFB ALG_XTS ALG_STREAM_CIPHER ALG_CCM_STAR_NO_TAG \
@@ -3766,7 +3766,7 @@ component_test_psa_crypto_config_accel_cipher_aead () {
     # Configure
     # ---------
 
-    common_psa_crypto_config_accel_cipher_aead
+    common_psa_crypto_config_accel_cipher_aead_cmac
 
     # Disable the things that are being accelerated
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
@@ -3810,29 +3810,29 @@ component_test_psa_crypto_config_accel_cipher_aead () {
     # Run the tests
     # -------------
 
-    msg "test: full config with accelerated cipher and AEAD"
+    msg "test: full config with accelerated cipher inc. AEAD and CMAC"
     make test
 
-    msg "ssl-opt: full config with accelerated cipher and AEAD"
+    msg "ssl-opt: full config with accelerated cipher inc. AEAD and CMAC"
     tests/ssl-opt.sh
 
-    msg "compat.sh: full config with accelerated cipher and AEAD"
+    msg "compat.sh: full config with accelerated cipher inc. AEAD and CMAC"
     tests/compat.sh -V NO -p mbedTLS
 }
 
-component_test_psa_crypto_config_reference_cipher_aead () {
-    msg "build: full config with non-accelerated cipher and AEAD"
-    common_psa_crypto_config_accel_cipher_aead
+component_test_psa_crypto_config_reference_cipher_aead_cmac () {
+    msg "build: full config with non-accelerated cipher inc. AEAD and CMAC"
+    common_psa_crypto_config_accel_cipher_aead_cmac
 
     make
 
-    msg "test: full config with non-accelerated cipher and AEAD"
+    msg "test: full config with non-accelerated cipher inc. AEAD and CMAC"
     make test
 
-    msg "ssl-opt: full config with non-accelerated cipher and AEAD"
+    msg "ssl-opt: full config with non-accelerated cipher inc. AEAD and CMAC"
     tests/ssl-opt.sh
 
-    msg "compat.sh: full config with non-accelerated cipher and AEAD"
+    msg "compat.sh: full config with non-accelerated cipher inc. AEAD and CMAC"
     tests/compat.sh -V NO -p mbedTLS
 }
 

@@ -594,19 +594,23 @@
  * They are defined in _Standards for Efficient Cryptography_,
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
+ *
+ * \note For secp224k1, the bit-size is 225 (size of a private value).
+ *
+ * \note Mbed TLS only supports secp192k1 and secp256k1.
  */
 #define PSA_ECC_FAMILY_SECP_K1           ((psa_ecc_family_t) 0x17)
 
 /** SEC random curves over prime fields.
  *
  * This family comprises the following curves:
- * secp192k1, secp224r1, secp256r1, secp384r1, secp521r1.
+ * secp192r1, secp224r1, secp256r1, secp384r1, secp521r1.
  * They are defined in _Standards for Efficient Cryptography_,
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
  */
 #define PSA_ECC_FAMILY_SECP_R1           ((psa_ecc_family_t) 0x12)
-/* SECP160R2 (SEC2 v1, obsolete) */
+/* SECP160R2 (SEC2 v1, obsolete, not supported in Mbed TLS) */
 #define PSA_ECC_FAMILY_SECP_R2           ((psa_ecc_family_t) 0x1b)
 
 /** SEC Koblitz curves over binary fields.
@@ -616,6 +620,8 @@
  * They are defined in _Standards for Efficient Cryptography_,
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
+ *
+ * \note Mbed TLS does not support any curve in this family.
  */
 #define PSA_ECC_FAMILY_SECT_K1           ((psa_ecc_family_t) 0x27)
 
@@ -626,6 +632,8 @@
  * They are defined in _Standards for Efficient Cryptography_,
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
+ *
+ * \note Mbed TLS does not support any curve in this family.
  */
 #define PSA_ECC_FAMILY_SECT_R1           ((psa_ecc_family_t) 0x22)
 
@@ -636,6 +644,8 @@
  * It is defined in _Standards for Efficient Cryptography_,
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
+ *
+ * \note Mbed TLS does not support any curve in this family.
  */
 #define PSA_ECC_FAMILY_SECT_R2           ((psa_ecc_family_t) 0x2b)
 
@@ -645,6 +655,9 @@
  * brainpoolP160r1, brainpoolP192r1, brainpoolP224r1, brainpoolP256r1,
  * brainpoolP320r1, brainpoolP384r1, brainpoolP512r1.
  * It is defined in RFC 5639.
+ *
+ * \note Mbed TLS only supports the 256-bit, 384-bit and 512-bit curves
+ *       in this family.
  */
 #define PSA_ECC_FAMILY_BRAINPOOL_P_R1    ((psa_ecc_family_t) 0x30)
 
@@ -673,6 +686,8 @@
  * - 448-bit: Edwards448, the twisted Edwards curve birationally equivalent
  *   to Curve448.
  *   Hamburg, _Ed448-Goldilocks, a new elliptic curve_, NIST ECC Workshop, 2015.
+ *
+ * \note Mbed TLS does not support Edwards curves yet.
  */
 #define PSA_ECC_FAMILY_TWISTED_EDWARDS   ((psa_ecc_family_t) 0x42)
 

@@ -414,9 +414,7 @@ int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
 
     /* Since raw and der buffers might overlap, dump r and s before starting
      * the conversion. */
-    memset(r, 0, sizeof(r));
     memcpy(r, raw, coordinate_len);
-    memset(s, 0, sizeof(s));
     memcpy(s, raw + coordinate_len, coordinate_len);
 
     /* der buffer will initially be written starting from its end so we pick s
@@ -481,6 +479,10 @@ static int convert_der_to_raw_single_int(unsigned char *der, size_t der_len,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t unpadded_len, padding_len = 0;
 
+    if (raw_len < coordinate_size) {
+        return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
+    }
+
     /* Get the length of ASN.1 element (i.e. the integer we need to parse). */
     ret = mbedtls_asn1_get_tag(&p, p + der_len, &unpadded_len,
                                MBEDTLS_ASN1_INTEGER);
@@ -496,10 +498,6 @@ static int convert_der_to_raw_single_int(unsigned char *der, size_t der_len,
         if (unpadded_len == 0) {
             return MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
         }
-    }
-
-    if (raw_len < coordinate_size) {
-        return ERR_ASN1_BUF_TOO_SMALL;
     }
 
     if (unpadded_len < coordinate_size) {
@@ -557,7 +555,7 @@ int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
     data_len -= ret;
 
     /* Check that we consumed all the input der data. */
-    if ((p - der) != (int) der_len) {
+    if ((size_t) (p - der) != der_len) {
         return MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
     }
 

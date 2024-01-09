@@ -1907,19 +1907,17 @@ int mbedtls_mpi_mod_int(mbedtls_mpi_uint *r, const mbedtls_mpi *A, mbedtls_mpi_s
 /*
  * Fast Montgomery initialization (thanks to Tom St Denis)
  */
-void mbedtls_mpi_montg_init(mbedtls_mpi_uint *mm, const mbedtls_mpi *N)
+mbedtls_mpi_uint mbedtls_mpi_montmul_init(const mbedtls_mpi_uint *N)
 {
-    mbedtls_mpi_uint x, m0 = N->p[0];
-    unsigned int i;
+    mbedtls_mpi_uint x = N[0];
 
-    x  = m0;
-    x += ((m0 + 2) & 4) << 1;
+    x += ((N[0] + 2) & 4) << 1;
 
-    for (i = biL; i >= 8; i /= 2) {
-        x *= (2 - (m0 * x));
+    for (unsigned int i = biL; i >= 8; i /= 2) {
+        x *= (2 - (N[0] * x));
     }
 
-    *mm = ~x + 1;
+    return ~x + 1;
 }
 
 void mbedtls_mpi_montmul(mbedtls_mpi *A,
@@ -2069,7 +2067,7 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
     /*
      * Init temps and window size
      */
-    mbedtls_mpi_montg_init(&mm, N);
+    mm = mbedtls_mpi_montmul_init(N->p);
     mbedtls_mpi_init(&RR); mbedtls_mpi_init(&T);
     mbedtls_mpi_init(&Apos);
     mbedtls_mpi_init(&WW);

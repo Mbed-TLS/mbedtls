@@ -270,4 +270,4 @@ Check max extension length (Max-1)
 x509_set_extension_length_check:0xFFFFFFFE
 
 Check max extension length (Max)
-x509_set_extension_length_check:0xFFFFFFFF
+x509_set_extension_length_check:SIZE_MAX

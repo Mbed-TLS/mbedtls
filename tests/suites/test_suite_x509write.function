@@ -751,7 +751,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CSR_WRITE_C */
 void x509_set_extension_length_check()
 {
     int ret = 0;

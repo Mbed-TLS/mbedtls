@@ -125,7 +125,7 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
 
 /** Convert an ECC curve identifier from the PSA encoding to Mbed TLS.
  *
- * \param curve         A PSA elliptic curve identifier
+ * \param family        A PSA elliptic curve family identifier
  *                      (`PSA_ECC_FAMILY_xxx`).
  * \param bits          The bit-length of a private key on \p curve.
  *
@@ -135,7 +135,7 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
  * \return              #MBEDTLS_ECP_DP_NONE if the combination of \c curve
  *                      and \p bits is not supported.
  */
-mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t curve,
+mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t family,
                                                 size_t bits);
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 

@@ -250,10 +250,10 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
     }
 }
 
-mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t curve,
+mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t family,
                                                 size_t bits)
 {
-    switch (curve) {
+    switch (family) {
         case PSA_ECC_FAMILY_SECP_R1:
             switch (bits) {
 #if defined(PSA_WANT_ECC_SECP_R1_192)

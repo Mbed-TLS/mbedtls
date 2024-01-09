@@ -91,6 +91,7 @@ OBJS_CRYPTO= \
 	     bignum_core.o \
 	     bignum_mod.o \
 	     bignum_mod_raw.o \
+	     block_cipher.o \
 	     camellia.o \
 	     ccm.o \
 	     chacha20.o \
@@ -322,7 +323,7 @@ GENERATED_FILES = \
 generated_files: $(GENERATED_FILES)
 
 # See root Makefile
-GEN_FILES ?=
+GEN_FILES ?= yes
 ifdef GEN_FILES
 gen_file_dep =
 else

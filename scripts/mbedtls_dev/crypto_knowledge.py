@@ -4,19 +4,8 @@ This module is entirely based on the PSA API.
 """
 
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 #
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import enum
 import re
@@ -142,8 +131,8 @@ class KeyType:
         'PSA_DH_FAMILY_RFC7919': (2048, 3072, 4096, 6144, 8192),
     } # type: Dict[str, Tuple[int, ...]]
     ECC_KEY_SIZES = {
-        'PSA_ECC_FAMILY_SECP_K1': (192, 224, 256),
-        'PSA_ECC_FAMILY_SECP_R1': (225, 256, 384, 521),
+        'PSA_ECC_FAMILY_SECP_K1': (192, 225, 256),
+        'PSA_ECC_FAMILY_SECP_R1': (224, 256, 384, 521),
         'PSA_ECC_FAMILY_SECP_R2': (160,),
         'PSA_ECC_FAMILY_SECT_K1': (163, 233, 239, 283, 409, 571),
         'PSA_ECC_FAMILY_SECT_R1': (163, 233, 283, 409, 571),

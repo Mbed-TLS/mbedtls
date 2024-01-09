@@ -2,37 +2,31 @@
  * \file aesce.h
  *
  * \brief Support hardware AES acceleration on Armv8-A processors with
- *        the Armv8-A Cryptographic Extension in AArch64 execution state.
+ *        the Armv8-A Cryptographic Extension.
  *
  * \warning These functions are only for internal use by other library
  *          functions; you must not call them directly.
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 #ifndef MBEDTLS_AESCE_H
 #define MBEDTLS_AESCE_H
 
 #include "mbedtls/build_info.h"
+#include "common.h"
 
 #include "mbedtls/aes.h"
 
 
-#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_ARCH_IS_ARM64)
+#if defined(MBEDTLS_AESCE_C) \
+    && defined(MBEDTLS_ARCH_IS_ARMV8_A) && defined(MBEDTLS_HAVE_NEON_INTRINSICS) \
+    && (defined(MBEDTLS_COMPILER_IS_GCC) || defined(__clang__) || defined(MSC_VER))
 
+/* MBEDTLS_AESCE_HAVE_CODE is defined if we have a suitable target platform, and a
+ * potentially suitable compiler (compiler version & flags are not checked when defining
+ * this). */
 #define MBEDTLS_AESCE_HAVE_CODE
 
 #ifdef __cplusplus
@@ -99,6 +93,7 @@ void mbedtls_aesce_gcm_mult(unsigned char c[16],
                             const unsigned char b[16]);
 
 
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 /**
  * \brief           Internal round key inversion. This function computes
  *                  decryption round keys from the encryption round keys.
@@ -110,6 +105,7 @@ void mbedtls_aesce_gcm_mult(unsigned char c[16],
 void mbedtls_aesce_inverse_key(unsigned char *invkey,
                                const unsigned char *fwdkey,
                                int nr);
+#endif /* !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 
 /**
  * \brief           Internal key expansion for encryption
@@ -128,6 +124,13 @@ int mbedtls_aesce_setkey_enc(unsigned char *rk,
 }
 #endif
 
-#endif /* MBEDTLS_AESCE_C && MBEDTLS_ARCH_IS_ARM64 */
+#else
+
+#if defined(MBEDTLS_AES_USE_HARDWARE_ONLY) && defined(MBEDTLS_ARCH_IS_ARMV8_A)
+#error "AES hardware acceleration not supported on this platform / compiler"
+#endif
+
+#endif /* MBEDTLS_AESCE_C && MBEDTLS_ARCH_IS_ARMV8_A && MBEDTLS_HAVE_NEON_INTRINSICS &&
+          (MBEDTLS_COMPILER_IS_GCC || __clang__ || MSC_VER) */
 
 #endif /* MBEDTLS_AESCE_H */

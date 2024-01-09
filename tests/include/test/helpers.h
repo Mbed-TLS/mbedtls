@@ -7,19 +7,7 @@
 
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef TEST_HELPERS_H
@@ -31,6 +19,21 @@
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
 #include "mbedtls/build_info.h"
+
+#if defined(__SANITIZE_ADDRESS__) /* gcc -fsanitize=address */
+#  define MBEDTLS_TEST_HAVE_ASAN
+#endif
+#if defined(__has_feature)
+#  if __has_feature(address_sanitizer) /* clang -fsanitize=address */
+#    define MBEDTLS_TEST_HAVE_ASAN
+#  endif
+#  if __has_feature(memory_sanitizer) /* clang -fsanitize=memory */
+#    define MBEDTLS_TEST_HAVE_MSAN
+#  endif
+#  if __has_feature(thread_sanitizer) /* clang -fsanitize=thread */
+#    define MBEDTLS_TEST_HAVE_TSAN
+#  endif
+#endif
 
 #if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_PTHREAD) && \
     defined(MBEDTLS_TEST_HOOKS)
@@ -252,9 +255,17 @@ int mbedtls_test_hexcmp(uint8_t *a, uint8_t *b,
 #endif
 
 #if defined(MBEDTLS_TEST_MUTEX_USAGE)
-/** Permanently activate the mutex usage verification framework. See
- * threading_helpers.c for information. */
+/**
+ *  Activate the mutex usage verification framework. See threading_helpers.c for
+ *  information.
+ *  */
 void mbedtls_test_mutex_usage_init(void);
+
+/**
+ *  Deactivate the mutex usage verification framework. See threading_helpers.c
+ *  for information.
+ */
+void mbedtls_test_mutex_usage_end(void);
 
 /** Call this function after executing a test case to check for mutex usage
  * errors. */

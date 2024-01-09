@@ -815,8 +815,7 @@ static int rsa_unblind(mbedtls_mpi *T, mbedtls_mpi *Vf, const mbedtls_mpi *N)
     const size_t nlimbs = N->n;
     const size_t tlimbs = 2 * (nlimbs + 1);
 
-    mbedtls_mpi_uint mm;
-    mbedtls_mpi_montg_init(&mm, N);
+    mbedtls_mpi_uint mm = mbedtls_mpi_montmul_init(N->p);
 
     mbedtls_mpi RR, M_T;
 

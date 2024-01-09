@@ -30,14 +30,14 @@ int mbedtls_mpi_get_mont_r2_unsafe(mbedtls_mpi *X,
 
 /**
  * \brief Calculate initialisation value for fast Montgomery modular
- *        multiplication.
+ *        multiplication
  *
- * \param[out] mm   The initialisation value for fast Montgomery modular
- *                  multiplication.
- * \param[in]  N    Little-endian presentation of the modulus. This must have
- *                  at least one limb.
+ * \param[in] N  Little-endian presentation of the modulus. This must have
+ *               at least one limb.
+ *
+ * \return       The initialisation value for fast Montgomery modular multiplication
  */
-void mbedtls_mpi_montg_init(mbedtls_mpi_uint *mm, const mbedtls_mpi *N);
+mbedtls_mpi_uint mbedtls_mpi_montmul_init(const mbedtls_mpi_uint *N);
 
 /** Montgomery multiplication: A = A * B * R^-1 mod N  (HAC 14.36)
  *

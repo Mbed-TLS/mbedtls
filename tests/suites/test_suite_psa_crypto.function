@@ -7639,8 +7639,7 @@ void interruptible_signverify_hash_edgecase_tests(int key_type_arg,
      * no reliance on external buffers. */
     psa_interruptible_set_max_ops(PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED);
 
-    input_buffer = mbedtls_calloc(1, input_data->len);
-    TEST_ASSERT(input_buffer != NULL);
+    TEST_CALLOC(input_buffer, input_data->len);
 
     memcpy(input_buffer, input_data->x, input_data->len);
 
@@ -7657,8 +7656,7 @@ void interruptible_signverify_hash_edgecase_tests(int key_type_arg,
 
     PSA_ASSERT(psa_sign_hash_abort(&sign_operation));
 
-    input_buffer = mbedtls_calloc(1, input_data->len);
-    TEST_ASSERT(input_buffer != NULL);
+    TEST_CALLOC(input_buffer, input_data->len);
 
     memcpy(input_buffer, input_data->x, input_data->len);
 
@@ -7683,6 +7681,7 @@ exit:
 
     psa_destroy_key(key);
     mbedtls_free(signature);
+    mbedtls_free(input_buffer);
     PSA_DONE();
 }
 /* END_CASE */
@@ -9689,14 +9688,24 @@ void generate_key_rsa(int bits_arg,
     PSA_ASSERT(psa_get_key_attributes(key, &attributes));
     TEST_EQUAL(psa_get_key_type(&attributes), type);
     TEST_EQUAL(psa_get_key_bits(&attributes), bits);
-    PSA_ASSERT(psa_get_key_domain_parameters(&attributes,
-                                             e_read_buffer, e_read_size,
-                                             &e_read_length));
+    psa_status_t status = psa_get_key_domain_parameters(&attributes,
+                                                        e_read_buffer, e_read_size,
+                                                        &e_read_length);
+
+
+#if (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) && \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
     if (is_default_public_exponent) {
         TEST_EQUAL(e_read_length, 0);
     } else {
+        TEST_EQUAL(status, PSA_SUCCESS);
         TEST_MEMORY_COMPARE(e_read_buffer, e_read_length, e_arg->x, e_arg->len);
     }
+#else
+    (void) is_default_public_exponent;
+    TEST_EQUAL(status, PSA_ERROR_NOT_SUPPORTED);
+#endif
 
     /* Do something with the key according to its type and permitted usage. */
     if (!mbedtls_test_psa_exercise_key(key, usage, alg)) {

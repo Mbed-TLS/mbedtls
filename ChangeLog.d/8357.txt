@@ -1,0 +1,8 @@
+Features
+   * It is now possible to have AEADs support (CCM, GCM and ChaChaPoly) without
+     MBEDTLS_CIPHER_C. This holds both for the builtin suport (MBEDTLS_CCM_C,
+     MBEDTLS_GCM_C and MBEDTLS_CHACHAPOLY_C) as well as the PSA one
+     (PSA_WANT_ALG_CCM, PSA_WANT_ALG_GCM, PSA_WANT_ALG_CHACHA20_POLY1305).
+     On the PSA side this means that it is possible to enable
+     MBEDTLS_PSA_CRYPTO_C without MBEDTLS_CIPHER_C if none of the
+     non-authenticated ciphers is enabled.

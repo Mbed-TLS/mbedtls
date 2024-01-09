@@ -8,19 +8,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_LMOTS_H
@@ -55,29 +43,6 @@ extern "C" {
 #if defined(MBEDTLS_TEST_HOOKS)
 extern int (*mbedtls_lmots_sign_private_key_invalidated_hook)(unsigned char *);
 #endif /* defined(MBEDTLS_TEST_HOOKS) */
-
-/**
- * \brief                    This function converts an unsigned int into a
- *                           network-byte-order (big endian) string.
- *
- * \param val                The unsigned integer value
- * \param len                The length of the string.
- * \param bytes              The string to output into.
- */
-void mbedtls_lms_unsigned_int_to_network_bytes(unsigned int val, size_t len,
-                                               unsigned char *bytes);
-
-/**
- * \brief                    This function converts a network-byte-order
- *                           (big endian) string into an unsigned integer.
- *
- * \param len                The length of the string.
- * \param bytes              The string.
- *
- * \return                   The corresponding LMS error code.
- */
-unsigned int mbedtls_lms_network_bytes_to_unsigned_int(size_t len,
-                                                       const unsigned char *bytes);
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**

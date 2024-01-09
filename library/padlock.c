@@ -2,19 +2,7 @@
  *  VIA PadLock support functions
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 /*
  *  This implementation is based on the VIA PadLock Programming Guide:
@@ -108,6 +96,7 @@ int mbedtls_padlock_xcryptecb(mbedtls_aes_context *ctx,
     return 0;
 }
 
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
 /*
  * PadLock AES-CBC buffer en(de)cryption
  */
@@ -161,6 +150,7 @@ int mbedtls_padlock_xcryptcbc(mbedtls_aes_context *ctx,
 
     return 0;
 }
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 #endif /* MBEDTLS_VIA_PADLOCK_HAVE_CODE */
 

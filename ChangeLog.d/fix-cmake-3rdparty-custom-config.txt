@@ -1,0 +1,3 @@
+Bugfix
+   * Fix the build with CMake when Everest or P256-m is enabled through
+     a user configuration file or the compiler command line. Fixes #8165.

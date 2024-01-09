@@ -1,0 +1,7 @@
+Features
+    * Support Armv8-A Crypto Extension acceleration for SHA-256
+      when compiling for Thumb (T32) or 32-bit Arm (A32).
+New deprecations
+    * Rename the MBEDTLS_SHA256_USE_A64_CRYPTO_xxx config options to
+      MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_xxx. The old names may still
+      be used, but are deprecated.

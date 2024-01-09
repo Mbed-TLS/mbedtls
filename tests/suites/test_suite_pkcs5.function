@@ -27,7 +27,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ASN1_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_ASN1_PARSE_C:MBEDTLS_CIPHER_C */
 void pbes2_encrypt(int params_tag, data_t *params_hex, data_t *pw,
                    data_t *data, int outsize, int ref_ret,
                    data_t *ref_out)
@@ -75,7 +75,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ASN1_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_ASN1_PARSE_C:MBEDTLS_CIPHER_C */
 void pbes2_decrypt(int params_tag, data_t *params_hex, data_t *pw,
                    data_t *data, int outsize, int ref_ret,
                    data_t *ref_out)

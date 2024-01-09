@@ -5,19 +5,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 #ifndef MBEDTLS_THREADING_H
 #define MBEDTLS_THREADING_H
@@ -40,10 +28,14 @@ extern "C" {
 #include <pthread.h>
 typedef struct mbedtls_threading_mutex_t {
     pthread_mutex_t MBEDTLS_PRIVATE(mutex);
-    /* is_valid is 0 after a failed init or a free, and nonzero after a
-     * successful init. This field is not considered part of the public
-     * API of Mbed TLS and may change without notice. */
-    char MBEDTLS_PRIVATE(is_valid);
+
+    /* WARNING - state should only be accessed when holding the mutex lock in
+     * tests/src/threading_helpers.c, otherwise corruption can occur.
+     * state will be 0 after a failed init or a free, and nonzero after a
+     * successful init. This field is for testing only and thus not considered
+     * part of the public API of Mbed TLS and may change without notice.*/
+    char MBEDTLS_PRIVATE(state);
+
 } mbedtls_threading_mutex_t;
 #endif
 

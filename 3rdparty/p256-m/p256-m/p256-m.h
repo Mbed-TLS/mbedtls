@@ -3,7 +3,7 @@
  *
  * Copyright The Mbed TLS Contributors
  * Author: Manuel Pégourié-Gonnard.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 #ifndef P256_M_H
 #define P256_M_H

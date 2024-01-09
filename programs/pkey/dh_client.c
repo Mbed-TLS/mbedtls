@@ -2,19 +2,7 @@
  *  Diffie-Hellman-Merkle key exchange (client side)
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "mbedtls/build_info.h"
@@ -54,6 +42,13 @@ int main(void)
                    "and/or MBEDTLS_NET_C and/or MBEDTLS_RSA_C and/or "
                    "MBEDTLS_MD_CAN_SHA256 and/or MBEDTLS_FS_IO and/or "
                    "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_SHA1_C not defined.\n");
+    mbedtls_exit(0);
+}
+
+#elif defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
+int main(void)
+{
+    mbedtls_printf("MBEDTLS_BLOCK_CIPHER_NO_DECRYPT defined.\n");
     mbedtls_exit(0);
 }
 #else

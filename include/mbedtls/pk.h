@@ -5,19 +5,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_PK_H
@@ -40,7 +28,7 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #endif
 
@@ -241,7 +229,7 @@ typedef struct mbedtls_pk_context {
     void *MBEDTLS_PRIVATE(pk_ctx);                        /**< Underlying public key context  */
     /* The following field is used to store the ID of a private key in the
      * following cases:
-     * - opaque key when MBEDTLS_PSA_CRYPTO_C is defined
+     * - opaque key when MBEDTLS_USE_PSA_CRYPTO is defined
      * - normal key when MBEDTLS_PK_USE_PSA_EC_DATA is defined. In this case:
      *    - the pk_ctx above is not not used to store the private key anymore.
      *      Actually that field not populated at all in this case because also
@@ -251,15 +239,10 @@ typedef struct mbedtls_pk_context {
      *
      * Note: this private key storing solution only affects EC keys, not the
      *       other ones. The latters still use the pk_ctx to store their own
-     *       context.
-     *
-     * Note: this priv_id is guarded by MBEDTLS_PSA_CRYPTO_C and not by
-     *       MBEDTLS_PK_USE_PSA_EC_DATA (as the public counterpart below) because,
-     *       when working with opaque keys, it can be used also in
-     *       mbedtls_pk_sign_ext for RSA keys. */
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+     *       context. */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t MBEDTLS_PRIVATE(priv_id);      /**< Key ID for opaque keys */
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     /* The following fields are meant for storing the public key in raw format
      * which is handy for:
      * - easily importing it into the PSA context
@@ -627,7 +610,6 @@ int mbedtls_pk_sign(mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
                     unsigned char *sig, size_t sig_size, size_t *sig_len,
                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng);
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
 /**
  * \brief           Make signature given a signature type.
  *
@@ -664,7 +646,6 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
                         unsigned char *sig, size_t sig_size, size_t *sig_len,
                         int (*f_rng)(void *, unsigned char *, size_t),
                         void *p_rng);
-#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 /**
  * \brief           Restartable version of \c mbedtls_pk_sign()

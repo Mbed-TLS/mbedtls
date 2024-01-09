@@ -2,19 +2,7 @@
  *  Multi-precision integer library
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 /*
@@ -114,7 +102,8 @@ int mbedtls_mpi_lt_mpi_ct(const mbedtls_mpi *X,
  * about whether the assignment was made or not.
  * (Leaking information about the respective sizes of X and Y is ok however.)
  */
-#if defined(_MSC_VER) && defined(_M_ARM64) && (_MSC_FULL_VER < 193131103)
+#if defined(_MSC_VER) && defined(MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64) && \
+    (_MSC_FULL_VER < 193131103)
 /*
  * MSVC miscompiles this function if it's inlined prior to Visual Studio 2022 version 17.1. See:
  * https://developercommunity.visualstudio.com/t/c-compiler-miscompiles-part-of-mbedtls-library-on/1646989
@@ -713,7 +702,7 @@ int mbedtls_mpi_write_string(const mbedtls_mpi *X, int radix,
     }
 
     *p++ = '\0';
-    *olen = p - buf;
+    *olen = (size_t) (p - buf);
 
 cleanup:
 

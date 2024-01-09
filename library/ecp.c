@@ -2,19 +2,7 @@
  *  Elliptic curves over GF(p): generic functions
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 /*
@@ -1086,13 +1074,7 @@ cleanup:
         MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi((N), (N), &grp->P));      \
     } while (0)
 
-#if (defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) && \
-    !(defined(MBEDTLS_ECP_NO_FALLBACK) && \
-    defined(MBEDTLS_ECP_DOUBLE_JAC_ALT) && \
-    defined(MBEDTLS_ECP_ADD_MIXED_ALT))) || \
-    (defined(MBEDTLS_ECP_MONTGOMERY_ENABLED) && \
-    !(defined(MBEDTLS_ECP_NO_FALLBACK) && \
-    defined(MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT)))
+MBEDTLS_MAYBE_UNUSED
 static inline int mbedtls_mpi_sub_mod(const mbedtls_ecp_group *grp,
                                       mbedtls_mpi *X,
                                       const mbedtls_mpi *A,
@@ -1104,7 +1086,6 @@ static inline int mbedtls_mpi_sub_mod(const mbedtls_ecp_group *grp,
 cleanup:
     return ret;
 }
-#endif /* All functions referencing mbedtls_mpi_sub_mod() are alt-implemented without fallback */
 
 /*
  * Reduce a mbedtls_mpi mod p in-place, to use after mbedtls_mpi_add_mpi and mbedtls_mpi_mul_int.
@@ -1127,6 +1108,7 @@ cleanup:
     return ret;
 }
 
+MBEDTLS_MAYBE_UNUSED
 static inline int mbedtls_mpi_mul_int_mod(const mbedtls_ecp_group *grp,
                                           mbedtls_mpi *X,
                                           const mbedtls_mpi *A,
@@ -1140,6 +1122,7 @@ cleanup:
     return ret;
 }
 
+MBEDTLS_MAYBE_UNUSED
 static inline int mbedtls_mpi_sub_int_mod(const mbedtls_ecp_group *grp,
                                           mbedtls_mpi *X,
                                           const mbedtls_mpi *A,
@@ -1156,10 +1139,7 @@ cleanup:
 #define MPI_ECP_SUB_INT(X, A, c)             \
     MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int_mod(grp, X, A, c))
 
-#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) && \
-    !(defined(MBEDTLS_ECP_NO_FALLBACK) && \
-    defined(MBEDTLS_ECP_DOUBLE_JAC_ALT) && \
-    defined(MBEDTLS_ECP_ADD_MIXED_ALT))
+MBEDTLS_MAYBE_UNUSED
 static inline int mbedtls_mpi_shift_l_mod(const mbedtls_ecp_group *grp,
                                           mbedtls_mpi *X,
                                           size_t count)
@@ -1170,8 +1150,6 @@ static inline int mbedtls_mpi_shift_l_mod(const mbedtls_ecp_group *grp,
 cleanup:
     return ret;
 }
-#endif \
-    /* All functions referencing mbedtls_mpi_shift_l_mod() are alt-implemented without fallback */
 
 /*
  * Macro wrappers around ECP modular arithmetic
@@ -3288,7 +3266,10 @@ int mbedtls_ecp_read_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
         MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&key->d, buf, buflen));
     }
 #endif
-    MBEDTLS_MPI_CHK(mbedtls_ecp_check_privkey(&key->grp, &key->d));
+
+    if (ret == 0) {
+        MBEDTLS_MPI_CHK(mbedtls_ecp_check_privkey(&key->grp, &key->d));
+    }
 
 cleanup:
 

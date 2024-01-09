@@ -1,4 +1,4 @@
-PKCS#12 derive key : MD5: Zero length password and hash
+PKCS#12 derive key: MD5: Zero length password and hash
 depends_on:MBEDTLS_MD_CAN_MD5
 pkcs12_derive_key:MBEDTLS_MD_MD5:48:"":USE_GIVEN_INPUT:"":USE_GIVEN_INPUT:3:"6afdcbd5ebf943272134f1c3de2dc11b6afdcbd5ebf943272134f1c3de2dc11b6afdcbd5ebf943272134f1c3de2dc11b":0
 

@@ -5,19 +5,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 #ifndef MBEDTLS_DEBUG_H
 #define MBEDTLS_DEBUG_H
@@ -132,7 +120,12 @@
     /* (defined(__MINGW32__)  && __USE_MINGW_ANSI_STDIO == 0) || (defined(_MSC_VER) && _MSC_VER < 1800) */
 
 #if !defined(MBEDTLS_PRINTF_MS_TIME)
+#include <inttypes.h>
+#if !defined(PRId64)
+#define MBEDTLS_PRINTF_MS_TIME MBEDTLS_PRINTF_LONGLONG
+#else
 #define MBEDTLS_PRINTF_MS_TIME PRId64
+#endif
 #endif /* MBEDTLS_PRINTF_MS_TIME */
 
 #ifdef __cplusplus
@@ -237,7 +230,7 @@ void mbedtls_debug_print_mpi(const mbedtls_ssl_context *ssl, int level,
                              const char *text, const mbedtls_mpi *X);
 #endif
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 /**
  * \brief   Print an ECP point to the debug output. This function is always
  *          used through the MBEDTLS_SSL_DEBUG_ECP() macro, which supplies the

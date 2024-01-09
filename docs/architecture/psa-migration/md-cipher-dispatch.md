@@ -514,7 +514,7 @@ Note that this assumes that an operation that has been started via PSA can be co
 
 #### Error code conversion
 
-After calling a PSA function, call `mbedtls_md_error_from_psa` to convert its status code.
+After calling a PSA function, MD light calls `mbedtls_md_error_from_psa` to convert its status code.
 
 ### Support all legacy algorithms in PSA
 
@@ -570,8 +570,8 @@ The architecture can be extended to support `MBEDTLS_PSA_CRYPTO_CLIENT` with a l
 
 #### Definition
 
-The new module is automatically enabled in `build_info.h` by modules that need
-it, namely: CCM, GCM, only when `CIPHER_C` is not available, or the new module
+The new module is automatically enabled in `config_adjust_legacy_crypto.h` by modules that need
+it (namely: CCM, GCM) only when `CIPHER_C` is not available, or the new module
 is needed for PSA dispatch (see next section). Note: CCM and GCM currently
 depend on the full `CIPHER_C` (enforced by `check_config.h`); this hard
 dependency would be replaced by the above auto-enablement.
@@ -598,7 +598,7 @@ identifed by callers (GCM/CCM).
 
 Support for dual dispatch in the new internal module `block_cipher` is extremely similar to that in MD light.
 
-A block cipher context contains either a legacy module's context (AES, ARIA, Camellia) or a PSA key identifier; it has a field indicated which one is in use. All fields are private.
+A block cipher context contains either a legacy module's context (AES, ARIA, Camellia) or a PSA key identifier; it has a field indicating which one is in use. All fields are private.
 
 The `engine` field is almost redundant with knowledge about `type`. However, when an algorithm is available both via a legacy module and a PSA accelerator, we will choose based on the runtime availability of the accelerator when the context is set up. This choice needs to be recorded in the context structure.
 
@@ -613,4 +613,4 @@ Each function in the module needs to know whether to dispatch via PSA or legacy.
 
 Note that this assumes that an operation that has been started via PSA can be completed. This implies that `mbedtls_psa_crypto_free` must not be called while an operation using PSA is in progress.
 
-After calling a PSA function, call `mbedtls_cipher_error_from_psa` to convert its status code.
+After calling a PSA function, `block_cipher` functions call `mbedtls_cipher_error_from_psa` to convert its status code.

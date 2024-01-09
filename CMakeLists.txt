@@ -278,6 +278,8 @@ list(APPEND libs ${thirdparty_lib})
 
 add_subdirectory(library)
 
+add_subdirectory(pkgconfig)
+
 #
 # The C files in tests/src directory contain test code shared among test suites
 # and programs. This shared test code is compiled and linked to test suites and

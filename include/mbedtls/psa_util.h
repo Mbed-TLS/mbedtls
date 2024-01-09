@@ -114,14 +114,11 @@ extern mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state;
  *                      (`MBEDTLS_ECP_DP_xxx`).
  * \param[out] bits     On success the bit size of the curve; 0 on failure.
  *
- * \return              On success the corresponding PSA elliptic curve identifier
- *                      (`PSA_ECC_FAMILY_xxx`).
- * \return              \c 0 if \p grpid is not supported.
- *
- * \note                A successful conversion means that the curve is supported
- *                      in PSA. Legacy support (`mbedtls_ecp_xxx`) is only
- *                      enabled if the curve is builtin (see
- *                      `config_adjust_legacy_from_psa.h` for details).
+ * \return              If the curve is supported in the PSA API, this function
+ *                      returns the proper PSA curve identifier
+ *                      (`PSA_ECC_FAMILY_xxx`). This holds even if the curve is
+ *                      not supported by the ECP module.
+ * \return              \c 0 if the curve is not supported in the PSA API.
  */
 psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
                                           size_t *bits);
@@ -132,23 +129,11 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
  *                      (`PSA_ECC_FAMILY_xxx`).
  * \param bits          The bit-length of a private key on \p curve.
  *
- * \return              On success the corresponding Mbed TLS elliptic curve
+ * \return              If the curve is supported in the PSA API, this function
+ *                      returns the corresponding Mbed TLS elliptic curve
  *                      identifier (`MBEDTLS_ECP_DP_xxx`).
  * \return              #MBEDTLS_ECP_DP_NONE if the combination of \c curve
- *                      and \p bits is not supported or invalid:
- *                      - not supported means that the proper `PSA_WANT_ECC_xxx`
- *                        symbol is not enabled for the requested curve.
- *                      - invalid if `PSA_WANT_ECC_xxx` is enabled, but the
- *                        combination of \p curve and \p bits are not correct
- *                        for that curve.
- * \return              #MBEDTLS_ECP_DP_NONE for secp224k1 curve, no matter
- *                      what the status of `PSA_WANT_ECC_SECP_K1_224` is, because
- *                      this curve is not and will not be supported in PSA (#3541).
- *
- * \note                A successful conversion means that the curve is supported
- *                      in PSA. Legacy support (`mbedtls_ecp_xxx`) is only
- *                      enabled if the curve is builtin (see
- *                      `config_adjust_legacy_from_psa.h` for details).
+ *                      and \p bits is not supported.
  */
 mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t curve,
                                                 size_t bits);

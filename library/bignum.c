@@ -30,6 +30,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 #include "constant_time_internal.h"
+#include "bignum_internal.h"
 
 #include <limits.h>
 #include <string.h>

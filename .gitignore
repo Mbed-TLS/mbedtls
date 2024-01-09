@@ -63,5 +63,7 @@ massif-*
 /cscope*.out
 /tags
 
-# Clangd compilation database
+# clangd compilation database
 compile_commands.json
+# clangd index files
+/.cache/clangd/index/

@@ -2,19 +2,7 @@
  *  PKCS#12 Personal Information Exchange Syntax
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 /*
  *  The PKCS #12 Personal Information Exchange Syntax Standard v1.1
@@ -29,7 +17,9 @@
 
 #include "mbedtls/pkcs12.h"
 #include "mbedtls/asn1.h"
+#if defined(MBEDTLS_CIPHER_C)
 #include "mbedtls/cipher.h"
+#endif /* MBEDTLS_CIPHER_C */
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
@@ -41,7 +31,7 @@
 
 #include "psa_util_internal.h"
 
-#if defined(MBEDTLS_ASN1_PARSE_C)
+#if defined(MBEDTLS_ASN1_PARSE_C) && defined(MBEDTLS_CIPHER_C)
 
 static int pkcs12_parse_pbe_params(mbedtls_asn1_buf *params,
                                    mbedtls_asn1_buf *salt, int *iterations)
@@ -169,6 +159,7 @@ int mbedtls_pkcs12_pbe_ext(mbedtls_asn1_buf *pbe_params, int mode,
     unsigned char iv[16];
     const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_context_t cipher_ctx;
+    size_t iv_len = 0;
     size_t finish_olen = 0;
     unsigned int padlen = 0;
 
@@ -196,9 +187,10 @@ int mbedtls_pkcs12_pbe_ext(mbedtls_asn1_buf *pbe_params, int mode,
         }
     }
 
+    iv_len = mbedtls_cipher_info_get_iv_size(cipher_info);
     if ((ret = pkcs12_pbe_derive_key_iv(pbe_params, md_type, pwd, pwdlen,
                                         key, keylen,
-                                        iv, mbedtls_cipher_info_get_iv_size(cipher_info))) != 0) {
+                                        iv, iv_len)) != 0) {
         return ret;
     }
 
@@ -208,47 +200,33 @@ int mbedtls_pkcs12_pbe_ext(mbedtls_asn1_buf *pbe_params, int mode,
         goto exit;
     }
 
-    if ((ret =
-             mbedtls_cipher_setkey(&cipher_ctx, key, 8 * keylen,
-                                   (mbedtls_operation_t) mode)) != 0) {
+    if ((ret = mbedtls_cipher_setkey(&cipher_ctx, key, 8 * keylen,
+                                     (mbedtls_operation_t) mode)) != 0) {
         goto exit;
     }
 
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
-    /* PKCS12 uses CBC with PKCS7 padding */
-
-    mbedtls_cipher_padding_t padding = MBEDTLS_PADDING_PKCS7;
+    {
+        /* PKCS12 uses CBC with PKCS7 padding */
+        mbedtls_cipher_padding_t padding = MBEDTLS_PADDING_PKCS7;
 #if !defined(MBEDTLS_CIPHER_PADDING_PKCS7)
-    /* For historical reasons, when decrypting, this function works when
-     * decrypting even when support for PKCS7 padding is disabled. In this
-     * case, it ignores the padding, and so will never report a
-     * password mismatch.
-     */
-    if (mode == MBEDTLS_PKCS12_PBE_DECRYPT) {
-        padding = MBEDTLS_PADDING_NONE;
-    }
+        /* For historical reasons, when decrypting, this function works when
+         * decrypting even when support for PKCS7 padding is disabled. In this
+         * case, it ignores the padding, and so will never report a
+         * password mismatch.
+         */
+        if (mode == MBEDTLS_PKCS12_PBE_DECRYPT) {
+            padding = MBEDTLS_PADDING_NONE;
+        }
 #endif
-    if ((ret = mbedtls_cipher_set_padding_mode(&cipher_ctx, padding)) != 0) {
-        goto exit;
+        if ((ret = mbedtls_cipher_set_padding_mode(&cipher_ctx, padding)) != 0) {
+            goto exit;
+        }
     }
 #endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
 
-    if ((ret =
-             mbedtls_cipher_set_iv(&cipher_ctx, iv,
-                                   mbedtls_cipher_info_get_iv_size(cipher_info))) != 0) {
-        goto exit;
-    }
-
-    if ((ret = mbedtls_cipher_reset(&cipher_ctx)) != 0) {
-        goto exit;
-    }
-
-    if ((ret = mbedtls_cipher_update(&cipher_ctx, data, len,
-                                     output, output_len)) != 0) {
-        goto exit;
-    }
-
-    if ((ret = mbedtls_cipher_finish(&cipher_ctx, output + (*output_len), &finish_olen)) != 0) {
+    ret = mbedtls_cipher_crypt(&cipher_ctx, iv, iv_len, data, len, output, &finish_olen);
+    if (ret == MBEDTLS_ERR_CIPHER_INVALID_PADDING) {
         ret = MBEDTLS_ERR_PKCS12_PASSWORD_MISMATCH;
     }
 
@@ -262,7 +240,7 @@ exit:
     return ret;
 }
 
-#endif /* MBEDTLS_ASN1_PARSE_C */
+#endif /* MBEDTLS_ASN1_PARSE_C && MBEDTLS_CIPHER_C */
 
 static void pkcs12_fill_buffer(unsigned char *data, size_t data_len,
                                const unsigned char *filler, size_t fill_len)

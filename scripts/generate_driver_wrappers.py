@@ -7,19 +7,7 @@
    based on template files in script/data_files/driver_templates/.
 """
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
 import sys
 import os
@@ -120,17 +108,17 @@ def load_driver(schemas: Dict[str, Any], driver_file: str) -> Any:
         return json_data
 
 
-def load_schemas(mbedtls_root: str) -> Dict[str, Any]:
+def load_schemas(project_root: str) -> Dict[str, Any]:
     """
     Load schemas map
     """
     schema_file_paths = {
-        'transparent': os.path.join(mbedtls_root,
+        'transparent': os.path.join(project_root,
                                     'scripts',
                                     'data_files',
                                     'driver_jsons',
                                     'driver_transparent_schema.json'),
-        'opaque': os.path.join(mbedtls_root,
+        'opaque': os.path.join(project_root,
                                'scripts',
                                'data_files',
                                'driver_jsons',
@@ -143,13 +131,13 @@ def load_schemas(mbedtls_root: str) -> Dict[str, Any]:
     return driver_schema
 
 
-def read_driver_descriptions(mbedtls_root: str,
+def read_driver_descriptions(project_root: str,
                              json_directory: str,
                              jsondriver_list: str) -> list:
     """
     Merge driver JSON files into a single ordered JSON after validation.
     """
-    driver_schema = load_schemas(mbedtls_root)
+    driver_schema = load_schemas(project_root)
 
     with open(file=os.path.join(json_directory, jsondriver_list),
               mode='r',
@@ -175,11 +163,11 @@ def main() -> int:
     """
     Main with command line arguments.
     """
-    def_arg_mbedtls_root = build_tree.guess_mbedtls_root()
+    def_arg_project_root = build_tree.guess_project_root()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mbedtls-root', default=def_arg_mbedtls_root,
-                        help='root directory of mbedtls source code')
+    parser.add_argument('--project-root', default=def_arg_project_root,
+                        help='root directory of repo source code')
     parser.add_argument('--template-dir',
                         help='directory holding the driver templates')
     parser.add_argument('--json-dir',
@@ -188,24 +176,27 @@ def main() -> int:
                         help='output file\'s location')
     args = parser.parse_args()
 
-    mbedtls_root = os.path.abspath(args.mbedtls_root)
+    project_root = os.path.abspath(args.project_root)
+
+    crypto_core_directory = build_tree.crypto_core_directory(project_root)
 
     output_directory = args.output_directory if args.output_directory is not None else \
-        os.path.join(mbedtls_root, 'library')
+        crypto_core_directory
+
     template_directory = args.template_dir if args.template_dir is not None else \
-        os.path.join(mbedtls_root,
+        os.path.join(project_root,
                      'scripts',
                      'data_files',
                      'driver_templates')
     json_directory = args.json_dir if args.json_dir is not None else \
-        os.path.join(mbedtls_root,
+        os.path.join(project_root,
                      'scripts',
                      'data_files',
                      'driver_jsons')
 
     try:
         # Read and validate list of driver jsons from driverlist.json
-        merged_driver_json = read_driver_descriptions(mbedtls_root,
+        merged_driver_json = read_driver_descriptions(project_root,
                                                       json_directory,
                                                       'driverlist.json')
     except DriverReaderException as e:

@@ -3,19 +3,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -65,6 +53,11 @@ psa_status_t psa_get_key_domain_parameters(
     const psa_key_attributes_t *attributes,
     uint8_t *data, size_t data_size, size_t *data_length)
 {
+    if (attributes->domain_parameters == NULL &&
+        attributes->domain_parameters_size == SIZE_MAX) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
     if (attributes->domain_parameters_size > data_size) {
         return PSA_ERROR_BUFFER_TOO_SMALL;
     }

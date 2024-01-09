@@ -1,0 +1,3 @@
+Bugfix
+   * Fix compilation error in C++ programs when MBEDTLS_ASN1_PARSE_C is
+     disabled.

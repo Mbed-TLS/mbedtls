@@ -2,19 +2,7 @@
  * Test driver for cipher functions
  */
 /*  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef PSA_CRYPTO_TEST_DRIVERS_CIPHER_H
@@ -35,11 +23,17 @@ typedef struct {
     /* If not PSA_SUCCESS, return this error code instead of processing the
      * function call. */
     psa_status_t forced_status;
+    psa_status_t forced_status_encrypt;
+    psa_status_t forced_status_set_iv;
     /* Count the amount of times one of the cipher driver functions is called. */
     unsigned long hits;
+    unsigned long hits_encrypt;
+    unsigned long hits_set_iv;
 } mbedtls_test_driver_cipher_hooks_t;
 
-#define MBEDTLS_TEST_DRIVER_CIPHER_INIT { NULL, 0, PSA_SUCCESS, 0 }
+#define MBEDTLS_TEST_DRIVER_CIPHER_INIT { NULL, 0, \
+                                          PSA_SUCCESS, PSA_SUCCESS, PSA_SUCCESS, \
+                                          0, 0, 0 }
 static inline mbedtls_test_driver_cipher_hooks_t
 mbedtls_test_driver_cipher_hooks_init(void)
 {

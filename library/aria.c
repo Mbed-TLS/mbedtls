@@ -2,19 +2,7 @@
  *  ARIA implementation
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 /*
@@ -425,6 +413,7 @@ int mbedtls_aria_setkey_enc(mbedtls_aria_context *ctx,
 /*
  * Set decryption key
  */
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 int mbedtls_aria_setkey_dec(mbedtls_aria_context *ctx,
                             const unsigned char *key, unsigned int keybits)
 {
@@ -454,6 +443,7 @@ int mbedtls_aria_setkey_dec(mbedtls_aria_context *ctx,
 
     return 0;
 }
+#endif /* !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 
 /*
  * Encrypt a block
@@ -884,12 +874,18 @@ int mbedtls_aria_self_test(int verbose)
         /* test ECB decryption */
         if (verbose) {
             mbedtls_printf("  ARIA-ECB-%d (dec): ", 128 + 64 * i);
+#if defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
+            mbedtls_printf("skipped\n");
+#endif
         }
+
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
         mbedtls_aria_setkey_dec(&ctx, aria_test1_ecb_key, 128 + 64 * i);
         mbedtls_aria_crypt_ecb(&ctx, aria_test1_ecb_ct[i], blk);
         ARIA_SELF_TEST_ASSERT(
             memcmp(blk, aria_test1_ecb_pt, MBEDTLS_ARIA_BLOCKSIZE)
             != 0);
+#endif
     }
     if (verbose) {
         mbedtls_printf("\n");

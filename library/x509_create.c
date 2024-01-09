@@ -382,7 +382,7 @@ int mbedtls_x509_set_extension(mbedtls_asn1_named_data **head, const char *oid, 
 {
     mbedtls_asn1_named_data *cur;
 
-    if (0xFFFFFFFF == (uint32_t) val_len) {
+    if (val_len > (SIZE_MAX  - 1)) {
         return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
     }
 

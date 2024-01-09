@@ -1776,6 +1776,10 @@ int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
     }
 #endif /* MBEDTLS_SSL_CLI_C */
 
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    session->record_size_limit = 2048;
+#endif
+
     return 0;
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

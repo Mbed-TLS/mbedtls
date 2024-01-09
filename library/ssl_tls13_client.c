@@ -2113,12 +2113,11 @@ static int ssl_tls13_parse_encrypted_extensions(mbedtls_ssl_context *ssl,
 
                 ret = mbedtls_ssl_tls13_parse_record_size_limit_ext(
                     ssl, p, p + extension_data_len);
-
-                /* TODO: Return unconditionally here until we handle the record
-                 * size limit correctly. Once handled correctly, only return in
-                 * case of errors. */
-                return ret;
-
+                if (ret != 0) {
+                    MBEDTLS_SSL_DEBUG_RET(
+                        1, ("mbedtls_ssl_tls13_parse_record_size_limit_ext"), ret);
+                    return ret;
+                }
                 break;
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
@@ -2130,6 +2129,17 @@ static int ssl_tls13_parse_encrypted_extensions(mbedtls_ssl_context *ssl,
         }
 
         p += extension_data_len;
+    }
+
+    if ((handshake->received_extensions & MBEDTLS_SSL_EXT_MASK(RECORD_SIZE_LIMIT)) &&
+        (handshake->received_extensions & MBEDTLS_SSL_EXT_MASK(MAX_FRAGMENT_LENGTH))) {
+        MBEDTLS_SSL_DEBUG_MSG(3,
+                              (
+                                  "Record size limit extension cannot be used with max fragment length extension"));
+        MBEDTLS_SSL_PEND_FATAL_ALERT(
+            MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+            MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
 
     MBEDTLS_SSL_PRINT_EXTS(3, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS,

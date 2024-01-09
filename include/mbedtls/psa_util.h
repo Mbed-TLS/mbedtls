@@ -149,7 +149,8 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 #if defined(MBEDTLS_ASN1_WRITE_C)
-/** Convert an ECDSA signature from raw format to DER ASN.1 one.
+/** Convert an ECDSA signature from raw format (used by PSA APIs) to DER ASN.1
+ * format (used by legacy crypto APIs).
  *
  * \param       raw         Buffer that contains the signature in raw format.
  * \param       raw_len     Length of raw buffer in bytes
@@ -167,7 +168,8 @@ int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
 #endif /* MBEDTLS_ASN1_WRITE_C */
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
-/** Convert an ECDSA signature from DER ASN.1 format to raw.
+/** Convert an ECDSA signature from DER ASN.1 format (used by legacy crypto
+ * APIs) to raw format (used by PSA APIs).
  *
  * \param       der         Buffer that contains the signature in DER format.
  * \param       der_len     Size of the der buffer in bytes.

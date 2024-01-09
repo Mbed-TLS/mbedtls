@@ -2,19 +2,7 @@
  *  TLS 1.3 functionality shared between client and server
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -369,7 +357,7 @@ int mbedtls_ssl_tls13_process_certificate_verify(mbedtls_ssl_context *ssl)
      */
     ret = mbedtls_ssl_get_handshake_transcript(
         ssl,
-        ssl->handshake->ciphersuite_info->mac,
+        (mbedtls_md_type_t) ssl->handshake->ciphersuite_info->mac,
         transcript, sizeof(transcript),
         &transcript_len);
     if (ret != 0) {
@@ -967,7 +955,7 @@ cleanup:
 int mbedtls_ssl_tls13_check_sig_alg_cert_key_match(uint16_t sig_alg,
                                                    mbedtls_pk_context *key)
 {
-    mbedtls_pk_type_t pk_type = mbedtls_ssl_sig_from_pk(key);
+    mbedtls_pk_type_t pk_type = (mbedtls_pk_type_t) mbedtls_ssl_sig_from_pk(key);
     size_t key_size = mbedtls_pk_get_bitlen(key);
 
     switch (pk_type) {
@@ -1035,7 +1023,7 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
     }
 
     ret = mbedtls_ssl_get_handshake_transcript(
-        ssl, ssl->handshake->ciphersuite_info->mac,
+        ssl, (mbedtls_md_type_t) ssl->handshake->ciphersuite_info->mac,
         handshake_hash, sizeof(handshake_hash), &handshake_hash_len);
     if (ret != 0) {
         return ret;
@@ -1414,7 +1402,7 @@ cleanup:
  *
  * struct {
  *   select ( Handshake.msg_type ) {
- *     ...
+ *     case new_session_ticket:   uint32 max_early_data_size;
  *     case client_hello:         Empty;
  *     case encrypted_extensions: Empty;
  *   };
@@ -1422,20 +1410,37 @@ cleanup:
  */
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
+                                           int in_new_session_ticket,
                                            unsigned char *buf,
                                            const unsigned char *end,
                                            size_t *out_len)
 {
     unsigned char *p = buf;
-    *out_len = 0;
-    ((void) ssl);
 
-    MBEDTLS_SSL_CHK_BUF_PTR(p, end, 4);
+#if defined(MBEDTLS_SSL_SRV_C)
+    const size_t needed = in_new_session_ticket ? 8 : 4;
+#else
+    const size_t needed = 4;
+    ((void) in_new_session_ticket);
+#endif
+
+    *out_len = 0;
+
+    MBEDTLS_SSL_CHK_BUF_PTR(p, end, needed);
 
     MBEDTLS_PUT_UINT16_BE(MBEDTLS_TLS_EXT_EARLY_DATA, p, 0);
-    MBEDTLS_PUT_UINT16_BE(0, p, 2);
+    MBEDTLS_PUT_UINT16_BE(needed - 4, p, 2);
 
-    *out_len = 4;
+#if defined(MBEDTLS_SSL_SRV_C)
+    if (in_new_session_ticket) {
+        MBEDTLS_PUT_UINT32_BE(ssl->conf->max_early_data_size, p, 4);
+        MBEDTLS_SSL_DEBUG_MSG(
+            4, ("Sent max_early_data_size=%u",
+                (unsigned int) ssl->conf->max_early_data_size));
+    }
+#endif
+
+    *out_len = needed;
 
     mbedtls_ssl_tls13_set_hs_sent_ext_mask(ssl, MBEDTLS_TLS_EXT_EARLY_DATA);
 
@@ -1464,7 +1469,7 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("Reset SSL session for HRR"));
 
-    ret = mbedtls_ssl_get_handshake_transcript(ssl, ciphersuite_info->mac,
+    ret = mbedtls_ssl_get_handshake_transcript(ssl, (mbedtls_md_type_t) ciphersuite_info->mac,
                                                hash_transcript + 4,
                                                PSA_HASH_MAX_SIZE,
                                                &hash_len);
@@ -1726,7 +1731,7 @@ int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("RecordSizeLimit: %u Bytes", record_size_limit));
 
-    /* RFC 8449, section 4
+    /* RFC 8449, section 4:
      *
      * Endpoints MUST NOT send a "record_size_limit" extension with a value
      * smaller than 64.  An endpoint MUST treat receipt of a smaller value
@@ -1739,14 +1744,11 @@ int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
 
-    MBEDTLS_SSL_DEBUG_MSG(
-        2, ("record_size_limit extension is still in development. Aborting handshake."));
+    ssl->session_negotiate->record_size_limit = record_size_limit;
 
-    MBEDTLS_SSL_PEND_FATAL_ALERT(
-        MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT,
-        MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION);
-    return MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION;
+    return 0;
 }
+
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
 #endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_PROTO_TLS1_3 */

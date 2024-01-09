@@ -2,19 +2,7 @@
  * Test driver for asymmetric encryption.
  */
 /*  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include <test/helpers.h>
@@ -58,8 +46,7 @@ psa_status_t mbedtls_test_transparent_asymmetric_encrypt(
         return mbedtls_test_driver_asymmetric_encryption_hooks.forced_status;
     }
 
-#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
-    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_CIPHER)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
     return libtestdriver1_mbedtls_psa_asymmetric_encrypt(
         (const libtestdriver1_psa_key_attributes_t *) attributes,
         key_buffer, key_buffer_size,
@@ -100,8 +87,7 @@ psa_status_t mbedtls_test_transparent_asymmetric_decrypt(
         return mbedtls_test_driver_asymmetric_encryption_hooks.forced_status;
     }
 
-#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
-    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_CIPHER)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
     return libtestdriver1_mbedtls_psa_asymmetric_decrypt(
         (const libtestdriver1_psa_key_attributes_t *) attributes,
         key_buffer, key_buffer_size,

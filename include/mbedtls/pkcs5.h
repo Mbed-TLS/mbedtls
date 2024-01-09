@@ -7,19 +7,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 #ifndef MBEDTLS_PKCS5_H
 #define MBEDTLS_PKCS5_H
@@ -29,6 +17,7 @@
 
 #include "mbedtls/asn1.h"
 #include "mbedtls/md.h"
+#include "mbedtls/cipher.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -42,14 +31,14 @@
 /** Given private key password does not allow for correct decryption. */
 #define MBEDTLS_ERR_PKCS5_PASSWORD_MISMATCH               -0x2e00
 
-#define MBEDTLS_PKCS5_DECRYPT      0
-#define MBEDTLS_PKCS5_ENCRYPT      1
+#define MBEDTLS_PKCS5_DECRYPT      MBEDTLS_DECRYPT
+#define MBEDTLS_PKCS5_ENCRYPT      MBEDTLS_ENCRYPT
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if defined(MBEDTLS_ASN1_PARSE_C)
+#if defined(MBEDTLS_ASN1_PARSE_C) && defined(MBEDTLS_CIPHER_C)
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
@@ -141,7 +130,7 @@ int mbedtls_pkcs5_pbes2_ext(const mbedtls_asn1_buf *pbe_params, int mode,
 
 #endif /* MBEDTLS_CIPHER_PADDING_PKCS7 */
 
-#endif /* MBEDTLS_ASN1_PARSE_C */
+#endif /* MBEDTLS_ASN1_PARSE_C && MBEDTLS_CIPHER_C*/
 
 /**
  * \brief          PKCS#5 PBKDF2 using HMAC without using the HMAC context

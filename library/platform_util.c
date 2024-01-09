@@ -3,19 +3,7 @@
  * library.
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 /*
@@ -255,17 +243,17 @@ extern inline void mbedtls_put_unaligned_uint64(void *p, uint64_t x);
 #include <time.h>
 #if !defined(_WIN32) && \
     (defined(unix) || defined(__unix) || defined(__unix__) || \
-    (defined(__APPLE__) && defined(__MACH__)))
+    (defined(__APPLE__) && defined(__MACH__)) || defined(__HAIKU__))
 #include <unistd.h>
-#endif /* !_WIN32 && (unix || __unix || __unix__ || (__APPLE__ && __MACH__)) */
-#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 199309L)
+#endif /* !_WIN32 && (unix || __unix || __unix__ || (__APPLE__ && __MACH__) || __HAIKU__) */
+#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 199309L) || defined(__HAIKU__)
 mbedtls_ms_time_t mbedtls_ms_time(void)
 {
     int ret;
     struct timespec tv;
     mbedtls_ms_time_t current_ms;
 
-#if defined(__linux__)
+#if defined(__linux__) && defined(CLOCK_BOOTTIME)
     ret = clock_gettime(CLOCK_BOOTTIME, &tv);
 #else
     ret = clock_gettime(CLOCK_MONOTONIC, &tv);

@@ -4,19 +4,8 @@ Meant for use in crypto_knowledge.py.
 """
 
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 #
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import binascii
 import re
@@ -52,13 +41,15 @@ ASYMMETRIC_KEY_DATA = construct_asymmetric_key_data({
     'ECC(PSA_ECC_FAMILY_SECP_K1)': {
         192: ("297ac1722ccac7589ecb240dc719842538ca974beb79f228",
               "0426b7bb38da649ac2138fc050c6548b32553dab68afebc36105d325b75538c12323cb0764789ecb992671beb2b6bef2f5"),
-        224: ("0024122bf020fa113f6c0ac978dfbd41f749257a9468febdbe0dc9f7e8",
+        225: ("0024122bf020fa113f6c0ac978dfbd41f749257a9468febdbe0dc9f7e8",
               "042cc7335f4b76042bed44ef45959a62aa215f7a5ff0c8111b8c44ed654ee71c1918326ad485b2d599fe2a6eab096ee26d977334d2bac6d61d"),
         256: ("7fa06fa02d0e911b9a47fdc17d2d962ca01e2f31d60c6212d0ed7e3bba23a7b9",
               "045c39154579efd667adc73a81015a797d2c8682cdfbd3c3553c4a185d481cdc50e42a0e1cbc3ca29a32a645e927f54beaed14c9dbbf8279d725f5495ca924b24d"),
     },
     'ECC(PSA_ECC_FAMILY_SECP_R1)': {
-        225: ("872f203b3ad35b7f2ecc803c3a0e1e0b1ed61cc1afe71b189cd4c995",
+        192: ("d83b57a59c51358d9c8bbb898aff507f44dd14cf16917190",
+              "04e35fcbee11cec3154f80a1a61df7d7612de4f2fd70c5608d0ee3a4a1a5719471adb33966dd9b035fdb774feeba94b04c"),
+        224: ("872f203b3ad35b7f2ecc803c3a0e1e0b1ed61cc1afe71b189cd4c995",
               "046f00eadaa949fee3e9e1c7fa1247eecec86a0dce46418b9bd3117b981d4bd0ae7a990de912f9d060d6cb531a42d22e394ac29e81804bf160"),
         256: ("49c9a8c18c4b885638c431cf1df1c994131609b580d4fd43a0cab17db2f13eee",
               "047772656f814b399279d5e1f1781fac6f099a3c5ca1b0e35351834b08b65e0b572590cdaf8f769361bcf34acfc11e5e074e8426bdde04be6e653945449617de45"),

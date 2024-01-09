@@ -754,7 +754,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void x509_set_extension_length_check(int val_len)
+void x509_set_extension_length_check()
 {
     int ret = 0;
 
@@ -769,7 +769,7 @@ void x509_set_extension_length_check(int val_len)
                                      MBEDTLS_OID_SIZE(MBEDTLS_OID_EXTENDED_KEY_USAGE),
                                      0,
                                      p,
-                                     val_len);
-    TEST_ASSERT(ret == MBEDTLS_ERR_X509_BAD_INPUT_DATA || ret == MBEDTLS_ERR_X509_ALLOC_FAILED);
+                                     SIZE_MAX);
+    TEST_ASSERT(MBEDTLS_ERR_X509_BAD_INPUT_DATA == ret);
 }
 /* END_CASE */

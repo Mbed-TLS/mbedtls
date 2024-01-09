@@ -5033,6 +5033,150 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             -s "Maximum outgoing record payload length is 4095" \
             -s "10240 bytes written in 3 fragments"
 
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (513), 1 fragment" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --disable-client-cert --recordsize 512" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=256" \
+            0 \
+            -c "RecordSizeLimit: 513 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 511" \
+            -c "256 bytes written in 1 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (513), 2 fragments" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --disable-client-cert --recordsize 512" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=768" \
+            0 \
+            -c "RecordSizeLimit: 513 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 511" \
+            -c "768 bytes written in 2 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (513), 3 fragments" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --disable-client-cert --recordsize 512" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=1280" \
+            0 \
+            -c "RecordSizeLimit: 513 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 511" \
+            -c "1280 bytes written in 3 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (1024), 1 fragment" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --recordsize 1023" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=512" \
+            0 \
+            -c "RecordSizeLimit: 1024 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 1023" \
+            -c "512 bytes written in 1 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (1024), 2 fragments" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --recordsize 1023" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=1536" \
+            0 \
+            -c "RecordSizeLimit: 1024 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 1023" \
+            -c "1536 bytes written in 2 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (1024), 3 fragments" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --recordsize 1023" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=2560" \
+            0 \
+            -c "RecordSizeLimit: 1024 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 1023" \
+            -c "2560 bytes written in 3 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (4096), 1 fragment" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --recordsize 4095" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=2048" \
+            0 \
+            -c "RecordSizeLimit: 4096 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 4095" \
+            -c "2048 bytes written in 1 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (4096), 2 fragments" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --recordsize 4095" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=6144" \
+            0 \
+            -c "RecordSizeLimit: 4096 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 4095" \
+            -c "6144 bytes written in 2 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (4096), 3 fragments" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --recordsize 4095" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=10240" \
+            0 \
+            -c "RecordSizeLimit: 4096 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 4095" \
+            -c "10240 bytes written in 3 fragments"
+
 # TODO: For time being, we send fixed value of RecordSizeLimit defined by
 # MBEDTLS_SSL_IN_CONTENT_LEN. Once we support variable buffer length of
 # RecordSizeLimit, we need to modify value of RecordSizeLimit in below test.
@@ -5046,7 +5190,6 @@ run_test    "Record Size Limit: TLS 1.3 m->m: both peer comply with record size 
             0 \
             -c "Sent RecordSizeLimit: $MAX_IN_LEN Bytes"         \
             -c "RecordSizeLimit: $MAX_IN_LEN Bytes"              \
-            -c "Maximum outgoing record payload length is 16383" \
             -s "RecordSizeLimit: $MAX_IN_LEN Bytes"              \
             -s "Sent RecordSizeLimit: $MAX_IN_LEN Bytes"         \
             -s "Maximum outgoing record payload length is 16383" \

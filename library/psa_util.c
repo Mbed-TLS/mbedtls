@@ -335,11 +335,25 @@ mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t family,
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 #if defined(MBEDTLS_ASN1_WRITE_C)
-/*
- * Convert a single raw coordinate to DER ASN.1 format.
- * Note: this function is similar to mbedtls_asn1_write_mpi(), but it doesn't
- * depend on BIGNUM_C.
- * Note: this function fills der_buf backward.
+/**
+ * \brief  Convert a single raw coordinate to DER ASN.1 format. The output der
+ *         buffer is filled backward (i.e. starting from its end).
+ *
+ * \param raw_buf           Buffer containing the raw coordinate to be
+ *                          converted.
+ * \param raw_len           Length of raw_buf in bytes.
+ * \param der_buf_start     Pointer to the beginning of the buffer which
+ *                          will be filled with the DER converted data.
+ * \param der_buf_end       End of the buffer used to store the DER output.
+ *
+ * \return                  On success, the amount of data (in bytes) written to
+ *                          the DER buffer.
+ * \return                  MBEDTLS_ERR_ASN1_BUF_TOO_SMALL if the provided der
+ *                          buffer is too small to contain all the converted data.
+ * \return                  MBEDTLS_ERR_ASN1_INVALID_DATA if the input raw
+ *                          coordinate is null (i.e. all zeros).
+ *
+ * \warning                 Raw and der buffer must not be overlapping.
  */
 static int convert_raw_to_der_single_int(const unsigned char *raw_buf, size_t raw_len,
                                          unsigned char *der_buf_start,
@@ -436,9 +450,28 @@ int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
 #endif /* MBEDTLS_ASN1_WRITE_C */
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
-/*
- * Convert a single integer from ASN.1 DER format to raw.
- * Note: der and raw buffers are not overlapping here.
+/**
+ * \brief Convert a single integer from ASN.1 DER format to raw.
+ *
+ * \param der               Buffer containing the DER integer value to be
+ *                          converted.
+ * \param der_len           Length of the der buffer in bytes.
+ * \param raw               Output buffer that will be filled with the
+ *                          converted data. This should be at least
+ *                          coordinate_size bytes.
+ * \param raw_len           Size (in bytes) of the output raw buffer.
+ * \param coordinate_size   Size (in bytes) of a single coordinate in raw
+ *                          format.
+ *
+ * \return                  On success, the amount of DER data parsed from the
+ *                          provided der buffer.
+ * \return                  MBEDTLS_ERR_ASN1_UNEXPECTED_TAG if the integer tag
+ *                          is missing in the der buffer.
+ * \return                  MBEDTLS_ERR_ASN1_LENGTH_MISMATCH if the integer
+ *                          is null (i.e. all zeros) or if the output raw buffer
+ *                          is too small to contain the converted raw value.
+ *
+ * \warning                 Der and raw buffers must not be overlapping.
  */
 static int convert_der_to_raw_single_int(unsigned char *der, size_t der_len,
                                          unsigned char *raw, size_t raw_len,
@@ -466,7 +499,7 @@ static int convert_der_to_raw_single_int(unsigned char *der, size_t der_len,
     }
 
     if (raw_len < coordinate_size) {
-        return MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+        return ERR_ASN1_BUF_TOO_SMALL;
     }
 
     if (unpadded_len < coordinate_size) {

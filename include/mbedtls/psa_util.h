@@ -177,7 +177,8 @@ static inline mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa
 }
 
 #if defined(MBEDTLS_ASN1_WRITE_C)
-/** Convert an ECDSA signature from raw format to DER ASN.1 one.
+/** Convert an ECDSA signature from raw format (used by PSA APIs) to DER ASN.1
+ * format (used by legacy crypto APIs).
  *
  * \param       raw         Buffer that contains the signature in raw format.
  * \param       raw_len     Length of raw buffer in bytes
@@ -195,7 +196,8 @@ int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
 #endif /* MBEDTLS_ASN1_WRITE_C */
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
-/** Convert an ECDSA signature from DER ASN.1 format to raw.
+/** Convert an ECDSA signature from DER ASN.1 format (used by legacy crypto
+ * APIs) to raw format (used by PSA APIs).
  *
  * \param       der         Buffer that contains the signature in DER format.
  * \param       der_len     Size of the der buffer in bytes.

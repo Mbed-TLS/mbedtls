@@ -2704,6 +2704,7 @@ int mbedtls_ssl_parse_server_name_ext(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
 #define MBEDTLS_SSL_RECORD_SIZE_LIMIT_EXTENSION_DATA_LENGTH (2)
+/* This value is defined by RFC 8449 */
 #define MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN (64)
 
 MBEDTLS_CHECK_RETURN_CRITICAL

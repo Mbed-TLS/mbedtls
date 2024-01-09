@@ -4862,16 +4862,18 @@ run_test    "Record Size Limit: TLS 1.3: Client-side parsing and debug output" \
             -c "EncryptedExtensions: record_size_limit(28) extension received."         \
             -c "RecordSizeLimit: 16385 Bytes"                                           \
 
-# In the following (9) tests, --recordsize is the value used by the G_NEXT_CLI (3.7.2) to configure the
-# maximum record size using "https://gnutls.org/reference/gnutls-gnutls.html#gnutls-record-set-max-size".
-# There is currently a lower limit of 512, caused by this function not respecting the
-# "%ALLOW_SMALL_RECORDS" priority string and not using the more recent function
-# https://gnutls.org/reference/gnutls-gnutls.html#gnutls-record-set-max-recv-size.
+# In the following tests, --recordsize is the value used by the G_NEXT_CLI (3.7.2) to configure the
+# maximum record size using gnutls_record_set_max_size()
+# (https://gnutls.org/reference/gnutls-gnutls.html#gnutls-record-set-max-size).
+# There is currently a lower limit of 512, caused by gnutls_record_set_max_size()
+# not respecting the "%ALLOW_SMALL_RECORDS" priority string and not using the
+# more recent function gnutls_record_set_max_recv_size()
+# (https://gnutls.org/reference/gnutls-gnutls.html#gnutls-record-set-max-recv-size).
 # There is currently an upper limit of 4096, caused by the cli arg parser:
 # https://gitlab.com/gnutls/gnutls/-/blob/3.7.2/src/cli-args.def#L395.
-# Thus, these tests are currently limit to that value range.
-# Moreover, the value sent in the extension is expected to be larger by one compared
-# to the value passed on the cli:
+# Thus, these tests are currently limited to the value range 512-4096.
+# Also, the value sent in the extension will be one larger than the value
+# set at the command line:
 # https://gitlab.com/gnutls/gnutls/-/blob/3.7.2/lib/ext/record_size_limit.c#L142
 
 # Currently test certificates being used do not fit in 513 record size limit
@@ -5049,6 +5051,8 @@ run_test    "Record Size Limit: TLS 1.3 m->m: both peer comply with record size 
             -s "Sent RecordSizeLimit: $MAX_IN_LEN Bytes"         \
             -s "Maximum outgoing record payload length is 16383" \
             -s "Maximum incoming record payload length is 16384"
+
+# End of Record size limit tests
 
 # Tests for renegotiation
 

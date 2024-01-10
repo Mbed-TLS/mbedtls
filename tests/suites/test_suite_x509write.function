@@ -499,3 +499,24 @@ exit:
     USE_PSA_DONE();
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CSR_WRITE_C */
+void x509_set_extension_length_check()
+{
+    int ret = 0;
+
+    mbedtls_x509write_csr ctx;
+    mbedtls_x509write_csr_init(&ctx);
+
+    unsigned char buf[EXT_KEY_USAGE_TMP_BUF_MAX_LENGTH] = { 0 };
+    unsigned char *p = buf + sizeof(buf);
+
+    ret = mbedtls_x509_set_extension(&(ctx.extensions),
+                                     MBEDTLS_OID_EXTENDED_KEY_USAGE,
+                                     MBEDTLS_OID_SIZE(MBEDTLS_OID_EXTENDED_KEY_USAGE),
+                                     0,
+                                     p,
+                                     SIZE_MAX);
+    TEST_ASSERT(MBEDTLS_ERR_X509_BAD_INPUT_DATA == ret);
+}
+/* END_CASE */

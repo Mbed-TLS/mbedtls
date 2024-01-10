@@ -16,6 +16,11 @@
 
 #include "psa/crypto.h"
 
+/* ASN1 defines used in the ECDSA conversion functions. */
+#if defined(MBEDTLS_ASN1_WRITE_C) || defined(MBEDTLS_ASN1_PARSE_C)
+#include <mbedtls/asn1write.h>
+#endif
+
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
 /* Expose whatever RNG the PSA subsystem uses to applications using the

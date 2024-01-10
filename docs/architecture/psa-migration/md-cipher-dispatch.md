@@ -609,7 +609,7 @@ int psa_can_do_cipher(psa_key_type_t key_type, psa_algorithm_t cipher_alg);
 
 The job of this private function is to return 1 if `hash_alg` can be performed through PSA now, and 0 otherwise. It is only defined on algorithms that are enabled via PSA. As a starting point, return 1 if PSA crypto's driver subsystem has been initialized.
 
-Each function in the module needs to know whether to dispatch via PSA or legacy. All function with just consult the context's `engine` field, except `setup()` which will set it according to the key type and the return value of `psa_can_do_cipher()` as discussed above.
+Each function in the module needs to know whether to dispatch via PSA or legacy. All functions consult the context's `engine` field, except `setup()` which will set it according to the key type and the return value of `psa_can_do_cipher()` as discussed above.
 
 Note that this assumes that an operation that has been started via PSA can be completed. This implies that `mbedtls_psa_crypto_free` must not be called while an operation using PSA is in progress.
 

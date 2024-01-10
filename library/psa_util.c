@@ -8,14 +8,20 @@
 
 #include "common.h"
 
+/* This is needed for MBEDTLS_ERR_XXX macros */
+#include <mbedtls/error.h>
+
+#if defined(MBEDTLS_ASN1_WRITE_C)
+#include <mbedtls/asn1write.h>
+#include <psa/crypto_sizes.h>
+#endif
+
+#include "psa_util_internal.h"
+
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
 #include <psa/crypto.h>
 
-#include "psa_util_internal.h"
-
-/* The following includes are needed for MBEDTLS_ERR_XXX macros */
-#include <mbedtls/error.h>
 #if defined(MBEDTLS_MD_LIGHT)
 #include <mbedtls/md.h>
 #endif
@@ -36,10 +42,6 @@
 #endif
 #if defined(MBEDTLS_PK_C)
 #include <mbedtls/pk.h>
-#endif
-#if defined(MBEDTLS_ASN1_WRITE_C)
-#include <mbedtls/asn1write.h>
-#include <psa/crypto_sizes.h>
 #endif
 
 /* PSA_SUCCESS is kept at the top of each error table since
@@ -334,6 +336,8 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
 }
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
+#endif /* MBEDTLS_PSA_CRYPTO_C */
+
 #if defined(MBEDTLS_ASN1_WRITE_C)
 /**
  * \brief  Convert a single raw coordinate to DER ASN.1 format. The output der
@@ -565,5 +569,3 @@ int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
     return 0;
 }
 #endif /* MBEDTLS_ASN1_PARSE_C */
-
-#endif /* MBEDTLS_PSA_CRYPTO_C */

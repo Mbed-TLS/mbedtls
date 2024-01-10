@@ -1774,7 +1774,7 @@ int mbedtls_ssl_tls13_write_record_size_limit_ext(mbedtls_ssl_context *ssl,
 
     *out_len = 6;
 
-    MBEDTLS_SSL_DEBUG_MSG(2, ("Sent RecordSizeLimit: %u Bytes",
+    MBEDTLS_SSL_DEBUG_MSG(2, ("Sent RecordSizeLimit: %d Bytes",
                               MBEDTLS_SSL_IN_CONTENT_LEN));
 
     mbedtls_ssl_tls13_set_hs_sent_ext_mask(ssl, MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT);

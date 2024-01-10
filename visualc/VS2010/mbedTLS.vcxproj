@@ -258,6 +258,7 @@
     <ClInclude Include="..\..\tests\include\test\drivers\signature.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\size.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\test_driver.h" />
+    <ClInclude Include="..\..\library\bignum_internal.h" />
     <ClInclude Include="..\..\library\check_crypto_config.h" />
     <ClInclude Include="..\..\library\common.h" />
     <ClInclude Include="..\..\library\constant_time_internal.h" />

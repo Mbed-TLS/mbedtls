@@ -16,10 +16,10 @@
 
 #include "psa/crypto.h"
 
-/* ASN1 defines used in the ECDSA conversion functions. */
-#if defined(MBEDTLS_ASN1_WRITE_C) || defined(MBEDTLS_ASN1_PARSE_C)
+/* ASN1 defines used in the ECDSA conversion functions.
+ * Note: intentionally not adding MBEDTLS_ASN1_[PARSE|WRITE]_C guards here
+ * otherwise error codes would be unknown in test_suite_psa_crypto_util.data.*/
 #include <mbedtls/asn1write.h>
-#endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
@@ -180,6 +180,7 @@ static inline mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa
 {
     return (mbedtls_md_type_t) (psa_alg & PSA_ALG_HASH_MASK);
 }
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #if defined(MBEDTLS_ASN1_WRITE_C)
 /** Convert an ECDSA signature from raw format (used by PSA APIs) to DER ASN.1
@@ -221,5 +222,4 @@ int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
 
 /**@}*/
 
-#endif /* MBEDTLS_PSA_CRYPTO_C */
 #endif /* MBEDTLS_PSA_UTIL_H */

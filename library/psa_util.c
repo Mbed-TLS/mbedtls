@@ -494,8 +494,8 @@ static int convert_der_to_raw_single_int(unsigned char *der, size_t der_len,
         return ret;
     }
 
-    /* Skip leading zeros */
-    while (*p == 0x00) {
+    /* Skip possible leading zero */
+    if (*p == 0x00) {
         p++;
         unpadded_len--;
         /* It should never happen that the input number is all zeros. */

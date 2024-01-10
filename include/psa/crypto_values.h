@@ -1736,6 +1736,13 @@
      0)
 
 /** RSA PKCS#1 v1.5 encryption.
+ *
+ * \warning     Calling psa_asymmetric_decrypt() with this algorithm as a
+ *              parameter is considered an inherently dangerous function
+ *              (CWE-242). Unless it is used in a side channel free and safe
+ *              way (eg. implementing the TLS protocol as per 7.4.7.1 of
+ *              RFC 5246), the calling code is vulnerable.
+ *
  */
 #define PSA_ALG_RSA_PKCS1V15_CRYPT              ((psa_algorithm_t) 0x07000200)
 

@@ -195,6 +195,10 @@ int mbedtls_x509_set_extension(mbedtls_asn1_named_data **head, const char *oid, 
 {
     mbedtls_asn1_named_data *cur;
 
+    if (val_len > (SIZE_MAX  - 1)) {
+        return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+    }
+
     if ((cur = mbedtls_asn1_store_named_data(head, oid, oid_len,
                                              NULL, val_len + 1)) == NULL) {
         return MBEDTLS_ERR_X509_ALLOC_FAILED;

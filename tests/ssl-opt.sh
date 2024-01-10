@@ -5530,7 +5530,7 @@ requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: gnutls server strict, client-initiated" \
             "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%SAFE_RENEGOTIATION" \
-            "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
+            "$P_CLI force_version=tls12 debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
@@ -5649,7 +5649,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renego ext: gnutls server strict, client default" \
             "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%SAFE_RENEGOTIATION" \
-            "$P_CLI debug_level=3" \
+            "$P_CLI force_version=tls12 debug_level=3" \
             0 \
             -c "found renegotiation extension" \
             -C "error" \

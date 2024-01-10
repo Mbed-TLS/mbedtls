@@ -2449,6 +2449,13 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
  *     } ClientOnlyData;
  *
  *     struct {
+ *       uint64 ticket_creation_time;
+ *       ProtocolName ticket_alpn;
+ *     } ServerOnlyData;
+ *
+ *     opaque ProtocolName<0..2^8-1>;
+ *
+ *     struct {
  *       uint8 endpoint;
  *       uint8 ciphersuite[2];
  *       uint32 ticket_age_add;
@@ -2458,7 +2465,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
  *       uint16 record_size_limit;
  *       select ( endpoint ) {
  *            case client: ClientOnlyData;
- *            case server: uint64 ticket_creation_time;
+ *            case server: ServerOnlyData;
  *        };
  *     } serialized_session_tls13;
  *
@@ -2475,6 +2482,11 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
     defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     size_t hostname_len = (session->hostname == NULL) ?
                           0 : strlen(session->hostname) + 1;
+#endif
+#if defined(MBEDTLS_SSL_SRV_C) && \
+    defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
+    const uint8_t alpn_len = (session->ticket_alpn.alpn == NULL) ?
+                             0 : strlen(session->ticket_alpn.alpn);
 #endif
     size_t needed =   1                             /* endpoint */
                     + 2                             /* ciphersuite */
@@ -2498,6 +2510,15 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
 #if defined(MBEDTLS_HAVE_TIME)
     needed += 8; /* ticket_creation_time or ticket_reception_time */
 #endif
+
+#if defined(MBEDTLS_SSL_SRV_C)
+    if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
+        needed +=   1                         /* alpn_len */
+                  + alpn_len;                 /* alpn */
+#endif
+    }
+#endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_CLI_C)
     if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
@@ -2543,12 +2564,23 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
     p += 2;
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
-#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_SRV_C)
     if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
+#if defined(MBEDTLS_HAVE_TIME)
         MBEDTLS_PUT_UINT64_BE((uint64_t) session->ticket_creation_time, p, 0);
         p += 8;
+#endif
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
+        *p++ = alpn_len;
+        if (alpn_len > 0) {
+            /* save chosen alpn */
+            memcpy(p, session->ticket_alpn.alpn, alpn_len);
+            p += alpn_len;
+        }
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_ALPN */
     }
-#endif /* MBEDTLS_HAVE_TIME */
+#endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_CLI_C)
     if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
@@ -2626,15 +2658,46 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
     p += 2;
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
-#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_SRV_C)
     if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
+#if defined(MBEDTLS_HAVE_TIME)
         if (end - p < 8) {
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
         }
         session->ticket_creation_time = MBEDTLS_GET_UINT64_BE(p, 0);
         p += 8;
-    }
 #endif /* MBEDTLS_HAVE_TIME */
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
+        uint8_t alpn_len;
+        const char **cur;
+        /* load alpn */
+        if (end - p < 1) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+        alpn_len = *p++;
+
+        if (end - p < alpn_len) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+        if (alpn_len > 0) {
+            /* ticket_alpn.alpn_list MUST point to the first item of the
+             * configured list.
+             * ticket_alpn.alpn points to the matched ALPN in the list. */
+            cur = session->ticket_alpn.alpn_list;
+            session->ticket_alpn.alpn = NULL;
+            while (*cur != NULL) {
+                if (strlen(*cur) == alpn_len &&
+                    memcmp(p, *cur, alpn_len) == 0) {
+                    session->ticket_alpn.alpn = *cur;
+                    break;
+                }
+                cur++;
+            }
+        }
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_ALPN */
+    }
+#endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_CLI_C)
     if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {

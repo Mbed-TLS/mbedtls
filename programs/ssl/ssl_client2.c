@@ -243,8 +243,10 @@ int main(void)
 
 #if defined(MBEDTLS_SSL_ALPN)
 #define USAGE_ALPN \
-    "    alpn=%%s             default: \"\" (disabled)\n"   \
-    "                        example: spdy/1,http/1.1\n"
+    "    alpn=%%s             default: \"\" (disabled)\n"                                \
+    "                        The ALPN protocols advertised for 1st and 2nd connection\n" \
+    "                        format: 1st_connection_ALPN[-2nd_connection_ALPN]"          \
+    "                        example: spdy/1,http/1.1-spdy/1,http/1.1\n"
 #else
 #define USAGE_ALPN ""
 #endif /* MBEDTLS_SSL_ALPN */
@@ -459,6 +461,8 @@ int main(void)
     "                                is printed if it is defined\n"           \
     USAGE_SERIALIZATION                                                       \
     "\n"
+
+#define ARRAY_LENGTH(a) (sizeof(a)/sizeof(a[0]))
 
 /*
  * global options
@@ -747,7 +751,9 @@ int main(int argc, char *argv[])
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_SSL_ALPN)
-    const char *alpn_list[ALPN_LIST_SIZE];
+    const char *alpn_list[2][ALPN_LIST_SIZE];
+    size_t alpn_list_count = 0;
+    size_t alpn_conf_count = 0;
 #endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
@@ -1579,18 +1585,31 @@ usage:
 #if defined(MBEDTLS_SSL_ALPN)
     if (opt.alpn_string != NULL) {
         p = (char *) opt.alpn_string;
-        i = 0;
 
-        /* Leave room for a final NULL in alpn_list */
-        while (i < ALPN_LIST_SIZE - 1 && *p != '\0') {
-            alpn_list[i++] = p;
+        for (size_t alpn_list_parse_iter = 0;
+             alpn_list_parse_iter < ARRAY_LENGTH(alpn_list);
+             alpn_list_parse_iter++) {
+            i = 0;
+            /* Leave room for a final NULL in alpn_list */
+            while (i < ALPN_LIST_SIZE - 1 && *p != '\0') {
+                alpn_list[alpn_list_count][i++] = p;
 
-            /* Terminate the current string and move on to next one */
-            while (*p != ',' && *p != '\0') {
-                p++;
+                /* Terminate the current string and move on to next one */
+                while (*p != ',' && *p != '-' && *p != '\0') {
+                    p++;
+                }
+                if (*p == ',') {
+                    *p++ = '\0';
+                } else if (*p == '-') {
+                    *p++ = '\0';
+                    break;
+                }
             }
-            if (*p == ',') {
-                *p++ = '\0';
+
+            alpn_list_count++;
+            /* Terminate for loop if we have reached end of alpn_string */
+            if (*p == '\0') {
+                break;
             }
         }
     }
@@ -1849,7 +1868,7 @@ usage:
 
 #if defined(MBEDTLS_SSL_ALPN)
     if (opt.alpn_string != NULL) {
-        if ((ret = mbedtls_ssl_conf_alpn_protocols(&conf, alpn_list)) != 0) {
+        if ((ret = mbedtls_ssl_conf_alpn_protocols(&conf, alpn_list[alpn_conf_count++])) != 0) {
             mbedtls_printf(" failed\n  ! mbedtls_ssl_conf_alpn_protocols returned %d\n\n",
                            ret);
             goto exit;
@@ -2946,6 +2965,16 @@ reconnect:
 
         mbedtls_printf("  . Reconnecting with saved session...");
 
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
+        if (opt.alpn_string != NULL && alpn_conf_count < alpn_list_count) {
+            if ((ret = mbedtls_ssl_conf_alpn_protocols(&conf, alpn_list[alpn_conf_count++])) != 0) {
+                mbedtls_printf(" failed\n  ! mbedtls_ssl_conf_alpn_protocols returned %d\n\n",
+                               ret);
+                goto exit;
+            }
+        }
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_ALPN */
+
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
         memset(peer_crt_info, 0, sizeof(peer_crt_info));
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
@@ -3013,6 +3042,14 @@ reconnect:
         }
 
         mbedtls_printf(" ok\n");
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
+        if (opt.alpn_string != NULL) {
+            const char *alp = mbedtls_ssl_get_alpn_protocol(&ssl);
+            mbedtls_printf("    [ Renegotiated application Layer Protocol is %s ]\n",
+                           alp ? alp : "(none)");
+        }
+#endif
 
         goto send_request;
     }

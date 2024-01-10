@@ -13,12 +13,15 @@
 #include <test/macros.h>
 #include <test/memory.h>
 
-#if defined(MBEDTLS_TEST_HAVE_ASAN)
+#if defined(MBEDTLS_TEST_MEMORY_CAN_POISON)
 #include <sanitizer/asan_interface.h>
 #include <stdint.h>
 #endif
 
-#if defined(MBEDTLS_TEST_HAVE_ASAN)
+#if defined(MBEDTLS_TEST_MEMORY_CAN_POISON)
+
+_Thread_local int mbedtls_test_memory_poisoning_enabled = 0;
+
 static void align_for_asan(const unsigned char **p_ptr, size_t *p_size)
 {
     uintptr_t start = (uintptr_t) *p_ptr;
@@ -36,6 +39,9 @@ static void align_for_asan(const unsigned char **p_ptr, size_t *p_size)
 
 void mbedtls_test_memory_poison(const unsigned char *ptr, size_t size)
 {
+    if (!mbedtls_test_memory_poisoning_enabled) {
+        return;
+    }
     if (size == 0) {
         return;
     }
@@ -51,4 +57,4 @@ void mbedtls_test_memory_unpoison(const unsigned char *ptr, size_t size)
     align_for_asan(&ptr, &size);
     __asan_unpoison_memory_region(ptr, size);
 }
-#endif /* Asan */
+#endif /* Memory poisoning */

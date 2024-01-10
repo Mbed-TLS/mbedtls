@@ -364,7 +364,7 @@ static int convert_raw_to_der_single_int(const unsigned char *raw_buf, size_t ra
                                          unsigned char *der_buf_end)
 {
     unsigned char *p = der_buf_end;
-    int len = raw_len;
+    int len = (int) raw_len;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     /* Copy the raw coordinate to the end of der_buf. */

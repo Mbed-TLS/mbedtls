@@ -11,10 +11,9 @@
 /* This is needed for MBEDTLS_ERR_XXX macros */
 #include <mbedtls/error.h>
 
-#if defined(MBEDTLS_ASN1_WRITE_C)
-#include <mbedtls/asn1write.h>
+/* This is needed in ECDSA convesion functions to get the maximum sizes of
+ * ECDSA signature and EC coordinates. */
 #include <psa/crypto_sizes.h>
-#endif
 
 #include "psa_util_internal.h"
 
@@ -340,7 +339,45 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
 
 #if defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
 
-#if defined(MBEDTLS_ASN1_WRITE_C)
+static int asn1_write_len_and_tag(unsigned char **p, const unsigned char *start,
+                                  size_t len, unsigned char tag)
+{
+    if (len > 0xFFFFFFFF) {
+        return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+    }
+
+    int len_bytes = 1;
+
+    /* Write length first. */
+    if (len >= 0x80) {
+        for (size_t l = len; l != 0; l >>= 8) {
+            len_bytes++;
+        }
+    }
+
+    if (len_bytes > (*p - start)) {
+        return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
+    }
+
+    do {
+        *--(*p) = MBEDTLS_BYTE_0(len);
+        len >>= 8;
+    } while (len);
+
+    if (len_bytes > 1) {
+        *--(*p) = (unsigned char) (0x80 + len_bytes - 1);
+    }
+
+    /* Write tag. */
+    if (*p - start < 1) {
+        return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
+    }
+
+    *--(*p) = tag;
+
+    return len_bytes + 1; // len_bytes for the length + 1 for the tag
+}
+
 /**
  * \brief  Convert a single raw coordinate to DER ASN.1 format. The output der
  *         buffer is filled backward (i.e. starting from its end).
@@ -397,8 +434,11 @@ static int convert_raw_to_der_single_int(const unsigned char *raw_buf, size_t ra
         ++len;
     }
 
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&p, der_buf_start, len));
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(&p, der_buf_start, MBEDTLS_ASN1_INTEGER));
+    ret = asn1_write_len_and_tag(&p, der_buf_start, len, MBEDTLS_ASN1_INTEGER);
+    if (ret < 0) {
+        return ret;
+    }
+    len += ret;
 
     return len;
 }
@@ -440,10 +480,12 @@ int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
     len += ret;
 
     /* Add ASN.1 header (len + tag). */
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&p, der, len));
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(&p, der,
-                                                     MBEDTLS_ASN1_CONSTRUCTED |
-                                                     MBEDTLS_ASN1_SEQUENCE));
+    ret = asn1_write_len_and_tag(&p, der, len,
+                                 MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
+    if (ret < 0) {
+        return ret;
+    }
+    len += ret;
 
     /* memmove the content of der buffer to its beginnig. */
     memmove(der, p, len);
@@ -451,9 +493,47 @@ int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
 
     return 0;
 }
-#endif /* MBEDTLS_ASN1_WRITE_C */
 
-#if defined(MBEDTLS_ASN1_PARSE_C)
+static int asn1_parse_tag_and_len(unsigned char **p, const unsigned char *end,
+                                  size_t *len, int tag)
+{
+    /* There should be at least 1 byte for the tag and 1 byte for the length.  */
+    if ((end - *p) < 2) {
+        return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
+    }
+
+    /* Check that the tag is valid. */
+    if (**p != tag) {
+        return MBEDTLS_ERR_ASN1_UNEXPECTED_TAG;
+    }
+    (*p)++;
+
+    /* Read length of the following data. */
+    if ((**p & 0x80) == 0) {
+        *len = *(*p)++;
+    } else {
+        int n = (**p) & 0x7F;
+        if (n == 0 || n > 4) {
+            return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+        }
+        if ((end - *p) <= n) {
+            return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
+        }
+        *len = 0;
+        (*p)++;
+        while (n--) {
+            *len = (*len << 8) | **p;
+            (*p)++;
+        }
+    }
+
+    if (*len > (size_t) (end - *p)) {
+        return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
+    }
+
+    return 0;
+}
+
 /**
  * \brief Convert a single integer from ASN.1 DER format to raw.
  *
@@ -490,8 +570,8 @@ static int convert_der_to_raw_single_int(unsigned char *der, size_t der_len,
     }
 
     /* Get the length of ASN.1 element (i.e. the integer we need to parse). */
-    ret = mbedtls_asn1_get_tag(&p, p + der_len, &unpadded_len,
-                               MBEDTLS_ASN1_INTEGER);
+    ret = asn1_parse_tag_and_len(&p, p + der_len, &unpadded_len,
+                                 MBEDTLS_ASN1_INTEGER);
     if (ret != 0) {
         return ret;
     }
@@ -533,8 +613,8 @@ int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
     }
 
     /* Check that the provided input DER buffer has the right header. */
-    ret = mbedtls_asn1_get_tag(&p, der + der_len, &data_len,
-                               MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
+    ret = asn1_parse_tag_and_len(&p, der + der_len, &data_len,
+                                 MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
     if (ret != 0) {
         return ret;
     }
@@ -570,6 +650,5 @@ int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
 
     return 0;
 }
-#endif /* MBEDTLS_ASN1_PARSE_C */
 
 #endif /* MBEDTLS_PSA_UTIL_HAVE_ECDSA */

@@ -16,10 +16,8 @@
 
 #include "psa/crypto.h"
 
-/* ASN1 defines used in the ECDSA conversion functions.
- * Note: intentionally not adding MBEDTLS_ASN1_[PARSE|WRITE]_C guards here
- * otherwise error codes would be unknown in test_suite_psa_crypto_util.data.*/
-#include <mbedtls/asn1write.h>
+/* ASN1 error codes used in the ECDSA conversion functions. */
+#include <mbedtls/asn1.h>
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
@@ -157,7 +155,6 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
 
 #if defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
 
-#if defined(MBEDTLS_ASN1_WRITE_C)
 /** Convert an ECDSA signature from raw format (used by PSA APIs) to DER ASN.1
  * format (used by legacy crypto APIs).
  *
@@ -174,9 +171,7 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
 int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
                              unsigned char *der, size_t der_size, size_t *der_len,
                              size_t bits);
-#endif /* MBEDTLS_ASN1_WRITE_C */
 
-#if defined(MBEDTLS_ASN1_PARSE_C)
 /** Convert an ECDSA signature from DER ASN.1 format (used by legacy crypto
  * APIs) to raw format (used by PSA APIs).
  *
@@ -193,7 +188,6 @@ int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
 int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
                              unsigned char *raw, size_t raw_size, size_t *raw_len,
                              size_t bits);
-#endif /* MBEDTLS_ASN1_PARSE_C */
 
 #endif /* MBEDTLS_PSA_UTIL_HAVE_ECDSA */
 

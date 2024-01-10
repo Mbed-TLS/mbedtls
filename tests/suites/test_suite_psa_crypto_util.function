@@ -1,8 +1,6 @@
 /* BEGIN_HEADER */
-#include <stdint.h>
 #include <test/helpers.h>
 #include <mbedtls/psa_util.h>
-#include <mbedtls/asn1write.h>
 
 enum  {
     ECDSA_RAW_TO_DER = 0,

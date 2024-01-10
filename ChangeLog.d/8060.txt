@@ -1,4 +1,0 @@
-Features
-    * The CCM and GCM modules no longer depend on MBEDTLS_CIPHER_C. People who
-      use CCM and GCM but don't need the Cipher API can now disable
-      MBEDTLS_CIPHER_C in order to save code size.

@@ -1925,13 +1925,23 @@ static int ssl_tls13_process_client_hello(mbedtls_ssl_context *ssl)
                                    * by MBEDTLS_SSL_PROC_CHK_NEG. */
 
     /*
-     * Version 1.2 of the protocol has been chosen, set the
+     * Version 1.2 of the protocol has to be used for the handshake.
+     * If TLS 1.2 is not supported, abort the handshake. Otherwise, set the
      * ssl->keep_current_message flag for the ClientHello to be kept and parsed
      * as a TLS 1.2 ClientHello. We also change ssl->tls_version to
      * MBEDTLS_SSL_VERSION_TLS1_2 thus from now on mbedtls_ssl_handshake_step()
      * will dispatch to the TLS 1.2 state machine.
      */
     if (SSL_CLIENT_HELLO_TLS1_2 == parse_client_hello_ret) {
+        /* Check if server supports TLS 1.2 */
+        if (!mbedtls_ssl_conf_is_tls12_enabled(ssl->conf)) {
+            MBEDTLS_SSL_DEBUG_MSG(
+                1, ("TLS 1.2 not supported."));
+            MBEDTLS_SSL_PEND_FATAL_ALERT(
+                MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION,
+                MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION);
+            return MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
+        }
         ssl->keep_current_message = 1;
         ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
         return 0;

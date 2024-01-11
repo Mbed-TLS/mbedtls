@@ -1,2 +1,5 @@
 Features
-   * Add support for sending and receiving Record Size Limit extension.
+   * Add support for Record Size Limit extension as defined by RFC 8449
+     and configured with MBEDTLS_SSL_RECORD_SIZE_LIMIT.
+     Application data sent and received will be fragmented according to
+     Record size limits negotiated during handshake.

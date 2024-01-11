@@ -362,6 +362,7 @@ metatest_t metatests[] = {
     { "double_free", "asan", double_free },
     { "read_uninitialized_stack", "msan", read_uninitialized_stack },
     { "memory_leak", "asan", memory_leak },
+#if defined(MBEDTLS_TEST_MEMORY_CAN_POISON)
     { "test_memory_poison_0_0_8_r", "asan", test_memory_poison },
     { "test_memory_poison_0_0_8_w", "asan", test_memory_poison },
     { "test_memory_poison_0_7_8_r", "asan", test_memory_poison },
@@ -378,6 +379,7 @@ metatest_t metatests[] = {
     { "test_memory_poison_7_0_1_w", "asan", test_memory_poison },
     { "test_memory_poison_7_1_2_r", "asan", test_memory_poison },
     { "test_memory_poison_7_1_2_w", "asan", test_memory_poison },
+#endif /* MBEDTLS_TEST_MEMORY_CAN_POISON */
     { "mutex_lock_not_initialized", "pthread", mutex_lock_not_initialized },
     { "mutex_unlock_not_initialized", "pthread", mutex_unlock_not_initialized },
     { "mutex_free_not_initialized", "pthread", mutex_free_not_initialized },

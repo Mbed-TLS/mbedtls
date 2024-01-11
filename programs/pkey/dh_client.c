@@ -14,8 +14,7 @@
 #if defined(MBEDTLS_AES_C) && defined(MBEDTLS_DHM_C) && \
     defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_NET_C) && \
     defined(MBEDTLS_RSA_C) && defined(MBEDTLS_MD_CAN_SHA256) && \
-    defined(MBEDTLS_FS_IO) && defined(MBEDTLS_CTR_DRBG_C) && \
-    defined(MBEDTLS_MD_CAN_SHA1)
+    defined(MBEDTLS_FS_IO) && defined(MBEDTLS_CTR_DRBG_C)
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/aes.h"
 #include "mbedtls/dhm.h"
@@ -30,18 +29,19 @@
 
 #define SERVER_NAME "localhost"
 #define SERVER_PORT "11999"
+#define MBEDTLS_MD_CAN_SHA256_MAX_SIZE 32
 
 #if !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_DHM_C) ||     \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_NET_C) ||  \
     !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_MD_CAN_SHA256) ||    \
-    !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_CTR_DRBG_C) || \
-    !defined(MBEDTLS_SHA1_C)
+    !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_CTR_DRBG_C)
+
 int main(void)
 {
     mbedtls_printf("MBEDTLS_AES_C and/or MBEDTLS_DHM_C and/or MBEDTLS_ENTROPY_C "
                    "and/or MBEDTLS_NET_C and/or MBEDTLS_RSA_C and/or "
                    "MBEDTLS_MD_CAN_SHA256 and/or MBEDTLS_FS_IO and/or "
-                   "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_SHA1_C not defined.\n");
+                   "MBEDTLS_CTR_DRBG_C not defined.\n");
     mbedtls_exit(0);
 }
 
@@ -65,7 +65,7 @@ int main(void)
 
     unsigned char *p, *end;
     unsigned char buf[2048];
-    unsigned char hash[32];
+    unsigned char hash[MBEDTLS_MD_CAN_SHA256_MAX_SIZE];
     const char *pers = "dh_client";
 
     mbedtls_entropy_context entropy;
@@ -187,13 +187,13 @@ int main(void)
         goto exit;
     }
 
-    if ((ret = mbedtls_sha1(buf, (int) (p - 2 - buf), hash)) != 0) {
+    if ((ret = mbedtls_sha256(buf, (int) (p - 2 - buf), hash, 0)) != 0) {
         mbedtls_printf(" failed\n  ! mbedtls_sha1 returned %d\n\n", ret);
         goto exit;
     }
 
     if ((ret = mbedtls_rsa_pkcs1_verify(&rsa, MBEDTLS_MD_SHA256,
-                                        32, hash, p)) != 0) {
+                                        MBEDTLS_MD_CAN_SHA256_MAX_SIZE, hash, p)) != 0) {
         mbedtls_printf(" failed\n  ! mbedtls_rsa_pkcs1_verify returned %d\n\n", ret);
         goto exit;
     }

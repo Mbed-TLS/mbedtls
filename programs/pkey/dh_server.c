@@ -14,8 +14,7 @@
 #if defined(MBEDTLS_AES_C) && defined(MBEDTLS_DHM_C) && \
     defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_NET_C) && \
     defined(MBEDTLS_RSA_C) && defined(MBEDTLS_MD_CAN_SHA256) && \
-    defined(MBEDTLS_FS_IO) && defined(MBEDTLS_CTR_DRBG_C) && \
-    defined(MBEDTLS_MD_CAN_SHA1)
+    defined(MBEDTLS_FS_IO) && defined(MBEDTLS_CTR_DRBG_C)
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/aes.h"
 #include "mbedtls/dhm.h"
@@ -30,18 +29,18 @@
 
 #define SERVER_PORT "11999"
 #define PLAINTEXT "==Hello there!=="
+#define MBEDTLS_MD_CAN_SHA256_MAX_SIZE 32
 
 #if !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_DHM_C) ||     \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_NET_C) ||  \
     !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_MD_CAN_SHA256) ||    \
-    !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_CTR_DRBG_C) || \
-    !defined(MBEDTLS_SHA1_C)
+    !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_CTR_DRBG_C)
 int main(void)
 {
     mbedtls_printf("MBEDTLS_AES_C and/or MBEDTLS_DHM_C and/or MBEDTLS_ENTROPY_C "
                    "and/or MBEDTLS_NET_C and/or MBEDTLS_RSA_C and/or "
                    "MBEDTLS_MD_CAN_SHA256 and/or MBEDTLS_FS_IO and/or "
-                   "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_SHA1_C not defined.\n");
+                   "MBEDTLS_CTR_DRBG_C not defined.\n");
     mbedtls_exit(0);
 }
 #else
@@ -57,7 +56,7 @@ int main(void)
     mbedtls_net_context listen_fd, client_fd;
 
     unsigned char buf[2048];
-    unsigned char hash[32];
+    unsigned char hash[MBEDTLS_MD_CAN_SHA256_MAX_SIZE];
     unsigned char buf2[2];
     const char *pers = "dh_server";
 
@@ -186,7 +185,7 @@ int main(void)
     /*
      * 5. Sign the parameters and send them
      */
-    if ((ret = mbedtls_sha1(buf, n, hash)) != 0) {
+    if ((ret = mbedtls_sha256(buf, n, hash, 0)) != 0) {
         mbedtls_printf(" failed\n  ! mbedtls_sha1 returned %d\n\n", ret);
         goto exit;
     }
@@ -195,7 +194,7 @@ int main(void)
     buf[n + 1] = (unsigned char) (rsa.MBEDTLS_PRIVATE(len));
 
     if ((ret = mbedtls_rsa_pkcs1_sign(&rsa, NULL, NULL, MBEDTLS_MD_SHA256,
-                                      32, hash, buf + n + 2)) != 0) {
+                                      MBEDTLS_MD_CAN_SHA256_MAX_SIZE, hash, buf + n + 2)) != 0) {
         mbedtls_printf(" failed\n  ! mbedtls_rsa_pkcs1_sign returned %d\n\n", ret);
         goto exit;
     }

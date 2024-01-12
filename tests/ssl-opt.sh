@@ -5199,6 +5199,10 @@ run_test    "Record Size Limit: TLS 1.3 m->m: both peer comply with record size 
 
 # Tests for renegotiation
 
+# G_NEXT_SRV is used in renegotiation tests becuase of the increased
+# extensions limit since we exceed the limit in G_SRV when we send
+# TLS 1.3 extensions in the initial handshake.
+
 # Renegotiation SCSV always added, regardless of SSL_RENEGOTIATION
 run_test    "Renegotiation: none, for reference" \
             "$P_SRV debug_level=3 exchanges=2 auth_mode=optional" \
@@ -5529,8 +5533,8 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: gnutls server strict, client-initiated" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%SAFE_RENEGOTIATION" \
-            "$P_CLI force_version=tls12 debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%SAFE_RENEGOTIATION" \
+            "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
@@ -5543,7 +5547,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: gnutls server unsafe, client-initiated default" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
             1 \
             -c "client hello, adding renegotiation extension" \
@@ -5557,7 +5561,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: gnutls server unsafe, client-inititated no legacy" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 \
              allow_legacy=0" \
             1 \
@@ -5572,7 +5576,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: gnutls server unsafe, client-inititated legacy" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 \
              allow_legacy=1" \
             0 \
@@ -5633,7 +5637,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: DTLS, gnutls server, client-initiated" \
-            "$G_SRV -u --mtu 4096" \
+            "$G_NEXT_SRV -u --mtu 4096" \
             "$P_CLI debug_level=3 dtls=1 exchanges=1 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
@@ -5648,8 +5652,8 @@ run_test    "Renegotiation: DTLS, gnutls server, client-initiated" \
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renego ext: gnutls server strict, client default" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%SAFE_RENEGOTIATION" \
-            "$P_CLI force_version=tls12 debug_level=3" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%SAFE_RENEGOTIATION" \
+            "$P_CLI debug_level=3" \
             0 \
             -c "found renegotiation extension" \
             -C "error" \
@@ -5658,7 +5662,7 @@ run_test    "Renego ext: gnutls server strict, client default" \
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renego ext: gnutls server unsafe, client default" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3" \
             0 \
             -C "found renegotiation extension" \
@@ -5668,7 +5672,7 @@ run_test    "Renego ext: gnutls server unsafe, client default" \
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renego ext: gnutls server unsafe, client break legacy" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 allow_legacy=-1" \
             1 \
             -C "found renegotiation extension" \

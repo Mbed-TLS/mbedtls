@@ -1780,7 +1780,8 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
 }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
+static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl,
+                                               int hrr_required)
 {
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
@@ -1798,6 +1799,11 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_DEBUG_MSG(
             1,
             ("EarlyData: rejected, feature disabled in server configuration."));
+        return;
+    }
+
+    if (hrr_required) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("EarlyData: rejected, HRR required."));
         return;
     }
 
@@ -1858,7 +1864,8 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
 /* Update the handshake state machine */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl)
+static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl,
+                                              int hrr_required)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -1882,8 +1889,8 @@ static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl)
     }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    /* There is enough information, update early data state. */
-    ssl_tls13_update_early_data_status(ssl);
+    /* There is enough information, update early data status. */
+    ssl_tls13_update_early_data_status(ssl, hrr_required);
 
     if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
         ret = mbedtls_ssl_tls13_compute_early_transform(ssl);
@@ -1893,6 +1900,8 @@ static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl)
             return ret;
         }
     }
+#else
+    ((void) hrr_required);
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
     return 0;
@@ -1947,7 +1956,9 @@ static int ssl_tls13_process_client_hello(mbedtls_ssl_context *ssl)
         return 0;
     }
 
-    MBEDTLS_SSL_PROC_CHK(ssl_tls13_postprocess_client_hello(ssl));
+    MBEDTLS_SSL_PROC_CHK(
+        ssl_tls13_postprocess_client_hello(ssl, parse_client_hello_ret ==
+                                           SSL_CLIENT_HELLO_HRR_REQUIRED));
 
     if (SSL_CLIENT_HELLO_OK == parse_client_hello_ret) {
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO);

@@ -983,10 +983,6 @@ psa_status_t psa_remove_key_data_from_memory(psa_key_slot_t *slot)
  * Persistent storage is not affected. */
 psa_status_t psa_wipe_key_slot(psa_key_slot_t *slot)
 {
-    if (slot->state != PSA_SLOT_PENDING_DELETION) {
-        return PSA_ERROR_BAD_STATE;
-    }
-
     psa_status_t status = psa_remove_key_data_from_memory(slot);
 
     /*
@@ -998,7 +994,9 @@ psa_status_t psa_wipe_key_slot(psa_key_slot_t *slot)
      * function is called as part of the execution of a test suite, the
      * execution of the test suite is stopped in error if the assertion fails.
      */
-    if (slot->registered_readers != 1) {
+    if (((slot->state == PSA_SLOT_FULL) ||
+         (slot->state == PSA_SLOT_PENDING_DELETION)) &&
+        (slot->registered_readers != 1)) {
         MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->registered_readers == 1);
         status = PSA_ERROR_CORRUPTION_DETECTED;
     }
@@ -1828,12 +1826,6 @@ static void psa_fail_key_creation(psa_key_slot_t *slot,
      * itself. */
     (void) psa_crypto_stop_transaction();
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-
-    /* Prepare the key slot to be wiped, and then wipe it. */
-    slot->registered_readers = 1;
-    psa_key_slot_state_transition(slot, PSA_SLOT_FILLING,
-                                  PSA_SLOT_PENDING_DELETION);
-
     psa_wipe_key_slot(slot);
 }
 

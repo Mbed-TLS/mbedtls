@@ -70,8 +70,6 @@ typedef struct {
      * Number of functions registered as reading the material in the key slot.
      *
      * Library functions must not write directly to registered_readers
-     * (unless the slot's state is PSA_SLOT_FILLING and the slot needs to be
-     * wiped following a failed key creation).
      *
      * A function must call psa_register_read(slot) before reading the current
      * contents of the slot for an operation.
@@ -191,9 +189,8 @@ static inline psa_key_slot_number_t psa_key_slot_get_slot_number(
  * \retval #PSA_SUCCESS
  *         The slot has been successfully wiped.
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- *         The amount of registered readers was not equal to 1.
- * \retval #PSA_ERROR_BAD_STATE
- *         The slot's state was not PSA_SLOT_PENDING_DELETION.
+ *         The slot's state was PSA_SLOT_FULL or PSA_SLOT_PENDING_DELETION, and
+ *         the amount of registered readers was not equal to 1.
  */
 psa_status_t psa_wipe_key_slot(psa_key_slot_t *slot);
 

@@ -189,10 +189,6 @@ psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
         (unused_persistent_key_slot != NULL)) {
         selected_slot = unused_persistent_key_slot;
         psa_register_read(selected_slot);
-        /* If the state is not changed then psa_wipe_key_slot
-         * will report an error. */
-        psa_key_slot_state_transition(selected_slot, PSA_SLOT_FULL,
-                                      PSA_SLOT_PENDING_DELETION);
         status = psa_wipe_key_slot(selected_slot);
         if (status != PSA_SUCCESS) {
             goto error;
@@ -394,12 +390,6 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
     if (status != PSA_SUCCESS) {
-        /* Prepare the key slot to be wiped, and then wipe it.
-         * Don't overwrite status as a BAD_STATE error here
-         * can be reported in the psa_wipe_key_slot call. */
-        (*p_slot)->registered_readers = 1;
-        psa_key_slot_state_transition((*p_slot), PSA_SLOT_FILLING,
-                                      PSA_SLOT_PENDING_DELETION);
         psa_wipe_key_slot(*p_slot);
 
         if (status == PSA_ERROR_DOES_NOT_EXIST) {
@@ -544,13 +534,10 @@ psa_status_t psa_close_key(psa_key_handle_t handle)
         return status;
     }
     if (slot->registered_readers == 1) {
-        status = psa_key_slot_state_transition(slot, PSA_SLOT_FULL,
-                                               PSA_SLOT_PENDING_DELETION);
-        if (status != PSA_SUCCESS) {
-            return status;
-        }
+        return psa_wipe_key_slot(slot);
+    } else {
+        return psa_unregister_read(slot);
     }
-    return psa_unregister_read(slot);
 }
 
 psa_status_t psa_purge_key(mbedtls_svc_key_id_t key)
@@ -565,10 +552,10 @@ psa_status_t psa_purge_key(mbedtls_svc_key_id_t key)
 
     if ((!PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) &&
         (slot->registered_readers == 1)) {
-        psa_key_slot_state_transition(slot, PSA_SLOT_FULL,
-                                      PSA_SLOT_PENDING_DELETION);
+        return psa_wipe_key_slot(slot);
+    } else {
+        return psa_unregister_read(slot);
     }
-    return psa_unregister_read(slot);
 }
 
 void mbedtls_psa_get_stats(mbedtls_psa_stats_t *stats)

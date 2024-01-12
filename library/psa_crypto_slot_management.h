@@ -179,7 +179,7 @@ static inline psa_status_t psa_register_read(psa_key_slot_t *slot)
  * This function decrements the key slot registered reader counter by one.
  * If the state of the slot is PSA_SLOT_PENDING_DELETION,
  * and there is only one registered reader (the caller),
- * this function will call psa_wipe_slot().
+ * this function will call psa_wipe_key_slot().
  *
  * \note To ease the handling of errors in retrieving a key slot
  *       a NULL input pointer is valid, and the function returns

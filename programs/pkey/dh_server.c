@@ -193,8 +193,9 @@ int main(void)
     buf[n] = (unsigned char) (rsa.MBEDTLS_PRIVATE(len) >> 8);
     buf[n + 1] = (unsigned char) (rsa.MBEDTLS_PRIVATE(len));
 
-    if ((ret = mbedtls_rsa_pkcs1_sign(&rsa, NULL, NULL, MBEDTLS_MD_SHA256,
-                                      MBEDTLS_MD_CAN_SHA256_MAX_SIZE, hash, buf + n + 2)) != 0) {
+    if ((ret = mbedtls_rsa_pkcs1_sign(&rsa, mbedtls_ctr_drbg_random, &ctr_drbg,
+                                      MBEDTLS_MD_SHA256, MBEDTLS_MD_CAN_SHA256_MAX_SIZE,
+                                      hash, buf + n + 2)) != 0) {
         mbedtls_printf(" failed\n  ! mbedtls_rsa_pkcs1_sign returned %d\n\n", ret);
         goto exit;
     }

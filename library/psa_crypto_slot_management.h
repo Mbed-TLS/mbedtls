@@ -68,9 +68,7 @@ static inline int psa_key_id_is_volatile(psa_key_id_t key_id)
  *         description of the key identified by \p key.
  *         The key slot counter has been incremented.
  * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been initialized. Or,
- *         this call was operating on a key slot and found the slot in
- *         an invalid state for the operation.
+ *         The library has not been initialized.
  * \retval #PSA_ERROR_INVALID_HANDLE
  *         \p key is not a valid key identifier.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -114,7 +112,8 @@ void psa_wipe_all_key_slots(void);
  * \retval #PSA_SUCCESS \emptydescription
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  *         There were no free key slots.
- * \retval #PSA_ERROR_BAD_STATE
+ * \retval #PSA_ERROR_BAD_STATE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
  *         This function attempted to operate on a key slot which was in an
  *         unexpected state.
  */
@@ -133,7 +132,7 @@ psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
  *
  * \retval #PSA_SUCCESS
                The key slot's state variable is new_state.
- * \retval #PSA_ERROR_BAD_STATE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
  *             The slot's state was not expected_state.
  */
 static inline psa_status_t psa_key_slot_state_transition(
@@ -141,7 +140,7 @@ static inline psa_status_t psa_key_slot_state_transition(
     psa_key_slot_state_t new_state)
 {
     if (slot->state != expected_state) {
-        return PSA_ERROR_BAD_STATE;
+        return PSA_ERROR_CORRUPTION_DETECTED;
     }
     slot->state = new_state;
     return PSA_SUCCESS;
@@ -157,16 +156,12 @@ static inline psa_status_t psa_key_slot_state_transition(
                The key slot registered reader counter was incremented.
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  *             The reader counter already reached its maximum value and was not
- *             increased.
- * \retval #PSA_ERROR_BAD_STATE
- *             The slot's state was not PSA_SLOT_FULL.
+ *             increased, or the slot's state was not PSA_SLOT_FULL.
  */
 static inline psa_status_t psa_register_read(psa_key_slot_t *slot)
 {
-    if (slot->state != PSA_SLOT_FULL) {
-        return PSA_ERROR_BAD_STATE;
-    }
-    if (slot->registered_readers >= SIZE_MAX) {
+    if ((slot->state != PSA_SLOT_FULL) ||
+        (slot->registered_readers >= SIZE_MAX)) {
         return PSA_ERROR_CORRUPTION_DETECTED;
     }
     slot->registered_readers++;
@@ -190,11 +185,11 @@ static inline psa_status_t psa_register_read(psa_key_slot_t *slot)
  *             \p slot is NULL or the key slot reader counter has been
  *             decremented (and potentially wiped) successfully.
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- *             registered_readers was equal to 0.
- * \retval #PSA_ERROR_BAD_STATE
  *             The slot's state was neither PSA_SLOT_FULL nor
- *             PSA_SLOT_PENDING_DELETION, or a wipe was attempted and
- *             the slot's state was not PSA_SLOT_PENDING_DELETION.
+ *             PSA_SLOT_PENDING_DELETION.
+ *             Or a wipe was attempted and the slot's state was not
+ *             PSA_SLOT_PENDING_DELETION.
+ *             Or registered_readers was equal to 0.
  */
 psa_status_t psa_unregister_read(psa_key_slot_t *slot);
 

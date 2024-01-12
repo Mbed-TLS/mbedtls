@@ -417,7 +417,7 @@ psa_status_t psa_unregister_read(psa_key_slot_t *slot)
     }
     if ((slot->state != PSA_SLOT_FULL) &&
         (slot->state != PSA_SLOT_PENDING_DELETION)) {
-        return PSA_ERROR_BAD_STATE;
+        return PSA_ERROR_CORRUPTION_DETECTED;
     }
 
     /* If we are the last reader and the slot is marked for deletion,

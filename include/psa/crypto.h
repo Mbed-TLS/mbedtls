@@ -415,9 +415,7 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
- *         results in this error code. Or,
- *         this call was operating on a key slot and found the slot in
- *         an invalid state for the operation.
+ *         results in this error code.
  */
 psa_status_t psa_purge_key(mbedtls_svc_key_id_t key);
 
@@ -557,9 +555,7 @@ psa_status_t psa_copy_key(mbedtls_svc_key_id_t source_key,
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
- *         results in this error code. Or,
- *         this call was operating on a key slot and found the slot in
- *         an invalid state for the operation.
+ *         results in this error code.
  */
 psa_status_t psa_destroy_key(mbedtls_svc_key_id_t key);
 

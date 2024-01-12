@@ -56,7 +56,7 @@ typedef struct {
      * The state variable is used to help determine whether library functions
      * which operate on the slot succeed. For example, psa_finish_key_creation,
      * which transfers the state of a slot from PSA_SLOT_FILLING to
-     * PSA_SLOT_FULL, must fail with error code PSA_ERROR_BAD_STATE
+     * PSA_SLOT_FULL, must fail with error code PSA_ERROR_CORRUPTION_DETECTED
      * if the state of the slot is not PSA_SLOT_FILLING.
      *
      * Library functions which traverse the array of key slots only consider

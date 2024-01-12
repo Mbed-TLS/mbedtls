@@ -447,7 +447,7 @@
 
 /*
  * TLS 1.3 signature algorithms
- * RFC 8446, Section 4.2.2
+ * RFC 8446, Section 4.2.3
  */
 
 /* RSASSA-PKCS1-v1_5 algorithms */

@@ -5646,6 +5646,7 @@ support_build_armcc () {
 component_test_tls13_only () {
     msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3, without MBEDTLS_SSL_PROTO_TLS1_2"
     scripts/config.py set MBEDTLS_SSL_EARLY_DATA
+    scripts/config.py set MBEDTLS_SSL_RECORD_SIZE_LIMIT
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test: TLS 1.3 only, all key exchange modes enabled"
@@ -5805,18 +5806,6 @@ component_test_tls13_no_compatibility_mode () {
     msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
     make test
     msg "ssl-opt.sh (TLS 1.3 no compatibility mode)"
-    tests/ssl-opt.sh
-}
-
-component_test_tls13_only_record_size_limit () {
-    msg "build: TLS 1.3 only from default, record size limit extension enabled"
-    scripts/config.py set MBEDTLS_SSL_RECORD_SIZE_LIMIT
-    make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
-
-    msg "test_suite_ssl: TLS 1.3 only, record size limit extension enabled"
-    cd tests; ./test_suite_ssl; cd ..
-
-    msg "ssl-opt.sh: (TLS 1.3 only, record size limit extension enabled)"
     tests/ssl-opt.sh
 }
 

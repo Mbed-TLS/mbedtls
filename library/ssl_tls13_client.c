@@ -1160,6 +1160,15 @@ int mbedtls_ssl_tls13_write_client_hello_exts(mbedtls_ssl_context *ssl,
     }
     p += ext_len;
 
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    ret = mbedtls_ssl_tls13_write_record_size_limit_ext(
+        ssl, p, end, &ext_len);
+    if (ret != 0) {
+        return ret;
+    }
+    p += ext_len;
+#endif
+
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
     if (mbedtls_ssl_conf_tls13_is_some_ephemeral_enabled(ssl)) {
         ret = ssl_tls13_write_key_share_ext(ssl, p, end, &ext_len);

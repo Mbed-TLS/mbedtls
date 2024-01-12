@@ -2704,12 +2704,18 @@ int mbedtls_ssl_parse_server_name_ext(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
 #define MBEDTLS_SSL_RECORD_SIZE_LIMIT_EXTENSION_DATA_LENGTH (2)
-#define MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN (64)
+#define MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN (64)      /* As defined in RFC 8449 */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
                                                   const unsigned char *buf,
                                                   const unsigned char *end);
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_tls13_write_record_size_limit_ext(mbedtls_ssl_context *ssl,
+                                                  unsigned char *buf,
+                                                  const unsigned char *end,
+                                                  size_t *out_len);
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
 #if defined(MBEDTLS_SSL_ALPN)

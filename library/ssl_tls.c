@@ -3521,15 +3521,15 @@ int mbedtls_ssl_get_max_out_record_payload(const mbedtls_ssl_context *ssl)
 
     if (ssl->transform_out != NULL &&
         ssl->transform_out->tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
-        /* RFC 8449, section 4:
-         *
-         * This value [record_size_limit] is the length of the plaintext
-         * of a protected record.
-         * The value includes the content type and padding added in TLS 1.3
-         * (that is, the complete length of TLSInnerPlaintext).
-         *
-         * Thus, round down to a multiple of MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY
-         * and subtract 1 (for the content type that will be added later)
+        /*
+         * In TLS 1.3 case, when records are protected, `max_len` as computed
+         * above is the maximum length of the TLSInnerPlaintext structure that
+         * along the plaintext payload contains the inner content type (one byte)
+         * and some zero padding. Given the algorithm used for padding
+         * in mbedtls_ssl_encrypt_buf(), compute the maximum length for
+         * the plaintext payload. Round down to a multiple of
+         * MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY and
+         * subtract 1.
          */
         max_len = ((max_len / MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY) *
                    MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY) - 1;

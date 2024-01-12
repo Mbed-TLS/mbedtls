@@ -1698,6 +1698,7 @@ int mbedtls_ssl_tls13_check_received_extension(
 }
 
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+
 /* RFC 8449, section 4:
  *
  * The ExtensionData of the "record_size_limit" extension is
@@ -1738,6 +1739,8 @@ int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
      * as a fatal error and generate an "illegal_parameter" alert.
      */
     if (record_size_limit < MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("Invalid record size limit : %u Bytes",
+                                  record_size_limit));
         MBEDTLS_SSL_PEND_FATAL_ALERT(
             MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
             MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
@@ -1745,6 +1748,36 @@ int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
     }
 
     ssl->session_negotiate->record_size_limit = record_size_limit;
+
+    return 0;
+}
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_tls13_write_record_size_limit_ext(mbedtls_ssl_context *ssl,
+                                                  unsigned char *buf,
+                                                  const unsigned char *end,
+                                                  size_t *out_len)
+{
+    unsigned char *p = buf;
+    *out_len = 0;
+
+    MBEDTLS_STATIC_ASSERT(MBEDTLS_SSL_IN_CONTENT_LEN >= MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN,
+                          "MBEDTLS_SSL_IN_CONTENT_LEN is less than the "
+                          "minimum record size limit");
+
+    MBEDTLS_SSL_CHK_BUF_PTR(p, end, 6);
+
+    MBEDTLS_PUT_UINT16_BE(MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT, p, 0);
+    MBEDTLS_PUT_UINT16_BE(MBEDTLS_SSL_RECORD_SIZE_LIMIT_EXTENSION_DATA_LENGTH,
+                          p, 2);
+    MBEDTLS_PUT_UINT16_BE(MBEDTLS_SSL_IN_CONTENT_LEN, p, 4);
+
+    *out_len = 6;
+
+    MBEDTLS_SSL_DEBUG_MSG(2, ("Sent RecordSizeLimit: %d Bytes",
+                              MBEDTLS_SSL_IN_CONTENT_LEN));
+
+    mbedtls_ssl_tls13_set_hs_sent_ext_mask(ssl, MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT);
 
     return 0;
 }

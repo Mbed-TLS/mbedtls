@@ -66,6 +66,7 @@ int main(void)
     unsigned char *p, *end;
     unsigned char buf[2048];
     unsigned char hash[MBEDTLS_MD_CAN_SHA256_MAX_SIZE];
+    mbedtls_mpi N, E;
     const char *pers = "dh_client";
 
     mbedtls_entropy_context entropy;
@@ -78,6 +79,8 @@ int main(void)
     mbedtls_dhm_init(&dhm);
     mbedtls_aes_init(&aes);
     mbedtls_ctr_drbg_init(&ctr_drbg);
+    mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&E);
 
     /*
      * 1. Setup the RNG
@@ -106,16 +109,13 @@ int main(void)
     }
 
     mbedtls_rsa_init(&rsa);
-
-    if ((ret = mbedtls_mpi_read_file(&rsa.MBEDTLS_PRIVATE(N), 16, f)) != 0 ||
-        (ret = mbedtls_mpi_read_file(&rsa.MBEDTLS_PRIVATE(E), 16, f)) != 0) {
+    if ((ret = mbedtls_mpi_read_file(&N, 16, f)) != 0 ||
+        (ret = mbedtls_mpi_read_file(&E, 16, f)) != 0 ||
+        (ret = mbedtls_rsa_import(&rsa, &N, NULL, NULL, NULL, &E) != 0)) {
         mbedtls_printf(" failed\n  ! mbedtls_mpi_read_file returned %d\n\n", ret);
         fclose(f);
         goto exit;
     }
-
-    rsa.MBEDTLS_PRIVATE(len) = (mbedtls_mpi_bitlen(&rsa.MBEDTLS_PRIVATE(N)) + 7) >> 3;
-
     fclose(f);
 
     /*
@@ -182,7 +182,7 @@ int main(void)
 
     p += 2;
 
-    if ((n = (size_t) (end - p)) != rsa.MBEDTLS_PRIVATE(len)) {
+    if ((n = (size_t) (end - p)) != mbedtls_rsa_get_len(&rsa)) {
         mbedtls_printf(" failed\n  ! Invalid RSA signature size\n\n");
         goto exit;
     }
@@ -273,6 +273,8 @@ exit:
     mbedtls_dhm_free(&dhm);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
+    mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&E);
 
     mbedtls_exit(exit_code);
 }

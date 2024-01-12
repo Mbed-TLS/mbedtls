@@ -190,8 +190,9 @@ int main(void)
         goto exit;
     }
 
-    buf[n] = (unsigned char) (rsa.MBEDTLS_PRIVATE(len) >> 8);
-    buf[n + 1] = (unsigned char) (rsa.MBEDTLS_PRIVATE(len));
+    const size_t rsa_key_len = mbedtls_rsa_get_len(&rsa);
+    buf[n] = (unsigned char) (rsa_key_len >> 8);
+    buf[n + 1] = (unsigned char) (rsa_key_len);
 
     if ((ret = mbedtls_rsa_pkcs1_sign(&rsa, mbedtls_ctr_drbg_random, &ctr_drbg,
                                       MBEDTLS_MD_SHA256, MBEDTLS_MD_CAN_SHA256_MAX_SIZE,
@@ -200,7 +201,7 @@ int main(void)
         goto exit;
     }
 
-    buflen = n + 2 + rsa.MBEDTLS_PRIVATE(len);
+    buflen = n + 2 + rsa_key_len;
     buf2[0] = (unsigned char) (buflen >> 8);
     buf2[1] = (unsigned char) (buflen);
 

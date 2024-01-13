@@ -53,6 +53,7 @@
 #endif
 
 #include "mbedtls/platform.h"
+#include "ctr.h"
 
 /*
  * This is a convenience shorthand macro to check if we need reverse S-box and
@@ -1456,11 +1457,7 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
             if (ret != 0) {
                 goto exit;
             }
-            for (int j = 16; j > 0; j--) {
-                if (++nonce_counter[j - 1] != 0) {
-                    break;
-                }
-            }
+            mbedtls_ctr_increment_counter(nonce_counter);
         } else {
             n -= offset;
         }

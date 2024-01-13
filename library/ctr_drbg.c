@@ -14,6 +14,7 @@
 
 #if defined(MBEDTLS_CTR_DRBG_C)
 
+#include "ctr.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
@@ -333,7 +334,7 @@ static int ctr_drbg_update_internal(mbedtls_ctr_drbg_context *ctx,
 {
     unsigned char tmp[MBEDTLS_CTR_DRBG_SEEDLEN];
     unsigned char *p = tmp;
-    int i, j;
+    int j;
     int ret = 0;
 #if !defined(MBEDTLS_AES_C)
     psa_status_t status;
@@ -346,11 +347,7 @@ static int ctr_drbg_update_internal(mbedtls_ctr_drbg_context *ctx,
         /*
          * Increase counter
          */
-        for (i = MBEDTLS_CTR_DRBG_BLOCKSIZE; i > 0; i--) {
-            if (++ctx->counter[i - 1] != 0) {
-                break;
-            }
-        }
+        mbedtls_ctr_increment_counter(ctx->counter);
 
         /*
          * Crypt counter block
@@ -652,13 +649,9 @@ int mbedtls_ctr_drbg_random_with_add(void *p_rng,
 
     while (output_len > 0) {
         /*
-         * Increase counter
+         * Increase counter (treat it as a 128-bit big-endian integer).
          */
-        for (i = MBEDTLS_CTR_DRBG_BLOCKSIZE; i > 0; i--) {
-            if (++ctx->counter[i - 1] != 0) {
-                break;
-            }
-        }
+        mbedtls_ctr_increment_counter(ctx->counter);
 
         /*
          * Crypt counter block

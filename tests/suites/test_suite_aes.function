@@ -89,6 +89,52 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CTR */
+void aes_ctr(data_t *key, data_t *ictr, data_t *pt, data_t *ct, int expected)
+{
+    unsigned char *output = NULL;
+    unsigned char ctr[16];
+    unsigned char stream_block[16];
+    mbedtls_aes_context ctx;
+
+    // sanity checks on test input
+    TEST_ASSERT(pt->len == ct->len);
+    TEST_ASSERT(key->len == 16 || key->len == 24 || key->len == 32);
+
+    TEST_CALLOC(output, pt->len);
+
+    // expected result is always success on zero-length input, so skip len == 0 if expecting failure
+    for (size_t len = (expected == 0 ? 0 : 1); len <= pt->len; len++) {
+        for (int i = 0; i < 2; i++) {
+            mbedtls_aes_init(&ctx);
+            TEST_ASSERT(mbedtls_aes_setkey_enc(&ctx, key->x, key->len * 8) == 0);
+
+            memcpy(ctr, ictr->x, 16);
+            memset(stream_block, 0, 16);
+            memset(output, 0, pt->len);
+
+            size_t nc_off = 0;
+
+            if (i == 0) {
+                // encrypt
+                TEST_EQUAL(mbedtls_aes_crypt_ctr(&ctx, len, &nc_off, ctr,
+                                                 stream_block, pt->x, output), 0);
+                TEST_ASSERT(!!memcmp(output, ct->x, len) == expected);
+            } else {
+                // decrypt
+                TEST_EQUAL(mbedtls_aes_crypt_ctr(&ctx, len, &nc_off, ctr,
+                                                 stream_block, ct->x, output), 0);
+                TEST_ASSERT(!!memcmp(output, pt->x, len) == expected);
+            }
+        }
+    }
+
+exit:
+    mbedtls_free(output);
+    mbedtls_aes_free(&ctx);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CTR */
 void aes_encrypt_ctr_multipart(int length, int step_size)
 {
     unsigned char key[16];

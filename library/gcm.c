@@ -401,12 +401,9 @@ int mbedtls_gcm_update_ad(mbedtls_gcm_context *ctx,
 /* Increment the counter. */
 static void gcm_incr(unsigned char y[16])
 {
-    size_t i;
-    for (i = 16; i > 12; i--) {
-        if (++y[i - 1] != 0) {
-            break;
-        }
-    }
+    uint32_t x = MBEDTLS_GET_UINT32_BE(y, 12);
+    x++;
+    MBEDTLS_PUT_UINT32_BE(x, y, 12);
 }
 
 /* Calculate and apply the encryption mask. Process use_len bytes of data,

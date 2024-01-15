@@ -1105,7 +1105,8 @@ int main(int argc, char *argv[])
 
             n = mbedtls_dhm_get_len(&dhm);
             mbedtls_dhm_make_public(&dhm, (int) n, buf, n, myrand, NULL);
-            if (mbedtls_mpi_copy(&dhm.MBEDTLS_PRIVATE(GY), &dhm.MBEDTLS_PRIVATE(GX)) != 0) {
+
+            if (mbedtls_dhm_read_public(&dhm, buf, n) != 0) {
                 mbedtls_exit(1);
             }
 

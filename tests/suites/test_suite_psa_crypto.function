@@ -2148,11 +2148,8 @@ void asymmetric_encryption_key_policy(int policy_usage_arg,
                                     NULL, 0,
                                     buffer, buffer_length,
                                     &output_length);
-    if (use_opaque_key) {
-        /* Encryption/decryption is opaque keys is currently not supported. */
-        TEST_EQUAL(status, PSA_ERROR_NOT_SUPPORTED);
-    } else if (policy_alg == exercise_alg &&
-               (policy_usage & PSA_KEY_USAGE_ENCRYPT) != 0) {
+    if (policy_alg == exercise_alg &&
+        (policy_usage & PSA_KEY_USAGE_ENCRYPT) != 0) {
         PSA_ASSERT(status);
     } else {
         TEST_EQUAL(status, PSA_ERROR_NOT_PERMITTED);
@@ -2166,11 +2163,8 @@ void asymmetric_encryption_key_policy(int policy_usage_arg,
                                     NULL, 0,
                                     buffer, buffer_length,
                                     &output_length);
-    if (use_opaque_key) {
-        /* Encryption/decryption is opaque keys is currently not supported. */
-        TEST_EQUAL(status, PSA_ERROR_NOT_SUPPORTED);
-    } else if (policy_alg == exercise_alg &&
-               (policy_usage & PSA_KEY_USAGE_DECRYPT) != 0) {
+    if (policy_alg == exercise_alg &&
+        (policy_usage & PSA_KEY_USAGE_DECRYPT) != 0) {
         TEST_EQUAL(status, PSA_ERROR_INVALID_PADDING);
     } else {
         TEST_EQUAL(status, PSA_ERROR_NOT_PERMITTED);

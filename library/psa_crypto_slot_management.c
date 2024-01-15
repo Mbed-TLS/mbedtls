@@ -199,7 +199,7 @@ psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
         status = psa_key_slot_state_transition(selected_slot, PSA_SLOT_EMPTY,
                                                PSA_SLOT_FILLING);
         if (status != PSA_SUCCESS) {
-            return status;
+            goto error;
         }
 
         *volatile_key_id = PSA_KEY_ID_VOLATILE_MIN +

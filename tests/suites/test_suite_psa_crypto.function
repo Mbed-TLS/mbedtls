@@ -2107,7 +2107,8 @@ void asymmetric_encryption_key_policy(int policy_usage_arg,
                                       int policy_alg,
                                       int key_type,
                                       data_t *key_data,
-                                      int exercise_alg)
+                                      int exercise_alg,
+                                      int use_opaque_key)
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -2123,6 +2124,11 @@ void asymmetric_encryption_key_policy(int policy_usage_arg,
     psa_set_key_usage_flags(&attributes, policy_usage);
     psa_set_key_algorithm(&attributes, policy_alg);
     psa_set_key_type(&attributes, key_type);
+
+    if (use_opaque_key) {
+        psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+                                 PSA_KEY_PERSISTENCE_VOLATILE, TEST_DRIVER_LOCATION));
+    }
 
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
                               &key));
@@ -2142,8 +2148,11 @@ void asymmetric_encryption_key_policy(int policy_usage_arg,
                                     NULL, 0,
                                     buffer, buffer_length,
                                     &output_length);
-    if (policy_alg == exercise_alg &&
-        (policy_usage & PSA_KEY_USAGE_ENCRYPT) != 0) {
+    if (use_opaque_key) {
+        /* Encryption/decryption is opaque keys is currently not supported. */
+        TEST_EQUAL(status, PSA_ERROR_NOT_SUPPORTED);
+    } else if (policy_alg == exercise_alg &&
+               (policy_usage & PSA_KEY_USAGE_ENCRYPT) != 0) {
         PSA_ASSERT(status);
     } else {
         TEST_EQUAL(status, PSA_ERROR_NOT_PERMITTED);
@@ -2157,8 +2166,11 @@ void asymmetric_encryption_key_policy(int policy_usage_arg,
                                     NULL, 0,
                                     buffer, buffer_length,
                                     &output_length);
-    if (policy_alg == exercise_alg &&
-        (policy_usage & PSA_KEY_USAGE_DECRYPT) != 0) {
+    if (use_opaque_key) {
+        /* Encryption/decryption is opaque keys is currently not supported. */
+        TEST_EQUAL(status, PSA_ERROR_NOT_SUPPORTED);
+    } else if (policy_alg == exercise_alg &&
+               (policy_usage & PSA_KEY_USAGE_DECRYPT) != 0) {
         TEST_EQUAL(status, PSA_ERROR_INVALID_PADDING);
     } else {
         TEST_EQUAL(status, PSA_ERROR_NOT_PERMITTED);

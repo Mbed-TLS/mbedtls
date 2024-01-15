@@ -125,7 +125,7 @@ static size_t mbedtls_test_opaque_get_base_size()
  * The argument wrapped_key_buffer_length is filled with the wrapped
  * key_size on success.
  * */
-static psa_status_t mbedtls_test_opaque_wrap_key(
+psa_status_t mbedtls_test_opaque_wrap_key(
     const uint8_t *key,
     size_t key_length,
     uint8_t *wrapped_key_buffer,
@@ -159,7 +159,7 @@ static psa_status_t mbedtls_test_opaque_wrap_key(
  * The argument key_buffer_length is filled with the unwrapped(clear)
  * key_size on success.
  * */
-static psa_status_t mbedtls_test_opaque_unwrap_key(
+psa_status_t mbedtls_test_opaque_unwrap_key(
     const uint8_t *wrapped_key,
     size_t wrapped_key_length,
     uint8_t *key_buffer,

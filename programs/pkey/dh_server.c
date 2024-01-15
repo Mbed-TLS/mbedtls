@@ -29,7 +29,6 @@
 
 #define SERVER_PORT "11999"
 #define PLAINTEXT "==Hello there!=="
-#define MBEDTLS_MD_CAN_SHA256_MAX_SIZE 32
 
 #if !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_DHM_C) ||     \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_NET_C) ||  \
@@ -52,11 +51,11 @@ int main(void)
 
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
-    size_t n, buflen;
+    size_t n, buflen, mdlen;
     mbedtls_net_context listen_fd, client_fd;
 
     unsigned char buf[2048];
-    unsigned char hash[MBEDTLS_MD_CAN_SHA256_MAX_SIZE];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     unsigned char buf2[2];
     const char *pers = "dh_server";
 
@@ -185,6 +184,13 @@ int main(void)
     /*
      * 5. Sign the parameters and send them
      */
+
+    mdlen = mbedtls_md_get_size(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256));
+    if (mdlen == 0) {
+        mbedtls_printf(" failed\n  ! Invalid digest type\n\n");
+        goto exit;
+    }
+
     if ((ret = mbedtls_sha256(buf, n, hash, 0)) != 0) {
         mbedtls_printf(" failed\n  ! mbedtls_sha1 returned %d\n\n", ret);
         goto exit;
@@ -195,7 +201,7 @@ int main(void)
     buf[n + 1] = (unsigned char) (rsa_key_len);
 
     if ((ret = mbedtls_rsa_pkcs1_sign(&rsa, mbedtls_ctr_drbg_random, &ctr_drbg,
-                                      MBEDTLS_MD_SHA256, MBEDTLS_MD_CAN_SHA256_MAX_SIZE,
+                                      MBEDTLS_MD_SHA256, mdlen,
                                       hash, buf + n + 2)) != 0) {
         mbedtls_printf(" failed\n  ! mbedtls_rsa_pkcs1_sign returned %d\n\n", ret);
         goto exit;

@@ -2419,4 +2419,34 @@ int mbedtls_test_tweak_tls13_certificate_msg_vector_len(
     return 0;
 }
 #endif /* MBEDTLS_TEST_HOOKS */
+
+/* Functions for session ticket tests */
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+int mbedtls_test_ticket_write(
+    void *p_ticket, const mbedtls_ssl_session *session,
+    unsigned char *start, const unsigned char *end,
+    size_t *tlen, uint32_t *lifetime)
+{
+    int ret;
+    ((void) p_ticket);
+
+    if ((ret = mbedtls_ssl_session_save(session, start, end - start,
+                                        tlen)) != 0) {
+        return ret;
+    }
+
+    /* Maximum ticket lifetime as defined in RFC 8446 */
+    *lifetime = 7 * 24 * 3600;
+
+    return 0;
+}
+
+int mbedtls_test_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
+                              unsigned char *buf, size_t len)
+{
+    ((void) p_ticket);
+
+    return mbedtls_ssl_session_load(session, buf, len);
+}
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
 #endif /* MBEDTLS_SSL_TLS_C */

@@ -589,6 +589,16 @@ int mbedtls_test_tweak_tls13_certificate_msg_vector_len(
     int *expected_result, mbedtls_ssl_chk_buf_ptr_args *args);
 #endif /* MBEDTLS_TEST_HOOKS */
 
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+int mbedtls_test_ticket_write(
+    void *p_ticket, const mbedtls_ssl_session *session,
+    unsigned char *start, const unsigned char *end,
+    size_t *tlen, uint32_t *ticket_lifetime);
+
+int mbedtls_test_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
+                              unsigned char *buf, size_t len);
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
 #define ECJPAKE_TEST_PWD        "bla"
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

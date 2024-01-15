@@ -1126,7 +1126,7 @@ psa_status_t psa_destroy_key(mbedtls_svc_key_id_t key)
 
 exit:
     status = psa_wipe_key_slot(slot);
-    /* Prioritize an error from wiping over a storage error */
+    /* Prioritize CORRUPTION_DETECTED from wiping over a storage error */
     if (status != PSA_SUCCESS) {
         overall_status = status;
     }

@@ -338,6 +338,8 @@ mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t family,
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
+#if defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
+
 #if defined(MBEDTLS_ASN1_WRITE_C)
 /**
  * \brief  Convert a single raw coordinate to DER ASN.1 format. The output der
@@ -569,3 +571,5 @@ int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
     return 0;
 }
 #endif /* MBEDTLS_ASN1_PARSE_C */
+
+#endif /* MBEDTLS_PSA_UTIL_HAVE_ECDSA */

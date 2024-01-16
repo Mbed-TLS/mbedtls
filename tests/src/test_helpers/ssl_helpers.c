@@ -841,6 +841,23 @@ int mbedtls_test_ssl_endpoint_init(
     }
 #endif
 
+#if defined(MBEDTLS_DEBUG_C)
+#if defined(MBEDTLS_SSL_SRV_C)
+    if (endpoint_type == MBEDTLS_SSL_IS_SERVER &&
+        options->srv_log_fun != NULL) {
+        mbedtls_ssl_conf_dbg(&(ep->conf), options->srv_log_fun,
+                             options->srv_log_obj);
+    }
+#endif
+#if defined(MBEDTLS_SSL_CLI_C)
+    if (endpoint_type == MBEDTLS_SSL_IS_CLIENT &&
+        options->cli_log_fun != NULL) {
+        mbedtls_ssl_conf_dbg(&(ep->conf), options->cli_log_fun,
+                             options->cli_log_obj);
+    }
+#endif
+#endif /* MBEDTLS_DEBUG_C */
+
     ret = mbedtls_test_ssl_endpoint_certificate_init(ep, options->pk_alg,
                                                      options->opaque_alg,
                                                      options->opaque_alg2,
@@ -1977,6 +1994,12 @@ void mbedtls_test_ssl_perform_handshake(
     mbedtls_test_message_socket_init(&server_context);
     mbedtls_test_message_socket_init(&client_context);
 
+#if defined(MBEDTLS_DEBUG_C)
+    if (options->cli_log_fun || options->srv_log_fun) {
+        mbedtls_debug_set_threshold(4);
+    }
+#endif
+
     /* Client side */
     if (options->dtls != 0) {
         TEST_ASSERT(mbedtls_test_ssl_endpoint_init(&client,
@@ -1999,14 +2022,6 @@ void mbedtls_test_ssl_perform_handshake(
     if (strlen(options->cipher) > 0) {
         set_ciphersuite(&client.conf, options->cipher, forced_ciphersuite);
     }
-
-#if defined(MBEDTLS_DEBUG_C)
-    if (options->cli_log_fun) {
-        mbedtls_debug_set_threshold(4);
-        mbedtls_ssl_conf_dbg(&client.conf, options->cli_log_fun,
-                             options->cli_log_obj);
-    }
-#endif
 
     /* Server side */
     if (options->dtls != 0) {
@@ -2071,14 +2086,6 @@ void mbedtls_test_ssl_perform_handshake(
                                               options->legacy_renegotiation);
     }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
-
-#if defined(MBEDTLS_DEBUG_C)
-    if (options->srv_log_fun) {
-        mbedtls_debug_set_threshold(4);
-        mbedtls_ssl_conf_dbg(&server.conf, options->srv_log_fun,
-                             options->srv_log_obj);
-    }
-#endif
 
     TEST_ASSERT(mbedtls_test_mock_socket_connect(&(client.socket),
                                                  &(server.socket),

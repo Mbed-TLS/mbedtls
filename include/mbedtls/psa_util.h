@@ -155,6 +155,8 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
+#if defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
+
 #if defined(MBEDTLS_ASN1_WRITE_C)
 /** Convert an ECDSA signature from raw format (used by PSA APIs) to DER ASN.1
  * format (used by legacy crypto APIs).
@@ -192,6 +194,8 @@ int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
                              unsigned char *raw, size_t raw_size, size_t *raw_len,
                              size_t bits);
 #endif /* MBEDTLS_ASN1_PARSE_C */
+
+#endif /* MBEDTLS_PSA_UTIL_HAVE_ECDSA */
 
 /**@}*/
 

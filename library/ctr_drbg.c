@@ -665,7 +665,7 @@ int mbedtls_ctr_drbg_random_with_add(void *p_rng,
         size_t tmp_len;
 
         status = psa_cipher_update(&ctx->psa_ctx.operation, ctx->counter, sizeof(ctx->counter),
-                                   tmp, MBEDTLS_CTR_DRBG_BLOCKSIZE, &tmp_len);
+                                   locals.tmp, MBEDTLS_CTR_DRBG_BLOCKSIZE, &tmp_len);
         if (status != PSA_SUCCESS) {
             ret = psa_generic_status_to_mbedtls(status);
             goto exit;

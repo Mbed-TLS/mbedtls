@@ -159,7 +159,7 @@ void aes_encrypt_ctr_multipart(int length, int step_size)
     mbedtls_test_rnd_std_rand(NULL, key, sizeof(key));
 
     // random input
-    mbedtls_test_rnd_std_rand(NULL, input, sizeof(input));
+    mbedtls_test_rnd_std_rand(NULL, input, length);
 
 
     // complete encryption in one call

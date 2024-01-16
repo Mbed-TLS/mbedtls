@@ -1,0 +1,8 @@
+Security
+   * Fix a failure to validate input when writing x509 extensions lengths which
+     could result in an integer overflow, causing a zero-length buffer to be
+     allocated to hold the extension. The extension would then be copied into
+     the buffer, causing a heap buffer overflow.
+
+
+

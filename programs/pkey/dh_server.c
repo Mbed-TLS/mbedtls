@@ -51,7 +51,8 @@ int main(void)
 
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
-    size_t n, buflen, mdlen;
+    unsigned int mdlen;
+    size_t n, buflen;
     mbedtls_net_context listen_fd, client_fd;
 
     unsigned char buf[2048];
@@ -185,7 +186,7 @@ int main(void)
      * 5. Sign the parameters and send them
      */
 
-    mdlen = mbedtls_md_get_size(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256));
+    mdlen = (unsigned int) mbedtls_md_get_size(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256));
     if (mdlen == 0) {
         mbedtls_printf(" failed\n  ! Invalid digest type\n\n");
         goto exit;

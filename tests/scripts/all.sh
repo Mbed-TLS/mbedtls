@@ -1060,10 +1060,9 @@ component_check_test_dependencies () {
     # the test code and that's probably the most convenient way of achieving
     # the test's goal.
     #
-    # Both MBEDTLS_ASN1_[PARSE|WRITE]_C are used in ECDSA conversion functions
+    # MBEDTLS_ASN1_WRITE_C is also used in ECDSA conversion functions
     # (in psa_util module) and, therefore, also in test_suite_psa_crypto_util.
-    # There is no PSA equivalent for these ASN1 symbols in PSA.
-    echo "MBEDTLS_ASN1_PARSE_C" >> $expected
+    # There is no PSA equivalent for this ASN1 symbols in PSA.
     echo "MBEDTLS_ASN1_WRITE_C" >> $expected
     # No PSA equivalent - we should probably have one in the future.
     echo "MBEDTLS_ECP_RESTARTABLE" >> $expected

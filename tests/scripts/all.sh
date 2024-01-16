@@ -214,7 +214,7 @@ pre_initialize_variables () {
     # defined in this script whose name starts with "component_".
     ALL_COMPONENTS=$(compgen -A function component_ | sed 's/component_//')
 
-    # Delay determinig SUPPORTED_COMPONENTS until the command line options have a chance to override
+    # Delay determining SUPPORTED_COMPONENTS until the command line options have a chance to override
     # the commands set by the environment
 }
 

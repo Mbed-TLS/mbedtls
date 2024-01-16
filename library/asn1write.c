@@ -7,7 +7,8 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_ASN1_WRITE_C) || defined(MBEDTLS_X509_USE_C)
+#if defined(MBEDTLS_ASN1_WRITE_C) || defined(MBEDTLS_X509_USE_C) || \
+    defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
 
 #include "mbedtls/asn1write.h"
 #include "mbedtls/error.h"
@@ -62,7 +63,7 @@ int mbedtls_asn1_write_tag(unsigned char **p, const unsigned char *start, unsign
 
     return 1;
 }
-#endif /* MBEDTLS_ASN1_WRITE_C || MBEDTLS_X509_USE_C */
+#endif /* MBEDTLS_ASN1_WRITE_C || MBEDTLS_X509_USE_C || MBEDTLS_PSA_UTIL_HAVE_ECDSA */
 
 #if defined(MBEDTLS_ASN1_WRITE_C)
 static int mbedtls_asn1_write_len_and_tag(unsigned char **p,

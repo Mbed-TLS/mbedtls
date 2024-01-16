@@ -340,7 +340,6 @@ mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t family,
 
 #if defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
 
-#if defined(MBEDTLS_ASN1_WRITE_C)
 /**
  * \brief  Convert a single raw coordinate to DER ASN.1 format. The output der
  *         buffer is filled backward (i.e. starting from its end).
@@ -451,9 +450,7 @@ int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
 
     return 0;
 }
-#endif /* MBEDTLS_ASN1_WRITE_C */
 
-#if defined(MBEDTLS_ASN1_PARSE_C)
 /**
  * \brief Convert a single integer from ASN.1 DER format to raw.
  *
@@ -570,6 +567,5 @@ int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
 
     return 0;
 }
-#endif /* MBEDTLS_ASN1_PARSE_C */
 
 #endif /* MBEDTLS_PSA_UTIL_HAVE_ECDSA */

@@ -184,7 +184,6 @@ static inline mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa
 
 #if defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
 
-#if defined(MBEDTLS_ASN1_WRITE_C)
 /** Convert an ECDSA signature from raw format (used by PSA APIs) to DER ASN.1
  * format (used by legacy crypto APIs).
  *
@@ -201,9 +200,7 @@ static inline mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa
 int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
                              unsigned char *der, size_t der_size, size_t *der_len,
                              size_t bits);
-#endif /* MBEDTLS_ASN1_WRITE_C */
 
-#if defined(MBEDTLS_ASN1_PARSE_C)
 /** Convert an ECDSA signature from DER ASN.1 format (used by legacy crypto
  * APIs) to raw format (used by PSA APIs).
  *
@@ -220,7 +217,6 @@ int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
 int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
                              unsigned char *raw, size_t raw_size, size_t *raw_len,
                              size_t bits);
-#endif /* MBEDTLS_ASN1_PARSE_C */
 
 #endif /* MBEDTLS_PSA_UTIL_HAVE_ECDSA */
 

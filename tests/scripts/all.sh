@@ -124,6 +124,25 @@ pre_check_environment () {
 }
 
 pre_initialize_variables () {
+    special_options="--list-components|--list-all-components|-h|--help"
+    if [[ ! "$@" =~ $special_options ]]; then
+        # skip wrappers for "special options" which don't actually run any tests
+
+        # Pick up "quiet" wrappers for make and cmake, which don't output very much
+        # unless there is an error. This reduces logging overhead in the CI.
+        #
+        # Note that the cmake wrapper breaks unless we use an absolute path here.
+        export PATH=${PWD}/tests/scripts/quiet:$PATH
+        if [[ ! -x ${PWD}/tests/scripts/quiet/make ]]; then
+            echo "can't find quiet/make"
+            exit 1
+        fi
+        if [[ ! -x ${PWD}/tests/scripts/quiet/cmake ]]; then
+            echo "can't find quiet/cmake"
+            exit 1
+        fi
+    fi
+
     CONFIG_H='include/mbedtls/config.h'
     CRYPTO_CONFIG_H='include/psa/crypto_config.h'
 
@@ -3730,7 +3749,7 @@ run_component () {
 
 # Preliminary setup
 pre_check_environment
-pre_initialize_variables
+pre_initialize_variables "$@"
 pre_parse_command_line "$@"
 
 pre_check_git

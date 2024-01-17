@@ -94,7 +94,9 @@ void mbedtls_test_memory_unpoison(const unsigned char *ptr, size_t size);
 #define MBEDTLS_TEST_MEMORY_UNPOISON(ptr, size)    \
     do { \
         mbedtls_test_memory_unpoison(ptr, size); \
-        mbedtls_test_memory_poisoning_count--; \
+        if (mbedtls_test_memory_poisoning_count != 0) { \
+            mbedtls_test_memory_poisoning_count--; \
+        } \
     } while (0)
 
 #else /* MBEDTLS_TEST_MEMORY_CAN_POISON */

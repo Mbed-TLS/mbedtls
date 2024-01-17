@@ -255,7 +255,7 @@ To allow the full flexibility around policies, and make the creation of a persis
 
 This is close to the existing function `mbedtls_pk_wrap_as_opaque`, but does not bake in the implementation-specific consideration that a PSA key has exactly two algorithms, and also allows the caller to benefit from default for the policy in more cases.
 
-[ACTION] Implement `mbedtls_pk_get_psa_attributes` and `mbedtls_pk_import_into_psa` as described below. These functions are available whenever `MBEDTLS_PK_C` and `MBEDTLS_PSA_CRYPTO_CLIENT` are both defined. Deprecate `mbedtls_pk_wrap_as_opaque`.
+[ACTION] [#8708](https://github.com/Mbed-TLS/mbedtls/issues/8708) Implement `mbedtls_pk_get_psa_attributes` and `mbedtls_pk_import_into_psa` as described below. These functions are available whenever `MBEDTLS_PK_C` and `MBEDTLS_PSA_CRYPTO_CLIENT` are both defined. Deprecate `mbedtls_pk_wrap_as_opaque`.
 
 ```
 int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
@@ -280,7 +280,7 @@ int mbedtls_pk_import_into_psa(const mbedtls_pk_context *pk,
 
 Based on the [gap analysis](#using-a-psa-key-as-a-pk-context):
 
-[ACTION] Implement `mbedtls_pk_copy_from_psa` as described below.
+[ACTION] [#8709](https://github.com/Mbed-TLS/mbedtls/issues/8709) Implement `mbedtls_pk_copy_from_psa` as described below.
 
 ```
 int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id,
@@ -293,7 +293,7 @@ int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id,
 * The resulting pk object has a transparent type, not `MBEDTLS_PK_OPAQUE`. That's `MBEDTLS_PK_RSA` for RSA keys (since pk objects don't use `MBEDTLS_PK_RSASSA_PSS` as a type), and `MBEDTLS_PK_ECKEY` for ECC keys (following the example of pkparse).
 * Once this function returns, the pk object is completely independent of the PSA key.
 * Calling `mbedtls_pk_sign`, `mbedtls_pk_verify`, `mbedtls_pk_encrypt`, `mbedtls_pk_decrypt` on the resulting pk context will perform an algorithm that is compatible with the PSA key's primary algorithm policy (`psa_get_key_algorithm`), but with no restriction on the hash (as if the policy had `PSA_ALG_ANY_HASH` instead of a specific hash, and with `PSA_ALG_RSA_PKCS1V15_SIGN_RAW` merged with `PSA_ALG_RSA_PKCS1V15_SIGN(hash_alg)`). For ECDSA, the choice of deterministic vs randomized will be based on the compile-time setting `MBEDTLS_ECDSA_DETERMINISTIC`, like `mbedtls_pk_sign` today.
-    * The primary intent of this requirement is to allow an application to switch to PSA for creating the key material (for example to benefit from a PSA accelerator driver, or to start using a secure element), without modifying the code that consumes the key. For RSA keys, the PSA primary algorithm policy is how one conveys the same information as RSA key padding information in the legacy API. [ACTION] Convey this in the documentation.
+    * The primary intent of this requirement is to allow an application to switch to PSA for creating the key material (for example to benefit from a PSA accelerator driver, or to start using a secure element), without modifying the code that consumes the key. For RSA keys, the PSA primary algorithm policy is how one conveys the same information as RSA key padding information in the legacy API. Convey this in the documentation.
     * [OPEN] How do we distinguish between signature-only and encryption-only RSA keys? Do we just allow both (e.g. a PSS key gets generalized into a PSS/OAEP key)?
     * [OPEN] What about `mbedtls_pk_sign_ext` and  `mbedtls_pk_verify_ext`?
 
@@ -303,9 +303,9 @@ int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id,
 
 Based on the [gap analysis](#using-a-psa-key-as-a-pk-context):
 
-[ACTION] Clarify the documentation of `mbedtls_pk_setup_opaque` regarding which algorithms the resulting key will perform with `mbedtls_pk_sign`, `mbedtls_pk_verify`, `mbedtls_pk_encrypt`, `mbedtls_pk_decrypt`.
+[ACTION] [#8712](https://github.com/Mbed-TLS/mbedtls/issues/8712) Clarify the documentation of `mbedtls_pk_setup_opaque` regarding which algorithms the resulting key will perform with `mbedtls_pk_sign`, `mbedtls_pk_verify`, `mbedtls_pk_encrypt`, `mbedtls_pk_decrypt`.
 
-[ACTION] Provide `mbedtls_pk_setup_opaque` whenever `MBEDTLS_PSA_CRYPTO_CLIENT` is enabled, not just when `MBEDTLS_USE_PSA_CRYPTO` is enabled. This is nice-to-have, not critical. Update `use-psa-crypto.md` accordingly.
+[ACTION] [#8710](https://github.com/Mbed-TLS/mbedtls/issues/8710) Provide `mbedtls_pk_setup_opaque` whenever `MBEDTLS_PSA_CRYPTO_CLIENT` is enabled, not just when `MBEDTLS_USE_PSA_CRYPTO` is enabled. This is nice-to-have, not critical. Update `use-psa-crypto.md` accordingly.
 
 [OPEN] What about `mbedtls_pk_sign_ext` and  `mbedtls_pk_verify_ext`?
 

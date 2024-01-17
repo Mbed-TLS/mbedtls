@@ -177,6 +177,9 @@ string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 
 include(CheckCCompilerFlag)
 
+set(CMAKE_C_EXTENSIONS OFF)
+set(CMAKE_C_STANDARD 99)
+
 if(CMAKE_COMPILER_IS_GNU)
     # some warnings we want are not available with old GCC versions
     # note: starting with CMake 2.8 we could use CMAKE_C_COMPILER_VERSION
@@ -294,6 +297,8 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library)
+    # Request C11, needed for memory poisoning tests
+    set_target_properties(mbedtls_test PROPERTIES C_STANDARD 11)
 
     file(GLOB MBEDTLS_TEST_HELPER_FILES
          ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/test_helpers/*.c)

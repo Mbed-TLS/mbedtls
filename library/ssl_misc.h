@@ -45,6 +45,7 @@
 
 #include "mbedtls/pk.h"
 #include "ssl_ciphersuites_internal.h"
+#include "x509_internal.h"
 #include "pk_internal.h"
 #include "common.h"
 

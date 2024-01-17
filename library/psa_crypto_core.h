@@ -190,7 +190,10 @@ static inline psa_key_slot_number_t psa_key_slot_get_slot_number(
  *         The slot has been successfully wiped.
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  *         The slot's state was PSA_SLOT_FULL or PSA_SLOT_PENDING_DELETION, and
- *         the amount of registered readers was not equal to 1.
+ *         the amount of registered readers was not equal to 1. Or,
+ *         the slot's state was PSA_SLOT_EMPTY. Or,
+ *         the slot's state was PSA_SLOT_FILLING, and the amount
+ *         of registered readers was not equal to 0.
  */
 psa_status_t psa_wipe_key_slot(psa_key_slot_t *slot);
 

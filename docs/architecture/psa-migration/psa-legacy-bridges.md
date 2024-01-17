@@ -163,7 +163,7 @@ There is a function `mbedtls_pk_setup_opaque` that mostly does this. However, it
 
 * It creates a PK key of type `MBEDTLS_PK_OPAQUE` that wraps the PSA key. This is good enough in some scenarios, but not others. For example, it's ok for pkwrite, because we've upgraded the pkwrite code to handle `MBEDTLS_PK_OPAQUE`. That doesn't help users of third-party libraries that haven't yet been upgraded.
 * It ties the lifetime of the PK object to the PSA key, which is error-prone: if the PSA key is destroyed but the PK object isn't, there is no way to reliably detect any subsequent misuse of the PK object.
-* It is only available under `MBEDTLS_USE_PSA_CRYPTO`. (Not a priority concern: we generally expect people to activate `MBEDTLS_USE_PSA_CRYPTO` at an early stage of their migration to PSA.)
+* It is only available under `MBEDTLS_USE_PSA_CRYPTO`. This is not a priority concern, since we generally expect people to activate `MBEDTLS_USE_PSA_CRYPTO` at an early stage of their migration to PSA. However, this function is useful to use specific PSA keys in X.509/TLS regardless of whether X.509/TLS use the PSA API for all cryptographic operations, so this is a wart in the current API.
 
 It therefore appears that we need two ways to “convert” a PSA key to PK:
 
@@ -304,6 +304,8 @@ int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id,
 Based on the [gap analysis](#using-a-psa-key-as-a-pk-context):
 
 [ACTION] Clarify the documentation of `mbedtls_pk_setup_opaque` regarding which algorithms the resulting key will perform with `mbedtls_pk_sign`, `mbedtls_pk_verify`, `mbedtls_pk_encrypt`, `mbedtls_pk_decrypt`.
+
+[ACTION] Provide `mbedtls_pk_setup_opaque` whenever `MBEDTLS_PSA_CRYPTO_CLIENT` is enabled, not just when `MBEDTLS_USE_PSA_CRYPTO` is enabled. This is nice-to-have, not critical. Update `use-psa-crypto.md` accordingly.
 
 [OPEN] What about `mbedtls_pk_sign_ext` and  `mbedtls_pk_verify_ext`?
 

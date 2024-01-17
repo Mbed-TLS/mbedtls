@@ -81,7 +81,11 @@ Based on “[Where mixing happens](#where-mixing-happens)”, we focus the gap a
 
 #### Need for error code conversion
 
-[OPEN] Do we need public functions to convert between `MBEDTLS_ERR_xxx` error codes and `PSA_ERROR_xxx` error codes? We have such functions for internal use.
+Do we need public functions to convert between `MBEDTLS_ERR_xxx` error codes and `PSA_ERROR_xxx` error codes? We have such functions for internal use.
+
+Mbed TLS needs these conversions because it has many functions that expose one API (legacy/API) but are implemented on top of the other API. Most applications would convert legacy and PSA error code to their own error codes, and converting between `MBEDTLS_ERR_xxx` error codes and `PSA_ERROR_xxx` is not particularly helpful for that. Application code might need such conversion functions when implementing an X.509 or TLS callback (returning `MBEDTLS_ERR_xxx`) on top of PSA functions, but this is a very limited use case.
+
+Conclusion: no need for public error code conversion functions.
 
 ### Hash gap analysis
 
@@ -172,7 +176,7 @@ It therefore appears that we need two ways to “convert” a PSA key to PK:
 
 Gap: a way to copy a PSA key into a PK context. This can only be expected to work if the PSA key is exportable.
 
-[OPEN] Is `mbedtls_pk_setup_opaque` ok or do we want to tweak it?
+After some discussion, have not identified anything we want to change in the behavior of `mbedtls_pk_setup_opaque`. We only want to generalize it to non-`MBEDTLS_USE_PSA_CRYPTO` and to document it better.
 
 #### Signature formats
 
@@ -238,6 +242,7 @@ Based on the [gap analysis](#asymmetric-cryptography-metadata):
 * No further work is needed about ECC specifically. We have just added adequate functions.
 * No further work is needed about DHM specifically. There is no good way to translate the relevant information.
 * [OPEN] Is there a decent way to convert between `mbedtls_pk_type_t` plus extra information, and `psa_key_type_t` plus policy information? The two APIs are different in crucial ways, with different splits between key type, policy information and operation algorithm.
+  Thinking so far: there isn't really a nice way to present this conversion. For a specific key, `mbedtls_pk_get_psa_attributes` and `mbedtls_pk_copy_from_psa` do the job.
 
 #### API to create a PSA key from a PK context
 
@@ -292,12 +297,10 @@ int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id,
 * It is an error if the key is not exportable.
 * The resulting pk object has a transparent type, not `MBEDTLS_PK_OPAQUE`. That's `MBEDTLS_PK_RSA` for RSA keys (since pk objects don't use `MBEDTLS_PK_RSASSA_PSS` as a type), and `MBEDTLS_PK_ECKEY` for ECC keys (following the example of pkparse).
 * Once this function returns, the pk object is completely independent of the PSA key.
-* Calling `mbedtls_pk_sign`, `mbedtls_pk_verify`, `mbedtls_pk_encrypt`, `mbedtls_pk_decrypt` on the resulting pk context will perform an algorithm that is compatible with the PSA key's primary algorithm policy (`psa_get_key_algorithm`), but with no restriction on the hash (as if the policy had `PSA_ALG_ANY_HASH` instead of a specific hash, and with `PSA_ALG_RSA_PKCS1V15_SIGN_RAW` merged with `PSA_ALG_RSA_PKCS1V15_SIGN(hash_alg)`). For ECDSA, the choice of deterministic vs randomized will be based on the compile-time setting `MBEDTLS_ECDSA_DETERMINISTIC`, like `mbedtls_pk_sign` today.
+* Calling `mbedtls_pk_sign`, `mbedtls_pk_verify`, `mbedtls_pk_encrypt`, `mbedtls_pk_decrypt` on the resulting pk context will perform an algorithm that is compatible with the PSA key's primary algorithm policy (`psa_get_key_algorithm`) if that is a matching operation type (sign/verify, encrypt/decrypt), but with no restriction on the hash (as if the policy had `PSA_ALG_ANY_HASH` instead of a specific hash, and with `PSA_ALG_RSA_PKCS1V15_SIGN_RAW` merged with `PSA_ALG_RSA_PKCS1V15_SIGN(hash_alg)`).
+    * For ECDSA, the choice of deterministic vs randomized will be based on the compile-time setting `MBEDTLS_ECDSA_DETERMINISTIC`, like `mbedtls_pk_sign` today.
+    * For an RSA key, the output key will allow both encrypt/decrypt and sign/verify regardless of the original key's policy. The original key's policy determines the output key's padding mode.
     * The primary intent of this requirement is to allow an application to switch to PSA for creating the key material (for example to benefit from a PSA accelerator driver, or to start using a secure element), without modifying the code that consumes the key. For RSA keys, the PSA primary algorithm policy is how one conveys the same information as RSA key padding information in the legacy API. Convey this in the documentation.
-    * [OPEN] How do we distinguish between signature-only and encryption-only RSA keys? Do we just allow both (e.g. a PSS key gets generalized into a PSS/OAEP key)?
-    * [OPEN] What about `mbedtls_pk_sign_ext` and  `mbedtls_pk_verify_ext`?
-
-[OPEN] Should there be a way to use a different algorithm? This can be resolved by `psa_copy_key` on the input to tweak the policy if needed.
 
 #### API to create a PK object that wraps a PSA key
 

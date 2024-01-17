@@ -7,6 +7,9 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
+#ifndef MBEDTLS_CTR_H
+#define MBEDTLS_CTR_H
+
 #include "common.h"
 
 /**
@@ -28,3 +31,5 @@ static inline void mbedtls_ctr_increment_counter(uint8_t n[16])
         }
     }
 }
+
+#endif /* MBEDTLS_CTR_H */

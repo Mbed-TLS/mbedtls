@@ -907,6 +907,18 @@ helper_get_psa_curve_list () {
     echo "$loc_list"
 }
 
+# Helper returning the list of supported DH groups from CRYPTO_CONFIG_H,
+# without the "PSA_WANT_" prefix. This becomes handy for accelerating DH groups
+# in the following helpers.
+helper_get_psa_dh_group_list () {
+    loc_list=""
+    for item in $(sed -n 's/^#define PSA_WANT_\(DH_RFC7919_[0-9]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
+        loc_list="$loc_list $item"
+    done
+
+    echo "$loc_list"
+}
+
 # Get the list of uncommented PSA_WANT_KEY_TYPE_xxx_ from CRYPTO_CONFIG_H. This
 # is useful to easily get a list of key type symbols to accelerate.
 # The function accepts a single argument which is the key type: ECC, DH, RSA.
@@ -2573,7 +2585,8 @@ component_test_psa_crypto_config_accel_ffdh () {
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_FFDH \
-                    $(helper_get_psa_key_type_list "DH")"
+                    $(helper_get_psa_key_type_list "DH") \
+                    $(helper_get_psa_dh_group_list)"
 
     # Configure
     # ---------
@@ -3105,6 +3118,7 @@ config_psa_crypto_config_accel_ecc_ffdh_no_bignum() {
         # PSA sides, and also disable the key exchanges that depend on DHM.
         scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_FFDH
         scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_KEY_TYPE_DH_[0-9A-Z_a-z]*"
+        scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_DH_RFC7919_[0-9]*"
         scripts/config.py unset MBEDTLS_DHM_C
         scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
         scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
@@ -3159,7 +3173,8 @@ common_test_psa_crypto_config_accel_ecc_ffdh_no_bignum () {
     if [ "$test_target" = "ECC_DH" ]; then
         loc_accel_list="$loc_accel_list \
                         ALG_FFDH \
-                        $(helper_get_psa_key_type_list "DH")"
+                        $(helper_get_psa_key_type_list "DH") \
+                        $(helper_get_psa_dh_group_list)"
     fi
 
     # Configure

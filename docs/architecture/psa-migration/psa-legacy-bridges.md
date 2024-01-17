@@ -126,7 +126,7 @@ Since there is no algorithm that can be used with multiple types, and PSA keys h
 
   This means converting between an `mbedtls_ecp_group_id` and a pair of `{psa_ecc_family_t; size_t}`.
 
-  This is fulfilled by `mbedtls_ecc_group_to_psa` and `mbedtls_ecc_group_of_psa`, which were introduced into the public API after Mbed TLS 3.5.
+  This is fulfilled by `mbedtls_ecc_group_to_psa` and `mbedtls_ecc_group_from_psa`, which were introduced into the public API between Mbed TLS 3.5 and 3.6 ([#8664](https://github.com/Mbed-TLS/mbedtls/pull/8664)).
 
 * Selecting A **DHM group**.
 

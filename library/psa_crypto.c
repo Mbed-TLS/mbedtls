@@ -129,12 +129,30 @@ int psa_can_do_cipher(psa_key_type_t key_type, psa_algorithm_t cipher_alg)
     defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE)
 static int psa_is_dh_key_size_valid(size_t bits)
 {
-    if (bits != 2048 && bits != 3072 && bits != 4096 &&
-        bits != 6144 && bits != 8192) {
-        return 0;
+    switch (bits) {
+#if defined(PSA_WANT_DH_RFC7919_2048)
+        case 2048:
+            return 1;
+#endif /* PSA_WANT_DH_RFC7919_2048 */
+#if defined(PSA_WANT_DH_RFC7919_3072)
+        case 3072:
+            return 1;
+#endif /* PSA_WANT_DH_RFC7919_3072 */
+#if defined(PSA_WANT_DH_RFC7919_4096)
+        case 4096:
+            return 1;
+#endif /* PSA_WANT_DH_RFC7919_4096 */
+#if defined(PSA_WANT_DH_RFC7919_6144)
+        case 6144:
+            return 1;
+#endif /* PSA_WANT_DH_RFC7919_6144 */
+#if defined(PSA_WANT_DH_RFC7919_8192)
+        case 8192:
+            return 1;
+#endif /* PSA_WANT_DH_RFC7919_8192 */
+        default:
+            return 0;
     }
-
-    return 1;
 }
 #endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_IMPORT ||
           MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY ||
@@ -577,7 +595,7 @@ psa_status_t psa_import_key_into_slot(
         defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY)
         if (PSA_KEY_TYPE_IS_DH(type)) {
             if (psa_is_dh_key_size_valid(PSA_BYTES_TO_BITS(data_length)) == 0) {
-                return PSA_ERROR_INVALID_ARGUMENT;
+                return PSA_ERROR_NOT_SUPPORTED;
             }
             return mbedtls_psa_ffdh_import_key(attributes,
                                                data, data_length,

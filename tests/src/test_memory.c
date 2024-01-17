@@ -20,7 +20,7 @@
 
 #if defined(MBEDTLS_TEST_MEMORY_CAN_POISON)
 
-_Thread_local int mbedtls_test_memory_poisoning_enabled = 0;
+_Thread_local unsigned int mbedtls_test_memory_poisoning_count = 0;
 
 static void align_for_asan(const unsigned char **p_ptr, size_t *p_size)
 {
@@ -39,7 +39,7 @@ static void align_for_asan(const unsigned char **p_ptr, size_t *p_size)
 
 void mbedtls_test_memory_poison(const unsigned char *ptr, size_t size)
 {
-    if (!mbedtls_test_memory_poisoning_enabled) {
+    if (mbedtls_test_memory_poisoning_count == 0) {
         return;
     }
     if (size == 0) {

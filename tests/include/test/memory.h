@@ -69,7 +69,7 @@
  *  unset in the test wrappers so that calls to PSA functions from the library
  *  do not poison memory.
  */
-extern _Thread_local int mbedtls_test_memory_poisoning_enabled;
+extern _Thread_local unsigned int mbedtls_test_memory_poisoning_count;
 
 /** Poison a memory area so that any attempt to read or write from it will
  * cause a runtime failure.
@@ -79,7 +79,7 @@ extern _Thread_local int mbedtls_test_memory_poisoning_enabled;
 void mbedtls_test_memory_poison(const unsigned char *ptr, size_t size);
 #define MBEDTLS_TEST_MEMORY_POISON(ptr, size)    \
     do { \
-        mbedtls_test_memory_poisoning_enabled = 1; \
+        mbedtls_test_memory_poisoning_count++; \
         mbedtls_test_memory_poison(ptr, size); \
     } while (0)
 
@@ -94,7 +94,7 @@ void mbedtls_test_memory_unpoison(const unsigned char *ptr, size_t size);
 #define MBEDTLS_TEST_MEMORY_UNPOISON(ptr, size)    \
     do { \
         mbedtls_test_memory_unpoison(ptr, size); \
-        mbedtls_test_memory_poisoning_enabled = 0; \
+        mbedtls_test_memory_poisoning_count--; \
     } while (0)
 
 #else /* MBEDTLS_TEST_MEMORY_CAN_POISON */

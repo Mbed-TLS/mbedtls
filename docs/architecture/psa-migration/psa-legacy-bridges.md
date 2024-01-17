@@ -264,6 +264,7 @@ This is close to the existing function `mbedtls_pk_wrap_as_opaque`, but does not
 
 ```
 int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
+                                  psa_key_usage_flags_t usage,
                                   psa_key_attributes_t *attributes);
 int mbedtls_pk_import_into_psa(const mbedtls_pk_context *pk,
                                const psa_key_attributes_t *attributes,
@@ -271,11 +272,21 @@ int mbedtls_pk_import_into_psa(const mbedtls_pk_context *pk,
 ```
 
 * `mbedtls_pk_get_psa_attributes` does not change the id/lifetime fields of the attributes (which indicate a volatile key by default).
+    * [OPEN] Or should it reset them to 0? Resetting is more convenient for the case where the pk key is a `MBEDTLS_PK_OPAQUE`. But that's an uncommon use case. It's probably less surprising if this function leaves the lifetime-related alone, since its job is to set the type-related and policy-related attributes.
 * `mbedtls_pk_get_psa_attributes` sets the type and size based on what's in the pk context.
-    * The key type is a key pair if the context contains a private key, and a public key if the context only contains a public key.
-* `mbedtls_pk_get_psa_attributes` sets all the potentially applicable usage flags: `EXPORT`, `COPY`; `VERIFY_HASH | VERIFY_MESSAGE` or `ENCRYPT` as applicable for both public keys and key pairs; `SIGN` or `DECRYPT` as applicable for a key pair.
-* [OPEN] What is the default algorithm for `mbedtls_pk_get_psa_attributes`? Suggestion: assume signature by default. For RSA, either `PSA_RSA_PKCS1_V15_SIGN(PSA_ALG_ANY_HASH)` or `PSA_ALG_RSA_PSS(hash_alg)` depending on the RSA context's padding mode. For ECC, `PSA_ALG_DETERMINISTIC_ECDSA` if `MBEDTLS_ECDSA_DETERMINISTIC` is enabled and `PSA_ALG_ECDSA` otherwise.
-* [OPEN] Or does `mbedtls_pk_get_psa_attributes` need an extra argument that conveys some kind of policy for RSA keys and, independently, some kind of policy for ECC keys?
+    * The key type is a key pair if the context contains a private key and the indicated usage is a private-key usage. The key type is a public key if the context only contains a public key, in which case a private-key usage is an error.
+* `mbedtls_pk_get_psa_attributes` sets the usage flags based on the `usage` parameter. It extends the usage to other usage that is possible:
+    * `EXPORT` and `COPY` are always set.
+    * If `SIGN_{HASH,MESSAGE}` is set then so is `VERIFY_{HASH,MESSAGE}`.
+    * If `DECRYPT` is set then so is `ENCRYPT`.
+    * It is an error if `usage` has more than one flag set, or has a usage that is incompatible with the key type.
+* `mbedtls_pk_get_psa_attributes` sets the algorithm usage policy based on information in the key object and on `usage`.
+    * For an RSA key with the `MBEDTLS_RSA_PKCS_V15` padding mode, the algorithm policy is `PSA_ALG_RSA_PKCS1V15_SIGN(PSA_ALG_ANY_HASH)` for a sign/verify usage, and `PSA_ALG_RSA_PKCS1V15_CRYPT` for an encrypt/decrypt usage.
+    * For an RSA key with the `MBEDTLS_RSA_PKCS_V15` padding mode, the algorithm policy is `PSA_ALG_RSA_PSS_ANY_SALT(PSA_ALG_ANY_HASH)` for a sign/verify usage, and `PSA_ALG_RSA_OAEP(hash)` for an encrypt/decrypt usage where `hash` is from the RSA key's parameters. (Note that `PSA_ALG_ANY_HASH` is only allowed in signature algorithms.)
+    * For an `MBEDTLS_PK_ECKEY` or `MBEDTLS_PK_ECDSA` with a sign/verify usage, the algorithm policy is `PSA_ALG_DETERMINISTIC_ECDSA` if `MBEDTLS_ECDSA_DETERMINISTIC` is enabled and `PSA_ALG_ECDSA` otherwise. In either case, the hash policy is `PSA_ALG_ANY_HASH`.
+    * For an `MBEDTLS_PK_ECKEY` or `MBEDTLS_PK_ECDKEY_DH` with the usage `PSA_KEY_USAGE_DERIVE`, the algorithm is `PSA_ALG_ECDH`.
+    * For a `MBEDTLS_PK_OPAQUE`, this function reads the attributes of the existing PK key and copies them (without overriding the lifetime and key identifier in `attributes`), then applies a public-key restriction if needed.
+        * Public-key restriction: if `usage` is a public-key usage, change the type to the corresponding public-key type, and remove private-key usage flags from the usage flags read from the existing key.
 * `mbedtls_pk_import_into_psa` checks that the type field in the attributes is consistent with the content of the `mbedtls_pk_context` object (RSA/ECC, and availability of the private key).
     * The key type can be a public key even if the private key is available.
 * `mbedtls_pk_import_into_psa` does not need to check the bit-size in the attributes: `psa_import_key` will do enough checks.

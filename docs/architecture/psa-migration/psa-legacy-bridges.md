@@ -339,3 +339,5 @@ int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
 
 * These functions convert between the signature format used by `mbedtls_pk_{sign,verify}{,_ext}` and the signature format used by `psa_{sign,verify}_{hash,message}`.
 * The input and output buffers can overlap.
+
+[OPEN] Should these functions rely on the ASN.1 module? To be decided when implementing.

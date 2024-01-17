@@ -2374,6 +2374,26 @@ component_test_depends_py_pkalgs_psa () {
     tests/scripts/depends.py pkalgs
 }
 
+component_test_psa_crypto_config_ffdh_2048_only () {
+    msg "build: full config - only DH 2048"
+
+    scripts/config.py full
+
+    # Disable all DH groups other than 2048.
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_DH_RFC7919_3072
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_DH_RFC7919_4096
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_DH_RFC7919_6144
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_DH_RFC7919_8192
+
+    make CFLAGS="$ASAN_CFLAGS -Werror" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: full config - only DH 2048"
+    make test
+
+    msg "ssl-opt: full config - only DH 2048"
+    tests/ssl-opt.sh -f "ffdh"
+}
+
 component_build_no_pk_rsa_alt_support () {
     msg "build: !MBEDTLS_PK_RSA_ALT_SUPPORT" # ~30s
 

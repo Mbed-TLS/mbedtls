@@ -987,18 +987,41 @@ psa_status_t psa_wipe_key_slot(psa_key_slot_t *slot)
 
     /*
      * As the return error code may not be handled in case of multiple errors,
-     * do our best to report an unexpected amount of registered readers.
-     * Assert with MBEDTLS_TEST_HOOK_TEST_ASSERT that registered_readers is
-     * equal to one:
+     * do our best to report an unexpected amount of registered readers or
+     * an unexpected state.
+     * Assert with MBEDTLS_TEST_HOOK_TEST_ASSERT that the slot is valid for
+     * wiping.
      * if the MBEDTLS_TEST_HOOKS configuration option is enabled and the
      * function is called as part of the execution of a test suite, the
      * execution of the test suite is stopped in error if the assertion fails.
      */
-    if (((slot->state == PSA_SLOT_FULL) ||
-         (slot->state == PSA_SLOT_PENDING_DELETION)) &&
-        (slot->registered_readers != 1)) {
-        MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->registered_readers == 1);
-        status = PSA_ERROR_CORRUPTION_DETECTED;
+    switch (slot->state) {
+        case PSA_SLOT_FULL:
+        /* In this state psa_wipe_key_slot() must only be called if the
+         * caller is the last reader. */
+        case PSA_SLOT_PENDING_DELETION:
+            /* In this state psa_wipe_key_slot() must only be called if the
+             * caller is the last reader. */
+            if (slot->registered_readers != 1) {
+                MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->registered_readers == 1);
+                status = PSA_ERROR_CORRUPTION_DETECTED;
+            }
+            break;
+        case PSA_SLOT_FILLING:
+            /* In this state registered_readers must be 0. */
+            if (slot->registered_readers != 0) {
+                MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->registered_readers == 0);
+                status = PSA_ERROR_CORRUPTION_DETECTED;
+            }
+            break;
+        case PSA_SLOT_EMPTY:
+            /* The slot is already empty, it cannot be wiped. */
+            MBEDTLS_TEST_HOOK_TEST_ASSERT(slot->state != PSA_SLOT_EMPTY);
+            status = PSA_ERROR_CORRUPTION_DETECTED;
+            break;
+        default:
+            /* The slot's state is invalid. */
+            status = PSA_ERROR_CORRUPTION_DETECTED;
     }
 
     /* Multipart operations may still be using the key. This is safe
@@ -1028,29 +1051,25 @@ psa_status_t psa_destroy_key(mbedtls_svc_key_id_t key)
     }
 
     /*
-     * Get the description of the key in a key slot. In case of a persistent
-     * key, this will load the key description from persistent memory if not
-     * done yet. We cannot avoid this loading as without it we don't know if
+     * Get the description of the key in a key slot, and register to read it.
+     * In the case of a persistent key, this will load the key description
+     * from persistent memory if not done yet.
+     * We cannot avoid this loading as without it we don't know if
      * the key is operated by an SE or not and this information is needed by
-     * the current implementation.
-     */
+     * the current implementation. */
     status = psa_get_and_lock_key_slot(key, &slot);
     if (status != PSA_SUCCESS) {
         return status;
     }
 
-    /*
-     * If the key slot containing the key description is under access by the
-     * library (apart from the present access), the key cannot be destroyed
-     * yet. For the time being, just return in error. Eventually (to be
-     * implemented), the key should be destroyed when all accesses have
-     * stopped.
-     */
-    if (slot->registered_readers > 1) {
-        psa_unregister_read(slot);
-        return PSA_ERROR_GENERIC_ERROR;
-    }
-
+    /* Set the key slot containing the key description's state to
+     * PENDING_DELETION. This stops new operations from registering
+     * to read the slot. Current readers can safely continue to access
+     * the key within the slot; the last registered reader will
+     * automatically wipe the slot when they call psa_unregister_read().
+     * If the key is persistent, we can now delete the copy of the key
+     * from memory. If the key is opaque, we require the driver to
+     * deal with the deletion. */
     slot->state = PSA_SLOT_PENDING_DELETION;
 
     if (PSA_KEY_LIFETIME_IS_READ_ONLY(slot->attr.lifetime)) {
@@ -1099,6 +1118,9 @@ psa_status_t psa_destroy_key(mbedtls_svc_key_id_t key)
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     if (!PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) {
+        /* Destroy the copy of the persistent key from memory.
+         * The slot will still hold a copy of the key until the last reader
+         * unregisters. */
         status = psa_destroy_persistent_key(slot->attr.id);
         if (overall_status == PSA_SUCCESS) {
             overall_status = status;
@@ -1125,8 +1147,11 @@ psa_status_t psa_destroy_key(mbedtls_svc_key_id_t key)
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 exit:
-    status = psa_wipe_key_slot(slot);
-    /* Prioritize CORRUPTION_DETECTED from wiping over a storage error */
+    /* Unregister from reading the slot. If we are the last active reader
+     * then this will wipe the slot. */
+    status = psa_unregister_read(slot);
+    /* Prioritize CORRUPTION_DETECTED from unregistering over
+     * a storage error. */
     if (status != PSA_SUCCESS) {
         overall_status = status;
     }
@@ -1825,6 +1850,7 @@ static void psa_fail_key_creation(psa_key_slot_t *slot,
      * itself. */
     (void) psa_crypto_stop_transaction();
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
     psa_wipe_key_slot(slot);
 }
 

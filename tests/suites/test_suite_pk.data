@@ -686,6 +686,36 @@ pk_get_psa_attributes_fail:MBEDTLS_PK_NONE:0:PSA_KEY_USAGE_SIGN_MESSAGE:MBEDTLS_
 
 # There is a (negative) test for pk_type=MBEDTLS_PK_RSA_ALT in pk_rsa_alt().
 
+# Bad usage due to not specifying sign/crypt/derive.
+PSA attributes for pk: RSA usage=0 (bad)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+pk_get_psa_attributes_fail:MBEDTLS_PK_RSA:1:0:MBEDTLS_ERR_PK_TYPE_MISMATCH
+
+# Bad usage due to not specifying sign/crypt/derive.
+PSA attributes for pk: RSA usage=EXPORT (bad)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+pk_get_psa_attributes_fail:MBEDTLS_PK_RSA:1:PSA_KEY_USAGE_EXPORT:MBEDTLS_ERR_PK_TYPE_MISMATCH
+
+# This usage could make sense, but is not currently supported.
+PSA attributes for pk: RSA usage=DECRYPT|EXPORT (bad)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+pk_get_psa_attributes_fail:MBEDTLS_PK_RSA:1:PSA_KEY_USAGE_DECRYPT | PSA_KEY_USAGE_EXPORT:MBEDTLS_ERR_PK_TYPE_MISMATCH
+
+# Bad usage due to not specifying more than one of sign/crypt/derive.
+PSA attributes for pk: RSA usage=DECRYPT|SIGN_MESSAGE (bad)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+pk_get_psa_attributes_fail:MBEDTLS_PK_RSA:1:PSA_KEY_USAGE_DECRYPT | PSA_KEY_USAGE_SIGN_MESSAGE:MBEDTLS_ERR_PK_TYPE_MISMATCH
+
+# This usage could make sense, but is not currently supported.
+PSA attributes for pk: RSA usage=SIGN_MESSAGE|SIGN_HASH (bad)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+pk_get_psa_attributes_fail:MBEDTLS_PK_RSA:1:PSA_KEY_USAGE_SIGN_MESSAGE | PSA_KEY_USAGE_SIGN_HASH:MBEDTLS_ERR_PK_TYPE_MISMATCH
+
+# This usage could make sense, but is not currently supported.
+PSA attributes for pk: RSA usage=SIGN_MESSAGE|VERIFY_MESSAGE (bad)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+pk_get_psa_attributes_fail:MBEDTLS_PK_RSA:1:PSA_KEY_USAGE_SIGN_MESSAGE | PSA_KEY_USAGE_VERIFY_MESSAGE:MBEDTLS_ERR_PK_TYPE_MISMATCH
+
 PSA attributes for pk: RSA v15 pair DECRYPT
 depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 pk_get_psa_attributes:MBEDTLS_PK_RSA:1:PSA_KEY_USAGE_DECRYPT:1:PSA_ALG_RSA_PKCS1V15_CRYPT

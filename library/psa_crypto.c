@@ -2395,7 +2395,7 @@ exit:
     return status;
 }
 
-psa_status_t psa_hash_finish_internal(psa_hash_operation_t *operation,
+static psa_status_t psa_hash_finish_internal(psa_hash_operation_t *operation,
                              uint8_t *hash,
                              size_t hash_size,
                              size_t *hash_length)

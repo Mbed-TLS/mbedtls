@@ -680,3 +680,8 @@ pk_psa_wrap_sign_ext:MBEDTLS_PK_RSA:2048:MBEDTLS_PK_RSA:MBEDTLS_MD_SHA512
 PSA wrapped sign ext: RSA2048, PK_RSASSA_PSS, MD_SHA512
 depends_on:MBEDTLS_PKCS1_V21:MBEDTLS_MD_CAN_SHA512:MBEDTLS_RSA_C
 pk_psa_wrap_sign_ext:MBEDTLS_PK_RSA:2048:MBEDTLS_PK_RSASSA_PSS:MBEDTLS_MD_SHA512
+
+PSA attributes for pk: NONE (bad)
+pk_get_psa_attributes_fail:MBEDTLS_PK_NONE:0:PSA_KEY_USAGE_SIGN_MESSAGE:MBEDTLS_ERR_PK_BAD_INPUT_DATA
+
+# There is a (negative) test for pk_type=MBEDTLS_PK_RSA_ALT in pk_rsa_alt().

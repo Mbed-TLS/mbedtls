@@ -29,7 +29,7 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 #include "psa_util_internal.h"
 #include "md_psa.h"
 #endif
@@ -377,6 +377,30 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
     return 0;
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
+                                  psa_key_usage_t usage,
+                                  psa_key_attributes_t *attributes)
+{
+    mbedtls_pk_type_t pk_type = mbedtls_pk_get_type(pk);
+
+    switch (pk_type) {
+#if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
+        case MBEDTLS_PK_RSA_ALT:
+            return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+#endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
+
+        default:
+            return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
+
+    usage |= PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_COPY;
+    psa_set_key_usage_flags(attributes, usage);
+
+    return 0;
+}
+#endif
 
 /*
  * Helper for mbedtls_pk_sign and mbedtls_pk_verify

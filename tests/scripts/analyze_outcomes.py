@@ -325,6 +325,7 @@ KNOWN_TASKS = {
                 # is required.
                 'test_suite_ecp': [
                     re.compile(r'ECP check public-private .*'),
+                    re.compile(r'ECP calculate public: .*'),
                     re.compile(r'ECP gen keypair .*'),
                     re.compile(r'ECP point muladd .*'),
                     re.compile(r'ECP point multiplication .*'),

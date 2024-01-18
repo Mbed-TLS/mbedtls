@@ -353,6 +353,19 @@ class MbedTLSBase(TLSProgram):
             ret += ["groups={named_groups}".format(named_groups=named_groups)]
         return ret
 
+    #pylint: disable=missing-function-docstring
+    def add_ffdh_group_requirements(self, requirement_list):
+        if 'ffdhe2048' in self._named_groups:
+            requirement_list.append('requires_config_enabled PSA_WANT_DH_RFC7919_2048')
+        if 'ffdhe3072' in self._named_groups:
+            requirement_list.append('requires_config_enabled PSA_WANT_DH_RFC7919_2048')
+        if 'ffdhe4096' in self._named_groups:
+            requirement_list.append('requires_config_enabled PSA_WANT_DH_RFC7919_2048')
+        if 'ffdhe6144' in self._named_groups:
+            requirement_list.append('requires_config_enabled PSA_WANT_DH_RFC7919_2048')
+        if 'ffdhe8192' in self._named_groups:
+            requirement_list.append('requires_config_enabled PSA_WANT_DH_RFC7919_2048')
+
     def pre_checks(self):
         ret = ['requires_config_enabled MBEDTLS_DEBUG_C',
                'requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED']
@@ -365,13 +378,14 @@ class MbedTLSBase(TLSProgram):
                 'requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT')
 
         ec_groups = ['secp256r1', 'secp384r1', 'secp521r1', 'x25519', 'x448']
-        ffdh_groups = ['ffdhe2048']
+        ffdh_groups = ['ffdhe2048', 'ffdhe3072', 'ffdhe4096', 'ffdhe6144', 'ffdhe8192']
 
         if any(x in ec_groups for x in self._named_groups):
             ret.append('requires_config_enabled PSA_WANT_ALG_ECDH')
 
         if any(x in ffdh_groups for x in self._named_groups):
             ret.append('requires_config_enabled PSA_WANT_ALG_FFDH')
+            self.add_ffdh_group_requirements(ret)
 
         return ret
 

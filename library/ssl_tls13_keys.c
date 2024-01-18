@@ -22,7 +22,7 @@
 #include "ssl_tls13_invasive.h"
 
 #include "psa/crypto.h"
-#include "md_psa.h"
+#include "mbedtls/psa_util.h"
 
 /* Define a local translating function to save code size by not using too many
  * arguments in each translating place. */

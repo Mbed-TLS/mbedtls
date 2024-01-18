@@ -14,7 +14,7 @@
 #include "mbedtls/platform.h"
 #include "mbedtls/constant_time.h"
 #include "mbedtls/oid.h"
-#include "md_psa.h"
+#include "mbedtls/psa_util.h"
 
 #include "ssl_misc.h"
 #include "ssl_tls13_keys.h"

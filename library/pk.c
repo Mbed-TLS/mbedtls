@@ -406,22 +406,28 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
 {
     mbedtls_pk_type_t pk_type = mbedtls_pk_get_type(pk);
 
+    psa_key_usage_t more_usage = usage;
+    if (usage == PSA_KEY_USAGE_SIGN_MESSAGE) {
+        more_usage |= PSA_KEY_USAGE_VERIFY_MESSAGE;
+    } else if (usage == PSA_KEY_USAGE_SIGN_HASH) {
+        more_usage |= PSA_KEY_USAGE_VERIFY_HASH;
+    } else if (usage == PSA_KEY_USAGE_DECRYPT) {
+        more_usage |= PSA_KEY_USAGE_ENCRYPT;
+    }
+    more_usage |= PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_COPY;
+
     switch (pk_type) {
 #if defined(MBEDTLS_RSA_C)
         case MBEDTLS_PK_RSA:
+        {
             int want_crypt = 0;
             int want_private = 0;
             switch (usage) {
                 case PSA_KEY_USAGE_SIGN_MESSAGE:
-                    usage |= PSA_KEY_USAGE_VERIFY_MESSAGE;
-                    want_private = 1;
-                    break;
                 case PSA_KEY_USAGE_SIGN_HASH:
-                    usage |= PSA_KEY_USAGE_VERIFY_HASH;
                     want_private = 1;
                     break;
                 case PSA_KEY_USAGE_DECRYPT:
-                    usage |= PSA_KEY_USAGE_ENCRYPT;
                     want_private = 1;
                     want_crypt = 1;
                     break;
@@ -448,7 +454,60 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
             psa_set_key_algorithm(attributes,
                                   psa_algorithm_for_rsa(rsa, want_crypt));
             break;
+        }
 #endif /* MBEDTLS_RSA_C */
+
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+        case MBEDTLS_PK_ECKEY:
+        case MBEDTLS_PK_ECKEY_DH:
+        case MBEDTLS_PK_ECDSA:
+        {
+            int sign_ok = (pk_type != MBEDTLS_PK_ECKEY_DH);
+            int derive_ok = (pk_type != MBEDTLS_PK_ECDSA);
+            mbedtls_ecp_keypair *ec = mbedtls_pk_ec(*pk);
+            int has_private = (ec->d.n != 0);
+            size_t bits = 0;
+            psa_ecc_family_t family =
+                mbedtls_ecc_group_to_psa(ec->grp.id, &bits);
+            int want_private = 0;
+            psa_algorithm_t alg = 0;
+            switch (usage) {
+                case PSA_KEY_USAGE_SIGN_MESSAGE:
+                case PSA_KEY_USAGE_SIGN_HASH:
+                    want_private = 1;
+                /* FALLTHROUGH */
+                case PSA_KEY_USAGE_VERIFY_MESSAGE:
+                case PSA_KEY_USAGE_VERIFY_HASH:
+                    if (!sign_ok) {
+                        return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+                    }
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
+                    alg = PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_ANY_HASH);
+#else
+                    alg = PSA_ALG_ECDSA(PSA_ALG_ANY_HASH);
+#endif
+                    break;
+                case PSA_KEY_USAGE_DERIVE:
+                    want_private = 1;
+                    alg = PSA_ALG_ECDH;
+                    if (!derive_ok) {
+                        return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+                    }
+                    break;
+                default:
+                    return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+            }
+            if (want_private && !has_private) {
+                return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+            }
+            psa_set_key_type(attributes, (want_private ?
+                                          PSA_KEY_TYPE_ECC_KEY_PAIR(family) :
+                                          PSA_KEY_TYPE_ECC_PUBLIC_KEY(family)));
+            psa_set_key_bits(attributes, bits);
+            psa_set_key_algorithm(attributes, alg);
+            break;
+        }
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
         case MBEDTLS_PK_RSA_ALT:
@@ -459,8 +518,7 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
             return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 
-    usage |= PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_COPY;
-    psa_set_key_usage_flags(attributes, usage);
+    psa_set_key_usage_flags(attributes, more_usage);
 #if defined(MBEDTLS_PSA_CRYPTO_C)
     /* Assume that we have all Mbed TLS attributes. When
      * MBEDTLS_PSA_CRYPTO_CLIENT is enabled but not MBEDTLS_PSA_CRYPTO_C,

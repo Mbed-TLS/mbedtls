@@ -397,6 +397,12 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
 
     usage |= PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_COPY;
     psa_set_key_usage_flags(attributes, usage);
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+    /* Assume that we have all Mbed TLS attributes. When
+     * MBEDTLS_PSA_CRYPTO_CLIENT is enabled but not MBEDTLS_PSA_CRYPTO_C,
+     * we only assume standard PSA functions. */
+    psa_set_key_enrollment_algorithm(attributes, PSA_ALG_NONE);
+#endif
 
     return 0;
 }

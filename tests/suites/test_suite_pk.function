@@ -174,6 +174,30 @@ static int pk_setup_for_type(mbedtls_pk_type_t pk_type, int want_pair,
     TEST_EQUAL(mbedtls_pk_setup(pk, mbedtls_pk_info_from_type(pk_type)), 0);
 
     switch (pk_type) {
+#if defined(MBEDTLS_RSA_C)
+        case MBEDTLS_PK_RSA:
+        {
+            *psa_type = PSA_KEY_TYPE_RSA_KEY_PAIR;
+            mbedtls_rsa_context *rsa = mbedtls_pk_rsa(*pk);
+            if (want_pair) {
+                TEST_EQUAL(mbedtls_rsa_gen_key(
+                               rsa,
+                               mbedtls_test_rnd_std_rand, NULL,
+                               MBEDTLS_RSA_GEN_KEY_MIN_BITS, 65537), 0);
+            } else {
+                unsigned char N[PSA_BITS_TO_BYTES(MBEDTLS_RSA_GEN_KEY_MIN_BITS)] = { 0xff };
+                N[sizeof(N) - 1] = 0x03;
+                const unsigned char E[1] = {0x03};
+                TEST_EQUAL(mbedtls_rsa_import_raw(rsa,
+                                                  N, sizeof(N),
+                                                  NULL, 0, NULL, 0, NULL, 0,
+                                                  E, sizeof(E)), 0);
+                TEST_EQUAL(mbedtls_rsa_complete(rsa), 0);
+            }
+            break;
+        }
+#endif /* MBEDTLS_RSA_C */
+
         default:
             TEST_FAIL("Unknown PK type in test data");
             break;
@@ -1602,6 +1626,131 @@ void pk_psa_wrap_sign_ext(int pk_type, int key_bits, int key_pk_type, int md_alg
 exit:
     mbedtls_pk_free(&pk);
     PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C */
+void pk_get_psa_attributes(int pk_type, int from_pair,
+                           int usage_arg,
+                           int to_pair, int expected_alg)
+{
+    mbedtls_pk_context pk;
+    mbedtls_pk_init(&pk);
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_usage_t usage = usage_arg;
+
+    MD_OR_USE_PSA_INIT();
+
+    psa_key_type_t expected_psa_type = 0;
+    if (!pk_setup_for_type(pk_type, from_pair, &pk, &expected_psa_type)) {
+        goto exit;
+    }
+    if (!to_pair) {
+        expected_psa_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(expected_psa_type);
+    }
+
+    psa_key_lifetime_t lifetime = PSA_KEY_LIFETIME_VOLATILE; //TODO: diversity
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT; //TODO: diversity
+    psa_set_key_id(&attributes, key_id);
+    psa_set_key_lifetime(&attributes, lifetime);
+
+    psa_key_usage_t expected_usage = usage;
+    /* Usage implied universally */
+    if (expected_usage & PSA_KEY_USAGE_SIGN_HASH) {
+        expected_usage |= PSA_KEY_USAGE_SIGN_MESSAGE;
+    }
+    if (expected_usage & PSA_KEY_USAGE_VERIFY_HASH) {
+        expected_usage |= PSA_KEY_USAGE_VERIFY_MESSAGE;
+    }
+    /* Usage implied by mbedtls_pk_get_psa_attributes() */
+    if (expected_usage & PSA_KEY_USAGE_SIGN_HASH) {
+        expected_usage |= PSA_KEY_USAGE_VERIFY_HASH;
+    }
+    if (expected_usage & PSA_KEY_USAGE_SIGN_MESSAGE) {
+        expected_usage |= PSA_KEY_USAGE_VERIFY_MESSAGE;
+    }
+    if (expected_usage & PSA_KEY_USAGE_DECRYPT) {
+        expected_usage |= PSA_KEY_USAGE_ENCRYPT;
+    }
+    expected_usage |= PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_COPY;
+
+    TEST_EQUAL(mbedtls_pk_get_psa_attributes(&pk, usage, &attributes), 0);
+
+    TEST_EQUAL(psa_get_key_lifetime(&attributes), lifetime);
+    TEST_ASSERT(mbedtls_svc_key_id_equal(psa_get_key_id(&attributes),
+                                         key_id));
+    TEST_EQUAL(psa_get_key_type(&attributes), expected_psa_type);
+    TEST_EQUAL(psa_get_key_bits(&attributes),
+               mbedtls_pk_get_bitlen(&pk));
+    TEST_EQUAL(psa_get_key_usage_flags(&attributes), expected_usage);
+    TEST_EQUAL(psa_get_key_algorithm(&attributes), expected_alg);
+    TEST_EQUAL(psa_get_key_enrollment_algorithm(&attributes), PSA_ALG_NONE);
+
+exit:
+    mbedtls_pk_free(&pk);
+    psa_reset_key_attributes(&attributes);
+    MD_OR_USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V21 */
+void pk_rsa_v21_get_psa_attributes(int md_type, int from_pair,
+                                   int usage_arg,
+                                   int to_pair, int expected_alg)
+{
+    mbedtls_pk_context pk;
+    mbedtls_pk_init(&pk);
+    psa_key_usage_t usage = usage_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    MD_OR_USE_PSA_INIT();
+
+    psa_key_type_t expected_psa_type = 0;
+    if (!pk_setup_for_type(MBEDTLS_PK_RSA, from_pair, &pk, &expected_psa_type)) {
+        goto exit;
+    }
+    mbedtls_rsa_context *rsa = mbedtls_pk_rsa(pk);
+    TEST_EQUAL(mbedtls_rsa_set_padding(rsa, MBEDTLS_RSA_PKCS_V21, md_type), 0);
+    if (!to_pair) {
+        expected_psa_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(expected_psa_type);
+    }
+
+    psa_key_usage_t expected_usage = usage;
+    /* Usage implied universally */
+    if (expected_usage & PSA_KEY_USAGE_SIGN_HASH) {
+        expected_usage |= PSA_KEY_USAGE_SIGN_MESSAGE;
+    }
+    if (expected_usage & PSA_KEY_USAGE_VERIFY_HASH) {
+        expected_usage |= PSA_KEY_USAGE_VERIFY_MESSAGE;
+    }
+    /* Usage implied by mbedtls_pk_get_psa_attributes() */
+    if (expected_usage & PSA_KEY_USAGE_SIGN_HASH) {
+        expected_usage |= PSA_KEY_USAGE_VERIFY_HASH;
+    }
+    if (expected_usage & PSA_KEY_USAGE_SIGN_MESSAGE) {
+        expected_usage |= PSA_KEY_USAGE_VERIFY_MESSAGE;
+    }
+    if (expected_usage & PSA_KEY_USAGE_DECRYPT) {
+        expected_usage |= PSA_KEY_USAGE_ENCRYPT;
+    }
+    expected_usage |= PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_COPY;
+
+    TEST_EQUAL(mbedtls_pk_get_psa_attributes(&pk, usage, &attributes), 0);
+
+    TEST_EQUAL(psa_get_key_lifetime(&attributes), PSA_KEY_LIFETIME_VOLATILE);
+    TEST_ASSERT(mbedtls_svc_key_id_equal(psa_get_key_id(&attributes),
+                                         MBEDTLS_SVC_KEY_ID_INIT));
+    TEST_EQUAL(psa_get_key_type(&attributes), expected_psa_type);
+    TEST_EQUAL(psa_get_key_bits(&attributes),
+               mbedtls_pk_get_bitlen(&pk));
+    TEST_EQUAL(psa_get_key_usage_flags(&attributes), expected_usage);
+    TEST_EQUAL(psa_get_key_algorithm(&attributes), expected_alg);
+    TEST_EQUAL(psa_get_key_enrollment_algorithm(&attributes), PSA_ALG_NONE);
+
+exit:
+    mbedtls_pk_free(&pk);
+    psa_reset_key_attributes(&attributes);
+    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
 

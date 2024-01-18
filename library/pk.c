@@ -379,6 +379,27 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+#if defined(MBEDTLS_RSA_C)
+static psa_algorithm_t psa_algorithm_for_rsa(const mbedtls_rsa_context *rsa,
+                                             int want_crypt)
+{
+    if (mbedtls_rsa_get_padding_mode(rsa) == MBEDTLS_RSA_PKCS_V21) {
+        if (want_crypt) {
+            mbedtls_md_type_t md_type = mbedtls_rsa_get_md_alg(rsa);
+            return PSA_ALG_RSA_OAEP(mbedtls_md_psa_alg_from_type(md_type));
+        } else {
+            return PSA_ALG_RSA_PSS_ANY_SALT(PSA_ALG_ANY_HASH);
+        }
+    } else {
+        if (want_crypt) {
+            return PSA_ALG_RSA_PKCS1V15_CRYPT;
+        } else {
+            return PSA_ALG_RSA_PKCS1V15_SIGN(PSA_ALG_ANY_HASH);
+        }
+    }
+}
+#endif /* MBEDTLS_RSA_C */
+
 int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
                                   psa_key_usage_t usage,
                                   psa_key_attributes_t *attributes)
@@ -386,6 +407,49 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
     mbedtls_pk_type_t pk_type = mbedtls_pk_get_type(pk);
 
     switch (pk_type) {
+#if defined(MBEDTLS_RSA_C)
+        case MBEDTLS_PK_RSA:
+            int want_crypt = 0;
+            int want_private = 0;
+            switch (usage) {
+                case PSA_KEY_USAGE_SIGN_MESSAGE:
+                    usage |= PSA_KEY_USAGE_VERIFY_MESSAGE;
+                    want_private = 1;
+                    break;
+                case PSA_KEY_USAGE_SIGN_HASH:
+                    usage |= PSA_KEY_USAGE_VERIFY_HASH;
+                    want_private = 1;
+                    break;
+                case PSA_KEY_USAGE_DECRYPT:
+                    usage |= PSA_KEY_USAGE_ENCRYPT;
+                    want_private = 1;
+                    want_crypt = 1;
+                    break;
+                case PSA_KEY_USAGE_VERIFY_MESSAGE:
+                case PSA_KEY_USAGE_VERIFY_HASH:
+                    break;
+                case PSA_KEY_USAGE_ENCRYPT:
+                    want_crypt = 1;
+                    break;
+                default:
+                    return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+            }
+            /* Detect the presence of a private key in a way that works both
+             * in CRT and non-CRT configurations. */
+            mbedtls_rsa_context *rsa = mbedtls_pk_rsa(*pk);
+            int has_private = (mbedtls_rsa_check_privkey(rsa) == 0);
+            if (want_private && !has_private) {
+                return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+            }
+            psa_set_key_type(attributes, (want_private ?
+                                          PSA_KEY_TYPE_RSA_KEY_PAIR :
+                                          PSA_KEY_TYPE_RSA_PUBLIC_KEY));
+            psa_set_key_bits(attributes, mbedtls_mpi_bitlen(&rsa->N));
+            psa_set_key_algorithm(attributes,
+                                  psa_algorithm_for_rsa(rsa, want_crypt));
+            break;
+#endif /* MBEDTLS_RSA_C */
+
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
         case MBEDTLS_PK_RSA_ALT:
             return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;

@@ -3662,9 +3662,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_DEBUG_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_SSL_SESSION_TICKETS */
-void tls13_early_data()
+void tls13_early_data(char *scenario_string)
 {
     int ret = -1;
+    int scenario = 0;
     unsigned char buf[64];
     const char *early_data = "This is early data.";
     size_t early_data_len = strlen(early_data);
@@ -3672,6 +3673,18 @@ void tls13_early_data()
     mbedtls_test_handshake_test_options client_options;
     mbedtls_test_handshake_test_options server_options;
     mbedtls_ssl_session saved_session;
+    mbedtls_test_ssl_log_pattern server_pattern = { NULL, 0 };
+
+    /*
+     * Determine scenario.
+     */
+    if (strcmp(scenario_string, "reference") == 0) {
+        scenario = 0;
+    } else if (strcmp(scenario_string, "deprotect and discard") == 0) {
+        scenario = 1;
+    } else {
+        TEST_FAIL("Unknown scenario.");
+    }
 
     /*
      * Test set-up
@@ -3692,15 +3705,17 @@ void tls13_early_data()
     mbedtls_ssl_conf_early_data(&client_ep.conf, MBEDTLS_SSL_EARLY_DATA_ENABLED);
 
     server_options.pk_alg = MBEDTLS_PK_ECDSA;
+    server_options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
+    server_options.srv_log_obj = &server_pattern;
     ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
                                          &server_options, NULL, NULL, NULL,
                                          NULL);
     TEST_EQUAL(ret, 0);
+    mbedtls_ssl_conf_early_data(&server_ep.conf, MBEDTLS_SSL_EARLY_DATA_ENABLED);
     mbedtls_ssl_conf_session_tickets_cb(&server_ep.conf,
                                         mbedtls_test_ticket_write,
                                         mbedtls_test_ticket_parse,
                                         NULL);
-    mbedtls_ssl_conf_early_data(&server_ep.conf, MBEDTLS_SSL_EARLY_DATA_ENABLED);
 
     ret = mbedtls_test_mock_socket_connect(&(client_ep.socket),
                                            &(server_ep.socket), 1024);
@@ -3740,6 +3755,16 @@ void tls13_early_data()
     ret = mbedtls_ssl_set_session(&(client_ep.ssl), &saved_session);
     TEST_EQUAL(ret, 0);
 
+    switch (scenario) {
+        case 1: /* deprotect and discard */
+            mbedtls_debug_set_threshold(3);
+            server_pattern.pattern =
+                "EarlyData: deprotect and discard app data records.";
+            mbedtls_ssl_conf_early_data(&server_ep.conf,
+                                        MBEDTLS_SSL_EARLY_DATA_DISABLED);
+            break;
+    }
+
     TEST_EQUAL(mbedtls_test_move_handshake_to_state(
                    &(client_ep.ssl), &(server_ep.ssl),
                    MBEDTLS_SSL_SERVER_HELLO), 0);
@@ -3751,18 +3776,29 @@ void tls13_early_data()
                            early_data_len);
     TEST_EQUAL(ret, early_data_len);
 
-    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
-                   &(server_ep.ssl), &(client_ep.ssl),
-                   MBEDTLS_SSL_CLIENT_FINISHED), MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA);
+    ret = mbedtls_test_move_handshake_to_state(
+        &(server_ep.ssl), &(client_ep.ssl),
+        MBEDTLS_SSL_HANDSHAKE_WRAPUP);
 
-    TEST_EQUAL(server_ep.ssl.handshake->early_data_accepted, 1);
-    TEST_EQUAL(mbedtls_ssl_read_early_data(&(server_ep.ssl), buf, sizeof(buf)),
-               early_data_len);
-    TEST_MEMORY_COMPARE(buf, early_data_len, early_data, early_data_len);
+    switch (scenario) {
+        case 0:
+            TEST_EQUAL(ret, MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA);
+            TEST_EQUAL(server_ep.ssl.handshake->early_data_accepted, 1);
+            TEST_EQUAL(mbedtls_ssl_read_early_data(&(server_ep.ssl),
+                                                   buf, sizeof(buf)), early_data_len);
+            TEST_MEMORY_COMPARE(buf, early_data_len, early_data, early_data_len);
 
-    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
-                   &(server_ep.ssl), &(client_ep.ssl),
-                   MBEDTLS_SSL_HANDSHAKE_OVER), 0);
+            TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                           &(server_ep.ssl), &(client_ep.ssl),
+                           MBEDTLS_SSL_HANDSHAKE_WRAPUP), 0);
+            break;
+
+        case 1:
+            TEST_EQUAL(ret, 0);
+            TEST_EQUAL(server_ep.ssl.handshake->early_data_accepted, 0);
+            TEST_EQUAL(server_pattern.counter, 1);
+            break;
+    }
 
 exit:
     mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
@@ -3770,6 +3806,7 @@ exit:
     mbedtls_test_free_handshake_options(&client_options);
     mbedtls_test_free_handshake_options(&server_options);
     mbedtls_ssl_session_free(&saved_session);
+    mbedtls_debug_set_threshold(0);
     PSA_DONE();
 }
 /* END_CASE */

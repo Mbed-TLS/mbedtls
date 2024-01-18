@@ -3290,4 +3290,12 @@ void mbedtls_x509_crt_restart_free(mbedtls_x509_crt_restart_ctx *ctx)
 }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
+int mbedtls_x509_crt_get_ca_istrue(const mbedtls_x509_crt *crt)
+{
+    if ((crt->ext_types & MBEDTLS_X509_EXT_BASIC_CONSTRAINTS) != 0) {
+        return crt->MBEDTLS_PRIVATE(ca_istrue);
+    }
+    return MBEDTLS_ERR_X509_INVALID_EXTENSIONS;
+}
+
 #endif /* MBEDTLS_X509_CRT_PARSE_C */

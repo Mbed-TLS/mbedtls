@@ -1,0 +1,6 @@
+Changes
+   * Use standard `CMAKE_INSTALL_INCLUDEDIR` and `CMAKE_INSTALL_LIBDIR`
+     location to define headers and library installation. This variable can be
+     redefined on configuration phase to allow install headers and libraries to
+     different location (like `include/mbedtls2`, #8723).
+

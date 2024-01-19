@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.5.1)
 
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads)
 
 # Test the target renaming support by adding a prefix to the targets built

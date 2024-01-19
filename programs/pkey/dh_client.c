@@ -13,13 +13,13 @@
 
 #if defined(MBEDTLS_AES_C) && defined(MBEDTLS_DHM_C) && \
     defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_NET_C) && \
-    defined(MBEDTLS_RSA_C) && defined(MBEDTLS_MD_CAN_SHA256) && \
+    defined(MBEDTLS_RSA_C) && defined(MBEDTLS_SHA256_C) && \
     defined(MBEDTLS_FS_IO) && defined(MBEDTLS_CTR_DRBG_C)
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/aes.h"
 #include "mbedtls/dhm.h"
 #include "mbedtls/rsa.h"
-#include "mbedtls/sha1.h"
+#include "mbedtls/sha256.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 
@@ -32,15 +32,14 @@
 
 #if !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_DHM_C) ||     \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_NET_C) ||  \
-    !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_MD_CAN_SHA256) ||    \
+    !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_SHA256_C) ||    \
     !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_CTR_DRBG_C)
-
 int main(void)
 {
     mbedtls_printf("MBEDTLS_AES_C and/or MBEDTLS_DHM_C and/or MBEDTLS_ENTROPY_C "
                    "and/or MBEDTLS_NET_C and/or MBEDTLS_RSA_C and/or "
                    "MBEDTLS_MD_CAN_SHA256 and/or MBEDTLS_FS_IO and/or "
-                   "MBEDTLS_CTR_DRBG_C not defined.\n");
+                   "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_SHA1_C not defined.\n");
     mbedtls_exit(0);
 }
 
@@ -194,7 +193,7 @@ int main(void)
     }
 
     if ((ret = mbedtls_sha256(buf, (int) (p - 2 - buf), hash, 0)) != 0) {
-        mbedtls_printf(" failed\n  ! mbedtls_sha1 returned %d\n\n", ret);
+        mbedtls_printf(" failed\n  ! mbedtls_sha256 returned %d\n\n", ret);
         goto exit;
     }
 

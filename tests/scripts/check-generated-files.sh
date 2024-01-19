@@ -127,3 +127,8 @@ check scripts/generate_psa_constants.py programs/psa/psa_constant_names_generate
 check tests/scripts/generate_bignum_tests.py $(tests/scripts/generate_bignum_tests.py --list)
 check tests/scripts/generate_ecp_tests.py $(tests/scripts/generate_ecp_tests.py --list)
 check tests/scripts/generate_psa_tests.py $(tests/scripts/generate_psa_tests.py --list)
+
+# Generated files that are present in the repository even in the development
+# branch. (This is intended to be temporary, until the generator scripts are
+# fully reviewed and the build scripts support a generated header file.)
+check tests/scripts/generate_psa_wrappers.py tests/include/test/psa_test_wrappers.h tests/src/psa_test_wrappers.c

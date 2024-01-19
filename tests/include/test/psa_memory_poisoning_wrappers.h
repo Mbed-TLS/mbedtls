@@ -1,8 +1,11 @@
-/** Memory poisoning wrappers for PSA functions.
+/** Support for memory poisoning wrappers for PSA functions.
  *
- *  These wrappers poison the input and output buffers of each function
+ *  The wrappers poison the input and output buffers of each function
  *  before calling it, to ensure that it does not access the buffers
  *  except by calling the approved buffer-copying functions.
+ *
+ * This header declares support functions. The wrappers themselves are
+ * decalred in the automatically generated file `test/psa_test_wrappers.h`.
  */
 /*
  *  Copyright The Mbed TLS Contributors
@@ -31,16 +34,6 @@ void mbedtls_poison_test_hooks_setup(void);
  *                memory poisoning.
  */
 void mbedtls_poison_test_hooks_teardown(void);
-
-psa_status_t wrap_psa_cipher_encrypt(mbedtls_svc_key_id_t key,
-                                     psa_algorithm_t alg,
-                                     const uint8_t *input,
-                                     size_t input_length,
-                                     uint8_t *output,
-                                     size_t output_size,
-                                     size_t *output_length);
-
-#define psa_cipher_encrypt(...) wrap_psa_cipher_encrypt(__VA_ARGS__)
 
 #endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_TEST_MEMORY_CAN_POISON */
 

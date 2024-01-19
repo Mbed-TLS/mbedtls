@@ -24,7 +24,7 @@
 static mbedtls_platform_context platform_ctx;
 #endif
 
-mbedtls_test_info_t mbedtls_test_info;
+static mbedtls_test_info_t mbedtls_test_info;
 
 #ifdef MBEDTLS_THREADING_C
 mbedtls_threading_mutex_t mbedtls_test_info_mutex;

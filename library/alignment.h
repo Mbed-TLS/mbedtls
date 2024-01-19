@@ -45,6 +45,46 @@
 #define MBEDTLS_EFFICIENT_UNALIGNED_ACCESS
 #endif
 
+#if defined(__IAR_SYSTEMS_ICC__) && \
+    (defined(MBEDTLS_ARCH_IS_ARM64) || defined(MBEDTLS_ARCH_IS_ARM32) \
+    || defined(__ICCRX__) || defined(__ICCRL78__) || defined(__ICCRISCV__))
+#pragma language=save
+#pragma language=extended
+#define MBEDTLS_POP_IAR_LANGUAGE_PRAGMA
+/* IAR recommend this technique for accessing unaligned data in
+ * https://www.iar.com/knowledge/support/technical-notes/compiler/accessing-unaligned-data
+ * This results in a single load / store instruction (if unaligned access is supported).
+ * According to that document, this is only supported on certain architectures.
+ */
+    #define UINT_UNALIGNED
+typedef uint16_t __packed mbedtls_uint16_unaligned_t;
+typedef uint32_t __packed mbedtls_uint32_unaligned_t;
+typedef uint64_t __packed mbedtls_uint64_unaligned_t;
+#elif defined(MBEDTLS_COMPILER_IS_GCC) && (MBEDTLS_GCC_VERSION >= 40504) && \
+    ((MBEDTLS_GCC_VERSION < 90300) || (!defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)))
+/*
+ * Old versions of gcc, depending on how the target is specified, may generate a branch to memcpy
+ * for calls like `memcpy(dest, src, 4)` rather than generating some LDR or LDRB instructions
+ * (similar for stores).
+ * Recent versions where unaligned access is not enabled also do this.
+ *
+ * For performance (and code size, in some cases), we want to avoid the branch and just generate
+ * some inline load/store instructions since the access is small and constant-size.
+ *
+ * The manual states:
+ * "The aligned attribute specifies a minimum alignment for the variable or structure field,
+ * measured in bytes."
+ * https://gcc.gnu.org/onlinedocs/gcc/Common-Variable-Attributes.html
+ *
+ * Tested with several versions of GCC from 4.5.0 up to 9.3.0
+ * We don't enable for older than 4.5.0 as this has not been tested.
+ */
+ #define UINT_UNALIGNED
+typedef uint16_t __attribute__((__aligned__(1))) mbedtls_uint16_unaligned_t;
+typedef uint32_t __attribute__((__aligned__(1))) mbedtls_uint32_unaligned_t;
+typedef uint64_t __attribute__((__aligned__(1))) mbedtls_uint64_unaligned_t;
+ #endif
+
 /**
  * Read the unsigned 16 bits integer from the given address, which need not
  * be aligned.
@@ -55,7 +95,12 @@
 inline uint16_t mbedtls_get_unaligned_uint16(const void *p)
 {
     uint16_t r;
+#if defined(UINT_UNALIGNED)
+    mbedtls_uint16_unaligned_t *p16 = (mbedtls_uint16_unaligned_t *) p;
+    r = *p16;
+#else
     memcpy(&r, p, sizeof(r));
+#endif
     return r;
 }
 
@@ -68,7 +113,12 @@ inline uint16_t mbedtls_get_unaligned_uint16(const void *p)
  */
 inline void mbedtls_put_unaligned_uint16(void *p, uint16_t x)
 {
+#if defined(UINT_UNALIGNED)
+    mbedtls_uint16_unaligned_t *p16 = (mbedtls_uint16_unaligned_t *) p;
+    *p16 = x;
+#else
     memcpy(p, &x, sizeof(x));
+#endif
 }
 
 /**
@@ -81,7 +131,12 @@ inline void mbedtls_put_unaligned_uint16(void *p, uint16_t x)
 inline uint32_t mbedtls_get_unaligned_uint32(const void *p)
 {
     uint32_t r;
+#if defined(UINT_UNALIGNED)
+    mbedtls_uint32_unaligned_t *p32 = (mbedtls_uint32_unaligned_t *) p;
+    r = *p32;
+#else
     memcpy(&r, p, sizeof(r));
+#endif
     return r;
 }
 
@@ -94,7 +149,12 @@ inline uint32_t mbedtls_get_unaligned_uint32(const void *p)
  */
 inline void mbedtls_put_unaligned_uint32(void *p, uint32_t x)
 {
+#if defined(UINT_UNALIGNED)
+    mbedtls_uint32_unaligned_t *p32 = (mbedtls_uint32_unaligned_t *) p;
+    *p32 = x;
+#else
     memcpy(p, &x, sizeof(x));
+#endif
 }
 
 /**
@@ -107,7 +167,12 @@ inline void mbedtls_put_unaligned_uint32(void *p, uint32_t x)
 inline uint64_t mbedtls_get_unaligned_uint64(const void *p)
 {
     uint64_t r;
+#if defined(UINT_UNALIGNED)
+    mbedtls_uint64_unaligned_t *p64 = (mbedtls_uint64_unaligned_t *) p;
+    r = *p64;
+#else
     memcpy(&r, p, sizeof(r));
+#endif
     return r;
 }
 
@@ -120,8 +185,17 @@ inline uint64_t mbedtls_get_unaligned_uint64(const void *p)
  */
 inline void mbedtls_put_unaligned_uint64(void *p, uint64_t x)
 {
+#if defined(UINT_UNALIGNED)
+    mbedtls_uint64_unaligned_t *p64 = (mbedtls_uint64_unaligned_t *) p;
+    *p64 = x;
+#else
     memcpy(p, &x, sizeof(x));
+#endif
 }
+
+#if defined(MBEDTLS_POP_IAR_LANGUAGE_PRAGMA)
+#pragma language=restore
+#endif
 
 /** Byte Reading Macros
  *

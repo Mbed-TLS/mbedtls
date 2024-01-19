@@ -27,27 +27,5 @@ void mbedtls_poison_test_hooks_teardown(void)
     psa_output_post_copy_hook = NULL;
 }
 
-psa_status_t wrap_psa_cipher_encrypt(mbedtls_svc_key_id_t key,
-                                     psa_algorithm_t alg,
-                                     const uint8_t *input,
-                                     size_t input_length,
-                                     uint8_t *output,
-                                     size_t output_size,
-                                     size_t *output_length)
-{
-    MBEDTLS_TEST_MEMORY_POISON(input, input_length);
-    MBEDTLS_TEST_MEMORY_POISON(output, output_size);
-    psa_status_t status = psa_cipher_encrypt(key,
-                                             alg,
-                                             input,
-                                             input_length,
-                                             output,
-                                             output_size,
-                                             output_length);
-    MBEDTLS_TEST_MEMORY_UNPOISON(input, input_length);
-    MBEDTLS_TEST_MEMORY_UNPOISON(output, output_size);
-    return status;
-}
-
 #endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_PSA_CRYPTO_C &&
           MBEDTLS_TEST_MEMORY_CAN_POISON */

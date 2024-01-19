@@ -17,6 +17,8 @@
 
 #include <psa/crypto.h>
 
+#include "test/psa_test_wrappers.h"
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "mbedtls/psa_util.h"
 #endif

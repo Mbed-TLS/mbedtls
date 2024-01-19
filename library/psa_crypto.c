@@ -5801,10 +5801,12 @@ static psa_status_t psa_key_derivation_pbkdf2_read(
 
 psa_status_t psa_key_derivation_output_bytes(
     psa_key_derivation_operation_t *operation,
-    uint8_t *output,
+    uint8_t *output_external,
     size_t output_length)
 {
     psa_status_t status;
+    LOCAL_OUTPUT_DECLARE(output_external, output);
+
     psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg(operation);
 
     if (operation->alg == 0) {
@@ -5828,6 +5830,8 @@ psa_status_t psa_key_derivation_output_bytes(
          * output_length > 0. */
         return PSA_ERROR_INSUFFICIENT_DATA;
     }
+
+    LOCAL_OUTPUT_ALLOC(output_external, output_length, output);
     operation->capacity -= output_length;
 
 #if defined(BUILTIN_ALG_ANY_HKDF)
@@ -5861,10 +5865,15 @@ psa_status_t psa_key_derivation_output_bytes(
 
     {
         (void) kdf_alg;
-        return PSA_ERROR_BAD_STATE;
+        status = PSA_ERROR_BAD_STATE;
+        LOCAL_OUTPUT_FREE(output_external, output);
+
+        return status;
     }
 
 exit:
+    LOCAL_OUTPUT_FREE(output_external, output);
+
     if (status != PSA_SUCCESS) {
         /* Preserve the algorithm upon errors, but clear all sensitive state.
          * This allows us to differentiate between exhausted operations and

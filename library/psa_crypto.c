@@ -3262,17 +3262,20 @@ static void psa_rsa_oaep_set_padding_mode(psa_algorithm_t alg,
 
 psa_status_t psa_asymmetric_encrypt(mbedtls_svc_key_id_t key,
                                     psa_algorithm_t alg,
-                                    const uint8_t *input,
+                                    const uint8_t *input_external,
                                     size_t input_length,
-                                    const uint8_t *salt,
+                                    const uint8_t *salt_external,
                                     size_t salt_length,
-                                    uint8_t *output,
+                                    uint8_t *output_external,
                                     size_t output_size,
                                     size_t *output_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
+    LOCAL_INPUT_DECLARE(input_external, input);
+    LOCAL_INPUT_DECLARE(salt_external, salt);
+    LOCAL_OUTPUT_DECLARE(output_external, output);
 
     (void) input;
     (void) input_length;
@@ -3315,6 +3318,9 @@ psa_status_t psa_asymmetric_encrypt(mbedtls_svc_key_id_t key,
         }
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) */
+        LOCAL_INPUT_ALLOC(input_external, input_length, input);
+        LOCAL_INPUT_ALLOC(salt_external, salt_length, salt);
+        LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
         if (alg == PSA_ALG_RSA_PKCS1V15_CRYPT) {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT)
             status = mbedtls_to_psa_error(
@@ -3365,22 +3371,29 @@ rsa_exit:
 exit:
     unlock_status = psa_unlock_key_slot(slot);
 
+    LOCAL_INPUT_FREE(input_external, input);
+    LOCAL_INPUT_FREE(salt_external, salt);
+    LOCAL_OUTPUT_FREE(output_external, output);
+
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
 psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
                                     psa_algorithm_t alg,
-                                    const uint8_t *input,
+                                    const uint8_t *input_external,
                                     size_t input_length,
-                                    const uint8_t *salt,
+                                    const uint8_t *salt_external,
                                     size_t salt_length,
-                                    uint8_t *output,
+                                    uint8_t *output_external,
                                     size_t output_size,
                                     size_t *output_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
+    LOCAL_INPUT_DECLARE(input_external, input);
+    LOCAL_INPUT_DECLARE(salt_external, salt);
+    LOCAL_OUTPUT_DECLARE(output_external, output);
 
     (void) input;
     (void) input_length;
@@ -3422,7 +3435,9 @@ psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
         }
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) */
-
+        LOCAL_INPUT_ALLOC(input_external, input_length, input);
+        LOCAL_INPUT_ALLOC(salt_external, salt_length, salt);
+        LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
         if (alg == PSA_ALG_RSA_PKCS1V15_CRYPT) {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT)
             status = mbedtls_to_psa_error(
@@ -3471,6 +3486,10 @@ rsa_exit:
 
 exit:
     unlock_status = psa_unlock_key_slot(slot);
+
+    LOCAL_INPUT_FREE(input_external, input);
+    LOCAL_INPUT_FREE(salt_external, salt);
+    LOCAL_OUTPUT_FREE(output_external, output);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }

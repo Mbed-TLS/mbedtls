@@ -15,13 +15,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \
-    && !defined(__llvm__) && !defined(__INTEL_COMPILER)
-/* Defined if the compiler really is gcc and not clang, etc */
-#define MBEDTLS_COMPILER_IS_GCC
-#define MBEDTLS_GCC_VERSION \
-    (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
-#endif
+#include "mbedtls/build_info.h"
 
 /*
  * Define MBEDTLS_EFFICIENT_UNALIGNED_ACCESS for architectures where unaligned memory

@@ -1483,14 +1483,14 @@ psa_status_t psa_export_key_internal(
 }
 
 psa_status_t psa_export_key(mbedtls_svc_key_id_t key,
-                            uint8_t *data,
+                            uint8_t *data_external,
                             size_t data_size,
                             size_t *data_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
-
+    LOCAL_OUTPUT_DECLARE(data_external, data);
     /* Reject a zero-length output buffer now, since this can never be a
      * valid key representation. This way we know that data must be a valid
      * pointer and we can do things like memset(data, ..., data_size). */
@@ -1514,6 +1514,8 @@ psa_status_t psa_export_key(mbedtls_svc_key_id_t key,
         return status;
     }
 
+    LOCAL_OUTPUT_ALLOC(data_external, data_size, data);
+
     psa_key_attributes_t attributes = {
         .core = slot->attr
     };
@@ -1521,8 +1523,10 @@ psa_status_t psa_export_key(mbedtls_svc_key_id_t key,
                                            slot->key.data, slot->key.bytes,
                                            data, data_size, data_length);
 
+exit:
     unlock_status = psa_unlock_key_slot(slot);
 
+    LOCAL_OUTPUT_FREE(data_external, data);
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 

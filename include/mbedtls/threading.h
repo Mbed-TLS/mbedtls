@@ -100,6 +100,20 @@ extern mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex;
 extern mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex;
 #endif /* MBEDTLS_HAVE_TIME_DATE && !MBEDTLS_PLATFORM_GMTIME_R_ALT */
 
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+/*
+ * A mutex used to make the PSA subsystem thread safe.
+ *
+ * key_slot_mutex protects the registered_readers and
+ * state variable for all key slots in &global_data.key_slots.
+ *
+ * This mutex must be held when any read from or write to a state or
+ * registered_readers field is performed, i.e. when calling functions:
+ * psa_key_slot_state_transition(), psa_register_read(), psa_unregister_read(),
+ * psa_key_slot_has_readers() and psa_wipe_key_slot(). */
+extern mbedtls_threading_mutex_t mbedtls_threading_key_slot_mutex;
+#endif
+
 #endif /* MBEDTLS_THREADING_C */
 
 #ifdef __cplusplus

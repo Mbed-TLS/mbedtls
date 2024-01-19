@@ -23,6 +23,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "mbedtls/platform.h"
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#endif
 
 typedef struct {
     psa_key_slot_t key_slots[MBEDTLS_PSA_KEY_SLOT_COUNT];

@@ -126,6 +126,9 @@ psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
  * new state. If the state of the slot was not expected_state, the state is
  * unchanged.
  *
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
+ *
  * \param[in] slot            The key slot.
  * \param[in] expected_state  The current state of the slot.
  * \param[in] new_state       The new state of the slot.
@@ -149,6 +152,8 @@ static inline psa_status_t psa_key_slot_state_transition(
 /** Register as a reader of a key slot.
  *
  * This function increments the key slot registered reader counter by one.
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
  *
  * \param[in] slot  The key slot.
  *
@@ -175,6 +180,8 @@ static inline psa_status_t psa_register_read(psa_key_slot_t *slot)
  * If the state of the slot is PSA_SLOT_PENDING_DELETION,
  * and there is only one registered reader (the caller),
  * this function will call psa_wipe_key_slot().
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
  *
  * \note To ease the handling of errors in retrieving a key slot
  *       a NULL input pointer is valid, and the function returns

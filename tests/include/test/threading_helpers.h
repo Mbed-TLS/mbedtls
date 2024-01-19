@@ -40,16 +40,16 @@ typedef struct mbedtls_test_thread_t {
 
 /**
  * \brief                   Set your alternate threading implementation
- *                          function pointers fgr test threads. If used,
- *                          this function must be called once in the main thread
+ *                          function pointers for test threads. If used, this
+ *                          function must be called once in the main thread
  *                          before any other MbedTLS function is called.
  *
  * \note                    These functions are part of the testing API only and
  *                          thus not considered part of the public API of
  *                          MbedTLS and thus may change without notice.
  *
- * \param thread_create     The thread create function implementation
- * \param thread_join       The thread join function implementation
+ * \param thread_create     The thread create function implementation.
+ * \param thread_join       The thread join function implementation.
 
  */
 void mbedtls_test_thread_set_alt(int (*thread_create)(mbedtls_test_thread_t *thread,

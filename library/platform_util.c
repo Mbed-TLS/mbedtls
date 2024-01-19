@@ -217,15 +217,6 @@ struct tm *mbedtls_platform_gmtime_r(const mbedtls_time_t *tt,
 void (*mbedtls_test_hook_test_fail)(const char *, int, const char *);
 #endif /* MBEDTLS_TEST_HOOKS */
 
-/*
- * Provide external definitions of some inline functions so that the compiler
- * has the option to not inline them
- */
-extern inline void mbedtls_xor(unsigned char *r,
-                               const unsigned char *a,
-                               const unsigned char *b,
-                               size_t n);
-
 #if defined(MBEDTLS_HAVE_TIME) && !defined(MBEDTLS_PLATFORM_MS_TIME_ALT)
 
 #include <time.h>

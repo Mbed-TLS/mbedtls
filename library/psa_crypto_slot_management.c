@@ -30,20 +30,6 @@
 typedef struct {
     psa_key_slot_t key_slots[MBEDTLS_PSA_KEY_SLOT_COUNT];
     uint8_t key_slots_initialized;
-
-#if defined(MBEDTLS_THREADING_C)
-    /*
-     * A mutex used to make the PSA subsystem thread safe.
-     *
-     * key_slot_mutex protects key_slots[i].registered_readers and
-     * key_slots[i].state for all valid i.
-     *
-     * This mutex must be held when any read from or write to a state or
-     * registered_readers field is performed, i.e. when calling functions:
-     * psa_key_slot_state_transition, psa_register_read, psa_unregister_read,
-     * psa_key_slot_has_readers and psa_wipe_key_slot. */
-    mbedtls_threading_mutex_t MBEDTLS_PRIVATE(key_slot_mutex);
-#endif
 } psa_global_data_t;
 
 static psa_global_data_t global_data;
@@ -147,14 +133,7 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
 
 psa_status_t psa_initialize_key_slots(void)
 {
-#if defined(MBEDTLS_THREADING_C)
-    /* Initialize the global key slot mutex. */
-    if (!global_data.key_slots_initialized) {
-        mbedtls_mutex_init(&global_data.key_slot_mutex);
-    }
-#endif
-
-    /* Program startup and psa_wipe_all_key_slots() both
+    /* Nothing to do: program startup and psa_wipe_all_key_slots() both
      * guarantee that the key slots are initialized to all-zero, which
      * means that all the key slots are in a valid, empty state. */
     global_data.key_slots_initialized = 1;
@@ -171,14 +150,6 @@ void psa_wipe_all_key_slots(void)
         slot->state = PSA_SLOT_PENDING_DELETION;
         (void) psa_wipe_key_slot(slot);
     }
-
-#if defined(MBEDTLS_THREADING_C)
-    /* Free the global key slot mutex. */
-    if (global_data.key_slots_initialized) {
-        mbedtls_mutex_free(&global_data.key_slot_mutex);
-    }
-#endif
-
     global_data.key_slots_initialized = 0;
 }
 

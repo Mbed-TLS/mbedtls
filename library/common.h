@@ -158,7 +158,7 @@ static inline const unsigned char *mbedtls_buffer_offset_const(
     return p == NULL ? NULL : p + n;
 }
 
-/* Always inline mbedtls_xor for similar reasons as mbedtls_xor_no_simd. */
+/* Always inline mbedtls_xor() for similar reasons as mbedtls_xor_no_simd(). */
 #if defined(__IAR_SYSTEMS_ICC__)
 #pragma inline = forced
 #elif defined(__GNUC__)
@@ -175,12 +175,12 @@ __attribute__((always_inline))
  * \param   b Pointer to input (buffer of at least \p n bytes)
  * \param   n Number of bytes to process.
  *
- * \note      Depending on the situation, it may be faster to use either mbedtls_xor or
- *            mbedtls_xor_no_simd (these are functionally equivalent).
+ * \note      Depending on the situation, it may be faster to use either mbedtls_xor() or
+ *            mbedtls_xor_no_simd() (these are functionally equivalent).
  *            If the result is used immediately after the xor operation in non-SIMD code (e.g, in
  *            AES-CBC), there may be additional latency to transfer the data from SIMD to scalar
- *            registers, and in this case, mbedtls_xor_no_simd may be faster. In other cases where
- *            the result is not used immediately (e.g., in AES-CTR), mbedtls_xor may be faster.
+ *            registers, and in this case, mbedtls_xor_no_simd() may be faster. In other cases where
+ *            the result is not used immediately (e.g., in AES-CTR), mbedtls_xor() may be faster.
  *            For targets without SIMD support, they will behave the same.
  */
 static inline void mbedtls_xor(unsigned char *r,
@@ -199,10 +199,10 @@ static inline void mbedtls_xor(unsigned char *r,
         uint8x16_t x = veorq_u8(v1, v2);
         vst1q_u8(r + i, x);
     }
-    // This if statement helps some compilers (e.g., IAR) optimise out the byte-by-byte tail case
-    // where n is a constant multiple of 16.
-    // It makes no difference for others (e.g. recent gcc and clang) if n is a compile-time
-    // constant, and very little difference if n is not a compile-time constant.
+    /* This if statement helps some compilers (e.g., IAR) optimise out the byte-by-byte tail case
+     * where n is a constant multiple of 16.
+     * It makes no difference for others (e.g. recent gcc and clang) if n is a compile-time
+     * constant, and very little difference if n is not a compile-time constant. */
     if (n % 16 != 0)
 #elif defined(MBEDTLS_ARCH_IS_X64) || defined(MBEDTLS_ARCH_IS_ARM64)
     /* This codepath probably only makes sense on architectures with 64-bit registers */
@@ -226,7 +226,7 @@ static inline void mbedtls_xor(unsigned char *r,
     }
 }
 
-/* Always inline mbedtls_xor_no_simd as we see significant perf regressions when it does not get
+/* Always inline mbedtls_xor_no_simd() as we see significant perf regressions when it does not get
  * inlined (e.g., observed about 3x perf difference in gcm_mult_largetable with gcc 7 - 12) */
 #if defined(__IAR_SYSTEMS_ICC__)
 #pragma inline = forced
@@ -237,7 +237,7 @@ __attribute__((always_inline))
  * Perform a fast block XOR operation, such that
  * r[i] = a[i] ^ b[i] where 0 <= i < n
  *
- * In some situations, this can perform better than mbedtls_xor (e.g., it's about 5%
+ * In some situations, this can perform better than mbedtls_xor() (e.g., it's about 5%
  * better in AES-CBC).
  *
  * \param   r Pointer to result (buffer of at least \p n bytes). \p r
@@ -247,12 +247,12 @@ __attribute__((always_inline))
  * \param   b Pointer to input (buffer of at least \p n bytes)
  * \param   n Number of bytes to process.
  *
- * \note      Depending on the situation, it may be faster to use either mbedtls_xor or
- *            mbedtls_xor_no_simd (these are functionally equivalent).
+ * \note      Depending on the situation, it may be faster to use either mbedtls_xor() or
+ *            mbedtls_xor_no_simd() (these are functionally equivalent).
  *            If the result is used immediately after the xor operation in non-SIMD code (e.g, in
  *            AES-CBC), there may be additional latency to transfer the data from SIMD to scalar
- *            registers, and in this case, mbedtls_xor_no_simd may be faster. In other cases where
- *            the result is not used immediately (e.g., in AES-CTR), mbedtls_xor may be faster.
+ *            registers, and in this case, mbedtls_xor_no_simd() may be faster. In other cases where
+ *            the result is not used immediately (e.g., in AES-CTR), mbedtls_xor() may be faster.
  *            For targets without SIMD support, they will behave the same.
  */
 static inline void mbedtls_xor_no_simd(unsigned char *r,
@@ -268,10 +268,10 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
         uint64_t x = mbedtls_get_unaligned_uint64(a + i) ^ mbedtls_get_unaligned_uint64(b + i);
         mbedtls_put_unaligned_uint64(r + i, x);
     }
-    // This if statement helps some compilers (e.g., IAR) optimise out the byte-by-byte tail case
-    // where n is a constant multiple of 8.
-    // It makes no difference for others (e.g. recent gcc and clang) if n is a compile-time
-    // constant, and very little difference if n is not a compile-time constant.
+    /* This if statement helps some compilers (e.g., IAR) optimise out the byte-by-byte tail case
+     * where n is a constant multiple of 16.
+     * It makes no difference for others (e.g. recent gcc and clang) if n is a compile-time
+     * constant, and very little difference if n is not a compile-time constant. */
     if (n % 8 != 0)
 #else
     for (; (i + 4) <= n; i += 4) {

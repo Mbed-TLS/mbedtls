@@ -3155,6 +3155,14 @@ X509 File parse (conforms to RFC 5480 / RFC 5758 - AlgorithmIdentifier's paramet
 depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_MD_CAN_SHA256
 x509parse_crt_file:"data_files/parse_input/server5.crt":0
 
+X509 File parse & read the ca_istrue field (Not Set)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAVE_TIME_DATE:MBEDTLS_MD_CAN_SHA1
+mbedtls_x509_get_ca_istrue:"data_files/parse_input/server1.crt":0
+
+X509 File parse & read the ca_istrue field (Set)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAVE_TIME_DATE:MBEDTLS_MD_CAN_SHA1
+mbedtls_x509_get_ca_istrue:"data_files/test-ca.crt":1
+
 X509 Get time (UTC no issues)
 depends_on:MBEDTLS_X509_USE_C
 x509_get_time:MBEDTLS_ASN1_UTC_TIME:"500101000000Z":0:1950:1:1:0:0:0

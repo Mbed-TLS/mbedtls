@@ -288,7 +288,15 @@ void mbedtls_test_increment_case_uses_negative_0(void)
 #endif /* MBEDTLS_THREADING_C */
 }
 
-#endif
+#endif /* MBEDTLS_BIGNUM_C */
+
+#ifdef MBEDTLS_TEST_MUTEX_USAGE
+mbedtls_threading_mutex_t *mbedtls_test_get_info_mutex(void)
+{
+    return &mbedtls_test_info_mutex;
+}
+
+#endif /* MBEDTLS_TEST_MUTEX_USAGE */
 
 /*----------------------------------------------------------------------------*/
 /* Helper Functions */

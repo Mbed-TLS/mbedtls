@@ -37,6 +37,7 @@
 
 #if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_PTHREAD) && \
     defined(MBEDTLS_TEST_HOOKS)
+#include "mbedtls/threading.h"
 #define MBEDTLS_TEST_MUTEX_USAGE
 #endif
 
@@ -230,8 +231,21 @@ void mbedtls_test_set_step(unsigned long step);
  */
 void mbedtls_test_info_reset(void);
 
+#ifdef MBEDTLS_TEST_MUTEX_USAGE
 /**
- * \brief           Record the current test case as a failure if two integers
+ * \brief       Get the test info data mutex.
+ *
+ * \note        This is designed only to be used by threading_helpers to avoid a
+ *              deadlock, not for general access to this mutex.
+ *
+ * \return      The test info data mutex.
+ */
+mbedtls_threading_mutex_t *mbedtls_test_get_info_mutex(void);
+
+#endif /* MBEDTLS_TEST_MUTEX_USAGE */
+
+/**
+ * \brief Record the current test case as a failure if two integers
  *                  have a different value.
  *
  *                  This function is usually called via the macro

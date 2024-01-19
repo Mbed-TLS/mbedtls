@@ -117,8 +117,6 @@ static void mbedtls_test_mutex_usage_error(mbedtls_threading_mutex_t *mutex,
      * mbedtls_test_mutex_usage_check() will mark it as failed. */
 }
 
-extern mbedtls_threading_mutex_t mbedtls_test_info_mutex;
-
 static int mbedtls_test_mutex_can_test(mbedtls_threading_mutex_t *mutex)
 {
     /* If we attempt to run tests on this mutex then we are going to run into a
@@ -127,7 +125,7 @@ static int mbedtls_test_mutex_can_test(mbedtls_threading_mutex_t *mutex)
      * reporting that failure, as we already hold the mutex at that point.
      * 2. Given the 'global' position of the initialization and free of this
      * mutex, it will be shown as leaked on the first test run. */
-    if (mutex == &mbedtls_test_info_mutex) {
+    if (mutex == mbedtls_test_get_info_mutex()) {
         return 0;
     }
 

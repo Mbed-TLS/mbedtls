@@ -1,10 +1,7 @@
 MBEDTLS_TEST_PATH:=../../tests
 
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../../tests/include -I../../include -D_FILE_OFFSET_BITS=64
 MBEDTLS_PATH := ../..
 include ../../scripts/common.make
-
-LOCAL_CFLAGS += $(patsubst -I../%,-I../../%,$(THIRDPARTY_INCLUDES))
 
 DEP=${MBEDLIBS}
 

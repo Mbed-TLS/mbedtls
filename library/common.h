@@ -174,6 +174,14 @@ __attribute__((always_inline))
  * \param   a Pointer to input (buffer of at least \p n bytes)
  * \param   b Pointer to input (buffer of at least \p n bytes)
  * \param   n Number of bytes to process.
+ *
+ * \note      Depending on the situation, it may be faster to use either mbedtls_xor or
+ *            mbedtls_xor_no_simd (these are functionally equivalent).
+ *            If the result is used immediately after the xor operation in non-SIMD code (e.g, in
+ *            AES-CBC), there may be additional latency to transfer the data from SIMD to scalar
+ *            registers, and in this case, mbedtls_xor_no_simd may be faster. In other cases where
+ *            the result is not used immediately (e.g., in AES-CTR), mbedtls_xor may be faster.
+ *            For targets without SIMD support, they will behave the same.
  */
 static inline void mbedtls_xor(unsigned char *r,
                                const unsigned char *a,
@@ -238,6 +246,14 @@ __attribute__((always_inline))
  * \param   a Pointer to input (buffer of at least \p n bytes)
  * \param   b Pointer to input (buffer of at least \p n bytes)
  * \param   n Number of bytes to process.
+ *
+ * \note      Depending on the situation, it may be faster to use either mbedtls_xor or
+ *            mbedtls_xor_no_simd (these are functionally equivalent).
+ *            If the result is used immediately after the xor operation in non-SIMD code (e.g, in
+ *            AES-CBC), there may be additional latency to transfer the data from SIMD to scalar
+ *            registers, and in this case, mbedtls_xor_no_simd may be faster. In other cases where
+ *            the result is not used immediately (e.g., in AES-CTR), mbedtls_xor may be faster.
+ *            For targets without SIMD support, they will behave the same.
  */
 static inline void mbedtls_xor_no_simd(unsigned char *r,
                                        const unsigned char *a,

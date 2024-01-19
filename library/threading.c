@@ -149,7 +149,7 @@ void mbedtls_threading_set_alt(void (*mutex_init)(mbedtls_threading_mutex_t *),
     mbedtls_mutex_init(&mbedtls_threading_gmtime_mutex);
 #endif
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-    mbedtls_mutext_init(&mbedtls_threading_key_slot_mutex);
+    mbedtls_mutex_init(&mbedtls_threading_key_slot_mutex);
 #endif
 }
 

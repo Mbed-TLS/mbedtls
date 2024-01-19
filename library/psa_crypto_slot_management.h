@@ -154,6 +154,7 @@ static inline psa_status_t psa_key_slot_state_transition(
  * This function increments the key slot registered reader counter by one.
  * If multi-threading is enabled, the caller must hold the
  * global key slot mutex.
+ *
  * \param[in] slot  The key slot.
  *
  * \retval #PSA_SUCCESS

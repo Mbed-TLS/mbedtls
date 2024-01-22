@@ -144,6 +144,7 @@ void debug_print_msg_threshold(int threshold, int level, char *file,
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
     struct buffer_data buffer;
+    size_t len = 10;
 
     mbedtls_ssl_init(&ssl);
     mbedtls_ssl_config_init(&conf);
@@ -163,7 +164,8 @@ void debug_print_msg_threshold(int threshold, int level, char *file,
     mbedtls_debug_set_threshold(threshold);
 
     mbedtls_debug_print_msg(&ssl, level, file, line,
-                            "Text message, 2 == %d", 2);
+                            "Text message, 2 == %d, len=%" MBEDTLS_PRINTF_SIZET,
+                            2, len);
 
     TEST_ASSERT(strcmp(buffer.buf, result_str) == 0);
 

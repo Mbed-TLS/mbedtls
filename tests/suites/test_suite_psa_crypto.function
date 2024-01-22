@@ -2109,7 +2109,8 @@ void asymmetric_encryption_key_policy(int policy_usage_arg,
                                       int policy_alg,
                                       int key_type,
                                       data_t *key_data,
-                                      int exercise_alg)
+                                      int exercise_alg,
+                                      int use_opaque_key)
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -2125,6 +2126,11 @@ void asymmetric_encryption_key_policy(int policy_usage_arg,
     psa_set_key_usage_flags(&attributes, policy_usage);
     psa_set_key_algorithm(&attributes, policy_alg);
     psa_set_key_type(&attributes, key_type);
+
+    if (use_opaque_key) {
+        psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+                                 PSA_KEY_PERSISTENCE_VOLATILE, TEST_DRIVER_LOCATION));
+    }
 
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
                               &key));

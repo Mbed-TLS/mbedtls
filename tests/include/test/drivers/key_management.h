@@ -67,6 +67,10 @@ void mbedtls_test_transparent_free(void);
 psa_status_t mbedtls_test_opaque_init(void);
 void mbedtls_test_opaque_free(void);
 
+psa_status_t mbedtls_test_opaque_unwrap_key(
+    const uint8_t *wrapped_key, size_t wrapped_key_length, uint8_t *key_buffer,
+    size_t key_buffer_size, size_t *key_buffer_length);
+
 psa_status_t mbedtls_test_transparent_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key, size_t key_size, size_t *key_length);

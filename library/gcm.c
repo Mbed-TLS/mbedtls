@@ -354,9 +354,12 @@ int mbedtls_gcm_update_ad(mbedtls_gcm_context *ctx,
 {
     const unsigned char *p;
     size_t use_len, offset;
+    uint64_t new_add_len;
 
-    /* IV is limited to 2^64 bits, so 2^61 bytes */
-    if ((uint64_t) add_len >> 61 != 0) {
+    /* AD is limited to 2^64 bits, ie 2^61 bytes
+     * Also check for possible overflow */
+    new_add_len = ctx->add_len + add_len;
+    if (new_add_len < ctx->add_len || new_add_len >> 61 != 0) {
         return MBEDTLS_ERR_GCM_BAD_INPUT;
     }
 

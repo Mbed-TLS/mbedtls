@@ -8079,10 +8079,11 @@ exit:
 
 psa_status_t psa_pake_set_user(
     psa_pake_operation_t *operation,
-    const uint8_t *user_id,
+    const uint8_t *user_id_external,
     size_t user_id_len)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    LOCAL_INPUT_DECLARE(user_id_external, user_id);
 
     if (operation->stage != PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS) {
         status = PSA_ERROR_BAD_STATE;
@@ -8105,21 +8106,28 @@ psa_status_t psa_pake_set_user(
         goto exit;
     }
 
+    LOCAL_INPUT_ALLOC(user_id_external, user_id_len, user_id);
+
     memcpy(operation->data.inputs.user, user_id, user_id_len);
     operation->data.inputs.user_len = user_id_len;
 
-    return PSA_SUCCESS;
+    status = PSA_SUCCESS;
+
 exit:
-    psa_pake_abort(operation);
+    LOCAL_INPUT_FREE(user_id_external, user_id);
+    if (status != PSA_SUCCESS) {
+        psa_pake_abort(operation);
+    }
     return status;
 }
 
 psa_status_t psa_pake_set_peer(
     psa_pake_operation_t *operation,
-    const uint8_t *peer_id,
+    const uint8_t *peer_id_external,
     size_t peer_id_len)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    LOCAL_INPUT_DECLARE(peer_id_external, peer_id);
 
     if (operation->stage != PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS) {
         status = PSA_ERROR_BAD_STATE;
@@ -8142,12 +8150,18 @@ psa_status_t psa_pake_set_peer(
         goto exit;
     }
 
+    LOCAL_INPUT_ALLOC(peer_id_external, peer_id_len, peer_id);
+
     memcpy(operation->data.inputs.peer, peer_id, peer_id_len);
     operation->data.inputs.peer_len = peer_id_len;
 
-    return PSA_SUCCESS;
+    status = PSA_SUCCESS;
+
 exit:
-    psa_pake_abort(operation);
+    LOCAL_INPUT_FREE(peer_id_external, peer_id);
+    if (status != PSA_SUCCESS) {
+        psa_pake_abort(operation);
+    }
     return status;
 }
 

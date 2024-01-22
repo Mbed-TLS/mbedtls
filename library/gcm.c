@@ -542,6 +542,9 @@ int mbedtls_gcm_finish(mbedtls_gcm_context *ctx,
     (void) output_size;
     *output_length = 0;
 
+    /* Total length is restricted to 2^39 - 256 bits, ie 2^36 - 2^5 bytes
+     * and AD length is restricted to 2^64 bits, ie 2^61 bytes so neither of
+     * the two multiplications would overflow. */
     orig_len = ctx->len * 8;
     orig_add_len = ctx->add_len * 8;
 

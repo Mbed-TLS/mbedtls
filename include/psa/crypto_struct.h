@@ -68,6 +68,9 @@ extern "C" {
 #include "psa/crypto_driver_contexts_primitives.h"
 
 struct psa_hash_operation_s {
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_psa_client_handle_t handle;
+#else
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
      * drivers halfway through the operation is not supported.
@@ -76,6 +79,7 @@ struct psa_hash_operation_s {
      * any driver (i.e. the driver context is not active, in use). */
     unsigned int MBEDTLS_PRIVATE(id);
     psa_driver_hash_context_t MBEDTLS_PRIVATE(ctx);
+#endif
 };
 
 #define PSA_HASH_OPERATION_INIT { 0, { 0 } }
@@ -86,6 +90,9 @@ static inline struct psa_hash_operation_s psa_hash_operation_init(void)
 }
 
 struct psa_cipher_operation_s {
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_psa_client_handle_t handle;
+#else
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
      * drivers halfway through the operation is not supported.
@@ -100,6 +107,7 @@ struct psa_cipher_operation_s {
     uint8_t MBEDTLS_PRIVATE(default_iv_length);
 
     psa_driver_cipher_context_t MBEDTLS_PRIVATE(ctx);
+#endif
 };
 
 #define PSA_CIPHER_OPERATION_INIT { 0, 0, 0, 0, { 0 } }
@@ -114,6 +122,9 @@ static inline struct psa_cipher_operation_s psa_cipher_operation_init(void)
 #include "psa/crypto_driver_contexts_composites.h"
 
 struct psa_mac_operation_s {
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_psa_client_handle_t handle;
+#else
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
      * drivers halfway through the operation is not supported.
@@ -124,6 +135,7 @@ struct psa_mac_operation_s {
     uint8_t MBEDTLS_PRIVATE(mac_size);
     unsigned int MBEDTLS_PRIVATE(is_sign) : 1;
     psa_driver_mac_context_t MBEDTLS_PRIVATE(ctx);
+#endif
 };
 
 #define PSA_MAC_OPERATION_INIT { 0, 0, 0, { 0 } }
@@ -134,7 +146,9 @@ static inline struct psa_mac_operation_s psa_mac_operation_init(void)
 }
 
 struct psa_aead_operation_s {
-
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_psa_client_handle_t handle;
+#else
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
      * drivers halfway through the operation is not supported.
@@ -156,6 +170,7 @@ struct psa_aead_operation_s {
     unsigned int MBEDTLS_PRIVATE(is_encrypt) : 1;
 
     psa_driver_aead_context_t MBEDTLS_PRIVATE(ctx);
+#endif
 };
 
 #define PSA_AEAD_OPERATION_INIT { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 } }
@@ -170,10 +185,14 @@ static inline struct psa_aead_operation_s psa_aead_operation_init(void)
 #include "psa/crypto_driver_contexts_key_derivation.h"
 
 struct psa_key_derivation_s {
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_psa_client_handle_t handle;
+#else
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
     unsigned int MBEDTLS_PRIVATE(can_output_key) : 1;
     size_t MBEDTLS_PRIVATE(capacity);
     psa_driver_key_derivation_context_t MBEDTLS_PRIVATE(ctx);
+#endif
 };
 
 /* This only zeroes out the first byte in the union, the rest is unspecified. */

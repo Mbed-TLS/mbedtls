@@ -514,6 +514,58 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
             return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        case MBEDTLS_PK_OPAQUE:
+        {
+            psa_key_attributes_t old_attributes = PSA_KEY_ATTRIBUTES_INIT;
+            psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+            status = psa_get_key_attributes(pk->priv_id, &old_attributes);
+            if (status != PSA_SUCCESS) {
+                return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+            }
+            psa_key_type_t old_type = psa_get_key_type(&old_attributes);
+            switch (usage) {
+                case PSA_KEY_USAGE_SIGN_MESSAGE:
+                case PSA_KEY_USAGE_SIGN_HASH:
+                case PSA_KEY_USAGE_VERIFY_MESSAGE:
+                case PSA_KEY_USAGE_VERIFY_HASH:
+                    if (!(PSA_KEY_TYPE_IS_ECC_KEY_PAIR(old_type) ||
+                          old_type == PSA_KEY_TYPE_RSA_KEY_PAIR)) {
+                        return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+                    }
+                    break;
+                case PSA_KEY_USAGE_DECRYPT:
+                case PSA_KEY_USAGE_ENCRYPT:
+                    if (old_type != PSA_KEY_TYPE_RSA_KEY_PAIR) {
+                        return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+                    }
+                    break;
+                case PSA_KEY_USAGE_DERIVE:
+                    if (!(PSA_KEY_TYPE_IS_ECC_KEY_PAIR(old_type))) {
+                        return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+                    }
+                    break;
+                    break;
+                default:
+                    return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+            }
+            psa_key_type_t new_type = old_type;
+            /* Opaque keys are always key pairs, so we don't need a check
+             * on the input if the required usage is private. We just need
+             * to adjust the type correctly if the required usage is public. */
+            if (usage == PSA_KEY_USAGE_VERIFY_MESSAGE ||
+                usage == PSA_KEY_USAGE_VERIFY_HASH ||
+                usage == PSA_KEY_USAGE_ENCRYPT) {
+                new_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(new_type);
+            }
+            more_usage = psa_get_key_usage_flags(&old_attributes);
+            psa_set_key_type(attributes, new_type);
+            psa_set_key_bits(attributes, psa_get_key_bits(&old_attributes));
+            psa_set_key_algorithm(attributes, psa_get_key_algorithm(&old_attributes));
+            break;
+        }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
         default:
             return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }

@@ -1808,3 +1808,57 @@ exit:
     MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_USE_PSA_CRYPTO */
+void pk_get_psa_attributes_opaque(int o_type_arg, int o_bits_arg,
+                                  int o_usage_arg, int o_alg_arg,
+                                  int usage_arg,
+                                  int expected_ret,
+                                  int to_pair, int expected_usage_arg)
+{
+    mbedtls_pk_context pk;
+    mbedtls_pk_init(&pk);
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t o_type = o_type_arg;
+    size_t bits = o_bits_arg;
+    psa_key_usage_t o_usage = o_usage_arg;
+    psa_algorithm_t alg = o_alg_arg;
+    psa_key_usage_t usage = usage_arg;
+    psa_key_usage_t expected_usage = expected_usage_arg;
+
+    USE_PSA_INIT();
+
+    psa_set_key_type(&attributes, o_type);
+    psa_set_key_bits(&attributes, bits);
+    psa_set_key_usage_flags(&attributes, o_usage);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_enrollment_algorithm(&attributes, 42);
+    //TODO: test with persistent key
+    PSA_ASSERT(psa_generate_key(&attributes, &key_id));
+    TEST_EQUAL(mbedtls_pk_setup_opaque(&pk, key_id), 0);
+
+    psa_key_type_t expected_psa_type =
+        to_pair ? o_type : PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(o_type);
+
+    TEST_EQUAL(mbedtls_pk_get_psa_attributes(&pk, usage, &attributes),
+               expected_ret);
+
+    if (expected_ret == 0) {
+        TEST_EQUAL(psa_get_key_lifetime(&attributes), PSA_KEY_LIFETIME_VOLATILE);
+        TEST_ASSERT(mbedtls_svc_key_id_equal(psa_get_key_id(&attributes),
+                                             MBEDTLS_SVC_KEY_ID_INIT));
+        TEST_EQUAL(psa_get_key_type(&attributes), expected_psa_type);
+        TEST_EQUAL(psa_get_key_bits(&attributes), bits);
+        TEST_EQUAL(psa_get_key_usage_flags(&attributes), expected_usage);
+        TEST_EQUAL(psa_get_key_algorithm(&attributes), alg);
+        TEST_EQUAL(psa_get_key_enrollment_algorithm(&attributes), PSA_ALG_NONE);
+    }
+
+exit:
+    mbedtls_pk_free(&pk);
+    psa_destroy_key(key_id);
+    psa_reset_key_attributes(&attributes);
+    USE_PSA_DONE();
+}
+/* END_CASE */

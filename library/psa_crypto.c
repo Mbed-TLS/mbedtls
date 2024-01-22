@@ -8347,12 +8347,13 @@ static psa_status_t psa_jpake_epilogue(
 psa_status_t psa_pake_output(
     psa_pake_operation_t *operation,
     psa_pake_step_t step,
-    uint8_t *output,
+    uint8_t *output_external,
     size_t output_size,
     size_t *output_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_crypto_driver_pake_step_t driver_step = PSA_JPAKE_STEP_INVALID;
+    LOCAL_OUTPUT_DECLARE(output_external, output);
     *output_length = 0;
 
     if (operation->stage == PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS) {
@@ -8389,6 +8390,8 @@ psa_status_t psa_pake_output(
             goto exit;
     }
 
+    LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
+
     status = psa_driver_wrapper_pake_output(operation, driver_step,
                                             output, output_size, output_length);
 
@@ -8410,16 +8413,19 @@ psa_status_t psa_pake_output(
             goto exit;
     }
 
-    return PSA_SUCCESS;
+    status = PSA_SUCCESS;
 exit:
-    psa_pake_abort(operation);
+    LOCAL_OUTPUT_FREE(output_external, output);
+    if (status != PSA_SUCCESS) {
+        psa_pake_abort(operation);
+    }
     return status;
 }
 
 psa_status_t psa_pake_input(
     psa_pake_operation_t *operation,
     psa_pake_step_t step,
-    const uint8_t *input,
+    const uint8_t *input_external,
     size_t input_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
@@ -8427,6 +8433,7 @@ psa_status_t psa_pake_input(
     const size_t max_input_length = (size_t) PSA_PAKE_INPUT_SIZE(operation->alg,
                                                                  operation->primitive,
                                                                  step);
+    LOCAL_INPUT_DECLARE(input_external, input);
 
     if (operation->stage == PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS) {
         status = psa_pake_complete_inputs(operation);
@@ -8462,6 +8469,7 @@ psa_status_t psa_pake_input(
             goto exit;
     }
 
+    LOCAL_INPUT_ALLOC(input_external, input_length, input);
     status = psa_driver_wrapper_pake_input(operation, driver_step,
                                            input, input_length);
 
@@ -8483,9 +8491,12 @@ psa_status_t psa_pake_input(
             goto exit;
     }
 
-    return PSA_SUCCESS;
+    status = PSA_SUCCESS;
 exit:
-    psa_pake_abort(operation);
+    LOCAL_INPUT_FREE(input_external, input);
+    if (status != PSA_SUCCESS) {
+        psa_pake_abort(operation);
+    }
     return status;
 }
 

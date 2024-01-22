@@ -81,8 +81,11 @@ struct psa_hash_operation_s {
     psa_driver_hash_context_t MBEDTLS_PRIVATE(ctx);
 #endif
 };
-
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_HASH_OPERATION_INIT { 0 }
+#else
 #define PSA_HASH_OPERATION_INIT { 0, { 0 } }
+#endif
 static inline struct psa_hash_operation_s psa_hash_operation_init(void)
 {
     const struct psa_hash_operation_s v = PSA_HASH_OPERATION_INIT;
@@ -110,7 +113,11 @@ struct psa_cipher_operation_s {
 #endif
 };
 
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_CIPHER_OPERATION_INIT { 0 }
+#else
 #define PSA_CIPHER_OPERATION_INIT { 0, 0, 0, 0, { 0 } }
+#endif
 static inline struct psa_cipher_operation_s psa_cipher_operation_init(void)
 {
     const struct psa_cipher_operation_s v = PSA_CIPHER_OPERATION_INIT;
@@ -138,7 +145,11 @@ struct psa_mac_operation_s {
 #endif
 };
 
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_MAC_OPERATION_INIT { 0 }
+#else
 #define PSA_MAC_OPERATION_INIT { 0, 0, 0, { 0 } }
+#endif
 static inline struct psa_mac_operation_s psa_mac_operation_init(void)
 {
     const struct psa_mac_operation_s v = PSA_MAC_OPERATION_INIT;
@@ -173,7 +184,11 @@ struct psa_aead_operation_s {
 #endif
 };
 
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_AEAD_OPERATION_INIT { 0 }
+#else
 #define PSA_AEAD_OPERATION_INIT { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 } }
+#endif
 static inline struct psa_aead_operation_s psa_aead_operation_init(void)
 {
     const struct psa_aead_operation_s v = PSA_AEAD_OPERATION_INIT;
@@ -195,8 +210,12 @@ struct psa_key_derivation_s {
 #endif
 };
 
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_KEY_DERIVATION_OPERATION_INIT { 0 }
+#else
 /* This only zeroes out the first byte in the union, the rest is unspecified. */
 #define PSA_KEY_DERIVATION_OPERATION_INIT { 0, 0, 0, { 0 } }
+#endif
 static inline struct psa_key_derivation_s psa_key_derivation_operation_init(
     void)
 {

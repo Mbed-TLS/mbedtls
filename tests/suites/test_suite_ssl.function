@@ -19,6 +19,7 @@ void test_callback_buffer_sanity()
 {
     enum { MSGLEN = 10 };
     mbedtls_test_ssl_buffer buf;
+    mbedtls_test_ssl_buffer_init(&buf);
     unsigned char input[MSGLEN];
     unsigned char output[MSGLEN];
 
@@ -38,8 +39,6 @@ void test_callback_buffer_sanity()
 
     /* Make sure calling put and get on a buffer that hasn't been set up results
      * in error. */
-    mbedtls_test_ssl_buffer_init(&buf);
-
     TEST_ASSERT(mbedtls_test_ssl_buffer_put(&buf, input, sizeof(input))
                 == -1);
     TEST_ASSERT(mbedtls_test_ssl_buffer_get(&buf, output, sizeof(output))
@@ -1186,7 +1185,7 @@ void ssl_crypt_record(int cipher_type, int hash_id,
                                                   (size_t) cid0_len,
                                                   (size_t) cid1_len) == 0);
 
-    TEST_ASSERT((buf = mbedtls_calloc(1, buflen)) != NULL);
+    TEST_CALLOC(buf, buflen);
 
     while (num_records-- > 0) {
         mbedtls_ssl_transform *t_dec, *t_enc;
@@ -1336,7 +1335,7 @@ void ssl_crypt_record_small(int cipher_type, int hash_id,
                                                   (size_t) cid0_len,
                                                   (size_t) cid1_len) == 0);
 
-    TEST_ASSERT((buf = mbedtls_calloc(1, buflen)) != NULL);
+    TEST_CALLOC(buf, buflen);
 
     for (mode = 1; mode <= 3; mode++) {
         seen_success = 0;
@@ -1637,7 +1636,7 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file)
     /* Serialize it */
     TEST_ASSERT(mbedtls_ssl_session_save(&original, NULL, 0, &len)
                 == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
-    TEST_ASSERT((buf = mbedtls_calloc(1, len)) != NULL);
+    TEST_CALLOC(buf, len);
     TEST_ASSERT(mbedtls_ssl_session_save(&original, buf, len, &len)
                 == 0);
 
@@ -1792,7 +1791,8 @@ void ssl_serialize_session_save_buf_size(int ticket_len, char *crt_file)
     for (bad_len = 1; bad_len < good_len; bad_len++) {
         /* Allocate exact size so that asan/valgrind can detect any overwrite */
         mbedtls_free(buf);
-        TEST_ASSERT((buf = mbedtls_calloc(1, bad_len)) != NULL);
+        buf = NULL;
+        TEST_CALLOC(buf, bad_len);
         TEST_ASSERT(mbedtls_ssl_session_save(&session, buf, bad_len,
                                              &test_len)
                     == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
@@ -1824,7 +1824,7 @@ void ssl_serialize_session_load_buf_size(int ticket_len, char *crt_file)
                     &session, ticket_len, crt_file) == 0);
     TEST_ASSERT(mbedtls_ssl_session_save(&session, NULL, 0, &good_len)
                 == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL);
-    TEST_ASSERT((good_buf = mbedtls_calloc(1, good_len)) != NULL);
+    TEST_CALLOC(good_buf, good_len);
     TEST_ASSERT(mbedtls_ssl_session_save(&session, good_buf, good_len,
                                          &good_len) == 0);
     mbedtls_ssl_session_free(&session);
@@ -1833,8 +1833,8 @@ void ssl_serialize_session_load_buf_size(int ticket_len, char *crt_file)
     for (bad_len = 0; bad_len < good_len; bad_len++) {
         /* Allocate exact size so that asan/valgrind can detect any overread */
         mbedtls_free(bad_buf);
-        bad_buf = mbedtls_calloc(1, bad_len ? bad_len : 1);
-        TEST_ASSERT(bad_buf != NULL);
+        bad_buf = NULL;
+        TEST_CALLOC_NONNULL(bad_buf, bad_len);
         memcpy(bad_buf, good_buf, bad_len);
 
         TEST_ASSERT(mbedtls_ssl_session_load(&session, bad_buf, bad_len)
@@ -1908,6 +1908,8 @@ void ssl_session_serialize_version_check(int corrupt_major,
             *byte ^= corrupted_bit;
         }
     }
+
+exit:
     USE_PSA_DONE();
 }
 /* END_CASE */
@@ -2270,8 +2272,10 @@ void cookie_parsing(data_t *cookie, int exp_ret)
     size_t len;
 
     mbedtls_ssl_init(&ssl);
-    USE_PSA_INIT();
     mbedtls_ssl_config_init(&conf);
+
+    USE_PSA_INIT();
+
     TEST_EQUAL(mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_SERVER,
                                            MBEDTLS_SSL_TRANSPORT_DATAGRAM,
                                            MBEDTLS_SSL_PRESET_DEFAULT),

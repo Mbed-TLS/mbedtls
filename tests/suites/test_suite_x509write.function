@@ -435,10 +435,11 @@ void x509_set_serial_check()
     mbedtls_mpi serial_mpi;
     uint8_t invalid_serial[MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN + 1];
 
+    mbedtls_mpi_init(&serial_mpi);
+
     USE_PSA_INIT();
     memset(invalid_serial, 0x01, sizeof(invalid_serial));
 
-    mbedtls_mpi_init(&serial_mpi);
     TEST_EQUAL(mbedtls_mpi_read_binary(&serial_mpi, invalid_serial,
                                        sizeof(invalid_serial)), 0);
     TEST_EQUAL(mbedtls_x509write_crt_set_serial(&ctx, &serial_mpi),
@@ -457,15 +458,15 @@ void mbedtls_x509_string_to_names(char *name, char *parsed_name, int result
     int ret;
     size_t len = 0;
     mbedtls_asn1_named_data *names = NULL;
-    mbedtls_x509_name parsed, *parsed_cur, *parsed_prv;
-    unsigned char buf[1024], out[1024], *c;
+    mbedtls_x509_name parsed;
+    memset(&parsed, 0, sizeof(parsed));
+    mbedtls_x509_name *parsed_cur = NULL;
+    mbedtls_x509_name *parsed_prv = NULL;
+    unsigned char buf[1024] = { 0 };
+    unsigned char out[1024] = { 0 };
+    unsigned char *c = buf + sizeof(buf);
 
     USE_PSA_INIT();
-
-    memset(&parsed, 0, sizeof(parsed));
-    memset(out, 0, sizeof(out));
-    memset(buf, 0, sizeof(buf));
-    c = buf + sizeof(buf);
 
     ret = mbedtls_x509_string_to_names(&names, name);
     TEST_ASSERT(ret == result);

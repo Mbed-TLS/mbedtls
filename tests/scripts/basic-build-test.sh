@@ -39,8 +39,6 @@ fi
 : ${OPENSSL_LEGACY:="$OPENSSL"}
 : ${GNUTLS_CLI:="gnutls-cli"}
 : ${GNUTLS_SERV:="gnutls-serv"}
-: ${GNUTLS_LEGACY_CLI:="$GNUTLS_CLI"}
-: ${GNUTLS_LEGACY_SERV:="$GNUTLS_SERV"}
 
 # Used to make ssl-opt.sh deterministic.
 #
@@ -69,8 +67,6 @@ OPENSSL="$OPENSSL"                           \
     OPENSSL_LEGACY="$OPENSSL_LEGACY"         \
     GNUTLS_CLI="$GNUTLS_CLI"                 \
     GNUTLS_SERV="$GNUTLS_SERV"               \
-    GNUTLS_LEGACY_CLI="$GNUTLS_LEGACY_CLI"   \
-    GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV" \
     scripts/output_env.sh
 echo
 
@@ -108,17 +104,12 @@ echo
 # Step 2c - Compatibility tests (keep going even if some tests fail)
 echo '################ compat.sh ################'
 {
-    echo '#### compat.sh: Default versions'
-    sh compat.sh -m 'tls1 tls1_1 tls12 dtls1 dtls12'
-    echo
-
-    echo '#### compat.sh: legacy (SSLv3)'
-    OPENSSL="$OPENSSL_LEGACY" sh compat.sh -m 'ssl3'
+    echo '#### compat.sh: Default ciphers'
+    sh compat.sh -m 'ssl3 tls1 tls1_1 tls12 dtls1 dtls12'
     echo
 
     echo '#### compat.sh: legacy (null, DES, RC4)'
     OPENSSL="$OPENSSL_LEGACY" \
-    GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" \
     sh compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR'
     echo
 

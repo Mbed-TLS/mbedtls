@@ -1290,7 +1290,7 @@ void sign_verify(int flow,
     mbedtls_svc_key_id_t returned_id;
     mbedtls_svc_key_id_t sw_key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t sw_attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_attributes_t drv_attributes;
+    psa_key_attributes_t drv_attributes = PSA_KEY_ATTRIBUTES_INIT;
     uint8_t signature[PSA_SIGNATURE_MAX_SIZE];
     size_t signature_length;
 

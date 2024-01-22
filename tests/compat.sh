@@ -98,6 +98,7 @@ FILTER=""
 EXCLUDE='NULL\|DES\|RC4\|ARCFOUR\|ARIA\|CHACHA20-POLY1305'
 VERBOSE=""
 MEMCHECK=0
+PRESERVE_LOGS=0
 PEERS="OpenSSL$PEER_GNUTLS mbedTLS"
 
 # hidden option: skip DTLS with OpenSSL
@@ -116,9 +117,10 @@ print_usage() {
     printf "            \tAlso available: GnuTLS (needs v3.2.15 or higher)\n"
     printf "  -M|--memcheck\tCheck memory leaks and errors.\n"
     printf "  -v|--verbose\tSet verbose output.\n"
-    printf "     --list-test-case\tList all potential test cases (No Execution)\n"
+    printf "     --list-test-cases\tList all potential test cases (No Execution)\n"
     printf "     --outcome-file\tFile where test outcomes are written\n"
     printf "                   \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
+    printf "     --preserve-logs\tPreserve logs of successful tests as well\n"
 }
 
 # print_test_case <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
@@ -130,7 +132,7 @@ print_test_case() {
 }
 
 # list_test_case lists all potential test cases in compat.sh without execution
-list_test_case() {
+list_test_cases() {
     for MODE in $MODES; do
         for TYPE in $TYPES; do
             for VERIFY in $VERIFIES; do
@@ -178,13 +180,16 @@ get_options() {
                 MEMCHECK=1
                 ;;
             # Please check scripts/check_test_cases.py correspondingly
-            # if you have to modify option, --list-test-case
-            --list-test-case)
-                list_test_case
+            # if you have to modify option, --list-test-cases
+            --list-test-cases)
+                list_test_cases
                 exit $?
                 ;;
             --outcome-file)
                 shift; MBEDTLS_TEST_OUTCOME_FILE=$1
+                ;;
+            --preserve-logs)
+                PRESERVE_LOGS=1
                 ;;
             -h|--help)
                 print_usage
@@ -636,7 +641,16 @@ add_gnutls_ciphersuites()
             ;;
 
         "RSA")
-            if [ `minor_ver "$MODE"` -gt 0 ]
+            # TLS-RSA-WITH-NULL-SHA256 is a (D)TLS 1.2-only cipher suite,
+            # like all SHA256 cipher suites. But Mbed TLS supports it with
+            # (D)TLS 1.0 and 1.1 as well. So do ancient versions of GnuTLS,
+            # but this was considered a bug which was fixed in GnuTLS 3.4.7.
+            # Check the GnuTLS support list to see what the protocol version
+            # requirement is for that cipher suite.
+            if [ `minor_ver "$MODE"` -ge 3 ] || {
+                   [ `minor_ver "$MODE"` -gt 0 ] &&
+                   $GNUTLS_CLI --list | grep -q '^TLS_RSA_NULL_SHA256.*0$'
+               }
             then
                 M_CIPHERS="$M_CIPHERS                           \
                     TLS-RSA-WITH-NULL-SHA256                    \
@@ -960,7 +974,7 @@ setup_arguments()
     fi
 
     M_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE arc4=1"
-    O_SERVER_ARGS="-accept $PORT -cipher NULL,ALL -$O_MODE"
+    O_SERVER_ARGS="-accept $PORT -cipher ALL,COMPLEMENTOFALL -$O_MODE"
     G_SERVER_ARGS="-p $PORT --http $G_MODE"
     G_SERVER_PRIO="NORMAL:${G_PRIO_CCM}+ARCFOUR-128:+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+SHA256:+SHA384:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
 
@@ -1206,12 +1220,16 @@ record_outcome() {
     fi
 }
 
+save_logs() {
+    cp $SRV_OUT c-srv-${TESTS}.log
+    cp $CLI_OUT c-cli-${TESTS}.log
+}
+
 # display additional information if test case fails
 report_fail() {
     FAIL_PROMPT="outputs saved to c-srv-${TESTS}.log, c-cli-${TESTS}.log"
     record_outcome "FAIL" "$FAIL_PROMPT"
-    cp $SRV_OUT c-srv-${TESTS}.log
-    cp $CLI_OUT c-cli-${TESTS}.log
+    save_logs
     echo "  ! $FAIL_PROMPT"
 
     if [ "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
@@ -1224,7 +1242,7 @@ report_fail() {
 }
 
 # uniform_title <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
-# $TITLE is considered as test case description for both --list-test-case and
+# $TITLE is considered as test case description for both --list-test-cases and
 # MBEDTLS_TEST_OUTCOME_FILE. This function aims to control the format of
 # each test case description.
 uniform_title() {
@@ -1337,6 +1355,9 @@ run_client() {
     case $RESULT in
         "0")
             record_outcome "PASS"
+            if [ "$PRESERVE_LOGS" -gt 0 ]; then
+                save_logs
+            fi
             ;;
         "1")
             record_outcome "SKIP"

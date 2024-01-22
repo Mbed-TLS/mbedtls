@@ -431,7 +431,6 @@ void x509_parse_san(char *crt_file, char *result_str)
     TEST_EQUAL(strcmp(buf, result_str), 0);
 
 exit:
-
     mbedtls_x509_crt_free(&crt);
     USE_PSA_DONE();
 }
@@ -675,7 +674,7 @@ void x509_verify(char *crt_file, char *ca_file, char *crl_file,
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
     /* CRLs aren't supported with CA callbacks, so skip the CA callback
      * version of the test if CRLs are in use. */
-    if (crl_file == NULL || strcmp(crl_file, "") == 0) {
+    if (strcmp(crl_file, "") == 0) {
         flags = 0;
 
         res = mbedtls_x509_crt_verify_with_ca_cb(&crt,
@@ -864,9 +863,8 @@ void mbedtls_x509_get_name(char *rdn_sequence, int exp_ret)
 
     TEST_EQUAL(ret, exp_ret);
 
-    mbedtls_free(name);
-
 exit:
+    mbedtls_free(name);
     USE_PSA_DONE();
 }
 /* END_CASE */
@@ -1252,6 +1250,7 @@ void x509_oid_desc(data_t *buf, char *ref_desc)
     int ret;
 
     USE_PSA_INIT();
+
     oid.tag = MBEDTLS_ASN1_OID;
     oid.p   = buf->x;
     oid.len   = buf->len;
@@ -1279,6 +1278,7 @@ void x509_oid_numstr(data_t *oid_buf, char *numstr, int blen, int ret)
     char num_buf[100];
 
     USE_PSA_INIT();
+
     memset(num_buf, 0x2a, sizeof(num_buf));
 
     oid.tag = MBEDTLS_ASN1_OID;

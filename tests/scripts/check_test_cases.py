@@ -16,6 +16,7 @@ import re
 import subprocess
 import sys
 
+
 class Results:
     """Store file and line information about errors or warnings in test suites."""
 
@@ -85,33 +86,21 @@ state may override this method.
                                            data_file_name, line_number, line)
                 in_paragraph = True
 
-    def walk_ssl_opt_sh(self, file_name):
-        """Iterate over the test cases in ssl-opt.sh or a file with a similar format."""
+    def collect_from_script(self, file_name):
+        """Collect the test cases in a script by calling its listing test cases
+option"""
         descriptions = self.new_per_file_state() # pylint: disable=assignment-from-none
-        with open(file_name, 'rb') as file_contents:
-            for line_number, line in enumerate(file_contents, 1):
-                # Assume that all run_test calls have the same simple form
-                # with the test description entirely on the same line as the
-                # function name.
-                m = re.match(br'\s*run_test\s+"((?:[^\\"]|\\.)*)"', line)
-                if not m:
-                    continue
-                description = m.group(1)
-                self.process_test_case(descriptions,
-                                       file_name, line_number, description)
-
-    def walk_compat_sh(self, file_name):
-        """Iterate over the test cases compat.sh with a similar format."""
-        descriptions = self.new_per_file_state() # pylint: disable=assignment-from-none
-        compat_cmd = ['sh', file_name, '--list-test-case']
-        compat_output = subprocess.check_output(compat_cmd)
-        # Assume compat.sh is responsible for printing identical format of
-        # test case description between --list-test-case and its OUTCOME.CSV
-        description = compat_output.strip().split(b'\n')
+        listed = subprocess.check_output(['sh', file_name, '--list-test-cases'])
+        # Assume test file is responsible for printing identical format of
+        # test case description between --list-test-cases and its OUTCOME.CSV
+        #
         # idx indicates the number of test case since there is no line number
         # in `compat.sh` for each test case.
-        for idx, descrip in enumerate(description):
-            self.process_test_case(descriptions, file_name, idx, descrip)
+        for idx, description in enumerate(listed.splitlines()):
+            self.process_test_case(descriptions,
+                                   file_name,
+                                   idx,
+                                   description.rstrip())
 
     @staticmethod
     def collect_test_directories():
@@ -132,12 +121,11 @@ state may override this method.
             for data_file_name in glob.glob(os.path.join(directory, 'suites',
                                                          '*.data')):
                 self.walk_test_suite(data_file_name)
-            ssl_opt_sh = os.path.join(directory, 'ssl-opt.sh')
-            if os.path.exists(ssl_opt_sh):
-                self.walk_ssl_opt_sh(ssl_opt_sh)
-            compat_sh = os.path.join(directory, 'compat.sh')
-            if os.path.exists(compat_sh):
-                self.walk_compat_sh(compat_sh)
+
+            for sh_file in ['ssl-opt.sh', 'compat.sh']:
+                sh_file = os.path.join(directory, sh_file)
+                if os.path.exists(sh_file):
+                    self.collect_from_script(sh_file)
 
 class TestDescriptions(TestDescriptionExplorer):
     """Collect the available test cases."""

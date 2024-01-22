@@ -1,5 +1,5 @@
 /*
- * Copy of the internal MbedTLS timing implementation, to be used in tests.
+ * Copy of the internal Mbed TLS timing implementation, to be used in tests.
  */
 /*
  *  Copyright The Mbed TLS Contributors

@@ -69,14 +69,6 @@ TCP_CLIENT="$PERL scripts/tcp_client.pl"
 
 # alternative versions of OpenSSL and GnuTLS (no default path)
 
-if [ -n "${OPENSSL_LEGACY:-}" ]; then
-    O_LEGACY_SRV="$OPENSSL_LEGACY s_server -www -cert data_files/server5.crt -key data_files/server5.key"
-    O_LEGACY_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_LEGACY s_client"
-else
-    O_LEGACY_SRV=false
-    O_LEGACY_CLI=false
-fi
-
 if [ -n "${OPENSSL_NEXT:-}" ]; then
     O_NEXT_SRV="$OPENSSL_NEXT s_server -www -cert data_files/server5.crt -key data_files/server5.key"
     O_NEXT_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_NEXT s_client"
@@ -108,6 +100,7 @@ FILTER='.*'
 EXCLUDE='^$'
 
 SHOW_TEST_NUMBER=0
+LIST_TESTS=0
 RUN_TEST_NUMBER=''
 
 PRESERVE_LOGS=0
@@ -127,6 +120,7 @@ print_usage() {
     printf "  -n|--number\tExecute only numbered test (comma-separated, e.g. '245,256')\n"
     printf "  -s|--show-numbers\tShow test numbers in front of test names\n"
     printf "  -p|--preserve-logs\tPreserve logs of successful tests as well\n"
+    printf "     --list-test-cases\tList all potential test cases (No Execution)\n"
     printf "     --outcome-file\tFile where test outcomes are written\n"
     printf "                \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
     printf "     --port     \tTCP/UDP port (default: randomish 1xxxx)\n"
@@ -151,6 +145,9 @@ get_options() {
                 ;;
             -s|--show-numbers)
                 SHOW_TEST_NUMBER=1
+                ;;
+            -l|--list-test-cases)
+                LIST_TESTS=1
                 ;;
             -p|--preserve-logs)
                 PRESERVE_LOGS=1
@@ -181,11 +178,18 @@ get_options() {
     done
 }
 
+get_options "$@"
+
 # Read boolean configuration options from config.h for easy and quick
 # testing. Skip non-boolean options (with something other than spaces
 # and a comment after "#define SYMBOL"). The variable contains a
 # space-separated list of symbols.
-CONFIGS_ENABLED=" $(echo `$P_QUERY -l` )"
+if [ "$LIST_TESTS" -eq 0 ];then
+    CONFIGS_ENABLED=" $(echo `$P_QUERY -l` )"
+else
+    P_QUERY=":"
+    CONFIGS_ENABLED=""
+fi
 # Skip next test; use this macro to skip tests which are legitimate
 # in theory and expected to be re-introduced at some point, but
 # aren't expected to succeed at the moment due to problems outside
@@ -217,7 +221,12 @@ get_config_value_or_default() {
     #
     # Note that if the configuration is not defined or is defined to nothing,
     # the output of this function will be an empty string.
-    ${P_SRV} "query_config=${1}"
+    if [ "$LIST_TESTS" -eq 0 ];then
+        ${P_SRV} "query_config=${1}"
+    else
+        echo "1"
+    fi
+
 }
 
 requires_config_value_at_least() {
@@ -270,9 +279,18 @@ requires_protocol_version() {
 
 # Space-separated list of ciphersuites supported by this build of
 # Mbed TLS.
-P_CIPHERSUITES=" $($P_CLI --help 2>/dev/null |
-                   grep TLS- |
-                   tr -s ' \n' ' ')"
+P_CIPHERSUITES=""
+if [ "$LIST_TESTS" -eq 0 ]; then
+    P_CIPHERSUITES=" $($P_CLI help_ciphersuites 2>/dev/null |
+                       grep 'TLS-' |
+                       tr -s ' \n' ' ')"
+
+    if [ -z "${P_CIPHERSUITES# }" ]; then
+        echo >&2 "$0: fatal error: no cipher suites found!"
+        exit 125
+    fi
+fi
+
 requires_ciphersuite_enabled() {
     case $P_CIPHERSUITES in
         *" $1 "*) :;;
@@ -444,20 +462,6 @@ requires_gnutls_next() {
     fi
 }
 
-# skip next test if OpenSSL-legacy isn't available
-requires_openssl_legacy() {
-    if [ -z "${OPENSSL_LEGACY_AVAILABLE:-}" ]; then
-        if which "${OPENSSL_LEGACY:-}" >/dev/null 2>&1; then
-            OPENSSL_LEGACY_AVAILABLE="YES"
-        else
-            OPENSSL_LEGACY_AVAILABLE="NO"
-        fi
-    fi
-    if [ "$OPENSSL_LEGACY_AVAILABLE" = "NO" ]; then
-        SKIP_NEXT="YES"
-    fi
-}
-
 requires_openssl_next() {
     if [ -z "${OPENSSL_NEXT_AVAILABLE:-}" ]; then
         if which "${OPENSSL_NEXT:-}" >/dev/null 2>&1; then
@@ -506,19 +510,18 @@ requires_not_i686() {
     fi
 }
 
-# Calculate the input & output maximum content lengths set in the config
 MAX_CONTENT_LEN=$( get_config_value_or_default "MBEDTLS_SSL_MAX_CONTENT_LEN" )
 MAX_IN_LEN=$( get_config_value_or_default "MBEDTLS_SSL_IN_CONTENT_LEN" )
 MAX_OUT_LEN=$( get_config_value_or_default "MBEDTLS_SSL_OUT_CONTENT_LEN" )
-
-# Calculate the maximum content length that fits both
-if [ "$MAX_IN_LEN" -lt "$MAX_CONTENT_LEN" ]; then
-    MAX_CONTENT_LEN="$MAX_IN_LEN"
+if [ "$LIST_TESTS" -eq 0 ];then
+    # Calculate the input & output maximum content lengths set in the config
+    if [ "$MAX_IN_LEN" -lt "$MAX_CONTENT_LEN" ]; then
+        MAX_CONTENT_LEN="$MAX_IN_LEN"
+    fi
+    if [ "$MAX_OUT_LEN" -lt "$MAX_CONTENT_LEN" ]; then
+        MAX_CONTENT_LEN="$MAX_OUT_LEN"
+    fi
 fi
-if [ "$MAX_OUT_LEN" -lt "$MAX_CONTENT_LEN" ]; then
-    MAX_CONTENT_LEN="$MAX_OUT_LEN"
-fi
-
 # skip the next test if the SSL output buffer is less than 16KB
 requires_full_size_output_buffer() {
     if [ "$MAX_OUT_LEN" -ne 16384 ]; then
@@ -560,6 +563,7 @@ print_name() {
     fi
 
     LINE="$LINE$1"
+
     printf "%s " "$LINE"
     LEN=$(( 72 - `echo "$LINE" | wc -c` ))
     for i in `seq 1 $LEN`; do printf '.'; done
@@ -1174,6 +1178,11 @@ run_test() {
         return
     fi
 
+    if [ "$LIST_TESTS" -gt 0 ]; then
+        printf "%s\n" "$NAME"
+        return
+    fi
+
     print_name "$NAME"
 
     # Do we only run numbered tests?
@@ -1373,8 +1382,6 @@ cleanup() {
 # MAIN
 #
 
-get_options "$@"
-
 # Make the outcome file path relative to the original directory, not
 # to .../tests
 case "$MBEDTLS_TEST_OUTCOME_FILE" in
@@ -1423,109 +1430,106 @@ else
     }
 fi
 
-# sanity checks, avoid an avalanche of errors
-P_SRV_BIN="${P_SRV%%[  ]*}"
-P_CLI_BIN="${P_CLI%%[  ]*}"
-P_PXY_BIN="${P_PXY%%[  ]*}"
-if [ ! -x "$P_SRV_BIN" ]; then
-    echo "Command '$P_SRV_BIN' is not an executable file"
-    exit 1
-fi
-if [ ! -x "$P_CLI_BIN" ]; then
-    echo "Command '$P_CLI_BIN' is not an executable file"
-    exit 1
-fi
-if [ ! -x "$P_PXY_BIN" ]; then
-    echo "Command '$P_PXY_BIN' is not an executable file"
-    exit 1
-fi
-if [ "$MEMCHECK" -gt 0 ]; then
-    if which valgrind >/dev/null 2>&1; then :; else
-        echo "Memcheck not possible. Valgrind not found"
+if [ "$LIST_TESTS" -eq 0 ];then
+
+    # sanity checks, avoid an avalanche of errors
+    P_SRV_BIN="${P_SRV%%[  ]*}"
+    P_CLI_BIN="${P_CLI%%[  ]*}"
+    P_PXY_BIN="${P_PXY%%[  ]*}"
+    if [ ! -x "$P_SRV_BIN" ]; then
+        echo "Command '$P_SRV_BIN' is not an executable file"
         exit 1
     fi
+    if [ ! -x "$P_CLI_BIN" ]; then
+        echo "Command '$P_CLI_BIN' is not an executable file"
+        exit 1
+    fi
+    if [ ! -x "$P_PXY_BIN" ]; then
+        echo "Command '$P_PXY_BIN' is not an executable file"
+        exit 1
+    fi
+    if [ "$MEMCHECK" -gt 0 ]; then
+        if which valgrind >/dev/null 2>&1; then :; else
+            echo "Memcheck not possible. Valgrind not found"
+            exit 1
+        fi
+    fi
+    if which $OPENSSL >/dev/null 2>&1; then :; else
+        echo "Command '$OPENSSL' not found"
+        exit 1
+    fi
+
+    # used by watchdog
+    MAIN_PID="$$"
+
+    # We use somewhat arbitrary delays for tests:
+    # - how long do we wait for the server to start (when lsof not available)?
+    # - how long do we allow for the client to finish?
+    #   (not to check performance, just to avoid waiting indefinitely)
+    # Things are slower with valgrind, so give extra time here.
+    #
+    # Note: without lsof, there is a trade-off between the running time of this
+    # script and the risk of spurious errors because we didn't wait long enough.
+    # The watchdog delay on the other hand doesn't affect normal running time of
+    # the script, only the case where a client or server gets stuck.
+    if [ "$MEMCHECK" -gt 0 ]; then
+        START_DELAY=6
+        DOG_DELAY=60
+    else
+        START_DELAY=2
+        DOG_DELAY=20
+    fi
+
+    # some particular tests need more time:
+    # - for the client, we multiply the usual watchdog limit by a factor
+    # - for the server, we sleep for a number of seconds after the client exits
+    # see client_need_more_time() and server_needs_more_time()
+    CLI_DELAY_FACTOR=1
+    SRV_DELAY_SECONDS=0
+
+    # fix commands to use this port, force IPv4 while at it
+    # +SRV_PORT will be replaced by either $SRV_PORT or $PXY_PORT later
+    # Note: Using 'localhost' rather than 127.0.0.1 here is unwise, as on many
+    # machines that will resolve to ::1, and we don't want ipv6 here.
+    P_SRV="$P_SRV server_addr=127.0.0.1 server_port=$SRV_PORT"
+    P_CLI="$P_CLI server_addr=127.0.0.1 server_port=+SRV_PORT"
+    P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT ${SEED:+"seed=$SEED"}"
+    O_SRV="$O_SRV -accept $SRV_PORT"
+    O_CLI="$O_CLI -connect 127.0.0.1:+SRV_PORT"
+    G_SRV="$G_SRV -p $SRV_PORT"
+    G_CLI="$G_CLI -p +SRV_PORT"
+
+    # Newer versions of OpenSSL have a syntax to enable all "ciphers", even
+    # low-security ones. This covers not just cipher suites but also protocol
+    # versions. It is necessary, for example, to use (D)TLS 1.0/1.1 on
+    # OpenSSL 1.1.1f from Ubuntu 20.04. The syntax was only introduced in
+    # OpenSSL 1.1.0 (21e0c1d23afff48601eb93135defddae51f7e2e3) and I can't find
+    # a way to discover it from -help, so check the openssl version.
+    case $($OPENSSL version) in
+        "OpenSSL 0"*|"OpenSSL 1.0"*) :;;
+        *)
+            O_CLI="$O_CLI -cipher ALL@SECLEVEL=0"
+            O_SRV="$O_SRV -cipher ALL@SECLEVEL=0"
+            ;;
+    esac
+
+    if [ -n "${OPENSSL_NEXT:-}" ]; then
+        O_NEXT_SRV="$O_NEXT_SRV -accept $SRV_PORT"
+        O_NEXT_CLI="$O_NEXT_CLI -connect 127.0.0.1:+SRV_PORT"
+    fi
+
+    if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
+        G_NEXT_SRV="$G_NEXT_SRV -p $SRV_PORT"
+    fi
+
+    if [ -n "${GNUTLS_NEXT_CLI:-}" ]; then
+        G_NEXT_CLI="$G_NEXT_CLI -p +SRV_PORT"
+    fi
+
+    # Allow SHA-1, because many of our test certificates use it
+    P_SRV="$P_SRV allow_sha1=1"
+    P_CLI="$P_CLI allow_sha1=1"
 fi
-if which $OPENSSL >/dev/null 2>&1; then :; else
-    echo "Command '$OPENSSL' not found"
-    exit 1
-fi
-
-# used by watchdog
-MAIN_PID="$$"
-
-# We use somewhat arbitrary delays for tests:
-# - how long do we wait for the server to start (when lsof not available)?
-# - how long do we allow for the client to finish?
-#   (not to check performance, just to avoid waiting indefinitely)
-# Things are slower with valgrind, so give extra time here.
-#
-# Note: without lsof, there is a trade-off between the running time of this
-# script and the risk of spurious errors because we didn't wait long enough.
-# The watchdog delay on the other hand doesn't affect normal running time of
-# the script, only the case where a client or server gets stuck.
-if [ "$MEMCHECK" -gt 0 ]; then
-    START_DELAY=6
-    DOG_DELAY=60
-else
-    START_DELAY=2
-    DOG_DELAY=20
-fi
-
-# some particular tests need more time:
-# - for the client, we multiply the usual watchdog limit by a factor
-# - for the server, we sleep for a number of seconds after the client exits
-# see client_need_more_time() and server_needs_more_time()
-CLI_DELAY_FACTOR=1
-SRV_DELAY_SECONDS=0
-
-# fix commands to use this port, force IPv4 while at it
-# +SRV_PORT will be replaced by either $SRV_PORT or $PXY_PORT later
-# Note: Using 'localhost' rather than 127.0.0.1 here is unwise, as on many
-# machines that will resolve to ::1, and we don't want ipv6 here.
-P_SRV="$P_SRV server_addr=127.0.0.1 server_port=$SRV_PORT"
-P_CLI="$P_CLI server_addr=127.0.0.1 server_port=+SRV_PORT"
-P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT ${SEED:+"seed=$SEED"}"
-O_SRV="$O_SRV -accept $SRV_PORT"
-O_CLI="$O_CLI -connect 127.0.0.1:+SRV_PORT"
-G_SRV="$G_SRV -p $SRV_PORT"
-G_CLI="$G_CLI -p +SRV_PORT"
-
-if [ -n "${OPENSSL_LEGACY:-}" ]; then
-    O_LEGACY_SRV="$O_LEGACY_SRV -accept $SRV_PORT -dhparam data_files/dhparams.pem"
-    O_LEGACY_CLI="$O_LEGACY_CLI -connect 127.0.0.1:+SRV_PORT"
-fi
-
-# Newer versions of OpenSSL have a syntax to enable all "ciphers", even
-# low-security ones. This covers not just cipher suites but also protocol
-# versions. It is necessary, for example, to use (D)TLS 1.0/1.1 on
-# OpenSSL 1.1.1f from Ubuntu 20.04. The syntax was only introduced in
-# OpenSSL 1.1.0 (21e0c1d23afff48601eb93135defddae51f7e2e3) and I can't find
-# a way to discover it from -help, so check the openssl version.
-case $($OPENSSL version) in
-    "OpenSSL 0"*|"OpenSSL 1.0"*) :;;
-    *)
-        O_CLI="$O_CLI -cipher ALL@SECLEVEL=0"
-        O_SRV="$O_SRV -cipher ALL@SECLEVEL=0"
-        ;;
-esac
-
-if [ -n "${OPENSSL_NEXT:-}" ]; then
-    O_NEXT_SRV="$O_NEXT_SRV -accept $SRV_PORT"
-    O_NEXT_CLI="$O_NEXT_CLI -connect 127.0.0.1:+SRV_PORT"
-fi
-
-if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
-    G_NEXT_SRV="$G_NEXT_SRV -p $SRV_PORT"
-fi
-
-if [ -n "${GNUTLS_NEXT_CLI:-}" ]; then
-    G_NEXT_CLI="$G_NEXT_CLI -p +SRV_PORT"
-fi
-
-# Allow SHA-1, because many of our test certificates use it
-P_SRV="$P_SRV allow_sha1=1"
-P_CLI="$P_CLI allow_sha1=1"
-
 # Also pick a unique name for intermediate files
 SRV_OUT="srv_out.$$"
 CLI_OUT="cli_out.$$"
@@ -9002,7 +9006,6 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_CHACHAPOLY_C
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, ChachaPoly renego" \
             -p "$P_PXY mtu=512" \
@@ -9016,7 +9019,7 @@ run_test    "DTLS fragmenting: proxy MTU, ChachaPoly renego" \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
              exchanges=2 renegotiation=1 renegotiate=1 \
-             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256 \
              hs_timeout=10000-60000 \
              mtu=512" \
             0 \
@@ -9034,8 +9037,6 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_GCM_C
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, AES-GCM renego" \
             -p "$P_PXY mtu=512" \
@@ -9067,8 +9068,6 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_CCM_C
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, AES-CCM renego" \
             -p "$P_PXY mtu=1024" \
@@ -9100,8 +9099,6 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_config_enabled MBEDTLS_SSL_ENCRYPT_THEN_MAC
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, AES-CBC EtM renego" \
@@ -9134,8 +9131,6 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: proxy MTU, AES-CBC non-EtM renego" \
             -p "$P_PXY mtu=1024" \
@@ -10555,17 +10550,19 @@ requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_max_content_len 16384
 run_tests_memory_after_hanshake
 
-# Final report
+if [ "$LIST_TESTS" -eq 0 ]; then
+    # Final report
 
-echo "------------------------------------------------------------------------"
+    echo "------------------------------------------------------------------------"
 
-if [ $FAILS = 0 ]; then
-    printf "PASSED"
-else
-    printf "FAILED"
+    if [ $FAILS = 0 ]; then
+        printf "PASSED"
+    else
+        printf "FAILED"
+    fi
+    PASSES=$(( $TESTS - $FAILS ))
+    echo " ($PASSES / $TESTS tests ($SKIPS skipped))"
 fi
-PASSES=$(( $TESTS - $FAILS ))
-echo " ($PASSES / $TESTS tests ($SKIPS skipped))"
 
 if [ $FAILS -gt 255 ]; then
     # Clamp at 255 as caller gets exit code & 0xFF

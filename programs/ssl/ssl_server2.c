@@ -523,7 +523,7 @@ int main(void)
     "                                otherwise. The expansion of the macro\n" \
     "                                is printed if it is defined\n"     \
     USAGE_SERIALIZATION                                     \
-    " acceptable ciphersuite names:\n"
+    "\n"
 
 #define ALPN_LIST_SIZE  10
 #define CURVE_LIST_SIZE 20
@@ -1437,31 +1437,6 @@ int main(int argc, char *argv[])
     signal(SIGINT, term_handler);
 #endif
 
-    if (argc < 2) {
-usage:
-        if (ret == 0) {
-            ret = 1;
-        }
-
-        mbedtls_printf(USAGE1);
-        mbedtls_printf(USAGE2);
-        mbedtls_printf(USAGE3);
-        mbedtls_printf(USAGE4);
-
-        list = mbedtls_ssl_list_ciphersuites();
-        while (*list) {
-            mbedtls_printf(" %-42s", mbedtls_ssl_get_ciphersuite_name(*list));
-            list++;
-            if (!*list) {
-                break;
-            }
-            mbedtls_printf(" %s\n", mbedtls_ssl_get_ciphersuite_name(*list));
-            list++;
-        }
-        mbedtls_printf("\n");
-        goto exit;
-    }
-
     opt.buffer_size         = DFL_IO_BUF_LEN;
     opt.server_addr         = DFL_SERVER_ADDR;
     opt.server_port         = DFL_SERVER_PORT;
@@ -1545,9 +1520,54 @@ usage:
     opt.force_srtp_profile  = DFL_SRTP_FORCE_PROFILE;
     opt.support_mki         = DFL_SRTP_SUPPORT_MKI;
 
+    p = q = NULL;
+    if (argc < 1) {
+usage:
+        if (p != NULL && q != NULL) {
+            printf("unrecognized value for '%s': '%s'\n", p, q);
+        } else if (p != NULL && q == NULL) {
+            printf("unrecognized param: '%s'\n", p);
+        }
+
+        mbedtls_printf("usage: ssl_client2 [param=value] [...]\n");
+        mbedtls_printf("       ssl_client2 help[_theme]\n");
+        mbedtls_printf("'help' lists acceptable 'param' and 'value'\n");
+        mbedtls_printf("'help_ciphersuites' lists available ciphersuites\n");
+        mbedtls_printf("\n");
+
+        if (ret == 0) {
+            ret = 1;
+        }
+        goto exit;
+    }
+
     for (i = 1; i < argc; i++) {
         p = argv[i];
+
+        if (strcmp(p, "help") == 0) {
+            mbedtls_printf(USAGE1);
+            mbedtls_printf(USAGE2);
+            mbedtls_printf(USAGE3);
+            mbedtls_printf(USAGE4);
+
+            ret = 0;
+            goto exit;
+        }
+        if (strcmp(p, "help_ciphersuites") == 0) {
+            mbedtls_printf(" acceptable ciphersuite names:\n");
+            for (list = mbedtls_ssl_list_ciphersuites();
+                 *list != 0;
+                 list++) {
+                mbedtls_printf(" %s\n", mbedtls_ssl_get_ciphersuite_name(*list));
+            }
+
+            ret = 0;
+            goto exit;
+        }
+
         if ((q = strchr(p, '=')) == NULL) {
+            mbedtls_printf("param requires a value: '%s'\n", p);
+            p = NULL; // avoid "unrecnognized param" message
             goto usage;
         }
         *q++ = '\0';
@@ -1937,9 +1957,13 @@ usage:
         } else if (strcmp(p, "support_mki") == 0) {
             opt.support_mki = atoi(q);
         } else {
+            /* This signals that the problem is with p not q */
+            q = NULL;
             goto usage;
         }
     }
+    /* This signals that any further erorrs are not with a single option */
+    p = q = NULL;
 
     if (opt.nss_keylog != 0 && opt.eap_tls != 0) {
         mbedtls_printf("Error: eap_tls and nss_keylog options cannot be used together.\n");

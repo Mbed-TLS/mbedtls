@@ -141,6 +141,38 @@
         }                                                   \
     } while (0)
 
+/** Allocate memory dynamically and fail the test case if this fails.
+ * The allocated memory will be filled with zeros.
+ *
+ * You must set \p pointer to \c NULL before calling this macro and
+ * put `mbedtls_free(pointer)` in the test's cleanup code.
+ *
+ * If \p item_count is zero, the resulting \p pointer will not be \c NULL.
+ *
+ * This macro expands to an instruction, not an expression.
+ * It may jump to the \c exit label.
+ *
+ * \param pointer    An lvalue where the address of the allocated buffer
+ *                   will be stored.
+ *                   This expression may be evaluated multiple times.
+ * \param item_count Number of elements to allocate.
+ *                   This expression may be evaluated multiple times.
+ *
+ * Note: if passing size 0, mbedtls_calloc may return NULL. In this case,
+ * we reattempt to allocate with the smallest possible buffer to assure a
+ * non-NULL pointer.
+ */
+#define TEST_CALLOC_NONNULL(pointer, item_count)            \
+    do {                                                    \
+        TEST_ASSERT((pointer) == NULL);                     \
+        (pointer) = mbedtls_calloc(sizeof(*(pointer)),      \
+                                   (item_count));           \
+        if (((pointer) == NULL) && ((item_count) == 0)) {   \
+            (pointer) = mbedtls_calloc(1, 1);               \
+        }                                                   \
+        TEST_ASSERT((pointer) != NULL);                     \
+    } while (0)
+
 /* For backwards compatibility */
 #define ASSERT_ALLOC(pointer, item_count) TEST_CALLOC(pointer, item_count)
 

@@ -14,107 +14,13 @@ import sys
 from typing import Callable, Dict, FrozenSet, Iterable, Iterator, List, Optional
 
 import scripts_path # pylint: disable=unused-import
+from mbedtls_dev import crypto_data_tests
 from mbedtls_dev import crypto_knowledge
-from mbedtls_dev import macro_collector
+from mbedtls_dev import macro_collector #pylint: disable=unused-import
+from mbedtls_dev import psa_information
 from mbedtls_dev import psa_storage
 from mbedtls_dev import test_case
 from mbedtls_dev import test_data_generation
-
-
-def psa_want_symbol(name: str) -> str:
-    """Return the PSA_WANT_xxx symbol associated with a PSA crypto feature."""
-    if name.startswith('PSA_'):
-        return name[:4] + 'WANT_' + name[4:]
-    else:
-        raise ValueError('Unable to determine the PSA_WANT_ symbol for ' + name)
-
-def finish_family_dependency(dep: str, bits: int) -> str:
-    """Finish dep if it's a family dependency symbol prefix.
-
-    A family dependency symbol prefix is a PSA_WANT_ symbol that needs to be
-    qualified by the key size. If dep is such a symbol, finish it by adjusting
-    the prefix and appending the key size. Other symbols are left unchanged.
-    """
-    return re.sub(r'_FAMILY_(.*)', r'_\1_' + str(bits), dep)
-
-def finish_family_dependencies(dependencies: List[str], bits: int) -> List[str]:
-    """Finish any family dependency symbol prefixes.
-
-    Apply `finish_family_dependency` to each element of `dependencies`.
-    """
-    return [finish_family_dependency(dep, bits) for dep in dependencies]
-
-SYMBOLS_WITHOUT_DEPENDENCY = frozenset([
-    'PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG', # modifier, only in policies
-    'PSA_ALG_AEAD_WITH_SHORTENED_TAG', # modifier
-    'PSA_ALG_ANY_HASH', # only in policies
-    'PSA_ALG_AT_LEAST_THIS_LENGTH_MAC', # modifier, only in policies
-    'PSA_ALG_KEY_AGREEMENT', # chaining
-    'PSA_ALG_TRUNCATED_MAC', # modifier
-])
-def automatic_dependencies(*expressions: str) -> List[str]:
-    """Infer dependencies of a test case by looking for PSA_xxx symbols.
-
-    The arguments are strings which should be C expressions. Do not use
-    string literals or comments as this function is not smart enough to
-    skip them.
-    """
-    used = set()
-    for expr in expressions:
-        used.update(re.findall(r'PSA_(?:ALG|ECC_FAMILY|KEY_TYPE)_\w+', expr))
-    used.difference_update(SYMBOLS_WITHOUT_DEPENDENCY)
-    return sorted(psa_want_symbol(name) for name in used)
-
-# A temporary hack: at the time of writing, not all dependency symbols
-# are implemented yet. Skip test cases for which the dependency symbols are
-# not available. Once all dependency symbols are available, this hack must
-# be removed so that a bug in the dependency symbols properly leads to a test
-# failure.
-def read_implemented_dependencies(filename: str) -> FrozenSet[str]:
-    return frozenset(symbol
-                     for line in open(filename)
-                     for symbol in re.findall(r'\bPSA_WANT_\w+\b', line))
-_implemented_dependencies = None #type: Optional[FrozenSet[str]] #pylint: disable=invalid-name
-def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
-    global _implemented_dependencies #pylint: disable=global-statement,invalid-name
-    if _implemented_dependencies is None:
-        _implemented_dependencies = \
-            read_implemented_dependencies('include/psa/crypto_config.h')
-    if not all((dep.lstrip('!') in _implemented_dependencies or 'PSA_WANT' not in dep)
-               for dep in dependencies):
-        dependencies.append('DEPENDENCY_NOT_IMPLEMENTED_YET')
-
-
-class Information:
-    """Gather information about PSA constructors."""
-
-    def __init__(self) -> None:
-        self.constructors = self.read_psa_interface()
-
-    @staticmethod
-    def remove_unwanted_macros(
-            constructors: macro_collector.PSAMacroEnumerator
-    ) -> None:
-        # Mbed TLS doesn't support finite-field DH yet and will not support
-        # finite-field DSA. Don't attempt to generate any related test case.
-        constructors.key_types.discard('PSA_KEY_TYPE_DH_KEY_PAIR')
-        constructors.key_types.discard('PSA_KEY_TYPE_DH_PUBLIC_KEY')
-        constructors.key_types.discard('PSA_KEY_TYPE_DSA_KEY_PAIR')
-        constructors.key_types.discard('PSA_KEY_TYPE_DSA_PUBLIC_KEY')
-
-    def read_psa_interface(self) -> macro_collector.PSAMacroEnumerator:
-        """Return the list of known key types, algorithms, etc."""
-        constructors = macro_collector.InputsForTest()
-        header_file_names = ['include/psa/crypto_values.h',
-                             'include/psa/crypto_extra.h']
-        test_suites = ['tests/suites/test_suite_psa_crypto_metadata.data']
-        for header_file_name in header_file_names:
-            constructors.parse_header(header_file_name)
-        for test_cases in test_suites:
-            constructors.parse_test_cases(test_cases)
-        self.remove_unwanted_macros(constructors)
-        constructors.gather_arguments()
-        return constructors
 
 
 def test_case_for_key_type_not_supported(
@@ -126,7 +32,7 @@ def test_case_for_key_type_not_supported(
     """Return one test case exercising a key creation method
     for an unsupported key type or size.
     """
-    hack_dependencies_not_implemented(dependencies)
+    psa_information.hack_dependencies_not_implemented(dependencies)
     tc = test_case.TestCase()
     short_key_type = crypto_knowledge.short_expression(key_type)
     adverb = 'not' if dependencies else 'never'
@@ -142,7 +48,7 @@ def test_case_for_key_type_not_supported(
 class KeyTypeNotSupported:
     """Generate test cases for when a key type is not supported."""
 
-    def __init__(self, info: Information) -> None:
+    def __init__(self, info: psa_information.Information) -> None:
         self.constructors = info.constructors
 
     ALWAYS_SUPPORTED = frozenset([
@@ -166,10 +72,10 @@ class KeyTypeNotSupported:
             # They would be skipped in all configurations, which is noise.
             return
         import_dependencies = [('!' if param is None else '') +
-                               psa_want_symbol(kt.name)]
+                               psa_information.psa_want_symbol(kt.name)]
         if kt.params is not None:
             import_dependencies += [('!' if param == i else '') +
-                                    psa_want_symbol(sym)
+                                    psa_information.psa_want_symbol(sym)
                                     for i, sym in enumerate(kt.params)]
         if kt.name.endswith('_PUBLIC_KEY'):
             generate_dependencies = []
@@ -178,7 +84,7 @@ class KeyTypeNotSupported:
         for bits in kt.sizes_to_test():
             yield test_case_for_key_type_not_supported(
                 'import', kt.expression, bits,
-                finish_family_dependencies(import_dependencies, bits),
+                psa_information.finish_family_dependencies(import_dependencies, bits),
                 test_case.hex_string(kt.key_material(bits)),
                 param_descr=param_descr,
             )
@@ -192,7 +98,7 @@ class KeyTypeNotSupported:
             if not kt.is_public():
                 yield test_case_for_key_type_not_supported(
                     'generate', kt.expression, bits,
-                    finish_family_dependencies(generate_dependencies, bits),
+                    psa_information.finish_family_dependencies(generate_dependencies, bits),
                     str(bits),
                     param_descr=param_descr,
                 )
@@ -224,7 +130,7 @@ def test_case_for_key_generation(
 ) -> test_case.TestCase:
     """Return one test case exercising a key generation.
     """
-    hack_dependencies_not_implemented(dependencies)
+    psa_information.hack_dependencies_not_implemented(dependencies)
     tc = test_case.TestCase()
     short_key_type = crypto_knowledge.short_expression(key_type)
     tc.set_description('PSA {} {}-bit'
@@ -238,7 +144,7 @@ def test_case_for_key_generation(
 class KeyGenerate:
     """Generate positive and negative (invalid argument) test cases for key generation."""
 
-    def __init__(self, info: Information) -> None:
+    def __init__(self, info: psa_information.Information) -> None:
         self.constructors = info.constructors
 
     ECC_KEY_TYPES = ('PSA_KEY_TYPE_ECC_KEY_PAIR',
@@ -255,9 +161,9 @@ class KeyGenerate:
         """
         result = 'PSA_SUCCESS'
 
-        import_dependencies = [psa_want_symbol(kt.name)]
+        import_dependencies = [psa_information.psa_want_symbol(kt.name)]
         if kt.params is not None:
-            import_dependencies += [psa_want_symbol(sym)
+            import_dependencies += [psa_information.psa_want_symbol(sym)
                                     for i, sym in enumerate(kt.params)]
         if kt.name.endswith('_PUBLIC_KEY'):
             # The library checks whether the key type is a public key generically,
@@ -272,7 +178,7 @@ class KeyGenerate:
         for bits in kt.sizes_to_test():
             yield test_case_for_key_generation(
                 kt.expression, bits,
-                finish_family_dependencies(generate_dependencies, bits),
+                psa_information.finish_family_dependencies(generate_dependencies, bits),
                 str(bits),
                 result
             )
@@ -299,7 +205,7 @@ class OpFail:
         INCOMPATIBLE = 2
         PUBLIC = 3
 
-    def __init__(self, info: Information) -> None:
+    def __init__(self, info: psa_information.Information) -> None:
         self.constructors = info.constructors
         key_type_expressions = self.constructors.generate_expressions(
             sorted(self.constructors.key_types)
@@ -336,7 +242,7 @@ class OpFail:
                                    pretty_alg,
                                    pretty_reason,
                                    ' with ' + pretty_type if pretty_type else ''))
-        dependencies = automatic_dependencies(alg.base_expression, key_type)
+        dependencies = psa_information.automatic_dependencies(alg.base_expression, key_type)
         for i, dep in enumerate(dependencies):
             if dep in not_deps:
                 dependencies[i] = '!' + dep
@@ -363,7 +269,7 @@ class OpFail:
         """Generate failure test cases for keyless operations with the specified algorithm."""
         if alg.can_do(category):
             # Compatible operation, unsupported algorithm
-            for dep in automatic_dependencies(alg.base_expression):
+            for dep in psa_information.automatic_dependencies(alg.base_expression):
                 yield self.make_test_case(alg, category,
                                           self.Reason.NOT_SUPPORTED,
                                           not_deps=frozenset([dep]))
@@ -381,7 +287,7 @@ class OpFail:
             key_is_compatible = kt.can_do(alg)
             if key_is_compatible and alg.can_do(category):
                 # Compatible key and operation, unsupported algorithm
-                for dep in automatic_dependencies(alg.base_expression):
+                for dep in psa_information.automatic_dependencies(alg.base_expression):
                     yield self.make_test_case(alg, category,
                                               self.Reason.NOT_SUPPORTED,
                                               kt=kt, not_deps=frozenset([dep]))
@@ -487,10 +393,10 @@ class StorageTestData(StorageKey):
 class StorageFormat:
     """Storage format stability test cases."""
 
-    def __init__(self, info: Information, version: int, forward: bool) -> None:
+    def __init__(self, info: psa_information.Information, version: int, forward: bool) -> None:
         """Prepare to generate test cases for storage format stability.
 
-        * `info`: information about the API. See the `Information` class.
+        * `info`: information about the API. See the `psa_information.Information` class.
         * `version`: the storage format version to generate test cases for.
         * `forward`: if true, generate forward compatibility test cases which
           save a key and check that its representation is as intended. Otherwise
@@ -557,11 +463,11 @@ class StorageFormat:
         verb = 'save' if self.forward else 'read'
         tc = test_case.TestCase()
         tc.set_description(verb + ' ' + key.description)
-        dependencies = automatic_dependencies(
+        dependencies = psa_information.automatic_dependencies(
             key.lifetime.string, key.type.string,
             key.alg.string, key.alg2.string,
         )
-        dependencies = finish_family_dependencies(dependencies, key.bits)
+        dependencies = psa_information.finish_family_dependencies(dependencies, key.bits)
         tc.set_dependencies(dependencies)
         tc.set_function('key_storage_' + verb)
         if self.forward:
@@ -766,13 +672,13 @@ class StorageFormat:
 class StorageFormatForward(StorageFormat):
     """Storage format stability test cases for forward compatibility."""
 
-    def __init__(self, info: Information, version: int) -> None:
+    def __init__(self, info: psa_information.Information, version: int) -> None:
         super().__init__(info, version, True)
 
 class StorageFormatV0(StorageFormat):
     """Storage format stability test cases for version 0 compatibility."""
 
-    def __init__(self, info: Information) -> None:
+    def __init__(self, info: psa_information.Information) -> None:
         super().__init__(info, 0, False)
 
     def all_keys_for_usage_flags(self) -> Iterator[StorageTestData]:
@@ -882,6 +788,7 @@ class StorageFormatV0(StorageFormat):
         yield from super().generate_all_keys()
         yield from self.all_keys_for_implicit_usage()
 
+
 class PSATestGenerator(test_data_generation.TestGenerator):
     """Test generator subclass including PSA targets and info."""
     # Note that targets whose names contain 'test_format' have their content
@@ -891,20 +798,23 @@ class PSATestGenerator(test_data_generation.TestGenerator):
         lambda info: KeyGenerate(info).test_cases_for_key_generation(),
         'test_suite_psa_crypto_not_supported.generated':
         lambda info: KeyTypeNotSupported(info).test_cases_for_not_supported(),
+        'test_suite_psa_crypto_low_hash.generated':
+        lambda info: crypto_data_tests.HashPSALowLevel(info).all_test_cases(),
         'test_suite_psa_crypto_op_fail.generated':
         lambda info: OpFail(info).all_test_cases(),
         'test_suite_psa_crypto_storage_format.current':
         lambda info: StorageFormatForward(info, 0).all_test_cases(),
         'test_suite_psa_crypto_storage_format.v0':
         lambda info: StorageFormatV0(info).all_test_cases(),
-    } #type: Dict[str, Callable[[Information], Iterable[test_case.TestCase]]]
+    } #type: Dict[str, Callable[[psa_information.Information], Iterable[test_case.TestCase]]]
 
     def __init__(self, options):
         super().__init__(options)
-        self.info = Information()
+        self.info = psa_information.Information()
 
     def generate_target(self, name: str, *target_args) -> None:
         super().generate_target(name, self.info)
+
 
 if __name__ == '__main__':
     test_data_generation.main(sys.argv[1:], __doc__, PSATestGenerator)

@@ -7,6 +7,8 @@
 
 #include "mbedtls/build_info.h"
 
+#include <stdio.h>
+#include <stdlib.h>
 #include "mbedtls/platform.h"
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -29,11 +31,11 @@
     do                                                                  \
     {                                                                   \
         char *CHECK_DLERROR_error = dlerror();                        \
-        if (CHECK_DLERROR_error != NULL)                               \
+        if (CHECK_DLERROR_error != NULL)                                \
         {                                                               \
-            fprintf(stderr, "Dynamic loading error for %s(%s): %s\n",  \
-                    function, argument, CHECK_DLERROR_error);         \
-            mbedtls_exit(MBEDTLS_EXIT_FAILURE);                       \
+            fprintf(stderr, "Dynamic loading error for %s(%s): %s\n",   \
+                    function, argument, CHECK_DLERROR_error);           \
+            exit(EXIT_FAILURE);                                         \
         }                                                               \
     }                                                                   \
     while (0)
@@ -54,8 +56,7 @@ int main(void)
     for (n = 0; ciphersuites[n] != 0; n++) {/* nothing to do, we're just counting */
         ;
     }
-    mbedtls_printf("dlopen(%s): %u ciphersuites\n",
-                   TLS_SO_FILENAME, n);
+    printf("dlopen(%s): %u ciphersuites\n", TLS_SO_FILENAME, n);
     dlclose(tls_so);
     CHECK_DLERROR("dlclose", TLS_SO_FILENAME);
 #endif  /* MBEDTLS_SSL_TLS_C */
@@ -66,8 +67,8 @@ int main(void)
     const mbedtls_x509_crt_profile *profile =
         dlsym(x509_so, "mbedtls_x509_crt_profile_default");
     CHECK_DLERROR("dlsym", "mbedtls_x509_crt_profile_default");
-    mbedtls_printf("dlopen(%s): Allowed md mask: %08x\n",
-                   X509_SO_FILENAME, (unsigned) profile->allowed_mds);
+    printf("dlopen(%s): Allowed md mask: %08x\n",
+           X509_SO_FILENAME, (unsigned) profile->allowed_mds);
     dlclose(x509_so);
     CHECK_DLERROR("dlclose", X509_SO_FILENAME);
 #endif  /* MBEDTLS_X509_CRT_PARSE_C */
@@ -82,8 +83,7 @@ int main(void)
     for (n = 0; mds[n] != 0; n++) {/* nothing to do, we're just counting */
         ;
     }
-    mbedtls_printf("dlopen(%s): %u hashes\n",
-                   CRYPTO_SO_FILENAME, n);
+    printf("dlopen(%s): %u hashes\n", CRYPTO_SO_FILENAME, n);
     dlclose(crypto_so);
     CHECK_DLERROR("dlclose", CRYPTO_SO_FILENAME);
 #endif  /* MBEDTLS_MD_C */

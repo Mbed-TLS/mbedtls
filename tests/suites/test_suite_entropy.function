@@ -447,7 +447,7 @@ void entropy_nv_seed_std_io()
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_MD_C:MBEDTLS_ENTROPY_NV_SEED:MBEDTLS_PLATFORM_NV_SEED_ALT */
+/* BEGIN_CASE depends_on:MBEDTLS_MD_LIGHT:MBEDTLS_ENTROPY_NV_SEED:MBEDTLS_PLATFORM_NV_SEED_ALT */
 void entropy_nv_seed(data_t *read_seed)
 {
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)

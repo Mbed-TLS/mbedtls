@@ -160,9 +160,13 @@ psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
     size_t slot_idx;
     psa_key_slot_t *selected_slot, *unused_persistent_key_slot;
 
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_GOTO_EXIT(mbedtls_mutex_lock(
+                                    &mbedtls_threading_key_slot_mutex));
+#endif
     if (!global_data.key_slots_initialized) {
         status = PSA_ERROR_BAD_STATE;
-        goto error;
+        goto exit;
     }
 
     selected_slot = unused_persistent_key_slot = NULL;
@@ -194,7 +198,7 @@ psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
         psa_register_read(selected_slot);
         status = psa_wipe_key_slot(selected_slot);
         if (status != PSA_SUCCESS) {
-            goto error;
+            goto exit;
         }
     }
 
@@ -202,21 +206,27 @@ psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
         status = psa_key_slot_state_transition(selected_slot, PSA_SLOT_EMPTY,
                                                PSA_SLOT_FILLING);
         if (status != PSA_SUCCESS) {
-            goto error;
+            goto exit;
         }
 
         *volatile_key_id = PSA_KEY_ID_VOLATILE_MIN +
                            ((psa_key_id_t) (selected_slot - global_data.key_slots));
         *p_slot = selected_slot;
 
-        return PSA_SUCCESS;
+        goto exit;
     }
     status = PSA_ERROR_INSUFFICIENT_MEMORY;
 
-error:
-    *p_slot = NULL;
-    *volatile_key_id = 0;
+exit:
+    if (status != PSA_SUCCESS) {
+        *p_slot = NULL;
+        *volatile_key_id = 0;
+    }
 
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
     return status;
 }
 

@@ -20,6 +20,9 @@
 
 #include "psa/crypto.h"
 #include "psa/crypto_se_driver.h"
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#endif
 
 /**
  * Tell if PSA is ready for this hash.
@@ -110,6 +113,50 @@ typedef struct {
         size_t bytes;
     } key;
 } psa_key_slot_t;
+
+typedef enum {
+    PSA_MUTEX_LOCK = 0,
+    PSA_MUTEX_UNLOCK,
+} psa_mutex_operation_t;
+
+/** If threading is enabled: perform a lock or unlock operation on the
+ * key slot mutex.
+ * Call with parameter PSA_MUTEX_LOCK to perform a lock operation.
+ * Call with parameter PSA_MUTEX_UNLOCK to perform an unlock operation.
+ * Returns PSA_ERROR_SERVICE_FAILURE if the operation fails
+ * and status was PSA_SUCCESS.
+ * If threading is not enabled, do nothing.
+ *
+ * Assumptions:
+ *  psa_status_t status exists.
+ *  op is PSA_MUTEX_LOCK or PSA_MUTEX_UNLOCK.
+ */
+#if defined(MBEDTLS_THREADING_C)
+#define PSA_KEY_SLOT_MUTEX_LOCKFUNC_RETURN(op)                       \
+    do                                                               \
+    {                                                                \
+        if (op == PSA_MUTEX_LOCK) {                                  \
+            if (mbedtls_mutex_lock(                                  \
+                    &mbedtls_threading_key_slot_mutex) != 0) {       \
+                if (status == PSA_SUCCESS) {                         \
+                    return PSA_ERROR_SERVICE_FAILURE;                \
+                }                                                    \
+                return status;                                       \
+            }                                                        \
+        }                                                            \
+        if (op == PSA_MUTEX_UNLOCK) {                                \
+            if (mbedtls_mutex_unlock(                                \
+                    &mbedtls_threading_key_slot_mutex) != 0) {       \
+                if (status == PSA_SUCCESS) {                         \
+                    return PSA_ERROR_SERVICE_FAILURE;                \
+                }                                                    \
+                return status;                                       \
+            }                                                        \
+        }                                                            \
+    } while (0);
+#else
+#define PSA_KEY_SLOT_MUTEX_LOCKFUNC_RETURN(op)  do { } while (0)
+#endif
 
 /* A mask of key attribute flags used only internally.
  * Currently there aren't any. */

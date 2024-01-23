@@ -32,6 +32,9 @@
 #if defined(MBEDTLS_PEM_WRITE_C)
 #include "mbedtls/pem.h"
 #endif
+#if defined(MBEDTLS_RSA_C)
+#include "rsa_internal.h"
+#endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
@@ -56,135 +59,6 @@
  * Internal functions for RSA keys.
  ******************************************************************************/
 #if defined(MBEDTLS_RSA_C)
-/*
- *  RSAPublicKey ::= SEQUENCE {
- *      modulus           INTEGER,  -- n
- *      publicExponent    INTEGER   -- e
- *  }
- */
-static int mbedtls_rsa_pubkey_write(unsigned char **p, unsigned char *start,
-                                    const mbedtls_rsa_context *rsa)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t len = 0;
-    mbedtls_mpi T;
-
-    mbedtls_mpi_init(&T);
-
-    /* Export E */
-    if ((ret = mbedtls_rsa_export(rsa, NULL, NULL, NULL, NULL, &T)) != 0 ||
-        (ret = mbedtls_asn1_write_mpi(p, start, &T)) < 0) {
-        goto end_of_export;
-    }
-    len += ret;
-
-    /* Export N */
-    if ((ret = mbedtls_rsa_export(rsa, &T, NULL, NULL, NULL, NULL)) != 0 ||
-        (ret = mbedtls_asn1_write_mpi(p, start, &T)) < 0) {
-        goto end_of_export;
-    }
-    len += ret;
-
-end_of_export:
-
-    mbedtls_mpi_free(&T);
-    if (ret < 0) {
-        return ret;
-    }
-
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, start, len));
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(p, start, MBEDTLS_ASN1_CONSTRUCTED |
-                                                     MBEDTLS_ASN1_SEQUENCE));
-
-    return (int) len;
-}
-
-static int mbedtls_rsa_key_write(unsigned char **p, unsigned char *start,
-                                 const mbedtls_rsa_context *rsa)
-{
-    size_t len = 0;
-    int ret;
-
-    mbedtls_mpi T; /* Temporary holding the exported parameters */
-
-    /*
-     * Export the parameters one after another to avoid simultaneous copies.
-     */
-
-    mbedtls_mpi_init(&T);
-
-    /* Export QP */
-    if ((ret = mbedtls_rsa_export_crt(rsa, NULL, NULL, &T)) != 0 ||
-        (ret = mbedtls_asn1_write_mpi(p, start, &T)) < 0) {
-        goto end_of_export;
-    }
-    len += ret;
-
-    /* Export DQ */
-    if ((ret = mbedtls_rsa_export_crt(rsa, NULL, &T, NULL)) != 0 ||
-        (ret = mbedtls_asn1_write_mpi(p, start, &T)) < 0) {
-        goto end_of_export;
-    }
-    len += ret;
-
-    /* Export DP */
-    if ((ret = mbedtls_rsa_export_crt(rsa, &T, NULL, NULL)) != 0 ||
-        (ret = mbedtls_asn1_write_mpi(p, start, &T)) < 0) {
-        goto end_of_export;
-    }
-    len += ret;
-
-    /* Export Q */
-    if ((ret = mbedtls_rsa_export(rsa, NULL, NULL, &T, NULL, NULL)) != 0 ||
-        (ret = mbedtls_asn1_write_mpi(p, start, &T)) < 0) {
-        goto end_of_export;
-    }
-    len += ret;
-
-    /* Export P */
-    if ((ret = mbedtls_rsa_export(rsa, NULL, &T, NULL, NULL, NULL)) != 0 ||
-        (ret = mbedtls_asn1_write_mpi(p, start, &T)) < 0) {
-        goto end_of_export;
-    }
-    len += ret;
-
-    /* Export D */
-    if ((ret = mbedtls_rsa_export(rsa, NULL, NULL, NULL, &T, NULL)) != 0 ||
-        (ret = mbedtls_asn1_write_mpi(p, start, &T)) < 0) {
-        goto end_of_export;
-    }
-    len += ret;
-
-    /* Export E */
-    if ((ret = mbedtls_rsa_export(rsa, NULL, NULL, NULL, NULL, &T)) != 0 ||
-        (ret = mbedtls_asn1_write_mpi(p, start, &T)) < 0) {
-        goto end_of_export;
-    }
-    len += ret;
-
-    /* Export N */
-    if ((ret = mbedtls_rsa_export(rsa, &T, NULL, NULL, NULL, NULL)) != 0 ||
-        (ret = mbedtls_asn1_write_mpi(p, start, &T)) < 0) {
-        goto end_of_export;
-    }
-    len += ret;
-
-end_of_export:
-
-    mbedtls_mpi_free(&T);
-    if (ret < 0) {
-        return ret;
-    }
-
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_int(p, start, 0));
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, start, len));
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(p, start,
-                                                     MBEDTLS_ASN1_CONSTRUCTED |
-                                                     MBEDTLS_ASN1_SEQUENCE));
-
-    return (int) len;
-}
-
 static int pk_write_rsa_der(unsigned char **p, unsigned char *buf,
                             const mbedtls_pk_context *pk)
 {
@@ -204,7 +78,7 @@ static int pk_write_rsa_der(unsigned char **p, unsigned char *buf,
         return (int) len;
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-    return mbedtls_rsa_key_write(p, buf, mbedtls_pk_rsa(*pk));
+    return mbedtls_rsa_key_write(mbedtls_pk_rsa(*pk), buf, p);
 }
 #endif /* MBEDTLS_RSA_C */
 
@@ -542,7 +416,7 @@ int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
 
 #if defined(MBEDTLS_RSA_C)
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_RSA) {
-        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_rsa_pubkey_write(p, start, mbedtls_pk_rsa(*key)));
+        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_rsa_pubkey_write(mbedtls_pk_rsa(*key), start, p));
     } else
 #endif
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)

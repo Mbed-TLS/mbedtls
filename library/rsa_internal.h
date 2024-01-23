@@ -16,6 +16,49 @@
 
 #include "mbedtls/rsa.h"
 
+/**
+ * \brief
+ *
+ * \param rsa
+ * \param key
+ * \param keylen
+ * \return int
+ */
+int mbedtls_rsa_key_parse(mbedtls_rsa_context *rsa, const unsigned char *key, size_t keylen);
+
+/**
+ * \brief
+ *
+ * \param rsa
+ * \param p
+ * \param end
+ * \return int
+ */
+int mbedtls_rsa_pubkey_parse(mbedtls_rsa_context *rsa, unsigned char **p,
+                             const unsigned char *end);
+
+/**
+ * \brief
+ *
+ * \param p
+ * \param start
+ * \param rsa
+ * \return int
+ */
+int mbedtls_rsa_key_write(const mbedtls_rsa_context *rsa, unsigned char *start,
+                          unsigned char **p);
+
+/**
+ * \brief
+ *
+ * \param p
+ * \param start
+ * \param rsa
+ * \return int
+ */
+int mbedtls_rsa_pubkey_write(const mbedtls_rsa_context *rsa, unsigned char *start,
+                             unsigned char **p);
+
 #if defined(MBEDTLS_PKCS1_V21)
 /**
  * \brief This function is analogue to \c mbedtls_rsa_rsassa_pss_sign().

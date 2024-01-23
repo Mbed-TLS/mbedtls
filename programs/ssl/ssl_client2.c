@@ -716,9 +716,46 @@ exit:
     return ret;
 }
 
+/*
+ * Build HTTP request
+ */
+static void build_http_request(unsigned char *buf, size_t buf_size, int *request_len)
+{
+    int len, tail_len;
+
+    len = mbedtls_snprintf((char *) buf, buf_size, GET_REQUEST, opt.request_page);
+    tail_len = (int) strlen(GET_REQUEST_END);
+
+    /* Add padding to GET request to reach opt.request_size in length */
+    if (opt.request_size != DFL_REQUEST_SIZE &&
+        len + tail_len < opt.request_size) {
+        memset(buf + len, 'A', opt.request_size - len - tail_len);
+        len += opt.request_size - len - tail_len;
+    }
+
+    strncpy((char *) buf + len, GET_REQUEST_END, buf_size - len);
+    len += tail_len;
+
+    /* Truncate if request size is smaller than the "natural" size */
+    if (opt.request_size != DFL_REQUEST_SIZE &&
+        len > opt.request_size) {
+        len = opt.request_size;
+
+        /* Still end with \r\n unless that's really not possible */
+        if (len >= 2) {
+            buf[len - 2] = '\r';
+        }
+        if (len >= 1) {
+            buf[len - 1] = '\n';
+        }
+    }
+
+    *request_len = len;
+}
+
 int main(int argc, char *argv[])
 {
-    int ret = 0, len, tail_len, i, written, frags, retry_left;
+    int ret = 0, len, i, written, frags, retry_left;
     int query_config_ret = 0;
     mbedtls_net_context server_fd;
     io_ctx_t io_ctx;
@@ -2442,33 +2479,7 @@ send_request:
     mbedtls_printf("  > Write to server:");
     fflush(stdout);
 
-    len = mbedtls_snprintf((char *) buf, sizeof(buf) - 1, GET_REQUEST,
-                           opt.request_page);
-    tail_len = (int) strlen(GET_REQUEST_END);
-
-    /* Add padding to GET request to reach opt.request_size in length */
-    if (opt.request_size != DFL_REQUEST_SIZE &&
-        len + tail_len < opt.request_size) {
-        memset(buf + len, 'A', opt.request_size - len - tail_len);
-        len += opt.request_size - len - tail_len;
-    }
-
-    strncpy((char *) buf + len, GET_REQUEST_END, sizeof(buf) - len - 1);
-    len += tail_len;
-
-    /* Truncate if request size is smaller than the "natural" size */
-    if (opt.request_size != DFL_REQUEST_SIZE &&
-        len > opt.request_size) {
-        len = opt.request_size;
-
-        /* Still end with \r\n unless that's really not possible */
-        if (len >= 2) {
-            buf[len - 2] = '\r';
-        }
-        if (len >= 1) {
-            buf[len - 1] = '\n';
-        }
-    }
+    build_http_request(buf, sizeof(buf) - 1, &len);
 
     if (opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM) {
         written = 0;

@@ -1,6 +1,7 @@
 /* BEGIN_HEADER */
 #include "mbedtls/rsa.h"
 #include "rsa_alt_helpers.h"
+#include "rsa_internal.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -1368,6 +1369,36 @@ exit:
     mbedtls_free(buf_dec);
 
     mbedtls_rsa_free(&ctx);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void rsa_import_pkcs1_key(int is_public, data_t *input)
+{
+    mbedtls_rsa_context rsa_ctx;
+    unsigned char *input_start = input->x;
+    unsigned char *input_end = input->x + input->len;
+    unsigned char *output_buf = NULL;
+    unsigned char *output_start;
+    unsigned char *output_end;
+
+    TEST_CALLOC(output_buf, input->len);
+    output_start = output_buf;
+    output_end = output_buf + input->len;
+
+    mbedtls_rsa_init(&rsa_ctx);
+
+    if (is_public) {
+        TEST_EQUAL(mbedtls_rsa_pubkey_parse(&rsa_ctx, &input_start, input_end), 0);
+        TEST_EQUAL(mbedtls_rsa_pubkey_write(&rsa_ctx, output_start, &output_end), input->len);
+    } else {
+        TEST_EQUAL(mbedtls_rsa_key_parse(&rsa_ctx, input->x, input->len), 0);
+        TEST_EQUAL(mbedtls_rsa_key_write(&rsa_ctx, output_start, &output_end), input->len);
+    }
+
+exit:
+    mbedtls_free(output_buf);
+    mbedtls_rsa_free(&rsa_ctx);
 }
 /* END_CASE */
 

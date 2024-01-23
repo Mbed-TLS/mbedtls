@@ -1552,6 +1552,7 @@ component_test_full_no_cipher_no_psa_crypto () {
     scripts/config.py unset MBEDTLS_CMAC_C
     scripts/config.py unset MBEDTLS_NIST_KW_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CLIENT
     scripts/config.py unset MBEDTLS_SSL_TLS_C
     scripts/config.py unset MBEDTLS_SSL_TICKET_C
     # Disable features that depend on PSA_CRYPTO_C
@@ -2430,11 +2431,12 @@ component_build_dhm_alt () {
     make CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy' lib
 }
 
-component_test_no_use_psa_crypto_full_cmake_asan() {
-    # full minus MBEDTLS_USE_PSA_CRYPTO: run the same set of tests as basic-build-test.sh
-    msg "build: cmake, full config minus MBEDTLS_USE_PSA_CRYPTO, ASan"
+component_test_no_psa_crypto_full_cmake_asan() {
+    # full minus MBEDTLS_PSA_CRYPTO_C: run the same set of tests as basic-build-test.sh
+    msg "build: cmake, full config minus PSA crypto, ASan"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_CLIENT
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
@@ -2445,7 +2447,7 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: main suites (full minus MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: main suites (full minus PSA crypto)"
     make test
 
     # Note: ssl-opt.sh has some test cases that depend on

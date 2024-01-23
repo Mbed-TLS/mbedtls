@@ -144,7 +144,7 @@ typedef enum {
                 return status;                                       \
             }                                                        \
         }                                                            \
-        if (op == PSA_MUTEX_UNLOCK) {                                \
+        else if (op == PSA_MUTEX_UNLOCK) {                           \
             if (mbedtls_mutex_unlock(                                \
                     &mbedtls_threading_key_slot_mutex) != 0) {       \
                 if (status == PSA_SUCCESS) {                         \
@@ -163,7 +163,7 @@ typedef enum {
  * Call with parameter PSA_MUTEX_LOCK to perform a lock operation.
  * Call with parameter PSA_MUTEX_UNLOCK to perform an unlock operation.
  * This will goto the exit label if the operation fails,
- * setting status to PSA_SERVICE_FAILURE if status was PSA_SUCCESS.
+ * setting status to PSA_ERROR_SERVICE_FAILURE if status was PSA_SUCCESS.
  * If threading is not enabled, do nothing.
  *
  * Assumptions:
@@ -184,7 +184,7 @@ typedef enum {
                 goto exit;                                           \
             }                                                        \
         }                                                            \
-        if (op == PSA_MUTEX_UNLOCK) {                                \
+        else if (op == PSA_MUTEX_UNLOCK) {                           \
             if (mbedtls_mutex_unlock(                                \
                     &mbedtls_threading_key_slot_mutex) != 0) {       \
                 if (status == PSA_SUCCESS) {                         \

@@ -464,11 +464,24 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
         {
             int sign_ok = (pk_type != MBEDTLS_PK_ECKEY_DH);
             int derive_ok = (pk_type != MBEDTLS_PK_ECDSA);
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+            psa_key_attributes_t old_attributes = PSA_KEY_ATTRIBUTES_INIT;
+            psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+            status = psa_get_key_attributes(pk->priv_id, &old_attributes);
+            if (status != PSA_SUCCESS) {
+                return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+            }
+            psa_key_type_t old_type = psa_get_key_type(&old_attributes);
+            int has_private = PSA_KEY_TYPE_IS_KEY_PAIR(old_type);
+            size_t bits = psa_get_key_bits(&old_attributes);
+            psa_ecc_family_t family = PSA_KEY_TYPE_ECC_GET_FAMILY(old_type);
+#else
             mbedtls_ecp_keypair *ec = mbedtls_pk_ec(*pk);
             int has_private = (ec->d.n != 0);
             size_t bits = 0;
             psa_ecc_family_t family =
                 mbedtls_ecc_group_to_psa(ec->grp.id, &bits);
+#endif
             int want_private = 0;
             psa_algorithm_t alg = 0;
             switch (usage) {

@@ -733,6 +733,12 @@ static int build_http_request(unsigned char *buf, size_t buf_size, size_t *reque
     tail_len = strlen(GET_REQUEST_END);
     if (opt.request_size != DFL_REQUEST_SIZE) {
         request_size = (size_t) opt.request_size;
+    } else {
+        request_size = len + tail_len;
+    }
+
+    if (request_size > buf_size) {
+        return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
     }
 
     /* Add padding to GET request to reach opt.request_size in length */

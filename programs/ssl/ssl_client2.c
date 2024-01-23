@@ -3035,6 +3035,55 @@ reconnect:
             goto exit;
         }
 
+        ret = build_http_request(buf, sizeof(buf) - 1, &len);
+        if (ret != 0) {
+            goto exit;
+        }
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        if (opt.early_data == MBEDTLS_SSL_EARLY_DATA_ENABLED) {
+            frags = 0;
+            written = 0;
+            do {
+                while ((ret = mbedtls_ssl_write_early_data(&ssl, buf + written,
+                                                           len - written)) < 0) {
+                    if (ret == MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA) {
+                        break;
+                    }
+                    if (ret != MBEDTLS_ERR_SSL_WANT_READ &&
+                        ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
+                        ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) {
+                        mbedtls_printf(" failed\n  ! mbedtls_ssl_write returned -0x%x\n\n",
+                                       (unsigned int) -ret);
+                        goto exit;
+                    }
+
+                    /* For event-driven IO, wait for socket to become available */
+                    if (opt.event == 1 /* level triggered IO */) {
+#if defined(MBEDTLS_TIMING_C)
+                        idle(&server_fd, &timer, ret);
+#else
+                        idle(&server_fd, ret);
+#endif
+                    }
+                }
+                if (ret == MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA) {
+                    break;
+                }
+
+                frags++;
+                written += ret;
+            } while (written < len);
+        }
+
+        buf[written] = '\0';
+        mbedtls_printf(
+            " %" MBEDTLS_PRINTF_SIZET " bytes of early data written in %" MBEDTLS_PRINTF_SIZET " fragments\n\n%s\n",
+            written,
+            frags,
+            (char *) buf);
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
         while ((ret = mbedtls_ssl_handshake(&ssl)) != 0) {
             if (ret != MBEDTLS_ERR_SSL_WANT_READ &&
                 ret != MBEDTLS_ERR_SSL_WANT_WRITE &&

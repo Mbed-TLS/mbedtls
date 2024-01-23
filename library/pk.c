@@ -449,7 +449,7 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
             psa_set_key_type(attributes, (want_private ?
                                           PSA_KEY_TYPE_RSA_KEY_PAIR :
                                           PSA_KEY_TYPE_RSA_PUBLIC_KEY));
-            psa_set_key_bits(attributes, mbedtls_mpi_bitlen(&rsa->N));
+            psa_set_key_bits(attributes, mbedtls_pk_get_bitlen(pk));
             psa_set_key_algorithm(attributes,
                                   psa_algorithm_for_rsa(rsa, want_crypt));
             break;

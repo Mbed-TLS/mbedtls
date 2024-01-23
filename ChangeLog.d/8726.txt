@@ -1,3 +1,2 @@
 Features
-   * Add platform support for z/OS.
-   
+   * Add partial platform support for z/OS.

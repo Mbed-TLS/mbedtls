@@ -1799,6 +1799,11 @@ static psa_status_t psa_finish_key_creation(
     (void) slot;
     (void) driver;
 
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
+
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     if (!PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) {
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -1838,6 +1843,11 @@ static psa_status_t psa_finish_key_creation(
         status = psa_save_se_persistent_data(driver);
         if (status != PSA_SUCCESS) {
             psa_destroy_persistent_key(slot->attr.id);
+
+#if defined(MBEDTLS_THREADING_C)
+            PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                                      &mbedtls_threading_key_slot_mutex));
+#endif
             return status;
         }
         status = psa_crypto_stop_transaction();
@@ -1853,6 +1863,10 @@ static psa_status_t psa_finish_key_creation(
         }
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
     return status;
 }
 

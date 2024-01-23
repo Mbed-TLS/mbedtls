@@ -1556,8 +1556,7 @@ int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
         return ret;
     }
     mbedtls_pk_free(ctx);
-    if (ret != (MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_INVALID_PUBKEY,
-                                  MBEDTLS_ERR_ASN1_UNEXPECTED_TAG))) {
+    if (ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
         return ret;
     }
 #endif /* MBEDTLS_RSA_C */

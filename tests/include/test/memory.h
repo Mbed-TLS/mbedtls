@@ -21,12 +21,9 @@
  * memory as poisoned, which can be used to enforce some memory access
  * policies.
  *
- * Support for the C11 thread_local keyword is also required.
- *
  * Currently, only Asan (Address Sanitizer) is supported.
  */
-#if defined(MBEDTLS_TEST_HAVE_ASAN) && \
-    (__STDC_VERSION__ >= 201112L)
+#if defined(MBEDTLS_TEST_HAVE_ASAN)
 #  define MBEDTLS_TEST_MEMORY_CAN_POISON
 #endif
 
@@ -64,11 +61,11 @@
 
 #if defined(MBEDTLS_TEST_MEMORY_CAN_POISON)
 
-/** Thread-local variable used to enable memory poisoning. This is set and
- *  unset in the test wrappers so that calls to PSA functions from the library
- *  do not poison memory.
+/** Variable used to enable memory poisoning. This is set and unset in the
+ *  test wrappers so that calls to PSA functions from the library do not
+ *  poison memory.
  */
-extern _Thread_local unsigned int mbedtls_test_memory_poisoning_count;
+extern unsigned int mbedtls_test_memory_poisoning_count;
 
 /** Poison a memory area so that any attempt to read or write from it will
  * cause a runtime failure.

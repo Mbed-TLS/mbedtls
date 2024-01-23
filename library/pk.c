@@ -416,24 +416,23 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
     }
     more_usage |= PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_COPY;
 
+    int want_private = !(usage == PSA_KEY_USAGE_VERIFY_MESSAGE ||
+                         usage == PSA_KEY_USAGE_VERIFY_HASH ||
+                         usage == PSA_KEY_USAGE_ENCRYPT);
+
     switch (pk_type) {
 #if defined(MBEDTLS_RSA_C)
         case MBEDTLS_PK_RSA:
         {
-            int want_crypt = 0;
-            int want_private = 0;
+            int want_crypt = 0; /* 0: encrypt/decrypt; 1: sign/verify */
             switch (usage) {
                 case PSA_KEY_USAGE_SIGN_MESSAGE:
                 case PSA_KEY_USAGE_SIGN_HASH:
-                    want_private = 1;
-                    break;
-                case PSA_KEY_USAGE_DECRYPT:
-                    want_private = 1;
-                    want_crypt = 1;
-                    break;
                 case PSA_KEY_USAGE_VERIFY_MESSAGE:
                 case PSA_KEY_USAGE_VERIFY_HASH:
+                    /* Nothing to do. */
                     break;
+                case PSA_KEY_USAGE_DECRYPT:
                 case PSA_KEY_USAGE_ENCRYPT:
                     want_crypt = 1;
                     break;
@@ -482,13 +481,10 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
             psa_ecc_family_t family =
                 mbedtls_ecc_group_to_psa(ec->grp.id, &bits);
 #endif
-            int want_private = 0;
             psa_algorithm_t alg = 0;
             switch (usage) {
                 case PSA_KEY_USAGE_SIGN_MESSAGE:
                 case PSA_KEY_USAGE_SIGN_HASH:
-                    want_private = 1;
-                /* FALLTHROUGH */
                 case PSA_KEY_USAGE_VERIFY_MESSAGE:
                 case PSA_KEY_USAGE_VERIFY_HASH:
                     if (!sign_ok) {
@@ -501,7 +497,6 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
 #endif
                     break;
                 case PSA_KEY_USAGE_DERIVE:
-                    want_private = 1;
                     alg = PSA_ALG_ECDH;
                     if (!derive_ok) {
                         return MBEDTLS_ERR_PK_TYPE_MISMATCH;
@@ -566,9 +561,7 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
             /* Opaque keys are always key pairs, so we don't need a check
              * on the input if the required usage is private. We just need
              * to adjust the type correctly if the required usage is public. */
-            if (usage == PSA_KEY_USAGE_VERIFY_MESSAGE ||
-                usage == PSA_KEY_USAGE_VERIFY_HASH ||
-                usage == PSA_KEY_USAGE_ENCRYPT) {
+            if (!want_private) {
                 new_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(new_type);
             }
             more_usage = psa_get_key_usage_flags(&old_attributes);

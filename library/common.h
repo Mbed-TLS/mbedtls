@@ -280,7 +280,7 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
     }
 #if defined(__IAR_SYSTEMS_ICC__)
     /* This if statement helps some compilers (e.g., IAR) optimise out the byte-by-byte tail case
-     * where n is a constant multiple of 16.
+     * where n is a constant multiple of 8.
      * For other compilers (e.g. recent gcc and clang) it makes no difference if n is a compile-time
      * constant, and is a very small perf regression if n is not a compile-time constant. */
     if (n % 8 == 0) {

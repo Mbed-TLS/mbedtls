@@ -1373,12 +1373,19 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void rsa_parse_pkcs1_key(data_t *input, int exp_ret_val)
+void rsa_parse_pkcs1_key(int is_public, data_t *input, int exp_ret_val)
 {
     mbedtls_rsa_context rsa_ctx;
+    unsigned char *start = input->x;
+    unsigned char *end = input->x + input->len;
+
     mbedtls_rsa_init(&rsa_ctx);
 
-    TEST_EQUAL(mbedtls_rsa_key_parse(&rsa_ctx, input->x, input->len), exp_ret_val);
+    if (is_public) {
+        TEST_EQUAL(mbedtls_rsa_pubkey_parse(&rsa_ctx, &start, end), exp_ret_val);
+    } else {
+        TEST_EQUAL(mbedtls_rsa_key_parse(&rsa_ctx, input->x, input->len), exp_ret_val);
+    }
 
 exit:
     mbedtls_rsa_free(&rsa_ctx);

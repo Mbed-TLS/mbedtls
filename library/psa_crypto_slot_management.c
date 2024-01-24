@@ -144,6 +144,9 @@ void psa_wipe_all_key_slots(void)
 {
     size_t slot_idx;
 
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_lock(&mbedtls_threading_key_slot_mutex);
+#endif
     for (slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++) {
         psa_key_slot_t *slot = &global_data.key_slots[slot_idx];
         slot->registered_readers = 1;
@@ -151,6 +154,9 @@ void psa_wipe_all_key_slots(void)
         (void) psa_wipe_key_slot(slot);
     }
     global_data.key_slots_initialized = 0;
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_unlock(&mbedtls_threading_key_slot_mutex);
+#endif
 }
 
 psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,

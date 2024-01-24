@@ -198,6 +198,8 @@ psa_status_t mbedtls_psa_register_se_key(
  *
  * This function clears all data associated with the PSA layer,
  * including the whole key store.
+ * This function is not thread safe, it wipes every key slot regardless of
+ * state and reader count. It should only be called when no slot is in use.
  *
  * This is an Mbed TLS extension.
  */

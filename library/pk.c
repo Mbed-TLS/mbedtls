@@ -378,7 +378,7 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 #if defined(MBEDTLS_RSA_C)
 static psa_algorithm_t psa_algorithm_for_rsa(const mbedtls_rsa_context *rsa,
                                              int want_crypt)
@@ -586,7 +586,7 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
 
     return 0;
 }
-#endif
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 /*
  * Helper for mbedtls_pk_sign and mbedtls_pk_verify

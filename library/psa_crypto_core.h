@@ -114,88 +114,47 @@ typedef struct {
     } key;
 } psa_key_slot_t;
 
-typedef enum {
-    PSA_MUTEX_LOCK = 0,
-    PSA_MUTEX_UNLOCK,
-} psa_mutex_operation_t;
+#if defined(MBEDTLS_THREADING_C)
 
-/** If threading is enabled: perform a lock or unlock operation on the
- * key slot mutex.
- * Call with parameter PSA_MUTEX_LOCK to perform a lock operation.
- * Call with parameter PSA_MUTEX_UNLOCK to perform an unlock operation.
+/** Perform a mutex operation and return immediately upon failure.
+ *
  * Returns PSA_ERROR_SERVICE_FAILURE if the operation fails
  * and status was PSA_SUCCESS.
- * If threading is not enabled, do nothing.
  *
  * Assumptions:
  *  psa_status_t status exists.
- *  op is PSA_MUTEX_LOCK or PSA_MUTEX_UNLOCK.
+ *  f is a mutex operation which returns 0 upon success.
  */
-#if defined(MBEDTLS_THREADING_C)
-#define PSA_KEY_SLOT_MUTEX_LOCKFUNC_RETURN(op)                       \
-    do                                                               \
-    {                                                                \
-        if (op == PSA_MUTEX_LOCK) {                                  \
-            if (mbedtls_mutex_lock(                                  \
-                    &mbedtls_threading_key_slot_mutex) != 0) {       \
-                if (status == PSA_SUCCESS) {                         \
-                    return PSA_ERROR_SERVICE_FAILURE;                \
-                }                                                    \
-                return status;                                       \
-            }                                                        \
-        }                                                            \
-        else if (op == PSA_MUTEX_UNLOCK) {                           \
-            if (mbedtls_mutex_unlock(                                \
-                    &mbedtls_threading_key_slot_mutex) != 0) {       \
-                if (status == PSA_SUCCESS) {                         \
-                    return PSA_ERROR_SERVICE_FAILURE;                \
-                }                                                    \
-                return status;                                       \
-            }                                                        \
-        }                                                            \
+#define PSA_THREADING_CHK_RET(f)                       \
+    do                                                 \
+    {                                                  \
+        if ((f) != 0) {                                \
+            if (status == PSA_SUCCESS) {               \
+                return PSA_ERROR_SERVICE_FAILURE;      \
+            }                                          \
+            return status;                             \
+        }                                              \
     } while (0);
-#else
-#define PSA_KEY_SLOT_MUTEX_LOCKFUNC_RETURN(op)  do { } while (0)
-#endif
 
-/** If threading is enabled: perform a lock or unlock operation on the
- * key slot mutex.
- * Call with parameter PSA_MUTEX_LOCK to perform a lock operation.
- * Call with parameter PSA_MUTEX_UNLOCK to perform an unlock operation.
- * This will goto the exit label if the operation fails,
- * setting status to PSA_ERROR_SERVICE_FAILURE if status was PSA_SUCCESS.
- * If threading is not enabled, do nothing.
+/** Perform a mutex operation and goto exit on failure.
+ *
+ * Sets status to PSA_ERROR_SERVICE_FAILURE if status was PSA_SUCCESS.
  *
  * Assumptions:
  *  psa_status_t status exists.
  *  Label exit: exists.
- *  op is PSA_MUTEX_LOCK or PSA_MUTEX_UNLOCK.
+ *  f is a mutex operation which returns 0 upon success.
  */
-#if defined(MBEDTLS_THREADING_C)
-#define PSA_KEY_SLOT_MUTEX_LOCKFUNC_GOTO_EXIT(op)                    \
-    do                                                               \
-    {                                                                \
-        if (op == PSA_MUTEX_LOCK) {                                  \
-            if (mbedtls_mutex_lock(                                  \
-                    &mbedtls_threading_key_slot_mutex) != 0) {       \
-                if (status == PSA_SUCCESS) {                         \
-                    status = PSA_ERROR_SERVICE_FAILURE;              \
-                }                                                    \
-                goto exit;                                           \
-            }                                                        \
-        }                                                            \
-        else if (op == PSA_MUTEX_UNLOCK) {                           \
-            if (mbedtls_mutex_unlock(                                \
-                    &mbedtls_threading_key_slot_mutex) != 0) {       \
-                if (status == PSA_SUCCESS) {                         \
-                    status = PSA_ERROR_SERVICE_FAILURE;              \
-                }                                                    \
-                goto exit;                                           \
-            }                                                        \
-        }                                                            \
+#define PSA_THREADING_CHK_GOTO_EXIT(f)                 \
+    do                                                 \
+    {                                                  \
+        if ((f) != 0) {                                \
+            if (status == PSA_SUCCESS) {               \
+                status = PSA_ERROR_SERVICE_FAILURE;    \
+            }                                          \
+            goto exit;                                 \
+        }                                              \
     } while (0);
-#else
-#define PSA_KEY_SLOT_MUTEX_LOCKFUNC_GOTO_EXIT(op)   do { } while (0)
 #endif
 
 /* A mask of key attribute flags used only internally.

@@ -7,5 +7,5 @@
 # expose it.
 
 - type: exact
-  from_url: /projects/api/en/latest/$rest
-  to_url: /projects/api/en/development/
+  from_url: /projects/api/en/latest/*
+  to_url: /projects/api/en/development/:splat

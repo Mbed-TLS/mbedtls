@@ -42,7 +42,7 @@ class Expr:
         """Update `value_cache` for expressions registered in `unknown_values`."""
         expressions = sorted(self.unknown_values)
         includes = ['include']
-        if build_tree.looks_like_psa_crypto_root('.'):
+        if build_tree.looks_like_tf_psa_crypto_root('.'):
             includes.append('drivers/builtin/include')
         values = c_build_helper.get_c_expression_values(
             'unsigned long', '%lu',

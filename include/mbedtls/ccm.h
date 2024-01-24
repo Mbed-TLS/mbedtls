@@ -40,6 +40,10 @@
 
 #include "mbedtls/cipher.h"
 
+#if defined(MBEDTLS_BLOCK_CIPHER_C)
+#include "mbedtls/block_cipher.h"
+#endif
+
 #define MBEDTLS_CCM_DECRYPT       0
 #define MBEDTLS_CCM_ENCRYPT       1
 #define MBEDTLS_CCM_STAR_DECRYPT  2
@@ -80,7 +84,11 @@ typedef struct mbedtls_ccm_context {
                                               #MBEDTLS_CCM_DECRYPT or
                                               #MBEDTLS_CCM_STAR_ENCRYPT or
                                               #MBEDTLS_CCM_STAR_DECRYPT. */
+#if defined(MBEDTLS_BLOCK_CIPHER_C)
+    mbedtls_block_cipher_context_t MBEDTLS_PRIVATE(block_cipher_ctx);    /*!< The cipher context used. */
+#else
     mbedtls_cipher_context_t MBEDTLS_PRIVATE(cipher_ctx);    /*!< The cipher context used. */
+#endif
     int MBEDTLS_PRIVATE(state);              /*!< Working value holding context's
                                                   state. Used for chunked data input */
 }
@@ -501,7 +509,7 @@ int mbedtls_ccm_update(mbedtls_ccm_context *ctx,
 int mbedtls_ccm_finish(mbedtls_ccm_context *ctx,
                        unsigned char *tag, size_t tag_len);
 
-#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
+#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_CCM_GCM_CAN_AES)
 /**
  * \brief          The CCM checkup routine.
  *

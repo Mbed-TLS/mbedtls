@@ -428,6 +428,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  * of psa_set_key_type() when you need to specify domain parameters.
  *
  * The format for the required domain parameters varies based on the key type.
+ * Mbed TLS supports the following key type with domain parameters:
  *
  * - For RSA keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY or #PSA_KEY_TYPE_RSA_KEY_PAIR),
  *   the domain parameter data consists of the public exponent,
@@ -437,32 +438,6 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  *   key data and the exponent recorded in the attribute structure is ignored.
  *   As an exception, the public exponent 65537 is represented by an empty
  *   byte string.
- * - For DSA keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY or #PSA_KEY_TYPE_DSA_KEY_PAIR),
- *   the `Dss-Params` format as defined by RFC 3279 &sect;2.3.2.
- *   ```
- *   Dss-Params ::= SEQUENCE  {
- *      p       INTEGER,
- *      q       INTEGER,
- *      g       INTEGER
- *   }
- *   ```
- * - For Diffie-Hellman key exchange keys
- *   (#PSA_KEY_TYPE_DH_PUBLIC_KEY(#PSA_DH_FAMILY_CUSTOM) or
- *   #PSA_KEY_TYPE_DH_KEY_PAIR(#PSA_DH_FAMILY_CUSTOM)), the
- *   `DomainParameters` format as defined by RFC 3279 &sect;2.3.3.
- *   ```
- *   DomainParameters ::= SEQUENCE {
- *      p               INTEGER,                    -- odd prime, p=jq +1
- *      g               INTEGER,                    -- generator, g
- *      q               INTEGER,                    -- factor of p-1
- *      j               INTEGER OPTIONAL,           -- subgroup factor
- *      validationParams ValidationParams OPTIONAL
- *   }
- *   ValidationParams ::= SEQUENCE {
- *      seed            BIT STRING,
- *      pgenCounter     INTEGER
- *   }
- *   ```
  *
  * \note This function may allocate memory or other resources.
  *       Once you have called this function on an attribute structure,
@@ -470,6 +445,9 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  *
  * \note This is an experimental extension to the interface. It may change
  *       in future versions of the library.
+ *
+ * \note Due to an implementation limitation, domain parameters are ignored
+ *       for keys that are managed by a driver.
  *
  * \param[in,out] attributes    Attribute structure where the specified domain
  *                              parameters will be stored.
@@ -486,10 +464,13 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  */
+#if !defined(PSA_SET_KEY_DOMAIN_PARAMETERS)
+#define PSA_SET_KEY_DOMAIN_PARAMETERS
 psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
                                            psa_key_type_t type,
                                            const uint8_t *data,
                                            size_t data_length);
+#endif /* PSA_SET_KEY_DOMAIN_PARAMETERS */
 
 /**
  * \brief Get domain parameters for a key.
@@ -500,6 +481,9 @@ psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
  *
  * \note This is an experimental extension to the interface. It may change
  *       in future versions of the library.
+ *
+ * \note Due to an implementation limitation, domain parameters are not
+ *       supported with keys that are managed by a driver.
  *
  * \param[in] attributes        The key attribute structure to query.
  * \param[out] data             On success, the key domain parameters.
@@ -513,6 +497,8 @@ psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
  *
  * \retval #PSA_SUCCESS \emptydescription
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL \emptydescription
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The key is managed by a driver.
  */
 psa_status_t psa_get_key_domain_parameters(
     const psa_key_attributes_t *attributes,
@@ -557,53 +543,6 @@ psa_status_t psa_get_key_domain_parameters(
 
 /**@}*/
 
-/** \defgroup psa_tls_helpers TLS helper functions
- * @{
- */
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-#include <mbedtls/ecp.h>
-
-/** Convert an ECC curve identifier from the Mbed TLS encoding to PSA.
- *
- * \note This function is provided solely for the convenience of
- *       Mbed TLS and may be removed at any time without notice.
- *
- * \param grpid         An Mbed TLS elliptic curve identifier
- *                      (`MBEDTLS_ECP_DP_xxx`).
- * \param[out] bits     On success, the bit size of the curve.
- *
- * \return              The corresponding PSA elliptic curve identifier
- *                      (`PSA_ECC_FAMILY_xxx`).
- * \return              \c 0 on failure (\p grpid is not recognized).
- */
-psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
-                                          size_t *bits);
-
-/** Convert an ECC curve identifier from the PSA encoding to Mbed TLS.
- *
- * \note This function is provided solely for the convenience of
- *       Mbed TLS and may be removed at any time without notice.
- *
- * \param curve         A PSA elliptic curve identifier
- *                      (`PSA_ECC_FAMILY_xxx`).
- * \param bits          The bit-length of a private key on \p curve.
- * \param bits_is_sloppy If true, \p bits may be the bit-length rounded up
- *                      to the nearest multiple of 8. This allows the caller
- *                      to infer the exact curve from the length of a key
- *                      which is supplied as a byte string.
- *
- * \return              The corresponding Mbed TLS elliptic curve identifier
- *                      (`MBEDTLS_ECP_DP_xxx`).
- * \return              #MBEDTLS_ECP_DP_NONE if \c curve is not recognized.
- * \return              #MBEDTLS_ECP_DP_NONE if \p bits is not
- *                      correct for \p curve.
- */
-mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
-                                              size_t bits,
-                                              int bits_is_sloppy);
-#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
-
-/**@}*/
 
 /** \defgroup psa_external_rng External random generator
  * @{

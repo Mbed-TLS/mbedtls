@@ -632,10 +632,10 @@ void mbedtls_asn1_free_named_data_list_shallow(mbedtls_asn1_named_data *name);
 /** \} name Functions to parse ASN.1 data structures */
 /** \} addtogroup asn1_module */
 
+#endif /* MBEDTLS_ASN1_PARSE_C */
+
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* MBEDTLS_ASN1_PARSE_C */
 
 #endif /* asn1.h */

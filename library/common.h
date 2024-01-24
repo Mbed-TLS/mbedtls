@@ -21,7 +21,20 @@
 
 #if defined(__ARM_NEON)
 #include <arm_neon.h>
-#endif /* __ARM_NEON */
+#define MBEDTLS_HAVE_NEON_INTRINSICS
+#elif defined(MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64)
+#include <arm64_neon.h>
+#define MBEDTLS_HAVE_NEON_INTRINSICS
+#endif
+
+
+#if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \
+    && !defined(__llvm__) && !defined(__INTEL_COMPILER)
+/* Defined if the compiler really is gcc and not clang, etc */
+#define MBEDTLS_COMPILER_IS_GCC
+#define MBEDTLS_GCC_VERSION \
+    (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#endif
 
 /** Helper to define a function as static except when building invasive tests.
  *
@@ -169,14 +182,16 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 {
     size_t i = 0;
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
-#if defined(__ARM_NEON)
+#if defined(MBEDTLS_HAVE_NEON_INTRINSICS) && \
+    (!(defined(MBEDTLS_COMPILER_IS_GCC) && MBEDTLS_GCC_VERSION < 70300))
+    /* Old GCC versions generate a warning here, so disable the NEON path for these compilers */
     for (; (i + 16) <= n; i += 16) {
         uint8x16_t v1 = vld1q_u8(a + i);
         uint8x16_t v2 = vld1q_u8(b + i);
         uint8x16_t x = veorq_u8(v1, v2);
         vst1q_u8(r + i, x);
     }
-#elif defined(__amd64__) || defined(__x86_64__) || defined(__aarch64__)
+#elif defined(MBEDTLS_ARCH_IS_X64) || defined(MBEDTLS_ARCH_IS_ARM64)
     /* This codepath probably only makes sense on architectures with 64-bit registers */
     for (; (i + 8) <= n; i += 8) {
         uint64_t x = mbedtls_get_unaligned_uint64(a + i) ^ mbedtls_get_unaligned_uint64(b + i);
@@ -215,7 +230,7 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 {
     size_t i = 0;
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
-#if defined(__amd64__) || defined(__x86_64__) || defined(__aarch64__)
+#if defined(MBEDTLS_ARCH_IS_X64) || defined(MBEDTLS_ARCH_IS_ARM64)
     /* This codepath probably only makes sense on architectures with 64-bit registers */
     for (; (i + 8) <= n; i += 8) {
         uint64_t x = mbedtls_get_unaligned_uint64(a + i) ^ mbedtls_get_unaligned_uint64(b + i);
@@ -294,22 +309,34 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 #define MBEDTLS_STATIC_ASSERT(expr, msg)
 #endif
 
-/* Define compiler branch hints */
 #if defined(__has_builtin)
-#if __has_builtin(__builtin_expect)
+#define MBEDTLS_HAS_BUILTIN(x) __has_builtin(x)
+#else
+#define MBEDTLS_HAS_BUILTIN(x) 0
+#endif
+
+/* Define compiler branch hints */
+#if MBEDTLS_HAS_BUILTIN(__builtin_expect)
 #define MBEDTLS_LIKELY(x)       __builtin_expect(!!(x), 1)
 #define MBEDTLS_UNLIKELY(x)     __builtin_expect(!!(x), 0)
-#endif
-#endif
-#if !defined(MBEDTLS_LIKELY)
+#else
 #define MBEDTLS_LIKELY(x)       x
 #define MBEDTLS_UNLIKELY(x)     x
 #endif
 
-#if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \
-    && !defined(__llvm__) && !defined(__INTEL_COMPILER)
-/* Defined if the compiler really is gcc and not clang, etc */
-#define MBEDTLS_COMPILER_IS_GCC
+/* MBEDTLS_ASSUME may be used to provide additional information to the compiler
+ * which can result in smaller code-size. */
+#if MBEDTLS_HAS_BUILTIN(__builtin_assume)
+/* clang provides __builtin_assume */
+#define MBEDTLS_ASSUME(x)       __builtin_assume(x)
+#elif MBEDTLS_HAS_BUILTIN(__builtin_unreachable)
+/* gcc and IAR can use __builtin_unreachable */
+#define MBEDTLS_ASSUME(x)       do { if (!(x)) __builtin_unreachable(); } while (0)
+#elif defined(_MSC_VER)
+/* Supported by MSVC since VS 2005 */
+#define MBEDTLS_ASSUME(x)       __assume(x)
+#else
+#define MBEDTLS_ASSUME(x)       do { } while (0)
 #endif
 
 /* For gcc -Os, override with -O2 for a given function.
@@ -320,6 +347,33 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 #define MBEDTLS_OPTIMIZE_FOR_PERFORMANCE __attribute__((optimize("-O2")))
 #else
 #define MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
+#endif
+
+/* Suppress compiler warnings for unused functions and variables. */
+#if !defined(MBEDTLS_MAYBE_UNUSED) && defined(__has_attribute)
+#    if __has_attribute(unused)
+#        define MBEDTLS_MAYBE_UNUSED __attribute__((unused))
+#    endif
+#endif
+#if !defined(MBEDTLS_MAYBE_UNUSED) && defined(__GNUC__)
+#    define MBEDTLS_MAYBE_UNUSED __attribute__((unused))
+#endif
+#if !defined(MBEDTLS_MAYBE_UNUSED) && defined(__IAR_SYSTEMS_ICC__) && defined(__VER__)
+/* IAR does support __attribute__((unused)), but only if the -e flag (extended language support)
+ * is given; the pragma always works.
+ * Unfortunately the pragma affects the rest of the file where it is used, but this is harmless.
+ * Check for version 5.2 or later - this pragma may be supported by earlier versions, but I wasn't
+ * able to find documentation).
+ */
+#    if (__VER__ >= 5020000)
+#        define MBEDTLS_MAYBE_UNUSED _Pragma("diag_suppress=Pe177")
+#    endif
+#endif
+#if !defined(MBEDTLS_MAYBE_UNUSED) && defined(_MSC_VER)
+#    define MBEDTLS_MAYBE_UNUSED __pragma(warning(suppress:4189))
+#endif
+#if !defined(MBEDTLS_MAYBE_UNUSED)
+#    define MBEDTLS_MAYBE_UNUSED
 #endif
 
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

@@ -550,7 +550,7 @@ run_test    "TLS 1.3: G->m: psk_or_ephemeral/ephemeral_all, good" \
             -s "found pre_shared_key extension" \
             -S "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
-            -s "Pre shared key found" \
+            -S "Pre shared key found" \
             -S "No matched PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
@@ -733,7 +733,7 @@ run_test    "TLS 1.3: G->m: ephemeral_all/psk_or_ephemeral, good" \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
-            -s "Pre shared key found" \
+            -S "Pre shared key found" \
             -S "No matched PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \
@@ -1413,7 +1413,7 @@ run_test    "TLS 1.3: O->m: ephemeral_all/psk_or_ephemeral, good" \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
-            -s "Pre shared key found" \
+            -S "Pre shared key found" \
             -S "No matched PSK or ticket" \
             -S "key exchange mode: psk$"  \
             -S "key exchange mode: psk_ephemeral"  \

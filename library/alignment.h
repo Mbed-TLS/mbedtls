@@ -23,11 +23,16 @@
  * efficient when this is not defined.
  */
 #if defined(__ARM_FEATURE_UNALIGNED) \
-    || defined(__i386__) || defined(__amd64__) || defined(__x86_64__)
+    || defined(MBEDTLS_ARCH_IS_X86) || defined(MBEDTLS_ARCH_IS_X64) \
+    || defined(MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64)
 /*
  * __ARM_FEATURE_UNALIGNED is defined where appropriate by armcc, gcc 7, clang 9
  * (and later versions) for Arm v7 and later; all x86 platforms should have
  * efficient unaligned access.
+ *
+ * https://learn.microsoft.com/en-us/cpp/build/arm64-windows-abi-conventions?view=msvc-170#alignment
+ * specifies that on Windows-on-Arm64, unaligned access is safe (except for uncached
+ * device memory).
  */
 #define MBEDTLS_EFFICIENT_UNALIGNED_ACCESS
 #endif
@@ -175,6 +180,16 @@ inline void mbedtls_put_unaligned_uint64(void *p, uint64_t x)
 #define MBEDTLS_BSWAP32 __rev
 #endif
 
+/* Detect IAR built-in byteswap routine */
+#if defined(__IAR_SYSTEMS_ICC__)
+#if defined(__ARM_ACLE)
+#include <arm_acle.h>
+#define MBEDTLS_BSWAP16(x) ((uint16_t) __rev16((uint32_t) (x)))
+#define MBEDTLS_BSWAP32 __rev
+#define MBEDTLS_BSWAP64 __revll
+#endif
+#endif
+
 /*
  * Where compiler built-ins are not present, fall back to C code that the
  * compiler may be able to detect and transform into the relevant bswap or
@@ -219,10 +234,25 @@ static inline uint64_t mbedtls_bswap64(uint64_t x)
 #endif /* !defined(MBEDTLS_BSWAP64) */
 
 #if !defined(__BYTE_ORDER__)
+
+#if defined(__LITTLE_ENDIAN__)
+/* IAR defines __xxx_ENDIAN__, but not __BYTE_ORDER__ */
+#define MBEDTLS_IS_BIG_ENDIAN 0
+#elif defined(__BIG_ENDIAN__)
+#define MBEDTLS_IS_BIG_ENDIAN 1
+#else
 static const uint16_t mbedtls_byte_order_detector = { 0x100 };
 #define MBEDTLS_IS_BIG_ENDIAN (*((unsigned char *) (&mbedtls_byte_order_detector)) == 0x01)
+#endif
+
 #else
-#define MBEDTLS_IS_BIG_ENDIAN ((__BYTE_ORDER__) == (__ORDER_BIG_ENDIAN__))
+
+#if (__BYTE_ORDER__) == (__ORDER_BIG_ENDIAN__)
+#define MBEDTLS_IS_BIG_ENDIAN 1
+#else
+#define MBEDTLS_IS_BIG_ENDIAN 0
+#endif
+
 #endif /* !defined(__BYTE_ORDER__) */
 
 /**

@@ -16,6 +16,28 @@
  *  as well as the PSA type and size of the key to be used with the cipher
  *  algorithm.
  *
+ * \param[in]      alg          PSA cipher algorithm identifier
+ * \param[in]      key_type     PSA key type
+ * \param[in,out]  key_bits     Size of the key in bits. The value provided in input
+ *                              might be updated if necessary.
+ * \param[out]     mode         Mbed TLS cipher mode
+ * \param[out]     cipher_id    Mbed TLS cipher algorithm identifier
+ *
+ * \return  On success \c PSA_SUCCESS is returned and key_bits, mode and cipher_id
+ *          are properly updated.
+ *          \c PSA_ERROR_NOT_SUPPORTED is returned if the cipher algorithm is not
+ *          supported.
+ */
+
+psa_status_t mbedtls_cipher_values_from_psa(psa_algorithm_t alg, psa_key_type_t key_type,
+                                            size_t *key_bits, mbedtls_cipher_mode_t *mode,
+                                            mbedtls_cipher_id_t *cipher_id);
+
+#if defined(MBEDTLS_CIPHER_C)
+/** Get Mbed TLS cipher information given the cipher algorithm PSA identifier
+ *  as well as the PSA type and size of the key to be used with the cipher
+ *  algorithm.
+ *
  * \param       alg        PSA cipher algorithm identifier
  * \param       key_type   PSA key type
  * \param       key_bits   Size of the key in bits
@@ -27,6 +49,7 @@
 const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     psa_algorithm_t alg, psa_key_type_t key_type, size_t key_bits,
     mbedtls_cipher_id_t *cipher_id);
+#endif /* MBEDTLS_CIPHER_C */
 
 /**
  * \brief Set the key for a multipart symmetric encryption operation.

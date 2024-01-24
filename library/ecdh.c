@@ -363,7 +363,7 @@ static int ecdh_read_params_internal(mbedtls_ecdh_context_mbed *ctx,
                                      const unsigned char *end)
 {
     return mbedtls_ecp_tls_read_point(&ctx->grp, &ctx->Qp, buf,
-                                      end - *buf);
+                                      (size_t) (end - *buf));
 }
 
 /*
@@ -379,7 +379,7 @@ int mbedtls_ecdh_read_params(mbedtls_ecdh_context *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_group_id grp_id;
-    if ((ret = mbedtls_ecp_tls_read_group_id(&grp_id, buf, end - *buf))
+    if ((ret = mbedtls_ecp_tls_read_group_id(&grp_id, buf, (size_t) (end - *buf)))
         != 0) {
         return ret;
     }

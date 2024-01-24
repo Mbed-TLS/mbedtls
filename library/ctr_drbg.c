@@ -14,6 +14,7 @@
 
 #if defined(MBEDTLS_CTR_DRBG_C)
 
+#include "ctr.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
@@ -24,7 +25,47 @@
 #include <stdio.h>
 #endif
 
+/* Using error translation functions from PSA to MbedTLS */
+#if !defined(MBEDTLS_AES_C)
+#include "psa_util_internal.h"
+#endif
+
 #include "mbedtls/platform.h"
+
+#if !defined(MBEDTLS_AES_C)
+static psa_status_t ctr_drbg_setup_psa_context(mbedtls_ctr_drbg_psa_context *psa_ctx,
+                                               unsigned char *key, size_t key_len)
+{
+    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status;
+
+    psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_ENCRYPT);
+    psa_set_key_algorithm(&key_attr, PSA_ALG_ECB_NO_PADDING);
+    psa_set_key_type(&key_attr, PSA_KEY_TYPE_AES);
+    status = psa_import_key(&key_attr, key, key_len, &psa_ctx->key_id);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    status = psa_cipher_encrypt_setup(&psa_ctx->operation, psa_ctx->key_id, PSA_ALG_ECB_NO_PADDING);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+exit:
+    psa_reset_key_attributes(&key_attr);
+    return status;
+}
+
+static void ctr_drbg_destroy_psa_contex(mbedtls_ctr_drbg_psa_context *psa_ctx)
+{
+    psa_cipher_abort(&psa_ctx->operation);
+    psa_destroy_key(psa_ctx->key_id);
+
+    psa_ctx->operation = psa_cipher_operation_init();
+    psa_ctx->key_id = MBEDTLS_SVC_KEY_ID_INIT;
+}
+#endif
 
 /*
  * CTR_DRBG context initialization
@@ -32,7 +73,12 @@
 void mbedtls_ctr_drbg_init(mbedtls_ctr_drbg_context *ctx)
 {
     memset(ctx, 0, sizeof(mbedtls_ctr_drbg_context));
+#if defined(MBEDTLS_AES_C)
     mbedtls_aes_init(&ctx->aes_ctx);
+#else
+    ctx->psa_ctx.key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    ctx->psa_ctx.operation = psa_cipher_operation_init();
+#endif
     /* Indicate that the entropy nonce length is not set explicitly.
      * See mbedtls_ctr_drbg_set_nonce_len(). */
     ctx->reseed_counter = -1;
@@ -56,7 +102,11 @@ void mbedtls_ctr_drbg_free(mbedtls_ctr_drbg_context *ctx)
         mbedtls_mutex_free(&ctx->mutex);
     }
 #endif
+#if defined(MBEDTLS_AES_C)
     mbedtls_aes_free(&ctx->aes_ctx);
+#else
+    ctr_drbg_destroy_psa_contex(&ctx->psa_ctx);
+#endif
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_ctr_drbg_context));
     ctx->reseed_interval = MBEDTLS_CTR_DRBG_RESEED_INTERVAL;
     ctx->reseed_counter = -1;
@@ -117,8 +167,17 @@ static int block_cipher_df(unsigned char *output,
     unsigned char key[MBEDTLS_CTR_DRBG_KEYSIZE];
     unsigned char chain[MBEDTLS_CTR_DRBG_BLOCKSIZE];
     unsigned char *p, *iv;
-    mbedtls_aes_context aes_ctx;
     int ret = 0;
+#if defined(MBEDTLS_AES_C)
+    mbedtls_aes_context aes_ctx;
+#else
+    psa_status_t status;
+    size_t tmp_len;
+    mbedtls_ctr_drbg_psa_context psa_ctx;
+
+    psa_ctx.key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_ctx.operation = psa_cipher_operation_init();
+#endif
 
     int i, j;
     size_t buf_len, use_len;
@@ -129,7 +188,6 @@ static int block_cipher_df(unsigned char *output,
 
     memset(buf, 0, MBEDTLS_CTR_DRBG_MAX_SEED_INPUT +
            MBEDTLS_CTR_DRBG_BLOCKSIZE + 16);
-    mbedtls_aes_init(&aes_ctx);
 
     /*
      * Construct IV (16 bytes) and S in buffer
@@ -151,10 +209,20 @@ static int block_cipher_df(unsigned char *output,
         key[i] = i;
     }
 
+#if defined(MBEDTLS_AES_C)
+    mbedtls_aes_init(&aes_ctx);
+
     if ((ret = mbedtls_aes_setkey_enc(&aes_ctx, key,
                                       MBEDTLS_CTR_DRBG_KEYBITS)) != 0) {
         goto exit;
     }
+#else
+    status = ctr_drbg_setup_psa_context(&psa_ctx, key, sizeof(key));
+    if (status != PSA_SUCCESS) {
+        ret = psa_generic_status_to_mbedtls(status);
+        goto exit;
+    }
+#endif
 
     /*
      * Reduce data to MBEDTLS_CTR_DRBG_SEEDLEN bytes of data
@@ -170,10 +238,19 @@ static int block_cipher_df(unsigned char *output,
             use_len -= (use_len >= MBEDTLS_CTR_DRBG_BLOCKSIZE) ?
                        MBEDTLS_CTR_DRBG_BLOCKSIZE : use_len;
 
+#if defined(MBEDTLS_AES_C)
             if ((ret = mbedtls_aes_crypt_ecb(&aes_ctx, MBEDTLS_AES_ENCRYPT,
                                              chain, chain)) != 0) {
                 goto exit;
             }
+#else
+            status = psa_cipher_update(&psa_ctx.operation, chain, MBEDTLS_CTR_DRBG_BLOCKSIZE,
+                                       chain, MBEDTLS_CTR_DRBG_BLOCKSIZE, &tmp_len);
+            if (status != PSA_SUCCESS) {
+                ret = psa_generic_status_to_mbedtls(status);
+                goto exit;
+            }
+#endif
         }
 
         memcpy(tmp + j, chain, MBEDTLS_CTR_DRBG_BLOCKSIZE);
@@ -187,23 +264,46 @@ static int block_cipher_df(unsigned char *output,
     /*
      * Do final encryption with reduced data
      */
+#if defined(MBEDTLS_AES_C)
     if ((ret = mbedtls_aes_setkey_enc(&aes_ctx, tmp,
                                       MBEDTLS_CTR_DRBG_KEYBITS)) != 0) {
         goto exit;
     }
+#else
+    ctr_drbg_destroy_psa_contex(&psa_ctx);
+
+    status = ctr_drbg_setup_psa_context(&psa_ctx, tmp, MBEDTLS_CTR_DRBG_KEYSIZE);
+    if (status != PSA_SUCCESS) {
+        ret = psa_generic_status_to_mbedtls(status);
+        goto exit;
+    }
+#endif
     iv = tmp + MBEDTLS_CTR_DRBG_KEYSIZE;
     p = output;
 
     for (j = 0; j < MBEDTLS_CTR_DRBG_SEEDLEN; j += MBEDTLS_CTR_DRBG_BLOCKSIZE) {
+#if defined(MBEDTLS_AES_C)
         if ((ret = mbedtls_aes_crypt_ecb(&aes_ctx, MBEDTLS_AES_ENCRYPT,
                                          iv, iv)) != 0) {
             goto exit;
         }
+#else
+        status = psa_cipher_update(&psa_ctx.operation, iv, MBEDTLS_CTR_DRBG_BLOCKSIZE,
+                                   iv, MBEDTLS_CTR_DRBG_BLOCKSIZE, &tmp_len);
+        if (status != PSA_SUCCESS) {
+            ret = psa_generic_status_to_mbedtls(status);
+            goto exit;
+        }
+#endif
         memcpy(p, iv, MBEDTLS_CTR_DRBG_BLOCKSIZE);
         p += MBEDTLS_CTR_DRBG_BLOCKSIZE;
     }
 exit:
+#if defined(MBEDTLS_AES_C)
     mbedtls_aes_free(&aes_ctx);
+#else
+    ctr_drbg_destroy_psa_contex(&psa_ctx);
+#endif
     /*
      * tidy up the stack
      */
@@ -234,8 +334,12 @@ static int ctr_drbg_update_internal(mbedtls_ctr_drbg_context *ctx,
 {
     unsigned char tmp[MBEDTLS_CTR_DRBG_SEEDLEN];
     unsigned char *p = tmp;
-    int i, j;
+    int j;
     int ret = 0;
+#if !defined(MBEDTLS_AES_C)
+    psa_status_t status;
+    size_t tmp_len;
+#endif
 
     memset(tmp, 0, MBEDTLS_CTR_DRBG_SEEDLEN);
 
@@ -243,34 +347,47 @@ static int ctr_drbg_update_internal(mbedtls_ctr_drbg_context *ctx,
         /*
          * Increase counter
          */
-        for (i = MBEDTLS_CTR_DRBG_BLOCKSIZE; i > 0; i--) {
-            if (++ctx->counter[i - 1] != 0) {
-                break;
-            }
-        }
+        mbedtls_ctr_increment_counter(ctx->counter);
 
         /*
          * Crypt counter block
          */
+#if defined(MBEDTLS_AES_C)
         if ((ret = mbedtls_aes_crypt_ecb(&ctx->aes_ctx, MBEDTLS_AES_ENCRYPT,
                                          ctx->counter, p)) != 0) {
             goto exit;
         }
+#else
+        status = psa_cipher_update(&ctx->psa_ctx.operation, ctx->counter, sizeof(ctx->counter),
+                                   p, MBEDTLS_CTR_DRBG_BLOCKSIZE, &tmp_len);
+        if (status != PSA_SUCCESS) {
+            ret = psa_generic_status_to_mbedtls(status);
+            goto exit;
+        }
+#endif
 
         p += MBEDTLS_CTR_DRBG_BLOCKSIZE;
     }
 
-    for (i = 0; i < MBEDTLS_CTR_DRBG_SEEDLEN; i++) {
-        tmp[i] ^= data[i];
-    }
+    mbedtls_xor(tmp, tmp, data, MBEDTLS_CTR_DRBG_SEEDLEN);
 
     /*
      * Update key and counter
      */
+#if defined(MBEDTLS_AES_C)
     if ((ret = mbedtls_aes_setkey_enc(&ctx->aes_ctx, tmp,
                                       MBEDTLS_CTR_DRBG_KEYBITS)) != 0) {
         goto exit;
     }
+#else
+    ctr_drbg_destroy_psa_contex(&ctx->psa_ctx);
+
+    status = ctr_drbg_setup_psa_context(&ctx->psa_ctx, tmp, MBEDTLS_CTR_DRBG_KEYSIZE);
+    if (status != PSA_SUCCESS) {
+        ret = psa_generic_status_to_mbedtls(status);
+        goto exit;
+    }
+#endif
     memcpy(ctx->counter, tmp + MBEDTLS_CTR_DRBG_KEYSIZE,
            MBEDTLS_CTR_DRBG_BLOCKSIZE);
 
@@ -447,10 +564,20 @@ int mbedtls_ctr_drbg_seed(mbedtls_ctr_drbg_context *ctx,
                  good_nonce_len(ctx->entropy_len));
 
     /* Initialize with an empty key. */
+#if defined(MBEDTLS_AES_C)
     if ((ret = mbedtls_aes_setkey_enc(&ctx->aes_ctx, key,
                                       MBEDTLS_CTR_DRBG_KEYBITS)) != 0) {
         return ret;
     }
+#else
+    psa_status_t status;
+
+    status = ctr_drbg_setup_psa_context(&ctx->psa_ctx, key, MBEDTLS_CTR_DRBG_KEYSIZE);
+    if (status != PSA_SUCCESS) {
+        ret = psa_generic_status_to_mbedtls(status);
+        return status;
+    }
+#endif
 
     /* Do the initial seeding. */
     if ((ret = mbedtls_ctr_drbg_reseed_internal(ctx, custom, len,
@@ -485,10 +612,11 @@ int mbedtls_ctr_drbg_random_with_add(void *p_rng,
 {
     int ret = 0;
     mbedtls_ctr_drbg_context *ctx = (mbedtls_ctr_drbg_context *) p_rng;
-    unsigned char add_input[MBEDTLS_CTR_DRBG_SEEDLEN];
     unsigned char *p = output;
-    unsigned char tmp[MBEDTLS_CTR_DRBG_BLOCKSIZE];
-    int i;
+    struct {
+        unsigned char add_input[MBEDTLS_CTR_DRBG_SEEDLEN];
+        unsigned char tmp[MBEDTLS_CTR_DRBG_BLOCKSIZE];
+    } locals;
     size_t use_len;
 
     if (output_len > MBEDTLS_CTR_DRBG_MAX_REQUEST) {
@@ -499,7 +627,7 @@ int mbedtls_ctr_drbg_random_with_add(void *p_rng,
         return MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG;
     }
 
-    memset(add_input, 0, MBEDTLS_CTR_DRBG_SEEDLEN);
+    memset(locals.add_input, 0, MBEDTLS_CTR_DRBG_SEEDLEN);
 
     if (ctx->reseed_counter > ctx->reseed_interval ||
         ctx->prediction_resistance) {
@@ -510,51 +638,58 @@ int mbedtls_ctr_drbg_random_with_add(void *p_rng,
     }
 
     if (add_len > 0) {
-        if ((ret = block_cipher_df(add_input, additional, add_len)) != 0) {
+        if ((ret = block_cipher_df(locals.add_input, additional, add_len)) != 0) {
             goto exit;
         }
-        if ((ret = ctr_drbg_update_internal(ctx, add_input)) != 0) {
+        if ((ret = ctr_drbg_update_internal(ctx, locals.add_input)) != 0) {
             goto exit;
         }
     }
 
     while (output_len > 0) {
         /*
-         * Increase counter
+         * Increase counter (treat it as a 128-bit big-endian integer).
          */
-        for (i = MBEDTLS_CTR_DRBG_BLOCKSIZE; i > 0; i--) {
-            if (++ctx->counter[i - 1] != 0) {
-                break;
-            }
-        }
+        mbedtls_ctr_increment_counter(ctx->counter);
 
         /*
          * Crypt counter block
          */
+#if defined(MBEDTLS_AES_C)
         if ((ret = mbedtls_aes_crypt_ecb(&ctx->aes_ctx, MBEDTLS_AES_ENCRYPT,
-                                         ctx->counter, tmp)) != 0) {
+                                         ctx->counter, locals.tmp)) != 0) {
             goto exit;
         }
+#else
+        psa_status_t status;
+        size_t tmp_len;
+
+        status = psa_cipher_update(&ctx->psa_ctx.operation, ctx->counter, sizeof(ctx->counter),
+                                   locals.tmp, MBEDTLS_CTR_DRBG_BLOCKSIZE, &tmp_len);
+        if (status != PSA_SUCCESS) {
+            ret = psa_generic_status_to_mbedtls(status);
+            goto exit;
+        }
+#endif
 
         use_len = (output_len > MBEDTLS_CTR_DRBG_BLOCKSIZE)
             ? MBEDTLS_CTR_DRBG_BLOCKSIZE : output_len;
         /*
          * Copy random block to destination
          */
-        memcpy(p, tmp, use_len);
+        memcpy(p, locals.tmp, use_len);
         p += use_len;
         output_len -= use_len;
     }
 
-    if ((ret = ctr_drbg_update_internal(ctx, add_input)) != 0) {
+    if ((ret = ctr_drbg_update_internal(ctx, locals.add_input)) != 0) {
         goto exit;
     }
 
     ctx->reseed_counter++;
 
 exit:
-    mbedtls_platform_zeroize(add_input, sizeof(add_input));
-    mbedtls_platform_zeroize(tmp, sizeof(tmp));
+    mbedtls_platform_zeroize(&locals, sizeof(locals));
     return ret;
 }
 

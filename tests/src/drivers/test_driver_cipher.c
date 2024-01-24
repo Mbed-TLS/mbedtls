@@ -41,6 +41,7 @@ psa_status_t mbedtls_test_transparent_cipher_encrypt(
     size_t *output_length)
 {
     mbedtls_test_driver_cipher_hooks.hits++;
+    mbedtls_test_driver_cipher_hooks.hits_encrypt++;
 
     if (mbedtls_test_driver_cipher_hooks.forced_output != NULL) {
         if (output_size < mbedtls_test_driver_cipher_hooks.forced_output_length) {
@@ -57,6 +58,9 @@ psa_status_t mbedtls_test_transparent_cipher_encrypt(
 
     if (mbedtls_test_driver_cipher_hooks.forced_status != PSA_SUCCESS) {
         return mbedtls_test_driver_cipher_hooks.forced_status;
+    }
+    if (mbedtls_test_driver_cipher_hooks.forced_status_encrypt != PSA_SUCCESS) {
+        return mbedtls_test_driver_cipher_hooks.forced_status_encrypt;
     }
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
@@ -208,9 +212,13 @@ psa_status_t mbedtls_test_transparent_cipher_set_iv(
     size_t iv_length)
 {
     mbedtls_test_driver_cipher_hooks.hits++;
+    mbedtls_test_driver_cipher_hooks.hits_set_iv++;
 
     if (mbedtls_test_driver_cipher_hooks.forced_status != PSA_SUCCESS) {
         return mbedtls_test_driver_cipher_hooks.forced_status;
+    }
+    if (mbedtls_test_driver_cipher_hooks.forced_status_set_iv != PSA_SUCCESS) {
+        return mbedtls_test_driver_cipher_hooks.forced_status_set_iv;
     }
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \

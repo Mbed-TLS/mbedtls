@@ -292,10 +292,10 @@ static psa_status_t mbedtls_psa_pake_output_internal(
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     /*
-     * The PSA CRYPTO PAKE and MbedTLS JPAKE API have a different
+     * The PSA CRYPTO PAKE and Mbed TLS JPAKE API have a different
      * handling of output sequencing.
      *
-     * The MbedTLS JPAKE API outputs the whole X1+X2 and X2S steps data
+     * The Mbed TLS JPAKE API outputs the whole X1+X2 and X2S steps data
      * at once, on the other side the PSA CRYPTO PAKE api requires
      * the KEY_SHARE/ZP_PUBLIC/ZK_PROOF parts of X1, X2 & X2S to be
      * retrieved in sequence.
@@ -411,17 +411,17 @@ static psa_status_t mbedtls_psa_pake_input_internal(
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     /*
-     * The PSA CRYPTO PAKE and MbedTLS JPAKE API have a different
+     * The PSA CRYPTO PAKE and Mbed TLS JPAKE API have a different
      * handling of input sequencing.
      *
-     * The MbedTLS JPAKE API takes the whole X1+X2 or X4S steps data
+     * The Mbed TLS JPAKE API takes the whole X1+X2 or X4S steps data
      * at once as input, on the other side the PSA CRYPTO PAKE api requires
      * the KEY_SHARE/ZP_PUBLIC/ZK_PROOF parts of X1, X2 & X4S to be
      * given in sequence.
      *
      * In order to achieve API compatibility, each X1+X2 or X4S step data
      * is stored sequentially in an intermediate buffer and given to the
-     * MbedTLS JPAKE API on the last step.
+     * Mbed TLS JPAKE API on the last step.
      *
      * This causes any input error to be only detected on the last step.
      */

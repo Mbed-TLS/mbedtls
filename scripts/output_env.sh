@@ -158,13 +158,6 @@ echo
 print_version "$OPENSSL" "version" "default"
 echo
 
-if [ -n "${OPENSSL_LEGACY+set}" ]; then
-    print_version "$OPENSSL_LEGACY" "version" "legacy"
-else
-    echo " * openssl (legacy): Not configured."
-fi
-echo
-
 if [ -n "${OPENSSL_NEXT+set}" ]; then
     print_version "$OPENSSL_NEXT" "version" "next"
 else
@@ -178,20 +171,6 @@ echo
 
 : ${GNUTLS_SERV:=gnutls-serv}
 print_version "$GNUTLS_SERV" "--version" "default" "head -n 1"
-echo
-
-if [ -n "${GNUTLS_LEGACY_CLI+set}" ]; then
-    print_version "$GNUTLS_LEGACY_CLI" "--version" "legacy" "head -n 1"
-else
-     echo " * gnutls-cli (legacy): Not configured."
-fi
-echo
-
-if [ -n "${GNUTLS_LEGACY_SERV+set}" ]; then
-    print_version "$GNUTLS_LEGACY_SERV" "--version" "legacy" "head -n 1"
-else
-    echo " * gnutls-serv (legacy): Not configured."
-fi
 echo
 
 echo " * Installed asan versions:"

@@ -41,8 +41,10 @@ typedef struct mbedtls_sha256_context {
     unsigned char MBEDTLS_PRIVATE(buffer)[64];   /*!< The data block being processed. */
     uint32_t MBEDTLS_PRIVATE(total)[2];          /*!< The number of Bytes processed.  */
     uint32_t MBEDTLS_PRIVATE(state)[8];          /*!< The intermediate digest state.  */
+#if defined(MBEDTLS_SHA224_C)
     int MBEDTLS_PRIVATE(is224);                  /*!< Determines which function to use:
                                                     0: Use SHA-256, or 1: Use SHA-224. */
+#endif
 }
 mbedtls_sha256_context;
 

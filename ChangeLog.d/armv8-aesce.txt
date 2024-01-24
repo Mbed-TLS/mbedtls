@@ -1,0 +1,3 @@
+Features
+   * Support use of Armv8-A Cryptographic Extensions for hardware acclerated
+     AES when compiling for Thumb (T32) or 32-bit Arm (A32).

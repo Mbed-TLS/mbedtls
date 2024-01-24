@@ -251,8 +251,11 @@ int mbedtls_cipher_setup(mbedtls_cipher_context_t *ctx,
 
     memset(ctx, 0, sizeof(mbedtls_cipher_context_t));
 
-    if (NULL == (ctx->cipher_ctx = mbedtls_cipher_get_base(cipher_info)->ctx_alloc_func())) {
-        return MBEDTLS_ERR_CIPHER_ALLOC_FAILED;
+    if (mbedtls_cipher_get_base(cipher_info)->ctx_alloc_func != NULL) {
+        ctx->cipher_ctx = mbedtls_cipher_get_base(cipher_info)->ctx_alloc_func();
+        if (ctx->cipher_ctx == NULL) {
+            return MBEDTLS_ERR_CIPHER_ALLOC_FAILED;
+        }
     }
 
     ctx->cipher_info = cipher_info;
@@ -307,6 +310,12 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
     if (ctx->cipher_info == NULL) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
+#if defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
+    if (MBEDTLS_MODE_ECB == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) &&
+        MBEDTLS_DECRYPT == operation) {
+        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    }
+#endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ctx->psa_enabled == 1) {
@@ -374,6 +383,7 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
     ctx->key_bitlen = key_bitlen;
     ctx->operation = operation;
 
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
     /*
      * For OFB, CFB and CTR mode always use the encryption key schedule
      */
@@ -389,6 +399,12 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
         return mbedtls_cipher_get_base(ctx->cipher_info)->setkey_dec_func(ctx->cipher_ctx, key,
                                                                           ctx->key_bitlen);
     }
+#else
+    if (operation == MBEDTLS_ENCRYPT || operation == MBEDTLS_DECRYPT) {
+        return mbedtls_cipher_get_base(ctx->cipher_info)->setkey_enc_func(ctx->cipher_ctx, key,
+                                                                          ctx->key_bitlen);
+    }
+#endif
 
     return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
 }

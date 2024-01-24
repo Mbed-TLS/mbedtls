@@ -6,6 +6,7 @@
  * master, enc and dec must be AES context objects. They don't need to
  * be initialized, and are left freed.
  */
+#if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
 static int test_copy(const data_t *key,
                      mbedtls_aes_context *master,
                      mbedtls_aes_context *enc,
@@ -55,6 +56,7 @@ exit:
      * with alternative implementations. */
     return 0;
 }
+#endif
 
 /* END_HEADER */
 
@@ -86,7 +88,125 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CTR */
+void aes_ctr(data_t *key, data_t *ictr, data_t *pt, data_t *ct, int expected)
+{
+    unsigned char *output = NULL;
+    unsigned char ctr[16];
+    unsigned char stream_block[16];
+    mbedtls_aes_context ctx;
+
+    // sanity checks on test input
+    TEST_ASSERT(pt->len == ct->len);
+    TEST_ASSERT(key->len == 16 || key->len == 24 || key->len == 32);
+
+    TEST_CALLOC(output, pt->len);
+
+    // expected result is always success on zero-length input, so skip len == 0 if expecting failure
+    for (size_t len = (expected == 0 ? 0 : 1); len <= pt->len; len++) {
+        for (int i = 0; i < 2; i++) {
+            mbedtls_aes_init(&ctx);
+            TEST_ASSERT(mbedtls_aes_setkey_enc(&ctx, key->x, key->len * 8) == 0);
+
+            memcpy(ctr, ictr->x, 16);
+            memset(stream_block, 0, 16);
+            memset(output, 0, pt->len);
+
+            size_t nc_off = 0;
+
+            if (i == 0) {
+                // encrypt
+                TEST_EQUAL(mbedtls_aes_crypt_ctr(&ctx, len, &nc_off, ctr,
+                                                 stream_block, pt->x, output), 0);
+                TEST_ASSERT(!!memcmp(output, ct->x, len) == expected);
+            } else {
+                // decrypt
+                TEST_EQUAL(mbedtls_aes_crypt_ctr(&ctx, len, &nc_off, ctr,
+                                                 stream_block, ct->x, output), 0);
+                TEST_ASSERT(!!memcmp(output, pt->x, len) == expected);
+            }
+        }
+    }
+
+exit:
+    mbedtls_free(output);
+    mbedtls_aes_free(&ctx);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CTR */
+void aes_encrypt_ctr_multipart(int length, int step_size)
+{
+    unsigned char key[16];
+    unsigned char ctr_a[16];
+    unsigned char ctr_b[16];
+    unsigned char stream_block_a[16];
+    unsigned char stream_block_b[16];
+    unsigned char *input = NULL;
+    unsigned char *output_a = NULL;
+    unsigned char *output_b = NULL;
+    mbedtls_aes_context ctx;
+    size_t nc_off_a, nc_off_b;
+
+    TEST_ASSERT(length >= 0);
+    TEST_ASSERT(step_size > 0);
+
+    TEST_CALLOC(input, length);
+    TEST_CALLOC(output_a, length);
+    TEST_CALLOC(output_b, length);
+
+    // set up a random key
+    mbedtls_test_rnd_std_rand(NULL, key, sizeof(key));
+
+    // random input
+    mbedtls_test_rnd_std_rand(NULL, input, length);
+
+
+    // complete encryption in one call
+    mbedtls_aes_init(&ctx);
+    TEST_ASSERT(mbedtls_aes_setkey_enc(&ctx, key, sizeof(key) * 8) == 0);
+    memset(ctr_a, 0, sizeof(ctr_a));
+    memset(stream_block_a, 0, sizeof(stream_block_a));
+    nc_off_a = 0;
+    TEST_EQUAL(mbedtls_aes_crypt_ctr(&ctx, length, &nc_off_a, ctr_a,
+                                     stream_block_a, input, output_a), 0);
+    mbedtls_aes_free(&ctx);
+
+
+    // encrypt in multiple steps of varying size
+    mbedtls_aes_init(&ctx);
+    TEST_ASSERT(mbedtls_aes_setkey_enc(&ctx, key, sizeof(key) * 8) == 0);
+    memset(ctr_b, 0, sizeof(ctr_b));
+    memset(stream_block_b, 0, sizeof(stream_block_b));
+    nc_off_b = 0;
+    size_t remaining = length;
+    unsigned char *ip = input, *op = output_b;
+    while (remaining != 0) {
+        size_t l = MIN(remaining, (size_t) step_size);
+        step_size *= 2;
+        remaining -= l;
+        TEST_EQUAL(mbedtls_aes_crypt_ctr(&ctx, l, &nc_off_b, ctr_b, stream_block_b, ip, op), 0);
+        ip += l;
+        op += l;
+    }
+
+    // finally, validate that multiple steps produced same result as single-pass
+    TEST_MEMORY_COMPARE(output_a, length, output_b, length);
+    TEST_MEMORY_COMPARE(ctr_a, sizeof(ctr_a), ctr_b, sizeof(ctr_b));
+    TEST_MEMORY_COMPARE(stream_block_a, sizeof(stream_block_a),
+                        stream_block_b, sizeof(stream_block_b));
+    TEST_EQUAL(nc_off_a, nc_off_b);
+
+exit:
+    mbedtls_free(input);
+    mbedtls_free(output_a);
+    mbedtls_free(output_b);
+
+    mbedtls_aes_free(&ctx);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:!MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 void aes_decrypt_ecb(data_t *key_str, data_t *src_str,
                      data_t *dst, int setkey_result)
 {
@@ -523,7 +643,7 @@ void aes_misc_params()
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:!MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 void aes_ecb_copy_context(data_t *key)
 {
     /* We test context copying multiple times, with different alignments

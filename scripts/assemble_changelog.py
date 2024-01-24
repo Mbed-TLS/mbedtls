@@ -48,6 +48,11 @@ class LostContent(Exception):
         message = ('Lost content from {}: "{}"'.format(filename, line))
         super().__init__(message)
 
+class FilePathError(Exception):
+    def __init__(self, filenames):
+        message = ('Changelog filenames do not end with .txt: {}'.format(", ".join(filenames)))
+        super().__init__(message)
+
 # The category names we use in the changelog.
 # If you edit this, update ChangeLog.d/README.md.
 STANDARD_CATEGORIES = (
@@ -110,7 +115,7 @@ class ChangelogFormat:
 class TextChangelogFormat(ChangelogFormat):
     """The traditional Mbed TLS changelog format."""
 
-    _unreleased_version_text = '= Mbed TLS x.x.x branch released xxxx-xx-xx'
+    _unreleased_version_text = '= {} x.x.x branch released xxxx-xx-xx'
     @classmethod
     def is_released_version(cls, title):
         # Look for an incomplete release date
@@ -118,6 +123,7 @@ class TextChangelogFormat(ChangelogFormat):
 
     _top_version_re = re.compile(r'(?:\A|\n)(=[^\n]*\n+)(.*?\n)(?:=|$)',
                                  re.DOTALL)
+    _name_re = re.compile(r'=\s(.*)\s[0-9x]+\.', re.DOTALL)
     @classmethod
     def extract_top_version(cls, changelog_file_content):
         """A version section starts with a line starting with '='."""
@@ -126,9 +132,10 @@ class TextChangelogFormat(ChangelogFormat):
         top_version_end = m.end(2)
         top_version_title = m.group(1)
         top_version_body = m.group(2)
+        name = re.match(cls._name_re, top_version_title).group(1)
         if cls.is_released_version(top_version_title):
             top_version_end = top_version_start
-            top_version_title = cls._unreleased_version_text + '\n\n'
+            top_version_title = cls._unreleased_version_text.format(name) + '\n\n'
             top_version_body = ''
         return (changelog_file_content[:top_version_start],
                 top_version_title, top_version_body,
@@ -240,6 +247,7 @@ class ChangeLog:
         for category in STANDARD_CATEGORIES:
             self.categories[category] = ''
         offset = (self.header + self.top_version_title).count('\n') + 1
+
         self.add_categories_from_text(input_stream.name, offset,
                                       top_version_body, True)
 
@@ -431,8 +439,21 @@ def list_files_to_merge(options):
     """List the entry files to merge, oldest first.
 
     "Oldest" is defined by `EntryFileSortKey`.
+
+    Also check for required .txt extension
     """
-    files_to_merge = glob.glob(os.path.join(options.dir, '*.txt'))
+    files_to_merge = glob.glob(os.path.join(options.dir, '*'))
+
+    # Ignore 00README.md
+    readme = os.path.join(options.dir, "00README.md")
+    if readme in files_to_merge:
+        files_to_merge.remove(readme)
+
+    # Identify files without the required .txt extension
+    bad_files = [x for x in files_to_merge if not x.endswith(".txt")]
+    if bad_files:
+        raise FilePathError(bad_files)
+
     files_to_merge.sort(key=EntryFileSortKey)
     return files_to_merge
 
@@ -440,6 +461,7 @@ def merge_entries(options):
     """Merge changelog entries into the changelog file.
 
     Read the changelog file from options.input.
+    Check that all entries have a .txt extension
     Read entries to merge from the directory options.dir.
     Write the new changelog to options.output.
     Remove the merged entries if options.keep_entries is false.

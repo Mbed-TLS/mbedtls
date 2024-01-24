@@ -3,36 +3,17 @@
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
-set -e -u
+. "${0%/*}/../demo_common.sh"
 
-program_name="key_ladder_demo"
-program="${0%/*}/$program_name"
-files_to_clean=
+msg <<'EOF'
+This script demonstrates the use of the PSA cryptography interface to
+create a master key, derive a key from it and use that derived key to
+wrap some data using an AEAD algorithm.
+EOF
 
-if [ ! -e "$program" ]; then
-    # Look for programs in the current directory and the directories above it
-    for dir in "." ".." "../.."; do
-        program="$dir/programs/psa/$program_name"
-        if [ -e "$program" ]; then
-            break
-        fi
-    done
-    if [ ! -e "$program" ]; then
-        echo "Could not find $program_name executable"
+depends_on MBEDTLS_SHA256_C MBEDTLS_MD_C MBEDTLS_AES_C MBEDTLS_CCM_C MBEDTLS_PSA_CRYPTO_C MBEDTLS_FS_IO
 
-        echo "If building out-of-tree, this script must be run" \
-             "from the project build directory."
-        exit 1
-    fi
-fi
-
-run () {
-    echo
-    echo "# $1"
-    shift
-    echo "+ $*"
-    "$@"
-}
+program="${0%/*}"/key_ladder_demo
 
 if [ -e master.key ]; then
     echo "# Reusing the existing master.key file."
@@ -56,7 +37,7 @@ run "Compare the unwrapped data with the original input." \
     cmp input.txt hello_world.txt
 
 files_to_clean="$files_to_clean hellow_orld.txt"
-! run "Derive a different key and attempt to unwrap the data. This must fail." \
+run_bad "Derive a different key and attempt to unwrap the data." \
   "$program" unwrap master=master.key input=hello_world.wrap output=hellow_orld.txt label=hellow label=orld
 
 files_to_clean="$files_to_clean hello.key"
@@ -67,5 +48,4 @@ run "Check that we get the same key by unwrapping data made by the other key." \
     "$program" unwrap master=hello.key label=world \
                input=hello_world.wrap output=hello_world.txt
 
-# Cleanup
-rm -f $files_to_clean
+cleanup

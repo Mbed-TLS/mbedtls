@@ -36,11 +36,8 @@ if [ -d library -a -d include -a -d tests ]; then :; else
 fi
 
 : ${OPENSSL:="openssl"}
-: ${OPENSSL_LEGACY:="$OPENSSL"}
 : ${GNUTLS_CLI:="gnutls-cli"}
 : ${GNUTLS_SERV:="gnutls-serv"}
-: ${GNUTLS_LEGACY_CLI:="$GNUTLS_CLI"}
-: ${GNUTLS_LEGACY_SERV:="$GNUTLS_SERV"}
 
 # Used to make ssl-opt.sh deterministic.
 #
@@ -66,11 +63,8 @@ CONFIG_BAK="$CONFIG_H.bak"
 
 # Step 0 - print build environment info
 OPENSSL="$OPENSSL"                           \
-    OPENSSL_LEGACY="$OPENSSL_LEGACY"         \
     GNUTLS_CLI="$GNUTLS_CLI"                 \
     GNUTLS_SERV="$GNUTLS_SERV"               \
-    GNUTLS_LEGACY_CLI="$GNUTLS_LEGACY_CLI"   \
-    GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV" \
     scripts/output_env.sh
 echo
 
@@ -112,9 +106,7 @@ echo '################ compat.sh ################'
     sh compat.sh
     echo
 
-    echo '#### compat.sh: legacy (null)'
-    OPENSSL="$OPENSSL_LEGACY" \
-    GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" \
+    echo '#### compat.sh: null cipher'
     sh compat.sh -e '^$' -f 'NULL'
     echo
 

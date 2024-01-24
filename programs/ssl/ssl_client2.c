@@ -52,7 +52,7 @@ int main(void)
 #define DFL_KEY_OPAQUE          0
 #define DFL_KEY_PWD             ""
 #define DFL_PSK                 ""
-#define DFL_EARLY_DATA          MBEDTLS_SSL_EARLY_DATA_DISABLED
+#define DFL_EARLY_DATA          ""
 #define DFL_PSK_OPAQUE          0
 #define DFL_PSK_IDENTITY        "Client_identity"
 #define DFL_ECJPAKE_PW          NULL
@@ -347,8 +347,9 @@ int main(void)
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 #define USAGE_EARLY_DATA \
-    "    early_data=%%d        default: 0 (disabled)\n"      \
-    "                        options: 0 (disabled), 1 (enabled)\n"
+    "    early_data=%%s      The file path to read early data from\n" \
+    "                        default: \"\" (do nothing)\n"            \
+    "                        option: a file path\n"
 #else
 #define USAGE_EARLY_DATA ""
 #endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_PROTO_TLS1_3 */
@@ -457,7 +458,7 @@ int main(void)
     "                                otherwise. The expansion of the macro\n" \
     "                                is printed if it is defined\n"           \
     USAGE_SERIALIZATION                                                       \
-    " acceptable ciphersuite names:\n"
+    "\n"
 
 /*
  * global options
@@ -543,7 +544,7 @@ struct options {
     int reproducible;           /* make communication reproducible          */
     int skip_close_notify;      /* skip sending the close_notify alert      */
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    int early_data;             /* support for early data                   */
+    const char *early_data;     /* the path of the file to read early data from */
 #endif
     int query_config_mode;      /* whether to read config                   */
     int use_srtp;               /* Support SRTP                             */
@@ -693,7 +694,7 @@ static int ssl_save_session_serialize(mbedtls_ssl_context *ssl,
     }
 
     /* get size of the buffer needed */
-    mbedtls_ssl_session_save(&exported_session, NULL, 0, session_data_len);
+    (void) mbedtls_ssl_session_save(&exported_session, NULL, 0, session_data_len);
     *session_data = mbedtls_calloc(1, *session_data_len);
     if (*session_data == NULL) {
         mbedtls_printf(" failed\n  ! alloc %u bytes for session data\n",
@@ -740,6 +741,10 @@ int main(int argc, char *argv[])
     size_t cid_len = 0;
     size_t cid_renego_len = 0;
 #endif
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    FILE *early_data_fp = NULL;
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_SSL_ALPN)
     const char *alpn_list[ALPN_LIST_SIZE];
@@ -852,31 +857,6 @@ int main(int argc, char *argv[])
     mbedtls_test_enable_insecure_external_rng();
 #endif  /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
-    if (argc < 2) {
-usage:
-        if (ret == 0) {
-            ret = 1;
-        }
-
-        mbedtls_printf(USAGE1);
-        mbedtls_printf(USAGE2);
-        mbedtls_printf(USAGE3);
-        mbedtls_printf(USAGE4);
-
-        list = mbedtls_ssl_list_ciphersuites();
-        while (*list) {
-            mbedtls_printf(" %-42s", mbedtls_ssl_get_ciphersuite_name(*list));
-            list++;
-            if (!*list) {
-                break;
-            }
-            mbedtls_printf(" %s\n", mbedtls_ssl_get_ciphersuite_name(*list));
-            list++;
-        }
-        mbedtls_printf("\n");
-        goto exit;
-    }
-
     opt.server_name         = DFL_SERVER_NAME;
     opt.server_addr         = DFL_SERVER_ADDR;
     opt.server_port         = DFL_SERVER_PORT;
@@ -961,9 +941,54 @@ usage:
     opt.key_opaque_alg1     = DFL_KEY_OPAQUE_ALG;
     opt.key_opaque_alg2     = DFL_KEY_OPAQUE_ALG;
 
+    p = q = NULL;
+    if (argc < 1) {
+usage:
+        if (p != NULL && q != NULL) {
+            printf("unrecognized value for '%s': '%s'\n", p, q);
+        } else if (p != NULL && q == NULL) {
+            printf("unrecognized param: '%s'\n", p);
+        }
+
+        mbedtls_printf("usage: ssl_client2 [param=value] [...]\n");
+        mbedtls_printf("       ssl_client2 help[_theme]\n");
+        mbedtls_printf("'help' lists acceptable 'param' and 'value'\n");
+        mbedtls_printf("'help_ciphersuites' lists available ciphersuites\n");
+        mbedtls_printf("\n");
+
+        if (ret == 0) {
+            ret = 1;
+        }
+        goto exit;
+    }
+
     for (i = 1; i < argc; i++) {
         p = argv[i];
+
+        if (strcmp(p, "help") == 0) {
+            mbedtls_printf(USAGE1);
+            mbedtls_printf(USAGE2);
+            mbedtls_printf(USAGE3);
+            mbedtls_printf(USAGE4);
+
+            ret = 0;
+            goto exit;
+        }
+        if (strcmp(p, "help_ciphersuites") == 0) {
+            mbedtls_printf(" acceptable ciphersuite names:\n");
+            for (list = mbedtls_ssl_list_ciphersuites();
+                 *list != 0;
+                 list++) {
+                mbedtls_printf(" %s\n", mbedtls_ssl_get_ciphersuite_name(*list));
+            }
+
+            ret = 0;
+            goto exit;
+        }
+
         if ((q = strchr(p, '=')) == NULL) {
+            mbedtls_printf("param requires a value: '%s'\n", p);
+            p = NULL; // avoid "unrecnognized param" message
             goto usage;
         }
         *q++ = '\0';
@@ -1176,15 +1201,7 @@ usage:
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #if defined(MBEDTLS_SSL_EARLY_DATA)
         else if (strcmp(p, "early_data") == 0) {
-            switch (atoi(q)) {
-                case 0:
-                    opt.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
-                    break;
-                case 1:
-                    opt.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
-                    break;
-                default: goto usage;
-            }
+            opt.early_data = q;
         }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
@@ -1360,9 +1377,13 @@ usage:
                 goto usage;
             }
         } else {
+            /* This signals that the problem is with p not q */
+            q = NULL;
             goto usage;
         }
     }
+    /* This signals that any further errors are not with a single option */
+    p = q = NULL;
 
     if (opt.nss_keylog != 0 && opt.eap_tls != 0) {
         mbedtls_printf("Error: eap_tls and nss_keylog options cannot be used together.\n");
@@ -1947,7 +1968,16 @@ usage:
     }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    mbedtls_ssl_tls13_conf_early_data(&conf, opt.early_data);
+    int early_data_enabled = MBEDTLS_SSL_EARLY_DATA_DISABLED;
+    if (strlen(opt.early_data) > 0) {
+        if ((early_data_fp = fopen(opt.early_data, "rb")) == NULL) {
+            mbedtls_printf("failed\n  ! Cannot open '%s' for reading.\n",
+                           opt.early_data);
+            goto exit;
+        }
+        early_data_enabled = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+    }
+    mbedtls_ssl_conf_early_data(&conf, early_data_enabled);
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
     if ((ret = mbedtls_ssl_setup(&ssl, &conf)) != 0) {
@@ -3004,6 +3034,12 @@ exit:
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);
     mbedtls_ssl_session_free(&saved_session);
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (early_data_fp != NULL) {
+        fclose(early_data_fp);
+    }
+#endif
 
     if (session_data != NULL) {
         mbedtls_platform_zeroize(session_data, session_data_len);

@@ -264,7 +264,7 @@ class Auditor:
 
     @staticmethod
     def find_test_dir():
-        """Get the relative path for the MbedTLS test directory."""
+        """Get the relative path for the Mbed TLS test directory."""
         return os.path.relpath(build_tree.guess_mbedtls_root() + '/tests')
 
 

@@ -131,8 +131,8 @@ class KeyType:
         'PSA_DH_FAMILY_RFC7919': (2048, 3072, 4096, 6144, 8192),
     } # type: Dict[str, Tuple[int, ...]]
     ECC_KEY_SIZES = {
-        'PSA_ECC_FAMILY_SECP_K1': (192, 224, 256),
-        'PSA_ECC_FAMILY_SECP_R1': (225, 256, 384, 521),
+        'PSA_ECC_FAMILY_SECP_K1': (192, 225, 256),
+        'PSA_ECC_FAMILY_SECP_R1': (224, 256, 384, 521),
         'PSA_ECC_FAMILY_SECP_R2': (160,),
         'PSA_ECC_FAMILY_SECT_K1': (163, 233, 239, 283, 409, 571),
         'PSA_ECC_FAMILY_SECT_R1': (163, 233, 283, 409, 571),

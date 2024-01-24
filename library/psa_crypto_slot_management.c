@@ -564,12 +564,22 @@ psa_status_t psa_purge_key(mbedtls_svc_key_id_t key)
         return status;
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
     if ((!PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) &&
         (slot->registered_readers == 1)) {
-        return psa_wipe_key_slot(slot);
+        status = psa_wipe_key_slot(slot);
     } else {
-        return psa_unregister_read(slot);
+        status = psa_unregister_read(slot);
     }
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
+
+    return status;
 }
 
 void mbedtls_psa_get_stats(mbedtls_psa_stats_t *stats)

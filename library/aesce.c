@@ -335,7 +335,7 @@ static inline uint32_t aes_sub_word(uint32_t in)
 /*
  * Key expansion function
  */
-static void aesce_setkey_enc(unsigned char *rk,
+int mbedtls_aesce_setkey_enc(unsigned char *rk,
                              const unsigned char *key,
                              const size_t key_bit_length)
 {
@@ -390,27 +390,6 @@ static void aesce_setkey_enc(unsigned char *rk,
         }
 #endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
     }
-}
-
-/*
- * Key expansion, wrapper
- */
-int mbedtls_aesce_setkey_enc(unsigned char *rk,
-                             const unsigned char *key,
-                             size_t bits)
-{
-    switch (bits) {
-        case 128:
-#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
-        case 192:
-        case 256:
-#endif
-            aesce_setkey_enc(rk, key, bits);
-            break;
-        default:
-            return MBEDTLS_ERR_AES_INVALID_KEY_LENGTH;
-    }
-
     return 0;
 }
 

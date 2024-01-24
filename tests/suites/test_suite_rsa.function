@@ -1373,7 +1373,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void rsa_import_pkcs1_key(int is_public, data_t *input)
+void rsa_parse_write_pkcs1_key(int is_public, data_t *input)
 {
     mbedtls_rsa_context rsa_ctx;
     unsigned char *input_start = input->x;
@@ -1388,13 +1388,21 @@ void rsa_import_pkcs1_key(int is_public, data_t *input)
 
     mbedtls_rsa_init(&rsa_ctx);
 
+    /* Parse the key and write it back to output_buf. */
     if (is_public) {
         TEST_EQUAL(mbedtls_rsa_pubkey_parse(&rsa_ctx, &input_start, input_end), 0);
+        TEST_ASSERT(input_start == input_end);
         TEST_EQUAL(mbedtls_rsa_pubkey_write(&rsa_ctx, output_start, &output_end), input->len);
     } else {
         TEST_EQUAL(mbedtls_rsa_key_parse(&rsa_ctx, input->x, input->len), 0);
         TEST_EQUAL(mbedtls_rsa_key_write(&rsa_ctx, output_start, &output_end), input->len);
     }
+    /* This check holds because we alloacated an output buffer which is exactly
+     * large enough to contain the written data. */
+    TEST_ASSERT(output_end == output_start);
+
+    /* Check that the written key matches with the one provided in input. */
+    TEST_MEMORY_COMPARE(output_buf, input->len, input->x, input->len);
 
 exit:
     mbedtls_free(output_buf);

@@ -114,7 +114,7 @@ all: fuzz
 endif
 
 fuzz: ${MBEDTLS_TEST_OBJS}
-	$(MAKE) -C fuzz THIRDPARTY_INCLUDES=$(THIRDPARTY_INCLUDES)
+	$(MAKE) -C fuzz
 
 ${MBEDTLS_TEST_OBJS}:
 	$(MAKE) -C ../tests mbedtls_test

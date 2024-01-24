@@ -231,7 +231,7 @@ if(HAIKU)
 endif(HAIKU)
 
 if(LINK_WITH_PTHREAD)
-    set(libs ${libs} pthread)
+    set(libs ${libs} ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 if(LINK_WITH_TRUSTED_STORAGE)

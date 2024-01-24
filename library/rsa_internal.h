@@ -15,6 +15,7 @@
 #define MBEDTLS_RSA_INTERNAL_H
 
 #include "mbedtls/rsa.h"
+#include "mbedtls/asn1.h"
 
 /**
  * \brief           Parse a PKCS#1 (ASN.1) encoded private RSA key.

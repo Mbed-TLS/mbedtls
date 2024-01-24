@@ -153,6 +153,20 @@ exit:
     mbedtls_free(output);
 }
 
+static void gcm_reset_ctx(mbedtls_gcm_context *ctx, const uint8_t *key,
+                          size_t key_bits, const uint8_t *iv, size_t iv_len,
+                          int starts_ret)
+{
+    int mode = MBEDTLS_GCM_ENCRYPT;
+    mbedtls_cipher_id_t valid_cipher = MBEDTLS_CIPHER_ID_AES;
+
+    mbedtls_gcm_init(ctx);
+    TEST_EQUAL(mbedtls_gcm_setkey(ctx, valid_cipher, key, key_bits), 0);
+    TEST_EQUAL(starts_ret, mbedtls_gcm_starts(ctx, mode, iv, iv_len));
+exit:
+    /* empty */
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -475,6 +489,99 @@ exit:
     mbedtls_free(output);
     mbedtls_gcm_free(&ctx);
     BLOCK_CIPHER_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void gcm_invalid_iv_len(void)
+{
+    mbedtls_gcm_context ctx;
+    uint8_t b16[16] = { 0 };
+
+    gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, 0, MBEDTLS_ERR_GCM_BAD_INPUT);
+    mbedtls_gcm_free(&ctx);
+
+#if SIZE_MAX >= UINT64_MAX
+    gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, 1ULL << 61, MBEDTLS_ERR_GCM_BAD_INPUT);
+    mbedtls_gcm_free(&ctx);
+#endif
+
+    goto exit; /* To suppress error that exit is defined but not used */
+exit:
+    /* empty */
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+/*
+ * Test if GCM rejects total ad_len >= 2^61 bytes.
+ * Also test if GCM handles potential total ad_len overflow properly.
+
+ * Only testable on platforms where sizeof(size_t) >= 8.
+ */
+void gcm_add_len_too_long(void)
+{
+#if SIZE_MAX >= UINT64_MAX
+    mbedtls_gcm_context ctx;
+    uint8_t b16[16] = { 0 };
+
+    gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
+    TEST_EQUAL(mbedtls_gcm_update_ad(&ctx, b16, 1ULL << 61),
+               MBEDTLS_ERR_GCM_BAD_INPUT);
+    mbedtls_gcm_free(&ctx);
+
+    gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
+    TEST_EQUAL(mbedtls_gcm_update_ad(&ctx, b16, 1), 0);
+    TEST_EQUAL(mbedtls_gcm_update_ad(&ctx, b16, (1ULL << 61) - 1),
+               MBEDTLS_ERR_GCM_BAD_INPUT);
+    mbedtls_gcm_free(&ctx);
+
+    gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
+    TEST_EQUAL(mbedtls_gcm_update_ad(&ctx, b16, 1), 0);
+    TEST_EQUAL(mbedtls_gcm_update_ad(&ctx, b16, UINT64_MAX), MBEDTLS_ERR_GCM_BAD_INPUT);
+
+exit:
+    mbedtls_gcm_free(&ctx);
+#endif
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+/*
+ * Test if GCM rejects total input length > 2^36 - 32 bytes.
+ * Also test if GCM handles potential total input length overflow properly.
+
+ * Only testable on platforms where sizeof(size_t) >= 8.
+ */
+void gcm_input_len_too_long(void)
+{
+#if SIZE_MAX >= UINT64_MAX
+    mbedtls_gcm_context ctx;
+    uint8_t b16[16] = { 0 };
+    size_t out_len;
+    uint64_t len_max = (1ULL << 36) - 32;
+
+    gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
+    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, len_max + 1, b16, len_max + 1,
+                                  &out_len),
+               MBEDTLS_ERR_GCM_BAD_INPUT);
+    mbedtls_gcm_free(&ctx);
+
+    gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
+    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, 1, b16, 1, &out_len), 0);
+    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, len_max, b16, len_max, &out_len),
+               MBEDTLS_ERR_GCM_BAD_INPUT);
+    mbedtls_gcm_free(&ctx);
+
+    gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
+    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, 1, b16, 1, &out_len), 0);
+    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, UINT64_MAX, b16, UINT64_MAX,
+                                  &out_len),
+               MBEDTLS_ERR_GCM_BAD_INPUT);
+
+exit:
+    mbedtls_gcm_free(&ctx);
+#endif
 }
 /* END_CASE */
 

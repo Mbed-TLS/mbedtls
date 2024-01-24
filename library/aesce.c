@@ -357,11 +357,11 @@ static void aesce_setkey_enc(unsigned char *rk,
 
     memcpy(rk, key, key_len_in_words * 4);
 
+    size_t iteration = 0;
     for (uint32_t *rki = (uint32_t *) rk;
          rki + key_len_in_words < rko_end;
-         rki += key_len_in_words) {
+         rki += key_len_in_words, iteration++) {
 
-        size_t iteration = (size_t) (rki - (uint32_t *) rk) / key_len_in_words;
         uint32_t *rko;
         rko = rki + key_len_in_words;
         rko[0] = aes_rot_word(aes_sub_word(rki[key_len_in_words - 1]));

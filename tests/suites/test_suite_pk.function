@@ -215,10 +215,14 @@ static int pk_setup_for_type(mbedtls_pk_type_t pk_type, int want_pair,
             *psa_type = PSA_KEY_TYPE_RSA_KEY_PAIR;
             mbedtls_rsa_context *rsa = mbedtls_pk_rsa(*pk);
             if (want_pair) {
+#if defined(MBEDTLS_GENPRIME)
                 TEST_EQUAL(mbedtls_rsa_gen_key(
                                rsa,
                                mbedtls_test_rnd_std_rand, NULL,
                                MBEDTLS_RSA_GEN_KEY_MIN_BITS, 65537), 0);
+#else
+                TEST_FAIL("I don't know how to create an RSA key pair in this configuration.");
+#endif
             } else {
                 unsigned char N[PSA_BITS_TO_BYTES(MBEDTLS_RSA_GEN_KEY_MIN_BITS)] = { 0xff };
                 N[sizeof(N) - 1] = 0x03;
@@ -1772,7 +1776,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V21 */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V21:MBEDTLS_GENPRIME */
 void pk_rsa_v21_get_psa_attributes(int md_type, int from_pair,
                                    int usage_arg,
                                    int to_pair, int expected_alg)

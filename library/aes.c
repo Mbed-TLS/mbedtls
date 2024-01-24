@@ -608,8 +608,12 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 #endif
 
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-    for (unsigned int i = 0; i < (keybits >> 5); i++) {
-        RK[i] = MBEDTLS_GET_UINT32_LE(key, i << 2);
+    if (MBEDTLS_IS_BIG_ENDIAN) {
+        for (unsigned int i = 0; i < (keybits >> 5); i++) {
+            RK[i] = MBEDTLS_GET_UINT32_LE(key, i << 2);
+        }
+    } else {
+        memcpy(RK, key, keybits >> 3);
     }
 
     switch (ctx->nr) {

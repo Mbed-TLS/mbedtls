@@ -3285,3 +3285,6 @@ tls13_early_data:TEST_EARLY_DATA_DISCARD_AFTER_HRR
 
 TLS 1.3 cli, early data status, early data accepted
 tls13_cli_early_data_status:TEST_EARLY_DATA_ACCEPTED
+
+TLS 1.3 cli, early data status, no early data indication
+tls13_cli_early_data_status:TEST_EARLY_DATA_NO_INDICATION_SENT

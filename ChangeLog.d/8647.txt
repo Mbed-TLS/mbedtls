@@ -1,0 +1,7 @@
+Default behavior changes
+   * Importing of RSA keys in PEM format in PSA is officially unsupported
+     (this was previously undocumented).
+
+Features
+   * It is possible to enable RSA support in PSA (MBEDTLS_PSA_CRYPTO_C +
+     RSA_C) without enabling PK module (MBEDTLS_[PK|PK_WRITE|PK_PARSE]_C).

@@ -246,6 +246,9 @@ KNOWN_TASKS = {
             'component_ref': 'test_psa_crypto_config_reference_hmac',
             'component_driver': 'test_psa_crypto_config_accel_hmac',
             'ignored_suites': [
+                # These suites require legacy hash support, which is disabled
+                # in the accelerate component.
+                'shax', 'mdx',
                 # This suite tests builtins directly, but these are missing
                 # in the accelerated case.
                 'psa_crypto_low_hash.generated',

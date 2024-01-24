@@ -3661,6 +3661,17 @@ config_psa_crypto_hmac_use_psa () {
     # start with config full for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
 
+    if [ "$driver_only" -eq 1 ]; then
+        # Disable MD_C in order to disable the builtin support for HMAC. MD_LIGHT
+        # is still enabled though (for ENTROPY_C among others).
+        scripts/config.py unset MBEDTLS_MD_C
+        # Disable also the builtin hashes since they are supported by the driver
+        # and MD module is able to perform PSA dispathing.
+        scripts/config.py unset-all MBEDTLS_SHA
+        scripts/config.py unset MBEDTLS_MD5_C
+        scripts/config.py unset MBEDTLS_RIPEMD160_C
+    fi
+
     # Direct dependencies of MD_C. We disable them also in the reference
     # component to work with the same set of features.
     scripts/config.py unset MBEDTLS_PKCS7_C
@@ -3684,10 +3695,6 @@ component_test_psa_crypto_config_accel_hmac() {
     # ---------
 
     config_psa_crypto_hmac_use_psa 1
-
-    # Disable MD_C in order to disable the builtin support for HMAC. MD_LIGHT
-    # is still enabled though.
-    scripts/config.py unset MBEDTLS_MD_C
 
     # Build
     # -----

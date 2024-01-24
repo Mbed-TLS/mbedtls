@@ -1390,6 +1390,8 @@ int mbedtls_ssl_tls13_write_change_cipher_spec(mbedtls_ssl_context *ssl)
     /* Dispatch message */
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_write_record(ssl, 0));
 
+    ssl->handshake->ccs_count++;
+
 cleanup:
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("<= write change cipher spec"));

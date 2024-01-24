@@ -688,9 +688,6 @@ static int asn1_get_nonzero_mpi(unsigned char **p,
     return 0;
 }
 
-/*
- * Parse a PKCS#1 encoded private RSA key
- */
 int mbedtls_rsa_key_parse(mbedtls_rsa_context *rsa, const unsigned char *key, size_t keylen)
 {
     int ret, version;
@@ -837,17 +834,18 @@ cleanup:
     return ret;
 }
 
-/*
- *  RSAPublicKey ::= SEQUENCE {
- *      modulus           INTEGER,  -- n
- *      publicExponent    INTEGER   -- e
- *  }
- */
 int mbedtls_rsa_pubkey_parse(mbedtls_rsa_context *rsa, unsigned char **p,
                              const unsigned char *end)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
+
+    /*
+     *  RSAPublicKey ::= SEQUENCE {
+     *      modulus           INTEGER,  -- n
+     *      publicExponent    INTEGER   -- e
+     *  }
+     */
 
     if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {

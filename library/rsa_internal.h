@@ -17,44 +17,77 @@
 #include "mbedtls/rsa.h"
 
 /**
- * \brief
+ * \brief           Parse a PKCS#1 (ASN.1) encoded private RSA key.
  *
- * \param rsa
- * \param key
- * \param keylen
- * \return int
+ * \param rsa       The RSA context where parsed data will be stored.
+ * \param key       The buffer that contains the key.
+ * \param keylen    The length of the key buffer in bytes.
+ *
+ * \return          0 in success
+ * \return          MBEDTLS_ERR_ASN1_xxx in case of ASN.1 parsing errors.
+ * \return          MBEDTLS_ERR_RSA_BAD_INPUT_DATA in case of invalid version.
  */
 int mbedtls_rsa_key_parse(mbedtls_rsa_context *rsa, const unsigned char *key, size_t keylen);
 
 /**
- * \brief
+ * \brief           Parse a PKCS#1 (ASN.1) encoded public RSA key.
  *
- * \param rsa
- * \param p
- * \param end
- * \return int
+ * \param rsa       The RSA context where parsed data will be stored.
+ * \param p         Beginning of the buffer containing the key to be parsed.
+ *                  On successful return, the referenced pointer will be
+ *                  updated in order to point to the end of the parsed data.
+ * \param end       End of the buffer containing the key to be parsed.
+ *
+ * \return          0 on success.
+ * \return          MBEDTLS_ERR_ASN1_xxx in case of ASN.1 parsing errors.
+ * \return          MBEDTLS_ERR_RSA_BAD_INPUT_DATA in case of importing or
+ *                  priv/pub validation errors.
  */
 int mbedtls_rsa_pubkey_parse(mbedtls_rsa_context *rsa, unsigned char **p,
                              const unsigned char *end);
 
 /**
- * \brief
+ * \brief           Write a PKCS#1 (ASN.1) encoded private RSA key.
  *
- * \param p
- * \param start
- * \param rsa
- * \return int
+ * \param rsa       The RSA context which contains the data to be written.
+ * \param start     Beginning of the buffer that will be filled with the
+ *                  private key.
+ * \param p         End of the buffer that will be filled with the private key.
+ *                  On successful return, the referenced pointer will be
+ *                  updated in order to point to the beginning of written data.
+ *
+ * \return          On success, the number of bytes written to the output buffer
+ *                  (i.e. a value > 0).
+ * \return          MBEDTLS_ERR_RSA_BAD_INPUT_DATA is the RSA context does not
+ *                  cointain valid.
+ * \return          MBEDTLS_ERR_ASN1_xxx in case of failure while writing to the
+ *                  output buffer.
+ *
+ * \note            The output buffer is filled backward, i.e. starting from its
+ *                  end and moving toward its start.
  */
 int mbedtls_rsa_key_write(const mbedtls_rsa_context *rsa, unsigned char *start,
                           unsigned char **p);
 
 /**
- * \brief
+ * \brief           Parse a PKCS#1 (ASN.1) encoded public RSA key.
  *
- * \param p
- * \param start
- * \param rsa
- * \return int
+ * \param rsa       The RSA context which contains the data to be written.
+ * \param start     Beginning of the buffer that will be filled with the
+ *                  private key.
+ * \param p         End of the buffer that will be filled with the private key.
+ *                  On successful return, the referenced pointer will be
+ *                  updated in order to point to the beginning of written data.
+ *
+ * \return          On success, the number of bytes written to the output buffer
+ *                  (i.e. a value > 0).
+ * \return          MBEDTLS_ERR_RSA_BAD_INPUT_DATA is the RSA context does not
+ *                  cointain valid.
+ * \return          MBEDTLS_ERR_ASN1_xxx in case of failure while writing to the
+ *                  output buffer.
+ *
+ * \note            The output buffer is filled backward, i.e. starting from its
+ *                  end and moving toward its start.
  */
 int mbedtls_rsa_pubkey_write(const mbedtls_rsa_context *rsa, unsigned char *start,
                              unsigned char **p);

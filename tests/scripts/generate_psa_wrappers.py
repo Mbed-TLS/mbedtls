@@ -153,7 +153,8 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
         #pylint: disable=too-many-return-statements
         if function_name.startswith('psa_aead'):
             return True
-        if function_name == 'psa_cipher_encrypt':
+        if function_name in {'psa_cipher_encrypt', 'psa_cipher_decrypt',
+                             'psa_cipher_update', 'psa_cipher_finish'}:
             return True
         if function_name in ('psa_key_derivation_output_bytes',
                              'psa_key_derivation_input_bytes'):

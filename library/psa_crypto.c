@@ -4405,13 +4405,19 @@ exit:
 }
 
 psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
-                               const uint8_t *input,
+                               const uint8_t *input_external,
                                size_t input_length,
-                               uint8_t *output,
+                               uint8_t *output_external,
                                size_t output_size,
                                size_t *output_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    LOCAL_INPUT_DECLARE(input_external, input);
+    LOCAL_OUTPUT_DECLARE(output_external, output);
+
+    LOCAL_INPUT_ALLOC(input_external, input_length, input);
+    LOCAL_OUTPUT_ALLOC_WITH_COPY(output_external, output_size, output);
 
     if (operation->id == 0) {
         status = PSA_ERROR_BAD_STATE;
@@ -4435,15 +4441,22 @@ exit:
         psa_cipher_abort(operation);
     }
 
+    LOCAL_INPUT_FREE(input_external, input);
+    LOCAL_OUTPUT_FREE(output_external, output);
+
     return status;
 }
 
 psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
-                               uint8_t *output,
+                               uint8_t *output_external,
                                size_t output_size,
                                size_t *output_length)
 {
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+
+    LOCAL_OUTPUT_DECLARE(output_external, output);
+
+    LOCAL_OUTPUT_ALLOC_WITH_COPY(output_external, output_size, output);
 
     if (operation->id == 0) {
         status = PSA_ERROR_BAD_STATE;
@@ -4462,13 +4475,15 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
 
 exit:
     if (status == PSA_SUCCESS) {
-        return psa_cipher_abort(operation);
+        status = psa_cipher_abort(operation);
     } else {
         *output_length = 0;
         (void) psa_cipher_abort(operation);
-
-        return status;
     }
+
+    LOCAL_OUTPUT_FREE(output_external, output);
+
+    return status;
 }
 
 psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation)
@@ -4573,9 +4588,9 @@ exit:
 
 psa_status_t psa_cipher_decrypt(mbedtls_svc_key_id_t key,
                                 psa_algorithm_t alg,
-                                const uint8_t *input,
+                                const uint8_t *input_external,
                                 size_t input_length,
-                                uint8_t *output,
+                                uint8_t *output_external,
                                 size_t output_size,
                                 size_t *output_length)
 {
@@ -4583,6 +4598,12 @@ psa_status_t psa_cipher_decrypt(mbedtls_svc_key_id_t key,
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot = NULL;
     psa_key_attributes_t attributes;
+
+    LOCAL_INPUT_DECLARE(input_external, input);
+    LOCAL_OUTPUT_DECLARE(output_external, output);
+
+    LOCAL_INPUT_ALLOC(input_external, input_length, input);
+    LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
 
     if (!PSA_ALG_IS_CIPHER(alg)) {
         status = PSA_ERROR_INVALID_ARGUMENT;
@@ -4623,6 +4644,9 @@ exit:
     if (status != PSA_SUCCESS) {
         *output_length = 0;
     }
+
+    LOCAL_INPUT_FREE(input_external, input);
+    LOCAL_OUTPUT_FREE(output_external, output);
 
     return status;
 }

@@ -335,9 +335,9 @@ static inline uint32_t aes_sub_word(uint32_t in)
 /*
  * Key expansion function
  */
-int mbedtls_aesce_setkey_enc(unsigned char *rk,
-                             const unsigned char *key,
-                             const size_t key_bit_length)
+void mbedtls_aesce_setkey_enc(unsigned char *rk,
+                              const unsigned char *key,
+                              const uint32_t key_bit_length)
 {
     static uint8_t const rcon[] = { 0x01, 0x02, 0x04, 0x08, 0x10,
                                     0x20, 0x40, 0x80, 0x1b, 0x36 };
@@ -348,7 +348,7 @@ int mbedtls_aesce_setkey_enc(unsigned char *rk,
 #if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     MBEDTLS_ASSUME(key_bit_length == 128);
 #endif
-    const uint32_t key_len_in_words = (uint32_t) key_bit_length / 32;  /* Nk */
+    const uint32_t key_len_in_words = key_bit_length / 32;  /* Nk */
     const size_t round_key_len_in_words = 4;                /* Nb */
     const size_t rounds_needed = key_len_in_words + 6;      /* Nr */
     const size_t round_keys_len_in_words =
@@ -390,7 +390,6 @@ int mbedtls_aesce_setkey_enc(unsigned char *rk,
         }
 #endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
     }
-    return 0;
 }
 
 #if defined(MBEDTLS_GCM_C)

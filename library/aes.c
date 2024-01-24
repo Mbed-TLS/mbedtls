@@ -603,7 +603,8 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 
 #if defined(MBEDTLS_AESCE_HAVE_CODE)
     if (MBEDTLS_AESCE_HAS_SUPPORT()) {
-        return mbedtls_aesce_setkey_enc((unsigned char *) RK, key, keybits);
+        mbedtls_aesce_setkey_enc((unsigned char *) RK, key, keybits);
+        return 0;
     }
 #endif
 

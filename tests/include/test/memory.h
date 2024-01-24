@@ -61,6 +61,12 @@
 
 #if defined(MBEDTLS_TEST_MEMORY_CAN_POISON)
 
+/** Variable used to enable memory poisoning. This is set and unset in the
+ *  test wrappers so that calls to PSA functions from the library do not
+ *  poison memory.
+ */
+extern unsigned int mbedtls_test_memory_poisoning_count;
+
 /** Poison a memory area so that any attempt to read or write from it will
  * cause a runtime failure.
  *
@@ -68,7 +74,10 @@
  */
 void mbedtls_test_memory_poison(const unsigned char *ptr, size_t size);
 #define MBEDTLS_TEST_MEMORY_POISON(ptr, size)    \
-    mbedtls_test_memory_poison(ptr, size)
+    do { \
+        mbedtls_test_memory_poisoning_count++; \
+        mbedtls_test_memory_poison(ptr, size); \
+    } while (0)
 
 /** Undo the effect of mbedtls_test_memory_poison().
  *
@@ -79,7 +88,12 @@ void mbedtls_test_memory_poison(const unsigned char *ptr, size_t size);
  */
 void mbedtls_test_memory_unpoison(const unsigned char *ptr, size_t size);
 #define MBEDTLS_TEST_MEMORY_UNPOISON(ptr, size)    \
-    mbedtls_test_memory_unpoison(ptr, size)
+    do { \
+        mbedtls_test_memory_unpoison(ptr, size); \
+        if (mbedtls_test_memory_poisoning_count != 0) { \
+            mbedtls_test_memory_poisoning_count--; \
+        } \
+    } while (0)
 
 #else /* MBEDTLS_TEST_MEMORY_CAN_POISON */
 #define MBEDTLS_TEST_MEMORY_POISON(ptr, size) ((void) (ptr), (void) (size))

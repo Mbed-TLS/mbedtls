@@ -1639,7 +1639,9 @@ psa_status_t psa_export_key(mbedtls_svc_key_id_t key,
     status = psa_driver_wrapper_export_key(&attributes,
                                            slot->key.data, slot->key.bytes,
                                            data, data_size, data_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
 exit:
+#endif
     unlock_status = psa_unlock_key_slot(slot);
 
     LOCAL_OUTPUT_FREE(data_external, data);

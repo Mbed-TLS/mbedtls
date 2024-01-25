@@ -493,15 +493,20 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+/* NISP SP 800-38D, Section 5.2.1.1 requires that bit length of IV should
+ * satisfy 1 <= bit_len(IV) <= 2^64 - 1. */
 void gcm_invalid_iv_len(void)
 {
     mbedtls_gcm_context ctx;
     uint8_t b16[16] = { 0 };
 
+    // Invalid IV length 0
     gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, 0, MBEDTLS_ERR_GCM_BAD_INPUT);
     mbedtls_gcm_free(&ctx);
 
+    // Only testable on platforms where sizeof(size_t) >= 8.
 #if SIZE_MAX >= UINT64_MAX
+    // Invalid IV length 2^61
     gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, 1ULL << 61, MBEDTLS_ERR_GCM_BAD_INPUT);
     mbedtls_gcm_free(&ctx);
 #endif
@@ -513,30 +518,31 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-/*
- * Test if GCM rejects total ad_len >= 2^61 bytes.
- * Also test if GCM handles potential total ad_len overflow properly.
-
- * Only testable on platforms where sizeof(size_t) >= 8.
- */
 void gcm_add_len_too_long(void)
 {
+    // Only testable on platforms where sizeof(size_t) >= 8.
 #if SIZE_MAX >= UINT64_MAX
     mbedtls_gcm_context ctx;
     uint8_t b16[16] = { 0 };
+    /* NISP SP 800-38D, Section 5.2.1.1 requires that bit length of AD should
+     * be <= 2^64 - 1, ie < 2^64. This is the minimum invalid length in bytes. */
+    uint64_t len_max = 1ULL << 61;
 
     gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
-    TEST_EQUAL(mbedtls_gcm_update_ad(&ctx, b16, 1ULL << 61),
+    // Feed AD that just exceeds the length limit
+    TEST_EQUAL(mbedtls_gcm_update_ad(&ctx, b16, len_max),
                MBEDTLS_ERR_GCM_BAD_INPUT);
     mbedtls_gcm_free(&ctx);
 
     gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
+    // Feed AD that just exceeds the length limit in two calls
     TEST_EQUAL(mbedtls_gcm_update_ad(&ctx, b16, 1), 0);
-    TEST_EQUAL(mbedtls_gcm_update_ad(&ctx, b16, (1ULL << 61) - 1),
+    TEST_EQUAL(mbedtls_gcm_update_ad(&ctx, b16, len_max - 1),
                MBEDTLS_ERR_GCM_BAD_INPUT);
     mbedtls_gcm_free(&ctx);
 
     gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
+    // Test if potential total AD length overflow is handled properly
     TEST_EQUAL(mbedtls_gcm_update_ad(&ctx, b16, 1), 0);
     TEST_EQUAL(mbedtls_gcm_update_ad(&ctx, b16, UINT64_MAX), MBEDTLS_ERR_GCM_BAD_INPUT);
 
@@ -547,35 +553,36 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-/*
- * Test if GCM rejects total input length > 2^36 - 32 bytes.
- * Also test if GCM handles potential total input length overflow properly.
-
- * Only testable on platforms where sizeof(size_t) >= 8.
- */
 void gcm_input_len_too_long(void)
 {
+    // Only testable on platforms where sizeof(size_t) >= 8
 #if SIZE_MAX >= UINT64_MAX
     mbedtls_gcm_context ctx;
     uint8_t b16[16] = { 0 };
+    uint8_t out[1];
     size_t out_len;
+    /* NISP SP 800-38D, Section 5.2.1.1 requires that bit length of input should
+     * be <= 2^39 - 256. This is the maximum valid length in bytes. */
     uint64_t len_max = (1ULL << 36) - 32;
 
     gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
-    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, len_max + 1, b16, len_max + 1,
+    // Feed input that just exceeds the length limit
+    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, len_max + 1, out, len_max + 1,
                                   &out_len),
                MBEDTLS_ERR_GCM_BAD_INPUT);
     mbedtls_gcm_free(&ctx);
 
     gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
-    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, 1, b16, 1, &out_len), 0);
+    // Feed input that just exceeds the length limit in two calls
+    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, 1, out, 1, &out_len), 0);
     TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, len_max, b16, len_max, &out_len),
                MBEDTLS_ERR_GCM_BAD_INPUT);
     mbedtls_gcm_free(&ctx);
 
     gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
-    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, 1, b16, 1, &out_len), 0);
-    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, UINT64_MAX, b16, UINT64_MAX,
+    // Test if potential total input length overflow is handled properly
+    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, 1, out, 1, &out_len), 0);
+    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, UINT64_MAX, out, UINT64_MAX,
                                   &out_len),
                MBEDTLS_ERR_GCM_BAD_INPUT);
 

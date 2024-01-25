@@ -2396,9 +2396,9 @@ exit:
 }
 
 static psa_status_t psa_hash_finish_internal(psa_hash_operation_t *operation,
-                             uint8_t *hash,
-                             size_t hash_size,
-                             size_t *hash_length)
+                                             uint8_t *hash,
+                                             size_t hash_size,
+                                             size_t *hash_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -2486,7 +2486,7 @@ psa_status_t psa_hash_compute(psa_algorithm_t alg,
     LOCAL_INPUT_ALLOC(input_external, input_length, input);
     LOCAL_OUTPUT_ALLOC(hash_external, hash_size, hash);
     status = psa_driver_wrapper_hash_compute(alg, input, input_length,
-                                           hash, hash_size, hash_length);
+                                             hash, hash_size, hash_length);
 
 #if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
 exit:

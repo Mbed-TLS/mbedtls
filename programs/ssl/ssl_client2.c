@@ -719,18 +719,27 @@ exit:
 /*
  * Build HTTP request
  */
-static void build_http_request(unsigned char *buf, size_t buf_size, int *request_len)
+static int build_http_request(unsigned char *buf, size_t buf_size, size_t *request_len)
 {
-    int len, tail_len;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len, tail_len, request_size;
 
-    len = mbedtls_snprintf((char *) buf, buf_size, GET_REQUEST, opt.request_page);
-    tail_len = (int) strlen(GET_REQUEST_END);
+    ret = mbedtls_snprintf((char *) buf, buf_size, GET_REQUEST, opt.request_page);
+    if (ret < 0) {
+        return ret;
+    }
+
+    len = (size_t) ret;
+    tail_len = strlen(GET_REQUEST_END);
+    if (opt.request_size != DFL_REQUEST_SIZE) {
+        request_size = (size_t) opt.request_size;
+    }
 
     /* Add padding to GET request to reach opt.request_size in length */
     if (opt.request_size != DFL_REQUEST_SIZE &&
-        len + tail_len < opt.request_size) {
-        memset(buf + len, 'A', opt.request_size - len - tail_len);
-        len += opt.request_size - len - tail_len;
+        len + tail_len < request_size) {
+        memset(buf + len, 'A', request_size - len - tail_len);
+        len = request_size - tail_len;
     }
 
     strncpy((char *) buf + len, GET_REQUEST_END, buf_size - len);
@@ -738,8 +747,8 @@ static void build_http_request(unsigned char *buf, size_t buf_size, int *request
 
     /* Truncate if request size is smaller than the "natural" size */
     if (opt.request_size != DFL_REQUEST_SIZE &&
-        len > opt.request_size) {
-        len = opt.request_size;
+        len > request_size) {
+        len = request_size;
 
         /* Still end with \r\n unless that's really not possible */
         if (len >= 2) {
@@ -751,11 +760,14 @@ static void build_http_request(unsigned char *buf, size_t buf_size, int *request
     }
 
     *request_len = len;
+
+    return 0;
 }
 
 int main(int argc, char *argv[])
 {
-    int ret = 0, len, i, written, frags, retry_left;
+    int ret = 0, i;
+    size_t len, written, frags, retry_left;
     int query_config_ret = 0;
     mbedtls_net_context server_fd;
     io_ctx_t io_ctx;
@@ -2479,7 +2491,10 @@ send_request:
     mbedtls_printf("  > Write to server:");
     fflush(stdout);
 
-    build_http_request(buf, sizeof(buf) - 1, &len);
+    ret = build_http_request(buf, sizeof(buf) - 1, &len);
+    if (ret != 0) {
+        goto exit;
+    }
 
     if (opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM) {
         written = 0;
@@ -2550,8 +2565,11 @@ send_request:
     }
 
     buf[written] = '\0';
-    mbedtls_printf(" %d bytes written in %d fragments\n\n%s\n",
-                   written, frags, (char *) buf);
+    mbedtls_printf(
+        " %" MBEDTLS_PRINTF_SIZET " bytes written in %" MBEDTLS_PRINTF_SIZET " fragments\n\n%s\n",
+        written,
+        frags,
+        (char *) buf);
 
     /* Send a non-empty request if request_size == 0 */
     if (len == 0) {
@@ -2658,7 +2676,9 @@ send_request:
 
             len = ret;
             buf[len] = '\0';
-            mbedtls_printf("  < Read from server: %d bytes read\n\n%s", len, (char *) buf);
+            mbedtls_printf("  < Read from server: %" MBEDTLS_PRINTF_SIZET " bytes read\n\n%s",
+                           len,
+                           (char *) buf);
             fflush(stdout);
             /* End of message should be detected according to the syntax of the
              * application protocol (eg HTTP), just use a dummy test here. */
@@ -2717,7 +2737,9 @@ send_request:
 
         len = ret;
         buf[len] = '\0';
-        mbedtls_printf("  < Read from server: %d bytes read\n\n%s", len, (char *) buf);
+        mbedtls_printf("  < Read from server: %" MBEDTLS_PRINTF_SIZET " bytes read\n\n%s",
+                       len,
+                       (char *) buf);
         ret = 0;
     }
 

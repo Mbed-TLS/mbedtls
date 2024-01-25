@@ -5814,13 +5814,6 @@ psa_status_t psa_key_derivation_output_bytes(
         return PSA_ERROR_BAD_STATE;
     }
 
-    if (output_length > operation->capacity) {
-        operation->capacity = 0;
-        /* Go through the error path to wipe all confidential data now
-         * that the operation object is useless. */
-        status = PSA_ERROR_INSUFFICIENT_DATA;
-        goto exit;
-    }
     if (output_length == 0 && operation->capacity == 0) {
         /* Edge case: this is a finished operation, and 0 bytes
          * were requested. The right error in this case could
@@ -5832,6 +5825,14 @@ psa_status_t psa_key_derivation_output_bytes(
     }
 
     LOCAL_OUTPUT_ALLOC(output_external, output_length, output);
+    if (output_length > operation->capacity) {
+        operation->capacity = 0;
+        /* Go through the error path to wipe all confidential data now
+         * that the operation object is useless. */
+        status = PSA_ERROR_INSUFFICIENT_DATA;
+        goto exit;
+    }
+
     operation->capacity -= output_length;
 
 #if defined(BUILTIN_ALG_ANY_HKDF)
@@ -5872,8 +5873,6 @@ psa_status_t psa_key_derivation_output_bytes(
     }
 
 exit:
-    LOCAL_OUTPUT_FREE(output_external, output);
-
     if (status != PSA_SUCCESS) {
         /* Preserve the algorithm upon errors, but clear all sensitive state.
          * This allows us to differentiate between exhausted operations and
@@ -5884,6 +5883,8 @@ exit:
         operation->alg = alg;
         memset(output, '!', output_length);
     }
+
+    LOCAL_OUTPUT_FREE(output_external, output);
     return status;
 }
 

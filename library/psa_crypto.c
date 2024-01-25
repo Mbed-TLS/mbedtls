@@ -2379,7 +2379,9 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
     LOCAL_OUTPUT_ALLOC(hash_external, hash_size, hash);
     status = psa_hash_finish_internal(operation, hash, hash_size, hash_length);
 
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
 exit:
+#endif
     LOCAL_OUTPUT_FREE(hash_external, hash);
     return status;
 }
@@ -2440,7 +2442,9 @@ psa_status_t psa_hash_compute(psa_algorithm_t alg,
     status = psa_driver_wrapper_hash_compute(alg, input, input_length,
                                            hash, hash_size, hash_length);
 
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
 exit:
+#endif
     LOCAL_INPUT_FREE(input_external, input);
     LOCAL_OUTPUT_FREE(hash_external, hash);
     return status;

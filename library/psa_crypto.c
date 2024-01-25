@@ -7114,7 +7114,9 @@ psa_status_t psa_key_derivation_input_bytes(
     status = psa_key_derivation_input_internal(operation, step,
                                                PSA_KEY_TYPE_NONE,
                                                data, data_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
 exit:
+#endif
     LOCAL_INPUT_FREE(data_external, data);
     return status;
 }

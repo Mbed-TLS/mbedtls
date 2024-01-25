@@ -267,15 +267,7 @@ psa_status_t mbedtls_test_wrap_psa_cipher_encrypt(
     size_t arg5_output_size,
     size_t *arg6_output_length)
 {
-#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
-    MBEDTLS_TEST_MEMORY_POISON(arg2_input, arg3_input_length);
-    MBEDTLS_TEST_MEMORY_POISON(arg4_output, arg5_output_size);
-#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_cipher_encrypt)(arg0_key, arg1_alg, arg2_input, arg3_input_length, arg4_output, arg5_output_size, arg6_output_length);
-#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
-    MBEDTLS_TEST_MEMORY_UNPOISON(arg2_input, arg3_input_length);
-    MBEDTLS_TEST_MEMORY_UNPOISON(arg4_output, arg5_output_size);
-#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 
@@ -435,7 +427,13 @@ psa_status_t mbedtls_test_wrap_psa_export_key(
     size_t arg2_data_size,
     size_t *arg3_data_length)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg1_data, arg2_data_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_export_key)(arg0_key, arg1_data, arg2_data_size, arg3_data_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg1_data, arg2_data_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 
@@ -446,7 +444,13 @@ psa_status_t mbedtls_test_wrap_psa_export_public_key(
     size_t arg2_data_size,
     size_t *arg3_data_length)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg1_data, arg2_data_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_export_public_key)(arg0_key, arg1_data, arg2_data_size, arg3_data_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg1_data, arg2_data_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 
@@ -566,7 +570,13 @@ psa_status_t mbedtls_test_wrap_psa_import_key(
     size_t arg2_data_length,
     mbedtls_svc_key_id_t *arg3_key)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg1_data, arg2_data_length);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_import_key)(arg0_attributes, arg1_data, arg2_data_length, arg3_key);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg1_data, arg2_data_length);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 

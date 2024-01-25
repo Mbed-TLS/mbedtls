@@ -1069,9 +1069,6 @@ component_check_test_dependencies () {
     echo "MBEDTLS_ECP_RESTARTABLE" >> $expected
     # No PSA equivalent - needed by some init tests
     echo "MBEDTLS_ENTROPY_NV_SEED" >> $expected
-    # Used by two tests that are about an extension to the PSA standard;
-    # as such, no PSA equivalent.
-    echo "MBEDTLS_PEM_PARSE_C" >> $expected
 
     # Compare reality with expectation.
     # We want an exact match, to ensure the above list remains up-to-date.

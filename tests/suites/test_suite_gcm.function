@@ -575,7 +575,7 @@ void gcm_input_len_too_long(void)
     gcm_reset_ctx(&ctx, b16, sizeof(b16) * 8, b16, sizeof(b16), 0);
     // Feed input that just exceeds the length limit in two calls
     TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, 1, out, 1, &out_len), 0);
-    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, len_max, b16, len_max, &out_len),
+    TEST_EQUAL(mbedtls_gcm_update(&ctx, b16, len_max, out, len_max, &out_len),
                MBEDTLS_ERR_GCM_BAD_INPUT);
     mbedtls_gcm_free(&ctx);
 

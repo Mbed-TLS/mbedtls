@@ -143,7 +143,7 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
         """Whether the specified buffer argument to a PSA function should be copied.
         """
         # Proof-of-concept: just instrument one function for now
-        if function_name == 'psa_cipher_encrypt':
+        if function_name == 'psa_cipher_encrypt' or function_name == 'psa_key_derivation_output_bytes' or function_name == 'psa_key_derivation_input_bytes':
             return True
         if function_name in ('psa_import_key',
                              'psa_export_key',

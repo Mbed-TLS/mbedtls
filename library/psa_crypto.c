@@ -110,6 +110,118 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
     if (global_data.initialized == 0)  \
     return PSA_ERROR_BAD_STATE;
 
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+
+/* Declare a local copy of an input buffer and a variable that will be used
+ * to store a pointer to the start of the buffer.
+ *
+ * Note: This macro must be called before any operations which may jump to
+ * the exit label, so that the local input copy object is safe to be freed.
+ *
+ * Assumptions:
+ * - input is the name of a pointer to the buffer to be copied
+ * - The name LOCAL_INPUT_COPY_OF_input is unused in the current scope
+ * - input_copy_name is a name that is unused in the current scope
+ */
+#define LOCAL_INPUT_DECLARE(input, input_copy_name) \
+    psa_crypto_local_input_t LOCAL_INPUT_COPY_OF_##input = PSA_CRYPTO_LOCAL_INPUT_INIT; \
+    const uint8_t *input_copy_name = NULL;
+
+/* Allocate a copy of the buffer input and set the pointer input_copy to
+ * point to the start of the copy.
+ *
+ * Assumptions:
+ * - psa_status_t status exists
+ * - An exit label is declared
+ * - input is the name of a pointer to the buffer to be copied
+ * - LOCAL_INPUT_DECLARE(input, input_copy) has previously been called
+ */
+#define LOCAL_INPUT_ALLOC(input, length, input_copy) \
+    status = psa_crypto_local_input_alloc(input, length, \
+                                          &LOCAL_INPUT_COPY_OF_##input); \
+    if (status != PSA_SUCCESS) { \
+        goto exit; \
+    } \
+    input_copy = LOCAL_INPUT_COPY_OF_##input.buffer;
+
+/* Free the local input copy allocated previously by LOCAL_INPUT_ALLOC()
+ *
+ * Assumptions:
+ * - input_copy is the name of the input copy pointer set by LOCAL_INPUT_ALLOC()
+ * - input is the name of the original buffer that was copied
+ */
+#define LOCAL_INPUT_FREE(input, input_copy) \
+    input_copy = NULL; \
+    psa_crypto_local_input_free(&LOCAL_INPUT_COPY_OF_##input);
+
+/* Declare a local copy of an output buffer and a variable that will be used
+ * to store a pointer to the start of the buffer.
+ *
+ * Note: This macro must be called before any operations which may jump to
+ * the exit label, so that the local output copy object is safe to be freed.
+ *
+ * Assumptions:
+ * - output is the name of a pointer to the buffer to be copied
+ * - The name LOCAL_OUTPUT_COPY_OF_output is unused in the current scope
+ * - output_copy_name is a name that is unused in the current scope
+ */
+#define LOCAL_OUTPUT_DECLARE(output, output_copy_name) \
+    psa_crypto_local_output_t LOCAL_OUTPUT_COPY_OF_##output = PSA_CRYPTO_LOCAL_OUTPUT_INIT; \
+    uint8_t *output_copy_name = NULL;
+
+/* Allocate a copy of the buffer output and set the pointer output_copy to
+ * point to the start of the copy.
+ *
+ * Assumptions:
+ * - psa_status_t status exists
+ * - An exit label is declared
+ * - output is the name of a pointer to the buffer to be copied
+ * - LOCAL_OUTPUT_DECLARE(output, output_copy) has previously been called
+ */
+#define LOCAL_OUTPUT_ALLOC(output, length, output_copy) \
+    status = psa_crypto_local_output_alloc(output, length, \
+                                           &LOCAL_OUTPUT_COPY_OF_##output); \
+    if (status != PSA_SUCCESS) { \
+        goto exit; \
+    } \
+    output_copy = LOCAL_OUTPUT_COPY_OF_##output.buffer;
+
+/* Free the local output copy allocated previously by LOCAL_OUTPUT_ALLOC()
+ * after first copying back its contents to the original buffer.
+ *
+ * Assumptions:
+ * - psa_status_t status exists
+ * - output_copy is the name of the output copy pointer set by LOCAL_OUTPUT_ALLOC()
+ * - output is the name of the original buffer that was copied
+ */
+#define LOCAL_OUTPUT_FREE(output, output_copy) \
+    output_copy = NULL; \
+    do { \
+        psa_status_t local_output_status; \
+        local_output_status = psa_crypto_local_output_free(&LOCAL_OUTPUT_COPY_OF_##output); \
+        if (local_output_status != PSA_SUCCESS) { \
+            /* Since this error case is an internal error, it's more serious than \
+             * any existing error code and so it's fine to overwrite the existing \
+             * status. */ \
+            status = local_output_status; \
+        } \
+    } while (0)
+#else /* MBEDTLS_PSA_COPY_CALLER_BUFFERS */
+#define LOCAL_INPUT_DECLARE(input, input_copy_name) \
+    const uint8_t *input_copy_name = NULL;
+#define LOCAL_INPUT_ALLOC(input, length, input_copy) \
+    input_copy = input;
+#define LOCAL_INPUT_FREE(input, input_copy) \
+    input_copy = NULL;
+#define LOCAL_OUTPUT_DECLARE(output, output_copy_name) \
+    uint8_t *output_copy_name = NULL;
+#define LOCAL_OUTPUT_ALLOC(output, length, output_copy) \
+    output_copy = output;
+#define LOCAL_OUTPUT_FREE(output, output_copy) \
+    output_copy = NULL;
+#endif /* MBEDTLS_PSA_COPY_CALLER_BUFFERS */
+
+
 int psa_can_do_hash(psa_algorithm_t hash_alg)
 {
     (void) hash_alg;
@@ -4202,9 +4314,9 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation)
 
 psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
                                 psa_algorithm_t alg,
-                                const uint8_t *input,
+                                const uint8_t *input_external,
                                 size_t input_length,
-                                uint8_t *output,
+                                uint8_t *output_external,
                                 size_t output_size,
                                 size_t *output_length)
 {
@@ -4214,6 +4326,12 @@ psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
     uint8_t local_iv[PSA_CIPHER_IV_MAX_SIZE];
     size_t default_iv_length = 0;
     psa_key_attributes_t attributes;
+
+    LOCAL_INPUT_DECLARE(input_external, input);
+    LOCAL_OUTPUT_DECLARE(output_external, output);
+
+    LOCAL_INPUT_ALLOC(input_external, input_length, input);
+    LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
 
     if (!PSA_ALG_IS_CIPHER(alg)) {
         status = PSA_ERROR_INVALID_ARGUMENT;
@@ -4269,6 +4387,9 @@ exit:
     } else {
         *output_length = 0;
     }
+
+    LOCAL_INPUT_FREE(input_external, input);
+    LOCAL_OUTPUT_FREE(output_external, output);
 
     return status;
 }
@@ -8302,5 +8423,183 @@ psa_status_t psa_pake_abort(
     return status;
 }
 #endif /* PSA_WANT_ALG_SOME_PAKE */
+
+/* Memory copying test hooks. These are called before input copy, after input
+ * copy, before output copy and after output copy, respectively.
+ * They are used by memory-poisoning tests to temporarily unpoison buffers
+ * while they are copied. */
+#if defined(MBEDTLS_TEST_HOOKS)
+void (*psa_input_pre_copy_hook)(const uint8_t *input, size_t input_len) = NULL;
+void (*psa_input_post_copy_hook)(const uint8_t *input, size_t input_len) = NULL;
+void (*psa_output_pre_copy_hook)(const uint8_t *output, size_t output_len) = NULL;
+void (*psa_output_post_copy_hook)(const uint8_t *output, size_t output_len) = NULL;
+#endif
+
+/** Copy from an input buffer to a local copy.
+ *
+ * \param[in] input             Pointer to input buffer.
+ * \param[in] input_len         Length of the input buffer.
+ * \param[out] input_copy       Pointer to a local copy in which to store the input data.
+ * \param[out] input_copy_len   Length of the local copy buffer.
+ * \return                      #PSA_SUCCESS, if the buffer was successfully
+ *                              copied.
+ * \return                      #PSA_ERROR_CORRUPTION_DETECTED, if the local
+ *                              copy is too small to hold contents of the
+ *                              input buffer.
+ */
+MBEDTLS_STATIC_TESTABLE
+psa_status_t psa_crypto_copy_input(const uint8_t *input, size_t input_len,
+                                   uint8_t *input_copy, size_t input_copy_len)
+{
+    if (input_len > input_copy_len) {
+        return PSA_ERROR_CORRUPTION_DETECTED;
+    }
+
+#if defined(MBEDTLS_TEST_HOOKS)
+    if (psa_input_pre_copy_hook != NULL) {
+        psa_input_pre_copy_hook(input, input_len);
+    }
+#endif
+
+    if (input_len > 0) {
+        memcpy(input_copy, input, input_len);
+    }
+
+#if defined(MBEDTLS_TEST_HOOKS)
+    if (psa_input_post_copy_hook != NULL) {
+        psa_input_post_copy_hook(input, input_len);
+    }
+#endif
+
+    return PSA_SUCCESS;
+}
+
+/** Copy from a local output buffer into a user-supplied one.
+ *
+ * \param[in] output_copy       Pointer to a local buffer containing the output.
+ * \param[in] output_copy_len   Length of the local buffer.
+ * \param[out] output           Pointer to user-supplied output buffer.
+ * \param[out] output_len       Length of the user-supplied output buffer.
+ * \return                      #PSA_SUCCESS, if the buffer was successfully
+ *                              copied.
+ * \return                      #PSA_ERROR_BUFFER_TOO_SMALL, if the
+ *                              user-supplied output buffer is too small to
+ *                              hold the contents of the local buffer.
+ */
+MBEDTLS_STATIC_TESTABLE
+psa_status_t psa_crypto_copy_output(const uint8_t *output_copy, size_t output_copy_len,
+                                    uint8_t *output, size_t output_len)
+{
+    if (output_len < output_copy_len) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
+    }
+
+#if defined(MBEDTLS_TEST_HOOKS)
+    if (psa_output_pre_copy_hook != NULL) {
+        psa_output_pre_copy_hook(output, output_len);
+    }
+#endif
+
+    if (output_copy_len > 0) {
+        memcpy(output, output_copy, output_copy_len);
+    }
+
+#if defined(MBEDTLS_TEST_HOOKS)
+    if (psa_output_post_copy_hook != NULL) {
+        psa_output_post_copy_hook(output, output_len);
+    }
+#endif
+
+    return PSA_SUCCESS;
+}
+
+psa_status_t psa_crypto_local_input_alloc(const uint8_t *input, size_t input_len,
+                                          psa_crypto_local_input_t *local_input)
+{
+    psa_status_t status;
+
+    *local_input = PSA_CRYPTO_LOCAL_INPUT_INIT;
+
+    if (input_len == 0) {
+        return PSA_SUCCESS;
+    }
+
+    local_input->buffer = mbedtls_calloc(input_len, 1);
+    if (local_input->buffer == NULL) {
+        /* Since we dealt with the zero-length case above, we know that
+         * a NULL return value means a failure of allocation. */
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+    }
+    /* From now on, we must free local_input->buffer on error. */
+
+    local_input->length = input_len;
+
+    status = psa_crypto_copy_input(input, input_len,
+                                   local_input->buffer, local_input->length);
+    if (status != PSA_SUCCESS) {
+        goto error;
+    }
+
+    return PSA_SUCCESS;
+
+error:
+    mbedtls_free(local_input->buffer);
+    local_input->buffer = NULL;
+    local_input->length = 0;
+    return status;
+}
+
+void psa_crypto_local_input_free(psa_crypto_local_input_t *local_input)
+{
+    mbedtls_free(local_input->buffer);
+    local_input->buffer = NULL;
+    local_input->length = 0;
+}
+
+psa_status_t psa_crypto_local_output_alloc(uint8_t *output, size_t output_len,
+                                           psa_crypto_local_output_t *local_output)
+{
+    *local_output = PSA_CRYPTO_LOCAL_OUTPUT_INIT;
+
+    if (output_len == 0) {
+        return PSA_SUCCESS;
+    }
+    local_output->buffer = mbedtls_calloc(output_len, 1);
+    if (local_output->buffer == NULL) {
+        /* Since we dealt with the zero-length case above, we know that
+         * a NULL return value means a failure of allocation. */
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+    }
+    local_output->length = output_len;
+    local_output->original = output;
+
+    return PSA_SUCCESS;
+}
+
+psa_status_t psa_crypto_local_output_free(psa_crypto_local_output_t *local_output)
+{
+    psa_status_t status;
+
+    if (local_output->buffer == NULL) {
+        local_output->length = 0;
+        return PSA_SUCCESS;
+    }
+    if (local_output->original == NULL) {
+        /* We have an internal copy but nothing to copy back to. */
+        return PSA_ERROR_CORRUPTION_DETECTED;
+    }
+
+    status = psa_crypto_copy_output(local_output->buffer, local_output->length,
+                                    local_output->original, local_output->length);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    mbedtls_free(local_output->buffer);
+    local_output->buffer = NULL;
+    local_output->length = 0;
+
+    return PSA_SUCCESS;
+}
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

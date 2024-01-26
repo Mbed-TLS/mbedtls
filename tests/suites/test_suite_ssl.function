@@ -3668,9 +3668,6 @@ void tls13_early_data(int scenario)
         MBEDTLS_SSL_IANA_TLS_GROUP_NONE
     };
 
-    /*
-     * Test set-up
-     */
     mbedtls_platform_zeroize(&client_ep, sizeof(client_ep));
     mbedtls_platform_zeroize(&server_ep, sizeof(server_ep));
     mbedtls_test_init_handshake_options(&client_options);
@@ -3679,16 +3676,50 @@ void tls13_early_data(int scenario)
 
     PSA_INIT();
 
+    /*
+     * Run first handshake to get a ticket from the server.
+     */
+
     client_options.pk_alg = MBEDTLS_PK_ECDSA;
     client_options.group_list = group_list;
     client_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+    server_options.pk_alg = MBEDTLS_PK_ECDSA;
+    server_options.group_list = group_list;
+    server_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+
+    ret = mbedtls_test_get_tls13_ticket(&client_options, &server_options,
+                                        &saved_session);
+    TEST_EQUAL(ret, 0);
+
+    /*
+     * Prepare for handshake with the ticket.
+     */
+    switch (scenario) {
+        case TEST_EARLY_DATA_REFERENCE:
+            break;
+
+        case TEST_EARLY_DATA_DEPROTECT_AND_DISCARD:
+            mbedtls_debug_set_threshold(3);
+            server_pattern.pattern =
+                "EarlyData: deprotect and discard app data records.";
+            server_options.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
+            break;
+
+        case TEST_EARLY_DATA_DISCARD_AFTER_HRR:
+            mbedtls_debug_set_threshold(3);
+            server_pattern.pattern =
+                "EarlyData: Ignore application message before 2nd ClientHello";
+            server_options.group_list = group_list + 1;
+            break;
+
+        default:
+            TEST_FAIL("Unknown scenario.");
+    }
+
     ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
                                          &client_options, NULL, NULL, NULL);
     TEST_EQUAL(ret, 0);
 
-    server_options.pk_alg = MBEDTLS_PK_ECDSA;
-    server_options.group_list = group_list;
-    server_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
     server_options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
     server_options.srv_log_obj = &server_pattern;
     ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
@@ -3704,69 +3735,12 @@ void tls13_early_data(int scenario)
                                            &(server_ep.socket), 1024);
     TEST_EQUAL(ret, 0);
 
-    /*
-     * Run initial handshake: ephemeral key exchange mode, certificate with
-     * SECP256R1 key, CA certificate with SECP384R1 key, ECDSA signature
-     * algorithm. Then, get the ticket sent by the server at the end of its
-     * handshake sequence.
-     */
-    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
-                   &(server_ep.ssl), &(client_ep.ssl),
-                   MBEDTLS_SSL_HANDSHAKE_OVER), 0);
-
-    do {
-        ret = mbedtls_ssl_read(&(client_ep.ssl), buf, sizeof(buf));
-    } while (ret != MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET);
-
-    /*
-     * Save client session and reset the SSL context of the two endpoints.
-     */
-    ret = mbedtls_ssl_get_session(&(client_ep.ssl), &saved_session);
-    TEST_EQUAL(ret, 0);
-
-    ret = mbedtls_ssl_session_reset(&(client_ep.ssl));
-    TEST_EQUAL(ret, 0);
-
-    ret = mbedtls_ssl_session_reset(&(server_ep.ssl));
-    TEST_EQUAL(ret, 0);
-
-    /*
-     * Set saved session on client side and start handshake using the ticket
-     * included in that session.
-     */
-
     ret = mbedtls_ssl_set_session(&(client_ep.ssl), &saved_session);
     TEST_EQUAL(ret, 0);
 
-    switch (scenario) {
-        case TEST_EARLY_DATA_REFERENCE:
-            break;
-
-        case TEST_EARLY_DATA_DEPROTECT_AND_DISCARD:
-            mbedtls_debug_set_threshold(3);
-            server_pattern.pattern =
-                "EarlyData: deprotect and discard app data records.";
-            mbedtls_ssl_conf_early_data(&server_ep.conf,
-                                        MBEDTLS_SSL_EARLY_DATA_DISABLED);
-            break;
-
-        case TEST_EARLY_DATA_DISCARD_AFTER_HRR:
-            mbedtls_debug_set_threshold(3);
-            server_pattern.pattern =
-                "EarlyData: Ignore application message before 2nd ClientHello";
-            mbedtls_ssl_conf_groups(&server_ep.conf, group_list + 1);
-            /*
-             * Need to reset again to reconstruct the group list in the
-             * handshake structure from the configured one.
-             */
-            ret = mbedtls_ssl_session_reset(&(server_ep.ssl));
-            TEST_EQUAL(ret, 0);
-            break;
-
-        default:
-            TEST_FAIL("Unknown scenario.");
-    }
-
+    /*
+     * Handshake with ticket and send early data.
+     */
     TEST_EQUAL(mbedtls_test_move_handshake_to_state(
                    &(client_ep.ssl), &(server_ep.ssl),
                    MBEDTLS_SSL_SERVER_HELLO), 0);

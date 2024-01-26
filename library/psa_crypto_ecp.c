@@ -24,6 +24,10 @@
 #include <mbedtls/ecp.h>
 #include <mbedtls/error.h>
 
+#if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
+#include <Hacl_Curve25519.h>
+#endif
+
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_IMPORT) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_EXPORT) || \
@@ -543,16 +547,44 @@ psa_status_t mbedtls_psa_key_agreement_ecdh(
     uint8_t *shared_secret, size_t shared_secret_size,
     size_t *shared_secret_length)
 {
-    mbedtls_ecp_keypair *our_key = NULL;
-    mbedtls_ecp_keypair *their_key = NULL;
-    mbedtls_ecp_point secret;
-    mbedtls_ecp_point_init(&secret);
-
     psa_status_t status;
     if (!PSA_KEY_TYPE_IS_ECC_KEY_PAIR(attributes->core.type) ||
         !PSA_ALG_IS_ECDH(alg)) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
+
+    *shared_secret_length = PSA_BITS_TO_BYTES(attributes->core.bits);
+    if (shared_secret_size < *shared_secret_length) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
+    }
+
+#if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
+    /* Temporary for backwards compat: special dispatch for Everest.
+     * Everest should be turned into a regular PSA driver in the future. */
+    if (attributes->core.type == PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_MONTGOMERY) &&
+        attributes->core.bits == 255) {
+
+        /* The core function expects fixed-size buffers.
+         * Validate input sizes (output has been done above). */
+        if (key_buffer_size != 32 || peer_key_length != 32) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+
+        /* The function's declaration is missing const qualifiers,
+         * but the implementation does not write to input buffers,
+         * so casting the const away is safe. */
+        Hacl_Curve25519_crypto_scalarmult(shared_secret,
+                                          (uint8_t *) key_buffer,
+                                          (uint8_t *) peer_key);
+
+        return PSA_SUCCESS;
+    }
+#endif /*MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED */
+
+    mbedtls_ecp_keypair *our_key = NULL;
+    mbedtls_ecp_keypair *their_key = NULL;
+    mbedtls_ecp_point secret;
+    mbedtls_ecp_point_init(&secret);
 
     status = mbedtls_psa_ecp_load_representation(
         attributes->core.type,
@@ -582,11 +614,6 @@ psa_status_t mbedtls_psa_key_agreement_ecdh(
                         mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE));
     if (status != PSA_SUCCESS) {
         goto exit;
-    }
-
-    *shared_secret_length = PSA_BITS_TO_BYTES(bits);
-    if (shared_secret_size < *shared_secret_length) {
-        status = PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
     status = mbedtls_to_psa_error(

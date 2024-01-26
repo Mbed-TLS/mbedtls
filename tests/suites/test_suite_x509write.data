@@ -138,3 +138,6 @@ mbedtls_x509_string_to_names:"ABC123":"":MBEDTLS_ERR_X509_INVALID_NAME
 
 Check max serial length
 x509_set_serial_check:
+
+Check max extension length
+x509_set_extension_length_check:

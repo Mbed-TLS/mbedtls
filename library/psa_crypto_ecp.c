@@ -544,12 +544,17 @@ psa_status_t mbedtls_psa_key_agreement_ecdh(
     uint8_t *shared_secret, size_t shared_secret_size,
     size_t *shared_secret_length)
 {
+    mbedtls_ecp_keypair *our_key = NULL;
+    mbedtls_ecp_keypair *their_key = NULL;
+    mbedtls_ecdh_context ecdh;
+    mbedtls_ecdh_init(&ecdh);
+
     psa_status_t status;
     if (!PSA_KEY_TYPE_IS_ECC_KEY_PAIR(attributes->core.type) ||
         !PSA_ALG_IS_ECDH(alg)) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
-    mbedtls_ecp_keypair *our_key = NULL;
+
     status = mbedtls_psa_ecp_load_representation(
         attributes->core.type,
         attributes->core.bits,
@@ -559,11 +564,9 @@ psa_status_t mbedtls_psa_key_agreement_ecdh(
     if (status != PSA_SUCCESS) {
         return status;
     }
-    mbedtls_ecp_keypair *their_key = NULL;
-    mbedtls_ecdh_context ecdh;
+
     size_t bits = 0;
     psa_ecc_family_t curve = mbedtls_ecc_group_to_psa(our_key->grp.id, &bits);
-    mbedtls_ecdh_init(&ecdh);
 
     status = mbedtls_psa_ecp_load_representation(
         PSA_KEY_TYPE_ECC_PUBLIC_KEY(curve),

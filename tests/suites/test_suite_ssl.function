@@ -4110,7 +4110,6 @@ void tls13_write_early_data(int scenario)
     mbedtls_test_handshake_test_options client_options;
     mbedtls_test_handshake_test_options server_options;
     mbedtls_ssl_session saved_session;
-
     int client_state, previous_client_state;
     const char *early_data_string = "This is early data.";
     const unsigned char *early_data = (const unsigned char *) early_data_string;
@@ -4147,6 +4146,10 @@ void tls13_write_early_data(int scenario)
 
         case TEST_EARLY_DATA_NO_INDICATION_SENT:
             client_options.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
+            break;
+
+        case TEST_EARLY_DATA_SERVER_REJECTS:
+            server_options.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
             break;
 
         default:
@@ -4213,7 +4216,8 @@ void tls13_write_early_data(int scenario)
         switch (client_state) {
             case MBEDTLS_SSL_CLIENT_HELLO:
                 switch (scenario) {
-                    case TEST_EARLY_DATA_ACCEPTED:
+                    case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_SERVER_REJECTS:
                         TEST_EQUAL(write_early_data_ret, early_data_len);
                         TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
                         break;
@@ -4222,7 +4226,8 @@ void tls13_write_early_data(int scenario)
 
             case MBEDTLS_SSL_SERVER_HELLO:
                 switch (scenario) {
-                    case TEST_EARLY_DATA_ACCEPTED:
+                    case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_SERVER_REJECTS:
                         TEST_EQUAL(write_early_data_ret, early_data_len);
                         TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
                         break;
@@ -4231,7 +4236,8 @@ void tls13_write_early_data(int scenario)
 
             case MBEDTLS_SSL_ENCRYPTED_EXTENSIONS:
                 switch (scenario) {
-                    case TEST_EARLY_DATA_ACCEPTED:
+                    case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_SERVER_REJECTS:
                         TEST_EQUAL(write_early_data_ret, early_data_len);
                         TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS);
                         break;
@@ -4242,6 +4248,11 @@ void tls13_write_early_data(int scenario)
                 switch (scenario) {
                     case TEST_EARLY_DATA_ACCEPTED:
                         TEST_EQUAL(write_early_data_ret, early_data_len);
+                        TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_FINISHED);
+                        break;
+
+                    case TEST_EARLY_DATA_SERVER_REJECTS:
+                        TEST_EQUAL(write_early_data_ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
                         TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_FINISHED);
                         break;
                 }
@@ -4256,13 +4267,23 @@ void tls13_write_early_data(int scenario)
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
             case MBEDTLS_SSL_CLIENT_CCS_AFTER_CLIENT_HELLO:
                 switch (scenario) {
-                    case TEST_EARLY_DATA_ACCEPTED:
+                    case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_SERVER_REJECTS:
                         TEST_EQUAL(write_early_data_ret, early_data_len);
                         TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
                         break;
                 }
                 break;
 
+            case MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED:
+                TEST_ASSERT(scenario != TEST_EARLY_DATA_ACCEPTED);
+                switch (scenario) {
+                    case TEST_EARLY_DATA_SERVER_REJECTS:
+                        TEST_EQUAL(write_early_data_ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
+                        TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED);
+                        break;
+                }
+                break;
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
             case MBEDTLS_SSL_CLIENT_CERTIFICATE: /* Intentional fallthrough */
@@ -4271,7 +4292,8 @@ void tls13_write_early_data(int scenario)
             case MBEDTLS_SSL_HANDSHAKE_WRAPUP: /* Intentional fallthrough */
             case MBEDTLS_SSL_HANDSHAKE_OVER:
                 switch (scenario) {
-                    case TEST_EARLY_DATA_ACCEPTED:
+                    case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
+                    case TEST_EARLY_DATA_SERVER_REJECTS:
                         TEST_EQUAL(write_early_data_ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
                         TEST_EQUAL(client_ep.ssl.state, client_state);
                         break;

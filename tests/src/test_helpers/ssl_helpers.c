@@ -2455,4 +2455,60 @@ int mbedtls_test_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
     return mbedtls_ssl_session_load(session, buf, len);
 }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
+#if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SRV_C) && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+int mbedtls_test_get_tls13_ticket(
+    mbedtls_test_handshake_test_options *client_options,
+    mbedtls_test_handshake_test_options *server_options,
+    mbedtls_ssl_session *session)
+{
+    int ret = -1;
+    unsigned char buf[64];
+    mbedtls_test_ssl_endpoint client_ep, server_ep;
+
+    mbedtls_platform_zeroize(&client_ep, sizeof(client_ep));
+    mbedtls_platform_zeroize(&server_ep, sizeof(server_ep));
+
+    ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
+                                         client_options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
+    ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
+                                         server_options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
+    mbedtls_ssl_conf_session_tickets_cb(&server_ep.conf,
+                                        mbedtls_test_ticket_write,
+                                        mbedtls_test_ticket_parse,
+                                        NULL);
+
+    ret = mbedtls_test_mock_socket_connect(&(client_ep.socket),
+                                           &(server_ep.socket), 1024);
+    TEST_EQUAL(ret, 0);
+
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   &(server_ep.ssl), &(client_ep.ssl),
+                   MBEDTLS_SSL_HANDSHAKE_OVER), 0);
+
+    TEST_EQUAL(server_ep.ssl.handshake->new_session_tickets_count, 0);
+
+    do {
+        ret = mbedtls_ssl_read(&(client_ep.ssl), buf, sizeof(buf));
+    } while (ret != MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET);
+
+    ret = mbedtls_ssl_get_session(&(client_ep.ssl), session);
+    TEST_EQUAL(ret, 0);
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
+
+    return ret;
+}
+#endif /* MBEDTLS_SSL_CLI_C && MBEDTLS_SSL_SRV_C &&
+          MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS &&
+          MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
+
 #endif /* MBEDTLS_SSL_TLS_C */

@@ -600,6 +600,17 @@ int mbedtls_test_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
                               unsigned char *buf, size_t len);
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
+#if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SRV_C) && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+int mbedtls_test_get_tls13_ticket(
+    mbedtls_test_handshake_test_options *client_options,
+    mbedtls_test_handshake_test_options *server_options,
+    mbedtls_ssl_session *session);
+#endif /* MBEDTLS_SSL_CLI_C && MBEDTLS_SSL_SRV_C &&
+          MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS &&
+          MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
+
 #define ECJPAKE_TEST_PWD        "bla"
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

@@ -3572,15 +3572,11 @@ exit:
 void tls13_resume_session_with_ticket()
 {
     int ret = -1;
-    unsigned char buf[64];
     mbedtls_test_ssl_endpoint client_ep, server_ep;
     mbedtls_test_handshake_test_options client_options;
     mbedtls_test_handshake_test_options server_options;
     mbedtls_ssl_session saved_session;
 
-    /*
-     * Test set-up
-     */
     mbedtls_platform_zeroize(&client_ep, sizeof(client_ep));
     mbedtls_platform_zeroize(&server_ep, sizeof(server_ep));
     mbedtls_test_init_handshake_options(&client_options);
@@ -3589,14 +3585,27 @@ void tls13_resume_session_with_ticket()
 
     PSA_INIT();
 
+    /*
+     * Run first handshake to get a ticket from the server.
+     */
     client_options.pk_alg = MBEDTLS_PK_ECDSA;
+    server_options.pk_alg = MBEDTLS_PK_ECDSA;
+
+    ret = mbedtls_test_get_tls13_ticket(&client_options, &server_options,
+                                        &saved_session);
+    TEST_EQUAL(ret, 0);
+
+    /*
+     * Prepare for handshake with the ticket.
+     */
     ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
                                          &client_options, NULL, NULL, NULL);
     TEST_EQUAL(ret, 0);
 
-    server_options.pk_alg = MBEDTLS_PK_ECDSA;
     ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
                                          &server_options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
     mbedtls_ssl_conf_session_tickets_cb(&server_ep.conf,
                                         mbedtls_test_ticket_write,
                                         mbedtls_test_ticket_parse,
@@ -3607,41 +3616,12 @@ void tls13_resume_session_with_ticket()
                                            &(server_ep.socket), 1024);
     TEST_EQUAL(ret, 0);
 
-    /*
-     * Run initial handshake: ephemeral key exchange mode, certificate with
-     * SECP256R1 key, CA certificate with SECP384R1 key, ECDSA signature
-     * algorithm. Then, get the ticket sent by the server at the end of its
-     * handshake sequence.
-     */
-    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
-                   &(server_ep.ssl), &(client_ep.ssl),
-                   MBEDTLS_SSL_HANDSHAKE_OVER), 0);
-
-    do {
-        ret = mbedtls_ssl_read(&(client_ep.ssl), buf, sizeof(buf));
-    } while (ret != MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET);
-
-    /*
-     * Save client session and reset the SSL context of the two endpoints.
-     */
-    ret = mbedtls_ssl_get_session(&(client_ep.ssl), &saved_session);
-    TEST_EQUAL(ret, 0);
-
-    ret = mbedtls_ssl_session_reset(&(client_ep.ssl));
-    TEST_EQUAL(ret, 0);
-
-    ret = mbedtls_ssl_session_reset(&(server_ep.ssl));
-    TEST_EQUAL(ret, 0);
-
-    /*
-     * Set saved session on client side and handshake using the ticket
-     * included in that session.
-     */
-
     ret = mbedtls_ssl_set_session(&(client_ep.ssl), &saved_session);
     TEST_EQUAL(ret, 0);
 
     /*
+     * Handshake with ticket.
+     *
      * Run the handshake up to MBEDTLS_SSL_HANDSHAKE_WRAPUP and not
      * MBEDTLS_SSL_HANDSHAKE_OVER to preserve handshake data for the checks
      * below.

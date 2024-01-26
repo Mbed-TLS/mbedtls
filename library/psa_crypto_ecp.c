@@ -549,20 +549,20 @@ psa_status_t mbedtls_psa_key_agreement_ecdh(
         !PSA_ALG_IS_ECDH(alg)) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
-    mbedtls_ecp_keypair *ecp = NULL;
+    mbedtls_ecp_keypair *our_key = NULL;
     status = mbedtls_psa_ecp_load_representation(
         attributes->core.type,
         attributes->core.bits,
         key_buffer,
         key_buffer_size,
-        &ecp);
+        &our_key);
     if (status != PSA_SUCCESS) {
         return status;
     }
     mbedtls_ecp_keypair *their_key = NULL;
     mbedtls_ecdh_context ecdh;
     size_t bits = 0;
-    psa_ecc_family_t curve = mbedtls_ecc_group_to_psa(ecp->grp.id, &bits);
+    psa_ecc_family_t curve = mbedtls_ecc_group_to_psa(our_key->grp.id, &bits);
     mbedtls_ecdh_init(&ecdh);
 
     status = mbedtls_psa_ecp_load_representation(
@@ -581,7 +581,7 @@ psa_status_t mbedtls_psa_key_agreement_ecdh(
         goto exit;
     }
     status = mbedtls_to_psa_error(
-        mbedtls_ecdh_get_params(&ecdh, ecp, MBEDTLS_ECDH_OURS));
+        mbedtls_ecdh_get_params(&ecdh, our_key, MBEDTLS_ECDH_OURS));
     if (status != PSA_SUCCESS) {
         goto exit;
     }
@@ -605,8 +605,8 @@ exit:
     mbedtls_ecdh_free(&ecdh);
     mbedtls_ecp_keypair_free(their_key);
     mbedtls_free(their_key);
-    mbedtls_ecp_keypair_free(ecp);
-    mbedtls_free(ecp);
+    mbedtls_ecp_keypair_free(our_key);
+    mbedtls_free(our_key);
     return status;
 }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDH */

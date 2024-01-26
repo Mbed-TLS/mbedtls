@@ -10,6 +10,12 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
+/* This header is only needed because it defines
+ * MBEDTLS_DHM_RFC7919_FFDHExxxx_[P|G]_BIN symbols that are used in
+ * mbedtls_psa_ffdh_set_prime_generator(). A part from that, this module
+ * only uses bignum functions for arithmetic. */
+#include <mbedtls/dhm.h>
+
 #include <psa/crypto.h>
 #include "psa_crypto_core.h"
 #include "psa_crypto_ffdh.h"

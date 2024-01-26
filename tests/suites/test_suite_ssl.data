@@ -3297,3 +3297,6 @@ tls13_cli_early_data_status:TEST_EARLY_DATA_HRR
 
 TLS 1.3 write early data, early data accepted
 tls13_write_early_data:TEST_EARLY_DATA_ACCEPTED
+
+TLS 1.3 write early data, no early data indication
+tls13_write_early_data:TEST_EARLY_DATA_NO_INDICATION_SENT

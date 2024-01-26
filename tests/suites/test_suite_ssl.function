@@ -4145,6 +4145,10 @@ void tls13_write_early_data(int scenario)
         case TEST_EARLY_DATA_ACCEPTED:
             break;
 
+        case TEST_EARLY_DATA_NO_INDICATION_SENT:
+            client_options.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
+            break;
+
         default:
             TEST_FAIL("Unknown scenario.");
     }
@@ -4200,6 +4204,11 @@ void tls13_write_early_data(int scenario)
         write_early_data_ret = mbedtls_ssl_write_early_data(&(client_ep.ssl),
                                                             early_data,
                                                             early_data_len);
+
+        if (scenario == TEST_EARLY_DATA_NO_INDICATION_SENT) {
+            TEST_EQUAL(write_early_data_ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
+            TEST_EQUAL(client_ep.ssl.state, client_state);
+        }
 
         switch (client_state) {
             case MBEDTLS_SSL_CLIENT_HELLO:

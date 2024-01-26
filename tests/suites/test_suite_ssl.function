@@ -3701,20 +3701,20 @@ void tls13_early_data(int scenario)
 
     client_options.pk_alg = MBEDTLS_PK_ECDSA;
     client_options.group_list = group_list;
+    client_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
     ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
                                          &client_options, NULL, NULL, NULL);
     TEST_EQUAL(ret, 0);
-    mbedtls_ssl_conf_early_data(&client_ep.conf, MBEDTLS_SSL_EARLY_DATA_ENABLED);
 
     server_options.pk_alg = MBEDTLS_PK_ECDSA;
     server_options.group_list = group_list;
+    server_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
     server_options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
     server_options.srv_log_obj = &server_pattern;
     ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
                                          &server_options, NULL, NULL, NULL);
     TEST_EQUAL(ret, 0);
 
-    mbedtls_ssl_conf_early_data(&server_ep.conf, MBEDTLS_SSL_EARLY_DATA_ENABLED);
     mbedtls_ssl_conf_session_tickets_cb(&server_ep.conf,
                                         mbedtls_test_ticket_write,
                                         mbedtls_test_ticket_parse,

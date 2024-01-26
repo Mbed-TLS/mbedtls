@@ -67,6 +67,7 @@ void mbedtls_test_init_handshake_options(
     opts->expected_srv_fragments = 1;
     opts->legacy_renegotiation = MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION;
     opts->resize_buffers = 1;
+    opts->early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
 #if defined(MBEDTLS_SSL_CACHE_C)
     TEST_CALLOC(opts->cache, 1);
     mbedtls_ssl_cache_init(opts->cache);
@@ -811,6 +812,10 @@ int mbedtls_test_ssl_endpoint_init(
     }
 
     mbedtls_ssl_conf_authmode(&(ep->conf), MBEDTLS_SSL_VERIFY_REQUIRED);
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    mbedtls_ssl_conf_early_data(&(ep->conf), options->early_data);
+#endif
 
 #if defined(MBEDTLS_SSL_CACHE_C) && defined(MBEDTLS_SSL_SRV_C)
     if (endpoint_type == MBEDTLS_SSL_IS_SERVER && options->cache != NULL) {

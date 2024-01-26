@@ -50,6 +50,7 @@ void mbedtls_test_init_handshake_options(
     rng_seed += 0xD0;
 #endif
     opts->cipher = "";
+    opts->group_list = NULL;
     opts->client_min_version = MBEDTLS_SSL_VERSION_UNKNOWN;
     opts->client_max_version = MBEDTLS_SSL_VERSION_UNKNOWN;
     opts->server_min_version = MBEDTLS_SSL_VERSION_UNKNOWN;
@@ -733,8 +734,7 @@ int mbedtls_test_ssl_endpoint_init(
     mbedtls_test_handshake_test_options *options,
     mbedtls_test_message_socket_context *dtls_context,
     mbedtls_test_ssl_message_queue *input_queue,
-    mbedtls_test_ssl_message_queue *output_queue,
-    uint16_t *group_list)
+    mbedtls_test_ssl_message_queue *output_queue)
 {
     int ret = -1;
     uintptr_t user_data_n;
@@ -818,8 +818,8 @@ int mbedtls_test_ssl_endpoint_init(
         }
     }
 
-    if (group_list != NULL) {
-        mbedtls_ssl_conf_groups(&(ep->conf), group_list);
+    if (options->group_list != NULL) {
+        mbedtls_ssl_conf_groups(&(ep->conf), options->group_list);
     }
 
     mbedtls_ssl_conf_authmode(&(ep->conf), MBEDTLS_SSL_VERIFY_REQUIRED);
@@ -2006,7 +2006,7 @@ void mbedtls_test_ssl_perform_handshake(
                                                    MBEDTLS_SSL_IS_CLIENT,
                                                    options, &client_context,
                                                    &client_queue,
-                                                   &server_queue, NULL) == 0);
+                                                   &server_queue) == 0);
 #if defined(MBEDTLS_TIMING_C)
         mbedtls_ssl_set_timer_cb(&client.ssl, &timer_client,
                                  mbedtls_timing_set_delay,
@@ -2016,7 +2016,7 @@ void mbedtls_test_ssl_perform_handshake(
         TEST_ASSERT(mbedtls_test_ssl_endpoint_init(&client,
                                                    MBEDTLS_SSL_IS_CLIENT,
                                                    options, NULL, NULL,
-                                                   NULL, NULL) == 0);
+                                                   NULL) == 0);
     }
 
     if (strlen(options->cipher) > 0) {
@@ -2029,7 +2029,7 @@ void mbedtls_test_ssl_perform_handshake(
                                                    MBEDTLS_SSL_IS_SERVER,
                                                    options, &server_context,
                                                    &server_queue,
-                                                   &client_queue, NULL) == 0);
+                                                   &client_queue) == 0);
 #if defined(MBEDTLS_TIMING_C)
         mbedtls_ssl_set_timer_cb(&server.ssl, &timer_server,
                                  mbedtls_timing_set_delay,
@@ -2038,7 +2038,7 @@ void mbedtls_test_ssl_perform_handshake(
     } else {
         TEST_ASSERT(mbedtls_test_ssl_endpoint_init(&server,
                                                    MBEDTLS_SSL_IS_SERVER,
-                                                   options, NULL, NULL, NULL,
+                                                   options, NULL, NULL,
                                                    NULL) == 0);
     }
 

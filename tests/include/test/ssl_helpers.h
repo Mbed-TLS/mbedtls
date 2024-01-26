@@ -85,6 +85,7 @@ typedef struct mbedtls_test_ssl_log_pattern {
 
 typedef struct mbedtls_test_handshake_test_options {
     const char *cipher;
+    uint16_t *group_list;
     mbedtls_ssl_protocol_version client_min_version;
     mbedtls_ssl_protocol_version client_max_version;
     mbedtls_ssl_protocol_version server_min_version;
@@ -440,8 +441,7 @@ int mbedtls_test_ssl_endpoint_init(
     mbedtls_test_handshake_test_options *options,
     mbedtls_test_message_socket_context *dtls_context,
     mbedtls_test_ssl_message_queue *input_queue,
-    mbedtls_test_ssl_message_queue *output_queue,
-    uint16_t *group_list);
+    mbedtls_test_ssl_message_queue *output_queue);
 
 /*
  * Deinitializes endpoint represented by \p ep.

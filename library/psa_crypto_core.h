@@ -20,6 +20,9 @@
 
 #include "psa/crypto.h"
 #include "psa/crypto_se_driver.h"
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#endif
 
 /**
  * Tell if PSA is ready for this hash.
@@ -110,6 +113,49 @@ typedef struct {
         size_t bytes;
     } key;
 } psa_key_slot_t;
+
+#if defined(MBEDTLS_THREADING_C)
+
+/** Perform a mutex operation and return immediately upon failure.
+ *
+ * Returns PSA_ERROR_SERVICE_FAILURE if the operation fails
+ * and status was PSA_SUCCESS.
+ *
+ * Assumptions:
+ *  psa_status_t status exists.
+ *  f is a mutex operation which returns 0 upon success.
+ */
+#define PSA_THREADING_CHK_RET(f)                       \
+    do                                                 \
+    {                                                  \
+        if ((f) != 0) {                                \
+            if (status == PSA_SUCCESS) {               \
+                return PSA_ERROR_SERVICE_FAILURE;      \
+            }                                          \
+            return status;                             \
+        }                                              \
+    } while (0);
+
+/** Perform a mutex operation and goto exit on failure.
+ *
+ * Sets status to PSA_ERROR_SERVICE_FAILURE if status was PSA_SUCCESS.
+ *
+ * Assumptions:
+ *  psa_status_t status exists.
+ *  Label exit: exists.
+ *  f is a mutex operation which returns 0 upon success.
+ */
+#define PSA_THREADING_CHK_GOTO_EXIT(f)                 \
+    do                                                 \
+    {                                                  \
+        if ((f) != 0) {                                \
+            if (status == PSA_SUCCESS) {               \
+                status = PSA_ERROR_SERVICE_FAILURE;    \
+            }                                          \
+            goto exit;                                 \
+        }                                              \
+    } while (0);
+#endif
 
 /* A mask of key attribute flags used only internally.
  * Currently there aren't any. */

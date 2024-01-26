@@ -118,7 +118,9 @@ HMAC by enabling and accelerating:
 In such a build it is possible to disable legacy HMAC support by disabling
 `MBEDTLS_MD_C` and still getting crypto operations, X.509 and TLS to work as
 usual. Exceptions are:
-- [Hashes](#hashes) are obviously valid here for the accelerated algorithms.
+- As mentioned in [Hashes](#hashes) direct calls to legacy lo-level hash APIs
+  (`mbedtls_sha256()` etc.) will not be possible for the legacy modules that
+  are disabled.
 - Legacy HMAC support (`mbedtls_md_hmac_xxx()`) won't be possible.
 - `MBEDTLS_PKCS[5|7]_C`, `MBEDTLS_HMAC_DRBG_C` and `MBEDTLS_HKDF_C` since they
   depend on the legacy implementation of HMAC.

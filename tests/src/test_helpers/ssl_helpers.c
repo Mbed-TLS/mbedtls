@@ -49,37 +49,25 @@ void mbedtls_test_init_handshake_options(
     srand(rng_seed);
     rng_seed += 0xD0;
 #endif
+
+    memset(opts, 0, sizeof(*opts));
+
     opts->cipher = "";
-    opts->group_list = NULL;
     opts->client_min_version = MBEDTLS_SSL_VERSION_UNKNOWN;
     opts->client_max_version = MBEDTLS_SSL_VERSION_UNKNOWN;
     opts->server_min_version = MBEDTLS_SSL_VERSION_UNKNOWN;
     opts->server_max_version = MBEDTLS_SSL_VERSION_UNKNOWN;
     opts->expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_3;
-    opts->expected_handshake_result = 0;
-    opts->expected_ciphersuite = 0;
     opts->pk_alg = MBEDTLS_PK_RSA;
-    opts->opaque_alg = 0;
-    opts->opaque_alg2 = 0;
-    opts->opaque_usage = 0;
-    opts->psk_str = NULL;
-    opts->dtls = 0;
     opts->srv_auth_mode = MBEDTLS_SSL_VERIFY_NONE;
-    opts->serialize = 0;
     opts->mfl = MBEDTLS_SSL_MAX_FRAG_LEN_NONE;
     opts->cli_msg_len = 100;
     opts->srv_msg_len = 100;
     opts->expected_cli_fragments = 1;
     opts->expected_srv_fragments = 1;
-    opts->renegotiate = 0;
     opts->legacy_renegotiation = MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION;
-    opts->srv_log_obj = NULL;
-    opts->cli_log_obj = NULL;
-    opts->srv_log_fun = NULL;
-    opts->cli_log_fun = NULL;
     opts->resize_buffers = 1;
 #if defined(MBEDTLS_SSL_CACHE_C)
-    opts->cache = NULL;
     TEST_CALLOC(opts->cache, 1);
     mbedtls_ssl_cache_init(opts->cache);
 #if defined(MBEDTLS_HAVE_TIME)

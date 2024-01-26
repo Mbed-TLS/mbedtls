@@ -21,7 +21,6 @@
 #include "mbedtls/platform.h"
 
 #include <mbedtls/ecdsa.h>
-#include <mbedtls/ecdh.h>
 #include <mbedtls/ecp.h>
 #include <mbedtls/error.h>
 
@@ -546,8 +545,8 @@ psa_status_t mbedtls_psa_key_agreement_ecdh(
 {
     mbedtls_ecp_keypair *our_key = NULL;
     mbedtls_ecp_keypair *their_key = NULL;
-    mbedtls_ecdh_context ecdh;
-    mbedtls_ecdh_init(&ecdh);
+    mbedtls_ecp_point secret;
+    mbedtls_ecp_point_init(&secret);
 
     psa_status_t status;
     if (!PSA_KEY_TYPE_IS_ECC_KEY_PAIR(attributes->core.type) ||
@@ -579,33 +578,27 @@ psa_status_t mbedtls_psa_key_agreement_ecdh(
     }
 
     status = mbedtls_to_psa_error(
-        mbedtls_ecdh_get_params(&ecdh, their_key, MBEDTLS_ECDH_THEIRS));
-    if (status != PSA_SUCCESS) {
-        goto exit;
-    }
-    status = mbedtls_to_psa_error(
-        mbedtls_ecdh_get_params(&ecdh, our_key, MBEDTLS_ECDH_OURS));
+        mbedtls_ecp_mul(&our_key->grp, &secret, &our_key->d, &their_key->Q,
+                        mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE));
     if (status != PSA_SUCCESS) {
         goto exit;
     }
 
+    *shared_secret_length = PSA_BITS_TO_BYTES(bits);
+    if (shared_secret_size < *shared_secret_length) {
+        status = PSA_ERROR_BUFFER_TOO_SMALL;
+    }
+
     status = mbedtls_to_psa_error(
-        mbedtls_ecdh_calc_secret(&ecdh,
-                                 shared_secret_length,
-                                 shared_secret, shared_secret_size,
-                                 mbedtls_psa_get_random,
-                                 MBEDTLS_PSA_RANDOM_STATE));
-    if (status != PSA_SUCCESS) {
-        goto exit;
-    }
-    if (PSA_BITS_TO_BYTES(bits) != *shared_secret_length) {
-        status = PSA_ERROR_CORRUPTION_DETECTED;
-    }
+        mbedtls_ecp_get_type(&our_key->grp) == MBEDTLS_ECP_TYPE_MONTGOMERY ?
+        mbedtls_mpi_write_binary_le(&secret.X, shared_secret, *shared_secret_length) :
+        mbedtls_mpi_write_binary(&secret.X, shared_secret, *shared_secret_length));
+
 exit:
     if (status != PSA_SUCCESS) {
         mbedtls_platform_zeroize(shared_secret, shared_secret_size);
     }
-    mbedtls_ecdh_free(&ecdh);
+    mbedtls_ecp_point_free(&secret);
     mbedtls_ecp_keypair_free(their_key);
     mbedtls_free(their_key);
     mbedtls_ecp_keypair_free(our_key);

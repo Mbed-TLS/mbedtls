@@ -130,104 +130,6 @@ pre_check_environment () {
     fi
 }
 
-pre_define_component_groups () {
-
-    # group00: (very) short list, for testing
-    #group00=(check_test_dependencies)
-    group00=(check_test_dependencies check_files check_names check_test_helpers)
-    group00+=(build_module_alt check_doxy_blocks check_recursion build_tfm)
-
-    # Groups created by running components individually and sorting by time taken.
-    # Some quick components may be missing, as not all components could be run on the system used.
-
-    # group01: 44 components, 291 secs
-    group01=(check_doxy_blocks check_recursion build_dhm_alt check_test_dependencies)
-    group01+=(build_module_alt check_test_helpers build_arm_none_eabi_gcc_arm5vte build_arm_none_eabi_gcc_m0plus)
-    group01+=(check_test_cases build_arm_none_eabi_gcc build_arm_none_eabi_gcc_no_64bit_multiplication)
-    group01+=(build_no_sockets build_arm_none_eabi_gcc_no_udbl_division build_psa_crypto_spm)
-    group01+=(build_psa_alt_headers check_names build_sha_armce build_zeroize_checks build_tfm)
-    group01+=(test_aesni_m32_clang build_no_pk_rsa_alt_support check_doxygen_warnings)
-    group01+=(check_files build_arm_clang_thumb build_crypto_baremetal build_crypto_full)
-    group01+=(build_arm_linux_gnueabi_gcc_arm5vte build_no_ssl_cli build_crypto_default)
-    group01+=(build_psa_config_file build_baremetal build_no_ssl_srv test_ccm_aes_sha256)
-    group01+=(build_mbedtls_config_file build_aes_variations test_cmake_as_subdirectory)
-    group01+=(test_aesni_m32 test_cmake_as_package_install test_cmake_as_package check_changelog)
-    group01+=(build_mingw build_no_std_function build_psa_accel_alg_sha512 build_psa_accel_key_type_rsa_public_key)
-
-    # group02: 19 components, 293 secs
-    group02=(build_psa_accel_alg_rsa_oaep build_psa_accel_alg_rsa_pss build_psa_accel_alg_sha224)
-    group02+=(build_psa_accel_alg_rsa_pkcs1v15_sign build_psa_accel_alg_md5 build_psa_accel_alg_hkdf)
-    group02+=(build_psa_accel_alg_ripemd160 build_psa_accel_alg_rsa_pkcs1v15_crypt test_full_no_cipher_no_psa_crypto)
-    group02+=(build_psa_accel_alg_sha1 build_psa_accel_key_type_rsa_key_pair build_psa_accel_alg_ecdh)
-    group02+=(build_psa_accel_alg_hmac build_psa_accel_alg_sha256 build_psa_accel_alg_sha384)
-    group02+=(check_generated_files check_python_files test_aesni build_aes_via_padlock)
-
-    # group03: 10 components, 294 secs
-    group03=(test_crypto_for_psa_service test_aes_only_128_bit_keys test_default_out_of_box)
-    group03+=(test_aes_fewer_tables_and_rom_tables test_aes_only_128_bit_keys_have_builtins)
-    group03+=(test_aes_fewer_tables build_cmake_custom_config_file test_default_no_deprecated)
-    group03+=(test_aes_rom_tables test_cmake_out_of_source)
-
-    # group04: 6 components, 283 secs
-    group04=(test_have_int64 test_full_no_cipher_with_psa_crypto test_full_block_cipher_legacy_dispatch)
-    group04+=(test_full_no_cipher_with_psa_crypto_config test_everest_curve25519_only)
-    group04+=(check_code_style)
-
-    # group05: 4 components, 285 secs
-    group05=(test_full_no_ccm_star_no_tag test_cmake_shared test_full_no_bignum test_full_deprecated_warning)
-
-    # group06: 3 components, 237 secs
-    group06=(test_full_no_deprecated test_crypto_full_md_light_only test_full_no_deprecated_deprecated_warning)
-
-    # Only these groups are offered by --list-components and --list-all-components
-    groups=(group01 group02 group03 group04 group05 group06)
-
-    VALID_GROUPS=""     # String version of the list of groups used for validation of command line
-    for group in "${groups[@]}"
-    do
-        VALID_GROUPS="$VALID_GROUPS $group"
-    done
-    VALID_GROUPS="$VALID_GROUPS group00"       # XXX for local testing temporarily
-}
-
-output_components_and_groups () {
-
-    components_str="$@"
-    components=($components_str)        # convert to an array
-
-    for group in "${groups[@]}"
-    do
-        # look at the components in each group
-        ref="$group[@]"
-        for component in "${!ref}"
-        do
-            # Remove this component - to do this, we need to check each element,
-            # since something like all=( "${all[@]/$c}" ) removes matching prefixes,
-            # and as some components are prefixes of others, this doesn't work for us.
-            for i in "${!components[@]}"; do
-                if [[ ${components[i]} = $component ]]; then
-                    unset 'components[i]'
-                fi
-            done
-        done
-    done
-
-    # Output the groups and the remaining components
-    COMPONENTS_AND_GROUPS=""
-    for group in "${groups[@]}"
-    do
-        COMPONENTS_AND_GROUPS="$COMPONENTS_AND_GROUPS $group"
-    done
-    for component in "${components[@]}"
-    do
-        if [[ -n "$component" ]]; then
-            COMPONENTS_AND_GROUPS="$COMPONENTS_AND_GROUPS $component"
-        fi
-    done
-
-    printf '%s\n' $COMPONENTS_AND_GROUPS
-}
-
 pre_initialize_variables () {
     if in_mbedtls_repo; then
         CONFIG_H='include/mbedtls/mbedtls_config.h'
@@ -315,7 +217,7 @@ pre_initialize_variables () {
 }
 
 # Test whether the component $1 is included in the command line patterns.
-is_component_listed_on_command_line()
+is_component_included()
 {
     # Temporarily disable wildcard expansion so that $COMMAND_LINE_COMPONENTS
     # only does word splitting.
@@ -326,29 +228,6 @@ is_component_listed_on_command_line()
     done
     set +f
     return 1
-}
-
-# Expand any groups given on the command line. Updates COMMAND_LINE_COMPONENTS.
-expand_command_line_groups()
-{
-    # Temporarily disable wildcard expansion so that $COMMAND_LINE_COMPONENTS
-    # only does word splitting.
-    set -f
-    UPDATED=""
-    for word in $COMMAND_LINE_COMPONENTS; do
-        case $word in
-            group??) ref="$word[@]"
-                    for component in "${!ref}"
-                    do
-                        UPDATED="$UPDATED $component"
-                    done ;;
-
-            *)      UPDATED="$UPDATED $word";;
-        esac
-    done
-    set +f
-    COMMAND_LINE_COMPONENTS="$UPDATED"
-    unset UPDATED
 }
 
 usage()
@@ -548,7 +427,6 @@ pre_parse_command_line () {
     COMMAND_LINE_COMPONENTS=
     all_except=0
     error_test=0
-    list_all_components=0
     list_components=0
     restore_first=0
     no_armcc=
@@ -577,7 +455,7 @@ pre_parse_command_line () {
             --gnutls-serv) shift; GNUTLS_SERV="$1";;
             --help|-h) usage; exit;;
             --keep-going|-k) KEEP_GOING=1;;
-            --list-all-components) output_components_and_groups $ALL_COMPONENTS; exit;;
+            --list-all-components) printf '%s\n' $ALL_COMPONENTS; exit;;
             --list-components) list_components=1;;
             --memory|-m) MEMORY=1;;
             --no-append-outcome) append_outcome=0;;
@@ -616,7 +494,7 @@ pre_parse_command_line () {
     done
 
     if [ $list_components -eq 1 ]; then
-        output_components_and_groups $SUPPORTED_COMPONENTS
+        printf '%s\n' $SUPPORTED_COMPONENTS
         exit
     fi
 
@@ -644,9 +522,6 @@ pre_parse_command_line () {
             case $component in
                 *[*?\[]*) continue;;
             esac
-            case " $VALID_GROUPS " in
-                *" $component "*) continue;;
-            esac
             case " $SUPPORTED_COMPONENTS " in
                 *" $component "*) :;;
                 *)
@@ -660,12 +535,10 @@ pre_parse_command_line () {
         fi
     fi
 
-    expand_command_line_groups
-
     # Build the list of components to run.
     RUN_COMPONENTS=
     for component in $SUPPORTED_COMPONENTS; do
-        if is_component_listed_on_command_line "$component"; [ $? -eq $all_except ]; then
+        if is_component_included "$component"; [ $? -eq $all_except ]; then
             RUN_COMPONENTS="$RUN_COMPONENTS $component"
         fi
     done
@@ -6476,8 +6349,6 @@ run_component () {
 }
 
 # Preliminary setup
-pre_define_component_groups
-
 pre_check_environment
 pre_initialize_variables
 pre_parse_command_line "$@"

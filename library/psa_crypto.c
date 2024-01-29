@@ -1072,6 +1072,10 @@ psa_status_t psa_destroy_key(mbedtls_svc_key_id_t key)
     }
 
 #if defined(MBEDTLS_THREADING_C)
+    /* We cannot unlock between setting the state to PENDING_DELETION
+     * and destroying the key in storage, as otherwise another thread
+     * could load the key into a new slot and the key will not be
+     * fully destroyed. */
     PSA_THREADING_CHK_GOTO_EXIT(mbedtls_mutex_lock(
                                     &mbedtls_threading_key_slot_mutex));
 #endif

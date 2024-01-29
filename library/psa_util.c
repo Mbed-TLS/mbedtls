@@ -494,7 +494,7 @@ static int convert_der_to_raw_single_int(unsigned char *der, size_t der_len,
     }
 
     /* Skip possible leading zero */
-    if (*p == 0x00) {
+    if ((*p == 0x00) && (unpadded_len > 0)) {
         p++;
         unpadded_len--;
         /* It should never happen that the input number is all zeros. */
@@ -503,9 +503,13 @@ static int convert_der_to_raw_single_int(unsigned char *der, size_t der_len,
         }
     }
 
-    if (unpadded_len < coordinate_size) {
+    if (unpadded_len > coordinate_size) {
+        /* Parsed number is longer than the maximum expected value. */
+        return MBEDTLS_ERR_ASN1_INVALID_DATA;
+    } else {
         padding_len = coordinate_size - unpadded_len;
-        memset(raw, 0x00, padding_len);
+        /* raw buffer was already zeroed in mbedtls_ecdsa_der_to_raw() so
+         * zero-padding operation is skipped here. */
     }
     memcpy(raw + padding_len, p, unpadded_len);
     p += unpadded_len;

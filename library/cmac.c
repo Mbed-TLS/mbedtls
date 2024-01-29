@@ -178,7 +178,9 @@ int mbedtls_cipher_cmac_starts(mbedtls_cipher_context_t *ctx,
 
     switch (type) {
         case MBEDTLS_CIPHER_AES_128_ECB:
+#if defined(MBEDTLS_ARIA_C)		
         case MBEDTLS_CIPHER_ARIA_128_ECB:
+#endif
         case MBEDTLS_CIPHER_AES_192_ECB:
         case MBEDTLS_CIPHER_AES_256_ECB:
         case MBEDTLS_CIPHER_DES_EDE3_ECB:

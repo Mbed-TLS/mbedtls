@@ -460,7 +460,6 @@ int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
  * \param raw               Output buffer that will be filled with the
  *                          converted data. This should be at least
  *                          coordinate_size bytes.
- * \param raw_len           Size (in bytes) of the output raw buffer.
  * \param coordinate_size   Size (in bytes) of a single coordinate in raw
  *                          format.
  *
@@ -475,16 +474,11 @@ int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
  * \warning                 Der and raw buffers must not be overlapping.
  */
 static int convert_der_to_raw_single_int(unsigned char *der, size_t der_len,
-                                         unsigned char *raw, size_t raw_len,
-                                         size_t coordinate_size)
+                                         unsigned char *raw, size_t coordinate_size)
 {
     unsigned char *p = der;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t unpadded_len, padding_len = 0;
-
-    if (raw_len < coordinate_size) {
-        return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
-    }
 
     /* Get the length of ASN.1 element (i.e. the integer we need to parse). */
     ret = mbedtls_asn1_get_tag(&p, p + der_len, &unpadded_len,
@@ -543,8 +537,7 @@ int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
     memset(raw_tmp, 0, sizeof(raw_tmp));
 
     /* Extract r */
-    ret = convert_der_to_raw_single_int(p, data_len, raw_tmp, sizeof(raw_tmp),
-                                        coordinate_size);
+    ret = convert_der_to_raw_single_int(p, data_len, raw_tmp, coordinate_size);
     if (ret < 0) {
         return ret;
     }
@@ -553,7 +546,6 @@ int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
 
     /* Extract s */
     ret = convert_der_to_raw_single_int(p, data_len, raw_tmp + coordinate_size,
-                                        sizeof(raw_tmp) - coordinate_size,
                                         coordinate_size);
     if (ret < 0) {
         return ret;

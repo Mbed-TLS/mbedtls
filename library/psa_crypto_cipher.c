@@ -402,7 +402,11 @@ psa_status_t mbedtls_psa_cipher_update(
                                        output_length);
     } else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING */
-    {
+    if (input_length == 0) {
+        /* There is no input, nothing to be done */
+        *output_length = 0;
+        status = PSA_SUCCESS;
+    } else {
         status = mbedtls_to_psa_error(
             mbedtls_cipher_update(&operation->ctx.cipher, input,
                                   input_length, output, output_length));

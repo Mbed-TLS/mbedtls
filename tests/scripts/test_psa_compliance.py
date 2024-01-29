@@ -30,7 +30,12 @@ from mbedtls_dev import build_tree
 EXPECTED_FAILURES = {
     # psa_hash_suspend() and psa_hash_resume() are not supported.
     # - Tracked in issue #3274
-    262, 263
+    262, 263,
+    # PSA standard format for RSA public keys is a sequence of just n (modulus)
+    # and e (public exponent). However following tests rely on a format which
+    # also includes some metadata to identify the key as an RSA key, but this
+    # is not compliant with PSA standard.
+    239, 240, 241, 242, 250, 251,
 }
 
 # We currently use a fork of ARM-software/psa-arch-tests, with a couple of downstream patches

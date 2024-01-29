@@ -517,8 +517,10 @@ int mbedtls_aria_crypt_cbc(mbedtls_aria_context *ctx,
                            unsigned char *output)
 {
     unsigned char temp[MBEDTLS_ARIA_BLOCKSIZE];
-    ARIA_VALIDATE_RET(mode == MBEDTLS_ARIA_ENCRYPT ||
-                      mode == MBEDTLS_ARIA_DECRYPT);
+
+    if ((mode != MBEDTLS_ARIA_ENCRYPT) && (mode != MBEDTLS_ARIA_DECRYPT)) {
+        return MBEDTLS_ERR_ARIA_BAD_INPUT_DATA;
+    }
 
     if (length % MBEDTLS_ARIA_BLOCKSIZE) {
         return MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH;
@@ -568,8 +570,10 @@ int mbedtls_aria_crypt_cfb128(mbedtls_aria_context *ctx,
 {
     unsigned char c;
     size_t n;
-    ARIA_VALIDATE_RET(mode == MBEDTLS_ARIA_ENCRYPT ||
-                      mode == MBEDTLS_ARIA_DECRYPT);
+
+    if ((mode != MBEDTLS_ARIA_ENCRYPT) && (mode != MBEDTLS_ARIA_DECRYPT)) {
+        return MBEDTLS_ERR_ARIA_BAD_INPUT_DATA;
+    }
 
     n = *iv_off;
 
@@ -624,9 +628,6 @@ int mbedtls_aria_crypt_ctr(mbedtls_aria_context *ctx,
 {
     int c, i;
     size_t n;
-
-    ARIA_VALIDATE_RET(length == 0 || input  != NULL);
-    ARIA_VALIDATE_RET(length == 0 || output != NULL);
 
     n = *nc_off;
     /* An overly large value of n can lead to an unlimited

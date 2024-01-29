@@ -26,6 +26,30 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_PSA_UTIL_HAVE_ECDSA */
+void ecdsa_raw_to_der_incremental(int key_bits, data_t *input, data_t *exp_result)
+{
+    unsigned char *tmp_buf = NULL;
+    size_t tmp_buf_len = exp_result->len;
+    size_t ret_len;
+    size_t i;
+
+    TEST_CALLOC(tmp_buf, tmp_buf_len);
+
+    for (i = 0; i < tmp_buf_len; i++) {
+        TEST_ASSERT(mbedtls_ecdsa_raw_to_der(input->x, input->len,
+                                             tmp_buf, i, &ret_len,
+                                             key_bits) != 0);
+    }
+    TEST_EQUAL(mbedtls_ecdsa_raw_to_der(input->x, input->len,
+                                        tmp_buf, i, &ret_len,
+                                        key_bits), 0);
+
+exit:
+    mbedtls_free(tmp_buf);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_UTIL_HAVE_ECDSA */
 void ecdsa_der_to_raw(int key_bits, data_t *input, data_t *exp_result, int exp_ret)
 {
     unsigned char *tmp_buf = NULL;

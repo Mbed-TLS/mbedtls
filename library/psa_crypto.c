@@ -230,6 +230,8 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
     uint8_t *output_copy_name = NULL;
 #define LOCAL_OUTPUT_ALLOC(output, length, output_copy) \
     output_copy = output;
+#define LOCAL_OUTPUT_ALLOC_WITH_COPY(output, length, output_copy) \
+    output_copy = output;
 #define LOCAL_OUTPUT_FREE(output, output_copy) \
     output_copy = NULL;
 #endif /* MBEDTLS_PSA_COPY_CALLER_BUFFERS */

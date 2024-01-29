@@ -606,7 +606,6 @@ int mbedtls_mpi_write_string(const mbedtls_mpi *X, int radix,
     size_t n;
     char *p;
     mbedtls_mpi T;
-    MPI_VALIDATE_RET(buflen == 0 || buf != NULL);
 
     if (radix < 2 || radix > 16) {
         return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
@@ -809,7 +808,6 @@ int mbedtls_mpi_read_binary(mbedtls_mpi *X, const unsigned char *buf, size_t buf
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const size_t limbs = CHARS_TO_LIMBS(buflen);
-    MPI_VALIDATE_RET(buflen == 0 || buf != NULL);
 
     /* Ensure that target MPI has exactly the necessary number of limbs */
     MBEDTLS_MPI_CHK(mbedtls_mpi_resize_clear(X, limbs));

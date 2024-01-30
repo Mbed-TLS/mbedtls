@@ -2631,7 +2631,9 @@ psa_status_t psa_mac_update(psa_mac_operation_t *operation,
         psa_mac_abort(operation);
     }
 
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
 exit:
+#endif
     LOCAL_INPUT_FREE(input_external, input);
 
     return status;
@@ -2813,7 +2815,10 @@ psa_status_t psa_mac_compute(mbedtls_svc_key_id_t key,
     status = psa_mac_compute_internal(key, alg,
                                     input, input_length,
                                     mac, mac_size, mac_length, 1);
+
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
 exit:
+#endif
     LOCAL_INPUT_FREE(input_external, input);
     LOCAL_OUTPUT_FREE(mac_external, mac);
 

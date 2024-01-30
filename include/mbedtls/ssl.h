@@ -4793,7 +4793,7 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                 defined in RFC 8446 (TLS 1.3 specification), has been
  *                 received as part of the handshake. This is server specific.
  *                 You must call mbedtls_ssl_read_early_data() to read the
- *                 early data before to resume the handshake.
+ *                 early data before resuming the handshake.
  * \return         Another SSL error code - in this case you must stop using
  *                 the context (see below).
  *
@@ -4947,7 +4947,7 @@ int mbedtls_ssl_renegotiate(mbedtls_ssl_context *ssl);
  *                 received as part of an handshake triggered by the function.
  *                 This is server specific. You must call
  *                 mbedtls_ssl_read_early_data() to read the early data before
- *                 to resume the reading of post handshake application data.
+ *                 resuming the reading of post handshake application data.
  * \return         Another SSL error code - in this case you must stop using
  *                 the context (see below).
  *
@@ -5028,7 +5028,7 @@ int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len);
  *                 received as part of an handshake triggered by the function.
  *                 This is server specific. You must call
  *                 mbedtls_ssl_read_early_data() to read the early data before
- *                 to resume the writing of application data.
+ *                 resuming the writing of application data.
  * \return         Another SSL error code - in this case you must stop using
  *                 the context (see below).
  *

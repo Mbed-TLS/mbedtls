@@ -3022,7 +3022,9 @@ psa_status_t psa_sign_message(mbedtls_svc_key_id_t key,
     status = psa_sign_internal(key, 1, alg, input, input_length, signature,
                                signature_size, signature_length);
 
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
 exit:
+#endif
     LOCAL_INPUT_FREE(input_external, input);
     LOCAL_OUTPUT_FREE(signature_external, signature);
     return status;
@@ -3078,7 +3080,9 @@ psa_status_t psa_verify_message(mbedtls_svc_key_id_t key,
     status = psa_verify_internal(key, 1, alg, input, input_length, signature,
                                  signature_length);
 
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
 exit:
+#endif
     LOCAL_INPUT_FREE(input_external, input);
     LOCAL_INPUT_FREE(signature_external, signature);
 
@@ -3150,7 +3154,9 @@ psa_status_t psa_sign_hash(mbedtls_svc_key_id_t key,
     status = psa_sign_internal(key, 0, alg, hash, hash_length, signature,
                                signature_size, signature_length);
 
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
 exit:
+#endif
     LOCAL_INPUT_FREE(hash_external, hash);
     LOCAL_OUTPUT_FREE(signature_external, signature);
 
@@ -3220,7 +3226,9 @@ psa_status_t psa_verify_hash(mbedtls_svc_key_id_t key,
     status = psa_verify_internal(key, 0, alg, hash, hash_length, signature,
                                  signature_length);
 
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
 exit:
+#endif
     LOCAL_INPUT_FREE(hash_external, hash);
     LOCAL_INPUT_FREE(signature_external, signature);
 

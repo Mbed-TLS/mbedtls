@@ -6,6 +6,7 @@
 #include "mbedtls/asn1.h"
 #include "mbedtls/base64.h"
 #include "mbedtls/ecp.h"
+#include "mbedtls/error.h"
 #include "mbedtls/rsa.h"
 #include "pk_internal.h"
 
@@ -201,10 +202,8 @@ static mbedtls_ecp_group_id ecc_pick_grp_id(void)
 static int pk_setup_for_type(mbedtls_pk_type_t pk_type, int want_pair,
                              mbedtls_pk_context *pk, psa_key_type_t *psa_type)
 {
-    int ok = 0;
-
     if (pk_type == MBEDTLS_PK_NONE) {
-        return 1;
+        return 0;
     }
     TEST_EQUAL(mbedtls_pk_setup(pk, mbedtls_pk_info_from_type(pk_type)), 0);
 
@@ -278,10 +277,10 @@ static int pk_setup_for_type(mbedtls_pk_type_t pk_type, int want_pair,
     if (!want_pair) {
         *psa_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(*psa_type);
     }
-    ok = 1;
+    return 0;
 
 exit:
-    return ok;
+    return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
 }
 #endif
 
@@ -1714,9 +1713,8 @@ void pk_get_psa_attributes(int pk_type, int from_pair,
     PSA_INIT();
 
     psa_key_type_t expected_psa_type = 0;
-    if (!pk_setup_for_type(pk_type, from_pair, &pk, &expected_psa_type)) {
-        goto exit;
-    }
+    TEST_EQUAL(pk_setup_for_type(pk_type, from_pair,
+                                 &pk, &expected_psa_type), 0);
     if (!to_pair) {
         expected_psa_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(expected_psa_type);
     }
@@ -1789,9 +1787,8 @@ void pk_rsa_v21_get_psa_attributes(int md_type, int from_pair,
     PSA_INIT();
 
     psa_key_type_t expected_psa_type = 0;
-    if (!pk_setup_for_type(MBEDTLS_PK_RSA, from_pair, &pk, &expected_psa_type)) {
-        goto exit;
-    }
+    TEST_EQUAL(pk_setup_for_type(MBEDTLS_PK_RSA, from_pair,
+                                 &pk, &expected_psa_type), 0);
     mbedtls_rsa_context *rsa = mbedtls_pk_rsa(pk);
     TEST_EQUAL(mbedtls_rsa_set_padding(rsa, MBEDTLS_RSA_PKCS_V21, md_type), 0);
     if (!to_pair) {
@@ -1850,9 +1847,8 @@ void pk_get_psa_attributes_fail(int pk_type, int from_pair,
     PSA_INIT();
 
     psa_key_type_t expected_psa_type;
-    if (!pk_setup_for_type(pk_type, from_pair, &pk, &expected_psa_type)) {
-        goto exit;
-    }
+    TEST_EQUAL(pk_setup_for_type(pk_type, from_pair,
+                                 &pk, &expected_psa_type), 0);
 
     TEST_EQUAL(mbedtls_pk_get_psa_attributes(&pk, usage, &attributes),
                expected_ret);

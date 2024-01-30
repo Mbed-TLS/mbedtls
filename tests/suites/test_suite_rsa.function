@@ -1430,6 +1430,56 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void rsa_key_write_incremental(int is_public, data_t *input)
+{
+    mbedtls_rsa_context rsa_ctx;
+    unsigned char *buf = NULL, *start, *end;
+    size_t i;
+
+    mbedtls_rsa_init(&rsa_ctx);
+
+    /* This is supposed to succeed as the real target of this test are the
+     * write attempt below. */
+    if (is_public) {
+        start = input->x;
+        end = input->x + input->len;
+        TEST_EQUAL(mbedtls_rsa_pubkey_parse(&rsa_ctx, &start, end), 0);
+    } else {
+        TEST_EQUAL(mbedtls_rsa_key_parse(&rsa_ctx, input->x, input->len), 0);
+    }
+
+    for (i = 1; i < input->len; i++) {
+        TEST_CALLOC(buf, i);
+        end = buf + i;
+        /* We don't care much about the return value as long as it fails. */
+        if (is_public) {
+            TEST_ASSERT(mbedtls_rsa_pubkey_write(&rsa_ctx, buf, &end) != 0);
+        } else {
+            TEST_ASSERT(mbedtls_rsa_key_write(&rsa_ctx, buf, &end) != 0);
+        }
+        mbedtls_free(buf);
+        buf = NULL;
+    }
+
+    /* Ensure with the correct output buffer size everything works as expected. */
+    TEST_CALLOC(buf, i);
+    end = buf + i;
+
+    if (is_public) {
+        TEST_ASSERT(mbedtls_rsa_pubkey_write(&rsa_ctx, buf, &end) != 0);
+    } else {
+        TEST_ASSERT(mbedtls_rsa_key_write(&rsa_ctx, buf, &end) > 0);
+    }
+
+exit:
+    if (buf != NULL) {
+        mbedtls_free(buf);
+    }
+    mbedtls_rsa_free(&rsa_ctx);
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void rsa_selftest()
 {

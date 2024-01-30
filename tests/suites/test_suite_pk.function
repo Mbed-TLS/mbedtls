@@ -127,7 +127,7 @@ static int pk_genkey(mbedtls_pk_context *pk, int curve_or_keybits)
                                        &mbedtls_pk_ec_rw(*pk)->d,
                                        &mbedtls_pk_ec_rw(*pk)->Q,
                                        mbedtls_test_rnd_std_rand, NULL);
-#endif /* MBEDTLS_ECP_C && !MBEDTLS_PK_USE_PSA_EC_DATA */
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
     }
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */

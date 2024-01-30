@@ -459,7 +459,8 @@ int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
  * \param der_len           Length of the der buffer in bytes.
  * \param raw               Output buffer that will be filled with the
  *                          converted data. This should be at least
- *                          coordinate_size bytes.
+ *                          coordinate_size bytes and it must be zeroed before
+ *                          calling this function.
  * \param coordinate_size   Size (in bytes) of a single coordinate in raw
  *                          format.
  *
@@ -500,11 +501,10 @@ static int convert_der_to_raw_single_int(unsigned char *der, size_t der_len,
     if (unpadded_len > coordinate_size) {
         /* Parsed number is longer than the maximum expected value. */
         return MBEDTLS_ERR_ASN1_INVALID_DATA;
-    } else {
-        padding_len = coordinate_size - unpadded_len;
-        /* raw buffer was already zeroed in mbedtls_ecdsa_der_to_raw() so
-         * zero-padding operation is skipped here. */
     }
+    padding_len = coordinate_size - unpadded_len;
+    /* raw buffer was already zeroed by the calling function so zero-padding
+     * operation is skipped here. */
     memcpy(raw + padding_len, p, unpadded_len);
     p += unpadded_len;
 

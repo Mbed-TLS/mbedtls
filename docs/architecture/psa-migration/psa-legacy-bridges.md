@@ -113,7 +113,23 @@ The legacy API does not have a unified interface for key derivation. It has an H
 
 ### Random generation gap analysis
 
-[TODO]
+#### Random generation interfaces
+
+Most applications using the legacy crypto API instantiate an entropy context and a DRBG context (either CTR\_DRBG or HMAC\_DRBG) to obtain random byte strings and to pass a random generator (`f_rng, p_rng`) to functions that require one.
+
+PSA has its own random generation internally. By default, it is based on the same configuration of entropy sources as the legacy API. As a consequence, typical applications to not need to take any explicit steps to transition to PSA.
+
+Applications that transition to PSA may wish to take advantage of its random generator even if they call functions that expect a random generator with the legacy `f_rng, p_rng` interface. This is already implemented through `mbedtls_psa_get_random()`.
+
+The legacy API allows applications to provide their own implementation of the RNG interface. Such a feature was deliberately not included in the PSA API due to the low use in our target space and high cost in implementation complexity and risk of misconfiguration.
+
+#### Entropy sources
+
+As of Mbed TLS 3.6, the PSA subsystem uses the same entropy sources as the legacy module (unless explicitly configured otherwise). As a consequence, there is no transition to help with regarding entropy sources.
+
+#### Deterministic random generation
+
+The legacy API includes interfaces for two deterministic random generator families: CTR\_DRBG and HMAC\_DRBG. There is no corresponding PSA interface. (One is under discussion as of early 2024, but it will not be finalized until well after Mbed TLS 3.6 is released.) As a consequence, there is no transition to help with regarding DRBG interfaces.
 
 ### Asymmetric cryptography gap analysis
 
@@ -234,7 +250,7 @@ Based on the [gap analysis](#key-derivation-gap-analysis): nothing to do.
 
 ### Random generation APIs
 
-[TODO]
+Based on the [gap analysis](#random-generation-gap-analysis): nothing to do.
 
 ### Asymmetric cryptography APIs
 

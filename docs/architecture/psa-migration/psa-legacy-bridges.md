@@ -109,7 +109,7 @@ MAC do not have any nontrivial format for keys or outputs, so there is no need f
 
 ### Key derivation gap analysis
 
-[TODO]
+The legacy API does not have a unified interface for key derivation. It has an HKDF interface, an interface for PBKDF2 (`mbedtls_pkcs5_pbkdf2_hmac`), and an interface for the long-deprecated PKCS#12 password-based key derivation (`mbedtls_pkcs12_derivation`). Thus there is no interface gap to fill, apart from hash mechanism identification which is covered under [hash analysis](#hash-gap-analysis).
 
 ### Random generation gap analysis
 
@@ -230,7 +230,7 @@ Based on the [gap analysis](#mac-gap-analysis): nothing to do.
 
 ### Key derivation APIs
 
-[TODO]
+Based on the [gap analysis](#key-derivation-gap-analysis): nothing to do.
 
 ### Random generation APIs
 

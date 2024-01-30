@@ -1195,10 +1195,10 @@ int mbedtls_ssl_tls13_write_client_hello_exts(mbedtls_ssl_context *ssl,
          * `accepted` if the EncryptedExtension message contain an early data
          * indication extension.
          */
-        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED;
+        ssl->early_data_state.cli = MBEDTLS_SSL_CLI_EARLY_DATA_STATE_REJECTED;
     } else {
         MBEDTLS_SSL_DEBUG_MSG(2, ("<= skip write early_data extension"));
-        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT;
+        ssl->early_data_state.cli = MBEDTLS_SSL_CLI_EARLY_DATA_STATE_NOT_SENT;
     }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
@@ -1235,7 +1235,7 @@ int mbedtls_ssl_tls13_finalize_client_hello(mbedtls_ssl_context *ssl)
     size_t psk_len;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 
-    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED) {
+    if (ssl->early_data_state.cli == MBEDTLS_SSL_CLI_EARLY_DATA_STATE_REJECTED) {
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("Set hs psk for early data when writing the first psk"));
 
@@ -1916,7 +1916,7 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
      * cases we compute it here.
      */
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT ||
+    if (ssl->early_data_state.cli == MBEDTLS_SSL_CLI_EARLY_DATA_STATE_NOT_SENT ||
         handshake->key_exchange_mode ==
         MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL)
 #endif
@@ -2228,7 +2228,7 @@ static int ssl_tls13_process_encrypted_extensions(mbedtls_ssl_context *ssl)
             return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
         }
 
-        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
+        ssl->early_data_state.cli = MBEDTLS_SSL_CLI_EARLY_DATA_STATE_ACCEPTED;
     }
 #endif
 
@@ -2565,9 +2565,9 @@ static int ssl_tls13_process_server_finished(mbedtls_ssl_context *ssl)
     }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
+    if (ssl->early_data_state.cli == MBEDTLS_SSL_CLI_EARLY_DATA_STATE_ACCEPTED) {
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_END_OF_EARLY_DATA);
-    } else if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED) {
+    } else if (ssl->early_data_state.cli == MBEDTLS_SSL_CLI_EARLY_DATA_STATE_REJECTED) {
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
     } else
 #endif /* MBEDTLS_SSL_EARLY_DATA */

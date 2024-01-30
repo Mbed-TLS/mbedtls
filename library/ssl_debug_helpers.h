@@ -49,6 +49,11 @@ void mbedtls_ssl_print_ticket_flags(const mbedtls_ssl_context *ssl,
                                     unsigned int flags);
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+const char *mbedtls_ssl_cli_early_data_state_str(enum mbedtls_ssl_cli_early_data_state in);
+const char *mbedtls_ssl_srv_early_data_state_str(enum mbedtls_ssl_srv_early_data_state in);
+#endif
+
 #define MBEDTLS_SSL_PRINT_EXTS(level, hs_msg_type, extensions_mask)            \
     mbedtls_ssl_print_extensions(ssl, level, __FILE__, __LINE__,       \
                                  hs_msg_type, extensions_mask, NULL)

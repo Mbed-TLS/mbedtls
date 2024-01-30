@@ -5888,8 +5888,10 @@ int mbedtls_ssl_read_early_data(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA;
     }
 
-    if ((ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN) &&
-        (ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED)) {
+    if ((ssl->early_data_state.srv !=
+         MBEDTLS_SSL_SRV_EARLY_DATA_STATE_WAITING_CH) &&
+        (ssl->early_data_state.srv !=
+         MBEDTLS_SSL_SRV_EARLY_DATA_STATE_ACCEPTING)) {
         return MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA;
     }
 

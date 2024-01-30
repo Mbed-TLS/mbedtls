@@ -144,6 +144,26 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mpi_zero_length_buffer_is_null()
+{
+    mbedtls_mpi X;
+    size_t olen;
+
+    mbedtls_mpi_init(&X);
+
+    /* Simply test that the following functions do not crash when a NULL buffer
+     * pointer and 0 length is passed. We don't care much about the return value. */
+    TEST_EQUAL(mbedtls_mpi_read_binary(&X, NULL, 0), 0);
+    TEST_EQUAL(mbedtls_mpi_read_binary_le(&X, NULL, 0), 0);
+    TEST_EQUAL(mbedtls_mpi_write_string(&X, 16, NULL, 0, &olen), MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL);
+    TEST_EQUAL(mbedtls_mpi_write_binary(&X, NULL, 0), 0);
+
+exit:
+    mbedtls_mpi_free(&X);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mpi_read_binary(data_t *buf, char *input_A)
 {
     mbedtls_mpi X;

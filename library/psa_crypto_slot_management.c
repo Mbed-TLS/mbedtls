@@ -527,26 +527,29 @@ psa_status_t psa_open_key(mbedtls_svc_key_id_t key, psa_key_handle_t *handle)
 
 psa_status_t psa_close_key(psa_key_handle_t handle)
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
 
     if (psa_key_handle_is_null(handle)) {
         return PSA_SUCCESS;
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
     status = psa_get_and_lock_key_slot_in_memory(handle, &slot);
     if (status != PSA_SUCCESS) {
         if (status == PSA_ERROR_DOES_NOT_EXIST) {
             status = PSA_ERROR_INVALID_HANDLE;
         }
-
+#if defined(MBEDTLS_THREADING_C)
+        PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                                  &mbedtls_threading_key_slot_mutex));
+#endif
         return status;
     }
 
-#if defined(MBEDTLS_THREADING_C)
-    PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
-                              &mbedtls_threading_key_slot_mutex));
-#endif
     if (slot->registered_readers == 1) {
         status = psa_wipe_key_slot(slot);
     } else {
@@ -562,18 +565,22 @@ psa_status_t psa_close_key(psa_key_handle_t handle)
 
 psa_status_t psa_purge_key(mbedtls_svc_key_id_t key)
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
-
-    status = psa_get_and_lock_key_slot_in_memory(key, &slot);
-    if (status != PSA_SUCCESS) {
-        return status;
-    }
 
 #if defined(MBEDTLS_THREADING_C)
     PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
                               &mbedtls_threading_key_slot_mutex));
 #endif
+    status = psa_get_and_lock_key_slot_in_memory(key, &slot);
+    if (status != PSA_SUCCESS) {
+#if defined(MBEDTLS_THREADING_C)
+        PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                                  &mbedtls_threading_key_slot_mutex));
+#endif
+        return status;
+    }
+
     if ((!PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) &&
         (slot->registered_readers == 1)) {
         status = psa_wipe_key_slot(slot);

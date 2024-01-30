@@ -248,11 +248,6 @@ static psa_status_t psa_load_persistent_key_into_slot(psa_key_slot_t *slot)
         data = (psa_se_key_data_storage_t *) key_data;
         status = psa_copy_key_material_into_slot(
             slot, data->slot_number, sizeof(data->slot_number));
-
-        if (status == PSA_SUCCESS) {
-            status = psa_key_slot_state_transition(slot, PSA_SLOT_FILLING,
-                                                   PSA_SLOT_FULL);
-        }
         goto exit;
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
@@ -261,9 +256,6 @@ static psa_status_t psa_load_persistent_key_into_slot(psa_key_slot_t *slot)
     if (status != PSA_SUCCESS) {
         goto exit;
     }
-
-    status = psa_key_slot_state_transition(slot, PSA_SLOT_FILLING,
-                                           PSA_SLOT_FULL);
 
 exit:
     psa_free_persistent_key_data(key_data, key_data_length);
@@ -337,9 +329,6 @@ static psa_status_t psa_load_builtin_key_into_slot(psa_key_slot_t *slot)
     /* Copy actual key length and core attributes into the slot on success */
     slot->key.bytes = key_buffer_length;
     slot->attr = attributes.core;
-
-    status = psa_key_slot_state_transition(slot, PSA_SLOT_FILLING,
-                                           PSA_SLOT_FULL);
 exit:
     if (status != PSA_SUCCESS) {
         psa_remove_key_data_from_memory(slot);

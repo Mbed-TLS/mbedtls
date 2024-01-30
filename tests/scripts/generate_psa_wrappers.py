@@ -154,6 +154,9 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
                              'psa_sign_hash',
                              'psa_verify_hash'):
             return True
+        if function_name in ('psa_asymmetric_encrypt',
+                             'pas_asymmetric_decrypt'):
+            return True
         return False
 
     def _write_function_call(self, out: typing_util.Writable,

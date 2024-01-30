@@ -2453,16 +2453,16 @@ component_test_no_psa_crypto_full_cmake_asan() {
     # Note: ssl-opt.sh has some test cases that depend on
     # MBEDTLS_ECP_RESTARTABLE && !MBEDTLS_USE_PSA_CRYPTO
     # This is the only component where those tests are not skipped.
-    msg "test: ssl-opt.sh (full minus MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: ssl-opt.sh (full minus PSA crypto)"
     tests/ssl-opt.sh
 
-    msg "test: compat.sh default (full minus MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: compat.sh default (full minus PSA crypto)"
     tests/compat.sh
 
-    msg "test: compat.sh NULL (full minus MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: compat.sh NULL (full minus PSA crypto)"
     tests/compat.sh -f 'NULL'
 
-    msg "test: compat.sh ARIA + ChachaPoly (full minus MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: compat.sh ARIA + ChachaPoly (full minus PSA crypto)"
     env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 

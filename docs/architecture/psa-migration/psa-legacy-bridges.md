@@ -105,7 +105,37 @@ MAC do not have any nontrivial format for keys or outputs, so there is no need f
 
 ### Cipher and AEAD gap analysis
 
-[TODO]
+Ciphers involve no nontrivial data format, just raw byte strings and concatenation. Therefore the only gap is with metadata, namely specifying a cipher key type or a cipher mechanism.
+
+The following types of metadata appear in cipher interfaces:
+
+* Direction: encrypt or decrypt. This appears in the legacy API via the enum `{MBEDTLS_ENCRYPT, MBEDTLS_DECRYPT}`, while the PSA API has two distinct functions where relevant. Given that there are only two values, a helper API would likely add more complexity than it solves.
+* Mechanism (MAC, unauthenticated cipher, authenticated cipher, key derivation, etc.) built generically as a mode on a block permutation.
+* Unauthenticated cipher key type or mechanism.
+* Authenticated cipher key type or mechanism.
+
+#### Cipher metadata gap analysis
+
+The legacy API has two ways to encode cipher mechanisms:
+
+* As a single identifier `mbedtls_cipher_type_t`, describing a precise combination of base, mode and key size.
+* As a combination of base (`mbedtls_cipher_id_t`) and mode (`mbedtls_cipher_mode_t` sometimes with padding `mbedtls_cipher_padding_t`).
+
+The PSA API encodes cipher mechanisms as the combination of an algorithm (`psa_algorithm_t`) and a key type (`psa_key_type_t`).
+
+It seems natural to provide ways to convert between legacy and PSA encodings of cipher mechanisms. This would be similar to what we do for hashes and for asymmetric mechanisms. However:
+
+* There is no explicit request from someone missing this in real application code. (This alone is a weak indicator because we expect that most potential users of such an interface haven't started looking for it yet.)
+* We do not seem to need this much in our own code. TLS has its own conversion, limited to the subset of mechanisms that it uses.
+* The [“Symmetric encryption” section of the transition guide](../../psa-transition.md#symmetric-encryption) does not demonstrate the need for applications to write complex code to bridge the gap, the way it does with asymmetric crytography in Mbed TLS 3.5. However, there is arguably an omission there, since the transition guide does not show how to translate metadata.
+
+[OPEN] Do we need conversion functions between encodings of cipher mechanisms?
+
+#### Cipher operation gap analysis
+
+Applications transitioning to the PSA API may wish to take advantage of PSA accelerated ciphers or opaque keys, while still constrained to provide the legacy `cipher.h` interface.
+
+Mbed TLS 3.5 offers `mbedtls_cipher_setup_psa()` for this transition.
 
 ### Key derivation gap analysis
 

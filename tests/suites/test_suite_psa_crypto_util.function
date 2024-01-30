@@ -33,17 +33,19 @@ void ecdsa_raw_to_der_incremental(int key_bits, data_t *input, data_t *exp_resul
     size_t ret_len;
     size_t i;
 
-    TEST_CALLOC(tmp_buf, tmp_buf_len);
-
-    for (i = 0; i < tmp_buf_len; i++) {
+    for (i = 1; i < tmp_buf_len; i++) {
+        TEST_CALLOC(tmp_buf, i);
         TEST_ASSERT(mbedtls_ecdsa_raw_to_der(input->x, input->len,
                                              tmp_buf, i, &ret_len,
                                              key_bits) != 0);
+        mbedtls_free(tmp_buf);
+        tmp_buf = NULL;
     }
+
+    TEST_CALLOC(tmp_buf, i);
     TEST_EQUAL(mbedtls_ecdsa_raw_to_der(input->x, input->len,
                                         tmp_buf, i, &ret_len,
                                         key_bits), 0);
-
 exit:
     mbedtls_free(tmp_buf);
 }

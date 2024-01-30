@@ -92,11 +92,12 @@
 #define MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA            -0x7B80
 /**
  * Early data has been received as part of an on-going handshake.
- * This error code can be returned only on server side. This error code can be
- * returned by mbedtls_ssl_handshake(), mbedtls_ssl_handshake_step(),
- * mbedtls_ssl_read() and mbedtls_ssl_write() if early data has been received
- * as part of the handshake sequence they triggered. To read the early
- * data, call mbedtls_ssl_read_early_data().
+ * This error code can be returned only on server side if and only if early
+ * data has been enabled by means of the mbedtls_ssl_conf_early_data() API.
+ * This error code can then be returned by mbedtls_ssl_handshake(),
+ * mbedtls_ssl_handshake_step(), mbedtls_ssl_read() or mbedtls_ssl_write() if
+ * early data has been received as part of the handshake sequence they
+ * triggered. To read the early data, call mbedtls_ssl_read_early_data().
  */
 #define MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA               -0x7C00
 /** Not possible to write early data */
@@ -2057,14 +2058,23 @@ void mbedtls_ssl_conf_authmode(mbedtls_ssl_config *conf, int authmode);
  * \param conf   The SSL configuration to use.
  * \param early_data_enabled can be:
  *
- *  MBEDTLS_SSL_EARLY_DATA_DISABLED:  early data functionality is disabled
- *                                    This is the default on client and server.
+ *  MBEDTLS_SSL_EARLY_DATA_DISABLED:
+ *  Early data functionality is disabled. This is the default on client and
+ *  server.
  *
- *  MBEDTLS_SSL_EARLY_DATA_ENABLED:  early data functionality is enabled and
- *                        may be negotiated in the handshake. Application using
- *                        early data functionality needs to be aware of the
- *                        lack of replay protection of the early data application
- *                        payloads.
+ *  MBEDTLS_SSL_EARLY_DATA_ENABLED:
+ *  Early data functionality is enabled and may be negotiated in the handshake.
+ *  Application using early data functionality needs to be aware that the
+ *  security properties for early data (also refered to as 0-RTT data) are
+ *  weaker than those for other kinds of TLS data. See the documentation of
+ *  mbedtls_ssl_write_early_data() and mbedtls_ssl_read_early_data() for more
+ *  information.
+ *  When early data functionality is enabled on server and only in that case,
+ *  the call to one of the APIs that trigger or resume an handshake sequence,
+ *  namely mbedtls_ssl_handshake(), mbedtls_ssl_handshake_step(),
+ *  mbedtls_ssl_read() or mbedtls_ssl_write() may return with the error code
+ *  MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA indicating that some early data have
+ *  been received. To read the early data, call mbedtls_ssl_read_early_data().
  *
  * \warning This interface is experimental and may change without notice.
  *
@@ -4791,9 +4801,11 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                 this case you must stop using the context (see below).
  * \return         #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA if early data, as
  *                 defined in RFC 8446 (TLS 1.3 specification), has been
- *                 received as part of the handshake. This is server specific.
- *                 You must call mbedtls_ssl_read_early_data() to read the
- *                 early data before resuming the handshake.
+ *                 received as part of the handshake. This is server specific
+ *                 and may occur only if the early data feature has been
+ *                 enabled on server (see mbedtls_ssl_conf_early_data()
+ *                 documentation). You must call mbedtls_ssl_read_early_data()
+ *                 to read the early data before resuming the handshake.
  * \return         Another SSL error code - in this case you must stop using
  *                 the context (see below).
  *
@@ -4944,10 +4956,11 @@ int mbedtls_ssl_renegotiate(mbedtls_ssl_context *ssl);
  *                 new connection using the same source port. See below.
  * \return         #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA if early data, as
  *                 defined in RFC 8446 (TLS 1.3 specification), has been
- *                 received as part of an handshake triggered by the function.
- *                 This is server specific. You must call
- *                 mbedtls_ssl_read_early_data() to read the early data before
- *                 resuming the reading of post handshake application data.
+ *                 received as part of the handshake. This is server specific
+ *                 and may occur only if the early data feature has been
+ *                 enabled on server (see mbedtls_ssl_conf_early_data()
+ *                 documentation). You must call mbedtls_ssl_read_early_data()
+ *                 to read the early data before resuming the handshake.
  * \return         Another SSL error code - in this case you must stop using
  *                 the context (see below).
  *
@@ -5025,10 +5038,11 @@ int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len);
  *                 the handshake when you're done attending other tasks.
  * \return         #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA if early data, as
  *                 defined in RFC 8446 (TLS 1.3 specification), has been
- *                 received as part of an handshake triggered by the function.
- *                 This is server specific. You must call
- *                 mbedtls_ssl_read_early_data() to read the early data before
- *                 resuming the writing of application data.
+ *                 received as part of the handshake. This is server specific
+ *                 and may occur only if the early data feature has been
+ *                 enabled on server (see mbedtls_ssl_conf_early_data()
+ *                 documentation). You must call mbedtls_ssl_read_early_data()
+ *                 to read the early data before resuming the handshake.
  * \return         Another SSL error code - in this case you must stop using
  *                 the context (see below).
  *
@@ -5111,6 +5125,21 @@ int mbedtls_ssl_close_notify(mbedtls_ssl_context *ssl);
  * \note           This API is server specific.
  *
  * \note           Early data is defined in the TLS 1.3 specification, RFC 8446.
+ *                 IMPORTANT NOTE from section 2.3 of the specification:
+ *
+ *                 The security properties for 0-RTT data are weaker than
+ *                 those for other kinds of TLS data. Specifically:
+ *                 - This data is not forward secret, as it is encrypted
+ *                   solely under keys derived using the offered PSK.
+ *                 - There are no guarantees of non-replay between connections.
+ *                   Protection against replay for ordinary TLS 1.3 1-RTT data
+ *                   is provided via the server's Random value, but 0-RTT data
+ *                   does not depend on the ServerHello and therefore has
+ *                   weaker guarantees. This is especially relevant if the
+ *                   data is authenticated either with TLS client
+ *                   authentication or inside the application protocol. The
+ *                   same warnings apply to any use of the
+ *                   early_exporter_master_secret.
  *
  * \note           This function behaves mainly as mbedtls_ssl_read(). The
  *                 specification of mbedtls_ssl_read() relevant to TLS 1.3

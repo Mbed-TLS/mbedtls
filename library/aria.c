@@ -578,8 +578,7 @@ int mbedtls_aria_crypt_cfb128(mbedtls_aria_context *ctx,
     n = *iv_off;
 
     /* An overly large value of n can lead to an unlimited
-     * buffer overflow. Therefore, guard against this
-     * outside of parameter validation. */
+     * buffer overflow. */
     if (n >= MBEDTLS_ARIA_BLOCKSIZE) {
         return MBEDTLS_ERR_ARIA_BAD_INPUT_DATA;
     }
@@ -631,8 +630,7 @@ int mbedtls_aria_crypt_ctr(mbedtls_aria_context *ctx,
 
     n = *nc_off;
     /* An overly large value of n can lead to an unlimited
-     * buffer overflow. Therefore, guard against this
-     * outside of parameter validation. */
+     * buffer overflow. */
     if (n >= MBEDTLS_ARIA_BLOCKSIZE) {
         return MBEDTLS_ERR_ARIA_BAD_INPUT_DATA;
     }

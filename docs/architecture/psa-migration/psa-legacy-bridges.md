@@ -97,7 +97,11 @@ Gap: functions to convert between `psa_algorithm_t` hash algorithms and `mbedtls
 
 ### MAC gap analysis
 
-[TODO]
+The legacy API does not have a unified interface for MAC, only separate interfaces for HMAC and CMAC. As a consequence, applications need ad hoc code to support both HMAC and CMAC anyway. With respect to MAC mechanism identification, there is no gap to fill.
+
+Within the scope of HMAC, applications need to convert between hash mechanism identifications; this is part of the more general [hash analysis](#hash-gap-analysis). Within the scope of CMAC, applications need to convert between block cipher identifications; this is part of the more general [cipher and AEAD analysis](#cipher-and-aead-gap-analysis).
+
+MAC do not have any nontrivial format for keys or outputs, so there is no need for any conversion functions.
 
 ### Cipher and AEAD gap analysis
 
@@ -218,7 +222,7 @@ Based on the [gap analysis](#hash-gap-analysis):
 
 ### MAC APIs
 
-[TODO]
+Based on the [gap analysis](#mac-gap-analysis): nothing to do.
 
 ### Cipher and AEAD APIs
 

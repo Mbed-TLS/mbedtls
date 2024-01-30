@@ -2855,8 +2855,8 @@ psa_status_t psa_mac_compute(mbedtls_svc_key_id_t key,
     LOCAL_INPUT_ALLOC(input_external, input_length, input);
     LOCAL_OUTPUT_ALLOC(mac_external, mac_size, mac);
     status = psa_mac_compute_internal(key, alg,
-                                    input, input_length,
-                                    mac, mac_size, mac_length, 1);
+                                      input, input_length,
+                                      mac, mac_size, mac_length, 1);
 
 #if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
 exit:

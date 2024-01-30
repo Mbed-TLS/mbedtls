@@ -282,7 +282,7 @@ int mbedtls_pk_import_into_psa(const mbedtls_pk_context *pk,
     * It is an error if `usage` has more than one flag set, or has a usage that is incompatible with the key type.
 * `mbedtls_pk_get_psa_attributes` sets the algorithm usage policy based on information in the key object and on `usage`.
     * For an RSA key with the `MBEDTLS_RSA_PKCS_V15` padding mode, the algorithm policy is `PSA_ALG_RSA_PKCS1V15_SIGN(PSA_ALG_ANY_HASH)` for a sign/verify usage, and `PSA_ALG_RSA_PKCS1V15_CRYPT` for an encrypt/decrypt usage.
-    * For an RSA key with the `MBEDTLS_RSA_PKCS_V15` padding mode, the algorithm policy is `PSA_ALG_RSA_PSS_ANY_SALT(PSA_ALG_ANY_HASH)` for a sign/verify usage, and `PSA_ALG_RSA_OAEP(hash)` for an encrypt/decrypt usage where `hash` is from the RSA key's parameters. (Note that `PSA_ALG_ANY_HASH` is only allowed in signature algorithms.)
+    * For an RSA key with the `MBEDTLS_RSA_PKCS_V21` padding mode, the algorithm policy is `PSA_ALG_RSA_PSS_ANY_SALT(PSA_ALG_ANY_HASH)` for a sign/verify usage, and `PSA_ALG_RSA_OAEP(hash)` for an encrypt/decrypt usage where `hash` is from the RSA key's parameters. (Note that `PSA_ALG_ANY_HASH` is only allowed in signature algorithms.)
     * For an `MBEDTLS_PK_ECKEY` or `MBEDTLS_PK_ECDSA` with a sign/verify usage, the algorithm policy is `PSA_ALG_DETERMINISTIC_ECDSA` if `MBEDTLS_ECDSA_DETERMINISTIC` is enabled and `PSA_ALG_ECDSA` otherwise. In either case, the hash policy is `PSA_ALG_ANY_HASH`.
     * For an `MBEDTLS_PK_ECKEY` or `MBEDTLS_PK_ECDKEY_DH` with the usage `PSA_KEY_USAGE_DERIVE`, the algorithm is `PSA_ALG_ECDH`.
     * For a `MBEDTLS_PK_OPAQUE`, this function reads the attributes of the existing PK key and copies them (without overriding the lifetime and key identifier in `attributes`), then applies a public-key restriction if needed.
@@ -331,7 +331,8 @@ Based on the [gap analysis](#signature-formats):
 
 ```
 int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
-                             unsigned char *der, size_t der_size, size_t *der_len);
+                             unsigned char *der, size_t der_size, size_t *der_len,
+                             size_t bits);
 int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
                              unsigned char *raw, size_t raw_size, size_t *raw_len,
                              size_t bits);
@@ -339,5 +340,5 @@ int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
 
 * These functions convert between the signature format used by `mbedtls_pk_{sign,verify}{,_ext}` and the signature format used by `psa_{sign,verify}_{hash,message}`.
 * The input and output buffers can overlap.
-
-[OPEN] Should these functions rely on the ASN.1 module? To be decided when implementing.
+* The `bits` parameter is necessary in the DER-to-raw direction because the DER format lacks leading zeros, so something else needs to convey the size of (r,s). The `bits` parameter is not needed in the raw-to-DER direction, but [it can help catch errors](https://github.com/Mbed-TLS/mbedtls/pull/8681#discussion_r1445980971) and the information is readily available in practice.
+* Should these functions rely on the ASN.1 module? We experimented [calling ASN.1 functions](https://github.com/Mbed-TLS/mbedtls/pull/8681), [reimplementing simpler ASN.1 functions](https://github.com/Mbed-TLS/mbedtls/pull/8696), and [providing the functions from the ASN.1 module](https://github.com/Mbed-TLS/mbedtls/pull/8703). Providing the functions from the ASN.1 module [won on a compromise of code size and simplicity](https://github.com/Mbed-TLS/mbedtls/issues/7765#issuecomment-1893670015).

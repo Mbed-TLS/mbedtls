@@ -276,6 +276,47 @@ output_components_and_groups () {
     components_str="$@"
     components=($components_str)        # convert to an array
 
+    # List of slowest 20 or so components, slowest first
+    slowest=(test_full_cmake_gcc_asan_new_bignum
+             test_ref_configs
+             test_m32_o2
+             test_full_cmake_gcc_asan
+             test_psa_crypto_config_accel_ecc_no_ecp_at_all
+             test_psa_crypto_config_accel_ecc_ecp_light_only
+             test_psa_crypto_config_accel_hash_use_psa
+             test_psa_crypto_config_accel_cipher_aead_cmac
+             test_depends_py_kex
+             test_depends_py_curves_psa
+             test_psa_crypto_config_reference_ecc_no_ecp_at_all
+             test_no_use_psa_crypto_full_cmake_asan
+             test_malloc_0_null
+             test_depends_py_curves
+             test_no_x509_info
+             test_psa_crypto_config_reference_ecc_ecp_light_only
+             test_psa_crypto_config_reference_hash_use_psa
+             test_depends_py_kex_psa
+             test_psa_crypto_config_reference_cipher_aead_cmac
+             test_tls13
+             test_depends_py_hashes_psa
+             full_without_ecdhe_ecdsa
+             test_depends_py_hashes
+             test_default_cmake_gcc_asan)
+
+    first=()
+
+    for component in "${slowest[@]}"
+    do
+        # Remove this component - to do this, we need to check each element,
+        # since something like all=( "${all[@]/$c}" ) removes matching prefixes,
+        # and as some components are prefixes of others, this doesn't work for us.
+        for i in "${!components[@]}"; do
+            if [[ ${components[i]} = $component ]]; then
+                unset 'components[i]'
+                first+=($component)
+            fi
+        done
+    done
+
     for group in "${groups[@]}"
     do
         # look at the components in each group
@@ -293,8 +334,12 @@ output_components_and_groups () {
         done
     done
 
-    # Output the groups and the remaining components
+    # Output the slowest first, then groups, then the remaining components
     COMPONENTS_AND_GROUPS=""
+    for component in "${first[@]}"
+    do
+        COMPONENTS_AND_GROUPS="$COMPONENTS_AND_GROUPS $component"
+    done
     for group in "${groups[@]}"
     do
         COMPONENTS_AND_GROUPS="$COMPONENTS_AND_GROUPS $group"

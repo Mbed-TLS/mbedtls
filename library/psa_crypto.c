@@ -3776,9 +3776,6 @@ psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
     LOCAL_INPUT_DECLARE(input_external, input);
     LOCAL_OUTPUT_DECLARE(output_external, output);
 
-    LOCAL_INPUT_ALLOC(input_external, input_length, input);
-    LOCAL_OUTPUT_ALLOC_WITH_COPY(output_external, output_size, output);
-
     if (operation->id == 0) {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3788,6 +3785,9 @@ psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
         status = PSA_ERROR_BAD_STATE;
         goto exit;
     }
+
+    LOCAL_INPUT_ALLOC(input_external, input_length, input);
+    LOCAL_OUTPUT_ALLOC_WITH_COPY(output_external, output_size, output);
 
     status = psa_driver_wrapper_cipher_update(operation,
                                               input,
@@ -3816,8 +3816,6 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
 
     LOCAL_OUTPUT_DECLARE(output_external, output);
 
-    LOCAL_OUTPUT_ALLOC_WITH_COPY(output_external, output_size, output);
-
     if (operation->id == 0) {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3827,6 +3825,8 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
         status = PSA_ERROR_BAD_STATE;
         goto exit;
     }
+
+    LOCAL_OUTPUT_ALLOC_WITH_COPY(output_external, output_size, output);
 
     status = psa_driver_wrapper_cipher_finish(operation,
                                               output,
@@ -3882,9 +3882,6 @@ psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
     LOCAL_INPUT_DECLARE(input_external, input);
     LOCAL_OUTPUT_DECLARE(output_external, output);
 
-    LOCAL_INPUT_ALLOC(input_external, input_length, input);
-    LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
-
     if (!PSA_ALG_IS_CIPHER(alg)) {
         status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
@@ -3918,6 +3915,9 @@ psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
             goto exit;
         }
     }
+
+    LOCAL_INPUT_ALLOC(input_external, input_length, input);
+    LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
 
     status = psa_driver_wrapper_cipher_encrypt(
         &attributes, slot->key.data, slot->key.bytes,
@@ -3962,9 +3962,6 @@ psa_status_t psa_cipher_decrypt(mbedtls_svc_key_id_t key,
     LOCAL_INPUT_DECLARE(input_external, input);
     LOCAL_OUTPUT_DECLARE(output_external, output);
 
-    LOCAL_INPUT_ALLOC(input_external, input_length, input);
-    LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
-
     if (!PSA_ALG_IS_CIPHER(alg)) {
         status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
@@ -3985,6 +3982,9 @@ psa_status_t psa_cipher_decrypt(mbedtls_svc_key_id_t key,
         status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }
+
+    LOCAL_INPUT_ALLOC(input_external, input_length, input);
+    LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
 
     status = psa_driver_wrapper_cipher_decrypt(
         &attributes, slot->key.data, slot->key.bytes,

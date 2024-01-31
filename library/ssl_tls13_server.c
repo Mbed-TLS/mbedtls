@@ -2929,6 +2929,10 @@ static int ssl_tls13_end_of_early_data_coordinate(mbedtls_ssl_context *ssl)
          *
          * TODO: Add received data size check here.
          */
+        if (ssl->in_offt == NULL) {
+            /* Set the reading pointer */
+            ssl->in_offt = ssl->in_msg;
+        }
         return SSL_GOT_EARLY_DATA;
     }
 

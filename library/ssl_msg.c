@@ -5865,54 +5865,20 @@ int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len)
     return ret;
 }
 
-
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_EARLY_DATA)
 int mbedtls_ssl_read_early_data(mbedtls_ssl_context *ssl,
                                 unsigned char *buf, size_t len)
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    const struct mbedtls_ssl_config *conf;
-    unsigned char *p = buf;
-
-    if (ssl == NULL || ((conf = ssl->conf) == NULL)) {
+    if (ssl == NULL || (ssl->conf == NULL)) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
-    if ((!mbedtls_ssl_conf_is_tls13_enabled(conf)) ||
-        (conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) ||
-        (conf->early_data_enabled != MBEDTLS_SSL_EARLY_DATA_ENABLED)) {
+    if ((ssl->state != MBEDTLS_SSL_END_OF_EARLY_DATA) ||
+        (ssl->in_offt == NULL)) {
         return MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA;
     }
 
-    if (ssl->tls_version != MBEDTLS_SSL_VERSION_TLS1_3) {
-        return MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA;
-    }
-
-    if ((ssl->early_data_state.srv !=
-         MBEDTLS_SSL_SRV_EARLY_DATA_STATE_WAITING_CH) &&
-        (ssl->early_data_state.srv !=
-         MBEDTLS_SSL_SRV_EARLY_DATA_STATE_ACCEPTING)) {
-        return MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA;
-    }
-
-    ret = mbedtls_ssl_handshake(ssl);
-    if (ret == MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA) {
-        if (ssl->in_offt == NULL) {
-            /* Set the reading pointer */
-            ssl->in_offt = ssl->in_msg;
-        }
-        ret = ssl_read_application_data(ssl, p, len);
-    } else if (ret == 0) {
-        /*
-         * If the handshake is completed, return immediately that early data
-         * cannot be read anymore. This potentially saves another call to this
-         * API and when the function returns 0, it only means that zero byte
-         * of early data has been received.
-         */
-        return MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA;
-    }
-
-    return ret;
+    return ssl_read_application_data(ssl, buf, len);
 }
 #endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_EARLY_DATA */
 

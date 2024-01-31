@@ -5141,49 +5141,25 @@ int mbedtls_ssl_close_notify(mbedtls_ssl_context *ssl);
  *                   same warnings apply to any use of the
  *                   early_exporter_master_secret.
  *
- * \note           This function behaves mainly as mbedtls_ssl_read(). The
- *                 specification of mbedtls_ssl_read() relevant to TLS 1.3
- *                 (thus not the parts specific to (D)TLS 1.2) applies to this
- *                 function and the present documentation is restricted to the
- *                 differences with mbedtls_ssl_read().
- *
- * \note           This function can be used in conjunction with
+ * \note           This function is used in conjunction with
  *                 mbedtls_ssl_handshake(), mbedtls_ssl_handshake_step(),
  *                 mbedtls_ssl_read() and mbedtls_ssl_write() to read early
  *                 data when these functions return
  *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA.
  *
- * \param ssl      SSL context
+ * \param ssl      SSL context, it must have been initialized and set up.
  * \param buf      buffer that will hold the data
  * \param len      maximum number of bytes to read
  *
- * \note           Unlike mbedtls_ssl_read(), this function does not return
+ * \return         The (positive) number of bytes read if successful.
+ * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if input data is invalid.
+ * \return         #MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA if it is not
+ *                 possible to read early data for the SSL context \p ssl. Note
+ *                 that this function is intended to be called for an SSL
+ *                 context \p ssl only after a call to mbedtls_ssl_handshake(),
+ *                 mbedtls_ssl_handshake_step(), mbedtls_ssl_read() or
+ *                 mbedtls_ssl_write() for \p ssl that has returned
  *                 #MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA.
- *
- * \return         One additional specific return value:
- *                 #MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA.
- *
- *                 #MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA is returned when it
- *                 is not possible to read early data for the SSL context
- *                 \p ssl.
- *
- *                 It may have been possible and it is not possible
- *                 anymore because the server received the End of Early Data
- *                 message or the maximum number of allowed early data for the
- *                 PSK in use has been reached.
- *
- *                 It may never have been possible and will never be possible
- *                 for the SSL context \p ssl because the use of early data
- *                 is disabled for that context or more generally the context
- *                 is not suitably configured to enable early data or the
- *                 client does not use early data or the first call to the
- *                 function was done while the handshake was already too
- *                 advanced to gather and accept early data.
- *
- *                 It is not possible to read early data for the SSL context
- *                 \p ssl but this does not preclude for using it with
- *                 mbedtls_ssl_write(), mbedtls_ssl_read() or
- *                 mbedtls_ssl_handshake().
  */
 int mbedtls_ssl_read_early_data(mbedtls_ssl_context *ssl,
                                 unsigned char *buf, size_t len);

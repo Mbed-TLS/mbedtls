@@ -70,6 +70,9 @@ int psa_is_valid_key_id(mbedtls_svc_key_id_t key, int vendor_ok)
  * On success, the function locks the key slot. It is the responsibility of
  * the caller to unlock the key slot when it does not access it anymore.
  *
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
+ *
  * \param key           Key identifier to query.
  * \param[out] p_slot   On success, `*p_slot` contains a pointer to the
  *                      key slot containing the description of the key
@@ -94,16 +97,14 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
     if (psa_key_id_is_volatile(key_id)) {
         slot = &global_data.key_slots[key_id - PSA_KEY_ID_VOLATILE_MIN];
 
-        /*
-         * Check if both the PSA key identifier key_id and the owner
-         * identifier of key match those of the key slot.
-         *
-         * Note that, if the key slot is not occupied, its PSA key identifier
-         * is equal to zero. This is an invalid value for a PSA key identifier
-         * and thus cannot be equal to the valid PSA key identifier key_id.
-         */
-        status = mbedtls_svc_key_id_equal(key, slot->attr.id) ?
-                 PSA_SUCCESS : PSA_ERROR_DOES_NOT_EXIST;
+        /* Check if both the PSA key identifier key_id and the owner
+         * identifier of key match those of the key slot. */
+        if ((slot->state == PSA_SLOT_FULL) &&
+            (mbedtls_svc_key_id_equal(key, slot->attr.id))) {
+            status = PSA_SUCCESS;
+        } else {
+            status = PSA_ERROR_DOES_NOT_EXIST;
+        }
     } else {
         if (!psa_is_valid_key_id(key, 1)) {
             return PSA_ERROR_INVALID_HANDLE;

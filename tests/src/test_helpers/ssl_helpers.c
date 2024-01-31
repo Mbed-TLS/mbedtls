@@ -2427,7 +2427,13 @@ int mbedtls_test_tweak_tls13_certificate_msg_vector_len(
 }
 #endif /* MBEDTLS_TEST_HOOKS */
 
-/* Functions for session ticket tests */
+/*
+ * Functions for tests based on tickets. Implementations of the
+ * write/parse ticket interfaces as defined by mbedtls_ssl_ticket_write/parse_t.
+ * Basically same implementations as in ticket.c without the encryption. That
+ * way we can tweak easily tickets characteristics to simulate misbehaving
+ * peers.
+ */
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 int mbedtls_test_ticket_write(
     void *p_ticket, const mbedtls_ssl_session *session,

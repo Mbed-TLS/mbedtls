@@ -163,7 +163,7 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
                              'psa_verify_hash'):
             return True
         if function_name in ('psa_asymmetric_encrypt',
-                             'pas_asymmetric_decrypt'):
+                             'psa_asymmetric_decrypt'):
             return True
         return False
 

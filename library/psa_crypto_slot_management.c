@@ -348,12 +348,24 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
         return PSA_ERROR_BAD_STATE;
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    /* If the key is persistent and not loaded, we cannot unlock the mutex
+     * between checking if the key is loaded and setting the slot as FULL,
+     * as otherwise another thread may load and then destroy the key
+     * in the meantime. */
+    PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
     /*
      * On success, the pointer to the slot is passed directly to the caller
      * thus no need to unlock the key slot here.
      */
     status = psa_get_and_lock_key_slot_in_memory(key, p_slot);
     if (status != PSA_ERROR_DOES_NOT_EXIST) {
+#if defined(MBEDTLS_THREADING_C)
+        PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                                  &mbedtls_threading_key_slot_mutex));
+#endif
         return status;
     }
 
@@ -364,6 +376,10 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
 
     status = psa_reserve_free_key_slot(&volatile_key_id, p_slot);
     if (status != PSA_SUCCESS) {
+#if defined(MBEDTLS_THREADING_C)
+        PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                                  &mbedtls_threading_key_slot_mutex));
+#endif
         return status;
     }
 
@@ -397,10 +413,15 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
         status = psa_register_read(*p_slot);
     }
 
-    return status;
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
-    return PSA_ERROR_INVALID_HANDLE;
+    status = PSA_ERROR_INVALID_HANDLE;
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
+
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
+    return status;
 }
 
 psa_status_t psa_unregister_read(psa_key_slot_t *slot)

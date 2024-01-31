@@ -3582,7 +3582,7 @@ void tls13_resume_session_with_ticket()
     mbedtls_test_init_handshake_options(&server_options);
     mbedtls_ssl_session_init(&saved_session);
 
-    MD_OR_USE_PSA_INIT();
+    PSA_INIT();
 
     client_options.pk_alg = MBEDTLS_PK_ECDSA;
     ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
@@ -3652,7 +3652,7 @@ exit:
     mbedtls_test_free_handshake_options(&client_options);
     mbedtls_test_free_handshake_options(&server_options);
     mbedtls_ssl_session_free(&saved_session);
-    MD_OR_USE_PSA_DONE();
+    PSA_DONE();
 }
 /* END_CASE */
 
@@ -3678,7 +3678,7 @@ void tls13_early_data()
     mbedtls_test_init_handshake_options(&server_options);
     mbedtls_ssl_session_init(&saved_session);
 
-    MD_OR_USE_PSA_INIT();
+    PSA_INIT();
 
     client_options.pk_alg = MBEDTLS_PK_ECDSA;
     ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
@@ -3767,6 +3767,6 @@ exit:
     mbedtls_test_free_handshake_options(&server_options);
     mbedtls_ssl_session_free(&saved_session);
     mbedtls_debug_set_threshold(0);
-    MD_OR_USE_PSA_DONE();
+    PSA_DONE();
 }
 /* END_CASE */

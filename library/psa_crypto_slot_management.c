@@ -458,6 +458,21 @@ psa_status_t psa_unregister_read(psa_key_slot_t *slot)
     return PSA_ERROR_CORRUPTION_DETECTED;
 }
 
+psa_status_t psa_unregister_read_under_mutex(psa_key_slot_t *slot)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
+    status = psa_unregister_read(slot);
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
+    return status;
+}
+
 psa_status_t psa_validate_key_location(psa_key_lifetime_t lifetime,
                                        psa_se_drv_table_entry_t **p_drv)
 {

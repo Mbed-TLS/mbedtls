@@ -3610,9 +3610,9 @@ void tls13_resume_session_with_ticket()
      * algorithm. Then, get the ticket sent by the server at the end of its
      * handshake sequence.
      */
-    TEST_ASSERT(mbedtls_test_move_handshake_to_state(
-                    &(server_ep.ssl), &(client_ep.ssl),
-                    MBEDTLS_SSL_HANDSHAKE_OVER) == 0);
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   &(server_ep.ssl), &(client_ep.ssl),
+                   MBEDTLS_SSL_HANDSHAKE_OVER), 0);
 
     do {
         ret = mbedtls_ssl_read(&(client_ep.ssl), buf, sizeof(buf));
@@ -3643,9 +3643,9 @@ void tls13_resume_session_with_ticket()
      * MBEDTLS_SSL_HANDSHAKE_OVER to preserve handshake data for the checks
      * below.
      */
-    TEST_ASSERT(mbedtls_test_move_handshake_to_state(
-                    &(server_ep.ssl), &(client_ep.ssl),
-                    MBEDTLS_SSL_HANDSHAKE_WRAPUP) == 0);
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   &(server_ep.ssl), &(client_ep.ssl),
+                   MBEDTLS_SSL_HANDSHAKE_WRAPUP), 0);
 
     TEST_EQUAL(server_ep.ssl.handshake->resume, 1);
     TEST_EQUAL(server_ep.ssl.handshake->new_session_tickets_count, 1);
@@ -3722,9 +3722,9 @@ void tls13_early_data()
      * algorithm. Then, get the ticket sent by the server at the end of its
      * handshake sequence.
      */
-    TEST_ASSERT(mbedtls_test_move_handshake_to_state(
-                    &(server_ep.ssl), &(client_ep.ssl),
-                    MBEDTLS_SSL_HANDSHAKE_OVER) == 0);
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   &(server_ep.ssl), &(client_ep.ssl),
+                   MBEDTLS_SSL_HANDSHAKE_OVER), 0);
 
     do {
         ret = mbedtls_ssl_read(&(client_ep.ssl), buf, sizeof(buf));
@@ -3752,9 +3752,9 @@ void tls13_early_data()
 
     mbedtls_debug_set_threshold(3);
 
-    TEST_ASSERT(mbedtls_test_move_handshake_to_state(
-                    &(client_ep.ssl), &(server_ep.ssl),
-                    MBEDTLS_SSL_SERVER_HELLO) == 0);
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   &(client_ep.ssl), &(server_ep.ssl),
+                   MBEDTLS_SSL_SERVER_HELLO), 0);
 
     TEST_ASSERT(client_ep.ssl.early_data_status !=
                 MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT);
@@ -3764,9 +3764,9 @@ void tls13_early_data()
                            early_data_len);
     TEST_EQUAL(ret, early_data_len);
 
-    TEST_ASSERT(mbedtls_test_move_handshake_to_state(
-                    &(server_ep.ssl), &(client_ep.ssl),
-                    MBEDTLS_SSL_CLIENT_FINISHED) == 0);
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   &(server_ep.ssl), &(client_ep.ssl),
+                   MBEDTLS_SSL_CLIENT_FINISHED), 0);
 
     TEST_EQUAL(server_ep.ssl.early_data_status,
                MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED);

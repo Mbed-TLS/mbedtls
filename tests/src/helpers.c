@@ -147,7 +147,7 @@ unsigned long mbedtls_test_get_step(void)
 void mbedtls_test_set_step(unsigned long step)
 {
     /* Internal function only - mbedtls_test_info_mutex should be held prior
-         * to calling this function. */
+     * to calling this function. */
 
     mbedtls_test_info.step = step;
 }
@@ -168,7 +168,7 @@ void mbedtls_test_get_line1(char *line)
 void mbedtls_test_set_line1(const char *line)
 {
     /* Internal function only - mbedtls_test_info_mutex should be held prior
-         * to calling this function. */
+     * to calling this function. */
 
     if (line == NULL) {
         memset(mbedtls_test_info.line1, 0, MBEDTLS_TEST_LINE_LENGTH);
@@ -193,7 +193,7 @@ void mbedtls_test_get_line2(char *line)
 void mbedtls_test_set_line2(const char *line)
 {
     /* Internal function only - mbedtls_test_info_mutex should be held prior
-         * to calling this function. */
+     * to calling this function. */
 
     if (line == NULL) {
         memset(mbedtls_test_info.line2, 0, MBEDTLS_TEST_LINE_LENGTH);
@@ -245,7 +245,7 @@ unsigned mbedtls_test_get_case_uses_negative_0(void)
 void mbedtls_test_set_case_uses_negative_0(unsigned uses)
 {
     /* Internal function only - mbedtls_test_info_mutex should be held prior
-         * to calling this function. */
+     * to calling this function. */
 
     mbedtls_test_info.case_uses_negative_0 = uses;
 }

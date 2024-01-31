@@ -165,6 +165,7 @@ static void gcm_reset_ctx(mbedtls_gcm_context *ctx, const uint8_t *key,
     TEST_EQUAL(starts_ret, mbedtls_gcm_starts(ctx, mode, iv, iv_len));
 exit:
     /* empty */
+    return;
 }
 
 /* END_HEADER */
@@ -514,6 +515,7 @@ void gcm_invalid_iv_len(void)
     goto exit; /* To suppress error that exit is defined but not used */
 exit:
     /* empty */
+    return;
 }
 /* END_CASE */
 

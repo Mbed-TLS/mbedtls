@@ -821,6 +821,14 @@ pre_generate_files() {
     fi
 }
 
+clang_version() {
+    if command -v clang > /dev/null ; then
+        clang --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#'
+    else
+        echo 0  # report version 0 for "no clang"
+    fi
+}
+
 ################################################################
 #### Helpers for components using libtestdriver1
 ################################################################
@@ -4692,14 +4700,8 @@ component_test_aesni_m32 () { # ~ 60s
 }
 
 support_test_aesni_m32_clang() {
-    support_test_aesni_m32 && if command -v clang > /dev/null ; then
-        # clang >= 4 is required to build with target attributes
-        clang_ver="$(clang --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#')"
-        [[ "${clang_ver}" -ge 4 ]]
-    else
-        # clang not available
-        false
-    fi
+    # clang >= 4 is required to build with target attributes
+    support_test_aesni_m32 && [[ $(clang_version) -ge 4 ]]
 }
 
 component_test_aesni_m32_clang() {
@@ -4750,9 +4752,8 @@ component_build_aes_aesce_armcc () {
 }
 
 support_build_aes_armce() {
-    # clang >= 4 is required to build with AES extensions
-    ver="$(clang --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#')"
-    [ "${ver}" -ge 11 ]
+    # clang >= 11 is required to build with AES extensions
+    [[ $(clang_version) -ge 11 ]]
 }
 
 component_build_aes_armce () {
@@ -4807,15 +4808,8 @@ component_build_aes_armce () {
 }
 
 support_build_sha_armce() {
-    if command -v clang > /dev/null ; then
-        # clang >= 4 is required to build with SHA extensions
-        clang_ver="$(clang --version|grep version|sed -E 's#.*version ([0-9]+).*#\1#')"
-
-        [[ "${clang_ver}" -ge 4 ]]
-    else
-        # clang not available
-        false
-    fi
+    # clang >= 4 is required to build with SHA extensions
+    [[ $(clang_version) -ge 4 ]]
 }
 
 component_build_sha_armce () {

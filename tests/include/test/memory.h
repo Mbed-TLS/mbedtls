@@ -27,7 +27,8 @@
  * Currently, only Asan (Address Sanitizer) is supported.
  */
 #if defined(MBEDTLS_TEST_HAVE_ASAN) && \
-    (__STDC_VERSION__ >= 201112L)
+    (__STDC_VERSION__ >= 201112L) && \
+    !defined(PSA_CRYPTO_DRIVER_TEST)
 #  define MBEDTLS_TEST_MEMORY_CAN_POISON
 #endif
 

@@ -564,6 +564,9 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
                 new_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(new_type);
             }
             more_usage = psa_get_key_usage_flags(&old_attributes);
+            if ((usage & more_usage) == 0) {
+                return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+            }
             psa_set_key_type(attributes, new_type);
             psa_set_key_bits(attributes, psa_get_key_bits(&old_attributes));
             psa_set_key_algorithm(attributes, psa_get_key_algorithm(&old_attributes));

@@ -585,6 +585,7 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
  *                        set for the underlying PSA key, except that
  *                        sign/decrypt flags are removed if the type is
  *                        set to a public key type.
+ *                        The underlying key must allow \p usage.
  *                        Note that the enrollment algorithm set with
  *                        psa_set_key_enrollment_algorithm() is not copied.
  *

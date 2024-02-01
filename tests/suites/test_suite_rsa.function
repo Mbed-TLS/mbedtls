@@ -1382,9 +1382,9 @@ void rsa_parse_pkcs1_key(int is_public, data_t *input, int exp_ret_val)
     mbedtls_rsa_init(&rsa_ctx);
 
     if (is_public) {
-        TEST_EQUAL(mbedtls_rsa_pubkey_parse(&rsa_ctx, &start, end), exp_ret_val);
+        TEST_EQUAL(mbedtls_rsa_parse_pubkey(&rsa_ctx, &start, end), exp_ret_val);
     } else {
-        TEST_EQUAL(mbedtls_rsa_key_parse(&rsa_ctx, input->x, input->len), exp_ret_val);
+        TEST_EQUAL(mbedtls_rsa_parse_key(&rsa_ctx, input->x, input->len), exp_ret_val);
     }
 
 exit:
@@ -1410,12 +1410,12 @@ void rsa_parse_write_pkcs1_key(int is_public, data_t *input)
 
     /* Parse the key and write it back to output_buf. */
     if (is_public) {
-        TEST_EQUAL(mbedtls_rsa_pubkey_parse(&rsa_ctx, &input_start, input_end), 0);
+        TEST_EQUAL(mbedtls_rsa_parse_pubkey(&rsa_ctx, &input_start, input_end), 0);
         TEST_ASSERT(input_start == input_end);
-        TEST_EQUAL(mbedtls_rsa_pubkey_write(&rsa_ctx, output_start, &output_end), input->len);
+        TEST_EQUAL(mbedtls_rsa_write_pubkey(&rsa_ctx, output_start, &output_end), input->len);
     } else {
-        TEST_EQUAL(mbedtls_rsa_key_parse(&rsa_ctx, input->x, input->len), 0);
-        TEST_EQUAL(mbedtls_rsa_key_write(&rsa_ctx, output_start, &output_end), input->len);
+        TEST_EQUAL(mbedtls_rsa_parse_key(&rsa_ctx, input->x, input->len), 0);
+        TEST_EQUAL(mbedtls_rsa_write_key(&rsa_ctx, output_start, &output_end), input->len);
     }
     /* This check holds because we alloacated an output buffer which is exactly
      * large enough to contain the written data. */
@@ -1444,9 +1444,9 @@ void rsa_key_write_incremental(int is_public, data_t *input)
     if (is_public) {
         start = input->x;
         end = input->x + input->len;
-        TEST_EQUAL(mbedtls_rsa_pubkey_parse(&rsa_ctx, &start, end), 0);
+        TEST_EQUAL(mbedtls_rsa_parse_pubkey(&rsa_ctx, &start, end), 0);
     } else {
-        TEST_EQUAL(mbedtls_rsa_key_parse(&rsa_ctx, input->x, input->len), 0);
+        TEST_EQUAL(mbedtls_rsa_parse_key(&rsa_ctx, input->x, input->len), 0);
     }
 
     for (i = 1; i < input->len; i++) {
@@ -1454,9 +1454,9 @@ void rsa_key_write_incremental(int is_public, data_t *input)
         end = buf + i;
         /* We don't care much about the return value as long as it fails. */
         if (is_public) {
-            TEST_ASSERT(mbedtls_rsa_pubkey_write(&rsa_ctx, buf, &end) != 0);
+            TEST_ASSERT(mbedtls_rsa_write_pubkey(&rsa_ctx, buf, &end) != 0);
         } else {
-            TEST_ASSERT(mbedtls_rsa_key_write(&rsa_ctx, buf, &end) != 0);
+            TEST_ASSERT(mbedtls_rsa_write_key(&rsa_ctx, buf, &end) != 0);
         }
         mbedtls_free(buf);
         buf = NULL;
@@ -1467,9 +1467,9 @@ void rsa_key_write_incremental(int is_public, data_t *input)
     end = buf + i;
 
     if (is_public) {
-        TEST_ASSERT(mbedtls_rsa_pubkey_write(&rsa_ctx, buf, &end) != 0);
+        TEST_ASSERT(mbedtls_rsa_write_pubkey(&rsa_ctx, buf, &end) != 0);
     } else {
-        TEST_ASSERT(mbedtls_rsa_key_write(&rsa_ctx, buf, &end) > 0);
+        TEST_ASSERT(mbedtls_rsa_write_key(&rsa_ctx, buf, &end) > 0);
     }
 
 exit:

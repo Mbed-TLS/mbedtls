@@ -87,7 +87,7 @@ static int rsa_verify_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
         return MBEDTLS_ERR_RSA_VERIFY_FAILED;
     }
 
-    key_len = mbedtls_rsa_pubkey_write(rsa, buf, &p);
+    key_len = mbedtls_rsa_write_pubkey(rsa, buf, &p);
     if (key_len <= 0) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
@@ -185,7 +185,7 @@ int  mbedtls_pk_psa_rsa_sign_ext(psa_algorithm_t alg,
         return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
     }
 
-    key_len = mbedtls_rsa_key_write(rsa_ctx, buf, &p);
+    key_len = mbedtls_rsa_write_key(rsa_ctx, buf, &p);
     if (key_len <= 0) {
         mbedtls_free(buf);
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
@@ -293,7 +293,7 @@ static int rsa_decrypt_wrap(mbedtls_pk_context *pk,
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
 
-    key_len = mbedtls_rsa_key_write(rsa, buf, &p);
+    key_len = mbedtls_rsa_write_key(rsa, buf, &p);
     if (key_len <= 0) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
@@ -375,7 +375,7 @@ static int rsa_encrypt_wrap(mbedtls_pk_context *pk,
         return MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE;
     }
 
-    key_len = mbedtls_rsa_pubkey_write(rsa, buf, &p);
+    key_len = mbedtls_rsa_write_pubkey(rsa, buf, &p);
     if (key_len <= 0) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }

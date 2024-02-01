@@ -850,7 +850,7 @@ int mbedtls_pk_parse_subpubkey(unsigned char **p, const unsigned char *end,
 
 #if defined(MBEDTLS_RSA_C)
     if (pk_alg == MBEDTLS_PK_RSA) {
-        ret = mbedtls_rsa_pubkey_parse(mbedtls_pk_rsa(*pk), p, end);
+        ret = mbedtls_rsa_parse_pubkey(mbedtls_pk_rsa(*pk), p, end);
     } else
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
@@ -1098,7 +1098,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
 
 #if defined(MBEDTLS_RSA_C)
     if (pk_alg == MBEDTLS_PK_RSA) {
-        if ((ret = mbedtls_rsa_key_parse(mbedtls_pk_rsa(*pk), p, len)) != 0) {
+        if ((ret = mbedtls_rsa_parse_key(mbedtls_pk_rsa(*pk), p, len)) != 0) {
             mbedtls_pk_free(pk);
             return ret;
         }
@@ -1288,7 +1288,7 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
     if (ret == 0) {
         pk_info = mbedtls_pk_info_from_type(MBEDTLS_PK_RSA);
         if ((ret = mbedtls_pk_setup(pk, pk_info)) != 0 ||
-            (ret = mbedtls_rsa_key_parse(mbedtls_pk_rsa(*pk),
+            (ret = mbedtls_rsa_parse_key(mbedtls_pk_rsa(*pk),
                                          pem.buf, pem.buflen)) != 0) {
             mbedtls_pk_free(pk);
         }
@@ -1429,7 +1429,7 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
 
     pk_info = mbedtls_pk_info_from_type(MBEDTLS_PK_RSA);
     if (mbedtls_pk_setup(pk, pk_info) == 0 &&
-        mbedtls_rsa_key_parse(mbedtls_pk_rsa(*pk), key, keylen) == 0) {
+        mbedtls_rsa_parse_key(mbedtls_pk_rsa(*pk), key, keylen) == 0) {
         return 0;
     }
 
@@ -1504,7 +1504,7 @@ int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
             return ret;
         }
 
-        if ((ret = mbedtls_rsa_pubkey_parse(mbedtls_pk_rsa(*ctx), &p, p + pem.buflen)) != 0) {
+        if ((ret = mbedtls_rsa_parse_pubkey(mbedtls_pk_rsa(*ctx), &p, p + pem.buflen)) != 0) {
             mbedtls_pk_free(ctx);
         }
 
@@ -1551,7 +1551,7 @@ int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
     }
 
     p = (unsigned char *) key;
-    ret = mbedtls_rsa_pubkey_parse(mbedtls_pk_rsa(*ctx), &p, p + keylen);
+    ret = mbedtls_rsa_parse_pubkey(mbedtls_pk_rsa(*ctx), &p, p + keylen);
     if (ret == 0) {
         return ret;
     }

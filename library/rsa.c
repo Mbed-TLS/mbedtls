@@ -46,7 +46,7 @@
 
 #include "mbedtls/platform.h"
 
-int mbedtls_rsa_key_parse(mbedtls_rsa_context *rsa, const unsigned char *key, size_t keylen)
+int mbedtls_rsa_parse_key(mbedtls_rsa_context *rsa, const unsigned char *key, size_t keylen)
 {
     int ret, version;
     size_t len;
@@ -192,7 +192,7 @@ cleanup:
     return ret;
 }
 
-int mbedtls_rsa_pubkey_parse(mbedtls_rsa_context *rsa, unsigned char **p,
+int mbedtls_rsa_parse_pubkey(mbedtls_rsa_context *rsa, unsigned char **p,
                              const unsigned char *end)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -250,7 +250,7 @@ int mbedtls_rsa_pubkey_parse(mbedtls_rsa_context *rsa, unsigned char **p,
     return 0;
 }
 
-int mbedtls_rsa_key_write(const mbedtls_rsa_context *rsa, unsigned char *start,
+int mbedtls_rsa_write_key(const mbedtls_rsa_context *rsa, unsigned char *start,
                           unsigned char **p)
 {
     size_t len = 0;
@@ -342,7 +342,7 @@ end_of_export:
  *      publicExponent    INTEGER   -- e
  *  }
  */
-int mbedtls_rsa_pubkey_write(const mbedtls_rsa_context *rsa, unsigned char *start,
+int mbedtls_rsa_write_pubkey(const mbedtls_rsa_context *rsa, unsigned char *start,
                              unsigned char **p)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

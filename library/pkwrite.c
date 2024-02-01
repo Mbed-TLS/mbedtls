@@ -78,7 +78,7 @@ static int pk_write_rsa_der(unsigned char **p, unsigned char *buf,
         return (int) len;
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-    return mbedtls_rsa_key_write(mbedtls_pk_rsa(*pk), buf, p);
+    return mbedtls_rsa_write_key(mbedtls_pk_rsa(*pk), buf, p);
 }
 #endif /* MBEDTLS_RSA_C */
 
@@ -416,7 +416,7 @@ int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
 
 #if defined(MBEDTLS_RSA_C)
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_RSA) {
-        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_rsa_pubkey_write(mbedtls_pk_rsa(*key), start, p));
+        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_rsa_write_pubkey(mbedtls_pk_rsa(*key), start, p));
     } else
 #endif
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)

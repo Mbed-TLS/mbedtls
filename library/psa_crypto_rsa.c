@@ -71,11 +71,11 @@ psa_status_t mbedtls_psa_rsa_load_representation(
 
     /* Parse the data. */
     if (PSA_KEY_TYPE_IS_KEY_PAIR(type)) {
-        status = mbedtls_to_psa_error(mbedtls_rsa_key_parse(*p_rsa, data, data_length));
+        status = mbedtls_to_psa_error(mbedtls_rsa_parse_key(*p_rsa, data, data_length));
     } else {
         unsigned char *p = data;
         unsigned char *end = (data + data_length);
-        status = mbedtls_to_psa_error(mbedtls_rsa_pubkey_parse(*p_rsa, &p, end));
+        status = mbedtls_to_psa_error(mbedtls_rsa_parse_pubkey(*p_rsa, &p, end));
     }
     if (status != PSA_SUCCESS) {
         goto exit;
@@ -163,9 +163,9 @@ psa_status_t mbedtls_psa_rsa_export_key(psa_key_type_t type,
      * representation of the non-encrypted PKCS#1 RSAPrivateKey for a
      * private key and of the RFC3279 RSAPublicKey for a public key. */
     if (PSA_KEY_TYPE_IS_KEY_PAIR(type)) {
-        ret = mbedtls_rsa_key_write(rsa, data, &end);
+        ret = mbedtls_rsa_write_key(rsa, data, &end);
     } else {
-        ret = mbedtls_rsa_pubkey_write(rsa, data, &end);
+        ret = mbedtls_rsa_write_pubkey(rsa, data, &end);
     }
 
     if (ret < 0) {

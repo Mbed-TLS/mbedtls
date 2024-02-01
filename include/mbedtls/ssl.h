@@ -1622,49 +1622,6 @@ struct mbedtls_ssl_config {
 #endif
 };
 
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-enum mbedtls_ssl_cli_early_data_state {
-    MBEDTLS_SSL_CLI_EARLY_DATA_STATE_NOT_SENT,
-    MBEDTLS_SSL_CLI_EARLY_DATA_STATE_ACCEPTED,
-    MBEDTLS_SSL_CLI_EARLY_DATA_STATE_REJECTED
-};
-
-/*
- * MBEDTLS_SSL_SRV_EARLY_DATA_STATE_WAITING_CH:
- *     The server is waiting for the ClientHello.
- *
- * MBEDTLS_SSL_SRV_EARLY_DATA_STATE_ACCEPTING:
- *     The server has received a ClientHello indicating early data and has
- *     accepted them. It is now expecting early data and the end of early
- *     data message.
- *
- * MBEDTLS_SSL_SRV_EARLY_DATA_STATE_REJECTED:
- *     The server has received a ClientHello indicating early data and has
- *     rejected them.
- *
- * MBEDTLS_SSL_SRV_EARLY_DATA_STATE_NOT_RECEIVED:
- *     The server has received a ClientHello, no indication of early data.
- *
- * MBEDTLS_SSL_SRV_EARLY_DATA_STATE_EOED_RECEIVED
- *     The server has received the early data extension, it has accepted early
- *     data and received the end of early data message from the client marking
- *     the end of early data reception.
- */
-
-enum mbedtls_ssl_srv_early_data_state {
-    MBEDTLS_SSL_SRV_EARLY_DATA_STATE_WAITING_CH,
-    MBEDTLS_SSL_SRV_EARLY_DATA_STATE_ACCEPTING,
-    MBEDTLS_SSL_SRV_EARLY_DATA_STATE_REJECTED,
-    MBEDTLS_SSL_SRV_EARLY_DATA_STATE_NOT_RECEIVED,
-    MBEDTLS_SSL_SRV_EARLY_DATA_STATE_EOED_RECEIVED
-};
-
-union mbedtls_ssl_early_data_state {
-    enum mbedtls_ssl_cli_early_data_state cli;
-    enum mbedtls_ssl_srv_early_data_state srv;
-};
-#endif /* MBEDTLS_SSL_EARLY_DATA */
-
 struct mbedtls_ssl_context {
     const mbedtls_ssl_config *MBEDTLS_PRIVATE(conf); /*!< configuration information          */
 
@@ -1699,10 +1656,22 @@ struct mbedtls_ssl_context {
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     /**
-     *  State of the sending (client side) or reception (server side) of early
-     *  data. Reset to the initial state at the beginning of a new handshake.
+     *  On client side, status of the negotiation of the use of early data.
+     *  See the documentation of mbedtls_ssl_get_early_data_status() for more
+     *  information.
+     *
+     *  On server side, internal only, status of early data in the course of an
+     *  handshake. One of MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN,
+     *  #MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED,
+     *  #MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED,
+     *  MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_RECEIVED and
+     *  MBEDTLS_SSL_EARLY_DATA_STATUS_END_OF_EARLY_DATA_RECEIVED.
+     *
+     *  Reset to #MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT or
+     *  MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN, at the beginning of a new
+     *  handshake.
      */
-    union mbedtls_ssl_early_data_state MBEDTLS_PRIVATE(early_data_state);
+    int MBEDTLS_PRIVATE(early_data_status);
 #endif
 
     unsigned MBEDTLS_PRIVATE(badmac_seen);       /*!< records with a bad MAC received    */

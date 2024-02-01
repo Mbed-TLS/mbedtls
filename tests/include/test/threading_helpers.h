@@ -69,14 +69,14 @@ typedef struct mbedtls_test_thread_t {
 #endif /* MBEDTLS_THREADING_ALT*/
 
 /**
- * \brief The function pointers for thread create and thread
+ * \brief                   The function pointers for thread create and thread
  *                          join.
  *
- * \note These functions are part of the testing API only and
- *                          thus not considered part of the public API of
+ * \note                    These functions are part of the testing API only
+ *                          and thus not considered part of the public API of
  *                          MbedTLS and thus may change without notice.
  *
- * \note All these functions are expected to work or
+ * \note                    All these functions are expected to work or
  *                          the result will be undefined.
  */
 extern int (*mbedtls_test_thread_create)(mbedtls_test_thread_t *thread,

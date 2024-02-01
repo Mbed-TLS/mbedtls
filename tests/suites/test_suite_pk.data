@@ -701,7 +701,7 @@ PSA attributes for pk: RSA usage=DECRYPT|EXPORT (bad)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_GENPRIME:MBEDTLS_PKCS1_V15
 pk_get_psa_attributes_fail:MBEDTLS_PK_RSA:1:PSA_KEY_USAGE_DECRYPT | PSA_KEY_USAGE_EXPORT:MBEDTLS_ERR_PK_TYPE_MISMATCH
 
-# Bad usage due to not specifying more than one of sign/crypt/derive.
+# Bad usage due to specifying more than one of sign/crypt/derive.
 PSA attributes for pk: RSA usage=DECRYPT|SIGN_MESSAGE (bad)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_GENPRIME:MBEDTLS_PKCS1_V15
 pk_get_psa_attributes_fail:MBEDTLS_PK_RSA:1:PSA_KEY_USAGE_DECRYPT | PSA_KEY_USAGE_SIGN_MESSAGE:MBEDTLS_ERR_PK_TYPE_MISMATCH

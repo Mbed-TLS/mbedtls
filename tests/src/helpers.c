@@ -375,7 +375,7 @@ void mbedtls_test_info_reset(void)
 #endif
 
 #ifdef MBEDTLS_THREADING_C
-    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
 #endif /* MBEDTLS_THREADING_C */
 }
 

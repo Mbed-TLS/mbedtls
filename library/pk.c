@@ -553,7 +553,6 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
                         return MBEDTLS_ERR_PK_TYPE_MISMATCH;
                     }
                     break;
-                    break;
                 default:
                     return MBEDTLS_ERR_PK_TYPE_MISMATCH;
             }

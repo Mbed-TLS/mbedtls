@@ -127,6 +127,13 @@ static inline int mbedtls_pk_is_rfc8410(const mbedtls_pk_context *pk)
 
     return MBEDTLS_PK_IS_RFC8410_GROUP_ID(id);
 }
+
+int mbedtls_pk_ecc_set_group(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id);
+int mbedtls_pk_ecc_set_key(mbedtls_pk_context *pk, unsigned char *key, size_t key_len);
+int mbedtls_pk_ecc_set_pubkey(mbedtls_pk_context *pk, const unsigned char *pub, size_t pub_len);
+int mbedtls_pk_ecc_set_pubkey_from_prv(mbedtls_pk_context *pk,
+                                       const unsigned char *prv, size_t prv_len,
+                                       int (*f_rng)(void *, unsigned char *, size_t), void *p_rng);
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
 /* Helper for (deterministic) ECDSA */

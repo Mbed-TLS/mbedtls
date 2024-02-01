@@ -61,7 +61,7 @@
  *              out: will have group (curve) information set
  * [in] grp_in: a supported group ID (not NONE)
  */
-static int pk_ecc_set_group(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id)
+int mbedtls_pk_ecc_set_group(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id)
 {
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     size_t ec_bits;
@@ -95,12 +95,11 @@ static int pk_ecc_set_group(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id)
 /*
  * Set the private key material
  *
- * [in/out] pk: in: must have the group set already, see pk_ecc_set_group().
+ * [in/out] pk: in: must have the group set already, see mbedtls_pk_ecc_set_group().
  *              out: will have the private key set.
  * [in] key, key_len: the raw private key (no ASN.1 wrapping).
  */
-static int pk_ecc_set_key(mbedtls_pk_context *pk,
-                          unsigned char *key, size_t key_len)
+int mbedtls_pk_ecc_set_key(mbedtls_pk_context *pk, unsigned char *key, size_t key_len)
 {
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -140,7 +139,7 @@ static int pk_ecc_set_key(mbedtls_pk_context *pk,
  * Derive a public key from its private counterpart.
  * Computationally intensive, only use when public key is not available.
  *
- * [in/out] pk: in: must have the private key set, see pk_ecc_set_key().
+ * [in/out] pk: in: must have the private key set, see mbedtls_pk_ecc_set_key().
  *              out: will have the public key set.
  * [in] prv, prv_len: the raw private key (see note below).
  * [in] f_rng, p_rng: RNG function and context.
@@ -155,9 +154,9 @@ static int pk_ecc_set_key(mbedtls_pk_context *pk,
  * 2. MBEDTLS_USE_PSA_CRYPTO but not MBEDTLS_PK_USE_PSA_EC_DATA,
  * 3. not MBEDTLS_USE_PSA_CRYPTO.
  */
-static int pk_ecc_set_pubkey_from_prv(mbedtls_pk_context *pk,
-                                      const unsigned char *prv, size_t prv_len,
-                                      int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
+int mbedtls_pk_ecc_set_pubkey_from_prv(mbedtls_pk_context *pk,
+                                       const unsigned char *prv, size_t prv_len,
+                                       int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 
@@ -226,7 +225,7 @@ static int pk_ecc_set_pubkey_from_prv(mbedtls_pk_context *pk,
  * this fallback uses ECP functions to get the job done. This is the reason
  * why MBEDTLS_PK_PARSE_EC_COMPRESSED auto-enables MBEDTLS_ECP_LIGHT.
  *
- * [in/out] pk: in: must have the group set, see pk_ecc_set_group().
+ * [in/out] pk: in: must have the group set, see mbedtls_pk_ecc_set_group().
  *              out: will have the public key set.
  * [in] pub, pub_len: the public key as an ECPoint,
  *                    in any format supported by ECP.
@@ -278,7 +277,7 @@ exit:
 /*
  * Set the public key.
  *
- * [in/out] pk: in: must have its group set, see pk_ecc_set_group().
+ * [in/out] pk: in: must have its group set, see mbedtls_pk_ecc_set_group().
  *              out: will have the public key set.
  * [in] pub, pub_len: the raw public key (an ECPoint).
  *
@@ -288,8 +287,7 @@ exit:
  *   but not supported;
  * - another error code otherwise.
  */
-static int pk_ecc_set_pubkey(mbedtls_pk_context *pk,
-                             const unsigned char *pub, size_t pub_len)
+int mbedtls_pk_ecc_set_pubkey(mbedtls_pk_context *pk, const unsigned char *pub, size_t pub_len)
 {
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 
@@ -698,7 +696,7 @@ static int pk_use_ecparams(const mbedtls_asn1_buf *params, mbedtls_pk_context *p
         }
     }
 
-    return pk_ecc_set_group(pk, grp_id);
+    return mbedtls_pk_ecc_set_group(pk, grp_id);
 }
 
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
@@ -714,7 +712,7 @@ static int pk_use_ecparams_rfc8410(const mbedtls_asn1_buf *params,
         return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
     }
 
-    return pk_ecc_set_group(pk, grp_id);
+    return mbedtls_pk_ecc_set_group(pk, grp_id);
 }
 
 /*
@@ -740,7 +738,7 @@ static int pk_parse_key_rfc8410_der(mbedtls_pk_context *pk,
     /*
      * Load the private key
      */
-    ret = pk_ecc_set_key(pk, key, len);
+    ret = mbedtls_pk_ecc_set_key(pk, key, len);
     if (ret != 0) {
         return ret;
     }
@@ -748,7 +746,7 @@ static int pk_parse_key_rfc8410_der(mbedtls_pk_context *pk,
     /* pk_parse_key_pkcs8_unencrypted_der() only supports version 1 PKCS8 keys,
      * which never contain a public key. As such, derive the public key
      * unconditionally. */
-    if ((ret = pk_ecc_set_pubkey_from_prv(pk, key, len, f_rng, p_rng)) != 0) {
+    if ((ret = mbedtls_pk_ecc_set_pubkey_from_prv(pk, key, len, f_rng, p_rng)) != 0) {
         return ret;
     }
 
@@ -874,7 +872,7 @@ int mbedtls_pk_parse_subpubkey(unsigned char **p, const unsigned char *end,
             ret = pk_use_ecparams(&alg_params, pk);
         }
         if (ret == 0) {
-            ret = pk_ecc_set_pubkey(pk, *p, (size_t) (end - *p));
+            ret = mbedtls_pk_ecc_set_pubkey(pk, *p, (size_t) (end - *p));
             *p += end - *p;
         }
     } else
@@ -966,7 +964,7 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
     /*
      * Load the private key
      */
-    ret = pk_ecc_set_key(pk, d, d_len);
+    ret = mbedtls_pk_ecc_set_key(pk, d, d_len);
     if (ret != 0) {
         return ret;
     }
@@ -990,11 +988,11 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
                                          MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
             }
 
-            if ((ret = pk_ecc_set_pubkey(pk, p, (size_t) (end2 - p))) == 0) {
+            if ((ret = mbedtls_pk_ecc_set_pubkey(pk, p, (size_t) (end2 - p))) == 0) {
                 pubkey_done = 1;
             } else {
                 /*
-                 * The only acceptable failure mode of pk_ecc_set_pubkey() above
+                 * The only acceptable failure mode of mbedtls_pk_ecc_set_pubkey() above
                  * is if the point format is not recognized.
                  */
                 if (ret != MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE) {
@@ -1007,7 +1005,7 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
     }
 
     if (!pubkey_done) {
-        if ((ret = pk_ecc_set_pubkey_from_prv(pk, d, d_len, f_rng, p_rng)) != 0) {
+        if ((ret = mbedtls_pk_ecc_set_pubkey_from_prv(pk, d, d_len, f_rng, p_rng)) != 0) {
             return ret;
         }
     }

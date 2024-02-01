@@ -1723,6 +1723,7 @@ void pk_get_psa_attributes(int pk_type, int from_pair,
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT; //TODO: diversity
     psa_set_key_id(&attributes, key_id);
     psa_set_key_lifetime(&attributes, lifetime);
+    psa_set_key_enrollment_algorithm(&attributes, 42);
 
     psa_key_usage_t expected_usage = usage;
     /* Usage implied universally */

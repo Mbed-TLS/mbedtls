@@ -5873,6 +5873,10 @@ int mbedtls_ssl_read_early_data(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
+    /*
+     * The server may receive early data only while waiting for the End of
+     * Early Data handshake message.
+     */
     if ((ssl->state != MBEDTLS_SSL_END_OF_EARLY_DATA) ||
         (ssl->in_offt == NULL)) {
         return MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA;

@@ -2074,7 +2074,8 @@ void mbedtls_ssl_conf_authmode(mbedtls_ssl_config *conf, int authmode);
  *  namely mbedtls_ssl_handshake(), mbedtls_ssl_handshake_step(),
  *  mbedtls_ssl_read() or mbedtls_ssl_write() may return with the error code
  *  MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA indicating that some early data have
- *  been received. To read the early data, call mbedtls_ssl_read_early_data().
+ *  been received. To read the early data, call mbedtls_ssl_read_early_data()
+ *  before calling the original function again.
  *
  * \warning This interface is experimental and may change without notice.
  *
@@ -5124,7 +5125,7 @@ int mbedtls_ssl_close_notify(mbedtls_ssl_context *ssl);
  *
  * \note           This API is server specific.
  *
- * \note           Early data is defined in the TLS 1.3 specification, RFC 8446.
+ * \warning        Early data is defined in the TLS 1.3 specification, RFC 8446.
  *                 IMPORTANT NOTE from section 2.3 of the specification:
  *
  *                 The security properties for 0-RTT data are weaker than

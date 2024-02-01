@@ -24,9 +24,11 @@
  * \param key       The buffer that contains the key.
  * \param keylen    The length of the key buffer in bytes.
  *
- * \return          0 in success
- * \return          MBEDTLS_ERR_ASN1_xxx in case of ASN.1 parsing errors.
- * \return          MBEDTLS_ERR_RSA_BAD_INPUT_DATA in case of invalid version.
+ * \return          0 on success.
+ * \return          MBEDTLS_ERR_RSA_xxx in case of RSA internal failures while
+ *                  parsing data.
+ * \return          MBEDTLS_ERR_RSA_KEY_CHECK_FAILED if validity checks on the
+ *                  provided key fail.
  */
 int mbedtls_rsa_parse_key(mbedtls_rsa_context *rsa, const unsigned char *key, size_t keylen);
 
@@ -39,8 +41,10 @@ int mbedtls_rsa_parse_key(mbedtls_rsa_context *rsa, const unsigned char *key, si
  *
  * \return          0 on success.
  * \return          MBEDTLS_ERR_ASN1_xxx in case of ASN.1 parsing errors.
- * \return          MBEDTLS_ERR_RSA_BAD_INPUT_DATA in case of importing or
- *                  priv/pub validation errors.
+ * \return          MBEDTLS_ERR_RSA_xxx in case of RSA internal failures while
+ *                  parsing data.
+ * \return          MBEDTLS_ERR_RSA_KEY_CHECK_FAILED if validity checks on the
+ *                  provided key fail.
  */
 int mbedtls_rsa_parse_pubkey(mbedtls_rsa_context *rsa, const unsigned char *key, size_t keylen);
 
@@ -56,8 +60,8 @@ int mbedtls_rsa_parse_pubkey(mbedtls_rsa_context *rsa, const unsigned char *key,
  *
  * \return          On success, the number of bytes written to the output buffer
  *                  (i.e. a value > 0).
- * \return          MBEDTLS_ERR_RSA_BAD_INPUT_DATA is the RSA context does not
- *                  cointain valid.
+ * \return          MBEDTLS_ERR_RSA_BAD_INPUT_DATA if the RSA context does not
+ *                  contain a valid key pair.
  * \return          MBEDTLS_ERR_ASN1_xxx in case of failure while writing to the
  *                  output buffer.
  *
@@ -79,8 +83,8 @@ int mbedtls_rsa_write_key(const mbedtls_rsa_context *rsa, unsigned char *start,
  *
  * \return          On success, the number of bytes written to the output buffer
  *                  (i.e. a value > 0).
- * \return          MBEDTLS_ERR_RSA_BAD_INPUT_DATA is the RSA context does not
- *                  cointain valid.
+ * \return          MBEDTLS_ERR_RSA_BAD_INPUT_DATA if the RSA context does not
+ *                  contain a valid public key.
  * \return          MBEDTLS_ERR_ASN1_xxx in case of failure while writing to the
  *                  output buffer.
  *

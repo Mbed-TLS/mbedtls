@@ -135,6 +135,32 @@ static int pk_genkey(mbedtls_pk_context *pk, int curve_or_keybits)
     return -1;
 }
 
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+static psa_key_usage_t pk_get_psa_attributes_implied_usage(
+    psa_key_usage_t expected_usage)
+{
+    /* Usage implied universally */
+    if (expected_usage & PSA_KEY_USAGE_SIGN_HASH) {
+        expected_usage |= PSA_KEY_USAGE_SIGN_MESSAGE;
+    }
+    if (expected_usage & PSA_KEY_USAGE_VERIFY_HASH) {
+        expected_usage |= PSA_KEY_USAGE_VERIFY_MESSAGE;
+    }
+    /* Usage implied by mbedtls_pk_get_psa_attributes() */
+    if (expected_usage & PSA_KEY_USAGE_SIGN_HASH) {
+        expected_usage |= PSA_KEY_USAGE_VERIFY_HASH;
+    }
+    if (expected_usage & PSA_KEY_USAGE_SIGN_MESSAGE) {
+        expected_usage |= PSA_KEY_USAGE_VERIFY_MESSAGE;
+    }
+    if (expected_usage & PSA_KEY_USAGE_DECRYPT) {
+        expected_usage |= PSA_KEY_USAGE_ENCRYPT;
+    }
+    expected_usage |= PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_COPY;
+    return expected_usage;
+}
+#endif /* MBEDTLS_PSA_CRYPTO_C */
+
 #if defined(MBEDTLS_RSA_C)
 int mbedtls_rsa_decrypt_func(void *ctx, size_t *olen,
                              const unsigned char *input, unsigned char *output,
@@ -1724,26 +1750,7 @@ void pk_get_psa_attributes(int pk_type, int from_pair,
     psa_set_key_id(&attributes, key_id);
     psa_set_key_lifetime(&attributes, lifetime);
     psa_set_key_enrollment_algorithm(&attributes, 42);
-
-    psa_key_usage_t expected_usage = usage;
-    /* Usage implied universally */
-    if (expected_usage & PSA_KEY_USAGE_SIGN_HASH) {
-        expected_usage |= PSA_KEY_USAGE_SIGN_MESSAGE;
-    }
-    if (expected_usage & PSA_KEY_USAGE_VERIFY_HASH) {
-        expected_usage |= PSA_KEY_USAGE_VERIFY_MESSAGE;
-    }
-    /* Usage implied by mbedtls_pk_get_psa_attributes() */
-    if (expected_usage & PSA_KEY_USAGE_SIGN_HASH) {
-        expected_usage |= PSA_KEY_USAGE_VERIFY_HASH;
-    }
-    if (expected_usage & PSA_KEY_USAGE_SIGN_MESSAGE) {
-        expected_usage |= PSA_KEY_USAGE_VERIFY_MESSAGE;
-    }
-    if (expected_usage & PSA_KEY_USAGE_DECRYPT) {
-        expected_usage |= PSA_KEY_USAGE_ENCRYPT;
-    }
-    expected_usage |= PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_COPY;
+    psa_key_usage_t expected_usage = pk_get_psa_attributes_implied_usage(usage);
 
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
     /* When the resulting algorithm is ECDSA, the compile-time configuration
@@ -1795,26 +1802,7 @@ void pk_rsa_v21_get_psa_attributes(int md_type, int from_pair,
     if (!to_pair) {
         expected_psa_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(expected_psa_type);
     }
-
-    psa_key_usage_t expected_usage = usage;
-    /* Usage implied universally */
-    if (expected_usage & PSA_KEY_USAGE_SIGN_HASH) {
-        expected_usage |= PSA_KEY_USAGE_SIGN_MESSAGE;
-    }
-    if (expected_usage & PSA_KEY_USAGE_VERIFY_HASH) {
-        expected_usage |= PSA_KEY_USAGE_VERIFY_MESSAGE;
-    }
-    /* Usage implied by mbedtls_pk_get_psa_attributes() */
-    if (expected_usage & PSA_KEY_USAGE_SIGN_HASH) {
-        expected_usage |= PSA_KEY_USAGE_VERIFY_HASH;
-    }
-    if (expected_usage & PSA_KEY_USAGE_SIGN_MESSAGE) {
-        expected_usage |= PSA_KEY_USAGE_VERIFY_MESSAGE;
-    }
-    if (expected_usage & PSA_KEY_USAGE_DECRYPT) {
-        expected_usage |= PSA_KEY_USAGE_ENCRYPT;
-    }
-    expected_usage |= PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_COPY;
+    psa_key_usage_t expected_usage = pk_get_psa_attributes_implied_usage(usage);
 
     TEST_EQUAL(mbedtls_pk_get_psa_attributes(&pk, usage, &attributes), 0);
 

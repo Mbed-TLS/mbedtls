@@ -146,7 +146,8 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
         if function_name.startswith('psa_aead'):
             return True
         if function_name in {'psa_cipher_encrypt', 'psa_cipher_decrypt',
-                             'psa_cipher_update', 'psa_cipher_finish'}:
+                             'psa_cipher_update', 'psa_cipher_finish',
+                             'psa_cipher_generate_iv', 'psa_cipher_set_iv'}:
             return True
         if function_name in ('psa_key_derivation_output_bytes',
                              'psa_key_derivation_input_bytes'):

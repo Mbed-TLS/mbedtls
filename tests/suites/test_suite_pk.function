@@ -287,7 +287,7 @@ static int pk_setup_for_type(mbedtls_pk_type_t pk_type, int want_pair,
                                           pk->pub_raw, pk->pub_raw_len,
                                           &pk->priv_id));
 #else
-                mbedtls_ecp_keypair *ec = mbedtls_pk_ec(*pk);
+                mbedtls_ecp_keypair *ec = mbedtls_pk_ec_rw(*pk);
                 mbedtls_mpi_free(&ec->d);
 #endif
             }

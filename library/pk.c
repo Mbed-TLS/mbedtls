@@ -475,7 +475,7 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
             size_t bits = psa_get_key_bits(&old_attributes);
             psa_ecc_family_t family = PSA_KEY_TYPE_ECC_GET_FAMILY(old_type);
 #else
-            mbedtls_ecp_keypair *ec = mbedtls_pk_ec(*pk);
+            const mbedtls_ecp_keypair *ec = mbedtls_pk_ec_ro(*pk);
             int has_private = (ec->d.n != 0);
             size_t bits = 0;
             psa_ecc_family_t family =

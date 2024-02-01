@@ -4361,7 +4361,7 @@ psa_status_t psa_cipher_generate_iv(psa_cipher_operation_t *operation,
 
 exit:
     if (status == PSA_SUCCESS) {
-        memcpy(iv, local_iv, default_iv_length);
+        psa_crypto_copy_output(local_iv, default_iv_length, iv, iv_size);
         *iv_length = default_iv_length;
         operation->iv_set = 1;
     } else {
@@ -4373,10 +4373,12 @@ exit:
 }
 
 psa_status_t psa_cipher_set_iv(psa_cipher_operation_t *operation,
-                               const uint8_t *iv,
+                               const uint8_t *iv_external,
                                size_t iv_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    LOCAL_INPUT_DECLARE(iv_external, iv);
 
     if (operation->id == 0) {
         status = PSA_ERROR_BAD_STATE;
@@ -4393,6 +4395,8 @@ psa_status_t psa_cipher_set_iv(psa_cipher_operation_t *operation,
         goto exit;
     }
 
+    LOCAL_INPUT_ALLOC(iv_external, iv_length, iv);
+
     status = psa_driver_wrapper_cipher_set_iv(operation,
                                               iv,
                                               iv_length);
@@ -4403,6 +4407,9 @@ exit:
     } else {
         psa_cipher_abort(operation);
     }
+
+    LOCAL_INPUT_FREE(iv_external, iv);
+
     return status;
 }
 

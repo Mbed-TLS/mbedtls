@@ -32,6 +32,10 @@ void pk_parse_keyfile_rsa(char *key_file, char *password, int result)
         TEST_ASSERT(mbedtls_pk_can_do(&ctx, MBEDTLS_PK_RSA));
         rsa = mbedtls_pk_rsa(ctx);
         TEST_ASSERT(mbedtls_rsa_check_privkey(rsa) == 0);
+
+        /* Test consistency between get_len and get_bitlen */
+        size_t bitlen = mbedtls_pk_get_bitlen(&ctx);
+        TEST_EQUAL(mbedtls_pk_get_len(&ctx), (bitlen + 7) / 8);
     }
 
 exit:
@@ -58,6 +62,10 @@ void pk_parse_public_keyfile_rsa(char *key_file, int result)
         TEST_ASSERT(mbedtls_pk_can_do(&ctx, MBEDTLS_PK_RSA));
         rsa = mbedtls_pk_rsa(ctx);
         TEST_ASSERT(mbedtls_rsa_check_pubkey(rsa) == 0);
+
+        /* Test consistency between get_len and get_bitlen */
+        size_t bitlen = mbedtls_pk_get_bitlen(&ctx);
+        TEST_EQUAL(mbedtls_pk_get_len(&ctx), (bitlen + 7) / 8);
     }
 
 exit:

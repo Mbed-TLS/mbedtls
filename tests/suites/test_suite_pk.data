@@ -12,6 +12,19 @@ PK utils: RSA 512-bit
 depends_on:MBEDTLS_RSA_C:MBEDTLS_GENPRIME
 pk_utils:MBEDTLS_PK_RSA:512:512:64:"RSA"
 
+# mbedtls_rsa_gen_key() only supports even sizes, so we don't test 513 etc.
+PK utils: RSA 514-bit
+depends_on:MBEDTLS_RSA_C:MBEDTLS_GENPRIME
+pk_utils:MBEDTLS_PK_RSA:514:514:65:"RSA"
+
+PK utils: RSA 516-bit
+depends_on:MBEDTLS_RSA_C:MBEDTLS_GENPRIME
+pk_utils:MBEDTLS_PK_RSA:516:516:65:"RSA"
+
+PK utils: RSA 518-bit
+depends_on:MBEDTLS_RSA_C:MBEDTLS_GENPRIME
+pk_utils:MBEDTLS_PK_RSA:518:518:65:"RSA"
+
 PK utils: ECKEY SECP192R1
 depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_utils:MBEDTLS_PK_ECKEY:MBEDTLS_ECP_DP_SECP192R1:192:24:"EC"

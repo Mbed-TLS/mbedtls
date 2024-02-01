@@ -1867,7 +1867,7 @@ void pk_get_psa_attributes_opaque(int o_type_arg, int o_bits_arg,
     psa_key_usage_t usage = usage_arg;
     psa_key_usage_t expected_usage = expected_usage_arg;
 
-    USE_PSA_INIT();
+    PSA_INIT();
 
     psa_set_key_type(&attributes, o_type);
     psa_set_key_bits(&attributes, bits);
@@ -1899,6 +1899,6 @@ exit:
     mbedtls_pk_free(&pk);
     psa_destroy_key(key_id);
     psa_reset_key_attributes(&attributes);
-    USE_PSA_DONE();
+    PSA_DONE();
 }
 /* END_CASE */

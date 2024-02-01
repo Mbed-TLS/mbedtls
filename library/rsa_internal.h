@@ -34,18 +34,15 @@ int mbedtls_rsa_parse_key(mbedtls_rsa_context *rsa, const unsigned char *key, si
  * \brief           Parse a PKCS#1 (ASN.1) encoded public RSA key.
  *
  * \param rsa       The RSA context where parsed data will be stored.
- * \param p         Beginning of the buffer containing the key to be parsed.
- *                  On successful return, the referenced pointer will be
- *                  updated in order to point to the end of the parsed data.
- * \param end       End of the buffer containing the key to be parsed.
+ * \param key       The buffer that contains the key.
+ * \param keylen    The length of the key buffer in bytes.
  *
  * \return          0 on success.
  * \return          MBEDTLS_ERR_ASN1_xxx in case of ASN.1 parsing errors.
  * \return          MBEDTLS_ERR_RSA_BAD_INPUT_DATA in case of importing or
  *                  priv/pub validation errors.
  */
-int mbedtls_rsa_parse_pubkey(mbedtls_rsa_context *rsa, unsigned char **p,
-                             const unsigned char *end);
+int mbedtls_rsa_parse_pubkey(mbedtls_rsa_context *rsa, const unsigned char *key, size_t keylen);
 
 /**
  * \brief           Write a PKCS#1 (ASN.1) encoded private RSA key.

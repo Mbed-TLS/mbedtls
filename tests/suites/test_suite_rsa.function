@@ -1376,13 +1376,11 @@ exit:
 void rsa_parse_pkcs1_key(int is_public, data_t *input, int exp_ret_val)
 {
     mbedtls_rsa_context rsa_ctx;
-    unsigned char *start = input->x;
-    unsigned char *end = input->x + input->len;
 
     mbedtls_rsa_init(&rsa_ctx);
 
     if (is_public) {
-        TEST_EQUAL(mbedtls_rsa_parse_pubkey(&rsa_ctx, &start, end), exp_ret_val);
+        TEST_EQUAL(mbedtls_rsa_parse_pubkey(&rsa_ctx, input->x, input->len), exp_ret_val);
     } else {
         TEST_EQUAL(mbedtls_rsa_parse_key(&rsa_ctx, input->x, input->len), exp_ret_val);
     }
@@ -1396,8 +1394,6 @@ exit:
 void rsa_parse_write_pkcs1_key(int is_public, data_t *input)
 {
     mbedtls_rsa_context rsa_ctx;
-    unsigned char *input_start = input->x;
-    unsigned char *input_end = input->x + input->len;
     unsigned char *output_buf = NULL;
     unsigned char *output_start;
     unsigned char *output_end;
@@ -1410,8 +1406,7 @@ void rsa_parse_write_pkcs1_key(int is_public, data_t *input)
 
     /* Parse the key and write it back to output_buf. */
     if (is_public) {
-        TEST_EQUAL(mbedtls_rsa_parse_pubkey(&rsa_ctx, &input_start, input_end), 0);
-        TEST_ASSERT(input_start == input_end);
+        TEST_EQUAL(mbedtls_rsa_parse_pubkey(&rsa_ctx, input->x, input->len), 0);
         TEST_EQUAL(mbedtls_rsa_write_pubkey(&rsa_ctx, output_start, &output_end), input->len);
     } else {
         TEST_EQUAL(mbedtls_rsa_parse_key(&rsa_ctx, input->x, input->len), 0);
@@ -1434,7 +1429,7 @@ exit:
 void rsa_key_write_incremental(int is_public, data_t *input)
 {
     mbedtls_rsa_context rsa_ctx;
-    unsigned char *buf = NULL, *start, *end;
+    unsigned char *buf = NULL, *end;
     size_t i;
 
     mbedtls_rsa_init(&rsa_ctx);
@@ -1442,9 +1437,7 @@ void rsa_key_write_incremental(int is_public, data_t *input)
     /* This is supposed to succeed as the real target of this test are the
      * write attempt below. */
     if (is_public) {
-        start = input->x;
-        end = input->x + input->len;
-        TEST_EQUAL(mbedtls_rsa_parse_pubkey(&rsa_ctx, &start, end), 0);
+        TEST_EQUAL(mbedtls_rsa_parse_pubkey(&rsa_ctx, input->x, input->len), 0);
     } else {
         TEST_EQUAL(mbedtls_rsa_parse_key(&rsa_ctx, input->x, input->len), 0);
     }

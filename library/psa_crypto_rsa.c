@@ -73,9 +73,7 @@ psa_status_t mbedtls_psa_rsa_load_representation(
     if (PSA_KEY_TYPE_IS_KEY_PAIR(type)) {
         status = mbedtls_to_psa_error(mbedtls_rsa_parse_key(*p_rsa, data, data_length));
     } else {
-        unsigned char *p = data;
-        unsigned char *end = (data + data_length);
-        status = mbedtls_to_psa_error(mbedtls_rsa_parse_pubkey(*p_rsa, &p, end));
+        status = mbedtls_to_psa_error(mbedtls_rsa_parse_pubkey(*p_rsa, data, data_length));
     }
     if (status != PSA_SUCCESS) {
         goto exit;

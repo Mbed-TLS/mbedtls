@@ -46,6 +46,34 @@
 
 #include "mbedtls/platform.h"
 
+/*
+ * Wrapper around mbedtls_asn1_get_mpi() that rejects zero.
+ *
+ * The value zero is:
+ * - never a valid value for an RSA parameter
+ * - interpreted as "omitted, please reconstruct" by mbedtls_rsa_complete().
+ *
+ * Since values can't be omitted in PKCS#1, passing a zero value to
+ * rsa_complete() would be incorrect, so reject zero values early.
+ */
+static int asn1_get_nonzero_mpi(unsigned char **p,
+                                const unsigned char *end,
+                                mbedtls_mpi *X)
+{
+    int ret;
+
+    ret = mbedtls_asn1_get_mpi(p, end, X);
+    if (ret != 0) {
+        return ret;
+    }
+
+    if (mbedtls_mpi_cmp_int(X, 0) == 0) {
+        return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
+    }
+
+    return 0;
+}
+
 int mbedtls_rsa_parse_key(mbedtls_rsa_context *rsa, const unsigned char *key, size_t keylen)
 {
     int ret, version;
@@ -192,9 +220,10 @@ cleanup:
     return ret;
 }
 
-int mbedtls_rsa_parse_pubkey(mbedtls_rsa_context *rsa, unsigned char **p,
-                             const unsigned char *end)
+int mbedtls_rsa_parse_pubkey(mbedtls_rsa_context *rsa, const unsigned char *key, size_t keylen)
 {
+    unsigned char *p = (unsigned char *) key;
+    unsigned char *end = (unsigned char *) (key + keylen);
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
 
@@ -205,45 +234,45 @@ int mbedtls_rsa_parse_pubkey(mbedtls_rsa_context *rsa, unsigned char **p,
      *  }
      */
 
-    if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+    if ((ret = mbedtls_asn1_get_tag(&p, end, &len,
                                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
         return ret;
     }
 
-    if (*p + len != end) {
+    if (p + len != end) {
         return MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
     }
 
     /* Import N */
-    if ((ret = mbedtls_asn1_get_tag(p, end, &len, MBEDTLS_ASN1_INTEGER)) != 0) {
+    if ((ret = mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_INTEGER)) != 0) {
         return ret;
     }
 
-    if ((ret = mbedtls_rsa_import_raw(rsa, *p, len, NULL, 0, NULL, 0,
+    if ((ret = mbedtls_rsa_import_raw(rsa, p, len, NULL, 0, NULL, 0,
                                       NULL, 0, NULL, 0)) != 0) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
 
-    *p += len;
+    p += len;
 
     /* Import E */
-    if ((ret = mbedtls_asn1_get_tag(p, end, &len, MBEDTLS_ASN1_INTEGER)) != 0) {
+    if ((ret = mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_INTEGER)) != 0) {
         return ret;
     }
 
     if ((ret = mbedtls_rsa_import_raw(rsa, NULL, 0, NULL, 0, NULL, 0,
-                                      NULL, 0, *p, len)) != 0) {
+                                      NULL, 0, p, len)) != 0) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
 
-    *p += len;
+    p += len;
 
     if (mbedtls_rsa_complete(rsa) != 0 ||
         mbedtls_rsa_check_pubkey(rsa) != 0) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
 
-    if (*p != end) {
+    if (p != end) {
         return MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
     }
 
@@ -990,34 +1019,6 @@ int mbedtls_rsa_get_md_alg(const mbedtls_rsa_context *ctx)
 size_t mbedtls_rsa_get_len(const mbedtls_rsa_context *ctx)
 {
     return ctx->len;
-}
-
-/*
- * Wrapper around mbedtls_asn1_get_mpi() that rejects zero.
- *
- * The value zero is:
- * - never a valid value for an RSA parameter
- * - interpreted as "omitted, please reconstruct" by mbedtls_rsa_complete().
- *
- * Since values can't be omitted in PKCS#1, passing a zero value to
- * rsa_complete() would be incorrect, so reject zero values early.
- */
-static int asn1_get_nonzero_mpi(unsigned char **p,
-                                const unsigned char *end,
-                                mbedtls_mpi *X)
-{
-    int ret;
-
-    ret = mbedtls_asn1_get_mpi(p, end, X);
-    if (ret != 0) {
-        return ret;
-    }
-
-    if (mbedtls_mpi_cmp_int(X, 0) == 0) {
-        return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
-    }
-
-    return 0;
 }
 
 #if defined(MBEDTLS_GENPRIME)

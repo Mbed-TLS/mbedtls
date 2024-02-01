@@ -850,7 +850,7 @@ int mbedtls_pk_parse_subpubkey(unsigned char **p, const unsigned char *end,
 
 #if defined(MBEDTLS_RSA_C)
     if (pk_alg == MBEDTLS_PK_RSA) {
-        ret = mbedtls_rsa_parse_pubkey(mbedtls_pk_rsa(*pk), p, end);
+        ret = mbedtls_rsa_parse_pubkey(mbedtls_pk_rsa(*pk), *p, (size_t) (end - *p));
     } else
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
@@ -1504,7 +1504,7 @@ int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
             return ret;
         }
 
-        if ((ret = mbedtls_rsa_parse_pubkey(mbedtls_pk_rsa(*ctx), &p, p + pem.buflen)) != 0) {
+        if ((ret = mbedtls_rsa_parse_pubkey(mbedtls_pk_rsa(*ctx), p, pem.buflen)) != 0) {
             mbedtls_pk_free(ctx);
         }
 
@@ -1551,7 +1551,7 @@ int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
     }
 
     p = (unsigned char *) key;
-    ret = mbedtls_rsa_parse_pubkey(mbedtls_pk_rsa(*ctx), &p, p + keylen);
+    ret = mbedtls_rsa_parse_pubkey(mbedtls_pk_rsa(*ctx), p, keylen);
     if (ret == 0) {
         return ret;
     }

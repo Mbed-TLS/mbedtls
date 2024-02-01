@@ -12,8 +12,7 @@
 
 #define SSL_MESSAGE_QUEUE_INIT      { NULL, 0, 0, 0 }
 
-#if (!defined(MBEDTLS_SSL_PROTO_TLS1_2)) && \
-    defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C) && \
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C) && \
     defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_DEBUG_C) && \
     defined(MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE) && \
     defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED) && \
@@ -3662,12 +3661,7 @@ exit:
 }
 /* END_CASE */
 
-/*
- * The !MBEDTLS_SSL_PROTO_TLS1_2 dependency of tls13_early_data() below is
- * a temporary workaround to not run the test in Windows-2013 where there is
- * an issue with mbedtls_vsnprintf().
- */
-/* BEGIN_CASE depends_on:!MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_DEBUG_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_SSL_SESSION_TICKETS */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_DEBUG_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_SSL_SESSION_TICKETS */
 void tls13_early_data()
 {
     int ret = -1;
@@ -3678,7 +3672,6 @@ void tls13_early_data()
     mbedtls_test_handshake_test_options client_options;
     mbedtls_test_handshake_test_options server_options;
     mbedtls_ssl_session saved_session;
-    mbedtls_test_ssl_log_pattern server_pattern = { NULL, 0 };
 
     /*
      * Test set-up
@@ -3699,9 +3692,6 @@ void tls13_early_data()
     mbedtls_ssl_conf_early_data(&client_ep.conf, MBEDTLS_SSL_EARLY_DATA_ENABLED);
 
     server_options.pk_alg = MBEDTLS_PK_ECDSA;
-    server_options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
-    server_options.srv_log_obj = &server_pattern;
-    server_pattern.pattern = early_data;
     ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
                                          &server_options, NULL, NULL, NULL,
                                          NULL);
@@ -3750,15 +3740,12 @@ void tls13_early_data()
     ret = mbedtls_ssl_set_session(&(client_ep.ssl), &saved_session);
     TEST_EQUAL(ret, 0);
 
-    mbedtls_debug_set_threshold(3);
-
     TEST_EQUAL(mbedtls_test_move_handshake_to_state(
                    &(client_ep.ssl), &(server_ep.ssl),
                    MBEDTLS_SSL_SERVER_HELLO), 0);
 
     TEST_ASSERT(client_ep.ssl.early_data_status !=
                 MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT);
-    TEST_EQUAL(server_pattern.counter, 0);
 
     ret = write_early_data(&(client_ep.ssl), (unsigned char *) early_data,
                            early_data_len);
@@ -3766,10 +3753,16 @@ void tls13_early_data()
 
     TEST_EQUAL(mbedtls_test_move_handshake_to_state(
                    &(server_ep.ssl), &(client_ep.ssl),
-                   MBEDTLS_SSL_CLIENT_FINISHED), 0);
+                   MBEDTLS_SSL_CLIENT_FINISHED), MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA);
 
     TEST_EQUAL(server_ep.ssl.handshake->early_data_accepted, 1);
-    TEST_EQUAL(server_pattern.counter, 1);
+    TEST_EQUAL(mbedtls_ssl_read_early_data(&(server_ep.ssl), buf, sizeof(buf)),
+               early_data_len);
+    TEST_MEMORY_COMPARE(buf, early_data_len, early_data, early_data_len);
+
+    TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                   &(server_ep.ssl), &(client_ep.ssl),
+                   MBEDTLS_SSL_HANDSHAKE_OVER), 0);
 
 exit:
     mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
@@ -3777,7 +3770,6 @@ exit:
     mbedtls_test_free_handshake_options(&client_options);
     mbedtls_test_free_handshake_options(&server_options);
     mbedtls_ssl_session_free(&saved_session);
-    mbedtls_debug_set_threshold(0);
     PSA_DONE();
 }
 /* END_CASE */

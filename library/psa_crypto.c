@@ -2687,7 +2687,7 @@ exit:
         operation->mac_size = 0;
     }
 
-    if (mac_size > operation->mac_size) {
+    if ((mac != NULL) && (mac_size > operation->mac_size)) {
         memset(&mac[operation->mac_size], '!',
                mac_size - operation->mac_size);
     }

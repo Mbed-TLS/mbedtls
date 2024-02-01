@@ -2734,7 +2734,7 @@ exit:
         operation->mac_size = 0;
     }
 
-    if (status != PSA_ERROR_INSUFFICIENT_MEMORY) {
+    if (mac != NULL) {
         psa_wipe_tag_output_buffer(mac, status, mac_size, *mac_length);
     }
 

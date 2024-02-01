@@ -1015,6 +1015,14 @@ int mbedtls_rsa_get_md_alg(const mbedtls_rsa_context *ctx)
 }
 
 /*
+ * Get length in bits of RSA modulus
+ */
+size_t mbedtls_rsa_get_bitlen(const mbedtls_rsa_context *ctx)
+{
+    return mbedtls_mpi_bitlen(&ctx->N);
+}
+
+/*
  * Get length in bytes of RSA modulus
  */
 size_t mbedtls_rsa_get_len(const mbedtls_rsa_context *ctx)

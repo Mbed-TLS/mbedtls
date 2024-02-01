@@ -554,17 +554,17 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
  *                    \p usage, exporting and copying the key, and
  *                    possibly other permissions as documented for the
  *                    \p usage parameter.
- *                    The permitted algorithm is determined as follows
+ *                    The permitted algorithm policy is determined as follows
  *                    based on the #mbedtls_pk_type_t type of \p pk,
  *                    the chosen \p usage and other factors:
- *                      - #MBEDTLS_PK_RSA with whose underlying
+ *                      - #MBEDTLS_PK_RSA whose underlying
  *                        #mbedtls_rsa_context has the padding mode
  *                        #MBEDTLS_RSA_PKCS_V15:
  *                        #PSA_ALG_RSA_PKCS1V15_SIGN(#PSA_ALG_ANY_HASH)
  *                        if \p usage is SIGN/VERIFY, and
  *                        #PSA_ALG_RSA_PKCS1V15_CRYPT
  *                        if \p usage is ENCRYPT/DECRYPT.
- *                      - #MBEDTLS_PK_RSA with whose underlying
+ *                      - #MBEDTLS_PK_RSA whose underlying
  *                        #mbedtls_rsa_context has the padding mode
  *                        #MBEDTLS_RSA_PKCS_V21 and the digest type
  *                        corresponding to the PSA algorithm \c hash:
@@ -581,7 +581,7 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
  *                      - #MBEDTLS_PK_ECKEY_DH or #MBEDTLS_PK_ECKEY
  *                        if \p usage is DERIVE:
  *                        #PSA_ALG_ECDH.
- *                      - #MBEDTLS_PK_OPAQUE: same as the algorithm policy
+ *                      - #MBEDTLS_PK_OPAQUE: same as the primary algorithm
  *                        set for the underlying PSA key, except that
  *                        sign/decrypt flags are removed if the type is
  *                        set to a public key type.

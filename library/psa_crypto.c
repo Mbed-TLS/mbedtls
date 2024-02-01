@@ -2647,6 +2647,7 @@ psa_status_t psa_mac_sign_finish(psa_mac_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t abort_status = PSA_ERROR_CORRUPTION_DETECTED;
     LOCAL_OUTPUT_DECLARE(mac_external, mac);
+    LOCAL_OUTPUT_ALLOC(mac_external, mac_size, mac);
 
     if (operation->id == 0) {
         status = PSA_ERROR_BAD_STATE;
@@ -2670,7 +2671,6 @@ psa_status_t psa_mac_sign_finish(psa_mac_operation_t *operation,
         goto exit;
     }
 
-    LOCAL_OUTPUT_ALLOC(mac_external, mac_size, mac);
     status = psa_driver_wrapper_mac_sign_finish(operation,
                                                 mac, operation->mac_size,
                                                 mac_length);

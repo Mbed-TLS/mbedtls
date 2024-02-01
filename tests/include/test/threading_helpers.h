@@ -27,11 +27,6 @@
 
 #if defined(MBEDTLS_THREADING_PTHREAD)
 #include <pthread.h>
-
-typedef struct mbedtls_test_thread_t {
-    pthread_t MBEDTLS_PRIVATE(thread);
-} mbedtls_test_thread_t;
-
 #endif /* MBEDTLS_THREADING_PTHREAD */
 
 #if defined(MBEDTLS_THREADING_ALT)
@@ -58,17 +53,30 @@ void mbedtls_test_thread_set_alt(int (*thread_create)(mbedtls_test_thread_t *thr
                                                       void *thread_data),
                                  int (*thread_join)(mbedtls_test_thread_t *thread));
 
+#else /* MBEDTLS_THREADING_ALT*/
+
+typedef struct mbedtls_test_thread_t {
+
+#if defined(MBEDTLS_THREADING_PTHREAD)
+    pthread_t MBEDTLS_PRIVATE(thread);
+#else /* MBEDTLS_THREADING_PTHREAD */
+    /* Make sure this struct is always non-empty */
+    unsigned dummy;
+#endif
+
+} mbedtls_test_thread_t;
+
 #endif /* MBEDTLS_THREADING_ALT*/
 
 /**
- * \brief                   The function pointers for thread create and thread
+ * \brief The function pointers for thread create and thread
  *                          join.
  *
- * \note                    These functions are part of the testing API only and
+ * \note These functions are part of the testing API only and
  *                          thus not considered part of the public API of
  *                          MbedTLS and thus may change without notice.
  *
- * \note                    All these functions are expected to work or
+ * \note All these functions are expected to work or
  *                          the result will be undefined.
  */
 extern int (*mbedtls_test_thread_create)(mbedtls_test_thread_t *thread,

@@ -390,6 +390,47 @@ int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
                             const mbedtls_svc_key_id_t key);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+/**
+ * \brief           Create a PK context starting from a key stored in PSA.
+ *                  This key:
+ *                  - must have PSA_KEY_USAGE_EXPORT attribute set and
+ *                  - must be a either a RSA or EC (DH is not managed in PK) and
+ *                  - must be either a key pair or a public key.
+ *
+ *                  The resulting PK object will be a transparent type:
+ *                  - MBEDTLS_PK_RSA for RSA keys or
+ *                  - MBEDTLS_PK_ECKEY for EC keys.
+ *                  Once this functions returns the PK object will be completely
+ *                  independent from the original PSA key that it was generated
+ *                  from.
+ *                  Calling `mbedtls_pk_sign`, `mbedtls_pk_verify`,
+ *                  `mbedtls_pk_encrypt`, `mbedtls_pk_decrypt` on the resulting
+ *                  PK context will perform an algorithm that is compatible with
+ *                  the PSA key's primary algorithm policy if that is a matching
+ *                  operation type (sign/verify, encrypt/decrypt), but with no
+ *                  restriction on the hash (as if the policy had
+ *                  `PSA_ALG_ANY_HASH` instead of a specific hash, and with
+ *                  `PSA_ALG_RSA_PKCS1V15_SIGN_RAW` merged with
+ *                  `PSA_ALG_RSA_PKCS1V15_SIGN(hash_alg)`).
+ *                  * For ECDSA, the choice of deterministic vs randomized will
+ *                    be based on the compile-time setting `MBEDTLS_ECDSA_DETERMINISTIC`.
+ *                  * For an RSA key, the output key will allow both encrypt/decrypt
+ *                    and sign/verify regardless of the original key's policy.
+ *                    The original key's policy determines the output key's padding
+ *                    mode.
+ *
+ * \param key_id    The ID of the key stored in PSA.
+ * \param pk        The PK context that will be filled. It must be initialized,
+ *                  but not setup.
+ *
+ * \return          0 on success.
+ * \return          MBEDTLS_ERR_PK_BAD_INPUT_DATA in case the provided input
+ *                  parameters are not correct.
+ */
+int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id, mbedtls_pk_context *pk);
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /**
  * \brief           Initialize an RSA-alt context

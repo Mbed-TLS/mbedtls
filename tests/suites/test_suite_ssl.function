@@ -3768,8 +3768,7 @@ void tls13_early_data()
                    &(server_ep.ssl), &(client_ep.ssl),
                    MBEDTLS_SSL_CLIENT_FINISHED), 0);
 
-    TEST_EQUAL(server_ep.ssl.early_data_status,
-               MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED);
+    TEST_EQUAL(server_ep.ssl.handshake->early_data_accepted, 1);
     TEST_EQUAL(server_pattern.counter, 1);
 
 exit:

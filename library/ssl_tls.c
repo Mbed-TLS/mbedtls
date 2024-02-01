@@ -1098,14 +1098,8 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_ALLOC_FAILED;
     }
 
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-#if defined(MBEDTLS_SSL_SRV_C)
-    MBEDTLS_STATIC_ASSERT(MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN == 0,
-                          "MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN not equal to 0");
-#endif
-    MBEDTLS_STATIC_ASSERT(MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT == 0,
-                          "MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT not equal to 0");
-    ssl->early_data_status = 0;
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+    ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT;
 #endif
 
     /* Initialize structures */

@@ -1780,8 +1780,8 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
 }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl,
-                                               int hrr_required)
+static int ssl_tls13_is_early_data_accepted(mbedtls_ssl_context *ssl,
+                                            int hrr_required)
 {
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
@@ -1789,22 +1789,19 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl,
          MBEDTLS_SSL_EXT_MASK(EARLY_DATA)) == 0) {
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("EarlyData: no early data extension received."));
-        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_RECEIVED;
-        return;
+        return 0;
     }
-
-    ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED;
 
     if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_DISABLED) {
         MBEDTLS_SSL_DEBUG_MSG(
             1,
             ("EarlyData: rejected, feature disabled in server configuration."));
-        return;
+        return 0;
     }
 
     if (hrr_required) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("EarlyData: rejected, HRR required."));
-        return;
+        return 0;
     }
 
     if (!handshake->resume) {
@@ -1813,7 +1810,7 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl,
            resumption. */
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("EarlyData: rejected, not a session resumption."));
-        return;
+        return 0;
     }
 
     /* RFC 8446 4.2.10
@@ -1836,7 +1833,7 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("EarlyData: rejected, the selected key in "
                 "`pre_shared_key` is not the first one."));
-        return;
+        return 0;
     }
 
     if (handshake->ciphersuite_info->id !=
@@ -1844,7 +1841,7 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("EarlyData: rejected, the selected ciphersuite is not the one "
                 "of the selected pre-shared key."));
-        return;
+        return 0;
 
     }
 
@@ -1853,11 +1850,10 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl,
             1,
             ("EarlyData: rejected, early_data not allowed in ticket "
              "permission bits."));
-        return;
+        return 0;
     }
 
-    ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
-
+    return 1;
 }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
@@ -1889,10 +1885,10 @@ static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl,
     }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    /* There is enough information, update early data status. */
-    ssl_tls13_update_early_data_status(ssl, hrr_required);
+    ssl->handshake->early_data_accepted =
+        ssl_tls13_is_early_data_accepted(ssl, hrr_required);
 
-    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
+    if (ssl->handshake->early_data_accepted) {
         ret = mbedtls_ssl_tls13_compute_early_transform(ssl);
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(
@@ -2541,7 +2537,7 @@ static int ssl_tls13_write_encrypted_extensions_body(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_ALPN */
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
+    if (ssl->handshake->early_data_accepted) {
         ret = mbedtls_ssl_tls13_write_early_data_ext(
             ssl, 0, p, end, &output_len);
         if (ret != 0) {
@@ -2868,7 +2864,7 @@ static int ssl_tls13_write_server_finished(mbedtls_ssl_context *ssl)
     }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
+    if (ssl->handshake->early_data_accepted) {
         /* See RFC 8446 section A.2 for more information */
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("Switch to early keys for inbound traffic. "
@@ -3014,9 +3010,6 @@ static int ssl_tls13_process_end_of_early_data(mbedtls_ssl_context *ssl)
 
         MBEDTLS_SSL_PROC_CHK(ssl_tls13_parse_end_of_early_data(
                                  ssl, buf, buf + buf_len));
-
-        ssl->early_data_status =
-            MBEDTLS_SSL_EARLY_DATA_STATUS_END_OF_EARLY_DATA_RECEIVED;
 
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("Switch to handshake keys for inbound traffic"

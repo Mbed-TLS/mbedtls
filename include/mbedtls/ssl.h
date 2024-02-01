@@ -1654,22 +1654,14 @@ struct mbedtls_ssl_context {
      */
     mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(tls_version);
 
-#if defined(MBEDTLS_SSL_EARLY_DATA)
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
     /**
-     *  On client side, status of the negotiation of the use of early data.
+     *  Status of the negotiation of the use of early data.
      *  See the documentation of mbedtls_ssl_get_early_data_status() for more
      *  information.
      *
-     *  On server side, internal only, status of early data in the course of an
-     *  handshake. One of MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN,
-     *  #MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED,
-     *  #MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED,
-     *  MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_RECEIVED and
-     *  MBEDTLS_SSL_EARLY_DATA_STATUS_END_OF_EARLY_DATA_RECEIVED.
-     *
-     *  Reset to #MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT or
-     *  MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN, at the beginning of a new
-     *  handshake.
+     *  Reset to #MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT when the context is
+     *  reset.
      */
     int MBEDTLS_PRIVATE(early_data_status);
 #endif

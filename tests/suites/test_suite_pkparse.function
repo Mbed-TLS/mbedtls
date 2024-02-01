@@ -42,6 +42,10 @@ void pk_parse_keyfile_rsa(char *key_file, char *password, int result)
         rsa = mbedtls_pk_rsa(ctx);
         TEST_EQUAL(mbedtls_rsa_check_privkey(rsa), 0);
 
+        size_t bitlen = mbedtls_rsa_get_bitlen(rsa);
+        TEST_EQUAL(mbedtls_pk_get_bitlen(&ctx), bitlen);
+        TEST_EQUAL(mbedtls_pk_get_len(&ctx), (bitlen + 7) / 8);
+
 #if defined(MBEDTLS_PSA_CRYPTO_C)
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
         TEST_EQUAL(mbedtls_pk_get_psa_attributes(&ctx,

@@ -424,7 +424,7 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
 #if defined(MBEDTLS_RSA_C)
         case MBEDTLS_PK_RSA:
         {
-            int want_crypt = 0; /* 0: encrypt/decrypt; 1: sign/verify */
+            int want_crypt = 0; /* 0: sign/verify; 1: encrypt/decrypt */
             switch (usage) {
                 case PSA_KEY_USAGE_SIGN_MESSAGE:
                 case PSA_KEY_USAGE_SIGN_HASH:

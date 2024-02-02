@@ -283,9 +283,7 @@ static int pk_setup_for_type(mbedtls_pk_type_t pk_type, int want_pair,
                                         PSA_KEY_USAGE_VERIFY_HASH);
                 psa_set_key_algorithm(&pub_attributes, PSA_ALG_ECDSA_ANY);
                 PSA_ASSERT(psa_destroy_key(pk->priv_id));
-                PSA_ASSERT(psa_import_key(&pub_attributes,
-                                          pk->pub_raw, pk->pub_raw_len,
-                                          &pk->priv_id));
+                pk->priv_id = MBEDTLS_SVC_KEY_ID_INIT;
 #else
                 mbedtls_ecp_keypair *ec = mbedtls_pk_ec_rw(*pk);
                 mbedtls_mpi_free(&ec->d);

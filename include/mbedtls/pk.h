@@ -253,6 +253,8 @@ typedef struct mbedtls_pk_context {
      *   inside the ecp_keypair structure
      * - the following fields are used for all public key operations: signature
      *   verify, key pair check and key write.
+     * - For a key pair, priv_id contains the private key. For a public key,
+     *   priv_id is null.
      * Of course, when MBEDTLS_PK_USE_PSA_EC_DATA is not enabled, the legacy
      * ecp_keypair structure is used for storing the public key and performing
      * all the operations.

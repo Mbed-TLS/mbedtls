@@ -186,6 +186,23 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
     } \
     output_copy = LOCAL_OUTPUT_COPY_OF_##output.buffer;
 
+/* Allocate a copy of the buffer output and set the pointer output_copy to
+ * point to the start of the copy.
+ *
+ * Assumptions:
+ * - psa_status_t status exists
+ * - An exit label is declared
+ * - output is the name of a pointer to the buffer to be copied
+ * - LOCAL_OUTPUT_DECLARE(output, output_copy) has previously been called
+ */
+#define LOCAL_OUTPUT_ALLOC_WITH_COPY(output, length, output_copy) \
+    status = psa_crypto_local_output_alloc_with_copy(output, length, \
+                                                     &LOCAL_OUTPUT_COPY_OF_##output); \
+    if (status != PSA_SUCCESS) { \
+        goto exit; \
+    } \
+    output_copy = LOCAL_OUTPUT_COPY_OF_##output.buffer;
+
 /* Free the local output copy allocated previously by LOCAL_OUTPUT_ALLOC()
  * after first copying back its contents to the original buffer.
  *
@@ -1455,13 +1472,14 @@ psa_status_t psa_export_key_internal(
 }
 
 psa_status_t psa_export_key(mbedtls_svc_key_id_t key,
-                            uint8_t *data,
+                            uint8_t *data_external,
                             size_t data_size,
                             size_t *data_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
+    LOCAL_OUTPUT_DECLARE(data_external, data);
 
     /* Reject a zero-length output buffer now, since this can never be a
      * valid key representation. This way we know that data must be a valid
@@ -1486,6 +1504,8 @@ psa_status_t psa_export_key(mbedtls_svc_key_id_t key,
         return status;
     }
 
+    LOCAL_OUTPUT_ALLOC(data_external, data_size, data);
+
     psa_key_attributes_t attributes = {
         .core = slot->attr
     };
@@ -1493,8 +1513,12 @@ psa_status_t psa_export_key(mbedtls_svc_key_id_t key,
                                            slot->key.data, slot->key.bytes,
                                            data, data_size, data_length);
 
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+exit:
+#endif
     unlock_status = psa_unregister_read(slot);
 
+    LOCAL_OUTPUT_FREE(data_external, data);
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
@@ -1566,7 +1590,7 @@ psa_status_t psa_export_public_key_internal(
 }
 
 psa_status_t psa_export_public_key(mbedtls_svc_key_id_t key,
-                                   uint8_t *data,
+                                   uint8_t *data_external,
                                    size_t data_size,
                                    size_t *data_length)
 {
@@ -1574,6 +1598,7 @@ psa_status_t psa_export_public_key(mbedtls_svc_key_id_t key,
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
     psa_key_attributes_t attributes;
+    LOCAL_OUTPUT_DECLARE(data_external, data);
 
     /* Reject a zero-length output buffer now, since this can never be a
      * valid key representation. This way we know that data must be a valid
@@ -1594,6 +1619,8 @@ psa_status_t psa_export_public_key(mbedtls_svc_key_id_t key,
         return status;
     }
 
+    LOCAL_OUTPUT_ALLOC(data_external, data_size, data);
+
     if (!PSA_KEY_TYPE_IS_ASYMMETRIC(slot->attr.type)) {
         status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
@@ -1609,6 +1636,7 @@ psa_status_t psa_export_public_key(mbedtls_svc_key_id_t key,
 exit:
     unlock_status = psa_unregister_read(slot);
 
+    LOCAL_OUTPUT_FREE(data_external, data);
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
@@ -2055,11 +2083,12 @@ rsa_exit:
 }
 
 psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
-                            const uint8_t *data,
+                            const uint8_t *data_external,
                             size_t data_length,
                             mbedtls_svc_key_id_t *key)
 {
     psa_status_t status;
+    LOCAL_INPUT_DECLARE(data_external, data);
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
     size_t bits;
@@ -2078,6 +2107,8 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
     if (data_length > SIZE_MAX / 8) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
+
+    LOCAL_INPUT_ALLOC(data_external, data_length, data);
 
     status = psa_start_key_creation(PSA_KEY_CREATION_IMPORT, attributes,
                                     &slot, &driver);
@@ -2133,6 +2164,7 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
 
     status = psa_finish_key_creation(slot, driver, key);
 exit:
+    LOCAL_INPUT_FREE(data_external, data);
     if (status != PSA_SUCCESS) {
         psa_fail_key_creation(slot, driver);
     }
@@ -3021,15 +3053,27 @@ psa_status_t psa_sign_message_builtin(
 
 psa_status_t psa_sign_message(mbedtls_svc_key_id_t key,
                               psa_algorithm_t alg,
-                              const uint8_t *input,
+                              const uint8_t *input_external,
                               size_t input_length,
-                              uint8_t *signature,
+                              uint8_t *signature_external,
                               size_t signature_size,
                               size_t *signature_length)
 {
-    return psa_sign_internal(
-        key, 1, alg, input, input_length,
-        signature, signature_size, signature_length);
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    LOCAL_INPUT_DECLARE(input_external, input);
+    LOCAL_OUTPUT_DECLARE(signature_external, signature);
+
+    LOCAL_INPUT_ALLOC(input_external, input_length, input);
+    LOCAL_OUTPUT_ALLOC(signature_external, signature_size, signature);
+    status = psa_sign_internal(key, 1, alg, input, input_length, signature,
+                               signature_size, signature_length);
+
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+exit:
+#endif
+    LOCAL_INPUT_FREE(input_external, input);
+    LOCAL_OUTPUT_FREE(signature_external, signature);
+    return status;
 }
 
 psa_status_t psa_verify_message_builtin(
@@ -3068,14 +3112,27 @@ psa_status_t psa_verify_message_builtin(
 
 psa_status_t psa_verify_message(mbedtls_svc_key_id_t key,
                                 psa_algorithm_t alg,
-                                const uint8_t *input,
+                                const uint8_t *input_external,
                                 size_t input_length,
-                                const uint8_t *signature,
+                                const uint8_t *signature_external,
                                 size_t signature_length)
 {
-    return psa_verify_internal(
-        key, 1, alg, input, input_length,
-        signature, signature_length);
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    LOCAL_INPUT_DECLARE(input_external, input);
+    LOCAL_INPUT_DECLARE(signature_external, signature);
+
+    LOCAL_INPUT_ALLOC(input_external, input_length, input);
+    LOCAL_INPUT_ALLOC(signature_external, signature_length, signature);
+    status = psa_verify_internal(key, 1, alg, input, input_length, signature,
+                                 signature_length);
+
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+exit:
+#endif
+    LOCAL_INPUT_FREE(input_external, input);
+    LOCAL_INPUT_FREE(signature_external, signature);
+
+    return status;
 }
 
 psa_status_t psa_sign_hash_builtin(
@@ -3128,15 +3185,28 @@ psa_status_t psa_sign_hash_builtin(
 
 psa_status_t psa_sign_hash(mbedtls_svc_key_id_t key,
                            psa_algorithm_t alg,
-                           const uint8_t *hash,
+                           const uint8_t *hash_external,
                            size_t hash_length,
-                           uint8_t *signature,
+                           uint8_t *signature_external,
                            size_t signature_size,
                            size_t *signature_length)
 {
-    return psa_sign_internal(
-        key, 0, alg, hash, hash_length,
-        signature, signature_size, signature_length);
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    LOCAL_INPUT_DECLARE(hash_external, hash);
+    LOCAL_OUTPUT_DECLARE(signature_external, signature);
+
+    LOCAL_INPUT_ALLOC(hash_external, hash_length, hash);
+    LOCAL_OUTPUT_ALLOC(signature_external, signature_size, signature);
+    status = psa_sign_internal(key, 0, alg, hash, hash_length, signature,
+                               signature_size, signature_length);
+
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+exit:
+#endif
+    LOCAL_INPUT_FREE(hash_external, hash);
+    LOCAL_OUTPUT_FREE(signature_external, signature);
+
+    return status;
 }
 
 psa_status_t psa_verify_hash_builtin(
@@ -3188,14 +3258,27 @@ psa_status_t psa_verify_hash_builtin(
 
 psa_status_t psa_verify_hash(mbedtls_svc_key_id_t key,
                              psa_algorithm_t alg,
-                             const uint8_t *hash,
+                             const uint8_t *hash_external,
                              size_t hash_length,
-                             const uint8_t *signature,
+                             const uint8_t *signature_external,
                              size_t signature_length)
 {
-    return psa_verify_internal(
-        key, 0, alg, hash, hash_length,
-        signature, signature_length);
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    LOCAL_INPUT_DECLARE(hash_external, hash);
+    LOCAL_INPUT_DECLARE(signature_external, signature);
+
+    LOCAL_INPUT_ALLOC(hash_external, hash_length, hash);
+    LOCAL_INPUT_ALLOC(signature_external, signature_length, signature);
+    status = psa_verify_internal(key, 0, alg, hash, hash_length, signature,
+                                 signature_length);
+
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+exit:
+#endif
+    LOCAL_INPUT_FREE(hash_external, hash);
+    LOCAL_INPUT_FREE(signature_external, signature);
+
+    return status;
 }
 
 psa_status_t psa_asymmetric_encrypt(mbedtls_svc_key_id_t key,
@@ -8574,6 +8657,39 @@ psa_status_t psa_crypto_local_output_alloc(uint8_t *output, size_t output_len,
     local_output->original = output;
 
     return PSA_SUCCESS;
+}
+
+psa_status_t psa_crypto_local_output_alloc_with_copy(uint8_t *output, size_t output_len,
+                                                     psa_crypto_local_output_t *local_output)
+{
+    psa_status_t status;
+    *local_output = PSA_CRYPTO_LOCAL_OUTPUT_INIT;
+
+    if (output_len == 0) {
+        return PSA_SUCCESS;
+    }
+    local_output->buffer = mbedtls_calloc(output_len, 1);
+    if (local_output->buffer == NULL) {
+        /* Since we dealt with the zero-length case above, we know that
+         * a NULL return value means a failure of allocation. */
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+    }
+    local_output->length = output_len;
+    local_output->original = output;
+
+    status = psa_crypto_copy_input(output, output_len,
+                                   local_output->buffer, local_output->length);
+    if (status != PSA_SUCCESS) {
+        goto error;
+    }
+
+    return PSA_SUCCESS;
+
+error:
+    mbedtls_free(local_output->buffer);
+    local_output->buffer = NULL;
+    local_output->length = 0;
+    return status;
 }
 
 psa_status_t psa_crypto_local_output_free(psa_crypto_local_output_t *local_output)

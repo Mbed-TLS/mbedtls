@@ -145,6 +145,15 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
         # Proof-of-concept: just instrument one function for now
         if function_name == 'psa_cipher_encrypt':
             return True
+        if function_name in ('psa_import_key',
+                             'psa_export_key',
+                             'psa_export_public_key'):
+            return True
+        if function_name in ('psa_sign_message',
+                             'psa_verify_message',
+                             'psa_sign_hash',
+                             'psa_verify_hash'):
+            return True
         return False
 
     def _write_function_call(self, out: typing_util.Writable,

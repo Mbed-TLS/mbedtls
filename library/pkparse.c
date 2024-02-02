@@ -854,7 +854,8 @@ int mbedtls_pk_parse_subpubkey(unsigned char **p, const unsigned char *end,
         if (ret == 0) {
             /* On success all the input has been consumed by the parsing function. */
             *p += end - *p;
-        } else if (ret & 0x7f) {
+        } else if ((ret <= MBEDTLS_ERR_ASN1_OUT_OF_DATA) &&
+                   (ret >= MBEDTLS_ERR_ASN1_BUF_TOO_SMALL)) {
             /* In case of ASN1 error codes add MBEDTLS_ERR_PK_INVALID_PUBKEY. */
             ret = MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_INVALID_PUBKEY, ret);
         } else {

@@ -144,12 +144,25 @@ unsigned long mbedtls_test_get_step(void)
     return step;
 }
 
-void mbedtls_test_set_step(unsigned long step)
+void mbedtls_test_reset_step(void)
 {
     /* Internal function only - mbedtls_test_info_mutex should be held prior
      * to calling this function. */
 
+    mbedtls_test_info.step = (unsigned long) (-1);
+}
+
+void mbedtls_test_set_step(unsigned long step)
+{
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
     mbedtls_test_info.step = step;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
 }
 
 void mbedtls_test_get_line1(char *line)
@@ -366,7 +379,7 @@ void mbedtls_test_info_reset(void)
 #endif /* MBEDTLS_THREADING_C */
 
     mbedtls_test_set_result(MBEDTLS_TEST_RESULT_SUCCESS, 0, 0, 0);
-    mbedtls_test_set_step((unsigned long) (-1));
+    mbedtls_test_reset_step();
     mbedtls_test_set_line1(NULL);
     mbedtls_test_set_line2(NULL);
 

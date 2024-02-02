@@ -1,3 +1,0 @@
-Changes
-   *  Mbed TLS is now released under a dual Apache-2.0 OR GPL-2.0-or-later
-      license. Users may choose which license they take the code under.

@@ -650,6 +650,10 @@ struct mbedtls_ssl_handshake_params {
     /* Flag indicating if a CertificateRequest message has been sent
      * to the client or not. */
     uint8_t certificate_request_sent;
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    /* Flag indicating if the server has accepted early data or not. */
+    uint8_t early_data_accepted;
+#endif
 #endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
@@ -2130,12 +2134,6 @@ int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
                                            unsigned char *buf,
                                            const unsigned char *end,
                                            size_t *out_len);
-
-#if defined(MBEDTLS_SSL_SRV_C)
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_RECEIVED \
-    MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT
-#endif /* MBEDTLS_SSL_SRV_C */
-
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

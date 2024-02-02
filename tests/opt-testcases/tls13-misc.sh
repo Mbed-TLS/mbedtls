@@ -506,4 +506,7 @@ run_test "TLS 1.3 G->m: EarlyData: feature is enabled, good." \
          -s "Sent max_early_data_size=$EARLY_DATA_INPUT_LEN"                \
          -s "ClientHello: early_data(42) extension exists."                 \
          -s "EncryptedExtensions: early_data(42) extension exists."         \
-         -s "$( tail -1 $EARLY_DATA_INPUT )"
+         -s "$( head -1 $EARLY_DATA_INPUT )"                                \
+         -s "$( tail -1 $EARLY_DATA_INPUT )"                                \
+         -s "200 early data bytes read"                                     \
+         -s "106 early data bytes read"

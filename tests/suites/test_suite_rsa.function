@@ -1427,8 +1427,8 @@ exit:
 void rsa_key_write_incremental(int is_public, data_t *input)
 {
     mbedtls_rsa_context rsa_ctx;
-    unsigned char *buf = NULL, *end;
-    size_t i;
+    unsigned char *buf = NULL, *end, *p;
+    size_t i, written_data;
 
     mbedtls_rsa_init(&rsa_ctx);
 
@@ -1440,27 +1440,36 @@ void rsa_key_write_incremental(int is_public, data_t *input)
         TEST_EQUAL(mbedtls_rsa_parse_key(&rsa_ctx, input->x, input->len), 0);
     }
 
+    /* Test with an output buffer smaller than required. */
     for (i = 1; i < input->len; i++) {
         TEST_CALLOC(buf, i);
         end = buf + i;
+        p = end;
         /* We don't care much about the return value as long as it fails. */
         if (is_public) {
-            TEST_ASSERT(mbedtls_rsa_write_pubkey(&rsa_ctx, buf, &end) != 0);
+            TEST_ASSERT(mbedtls_rsa_write_pubkey(&rsa_ctx, buf, &p) != 0);
         } else {
-            TEST_ASSERT(mbedtls_rsa_write_key(&rsa_ctx, buf, &end) != 0);
+            TEST_ASSERT(mbedtls_rsa_write_key(&rsa_ctx, buf, &p) != 0);
         }
         mbedtls_free(buf);
         buf = NULL;
     }
 
-    /* Ensure with the correct output buffer size everything works as expected. */
-    TEST_CALLOC(buf, i);
-    end = buf + i;
-
-    if (is_public) {
-        TEST_ASSERT(mbedtls_rsa_write_pubkey(&rsa_ctx, buf, &end) != 0);
-    } else {
-        TEST_ASSERT(mbedtls_rsa_write_key(&rsa_ctx, buf, &end) > 0);
+    /* Test with an output buffer equal or larger than what it is strictly required. */
+    for (i = input->len; i < (2 * input->len); i++) {
+        TEST_CALLOC(buf, i);
+        end = buf + i;
+        p = end;
+        /* This time all write functions must succeed. */
+        if (is_public) {
+            TEST_ASSERT(mbedtls_rsa_write_pubkey(&rsa_ctx, buf, &p) > 0);
+        } else {
+            TEST_ASSERT(mbedtls_rsa_write_key(&rsa_ctx, buf, &p) > 0);
+        }
+        written_data = (end - p);
+        TEST_MEMORY_COMPARE(p, written_data, input->x, input->len);
+        mbedtls_free(buf);
+        buf = NULL;
     }
 
 exit:

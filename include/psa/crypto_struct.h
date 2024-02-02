@@ -455,6 +455,9 @@ static inline size_t psa_get_key_bits(
  * \brief The context for PSA interruptible hash signing.
  */
 struct psa_sign_hash_interruptible_operation_s {
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_psa_client_handle_t handle;
+#else
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
      * drivers halfway through the operation is not supported.
@@ -468,9 +471,14 @@ struct psa_sign_hash_interruptible_operation_s {
     unsigned int MBEDTLS_PRIVATE(error_occurred) : 1;
 
     uint32_t MBEDTLS_PRIVATE(num_ops);
+#endif
 };
 
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { 0 }
+#else
 #define PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { 0, { 0 }, 0, 0 }
+#endif
 
 static inline struct psa_sign_hash_interruptible_operation_s
 psa_sign_hash_interruptible_operation_init(void)
@@ -485,6 +493,9 @@ psa_sign_hash_interruptible_operation_init(void)
  * \brief The context for PSA interruptible hash verification.
  */
 struct psa_verify_hash_interruptible_operation_s {
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_psa_client_handle_t handle;
+#else
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
      * drivers halfway through the operation is not supported.
@@ -498,9 +509,14 @@ struct psa_verify_hash_interruptible_operation_s {
     unsigned int MBEDTLS_PRIVATE(error_occurred) : 1;
 
     uint32_t MBEDTLS_PRIVATE(num_ops);
+#endif
 };
 
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_VERIFY_HASH_INTERRUPTIBLE_OPERATION_INIT { 0 }
+#else
 #define PSA_VERIFY_HASH_INTERRUPTIBLE_OPERATION_INIT { 0, { 0 }, 0, 0 }
+#endif
 
 static inline struct psa_verify_hash_interruptible_operation_s
 psa_verify_hash_interruptible_operation_init(void)

@@ -3007,15 +3007,27 @@ psa_status_t psa_sign_message_builtin(
 
 psa_status_t psa_sign_message(mbedtls_svc_key_id_t key,
                               psa_algorithm_t alg,
-                              const uint8_t *input,
+                              const uint8_t *input_external,
                               size_t input_length,
-                              uint8_t *signature,
+                              uint8_t *signature_external,
                               size_t signature_size,
                               size_t *signature_length)
 {
-    return psa_sign_internal(
-        key, 1, alg, input, input_length,
-        signature, signature_size, signature_length);
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    LOCAL_INPUT_DECLARE(input_external, input);
+    LOCAL_OUTPUT_DECLARE(signature_external, signature);
+
+    LOCAL_INPUT_ALLOC(input_external, input_length, input);
+    LOCAL_OUTPUT_ALLOC(signature_external, signature_size, signature);
+    status = psa_sign_internal(key, 1, alg, input, input_length, signature,
+                               signature_size, signature_length);
+
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+exit:
+#endif
+    LOCAL_INPUT_FREE(input_external, input);
+    LOCAL_OUTPUT_FREE(signature_external, signature);
+    return status;
 }
 
 psa_status_t psa_verify_message_builtin(
@@ -3054,14 +3066,27 @@ psa_status_t psa_verify_message_builtin(
 
 psa_status_t psa_verify_message(mbedtls_svc_key_id_t key,
                                 psa_algorithm_t alg,
-                                const uint8_t *input,
+                                const uint8_t *input_external,
                                 size_t input_length,
-                                const uint8_t *signature,
+                                const uint8_t *signature_external,
                                 size_t signature_length)
 {
-    return psa_verify_internal(
-        key, 1, alg, input, input_length,
-        signature, signature_length);
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    LOCAL_INPUT_DECLARE(input_external, input);
+    LOCAL_INPUT_DECLARE(signature_external, signature);
+
+    LOCAL_INPUT_ALLOC(input_external, input_length, input);
+    LOCAL_INPUT_ALLOC(signature_external, signature_length, signature);
+    status = psa_verify_internal(key, 1, alg, input, input_length, signature,
+                                 signature_length);
+
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+exit:
+#endif
+    LOCAL_INPUT_FREE(input_external, input);
+    LOCAL_INPUT_FREE(signature_external, signature);
+
+    return status;
 }
 
 psa_status_t psa_sign_hash_builtin(
@@ -3114,15 +3139,28 @@ psa_status_t psa_sign_hash_builtin(
 
 psa_status_t psa_sign_hash(mbedtls_svc_key_id_t key,
                            psa_algorithm_t alg,
-                           const uint8_t *hash,
+                           const uint8_t *hash_external,
                            size_t hash_length,
-                           uint8_t *signature,
+                           uint8_t *signature_external,
                            size_t signature_size,
                            size_t *signature_length)
 {
-    return psa_sign_internal(
-        key, 0, alg, hash, hash_length,
-        signature, signature_size, signature_length);
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    LOCAL_INPUT_DECLARE(hash_external, hash);
+    LOCAL_OUTPUT_DECLARE(signature_external, signature);
+
+    LOCAL_INPUT_ALLOC(hash_external, hash_length, hash);
+    LOCAL_OUTPUT_ALLOC(signature_external, signature_size, signature);
+    status = psa_sign_internal(key, 0, alg, hash, hash_length, signature,
+                               signature_size, signature_length);
+
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+exit:
+#endif
+    LOCAL_INPUT_FREE(hash_external, hash);
+    LOCAL_OUTPUT_FREE(signature_external, signature);
+
+    return status;
 }
 
 psa_status_t psa_verify_hash_builtin(
@@ -3174,14 +3212,27 @@ psa_status_t psa_verify_hash_builtin(
 
 psa_status_t psa_verify_hash(mbedtls_svc_key_id_t key,
                              psa_algorithm_t alg,
-                             const uint8_t *hash,
+                             const uint8_t *hash_external,
                              size_t hash_length,
-                             const uint8_t *signature,
+                             const uint8_t *signature_external,
                              size_t signature_length)
 {
-    return psa_verify_internal(
-        key, 0, alg, hash, hash_length,
-        signature, signature_length);
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    LOCAL_INPUT_DECLARE(hash_external, hash);
+    LOCAL_INPUT_DECLARE(signature_external, signature);
+
+    LOCAL_INPUT_ALLOC(hash_external, hash_length, hash);
+    LOCAL_INPUT_ALLOC(signature_external, signature_length, signature);
+    status = psa_verify_internal(key, 0, alg, hash, hash_length, signature,
+                                 signature_length);
+
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+exit:
+#endif
+    LOCAL_INPUT_FREE(hash_external, hash);
+    LOCAL_INPUT_FREE(signature_external, signature);
+
+    return status;
 }
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)

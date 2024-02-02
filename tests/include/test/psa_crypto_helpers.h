@@ -17,16 +17,10 @@
 
 #include <psa/crypto.h>
 
-#include "test/psa_test_wrappers.h"
-
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "mbedtls/psa_util.h"
 #endif
 
-#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_PSA_CRYPTO_C) \
-    && defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
-#include "test/psa_memory_poisoning_wrappers.h"
-#endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
 

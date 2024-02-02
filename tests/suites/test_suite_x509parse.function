@@ -9,7 +9,6 @@
 #include "mbedtls/base64.h"
 #include "mbedtls/error.h"
 #include "mbedtls/pk.h"
-#include "mbedtls/rsa.h"
 #include "string.h"
 
 #if MBEDTLS_X509_MAX_INTERMEDIATE_CA > 19

@@ -241,6 +241,17 @@ typedef struct {
     psa_key_lifetime_t MBEDTLS_PRIVATE(lifetime);
     psa_key_policy_t MBEDTLS_PRIVATE(policy);
     psa_key_attributes_flag_t MBEDTLS_PRIVATE(flags);
+    /* This type has a different layout in the client view wrt the
+     * service view of the key id, i.e. in service view usually is
+     * expected to have MBEDTLS_SVC_KEY_ID_ENCODES_OWNER defined
+     * thus adding an owner field to the standard psa_key_id_t. For
+     * implementations with client/service separation, this means the
+     * object will be marshalled through a transport channel and
+     * interpreted differently at each side of the transport. Placing
+     * it at the end of structures allows to interpret the structure
+     * at the client without reorganizing the memory layout of the
+     * struct
+     */
     mbedtls_svc_key_id_t MBEDTLS_PRIVATE(id);
 } psa_core_key_attributes_t;
 
@@ -267,6 +278,12 @@ struct psa_key_attributes_s {
      */
     void *MBEDTLS_PRIVATE(domain_parameters);
     size_t MBEDTLS_PRIVATE(domain_parameters_size);
+    /* With client/service separation, struct psa_key_attributes_s is
+     * marshalled through a transport channel between the client and
+     * service side implementation of the PSA Crypto APIs, thus having
+     * the mbedtls_svc_key_id_t id as the last field of this structure
+     * allows for a more efficient marshalling/unmarshalling of parameters
+     */
     psa_core_key_attributes_t MBEDTLS_PRIVATE(core);
 };
 

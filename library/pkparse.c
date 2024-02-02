@@ -851,6 +851,15 @@ int mbedtls_pk_parse_subpubkey(unsigned char **p, const unsigned char *end,
 #if defined(MBEDTLS_RSA_C)
     if (pk_alg == MBEDTLS_PK_RSA) {
         ret = mbedtls_rsa_parse_pubkey(mbedtls_pk_rsa(*pk), *p, (size_t) (end - *p));
+        if (ret == 0) {
+            /* On success all the input has been consumed by the parsing function. */
+            *p += end - *p;
+        } else if (ret & 0x7f) {
+            /* In case of ASN1 error codes add MBEDTLS_ERR_PK_INVALID_PUBKEY. */
+            ret = MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_INVALID_PUBKEY, ret);
+        } else {
+            ret = MBEDTLS_ERR_PK_INVALID_PUBKEY;
+        }
     } else
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)

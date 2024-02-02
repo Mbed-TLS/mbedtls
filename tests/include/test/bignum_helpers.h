@@ -86,8 +86,8 @@ void mbedtls_test_mpi_mod_modulus_free_with_limbs(mbedtls_mpi_mod_modulus *N);
  *   the "0 (null)" and "0 (1 limb)" and "leading zeros" test cases do what they
  *   claim.
  *
- * \param[out] X The MPI object to populate. It must be initialized.
- * \param[in] s The null-terminated hexadecimal string to read from.
+ * \param[out] X        The MPI object to populate. It must be initialized.
+ * \param[in] s         The null-terminated hexadecimal string to read from.
  *
  * \return \c 0 on success, an \c MBEDTLS_ERR_MPI_xxx error code otherwise.
  */

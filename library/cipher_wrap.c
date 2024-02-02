@@ -114,7 +114,9 @@ enum mbedtls_cipher_base_index {
     MBEDTLS_CIPHER_BASE_PREVENT_EMPTY_ENUM
 };
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C) && \
+    (defined(MBEDTLS_CIPHER_HAVE_GCM_AES_VIA_LEGACY_OR_USE_PSA) || \
+    defined(MBEDTLS_ARIA_C) || defined(MBEDTLS_CAMELLIA_C))
 /* shared by all GCM ciphers */
 static void *gcm_ctx_alloc(void)
 {
@@ -134,7 +136,9 @@ static void gcm_ctx_free(void *ctx)
 }
 #endif /* MBEDTLS_GCM_C */
 
-#if defined(MBEDTLS_CCM_C)
+#if defined(MBEDTLS_CCM_C) && \
+    (defined(MBEDTLS_CIPHER_HAVE_CCM_AES_VIA_LEGACY_OR_USE_PSA) || \
+    defined(MBEDTLS_ARIA_C) || defined(MBEDTLS_CAMELLIA_C))
 /* shared by all CCM ciphers */
 static void *ccm_ctx_alloc(void)
 {
@@ -562,14 +566,14 @@ static const mbedtls_cipher_info_t aes_256_xts_info = {
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
 #endif /* MBEDTLS_AES_C */
 
-#if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_AES_C)
+#if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_CCM_GCM_CAN_AES)
 static int gcm_aes_setkey_wrap(void *ctx, const unsigned char *key,
                                unsigned int key_bitlen)
 {
     return mbedtls_gcm_setkey((mbedtls_gcm_context *) ctx, MBEDTLS_CIPHER_ID_AES,
                               key, key_bitlen);
 }
-#endif /* MBEDTLS_GCM_C && MBEDTLS_AES_C */
+#endif /* MBEDTLS_GCM_C && MBEDTLS_CCM_GCM_CAN_AES */
 
 #if defined(MBEDTLS_CIPHER_HAVE_GCM_AES_VIA_LEGACY_OR_USE_PSA)
 static const mbedtls_cipher_base_t gcm_aes_info = {
@@ -646,14 +650,14 @@ static const mbedtls_cipher_info_t aes_256_gcm_info = {
 #endif
 #endif /* MBEDTLS_CIPHER_HAVE_GCM_AES_VIA_LEGACY_OR_USE_PSA */
 
-#if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_AES_C)
+#if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_CCM_GCM_CAN_AES)
 static int ccm_aes_setkey_wrap(void *ctx, const unsigned char *key,
                                unsigned int key_bitlen)
 {
     return mbedtls_ccm_setkey((mbedtls_ccm_context *) ctx, MBEDTLS_CIPHER_ID_AES,
                               key, key_bitlen);
 }
-#endif /* MBEDTLS_CCM_C && MBEDTLS_AES_C */
+#endif /* MBEDTLS_CCM_C && MBEDTLS_CCM_GCM_CAN_AES */
 
 #if defined(MBEDTLS_CIPHER_HAVE_CCM_AES_VIA_LEGACY_OR_USE_PSA)
 static const mbedtls_cipher_base_t ccm_aes_info = {

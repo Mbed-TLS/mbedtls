@@ -83,7 +83,14 @@ struct _hr_time {
 #include "mbedtls/memory_buffer_alloc.h"
 #endif
 
+#ifdef MBEDTLS_TIMING_ALT
+void mbedtls_set_alarm(int seconds);
+unsigned long mbedtls_timing_hardclock(void);
+extern volatile int mbedtls_timing_alarmed;
+#else
 static void mbedtls_set_alarm(int seconds);
+static unsigned long mbedtls_timing_hardclock(void);
+#endif
 
 /*
  * For heap usage estimates, we need an estimate of the overhead per allocated
@@ -227,6 +234,7 @@ static void mbedtls_set_alarm(int seconds);
         }                                                                   \
     } while (0)
 
+#if !defined(MBEDTLS_TIMING_ALT)
 #if !defined(HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
     (defined(_MSC_VER) && defined(_M_IX86)) || defined(__WATCOMC__)
 
@@ -441,6 +449,7 @@ static void mbedtls_set_alarm(int seconds)
 }
 
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
+#endif /* !MBEDTLS_TIMING_ALT */
 
 static int myrand(void *rng_state, unsigned char *output, size_t len)
 {
@@ -498,7 +507,7 @@ typedef struct {
     char md5, ripemd160, sha1, sha256, sha512,
          sha3_224, sha3_256, sha3_384, sha3_512,
          des3, des,
-         aes_cbc, aes_cfb128, aes_cfb8, aes_gcm, aes_ccm, aes_xts, chachapoly,
+         aes_cbc, aes_cfb128, aes_cfb8, aes_ctr, aes_gcm, aes_ccm, aes_xts, chachapoly,
          aes_cmac, des3_cmac,
          aria, camellia, chacha20,
          poly1305,
@@ -562,6 +571,8 @@ int main(int argc, char *argv[])
                 todo.aes_cfb128 = 1;
             } else if (strcmp(argv[i], "aes_cfb8") == 0) {
                 todo.aes_cfb8 = 1;
+            } else if (strcmp(argv[i], "aes_ctr") == 0) {
+                todo.aes_ctr = 1;
             } else if (strcmp(argv[i], "aes_xts") == 0) {
                 todo.aes_xts = 1;
             } else if (strcmp(argv[i], "aes_gcm") == 0) {
@@ -761,6 +772,31 @@ int main(int argc, char *argv[])
 
             TIME_AND_TSC(title,
                          mbedtls_aes_crypt_cfb8(&aes, MBEDTLS_AES_ENCRYPT, BUFSIZE, tmp, buf, buf));
+        }
+        mbedtls_aes_free(&aes);
+    }
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+    if (todo.aes_ctr) {
+        int keysize;
+        mbedtls_aes_context aes;
+
+        uint8_t stream_block[16];
+        size_t nc_off;
+
+        mbedtls_aes_init(&aes);
+        for (keysize = 128; keysize <= 256; keysize += 64) {
+            mbedtls_snprintf(title, sizeof(title), "AES-CTR-%d", keysize);
+
+            memset(buf, 0, sizeof(buf));
+            memset(tmp, 0, sizeof(tmp));
+            memset(stream_block, 0, sizeof(stream_block));
+            nc_off = 0;
+
+            CHECK_AND_CONTINUE(mbedtls_aes_setkey_enc(&aes, tmp, keysize));
+
+            TIME_AND_TSC(title, mbedtls_aes_crypt_ctr(&aes, BUFSIZE, &nc_off, tmp, stream_block,
+                                                      buf, buf));
         }
         mbedtls_aes_free(&aes);
     }
@@ -1011,7 +1047,7 @@ int main(int argc, char *argv[])
         int keysize;
         mbedtls_rsa_context rsa;
 
-        for (keysize = 2048; keysize <= 4096; keysize *= 2) {
+        for (keysize = 2048; keysize <= 4096; keysize += 1024) {
             mbedtls_snprintf(title, sizeof(title), "RSA-%d", keysize);
 
             mbedtls_rsa_init(&rsa);
@@ -1057,16 +1093,16 @@ int main(int argc, char *argv[])
         for (i = 0; (size_t) i < sizeof(dhm_sizes) / sizeof(dhm_sizes[0]); i++) {
             mbedtls_dhm_init(&dhm);
 
-            if (mbedtls_mpi_read_binary(&dhm.P, dhm_P[i],
+            if (mbedtls_mpi_read_binary(&dhm.MBEDTLS_PRIVATE(P), dhm_P[i],
                                         dhm_P_size[i]) != 0 ||
-                mbedtls_mpi_read_binary(&dhm.G, dhm_G[i],
+                mbedtls_mpi_read_binary(&dhm.MBEDTLS_PRIVATE(G), dhm_G[i],
                                         dhm_G_size[i]) != 0) {
                 mbedtls_exit(1);
             }
 
-            n = mbedtls_mpi_size(&dhm.P);
+            n = mbedtls_mpi_size(&dhm.MBEDTLS_PRIVATE(P));
             mbedtls_dhm_make_public(&dhm, (int) n, buf, n, myrand, NULL);
-            if (mbedtls_mpi_copy(&dhm.GY, &dhm.GX) != 0) {
+            if (mbedtls_mpi_copy(&dhm.MBEDTLS_PRIVATE(GY), &dhm.MBEDTLS_PRIVATE(GX)) != 0) {
                 mbedtls_exit(1);
             }
 

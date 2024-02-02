@@ -2096,6 +2096,10 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    TEST_ASSERT(original.record_size_limit == restored.record_size_limit);
+#endif
+
 exit:
     mbedtls_ssl_session_free(&original);
     mbedtls_ssl_session_free(&restored);

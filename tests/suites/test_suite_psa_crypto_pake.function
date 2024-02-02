@@ -44,7 +44,7 @@ typedef enum {
     ERR_INJECT_EXTRA_INPUT,
     ERR_INJECT_EXTRA_OUTPUT_AT_END,
     ERR_INJECT_EXTRA_INPUT_AT_END,
-    /* erros issued from the .data file */
+    /* errors issued from the .data file */
     ERR_IN_SETUP,
     ERR_IN_SET_USER,
     ERR_IN_SET_PEER,
@@ -59,9 +59,11 @@ typedef enum {
     PAKE_ROUND_TWO
 } pake_round_t;
 
+#if defined(PSA_WANT_ALG_JPAKE)
 /* The only two JPAKE user/peer identifiers supported for the time being. */
 static const uint8_t jpake_server_id[] = { 's', 'e', 'r', 'v', 'e', 'r' };
 static const uint8_t jpake_client_id[] = { 'c', 'l', 'i', 'e', 'n', 't' };
+#endif
 
 /*
  * Inject an error on the specified buffer ONLY it this is the correct stage.

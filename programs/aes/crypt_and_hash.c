@@ -103,7 +103,11 @@ int main(int argc, char *argv[])
         list = mbedtls_cipher_list();
         while (*list) {
             cipher_info = mbedtls_cipher_info_from_type(*list);
-            mbedtls_printf("  %s\n", mbedtls_cipher_info_get_name(cipher_info));
+            const char *name = mbedtls_cipher_info_get_name(cipher_info);
+
+            if (name) {
+                mbedtls_printf("  %s\n", mbedtls_cipher_info_get_name(cipher_info));
+            }
             list++;
         }
 

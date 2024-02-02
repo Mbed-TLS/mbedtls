@@ -217,36 +217,15 @@ struct tm *mbedtls_platform_gmtime_r(const mbedtls_time_t *tt,
 void (*mbedtls_test_hook_test_fail)(const char *, int, const char *);
 #endif /* MBEDTLS_TEST_HOOKS */
 
-/*
- * Provide external definitions of some inline functions so that the compiler
- * has the option to not inline them
- */
-extern inline void mbedtls_xor(unsigned char *r,
-                               const unsigned char *a,
-                               const unsigned char *b,
-                               size_t n);
-
-extern inline uint16_t mbedtls_get_unaligned_uint16(const void *p);
-
-extern inline void mbedtls_put_unaligned_uint16(void *p, uint16_t x);
-
-extern inline uint32_t mbedtls_get_unaligned_uint32(const void *p);
-
-extern inline void mbedtls_put_unaligned_uint32(void *p, uint32_t x);
-
-extern inline uint64_t mbedtls_get_unaligned_uint64(const void *p);
-
-extern inline void mbedtls_put_unaligned_uint64(void *p, uint64_t x);
-
 #if defined(MBEDTLS_HAVE_TIME) && !defined(MBEDTLS_PLATFORM_MS_TIME_ALT)
 
 #include <time.h>
 #if !defined(_WIN32) && \
     (defined(unix) || defined(__unix) || defined(__unix__) || \
-    (defined(__APPLE__) && defined(__MACH__)))
+    (defined(__APPLE__) && defined(__MACH__)) || defined(__HAIKU__))
 #include <unistd.h>
-#endif /* !_WIN32 && (unix || __unix || __unix__ || (__APPLE__ && __MACH__)) */
-#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 199309L)
+#endif /* !_WIN32 && (unix || __unix || __unix__ || (__APPLE__ && __MACH__) || __HAIKU__) */
+#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 199309L) || defined(__HAIKU__)
 mbedtls_ms_time_t mbedtls_ms_time(void)
 {
     int ret;

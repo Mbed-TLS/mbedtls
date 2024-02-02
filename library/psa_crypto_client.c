@@ -53,6 +53,11 @@ psa_status_t psa_get_key_domain_parameters(
     const psa_key_attributes_t *attributes,
     uint8_t *data, size_t data_size, size_t *data_length)
 {
+    if (attributes->domain_parameters == NULL &&
+        attributes->domain_parameters_size == SIZE_MAX) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
     if (attributes->domain_parameters_size > data_size) {
         return PSA_ERROR_BUFFER_TOO_SMALL;
     }

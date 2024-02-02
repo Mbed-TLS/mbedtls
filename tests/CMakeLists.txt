@@ -1,5 +1,8 @@
+find_package(Threads)
+
 set(libs
     ${mbedtls_target}
+    ${CMAKE_THREAD_LIBS_INIT}
 )
 
 # Set the project root directory if it's not already defined, as may happen if

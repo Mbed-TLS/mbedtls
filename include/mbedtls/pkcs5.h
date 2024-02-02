@@ -17,6 +17,7 @@
 
 #include "mbedtls/asn1.h"
 #include "mbedtls/md.h"
+#include "mbedtls/cipher.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -30,14 +31,14 @@
 /** Given private key password does not allow for correct decryption. */
 #define MBEDTLS_ERR_PKCS5_PASSWORD_MISMATCH               -0x2e00
 
-#define MBEDTLS_PKCS5_DECRYPT      0
-#define MBEDTLS_PKCS5_ENCRYPT      1
+#define MBEDTLS_PKCS5_DECRYPT      MBEDTLS_DECRYPT
+#define MBEDTLS_PKCS5_ENCRYPT      MBEDTLS_ENCRYPT
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if defined(MBEDTLS_ASN1_PARSE_C)
+#if defined(MBEDTLS_ASN1_PARSE_C) && defined(MBEDTLS_CIPHER_C)
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
@@ -129,7 +130,7 @@ int mbedtls_pkcs5_pbes2_ext(const mbedtls_asn1_buf *pbe_params, int mode,
 
 #endif /* MBEDTLS_CIPHER_PADDING_PKCS7 */
 
-#endif /* MBEDTLS_ASN1_PARSE_C */
+#endif /* MBEDTLS_ASN1_PARSE_C && MBEDTLS_CIPHER_C*/
 
 /**
  * \brief          PKCS#5 PBKDF2 using HMAC without using the HMAC context

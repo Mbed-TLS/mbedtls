@@ -31,14 +31,14 @@
 #define MBEDTLS_PKCS12_DERIVE_IV        2   /**< initialization vector     */
 #define MBEDTLS_PKCS12_DERIVE_MAC_KEY   3   /**< integrity / MAC key       */
 
-#define MBEDTLS_PKCS12_PBE_DECRYPT      0
-#define MBEDTLS_PKCS12_PBE_ENCRYPT      1
+#define MBEDTLS_PKCS12_PBE_DECRYPT      MBEDTLS_DECRYPT
+#define MBEDTLS_PKCS12_PBE_ENCRYPT      MBEDTLS_ENCRYPT
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if defined(MBEDTLS_ASN1_PARSE_C)
+#if defined(MBEDTLS_ASN1_PARSE_C) && defined(MBEDTLS_CIPHER_C)
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
@@ -145,7 +145,7 @@ int mbedtls_pkcs12_pbe_ext(mbedtls_asn1_buf *pbe_params, int mode,
 
 #endif /* MBEDTLS_CIPHER_PADDING_PKCS7 */
 
-#endif /* MBEDTLS_ASN1_PARSE_C */
+#endif /* MBEDTLS_ASN1_PARSE_C && MBEDTLS_CIPHER_C */
 
 /**
  * \brief            The PKCS#12 derivation function uses a password and a salt

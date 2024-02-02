@@ -17,7 +17,9 @@
 
 #include "mbedtls/pkcs12.h"
 #include "mbedtls/asn1.h"
+#if defined(MBEDTLS_CIPHER_C)
 #include "mbedtls/cipher.h"
+#endif /* MBEDTLS_CIPHER_C */
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
@@ -29,7 +31,7 @@
 
 #include "psa_util_internal.h"
 
-#if defined(MBEDTLS_ASN1_PARSE_C)
+#if defined(MBEDTLS_ASN1_PARSE_C) && defined(MBEDTLS_CIPHER_C)
 
 static int pkcs12_parse_pbe_params(mbedtls_asn1_buf *params,
                                    mbedtls_asn1_buf *salt, int *iterations)
@@ -238,7 +240,7 @@ exit:
     return ret;
 }
 
-#endif /* MBEDTLS_ASN1_PARSE_C */
+#endif /* MBEDTLS_ASN1_PARSE_C && MBEDTLS_CIPHER_C */
 
 static void pkcs12_fill_buffer(unsigned char *data, size_t data_len,
                                const unsigned char *filler, size_t fill_len)

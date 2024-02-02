@@ -29,7 +29,7 @@ Tempting platform requirements that we cannot add to the default `MBEDTLS_THREAD
 
 If you build with `MBEDTLS_PSA_CRYPTO_C` and `MBEDTLS_THREADING_C`, the code must be functionally correct: no race conditions, deadlocks or livelocks.
 
-The [PSA Crypto API specification](https://armmbed.github.io/mbed-crypto/html/overview/conventions.html#concurrent-calls) defines minimum expectations for concurrent calls. They must work as if they had been executed one at a time, except that the following cases have undefined behavior:
+The [PSA Crypto API specification](https://armmbed.github.io/mbed-crypto/html/overview/conventions.html#concurrent-calls) defines minimum expectations for concurrent calls. They must work as if they had been executed one at a time (excluding resource-management errors), except that the following cases have undefined behavior:
 
 * Destroying a key while it's in use.
 * Concurrent calls using the same operation object. (An operation object may not be used by more than one thread at a time. But it can move from one thread to another between calls.)
@@ -281,28 +281,56 @@ Note that a thread must hold the global mutex when it reads or changes a slot's 
 
 #### Slot states
 
-For concurrency purposes, a slot can be in one of three states:
+For concurrency purposes, a slot can be in one of four states:
 
-* UNUSED: no thread is currently accessing the slot. It may be occupied by a volatile key or a cached key.
-* WRITING: a thread has exclusive access to the slot. This can only happen in specific circumstances as detailed below.
-* READING: any thread may read from the slot.
+* EMPTY: no thread is currently accessing the slot, and no information is stored in the slot. Any thread is able to change the slot's state to FILLING and begin loading data.
+* FILLING: one thread is currently loading or creating material to fill the slot, this thread is responsible for the next state transition. Other threads cannot read the contents of a slot which is in FILLING.
+* FULL: the slot contains a key, and any thread is able to use the key after registering as a reader.
+* PENDING_DELETION: the key within the slot has been destroyed or marked for destruction, but at least one thread is still registered as a reader. No thread can register to read this slot. The slot must not be wiped until the last reader de-registers, wiping the slot by calling `psa_wipe_key_slot`.
 
-A high-level view of state transitions:
+To change `slot` to state `new_state`, a function must call `psa_slot_state_transition(slot, new_state)`.
 
-* `psa_get_empty_key_slot`: UNUSED → WRITING.
-* `psa_get_and_lock_key_slot_in_memory`: UNUSED or READING → READING. This function only accepts slots in the UNUSED or READING state. A slot with the correct id but in the WRITING state is considered free.
-* `psa_unlock_key_slot`: READING → UNUSED or READING.
-* `psa_finish_key_creation`: WRITING → READING.
-* `psa_fail_key_creation`: WRITING → UNUSED.
-* `psa_wipe_key_slot`: any → UNUSED. If the slot is READING or WRITING on entry, this function must wait until the writer or all readers have finished. (By the way, the WRITING state is possible if `mbedtls_psa_crypto_free` is called while a key creation is in progress.) See [“Destruction of a key in use”](#destruction-of-a-key-in-use).
+A counter field within each slot keeps track of how many readers have registered. Library functions must call `psa_register_read` before reading the key data within a slot, and `psa_unregister_read` after they have finished operating.
 
-The current `state->lock_count` corresponds to the difference between UNUSED and READING: a slot is in use iff its lock count is nonzero, so `lock_count == 0` corresponds to UNUSED and `lock_count != 0` corresponds to READING.
+Any call to `psa_slot_state_transition`, `psa_register_read` or `psa_unregister_read` must be performed by a thread which holds the global mutex.
 
-There is currently no indication of when a slot is in the WRITING state. This only happens between a call to `psa_start_key_creation` and a call to one of `psa_finish_key_creation` or `psa_fail_key_creation`. This new state can be conveyed by a new boolean flag, or by setting `lock_count` to `~0`.
+##### Linearizability of the system
+
+To satisfy the requirements in [Correctness out of the box](#correctness-out-of-the-box), we require our functions to be "linearizable" (under certain constraints). This means that any (constraint satisfying) set of concurrent calls are performed as if they were executed in some sequential order.
+
+The standard way of reasoning that this is the case is to identify a "linearization point" for each call, this is a single execution step where the function takes effect (this is usually a step in which the effects of the call become visible to other threads). If every call has a linearization point, the set of calls is equivalent to sequentially performing the calls in order of when their linearization point occurred.
+
+We only require linearizability to hold in the case where a resource-management error is not returned. In a set of concurrent calls, it is permitted for a call c to fail with a PSA_ERROR_INSUFFICIENT_MEMORY return code even if there does not exist a sequential ordering of the calls in which c returns this error. Even if such an error occurs, all calls are still required to be functionally correct.
+
+We only access and modify a slot's state and reader count while we hold the global lock. This ensures the memory in which these fields are stored is correctly synchronized. It also ensures that the key data within the slot is synchronised where needed (the writer unlocks the mutex after filling the data, and any reader must lock the mutex before reading the data).
+
+To help justify that our system is linearizable, here is a list of key slot state changing functions and their linearization points (for the sake of brevity not all failure cases are covered, but those cases are not complex):
+* `psa_wipe_key_slot, psa_register_read, psa_unregister_read, psa_slot_state_transition,` - These functions are all always performed under the global mutex, so they have no effects visible to other threads (this implies that they are linearizable).
+* `psa_get_empty_key_slot, psa_get_and_lock_key_slot_in_memory, psa_load_X_key_into_slot, psa_fail_key_creation` - These functions hold the mutex for all non-setup/finalizing code, their linearization points are the release of the mutex.
+* `psa_get_and_lock_key_slot` - If the key is already in a slot, the linearization point is the linearization point of the call to `psa_get_and_lock_key_slot_in_memory`. If the key is not in a slot and is loaded into one, the linearization point is the linearization point of the call to `psa_load_X_key_into_slot`.
+* `psa_start_key_creation` - From the perspective of other threads, the only effect of a successful call to this function is that the amount of usable resources decreases (a key slot which was usable is now unusable). Since we do not consider resource management as linearizable behaviour, when arguing for linearizability of the system we consider this function to have no visible effect to other threads.
+* `psa_finish_key_creation` - On a successful load, we lock the mutex and set the state of the slot to FULL, the linearization point is then the following unlock. On an unsuccessful load, the linearization point is when we return - no action we have performed has been made visible to another thread as the slot is still in a FILLING state.
+* `psa_destroy_key, psa_close_key, psa_purge_key` - As per the requirements, we need only argue for the case where the key is not in use here. The linearization point is the unlock after wiping the data and setting the slot state to EMPTY.
+* `psa_import_key, psa_copy_key, psa_generate_key, mbedtls_psa_register_se_key` - These functions call both `psa_start_key_creation` and `psa_finish_key_creation`, the linearization point of a successful call is the linearization point of the call to `psa_finish_key_creation`. The linearization point of an unsuccessful call is the linearization point of the call to `psa_fail_key_creation`.
+* `psa_key_derivation_output_key` - Same as above. If the operation object is in use by multiple threads, the behaviour need not be linearizable.
+
+Library functions which operate on a slot will return `PSA_ERROR_BAD_STATE` if the slot is in an inappropriate state for the function at the linearization point.
+
+##### Key slot state transition diagram
+
+![](key-slot-state-transitions.png)
+
+In the state transition diagram above, an arrow between two states `q1` and `q2` with label `f` indicates that if the state of a slot is `q1` immediately before `f`'s linearization point, it may be `q2` immediately after `f`'s linearization point.
+
+##### Generating the key slot state transition diagram from source
+
+To generate the state transition diagram in https://app.diagrams.net/, open the following url:
+
+https://viewer.diagrams.net/?tags=%7B%7D&highlight=FFFFFF&edit=_blank&layers=1&nav=1&title=key-slot-state-transitions#R5Vxbd5s4EP4t%2B%2BDH5iAJcXms4ySbrdtNT7qX9MWHgGyrxcABHNv59SsM2EhgDBhs3PVL0CANoBl9fDMaMkC3i%2FWDb3jzz65F7AGUrPUAjQYQAqBh9ieSbGKJIqFYMPOplXTaC57pO0mEUiJdUosEXMfQde2QerzQdB2HmCEnM3zfXfHdpq7NX9UzZiQneDYNOy%2F9h1rhPJZqUN3Lfyd0Nk%2BvDBQ9PrMw0s7JkwRzw3JXGRG6G6Bb33XD%2BGixviV2NHnpvMTj7g%2Bc3d2YT5ywyoDv4H08%2Ffvxj9VX3XGGw5cf3o9PHxJjvBn2MnngAVRspm9o0Td2OIsO7%2F8aj1Mx0585U9B5bgQTnxgW8YP07Ksv9he1bOcn3KSTzm6c2Zc1hqs5DcmzZ5jRmRVzsegK4cJmLcAOjcCLjT6la2LtVGUnJZmnN%2BKHZJ0RJZP0QNwFCf0N65KclbXEYDuPTdqrjP0T0Txj%2BlRmJB4322neG4UdJHapYSMACowkzphjfYy8nbVM2wgCavIT5btLx4pmaCSxFpscf%2FNvcmrbeMk2Rutsv9Emba1puBvEjl8y8v2QqJGOOGiNwF36Jjnul6Hhz0hY0k%2BO%2BxGLW8V522Zshwtsl8p8YhshfePXfpFBkys8uZQ92UHXwYrgE%2FFzJ6Oya1VUpOo3euancWplJKiNpymnduttu0k4wQFhzgGXjk9mNAiJv13seX9kBhkbr%2BxlwK9Xm86cyEeZQxCfCaJlSRnafkxOLKhlRTqGPgnou%2FG61Re5khc93PZx8XCAR4XOVb56RADYvTOSq3CwXAQM0g2UVJ2zxAd4mt%2BkaoAwxJ1OA9KNLasA%2Ft3np28v14nevQNvvXXwTmBYysAwKIXhHdxLWbiXjsB9c%2FCGFcEb9Au8ec%2FJgWxl7D7yDugYrFO6mXE4LzAmU4Pak59kMzEZXofUdfoM2ema6SNkJ5ohp1Qc3x1%2B51%2FF94%2Fj8eOXh17DMFIuDMNyldderTjnt18u0Lm4kXAVIz3dfRlt3b2inUZ347tvj39%2BuU4b9Y7PqF3RmepRZbPotTmdSdNOx%2BgM7BWdgRJ7%2BWkyVAGLJmWs8G9BLCs3KsAq1FTMGkhQX5XrAEUgTfJ5yY5WyHXYFSdk4YWbLeEJbDfsMdlJF1Qfuc5OjXwuegOKXtTt48sNbhIwxaMuGjL1K98VYYwkpRijMDjg0QBEWawUZJAmqc1QRpYElGG%2BjgSX7DoFVow0U%2BrQYH41cVW6uE7Gmg%2FM7rKu8mCDWvEpRSvUegboKaKfgi3Npf%2B2RZaYbZwv51492dMcg6rm3FGvMEhWMecwitowb4MVQZHIoQ9ADPMBY5PplizPwzes82imSlL5fUGhPzjSX9bK9LOD%2BI6bLp7RUDYBfTA9%2B50sH%2Bkz%2Fvi0rha6CVsGFQO4lNEZjjWxXfNnhtTV0GDabkCiobVGeUtm8uyo%2BtFjf9A%2FtVEb6A%2BQxntZO1k1nr5CfC7sR0X74K3QzixwVwxrMzyz2zy9XBHw%2B5WnhyrkvATjhoAPDuVWzsQpUVGsUwhDFglC392cDl%2FtQGVvIW63jFsIpmVN4aOZdBmc6L47HN5wkNc9xsmX4LfHwKs%2BTB6Eu57AE6N3mcwa0gBnbaSCorO1uaqsZpJ7CtDrXKQjHouQVn7P4l2iIzwWl%2BrvhsfmyyOup9JFbo3gsegeC47bEvh1kUgsNGT7%2BxSXxrfW6BzsFV4iIbzFTesukCpkCSvG72153HXtRZQumlYiRF3YcmqLPqVZzC4ThIWzc5ZKrspbEzwMdbg1UTUtiHsNKwpoCitCPZfSXfFtMSMprufiQsLeAkprhVwRoECekbQVj%2FG7GF0UchXb9UxV%2FcehoQkMNYcTXBFO%2BhXVwQNJ%2BNpwAgWWonRXHlrsdrDA7XJpoFzQUyN9tKIeyeXoryNvXr5Q26jQ2H0P1y6IAXQhEMuT3pwlz55TOohNfcESIXHSeMcSbbNAGpahrMs6RBoS9XLVGbAS0NRNA7GnyV4F6PxNqBK6UaG0%2B6HyJwJ6qTIA6ijDze%2Bso%2BxSPoToZXqpfK3%2Fz9JLT3S5Hk%2FhRNNmX9%2B%2B338yHccr%2FIyqHfLGlZw1%2BiSzM%2BpWtRC2X0VqSKgew2JeqDLc4iOZqvaoW6HPVWJuEQOzXcOaeMQPIlxxwi0ZY%2Ffk1q%2Ba2Gp6XVI7pM4JakrLN66DGpaiQAuIiGVQGIie6Pxnq6CAl6wAqu9Cv9gXl1VT%2F1VL9%2Fa74OmW%2Brk2T%2Fnkbu57gsolw4KiqrUde0WnLBnW3P9fj7j7%2Fr%2BjoLv%2FAA%3D%3D
 
 #### Destruction of a key in use
 
-Problem: In [Key destruction long-term requirements](#key-destruction-long-term-requirements) we require that the key slot is destroyed (by `psa_wipe_key_slot`) even while it's in use (READING or WRITING).
+Problem: In [Key destruction long-term requirements](#key-destruction-long-term-requirements) we require that the key slot is destroyed (by `psa_wipe_key_slot`) even while it's in use (FILLING or with at least one reader).
 
 How do we ensure that? This needs something more sophisticated than mutexes (concurrency number >2)! Even a per-slot mutex isn't enough (we'd need a reader-writer lock).
 
@@ -310,11 +338,11 @@ Solution: after some team discussion, we've decided to rely on a new threading a
 
 ##### Mutex only
 
-When calling `psa_wipe_key_slot` it is the callers responsibility to set the slot state to WRITING first. For most functions this is a clean UNUSED -> WRITING transition: psa_get_empty_key_slot, psa_get_and_lock_key_slot, psa_close_key, psa_purge_key.
+When calling `psa_wipe_key_slot` it is the callers responsibility to set the slot state to PENDING_DELETION first. For most functions this is a clean {FULL, !has_readers} -> PENDING_DELETION transition: psa_get_empty_key_slot, psa_get_and_lock_key_slot, psa_close_key, psa_purge_key.
 
 `psa_wipe_all_key_slots` is only called from `mbedtls_psa_crypto_free`, here we will need to return an error as we won't be able to free the key store if a key is in use without compromising the state of the secure side. This is acceptable as an untrusted application cannot call `mbedtls_psa_crypto_free` in a crypto service. In a service integration, `mbedtls_psa_crypto_free` on the client cuts the communication with the crypto service. Also, this is the current behaviour.
 
-`psa_destroy_key` marks the slot as deleted, deletes persistent keys and opaque keys and returns. This only works if drivers are protected by a mutex (and the persistent storage as well if needed). When the last reading operation finishes, it wipes the key slot. This will free the key ID, but the slot might be still in use. In case of volatile keys freeing up the ID while the slot is still in use does not provide any benefit and we don't need to do it.
+`psa_destroy_key` registers as a reader, marks the slot as deleted, deletes persistent keys and opaque keys and unregisters before returning. This will free the key ID, but the slot might be still in use. This only works if drivers are protected by a mutex (and the persistent storage as well if needed). `psa_destroy_key` transfers to PENDING_DELETION as an intermediate state. The last reading operation will wipe the key slot upon unregistering. In case of volatile keys freeing up the ID while the slot is still in use does not provide any benefit and we don't need to do it.
 
 These are serious limitations, but this can be implemented with mutexes only and arguably satisfies the [Key destruction short-term requirements](#key-destruction-short-term-requirements).
 
@@ -329,9 +357,9 @@ We can't reuse the `lock_count` field to mark key slots deleted, as we still nee
 
 #### Condition variables
 
-Clean UNUSED -> WRITING transition works as before.
+Clean UNUSED -> PENDING_DELETION transition works as before.
 
-`psa_wipe_all_key_slots` and `psa_destroy_key` mark the slot as deleted and go to sleep until the slot state becomes UNUSED. When waking up, they wipe the slot, and return.
+`psa_wipe_all_key_slots` and `psa_destroy_key` mark the slot as deleted and go to sleep until the slot has no registered readers. When waking up, they wipe the slot, and return.
 
 If the slot is already marked as deleted the threads calling `psa_wipe_all_key_slots` and `psa_destroy_key` go to sleep until the deletion completes. To satisfy [Key destruction long-term requirements](#key-destruction-long-term-requirements) none of the threads may return from the call until the slot is deleted completely. This can be achieved by signalling them when the slot has already been wiped and ready for use, that is not marked for deletion anymore. To handle spurious wake-ups, these threads need to be able to tell whether the slot was already deleted. This is not trivial, because by the time the thread wakes up, theoretically the slot might be in any state. It might have been reused and maybe even marked for deletion again.
 
@@ -354,7 +382,7 @@ Alternatively, protecting operation contexts can be left as the responsibility o
 
 #### Drivers
 
-Each driver that hasn’t got the "thread_safe” property set  has a dedicated mutex.
+Each driver that hasn’t got the "thread_safe” property set has a dedicated mutex.
 
 Implementing "thread_safe” drivers depends on the condition variable protection in the key store, as we must guarantee that the core never starts the destruction of a key while there are operations in progress on it.
 

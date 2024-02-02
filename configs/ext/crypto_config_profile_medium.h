@@ -1,13 +1,14 @@
+/*
+ * Copyright (c) 2018-2023, Arm Limited. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ */
 /**
  * \file psa/crypto_config.h
  * \brief PSA crypto configuration options (set of defines)
  *
  */
-/*
- * Copyright The Mbed TLS Contributors
- * SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
- */
-
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 /**
  * When #MBEDTLS_PSA_CRYPTO_CONFIG is enabled in mbedtls_config.h,
@@ -50,7 +51,7 @@
 //#define PSA_WANT_ALG_CFB                        1
 //#define PSA_WANT_ALG_CHACHA20_POLY1305          1
 //#define PSA_WANT_ALG_CTR                        1
-#define PSA_WANT_ALG_DETERMINISTIC_ECDSA        1
+//#define PSA_WANT_ALG_DETERMINISTIC_ECDSA        1
 //#define PSA_WANT_ALG_ECB_NO_PADDING             1
 #define PSA_WANT_ALG_ECDH                       1
 #define PSA_WANT_ALG_ECDSA                      1
@@ -105,33 +106,27 @@
 //#define PSA_WANT_KEY_TYPE_CAMELLIA              1
 //#define PSA_WANT_KEY_TYPE_CHACHA20              1
 //#define PSA_WANT_KEY_TYPE_DES                   1
-#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC    1
+//#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR          1 /* Deprecated */
+#define PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY        1
+#define PSA_WANT_KEY_TYPE_RAW_DATA              1
+//#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR          1 /* Deprecated */
+//#define PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY        1
+
+/*
+ * The following symbols extend and deprecate the legacy
+ * PSA_WANT_KEY_TYPE_xxx_KEY_PAIR ones. They include the usage of that key in
+ * the name's suffix. "_USE" is the most generic and it can be used to describe
+ * a generic suport, whereas other ones add more features on top of that and
+ * they are more specific.
+ */
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC      1
 #define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT   1
 #define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT   1
 #define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE 1
-#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE   1
-#define PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY        1
-#define PSA_WANT_KEY_TYPE_RAW_DATA              1
-//#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR          1
-//#define PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY        1
+//#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE   1
 
-/***********************************************************************
- * Local edits below this delimiter
- **********************************************************************/
-
-/* Between Mbed TLS 3.4 and 3.5, the PSA_WANT_KEY_TYPE_RSA_KEY_PAIR macro
- * (commented-out above) has been replaced with the following new macros: */
-//#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC      1
-//#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT     1
-//#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT     1
-//#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE   1
-//#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_DERIVE     1 /* Not supported */
-
-/* Between Mbed TLS 3.4 and 3.5, the following macros have been added: */
-//#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_BASIC       1
-//#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT    1
-//#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT    1
-//#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE  1
-//#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_DERIVE    1 // Not supported
+#ifdef CRYPTO_HW_ACCELERATOR
+#include "crypto_accelerator_config.h"
+#endif
 
 #endif /* PROFILE_M_PSA_CRYPTO_CONFIG_H */

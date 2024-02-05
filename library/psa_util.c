@@ -365,8 +365,20 @@ static int convert_raw_to_der_single_int(const unsigned char *raw_buf, size_t ra
                                          unsigned char *der_buf_end)
 {
     unsigned char *p = der_buf_end;
-    int len = (int) raw_len;
+    int len;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    /* ASN.1 DER encoding requires minimal length, so skip leading 0s.
+     * Provided input MPIs should not be 0, but as a failsafe measure, still
+     * detect that and return error in case. */
+    while (*raw_buf == 0x00) {
+        ++raw_buf;
+        --raw_len;
+        if (raw_len == 0) {
+            return MBEDTLS_ERR_ASN1_INVALID_DATA;
+        }
+    }
+    len = (int) raw_len;
 
     /* Copy the raw coordinate to the end of der_buf. */
     if ((p - der_buf_start) < len) {
@@ -374,17 +386,6 @@ static int convert_raw_to_der_single_int(const unsigned char *raw_buf, size_t ra
     }
     p -= len;
     memcpy(p, raw_buf, len);
-
-    /* ASN.1 DER encoding requires minimal length, so skip leading 0s.
-     * Provided input MPIs should not be 0, but as a failsafe measure, still
-     * detect that and return error in case. */
-    while (*p == 0x00) {
-        ++p;
-        --len;
-        if (len == 0) {
-            return MBEDTLS_ERR_ASN1_INVALID_DATA;
-        }
-    }
 
     /* If MSb is 1, ASN.1 requires that we prepend a 0. */
     if (*p & 0x80) {

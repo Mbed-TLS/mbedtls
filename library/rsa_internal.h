@@ -25,6 +25,7 @@
  * \param keylen    The length of the key buffer in bytes.
  *
  * \return          0 on success.
+ * \return          MBEDTLS_ERR_ASN1_xxx in case of ASN.1 parsing errors.
  * \return          MBEDTLS_ERR_RSA_xxx in case of RSA internal failures while
  *                  parsing data.
  * \return          MBEDTLS_ERR_RSA_KEY_CHECK_FAILED if validity checks on the

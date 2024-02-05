@@ -488,10 +488,20 @@ static int convert_der_to_raw_single_int(unsigned char *der, size_t der_len,
         return ret;
     }
 
+    /* It's invalid to have MSb set without a leading 0x00 (leading 0x00 is
+     * checked below). */
+    if ((*p & 0x80) != 0) {
+        return MBEDTLS_ERR_ASN1_INVALID_DATA;
+    }
+
     /* Skip possible leading zero */
     if ((unpadded_len > 0) && (*p == 0x00)) {
         p++;
         unpadded_len--;
+        /* Only 1 leading zero is allowed, otherwise that's an error. */
+        if (*p == 0x00) {
+            return MBEDTLS_ERR_ASN1_INVALID_DATA;
+        }
     }
 
     if (unpadded_len > coordinate_size) {

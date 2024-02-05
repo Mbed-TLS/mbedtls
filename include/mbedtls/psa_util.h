@@ -184,35 +184,33 @@ static inline mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa
 
 #if defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
 
-/** Convert an ECDSA signature from raw format (used by PSA APIs) to DER ASN.1
- * format (used by legacy crypto APIs).
+/** Convert an ECDSA signature from raw format to DER ASN.1 format.
  *
  * \param       raw         Buffer that contains the signature in raw format.
- * \param       raw_len     Length of raw buffer in bytes
+ * \param       raw_len     Length of \p raw in bytes.
  * \param[out]  der         Buffer that will be filled with the converted DER
  *                          output. It can overlap with raw buffer.
- * \param       der_size    Size of the output der buffer in bytes.
+ * \param       der_size    Size of \p der in bytes.
  * \param[out]  der_len     On success it contains the amount of valid data
- *                          (in bytes) written to der buffer. It's undefined
+ *                          (in bytes) written to \p der. It's undefined
  *                          in case of failure.
- * \param       bits        Size of each raw coordinate in bits.
+ * \param       bits        Size of each coordinate in bits.
  */
 int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
                              unsigned char *der, size_t der_size, size_t *der_len,
                              size_t bits);
 
-/** Convert an ECDSA signature from DER ASN.1 format (used by legacy crypto
- * APIs) to raw format (used by PSA APIs).
+/** Convert an ECDSA signature from DER ASN.1 format to raw format.
  *
  * \param       der         Buffer that contains the signature in DER format.
- * \param       der_len     Size of the der buffer in bytes.
+ * \param       der_len     Size of \p der in bytes.
  * \param[out]  raw         Buffer that will be filled with the converted raw
  *                          signature. It can overlap with der buffer.
- * \param       raw_size    Size of the raw buffer in bytes.
+ * \param       raw_size    Size of \p raw in bytes.
  * \param[out]  raw_len     On success it is updated with the amount of valid
- *                          data (in bytes) written to raw buffer. It's undefined
+ *                          data (in bytes) written to \p raw. It's undefined
  *                          in case of failure.
- * \param       bits        Size of each raw coordinate in bits.
+ * \param       bits        Size of each coordinate in bits.
  */
 int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
                              unsigned char *raw, size_t raw_size, size_t *raw_len,

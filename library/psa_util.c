@@ -346,7 +346,7 @@ mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t family,
  *
  * \param raw_buf           Buffer containing the raw coordinate to be
  *                          converted.
- * \param raw_len           Length of raw_buf in bytes.
+ * \param raw_len           Length of raw_buf in bytes. This must be > 0.
  * \param der_buf_start     Pointer to the beginning of the buffer which
  *                          will be filled with the DER converted data.
  * \param der_buf_end       End of the buffer used to store the DER output.

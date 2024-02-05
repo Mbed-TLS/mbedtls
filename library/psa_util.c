@@ -402,9 +402,8 @@ static int convert_raw_to_der_single_int(const unsigned char *raw_buf, size_t ra
     return len;
 }
 
-int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
-                             unsigned char *der, size_t der_size, size_t *der_len,
-                             size_t bits)
+int mbedtls_ecdsa_raw_to_der(size_t bits, const unsigned char *raw, size_t raw_len,
+                             unsigned char *der, size_t der_size, size_t *der_len)
 {
     unsigned char r[PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
     unsigned char s[PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
@@ -511,9 +510,8 @@ static int convert_der_to_raw_single_int(unsigned char *der, size_t der_len,
     return (int) (p - der);
 }
 
-int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
-                             unsigned char *raw, size_t raw_size, size_t *raw_len,
-                             size_t bits)
+int mbedtls_ecdsa_der_to_raw(size_t bits, const unsigned char *der, size_t der_len,
+                             unsigned char *raw, size_t raw_size, size_t *raw_len)
 {
     unsigned char raw_tmp[PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE];
     unsigned char *p = (unsigned char *) der;

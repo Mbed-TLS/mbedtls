@@ -573,9 +573,8 @@ static int ecdsa_verify_psa(unsigned char *key, size_t key_len,
     }
 
     p = (unsigned char *) sig;
-    ret = mbedtls_ecdsa_der_to_raw(p, sig_len, extracted_sig,
-                                   sizeof(extracted_sig), &converted_sig_len,
-                                   curve_bits);
+    ret = mbedtls_ecdsa_der_to_raw(curve_bits, p, sig_len, extracted_sig,
+                                   sizeof(extracted_sig), &converted_sig_len);
     if (ret != 0) {
         goto cleanup;
     }
@@ -730,7 +729,7 @@ static int ecdsa_sign_psa(mbedtls_svc_key_id_t key_id, mbedtls_md_type_t md_alg,
     }
 
 done:
-    ret = mbedtls_ecdsa_raw_to_der(sig, sig_size, sig, sig_size, sig_len, key_bits);
+    ret = mbedtls_ecdsa_raw_to_der(key_bits, sig, sig_size, sig, sig_size, sig_len);
 
     return ret;
 }

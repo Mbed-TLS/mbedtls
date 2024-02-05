@@ -12,9 +12,8 @@ void ecdsa_raw_to_der(int key_bits, data_t *input, data_t *exp_result, int exp_r
 
     TEST_CALLOC(tmp_buf, tmp_buf_len);
 
-    TEST_EQUAL(mbedtls_ecdsa_raw_to_der(input->x, input->len,
-                                        tmp_buf, tmp_buf_len, &ret_len,
-                                        key_bits), exp_ret);
+    TEST_EQUAL(mbedtls_ecdsa_raw_to_der(key_bits, input->x, input->len,
+                                        tmp_buf, tmp_buf_len, &ret_len), exp_ret);
 
     if (exp_ret == 0) {
         ASSERT_COMPARE(exp_result->x, exp_result->len, tmp_buf, ret_len);
@@ -35,17 +34,15 @@ void ecdsa_raw_to_der_incremental(int key_bits, data_t *input, data_t *exp_resul
 
     for (i = 1; i < tmp_buf_len; i++) {
         TEST_CALLOC(tmp_buf, i);
-        TEST_ASSERT(mbedtls_ecdsa_raw_to_der(input->x, input->len,
-                                             tmp_buf, i, &ret_len,
-                                             key_bits) != 0);
+        TEST_ASSERT(mbedtls_ecdsa_raw_to_der(key_bits, input->x, input->len,
+                                             tmp_buf, i, &ret_len) != 0);
         mbedtls_free(tmp_buf);
         tmp_buf = NULL;
     }
 
     TEST_CALLOC(tmp_buf, i);
-    TEST_EQUAL(mbedtls_ecdsa_raw_to_der(input->x, input->len,
-                                        tmp_buf, i, &ret_len,
-                                        key_bits), 0);
+    TEST_EQUAL(mbedtls_ecdsa_raw_to_der(key_bits, input->x, input->len,
+                                        tmp_buf, i, &ret_len), 0);
 exit:
     mbedtls_free(tmp_buf);
 }
@@ -60,9 +57,8 @@ void ecdsa_der_to_raw(int key_bits, data_t *input, data_t *exp_result, int exp_r
 
     TEST_CALLOC(tmp_buf, tmp_buf_len);
 
-    TEST_EQUAL(mbedtls_ecdsa_der_to_raw(input->x, input->len,
-                                        tmp_buf, tmp_buf_len, &ret_len,
-                                        key_bits), exp_ret);
+    TEST_EQUAL(mbedtls_ecdsa_der_to_raw(key_bits, input->x, input->len,
+                                        tmp_buf, tmp_buf_len, &ret_len), exp_ret);
 
     if (exp_ret == 0) {
         ASSERT_COMPARE(exp_result->x, exp_result->len, tmp_buf, ret_len);

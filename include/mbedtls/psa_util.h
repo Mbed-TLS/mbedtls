@@ -186,6 +186,7 @@ static inline mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa
 
 /** Convert an ECDSA signature from raw format to DER ASN.1 format.
  *
+ * \param       bits        Size of each coordinate in bits.
  * \param       raw         Buffer that contains the signature in raw format.
  * \param       raw_len     Length of \p raw in bytes.
  * \param[out]  der         Buffer that will be filled with the converted DER
@@ -194,14 +195,13 @@ static inline mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa
  * \param[out]  der_len     On success it contains the amount of valid data
  *                          (in bytes) written to \p der. It's undefined
  *                          in case of failure.
- * \param       bits        Size of each coordinate in bits.
  */
-int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
-                             unsigned char *der, size_t der_size, size_t *der_len,
-                             size_t bits);
+int mbedtls_ecdsa_raw_to_der(size_t bits, const unsigned char *raw, size_t raw_len,
+                             unsigned char *der, size_t der_size, size_t *der_len);
 
 /** Convert an ECDSA signature from DER ASN.1 format to raw format.
  *
+ * \param       bits        Size of each coordinate in bits.
  * \param       der         Buffer that contains the signature in DER format.
  * \param       der_len     Size of \p der in bytes.
  * \param[out]  raw         Buffer that will be filled with the converted raw
@@ -210,11 +210,9 @@ int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
  * \param[out]  raw_len     On success it is updated with the amount of valid
  *                          data (in bytes) written to \p raw. It's undefined
  *                          in case of failure.
- * \param       bits        Size of each coordinate in bits.
  */
-int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
-                             unsigned char *raw, size_t raw_size, size_t *raw_len,
-                             size_t bits);
+int mbedtls_ecdsa_der_to_raw(size_t bits, const unsigned char *der, size_t der_len,
+                             unsigned char *raw, size_t raw_size, size_t *raw_len);
 
 #endif /* MBEDTLS_PSA_UTIL_HAVE_ECDSA */
 

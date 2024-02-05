@@ -1879,11 +1879,9 @@ static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     if (ssl->handshake->received_extensions & MBEDTLS_SSL_EXT_MASK(EARLY_DATA)) {
-        ssl->handshake->early_data_accepted = 0;
-        if (!hrr_required) {
-            ssl->handshake->early_data_accepted =
-                (ssl_tls13_check_early_data_requirements(ssl) == 0);
-        }
+        ssl->handshake->early_data_accepted =
+            (!hrr_required) && (ssl_tls13_check_early_data_requirements(ssl) == 0);
+
         if (ssl->handshake->early_data_accepted) {
             ret = mbedtls_ssl_tls13_compute_early_transform(ssl);
             if (ret != 0) {

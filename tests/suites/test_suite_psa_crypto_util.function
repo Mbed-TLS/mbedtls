@@ -58,20 +58,35 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_PSA_UTIL_HAVE_ECDSA */
 void ecdsa_der_to_raw(int key_bits, data_t *input, data_t *exp_result, int exp_ret)
 {
-    unsigned char *tmp_buf = NULL;
-    size_t tmp_buf_len = exp_result->len;
+    unsigned char *in_buf = NULL;
+    size_t in_buf_len;
+    unsigned char *out_buf = NULL;
+    size_t out_buf_len = exp_result->len;
     size_t ret_len;
 
-    TEST_CALLOC(tmp_buf, tmp_buf_len);
+    TEST_CALLOC(out_buf, out_buf_len);
+
+    /* Verify that parsing of truncated input always fails. */
+    for (in_buf_len = 1; in_buf_len < input->len; in_buf_len++) {
+        /* We alloc a copy of input buffer with limited length so that sanitizers
+         * can detect overreads. */
+        TEST_CALLOC(in_buf, in_buf_len);
+        memcpy(in_buf, input->x, in_buf_len);
+        TEST_ASSERT(mbedtls_ecdsa_der_to_raw(key_bits, in_buf, in_buf_len,
+                                             out_buf, out_buf_len, &ret_len) != 0);
+        mbedtls_free(in_buf);
+        in_buf = NULL;
+    }
 
     TEST_EQUAL(mbedtls_ecdsa_der_to_raw(key_bits, input->x, input->len,
-                                        tmp_buf, tmp_buf_len, &ret_len), exp_ret);
+                                        out_buf, out_buf_len, &ret_len), exp_ret);
 
     if (exp_ret == 0) {
-        ASSERT_COMPARE(exp_result->x, exp_result->len, tmp_buf, ret_len);
+        ASSERT_COMPARE(exp_result->x, exp_result->len, out_buf, ret_len);
     }
 
 exit:
-    mbedtls_free(tmp_buf);
+    mbedtls_free(in_buf);
+    mbedtls_free(out_buf);
 }
 /* END_CASE */

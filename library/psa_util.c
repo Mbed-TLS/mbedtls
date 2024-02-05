@@ -493,10 +493,6 @@ static int convert_der_to_raw_single_int(unsigned char *der, size_t der_len,
         p++;
         unpadded_len--;
     }
-    /* It should never happen that the input number has 0 length. */
-    if (unpadded_len == 0) {
-        return MBEDTLS_ERR_ASN1_INVALID_DATA;
-    }
 
     if (unpadded_len > coordinate_size) {
         /* Parsed number is longer than the maximum expected value. */

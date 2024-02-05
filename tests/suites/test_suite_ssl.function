@@ -12,6 +12,11 @@
 
 #define SSL_MESSAGE_QUEUE_INIT      { NULL, 0, 0, 0 }
 
+/* Mnemonics for the early data test scenarios */
+#define TEST_EARLY_DATA_REFERENCE 0
+#define TEST_EARLY_DATA_DEPROTECT_AND_DISCARD 1
+#define TEST_EARLY_DATA_DISCARD_AFTER_HRR 2
+
 #if (!defined(MBEDTLS_SSL_PROTO_TLS1_2)) && \
     defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C) && \
     defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_DEBUG_C) && \
@@ -3668,10 +3673,9 @@ exit:
  * an issue with mbedtls_vsnprintf().
  */
 /* BEGIN_CASE depends_on:!MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_DEBUG_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_SSL_SESSION_TICKETS */
-void tls13_early_data(char *scenario_string)
+void tls13_early_data(int scenario)
 {
     int ret = -1;
-    int scenario = 0;
     unsigned char buf[64];
     const char *early_data = "This is early data.";
     size_t early_data_len = strlen(early_data);
@@ -3685,19 +3689,6 @@ void tls13_early_data(char *scenario_string)
         MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
         MBEDTLS_SSL_IANA_TLS_GROUP_NONE
     };
-
-    /*
-     * Determine scenario.
-     */
-    if (strcmp(scenario_string, "reference") == 0) {
-        scenario = 0;
-    } else if (strcmp(scenario_string, "deprotect and discard") == 0) {
-        scenario = 1;
-    } else if (strcmp(scenario_string, "discard after HRR") == 0) {
-        scenario = 2;
-    } else {
-        TEST_FAIL("Unknown scenario.");
-    }
 
     /*
      * Test set-up
@@ -3769,7 +3760,10 @@ void tls13_early_data(char *scenario_string)
     TEST_EQUAL(ret, 0);
 
     switch (scenario) {
-        case 1: /* deprotect and discard */
+        case TEST_EARLY_DATA_REFERENCE:
+            break;
+
+        case TEST_EARLY_DATA_DEPROTECT_AND_DISCARD:
             mbedtls_debug_set_threshold(3);
             server_pattern.pattern =
                 "EarlyData: deprotect and discard app data records.";
@@ -3777,7 +3771,7 @@ void tls13_early_data(char *scenario_string)
                                         MBEDTLS_SSL_EARLY_DATA_DISABLED);
             break;
 
-        case 2: /* discard after HRR */
+        case TEST_EARLY_DATA_DISCARD_AFTER_HRR:
             mbedtls_debug_set_threshold(3);
             server_pattern.pattern =
                 "EarlyData: Ignore application message before 2nd ClientHello";
@@ -3789,6 +3783,9 @@ void tls13_early_data(char *scenario_string)
             ret = mbedtls_ssl_session_reset(&(server_ep.ssl));
             TEST_EQUAL(ret, 0);
             break;
+
+        default:
+            TEST_FAIL("Unknown scenario.");
     }
 
     TEST_EQUAL(mbedtls_test_move_handshake_to_state(
@@ -3807,7 +3804,7 @@ void tls13_early_data(char *scenario_string)
         MBEDTLS_SSL_HANDSHAKE_WRAPUP);
 
     switch (scenario) {
-        case 0:
+        case TEST_EARLY_DATA_REFERENCE:
             TEST_EQUAL(ret, MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA);
             TEST_EQUAL(server_ep.ssl.handshake->early_data_accepted, 1);
             TEST_EQUAL(mbedtls_ssl_read_early_data(&(server_ep.ssl),
@@ -3819,8 +3816,8 @@ void tls13_early_data(char *scenario_string)
                            MBEDTLS_SSL_HANDSHAKE_WRAPUP), 0);
             break;
 
-        case 1: /* Intentional fallthrough */
-        case 2:
+        case TEST_EARLY_DATA_DEPROTECT_AND_DISCARD: /* Intentional fallthrough */
+        case TEST_EARLY_DATA_DISCARD_AFTER_HRR:
             TEST_EQUAL(ret, 0);
             TEST_EQUAL(server_ep.ssl.handshake->early_data_accepted, 0);
             TEST_EQUAL(server_pattern.counter, 1);

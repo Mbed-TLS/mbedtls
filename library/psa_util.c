@@ -529,7 +529,7 @@ int mbedtls_ecdsa_der_to_raw(size_t bits, const unsigned char *der, size_t der_l
         return ret;
     }
 
-    memset(raw_tmp, 0, sizeof(raw_tmp));
+    memset(raw_tmp, 0, 2 * coordinate_size);
 
     /* Extract r */
     ret = convert_der_to_raw_single_int(p, data_len, raw_tmp, coordinate_size);

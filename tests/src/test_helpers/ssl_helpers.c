@@ -12,7 +12,7 @@
 #include "md_psa.h"
 
 #if defined(MBEDTLS_SSL_TLS_C)
-int rng_get(void *p_rng, unsigned char *output, size_t output_len)
+int mbedtls_test_random(void *p_rng, unsigned char *output, size_t output_len)
 {
     (void) p_rng;
     for (size_t i = 0; i < output_len; i++) {
@@ -754,7 +754,7 @@ int mbedtls_test_ssl_endpoint_init(
 
     mbedtls_ssl_init(&(ep->ssl));
     mbedtls_ssl_config_init(&(ep->conf));
-    mbedtls_ssl_conf_rng(&(ep->conf), rng_get, NULL);
+    mbedtls_ssl_conf_rng(&(ep->conf), mbedtls_test_random, NULL);
 
     TEST_ASSERT(mbedtls_ssl_conf_get_user_data_p(&ep->conf) == NULL);
     TEST_EQUAL(mbedtls_ssl_conf_get_user_data_n(&ep->conf), 0);

@@ -354,9 +354,17 @@ int mbedtls_gcm_update_ad(mbedtls_gcm_context *ctx,
 {
     const unsigned char *p;
     size_t use_len, offset;
+    uint64_t new_add_len;
 
-    /* IV is limited to 2^64 bits, so 2^61 bytes */
-    if ((uint64_t) add_len >> 61 != 0) {
+    /* AD is limited to 2^64 bits, ie 2^61 bytes
+     * Also check for possible overflow */
+#if SIZE_MAX > 0xFFFFFFFFFFFFFFFFULL
+    if (add_len > 0xFFFFFFFFFFFFFFFFULL) {
+        return MBEDTLS_ERR_GCM_BAD_INPUT;
+    }
+#endif
+    new_add_len = ctx->add_len + (uint64_t) add_len;
+    if (new_add_len < ctx->add_len || new_add_len >> 61 != 0) {
         return MBEDTLS_ERR_GCM_BAD_INPUT;
     }
 
@@ -539,6 +547,9 @@ int mbedtls_gcm_finish(mbedtls_gcm_context *ctx,
     (void) output_size;
     *output_length = 0;
 
+    /* Total length is restricted to 2^39 - 256 bits, ie 2^36 - 2^5 bytes
+     * and AD length is restricted to 2^64 bits, ie 2^61 bytes so neither of
+     * the two multiplications would overflow. */
     orig_len = ctx->len * 8;
     orig_add_len = ctx->add_len * 8;
 

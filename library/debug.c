@@ -11,7 +11,7 @@
 
 #include "mbedtls/platform.h"
 
-#include "mbedtls/debug.h"
+#include "debug_internal.h"
 #include "mbedtls/error.h"
 
 #include <stdarg.h>

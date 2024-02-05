@@ -4,6 +4,7 @@
 #include "mbedtls/x509.h"
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_crl.h"
+#include "x509_internal.h"
 #include "mbedtls/oid.h"
 #include "sys/types.h"
 #include "sys/stat.h"

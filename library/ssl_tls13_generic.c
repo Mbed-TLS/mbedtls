@@ -12,7 +12,7 @@
 #include <string.h>
 
 #include "mbedtls/error.h"
-#include "mbedtls/debug.h"
+#include "debug_internal.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/constant_time.h"

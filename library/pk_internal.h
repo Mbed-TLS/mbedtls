@@ -144,4 +144,8 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_pk_parse_key_pkcs8_encrypted_der(
     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng);
 #endif
 
+#if defined(MBEDTLS_FS_IO)
+int mbedtls_pk_load_file(const char *path, unsigned char **buf, size_t *n);
+#endif
+
 #endif /* MBEDTLS_PK_INTERNAL_H */

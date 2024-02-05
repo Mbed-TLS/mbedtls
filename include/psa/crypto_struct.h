@@ -243,7 +243,7 @@ typedef struct {
     psa_key_attributes_flag_t MBEDTLS_PRIVATE(flags);
     /* This type has a different layout in the client view wrt the
      * service view of the key id, i.e. in service view usually is
-     * expected to have MBEDTLS_SVC_KEY_ID_ENCODES_OWNER defined
+     * expected to have MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined
      * thus adding an owner field to the standard psa_key_id_t. For
      * implementations with client/service separation, this means the
      * object will be marshalled through a transport channel and

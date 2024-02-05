@@ -211,7 +211,8 @@ int mbedtls_ecdsa_raw_to_der(size_t bits, const unsigned char *raw, size_t raw_l
  * \param       der_len     Size of \p der in bytes.
  * \param[out]  raw         Buffer that will be filled with the converted raw
  *                          signature. It can overlap with der buffer.
- * \param       raw_size    Size of \p raw in bytes.
+ * \param       raw_size    Size of \p raw in bytes. Must be at least
+ *                          2 * PSA_BITS_TO_BYTES(bits) bytes.
  * \param[out]  raw_len     On success it is updated with the amount of valid
  *                          data (in bytes) written to \p raw. It's undefined
  *                          in case of failure.

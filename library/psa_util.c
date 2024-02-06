@@ -413,7 +413,7 @@ int mbedtls_ecdsa_raw_to_der(size_t bits, const unsigned char *raw, size_t raw_l
     unsigned char *p = der + der_size;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if ((raw_len < 2 * coordinate_len) || (raw_len > 2 * coordinate_len)) {
+    if (raw_len < 2 * coordinate_len) {
         return MBEDTLS_ERR_ASN1_INVALID_DATA;
     }
 

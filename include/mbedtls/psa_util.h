@@ -188,7 +188,7 @@ static inline mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa
  *
  * \param       bits        Size of each coordinate in bits.
  * \param       raw         Buffer that contains the signature in raw format.
- * \param       raw_len     Length of \p raw in bytes. This must be at least
+ * \param       raw_len     Length of \p raw in bytes. This must be
  *                          PSA_BITS_TO_BYTES(bits) bytes.
  * \param[out]  der         Buffer that will be filled with the converted DER
  *                          output. It can overlap with raw buffer.

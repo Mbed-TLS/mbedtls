@@ -171,6 +171,8 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
                              'psa_hash_verify',
                              'psa_hash_compute',
                              'psa_hash_compare'):
+
+        if function_name == 'psa_generate_random':
             return True
         return False
 

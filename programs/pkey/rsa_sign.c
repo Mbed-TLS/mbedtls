@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
         goto exit;
     }
 
-    for (i = 0; i < rsa.MBEDTLS_PRIVATE(len); i++) {
+    for (i = 0; i < mbedtls_rsa_get_len(&rsa); i++) {
         mbedtls_fprintf(f, "%02X%s", buf[i],
                         (i + 1) % 16 == 0 ? "\r\n" : " ");
     }

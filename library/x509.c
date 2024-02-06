@@ -19,7 +19,7 @@
 
 #if defined(MBEDTLS_X509_USE_C)
 
-#include "mbedtls/x509.h"
+#include "x509_internal.h"
 #include "mbedtls/asn1.h"
 #include "mbedtls/error.h"
 #include "mbedtls/oid.h"

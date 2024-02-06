@@ -232,9 +232,7 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
             return PSA_ECC_FAMILY_SECP_K1;
 #endif
 #if defined(MBEDTLS_ECP_HAVE_SECP224K1)
-        case MBEDTLS_ECP_DP_SECP224K1:
-            *bits = 224;
-            return PSA_ECC_FAMILY_SECP_K1;
+    /* secp224k1 is not and will not be supported in PSA (#3541). */
 #endif
 #if defined(MBEDTLS_ECP_HAVE_SECP256K1)
         case MBEDTLS_ECP_DP_SECP256K1:
@@ -252,11 +250,10 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
     }
 }
 
-mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
-                                              size_t bits,
-                                              int bits_is_sloppy)
+mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t family,
+                                                size_t bits)
 {
-    switch (curve) {
+    switch (family) {
         case PSA_ECC_FAMILY_SECP_R1:
             switch (bits) {
 #if defined(PSA_WANT_ECC_SECP_R1_192)
@@ -278,11 +275,6 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
 #if defined(PSA_WANT_ECC_SECP_R1_521)
                 case 521:
                     return MBEDTLS_ECP_DP_SECP521R1;
-                case 528:
-                    if (bits_is_sloppy) {
-                        return MBEDTLS_ECP_DP_SECP521R1;
-                    }
-                    break;
 #endif
             }
             break;
@@ -309,11 +301,6 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
 #if defined(PSA_WANT_ECC_MONTGOMERY_255)
                 case 255:
                     return MBEDTLS_ECP_DP_CURVE25519;
-                case 256:
-                    if (bits_is_sloppy) {
-                        return MBEDTLS_ECP_DP_CURVE25519;
-                    }
-                    break;
 #endif
 #if defined(PSA_WANT_ECC_MONTGOMERY_448)
                 case 448:
@@ -329,8 +316,7 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
                     return MBEDTLS_ECP_DP_SECP192K1;
 #endif
 #if defined(PSA_WANT_ECC_SECP_K1_224)
-                case 224:
-                    return MBEDTLS_ECP_DP_SECP224K1;
+            /* secp224k1 is not and will not be supported in PSA (#3541). */
 #endif
 #if defined(PSA_WANT_ECC_SECP_K1_256)
                 case 256:
@@ -340,7 +326,6 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
             break;
     }
 
-    (void) bits_is_sloppy;
     return MBEDTLS_ECP_DP_NONE;
 }
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */

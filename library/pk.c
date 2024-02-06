@@ -31,7 +31,7 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 #include "psa_util_internal.h"
-#include "md_psa.h"
+#include "mbedtls/psa_util.h"
 #endif
 
 #include <limits.h>

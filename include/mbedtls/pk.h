@@ -1159,14 +1159,6 @@ int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
                             const mbedtls_pk_context *key);
 #endif /* MBEDTLS_PK_WRITE_C */
 
-/*
- * Internal module functions. You probably do not want to use these unless you
- * know you do.
- */
-#if defined(MBEDTLS_FS_IO)
-int mbedtls_pk_load_file(const char *path, unsigned char **buf, size_t *n);
-#endif
-
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /**
  * \brief           Turn an EC or RSA key into an opaque one.

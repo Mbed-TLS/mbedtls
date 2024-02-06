@@ -14,6 +14,7 @@
 
 #if defined(MBEDTLS_CTR_DRBG_C)
 
+#include "ctr.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
@@ -333,7 +334,7 @@ static int ctr_drbg_update_internal(mbedtls_ctr_drbg_context *ctx,
 {
     unsigned char tmp[MBEDTLS_CTR_DRBG_SEEDLEN];
     unsigned char *p = tmp;
-    int i, j;
+    int j;
     int ret = 0;
 #if !defined(MBEDTLS_AES_C)
     psa_status_t status;
@@ -346,11 +347,7 @@ static int ctr_drbg_update_internal(mbedtls_ctr_drbg_context *ctx,
         /*
          * Increase counter
          */
-        for (i = MBEDTLS_CTR_DRBG_BLOCKSIZE; i > 0; i--) {
-            if (++ctx->counter[i - 1] != 0) {
-                break;
-            }
-        }
+        mbedtls_ctr_increment_counter(ctx->counter);
 
         /*
          * Crypt counter block
@@ -372,9 +369,7 @@ static int ctr_drbg_update_internal(mbedtls_ctr_drbg_context *ctx,
         p += MBEDTLS_CTR_DRBG_BLOCKSIZE;
     }
 
-    for (i = 0; i < MBEDTLS_CTR_DRBG_SEEDLEN; i++) {
-        tmp[i] ^= data[i];
-    }
+    mbedtls_xor(tmp, tmp, data, MBEDTLS_CTR_DRBG_SEEDLEN);
 
     /*
      * Update key and counter
@@ -617,10 +612,11 @@ int mbedtls_ctr_drbg_random_with_add(void *p_rng,
 {
     int ret = 0;
     mbedtls_ctr_drbg_context *ctx = (mbedtls_ctr_drbg_context *) p_rng;
-    unsigned char add_input[MBEDTLS_CTR_DRBG_SEEDLEN];
     unsigned char *p = output;
-    unsigned char tmp[MBEDTLS_CTR_DRBG_BLOCKSIZE];
-    int i;
+    struct {
+        unsigned char add_input[MBEDTLS_CTR_DRBG_SEEDLEN];
+        unsigned char tmp[MBEDTLS_CTR_DRBG_BLOCKSIZE];
+    } locals;
     size_t use_len;
 
     if (output_len > MBEDTLS_CTR_DRBG_MAX_REQUEST) {
@@ -631,7 +627,7 @@ int mbedtls_ctr_drbg_random_with_add(void *p_rng,
         return MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG;
     }
 
-    memset(add_input, 0, MBEDTLS_CTR_DRBG_SEEDLEN);
+    memset(locals.add_input, 0, MBEDTLS_CTR_DRBG_SEEDLEN);
 
     if (ctx->reseed_counter > ctx->reseed_interval ||
         ctx->prediction_resistance) {
@@ -642,30 +638,26 @@ int mbedtls_ctr_drbg_random_with_add(void *p_rng,
     }
 
     if (add_len > 0) {
-        if ((ret = block_cipher_df(add_input, additional, add_len)) != 0) {
+        if ((ret = block_cipher_df(locals.add_input, additional, add_len)) != 0) {
             goto exit;
         }
-        if ((ret = ctr_drbg_update_internal(ctx, add_input)) != 0) {
+        if ((ret = ctr_drbg_update_internal(ctx, locals.add_input)) != 0) {
             goto exit;
         }
     }
 
     while (output_len > 0) {
         /*
-         * Increase counter
+         * Increase counter (treat it as a 128-bit big-endian integer).
          */
-        for (i = MBEDTLS_CTR_DRBG_BLOCKSIZE; i > 0; i--) {
-            if (++ctx->counter[i - 1] != 0) {
-                break;
-            }
-        }
+        mbedtls_ctr_increment_counter(ctx->counter);
 
         /*
          * Crypt counter block
          */
 #if defined(MBEDTLS_AES_C)
         if ((ret = mbedtls_aes_crypt_ecb(&ctx->aes_ctx, MBEDTLS_AES_ENCRYPT,
-                                         ctx->counter, tmp)) != 0) {
+                                         ctx->counter, locals.tmp)) != 0) {
             goto exit;
         }
 #else
@@ -673,7 +665,7 @@ int mbedtls_ctr_drbg_random_with_add(void *p_rng,
         size_t tmp_len;
 
         status = psa_cipher_update(&ctx->psa_ctx.operation, ctx->counter, sizeof(ctx->counter),
-                                   tmp, MBEDTLS_CTR_DRBG_BLOCKSIZE, &tmp_len);
+                                   locals.tmp, MBEDTLS_CTR_DRBG_BLOCKSIZE, &tmp_len);
         if (status != PSA_SUCCESS) {
             ret = psa_generic_status_to_mbedtls(status);
             goto exit;
@@ -685,20 +677,19 @@ int mbedtls_ctr_drbg_random_with_add(void *p_rng,
         /*
          * Copy random block to destination
          */
-        memcpy(p, tmp, use_len);
+        memcpy(p, locals.tmp, use_len);
         p += use_len;
         output_len -= use_len;
     }
 
-    if ((ret = ctr_drbg_update_internal(ctx, add_input)) != 0) {
+    if ((ret = ctr_drbg_update_internal(ctx, locals.add_input)) != 0) {
         goto exit;
     }
 
     ctx->reseed_counter++;
 
 exit:
-    mbedtls_platform_zeroize(add_input, sizeof(add_input));
-    mbedtls_platform_zeroize(tmp, sizeof(tmp));
+    mbedtls_platform_zeroize(&locals, sizeof(locals));
     return ret;
 }
 

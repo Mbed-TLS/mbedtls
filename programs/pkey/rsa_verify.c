@@ -37,11 +37,14 @@ int main(int argc, char *argv[])
     int exit_code = MBEDTLS_EXIT_FAILURE;
     size_t i;
     mbedtls_rsa_context rsa;
+    mbedtls_mpi N, E;
     unsigned char hash[32];
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     char filename[512];
 
     mbedtls_rsa_init(&rsa);
+    mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&E);
 
     if (argc != 2) {
         mbedtls_printf("usage: rsa_verify <filename>\n");
@@ -62,15 +65,13 @@ int main(int argc, char *argv[])
         goto exit;
     }
 
-    if ((ret = mbedtls_mpi_read_file(&rsa.MBEDTLS_PRIVATE(N), 16, f)) != 0 ||
-        (ret = mbedtls_mpi_read_file(&rsa.MBEDTLS_PRIVATE(E), 16, f)) != 0) {
+    if ((ret = mbedtls_mpi_read_file(&N, 16, f)) != 0 ||
+        (ret = mbedtls_mpi_read_file(&E, 16, f)) != 0 ||
+        (ret = mbedtls_rsa_import(&rsa, &N, NULL, NULL, NULL, &E) != 0)) {
         mbedtls_printf(" failed\n  ! mbedtls_mpi_read_file returned %d\n\n", ret);
         fclose(f);
         goto exit;
     }
-
-    rsa.MBEDTLS_PRIVATE(len) = (mbedtls_mpi_bitlen(&rsa.MBEDTLS_PRIVATE(N)) + 7) >> 3;
-
     fclose(f);
 
     /*
@@ -91,7 +92,7 @@ int main(int argc, char *argv[])
 
     fclose(f);
 
-    if (i != rsa.MBEDTLS_PRIVATE(len)) {
+    if (i != mbedtls_rsa_get_len(&rsa)) {
         mbedtls_printf("\n  ! Invalid RSA signature format\n\n");
         goto exit;
     }
@@ -124,6 +125,8 @@ int main(int argc, char *argv[])
 exit:
 
     mbedtls_rsa_free(&rsa);
+    mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&E);
 
     mbedtls_exit(exit_code);
 }

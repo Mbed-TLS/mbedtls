@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include "mbedtls/pk.h"
+#include "pk_internal.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
 #include "psa/crypto_sizes.h"

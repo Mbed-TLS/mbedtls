@@ -279,6 +279,11 @@
  * to read from a resource. */
 #define PSA_ERROR_INSUFFICIENT_DATA     ((psa_status_t)-143)
 
+/** This can be returned if a function can no longer operate correctly.
+ * For example, if an essential initialization operation failed or
+ * a mutex operation failed. */
+#define PSA_ERROR_SERVICE_FAILURE       ((psa_status_t)-144)
+
 /** The key identifier is not valid. See also :ref:\`key-handles\`.
  */
 #define PSA_ERROR_INVALID_HANDLE        ((psa_status_t)-136)
@@ -1751,6 +1756,13 @@
      0)
 
 /** RSA PKCS#1 v1.5 encryption.
+ *
+ * \warning     Calling psa_asymmetric_decrypt() with this algorithm as a
+ *              parameter is considered an inherently dangerous function
+ *              (CWE-242). Unless it is used in a side channel free and safe
+ *              way (eg. implementing the TLS protocol as per 7.4.7.1 of
+ *              RFC 5246), the calling code is vulnerable.
+ *
  */
 #define PSA_ALG_RSA_PKCS1V15_CRYPT              ((psa_algorithm_t) 0x07000200)
 

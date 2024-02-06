@@ -1533,6 +1533,12 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
         unsigned int extension_type;
         size_t extension_data_len;
         const unsigned char *extension_data_end;
+        uint32_t allowed_exts = MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CH;
+
+        if (ssl->handshake->hello_retry_request_count > 0) {
+            /* Do not accept early data extension in 2nd ClientHello */
+            allowed_exts &= ~MBEDTLS_SSL_EXT_MASK(EARLY_DATA);
+        }
 
         /* RFC 8446, section 4.2.11
          *
@@ -1560,7 +1566,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
 
         ret = mbedtls_ssl_tls13_check_received_extension(
             ssl, MBEDTLS_SSL_HS_CLIENT_HELLO, extension_type,
-            MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CH);
+            allowed_exts);
         if (ret != 0) {
             return ret;
         }
@@ -1780,28 +1786,15 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
 }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-static int ssl_tls13_is_early_data_accepted(mbedtls_ssl_context *ssl,
-                                            int hrr_required)
+static int ssl_tls13_check_early_data_requirements(mbedtls_ssl_context *ssl)
 {
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-
-    if ((handshake->received_extensions &
-         MBEDTLS_SSL_EXT_MASK(EARLY_DATA)) == 0) {
-        MBEDTLS_SSL_DEBUG_MSG(
-            1, ("EarlyData: no early data extension received."));
-        return 0;
-    }
 
     if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_DISABLED) {
         MBEDTLS_SSL_DEBUG_MSG(
             1,
             ("EarlyData: rejected, feature disabled in server configuration."));
-        return 0;
-    }
-
-    if (hrr_required) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("EarlyData: rejected, HRR required."));
-        return 0;
+        return -1;
     }
 
     if (!handshake->resume) {
@@ -1810,7 +1803,7 @@ static int ssl_tls13_is_early_data_accepted(mbedtls_ssl_context *ssl,
            resumption. */
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("EarlyData: rejected, not a session resumption."));
-        return 0;
+        return -1;
     }
 
     /* RFC 8446 4.2.10
@@ -1833,7 +1826,7 @@ static int ssl_tls13_is_early_data_accepted(mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("EarlyData: rejected, the selected key in "
                 "`pre_shared_key` is not the first one."));
-        return 0;
+        return -1;
     }
 
     if (handshake->ciphersuite_info->id !=
@@ -1841,7 +1834,7 @@ static int ssl_tls13_is_early_data_accepted(mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("EarlyData: rejected, the selected ciphersuite is not the one "
                 "of the selected pre-shared key."));
-        return 0;
+        return -1;
 
     }
 
@@ -1850,10 +1843,10 @@ static int ssl_tls13_is_early_data_accepted(mbedtls_ssl_context *ssl,
             1,
             ("EarlyData: rejected, early_data not allowed in ticket "
              "permission bits."));
-        return 0;
+        return -1;
     }
 
-    return 1;
+    return 0;
 }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
@@ -1885,15 +1878,22 @@ static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl,
     }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    ssl->handshake->early_data_accepted =
-        ssl_tls13_is_early_data_accepted(ssl, hrr_required);
+    if (ssl->handshake->received_extensions & MBEDTLS_SSL_EXT_MASK(EARLY_DATA)) {
+        ssl->handshake->early_data_accepted =
+            (!hrr_required) && (ssl_tls13_check_early_data_requirements(ssl) == 0);
 
-    if (ssl->handshake->early_data_accepted) {
-        ret = mbedtls_ssl_tls13_compute_early_transform(ssl);
-        if (ret != 0) {
-            MBEDTLS_SSL_DEBUG_RET(
-                1, "mbedtls_ssl_tls13_compute_early_transform", ret);
-            return ret;
+        if (ssl->handshake->early_data_accepted) {
+            ret = mbedtls_ssl_tls13_compute_early_transform(ssl);
+            if (ret != 0) {
+                MBEDTLS_SSL_DEBUG_RET(
+                    1, "mbedtls_ssl_tls13_compute_early_transform", ret);
+                return ret;
+            }
+        } else {
+            ssl->discard_early_data_record =
+                hrr_required ?
+                MBEDTLS_SSL_EARLY_DATA_DISCARD :
+                MBEDTLS_SSL_EARLY_DATA_TRY_TO_DEPROTECT_AND_DISCARD;
         }
     }
 #else

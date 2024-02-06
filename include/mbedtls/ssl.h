@@ -353,6 +353,26 @@
 #define MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MIN    1000
 #define MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MAX   60000
 
+/*
+ * Whether early data record should be discarded or not and how.
+ *
+ * The client has indicated early data and the server has rejected them.
+ * The server has then to skip past early data by either:
+ * - attempting to deprotect received records using the handshake traffic
+ *   key, discarding records which fail deprotection (up to the configured
+ *   max_early_data_size). Once a record is deprotected successfully,
+ *   it is treated as the start of the client's second flight and the
+ *   server proceeds as with an ordinary 1-RTT handshake.
+ * - skipping all records with an external content type of
+ *   "application_data" (indicating that they are encrypted), up to the
+ *   configured max_early_data_size. This is the expected behavior if the
+ *   server has sent an HelloRetryRequest message. The server ignores
+ *   application data message before 2nd ClientHello.
+ */
+#define MBEDTLS_SSL_EARLY_DATA_NO_DISCARD 0
+#define MBEDTLS_SSL_EARLY_DATA_TRY_TO_DEPROTECT_AND_DISCARD 1
+#define MBEDTLS_SSL_EARLY_DATA_DISCARD 2
+
 /**
  * \name SECTION: Module settings
  *
@@ -1781,6 +1801,16 @@ struct mbedtls_ssl_context {
     uint8_t MBEDTLS_PRIVATE(disable_datagram_packing);  /*!< Disable packing multiple records
                                                          *   within a single datagram.  */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_SRV_C)
+    /*
+     * One of:
+     * MBEDTLS_SSL_EARLY_DATA_NO_DISCARD
+     * MBEDTLS_SSL_EARLY_DATA_TRY_TO_DEPROTECT_AND_DISCARD
+     * MBEDTLS_SSL_EARLY_DATA_DISCARD
+     */
+    uint8_t MBEDTLS_PRIVATE(discard_early_data_record);
+#endif
 
     /*
      * Record layer (outgoing data)

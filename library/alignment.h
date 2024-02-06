@@ -58,12 +58,15 @@ typedef uint64_t __packed mbedtls_uint64_unaligned_t;
  * gcc may generate a branch to memcpy for calls like `memcpy(dest, src, 4)` rather than
  * generating some LDR or LDRB instructions (similar for stores).
  *
- * For versions of gcc < 5.4.0 this always happens.
- * For gcc < 6.3.0, this happens at -O0
- * For all versions, this happens iff unaligned access is not supported.
+ * This is architecture dependent: x86-64 seems fine even with old gcc; 32-bit Arm
+ * is affected. To keep it simple, we enable for all architectures.
  *
- * For gcc 4.x, this will generate byte-by-byte loads even if unaligned access is supported, which
- * is correct but not optimal.
+ * For versions of gcc < 5.4.0 this issue always happens.
+ * For gcc < 6.3.0, this issue happens at -O0
+ * For all versions, this issue happens iff unaligned access is not supported.
+ *
+ * For gcc 4.x, this implementation will generate byte-by-byte loads even if unaligned access is
+ * supported, which is correct but not optimal.
  *
  * For performance (and code size, in some cases), we want to avoid the branch and just generate
  * some inline load/store instructions since the access is small and constant-size.
@@ -72,6 +75,9 @@ typedef uint64_t __packed mbedtls_uint64_unaligned_t;
  * "The packed attribute specifies that a variable or structure field should have the smallest
  *  possible alignment—one byte for a variable"
  * https://gcc.gnu.org/onlinedocs/gcc-4.5.4/gcc/Variable-Attributes.html
+ *
+ * Previous implementations used __attribute__((__aligned__(1)), but had issues with a gcc bug:
+ * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94662
  *
  * Tested with several versions of GCC from 4.5.0 up to 13.2.0
  * We don't enable for older than 4.5.0 as this has not been tested.

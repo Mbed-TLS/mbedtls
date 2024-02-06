@@ -28,12 +28,11 @@ exit:
 void ecdsa_raw_to_der_incremental(int key_bits, data_t *input, data_t *exp_result)
 {
     unsigned char *tmp_buf = NULL;
-    size_t tmp_buf_len = exp_result->len;
     size_t ret_len;
     size_t i;
 
     /* Test with an output buffer smaller than required (expexted to fail). */
-    for (i = 1; i < tmp_buf_len; i++) {
+    for (i = 1; i < exp_result->len; i++) {
         TEST_CALLOC(tmp_buf, i);
         TEST_ASSERT(mbedtls_ecdsa_raw_to_der(key_bits, input->x, input->len,
                                              tmp_buf, i, &ret_len) != 0);
@@ -42,7 +41,7 @@ void ecdsa_raw_to_der_incremental(int key_bits, data_t *input, data_t *exp_resul
     }
     /* Test with an output buffer larger/equal than required (expexted to
      * succeed). */
-    for (i = tmp_buf_len; i < (2 * tmp_buf_len); i++) {
+    for (i = exp_result->len; i < (2 * exp_result->len); i++) {
         TEST_CALLOC(tmp_buf, i);
         TEST_ASSERT(mbedtls_ecdsa_raw_to_der(key_bits, input->x, input->len,
                                              tmp_buf, i, &ret_len) == 0);

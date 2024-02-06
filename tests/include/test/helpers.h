@@ -111,6 +111,11 @@ int mbedtls_test_get_line_no(void);
 
 /**
  * \brief           Increment the current test step.
+ *
+ * \note            Calling this function from within multiple threads at the
+ *                  same time is not recommended - whilst it is entirely thread
+ *                  safe, the order of calls to this function can obviously not
+ *                  be ensured, so unexpected results may occur.
  */
 void mbedtls_test_increment_step(void);
 
@@ -215,30 +220,35 @@ void mbedtls_test_fail(const char *test, int line_no, const char *filename);
 void mbedtls_test_skip(const char *test, int line_no, const char *filename);
 
 /**
- * \brief       Set the test step number for failure reports.
+ * \brief           Set the test step number for failure reports.
  *
- *              Call this function to display "step NNN" in addition to the
- *              line number and file name if a test fails. Typically the "step
- *              number" is the index of a for loop but it can be whatever you
- *              want.
+ *                  Call this function to display "step NNN" in addition to the
+ *                  line number and file name if a test fails. Typically the
+ *                  "step number" is the index of a for loop but it can be
+ *                  whatever you want.
+ *
+ * \note            Calling this function from a within multiple threads at the
+ *                  same time is not recommended - whilst it is entirely thread
+ *                  safe, the order of calls to this function can obviously not
+ *                  be ensured, so unexpected results may occur.
  *
  * \param step  The step number to report.
  */
 void mbedtls_test_set_step(unsigned long step);
 
 /**
- * \brief       Reset mbedtls_test_info to a ready/starting state.
+ * \brief           Reset mbedtls_test_info to a ready/starting state.
  */
 void mbedtls_test_info_reset(void);
 
 #ifdef MBEDTLS_TEST_MUTEX_USAGE
 /**
- * \brief       Get the test info data mutex.
+ * \brief           Get the test info data mutex.
  *
- * \note        This is designed only to be used by threading_helpers to avoid a
- *              deadlock, not for general access to this mutex.
+ * \note            This is designed only to be used by threading_helpers to
+ *                  avoid a deadlock, not for general access to this mutex.
  *
- * \return      The test info data mutex.
+ * \return          The test info data mutex.
  */
 mbedtls_threading_mutex_t *mbedtls_test_get_info_mutex(void);
 

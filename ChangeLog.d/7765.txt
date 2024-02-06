@@ -1,0 +1,3 @@
+Features
+   * Add functions mbedtls_ecdsa_raw_to_der() and mbedtls_ecdsa_der_to_raw() to
+     convert ECDSA signatures between raw and DER (ASN.1) formats.

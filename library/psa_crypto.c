@@ -3528,6 +3528,52 @@ exit:
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
+static psa_status_t psa_generate_random_internal(uint8_t *output,
+                                                 size_t output_size)
+{
+    GUARD_MODULE_INITIALIZED;
+
+    psa_status_t status;
+
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+
+    size_t output_length = 0;
+    status = mbedtls_psa_external_get_random(&global_data.rng,
+                                             output, output_size,
+                                             &output_length);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+    /* Breaking up a request into smaller chunks is currently not supported
+     * for the external RNG interface. */
+    if (output_length != output_size) {
+        status = PSA_ERROR_INSUFFICIENT_ENTROPY;
+        goto exit;
+    }
+    status = PSA_SUCCESS;
+
+#else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+
+    while (output_size > 0) {
+        size_t request_size =
+            (output_size > MBEDTLS_PSA_RANDOM_MAX_REQUEST ?
+             MBEDTLS_PSA_RANDOM_MAX_REQUEST :
+             output_size);
+        int ret = mbedtls_psa_get_random(MBEDTLS_PSA_RANDOM_STATE,
+                                         output, request_size);
+        if (ret != 0) {
+            status = mbedtls_to_psa_error(ret);
+            goto exit;
+        }
+        output_size -= request_size;
+        output += request_size;
+    }
+    status = PSA_SUCCESS;
+#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+
+exit:
+    return status;
+}
 
 
 /****************************************************************/
@@ -3650,7 +3696,7 @@ psa_status_t psa_cipher_generate_iv(psa_cipher_operation_t *operation,
         goto exit;
     }
 
-    status = psa_generate_random(local_iv, default_iv_length);
+    status = psa_generate_random_internal(local_iv, default_iv_length);
     if (status != PSA_SUCCESS) {
         goto exit;
     }
@@ -3839,7 +3885,7 @@ psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
             goto exit;
         }
 
-        status = psa_generate_random(local_iv, default_iv_length);
+        status = psa_generate_random_internal(local_iv, default_iv_length);
         if (status != PSA_SUCCESS) {
             goto exit;
         }
@@ -5367,7 +5413,7 @@ exit:
          * some constant data such as zeros, which would result in the data
          * being protected with a reproducible, easily knowable key.
          */
-        psa_generate_random(output, output_size);
+        psa_generate_random_internal(output, output_size);
         *output_length = output_size;
     }
 
@@ -5375,7 +5421,6 @@ exit:
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
-
 
 
 /****************************************************************/
@@ -5446,44 +5491,19 @@ static psa_status_t mbedtls_psa_random_seed(mbedtls_psa_random_context_t *rng)
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
 
-psa_status_t psa_generate_random(uint8_t *output,
+psa_status_t psa_generate_random(uint8_t *output_external,
                                  size_t output_size)
 {
-    GUARD_MODULE_INITIALIZED;
+    psa_status_t status;
 
-#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+    LOCAL_OUTPUT_DECLARE(output_external, output);
+    LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
 
-    size_t output_length = 0;
-    psa_status_t status = mbedtls_psa_external_get_random(&global_data.rng,
-                                                          output, output_size,
-                                                          &output_length);
-    if (status != PSA_SUCCESS) {
-        return status;
-    }
-    /* Breaking up a request into smaller chunks is currently not supported
-     * for the external RNG interface. */
-    if (output_length != output_size) {
-        return PSA_ERROR_INSUFFICIENT_ENTROPY;
-    }
-    return PSA_SUCCESS;
+    status = psa_generate_random_internal(output, output_size);
 
-#else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
-
-    while (output_size > 0) {
-        size_t request_size =
-            (output_size > MBEDTLS_PSA_RANDOM_MAX_REQUEST ?
-             MBEDTLS_PSA_RANDOM_MAX_REQUEST :
-             output_size);
-        int ret = mbedtls_psa_get_random(MBEDTLS_PSA_RANDOM_STATE,
-                                         output, request_size);
-        if (ret != 0) {
-            return mbedtls_to_psa_error(ret);
-        }
-        output_size -= request_size;
-        output += request_size;
-    }
-    return PSA_SUCCESS;
-#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+exit:
+    LOCAL_OUTPUT_FREE(output_external, output);
+    return status;
 }
 
 /* Wrapper function allowing the classic API to use the PSA RNG.

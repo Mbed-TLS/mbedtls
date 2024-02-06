@@ -23,6 +23,10 @@
 #if defined(__SANITIZE_ADDRESS__) /* gcc -fsanitize=address */
 #  define MBEDTLS_TEST_HAVE_ASAN
 #endif
+#if defined(__SANITIZE_THREAD__) /* gcc -fsanitize-thread */
+#  define MBEDTLS_TEST_HAVE_TSAN
+#endif
+
 #if defined(__has_feature)
 #  if __has_feature(address_sanitizer) /* clang -fsanitize=address */
 #    define MBEDTLS_TEST_HAVE_ASAN

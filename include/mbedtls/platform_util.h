@@ -23,10 +23,6 @@
 extern "C" {
 #endif
 
-/* Internal macros meant to be called only from within the library. */
-#define MBEDTLS_INTERNAL_VALIDATE_RET(cond, ret)  do { } while (0)
-#define MBEDTLS_INTERNAL_VALIDATE(cond)           do { } while (0)
-
 /* Internal helper macros for deprecating API constants. */
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 #if defined(MBEDTLS_DEPRECATED_WARNING)

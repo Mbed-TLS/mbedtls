@@ -71,10 +71,10 @@ typedef uint64_t __packed mbedtls_uint64_unaligned_t;
  * Tested with several versions of GCC from 4.5.0 up to 9.3.0
  * We don't enable for older than 4.5.0 as this has not been tested.
  */
- #define UINT_UNALIGNED
-typedef uint16_t __attribute__((__aligned__(1))) mbedtls_uint16_unaligned_t;
-typedef uint32_t __attribute__((__aligned__(1))) mbedtls_uint32_unaligned_t;
-typedef uint64_t __attribute__((__aligned__(1))) mbedtls_uint64_unaligned_t;
+ #define UINT_UNALIGNED_UNION
+typedef union { uint16_t x; } __attribute__((packed)) mbedtls_uint16_unaligned_t;
+typedef union { uint32_t x; } __attribute__((packed)) mbedtls_uint32_unaligned_t;
+typedef union { uint64_t x; } __attribute__((packed)) mbedtls_uint64_unaligned_t;
  #endif
 
 /*
@@ -101,6 +101,9 @@ static inline uint16_t mbedtls_get_unaligned_uint16(const void *p)
 #if defined(UINT_UNALIGNED)
     mbedtls_uint16_unaligned_t *p16 = (mbedtls_uint16_unaligned_t *) p;
     r = *p16;
+#elif defined(UINT_UNALIGNED_UNION)
+    mbedtls_uint16_unaligned_t *p16 = (mbedtls_uint16_unaligned_t *) p;
+    r = p16->x;
 #else
     memcpy(&r, p, sizeof(r));
 #endif
@@ -124,6 +127,9 @@ static inline void mbedtls_put_unaligned_uint16(void *p, uint16_t x)
 #if defined(UINT_UNALIGNED)
     mbedtls_uint16_unaligned_t *p16 = (mbedtls_uint16_unaligned_t *) p;
     *p16 = x;
+#elif defined(UINT_UNALIGNED_UNION)
+    mbedtls_uint16_unaligned_t *p16 = (mbedtls_uint16_unaligned_t *) p;
+    p16->x = x;
 #else
     memcpy(p, &x, sizeof(x));
 #endif
@@ -147,6 +153,9 @@ static inline uint32_t mbedtls_get_unaligned_uint32(const void *p)
 #if defined(UINT_UNALIGNED)
     mbedtls_uint32_unaligned_t *p32 = (mbedtls_uint32_unaligned_t *) p;
     r = *p32;
+#elif defined(UINT_UNALIGNED_UNION)
+    mbedtls_uint32_unaligned_t *p32 = (mbedtls_uint32_unaligned_t *) p;
+    r = p32->x;
 #else
     memcpy(&r, p, sizeof(r));
 #endif
@@ -170,6 +179,9 @@ static inline void mbedtls_put_unaligned_uint32(void *p, uint32_t x)
 #if defined(UINT_UNALIGNED)
     mbedtls_uint32_unaligned_t *p32 = (mbedtls_uint32_unaligned_t *) p;
     *p32 = x;
+#elif defined(UINT_UNALIGNED_UNION)
+    mbedtls_uint32_unaligned_t *p32 = (mbedtls_uint32_unaligned_t *) p;
+    p32->x = x;
 #else
     memcpy(p, &x, sizeof(x));
 #endif
@@ -193,6 +205,9 @@ static inline uint64_t mbedtls_get_unaligned_uint64(const void *p)
 #if defined(UINT_UNALIGNED)
     mbedtls_uint64_unaligned_t *p64 = (mbedtls_uint64_unaligned_t *) p;
     r = *p64;
+#elif defined(UINT_UNALIGNED_UNION)
+    mbedtls_uint64_unaligned_t *p64 = (mbedtls_uint64_unaligned_t *) p;
+    r = p64->x;
 #else
     memcpy(&r, p, sizeof(r));
 #endif
@@ -216,6 +231,9 @@ static inline void mbedtls_put_unaligned_uint64(void *p, uint64_t x)
 #if defined(UINT_UNALIGNED)
     mbedtls_uint64_unaligned_t *p64 = (mbedtls_uint64_unaligned_t *) p;
     *p64 = x;
+#elif defined(UINT_UNALIGNED_UNION)
+    mbedtls_uint64_unaligned_t *p64 = (mbedtls_uint64_unaligned_t *) p;
+    p64->x = x;
 #else
     memcpy(p, &x, sizeof(x));
 #endif

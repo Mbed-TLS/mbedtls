@@ -1,0 +1,3 @@
+Bugfix
+   * Correct initial capacities for key derivation algorithms:TLS12_PRF,
+     TLS12_PSK_TO_MS, PBKDF2-HMAC, PBKDF2-CMAC

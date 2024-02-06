@@ -8459,7 +8459,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void derive_set_capacity(int alg_arg, int capacity_arg,
+void derive_set_capacity(int alg_arg, int64_t capacity_arg,
                          int expected_status_arg)
 {
     psa_algorithm_t alg = alg_arg;
@@ -8940,7 +8940,7 @@ void derive_full(int alg_arg,
     psa_algorithm_t alg = alg_arg;
     size_t requested_capacity = requested_capacity_arg;
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
-    unsigned char output_buffer[16];
+    unsigned char output_buffer[32];
     size_t expected_capacity = requested_capacity;
     size_t current_capacity;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;

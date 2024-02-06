@@ -729,7 +729,7 @@ static int ecdsa_sign_psa(mbedtls_svc_key_id_t key_id, mbedtls_md_type_t md_alg,
     }
 
 done:
-    ret = mbedtls_ecdsa_raw_to_der(key_bits, sig, sig_size, sig, sig_size, sig_len);
+    ret = mbedtls_ecdsa_raw_to_der(key_bits, sig, *sig_len, sig, sig_size, sig_len);
 
     return ret;
 }

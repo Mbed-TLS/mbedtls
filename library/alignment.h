@@ -53,7 +53,7 @@ typedef uint16_t __packed mbedtls_uint16_unaligned_t;
 typedef uint32_t __packed mbedtls_uint32_unaligned_t;
 typedef uint64_t __packed mbedtls_uint64_unaligned_t;
 #elif defined(MBEDTLS_COMPILER_IS_GCC) && (MBEDTLS_GCC_VERSION >= 40504) && \
-    ((MBEDTLS_GCC_VERSION < 90300) || (!defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)))
+    ((MBEDTLS_GCC_VERSION < 60300) || (!defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)))
 /*
  * Old versions of gcc, depending on how the target is specified, may generate a branch to memcpy
  * for calls like `memcpy(dest, src, 4)` rather than generating some LDR or LDRB instructions

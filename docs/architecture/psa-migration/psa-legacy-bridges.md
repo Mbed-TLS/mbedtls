@@ -330,12 +330,12 @@ Based on the [gap analysis](#signature-formats):
 [ACTION] [#7765](https://github.com/Mbed-TLS/mbedtls/issues/7765) Implement `mbedtls_ecdsa_raw_to_der` and `mbedtls_ecdsa_der_to_raw` as described below.
 
 ```
-int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
-                             unsigned char *der, size_t der_size, size_t *der_len,
-                             size_t bits);
-int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
-                             unsigned char *raw, size_t raw_size, size_t *raw_len,
-                             size_t bits);
+int mbedtls_ecdsa_raw_to_der(size_t bits,
+                             const unsigned char *raw, size_t raw_len,
+                             unsigned char *der, size_t der_size, size_t *der_len);
+int mbedtls_ecdsa_der_to_raw(size_t bits,
+                             const unsigned char *der, size_t der_len,
+                             unsigned char *raw, size_t raw_size, size_t *raw_len);
 ```
 
 * These functions convert between the signature format used by `mbedtls_pk_{sign,verify}{,_ext}` and the signature format used by `psa_{sign,verify}_{hash,message}`.

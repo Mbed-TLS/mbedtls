@@ -36,6 +36,30 @@
 #define MBEDTLS_TEST_PK_PSA_SIGN
 #endif
 
+/* MBEDTLS_TEST_PSA_ECC_AT_LEAST_ONE_CURVE is enabled when PSA supports
+ * at least one elliptic curve. This is distinct from
+ * PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY because that symbol can be enabled even
+ * when there are no curves. This happens in particular in a configuration
+ * with MBEDTLS_PSA_CRYPTO_CONFIG disabled and where the only legacy curve
+ * is secp224k1, which is not supported in PSA. */
+#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
+#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256) || \
+    defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384) || \
+    defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512) || \
+    defined(PSA_WANT_ECC_MONTGOMERY_255) || \
+    defined(PSA_WANT_ECC_MONTGOMERY_448) || \
+    defined(PSA_WANT_ECC_SECP_K1_192) || \
+    defined(PSA_WANT_ECC_SECP_K1_224) || \
+    defined(PSA_WANT_ECC_SECP_K1_256) || \
+    defined(PSA_WANT_ECC_SECP_R1_192) || \
+    defined(PSA_WANT_ECC_SECP_R1_224) || \
+    defined(PSA_WANT_ECC_SECP_R1_256) || \
+    defined(PSA_WANT_ECC_SECP_R1_384) || \
+    defined(PSA_WANT_ECC_SECP_R1_521)
+#define MBEDTLS_TEST_PSA_ECC_AT_LEAST_ONE_CURVE
+#endif
+#endif
+
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static int pk_genkey_ec(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id)
 {

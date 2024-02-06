@@ -370,17 +370,17 @@
 
 /*
  * DH key types follow the same pattern used above for EC keys. They are defined
- * by a triplet (curve, key_type, alg). A triplet is accelerated if all its
+ * by a triplet (group, key_type, alg). A triplet is accelerated if all its
  * component are accelerated, otherwise each component needs to be builtin.
  */
 
-/* DH: curves: is acceleration complete? */
+/* DH: groups: is acceleration complete? */
 #if (defined(PSA_WANT_DH_RFC7919_2048) && !defined(MBEDTLS_PSA_ACCEL_DH_RFC7919_2048)) || \
     (defined(PSA_WANT_DH_RFC7919_3072) && !defined(MBEDTLS_PSA_ACCEL_DH_RFC7919_3072)) || \
     (defined(PSA_WANT_DH_RFC7919_4096) && !defined(MBEDTLS_PSA_ACCEL_DH_RFC7919_4096)) || \
     (defined(PSA_WANT_DH_RFC7919_6144) && !defined(MBEDTLS_PSA_ACCEL_DH_RFC7919_6144)) || \
     (defined(PSA_WANT_DH_RFC7919_8192) && !defined(MBEDTLS_PSA_ACCEL_DH_RFC7919_8192))
-#define MBEDTLS_PSA_DH_ACCEL_INCOMPLETE_CURVES
+#define MBEDTLS_PSA_DH_ACCEL_INCOMPLETE_GROUPS
 #endif
 
 /* DH: algs: is acceleration complete? */
@@ -444,7 +444,7 @@
 
 #if defined(PSA_WANT_ALG_FFDH)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_FFDH) || \
-    defined(MBEDTLS_PSA_DH_ACCEL_INCOMPLETE_CURVES) || \
+    defined(MBEDTLS_PSA_DH_ACCEL_INCOMPLETE_GROUPS) || \
     defined(MBEDTLS_PSA_DH_ACCEL_INCOMPLETE_KEY_TYPES)
 #define MBEDTLS_PSA_BUILTIN_ALG_FFDH 1
 #define MBEDTLS_BIGNUM_C
@@ -453,7 +453,7 @@
 
 #if defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT)
 #if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_DH_KEY_PAIR_IMPORT) || \
-    defined(MBEDTLS_PSA_DH_ACCEL_INCOMPLETE_CURVES) || \
+    defined(MBEDTLS_PSA_DH_ACCEL_INCOMPLETE_GROUPS) || \
     defined(MBEDTLS_PSA_DH_ACCEL_INCOMPLETE_ALGS)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_IMPORT 1
 #endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_DH_KEY_PAIR_IMPORT */
@@ -461,7 +461,7 @@
 
 #if defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT)
 #if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_DH_KEY_PAIR_EXPORT) || \
-    defined(MBEDTLS_PSA_DH_ACCEL_INCOMPLETE_CURVES) || \
+    defined(MBEDTLS_PSA_DH_ACCEL_INCOMPLETE_GROUPS) || \
     defined(MBEDTLS_PSA_DH_ACCEL_INCOMPLETE_ALGS)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_EXPORT 1
 #endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_DH_KEY_PAIR_EXPORT */
@@ -475,7 +475,7 @@
 
 #if defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_BASIC)
 #if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_DH_KEY_PAIR_BASIC) || \
-    defined(MBEDTLS_PSA_DH_ACCEL_INCOMPLETE_CURVES) || \
+    defined(MBEDTLS_PSA_DH_ACCEL_INCOMPLETE_GROUPS) || \
     defined(MBEDTLS_PSA_DH_ACCEL_INCOMPLETE_ALGS)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_BASIC 1
 #endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_DH_KEY_PAIR_BASIC */
@@ -483,7 +483,7 @@
 
 #if defined(PSA_WANT_KEY_TYPE_DH_PUBLIC_KEY)
 #if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_DH_PUBLIC_KEY) || \
-    defined(MBEDTLS_PSA_DH_ACCEL_INCOMPLETE_CURVES) || \
+    defined(MBEDTLS_PSA_DH_ACCEL_INCOMPLETE_GROUPS) || \
     defined(MBEDTLS_PSA_DH_ACCEL_INCOMPLETE_ALGS)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY 1
 #define MBEDTLS_BIGNUM_C

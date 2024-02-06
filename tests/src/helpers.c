@@ -483,7 +483,7 @@ int mbedtls_test_le_s(const char *test, int line_no, const char *filename,
 #endif /* MBEDTLS_THREADING_C */
 
     /* Don't use accessor, we already hold mutex. */
-    if (mbedtls_test_get_result() != MBEDTLS_TEST_RESULT_FAILED) {
+    if (mbedtls_test_info.result != MBEDTLS_TEST_RESULT_FAILED) {
         /* If we've already recorded the test as having failed then don't
          * overwrite any previous information about the failure. */
 

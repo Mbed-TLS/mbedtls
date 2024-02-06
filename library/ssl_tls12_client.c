@@ -2005,9 +2005,9 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
     }
 
-#if defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     const mbedtls_ecp_keypair *peer_key = mbedtls_pk_ec_ro(*peer_pk);
-#endif /* MBEDTLS_ECP_C */
+#endif /* !defined(MBEDTLS_PK_USE_PSA_EC_DATA) */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     uint16_t tls_id = 0;

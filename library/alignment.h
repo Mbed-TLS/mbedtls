@@ -55,20 +55,25 @@ typedef uint64_t __packed mbedtls_uint64_unaligned_t;
 #elif defined(MBEDTLS_COMPILER_IS_GCC) && (MBEDTLS_GCC_VERSION >= 40504) && \
     ((MBEDTLS_GCC_VERSION < 60300) || (!defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)))
 /*
- * Old versions of gcc, depending on how the target is specified, may generate a branch to memcpy
- * for calls like `memcpy(dest, src, 4)` rather than generating some LDR or LDRB instructions
- * (similar for stores).
- * Recent versions where unaligned access is not enabled also do this.
+ * gcc may generate a branch to memcpy for calls like `memcpy(dest, src, 4)` rather than
+ * generating some LDR or LDRB instructions (similar for stores).
+ *
+ * For versions of gcc < 5.4.0 this always happens.
+ * For gcc < 6.3.0, this happens at -O0
+ * For all versions, this happens iff unaligned access is not supported.
+ *
+ * For gcc 4.x, this will generate byte-by-byte loads even if unaligned access is supported, which
+ * is correct but not optimal.
  *
  * For performance (and code size, in some cases), we want to avoid the branch and just generate
  * some inline load/store instructions since the access is small and constant-size.
  *
  * The manual states:
- * "The aligned attribute specifies a minimum alignment for the variable or structure field,
- * measured in bytes."
- * https://gcc.gnu.org/onlinedocs/gcc/Common-Variable-Attributes.html
+ * "The packed attribute specifies that a variable or structure field should have the smallest
+ *  possible alignment—one byte for a variable"
+ * https://gcc.gnu.org/onlinedocs/gcc-4.5.4/gcc/Variable-Attributes.html
  *
- * Tested with several versions of GCC from 4.5.0 up to 9.3.0
+ * Tested with several versions of GCC from 4.5.0 up to 13.2.0
  * We don't enable for older than 4.5.0 as this has not been tested.
  */
  #define UINT_UNALIGNED_UNION

@@ -6864,12 +6864,12 @@ static psa_status_t psa_pbkdf2_hmac_set_password(psa_algorithm_t hash_alg,
 {
     psa_status_t status = PSA_SUCCESS;
     if (input_len > PSA_HASH_BLOCK_LENGTH(hash_alg)) {
-        status = psa_hash_compute(hash_alg, input, input_len, output,
-                                  PSA_HMAC_MAX_HASH_BLOCK_SIZE, output_len);
-    } else {
+        return psa_hash_compute(hash_alg, input, input_len, output,
+                                PSA_HMAC_MAX_HASH_BLOCK_SIZE, output_len);
+    } else if (input_len > 0) {
         memcpy(output, input, input_len);
-        *output_len = PSA_HASH_BLOCK_LENGTH(hash_alg);
     }
+    *output_len = PSA_HASH_BLOCK_LENGTH(hash_alg);
     return status;
 }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */

@@ -2801,6 +2801,20 @@
 #define MBEDTLS_GCM_C
 
 /**
+ * \def MBEDTLS_GCM_LARGETABLE
+ *
+ * Enable large precomputer tables for  Galois/Counter Mode (GCM).
+ * Can significantly increase throughput on systems without GCM hardware
+ * acceleration (e.g., AESNI, AESCE).
+ *
+ * Module:  library/gcm.c
+ *
+ * Requires: MBEDTLS_GCM_C
+ *
+ */
+//#define MBEDTLS_GCM_LARGETABLE
+
+/**
  * \def MBEDTLS_HKDF_C
  *
  * Enable the HKDF algorithm (RFC 5869).

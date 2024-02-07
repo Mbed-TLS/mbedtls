@@ -33,6 +33,11 @@
 #define MBEDTLS_GCM_ENCRYPT     1
 #define MBEDTLS_GCM_DECRYPT     0
 
+#define MBEDTLS_GCM_ACC_SMALLTABLE  0
+#define MBEDTLS_GCM_ACC_LARGETABLE  1
+#define MBEDTLS_GCM_ACC_AESNI       2
+#define MBEDTLS_GCM_ACC_AESCE       3
+
 /** Authenticated decryption failed. */
 #define MBEDTLS_ERR_GCM_AUTH_FAILED                       -0x0012
 /** Bad input parameters to function. */
@@ -46,6 +51,12 @@ extern "C" {
 
 #if !defined(MBEDTLS_GCM_ALT)
 
+#if defined(MBEDTLS_GCM_LARGETABLE)
+#define MBEDTLS_GCM_HTABLE_SIZE 256
+#else
+#define MBEDTLS_GCM_HTABLE_SIZE 16
+#endif
+
 /**
  * \brief          The GCM context structure.
  */
@@ -53,18 +64,22 @@ typedef struct mbedtls_gcm_context {
 #if defined(MBEDTLS_BLOCK_CIPHER_C)
     mbedtls_block_cipher_context_t MBEDTLS_PRIVATE(block_cipher_ctx);  /*!< The cipher context used. */
 #else
-    mbedtls_cipher_context_t MBEDTLS_PRIVATE(cipher_ctx);  /*!< The cipher context used. */
+    mbedtls_cipher_context_t MBEDTLS_PRIVATE(cipher_ctx);    /*!< The cipher context used. */
 #endif
-    uint64_t MBEDTLS_PRIVATE(HL)[16];                      /*!< Precalculated HTable low. */
-    uint64_t MBEDTLS_PRIVATE(HH)[16];                      /*!< Precalculated HTable high. */
-    uint64_t MBEDTLS_PRIVATE(len);                         /*!< The total length of the encrypted data. */
-    uint64_t MBEDTLS_PRIVATE(add_len);                     /*!< The total length of the additional data. */
-    unsigned char MBEDTLS_PRIVATE(base_ectr)[16];          /*!< The first ECTR for tag. */
-    unsigned char MBEDTLS_PRIVATE(y)[16];                  /*!< The Y working value. */
-    unsigned char MBEDTLS_PRIVATE(buf)[16];                /*!< The buf working value. */
-    int MBEDTLS_PRIVATE(mode);                             /*!< The operation to perform:
-                                                            #MBEDTLS_GCM_ENCRYPT or
-                                                            #MBEDTLS_GCM_DECRYPT. */
+    uint64_t MBEDTLS_PRIVATE(H)[MBEDTLS_GCM_HTABLE_SIZE][2]; /*!< Precalculated HTable. */
+    uint64_t MBEDTLS_PRIVATE(len);                           /*!< The total length of the encrypted data. */
+    uint64_t MBEDTLS_PRIVATE(add_len);                       /*!< The total length of the additional data. */
+    unsigned char MBEDTLS_PRIVATE(base_ectr)[16];            /*!< The first ECTR for tag. */
+    unsigned char MBEDTLS_PRIVATE(y)[16];                    /*!< The Y working value. */
+    unsigned char MBEDTLS_PRIVATE(buf)[16];                  /*!< The buf working value. */
+    unsigned char MBEDTLS_PRIVATE(mode);                     /*!< The operation to perform:
+                                                              #MBEDTLS_GCM_ENCRYPT or
+                                                              #MBEDTLS_GCM_DECRYPT. */
+    unsigned char MBEDTLS_PRIVATE(acceleration);             /*!< The acceleration to use:
+                                                              #MBEDTLS_GCM_ACC_SMALLTABLE,
+                                                              #MBEDTLS_GCM_ACC_LARGETABLE,
+                                                              #MBEDTLS_GCM_ACC_AESNI,
+                                                              #MBEDTLS_GCM_ACC_AESCE */
 }
 mbedtls_gcm_context;
 

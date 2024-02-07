@@ -36,29 +36,85 @@
 #define MBEDTLS_TEST_PK_PSA_SIGN
 #endif
 
-/* MBEDTLS_TEST_PSA_ECC_AT_LEAST_ONE_CURVE is enabled when PSA supports
- * at least one elliptic curve. This is distinct from
- * PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY because that symbol can be enabled even
- * when there are no curves. This happens in particular in a configuration
- * with MBEDTLS_PSA_CRYPTO_CONFIG disabled and where the only legacy curve
- * is secp224k1, which is not supported in PSA. */
 #if defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-#if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256) || \
-    defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384) || \
-    defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512) || \
-    defined(PSA_WANT_ECC_MONTGOMERY_255) || \
-    defined(PSA_WANT_ECC_MONTGOMERY_448) || \
-    defined(PSA_WANT_ECC_SECP_K1_192) || \
-    defined(PSA_WANT_ECC_SECP_K1_224) || \
-    defined(PSA_WANT_ECC_SECP_K1_256) || \
-    defined(PSA_WANT_ECC_SECP_R1_192) || \
-    defined(PSA_WANT_ECC_SECP_R1_224) || \
-    defined(PSA_WANT_ECC_SECP_R1_256) || \
-    defined(PSA_WANT_ECC_SECP_R1_384) || \
-    defined(PSA_WANT_ECC_SECP_R1_521)
+/* Pick an elliptic curve that's supported by PSA. Note that the curve is
+ * not guaranteed to be supported by the ECP module.
+ *
+ * This should always find a curve if ECC is enabled in the build, except in
+ * one edge case: in a build with MBEDTLS_PSA_CRYPTO_CONFIG disabled and
+ * where the only legacy curve is secp224k1, which is not supported in PSA,
+ * PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY ends up enabled but PSA does not
+ * support any curve.
+ */
+
+/* First try all the curves that can do both ECDSA and ECDH, then try
+ * the ECDH-only curves. (There are no curves that can do ECDSA but not ECDH.)
+ * This way, if ECDSA is enabled then the curve that's selected here will
+ * be ECDSA-capable, and likewise for ECDH. */
+#if defined(PSA_WANT_ECC_SECP_R1_192)
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY PSA_ECC_FAMILY_SECP_R1
+#define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 192
+#define MBEDTLS_TEST_ECP_DP_ONE_CURVE MBEDTLS_ECP_DP_SECP192R1
+#elif defined(PSA_WANT_ECC_SECP_R1_224)
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY PSA_ECC_FAMILY_SECP_R1
+#define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 224
+#define MBEDTLS_TEST_ECP_DP_ONE_CURVE MBEDTLS_ECP_DP_SECP224R1
+#elif defined(PSA_WANT_ECC_SECP_R1_256)
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY PSA_ECC_FAMILY_SECP_R1
+#define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 256
+#define MBEDTLS_TEST_ECP_DP_ONE_CURVE MBEDTLS_ECP_DP_SECP256R1
+#elif defined(PSA_WANT_ECC_SECP_R1_384)
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY PSA_ECC_FAMILY_SECP_R1
+#define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 384
+#define MBEDTLS_TEST_ECP_DP_ONE_CURVE MBEDTLS_ECP_DP_SECP384R1
+#elif defined(PSA_WANT_ECC_SECP_R1_521)
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY PSA_ECC_FAMILY_SECP_R1
+#define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 521
+#define MBEDTLS_TEST_ECP_DP_ONE_CURVE MBEDTLS_ECP_DP_SECP521R1
+#elif defined(PSA_WANT_ECC_SECP_K1_192)
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY PSA_ECC_FAMILY_SECP_K1
+#define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 192
+#define MBEDTLS_TEST_ECP_DP_ONE_CURVE MBEDTLS_ECP_DP_SECP192K1
+#elif defined(PSA_WANT_ECC_SECP_K1_224)
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY PSA_ECC_FAMILY_SECP_K1
+#define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 224
+#define MBEDTLS_TEST_ECP_DP_ONE_CURVE MBEDTLS_ECP_DP_SECP224K1
+#elif defined(PSA_WANT_ECC_SECP_K1_256)
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY PSA_ECC_FAMILY_SECP_K1
+#define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 256
+#define MBEDTLS_TEST_ECP_DP_ONE_CURVE MBEDTLS_ECP_DP_SECP256K1
+#elif defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY PSA_ECC_FAMILY_BRAINPOOL_P_R1
+#define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 256
+#define MBEDTLS_TEST_ECP_DP_ONE_CURVE MBEDTLS_ECP_DP_BP256R1
+#elif defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY PSA_ECC_FAMILY_BRAINPOOL_P_R1
+#define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 384
+#define MBEDTLS_TEST_ECP_DP_ONE_CURVE MBEDTLS_ECP_DP_BP384R1
+#elif defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY PSA_ECC_FAMILY_BRAINPOOL_P_R1
+#define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 512
+#define MBEDTLS_TEST_ECP_DP_ONE_CURVE MBEDTLS_ECP_DP_BP512R1
+#elif defined(PSA_WANT_ECC_MONTGOMERY_255)
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY PSA_ECC_FAMILY_MONTGOMERY
+#define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 255
+#define MBEDTLS_TEST_ECP_DP_ONE_CURVE MBEDTLS_ECP_DP_CURVE25519
+#elif defined(PSA_WANT_ECC_MONTGOMERY_448)
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY PSA_ECC_FAMILY_MONTGOMERY
+#define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 448
+#define MBEDTLS_TEST_ECP_DP_ONE_CURVE MBEDTLS_ECP_DP_CURVE448
+#endif /* curve selection */
+
+#if defined(MBEDTLS_TEST_PSA_ECC_ONE_FAMILY)
 #define MBEDTLS_TEST_PSA_ECC_AT_LEAST_ONE_CURVE
+#else
+/* Always define the macros so that we can use them in test data. */
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY 0
+#define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 0
+#define MBEDTLS_TEST_ECP_DP_ONE_CURVE 0
 #endif
-#endif
+
+#endif /* defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) */
 
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static int pk_genkey_ec(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id)
@@ -211,43 +267,6 @@ size_t mbedtls_rsa_key_len_func(void *ctx)
 }
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_PK_HAVE_ECC_KEYS)
-static mbedtls_ecp_group_id ecc_pick_grp_id(void)
-{
-#if defined(MBEDTLS_ECP_LIGHT)
-    return mbedtls_ecp_grp_id_list()[0];
-#elif defined(PSA_WANT_ECC_SECP_R1_192)
-    return MBEDTLS_ECP_DP_SECP192R1;
-#elif defined(PSA_WANT_ECC_SECP_R1_224)
-    return MBEDTLS_ECP_DP_SECP224R1;
-#elif defined(PSA_WANT_ECC_SECP_R1_256)
-    return MBEDTLS_ECP_DP_SECP256R1;
-#elif defined(PSA_WANT_ECC_SECP_R1_384)
-    return MBEDTLS_ECP_DP_SECP384R1;
-#elif defined(PSA_WANT_ECC_SECP_R1_521)
-    return MBEDTLS_ECP_DP_SECP521R1;
-#elif defined(PSA_WANT_ECC_SECP_K1_192)
-    return MBEDTLS_ECP_DP_SECP192K1;
-#elif defined(PSA_WANT_ECC_SECP_K1_224)
-    return MBEDTLS_ECP_DP_SECP224K1;
-#elif defined(PSA_WANT_ECC_SECP_K1_256)
-    return MBEDTLS_ECP_DP_SECP256K1;
-#elif defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
-    return MBEDTLS_ECP_DP_BP256R1;
-#elif defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
-    return MBEDTLS_ECP_DP_BP384R1;
-#elif defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
-    return MBEDTLS_ECP_DP_BP512R1;
-#elif defined(PSA_WANT_ECC_MONTGOMERY_255)
-    return MBEDTLS_ECP_DP_CURVE25519;
-#elif defined(PSA_WANT_ECC_MONTGOMERY_448)
-    return MBEDTLS_ECP_DP_CURVE448;
-#else
-    return 0;
-#endif
-}
-#endif /* defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_PK_HAVE_ECC_KEYS) */
-
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 static int pk_setup_for_type(mbedtls_pk_type_t pk_type, int want_pair,
                              mbedtls_pk_context *pk, psa_key_type_t *psa_type)
@@ -291,7 +310,7 @@ static int pk_setup_for_type(mbedtls_pk_type_t pk_type, int want_pair,
         case MBEDTLS_PK_ECKEY_DH:
         case MBEDTLS_PK_ECDSA:
         {
-            mbedtls_ecp_group_id grp_id = ecc_pick_grp_id();
+            mbedtls_ecp_group_id grp_id = MBEDTLS_TEST_ECP_DP_ONE_CURVE;
             size_t bits;
             *psa_type = PSA_KEY_TYPE_ECC_KEY_PAIR(mbedtls_ecc_group_to_psa(grp_id, &bits));
             TEST_EQUAL(pk_genkey(pk, grp_id), 0);

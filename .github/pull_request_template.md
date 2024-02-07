@@ -22,6 +22,6 @@ checklist for PR contributors.
 Help make review efficient:
 * Multiple simple commits
   - please structure your PR into a series of small commits, each of which does one thing
-* No force-push
+* Avoid force-push
   - please do not force-push to update your PR - just add new commit(s)
 * See our [Guidelines for Contributors](https://mbed-tls.readthedocs.io/en/latest/reviews/review-for-contributors/) for more details about the review process.

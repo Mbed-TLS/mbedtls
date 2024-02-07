@@ -4448,3 +4448,153 @@ exit:
     PSA_DONE();
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_DEBUG_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_SSL_SESSION_TICKETS */
+void tls13_cli_max_early_data_size(int max_early_data_size_arg)
+{
+    int ret = -1;
+    mbedtls_test_ssl_endpoint client_ep, server_ep;
+    mbedtls_test_handshake_test_options client_options;
+    mbedtls_test_handshake_test_options server_options;
+    mbedtls_ssl_session saved_session;
+    unsigned char buf[64];
+    uint32_t max_early_data_size;
+    uint32_t written_early_data_size = 0;
+    uint32_t read_early_data_size = 0;
+
+    mbedtls_platform_zeroize(&client_ep, sizeof(client_ep));
+    mbedtls_platform_zeroize(&server_ep, sizeof(server_ep));
+    mbedtls_test_init_handshake_options(&client_options);
+    mbedtls_test_init_handshake_options(&server_options);
+    mbedtls_ssl_session_init(&saved_session);
+
+    PSA_INIT();
+
+    /*
+     * Run first handshake to get a ticket from the server.
+     */
+
+    client_options.pk_alg = MBEDTLS_PK_ECDSA;
+    client_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+    server_options.pk_alg = MBEDTLS_PK_ECDSA;
+    server_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+    server_options.max_early_data_size = max_early_data_size_arg;
+
+    ret = mbedtls_test_get_tls13_ticket(&client_options, &server_options,
+                                        &saved_session);
+    TEST_EQUAL(ret, 0);
+
+    /*
+     * Prepare for handshake with the ticket.
+     */
+    ret = mbedtls_test_ssl_endpoint_init(&client_ep, MBEDTLS_SSL_IS_CLIENT,
+                                         &client_options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
+    ret = mbedtls_test_ssl_endpoint_init(&server_ep, MBEDTLS_SSL_IS_SERVER,
+                                         &server_options, NULL, NULL, NULL);
+    TEST_EQUAL(ret, 0);
+
+    mbedtls_ssl_conf_session_tickets_cb(&server_ep.conf,
+                                        mbedtls_test_ticket_write,
+                                        mbedtls_test_ticket_parse,
+                                        NULL);
+
+    max_early_data_size = saved_session.max_early_data_size;
+    /*
+     * (max_early_data_size + 1024) for the size of the socket buffers for the
+     * server one to be able to contain the maximum number of early data bytes
+     * plus the first flight client messages. Needed because we cannot initiate
+     * the handshake on server side before doing all the calls to
+     * mbedtls_ssl_write_early_data() we want to test. See below for more
+     * information.
+     */
+    ret = mbedtls_test_mock_socket_connect(&(client_ep.socket),
+                                           &(server_ep.socket),
+                                           max_early_data_size + 1024);
+    TEST_EQUAL(ret, 0);
+
+    /* If our server is configured with max_early_data_size equal to zero, it
+     * does not set the MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA flag for
+     * the tickets it creates. To be able to test early data with a ticket
+     * allowing early data in its flags but with max_early_data_size equal to
+     * zero (case supported by our client) tweak the ticket flags here.
+     */
+    if (max_early_data_size == 0) {
+        saved_session.ticket_flags |= MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA;
+    }
+
+    ret = mbedtls_ssl_set_session(&(client_ep.ssl), &saved_session);
+    TEST_EQUAL(ret, 0);
+
+    while (written_early_data_size < max_early_data_size) {
+        size_t early_data_len = sizeof(buf);
+        uint32_t remaining = max_early_data_size - written_early_data_size;
+
+        for (size_t i = 0; i < early_data_len; i++) {
+            buf[i] = (unsigned char) (written_early_data_size + i);
+        }
+
+        ret = mbedtls_ssl_write_early_data(&(client_ep.ssl),
+                                           buf,
+                                           early_data_len);
+
+        if (early_data_len <= remaining) {
+            TEST_EQUAL(ret, early_data_len);
+        } else {
+            TEST_EQUAL(ret, remaining);
+        }
+        written_early_data_size += early_data_len;
+    }
+
+    /* In case we reached exactly the limit in the loop above, do another one
+     * byte early data write.
+     */
+    ret = mbedtls_ssl_write_early_data(&(client_ep.ssl), buf, 1);
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
+    TEST_EQUAL(client_ep.ssl.early_data_count, max_early_data_size);
+    TEST_EQUAL(client_ep.ssl.early_data_status,
+               MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE);
+
+    /*
+     * Now, check data on server side. It is not done in the previous loop as
+     * in the first call to mbedtls_ssl_handshake(), the server ends up sending
+     * its Finished message and then in the following call to
+     * mbedtls_ssl_write_early_data() we go past the early data writing window
+     * and we cannot test multiple calls to the API is this writing window.
+     */
+    while (read_early_data_size < max_early_data_size) {
+        ret = mbedtls_ssl_handshake(&(server_ep.ssl));
+        TEST_EQUAL(ret, MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA);
+
+        ret = mbedtls_ssl_read_early_data(&(server_ep.ssl),
+                                          buf,
+                                          sizeof(buf));
+        TEST_ASSERT(ret > 0);
+
+        for (size_t i = 0; i < (size_t) ret; i++) {
+            TEST_EQUAL(buf[i], (unsigned char) (read_early_data_size + i));
+        }
+
+        read_early_data_size += ret;
+    }
+    TEST_EQUAL(read_early_data_size, max_early_data_size);
+
+    ret = mbedtls_ssl_handshake(&(server_ep.ssl));
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_WANT_READ);
+
+    ret = mbedtls_ssl_write_early_data(&(client_ep.ssl), buf, 1);
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
+    TEST_EQUAL(client_ep.ssl.early_data_count, max_early_data_size);
+    TEST_EQUAL(client_ep.ssl.early_data_status,
+               MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE);
+
+exit:
+    mbedtls_test_ssl_endpoint_free(&client_ep, NULL);
+    mbedtls_test_ssl_endpoint_free(&server_ep, NULL);
+    mbedtls_test_free_handshake_options(&client_options);
+    mbedtls_test_free_handshake_options(&server_options);
+    mbedtls_ssl_session_free(&saved_session);
+    PSA_DONE();
+}
+/* END_CASE */

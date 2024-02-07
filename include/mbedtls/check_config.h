@@ -284,7 +284,7 @@
 /* Helpers for hash dependencies, will be undefined at the end of the file */
 /* Do SHA-256, 384, 512 to cover Entropy and TLS. */
 #if defined(MBEDTLS_SHA256_C) || \
-    (defined(MBEDTLS_PSA_CRYPTO_CLIENT) && defined(PSA_WANT_ALG_SHA_256)
+    (defined(MBEDTLS_PSA_CRYPTO_CLIENT) && defined(PSA_WANT_ALG_SHA_256))
 #define MBEDTLS_MD_HAVE_SHA256
 #endif
 #if defined(MBEDTLS_SHA384_C) || \

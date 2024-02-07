@@ -192,12 +192,13 @@ static inline mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa
  *                          PSA_BITS_TO_BYTES(bits) bytes.
  * \param[out]  der         Buffer that will be filled with the converted DER
  *                          output. It can overlap with raw buffer.
- * \param       der_size    Size of \p der in bytes. Given \p bits parameter:
- *                          * #MBEDTLS_ECDSA_MAX_SIG_LEN(\p bits) can be used
- *                            to determine a large enough buffer for any
- *                            \p raw input vector.
- *                          * The minimum size might be smaller in case
- *                            \p raw input vector contains padding zeros.
+ * \param       der_size    Size of \p der in bytes. It is enough if \p der_size
+ *                          is at least the size of the actual output. (The size
+ *                          of the output can vary depending on the presence of
+ *                          leading zeros in the data.) You can use
+ *                          #MBEDTLS_ECDSA_MAX_SIG_LEN(\p bits) to determine a
+ *                          size that is large enough for all signatures for a
+ *                          given value of \p bits.
  * \param[out]  der_len     On success it contains the amount of valid data
  *                          (in bytes) written to \p der. It's undefined
  *                          in case of failure.

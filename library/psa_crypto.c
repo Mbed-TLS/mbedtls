@@ -4322,13 +4322,14 @@ psa_status_t psa_cipher_decrypt_setup(psa_cipher_operation_t *operation,
 }
 
 psa_status_t psa_cipher_generate_iv(psa_cipher_operation_t *operation,
-                                    uint8_t *iv,
+                                    uint8_t *iv_external,
                                     size_t iv_size,
                                     size_t *iv_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    uint8_t local_iv[PSA_CIPHER_IV_MAX_SIZE];
     size_t default_iv_length = 0;
+
+    LOCAL_OUTPUT_DECLARE(iv_external, iv);
 
     if (operation->id == 0) {
         status = PSA_ERROR_BAD_STATE;
@@ -4351,24 +4352,29 @@ psa_status_t psa_cipher_generate_iv(psa_cipher_operation_t *operation,
         goto exit;
     }
 
-    status = psa_generate_random(local_iv, default_iv_length);
+    LOCAL_OUTPUT_ALLOC(iv_external, default_iv_length, iv);
+
+    status = psa_generate_random(iv, default_iv_length);
     if (status != PSA_SUCCESS) {
         goto exit;
     }
 
     status = psa_driver_wrapper_cipher_set_iv(operation,
-                                              local_iv, default_iv_length);
+                                              iv, default_iv_length);
 
 exit:
     if (status == PSA_SUCCESS) {
-        psa_crypto_copy_output(local_iv, default_iv_length, iv, iv_size);
         *iv_length = default_iv_length;
         operation->iv_set = 1;
     } else {
         *iv_length = 0;
         psa_cipher_abort(operation);
+        if (iv != NULL) {
+            mbedtls_platform_zeroize(iv, default_iv_length);
+        }
     }
 
+    LOCAL_OUTPUT_FREE(iv_external, iv);
     return status;
 }
 

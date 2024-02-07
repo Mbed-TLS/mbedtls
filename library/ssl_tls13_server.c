@@ -3141,6 +3141,7 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
         ssl->conf->max_early_data_size > 0) {
         mbedtls_ssl_tls13_session_set_ticket_flags(
             session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
+        session->max_early_data_size = ssl->conf->max_early_data_size;
     }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 

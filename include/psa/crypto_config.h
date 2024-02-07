@@ -109,6 +109,12 @@
 #define PSA_WANT_ECC_SECP_R1_384                1
 #define PSA_WANT_ECC_SECP_R1_521                1
 
+#define PSA_WANT_DH_RFC7919_2048                1
+#define PSA_WANT_DH_RFC7919_3072                1
+#define PSA_WANT_DH_RFC7919_4096                1
+#define PSA_WANT_DH_RFC7919_6144                1
+#define PSA_WANT_DH_RFC7919_8192                1
+
 #define PSA_WANT_KEY_TYPE_DERIVE                1
 #define PSA_WANT_KEY_TYPE_PASSWORD              1
 #define PSA_WANT_KEY_TYPE_PASSWORD_HASH         1

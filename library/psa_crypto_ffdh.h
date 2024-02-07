@@ -10,7 +10,6 @@
 #define PSA_CRYPTO_FFDH_H
 
 #include <psa/crypto.h>
-#include <mbedtls/dhm.h>
 
 /** Perform a key agreement and return the FFDH shared secret.
  *

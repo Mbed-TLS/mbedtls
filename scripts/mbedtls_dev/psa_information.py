@@ -82,7 +82,7 @@ def automatic_dependencies(*expressions: str) -> List[str]:
     """
     used = set()
     for expr in expressions:
-        used.update(re.findall(r'PSA_(?:ALG|ECC_FAMILY|KEY_TYPE)_\w+', expr))
+        used.update(re.findall(r'PSA_(?:ALG|ECC_FAMILY|DH_FAMILY|KEY_TYPE)_\w+', expr))
     used.difference_update(SYMBOLS_WITHOUT_DEPENDENCY)
     return sorted(psa_want_symbol(name) for name in used)
 

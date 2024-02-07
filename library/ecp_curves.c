@@ -46,7 +46,7 @@
     defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
 /* For these curves, we build the group parameters dynamically. */
 #define ECP_LOAD_GROUP
-static mbedtls_mpi_uint mpi_one[] = { 1 };
+static const mbedtls_mpi_uint mpi_one[] = { 1 };
 #endif
 
 /*
@@ -4505,7 +4505,7 @@ static inline void ecp_mpi_set1(mbedtls_mpi *X)
 {
     X->s = 1;
     X->n = 1;
-    X->p = mpi_one;
+    X->p = (mbedtls_mpi_uint *) mpi_one; /* X->p will not be modified so the cast is safe */
 }
 
 /*
@@ -5311,7 +5311,7 @@ cleanup:
  */
 #define P_KOBLITZ_MAX   (256 / 8 / sizeof(mbedtls_mpi_uint))      // Max limbs in P
 #define P_KOBLITZ_R     (8 / sizeof(mbedtls_mpi_uint))            // Limbs in R
-static inline int ecp_mod_koblitz(mbedtls_mpi *N, mbedtls_mpi_uint *Rp, size_t p_limbs,
+static inline int ecp_mod_koblitz(mbedtls_mpi *N, const mbedtls_mpi_uint *Rp, size_t p_limbs,
                                   size_t adjust, size_t shift, mbedtls_mpi_uint mask)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -5325,7 +5325,7 @@ static inline int ecp_mod_koblitz(mbedtls_mpi *N, mbedtls_mpi_uint *Rp, size_t p
 
     /* Init R */
     R.s = 1;
-    R.p = Rp;
+    R.p = (mbedtls_mpi_uint *) Rp; /* R.p will not be modified so the cast is safe */
     R.n = P_KOBLITZ_R;
 
     /* Common setup for M */
@@ -5396,7 +5396,7 @@ cleanup:
  */
 static int ecp_mod_p192k1(mbedtls_mpi *N)
 {
-    static mbedtls_mpi_uint Rp[] = {
+    static const mbedtls_mpi_uint Rp[] = {
         MBEDTLS_BYTES_TO_T_UINT_8(0xC9, 0x11, 0x00, 0x00, 0x01, 0x00, 0x00,
                                   0x00)
     };
@@ -5413,7 +5413,7 @@ static int ecp_mod_p192k1(mbedtls_mpi *N)
  */
 static int ecp_mod_p224k1(mbedtls_mpi *N)
 {
-    static mbedtls_mpi_uint Rp[] = {
+    static const mbedtls_mpi_uint Rp[] = {
         MBEDTLS_BYTES_TO_T_UINT_8(0x93, 0x1A, 0x00, 0x00, 0x01, 0x00, 0x00,
                                   0x00)
     };
@@ -5435,7 +5435,7 @@ static int ecp_mod_p224k1(mbedtls_mpi *N)
  */
 static int ecp_mod_p256k1(mbedtls_mpi *N)
 {
-    static mbedtls_mpi_uint Rp[] = {
+    static const mbedtls_mpi_uint Rp[] = {
         MBEDTLS_BYTES_TO_T_UINT_8(0xD1, 0x03, 0x00, 0x00, 0x01, 0x00, 0x00,
                                   0x00)
     };

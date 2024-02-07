@@ -24,4 +24,4 @@ Help make review efficient:
   - please structure your PR into a series of small commits, each of which does one thing
 * No force-push
   - please do not force-push to update your PR - just add new commit(s)
-  - use `git merge` (or the GitHub web interface) to resolve conflicts - not `git rebase`
+* See our [Guidelines for Contributors](https://mbed-tls.readthedocs.io/en/latest/reviews/review-for-contributors/) for more details about the review process.

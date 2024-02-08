@@ -468,23 +468,19 @@
 #error "!MBEDTLS_SSL_KEEP_PEER_CERTIFICATE requires MBEDTLS_SHA512_C, MBEDTLS_SHA256_C or MBEDTLS_SHA1_C"
 #endif
 
-#if defined(MBEDTLS_MD_C) && !( \
-    defined(MBEDTLS_MD5_C) || \
-    defined(MBEDTLS_RIPEMD160_C) || \
-    defined(MBEDTLS_SHA1_C) || \
-    defined(MBEDTLS_SHA224_C) || \
-    defined(MBEDTLS_SHA256_C) || \
-    defined(MBEDTLS_SHA384_C) || \
-    defined(MBEDTLS_SHA512_C) || \
-    (defined(MBEDTLS_PSA_CRYPTO_C) && \
-     (defined(PSA_WANT_ALG_MD5) || \
-      defined(PSA_WANT_ALG_RIPEMD160) || \
-      defined(PSA_WANT_ALG_SHA_1) || \
-      defined(PSA_WANT_ALG_SHA_224) || \
-      defined(PSA_WANT_ALG_SHA_256) || \
-      defined(PSA_WANT_ALG_SHA_384) || \
-      defined(PSA_WANT_ALG_SHA_512))))
-#error "MBEDTLS_MD_C defined, but not all prerequisites"
+#if defined(MBEDTLS_MD_C) && \
+    !defined(MBEDTLS_MD_CAN_MD5) && \
+    !defined(MBEDTLS_MD_CAN_RIPEMD160) && \
+    !defined(MBEDTLS_MD_CAN_SHA1) && \
+    !defined(MBEDTLS_MD_CAN_SHA224) && \
+    !defined(MBEDTLS_MD_CAN_SHA256) && \
+    !defined(MBEDTLS_MD_CAN_SHA384) && \
+    !defined(MBEDTLS_MD_CAN_SHA512) && \
+    !defined(MBEDTLS_MD_CAN_SHA3_224) && \
+    !defined(MBEDTLS_MD_CAN_SHA3_256) && \
+    !defined(MBEDTLS_MD_CAN_SHA3_384) && \
+    !defined(MBEDTLS_MD_CAN_SHA3_512)
+#error "MBEDTLS_MD_C defined, but no hash algorithm"
 #endif
 
 #if defined(MBEDTLS_LMS_C) &&                                          \

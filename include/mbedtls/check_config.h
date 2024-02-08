@@ -461,11 +461,11 @@
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED) &&        \
-    !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE) &&              \
-    ( !defined(MBEDTLS_SHA256_C) &&                             \
-      !defined(MBEDTLS_SHA512_C) &&                             \
-      !defined(MBEDTLS_SHA1_C) )
-#error "!MBEDTLS_SSL_KEEP_PEER_CERTIFICATE requires MBEDTLS_SHA512_C, MBEDTLS_SHA256_C or MBEDTLS_SHA1_C"
+    !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE) &&            \
+    !defined(MBEDTLS_MD_CAN_SHA256) &&                        \
+    !defined(MBEDTLS_MD_CAN_SHA512) &&                        \
+    !defined(MBEDTLS_MD_CAN_SHA1)
+#error "!MBEDTLS_SSL_KEEP_PEER_CERTIFICATE requires SHA-512, SHA-256 or SHA-1".
 #endif
 
 #if defined(MBEDTLS_MD_C) && \

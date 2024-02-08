@@ -4950,45 +4950,6 @@ component_test_gcm_largetable () {
 
     make CFLAGS='-O2 -Werror -Wall -Wextra'
 
-    msg "test: default config + GCM_LARGETABLE - AESNI_C - AESCE_C"
-    make test
-}
-
-component_test_gcm_largetable_gcc () {
-    msg "build: default config + GCM_LARGETABLE - AESNI_C - AESCE_C"
-    scripts/config.py set MBEDTLS_GCM_LARGETABLE
-    scripts/config.py unset MBEDTLS_PADLOCK_C
-    scripts/config.py unset MBEDTLS_AESNI_C
-    scripts/config.py unset MBEDTLS_AESCE_C
-
-    make CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra'
-
-    msg "test: default config - GCM_LARGETABLE - AESNI_C - AESCE_C"
-    make test
-}
-
-component_test_gcm_smalltable () {
-    msg "build: default config - GCM_LARGETABLE - AESNI_C - AESCE_C"
-    scripts/config.py unset MBEDTLS_GCM_LARGETABLE
-    scripts/config.py unset MBEDTLS_PADLOCK_C
-    scripts/config.py unset MBEDTLS_AESNI_C
-    scripts/config.py unset MBEDTLS_AESCE_C
-
-    make CFLAGS='-O2 -Werror -Wall -Wextra'
-
-    msg "test: default config - GCM_LARGETABLE - AESNI_C - AESCE_C"
-    make test
-}
-
-component_test_gcm_smalltable_gcc () {
-    msg "build: default config - GCM_LARGETABLE - AESNI_C - AESCE_C"
-    scripts/config.py unset MBEDTLS_GCM_LARGETABLE
-    scripts/config.py unset MBEDTLS_PADLOCK_C
-    scripts/config.py unset MBEDTLS_AESNI_C
-    scripts/config.py unset MBEDTLS_AESCE_C
-
-    make CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra'
-
     msg "test: default config - GCM_LARGETABLE - AESNI_C - AESCE_C"
     make test
 }

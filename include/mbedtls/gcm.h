@@ -33,11 +33,6 @@
 #define MBEDTLS_GCM_ENCRYPT     1
 #define MBEDTLS_GCM_DECRYPT     0
 
-#define MBEDTLS_GCM_ACC_SMALLTABLE  0
-#define MBEDTLS_GCM_ACC_LARGETABLE  1
-#define MBEDTLS_GCM_ACC_AESNI       2
-#define MBEDTLS_GCM_ACC_AESCE       3
-
 /** Authenticated decryption failed. */
 #define MBEDTLS_ERR_GCM_AUTH_FAILED                       -0x0012
 /** Bad input parameters to function. */

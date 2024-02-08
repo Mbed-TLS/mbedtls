@@ -41,6 +41,12 @@
 
 #if !defined(MBEDTLS_GCM_ALT)
 
+/* Used to select the acceleration mechanism */
+#define MBEDTLS_GCM_ACC_SMALLTABLE  0
+#define MBEDTLS_GCM_ACC_LARGETABLE  1
+#define MBEDTLS_GCM_ACC_AESNI       2
+#define MBEDTLS_GCM_ACC_AESCE       3
+
 /*
  * Initialize a context
  */
@@ -253,17 +259,28 @@ static void gcm_mult_largetable(uint8_t *output, const uint8_t *x, uint64_t H[25
     u64z[0] = 0;
     u64z[1] = 0;
 
-    for (i = 15; i > 0; i--) {
-        mbedtls_xor_no_simd(u8z, u8z, (uint8_t *) H[x[i]], 16);
+    if (MBEDTLS_IS_BIG_ENDIAN) {
+        for (i = 15; i > 0; i--) {
+            mbedtls_xor_no_simd(u8z, u8z, (uint8_t *) H[x[i]], 16);
+            rem = u8z[15];
 
-        rem = u8z[15];
+            u64z[1] >>= 8;
+            u8z[8] = u8z[7];
+            u64z[0] >>= 8;
 
-        u64z[1] <<= 8;
-        u8z[8] = u8z[7];
-        u64z[0] <<= 8;
+            u16z[0] ^= MBEDTLS_GET_UINT16_LE(&last8[rem], 0);
+        }
+    } else {
+        for (i = 15; i > 0; i--) {
+            mbedtls_xor_no_simd(u8z, u8z, (uint8_t *) H[x[i]], 16);
+            rem = u8z[15];
 
-        u8z[0] = 0;
-        u16z[0] ^= last8[rem];
+            u64z[1] <<= 8;
+            u8z[8] = u8z[7];
+            u64z[0] <<= 8;
+
+            u16z[0] ^= last8[rem];
+        }
     }
 
     mbedtls_xor_no_simd(output, u8z, (uint8_t *) H[x[0]], 16);
@@ -318,10 +335,8 @@ static void gcm_mult_smalltable(uint8_t *output, const uint8_t *x, uint64_t H[16
         mbedtls_xor_no_simd(u8z, u8z, (uint8_t *) H[hi], 16);
     }
 
-    MBEDTLS_PUT_UINT32_BE(u64z[0] >> 32, output, 0);
-    MBEDTLS_PUT_UINT32_BE(u64z[0], output, 4);
-    MBEDTLS_PUT_UINT32_BE(u64z[1] >> 32, output, 8);
-    MBEDTLS_PUT_UINT32_BE(u64z[1], output, 12);
+    MBEDTLS_PUT_UINT64_BE(u64z[0], output, 0);
+    MBEDTLS_PUT_UINT64_BE(u64z[1], output, 8);
 }
 #endif
 

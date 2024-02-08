@@ -391,6 +391,13 @@
 #define MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
 #endif
 
+/* psa_util file features some ECDSA conversion functions, to convert between
+ * legacy's ASN.1 DER format and PSA's raw one. */
+#if defined(MBEDTLS_ECDSA_C) || (defined(MBEDTLS_PSA_CRYPTO_C) && \
+    (defined(PSA_WANT_ALG_ECDSA) || defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)))
+#define MBEDTLS_PSA_UTIL_HAVE_ECDSA
+#endif
+
 /* Some internal helpers to determine which keys are availble. */
 #if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_AES_C)) || \
     (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_AES))

@@ -1540,6 +1540,7 @@ int mbedtls_ssl_session_reset_int(mbedtls_ssl_context *ssl, int partial)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     ssl->state = MBEDTLS_SSL_HELLO_REQUEST;
+    ssl->tls_version = ssl->conf->max_tls_version;
 
     mbedtls_ssl_session_reset_msg_layer(ssl, partial);
 

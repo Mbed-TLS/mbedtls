@@ -6,7 +6,73 @@
  */
 
 #include <test/helpers.h>
+#include <test/threading_helpers.h>
 #include <test/macros.h>
+
+#include "mbedtls/threading.h"
+
+#if defined(MBEDTLS_THREADING_C)
+
+#if defined(MBEDTLS_THREADING_PTHREAD)
+
+static int threading_thread_create_pthread(mbedtls_test_thread_t *thread, void *(*thread_func)(
+                                               void *), void *thread_data)
+{
+    if (thread == NULL || thread_func == NULL) {
+        return MBEDTLS_ERR_THREADING_BAD_INPUT_DATA;
+    }
+
+    if (pthread_create(&thread->thread, NULL, thread_func, thread_data)) {
+        return MBEDTLS_ERR_THREADING_THREAD_ERROR;
+    }
+
+    return 0;
+}
+
+static int threading_thread_join_pthread(mbedtls_test_thread_t *thread)
+{
+    if (thread == NULL) {
+        return MBEDTLS_ERR_THREADING_BAD_INPUT_DATA;
+    }
+
+    if (pthread_join(thread->thread, NULL) != 0) {
+        return MBEDTLS_ERR_THREADING_THREAD_ERROR;
+    }
+
+    return 0;
+}
+
+int (*mbedtls_test_thread_create)(mbedtls_test_thread_t *thread, void *(*thread_func)(void *),
+                                  void *thread_data) = threading_thread_create_pthread;
+int (*mbedtls_test_thread_join)(mbedtls_test_thread_t *thread) = threading_thread_join_pthread;
+
+#endif /* MBEDTLS_THREADING_PTHREAD */
+
+#if defined(MBEDTLS_THREADING_ALT)
+
+static int threading_thread_create_fail(mbedtls_test_thread_t *thread,
+                                        void *(*thread_func)(void *),
+                                        void *thread_data)
+{
+    (void) thread;
+    (void) thread_func;
+    (void) thread_data;
+
+    return MBEDTLS_ERR_THREADING_BAD_INPUT_DATA;
+}
+
+static int threading_thread_join_fail(mbedtls_test_thread_t *thread)
+{
+    (void) thread;
+
+    return MBEDTLS_ERR_THREADING_BAD_INPUT_DATA;
+}
+
+int (*mbedtls_test_thread_create)(mbedtls_test_thread_t *thread, void *(*thread_func)(void *),
+                                  void *thread_data) = threading_thread_create_fail;
+int (*mbedtls_test_thread_join)(mbedtls_test_thread_t *thread) = threading_thread_join_fail;
+
+#endif /* MBEDTLS_THREADING_ALT */
 
 #if defined(MBEDTLS_TEST_MUTEX_USAGE)
 
@@ -257,3 +323,5 @@ void mbedtls_test_mutex_usage_end(void)
 }
 
 #endif /* MBEDTLS_TEST_MUTEX_USAGE */
+
+#endif /* MBEDTLS_THREADING_C */

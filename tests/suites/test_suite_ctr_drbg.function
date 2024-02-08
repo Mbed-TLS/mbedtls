@@ -347,7 +347,7 @@ exit:
 void ctr_drbg_threads(data_t *expected_result, int reseed, int arg_thread_count)
 {
     size_t thread_count = (size_t) arg_thread_count;
-    pthread_t *threads = NULL;
+    mbedtls_test_thread_t *threads = NULL;
 
     unsigned char out[16];
     unsigned char *entropy = NULL;
@@ -364,7 +364,7 @@ void ctr_drbg_threads(data_t *expected_result, int reseed, int arg_thread_count)
 
     AES_PSA_INIT();
 
-    TEST_CALLOC(threads, sizeof(pthread_t) * thread_count);
+    TEST_CALLOC(threads, sizeof(mbedtls_test_thread_t) * thread_count);
     memset(out, 0, sizeof(out));
 
     mbedtls_ctr_drbg_context ctx;
@@ -398,13 +398,13 @@ void ctr_drbg_threads(data_t *expected_result, int reseed, int arg_thread_count)
 
     for (size_t i = 0; i < thread_count; i++) {
         TEST_EQUAL(
-            pthread_create(&threads[i], NULL,
-                           thread_random_function, (void *) &ctx),
+            mbedtls_test_thread_create(&threads[i],
+                                       thread_random_function, (void *) &ctx),
             0);
     }
 
     for (size_t i = 0; i < thread_count; i++) {
-        TEST_EQUAL(pthread_join(threads[i], NULL), 0);
+        TEST_EQUAL(mbedtls_test_thread_join(&threads[i]), 0);
     }
 
     /* Take a last output for comparing and thus verifying the DRBG state */

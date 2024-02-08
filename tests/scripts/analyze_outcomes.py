@@ -562,6 +562,18 @@ KNOWN_TASKS = {
                     # but these are not available in the accelerated component.
                     re.compile('Set( non-existent)? padding with (AES|CAMELLIA).*'),
                 ],
+                'test_suite_pkcs12': [
+                    # The en/decryption part of PKCS#12 is not yet supported.
+                    # The rest of PKCS#12 (key derivation) works, though.
+                    re.compile(r'PBE Encrypt, .*'),
+                    re.compile(r'PBE Decrypt, .*'),
+                ],
+                'test_suite_pkcs5': [
+                    # The en/decryption part of PKCS#5 is not yet supported.
+                    # The rest of PKCS#5 (PBKDF2) works, though.
+                    re.compile(r'PBES2 Encrypt, .*'),
+                    re.compile(r'PBES2 Decrypt .*'),
+                ],
                 'test_suite_pkparse': [
                     # PEM (called by pkparse) requires AES_C in order to decrypt
                     # the key, but this is not available in the accelerated

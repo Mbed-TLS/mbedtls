@@ -3318,3 +3318,12 @@ tls13_srv_max_early_data_size:TEST_EARLY_DATA_ACCEPTED:3
 
 TLS 1.3 srv, max early data size, max=97
 tls13_srv_max_early_data_size:TEST_EARLY_DATA_ACCEPTED:97
+
+TLS 1.3 srv, max early data size, server rejects, default
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_SERVER_REJECTS:-1
+
+TLS 1.3 srv, max early data size, server rejects, max=3 (very small)
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_SERVER_REJECTS:3
+
+TLS 1.3 srv, max early data size, server rejects, max=97
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_SERVER_REJECTS:97

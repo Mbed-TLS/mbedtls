@@ -97,19 +97,69 @@ Gap: functions to convert between `psa_algorithm_t` hash algorithms and `mbedtls
 
 ### MAC gap analysis
 
-[TODO]
+The legacy API does not have a unified interface for MAC, only separate interfaces for HMAC and CMAC. As a consequence, applications need ad hoc code to support both HMAC and CMAC anyway. With respect to MAC mechanism identification, there is no gap to fill.
+
+Within the scope of HMAC, applications need to convert between hash mechanism identifications; this is part of the more general [hash analysis](#hash-gap-analysis). Within the scope of CMAC, applications need to convert between block cipher identifications; this is part of the more general [cipher and AEAD analysis](#cipher-and-aead-gap-analysis).
+
+MAC do not have any nontrivial format for keys or outputs, so there is no need for any conversion functions.
 
 ### Cipher and AEAD gap analysis
 
-[TODO]
+Ciphers involve no nontrivial data format, just raw byte strings and concatenation. Therefore the only gap is with metadata, namely specifying a cipher key type or a cipher mechanism.
+
+The following types of metadata appear in cipher interfaces:
+
+* Direction: encrypt or decrypt. This appears in the legacy API via the enum `{MBEDTLS_ENCRYPT, MBEDTLS_DECRYPT}`, while the PSA API has two distinct functions where relevant. Given that there are only two values, a helper API would likely add more complexity than it solves.
+* Mechanism (MAC, unauthenticated cipher, authenticated cipher, key derivation, etc.) built generically as a mode on a block permutation.
+* Unauthenticated cipher key type or mechanism.
+* Authenticated cipher key type or mechanism.
+
+#### Cipher metadata gap analysis
+
+The legacy API has two ways to encode cipher mechanisms:
+
+* As a single identifier `mbedtls_cipher_type_t`, describing a precise combination of base, mode and key size.
+* As a combination of base (`mbedtls_cipher_id_t`) and mode (`mbedtls_cipher_mode_t` sometimes with padding `mbedtls_cipher_padding_t`).
+
+The PSA API encodes cipher mechanisms as the combination of an algorithm (`psa_algorithm_t`) and a key type (`psa_key_type_t`).
+
+It seems natural to provide ways to convert between legacy and PSA encodings of cipher mechanisms. This would be similar to what we do for hashes and for asymmetric mechanisms. However:
+
+* There is no explicit request from someone missing this in real application code. (This alone is a weak indicator because we expect that most potential users of such an interface haven't started looking for it yet.)
+* We do not seem to need this much in our own code. TLS has its own conversion, limited to the subset of mechanisms that it uses.
+* The [“Symmetric encryption” section of the transition guide](../../psa-transition.md#symmetric-encryption) does not demonstrate the need for applications to write complex code to bridge the gap, the way it does with asymmetric crytography in Mbed TLS 3.5. However, there is arguably an omission there, since the transition guide does not show how to translate metadata.
+
+[OPEN] Do we need conversion functions between encodings of cipher mechanisms?
+
+#### Cipher operation gap analysis
+
+Applications transitioning to the PSA API may wish to take advantage of PSA accelerated ciphers or opaque keys, while still constrained to provide the legacy `cipher.h` interface.
+
+Mbed TLS 3.5 offers `mbedtls_cipher_setup_psa()` for this transition.
 
 ### Key derivation gap analysis
 
-[TODO]
+The legacy API does not have a unified interface for key derivation. It has an HKDF interface, an interface for PBKDF2 (`mbedtls_pkcs5_pbkdf2_hmac`), and an interface for the long-deprecated PKCS#12 password-based key derivation (`mbedtls_pkcs12_derivation`). Thus there is no interface gap to fill, apart from hash mechanism identification which is covered under [hash analysis](#hash-gap-analysis).
 
 ### Random generation gap analysis
 
-[TODO]
+#### Random generation interfaces
+
+Most applications using the legacy crypto API instantiate an entropy context and a DRBG context (either CTR\_DRBG or HMAC\_DRBG) to obtain random byte strings and to pass a random generator (`f_rng, p_rng`) to functions that require one.
+
+PSA has its own random generation internally. By default, it is based on the same configuration of entropy sources as the legacy API. As a consequence, typical applications to not need to take any explicit steps to transition to PSA.
+
+Applications that transition to PSA may wish to take advantage of its random generator even if they call functions that expect a random generator with the legacy `f_rng, p_rng` interface. This is already implemented through `mbedtls_psa_get_random()`.
+
+The legacy API allows applications to provide their own implementation of the RNG interface. Such a feature was deliberately not included in the PSA API due to the low use in our target space and high cost in implementation complexity and risk of misconfiguration.
+
+#### Entropy sources
+
+As of Mbed TLS 3.6, the PSA subsystem uses the same entropy sources as the legacy module (unless explicitly configured otherwise). As a consequence, there is no transition to help with regarding entropy sources.
+
+#### Deterministic random generation
+
+The legacy API includes interfaces for two deterministic random generator families: CTR\_DRBG and HMAC\_DRBG. There is no corresponding PSA interface. (One is under discussion as of early 2024, but it will not be finalized until well after Mbed TLS 3.6 is released.) As a consequence, there is no transition to help with regarding DRBG interfaces.
 
 ### Asymmetric cryptography gap analysis
 
@@ -218,7 +268,7 @@ Based on the [gap analysis](#hash-gap-analysis):
 
 ### MAC APIs
 
-[TODO]
+Based on the [gap analysis](#mac-gap-analysis): nothing to do.
 
 ### Cipher and AEAD APIs
 
@@ -226,11 +276,11 @@ Based on the [gap analysis](#hash-gap-analysis):
 
 ### Key derivation APIs
 
-[TODO]
+Based on the [gap analysis](#key-derivation-gap-analysis): nothing to do.
 
 ### Random generation APIs
 
-[TODO]
+Based on the [gap analysis](#random-generation-gap-analysis): nothing to do.
 
 ### Asymmetric cryptography APIs
 

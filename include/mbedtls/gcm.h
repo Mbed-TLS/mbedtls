@@ -70,11 +70,7 @@ typedef struct mbedtls_gcm_context {
     unsigned char MBEDTLS_PRIVATE(mode);                     /*!< The operation to perform:
                                                               #MBEDTLS_GCM_ENCRYPT or
                                                               #MBEDTLS_GCM_DECRYPT. */
-    unsigned char MBEDTLS_PRIVATE(acceleration);             /*!< The acceleration to use:
-                                                              #MBEDTLS_GCM_ACC_SMALLTABLE,
-                                                              #MBEDTLS_GCM_ACC_LARGETABLE,
-                                                              #MBEDTLS_GCM_ACC_AESNI,
-                                                              #MBEDTLS_GCM_ACC_AESCE */
+    unsigned char MBEDTLS_PRIVATE(acceleration);             /*!< The acceleration to use. */
 }
 mbedtls_gcm_context;
 

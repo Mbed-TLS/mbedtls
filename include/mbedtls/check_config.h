@@ -300,13 +300,13 @@
 
 #if defined(__has_feature)
 #if __has_feature(memory_sanitizer)
-#define MBEDTLS_HAS_MEMSAN
+#define MBEDTLS_HAS_MEMSAN // #undef at the end of this paragraph
 #endif
 #endif
 #if defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN) &&  !defined(MBEDTLS_HAS_MEMSAN)
 #error "MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN requires building with MemorySanitizer"
 #endif
-#undef MBEDTLS_HAS_MEMSAN
+#undef MBEDTLS_HAS_MEMSAN // temporary macro defined above
 
 #if defined(MBEDTLS_CCM_C) && \
     !(defined(MBEDTLS_CCM_GCM_CAN_AES) || defined(MBEDTLS_CCM_GCM_CAN_ARIA) || \
@@ -372,28 +372,6 @@
 #error "MBEDTLS_HMAC_DRBG_C defined, but not all prerequisites"
 #endif
 
-/* Helper for JPAKE dependencies, will be undefined at the end of the file */
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(PSA_WANT_ALG_JPAKE) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC)
-#define MBEDTLS_PK_HAVE_JPAKE
-#endif
-#else /* MBEDTLS_USE_PSA_CRYPTO */
-#if defined(MBEDTLS_ECJPAKE_C)
-#define MBEDTLS_PK_HAVE_JPAKE
-#endif
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
-/* Helper for curve SECP256R1 */
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(PSA_WANT_ECC_SECP_R1_256)
-#define MBEDTLS_PK_HAVE_CURVE_SECP256R1
-#endif
-#else /* MBEDTLS_USE_PSA_CRYPTO */
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
-#define MBEDTLS_PK_HAVE_CURVE_SECP256R1
-#endif
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) &&                 \
     ( !defined(MBEDTLS_CAN_ECDH) ||                                       \
       !defined(MBEDTLS_PK_CAN_ECDSA_SIGN) ||                                \
@@ -447,11 +425,20 @@
 #error "MBEDTLS_KEY_EXCHANGE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) &&                    \
-    ( !defined(MBEDTLS_PK_HAVE_JPAKE) ||                                \
-      !defined(MBEDTLS_PK_HAVE_CURVE_SECP256R1) )
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) &&    \
+    ( !defined(PSA_WANT_ALG_JPAKE) ||                   \
+      !defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC) || \
+      !defined(PSA_WANT_ECC_SECP_R1_256) )
 #error "MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED defined, but not all prerequisites"
 #endif
+#else /* MBEDTLS_USE_PSA_CRYPTO */
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) &&    \
+    ( !defined(MBEDTLS_ECJPAKE_C) ||                    \
+      !defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) )
+#error "MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED defined, but not all prerequisites"
+#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /* Use of EC J-PAKE in TLS requires SHA-256. */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) &&                    \
@@ -1054,20 +1041,18 @@
 #if !defined(MBEDTLS_THREADING_C) || defined(MBEDTLS_THREADING_IMPL)
 #error "MBEDTLS_THREADING_PTHREAD defined, but not all prerequisites"
 #endif
-#define MBEDTLS_THREADING_IMPL
+#define MBEDTLS_THREADING_IMPL // undef at the end of this paragraph
 #endif
-
 #if defined(MBEDTLS_THREADING_ALT)
 #if !defined(MBEDTLS_THREADING_C) || defined(MBEDTLS_THREADING_IMPL)
 #error "MBEDTLS_THREADING_ALT defined, but not all prerequisites"
 #endif
-#define MBEDTLS_THREADING_IMPL
+#define MBEDTLS_THREADING_IMPL // undef at the end of this paragraph
 #endif
-
 #if defined(MBEDTLS_THREADING_C) && !defined(MBEDTLS_THREADING_IMPL)
 #error "MBEDTLS_THREADING_C defined, single threading implementation required"
 #endif
-#undef MBEDTLS_THREADING_IMPL
+#undef MBEDTLS_THREADING_IMPL // temporary macro defined above
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_PSA_CRYPTO_C)
 #error "MBEDTLS_USE_PSA_CRYPTO defined, but not all prerequisites"
@@ -1197,10 +1182,6 @@
     ( !defined(MBEDTLS_MD_C) ) )
 #error  "MBEDTLS_PKCS7_C is defined, but not all prerequisites"
 #endif
-
-/* Undefine helper symbols */
-#undef MBEDTLS_PK_HAVE_JPAKE
-#undef MBEDTLS_PK_HAVE_CURVE_SECP256R1
 
 /*
  * Avoid warning from -pedantic. This is a convenient place for this

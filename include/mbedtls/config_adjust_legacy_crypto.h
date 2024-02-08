@@ -324,15 +324,6 @@
 #define MBEDTLS_PSA_CRYPTO_CLIENT
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
-/* The PK wrappers need pk_write/pk_parse functions to format RSA key objects
- * when they are dispatching to the PSA API. This happens under MBEDTLS_USE_PSA_CRYPTO,
- * and even under just MBEDTLS_PSA_CRYPTO_C in psa_crypto_rsa.c. */
-#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_RSA_C)
-#define MBEDTLS_PK_C
-#define MBEDTLS_PK_WRITE_C
-#define MBEDTLS_PK_PARSE_C
-#endif
-
 /* Helpers to state that each key is supported either on the builtin or PSA side. */
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_521)
 #define MBEDTLS_ECP_HAVE_SECP521R1

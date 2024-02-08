@@ -24,8 +24,7 @@
 
 #include <mbedtls/rsa.h>
 #include <mbedtls/error.h>
-#include <mbedtls/pk.h>
-#include "pk_wrap.h"
+#include "rsa_internal.h"
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || \
@@ -62,50 +61,38 @@ psa_status_t mbedtls_psa_rsa_load_representation(
     mbedtls_rsa_context **p_rsa)
 {
     psa_status_t status;
-    mbedtls_pk_context ctx;
     size_t bits;
-    mbedtls_pk_init(&ctx);
+
+    *p_rsa = mbedtls_calloc(1, sizeof(mbedtls_rsa_context));
+    if (*p_rsa == NULL) {
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+    }
+    mbedtls_rsa_init(*p_rsa);
 
     /* Parse the data. */
     if (PSA_KEY_TYPE_IS_KEY_PAIR(type)) {
-        status = mbedtls_to_psa_error(
-            mbedtls_pk_parse_key(&ctx, data, data_length, NULL, 0,
-                                 mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE));
+        status = mbedtls_to_psa_error(mbedtls_rsa_parse_key(*p_rsa, data, data_length));
     } else {
-        status = mbedtls_to_psa_error(
-            mbedtls_pk_parse_public_key(&ctx, data, data_length));
+        status = mbedtls_to_psa_error(mbedtls_rsa_parse_pubkey(*p_rsa, data, data_length));
     }
     if (status != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    /* We have something that the pkparse module recognizes. If it is a
-     * valid RSA key, store it. */
-    if (mbedtls_pk_get_type(&ctx) != MBEDTLS_PK_RSA) {
-        status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }
 
     /* The size of an RSA key doesn't have to be a multiple of 8. Mbed TLS
      * supports non-byte-aligned key sizes, but not well. For example,
      * mbedtls_rsa_get_len() returns the key size in bytes, not in bits. */
-    bits = PSA_BYTES_TO_BITS(mbedtls_rsa_get_len(mbedtls_pk_rsa(ctx)));
+    bits = PSA_BYTES_TO_BITS(mbedtls_rsa_get_len(*p_rsa));
     if (bits > PSA_VENDOR_RSA_MAX_KEY_BITS) {
         status = PSA_ERROR_NOT_SUPPORTED;
         goto exit;
     }
-    status = psa_check_rsa_key_byte_aligned(mbedtls_pk_rsa(ctx));
+    status = psa_check_rsa_key_byte_aligned(*p_rsa);
     if (status != PSA_SUCCESS) {
         goto exit;
     }
 
-    /* Copy out the pointer to the RSA context, and reset the PK context
-     * such that pk_free doesn't free the RSA context we just grabbed. */
-    *p_rsa = mbedtls_pk_rsa(ctx);
-    ctx.pk_info = NULL;
-
 exit:
-    mbedtls_pk_free(&ctx);
     return status;
 }
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) ||
@@ -168,20 +155,15 @@ psa_status_t mbedtls_psa_rsa_export_key(psa_key_type_t type,
                                         size_t *data_length)
 {
     int ret;
-    mbedtls_pk_context pk;
-    uint8_t *pos = data + data_size;
-
-    mbedtls_pk_init(&pk);
-    pk.pk_info = &mbedtls_rsa_info;
-    pk.pk_ctx = rsa;
+    uint8_t *end = data + data_size;
 
     /* PSA Crypto API defines the format of an RSA key as a DER-encoded
      * representation of the non-encrypted PKCS#1 RSAPrivateKey for a
      * private key and of the RFC3279 RSAPublicKey for a public key. */
     if (PSA_KEY_TYPE_IS_KEY_PAIR(type)) {
-        ret = mbedtls_pk_write_key_der(&pk, data, data_size);
+        ret = mbedtls_rsa_write_key(rsa, data, &end);
     } else {
-        ret = mbedtls_pk_write_pubkey(&pos, data, &pk);
+        ret = mbedtls_rsa_write_pubkey(rsa, data, &end);
     }
 
     if (ret < 0) {

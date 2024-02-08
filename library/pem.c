@@ -17,6 +17,7 @@
 #include "mbedtls/cipher.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+#include "mbedtls/asn1.h"
 
 #include <string.h>
 
@@ -431,15 +432,20 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
         }
 
         /*
-         * The result will be ASN.1 starting with a SEQUENCE tag, with 1 to 3
-         * length bytes (allow 4 to be sure) in all known use cases.
-         *
-         * Use that as a heuristic to try to detect password mismatches.
+         * The result will be ASN.1 starting with a SEQUENCE tag. Parse it
+         * with ASN.1 functions in order to:
+         * - Have an heuristic guess about password mismatches.
+         * - Update len variable to the amount of valid data inside buf.
          */
-        if (len <= 2 || buf[0] != 0x30 || buf[1] > 0x83) {
-            mbedtls_zeroize_and_free(buf, len);
-            return MBEDTLS_ERR_PEM_PASSWORD_MISMATCH;
+        unsigned char *p = buf;
+        ret = mbedtls_asn1_get_tag(&p, buf + len, &len,
+                                   MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED);
+        if (ret != 0) {
+            mbedtls_free(buf);
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PEM_INVALID_DATA, ret);
         }
+        /* Add also the sequence block (tag + len) to the total amount of valid data. */
+        len += (p - buf);
 #else
         mbedtls_zeroize_and_free(buf, len);
         return MBEDTLS_ERR_PEM_FEATURE_UNAVAILABLE;

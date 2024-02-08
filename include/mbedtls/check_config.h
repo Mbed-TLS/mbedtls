@@ -27,18 +27,8 @@
 #if !defined(MBEDTLS_PLATFORM_C)
 #error "MBEDTLS_PLATFORM_C is required on Windows"
 #endif
-
-/* Fix the config here. Not convenient to put an #ifdef _WIN32 in mbedtls_config.h as
- * it would confuse config.py. */
-#if !defined(MBEDTLS_PLATFORM_SNPRINTF_ALT) && \
-    !defined(MBEDTLS_PLATFORM_SNPRINTF_MACRO)
-#define MBEDTLS_PLATFORM_SNPRINTF_ALT
-#endif
-
-#if !defined(MBEDTLS_PLATFORM_VSNPRINTF_ALT) && \
-    !defined(MBEDTLS_PLATFORM_VSNPRINTF_MACRO)
-#define MBEDTLS_PLATFORM_VSNPRINTF_ALT
-#endif
+/* See auto-enabling SNPRINTF_ALT and VSNPRINTF_ALT
+ * in * config_adjust_legacy_crypto.h */
 #endif /* _MINGW32__ || (_MSC_VER && (_MSC_VER <= 1900)) */
 
 #if defined(TARGET_LIKE_MBED) && defined(MBEDTLS_NET_C)

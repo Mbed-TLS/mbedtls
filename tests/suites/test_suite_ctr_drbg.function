@@ -354,7 +354,12 @@ void ctr_drbg_threads(data_t *expected_result, int reseed, int arg_thread_count)
 
     const size_t n_random_calls = thread_count * thread_random_reps + 1;
 
-    /* Based on the size of MBEDTLS_CTR_DRBG_ENTROPY_LEN for SHA512. */
+    /* This is a known-answer test, and although tests use a mock entropy
+     * function the input entropy length will still affect the output.
+     * We therefore need to pick a fixed entropy length, rather than using the
+     * default entropy length (MBEDTLS_CTR_DRBG_ENTROPY_LEN). We've chosen to
+     * use the default value of MBEDTLS_CTR_DRBG_ENTROPY_LEN for SHA-512,
+     * as this was the value used when the expected answers were calculated. */
     const size_t entropy_len = 48;
 
     AES_PSA_INIT();
@@ -367,8 +372,8 @@ void ctr_drbg_threads(data_t *expected_result, int reseed, int arg_thread_count)
 
     test_offset_idx = 0;
 
-    /* Need to do this, otherwise if we are forced into using SHA256 for
-     * whaever reason, output will differ. */
+    /* Need to set a non-default fixed entropy len, to ensure same output across
+     * all configs - see above for details. */
     mbedtls_ctr_drbg_set_entropy_len(&ctx, entropy_len);
 
     if (reseed == 0) {

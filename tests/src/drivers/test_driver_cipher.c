@@ -3,19 +3,7 @@
  * Currently only supports multi-part operations using AES-CTR.
  */
 /*  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include <test/helpers.h>
@@ -53,6 +41,7 @@ psa_status_t mbedtls_test_transparent_cipher_encrypt(
     size_t *output_length)
 {
     mbedtls_test_driver_cipher_hooks.hits++;
+    mbedtls_test_driver_cipher_hooks.hits_encrypt++;
 
     if (mbedtls_test_driver_cipher_hooks.forced_output != NULL) {
         if (output_size < mbedtls_test_driver_cipher_hooks.forced_output_length) {
@@ -69,6 +58,9 @@ psa_status_t mbedtls_test_transparent_cipher_encrypt(
 
     if (mbedtls_test_driver_cipher_hooks.forced_status != PSA_SUCCESS) {
         return mbedtls_test_driver_cipher_hooks.forced_status;
+    }
+    if (mbedtls_test_driver_cipher_hooks.forced_status_encrypt != PSA_SUCCESS) {
+        return mbedtls_test_driver_cipher_hooks.forced_status_encrypt;
     }
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
@@ -220,9 +212,13 @@ psa_status_t mbedtls_test_transparent_cipher_set_iv(
     size_t iv_length)
 {
     mbedtls_test_driver_cipher_hooks.hits++;
+    mbedtls_test_driver_cipher_hooks.hits_set_iv++;
 
     if (mbedtls_test_driver_cipher_hooks.forced_status != PSA_SUCCESS) {
         return mbedtls_test_driver_cipher_hooks.forced_status;
+    }
+    if (mbedtls_test_driver_cipher_hooks.forced_status_set_iv != PSA_SUCCESS) {
+        return mbedtls_test_driver_cipher_hooks.forced_status_set_iv;
     }
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \

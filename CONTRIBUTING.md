@@ -84,11 +84,11 @@ Mbed TLS is well documented, but if you think documentation is needed, speak out
 License and Copyright
 ---------------------
 
-Unless specifically indicated otherwise in a file, Mbed TLS files are provided under the [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) license. See the [LICENSE](LICENSE) file for the full text of this license.
+Unless specifically indicated otherwise in a file, Mbed TLS files are provided under a dual [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) OR [GPL-2.0-or-later](https://spdx.org/licenses/GPL-2.0-or-later.html) license. See the [LICENSE](LICENSE) file for the full text of these licenses. This means that users may choose which of these licenses they take the code under.
 
-Contributors must accept that their contributions are made under both the Apache-2.0 AND [GPL-2.0-or-later](https://spdx.org/licenses/GPL-2.0-or-later.html) licenses. This enables LTS (Long Term Support) branches of the software to be provided under either the Apache-2.0 or GPL-2.0-or-later licenses.
+Contributors must accept that their contributions are made under both the Apache-2.0 AND [GPL-2.0-or-later](https://spdx.org/licenses/GPL-2.0-or-later.html) licenses.
 
-All new files should include the [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) standard license header where possible.
+All new files should include the standard SPDX license identifier where possible, i.e. "SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later".
 
 The copyright on contributions is retained by the original authors of the code. Where possible for new files, this should be noted in a comment at the top of the file in the form: "Copyright The Mbed TLS Contributors".
 

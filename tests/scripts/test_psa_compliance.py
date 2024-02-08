@@ -8,19 +8,7 @@ keep the list of known defects as up to date as possible.
 """
 
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
 import argparse
 import os
@@ -39,22 +27,10 @@ from mbedtls_dev import build_tree
 # The test numbers correspond to the numbers used by the console output of the test suite.
 # Test number 2xx corresponds to the files in the folder
 # psa-arch-tests/api-tests/dev_apis/crypto/test_c0xx
-EXPECTED_FAILURES = {
-    # psa_hash_suspend() and psa_hash_resume() are not supported.
-    # - Tracked in issue #3274
-    262, 263
-}
+EXPECTED_FAILURES = {} # type: dict
 
-# We currently use a fork of ARM-software/psa-arch-tests, with a couple of downstream patches
-# that allow it to build with Mbed TLS 3, and fixes a couple of issues in the compliance test suite.
-# These fixes allow the tests numbered 216, 248 and 249 to complete successfully.
-#
-# Once all the fixes are upstreamed, this fork should be replaced with an upstream commit/tag.
-# - Tracked in issue #5145
-#
-# Web URL: https://github.com/bensze01/psa-arch-tests/tree/fixes-for-mbedtls-3
-PSA_ARCH_TESTS_REPO = 'https://github.com/bensze01/psa-arch-tests.git'
-PSA_ARCH_TESTS_REF = 'fix-pr-5736'
+PSA_ARCH_TESTS_REPO = 'https://github.com/ARM-software/psa-arch-tests.git'
+PSA_ARCH_TESTS_REF = 'v23.06_API1.5_ADAC_EAC'
 
 #pylint: disable=too-many-branches,too-many-statements,too-many-locals
 def main(library_build_dir: str):
@@ -62,12 +38,8 @@ def main(library_build_dir: str):
 
     in_tf_psa_crypto_repo = build_tree.looks_like_tf_psa_crypto_root(root_dir)
 
-    if in_tf_psa_crypto_repo:
-        crypto_name = 'tfpsacrypto'
-        library_subdir = 'core'
-    else:
-        crypto_name = 'mbedcrypto'
-        library_subdir = 'library'
+    crypto_name = build_tree.crypto_library_filename(root_dir)
+    library_subdir = build_tree.crypto_core_directory(root_dir, relative=True)
 
     crypto_lib_filename = (library_build_dir + '/' +
                            library_subdir + '/' +

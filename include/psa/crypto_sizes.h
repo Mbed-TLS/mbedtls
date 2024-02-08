@@ -22,19 +22,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef PSA_CRYPTO_SIZES_H
@@ -236,10 +224,20 @@
 #endif
 
 /* The maximum size of an DH key on this implementation, in bits.
- *
- * Note that an implementation may set different size limits for different
- * operations, and does not need to accept all key sizes up to the limit. */
+ * This is a vendor-specific macro.*/
+#if defined(PSA_WANT_DH_RFC7919_8192)
 #define PSA_VENDOR_FFDH_MAX_KEY_BITS 8192u
+#elif defined(PSA_WANT_DH_RFC7919_6144)
+#define PSA_VENDOR_FFDH_MAX_KEY_BITS 6144u
+#elif defined(PSA_WANT_DH_RFC7919_4096)
+#define PSA_VENDOR_FFDH_MAX_KEY_BITS 4096u
+#elif defined(PSA_WANT_DH_RFC7919_3072)
+#define PSA_VENDOR_FFDH_MAX_KEY_BITS 3072u
+#elif defined(PSA_WANT_DH_RFC7919_2048)
+#define PSA_VENDOR_FFDH_MAX_KEY_BITS 2048u
+#else
+#define PSA_VENDOR_FFDH_MAX_KEY_BITS 0u
+#endif
 
 /* The maximum size of an ECC key on this implementation, in bits.
  * This is a vendor-specific macro. */

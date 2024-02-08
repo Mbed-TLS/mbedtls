@@ -5,19 +5,7 @@
 
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include <test/helpers.h>
@@ -82,9 +70,20 @@ const char *mbedtls_test_helper_is_psa_leaking(void)
 
     mbedtls_psa_get_stats(&stats);
 
+#if defined(MBEDTLS_CTR_DRBG_C) && !defined(MBEDTLS_AES_C) && \
+    !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+    /* When AES_C is not defined and PSA does not have an external RNG,
+     * then CTR_DRBG uses PSA to perform AES-ECB. In this scenario 1 key
+     * slot is used internally from PSA to hold the AES key and it should
+     * not be taken into account when evaluating remaining open slots. */
+    if (stats.volatile_slots > 1) {
+        return "A volatile slot has not been closed properly.";
+    }
+#else
     if (stats.volatile_slots != 0) {
         return "A volatile slot has not been closed properly.";
     }
+#endif
     if (stats.persistent_slots != 0) {
         return "A persistent slot has not been closed properly.";
     }

@@ -2,19 +2,7 @@
  * Test driver for generating and verifying keys.
  */
 /*  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef PSA_CRYPTO_TEST_DRIVERS_KEY_MANAGEMENT_H
@@ -38,6 +26,8 @@ typedef struct {
     /* Count the amount of times one of the key management driver functions
      * is called. */
     unsigned long hits;
+    /* Subset of hits which only counts key operations with EC key */
+    unsigned long hits_export_public_key;
     /* Location of the last key management driver called to import a key. */
     psa_key_location_t location;
 } mbedtls_test_driver_key_management_hooks_t;
@@ -46,7 +36,7 @@ typedef struct {
  * sense that no PSA specification will assign a meaning to this location
  * (stated first in version 1.0.1 of the specification) and that it is not
  * used as a location of an opaque test drivers. */
-#define MBEDTLS_TEST_DRIVER_KEY_MANAGEMENT_INIT { NULL, 0, PSA_SUCCESS, 0, 0x800000 }
+#define MBEDTLS_TEST_DRIVER_KEY_MANAGEMENT_INIT { NULL, 0, PSA_SUCCESS, 0, 0, 0x800000 }
 static inline mbedtls_test_driver_key_management_hooks_t
 mbedtls_test_driver_key_management_hooks_init(void)
 {
@@ -76,6 +66,10 @@ psa_status_t mbedtls_test_transparent_init(void);
 void mbedtls_test_transparent_free(void);
 psa_status_t mbedtls_test_opaque_init(void);
 void mbedtls_test_opaque_free(void);
+
+psa_status_t mbedtls_test_opaque_unwrap_key(
+    const uint8_t *wrapped_key, size_t wrapped_key_length, uint8_t *key_buffer,
+    size_t key_buffer_size, size_t *key_buffer_length);
 
 psa_status_t mbedtls_test_transparent_generate_key(
     const psa_key_attributes_t *attributes,

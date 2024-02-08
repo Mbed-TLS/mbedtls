@@ -4,6 +4,7 @@ set(executables
     hmac_demo
     key_ladder_demo
     psa_constant_names
+    psa_hash
 )
 
 if(GEN_FILES)

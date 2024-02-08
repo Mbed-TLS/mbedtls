@@ -67,7 +67,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:!MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 void camellia_decrypt_ecb(data_t *key_str, data_t *src_str,
                           data_t *dst, int setkey_result)
 {

@@ -3,19 +3,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef PSA_CRYPTO_CIPHER_H
@@ -24,6 +12,28 @@
 #include <mbedtls/cipher.h>
 #include <psa/crypto.h>
 
+/** Get Mbed TLS cipher information given the cipher algorithm PSA identifier
+ *  as well as the PSA type and size of the key to be used with the cipher
+ *  algorithm.
+ *
+ * \param[in]      alg          PSA cipher algorithm identifier
+ * \param[in]      key_type     PSA key type
+ * \param[in,out]  key_bits     Size of the key in bits. The value provided in input
+ *                              might be updated if necessary.
+ * \param[out]     mode         Mbed TLS cipher mode
+ * \param[out]     cipher_id    Mbed TLS cipher algorithm identifier
+ *
+ * \return  On success \c PSA_SUCCESS is returned and key_bits, mode and cipher_id
+ *          are properly updated.
+ *          \c PSA_ERROR_NOT_SUPPORTED is returned if the cipher algorithm is not
+ *          supported.
+ */
+
+psa_status_t mbedtls_cipher_values_from_psa(psa_algorithm_t alg, psa_key_type_t key_type,
+                                            size_t *key_bits, mbedtls_cipher_mode_t *mode,
+                                            mbedtls_cipher_id_t *cipher_id);
+
+#if defined(MBEDTLS_CIPHER_C)
 /** Get Mbed TLS cipher information given the cipher algorithm PSA identifier
  *  as well as the PSA type and size of the key to be used with the cipher
  *  algorithm.
@@ -39,6 +49,7 @@
 const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     psa_algorithm_t alg, psa_key_type_t key_type, size_t key_bits,
     mbedtls_cipher_id_t *cipher_id);
+#endif /* MBEDTLS_CIPHER_C */
 
 /**
  * \brief Set the key for a multipart symmetric encryption operation.

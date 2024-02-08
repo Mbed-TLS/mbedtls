@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include "mbedtls/pk.h"
+#include "pk_internal.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
 #include "psa/crypto_sizes.h"
@@ -68,6 +68,7 @@ static int pk_write_any_key(mbedtls_pk_context *pk, unsigned char **p,
 static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
 {
     mbedtls_pk_context key;
+    mbedtls_pk_init(&key);
     unsigned char *buf = NULL;
     unsigned char *check_buf = NULL;
     unsigned char *start_buf;
@@ -76,9 +77,6 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
     mbedtls_svc_key_id_t opaque_id = MBEDTLS_SVC_KEY_ID_INIT;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-    USE_PSA_INIT();
-
-    mbedtls_pk_init(&key);
     USE_PSA_INIT();
 
     /* Note: if mbedtls_pk_load_file() successfully reads the file, then

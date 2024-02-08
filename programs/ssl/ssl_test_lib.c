@@ -5,19 +5,7 @@
  *  that cannot be compiled separately in "ssl_test_common_source.c".
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
@@ -447,6 +435,9 @@ int test_hooks_failure_detected(void)
 
 void test_hooks_free(void)
 {
+#if defined(MBEDTLS_TEST_MUTEX_USAGE)
+    mbedtls_test_mutex_usage_end();
+#endif
 }
 
 #endif /* MBEDTLS_TEST_HOOKS */
@@ -524,17 +515,31 @@ static const struct {
 #endif
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
     defined(PSA_WANT_ALG_FFDH)
+#if defined(PSA_WANT_DH_RFC7919_2048)
     { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048, "ffdhe2048", 1 },
-    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072, "ffdhe3072", 1 },
-    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096, "ffdhe4096", 1 },
-    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144, "ffdhe6144", 1 },
-    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192, "ffdhe8192", 1 },
-#else
+#else /* PSA_WANT_DH_RFC7919_2048 */
     { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048, "ffdhe2048", 0 },
+#endif /* PSA_WANT_DH_RFC7919_2048 */
+#if defined(PSA_WANT_DH_RFC7919_3072)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072, "ffdhe3072", 1 },
+#else /* PSA_WANT_DH_RFC7919_3072 */
     { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072, "ffdhe3072", 0 },
+#endif /* PSA_WANT_DH_RFC7919_3072 */
+#if defined(PSA_WANT_DH_RFC7919_4096)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096, "ffdhe4096", 1 },
+#else /* PSA_WANT_DH_RFC7919_4096 */
     { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096, "ffdhe4096", 0 },
+#endif /* PSA_WANT_DH_RFC7919_4096 */
+#if defined(PSA_WANT_DH_RFC7919_6144)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144, "ffdhe6144", 1 },
+#else /* PSA_WANT_DH_RFC7919_6144 */
     { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144, "ffdhe6144", 0 },
+#endif /* PSA_WANT_DH_RFC7919_6144 */
+#if defined(PSA_WANT_DH_RFC7919_8192)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192, "ffdhe8192", 1 },
+#else /* PSA_WANT_DH_RFC7919_8192 */
     { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192, "ffdhe8192", 0 },
+#endif /* PSA_WANT_DH_RFC7919_8192 */
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED && PSA_WANT_ALG_FFDH */
     { 0, NULL, 0 },
 };

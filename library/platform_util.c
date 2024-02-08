@@ -3,19 +3,7 @@
  * library.
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 /*
@@ -105,8 +93,6 @@ static void *(*const volatile memset_func)(void *, int, size_t) = memset;
 
 void mbedtls_platform_zeroize(void *buf, size_t len)
 {
-    MBEDTLS_INTERNAL_VALIDATE(len == 0 || buf != NULL);
-
     if (len > 0) {
 #if defined(MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO)
         explicit_bzero(buf, len);
@@ -163,10 +149,10 @@ void mbedtls_zeroize_and_free(void *buf, size_t len)
 #include <time.h>
 #if !defined(_WIN32) && (defined(unix) || \
     defined(__unix) || defined(__unix__) || (defined(__APPLE__) && \
-    defined(__MACH__)))
+    defined(__MACH__)) || defined__midipix__)
 #include <unistd.h>
 #endif /* !_WIN32 && (unix || __unix || __unix__ ||
-        * (__APPLE__ && __MACH__)) */
+        * (__APPLE__ && __MACH__) || __midipix__) */
 
 #if !((defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) ||     \
     (defined(_POSIX_THREAD_SAFE_FUNCTIONS) &&                     \
@@ -229,43 +215,23 @@ struct tm *mbedtls_platform_gmtime_r(const mbedtls_time_t *tt,
 void (*mbedtls_test_hook_test_fail)(const char *, int, const char *);
 #endif /* MBEDTLS_TEST_HOOKS */
 
-/*
- * Provide external definitions of some inline functions so that the compiler
- * has the option to not inline them
- */
-extern inline void mbedtls_xor(unsigned char *r,
-                               const unsigned char *a,
-                               const unsigned char *b,
-                               size_t n);
-
-extern inline uint16_t mbedtls_get_unaligned_uint16(const void *p);
-
-extern inline void mbedtls_put_unaligned_uint16(void *p, uint16_t x);
-
-extern inline uint32_t mbedtls_get_unaligned_uint32(const void *p);
-
-extern inline void mbedtls_put_unaligned_uint32(void *p, uint32_t x);
-
-extern inline uint64_t mbedtls_get_unaligned_uint64(const void *p);
-
-extern inline void mbedtls_put_unaligned_uint64(void *p, uint64_t x);
-
 #if defined(MBEDTLS_HAVE_TIME) && !defined(MBEDTLS_PLATFORM_MS_TIME_ALT)
 
 #include <time.h>
 #if !defined(_WIN32) && \
     (defined(unix) || defined(__unix) || defined(__unix__) || \
-    (defined(__APPLE__) && defined(__MACH__)))
+    (defined(__APPLE__) && defined(__MACH__)) || defined(__HAIKU__) || defined(__midipix__))
 #include <unistd.h>
-#endif /* !_WIN32 && (unix || __unix || __unix__ || (__APPLE__ && __MACH__)) */
-#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 199309L)
+#endif \
+    /* !_WIN32 && (unix || __unix || __unix__ || (__APPLE__ && __MACH__) || __HAIKU__ || __midipix__) */
+#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 199309L) || defined(__HAIKU__)
 mbedtls_ms_time_t mbedtls_ms_time(void)
 {
     int ret;
     struct timespec tv;
     mbedtls_ms_time_t current_ms;
 
-#if defined(__linux__)
+#if defined(__linux__) && defined(CLOCK_BOOTTIME) || defined(__midipix__)
     ret = clock_gettime(CLOCK_BOOTTIME, &tv);
 #else
     ret = clock_gettime(CLOCK_MONOTONIC, &tv);

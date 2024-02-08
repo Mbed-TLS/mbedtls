@@ -2,19 +2,7 @@
  *  Public Key abstraction layer
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -30,6 +18,9 @@
 
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"
+#if defined(MBEDTLS_PKCS1_V21) && !defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "rsa_internal.h"
+#endif
 #endif
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #include "mbedtls/ecp.h"
@@ -38,9 +29,9 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 #include "psa_util_internal.h"
-#include "md_psa.h"
+#include "mbedtls/psa_util.h"
 #endif
 
 #include <limits.h>
@@ -53,9 +44,9 @@ void mbedtls_pk_init(mbedtls_pk_context *ctx)
 {
     ctx->pk_info = NULL;
     ctx->pk_ctx = NULL;
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
     ctx->priv_id = MBEDTLS_SVC_KEY_ID_INIT;
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     memset(ctx->pub_raw, 0, sizeof(ctx->pub_raw));
     ctx->pub_raw_len = 0;
@@ -323,7 +314,6 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
     }
 
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_algorithm_t key_alg, key_alg2;
     psa_status_t status;
 
     status = psa_get_key_attributes(ctx->priv_id, &attributes);
@@ -331,8 +321,15 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
         return 0;
     }
 
-    key_alg = psa_get_key_algorithm(&attributes);
-    key_alg2 = psa_get_key_enrollment_algorithm(&attributes);
+    psa_algorithm_t key_alg = psa_get_key_algorithm(&attributes);
+    /* Key's enrollment is available only when MBEDTLS_PSA_CRYPTO_CLIENT is
+     * defined, i.e. when the Mbed TLS implementation of PSA Crypto is being used.
+     * Even though we don't officially support using other implementations of PSA
+     * Crypto with TLS and X.509 (yet), we're still trying to simplify the life of
+     * people who would like to try it before it's officially supported. */
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+    psa_algorithm_t key_alg2 = psa_get_key_enrollment_algorithm(&attributes);
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
     key_usage = psa_get_key_usage_flags(&attributes);
     psa_reset_key_attributes(&attributes);
 
@@ -341,18 +338,23 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
     }
 
     /*
-     * Common case: the key alg or alg2 only allows alg.
+     * Common case: the key alg [or alg2] only allows alg.
      * This will match PSA_ALG_RSA_PKCS1V15_CRYPT & PSA_ALG_IS_ECDH
      * directly.
      * This would also match ECDSA/RSA_PKCS1V15_SIGN/RSA_PSS with
-     * a fixed hash on key_alg/key_alg2.
+     * a fixed hash on key_alg [or key_alg2].
      */
-    if (alg == key_alg || alg == key_alg2) {
+    if (alg == key_alg) {
         return 1;
     }
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+    if (alg == key_alg2) {
+        return 1;
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
     /*
-     * If key_alg or key_alg2 is a hash-and-sign with a wildcard for the hash,
+     * If key_alg [or key_alg2] is a hash-and-sign with a wildcard for the hash,
      * and alg is the same hash-and-sign family with any hash,
      * then alg is compliant with this key alg
      */
@@ -363,17 +365,221 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
             (alg & ~PSA_ALG_HASH_MASK) == (key_alg & ~PSA_ALG_HASH_MASK)) {
             return 1;
         }
-
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
         if (PSA_ALG_IS_SIGN_HASH(key_alg2) &&
             PSA_ALG_SIGN_GET_HASH(key_alg2) == PSA_ALG_ANY_HASH &&
             (alg & ~PSA_ALG_HASH_MASK) == (key_alg2 & ~PSA_ALG_HASH_MASK)) {
             return 1;
         }
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
     }
 
     return 0;
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_RSA_C)
+static psa_algorithm_t psa_algorithm_for_rsa(const mbedtls_rsa_context *rsa,
+                                             int want_crypt)
+{
+    if (mbedtls_rsa_get_padding_mode(rsa) == MBEDTLS_RSA_PKCS_V21) {
+        if (want_crypt) {
+            mbedtls_md_type_t md_type = mbedtls_rsa_get_md_alg(rsa);
+            return PSA_ALG_RSA_OAEP(mbedtls_md_psa_alg_from_type(md_type));
+        } else {
+            return PSA_ALG_RSA_PSS_ANY_SALT(PSA_ALG_ANY_HASH);
+        }
+    } else {
+        if (want_crypt) {
+            return PSA_ALG_RSA_PKCS1V15_CRYPT;
+        } else {
+            return PSA_ALG_RSA_PKCS1V15_SIGN(PSA_ALG_ANY_HASH);
+        }
+    }
+}
+#endif /* MBEDTLS_RSA_C */
+
+int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
+                                  psa_key_usage_t usage,
+                                  psa_key_attributes_t *attributes)
+{
+    mbedtls_pk_type_t pk_type = mbedtls_pk_get_type(pk);
+
+    psa_key_usage_t more_usage = usage;
+    if (usage == PSA_KEY_USAGE_SIGN_MESSAGE) {
+        more_usage |= PSA_KEY_USAGE_VERIFY_MESSAGE;
+    } else if (usage == PSA_KEY_USAGE_SIGN_HASH) {
+        more_usage |= PSA_KEY_USAGE_VERIFY_HASH;
+    } else if (usage == PSA_KEY_USAGE_DECRYPT) {
+        more_usage |= PSA_KEY_USAGE_ENCRYPT;
+    }
+    more_usage |= PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_COPY;
+
+    int want_private = !(usage == PSA_KEY_USAGE_VERIFY_MESSAGE ||
+                         usage == PSA_KEY_USAGE_VERIFY_HASH ||
+                         usage == PSA_KEY_USAGE_ENCRYPT);
+
+    switch (pk_type) {
+#if defined(MBEDTLS_RSA_C)
+        case MBEDTLS_PK_RSA:
+        {
+            int want_crypt = 0; /* 0: sign/verify; 1: encrypt/decrypt */
+            switch (usage) {
+                case PSA_KEY_USAGE_SIGN_MESSAGE:
+                case PSA_KEY_USAGE_SIGN_HASH:
+                case PSA_KEY_USAGE_VERIFY_MESSAGE:
+                case PSA_KEY_USAGE_VERIFY_HASH:
+                    /* Nothing to do. */
+                    break;
+                case PSA_KEY_USAGE_DECRYPT:
+                case PSA_KEY_USAGE_ENCRYPT:
+                    want_crypt = 1;
+                    break;
+                default:
+                    return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+            }
+            /* Detect the presence of a private key in a way that works both
+             * in CRT and non-CRT configurations. */
+            mbedtls_rsa_context *rsa = mbedtls_pk_rsa(*pk);
+            int has_private = (mbedtls_rsa_check_privkey(rsa) == 0);
+            if (want_private && !has_private) {
+                return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+            }
+            psa_set_key_type(attributes, (want_private ?
+                                          PSA_KEY_TYPE_RSA_KEY_PAIR :
+                                          PSA_KEY_TYPE_RSA_PUBLIC_KEY));
+            psa_set_key_bits(attributes, mbedtls_pk_get_bitlen(pk));
+            psa_set_key_algorithm(attributes,
+                                  psa_algorithm_for_rsa(rsa, want_crypt));
+            break;
+        }
+#endif /* MBEDTLS_RSA_C */
+
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+        case MBEDTLS_PK_ECKEY:
+        case MBEDTLS_PK_ECKEY_DH:
+        case MBEDTLS_PK_ECDSA:
+        {
+            int sign_ok = (pk_type != MBEDTLS_PK_ECKEY_DH);
+            int derive_ok = (pk_type != MBEDTLS_PK_ECDSA);
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+            psa_ecc_family_t family = pk->ec_family;
+            size_t bits = pk->ec_bits;
+            int has_private = 0;
+            if (pk->priv_id != MBEDTLS_SVC_KEY_ID_INIT) {
+                has_private = 1;
+            }
+#else
+            const mbedtls_ecp_keypair *ec = mbedtls_pk_ec_ro(*pk);
+            int has_private = (ec->d.n != 0);
+            size_t bits = 0;
+            psa_ecc_family_t family =
+                mbedtls_ecc_group_to_psa(ec->grp.id, &bits);
+#endif
+            psa_algorithm_t alg = 0;
+            switch (usage) {
+                case PSA_KEY_USAGE_SIGN_MESSAGE:
+                case PSA_KEY_USAGE_SIGN_HASH:
+                case PSA_KEY_USAGE_VERIFY_MESSAGE:
+                case PSA_KEY_USAGE_VERIFY_HASH:
+                    if (!sign_ok) {
+                        return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+                    }
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
+                    alg = PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_ANY_HASH);
+#else
+                    alg = PSA_ALG_ECDSA(PSA_ALG_ANY_HASH);
+#endif
+                    break;
+                case PSA_KEY_USAGE_DERIVE:
+                    alg = PSA_ALG_ECDH;
+                    if (!derive_ok) {
+                        return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+                    }
+                    break;
+                default:
+                    return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+            }
+            if (want_private && !has_private) {
+                return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+            }
+            psa_set_key_type(attributes, (want_private ?
+                                          PSA_KEY_TYPE_ECC_KEY_PAIR(family) :
+                                          PSA_KEY_TYPE_ECC_PUBLIC_KEY(family)));
+            psa_set_key_bits(attributes, bits);
+            psa_set_key_algorithm(attributes, alg);
+            break;
+        }
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+
+#if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
+        case MBEDTLS_PK_RSA_ALT:
+            return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+#endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        case MBEDTLS_PK_OPAQUE:
+        {
+            psa_key_attributes_t old_attributes = PSA_KEY_ATTRIBUTES_INIT;
+            psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+            status = psa_get_key_attributes(pk->priv_id, &old_attributes);
+            if (status != PSA_SUCCESS) {
+                return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+            }
+            psa_key_type_t old_type = psa_get_key_type(&old_attributes);
+            switch (usage) {
+                case PSA_KEY_USAGE_SIGN_MESSAGE:
+                case PSA_KEY_USAGE_SIGN_HASH:
+                case PSA_KEY_USAGE_VERIFY_MESSAGE:
+                case PSA_KEY_USAGE_VERIFY_HASH:
+                    if (!(PSA_KEY_TYPE_IS_ECC_KEY_PAIR(old_type) ||
+                          old_type == PSA_KEY_TYPE_RSA_KEY_PAIR)) {
+                        return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+                    }
+                    break;
+                case PSA_KEY_USAGE_DECRYPT:
+                case PSA_KEY_USAGE_ENCRYPT:
+                    if (old_type != PSA_KEY_TYPE_RSA_KEY_PAIR) {
+                        return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+                    }
+                    break;
+                case PSA_KEY_USAGE_DERIVE:
+                    if (!(PSA_KEY_TYPE_IS_ECC_KEY_PAIR(old_type))) {
+                        return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+                    }
+                    break;
+                default:
+                    return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+            }
+            psa_key_type_t new_type = old_type;
+            /* Opaque keys are always key pairs, so we don't need a check
+             * on the input if the required usage is private. We just need
+             * to adjust the type correctly if the required usage is public. */
+            if (!want_private) {
+                new_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(new_type);
+            }
+            more_usage = psa_get_key_usage_flags(&old_attributes);
+            if ((usage & more_usage) == 0) {
+                return MBEDTLS_ERR_PK_TYPE_MISMATCH;
+            }
+            psa_set_key_type(attributes, new_type);
+            psa_set_key_bits(attributes, psa_get_key_bits(&old_attributes));
+            psa_set_key_algorithm(attributes, psa_get_key_algorithm(&old_attributes));
+            break;
+        }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+        default:
+            return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
+
+    psa_set_key_usage_flags(attributes, more_usage);
+    psa_set_key_enrollment_algorithm(attributes, PSA_ALG_NONE);
+
+    return 0;
+}
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 /*
  * Helper for mbedtls_pk_sign and mbedtls_pk_verify
@@ -579,7 +785,7 @@ int mbedtls_pk_verify_ext(mbedtls_pk_type_t type, const void *options,
 
         return PSA_PK_RSA_TO_MBEDTLS_ERR(status);
     } else
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     {
         if (sig_len < mbedtls_pk_get_len(ctx)) {
             return MBEDTLS_ERR_RSA_VERIFY_FAILED;
@@ -672,7 +878,6 @@ int mbedtls_pk_sign(mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
                                        f_rng, p_rng, NULL);
 }
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
 /*
  * Make a signature given a signature type.
  */
@@ -684,11 +889,6 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
                         int (*f_rng)(void *, unsigned char *, size_t),
                         void *p_rng)
 {
-#if defined(MBEDTLS_RSA_C)
-    psa_algorithm_t psa_md_alg;
-#endif /* MBEDTLS_RSA_C */
-    *sig_len = 0;
-
     if (ctx->pk_info == NULL) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
@@ -702,8 +902,10 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
                                sig, sig_size, sig_len, f_rng, p_rng);
     }
 
-#if defined(MBEDTLS_RSA_C)
-    psa_md_alg = mbedtls_md_psa_alg_from_type(md_alg);
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PKCS1_V21)
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    const psa_algorithm_t psa_md_alg = mbedtls_md_psa_alg_from_type(md_alg);
     if (psa_md_alg == 0) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
@@ -720,12 +922,31 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
     return mbedtls_pk_psa_rsa_sign_ext(PSA_ALG_RSA_PSS(psa_md_alg),
                                        ctx->pk_ctx, hash, hash_len,
                                        sig, sig_size, sig_len);
-#else /* MBEDTLS_RSA_C */
-    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-#endif /* !MBEDTLS_RSA_C */
+#else /* MBEDTLS_USE_PSA_CRYPTO */
 
+    if (sig_size < mbedtls_pk_get_len(ctx)) {
+        return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
+    }
+
+    if (pk_hashlen_helper(md_alg, &hash_len) != 0) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
+
+    mbedtls_rsa_context *const rsa_ctx = mbedtls_pk_rsa(*ctx);
+
+    const int ret = mbedtls_rsa_rsassa_pss_sign_no_mode_check(rsa_ctx, f_rng, p_rng, md_alg,
+                                                              (unsigned int) hash_len, hash, sig);
+    if (ret == 0) {
+        *sig_len = rsa_ctx->len;
+    }
+    return ret;
+
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+#else
+    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+#endif /* MBEDTLS_RSA_C && MBEDTLS_PKCS1_V21 */
 }
-#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 /*
  * Decrypt message

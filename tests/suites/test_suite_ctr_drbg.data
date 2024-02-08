@@ -1096,5 +1096,57 @@ ctr_drbg_seed_file:"no_such_dir/file":MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR
 CTR_DRBG Special Behaviours
 ctr_drbg_special_behaviours:
 
+CTR_DRBG Threads: no reseed
+ctr_drbg_threads:"1fafa98bc83d95e10f2d5ed339a553e1":0:5
+
+CTR_DRBG Threads: reseed
+depends_on:!MBEDTLS_CTR_DRBG_USE_128_BIT_KEY:!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
+ctr_drbg_threads:"B10A961F2EA39927B4C48AEDDD299026":1:5
+
 CTR_DRBG self test
 ctr_drbg_selftest:
+
+Increment counter rollover
+ctr_increment_rollover
+
+Increment counter 00
+ctr_increment:"00"
+
+Increment counter ff00
+ctr_increment:"ff00"
+
+Increment counter ff0000
+ctr_increment:"ff0000"
+
+Increment counter ff000000
+ctr_increment:"ff000000"
+
+Increment counter ff00000000
+ctr_increment:"ff00000000"
+
+Increment counter ff0000000000
+ctr_increment:"ff0000000000"
+
+Increment counter ff000000000000
+ctr_increment:"ff000000000000"
+
+Increment counter 01
+ctr_increment:"01"
+
+Increment counter ff01
+ctr_increment:"ff01"
+
+Increment counter ff0001
+ctr_increment:"ff0001"
+
+Increment counter ff000001
+ctr_increment:"ff000001"
+
+Increment counter ff00000001
+ctr_increment:"ff00000001"
+
+Increment counter ff0000000001
+ctr_increment:"ff0000000001"
+
+Increment counter ff000000000001
+ctr_increment:"ff000000000001"

@@ -38,12 +38,15 @@ all_final := # files used by tests
 
 test_ca_crt = test-ca.crt
 test_ca_key_file_rsa = test-ca.key
+test_ca_key_file_rsa_unenc = test-ca_unenc.key
 test_ca_pwd_rsa = PolarSSLTest
 test_ca_config_file = test-ca.opensslconf
 
 $(test_ca_key_file_rsa):
 	$(OPENSSL) genrsa -aes-128-cbc -passout pass:$(test_ca_pwd_rsa) -out $@ 2048
-all_final += $(test_ca_key_file_rsa)
+$(test_ca_key_file_rsa_unenc): $(test_ca_key_file_rsa)
+	$(OPENSSL) rsa -passin pass:$(test_ca_pwd_rsa) -in $< -out $@
+all_final += $(test_ca_key_file_rsa) $(test_ca_key_file_rsa_unenc)
 
 test-ca.req.sha256: $(test_ca_key_file_rsa)
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$(test_ca_key_file_rsa) password=$(test_ca_pwd_rsa) subject_name="C=NL,O=PolarSSL,CN=PolarSSL Test CA" md=SHA256
@@ -203,10 +206,8 @@ test-ca2.ku-%.crt: test-ca2.ku-%.crt.openssl.v3_ext $(test_ca_key_file_ec) test-
 	$(OPENSSL) x509 -req -in test-ca2.req.sha256 -extfile $< \
 		-signkey $(test_ca_key_file_ec) -days 3653 -out $@
 
-all_final += test-ca2.ku-crl.crt \
-			 test-ca2.ku-crt.crt \
-			 test-ca2.ku-crt_crl.crt \
-			 test-ca2.ku-ds.crt
+all_final += test-ca2.ku-crl.crt test-ca2.ku-crt.crt test-ca2.ku-crt_crl.crt \
+	     test-ca2.ku-ds.crt
 
 test-ca2-future.crt: $(test_ca_key_file_ec) test-ca2.req.sha256
 	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=13926223505202072808 request_file=test-ca2.req.sha256 selfsign=1 \
@@ -577,10 +578,6 @@ server9-with-ca.crt: server9.crt $(test_ca_crt)
 	cat $^ > $@
 all_final += server9-with-ca.crt
 
-# FIXME: This file needs special sequence. It should be update manually
-server9-bad-saltlen.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
-	false
-
 server9-bad-mgfhash.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
 	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa \
 		-passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) \
@@ -589,6 +586,16 @@ server9-bad-mgfhash.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
 		-sigopt rsa_mgf1_md:sha224 -sha256 \
 		-in $< -out $@
 all_final += server9-bad-mgfhash.crt
+
+server9-bad-saltlen.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa) \
+			 opensslcnf/server9.crt.v3_ext \
+			 ../scripts/generate_server9_bad_saltlen.py
+	../scripts/generate_server9_bad_saltlen.py --ca-name test-ca \
+		--ca-password $(test_ca_pwd_rsa) --csr server9.csr \
+		--openssl-extfile opensslcnf/server9.crt.v3_ext \
+		--anounce_saltlen 0xde --actual_saltlen 0x20 \
+		--output $@
+all_final += server9-bad-saltlen.crt
 
 # server10*
 
@@ -1566,9 +1573,9 @@ server6-ss-child.csr : server6.key
 all_intermediate += server6-ss-child.csr
 server6-ss-child.crt: server6-ss-child.csr server5-selfsigned.crt server5.key server6-ss-child.crt.openssl.v3_ext
 	$(OPENSSL) x509 -req -CA server5-selfsigned.crt -CAkey server5.key \
-				-extfile server6-ss-child.crt.openssl.v3_ext \
-				-set_serial 0x53a2cb5822399474a7ec79ec \
-				-days 3650 -sha256 -in $< -out $@
+		-extfile server6-ss-child.crt.openssl.v3_ext \
+		-set_serial 0x53a2cb5822399474a7ec79ec \
+		-days 3650 -sha256 -in $< -out $@
 all_final += server6-ss-child.crt
 
 
@@ -1735,9 +1742,9 @@ crl.pem: $(test_ca_crt) $(test_ca_key_file_rsa) $(test_ca_config_file)
 	$(OPENSSL) ca -gencrl -batch -cert $(test_ca_crt) -keyfile $(test_ca_key_file_rsa) -key $(test_ca_pwd_rsa) -config $(test_ca_server1_config_file) -md sha1 -crldays 3653 -out $@
 
 crl-futureRevocationDate.pem: $(test_ca_crt) $(test_ca_key_file_rsa) \
-							  $(test_ca_config_file) 				\
-							  test-ca.server1.future-crl.db  \
-							  test-ca.server1.future-crl.opensslconf
+			      $(test_ca_config_file) \
+			      test-ca.server1.future-crl.db \
+			      test-ca.server1.future-crl.opensslconf
 	$(FAKETIME) -f '+10y' $(OPENSSL) ca -gencrl \
 		-config test-ca.server1.future-crl.opensslconf -crldays 365 \
 		-passin "pass:$(test_ca_pwd_rsa)" -out $@

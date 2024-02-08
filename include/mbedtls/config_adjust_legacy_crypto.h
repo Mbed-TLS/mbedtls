@@ -16,23 +16,25 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
 #define MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
+
+/* Auto-enable CIPHER_C when any of the unauthenticated ciphers is builtin
+ * in PSA. */
+#if defined(MBEDTLS_PSA_CRYPTO_C) && \
+    (defined(MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CTR) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CFB) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_OFB) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CCM_STAR_NO_TAG))
+#define MBEDTLS_CIPHER_C
+#endif
 
 /* Auto-enable MBEDTLS_MD_LIGHT based on MBEDTLS_MD_C.
  * This allows checking for MD_LIGHT rather than MD_LIGHT || MD_C.
@@ -54,6 +56,202 @@
     defined(MBEDTLS_X509_USE_C) || \
     defined(MBEDTLS_X509_CREATE_C)
 #define MBEDTLS_MD_LIGHT
+#endif
+
+#if defined(MBEDTLS_MD_LIGHT)
+/*
+ * - MBEDTLS_MD_CAN_xxx is defined if the md module can perform xxx.
+ * - MBEDTLS_MD_xxx_VIA_PSA is defined if the md module may perform xxx via PSA
+ *   (see below).
+ * - MBEDTLS_MD_SOME_PSA is defined if at least one algorithm may be performed
+ *   via PSA (see below).
+ * - MBEDTLS_MD_SOME_LEGACY is defined if at least one algorithm may be performed
+ *   via a direct legacy call (see below).
+ *
+ * The md module performs an algorithm via PSA if there is a PSA hash
+ * accelerator and the PSA driver subsytem is initialized at the time the
+ * operation is started, and makes a direct legacy call otherwise.
+ */
+
+/* PSA accelerated implementations */
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+
+#if defined(MBEDTLS_PSA_ACCEL_ALG_MD5)
+#define MBEDTLS_MD_CAN_MD5
+#define MBEDTLS_MD_MD5_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_1)
+#define MBEDTLS_MD_CAN_SHA1
+#define MBEDTLS_MD_SHA1_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_224)
+#define MBEDTLS_MD_CAN_SHA224
+#define MBEDTLS_MD_SHA224_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_256)
+#define MBEDTLS_MD_CAN_SHA256
+#define MBEDTLS_MD_SHA256_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_384)
+#define MBEDTLS_MD_CAN_SHA384
+#define MBEDTLS_MD_SHA384_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_512)
+#define MBEDTLS_MD_CAN_SHA512
+#define MBEDTLS_MD_SHA512_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_RIPEMD160)
+#define MBEDTLS_MD_CAN_RIPEMD160
+#define MBEDTLS_MD_RIPEMD160_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_224)
+#define MBEDTLS_MD_CAN_SHA3_224
+#define MBEDTLS_MD_SHA3_224_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_256)
+#define MBEDTLS_MD_CAN_SHA3_256
+#define MBEDTLS_MD_SHA3_256_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_384)
+#define MBEDTLS_MD_CAN_SHA3_384
+#define MBEDTLS_MD_SHA3_384_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA3_512)
+#define MBEDTLS_MD_CAN_SHA3_512
+#define MBEDTLS_MD_SHA3_512_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#endif /* MBEDTLS_PSA_CRYPTO_C */
+
+/* Built-in implementations */
+#if defined(MBEDTLS_MD5_C)
+#define MBEDTLS_MD_CAN_MD5
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_SHA1_C)
+#define MBEDTLS_MD_CAN_SHA1
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_SHA224_C)
+#define MBEDTLS_MD_CAN_SHA224
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_SHA256_C)
+#define MBEDTLS_MD_CAN_SHA256
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_SHA384_C)
+#define MBEDTLS_MD_CAN_SHA384
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_SHA512_C)
+#define MBEDTLS_MD_CAN_SHA512
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_SHA3_C)
+#define MBEDTLS_MD_CAN_SHA3_224
+#define MBEDTLS_MD_CAN_SHA3_256
+#define MBEDTLS_MD_CAN_SHA3_384
+#define MBEDTLS_MD_CAN_SHA3_512
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_RIPEMD160_C)
+#define MBEDTLS_MD_CAN_RIPEMD160
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+
+#endif /* MBEDTLS_MD_LIGHT */
+
+/* BLOCK_CIPHER module can dispatch to PSA when:
+ * - PSA is enabled and drivers have been initialized
+ * - desired key type is supported on the PSA side
+ * If the above conditions are not met, but the legacy support is enabled, then
+ * BLOCK_CIPHER will dynamically fallback to it.
+ *
+ * In case BLOCK_CIPHER is defined (see below) the following symbols/helpers
+ * can be used to define its capabilities:
+ * - MBEDTLS_BLOCK_CIPHER_SOME_PSA: there is at least 1 key type between AES,
+ *   ARIA and Camellia which is supported through a driver;
+ * - MBEDTLS_BLOCK_CIPHER_xxx_VIA_PSA: xxx key type is supported through a
+ *   driver;
+ * - MBEDTLS_BLOCK_CIPHER_xxx_VIA_LEGACY: xxx key type is supported through
+ *   a legacy module (i.e. MBEDTLS_xxx_C)
+ */
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
+#define MBEDTLS_BLOCK_CIPHER_AES_VIA_PSA
+#define MBEDTLS_BLOCK_CIPHER_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ARIA)
+#define MBEDTLS_BLOCK_CIPHER_ARIA_VIA_PSA
+#define MBEDTLS_BLOCK_CIPHER_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_CAMELLIA)
+#define MBEDTLS_BLOCK_CIPHER_CAMELLIA_VIA_PSA
+#define MBEDTLS_BLOCK_CIPHER_SOME_PSA
+#endif
+#endif /* MBEDTLS_PSA_CRYPTO_C */
+
+#if defined(MBEDTLS_AES_C)
+#define MBEDTLS_BLOCK_CIPHER_AES_VIA_LEGACY
+#endif
+#if defined(MBEDTLS_ARIA_C)
+#define MBEDTLS_BLOCK_CIPHER_ARIA_VIA_LEGACY
+#endif
+#if defined(MBEDTLS_CAMELLIA_C)
+#define MBEDTLS_BLOCK_CIPHER_CAMELLIA_VIA_LEGACY
+#endif
+
+/* Helpers to state that BLOCK_CIPHER module supports AES, ARIA and/or Camellia
+ * block ciphers via either PSA or legacy. */
+#if defined(MBEDTLS_BLOCK_CIPHER_AES_VIA_PSA) || \
+    defined(MBEDTLS_BLOCK_CIPHER_AES_VIA_LEGACY)
+#define MBEDTLS_BLOCK_CIPHER_CAN_AES
+#endif
+#if defined(MBEDTLS_BLOCK_CIPHER_ARIA_VIA_PSA) || \
+    defined(MBEDTLS_BLOCK_CIPHER_ARIA_VIA_LEGACY)
+#define MBEDTLS_BLOCK_CIPHER_CAN_ARIA
+#endif
+#if defined(MBEDTLS_BLOCK_CIPHER_CAMELLIA_VIA_PSA) || \
+    defined(MBEDTLS_BLOCK_CIPHER_CAMELLIA_VIA_LEGACY)
+#define MBEDTLS_BLOCK_CIPHER_CAN_CAMELLIA
+#endif
+
+/* GCM_C and CCM_C can either depend on (in order of preference) BLOCK_CIPHER_C
+ * or CIPHER_C. The former is auto-enabled when:
+ * - CIPHER_C is not defined, which is also the legacy solution;
+ * - BLOCK_CIPHER_SOME_PSA because in this case BLOCK_CIPHER can take advantage
+ *   of the driver's acceleration.
+ */
+#if (defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)) && \
+    (!defined(MBEDTLS_CIPHER_C) || defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA))
+#define MBEDTLS_BLOCK_CIPHER_C
+#endif
+
+/* Helpers for GCM/CCM capabilities */
+#if (defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_AES_C)) || \
+    (defined(MBEDTLS_BLOCK_CIPHER_C) && defined(MBEDTLS_BLOCK_CIPHER_CAN_AES))
+#define MBEDTLS_CCM_GCM_CAN_AES
+#endif
+
+#if (defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_ARIA_C)) || \
+    (defined(MBEDTLS_BLOCK_CIPHER_C) && defined(MBEDTLS_BLOCK_CIPHER_CAN_ARIA))
+#define MBEDTLS_CCM_GCM_CAN_ARIA
+#endif
+
+#if (defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_CAMELLIA_C)) || \
+    (defined(MBEDTLS_BLOCK_CIPHER_C) && defined(MBEDTLS_BLOCK_CIPHER_CAN_CAMELLIA))
+#define MBEDTLS_CCM_GCM_CAN_CAMELLIA
 #endif
 
 /* MBEDTLS_ECP_LIGHT is auto-enabled by the following symbols:
@@ -126,15 +324,6 @@
 #define MBEDTLS_PSA_CRYPTO_CLIENT
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
-/* The PK wrappers need pk_write functions to format RSA key objects
- * when they are dispatching to the PSA API. This happens under USE_PSA_CRYPTO,
- * and also even without USE_PSA_CRYPTO for mbedtls_pk_sign_ext(). */
-#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_RSA_C)
-#define MBEDTLS_PK_C
-#define MBEDTLS_PK_WRITE_C
-#define MBEDTLS_PK_PARSE_C
-#endif
-
 /* Helpers to state that each key is supported either on the builtin or PSA side. */
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_521)
 #define MBEDTLS_ECP_HAVE_SECP521R1
@@ -190,6 +379,63 @@
  * enable it, so we enable it here. */
 #if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PKCS5_C) && defined(MBEDTLS_CIPHER_MODE_CBC)
 #define MBEDTLS_CIPHER_PADDING_PKCS7
+#endif
+
+/* Backwards compatibility for some macros which were renamed to reflect that
+ * they are related to Armv8, not aarch64. */
+#if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) && \
+    !defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT)
+#define MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_IF_PRESENT
+#endif
+#if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY) && !defined(MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY)
+#define MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_ONLY
+#endif
+
+/* psa_util file features some ECDSA conversion functions, to convert between
+ * legacy's ASN.1 DER format and PSA's raw one. */
+#if defined(MBEDTLS_ECDSA_C) || (defined(MBEDTLS_PSA_CRYPTO_C) && \
+    (defined(PSA_WANT_ALG_ECDSA) || defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)))
+#define MBEDTLS_PSA_UTIL_HAVE_ECDSA
+#endif
+
+/* Some internal helpers to determine which keys are availble. */
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_AES_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_AES))
+#define MBEDTLS_SSL_HAVE_AES
+#endif
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ARIA_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_ARIA))
+#define MBEDTLS_SSL_HAVE_ARIA
+#endif
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CAMELLIA_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_CAMELLIA))
+#define MBEDTLS_SSL_HAVE_CAMELLIA
+#endif
+
+/* Some internal helpers to determine which operation modes are availble. */
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CIPHER_MODE_CBC)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CBC_NO_PADDING))
+#define MBEDTLS_SSL_HAVE_CBC
+#endif
+
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_GCM_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_GCM))
+#define MBEDTLS_SSL_HAVE_GCM
+#endif
+
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CCM_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CCM))
+#define MBEDTLS_SSL_HAVE_CCM
+#endif
+
+#if (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_CHACHAPOLY_C)) || \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CHACHA20_POLY1305))
+#define MBEDTLS_SSL_HAVE_CHACHAPOLY
+#endif
+
+#if defined(MBEDTLS_SSL_HAVE_GCM) || defined(MBEDTLS_SSL_HAVE_CCM) || \
+    defined(MBEDTLS_SSL_HAVE_CHACHAPOLY)
+#define MBEDTLS_SSL_HAVE_AEAD
 #endif
 
 #endif /* MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H */

@@ -2,19 +2,7 @@
  *  X.509 Certificate Revocation List (CRL) parsing
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 /*
  *  The ITU-T X.509 standard defines a certificate format for PKI.
@@ -32,6 +20,7 @@
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
 
 #include "mbedtls/x509_crl.h"
+#include "x509_internal.h"
 #include "mbedtls/error.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
@@ -379,7 +368,7 @@ int mbedtls_x509_crl_parse_der(mbedtls_x509_crl *chain,
     }
 
     end = p + len;
-    crl->tbs.len = end - crl->tbs.p;
+    crl->tbs.len = (size_t) (end - crl->tbs.p);
 
     /*
      * Version  ::=  INTEGER  OPTIONAL {  v1(0), v2(1)  }
@@ -423,7 +412,7 @@ int mbedtls_x509_crl_parse_der(mbedtls_x509_crl *chain,
         return ret;
     }
 
-    crl->issuer_raw.len = p - crl->issuer_raw.p;
+    crl->issuer_raw.len = (size_t) (p - crl->issuer_raw.p);
 
     /*
      * thisUpdate          Time

@@ -4,19 +4,7 @@
 
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include <test/helpers.h>
@@ -426,6 +414,21 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
                                                   PSA_KEY_DERIVATION_INPUT_INFO,
                                                   input2,
                                                   input2_length));
+    } else if (PSA_ALG_IS_HKDF_EXTRACT(alg)) {
+        PSA_ASSERT(psa_key_derivation_input_bytes(operation,
+                                                  PSA_KEY_DERIVATION_INPUT_SALT,
+                                                  input1, input1_length));
+        PSA_ASSERT(psa_key_derivation_input_key(operation,
+                                                PSA_KEY_DERIVATION_INPUT_SECRET,
+                                                key));
+    } else if (PSA_ALG_IS_HKDF_EXPAND(alg)) {
+        PSA_ASSERT(psa_key_derivation_input_key(operation,
+                                                PSA_KEY_DERIVATION_INPUT_SECRET,
+                                                key));
+        PSA_ASSERT(psa_key_derivation_input_bytes(operation,
+                                                  PSA_KEY_DERIVATION_INPUT_INFO,
+                                                  input2,
+                                                  input2_length));
     } else if (PSA_ALG_IS_TLS12_PRF(alg) ||
                PSA_ALG_IS_TLS12_PSK_TO_MS(alg)) {
         PSA_ASSERT(psa_key_derivation_input_bytes(operation,
@@ -448,6 +451,10 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
         PSA_ASSERT(psa_key_derivation_input_key(operation,
                                                 PSA_KEY_DERIVATION_INPUT_PASSWORD,
                                                 key));
+    } else if (alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS) {
+        PSA_ASSERT(psa_key_derivation_input_bytes(operation,
+                                                  PSA_KEY_DERIVATION_INPUT_SECRET,
+                                                  input1, input1_length));
     } else {
         TEST_FAIL("Key derivation algorithm not supported");
     }

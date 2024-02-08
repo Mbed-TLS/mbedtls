@@ -6,19 +6,7 @@
 
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef TEST_MACROS_H
@@ -137,8 +125,8 @@
     do {                                                    \
         TEST_ASSERT((pointer) == NULL);                     \
         if ((item_count) != 0) {                            \
-            (pointer) = mbedtls_calloc(sizeof(*(pointer)),  \
-                                       (item_count));       \
+            (pointer) = mbedtls_calloc((item_count),        \
+                                       sizeof(*(pointer))); \
             TEST_ASSERT((pointer) != NULL);                 \
         }                                                   \
     } while (0)
@@ -167,8 +155,8 @@
 #define TEST_CALLOC_NONNULL(pointer, item_count)            \
     do {                                                    \
         TEST_ASSERT((pointer) == NULL);                     \
-        (pointer) = mbedtls_calloc(sizeof(*(pointer)),      \
-                                   (item_count));           \
+        (pointer) = mbedtls_calloc((item_count),            \
+                                   sizeof(*(pointer)));     \
         if (((pointer) == NULL) && ((item_count) == 0)) {   \
             (pointer) = mbedtls_calloc(1, 1);               \
         }                                                   \
@@ -187,8 +175,8 @@
     do {                                                    \
         TEST_ASSERT((pointer) == NULL);                     \
         if ((item_count) != 0) {                            \
-            (pointer) = mbedtls_calloc(sizeof(*(pointer)),  \
-                                       (item_count));       \
+            (pointer) = mbedtls_calloc((item_count),        \
+                                       sizeof(*(pointer))); \
             TEST_ASSUME((pointer) != NULL);                 \
         }                                                   \
     } while (0)

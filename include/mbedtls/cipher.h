@@ -9,19 +9,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_CIPHER_H
@@ -492,7 +480,7 @@ static inline size_t mbedtls_cipher_info_get_key_bitlen(
     if (info == NULL) {
         return 0;
     } else {
-        return info->MBEDTLS_PRIVATE(key_bitlen) << MBEDTLS_KEY_BITLEN_SHIFT;
+        return ((size_t) info->MBEDTLS_PRIVATE(key_bitlen)) << MBEDTLS_KEY_BITLEN_SHIFT;
     }
 }
 
@@ -690,7 +678,6 @@ int MBEDTLS_DEPRECATED mbedtls_cipher_setup_psa(mbedtls_cipher_context_t *ctx,
 static inline unsigned int mbedtls_cipher_get_block_size(
     const mbedtls_cipher_context_t *ctx)
 {
-    MBEDTLS_INTERNAL_VALIDATE_RET(ctx != NULL, 0);
     if (ctx->MBEDTLS_PRIVATE(cipher_info) == NULL) {
         return 0;
     }
@@ -710,7 +697,6 @@ static inline unsigned int mbedtls_cipher_get_block_size(
 static inline mbedtls_cipher_mode_t mbedtls_cipher_get_cipher_mode(
     const mbedtls_cipher_context_t *ctx)
 {
-    MBEDTLS_INTERNAL_VALIDATE_RET(ctx != NULL, MBEDTLS_MODE_NONE);
     if (ctx->MBEDTLS_PRIVATE(cipher_info) == NULL) {
         return MBEDTLS_MODE_NONE;
     }
@@ -731,7 +717,6 @@ static inline mbedtls_cipher_mode_t mbedtls_cipher_get_cipher_mode(
 static inline int mbedtls_cipher_get_iv_size(
     const mbedtls_cipher_context_t *ctx)
 {
-    MBEDTLS_INTERNAL_VALIDATE_RET(ctx != NULL, 0);
     if (ctx->MBEDTLS_PRIVATE(cipher_info) == NULL) {
         return 0;
     }
@@ -755,8 +740,6 @@ static inline int mbedtls_cipher_get_iv_size(
 static inline mbedtls_cipher_type_t mbedtls_cipher_get_type(
     const mbedtls_cipher_context_t *ctx)
 {
-    MBEDTLS_INTERNAL_VALIDATE_RET(
-        ctx != NULL, MBEDTLS_CIPHER_NONE);
     if (ctx->MBEDTLS_PRIVATE(cipher_info) == NULL) {
         return MBEDTLS_CIPHER_NONE;
     }
@@ -776,7 +759,6 @@ static inline mbedtls_cipher_type_t mbedtls_cipher_get_type(
 static inline const char *mbedtls_cipher_get_name(
     const mbedtls_cipher_context_t *ctx)
 {
-    MBEDTLS_INTERNAL_VALIDATE_RET(ctx != NULL, 0);
     if (ctx->MBEDTLS_PRIVATE(cipher_info) == NULL) {
         return 0;
     }
@@ -796,8 +778,6 @@ static inline const char *mbedtls_cipher_get_name(
 static inline int mbedtls_cipher_get_key_bitlen(
     const mbedtls_cipher_context_t *ctx)
 {
-    MBEDTLS_INTERNAL_VALIDATE_RET(
-        ctx != NULL, MBEDTLS_KEY_LENGTH_NONE);
     if (ctx->MBEDTLS_PRIVATE(cipher_info) == NULL) {
         return MBEDTLS_KEY_LENGTH_NONE;
     }
@@ -817,8 +797,6 @@ static inline int mbedtls_cipher_get_key_bitlen(
 static inline mbedtls_operation_t mbedtls_cipher_get_operation(
     const mbedtls_cipher_context_t *ctx)
 {
-    MBEDTLS_INTERNAL_VALIDATE_RET(
-        ctx != NULL, MBEDTLS_OPERATION_NONE);
     if (ctx->MBEDTLS_PRIVATE(cipher_info) == NULL) {
         return MBEDTLS_OPERATION_NONE;
     }

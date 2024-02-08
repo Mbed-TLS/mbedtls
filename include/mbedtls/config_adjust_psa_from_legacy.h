@@ -12,19 +12,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_CONFIG_ADJUST_PSA_FROM_LEGACY_H
@@ -37,9 +25,11 @@
 
 #if defined(MBEDTLS_CCM_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_CCM 1
-#define MBEDTLS_PSA_BUILTIN_ALG_CCM_STAR_NO_TAG 1
 #define PSA_WANT_ALG_CCM 1
+#if defined(MBEDTLS_CIPHER_C)
+#define MBEDTLS_PSA_BUILTIN_ALG_CCM_STAR_NO_TAG 1
 #define PSA_WANT_ALG_CCM_STAR_NO_TAG 1
+#endif /* MBEDTLS_CIPHER_C */
 #endif /* MBEDTLS_CCM_C */
 
 #if defined(MBEDTLS_CMAC_C)
@@ -91,13 +81,22 @@
 #define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE 1
 #define PSA_WANT_KEY_TYPE_DH_PUBLIC_KEY 1
 #define PSA_WANT_ALG_FFDH 1
-#define PSA_WANT_DH_FAMILY_RFC7919 1
+#define PSA_WANT_DH_RFC7919_2048 1
+#define PSA_WANT_DH_RFC7919_3072 1
+#define PSA_WANT_DH_RFC7919_4096 1
+#define PSA_WANT_DH_RFC7919_6144 1
+#define PSA_WANT_DH_RFC7919_8192 1
 #define MBEDTLS_PSA_BUILTIN_ALG_FFDH 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_BASIC 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_IMPORT 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_EXPORT 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_GENERATE 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY 1
+#define MBEDTLS_PSA_BUILTIN_DH_RFC7919_2048 1
+#define MBEDTLS_PSA_BUILTIN_DH_RFC7919_3072 1
+#define MBEDTLS_PSA_BUILTIN_DH_RFC7919_4096 1
+#define MBEDTLS_PSA_BUILTIN_DH_RFC7919_6144 1
+#define MBEDTLS_PSA_BUILTIN_DH_RFC7919_8192 1
 #endif /* MBEDTLS_DHM_C */
 
 #if defined(MBEDTLS_GCM_C)
@@ -238,9 +237,12 @@
 
 #if defined(MBEDTLS_CHACHA20_C)
 #define PSA_WANT_KEY_TYPE_CHACHA20 1
-#define PSA_WANT_ALG_STREAM_CIPHER 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_CHACHA20 1
+/* ALG_STREAM_CIPHER requires CIPHER_C in order to be supported in PSA */
+#if defined(MBEDTLS_CIPHER_C)
+#define PSA_WANT_ALG_STREAM_CIPHER 1
 #define MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER 1
+#endif
 #if defined(MBEDTLS_CHACHAPOLY_C)
 #define PSA_WANT_ALG_CHACHA20_POLY1305 1
 #define MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 1
@@ -256,8 +258,9 @@
 #endif
 #endif
 
-#if defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C) || \
-    defined(MBEDTLS_ARIA_C) || defined(MBEDTLS_CAMELLIA_C)
+#if (defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C) || \
+    defined(MBEDTLS_ARIA_C) || defined(MBEDTLS_CAMELLIA_C)) && \
+    defined(MBEDTLS_CIPHER_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING 1
 #define PSA_WANT_ALG_ECB_NO_PADDING 1
 #endif

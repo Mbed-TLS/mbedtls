@@ -1,0 +1,4 @@
+Bugfix
+  * Fix an inconsistency between implementations and usages of `__cpuid`,
+    which mainly causes failures when building Windows target using
+    mingw or clang. Fixes #8334 & #8332.

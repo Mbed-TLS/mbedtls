@@ -2,19 +2,7 @@
  *  Diffie-Hellman-Merkle key exchange (client side)
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "mbedtls/build_info.h"
@@ -25,14 +13,13 @@
 
 #if defined(MBEDTLS_AES_C) && defined(MBEDTLS_DHM_C) && \
     defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_NET_C) && \
-    defined(MBEDTLS_RSA_C) && defined(MBEDTLS_MD_CAN_SHA256) && \
-    defined(MBEDTLS_FS_IO) && defined(MBEDTLS_CTR_DRBG_C) && \
-    defined(MBEDTLS_MD_CAN_SHA1)
+    defined(MBEDTLS_RSA_C) && defined(MBEDTLS_SHA256_C) && \
+    defined(MBEDTLS_FS_IO) && defined(MBEDTLS_CTR_DRBG_C)
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/aes.h"
 #include "mbedtls/dhm.h"
 #include "mbedtls/rsa.h"
-#include "mbedtls/sha1.h"
+#include "mbedtls/sha256.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 
@@ -45,15 +32,21 @@
 
 #if !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_DHM_C) ||     \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_NET_C) ||  \
-    !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_MD_CAN_SHA256) ||    \
-    !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_CTR_DRBG_C) || \
-    !defined(MBEDTLS_SHA1_C)
+    !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_SHA256_C) ||    \
+    !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_CTR_DRBG_C)
 int main(void)
 {
     mbedtls_printf("MBEDTLS_AES_C and/or MBEDTLS_DHM_C and/or MBEDTLS_ENTROPY_C "
                    "and/or MBEDTLS_NET_C and/or MBEDTLS_RSA_C and/or "
                    "MBEDTLS_MD_CAN_SHA256 and/or MBEDTLS_FS_IO and/or "
                    "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_SHA1_C not defined.\n");
+    mbedtls_exit(0);
+}
+
+#elif defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
+int main(void)
+{
+    mbedtls_printf("MBEDTLS_BLOCK_CIPHER_NO_DECRYPT defined.\n");
     mbedtls_exit(0);
 }
 #else
@@ -65,12 +58,14 @@ int main(void)
 
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
+    unsigned int mdlen;
     size_t n, buflen;
     mbedtls_net_context server_fd;
 
     unsigned char *p, *end;
     unsigned char buf[2048];
-    unsigned char hash[32];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
+    mbedtls_mpi N, E;
     const char *pers = "dh_client";
 
     mbedtls_entropy_context entropy;
@@ -83,6 +78,8 @@ int main(void)
     mbedtls_dhm_init(&dhm);
     mbedtls_aes_init(&aes);
     mbedtls_ctr_drbg_init(&ctr_drbg);
+    mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&E);
 
     /*
      * 1. Setup the RNG
@@ -111,16 +108,13 @@ int main(void)
     }
 
     mbedtls_rsa_init(&rsa);
-
-    if ((ret = mbedtls_mpi_read_file(&rsa.MBEDTLS_PRIVATE(N), 16, f)) != 0 ||
-        (ret = mbedtls_mpi_read_file(&rsa.MBEDTLS_PRIVATE(E), 16, f)) != 0) {
+    if ((ret = mbedtls_mpi_read_file(&N, 16, f)) != 0 ||
+        (ret = mbedtls_mpi_read_file(&E, 16, f)) != 0 ||
+        (ret = mbedtls_rsa_import(&rsa, &N, NULL, NULL, NULL, &E) != 0)) {
         mbedtls_printf(" failed\n  ! mbedtls_mpi_read_file returned %d\n\n", ret);
         fclose(f);
         goto exit;
     }
-
-    rsa.MBEDTLS_PRIVATE(len) = (mbedtls_mpi_bitlen(&rsa.MBEDTLS_PRIVATE(N)) + 7) >> 3;
-
     fclose(f);
 
     /*
@@ -187,18 +181,24 @@ int main(void)
 
     p += 2;
 
-    if ((n = (size_t) (end - p)) != rsa.MBEDTLS_PRIVATE(len)) {
+    if ((n = (size_t) (end - p)) != mbedtls_rsa_get_len(&rsa)) {
         mbedtls_printf(" failed\n  ! Invalid RSA signature size\n\n");
         goto exit;
     }
 
-    if ((ret = mbedtls_sha1(buf, (int) (p - 2 - buf), hash)) != 0) {
-        mbedtls_printf(" failed\n  ! mbedtls_sha1 returned %d\n\n", ret);
+    mdlen = (unsigned int) mbedtls_md_get_size(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256));
+    if (mdlen == 0) {
+        mbedtls_printf(" failed\n  ! Invalid digest type\n\n");
+        goto exit;
+    }
+
+    if ((ret = mbedtls_sha256(buf, (int) (p - 2 - buf), hash, 0)) != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_sha256 returned %d\n\n", ret);
         goto exit;
     }
 
     if ((ret = mbedtls_rsa_pkcs1_verify(&rsa, MBEDTLS_MD_SHA256,
-                                        32, hash, p)) != 0) {
+                                        mdlen, hash, p)) != 0) {
         mbedtls_printf(" failed\n  ! mbedtls_rsa_pkcs1_verify returned %d\n\n", ret);
         goto exit;
     }
@@ -278,6 +278,8 @@ exit:
     mbedtls_dhm_free(&dhm);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
+    mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&E);
 
     mbedtls_exit(exit_code);
 }

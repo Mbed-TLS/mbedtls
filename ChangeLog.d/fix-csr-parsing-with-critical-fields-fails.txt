@@ -1,0 +1,6 @@
+Features
+   * Add new mbedtls_x509_csr_parse_der_with_ext_cb() routine which allows
+     parsing unsupported certificate extensions via user provided callback.
+
+Bugfix
+   * Fix parsing of CSRs with critical extensions.

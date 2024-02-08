@@ -8,19 +8,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_BUILD_INFO_H
@@ -38,16 +26,16 @@
  */
 #define MBEDTLS_VERSION_MAJOR  3
 #define MBEDTLS_VERSION_MINOR  5
-#define MBEDTLS_VERSION_PATCH  0
+#define MBEDTLS_VERSION_PATCH  2
 
 /**
  * The single version number has the following structure:
  *    MMNNPP00
  *    Major version | Minor version | Patch version
  */
-#define MBEDTLS_VERSION_NUMBER         0x03050000
-#define MBEDTLS_VERSION_STRING         "3.5.0"
-#define MBEDTLS_VERSION_STRING_FULL    "Mbed TLS 3.5.0"
+#define MBEDTLS_VERSION_NUMBER         0x03050200
+#define MBEDTLS_VERSION_STRING         "3.5.2"
+#define MBEDTLS_VERSION_STRING_FULL    "Mbed TLS 3.5.2"
 
 /* Macros for build-time platform detection */
 
@@ -72,6 +60,35 @@
     (defined(__i386__) || defined(_X86_) || \
     (defined(_M_IX86) && !defined(_M_I86)))
 #define MBEDTLS_ARCH_IS_X86
+#endif
+
+#if !defined(MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64) && \
+    (defined(_M_ARM64) || defined(_M_ARM64EC))
+#define MBEDTLS_PLATFORM_IS_WINDOWS_ON_ARM64
+#endif
+
+/* This is defined if the architecture is Armv8-A, or higher */
+#if !defined(MBEDTLS_ARCH_IS_ARMV8_A)
+#if defined(__ARM_ARCH) && defined(__ARM_ARCH_PROFILE)
+#if (__ARM_ARCH >= 8) && (__ARM_ARCH_PROFILE == 'A')
+/* GCC, clang, armclang and IAR */
+#define MBEDTLS_ARCH_IS_ARMV8_A
+#endif
+#elif defined(__ARM_ARCH_8A)
+/* Alternative defined by clang */
+#define MBEDTLS_ARCH_IS_ARMV8_A
+#elif defined(_M_ARM64) || defined(_M_ARM64EC)
+/* MSVC ARM64 is at least Armv8.0-A */
+#define MBEDTLS_ARCH_IS_ARMV8_A
+#endif
+#endif
+
+#if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \
+    && !defined(__llvm__) && !defined(__INTEL_COMPILER)
+/* Defined if the compiler really is gcc and not clang, etc */
+#define MBEDTLS_COMPILER_IS_GCC
+#define MBEDTLS_GCC_VERSION \
+    (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #endif
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)

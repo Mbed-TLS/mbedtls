@@ -16,7 +16,7 @@
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:NOT_DEFINED */
+/* BEGIN_CASE */
 void aria_invalid_param()
 {
     mbedtls_aria_context ctx;
@@ -52,8 +52,10 @@ void aria_invalid_param()
                                          output));
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
+#if defined(MBEDTLS_CIPHER_MODE_CBC) || defined(MBEDTLS_CIPHER_MODE_CFB)
 exit:
     return;
+#endif
 
 }
 /* END_CASE */
@@ -86,7 +88,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:!MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 void aria_decrypt_ecb(data_t *key_str, data_t *src_str,
                       data_t *expected_output, int setkey_result)
 {

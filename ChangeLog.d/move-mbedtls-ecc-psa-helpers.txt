@@ -1,0 +1,3 @@
+Changes
+    * Moved declaration of functions mbedtls_ecc_group_to_psa and
+      mbedtls_ecc_group_of_psa from psa/crypto_extra.h to mbedtls/psa_util.h

@@ -2,22 +2,12 @@
 """
 
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 #
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import os
 import inspect
+from typing import Optional
 
 def looks_like_tf_psa_crypto_root(path: str) -> bool:
     """Whether the given directory looks like the root of the PSA Crypto source tree."""
@@ -32,9 +22,40 @@ def looks_like_mbedtls_root(path: str) -> bool:
 def looks_like_root(path: str) -> bool:
     return looks_like_tf_psa_crypto_root(path) or looks_like_mbedtls_root(path)
 
-def check_repo_path():
+def crypto_core_directory(root: Optional[str] = None, relative: Optional[bool] = False) -> str:
     """
-    Check that the current working directory is the project root, and throw
+    Return the path of the directory containing the PSA crypto core
+    for either TF-PSA-Crypto or Mbed TLS.
+
+    Returns either the full path or relative path depending on the
+    "relative" boolean argument.
+    """
+    if root is None:
+        root = guess_project_root()
+    if looks_like_tf_psa_crypto_root(root):
+        if relative:
+            return "core"
+        return os.path.join(root, "core")
+    elif looks_like_mbedtls_root(root):
+        if relative:
+            return "library"
+        return os.path.join(root, "library")
+    else:
+        raise Exception('Neither Mbed TLS nor TF-PSA-Crypto source tree found')
+
+def crypto_library_filename(root: Optional[str] = None) -> str:
+    """Return the crypto library filename for either TF-PSA-Crypto or Mbed TLS."""
+    if root is None:
+        root = guess_project_root()
+    if looks_like_tf_psa_crypto_root(root):
+        return "tfpsacrypto"
+    elif looks_like_mbedtls_root(root):
+        return "mbedcrypto"
+    else:
+        raise Exception('Neither Mbed TLS nor TF-PSA-Crypto source tree found')
+
+def check_repo_path():
+    """Check that the current working directory is the project root, and throw
     an exception if not.
     """
     if not all(os.path.isdir(d) for d in ["include", "library", "tests"]):
@@ -54,11 +75,10 @@ def chdir_to_root() -> None:
             return
     raise Exception('Mbed TLS source tree not found')
 
+def guess_project_root():
+    """Guess project source code directory.
 
-def guess_mbedtls_root():
-    """Guess mbedTLS source code directory.
-
-    Return the first possible mbedTLS root directory
+    Return the first possible project root directory.
     """
     dirs = set({})
     for frame in inspect.stack():
@@ -71,4 +91,30 @@ def guess_mbedtls_root():
             dirs.add(d)
             if looks_like_root(d):
                 return d
-    raise Exception('Mbed TLS source tree not found')
+    raise Exception('Neither Mbed TLS nor TF-PSA-Crypto source tree found')
+
+def guess_mbedtls_root(root: Optional[str] = None) -> str:
+    """Guess Mbed TLS source code directory.
+
+    Return the first possible Mbed TLS root directory.
+    Raise an exception if we are not in Mbed TLS.
+    """
+    if root is None:
+        root = guess_project_root()
+    if looks_like_mbedtls_root(root):
+        return root
+    else:
+        raise Exception('Mbed TLS source tree not found')
+
+def guess_tf_psa_crypto_root(root: Optional[str] = None) -> str:
+    """Guess TF-PSA-Crypto source code directory.
+
+    Return the first possible TF-PSA-Crypto root directory.
+    Raise an exception if we are not in TF-PSA-Crypto.
+    """
+    if root is None:
+        root = guess_project_root()
+    if looks_like_tf_psa_crypto_root(root):
+        return root
+    else:
+        raise Exception('TF-PSA-Crypto source tree not found')

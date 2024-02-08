@@ -1,0 +1,3 @@
+Bugfix
+   * Fix possible NULL dereference issue in X509 cert_req program if an entry
+     in the san parameter is not separated by a colon.

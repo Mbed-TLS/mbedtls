@@ -1,0 +1,4 @@
+API changes
+   * Remove `tls13_` in mbedtls_ssl_tls13_conf_early_data() and
+     mbedtls_ssl_tls13_conf_max_early_data_size() API names. Early data
+     feature may not be TLS 1.3 specific in the future. Fixes #6909.

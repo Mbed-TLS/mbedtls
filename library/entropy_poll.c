@@ -2,22 +2,10 @@
  *  Platform-specific and custom entropy polling functions
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
-#if defined(__linux__) && !defined(_GNU_SOURCE)
+#if defined(__linux__) || defined(__midipix__) && !defined(_GNU_SOURCE)
 /* Ensure that syscall() is available even when compiling with -std=c99 */
 #define _GNU_SOURCE
 #endif
@@ -41,7 +29,7 @@
 
 #if !defined(unix) && !defined(__unix__) && !defined(__unix) && \
     !defined(__APPLE__) && !defined(_WIN32) && !defined(__QNXNTO__) && \
-    !defined(__HAIKU__) && !defined(__midipix__)
+    !defined(__HAIKU__) && !defined(__midipix__) && !defined(__MVS__)
 #error \
     "Platform entropy sources only work on Unix and Windows, see MBEDTLS_NO_PLATFORM_ENTROPY in mbedtls_config.h"
 #endif
@@ -100,7 +88,7 @@ static int getrandom_wrapper(void *buf, size_t buflen, unsigned int flags)
     memset(buf, 0, buflen);
 #endif
 #endif
-    return syscall(SYS_getrandom, buf, buflen, flags);
+    return (int) syscall(SYS_getrandom, buf, buflen, flags);
 }
 #endif /* SYS_getrandom */
 #endif /* __linux__ || __midipix__ */
@@ -114,7 +102,7 @@ static int getrandom_wrapper(void *buf, size_t buflen, unsigned int flags)
 #define HAVE_GETRANDOM
 static int getrandom_wrapper(void *buf, size_t buflen, unsigned int flags)
 {
-    return getrandom(buf, buflen, flags);
+    return (int) getrandom(buf, buflen, flags);
 }
 #endif /* (__FreeBSD__ && __FreeBSD_version >= 1200000) ||
           (__DragonFly__ && __DragonFly_version >= 500700) */
@@ -168,7 +156,7 @@ int mbedtls_platform_entropy_poll(void *data,
 #if defined(HAVE_GETRANDOM)
     ret = getrandom_wrapper(output, len, 0);
     if (ret >= 0) {
-        *olen = ret;
+        *olen = (size_t) ret;
         return 0;
     } else if (errno != ENOSYS) {
         return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;

@@ -2,19 +2,7 @@
  *  Elliptic curve Diffie-Hellman
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 /*
@@ -375,7 +363,7 @@ static int ecdh_read_params_internal(mbedtls_ecdh_context_mbed *ctx,
                                      const unsigned char *end)
 {
     return mbedtls_ecp_tls_read_point(&ctx->grp, &ctx->Qp, buf,
-                                      end - *buf);
+                                      (size_t) (end - *buf));
 }
 
 /*
@@ -391,7 +379,7 @@ int mbedtls_ecdh_read_params(mbedtls_ecdh_context *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_group_id grp_id;
-    if ((ret = mbedtls_ecp_tls_read_group_id(&grp_id, buf, end - *buf))
+    if ((ret = mbedtls_ecp_tls_read_group_id(&grp_id, buf, (size_t) (end - *buf)))
         != 0) {
         return ret;
     }

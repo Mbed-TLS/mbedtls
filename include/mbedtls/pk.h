@@ -5,19 +5,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #ifndef MBEDTLS_PK_H
@@ -40,7 +28,7 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 #include "psa/crypto.h"
 #endif
 
@@ -241,7 +229,7 @@ typedef struct mbedtls_pk_context {
     void *MBEDTLS_PRIVATE(pk_ctx);                        /**< Underlying public key context  */
     /* The following field is used to store the ID of a private key in the
      * following cases:
-     * - opaque key when MBEDTLS_PSA_CRYPTO_C is defined
+     * - opaque key when MBEDTLS_USE_PSA_CRYPTO is defined
      * - normal key when MBEDTLS_PK_USE_PSA_EC_DATA is defined. In this case:
      *    - the pk_ctx above is not not used to store the private key anymore.
      *      Actually that field not populated at all in this case because also
@@ -251,15 +239,10 @@ typedef struct mbedtls_pk_context {
      *
      * Note: this private key storing solution only affects EC keys, not the
      *       other ones. The latters still use the pk_ctx to store their own
-     *       context.
-     *
-     * Note: this priv_id is guarded by MBEDTLS_PSA_CRYPTO_C and not by
-     *       MBEDTLS_PK_USE_PSA_EC_DATA (as the public counterpart below) because,
-     *       when working with opaque keys, it can be used also in
-     *       mbedtls_pk_sign_ext for RSA keys. */
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+     *       context. */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t MBEDTLS_PRIVATE(priv_id);      /**< Key ID for opaque keys */
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     /* The following fields are meant for storing the public key in raw format
      * which is handy for:
      * - easily importing it into the PSA context
@@ -270,6 +253,8 @@ typedef struct mbedtls_pk_context {
      *   inside the ecp_keypair structure
      * - the following fields are used for all public key operations: signature
      *   verify, key pair check and key write.
+     * - For a key pair, priv_id contains the private key. For a public key,
+     *   priv_id is null.
      * Of course, when MBEDTLS_PK_USE_PSA_EC_DATA is not enabled, the legacy
      * ecp_keypair structure is used for storing the public key and performing
      * all the operations.
@@ -501,6 +486,121 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
                           psa_key_usage_t usage);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+/**
+ * \brief           Determine valid PSA attributes that can be used to
+ *                  import a key into PSA.
+ *
+ *                  The attributes determined by this function are suitable
+ *                  for calling mbedtls_pk_import_into_psa() to create
+ *                  a PSA key with the same key material.
+ *
+ *                  The typical flow of operations involving this function is
+ *                  ```
+ *                  psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+ *                  int ret = mbedtls_pk_get_psa_attributes(pk, &attributes);
+ *                  if (ret != 0) ...; // error handling omitted
+ *                  // Tweak attributes if desired
+ *                  psa_key_id_t key_id = 0;
+ *                  ret = mbedtls_pk_import_into_psa(pk, &attributes, &key_id);
+ *                  if (ret != 0) ...; // error handling omitted
+ *                  ```
+ *
+ * \note            This function does not support RSA-alt contexts
+ *                  (set up with mbedtls_pk_setup_rsa_alt()).
+ *
+ * \param[in] pk    The PK context to use. It must have been set up.
+ *                  It can either contain a key pair or just a public key.
+ * \param usage     A single `PSA_KEY_USAGE_xxx` flag among the following:
+ *                  - #PSA_KEY_USAGE_DECRYPT: \p pk must contain a
+ *                    key pair. The output \p attributes will contain a
+ *                    key pair type, and the usage policy will allow
+ *                    #PSA_KEY_USAGE_ENCRYPT as well as
+ *                    #PSA_KEY_USAGE_DECRYPT.
+ *                  - #PSA_KEY_USAGE_DERIVE: \p pk must contain a
+ *                    key pair. The output \p attributes will contain a
+ *                    key pair type.
+ *                  - #PSA_KEY_USAGE_ENCRYPT: The output
+ *                    \p attributes will contain a public key type.
+ *                  - #PSA_KEY_USAGE_SIGN_HASH: \p pk must contain a
+ *                    key pair. The output \p attributes will contain a
+ *                    key pair type, and the usage policy will allow
+ *                    #PSA_KEY_USAGE_VERIFY_HASH as well as
+ *                    #PSA_KEY_USAGE_SIGN_HASH.
+ *                  - #PSA_KEY_USAGE_SIGN_MESSAGE: \p pk must contain a
+ *                    key pair. The output \p attributes will contain a
+ *                    key pair type, and the usage policy will allow
+ *                    #PSA_KEY_USAGE_VERIFY_MESSAGE as well as
+ *                    #PSA_KEY_USAGE_SIGN_MESSAGE.
+ *                  - #PSA_KEY_USAGE_VERIFY_HASH: The output
+ *                    \p attributes will contain a public key type.
+ *                  - #PSA_KEY_USAGE_VERIFY_MESSAGE: The output
+ *                    \p attributes will contain a public key type.
+ * \param[out] attributes
+ *                  On success, valid attributes to import the key into PSA.
+ *                  - The lifetime and key identifier are unchanged. If the
+ *                    attribute structure was initialized or reset before
+ *                    calling this function, this will result in a volatile
+ *                    key. Call psa_set_key_identifier() before or after this
+ *                    function if you wish to create a persistent key. Call
+ *                    psa_set_key_lifetime() before or after this function if
+ *                    you wish to import the key in a secure element.
+ *                  - The key type and bit-size are determined by the contents
+ *                    of the PK context. If the PK context contains a key
+ *                    pair, the key type can be either a key pair type or
+ *                    the corresponding public key type, depending on
+ *                    \p usage. If the PK context contains a public key,
+ *                    the key type is a public key type.
+ *                  - The key's policy is determined by the key type and
+ *                    the \p usage parameter. The usage always allows
+ *                    \p usage, exporting and copying the key, and
+ *                    possibly other permissions as documented for the
+ *                    \p usage parameter.
+ *                    The permitted algorithm policy is determined as follows
+ *                    based on the #mbedtls_pk_type_t type of \p pk,
+ *                    the chosen \p usage and other factors:
+ *                      - #MBEDTLS_PK_RSA whose underlying
+ *                        #mbedtls_rsa_context has the padding mode
+ *                        #MBEDTLS_RSA_PKCS_V15:
+ *                        #PSA_ALG_RSA_PKCS1V15_SIGN(#PSA_ALG_ANY_HASH)
+ *                        if \p usage is SIGN/VERIFY, and
+ *                        #PSA_ALG_RSA_PKCS1V15_CRYPT
+ *                        if \p usage is ENCRYPT/DECRYPT.
+ *                      - #MBEDTLS_PK_RSA whose underlying
+ *                        #mbedtls_rsa_context has the padding mode
+ *                        #MBEDTLS_RSA_PKCS_V21 and the digest type
+ *                        corresponding to the PSA algorithm \c hash:
+ *                        #PSA_ALG_RSA_PSS_ANY_SALT(#PSA_ALG_ANY_HASH)
+ *                        if \p usage is SIGN/VERIFY, and
+ *                        #PSA_ALG_RSA_OAEP(\c hash)
+ *                        if \p usage is ENCRYPT/DECRYPT.
+ *                      - #MBEDTLS_PK_RSA_ALT: not supported.
+ *                      - #MBEDTLS_PK_ECDSA or #MBEDTLS_PK_ECKEY
+ *                        if \p usage is SIGN/VERIFY:
+ *                        #PSA_ALG_DETERMINISTIC_ECDSA(#PSA_ALG_ANY_HASH)
+ *                        if #MBEDTLS_ECDSA_DETERMINISTIC is enabled,
+ *                        otherwise #PSA_ALG_ECDSA(#PSA_ALG_ANY_HASH).
+ *                      - #MBEDTLS_PK_ECKEY_DH or #MBEDTLS_PK_ECKEY
+ *                        if \p usage is DERIVE:
+ *                        #PSA_ALG_ECDH.
+ *                      - #MBEDTLS_PK_OPAQUE: same as the primary algorithm
+ *                        set for the underlying PSA key, except that
+ *                        sign/decrypt flags are removed if the type is
+ *                        set to a public key type.
+ *                        The underlying key must allow \p usage.
+ *                        Note that the enrollment algorithm set with
+ *                        psa_set_key_enrollment_algorithm() is not copied.
+ *
+ * \return          0 on success.
+ *                  #MBEDTLS_ERR_PK_TYPE_MISMATCH if \p pk does not contain
+ *                  a key of the type identified in \p attributes.
+ *                  Another error code on other failures.
+ */
+int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
+                                  psa_key_usage_t usage,
+                                  psa_key_attributes_t *attributes);
+#endif /* MBEDTLS_PSA_CRYPTO_C */
+
 /**
  * \brief           Verify signature (including padding if relevant).
  *
@@ -627,7 +727,6 @@ int mbedtls_pk_sign(mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
                     unsigned char *sig, size_t sig_size, size_t *sig_len,
                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng);
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
 /**
  * \brief           Make signature given a signature type.
  *
@@ -664,7 +763,6 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
                         unsigned char *sig, size_t sig_size, size_t *sig_len,
                         int (*f_rng)(void *, unsigned char *, size_t),
                         void *p_rng);
-#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 /**
  * \brief           Restartable version of \c mbedtls_pk_sign()
@@ -1060,14 +1158,6 @@ int mbedtls_pk_parse_subpubkey(unsigned char **p, const unsigned char *end,
 int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
                             const mbedtls_pk_context *key);
 #endif /* MBEDTLS_PK_WRITE_C */
-
-/*
- * Internal module functions. You probably do not want to use these unless you
- * know you do.
- */
-#if defined(MBEDTLS_FS_IO)
-int mbedtls_pk_load_file(const char *path, unsigned char **buf, size_t *n);
-#endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /**

@@ -65,6 +65,8 @@ void mbedtls_mps_reader_no_pausing_single_step_single_round(int with_acc)
     /* Wrapup (lower layer) */
     TEST_ASSERT(mbedtls_mps_reader_reclaim(&rd, &paused) == 0);
     TEST_ASSERT(paused == 0);
+
+exit:
     mbedtls_mps_reader_free(&rd);
 }
 /* END_CASE */
@@ -119,6 +121,8 @@ void mbedtls_mps_reader_no_pausing_single_step_multiple_rounds(int with_acc)
     TEST_ASSERT(mbedtls_mps_reader_commit(&rd) == 0);
     /* Wrapup (lower layer) */
     TEST_ASSERT(mbedtls_mps_reader_reclaim(&rd, NULL) == 0);
+
+exit:
     mbedtls_mps_reader_free(&rd);
 }
 /* END_CASE */
@@ -170,6 +174,8 @@ void mbedtls_mps_reader_no_pausing_multiple_steps_single_round(int with_acc)
     TEST_ASSERT(mbedtls_mps_reader_commit(&rd) == 0);
     /* Wrapup (lower layer) */
     TEST_ASSERT(mbedtls_mps_reader_reclaim(&rd, NULL) == 0);
+
+exit:
     mbedtls_mps_reader_free(&rd);
 }
 /* END_CASE */
@@ -217,6 +223,8 @@ void mbedtls_mps_reader_no_pausing_multiple_steps_multiple_rounds(int with_acc)
     TEST_ASSERT(mbedtls_mps_reader_commit(&rd) == 0);
     /* Wrapup */
     TEST_ASSERT(mbedtls_mps_reader_reclaim(&rd, NULL) == 0);
+
+exit:
     mbedtls_mps_reader_free(&rd);
 }
 /* END_CASE */
@@ -250,6 +258,8 @@ void mbedtls_mps_reader_pausing_needed_disabled()
     /* Wrapup (lower layer) */
     TEST_ASSERT(mbedtls_mps_reader_reclaim(&rd, NULL) ==
                 MBEDTLS_ERR_MPS_READER_NEED_ACCUMULATOR);
+
+exit:
     mbedtls_mps_reader_free(&rd);
 }
 /* END_CASE */
@@ -297,6 +307,7 @@ void mbedtls_mps_reader_pausing_needed_buffer_too_small()
     TEST_ASSERT(mbedtls_mps_reader_get(&rd, 50, &tmp, &tmp_len) == 0);
     TEST_MEMORY_COMPARE(tmp, tmp_len, buf + 50, 50);
 
+exit:
     mbedtls_mps_reader_free(&rd);
 }
 /* END_CASE */
@@ -333,6 +344,7 @@ void mbedtls_mps_reader_reclaim_overflow()
     TEST_ASSERT(mbedtls_mps_reader_reclaim(&rd, NULL) ==
                 MBEDTLS_ERR_MPS_READER_ACCUMULATOR_TOO_SMALL);
 
+exit:
     mbedtls_mps_reader_free(&rd);
 }
 /* END_CASE */
@@ -458,6 +470,8 @@ void mbedtls_mps_reader_pausing(int option)
 
     /* Wrapup */
     TEST_ASSERT(mbedtls_mps_reader_reclaim(&rd, NULL) == 0);
+
+exit:
     mbedtls_mps_reader_free(&rd);
 }
 /* END_CASE */
@@ -562,6 +576,8 @@ void mbedtls_mps_reader_pausing_multiple_feeds(int option)
 
     /* Wrapup */
     TEST_ASSERT(mbedtls_mps_reader_reclaim(&rd, NULL) == 0);
+
+exit:
     mbedtls_mps_reader_free(&rd);
 }
 /* END_CASE */
@@ -623,6 +639,8 @@ void mbedtls_mps_reader_reclaim_data_left(int option)
     /* Wrapup */
     TEST_ASSERT(mbedtls_mps_reader_reclaim(&rd, NULL) ==
                 MBEDTLS_ERR_MPS_READER_DATA_LEFT);
+
+exit:
     mbedtls_mps_reader_free(&rd);
 }
 /* END_CASE */
@@ -795,6 +813,7 @@ void mbedtls_mps_reader_multiple_pausing(int option)
             break;
     }
 
+exit:
     mbedtls_mps_reader_free(&rd);
 }
 /* END_CASE */
@@ -951,6 +970,7 @@ void mbedtls_mps_reader_random_usage(int num_out_chunks,
         }
     }
 
+exit:
     /* Cleanup */
     mbedtls_mps_reader_free(&rd);
     mbedtls_free(incoming);
@@ -1103,6 +1123,7 @@ void mbedtls_reader_inconsistent_usage(int option)
         TEST_ASSERT(mbedtls_mps_reader_reclaim(&rd, NULL) == 0);
     }
 
+exit:
     /* Wrapup */
     mbedtls_mps_reader_free(&rd);
 }
@@ -1136,6 +1157,8 @@ void mbedtls_mps_reader_feed_empty()
 
     /* Wrapup */
     TEST_ASSERT(mbedtls_mps_reader_reclaim(&rd, NULL) == 0);
+
+exit:
     mbedtls_mps_reader_free(&rd);
 }
 /* END_CASE */

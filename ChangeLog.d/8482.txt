@@ -1,0 +1,6 @@
+Changes
+    * PSA_WANT_ALG_CCM and PSA_WANT_ALG_CCM_STAR_NO_TAG are no more synonyms and
+      they are now treated separately. This means that they should be
+      individually enabled in order to enable respective support; also the
+      corresponding MBEDTLS_PSA_ACCEL symbol should be defined in case
+      acceleration is required.

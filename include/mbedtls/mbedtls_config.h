@@ -2803,7 +2803,7 @@
 /**
  * \def MBEDTLS_GCM_LARGETABLE
  *
- * Enable large precomputer tables for  Galois/Counter Mode (GCM).
+ * Enable large pre-computed tables for  Galois/Counter Mode (GCM).
  * Can significantly increase throughput on systems without GCM hardware
  * acceleration (e.g., AESNI, AESCE).
  *

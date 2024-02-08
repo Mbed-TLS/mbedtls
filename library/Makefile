@@ -125,6 +125,7 @@ OBJS_CRYPTO= \
 	     padlock.o \
 	     pem.o \
 	     pk.o \
+	     pk_ecc.o \
 	     pk_wrap.o \
 	     pkcs12.o \
 	     pkcs5.o \

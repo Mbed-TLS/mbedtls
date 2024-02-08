@@ -56,6 +56,7 @@ set(src_crypto
     padlock.c
     pem.c
     pk.c
+    pk_ecc.c
     pk_wrap.c
     pkcs12.c
     pkcs5.c

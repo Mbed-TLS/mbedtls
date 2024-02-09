@@ -304,7 +304,7 @@ static void gcm_mult_smalltable(uint8_t *output, const uint8_t *x, uint64_t H[16
     int i = 0;
     unsigned char lo, hi, rem;
     uint64_t u64z[2];
-    const uint64_t *pu64z = 0;
+    const uint64_t *pu64z = NULL;
     uint8_t *u8z = (uint8_t *) u64z;
 
     lo = x[15] & 0xf;

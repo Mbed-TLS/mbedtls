@@ -49,3 +49,16 @@ mbedtls_pem_read_buffer:"-----BEGIN EC PRIVATE KEY-----":"-----END EC PRIVATE KE
 PEM read (malformed PEM AES-128-CBC)
 depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
 mbedtls_pem_read_buffer:"-----BEGIN EC PRIVATE KEY-----":"-----END EC PRIVATE KEY-----":"-----BEGIN EC PRIVATE KEY-----\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: AES-128-CBC,AA94892A169FA426AA94892A169FA426\n\nMAAA\n-----END EC PRIVATE KEY-----":"pwd":MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH:""
+
+# The output sequence's length is not multiple of block size (16 bytes). This
+# proves that the pem_context->len value is properly updated based on the SEQUENCE
+# length read from the decoded ASN.1 data (i.e. extra padding, if any, is ignored).
+PEM read (valid EC key encoded with AES-128-CBC)
+depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+mbedtls_pem_read_buffer:"-----BEGIN EC PRIVATE KEY-----":"-----END EC PRIVATE KEY-----":"-----BEGIN EC PRIVATE KEY-----\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: AES-128-CBC,151F851B6A7F3FBDAA5B7173117D0127\n\nLw+0OM+0Bwcl+ls/vxQbLrVshGc7bsNPvvtj2sJeMFFEq3V1mj/IO++0KK/CDhMH\nh6CZPsmgVOeM5uFpqYaq0fJbUduN2eDMWszWRm0SFkY=\n-----END EC PRIVATE KEY-----":"pwdpwd":0:"3041020101040f00d8023c809afd45e426d1a4dbe0ffa00706052b81040004a1220320000400da1ecfa53d528237625e119e2e0500d2eb671724f16deb6a63749516b7"
+
+# The text "hello world" (which is clearly not a valid ASN.1 SEQUENCE) is encoded
+# with AES-128-CBC to prove that ASN.1 parsing after decoding fails.
+PEM read (Invalid SEQUENCE encoded with AES-128-CBC)
+depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+mbedtls_pem_read_buffer:"-----BEGIN EC PRIVATE KEY-----":"-----END EC PRIVATE KEY-----":"-----BEGIN EC PRIVATE KEY-----\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: AES-128-CBC,765FCB151B573FC9E5FB3A0E5A198785\n\nU2FsdGVkX1/+Vl2WMhEy3zcdg14R+flkg/pW4ei4d0I=\n-----END EC PRIVATE KEY-----":"pwdpwd":MBEDTLS_ERR_PEM_INVALID_DATA + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG:""

@@ -3,6 +3,7 @@
 #include "mbedtls/pem.h"
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"
+#include "mbedtls/asn1.h"
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C */

@@ -438,7 +438,13 @@ psa_status_t mbedtls_test_wrap_psa_key_derivation_input_bytes(
     const uint8_t *arg2_data,
     size_t arg3_data_length)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg2_data, arg3_data_length);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_key_derivation_input_bytes)(arg0_operation, arg1_step, arg2_data, arg3_data_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg2_data, arg3_data_length);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 
@@ -470,7 +476,13 @@ psa_status_t mbedtls_test_wrap_psa_key_derivation_output_bytes(
     uint8_t *arg1_output,
     size_t arg2_output_length)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg1_output, arg2_output_length);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_key_derivation_output_bytes)(arg0_operation, arg1_output, arg2_output_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg1_output, arg2_output_length);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 

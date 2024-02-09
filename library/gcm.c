@@ -42,10 +42,63 @@
 #if !defined(MBEDTLS_GCM_ALT)
 
 /* Used to select the acceleration mechanism */
-#define MBEDTLS_GCM_ACC_SMALLTABLE  0
-#define MBEDTLS_GCM_ACC_LARGETABLE  1
-#define MBEDTLS_GCM_ACC_AESNI       2
-#define MBEDTLS_GCM_ACC_AESCE       3
+#define MBEDTLS_GCM_ACC_UNSET       0
+#define MBEDTLS_GCM_ACC_SMALLTABLE  1
+#define MBEDTLS_GCM_ACC_LARGETABLE  2
+#define MBEDTLS_GCM_ACC_AESNI       3
+#define MBEDTLS_GCM_ACC_AESCE       4
+
+/* Try to define acceleration as a compile-time constant, if possible, to enable the compiler
+ * to make code-size savings. */
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+    #if defined(MBEDTLS_AESNI_HAVE_CODE) || defined(MBEDTLS_AESCE_HAVE_CODE)
+/* Use run-time detection to select acceleration */
+static uint8_t acceleration = MBEDTLS_GCM_ACC_UNSET;
+        #define MBEDTLS_GCM_RUNTIME_ACCELERATION_DETECTION
+    #else
+/* We know at compile-time it will be software */
+        #if defined(MBEDTLS_GCM_LARGE_TABLE)
+            #define acceleration MBEDTLS_GCM_ACC_LARGETABLE
+        #else
+            #define acceleration MBEDTLS_GCM_ACC_SMALLTABLE
+        #endif
+    #endif
+#else
+/* Either AESCE or AESNI */
+    #if defined(MBEDTLS_AESNI_HAVE_CODE)
+        #define acceleration MBEDTLS_GCM_ACC_AESNI
+    #elif defined(MBEDTLS_AESCE_HAVE_CODE)
+        #define acceleration MBEDTLS_GCM_ACC_AESCE
+    #else
+        #error No AES hardware acceleration available, and MBEDTLS_AES_USE_HARDWARE_ONLY set
+    #endif
+#endif
+
+#if defined(MBEDTLS_GCM_RUNTIME_ACCELERATION_DETECTION)
+static inline void gcm_set_acceleration(void)
+{
+    if (acceleration == MBEDTLS_GCM_ACC_UNSET) {
+#if defined(MBEDTLS_GCM_LARGE_TABLE)
+        acceleration = MBEDTLS_GCM_ACC_LARGETABLE;
+#else
+        acceleration = MBEDTLS_GCM_ACC_SMALLTABLE;
+#endif
+
+#if defined(MBEDTLS_AESNI_HAVE_CODE)
+        /* With CLMUL support, we need only h, not the rest of the table */
+        if (mbedtls_aesni_has_support(MBEDTLS_AESNI_CLMUL)) {
+            acceleration = MBEDTLS_GCM_ACC_AESNI;
+        }
+#endif
+
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
+        if (MBEDTLS_AESCE_HAS_SUPPORT()) {
+            acceleration = MBEDTLS_GCM_ACC_AESCE;
+        }
+#endif
+    }
+}
+#endif
 
 /*
  * Initialize a context
@@ -53,27 +106,9 @@
 void mbedtls_gcm_init(mbedtls_gcm_context *ctx)
 {
     memset(ctx, 0, sizeof(mbedtls_gcm_context));
-}
 
-static inline void gcm_set_acceleration(mbedtls_gcm_context *ctx)
-{
-#if defined(MBEDTLS_GCM_LARGE_TABLE)
-    ctx->acceleration = MBEDTLS_GCM_ACC_LARGETABLE;
-#else
-    ctx->acceleration = MBEDTLS_GCM_ACC_SMALLTABLE;
-#endif
-
-#if defined(MBEDTLS_AESNI_HAVE_CODE)
-    /* With CLMUL support, we need only h, not the rest of the table */
-    if (mbedtls_aesni_has_support(MBEDTLS_AESNI_CLMUL)) {
-        ctx->acceleration = MBEDTLS_GCM_ACC_AESNI;
-    }
-#endif
-
-#if defined(MBEDTLS_AESCE_HAVE_CODE)
-    if (MBEDTLS_AESCE_HAS_SUPPORT()) {
-        ctx->acceleration = MBEDTLS_GCM_ACC_AESCE;
-    }
+#if defined(MBEDTLS_GCM_RUNTIME_ACCELERATION_DETECTION)
+    gcm_set_acceleration();
 #endif
 }
 
@@ -112,13 +147,11 @@ static int gcm_gen_table(mbedtls_gcm_context *ctx)
         return ret;
     }
 
-    gcm_set_acceleration(ctx);
-
     /* MBEDTLS_GCM_HTABLE_SIZE/2 = 1000 corresponds to 1 in GF(2^128) */
     ctx->H[MBEDTLS_GCM_HTABLE_SIZE/2][0] = u64h[0];
     ctx->H[MBEDTLS_GCM_HTABLE_SIZE/2][1] = u64h[1];
 
-    switch (ctx->acceleration) {
+    switch (acceleration) {
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
         case MBEDTLS_GCM_ACC_AESNI:
             return 0;
@@ -347,7 +380,7 @@ static void gcm_mult_smalltable(uint8_t *output, const uint8_t *x, uint64_t H[16
 static void gcm_mult(mbedtls_gcm_context *ctx, const unsigned char x[16],
                      unsigned char output[16])
 {
-    switch (ctx->acceleration) {
+    switch (acceleration) {
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
         case MBEDTLS_GCM_ACC_AESNI:
             mbedtls_aesni_gcm_mult(output, x, (uint8_t *) ctx->H[MBEDTLS_GCM_HTABLE_SIZE/2]);

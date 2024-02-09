@@ -600,7 +600,7 @@
 //#define MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 
 /*
- * Disable plain C implementation for AES.
+ * Disable plain C implementation for AES and GCM.
  *
  * When the plain C implementation is enabled, and an implementation using a
  * special CPU feature (such as MBEDTLS_AESCE_C) is also enabled, runtime

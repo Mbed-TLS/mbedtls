@@ -412,8 +412,9 @@ pre_initialize_variables () {
     : ${GCC_EARLIEST:="gcc-earliest"}
     # if MAKEFLAGS is not set add the -j option to speed up invocations of make
     if [ -z "${MAKEFLAGS+set}" ]; then
-        export MAKEFLAGS="-j$(all_sh_nproc)"
+        export MAKEFLAGS=""     # "-j$(all_sh_nproc)"
     fi
+    echo "MAKEFLAGS is $MAKEFLAGS"
     # if CC is not set, use clang by default (if present) to improve build times
     if [ -z "${CC+set}" ] && (type clang > /dev/null 2>&1); then
         export CC="clang"

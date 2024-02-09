@@ -46,7 +46,7 @@ extern "C" {
 
 #if !defined(MBEDTLS_GCM_ALT)
 
-#if defined(MBEDTLS_GCM_LARGETABLE)
+#if defined(MBEDTLS_GCM_LARGE_TABLE)
 #define MBEDTLS_GCM_HTABLE_SIZE 256
 #else
 #define MBEDTLS_GCM_HTABLE_SIZE 16

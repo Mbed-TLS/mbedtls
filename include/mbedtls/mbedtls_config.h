@@ -2801,7 +2801,7 @@
 #define MBEDTLS_GCM_C
 
 /**
- * \def MBEDTLS_GCM_LARGETABLE
+ * \def MBEDTLS_GCM_LARGE_TABLE
  *
  * Enable large pre-computed tables for  Galois/Counter Mode (GCM).
  * Can significantly increase throughput on systems without GCM hardware
@@ -2813,9 +2813,8 @@
  * Module:  library/gcm.c
  *
  * Requires: MBEDTLS_GCM_C
- *
  */
-//#define MBEDTLS_GCM_LARGETABLE
+//#define MBEDTLS_GCM_LARGE_TABLE
 
 /**
  * \def MBEDTLS_HKDF_C

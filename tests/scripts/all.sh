@@ -4942,15 +4942,15 @@ component_test_aes_only_128_bit_keys_have_builtins () {
 }
 
 component_test_gcm_largetable () {
-    msg "build: default config + GCM_LARGETABLE - AESNI_C - AESCE_C"
-    scripts/config.py set MBEDTLS_GCM_LARGETABLE
+    msg "build: default config + GCM_LARGE_TABLE - AESNI_C - AESCE_C"
+    scripts/config.py set MBEDTLS_GCM_LARGE_TABLE
     scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_AESCE_C
 
     make CFLAGS='-O2 -Werror -Wall -Wextra'
 
-    msg "test: default config - GCM_LARGETABLE - AESNI_C - AESCE_C"
+    msg "test: default config - GCM_LARGE_TABLE - AESNI_C - AESCE_C"
     make test
 }
 

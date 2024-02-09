@@ -57,7 +57,7 @@ void mbedtls_gcm_init(mbedtls_gcm_context *ctx)
 
 static inline void gcm_set_acceleration(mbedtls_gcm_context *ctx)
 {
-#if defined(MBEDTLS_GCM_LARGETABLE)
+#if defined(MBEDTLS_GCM_LARGE_TABLE)
     ctx->acceleration = MBEDTLS_GCM_ACC_LARGETABLE;
 #else
     ctx->acceleration = MBEDTLS_GCM_ACC_SMALLTABLE;
@@ -138,7 +138,7 @@ static int gcm_gen_table(mbedtls_gcm_context *ctx)
                 gcm_gen_table_rightshift(ctx->H[i], ctx->H[i*2]);
             }
 
-#if !defined(MBEDTLS_GCM_LARGETABLE)
+#if !defined(MBEDTLS_GCM_LARGE_TABLE)
             /* pack elements of H as 64-bits ints, big-endian */
             for (i = MBEDTLS_GCM_HTABLE_SIZE/2; i > 0; i >>= 1) {
                 MBEDTLS_PUT_UINT64_BE(ctx->H[i][0], &ctx->H[i][0], 0);
@@ -212,7 +212,7 @@ int mbedtls_gcm_setkey(mbedtls_gcm_context *ctx,
     return 0;
 }
 
-#if defined(MBEDTLS_GCM_LARGETABLE)
+#if defined(MBEDTLS_GCM_LARGE_TABLE)
 static const uint16_t last8[256] = {
     0x0000, 0xc201, 0x8403, 0x4602, 0x0807, 0xca06, 0x8c04, 0x4e05,
     0x100e, 0xd20f, 0x940d, 0x560c, 0x1809, 0xda08, 0x9c0a, 0x5e0b,
@@ -360,7 +360,7 @@ static void gcm_mult(mbedtls_gcm_context *ctx, const unsigned char x[16],
             break;
 #endif
 
-#if defined(MBEDTLS_GCM_LARGETABLE)
+#if defined(MBEDTLS_GCM_LARGE_TABLE)
         case MBEDTLS_GCM_ACC_LARGETABLE:
             gcm_mult_largetable(output, x, ctx->H);
             break;

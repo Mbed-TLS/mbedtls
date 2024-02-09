@@ -427,7 +427,7 @@ int test_hooks_failure_detected(void)
     mbedtls_test_mutex_usage_check();
 #endif
 
-    if (mbedtls_test_info.result != MBEDTLS_TEST_RESULT_SUCCESS) {
+    if (mbedtls_test_get_result() != MBEDTLS_TEST_RESULT_SUCCESS) {
         return 1;
     }
     return 0;

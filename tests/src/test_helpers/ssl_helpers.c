@@ -1645,8 +1645,11 @@ int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
     session->start = mbedtls_time(NULL) - 42;
 #endif
     session->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
-    session->endpoint = endpoint_type == MBEDTLS_SSL_IS_CLIENT ?
-                        MBEDTLS_SSL_IS_CLIENT : MBEDTLS_SSL_IS_SERVER;
+
+    TEST_ASSERT(endpoint_type == MBEDTLS_SSL_IS_CLIENT ||
+                endpoint_type == MBEDTLS_SSL_IS_SERVER);
+
+    session->endpoint = endpoint_type;
     session->ciphersuite = 0xabcd;
     session->id_len = sizeof(session->id);
     memset(session->id, 66, session->id_len);
@@ -1739,6 +1742,7 @@ int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
     session->encrypt_then_mac = 1;
 #endif
 
+exit:
     return 0;
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */

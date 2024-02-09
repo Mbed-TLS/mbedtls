@@ -51,7 +51,7 @@ typedef struct {
     uint8_t MBEDTLS_PRIVATE(opad)[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
 } mbedtls_psa_hmac_operation_t;
 
-#define MBEDTLS_PSA_HMAC_OPERATION_INIT { 0, PSA_HASH_OPERATION_INIT, { 0 } }
+#define MBEDTLS_PSA_HMAC_OPERATION_INIT { 0, PSA_HASH_OPERATION_INIT, {} }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
 
 typedef struct {
@@ -67,7 +67,7 @@ typedef struct {
     } MBEDTLS_PRIVATE(ctx);
 } mbedtls_psa_mac_operation_t;
 
-#define MBEDTLS_PSA_MAC_OPERATION_INIT { 0, { 0 } }
+#define MBEDTLS_PSA_MAC_OPERATION_INIT { 0, {} }
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_CCM) || \
@@ -100,7 +100,7 @@ typedef struct {
 
 } mbedtls_psa_aead_operation_t;
 
-#define MBEDTLS_PSA_AEAD_OPERATION_INIT { 0, 0, 0, 0, { 0 } }
+#define MBEDTLS_PSA_AEAD_OPERATION_INIT { 0, 0, 0, 0, {} }
 
 #include "mbedtls/ecdsa.h"
 
@@ -132,9 +132,9 @@ typedef struct {
 #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
     defined(MBEDTLS_ECP_RESTARTABLE)
-#define MBEDTLS_PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { { 0 }, { 0 }, 0, 0, 0, 0, 0, 0 }
+#define MBEDTLS_PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { {}, {}, 0, 0, 0, 0, 0, 0 }
 #else
-#define MBEDTLS_PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { 0 }
+#define MBEDTLS_PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT {}
 #endif
 
 /* Context structure for the Mbed TLS interruptible verify hash
@@ -168,10 +168,10 @@ typedef struct {
 #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
     defined(MBEDTLS_ECP_RESTARTABLE)
-#define MBEDTLS_VERIFY_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { { 0 }, { 0 }, 0, 0, 0, 0, { 0 }, \
-        { 0 } }
+#define MBEDTLS_VERIFY_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { {}, {}, 0, 0, 0, 0, {}, \
+        {} }
 #else
-#define MBEDTLS_VERIFY_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { 0 }
+#define MBEDTLS_VERIFY_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT {}
 #endif
 
 
@@ -209,6 +209,6 @@ typedef struct {
 
 } mbedtls_psa_pake_operation_t;
 
-#define MBEDTLS_PSA_PAKE_OPERATION_INIT { { 0 } }
+#define MBEDTLS_PSA_PAKE_OPERATION_INIT { {} }
 
 #endif /* PSA_CRYPTO_BUILTIN_COMPOSITES_H */

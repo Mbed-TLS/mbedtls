@@ -9,7 +9,7 @@
  */
 
 #include <test/ssl_helpers.h>
-#include "md_psa.h"
+#include "mbedtls/psa_util.h"
 
 #if defined(MBEDTLS_SSL_TLS_C)
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
@@ -840,6 +840,23 @@ int mbedtls_test_ssl_endpoint_init(
         mbedtls_ssl_conf_dtls_cookies(&(ep->conf), NULL, NULL, NULL);
     }
 #endif
+
+#if defined(MBEDTLS_DEBUG_C)
+#if defined(MBEDTLS_SSL_SRV_C)
+    if (endpoint_type == MBEDTLS_SSL_IS_SERVER &&
+        options->srv_log_fun != NULL) {
+        mbedtls_ssl_conf_dbg(&(ep->conf), options->srv_log_fun,
+                             options->srv_log_obj);
+    }
+#endif
+#if defined(MBEDTLS_SSL_CLI_C)
+    if (endpoint_type == MBEDTLS_SSL_IS_CLIENT &&
+        options->cli_log_fun != NULL) {
+        mbedtls_ssl_conf_dbg(&(ep->conf), options->cli_log_fun,
+                             options->cli_log_obj);
+    }
+#endif
+#endif /* MBEDTLS_DEBUG_C */
 
     ret = mbedtls_test_ssl_endpoint_certificate_init(ep, options->pk_alg,
                                                      options->opaque_alg,
@@ -1776,6 +1793,10 @@ int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
     }
 #endif /* MBEDTLS_SSL_CLI_C */
 
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    session->record_size_limit = 2048;
+#endif
+
     return 0;
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
@@ -1973,6 +1994,12 @@ void mbedtls_test_ssl_perform_handshake(
     mbedtls_test_message_socket_init(&server_context);
     mbedtls_test_message_socket_init(&client_context);
 
+#if defined(MBEDTLS_DEBUG_C)
+    if (options->cli_log_fun || options->srv_log_fun) {
+        mbedtls_debug_set_threshold(4);
+    }
+#endif
+
     /* Client side */
     if (options->dtls != 0) {
         TEST_ASSERT(mbedtls_test_ssl_endpoint_init(&client,
@@ -1995,14 +2022,6 @@ void mbedtls_test_ssl_perform_handshake(
     if (strlen(options->cipher) > 0) {
         set_ciphersuite(&client.conf, options->cipher, forced_ciphersuite);
     }
-
-#if defined(MBEDTLS_DEBUG_C)
-    if (options->cli_log_fun) {
-        mbedtls_debug_set_threshold(4);
-        mbedtls_ssl_conf_dbg(&client.conf, options->cli_log_fun,
-                             options->cli_log_obj);
-    }
-#endif
 
     /* Server side */
     if (options->dtls != 0) {
@@ -2067,14 +2086,6 @@ void mbedtls_test_ssl_perform_handshake(
                                               options->legacy_renegotiation);
     }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
-
-#if defined(MBEDTLS_DEBUG_C)
-    if (options->srv_log_fun) {
-        mbedtls_debug_set_threshold(4);
-        mbedtls_ssl_conf_dbg(&server.conf, options->srv_log_fun,
-                             options->srv_log_obj);
-    }
-#endif
 
     TEST_ASSERT(mbedtls_test_mock_socket_connect(&(client.socket),
                                                  &(server.socket),
@@ -2415,4 +2426,40 @@ int mbedtls_test_tweak_tls13_certificate_msg_vector_len(
     return 0;
 }
 #endif /* MBEDTLS_TEST_HOOKS */
+
+/*
+ * Functions for tests based on tickets. Implementations of the
+ * write/parse ticket interfaces as defined by mbedtls_ssl_ticket_write/parse_t.
+ * Basically same implementations as in ticket.c without the encryption. That
+ * way we can tweak easily tickets characteristics to simulate misbehaving
+ * peers.
+ */
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+int mbedtls_test_ticket_write(
+    void *p_ticket, const mbedtls_ssl_session *session,
+    unsigned char *start, const unsigned char *end,
+    size_t *tlen, uint32_t *lifetime)
+{
+    int ret;
+    ((void) p_ticket);
+
+    if ((ret = mbedtls_ssl_session_save(session, start, end - start,
+                                        tlen)) != 0) {
+        return ret;
+    }
+
+    /* Maximum ticket lifetime as defined in RFC 8446 */
+    *lifetime = 7 * 24 * 3600;
+
+    return 0;
+}
+
+int mbedtls_test_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
+                              unsigned char *buf, size_t len)
+{
+    ((void) p_ticket);
+
+    return mbedtls_ssl_session_load(session, buf, len);
+}
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
 #endif /* MBEDTLS_SSL_TLS_C */

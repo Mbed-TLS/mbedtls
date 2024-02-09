@@ -9,7 +9,7 @@
 
 #if defined(MBEDTLS_X509_CREATE_C)
 
-#include "mbedtls/x509.h"
+#include "x509_internal.h"
 #include "mbedtls/asn1write.h"
 #include "mbedtls/error.h"
 #include "mbedtls/oid.h"
@@ -381,6 +381,10 @@ int mbedtls_x509_set_extension(mbedtls_asn1_named_data **head, const char *oid, 
                                int critical, const unsigned char *val, size_t val_len)
 {
     mbedtls_asn1_named_data *cur;
+
+    if (val_len > (SIZE_MAX  - 1)) {
+        return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+    }
 
     if ((cur = mbedtls_asn1_store_named_data(head, oid, oid_len,
                                              NULL, val_len + 1)) == NULL) {

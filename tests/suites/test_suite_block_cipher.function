@@ -92,3 +92,38 @@ exit:
     mbedtls_block_cipher_free(&ctx);
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void block_cipher_psa_dynamic_dispatch(int cipher_type, int pre_psa_ret, int post_psa_engine)
+{
+    mbedtls_block_cipher_context_t ctx;
+    (void) post_psa_engine;
+
+    /* Intentionally no PSA init here! (Will be done later.) */
+
+    mbedtls_block_cipher_init(&ctx);
+
+    /* Before PSA crypto init */
+    TEST_EQUAL(pre_psa_ret, mbedtls_block_cipher_setup(&ctx, cipher_type));
+
+#if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
+    TEST_EQUAL(ctx.engine, MBEDTLS_BLOCK_CIPHER_ENGINE_LEGACY);
+#endif
+
+    mbedtls_block_cipher_free(&ctx);
+
+    /* Now initilize PSA Crypto */
+    BLOCK_CIPHER_PSA_INIT();
+
+    mbedtls_block_cipher_init(&ctx);
+    /* After PSA Crypto init */
+    TEST_EQUAL(0, mbedtls_block_cipher_setup(&ctx, cipher_type));
+#if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
+    TEST_EQUAL(ctx.engine, post_psa_engine);
+#endif
+
+exit:
+    mbedtls_block_cipher_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
+}
+/* END_CASE */

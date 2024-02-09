@@ -26,16 +26,16 @@
  */
 #define MBEDTLS_VERSION_MAJOR  3
 #define MBEDTLS_VERSION_MINOR  5
-#define MBEDTLS_VERSION_PATCH  1
+#define MBEDTLS_VERSION_PATCH  2
 
 /**
  * The single version number has the following structure:
  *    MMNNPP00
  *    Major version | Minor version | Patch version
  */
-#define MBEDTLS_VERSION_NUMBER         0x03050100
-#define MBEDTLS_VERSION_STRING         "3.5.1"
-#define MBEDTLS_VERSION_STRING_FULL    "Mbed TLS 3.5.1"
+#define MBEDTLS_VERSION_NUMBER         0x03050200
+#define MBEDTLS_VERSION_STRING         "3.5.2"
+#define MBEDTLS_VERSION_STRING_FULL    "Mbed TLS 3.5.2"
 
 /* Macros for build-time platform detection */
 
@@ -81,6 +81,14 @@
 /* MSVC ARM64 is at least Armv8.0-A */
 #define MBEDTLS_ARCH_IS_ARMV8_A
 #endif
+#endif
+
+#if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \
+    && !defined(__llvm__) && !defined(__INTEL_COMPILER)
+/* Defined if the compiler really is gcc and not clang, etc */
+#define MBEDTLS_COMPILER_IS_GCC
+#define MBEDTLS_GCC_VERSION \
+    (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #endif
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)

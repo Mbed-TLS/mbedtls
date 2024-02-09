@@ -66,10 +66,12 @@ exit:
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST:MBEDTLS_AES_C */
+/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST:MBEDTLS_CCM_GCM_CAN_AES */
 void mbedtls_ccm_self_test()
 {
+    BLOCK_CIPHER_PSA_INIT();
     TEST_ASSERT(mbedtls_ccm_self_test(1) == 0);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -80,6 +82,7 @@ void mbedtls_ccm_setkey(int cipher_id, int key_size, int result)
     unsigned char key[32];
     int ret;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
 
     memset(key, 0x2A, sizeof(key));
@@ -90,10 +93,11 @@ void mbedtls_ccm_setkey(int cipher_id, int key_size, int result)
 
 exit:
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_AES_C */
+/* BEGIN_CASE depends_on:MBEDTLS_CCM_GCM_CAN_AES */
 void ccm_lengths(int msg_len, int iv_len, int add_len, int tag_len, int res)
 {
     mbedtls_ccm_context ctx;
@@ -105,6 +109,7 @@ void ccm_lengths(int msg_len, int iv_len, int add_len, int tag_len, int res)
     unsigned char tag[18];
     int decrypt_ret;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
 
     TEST_CALLOC_OR_SKIP(add, add_len);
@@ -132,10 +137,11 @@ void ccm_lengths(int msg_len, int iv_len, int add_len, int tag_len, int res)
 exit:
     mbedtls_free(add);
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_AES_C */
+/* BEGIN_CASE depends_on:MBEDTLS_CCM_GCM_CAN_AES */
 void ccm_star_lengths(int msg_len, int iv_len, int add_len, int tag_len,
                       int res)
 {
@@ -148,6 +154,7 @@ void ccm_star_lengths(int msg_len, int iv_len, int add_len, int tag_len,
     unsigned char tag[18];
     int decrypt_ret;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
 
     memset(key, 0, sizeof(key));
@@ -174,6 +181,7 @@ void ccm_star_lengths(int msg_len, int iv_len, int add_len, int tag_len,
 
 exit:
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -198,6 +206,7 @@ void mbedtls_ccm_encrypt_and_tag(int cipher_id, data_t *key,
     /* Prepare tag buffer */
     TEST_CALLOC(tag_buf, expected_tag_len);
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     /* Test with input == output */
@@ -230,6 +239,7 @@ exit:
     mbedtls_ccm_free(&ctx);
     mbedtls_free(io_msg_buf);
     mbedtls_free(tag_buf);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -241,6 +251,7 @@ void mbedtls_ccm_star_no_tag(int cipher_id, int mode, data_t *key,
     uint8_t *output = NULL;
     size_t olen;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
@@ -255,6 +266,7 @@ void mbedtls_ccm_star_no_tag(int cipher_id, int mode, data_t *key,
 exit:
     mbedtls_free(output);
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -277,6 +289,7 @@ void mbedtls_ccm_auth_decrypt(int cipher_id, data_t *key,
         memcpy(io_msg_buf, msg->x, expected_msg_len);
     }
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     /* Test with input == output */
@@ -317,6 +330,7 @@ void mbedtls_ccm_auth_decrypt(int cipher_id, data_t *key,
 exit:
     mbedtls_free(io_msg_buf);
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -364,6 +378,7 @@ void mbedtls_ccm_star_encrypt_and_tag(int cipher_id,
     iv[source_address->len + frame_counter->len] = sec_level;
     iv_len = sizeof(iv);
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id,
                                   key->x, key->len * 8), 0);
@@ -402,6 +417,7 @@ exit:
     mbedtls_ccm_free(&ctx);
     mbedtls_free(io_msg_buf);
     mbedtls_free(tag_buf);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -443,6 +459,7 @@ void mbedtls_ccm_star_auth_decrypt(int cipher_id,
     iv[source_address->len + frame_counter->len] = sec_level;
     iv_len = sizeof(iv);
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
     TEST_ASSERT(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8) == 0);
     /* Test with input == output */
@@ -479,6 +496,7 @@ void mbedtls_ccm_star_auth_decrypt(int cipher_id,
 exit:
     mbedtls_ccm_free(&ctx);
     mbedtls_free(io_msg_buf);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -495,6 +513,7 @@ void mbedtls_ccm_skip_ad(int cipher_id, int mode,
     /* Sanity checks on the test data */
     TEST_EQUAL(msg->len, result->len);
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
@@ -517,6 +536,7 @@ void mbedtls_ccm_skip_ad(int cipher_id, int mode,
 exit:
     mbedtls_free(output);
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -529,6 +549,7 @@ void mbedtls_ccm_skip_update(int cipher_id, int mode,
     mbedtls_ccm_context ctx;
     uint8_t *output = NULL;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
@@ -545,6 +566,7 @@ void mbedtls_ccm_skip_update(int cipher_id, int mode,
 exit:
     mbedtls_free(output);
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -556,6 +578,7 @@ void mbedtls_ccm_overflow_ad(int cipher_id, int mode,
 {
     mbedtls_ccm_context ctx;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
@@ -566,6 +589,7 @@ void mbedtls_ccm_overflow_ad(int cipher_id, int mode,
     TEST_EQUAL(MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_update_ad(&ctx, add->x, add->len));
 exit:
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -577,6 +601,7 @@ void mbedtls_ccm_unexpected_ad(int cipher_id, int mode,
 {
     mbedtls_ccm_context ctx;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
@@ -586,6 +611,7 @@ void mbedtls_ccm_unexpected_ad(int cipher_id, int mode,
     TEST_EQUAL(MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_update_ad(&ctx, add->x, add->len));
 exit:
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -599,6 +625,7 @@ void mbedtls_ccm_unexpected_text(int cipher_id, int mode,
     uint8_t *output = NULL;
     size_t olen;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
@@ -614,6 +641,7 @@ void mbedtls_ccm_unexpected_text(int cipher_id, int mode,
 exit:
     mbedtls_free(output);
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -625,6 +653,7 @@ void mbedtls_ccm_incomplete_ad(int cipher_id, int mode,
     mbedtls_ccm_context ctx;
     uint8_t *output = NULL;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
@@ -639,6 +668,7 @@ void mbedtls_ccm_incomplete_ad(int cipher_id, int mode,
 exit:
     mbedtls_free(output);
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -651,6 +681,7 @@ void mbedtls_ccm_full_ad_and_overflow(int cipher_id, int mode,
 {
     mbedtls_ccm_context ctx;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
@@ -663,6 +694,7 @@ void mbedtls_ccm_full_ad_and_overflow(int cipher_id, int mode,
     TEST_EQUAL(MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_update_ad(&ctx, add->x, 1));
 exit:
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -679,6 +711,7 @@ void mbedtls_ccm_incomplete_ad_and_overflow(int cipher_id, int mode,
     add_second_buffer[0] = add->x[add->len - 1];
     add_second_buffer[1] = 0xAB; // some magic value
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
@@ -691,6 +724,7 @@ void mbedtls_ccm_incomplete_ad_and_overflow(int cipher_id, int mode,
     TEST_EQUAL(MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_update_ad(&ctx, add_second_buffer, 2));
 exit:
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -704,6 +738,7 @@ void mbedtls_ccm_overflow_update(int cipher_id, int mode,
     uint8_t *output = NULL;
     size_t olen;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
@@ -719,6 +754,7 @@ void mbedtls_ccm_overflow_update(int cipher_id, int mode,
 exit:
     mbedtls_free(output);
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -732,6 +768,7 @@ void mbedtls_ccm_incomplete_update(int cipher_id, int mode,
     uint8_t *output = NULL;
     size_t olen;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
@@ -752,6 +789,7 @@ void mbedtls_ccm_incomplete_update(int cipher_id, int mode,
 exit:
     mbedtls_free(output);
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -766,6 +804,7 @@ void mbedtls_ccm_full_update_and_overflow(int cipher_id, int mode,
     uint8_t *output = NULL;
     size_t olen;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
@@ -783,6 +822,7 @@ void mbedtls_ccm_full_update_and_overflow(int cipher_id, int mode,
 exit:
     mbedtls_free(output);
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -801,6 +841,7 @@ void mbedtls_ccm_incomplete_update_overflow(int cipher_id, int mode,
     msg_second_buffer[0] = msg->x[msg->len - 1];
     msg_second_buffer[1] = 0xAB; // some magic value
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
@@ -818,6 +859,7 @@ void mbedtls_ccm_incomplete_update_overflow(int cipher_id, int mode,
 exit:
     mbedtls_free(output);
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */
 
@@ -829,6 +871,7 @@ void mbedtls_ccm_instant_finish(int cipher_id, int mode,
     mbedtls_ccm_context ctx;
     uint8_t *output = NULL;
 
+    BLOCK_CIPHER_PSA_INIT();
     mbedtls_ccm_init(&ctx);
     TEST_EQUAL(mbedtls_ccm_setkey(&ctx, cipher_id, key->x, key->len * 8), 0);
     TEST_EQUAL(0, mbedtls_ccm_starts(&ctx, mode, iv->x, iv->len));
@@ -842,5 +885,6 @@ void mbedtls_ccm_instant_finish(int cipher_id, int mode,
 exit:
     mbedtls_free(output);
     mbedtls_ccm_free(&ctx);
+    BLOCK_CIPHER_PSA_DONE();
 }
 /* END_CASE */

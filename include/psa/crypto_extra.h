@@ -1828,8 +1828,12 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
 /** Returns a suitable initializer for a PAKE operation object of type
  * psa_pake_operation_t.
  */
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_PAKE_OPERATION_INIT { 0 }
+#else
 #define PSA_PAKE_OPERATION_INIT { 0, PSA_ALG_NONE, 0, PSA_PAKE_OPERATION_STAGE_SETUP, \
                                   { 0 }, { { 0 } } }
+#endif
 
 struct psa_pake_cipher_suite_s {
     psa_algorithm_t algorithm;
@@ -1957,6 +1961,9 @@ struct psa_jpake_computation_stage_s {
                                            ((round) == PSA_JPAKE_FIRST ? 2 : 1))
 
 struct psa_pake_operation_s {
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_psa_client_handle_t handle;
+#else
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
      * drivers halfway through the operation is not supported.
@@ -1982,6 +1989,7 @@ struct psa_pake_operation_s {
         psa_driver_pake_context_t MBEDTLS_PRIVATE(ctx);
         psa_crypto_driver_pake_inputs_t MBEDTLS_PRIVATE(inputs);
     } MBEDTLS_PRIVATE(data);
+#endif
 };
 
 static inline struct psa_pake_cipher_suite_s psa_pake_cipher_suite_init(void)

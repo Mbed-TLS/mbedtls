@@ -23,6 +23,10 @@
 #if defined(__SANITIZE_ADDRESS__) /* gcc -fsanitize=address */
 #  define MBEDTLS_TEST_HAVE_ASAN
 #endif
+#if defined(__SANITIZE_THREAD__) /* gcc -fsanitize-thread */
+#  define MBEDTLS_TEST_HAVE_TSAN
+#endif
+
 #if defined(__has_feature)
 #  if __has_feature(address_sanitizer) /* clang -fsanitize=address */
 #    define MBEDTLS_TEST_HAVE_ASAN
@@ -35,10 +39,10 @@
 #  endif
 #endif
 
-#if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_THREADING_PTHREAD) && \
-    defined(MBEDTLS_TEST_HOOKS)
+#include "test/threading_helpers.h"
+
+#if defined(MBEDTLS_TEST_MUTEX_USAGE)
 #include "mbedtls/threading.h"
-#define MBEDTLS_TEST_MUTEX_USAGE
 #endif
 
 #include "mbedtls/platform.h"
@@ -380,24 +384,6 @@ int mbedtls_test_hexcmp(uint8_t *a, uint8_t *b,
 #if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 #include "test/fake_external_rng_for_test.h"
 #endif
-
-#if defined(MBEDTLS_TEST_MUTEX_USAGE)
-/**
- *  Activate the mutex usage verification framework. See threading_helpers.c for
- *  information.
- *  */
-void mbedtls_test_mutex_usage_init(void);
-
-/**
- *  Deactivate the mutex usage verification framework. See threading_helpers.c
- *  for information.
- */
-void mbedtls_test_mutex_usage_end(void);
-
-/** Call this function after executing a test case to check for mutex usage
- * errors. */
-void mbedtls_test_mutex_usage_check(void);
-#endif /* MBEDTLS_TEST_MUTEX_USAGE */
 
 #if defined(MBEDTLS_TEST_HOOKS)
 /**

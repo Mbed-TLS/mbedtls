@@ -2579,6 +2579,8 @@
  *          library/ssl_ciphersuites.c
  *          library/ssl_msg.c
  *          library/ssl_ticket.c (unless MBEDTLS_USE_PSA_CRYPTO is enabled)
+ * Auto-enabled by: MBEDTLS_PSA_CRYPTO_C depending on which ciphers are enabled
+ *                  (see the documentation of that option for details).
  *
  * Uncomment to enable generic cipher wrappers.
  */
@@ -3168,7 +3170,9 @@
  * Requires: either MBEDTLS_CTR_DRBG_C and MBEDTLS_ENTROPY_C,
  *           or MBEDTLS_HMAC_DRBG_C and MBEDTLS_ENTROPY_C,
  *           or MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG.
- *
+ * Auto-enables: MBEDTLS_CIPHER_C if any unauthenticated (ie, non-AEAD) cipher
+ *               is enabled in PSA (unless it's fully accelerated, see
+ *               docs/driver-only-builds.md about that).
  */
 #define MBEDTLS_PSA_CRYPTO_C
 

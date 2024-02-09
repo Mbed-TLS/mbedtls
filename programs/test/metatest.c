@@ -31,6 +31,7 @@
 #include <mbedtls/platform.h>
 #include <mbedtls/platform_util.h>
 #include "test/helpers.h"
+#include "test/threading_helpers.h"
 #include "test/macros.h"
 
 #include <stdio.h>

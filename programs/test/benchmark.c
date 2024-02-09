@@ -507,7 +507,7 @@ typedef struct {
     char md5, ripemd160, sha1, sha256, sha512,
          sha3_224, sha3_256, sha3_384, sha3_512,
          des3, des,
-         aes_cbc, aes_cfb128, aes_cfb8, aes_gcm, aes_ccm, aes_xts, chachapoly,
+         aes_cbc, aes_cfb128, aes_cfb8, aes_ctr, aes_gcm, aes_ccm, aes_xts, chachapoly,
          aes_cmac, des3_cmac,
          aria, camellia, chacha20,
          poly1305,
@@ -571,6 +571,8 @@ int main(int argc, char *argv[])
                 todo.aes_cfb128 = 1;
             } else if (strcmp(argv[i], "aes_cfb8") == 0) {
                 todo.aes_cfb8 = 1;
+            } else if (strcmp(argv[i], "aes_ctr") == 0) {
+                todo.aes_ctr = 1;
             } else if (strcmp(argv[i], "aes_xts") == 0) {
                 todo.aes_xts = 1;
             } else if (strcmp(argv[i], "aes_gcm") == 0) {
@@ -770,6 +772,31 @@ int main(int argc, char *argv[])
 
             TIME_AND_TSC(title,
                          mbedtls_aes_crypt_cfb8(&aes, MBEDTLS_AES_ENCRYPT, BUFSIZE, tmp, buf, buf));
+        }
+        mbedtls_aes_free(&aes);
+    }
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+    if (todo.aes_ctr) {
+        int keysize;
+        mbedtls_aes_context aes;
+
+        uint8_t stream_block[16];
+        size_t nc_off;
+
+        mbedtls_aes_init(&aes);
+        for (keysize = 128; keysize <= 256; keysize += 64) {
+            mbedtls_snprintf(title, sizeof(title), "AES-CTR-%d", keysize);
+
+            memset(buf, 0, sizeof(buf));
+            memset(tmp, 0, sizeof(tmp));
+            memset(stream_block, 0, sizeof(stream_block));
+            nc_off = 0;
+
+            CHECK_AND_CONTINUE(mbedtls_aes_setkey_enc(&aes, tmp, keysize));
+
+            TIME_AND_TSC(title, mbedtls_aes_crypt_ctr(&aes, BUFSIZE, &nc_off, tmp, stream_block,
+                                                      buf, buf));
         }
         mbedtls_aes_free(&aes);
     }

@@ -41,6 +41,33 @@ void pk_parse_keyfile_rsa(char *key_file, char *password, int result)
         TEST_ASSERT(mbedtls_pk_can_do(&ctx, MBEDTLS_PK_RSA));
         rsa = mbedtls_pk_rsa(ctx);
         TEST_EQUAL(mbedtls_rsa_check_privkey(rsa), 0);
+
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(&ctx,
+                                                 PSA_KEY_USAGE_SIGN_HASH,
+                                                 &attributes), 0);
+        psa_reset_key_attributes(&attributes);
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(&ctx,
+                                                 PSA_KEY_USAGE_SIGN_MESSAGE,
+                                                 &attributes), 0);
+        psa_reset_key_attributes(&attributes);
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(&ctx,
+                                                 PSA_KEY_USAGE_DECRYPT,
+                                                 &attributes), 0);
+        psa_reset_key_attributes(&attributes);
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(&ctx,
+                                                 PSA_KEY_USAGE_VERIFY_HASH,
+                                                 &attributes), 0);
+        psa_reset_key_attributes(&attributes);
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(&ctx,
+                                                 PSA_KEY_USAGE_VERIFY_MESSAGE,
+                                                 &attributes), 0);
+        psa_reset_key_attributes(&attributes);
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(&ctx,
+                                                 PSA_KEY_USAGE_ENCRYPT,
+                                                 &attributes), 0);
+#endif
     }
 
 exit:
@@ -68,6 +95,21 @@ void pk_parse_public_keyfile_rsa(char *key_file, int result)
         TEST_ASSERT(mbedtls_pk_can_do(&ctx, MBEDTLS_PK_RSA));
         rsa = mbedtls_pk_rsa(ctx);
         TEST_EQUAL(mbedtls_rsa_check_pubkey(rsa), 0);
+
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(&ctx,
+                                                 PSA_KEY_USAGE_ENCRYPT,
+                                                 &attributes), 0);
+        psa_reset_key_attributes(&attributes);
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(&ctx,
+                                                 PSA_KEY_USAGE_VERIFY_HASH,
+                                                 &attributes), 0);
+        psa_reset_key_attributes(&attributes);
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(&ctx,
+                                                 PSA_KEY_USAGE_VERIFY_MESSAGE,
+                                                 &attributes), 0);
+#endif
     }
 
 exit:
@@ -100,6 +142,17 @@ void pk_parse_public_keyfile_ec(char *key_file, int result)
         eckey = mbedtls_pk_ec_ro(ctx);
         TEST_EQUAL(mbedtls_ecp_check_pubkey(&eckey->grp, &eckey->Q), 0);
 #endif
+
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(&ctx,
+                                                 PSA_KEY_USAGE_VERIFY_HASH,
+                                                 &attributes), 0);
+        psa_reset_key_attributes(&attributes);
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(&ctx,
+                                                 PSA_KEY_USAGE_VERIFY_MESSAGE,
+                                                 &attributes), 0);
+#endif
     }
 
 exit:
@@ -124,11 +177,34 @@ void pk_parse_keyfile_ec(char *key_file, char *password, int result)
 
     if (res == 0) {
         TEST_ASSERT(mbedtls_pk_can_do(&ctx, MBEDTLS_PK_ECKEY));
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+        /* PSA keys are already checked on import so nothing to do here. */
+#else
         const mbedtls_ecp_keypair *eckey = mbedtls_pk_ec_ro(ctx);
         TEST_EQUAL(mbedtls_ecp_check_privkey(&eckey->grp, &eckey->d), 0);
-#else
-        /* PSA keys are already checked on import so nothing to do here. */
+#endif
+
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(&ctx,
+                                                 PSA_KEY_USAGE_SIGN_HASH,
+                                                 &attributes), 0);
+        psa_reset_key_attributes(&attributes);
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(&ctx,
+                                                 PSA_KEY_USAGE_SIGN_MESSAGE,
+                                                 &attributes), 0);
+        psa_reset_key_attributes(&attributes);
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(&ctx,
+                                                 PSA_KEY_USAGE_DERIVE,
+                                                 &attributes), 0);
+        psa_reset_key_attributes(&attributes);
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(&ctx,
+                                                 PSA_KEY_USAGE_VERIFY_HASH,
+                                                 &attributes), 0);
+        psa_reset_key_attributes(&attributes);
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(&ctx,
+                                                 PSA_KEY_USAGE_VERIFY_MESSAGE,
+                                                 &attributes), 0);
 #endif
     }
 

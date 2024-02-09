@@ -3270,3 +3270,15 @@ ssl_ecjpake_set_password:1
 
 Test Elliptic curves' info parsing
 elliptic_curve_get_properties
+
+TLS 1.3 resume session with ticket
+tls13_resume_session_with_ticket
+
+TLS 1.3 early data, reference
+tls13_early_data:TEST_EARLY_DATA_REFERENCE
+
+TLS 1.3 early data, deprotect and discard
+tls13_early_data:TEST_EARLY_DATA_DEPROTECT_AND_DISCARD
+
+TLS 1.3 early data, discard after HRR
+tls13_early_data:TEST_EARLY_DATA_DISCARD_AFTER_HRR

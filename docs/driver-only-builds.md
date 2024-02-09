@@ -16,6 +16,7 @@ driver.
 
 In order to have some mechanism provided only by a driver, you'll want
 the following compile-time configuration options enabled:
+
 - `MBEDTLS_PSA_CRYPTO_C` (enabled by default) - this enables PSA Crypto.
 - `MBEDTLS_USE_PSA_CRYPTO` (disabled by default) - this makes PK, X.509 and
   TLS use PSA Crypto. You need to enable this if you're using PK, X.509 or TLS
@@ -28,6 +29,7 @@ mechanism through the PSA API in Mbed
 TLS](proposed/psa-conditional-inclusion-c.md) for details.
 
 In addition, for each mechanism you want provided only by your driver:
+
 - Define the corresponding `PSA_WANT` macro in `psa/crypto_config.h` - this
   means the algorithm will be available in the PSA Crypto API.
 - Define the corresponding `MBEDTLS_PSA_ACCEL` in your build. This could be
@@ -52,9 +54,12 @@ Mechanisms covered
 ------------------
 
 For now, only the following (families of) mechanisms are supported:
+
 - hashes: SHA-3, SHA-2, SHA-1, MD5, etc.
 - elliptic-curve cryptography (ECC): ECDH, ECDSA, EC J-PAKE, ECC key types.
 - finite-field Diffie-Hellman: FFDH algorithm, DH key types.
+- RSA: PKCS#1 v1.5 and v2.1 signature and encryption algorithms, RSA key types
+  (for now, only crypto, no X.509 or TLS support).
 - AEADs:
   - GCM and CCM with AES, ARIA and Camellia key types
   - ChachaPoly with ChaCha20 Key type
@@ -71,15 +76,13 @@ work in the same way as if the mechanisms where built-in, except as documented
 in the "Limitations" sub-sections of the sections dedicated to each family
 below.
 
-Currently (mid-2023) we don't have plans to extend this to RSA. If
-you're interested in driver-only support for RSA, please let us know.
-
 Hashes
 ------
 
 It is possible to have all hash operations provided only by a driver.
 
 More precisely:
+
 - you can enable `PSA_WANT_ALG_SHA_256` without `MBEDTLS_SHA256_C`, provided
   you have `MBEDTLS_PSA_ACCEL_ALG_SHA_256` enabled;
 - and similarly for all supported hash algorithms: `MD5`, `RIPEMD160`,
@@ -98,6 +101,7 @@ considerations](#general-considerations) above.
 If you want to check at compile-time whether a certain hash algorithm is
 available in the present build of Mbed TLS, regardless of whether it's
 provided by a driver or built-in, you should use the following macros:
+
 - for code that uses only the PSA Crypto API: `PSA_WANT_ALG_xxx` from
   `psa/crypto.h`;
 - for code that uses non-PSA crypto APIs: `MBEDTLS_MD_CAN_xxx` from
@@ -107,10 +111,12 @@ Elliptic-curve cryptography (ECC)
 ---------------------------------
 
 It is possible to have most ECC operations provided only by a driver:
+
 - the ECDH, ECDSA and EC J-PAKE algorithms;
 - key import, export, and random generation.
 
 More precisely, if:
+
 - you have driver support for ECC public and using private keys (that is,
 `MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY` and
 `MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_BASIC` are enabled), and
@@ -119,6 +125,7 @@ More precisely, if:
 `MBEDTLS_PSA_ACCEL_ECC_xxx` macros is enabled as well);
 
 then you can:
+
 - enable `PSA_WANT_ALG_ECDH` without `MBEDTLS_ECDH_C`, provided
   `MBEDTLS_PSA_ACCEL_ALG_ECDH` is enabled
 - enable `PSA_WANT_ALG_ECDSA` without `MBEDTLS_ECDSA_C`, provided
@@ -127,6 +134,7 @@ then you can:
   `MBEDTLS_PSA_ACCEL_ALG_JPAKE` is enabled.
 
 In addition, if:
+
 - none of `MBEDTLS_ECDH_C`, `MBEDTLS_ECDSA_C`, `MBEDTLS_ECJPAKE_C` are enabled
   (see conditions above), and
 - you have driver support for all enabled ECC key pair operations - that is,
@@ -138,9 +146,11 @@ then you can also disable `MBEDTLS_ECP_C`. However, a small subset of it might
 still be included in the build, see limitations sub-section below.
 
 In addition, if:
-- `MBEDTLS_ECP_C` is fully removed (see limitation sub-section below), and
-- support for RSA key types and algorithms is fully disabled, and
-- support for DH key types and the FFDH algorithm is either disabled, or
+
+- `MBEDTLS_ECP_C` is fully removed (see limitation sub-section below),
+- and support for RSA key types and algorithms is either fully disabled or
+  fully provided by a driver,
+- and support for DH key types and the FFDH algorithm is either disabled or
   fully provided by a driver,
 
 then you can also disable `MBEDTLS_BIGNUM_C`.
@@ -148,6 +158,7 @@ then you can also disable `MBEDTLS_BIGNUM_C`.
 In such builds, all crypto operations via the PSA Crypto API will work as
 usual, as well as the PK, X.509 and TLS modules if `MBEDTLS_USE_PSA_CRYPTO` is
 enabled, with the following exceptions:
+
 - direct calls to APIs from the disabled modules are not possible;
 - PK, X.509 and TLS will not support restartable ECC operations (see
   limitation sub-section below).
@@ -155,6 +166,7 @@ enabled, with the following exceptions:
 If you want to check at compile-time whether a certain curve is available in
 the present build of Mbed TLS, regardless of whether ECC is provided by a
 driver or built-in, you should use the following macros:
+
 - for code that uses only the PSA Crypto API: `PSA_WANT_ECC_xxx` from
   `psa/crypto.h`;
 - for code that may also use non-PSA crypto APIs: `MBEDTLS_ECP_HAVE_xxx` from
@@ -170,6 +182,7 @@ automatically defined when enabling `MBEDTLS_PSA_P256M_DRIVER_ENABLED`.
 
 A limited subset of `ecp.c` will still be automatically re-enabled if any of
 the following is enabled:
+
 - `MBEDTLS_PK_PARSE_EC_COMPRESSED` - support for parsing ECC keys where the
   public part is in compressed format;
 - `MBEDTLS_PK_PARSE_EC_EXTENDED` - support for parsing ECC keys where the
@@ -243,12 +256,37 @@ The same holds for the associated algorithm:
 `[PSA_WANT|MBEDTLS_PSA_ACCEL]_ALG_FFDH` allow builds accelerating FFDH and
 removing builtin support (i.e. `MBEDTLS_DHM_C`).
 
+RSA
+---
+
+It is possible for all RSA operations to be provided only by a driver.
+
+More precisely, if:
+
+- all the RSA algorithms that are enabled (`PSA_WANT_ALG_RSA_*`) are also
+  accelerated (`MBEDTLS_PSA_ACCEL_ALG_RSA_*`),
+- and all the RSA key types that are enabled (`PSA_WANT_KEY_TYPE_RSA_*`) are
+  also accelerated (`MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_*`),
+
+then you can disable `MBEDTLS_RSA_C`, `MBEDTLS_PKCS1_V15` and
+`MBEDTLS_PKCS1_V21`, and RSA will still work in PSA Crypto.
+
+### Limitations on RSA acceleration
+
+Unlike other mechanisms, for now in configurations with driver-only RSA, only
+PSA Crypto works. In particular, PK, X.509 and TLS will _not_ work with
+driver-only RSA even if `MBEDTLS_USE_PSA_CRYPTO` is enabled.
+
+Currently (early 2024) we don't have plans to extend this support. If you're
+interested in wider driver-only support for RSA, please let us know.
+
 Ciphers (unauthenticated and AEAD)
 ----------------------------------
 
 It is possible to have all ciphers and AEAD operations provided only by a
 driver. More precisely, for each desired combination of key type and
 algorithm/mode you can:
+
 - Enable desired PSA key type(s):
   - `PSA_WANT_KEY_TYPE_AES`,
   - `PSA_WANT_KEY_TYPE_ARIA`,
@@ -305,6 +343,7 @@ some non-PSA APIs will be absent or have reduced functionality, see
 Some legacy modules can't take advantage of PSA drivers yet, and will either
 need to be disabled, or have reduced features when the built-in implementations
 of some ciphers are removed:
+
 - `MBEDTLS_NIST_KW_C` needs built-in AES: it must be disabled when
   `MBEDTLS_AES_C` is disabled.
 - `MBEDTLS_CMAC_C` needs built-in AES/DES: it must be disabled when
@@ -329,6 +368,7 @@ restrictions, see [Disabling `MBEDTLS_CIPHER_C`](#disabling-mbedtls_cipher_c).
 
 Note that the relationship between legacy (i.e. `MBEDTLS_xxx_C`) and PSA
 (i.e. `PSA_WANT_xxx`) symbols is not always 1:1. For example:
+
 - ECB mode is always enabled in the legacy configuration for each key type that
   allows it (AES, ARIA, Camellia, DES), whereas it must be explicitly enabled
   in PSA with `PSA_WANT_ALG_ECB_NO_PADDING`.
@@ -349,9 +389,12 @@ from PSA acceleration of the underlying block cipher by enabling support for
 ECB mode (`PSA_WANT_ALG_ECB_NO_PADDING` + `MBEDTLS_PSA_ACCEL_ALG_ECB_NO_PADDING`)
 together with desired key type(s) (`PSA_WANT_KEY_TYPE_[AES|ARIA|CAMELLIA]` +
 `MBEDTLS_PSA_ACCEL_KEY_TYPE_[AES|ARIA|CAMELLIA]`).
+
 In such configurations it is possible to:
+
 - Use CCM and GCM via the PSA Crypto APIs.
-- Use CCM and GCM via legacy functions (`mbedtls_[ccm|gcm]_xxx()`).
+- Use CCM and GCM via legacy functions `mbedtls_[ccm|gcm]_xxx()` (but not the
+  legacy functions `mbedtls_cipher_xxx()`).
 - Disable legacy key types (`MBEDTLS_[AES|ARIA|CAMELLIA]_C`) if there is no
   other dependency requiring them.
 
@@ -362,6 +405,7 @@ algorithm) in order to work with a driver.
 
 The legacy CTR-DRBG module (enabled by `MBEDTLS_CTR_DRBG_C`) can also benefit
 from PSA acceleration if both of the following conditions are met:
+
 - The legacy AES module (`MBEDTLS_AES_C`) is not enabled and
 - AES is supported on the PSA side together with ECB mode, i.e.
   `PSA_WANT_KEY_TYPE_AES` + `PSA_WANT_ALG_ECB_NO_PADDING`.
@@ -370,6 +414,7 @@ from PSA acceleration if both of the following conditions are met:
 
 It is possible to save code size by disabling MBEDTLS_CIPHER_C when all of the 
 following conditions are met:
+
 - The application is not using the `mbedtls_cipher_` API.
 - In PSA, all unauthenticated (that is, non-AEAD) ciphers are either disabled or
   fully accelerated (that is, all compatible key types are accelerated too).
@@ -379,6 +424,7 @@ following conditions are met:
   a driver.)
 
 In such a build, everything will work as usual except for the following:
+
 - Encryption/decryption functions from the PKCS5 and PKCS12 module will not be
   available (only key derivation functions).
 - Parsing of PKCS5- or PKCS12-encrypted keys in PK parse will fail.

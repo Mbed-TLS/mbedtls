@@ -1612,6 +1612,7 @@ int main(int argc, char *argv[])
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     int tls13_early_data_enabled = MBEDTLS_SSL_EARLY_DATA_DISABLED;
 #endif
+
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_init(alloc_buf, sizeof(alloc_buf));
 #if defined(MBEDTLS_MEMORY_DEBUG)
@@ -3450,6 +3451,19 @@ handshake:
     fflush(stdout);
 
     while ((ret = mbedtls_ssl_handshake(&ssl)) != 0) {
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        if (ret == MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA) {
+            memset(buf, 0, opt.buffer_size);
+            ret = mbedtls_ssl_read_early_data(&ssl, buf, opt.buffer_size);
+            if (ret > 0) {
+                buf[ret] = '\0';
+                mbedtls_printf(" %d early data bytes read\n\n%s\n",
+                               ret, (char *) buf);
+            }
+            continue;
+        }
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if (ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS &&
             ssl_async_keys.inject_error == SSL_ASYNC_INJECT_ERROR_CANCEL) {
@@ -3521,7 +3535,7 @@ handshake:
         mbedtls_printf("    [ Record expansion is unknown ]\n");
     }
 
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH) || defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
     mbedtls_printf("    [ Maximum incoming record payload length is %u ]\n",
                    (unsigned int) mbedtls_ssl_get_max_in_record_payload(&ssl));
     mbedtls_printf("    [ Maximum outgoing record payload length is %u ]\n",

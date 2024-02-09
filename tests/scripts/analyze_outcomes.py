@@ -150,7 +150,7 @@ def analyze_driver_vs_reference(results: Results, outcomes: Outcomes,
         # but issue an error if they're not (means we have a bad entry).
         ignored = False
         if full_test_suite in ignored_tests:
-            for str_or_re in ignored_tests[test_suite]:
+            for str_or_re in ignored_tests[full_test_suite]:
                 if name_matches_pattern(test_string, str_or_re):
                     ignored = True
 
@@ -240,16 +240,16 @@ KNOWN_TASKS = {
             }
         }
     },
-    'analyze_driver_vs_reference_cipher_aead': {
+    'analyze_driver_vs_reference_cipher_aead_cmac': {
         'test_function': do_analyze_driver_vs_reference,
         'args': {
-            'component_ref': 'test_psa_crypto_config_reference_cipher_aead',
-            'component_driver': 'test_psa_crypto_config_accel_cipher_aead',
+            'component_ref': 'test_psa_crypto_config_reference_cipher_aead_cmac',
+            'component_driver': 'test_psa_crypto_config_accel_cipher_aead_cmac',
             # Modules replaced by drivers.
             'ignored_suites': [
                 # low-level (block/stream) cipher modules
                 'aes', 'aria', 'camellia', 'des', 'chacha20',
-                # AEAD modes
+                # AEAD modes and CMAC
                 'ccm', 'chachapoly', 'cmac', 'gcm',
                 # The Cipher abstraction layer
                 'cipher',
@@ -325,6 +325,7 @@ KNOWN_TASKS = {
                 # is required.
                 'test_suite_ecp': [
                     re.compile(r'ECP check public-private .*'),
+                    re.compile(r'ECP calculate public: .*'),
                     re.compile(r'ECP gen keypair .*'),
                     re.compile(r'ECP point muladd .*'),
                     re.compile(r'ECP point multiplication .*'),
@@ -530,6 +531,65 @@ KNOWN_TASKS = {
                 'test_suite_constant_time': [
                     re.compile(r'mbedtls_ct_zeroize_if .*'),
                     re.compile(r'mbedtls_ct_memmove_left .*')
+                ],
+            }
+        }
+    },
+    'analyze_block_cipher_dispatch': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_full_block_cipher_legacy_dispatch',
+            'component_driver': 'test_full_block_cipher_psa_dispatch',
+            'ignored_suites': [
+                # Skipped in the accelerated component
+                'aes', 'aria', 'camellia',
+                # These require AES_C, ARIA_C or CAMELLIA_C to be enabled in
+                # order for the cipher module (actually cipher_wrapper) to work
+                # properly. However these symbols are disabled in the accelerated
+                # component so we ignore them.
+                'cipher.ccm', 'cipher.gcm', 'cipher.aes', 'cipher.aria',
+                'cipher.camellia',
+            ],
+            'ignored_tests': {
+                'test_suite_cmac': [
+                    # Following tests require AES_C/ARIA_C/CAMELLIA_C to be enabled,
+                    # but these are not available in the accelerated component.
+                    'CMAC null arguments',
+                    re.compile('CMAC.* (AES|ARIA|Camellia).*'),
+                ],
+                'test_suite_cipher.padding': [
+                    # Following tests require AES_C/CAMELLIA_C to be enabled,
+                    # but these are not available in the accelerated component.
+                    re.compile('Set( non-existent)? padding with (AES|CAMELLIA).*'),
+                ],
+                'test_suite_pkparse': [
+                    # PEM (called by pkparse) requires AES_C in order to decrypt
+                    # the key, but this is not available in the accelerated
+                    # component.
+                    re.compile('Parse RSA Key.*(password|AES-).*'),
+                ],
+                'test_suite_pem': [
+                    # Following tests require AES_C, but this is diabled in the
+                    # accelerated component.
+                    'PEM read (AES-128-CBC + invalid iv)',
+                    'PEM read (malformed PEM AES-128-CBC)',
+                    'PEM read (unknown encryption algorithm)',
+                ],
+                'test_suite_error': [
+                    # Following tests depend on AES_C but are not about them
+                    # really, just need to know some error code is there.
+                    'Single low error',
+                    'Low and high error',
+                ],
+                'test_suite_version': [
+                    # Similar to test_suite_error above.
+                    'Check for MBEDTLS_AES_C when already present',
+                ],
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
                 ],
             }
         }

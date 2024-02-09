@@ -20,7 +20,7 @@
 #include "ssl_debug_helpers.h"
 #include "ssl_misc.h"
 
-#include "mbedtls/debug.h"
+#include "debug_internal.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/version.h"
@@ -29,6 +29,7 @@
 #include <string.h>
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "mbedtls/psa_util.h"
 #include "md_psa.h"
 #include "psa_util_internal.h"
 #include "psa/crypto.h"
@@ -630,7 +631,7 @@ static const char *extension_name_table[] = {
     [MBEDTLS_SSL_EXT_ID_RECORD_SIZE_LIMIT] = "record_size_limit"
 };
 
-static unsigned int extension_type_table[] = {
+static const unsigned int extension_type_table[] = {
     [MBEDTLS_SSL_EXT_ID_UNRECOGNIZED] = 0xff,
     [MBEDTLS_SSL_EXT_ID_SERVERNAME] = MBEDTLS_TLS_EXT_SERVERNAME,
     [MBEDTLS_SSL_EXT_ID_MAX_FRAGMENT_LENGTH] = MBEDTLS_TLS_EXT_MAX_FRAGMENT_LENGTH,
@@ -1097,6 +1098,15 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_ALLOC_FAILED;
     }
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+#if defined(MBEDTLS_SSL_CLI_C)
+    ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT;
+#endif
+#if defined(MBEDTLS_SSL_SRV_C)
+    ssl->discard_early_data_record = MBEDTLS_SSL_EARLY_DATA_NO_DISCARD;
+#endif
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
     /* Initialize structures */
     mbedtls_ssl_session_init(ssl->session_negotiate);
     ssl_handshake_params_init(ssl->handshake);
@@ -1342,7 +1352,7 @@ static int ssl_conf_check(const mbedtls_ssl_context *ssl)
      * bad config.
      *
      */
-    if (mbedtls_ssl_conf_tls13_ephemeral_enabled(
+    if (mbedtls_ssl_conf_tls13_is_ephemeral_enabled(
             (mbedtls_ssl_context *) ssl)                            &&
         ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT                &&
         ssl->conf->max_tls_version == MBEDTLS_SSL_VERSION_TLS1_3    &&
@@ -2455,6 +2465,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
  *       uint8 ticket_flags;
  *       opaque resumption_key<0..255>;
  *       uint32 max_early_data_size;
+ *       uint16 record_size_limit;
  *       select ( endpoint ) {
  *            case client: ClientOnlyData;
  *            case server: uint64 ticket_creation_time;
@@ -2490,6 +2501,9 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     needed += 4;                            /* max_early_data_size */
 #endif
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    needed += 2;                            /* record_size_limit */
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
 #if defined(MBEDTLS_HAVE_TIME)
     needed += 8; /* ticket_creation_time or ticket_reception_time */
@@ -2534,6 +2548,10 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
     MBEDTLS_PUT_UINT32_BE(session->max_early_data_size, p, 0);
     p += 4;
 #endif
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    MBEDTLS_PUT_UINT16_BE(session->record_size_limit, p, 0);
+    p += 2;
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
     if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
@@ -2610,6 +2628,13 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
     session->max_early_data_size = MBEDTLS_GET_UINT32_BE(p, 0);
     p += 4;
 #endif
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    if (end - p < 2) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+    session->record_size_limit = MBEDTLS_GET_UINT16_BE(p, 0);
+    p += 2;
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
     if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
@@ -3372,6 +3397,31 @@ const char *mbedtls_ssl_get_version(const mbedtls_ssl_context *ssl)
     }
 }
 
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+
+size_t mbedtls_ssl_get_output_record_size_limit(const mbedtls_ssl_context *ssl)
+{
+    const size_t max_len = MBEDTLS_SSL_OUT_CONTENT_LEN;
+    size_t record_size_limit = max_len;
+
+    if (ssl->session != NULL &&
+        ssl->session->record_size_limit >= MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN &&
+        ssl->session->record_size_limit < max_len) {
+        record_size_limit = ssl->session->record_size_limit;
+    }
+
+    // TODO: this is currently untested
+    /* During a handshake, use the value being negotiated */
+    if (ssl->session_negotiate != NULL &&
+        ssl->session_negotiate->record_size_limit >= MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN &&
+        ssl->session_negotiate->record_size_limit < max_len) {
+        record_size_limit = ssl->session_negotiate->record_size_limit;
+    }
+
+    return record_size_limit;
+}
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
+
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 size_t mbedtls_ssl_get_input_max_frag_len(const mbedtls_ssl_context *ssl)
 {
@@ -3458,6 +3508,7 @@ int mbedtls_ssl_get_max_out_record_payload(const mbedtls_ssl_context *ssl)
     size_t max_len = MBEDTLS_SSL_OUT_CONTENT_LEN;
 
 #if !defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH) && \
+    !defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT) && \
     !defined(MBEDTLS_SSL_PROTO_DTLS)
     (void) ssl;
 #endif
@@ -3469,6 +3520,30 @@ int mbedtls_ssl_get_max_out_record_payload(const mbedtls_ssl_context *ssl)
         max_len = mfl;
     }
 #endif
+
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    const size_t record_size_limit = mbedtls_ssl_get_output_record_size_limit(ssl);
+
+    if (max_len > record_size_limit) {
+        max_len = record_size_limit;
+    }
+#endif
+
+    if (ssl->transform_out != NULL &&
+        ssl->transform_out->tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
+        /*
+         * In TLS 1.3 case, when records are protected, `max_len` as computed
+         * above is the maximum length of the TLSInnerPlaintext structure that
+         * along the plaintext payload contains the inner content type (one byte)
+         * and some zero padding. Given the algorithm used for padding
+         * in mbedtls_ssl_encrypt_buf(), compute the maximum length for
+         * the plaintext payload. Round down to a multiple of
+         * MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY and
+         * subtract 1.
+         */
+        max_len = ((max_len / MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY) *
+                   MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY) - 1;
+    }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if (mbedtls_ssl_get_current_mtu(ssl) != 0) {
@@ -3492,7 +3567,8 @@ int mbedtls_ssl_get_max_out_record_payload(const mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 #if !defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH) &&        \
-    !defined(MBEDTLS_SSL_PROTO_DTLS)
+    !defined(MBEDTLS_SSL_PROTO_DTLS) &&                 \
+    !defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
     ((void) ssl);
 #endif
 
@@ -3635,7 +3711,7 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
          (SSL_SERIALIZED_SESSION_CONFIG_ETM << SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT) | \
          (SSL_SERIALIZED_SESSION_CONFIG_TICKET << SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT)))
 
-static unsigned char ssl_serialized_session_header[] = {
+static const unsigned char ssl_serialized_session_header[] = {
     MBEDTLS_VERSION_MAJOR,
     MBEDTLS_VERSION_MINOR,
     MBEDTLS_VERSION_PATCH,
@@ -4360,7 +4436,7 @@ void mbedtls_ssl_session_free(mbedtls_ssl_session *session)
          (SSL_SERIALIZED_CONTEXT_CONFIG_ALPN << SSL_SERIALIZED_CONTEXT_CONFIG_ALPN_BIT) | \
          0u))
 
-static unsigned char ssl_serialized_context_header[] = {
+static const unsigned char ssl_serialized_context_header[] = {
     MBEDTLS_VERSION_MAJOR,
     MBEDTLS_VERSION_MINOR,
     MBEDTLS_VERSION_PATCH,
@@ -4978,7 +5054,7 @@ void mbedtls_ssl_config_init(mbedtls_ssl_config *conf)
  * See the documentation of mbedtls_ssl_conf_curves() for what we promise
  * about this list.
  */
-static uint16_t ssl_preset_default_groups[] = {
+static const uint16_t ssl_preset_default_groups[] = {
 #if defined(MBEDTLS_ECP_HAVE_CURVE25519)
     MBEDTLS_SSL_IANA_TLS_GROUP_X25519,
 #endif
@@ -5029,7 +5105,7 @@ static const int ssl_preset_suiteb_ciphersuites[] = {
  *   - ssl_tls12_preset* is for TLS 1.2 use only.
  *   - ssl_preset_* is for TLS 1.3 only or hybrid TLS 1.3/1.2 handshakes.
  */
-static uint16_t ssl_preset_default_sig_algs[] = {
+static const uint16_t ssl_preset_default_sig_algs[] = {
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED) && \
     defined(MBEDTLS_MD_CAN_SHA256) && \
@@ -5052,23 +5128,17 @@ static uint16_t ssl_preset_default_sig_algs[] = {
     // == MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA512)
 #endif
 
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && \
-    defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_MD_CAN_SHA512)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512,
-#endif \
-    /* MBEDTLS_X509_RSASSA_PSS_SUPPORT && MBEDTLS_MD_CAN_SHA512 */
+#endif
 
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && \
-    defined(MBEDTLS_MD_CAN_SHA384)
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_MD_CAN_SHA384)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384,
-#endif \
-    /* MBEDTLS_X509_RSASSA_PSS_SUPPORT && MBEDTLS_MD_CAN_SHA384 */
+#endif
 
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && \
-    defined(MBEDTLS_MD_CAN_SHA256)
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_MD_CAN_SHA256)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
-#endif \
-    /* MBEDTLS_X509_RSASSA_PSS_SUPPORT && MBEDTLS_MD_CAN_SHA256 */
+#endif
 
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_MD_CAN_SHA512)
     MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512,
@@ -5088,44 +5158,49 @@ static uint16_t ssl_preset_default_sig_algs[] = {
 /* NOTICE: see above */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 static uint16_t ssl_tls12_preset_default_sig_algs[] = {
+
 #if defined(MBEDTLS_MD_CAN_SHA512)
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA512),
 #endif
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512,
-#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+#endif
 #if defined(MBEDTLS_RSA_C)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA512),
 #endif
-#endif /* MBEDTLS_MD_CAN_SHA512*/
+#endif /* MBEDTLS_MD_CAN_SHA512 */
+
 #if defined(MBEDTLS_MD_CAN_SHA384)
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA384),
 #endif
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384,
-#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+#endif
 #if defined(MBEDTLS_RSA_C)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA384),
 #endif
-#endif /* MBEDTLS_MD_CAN_SHA384*/
+#endif /* MBEDTLS_MD_CAN_SHA384 */
+
 #if defined(MBEDTLS_MD_CAN_SHA256)
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA256),
 #endif
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
-#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+#endif
 #if defined(MBEDTLS_RSA_C)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA256),
 #endif
-#endif /* MBEDTLS_MD_CAN_SHA256*/
+#endif /* MBEDTLS_MD_CAN_SHA256 */
+
     MBEDTLS_TLS_SIG_NONE
 };
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
 /* NOTICE: see above */
-static uint16_t ssl_preset_suiteb_sig_algs[] = {
+static const uint16_t ssl_preset_suiteb_sig_algs[] = {
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED) && \
     defined(MBEDTLS_MD_CAN_SHA256) && \
@@ -5141,45 +5216,32 @@ static uint16_t ssl_preset_suiteb_sig_algs[] = {
     // == MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA384)
 #endif
 
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && \
-    defined(MBEDTLS_MD_CAN_SHA256)
-    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
-#endif \
-    /* MBEDTLS_X509_RSASSA_PSS_SUPPORT && MBEDTLS_MD_CAN_SHA256*/
-
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_MD_CAN_SHA256)
-    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256,
-#endif /* MBEDTLS_RSA_C && MBEDTLS_MD_CAN_SHA256*/
-
     MBEDTLS_TLS_SIG_NONE
 };
 
 /* NOTICE: see above */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 static uint16_t ssl_tls12_preset_suiteb_sig_algs[] = {
+
 #if defined(MBEDTLS_MD_CAN_SHA256)
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA256),
 #endif
-#if defined(MBEDTLS_RSA_C)
-    MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA256),
-#endif
-#endif /* MBEDTLS_MD_CAN_SHA256*/
+#endif /* MBEDTLS_MD_CAN_SHA256 */
+
 #if defined(MBEDTLS_MD_CAN_SHA384)
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA384),
 #endif
-#if defined(MBEDTLS_RSA_C)
-    MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA384),
-#endif
-#endif /* MBEDTLS_MD_CAN_SHA256*/
+#endif /* MBEDTLS_MD_CAN_SHA384 */
+
     MBEDTLS_TLS_SIG_NONE
 };
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-static uint16_t ssl_preset_suiteb_groups[] = {
+static const uint16_t ssl_preset_suiteb_groups[] = {
 #if defined(MBEDTLS_ECP_HAVE_SECP256R1)
     MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
 #endif
@@ -5193,7 +5255,7 @@ static uint16_t ssl_preset_suiteb_groups[] = {
 /* Function for checking `ssl_preset_*_sig_algs` and `ssl_tls12_preset_*_sig_algs`
  * to make sure there are no duplicated signature algorithm entries. */
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_check_no_sig_alg_duplication(uint16_t *sig_algs)
+static int ssl_check_no_sig_alg_duplication(const uint16_t *sig_algs)
 {
     size_t i, j;
     int ret = 0;

@@ -12,12 +12,12 @@
 #include <string.h>
 
 #include "mbedtls/error.h"
-#include "mbedtls/debug.h"
+#include "debug_internal.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/constant_time.h"
 #include "psa/crypto.h"
-#include "md_psa.h"
+#include "mbedtls/psa_util.h"
 
 #include "ssl_misc.h"
 #include "ssl_tls13_invasive.h"
@@ -1539,26 +1539,36 @@ static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
     uint16_t tls_id, size_t *bits, psa_key_type_t *key_type)
 {
     switch (tls_id) {
+#if defined(PSA_WANT_DH_RFC7919_2048)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048:
             *bits = 2048;
             *key_type = PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_2048 */
+#if defined(PSA_WANT_DH_RFC7919_3072)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072:
             *bits = 3072;
             *key_type =  PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_3072 */
+#if defined(PSA_WANT_DH_RFC7919_4096)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096:
             *bits = 4096;
             *key_type =  PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_4096 */
+#if defined(PSA_WANT_DH_RFC7919_6144)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144:
             *bits = 6144;
             *key_type =  PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_6144 */
+#if defined(PSA_WANT_DH_RFC7919_8192)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192:
             *bits = 8192;
             *key_type =  PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_8192 */
         default:
             return PSA_ERROR_NOT_SUPPORTED;
     }
@@ -1698,6 +1708,7 @@ int mbedtls_ssl_tls13_check_received_extension(
 }
 
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+
 /* RFC 8449, section 4:
  *
  * The ExtensionData of the "record_size_limit" extension is
@@ -1731,27 +1742,56 @@ int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("RecordSizeLimit: %u Bytes", record_size_limit));
 
-    /* RFC 8449, section 4
+    /* RFC 8449, section 4:
      *
      * Endpoints MUST NOT send a "record_size_limit" extension with a value
      * smaller than 64.  An endpoint MUST treat receipt of a smaller value
      * as a fatal error and generate an "illegal_parameter" alert.
      */
     if (record_size_limit < MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("Invalid record size limit : %u Bytes",
+                                  record_size_limit));
         MBEDTLS_SSL_PEND_FATAL_ALERT(
             MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
             MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
         return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
 
-    MBEDTLS_SSL_DEBUG_MSG(
-        2, ("record_size_limit extension is still in development. Aborting handshake."));
+    ssl->session_negotiate->record_size_limit = record_size_limit;
 
-    MBEDTLS_SSL_PEND_FATAL_ALERT(
-        MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT,
-        MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION);
-    return MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION;
+    return 0;
 }
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_tls13_write_record_size_limit_ext(mbedtls_ssl_context *ssl,
+                                                  unsigned char *buf,
+                                                  const unsigned char *end,
+                                                  size_t *out_len)
+{
+    unsigned char *p = buf;
+    *out_len = 0;
+
+    MBEDTLS_STATIC_ASSERT(MBEDTLS_SSL_IN_CONTENT_LEN >= MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN,
+                          "MBEDTLS_SSL_IN_CONTENT_LEN is less than the "
+                          "minimum record size limit");
+
+    MBEDTLS_SSL_CHK_BUF_PTR(p, end, 6);
+
+    MBEDTLS_PUT_UINT16_BE(MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT, p, 0);
+    MBEDTLS_PUT_UINT16_BE(MBEDTLS_SSL_RECORD_SIZE_LIMIT_EXTENSION_DATA_LENGTH,
+                          p, 2);
+    MBEDTLS_PUT_UINT16_BE(MBEDTLS_SSL_IN_CONTENT_LEN, p, 4);
+
+    *out_len = 6;
+
+    MBEDTLS_SSL_DEBUG_MSG(2, ("Sent RecordSizeLimit: %d Bytes",
+                              MBEDTLS_SSL_IN_CONTENT_LEN));
+
+    mbedtls_ssl_tls13_set_hs_sent_ext_mask(ssl, MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT);
+
+    return 0;
+}
+
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
 #endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_PROTO_TLS1_3 */

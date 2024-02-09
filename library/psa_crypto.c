@@ -8413,7 +8413,6 @@ psa_status_t psa_pake_output(
             goto exit;
     }
 
-    status = PSA_SUCCESS;
 exit:
     LOCAL_OUTPUT_FREE(output_external, output);
     if (status != PSA_SUCCESS) {
@@ -8491,7 +8490,6 @@ psa_status_t psa_pake_input(
             goto exit;
     }
 
-    status = PSA_SUCCESS;
 exit:
     LOCAL_INPUT_FREE(input_external, input);
     if (status != PSA_SUCCESS) {

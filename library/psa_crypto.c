@@ -4983,12 +4983,20 @@ exit:
 psa_status_t psa_key_derivation_input_bytes(
     psa_key_derivation_operation_t *operation,
     psa_key_derivation_step_t step,
-    const uint8_t *data,
+    const uint8_t *data_external,
     size_t data_length)
 {
-    return psa_key_derivation_input_internal(operation, step,
-                                             PSA_KEY_TYPE_NONE,
-                                             data, data_length);
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    LOCAL_INPUT_DECLARE(data_external, data);
+
+    LOCAL_INPUT_ALLOC(data_external, data_length, data);
+
+    status = psa_key_derivation_input_internal(operation, step,
+                                               PSA_KEY_TYPE_NONE,
+                                               data, data_length);
+exit:
+    LOCAL_INPUT_FREE(data_external, data);
+    return status;
 }
 
 psa_status_t psa_key_derivation_input_key(

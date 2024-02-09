@@ -4463,6 +4463,11 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg)
     mbedtls_test_handshake_test_options server_options;
     mbedtls_ssl_session saved_session;
     mbedtls_test_ssl_log_pattern server_pattern = { NULL, 0 };
+    uint16_t group_list[3] = {
+        MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
+        MBEDTLS_SSL_IANA_TLS_GROUP_NONE
+    };
     char pattern[128];
     unsigned char buf_write[64];
     size_t early_data_len = sizeof(buf_write);
@@ -4484,8 +4489,10 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg)
      */
 
     client_options.pk_alg = MBEDTLS_PK_ECDSA;
+    client_options.group_list = group_list;
     client_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
     server_options.pk_alg = MBEDTLS_PK_ECDSA;
+    server_options.group_list = group_list;
     server_options.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
     server_options.max_early_data_size = max_early_data_size_arg;
 
@@ -4508,6 +4515,15 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg)
             server_options.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
             ret = mbedtls_snprintf(pattern, sizeof(pattern),
                                    "EarlyData: deprotect and discard app data records.");
+            TEST_ASSERT(ret < (int) sizeof(pattern));
+            mbedtls_debug_set_threshold(3);
+            break;
+
+        case TEST_EARLY_DATA_HRR:
+            server_options.group_list = group_list + 1;
+            ret = mbedtls_snprintf(
+                pattern, sizeof(pattern),
+                "EarlyData: Ignore application message before 2nd ClientHello");
             TEST_ASSERT(ret < (int) sizeof(pattern));
             mbedtls_debug_set_threshold(3);
             break;
@@ -4595,7 +4611,8 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg)
                 }
                 break;
 
-            case TEST_EARLY_DATA_SERVER_REJECTS:
+            case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
+            case TEST_EARLY_DATA_HRR:
                 ret = mbedtls_ssl_handshake(&(server_ep.ssl));
                 /*
                  * Can be the case if max_early_data_size is smaller then the

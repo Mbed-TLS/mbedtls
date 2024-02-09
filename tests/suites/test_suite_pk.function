@@ -114,6 +114,26 @@
 #define MBEDTLS_TEST_ECP_DP_ONE_CURVE 0
 #endif
 
+/* Pick a second curve, for tests that need two supported curves of the
+ * same size. For simplicity, we only handle a subset of configurations,
+ * and both curves will support both ECDH and ECDSA. */
+#if defined(PSA_WANT_ECC_SECP_R1_192) && defined(PSA_WANT_ECC_SECP_K1_192)
+/* Identical redefinition of the ONE macros, to confirm that they have
+ * the values we expect here. */
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY PSA_ECC_FAMILY_SECP_R1
+#define MBEDTLS_TEST_PSA_ECC_ANOTHER_FAMILY PSA_ECC_FAMILY_SECP_K1
+#define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 192
+#define MBEDTLS_TEST_PSA_ECC_HAVE_TWO_FAMILIES
+#elif defined(PSA_WANT_ECC_SECP_R1_256) && defined(PSA_WANT_ECC_SECP_K1_256)
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY PSA_ECC_FAMILY_SECP_R1
+#define MBEDTLS_TEST_PSA_ECC_ANOTHER_FAMILY PSA_ECC_FAMILY_SECP_K1
+#define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 256
+#define MBEDTLS_TEST_PSA_ECC_HAVE_TWO_FAMILIES
+#else
+/* Always define the macros so that we can use them in test data. */
+#define MBEDTLS_TEST_PSA_ECC_ANOTHER_FAMILY 0
+#endif
+
 #endif /* defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) */
 
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)

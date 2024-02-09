@@ -390,7 +390,7 @@ int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
                             const mbedtls_svc_key_id_t key);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 /**
  * \brief           Create a PK context starting from a key stored in PSA.
  *                  This key:
@@ -429,7 +429,7 @@ int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
  *                  parameters are not correct.
  */
 int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id, mbedtls_pk_context *pk);
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /**

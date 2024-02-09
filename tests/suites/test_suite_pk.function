@@ -426,7 +426,7 @@ exit:
 }
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 mbedtls_svc_key_id_t pk_psa_pub_key_from_priv(mbedtls_svc_key_id_t priv_id,
                                               psa_key_type_t type, psa_key_usage_t usage,
                                               psa_algorithm_t alg, size_t bits)
@@ -515,7 +515,7 @@ mbedtls_svc_key_id_t pk_psa_genkey_rsa(void)
 
     return key;
 }
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -2245,7 +2245,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_CLIENT*/
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C*/
 void pk_copy_from_psa_fail(void)
 {
     mbedtls_pk_context pk_ctx;
@@ -2323,7 +2323,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_CLIENT*/
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C*/
 void pk_copy_from_psa_success(data_t *priv_key_data, int key_type_arg,
                               int key_bits_arg, int key_usage_arg,
                               int key_alg_arg)

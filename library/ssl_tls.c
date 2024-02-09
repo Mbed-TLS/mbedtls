@@ -8941,19 +8941,24 @@ unsigned int mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
 /* Serialization of TLS 1.2 sessions:
  *
  * struct {
- *    uint64 start_time;
- *    uint8 session_id_len;           // at most 32
- *    opaque session_id[32];
- *    opaque master[48];              // fixed length in the standard
- *    uint32 verify_result;
- *    opaque peer_cert<0..2^24-1>;    // length 0 means no peer cert
- *    opaque ticket<0..2^24-1>;       // length 0 means no ticket
- *    uint32 ticket_lifetime;
- *    uint64 ticket_creation_time;
- *    uint8 mfl_code;                 // up to 255 according to standard
- *    uint8 encrypt_then_mac;         // 0 or 1
- * } serialized_session_tls12;
+ *     opaque ticket<0..2^24-1>;       // length 0 means no ticket
+ *     uint32 ticket_lifetime;
+ * } ClientOnlyData;
  *
+ * struct {
+ *     uint64 start_time;
+ *     uint8 session_id_len;           // at most 32
+ *     opaque session_id[32];
+ *     opaque master[48];              // fixed length in the standard
+ *     uint32 verify_result;
+ *     opaque peer_cert<0..2^24-1>;    // length 0 means no peer cert
+ *     select (endpoint) {
+ *         case client: ClientOnlyData;
+ *         case server: uint64 ticket_creation_time;
+ *     };
+ *     uint8 mfl_code;                 // up to 255 according to standard
+ *     uint8 encrypt_then_mac;         // 0 or 1
+ * } serialized_session_tls12;
  */
 static size_t ssl_tls12_session_save(const mbedtls_ssl_session *session,
                                      unsigned char *buf,

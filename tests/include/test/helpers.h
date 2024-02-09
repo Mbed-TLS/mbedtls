@@ -116,10 +116,10 @@ int mbedtls_test_get_line_no(void);
 /**
  * \brief           Increment the current test step.
  *
- * \note            Calling this function from within multiple threads at the
- *                  same time is not recommended - whilst it is entirely thread
- *                  safe, the order of calls to this function can obviously not
- *                  be ensured, so unexpected results may occur.
+ * \note            It is not recommended for multiple threads to call this
+ *                  function concurrently - whilst it is entirely thread safe,
+ *                  the order of calls to this function can obviously not be
+ *                  ensured, so unexpected results may occur.
  */
 void mbedtls_test_increment_step(void);
 
@@ -231,10 +231,10 @@ void mbedtls_test_skip(const char *test, int line_no, const char *filename);
  *                  "step number" is the index of a for loop but it can be
  *                  whatever you want.
  *
- * \note            Calling this function from a within multiple threads at the
- *                  same time is not recommended - whilst it is entirely thread
- *                  safe, the order of calls to this function can obviously not
- *                  be ensured, so unexpected results may occur.
+ * \note            It is not recommended for multiple threads to call this
+ *                  function concurrently - whilst it is entirely thread safe,
+ *                  the order of calls to this function can obviously not be
+ *                  ensured, so unexpected results may occur.
  *
  * \param step  The step number to report.
  */

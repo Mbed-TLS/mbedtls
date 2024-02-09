@@ -1167,17 +1167,19 @@ exit:
     /* Unregister from reading the slot. If we are the last active reader
      * then this will wipe the slot. */
     status = psa_unregister_read(slot);
+    /* Prioritize CORRUPTION_DETECTED from unregistering over
+     * a storage error. */
+    if (status != PSA_SUCCESS) {
+        overall_status = status;
+    }
 
 #if defined(MBEDTLS_THREADING_C)
+    /* Don't overwrite existing errors if the unlock fails. */
+    status = overall_status;
     PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
                               &mbedtls_threading_key_slot_mutex));
 #endif
 
-    /* Prioritize CORRUPTION_DETECTED from unregistering or
-     * SERVICE_FAILURE from unlocking over a storage error. */
-    if (status != PSA_SUCCESS) {
-        overall_status = status;
-    }
     return overall_status;
 }
 

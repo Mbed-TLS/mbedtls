@@ -5881,7 +5881,9 @@ exit:
         psa_algorithm_t alg = operation->alg;
         psa_key_derivation_abort(operation);
         operation->alg = alg;
-        memset(output, '!', output_length);
+        if (output != NULL) {
+            memset(output, '!', output_length);
+        }
     }
 
     LOCAL_OUTPUT_FREE(output_external, output);

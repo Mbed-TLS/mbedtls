@@ -1194,12 +1194,12 @@ struct mbedtls_ssl_session {
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
     unsigned char MBEDTLS_PRIVATE(exported);
+    uint8_t MBEDTLS_PRIVATE(endpoint);          /*!< 0: client, 1: server */
 
     /** TLS version negotiated in the session. Used if and when renegotiating
      *  or resuming a session instead of the configured minor TLS version.
      */
     mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(tls_version);
-    uint8_t MBEDTLS_PRIVATE(endpoint);          /*!< 0: client, 1: server */
 
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t MBEDTLS_PRIVATE(start);       /*!< start time of current session */
@@ -1250,9 +1250,9 @@ struct mbedtls_ssl_session {
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
-    uint8_t MBEDTLS_PRIVATE(ticket_flags);      /*!< Ticket flags */
-    uint32_t MBEDTLS_PRIVATE(ticket_age_add);               /*!< Randomly generated value used to obscure the age of the ticket */
-    uint8_t MBEDTLS_PRIVATE(resumption_key_len);            /*!< resumption_key length */
+    uint32_t MBEDTLS_PRIVATE(ticket_age_add);     /*!< Randomly generated value used to obscure the age of the ticket */
+    uint8_t MBEDTLS_PRIVATE(ticket_flags);        /*!< Ticket flags */
+    uint8_t MBEDTLS_PRIVATE(resumption_key_len);  /*!< resumption_key length */
     unsigned char MBEDTLS_PRIVATE(resumption_key)[MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN];
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && defined(MBEDTLS_SSL_CLI_C)

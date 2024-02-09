@@ -283,23 +283,25 @@ static int exercise_signature_key(mbedtls_svc_key_id_t key,
                                   psa_key_usage_t usage,
                                   psa_algorithm_t alg)
 {
+    /* If the policy allows signing with any hash, just pick one. */
+    psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH(alg);
+    if (PSA_ALG_IS_SIGN_HASH(alg) && hash_alg == PSA_ALG_ANY_HASH &&
+        usage & (PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH |
+                 PSA_KEY_USAGE_SIGN_MESSAGE | PSA_KEY_USAGE_VERIFY_MESSAGE)) {
+#if defined(KNOWN_SUPPORTED_HASH_ALG)
+        hash_alg = KNOWN_SUPPORTED_HASH_ALG;
+        alg ^= PSA_ALG_ANY_HASH ^ hash_alg;
+#else
+        TEST_FAIL("No hash algorithm for hash-and-sign testing");
+#endif
+    }
+
     if (usage & (PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH) &&
         PSA_ALG_IS_SIGN_HASH(alg)) {
         unsigned char payload[PSA_HASH_MAX_SIZE] = { 1 };
         size_t payload_length = 16;
         unsigned char signature[PSA_SIGNATURE_MAX_SIZE] = { 0 };
         size_t signature_length = sizeof(signature);
-        psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH(alg);
-
-        /* If the policy allows signing with any hash, just pick one. */
-        if (PSA_ALG_IS_SIGN_HASH(alg) && hash_alg == PSA_ALG_ANY_HASH) {
-    #if defined(KNOWN_SUPPORTED_HASH_ALG)
-            hash_alg = KNOWN_SUPPORTED_HASH_ALG;
-            alg ^= PSA_ALG_ANY_HASH ^ hash_alg;
-    #else
-            TEST_FAIL("No hash algorithm for hash-and-sign testing");
-    #endif
-        }
 
         /* Some algorithms require the payload to have the size of
          * the hash encoded in the algorithm. Use this input size

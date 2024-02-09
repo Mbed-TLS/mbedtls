@@ -529,6 +529,9 @@ psa_status_t psa_close_key(psa_key_handle_t handle)
     }
 
 #if defined(MBEDTLS_THREADING_C)
+    /* We need to set status as success, otherwise CORRUPTION_DETECTED
+     * would be returned if the lock fails. */
+    status = PSA_SUCCESS;
     PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
                               &mbedtls_threading_key_slot_mutex));
 #endif
@@ -563,6 +566,9 @@ psa_status_t psa_purge_key(mbedtls_svc_key_id_t key)
     psa_key_slot_t *slot;
 
 #if defined(MBEDTLS_THREADING_C)
+    /* We need to set status as success, otherwise CORRUPTION_DETECTED
+     * would be returned if the lock fails. */
+    status = PSA_SUCCESS;
     PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
                               &mbedtls_threading_key_slot_mutex));
 #endif

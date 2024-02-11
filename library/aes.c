@@ -887,6 +887,15 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
                                  const unsigned char input[16],
                                  unsigned char output[16])
 {
+    return mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_ENCRYPT, input, output);
+}
+#endif /* !MBEDTLS_AES_ENCRYPT_ALT */
+
+MBEDTLS_MAYBE_UNUSED
+static int mbedtls_internal_aes_sw_encrypt(mbedtls_aes_context *ctx,
+                                           const unsigned char input[16],
+                                           unsigned char output[16])
+{
     int i;
     uint32_t *RK = ctx->buf + ctx->rk_offset;
     struct {
@@ -939,7 +948,6 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
 
     return 0;
 }
-#endif /* !MBEDTLS_AES_ENCRYPT_ALT */
 
 /*
  * AES-ECB block decryption
@@ -948,6 +956,15 @@ int mbedtls_internal_aes_encrypt(mbedtls_aes_context *ctx,
 int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
                                  const unsigned char input[16],
                                  unsigned char output[16])
+{
+    return mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_DECRYPT, input, output);
+}
+#endif /* !MBEDTLS_AES_DECRYPT_ALT && !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
+
+MBEDTLS_MAYBE_UNUSED
+static int mbedtls_internal_aes_sw_decrypt(mbedtls_aes_context *ctx,
+                                           const unsigned char input[16],
+                                           unsigned char output[16])
 {
     int i;
     uint32_t *RK = ctx->buf + ctx->rk_offset;
@@ -1001,7 +1018,6 @@ int mbedtls_internal_aes_decrypt(mbedtls_aes_context *ctx,
 
     return 0;
 }
-#endif /* !MBEDTLS_AES_DECRYPT_ALT && !MBEDTLS_BLOCK_CIPHER_NO_DECRYPT */
 
 /* VIA Padlock and our intrinsics-based implementation of AESNI require
  * the round keys to be aligned on a 16-byte boundary. We take care of this
@@ -1058,11 +1074,11 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 #if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)
     if (mode == MBEDTLS_AES_DECRYPT) {
-        return mbedtls_internal_aes_decrypt(ctx, input, output);
+        return mbedtls_internal_aes_sw_decrypt(ctx, input, output);
     } else
 #endif
     {
-        return mbedtls_internal_aes_encrypt(ctx, input, output);
+        return mbedtls_internal_aes_sw_encrypt(ctx, input, output);
     }
 #endif /* !MBEDTLS_AES_USE_HARDWARE_ONLY */
 }

@@ -114,11 +114,6 @@
 
 #if defined(MBEDTLS_TEST_PSA_ECC_ONE_FAMILY)
 #define MBEDTLS_TEST_PSA_ECC_AT_LEAST_ONE_CURVE
-#else
-/* Always define the macros so that we can use them in test data. */
-#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY 0
-#define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 0
-#define MBEDTLS_TEST_ECP_DP_ONE_CURVE 0
 #endif
 
 /* Pick a second curve, for tests that need two supported curves of the
@@ -136,12 +131,19 @@
 #define MBEDTLS_TEST_PSA_ECC_ANOTHER_FAMILY PSA_ECC_FAMILY_SECP_K1
 #define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 256
 #define MBEDTLS_TEST_PSA_ECC_HAVE_TWO_FAMILIES
-#else
-/* Always define the macros so that we can use them in test data. */
-#define MBEDTLS_TEST_PSA_ECC_ANOTHER_FAMILY 0
 #endif
 
 #endif /* defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) */
+
+/* Always define the macros so that we can use them in test data. */
+#if !defined(MBEDTLS_TEST_PSA_ECC_ONE_FAMILY)
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY 0
+#define MBEDTLS_PSA_ECC_ONE_CURVE_BITS 0
+#define MBEDTLS_TEST_ECP_DP_ONE_CURVE 0
+#endif
+#if !defined(MBEDTLS_TEST_PSA_ECC_ANOTHER_FAMILY)
+#define MBEDTLS_TEST_PSA_ECC_ANOTHER_FAMILY 0
+#endif
 
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static int pk_genkey_ec(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id)

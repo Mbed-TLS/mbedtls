@@ -784,8 +784,7 @@ static int import_public_into_psa(const mbedtls_pk_context *pk,
             size_t from_bits = 0;
             psa_ecc_family_t from_family = mbedtls_ecc_group_to_psa(ec->grp.id,
                                                                     &from_bits);
-            psa_key_type_t to_type = psa_get_key_type(attributes);
-            if (to_type != PSA_KEY_TYPE_ECC_PUBLIC_KEY(from_family)) {
+            if (psa_type != PSA_KEY_TYPE_ECC_PUBLIC_KEY(from_family)) {
                 return MBEDTLS_ERR_PK_TYPE_MISMATCH;
             }
             int ret = mbedtls_ecp_write_public_key(

@@ -6023,9 +6023,27 @@ exit:
     return status;
 }
 
-psa_status_t psa_key_derivation_output_key(const psa_key_attributes_t *attributes,
-                                           psa_key_derivation_operation_t *operation,
-                                           mbedtls_svc_key_id_t *key)
+static const psa_key_generation_method_t default_method = PSA_KEY_GENERATION_METHOD_INIT;
+
+static int psa_key_generation_method_is_default(
+    const psa_key_generation_method_t *method,
+    size_t method_length)
+{
+    if (method_length != sizeof(*method)) {
+        return 0;
+    }
+    if (method->flags != 0) {
+        return 0;
+    }
+    return 1;
+}
+
+psa_status_t psa_key_derivation_output_key_ext(
+    const psa_key_attributes_t *attributes,
+    psa_key_derivation_operation_t *operation,
+    const psa_key_generation_method_t *method,
+    size_t method_length,
+    mbedtls_svc_key_id_t *key)
 {
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
@@ -6036,6 +6054,13 @@ psa_status_t psa_key_derivation_output_key(const psa_key_attributes_t *attribute
     /* Reject any attempt to create a zero-length key so that we don't
      * risk tripping up later, e.g. on a malloc(0) that returns NULL. */
     if (psa_get_key_bits(attributes) == 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (method_length < sizeof(*method)) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+    if (!psa_key_generation_method_is_default(method, method_length)) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
@@ -6070,6 +6095,16 @@ psa_status_t psa_key_derivation_output_key(const psa_key_attributes_t *attribute
     return status;
 }
 
+psa_status_t psa_key_derivation_output_key(
+    const psa_key_attributes_t *attributes,
+    psa_key_derivation_operation_t *operation,
+    mbedtls_svc_key_id_t *key)
+{
+    return psa_key_derivation_output_key_ext(
+        attributes, operation,
+        &default_method, sizeof(default_method),
+        key);
+}
 
 
 /****************************************************************/
@@ -7523,8 +7558,10 @@ psa_status_t psa_generate_key_internal(
     return PSA_SUCCESS;
 }
 
-psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
-                              mbedtls_svc_key_id_t *key)
+psa_status_t psa_generate_key_ext(const psa_key_attributes_t *attributes,
+                                  const psa_key_generation_method_t *method,
+                                  size_t method_length,
+                                  mbedtls_svc_key_id_t *key)
 {
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
@@ -7541,6 +7578,13 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
 
     /* Reject any attempt to create a public key. */
     if (PSA_KEY_TYPE_IS_PUBLIC_KEY(attributes->core.type)) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (method_length < sizeof(*method)) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+    if (!psa_key_generation_method_is_default(method, method_length)) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
@@ -7596,6 +7640,14 @@ exit:
     }
 
     return status;
+}
+
+psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
+                              mbedtls_svc_key_id_t *key)
+{
+    return psa_generate_key_ext(attributes,
+                                &default_method, sizeof(default_method),
+                                key);
 }
 
 /****************************************************************/

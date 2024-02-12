@@ -1303,6 +1303,27 @@ exit:
 }
 #endif /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE */
 
+static int setup_key_generation_method(psa_key_generation_method_t **method,
+                                       size_t *method_length,
+                                       int64_t flags_arg,
+                                       const data_t *method_data)
+{
+    if (flags_arg >= 0) {
+        *method_length = sizeof(**method) + method_data->len;
+        *method = mbedtls_calloc(1, *method_length);
+        TEST_ASSERT(*method != NULL);
+        (*method)->flags = (uint32_t) flags_arg;
+        memcpy((*method)->data, method_data->x, method_data->len);
+    } else if (sizeof(**method) + flags_arg > 0) {
+        *method_length = sizeof(**method) + flags_arg;
+        *method = mbedtls_calloc(1, *method_length);
+        TEST_ASSERT(*method != NULL);
+    }
+    return 1;
+exit:
+    return 0;
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -9303,6 +9324,81 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void derive_key_ext(int alg_arg,
+                    data_t *key_data,
+                    data_t *input1,
+                    data_t *input2,
+                    int key_type_arg, int bits_arg,
+                    int64_t flags_arg, /*negative for truncated method*/
+                    data_t *method_data,
+                    psa_status_t expected_status,
+                    data_t *expected_export)
+{
+    mbedtls_svc_key_id_t base_key = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_svc_key_id_t derived_key = MBEDTLS_SVC_KEY_ID_INIT;
+    const psa_algorithm_t alg = alg_arg;
+    const psa_key_type_t key_type = key_type_arg;
+    const size_t bits = bits_arg;
+    psa_key_generation_method_t *method = NULL;
+    size_t method_length = 0;
+    psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
+    const size_t export_buffer_size =
+        PSA_EXPORT_KEY_OUTPUT_SIZE(key_type, bits);
+    uint8_t *export_buffer = NULL;
+    psa_key_attributes_t base_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t derived_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    size_t export_length;
+
+    TEST_CALLOC(export_buffer, export_buffer_size);
+    PSA_ASSERT(psa_crypto_init());
+
+    psa_set_key_usage_flags(&base_attributes, PSA_KEY_USAGE_DERIVE);
+    psa_set_key_algorithm(&base_attributes, alg);
+    psa_set_key_type(&base_attributes, PSA_KEY_TYPE_DERIVE);
+    PSA_ASSERT(psa_import_key(&base_attributes, key_data->x, key_data->len,
+                              &base_key));
+
+    if (mbedtls_test_psa_setup_key_derivation_wrap(
+            &operation, base_key, alg,
+            input1->x, input1->len,
+            input2->x, input2->len,
+            PSA_KEY_DERIVATION_UNLIMITED_CAPACITY) == 0) {
+        goto exit;
+    }
+
+    psa_set_key_usage_flags(&derived_attributes, PSA_KEY_USAGE_EXPORT);
+    psa_set_key_algorithm(&derived_attributes, 0);
+    psa_set_key_type(&derived_attributes, key_type);
+    psa_set_key_bits(&derived_attributes, bits);
+    if (!setup_key_generation_method(&method, &method_length,
+                                     flags_arg, method_data)) {
+        goto exit;
+    }
+
+    TEST_EQUAL(psa_key_derivation_output_key_ext(&derived_attributes, &operation,
+                                                 method, method_length,
+                                                 &derived_key),
+               expected_status);
+
+    if (expected_status == PSA_SUCCESS) {
+        PSA_ASSERT(psa_export_key(derived_key,
+                                  export_buffer, export_buffer_size,
+                                  &export_length));
+        TEST_MEMORY_COMPARE(export_buffer, export_length,
+                            expected_export->x, expected_export->len);
+    }
+
+exit:
+    mbedtls_free(export_buffer);
+    mbedtls_free(method);
+    psa_key_derivation_abort(&operation);
+    psa_destroy_key(base_key);
+    psa_destroy_key(derived_key);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void derive_key(int alg_arg,
                 data_t *key_data, data_t *input1, data_t *input2,
                 int type_arg, int bits_arg,
@@ -9814,6 +9910,89 @@ exit:
     psa_destroy_key(key);
     PSA_DONE();
     mbedtls_free(e_read_buffer);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void generate_key_ext(int type_arg,
+                      int bits_arg,
+                      int usage_arg,
+                      int alg_arg,
+                      int64_t flags_arg, /*negative for truncated method*/
+                      data_t *method_data,
+                      int expected_status_arg)
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t type = type_arg;
+    psa_key_usage_t usage = usage_arg;
+    size_t bits = bits_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_generation_method_t *method = NULL;
+    size_t method_length = 0;
+    psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    PSA_ASSERT(psa_crypto_init());
+
+    psa_set_key_usage_flags(&attributes, usage);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_type(&attributes, type);
+    psa_set_key_bits(&attributes, bits);
+
+    if (!setup_key_generation_method(&method, &method_length,
+                                     flags_arg, method_data)) {
+        goto exit;
+    }
+
+    /* Generate a key */
+    psa_status_t status = psa_generate_key_ext(&attributes,
+                                               method, method_length,
+                                               &key);
+
+    TEST_EQUAL(status, expected_status);
+    if (expected_status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    /* Test the key information */
+    PSA_ASSERT(psa_get_key_attributes(key, &got_attributes));
+    TEST_EQUAL(psa_get_key_type(&got_attributes), type);
+    TEST_EQUAL(psa_get_key_bits(&got_attributes), bits);
+
+    /* Do something with the key according to its type and permitted usage. */
+    if (!mbedtls_test_psa_exercise_key(key, usage, alg)) {
+        goto exit;
+    }
+
+exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes(&got_attributes);
+    mbedtls_free(method);
+    psa_destroy_key(key);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void key_generation_method_init()
+{
+    psa_key_generation_method_t func = psa_key_generation_method_init();
+    psa_key_generation_method_t init = PSA_KEY_GENERATION_METHOD_INIT;
+    psa_key_generation_method_t zero;
+    memset(&zero, 0, sizeof(zero));
+
+    /* In order for sizeof(psa_key_generation_method_t) to mean
+     * empty data, there must not be any padding in the structure:
+     * the size of the structure must be the offset of the data field. */
+    TEST_EQUAL(sizeof(zero), offsetof(psa_key_generation_method_t, data));
+
+    TEST_EQUAL(func.flags, 0);
+    TEST_EQUAL(init.flags, 0);
+    TEST_EQUAL(zero.flags, 0);
 }
 /* END_CASE */
 

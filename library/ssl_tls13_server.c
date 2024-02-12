@@ -9,7 +9,7 @@
 
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
 
-#include "mbedtls/debug.h"
+#include "debug_internal.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/constant_time.h"
@@ -1533,6 +1533,12 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
         unsigned int extension_type;
         size_t extension_data_len;
         const unsigned char *extension_data_end;
+        uint32_t allowed_exts = MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CH;
+
+        if (ssl->handshake->hello_retry_request_count > 0) {
+            /* Do not accept early data extension in 2nd ClientHello */
+            allowed_exts &= ~MBEDTLS_SSL_EXT_MASK(EARLY_DATA);
+        }
 
         /* RFC 8446, section 4.2.11
          *
@@ -1560,7 +1566,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
 
         ret = mbedtls_ssl_tls13_check_received_extension(
             ssl, MBEDTLS_SSL_HS_CLIENT_HELLO, extension_type,
-            MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CH);
+            allowed_exts);
         if (ret != 0) {
             return ret;
         }
@@ -1780,25 +1786,15 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
 }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
+static int ssl_tls13_check_early_data_requirements(mbedtls_ssl_context *ssl)
 {
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-
-    if ((handshake->received_extensions &
-         MBEDTLS_SSL_EXT_MASK(EARLY_DATA)) == 0) {
-        MBEDTLS_SSL_DEBUG_MSG(
-            1, ("EarlyData: no early data extension received."));
-        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_RECEIVED;
-        return;
-    }
-
-    ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED;
 
     if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_DISABLED) {
         MBEDTLS_SSL_DEBUG_MSG(
             1,
             ("EarlyData: rejected, feature disabled in server configuration."));
-        return;
+        return -1;
     }
 
     if (!handshake->resume) {
@@ -1807,7 +1803,7 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
            resumption. */
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("EarlyData: rejected, not a session resumption."));
-        return;
+        return -1;
     }
 
     /* RFC 8446 4.2.10
@@ -1830,7 +1826,7 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("EarlyData: rejected, the selected key in "
                 "`pre_shared_key` is not the first one."));
-        return;
+        return -1;
     }
 
     if (handshake->ciphersuite_info->id !=
@@ -1838,7 +1834,7 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("EarlyData: rejected, the selected ciphersuite is not the one "
                 "of the selected pre-shared key."));
-        return;
+        return -1;
 
     }
 
@@ -1847,18 +1843,18 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
             1,
             ("EarlyData: rejected, early_data not allowed in ticket "
              "permission bits."));
-        return;
+        return -1;
     }
 
-    ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
-
+    return 0;
 }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 /* Update the handshake state machine */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl)
+static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl,
+                                              int hrr_required)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -1882,17 +1878,26 @@ static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl)
     }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    /* There is enough information, update early data state. */
-    ssl_tls13_update_early_data_status(ssl);
+    if (ssl->handshake->received_extensions & MBEDTLS_SSL_EXT_MASK(EARLY_DATA)) {
+        ssl->handshake->early_data_accepted =
+            (!hrr_required) && (ssl_tls13_check_early_data_requirements(ssl) == 0);
 
-    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
-        ret = mbedtls_ssl_tls13_compute_early_transform(ssl);
-        if (ret != 0) {
-            MBEDTLS_SSL_DEBUG_RET(
-                1, "mbedtls_ssl_tls13_compute_early_transform", ret);
-            return ret;
+        if (ssl->handshake->early_data_accepted) {
+            ret = mbedtls_ssl_tls13_compute_early_transform(ssl);
+            if (ret != 0) {
+                MBEDTLS_SSL_DEBUG_RET(
+                    1, "mbedtls_ssl_tls13_compute_early_transform", ret);
+                return ret;
+            }
+        } else {
+            ssl->discard_early_data_record =
+                hrr_required ?
+                MBEDTLS_SSL_EARLY_DATA_DISCARD :
+                MBEDTLS_SSL_EARLY_DATA_TRY_TO_DEPROTECT_AND_DISCARD;
         }
     }
+#else
+    ((void) hrr_required);
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
     return 0;
@@ -1947,7 +1952,9 @@ static int ssl_tls13_process_client_hello(mbedtls_ssl_context *ssl)
         return 0;
     }
 
-    MBEDTLS_SSL_PROC_CHK(ssl_tls13_postprocess_client_hello(ssl));
+    MBEDTLS_SSL_PROC_CHK(
+        ssl_tls13_postprocess_client_hello(ssl, parse_client_hello_ret ==
+                                           SSL_CLIENT_HELLO_HRR_REQUIRED));
 
     if (SSL_CLIENT_HELLO_OK == parse_client_hello_ret) {
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO);
@@ -2530,7 +2537,7 @@ static int ssl_tls13_write_encrypted_extensions_body(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_ALPN */
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
+    if (ssl->handshake->early_data_accepted) {
         ret = mbedtls_ssl_tls13_write_early_data_ext(
             ssl, 0, p, end, &output_len);
         if (ret != 0) {
@@ -2857,7 +2864,7 @@ static int ssl_tls13_write_server_finished(mbedtls_ssl_context *ssl)
     }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
+    if (ssl->handshake->early_data_accepted) {
         /* See RFC 8446 section A.2 for more information */
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("Switch to early keys for inbound traffic. "
@@ -2911,6 +2918,17 @@ static int ssl_tls13_end_of_early_data_coordinate(mbedtls_ssl_context *ssl)
 
     if (ssl->in_msgtype == MBEDTLS_SSL_MSG_APPLICATION_DATA) {
         MBEDTLS_SSL_DEBUG_MSG(3, ("Received early data"));
+        /* RFC 8446 section 4.6.1
+         *
+         * A server receiving more than max_early_data_size bytes of 0-RTT data
+         * SHOULD terminate the connection with an "unexpected_message" alert.
+         *
+         * TODO: Add received data size check here.
+         */
+        if (ssl->in_offt == NULL) {
+            /* Set the reading pointer */
+            ssl->in_offt = ssl->in_msg;
+        }
         return SSL_GOT_EARLY_DATA;
     }
 
@@ -2933,37 +2951,6 @@ static int ssl_tls13_parse_end_of_early_data(mbedtls_ssl_context *ssl,
                                      MBEDTLS_ERR_SSL_DECODE_ERROR);
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
-    return 0;
-}
-
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_process_early_application_data(mbedtls_ssl_context *ssl)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-    if ((ret = mbedtls_ssl_read_record(ssl, 0)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_read_record", ret);
-        return ret;
-    }
-
-    /*
-     * Output early data
-     *
-     * For the time being, we print received data via debug message.
-     *
-     * TODO: Remove it when `mbedtls_ssl_read_early_data` is ready.
-     */
-    ssl->in_msg[ssl->in_msglen] = 0;
-    MBEDTLS_SSL_DEBUG_MSG(3, ("\n%s", ssl->in_msg));
-
-    /* RFC 8446 section 4.6.1
-     *
-     * A server receiving more than max_early_data_size bytes of 0-RTT data
-     * SHOULD terminate the connection with an "unexpected_message" alert.
-     *
-     * TODO: Add received data size check here.
-     */
-
     return 0;
 }
 
@@ -3037,7 +3024,8 @@ static int ssl_tls13_process_end_of_early_data(mbedtls_ssl_context *ssl)
         ssl_tls13_prepare_for_handshake_second_flight(ssl);
 
     } else if (ret == SSL_GOT_EARLY_DATA) {
-        MBEDTLS_SSL_PROC_CHK(ssl_tls13_process_early_application_data(ssl));
+        ret = MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA;
+        goto cleanup;
     } else {
         MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
         ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;

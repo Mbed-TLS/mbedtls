@@ -93,8 +93,6 @@ static void *(*const volatile memset_func)(void *, int, size_t) = memset;
 
 void mbedtls_platform_zeroize(void *buf, size_t len)
 {
-    MBEDTLS_INTERNAL_VALIDATE(len == 0 || buf != NULL);
-
     if (len > 0) {
 #if defined(MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO)
         explicit_bzero(buf, len);
@@ -151,10 +149,10 @@ void mbedtls_zeroize_and_free(void *buf, size_t len)
 #include <time.h>
 #if !defined(_WIN32) && (defined(unix) || \
     defined(__unix) || defined(__unix__) || (defined(__APPLE__) && \
-    defined(__MACH__)))
+    defined(__MACH__)) || defined__midipix__)
 #include <unistd.h>
 #endif /* !_WIN32 && (unix || __unix || __unix__ ||
-        * (__APPLE__ && __MACH__)) */
+        * (__APPLE__ && __MACH__) || __midipix__) */
 
 #if !((defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) ||     \
     (defined(_POSIX_THREAD_SAFE_FUNCTIONS) &&                     \
@@ -222,9 +220,10 @@ void (*mbedtls_test_hook_test_fail)(const char *, int, const char *);
 #include <time.h>
 #if !defined(_WIN32) && \
     (defined(unix) || defined(__unix) || defined(__unix__) || \
-    (defined(__APPLE__) && defined(__MACH__)) || defined(__HAIKU__))
+    (defined(__APPLE__) && defined(__MACH__)) || defined(__HAIKU__) || defined(__midipix__))
 #include <unistd.h>
-#endif /* !_WIN32 && (unix || __unix || __unix__ || (__APPLE__ && __MACH__) || __HAIKU__) */
+#endif \
+    /* !_WIN32 && (unix || __unix || __unix__ || (__APPLE__ && __MACH__) || __HAIKU__ || __midipix__) */
 #if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 199309L) || defined(__HAIKU__)
 mbedtls_ms_time_t mbedtls_ms_time(void)
 {
@@ -232,7 +231,7 @@ mbedtls_ms_time_t mbedtls_ms_time(void)
     struct timespec tv;
     mbedtls_ms_time_t current_ms;
 
-#if defined(__linux__) && defined(CLOCK_BOOTTIME)
+#if defined(__linux__) && defined(CLOCK_BOOTTIME) || defined(__midipix__)
     ret = clock_gettime(CLOCK_BOOTTIME, &tv);
 #else
     ret = clock_gettime(CLOCK_MONOTONIC, &tv);

@@ -28,12 +28,6 @@
 
 #if !defined(MBEDTLS_ECP_ALT)
 
-/* Parameter validation macros based on platform_util.h */
-#define ECP_VALIDATE_RET(cond)    \
-    MBEDTLS_INTERNAL_VALIDATE_RET(cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA)
-#define ECP_VALIDATE(cond)        \
-    MBEDTLS_INTERNAL_VALIDATE(cond)
-
 #define ECP_MPI_INIT(_p, _n) { .p = (mbedtls_mpi_uint *) (_p), .s = 1, .n = (_n) }
 
 #define ECP_MPI_INIT_ARRAY(x)   \
@@ -4764,7 +4758,6 @@ cleanup:
  */
 int mbedtls_ecp_group_load(mbedtls_ecp_group *grp, mbedtls_ecp_group_id id)
 {
-    ECP_VALIDATE_RET(grp != NULL);
     mbedtls_ecp_group_free(grp);
 
     mbedtls_ecp_group_init(grp);

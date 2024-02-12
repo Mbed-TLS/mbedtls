@@ -12,7 +12,7 @@
 #include <string.h>
 
 #include "mbedtls/error.h"
-#include "mbedtls/debug.h"
+#include "debug_internal.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/constant_time.h"
@@ -1539,26 +1539,36 @@ static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
     uint16_t tls_id, size_t *bits, psa_key_type_t *key_type)
 {
     switch (tls_id) {
+#if defined(PSA_WANT_DH_RFC7919_2048)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048:
             *bits = 2048;
             *key_type = PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_2048 */
+#if defined(PSA_WANT_DH_RFC7919_3072)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072:
             *bits = 3072;
             *key_type =  PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_3072 */
+#if defined(PSA_WANT_DH_RFC7919_4096)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096:
             *bits = 4096;
             *key_type =  PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_4096 */
+#if defined(PSA_WANT_DH_RFC7919_6144)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144:
             *bits = 6144;
             *key_type =  PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_6144 */
+#if defined(PSA_WANT_DH_RFC7919_8192)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192:
             *bits = 8192;
             *key_type =  PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_8192 */
         default:
             return PSA_ERROR_NOT_SUPPORTED;
     }

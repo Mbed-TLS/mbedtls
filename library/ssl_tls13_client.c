@@ -11,7 +11,7 @@
 
 #include <string.h>
 
-#include "mbedtls/debug.h"
+#include "debug_internal.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform.h"
 
@@ -1182,7 +1182,8 @@ int mbedtls_ssl_tls13_write_client_hello_exts(mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     if (mbedtls_ssl_conf_tls13_is_some_psk_enabled(ssl) &&
         ssl_tls13_early_data_has_valid_ticket(ssl) &&
-        ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED) {
+        ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED &&
+        ssl->handshake->hello_retry_request_count == 0) {
 
         ret = mbedtls_ssl_tls13_write_early_data_ext(
             ssl, 0, p, end, &ext_len);
@@ -1236,10 +1237,6 @@ int mbedtls_ssl_tls13_finalize_client_hello(mbedtls_ssl_context *ssl)
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 
     if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED) {
-#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
-        mbedtls_ssl_handshake_set_state(
-            ssl, MBEDTLS_SSL_CLIENT_CCS_AFTER_CLIENT_HELLO);
-#endif
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("Set hs psk for early data when writing the first psk"));
 
@@ -1294,6 +1291,15 @@ int mbedtls_ssl_tls13_finalize_client_hello(mbedtls_ssl_context *ssl)
             return ret;
         }
 
+#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
+        mbedtls_ssl_handshake_set_state(
+            ssl, MBEDTLS_SSL_CLIENT_CCS_AFTER_CLIENT_HELLO);
+#else
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("Switch to early data keys for outbound traffic"));
+        mbedtls_ssl_set_outbound_transform(
+            ssl, ssl->handshake->transform_earlydata);
+#endif
     }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
     return 0;
@@ -3067,19 +3073,19 @@ int mbedtls_ssl_tls13_handshake_client_step(mbedtls_ssl_context *ssl)
             }
             break;
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
         case MBEDTLS_SSL_CLIENT_CCS_AFTER_CLIENT_HELLO:
             ret = mbedtls_ssl_tls13_write_change_cipher_spec(ssl);
             if (ret == 0) {
                 mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO);
 
-#if defined(MBEDTLS_SSL_EARLY_DATA)
                 MBEDTLS_SSL_DEBUG_MSG(
                     1, ("Switch to early data keys for outbound traffic"));
                 mbedtls_ssl_set_outbound_transform(
                     ssl, ssl->handshake->transform_earlydata);
-#endif
             }
             break;
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)

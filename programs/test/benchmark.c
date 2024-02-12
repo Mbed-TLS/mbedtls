@@ -1089,20 +1089,24 @@ int main(int argc, char *argv[])
         mbedtls_dhm_context dhm;
         size_t olen;
         size_t n;
+        mbedtls_mpi P, G;
+        mbedtls_mpi_init(&P); mbedtls_mpi_init(&G);
 
         for (i = 0; (size_t) i < sizeof(dhm_sizes) / sizeof(dhm_sizes[0]); i++) {
             mbedtls_dhm_init(&dhm);
 
-            if (mbedtls_mpi_read_binary(&dhm.MBEDTLS_PRIVATE(P), dhm_P[i],
+            if (mbedtls_mpi_read_binary(&P, dhm_P[i],
                                         dhm_P_size[i]) != 0 ||
-                mbedtls_mpi_read_binary(&dhm.MBEDTLS_PRIVATE(G), dhm_G[i],
-                                        dhm_G_size[i]) != 0) {
+                mbedtls_mpi_read_binary(&G, dhm_G[i],
+                                        dhm_G_size[i]) != 0 ||
+                mbedtls_dhm_set_group(&dhm, &P, &G) != 0) {
                 mbedtls_exit(1);
             }
 
-            n = mbedtls_mpi_size(&dhm.MBEDTLS_PRIVATE(P));
+            n = mbedtls_dhm_get_len(&dhm);
             mbedtls_dhm_make_public(&dhm, (int) n, buf, n, myrand, NULL);
-            if (mbedtls_mpi_copy(&dhm.MBEDTLS_PRIVATE(GY), &dhm.MBEDTLS_PRIVATE(GX)) != 0) {
+
+            if (mbedtls_dhm_read_public(&dhm, buf, n) != 0) {
                 mbedtls_exit(1);
             }
 
@@ -1119,6 +1123,7 @@ int main(int argc, char *argv[])
                             mbedtls_dhm_calc_secret(&dhm, buf, sizeof(buf), &olen, myrand, NULL));
 
             mbedtls_dhm_free(&dhm);
+            mbedtls_mpi_free(&P), mbedtls_mpi_free(&G);
         }
     }
 #endif

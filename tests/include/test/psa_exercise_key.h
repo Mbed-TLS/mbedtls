@@ -221,4 +221,20 @@ int mbedtls_test_psa_exercise_key(mbedtls_svc_key_id_t key,
 psa_key_usage_t mbedtls_test_psa_usage_to_exercise(psa_key_type_t type,
                                                    psa_algorithm_t alg);
 
+/** Whether the specified algorithm can be exercised.
+ *
+ * \note This function is solely based on the algorithm and does not
+ *       consider potential issues with the compatibility of a key.
+ *       The idea is that you already have a key, so you know that the
+ *       key type is supported, and you want to exercise the key but
+ *       only if the algorithm given in its policy is enabled in the
+ *       compile-time configuration.
+ *
+ * \note This function currently only supports signature algorithms
+ *       (including wildcards).
+ *       TODO: a more general mechanism, which should be automatically
+ *       generated and possibly available as a library function?
+ */
+int mbedtls_test_can_exercise_psa_algorithm(psa_algorithm_t alg);
+
 #endif /* PSA_EXERCISE_KEY_H */

@@ -48,10 +48,14 @@ static int test_psa_bridge(const mbedtls_pk_context *ctx,
 
     TEST_EQUAL(mbedtls_pk_get_psa_attributes(ctx, usage_flag, &attributes), 0);
     TEST_EQUAL(mbedtls_pk_import_into_psa(ctx, &attributes, &psa_key), 0);
+
     psa_algorithm_t exercise_usage = psa_get_key_usage_flags(&attributes);
     psa_algorithm_t exercise_alg = psa_get_key_algorithm(&attributes);
-    TEST_ASSERT(mbedtls_test_psa_exercise_key(psa_key,
-                                              exercise_usage, exercise_alg));
+    if (mbedtls_test_can_exercise_psa_algorithm(exercise_alg)) {
+        TEST_ASSERT(mbedtls_test_psa_exercise_key(psa_key,
+                                                  exercise_usage,
+                                                  exercise_alg));
+    }
 
     mbedtls_test_set_step((unsigned long) -1);
     ok = 1;

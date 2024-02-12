@@ -1009,4 +1009,49 @@ psa_key_usage_t mbedtls_test_psa_usage_to_exercise(psa_key_type_t type,
 
 }
 
+int mbedtls_test_can_exercise_psa_algorithm(psa_algorithm_t alg)
+{
+    /* Reject algorithms that we know are not supported. Default to
+     * attempting exercise, so that if an algorithm is missing from this
+     * function, the result will be a test failure and not silently
+     * omitting exercise. */
+#if !defined(PSA_WANT_ALG_RSA_PKCS1V15_CRYPT)
+    if (alg == PSA_ALG_RSA_PKCS1V15_CRYPT) {
+        return 0;
+    }
+#endif
+#if !defined(PSA_WANT_ALG_RSA_PKCS1V15_SIGN)
+    if (PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg)) {
+        return 0;
+    }
+#endif
+#if !defined(PSA_WANT_ALG_RSA_PSS)
+    if (PSA_ALG_IS_RSA_PSS_STANDARD_SALT(alg)) {
+        return 0;
+    }
+#endif
+#if !defined(PSA_WANT_ALG_RSA_PSS_ANY_SALT)
+    if (PSA_ALG_IS_RSA_PSS_ANY_SALT(alg)) {
+        return 0;
+    }
+#endif
+#if !defined(PSA_WANT_ALG_ECDSA)
+    if (PSA_ALG_IS_ECDSA(alg)) {
+        return 0;
+    }
+#endif
+#if !defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)
+    if (PSA_ALG_IS_DETERMINISTIC_ECDSA(alg)) {
+        return 0;
+    }
+#endif
+#if !defined(PSA_WANT_ALG_ECDH)
+    if (PSA_ALG_IS_ECDH(alg)) {
+        return 0;
+    }
+#endif
+    (void) alg;
+    return 1;
+}
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

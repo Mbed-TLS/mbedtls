@@ -349,6 +349,9 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
     }
 
 #if defined(MBEDTLS_THREADING_C)
+    /* We need to set status as success, otherwise CORRUPTION_DETECTED
+     * would be returned if the lock fails. */
+    status = PSA_SUCCESS;
     /* If the key is persistent and not loaded, we cannot unlock the mutex
      * between checking if the key is loaded and setting the slot as FULL,
      * as otherwise another thread may load and then destroy the key
@@ -462,6 +465,9 @@ psa_status_t psa_unregister_read_under_mutex(psa_key_slot_t *slot)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 #if defined(MBEDTLS_THREADING_C)
+    /* We need to set status as success, otherwise CORRUPTION_DETECTED
+     * would be returned if the lock fails. */
+    status = PSA_SUCCESS;
     PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
                               &mbedtls_threading_key_slot_mutex));
 #endif

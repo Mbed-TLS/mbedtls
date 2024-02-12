@@ -18,6 +18,13 @@
 #define RSA_KEY_SIZE 512
 #define RSA_KEY_LEN   64
 
+#if defined(MBEDTLS_RSA_C) ||                                           \
+    defined(MBEDTLS_PK_RSA_ALT_SUPPORT) ||                              \
+    defined(MBEDTLS_ECDSA_C) ||                                         \
+    defined(MBEDTLS_USE_PSA_CRYPTO)
+#define PK_CAN_SIGN_SOME
+#endif
+
 /** Generate a key of the desired type.
  *
  * \param pk        The PK object to fill. It must have been initialized
@@ -894,7 +901,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C:PK_CAN_SIGN_SOME */
 void pk_sign_verify(int type, int parameter, int sign_ret, int verify_ret)
 {
     mbedtls_pk_context pk;

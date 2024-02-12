@@ -1293,7 +1293,13 @@ static int rsa_test_e(mbedtls_svc_key_id_t key,
         TEST_EQUAL(p[1], 0);
         TEST_EQUAL(p[2], 1);
     } else {
-        TEST_MEMORY_COMPARE(p, len, e_arg->x, e_arg->len);
+        const uint8_t *expected = e_arg->x;
+        size_t expected_len = e_arg->len;
+        while (expected_len > 0 && *expected == 0) {
+            ++expected;
+            --expected_len;
+        }
+        TEST_MEMORY_COMPARE(p, len, expected, expected_len);
     }
     ok = 1;
 
@@ -9959,6 +9965,12 @@ void generate_key_ext(int type_arg,
     PSA_ASSERT(psa_get_key_attributes(key, &got_attributes));
     TEST_EQUAL(psa_get_key_type(&got_attributes), type);
     TEST_EQUAL(psa_get_key_bits(&got_attributes), bits);
+
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
+    if (type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
+        TEST_ASSERT(rsa_test_e(key, bits, method_data));
+    }
+#endif
 
     /* Do something with the key according to its type and permitted usage. */
     if (!mbedtls_test_psa_exercise_key(key, usage, alg)) {

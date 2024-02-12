@@ -731,11 +731,15 @@ static inline psa_status_t psa_driver_wrapper_get_key_buffer_size_from_key_data(
 
 static inline psa_status_t psa_driver_wrapper_generate_key(
     const psa_key_attributes_t *attributes,
+    const psa_key_generation_method_t *method, size_t method_length,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_location_t location =
         PSA_KEY_LIFETIME_GET_LOCATION(attributes->core.lifetime);
+
+    /* TODO: if method is non-default, we need a driver that supports
+     * passing a method. */
 
     /* Try dynamically-registered SE interface first */
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -793,7 +797,8 @@ static inline psa_status_t psa_driver_wrapper_generate_key(
 
             /* Software fallback */
             status = psa_generate_key_internal(
-                attributes, key_buffer, key_buffer_size, key_buffer_length );
+                attributes, method, method_length,
+                key_buffer, key_buffer_size, key_buffer_length );
             break;
 
         /* Add cases for opaque driver here */

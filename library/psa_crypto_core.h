@@ -403,6 +403,10 @@ psa_status_t psa_export_public_key_internal(
  *       entry point.
  *
  * \param[in]  attributes         The attributes for the key to generate.
+ * \param[in]  method             The generation method from
+ *                                psa_generate_key_ext().
+ *                                This can be \c NULL if \p method_length is 0.
+ * \param      method_length      The size of \p method in bytes.
  * \param[out] key_buffer         Buffer where the key data is to be written.
  * \param[in]  key_buffer_size    Size of \p key_buffer in bytes.
  * \param[out] key_buffer_length  On success, the number of bytes written in
@@ -417,6 +421,8 @@ psa_status_t psa_export_public_key_internal(
  *         The size of \p key_buffer is too small.
  */
 psa_status_t psa_generate_key_internal(const psa_key_attributes_t *attributes,
+                                       const psa_key_generation_method_t *method,
+                                       size_t method_length,
                                        uint8_t *key_buffer,
                                        size_t key_buffer_size,
                                        size_t *key_buffer_length);

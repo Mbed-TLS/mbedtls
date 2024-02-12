@@ -20,15 +20,7 @@
  *
  * This is used in some smoke tests.
  */
-#if defined(PSA_WANT_ALG_MD5)
-#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_MD5
-/* PSA_WANT_ALG_RIPEMD160 omitted. This is necessary for the sake of
- * exercise_signature_key() because Mbed TLS doesn't support RIPEMD160
- * in RSA PKCS#1v1.5 signatures. A RIPEMD160-only configuration would be
- * implausible anyway. */
-#elif defined(PSA_WANT_ALG_SHA_1)
-#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_1
-#elif defined(PSA_WANT_ALG_SHA_256)
+#if defined(PSA_WANT_ALG_SHA_256)
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_256
 #elif defined(PSA_WANT_ALG_SHA_384)
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_384
@@ -36,6 +28,14 @@
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_512
 #elif defined(PSA_WANT_ALG_SHA3_256)
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA3_256
+#elif defined(PSA_WANT_ALG_SHA_1)
+#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_1
+#elif defined(PSA_WANT_ALG_MD5)
+#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_MD5
+/* PSA_WANT_ALG_RIPEMD160 omitted. This is necessary for the sake of
+ * exercise_signature_key() because Mbed TLS doesn't support RIPEMD160
+ * in RSA PKCS#1v1.5 signatures. A RIPEMD160-only configuration would be
+ * implausible anyway. */
 #else
 #undef KNOWN_SUPPORTED_HASH_ALG
 #endif

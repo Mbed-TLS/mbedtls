@@ -1255,6 +1255,54 @@ static void interruptible_signverify_get_minmax_completes(uint32_t max_ops,
 }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
+static int rsa_test_e(mbedtls_svc_key_id_t key,
+                      size_t bits,
+                      const data_t *e_arg)
+{
+    uint8_t *exported = NULL;
+    size_t exported_size =
+        PSA_EXPORT_KEY_OUTPUT_SIZE(PSA_KEY_TYPE_RSA_PUBLIC_KEY, bits);
+    size_t exported_length = SIZE_MAX;
+    int ok = 0;
+
+    TEST_CALLOC(exported, exported_size);
+    PSA_ASSERT(psa_export_public_key(key,
+                                     exported, exported_size,
+                                     &exported_length));
+    uint8_t *p = exported;
+    uint8_t *end = exported + exported_length;
+    size_t len;
+    /*   RSAPublicKey ::= SEQUENCE {
+     *      modulus            INTEGER,    -- n
+     *      publicExponent     INTEGER  }  -- e
+     */
+    TEST_EQUAL(0, mbedtls_asn1_get_tag(&p, end, &len,
+                                       MBEDTLS_ASN1_SEQUENCE |
+                                       MBEDTLS_ASN1_CONSTRUCTED));
+    TEST_ASSERT(mbedtls_test_asn1_skip_integer(&p, end, bits, bits, 1));
+    TEST_EQUAL(0, mbedtls_asn1_get_tag(&p, end, &len,
+                                       MBEDTLS_ASN1_INTEGER));
+    if (len >= 1 && p[0] == 0) {
+        ++p;
+        --len;
+    }
+    if (e_arg->len == 0) {
+        TEST_EQUAL(len, 3);
+        TEST_EQUAL(p[0], 1);
+        TEST_EQUAL(p[1], 0);
+        TEST_EQUAL(p[2], 1);
+    } else {
+        TEST_MEMORY_COMPARE(p, len, e_arg->x, e_arg->len);
+    }
+    ok = 1;
+
+exit:
+    mbedtls_free(exported);
+    return ok;
+}
+#endif /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE */
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -9699,10 +9747,6 @@ void generate_key_rsa(int bits_arg,
     psa_algorithm_t alg = PSA_ALG_RSA_PKCS1V15_SIGN_RAW;
     psa_status_t expected_status = expected_status_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    uint8_t *exported = NULL;
-    size_t exported_size =
-        PSA_EXPORT_KEY_OUTPUT_SIZE(PSA_KEY_TYPE_RSA_PUBLIC_KEY, bits);
-    size_t exported_length = SIZE_MAX;
     uint8_t *e_read_buffer = NULL;
     int is_default_public_exponent = 0;
     size_t e_read_size = PSA_KEY_DOMAIN_PARAMETERS_SIZE(type, bits);
@@ -9715,7 +9759,6 @@ void generate_key_rsa(int bits_arg,
         e_read_size = 0;
     }
     TEST_CALLOC(e_read_buffer, e_read_size);
-    TEST_CALLOC(exported, exported_size);
 
     PSA_ASSERT(psa_crypto_init());
 
@@ -9759,37 +9802,7 @@ void generate_key_rsa(int bits_arg,
         goto exit;
     }
 
-    /* Export the key and check the public exponent. */
-    PSA_ASSERT(psa_export_public_key(key,
-                                     exported, exported_size,
-                                     &exported_length));
-    {
-        uint8_t *p = exported;
-        uint8_t *end = exported + exported_length;
-        size_t len;
-        /*   RSAPublicKey ::= SEQUENCE {
-         *      modulus            INTEGER,    -- n
-         *      publicExponent     INTEGER  }  -- e
-         */
-        TEST_EQUAL(0, mbedtls_asn1_get_tag(&p, end, &len,
-                                           MBEDTLS_ASN1_SEQUENCE |
-                                           MBEDTLS_ASN1_CONSTRUCTED));
-        TEST_ASSERT(mbedtls_test_asn1_skip_integer(&p, end, bits, bits, 1));
-        TEST_EQUAL(0, mbedtls_asn1_get_tag(&p, end, &len,
-                                           MBEDTLS_ASN1_INTEGER));
-        if (len >= 1 && p[0] == 0) {
-            ++p;
-            --len;
-        }
-        if (e_arg->len == 0) {
-            TEST_EQUAL(len, 3);
-            TEST_EQUAL(p[0], 1);
-            TEST_EQUAL(p[1], 0);
-            TEST_EQUAL(p[2], 1);
-        } else {
-            TEST_MEMORY_COMPARE(p, len, e_arg->x, e_arg->len);
-        }
-    }
+    TEST_ASSERT(rsa_test_e(key, bits, e_arg));
 
 exit:
     /*
@@ -9801,7 +9814,6 @@ exit:
     psa_destroy_key(key);
     PSA_DONE();
     mbedtls_free(e_read_buffer);
-    mbedtls_free(exported);
 }
 /* END_CASE */
 

@@ -241,6 +241,28 @@ exit:
 }
 #endif /* MBEDTLS_AES_C */
 
+#if defined(MBEDTLS_DES_C) || defined(MBEDTLS_AES_C)
+static int pem_check_pkcs_padding(unsigned char *input, size_t input_len, size_t *data_len)
+{
+    size_t pad_len = input[input_len - 1];
+    size_t i;
+
+    if (pad_len > input_len) {
+        return MBEDTLS_ERR_PEM_BAD_INPUT_DATA;
+    }
+
+    *data_len = input_len - pad_len;
+
+    for (i = *data_len; i < input_len; i++) {
+        if (input[i] != pad_len) {
+            return MBEDTLS_ERR_PEM_BAD_INPUT_DATA;
+        }
+    }
+
+    return 0;
+}
+#endif /* MBEDTLS_DES_C || MBEDTLS_AES_C */
+
 #endif /* PEM_RFC1421 */
 
 int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const char *footer,
@@ -431,21 +453,36 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
             return ret;
         }
 
+        /* Check PKCS padding and update data length based on padding info.
+         * This can be used to detect invalid padding data and password
+         * mismatches. */
+        ret = pem_check_pkcs_padding(buf, len, &len);
+        if (ret != 0) {
+            mbedtls_free(buf);
+            return ret;
+        }
+
         /*
-         * The result will be ASN.1 starting with a SEQUENCE tag. Parse it
-         * with ASN.1 functions in order to:
-         * - Have an heuristic guess about password mismatches.
-         * - Update len variable to the amount of valid data inside buf.
+         * In RFC1421 PEM is used as container for DER (ASN.1) content so we
+         * can use ASN.1 functions to parse the main SEQUENCE tag and to get its
+         * length.
          */
         unsigned char *p = buf;
-        ret = mbedtls_asn1_get_tag(&p, buf + len, &len,
+        size_t sequence_len;
+        ret = mbedtls_asn1_get_tag(&p, buf + len, &sequence_len,
                                    MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED);
         if (ret != 0) {
             mbedtls_free(buf);
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PEM_INVALID_DATA, ret);
         }
         /* Add also the sequence block (tag + len) to the total amount of valid data. */
-        len += (p - buf);
+        sequence_len += (p - buf);
+
+        /* Ensure that the reported SEQUENCE length matches the data len (i.e. no
+         * trailing garbage data). */
+        if (len != sequence_len) {
+            return MBEDTLS_ERR_PEM_BAD_INPUT_DATA;
+        }
 #else
         mbedtls_zeroize_and_free(buf, len);
         return MBEDTLS_ERR_PEM_FEATURE_UNAVAILABLE;

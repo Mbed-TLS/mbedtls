@@ -1,0 +1,4 @@
+Bugfix
+   * mbedtls_pem_read_buffer() now performs a check on the padding data of
+     decrypted keys and it rejects invalid ones. It also parses and validates
+     the main ASN.1 SEQUENCE header.

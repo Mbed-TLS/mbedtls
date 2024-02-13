@@ -2614,8 +2614,8 @@ static int ecp_mul_mxz(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     /* RP.X might be slightly larger than P, so reduce it */
     MOD_ADD(RP.X);
 
+    /* Randomize coordinates of the starting point */
 #if defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
-    /* Derandomize coordinates of the starting point */
     if (f_rng == NULL) {
         have_rng = 0;
     }

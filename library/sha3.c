@@ -85,7 +85,7 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
         for (i = 1; i < 25; i += 4) {
             uint32_t r = rho[(i - 1) >> 2];
             for (int j = i; j < i + 4; j++) {
-                uint8_t r8 = r >> 24;
+                uint8_t r8 = (uint8_t) (r >> 24);
                 r <<= 8;
                 s[j] = ROTR64(s[j], r8);
             }

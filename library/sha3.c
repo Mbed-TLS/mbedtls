@@ -39,9 +39,8 @@ static const uint32_t rho[6] = {
     0x3f022425, 0x1c143a09, 0x2c3d3615, 0x27191713, 0x312b382e, 0x3e030832
 };
 
-static const uint8_t pi[24] = {
-    10,  7, 11, 17, 18, 3,  5, 16,  8, 21, 24, 4,
-    15, 23, 19, 13, 12, 2, 20, 14, 22,  9,  6, 1,
+static const uint32_t pi[6] = {
+    0x0a070b11, 0x12030510, 0x08151804, 0x0f17130d, 0x0c02140e, 0x16090601
 };
 
 #define ROTR64(x, y) (((x) << (64U - (y))) | ((x) >> (y))) // 64-bit rotate right
@@ -94,8 +93,13 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
 
         /* Pi */
         t = s[1];
-        for (i = 0; i < 24; i++) {
-            SWAP(s[pi[i]], t);
+        for (i = 0; i < 24; i += 4) {
+            uint32_t p = pi[i >> 2];
+            for (unsigned j = 0; j < 4; j++) {
+                uint8_t p8 = (uint8_t) (p >> 24);
+                p <<= 8;
+                SWAP(s[p8], t);
+            }
         }
 
         /* Chi */

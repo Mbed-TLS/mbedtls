@@ -50,7 +50,7 @@ mbedtls_test_result_t mbedtls_test_get_result(void)
     return result;
 }
 
-void mbedtls_test_set_result(mbedtls_test_result_t result, const char *test,
+static void mbedtls_test_set_result(mbedtls_test_result_t result, const char *test,
                              int line_no, const char *filename)
 {
     /* Internal function only - mbedtls_test_info_mutex should be held prior
@@ -144,7 +144,7 @@ unsigned long mbedtls_test_get_step(void)
     return step;
 }
 
-void mbedtls_test_reset_step(void)
+static void mbedtls_test_reset_step(void)
 {
     /* Internal function only - mbedtls_test_info_mutex should be held prior
      * to calling this function. */
@@ -178,7 +178,7 @@ void mbedtls_test_get_line1(char *line)
 #endif /* MBEDTLS_THREADING_C */
 }
 
-void mbedtls_test_set_line1(const char *line)
+static void mbedtls_test_set_line1(const char *line)
 {
     /* Internal function only - mbedtls_test_info_mutex should be held prior
      * to calling this function. */
@@ -203,7 +203,7 @@ void mbedtls_test_get_line2(char *line)
 #endif /* MBEDTLS_THREADING_C */
 }
 
-void mbedtls_test_set_line2(const char *line)
+static void mbedtls_test_set_line2(const char *line)
 {
     /* Internal function only - mbedtls_test_info_mutex should be held prior
      * to calling this function. */
@@ -255,7 +255,7 @@ unsigned mbedtls_test_get_case_uses_negative_0(void)
     return test_case_uses_negative_0;
 }
 
-void mbedtls_test_set_case_uses_negative_0(unsigned uses)
+static void mbedtls_test_set_case_uses_negative_0(unsigned uses)
 {
     /* Internal function only - mbedtls_test_info_mutex should be held prior
      * to calling this function. */

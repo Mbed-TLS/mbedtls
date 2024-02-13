@@ -229,7 +229,19 @@ static void mbedtls_test_set_line2_internal(const char *line)
 #if defined(MBEDTLS_TEST_MUTEX_USAGE)
 const char *mbedtls_test_get_mutex_usage_error(void)
 {
-    return mbedtls_test_info.mutex_usage_error;
+    const char *usage_error;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
+    usage_error = mbedtls_test_info.mutex_usage_error;
+
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
+    return usage_error;
 }
 
 void mbedtls_test_set_mutex_usage_error(const char *msg)

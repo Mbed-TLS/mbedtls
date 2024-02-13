@@ -26,25 +26,6 @@
 
 #define XOR_BYTE 0x6
 
-typedef struct mbedtls_sha3_family_functions {
-    mbedtls_sha3_id id;
-
-    uint16_t r;
-    uint16_t olen;
-}
-mbedtls_sha3_family_functions;
-
-/*
- * List of supported SHA-3 families
- */
-static const mbedtls_sha3_family_functions sha3_families[] = {
-    { MBEDTLS_SHA3_224,      1152, 224 },
-    { MBEDTLS_SHA3_256,      1088, 256 },
-    { MBEDTLS_SHA3_384,       832, 384 },
-    { MBEDTLS_SHA3_512,       576, 512 },
-    { MBEDTLS_SHA3_NONE, 0, 0 }
-};
-
 static const uint64_t rc[24] = {
     0x0000000000000001, 0x0000000000008082, 0x800000000000808a, 0x8000000080008000,
     0x000000000000808b, 0x0000000080000001, 0x8000000080008081, 0x8000000000008009,
@@ -180,20 +161,26 @@ void mbedtls_sha3_clone(mbedtls_sha3_context *dst,
  */
 int mbedtls_sha3_starts(mbedtls_sha3_context *ctx, mbedtls_sha3_id id)
 {
-    const mbedtls_sha3_family_functions *p = NULL;
-
-    for (p = sha3_families; p->id != MBEDTLS_SHA3_NONE; p++) {
-        if (p->id == id) {
+    switch (id) {
+        case MBEDTLS_SHA3_224:
+            ctx->olen = 224 / 8;
+            ctx->max_block_size = 1152 / 8;
             break;
-        }
+        case MBEDTLS_SHA3_256:
+            ctx->olen = 256 / 8;
+            ctx->max_block_size = 1088 / 8;
+            break;
+        case MBEDTLS_SHA3_384:
+            ctx->olen = 384 / 8;
+            ctx->max_block_size = 832 / 8;
+            break;
+        case MBEDTLS_SHA3_512:
+            ctx->olen = 512 / 8;
+            ctx->max_block_size = 576 / 8;
+            break;
+        default:
+            return MBEDTLS_ERR_SHA3_BAD_INPUT_DATA;
     }
-
-    if (p->id == MBEDTLS_SHA3_NONE) {
-        return MBEDTLS_ERR_SHA3_BAD_INPUT_DATA;
-    }
-
-    ctx->olen = p->olen / 8;
-    ctx->max_block_size = p->r / 8;
 
     memset(ctx->state, 0, sizeof(ctx->state));
     ctx->index = 0;

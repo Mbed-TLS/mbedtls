@@ -5204,6 +5204,12 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer(const mbedtls_ssl_con
 #define SSL_SERIALIZED_SESSION_CONFIG_CRT 0
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#define SSL_SERIALIZED_SESSION_KEEP_PEER_CRT 1
+#else
+#define SSL_SERIALIZED_SESSION_KEEP_PEER_CRT 0
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
 #if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SESSION_TICKETS)
 #define SSL_SERIALIZED_SESSION_CONFIG_CLIENT_TICKET 1
 #else
@@ -5241,6 +5247,7 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer(const mbedtls_ssl_con
 #define SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC_BIT    4
 #define SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT           5
 #define SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT        6
+#define SSL_SERIALIZED_SESSION_CONFIG_KEEP_CRT_BIT      7
 
 #define SSL_SERIALIZED_SESSION_CONFIG_BITFLAG                           \
     ((uint16_t) (                                                      \
@@ -5252,7 +5259,8 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer(const mbedtls_ssl_con
          (SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC << \
              SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC_BIT) | \
          (SSL_SERIALIZED_SESSION_CONFIG_ETM << SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT) | \
-         (SSL_SERIALIZED_SESSION_CONFIG_TICKET << SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT)))
+         (SSL_SERIALIZED_SESSION_CONFIG_TICKET << SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT) | \
+         (SSL_SERIALIZED_SESSION_KEEP_PEER_CRT << SSL_SERIALIZED_SESSION_CONFIG_KEEP_CRT_BIT)))
 
 static const unsigned char ssl_serialized_session_header[] = {
     MBEDTLS_VERSION_MAJOR,

@@ -36,9 +36,7 @@ static const uint64_t rc[24] = {
 };
 
 static const uint8_t rho[24] = {
-    1, 62, 28, 27, 36, 44,  6, 55, 20,
-    3, 10, 43, 25, 39, 41, 45, 15,
-    21,  8, 18,  2, 61, 56, 14
+   63, 2, 36, 37, 28, 20, 58, 9, 44, 61, 54, 21, 39, 25, 23, 19, 49, 43, 56, 46, 62, 3, 8, 50
 };
 
 static const uint8_t pi[24] = {
@@ -46,7 +44,7 @@ static const uint8_t pi[24] = {
     15, 23, 19, 13, 12, 2, 20, 14, 22,  9,  6, 1,
 };
 
-#define ROT64(x, y) (((x) << (y)) | ((x) >> (64U - (y))))
+#define ROTR64(x, y) (((x) << (64U - (y))) | ((x) >> (y))) // 64-bit rotate right
 #define ABSORB(ctx, idx, v) do { ctx->state[(idx) >> 3] ^= ((uint64_t) (v)) << (((idx) & 0x7) << 3); \
 } while (0)
 #define SQUEEZE(ctx, idx) ((uint8_t) (ctx->state[(idx) >> 3] >> (((idx) & 0x7) << 3)))
@@ -69,24 +67,24 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
         lane[3] = s[3] ^ s[8] ^ s[13] ^ s[18] ^ s[23];
         lane[4] = s[4] ^ s[9] ^ s[14] ^ s[19] ^ s[24];
 
-        t = lane[4] ^ ROT64(lane[1], 1);
+        t = lane[4] ^ ROTR64(lane[1], 63);
         s[0] ^= t; s[5] ^= t; s[10] ^= t; s[15] ^= t; s[20] ^= t;
 
-        t = lane[0] ^ ROT64(lane[2], 1);
+        t = lane[0] ^ ROTR64(lane[2], 63);
         s[1] ^= t; s[6] ^= t; s[11] ^= t; s[16] ^= t; s[21] ^= t;
 
-        t = lane[1] ^ ROT64(lane[3], 1);
+        t = lane[1] ^ ROTR64(lane[3], 63);
         s[2] ^= t; s[7] ^= t; s[12] ^= t; s[17] ^= t; s[22] ^= t;
 
-        t = lane[2] ^ ROT64(lane[4], 1);
+        t = lane[2] ^ ROTR64(lane[4], 63);
         s[3] ^= t; s[8] ^= t; s[13] ^= t; s[18] ^= t; s[23] ^= t;
 
-        t = lane[3] ^ ROT64(lane[0], 1);
+        t = lane[3] ^ ROTR64(lane[0], 63);
         s[4] ^= t; s[9] ^= t; s[14] ^= t; s[19] ^= t; s[24] ^= t;
 
         /* Rho */
         for (i = 1; i < 25; i++) {
-            s[i] = ROT64(s[i], rho[i-1]);
+            s[i] = ROTR64(s[i], rho[i-1]);
         }
 
         /* Pi */

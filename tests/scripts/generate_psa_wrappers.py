@@ -154,6 +154,12 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
                              'psa_sign_hash',
                              'psa_verify_hash'):
             return True
+        if function_name in ('psa_hash_update',
+                             'psa_hash_finish',
+                             'psa_hash_verify',
+                             'psa_hash_compute',
+                             'psa_hash_compare'):
+            return True
         return False
 
     def _write_function_call(self, out: typing_util.Writable,

@@ -1,6 +1,7 @@
 /* BEGIN_HEADER */
 #include "mbedtls/rsa.h"
 #include "rsa_alt_helpers.h"
+#include "rsa_internal.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -1368,6 +1369,112 @@ exit:
     mbedtls_free(buf_dec);
 
     mbedtls_rsa_free(&ctx);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void rsa_parse_pkcs1_key(int is_public, data_t *input, int exp_ret_val)
+{
+    mbedtls_rsa_context rsa_ctx;
+
+    mbedtls_rsa_init(&rsa_ctx);
+
+    if (is_public) {
+        TEST_EQUAL(mbedtls_rsa_parse_pubkey(&rsa_ctx, input->x, input->len), exp_ret_val);
+    } else {
+        TEST_EQUAL(mbedtls_rsa_parse_key(&rsa_ctx, input->x, input->len), exp_ret_val);
+    }
+
+exit:
+    mbedtls_rsa_free(&rsa_ctx);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void rsa_parse_write_pkcs1_key(int is_public, data_t *input)
+{
+    mbedtls_rsa_context rsa_ctx;
+    unsigned char *output_buf = NULL;
+    unsigned char *output_end, *output_p;
+    size_t output_len;
+
+    mbedtls_rsa_init(&rsa_ctx);
+
+    TEST_CALLOC(output_buf, input->len);
+    output_end = output_buf + input->len;
+    output_p = output_end;
+
+    /* Parse the key and write it back to output_buf. */
+    if (is_public) {
+        TEST_EQUAL(mbedtls_rsa_parse_pubkey(&rsa_ctx, input->x, input->len), 0);
+        TEST_EQUAL(mbedtls_rsa_write_pubkey(&rsa_ctx, output_buf, &output_p), input->len);
+    } else {
+        TEST_EQUAL(mbedtls_rsa_parse_key(&rsa_ctx, input->x, input->len), 0);
+        TEST_EQUAL(mbedtls_rsa_write_key(&rsa_ctx, output_buf, &output_p), input->len);
+    }
+    output_len = output_end - output_p;
+
+    /* Check that the written key matches with the one provided in input. */
+    TEST_MEMORY_COMPARE(output_p, output_len, input->x, input->len);
+
+exit:
+    mbedtls_free(output_buf);
+    mbedtls_rsa_free(&rsa_ctx);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void rsa_key_write_incremental(int is_public, data_t *input)
+{
+    mbedtls_rsa_context rsa_ctx;
+    unsigned char *buf = NULL, *end, *p;
+    size_t i, written_data;
+
+    mbedtls_rsa_init(&rsa_ctx);
+
+    /* This is supposed to succeed as the real target of this test are the
+     * write attempt below. */
+    if (is_public) {
+        TEST_EQUAL(mbedtls_rsa_parse_pubkey(&rsa_ctx, input->x, input->len), 0);
+    } else {
+        TEST_EQUAL(mbedtls_rsa_parse_key(&rsa_ctx, input->x, input->len), 0);
+    }
+
+    /* Test with an output buffer smaller than required. */
+    for (i = 1; i < input->len; i++) {
+        TEST_CALLOC(buf, i);
+        end = buf + i;
+        p = end;
+        /* We don't care much about the return value as long as it fails. */
+        if (is_public) {
+            TEST_ASSERT(mbedtls_rsa_write_pubkey(&rsa_ctx, buf, &p) != 0);
+        } else {
+            TEST_ASSERT(mbedtls_rsa_write_key(&rsa_ctx, buf, &p) != 0);
+        }
+        mbedtls_free(buf);
+        buf = NULL;
+    }
+
+    /* Test with an output buffer equal or larger than what it is strictly required. */
+    for (i = input->len; i < (2 * input->len); i++) {
+        TEST_CALLOC(buf, i);
+        end = buf + i;
+        p = end;
+        /* This time all write functions must succeed. */
+        if (is_public) {
+            TEST_ASSERT(mbedtls_rsa_write_pubkey(&rsa_ctx, buf, &p) > 0);
+        } else {
+            TEST_ASSERT(mbedtls_rsa_write_key(&rsa_ctx, buf, &p) > 0);
+        }
+        written_data = (end - p);
+        TEST_MEMORY_COMPARE(p, written_data, input->x, input->len);
+        mbedtls_free(buf);
+        buf = NULL;
+    }
+
+exit:
+    mbedtls_free(buf);
+    mbedtls_rsa_free(&rsa_ctx);
 }
 /* END_CASE */
 

@@ -1,0 +1,10 @@
+Default behavior changes
+   * psa_import_key() now only accepts RSA keys in the PSA standard formats.
+     The undocumented ability to import other formats (PKCS#8, SubjectPublicKey,
+     PEM) accepted by the pkparse module has been removed. Applications that
+     need these formats can call mbedtls_pk_parse_{public,}key() followed by
+     mbedtls_pk_import_into_psa().
+
+Changes
+   * RSA support in PSA no longer auto-enables the pkparse and pkwrite modules,
+     saving code size when those are not otherwise enabled.

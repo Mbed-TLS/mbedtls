@@ -631,7 +631,7 @@ static const char *extension_name_table[] = {
     [MBEDTLS_SSL_EXT_ID_RECORD_SIZE_LIMIT] = "record_size_limit"
 };
 
-static unsigned int extension_type_table[] = {
+static const unsigned int extension_type_table[] = {
     [MBEDTLS_SSL_EXT_ID_UNRECOGNIZED] = 0xff,
     [MBEDTLS_SSL_EXT_ID_SERVERNAME] = MBEDTLS_TLS_EXT_SERVERNAME,
     [MBEDTLS_SSL_EXT_ID_MAX_FRAGMENT_LENGTH] = MBEDTLS_TLS_EXT_MAX_FRAGMENT_LENGTH,
@@ -3711,7 +3711,7 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
          (SSL_SERIALIZED_SESSION_CONFIG_ETM << SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT) | \
          (SSL_SERIALIZED_SESSION_CONFIG_TICKET << SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT)))
 
-static unsigned char ssl_serialized_session_header[] = {
+static const unsigned char ssl_serialized_session_header[] = {
     MBEDTLS_VERSION_MAJOR,
     MBEDTLS_VERSION_MINOR,
     MBEDTLS_VERSION_PATCH,
@@ -4436,7 +4436,7 @@ void mbedtls_ssl_session_free(mbedtls_ssl_session *session)
          (SSL_SERIALIZED_CONTEXT_CONFIG_ALPN << SSL_SERIALIZED_CONTEXT_CONFIG_ALPN_BIT) | \
          0u))
 
-static unsigned char ssl_serialized_context_header[] = {
+static const unsigned char ssl_serialized_context_header[] = {
     MBEDTLS_VERSION_MAJOR,
     MBEDTLS_VERSION_MINOR,
     MBEDTLS_VERSION_PATCH,
@@ -5054,7 +5054,7 @@ void mbedtls_ssl_config_init(mbedtls_ssl_config *conf)
  * See the documentation of mbedtls_ssl_conf_curves() for what we promise
  * about this list.
  */
-static uint16_t ssl_preset_default_groups[] = {
+static const uint16_t ssl_preset_default_groups[] = {
 #if defined(MBEDTLS_ECP_HAVE_CURVE25519)
     MBEDTLS_SSL_IANA_TLS_GROUP_X25519,
 #endif
@@ -5105,7 +5105,7 @@ static const int ssl_preset_suiteb_ciphersuites[] = {
  *   - ssl_tls12_preset* is for TLS 1.2 use only.
  *   - ssl_preset_* is for TLS 1.3 only or hybrid TLS 1.3/1.2 handshakes.
  */
-static uint16_t ssl_preset_default_sig_algs[] = {
+static const uint16_t ssl_preset_default_sig_algs[] = {
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED) && \
     defined(MBEDTLS_MD_CAN_SHA256) && \
@@ -5200,7 +5200,7 @@ static uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 /* NOTICE: see above */
-static uint16_t ssl_preset_suiteb_sig_algs[] = {
+static const uint16_t ssl_preset_suiteb_sig_algs[] = {
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ANY_ALLOWED_ENABLED) && \
     defined(MBEDTLS_MD_CAN_SHA256) && \
@@ -5241,7 +5241,7 @@ static uint16_t ssl_tls12_preset_suiteb_sig_algs[] = {
 
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-static uint16_t ssl_preset_suiteb_groups[] = {
+static const uint16_t ssl_preset_suiteb_groups[] = {
 #if defined(MBEDTLS_ECP_HAVE_SECP256R1)
     MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
 #endif
@@ -5255,7 +5255,7 @@ static uint16_t ssl_preset_suiteb_groups[] = {
 /* Function for checking `ssl_preset_*_sig_algs` and `ssl_tls12_preset_*_sig_algs`
  * to make sure there are no duplicated signature algorithm entries. */
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_check_no_sig_alg_duplication(uint16_t *sig_algs)
+static int ssl_check_no_sig_alg_duplication(const uint16_t *sig_algs)
 {
     size_t i, j;
     int ret = 0;

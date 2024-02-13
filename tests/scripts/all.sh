@@ -1079,8 +1079,8 @@ component_check_test_dependencies () {
     echo "!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH" >> $expected
     # No PSA equivalent - used to skip decryption tests in PSA-ECB, CBC/XTS/NIST_KW/DES
     echo "!MBEDTLS_BLOCK_CIPHER_NO_DECRYPT" >> $expected
-    # This is used by import_rsa_made_up() in test_suite_psa_crypto in order
-    # to build a fake RSA key of the wanted size based on
+    # MBEDTLS_ASN1_WRITE_C is used by import_rsa_made_up() in test_suite_psa_crypto
+    # in order to build a fake RSA key of the wanted size based on
     # PSA_VENDOR_RSA_MAX_KEY_BITS. The legacy module is only used by
     # the test code and that's probably the most convenient way of achieving
     # the test's goal.
@@ -1089,9 +1089,6 @@ component_check_test_dependencies () {
     echo "MBEDTLS_ECP_RESTARTABLE" >> $expected
     # No PSA equivalent - needed by some init tests
     echo "MBEDTLS_ENTROPY_NV_SEED" >> $expected
-    # Used by two tests that are about an extension to the PSA standard;
-    # as such, no PSA equivalent.
-    echo "MBEDTLS_PEM_PARSE_C" >> $expected
 
     # Compare reality with expectation.
     # We want an exact match, to ensure the above list remains up-to-date.
@@ -2795,12 +2792,6 @@ common_test_psa_crypto_config_accel_ecc_some_curves () {
     scripts/config.py unset MBEDTLS_PK_C
     scripts/config.py unset MBEDTLS_PK_PARSE_C
     scripts/config.py unset MBEDTLS_PK_WRITE_C
-    # We need to disable RSA too or PK will be re-enabled.
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_KEY_TYPE_RSA_[0-9A-Z_a-z]*"
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all "PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*"
-    scripts/config.py unset MBEDTLS_RSA_C
-    scripts/config.py unset MBEDTLS_PKCS1_V15
-    scripts/config.py unset MBEDTLS_PKCS1_V21
 
     # Disable modules that are accelerated - some will be re-enabled
     scripts/config.py unset MBEDTLS_ECDSA_C

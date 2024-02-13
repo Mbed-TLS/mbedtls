@@ -31,6 +31,7 @@
 #include <mbedtls/platform.h>
 #include <mbedtls/platform_util.h>
 #include "test/helpers.h"
+#include "test/threading_helpers.h"
 #include "test/macros.h"
 
 #include <stdio.h>
@@ -343,9 +344,11 @@ int main(int argc, char *argv[])
 #if defined(MBEDTLS_TEST_MUTEX_USAGE)
             mbedtls_test_mutex_usage_check();
 #endif
+            int result = (int) mbedtls_test_get_result();
+
             mbedtls_printf("Running metatest %s... done, result=%d\n",
-                           argv[1], (int) mbedtls_test_info.result);
-            mbedtls_exit(mbedtls_test_info.result == MBEDTLS_TEST_RESULT_SUCCESS ?
+                           argv[1], result);
+            mbedtls_exit(result == MBEDTLS_TEST_RESULT_SUCCESS ?
                          MBEDTLS_EXIT_SUCCESS :
                          MBEDTLS_EXIT_FAILURE);
         }

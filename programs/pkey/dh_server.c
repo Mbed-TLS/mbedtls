@@ -66,7 +66,7 @@ int main(void)
     mbedtls_dhm_context dhm;
     mbedtls_aes_context aes;
 
-    mbedtls_mpi N, P, Q, D, E;
+    mbedtls_mpi N, P, Q, D, E, dhm_P, dhm_G;
 
     mbedtls_net_init(&listen_fd);
     mbedtls_net_init(&client_fd);
@@ -75,8 +75,8 @@ int main(void)
     mbedtls_ctr_drbg_init(&ctr_drbg);
 
     mbedtls_mpi_init(&N); mbedtls_mpi_init(&P); mbedtls_mpi_init(&Q);
-    mbedtls_mpi_init(&D); mbedtls_mpi_init(&E);
-
+    mbedtls_mpi_init(&D); mbedtls_mpi_init(&E); mbedtls_mpi_init(&dhm_P);
+    mbedtls_mpi_init(&dhm_G);
     /*
      * 1. Setup the RNG
      */
@@ -141,8 +141,9 @@ int main(void)
         goto exit;
     }
 
-    if (mbedtls_mpi_read_file(&dhm.MBEDTLS_PRIVATE(P), 16, f) != 0 ||
-        mbedtls_mpi_read_file(&dhm.MBEDTLS_PRIVATE(G), 16, f) != 0) {
+    if ((ret = mbedtls_mpi_read_file(&dhm_P, 16, f)) != 0 ||
+        (ret = mbedtls_mpi_read_file(&dhm_G, 16, f)) != 0 ||
+        (ret = mbedtls_dhm_set_group(&dhm, &dhm_P, &dhm_G) != 0)) {
         mbedtls_printf(" failed\n  ! Invalid DH parameter file\n\n");
         fclose(f);
         goto exit;
@@ -176,7 +177,7 @@ int main(void)
     memset(buf, 0, sizeof(buf));
 
     if ((ret =
-             mbedtls_dhm_make_params(&dhm, (int) mbedtls_mpi_size(&dhm.MBEDTLS_PRIVATE(P)), buf, &n,
+             mbedtls_dhm_make_params(&dhm, (int) mbedtls_dhm_get_len(&dhm), buf, &n,
                                      mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
         mbedtls_printf(" failed\n  ! mbedtls_dhm_make_params returned %d\n\n", ret);
         goto exit;
@@ -286,7 +287,8 @@ int main(void)
 exit:
 
     mbedtls_mpi_free(&N); mbedtls_mpi_free(&P); mbedtls_mpi_free(&Q);
-    mbedtls_mpi_free(&D); mbedtls_mpi_free(&E);
+    mbedtls_mpi_free(&D); mbedtls_mpi_free(&E); mbedtls_mpi_free(&dhm_P);
+    mbedtls_mpi_free(&dhm_G);
 
     mbedtls_net_free(&client_fd);
     mbedtls_net_free(&listen_fd);

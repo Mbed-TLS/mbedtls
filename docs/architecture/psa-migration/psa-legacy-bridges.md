@@ -330,15 +330,15 @@ Based on the [gap analysis](#signature-formats):
 [ACTION] [#7765](https://github.com/Mbed-TLS/mbedtls/issues/7765) Implement `mbedtls_ecdsa_raw_to_der` and `mbedtls_ecdsa_der_to_raw` as described below.
 
 ```
-int mbedtls_ecdsa_raw_to_der(const unsigned char *raw, size_t raw_len,
-                             unsigned char *der, size_t der_size, size_t *der_len,
-                             size_t bits);
-int mbedtls_ecdsa_der_to_raw(const unsigned char *der, size_t der_len,
-                             unsigned char *raw, size_t raw_size, size_t *raw_len,
-                             size_t bits);
+int mbedtls_ecdsa_raw_to_der(size_t bits,
+                             const unsigned char *raw, size_t raw_len,
+                             unsigned char *der, size_t der_size, size_t *der_len);
+int mbedtls_ecdsa_der_to_raw(size_t bits,
+                             const unsigned char *der, size_t der_len,
+                             unsigned char *raw, size_t raw_size, size_t *raw_len);
 ```
 
 * These functions convert between the signature format used by `mbedtls_pk_{sign,verify}{,_ext}` and the signature format used by `psa_{sign,verify}_{hash,message}`.
 * The input and output buffers can overlap.
-* The `bits` parameter is necessary in the DER-to-raw direction because the DER format lacks leading zeros, so something else needs to convey the size of (r,s). The `bits` parameter is not needed in the raw-to-DER direction, but [it can help catch errors](https://github.com/Mbed-TLS/mbedtls/pull/8681#discussion_r1445980971) and the information is readily available in practice.
+* The `bits` parameter is necessary in the DER-to-raw direction because the DER format lacks leading zeros, so something else needs to convey the size of (r,s). The `bits` parameter is redundant in the raw-to-DER direction, but we have it anyway because [it helps catch errors](https://github.com/Mbed-TLS/mbedtls/pull/8681#discussion_r1445980971), and it isn't a burden on the caller because the information is readily available in practice.
 * Should these functions rely on the ASN.1 module? We experimented [calling ASN.1 functions](https://github.com/Mbed-TLS/mbedtls/pull/8681), [reimplementing simpler ASN.1 functions](https://github.com/Mbed-TLS/mbedtls/pull/8696), and [providing the functions from the ASN.1 module](https://github.com/Mbed-TLS/mbedtls/pull/8703). Providing the functions from the ASN.1 module [won on a compromise of code size and simplicity](https://github.com/Mbed-TLS/mbedtls/issues/7765#issuecomment-1893670015).

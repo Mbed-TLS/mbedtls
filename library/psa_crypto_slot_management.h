@@ -92,6 +92,8 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
 psa_status_t psa_initialize_key_slots(void);
 
 /** Delete all data from key slots in memory.
+ * This function is not thread safe, it wipes every key slot regardless of
+ * state and reader count. It should only be called when no slot is in use.
  *
  * This does not affect persistent storage. */
 void psa_wipe_all_key_slots(void);

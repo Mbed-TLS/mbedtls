@@ -16,6 +16,11 @@
 
 #include "psa/crypto.h"
 
+/* ASN1 defines used in the ECDSA conversion functions.
+ * Note: intentionally not adding MBEDTLS_ASN1_[PARSE|WRITE]_C guards here
+ * otherwise error codes would be unknown in test_suite_psa_crypto_util.data.*/
+#include <mbedtls/asn1write.h>
+
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
 /* Expose whatever RNG the PSA subsystem uses to applications using the
@@ -175,8 +180,50 @@ static inline mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa
 {
     return (mbedtls_md_type_t) (psa_alg & PSA_ALG_HASH_MASK);
 }
+#endif /* MBEDTLS_PSA_CRYPTO_C */
+
+#if defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
+
+/** Convert an ECDSA signature from raw format to DER ASN.1 format.
+ *
+ * \param       bits        Size of each coordinate in bits.
+ * \param       raw         Buffer that contains the signature in raw format.
+ * \param       raw_len     Length of \p raw in bytes. This must be
+ *                          PSA_BITS_TO_BYTES(bits) bytes.
+ * \param[out]  der         Buffer that will be filled with the converted DER
+ *                          output. It can overlap with raw buffer.
+ * \param       der_size    Size of \p der in bytes. It is enough if \p der_size
+ *                          is at least the size of the actual output. (The size
+ *                          of the output can vary depending on the presence of
+ *                          leading zeros in the data.) You can use
+ *                          #MBEDTLS_ECDSA_MAX_SIG_LEN(\p bits) to determine a
+ *                          size that is large enough for all signatures for a
+ *                          given value of \p bits.
+ * \param[out]  der_len     On success it contains the amount of valid data
+ *                          (in bytes) written to \p der. It's undefined
+ *                          in case of failure.
+ */
+int mbedtls_ecdsa_raw_to_der(size_t bits, const unsigned char *raw, size_t raw_len,
+                             unsigned char *der, size_t der_size, size_t *der_len);
+
+/** Convert an ECDSA signature from DER ASN.1 format to raw format.
+ *
+ * \param       bits        Size of each coordinate in bits.
+ * \param       der         Buffer that contains the signature in DER format.
+ * \param       der_len     Size of \p der in bytes.
+ * \param[out]  raw         Buffer that will be filled with the converted raw
+ *                          signature. It can overlap with der buffer.
+ * \param       raw_size    Size of \p raw in bytes. Must be at least
+ *                          2 * PSA_BITS_TO_BYTES(bits) bytes.
+ * \param[out]  raw_len     On success it is updated with the amount of valid
+ *                          data (in bytes) written to \p raw. It's undefined
+ *                          in case of failure.
+ */
+int mbedtls_ecdsa_der_to_raw(size_t bits, const unsigned char *der, size_t der_len,
+                             unsigned char *raw, size_t raw_size, size_t *raw_len);
+
+#endif /* MBEDTLS_PSA_UTIL_HAVE_ECDSA */
 
 /**@}*/
 
-#endif /* MBEDTLS_PSA_CRYPTO_C */
 #endif /* MBEDTLS_PSA_UTIL_H */

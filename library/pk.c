@@ -385,7 +385,7 @@ static psa_algorithm_t psa_algorithm_for_rsa(const mbedtls_rsa_context *rsa,
 {
     if (mbedtls_rsa_get_padding_mode(rsa) == MBEDTLS_RSA_PKCS_V21) {
         if (want_crypt) {
-            mbedtls_md_type_t md_type = mbedtls_rsa_get_md_alg(rsa);
+            mbedtls_md_type_t md_type = (mbedtls_md_type_t) mbedtls_rsa_get_md_alg(rsa);
             return PSA_ALG_RSA_OAEP(mbedtls_md_psa_alg_from_type(md_type));
         } else {
             return PSA_ALG_RSA_PSS_ANY_SALT(PSA_ALG_ANY_HASH);

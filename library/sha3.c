@@ -35,8 +35,8 @@ static const uint64_t rc[24] = {
     0x8000000080008081, 0x8000000000008080, 0x0000000080000001, 0x8000000080008008,
 };
 
-static const uint8_t rho[24] = {
-   63, 2, 36, 37, 28, 20, 58, 9, 44, 61, 54, 21, 39, 25, 23, 19, 49, 43, 56, 46, 62, 3, 8, 50
+static const uint32_t rho[6] = {
+    0x3f022425, 0x1c143a09, 0x2c3d3615, 0x27191713, 0x312b382e, 0x3e030832
 };
 
 static const uint8_t pi[24] = {
@@ -83,8 +83,13 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
         s[4] ^= t; s[9] ^= t; s[14] ^= t; s[19] ^= t; s[24] ^= t;
 
         /* Rho */
-        for (i = 1; i < 25; i++) {
-            s[i] = ROTR64(s[i], rho[i-1]);
+        for (i = 1; i < 25; i += 4) {
+            uint32_t r = rho[(i - 1) >> 2];
+            for (int j = i; j < i + 4; j++) {
+                uint8_t r8 = r >> 24;
+                r <<= 8;
+                s[j] = ROTR64(s[j], r8);
+            }
         }
 
         /* Pi */

@@ -341,11 +341,10 @@ int mbedtls_test_ascii2uc(const char c, unsigned char *uc)
     return 0;
 }
 
-void mbedtls_test_fail(const char *test, int line_no, const char *filename)
+static void mbedtls_test_fail_internal(const char *test, int line_no, const char *filename)
 {
-#ifdef MBEDTLS_THREADING_C
-    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
-#endif /* MBEDTLS_THREADING_C */
+    /* Internal function only - mbedtls_test_info_mutex should be held prior
+     * to calling this function. */
 
     /* Don't use accessor, we already hold mutex. */
     if (mbedtls_test_info.result != MBEDTLS_TEST_RESULT_FAILED) {
@@ -353,6 +352,15 @@ void mbedtls_test_fail(const char *test, int line_no, const char *filename)
          * overwrite any previous information about the failure. */
         mbedtls_test_set_result(MBEDTLS_TEST_RESULT_FAILED, test, line_no, filename);
     }
+}
+
+void mbedtls_test_fail(const char *test, int line_no, const char *filename)
+{
+#ifdef MBEDTLS_THREADING_C
+    mbedtls_mutex_lock(&mbedtls_test_info_mutex);
+#endif /* MBEDTLS_THREADING_C */
+
+    mbedtls_test_fail_internal(test, line_no, filename);
 
 #ifdef MBEDTLS_THREADING_C
     mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
@@ -412,7 +420,7 @@ int mbedtls_test_equal(const char *test, int line_no, const char *filename,
          * overwrite any previous information about the failure. */
 
         char buf[MBEDTLS_TEST_LINE_LENGTH];
-        mbedtls_test_fail(test, line_no, filename);
+        mbedtls_test_fail_internal(test, line_no, filename);
         (void) mbedtls_snprintf(buf, sizeof(buf),
                                 "lhs = 0x%016llx = %lld",
                                 value1, (long long) value1);
@@ -450,7 +458,7 @@ int mbedtls_test_le_u(const char *test, int line_no, const char *filename,
          * overwrite any previous information about the failure. */
 
         char buf[MBEDTLS_TEST_LINE_LENGTH];
-        mbedtls_test_fail(test, line_no, filename);
+        mbedtls_test_fail_internal(test, line_no, filename);
         (void) mbedtls_snprintf(buf, sizeof(buf),
                                 "lhs = 0x%016llx = %llu",
                                 value1, value1);
@@ -488,7 +496,7 @@ int mbedtls_test_le_s(const char *test, int line_no, const char *filename,
          * overwrite any previous information about the failure. */
 
         char buf[MBEDTLS_TEST_LINE_LENGTH];
-        mbedtls_test_fail(test, line_no, filename);
+        mbedtls_test_fail_internal(test, line_no, filename);
         (void) mbedtls_snprintf(buf, sizeof(buf),
                                 "lhs = 0x%016llx = %lld",
                                 (unsigned long long) value1, value1);

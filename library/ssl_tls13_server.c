@@ -3482,12 +3482,9 @@ int mbedtls_ssl_tls13_handshake_server_step(mbedtls_ssl_context *ssl)
             break;
 
         case MBEDTLS_SSL_SERVER_CCS_AFTER_SERVER_HELLO:
-            ret = 0;
-            if (ssl->handshake->ccs_count == 0) {
-                ret = mbedtls_ssl_tls13_write_change_cipher_spec(ssl);
-                if (ret != 0) {
-                    break;
-                }
+            ret = mbedtls_ssl_tls13_write_change_cipher_spec(ssl);
+            if (ret != 0) {
+                break;
             }
             mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS);
             break;

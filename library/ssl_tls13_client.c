@@ -3063,23 +3063,17 @@ int mbedtls_ssl_tls13_handshake_client_step(mbedtls_ssl_context *ssl)
              */
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
         case MBEDTLS_SSL_CLIENT_CCS_BEFORE_2ND_CLIENT_HELLO:
-            ret = 0;
-            if (ssl->handshake->ccs_count == 0) {
-                ret = mbedtls_ssl_tls13_write_change_cipher_spec(ssl);
-                if (ret != 0) {
-                    break;
-                }
+            ret = mbedtls_ssl_tls13_write_change_cipher_spec(ssl);
+            if (ret != 0) {
+                break;
             }
             mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_HELLO);
             break;
 
         case MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED:
-            ret = 0;
-            if (ssl->handshake->ccs_count == 0) {
-                ret = mbedtls_ssl_tls13_write_change_cipher_spec(ssl);
-                if (ret != 0) {
-                    break;
-                }
+            ret = mbedtls_ssl_tls13_write_change_cipher_spec(ssl);
+            if (ret != 0) {
+                break;
             }
             mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
             break;

@@ -731,14 +731,23 @@ struct mbedtls_ssl_handshake_params {
     uint8_t key_exchange_mode; /*!< Selected key exchange mode */
 
     /** Number of HelloRetryRequest messages received/sent from/to the server. */
-    int hello_retry_request_count;
+    uint8_t hello_retry_request_count;
+
+#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
+    /**
+     *  Number of dummy change_cipher_spec (CCS) record sent. Used to send only
+     *  one CCS per handshake without having to complicate the handshake state
+     *  transitions.
+     */
+    uint8_t ccs_count;
+#endif
 
 #if defined(MBEDTLS_SSL_SRV_C)
-    /** selected_group of key_share extension in HelloRetryRequest message. */
-    uint16_t hrr_selected_group;
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     uint8_t tls13_kex_modes; /*!< Key exchange modes supported by the client */
 #endif
+    /** selected_group of key_share extension in HelloRetryRequest message. */
+    uint16_t hrr_selected_group;
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     uint16_t new_session_tickets_count;         /*!< number of session tickets */
 #endif
@@ -2136,6 +2145,38 @@ int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
                                            unsigned char *buf,
                                            const unsigned char *end,
                                            size_t *out_len);
+
+#if defined(MBEDTLS_SSL_CLI_C)
+/*
+ * The client has not sent the first ClientHello yet, it is unknown if the
+ * client will send an early data indication extension or not.
+ */
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN 0
+
+/*
+ * The client has sent an early data indication extension in its first
+ * ClientHello, it has not received the response (ServerHello or
+ * HelloRetryRequest) from the server yet. The transform to protect early data
+ * is not set and early data cannot be sent yet.
+ */
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_SENT 4
+
+/*
+ * The client has sent an early data indication extension in its first
+ * ClientHello, it has not received the response (ServerHello or
+ * HelloRetryRequest) from the server yet. The transform to protect early data
+ * has been set and early data can be written now.
+ */
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE 5
+
+/*
+ * The client has sent an early data indication extension in its first
+ * ClientHello, the server has accepted them and the client has received the
+ * server Finished message. It cannot send early data to the server anymore.
+ */
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_SERVER_FINISHED_RECEIVED 6
+#endif /* MBEDTLS_SSL_CLI_C */
+
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

@@ -240,6 +240,44 @@ KNOWN_TASKS = {
             }
         }
     },
+    'analyze_driver_vs_reference_hmac': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_psa_crypto_config_reference_hmac',
+            'component_driver': 'test_psa_crypto_config_accel_hmac',
+            'ignored_suites': [
+                # These suites require legacy hash support, which is disabled
+                # in the accelerated component.
+                'shax', 'mdx',
+                # This suite tests builtins directly, but these are missing
+                # in the accelerated case.
+                'psa_crypto_low_hash.generated',
+            ],
+            'ignored_tests': {
+                'test_suite_md': [
+                    # Builtin HMAC is not supported in the accelerate component.
+                    re.compile('.*HMAC.*'),
+                    # Following tests make use of functions which are not available
+                    # when MD_C is disabled, as it happens in the accelerated
+                    # test component.
+                    re.compile('generic .* Hash file .*'),
+                    'MD list',
+                ],
+                'test_suite_md.psa': [
+                    # "legacy only" tests require hash algorithms to be NOT
+                    # accelerated, but this of course false for the accelerated
+                    # test component.
+                    re.compile('PSA dispatch .* legacy only'),
+                ],
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
+            }
+        }
+    },
     'analyze_driver_vs_reference_cipher_aead_cmac': {
         'test_function': do_analyze_driver_vs_reference,
         'args': {

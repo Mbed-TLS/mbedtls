@@ -3691,6 +3691,75 @@ component_test_psa_crypto_config_reference_hash_use_psa() {
     tests/ssl-opt.sh
 }
 
+# Auxiliary function to build config for hashes with and without drivers
+config_psa_crypto_hmac_use_psa () {
+    driver_only="$1"
+    # start with config full for maximum coverage (also enables USE_PSA)
+    helper_libtestdriver1_adjust_config "full"
+
+    if [ "$driver_only" -eq 1 ]; then
+        # Disable MD_C in order to disable the builtin support for HMAC. MD_LIGHT
+        # is still enabled though (for ENTROPY_C among others).
+        scripts/config.py unset MBEDTLS_MD_C
+        # Disable also the builtin hashes since they are supported by the driver
+        # and MD module is able to perform PSA dispathing.
+        scripts/config.py unset-all MBEDTLS_SHA
+        scripts/config.py unset MBEDTLS_MD5_C
+        scripts/config.py unset MBEDTLS_RIPEMD160_C
+    fi
+
+    # Direct dependencies of MD_C. We disable them also in the reference
+    # component to work with the same set of features.
+    scripts/config.py unset MBEDTLS_PKCS7_C
+    scripts/config.py unset MBEDTLS_PKCS5_C
+    scripts/config.py unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.py unset MBEDTLS_HKDF_C
+    # Dependencies of HMAC_DRBG
+    scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
+}
+
+component_test_psa_crypto_config_accel_hmac() {
+    msg "test: full with accelerated hmac"
+
+    loc_accel_list="ALG_HMAC KEY_TYPE_HMAC \
+                    ALG_MD5 ALG_RIPEMD160 ALG_SHA_1 \
+                    ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
+                    ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
+
+    # Configure
+    # ---------
+
+    config_psa_crypto_hmac_use_psa 1
+
+    # Build
+    # -----
+
+    helper_libtestdriver1_make_drivers "$loc_accel_list"
+
+    helper_libtestdriver1_make_main "$loc_accel_list"
+
+    # Ensure that built-in support for HMAC is disabled.
+    not grep mbedtls_md_hmac library/md.o
+
+    # Run the tests
+    # -------------
+
+    msg "test: full with accelerated hmac"
+    make test
+}
+
+component_test_psa_crypto_config_reference_hmac() {
+    msg "test: full without accelerated hmac"
+
+    config_psa_crypto_hmac_use_psa 0
+
+    make
+
+    msg "test: full without accelerated hmac"
+    make test
+}
+
 component_test_psa_crypto_config_accel_des () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated DES"
 

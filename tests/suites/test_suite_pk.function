@@ -427,7 +427,7 @@ void pk_psa_utils(int key_is_rsa)
     TEST_ASSERT(strcmp(mbedtls_pk_get_name(&pk), name) == 0);
 
     TEST_ASSERT(mbedtls_pk_get_bitlen(&pk) == bitlen);
-    TEST_ASSERT(mbedtls_pk_get_len(&pk) == bitlen / 8);
+    TEST_ASSERT(mbedtls_pk_get_len(&pk) == (bitlen + 7) / 8);
 
     if (key_is_rsa) {
         TEST_ASSERT(mbedtls_pk_can_do(&pk, MBEDTLS_PK_ECKEY) == 0);
@@ -822,7 +822,7 @@ void pk_rsa_verify_test_vec(data_t *message_str, int digest, int mod,
     TEST_ASSERT(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)) == 0);
     rsa = mbedtls_pk_rsa(pk);
 
-    rsa->len = mod / 8;
+    rsa->len = (mod + 7) / 8;
     TEST_ASSERT(mbedtls_test_read_mpi(&rsa->N, input_N) == 0);
     TEST_ASSERT(mbedtls_test_read_mpi(&rsa->E, input_E) == 0);
 
@@ -862,7 +862,7 @@ void pk_rsa_verify_ext_test_vec(data_t *message_str, int digest,
     TEST_ASSERT(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)) == 0);
     rsa = mbedtls_pk_rsa(pk);
 
-    rsa->len = mod / 8;
+    rsa->len = (mod + 7) / 8;
     TEST_ASSERT(mbedtls_test_read_mpi(&rsa->N, input_N) == 0);
     TEST_ASSERT(mbedtls_test_read_mpi(&rsa->E, input_E) == 0);
 
@@ -1143,7 +1143,7 @@ void pk_rsa_encrypt_decrypt_test(data_t *message, int mod,
     rsa = mbedtls_pk_rsa(pk);
 
     /* load public key */
-    rsa->len = mod / 8;
+    rsa->len = (mod + 7) / 8;
     TEST_ASSERT(mbedtls_test_read_mpi(&rsa->N, input_N) == 0);
     TEST_ASSERT(mbedtls_test_read_mpi(&rsa->E, input_E) == 0);
 
@@ -1169,8 +1169,11 @@ void pk_rsa_encrypt_decrypt_test(data_t *message, int mod,
     TEST_ASSERT(mbedtls_test_read_mpi(&P, input_P) == 0);
     TEST_ASSERT(mbedtls_test_read_mpi(&Q, input_Q) == 0);
     TEST_ASSERT(mbedtls_rsa_import(rsa, &N, &P, &Q, NULL, &E) == 0);
-    TEST_ASSERT(mbedtls_rsa_get_len(rsa) == (size_t) (mod / 8));
+    TEST_EQUAL(mbedtls_rsa_get_len(rsa), (mod + 7) / 8);
     TEST_ASSERT(mbedtls_rsa_complete(rsa) == 0);
+
+    TEST_EQUAL(mbedtls_pk_get_len(&pk), (mod + 7) / 8);
+    TEST_EQUAL(mbedtls_pk_get_bitlen(&pk), mod);
 
     memset(result, 0, sizeof(result));
     rlen = 0;
@@ -1222,8 +1225,11 @@ void pk_rsa_decrypt_test_vec(data_t *cipher, int mod,
     TEST_ASSERT(mbedtls_test_read_mpi(&P, input_P) == 0);
     TEST_ASSERT(mbedtls_test_read_mpi(&Q, input_Q) == 0);
     TEST_ASSERT(mbedtls_rsa_import(rsa, &N, &P, &Q, NULL, &E) == 0);
-    TEST_ASSERT(mbedtls_rsa_get_len(rsa) == (size_t) (mod / 8));
+    TEST_EQUAL(mbedtls_rsa_get_len(rsa), (mod + 7) / 8);
     TEST_ASSERT(mbedtls_rsa_complete(rsa) == 0);
+
+    TEST_EQUAL(mbedtls_pk_get_bitlen(&pk), mod);
+    TEST_EQUAL(mbedtls_pk_get_len(&pk), (mod + 7) / 8);
 
     /* decryption test */
     memset(output, 0, sizeof(output));
@@ -1278,7 +1284,7 @@ void pk_wrap_rsa_decrypt_test_vec(data_t *cipher, int mod,
     TEST_EQUAL(mbedtls_test_read_mpi(&P, input_P), 0);
     TEST_EQUAL(mbedtls_test_read_mpi(&Q, input_Q), 0);
     TEST_EQUAL(mbedtls_rsa_import(rsa, &N, &P, &Q, NULL, &E), 0);
-    TEST_EQUAL(mbedtls_rsa_get_len(rsa), (size_t) (mod / 8));
+    TEST_EQUAL(mbedtls_rsa_get_len(rsa), (mod + 7) / 8);
     TEST_EQUAL(mbedtls_rsa_complete(rsa), 0);
 
     /* Turn PK context into an opaque one. */
@@ -1286,6 +1292,8 @@ void pk_wrap_rsa_decrypt_test_vec(data_t *cipher, int mod,
                                          PSA_ALG_RSA_PKCS1V15_CRYPT,
                                          PSA_KEY_USAGE_DECRYPT,
                                          PSA_ALG_NONE), 0);
+
+    TEST_EQUAL(mbedtls_pk_get_bitlen(&pk), mod);
 
     /* decryption test */
     memset(output, 0, sizeof(output));

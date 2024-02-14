@@ -58,7 +58,7 @@ static int rsa_can_do(mbedtls_pk_type_t type)
 static size_t rsa_get_bitlen(mbedtls_pk_context *pk)
 {
     const mbedtls_rsa_context *rsa = (const mbedtls_rsa_context *) pk->pk_ctx;
-    return 8 * mbedtls_rsa_get_len(rsa);
+    return mbedtls_rsa_get_bitlen(rsa);
 }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

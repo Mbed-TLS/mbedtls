@@ -427,6 +427,16 @@ int mbedtls_rsa_export_crt(const mbedtls_rsa_context *ctx,
                            mbedtls_mpi *DP, mbedtls_mpi *DQ, mbedtls_mpi *QP);
 
 /**
+ * \brief          This function retrieves the length of the RSA modulus in bits.
+ *
+ * \param ctx      The initialized RSA context.
+ *
+ * \return         The length of the RSA modulus in bits.
+ *
+ */
+size_t mbedtls_rsa_get_bitlen(const mbedtls_rsa_context *ctx);
+
+/**
  * \brief          This function retrieves the length of RSA modulus in Bytes.
  *
  * \param ctx      The initialized RSA context.

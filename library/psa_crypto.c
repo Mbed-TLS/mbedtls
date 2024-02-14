@@ -2565,7 +2565,7 @@ exit:
         psa_mac_abort(operation);
     }
 
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }

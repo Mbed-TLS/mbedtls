@@ -10,9 +10,20 @@
  *  https://nvlpubs.nist.gov/nistpubs/fips/nist.fips.202.pdf
  */
 
-#undef  MBEDTLS_SHA3_THETA_UNROLL
-#define MBEDTLS_SHA3_RHO_UNROLL
-#define MBEDTLS_SHA3_PI_UNROLL
+/*
+ * These macros select manually unrolled implementations of parts of the main permutation function.
+ *
+ * Unrolling has a major impact on both performance and code size. gcc performance benefits a lot
+ * from manually unrolling at higher optimisation levels.
+ *
+ * Rolling up the theta loop saves a lot of code-size at small performance cost. The code-size
+ * saving then enables us to unroll the other loops for a net code-size saving with a net
+ * performance win.
+ */
+#undef   MBEDTLS_SHA3_THETA_UNROLL //no-check-names
+#define  MBEDTLS_SHA3_RHO_UNROLL   //no-check-names
+#define  MBEDTLS_SHA3_PI_UNROLL    //no-check-names
+
 
 #include "common.h"
 

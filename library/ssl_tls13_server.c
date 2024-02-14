@@ -608,18 +608,16 @@ static int ssl_tls13_parse_pre_shared_key_ext(
                     ssl, ciphersuites, ciphersuites_end,
                     &cipher_suite, &ciphersuite_info);
                 break;
-            case MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION:
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
+            case MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION:
                 ret = ssl_tls13_select_ciphersuite_for_resumption(
                     ssl, ciphersuites, ciphersuites_end, &session,
                     &cipher_suite, &ciphersuite_info);
                 if (ret != 0) {
                     mbedtls_ssl_session_free(&session);
                 }
-#else
-                ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-#endif
                 break;
+#endif
             default:
                 return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
         }

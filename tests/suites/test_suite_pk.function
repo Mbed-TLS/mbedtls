@@ -2377,7 +2377,7 @@ void pk_copy_from_psa_success(data_t *priv_key_data, int key_type_arg,
     pub_key_id = pk_psa_pub_key_from_priv(priv_key_id, pub_key_type, key_usage, key_alg, key_bits);
     TEST_EQUAL(mbedtls_pk_copy_from_psa(pub_key_id, &pk_ctx2), 0);
 
-    /* Test sign/verify with the following parttern:
+    /* Test sign/verify with the following pattern:
      * - Sign using the PK context generated from the private key.
      * - Verify from the same PK context used for signature.
      * - Verify with the PK context generated using public key.

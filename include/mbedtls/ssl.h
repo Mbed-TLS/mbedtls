@@ -1657,31 +1657,31 @@ struct mbedtls_ssl_context {
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
     /**
-     *  Maximum TLS version to be negotiated, then negotiated TLS version.
+     * Maximum TLS version to be negotiated, then negotiated TLS version.
      *
-     *  It is initialized as the configured maximum TLS version to be
-     *  negotiated by mbedtls_ssl_setup().
+     * It is initialized as the configured maximum TLS version to be
+     * negotiated by mbedtls_ssl_setup().
      *
-     *  When renegotiating or resuming a session, it is overwritten in the
-     *  ClientHello writing preparation stage with the previously negotiated
-     *  TLS version.
+     * When renegotiating or resuming a session, it is overwritten in the
+     * ClientHello writing preparation stage with the previously negotiated
+     * TLS version.
      *
-     *  On client side, it is updated to the TLS version selected by the server
-     *  for the handshake when the ServerHello is received.
+     * On client side, it is updated to the TLS version selected by the server
+     * for the handshake when the ServerHello is received.
      *
-     *  On server side, it is updated to the TLS version the server selects for
-     *  the handshake when the ClientHello is received.
+     * On server side, it is updated to the TLS version the server selects for
+     * the handshake when the ClientHello is received.
      */
     mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(tls_version);
 
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
     /**
-     *  Status of the negotiation of the use of early data.
-     *  See the documentation of mbedtls_ssl_get_early_data_status() for more
-     *  information.
+     * Status of the negotiation of the use of early data.
+     * See the documentation of mbedtls_ssl_get_early_data_status() for more
+     * information.
      *
-     *  Reset to #MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT when the context is
-     *  reset.
+     * Reset to #MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN when the context is
+     * reset.
      */
     int MBEDTLS_PRIVATE(early_data_status);
 #endif

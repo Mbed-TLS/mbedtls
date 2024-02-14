@@ -607,9 +607,7 @@ int mbedtls_test_get_tls13_ticket(
     mbedtls_test_handshake_test_options *client_options,
     mbedtls_test_handshake_test_options *server_options,
     mbedtls_ssl_session *session);
-#endif /* MBEDTLS_SSL_CLI_C && MBEDTLS_SSL_SRV_C &&
-          MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS &&
-          MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
+#endif
 
 #define ECJPAKE_TEST_PWD        "bla"
 

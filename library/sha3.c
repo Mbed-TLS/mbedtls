@@ -12,6 +12,8 @@
 
 #include "common.h"
 
+#if defined(MBEDTLS_SHA3_C)
+
 /*
  * These macros select manually unrolled implementations of parts of the main permutation function.
  *
@@ -21,6 +23,9 @@
  * Rolling up the theta loop saves a lot of code-size at small performance cost. The code-size
  * saving then enables us to unroll the other loops for a net code-size saving with a net
  * performance win.
+ *
+ * Depending on your compiler and target, it may be beneficial to adjust these; the defaults here
+ * should give sensible trade-offs for gcc and clang.
  */
 #undef   MBEDTLS_SHA3_THETA_UNROLL //no-check-names
 #define  MBEDTLS_SHA3_RHO_UNROLL   //no-check-names
@@ -32,8 +37,6 @@
 #else
 #define  MBEDTLS_SHA3_CHI_UNROLL    //no-check-names
 #endif
-
-#if defined(MBEDTLS_SHA3_C)
 
 #include "mbedtls/sha3.h"
 #include "mbedtls/platform_util.h"
@@ -164,7 +167,8 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
         /* Chi */
 #if !defined(MBEDTLS_SHA3_CHI_UNROLL) //no-check-names
         for (i = 0; i <= 20; i += 5) {
-            lane[0] = s[i]; lane[1] = s[i + 1]; lane[2] = s[i + 2]; lane[3] = s[i + 3]; lane[4] = s[i + 4];
+            lane[0] = s[i]; lane[1] = s[i + 1]; lane[2] = s[i + 2];
+            lane[3] = s[i + 3]; lane[4] = s[i + 4];
             s[i + 0] ^= (~lane[1]) & lane[2];
             s[i + 1] ^= (~lane[2]) & lane[3];
             s[i + 2] ^= (~lane[3]) & lane[4];

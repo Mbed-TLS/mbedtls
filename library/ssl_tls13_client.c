@@ -1180,6 +1180,14 @@ int mbedtls_ssl_tls13_write_client_hello_exts(mbedtls_ssl_context *ssl,
 #endif
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
+    /* In the first ClientHello, write the early data indication extension if
+     * necessary and update the early data status.
+     * If an HRR has been received and thus we are currently writing the
+     * second ClientHello, the second ClientHello must not contain an early
+     * data extension and the early data status must stay as it is:
+     * MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT or
+     * MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED.
+     */
     if (!ssl->handshake->hello_retry_request_flag) {
         if (mbedtls_ssl_conf_tls13_is_some_psk_enabled(ssl) &&
             ssl_tls13_early_data_has_valid_ticket(ssl) &&

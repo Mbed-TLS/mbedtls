@@ -1744,10 +1744,11 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     /* Update checksum with either
      * - The entire content of the CH message, if no PSK extension is present
      * - The content up to but excluding the PSK extension, if present.
+     * Always parse the pre-shared key extension when present in the
+     * ClientHello even if some pre-requisites for PSK key exchange modes are
+     * not met. That way we always validate the syntax of the extension.
      */
-    /* If we've settled on a PSK-based exchange, parse PSK identity ext */
-    if (ssl_tls13_key_exchange_is_psk_available(ssl) ||
-        ssl_tls13_key_exchange_is_psk_ephemeral_available(ssl)) {
+    if (handshake->received_extensions & MBEDTLS_SSL_EXT_MASK(PRE_SHARED_KEY)) {
         ret = handshake->update_checksum(ssl, buf,
                                          pre_shared_key_ext - buf);
         if (0 != ret) {

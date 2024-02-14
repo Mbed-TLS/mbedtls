@@ -1,3 +1,10 @@
+/*
+ *  ECC setters for PK.
+ *
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+ */
+
 #include "common.h"
 
 #include "mbedtls/pk.h"
@@ -5,25 +12,8 @@
 #include "mbedtls/ecp.h"
 #include "pk_internal.h"
 
-/***********************************************************************
- *
- *      ECC setters
- *
- * 1. This is an abstraction layer around MBEDTLS_PK_USE_PSA_EC_DATA:
- *    this macro will not appear outside this section.
- * 2. All inputs are raw (no metadata).
- *
- **********************************************************************/
-
 #if defined(MBEDTLS_PK_C) && defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 
-/*
- * Set the group used by this key.
- *
- * [in/out] pk: in: must have been pk_setup() to an ECC type
- *              out: will have group (curve) information set
- * [in] grp_in: a supported group ID (not NONE)
- */
 int mbedtls_pk_ecc_set_group(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id)
 {
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
@@ -55,13 +45,6 @@ int mbedtls_pk_ecc_set_group(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 }
 
-/*
- * Set the private key material
- *
- * [in/out] pk: in: must have the group set already, see mbedtls_pk_ecc_set_group().
- *              out: will have the private key set.
- * [in] key, key_len: the raw private key (no ASN.1 wrapping).
- */
 int mbedtls_pk_ecc_set_key(mbedtls_pk_context *pk, unsigned char *key, size_t key_len)
 {
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
@@ -98,25 +81,6 @@ int mbedtls_pk_ecc_set_key(mbedtls_pk_context *pk, unsigned char *key, size_t ke
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 }
 
-/*
- * Derive a public key from its private counterpart.
- * Computationally intensive, only use when public key is not available.
- *
- * [in/out] pk: in: must have the private key set, see mbedtls_pk_ecc_set_key().
- *              out: will have the public key set.
- * [in] prv, prv_len: the raw private key (see note below).
- * [in] f_rng, p_rng: RNG function and context.
- *
- * Note: the private key information is always available from pk,
- * however for convenience the serialized version is also passed,
- * as it's available at each calling site, and useful in some configs
- * (as otherwise we would have to re-serialize it from the pk context).
- *
- * There are three implementations of this function:
- * 1. MBEDTLS_PK_USE_PSA_EC_DATA,
- * 2. MBEDTLS_USE_PSA_CRYPTO but not MBEDTLS_PK_USE_PSA_EC_DATA,
- * 3. not MBEDTLS_USE_PSA_CRYPTO.
- */
 int mbedtls_pk_ecc_set_pubkey_from_prv(mbedtls_pk_context *pk,
                                        const unsigned char *prv, size_t prv_len,
                                        int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
@@ -237,19 +201,6 @@ exit:
 }
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
-/*
- * Set the public key.
- *
- * [in/out] pk: in: must have its group set, see mbedtls_pk_ecc_set_group().
- *              out: will have the public key set.
- * [in] pub, pub_len: the raw public key (an ECPoint).
- *
- * Return:
- * - 0 on success;
- * - MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the format is potentially valid
- *   but not supported;
- * - another error code otherwise.
- */
 int mbedtls_pk_ecc_set_pubkey(mbedtls_pk_context *pk, const unsigned char *pub, size_t pub_len)
 {
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)

@@ -23,7 +23,7 @@
 #undef   MBEDTLS_SHA3_THETA_UNROLL //no-check-names
 #define  MBEDTLS_SHA3_RHO_UNROLL   //no-check-names
 #define  MBEDTLS_SHA3_PI_UNROLL    //no-check-names
-
+#undef   MBEDTLS_SHA3_CHI_UNROLL   //no-check-names
 
 #include "common.h"
 
@@ -156,6 +156,17 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
 #endif
 
         /* Chi */
+#if !defined(MBEDTLS_SHA3_CHI_UNROLL) && !defined(MBEDTLS_COMPILER_IS_GCC)
+        /* GCC doesn't perform well with the rolled-up version, especially at -O2. */
+        for (i = 0; i <= 20; i += 5) {
+            lane[0] = s[i]; lane[1] = s[i + 1]; lane[2] = s[i + 2]; lane[3] = s[i + 3]; lane[4] = s[i + 4];
+            s[i + 0] ^= (~lane[1]) & lane[2];
+            s[i + 1] ^= (~lane[2]) & lane[3];
+            s[i + 2] ^= (~lane[3]) & lane[4];
+            s[i + 3] ^= (~lane[4]) & lane[0];
+            s[i + 4] ^= (~lane[0]) & lane[1];
+        }
+#else
         lane[0] = s[0]; lane[1] = s[1]; lane[2] = s[2]; lane[3] = s[3]; lane[4] = s[4];
         s[0] ^= (~lane[1]) & lane[2];
         s[1] ^= (~lane[2]) & lane[3];
@@ -190,6 +201,7 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
         s[22] ^= (~lane[3]) & lane[4];
         s[23] ^= (~lane[4]) & lane[0];
         s[24] ^= (~lane[0]) & lane[1];
+#endif
 
         /* Iota */
         s[0] ^= rc[round];

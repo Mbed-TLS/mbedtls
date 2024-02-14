@@ -188,6 +188,7 @@ int main(int argc, char *argv[])
     mbedtls_mpi_init(&D); mbedtls_mpi_init(&E); mbedtls_mpi_init(&DP);
     mbedtls_mpi_init(&DQ); mbedtls_mpi_init(&QP);
 
+    mbedtls_entropy_init(&entropy);
     mbedtls_pk_init(&key);
     mbedtls_ctr_drbg_init(&ctr_drbg);
     memset(buf, 0, sizeof(buf));
@@ -275,7 +276,6 @@ usage:
     mbedtls_printf("\n  . Seeding the random number generator...");
     fflush(stdout);
 
-    mbedtls_entropy_init(&entropy);
 #if !defined(_WIN32) && defined(MBEDTLS_FS_IO)
     if (opt.use_dev_random) {
         if ((ret = mbedtls_entropy_add_source(&entropy, dev_random_entropy_poll,

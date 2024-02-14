@@ -156,7 +156,7 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
 #endif
 
         /* Chi */
-#if !defined(MBEDTLS_SHA3_CHI_UNROLL) && !defined(MBEDTLS_COMPILER_IS_GCC)
+#if !defined(MBEDTLS_SHA3_CHI_UNROLL) && !defined(MBEDTLS_COMPILER_IS_GCC) //no-check-names
         /* GCC doesn't perform well with the rolled-up version, especially at -O2. */
         for (i = 0; i <= 20; i += 5) {
             lane[0] = s[i]; lane[1] = s[i + 1]; lane[2] = s[i + 2]; lane[3] = s[i + 3]; lane[4] = s[i + 4];

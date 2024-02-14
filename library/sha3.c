@@ -10,6 +10,10 @@
  *  https://nvlpubs.nist.gov/nistpubs/fips/nist.fips.202.pdf
  */
 
+#undef  MBEDTLS_SHA3_THETA_UNROLL
+#define MBEDTLS_SHA3_RHO_UNROLL
+#define MBEDTLS_SHA3_PI_UNROLL
+
 #include "common.h"
 
 #if defined(MBEDTLS_SHA3_C)
@@ -60,6 +64,15 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
         uint64_t t;
 
         /* Theta */
+#if !defined(MBEDTLS_SHA3_THETA_UNROLL)
+        for (i = 0; i < 5; i++) {
+            lane[i] = s[i] ^ s[i + 5] ^ s[i + 10] ^ s[i + 15] ^ s[i + 20];
+        }
+        for (i = 0; i < 5; i++) {
+            t = lane[(i + 4) % 5] ^ ROTR64(lane[(i + 1) % 5], 63);
+            s[i] ^= t; s[i + 5] ^= t; s[i + 10] ^= t; s[i + 15] ^= t; s[i + 20] ^= t;
+        }
+#else
         lane[0] = s[0] ^ s[5] ^ s[10] ^ s[15] ^ s[20];
         lane[1] = s[1] ^ s[6] ^ s[11] ^ s[16] ^ s[21];
         lane[2] = s[2] ^ s[7] ^ s[12] ^ s[17] ^ s[22];
@@ -80,19 +93,28 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
 
         t = lane[3] ^ ROTR64(lane[0], 63);
         s[4] ^= t; s[9] ^= t; s[14] ^= t; s[19] ^= t; s[24] ^= t;
+#endif
 
         /* Rho */
         for (i = 1; i < 25; i += 4) {
             uint32_t r = rho[(i - 1) >> 2];
+#if !defined(MBEDTLS_SHA3_RHO_UNROLL)
             for (int j = i; j < i + 4; j++) {
                 uint8_t r8 = (uint8_t) (r >> 24);
                 r <<= 8;
                 s[j] = ROTR64(s[j], r8);
             }
+#else
+            s[i + 0] = ROTR64(s[i + 0], MBEDTLS_BYTE_3(r));
+            s[i + 1] = ROTR64(s[i + 1], MBEDTLS_BYTE_2(r));
+            s[i + 2] = ROTR64(s[i + 2], MBEDTLS_BYTE_1(r));
+            s[i + 3] = ROTR64(s[i + 3], MBEDTLS_BYTE_0(r));
+#endif
         }
 
         /* Pi */
         t = s[1];
+#if !defined(MBEDTLS_SHA3_PI_UNROLL)
         for (i = 0; i < 24; i += 4) {
             uint32_t p = pi[i >> 2];
             for (unsigned j = 0; j < 4; j++) {
@@ -101,6 +123,26 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
                 SWAP(s[p8], t);
             }
         }
+#else
+        uint32_t p = pi[0];
+        SWAP(s[MBEDTLS_BYTE_3(p)], t); SWAP(s[MBEDTLS_BYTE_2(p)], t);
+        SWAP(s[MBEDTLS_BYTE_1(p)], t); SWAP(s[MBEDTLS_BYTE_0(p)], t);
+        p = pi[1];
+        SWAP(s[MBEDTLS_BYTE_3(p)], t); SWAP(s[MBEDTLS_BYTE_2(p)], t);
+        SWAP(s[MBEDTLS_BYTE_1(p)], t); SWAP(s[MBEDTLS_BYTE_0(p)], t);
+        p = pi[2];
+        SWAP(s[MBEDTLS_BYTE_3(p)], t); SWAP(s[MBEDTLS_BYTE_2(p)], t);
+        SWAP(s[MBEDTLS_BYTE_1(p)], t); SWAP(s[MBEDTLS_BYTE_0(p)], t);
+        p = pi[3];
+        SWAP(s[MBEDTLS_BYTE_3(p)], t); SWAP(s[MBEDTLS_BYTE_2(p)], t);
+        SWAP(s[MBEDTLS_BYTE_1(p)], t); SWAP(s[MBEDTLS_BYTE_0(p)], t);
+        p = pi[4];
+        SWAP(s[MBEDTLS_BYTE_3(p)], t); SWAP(s[MBEDTLS_BYTE_2(p)], t);
+        SWAP(s[MBEDTLS_BYTE_1(p)], t); SWAP(s[MBEDTLS_BYTE_0(p)], t);
+        p = pi[5];
+        SWAP(s[MBEDTLS_BYTE_3(p)], t); SWAP(s[MBEDTLS_BYTE_2(p)], t);
+        SWAP(s[MBEDTLS_BYTE_1(p)], t); SWAP(s[MBEDTLS_BYTE_0(p)], t);
+#endif
 
         /* Chi */
         lane[0] = s[0]; lane[1] = s[1]; lane[2] = s[2]; lane[3] = s[3]; lane[4] = s[4];

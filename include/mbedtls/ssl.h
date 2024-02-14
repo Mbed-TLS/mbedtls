@@ -734,6 +734,51 @@ typedef enum {
 }
 mbedtls_ssl_states;
 
+/*
+ * Early data status, client side only.
+ */
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+typedef enum {
+/*
+ * The client has not sent the first ClientHello yet, it is unknown if the
+ * client will send an early data indication extension or not.
+ */
+    MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN,
+
+/*
+ * See documentation of mbedtls_ssl_get_early_data_status().
+ */
+    MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT,
+    MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED,
+    MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED,
+
+/*
+ * The client has sent an early data indication extension in its first
+ * ClientHello, it has not received the response (ServerHello or
+ * HelloRetryRequest) from the server yet. The transform to protect early data
+ * is not set and early data cannot be sent yet.
+ */
+    MBEDTLS_SSL_EARLY_DATA_STATUS_SENT,
+
+/*
+ * The client has sent an early data indication extension in its first
+ * ClientHello, it has not received the response (ServerHello or
+ * HelloRetryRequest) from the server yet. The transform to protect early data
+ * has been set and early data can be written now.
+ */
+    MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE,
+
+/*
+ * The client has sent an early data indication extension in its first
+ * ClientHello, the server has accepted them and the client has received the
+ * server Finished message. It cannot send early data to the server anymore.
+ */
+    MBEDTLS_SSL_EARLY_DATA_STATUS_SERVER_FINISHED_RECEIVED,
+} mbedtls_ssl_early_data_status;
+
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
+
 /**
  * \brief          Callback type: send data on the network.
  *
@@ -1676,14 +1721,10 @@ struct mbedtls_ssl_context {
 
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
     /**
-     * Status of the negotiation of the use of early data.
-     * See the documentation of mbedtls_ssl_get_early_data_status() for more
-     * information.
-     *
-     * Reset to #MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN when the context is
-     * reset.
+     * Status of the negotiation of the use of early data. Reset to
+     * MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN when the context is reset.
      */
-    int MBEDTLS_PRIVATE(early_data_status);
+    mbedtls_ssl_early_data_status MBEDTLS_PRIVATE(early_data_status);
 #endif
 
     unsigned MBEDTLS_PRIVATE(badmac_seen);       /*!< records with a bad MAC received    */
@@ -5105,10 +5146,6 @@ int mbedtls_ssl_send_alert_message(mbedtls_ssl_context *ssl,
 int mbedtls_ssl_close_notify(mbedtls_ssl_context *ssl);
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT  1
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED  2
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED  3
 
 #if defined(MBEDTLS_SSL_SRV_C)
 /**

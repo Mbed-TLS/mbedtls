@@ -2150,38 +2150,6 @@ int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
                                            unsigned char *buf,
                                            const unsigned char *end,
                                            size_t *out_len);
-
-#if defined(MBEDTLS_SSL_CLI_C)
-/*
- * The client has not sent the first ClientHello yet, it is unknown if the
- * client will send an early data indication extension or not.
- */
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN 0
-
-/*
- * The client has sent an early data indication extension in its first
- * ClientHello, it has not received the response (ServerHello or
- * HelloRetryRequest) from the server yet. The transform to protect early data
- * is not set and early data cannot be sent yet.
- */
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_SENT 4
-
-/*
- * The client has sent an early data indication extension in its first
- * ClientHello, it has not received the response (ServerHello or
- * HelloRetryRequest) from the server yet. The transform to protect early data
- * has been set and early data can be written now.
- */
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE 5
-
-/*
- * The client has sent an early data indication extension in its first
- * ClientHello, the server has accepted them and the client has received the
- * server Finished message. It cannot send early data to the server anymore.
- */
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_SERVER_FINISHED_RECEIVED 6
-#endif /* MBEDTLS_SSL_CLI_C */
-
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

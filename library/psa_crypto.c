@@ -3516,7 +3516,7 @@ psa_status_t psa_verify_hash_start(
         psa_verify_hash_abort_internal(operation);
     }
 
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
 
     if (unlock_status != PSA_SUCCESS) {
         operation->error_occurred = 1;

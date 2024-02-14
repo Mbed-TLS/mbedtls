@@ -1400,14 +1400,9 @@ int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id, mbedtls_pk_context *pk
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 
-    if ((psa_get_key_usage_flags(&key_attr) & PSA_KEY_USAGE_EXPORT) != PSA_KEY_USAGE_EXPORT) {
-        ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-        goto exit;
-    }
-
     status = psa_export_key(key_id, exp_key, sizeof(exp_key), &exp_key_len);
     if (status != PSA_SUCCESS) {
-        ret = psa_generic_status_to_mbedtls(status);
+        ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
         goto exit;
     }
 

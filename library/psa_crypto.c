@@ -4687,7 +4687,7 @@ static psa_status_t psa_aead_setup(psa_aead_operation_t *operation,
     operation->key_type = psa_get_key_type(&attributes);
 
 exit:
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
 
     if (status == PSA_SUCCESS) {
         status = unlock_status;

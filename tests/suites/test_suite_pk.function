@@ -9,6 +9,7 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/error.h"
 #include "mbedtls/rsa.h"
+#include "rsa_internal.h"
 #include "pk_internal.h"
 
 #include <limits.h>
@@ -1898,8 +1899,10 @@ void pk_psa_wrap_sign_ext(int pk_type, int key_bits, int key_pk_type, int md_alg
         mbedtls_rsa_set_padding(mbedtls_pk_rsa(pk), MBEDTLS_RSA_PKCS_V21, MBEDTLS_MD_NONE);
     }
 
-    /* Export underlying public key for re-importing in a legacy context. */
-    ret = mbedtls_pk_write_pubkey_der(&pk, pkey, sizeof(pkey));
+    /* Export underlying public key for re-importing in a legacy context.
+     * Note: mbedtls_rsa_write_key() writes backwards in the data buffer. */
+    pkey_start = pkey + sizeof(pkey);
+    ret = mbedtls_rsa_write_pubkey(mbedtls_pk_rsa(pk), pkey, &pkey_start);
     TEST_ASSERT(ret >= 0);
 
     pkey_len = (size_t) ret;
@@ -1924,7 +1927,9 @@ void pk_psa_wrap_sign_ext(int pk_type, int key_bits, int key_pk_type, int md_alg
     TEST_EQUAL(PSA_SUCCESS, psa_destroy_key(key_id));
 
     mbedtls_pk_init(&pk);
-    TEST_EQUAL(mbedtls_pk_parse_public_key(&pk, pkey_start, pkey_len), 0);
+    TEST_EQUAL(mbedtls_pk_setup(&pk,
+                                mbedtls_pk_info_from_type(pk_type)), 0);
+    TEST_EQUAL(mbedtls_rsa_parse_pubkey(mbedtls_pk_rsa(pk), pkey_start, pkey_len), 0);
 
     if (key_pk_type == MBEDTLS_PK_RSASSA_PSS) {
         rsassa_pss_options.mgf1_hash_id = md_alg;

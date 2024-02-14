@@ -1559,11 +1559,6 @@ component_full_no_pkparse_pkwrite() {
     scripts/config.py unset MBEDTLS_PK_PARSE_C
     scripts/config.py unset MBEDTLS_PK_WRITE_C
 
-    # Disable features that re-enable PK_PARSE_C
-    scripts/config.py unset MBEDTLS_RSA_C
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all PSA_WANT_ALG_RSA
-    scripts/config.py -f "$CRYPTO_CONFIG_H" unset-all PSA_WANT_KEY_TYPE_RSA
-
     make CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     # Ensure that PK_[PARSE|WRITE]_C were not re-enabled accidentally (additive config).

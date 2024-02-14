@@ -75,7 +75,7 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
         uint64_t t;
 
         /* Theta */
-#if !defined(MBEDTLS_SHA3_THETA_UNROLL)
+#if !defined(MBEDTLS_SHA3_THETA_UNROLL) //no-check-names
         for (i = 0; i < 5; i++) {
             lane[i] = s[i] ^ s[i + 5] ^ s[i + 10] ^ s[i + 15] ^ s[i + 20];
         }

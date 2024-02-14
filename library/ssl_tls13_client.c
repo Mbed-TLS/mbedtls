@@ -1180,7 +1180,7 @@ int mbedtls_ssl_tls13_write_client_hello_exts(mbedtls_ssl_context *ssl,
 #endif
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (ssl->handshake->hello_retry_request_count == 0) {
+    if (!ssl->handshake->hello_retry_request_flag) {
         if (mbedtls_ssl_conf_tls13_is_some_psk_enabled(ssl) &&
             ssl_tls13_early_data_has_valid_ticket(ssl) &&
             ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED) {
@@ -1497,7 +1497,7 @@ static int ssl_tls13_preprocess_server_hello(mbedtls_ssl_context *ssl,
              * to a HelloRetryRequest), it MUST abort the handshake with an
              * "unexpected_message" alert.
              */
-            if (handshake->hello_retry_request_count > 0) {
+            if (handshake->hello_retry_request_flag) {
                 MBEDTLS_SSL_DEBUG_MSG(1, ("Multiple HRRs received"));
                 MBEDTLS_SSL_PEND_FATAL_ALERT(
                     MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
@@ -1519,7 +1519,7 @@ static int ssl_tls13_preprocess_server_hello(mbedtls_ssl_context *ssl,
                 return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
             }
 
-            handshake->hello_retry_request_count++;
+            handshake->hello_retry_request_flag = 1;
 
             break;
     }
@@ -1674,7 +1674,7 @@ static int ssl_tls13_parse_server_hello(mbedtls_ssl_context *ssl,
      * proposed in the HRR, we abort the handshake and send an
      * "illegal_parameter" alert.
      */
-    else if ((!is_hrr) && (handshake->hello_retry_request_count > 0) &&
+    else if ((!is_hrr) && handshake->hello_retry_request_flag &&
              (cipher_suite != ssl->session_negotiate->ciphersuite)) {
         fatal_alert = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
     }

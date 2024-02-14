@@ -730,16 +730,21 @@ struct mbedtls_ssl_handshake_params {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     uint8_t key_exchange_mode; /*!< Selected key exchange mode */
 
-    /** Number of HelloRetryRequest messages received/sent from/to the server. */
-    uint8_t hello_retry_request_count;
+    /**
+     * Flag indicating if, in the course of the current handshake, an
+     * HelloRetryRequest message has been sent by the server or received by
+     * the client (<> 0) or not (0).
+     */
+    uint8_t hello_retry_request_flag;
 
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
     /**
-     *  Number of dummy change_cipher_spec (CCS) record sent. Used to send only
-     *  one CCS per handshake without having to complicate the handshake state
-     *  transitions.
+     * Flag indicating if, in the course of the current handshake, a dummy
+     * change_cipher_spec (CCS) record has already been sent. Used to send only
+     * one CCS per handshake while not complicating the handshake state
+     * transitions for that purpose.
      */
-    uint8_t ccs_count;
+    uint8_t ccs_sent;
 #endif
 
 #if defined(MBEDTLS_SSL_SRV_C)

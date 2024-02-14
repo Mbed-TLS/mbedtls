@@ -3903,7 +3903,7 @@ void tls13_cli_early_data_status(int scenario)
                         break;
 
                     case TEST_EARLY_DATA_HRR:
-                        if (client_ep.ssl.handshake->hello_retry_request_count == 0) {
+                        if (!client_ep.ssl.handshake->hello_retry_request_flag) {
                             TEST_EQUAL(client_ep.ssl.early_data_status,
                                        MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN);
                         } else {
@@ -3928,7 +3928,7 @@ void tls13_cli_early_data_status(int scenario)
                         break;
 
                     case TEST_EARLY_DATA_HRR:
-                        if (client_ep.ssl.handshake->hello_retry_request_count == 0) {
+                        if (!client_ep.ssl.handshake->hello_retry_request_flag) {
                             TEST_EQUAL(client_ep.ssl.early_data_status,
                                        MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE);
                         } else {
@@ -4089,7 +4089,7 @@ void tls13_cli_early_data_status(int scenario)
     } while (client_ep.ssl.state != MBEDTLS_SSL_HANDSHAKE_OVER);
 
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
-    TEST_EQUAL(client_ep.ssl.handshake->ccs_count, 1);
+    TEST_EQUAL(client_ep.ssl.handshake->ccs_sent, 1);
 #endif
 
 exit:
@@ -4248,7 +4248,7 @@ void tls13_write_early_data(int scenario)
                         break;
 
                     case TEST_EARLY_DATA_HRR:
-                        if (client_ep.ssl.handshake->hello_retry_request_count == 0) {
+                        if (!client_ep.ssl.handshake->hello_retry_request_flag) {
                             TEST_EQUAL(write_early_data_ret, early_data_len);
                             TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
                         } else {
@@ -4270,7 +4270,7 @@ void tls13_write_early_data(int scenario)
                         break;
 
                     case TEST_EARLY_DATA_HRR:
-                        if (client_ep.ssl.handshake->hello_retry_request_count == 0) {
+                        if (!client_ep.ssl.handshake->hello_retry_request_flag) {
                             TEST_EQUAL(write_early_data_ret, early_data_len);
                             TEST_EQUAL(client_ep.ssl.state, MBEDTLS_SSL_SERVER_HELLO);
                         } else {

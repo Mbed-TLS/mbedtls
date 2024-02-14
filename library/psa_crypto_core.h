@@ -396,6 +396,18 @@ psa_status_t psa_export_public_key_internal(
     const uint8_t *key_buffer, size_t key_buffer_size,
     uint8_t *data, size_t data_size, size_t *data_length);
 
+/** Whether a key generation method is the default.
+ *
+ * Calls to a key generation driver with a non-default method
+ * require a driver supporting custom methods.
+ *
+ * \param[in] method            The key generation method to check.
+ * \param method_data_length    Size of `method.data` in bytes.
+ */
+int psa_key_generation_method_is_default(
+    const psa_key_generation_method_t *method,
+    size_t method_data_length);
+
 /**
  * \brief Generate a key.
  *

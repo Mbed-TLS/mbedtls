@@ -738,8 +738,18 @@ static inline psa_status_t psa_driver_wrapper_generate_key(
     psa_key_location_t location =
         PSA_KEY_LIFETIME_GET_LOCATION(attributes->core.lifetime);
 
-    /* TODO: if method is non-default, we need a driver that supports
-     * passing a method. */
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
+    int is_default_method =
+        psa_key_generation_method_is_default(method, method_data_length);
+    if( location != PSA_KEY_LOCATION_LOCAL_STORAGE && !is_default_method )
+    {
+        /* We don't support passing a custom method to drivers yet. */
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+#else
+    int is_default_method = 1;
+    (void) is_default_method;
+#endif
 
     /* Try dynamically-registered SE interface first */
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -766,8 +776,10 @@ static inline psa_status_t psa_driver_wrapper_generate_key(
     {
         case PSA_KEY_LOCATION_LOCAL_STORAGE:
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-            /* Transparent drivers are limited to generating asymmetric keys */
-            if( PSA_KEY_TYPE_IS_ASYMMETRIC( attributes->core.type ) )
+            /* Transparent drivers are limited to generating asymmetric keys. */
+            /* We don't support passing a custom method to drivers yet. */
+            if( PSA_KEY_TYPE_IS_ASYMMETRIC( attributes->core.type ) &&
+                is_default_method )
             {
             /* Cycle through all known transparent accelerators */
 #if defined(PSA_CRYPTO_DRIVER_TEST)

@@ -6025,7 +6025,7 @@ exit:
 
 static const psa_key_generation_method_t default_method = PSA_KEY_GENERATION_METHOD_INIT;
 
-static int psa_key_generation_method_is_default(
+int psa_key_generation_method_is_default(
     const psa_key_generation_method_t *method,
     size_t method_data_length)
 {

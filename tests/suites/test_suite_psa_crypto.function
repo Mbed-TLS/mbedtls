@@ -1310,21 +1310,25 @@ exit:
 #endif /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE */
 
 static int setup_key_generation_method(psa_key_generation_method_t **method,
-                                       size_t *method_length,
-                                       int64_t flags_arg,
+                                       size_t *method_data_length,
+                                       int flags_arg,
                                        const data_t *method_data)
 {
-    if (flags_arg >= 0) {
-        *method_length = sizeof(**method) + method_data->len;
-        *method = mbedtls_calloc(1, *method_length);
-        TEST_ASSERT(*method != NULL);
-        (*method)->flags = (uint32_t) flags_arg;
-        memcpy((*method)->data, method_data->x, method_data->len);
-    } else if (sizeof(**method) + flags_arg > 0) {
-        *method_length = sizeof(**method) + flags_arg;
-        *method = mbedtls_calloc(1, *method_length);
-        TEST_ASSERT(*method != NULL);
-    }
+    *method_data_length = method_data->len;
+    /* If there are N bytes of padding at the end of
+     * psa_key_generation_method_t, then it's enough to allocate
+     * MIN(sizeof(psa_key_generation_method_t),
+     *     offsetof(psa_key_generation_method_t, data) + method_data_length).
+     *
+     * For simplicity, here, we allocate up to N more bytes than necessary.
+     * In practice, the current layout of psa_key_generation_method_t
+     * makes padding extremely unlikely, so we don't worry about testing
+     * that the library code doesn't try to access these extra N bytes.
+     */
+    *method = mbedtls_calloc(1, sizeof(**method) + *method_data_length);
+    TEST_ASSERT(*method != NULL);
+    (*method)->flags = (uint32_t) flags_arg;
+    memcpy((*method)->data, method_data->x, method_data->len);
     return 1;
 exit:
     return 0;
@@ -9335,7 +9339,7 @@ void derive_key_ext(int alg_arg,
                     data_t *input1,
                     data_t *input2,
                     int key_type_arg, int bits_arg,
-                    int64_t flags_arg, /*negative for truncated method*/
+                    int flags_arg,
                     data_t *method_data,
                     psa_status_t expected_status,
                     data_t *expected_export)
@@ -9346,7 +9350,7 @@ void derive_key_ext(int alg_arg,
     const psa_key_type_t key_type = key_type_arg;
     const size_t bits = bits_arg;
     psa_key_generation_method_t *method = NULL;
-    size_t method_length = 0;
+    size_t method_data_length = 0;
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
     const size_t export_buffer_size =
         PSA_EXPORT_KEY_OUTPUT_SIZE(key_type, bits);
@@ -9376,13 +9380,13 @@ void derive_key_ext(int alg_arg,
     psa_set_key_algorithm(&derived_attributes, 0);
     psa_set_key_type(&derived_attributes, key_type);
     psa_set_key_bits(&derived_attributes, bits);
-    if (!setup_key_generation_method(&method, &method_length,
+    if (!setup_key_generation_method(&method, &method_data_length,
                                      flags_arg, method_data)) {
         goto exit;
     }
 
     TEST_EQUAL(psa_key_derivation_output_key_ext(&derived_attributes, &operation,
-                                                 method, method_length,
+                                                 method, method_data_length,
                                                  &derived_key),
                expected_status);
 
@@ -9924,7 +9928,7 @@ void generate_key_ext(int type_arg,
                       int bits_arg,
                       int usage_arg,
                       int alg_arg,
-                      int64_t flags_arg, /*negative for truncated method*/
+                      int flags_arg,
                       data_t *method_data,
                       int expected_status_arg)
 {
@@ -9936,7 +9940,7 @@ void generate_key_ext(int type_arg,
     psa_status_t expected_status = expected_status_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_generation_method_t *method = NULL;
-    size_t method_length = 0;
+    size_t method_data_length = 0;
     psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT(psa_crypto_init());
@@ -9946,14 +9950,14 @@ void generate_key_ext(int type_arg,
     psa_set_key_type(&attributes, type);
     psa_set_key_bits(&attributes, bits);
 
-    if (!setup_key_generation_method(&method, &method_length,
+    if (!setup_key_generation_method(&method, &method_data_length,
                                      flags_arg, method_data)) {
         goto exit;
     }
 
     /* Generate a key */
     psa_status_t status = psa_generate_key_ext(&attributes,
-                                               method, method_length,
+                                               method, method_data_length,
                                                &key);
 
     TEST_EQUAL(status, expected_status);
@@ -9996,11 +10000,6 @@ void key_generation_method_init()
     psa_key_generation_method_t init = PSA_KEY_GENERATION_METHOD_INIT;
     psa_key_generation_method_t zero;
     memset(&zero, 0, sizeof(zero));
-
-    /* In order for sizeof(psa_key_generation_method_t) to mean
-     * empty data, there must not be any padding in the structure:
-     * the size of the structure must be the offset of the data field. */
-    TEST_EQUAL(sizeof(zero), offsetof(psa_key_generation_method_t, data));
 
     TEST_EQUAL(func.flags, 0);
     TEST_EQUAL(init.flags, 0);

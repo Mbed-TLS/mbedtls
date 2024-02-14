@@ -6027,12 +6027,12 @@ static const psa_key_generation_method_t default_method = PSA_KEY_GENERATION_MET
 
 static int psa_key_generation_method_is_default(
     const psa_key_generation_method_t *method,
-    size_t method_length)
+    size_t method_data_length)
 {
-    if (method_length != sizeof(*method)) {
+    if (method->flags != 0) {
         return 0;
     }
-    if (method->flags != 0) {
+    if (method_data_length != 0) {
         return 0;
     }
     return 1;
@@ -6042,7 +6042,7 @@ psa_status_t psa_key_derivation_output_key_ext(
     const psa_key_attributes_t *attributes,
     psa_key_derivation_operation_t *operation,
     const psa_key_generation_method_t *method,
-    size_t method_length,
+    size_t method_data_length,
     mbedtls_svc_key_id_t *key)
 {
     psa_status_t status;
@@ -6057,10 +6057,7 @@ psa_status_t psa_key_derivation_output_key_ext(
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    if (method_length < sizeof(*method)) {
-        return PSA_ERROR_INVALID_ARGUMENT;
-    }
-    if (!psa_key_generation_method_is_default(method, method_length)) {
+    if (!psa_key_generation_method_is_default(method, method_data_length)) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
@@ -6100,10 +6097,9 @@ psa_status_t psa_key_derivation_output_key(
     psa_key_derivation_operation_t *operation,
     mbedtls_svc_key_id_t *key)
 {
-    return psa_key_derivation_output_key_ext(
-        attributes, operation,
-        &default_method, sizeof(default_method),
-        key);
+    return psa_key_derivation_output_key_ext(attributes, operation,
+                                             &default_method, 0,
+                                             key);
 }
 
 
@@ -7501,7 +7497,7 @@ static psa_status_t psa_validate_key_type_and_size_for_key_generation(
 
 psa_status_t psa_generate_key_internal(
     const psa_key_attributes_t *attributes,
-    const psa_key_generation_method_t *method, size_t method_length,
+    const psa_key_generation_method_t *method, size_t method_data_length,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
@@ -7509,7 +7505,7 @@ psa_status_t psa_generate_key_internal(
 
     /* Only used for RSA */
     (void) method;
-    (void) method_length;
+    (void) method_data_length;
 
     if ((attributes->domain_parameters == NULL) &&
         (attributes->domain_parameters_size != 0)) {
@@ -7536,9 +7532,8 @@ psa_status_t psa_generate_key_internal(
          * that mbedtls_psa_rsa_generate_key() gets e via a new
          * parameter instead. */
         psa_key_attributes_t override_attributes = *attributes;
-        if (method_length > sizeof(*method)) {
-            override_attributes.domain_parameters_size =
-                method_length - offsetof(psa_key_generation_method_t, data);
+        if (method_data_length != 0) {
+            override_attributes.domain_parameters_size = method_data_length;
             override_attributes.domain_parameters = (uint8_t *) &method->data;
         }
         return mbedtls_psa_rsa_generate_key(&override_attributes,
@@ -7575,7 +7570,7 @@ psa_status_t psa_generate_key_internal(
 
 psa_status_t psa_generate_key_ext(const psa_key_attributes_t *attributes,
                                   const psa_key_generation_method_t *method,
-                                  size_t method_length,
+                                  size_t method_data_length,
                                   mbedtls_svc_key_id_t *key)
 {
     psa_status_t status;
@@ -7596,10 +7591,6 @@ psa_status_t psa_generate_key_ext(const psa_key_attributes_t *attributes,
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    if (method_length < sizeof(*method)) {
-        return PSA_ERROR_INVALID_ARGUMENT;
-    }
-
 #if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
     if (attributes->core.type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
         if (method->flags != 0) {
@@ -7607,7 +7598,7 @@ psa_status_t psa_generate_key_ext(const psa_key_attributes_t *attributes,
         }
     } else
 #endif
-    if (!psa_key_generation_method_is_default(method, method_length)) {
+    if (!psa_key_generation_method_is_default(method, method_data_length)) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
@@ -7648,7 +7639,7 @@ psa_status_t psa_generate_key_ext(const psa_key_attributes_t *attributes,
     }
 
     status = psa_driver_wrapper_generate_key(attributes,
-                                             method, method_length,
+                                             method, method_data_length,
                                              slot->key.data, slot->key.bytes,
                                              &slot->key.bytes);
     if (status != PSA_SUCCESS) {
@@ -7670,7 +7661,7 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
                               mbedtls_svc_key_id_t *key)
 {
     return psa_generate_key_ext(attributes,
-                                &default_method, sizeof(default_method),
+                                &default_method, 0,
                                 key);
 }
 

@@ -233,7 +233,7 @@ struct psa_key_generation_method_s {
  *
  * Calling psa_generate_key_ext() or psa_key_derivation_output_key_ext()
  * with `method=PSA_KEY_GENERATION_METHOD_INIT` and
- * `method_length=sizeof(psa_key_generation_method_t)` is equivalent to
+ * `method_data_length == 0` is equivalent to
  * calling psa_generate_key() or psa_key_derivation_output_key()
  * respectively.
  */

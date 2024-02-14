@@ -1900,6 +1900,9 @@ static void psa_fail_key_creation(psa_key_slot_t *slot,
     }
 
 #if defined(MBEDTLS_THREADING_C)
+    /* If the lock operation fails we still wipe the slot.
+     * Operations will no longer work after a failed lock,
+     * but we still need to wipe the slot of confidential data. */
     mbedtls_mutex_lock(&mbedtls_threading_key_slot_mutex);
 #endif
 

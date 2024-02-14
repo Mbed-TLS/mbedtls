@@ -1,0 +1,4 @@
+Features
+   * Add new accessor to expose the `MBEDTLS_PRIVATE(ca_istrue)` member of
+     `mbedtls_x509_crt` structure. This requires setting
+     MBEDTLS_X509_EXT_BASIC_CONSTRAINTS.

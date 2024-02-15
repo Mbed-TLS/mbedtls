@@ -31,7 +31,17 @@ mbedtls_threading_mutex_t mbedtls_test_info_mutex;
 #endif /* MBEDTLS_THREADING_C */
 
 /*----------------------------------------------------------------------------*/
-/* Mbedtls Test Info accessors */
+/* Mbedtls Test Info accessors
+ *
+ * NOTE - there are two types of accessors here; the _internal functions, which
+ * are expected to be used from this module *only*. These do not attempt to lock
+ * the mbedtls_test_info_mutex, as they are designed to be called from within
+ * public functions which do lock the mutex first (if mutexes are enabled).
+ * The main reason for this is the need to set some sets of test data
+ * atomically, without releasing the mutex inbetween to prevent race conditions
+ * resulting in mixed test info. The other public accessors have prototypes in
+ * the header and have to lock the mutex for safety as we obviously cannot
+ * control where they are called from. */
 
 mbedtls_test_result_t mbedtls_test_get_result(void)
 {
@@ -50,8 +60,8 @@ mbedtls_test_result_t mbedtls_test_get_result(void)
     return result;
 }
 
-static void mbedtls_test_set_result(mbedtls_test_result_t result, const char *test,
-                             int line_no, const char *filename)
+static void mbedtls_test_set_result_internal(mbedtls_test_result_t result, const char *test,
+                                             int line_no, const char *filename)
 {
     /* Internal function only - mbedtls_test_info_mutex should be held prior
      * to calling this function. */
@@ -144,7 +154,7 @@ unsigned long mbedtls_test_get_step(void)
     return step;
 }
 
-static void mbedtls_test_reset_step(void)
+static void mbedtls_test_reset_step_internal(void)
 {
     /* Internal function only - mbedtls_test_info_mutex should be held prior
      * to calling this function. */
@@ -178,7 +188,7 @@ void mbedtls_test_get_line1(char *line)
 #endif /* MBEDTLS_THREADING_C */
 }
 
-static void mbedtls_test_set_line1(const char *line)
+static void mbedtls_test_set_line1_internal(const char *line)
 {
     /* Internal function only - mbedtls_test_info_mutex should be held prior
      * to calling this function. */
@@ -203,7 +213,7 @@ void mbedtls_test_get_line2(char *line)
 #endif /* MBEDTLS_THREADING_C */
 }
 
-static void mbedtls_test_set_line2(const char *line)
+static void mbedtls_test_set_line2_internal(const char *line)
 {
     /* Internal function only - mbedtls_test_info_mutex should be held prior
      * to calling this function. */
@@ -255,7 +265,7 @@ unsigned mbedtls_test_get_case_uses_negative_0(void)
     return test_case_uses_negative_0;
 }
 
-static void mbedtls_test_set_case_uses_negative_0(unsigned uses)
+static void mbedtls_test_set_case_uses_negative_0_internal(unsigned uses)
 {
     /* Internal function only - mbedtls_test_info_mutex should be held prior
      * to calling this function. */
@@ -350,7 +360,7 @@ static void mbedtls_test_fail_internal(const char *test, int line_no, const char
     if (mbedtls_test_info.result != MBEDTLS_TEST_RESULT_FAILED) {
         /* If we have already recorded the test as having failed then don't
          * overwrite any previous information about the failure. */
-        mbedtls_test_set_result(MBEDTLS_TEST_RESULT_FAILED, test, line_no, filename);
+        mbedtls_test_set_result_internal(MBEDTLS_TEST_RESULT_FAILED, test, line_no, filename);
     }
 }
 
@@ -373,7 +383,7 @@ void mbedtls_test_skip(const char *test, int line_no, const char *filename)
     mbedtls_mutex_lock(&mbedtls_test_info_mutex);
 #endif /* MBEDTLS_THREADING_C */
 
-    mbedtls_test_set_result(MBEDTLS_TEST_RESULT_SKIPPED, test, line_no, filename);
+    mbedtls_test_set_result_internal(MBEDTLS_TEST_RESULT_SKIPPED, test, line_no, filename);
 
 #ifdef MBEDTLS_THREADING_C
     mbedtls_mutex_unlock(&mbedtls_test_info_mutex);
@@ -386,13 +396,13 @@ void mbedtls_test_info_reset(void)
     mbedtls_mutex_lock(&mbedtls_test_info_mutex);
 #endif /* MBEDTLS_THREADING_C */
 
-    mbedtls_test_set_result(MBEDTLS_TEST_RESULT_SUCCESS, 0, 0, 0);
-    mbedtls_test_reset_step();
-    mbedtls_test_set_line1(NULL);
-    mbedtls_test_set_line2(NULL);
+    mbedtls_test_set_result_internal(MBEDTLS_TEST_RESULT_SUCCESS, 0, 0, 0);
+    mbedtls_test_reset_step_internal();
+    mbedtls_test_set_line1_internal(NULL);
+    mbedtls_test_set_line2_internal(NULL);
 
 #if defined(MBEDTLS_BIGNUM_C)
-    mbedtls_test_set_case_uses_negative_0(0);
+    mbedtls_test_set_case_uses_negative_0_internal(0);
 #endif
 
 #ifdef MBEDTLS_THREADING_C
@@ -424,11 +434,11 @@ int mbedtls_test_equal(const char *test, int line_no, const char *filename,
         (void) mbedtls_snprintf(buf, sizeof(buf),
                                 "lhs = 0x%016llx = %lld",
                                 value1, (long long) value1);
-        mbedtls_test_set_line1(buf);
+        mbedtls_test_set_line1_internal(buf);
         (void) mbedtls_snprintf(buf, sizeof(buf),
                                 "rhs = 0x%016llx = %lld",
                                 value2, (long long) value2);
-        mbedtls_test_set_line2(buf);
+        mbedtls_test_set_line2_internal(buf);
     }
 
 #ifdef MBEDTLS_THREADING_C
@@ -462,11 +472,11 @@ int mbedtls_test_le_u(const char *test, int line_no, const char *filename,
         (void) mbedtls_snprintf(buf, sizeof(buf),
                                 "lhs = 0x%016llx = %llu",
                                 value1, value1);
-        mbedtls_test_set_line1(buf);
+        mbedtls_test_set_line1_internal(buf);
         (void) mbedtls_snprintf(buf, sizeof(buf),
                                 "rhs = 0x%016llx = %llu",
                                 value2, value2);
-        mbedtls_test_set_line2(buf);
+        mbedtls_test_set_line2_internal(buf);
     }
 
 #ifdef MBEDTLS_THREADING_C
@@ -500,11 +510,11 @@ int mbedtls_test_le_s(const char *test, int line_no, const char *filename,
         (void) mbedtls_snprintf(buf, sizeof(buf),
                                 "lhs = 0x%016llx = %lld",
                                 (unsigned long long) value1, value1);
-        mbedtls_test_set_line1(buf);
+        mbedtls_test_set_line1_internal(buf);
         (void) mbedtls_snprintf(buf, sizeof(buf),
                                 "rhs = 0x%016llx = %lld",
                                 (unsigned long long) value2, value2);
-        mbedtls_test_set_line2(buf);
+        mbedtls_test_set_line2_internal(buf);
     }
 
 #ifdef MBEDTLS_THREADING_C

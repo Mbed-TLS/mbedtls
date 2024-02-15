@@ -171,6 +171,9 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
                              'psa_hash_compute',
                              'psa_hash_compare'):
             return True
+        if function_name in ('psa_key_derivation_key_agreement',
+                             'psa_raw_key_agreement'):
+            return True
         return False
 
     def _write_function_call(self, out: typing_util.Writable,

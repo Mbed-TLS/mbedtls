@@ -364,9 +364,9 @@ static int exercise_asymmetric_encryption_key(mbedtls_svc_key_id_t key,
                                               psa_key_usage_t usage,
                                               psa_algorithm_t alg)
 {
-    unsigned char plaintext[PSA_ASYMMETRIC_ENCRYPT_OUTPUT_MAX_SIZE] =
+    unsigned char plaintext[PSA_ASYMMETRIC_DECRYPT_OUTPUT_MAX_SIZE] =
         "Hello, world...";
-    unsigned char ciphertext[PSA_ASYMMETRIC_DECRYPT_OUTPUT_MAX_SIZE] =
+    unsigned char ciphertext[PSA_ASYMMETRIC_ENCRYPT_OUTPUT_MAX_SIZE] =
         "(wabblewebblewibblewobblewubble)";
     size_t ciphertext_length = sizeof(ciphertext);
     size_t plaintext_length = 16;

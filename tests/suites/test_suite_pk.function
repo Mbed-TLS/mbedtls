@@ -133,6 +133,23 @@
 #define MBEDTLS_TEST_PSA_ECC_HAVE_TWO_FAMILIES
 #endif
 
+/* Pick a second bit-size, for tests that need two supported curves of the
+ * same family. For simplicity, we only handle a subset of configurations,
+ * and both curves will support both ECDH and ECDSA. */
+#if defined(PSA_WANT_ECC_SECP_R1_192) && defined(PSA_WANT_ECC_SECP_R1_256)
+/* Identical redefinition of the ONE macros, to confirm that they have
+ * the values we expect here. */
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY PSA_ECC_FAMILY_SECP_R1
+#define MBEDTLS_TEST_PSA_ECC_ONE_CURVE_BITS 192
+#define MBEDTLS_TEST_PSA_ECC_ANOTHER_CURVE_BITS 256
+#define MBEDTLS_TEST_PSA_ECC_HAVE_TWO_BITS
+#elif defined(PSA_WANT_ECC_SECP_R1_256) && defined(PSA_WANT_ECC_SECP_R1_384)
+#define MBEDTLS_TEST_PSA_ECC_ONE_FAMILY PSA_ECC_FAMILY_SECP_R1
+#define MBEDTLS_TEST_PSA_ECC_ONE_CURVE_BITS 256
+#define MBEDTLS_TEST_PSA_ECC_ANOTHER_CURVE_BITS 384
+#define MBEDTLS_TEST_PSA_ECC_HAVE_TWO_BITS
+#endif
+
 #endif /* defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) */
 
 /* Always define the macros so that we can use them in test data. */
@@ -143,6 +160,9 @@
 #endif
 #if !defined(MBEDTLS_TEST_PSA_ECC_ANOTHER_FAMILY)
 #define MBEDTLS_TEST_PSA_ECC_ANOTHER_FAMILY 0
+#endif
+#if !defined(MBEDTLS_TEST_PSA_ECC_ANOTHER_CURVE_BITS)
+#define MBEDTLS_TEST_PSA_ECC_ANOTHER_CURVE_BITS 0
 #endif
 
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
@@ -2019,13 +2039,14 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C */
 void pk_import_into_psa_fail(int pk_type, int from_pair,
-                             int type_arg,
+                             int type_arg, int bits_arg,
                              int expected_ret)
 {
     mbedtls_pk_context pk;
     mbedtls_pk_init(&pk);
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t type = type_arg;
+    size_t bits = bits_arg;
     mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make(0, 42);
 
     PSA_INIT();
@@ -2035,6 +2056,7 @@ void pk_import_into_psa_fail(int pk_type, int from_pair,
                                  &pk, &expected_psa_type), 0);
 
     psa_set_key_type(&attributes, type);
+    psa_set_key_bits(&attributes, bits);
 
     TEST_EQUAL(mbedtls_pk_import_into_psa(&pk, &attributes, &key_id),
                expected_ret);

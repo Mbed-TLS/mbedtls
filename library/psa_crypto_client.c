@@ -16,7 +16,6 @@
 
 void psa_reset_key_attributes(psa_key_attributes_t *attributes)
 {
-    mbedtls_free(attributes->domain_parameters);
     memset(attributes, 0, sizeof(*attributes));
 }
 

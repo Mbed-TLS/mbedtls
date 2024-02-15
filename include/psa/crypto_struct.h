@@ -318,20 +318,6 @@ struct psa_key_attributes_s {
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     psa_key_slot_number_t MBEDTLS_PRIVATE(slot_number);
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-    /* Unlike normal buffers, there are three cases for domain_parameters
-     * and domain_parameters_size:
-     * - domain_parameters_size == SIZE_MAX && domain_parameters == NULL:
-     *   Access to domain parameters is not supported for this key.
-     *   This is a hack which should not exist, intended for keys managed
-     *   by a driver, because drivers don't support domain parameters.
-     * - domain_parameters_size == 0 && domain_parameters == NULL:
-     *   The domain parameters are empty.
-     * - domain_parameters_size > 0 &&
-     *   domain_parameters == valid pointer to domain_parameters_size bytes:
-     *   The domain parameters are non-empty.
-     */
-    void *MBEDTLS_PRIVATE(domain_parameters);
-    size_t MBEDTLS_PRIVATE(domain_parameters_size);
     /* With client/service separation, struct psa_key_attributes_s is
      * marshalled through a transport channel between the client and
      * service side implementation of the PSA Crypto APIs, thus having
@@ -342,9 +328,9 @@ struct psa_key_attributes_s {
 };
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-#define PSA_KEY_ATTRIBUTES_INIT { 0, NULL, 0, PSA_CORE_KEY_ATTRIBUTES_INIT }
+#define PSA_KEY_ATTRIBUTES_INIT { 0, PSA_CORE_KEY_ATTRIBUTES_INIT }
 #else
-#define PSA_KEY_ATTRIBUTES_INIT { NULL, 0, PSA_CORE_KEY_ATTRIBUTES_INIT }
+#define PSA_KEY_ATTRIBUTES_INIT { PSA_CORE_KEY_ATTRIBUTES_INIT }
 #endif
 
 static inline struct psa_key_attributes_s psa_key_attributes_init(void)

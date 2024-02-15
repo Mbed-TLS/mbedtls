@@ -1211,58 +1211,12 @@ exit:
     return overall_status;
 }
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
-static psa_status_t psa_get_rsa_public_exponent(
-    const mbedtls_rsa_context *rsa,
-    psa_key_attributes_t *attributes)
-{
-    mbedtls_mpi mpi;
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    uint8_t *buffer = NULL;
-    size_t buflen;
-    mbedtls_mpi_init(&mpi);
-
-    ret = mbedtls_rsa_export(rsa, NULL, NULL, NULL, NULL, &mpi);
-    if (ret != 0) {
-        goto exit;
-    }
-    if (mbedtls_mpi_cmp_int(&mpi, 65537) == 0) {
-        /* It's the default value, which is reported as an empty string,
-         * so there's nothing to do. */
-        goto exit;
-    }
-
-    buflen = mbedtls_mpi_size(&mpi);
-    buffer = mbedtls_calloc(1, buflen);
-    if (buffer == NULL) {
-        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
-        goto exit;
-    }
-    ret = mbedtls_mpi_write_binary(&mpi, buffer, buflen);
-    if (ret != 0) {
-        goto exit;
-    }
-    attributes->domain_parameters = buffer;
-    attributes->domain_parameters_size = buflen;
-
-exit:
-    mbedtls_mpi_free(&mpi);
-    if (ret != 0) {
-        mbedtls_free(buffer);
-    }
-    return mbedtls_to_psa_error(ret);
-}
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT) ||
-        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
-
 /** Retrieve all the publicly-accessible attributes of a key.
  */
 psa_status_t psa_get_key_attributes(mbedtls_svc_key_id_t key,
                                     psa_key_attributes_t *attributes)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
 
     psa_reset_key_attributes(attributes);
@@ -1283,55 +1237,7 @@ psa_status_t psa_get_key_attributes(mbedtls_svc_key_id_t key,
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-    switch (slot->attr.type) {
-#if (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) && \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
-        case PSA_KEY_TYPE_RSA_KEY_PAIR:
-        case PSA_KEY_TYPE_RSA_PUBLIC_KEY:
-            /* TODO: This is a temporary situation where domain parameters are deprecated,
-             * but we need it for namely generating an RSA key with a non-default exponent.
-             * This would be improved after https://github.com/Mbed-TLS/mbedtls/issues/6494.
-             */
-            if (!psa_key_lifetime_is_external(slot->attr.lifetime)) {
-                mbedtls_rsa_context *rsa = NULL;
-
-                status = mbedtls_psa_rsa_load_representation(
-                    slot->attr.type,
-                    slot->key.data,
-                    slot->key.bytes,
-                    &rsa);
-                if (status != PSA_SUCCESS) {
-                    break;
-                }
-
-                status = psa_get_rsa_public_exponent(rsa,
-                                                     attributes);
-                mbedtls_rsa_free(rsa);
-                mbedtls_free(rsa);
-            }
-            break;
-#else
-        case PSA_KEY_TYPE_RSA_KEY_PAIR:
-        case PSA_KEY_TYPE_RSA_PUBLIC_KEY:
-            attributes->domain_parameters = NULL;
-            attributes->domain_parameters_size = SIZE_MAX;
-            break;
-#endif /* (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) && \
-        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) ||
-        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
-        default:
-            /* Nothing else to do. */
-            break;
-    }
-
-    if (status != PSA_SUCCESS) {
-        psa_reset_key_attributes(attributes);
-    }
-
-    unlock_status = psa_unregister_read_under_mutex(slot);
-
-    return (status == PSA_SUCCESS) ? unlock_status : status;
+    return psa_unregister_read_under_mutex(slot);
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -1955,57 +1861,6 @@ static psa_status_t psa_validate_optional_attributes(
 {
     if (attributes->core.type != 0) {
         if (attributes->core.type != slot->attr.type) {
-            return PSA_ERROR_INVALID_ARGUMENT;
-        }
-    }
-
-    if (attributes->domain_parameters_size != 0) {
-#if (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) && \
-        defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) || \
-        defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
-        if (PSA_KEY_TYPE_IS_RSA(slot->attr.type)) {
-            mbedtls_rsa_context *rsa = NULL;
-            mbedtls_mpi actual, required;
-            int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-            psa_status_t status = mbedtls_psa_rsa_load_representation(
-                slot->attr.type,
-                slot->key.data,
-                slot->key.bytes,
-                &rsa);
-            if (status != PSA_SUCCESS) {
-                return status;
-            }
-
-            mbedtls_mpi_init(&actual);
-            mbedtls_mpi_init(&required);
-            ret = mbedtls_rsa_export(rsa,
-                                     NULL, NULL, NULL, NULL, &actual);
-            mbedtls_rsa_free(rsa);
-            mbedtls_free(rsa);
-            if (ret != 0) {
-                goto rsa_exit;
-            }
-            ret = mbedtls_mpi_read_binary(&required,
-                                          attributes->domain_parameters,
-                                          attributes->domain_parameters_size);
-            if (ret != 0) {
-                goto rsa_exit;
-            }
-            if (mbedtls_mpi_cmp_mpi(&actual, &required) != 0) {
-                ret = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
-            }
-rsa_exit:
-            mbedtls_mpi_free(&actual);
-            mbedtls_mpi_free(&required);
-            if (ret != 0) {
-                return mbedtls_to_psa_error(ret);
-            }
-        } else
-#endif /* (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) &&
-        *  defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) ||
-        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
-        {
             return PSA_ERROR_INVALID_ARGUMENT;
         }
     }
@@ -7550,11 +7405,6 @@ psa_status_t psa_generate_key_internal(
     /* Only used for RSA */
     (void) params;
     (void) params_data_length;
-
-    if ((attributes->domain_parameters == NULL) &&
-        (attributes->domain_parameters_size != 0)) {
-        return PSA_ERROR_INVALID_ARGUMENT;
-    }
 
     if (key_type_is_raw_bytes(type)) {
         status = psa_generate_random(key_buffer, key_buffer_size);

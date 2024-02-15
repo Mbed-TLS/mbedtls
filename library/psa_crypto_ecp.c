@@ -345,10 +345,6 @@ psa_status_t mbedtls_psa_ecp_generate_key(
         mbedtls_ecp_curve_info_from_grp_id(grp_id);
     mbedtls_ecp_keypair ecp;
 
-    if (attributes->domain_parameters_size != 0) {
-        return PSA_ERROR_NOT_SUPPORTED;
-    }
-
     if (grp_id == MBEDTLS_ECP_DP_NONE || curve_info == NULL) {
         return PSA_ERROR_NOT_SUPPORTED;
     }

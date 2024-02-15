@@ -20,6 +20,16 @@
 #include <psa_crypto_slot_management.h>
 #include <test/psa_crypto_helpers.h>
 
+#if defined(MBEDTLS_PK_C)
+#include <pk_internal.h>
+#endif
+#if defined(MBEDTLS_ECP_C)
+#include <mbedtls/ecp.h>
+#endif
+#if defined(MBEDTLS_RSA_C)
+#include <rsa_internal.h>
+#endif
+
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
 static int lifetime_is_dynamic_secure_element(psa_key_lifetime_t lifetime)
 {
@@ -1053,5 +1063,98 @@ int mbedtls_test_can_exercise_psa_algorithm(psa_algorithm_t alg)
     (void) alg;
     return 1;
 }
+
+#if defined(MBEDTLS_PK_C)
+int mbedtls_test_key_consistency_psa_pk(mbedtls_svc_key_id_t psa_key,
+                                        const mbedtls_pk_context *pk)
+{
+    psa_key_attributes_t psa_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t pk_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    int ok = 0;
+
+    PSA_ASSERT(psa_get_key_attributes(psa_key, &psa_attributes));
+    psa_key_type_t psa_type = psa_get_key_type(&psa_attributes);
+    mbedtls_pk_type_t pk_type = mbedtls_pk_get_type(pk);
+
+    TEST_ASSERT(PSA_KEY_TYPE_IS_PUBLIC_KEY(psa_type) ||
+                PSA_KEY_TYPE_IS_KEY_PAIR(psa_type));
+    TEST_EQUAL(psa_get_key_bits(&psa_attributes), mbedtls_pk_get_bitlen(pk));
+
+    uint8_t pk_public_buffer[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
+    const uint8_t *pk_public = NULL;
+    size_t pk_public_length = 0;
+
+    switch (pk_type) {
+#if defined(MBEDTLS_RSA_C)
+        case MBEDTLS_PK_RSA:
+            TEST_ASSERT(PSA_KEY_TYPE_IS_RSA(psa_type));
+            const mbedtls_rsa_context *rsa = mbedtls_pk_rsa(*pk);
+            uint8_t *const end = pk_public_buffer + sizeof(pk_public_buffer);
+            uint8_t *cursor = end;
+            TEST_LE_U(1, mbedtls_rsa_write_pubkey(rsa,
+                                                  pk_public_buffer, &cursor));
+            pk_public = cursor;
+            pk_public_length = end - pk_public;
+            break;
+#endif
+
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+        case MBEDTLS_PK_ECKEY:
+        case MBEDTLS_PK_ECKEY_DH:
+        case MBEDTLS_PK_ECDSA:
+            TEST_ASSERT(PSA_KEY_TYPE_IS_ECC(psa_type));
+            TEST_EQUAL(PSA_KEY_TYPE_ECC_GET_FAMILY(psa_type), pk->ec_family);
+            pk_public = pk->pub_raw;
+            pk_public_length = pk->pub_raw_len;
+            break;
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+        case MBEDTLS_PK_ECKEY:
+        case MBEDTLS_PK_ECKEY_DH:
+        case MBEDTLS_PK_ECDSA:
+            TEST_ASSERT(PSA_KEY_TYPE_IS_ECC(psa_get_key_type(&psa_attributes)));
+            const mbedtls_ecp_keypair *ec = mbedtls_pk_ec_ro(*pk);
+            TEST_EQUAL(mbedtls_ecp_write_public_key(
+                           ec, MBEDTLS_ECP_PF_UNCOMPRESSED, &pk_public_length,
+                           pk_public_buffer, sizeof(pk_public_buffer)), 0);
+            pk_public = pk_public_buffer;
+            break;
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS && !MBEDTLS_PK_USE_PSA_EC_DATA */
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        case MBEDTLS_PK_OPAQUE:
+            PSA_ASSERT(psa_get_key_attributes(pk->priv_id, &pk_attributes));
+            psa_key_type_t pk_psa_type = psa_get_key_type(&pk_attributes);
+            TEST_EQUAL(PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(psa_type),
+                       PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(pk_psa_type));
+            PSA_ASSERT(psa_export_public_key(psa_key,
+                                             pk_public_buffer,
+                                             sizeof(pk_public_buffer),
+                                             &pk_public_length));
+            pk_public = pk_public_buffer;
+            break;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+        default:
+            TEST_FAIL("pk type not supported");
+    }
+
+    uint8_t psa_public[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
+    size_t psa_public_length = 0;
+    PSA_ASSERT(psa_export_public_key(psa_key,
+                                     psa_public, sizeof(psa_public),
+                                     &psa_public_length));
+    TEST_MEMORY_COMPARE(pk_public, pk_public_length,
+                        psa_public, psa_public_length);
+
+    ok = 1;
+
+exit:
+    psa_reset_key_attributes(&psa_attributes);
+    psa_reset_key_attributes(&pk_attributes);
+    return ok;
+}
+#endif /* MBEDTLS_PK_C */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

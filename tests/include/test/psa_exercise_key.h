@@ -14,6 +14,10 @@
 
 #include <psa/crypto.h>
 
+#if defined(MBEDTLS_PK_C)
+#include <mbedtls/pk.h>
+#endif
+
 /** \def KNOWN_SUPPORTED_HASH_ALG
  *
  * A hash algorithm that is known to be supported.
@@ -236,5 +240,22 @@ psa_key_usage_t mbedtls_test_psa_usage_to_exercise(psa_key_type_t type,
  *       generated and possibly available as a library function?
  */
 int mbedtls_test_can_exercise_psa_algorithm(psa_algorithm_t alg);
+
+#if defined(MBEDTLS_PK_C)
+/** PK-PSA key consistency test.
+ *
+ * This function tests that the pk context and the PSA key are
+ * consistent. At a minimum:
+ *
+ * - The two objects must contain keys of the same type,
+ *   or a key pair and a public key of the matching type.
+ * - The two objects must have the same public key.
+ *
+ * \retval 0 The key failed the consistency tests.
+ * \retval 1 The key passed the consistency tests.
+ */
+int mbedtls_test_key_consistency_psa_pk(mbedtls_svc_key_id_t psa_key,
+                                        const mbedtls_pk_context *pk);
+#endif /* MBEDTLS_PK_C */
 
 #endif /* PSA_EXERCISE_KEY_H */

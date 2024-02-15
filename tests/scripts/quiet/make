@@ -24,12 +24,14 @@ quote_args() {
     local args=("$@")
     s=""
     for a in "${args[@]}"; do
-        simple_pattern='^[[:alnum:] _=+-]*$'
+        simple_pattern='^([[:alnum:]_+-]+=)?([[:alnum:] _=+-]*)$'
         if [[ $a =~ ' ' && $a =~ $simple_pattern ]]; then
             # a has spaces, but no other special characters that need escaping
             # (quoting after removing spaces yields no backslashes)
-            # simplify quoted form to "$a" - e.g. yield "a b c" instead of a\ b\ c
-            q="\"$a\""
+            # simplify quoted form - e.g.:
+            #   a b        -> "a b"
+            #   CFLAGS=a b -> CFLAGS="a b"
+            q="${BASH_REMATCH[1]}\"${BASH_REMATCH[2]}\""
         else
             # get bash to do the quoting
             q=$(printf '%q' "$a")

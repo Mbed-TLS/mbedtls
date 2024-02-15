@@ -4413,10 +4413,12 @@ static psa_status_t psa_key_derivation_tls12_prf_read(
 
 psa_status_t psa_key_derivation_output_bytes(
     psa_key_derivation_operation_t *operation,
-    uint8_t *output,
+    uint8_t *output_external,
     size_t output_length)
 {
     psa_status_t status;
+    LOCAL_OUTPUT_DECLARE(output_external, output);
+
     psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg(operation);
 
     if (operation->alg == 0) {
@@ -4424,13 +4426,6 @@ psa_status_t psa_key_derivation_output_bytes(
         return PSA_ERROR_BAD_STATE;
     }
 
-    if (output_length > operation->capacity) {
-        operation->capacity = 0;
-        /* Go through the error path to wipe all confidential data now
-         * that the operation object is useless. */
-        status = PSA_ERROR_INSUFFICIENT_DATA;
-        goto exit;
-    }
     if (output_length == 0 && operation->capacity == 0) {
         /* Edge case: this is a finished operation, and 0 bytes
          * were requested. The right error in this case could
@@ -4439,6 +4434,15 @@ psa_status_t psa_key_derivation_output_bytes(
          * operation, for consistency with the case when
          * output_length > 0. */
         return PSA_ERROR_INSUFFICIENT_DATA;
+    }
+
+    LOCAL_OUTPUT_ALLOC(output_external, output_length, output);
+    if (output_length > operation->capacity) {
+        operation->capacity = 0;
+        /* Go through the error path to wipe all confidential data now
+         * that the operation object is useless. */
+        status = PSA_ERROR_INSUFFICIENT_DATA;
+        goto exit;
     }
     operation->capacity -= output_length;
 
@@ -4461,7 +4465,10 @@ psa_status_t psa_key_derivation_output_bytes(
         * MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
     {
         (void) kdf_alg;
-        return PSA_ERROR_BAD_STATE;
+        status = PSA_ERROR_BAD_STATE;
+        LOCAL_OUTPUT_FREE(output_external, output);
+
+        return status;
     }
 
 exit:
@@ -4473,8 +4480,12 @@ exit:
         psa_algorithm_t alg = operation->alg;
         psa_key_derivation_abort(operation);
         operation->alg = alg;
-        memset(output, '!', output_length);
+        if (output != NULL) {
+            memset(output, '!', output_length);
+        }
     }
+
+    LOCAL_OUTPUT_FREE(output_external, output);
     return status;
 }
 
@@ -5025,12 +5036,22 @@ exit:
 psa_status_t psa_key_derivation_input_bytes(
     psa_key_derivation_operation_t *operation,
     psa_key_derivation_step_t step,
-    const uint8_t *data,
+    const uint8_t *data_external,
     size_t data_length)
 {
-    return psa_key_derivation_input_internal(operation, step,
-                                             PSA_KEY_TYPE_NONE,
-                                             data, data_length);
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    LOCAL_INPUT_DECLARE(data_external, data);
+
+    LOCAL_INPUT_ALLOC(data_external, data_length, data);
+
+    status = psa_key_derivation_input_internal(operation, step,
+                                               PSA_KEY_TYPE_NONE,
+                                               data, data_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+exit:
+#endif
+    LOCAL_INPUT_FREE(data_external, data);
+    return status;
 }
 
 psa_status_t psa_key_derivation_input_key(

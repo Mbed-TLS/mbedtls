@@ -153,6 +153,9 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
         # Proof-of-concept: just instrument one function for now
         if function_name == 'psa_cipher_encrypt':
             return True
+        if function_name in ('psa_key_derivation_output_bytes',
+                             'psa_key_derivation_input_bytes'):
+            return True
         if function_name in ('psa_import_key',
                              'psa_export_key',
                              'psa_export_public_key'):

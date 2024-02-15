@@ -704,17 +704,19 @@ static int import_pair_into_psa(const mbedtls_pk_context *pk,
                 return MBEDTLS_ERR_PK_TYPE_MISMATCH;
             }
             unsigned char key_buffer[PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
-            int ret = mbedtls_ecp_write_key(ec,
-                                            key_buffer, sizeof(key_buffer));
+            /* Make sure to pass the exact key length to
+             * mbedtls_ecp_write_key(), because it writes Montgomery keys
+             * at the start of the buffer but Weierstrass keys at the
+             * end of the buffer. */
+            size_t key_length = PSA_BITS_TO_BYTES(ec->grp.nbits);
+            int ret = mbedtls_ecp_write_key(ec, key_buffer, key_length);
             if (ret < 0) {
                 return ret;
             }
-            size_t key_length = PSA_BITS_TO_BYTES(ec->grp.nbits);
-            unsigned char *key_data = key_buffer + sizeof(key_buffer) - key_length;
             ret = PSA_PK_TO_MBEDTLS_ERR(psa_import_key(attributes,
-                                                       key_data, key_length,
+                                                       key_buffer, key_length,
                                                        key_id));
-            mbedtls_platform_zeroize(key_data, key_length);
+            mbedtls_platform_zeroize(key_buffer, key_length);
             return ret;
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
         }

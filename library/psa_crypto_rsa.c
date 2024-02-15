@@ -223,11 +223,6 @@ static psa_status_t psa_rsa_read_exponent(const uint8_t *domain_parameters,
     size_t i;
     uint32_t acc = 0;
 
-    if (domain_parameters_size == 0) {
-        *exponent = 65537;
-        return PSA_SUCCESS;
-    }
-
     /* Mbed TLS encodes the public exponent as an int. For simplicity, only
      * support values that fit in a 32-bit integer, which is larger than
      * int on just about every platform anyway. */
@@ -246,18 +241,20 @@ static psa_status_t psa_rsa_read_exponent(const uint8_t *domain_parameters,
 
 psa_status_t mbedtls_psa_rsa_generate_key(
     const psa_key_attributes_t *attributes,
+    const psa_key_production_parameters_t *params, size_t params_data_length,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length)
 {
     psa_status_t status;
     mbedtls_rsa_context rsa;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    int exponent;
+    int exponent = 65537;
 
-    status = psa_rsa_read_exponent(attributes->domain_parameters,
-                                   attributes->domain_parameters_size,
-                                   &exponent);
-    if (status != PSA_SUCCESS) {
-        return status;
+    if (params_data_length != 0) {
+        status = psa_rsa_read_exponent(params->data, params_data_length,
+                                       &exponent);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
     }
 
     mbedtls_rsa_init(&rsa);

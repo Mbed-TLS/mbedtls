@@ -7576,11 +7576,8 @@ psa_status_t psa_generate_key_internal(
          * that mbedtls_psa_rsa_generate_key() gets e via a new
          * parameter instead. */
         psa_key_attributes_t override_attributes = *attributes;
-        if (params_data_length != 0) {
-            override_attributes.domain_parameters_size = params_data_length;
-            override_attributes.domain_parameters = (uint8_t *) &params->data;
-        }
         return mbedtls_psa_rsa_generate_key(&override_attributes,
+                                            params, params_data_length,
                                             key_buffer,
                                             key_buffer_size,
                                             key_buffer_length);

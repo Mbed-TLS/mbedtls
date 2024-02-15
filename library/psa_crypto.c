@@ -7341,12 +7341,13 @@ exit:
 psa_status_t psa_key_derivation_key_agreement(psa_key_derivation_operation_t *operation,
                                               psa_key_derivation_step_t step,
                                               mbedtls_svc_key_id_t private_key,
-                                              const uint8_t *peer_key,
+                                              const uint8_t *peer_key_external,
                                               size_t peer_key_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
+    LOCAL_INPUT_DECLARE(peer_key_external, peer_key);
 
     if (!PSA_ALG_IS_KEY_AGREEMENT(operation->alg)) {
         return PSA_ERROR_INVALID_ARGUMENT;
@@ -7356,9 +7357,13 @@ psa_status_t psa_key_derivation_key_agreement(psa_key_derivation_operation_t *op
     if (status != PSA_SUCCESS) {
         return status;
     }
+
+    LOCAL_INPUT_ALLOC(peer_key_external, peer_key_length, peer_key)
     status = psa_key_agreement_internal(operation, step,
                                         slot,
                                         peer_key, peer_key_length);
+
+exit:
     if (status != PSA_SUCCESS) {
         psa_key_derivation_abort(operation);
     } else {
@@ -7370,7 +7375,7 @@ psa_status_t psa_key_derivation_key_agreement(psa_key_derivation_operation_t *op
     }
 
     unlock_status = psa_unregister_read(slot);
-
+    LOCAL_INPUT_FREE(peer_key_external, peer_key);
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 

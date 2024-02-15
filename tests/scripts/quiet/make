@@ -18,14 +18,20 @@ TOOL=$(basename "$0")
 # Locate original tool
 ORIGINAL_TOOL=$(type -ap ${TOOL} | grep -v "$0" | head -n1 )
 
+if [[ ! " $@ " =~ " --version " ]]; then
+    # Display the command being invoked - if it succeeds, this is all that will
+    # be displayed. Don't do this for invocations with --version, because
+    # this output is often parsed by scripts, so we don't want to modify it.
+    echo -n "${TOOL} "
+    printf '%q ' "$@"
+    echo
+fi
+
 if [[ " $@ " =~ $NO_SILENCE || -n "${VERBOSE_LOGS}" ]]; then
+    # Run original command with no output supression
     ${ORIGINAL_TOOL} "$@"
     EXIT_STATUS=$?
 else
-    # Display the command being invoked - if it succeeds, this is all that will
-    # be displayed.
-    echo "${TOOL} $@"
-
     # Run original command and capture output & exit status
     TMPFILE=$(mktemp /tmp/quiet-${TOOL}.XXXXXX)
     ${ORIGINAL_TOOL} "$@" > ${TMPFILE} 2>&1

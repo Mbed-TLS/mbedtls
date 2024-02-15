@@ -48,6 +48,9 @@ static int test_psa_bridge(const mbedtls_pk_context *ctx,
 
     TEST_EQUAL(mbedtls_pk_get_psa_attributes(ctx, usage_flag, &attributes), 0);
     TEST_EQUAL(mbedtls_pk_import_into_psa(ctx, &attributes, &psa_key), 0);
+    if (!mbedtls_test_key_consistency_psa_pk(psa_key, ctx)) {
+        goto exit;
+    }
 
     psa_algorithm_t exercise_usage = psa_get_key_usage_flags(&attributes);
     psa_algorithm_t exercise_alg = psa_get_key_algorithm(&attributes);

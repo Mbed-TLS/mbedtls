@@ -19,6 +19,8 @@
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
 
+#include <test/psa_exercise_key.h>
+
 /* Used for properly sizing the key buffer in pk_genkey_ec() */
 #include "psa_util_internal.h"
 
@@ -1893,6 +1895,9 @@ void pk_get_psa_attributes(int pk_type, int from_pair,
     TEST_EQUAL(psa_get_key_enrollment_algorithm(&attributes), PSA_ALG_NONE);
 
     TEST_EQUAL(mbedtls_pk_import_into_psa(&pk, &attributes, &new_key_id), 0);
+    if (!mbedtls_test_key_consistency_psa_pk(new_key_id, &pk)) {
+        goto exit;
+    }
 
 exit:
     mbedtls_pk_free(&pk);
@@ -1938,6 +1943,9 @@ void pk_rsa_v21_get_psa_attributes(int md_type, int from_pair,
     TEST_EQUAL(psa_get_key_enrollment_algorithm(&attributes), PSA_ALG_NONE);
 
     TEST_EQUAL(mbedtls_pk_import_into_psa(&pk, &attributes, &new_key_id), 0);
+    if (!mbedtls_test_key_consistency_psa_pk(new_key_id, &pk)) {
+        goto exit;
+    }
 
 exit:
     mbedtls_pk_free(&pk);
@@ -2026,6 +2034,11 @@ void pk_get_psa_attributes_opaque(int from_type_arg, int from_bits_arg,
         }
         TEST_EQUAL(mbedtls_pk_import_into_psa(&pk, &attributes, &new_key_id),
                    expected_import_ret);
+        if (expected_import_ret == 0) {
+            if (!mbedtls_test_key_consistency_psa_pk(new_key_id, &pk)) {
+                goto exit;
+            }
+        }
     }
 
 exit:
@@ -2117,6 +2130,9 @@ void pk_import_into_psa_opaque(int from_type, int from_bits,
             expected_usage |= PSA_KEY_USAGE_VERIFY_MESSAGE;
         }
         TEST_EQUAL(expected_usage, psa_get_key_usage_flags(&actual_attributes));
+        if (!mbedtls_test_key_consistency_psa_pk(to_key_id, &pk)) {
+            goto exit;
+        }
     } else {
         TEST_ASSERT(mbedtls_svc_key_id_equal(to_key_id, MBEDTLS_SVC_KEY_ID_INIT));
     }

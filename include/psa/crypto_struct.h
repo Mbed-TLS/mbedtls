@@ -437,29 +437,10 @@ static inline psa_algorithm_t psa_get_key_algorithm(
     return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg);
 }
 
-/* This function is declared in crypto_extra.h, which comes after this
- * header file, but we need the function here, so repeat the declaration. */
-#if !defined(PSA_SET_KEY_DOMAIN_PARAMETERS)
-#define PSA_SET_KEY_DOMAIN_PARAMETERS
-psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
-                                           psa_key_type_t type,
-                                           const uint8_t *data,
-                                           size_t data_length);
-#endif /* PSA_SET_KEY_DOMAIN_PARAMETERS */
-
 static inline void psa_set_key_type(psa_key_attributes_t *attributes,
                                     psa_key_type_t type)
 {
-    if (attributes->MBEDTLS_PRIVATE(domain_parameters) == NULL) {
-        /* Common case: quick path */
-        attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(type) = type;
-    } else {
-        /* Call the bigger function to free the old domain parameters.
-         * Ignore any errors which may arise due to type requiring
-         * non-default domain parameters, since this function can't
-         * report errors. */
-        (void) psa_set_key_domain_parameters(attributes, type, NULL, 0);
-    }
+    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(type) = type;
 }
 
 static inline psa_key_type_t psa_get_key_type(

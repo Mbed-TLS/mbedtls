@@ -7363,7 +7363,9 @@ psa_status_t psa_key_derivation_key_agreement(psa_key_derivation_operation_t *op
                                         slot,
                                         peer_key, peer_key_length);
 
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
 exit:
+#endif
     if (status != PSA_SUCCESS) {
         psa_key_derivation_abort(operation);
     } else {

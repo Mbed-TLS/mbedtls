@@ -216,8 +216,8 @@ psa_status_t mbedtls_psa_rsa_export_public_key(
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
 
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
-static psa_status_t psa_rsa_read_exponent(const uint8_t *domain_parameters,
-                                          size_t domain_parameters_size,
+static psa_status_t psa_rsa_read_exponent(const uint8_t *e_bytes,
+                                          size_t e_length,
                                           int *exponent)
 {
     size_t i;
@@ -226,11 +226,11 @@ static psa_status_t psa_rsa_read_exponent(const uint8_t *domain_parameters,
     /* Mbed TLS encodes the public exponent as an int. For simplicity, only
      * support values that fit in a 32-bit integer, which is larger than
      * int on just about every platform anyway. */
-    if (domain_parameters_size > sizeof(acc)) {
+    if (e_length > sizeof(acc)) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
-    for (i = 0; i < domain_parameters_size; i++) {
-        acc = (acc << 8) | domain_parameters[i];
+    for (i = 0; i < e_length; i++) {
+        acc = (acc << 8) | e_bytes[i];
     }
     if (acc > INT_MAX) {
         return PSA_ERROR_NOT_SUPPORTED;

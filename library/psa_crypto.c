@@ -5278,9 +5278,9 @@ psa_status_t psa_key_derivation_key_agreement(psa_key_derivation_operation_t *op
 
 psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
                                    mbedtls_svc_key_id_t private_key,
-                                   const uint8_t *peer_key,
+                                   const uint8_t *peer_key_external,
                                    size_t peer_key_length,
-                                   uint8_t *output,
+                                   uint8_t *output_external,
                                    size_t output_size,
                                    size_t *output_length)
 {
@@ -5288,6 +5288,8 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot = NULL;
     size_t expected_length;
+    LOCAL_INPUT_DECLARE(peer_key_external, peer_key);
+    LOCAL_OUTPUT_DECLARE(output_external, output);
 
     if (!PSA_ALG_IS_KEY_AGREEMENT(alg)) {
         status = PSA_ERROR_INVALID_ARGUMENT;
@@ -5314,6 +5316,8 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
         goto exit;
     }
 
+    LOCAL_INPUT_ALLOC(peer_key_external, peer_key_length, peer_key);
+    LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
     status = psa_key_agreement_raw_internal(alg, slot,
                                             peer_key, peer_key_length,
                                             output, output_size,
@@ -5334,6 +5338,8 @@ exit:
 
     unlock_status = psa_unlock_key_slot(slot);
 
+    LOCAL_INPUT_FREE(peer_key_external, peer_key);
+    LOCAL_OUTPUT_FREE(output_external, output);
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 

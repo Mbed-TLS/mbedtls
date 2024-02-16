@@ -61,21 +61,14 @@ PEM read (valid EC key encoded with AES-128-CBC)
 depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
 mbedtls_pem_read_buffer:"-----BEGIN EC PRIVATE KEY-----":"-----END EC PRIVATE KEY-----":"-----BEGIN EC PRIVATE KEY-----\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: AES-128-CBC,151F851B6A7F3FBDAA5B7173117D0127\n\nLw+0OM+0Bwcl+ls/vxQbLrVshGc7bsNPvvtj2sJeMFFEq3V1mj/IO++0KK/CDhMH\nh6CZPsmgVOeM5uFpqYaq0fJbUduN2eDMWszWRm0SFkY=\n-----END EC PRIVATE KEY-----":"pwdpwd":0:"3041020101040f00d8023c809afd45e426d1a4dbe0ffa00706052b81040004a1220320000400da1ecfa53d528237625e119e2e0500d2eb671724f16deb6a63749516b7"
 
-# The text "hello world" (which is clearly not a valid ASN.1 SEQUENCE) is encoded
-# with AES-128-CBC to prove that ASN.1 parsing after decoding fails.
+# The text "hello world" together with some invalid padding data is encoded
+# with AES-128-CBC in order to test padding validation.
 # Since PBKDF1 isn't supported in OpenSSL, here's the steps:
 # 1. generate the key (password="password";  IV=0x3132333435363738 in hex or "12345678" as string)
 #       echo -n "password12345678" | openssl md5
 # 2. encode data
-#       echo -n "hello world" | openssl aes-128-cbc -e -base64 -p -K "bbb0ddff1b944b3cc68eaaeb7ac20099" -iv "3132333435363738"
-PEM read (Invalid SEQUENCE encoded with AES-128-CBC)
-depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
-mbedtls_pem_read_buffer:"-----BEGIN EC PRIVATE KEY-----":"-----END EC PRIVATE KEY-----":"-----BEGIN EC PRIVATE KEY-----\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: AES-128-CBC,31323334353637380000000000000000\n\nDfRGkwS+VjvR0IYsjZwW6Q==\n-----END EC PRIVATE KEY-----":"password":MBEDTLS_ERR_PEM_INVALID_DATA + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG:""
-
-# Same as above, but with invalid padding data.
-# Generated with:
 #   echo -n -e "\x68\x65\x6c\x6c\x6f\x20\x77\x6f\x72\x6c\x64\x01\x02\x03\x04\x05" | openssl aes-128-cbc -e -base64 -p -K "bbb0ddff1b944b3cc68eaaeb7ac20099" -iv "3132333435363738" -nopad
-PEM read (Invalid padding data for AES-128-CBC)
+PEM read (AES-128-CBC, invalid padding data)
 depends_on:MBEDTLS_MD_CAN_MD5:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
 mbedtls_pem_read_buffer:"-----BEGIN EC PRIVATE KEY-----":"-----END EC PRIVATE KEY-----":"-----BEGIN EC PRIVATE KEY-----\nProc-Type\: 4,ENCRYPTED\nDEK-Info\: AES-128-CBC,31323334353637380000000000000000\n\n333hxynfxEdXrSHQfIabxQ==\n-----END EC PRIVATE KEY-----":"password":MBEDTLS_ERR_PEM_BAD_INPUT_DATA:""
 

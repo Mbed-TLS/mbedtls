@@ -17,7 +17,6 @@
 #include "mbedtls/cipher.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
-#include "mbedtls/asn1.h"
 
 #include <string.h>
 
@@ -465,28 +464,6 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
         if (ret != 0) {
             mbedtls_zeroize_and_free(buf, len);
             return ret;
-        }
-
-        /*
-         * In RFC1421 PEM is used as container for DER (ASN.1) content so we
-         * can use ASN.1 functions to parse the main SEQUENCE tag and to get its
-         * length.
-         */
-        unsigned char *p = buf;
-        size_t sequence_len;
-        ret = mbedtls_asn1_get_tag(&p, buf + len, &sequence_len,
-                                   MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED);
-        if (ret != 0) {
-            mbedtls_free(buf);
-            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PEM_INVALID_DATA, ret);
-        }
-        /* Add also the sequence block (tag + len) to the total amount of valid data. */
-        sequence_len += (p - buf);
-
-        /* Ensure that the reported SEQUENCE length matches the data len (i.e. no
-         * trailing garbage data). */
-        if (len != sequence_len) {
-            return MBEDTLS_ERR_PEM_BAD_INPUT_DATA;
         }
 #else
         mbedtls_zeroize_and_free(buf, len);

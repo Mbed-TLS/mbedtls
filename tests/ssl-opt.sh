@@ -4836,8 +4836,9 @@ run_test    "Max fragment length: DTLS client, larger message" \
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Server-side parsing and debug output" \
             "$P_SRV debug_level=3 force_version=tls13" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4" \
@@ -4849,28 +4850,30 @@ run_test    "Record Size Limit: TLS 1.3: Server-side parsing and debug output" \
 
 requires_gnutls_tls1_3
 requires_gnutls_record_size_limit
-requires_gnutls_next_disable_tls13_compat
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Record Size Limit: TLS 1.3: Client-side parsing and debug output" \
-            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%DISABLE_TLS13_COMPAT_MODE --disable-client-cert -d 4" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL --disable-client-cert -d 4" \
             "$P_CLI debug_level=4 force_version=tls13" \
             0 \
-            -s "Preparing extension (Record Size Limit/28) for 'encrypted extensions'"
-# The P_CLI can not yet send the Record Size Limit extension. Thus, the G_NEXT_SRV does not send
-# a response in its EncryptedExtensions record.
-#            -c "RecordSizeLimit: 16385 Bytes"
+            -c "Sent RecordSizeLimit: 16384 Bytes"                                      \
+            -c "ClientHello: record_size_limit(28) extension exists."                   \
+            -c "EncryptedExtensions: record_size_limit(28) extension received."         \
+            -c "RecordSizeLimit: 16385 Bytes"                                           \
 
-# In the following (9) tests, --recordsize is the value used by the G_NEXT_CLI (3.7.2) to configure the
-# maximum record size using "https://gnutls.org/reference/gnutls-gnutls.html#gnutls-record-set-max-size".
-# There is currently a lower limit of 512, caused by this function not respecting the
-# "%ALLOW_SMALL_RECORDS" priority string and not using the more recent function
-# https://gnutls.org/reference/gnutls-gnutls.html#gnutls-record-set-max-recv-size.
+# In the following tests, --recordsize is the value used by the G_NEXT_CLI (3.7.2) to configure the
+# maximum record size using gnutls_record_set_max_size()
+# (https://gnutls.org/reference/gnutls-gnutls.html#gnutls-record-set-max-size).
+# There is currently a lower limit of 512, caused by gnutls_record_set_max_size()
+# not respecting the "%ALLOW_SMALL_RECORDS" priority string and not using the
+# more recent function gnutls_record_set_max_recv_size()
+# (https://gnutls.org/reference/gnutls-gnutls.html#gnutls-record-set-max-recv-size).
 # There is currently an upper limit of 4096, caused by the cli arg parser:
 # https://gitlab.com/gnutls/gnutls/-/blob/3.7.2/src/cli-args.def#L395.
-# Thus, these tests are currently limit to that value range.
-# Moreover, the value sent in the extension is expected to be larger by one compared
-# to the value passed on the cli:
+# Thus, these tests are currently limited to the value range 512-4096.
+# Also, the value sent in the extension will be one larger than the value
+# set at the command line:
 # https://gitlab.com/gnutls/gnutls/-/blob/3.7.2/lib/ext/record_size_limit.c#L142
 
 # Currently test certificates being used do not fit in 513 record size limit
@@ -4886,10 +4889,13 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             "$P_SRV debug_level=3 force_version=tls13 tls13_kex_modes=psk \
                     psk_list=Client_identity,6162636465666768696a6b6c6d6e6f70 \
                     response_size=256" \
-                    "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+PSK --recordsize 512 \
-                         --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+PSK --recordsize 512 \
+                    --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70" \
             0 \
             -s "RecordSizeLimit: 513 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 511" \
             -s "256 bytes written in 1 fragments"
 
@@ -4906,6 +4912,9 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70" \
             0 \
             -s "RecordSizeLimit: 513 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 511" \
             -s "768 bytes written in 2 fragments"
 
@@ -4922,6 +4931,9 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70" \
             0 \
             -s "RecordSizeLimit: 513 Bytes" \
+            -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 511" \
             -s "1280 bytes written in 3 fragments"
 
@@ -4936,6 +4948,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             0 \
             -s "RecordSizeLimit: 1024 Bytes" \
             -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 1023" \
             -s "512 bytes written in 1 fragments"
 
@@ -4950,6 +4964,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             0 \
             -s "RecordSizeLimit: 1024 Bytes" \
             -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 1023" \
             -s "1536 bytes written in 2 fragments"
 
@@ -4964,6 +4980,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             0 \
             -s "RecordSizeLimit: 1024 Bytes" \
             -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 1023" \
             -s "2560 bytes written in 3 fragments"
 
@@ -4978,6 +4996,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             0 \
             -s "RecordSizeLimit: 4096 Bytes" \
             -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 4095" \
             -s "2048 bytes written in 1 fragments"
 
@@ -4992,6 +5012,8 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             0 \
             -s "RecordSizeLimit: 4096 Bytes" \
             -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 4095" \
             -s "6144 bytes written in 2 fragments"
 
@@ -5006,10 +5028,180 @@ run_test    "Record Size Limit: TLS 1.3: Server complies with record size limit 
             0 \
             -s "RecordSizeLimit: 4096 Bytes" \
             -s "ClientHello: record_size_limit(28) extension exists." \
+            -s "Sent RecordSizeLimit: 16384 Bytes" \
+            -s "EncryptedExtensions: record_size_limit(28) extension exists." \
             -s "Maximum outgoing record payload length is 4095" \
             -s "10240 bytes written in 3 fragments"
 
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (513), 1 fragment" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --disable-client-cert --recordsize 512" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=256" \
+            0 \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "RecordSizeLimit: 513 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 511" \
+            -c "256 bytes written in 1 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (513), 2 fragments" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --disable-client-cert --recordsize 512" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=768" \
+            0 \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "RecordSizeLimit: 513 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 511" \
+            -c "768 bytes written in 2 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (513), 3 fragments" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --disable-client-cert --recordsize 512" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=1280" \
+            0 \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "RecordSizeLimit: 513 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 511" \
+            -c "1280 bytes written in 3 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (1024), 1 fragment" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --recordsize 1023" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=512" \
+            0 \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "RecordSizeLimit: 1024 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 1023" \
+            -c "512 bytes written in 1 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (1024), 2 fragments" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --recordsize 1023" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=1536" \
+            0 \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "RecordSizeLimit: 1024 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 1023" \
+            -c "1536 bytes written in 2 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (1024), 3 fragments" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --recordsize 1023" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=2560" \
+            0 \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "RecordSizeLimit: 1024 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 1023" \
+            -c "2560 bytes written in 3 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (4096), 1 fragment" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --recordsize 4095" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=2048" \
+            0 \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "RecordSizeLimit: 4096 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 4095" \
+            -c "2048 bytes written in 1 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (4096), 2 fragments" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --recordsize 4095" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=6144" \
+            0 \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "RecordSizeLimit: 4096 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 4095" \
+            -c "6144 bytes written in 2 fragments"
+
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3: Client complies with record size limit (4096), 3 fragments" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL -d 4 --recordsize 4095" \
+            "$P_CLI debug_level=4 force_version=tls13 request_size=10240" \
+            0 \
+            -c "Sent RecordSizeLimit: 16384 Bytes" \
+            -c "ClientHello: record_size_limit(28) extension exists." \
+            -c "RecordSizeLimit: 4096 Bytes" \
+            -c "EncryptedExtensions: record_size_limit(28) extension exists." \
+            -c "Maximum outgoing record payload length is 4095" \
+            -c "10240 bytes written in 3 fragments"
+
+# TODO: For time being, we send fixed value of RecordSizeLimit defined by
+# MBEDTLS_SSL_IN_CONTENT_LEN. Once we support variable buffer length of
+# RecordSizeLimit, we need to modify value of RecordSizeLimit in below test.
+requires_config_value_equals "MBEDTLS_SSL_IN_CONTENT_LEN" 16384
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_RECORD_SIZE_LIMIT
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Record Size Limit: TLS 1.3 m->m: both peer comply with record size limit (default)" \
+            "$P_SRV debug_level=4 force_version=tls13" \
+            "$P_CLI debug_level=4" \
+            0 \
+            -c "Sent RecordSizeLimit: $MAX_IN_LEN Bytes"         \
+            -c "RecordSizeLimit: $MAX_IN_LEN Bytes"              \
+            -s "RecordSizeLimit: $MAX_IN_LEN Bytes"              \
+            -s "Sent RecordSizeLimit: $MAX_IN_LEN Bytes"         \
+            -s "Maximum outgoing record payload length is 16383" \
+            -s "Maximum incoming record payload length is 16384"
+
+# End of Record size limit tests
+
 # Tests for renegotiation
+
+# G_NEXT_SRV is used in renegotiation tests becuase of the increased
+# extensions limit since we exceed the limit in G_SRV when we send
+# TLS 1.3 extensions in the initial handshake.
 
 # Renegotiation SCSV always added, regardless of SSL_RENEGOTIATION
 run_test    "Renegotiation: none, for reference" \
@@ -5341,7 +5533,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: gnutls server strict, client-initiated" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
@@ -5355,7 +5547,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: gnutls server unsafe, client-initiated default" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
             1 \
             -c "client hello, adding renegotiation extension" \
@@ -5369,7 +5561,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: gnutls server unsafe, client-inititated no legacy" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 \
              allow_legacy=0" \
             1 \
@@ -5384,7 +5576,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: gnutls server unsafe, client-inititated legacy" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 \
              allow_legacy=1" \
             0 \
@@ -5445,7 +5637,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: DTLS, gnutls server, client-initiated" \
-            "$G_SRV -u --mtu 4096" \
+            "$G_NEXT_SRV -u --mtu 4096" \
             "$P_CLI debug_level=3 dtls=1 exchanges=1 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
@@ -5460,7 +5652,7 @@ run_test    "Renegotiation: DTLS, gnutls server, client-initiated" \
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renego ext: gnutls server strict, client default" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3" \
             0 \
             -c "found renegotiation extension" \
@@ -5470,7 +5662,7 @@ run_test    "Renego ext: gnutls server strict, client default" \
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renego ext: gnutls server unsafe, client default" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3" \
             0 \
             -C "found renegotiation extension" \
@@ -5480,7 +5672,7 @@ run_test    "Renego ext: gnutls server unsafe, client default" \
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renego ext: gnutls server unsafe, client break legacy" \
-            "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 allow_legacy=-1" \
             1 \
             -C "found renegotiation extension" \
@@ -13422,6 +13614,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
+requires_config_enabled PSA_WANT_DH_RFC7919_3072
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
@@ -13446,6 +13639,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
+requires_config_enabled PSA_WANT_DH_RFC7919_3072
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,ffdhe3072,rsa_pss_rsae_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE3072:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI ca_file=data_files/test-ca_cat12.crt debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 groups=ffdhe3072" \
@@ -13464,6 +13658,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
+requires_config_enabled PSA_WANT_DH_RFC7919_4096
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
@@ -13488,6 +13683,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
+requires_config_enabled PSA_WANT_DH_RFC7919_4096
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,ffdhe4096,rsa_pss_rsae_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE4096:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI ca_file=data_files/test-ca_cat12.crt debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 groups=ffdhe4096" \
@@ -13506,6 +13702,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
+requires_config_enabled PSA_WANT_DH_RFC7919_6144
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
@@ -13529,6 +13726,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
+requires_config_enabled PSA_WANT_DH_RFC7919_6144
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,ffdhe6144,rsa_pss_rsae_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE6144:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI ca_file=data_files/test-ca_cat12.crt debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 groups=ffdhe6144" \
@@ -13547,6 +13745,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
+requires_config_enabled PSA_WANT_DH_RFC7919_8192
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
@@ -13571,6 +13770,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled PSA_WANT_ALG_FFDH
+requires_config_enabled PSA_WANT_DH_RFC7919_8192
 client_needs_more_time 4
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,ffdhe8192,rsa_pss_rsae_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:+GROUP-FFDHE8192:+VERS-TLS1.3:%NO_TICKETS" \

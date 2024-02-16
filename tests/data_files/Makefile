@@ -1052,6 +1052,30 @@ rsa_pkcs8_pbes2_pbkdf2_2048_3des_sha384.pem: rsa_pkcs1_2048_clear.pem
 all_final += rsa_pkcs8_pbes2_pbkdf2_2048_3des_sha384.pem
 keys_rsa_enc_pkcs8_v2_2048_3des_sha384: rsa_pkcs8_pbes2_pbkdf2_2048_3des_sha384.der rsa_pkcs8_pbes2_pbkdf2_2048_3des_sha384.pem
 
+rsa_pkcs8_pbes2_pbkdf2_2048_aes128cbc_sha384.der: rsa_pkcs1_2048_clear.pem
+	$(OPENSSL) pkcs8  -topk8 -v2 aes-128-cbc -v2prf hmacWithSHA384 -inform PEM -in $< -outform DER -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)"
+all_final += rsa_pkcs8_pbes2_pbkdf2_2048_aes128cbc_sha384.der
+rsa_pkcs8_pbes2_pbkdf2_2048_aes128cbc_sha384.pem: rsa_pkcs1_2048_clear.pem
+	$(OPENSSL) pkcs8  -topk8 -v2 aes-128-cbc -v2prf hmacWithSHA384 -inform PEM -in $< -outform PEM -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)"
+all_final += rsa_pkcs8_pbes2_pbkdf2_2048_aes128cbc_sha384.pem
+keys_rsa_enc_pkcs8_v2_2048_aes128cbc_sha384: rsa_pkcs8_pbes2_pbkdf2_2048_aes128cbc_sha384.der rsa_pkcs8_pbes2_pbkdf2_2048_aes128cbc_sha384.pem
+
+rsa_pkcs8_pbes2_pbkdf2_2048_aes192cbc_sha384.der: rsa_pkcs1_2048_clear.pem
+	$(OPENSSL) pkcs8  -topk8 -v2 aes-192-cbc -v2prf hmacWithSHA384 -inform PEM -in $< -outform DER -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)"
+all_final += rsa_pkcs8_pbes2_pbkdf2_2048_aes192cbc_sha384.der
+rsa_pkcs8_pbes2_pbkdf2_2048_aes192cbc_sha384.pem: rsa_pkcs1_2048_clear.pem
+	$(OPENSSL) pkcs8  -topk8 -v2 aes-192-cbc -v2prf hmacWithSHA384 -inform PEM -in $< -outform PEM -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)"
+all_final += rsa_pkcs8_pbes2_pbkdf2_2048_aes192cbc_sha384.pem
+keys_rsa_enc_pkcs8_v2_2048_aes192cbc_sha384: rsa_pkcs8_pbes2_pbkdf2_2048_aes192cbc_sha384.der rsa_pkcs8_pbes2_pbkdf2_2048_aes192cbc_sha384.pem
+
+rsa_pkcs8_pbes2_pbkdf2_2048_aes256cbc_sha384.der: rsa_pkcs1_2048_clear.pem
+	$(OPENSSL) pkcs8  -topk8 -v2 aes-256-cbc -v2prf hmacWithSHA384 -inform PEM -in $< -outform DER -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)"
+all_final += rsa_pkcs8_pbes2_pbkdf2_2048_aes256cbc_sha384.der
+rsa_pkcs8_pbes2_pbkdf2_2048_aes256cbc_sha384.pem: rsa_pkcs1_2048_clear.pem
+	$(OPENSSL) pkcs8  -topk8 -v2 aes-256-cbc -v2prf hmacWithSHA384 -inform PEM -in $< -outform PEM -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)"
+all_final += rsa_pkcs8_pbes2_pbkdf2_2048_aes256cbc_sha384.pem
+keys_rsa_enc_pkcs8_v2_2048_aes256cbc_sha384: rsa_pkcs8_pbes2_pbkdf2_2048_aes256cbc_sha384.der rsa_pkcs8_pbes2_pbkdf2_2048_aes256cbc_sha384.pem
+
 rsa_pkcs8_pbes2_pbkdf2_2048_des_sha384.der: rsa_pkcs1_2048_clear.pem
 	$(OPENSSL) pkcs8 -topk8 -v2 des -v2prf hmacWithSHA384 -inform PEM -in $< -outform DER -out $@ -passout "pass:$(keys_rsa_pkcs8_pwd)"
 all_final += rsa_pkcs8_pbes2_pbkdf2_2048_des_sha384.der

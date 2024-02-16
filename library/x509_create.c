@@ -9,7 +9,7 @@
 
 #if defined(MBEDTLS_X509_CREATE_C)
 
-#include "mbedtls/x509.h"
+#include "x509_internal.h"
 #include "mbedtls/asn1write.h"
 #include "mbedtls/error.h"
 #include "mbedtls/oid.h"

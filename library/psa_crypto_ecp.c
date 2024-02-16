@@ -14,7 +14,7 @@
 #include "psa_crypto_core.h"
 #include "psa_crypto_ecp.h"
 #include "psa_crypto_random_impl.h"
-#include "md_psa.h"
+#include "mbedtls/psa_util.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -32,6 +32,61 @@
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+/* Helper function to verify if the provided EC's family and key bit size are valid.
+ *
+ * Note: "bits" parameter is used both as input and output and it might be updated
+ *       in case provided input value is not multiple of 8 ("sloppy" bits).
+ */
+static int check_ecc_parameters(psa_ecc_family_t family, size_t *bits)
+{
+    switch (family) {
+        case PSA_ECC_FAMILY_SECP_R1:
+            switch (*bits) {
+                case 192:
+                case 224:
+                case 256:
+                case 384:
+                case 521:
+                    return PSA_SUCCESS;
+                case 528:
+                    *bits = 521;
+                    return PSA_SUCCESS;
+            }
+            break;
+
+        case PSA_ECC_FAMILY_BRAINPOOL_P_R1:
+            switch (*bits) {
+                case 256:
+                case 384:
+                case 512:
+                    return PSA_SUCCESS;
+            }
+            break;
+
+        case PSA_ECC_FAMILY_MONTGOMERY:
+            switch (*bits) {
+                case 448:
+                case 255:
+                    return PSA_SUCCESS;
+                case 256:
+                    *bits = 255;
+                    return PSA_SUCCESS;
+            }
+            break;
+
+        case PSA_ECC_FAMILY_SECP_K1:
+            switch (*bits) {
+                case 192:
+                /* secp224k1 is not and will not be supported in PSA (#3541). */
+                case 256:
+                    return PSA_SUCCESS;
+            }
+            break;
+    }
+
+    return PSA_ERROR_INVALID_ARGUMENT;
+}
+
 psa_status_t mbedtls_psa_ecp_load_representation(
     psa_key_type_t type, size_t curve_bits,
     const uint8_t *data, size_t data_length,
@@ -82,16 +137,15 @@ psa_status_t mbedtls_psa_ecp_load_representation(
     }
     mbedtls_ecp_keypair_init(ecp);
 
+    status = check_ecc_parameters(PSA_KEY_TYPE_ECC_GET_FAMILY(type), &curve_bits);
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
     /* Load the group. */
-    grp_id = mbedtls_ecc_group_of_psa(PSA_KEY_TYPE_ECC_GET_FAMILY(type),
-                                      curve_bits, !explicit_bits);
+    grp_id = mbedtls_ecc_group_from_psa(PSA_KEY_TYPE_ECC_GET_FAMILY(type),
+                                        curve_bits);
     if (grp_id == MBEDTLS_ECP_DP_NONE) {
-        /* We can't distinguish between a nonsensical family/size combination
-         * (which would warrant PSA_ERROR_INVALID_ARGUMENT) and a
-         * well-regarded curve that Mbed TLS just doesn't know about (which
-         * would warrant PSA_ERROR_NOT_SUPPORTED). For uniformity with how
-         * curves that Mbed TLS knows about but for which support is disabled
-         * at build time, return NOT_SUPPORTED. */
         status = PSA_ERROR_NOT_SUPPORTED;
         goto exit;
     }
@@ -285,7 +339,7 @@ psa_status_t mbedtls_psa_ecp_generate_key(
     psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY(
         attributes->core.type);
     mbedtls_ecp_group_id grp_id =
-        mbedtls_ecc_group_of_psa(curve, attributes->core.bits, 0);
+        mbedtls_ecc_group_from_psa(curve, attributes->core.bits);
 
     const mbedtls_ecp_curve_info *curve_info =
         mbedtls_ecp_curve_info_from_grp_id(grp_id);

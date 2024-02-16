@@ -240,6 +240,44 @@ KNOWN_TASKS = {
             }
         }
     },
+    'analyze_driver_vs_reference_hmac': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_psa_crypto_config_reference_hmac',
+            'component_driver': 'test_psa_crypto_config_accel_hmac',
+            'ignored_suites': [
+                # These suites require legacy hash support, which is disabled
+                # in the accelerated component.
+                'shax', 'mdx',
+                # This suite tests builtins directly, but these are missing
+                # in the accelerated case.
+                'psa_crypto_low_hash.generated',
+            ],
+            'ignored_tests': {
+                'test_suite_md': [
+                    # Builtin HMAC is not supported in the accelerate component.
+                    re.compile('.*HMAC.*'),
+                    # Following tests make use of functions which are not available
+                    # when MD_C is disabled, as it happens in the accelerated
+                    # test component.
+                    re.compile('generic .* Hash file .*'),
+                    'MD list',
+                ],
+                'test_suite_md.psa': [
+                    # "legacy only" tests require hash algorithms to be NOT
+                    # accelerated, but this of course false for the accelerated
+                    # test component.
+                    re.compile('PSA dispatch .* legacy only'),
+                ],
+                'test_suite_platform': [
+                    # Incompatible with sanitizers (e.g. ASan). If the driver
+                    # component uses a sanitizer but the reference component
+                    # doesn't, we have a PASS vs SKIP mismatch.
+                    'Check mbedtls_calloc overallocation',
+                ],
+            }
+        }
+    },
     'analyze_driver_vs_reference_cipher_aead_cmac': {
         'test_function': do_analyze_driver_vs_reference,
         'args': {
@@ -325,6 +363,7 @@ KNOWN_TASKS = {
                 # is required.
                 'test_suite_ecp': [
                     re.compile(r'ECP check public-private .*'),
+                    re.compile(r'ECP calculate public: .*'),
                     re.compile(r'ECP gen keypair .*'),
                     re.compile(r'ECP point muladd .*'),
                     re.compile(r'ECP point multiplication .*'),
@@ -560,6 +599,11 @@ KNOWN_TASKS = {
                     # Following tests require AES_C/CAMELLIA_C to be enabled,
                     # but these are not available in the accelerated component.
                     re.compile('Set( non-existent)? padding with (AES|CAMELLIA).*'),
+                ],
+                'test_suite_pkcs5': [
+                    # The AES part of PKCS#5 PBES2 is not yet supported.
+                    # The rest of PKCS#5 (PBKDF2) works, though.
+                    re.compile(r'PBES2 .* AES-.*')
                 ],
                 'test_suite_pkparse': [
                     # PEM (called by pkparse) requires AES_C in order to decrypt

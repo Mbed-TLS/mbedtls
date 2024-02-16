@@ -20,4 +20,4 @@ set(libs
 )
 
 add_executable(cmake_subproject cmake_subproject.c)
-target_link_libraries(cmake_subproject ${libs})
+target_link_libraries(cmake_subproject ${libs} ${CMAKE_THREAD_LIBS_INIT})

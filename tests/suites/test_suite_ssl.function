@@ -3802,6 +3802,7 @@ void tls13_cli_early_data_status(int scenario)
         MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
         MBEDTLS_SSL_IANA_TLS_GROUP_NONE
     };
+    uint8_t client_random[MBEDTLS_CLIENT_HELLO_RANDOM_LEN];
 
     mbedtls_platform_zeroize(&client_ep, sizeof(client_ep));
     mbedtls_platform_zeroize(&server_ep, sizeof(server_ep));
@@ -3931,9 +3932,11 @@ void tls13_cli_early_data_status(int scenario)
                         if (client_ep.ssl.handshake->hello_retry_request_count == 0) {
                             TEST_EQUAL(client_ep.ssl.early_data_status,
                                        MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE);
+                            memcpy(client_random, client_ep.ssl.handshake->randbytes, MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
                         } else {
                             TEST_EQUAL(client_ep.ssl.early_data_status,
                                        MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED);
+                            TEST_MEMORY_COMPARE(client_random, MBEDTLS_CLIENT_HELLO_RANDOM_LEN, client_ep.ssl.handshake->randbytes, MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
                         }
                         break;
                 }

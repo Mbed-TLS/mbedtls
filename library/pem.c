@@ -463,7 +463,7 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
          * mismatches. */
         ret = pem_check_pkcs_padding(buf, len, &len);
         if (ret != 0) {
-            mbedtls_free(buf);
+            mbedtls_zeroize_and_free(buf, len);
             return ret;
         }
 

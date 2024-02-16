@@ -166,7 +166,6 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *ticket_buffer;
-    unsigned int key_exchanges;
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_ms_time_t now;
     mbedtls_ms_time_t server_age;
@@ -225,31 +224,6 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 
     if (session->tls_version != MBEDTLS_SSL_VERSION_TLS1_3) {
         MBEDTLS_SSL_DEBUG_MSG(3, ("Ticket TLS version is not 1.3."));
-        goto exit;
-    }
-
-    /* RFC 8446 section 4.2.9
-     *
-     * Servers SHOULD NOT send NewSessionTicket with tickets that are not
-     * compatible with the advertised modes; however, if a server does so,
-     * the impact will just be that the client's attempts at resumption fail.
-     *
-     * We regard the ticket with incompatible key exchange modes as not match.
-     */
-    MBEDTLS_SSL_PRINT_TICKET_FLAGS(4, session->ticket_flags);
-
-    key_exchanges = 0;
-    if (mbedtls_ssl_tls13_session_ticket_allow_psk_ephemeral(session) &&
-        ssl_tls13_key_exchange_is_psk_ephemeral_available(ssl)) {
-        key_exchanges |= MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
-    }
-    if (mbedtls_ssl_tls13_session_ticket_allow_psk(session) &&
-        ssl_tls13_key_exchange_is_psk_available(ssl)) {
-        key_exchanges |= MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
-    }
-
-    if (key_exchanges == 0) {
-        MBEDTLS_SSL_DEBUG_MSG(3, ("No suitable key exchange mode"));
         goto exit;
     }
 
@@ -543,6 +517,8 @@ static int ssl_tls13_parse_pre_shared_key_ext(
         int psk_type;
         int psk_ciphersuite_id;
         psa_algorithm_t psk_hash_alg;
+        int allowed_key_exchange_modes;
+        int key_exchange_mode = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE;
         const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
         mbedtls_ssl_session session;
@@ -580,15 +556,36 @@ static int ssl_tls13_parse_pre_shared_key_ext(
             case MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL:
                 psk_ciphersuite_id = 0;
                 psk_hash_alg = PSA_ALG_SHA_256;
+                allowed_key_exchange_modes =
+                    MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;
                 break;
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
             case MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION:
                 psk_ciphersuite_id = session.ciphersuite;
                 psk_hash_alg = PSA_ALG_NONE;
+                ssl->session_negotiate->ticket_flags = session.ticket_flags;
+                allowed_key_exchange_modes =
+                    session.ticket_flags &
+                    MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;
                 break;
 #endif
             default:
                 return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+        }
+
+        if ((allowed_key_exchange_modes &
+             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL) &&
+            ssl_tls13_key_exchange_is_psk_ephemeral_available(ssl)) {
+            key_exchange_mode = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
+        } else if ((allowed_key_exchange_modes &
+                    MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK) &&
+                   ssl_tls13_key_exchange_is_psk_available(ssl)) {
+            key_exchange_mode = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
+        }
+
+        if (key_exchange_mode == MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE) {
+            MBEDTLS_SSL_DEBUG_MSG(3, ("No suitable PSK key exchange mode"));
+            continue;
         }
 
         ssl_tls13_select_ciphersuite(ssl, ciphersuites, ciphersuites_end,
@@ -664,7 +661,7 @@ static int ssl_tls13_parse_pre_shared_key_ext(
         return ret;
     }
     if (matched_identity == -1) {
-        MBEDTLS_SSL_DEBUG_MSG(3, ("No matched PSK or ticket."));
+        MBEDTLS_SSL_DEBUG_MSG(3, ("No usable PSK or ticket."));
         return MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY;
     }
 

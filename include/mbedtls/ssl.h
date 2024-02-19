@@ -4737,7 +4737,7 @@ const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert(const mbedtls_ssl_context *ssl
  * \param ssl      The SSL context representing the connection for which to
  *                 to export a session structure for later resumption.
  * \param session  The target structure in which to store the exported session.
- *                 This must have been initialized with mbedtls_ssl_init_session()
+ *                 This must have been initialized with mbedtls_ssl_session_init()
  *                 but otherwise be unused.
  *
  * \note           This function can handle a variety of mechanisms for session

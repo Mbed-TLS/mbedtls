@@ -248,14 +248,14 @@ static int pem_check_pkcs_padding(unsigned char *input, size_t input_len, size_t
     size_t i;
 
     if (pad_len > input_len) {
-        return MBEDTLS_ERR_PEM_BAD_INPUT_DATA;
+        return MBEDTLS_ERR_PEM_PASSWORD_MISMATCH;
     }
 
     *data_len = input_len - pad_len;
 
     for (i = *data_len; i < input_len; i++) {
         if (input[i] != pad_len) {
-            return MBEDTLS_ERR_PEM_BAD_INPUT_DATA;
+            return MBEDTLS_ERR_PEM_PASSWORD_MISMATCH;
         }
     }
 

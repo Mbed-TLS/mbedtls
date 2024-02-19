@@ -1654,7 +1654,14 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
     X->s = 1;
 
     /*
-     * Make sure that A has exactly as many limbs as N.
+     * Make sure that X is in a form that is safe for consumption by
+     * the core functions.
+     *
+     * - The core functions will not touch the limbs of X above N->n. The
+     *   result will be correct if those limbs are 0, which the mod call
+     *   ensures.
+     * - Also, X must have at least as many limbs as N for the calls to the
+     *   core functions.
      */
     if (mbedtls_mpi_cmp_mpi(X, N) >= 0) {
         MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(X, X, N));

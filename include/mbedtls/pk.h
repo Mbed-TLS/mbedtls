@@ -233,9 +233,9 @@ typedef struct mbedtls_pk_context {
      * Note: this private key storing solution only affects EC keys, not the
      *       other ones. The latters still use the pk_ctx to store their own
      *       context. */
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
     mbedtls_svc_key_id_t MBEDTLS_PRIVATE(priv_id);      /**< Key ID for opaque keys */
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
     /* The following fields are meant for storing the public key in raw format
      * which is handy for:
      * - easily importing it into the PSA context
@@ -357,7 +357,7 @@ void mbedtls_pk_restart_free(mbedtls_pk_restart_ctx *ctx);
  */
 int mbedtls_pk_setup(mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info);
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 /**
  * \brief           Initialize a PK context to wrap a PSA key.
  *
@@ -388,7 +388,7 @@ int mbedtls_pk_setup(mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info);
  */
 int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
                             const mbedtls_svc_key_id_t key);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 /**

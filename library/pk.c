@@ -153,7 +153,7 @@ int mbedtls_pk_setup(mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info)
     return 0;
 }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 /*
  * Initialise a PSA-wrapping context
  */
@@ -190,7 +190,7 @@ int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
 
     return 0;
 }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /*

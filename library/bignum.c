@@ -1630,10 +1630,10 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
         MBEDTLS_MPI_CHK(mbedtls_mpi_core_get_mont_r2_unsafe(&RR, N));
 
         if (prec_RR != NULL) {
-            memcpy(prec_RR, &RR, sizeof(mbedtls_mpi));
+            *prec_RR = RR;
         }
     } else {
-        memcpy(&RR, prec_RR, sizeof(mbedtls_mpi));
+        RR = *prec_RR;
     }
 
     /*
@@ -1642,7 +1642,7 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
     if (E->n == 0) {
         mbedtls_mpi_lset(&E_core, 0);
     } else {
-        memcpy(&E_core, E, sizeof(mbedtls_mpi));
+        E_core = *E;
     }
 
     /*

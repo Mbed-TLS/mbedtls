@@ -1286,11 +1286,28 @@ int mbedtls_ecp_read_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
 /**
  * \brief           This function exports an elliptic curve private key.
  *
+ * \note            Note that although this function accepts an output
+ *                  buffer that is larger than the key, most key import
+ *                  interfaces require the output to be trimmed to the
+ *                  key's nominal length. It is generally simplest to
+ *                  pass the key's nominal length as \c buflen, after
+ *                  checking that the output buffer is large enough.
+ *                  See the description of the \p buflen parameter for
+ *                  how to calculate the nominal length.
+ *
  * \param key       The private key.
  * \param buf       The output buffer for containing the binary representation
- *                  of the key. (Big endian integer for Weierstrass curves, byte
- *                  string for Montgomery curves.)
+ *                  of the key.
+ *                  For Weierstrass curves, this is the big-endian
+ *                  representation, padded with null bytes at the beginning
+ *                  to reach \p buflen bytes.
+ *                  For Montgomery curves, this is the standard byte string
+ *                  representation (which is little-endian), padded with
+ *                  null bytes at the end to reach \p buflen bytes.
  * \param buflen    The total length of the buffer in bytes.
+ *                  The length of the output is always
+ *                  (`grp->nbits` + 7) / 8 bytes
+ *                  where `grp->nbits` is the private key size in bits.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL if the \p key

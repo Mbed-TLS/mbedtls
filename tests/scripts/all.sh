@@ -1262,21 +1262,32 @@ component_build_psa_crypto_spm () {
     check_renamed_symbols tests/include/spe/crypto_spe.h library/libmbedcrypto.a
 }
 
-component_test_default_psa_crypto_client_without_crypto_provider () {
+# Get a list of library-wise undefined symbols and ensure that they only
+# belong to psa_xxx() functions and not to mbedtls_yyy() ones.
+# This function is a common helper used by both:
+# - component_build_default_psa_crypto_client_without_crypto_provider
+# - component_build_full_psa_crypto_client_without_crypto_provider.
+common_check_mbedtls_missing_symbols() {
+    nm library/libmbedcrypto.a | grep ' [TRrDC] ' | grep -Eo '(mbedtls_|psa_).*' | sort -u > sym_def.txt
+    nm library/libmbedcrypto.a | grep ' U ' | grep -Eo '(mbedtls_|psa_).*' | sort -u > sym_undef.txt
+    comm sym_def.txt sym_undef.txt -13 > linking_errors.txt
+    not grep mbedtls_ linking_errors.txt
+
+    rm sym_def.txt sym_undef.txt linking_errors.txt
+}
+
+component_build_default_psa_crypto_client_without_crypto_provider () {
     msg "build: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT"
 
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CLIENT
-    # LMS depends directly depends on PSA (no legacy dispatching) so it must
-    # be disabled here.
-    scripts/config.py unset MBEDTLS_LMS_C
-    scripts/config.py unset MBEDTLS_LMS_PRIVATE
 
-    make
+    make lib
 
-    msg "test: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT"
-    make test
+    msg "check: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT"
+
+    common_check_mbedtls_missing_symbols
 }
 
 component_build_full_psa_crypto_client_without_crypto_provider () {
@@ -1299,6 +1310,10 @@ component_build_full_psa_crypto_client_without_crypto_provider () {
 
     msg "check: full config - PSA_CRYPTO_C"
 
+    common_check_mbedtls_missing_symbols
+
+    # Ensure that desired functions are included into the build (extend the
+    # following list as required).
     grep mbedtls_pk_wrap_as_opaque library/libmbedcrypto.a
 }
 

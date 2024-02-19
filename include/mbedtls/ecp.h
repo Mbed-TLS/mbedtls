@@ -1339,6 +1339,10 @@ int mbedtls_ecp_read_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
  *                  See the description of the \p buflen parameter for
  *                  how to calculate the nominal length.
  *
+ * \note            If the private key was not set in \p key,
+ *                  the output is unspecified. Future versions
+ *                  may return an error in that case.
+ *
  * \param key       The private key.
  * \param buf       The output buffer for containing the binary representation
  *                  of the key.
@@ -1368,6 +1372,10 @@ int mbedtls_ecp_write_key(mbedtls_ecp_keypair *key,
 
 /**
  * \brief           This function exports an elliptic curve public key.
+ *
+ * \note            If the public key was not set in \p key,
+ *                  the output is unspecified. Future versions
+ *                  may return an error in that case.
  *
  * \param key       The public key.
  * \param format    The point format. This must be either
@@ -1450,6 +1458,10 @@ mbedtls_ecp_group_id mbedtls_ecp_keypair_get_group_id(
  *
  *                  Each of the output parameters can be a null pointer
  *                  if you do not need that parameter.
+ *
+ * \note            If the private key or the public key was not set in \p key,
+ *                  the corresponding output is unspecified. Future versions
+ *                  may return an error in that case.
  *
  * \param key       The key pair to export from.
  * \param grp       Slot for exported ECP group.

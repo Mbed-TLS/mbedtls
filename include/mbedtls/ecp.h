@@ -1295,6 +1295,10 @@ int mbedtls_ecp_read_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
  *                  See the description of the \p buflen parameter for
  *                  how to calculate the nominal length.
  *
+ * \note            If the private key was not set in \p key,
+ *                  the output is unspecified. Future versions
+ *                  may return an error in that case.
+ *
  * \param key       The private key.
  * \param buf       The output buffer for containing the binary representation
  *                  of the key.

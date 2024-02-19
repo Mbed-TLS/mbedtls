@@ -107,6 +107,9 @@ void psa_wipe_all_key_slots(void);
  * It is the responsibility of the caller to change the slot's state to
  * PSA_SLOT_EMPTY/FULL once key creation has finished.
  *
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
+ *
  * \param[out] volatile_key_id   On success, volatile key identifier
  *                               associated to the returned slot.
  * \param[out] p_slot            On success, a pointer to the slot.

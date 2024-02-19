@@ -1679,7 +1679,15 @@ static psa_status_t psa_start_key_creation(
         return status;
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
     status = psa_reserve_free_key_slot(&volatile_key_id, p_slot);
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
     if (status != PSA_SUCCESS) {
         return status;
     }
@@ -1799,6 +1807,11 @@ static psa_status_t psa_finish_key_creation(
     (void) slot;
     (void) driver;
 
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
+
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     if (!PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) {
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -1838,6 +1851,11 @@ static psa_status_t psa_finish_key_creation(
         status = psa_save_se_persistent_data(driver);
         if (status != PSA_SUCCESS) {
             psa_destroy_persistent_key(slot->attr.id);
+
+#if defined(MBEDTLS_THREADING_C)
+            PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                                      &mbedtls_threading_key_slot_mutex));
+#endif
             return status;
         }
         status = psa_crypto_stop_transaction();
@@ -1853,6 +1871,10 @@ static psa_status_t psa_finish_key_creation(
         }
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
     return status;
 }
 
@@ -1877,6 +1899,13 @@ static void psa_fail_key_creation(psa_key_slot_t *slot,
         return;
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    /* If the lock operation fails we still wipe the slot.
+     * Operations will no longer work after a failed lock,
+     * but we still need to wipe the slot of confidential data. */
+    mbedtls_mutex_lock(&mbedtls_threading_key_slot_mutex);
+#endif
+
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* TODO: If the key has already been created in the secure
      * element, and the failure happened later (when saving metadata
@@ -1895,6 +1924,10 @@ static void psa_fail_key_creation(psa_key_slot_t *slot,
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     psa_wipe_key_slot(slot);
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_unlock(&mbedtls_threading_key_slot_mutex);
+#endif
 }
 
 /** Validate optional attributes during key creation.

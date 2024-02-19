@@ -288,8 +288,7 @@ static int mbedtls_mpi_resize_clear(mbedtls_mpi *X, size_t limbs)
  * This function is not constant-time. Leading zeros in Y may be removed.
  *
  * Ensure that X does not shrink. This is not guaranteed by the public API,
- * but some code in the bignum module relies on this property, for example
- * in mbedtls_mpi_exp_mod().
+ * but some code in the bignum module might still rely on this property.
  */
 int mbedtls_mpi_copy(mbedtls_mpi *X, const mbedtls_mpi *Y)
 {
@@ -1598,9 +1597,6 @@ int mbedtls_mpi_mod_int(mbedtls_mpi_uint *r, const mbedtls_mpi *A, mbedtls_mpi_s
     return 0;
 }
 
-/*
- * Sliding-window exponentiation: X = A^E mod N  (HAC 14.85)
- */
 int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
                         const mbedtls_mpi *E, const mbedtls_mpi *N,
                         mbedtls_mpi *prec_RR)

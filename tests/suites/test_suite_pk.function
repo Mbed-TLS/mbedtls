@@ -2338,7 +2338,7 @@ void pk_copy_from_psa_success(data_t *priv_key_data, int key_type_arg,
     size_t key_bits = key_bits_arg;
     psa_key_usage_t key_usage = key_usage_arg;
     psa_algorithm_t key_alg = key_alg_arg;
-    mbedtls_pk_context pk_ctx, pk_ctx2;
+    mbedtls_pk_context pk_priv, pk_pub;
     mbedtls_svc_key_id_t priv_key_id = MBEDTLS_SVC_KEY_ID_INIT;
     mbedtls_svc_key_id_t pub_key_id = MBEDTLS_SVC_KEY_ID_INIT;
     unsigned char *in_buf = NULL;
@@ -2358,14 +2358,14 @@ void pk_copy_from_psa_success(data_t *priv_key_data, int key_type_arg,
     TEST_CALLOC(in_buf, in_buf_len);
     memset(in_buf, 0x1, in_buf_len);
 
-    mbedtls_pk_init(&pk_ctx);
-    mbedtls_pk_init(&pk_ctx2);
+    mbedtls_pk_init(&pk_priv);
+    mbedtls_pk_init(&pk_pub);
     PSA_INIT();
 
     /* Generate a private key in PSA and create a PK context from it. */
     PSA_ASSERT(pk_psa_import_key(priv_key_data->x, priv_key_data->len,
                                  key_type, key_usage, key_alg, key_bits, &priv_key_id));
-    TEST_EQUAL(mbedtls_pk_copy_from_psa(priv_key_id, &pk_ctx), 0);
+    TEST_EQUAL(mbedtls_pk_copy_from_psa(priv_key_id, &pk_priv), 0);
 
     /* Starting from the private key above, create another PSA slot for the public
      * one and create a new PK context from it. */
@@ -2380,10 +2380,10 @@ void pk_copy_from_psa_success(data_t *priv_key_data, int key_type_arg,
     /* Generate a 2nd PK contex using only the public key derived from its private
      * counterpart generated above.  */
     pub_key_id = pk_psa_pub_key_from_priv(priv_key_id, pub_key_type, key_usage, key_alg, key_bits);
-    TEST_EQUAL(mbedtls_pk_copy_from_psa(pub_key_id, &pk_ctx2), 0);
+    TEST_EQUAL(mbedtls_pk_copy_from_psa(pub_key_id, &pk_pub), 0);
 
     /* Check that the 2 generated PK contexts form a valid private/public key pair. */
-    TEST_EQUAL(mbedtls_pk_check_pair(&pk_ctx2, &pk_ctx, mbedtls_test_rnd_std_rand, NULL), 0);
+    TEST_EQUAL(mbedtls_pk_check_pair(&pk_pub, &pk_priv, mbedtls_test_rnd_std_rand, NULL), 0);
 
     /* Test sign/verify with the following pattern:
      * - Sign using the PK context generated from the private key.
@@ -2396,23 +2396,23 @@ void pk_copy_from_psa_success(data_t *priv_key_data, int key_type_arg,
             .expected_salt_len = MBEDTLS_RSA_SALT_LEN_ANY,
         };
 
-        TEST_EQUAL(mbedtls_pk_sign_ext(MBEDTLS_PK_RSASSA_PSS, &pk_ctx, md_for_test,
+        TEST_EQUAL(mbedtls_pk_sign_ext(MBEDTLS_PK_RSASSA_PSS, &pk_priv, md_for_test,
                                        in_buf, in_buf_len,
                                        out_buf, sizeof(out_buf), &out_buf_len,
                                        mbedtls_test_rnd_std_rand, NULL), 0);
         TEST_EQUAL(mbedtls_pk_verify_ext(MBEDTLS_PK_RSASSA_PSS, &pss_opt,
-                                         &pk_ctx, md_for_test, in_buf, in_buf_len,
+                                         &pk_priv, md_for_test, in_buf, in_buf_len,
                                          out_buf, out_buf_len), 0);
         TEST_EQUAL(mbedtls_pk_verify_ext(MBEDTLS_PK_RSASSA_PSS, &pss_opt,
-                                         &pk_ctx2, md_for_test, in_buf, in_buf_len,
+                                         &pk_pub, md_for_test, in_buf, in_buf_len,
                                          out_buf, out_buf_len), 0);
     } else {
-        TEST_EQUAL(mbedtls_pk_sign(&pk_ctx, md_for_test, in_buf, in_buf_len,
+        TEST_EQUAL(mbedtls_pk_sign(&pk_priv, md_for_test, in_buf, in_buf_len,
                                    out_buf, sizeof(out_buf), &out_buf_len,
                                    mbedtls_test_rnd_std_rand, NULL), 0);
-        TEST_EQUAL(mbedtls_pk_verify(&pk_ctx, md_for_test, in_buf, in_buf_len,
+        TEST_EQUAL(mbedtls_pk_verify(&pk_priv, md_for_test, in_buf, in_buf_len,
                                      out_buf, out_buf_len), 0);
-        TEST_EQUAL(mbedtls_pk_verify(&pk_ctx2, md_for_test, in_buf, in_buf_len,
+        TEST_EQUAL(mbedtls_pk_verify(&pk_pub, md_for_test, in_buf, in_buf_len,
                                      out_buf, out_buf_len), 0);
     }
 
@@ -2430,12 +2430,12 @@ void pk_copy_from_psa_success(data_t *priv_key_data, int key_type_arg,
     if (key_type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
         if (test_encryption) {
             /* Encrypt with the 2nd PK context (public key only). */
-            TEST_EQUAL(mbedtls_pk_encrypt(&pk_ctx2, in_buf, in_buf_len,
+            TEST_EQUAL(mbedtls_pk_encrypt(&pk_pub, in_buf, in_buf_len,
                                           out_buf, &out_buf_len, sizeof(out_buf),
                                           mbedtls_test_rnd_std_rand, NULL), 0);
 
             /* Decrypt with 1st PK context and compare with original data. */
-            TEST_EQUAL(mbedtls_pk_decrypt(&pk_ctx, out_buf, out_buf_len,
+            TEST_EQUAL(mbedtls_pk_decrypt(&pk_priv, out_buf, out_buf_len,
                                           out_buf2, &out_buf2_len, sizeof(out_buf2),
                                           mbedtls_test_rnd_std_rand, NULL), 0);
             TEST_MEMORY_COMPARE(in_buf, in_buf_len, out_buf2, out_buf2_len);
@@ -2444,8 +2444,8 @@ void pk_copy_from_psa_success(data_t *priv_key_data, int key_type_arg,
 
 exit:
     mbedtls_free(in_buf);
-    mbedtls_pk_free(&pk_ctx);
-    mbedtls_pk_free(&pk_ctx2);
+    mbedtls_pk_free(&pk_priv);
+    mbedtls_pk_free(&pk_pub);
     psa_destroy_key(priv_key_id);
     psa_destroy_key(pub_key_id);
     PSA_DONE();

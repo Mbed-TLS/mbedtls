@@ -617,7 +617,9 @@ static int ecdsa_opaque_verify_wrap(mbedtls_pk_context *pk,
     return ecdsa_verify_psa(key, key_len, curve, curve_bits,
                             hash, hash_len, sig, sig_len);
 }
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static int ecdsa_verify_wrap(mbedtls_pk_context *pk,
                              mbedtls_md_type_t md_alg,
@@ -656,7 +658,7 @@ static int ecdsa_verify_wrap(mbedtls_pk_context *pk,
                             hash, hash_len, sig, sig_len);
 }
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
-#else /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#else /* MBEDTLS_USE_PSA_CRYPTO */
 static int ecdsa_verify_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
                              const unsigned char *hash, size_t hash_len,
                              const unsigned char *sig, size_t sig_len)
@@ -673,7 +675,7 @@ static int ecdsa_verify_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
 
     return ret;
 }
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_PK_CAN_ECDSA_VERIFY */
 
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
@@ -734,7 +736,9 @@ static int ecdsa_opaque_sign_wrap(mbedtls_pk_context *pk,
     return ecdsa_sign_psa(pk->priv_id, md_alg, hash, hash_len, sig, sig_size,
                           sig_len);
 }
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 /* When PK_USE_PSA_EC_DATA is defined opaque and non-opaque keys end up
  * using the same function. */
@@ -794,7 +798,7 @@ cleanup:
     return ret;
 }
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
-#else /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#else /* MBEDTLS_USE_PSA_CRYPTO */
 static int ecdsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
                            const unsigned char *hash, size_t hash_len,
                            unsigned char *sig, size_t sig_size, size_t *sig_len,
@@ -805,7 +809,7 @@ static int ecdsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
                                          sig, sig_size, sig_len,
                                          f_rng, p_rng);
 }
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
@@ -916,7 +920,7 @@ cleanup:
 }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static int eckey_check_pair_psa(mbedtls_pk_context *pub, mbedtls_pk_context *prv)
 {
@@ -1013,7 +1017,7 @@ static int eckey_check_pair_wrap(mbedtls_pk_context *pub, mbedtls_pk_context *pr
     (void) p_rng;
     return eckey_check_pair_psa(pub, prv);
 }
-#else /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#else /* MBEDTLS_USE_PSA_CRYPTO */
 static int eckey_check_pair_wrap(mbedtls_pk_context *pub, mbedtls_pk_context *prv,
                                  int (*f_rng)(void *, unsigned char *, size_t),
                                  void *p_rng)
@@ -1022,7 +1026,7 @@ static int eckey_check_pair_wrap(mbedtls_pk_context *pub, mbedtls_pk_context *pr
                                       (const mbedtls_ecp_keypair *) prv->pk_ctx,
                                       f_rng, p_rng);
 }
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)

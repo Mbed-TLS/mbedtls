@@ -1265,7 +1265,7 @@ component_build_psa_crypto_spm () {
 # Get a list of library-wise undefined symbols and ensure that they only
 # belong to psa_xxx() functions and not to mbedtls_yyy() ones.
 # This function is a common helper used by both:
-# - component_build_default_psa_crypto_client_without_crypto_provider
+# - component_test_default_psa_crypto_client_without_crypto_provider
 # - component_build_full_psa_crypto_client_without_crypto_provider.
 common_check_mbedtls_missing_symbols() {
     nm library/libmbedcrypto.a | grep ' [TRrDC] ' | grep -Eo '(mbedtls_|psa_).*' | sort -u > sym_def.txt
@@ -1276,18 +1276,22 @@ common_check_mbedtls_missing_symbols() {
     rm sym_def.txt sym_undef.txt linking_errors.txt
 }
 
-component_build_default_psa_crypto_client_without_crypto_provider () {
+component_test_default_psa_crypto_client_without_crypto_provider () {
     msg "build: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT"
 
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+    scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CLIENT
+    scripts/config.py unset MBEDTLS_LMS_C
 
-    make lib
+    make
 
-    msg "check: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT"
-
+    msg "check missing symbols: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT"
     common_check_mbedtls_missing_symbols
+
+    msg "test: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT"
+    make test
 }
 
 component_build_full_psa_crypto_client_without_crypto_provider () {
@@ -1308,7 +1312,7 @@ component_build_full_psa_crypto_client_without_crypto_provider () {
     # that symbols of interest are there.
     make lib
 
-    msg "check: full config - PSA_CRYPTO_C"
+    msg "check missing symbols: full config - PSA_CRYPTO_C"
 
     common_check_mbedtls_missing_symbols
 

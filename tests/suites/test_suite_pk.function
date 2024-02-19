@@ -1084,8 +1084,6 @@ void pk_sign_verify(int type, int curve_or_keybits, int rsa_padding, int rsa_md_
 
 #if defined(MBEDTLS_RSA_C)
     if (type == MBEDTLS_PK_RSA) {
-        /* Just pick SHA1 here as hashing algorithm as we're more interested
-         * in checking the compatibility between */
         TEST_ASSERT(mbedtls_rsa_set_padding(mbedtls_pk_rsa(pk), rsa_padding, rsa_md_alg) == 0);
     }
 #else

@@ -1671,8 +1671,8 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
     /*
      * Allocate working memory for mbedtls_mpi_core_exp_mod()
      */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&T,
-                                     mbedtls_mpi_core_exp_mod_working_limbs(N->n, E->n)));
+    size_t T_limbs = mbedtls_mpi_core_exp_mod_working_limbs(N->n, E->n);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&T, T_limbs));
 
     /*
      * Convert to and from Montgomery around mbedtls_mpi_core_exp_mod().

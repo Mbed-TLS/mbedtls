@@ -1338,6 +1338,8 @@ int mbedtls_ecp_read_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
  *                  checking that the output buffer is large enough.
  *                  See the description of the \p buflen parameter for
  *                  how to calculate the nominal length.
+ *                  To avoid this difficulty, use mbedtls_ecp_write_key_ext()
+ *                  instead.
  *
  * \note            If the private key was not set in \p key,
  *                  the output is unspecified. Future versions

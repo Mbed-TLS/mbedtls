@@ -1602,7 +1602,6 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
                         mbedtls_mpi *prec_RR)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_mpi RR, T, E_core;
 
     if (mbedtls_mpi_cmp_int(N, 0) <= 0 || (N->p[0] & 1) == 0) {
         return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
@@ -1617,8 +1616,11 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
         return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
     }
 
+    mbedtls_mpi RR;
     mbedtls_mpi_init(&RR);
+    mbedtls_mpi T;
     mbedtls_mpi_init(&T);
+    mbedtls_mpi E_core;
     mbedtls_mpi_init(&E_core);
 
     /*

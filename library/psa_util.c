@@ -18,7 +18,7 @@
 
 #include "psa_util_internal.h"
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 
 #include <psa/crypto.h>
 
@@ -336,7 +336,7 @@ mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t family,
 }
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
 #if defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
 

@@ -21,7 +21,7 @@
  * otherwise error codes would be unknown in test_suite_psa_crypto_util.data.*/
 #include <mbedtls/asn1write.h>
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 
 /* Expose whatever RNG the PSA subsystem uses to applications using the
  * mbedtls_xxx API. The declarations and definitions here need to be
@@ -180,7 +180,7 @@ static inline mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa
 {
     return (mbedtls_md_type_t) (psa_alg & PSA_ALG_HASH_MASK);
 }
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
 #if defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
 

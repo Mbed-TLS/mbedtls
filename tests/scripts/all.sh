@@ -1262,17 +1262,44 @@ component_build_psa_crypto_spm () {
     check_renamed_symbols tests/include/spe/crypto_spe.h library/libmbedcrypto.a
 }
 
-component_test_psa_crypto_client () {
-    msg "build: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT, make"
+component_test_default_psa_crypto_client_without_crypto_provider () {
+    msg "build: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT"
+
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CLIENT
+    # LMS depends directly depends on PSA (no legacy dispatching) so it must
+    # be disabled here.
     scripts/config.py unset MBEDTLS_LMS_C
     scripts/config.py unset MBEDTLS_LMS_PRIVATE
+
     make
 
-    msg "test: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT, make"
+    msg "test: default config - PSA_CRYPTO_C + PSA_CRYPTO_CLIENT"
     make test
+}
+
+component_build_full_psa_crypto_client_without_crypto_provider () {
+    msg "build: full config - PSA_CRYPTO_C"
+
+    # Use full config which includes USE_PSA and CRYPTO_CLIENT.
+    scripts/config.py full
+
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+    # Dynamic secure element support is a deprecated feature and it is not
+    # available when CRYPTO_C and PSA_CRYPTO_STORAGE_C are disabled.
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+
+    # Since there is no crypto provider in this build it is not possible to
+    # build all the test executables and progrems due to missing PSA functions
+    # at link time. Therefore we will just build libraries and we'll check
+    # that symbols of interest are there.
+    make lib
+
+    msg "check: full config - PSA_CRYPTO_C"
+
+    grep mbedtls_pk_wrap_as_opaque library/libmbedcrypto.a
 }
 
 component_test_psa_crypto_rsa_no_genprime() {

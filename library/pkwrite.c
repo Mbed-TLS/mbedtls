@@ -202,7 +202,7 @@ static int pk_write_ec_private(unsigned char **p, unsigned char *start,
         mbedtls_ecp_keypair *ec = mbedtls_pk_ec_rw(*pk);
         byte_length = (ec->grp.pbits + 7) / 8;
 
-        ret = mbedtls_ecp_write_key(ec, tmp, byte_length);
+        ret = mbedtls_ecp_write_key_ext(ec, &byte_length, tmp, sizeof(tmp));
         if (ret != 0) {
             goto exit;
         }

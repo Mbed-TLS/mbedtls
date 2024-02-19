@@ -1401,8 +1401,7 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
         mbedtls_ecp_keypair *ec = mbedtls_pk_ec_rw(*pk);
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-        d_len = PSA_BITS_TO_BYTES(ec->grp.nbits);
-        if ((ret = mbedtls_ecp_write_key(ec, d, d_len)) != 0) {
+        if ((ret = mbedtls_ecp_write_key_ext(ec, &d_len, d, sizeof(d))) != 0) {
             return ret;
         }
 

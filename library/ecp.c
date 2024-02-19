@@ -3358,7 +3358,7 @@ cleanup:
 int mbedtls_ecp_write_key(mbedtls_ecp_keypair *key,
                           unsigned char *buf, size_t buflen)
 {
-    int ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     ECP_VALIDATE_RET(key != NULL);
     ECP_VALIDATE_RET(buf != NULL);

@@ -3302,6 +3302,7 @@ cleanup:
 /*
  * Write a private key.
  */
+#if !defined MBEDTLS_DEPRECATED_REMOVED
 int mbedtls_ecp_write_key(mbedtls_ecp_keypair *key,
                           unsigned char *buf, size_t buflen)
 {
@@ -3332,6 +3333,7 @@ cleanup:
 
     return ret;
 }
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 int mbedtls_ecp_write_key_ext(mbedtls_ecp_keypair *key,
                               size_t *olen, unsigned char *buf, size_t buflen)

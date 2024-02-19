@@ -1213,10 +1213,12 @@ void mbedtls_ecp_read_key(int grp_id, data_t *in_key, int expected, int canonica
             TEST_MEMORY_COMPARE(in_key->x, in_key->len,
                                 buf, length);
 
+#if defined(MBEDTLS_TEST_DEPRECATED)
             memset(buf, 0, sizeof(buf));
             TEST_EQUAL(mbedtls_ecp_write_key(&key, buf, in_key->len), 0);
             TEST_MEMORY_COMPARE(in_key->x, in_key->len,
                                 buf, in_key->len);
+#endif /* MBEDTLS_TEST_DEPRECATED */
         } else {
             unsigned char export1[MBEDTLS_ECP_MAX_BYTES];
             unsigned char export2[MBEDTLS_ECP_MAX_BYTES];
@@ -1232,6 +1234,7 @@ void mbedtls_ecp_read_key(int grp_id, data_t *in_key, int expected, int canonica
             TEST_MEMORY_COMPARE(export1, length1,
                                 export2, length2);
 
+#if defined(MBEDTLS_TEST_DEPRECATED)
             memset(export1, 0, sizeof(export1));
             memset(export2, 0, sizeof(export2));
             TEST_EQUAL(mbedtls_ecp_write_key(&key, export1, in_key->len), 0);
@@ -1240,6 +1243,7 @@ void mbedtls_ecp_read_key(int grp_id, data_t *in_key, int expected, int canonica
             TEST_EQUAL(mbedtls_ecp_write_key(&key2, export2, in_key->len), 0);
             TEST_MEMORY_COMPARE(export1, in_key->len,
                                 export2, in_key->len);
+#endif /* MBEDTLS_TEST_DEPRECATED */
         }
     }
 
@@ -1249,7 +1253,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_DEPRECATED */
 void ecp_write_key(int grp_id, data_t *in_key,
                    int exported_size, int expected_ret)
 {

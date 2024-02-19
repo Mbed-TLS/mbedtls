@@ -544,7 +544,7 @@ mbedtls_pk_check_pair:"data_files/ec_256_pub.pem":"data_files/ec_256_prv.pem":0
 
 Check pair #2 (EC, bad)
 depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_PEM_PARSE_C
-mbedtls_pk_check_pair:"data_files/ec_256_pub.pem":"data_files/server5.key":MBEDTLS_ERR_ECP_BAD_INPUT_DATA
+mbedtls_pk_check_pair:"data_files/ec_256_pub.pem":"data_files/server5.key":MBEDTLS_ERR_PK_BAD_INPUT_DATA
 
 Check pair #3 (RSA, OK)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_PEM_PARSE_C

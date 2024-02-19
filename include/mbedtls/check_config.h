@@ -85,7 +85,7 @@
 #endif /* some curve accelerated */
 
 #if defined(MBEDTLS_CTR_DRBG_C) && !(defined(MBEDTLS_AES_C) || \
-    (defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_KEY_TYPE_AES) && \
+    (defined(MBEDTLS_PSA_CRYPTO_CLIENT) && defined(PSA_WANT_KEY_TYPE_AES) && \
     defined(PSA_WANT_ALG_ECB_NO_PADDING)))
 #error "MBEDTLS_CTR_DRBG_C defined, but not all prerequisites"
 #endif
@@ -397,7 +397,7 @@
 #endif
 
 #if defined(MBEDTLS_LMS_C) &&                                          \
-    ! ( defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_256) )
+    ! ( defined(MBEDTLS_PSA_CRYPTO_CLIENT) && defined(PSA_WANT_ALG_SHA_256) )
 #error "MBEDTLS_LMS_C requires MBEDTLS_PSA_CRYPTO_C and PSA_WANT_ALG_SHA_256"
 #endif
 
@@ -791,7 +791,7 @@
  * Note: for dependencies common with TLS 1.2 (running handshake hash),
  * see MBEDTLS_SSL_TLS_C. */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
-    !(defined(MBEDTLS_PSA_CRYPTO_C) && \
+    !(defined(MBEDTLS_PSA_CRYPTO_CLIENT) && \
       defined(PSA_WANT_ALG_HKDF_EXTRACT) && \
       defined(PSA_WANT_ALG_HKDF_EXPAND) && \
       (defined(PSA_WANT_ALG_SHA_256) || defined(PSA_WANT_ALG_SHA_384)))
@@ -987,7 +987,7 @@
 #endif
 #undef MBEDTLS_THREADING_IMPL // temporary macro defined above
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 #error "MBEDTLS_USE_PSA_CRYPTO defined, but not all prerequisites"
 #endif
 

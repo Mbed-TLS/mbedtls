@@ -1616,12 +1616,18 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
         return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
     }
 
+    /*
+     * Ensure that the exponent that we are passing to the core is not NULL.
+     */
+    if (E->n == 0) {
+        ret = mbedtls_mpi_lset(X, 1);
+        return ret;
+    }
+
     mbedtls_mpi RR;
     mbedtls_mpi_init(&RR);
     mbedtls_mpi T;
     mbedtls_mpi_init(&T);
-    mbedtls_mpi E_core;
-    mbedtls_mpi_init(&E_core);
 
     /*
      * If 1st call, pre-compute R^2 mod N
@@ -1634,15 +1640,6 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
         }
     } else {
         RR = *prec_RR;
-    }
-
-    /*
-     * Ensure that the exponent that we are passing to the core is not NULL.
-     */
-    if (E->n == 0) {
-        mbedtls_mpi_lset(&E_core, 0);
-    } else {
-        E_core = *E;
     }
 
     /*
@@ -1668,21 +1665,21 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
      * Allocate working memory for mbedtls_mpi_core_exp_mod()
      */
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&T,
-                                     mbedtls_mpi_core_exp_mod_working_limbs(N->n, E_core.n)));
+                                     mbedtls_mpi_core_exp_mod_working_limbs(N->n, E->n)));
 
     /*
      * Convert to and from Montgomery around mbedtls_mpi_core_exp_mod().
      */
     mbedtls_mpi_uint mm = mbedtls_mpi_core_montmul_init(N->p);
     mbedtls_mpi_core_to_mont_rep(X->p, X->p, N->p, N->n, mm, RR.p, T.p);
-    mbedtls_mpi_core_exp_mod(X->p, X->p, N->p, N->n, E_core.p, E_core.n, RR.p,
+    mbedtls_mpi_core_exp_mod(X->p, X->p, N->p, N->n, E->p, E->n, RR.p,
                              T.p);
     mbedtls_mpi_core_from_mont_rep(X->p, X->p, N->p, N->n, mm, T.p);
 
     /*
      * Correct for negative A.
      */
-    if (A->s == -1 && (E_core.p[0] & 1) != 0) {
+    if (A->s == -1 && (E->p[0] & 1) != 0) {
         X->s = -1;
         MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(X, N, X));
     }
@@ -1693,10 +1690,6 @@ cleanup:
 
     if (prec_RR == NULL || prec_RR->p == NULL) {
         mbedtls_mpi_free(&RR);
-    }
-
-    if (E->n == 0) {
-        mbedtls_mpi_free(&E_core);
     }
 
     return ret;

@@ -3333,6 +3333,38 @@ cleanup:
     return ret;
 }
 
+int mbedtls_ecp_write_key_ext(mbedtls_ecp_keypair *key,
+                              size_t *olen, unsigned char *buf, size_t buflen)
+{
+    size_t len = (key->grp.nbits + 7) / 8;
+    if (len > buflen) {
+        /* For robustness, ensure *olen <= buflen even on error. */
+        *olen = 0;
+        return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
+    }
+    *olen = len;
+
+    /* Private key not set */
+    if (key->d.n == 0) {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+#if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
+    if (mbedtls_ecp_get_type(&key->grp) == MBEDTLS_ECP_TYPE_MONTGOMERY) {
+        return mbedtls_mpi_write_binary_le(&key->d, buf, len);
+    }
+#endif
+
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+    if (mbedtls_ecp_get_type(&key->grp) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS) {
+        return mbedtls_mpi_write_binary(&key->d, buf, len);
+    }
+#endif
+
+    /* Private key set but no recognized curve type? This shouldn't happen. */
+    return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+}
+
 /*
  * Write a public key.
  */

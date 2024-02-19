@@ -1296,6 +1296,42 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void ecp_write_key_ext(int grp_id, data_t *in_key,
+                       int exported_size, int expected_ret)
+{
+    mbedtls_ecp_keypair key;
+    mbedtls_ecp_keypair_init(&key);
+    unsigned char *exported = NULL;
+
+    if (in_key->len != 0) {
+        TEST_EQUAL(mbedtls_ecp_read_key(grp_id, &key, in_key->x, in_key->len), 0);
+    } else if (grp_id != MBEDTLS_ECP_DP_NONE) {
+        TEST_EQUAL(mbedtls_ecp_group_load(&key.grp, grp_id), 0);
+    }
+
+    TEST_CALLOC(exported, exported_size);
+    size_t olen = 0xdeadbeef;
+    TEST_EQUAL(mbedtls_ecp_write_key_ext(&key, &olen, exported, exported_size),
+               expected_ret);
+
+    if (expected_ret == 0) {
+        TEST_EQUAL(olen, (key.grp.nbits + 7) / 8);
+        TEST_LE_U(olen, MBEDTLS_ECP_MAX_BYTES);
+        TEST_MEMORY_COMPARE(in_key->x, in_key->len,
+                            exported, olen);
+    } else {
+        /* Robustness check: even in the error case, insist that olen is less
+         * than the buffer size. */
+        TEST_LE_U(olen, exported_size);
+    }
+
+exit:
+    mbedtls_ecp_keypair_free(&key);
+    mbedtls_free(exported);
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_MONTGOMERY_ENABLED:MBEDTLS_ECP_LIGHT */
 void genkey_mx_known_answer(int bits, data_t *seed, data_t *expected)
 {

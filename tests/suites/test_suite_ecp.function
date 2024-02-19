@@ -1399,16 +1399,18 @@ void ecp_write_key(int grp_id, data_t *in_key,
 
     if (expected_ret == 0) {
         size_t length = (key.grp.nbits + 7) / 8;
-        TEST_LE_U(length, exported_size);
-
         const unsigned char *key_start = NULL;
         const unsigned char *zeros_start = NULL;
         switch (mbedtls_ecp_get_type(&key.grp)) {
             case MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS:
+                if ((size_t) exported_size < length) {
+                    length = exported_size;
+                }
                 key_start = exported + exported_size - length;
                 zeros_start = exported;
                 break;
             case MBEDTLS_ECP_TYPE_MONTGOMERY:
+                TEST_LE_U(length, exported_size);
                 key_start = exported;
                 zeros_start = exported + length;
                 break;
@@ -1416,11 +1418,22 @@ void ecp_write_key(int grp_id, data_t *in_key,
                 TEST_FAIL("Unknown ECP curve type");
                 break;
         }
-        TEST_MEMORY_COMPARE(in_key->x, in_key->len,
-                            key_start, length);
-        for (size_t i = 0; i < exported_size - length; i++) {
-            mbedtls_test_set_step(i);
-            TEST_EQUAL(zeros_start[i], 0);
+
+        if (length < in_key->len) {
+            /* Shorter output (only possible with Weierstrass keys) */
+            for (size_t i = 0; i < in_key->len - length; i++) {
+                mbedtls_test_set_step(i);
+                TEST_EQUAL(in_key->x[i], 0);
+            }
+            TEST_MEMORY_COMPARE(in_key->x + in_key->len - length, length,
+                                key_start, length);
+        } else {
+            TEST_MEMORY_COMPARE(in_key->x, in_key->len,
+                                key_start, length);
+            for (size_t i = 0; i < exported_size - length; i++) {
+                mbedtls_test_set_step(i);
+                TEST_EQUAL(zeros_start[i], 0);
+            }
         }
     }
 

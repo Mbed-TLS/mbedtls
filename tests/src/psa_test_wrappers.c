@@ -66,7 +66,19 @@ psa_status_t mbedtls_test_wrap_psa_aead_decrypt(
     size_t arg9_plaintext_size,
     size_t *arg10_plaintext_length)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg2_nonce, arg3_nonce_length);
+    MBEDTLS_TEST_MEMORY_POISON(arg4_additional_data, arg5_additional_data_length);
+    MBEDTLS_TEST_MEMORY_POISON(arg6_ciphertext, arg7_ciphertext_length);
+    MBEDTLS_TEST_MEMORY_POISON(arg8_plaintext, arg9_plaintext_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_aead_decrypt)(arg0_key, arg1_alg, arg2_nonce, arg3_nonce_length, arg4_additional_data, arg5_additional_data_length, arg6_ciphertext, arg7_ciphertext_length, arg8_plaintext, arg9_plaintext_size, arg10_plaintext_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg2_nonce, arg3_nonce_length);
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg4_additional_data, arg5_additional_data_length);
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg6_ciphertext, arg7_ciphertext_length);
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg8_plaintext, arg9_plaintext_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 
@@ -84,7 +96,19 @@ psa_status_t mbedtls_test_wrap_psa_aead_encrypt(
     size_t arg9_ciphertext_size,
     size_t *arg10_ciphertext_length)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg2_nonce, arg3_nonce_length);
+    MBEDTLS_TEST_MEMORY_POISON(arg4_additional_data, arg5_additional_data_length);
+    MBEDTLS_TEST_MEMORY_POISON(arg6_plaintext, arg7_plaintext_length);
+    MBEDTLS_TEST_MEMORY_POISON(arg8_ciphertext, arg9_ciphertext_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_aead_encrypt)(arg0_key, arg1_alg, arg2_nonce, arg3_nonce_length, arg4_additional_data, arg5_additional_data_length, arg6_plaintext, arg7_plaintext_length, arg8_ciphertext, arg9_ciphertext_size, arg10_ciphertext_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg2_nonce, arg3_nonce_length);
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg4_additional_data, arg5_additional_data_length);
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg6_plaintext, arg7_plaintext_length);
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg8_ciphertext, arg9_ciphertext_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 

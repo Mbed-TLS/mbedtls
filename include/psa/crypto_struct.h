@@ -223,21 +223,21 @@ static inline struct psa_key_derivation_s psa_key_derivation_operation_init(
     return v;
 }
 
-struct psa_key_generation_method_s {
+struct psa_key_production_parameters_s {
     /* Future versions may add other fields in this structure. */
     uint32_t flags;
     uint8_t data[];
 };
 
-/** The default method for key generation or key derivation.
+/** The default production parameters for key generation or key derivation.
  *
  * Calling psa_generate_key_ext() or psa_key_derivation_output_key_ext()
- * with `method=PSA_KEY_GENERATION_METHOD_INIT` and
- * `method_data_length == 0` is equivalent to
+ * with `params=PSA_KEY_PRODUCTION_PARAMETERS_INIT` and
+ * `params_data_length == 0` is equivalent to
  * calling psa_generate_key() or psa_key_derivation_output_key()
  * respectively.
  */
-#define PSA_KEY_GENERATION_METHOD_INIT { 0 }
+#define PSA_KEY_PRODUCTION_PARAMETERS_INIT { 0 }
 
 struct psa_key_policy_s {
     psa_key_usage_t MBEDTLS_PRIVATE(usage);

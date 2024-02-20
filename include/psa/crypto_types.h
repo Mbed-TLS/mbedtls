@@ -477,7 +477,7 @@ typedef uint16_t psa_key_derivation_step_t;
  * - Other key types: reserved for future use. \c flags must be 0.
  *
  */
-typedef struct psa_key_generation_method_s psa_key_generation_method_t;
+typedef struct psa_key_production_parameters_s psa_key_production_parameters_t;
 
 /**@}*/
 

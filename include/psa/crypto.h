@@ -3703,8 +3703,8 @@ psa_status_t psa_key_derivation_output_bytes(
  *
  * \note This function is equivalent to calling
  *       psa_key_derivation_output_key_ext()
- *       with the method #PSA_KEY_GENERATION_METHOD_INIT and
- *       `method_data_length == 0` (i.e. `method->data` is empty).
+ *       with the production parameters #PSA_KEY_PRODUCTION_PARAMETERS_INIT
+ *       and `params_data_length == 0` (i.e. `params->data` is empty).
  *
  * \param[in] attributes    The attributes for the new key.
  *                          If the key type to be created is
@@ -3759,11 +3759,13 @@ psa_status_t psa_key_derivation_output_key(
     psa_key_derivation_operation_t *operation,
     mbedtls_svc_key_id_t *key);
 
-/** Derive a key from an ongoing key derivation operation with a custom method.
+/** Derive a key from an ongoing key derivation operation with custom
+ *  production parameters.
  *
  * See the description of psa_key_derivation_out_key() for the operation of
- * this function with the default method.
- * Mbed TLS currently does not currently support any non-default methods.
+ * this function with the default production parameters.
+ * Mbed TLS currently does not currently support any non-default production
+ * parameters.
  *
  * \note This function is experimental and may change in future minor
  *       versions of Mbed TLS.
@@ -3774,16 +3776,16 @@ psa_status_t psa_key_derivation_output_key(
  *                          the policy must be the same as in the current
  *                          operation.
  * \param[in,out] operation The key derivation operation object to read from.
- * \param[in] method        Customization parameters for the key derivation.
- *                          When this is #PSA_KEY_GENERATION_METHOD_INIT
- *                          with \p method_data_length = 0,
+ * \param[in] params        Customization parameters for the key derivation.
+ *                          When this is #PSA_KEY_PRODUCTION_PARAMETERS_INIT
+ *                          with \p params_data_length = 0,
  *                          this function is equivalent to
  *                          psa_key_derivation_output_key().
  *                          Mbed TLS currently only supports the default
- *                          method, i.e. #PSA_KEY_GENERATION_METHOD_INIT,
+ *                          method, i.e. #PSA_KEY_PRODUCTION_PARAMETERS_INIT,
  *                          for all key types.
- * \param method_data_length
- *                          Length of `method.data` in bytes.
+ * \param params_data_length
+ *                          Length of `params->data` in bytes.
  * \param[out] key          On success, an identifier for the newly created
  *                          key. For persistent keys, this is the key
  *                          identifier defined in \p attributes.
@@ -3829,8 +3831,8 @@ psa_status_t psa_key_derivation_output_key(
 psa_status_t psa_key_derivation_output_key_ext(
     const psa_key_attributes_t *attributes,
     psa_key_derivation_operation_t *operation,
-    const psa_key_generation_method_t *method,
-    size_t method_data_length,
+    const psa_key_production_parameters_t *params,
+    size_t params_data_length,
     mbedtls_svc_key_id_t *key);
 
 /** Compare output data from a key derivation operation to an expected value.
@@ -4088,8 +4090,8 @@ psa_status_t psa_generate_random(uint8_t *output,
  *   attributes.
  *
  * \note This function is equivalent to calling psa_generate_key_ext()
- *       with the method #PSA_KEY_GENERATION_METHOD_INIT and
- *       `method_data_length == 0` (i.e. `method->data` is empty).
+ *       with the production parameters #PSA_KEY_PRODUCTION_PARAMETERS_INIT
+ *       and `params_data_length == 0` (i.e. `params->data` is empty).
  *
  * \param[in] attributes    The attributes for the new key.
  * \param[out] key          On success, an identifier for the newly created
@@ -4124,12 +4126,12 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
                               mbedtls_svc_key_id_t *key);
 
 /**
- * \brief Generate a key or key pair using a custom method.
+ * \brief Generate a key or key pair using custom production parameters.
  *
  * See the description of psa_generate_key() for the operation of this
- * function with the default method. In addition, this function supports
- * the following non-default methods, described in more detail in the
- * documentation of ::psa_key_generation_method_t:
+ * function with the default production parameters. In addition, this function
+ * supports the following production customizations, described in more detail
+ * in the documentation of ::psa_key_production_parameters_t:
  *
  * - RSA keys: generation with a custom public exponent.
  *
@@ -4137,13 +4139,13 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
  *       versions of Mbed TLS.
  *
  * \param[in] attributes    The attributes for the new key.
- * \param[in] method        Customization parameters for the key generation.
- *                          When this is #PSA_KEY_GENERATION_METHOD_INIT
- *                          with \p method_data_length = 0,
+ * \param[in] params        Customization parameters for the key generation.
+ *                          When this is #PSA_KEY_PRODUCTION_PARAMETERS_INIT
+ *                          with \p params_data_length = 0,
  *                          this function is equivalent to
  *                          psa_key_generation_output_key().
- * \param method_data_length
- *                          Length of `method.data` in bytes.
+ * \param params_data_length
+ *                          Length of `params->data` in bytes.
  * \param[out] key          On success, an identifier for the newly created
  *                          key. For persistent keys, this is the key
  *                          identifier defined in \p attributes.
@@ -4173,8 +4175,8 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
  *         results in this error code.
  */
 psa_status_t psa_generate_key_ext(const psa_key_attributes_t *attributes,
-                                  const psa_key_generation_method_t *method,
-                                  size_t method_data_length,
+                                  const psa_key_production_parameters_t *params,
+                                  size_t params_data_length,
                                   mbedtls_svc_key_id_t *key);
 
 /**@}*/

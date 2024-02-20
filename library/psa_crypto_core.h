@@ -396,17 +396,17 @@ psa_status_t psa_export_public_key_internal(
     const uint8_t *key_buffer, size_t key_buffer_size,
     uint8_t *data, size_t data_size, size_t *data_length);
 
-/** Whether a key generation method is the default.
+/** Whether a key production parameters structure is the default.
  *
- * Calls to a key generation driver with a non-default method
- * require a driver supporting custom methods.
+ * Calls to a key generation driver with non-default production parameters
+ * require a driver supporting custom production parameters.
  *
- * \param[in] method            The key generation method to check.
- * \param method_data_length    Size of `method.data` in bytes.
+ * \param[in] params            The key production parameters to check.
+ * \param params_data_length    Size of `params->data` in bytes.
  */
-int psa_key_generation_method_is_default(
-    const psa_key_generation_method_t *method,
-    size_t method_data_length);
+int psa_key_production_parameters_are_default(
+    const psa_key_production_parameters_t *params,
+    size_t params_data_length);
 
 /**
  * \brief Generate a key.
@@ -415,9 +415,9 @@ int psa_key_generation_method_is_default(
  *       entry point.
  *
  * \param[in]  attributes         The attributes for the key to generate.
- * \param[in]  method             The generation method from
+ * \param[in]  params             The production parameters from
  *                                psa_generate_key_ext().
- * \param      method_data_length The size of `method.data` in bytes.
+ * \param      params_data_length The size of `params->data` in bytes.
  * \param[out] key_buffer         Buffer where the key data is to be written.
  * \param[in]  key_buffer_size    Size of \p key_buffer in bytes.
  * \param[out] key_buffer_length  On success, the number of bytes written in
@@ -432,8 +432,8 @@ int psa_key_generation_method_is_default(
  *         The size of \p key_buffer is too small.
  */
 psa_status_t psa_generate_key_internal(const psa_key_attributes_t *attributes,
-                                       const psa_key_generation_method_t *method,
-                                       size_t method_data_length,
+                                       const psa_key_production_parameters_t *params,
+                                       size_t params_data_length,
                                        uint8_t *key_buffer,
                                        size_t key_buffer_size,
                                        size_t *key_buffer_length);

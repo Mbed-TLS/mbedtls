@@ -7550,8 +7550,8 @@ PSA generate key ext: ECC, method.data non-empty
 depends_on:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_ECDH
 generate_key_ext:PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1):256:PSA_KEY_USAGE_DERIVE:PSA_ALG_ECDH:0:"2a":PSA_ERROR_INVALID_ARGUMENT
 
-Key generation method initializers
-key_generation_method_init:
+Key production parameters initializers
+key_production_parameters_init:
 
 PSA import persistent key: raw data, 8 bits
 depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C

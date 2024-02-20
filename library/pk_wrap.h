@@ -124,15 +124,14 @@ extern const mbedtls_pk_info_t mbedtls_rsa_alt_info;
 #if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 extern const mbedtls_pk_info_t mbedtls_ecdsa_opaque_info;
 extern const mbedtls_pk_info_t mbedtls_rsa_opaque_info;
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
-#if defined(MBEDTLS_RSA_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_RSA_C)
 int mbedtls_pk_psa_rsa_sign_ext(psa_algorithm_t psa_alg_md,
                                 mbedtls_rsa_context *rsa_ctx,
                                 const unsigned char *hash, size_t hash_len,
                                 unsigned char *sig, size_t sig_size,
                                 size_t *sig_len);
-#endif /* MBEDTLS_RSA_C */
-
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_RSA_C */
 
 #endif /* MBEDTLS_PK_WRAP_H */

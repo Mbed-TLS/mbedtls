@@ -69,8 +69,7 @@ extern const mbedtls_error_pair_t psa_to_ssl_errors[7];
 extern const mbedtls_error_pair_t psa_to_pk_rsa_errors[8];
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && \
-    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 extern const mbedtls_error_pair_t psa_to_pk_ecdsa_errors[7];
 #endif
 

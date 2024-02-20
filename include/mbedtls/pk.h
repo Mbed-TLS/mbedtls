@@ -447,7 +447,7 @@ static inline size_t mbedtls_pk_get_len(const mbedtls_pk_context *ctx)
  */
 int mbedtls_pk_can_do(const mbedtls_pk_context *ctx, mbedtls_pk_type_t type);
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 /**
  * \brief           Tell if context can do the operation given by PSA algorithm
  *
@@ -477,7 +477,7 @@ int mbedtls_pk_can_do(const mbedtls_pk_context *ctx, mbedtls_pk_type_t type);
  */
 int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
                           psa_key_usage_t usage);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 /**

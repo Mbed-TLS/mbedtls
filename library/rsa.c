@@ -112,8 +112,6 @@ int mbedtls_rsa_parse_key(mbedtls_rsa_context *rsa, const unsigned char *key, si
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
 
-    end = p + len;
-
     if ((ret = mbedtls_asn1_get_int(&p, end, &version)) != 0) {
         return ret;
     }
@@ -247,8 +245,6 @@ int mbedtls_rsa_parse_pubkey(mbedtls_rsa_context *rsa, const unsigned char *key,
     if (end != p + len) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
-
-    end = p + len;
 
     /* Import N */
     if ((ret = mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_INTEGER)) != 0) {

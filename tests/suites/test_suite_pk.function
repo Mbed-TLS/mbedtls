@@ -582,7 +582,7 @@ mbedtls_svc_key_id_t pk_psa_genkey_rsa(void)
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:MBEDTLS_USE_PSA_CRYPTO */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C */
 void pk_psa_utils(int key_is_rsa)
 {
     mbedtls_pk_context pk, pk2;
@@ -684,7 +684,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_USE_PSA_CRYPTO */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C */
 void pk_can_do_ext(int opaque_key, int key_type, int key_usage, int key_alg,
                    int key_alg2, int curve_or_keybits, int alg_check, int usage_check,
                    int result)

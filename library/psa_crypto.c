@@ -909,8 +909,13 @@ static psa_status_t psa_restrict_key_policy(
  * into a key slot if not already done.
  *
  * On success, the returned key slot has been registered for reading.
- * It is the responsibility of the caller to call psa_unregister_read(slot)
- * when they have finished reading the contents of the slot.
+ * It is the responsibility of the caller to then unregister
+ * once they have finished reading the contents of the slot.
+ * The caller unregisters by calling psa_unregister_read() or
+ * psa_unregister_read_under_mutex(). psa_unregister_read() must be called
+ * if and only if the caller already holds the global key slot mutex
+ * (when mutexes are enabled). psa_unregister_read_under_mutex() encapsulates
+ * the unregister with mutex lock and unlock operations.
  */
 static psa_status_t psa_get_and_lock_key_slot_with_policy(
     mbedtls_svc_key_id_t key,
@@ -970,8 +975,13 @@ error:
  * for a cryptographic operation.
  *
  * On success, the returned key slot has been registered for reading.
- * It is the responsibility of the caller to call psa_unregister_read(slot)
- * when they have finished reading the contents of the slot.
+ * It is the responsibility of the caller to then unregister
+ * once they have finished reading the contents of the slot.
+ * The caller unregisters by calling psa_unregister_read() or
+ * psa_unregister_read_under_mutex(). psa_unregister_read() must be called
+ * if and only if the caller already holds the global key slot mutex
+ * (when mutexes are enabled). psa_unregister_read_under_mutex() encapsulates
+ * psa_unregister_read() with mutex lock and unlock operations.
  */
 static psa_status_t psa_get_and_lock_transparent_key_slot_with_policy(
     mbedtls_svc_key_id_t key,

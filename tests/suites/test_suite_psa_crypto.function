@@ -9996,12 +9996,10 @@ exit:
 /* BEGIN_CASE */
 void key_generation_method_init()
 {
-    psa_key_generation_method_t func = psa_key_generation_method_init();
     psa_key_generation_method_t init = PSA_KEY_GENERATION_METHOD_INIT;
     psa_key_generation_method_t zero;
     memset(&zero, 0, sizeof(zero));
 
-    TEST_EQUAL(func.flags, 0);
     TEST_EQUAL(init.flags, 0);
     TEST_EQUAL(zero.flags, 0);
 }

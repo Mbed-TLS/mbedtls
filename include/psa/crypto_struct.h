@@ -239,13 +239,6 @@ struct psa_key_generation_method_s {
  */
 #define PSA_KEY_GENERATION_METHOD_INIT { 0 }
 
-static inline struct psa_key_generation_method_s psa_key_generation_method_init(
-    void)
-{
-    const struct psa_key_generation_method_s v = PSA_KEY_GENERATION_METHOD_INIT;
-    return v;
-}
-
 struct psa_key_policy_s {
     psa_key_usage_t MBEDTLS_PRIVATE(usage);
     psa_algorithm_t MBEDTLS_PRIVATE(alg);

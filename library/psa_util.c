@@ -107,8 +107,7 @@ const mbedtls_error_pair_t psa_to_pk_rsa_errors[] =
 };
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && \
-    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 const mbedtls_error_pair_t psa_to_pk_ecdsa_errors[] =
 {
     { PSA_SUCCESS,                     0 },

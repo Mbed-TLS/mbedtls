@@ -3782,7 +3782,8 @@ psa_status_t psa_key_derivation_output_key(
  *                          this function is equivalent to
  *                          psa_key_derivation_output_key().
  *                          Mbed TLS currently only supports the default
- *                          method, i.e. #PSA_KEY_PRODUCTION_PARAMETERS_INIT,
+ *                          production parameters, i.e.
+ *                          #PSA_KEY_PRODUCTION_PARAMETERS_INIT,
  *                          for all key types.
  * \param params_data_length
  *                          Length of `params->data` in bytes.

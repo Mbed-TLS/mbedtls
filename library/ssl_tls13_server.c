@@ -437,6 +437,12 @@ static int ssl_tls13_session_copy_ticket(mbedtls_ssl_session *dst,
 }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
+struct psk_attributes {
+    int type;
+    int key_exchange_mode;
+};
+#define PSK_ATTRIBUTES_INIT { 0, 0 }
+
 /* Parser for pre_shared_key extension in client hello
  *    struct {
  *        opaque identity<1..2^16-1>;
@@ -463,7 +469,8 @@ static int ssl_tls13_parse_pre_shared_key_ext(
     const unsigned char *pre_shared_key_ext,
     const unsigned char *pre_shared_key_ext_end,
     const unsigned char *ciphersuites,
-    const unsigned char *ciphersuites_end)
+    const unsigned char *ciphersuites_end,
+    struct psk_attributes *psk)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned char *identities = pre_shared_key_ext;
@@ -514,11 +521,9 @@ static int ssl_tls13_parse_pre_shared_key_ext(
         uint32_t obfuscated_ticket_age;
         const unsigned char *binder;
         size_t binder_len;
-        int psk_type;
         int psk_ciphersuite_id;
         psa_algorithm_t psk_hash_alg;
         int allowed_key_exchange_modes;
-        int key_exchange_mode = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE;
         const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
         mbedtls_ssl_session session;
@@ -545,14 +550,14 @@ static int ssl_tls13_parse_pre_shared_key_ext(
 
         ret = ssl_tls13_offered_psks_check_identity_match(
             ssl, identity, identity_len, obfuscated_ticket_age,
-            &psk_type, &session);
+            &psk->type, &session);
         if (ret != SSL_TLS1_3_PSK_IDENTITY_MATCH) {
             continue;
         }
 
         MBEDTLS_SSL_DEBUG_MSG(4, ("found matched identity"));
 
-        switch (psk_type) {
+        switch (psk->type) {
             case MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL:
                 psk_ciphersuite_id = 0;
                 psk_hash_alg = PSA_ALG_SHA_256;
@@ -573,17 +578,19 @@ static int ssl_tls13_parse_pre_shared_key_ext(
                 return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
         }
 
+        psk->key_exchange_mode = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE;
+
         if ((allowed_key_exchange_modes &
              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL) &&
             ssl_tls13_key_exchange_is_psk_ephemeral_available(ssl)) {
-            key_exchange_mode = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
+            psk->key_exchange_mode = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
         } else if ((allowed_key_exchange_modes &
                     MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK) &&
                    ssl_tls13_key_exchange_is_psk_available(ssl)) {
-            key_exchange_mode = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
+            psk->key_exchange_mode = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
         }
 
-        if (key_exchange_mode == MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE) {
+        if (psk->key_exchange_mode == MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE) {
             MBEDTLS_SSL_DEBUG_MSG(3, ("No suitable PSK key exchange mode"));
             continue;
         }
@@ -608,7 +615,7 @@ static int ssl_tls13_parse_pre_shared_key_ext(
         }
 
         ret = ssl_tls13_offered_psks_check_binder_match(
-            ssl, binder, binder_len, psk_type,
+            ssl, binder, binder_len, psk->type,
             mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) ciphersuite_info->mac));
         if (ret != SSL_TLS1_3_BINDER_MATCH) {
             /* For security reasons, the handshake should be aborted when we
@@ -635,7 +642,7 @@ static int ssl_tls13_parse_pre_shared_key_ext(
                                   ((unsigned) ciphersuite_info->id),
                                   ciphersuite_info->name));
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-        if (psk_type == MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION) {
+        if (psk->type == MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION) {
             ret = ssl_tls13_session_copy_ticket(ssl->session_negotiate,
                                                 &session);
             mbedtls_ssl_session_free(&session);
@@ -1004,19 +1011,6 @@ static int ssl_tls13_ticket_is_kex_mode_permitted(mbedtls_ssl_context *ssl,
 #endif
     return 1;
 }
-#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED */
-
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_key_exchange_is_ephemeral_available(mbedtls_ssl_context *ssl)
-{
-#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
-    return mbedtls_ssl_conf_tls13_is_ephemeral_enabled(ssl) &&
-           ssl_tls13_client_hello_has_exts_for_ephemeral_key_exchange(ssl);
-#else
-    ((void) ssl);
-    return 0;
-#endif
-}
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_key_exchange_is_psk_available(mbedtls_ssl_context *ssl)
@@ -1047,53 +1041,18 @@ static int ssl_tls13_key_exchange_is_psk_ephemeral_available(mbedtls_ssl_context
     return 0;
 #endif
 }
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED */
 
-static int ssl_tls13_determine_key_exchange_mode(mbedtls_ssl_context *ssl)
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_key_exchange_is_ephemeral_available(mbedtls_ssl_context *ssl)
 {
-    /*
-     * Determine the key exchange algorithm to use.
-     * There are three types of key exchanges supported in TLS 1.3:
-     * - (EC)DH with ECDSA,
-     * - (EC)DH with PSK,
-     * - plain PSK.
-     *
-     * The PSK-based key exchanges may additionally be used with 0-RTT.
-     *
-     * Our built-in order of preference is
-     *  1 ) (EC)DHE-PSK Mode ( psk_ephemeral )
-     *  2 ) Certificate Mode ( ephemeral )
-     *  3 ) Plain PSK Mode ( psk )
-     */
-
-    ssl->handshake->key_exchange_mode =
-        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE;
-
-    if (ssl_tls13_key_exchange_is_psk_ephemeral_available(ssl)) {
-        ssl->handshake->key_exchange_mode =
-            MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
-        MBEDTLS_SSL_DEBUG_MSG(2, ("key exchange mode: psk_ephemeral"));
-    } else
-    if (ssl_tls13_key_exchange_is_ephemeral_available(ssl)) {
-        ssl->handshake->resume = 0;
-        ssl->handshake->key_exchange_mode =
-            MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL;
-        MBEDTLS_SSL_DEBUG_MSG(2, ("key exchange mode: ephemeral"));
-    } else
-    if (ssl_tls13_key_exchange_is_psk_available(ssl)) {
-        ssl->handshake->key_exchange_mode =
-            MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
-        MBEDTLS_SSL_DEBUG_MSG(2, ("key exchange mode: psk"));
-    } else {
-        MBEDTLS_SSL_DEBUG_MSG(
-            1,
-            ("ClientHello message misses mandatory extensions."));
-        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_MISSING_EXTENSION,
-                                     MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
-        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
-    }
-
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
+    return mbedtls_ssl_conf_tls13_is_ephemeral_enabled(ssl) &&
+           ssl_tls13_client_hello_has_exts_for_ephemeral_key_exchange(ssl);
+#else
+    ((void) ssl);
     return 0;
-
+#endif
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \
@@ -1287,6 +1246,8 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     int no_usable_share_for_key_agreement = 0;
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
+    int got_psk = 0;
+    struct psk_attributes psk = PSK_ATTRIBUTES_INIT;
     const unsigned char *pre_shared_key_ext = NULL;
     const unsigned char *pre_shared_key_ext_end = NULL;
 #endif
@@ -1718,10 +1679,11 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                                                  pre_shared_key_ext,
                                                  pre_shared_key_ext_end,
                                                  cipher_suites,
-                                                 cipher_suites_end);
-        if (ret == MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY) {
-            handshake->received_extensions &= ~MBEDTLS_SSL_EXT_MASK(PRE_SHARED_KEY);
-        } else if (ret != 0) {
+                                                 cipher_suites_end,
+                                                 &psk);
+        if (ret == 0) {
+            got_psk = 1;
+        } else if (ret != MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY) {
             MBEDTLS_SSL_DEBUG_RET(
                 1, "ssl_tls13_parse_pre_shared_key_ext", ret);
             return ret;
@@ -1736,12 +1698,57 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
         }
     }
 
-    ret = ssl_tls13_determine_key_exchange_mode(ssl);
-    if (ret < 0) {
-        return ret;
+    /*
+     * Determine the key exchange algorithm to use.
+     * There are three types of key exchanges supported in TLS 1.3:
+     * - (EC)DH with ECDSA,
+     * - (EC)DH with PSK,
+     * - plain PSK.
+     *
+     * The PSK-based key exchanges may additionally be used with 0-RTT.
+     *
+     * Our built-in order of preference is
+     *  1 ) (EC)DHE-PSK Mode ( psk_ephemeral )
+     *  2 ) Certificate Mode ( ephemeral )
+     *  3 ) Plain PSK Mode ( psk )
+     */
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
+    if (got_psk && (psk.key_exchange_mode ==
+                    MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL)) {
+        handshake->key_exchange_mode =
+            MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
+        MBEDTLS_SSL_DEBUG_MSG(2, ("key exchange mode: psk_ephemeral"));
+
+    } else
+#endif
+    if (ssl_tls13_key_exchange_is_ephemeral_available(ssl)) {
+        handshake->key_exchange_mode =
+            MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL;
+        MBEDTLS_SSL_DEBUG_MSG(2, ("key exchange mode: ephemeral"));
+
+    }
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
+    else if (got_psk && (psk.key_exchange_mode ==
+                         MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK)) {
+        handshake->key_exchange_mode = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
+        MBEDTLS_SSL_DEBUG_MSG(2, ("key exchange mode: psk"));
+    }
+#endif
+    else {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1,
+            ("ClientHello message misses mandatory extensions."));
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_MISSING_EXTENSION,
+                                     MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
 
-    if (ssl->handshake->key_exchange_mode !=
+    if (handshake->key_exchange_mode ==
+        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL) {
+        handshake->resume = 0;
+    }
+
+    if (handshake->key_exchange_mode !=
         MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK) {
         hrr_required = (no_usable_share_for_key_agreement != 0);
     }

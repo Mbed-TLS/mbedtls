@@ -1639,6 +1639,7 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
             *prec_RR = RR;
         }
     } else {
+        MBEDTLS_MPI_CHK(mbedtls_mpi_grow(prec_RR, N->n));
         RR = *prec_RR;
     }
 

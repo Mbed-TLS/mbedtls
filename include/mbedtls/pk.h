@@ -612,14 +612,17 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
  * \param sig       Signature to verify
  * \param sig_len   Signature length
  *
+ * \note            For keys of type #MBEDTLS_PK_RSA, the signature algorithm is
+ *                  either PKCS#1 v1.5 or PSS (accepting any salt length),
+ *                  depending on the padding mode in the underlying RSA context.
+ *                  For a pk object constructed by parsing, this is PKCS#1 v1.5
+ *                  by default. Use mbedtls_pk_verify_ext() to explicitly select
+ *                  a different algorithm.
+ *
  * \return          0 on success (signature is valid),
  *                  #MBEDTLS_ERR_PK_SIG_LEN_MISMATCH if there is a valid
  *                  signature in \p sig but its length is less than \p sig_len,
  *                  or a specific error code.
- *
- * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
- *                  Use \c mbedtls_pk_verify_ext( MBEDTLS_PK_RSASSA_PSS, ... )
- *                  to verify RSASSA_PSS signatures.
  */
 int mbedtls_pk_verify(mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
                       const unsigned char *hash, size_t hash_len,
@@ -706,11 +709,15 @@ int mbedtls_pk_verify_ext(mbedtls_pk_type_t type, const void *options,
  * \param f_rng     RNG function, must not be \c NULL.
  * \param p_rng     RNG parameter
  *
- * \return          0 on success, or a specific error code.
+ * \note            For keys of type #MBEDTLS_PK_RSA, the signature algorithm is
+ *                  either PKCS#1 v1.5 or PSS (using the largest possible salt
+ *                  length up to the hash length), depending on the padding mode
+ *                  in the underlying RSA context. For a pk object constructed
+ *                  by parsing, this is PKCS#1 v1.5 by default. Use
+ *                  mbedtls_pk_verify_ext() to explicitly select a different
+ *                  algorithm.
  *
- * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
- *                  There is no interface in the PK module to make RSASSA-PSS
- *                  signatures yet.
+ * \return          0 on success, or a specific error code.
  *
  * \note            For RSA, md_alg may be MBEDTLS_MD_NONE if hash_len != 0.
  *                  For ECDSA, md_alg may never be MBEDTLS_MD_NONE.
@@ -806,7 +813,10 @@ int mbedtls_pk_sign_restartable(mbedtls_pk_context *ctx,
  * \param f_rng     RNG function, must not be \c NULL.
  * \param p_rng     RNG parameter
  *
- * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
+ * \note            For keys of type #MBEDTLS_PK_RSA, the signature algorithm is
+ *                  either PKCS#1 v1.5 or OAEP, depending on the padding mode in
+ *                  the underlying RSA context. For a pk object constructed by
+ *                  parsing, this is PKCS#1 v1.5 by default.
  *
  * \return          0 on success, or a specific error code.
  */
@@ -827,9 +837,12 @@ int mbedtls_pk_decrypt(mbedtls_pk_context *ctx,
  * \param f_rng     RNG function, must not be \c NULL.
  * \param p_rng     RNG parameter
  *
- * \note            \p f_rng is used for padding generation.
+ * \note            For keys of type #MBEDTLS_PK_RSA, the signature algorithm is
+ *                  either PKCS#1 v1.5 or OAEP, depending on the padding mode in
+ *                  the underlying RSA context. For a pk object constructed by
+ *                  parsing, this is PKCS#1 v1.5 by default.
  *
- * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
+ * \note            \p f_rng is used for padding generation.
  *
  * \return          0 on success, or a specific error code.
  */

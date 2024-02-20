@@ -1152,7 +1152,7 @@ int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
                             const mbedtls_pk_context *key);
 #endif /* MBEDTLS_PK_WRITE_C */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 /**
  * \brief           Turn an EC or RSA key into an opaque one.
  *
@@ -1177,7 +1177,7 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
                               psa_algorithm_t alg,
                               psa_key_usage_t usage,
                               psa_algorithm_t alg2);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
 #ifdef __cplusplus
 }

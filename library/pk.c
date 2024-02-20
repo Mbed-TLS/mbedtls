@@ -1080,7 +1080,7 @@ mbedtls_pk_type_t mbedtls_pk_get_type(const mbedtls_pk_context *ctx)
     return ctx->pk_info->type;
 }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 /*
  * Load the key to a PSA key slot,
  * then turn the PK context into a wrapper for that key slot.
@@ -1199,5 +1199,5 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
 #endif /* !MBEDTLS_PK_HAVE_ECC_KEYS && !MBEDTLS_RSA_C */
     return MBEDTLS_ERR_PK_TYPE_MISMATCH;
 }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 #endif /* MBEDTLS_PK_C */

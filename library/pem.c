@@ -453,18 +453,20 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
 #endif /* MBEDTLS_AES_C */
 
         if (ret != 0) {
-            mbedtls_free(buf);
+            mbedtls_zeroize_and_free(buf, len);
             return ret;
         }
 
         /* Check PKCS padding and update data length based on padding info.
          * This can be used to detect invalid padding data and password
          * mismatches. */
-        ret = pem_check_pkcs_padding(buf, len, &len);
+        size_t unpadded_len;
+        ret = pem_check_pkcs_padding(buf, len, &unpadded_len);
         if (ret != 0) {
             mbedtls_zeroize_and_free(buf, len);
             return ret;
         }
+        len = unpadded_len;
 #else
         mbedtls_zeroize_and_free(buf, len);
         return MBEDTLS_ERR_PEM_FEATURE_UNAVAILABLE;

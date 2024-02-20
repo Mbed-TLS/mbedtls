@@ -614,8 +614,7 @@ KNOWN_TASKS = {
                 'test_suite_pem': [
                     # Following tests require AES_C, but this is diabled in the
                     # accelerated component.
-                    'PEM read (AES-128-CBC + invalid iv)',
-                    'PEM read (malformed PEM AES-128-CBC)',
+                    re.compile('PEM read .*AES.*'),
                     'PEM read (unknown encryption algorithm)',
                 ],
                 'test_suite_error': [

@@ -5332,7 +5332,7 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
                                             output_length);
 
 exit:
-    if (status != PSA_SUCCESS) {
+    if (status != PSA_SUCCESS && output != NULL) {
         /* If an error happens and is not handled properly, the output
          * may be used as a key to protect sensitive data. Arrange for such
          * a key to be random, which is likely to result in decryption or

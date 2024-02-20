@@ -348,7 +348,7 @@ static int pk_write_ec_der(unsigned char **p, unsigned char *buf,
 /******************************************************************************
  * Internal functions for Opaque keys.
  ******************************************************************************/
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 static int pk_write_opaque_pubkey(unsigned char **p, unsigned char *start,
                                   const mbedtls_pk_context *pk)
 {
@@ -370,7 +370,7 @@ static int pk_write_opaque_pubkey(unsigned char **p, unsigned char *start,
 
     return (int) len;
 }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
 /******************************************************************************
  * Generic helpers
@@ -382,7 +382,7 @@ static mbedtls_pk_type_t pk_get_type_ext(const mbedtls_pk_context *pk)
 {
     mbedtls_pk_type_t pk_type = mbedtls_pk_get_type(pk);
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
     if (pk_type == MBEDTLS_PK_OPAQUE) {
         psa_key_attributes_t opaque_attrs = PSA_KEY_ATTRIBUTES_INIT;
         psa_key_type_t opaque_key_type;
@@ -424,11 +424,11 @@ int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
         MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_pubkey(p, start, key));
     } else
 #endif
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_OPAQUE) {
         MBEDTLS_ASN1_CHK_ADD(len, pk_write_opaque_pubkey(p, start, key));
     } else
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
     return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
 
     return (int) len;

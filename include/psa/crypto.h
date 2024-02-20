@@ -3774,7 +3774,7 @@ psa_status_t psa_key_derivation_output_key(
  *                          the policy must be the same as in the current
  *                          operation.
  * \param[in,out] operation The key derivation operation object to read from.
- * \param[in] method        Customization parameters for the key generation.
+ * \param[in] method        Customization parameters for the key derivation.
  *                          When this is #PSA_KEY_GENERATION_METHOD_INIT
  *                          with \p method_data_length = 0,
  *                          this function is equivalent to
@@ -4141,7 +4141,7 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
  *                          When this is #PSA_KEY_GENERATION_METHOD_INIT
  *                          with \p method_data_length = 0,
  *                          this function is equivalent to
- *                          psa_key_derivation_output_key().
+ *                          psa_key_generation_output_key().
  * \param method_data_length
  *                          Length of `method.data` in bytes.
  * \param[out] key          On success, an identifier for the newly created

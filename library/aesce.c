@@ -334,7 +334,7 @@ static void aesce_setkey_enc(unsigned char *rk,
      *   - Section 5, Nr = Nk + 6
      *   - Section 5.2, the length of round keys is Nb*(Nr+1)
      */
-    const uint32_t key_len_in_words = key_bit_length / 32;  /* Nk */
+    const size_t key_len_in_words = key_bit_length / 32;    /* Nk */
     const size_t round_key_len_in_words = 4;                /* Nb */
     const size_t rounds_needed = key_len_in_words + 6;      /* Nr */
     const size_t round_keys_len_in_words =

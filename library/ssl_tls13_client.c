@@ -1180,26 +1180,21 @@ int mbedtls_ssl_tls13_write_client_hello_exts(mbedtls_ssl_context *ssl,
 #endif
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (mbedtls_ssl_conf_tls13_is_some_psk_enabled(ssl) &&
-        ssl_tls13_early_data_has_valid_ticket(ssl) &&
-        ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED &&
-        ssl->handshake->hello_retry_request_count == 0) {
+    if (ssl->handshake->hello_retry_request_count == 0) {
+        if (mbedtls_ssl_conf_tls13_is_some_psk_enabled(ssl) &&
+            ssl_tls13_early_data_has_valid_ticket(ssl) &&
+            ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED) {
+            ret = mbedtls_ssl_tls13_write_early_data_ext(
+                ssl, 0, p, end, &ext_len);
+            if (ret != 0) {
+                return ret;
+            }
+            p += ext_len;
 
-        ret = mbedtls_ssl_tls13_write_early_data_ext(
-            ssl, 0, p, end, &ext_len);
-        if (ret != 0) {
-            return ret;
+            ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_SENT;
+        } else {
+            ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT;
         }
-        p += ext_len;
-
-        /* Initializes the status to `rejected`. It will be updated to
-         * `accepted` if the EncryptedExtension message contain an early data
-         * indication extension.
-         */
-        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED;
-    } else {
-        MBEDTLS_SSL_DEBUG_MSG(2, ("<= skip write early_data extension"));
-        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT;
     }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
@@ -1236,7 +1231,7 @@ int mbedtls_ssl_tls13_finalize_client_hello(mbedtls_ssl_context *ssl)
     size_t psk_len;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 
-    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED) {
+    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_SENT) {
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("Set hs psk for early data when writing the first psk"));
 
@@ -1299,6 +1294,7 @@ int mbedtls_ssl_tls13_finalize_client_hello(mbedtls_ssl_context *ssl)
             1, ("Switch to early data keys for outbound traffic"));
         mbedtls_ssl_set_outbound_transform(
             ssl, ssl->handshake->transform_earlydata);
+        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE;
 #endif
     }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
@@ -1971,6 +1967,13 @@ static int ssl_tls13_postprocess_hrr(mbedtls_ssl_context *ssl)
     }
 
     ssl->session_negotiate->ciphersuite = ssl->handshake->ciphersuite_info->id;
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT) {
+        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED;
+    }
+#endif
+
     return 0;
 }
 
@@ -2230,6 +2233,8 @@ static int ssl_tls13_process_encrypted_extensions(mbedtls_ssl_context *ssl)
         }
 
         ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
+    } else if (ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT) {
+        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED;
     }
 #endif
 
@@ -2567,9 +2572,8 @@ static int ssl_tls13_process_server_finished(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
+        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_SERVER_FINISHED_RECEIVED;
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_END_OF_EARLY_DATA);
-    } else if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED) {
-        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
     } else
 #endif /* MBEDTLS_SSL_EARLY_DATA */
     {
@@ -3059,18 +3063,25 @@ int mbedtls_ssl_tls13_handshake_client_step(mbedtls_ssl_context *ssl)
              */
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
         case MBEDTLS_SSL_CLIENT_CCS_BEFORE_2ND_CLIENT_HELLO:
-            ret = mbedtls_ssl_tls13_write_change_cipher_spec(ssl);
-            if (ret == 0) {
-                mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_HELLO);
+            ret = 0;
+            if (ssl->handshake->ccs_count == 0) {
+                ret = mbedtls_ssl_tls13_write_change_cipher_spec(ssl);
+                if (ret != 0) {
+                    break;
+                }
             }
+            mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_HELLO);
             break;
 
         case MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED:
-            ret = mbedtls_ssl_tls13_write_change_cipher_spec(ssl);
-            if (ret == 0) {
-                mbedtls_ssl_handshake_set_state(
-                    ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
+            ret = 0;
+            if (ssl->handshake->ccs_count == 0) {
+                ret = mbedtls_ssl_tls13_write_change_cipher_spec(ssl);
+                if (ret != 0) {
+                    break;
+                }
             }
+            mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
             break;
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
@@ -3083,6 +3094,7 @@ int mbedtls_ssl_tls13_handshake_client_step(mbedtls_ssl_context *ssl)
                     1, ("Switch to early data keys for outbound traffic"));
                 mbedtls_ssl_set_outbound_transform(
                     ssl, ssl->handshake->transform_earlydata);
+                ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE;
             }
             break;
 #endif /* MBEDTLS_SSL_EARLY_DATA */

@@ -521,44 +521,78 @@ psa_status_t psa_open_key(mbedtls_svc_key_id_t key, psa_key_handle_t *handle)
 
 psa_status_t psa_close_key(psa_key_handle_t handle)
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
 
     if (psa_key_handle_is_null(handle)) {
         return PSA_SUCCESS;
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    /* We need to set status as success, otherwise CORRUPTION_DETECTED
+     * would be returned if the lock fails. */
+    status = PSA_SUCCESS;
+    PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
     status = psa_get_and_lock_key_slot_in_memory(handle, &slot);
     if (status != PSA_SUCCESS) {
         if (status == PSA_ERROR_DOES_NOT_EXIST) {
             status = PSA_ERROR_INVALID_HANDLE;
         }
-
+#if defined(MBEDTLS_THREADING_C)
+        PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                                  &mbedtls_threading_key_slot_mutex));
+#endif
         return status;
     }
+
     if (slot->registered_readers == 1) {
-        return psa_wipe_key_slot(slot);
+        status = psa_wipe_key_slot(slot);
     } else {
-        return psa_unregister_read(slot);
+        status = psa_unregister_read(slot);
     }
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
+
+    return status;
 }
 
 psa_status_t psa_purge_key(mbedtls_svc_key_id_t key)
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
 
+#if defined(MBEDTLS_THREADING_C)
+    /* We need to set status as success, otherwise CORRUPTION_DETECTED
+     * would be returned if the lock fails. */
+    status = PSA_SUCCESS;
+    PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
     status = psa_get_and_lock_key_slot_in_memory(key, &slot);
     if (status != PSA_SUCCESS) {
+#if defined(MBEDTLS_THREADING_C)
+        PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                                  &mbedtls_threading_key_slot_mutex));
+#endif
         return status;
     }
 
     if ((!PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) &&
         (slot->registered_readers == 1)) {
-        return psa_wipe_key_slot(slot);
+        status = psa_wipe_key_slot(slot);
     } else {
-        return psa_unregister_read(slot);
+        status = psa_unregister_read(slot);
     }
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
+
+    return status;
 }
 
 void mbedtls_psa_get_stats(mbedtls_psa_stats_t *stats)

@@ -26,33 +26,35 @@
 
 #define XOR_BYTE 0x6
 
-typedef struct mbedtls_sha3_family_functions {
-    mbedtls_sha3_id id;
-
-    uint16_t r;
-    uint16_t olen;
-}
-mbedtls_sha3_family_functions;
-
-/*
- * List of supported SHA-3 families
+/* Precomputed masks for the iota transform.
+ *
+ * Each round uses a 64-bit mask value. In each mask values, only
+ * bits whose position is of the form 2^k-1 can be set, thus only
+ * 7 of 64 bits of the mask need to be known for each mask value.
+ *
+ * We use a compressed encoding of the mask where bits 63, 31 and 15
+ * are moved to bits 4-6. This allows us to make each mask value
+ * 1 byte rather than 8 bytes, saving 7*24 = 168 bytes of data (with
+ * perhaps a little variation due to alignment). Decompressing this
+ * requires a little code, but much less than the savings on the table.
+ *
+ * The impact on performance depends on the platform and compiler.
+ * There's a bit more computation, but less memory bandwidth. A quick
+ * benchmark on x86_64 shows a 7% speed improvement with GCC and a
+ * 5% speed penalty with Clang, compared to the naive uint64_t[24] table.
+ * YMMV.
  */
-static const mbedtls_sha3_family_functions sha3_families[] = {
-    { MBEDTLS_SHA3_224,      1152, 224 },
-    { MBEDTLS_SHA3_256,      1088, 256 },
-    { MBEDTLS_SHA3_384,       832, 384 },
-    { MBEDTLS_SHA3_512,       576, 512 },
-    { MBEDTLS_SHA3_NONE, 0, 0 }
+/* Helper macro to set the values of the higher bits in unused low positions */
+#define H(b63, b31, b15) (b63 << 6 | b31 << 5 | b15 << 4)
+static const uint8_t iota_r_packed[24] = {
+    H(0, 0, 0) | 0x01, H(0, 0, 1) | 0x82, H(1, 0, 1) | 0x8a, H(1, 1, 1) | 0x00,
+    H(0, 0, 1) | 0x8b, H(0, 1, 0) | 0x01, H(1, 1, 1) | 0x81, H(1, 0, 1) | 0x09,
+    H(0, 0, 0) | 0x8a, H(0, 0, 0) | 0x88, H(0, 1, 1) | 0x09, H(0, 1, 0) | 0x0a,
+    H(0, 1, 1) | 0x8b, H(1, 0, 0) | 0x8b, H(1, 0, 1) | 0x89, H(1, 0, 1) | 0x03,
+    H(1, 0, 1) | 0x02, H(1, 0, 0) | 0x80, H(0, 0, 1) | 0x0a, H(1, 1, 0) | 0x0a,
+    H(1, 1, 1) | 0x81, H(1, 0, 1) | 0x80, H(0, 1, 0) | 0x01, H(1, 1, 1) | 0x08,
 };
-
-static const uint64_t rc[24] = {
-    0x0000000000000001, 0x0000000000008082, 0x800000000000808a, 0x8000000080008000,
-    0x000000000000808b, 0x0000000080000001, 0x8000000080008081, 0x8000000000008009,
-    0x000000000000008a, 0x0000000000000088, 0x0000000080008009, 0x000000008000000a,
-    0x000000008000808b, 0x800000000000008b, 0x8000000000008089, 0x8000000000008003,
-    0x8000000000008002, 0x8000000000000080, 0x000000000000800a, 0x800000008000000a,
-    0x8000000080008081, 0x8000000000008080, 0x0000000080000001, 0x8000000080008008,
-};
+#undef H
 
 static const uint8_t rho[24] = {
     1, 62, 28, 27, 36, 44,  6, 55, 20,
@@ -151,7 +153,11 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
         s[24] ^= (~lane[0]) & lane[1];
 
         /* Iota */
-        s[0] ^= rc[round];
+        /* Decompress the round masks (see definition of rc) */
+        s[0] ^= ((iota_r_packed[round] & 0x40ull) << 57 |
+                 (iota_r_packed[round] & 0x20ull) << 26 |
+                 (iota_r_packed[round] & 0x10ull) << 11 |
+                 (iota_r_packed[round] & 0x8f));
     }
 }
 
@@ -180,20 +186,26 @@ void mbedtls_sha3_clone(mbedtls_sha3_context *dst,
  */
 int mbedtls_sha3_starts(mbedtls_sha3_context *ctx, mbedtls_sha3_id id)
 {
-    const mbedtls_sha3_family_functions *p = NULL;
-
-    for (p = sha3_families; p->id != MBEDTLS_SHA3_NONE; p++) {
-        if (p->id == id) {
+    switch (id) {
+        case MBEDTLS_SHA3_224:
+            ctx->olen = 224 / 8;
+            ctx->max_block_size = 1152 / 8;
             break;
-        }
+        case MBEDTLS_SHA3_256:
+            ctx->olen = 256 / 8;
+            ctx->max_block_size = 1088 / 8;
+            break;
+        case MBEDTLS_SHA3_384:
+            ctx->olen = 384 / 8;
+            ctx->max_block_size = 832 / 8;
+            break;
+        case MBEDTLS_SHA3_512:
+            ctx->olen = 512 / 8;
+            ctx->max_block_size = 576 / 8;
+            break;
+        default:
+            return MBEDTLS_ERR_SHA3_BAD_INPUT_DATA;
     }
-
-    if (p->id == MBEDTLS_SHA3_NONE) {
-        return MBEDTLS_ERR_SHA3_BAD_INPUT_DATA;
-    }
-
-    ctx->olen = p->olen / 8;
-    ctx->max_block_size = p->r / 8;
 
     memset(ctx->state, 0, sizeof(ctx->state));
     ctx->index = 0;

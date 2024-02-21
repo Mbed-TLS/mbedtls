@@ -22,6 +22,22 @@
 #ifndef MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
 #define MBEDTLS_CONFIG_ADJUST_LEGACY_CRYPTO_H
 
+/* Ideally, we'd set those as defaults in mbedtls_config.h, but
+ * putting an #ifdef _WIN32 in mbedtls_config.h would confuse config.py.
+ *
+ * So, adjust it here.
+ * Not related to crypto, but this is the bottom of the stack. */
+#if defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER <= 1900)
+#if !defined(MBEDTLS_PLATFORM_SNPRINTF_ALT) && \
+    !defined(MBEDTLS_PLATFORM_SNPRINTF_MACRO)
+#define MBEDTLS_PLATFORM_SNPRINTF_ALT
+#endif
+#if !defined(MBEDTLS_PLATFORM_VSNPRINTF_ALT) && \
+    !defined(MBEDTLS_PLATFORM_VSNPRINTF_MACRO)
+#define MBEDTLS_PLATFORM_VSNPRINTF_ALT
+#endif
+#endif /* _MINGW32__ || (_MSC_VER && (_MSC_VER <= 1900)) */
+
 /* Auto-enable CIPHER_C when any of the unauthenticated ciphers is builtin
  * in PSA. */
 #if defined(MBEDTLS_PSA_CRYPTO_C) && \

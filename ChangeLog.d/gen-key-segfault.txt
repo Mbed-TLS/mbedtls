@@ -1,0 +1,3 @@
+Bugfix
+   * Avoid segmentation fault caused by releasing not initialized
+     entropy resource in gen_key example. Fixes #8809.

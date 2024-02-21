@@ -123,6 +123,10 @@ void pk_parse_keyfile_rsa(char *key_file, char *password, int result)
         rsa = mbedtls_pk_rsa(ctx);
         TEST_EQUAL(mbedtls_rsa_check_privkey(rsa), 0);
 
+        size_t bitlen = mbedtls_rsa_get_bitlen(rsa);
+        TEST_EQUAL(mbedtls_pk_get_bitlen(&ctx), bitlen);
+        TEST_EQUAL(mbedtls_pk_get_len(&ctx), (bitlen + 7) / 8);
+
 #if defined(MBEDTLS_PSA_CRYPTO_C)
         PSA_INIT();
         TEST_ASSERT(test_psa_bridge(&ctx, PSA_KEY_USAGE_SIGN_HASH));
@@ -159,6 +163,10 @@ void pk_parse_public_keyfile_rsa(char *key_file, int result)
         TEST_ASSERT(mbedtls_pk_can_do(&ctx, MBEDTLS_PK_RSA));
         rsa = mbedtls_pk_rsa(ctx);
         TEST_EQUAL(mbedtls_rsa_check_pubkey(rsa), 0);
+
+        size_t bitlen = mbedtls_rsa_get_bitlen(rsa);
+        TEST_EQUAL(mbedtls_pk_get_bitlen(&ctx), bitlen);
+        TEST_EQUAL(mbedtls_pk_get_len(&ctx), (bitlen + 7) / 8);
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
         PSA_INIT();

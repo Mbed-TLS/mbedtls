@@ -65,7 +65,8 @@ static int local_err_translation(psa_status_t status)
 #define H_TREE_HEIGHT_MAX                  10
 #define MERKLE_TREE_NODE_AM(type)          ((size_t) 1 << (MBEDTLS_LMS_H_TREE_HEIGHT(type) + 1u))
 #define MERKLE_TREE_LEAF_NODE_AM(type)     ((size_t) 1 << MBEDTLS_LMS_H_TREE_HEIGHT(type))
-#define MERKLE_TREE_INTERNAL_NODE_AM(type) ((size_t) 1 << MBEDTLS_LMS_H_TREE_HEIGHT(type))
+#define MERKLE_TREE_INTERNAL_NODE_AM(type) ((unsigned int) \
+                                            (1u << MBEDTLS_LMS_H_TREE_HEIGHT(type)))
 
 #define D_CONST_LEN           (2)
 static const unsigned char D_LEAF_CONSTANT_BYTES[D_CONST_LEN] = { 0x82, 0x82 };

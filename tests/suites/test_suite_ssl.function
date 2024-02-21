@@ -4143,12 +4143,7 @@ void tls13_write_early_data(int scenario)
         MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
         MBEDTLS_SSL_IANA_TLS_GROUP_NONE
     };
-    int client_state, previous_client_state, beyond_first_hello = 0;
-    const char *early_data_string = "This is early data.";
-    const unsigned char *early_data = (const unsigned char *) early_data_string;
-    size_t early_data_len = strlen(early_data_string);
-    int write_early_data_ret, read_early_data_ret;
-    unsigned char read_buf[64];
+    int beyond_first_hello = 0;
 
     mbedtls_platform_zeroize(&client_ep, sizeof(client_ep));
     mbedtls_platform_zeroize(&server_ep, sizeof(server_ep));
@@ -4225,43 +4220,15 @@ void tls13_write_early_data(int scenario)
      * handshake successfully and then reset the connection to restart the
      * handshake from scratch.
      */
-    previous_client_state = MBEDTLS_SSL_HELLO_REQUEST;
-    client_state = MBEDTLS_SSL_HELLO_REQUEST;
+    do {
+        int client_state = client_ep.ssl.state;
+        int previous_client_state;
+        const char *early_data_string = "This is early data.";
+        const unsigned char *early_data = (const unsigned char *) early_data_string;
+        size_t early_data_len = strlen(early_data_string);
+        int write_early_data_ret, read_early_data_ret;
+        unsigned char read_buf[64];
 
-    while (client_state != MBEDTLS_SSL_HANDSHAKE_OVER) {
-        /* In case of HRR scenario, once we have been through it, move over
-         * the first ClientHello and ServerHello otherwise we just keep playing
-         * this first part of the handshake with HRR.
-         */
-        if ((scenario == TEST_EARLY_DATA_HRR) && (beyond_first_hello)) {
-            TEST_ASSERT(mbedtls_test_move_handshake_to_state(
-                            &(client_ep.ssl), &(server_ep.ssl),
-                            MBEDTLS_SSL_SERVER_HELLO) == 0);
-            TEST_ASSERT(mbedtls_test_move_handshake_to_state(
-                            &(client_ep.ssl), &(server_ep.ssl),
-                            MBEDTLS_SSL_CLIENT_HELLO) == 0);
-        }
-
-        TEST_EQUAL(mbedtls_test_move_handshake_to_state(
-                       &(client_ep.ssl), &(server_ep.ssl),
-                       previous_client_state), 0);
-
-        /* Progress the handshake from at least one state */
-        while (client_ep.ssl.state == previous_client_state) {
-            ret = mbedtls_ssl_handshake_step(&(client_ep.ssl));
-            TEST_ASSERT((ret == 0) ||
-                        (ret == MBEDTLS_ERR_SSL_WANT_READ) ||
-                        (ret == MBEDTLS_ERR_SSL_WANT_WRITE));
-            if (client_ep.ssl.state != previous_client_state) {
-                break;
-            }
-            ret = mbedtls_ssl_handshake_step(&(server_ep.ssl));
-            TEST_ASSERT((ret == 0) ||
-                        (ret == MBEDTLS_ERR_SSL_WANT_READ) ||
-                        (ret == MBEDTLS_ERR_SSL_WANT_WRITE));
-        }
-
-        client_state = client_ep.ssl.state;
         write_early_data_ret = mbedtls_ssl_write_early_data(&(client_ep.ssl),
                                                             early_data,
                                                             early_data_len);
@@ -4273,6 +4240,7 @@ void tls13_write_early_data(int scenario)
         }
 
         switch (client_state) {
+            case MBEDTLS_SSL_HELLO_REQUEST: /* Intentional fallthrough */
             case MBEDTLS_SSL_CLIENT_HELLO:
                 switch (scenario) {
                     case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
@@ -4460,7 +4428,42 @@ complete_handshake:
         TEST_EQUAL(ret, 0);
 
         previous_client_state = client_state;
-    }
+        if (previous_client_state == MBEDTLS_SSL_HANDSHAKE_OVER) {
+            break;
+        }
+
+        /* In case of HRR scenario, once we have been through it, move over
+         * the first ClientHello and ServerHello otherwise we just keep playing
+         * this first part of the handshake with HRR.
+         */
+        if ((scenario == TEST_EARLY_DATA_HRR) && (beyond_first_hello)) {
+            TEST_ASSERT(mbedtls_test_move_handshake_to_state(
+                            &(client_ep.ssl), &(server_ep.ssl),
+                            MBEDTLS_SSL_SERVER_HELLO) == 0);
+            TEST_ASSERT(mbedtls_test_move_handshake_to_state(
+                            &(client_ep.ssl), &(server_ep.ssl),
+                            MBEDTLS_SSL_CLIENT_HELLO) == 0);
+        }
+
+        TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                       &(client_ep.ssl), &(server_ep.ssl),
+                       previous_client_state), 0);
+
+        /* Progress the handshake from at least one state */
+        while (client_ep.ssl.state == previous_client_state) {
+            ret = mbedtls_ssl_handshake_step(&(client_ep.ssl));
+            TEST_ASSERT((ret == 0) ||
+                        (ret == MBEDTLS_ERR_SSL_WANT_READ) ||
+                        (ret == MBEDTLS_ERR_SSL_WANT_WRITE));
+            if (client_ep.ssl.state != previous_client_state) {
+                break;
+            }
+            ret = mbedtls_ssl_handshake_step(&(server_ep.ssl));
+            TEST_ASSERT((ret == 0) ||
+                        (ret == MBEDTLS_ERR_SSL_WANT_READ) ||
+                        (ret == MBEDTLS_ERR_SSL_WANT_WRITE));
+        }
+    } while (1);
 
 exit:
     mbedtls_test_ssl_endpoint_free(&client_ep, NULL);

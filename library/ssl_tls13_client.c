@@ -2280,6 +2280,7 @@ cleanup:
 
 }
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
 /*
  * Handler for MBEDTLS_SSL_END_OF_EARLY_DATA
  *
@@ -2317,6 +2318,7 @@ cleanup:
     MBEDTLS_SSL_DEBUG_MSG(2, ("<= write EndOfEarlyData"));
     return ret;
 }
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 /*
@@ -3040,9 +3042,11 @@ int mbedtls_ssl_tls13_handshake_client_step(mbedtls_ssl_context *ssl)
             ret = ssl_tls13_process_server_finished(ssl);
             break;
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
         case MBEDTLS_SSL_END_OF_EARLY_DATA:
             ret = ssl_tls13_write_end_of_early_data(ssl);
             break;
+#endif
 
         case MBEDTLS_SSL_CLIENT_CERTIFICATE:
             ret = ssl_tls13_write_client_certificate(ssl);

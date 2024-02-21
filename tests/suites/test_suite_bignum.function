@@ -982,8 +982,16 @@ void mpi_exp_mod_min_RR(char *input_A, char *input_E,
 
     TEST_EQUAL(mbedtls_mpi_core_get_mont_r2_unsafe(&RR, &N), 0);
     TEST_EQUAL(mbedtls_mpi_shrink(&RR, 0), 0);
+    /* The objective of this test is to check that exp_mod defends
+     * against a smaller RR. */
+    TEST_LE_U(RR.n, N.n - 1);
 
     res = mbedtls_mpi_exp_mod(&Z, &A, &E, &N, &RR);
+    /* We know that exp_mod internally needs RR to be as large as N.
+     * Validate that it is the case now, otherwise there was probably
+     * a buffer overread. */
+    TEST_EQUAL(RR.n, N.n);
+
     TEST_EQUAL(res, exp_result);
     if (res == 0) {
         TEST_EQUAL(sign_is_valid(&Z), 1);

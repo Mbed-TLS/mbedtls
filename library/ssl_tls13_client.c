@@ -2318,6 +2318,31 @@ cleanup:
     MBEDTLS_SSL_DEBUG_MSG(2, ("<= write EndOfEarlyData"));
     return ret;
 }
+
+int mbedtls_ssl_get_early_data_status(mbedtls_ssl_context *ssl)
+{
+    if ((ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) ||
+        (!mbedtls_ssl_is_handshake_over(ssl))) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    switch (ssl->early_data_status) {
+        case MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT:
+            return MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT;
+            break;
+
+        case MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED:
+            return MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED;
+            break;
+
+        case MBEDTLS_SSL_EARLY_DATA_STATUS_SERVER_FINISHED_RECEIVED:
+            return MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
+            break;
+
+        default:
+            return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+}
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)

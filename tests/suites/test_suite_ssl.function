@@ -3895,6 +3895,11 @@ void tls13_cli_early_data_status(int scenario)
                         (ret == MBEDTLS_ERR_SSL_WANT_WRITE));
         }
 
+        if (client_ep.ssl.state != MBEDTLS_SSL_HANDSHAKE_OVER) {
+            TEST_EQUAL(mbedtls_ssl_get_early_data_status(&(client_ep.ssl)),
+                       MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
+        }
+
         switch (client_ep.ssl.state) {
             case MBEDTLS_SSL_CLIENT_HELLO:
                 switch (scenario) {
@@ -4115,6 +4120,25 @@ void tls13_cli_early_data_status(int scenario)
                 TEST_FAIL("Unexpected state.");
         }
     } while (client_ep.ssl.state != MBEDTLS_SSL_HANDSHAKE_OVER);
+
+    ret = mbedtls_ssl_get_early_data_status(&(client_ep.ssl));
+    switch (scenario) {
+        case TEST_EARLY_DATA_ACCEPTED:
+            TEST_EQUAL(ret, MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED);
+            break;
+
+        case TEST_EARLY_DATA_NO_INDICATION_SENT:
+            TEST_EQUAL(ret, MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT);
+            break;
+
+        case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
+        case TEST_EARLY_DATA_HRR:
+            TEST_EQUAL(ret, MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED);
+            break;
+
+        default:
+            TEST_FAIL("Unknown scenario.");
+    }
 
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
     TEST_EQUAL(client_ep.ssl.handshake->ccs_sent, 1);

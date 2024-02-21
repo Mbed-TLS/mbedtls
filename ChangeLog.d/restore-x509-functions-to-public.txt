@@ -1,6 +1,0 @@
-Bugfix
-   * Restore X509 functions erroneously removed from the public interface:
-     mbedtls_x509_dn_get_next(), mbedtls_x509_serial_gets(),
-     mbedtls_x509_time_cmp(), mbedtls_x509_time_gmtime(),
-     mbedtls_x509_time_is_past(), mbedtls_x509_time_is_future()
-     mbedtls_x509_parse_subject_alt_name(), mbedtls_x509_free_subject_alt_name()

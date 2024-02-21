@@ -1478,10 +1478,8 @@ static int ssl_tls13_preprocess_server_hello(mbedtls_ssl_context *ssl,
         return SSL_SERVER_HELLO_TLS1_2;
     }
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    ssl->session_negotiate->endpoint = ssl->conf->endpoint;
     ssl->session_negotiate->tls_version = ssl->tls_version;
-#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+    ssl->session_negotiate->endpoint = ssl->conf->endpoint;
 
     handshake->received_extensions = MBEDTLS_SSL_EXT_MASK_NONE;
 

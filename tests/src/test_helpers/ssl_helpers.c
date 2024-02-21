@@ -1646,12 +1646,20 @@ exit:
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
                                             int ticket_len,
+                                            int endpoint_type,
                                             const char *crt_file)
 {
+    (void) ticket_len;
+
 #if defined(MBEDTLS_HAVE_TIME)
     session->start = mbedtls_time(NULL) - 42;
 #endif
     session->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
+
+    TEST_ASSERT(endpoint_type == MBEDTLS_SSL_IS_CLIENT ||
+                endpoint_type == MBEDTLS_SSL_IS_SERVER);
+
+    session->endpoint = endpoint_type;
     session->ciphersuite = 0xabcd;
     session->id_len = sizeof(session->id);
     memset(session->id, 66, session->id_len);
@@ -1717,7 +1725,8 @@ int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED && MBEDTLS_FS_IO */
     session->verify_result = 0xdeadbeef;
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_CLI_C)
     if (ticket_len != 0) {
         session->ticket = mbedtls_calloc(1, ticket_len);
         if (session->ticket == NULL) {
@@ -1727,9 +1736,14 @@ int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
     }
     session->ticket_len = ticket_len;
     session->ticket_lifetime = 86401;
-#else
-    (void) ticket_len;
+#endif /* MBEDTLS_SSL_CLI_C */
+
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_HAVE_TIME)
+    if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
+        session->ticket_creation_time = mbedtls_ms_time() - 42;
+    }
 #endif
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     session->mfl_code = 1;
@@ -1738,6 +1752,7 @@ int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
     session->encrypt_then_mac = 1;
 #endif
 
+exit:
     return 0;
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */

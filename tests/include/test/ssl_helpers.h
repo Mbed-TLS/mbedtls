@@ -532,6 +532,7 @@ int mbedtls_test_ssl_prepare_record_mac(mbedtls_record *record,
  */
 int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
                                             int ticket_len,
+                                            int endpoint_type,
                                             const char *crt_file);
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)

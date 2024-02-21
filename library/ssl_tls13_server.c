@@ -1437,12 +1437,8 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
      * We negotiate TLS 1.3.
      */
     ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
-
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    /* Store minor version for later use with ticket serialization. */
     ssl->session_negotiate->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
     ssl->session_negotiate->endpoint = ssl->conf->endpoint;
-#endif
 
     /*
      * We are negotiating the version 1.3 of the protocol. Do what we have
@@ -3132,10 +3128,6 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> prepare NewSessionTicket msg"));
 
-#if defined(MBEDTLS_HAVE_TIME)
-    session->ticket_creation_time = mbedtls_ms_time();
-#endif
-
     /* Set ticket_flags depends on the advertised psk key exchange mode */
     mbedtls_ssl_tls13_session_clear_ticket_flags(
         session, MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
@@ -3270,6 +3262,9 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_CHK_BUF_PTR(p, end, 4 + 4 + 1 + ticket_nonce_size + 2);
 
     /* Generate ticket and ticket_lifetime */
+#if defined(MBEDTLS_HAVE_TIME)
+    session->ticket_creation_time = mbedtls_ms_time();
+#endif
     ret = ssl->conf->f_ticket_write(ssl->conf->p_ticket,
                                     session,
                                     p + 9 + ticket_nonce_size + 2,

@@ -67,6 +67,10 @@ then
   exit 1
 fi
 
+[ $VERBOSE ] && echo "Bumping PKGCONFIG_VERSION in pkgconfig/CMakeLists.txt"
+sed -e "s/PKGCONFIG_VERSION [0-9.]\{1,\}/PKGCONFIG_VERSION $VERSION/g" < pkgconfig/CMakeLists.txt > tmp
+mv tmp pkgconfig/CMakeLists.txt
+
 [ $VERBOSE ] && echo "Bumping VERSION in library/CMakeLists.txt"
 sed -e "s/ VERSION [0-9.]\{1,\}/ VERSION $VERSION/g" < library/CMakeLists.txt > tmp
 mv tmp library/CMakeLists.txt

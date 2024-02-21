@@ -89,7 +89,9 @@ typedef struct {
      * A function must call psa_register_read(slot) before reading the current
      * contents of the slot for an operation.
      * They then must call psa_unregister_read(slot) once they have finished
-     * reading the current contents of the slot.
+     * reading the current contents of the slot. If the key slot mutex is not
+     * held (when mutexes are enabled), this call must be done via a call to
+     * psa_unregister_read_under_mutex(slot).
      * A function must call psa_key_slot_has_readers(slot) to check if
      * the slot is in use for reading.
      *

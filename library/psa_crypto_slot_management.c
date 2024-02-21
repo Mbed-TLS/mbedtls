@@ -70,6 +70,9 @@ int psa_is_valid_key_id(mbedtls_svc_key_id_t key, int vendor_ok)
  * On success, the function locks the key slot. It is the responsibility of
  * the caller to unlock the key slot when it does not access it anymore.
  *
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
+ *
  * \param key           Key identifier to query.
  * \param[out] p_slot   On success, `*p_slot` contains a pointer to the
  *                      key slot containing the description of the key
@@ -94,16 +97,14 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
     if (psa_key_id_is_volatile(key_id)) {
         slot = &global_data.key_slots[key_id - PSA_KEY_ID_VOLATILE_MIN];
 
-        /*
-         * Check if both the PSA key identifier key_id and the owner
-         * identifier of key match those of the key slot.
-         *
-         * Note that, if the key slot is not occupied, its PSA key identifier
-         * is equal to zero. This is an invalid value for a PSA key identifier
-         * and thus cannot be equal to the valid PSA key identifier key_id.
-         */
-        status = mbedtls_svc_key_id_equal(key, slot->attr.id) ?
-                 PSA_SUCCESS : PSA_ERROR_DOES_NOT_EXIST;
+        /* Check if both the PSA key identifier key_id and the owner
+         * identifier of key match those of the key slot. */
+        if ((slot->state == PSA_SLOT_FULL) &&
+            (mbedtls_svc_key_id_equal(key, slot->attr.id))) {
+            status = PSA_SUCCESS;
+        } else {
+            status = PSA_ERROR_DOES_NOT_EXIST;
+        }
     } else {
         if (!psa_is_valid_key_id(key, 1)) {
             return PSA_ERROR_INVALID_HANDLE;
@@ -248,11 +249,6 @@ static psa_status_t psa_load_persistent_key_into_slot(psa_key_slot_t *slot)
         data = (psa_se_key_data_storage_t *) key_data;
         status = psa_copy_key_material_into_slot(
             slot, data->slot_number, sizeof(data->slot_number));
-
-        if (status == PSA_SUCCESS) {
-            status = psa_key_slot_state_transition(slot, PSA_SLOT_FILLING,
-                                                   PSA_SLOT_FULL);
-        }
         goto exit;
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
@@ -261,9 +257,6 @@ static psa_status_t psa_load_persistent_key_into_slot(psa_key_slot_t *slot)
     if (status != PSA_SUCCESS) {
         goto exit;
     }
-
-    status = psa_key_slot_state_transition(slot, PSA_SLOT_FILLING,
-                                           PSA_SLOT_FULL);
 
 exit:
     psa_free_persistent_key_data(key_data, key_data_length);
@@ -337,9 +330,6 @@ static psa_status_t psa_load_builtin_key_into_slot(psa_key_slot_t *slot)
     /* Copy actual key length and core attributes into the slot on success */
     slot->key.bytes = key_buffer_length;
     slot->attr = attributes.core;
-
-    status = psa_key_slot_state_transition(slot, PSA_SLOT_FILLING,
-                                           PSA_SLOT_FULL);
 exit:
     if (status != PSA_SUCCESS) {
         psa_remove_key_data_from_memory(slot);
@@ -358,12 +348,27 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
         return PSA_ERROR_BAD_STATE;
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    /* We need to set status as success, otherwise CORRUPTION_DETECTED
+     * would be returned if the lock fails. */
+    status = PSA_SUCCESS;
+    /* If the key is persistent and not loaded, we cannot unlock the mutex
+     * between checking if the key is loaded and setting the slot as FULL,
+     * as otherwise another thread may load and then destroy the key
+     * in the meantime. */
+    PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
     /*
      * On success, the pointer to the slot is passed directly to the caller
      * thus no need to unlock the key slot here.
      */
     status = psa_get_and_lock_key_slot_in_memory(key, p_slot);
     if (status != PSA_ERROR_DOES_NOT_EXIST) {
+#if defined(MBEDTLS_THREADING_C)
+        PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                                  &mbedtls_threading_key_slot_mutex));
+#endif
         return status;
     }
 
@@ -374,6 +379,10 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
 
     status = psa_reserve_free_key_slot(&volatile_key_id, p_slot);
     if (status != PSA_SUCCESS) {
+#if defined(MBEDTLS_THREADING_C)
+        PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                                  &mbedtls_threading_key_slot_mutex));
+#endif
         return status;
     }
 
@@ -407,10 +416,15 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
         status = psa_register_read(*p_slot);
     }
 
-    return status;
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
-    return PSA_ERROR_INVALID_HANDLE;
+    status = PSA_ERROR_INVALID_HANDLE;
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
+
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
+    return status;
 }
 
 psa_status_t psa_unregister_read(psa_key_slot_t *slot)
@@ -445,6 +459,24 @@ psa_status_t psa_unregister_read(psa_key_slot_t *slot)
      */
     MBEDTLS_TEST_HOOK_TEST_ASSERT(psa_key_slot_has_readers(slot));
     return PSA_ERROR_CORRUPTION_DETECTED;
+}
+
+psa_status_t psa_unregister_read_under_mutex(psa_key_slot_t *slot)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+#if defined(MBEDTLS_THREADING_C)
+    /* We need to set status as success, otherwise CORRUPTION_DETECTED
+     * would be returned if the lock fails. */
+    status = PSA_SUCCESS;
+    PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
+    status = psa_unregister_read(slot);
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
+    return status;
 }
 
 psa_status_t psa_validate_key_location(psa_key_lifetime_t lifetime,

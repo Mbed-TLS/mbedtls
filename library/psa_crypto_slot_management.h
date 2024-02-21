@@ -205,6 +205,27 @@ static inline psa_status_t psa_register_read(psa_key_slot_t *slot)
  */
 psa_status_t psa_unregister_read(psa_key_slot_t *slot);
 
+/** Wrap a call to psa_unregister_read in the global key slot mutex.
+ *
+ * If threading is disabled, this simply calls psa_unregister_read.
+ *
+ * \note To ease the handling of errors in retrieving a key slot
+ *       a NULL input pointer is valid, and the function returns
+ *       successfully without doing anything in that case.
+ *
+ * \param[in] slot  The key slot.
+ * \retval #PSA_SUCCESS
+ *             \p slot is NULL or the key slot reader counter has been
+ *             decremented (and potentially wiped) successfully.
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ *             The slot's state was neither PSA_SLOT_FULL nor
+ *             PSA_SLOT_PENDING_DELETION.
+ *             Or a wipe was attempted and the slot's state was not
+ *             PSA_SLOT_PENDING_DELETION.
+ *             Or registered_readers was equal to 0.
+ */
+psa_status_t psa_unregister_read_under_mutex(psa_key_slot_t *slot);
+
 /** Test whether a lifetime designates a key in an external cryptoprocessor.
  *
  * \param lifetime      The lifetime to test.

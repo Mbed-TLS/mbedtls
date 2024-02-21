@@ -52,7 +52,7 @@ int main(void)
 #define DFL_KEY_OPAQUE          0
 #define DFL_KEY_PWD             ""
 #define DFL_PSK                 ""
-#define DFL_EARLY_DATA          MBEDTLS_SSL_EARLY_DATA_DISABLED
+#define DFL_EARLY_DATA          -1
 #define DFL_PSK_OPAQUE          0
 #define DFL_PSK_IDENTITY        "Client_identity"
 #define DFL_ECJPAKE_PW          NULL
@@ -347,7 +347,7 @@ int main(void)
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 #define USAGE_EARLY_DATA \
-    "    early_data=%%d      default: 0 (disabled)\n" \
+    "    early_data=%%d      default: library default\n" \
     "                        options: 0 (disabled), 1 (enabled)\n"
 #else
 #define USAGE_EARLY_DATA ""
@@ -2026,7 +2026,9 @@ usage:
     }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    mbedtls_ssl_conf_early_data(&conf, opt.early_data);
+    if (opt.early_data != DFL_EARLY_DATA) {
+        mbedtls_ssl_conf_early_data(&conf, opt.early_data);
+    }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
     if ((ret = mbedtls_ssl_setup(&ssl, &conf)) != 0) {
@@ -3041,7 +3043,7 @@ reconnect:
         }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-        if (opt.early_data == MBEDTLS_SSL_EARLY_DATA_ENABLED) {
+        if (ssl.conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED) {
             frags = 0;
             written = 0;
             do {

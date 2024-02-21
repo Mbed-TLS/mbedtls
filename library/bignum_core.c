@@ -856,8 +856,8 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub_int(mbedtls_mpi_uint *X,
     return c;
 }
 
-mbedtls_mpi_uint mbedtls_mpi_core_check_zero_ct(const mbedtls_mpi_uint *A,
-                                                size_t limbs)
+mbedtls_ct_condition_t mbedtls_mpi_core_check_zero_ct(const mbedtls_mpi_uint *A,
+                                                      size_t limbs)
 {
     mbedtls_mpi_uint bits = 0;
 
@@ -865,7 +865,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_check_zero_ct(const mbedtls_mpi_uint *A,
         bits |= A[i];
     }
 
-    return bits;
+    return mbedtls_ct_bool(bits);
 }
 
 void mbedtls_mpi_core_to_mont_rep(mbedtls_mpi_uint *X,

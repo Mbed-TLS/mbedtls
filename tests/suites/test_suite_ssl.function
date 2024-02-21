@@ -4217,8 +4217,11 @@ void tls13_write_early_data(int scenario)
     TEST_EQUAL(ret, 0);
 
     /*
-     * Run handshakes and test the writing of early data in each possible
-     * state.
+     * Run handshakes going one state further in the handshake sequence at each
+     * loop up to the point where we reach the MBEDTLS_SSL_HANDSHAKE_OVER
+     * state. For each reached handshake state, check the result of the call
+     * to mbedtls_ssl_write_early_data() and then restart the handshake from
+     * scratch (see reset label).
      */
     previous_client_state = MBEDTLS_SSL_HELLO_REQUEST;
     client_state = MBEDTLS_SSL_HELLO_REQUEST;

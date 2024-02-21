@@ -5199,17 +5199,43 @@ int mbedtls_ssl_read_early_data(mbedtls_ssl_context *ssl,
  * \brief          Try to write exactly 'len' application data bytes while
  *                 performing the handshake (early data).
  *
+ * \warning        Early data is defined in the TLS 1.3 specification, RFC 8446.
+ *                 IMPORTANT NOTE from section 2.3 of the specification:
+ *
+ *                 The security properties for 0-RTT data are weaker than
+ *                 those for other kinds of TLS data. Specifically:
+ *                 - This data is not forward secret, as it is encrypted
+ *                   solely under keys derived using the offered PSK.
+ *                 - There are no guarantees of non-replay between connections.
+ *                   Protection against replay for ordinary TLS 1.3 1-RTT data
+ *                   is provided via the server's Random value, but 0-RTT data
+ *                   does not depend on the ServerHello and therefore has
+ *                   weaker guarantees. This is especially relevant if the
+ *                   data is authenticated either with TLS client
+ *                   authentication or inside the application protocol. The
+ *                   same warnings apply to any use of the
+ *                   early_exporter_master_secret.
+ *
  * \note           This function behaves mainly as mbedtls_ssl_write(). The
  *                 specification of mbedtls_ssl_write() relevant to TLS 1.3
  *                 (thus not the parts specific to (D)TLS1.2) applies to this
- *                 function and the present documentation is restricted to the
- *                 differences with mbedtls_ssl_write().
+ *                 function and the present documentation is mainly restricted
+ *                 to the differences with mbedtls_ssl_write(). One noticeable
+ *                 difference though is that mbedtls_ssl_write() aims to
+ *                 complete the handshake before to write application data
+ *                 while mbedtls_ssl_write_early() aims to drive the handshake
+ *                 just past the point where it is not possible to send early
+ *                 data anymore.
  *
  * \param ssl      SSL context
  * \param buf      buffer holding the data
  * \param len      how many bytes must be written
  *
- * \return         One additional specific return value:
+ * \return         The (non-negative) number of bytes actually written if
+ *                 successful (may be less than \p len).
+ *
+ * \return         One additional specific error code compared to
+ *                 mbedtls_ssl_write():
  *                 #MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA.
  *
  *                 #MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA is returned when it

@@ -6087,14 +6087,17 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
     }
 
     /*
-     * If we are at the beginning of the handshake, advance the handshake just
+     * If we are at the beginning of the handshake, the early data status being
+     * equal to MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN or
+     * MBEDTLS_SSL_EARLY_DATA_STATUS_SENT advance the handshake just
      * enough to be able to send early data if possible. That way, we can
      * guarantee that when starting the handshake with this function we will
-     * send at least one record of early data.
-     * Otherwise, resume the handshake and if the handshake sequence stops
-     * waiting for some message from the server, send early data if we can.
+     * send at least one record of early data. Note that when the status is
+     * MBEDTLS_SSL_EARLY_DATA_STATUS_SENT and not yet
+     * MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE, we cannot send early data yet
+     * as the early data outbound transform has not been set as we may have to
+     * first send a dummy CCS in clear.
      */
-
     if ((ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN) ||
         (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_SENT)) {
         while ((ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN) ||
@@ -6112,6 +6115,12 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
             }
         }
     } else {
+        /*
+         * If we are past the point where we can send early data, return
+         * immediatly. Otherwise, progress the handshake as much as possible to
+         * not delay it too much. If we reach a point where we can still send
+         * early data, then we will send some.
+         */
         if ((ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE) &&
             (ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED)) {
             return MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA;

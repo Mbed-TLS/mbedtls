@@ -1689,7 +1689,9 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
      * Correct for negative A.
      */
     if (A->s == -1 && (E->p[0] & 1) != 0) {
-        X->s = -1;
+        mbedtls_ct_condition_t is_x_non_zero = mbedtls_mpi_core_check_zero_ct(X->p, X->n);
+        X->s = mbedtls_ct_uint_if(is_x_non_zero, -1, 1);
+
         MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(X, N, X));
     }
 

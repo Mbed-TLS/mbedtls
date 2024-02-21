@@ -1362,6 +1362,9 @@ mpi_exp_mod:"04":"00":"09":"1":0
 Test mbedtls_mpi_exp_mod: 10 ^ 0 (1 limb) mod 9
 mpi_exp_mod:"0a":"00":"09":"1":0
 
+Test mbedtls_mpi_exp_mod: -3 ^ 3 mod 27
+mpi_exp_mod:"-3":"3":"1b":"1b":0
+
 Test mbedtls_mpi_exp_mod: MAX_SIZE exponent
 mpi_exp_mod_size:2:MBEDTLS_MPI_MAX_SIZE:10:"":0
 

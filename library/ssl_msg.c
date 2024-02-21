@@ -6072,6 +6072,10 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
+    if (conf->endpoint != MBEDTLS_SSL_IS_CLIENT) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
     if ((!mbedtls_ssl_conf_is_tls13_enabled(conf)) ||
         (conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) ||
         (conf->early_data_enabled != MBEDTLS_SSL_EARLY_DATA_ENABLED)) {

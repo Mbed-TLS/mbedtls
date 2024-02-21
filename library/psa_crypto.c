@@ -7395,6 +7395,7 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
     size_t expected_length;
     LOCAL_INPUT_DECLARE(peer_key_external, peer_key);
     LOCAL_OUTPUT_DECLARE(output_external, output);
+    LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
 
     if (!PSA_ALG_IS_KEY_AGREEMENT(alg)) {
         status = PSA_ERROR_INVALID_ARGUMENT;
@@ -7422,23 +7423,29 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
     }
 
     LOCAL_INPUT_ALLOC(peer_key_external, peer_key_length, peer_key);
-    LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
     status = psa_key_agreement_raw_internal(alg, slot,
                                             peer_key, peer_key_length,
                                             output, output_size,
                                             output_length);
 
 exit:
-    if (status != PSA_SUCCESS && output != NULL) {
-        /* If an error happens and is not handled properly, the output
-         * may be used as a key to protect sensitive data. Arrange for such
-         * a key to be random, which is likely to result in decryption or
-         * verification errors. This is better than filling the buffer with
-         * some constant data such as zeros, which would result in the data
-         * being protected with a reproducible, easily knowable key.
-         */
-        psa_generate_random(output, output_size);
-        *output_length = output_size;
+    /* Check for successful allocation of output. */
+    if (output != NULL && status != PSA_ERROR_INSUFFICIENT_MEMORY) {
+        /* output allocated. */
+        if (status != PSA_SUCCESS) {
+            /* If an error happens and is not handled properly, the output
+             * may be used as a key to protect sensitive data. Arrange for such
+             * a key to be random, which is likely to result in decryption or
+             * verification errors. This is better than filling the buffer with
+             * some constant data such as zeros, which would result in the data
+             * being protected with a reproducible, easily knowable key.
+             */
+            psa_generate_random(output, output_size);
+            *output_length = output_size;
+        }
+    } else {
+        /* output allocation failed. */
+        *output_length = 0;
     }
 
     unlock_status = psa_unregister_read(slot);

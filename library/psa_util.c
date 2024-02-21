@@ -164,6 +164,8 @@ int psa_pk_status_to_mbedtls(psa_status_t status)
             return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
         case PSA_ERROR_INVALID_ARGUMENT:
             return MBEDTLS_ERR_PK_INVALID_ALG;
+        case PSA_ERROR_NOT_PERMITTED:
+            return MBEDTLS_ERR_PK_TYPE_MISMATCH;
         case PSA_ERROR_INSUFFICIENT_MEMORY:
             return MBEDTLS_ERR_PK_ALLOC_FAILED;
         case PSA_ERROR_BAD_STATE:

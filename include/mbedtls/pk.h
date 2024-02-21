@@ -592,6 +592,54 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
 int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
                                   psa_key_usage_t usage,
                                   psa_key_attributes_t *attributes);
+
+/**
+ * \brief           Import a key into the PSA key store.
+ *
+ *                  This function is equivalent to calling psa_import_key()
+ *                  with the key material from \p pk.
+ *
+ *                  The typical way to use this function is:
+ *                  -# Call mbedtls_pk_get_psa_attributes() to obtain
+ *                     attributes for the given key.
+ *                  -# If desired, modify the attributes, for example:
+ *                      - To create a persistent key, call
+ *                        psa_set_key_identifier() and optionally
+ *                        psa_set_key_lifetime().
+ *                      - To import only the public part of a key pair:
+ *                        ```
+ *                        psa_set_key_type(&attributes,
+ *                                         PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(
+ *                                             psa_get_key_type(&attributes)));
+ *                        ```
+ *                      - Restrict the key usage if desired.
+ *                  -# Call mbedtls_pk_import_into_psa().
+ *
+ * \note            This function does not support RSA-alt contexts
+ *                  (set up with mbedtls_pk_setup_rsa_alt()).
+ *
+ * \param[in] pk    The PK context to use. It must have been set up.
+ *                  It can either contain a key pair or just a public key.
+ * \param[in] attributes
+ *                  The attributes to use for the new key. They must be
+ *                  compatible with \p pk. In particular, the key type
+ *                  must match the content of \p pk.
+ *                  If \p pk contains a key pair, the key type in
+ *                  attributes can be either the key pair type or the
+ *                  corresponding public key type (to import only the
+ *                  public part).
+ * \param[out] key_id
+ *                  On success, the identifier of the newly created key.
+ *                  On error, this is #MBEDTLS_SVC_KEY_ID_INIT.
+ *
+ * \return          0 on success.
+ *                  #MBEDTLS_ERR_PK_TYPE_MISMATCH if \p pk does not contain
+ *                  a key of the type identified in \p attributes.
+ *                  Another error code on other failures.
+ */
+int mbedtls_pk_import_into_psa(const mbedtls_pk_context *pk,
+                               const psa_key_attributes_t *attributes,
+                               mbedtls_svc_key_id_t *key_id);
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
 /**

@@ -309,13 +309,11 @@ static int ssl_tls13_offered_psks_check_identity_match(
     *psk_type = MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL;
 
     MBEDTLS_SSL_DEBUG_BUF(4, "identity", identity, identity_len);
-    ssl->handshake->resume = 0;
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     ret = ssl_tls13_offered_psks_check_identity_match_ticket(
         ssl, identity, identity_len, obfuscated_ticket_age, session);
     if (ret == SSL_TLS1_3_PSK_IDENTITY_MATCH) {
-        ssl->handshake->resume = 1;
         *psk_type = MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION;
         ret = mbedtls_ssl_set_hs_psk(ssl,
                                      session->resumption_key,
@@ -1721,10 +1719,13 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
 
-    if (handshake->key_exchange_mode ==
-        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL) {
-        handshake->resume = 0;
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
+    if ((handshake->key_exchange_mode !=
+         MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL) &&
+        (psk.type == MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION)) {
+        handshake->resume = 1;
     }
+#endif
 
     if (handshake->key_exchange_mode !=
         MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK) {

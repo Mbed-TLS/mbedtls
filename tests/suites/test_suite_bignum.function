@@ -967,8 +967,8 @@ exit:
 
 /* BEGIN_CASE */
 void mpi_exp_mod_min_RR(char *input_A, char *input_E,
-                         char *input_N, char *input_X,
-                         int exp_result)
+                        char *input_N, char *input_X,
+                        int exp_result)
 {
     mbedtls_mpi A, E, N, RR, Z, X;
     int res;

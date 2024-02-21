@@ -1624,10 +1624,17 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
         return ret;
     }
 
+    /*
+     * Allocate working memory for mbedtls_mpi_core_exp_mod()
+     */
+    size_t T_limbs = mbedtls_mpi_core_exp_mod_working_limbs(N->n, E->n);
+    mbedtls_mpi_uint *T = (mbedtls_mpi_uint*) mbedtls_calloc(T_limbs, sizeof(mbedtls_mpi_uint));
+    if (T == NULL) {
+        return MBEDTLS_ERR_MPI_ALLOC_FAILED;
+    }
+
     mbedtls_mpi RR;
     mbedtls_mpi_init(&RR);
-    mbedtls_mpi T;
-    mbedtls_mpi_init(&T);
 
     /*
      * If 1st call, pre-compute R^2 mod N
@@ -1670,19 +1677,13 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(X, N->n));
 
     /*
-     * Allocate working memory for mbedtls_mpi_core_exp_mod()
-     */
-    size_t T_limbs = mbedtls_mpi_core_exp_mod_working_limbs(N->n, E->n);
-    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(&T, T_limbs));
-
-    /*
      * Convert to and from Montgomery around mbedtls_mpi_core_exp_mod().
      */
     mbedtls_mpi_uint mm = mbedtls_mpi_core_montmul_init(N->p);
-    mbedtls_mpi_core_to_mont_rep(X->p, X->p, N->p, N->n, mm, RR.p, T.p);
+    mbedtls_mpi_core_to_mont_rep(X->p, X->p, N->p, N->n, mm, RR.p, T);
     mbedtls_mpi_core_exp_mod(X->p, X->p, N->p, N->n, E->p, E->n, RR.p,
-                             T.p);
-    mbedtls_mpi_core_from_mont_rep(X->p, X->p, N->p, N->n, mm, T.p);
+                             T);
+    mbedtls_mpi_core_from_mont_rep(X->p, X->p, N->p, N->n, mm, T);
 
     /*
      * Correct for negative A.
@@ -1694,7 +1695,7 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
 
 cleanup:
 
-    mbedtls_mpi_free(&T);
+    mbedtls_mpi_zeroize_and_free(T, T_limbs);
 
     if (prec_RR == NULL || prec_RR->p == NULL) {
         mbedtls_mpi_free(&RR);

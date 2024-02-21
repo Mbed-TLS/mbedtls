@@ -4147,7 +4147,8 @@ void tls13_write_early_data(int scenario)
     const char *early_data_string = "This is early data.";
     const unsigned char *early_data = (const unsigned char *) early_data_string;
     size_t early_data_len = strlen(early_data_string);
-    int write_early_data_ret;
+    int write_early_data_ret, read_early_data_ret;
+    unsigned char read_buf[64];
 
     mbedtls_platform_zeroize(&client_ep, sizeof(client_ep));
     mbedtls_platform_zeroize(&server_ep, sizeof(server_ep));
@@ -4220,8 +4221,9 @@ void tls13_write_early_data(int scenario)
      * Run handshakes going one state further in the handshake sequence at each
      * loop up to the point where we reach the MBEDTLS_SSL_HANDSHAKE_OVER
      * state. For each reached handshake state, check the result of the call
-     * to mbedtls_ssl_write_early_data() and then restart the handshake from
-     * scratch (see reset label).
+     * to mbedtls_ssl_write_early_data(), make sure we can complete the
+     * handshake successfully and then reset the connection to restart the
+     * handshake from scratch.
      */
     previous_client_state = MBEDTLS_SSL_HELLO_REQUEST;
     client_state = MBEDTLS_SSL_HELLO_REQUEST;
@@ -4267,7 +4269,7 @@ void tls13_write_early_data(int scenario)
         if (scenario == TEST_EARLY_DATA_NO_INDICATION_SENT) {
             TEST_EQUAL(write_early_data_ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
             TEST_EQUAL(client_ep.ssl.state, client_state);
-            goto reset;
+            goto complete_handshake;
         }
 
         switch (client_state) {
@@ -4422,7 +4424,25 @@ void tls13_write_early_data(int scenario)
                 TEST_FAIL("Unexpected state.");
         }
 
-reset:
+complete_handshake:
+        do {
+            ret = mbedtls_test_move_handshake_to_state(
+                &(server_ep.ssl), &(client_ep.ssl),
+                MBEDTLS_SSL_HANDSHAKE_OVER);
+
+            if (ret == MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA) {
+                read_early_data_ret = mbedtls_ssl_read_early_data(
+                    &(server_ep.ssl), read_buf, sizeof(read_buf));
+
+                TEST_EQUAL(read_early_data_ret, early_data_len);
+            }
+        } while (ret == MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA);
+
+        TEST_EQUAL(ret, 0);
+        TEST_EQUAL(mbedtls_test_move_handshake_to_state(
+                       &(client_ep.ssl), &(server_ep.ssl),
+                       MBEDTLS_SSL_HANDSHAKE_OVER), 0);
+
         mbedtls_test_mock_socket_close(&(client_ep.socket));
         mbedtls_test_mock_socket_close(&(server_ep.socket));
 

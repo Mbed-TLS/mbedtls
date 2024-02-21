@@ -322,8 +322,6 @@ mbedtls_x509_san_list;
  */
 int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn);
 
-int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *name);
-
 /**
  * \brief          Return the next relative DN in an X509 name.
  *

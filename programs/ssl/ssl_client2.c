@@ -3050,7 +3050,7 @@ reconnect:
                 while ((ret = mbedtls_ssl_write_early_data(&ssl, buf + written,
                                                            len - written)) < 0) {
                     if (ret == MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA) {
-                        break;
+                        goto end_of_early_data;
                     }
                     if (ret != MBEDTLS_ERR_SSL_WANT_READ &&
                         ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
@@ -3069,14 +3069,13 @@ reconnect:
 #endif
                     }
                 }
-                if (ret == MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA) {
-                    break;
-                }
 
                 frags++;
                 written += ret;
             } while (written < len);
         }
+
+end_of_early_data:
 
         buf[written] = '\0';
         mbedtls_printf(

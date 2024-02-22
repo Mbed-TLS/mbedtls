@@ -26,7 +26,6 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
 #include <mbedtls/platform.h>
 #include <mbedtls/platform_util.h>

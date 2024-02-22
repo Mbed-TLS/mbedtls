@@ -222,7 +222,7 @@ typedef struct mbedtls_pk_context {
     void *MBEDTLS_PRIVATE(pk_ctx);                        /**< Underlying public key context  */
     /* The following field is used to store the ID of a private key in the
      * following cases:
-     * - opaque key when MBEDTLS_USE_PSA_CRYPTO is defined
+     * - opaque key when MBEDTLS_PSA_CRYPTO_CLIENT is defined
      * - normal key when MBEDTLS_PK_USE_PSA_EC_DATA is defined. In this case:
      *    - the pk_ctx above is not not used to store the private key anymore.
      *      Actually that field not populated at all in this case because also

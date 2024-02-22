@@ -142,8 +142,12 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
                                     _buffer_name: Optional[str]) -> bool:
         """Whether the specified buffer argument to a PSA function should be copied.
         """
-        # Proof-of-concept: just instrument one function for now
+        if function_name.startswith('psa_aead'):
+            return True
         if function_name == 'psa_cipher_encrypt':
+            return True
+        if function_name in ('psa_key_derivation_output_bytes',
+                             'psa_key_derivation_input_bytes'):
             return True
         if function_name in ('psa_import_key',
                              'psa_export_key',
@@ -153,6 +157,12 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
                              'psa_verify_message',
                              'psa_sign_hash',
                              'psa_verify_hash'):
+            return True
+        if function_name in ('psa_hash_update',
+                             'psa_hash_finish',
+                             'psa_hash_verify',
+                             'psa_hash_compute',
+                             'psa_hash_compare'):
             return True
         if function_name in ('psa_mac_update',
                              'psa_mac_sign_finish',

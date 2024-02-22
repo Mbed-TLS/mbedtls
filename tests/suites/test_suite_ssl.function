@@ -3699,6 +3699,10 @@ void tls13_read_early_data(int scenario)
         case TEST_EARLY_DATA_ACCEPTED:
             break;
 
+        case TEST_EARLY_DATA_NO_INDICATION_SENT:
+            client_options.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
+            break;
+
         case TEST_EARLY_DATA_SERVER_REJECTS:
             mbedtls_debug_set_threshold(3);
             server_pattern.pattern =
@@ -3746,12 +3750,12 @@ void tls13_read_early_data(int scenario)
                    &(client_ep.ssl), &(server_ep.ssl),
                    MBEDTLS_SSL_SERVER_HELLO), 0);
 
-    TEST_ASSERT(client_ep.ssl.early_data_status !=
-                MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT);
-
-    ret = write_early_data(&(client_ep.ssl), (unsigned char *) early_data,
-                           early_data_len);
-    TEST_EQUAL(ret, early_data_len);
+    if (client_ep.ssl.early_data_status !=
+        MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT) {
+        ret = write_early_data(&(client_ep.ssl), (unsigned char *) early_data,
+                               early_data_len);
+        TEST_EQUAL(ret, early_data_len);
+    }
 
     ret = mbedtls_test_move_handshake_to_state(
         &(server_ep.ssl), &(client_ep.ssl),
@@ -3764,6 +3768,11 @@ void tls13_read_early_data(int scenario)
             TEST_EQUAL(mbedtls_ssl_read_early_data(&(server_ep.ssl),
                                                    buf, sizeof(buf)), early_data_len);
             TEST_MEMORY_COMPARE(buf, early_data_len, early_data, early_data_len);
+            break;
+
+        case TEST_EARLY_DATA_NO_INDICATION_SENT:
+            TEST_EQUAL(ret, 0);
+            TEST_EQUAL(server_ep.ssl.handshake->early_data_accepted, 0);
             break;
 
         case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */

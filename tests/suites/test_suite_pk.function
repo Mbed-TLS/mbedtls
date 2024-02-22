@@ -938,11 +938,9 @@ exit:
 void mbedtls_pk_check_pair(char *pub_file, char *prv_file, int ret)
 {
     mbedtls_pk_context pub, prv, alt;
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
     mbedtls_svc_key_id_t opaque_key_id = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t opaque_key_attr = PSA_KEY_ATTRIBUTES_INIT;
     int opaque_ret = ret;
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
     mbedtls_pk_init(&pub);
     mbedtls_pk_init(&prv);
@@ -960,9 +958,7 @@ void mbedtls_pk_check_pair(char *pub_file, char *prv_file, int ret)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
         opaque_ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-#endif
     }
 
     TEST_ASSERT(mbedtls_pk_parse_public_keyfile(&pub, pub_file) == 0);
@@ -984,7 +980,6 @@ void mbedtls_pk_check_pair(char *pub_file, char *prv_file, int ret)
                     == ret);
     }
 #endif
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
     if (mbedtls_pk_get_type(&prv) == MBEDTLS_PK_ECKEY) {
         /* Turn the prv PK context into an opaque one.*/
         TEST_EQUAL(mbedtls_pk_get_psa_attributes(&prv, PSA_KEY_USAGE_SIGN_HASH,
@@ -996,12 +991,9 @@ void mbedtls_pk_check_pair(char *pub_file, char *prv_file, int ret)
         TEST_EQUAL(mbedtls_pk_check_pair(&pub, &prv, mbedtls_test_rnd_std_rand,
                                          NULL), opaque_ret);
     }
-#endif
 
 exit:
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
     psa_destroy_key(opaque_key_id);
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
     mbedtls_pk_free(&pub);
     mbedtls_pk_free(&prv);
     mbedtls_pk_free(&alt);

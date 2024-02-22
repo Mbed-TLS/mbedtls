@@ -1,4 +1,3 @@
-
 #include <stdint.h>
 #include "mbedtls/x509_crt.h"
 

@@ -1296,7 +1296,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
-void pk_rsa_encrypt_decrypt_test(data_t *message, int mod,
+void pk_rsa_encrypt_decrypt_test(data_t *message, int mod, int padding,
                                  char *input_P, char *input_Q,
                                  char *input_N, char *input_E,
                                  int ret)
@@ -1311,7 +1311,7 @@ void pk_rsa_encrypt_decrypt_test(data_t *message, int mod,
     mbedtls_pk_init(&pk);
     mbedtls_mpi_init(&N); mbedtls_mpi_init(&P);
     mbedtls_mpi_init(&Q); mbedtls_mpi_init(&E);
-    USE_PSA_INIT();
+    MD_OR_USE_PSA_INIT();
 
     memset(&rnd_info,  0, sizeof(mbedtls_test_rnd_pseudo_info));
     memset(output,     0, sizeof(output));
@@ -1321,6 +1321,7 @@ void pk_rsa_encrypt_decrypt_test(data_t *message, int mod,
     /* init pk-rsa context */
     TEST_ASSERT(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)) == 0);
     rsa = mbedtls_pk_rsa(pk);
+    mbedtls_rsa_set_padding(rsa, padding, MBEDTLS_MD_SHA1);
 
     /* load public key */
     rsa->len = (mod + 7) / 8;
@@ -1340,6 +1341,7 @@ void pk_rsa_encrypt_decrypt_test(data_t *message, int mod,
     TEST_ASSERT(mbedtls_pk_setup(&pk,
                                  mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)) == 0);
     rsa = mbedtls_pk_rsa(pk);
+    mbedtls_rsa_set_padding(rsa, padding, MBEDTLS_MD_SHA1);
 
     /* load public key */
     TEST_ASSERT(mbedtls_test_read_mpi(&N, input_N) == 0);
@@ -1369,7 +1371,7 @@ exit:
     mbedtls_mpi_free(&N); mbedtls_mpi_free(&P);
     mbedtls_mpi_free(&Q); mbedtls_mpi_free(&E);
     mbedtls_pk_free(&pk);
-    USE_PSA_DONE();
+    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
 

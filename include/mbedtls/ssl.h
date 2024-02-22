@@ -5256,9 +5256,11 @@ int mbedtls_ssl_read_early_data(mbedtls_ssl_context *ssl,
  *                 already completed.
  *
  *                 It is not possible to write early data for the SSL context
- *                 \p ssl but this does not preclude for using it with
+ *                 \p ssl and any subsequent call to this API will return this
+ *                 error code. But this does not preclude for using it with
  *                 mbedtls_ssl_write(), mbedtls_ssl_read() or
- *                 mbedtls_ssl_handshake().
+ *                 mbedtls_ssl_handshake() and the handshake can be
+ *                 completed by calling one of these APIs.
  *
  * \note           This function may write early data only if the SSL context
  *                 has been configured for the handshake with a PSK for which

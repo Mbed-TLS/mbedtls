@@ -2257,13 +2257,6 @@ void pk_copy_from_psa_fail(void)
 {
     mbedtls_pk_context pk_ctx;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_RSA_C) && \
-    defined(MBEDTLS_MD_CAN_SHA256) && defined(MBEDTLS_PKCS1_V21)
-    unsigned char in_buf[32]; /* Only SHA256 is used here. */
-    unsigned char out_buf[256]; /* Only 2048 RSA bit size is used here. */
-    size_t out_buf_len;
-#endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_RSA_C &&
-          MBEDTLS_MD_CAN_SHA256 && MBEDTLS_PKCS1_V21 */
 
     mbedtls_pk_init(&pk_ctx);
     PSA_INIT();
@@ -2308,19 +2301,6 @@ void pk_copy_from_psa_fail(void)
                                      PSA_ALG_CMAC, 2048, &key_id));
     TEST_EQUAL(mbedtls_pk_copy_from_psa(key_id, &pk_ctx), MBEDTLS_ERR_PK_BAD_INPUT_DATA);
     psa_destroy_key(key_id);
-
-    /* Try to encrypt with a RSA key in PKCS1V21 format. */
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_MD_CAN_SHA256) && defined(MBEDTLS_PKCS1_V21)
-    PSA_ASSERT(pk_psa_genkey_generic(PSA_KEY_TYPE_RSA_KEY_PAIR,
-                                     PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_ENCRYPT,
-                                     PSA_ALG_RSA_OAEP(PSA_ALG_SHA_256), 2048, &key_id));
-    TEST_EQUAL(mbedtls_pk_copy_from_psa(key_id, &pk_ctx), 0);
-    TEST_EQUAL(mbedtls_pk_encrypt(&pk_ctx, in_buf, sizeof(in_buf),
-                                  out_buf, &out_buf_len, sizeof(out_buf),
-                                  mbedtls_test_rnd_std_rand, NULL),
-               MBEDTLS_ERR_RSA_INVALID_PADDING);
-    psa_destroy_key(key_id);
-#endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_MD_CAN_SHA256 && MBEDTLS_PKCS1_V21*/
 #endif /* MBEDTLS_RSA_C && PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE */
 
 exit:
@@ -2351,9 +2331,11 @@ void pk_copy_from_psa_success(data_t *priv_key_data, int key_type_arg,
 
     /* Get the MD type to be used for the tests below from the provided key policy. */
     mbedtls_md_type_t md_for_test = MBEDTLS_MD_SHA256; /* Default */
-    if ((PSA_ALG_GET_HASH(key_alg) != 0) &&
+    int is_psa_hash_alg_specified = 0;
+    if ((PSA_ALG_GET_HASH(key_alg) != PSA_ALG_NONE) &&
         (PSA_ALG_GET_HASH(key_alg) != PSA_ALG_ANY_HASH)) {
         md_for_test = mbedtls_md_type_from_psa_alg(key_alg);
+        is_psa_hash_alg_specified = 1;
     }
 
     in_buf_len = mbedtls_md_get_size_from_type(md_for_test);
@@ -2380,63 +2362,118 @@ void pk_copy_from_psa_success(data_t *priv_key_data, int key_type_arg,
     }
 
     /* Generate a 2nd PK contex using only the public key derived from its private
-     * counterpart generated above.  */
+     * counterpart generated above. */
     pub_key_id = pk_psa_pub_key_from_priv(priv_key_id, pub_key_type, key_usage, key_alg, key_bits);
     TEST_EQUAL(mbedtls_pk_copy_from_psa(pub_key_id, &pk_pub), 0);
 
-    /* Check that the 2 generated PK contexts form a valid private/public key pair. */
+    /* Test #1: check that the 2 generated PK contexts form a valid private/public key pair. */
     TEST_EQUAL(mbedtls_pk_check_pair(&pk_pub, &pk_priv, mbedtls_test_rnd_std_rand, NULL), 0);
 
-    /* Test sign/verify with the following pattern:
+    /* Test #2: sign/verify with the following pattern:
      * - Sign using the PK context generated from the private key.
      * - Verify from the same PK context used for signature.
      * - Verify with the PK context generated using public key.
+     * - Verify using the public PSA key directly.
+     *
+     * Note: mbedtls_pk_verify_ext() is tested only for RSA keys with PKCS1 v2.1
+     *      padding. For other key types this functions works the same as
+     *      mbedtls_pk_verify().
+     *
+     * Note: PSS requires the hash to be specified on sign operation (i.e. not
+     *       null or any), so in case PSA_ALG_ANY_HASH is provided as input, we
+     *       use mbedtls_pk_sign_ext() instead of mbedtls_pk_sign().
      */
-    if ((PSA_ALG_IS_RSA_OAEP(key_alg) || PSA_ALG_IS_RSA_PSS(key_alg))) {
-        mbedtls_pk_rsassa_pss_options pss_opt = {
-            .mgf1_hash_id = md_for_test,
-            .expected_salt_len = MBEDTLS_RSA_SALT_LEN_ANY,
-        };
+    mbedtls_pk_rsassa_pss_options pss_opt = {
+        .mgf1_hash_id = md_for_test,
+        .expected_salt_len = MBEDTLS_RSA_SALT_LEN_ANY,
+    };
 
+    if ((PSA_ALG_IS_RSA_OAEP(key_alg) || PSA_ALG_IS_RSA_PSS(key_alg)) &&
+        (!is_psa_hash_alg_specified)) {
         TEST_EQUAL(mbedtls_pk_sign_ext(MBEDTLS_PK_RSASSA_PSS, &pk_priv, md_for_test,
                                        in_buf, in_buf_len,
                                        out_buf, sizeof(out_buf), &out_buf_len,
                                        mbedtls_test_rnd_std_rand, NULL), 0);
+    } else {
+        TEST_EQUAL(mbedtls_pk_sign(&pk_priv, md_for_test, in_buf, in_buf_len,
+                                   out_buf, sizeof(out_buf), &out_buf_len,
+                                   mbedtls_test_rnd_std_rand, NULL), 0);
+    }
+
+    TEST_EQUAL(mbedtls_pk_verify(&pk_priv, md_for_test, in_buf, in_buf_len,
+                                 out_buf, out_buf_len), 0);
+    TEST_EQUAL(mbedtls_pk_verify(&pk_pub, md_for_test, in_buf, in_buf_len,
+                                 out_buf, out_buf_len), 0);
+
+    if (PSA_ALG_IS_RSA_OAEP(key_alg) || PSA_ALG_IS_RSA_PSS(key_alg)) {
         TEST_EQUAL(mbedtls_pk_verify_ext(MBEDTLS_PK_RSASSA_PSS, &pss_opt,
                                          &pk_priv, md_for_test, in_buf, in_buf_len,
                                          out_buf, out_buf_len), 0);
         TEST_EQUAL(mbedtls_pk_verify_ext(MBEDTLS_PK_RSASSA_PSS, &pss_opt,
                                          &pk_pub, md_for_test, in_buf, in_buf_len,
                                          out_buf, out_buf_len), 0);
-    } else {
-        TEST_EQUAL(mbedtls_pk_sign(&pk_priv, md_for_test, in_buf, in_buf_len,
-                                   out_buf, sizeof(out_buf), &out_buf_len,
-                                   mbedtls_test_rnd_std_rand, NULL), 0);
-        TEST_EQUAL(mbedtls_pk_verify(&pk_priv, md_for_test, in_buf, in_buf_len,
-                                     out_buf, out_buf_len), 0);
+    }
+
+#if defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
+    if (PSA_ALG_IS_SIGN(key_alg) && is_psa_hash_alg_specified) {
+        /* ECDSA signature requires PK->PSA format conversion. */
+        if (PSA_ALG_IS_ECDSA(key_alg)) {
+            TEST_EQUAL(mbedtls_ecdsa_der_to_raw(mbedtls_pk_get_bitlen(&pk_pub),
+                                                out_buf, out_buf_len, out_buf,
+                                                sizeof(out_buf), &out_buf_len), 0);
+        }
+        PSA_ASSERT(psa_verify_hash(pub_key_id, key_alg, in_buf, in_buf_len,
+                                   out_buf, out_buf_len));
+    }
+
+    /* Test #3: check sign/verify interoperability also in the opposite direction:
+     * sign with PSA and verify with PK. Key's policy must include a valid hash
+     * algorithm (not any).
+     */
+    if (PSA_ALG_IS_SIGN(key_alg) && is_psa_hash_alg_specified) {
+        PSA_ASSERT(psa_sign_hash(priv_key_id, key_alg, in_buf, in_buf_len,
+                                 out_buf, sizeof(out_buf), &out_buf_len));
+        /*  ECDSA signature requires PSA->PK format conversion */
+        if (PSA_ALG_IS_ECDSA(key_alg)) {
+            TEST_EQUAL(mbedtls_ecdsa_raw_to_der(mbedtls_pk_get_bitlen(&pk_pub),
+                                                out_buf, out_buf_len, out_buf,
+                                                sizeof(out_buf), &out_buf_len), 0);
+        }
         TEST_EQUAL(mbedtls_pk_verify(&pk_pub, md_for_test, in_buf, in_buf_len,
                                      out_buf, out_buf_len), 0);
     }
+#endif /* MBEDTLS_PSA_UTIL_HAVE_ECDSA */
 
-    int test_encryption = 0;
+    /* Test #4: in case of RSA key pair try also encryption/decryption.
+     * Hash algorithm does not matter when padding mode is PKCS1 v1.5, whereas
+     * it must be not null or any in case of v2.1 (OAEP). */
+    int test_encryption = (PSA_ALG_IS_RSA_PKCS1V15_SIGN(key_alg) ||
+                           (key_alg == PSA_ALG_RSA_PKCS1V15_CRYPT) ||
+                           is_psa_hash_alg_specified);
+    if ((key_type == PSA_KEY_TYPE_RSA_KEY_PAIR) && test_encryption) {
+        /* Encrypt with the public key only PK context. */
+        TEST_EQUAL(mbedtls_pk_encrypt(&pk_pub, in_buf, in_buf_len,
+                                      out_buf, &out_buf_len, sizeof(out_buf),
+                                      mbedtls_test_rnd_std_rand, NULL), 0);
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    test_encryption = (PSA_ALG_IS_RSA_PKCS1V15_SIGN(key_alg) ||
-                       (key_alg == PSA_ALG_RSA_PKCS1V15_CRYPT));
-#else
-    test_encryption = ((PSA_ALG_GET_HASH(key_alg) != 0) &&
-                       (PSA_ALG_GET_HASH(key_alg) != PSA_ALG_ANY_HASH));
-#endif
+        /* Decrypt with key pair PK context and compare with original data. */
+        TEST_EQUAL(mbedtls_pk_decrypt(&pk_priv, out_buf, out_buf_len,
+                                      out_buf2, &out_buf2_len, sizeof(out_buf2),
+                                      mbedtls_test_rnd_std_rand, NULL), 0);
+        TEST_MEMORY_COMPARE(in_buf, in_buf_len, out_buf2, out_buf2_len);
 
-    /* In case of RSA key pair try also encryption/decryption. */
-    if (key_type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
-        if (test_encryption) {
-            /* Encrypt with the 2nd PK context (public key only). */
-            TEST_EQUAL(mbedtls_pk_encrypt(&pk_pub, in_buf, in_buf_len,
-                                          out_buf, &out_buf_len, sizeof(out_buf),
-                                          mbedtls_test_rnd_std_rand, NULL), 0);
+        if (PSA_ALG_IS_ASYMMETRIC_ENCRYPTION(key_alg)) {
+            /* Decrypt with PSA private key directly and compare with original data. */
+            PSA_ASSERT(psa_asymmetric_decrypt(priv_key_id, key_alg, out_buf, out_buf_len,
+                                              NULL, 0,
+                                              out_buf2, sizeof(out_buf2), &out_buf2_len));
+            TEST_MEMORY_COMPARE(in_buf, in_buf_len, out_buf2, out_buf2_len);
 
-            /* Decrypt with 1st PK context and compare with original data. */
+            /* Encrypt with PSA public key directly, decrypt with public key PK context
+             * and compare with original data. */
+            PSA_ASSERT(psa_asymmetric_encrypt(pub_key_id, key_alg, in_buf, in_buf_len,
+                                              NULL, 0,
+                                              out_buf, sizeof(out_buf), &out_buf_len));
             TEST_EQUAL(mbedtls_pk_decrypt(&pk_priv, out_buf, out_buf_len,
                                           out_buf2, &out_buf2_len, sizeof(out_buf2),
                                           mbedtls_test_rnd_std_rand, NULL), 0);

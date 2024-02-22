@@ -3647,12 +3647,12 @@ exit:
 /* END_CASE */
 
 /*
- * The !MBEDTLS_SSL_PROTO_TLS1_2 dependency of tls13_early_data() below is
+ * The !MBEDTLS_SSL_PROTO_TLS1_2 dependency of tls13_read_early_data() below is
  * a temporary workaround to not run the test in Windows-2013 where there is
  * an issue with mbedtls_vsnprintf().
  */
 /* BEGIN_CASE depends_on:!MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_DEBUG_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_SSL_SESSION_TICKETS */
-void tls13_early_data(int scenario)
+void tls13_read_early_data(int scenario)
 {
     int ret = -1;
     unsigned char buf[64];

@@ -1191,7 +1191,39 @@ int main(int argc, char *argv[])
         mbedtls_ecdh_context ecdh_srv, ecdh_cli;
         unsigned char buf_srv[BUFSIZE], buf_cli[BUFSIZE];
         const mbedtls_ecp_curve_info *curve_info;
-        size_t olen;
+        size_t params_len, publen, seclen;
+
+        for (curve_info = curve_list;
+             curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
+             curve_info++) {
+            if (!mbedtls_ecdh_can_do(curve_info->grp_id)) {
+                continue;
+            }
+
+            mbedtls_ecdh_init(&ecdh_srv);
+
+            CHECK_AND_CONTINUE(mbedtls_ecdh_setup(&ecdh_srv, curve_info->grp_id));
+            CHECK_AND_CONTINUE(mbedtls_ecdh_make_params(&ecdh_srv, &params_len, buf_srv,
+                                                        sizeof(buf_srv), myrand, NULL));
+
+            mbedtls_snprintf(title, sizeof(title), "ECDHE-%s", curve_info->name);
+            TIME_PUBLIC(title,
+                        "ephemeral handshake",
+                        const unsigned char *p_srv = buf_srv;
+                        mbedtls_ecdh_init(&ecdh_cli);
+
+                        CHECK_AND_CONTINUE(mbedtls_ecdh_read_params(&ecdh_cli, &p_srv,
+                                                                    p_srv + params_len));
+                        CHECK_AND_CONTINUE(mbedtls_ecdh_make_public(&ecdh_cli, &publen, buf_cli,
+                                                                    sizeof(buf_cli), myrand, NULL));
+
+                        CHECK_AND_CONTINUE(mbedtls_ecdh_calc_secret(&ecdh_cli, &seclen, buf_cli,
+                                                                    sizeof(buf_cli), myrand, NULL));
+                        mbedtls_ecdh_free(&ecdh_cli);
+                        );
+
+            mbedtls_ecdh_free(&ecdh_srv);
+        }
 
         for (curve_info = curve_list;
              curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
@@ -1203,31 +1235,26 @@ int main(int argc, char *argv[])
             mbedtls_ecdh_init(&ecdh_srv);
             mbedtls_ecdh_init(&ecdh_cli);
 
-            mbedtls_snprintf(title, sizeof(title), "ECDHE-%s", curve_info->name);
+            CHECK_AND_CONTINUE(mbedtls_ecdh_setup(&ecdh_srv, curve_info->grp_id));
+            CHECK_AND_CONTINUE(mbedtls_ecdh_make_params(&ecdh_srv, &params_len, buf_srv,
+                                                        sizeof(buf_srv), myrand, NULL));
+
+            const unsigned char *p_srv = buf_srv;
+            CHECK_AND_CONTINUE(mbedtls_ecdh_read_params(&ecdh_cli, &p_srv,
+                                                        p_srv + params_len));
+            CHECK_AND_CONTINUE(mbedtls_ecdh_make_public(&ecdh_cli, &publen, buf_cli,
+                                                        sizeof(buf_cli), myrand, NULL));
+
+
+            mbedtls_snprintf(title, sizeof(title), "ECDH-%s", curve_info->name);
             TIME_PUBLIC(title,
-                        "full handshake",
-                        const unsigned char *p_srv = buf_srv;
-
-                        CHECK_AND_CONTINUE(mbedtls_ecdh_setup(&ecdh_srv, curve_info->grp_id));
-                        CHECK_AND_CONTINUE(mbedtls_ecdh_make_params(&ecdh_srv, &olen, buf_srv,
-                                                                    sizeof(buf_srv), myrand, NULL));
-
-                        CHECK_AND_CONTINUE(mbedtls_ecdh_read_params(&ecdh_cli, &p_srv,
-                                                                    p_srv + olen));
-                        CHECK_AND_CONTINUE(mbedtls_ecdh_make_public(&ecdh_cli, &olen, buf_cli,
+                        "static handshake",
+                        CHECK_AND_CONTINUE(mbedtls_ecdh_calc_secret(&ecdh_cli, &seclen, buf_cli,
                                                                     sizeof(buf_cli), myrand, NULL));
-
-                        CHECK_AND_CONTINUE(mbedtls_ecdh_read_public(&ecdh_srv, buf_cli, olen));
-                        CHECK_AND_CONTINUE(mbedtls_ecdh_calc_secret(&ecdh_srv, &olen, buf_srv,
-                                                                    sizeof(buf_srv), myrand, NULL));
-
-                        CHECK_AND_CONTINUE(mbedtls_ecdh_calc_secret(&ecdh_cli, &olen, buf_cli,
-                                                                    sizeof(buf_cli), myrand, NULL));
-                        mbedtls_ecdh_free(&ecdh_cli);
-
-                        mbedtls_ecdh_free(&ecdh_srv);
                         );
 
+            mbedtls_ecdh_free(&ecdh_cli);
+            mbedtls_ecdh_free(&ecdh_srv);
         }
     }
 #endif

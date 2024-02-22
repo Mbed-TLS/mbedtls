@@ -2321,7 +2321,7 @@ cleanup:
 
 int mbedtls_ssl_get_early_data_status(mbedtls_ssl_context *ssl)
 {
-    if ((ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) ||
+    if ((ssl->conf->endpoint != MBEDTLS_SSL_IS_CLIENT) ||
         (!mbedtls_ssl_is_handshake_over(ssl))) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }

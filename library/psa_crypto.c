@@ -7429,17 +7429,21 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
                                             output_length);
 
 exit:
+    /* Check for successful allocation of output,
+     * with an unsuccessful status. */
     if (output != NULL && status != PSA_SUCCESS) {
         /* If an error happens and is not handled properly, the output
-        * may be used as a key to protect sensitive data. Arrange for such
-        * a key to be random, which is likely to result in decryption or
-        * verification errors. This is better than filling the buffer with
-        * some constant data such as zeros, which would result in the data
-        * being protected with a reproducible, easily knowable key.
-        */
+         * may be used as a key to protect sensitive data. Arrange for such
+         * a key to be random, which is likely to result in decryption or
+         * verification errors. This is better than filling the buffer with
+         * some constant data such as zeros, which would result in the data
+         * being protected with a reproducible, easily knowable key.
+         */
         psa_generate_random(output, output_size);
         *output_length = output_size;
-    } else {
+    }
+
+    if (output == NULL) {
         /* output allocation failed. */
         *output_length = 0;
     }

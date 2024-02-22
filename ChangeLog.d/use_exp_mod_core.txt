@@ -1,6 +1,6 @@
 Changes
-   * Changed the default MBEDTLS_ECP_WINDOW_SIZE from 2 to 3.
-     The correlation between this define and RSA decryption performance has
-     changed lately due to security hardening.
-     To fix the performance degradation when using default values the
-     window was increased from 2 to 3.
+   * mbedtls_mpi_exp_mod and code that uses it, notably RSA and DHM operations,
+     have changed their speed/memory compromise as part of a proactive security
+     improvement. The new default value of MBEDTLS_MPI_WINDOW_SIZE roughly
+     preserves the current speed, at the expense of increasing memory
+     consumption.

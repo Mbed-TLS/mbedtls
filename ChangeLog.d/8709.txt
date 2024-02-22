@@ -1,0 +1,3 @@
+Features
+   * The new function mbedtls_pk_copy_from_psa() provides a way to setup
+     a PK context starting from a PSA key.

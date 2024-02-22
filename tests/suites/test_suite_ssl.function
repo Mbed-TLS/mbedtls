@@ -4110,6 +4110,9 @@ void tls13_cli_early_data_status(int scenario)
             TEST_FAIL("Unknown scenario.");
     }
 
+    ret = mbedtls_ssl_get_early_data_status(&(server_ep.ssl));
+    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_BAD_INPUT_DATA);
+
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
     TEST_EQUAL(client_ep.ssl.handshake->ccs_sent, 1);
 #endif

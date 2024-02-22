@@ -112,6 +112,13 @@ extern mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex;
  * psa_key_slot_state_transition(), psa_register_read(), psa_unregister_read(),
  * psa_key_slot_has_readers() and psa_wipe_key_slot(). */
 extern mbedtls_threading_mutex_t mbedtls_threading_key_slot_mutex;
+
+/*
+ * A mutex used to make the PSA global_data struct members thread safe.
+ *
+ * This mutex must be held when any read or write to a any of the PSA
+ * global_data structure members. */
+extern mbedtls_threading_mutex_t mbedtls_threading_psa_globaldata_mutex;
 #endif
 
 #endif /* MBEDTLS_THREADING_C */

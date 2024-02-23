@@ -1312,6 +1312,9 @@ struct mbedtls_ssl_session {
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     uint32_t MBEDTLS_PRIVATE(max_early_data_size);          /*!< maximum amount of early data in tickets */
+#if defined(MBEDTLS_SSL_ALPN) && defined(MBEDTLS_SSL_SRV_C)
+    char *alpn;                      /*!< ALPN negotiated in the session */
+#endif
 #endif
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)

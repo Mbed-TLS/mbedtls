@@ -1793,7 +1793,14 @@ int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     session->max_early_data_size = 0x87654321;
-#endif
+#if defined(MBEDTLS_SSL_ALPN) && defined(MBEDTLS_SSL_SRV_C)
+    session->alpn = mbedtls_calloc(strlen("ALPNExample")+1, sizeof(char));
+    if (session->alpn == NULL) {
+        return -1;
+    }
+    strcpy(session->alpn, "ALPNExample");
+#endif /* MBEDTLS_SSL_ALPN && MBEDTLS_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
     if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {

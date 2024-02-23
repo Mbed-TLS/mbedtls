@@ -3735,7 +3735,25 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /* Serialization of TLS 1.3 sessions:
  *
- * For more detail, see the description of ssl_session_save().
+ *     struct {
+ *       opaque hostname<0..2^16-1>;
+ *       uint64 ticket_reception_time;
+ *       uint32 ticket_lifetime;
+ *       opaque ticket<1..2^16-1>;
+ *     } ClientOnlyData;
+ *
+ *     struct {
+ *       uint32 ticket_age_add;
+ *       uint8 ticket_flags;
+ *       opaque resumption_key<0..255>;
+ *       uint32 max_early_data_size;
+ *       uint16 record_size_limit;
+ *       select ( endpoint ) {
+ *            case client: ClientOnlyData;
+ *            case server: uint64 ticket_creation_time;
+ *        };
+ *     } serialized_session_tls13;
+ *
  */
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -3750,9 +3768,16 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
     size_t hostname_len = (session->hostname == NULL) ?
                           0 : strlen(session->hostname) + 1;
 #endif
+
+#if defined(MBEDTLS_SSL_SRV_C) && \
+    defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
+    const uint8_t alpn_len = (session->alpn == NULL) ?
+                             0 : (uint8_t) strlen(session->alpn) + 1;
+#endif
     size_t needed =   4  /* ticket_age_add */
                     + 1  /* ticket_flags */
                     + 1; /* resumption_key length */
+
     *olen = 0;
 
     if (session->resumption_key_len > MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN) {
@@ -3770,6 +3795,15 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
 #if defined(MBEDTLS_HAVE_TIME)
     needed += 8; /* ticket_creation_time or ticket_reception_time */
 #endif
+
+#if defined(MBEDTLS_SSL_SRV_C)
+    if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
+        needed +=   1                         /* alpn_len */
+                  + alpn_len;                 /* alpn */
+#endif
+    }
+#endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_CLI_C)
     if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
@@ -3813,12 +3847,23 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
     p += 2;
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
-#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_SRV_C)
     if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
+#if defined(MBEDTLS_HAVE_TIME)
         MBEDTLS_PUT_UINT64_BE((uint64_t) session->ticket_creation_time, p, 0);
         p += 8;
-    }
 #endif /* MBEDTLS_HAVE_TIME */
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
+        *p++ = alpn_len;
+        if (alpn_len > 0) {
+            /* save chosen alpn */
+            memcpy(p, session->alpn, alpn_len);
+            p += alpn_len;
+        }
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_ALPN */
+    }
+#endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_CLI_C)
     if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
@@ -3894,15 +3939,38 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
     p += 2;
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
-#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
+#if  defined(MBEDTLS_SSL_SRV_C)
     if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
+#if defined(MBEDTLS_HAVE_TIME)
         if (end - p < 8) {
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
         }
         session->ticket_creation_time = MBEDTLS_GET_UINT64_BE(p, 0);
         p += 8;
-    }
 #endif /* MBEDTLS_HAVE_TIME */
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
+        uint8_t alpn_len;
+
+        if (end - p < 1) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+        alpn_len = *p++;
+
+        if (end - p < alpn_len) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+        if (alpn_len > 0) {
+            session->alpn = mbedtls_calloc(alpn_len, sizeof(char));
+            if (session->alpn == NULL) {
+                return MBEDTLS_ERR_SSL_ALLOC_FAILED;
+            }
+            memcpy(session->alpn, p, alpn_len);
+            p += alpn_len;
+        }
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_ALPN */
+    }
+#endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_CLI_C)
     if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
@@ -4848,6 +4916,10 @@ void mbedtls_ssl_session_free(mbedtls_ssl_session *session)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
     defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     mbedtls_free(session->hostname);
+#endif
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN) && \
+    defined(MBEDTLS_SSL_SRV_C)
+    mbedtls_free(session->alpn);
 #endif
     mbedtls_free(session->ticket);
 #endif

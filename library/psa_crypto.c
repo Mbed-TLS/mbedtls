@@ -71,6 +71,7 @@
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
 #include "mbedtls/psa_util.h"
+#include "mbedtls/threading.h"
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) ||          \
     defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) ||  \
@@ -101,8 +102,25 @@ typedef struct {
 
 static psa_global_data_t global_data;
 
+static uint8_t psa_get_initialized(void)
+{
+    uint8_t initialized;
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_lock(&mbedtls_threading_psa_globaldata_mutex);
+#endif /* defined(MBEDTLS_THREADING_C) */
+
+    initialized = global_data.initialized;
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_unlock(&mbedtls_threading_psa_globaldata_mutex);
+#endif /* defined(MBEDTLS_THREADING_C) */
+
+    return initialized;
+}
+
 #define GUARD_MODULE_INITIALIZED        \
-    if (global_data.initialized == 0)  \
+    if (psa_get_initialized() == 0)     \
     return PSA_ERROR_BAD_STATE;
 
 int psa_can_do_hash(psa_algorithm_t hash_alg)
@@ -7189,7 +7207,7 @@ psa_status_t psa_generate_random(uint8_t *output,
 psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
                                         size_t seed_size)
 {
-    if (global_data.initialized) {
+    if (psa_get_initialized()) {
         return PSA_ERROR_NOT_PERMITTED;
     }
 
@@ -7442,14 +7460,26 @@ psa_status_t mbedtls_psa_crypto_configure_entropy_sources(
 
 void mbedtls_psa_crypto_free(void)
 {
+    /* Need to hold the mutex here to prevent this going ahead before
+     * psa_crypto_init() has completed, and to ensure integrity of
+     * global_data. */
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_lock(&mbedtls_threading_psa_globaldata_mutex);
+#endif /* defined(MBEDTLS_THREADING_C) */
+
     psa_wipe_all_key_slots();
     if (global_data.rng_state != RNG_NOT_INITIALIZED) {
         mbedtls_psa_random_free(&global_data.rng);
     }
+
     /* Wipe all remaining data, including configuration.
      * In particular, this sets all state indicator to the value
      * indicating "uninitialized". */
     mbedtls_platform_zeroize(&global_data, sizeof(global_data));
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_unlock(&mbedtls_threading_psa_globaldata_mutex);
+#endif /* defined(MBEDTLS_THREADING_C) */
 
     /* Terminate drivers */
     psa_driver_wrapper_free();
@@ -7484,8 +7514,20 @@ psa_status_t psa_crypto_init(void)
 {
     psa_status_t status;
 
-    /* Double initialization is explicitly allowed. */
-    if (global_data.initialized != 0) {
+    /* Need to hold the mutex for the entire function to prevent incomplete
+     * initialisation before someone calls psa_crypto_free() or calls this
+     * function again before we set global_data.initialised to 1. */
+    #if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_lock(&mbedtls_threading_psa_globaldata_mutex);
+#endif /* defined(MBEDTLS_THREADING_C) */
+
+    /* We cannot use psa_get_initialized() here as we already hold the mutex. */
+    if (global_data.initialized == 1) {
+#if defined(MBEDTLS_THREADING_C)
+        mbedtls_mutex_unlock(&mbedtls_threading_psa_globaldata_mutex);
+#endif /* defined(MBEDTLS_THREADING_C) */
+
+        /* Double initialization is explicitly allowed. */
         return PSA_SUCCESS;
     }
 
@@ -7528,6 +7570,11 @@ psa_status_t psa_crypto_init(void)
     global_data.initialized = 1;
 
 exit:
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_unlock(&mbedtls_threading_psa_globaldata_mutex);
+#endif /* defined(MBEDTLS_THREADING_C) */
+
     if (status != PSA_SUCCESS) {
         mbedtls_psa_crypto_free();
     }

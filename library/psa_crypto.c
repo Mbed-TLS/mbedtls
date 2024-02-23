@@ -1725,7 +1725,7 @@ static psa_status_t psa_start_key_creation(
      * in psa_validate_key_attributes(), this leaves the dual-use
      * flags and any internal flag that psa_reserve_free_key_slot()
      * may have set. */
-    slot->attr.flags &= ~MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY;
+    slot->attr.flags &= (psa_key_attributes_flag_t) ~MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* For a key in a secure element, we need to do three things
@@ -2476,7 +2476,7 @@ static psa_status_t psa_mac_finalize_alg_and_key_validation(
     }
 
     /* Get the output length for the algorithm and key combination */
-    *mac_size = PSA_MAC_LENGTH(key_type, key_bits, alg);
+    *mac_size = (uint8_t) PSA_MAC_LENGTH(key_type, key_bits, alg);
 
     if (*mac_size < 4) {
         /* A very short MAC is too short for security since it can be
@@ -2512,7 +2512,7 @@ static psa_status_t psa_mac_finalize_alg_and_key_validation(
 static psa_status_t psa_mac_setup(psa_mac_operation_t *operation,
                                   mbedtls_svc_key_id_t key,
                                   psa_algorithm_t alg,
-                                  int is_sign)
+                                  unsigned int is_sign)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
@@ -2544,7 +2544,7 @@ static psa_status_t psa_mac_setup(psa_mac_operation_t *operation,
         goto exit;
     }
 
-    operation->is_sign = is_sign;
+    operation->is_sign = is_sign & 1;
     /* Dispatch the MAC setup call with validated input */
     if (is_sign) {
         status = psa_driver_wrapper_mac_sign_setup(operation,
@@ -4062,7 +4062,7 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
     } else {
         operation->iv_required = 1;
     }
-    operation->default_iv_length = PSA_CIPHER_IV_LENGTH(slot->attr.type, alg);
+    operation->default_iv_length = (uint8_t) PSA_CIPHER_IV_LENGTH(slot->attr.type, alg);
 
     attributes = (psa_key_attributes_t) {
         .core = slot->attr
@@ -4582,7 +4582,7 @@ exit:
 
 static psa_status_t psa_validate_tag_length(psa_algorithm_t alg)
 {
-    const uint8_t tag_len = PSA_ALG_AEAD_GET_TAG_LENGTH(alg);
+    const uint8_t tag_len = (uint8_t) PSA_ALG_AEAD_GET_TAG_LENGTH(alg);
 
     switch (PSA_ALG_AEAD_WITH_SHORTENED_TAG(alg, 0)) {
 #if defined(PSA_WANT_ALG_CCM)
@@ -4621,7 +4621,7 @@ static psa_status_t psa_validate_tag_length(psa_algorithm_t alg)
 
 /* Set the key for a multipart authenticated operation. */
 static psa_status_t psa_aead_setup(psa_aead_operation_t *operation,
-                                   int is_encrypt,
+                                   unsigned int is_encrypt,
                                    mbedtls_svc_key_id_t key,
                                    psa_algorithm_t alg)
 {
@@ -4692,7 +4692,7 @@ exit:
     if (status == PSA_SUCCESS) {
         status = unlock_status;
         operation->alg = psa_aead_get_base_algorithm(alg);
-        operation->is_encrypt = is_encrypt;
+        operation->is_encrypt = is_encrypt & 1;
     } else {
         psa_aead_abort(operation);
     }
@@ -5269,14 +5269,14 @@ static psa_status_t psa_key_derivation_hkdf_read(psa_hkdf_key_derivation_t *hkdf
 
     while (output_length != 0) {
         /* Copy what remains of the current block */
-        uint8_t n = hash_length - hkdf->offset_in_block;
+        uint8_t n = (uint8_t) (hash_length - hkdf->offset_in_block);
         if (n > output_length) {
             n = (uint8_t) output_length;
         }
         memcpy(output, hkdf->output_block + hkdf->offset_in_block, n);
         output += n;
         output_length -= n;
-        hkdf->offset_in_block += n;
+        hkdf->offset_in_block = (uint8_t) (hkdf->offset_in_block + n);
         if (output_length == 0) {
             break;
         }
@@ -5494,11 +5494,11 @@ static psa_status_t psa_key_derivation_tls12_prf_read(
             length = tls12_prf->left_in_block;
         }
 
-        offset = hash_length - tls12_prf->left_in_block;
+        offset = (uint8_t) (hash_length - tls12_prf->left_in_block);
         memcpy(output, tls12_prf->output_block + offset, length);
         output += length;
         output_length -= length;
-        tls12_prf->left_in_block -= length;
+        tls12_prf->left_in_block = (uint8_t) (tls12_prf->left_in_block - length);
     }
 
     return PSA_SUCCESS;
@@ -5643,14 +5643,14 @@ static psa_status_t psa_key_derivation_pbkdf2_read(
     }
 
     while (output_length != 0) {
-        uint8_t n = prf_output_length - pbkdf2->bytes_used;
+        uint8_t n = (uint8_t) (prf_output_length - pbkdf2->bytes_used);
         if (n > output_length) {
             n = (uint8_t) output_length;
         }
         memcpy(output, pbkdf2->output_block + pbkdf2->bytes_used, n);
         output += n;
         output_length -= n;
-        pbkdf2->bytes_used += n;
+        pbkdf2->bytes_used = (uint8_t) (pbkdf2->bytes_used + n);
 
         if (output_length == 0) {
             break;
@@ -5859,7 +5859,7 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
              * (8 * ceiling(m/8) - m) bits of the first byte in
              * the string to zero.
              */
-            uint8_t clear_bit_mask = (1 << (m % 8)) - 1;
+            uint8_t clear_bit_mask = (uint8_t) ((1 << (m % 8)) - 1);
             (*data)[0] &= clear_bit_mask;
         }
 

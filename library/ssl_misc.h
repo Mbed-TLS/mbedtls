@@ -2447,8 +2447,8 @@ static inline int mbedtls_ssl_sig_alg_is_offered(const mbedtls_ssl_context *ssl,
 static inline int mbedtls_ssl_get_pk_type_and_md_alg_from_sig_alg(
     uint16_t sig_alg, mbedtls_pk_type_t *pk_type, mbedtls_md_type_t *md_alg)
 {
-    *pk_type = mbedtls_ssl_pk_alg_from_sig(sig_alg & 0xff);
-    *md_alg = mbedtls_ssl_md_alg_from_hash((sig_alg >> 8) & 0xff);
+    *pk_type = mbedtls_ssl_pk_alg_from_sig(MBEDTLS_BYTE_0(sig_alg));
+    *md_alg = mbedtls_ssl_md_alg_from_hash(MBEDTLS_BYTE_1(sig_alg));
 
     if (*pk_type != MBEDTLS_PK_NONE && *md_alg != MBEDTLS_MD_NONE) {
         return 0;
@@ -2845,7 +2845,7 @@ static inline unsigned int mbedtls_ssl_tls13_session_get_ticket_flags(
 static inline int mbedtls_ssl_tls13_session_ticket_has_flags(
     mbedtls_ssl_session *session, unsigned int flags)
 {
-    return mbedtls_ssl_tls13_session_get_ticket_flags(session, flags) != 0;
+    return (int) mbedtls_ssl_tls13_session_get_ticket_flags(session, flags) != 0;
 }
 
 static inline int mbedtls_ssl_tls13_session_ticket_allow_psk(
@@ -2872,13 +2872,17 @@ static inline unsigned int mbedtls_ssl_tls13_session_ticket_allow_early_data(
 static inline void mbedtls_ssl_tls13_session_set_ticket_flags(
     mbedtls_ssl_session *session, unsigned int flags)
 {
-    session->ticket_flags |= (flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
+    session->ticket_flags = (uint8_t)
+                            (session->ticket_flags |
+                             (flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK));
 }
 
 static inline void mbedtls_ssl_tls13_session_clear_ticket_flags(
     mbedtls_ssl_session *session, unsigned int flags)
 {
-    session->ticket_flags &= ~(flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
+    session->ticket_flags = (uint8_t)
+                            (session->ticket_flags &
+                             ~(flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK));
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
 

@@ -17,19 +17,19 @@
 #define MBEDTLS_ASN1_CHK_ADD(g, f)                      \
     do                                                  \
     {                                                   \
-        if ((ret = (f)) < 0)                         \
-        return ret;                              \
+        if ((ret = (f)) < 0)                            \
+        return ret;                                     \
         else                                            \
-        (g) += ret;                                 \
+        (g) += (unsigned int) ret;                      \
     } while (0)
 
-#define MBEDTLS_ASN1_CHK_CLEANUP_ADD(g, f)                      \
+#define MBEDTLS_ASN1_CHK_CLEANUP_ADD(g, f)              \
     do                                                  \
     {                                                   \
-        if ((ret = (f)) < 0)                         \
-        goto cleanup;                              \
+        if ((ret = (f)) < 0)                            \
+        goto cleanup;                                   \
         else                                            \
-        (g) += ret;                                 \
+        (g) += (unsigned int) ret;                      \
     } while (0)
 
 #ifdef __cplusplus

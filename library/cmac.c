@@ -70,7 +70,7 @@ static int cmac_multiply_by_u(unsigned char *output,
     }
 
     for (i = (int) blocksize - 1; i >= 0; i--) {
-        output[i] = input[i] << 1 | overflow;
+        output[i] = (unsigned char) (input[i] << 1 | overflow);
         overflow = input[i] >> 7;
     }
 
@@ -83,7 +83,7 @@ static int cmac_multiply_by_u(unsigned char *output,
 #pragma warning( push )
 #pragma warning( disable : 4146 )
 #endif
-    mask = -(input[0] >> 7);
+    mask = (unsigned char) (-(input[0] >> 7));
 #if defined(_MSC_VER)
 #pragma warning( pop )
 #endif
@@ -732,7 +732,7 @@ static int cmac_test_subkeys(int verbose,
                              int keybits,
                              const unsigned char *subkeys,
                              mbedtls_cipher_type_t cipher_type,
-                             int block_size,
+                             unsigned int block_size,
                              int num_tests)
 {
     int i, ret = 0;
@@ -823,16 +823,16 @@ exit:
 static int cmac_test_wth_cipher(int verbose,
                                 const char *testname,
                                 const unsigned char *key,
-                                int keybits,
+                                unsigned int keybits,
                                 const unsigned char *messages,
                                 const unsigned int message_lengths[4],
                                 const unsigned char *expected_result,
                                 mbedtls_cipher_type_t cipher_type,
-                                int block_size,
-                                int num_tests)
+                                unsigned int block_size,
+                                unsigned int num_tests)
 {
     const mbedtls_cipher_info_t *cipher_info;
-    int i, ret = 0;
+    int ret = 0;
     unsigned char output[MBEDTLS_CMAC_MAX_BLOCK_SIZE];
 
     cipher_info = mbedtls_cipher_info_from_type(cipher_type);
@@ -842,9 +842,9 @@ static int cmac_test_wth_cipher(int verbose,
         goto exit;
     }
 
-    for (i = 0; i < num_tests; i++) {
+    for (unsigned int i = 0; i < num_tests; i++) {
         if (verbose != 0) {
-            mbedtls_printf("  %s CMAC #%d: ", testname, i + 1);
+            mbedtls_printf("  %s CMAC #%u: ", testname, i + 1);
         }
 
         if ((ret = mbedtls_cipher_cmac(cipher_info, key, keybits, messages,

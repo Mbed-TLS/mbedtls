@@ -746,7 +746,7 @@ int mbedtls_ecp_point_write_binary(const mbedtls_ecp_group *grp,
                 return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
             }
 
-            buf[0] = 0x02 + mbedtls_mpi_get_bit(&P->Y, 0);
+            buf[0] = (unsigned char) (0x02 + mbedtls_mpi_get_bit(&P->Y, 0));
             MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&P->X, buf + 1, plen));
         }
     }
@@ -1126,7 +1126,7 @@ MBEDTLS_MAYBE_UNUSED
 static inline int mbedtls_mpi_sub_int_mod(const mbedtls_ecp_group *grp,
                                           mbedtls_mpi *X,
                                           const mbedtls_mpi *A,
-                                          mbedtls_mpi_uint c)
+                                          mbedtls_mpi_sint c)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -1792,7 +1792,7 @@ static void ecp_comb_recode_core(unsigned char x[], size_t d,
     /* First get the classical comb values (except for x_d = 0) */
     for (i = 0; i < d; i++) {
         for (j = 0; j < w; j++) {
-            x[i] |= mbedtls_mpi_get_bit(m, i + d * j) << j;
+            x[i] |= (unsigned char) (mbedtls_mpi_get_bit(m, i + d * j) << j);
         }
     }
 
@@ -1806,9 +1806,9 @@ static void ecp_comb_recode_core(unsigned char x[], size_t d,
 
         /* Adjust if needed, avoiding branches */
         adjust = 1 - (x[i] & 0x01);
-        c   |= x[i] & (x[i-1] * adjust);
-        x[i] = x[i] ^ (x[i-1] * adjust);
-        x[i-1] |= adjust << 7;
+        c      = (unsigned char) (c | (x[i] & (x[i-1] * adjust)));
+        x[i]   = (unsigned char) (x[i] ^ (x[i-1] * adjust));
+        x[i-1] = (unsigned char) (x[i-1] | (adjust << 7));
     }
 }
 
@@ -1854,7 +1854,7 @@ static int ecp_precompute_comb(const mbedtls_ecp_group *grp,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char i;
     size_t j = 0;
-    const unsigned char T_size = 1U << (w - 1);
+    const unsigned char T_size = (unsigned char) (1U << (w - 1));
     mbedtls_ecp_point *cur, *TT[COMB_MAX_PRE - 1] = { NULL };
 
     mbedtls_mpi tmp[4];
@@ -1903,10 +1903,10 @@ dbl:
 #endif
     j = 0;
 
-    for (; j < d * (w - 1); j++) {
+    for (; j < d * (w - 1u); j++) {
         MBEDTLS_ECP_BUDGET(MBEDTLS_ECP_OPS_DBL);
 
-        i = 1U << (j / d);
+        i = (unsigned char) (1U << (j / d));
         cur = T + i;
 
         if (j % d == 0) {
@@ -1931,7 +1931,7 @@ norm_dbl:
      *
      */
     j = 0;
-    for (i = 1; i < T_size; i <<= 1) {
+    for (i = 1; i < T_size; i = (unsigned char) (i << 1)) {
         TT[j++] = T + i;
     }
 
@@ -1952,7 +1952,7 @@ add:
      */
     MBEDTLS_ECP_BUDGET((T_size - 1) * MBEDTLS_ECP_OPS_ADD);
 
-    for (i = 1; i < T_size; i <<= 1) {
+    for (i = 1; i < T_size; i = (unsigned char) (i << 1)) {
         j = i;
         while (j--) {
             MBEDTLS_MPI_CHK(ecp_add_mixed(grp, &T[i + j], &T[j], &T[i], tmp));
@@ -2017,7 +2017,7 @@ static int ecp_select_comb(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     unsigned char ii, j;
 
     /* Ignore the "sign" bit and scale down */
-    ii =  (i & 0x7Fu) >> 1;
+    ii = (unsigned char) ((i & 0x7Fu) >> 1);
 
     /* Read the whole table to thwart cache-based timing attacks */
     for (j = 0; j < T_size; j++) {
@@ -2310,7 +2310,7 @@ static int ecp_mul_comb(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
     /* Pick window size and deduce related sizes */
     w = ecp_pick_window_size(grp, p_eq_g);
-    T_size = 1U << (w - 1);
+    T_size = (unsigned char) (1U << (w - 1));
     d = (grp->nbits + w - 1) / w;
 
     /* Pre-computed table: do we have it already for the base point? */
@@ -2579,7 +2579,7 @@ static int ecp_mul_mxz(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     /* Loop invariant: R = result so far, RP = R + P */
     i = grp->nbits + 1; /* one past the (zero-based) required msb for private keys */
     while (i-- > 0) {
-        b = mbedtls_mpi_get_bit(m, i);
+        b = (unsigned char) mbedtls_mpi_get_bit(m, i);
         /*
          *  if (b) R = 2R + P else R = 2R,
          * which is:

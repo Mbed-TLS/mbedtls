@@ -88,7 +88,7 @@
 #define CHARS_TO_LIMBS(i) ((i) / ciL + ((i) % ciL != 0))
 /* Get a specific byte, without range checks. */
 #define GET_BYTE(X, i)                                \
-    (((X)[(i) / ciL] >> (((i) % ciL) * 8)) & 0xff)
+    ((uint8_t) (((X)[(i) / ciL] >> (((i) % ciL) * 8)) & 0xff))
 
 /** Count leading zero bits in a given integer.
  *

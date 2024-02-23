@@ -344,7 +344,7 @@ int mbedtls_asn1_get_sequence_of(unsigned char **p,
     asn1_get_sequence_of_cb_ctx_t cb_ctx = { tag, cur };
     memset(cur, 0, sizeof(mbedtls_asn1_sequence));
     return mbedtls_asn1_traverse_sequence_of(
-        p, end, 0xFF, tag, 0, 0,
+        p, end, 0xFF, (uint8_t) tag, 0, 0,
         asn1_get_sequence_of_cb, &cb_ctx);
 }
 

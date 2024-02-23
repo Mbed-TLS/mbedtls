@@ -69,7 +69,7 @@ int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
 #else
     const mbedtls_cipher_info_t *cipher_info;
 
-    cipher_info = mbedtls_cipher_info_from_values(cipher, keybits,
+    cipher_info = mbedtls_cipher_info_from_values(cipher, (int) keybits,
                                                   MBEDTLS_MODE_ECB);
     if (cipher_info == NULL) {
         return MBEDTLS_ERR_CCM_BAD_INPUT;
@@ -85,7 +85,7 @@ int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
         return ret;
     }
 
-    if ((ret = mbedtls_cipher_setkey(&ctx->cipher_ctx, key, keybits,
+    if ((ret = mbedtls_cipher_setkey(&ctx->cipher_ctx, key, (int) keybits,
                                      MBEDTLS_ENCRYPT)) != 0) {
         return ret;
     }
@@ -192,9 +192,9 @@ static int ccm_calculate_first_block_if_ready(mbedtls_ccm_context *ctx)
      * 5 .. 3   (t - 2) / 2
      * 2 .. 0   q - 1
      */
-    ctx->y[0] |= (ctx->add_len > 0) << 6;
-    ctx->y[0] |= ((ctx->tag_len - 2) / 2) << 3;
-    ctx->y[0] |= ctx->q - 1;
+    ctx->y[0]  = (unsigned char) (ctx->y[0] | (((ctx->add_len > 0) << 6)));
+    ctx->y[0] |= (unsigned char) (((ctx->tag_len - 2) / 2) << 3);
+    ctx->y[0] |= (unsigned char) (ctx->q - 1);
 
     for (i = 0, len_left = ctx->plaintext_len; i < ctx->q; i++, len_left >>= 8) {
         ctx->y[15-i] = MBEDTLS_BYTE_0(len_left);
@@ -229,8 +229,8 @@ int mbedtls_ccm_starts(mbedtls_ccm_context *ctx,
         return MBEDTLS_ERR_CCM_BAD_INPUT;
     }
 
-    ctx->mode = mode;
-    ctx->q = 16 - 1 - (unsigned char) iv_len;
+    ctx->mode = (unsigned int) mode;
+    ctx->q = 16u - 1u - (unsigned char) iv_len;
 
     /*
      * Prepare counter block for encryption:
@@ -243,7 +243,7 @@ int mbedtls_ccm_starts(mbedtls_ccm_context *ctx,
      * 2 .. 0   q - 1
      */
     memset(ctx->ctr, 0, 16);
-    ctx->ctr[0] = ctx->q - 1;
+    ctx->ctr[0] = (uint8_t) (ctx->q - 1);
     memcpy(ctx->ctr + 1, iv, iv_len);
     memset(ctx->ctr + 1 + iv_len, 0, ctx->q);
     ctx->ctr[15] = 1;

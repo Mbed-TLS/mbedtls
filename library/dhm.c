@@ -42,7 +42,8 @@ static int dhm_read_bignum(mbedtls_mpi *X,
                            unsigned char **p,
                            const unsigned char *end)
 {
-    int ret, n;
+    int ret;
+    unsigned int n;
 
     if (end - *p < 2) {
         return MBEDTLS_ERR_DHM_BAD_INPUT_DATA;
@@ -191,7 +192,7 @@ static int dhm_make_common(mbedtls_dhm_context *ctx, int x_size,
     }
 
     if ((unsigned) x_size < mbedtls_mpi_size(&ctx->P)) {
-        MBEDTLS_MPI_CHK(mbedtls_mpi_fill_random(&ctx->X, x_size, f_rng, p_rng));
+        MBEDTLS_MPI_CHK(mbedtls_mpi_fill_random(&ctx->X, (unsigned int) x_size, f_rng, p_rng));
     } else {
         /* Generate X as large as possible ( <= P - 2 ) */
         ret = dhm_random_below(&ctx->X, &ctx->P, f_rng, p_rng);
@@ -647,14 +648,14 @@ int mbedtls_dhm_parse_dhmfile(mbedtls_dhm_context *dhm, const char *path)
 #if defined(MBEDTLS_SELF_TEST)
 
 #if defined(MBEDTLS_PEM_PARSE_C)
-static const char mbedtls_test_dhm_params[] =
+static const unsigned char mbedtls_test_dhm_params[] =
     "-----BEGIN DH PARAMETERS-----\r\n"
     "MIGHAoGBAJ419DBEOgmQTzo5qXl5fQcN9TN455wkOL7052HzxxRVMyhYmwQcgJvh\r\n"
     "1sa18fyfR9OiVEMYglOpkqVoGLN7qd5aQNNi5W7/C+VBdHTBJcGZJyyP5B3qcz32\r\n"
     "9mLJKudlVudV0Qxk5qUJaPZ/xupz0NyoVpviuiBOI1gNi8ovSXWzAgEC\r\n"
     "-----END DH PARAMETERS-----\r\n";
 #else /* MBEDTLS_PEM_PARSE_C */
-static const char mbedtls_test_dhm_params[] = {
+static const unsigned char mbedtls_test_dhm_params[] = {
     0x30, 0x81, 0x87, 0x02, 0x81, 0x81, 0x00, 0x9e, 0x35, 0xf4, 0x30, 0x44,
     0x3a, 0x09, 0x90, 0x4f, 0x3a, 0x39, 0xa9, 0x79, 0x79, 0x7d, 0x07, 0x0d,
     0xf5, 0x33, 0x78, 0xe7, 0x9c, 0x24, 0x38, 0xbe, 0xf4, 0xe7, 0x61, 0xf3,

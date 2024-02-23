@@ -1199,7 +1199,7 @@ hmac_failed_etm_disabled:
                                   iv, transform->ivlen,
                                   add_data, add_data_len,
                                   data, rec->data_len,
-                                  data, rec->buf_len - (data - rec->buf),
+                                  data, rec->buf_len - (size_t) (data - rec->buf),
                                   &rec->data_len);
 
         if (status != PSA_SUCCESS) {
@@ -1626,7 +1626,7 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
                                   iv, transform->ivlen,
                                   add_data, add_data_len,
                                   data, rec->data_len + transform->taglen,
-                                  data, rec->buf_len - (data - rec->buf),
+                                  data, rec->buf_len - (size_t) (data - rec->buf),
                                   &olen);
 
         if (status != PSA_SUCCESS) {
@@ -2288,7 +2288,7 @@ int mbedtls_ssl_fetch_input(mbedtls_ssl_context *ssl, size_t nb_want)
             return ret;
         }
 
-        ssl->in_left = ret;
+        ssl->in_left = (size_t) ret;
     } else
 #endif
     {
@@ -2333,7 +2333,7 @@ int mbedtls_ssl_fetch_input(mbedtls_ssl_context *ssl, size_t nb_want)
                 return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
             }
 
-            ssl->in_left += ret;
+            ssl->in_left += (size_t) ret;
         }
     }
 
@@ -2385,7 +2385,7 @@ int mbedtls_ssl_flush_output(mbedtls_ssl_context *ssl)
             return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
         }
 
-        ssl->out_left -= ret;
+        ssl->out_left -= (size_t) ret;
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -2435,7 +2435,7 @@ static int ssl_flight_append(mbedtls_ssl_context *ssl)
     /* Copy current handshake message with headers */
     memcpy(msg->p, ssl->out_msg, ssl->out_msglen);
     msg->len = ssl->out_msglen;
-    msg->type = ssl->out_msgtype;
+    msg->type = (unsigned char) ssl->out_msgtype;
     msg->next = NULL;
 
     /* Append to the current flight */
@@ -2976,7 +2976,7 @@ int mbedtls_ssl_write_record(mbedtls_ssl_context *ssl, int force_flush)
 
             memcpy(&rec.ctr[0], ssl->out_ctr, sizeof(rec.ctr));
             mbedtls_ssl_write_version(rec.ver, ssl->conf->transport, tls_ver);
-            rec.type = ssl->out_msgtype;
+            rec.type = (uint8_t) ssl->out_msgtype;
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
             /* The CID is set by mbedtls_ssl_encrypt_buf(). */
@@ -3136,14 +3136,15 @@ static void ssl_bitmask_set(unsigned char *mask, size_t offset, size_t len)
 {
     unsigned int start_bits, end_bits;
 
-    start_bits = 8 - (offset % 8);
+    start_bits = (unsigned int) (8 - (offset % 8));
     if (start_bits != 8) {
         size_t first_byte_idx = offset / 8;
 
         /* Special case */
         if (len <= start_bits) {
             for (; len != 0; len--) {
-                mask[first_byte_idx] |= 1 << (start_bits - len);
+                mask[first_byte_idx] = (unsigned char)
+                                       (mask[first_byte_idx] | (1 << (start_bits - len)));
             }
 
             /* Avoid potential issues with offset or len becoming invalid */
@@ -3154,7 +3155,7 @@ static void ssl_bitmask_set(unsigned char *mask, size_t offset, size_t len)
         len -= start_bits;
 
         for (; start_bits != 0; start_bits--) {
-            mask[first_byte_idx] |= 1 << (start_bits - 1);
+            mask[first_byte_idx] = (unsigned char) (mask[first_byte_idx] | (1 << (start_bits - 1)));
         }
     }
 
@@ -3165,7 +3166,7 @@ static void ssl_bitmask_set(unsigned char *mask, size_t offset, size_t len)
         len -= end_bits; /* Now len % 8 == 0 */
 
         for (; end_bits != 0; end_bits--) {
-            mask[last_byte_idx] |= 1 << (8 - end_bits);
+            mask[last_byte_idx] =  (unsigned char) (mask[last_byte_idx] | (1 << (8 - end_bits)));
         }
     }
 
@@ -4805,7 +4806,7 @@ static int ssl_buffer_future_record(mbedtls_ssl_context *ssl,
 
     /* ssl_parse_record_header() only considers records
      * of the next epoch as candidates for buffering. */
-    hs->buffering.future_record.epoch = ssl->in_epoch + 1;
+    hs->buffering.future_record.epoch = ssl->in_epoch + 1u;
     hs->buffering.future_record.len   = rec->buf_len;
 
     hs->buffering.future_record.data =
@@ -6140,7 +6141,7 @@ void mbedtls_ssl_buffering_free(mbedtls_ssl_context *ssl)
     ssl_free_buffered_record(ssl);
 
     for (offset = 0; offset < MBEDTLS_SSL_MAX_BUFFERED_HS; offset++) {
-        ssl_buffering_free_slot(ssl, offset);
+        ssl_buffering_free_slot(ssl, (uint8_t) offset);
     }
 }
 
@@ -6178,8 +6179,8 @@ void mbedtls_ssl_write_version(unsigned char version[2], int transport,
     uint16_t tls_version_formatted;
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if (transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
-        tls_version_formatted =
-            ~(tls_version - (tls_version == 0x0302 ? 0x0202 : 0x0201));
+        tls_version_formatted = (uint16_t) (
+            ~(tls_version - (tls_version == 0x0302 ? 0x0202 : 0x0201)));
     } else
 #else
     ((void) transport);
@@ -6196,8 +6197,8 @@ uint16_t mbedtls_ssl_read_version(const unsigned char version[2],
     uint16_t tls_version = MBEDTLS_GET_UINT16_BE(version, 0);
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if (transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
-        tls_version =
-            ~(tls_version - (tls_version == 0xfeff ? 0x0202 : 0x0201));
+        tls_version = (uint16_t)
+                      (~(tls_version - (tls_version == 0xfeff ? 0x0202 : 0x0201)));
     }
 #else
     ((void) transport);

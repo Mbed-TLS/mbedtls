@@ -63,8 +63,10 @@ static int local_err_translation(psa_status_t status)
 
 /* Currently only support H=10 */
 #define H_TREE_HEIGHT_MAX                  10
-#define MERKLE_TREE_NODE_AM(type)          ((size_t) 1 << (MBEDTLS_LMS_H_TREE_HEIGHT(type) + 1u))
-#define MERKLE_TREE_LEAF_NODE_AM(type)     ((size_t) 1 << MBEDTLS_LMS_H_TREE_HEIGHT(type))
+#define MERKLE_TREE_NODE_AM(type)          ((unsigned int) \
+                                            (1u << (MBEDTLS_LMS_H_TREE_HEIGHT(type) + 1u)))
+#define MERKLE_TREE_LEAF_NODE_AM(type)     ((unsigned int) \
+                                            (1u << MBEDTLS_LMS_H_TREE_HEIGHT(type)))
 #define MERKLE_TREE_INTERNAL_NODE_AM(type) ((unsigned int) \
                                             (1u << MBEDTLS_LMS_H_TREE_HEIGHT(type)))
 
@@ -381,7 +383,7 @@ int mbedtls_lms_verify(const mbedtls_lms_public_t *ctx,
 
     for (height = 0; height < MBEDTLS_LMS_H_TREE_HEIGHT(ctx->params.type);
          height++) {
-        parent_node_id = curr_node_id / 2;
+        parent_node_id = (unsigned int) (curr_node_id / 2);
 
         /* Left/right node ordering matters for the hash */
         if (curr_node_id & 1) {

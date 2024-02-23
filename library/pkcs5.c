@@ -38,8 +38,8 @@
 
 #if defined(MBEDTLS_ASN1_PARSE_C) && defined(MBEDTLS_CIPHER_C)
 static int pkcs5_parse_pbkdf2_params(const mbedtls_asn1_buf *params,
-                                     mbedtls_asn1_buf *salt, int *iterations,
-                                     int *keylen, mbedtls_md_type_t *md_type)
+                                     mbedtls_asn1_buf *salt, unsigned int *iterations,
+                                     unsigned int *keylen, mbedtls_md_type_t *md_type)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_asn1_buf prf_alg_oid;
@@ -67,19 +67,28 @@ static int pkcs5_parse_pbkdf2_params(const mbedtls_asn1_buf *params,
     salt->p = p;
     p += salt->len;
 
-    if ((ret = mbedtls_asn1_get_int(&p, end, iterations)) != 0) {
+    int s_int = 0;
+    if ((ret = mbedtls_asn1_get_int(&p, end, &s_int)) != 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS5_INVALID_FORMAT, ret);
     }
+    if (s_int < 1) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS5_INVALID_FORMAT, ret);
+    }
+    *iterations = (unsigned int) s_int;
 
     if (p == end) {
         return 0;
     }
 
-    if ((ret = mbedtls_asn1_get_int(&p, end, keylen)) != 0) {
+    if ((ret = mbedtls_asn1_get_int(&p, end, &s_int)) != 0) {
         if (ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS5_INVALID_FORMAT, ret);
         }
     }
+    if (s_int < 1) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS5_INVALID_FORMAT, ret);
+    }
+    *keylen = (unsigned int) s_int;
 
     if (p == end) {
         return 0;
@@ -132,7 +141,8 @@ int mbedtls_pkcs5_pbes2_ext(const mbedtls_asn1_buf *pbe_params, int mode,
                             unsigned char *output, size_t output_size,
                             size_t *output_len)
 {
-    int ret, iterations = 0, keylen = 0;
+    int ret;
+    unsigned int iterations = 0, keylen = 0;
     unsigned char *p, *end;
     mbedtls_asn1_buf kdf_alg_oid, enc_scheme_oid, kdf_alg_params, enc_scheme_params;
     mbedtls_asn1_buf salt;
@@ -192,7 +202,7 @@ int mbedtls_pkcs5_pbes2_ext(const mbedtls_asn1_buf *pbe_params, int mode,
      * The value of keylen from pkcs5_parse_pbkdf2_params() is ignored
      * since it is optional and we don't know if it was set or not
      */
-    keylen = (int) mbedtls_cipher_info_get_key_bitlen(cipher_info) / 8;
+    keylen = (unsigned int) (mbedtls_cipher_info_get_key_bitlen(cipher_info) / 8);
 
     if (enc_scheme_params.tag != MBEDTLS_ASN1_OCTET_STRING ||
         enc_scheme_params.len != mbedtls_cipher_info_get_iv_size(cipher_info)) {
@@ -206,7 +216,7 @@ int mbedtls_pkcs5_pbes2_ext(const mbedtls_asn1_buf *pbe_params, int mode,
     }
 
     if (mode == MBEDTLS_PKCS5_ENCRYPT) {
-        padlen = cipher_info->block_size - (datalen % cipher_info->block_size);
+        padlen = (unsigned int) (cipher_info->block_size - (datalen % cipher_info->block_size));
         if (output_size < (datalen + padlen)) {
             return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
         }
@@ -226,7 +236,7 @@ int mbedtls_pkcs5_pbes2_ext(const mbedtls_asn1_buf *pbe_params, int mode,
         goto exit;
     }
 
-    if ((ret = mbedtls_cipher_setkey(&cipher_ctx, key, 8 * keylen,
+    if ((ret = mbedtls_cipher_setkey(&cipher_ctx, key, (int) (8 * keylen),
                                      (mbedtls_operation_t) mode)) != 0) {
         goto exit;
     }

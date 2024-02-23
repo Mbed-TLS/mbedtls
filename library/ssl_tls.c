@@ -93,7 +93,7 @@ int mbedtls_ssl_conf_cid(mbedtls_ssl_config *conf,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
-    conf->ignore_unexpected_cid = ignore_other_cid;
+    conf->ignore_unexpected_cid = (uint8_t) ignore_other_cid;
     conf->cid_len = len;
     return 0;
 }
@@ -107,7 +107,7 @@ int mbedtls_ssl_set_cid(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
-    ssl->negotiate_cid = enable;
+    ssl->negotiate_cid = (uint8_t) enable;
     if (enable == MBEDTLS_SSL_CID_DISABLED) {
         MBEDTLS_SSL_DEBUG_MSG(3, ("Disable use of CID extension."));
         return 0;
@@ -332,9 +332,9 @@ static void handle_buffer_resizing(mbedtls_ssl_context *ssl, int downsizing,
     size_t written_in = 0, iv_offset_in = 0, len_offset_in = 0;
     size_t written_out = 0, iv_offset_out = 0, len_offset_out = 0;
     if (ssl->in_buf != NULL) {
-        written_in = ssl->in_msg - ssl->in_buf;
-        iv_offset_in = ssl->in_iv - ssl->in_buf;
-        len_offset_in = ssl->in_len - ssl->in_buf;
+        written_in = (size_t) (ssl->in_msg - ssl->in_buf);
+        iv_offset_in = (size_t) (ssl->in_iv - ssl->in_buf);
+        len_offset_in = (size_t) (ssl->in_len - ssl->in_buf);
         if (downsizing ?
             ssl->in_buf_len > in_buf_new_len && ssl->in_left < in_buf_new_len :
             ssl->in_buf_len < in_buf_new_len) {
@@ -349,9 +349,9 @@ static void handle_buffer_resizing(mbedtls_ssl_context *ssl, int downsizing,
     }
 
     if (ssl->out_buf != NULL) {
-        written_out = ssl->out_msg - ssl->out_buf;
-        iv_offset_out = ssl->out_iv - ssl->out_buf;
-        len_offset_out = ssl->out_len - ssl->out_buf;
+        written_out = (size_t) (ssl->out_msg - ssl->out_buf);
+        iv_offset_out = (size_t) (ssl->out_iv - ssl->out_buf);
+        len_offset_out = (size_t) (ssl->out_len - ssl->out_buf);
         if (downsizing ?
             ssl->out_buf_len > out_buf_new_len && ssl->out_left < out_buf_new_len :
             ssl->out_buf_len < out_buf_new_len) {
@@ -595,7 +595,7 @@ uint32_t mbedtls_ssl_get_extension_id(unsigned int extension_type)
 
 uint32_t mbedtls_ssl_get_extension_mask(unsigned int extension_type)
 {
-    return 1 << mbedtls_ssl_get_extension_id(extension_type);
+    return 1u << mbedtls_ssl_get_extension_id(extension_type);
 }
 
 #if defined(MBEDTLS_DEBUG_C)
@@ -734,7 +734,7 @@ void mbedtls_ssl_print_extensions(const mbedtls_ssl_context *ssl,
          i++) {
         mbedtls_ssl_print_extension(
             ssl, level, file, line, hs_msg_type, extension_type_table[i],
-            extensions_mask & (1 << i) ? "exists" : "does not exist", extra);
+            extensions_mask & (1u << i) ? "exists" : "does not exist", extra);
     }
 }
 
@@ -758,7 +758,7 @@ void mbedtls_ssl_print_ticket_flags(const mbedtls_ssl_context *ssl,
     flags = flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK;
 
     for (i = 0; i < ARRAY_LENGTH(ticket_flag_name_table); i++) {
-        if ((flags & (1 << i))) {
+        if ((flags & (1u << i))) {
             mbedtls_debug_print_msg(ssl, level, file, line, "- %s is set.",
                                     ticket_flag_name_table[i]);
         }
@@ -1234,11 +1234,11 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
                 continue;
             }
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
-            *p = ((hash << 8) | MBEDTLS_SSL_SIG_ECDSA);
+            *p = (uint16_t) ((hash << 8) | MBEDTLS_SSL_SIG_ECDSA);
             p++;
 #endif
 #if defined(MBEDTLS_RSA_C)
-            *p = ((hash << 8) | MBEDTLS_SSL_SIG_RSA);
+            *p = (uint16_t) ((hash << 8) | MBEDTLS_SSL_SIG_RSA);
             p++;
 #endif
         }
@@ -1608,18 +1608,18 @@ int mbedtls_ssl_session_reset(mbedtls_ssl_context *ssl)
  */
 void mbedtls_ssl_conf_endpoint(mbedtls_ssl_config *conf, int endpoint)
 {
-    conf->endpoint   = endpoint;
+    conf->endpoint   = (uint8_t) endpoint;
 }
 
 void mbedtls_ssl_conf_transport(mbedtls_ssl_config *conf, int transport)
 {
-    conf->transport = transport;
+    conf->transport = (uint8_t) transport;
 }
 
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
 void mbedtls_ssl_conf_dtls_anti_replay(mbedtls_ssl_config *conf, char mode)
 {
-    conf->anti_replay = mode;
+    conf->anti_replay = (uint8_t) mode;
 }
 #endif
 
@@ -1646,7 +1646,7 @@ void mbedtls_ssl_conf_handshake_timeout(mbedtls_ssl_config *conf,
 
 void mbedtls_ssl_conf_authmode(mbedtls_ssl_config *conf, int authmode)
 {
-    conf->authmode   = authmode;
+    conf->authmode   = (uint8_t) authmode;
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -1776,7 +1776,7 @@ void mbedtls_ssl_conf_ciphersuites(mbedtls_ssl_config *conf,
 void mbedtls_ssl_conf_tls13_key_exchange_modes(mbedtls_ssl_config *conf,
                                                const int kex_modes)
 {
-    conf->tls13_kex_modes = kex_modes & MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_ALL;
+    conf->tls13_kex_modes = kex_modes & (int) MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_ALL;
 }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
@@ -1926,7 +1926,7 @@ void mbedtls_ssl_set_hs_dn_hints(mbedtls_ssl_context *ssl,
 void mbedtls_ssl_set_hs_authmode(mbedtls_ssl_context *ssl,
                                  int authmode)
 {
-    ssl->handshake->sni_authmode = authmode;
+    ssl->handshake->sni_authmode = (uint8_t) authmode;
 }
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
@@ -2633,7 +2633,7 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
         if (end - p < 8) {
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
         }
-        session->ticket_creation_time = MBEDTLS_GET_UINT64_BE(p, 0);
+        session->ticket_creation_time = (mbedtls_time_t) MBEDTLS_GET_UINT64_BE(p, 0);
         p += 8;
     }
 #endif /* MBEDTLS_HAVE_TIME */
@@ -2666,7 +2666,7 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
         if (end - p < 8) {
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
         }
-        session->ticket_reception_time = MBEDTLS_GET_UINT64_BE(p, 0);
+        session->ticket_reception_time = (mbedtls_time_t) MBEDTLS_GET_UINT64_BE(p, 0);
         p += 8;
 #endif
         if (end - p < 4) {
@@ -3118,7 +3118,7 @@ const char *mbedtls_ssl_get_alpn_protocol(const mbedtls_ssl_context *ssl)
 void mbedtls_ssl_conf_srtp_mki_value_supported(mbedtls_ssl_config *conf,
                                                int support_mki_value)
 {
-    conf->dtls_srtp_mki_support = support_mki_value;
+    conf->dtls_srtp_mki_support = (uint8_t) support_mki_value;
 }
 
 int mbedtls_ssl_dtls_srtp_set_mki_value(mbedtls_ssl_context *ssl,
@@ -3200,21 +3200,21 @@ void mbedtls_ssl_conf_min_version(mbedtls_ssl_config *conf, int major, int minor
 void mbedtls_ssl_conf_cert_req_ca_list(mbedtls_ssl_config *conf,
                                        char cert_req_ca_list)
 {
-    conf->cert_req_ca_list = cert_req_ca_list;
+    conf->cert_req_ca_list = (uint8_t) cert_req_ca_list;
 }
 #endif
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
 void mbedtls_ssl_conf_encrypt_then_mac(mbedtls_ssl_config *conf, char etm)
 {
-    conf->encrypt_then_mac = etm;
+    conf->encrypt_then_mac = (uint8_t) etm;
 }
 #endif
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
 void mbedtls_ssl_conf_extended_master_secret(mbedtls_ssl_config *conf, char ems)
 {
-    conf->extended_ms = ems;
+    conf->extended_ms = (uint8_t) ems;
 }
 #endif
 
@@ -3234,13 +3234,13 @@ int mbedtls_ssl_conf_max_frag_len(mbedtls_ssl_config *conf, unsigned char mfl_co
 
 void mbedtls_ssl_conf_legacy_renegotiation(mbedtls_ssl_config *conf, int allow_legacy)
 {
-    conf->allow_legacy_renegotiation = allow_legacy;
+    conf->allow_legacy_renegotiation = (uint8_t) allow_legacy;
 }
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 void mbedtls_ssl_conf_renegotiation(mbedtls_ssl_config *conf, int renegotiation)
 {
-    conf->disable_renegotiation = renegotiation;
+    conf->disable_renegotiation = (uint8_t) renegotiation;
 }
 
 void mbedtls_ssl_conf_renegotiation_enforced(mbedtls_ssl_config *conf, int max_records)
@@ -3259,7 +3259,7 @@ void mbedtls_ssl_conf_renegotiation_period(mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_SSL_CLI_C)
 void mbedtls_ssl_conf_session_tickets(mbedtls_ssl_config *conf, int use_tickets)
 {
-    conf->session_tickets = use_tickets;
+    conf->session_tickets = (uint8_t) use_tickets;
 }
 #endif
 
@@ -4648,11 +4648,11 @@ int mbedtls_ssl_context_save(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_ALPN)
     {
-        const uint8_t alpn_len = ssl->alpn_chosen
-                               ? (uint8_t) strlen(ssl->alpn_chosen)
-                               : 0;
+        const uint8_t alpn_len = (uint8_t) (ssl->alpn_chosen
+                               ? strlen(ssl->alpn_chosen)
+                               : 0);
 
-        used += 1 + alpn_len;
+        used += 1u + alpn_len;
         if (used <= buf_len) {
             *p++ = alpn_len;
 

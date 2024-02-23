@@ -103,7 +103,7 @@ static int rsa_verify_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     psa_set_key_type(&attributes, PSA_KEY_TYPE_RSA_PUBLIC_KEY);
 
     status = psa_import_key(&attributes,
-                            buf + sizeof(buf) - key_len, key_len,
+                            buf + sizeof(buf) - key_len, (size_t) key_len,
                             &key_id);
     if (status != PSA_SUCCESS) {
         ret = PSA_PK_TO_MBEDTLS_ERR(status);
@@ -201,8 +201,8 @@ int  mbedtls_pk_psa_rsa_sign_ext(psa_algorithm_t alg,
     psa_set_key_type(&attributes, PSA_KEY_TYPE_RSA_KEY_PAIR);
 
     status = psa_import_key(&attributes,
-                            buf + MBEDTLS_PK_RSA_PRV_DER_MAX_BYTES - key_len, key_len,
-                            &key_id);
+                            buf + MBEDTLS_PK_RSA_PRV_DER_MAX_BYTES - key_len,
+                            (unsigned int) key_len, &key_id);
     if (status != PSA_SUCCESS) {
         ret = PSA_PK_TO_MBEDTLS_ERR(status);
         goto cleanup;
@@ -314,7 +314,7 @@ static int rsa_decrypt_wrap(mbedtls_pk_context *pk,
     psa_set_key_algorithm(&attributes, decrypt_alg);
 
     status = psa_import_key(&attributes,
-                            buf + sizeof(buf) - key_len, key_len,
+                            buf + sizeof(buf) - key_len, (size_t) key_len,
                             &key_id);
     if (status != PSA_SUCCESS) {
         ret = PSA_PK_TO_MBEDTLS_ERR(status);
@@ -396,7 +396,7 @@ static int rsa_encrypt_wrap(mbedtls_pk_context *pk,
     psa_set_key_type(&attributes, PSA_KEY_TYPE_RSA_PUBLIC_KEY);
 
     status = psa_import_key(&attributes,
-                            buf + sizeof(buf) - key_len, key_len,
+                            buf + sizeof(buf) - key_len, (size_t) key_len,
                             &key_id);
     if (status != PSA_SUCCESS) {
         ret = PSA_PK_TO_MBEDTLS_ERR(status);

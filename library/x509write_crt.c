@@ -670,7 +670,7 @@ int mbedtls_x509write_crt_pem(mbedtls_x509write_cert *crt,
     }
 
     if ((ret = mbedtls_pem_write_buffer(PEM_BEGIN_CRT, PEM_END_CRT,
-                                        buf + size - ret, ret,
+                                        buf + size - ret, (size_t) ret,
                                         buf, size, &olen)) != 0) {
         return ret;
     }

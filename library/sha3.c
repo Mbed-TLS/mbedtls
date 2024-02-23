@@ -222,7 +222,7 @@ int mbedtls_sha3_update(mbedtls_sha3_context *ctx,
 {
     if (ilen >= 8) {
         // 8-byte align index
-        int align_bytes = 8 - (ctx->index % 8);
+        unsigned int align_bytes = 8 - (ctx->index % 8);
         if (align_bytes) {
             for (; align_bytes > 0; align_bytes--) {
                 ABSORB(ctx, ctx->index, *input++);

@@ -585,7 +585,7 @@ static int ssl_parse_use_srtp_ext(mbedtls_ssl_context *ssl,
     ssl->dtls_srtp_info.chosen_dtls_srtp_profile = MBEDTLS_TLS_SRTP_UNSET;
 
     /* first 2 bytes are protection profile length(in bytes) */
-    profile_length = (buf[0] << 8) | buf[1];
+    profile_length = MBEDTLS_GET_UINT16_BE(buf, 0);
     buf += 2;
 
     /* The profile length cannot be bigger than input buffer size - lengths fields */
@@ -600,7 +600,7 @@ static int ssl_parse_use_srtp_ext(mbedtls_ssl_context *ssl,
      * http://www.iana.org/assignments/srtp-protection/srtp-protection.xhtml
      */
     for (j = 0; j < profile_length; j += 2) {
-        uint16_t protection_profile_value = buf[j] << 8 | buf[j + 1];
+        uint16_t protection_profile_value = MBEDTLS_GET_UINT16_BE(buf, j);
         client_protection = mbedtls_ssl_check_srtp_profile_value(protection_profile_value);
 
         if (client_protection != MBEDTLS_TLS_SRTP_UNSET) {
@@ -1724,7 +1724,7 @@ static void ssl_write_cid_ext(mbedtls_ssl_context *ssl,
     *p++ = (uint8_t) ssl->own_cid_len;
     memcpy(p, ssl->own_cid, ssl->own_cid_len);
 
-    *olen = ssl->own_cid_len + 5;
+    *olen = ssl->own_cid_len + 5u;
 }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
@@ -2421,8 +2421,8 @@ static int ssl_write_certificate_request(mbedtls_ssl_context *ssl)
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->handshake->ciphersuite_info;
-    uint16_t dn_size, total_dn_size; /* excluding length bytes */
-    size_t ct_len, sa_len; /* including length bytes */
+    uint16_t dn_size; /* excluding length bytes */
+    size_t ct_len, sa_len, total_dn_size; /* including length bytes */
     unsigned char *buf, *p;
     const unsigned char * const end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
     const mbedtls_x509_crt *crt;
@@ -2569,7 +2569,7 @@ static int ssl_write_certificate_request(mbedtls_ssl_context *ssl)
 
             MBEDTLS_SSL_DEBUG_BUF(3, "requested DN", p - dn_size, dn_size);
 
-            total_dn_size += (unsigned short) (2 + dn_size);
+            total_dn_size += (2u + dn_size);
             crt = crt->next;
         }
     }
@@ -2765,8 +2765,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED) && \
     defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_resume_server_key_exchange(mbedtls_ssl_context *ssl,
-                                          size_t *signature_len)
+static int ssl_resume_server_key_exchange(mbedtls_ssl_context *ssl, size_t *signature_len)
 {
     /* Append the signature to ssl->out_msg, leaving 2 bytes for the
      * signature length which will be added in ssl_write_server_key_exchange
@@ -2774,10 +2773,8 @@ static int ssl_resume_server_key_exchange(mbedtls_ssl_context *ssl,
      * ssl_write_server_key_exchange also takes care of incrementing
      * ssl->out_msglen. */
     unsigned char *sig_start = ssl->out_msg + ssl->out_msglen + 2;
-    size_t sig_max_len = (ssl->out_buf + MBEDTLS_SSL_OUT_CONTENT_LEN
-                          - sig_start);
-    int ret = ssl->conf->f_async_resume(ssl,
-                                        sig_start, signature_len, sig_max_len);
+    size_t sig_max_len = (size_t) (ssl->out_buf + MBEDTLS_SSL_OUT_CONTENT_LEN - sig_start);
+    int ret = ssl->conf->f_async_resume(ssl, sig_start, signature_len, sig_max_len);
     if (ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS) {
         ssl->handshake->async_in_progress = 0;
         mbedtls_ssl_set_async_operation_data(ssl, NULL);
@@ -2857,7 +2854,7 @@ static int ssl_prepare_server_key_exchange(mbedtls_ssl_context *ssl,
 
         ret = mbedtls_psa_ecjpake_write_round(&ssl->handshake->psa_pake_ctx,
                                               out_p + output_offset,
-                                              end_p - out_p - output_offset, &output_len,
+                                              (size_t) (end_p - out_p) - output_offset, &output_len,
                                               MBEDTLS_ECJPAKE_ROUND_TWO);
         if (ret != 0) {
             psa_destroy_key(ssl->handshake->psa_pake_password);
@@ -3187,7 +3184,7 @@ curve_matching_done:
          *
          */
 
-        ssl->out_msg[ssl->out_msglen++] = mbedtls_ssl_hash_from_md_alg(md_alg);
+        ssl->out_msg[ssl->out_msglen++] = mbedtls_ssl_hash_from_md_alg((int) md_alg);
         ssl->out_msg[ssl->out_msglen++] = mbedtls_ssl_sig_from_pk_alg(sig_alg);
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
@@ -3541,7 +3538,7 @@ static int ssl_parse_encrypted_pms(mbedtls_ssl_context *ssl,
      * But do initialize peer_pms and peer_pmslen for robustness anyway. This
      * also makes memory analyzers happy (don't access uninitialized memory,
      * even if it's an unsigned char). */
-    peer_pms[0] = peer_pms[1] = ~0;
+    peer_pms[0] = peer_pms[1] = (unsigned char) ~0;
     peer_pmslen = 0;
 
     ret = ssl_decrypt_encrypted_pms(ssl, p, end,
@@ -3561,7 +3558,7 @@ static int ssl_parse_encrypted_pms(mbedtls_ssl_context *ssl,
     /* Avoid data-dependent branches while checking for invalid
      * padding, to protect against timing-based Bleichenbacher-type
      * attacks. */
-    diff = mbedtls_ct_bool(ret);
+    diff = mbedtls_ct_bool((unsigned int) -ret);
     diff = mbedtls_ct_bool_or(diff, mbedtls_ct_uint_ne(peer_pmslen, 48));
     diff = mbedtls_ct_bool_or(diff, mbedtls_ct_uint_ne(peer_pms[0], ver[0]));
     diff = mbedtls_ct_bool_or(diff, mbedtls_ct_uint_ne(peer_pms[1], ver[1]));
@@ -3898,7 +3895,7 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
 
         /* Write length only when we know the actual value */
         if ((ret = mbedtls_dhm_calc_secret(&ssl->handshake->dhm_ctx,
-                                           pms + 2, pms_end - (pms + 2), &pms_len,
+                                           pms + 2, (size_t) (pms_end - (pms + 2)), &pms_len,
                                            ssl->conf->f_rng, ssl->conf->p_rng)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_dhm_calc_secret", ret);
             return ret;
@@ -3985,7 +3982,7 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
                                        handshake->xxdh_psa_peerkey,
                                        handshake->xxdh_psa_peerkey_len,
                                        psm + zlen_size,
-                                       psm_end - (psm + zlen_size),
+                                       (size_t) (psm_end - (psm + zlen_size)),
                                        &zlen);
 
         destruction_status = psa_destroy_key(handshake->xxdh_psa_privkey);
@@ -4432,7 +4429,7 @@ int mbedtls_ssl_handshake_server_step(mbedtls_ssl_context *ssl)
 
 void mbedtls_ssl_conf_preference_order(mbedtls_ssl_config *conf, int order)
 {
-    conf->respect_cli_pref = order;
+    conf->respect_cli_pref = (uint8_t) order;
 }
 
 #endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_PROTO_TLS1_2 */

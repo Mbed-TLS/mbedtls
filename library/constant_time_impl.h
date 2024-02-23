@@ -204,10 +204,10 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool(mbedtls_ct_uint_t x)
 #pragma warning( disable : 4146 )
 #endif
     // y is negative (i.e., top bit set) iff x is non-zero
-    mbedtls_ct_int_t y = (-xo) | -(xo >> 1);
+    mbedtls_ct_int_t y = (mbedtls_ct_int_t) ((-xo) | -(xo >> 1));
 
     // extract only the sign bit of y so that y == 1 (if x is non-zero) or 0 (if x is zero)
-    y = (((mbedtls_ct_uint_t) y) >> (MBEDTLS_CT_SIZE - 1));
+    y = (mbedtls_ct_int_t) (((mbedtls_ct_uint_t) y) >> (MBEDTLS_CT_SIZE - 1));
 
     // -y has all bits set (if x is non-zero), or all bits clear (if x is zero)
     return (mbedtls_ct_condition_t) (-y);
@@ -498,7 +498,7 @@ static inline int mbedtls_ct_error_if(mbedtls_ct_condition_t condition, int if1,
 
 static inline int mbedtls_ct_error_if_else_0(mbedtls_ct_condition_t condition, int if1)
 {
-    return -((int) (condition & (-if1)));
+    return -((int) (condition & (unsigned int) (-if1)));
 }
 
 static inline mbedtls_ct_condition_t mbedtls_ct_uint_eq(mbedtls_ct_uint_t x,

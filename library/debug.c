@@ -147,19 +147,19 @@ void mbedtls_debug_print_buf(const mbedtls_ssl_context *ssl, int level,
                 memset(txt, 0, sizeof(txt));
             }
 
-            idx += mbedtls_snprintf(str + idx, sizeof(str) - idx, "%04x: ",
-                                    (unsigned int) i);
+            idx += (size_t) mbedtls_snprintf(str + idx, sizeof(str) - idx, "%04x: ",
+                                             (unsigned int) i);
 
         }
 
-        idx += mbedtls_snprintf(str + idx, sizeof(str) - idx, " %02x",
-                                (unsigned int) buf[i]);
-        txt[i % 16] = (buf[i] > 31 && buf[i] < 127) ? buf[i] : '.';
+        idx += (size_t) mbedtls_snprintf(str + idx, sizeof(str) - idx, " %02x",
+                                         (unsigned int) buf[i]);
+        txt[i % 16] = (char) ((buf[i] > 31 && buf[i] < 127) ? buf[i] : '.');
     }
 
     if (len > 0) {
         for (/* i = i */; i % 16 != 0; i++) {
-            idx += mbedtls_snprintf(str + idx, sizeof(str) - idx, "   ");
+            idx += (size_t) mbedtls_snprintf(str + idx, sizeof(str) - idx, "   ");
         }
 
         mbedtls_snprintf(str + idx, sizeof(str) - idx, "  %s\n", txt);
@@ -290,10 +290,10 @@ void mbedtls_debug_print_mpi(const mbedtls_ssl_context *ssl, int level,
     } else {
         int n;
         for (n = (int) ((bitlen - 1) / 8); n >= 0; n--) {
-            size_t limb_offset = n / sizeof(mbedtls_mpi_uint);
-            size_t offset_in_limb = n % sizeof(mbedtls_mpi_uint);
-            unsigned char octet =
-                (X->p[limb_offset] >> (offset_in_limb * 8)) & 0xff;
+            size_t limb_offset = (size_t) n / sizeof(mbedtls_mpi_uint);
+            size_t offset_in_limb = (size_t) n % sizeof(mbedtls_mpi_uint);
+            unsigned char octet = (unsigned char)
+                                  ((X->p[limb_offset] >> (offset_in_limb * 8)) & 0xff);
             mbedtls_snprintf(str + idx, sizeof(str) - idx, " %02x", octet);
             idx += 3;
             /* Wrap lines after 16 octets that each take 3 columns */

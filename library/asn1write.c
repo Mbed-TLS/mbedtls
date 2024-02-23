@@ -197,7 +197,8 @@ int mbedtls_asn1_write_bool(unsigned char **p, const unsigned char *start, int b
     return mbedtls_asn1_write_len_and_tag(p, start, len, MBEDTLS_ASN1_BOOLEAN);
 }
 
-static int asn1_write_tagged_int(unsigned char **p, const unsigned char *start, int val, int tag)
+static int asn1_write_tagged_int(unsigned char **p, const unsigned char *start,
+                                 int val, unsigned char tag)
 {
     size_t len = 0;
 
@@ -206,7 +207,7 @@ static int asn1_write_tagged_int(unsigned char **p, const unsigned char *start, 
             return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
         }
         len += 1;
-        *--(*p) = val & 0xff;
+        *--(*p) = (unsigned char) (val & 0xff);
         val >>= 8;
     } while (val > 0);
 
@@ -241,7 +242,7 @@ int mbedtls_asn1_write_tagged_string(unsigned char **p, const unsigned char *sta
                                                             (const unsigned char *) text,
                                                             text_len));
 
-    return mbedtls_asn1_write_len_and_tag(p, start, len, tag);
+    return mbedtls_asn1_write_len_and_tag(p, start, len, (unsigned char) tag);
 }
 
 int mbedtls_asn1_write_utf8_string(unsigned char **p, const unsigned char *start,
@@ -283,7 +284,7 @@ int mbedtls_asn1_write_named_bitstring(unsigned char **p,
      */
     if (bits != 0) {
         cur_byte = buf + byte_len - 1;
-        cur_byte_shifted = *cur_byte >> unused_bits;
+        cur_byte_shifted = (unsigned char) (*cur_byte >> unused_bits);
 
         for (;;) {
             bit = cur_byte_shifted & 0x1;
@@ -325,7 +326,7 @@ int mbedtls_asn1_write_bitstring(unsigned char **p, const unsigned char *start,
     /* Write the bitstring. Ensure the unused bits are zeroed */
     if (byte_len > 0) {
         byte_len--;
-        *--(*p) = buf[byte_len] & ~((0x1 << unused_bits) - 1);
+        *--(*p) = (unsigned char) (buf[byte_len] & ~((0x1 << unused_bits) - 1));
         (*p) -= byte_len;
         memcpy(*p, buf, byte_len);
     }

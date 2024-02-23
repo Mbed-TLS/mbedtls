@@ -995,7 +995,7 @@ int mbedtls_rsa_set_padding(mbedtls_rsa_context *ctx, int padding,
 #endif /* MBEDTLS_PKCS1_V21 */
 
     ctx->padding = padding;
-    ctx->hash_id = hash_id;
+    ctx->hash_id = (int) hash_id;
 
     return 0;
 }
@@ -1990,7 +1990,8 @@ int mbedtls_rsa_rsaes_oaep_decrypt(mbedtls_rsa_context *ctx,
     p += hlen; /* Skip seed */
 
     /* Check lHash */
-    bad = mbedtls_ct_bool_or(bad, mbedtls_ct_bool(mbedtls_ct_memcmp(lhash, p, hlen)));
+    bad = mbedtls_ct_bool_or(bad,
+                             mbedtls_ct_bool((unsigned int) mbedtls_ct_memcmp(lhash, p, hlen)));
     p += hlen;
 
     /* Get zero-padding len, but always read till end of buffer
@@ -2172,7 +2173,7 @@ static int rsa_rsassa_pss_sign_no_mode_check(mbedtls_rsa_context *ctx,
         } else {
             slen = olen - hlen - 2;
         }
-    } else if ((saltlen < 0) || (saltlen + hlen + 2 > olen)) {
+    } else if ((saltlen < 0) || ((unsigned int) saltlen + hlen + 2 > olen)) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     } else {
         slen = (size_t) saltlen;
@@ -2211,7 +2212,7 @@ static int rsa_rsassa_pss_sign_no_mode_check(mbedtls_rsa_context *ctx,
     }
 
     msb = mbedtls_mpi_bitlen(&ctx->N) - 1;
-    sig[0] &= 0xFF >> (olen * 8 - msb);
+    sig[0] = (unsigned char) (sig[0] & (0xFF >> (olen * 8 - msb)));
 
     p += hlen;
     *p++ = 0xBC;
@@ -2607,7 +2608,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext(mbedtls_rsa_context *ctx,
         return ret;
     }
 
-    buf[0] &= 0xFF >> (siglen * 8 - msb);
+    buf[0] = (unsigned char) (buf[0] & (0xFF >> (siglen * 8 - msb)));
 
     while (p < hash_start - 1 && *p == 0) {
         p++;
@@ -2896,7 +2897,7 @@ static int myrand(void *rng_state, unsigned char *output, size_t len)
     }
 
     for (i = 0; i < len; ++i) {
-        output[i] = rand();
+        output[i] = (unsigned char) rand();
     }
 #else
     if (rng_state != NULL) {

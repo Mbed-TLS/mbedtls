@@ -598,8 +598,8 @@ static int x509_date_is_valid(const mbedtls_x509_time *t)
 
 static int x509_parse2_int(const unsigned char *p)
 {
-    uint32_t d1 = p[0] - '0';
-    uint32_t d2 = p[1] - '0';
+    uint32_t d1 = (uint32_t) (p[0] - '0');
+    uint32_t d2 = (uint32_t) (p[1] - '0');
     return (d1 < 10 && d2 < 10) ? (int) (d1 * 10 + d2) : -1;
 }
 
@@ -802,7 +802,7 @@ int mbedtls_x509_get_ext(unsigned char **p, const unsigned char *end,
 
 static char nibble_to_hex_digit(int i)
 {
-    return (i < 10) ? (i + '0') : (i - 10 + 'A');
+    return (char) ((i < 10) ? (i + '0') : (i - 10 + 'A'));
 }
 
 /*
@@ -848,7 +848,7 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
             ret = mbedtls_snprintf(p, n, "%s=", short_name);
         } else {
             if ((ret = mbedtls_oid_get_numeric_string(p, n, &name->oid)) > 0) {
-                n -= ret;
+                n -= (size_t) ret;
                 p += ret;
                 ret = mbedtls_snprintf(p, n, "=");
                 print_hexstring = 1;
@@ -867,11 +867,12 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
             if ((ret = mbedtls_asn1_write_len(&asn1_len_p, asn1_tag_len_buf, name->val.len)) < 0) {
                 return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
             }
-            asn1_len_size = ret;
-            if ((ret = mbedtls_asn1_write_tag(&asn1_len_p, asn1_tag_len_buf, name->val.tag)) < 0) {
+            asn1_len_size = (size_t) ret;
+            if ((ret = mbedtls_asn1_write_tag(&asn1_len_p, asn1_tag_len_buf,
+                                              (unsigned char) name->val.tag)) < 0) {
                 return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
             }
-            asn1_tag_size = ret;
+            asn1_tag_size = (size_t) ret;
             asn1_tag_len_buf_start = sizeof(asn1_tag_len_buf) - asn1_len_size - asn1_tag_size;
             for (i = 0, j = 1; i < asn1_len_size + asn1_tag_size; i++) {
                 if (j + 1 >= sizeof(s) - 1) {
@@ -879,7 +880,7 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
                 }
                 c = asn1_tag_len_buf[asn1_tag_len_buf_start+i];
                 lowbits = (c & 0x0F);
-                highbits = c >> 4;
+                highbits = (char) (c >> 4);
                 s[j++] = nibble_to_hex_digit(highbits);
                 s[j++] = nibble_to_hex_digit(lowbits);
             }
@@ -889,7 +890,7 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
                 }
                 c = name->val.p[i];
                 lowbits = (c & 0x0F);
-                highbits = c >> 4;
+                highbits = (char) (c >> 4);
                 s[j++] = nibble_to_hex_digit(highbits);
                 s[j++] = nibble_to_hex_digit(lowbits);
             }
@@ -919,11 +920,11 @@ int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn)
                     }
                     s[j++] = '\\';
                     lowbits = (c & 0x0F);
-                    highbits = c >> 4;
+                    highbits = (char) (c >> 4);
                     s[j++] = nibble_to_hex_digit(highbits);
                     s[j] = nibble_to_hex_digit(lowbits);
                 } else {
-                    s[j] = c;
+                    s[j] = (char) c;
                 }
             }
         }
@@ -1678,7 +1679,7 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                 }
 
                 p += ret;
-                n -= ret;
+                n -= (size_t) ret;
             }
             break;
             /*

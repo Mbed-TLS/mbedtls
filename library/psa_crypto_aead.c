@@ -109,7 +109,7 @@ static psa_status_t psa_aead_setup(
 
     operation->key_type = psa_get_key_type(attributes);
 
-    operation->tag_length = PSA_ALG_AEAD_GET_TAG_LENGTH(alg);
+    operation->tag_length = (uint8_t) PSA_ALG_AEAD_GET_TAG_LENGTH(alg);
 
     return PSA_SUCCESS;
 }

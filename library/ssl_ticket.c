@@ -134,7 +134,7 @@ static int ssl_ticket_update_keys(mbedtls_ssl_ticket_context *ctx)
             return 0;
         }
 
-        ctx->active = 1 - ctx->active;
+        ctx->active = (unsigned char) (1 - ctx->active);
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         if ((status = psa_destroy_key(ctx->keys[ctx->active].key)) != PSA_SUCCESS) {
@@ -156,7 +156,7 @@ int mbedtls_ssl_ticket_rotate(mbedtls_ssl_ticket_context *ctx,
                               const unsigned char *k, size_t klength,
                               uint32_t lifetime)
 {
-    const unsigned char idx = 1 - ctx->active;
+    const unsigned char idx = (unsigned char) (1 - ctx->active);
     mbedtls_ssl_ticket_key * const key = ctx->keys + idx;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -360,7 +360,7 @@ int mbedtls_ssl_ticket_write(void *p_ticket,
     if ((status = psa_aead_encrypt(key->key, key->alg, iv, TICKET_IV_BYTES,
                                    key_name, TICKET_ADD_DATA_LEN,
                                    state, clear_len,
-                                   state, end - state,
+                                   state, (size_t) (end - state),
                                    &ciph_len)) != PSA_SUCCESS) {
         ret = PSA_TO_MBEDTLS_ERR(status);
         goto cleanup;

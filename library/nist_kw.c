@@ -58,7 +58,7 @@ int mbedtls_nist_kw_setkey(mbedtls_nist_kw_context *ctx,
     const mbedtls_cipher_info_t *cipher_info;
 
     cipher_info = mbedtls_cipher_info_from_values(cipher,
-                                                  keybits,
+                                                  (int) keybits,
                                                   MBEDTLS_MODE_ECB);
     if (cipher_info == NULL) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
@@ -87,7 +87,7 @@ int mbedtls_nist_kw_setkey(mbedtls_nist_kw_context *ctx,
         return ret;
     }
 
-    if ((ret = mbedtls_cipher_setkey(&ctx->cipher_ctx, key, keybits,
+    if ((ret = mbedtls_cipher_setkey(&ctx->cipher_ctx, key, (int) keybits,
                                      is_wrap ? MBEDTLS_ENCRYPT :
                                      MBEDTLS_DECRYPT)
          ) != 0) {
@@ -114,7 +114,7 @@ static void calc_a_xor_t(unsigned char A[KW_SEMIBLOCK_LENGTH], uint64_t t)
 {
     size_t i = 0;
     for (i = 0; i < sizeof(t); i++) {
-        A[i] ^= (t >> ((sizeof(t) - 1 - i) * 8)) & 0xff;
+        A[i] ^= (unsigned char) ((t >> ((sizeof(t) - 1 - i) * 8)) & 0xff);
     }
 }
 

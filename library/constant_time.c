@@ -159,9 +159,9 @@ void mbedtls_ct_memmove_left(void *start, size_t total, size_t offset)
         for (size_t n = 0; n < total - 1; n++) {
             unsigned char current = buf[n];
             unsigned char next    = buf[n+1];
-            buf[n] = mbedtls_ct_uint_if(no_op, current, next);
+            buf[n] = (unsigned char) mbedtls_ct_uint_if(no_op, current, next);
         }
-        buf[total-1] = mbedtls_ct_uint_if_else_0(no_op, buf[total-1]);
+        buf[total-1] = (unsigned char) mbedtls_ct_uint_if_else_0(no_op, buf[total-1]);
     }
 }
 
@@ -208,7 +208,7 @@ void mbedtls_ct_memcpy_if(mbedtls_ct_condition_t condition,
 #endif /* defined(MBEDTLS_CT_SIZE_64) */
 #endif /* MBEDTLS_EFFICIENT_UNALIGNED_ACCESS */
     for (; i < len; i++) {
-        dest[i] = (src1[i] & mask) | (src2[i] & not_mask);
+        dest[i] = (src1[i] & (unsigned char) mask) | (src2[i] & (unsigned char) not_mask);
     }
 }
 
@@ -241,7 +241,7 @@ void mbedtls_ct_zeroize_if(mbedtls_ct_condition_t condition, void *buf, size_t l
     }
 #endif
     for (; i < len; i++) {
-        p[i] = p[i] & mask;
+        p[i] = (uint8_t) (p[i] & mask);
     }
 }
 

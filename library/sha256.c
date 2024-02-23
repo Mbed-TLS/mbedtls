@@ -873,7 +873,8 @@ static sha_test_sum_t sha256_test_sum[] =
  */
 static int mbedtls_sha256_common_self_test(int verbose, int is224)
 {
-    int i, buflen, ret = 0;
+    int i, ret = 0;
+    size_t buflen;
     unsigned char *buf;
     unsigned char sha256sum[32];
     mbedtls_sha256_context ctx;
@@ -929,7 +930,7 @@ static int mbedtls_sha256_common_self_test(int verbose, int is224)
         }
 
 
-        if (memcmp(sha256sum, sha_test_sum[i], 32 - is224 * 4) != 0) {
+        if (memcmp(sha256sum, sha_test_sum[i], 32 - (unsigned int) is224 * 4) != 0) {
             ret = 1;
             goto fail;
         }

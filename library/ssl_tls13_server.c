@@ -1074,6 +1074,7 @@ static int ssl_tls13_determine_key_exchange_mode(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_DEBUG_MSG(2, ("key exchange mode: psk_ephemeral"));
     } else
     if (ssl_tls13_key_exchange_is_ephemeral_available(ssl)) {
+        ssl->handshake->resume = 0;
         ssl->handshake->key_exchange_mode =
             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL;
         MBEDTLS_SSL_DEBUG_MSG(2, ("key exchange mode: ephemeral"));

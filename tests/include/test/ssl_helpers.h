@@ -114,6 +114,7 @@ typedef struct mbedtls_test_handshake_test_options {
     void (*cli_log_fun)(void *, int, const char *, int, const char *);
     int resize_buffers;
     int early_data;
+    int max_early_data_size;
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_context *cache;
 #endif

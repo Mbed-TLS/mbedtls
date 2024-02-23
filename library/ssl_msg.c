@@ -6065,6 +6065,7 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const struct mbedtls_ssl_config *conf;
     int written_data_len = 0;
+    uint32_t remaining;
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write early_data"));
 
@@ -6114,15 +6115,24 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
                 return ret;
             }
         }
+        remaining = ssl->session_negotiate->max_early_data_size;
     } else {
         /*
-         * If we are past the point where we can send early data, return
-         * immediatly. Otherwise, progress the handshake as much as possible to
-         * not delay it too much. If we reach a point where we can still send
-         * early data, then we will send some.
+         * If we are past the point where we can send early data or we have
+         * already reached the maximum early data size, return immediatly.
+         * Otherwise, progress the handshake as much as possible to not delay
+         * it too much. If we reach a point where we can still send early data,
+         * then we will send some.
          */
         if ((ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE) &&
             (ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED)) {
+            return MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA;
+        }
+
+        remaining = ssl->session_negotiate->max_early_data_size -
+                    ssl->early_data_count;
+
+        if (remaining == 0) {
             return MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA;
         }
 
@@ -6133,12 +6143,18 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
         }
     }
 
-    if ((ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE) &&
-        (ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED)) {
+    if (((ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE) &&
+         (ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED))
+        || (remaining == 0)) {
         return MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA;
     }
 
+    if (len > remaining) {
+        len = remaining;
+    }
+
     written_data_len = ssl_write_real(ssl, buf, len);
+    ssl->early_data_count += written_data_len;
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("<= write early_data, len=%d", written_data_len));
 

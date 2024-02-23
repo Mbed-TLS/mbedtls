@@ -282,9 +282,9 @@ static int ssl_tls13_offered_psks_check_identity_match(
     ssl->handshake->resume = 0;
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    if (ssl_tls13_offered_psks_check_identity_match_ticket(
-            ssl, identity, identity_len, obfuscated_ticket_age,
-            session) == SSL_TLS1_3_PSK_IDENTITY_MATCH) {
+    ret = ssl_tls13_offered_psks_check_identity_match_ticket(
+        ssl, identity, identity_len, obfuscated_ticket_age, session);
+    if (ret == SSL_TLS1_3_PSK_IDENTITY_MATCH) {
         ssl->handshake->resume = 1;
         *psk_type = MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION;
         ret = mbedtls_ssl_set_hs_psk(ssl,
@@ -301,6 +301,8 @@ static int ssl_tls13_offered_psks_check_identity_match(
         MBEDTLS_SSL_DEBUG_MSG(4, ("ticket: obfuscated_ticket_age: %u",
                                   (unsigned) obfuscated_ticket_age));
         return SSL_TLS1_3_PSK_IDENTITY_MATCH;
+    } else if (ret == SSL_TLS1_3_PSK_IDENTITY_MATCH_BUT_PSK_NOT_USABLE) {
+        return SSL_TLS1_3_PSK_IDENTITY_MATCH_BUT_PSK_NOT_USABLE;
     }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 

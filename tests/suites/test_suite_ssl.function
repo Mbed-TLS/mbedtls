@@ -1121,12 +1121,12 @@ void ssl_dtls_replay(data_t *prevs, data_t *new, int ret)
     mbedtls_ssl_config_init(&conf);
     MD_OR_USE_PSA_INIT();
 
-    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
-
     TEST_ASSERT(mbedtls_ssl_config_defaults(&conf,
                                             MBEDTLS_SSL_IS_CLIENT,
                                             MBEDTLS_SSL_TRANSPORT_DATAGRAM,
                                             MBEDTLS_SSL_PRESET_DEFAULT) == 0);
+    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
+
     TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == 0);
 
     /* Read previous record numbers */
@@ -3075,12 +3075,11 @@ void cookie_parsing(data_t *cookie, int exp_ret)
     mbedtls_ssl_config_init(&conf);
     USE_PSA_INIT();
 
-    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
-
     TEST_EQUAL(mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_SERVER,
                                            MBEDTLS_SSL_TRANSPORT_DATAGRAM,
                                            MBEDTLS_SSL_PRESET_DEFAULT),
                0);
+    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
 
     TEST_EQUAL(mbedtls_ssl_setup(&ssl, &conf), 0);
     TEST_EQUAL(mbedtls_ssl_check_dtls_clihlo_cookie(&ssl, ssl.cli_id,
@@ -3130,13 +3129,12 @@ void cid_sanity()
     mbedtls_ssl_config_init(&conf);
     MD_OR_USE_PSA_INIT();
 
-    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
-
     TEST_ASSERT(mbedtls_ssl_config_defaults(&conf,
                                             MBEDTLS_SSL_IS_CLIENT,
                                             MBEDTLS_SSL_TRANSPORT_STREAM,
                                             MBEDTLS_SSL_PRESET_DEFAULT)
                 == 0);
+    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
 
     TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == 0);
 
@@ -3390,12 +3388,11 @@ void ssl_ecjpake_set_password(int use_opaque_arg)
 
     mbedtls_ssl_config_init(&conf);
 
-    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
-
     TEST_EQUAL(mbedtls_ssl_config_defaults(&conf,
                                            MBEDTLS_SSL_IS_CLIENT,
                                            MBEDTLS_SSL_TRANSPORT_STREAM,
                                            MBEDTLS_SSL_PRESET_DEFAULT), 0);
+    mbedtls_ssl_conf_rng(&conf, mbedtls_test_random, NULL);
 
     TEST_EQUAL(mbedtls_ssl_setup(&ssl, &conf), 0);
 

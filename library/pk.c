@@ -27,7 +27,7 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 #include "psa_util_internal.h"
 #include "mbedtls/psa_util.h"
 #endif
@@ -1413,12 +1413,6 @@ int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id, mbedtls_pk_context *pk
 #if defined(MBEDTLS_RSA_C)
     if ((key_type == PSA_KEY_TYPE_RSA_KEY_PAIR) ||
         (key_type == PSA_KEY_TYPE_RSA_PUBLIC_KEY)) {
-        if (!PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg_type) &&
-            (alg_type != PSA_ALG_RSA_PKCS1V15_CRYPT) &&
-            !PSA_ALG_IS_RSA_OAEP(alg_type) &&
-            !PSA_ALG_IS_RSA_PSS(alg_type)) {
-            return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-        }
 
         ret = mbedtls_pk_setup(pk, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA));
         if (ret != 0) {
@@ -1435,7 +1429,7 @@ int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id, mbedtls_pk_context *pk
         }
 
         mbedtls_md_type_t md_type = MBEDTLS_MD_NONE;
-        if ((alg_type != PSA_ALG_RSA_PKCS1V15_CRYPT) &&
+        if ((PSA_ALG_GET_HASH(alg_type) != PSA_ALG_NONE) &&
             (PSA_ALG_GET_HASH(alg_type) != PSA_ALG_ANY_HASH)) {
             md_type = mbedtls_md_type_from_psa_alg(alg_type);
         }
@@ -1454,11 +1448,6 @@ int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id, mbedtls_pk_context *pk
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(key_type) ||
         PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY(key_type)) {
         mbedtls_ecp_group_id grp_id;
-
-        if (!PSA_ALG_IS_ECDSA(alg_type)) {
-            ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-            goto exit;
-        }
 
         ret = mbedtls_pk_setup(pk, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
         if (ret != 0) {

@@ -394,7 +394,7 @@ int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
 /**
  * \brief           Create a PK context starting from a key stored in PSA.
  *                  This key:
- *                  - must be exportabel and
+ *                  - must be exportable and
  *                  - must be a either an RSA or EC key (DH is not managed in PK) and
  *                  - must be either a key pair or a public key.
  *
@@ -407,19 +407,16 @@ int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
  *                  from.
  *                  Calling mbedtls_pk_sign(), mbedtls_pk_verify(),
  *                  mbedtls_pk_encrypt(), mbedtls_pk_decrypt() on the resulting
- *                  PK context will perform an algorithm that is compatible with
- *                  the PSA key's primary algorithm policy if that is a matching
- *                  operation type (sign/verify, encrypt/decrypt), but with no
- *                  restriction on the hash (as if the policy had
- *                  #PSA_ALG_ANY_HASH instead of a specific hash, and with
- *                  #PSA_ALG_RSA_PKCS1V15_SIGN_RAW merged with
- *                  #PSA_ALG_RSA_PKCS1V15_SIGN(\c hash_alg)).
+ *                  PK context will perform the corresponding algorithm for that
+ *                  PK context type.
  *                  * For ECDSA, the choice of deterministic vs randomized will
  *                    be based on the compile-time setting #MBEDTLS_ECDSA_DETERMINISTIC.
- *                  * For an RSA key, the output key will allow both encrypt/decrypt
- *                    and sign/verify regardless of the original key's policy.
+ *                  * For an RSA key, the output PK context will allow both
+ *                    encrypt/decrypt and sign/verify regardless of the original
+ *                    key's policy.
  *                    The original key's policy determines the output key's padding
- *                    mode.
+ *                    mode: PCKS1 v2.1 is set if the PSA key policy is OAEP or PSS,
+ *                    otherwise PKCS1 v1.5 is set.
  *
  * \param key_id    The key identifier of the key stored in PSA.
  * \param pk        The PK context that will be filled. It must be initialized,

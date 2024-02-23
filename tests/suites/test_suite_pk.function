@@ -2360,13 +2360,27 @@ void pk_copy_from_psa_success(data_t *priv_key_data, int key_type_arg,
     pub_key_id = psa_pub_key_from_priv(priv_key_id);
     TEST_EQUAL(mbedtls_pk_copy_from_psa(pub_key_id, &pk_pub), 0);
 
-    /* Test #1: check that the generated PK contexts are of the correct type. */
+    /* Test #1:
+     * - check that the generated PK contexts are of the correct type.
+     * - [only for RSA] check that the padding mode is correct.
+     */
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(key_type)) {
         TEST_EQUAL(mbedtls_pk_get_type(&pk_priv), MBEDTLS_PK_ECKEY);
         TEST_EQUAL(mbedtls_pk_get_type(&pk_pub), MBEDTLS_PK_ECKEY);
     } else {
         TEST_EQUAL(mbedtls_pk_get_type(&pk_priv), MBEDTLS_PK_RSA);
         TEST_EQUAL(mbedtls_pk_get_type(&pk_pub), MBEDTLS_PK_RSA);
+#if defined(MBEDTLS_RSA_C)
+        mbedtls_rsa_context *rsa_priv = mbedtls_pk_rsa(pk_priv);
+        mbedtls_rsa_context *rsa_pub = mbedtls_pk_rsa(pk_pub);
+        if (PSA_ALG_IS_RSA_OAEP(key_alg) || PSA_ALG_IS_RSA_PSS(key_alg)) {
+            TEST_EQUAL(mbedtls_rsa_get_padding_mode(rsa_priv), MBEDTLS_RSA_PKCS_V21);
+            TEST_EQUAL(mbedtls_rsa_get_padding_mode(rsa_pub), MBEDTLS_RSA_PKCS_V21);
+        } else {
+            TEST_EQUAL(mbedtls_rsa_get_padding_mode(rsa_priv), MBEDTLS_RSA_PKCS_V15);
+            TEST_EQUAL(mbedtls_rsa_get_padding_mode(rsa_pub), MBEDTLS_RSA_PKCS_V15);
+        }
+#endif /* MBEDTLS_RSA_C */
     }
 
     /* Test #2: check that the 2 generated PK contexts form a valid private/public key pair. */

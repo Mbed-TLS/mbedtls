@@ -33,15 +33,14 @@ mbedtls_threading_mutex_t mbedtls_test_info_mutex;
 /*----------------------------------------------------------------------------*/
 /* Mbedtls Test Info accessors
  *
- * NOTE - there are two types of accessors here; the _internal functions, which
- * are expected to be used from this module *only*. These do not attempt to lock
- * the mbedtls_test_info_mutex, as they are designed to be called from within
- * public functions which do lock the mutex first (if mutexes are enabled).
- * The main reason for this is the need to set some sets of test data
- * atomically, without releasing the mutex inbetween to prevent race conditions
- * resulting in mixed test info. The other public accessors have prototypes in
- * the header and have to lock the mutex for safety as we obviously cannot
- * control where they are called from. */
+ * NOTE - there are two types of accessors here: public accessors and internal
+ * accessors. The public accessors have prototypes in helpers.h and lock
+ * mbedtls_test_info_mutex (if mutexes are enabled). The _internal accessors,
+ * which are expected to be used from this module *only*, do not lock the mutex.
+ * These are designed to be called from within public functions which already
+ * hold the mutex. The main reason for this difference is the need to set
+ * multiple test data values atomically (without releasing the mutex) to prevent
+ * race conditions. */
 
 mbedtls_test_result_t mbedtls_test_get_result(void)
 {

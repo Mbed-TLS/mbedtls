@@ -542,7 +542,7 @@ psa_status_t psa_open_key(mbedtls_svc_key_id_t key, psa_key_handle_t *handle)
 
     *handle = key;
 
-    return psa_unregister_read(slot);
+    return psa_unregister_read_under_mutex(slot);
 
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
     (void) key;

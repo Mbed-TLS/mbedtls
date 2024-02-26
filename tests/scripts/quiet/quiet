@@ -37,7 +37,7 @@ print_quoted_args() {
             #   CFLAGS=a b -> CFLAGS='a b'
             q="${BASH_REMATCH[1]}'${BASH_REMATCH[2]}'"
         fi
-        printf "%s " "$q"
+        printf " %s" "$q"
     done
 }
 
@@ -45,7 +45,7 @@ if [[ ! " $* " =~ " --version " ]]; then
     # Display the command being invoked - if it succeeds, this is all that will
     # be displayed. Don't do this for invocations with --version, because
     # this output is often parsed by scripts, so we don't want to modify it.
-    printf %s "${TOOL} "
+    printf %s "${TOOL}"
     print_quoted_args "$@"
     echo
 fi

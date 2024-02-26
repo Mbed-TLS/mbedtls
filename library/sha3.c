@@ -24,18 +24,26 @@
  * saving then enables us to unroll the other loops for a net code-size saving with a net
  * performance win.
  *
- * Depending on your compiler and target, it may be beneficial to adjust these; the defaults here
- * should give sensible trade-offs for gcc and clang.
+ * Depending on your size/perf priorities, compiler and target, it may be beneficial to adjust
+ * these; the defaults here should give sensible trade-offs for gcc and clang.
  */
-#undef   MBEDTLS_SHA3_THETA_UNROLL //no-check-names
-#define  MBEDTLS_SHA3_RHO_UNROLL   //no-check-names
-#define  MBEDTLS_SHA3_PI_UNROLL    //no-check-names
-#if !defined(MBEDTLS_COMPILER_IS_GCC) || defined(__OPTIMIZE_SIZE__)
+#if !defined(MBEDTLS_SHA3_THETA_UNROLL)
+    #define MBEDTLS_SHA3_THETA_UNROLL 0 //no-check-names
+#endif
+#if !defined(MBEDTLS_SHA3_PI_UNROLL)
+    #define MBEDTLS_SHA3_PI_UNROLL 1 //no-check-names
+#endif
+#if !defined(MBEDTLS_SHA3_CHI_UNROLL)
+    #if !defined(MBEDTLS_COMPILER_IS_GCC) || defined(__OPTIMIZE_SIZE__)
 /* GCC doesn't perform well with the rolled-up version, especially at -O2, so only enable on gcc
  * if optimising for size. Always enable for other compilers. */
-#undef   MBEDTLS_SHA3_CHI_UNROLL    //no-check-names
-#else
-#define  MBEDTLS_SHA3_CHI_UNROLL    //no-check-names
+        #define MBEDTLS_SHA3_CHI_UNROLL 0 //no-check-names
+    #else
+        #define MBEDTLS_SHA3_CHI_UNROLL 1 //no-check-names
+    #endif
+#endif
+#if !defined(MBEDTLS_SHA3_RHO_UNROLL)
+    #define MBEDTLS_SHA3_RHO_UNROLL 1 //no-check-names
 #endif
 
 #include "mbedtls/sha3.h"
@@ -84,7 +92,7 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
         uint64_t t;
 
         /* Theta */
-#if !defined(MBEDTLS_SHA3_THETA_UNROLL) //no-check-names
+#if MBEDTLS_SHA3_THETA_UNROLL == 0 //no-check-names
         for (i = 0; i < 5; i++) {
             lane[i] = s[i] ^ s[i + 5] ^ s[i + 10] ^ s[i + 15] ^ s[i + 20];
         }
@@ -118,7 +126,7 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
         /* Rho */
         for (i = 1; i < 25; i += 4) {
             uint32_t r = rho[(i - 1) >> 2];
-#if !defined(MBEDTLS_SHA3_RHO_UNROLL)
+#if MBEDTLS_SHA3_RHO_UNROLL == 0
             for (int j = i; j < i + 4; j++) {
                 uint8_t r8 = (uint8_t) (r >> 24);
                 r <<= 8;
@@ -134,7 +142,7 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
 
         /* Pi */
         t = s[1];
-#if !defined(MBEDTLS_SHA3_PI_UNROLL)
+#if MBEDTLS_SHA3_PI_UNROLL == 0
         for (i = 0; i < 24; i += 4) {
             uint32_t p = pi[i >> 2];
             for (unsigned j = 0; j < 4; j++) {
@@ -165,7 +173,7 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
 #endif
 
         /* Chi */
-#if !defined(MBEDTLS_SHA3_CHI_UNROLL) //no-check-names
+#if MBEDTLS_SHA3_CHI_UNROLL == 0 //no-check-names
         for (i = 0; i <= 20; i += 5) {
             lane[0] = s[i]; lane[1] = s[i + 1]; lane[2] = s[i + 2];
             lane[3] = s[i + 3]; lane[4] = s[i + 4];

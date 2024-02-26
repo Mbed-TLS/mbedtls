@@ -205,14 +205,8 @@ setup_quiet_wrappers()
     # unless there is an error. This reduces logging overhead in the CI.
     #
     # Note that the cmake wrapper breaks unless we use an absolute path here.
-    export PATH=${PWD}/tests/scripts/quiet:$PATH
-    if [[ ! -x ${PWD}/tests/scripts/quiet/make ]]; then
-        echo "can't find quiet/make"
-        exit 1
-    fi
-    if [[ ! -x ${PWD}/tests/scripts/quiet/cmake ]]; then
-        echo "can't find quiet/cmake"
-        exit 1
+    if [[ -e ${PWD}/tests/scripts/quiet ]]; then
+        export PATH=${PWD}/tests/scripts/quiet:$PATH
     fi
 }
 

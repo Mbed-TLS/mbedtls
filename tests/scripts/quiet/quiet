@@ -27,18 +27,15 @@ print_quoted_args() {
     # similar to printf '%q' "$@"
     # but produce more human-readable results for common/simple cases like "a b"
     for a in "$@"; do
-        simple_pattern='^([[:alnum:]_+-]+=)?([[:alnum:] _=+-./:@]*)$'
-        if [[ $a =~ ' ' && $a =~ $simple_pattern ]]; then
-            # a has spaces, but no other special characters that need escaping
-            # (quoting after removing spaces yields no backslashes)
-            # simplify quoted form - e.g.:
-            #   a b        -> "a b"
-            #   CFLAGS=a b -> CFLAGS="a b"
-            q="${BASH_REMATCH[1]}\"${BASH_REMATCH[2]}\""
-        else
-            # get bash to do the quoting (which may result in no quotes or escaping,
-            # if none is needed).
-            q=$(printf '%q' "$a")
+        # Get bash to quote the string
+        q=$(printf '%q' "$a")
+        simple_pattern="^([-[:alnum:]_+./:@]+=)?([^']*)$"
+        if [[ "$a" != "$q" && $a =~ $simple_pattern ]]; then
+            # a requires some quoting (a != q), but has no single quotes, so we can
+            # simplify the quoted form - e.g.:
+            #   a b        -> 'a b'
+            #   CFLAGS=a b -> CFLAGS='a b'
+            q="${BASH_REMATCH[1]}'${BASH_REMATCH[2]}'"
         fi
         printf "%s " "$q"
     done

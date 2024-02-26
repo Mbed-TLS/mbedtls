@@ -3741,7 +3741,7 @@ run_component () {
 
 # Preliminary setup
 pre_check_environment
-pre_initialize_variables "$@"
+pre_initialize_variables
 pre_parse_command_line "$@"
 
 setup_quiet_wrappers

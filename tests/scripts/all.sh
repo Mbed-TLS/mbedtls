@@ -131,25 +131,6 @@ pre_check_environment () {
 }
 
 pre_initialize_variables () {
-    special_options="--list-components|--list-all-components|-h|--help"
-    if [[ ! "$@" =~ $special_options ]]; then
-        # skip wrappers for "special options" which don't actually run any tests
-
-        # Pick up "quiet" wrappers for make and cmake, which don't output very much
-        # unless there is an error. This reduces logging overhead in the CI.
-        #
-        # Note that the cmake wrapper breaks unless we use an absolute path here.
-        export PATH=${PWD}/tests/scripts/quiet:$PATH
-        if [[ ! -x ${PWD}/tests/scripts/quiet/make ]]; then
-            echo "can't find quiet/make"
-            exit 1
-        fi
-        if [[ ! -x ${PWD}/tests/scripts/quiet/cmake ]]; then
-            echo "can't find quiet/cmake"
-            exit 1
-        fi
-    fi
-
     if in_mbedtls_repo; then
         CONFIG_H='include/mbedtls/mbedtls_config.h'
     else
@@ -233,6 +214,23 @@ pre_initialize_variables () {
 
     # Delay determining SUPPORTED_COMPONENTS until the command line options have a chance to override
     # the commands set by the environment
+}
+
+setup_quiet_wrappers()
+{
+    # Pick up "quiet" wrappers for make and cmake, which don't output very much
+    # unless there is an error. This reduces logging overhead in the CI.
+    #
+    # Note that the cmake wrapper breaks unless we use an absolute path here.
+    export PATH=${PWD}/tests/scripts/quiet:$PATH
+    if [[ ! -x ${PWD}/tests/scripts/quiet/make ]]; then
+        echo "can't find quiet/make"
+        exit 1
+    fi
+    if [[ ! -x ${PWD}/tests/scripts/quiet/cmake ]]; then
+        echo "can't find quiet/cmake"
+        exit 1
+    fi
 }
 
 # Test whether the component $1 is included in the command line patterns.
@@ -6268,6 +6266,7 @@ pre_check_environment
 pre_initialize_variables "$@"
 pre_parse_command_line "$@"
 
+setup_quiet_wrappers
 pre_check_git
 pre_restore_files
 pre_back_up

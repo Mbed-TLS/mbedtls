@@ -4673,7 +4673,7 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
     TEST_EQUAL(ret, early_data_len);
 
     ret = mbedtls_snprintf(pattern, sizeof(pattern),
-                           "EarlyData: Too many early data received");
+                           "EarlyData: Too much early data received");
     TEST_ASSERT(ret < (int) sizeof(pattern));
 
     ret = mbedtls_ssl_handshake(&(server_ep.ssl));

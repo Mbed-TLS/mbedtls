@@ -1480,7 +1480,7 @@ int mbedtls_ssl_tls13_check_early_data_len(mbedtls_ssl_context *ssl,
          ssl->early_data_count)) {
 
         MBEDTLS_SSL_DEBUG_MSG(
-            2, ("EarlyData: Too many early data received, %u > %u",
+            2, ("EarlyData: Too much early data received, %u > %u",
                 ssl->early_data_count + uint32_early_data_len,
                 ssl->session_negotiate->max_early_data_size));
 

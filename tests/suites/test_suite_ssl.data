@@ -3311,28 +3311,37 @@ TLS 1.3 write early data, hello retry request
 tls13_write_early_data:TEST_EARLY_DATA_HRR
 
 TLS 1.3 srv, max early data size, default
-tls13_srv_max_early_data_size:TEST_EARLY_DATA_ACCEPTED:-1
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_ACCEPTED:-1:0
+
+TLS 1.3 srv, max early data size, default, reach max
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_ACCEPTED:-1:1
 
 TLS 1.3 srv, max early data size, max=3 (small but !0)
-tls13_srv_max_early_data_size:TEST_EARLY_DATA_ACCEPTED:3
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_ACCEPTED:3:0
+
+TLS 1.3 srv, max early data size, max=3 (small but !0), reach max
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_ACCEPTED:3:1
 
 TLS 1.3 srv, max early data size, max=97
-tls13_srv_max_early_data_size:TEST_EARLY_DATA_ACCEPTED:97
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_ACCEPTED:97:0
+
+TLS 1.3 srv, max early data size, max=97, reach max
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_ACCEPTED:97:1
 
 TLS 1.3 srv, max early data size, server rejects, default
-tls13_srv_max_early_data_size:TEST_EARLY_DATA_SERVER_REJECTS:-1
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_SERVER_REJECTS:-1:0
 
 TLS 1.3 srv, max early data size, server rejects, max=3 (very small)
-tls13_srv_max_early_data_size:TEST_EARLY_DATA_SERVER_REJECTS:3
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_SERVER_REJECTS:3:0
 
 TLS 1.3 srv, max early data size, server rejects, max=97
-tls13_srv_max_early_data_size:TEST_EARLY_DATA_SERVER_REJECTS:97
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_SERVER_REJECTS:97:0
 
 TLS 1.3 srv, max early data size, HRR, default
-tls13_srv_max_early_data_size:TEST_EARLY_DATA_HRR:-1
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_HRR:-1:0
 
 TLS 1.3 srv, max early data size, HRR, max=3 (very small)
-tls13_srv_max_early_data_size:TEST_EARLY_DATA_HRR:3
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_HRR:3:0
 
 TLS 1.3 srv, max early data size, HRR, max=97
-tls13_srv_max_early_data_size:TEST_EARLY_DATA_HRR:97
+tls13_srv_max_early_data_size:TEST_EARLY_DATA_HRR:97:0

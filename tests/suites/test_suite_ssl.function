@@ -4455,7 +4455,7 @@ exit:
  * an issue with mbedtls_vsnprintf().
  */
 /* BEGIN_CASE depends_on:!MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_DEBUG_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_SSL_SESSION_TICKETS */
-void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg)
+void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, int reach_max)
 {
     int ret = -1;
     mbedtls_test_ssl_endpoint client_ep, server_ep;
@@ -4470,7 +4470,7 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg)
     };
     char pattern[128];
     unsigned char buf_write[64];
-    size_t early_data_len = sizeof(buf_write);
+    size_t early_data_len;
     uint32_t expended_early_data_len = 0;
     uint32_t written_early_data_size = 0;
     int write_early_data_flag = 1;
@@ -4483,6 +4483,14 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg)
     mbedtls_ssl_session_init(&saved_session);
 
     PSA_INIT();
+
+    /*
+     * Reach maximum early data size exactly option only available in case of
+     * TEST_EARLY_DATA_ACCEPTED scenario.
+     */
+    if (reach_max) {
+        TEST_EQUAL(scenario, TEST_EARLY_DATA_ACCEPTED);
+    }
 
     /*
      * Run first handshake to get a ticket from the server.
@@ -4577,10 +4585,24 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg)
         uint32_t remaining = max_early_data_size -
                              server_ep.ssl.early_data_count;
 
-        /* In case of accepted early data, reach max_early_data_size exactly. */
+        early_data_len = sizeof(buf_write);
+        /*
+         * Adjust the length of next data to write depending on the remaining
+         * number of early data bytes we are allowed to write and if we want
+         * to reach the maximum exactly or not.
+         */
         if (early_data_len >= remaining) {
-            early_data_len = remaining;
-            write_early_data_flag = 0;
+            if (reach_max) {
+                early_data_len = remaining;
+                write_early_data_flag = 0;
+            } else {
+                if (early_data_len == remaining) {
+                    early_data_len /= 2;
+                } else {
+                    early_data_len = remaining + 1;
+                    break;
+                }
+            }
         }
 
         for (size_t i = 0; i < early_data_len; i++) {
@@ -4643,8 +4665,9 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg)
 
     mbedtls_debug_set_threshold(3);
 
-    early_data_len = (scenario == TEST_EARLY_DATA_ACCEPTED) ?
-                     1 : sizeof(buf_write);
+    if (reach_max) {
+        TEST_EQUAL(server_ep.ssl.early_data_count, max_early_data_size);
+    }
 
     ret = write_early_data(&(client_ep.ssl), buf_write, early_data_len);
     TEST_EQUAL(ret, early_data_len);

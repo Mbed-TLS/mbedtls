@@ -1392,6 +1392,8 @@ int MBEDTLS_DEPRECATED mbedtls_ecp_write_key(mbedtls_ecp_keypair *key,
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL if the \p key
  *                  representation is larger than the available space in \p buf.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if no private key is
+ *                  set in \p key.
  * \return          Another negative error code on different kinds of failure.
  */
 int mbedtls_ecp_write_key_ext(mbedtls_ecp_keypair *key,

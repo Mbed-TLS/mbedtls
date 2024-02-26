@@ -45,9 +45,9 @@ if [[ ! " $* " =~ " --version " ]]; then
     # Display the command being invoked - if it succeeds, this is all that will
     # be displayed. Don't do this for invocations with --version, because
     # this output is often parsed by scripts, so we don't want to modify it.
-    printf %s "${TOOL}"
-    print_quoted_args "$@"
-    echo
+    printf %s "${TOOL}"    1>&2
+    print_quoted_args "$@" 1>&2
+    echo                   1>&2
 fi
 
 if [[ " $@ " =~ $NO_SILENCE || -n "${VERBOSE_LOGS}" ]]; then

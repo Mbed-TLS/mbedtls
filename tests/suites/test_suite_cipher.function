@@ -1170,7 +1170,7 @@ void check_padding(int pad_mode, data_t *input, int ret, int dlen_check)
      * for 16-byte blocks, for data length = [1..15]. */
     uint8_t block[16];
     for (size_t i = 1; i < sizeof(block); i++) {
-        memset(block, 1, sizeof(block));
+        memset(block, 255, sizeof(block));
         if (ctx.add_padding != NULL) {
             ctx.add_padding(block, sizeof(block), i);
         }

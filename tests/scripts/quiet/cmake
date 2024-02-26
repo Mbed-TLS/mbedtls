@@ -16,15 +16,13 @@ NO_SILENCE=" --version "
 TOOL=$(basename "$0")
 
 # Locate original tool
-ORIGINAL_TOOL=$(type -ap ${TOOL} | grep -v "$0" | head -n1 )
+ORIGINAL_TOOL=$(type -ap "${TOOL}" | grep -v -Fx "$0" | head -n1 )
 
-quote_args() {
+print_quoted_args() {
     # similar to printf '%q' "$@"
     # but produce more human-readable results for common/simple cases like "a b"
-    local args=("$@")
-    s=""
-    for a in "${args[@]}"; do
-        simple_pattern='^([[:alnum:]_+-]+=)?([[:alnum:] _=+-]*)$'
+    for a in "$@"; do
+        simple_pattern='^([[:alnum:]_+-]+=)?([[:alnum:] _=+-./:@]*)$'
         if [[ $a =~ ' ' && $a =~ $simple_pattern ]]; then
             # a has spaces, but no other special characters that need escaping
             # (quoting after removing spaces yields no backslashes)
@@ -33,39 +31,40 @@ quote_args() {
             #   CFLAGS=a b -> CFLAGS="a b"
             q="${BASH_REMATCH[1]}\"${BASH_REMATCH[2]}\""
         else
-            # get bash to do the quoting
+            # get bash to do the quoting (which may result in no quotes or escaping,
+            # if none is needed).
             q=$(printf '%q' "$a")
         fi
-        s="$s $q"
+        printf "%s " "$q"
     done
-    echo $s
 }
 
-if [[ ! " $@ " =~ " --version " ]]; then
+if [[ ! " $* " =~ " --version " ]]; then
     # Display the command being invoked - if it succeeds, this is all that will
     # be displayed. Don't do this for invocations with --version, because
     # this output is often parsed by scripts, so we don't want to modify it.
-    echo "${TOOL} $(quote_args "$@")"
+    printf %s "${TOOL} "
+    print_quoted_args "$@"
+    echo
 fi
 
 if [[ " $@ " =~ $NO_SILENCE || -n "${VERBOSE_LOGS}" ]]; then
     # Run original command with no output supression
-    ${ORIGINAL_TOOL} "$@"
-    EXIT_STATUS=$?
+    exec "${ORIGINAL_TOOL}" "$@"
 else
     # Run original command and capture output & exit status
-    TMPFILE=$(mktemp /tmp/quiet-${TOOL}.XXXXXX)
-    ${ORIGINAL_TOOL} "$@" > ${TMPFILE} 2>&1
+    TMPFILE=$(mktemp "quiet-${TOOL}.XXXXXX")
+    "${ORIGINAL_TOOL}" "$@" > "${TMPFILE}" 2>&1
     EXIT_STATUS=$?
 
     if [[ $EXIT_STATUS -ne 0 ]]; then
         # On error, display the full output
-        cat ${TMPFILE}
+        cat "${TMPFILE}"
     fi
 
     # Remove tmpfile
-    rm ${TMPFILE}
-fi
+    rm "${TMPFILE}"
 
-# Propagate the exit status
-exit $EXIT_STATUS
+    # Propagate the exit status
+    exit $EXIT_STATUS
+fi

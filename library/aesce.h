@@ -116,7 +116,7 @@ void mbedtls_aesce_inverse_key(unsigned char *invkey,
  */
 void mbedtls_aesce_setkey_enc(unsigned char *rk,
                               const unsigned char *key,
-                              uint32_t bits);
+                              uint32_t key_bit_length);
 
 #ifdef __cplusplus
 }

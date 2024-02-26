@@ -6064,7 +6064,6 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const struct mbedtls_ssl_config *conf;
-    int written_data_len = 0;
     uint32_t remaining;
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write early_data"));
@@ -6153,12 +6152,14 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
         len = remaining;
     }
 
-    written_data_len = ssl_write_real(ssl, buf, len);
-    ssl->total_early_data_size += written_data_len;
+    ret = ssl_write_real(ssl, buf, len);
+    if (ret >= 0) {
+        ssl->total_early_data_size += ret;
+    }
 
-    MBEDTLS_SSL_DEBUG_MSG(2, ("<= write early_data, len=%d", written_data_len));
+    MBEDTLS_SSL_DEBUG_MSG(2, ("<= write early_data, ret=%d", ret));
 
-    return written_data_len;
+    return ret;
 }
 #endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
 

@@ -102,7 +102,7 @@ typedef struct {
 static psa_global_data_t global_data;
 
 #if !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
-mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
+mbedtls_psa_drbg_context_t *const mbedtls_psa_drbg_ctx =
     &global_data.rng.drbg;
 #endif
 
@@ -7322,7 +7322,7 @@ static void mbedtls_psa_random_init(mbedtls_psa_random_context_t *rng)
                                MBEDTLS_ENTROPY_SOURCE_STRONG);
 #endif
 
-    mbedtls_psa_drbg_init(MBEDTLS_PSA_RANDOM_STATE);
+    mbedtls_psa_drbg_init(MBEDTLS_PSA_DRBG_CTX);
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
 
@@ -7333,7 +7333,7 @@ static void mbedtls_psa_random_free(mbedtls_psa_random_context_t *rng)
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
     memset(rng, 0, sizeof(*rng));
 #else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
-    mbedtls_psa_drbg_free(MBEDTLS_PSA_RANDOM_STATE);
+    mbedtls_psa_drbg_free(MBEDTLS_PSA_DRBG_CTX);
     rng->entropy_free(&rng->entropy);
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
@@ -7382,8 +7382,8 @@ psa_status_t psa_generate_random(uint8_t *output,
             (output_size > MBEDTLS_PSA_RANDOM_MAX_REQUEST ?
              MBEDTLS_PSA_RANDOM_MAX_REQUEST :
              output_size);
-        int ret = mbedtls_psa_get_random(MBEDTLS_PSA_RANDOM_STATE,
-                                         output, request_size);
+        int ret = mbedtls_psa_legacy_get_random(MBEDTLS_PSA_DRBG_CTX,
+                                                output, request_size);
         if (ret != 0) {
             return mbedtls_to_psa_error(ret);
         }

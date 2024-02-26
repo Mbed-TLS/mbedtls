@@ -46,6 +46,7 @@
 #if defined(MBEDTLS_BLOCK_CIPHER_SOME_PSA)
 #include <mbedtls/cipher.h>
 #endif
+#include <mbedtls/entropy.h>
 
 /* PSA_SUCCESS is kept at the top of each error table since
  * it's the most common status when everything functions properly. */
@@ -343,15 +344,7 @@ mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t family,
  * `mbedtls_psa_get_random(MBEDTLS_PSA_RANDOM_STATE, ...)` calls
  * `psa_generate_random(...)`. The state parameter is ignored since the
  * PSA API doesn't support passing an explicit state.
- *
- * In the non-external case, psa_generate_random() calls an
- * `mbedtls_xxx_drbg_random` function which has exactly the same signature
- * and semantics as mbedtls_psa_get_random(). As an optimization,
- * instead of doing this back-and-forth between the PSA API and the
- * classic API, psa_crypto_random_impl.h defines `mbedtls_psa_get_random`
- * as a constant function pointer to `mbedtls_xxx_drbg_random`.
  */
-#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 int mbedtls_psa_get_random(void *p_rng,
                            unsigned char *output,
                            size_t output_size)
@@ -369,7 +362,6 @@ int mbedtls_psa_get_random(void *p_rng,
         return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
     }
 }
-#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 

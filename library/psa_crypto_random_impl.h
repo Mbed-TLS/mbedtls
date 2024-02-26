@@ -20,23 +20,9 @@
 
 #include "psa_util_internal.h"
 
-#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+#if !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 
-#include <string.h>
-#include <mbedtls/entropy.h> // only for error codes
-#include <psa/crypto.h>
-
-typedef mbedtls_psa_external_random_context_t mbedtls_psa_random_context_t;
-
-/* Trivial wrapper around psa_generate_random(). */
-int mbedtls_psa_get_random(void *p_rng,
-                           unsigned char *output,
-                           size_t output_size);
-
-/* The PSA RNG API doesn't need any externally maintained state. */
-#define MBEDTLS_PSA_RANDOM_STATE NULL
-
-#else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
+#include "mbedtls/entropy.h"
 
 /* Choose a DRBG based on configuration and availability */
 #if defined(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE)
@@ -67,11 +53,23 @@ int mbedtls_psa_get_random(void *p_rng,
 #error "No hash algorithm available for HMAC_DBRG."
 #endif
 
-#else
+#else /* !MBEDTLS_PSA_HMAC_DRBG_MD_TYPE && !MBEDTLS_CTR_DRBG_C && !MBEDTLS_HMAC_DRBG_C*/
 #error "No DRBG module available for the psa_crypto module."
-#endif
+#endif /* !MBEDTLS_PSA_HMAC_DRBG_MD_TYPE && !MBEDTLS_CTR_DRBG_C && !MBEDTLS_HMAC_DRBG_C*/
 
-#include "mbedtls/entropy.h"
+#if defined(MBEDTLS_CTR_DRBG_C)
+#include "mbedtls/ctr_drbg.h"
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+#include "mbedtls/hmac_drbg.h"
+#endif /* !MBEDTLS_CTR_DRBG_C && !MBEDTLS_HMAC_DRBG_C */
+
+#if defined(MBEDTLS_CTR_DRBG_C)
+#define mbedtls_psa_legacy_get_random       mbedtls_ctr_drbg_random
+typedef mbedtls_ctr_drbg_context            mbedtls_psa_drbg_context_t;
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+#define mbedtls_psa_legacy_get_random       mbedtls_hmac_drbg_random
+typedef mbedtls_hmac_drbg_context           mbedtls_psa_drbg_context_t;
+#endif /* !MBEDTLS_CTR_DRBG_C && !MBEDTLS_HMAC_DRBG_C */
 
 /** Initialize the PSA DRBG.
  *
@@ -111,20 +109,6 @@ typedef struct {
     mbedtls_psa_drbg_context_t drbg;
 } mbedtls_psa_random_context_t;
 
-/* Defined in include/psa_util_internal.h so that it's visible to
- * application code. The declaration here is redundant, but included
- * as a safety net to make it more likely that a future change that
- * accidentally causes the implementation to diverge from the interface
- * will be noticed. */
-/* Do not include the declaration under MSVC because it doesn't accept it
- * ("error C2370: 'mbedtls_psa_get_random' : redefinition; different storage class").
- * Observed with Visual Studio 2013. A known bug apparently:
- * https://stackoverflow.com/questions/8146541/duplicate-external-static-declarations-not-allowed-in-visual-studio
- */
-#if !defined(_MSC_VER)
-static mbedtls_f_rng_t *const mbedtls_psa_get_random;
-#endif
-
 /** The maximum number of bytes that mbedtls_psa_get_random() is expected to
  * return.
  */
@@ -134,27 +118,13 @@ static mbedtls_f_rng_t *const mbedtls_psa_get_random;
 #define MBEDTLS_PSA_RANDOM_MAX_REQUEST MBEDTLS_HMAC_DRBG_MAX_REQUEST
 #endif
 
-/** A pointer to the PSA DRBG state.
+/** A pointer to the PSA DRBG context.
  *
  * This variable is only intended to be used through the macro
- * #MBEDTLS_PSA_RANDOM_STATE.
+ * #MBEDTLS_PSA_DRBG_CTX.
  */
-/* psa_crypto.c sets this variable to a pointer to the DRBG state in the
- * global PSA crypto state. */
-/* The type `mbedtls_psa_drbg_context_t` is defined in
- * include/psa_util_internal.h so that `mbedtls_psa_random_state` can be
- * declared there and be visible to application code. */
-extern mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state;
-
-/** A pointer to the PSA DRBG state.
- *
- * This macro expands to an expression that is suitable as the \c p_rng
- * parameter to pass to mbedtls_psa_get_random().
- *
- * This macro exists in all configurations where the psa_crypto module is
- * enabled. Its expansion depends on the configuration.
- */
-#define MBEDTLS_PSA_RANDOM_STATE mbedtls_psa_random_state
+extern mbedtls_psa_drbg_context_t *const mbedtls_psa_drbg_ctx;
+#define MBEDTLS_PSA_DRBG_CTX    mbedtls_psa_drbg_ctx
 
 /** Seed the PSA DRBG.
  *
@@ -172,14 +142,14 @@ static inline int mbedtls_psa_drbg_seed(
     const unsigned char *custom, size_t len)
 {
 #if defined(MBEDTLS_CTR_DRBG_C)
-    return mbedtls_ctr_drbg_seed(MBEDTLS_PSA_RANDOM_STATE,
+    return mbedtls_ctr_drbg_seed(MBEDTLS_PSA_DRBG_CTX,
                                  mbedtls_entropy_func,
                                  entropy,
                                  custom, len);
 #elif defined(MBEDTLS_HMAC_DRBG_C)
     const mbedtls_md_info_t *md_info =
         mbedtls_md_info_from_type(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE);
-    return mbedtls_hmac_drbg_seed(MBEDTLS_PSA_RANDOM_STATE,
+    return mbedtls_hmac_drbg_seed(MBEDTLS_PSA_DRBG_CTX,
                                   md_info,
                                   mbedtls_entropy_func,
                                   entropy,

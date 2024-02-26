@@ -323,6 +323,23 @@ mbedtls_x509_san_list;
 int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn);
 
 /**
+ * \brief            Convert the certificate DN string \p name into
+ *                   a linked list of mbedtls_x509_name (equivalent to
+ *                   mbedtls_asn1_named_data).
+ *
+ * \note             This function allocates a linked list, and places the head
+ *                   pointer in \p head. This list must later be freed by a
+ *                   call to mbedtls_asn1_free_named_data_list().
+ *
+ * \param[out] head  Address in which to store the pointer to the head of the
+ *                   allocated list of mbedtls_x509_name
+ * \param[in] name   The string representation of a DN to convert
+ *
+ * \return           0 on success, or a negative error code.
+ */
+int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *name);
+
+/**
  * \brief          Return the next relative DN in an X509 name.
  *
  * \note           Intended use is to compare function result to dn->next

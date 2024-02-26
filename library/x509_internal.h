@@ -21,7 +21,6 @@
 #include "mbedtls/rsa.h"
 #endif
 
-int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *name);
 int mbedtls_x509_get_name(unsigned char **p, const unsigned char *end,
                           mbedtls_x509_name *cur);
 int mbedtls_x509_get_alg_null(unsigned char **p, const unsigned char *end,

@@ -570,6 +570,11 @@ KNOWN_TASKS = {
                     re.compile(r'mbedtls_ct_zeroize_if .*'),
                     re.compile(r'mbedtls_ct_memmove_left .*')
                 ],
+                'test_suite_psa_crypto': [
+                    # We don't support generate_key_ext entry points
+                    # in drivers yet.
+                    re.compile(r'PSA generate key ext: RSA, e=.*'),
+                ],
             }
         }
     },

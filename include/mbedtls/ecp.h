@@ -1265,6 +1265,8 @@ int mbedtls_ecp_gen_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
 /**
  * \brief           This function reads an elliptic curve private key.
  *
+ * \note            This function does not support Curve448 yet.
+ *
  * \param grp_id    The ECP group identifier.
  * \param key       The destination key.
  * \param buf       The buffer containing the binary representation of the
@@ -1298,6 +1300,8 @@ int mbedtls_ecp_read_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
  * \note            If the private key was not set in \p key,
  *                  the output is unspecified. Future versions
  *                  may return an error in that case.
+ *
+ * \note            This function does not support Curve448 yet.
  *
  * \param key       The private key.
  * \param buf       The output buffer for containing the binary representation

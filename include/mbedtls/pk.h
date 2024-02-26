@@ -361,23 +361,30 @@ int mbedtls_pk_setup(mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info);
 /**
  * \brief           Initialize a PK context to wrap a PSA key.
  *
- * \note            This function replaces mbedtls_pk_setup() for contexts
+ *                  This function replaces mbedtls_pk_setup() for contexts
  *                  that wrap a (possibly opaque) PSA key instead of
- *                  storing and manipulating the key material directly.
+ *                  storing and manipulating the key material directly. Only EC
+ *                  and RSA keys are supported.
+ *                  The resulting PK context will be of type #MBEDTLS_PK_OPAQUE
+ *                  and it will allow the following operations based on the
+ *                  wrapped key type:
+ *                  - EC key: mbedtls_pk_get_bitlen(), mbedtls_pk_can_do(),
+ *                            mbedtls_pk_sign(), mbedtls_pk_verify(),
+ *                            mbedtls_pk_check_pair().
+ *                  - RSA key: mbedtls_pk_get_bitlen(), mbedtls_pk_can_do(),
+ *                            mbedtls_pk_sign(), mbedtls_pk_decrypt().
  *
- * \param ctx       The context to initialize. It must be empty (type NONE).
- * \param key       The PSA key to wrap, which must hold an ECC or RSA key
- *                  pair (see notes below).
+ * \warning         psa_crypto_init() must be called before using this function.
  *
- * \note            The wrapped key must remain valid as long as the
+ * \warning         The wrapped key must remain valid as long as the
  *                  wrapping PK context is in use, that is at least between
  *                  the point this function is called and the point
  *                  mbedtls_pk_free() is called on this context. The wrapped
  *                  key might then be independently used or destroyed.
  *
- * \note            This function is currently only available for ECC or RSA
- *                  key pairs (that is, keys containing private key material).
- *                  Support for other key types may be added later.
+ * \param ctx       The context to initialize. It must be empty (type NONE).
+ * \param key       The PSA key to wrap, which must hold an ECC or RSA key
+ *                  pair.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_PK_BAD_INPUT_DATA on invalid input

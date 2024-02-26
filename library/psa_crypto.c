@@ -7421,12 +7421,7 @@ psa_status_t psa_generate_key_internal(
 
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
     if (type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
-        /* Hack: if the method specifies a non-default e, pass it
-         * via the domain parameters. TODO: refactor this code so
-         * that mbedtls_psa_rsa_generate_key() gets e via a new
-         * parameter instead. */
-        psa_key_attributes_t override_attributes = *attributes;
-        return mbedtls_psa_rsa_generate_key(&override_attributes,
+        return mbedtls_psa_rsa_generate_key(attributes,
                                             params, params_data_length,
                                             key_buffer,
                                             key_buffer_size,

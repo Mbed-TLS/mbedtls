@@ -4583,7 +4583,7 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
         unsigned char buf_read[23];
         uint32_t read_early_data_size = 0;
         uint32_t remaining = max_early_data_size -
-                             server_ep.ssl.early_data_count;
+                             server_ep.ssl.total_early_data_size;
 
         early_data_len = sizeof(buf_write);
         /*
@@ -4628,7 +4628,7 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
                                         buf_write + read_early_data_size, ret);
                     read_early_data_size += ret;
 
-                    TEST_EQUAL(server_ep.ssl.early_data_count,
+                    TEST_EQUAL(server_ep.ssl.total_early_data_size,
                                written_early_data_size);
                 }
                 break;
@@ -4651,22 +4651,22 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
                 TEST_EQUAL(server_pattern.counter, 1);
                 server_pattern.counter = 0;
                 if (expended_early_data_len == 0) {
-                    expended_early_data_len = server_ep.ssl.early_data_count;
+                    expended_early_data_len = server_ep.ssl.total_early_data_size;
                 }
-                remaining = max_early_data_size - server_ep.ssl.early_data_count;
+                remaining = max_early_data_size - server_ep.ssl.total_early_data_size;
 
                 if (expended_early_data_len > remaining) {
                     write_early_data_flag = 0;
                 }
                 break;
         }
-        TEST_ASSERT(server_ep.ssl.early_data_count <= max_early_data_size);
+        TEST_ASSERT(server_ep.ssl.total_early_data_size <= max_early_data_size);
     }
 
     mbedtls_debug_set_threshold(3);
 
     if (reach_max) {
-        TEST_EQUAL(server_ep.ssl.early_data_count, max_early_data_size);
+        TEST_EQUAL(server_ep.ssl.total_early_data_size, max_early_data_size);
     }
 
     ret = write_early_data(&(client_ep.ssl), buf_write, early_data_len);

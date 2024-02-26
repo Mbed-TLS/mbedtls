@@ -1477,11 +1477,11 @@ int mbedtls_ssl_tls13_check_early_data_len(mbedtls_ssl_context *ssl,
      */
     if (uint32_early_data_len >
         (ssl->session_negotiate->max_early_data_size -
-         ssl->early_data_count)) {
+         ssl->total_early_data_size)) {
 
         MBEDTLS_SSL_DEBUG_MSG(
             2, ("EarlyData: Too much early data received, %u > %u",
-                ssl->early_data_count + uint32_early_data_len,
+                ssl->total_early_data_size + uint32_early_data_len,
                 ssl->session_negotiate->max_early_data_size));
 
         MBEDTLS_SSL_PEND_FATAL_ALERT(
@@ -1490,7 +1490,7 @@ int mbedtls_ssl_tls13_check_early_data_len(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
     }
 
-    ssl->early_data_count += uint32_early_data_len;
+    ssl->total_early_data_size += uint32_early_data_len;
 
     return 0;
 }

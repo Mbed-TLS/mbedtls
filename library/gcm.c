@@ -43,8 +43,8 @@
 
 /* Used to select the acceleration mechanism */
 #define MBEDTLS_GCM_ACC_UNSET       0
-#define MBEDTLS_GCM_ACC_SMALLTABLE  1
-#define MBEDTLS_GCM_ACC_LARGETABLE  2
+#define MBEDTLS_GCM_ACC_SMALL_TABLE 1
+#define MBEDTLS_GCM_ACC_LARGE_TABLE 2
 #define MBEDTLS_GCM_ACC_AESNI       3
 #define MBEDTLS_GCM_ACC_AESCE       4
 
@@ -58,9 +58,9 @@ static uint8_t acceleration = MBEDTLS_GCM_ACC_UNSET;
     #else
 /* We know at compile-time it will be software */
         #if defined(MBEDTLS_GCM_LARGE_TABLE)
-            #define acceleration MBEDTLS_GCM_ACC_LARGETABLE
+            #define acceleration MBEDTLS_GCM_ACC_LARGE_TABLE
         #else
-            #define acceleration MBEDTLS_GCM_ACC_SMALLTABLE
+            #define acceleration MBEDTLS_GCM_ACC_SMALL_TABLE
         #endif
     #endif
 #else
@@ -79,9 +79,9 @@ static inline void gcm_set_acceleration(void)
 {
     if (acceleration == MBEDTLS_GCM_ACC_UNSET) {
 #if defined(MBEDTLS_GCM_LARGE_TABLE)
-        acceleration = MBEDTLS_GCM_ACC_LARGETABLE;
+        acceleration = MBEDTLS_GCM_ACC_LARGE_TABLE;
 #else
-        acceleration = MBEDTLS_GCM_ACC_SMALLTABLE;
+        acceleration = MBEDTLS_GCM_ACC_SMALL_TABLE;
 #endif
 
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
@@ -394,11 +394,11 @@ static void gcm_mult(mbedtls_gcm_context *ctx, const unsigned char x[16],
 #endif
 
 #if defined(MBEDTLS_GCM_LARGE_TABLE)
-        case MBEDTLS_GCM_ACC_LARGETABLE:
+        case MBEDTLS_GCM_ACC_LARGE_TABLE:
             gcm_mult_largetable(output, x, ctx->H);
             break;
 #else
-        case MBEDTLS_GCM_ACC_SMALLTABLE:
+        case MBEDTLS_GCM_ACC_SMALL_TABLE:
             gcm_mult_smalltable(output, x, ctx->H);
             break;
 #endif

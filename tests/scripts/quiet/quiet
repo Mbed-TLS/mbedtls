@@ -11,7 +11,8 @@
 # VERBOSE_LOGS=1
 
 # Locate original tool
-ORIGINAL_TOOL=$(type -ap "${TOOL}" | grep -v -Fx "$0" | head -n1)
+TOOL_WITH_PATH=$(dirname "$0")/$TOOL
+ORIGINAL_TOOL=$(type -ap "${TOOL}" | grep -v -Fx "$TOOL_WITH_PATH" | head -n1)
 
 print_quoted_args() {
     # similar to printf '%q' "$@"

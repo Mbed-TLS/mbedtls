@@ -118,14 +118,6 @@ typedef struct {
 #define MBEDTLS_PSA_RANDOM_MAX_REQUEST MBEDTLS_HMAC_DRBG_MAX_REQUEST
 #endif
 
-/** A pointer to the PSA DRBG context.
- *
- * This variable is only intended to be used through the macro
- * #MBEDTLS_PSA_DRBG_CTX.
- */
-extern mbedtls_psa_drbg_context_t *const mbedtls_psa_drbg_ctx;
-#define MBEDTLS_PSA_DRBG_CTX    mbedtls_psa_drbg_ctx
-
 /** Seed the PSA DRBG.
  *
  * \param entropy       An entropy context to read the seed from.
@@ -138,18 +130,19 @@ extern mbedtls_psa_drbg_context_t *const mbedtls_psa_drbg_ctx;
  * \return              An Mbed TLS error code (\c MBEDTLS_ERR_xxx) on failure.
  */
 static inline int mbedtls_psa_drbg_seed(
+    mbedtls_psa_drbg_context_t *drbg_ctx,
     mbedtls_entropy_context *entropy,
     const unsigned char *custom, size_t len)
 {
 #if defined(MBEDTLS_CTR_DRBG_C)
-    return mbedtls_ctr_drbg_seed(MBEDTLS_PSA_DRBG_CTX,
+    return mbedtls_ctr_drbg_seed(drbg_ctx,
                                  mbedtls_entropy_func,
                                  entropy,
                                  custom, len);
 #elif defined(MBEDTLS_HMAC_DRBG_C)
     const mbedtls_md_info_t *md_info =
         mbedtls_md_info_from_type(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE);
-    return mbedtls_hmac_drbg_seed(MBEDTLS_PSA_DRBG_CTX,
+    return mbedtls_hmac_drbg_seed(drbg_ctx,
                                   md_info,
                                   mbedtls_entropy_func,
                                   entropy,

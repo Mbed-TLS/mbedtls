@@ -72,7 +72,7 @@ static const uint32_t rho[6] = {
 };
 
 static const uint32_t pi[6] = {
-    0x0a070b11, 0x12030510, 0x08151804, 0x0f17130d, 0x0c02140e, 0x16090601
+    0x110b070a, 0x10050312, 0x04181508, 0x0d13170f, 0x0e14020c, 0x01060916
 };
 
 #define ROTR64(x, y) (((x) << (64U - (y))) | ((x) >> (y))) // 64-bit rotate right
@@ -146,30 +146,29 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
         for (i = 0; i < 24; i += 4) {
             uint32_t p = pi[i >> 2];
             for (unsigned j = 0; j < 4; j++) {
-                uint8_t p8 = (uint8_t) (p >> 24);
-                p <<= 8;
-                SWAP(s[p8], t);
+                SWAP(s[p & 0xff], t);
+                p >>= 8;
             }
         }
 #else
         uint32_t p = pi[0];
-        SWAP(s[MBEDTLS_BYTE_3(p)], t); SWAP(s[MBEDTLS_BYTE_2(p)], t);
-        SWAP(s[MBEDTLS_BYTE_1(p)], t); SWAP(s[MBEDTLS_BYTE_0(p)], t);
+        SWAP(s[MBEDTLS_BYTE_0(p)], t); SWAP(s[MBEDTLS_BYTE_1(p)], t);
+        SWAP(s[MBEDTLS_BYTE_2(p)], t); SWAP(s[MBEDTLS_BYTE_3(p)], t);
         p = pi[1];
-        SWAP(s[MBEDTLS_BYTE_3(p)], t); SWAP(s[MBEDTLS_BYTE_2(p)], t);
-        SWAP(s[MBEDTLS_BYTE_1(p)], t); SWAP(s[MBEDTLS_BYTE_0(p)], t);
+        SWAP(s[MBEDTLS_BYTE_0(p)], t); SWAP(s[MBEDTLS_BYTE_1(p)], t);
+        SWAP(s[MBEDTLS_BYTE_2(p)], t); SWAP(s[MBEDTLS_BYTE_3(p)], t);
         p = pi[2];
-        SWAP(s[MBEDTLS_BYTE_3(p)], t); SWAP(s[MBEDTLS_BYTE_2(p)], t);
-        SWAP(s[MBEDTLS_BYTE_1(p)], t); SWAP(s[MBEDTLS_BYTE_0(p)], t);
+        SWAP(s[MBEDTLS_BYTE_0(p)], t); SWAP(s[MBEDTLS_BYTE_1(p)], t);
+        SWAP(s[MBEDTLS_BYTE_2(p)], t); SWAP(s[MBEDTLS_BYTE_3(p)], t);
         p = pi[3];
-        SWAP(s[MBEDTLS_BYTE_3(p)], t); SWAP(s[MBEDTLS_BYTE_2(p)], t);
-        SWAP(s[MBEDTLS_BYTE_1(p)], t); SWAP(s[MBEDTLS_BYTE_0(p)], t);
+        SWAP(s[MBEDTLS_BYTE_0(p)], t); SWAP(s[MBEDTLS_BYTE_1(p)], t);
+        SWAP(s[MBEDTLS_BYTE_2(p)], t); SWAP(s[MBEDTLS_BYTE_3(p)], t);
         p = pi[4];
-        SWAP(s[MBEDTLS_BYTE_3(p)], t); SWAP(s[MBEDTLS_BYTE_2(p)], t);
-        SWAP(s[MBEDTLS_BYTE_1(p)], t); SWAP(s[MBEDTLS_BYTE_0(p)], t);
+        SWAP(s[MBEDTLS_BYTE_0(p)], t); SWAP(s[MBEDTLS_BYTE_1(p)], t);
+        SWAP(s[MBEDTLS_BYTE_2(p)], t); SWAP(s[MBEDTLS_BYTE_3(p)], t);
         p = pi[5];
-        SWAP(s[MBEDTLS_BYTE_3(p)], t); SWAP(s[MBEDTLS_BYTE_2(p)], t);
-        SWAP(s[MBEDTLS_BYTE_1(p)], t); SWAP(s[MBEDTLS_BYTE_0(p)], t);
+        SWAP(s[MBEDTLS_BYTE_0(p)], t); SWAP(s[MBEDTLS_BYTE_1(p)], t);
+        SWAP(s[MBEDTLS_BYTE_2(p)], t); SWAP(s[MBEDTLS_BYTE_3(p)], t);
 #endif
 
         /* Chi */

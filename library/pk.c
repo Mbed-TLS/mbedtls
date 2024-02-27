@@ -1188,9 +1188,32 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
     }
 
     if (mbedtls_pk_get_type(ctx) == MBEDTLS_PK_OPAQUE) {
+        psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
+        psa_algorithm_t psa_alg, psa_enrollment_alg, sign_alg;
         psa_status_t status;
 
-        status = psa_sign_hash(ctx->priv_id, PSA_ALG_RSA_PSS(psa_md_alg),
+        status = psa_get_key_attributes(ctx->priv_id, &key_attr);
+        if (status != PSA_SUCCESS) {
+            return PSA_PK_RSA_TO_MBEDTLS_ERR(status);
+        }
+        psa_alg = psa_get_key_algorithm(&key_attr);
+        psa_enrollment_alg = psa_get_key_enrollment_algorithm(&key_attr);
+        psa_reset_key_attributes(&key_attr);
+
+        /* Since we're PK type is MBEDTLS_PK_RSASSA_PSS at least one between
+         * alg and enrollment alg should be of type RSA_PSS. */
+        if (PSA_ALG_IS_RSA_PSS(psa_alg)) {
+            sign_alg = psa_alg;
+        } else if (PSA_ALG_IS_RSA_PSS(psa_enrollment_alg)) {
+            sign_alg = psa_enrollment_alg;
+        } else {
+            /* The opaque key has no RSA PSS algorithm associated. */
+            return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+        }
+        /* Adjust the hashing algorithm. */
+        sign_alg = (sign_alg & ~PSA_ALG_HASH_MASK) | PSA_ALG_GET_HASH(psa_md_alg);
+
+        status = psa_sign_hash(ctx->priv_id, sign_alg,
                                hash, hash_len,
                                sig, sig_size, sig_len);
         return PSA_PK_RSA_TO_MBEDTLS_ERR(status);

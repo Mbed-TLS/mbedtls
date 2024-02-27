@@ -1833,7 +1833,6 @@ void pk_psa_wrap_sign_ext(int pk_type, int key_bits, int key_pk_type, int md_alg
     unsigned char *pkey_start;
     unsigned char hash[PSA_HASH_MAX_SIZE];
     psa_algorithm_t psa_md_alg = mbedtls_md_psa_alg_from_type(md_alg);
-    psa_algorithm_t psa_alg;
     size_t hash_len = PSA_HASH_LENGTH(psa_md_alg);
     void const *options = NULL;
     mbedtls_pk_rsassa_pss_options rsassa_pss_options;
@@ -1850,6 +1849,10 @@ void pk_psa_wrap_sign_ext(int pk_type, int key_bits, int key_pk_type, int md_alg
                                    mbedtls_test_rnd_std_rand, NULL,
                                    key_bits, 3), 0);
 
+    if (key_pk_type == MBEDTLS_PK_RSASSA_PSS) {
+        mbedtls_rsa_set_padding(mbedtls_pk_rsa(pk), MBEDTLS_RSA_PKCS_V21, MBEDTLS_MD_NONE);
+    }
+
     /* Export underlying public key for re-importing in a legacy context. */
     ret = mbedtls_pk_write_pubkey_der(&pk, pkey, sizeof(pkey));
     TEST_ASSERT(ret >= 0);
@@ -1858,19 +1861,8 @@ void pk_psa_wrap_sign_ext(int pk_type, int key_bits, int key_pk_type, int md_alg
     /* mbedtls_pk_write_pubkey_der() writes backwards in the data buffer. */
     pkey_start = pkey + sizeof(pkey) - pkey_len;
 
-    if (key_pk_type == MBEDTLS_PK_RSA) {
-        psa_alg = PSA_ALG_RSA_PKCS1V15_SIGN(psa_md_alg);
-    } else if (key_pk_type == MBEDTLS_PK_RSASSA_PSS) {
-        psa_alg = PSA_ALG_RSA_PSS(psa_md_alg);
-    } else {
-        TEST_ASSUME(!"PK key type not supported in this configuration");
-    }
-
     /* Turn PK context into an opaque one. */
     TEST_EQUAL(mbedtls_pk_get_psa_attributes(&pk, PSA_KEY_USAGE_SIGN_HASH, &key_attr), 0);
-    /* Tweak the algorithm associated with the PSA key because get_psa_attributes() returns
-     * a PSA_ALG_RSA_PSS_ANY_SALT(), but mbedtls_pk_sign_ext() requires a PSA_ALG_RSA_PSS().*/
-    psa_set_key_algorithm(&key_attr, psa_alg);
     TEST_EQUAL(mbedtls_pk_import_into_psa(&pk, &key_attr, &key_id), 0);
     mbedtls_pk_free(&pk);
     mbedtls_pk_init(&pk);

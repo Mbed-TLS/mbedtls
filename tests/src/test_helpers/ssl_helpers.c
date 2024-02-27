@@ -687,13 +687,9 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
     if (opaque_alg != 0) {
         psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
         /* Use a fake key usage to get a successful initial guess for the PSA attributes. */
-        TEST_EQUAL(mbedtls_pk_get_psa_attributes(cert->pkey, PSA_KEY_USAGE_VERIFY_HASH,
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(cert->pkey, PSA_KEY_USAGE_SIGN_HASH,
                                                  &key_attr), 0);
-        /* Then manually set type, usage, alg and alg2 as requested by the test. */
-        psa_key_type_t key_type = psa_get_key_type(&key_attr);
-        if (PSA_KEY_TYPE_IS_PUBLIC_KEY(key_type)) {
-            psa_set_key_type(&key_attr, PSA_KEY_TYPE_KEY_PAIR_OF_PUBLIC_KEY(key_type));
-        }
+        /* Then manually usage, alg and alg2 as requested by the test. */
         psa_set_key_usage_flags(&key_attr, opaque_usage);
         psa_set_key_algorithm(&key_attr, opaque_alg);
         if (opaque_alg2 != PSA_ALG_NONE) {

@@ -1711,11 +1711,10 @@ usage:
                                      &psa_alg, &psa_alg2,
                                      &usage,
                                      mbedtls_pk_get_type(&pkey)) == 0) {
-            ret = mbedtls_pk_wrap_as_opaque(&pkey, &key_slot, psa_alg,
-                                            usage, psa_alg2);
+            ret = pk_wrap_as_opaque(&pkey, psa_alg, psa_alg2, usage, &key_slot);
             if (ret != 0) {
                 mbedtls_printf(" failed\n  !  "
-                               "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n",
+                               "mbedtls_pk_get_psa_attributes returned -0x%x\n\n",
                                (unsigned int)  -ret);
                 goto exit;
             }

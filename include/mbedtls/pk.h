@@ -1213,12 +1213,17 @@ int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
                             const mbedtls_pk_context *key);
 #endif /* MBEDTLS_PK_WRITE_C */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief           Turn an EC or RSA key into an opaque one.
  *
- * \warning         This is a temporary utility function for tests. It might
- *                  change or be removed at any time without notice.
+ * \warning         This function is deprecated and will be removed in a
+ *                  future version of the library.
+ *                  To wrap a key into an opaque one the following functions
+ *                  should be used instead:
+ *                  - mbedtls_pk_get_psa_attributes()
+ *                  - mbedtls_pk_import_into_psa()
+ *                  - mbedtls_pk_setup_opaque().
  *
  * \param pk        Input: the EC or RSA key to import to a PSA key.
  *                  Output: a PK context wrapping that PSA key.
@@ -1233,12 +1238,12 @@ int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
  * \return          \c 0 if successful.
  * \return          An Mbed TLS error code otherwise.
  */
-int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
-                              mbedtls_svc_key_id_t *key,
-                              psa_algorithm_t alg,
-                              psa_key_usage_t usage,
-                              psa_algorithm_t alg2);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+MBEDTLS_DEPRECATED  mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
+                                              mbedtls_svc_key_id_t *key,
+                                              psa_algorithm_t alg,
+                                              psa_key_usage_t usage,
+                                              psa_algorithm_t alg2);
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
 #ifdef __cplusplus
 }

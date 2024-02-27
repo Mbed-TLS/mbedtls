@@ -130,7 +130,7 @@ static inline void psa_set_key_slot_number(
     psa_key_slot_number_t slot_number)
 {
     attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(flags) |= MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
-    attributes->MBEDTLS_PRIVATE(slot_number) = slot_number;
+    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(slot_number) = slot_number;
 }
 
 /** Remove the slot number attribute from a key attribute structure.

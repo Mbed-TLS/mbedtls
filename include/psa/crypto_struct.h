@@ -290,6 +290,9 @@ typedef uint16_t psa_key_attributes_flag_t;
         0)
 
 typedef struct {
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    psa_key_slot_number_t MBEDTLS_PRIVATE(slot_number);
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     psa_key_type_t MBEDTLS_PRIVATE(type);
     psa_key_bits_t MBEDTLS_PRIVATE(bits);
     psa_key_lifetime_t MBEDTLS_PRIVATE(lifetime);
@@ -309,29 +312,22 @@ typedef struct {
     mbedtls_svc_key_id_t MBEDTLS_PRIVATE(id);
 } psa_core_key_attributes_t;
 
-#define PSA_CORE_KEY_ATTRIBUTES_INIT { PSA_KEY_TYPE_NONE, 0,            \
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+#define PSA_KEY_ATTRIBUTES_MAYBE_SLOT_NUMBER 0,
+#else
+#define PSA_KEY_ATTRIBUTES_MAYBE_SLOT_NUMBER
+#endif
+#define PSA_CORE_KEY_ATTRIBUTES_INIT { PSA_KEY_ATTRIBUTES_MAYBE_SLOT_NUMBER \
+                                       PSA_KEY_TYPE_NONE, 0,            \
                                        PSA_KEY_LIFETIME_VOLATILE,       \
                                        PSA_KEY_POLICY_INIT, 0,          \
                                        MBEDTLS_SVC_KEY_ID_INIT }
 
 struct psa_key_attributes_s {
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    psa_key_slot_number_t MBEDTLS_PRIVATE(slot_number);
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-    /* With client/service separation, struct psa_key_attributes_s is
-     * marshalled through a transport channel between the client and
-     * service side implementation of the PSA Crypto APIs, thus having
-     * the mbedtls_svc_key_id_t id as the last field of this structure
-     * allows for a more efficient marshalling/unmarshalling of parameters
-     */
     psa_core_key_attributes_t MBEDTLS_PRIVATE(core);
 };
 
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-#define PSA_KEY_ATTRIBUTES_INIT { 0, PSA_CORE_KEY_ATTRIBUTES_INIT }
-#else
 #define PSA_KEY_ATTRIBUTES_INIT { PSA_CORE_KEY_ATTRIBUTES_INIT }
-#endif
 
 static inline struct psa_key_attributes_s psa_key_attributes_init(void)
 {

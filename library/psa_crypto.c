@@ -1246,7 +1246,7 @@ psa_status_t psa_get_key_slot_number(
     psa_key_slot_number_t *slot_number)
 {
     if (attributes->core.flags & MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER) {
-        *slot_number = attributes->slot_number;
+        *slot_number = attributes->core.slot_number;
         return PSA_SUCCESS;
     } else {
         return PSA_ERROR_INVALID_ARGUMENT;

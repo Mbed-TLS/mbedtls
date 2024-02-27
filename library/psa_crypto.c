@@ -7373,12 +7373,16 @@ psa_status_t psa_generate_random(uint8_t *output,
 #else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
     while (output_size > 0) {
+        int ret = MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED;
         size_t request_size =
             (output_size > MBEDTLS_PSA_RANDOM_MAX_REQUEST ?
              MBEDTLS_PSA_RANDOM_MAX_REQUEST :
              output_size);
-        int ret = mbedtls_psa_legacy_get_random(&global_data.rng.drbg,
-                                                output, request_size);
+#if defined(MBEDTLS_CTR_DRBG_C)
+        ret = mbedtls_ctr_drbg_random(&global_data.rng.drbg, output, request_size);
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+        ret = mbedtls_hmac_drbg_random(&global_data.rng.drbg, output, request_size);
+#endif /* !MBEDTLS_CTR_DRBG_C && !MBEDTLS_HMAC_DRBG_C */
         if (ret != 0) {
             return mbedtls_to_psa_error(ret);
         }

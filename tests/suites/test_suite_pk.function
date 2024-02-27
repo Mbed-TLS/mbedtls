@@ -836,6 +836,7 @@ void mbedtls_pk_check_pair(char *pub_file, char *prv_file, int ret)
     mbedtls_pk_context pub, prv, alt;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t opaque_key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t opaque_key_attr = PSA_KEY_ATTRIBUTES_INIT;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     mbedtls_pk_init(&pub);
@@ -873,9 +874,13 @@ void mbedtls_pk_check_pair(char *pub_file, char *prv_file, int ret)
 #endif
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (mbedtls_pk_get_type(&prv) == MBEDTLS_PK_ECKEY) {
-        TEST_EQUAL(mbedtls_pk_wrap_as_opaque(&prv, &opaque_key_id,
-                                             PSA_ALG_ANY_HASH,
-                                             PSA_KEY_USAGE_EXPORT, 0), 0);
+        /* Turn the prv PK context into an opaque one.*/
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(&prv, PSA_KEY_USAGE_SIGN_HASH,
+                                                 &opaque_key_attr), 0);
+        TEST_EQUAL(mbedtls_pk_import_into_psa(&prv, &opaque_key_attr, &opaque_key_id), 0);
+        mbedtls_pk_free(&prv);
+        mbedtls_pk_init(&prv);
+        TEST_EQUAL(mbedtls_pk_setup_opaque(&prv, opaque_key_id), 0);
         TEST_EQUAL(mbedtls_pk_check_pair(&pub, &prv, mbedtls_test_rnd_std_rand,
                                          NULL), ret);
     }
@@ -1395,7 +1400,8 @@ void pk_wrap_rsa_decrypt_test_vec(data_t *cipher, int mod,
     mbedtls_mpi N, P, Q, E;
     mbedtls_rsa_context *rsa;
     mbedtls_pk_context pk;
-    mbedtls_svc_key_id_t key_id;
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
     size_t olen;
 
     mbedtls_pk_init(&pk);
@@ -1422,10 +1428,11 @@ void pk_wrap_rsa_decrypt_test_vec(data_t *cipher, int mod,
     TEST_EQUAL(mbedtls_rsa_complete(rsa), 0);
 
     /* Turn PK context into an opaque one. */
-    TEST_EQUAL(mbedtls_pk_wrap_as_opaque(&pk, &key_id,
-                                         PSA_ALG_RSA_PKCS1V15_CRYPT,
-                                         PSA_KEY_USAGE_DECRYPT,
-                                         PSA_ALG_NONE), 0);
+    TEST_EQUAL(mbedtls_pk_get_psa_attributes(&pk, PSA_KEY_USAGE_DECRYPT, &key_attr), 0);
+    TEST_EQUAL(mbedtls_pk_import_into_psa(&pk, &key_attr, &key_id), 0);
+    mbedtls_pk_free(&pk);
+    mbedtls_pk_init(&pk);
+    TEST_EQUAL(mbedtls_pk_setup_opaque(&pk, key_id), 0);
 
     TEST_EQUAL(mbedtls_pk_get_bitlen(&pk), mod);
 
@@ -1635,10 +1642,9 @@ void pk_psa_sign(int curve_or_keybits, int psa_type, int expected_bits)
     unsigned char pkey_legacy[200];
     unsigned char pkey_psa[200];
     unsigned char *pkey_legacy_start, *pkey_psa_start;
-    psa_algorithm_t alg_psa;
     size_t sig_len, klen_legacy, klen_psa;
     int ret;
-    mbedtls_svc_key_id_t key_id;
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     /*
@@ -1660,7 +1666,6 @@ void pk_psa_sign(int curve_or_keybits, int psa_type, int expected_bits)
         TEST_ASSERT(mbedtls_rsa_gen_key(mbedtls_pk_rsa(pk),
                                         mbedtls_test_rnd_std_rand, NULL,
                                         curve_or_keybits, 3) == 0);
-        alg_psa = PSA_ALG_RSA_PKCS1V15_SIGN(PSA_ALG_SHA_256);
     } else
 #endif /* MBEDTLS_RSA_C && MBEDTLS_GENPRIME */
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
@@ -1671,8 +1676,6 @@ void pk_psa_sign(int curve_or_keybits, int psa_type, int expected_bits)
         TEST_ASSERT(mbedtls_pk_setup(&pk,
                                      mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY)) == 0);
         TEST_ASSERT(pk_genkey(&pk, grpid) == 0);
-
-        alg_psa = PSA_ALG_ECDSA(PSA_ALG_SHA_256);
     } else
 #endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
     {
@@ -1699,9 +1702,11 @@ void pk_psa_sign(int curve_or_keybits, int psa_type, int expected_bits)
 #endif /* MBEDTLS_PK_WRITE_C */
 
     /* Turn PK context into an opaque one. */
-    TEST_ASSERT(mbedtls_pk_wrap_as_opaque(&pk, &key_id, alg_psa,
-                                          PSA_KEY_USAGE_SIGN_HASH,
-                                          PSA_ALG_NONE) == 0);
+    TEST_EQUAL(mbedtls_pk_get_psa_attributes(&pk, PSA_KEY_USAGE_SIGN_HASH, &attributes), 0);
+    TEST_EQUAL(mbedtls_pk_import_into_psa(&pk, &attributes, &key_id), 0);
+    mbedtls_pk_free(&pk);
+    mbedtls_pk_init(&pk);
+    TEST_EQUAL(mbedtls_pk_setup_opaque(&pk, key_id), 0);
 
     PSA_ASSERT(psa_get_key_attributes(key_id, &attributes));
     TEST_EQUAL(psa_get_key_type(&attributes), (psa_key_type_t) psa_type);
@@ -1822,6 +1827,7 @@ void pk_psa_wrap_sign_ext(int pk_type, int key_bits, int key_pk_type, int md_alg
     mbedtls_pk_context pk;
     size_t sig_len, pkey_len;
     mbedtls_svc_key_id_t key_id;
+    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
     unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
     unsigned char pkey[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
     unsigned char *pkey_start;
@@ -1861,9 +1867,14 @@ void pk_psa_wrap_sign_ext(int pk_type, int key_bits, int key_pk_type, int md_alg
     }
 
     /* Turn PK context into an opaque one. */
-    TEST_EQUAL(mbedtls_pk_wrap_as_opaque(&pk, &key_id, psa_alg,
-                                         PSA_KEY_USAGE_SIGN_HASH,
-                                         PSA_ALG_NONE), 0);
+    TEST_EQUAL(mbedtls_pk_get_psa_attributes(&pk, PSA_KEY_USAGE_SIGN_HASH, &key_attr), 0);
+    /* Tweak the algorithm associated with the PSA key because get_psa_attributes() returns
+     * a PSA_ALG_RSA_PSS_ANY_SALT(), but mbedtls_pk_sign_ext() requires a PSA_ALG_RSA_PSS().*/
+    psa_set_key_algorithm(&key_attr, psa_alg);
+    TEST_EQUAL(mbedtls_pk_import_into_psa(&pk, &key_attr, &key_id), 0);
+    mbedtls_pk_free(&pk);
+    mbedtls_pk_init(&pk);
+    TEST_EQUAL(mbedtls_pk_setup_opaque(&pk, key_id), 0);
 
     memset(hash, 0x2a, sizeof(hash));
     memset(sig, 0, sizeof(sig));

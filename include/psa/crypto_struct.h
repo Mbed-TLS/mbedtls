@@ -318,20 +318,6 @@ struct psa_key_attributes_s {
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     psa_key_slot_number_t MBEDTLS_PRIVATE(slot_number);
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-    /* Unlike normal buffers, there are three cases for domain_parameters
-     * and domain_parameters_size:
-     * - domain_parameters_size == SIZE_MAX && domain_parameters == NULL:
-     *   Access to domain parameters is not supported for this key.
-     *   This is a hack which should not exist, intended for keys managed
-     *   by a driver, because drivers don't support domain parameters.
-     * - domain_parameters_size == 0 && domain_parameters == NULL:
-     *   The domain parameters are empty.
-     * - domain_parameters_size > 0 &&
-     *   domain_parameters == valid pointer to domain_parameters_size bytes:
-     *   The domain parameters are non-empty.
-     */
-    void *MBEDTLS_PRIVATE(domain_parameters);
-    size_t MBEDTLS_PRIVATE(domain_parameters_size);
     /* With client/service separation, struct psa_key_attributes_s is
      * marshalled through a transport channel between the client and
      * service side implementation of the PSA Crypto APIs, thus having
@@ -342,9 +328,9 @@ struct psa_key_attributes_s {
 };
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-#define PSA_KEY_ATTRIBUTES_INIT { 0, NULL, 0, PSA_CORE_KEY_ATTRIBUTES_INIT }
+#define PSA_KEY_ATTRIBUTES_INIT { 0, PSA_CORE_KEY_ATTRIBUTES_INIT }
 #else
-#define PSA_KEY_ATTRIBUTES_INIT { NULL, 0, PSA_CORE_KEY_ATTRIBUTES_INIT }
+#define PSA_KEY_ATTRIBUTES_INIT { PSA_CORE_KEY_ATTRIBUTES_INIT }
 #endif
 
 static inline struct psa_key_attributes_s psa_key_attributes_init(void)
@@ -437,29 +423,10 @@ static inline psa_algorithm_t psa_get_key_algorithm(
     return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg);
 }
 
-/* This function is declared in crypto_extra.h, which comes after this
- * header file, but we need the function here, so repeat the declaration. */
-#if !defined(PSA_SET_KEY_DOMAIN_PARAMETERS)
-#define PSA_SET_KEY_DOMAIN_PARAMETERS
-psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
-                                           psa_key_type_t type,
-                                           const uint8_t *data,
-                                           size_t data_length);
-#endif /* PSA_SET_KEY_DOMAIN_PARAMETERS */
-
 static inline void psa_set_key_type(psa_key_attributes_t *attributes,
                                     psa_key_type_t type)
 {
-    if (attributes->MBEDTLS_PRIVATE(domain_parameters) == NULL) {
-        /* Common case: quick path */
-        attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(type) = type;
-    } else {
-        /* Call the bigger function to free the old domain parameters.
-         * Ignore any errors which may arise due to type requiring
-         * non-default domain parameters, since this function can't
-         * report errors. */
-        (void) psa_set_key_domain_parameters(attributes, type, NULL, 0);
-    }
+    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(type) = type;
 }
 
 static inline psa_key_type_t psa_get_key_type(

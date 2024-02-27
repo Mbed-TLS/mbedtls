@@ -306,7 +306,7 @@ static int rsa_decrypt_wrap(mbedtls_pk_context *pk,
     psa_set_key_type(&attributes, PSA_KEY_TYPE_RSA_KEY_PAIR);
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DECRYPT);
     if (mbedtls_rsa_get_padding_mode(rsa) == MBEDTLS_RSA_PKCS_V21) {
-        psa_md_alg = mbedtls_md_psa_alg_from_type(mbedtls_rsa_get_md_alg(rsa));
+        psa_md_alg = mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) mbedtls_rsa_get_md_alg(rsa));
         decrypt_alg = PSA_ALG_RSA_OAEP(psa_md_alg);
     } else {
         decrypt_alg = PSA_ALG_RSA_PKCS1V15_CRYPT;
@@ -388,7 +388,7 @@ static int rsa_encrypt_wrap(mbedtls_pk_context *pk,
 
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT);
     if (mbedtls_rsa_get_padding_mode(rsa) == MBEDTLS_RSA_PKCS_V21) {
-        psa_md_alg = mbedtls_md_psa_alg_from_type(mbedtls_rsa_get_md_alg(rsa));
+        psa_md_alg = mbedtls_md_psa_alg_from_type((mbedtls_md_type_t) mbedtls_rsa_get_md_alg(rsa));
         psa_set_key_algorithm(&attributes, PSA_ALG_RSA_OAEP(psa_md_alg));
     } else {
         psa_set_key_algorithm(&attributes, PSA_ALG_RSA_PKCS1V15_CRYPT);

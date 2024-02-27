@@ -434,7 +434,7 @@ exit:
  */
 mbedtls_svc_key_id_t pk_psa_genkey_ecc(void)
 {
-    mbedtls_svc_key_id_t key;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const psa_key_type_t type =
         PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1);
@@ -456,7 +456,7 @@ exit:
  */
 mbedtls_svc_key_id_t pk_psa_genkey_rsa(void)
 {
-    mbedtls_svc_key_id_t key;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const psa_key_type_t type = PSA_KEY_TYPE_RSA_KEY_PAIR;
     const size_t bits = 1024;
@@ -482,7 +482,7 @@ exit:
 void pk_psa_utils(int key_is_rsa)
 {
     mbedtls_pk_context pk, pk2;
-    mbedtls_svc_key_id_t key;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     const char * const name = "Opaque";
@@ -1826,7 +1826,7 @@ void pk_psa_wrap_sign_ext(int pk_type, int key_bits, int key_pk_type, int md_alg
 {
     mbedtls_pk_context pk;
     size_t sig_len, pkey_len;
-    mbedtls_svc_key_id_t key_id;
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
     unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
     unsigned char pkey[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];

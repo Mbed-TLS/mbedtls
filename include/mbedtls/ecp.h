@@ -1396,7 +1396,7 @@ int MBEDTLS_DEPRECATED mbedtls_ecp_write_key(mbedtls_ecp_keypair *key,
  *                  set in \p key.
  * \return          Another negative error code on different kinds of failure.
  */
-int mbedtls_ecp_write_key_ext(mbedtls_ecp_keypair *key,
+int mbedtls_ecp_write_key_ext(const mbedtls_ecp_keypair *key,
                               size_t *olen, unsigned char *buf, size_t buflen);
 
 /**

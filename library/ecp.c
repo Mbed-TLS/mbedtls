@@ -3335,7 +3335,7 @@ cleanup:
 }
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 
-int mbedtls_ecp_write_key_ext(mbedtls_ecp_keypair *key,
+int mbedtls_ecp_write_key_ext(const mbedtls_ecp_keypair *key,
                               size_t *olen, unsigned char *buf, size_t buflen)
 {
     size_t len = (key->grp.nbits + 7) / 8;

@@ -428,6 +428,14 @@ exit:
 #endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
+/* Create a new PSA key which will contain only the public part of the private
+ * key which is provided in input. For this new key:
+ * - Type is the public counterpart of the private key.
+ * - Usage is the copied from the original private key, but the PSA_KEY_USAGE_EXPORT
+ *   flag is removed. This is to prove that public keys are always exportable
+ *   even if the EXPORT flag is not explicitly set.
+ * - Algorithm is copied from the original key pair.
+ */
 static mbedtls_svc_key_id_t psa_pub_key_from_priv(mbedtls_svc_key_id_t priv_id)
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -452,8 +460,6 @@ static mbedtls_svc_key_id_t psa_pub_key_from_priv(mbedtls_svc_key_id_t priv_id)
      * - psa_import_key() automatically determines the key's bit length
      *   from the provided key data. That's why psa_set_key_bits() is not used
      *   below.
-     * - public keys are always exportable by default even if PSA_KEY_USAGE_EXPORT
-     *   is not set.
      */
     type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(type);
     usage &= ~PSA_KEY_USAGE_EXPORT;

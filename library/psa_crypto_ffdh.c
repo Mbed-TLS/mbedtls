@@ -151,7 +151,7 @@ psa_status_t mbedtls_psa_ffdh_export_public_key(
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi GX, G, X, P;
-    psa_key_type_t type = attributes->core.type;
+    psa_key_type_t type = attributes->type;
 
     if (PSA_KEY_TYPE_IS_PUBLIC_KEY(type)) {
         if (key_buffer_size > data_size) {
@@ -167,7 +167,7 @@ psa_status_t mbedtls_psa_ffdh_export_public_key(
     mbedtls_mpi_init(&GX); mbedtls_mpi_init(&G);
     mbedtls_mpi_init(&X); mbedtls_mpi_init(&P);
 
-    size_t key_len = PSA_BITS_TO_BYTES(attributes->core.bits);
+    size_t key_len = PSA_BITS_TO_BYTES(attributes->bits);
 
     status = mbedtls_psa_ffdh_set_prime_generator(key_len, &P, &G);
 
@@ -283,7 +283,7 @@ psa_status_t mbedtls_psa_ffdh_key_agreement(
     mbedtls_mpi_init(&K);
 
     status = mbedtls_psa_ffdh_set_prime_generator(
-        PSA_BITS_TO_BYTES(attributes->core.bits), &P, &G);
+        PSA_BITS_TO_BYTES(attributes->bits), &P, &G);
 
     if (status != PSA_SUCCESS) {
         goto cleanup;

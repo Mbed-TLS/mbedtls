@@ -1236,6 +1236,66 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void ecp_write_key(int grp_id, data_t *in_key,
+                   int exported_size, int expected_ret)
+{
+    mbedtls_ecp_keypair key;
+    mbedtls_ecp_keypair_init(&key);
+    unsigned char *exported = NULL;
+
+    TEST_EQUAL(mbedtls_ecp_read_key(grp_id, &key, in_key->x, in_key->len), 0);
+
+    TEST_CALLOC(exported, exported_size);
+    TEST_EQUAL(mbedtls_ecp_write_key(&key, exported, exported_size),
+               expected_ret);
+
+    if (expected_ret == 0) {
+        size_t length = (key.grp.nbits + 7) / 8;
+        const unsigned char *key_start = NULL;
+        const unsigned char *zeros_start = NULL;
+        switch (mbedtls_ecp_get_type(&key.grp)) {
+            case MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS:
+                if ((size_t) exported_size < length) {
+                    length = exported_size;
+                }
+                key_start = exported + exported_size - length;
+                zeros_start = exported;
+                break;
+            case MBEDTLS_ECP_TYPE_MONTGOMERY:
+                TEST_LE_U(length, exported_size);
+                key_start = exported;
+                zeros_start = exported + length;
+                break;
+            default:
+                TEST_FAIL("Unknown ECP curve type");
+                break;
+        }
+
+        if (length < in_key->len) {
+            /* Shorter output (only possible with Weierstrass keys) */
+            for (size_t i = 0; i < in_key->len - length; i++) {
+                mbedtls_test_set_step(i);
+                TEST_EQUAL(in_key->x[i], 0);
+            }
+            TEST_MEMORY_COMPARE(in_key->x + in_key->len - length, length,
+                                key_start, length);
+        } else {
+            TEST_MEMORY_COMPARE(in_key->x, in_key->len,
+                                key_start, length);
+            for (size_t i = 0; i < exported_size - length; i++) {
+                mbedtls_test_set_step(i);
+                TEST_EQUAL(zeros_start[i], 0);
+            }
+        }
+    }
+
+exit:
+    mbedtls_ecp_keypair_free(&key);
+    mbedtls_free(exported);
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_MONTGOMERY_ENABLED:MBEDTLS_ECP_LIGHT */
 void genkey_mx_known_answer(int bits, data_t *seed, data_t *expected)
 {

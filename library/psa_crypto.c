@@ -7653,7 +7653,9 @@ psa_status_t psa_generate_random(uint8_t *output_external,
 
     status = psa_generate_random_internal(output, output_size);
 
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
 exit:
+#endif
     LOCAL_OUTPUT_FREE(output_external, output);
     return status;
 }

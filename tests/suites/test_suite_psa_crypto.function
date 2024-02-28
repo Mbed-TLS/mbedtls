@@ -5131,7 +5131,9 @@ void aead_multipart_generate_nonce(int key_type_arg, data_t *key_data,
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_aead_operation_t operation = PSA_AEAD_OPERATION_INIT;
-    uint8_t nonce_buffer[PSA_AEAD_NONCE_MAX_SIZE];
+    /* Some tests try to get more than the maximum nonce length,
+     * so allocate double. */
+    uint8_t nonce_buffer[PSA_AEAD_NONCE_MAX_SIZE * 2];
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     psa_status_t expected_status = expected_status_arg;

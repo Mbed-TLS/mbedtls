@@ -266,29 +266,6 @@ typedef uint16_t psa_key_bits_t;
  * conditionals. */
 #define PSA_MAX_KEY_BITS 0xfff8
 
-/** A mask of flags that can be stored in key attributes.
- *
- * This type is also used internally to store flags in slots. Internal
- * flags are defined in library/psa_crypto_core.h. Internal flags may have
- * the same value as external flags if they are properly handled during
- * key creation and in psa_get_key_attributes.
- */
-typedef uint16_t psa_key_attributes_flag_t;
-
-#define MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER     \
-    ((psa_key_attributes_flag_t) 0x0001)
-
-/* A mask of key attribute flags used externally only.
- * Only meant for internal checks inside the library. */
-#define MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY (      \
-        MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER |    \
-        0)
-
-/* A mask of key attribute flags used both internally and externally.
- * Currently there aren't any. */
-#define MBEDTLS_PSA_KA_MASK_DUAL_USE (          \
-        0)
-
 struct psa_key_attributes_s {
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     psa_key_slot_number_t MBEDTLS_PRIVATE(slot_number);
@@ -298,7 +275,6 @@ struct psa_key_attributes_s {
     psa_key_bits_t MBEDTLS_PRIVATE(bits);
     psa_key_lifetime_t MBEDTLS_PRIVATE(lifetime);
     psa_key_policy_t MBEDTLS_PRIVATE(policy);
-    psa_key_attributes_flag_t MBEDTLS_PRIVATE(flags);
     /* This type has a different layout in the client view wrt the
      * service view of the key id, i.e. in service view usually is
      * expected to have MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined
@@ -321,7 +297,7 @@ struct psa_key_attributes_s {
 #define PSA_KEY_ATTRIBUTES_INIT { PSA_KEY_ATTRIBUTES_MAYBE_SLOT_NUMBER \
                                    PSA_KEY_TYPE_NONE, 0,            \
                                    PSA_KEY_LIFETIME_VOLATILE,       \
-                                   PSA_KEY_POLICY_INIT, 0,          \
+                                   PSA_KEY_POLICY_INIT,             \
                                    MBEDTLS_SVC_KEY_ID_INIT }
 
 static inline struct psa_key_attributes_s psa_key_attributes_init(void)

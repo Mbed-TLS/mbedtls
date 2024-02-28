@@ -292,6 +292,7 @@ typedef uint16_t psa_key_attributes_flag_t;
 struct psa_key_attributes_s {
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     psa_key_slot_number_t MBEDTLS_PRIVATE(slot_number);
+    int MBEDTLS_PRIVATE(has_slot_number);
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     psa_key_type_t MBEDTLS_PRIVATE(type);
     psa_key_bits_t MBEDTLS_PRIVATE(bits);
@@ -313,7 +314,7 @@ struct psa_key_attributes_s {
 };
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-#define PSA_KEY_ATTRIBUTES_MAYBE_SLOT_NUMBER 0,
+#define PSA_KEY_ATTRIBUTES_MAYBE_SLOT_NUMBER 0, 0,
 #else
 #define PSA_KEY_ATTRIBUTES_MAYBE_SLOT_NUMBER
 #endif

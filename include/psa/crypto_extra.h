@@ -129,7 +129,7 @@ static inline void psa_set_key_slot_number(
     psa_key_attributes_t *attributes,
     psa_key_slot_number_t slot_number)
 {
-    attributes->MBEDTLS_PRIVATE(flags) |= MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
+    attributes->MBEDTLS_PRIVATE(has_slot_number) = 1;
     attributes->MBEDTLS_PRIVATE(slot_number) = slot_number;
 }
 
@@ -142,8 +142,7 @@ static inline void psa_set_key_slot_number(
 static inline void psa_clear_key_slot_number(
     psa_key_attributes_t *attributes)
 {
-    attributes->MBEDTLS_PRIVATE(flags) &=
-        ~MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
+    attributes->MBEDTLS_PRIVATE(has_slot_number) = 0;
 }
 
 /** Register a key that is already present in a secure element.

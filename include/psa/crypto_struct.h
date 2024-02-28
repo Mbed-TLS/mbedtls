@@ -295,10 +295,10 @@ struct psa_key_attributes_s {
 #define PSA_KEY_ATTRIBUTES_MAYBE_SLOT_NUMBER
 #endif
 #define PSA_KEY_ATTRIBUTES_INIT { PSA_KEY_ATTRIBUTES_MAYBE_SLOT_NUMBER \
-                                   PSA_KEY_TYPE_NONE, 0,            \
-                                   PSA_KEY_LIFETIME_VOLATILE,       \
-                                   PSA_KEY_POLICY_INIT,             \
-                                   MBEDTLS_SVC_KEY_ID_INIT }
+                                      PSA_KEY_TYPE_NONE, 0,            \
+                                      PSA_KEY_LIFETIME_VOLATILE,       \
+                                      PSA_KEY_POLICY_INIT,             \
+                                      MBEDTLS_SVC_KEY_ID_INIT }
 
 static inline struct psa_key_attributes_s psa_key_attributes_init(void)
 {

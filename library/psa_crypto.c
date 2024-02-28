@@ -1226,9 +1226,9 @@ psa_status_t psa_get_key_attributes(mbedtls_svc_key_id_t key,
         return status;
     }
 
-    attributes->core = slot->attr;
-    attributes->core.flags &= (MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY |
-                               MBEDTLS_PSA_KA_MASK_DUAL_USE);
+    *attributes = slot->attr;
+    attributes->flags &= (MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY |
+                          MBEDTLS_PSA_KA_MASK_DUAL_USE);
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if (psa_get_se_driver_entry(slot->attr.lifetime) != NULL) {
@@ -1325,7 +1325,7 @@ psa_status_t psa_export_key(mbedtls_svc_key_id_t key,
     }
 
     psa_key_attributes_t attributes = {
-        .core = slot->attr
+        .core = slot->attr.core
     };
     status = psa_driver_wrapper_export_key(&attributes,
                                            slot->key.data, slot->key.bytes,
@@ -1438,7 +1438,7 @@ psa_status_t psa_export_public_key(mbedtls_svc_key_id_t key,
     }
 
     attributes = (psa_key_attributes_t) {
-        .core = slot->attr
+        .core = slot->attr.core
     };
     status = psa_driver_wrapper_export_public_key(
         &attributes, slot->key.data, slot->key.bytes,
@@ -1617,7 +1617,7 @@ static psa_status_t psa_start_key_creation(
      * volatile key identifier associated to the slot returned to contain its
      * definition. */
 
-    slot->attr = attributes->core;
+    slot->attr = *attributes;
     if (PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) {
 #if !defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
         slot->attr.id = volatile_key_id;
@@ -2390,7 +2390,7 @@ static psa_status_t psa_mac_setup(psa_mac_operation_t *operation,
     }
 
     attributes = (psa_key_attributes_t) {
-        .core = slot->attr
+        .core = slot->attr.core
     };
 
     status = psa_mac_finalize_alg_and_key_validation(alg, &attributes,
@@ -2571,7 +2571,7 @@ static psa_status_t psa_mac_compute_internal(mbedtls_svc_key_id_t key,
     }
 
     attributes = (psa_key_attributes_t) {
-        .core = slot->attr
+        .core = slot->attr.core
     };
 
     status = psa_mac_finalize_alg_and_key_validation(alg, &attributes,
@@ -2729,7 +2729,7 @@ static psa_status_t psa_sign_internal(mbedtls_svc_key_id_t key,
     }
 
     attributes = (psa_key_attributes_t) {
-        .core = slot->attr
+        .core = slot->attr.core
     };
 
     if (input_is_message) {
@@ -2783,7 +2783,7 @@ static psa_status_t psa_verify_internal(mbedtls_svc_key_id_t key,
     }
 
     psa_key_attributes_t attributes = {
-        .core = slot->attr
+        .core = slot->attr.core
     };
 
     if (input_is_message) {
@@ -3057,7 +3057,7 @@ psa_status_t psa_asymmetric_encrypt(mbedtls_svc_key_id_t key,
     }
 
     attributes = (psa_key_attributes_t) {
-        .core = slot->attr
+        .core = slot->attr.core
     };
 
     status = psa_driver_wrapper_asymmetric_encrypt(
@@ -3108,7 +3108,7 @@ psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
     }
 
     attributes = (psa_key_attributes_t) {
-        .core = slot->attr
+        .core = slot->attr.core
     };
 
     status = psa_driver_wrapper_asymmetric_decrypt(
@@ -3209,7 +3209,7 @@ psa_status_t psa_sign_hash_start(
     }
 
     attributes = (psa_key_attributes_t) {
-        .core = slot->attr
+        .core = slot->attr.core
     };
 
     /* Ensure ops count gets reset, in case of operation re-use. */
@@ -3354,7 +3354,7 @@ psa_status_t psa_verify_hash_start(
     }
 
     psa_key_attributes_t attributes = {
-        .core = slot->attr
+        .core = slot->attr.core
     };
 
     /* Ensure ops count gets reset, in case of operation re-use. */
@@ -3920,7 +3920,7 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
     operation->default_iv_length = PSA_CIPHER_IV_LENGTH(slot->attr.type, alg);
 
     attributes = (psa_key_attributes_t) {
-        .core = slot->attr
+        .core = slot->attr.core
     };
 
     /* Try doing the operation through a driver before using software fallback. */
@@ -4160,7 +4160,7 @@ psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
     }
 
     attributes = (psa_key_attributes_t) {
-        .core = slot->attr
+        .core = slot->attr.core
     };
 
     default_iv_length = PSA_CIPHER_IV_LENGTH(slot->attr.type, alg);
@@ -4231,7 +4231,7 @@ psa_status_t psa_cipher_decrypt(mbedtls_svc_key_id_t key,
     }
 
     attributes = (psa_key_attributes_t) {
-        .core = slot->attr
+        .core = slot->attr.core
     };
 
     if (alg == PSA_ALG_CCM_STAR_NO_TAG &&
@@ -4354,7 +4354,7 @@ psa_status_t psa_aead_encrypt(mbedtls_svc_key_id_t key,
     }
 
     psa_key_attributes_t attributes = {
-        .core = slot->attr
+        .core = slot->attr.core
     };
 
     status = psa_aead_check_nonce_length(alg, nonce_length);
@@ -4409,7 +4409,7 @@ psa_status_t psa_aead_decrypt(mbedtls_svc_key_id_t key,
     }
 
     psa_key_attributes_t attributes = {
-        .core = slot->attr
+        .core = slot->attr.core
     };
 
     status = psa_aead_check_nonce_length(alg, nonce_length);
@@ -4515,7 +4515,7 @@ static psa_status_t psa_aead_setup(psa_aead_operation_t *operation,
     }
 
     attributes = (psa_key_attributes_t) {
-        .core = slot->attr
+        .core = slot->attr.core
     };
 
     if ((status = psa_validate_tag_length(alg)) != PSA_SUCCESS) {
@@ -5892,7 +5892,7 @@ static psa_status_t psa_generate_derived_key_internal(
 
     slot->attr.bits = (psa_key_bits_t) bits;
     attributes = (psa_key_attributes_t) {
-        .core = slot->attr
+        .core = slot->attr.core
     };
 
     if (psa_key_lifetime_is_external(attributes.core.lifetime)) {
@@ -7024,7 +7024,7 @@ static psa_status_t psa_key_agreement_raw_internal(psa_algorithm_t alg,
     }
 
     psa_key_attributes_t attributes = {
-        .core = private_key->attr
+        .core = private_key->attr.core
     };
 
     return psa_driver_wrapper_key_agreement(&attributes,
@@ -7839,7 +7839,7 @@ psa_status_t psa_pake_set_password_key(
     }
 
     attributes = (psa_key_attributes_t) {
-        .core = slot->attr
+        .core = slot->attr.core
     };
 
     type = psa_get_key_type(&attributes);
@@ -7858,7 +7858,8 @@ psa_status_t psa_pake_set_password_key(
 
     memcpy(operation->data.inputs.password, slot->key.data, slot->key.bytes);
     operation->data.inputs.password_len = slot->key.bytes;
-    operation->data.inputs.attributes = attributes;
+    operation->data.inputs.attributes = slot->attr;
+
 exit:
     if (status != PSA_SUCCESS) {
         psa_pake_abort(operation);

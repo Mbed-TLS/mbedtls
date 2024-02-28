@@ -329,7 +329,7 @@ static psa_status_t psa_load_builtin_key_into_slot(psa_key_slot_t *slot)
 
     /* Copy actual key length and core attributes into the slot on success */
     slot->key.bytes = key_buffer_length;
-    slot->attr = attributes.core;
+    slot->attr = attributes;
 exit:
     if (status != PSA_SUCCESS) {
         psa_remove_key_data_from_memory(slot);

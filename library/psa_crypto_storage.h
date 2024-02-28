@@ -93,7 +93,7 @@ int psa_is_key_present_in_storage(const mbedtls_svc_key_id_t key);
  * \retval #PSA_ERROR_DATA_INVALID \emptydescription
  * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
  */
-psa_status_t psa_save_persistent_key(const psa_core_key_attributes_t *attr,
+psa_status_t psa_save_persistent_key(const psa_key_attributes_t *attr,
                                      const uint8_t *data,
                                      const size_t data_length);
 
@@ -123,7 +123,7 @@ psa_status_t psa_save_persistent_key(const psa_core_key_attributes_t *attr,
  * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
  * \retval #PSA_ERROR_DOES_NOT_EXIST \emptydescription
  */
-psa_status_t psa_load_persistent_key(psa_core_key_attributes_t *attr,
+psa_status_t psa_load_persistent_key(psa_key_attributes_t *attr,
                                      uint8_t **data,
                                      size_t *data_length);
 
@@ -163,7 +163,7 @@ void psa_free_persistent_key_data(uint8_t *key_data, size_t key_data_length);
  */
 void psa_format_key_data_for_storage(const uint8_t *data,
                                      const size_t data_length,
-                                     const psa_core_key_attributes_t *attr,
+                                     const psa_key_attributes_t *attr,
                                      uint8_t *storage_data);
 
 /**
@@ -186,7 +186,7 @@ psa_status_t psa_parse_key_data_from_storage(const uint8_t *storage_data,
                                              size_t storage_data_length,
                                              uint8_t **key_data,
                                              size_t *key_data_length,
-                                             psa_core_key_attributes_t *attr);
+                                             psa_key_attributes_t *attr);
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
 /** This symbol is defined if transaction support is required. */

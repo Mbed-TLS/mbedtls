@@ -59,7 +59,7 @@ typedef enum {
  * and metadata for one key.
  */
 typedef struct {
-    psa_core_key_attributes_t attr;
+    psa_key_attributes_t attr;
 
     /*
      * The current state of the key slot, as described in

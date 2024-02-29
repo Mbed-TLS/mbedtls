@@ -18,7 +18,7 @@
 
 #include "mbedtls/ssl.h"
 #include "ssl_misc.h"
-#include "mbedtls/debug.h"
+#include "debug_internal.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/version.h"
@@ -3985,6 +3985,31 @@ static int ssl_prepare_record_content(mbedtls_ssl_context *ssl,
                                            rec)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "ssl_decrypt_buf", ret);
 
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_SRV_C)
+            /*
+             * Although the server rejected early data, it might receive early
+             * data as long as it has not received the client Finished message.
+             * It is encrypted with early keys and should be ignored as stated
+             * in section 4.2.10 of RFC 8446:
+             *
+             * "Ignore the extension and return a regular 1-RTT response. The
+             * server then skips past early data by attempting to deprotect
+             * received records using the handshake traffic key, discarding
+             * records which fail deprotection (up to the configured
+             * max_early_data_size). Once a record is deprotected successfully,
+             * it is treated as the start of the client's second flight and the
+             * server proceeds as with an ordinary 1-RTT handshake."
+             */
+            if ((old_msg_type == MBEDTLS_SSL_MSG_APPLICATION_DATA) &&
+                (ssl->discard_early_data_record ==
+                 MBEDTLS_SSL_EARLY_DATA_TRY_TO_DEPROTECT_AND_DISCARD)) {
+                MBEDTLS_SSL_DEBUG_MSG(
+                    3, ("EarlyData: deprotect and discard app data records."));
+                /* TODO: Add max_early_data_size check here, see issue 6347 */
+                ret = MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
+            }
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_SRV_C */
+
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
             if (ret == MBEDTLS_ERR_SSL_UNEXPECTED_CID &&
                 ssl->conf->ignore_unexpected_cid
@@ -3994,8 +4019,26 @@ static int ssl_prepare_record_content(mbedtls_ssl_context *ssl,
             }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
+            /*
+             * The decryption of the record failed, no reason to ignore it,
+             * return in error with the decryption error code.
+             */
             return ret;
         }
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_SRV_C)
+        /*
+         * If the server were discarding protected records that it fails to
+         * deprotect because it has rejected early data, as we have just
+         * deprotected successfully a record, the server has to resume normal
+         * operation and fail the connection if the deprotection of a record
+         * fails.
+         */
+        if (ssl->discard_early_data_record ==
+            MBEDTLS_SSL_EARLY_DATA_TRY_TO_DEPROTECT_AND_DISCARD) {
+            ssl->discard_early_data_record = MBEDTLS_SSL_EARLY_DATA_NO_DISCARD;
+        }
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_SRV_C */
 
         if (old_msg_type != rec->type) {
             MBEDTLS_SSL_DEBUG_MSG(4, ("record type after decrypt (before %d): %d",
@@ -4069,6 +4112,32 @@ static int ssl_prepare_record_content(mbedtls_ssl_context *ssl,
         }
 
     }
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_SRV_C)
+    /*
+     * Although the server rejected early data because it needed to send an
+     * HelloRetryRequest message, it might receive early data as long as it has
+     * not received the client Finished message.
+     * The early data is encrypted with early keys and should be ignored as
+     * stated in section 4.2.10 of RFC 8446 (second case):
+     *
+     * "The server then ignores early data by skipping all records with an
+     * external content type of "application_data" (indicating that they are
+     * encrypted), up to the configured max_early_data_size. Ignore application
+     * data message before 2nd ClientHello when early_data was received in 1st
+     * ClientHello."
+     */
+    if (ssl->discard_early_data_record == MBEDTLS_SSL_EARLY_DATA_DISCARD) {
+        if (rec->type == MBEDTLS_SSL_MSG_APPLICATION_DATA) {
+            MBEDTLS_SSL_DEBUG_MSG(
+                3, ("EarlyData: Ignore application message before 2nd ClientHello"));
+            /* TODO: Add max_early_data_size check here, see issue 6347 */
+            return MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
+        } else if (rec->type == MBEDTLS_SSL_MSG_HANDSHAKE) {
+            ssl->discard_early_data_record = MBEDTLS_SSL_EARLY_DATA_NO_DISCARD;
+        }
+    }
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
     if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
@@ -5648,12 +5717,53 @@ static int ssl_handle_hs_message_post_handshake(mbedtls_ssl_context *ssl)
 }
 
 /*
+ * brief          Read at most 'len' application data bytes from the input
+ *                buffer.
+ *
+ * param ssl      SSL context:
+ *                - First byte of application data not read yet in the input
+ *                  buffer located at address `in_offt`.
+ *                - The number of bytes of data not read yet is `in_msglen`.
+ * param buf      buffer that will hold the data
+ * param len      maximum number of bytes to read
+ *
+ * note           The function updates the fields `in_offt` and `in_msglen`
+ *                according to the number of bytes read.
+ *
+ * return         The number of bytes read.
+ */
+static int ssl_read_application_data(
+    mbedtls_ssl_context *ssl, unsigned char *buf, size_t len)
+{
+    size_t n = (len < ssl->in_msglen) ? len : ssl->in_msglen;
+
+    if (len != 0) {
+        memcpy(buf, ssl->in_offt, n);
+        ssl->in_msglen -= n;
+    }
+
+    /* Zeroising the plaintext buffer to erase unused application data
+       from the memory. */
+    mbedtls_platform_zeroize(ssl->in_offt, n);
+
+    if (ssl->in_msglen == 0) {
+        /* all bytes consumed */
+        ssl->in_offt = NULL;
+        ssl->keep_current_message = 0;
+    } else {
+        /* more data available */
+        ssl->in_offt += n;
+    }
+
+    return (int) n;
+}
+
+/*
  * Receive application data decrypted from the SSL layer
  */
 int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t n;
 
     if (ssl == NULL || ssl->conf == NULL) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
@@ -5817,31 +5927,33 @@ int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len)
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
     }
 
-    n = (len < ssl->in_msglen)
-        ? len : ssl->in_msglen;
-
-    if (len != 0) {
-        memcpy(buf, ssl->in_offt, n);
-        ssl->in_msglen -= n;
-    }
-
-    /* Zeroising the plaintext buffer to erase unused application data
-       from the memory. */
-    mbedtls_platform_zeroize(ssl->in_offt, n);
-
-    if (ssl->in_msglen == 0) {
-        /* all bytes consumed */
-        ssl->in_offt = NULL;
-        ssl->keep_current_message = 0;
-    } else {
-        /* more data available */
-        ssl->in_offt += n;
-    }
+    ret = ssl_read_application_data(ssl, buf, len);
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("<= read"));
 
-    return (int) n;
+    return ret;
 }
+
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_EARLY_DATA)
+int mbedtls_ssl_read_early_data(mbedtls_ssl_context *ssl,
+                                unsigned char *buf, size_t len)
+{
+    if (ssl == NULL || (ssl->conf == NULL)) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    /*
+     * The server may receive early data only while waiting for the End of
+     * Early Data handshake message.
+     */
+    if ((ssl->state != MBEDTLS_SSL_END_OF_EARLY_DATA) ||
+        (ssl->in_offt == NULL)) {
+        return MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA;
+    }
+
+    return ssl_read_application_data(ssl, buf, len);
+}
+#endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_EARLY_DATA */
 
 /*
  * Send application data to be encrypted by the SSL layer, taking care of max
@@ -5945,6 +6057,94 @@ int mbedtls_ssl_write(mbedtls_ssl_context *ssl, const unsigned char *buf, size_t
 
     return ret;
 }
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
+                                 const unsigned char *buf, size_t len)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    const struct mbedtls_ssl_config *conf;
+    int written_data_len = 0;
+
+    MBEDTLS_SSL_DEBUG_MSG(2, ("=> write early_data"));
+
+    if (ssl == NULL || (conf = ssl->conf) == NULL) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    if (conf->endpoint != MBEDTLS_SSL_IS_CLIENT) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    if ((!mbedtls_ssl_conf_is_tls13_enabled(conf)) ||
+        (conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) ||
+        (conf->early_data_enabled != MBEDTLS_SSL_EARLY_DATA_ENABLED)) {
+        return MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA;
+    }
+
+    if (ssl->tls_version != MBEDTLS_SSL_VERSION_TLS1_3) {
+        return MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA;
+    }
+
+    /*
+     * If we are at the beginning of the handshake, the early data status being
+     * equal to MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN or
+     * MBEDTLS_SSL_EARLY_DATA_STATUS_SENT advance the handshake just
+     * enough to be able to send early data if possible. That way, we can
+     * guarantee that when starting the handshake with this function we will
+     * send at least one record of early data. Note that when the status is
+     * MBEDTLS_SSL_EARLY_DATA_STATUS_SENT and not yet
+     * MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE, we cannot send early data yet
+     * as the early data outbound transform has not been set as we may have to
+     * first send a dummy CCS in clear.
+     */
+    if ((ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN) ||
+        (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_SENT)) {
+        while ((ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN) ||
+               (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_SENT)) {
+            ret = mbedtls_ssl_handshake_step(ssl);
+            if (ret != 0) {
+                MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_handshake_step", ret);
+                return ret;
+            }
+
+            ret = mbedtls_ssl_flush_output(ssl);
+            if (ret != 0) {
+                MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_flush_output", ret);
+                return ret;
+            }
+        }
+    } else {
+        /*
+         * If we are past the point where we can send early data, return
+         * immediatly. Otherwise, progress the handshake as much as possible to
+         * not delay it too much. If we reach a point where we can still send
+         * early data, then we will send some.
+         */
+        if ((ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE) &&
+            (ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED)) {
+            return MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA;
+        }
+
+        ret = mbedtls_ssl_handshake(ssl);
+        if ((ret != 0) && (ret != MBEDTLS_ERR_SSL_WANT_READ)) {
+            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_handshake", ret);
+            return ret;
+        }
+    }
+
+    if ((ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE) &&
+        (ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED)) {
+        return MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA;
+    }
+
+    written_data_len = ssl_write_real(ssl, buf, len);
+
+    MBEDTLS_SSL_DEBUG_MSG(2, ("<= write early_data, len=%d", written_data_len));
+
+    return written_data_len;
+}
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
 
 /*
  * Notify the peer that the connection is being closed

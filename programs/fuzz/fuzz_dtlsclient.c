@@ -1,5 +1,3 @@
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
-
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>

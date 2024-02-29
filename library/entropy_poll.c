@@ -5,7 +5,7 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
-#if defined(__linux__) && !defined(_GNU_SOURCE)
+#if defined(__linux__) || defined(__midipix__) && !defined(_GNU_SOURCE)
 /* Ensure that syscall() is available even when compiling with -std=c99 */
 #define _GNU_SOURCE
 #endif
@@ -29,7 +29,7 @@
 
 #if !defined(unix) && !defined(__unix__) && !defined(__unix) && \
     !defined(__APPLE__) && !defined(_WIN32) && !defined(__QNXNTO__) && \
-    !defined(__HAIKU__) && !defined(__midipix__)
+    !defined(__HAIKU__) && !defined(__midipix__) && !defined(__MVS__)
 #error \
     "Platform entropy sources only work on Unix and Windows, see MBEDTLS_NO_PLATFORM_ENTROPY in mbedtls_config.h"
 #endif

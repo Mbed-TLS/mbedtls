@@ -371,14 +371,12 @@ static void write_outcome_entry(FILE *outcome_file,
  * \param missing_unmet_dependencies Non-zero if there was a problem tracking
  *                                   all unmet dependencies, 0 otherwise.
  * \param ret                        The test dispatch status (DISPATCH_xxx).
- * \param info                       A pointer to the test info structure.
  */
 static void write_outcome_result(FILE *outcome_file,
                                  size_t unmet_dep_count,
                                  int unmet_dependencies[],
                                  int missing_unmet_dependencies,
-                                 int ret,
-                                 const mbedtls_test_info_t *info)
+                                 int ret)
 {
     if (outcome_file == NULL) {
         return;
@@ -401,7 +399,7 @@ static void write_outcome_result(FILE *outcome_file,
                 }
                 break;
             }
-            switch (info->result) {
+            switch (mbedtls_test_get_result()) {
                 case MBEDTLS_TEST_RESULT_SUCCESS:
                     mbedtls_fprintf(outcome_file, "PASS;");
                     break;
@@ -410,8 +408,9 @@ static void write_outcome_result(FILE *outcome_file,
                     break;
                 default:
                     mbedtls_fprintf(outcome_file, "FAIL;%s:%d:%s",
-                                    info->filename, info->line_no,
-                                    info->test);
+                                    mbedtls_get_test_filename(),
+                                    mbedtls_test_get_line_no(),
+                                    mbedtls_test_get_test());
                     break;
             }
             break;
@@ -614,7 +613,7 @@ int execute_tests(int argc, const char **argv)
                 break;
             }
             mbedtls_fprintf(stdout, "%s%.66s",
-                            mbedtls_test_info.result == MBEDTLS_TEST_RESULT_FAILED ?
+                            mbedtls_test_get_result() == MBEDTLS_TEST_RESULT_FAILED ?
                             "\n" : "", buf);
             mbedtls_fprintf(stdout, " ");
             for (i = strlen(buf) + 1; i < 67; i++) {
@@ -690,7 +689,7 @@ int execute_tests(int argc, const char **argv)
             write_outcome_result(outcome_file,
                                  unmet_dep_count, unmet_dependencies,
                                  missing_unmet_dependencies,
-                                 ret, &mbedtls_test_info);
+                                 ret);
             if (unmet_dep_count > 0 || ret == DISPATCH_UNSUPPORTED_SUITE) {
                 total_skipped++;
                 mbedtls_fprintf(stdout, "----");
@@ -715,30 +714,33 @@ int execute_tests(int argc, const char **argv)
                 unmet_dep_count = 0;
                 missing_unmet_dependencies = 0;
             } else if (ret == DISPATCH_TEST_SUCCESS) {
-                if (mbedtls_test_info.result == MBEDTLS_TEST_RESULT_SUCCESS) {
+                if (mbedtls_test_get_result() == MBEDTLS_TEST_RESULT_SUCCESS) {
                     mbedtls_fprintf(stdout, "PASS\n");
-                } else if (mbedtls_test_info.result == MBEDTLS_TEST_RESULT_SKIPPED) {
+                } else if (mbedtls_test_get_result() == MBEDTLS_TEST_RESULT_SKIPPED) {
                     mbedtls_fprintf(stdout, "----\n");
                     total_skipped++;
                 } else {
+                    char line_buffer[MBEDTLS_TEST_LINE_LENGTH];
+
                     total_errors++;
                     mbedtls_fprintf(stdout, "FAILED\n");
                     mbedtls_fprintf(stdout, "  %s\n  at ",
-                                    mbedtls_test_info.test);
-                    if (mbedtls_test_info.step != (unsigned long) (-1)) {
+                                    mbedtls_test_get_test());
+                    if (mbedtls_test_get_step() != (unsigned long) (-1)) {
                         mbedtls_fprintf(stdout, "step %lu, ",
-                                        mbedtls_test_info.step);
+                                        mbedtls_test_get_step());
                     }
                     mbedtls_fprintf(stdout, "line %d, %s",
-                                    mbedtls_test_info.line_no,
-                                    mbedtls_test_info.filename);
-                    if (mbedtls_test_info.line1[0] != 0) {
-                        mbedtls_fprintf(stdout, "\n  %s",
-                                        mbedtls_test_info.line1);
+                                    mbedtls_test_get_line_no(),
+                                    mbedtls_get_test_filename());
+
+                    mbedtls_test_get_line1(line_buffer);
+                    if (line_buffer[0] != 0) {
+                        mbedtls_fprintf(stdout, "\n  %s", line_buffer);
                     }
-                    if (mbedtls_test_info.line2[0] != 0) {
-                        mbedtls_fprintf(stdout, "\n  %s",
-                                        mbedtls_test_info.line2);
+                    mbedtls_test_get_line2(line_buffer);
+                    if (line_buffer[0] != 0) {
+                        mbedtls_fprintf(stdout, "\n  %s", line_buffer);
                     }
                 }
                 fflush(stdout);

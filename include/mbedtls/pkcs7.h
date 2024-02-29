@@ -41,7 +41,6 @@
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/asn1.h"
-#include "mbedtls/x509.h"
 #include "mbedtls/x509_crt.h"
 
 /**

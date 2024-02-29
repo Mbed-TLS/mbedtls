@@ -16,7 +16,7 @@
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:NOT_DEFINED */
+/* BEGIN_CASE */
 void aria_invalid_param()
 {
     mbedtls_aria_context ctx;
@@ -52,8 +52,10 @@ void aria_invalid_param()
                                          output));
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
+#if defined(MBEDTLS_CIPHER_MODE_CBC) || defined(MBEDTLS_CIPHER_MODE_CFB)
 exit:
     return;
+#endif
 
 }
 /* END_CASE */

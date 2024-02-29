@@ -44,6 +44,8 @@
 #endif
 
 #include "mbedtls/pk.h"
+#include "ssl_ciphersuites_internal.h"
+#include "x509_internal.h"
 #include "pk_internal.h"
 #include "common.h"
 
@@ -650,6 +652,10 @@ struct mbedtls_ssl_handshake_params {
     /* Flag indicating if a CertificateRequest message has been sent
      * to the client or not. */
     uint8_t certificate_request_sent;
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    /* Flag indicating if the server has accepted early data or not. */
+    uint8_t early_data_accepted;
+#endif
 #endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
@@ -659,21 +665,21 @@ struct mbedtls_ssl_handshake_params {
 #if defined(MBEDTLS_SSL_CLI_C)
     /** Minimum TLS version to be negotiated.
      *
-     *  It is set up in the ClientHello writing preparation stage and used
-     *  throughout the ClientHello writing. Not relevant anymore as soon as
-     *  the protocol version has been negotiated thus as soon as the
-     *  ServerHello is received.
-     *  For a fresh handshake not linked to any previous handshake, it is
-     *  equal to the configured minimum minor version to be negotiated. When
-     *  renegotiating or resuming a session, it is equal to the previously
-     *  negotiated minor version.
+     * It is set up in the ClientHello writing preparation stage and used
+     * throughout the ClientHello writing. Not relevant anymore as soon as
+     * the protocol version has been negotiated thus as soon as the
+     * ServerHello is received.
+     * For a fresh handshake not linked to any previous handshake, it is
+     * equal to the configured minimum minor version to be negotiated. When
+     * renegotiating or resuming a session, it is equal to the previously
+     * negotiated minor version.
      *
-     *  There is no maximum TLS version field in this handshake context.
-     *  From the start of the handshake, we need to define a current protocol
-     *  version for the record layer which we define as the maximum TLS
-     *  version to be negotiated. The `tls_version` field of the SSL context is
-     *  used to store this maximum value until it contains the actual
-     *  negotiated value.
+     * There is no maximum TLS version field in this handshake context.
+     * From the start of the handshake, we need to define a current protocol
+     * version for the record layer which we define as the maximum TLS
+     * version to be negotiated. The `tls_version` field of the SSL context is
+     * used to store this maximum value until it contains the actual
+     * negotiated value.
      */
     mbedtls_ssl_protocol_version min_tls_version;
 #endif
@@ -724,15 +730,29 @@ struct mbedtls_ssl_handshake_params {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     uint8_t key_exchange_mode; /*!< Selected key exchange mode */
 
-    /** Number of HelloRetryRequest messages received/sent from/to the server. */
-    int hello_retry_request_count;
+    /**
+     * Flag indicating if, in the course of the current handshake, an
+     * HelloRetryRequest message has been sent by the server or received by
+     * the client (<> 0) or not (0).
+     */
+    uint8_t hello_retry_request_flag;
+
+#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
+    /**
+     * Flag indicating if, in the course of the current handshake, a dummy
+     * change_cipher_spec (CCS) record has already been sent. Used to send only
+     * one CCS per handshake while not complicating the handshake state
+     * transitions for that purpose.
+     */
+    uint8_t ccs_sent;
+#endif
 
 #if defined(MBEDTLS_SSL_SRV_C)
-    /** selected_group of key_share extension in HelloRetryRequest message. */
-    uint16_t hrr_selected_group;
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     uint8_t tls13_kex_modes; /*!< Key exchange modes supported by the client */
 #endif
+    /** selected_group of key_share extension in HelloRetryRequest message. */
+    uint16_t hrr_selected_group;
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     uint16_t new_session_tickets_count;         /*!< number of session tickets */
 #endif
@@ -1914,89 +1934,89 @@ int mbedtls_ssl_tls13_handshake_server_step(mbedtls_ssl_context *ssl);
 /*
  * Helper functions around key exchange modes.
  */
-static inline unsigned mbedtls_ssl_conf_tls13_check_kex_modes(mbedtls_ssl_context *ssl,
-                                                              int kex_mode_mask)
+static inline int mbedtls_ssl_conf_tls13_is_kex_mode_enabled(mbedtls_ssl_context *ssl,
+                                                             int kex_mode_mask)
 {
     return (ssl->conf->tls13_kex_modes & kex_mode_mask) != 0;
 }
 
-static inline int mbedtls_ssl_conf_tls13_psk_enabled(mbedtls_ssl_context *ssl)
+static inline int mbedtls_ssl_conf_tls13_is_psk_enabled(mbedtls_ssl_context *ssl)
 {
-    return mbedtls_ssl_conf_tls13_check_kex_modes(ssl,
-                                                  MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK);
+    return mbedtls_ssl_conf_tls13_is_kex_mode_enabled(ssl,
+                                                      MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK);
 }
 
-static inline int mbedtls_ssl_conf_tls13_psk_ephemeral_enabled(mbedtls_ssl_context *ssl)
+static inline int mbedtls_ssl_conf_tls13_is_psk_ephemeral_enabled(mbedtls_ssl_context *ssl)
 {
-    return mbedtls_ssl_conf_tls13_check_kex_modes(ssl,
-                                                  MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL);
+    return mbedtls_ssl_conf_tls13_is_kex_mode_enabled(ssl,
+                                                      MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL);
 }
 
-static inline int mbedtls_ssl_conf_tls13_ephemeral_enabled(mbedtls_ssl_context *ssl)
+static inline int mbedtls_ssl_conf_tls13_is_ephemeral_enabled(mbedtls_ssl_context *ssl)
 {
-    return mbedtls_ssl_conf_tls13_check_kex_modes(ssl,
-                                                  MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL);
+    return mbedtls_ssl_conf_tls13_is_kex_mode_enabled(ssl,
+                                                      MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL);
 }
 
-static inline int mbedtls_ssl_conf_tls13_some_ephemeral_enabled(mbedtls_ssl_context *ssl)
+static inline int mbedtls_ssl_conf_tls13_is_some_ephemeral_enabled(mbedtls_ssl_context *ssl)
 {
-    return mbedtls_ssl_conf_tls13_check_kex_modes(ssl,
-                                                  MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ALL);
+    return mbedtls_ssl_conf_tls13_is_kex_mode_enabled(ssl,
+                                                      MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ALL);
 }
 
-static inline int mbedtls_ssl_conf_tls13_some_psk_enabled(mbedtls_ssl_context *ssl)
+static inline int mbedtls_ssl_conf_tls13_is_some_psk_enabled(mbedtls_ssl_context *ssl)
 {
-    return mbedtls_ssl_conf_tls13_check_kex_modes(ssl,
-                                                  MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL);
+    return mbedtls_ssl_conf_tls13_is_kex_mode_enabled(ssl,
+                                                      MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL);
 }
 
 #if defined(MBEDTLS_SSL_SRV_C) && \
     defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
 /**
  * Given a list of key exchange modes, check if at least one of them is
- * supported.
+ * supported by peer.
  *
  * \param[in] ssl  SSL context
  * \param kex_modes_mask  Mask of the key exchange modes to check
  *
- * \return 0 if at least one of the key exchange modes is supported,
- *         !=0 otherwise.
+ * \return Non-zero if at least one of the key exchange modes is supported by
+ *         the peer, otherwise \c 0.
  */
-static inline unsigned mbedtls_ssl_tls13_check_kex_modes(mbedtls_ssl_context *ssl,
-                                                         int kex_modes_mask)
+static inline int mbedtls_ssl_tls13_is_kex_mode_supported(mbedtls_ssl_context *ssl,
+                                                          int kex_modes_mask)
 {
-    return (ssl->handshake->tls13_kex_modes & kex_modes_mask) == 0;
+    return (ssl->handshake->tls13_kex_modes & kex_modes_mask) != 0;
 }
 
-static inline int mbedtls_ssl_tls13_psk_enabled(mbedtls_ssl_context *ssl)
+static inline int mbedtls_ssl_tls13_is_psk_supported(mbedtls_ssl_context *ssl)
 {
-    return !mbedtls_ssl_tls13_check_kex_modes(ssl,
-                                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK);
+    return mbedtls_ssl_tls13_is_kex_mode_supported(ssl,
+                                                   MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK);
 }
 
-static inline int mbedtls_ssl_tls13_psk_ephemeral_enabled(
+static inline int mbedtls_ssl_tls13_is_psk_ephemeral_supported(
     mbedtls_ssl_context *ssl)
 {
-    return !mbedtls_ssl_tls13_check_kex_modes(ssl,
-                                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL);
+    return mbedtls_ssl_tls13_is_kex_mode_supported(ssl,
+                                                   MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL);
 }
 
-static inline int mbedtls_ssl_tls13_ephemeral_enabled(mbedtls_ssl_context *ssl)
+static inline int mbedtls_ssl_tls13_is_ephemeral_supported(mbedtls_ssl_context *ssl)
 {
-    return !mbedtls_ssl_tls13_check_kex_modes(ssl,
-                                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL);
+    return mbedtls_ssl_tls13_is_kex_mode_supported(ssl,
+                                                   MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL);
 }
 
-static inline int mbedtls_ssl_tls13_some_ephemeral_enabled(mbedtls_ssl_context *ssl)
+static inline int mbedtls_ssl_tls13_is_some_ephemeral_supported(mbedtls_ssl_context *ssl)
 {
-    return !mbedtls_ssl_tls13_check_kex_modes(ssl,
-                                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ALL);
+    return mbedtls_ssl_tls13_is_kex_mode_supported(ssl,
+                                                   MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ALL);
 }
 
-static inline int mbedtls_ssl_tls13_some_psk_enabled(mbedtls_ssl_context *ssl)
+static inline int mbedtls_ssl_tls13_is_some_psk_supported(mbedtls_ssl_context *ssl)
 {
-    return !mbedtls_ssl_tls13_check_kex_modes(ssl,
-                                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL);
+    return mbedtls_ssl_tls13_is_kex_mode_supported(ssl,
+                                                   MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL);
 }
 #endif /* MBEDTLS_SSL_SRV_C &&
           MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED */
@@ -2130,12 +2150,6 @@ int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
                                            unsigned char *buf,
                                            const unsigned char *end,
                                            size_t *out_len);
-
-#if defined(MBEDTLS_SSL_SRV_C)
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_RECEIVED \
-    MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT
-#endif /* MBEDTLS_SSL_SRV_C */
-
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
@@ -2704,12 +2718,18 @@ int mbedtls_ssl_parse_server_name_ext(mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
 #define MBEDTLS_SSL_RECORD_SIZE_LIMIT_EXTENSION_DATA_LENGTH (2)
-#define MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN (64)
+#define MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN (64)      /* As defined in RFC 8449 */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
                                                   const unsigned char *buf,
                                                   const unsigned char *end);
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_tls13_write_record_size_limit_ext(mbedtls_ssl_context *ssl,
+                                                  unsigned char *buf,
+                                                  const unsigned char *end,
+                                                  size_t *out_len);
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
 #if defined(MBEDTLS_SSL_ALPN)
@@ -2782,47 +2802,53 @@ int mbedtls_ssl_session_set_hostname(mbedtls_ssl_session *session,
 
 #define MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME (604800)
 
-static inline unsigned int mbedtls_ssl_session_get_ticket_flags(
+static inline unsigned int mbedtls_ssl_tls13_session_get_ticket_flags(
     mbedtls_ssl_session *session, unsigned int flags)
 {
     return session->ticket_flags &
            (flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
 }
 
-static inline unsigned int mbedtls_ssl_session_check_ticket_flags(
+/**
+ * Check if at least one of the given flags is set in
+ * the session ticket. See the definition of
+ * `MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK` to get all
+ * permitted flags.
+ */
+static inline int mbedtls_ssl_tls13_session_ticket_has_flags(
     mbedtls_ssl_session *session, unsigned int flags)
 {
-    return mbedtls_ssl_session_get_ticket_flags(session, flags) == 0;
+    return mbedtls_ssl_tls13_session_get_ticket_flags(session, flags) != 0;
 }
 
-static inline unsigned int mbedtls_ssl_session_ticket_allow_psk(
+static inline int mbedtls_ssl_tls13_session_ticket_allow_psk(
     mbedtls_ssl_session *session)
 {
-    return !mbedtls_ssl_session_check_ticket_flags(session,
-                                                   MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_RESUMPTION);
+    return mbedtls_ssl_tls13_session_ticket_has_flags(
+        session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_RESUMPTION);
 }
 
-static inline unsigned int mbedtls_ssl_session_ticket_allow_psk_ephemeral(
+static inline int mbedtls_ssl_tls13_session_ticket_allow_psk_ephemeral(
     mbedtls_ssl_session *session)
 {
-    return !mbedtls_ssl_session_check_ticket_flags(session,
-                                                   MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_EPHEMERAL_RESUMPTION);
+    return mbedtls_ssl_tls13_session_ticket_has_flags(
+        session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_EPHEMERAL_RESUMPTION);
 }
 
-static inline unsigned int mbedtls_ssl_session_ticket_allow_early_data(
+static inline unsigned int mbedtls_ssl_tls13_session_ticket_allow_early_data(
     mbedtls_ssl_session *session)
 {
-    return !mbedtls_ssl_session_check_ticket_flags(session,
-                                                   MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
+    return mbedtls_ssl_tls13_session_ticket_has_flags(
+        session, MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA);
 }
 
-static inline void mbedtls_ssl_session_set_ticket_flags(
+static inline void mbedtls_ssl_tls13_session_set_ticket_flags(
     mbedtls_ssl_session *session, unsigned int flags)
 {
     session->ticket_flags |= (flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
 }
 
-static inline void mbedtls_ssl_session_clear_ticket_flags(
+static inline void mbedtls_ssl_tls13_session_clear_ticket_flags(
     mbedtls_ssl_session *session, unsigned int flags)
 {
     session->ticket_flags &= ~(flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);

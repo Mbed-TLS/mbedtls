@@ -18,7 +18,7 @@
 
 #include "psa_util_internal.h"
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 
 #include <psa/crypto.h>
 
@@ -363,7 +363,7 @@ int mbedtls_psa_get_random(void *p_rng,
     }
 }
 
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
 #if defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
 

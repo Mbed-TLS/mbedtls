@@ -2,6 +2,8 @@ DESTDIR=/usr/local
 PREFIX=mbedtls_
 PERL ?= perl
 
+include framework/exported.make
+
 .SILENT:
 
 .PHONY: all no_test programs lib tests install uninstall clean test check lcov apidoc apidoc_clean

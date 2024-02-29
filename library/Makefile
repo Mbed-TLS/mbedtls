@@ -1,3 +1,4 @@
+include ../framework/exported.make
 
 # Also see "include/mbedtls/mbedtls_config.h"
 

@@ -199,7 +199,10 @@ and subsequent commands are tests that cannot run if the build failed).'''
         success = True
         for command in self.commands:
             log_command(command)
-            ret = subprocess.call(command)
+            env = os.environ.copy()
+            if 'MBEDTLS_TEST_CONFIGURATION' in env:
+                env['MBEDTLS_TEST_CONFIGURATION'] += '-' + self.name
+            ret = subprocess.call(command, env=env)
             if ret != 0:
                 if command[0] not in ['make', options.make_command]:
                     log_line('*** [{}] Error {}'.format(' '.join(command), ret))

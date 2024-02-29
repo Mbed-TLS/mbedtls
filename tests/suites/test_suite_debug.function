@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include "mbedtls/debug.h"
+#include "debug_internal.h"
 #include "string.h"
 #include "mbedtls/pk.h"
 

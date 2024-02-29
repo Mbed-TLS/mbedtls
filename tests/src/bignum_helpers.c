@@ -135,7 +135,7 @@ int mbedtls_test_read_mpi(mbedtls_mpi *X, const char *s)
     }
     if (negative) {
         if (mbedtls_mpi_cmp_int(X, 0) == 0) {
-            ++mbedtls_test_case_uses_negative_0;
+            mbedtls_test_increment_case_uses_negative_0();
         }
         X->s = -1;
     }

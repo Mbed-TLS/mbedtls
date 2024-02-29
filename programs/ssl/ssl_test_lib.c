@@ -8,12 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
 #include "ssl_test_lib.h"
 
 #if defined(MBEDTLS_TEST_HOOKS)
-#include "test/helpers.h"
+#include "test/threading_helpers.h"
 #endif
 
 #if !defined(MBEDTLS_SSL_TEST_IMPOSSIBLE)
@@ -427,7 +426,7 @@ int test_hooks_failure_detected(void)
     mbedtls_test_mutex_usage_check();
 #endif
 
-    if (mbedtls_test_info.result != MBEDTLS_TEST_RESULT_SUCCESS) {
+    if (mbedtls_test_get_result() != MBEDTLS_TEST_RESULT_SUCCESS) {
         return 1;
     }
     return 0;
@@ -515,17 +514,31 @@ static const struct {
 #endif
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
     defined(PSA_WANT_ALG_FFDH)
+#if defined(PSA_WANT_DH_RFC7919_2048)
     { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048, "ffdhe2048", 1 },
-    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072, "ffdhe3072", 1 },
-    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096, "ffdhe4096", 1 },
-    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144, "ffdhe6144", 1 },
-    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192, "ffdhe8192", 1 },
-#else
+#else /* PSA_WANT_DH_RFC7919_2048 */
     { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048, "ffdhe2048", 0 },
+#endif /* PSA_WANT_DH_RFC7919_2048 */
+#if defined(PSA_WANT_DH_RFC7919_3072)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072, "ffdhe3072", 1 },
+#else /* PSA_WANT_DH_RFC7919_3072 */
     { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072, "ffdhe3072", 0 },
+#endif /* PSA_WANT_DH_RFC7919_3072 */
+#if defined(PSA_WANT_DH_RFC7919_4096)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096, "ffdhe4096", 1 },
+#else /* PSA_WANT_DH_RFC7919_4096 */
     { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096, "ffdhe4096", 0 },
+#endif /* PSA_WANT_DH_RFC7919_4096 */
+#if defined(PSA_WANT_DH_RFC7919_6144)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144, "ffdhe6144", 1 },
+#else /* PSA_WANT_DH_RFC7919_6144 */
     { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144, "ffdhe6144", 0 },
+#endif /* PSA_WANT_DH_RFC7919_6144 */
+#if defined(PSA_WANT_DH_RFC7919_8192)
+    { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192, "ffdhe8192", 1 },
+#else /* PSA_WANT_DH_RFC7919_8192 */
     { MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192, "ffdhe8192", 0 },
+#endif /* PSA_WANT_DH_RFC7919_8192 */
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED && PSA_WANT_ALG_FFDH */
     { 0, NULL, 0 },
 };

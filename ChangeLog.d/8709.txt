@@ -1,3 +1,5 @@
 Features
    * The new function mbedtls_pk_copy_from_psa() provides a way to setup
-     a PK context starting from a PSA key.
+     a PK context starting from a PSA key. In contrast to
+     mbedtls_pk_setup_opaque() the resulting PK context is a normal context
+     that's independent from the original PSA key.

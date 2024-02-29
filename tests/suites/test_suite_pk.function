@@ -169,6 +169,19 @@
 #define MBEDTLS_TEST_PSA_ECC_ANOTHER_CURVE_BITS 0
 #endif
 
+/* Get an available MD alg to be used in sign/verify tests. */
+#if defined(MBEDTLS_MD_CAN_SHA1)
+#define MBEDTLS_MD_ALG_FOR_TEST         MBEDTLS_MD_SHA1
+#elif defined(MBEDTLS_MD_CAN_SHA224)
+#define MBEDTLS_MD_ALG_FOR_TEST         MBEDTLS_MD_SHA224
+#elif defined(MBEDTLS_MD_CAN_SHA256)
+#define MBEDTLS_MD_ALG_FOR_TEST         MBEDTLS_MD_SHA256
+#elif defined(MBEDTLS_MD_CAN_SHA384)
+#define MBEDTLS_MD_ALG_FOR_TEST         MBEDTLS_MD_SHA384
+#elif defined(MBEDTLS_MD_CAN_SHA512)
+#define MBEDTLS_MD_ALG_FOR_TEST         MBEDTLS_MD_SHA512
+#endif
+
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static int pk_genkey_ec(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id)
 {
@@ -2427,7 +2440,7 @@ void pk_copy_from_psa_success(data_t *priv_key_data, int key_type_arg,
     TEST_EQUAL(mbedtls_pk_check_pair(&pk_pub, &pk_priv, mbedtls_test_rnd_std_rand, NULL), 0);
 
     /* Get the MD alg to be used for the tests below from the provided key policy. */
-    mbedtls_md_type_t md_for_test = MBEDTLS_MD_SHA256; /* Default */
+    mbedtls_md_type_t md_for_test = MBEDTLS_MD_ALG_FOR_TEST; /* Default */
     if ((PSA_ALG_GET_HASH(key_alg) != PSA_ALG_NONE) &&
         (PSA_ALG_GET_HASH(key_alg) != PSA_ALG_ANY_HASH)) {
         md_for_test = mbedtls_md_type_from_psa_alg(key_alg);

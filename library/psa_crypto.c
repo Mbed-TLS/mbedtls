@@ -4442,7 +4442,7 @@ psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
     }
 
     LOCAL_INPUT_ALLOC(input_external, input_length, input);
-    LOCAL_OUTPUT_ALLOC_WITH_COPY(output_external, output_size, output);
+    LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
 
     status = psa_driver_wrapper_cipher_update(operation,
                                               input,
@@ -4481,7 +4481,7 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
         goto exit;
     }
 
-    LOCAL_OUTPUT_ALLOC_WITH_COPY(output_external, output_size, output);
+    LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
 
     status = psa_driver_wrapper_cipher_finish(operation,
                                               output,

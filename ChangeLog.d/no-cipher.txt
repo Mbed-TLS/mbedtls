@@ -1,0 +1,9 @@
+Features
+   * Fewer modules depend on MBEDTLS_CIPHER_C, making it possible to save code
+     size by disabling it in more circumstances. In particular, the CCM and
+     GCM modules no longer depend on MBEDTLS_CIPHER_C. Also,
+     MBEDTLS_PSA_CRYPTO can now be enabled without MBEDTLS_CIPHER_C if all
+     unauthenticated (non-AEAD) ciphers are disabled, or if they're all
+     fully provided by drivers. See docs/driver-only-builds.md for full
+     details and current limitations; in particular, NIST_KW and PKCS5/PKCS12
+     decryption still unconditionally depend on MBEDTLS_CIPHER_C.

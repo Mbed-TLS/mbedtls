@@ -684,6 +684,18 @@ static const oid_cipher_alg_t oid_cipher_alg[] =
         MBEDTLS_CIPHER_DES_EDE3_CBC,
     },
     {
+        OID_DESCRIPTOR(MBEDTLS_OID_AES_128_CBC,          "aes128-cbc", "AES128-CBC"),
+        MBEDTLS_CIPHER_AES_128_CBC,
+    },
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_AES_192_CBC,          "aes192-cbc", "AES192-CBC"),
+        MBEDTLS_CIPHER_AES_192_CBC,
+    },
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_AES_256_CBC,          "aes256-cbc", "AES256-CBC"),
+        MBEDTLS_CIPHER_AES_256_CBC,
+    },
+    {
         NULL_OID_DESCRIPTOR,
         MBEDTLS_CIPHER_NONE,
     },

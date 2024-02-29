@@ -2,6 +2,7 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "string.h"
+#include "ctr.h"
 
 #if defined(MBEDTLS_THREADING_PTHREAD)
 #include "mbedtls/threading.h"
@@ -346,19 +347,24 @@ exit:
 void ctr_drbg_threads(data_t *expected_result, int reseed, int arg_thread_count)
 {
     size_t thread_count = (size_t) arg_thread_count;
-    pthread_t *threads = NULL;
+    mbedtls_test_thread_t *threads = NULL;
 
     unsigned char out[16];
     unsigned char *entropy = NULL;
 
     const size_t n_random_calls = thread_count * thread_random_reps + 1;
 
-    /* Based on the size of MBEDTLS_CTR_DRBG_ENTROPY_LEN for SHA512. */
+    /* This is a known-answer test, and although tests use a mock entropy
+     * function the input entropy length will still affect the output.
+     * We therefore need to pick a fixed entropy length, rather than using the
+     * default entropy length (MBEDTLS_CTR_DRBG_ENTROPY_LEN). We've chosen to
+     * use the default value of MBEDTLS_CTR_DRBG_ENTROPY_LEN for SHA-512,
+     * as this was the value used when the expected answers were calculated. */
     const size_t entropy_len = 48;
 
     AES_PSA_INIT();
 
-    TEST_CALLOC(threads, sizeof(pthread_t) * thread_count);
+    TEST_CALLOC(threads, sizeof(mbedtls_test_thread_t) * thread_count);
     memset(out, 0, sizeof(out));
 
     mbedtls_ctr_drbg_context ctx;
@@ -366,8 +372,8 @@ void ctr_drbg_threads(data_t *expected_result, int reseed, int arg_thread_count)
 
     test_offset_idx = 0;
 
-    /* Need to do this, otherwise if we are forced into using SHA256 for
-     * whaever reason, output will differ. */
+    /* Need to set a non-default fixed entropy len, to ensure same output across
+     * all configs - see above for details. */
     mbedtls_ctr_drbg_set_entropy_len(&ctx, entropy_len);
 
     if (reseed == 0) {
@@ -392,13 +398,13 @@ void ctr_drbg_threads(data_t *expected_result, int reseed, int arg_thread_count)
 
     for (size_t i = 0; i < thread_count; i++) {
         TEST_EQUAL(
-            pthread_create(&threads[i], NULL,
-                           thread_random_function, (void *) &ctx),
+            mbedtls_test_thread_create(&threads[i],
+                                       thread_random_function, (void *) &ctx),
             0);
     }
 
     for (size_t i = 0; i < thread_count; i++) {
-        TEST_EQUAL(pthread_join(threads[i], NULL), 0);
+        TEST_EQUAL(mbedtls_test_thread_join(&threads[i]), 0);
     }
 
     /* Take a last output for comparing and thus verifying the DRBG state */
@@ -441,5 +447,77 @@ void ctr_drbg_selftest()
     AES_PSA_INIT();
     TEST_ASSERT(mbedtls_ctr_drbg_self_test(1) == 0);
     AES_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ctr_increment_rollover()
+{
+    uint8_t c[16];
+    uint8_t r[16];
+
+    // test all increments from 2^n - 1 to 2^n (i.e. where we roll over into the next bit)
+    for (int n = 0; n <= 128; n++) {
+        memset(c, 0, 16);
+        memset(r, 0, 16);
+
+        // set least significant (highest address) n bits to 1, i.e. generate (2^n - 1)
+        for (int i = 0; i < n; i++) {
+            int bit = i % 8;
+            int byte = (i / 8);
+            c[15 - byte] |= 1 << bit;
+        }
+        // increment to get 2^n
+        mbedtls_ctr_increment_counter(c);
+
+        // now generate a reference result equal to 2^n - i.e. set only bit (n + 1)
+        // if n == 127, this will not set any bits (i.e. wraps to 0).
+        int bit = n % 8;
+        int byte = n / 8;
+        if (byte < 16) {
+            r[15 - byte] = 1 << bit;
+        }
+
+        TEST_MEMORY_COMPARE(c, 16, r, 16);
+    }
+
+    uint64_t lsb = 10, msb = 20;
+    MBEDTLS_PUT_UINT64_BE(msb, c, 0);
+    MBEDTLS_PUT_UINT64_BE(lsb, c, 8);
+    memcpy(r, c, 16);
+    mbedtls_ctr_increment_counter(c);
+    for (int i = 15; i >= 0; i--) {
+        r[i] += 1;
+        if (r[i] != 0) {
+            break;
+        }
+    }
+    TEST_MEMORY_COMPARE(c, 16, r, 16);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ctr_increment(data_t *x)
+{
+    uint8_t c[16];
+    uint8_t r[16];
+
+    // initialise c and r from test argument
+    memset(c, 0, 16);
+    memcpy(c, x->x, x->len);
+    memcpy(r, c, 16);
+
+    // increment c
+    mbedtls_ctr_increment_counter(c);
+    // increment reference
+    for (int i = 15; i >= 0; i--) {
+        r[i] += 1;
+        if (r[i] != 0) {
+            break;
+        }
+    }
+
+    // test that mbedtls_ctr_increment_counter behaviour matches reference
+    TEST_MEMORY_COMPARE(c, 16, r, 16);
 }
 /* END_CASE */

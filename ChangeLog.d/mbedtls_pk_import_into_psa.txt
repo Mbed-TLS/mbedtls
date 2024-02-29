@@ -1,0 +1,4 @@
+Features
+   * The new functions mbedtls_pk_get_psa_attributes() and
+     mbedtls_pk_import_into_psa() provide a uniform way to create a PSA
+     key from a PK key.

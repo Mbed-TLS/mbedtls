@@ -1,5 +1,3 @@
-find_package(Threads)
-
 set(libs
     ${mbedtls_target}
     ${CMAKE_THREAD_LIBS_INIT}

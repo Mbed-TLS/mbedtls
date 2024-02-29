@@ -21,6 +21,10 @@
 
 const char *mbedtls_ssl_states_str(mbedtls_ssl_states in);
 
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+const char *mbedtls_ssl_early_data_status_str(mbedtls_ssl_early_data_status in);
+#endif
+
 const char *mbedtls_ssl_protocol_version_str(mbedtls_ssl_protocol_version in);
 
 const char *mbedtls_tls_prf_types_str(mbedtls_tls_prf_types in);

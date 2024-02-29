@@ -20,6 +20,16 @@
 #include <psa_crypto_slot_management.h>
 #include <test/psa_crypto_helpers.h>
 
+#if defined(MBEDTLS_PK_C)
+#include <pk_internal.h>
+#endif
+#if defined(MBEDTLS_ECP_C)
+#include <mbedtls/ecp.h>
+#endif
+#if defined(MBEDTLS_RSA_C)
+#include <rsa_internal.h>
+#endif
+
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
 static int lifetime_is_dynamic_secure_element(psa_key_lifetime_t lifetime)
 {
@@ -283,23 +293,25 @@ static int exercise_signature_key(mbedtls_svc_key_id_t key,
                                   psa_key_usage_t usage,
                                   psa_algorithm_t alg)
 {
+    /* If the policy allows signing with any hash, just pick one. */
+    psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH(alg);
+    if (PSA_ALG_IS_SIGN_HASH(alg) && hash_alg == PSA_ALG_ANY_HASH &&
+        usage & (PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH |
+                 PSA_KEY_USAGE_SIGN_MESSAGE | PSA_KEY_USAGE_VERIFY_MESSAGE)) {
+#if defined(KNOWN_SUPPORTED_HASH_ALG)
+        hash_alg = KNOWN_SUPPORTED_HASH_ALG;
+        alg ^= PSA_ALG_ANY_HASH ^ hash_alg;
+#else
+        TEST_FAIL("No hash algorithm for hash-and-sign testing");
+#endif
+    }
+
     if (usage & (PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH) &&
         PSA_ALG_IS_SIGN_HASH(alg)) {
         unsigned char payload[PSA_HASH_MAX_SIZE] = { 1 };
         size_t payload_length = 16;
         unsigned char signature[PSA_SIGNATURE_MAX_SIZE] = { 0 };
         size_t signature_length = sizeof(signature);
-        psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH(alg);
-
-        /* If the policy allows signing with any hash, just pick one. */
-        if (PSA_ALG_IS_SIGN_HASH(alg) && hash_alg == PSA_ALG_ANY_HASH) {
-    #if defined(KNOWN_SUPPORTED_HASH_ALG)
-            hash_alg = KNOWN_SUPPORTED_HASH_ALG;
-            alg ^= PSA_ALG_ANY_HASH ^ hash_alg;
-    #else
-            TEST_FAIL("No hash algorithm for hash-and-sign testing");
-    #endif
-        }
 
         /* Some algorithms require the payload to have the size of
          * the hash encoded in the algorithm. Use this input size
@@ -362,8 +374,10 @@ static int exercise_asymmetric_encryption_key(mbedtls_svc_key_id_t key,
                                               psa_key_usage_t usage,
                                               psa_algorithm_t alg)
 {
-    unsigned char plaintext[256] = "Hello, world...";
-    unsigned char ciphertext[256] = "(wabblewebblewibblewobblewubble)";
+    unsigned char plaintext[PSA_ASYMMETRIC_DECRYPT_OUTPUT_MAX_SIZE] =
+        "Hello, world...";
+    unsigned char ciphertext[PSA_ASYMMETRIC_ENCRYPT_OUTPUT_MAX_SIZE] =
+        "(wabblewebblewibblewobblewubble)";
     size_t ciphertext_length = sizeof(ciphertext);
     size_t plaintext_length = 16;
 
@@ -414,6 +428,21 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
                                                   PSA_KEY_DERIVATION_INPUT_INFO,
                                                   input2,
                                                   input2_length));
+    } else if (PSA_ALG_IS_HKDF_EXTRACT(alg)) {
+        PSA_ASSERT(psa_key_derivation_input_bytes(operation,
+                                                  PSA_KEY_DERIVATION_INPUT_SALT,
+                                                  input1, input1_length));
+        PSA_ASSERT(psa_key_derivation_input_key(operation,
+                                                PSA_KEY_DERIVATION_INPUT_SECRET,
+                                                key));
+    } else if (PSA_ALG_IS_HKDF_EXPAND(alg)) {
+        PSA_ASSERT(psa_key_derivation_input_key(operation,
+                                                PSA_KEY_DERIVATION_INPUT_SECRET,
+                                                key));
+        PSA_ASSERT(psa_key_derivation_input_bytes(operation,
+                                                  PSA_KEY_DERIVATION_INPUT_INFO,
+                                                  input2,
+                                                  input2_length));
     } else if (PSA_ALG_IS_TLS12_PRF(alg) ||
                PSA_ALG_IS_TLS12_PSK_TO_MS(alg)) {
         PSA_ASSERT(psa_key_derivation_input_bytes(operation,
@@ -436,6 +465,10 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
         PSA_ASSERT(psa_key_derivation_input_key(operation,
                                                 PSA_KEY_DERIVATION_INPUT_PASSWORD,
                                                 key));
+    } else if (alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS) {
+        PSA_ASSERT(psa_key_derivation_input_bytes(operation,
+                                                  PSA_KEY_DERIVATION_INPUT_SECRET,
+                                                  input1, input1_length));
     } else {
         TEST_FAIL("Key derivation algorithm not supported");
     }
@@ -985,5 +1018,143 @@ psa_key_usage_t mbedtls_test_psa_usage_to_exercise(psa_key_type_t type,
     }
 
 }
+
+int mbedtls_test_can_exercise_psa_algorithm(psa_algorithm_t alg)
+{
+    /* Reject algorithms that we know are not supported. Default to
+     * attempting exercise, so that if an algorithm is missing from this
+     * function, the result will be a test failure and not silently
+     * omitting exercise. */
+#if !defined(PSA_WANT_ALG_RSA_PKCS1V15_CRYPT)
+    if (alg == PSA_ALG_RSA_PKCS1V15_CRYPT) {
+        return 0;
+    }
+#endif
+#if !defined(PSA_WANT_ALG_RSA_PKCS1V15_SIGN)
+    if (PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg)) {
+        return 0;
+    }
+#endif
+#if !defined(PSA_WANT_ALG_RSA_PSS)
+    if (PSA_ALG_IS_RSA_PSS_STANDARD_SALT(alg)) {
+        return 0;
+    }
+#endif
+#if !defined(PSA_WANT_ALG_RSA_PSS_ANY_SALT)
+    if (PSA_ALG_IS_RSA_PSS_ANY_SALT(alg)) {
+        return 0;
+    }
+#endif
+#if !defined(PSA_WANT_ALG_ECDSA)
+    if (PSA_ALG_IS_ECDSA(alg)) {
+        return 0;
+    }
+#endif
+#if !defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)
+    if (PSA_ALG_IS_DETERMINISTIC_ECDSA(alg)) {
+        return 0;
+    }
+#endif
+#if !defined(PSA_WANT_ALG_ECDH)
+    if (PSA_ALG_IS_ECDH(alg)) {
+        return 0;
+    }
+#endif
+    (void) alg;
+    return 1;
+}
+
+#if defined(MBEDTLS_PK_C)
+int mbedtls_test_key_consistency_psa_pk(mbedtls_svc_key_id_t psa_key,
+                                        const mbedtls_pk_context *pk)
+{
+    psa_key_attributes_t psa_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t pk_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    int ok = 0;
+
+    PSA_ASSERT(psa_get_key_attributes(psa_key, &psa_attributes));
+    psa_key_type_t psa_type = psa_get_key_type(&psa_attributes);
+    mbedtls_pk_type_t pk_type = mbedtls_pk_get_type(pk);
+
+    TEST_ASSERT(PSA_KEY_TYPE_IS_PUBLIC_KEY(psa_type) ||
+                PSA_KEY_TYPE_IS_KEY_PAIR(psa_type));
+    TEST_EQUAL(psa_get_key_bits(&psa_attributes), mbedtls_pk_get_bitlen(pk));
+
+    uint8_t pk_public_buffer[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
+    const uint8_t *pk_public = NULL;
+    size_t pk_public_length = 0;
+
+    switch (pk_type) {
+#if defined(MBEDTLS_RSA_C)
+        case MBEDTLS_PK_RSA:
+            TEST_ASSERT(PSA_KEY_TYPE_IS_RSA(psa_type));
+            const mbedtls_rsa_context *rsa = mbedtls_pk_rsa(*pk);
+            uint8_t *const end = pk_public_buffer + sizeof(pk_public_buffer);
+            uint8_t *cursor = end;
+            TEST_LE_U(1, mbedtls_rsa_write_pubkey(rsa,
+                                                  pk_public_buffer, &cursor));
+            pk_public = cursor;
+            pk_public_length = end - pk_public;
+            break;
+#endif
+
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+        case MBEDTLS_PK_ECKEY:
+        case MBEDTLS_PK_ECKEY_DH:
+        case MBEDTLS_PK_ECDSA:
+            TEST_ASSERT(PSA_KEY_TYPE_IS_ECC(psa_type));
+            TEST_EQUAL(PSA_KEY_TYPE_ECC_GET_FAMILY(psa_type), pk->ec_family);
+            pk_public = pk->pub_raw;
+            pk_public_length = pk->pub_raw_len;
+            break;
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+        case MBEDTLS_PK_ECKEY:
+        case MBEDTLS_PK_ECKEY_DH:
+        case MBEDTLS_PK_ECDSA:
+            TEST_ASSERT(PSA_KEY_TYPE_IS_ECC(psa_get_key_type(&psa_attributes)));
+            const mbedtls_ecp_keypair *ec = mbedtls_pk_ec_ro(*pk);
+            TEST_EQUAL(mbedtls_ecp_write_public_key(
+                           ec, MBEDTLS_ECP_PF_UNCOMPRESSED, &pk_public_length,
+                           pk_public_buffer, sizeof(pk_public_buffer)), 0);
+            pk_public = pk_public_buffer;
+            break;
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS && !MBEDTLS_PK_USE_PSA_EC_DATA */
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        case MBEDTLS_PK_OPAQUE:
+            PSA_ASSERT(psa_get_key_attributes(pk->priv_id, &pk_attributes));
+            psa_key_type_t pk_psa_type = psa_get_key_type(&pk_attributes);
+            TEST_EQUAL(PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(psa_type),
+                       PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(pk_psa_type));
+            PSA_ASSERT(psa_export_public_key(psa_key,
+                                             pk_public_buffer,
+                                             sizeof(pk_public_buffer),
+                                             &pk_public_length));
+            pk_public = pk_public_buffer;
+            break;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+        default:
+            TEST_FAIL("pk type not supported");
+    }
+
+    uint8_t psa_public[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
+    size_t psa_public_length = 0;
+    PSA_ASSERT(psa_export_public_key(psa_key,
+                                     psa_public, sizeof(psa_public),
+                                     &psa_public_length));
+    TEST_MEMORY_COMPARE(pk_public, pk_public_length,
+                        psa_public, psa_public_length);
+
+    ok = 1;
+
+exit:
+    psa_reset_key_attributes(&psa_attributes);
+    psa_reset_key_attributes(&pk_attributes);
+    return ok;
+}
+#endif /* MBEDTLS_PK_C */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

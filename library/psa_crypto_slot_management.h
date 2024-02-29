@@ -54,8 +54,9 @@ static inline int psa_key_id_is_volatile(psa_key_id_t key_id)
  * In case of a persistent key, the function loads the description of the key
  * into a key slot if not already done.
  *
- * On success, the returned key slot is locked. It is the responsibility of
- * the caller to unlock the key slot when it does not access it anymore.
+ * On success, the returned key slot has been registered for reading.
+ * It is the responsibility of the caller to call psa_unregister_read(slot)
+ * when they have finished reading the contents of the slot.
  *
  * \param key           Key identifier to query.
  * \param[out] p_slot   On success, `*p_slot` contains a pointer to the
@@ -91,54 +92,101 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
 psa_status_t psa_initialize_key_slots(void);
 
 /** Delete all data from key slots in memory.
+ * This function is not thread safe, it wipes every key slot regardless of
+ * state and reader count. It should only be called when no slot is in use.
  *
  * This does not affect persistent storage. */
 void psa_wipe_all_key_slots(void);
 
-/** Find a free key slot.
+/** Find a free key slot and reserve it to be filled with a key.
  *
- * This function returns a key slot that is available for use and is in its
- * ground state (all-bits-zero). On success, the key slot is locked. It is
- * the responsibility of the caller to unlock the key slot when it does not
- * access it anymore.
+ * This function finds a key slot that is free,
+ * sets its state to PSA_SLOT_FILLING and then returns the slot.
+ *
+ * On success, the key slot's state is PSA_SLOT_FILLING.
+ * It is the responsibility of the caller to change the slot's state to
+ * PSA_SLOT_EMPTY/FULL once key creation has finished.
+ *
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
  *
  * \param[out] volatile_key_id   On success, volatile key identifier
  *                               associated to the returned slot.
  * \param[out] p_slot            On success, a pointer to the slot.
  *
  * \retval #PSA_SUCCESS \emptydescription
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ *         There were no free key slots.
  * \retval #PSA_ERROR_BAD_STATE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ *         This function attempted to operate on a key slot which was in an
+ *         unexpected state.
  */
-psa_status_t psa_get_empty_key_slot(psa_key_id_t *volatile_key_id,
-                                    psa_key_slot_t **p_slot);
+psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
+                                       psa_key_slot_t **p_slot);
 
-/** Lock a key slot.
+/** Change the state of a key slot.
  *
- * This function increments the key slot lock counter by one.
+ * This function changes the state of the key slot from expected_state to
+ * new state. If the state of the slot was not expected_state, the state is
+ * unchanged.
+ *
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
+ *
+ * \param[in] slot            The key slot.
+ * \param[in] expected_state  The current state of the slot.
+ * \param[in] new_state       The new state of the slot.
+ *
+ * \retval #PSA_SUCCESS
+               The key slot's state variable is new_state.
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ *             The slot's state was not expected_state.
+ */
+static inline psa_status_t psa_key_slot_state_transition(
+    psa_key_slot_t *slot, psa_key_slot_state_t expected_state,
+    psa_key_slot_state_t new_state)
+{
+    if (slot->state != expected_state) {
+        return PSA_ERROR_CORRUPTION_DETECTED;
+    }
+    slot->state = new_state;
+    return PSA_SUCCESS;
+}
+
+/** Register as a reader of a key slot.
+ *
+ * This function increments the key slot registered reader counter by one.
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
  *
  * \param[in] slot  The key slot.
  *
  * \retval #PSA_SUCCESS
-               The key slot lock counter was incremented.
+               The key slot registered reader counter was incremented.
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- *             The lock counter already reached its maximum value and was not
- *             increased.
+ *             The reader counter already reached its maximum value and was not
+ *             increased, or the slot's state was not PSA_SLOT_FULL.
  */
-static inline psa_status_t psa_lock_key_slot(psa_key_slot_t *slot)
+static inline psa_status_t psa_register_read(psa_key_slot_t *slot)
 {
-    if (slot->lock_count >= SIZE_MAX) {
+    if ((slot->state != PSA_SLOT_FULL) ||
+        (slot->registered_readers >= SIZE_MAX)) {
         return PSA_ERROR_CORRUPTION_DETECTED;
     }
-
-    slot->lock_count++;
+    slot->registered_readers++;
 
     return PSA_SUCCESS;
 }
 
-/** Unlock a key slot.
+/** Unregister from reading a key slot.
  *
- * This function decrements the key slot lock counter by one.
+ * This function decrements the key slot registered reader counter by one.
+ * If the state of the slot is PSA_SLOT_PENDING_DELETION,
+ * and there is only one registered reader (the caller),
+ * this function will call psa_wipe_key_slot().
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
  *
  * \note To ease the handling of errors in retrieving a key slot
  *       a NULL input pointer is valid, and the function returns
@@ -146,13 +194,37 @@ static inline psa_status_t psa_lock_key_slot(psa_key_slot_t *slot)
  *
  * \param[in] slot  The key slot.
  * \retval #PSA_SUCCESS
- *             \p slot is NULL or the key slot lock counter has been
- *             decremented successfully.
+ *             \p slot is NULL or the key slot reader counter has been
+ *             decremented (and potentially wiped) successfully.
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- *             The lock counter was equal to 0.
- *
+ *             The slot's state was neither PSA_SLOT_FULL nor
+ *             PSA_SLOT_PENDING_DELETION.
+ *             Or a wipe was attempted and the slot's state was not
+ *             PSA_SLOT_PENDING_DELETION.
+ *             Or registered_readers was equal to 0.
  */
-psa_status_t psa_unlock_key_slot(psa_key_slot_t *slot);
+psa_status_t psa_unregister_read(psa_key_slot_t *slot);
+
+/** Wrap a call to psa_unregister_read in the global key slot mutex.
+ *
+ * If threading is disabled, this simply calls psa_unregister_read.
+ *
+ * \note To ease the handling of errors in retrieving a key slot
+ *       a NULL input pointer is valid, and the function returns
+ *       successfully without doing anything in that case.
+ *
+ * \param[in] slot  The key slot.
+ * \retval #PSA_SUCCESS
+ *             \p slot is NULL or the key slot reader counter has been
+ *             decremented (and potentially wiped) successfully.
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ *             The slot's state was neither PSA_SLOT_FULL nor
+ *             PSA_SLOT_PENDING_DELETION.
+ *             Or a wipe was attempted and the slot's state was not
+ *             PSA_SLOT_PENDING_DELETION.
+ *             Or registered_readers was equal to 0.
+ */
+psa_status_t psa_unregister_read_under_mutex(psa_key_slot_t *slot);
 
 /** Test whether a lifetime designates a key in an external cryptoprocessor.
  *

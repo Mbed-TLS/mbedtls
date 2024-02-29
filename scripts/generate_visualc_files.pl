@@ -168,7 +168,7 @@ sub gen_app {
 }
 
 sub get_app_list {
-    my $app_list = `cd $programs_dir && make list`;
+    my $app_list = `cd $programs_dir && VERBOSE_LOGS=1 make list`;
     die "make list failed: $!\n" if $?;
 
     return split /\s+/, $app_list;

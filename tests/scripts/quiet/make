@@ -15,4 +15,4 @@ export NO_SILENCE=" --version | test "
 
 export TOOL="make"
 
-exec "$(dirname "$0")/quiet" "$@"
+exec "$(dirname "$0")/quiet.sh" "$@"

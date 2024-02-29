@@ -19,7 +19,7 @@
 #
 # NO_SILENCE - a regex that describes the commandline arguments for which output will not
 #              be silenced, e.g. " --version | test ". In this example, "make test" will
-#              not be silent, but "make lib" will be.
+#              not be silent, but "make lib test" will be.
 
 # Locate original tool
 TOOL_WITH_PATH=$(dirname "$0")/$TOOL

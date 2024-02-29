@@ -734,6 +734,51 @@ typedef enum {
 }
 mbedtls_ssl_states;
 
+/*
+ * Early data status, client side only.
+ */
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+typedef enum {
+/*
+ * The client has not sent the first ClientHello yet, it is unknown if the
+ * client will send an early data indication extension or not.
+ */
+    MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN,
+
+/*
+ * See documentation of mbedtls_ssl_get_early_data_status().
+ */
+    MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT,
+    MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED,
+    MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED,
+
+/*
+ * The client has sent an early data indication extension in its first
+ * ClientHello, it has not received the response (ServerHello or
+ * HelloRetryRequest) from the server yet. The transform to protect early data
+ * is not set and early data cannot be sent yet.
+ */
+    MBEDTLS_SSL_EARLY_DATA_STATUS_SENT,
+
+/*
+ * The client has sent an early data indication extension in its first
+ * ClientHello, it has not received the response (ServerHello or
+ * HelloRetryRequest) from the server yet. The transform to protect early data
+ * has been set and early data can be written now.
+ */
+    MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE,
+
+/*
+ * The client has sent an early data indication extension in its first
+ * ClientHello, the server has accepted them and the client has received the
+ * server Finished message. It cannot send early data to the server anymore.
+ */
+    MBEDTLS_SSL_EARLY_DATA_STATUS_SERVER_FINISHED_RECEIVED,
+} mbedtls_ssl_early_data_status;
+
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
+
 /**
  * \brief          Callback type: send data on the network.
  *
@@ -1673,33 +1718,29 @@ struct mbedtls_ssl_context {
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
     /**
-     *  Maximum TLS version to be negotiated, then negotiated TLS version.
+     * Maximum TLS version to be negotiated, then negotiated TLS version.
      *
-     *  It is initialized as the configured maximum TLS version to be
-     *  negotiated by mbedtls_ssl_setup().
+     * It is initialized as the configured maximum TLS version to be
+     * negotiated by mbedtls_ssl_setup().
      *
-     *  When renegotiating or resuming a session, it is overwritten in the
-     *  ClientHello writing preparation stage with the previously negotiated
-     *  TLS version.
+     * When renegotiating or resuming a session, it is overwritten in the
+     * ClientHello writing preparation stage with the previously negotiated
+     * TLS version.
      *
-     *  On client side, it is updated to the TLS version selected by the server
-     *  for the handshake when the ServerHello is received.
+     * On client side, it is updated to the TLS version selected by the server
+     * for the handshake when the ServerHello is received.
      *
-     *  On server side, it is updated to the TLS version the server selects for
-     *  the handshake when the ClientHello is received.
+     * On server side, it is updated to the TLS version the server selects for
+     * the handshake when the ClientHello is received.
      */
     mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(tls_version);
 
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
     /**
-     *  Status of the negotiation of the use of early data.
-     *  See the documentation of mbedtls_ssl_get_early_data_status() for more
-     *  information.
-     *
-     *  Reset to #MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT when the context is
-     *  reset.
+     * Status of the negotiation of the use of early data. Reset to
+     * MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN when the context is reset.
      */
-    int MBEDTLS_PRIVATE(early_data_status);
+    mbedtls_ssl_early_data_status MBEDTLS_PRIVATE(early_data_status);
 #endif
 
     unsigned MBEDTLS_PRIVATE(badmac_seen);       /*!< records with a bad MAC received    */
@@ -5150,10 +5191,6 @@ int mbedtls_ssl_close_notify(mbedtls_ssl_context *ssl);
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT  1
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED  2
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED  3
-
 #if defined(MBEDTLS_SSL_SRV_C)
 /**
  * \brief          Read at most 'len' bytes of early data
@@ -5206,17 +5243,43 @@ int mbedtls_ssl_read_early_data(mbedtls_ssl_context *ssl,
  * \brief          Try to write exactly 'len' application data bytes while
  *                 performing the handshake (early data).
  *
+ * \warning        Early data is defined in the TLS 1.3 specification, RFC 8446.
+ *                 IMPORTANT NOTE from section 2.3 of the specification:
+ *
+ *                 The security properties for 0-RTT data are weaker than
+ *                 those for other kinds of TLS data. Specifically:
+ *                 - This data is not forward secret, as it is encrypted
+ *                   solely under keys derived using the offered PSK.
+ *                 - There are no guarantees of non-replay between connections.
+ *                   Protection against replay for ordinary TLS 1.3 1-RTT data
+ *                   is provided via the server's Random value, but 0-RTT data
+ *                   does not depend on the ServerHello and therefore has
+ *                   weaker guarantees. This is especially relevant if the
+ *                   data is authenticated either with TLS client
+ *                   authentication or inside the application protocol. The
+ *                   same warnings apply to any use of the
+ *                   early_exporter_master_secret.
+ *
  * \note           This function behaves mainly as mbedtls_ssl_write(). The
  *                 specification of mbedtls_ssl_write() relevant to TLS 1.3
  *                 (thus not the parts specific to (D)TLS1.2) applies to this
- *                 function and the present documentation is restricted to the
- *                 differences with mbedtls_ssl_write().
+ *                 function and the present documentation is mainly restricted
+ *                 to the differences with mbedtls_ssl_write(). One noticeable
+ *                 difference though is that mbedtls_ssl_write() aims to
+ *                 complete the handshake before to write application data
+ *                 while mbedtls_ssl_write_early() aims to drive the handshake
+ *                 just past the point where it is not possible to send early
+ *                 data anymore.
  *
  * \param ssl      SSL context
  * \param buf      buffer holding the data
  * \param len      how many bytes must be written
  *
- * \return         One additional specific return value:
+ * \return         The (non-negative) number of bytes actually written if
+ *                 successful (may be less than \p len).
+ *
+ * \return         One additional specific error code compared to
+ *                 mbedtls_ssl_write():
  *                 #MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA.
  *
  *                 #MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA is returned when it
@@ -5237,9 +5300,11 @@ int mbedtls_ssl_read_early_data(mbedtls_ssl_context *ssl,
  *                 already completed.
  *
  *                 It is not possible to write early data for the SSL context
- *                 \p ssl but this does not preclude for using it with
+ *                 \p ssl and any subsequent call to this API will return this
+ *                 error code. But this does not preclude for using it with
  *                 mbedtls_ssl_write(), mbedtls_ssl_read() or
- *                 mbedtls_ssl_handshake().
+ *                 mbedtls_ssl_handshake() and the handshake can be
+ *                 completed by calling one of these APIs.
  *
  * \note           This function may write early data only if the SSL context
  *                 has been configured for the handshake with a PSK for which

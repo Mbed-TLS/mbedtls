@@ -1531,7 +1531,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
         const unsigned char *extension_data_end;
         uint32_t allowed_exts = MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CH;
 
-        if (ssl->handshake->hello_retry_request_count > 0) {
+        if (ssl->handshake->hello_retry_request_flag) {
             /* Do not accept early data extension in 2nd ClientHello */
             allowed_exts &= ~MBEDTLS_SSL_EXT_MASK(EARLY_DATA);
         }
@@ -2427,7 +2427,7 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_prepare_hello_retry_request(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    if (ssl->handshake->hello_retry_request_count > 0) {
+    if (ssl->handshake->hello_retry_request_flag) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("Too many HRRs"));
         MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE);
@@ -2474,7 +2474,7 @@ static int ssl_tls13_write_hello_retry_request(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(ssl, buf_len,
                                                           msg_len));
 
-    ssl->handshake->hello_retry_request_count++;
+    ssl->handshake->hello_retry_request_flag = 1;
 
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
     /* The server sends a dummy change_cipher_spec record immediately
@@ -3477,12 +3477,9 @@ int mbedtls_ssl_tls13_handshake_server_step(mbedtls_ssl_context *ssl)
             break;
 
         case MBEDTLS_SSL_SERVER_CCS_AFTER_SERVER_HELLO:
-            ret = 0;
-            if (ssl->handshake->ccs_count == 0) {
-                ret = mbedtls_ssl_tls13_write_change_cipher_spec(ssl);
-                if (ret != 0) {
-                    break;
-                }
+            ret = mbedtls_ssl_tls13_write_change_cipher_spec(ssl);
+            if (ret != 0) {
+                break;
             }
             mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS);
             break;

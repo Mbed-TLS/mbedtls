@@ -3377,11 +3377,11 @@ exit:
 
 psa_status_t psa_asymmetric_encrypt(mbedtls_svc_key_id_t key,
                                     psa_algorithm_t alg,
-                                    const uint8_t *input,
+                                    const uint8_t *input_external,
                                     size_t input_length,
-                                    const uint8_t *salt,
+                                    const uint8_t *salt_external,
                                     size_t salt_length,
-                                    uint8_t *output,
+                                    uint8_t *output_external,
                                     size_t output_size,
                                     size_t *output_length)
 {
@@ -3389,6 +3389,9 @@ psa_status_t psa_asymmetric_encrypt(mbedtls_svc_key_id_t key,
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
     psa_key_attributes_t attributes;
+    LOCAL_INPUT_DECLARE(input_external, input);
+    LOCAL_INPUT_DECLARE(salt_external, salt);
+    LOCAL_OUTPUT_DECLARE(output_external, output);
 
     (void) input;
     (void) input_length;
@@ -3417,6 +3420,9 @@ psa_status_t psa_asymmetric_encrypt(mbedtls_svc_key_id_t key,
         .core = slot->attr
     };
 
+    LOCAL_INPUT_ALLOC(input_external, input_length, input);
+    LOCAL_INPUT_ALLOC(salt_external, salt_length, salt);
+    LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
     status = psa_driver_wrapper_asymmetric_encrypt(
         &attributes, slot->key.data, slot->key.bytes,
         alg, input, input_length, salt, salt_length,
@@ -3424,16 +3430,20 @@ psa_status_t psa_asymmetric_encrypt(mbedtls_svc_key_id_t key,
 exit:
     unlock_status = psa_unregister_read(slot);
 
+    LOCAL_INPUT_FREE(input_external, input);
+    LOCAL_INPUT_FREE(salt_external, salt);
+    LOCAL_OUTPUT_FREE(output_external, output);
+
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
 psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
                                     psa_algorithm_t alg,
-                                    const uint8_t *input,
+                                    const uint8_t *input_external,
                                     size_t input_length,
-                                    const uint8_t *salt,
+                                    const uint8_t *salt_external,
                                     size_t salt_length,
-                                    uint8_t *output,
+                                    uint8_t *output_external,
                                     size_t output_size,
                                     size_t *output_length)
 {
@@ -3441,6 +3451,10 @@ psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
     psa_key_attributes_t attributes;
+
+    LOCAL_INPUT_DECLARE(input_external, input);
+    LOCAL_INPUT_DECLARE(salt_external, salt);
+    LOCAL_OUTPUT_DECLARE(output_external, output);
 
     (void) input;
     (void) input_length;
@@ -3468,6 +3482,9 @@ psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
         .core = slot->attr
     };
 
+    LOCAL_INPUT_ALLOC(input_external, input_length, input);
+    LOCAL_INPUT_ALLOC(salt_external, salt_length, salt);
+    LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
     status = psa_driver_wrapper_asymmetric_decrypt(
         &attributes, slot->key.data, slot->key.bytes,
         alg, input, input_length, salt, salt_length,
@@ -3475,6 +3492,10 @@ psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
 
 exit:
     unlock_status = psa_unregister_read(slot);
+
+    LOCAL_INPUT_FREE(input_external, input);
+    LOCAL_INPUT_FREE(salt_external, salt);
+    LOCAL_OUTPUT_FREE(output_external, output);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }

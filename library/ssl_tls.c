@@ -3360,39 +3360,11 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_CLI_C */
 
-/* Serialization of TLS 1.2 sessions:
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+
+/* Serialization of TLS 1.2 sessions
  *
- * struct {
- * #if defined(MBEDTLS_SSL_SESSION_TICKETS)
- *    opaque ticket<0..2^24-1>;       // length 0 means no ticket
- *    uint32 ticket_lifetime;
- * #endif
- * } ClientOnlyData;
- *
- * struct {
- * #if defined(MBEDTLS_HAVE_TIME)
- *    uint64 start_time;
- * #endif
- *     uint8 session_id_len;           // at most 32
- *     opaque session_id[32];
- *     opaque master[48];              // fixed length in the standard
- *     uint32 verify_result;
- * #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
- *    opaque peer_cert<0..2^24-1>;    // length 0 means no peer cert
- * #else
- *    opaque peer_cert_digest<0..2^8-1>
- * #endif
- *     select (endpoint) {
- *         case client: ClientOnlyData;
- *         case server: uint64 ticket_creation_time;
- *     };
- * #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
- *    uint8 mfl_code;                 // up to 255 according to standard
- * #endif
- * #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
- *    uint8 encrypt_then_mac;         // 0 or 1
- * #endif
- * } serialized_session_tls12;
+ * For more detail, see the description of ssl_session_save().
  */
 static size_t ssl_tls12_session_save(const mbedtls_ssl_session *session,
                                      unsigned char *buf,
@@ -3757,35 +3729,7 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /* Serialization of TLS 1.3 sessions:
  *
- *     struct {
- * #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
- *       opaque hostname<0..2^16-1>;
- * #endif
- * #if defined(MBEDTLS_HAVE_TIME)
- *       uint64 ticket_reception_time;
- * #endif
- *       uint32 ticket_lifetime;
- *       opaque ticket<1..2^16-1>;
- *     } ClientOnlyData;
- *
- *     struct {
- *       uint32 ticket_age_add;
- *       uint8 ticket_flags;
- *       opaque resumption_key<0..255>;
- * #if defined(MBEDTLS_SSL_EARLY_DATA)
- *       uint32 max_early_data_size;
- * #endif
- * #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
- *       uint16 record_size_limit;
- * #endif
- *       select ( endpoint ) {
- *            case client: ClientOnlyData;
- * #if defined(MBEDTLS_HAVE_TIME)
- *            case server: uint64 ticket_creation_time;
- * #endif
- *        };
- *     } serialized_session_tls13;
- *
+ * For more detail, see the description of ssl_session_save().
  */
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -4149,7 +4093,76 @@ static const unsigned char ssl_serialized_session_header[] = {
  * Serialize a session in the following format:
  * (in the presentation language of TLS, RFC 8446 section 3)
  *
- *  struct {
+ * TLS 1.2 session:
+ *
+ * struct {
+ * #if defined(MBEDTLS_SSL_SESSION_TICKETS)
+ *    opaque ticket<0..2^24-1>;       // length 0 means no ticket
+ *    uint32 ticket_lifetime;
+ * #endif
+ * } ClientOnlyData;
+ *
+ * struct {
+ * #if defined(MBEDTLS_HAVE_TIME)
+ *    uint64 start_time;
+ * #endif
+ *     uint8 session_id_len;           // at most 32
+ *     opaque session_id[32];
+ *     opaque master[48];              // fixed length in the standard
+ *     uint32 verify_result;
+ * #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
+ *    opaque peer_cert<0..2^24-1>;    // length 0 means no peer cert
+ * #else
+ *    opaque peer_cert_digest<0..2^8-1>
+ * #endif
+ *     select (endpoint) {
+ *         case client: ClientOnlyData;
+ *         case server: uint64 ticket_creation_time;
+ *     };
+ * #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+ *    uint8 mfl_code;                 // up to 255 according to standard
+ * #endif
+ * #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+ *    uint8 encrypt_then_mac;         // 0 or 1
+ * #endif
+ * } serialized_session_tls12;
+ *
+ *
+ * TLS 1.3 Session:
+ *
+ * struct {
+ * #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+ *    opaque hostname<0..2^16-1>;
+ * #endif
+ * #if defined(MBEDTLS_HAVE_TIME)
+ *    uint64 ticket_reception_time;
+ * #endif
+ *    uint32 ticket_lifetime;
+ *    opaque ticket<1..2^16-1>;
+ * } ClientOnlyData;
+ *
+ * struct {
+ *    uint32 ticket_age_add;
+ *    uint8 ticket_flags;
+ *    opaque resumption_key<0..255>;
+ * #if defined(MBEDTLS_SSL_EARLY_DATA)
+ *    uint32 max_early_data_size;
+ * #endif
+ * #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+ *    uint16 record_size_limit;
+ * #endif
+ *    select ( endpoint ) {
+ *         case client: ClientOnlyData;
+ * #if defined(MBEDTLS_HAVE_TIME)
+ *         case server: uint64 ticket_creation_time;
+ * #endif
+ *     };
+ * } serialized_session_tls13;
+ *
+ *
+ * SSL session:
+ *
+ * struct {
  *
  *    opaque mbedtls_version[3];   // library version: major, minor, patch
  *    opaque session_format[2];    // library-version specific 16-bit field

@@ -474,6 +474,27 @@ exit:
     return pub_key;
 }
 
+/* Create a copy of a PSA key with same usage and algorithm policy and destroy
+ * the original one. */
+mbedtls_svc_key_id_t psa_copy_and_destroy(mbedtls_svc_key_id_t orig_key_id)
+{
+    psa_key_attributes_t orig_attr = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t new_attr = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t new_key_id = MBEDTLS_SVC_KEY_ID_INIT;
+
+    PSA_ASSERT(psa_get_key_attributes(orig_key_id, &orig_attr));
+    psa_set_key_usage_flags(&new_attr, psa_get_key_usage_flags(&orig_attr));
+    psa_set_key_algorithm(&new_attr, psa_get_key_algorithm(&orig_attr));
+
+    PSA_ASSERT(psa_copy_key(orig_key_id, &new_attr, &new_key_id));
+    psa_destroy_key(orig_key_id);
+
+exit:
+    psa_reset_key_attributes(&orig_attr);
+    psa_reset_key_attributes(&new_attr);
+    return new_key_id;
+}
+
 psa_status_t pk_psa_import_key(unsigned char *key_data, size_t key_len,
                                psa_key_type_t type, psa_key_usage_t usage,
                                psa_algorithm_t alg, mbedtls_svc_key_id_t *key)
@@ -2347,7 +2368,7 @@ void pk_copy_from_psa_success(data_t *priv_key_data, int key_type_arg,
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t key_alg = key_alg_arg;
     psa_key_usage_t key_usage = PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH |
-                                PSA_KEY_USAGE_EXPORT;
+                                PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_COPY;
     mbedtls_pk_context pk_priv, pk_pub;
     mbedtls_svc_key_id_t priv_key_id = MBEDTLS_SVC_KEY_ID_INIT;
     mbedtls_svc_key_id_t pub_key_id = MBEDTLS_SVC_KEY_ID_INIT;
@@ -2378,15 +2399,19 @@ void pk_copy_from_psa_success(data_t *priv_key_data, int key_type_arg,
         key_usage |= PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT;
     }
 
-    /* Create a private key in PSA and create a PK context from it. */
+    /* Create both a private key and its public counterpart in PSA. */
     PSA_ASSERT(pk_psa_import_key(priv_key_data->x, priv_key_data->len,
                                  key_type, key_usage, key_alg, &priv_key_id));
-    TEST_EQUAL(mbedtls_pk_copy_from_psa(priv_key_id, &pk_priv), 0);
-
-    /* Generate a 2nd PK contex using only the public key derived from its private
-     * counterpart generated above. */
     pub_key_id = psa_pub_key_from_priv(priv_key_id);
+
+    /* Generate 2 PK contexts starting from the PSA keys we just created. */
+    TEST_EQUAL(mbedtls_pk_copy_from_psa(priv_key_id, &pk_priv), 0);
     TEST_EQUAL(mbedtls_pk_copy_from_psa(pub_key_id, &pk_pub), 0);
+
+    /* Destoy both PSA keys to prove that generated PK contexts are independent
+     * from them. */
+    priv_key_id = psa_copy_and_destroy(priv_key_id);
+    pub_key_id = psa_copy_and_destroy(pub_key_id);
 
     /* Test #1:
      * - check that the generated PK contexts are of the correct type.

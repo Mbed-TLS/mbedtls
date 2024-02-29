@@ -18,8 +18,8 @@
 # TOOL       - the name of the tool that is being wrapped (with no path), e.g. "make"
 #
 # NO_SILENCE - a regex that describes the commandline arguments for which output will not
-#              be silenced, e.g. " --version | test ". In this example, "make test" will
-#              not be silent, but "make lib test" will be.
+#              be silenced, e.g. " --version | test ". In this example, "make lib test" will
+#              not be silent, but "make lib" will be.
 
 # Locate original tool
 TOOL_WITH_PATH=$(dirname "$0")/$TOOL

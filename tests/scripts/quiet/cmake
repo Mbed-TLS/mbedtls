@@ -8,7 +8,7 @@
 
 # If you are debugging a build / CI issue, you can get complete unsilenced logs
 # by un-commenting the following line (or setting VERBOSE_LOGS in your environment):
-# VERBOSE_LOGS=1
+# export VERBOSE_LOGS=1
 
 # don't silence invocations containing these arguments
 export NO_SILENCE=" --version "

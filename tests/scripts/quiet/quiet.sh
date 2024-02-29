@@ -8,6 +8,7 @@
 
 # If you are debugging a build / CI issue, you can get complete unsilenced logs
 # by un-commenting the following line (or setting VERBOSE_LOGS in your environment):
+#
 # VERBOSE_LOGS=1
 #
 # This script provides most of the functionality for the adjacent make and cmake

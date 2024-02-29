@@ -30,7 +30,7 @@ print_quoted_args() {
     # but produce more human-readable results for common/simple cases like "a b"
     for a in "$@"; do
         # Get bash to quote the string
-        q=$(printf '%q' "$a")
+        printf -v q '%q' "$a"
         simple_pattern="^([-[:alnum:]_+./:@]+=)?([^']*)$"
         if [[ "$a" != "$q" && $a =~ $simple_pattern ]]; then
             # a requires some quoting (a != q), but has no single quotes, so we can

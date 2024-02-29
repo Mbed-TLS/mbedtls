@@ -3363,23 +3363,35 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
 /* Serialization of TLS 1.2 sessions:
  *
  * struct {
- *     opaque ticket<0..2^24-1>;       // length 0 means no ticket
- *     uint32 ticket_lifetime;
+ * #if defined(MBEDTLS_SSL_SESSION_TICKETS)
+ *    opaque ticket<0..2^24-1>;       // length 0 means no ticket
+ *    uint32 ticket_lifetime;
+ * #endif
  * } ClientOnlyData;
  *
  * struct {
- *     uint64 start_time;
+ * #if defined(MBEDTLS_HAVE_TIME)
+ *    uint64 start_time;
+ * #endif
  *     uint8 session_id_len;           // at most 32
  *     opaque session_id[32];
  *     opaque master[48];              // fixed length in the standard
  *     uint32 verify_result;
- *     opaque peer_cert<0..2^24-1>;    // length 0 means no peer cert
+ * #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
+ *    opaque peer_cert<0..2^24-1>;    // length 0 means no peer cert
+ * #else
+ *    opaque peer_cert_digest<0..2^8-1>
+ * #endif
  *     select (endpoint) {
  *         case client: ClientOnlyData;
  *         case server: uint64 ticket_creation_time;
  *     };
- *     uint8 mfl_code;                 // up to 255 according to standard
- *     uint8 encrypt_then_mac;         // 0 or 1
+ * #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+ *    uint8 mfl_code;                 // up to 255 according to standard
+ * #endif
+ * #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+ *    uint8 encrypt_then_mac;         // 0 or 1
+ * #endif
  * } serialized_session_tls12;
  */
 static size_t ssl_tls12_session_save(const mbedtls_ssl_session *session,
@@ -3746,8 +3758,12 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
 /* Serialization of TLS 1.3 sessions:
  *
  *     struct {
+ * #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
  *       opaque hostname<0..2^16-1>;
+ * #endif
+ * #if defined(MBEDTLS_HAVE_TIME)
  *       uint64 ticket_reception_time;
+ * #endif
  *       uint32 ticket_lifetime;
  *       opaque ticket<1..2^16-1>;
  *     } ClientOnlyData;
@@ -3756,11 +3772,17 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
  *       uint32 ticket_age_add;
  *       uint8 ticket_flags;
  *       opaque resumption_key<0..255>;
+ * #if defined(MBEDTLS_SSL_EARLY_DATA)
  *       uint32 max_early_data_size;
+ * #endif
+ * #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
  *       uint16 record_size_limit;
+ * #endif
  *       select ( endpoint ) {
  *            case client: ClientOnlyData;
+ * #if defined(MBEDTLS_HAVE_TIME)
  *            case server: uint64 ticket_creation_time;
+ * #endif
  *        };
  *     } serialized_session_tls13;
  *

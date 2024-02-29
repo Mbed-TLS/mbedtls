@@ -83,6 +83,7 @@ OBJS_CRYPTO= \
 	     aes.o \
 	     aesni.o \
 	     aesce.o \
+	     aesppc.o \
 	     aria.o \
 	     asn1parse.o \
 	     asn1write.o \

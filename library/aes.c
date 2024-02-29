@@ -52,6 +52,13 @@
 #include "aesce.h"
 #endif
 
+#if defined(__powerpc__) || defined(__powerpc64__)
+# if defined(MBEDTLS_GCM_C)
+#include "mbedtls/gcm.h"
+# endif
+#include "ppc_common.h"
+#endif
+
 #include "mbedtls/platform.h"
 #include "ctr.h"
 
@@ -528,7 +535,8 @@ void mbedtls_aes_xts_free(mbedtls_aes_xts_context *ctx)
  * i.e. an offset of 1 means 4 bytes and so on.
  */
 #if (defined(MBEDTLS_VIA_PADLOCK_HAVE_CODE)) ||        \
-    (defined(MBEDTLS_AESNI_C) && MBEDTLS_AESNI_HAVE_CODE == 2)
+    (defined(MBEDTLS_AESNI_C) && MBEDTLS_AESNI_HAVE_CODE == 2) || \
+    (defined(MBEDTLS_USE_PPC))
 #define MAY_NEED_TO_ALIGN
 #endif
 
@@ -550,6 +558,10 @@ MBEDTLS_MAYBE_UNUSED static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
     if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
         align_16_bytes = 1;
     }
+#endif
+
+#if defined(MBEDTLS_USE_PPC)
+    align_16_bytes = 1;
 #endif
 
     if (align_16_bytes) {
@@ -608,6 +620,12 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
         return mbedtls_aesce_setkey_enc((unsigned char *) RK, key, keybits);
     }
 #endif
+
+#if defined(MBEDTLS_USE_PPC)
+    if (ppc_crypto_capable() == PPC_CRYPTO_SUPPORT) {
+        return mbedtls_aesppc_setkey_enc((unsigned char *) RK, key, keybits);
+    }
+#endif /* MBEDTLS_USE_PPC */
 
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
     for (unsigned int i = 0; i < (keybits >> 5); i++) {
@@ -724,6 +742,14 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
         goto exit;
     }
 #endif
+
+#if defined(MBEDTLS_USE_PPC)
+    if (ppc_crypto_capable() == PPC_CRYPTO_SUPPORT) {
+        mbedtls_aesppc_inverse_key((unsigned char *) RK,
+                                   (const unsigned char *) (cty.buf + cty.rk_offset), ctx->nr);
+        goto exit;
+    }
+#endif /* MBEDTLS_USE_PPC */
 
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
     SK = cty.buf + cty.rk_offset + cty.nr * 4;
@@ -1051,6 +1077,12 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
         return mbedtls_padlock_xcryptecb(ctx, mode, input, output);
     }
 #endif
+
+#if defined(MBEDTLS_USE_PPC)
+    if (ppc_crypto_capable() == PPC_CRYPTO_SUPPORT) {
+        return mbedtls_aesppc_crypt_ecb(ctx, mode, input, output);
+    }
+#endif /* MBEDTLS_USE_PPC */
 
 #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 #if !defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT)

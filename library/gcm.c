@@ -41,6 +41,8 @@
 
 #if !defined(MBEDTLS_GCM_ALT)
 
+#include "ppc_common.h"
+
 /* Used to select the acceleration mechanism */
 #define MBEDTLS_GCM_ACC_SMALLTABLE  0
 #define MBEDTLS_GCM_ACC_LARGETABLE  1
@@ -117,6 +119,13 @@ static int gcm_gen_table(mbedtls_gcm_context *ctx)
     /* MBEDTLS_GCM_HTABLE_SIZE/2 = 1000 corresponds to 1 in GF(2^128) */
     ctx->H[MBEDTLS_GCM_HTABLE_SIZE/2][0] = u64h[0];
     ctx->H[MBEDTLS_GCM_HTABLE_SIZE/2][1] = u64h[1];
+
+#if defined(MBEDTLS_USE_PPC)
+    /* rearrange H */
+    if (ppc_crypto_capable() == PPC_CRYPTO_SUPPORT) {
+        return 0;
+    }
+#endif /* MBEDTLS_USE_PPC */
 
     switch (ctx->acceleration) {
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
@@ -347,6 +356,17 @@ static void gcm_mult_smalltable(uint8_t *output, const uint8_t *x, uint64_t H[16
 static void gcm_mult(mbedtls_gcm_context *ctx, const unsigned char x[16],
                      unsigned char output[16])
 {
+#if defined(MBEDTLS_USE_PPC)
+    if (ppc_crypto_capable() == PPC_CRYPTO_SUPPORT) {
+        uint64_t h[2];
+
+        h[0] = ctx->HH[8];
+        h[1] = ctx->HL[8];
+        mbedtls_aesppc_gcm_mult(output, x, (unsigned char *) &h);
+        return;
+    }
+#endif /* MBEDTLS_USE_PPC */
+
     switch (ctx->acceleration) {
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
         case MBEDTLS_GCM_ACC_AESNI:

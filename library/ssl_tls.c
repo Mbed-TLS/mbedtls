@@ -4180,6 +4180,8 @@ static const unsigned char ssl_serialized_session_header[] = {
  *    uint8_t minor_ver;           // Protocol minor version. Possible values:
  *                                 // - TLS 1.2 (0x0303)
  *                                 // - TLS 1.3 (0x0304)
+ *    uint8_t endpoint;
+ *    uint16_t ciphersuite;
  *
  *    select (serialized_session.tls_version) {
  *

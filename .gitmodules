@@ -1,0 +1,3 @@
+[submodule "framework"]
+	path = framework
+	url = https://github.com/gilles-peskine-arm/mbedtls-framework

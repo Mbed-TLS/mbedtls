@@ -13,7 +13,7 @@
 #include <string.h>
 
 #include "mbedtls/hkdf.h"
-#include "mbedtls/debug.h"
+#include "debug_internal.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform.h"
 
@@ -22,7 +22,7 @@
 #include "ssl_tls13_invasive.h"
 
 #include "psa/crypto.h"
-#include "md_psa.h"
+#include "mbedtls/psa_util.h"
 
 /* Define a local translating function to save code size by not using too many
  * arguments in each translating place. */

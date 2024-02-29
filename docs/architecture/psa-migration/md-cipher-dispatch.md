@@ -494,7 +494,7 @@ int psa_can_do_hash(psa_algorithm_t hash_alg);
 
 The job of this private function is to return 1 if `hash_alg` can be performed through PSA now, and 0 otherwise. It is only defined on algorithms that are enabled via PSA.
 
-As a starting point, return 1 if PSA crypto has been initialized. This will be refined later (to return 1 if the [accelerator subsystem](https://github.com/Mbed-TLS/mbedtls/issues/6007) has been initialized).
+As a starting point, return 1 if PSA crypto's driver subsystem has been initialized.
 
 Usage note: for algorithms that are not enabled via PSA, calling `psa_can_do_hash` is generally safe: whether it returns 0 or 1, you can call a PSA hash function on the algorithm and it will return `PSA_ERROR_NOT_SUPPORTED`.
 
@@ -514,7 +514,7 @@ Note that this assumes that an operation that has been started via PSA can be co
 
 #### Error code conversion
 
-After calling a PSA function, call `mbedtls_md_error_from_psa` to convert its status code.
+After calling a PSA function, MD light calls `mbedtls_md_error_from_psa` to convert its status code.
 
 ### Support all legacy algorithms in PSA
 
@@ -566,14 +566,15 @@ The architecture can be extended to support `MBEDTLS_PSA_CRYPTO_CLIENT` with a l
 * Compile-time dependencies: instead of checking `defined(MBEDTLS_PSA_CRYPTO_C)`, check `defined(MBEDTLS_PSA_CRYPTO_C) || defined(MBEDTLS_PSA_CRYPTO_CLIENT)`.
 * Implementers of `MBEDTLS_PSA_CRYPTO_CLIENT` will need to provide `psa_can_do_hash()` (or a more general function `psa_can_do`) alongside `psa_crypto_init()`. Note that at this point, it will become a public interface, hence we won't be able to change it at a whim.
 
-### Internal "block cipher" abstraction (Cipher light)
+### Internal "block cipher" abstraction (previously known as "Cipher light")
 
 #### Definition
 
-The new module is automatically enabled in `build_info.h` by modules that need
-it, namely: CCM, GCM, only when `CIPHER_C` is not available. Note: CCM and GCM
-currently depend on the full `CIPHER_C` (enforced by `check_config.h`); this
-hard dependency would be replaced by the above auto-enablement.
+The new module is automatically enabled in `config_adjust_legacy_crypto.h` by modules that need
+it (namely: CCM, GCM) only when `CIPHER_C` is not available, or the new module
+is needed for PSA dispatch (see next section). Note: CCM and GCM currently
+depend on the full `CIPHER_C` (enforced by `check_config.h`); this hard
+dependency would be replaced by the above auto-enablement.
 
 The following API functions are offered:
 ```
@@ -593,6 +594,23 @@ The only supported ciphers are AES, ARIA and Camellia. They are identified by
 an `mbedtls_cipher_id_t` in the `setup()` function, because that's how they're
 identifed by callers (GCM/CCM).
 
-#### Cipher light dual dispatch
+#### Block cipher dual dispatch
 
-This is likely to come in the future, but has not been defined yet.
+Support for dual dispatch in the new internal module `block_cipher` is extremely similar to that in MD light.
+
+A block cipher context contains either a legacy module's context (AES, ARIA, Camellia) or a PSA key identifier; it has a field indicating which one is in use. All fields are private.
+
+The `engine` field is almost redundant with knowledge about `type`. However, when an algorithm is available both via a legacy module and a PSA accelerator, we will choose based on the runtime availability of the accelerator when the context is set up. This choice needs to be recorded in the context structure.
+
+Support is determined at runtime using the new internal function
+```
+int psa_can_do_cipher(psa_key_type_t key_type, psa_algorithm_t cipher_alg);
+```
+
+The job of this private function is to return 1 if `hash_alg` can be performed through PSA now, and 0 otherwise. It is only defined on algorithms that are enabled via PSA. As a starting point, return 1 if PSA crypto's driver subsystem has been initialized.
+
+Each function in the module needs to know whether to dispatch via PSA or legacy. All functions consult the context's `engine` field, except `setup()` which will set it according to the key type and the return value of `psa_can_do_cipher()` as discussed above.
+
+Note that this assumes that an operation that has been started via PSA can be completed. This implies that `mbedtls_psa_crypto_free` must not be called while an operation using PSA is in progress.
+
+After calling a PSA function, `block_cipher` functions call `mbedtls_cipher_error_from_psa` to convert its status code.

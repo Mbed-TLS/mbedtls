@@ -52,7 +52,7 @@ int main(void)
 #define DFL_KEY_OPAQUE          0
 #define DFL_KEY_PWD             ""
 #define DFL_PSK                 ""
-#define DFL_EARLY_DATA          ""
+#define DFL_EARLY_DATA          -1
 #define DFL_PSK_OPAQUE          0
 #define DFL_PSK_IDENTITY        "Client_identity"
 #define DFL_ECJPAKE_PW          NULL
@@ -347,9 +347,8 @@ int main(void)
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 #define USAGE_EARLY_DATA \
-    "    early_data=%%s      The file path to read early data from\n" \
-    "                        default: \"\" (do nothing)\n"            \
-    "                        option: a file path\n"
+    "    early_data=%%d      default: library default\n" \
+    "                        options: 0 (disabled), 1 (enabled)\n"
 #else
 #define USAGE_EARLY_DATA ""
 #endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_PROTO_TLS1_3 */
@@ -544,7 +543,7 @@ struct options {
     int reproducible;           /* make communication reproducible          */
     int skip_close_notify;      /* skip sending the close_notify alert      */
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    const char *early_data;     /* the path of the file to read early data from */
+    int early_data;             /* early data enablement flag               */
 #endif
     int query_config_mode;      /* whether to read config                   */
     int use_srtp;               /* Support SRTP                             */
@@ -717,9 +716,64 @@ exit:
     return ret;
 }
 
+/*
+ * Build HTTP request
+ */
+static int build_http_request(unsigned char *buf, size_t buf_size, size_t *request_len)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len, tail_len, request_size;
+
+    ret = mbedtls_snprintf((char *) buf, buf_size, GET_REQUEST, opt.request_page);
+    if (ret < 0) {
+        return ret;
+    }
+
+    len = (size_t) ret;
+    tail_len = strlen(GET_REQUEST_END);
+    if (opt.request_size != DFL_REQUEST_SIZE) {
+        request_size = (size_t) opt.request_size;
+    } else {
+        request_size = len + tail_len;
+    }
+
+    if (request_size > buf_size) {
+        return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
+    }
+
+    /* Add padding to GET request to reach opt.request_size in length */
+    if (opt.request_size != DFL_REQUEST_SIZE &&
+        len + tail_len < request_size) {
+        memset(buf + len, 'A', request_size - len - tail_len);
+        len = request_size - tail_len;
+    }
+
+    strncpy((char *) buf + len, GET_REQUEST_END, buf_size - len);
+    len += tail_len;
+
+    /* Truncate if request size is smaller than the "natural" size */
+    if (opt.request_size != DFL_REQUEST_SIZE &&
+        len > request_size) {
+        len = request_size;
+
+        /* Still end with \r\n unless that's really not possible */
+        if (len >= 2) {
+            buf[len - 2] = '\r';
+        }
+        if (len >= 1) {
+            buf[len - 1] = '\n';
+        }
+    }
+
+    *request_len = len;
+
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
-    int ret = 0, len, tail_len, i, written, frags, retry_left;
+    int ret = 0, i;
+    size_t len, written, frags, retry_left;
     int query_config_ret = 0;
     mbedtls_net_context server_fd;
     io_ctx_t io_ctx;
@@ -741,10 +795,6 @@ int main(int argc, char *argv[])
     size_t cid_len = 0;
     size_t cid_renego_len = 0;
 #endif
-
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-    FILE *early_data_fp = NULL;
-#endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_SSL_ALPN)
     const char *alpn_list[ALPN_LIST_SIZE];
@@ -833,7 +883,7 @@ int main(int argc, char *argv[])
     mbedtls_net_init(&server_fd);
     mbedtls_ssl_init(&ssl);
     mbedtls_ssl_config_init(&conf);
-    memset(&saved_session, 0, sizeof(mbedtls_ssl_session));
+    mbedtls_ssl_session_init(&saved_session);
     rng_init(&rng);
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     mbedtls_x509_crt_init(&cacert);
@@ -1201,7 +1251,15 @@ usage:
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #if defined(MBEDTLS_SSL_EARLY_DATA)
         else if (strcmp(p, "early_data") == 0) {
-            opt.early_data = q;
+            switch (atoi(q)) {
+                case 0:
+                    opt.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
+                    break;
+                case 1:
+                    opt.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+                    break;
+                default: goto usage;
+            }
         }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
@@ -1968,16 +2026,9 @@ usage:
     }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    int early_data_enabled = MBEDTLS_SSL_EARLY_DATA_DISABLED;
-    if (strlen(opt.early_data) > 0) {
-        if ((early_data_fp = fopen(opt.early_data, "rb")) == NULL) {
-            mbedtls_printf("failed\n  ! Cannot open '%s' for reading.\n",
-                           opt.early_data);
-            goto exit;
-        }
-        early_data_enabled = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+    if (opt.early_data != DFL_EARLY_DATA) {
+        mbedtls_ssl_conf_early_data(&conf, opt.early_data);
     }
-    mbedtls_ssl_conf_early_data(&conf, early_data_enabled);
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
     if ((ret = mbedtls_ssl_setup(&ssl, &conf)) != 0) {
@@ -2448,32 +2499,9 @@ send_request:
     mbedtls_printf("  > Write to server:");
     fflush(stdout);
 
-    len = mbedtls_snprintf((char *) buf, sizeof(buf) - 1, GET_REQUEST,
-                           opt.request_page);
-    tail_len = (int) strlen(GET_REQUEST_END);
-
-    /* Add padding to GET request to reach opt.request_size in length */
-    if (opt.request_size != DFL_REQUEST_SIZE &&
-        len + tail_len < opt.request_size) {
-        memset(buf + len, 'A', opt.request_size - len - tail_len);
-        len += opt.request_size - len - tail_len;
-    }
-
-    strncpy((char *) buf + len, GET_REQUEST_END, sizeof(buf) - len - 1);
-    len += tail_len;
-
-    /* Truncate if request size is smaller than the "natural" size */
-    if (opt.request_size != DFL_REQUEST_SIZE &&
-        len > opt.request_size) {
-        len = opt.request_size;
-
-        /* Still end with \r\n unless that's really not possible */
-        if (len >= 2) {
-            buf[len - 2] = '\r';
-        }
-        if (len >= 1) {
-            buf[len - 1] = '\n';
-        }
+    ret = build_http_request(buf, sizeof(buf) - 1, &len);
+    if (ret != 0) {
+        goto exit;
     }
 
     if (opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM) {
@@ -2545,8 +2573,11 @@ send_request:
     }
 
     buf[written] = '\0';
-    mbedtls_printf(" %d bytes written in %d fragments\n\n%s\n",
-                   written, frags, (char *) buf);
+    mbedtls_printf(
+        " %" MBEDTLS_PRINTF_SIZET " bytes written in %" MBEDTLS_PRINTF_SIZET " fragments\n\n%s\n",
+        written,
+        frags,
+        (char *) buf);
 
     /* Send a non-empty request if request_size == 0 */
     if (len == 0) {
@@ -2653,7 +2684,9 @@ send_request:
 
             len = ret;
             buf[len] = '\0';
-            mbedtls_printf("  < Read from server: %d bytes read\n\n%s", len, (char *) buf);
+            mbedtls_printf("  < Read from server: %" MBEDTLS_PRINTF_SIZET " bytes read\n\n%s",
+                           len,
+                           (char *) buf);
             fflush(stdout);
             /* End of message should be detected according to the syntax of the
              * application protocol (eg HTTP), just use a dummy test here. */
@@ -2712,7 +2745,9 @@ send_request:
 
         len = ret;
         buf[len] = '\0';
-        mbedtls_printf("  < Read from server: %d bytes read\n\n%s", len, (char *) buf);
+        mbedtls_printf("  < Read from server: %" MBEDTLS_PRINTF_SIZET " bytes read\n\n%s",
+                       len,
+                       (char *) buf);
         ret = 0;
     }
 
@@ -3002,6 +3037,54 @@ reconnect:
             goto exit;
         }
 
+        ret = build_http_request(buf, sizeof(buf) - 1, &len);
+        if (ret != 0) {
+            goto exit;
+        }
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        if (ssl.conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED) {
+            frags = 0;
+            written = 0;
+            do {
+                while ((ret = mbedtls_ssl_write_early_data(&ssl, buf + written,
+                                                           len - written)) < 0) {
+                    if (ret == MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA) {
+                        goto end_of_early_data;
+                    }
+                    if (ret != MBEDTLS_ERR_SSL_WANT_READ &&
+                        ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
+                        ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) {
+                        mbedtls_printf(" failed\n  ! mbedtls_ssl_write returned -0x%x\n\n",
+                                       (unsigned int) -ret);
+                        goto exit;
+                    }
+
+                    /* For event-driven IO, wait for socket to become available */
+                    if (opt.event == 1 /* level triggered IO */) {
+#if defined(MBEDTLS_TIMING_C)
+                        idle(&server_fd, &timer, ret);
+#else
+                        idle(&server_fd, ret);
+#endif
+                    }
+                }
+
+                frags++;
+                written += ret;
+            } while (written < len);
+        }
+
+end_of_early_data:
+
+        buf[written] = '\0';
+        mbedtls_printf(
+            " %" MBEDTLS_PRINTF_SIZET " bytes of early data written in %" MBEDTLS_PRINTF_SIZET " fragments\n\n%s\n",
+            written,
+            frags,
+            (char *) buf);
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
         while ((ret = mbedtls_ssl_handshake(&ssl)) != 0) {
             if (ret != MBEDTLS_ERR_SSL_WANT_READ &&
                 ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
@@ -3034,12 +3117,6 @@ exit:
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);
     mbedtls_ssl_session_free(&saved_session);
-
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (early_data_fp != NULL) {
-        fclose(early_data_fp);
-    }
-#endif
 
     if (session_data != NULL) {
         mbedtls_platform_zeroize(session_data, session_data_len);

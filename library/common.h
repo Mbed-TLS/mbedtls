@@ -27,15 +27,6 @@
 #define MBEDTLS_HAVE_NEON_INTRINSICS
 #endif
 
-
-#if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \
-    && !defined(__llvm__) && !defined(__INTEL_COMPILER)
-/* Defined if the compiler really is gcc and not clang, etc */
-#define MBEDTLS_COMPILER_IS_GCC
-#define MBEDTLS_GCC_VERSION \
-    (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
-#endif
-
 /** Helper to define a function as static except when building invasive tests.
  *
  * If a function is only used inside its own source file and should be
@@ -167,6 +158,12 @@ static inline const unsigned char *mbedtls_buffer_offset_const(
     return p == NULL ? NULL : p + n;
 }
 
+/* Always inline mbedtls_xor() for similar reasons as mbedtls_xor_no_simd(). */
+#if defined(__IAR_SYSTEMS_ICC__)
+#pragma inline = forced
+#elif defined(__GNUC__)
+__attribute__((always_inline))
+#endif
 /**
  * Perform a fast block XOR operation, such that
  * r[i] = a[i] ^ b[i] where 0 <= i < n
@@ -177,8 +174,19 @@ static inline const unsigned char *mbedtls_buffer_offset_const(
  * \param   a Pointer to input (buffer of at least \p n bytes)
  * \param   b Pointer to input (buffer of at least \p n bytes)
  * \param   n Number of bytes to process.
+ *
+ * \note      Depending on the situation, it may be faster to use either mbedtls_xor() or
+ *            mbedtls_xor_no_simd() (these are functionally equivalent).
+ *            If the result is used immediately after the xor operation in non-SIMD code (e.g, in
+ *            AES-CBC), there may be additional latency to transfer the data from SIMD to scalar
+ *            registers, and in this case, mbedtls_xor_no_simd() may be faster. In other cases where
+ *            the result is not used immediately (e.g., in AES-CTR), mbedtls_xor() may be faster.
+ *            For targets without SIMD support, they will behave the same.
  */
-inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned char *b, size_t n)
+static inline void mbedtls_xor(unsigned char *r,
+                               const unsigned char *a,
+                               const unsigned char *b,
+                               size_t n)
 {
     size_t i = 0;
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
@@ -191,17 +199,36 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
         uint8x16_t x = veorq_u8(v1, v2);
         vst1q_u8(r + i, x);
     }
+#if defined(__IAR_SYSTEMS_ICC__)
+    /* This if statement helps some compilers (e.g., IAR) optimise out the byte-by-byte tail case
+     * where n is a constant multiple of 16.
+     * For other compilers (e.g. recent gcc and clang) it makes no difference if n is a compile-time
+     * constant, and is a very small perf regression if n is not a compile-time constant. */
+    if (n % 16 == 0) {
+        return;
+    }
+#endif
 #elif defined(MBEDTLS_ARCH_IS_X64) || defined(MBEDTLS_ARCH_IS_ARM64)
     /* This codepath probably only makes sense on architectures with 64-bit registers */
     for (; (i + 8) <= n; i += 8) {
         uint64_t x = mbedtls_get_unaligned_uint64(a + i) ^ mbedtls_get_unaligned_uint64(b + i);
         mbedtls_put_unaligned_uint64(r + i, x);
     }
+#if defined(__IAR_SYSTEMS_ICC__)
+    if (n % 8 == 0) {
+        return;
+    }
+#endif
 #else
     for (; (i + 4) <= n; i += 4) {
         uint32_t x = mbedtls_get_unaligned_uint32(a + i) ^ mbedtls_get_unaligned_uint32(b + i);
         mbedtls_put_unaligned_uint32(r + i, x);
     }
+#if defined(__IAR_SYSTEMS_ICC__)
+    if (n % 4 == 0) {
+        return;
+    }
+#endif
 #endif
 #endif
     for (; i < n; i++) {
@@ -209,11 +236,18 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
     }
 }
 
+/* Always inline mbedtls_xor_no_simd() as we see significant perf regressions when it does not get
+ * inlined (e.g., observed about 3x perf difference in gcm_mult_largetable with gcc 7 - 12) */
+#if defined(__IAR_SYSTEMS_ICC__)
+#pragma inline = forced
+#elif defined(__GNUC__)
+__attribute__((always_inline))
+#endif
 /**
  * Perform a fast block XOR operation, such that
  * r[i] = a[i] ^ b[i] where 0 <= i < n
  *
- * In some situations, this can perform better than mbedtls_xor (e.g., it's about 5%
+ * In some situations, this can perform better than mbedtls_xor() (e.g., it's about 5%
  * better in AES-CBC).
  *
  * \param   r Pointer to result (buffer of at least \p n bytes). \p r
@@ -222,6 +256,14 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
  * \param   a Pointer to input (buffer of at least \p n bytes)
  * \param   b Pointer to input (buffer of at least \p n bytes)
  * \param   n Number of bytes to process.
+ *
+ * \note      Depending on the situation, it may be faster to use either mbedtls_xor() or
+ *            mbedtls_xor_no_simd() (these are functionally equivalent).
+ *            If the result is used immediately after the xor operation in non-SIMD code (e.g, in
+ *            AES-CBC), there may be additional latency to transfer the data from SIMD to scalar
+ *            registers, and in this case, mbedtls_xor_no_simd() may be faster. In other cases where
+ *            the result is not used immediately (e.g., in AES-CTR), mbedtls_xor() may be faster.
+ *            For targets without SIMD support, they will behave the same.
  */
 static inline void mbedtls_xor_no_simd(unsigned char *r,
                                        const unsigned char *a,
@@ -236,11 +278,25 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
         uint64_t x = mbedtls_get_unaligned_uint64(a + i) ^ mbedtls_get_unaligned_uint64(b + i);
         mbedtls_put_unaligned_uint64(r + i, x);
     }
+#if defined(__IAR_SYSTEMS_ICC__)
+    /* This if statement helps some compilers (e.g., IAR) optimise out the byte-by-byte tail case
+     * where n is a constant multiple of 8.
+     * For other compilers (e.g. recent gcc and clang) it makes no difference if n is a compile-time
+     * constant, and is a very small perf regression if n is not a compile-time constant. */
+    if (n % 8 == 0) {
+        return;
+    }
+#endif
 #else
     for (; (i + 4) <= n; i += 4) {
         uint32_t x = mbedtls_get_unaligned_uint32(a + i) ^ mbedtls_get_unaligned_uint32(b + i);
         mbedtls_put_unaligned_uint32(r + i, x);
     }
+#if defined(__IAR_SYSTEMS_ICC__)
+    if (n % 4 == 0) {
+        return;
+    }
+#endif
 #endif
 #endif
     for (; i < n; i++) {

@@ -114,6 +114,11 @@ if(MBEDTLS_PYTHON_EXECUTABLE)
 
 endif()
 
+# We now potentially need to link all executables against PThreads, if available
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package(Threads)
+
 # If this is the root project add longer list of available CMAKE_BUILD_TYPE values
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
@@ -278,6 +283,8 @@ add_subdirectory(3rdparty)
 
 add_subdirectory(library)
 
+add_subdirectory(pkgconfig)
+
 #
 # The C files in tests/src directory contain test code shared among test suites
 # and programs. This shared test code is compiled and linked to test suites and
@@ -381,7 +388,7 @@ if(NOT DISABLE_PACKAGE_CONFIG_AND_INSTALL)
     write_basic_package_version_file(
         "cmake/MbedTLSConfigVersion.cmake"
             COMPATIBILITY SameMajorVersion
-            VERSION 3.5.1)
+            VERSION 3.5.2)
 
     install(
         FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfig.cmake"

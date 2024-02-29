@@ -17,7 +17,7 @@
 #include "mbedtls/ssl.h"
 #include "ssl_misc.h"
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "md_psa.h"
+#include "mbedtls/psa_util.h"
 #endif
 
 #include <string.h>

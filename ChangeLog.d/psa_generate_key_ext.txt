@@ -1,0 +1,3 @@
+Features
+   * The new function psa_generate_key_ext() allows generating an RSA
+     key pair with a custom public exponent.

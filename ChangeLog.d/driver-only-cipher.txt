@@ -1,0 +1,11 @@
+Features
+   * If a cipher or AEAD mechanism has a PSA driver, you can now build the
+     library without the corresponding built-in implementation. Generally
+     speaking that requires both the key type and algorithm to be accelerated
+     or they'll both be built in. However, for CCM and GCM the built-in
+     implementation is able to take advantage of a driver that only
+     accelerates the key type (that is, the block cipher primitive). See
+     docs/driver-only-builds.md for full details and current limitations.
+   * The CTR_DRBG module will now use AES from a PSA driver if MBEDTLS_AES_C is
+     disabled. This requires PSA_WANT_ALG_ECB_NO_PADDING in addition to
+     MBEDTLS_PSA_CRYPTO_C and PSA_WANT_KEY_TYPE_AES.

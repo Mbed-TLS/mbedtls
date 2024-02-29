@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
 
     fclose(f);
 
-    if (i != rsa.MBEDTLS_PRIVATE(len)) {
+    if (i != mbedtls_rsa_get_len(&rsa)) {
         mbedtls_printf("\n  ! Invalid RSA signature format\n\n");
         goto exit;
     }

@@ -443,6 +443,10 @@ The equivalent to `mbedtls_md_type_t` and `MBEDTLS_MD_XXX` constants is the type
 | `MBEDTLS_MD_SHA3_384`  | `PSA_ALG_SHA3_384`  |
 | `MBEDTLS_MD_SHA3_512`  | `PSA_ALG_SHA3_512`  |
 
+The following helper functions can be used to convert between the 2 types:
+- `mbedtls_md_psa_alg_from_type()` converts from legacy `mbedtls_md_type_t` to PSA's `psa_algorithm_t`.
+- `mbedtls_md_type_from_psa_alg()` converts from PSA's `psa_algorithm_t` to legacy `mbedtls_md_type_t`.
+
 ### MAC mechanism selection
 
 PSA Crypto has a generic API with the same functions for all MAC mechanisms. The mechanism is determined by a combination of an algorithm value of type [`psa_algorithm_t`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1gac2e4d47f1300d73c2f829a6d99252d69) and a key type value of type [`psa_key_type_t`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1ga63fce6880ca5933b5d6baa257febf1f6).
@@ -725,7 +729,11 @@ An ECC public key has the type [`PSA_KEY_TYPE_ECC_PUBLIC_KEY(curve)`](https://mb
 An ECC key pair has the type [`PSA_KEY_TYPE_ECC_KEY_PAIR(curve)`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1ga0b6f5d4d5037c54ffa850d8059c32df0) where `curve` is a curve family identifier. A key with this type can be used both for private-key and public-key operations (there is no separate key type for a private key without the corresponding public key).
 You can always use a private key for operations on the corresponding public key (as long as the policy permits it).
 
-A curve is fully determined by a curve family identifier and the private key size in bits. The following table gives the correspondence between legacy and PSA elliptic curve designations.
+A curve is fully determined by a curve family identifier and the private key size in bits. You can use the following functions to convert between the PSA and legacy elliptic curve designations:
+- [`mbedtls_ecc_group_to_psa()`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__psa__tls__helpers/#group__psa__tls__helpers_1ga9c83c095adfec7da99401cf81e164f99) converts from the legacy curve type identifier to PSA curve family and bit-size.
+- [`mbedtls_ecc_group_from_psa()`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__psa__tls__helpers/#group__psa__tls__helpers_1ga6243eb619d5b2f5fe4667811adeb8a12) converts from PSA curve family and bit-size to the legacy identifier.
+
+The following table gives the correspondence between legacy and PSA elliptic curve designations.
 
 | Mbed TLS legacy curve identifier | PSA curve family | Curve bit-size |
 | -------------------------------- | ---------------- | -------------- |

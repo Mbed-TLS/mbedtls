@@ -5286,19 +5286,34 @@ static const unsigned char ssl_serialized_session_header[] = {
  *                               // the setting of those compile-time
  *                               // configuration options which influence
  *                               // the structure of mbedtls_ssl_session.
- *  uint64 start_time;
- *  uint8 ciphersuite[2];        // defined by the standard
- *  uint8 compression;           // 0 or 1
- *  uint8 session_id_len;        // at most 32
- *  opaque session_id[32];
- *  opaque master[48];           // fixed length in the standard
- *  uint32 verify_result;
- *  opaque peer_cert<0..2^24-1>; // length 0 means no peer cert
- *  opaque ticket<0..2^24-1>;    // length 0 means no ticket
- *  uint32 ticket_lifetime;
- *  uint8 mfl_code;              // up to 255 according to standard
- *  uint8 trunc_hmac;            // 0 or 1
- *  uint8 encrypt_then_mac;      // 0 or 1
+ * #if defined(MBEDTLS_HAVE_TIME)
+ *     uint64 start_time;
+ * #endif
+ *     uint8 ciphersuite[2];        // defined by the standard
+ *     uint8 compression;           // 0 or 1
+ *     uint8 session_id_len;        // at most 32
+ *     opaque session_id[32];
+ *     opaque master[48];           // fixed length in the standard
+ *     uint32 verify_result;
+ * #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+ *     opaque peer_cert<0..2^24-1>; // length 0 means no peer cert
+ * #else
+ *     uint8 peer_cert_digest_type;
+ *     opaque peer_cert_digest<0..2^8-1>
+ * #endif
+ * #if defined(MBEDTLS_SSL_SESSION_TICKETS)
+ *     opaque ticket<0..2^24-1>;    // length 0 means no ticket
+ *     uint32 ticket_lifetime;
+ * #endif
+ * #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+ *     uint8 mfl_code;              // up to 255 according to standard
+ * #endif
+ * #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
+ *     uint8 trunc_hmac;            // 0 or 1
+ * #endif
+ * #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+ *     uint8 encrypt_then_mac;      // 0 or 1
+ * #endif
  *
  * The order is the same as in the definition of the structure, except
  * verify_result is put before peer_cert so that all mandatory fields come

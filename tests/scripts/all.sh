@@ -1008,6 +1008,9 @@ EOF
 }
 
 component_test_zlib_cmake() {
+    # This is needed due to something parsing the output from make
+    export VERBOSE_LOGS=1
+
     msg "build: zlib enabled, cmake"
     scripts/config.py set MBEDTLS_ZLIB_SUPPORT
     cmake -D ENABLE_ZLIB_SUPPORT=On -D CMAKE_BUILD_TYPE:String=Release .

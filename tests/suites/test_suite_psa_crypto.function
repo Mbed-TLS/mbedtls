@@ -28,6 +28,10 @@
 #define TEST_DRIVER_LOCATION 0x7fffff
 #endif
 
+#if defined(MBEDTLS_THREADING_PTHREAD)
+#include "mbedtls/threading.h"
+#endif
+
 /* If this comes up, it's a bug in the test code or in the test data. */
 #define UNUSED 0xdeadbeef
 
@@ -1332,6 +1336,66 @@ static int setup_key_production_parameters(
 exit:
     return 0;
 }
+
+#if defined(MBEDTLS_THREADING_PTHREAD)
+typedef struct generate_key_context {
+    psa_key_type_t type;
+    psa_key_usage_t usage;
+    size_t bits;
+    psa_algorithm_t alg;
+    psa_status_t expected_status;
+    psa_key_attributes_t *attributes;
+    int is_large_key;
+    int reps;
+}
+generate_key_context;
+void *thread_generate_key(void *ctx)
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    generate_key_context *gkc = (struct generate_key_context *) ctx;
+
+    /* If there are race conditions, it is likely the case that they do not
+     * arise every time the code runs. We repeat the code to increase the
+     * chance that any race conditions will be hit. */
+    for (int n = 0; n < gkc->reps; n++) {
+        /* Generate a key */
+        psa_status_t status = psa_generate_key(gkc->attributes, &key);
+
+        if (gkc->is_large_key > 0) {
+            TEST_ASSUME(status != PSA_ERROR_INSUFFICIENT_MEMORY);
+        }
+
+        TEST_EQUAL(status, gkc->expected_status);
+        if (gkc->expected_status != PSA_SUCCESS) {
+            PSA_ASSERT(psa_destroy_key(key));
+            goto exit;
+        }
+
+        /* Test the key information */
+        PSA_ASSERT(psa_get_key_attributes(key, &got_attributes));
+        TEST_EQUAL(psa_get_key_type(&got_attributes), gkc->type);
+        TEST_EQUAL(psa_get_key_bits(&got_attributes), gkc->bits);
+
+        /* Do something with the key according
+         * to its type and permitted usage. */
+        if (!mbedtls_test_psa_exercise_key(key, gkc->usage, gkc->alg)) {
+            psa_destroy_key(key);
+            goto exit;
+        }
+        psa_reset_key_attributes(&got_attributes);
+
+        PSA_ASSERT(psa_destroy_key(key));
+    }
+exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes(&got_attributes);
+    return NULL;
+}
+#endif /* MBEDTLS_THREADING_PTHREAD */
 
 /* END_HEADER */
 
@@ -9782,6 +9846,59 @@ exit:
     mbedtls_free(changed);
 }
 /* END_CASE */
+
+#if defined MBEDTLS_THREADING_PTHREAD
+
+/* BEGIN_CASE depends_on:MBEDTLS_THREADING_PTHREAD */
+void concurrently_generate_keys(int type_arg,
+                                int bits_arg,
+                                int usage_arg,
+                                int alg_arg,
+                                int expected_status_arg,
+                                int is_large_key_arg,
+                                int arg_thread_count,
+                                int reps_arg)
+{
+    size_t thread_count = (size_t) arg_thread_count;
+    mbedtls_test_thread_t *threads = NULL;
+    generate_key_context gkc;
+    gkc.type = type_arg;
+    gkc.usage = usage_arg;
+    gkc.bits = bits_arg;
+    gkc.alg = alg_arg;
+    gkc.expected_status = expected_status_arg;
+    gkc.is_large_key = is_large_key_arg;
+    gkc.reps = reps_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    PSA_ASSERT(psa_crypto_init());
+
+    psa_set_key_usage_flags(&attributes, usage_arg);
+    psa_set_key_algorithm(&attributes, alg_arg);
+    psa_set_key_type(&attributes, type_arg);
+    psa_set_key_bits(&attributes, bits_arg);
+    gkc.attributes = &attributes;
+
+    TEST_CALLOC(threads, sizeof(mbedtls_test_thread_t) * thread_count);
+
+    /* Split threads to generate key then destroy key. */
+    for (size_t i = 0; i < thread_count; i++) {
+        TEST_EQUAL(
+            mbedtls_test_thread_create(&threads[i], thread_generate_key,
+                                       (void *) &gkc), 0);
+    }
+
+    /* Join threads. */
+    for (size_t i = 0; i < thread_count; i++) {
+        TEST_EQUAL(mbedtls_test_thread_join(&threads[i]), 0);
+    }
+
+exit:
+    mbedtls_free(threads);
+    PSA_DONE();
+}
+/* END_CASE */
+#endif
 
 /* BEGIN_CASE */
 void generate_key(int type_arg,

@@ -4523,6 +4523,8 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
     mbedtls_test_init_handshake_options(&client_options);
     mbedtls_test_init_handshake_options(&server_options);
     mbedtls_ssl_session_init(&saved_session);
+    PSA_INIT();
+
     TEST_CALLOC(buf_write, write_size);
 
     /*
@@ -4531,8 +4533,6 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
      */
     read_size = (write_size / 2) + 1;
     TEST_CALLOC(buf_read, read_size);
-
-    PSA_INIT();
 
     /*
      * Run first handshake to get a ticket from the server.
@@ -4714,6 +4714,8 @@ exit:
     mbedtls_test_free_handshake_options(&client_options);
     mbedtls_test_free_handshake_options(&server_options);
     mbedtls_ssl_session_free(&saved_session);
+    mbedtls_free(buf_write);
+    mbedtls_free(buf_read);
     mbedtls_debug_set_threshold(0);
     PSA_DONE();
 }

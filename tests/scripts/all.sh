@@ -2198,6 +2198,8 @@ component_test_tsan () {
     scripts/config.py full
     scripts/config.py set MBEDTLS_THREADING_C
     scripts/config.py set MBEDTLS_THREADING_PTHREAD
+    # Self-tests do not currently use multiple threads.
+    scripts/config.py unset MBEDTLS_SELF_TEST
 
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=TSan .
     make

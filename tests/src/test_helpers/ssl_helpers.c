@@ -685,9 +685,20 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (opaque_alg != 0) {
-        TEST_EQUAL(mbedtls_pk_wrap_as_opaque(cert->pkey, &key_slot,
-                                             opaque_alg, opaque_usage,
-                                             opaque_alg2), 0);
+        psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
+        /* Use a fake key usage to get a successful initial guess for the PSA attributes. */
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(cert->pkey, PSA_KEY_USAGE_SIGN_HASH,
+                                                 &key_attr), 0);
+        /* Then manually usage, alg and alg2 as requested by the test. */
+        psa_set_key_usage_flags(&key_attr, opaque_usage);
+        psa_set_key_algorithm(&key_attr, opaque_alg);
+        if (opaque_alg2 != PSA_ALG_NONE) {
+            psa_set_key_enrollment_algorithm(&key_attr, opaque_alg2);
+        }
+        TEST_EQUAL(mbedtls_pk_import_into_psa(cert->pkey, &key_attr, &key_slot), 0);
+        mbedtls_pk_free(cert->pkey);
+        mbedtls_pk_init(cert->pkey);
+        TEST_EQUAL(mbedtls_pk_setup_opaque(cert->pkey, key_slot), 0);
     }
 #else
     (void) opaque_alg;

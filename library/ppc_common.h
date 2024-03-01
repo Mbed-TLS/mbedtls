@@ -21,16 +21,16 @@
 #if defined(__powerpc__) || defined(__powerpc64__)
 
 #if !defined(PPC_LITTLE_ENDIAN) && defined(__LITTLE_ENDIAN__)
-# define PPC_LITTLE_ENDIAN	1
+# define PPC_LITTLE_ENDIAN 1
 #endif
 
-#define MBEDTIS_USE_PPC		1
+#define MBEDTIS_USE_PPC 1
 
 #ifdef PPC_LITTLE_ENDIAN
-#define PPC_CRYPTO_SUPPORT	1
+#define PPC_CRYPTO_SUPPORT 1
 
 # if !defined(PPC_USE_ASM)
-#define PPC_ALIGN(p, mask)	(((unsigned long)(p) + (mask-1)) & ~(mask-1))
+#define PPC_ALIGN(p, mask) (((unsigned long)(p) + (mask-1)) & ~(mask-1))
 
 int ppc_crypto_capable();
 

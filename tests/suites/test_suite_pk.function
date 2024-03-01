@@ -402,7 +402,7 @@ void pk_psa_utils(int key_is_rsa)
 
     mbedtls_pk_init(&pk);
     mbedtls_pk_init(&pk2);
-    USE_PSA_INIT();
+    PSA_INIT();
 
     TEST_ASSERT(mbedtls_pk_setup_opaque(&pk, MBEDTLS_SVC_KEY_ID_INIT) ==
                 MBEDTLS_ERR_PK_BAD_INPUT_DATA);
@@ -483,7 +483,7 @@ exit:
 
     mbedtls_pk_free(&pk);   /* redundant except upon error */
     mbedtls_pk_free(&pk2);
-    USE_PSA_DONE();
+    PSA_DONE();
 }
 /* END_CASE */
 
@@ -497,7 +497,7 @@ void pk_can_do_ext(int opaque_key, int key_type, int key_usage, int key_alg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     mbedtls_pk_init(&pk);
-    USE_PSA_INIT();
+    PSA_INIT();
 
     if (opaque_key == 1) {
         psa_set_key_usage_flags(&attributes, key_usage);
@@ -530,7 +530,7 @@ exit:
     psa_reset_key_attributes(&attributes);
     PSA_ASSERT(psa_destroy_key(key));
     mbedtls_pk_free(&pk);
-    USE_PSA_DONE();
+    PSA_DONE();
 }
 /* END_CASE */
 
@@ -737,17 +737,19 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_FS_IO:MBEDTLS_PSA_CRYPTO_C */
+/* BEGIN_CASE depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_FS_IO */
 void mbedtls_pk_check_pair(char *pub_file, char *prv_file, int ret)
 {
     mbedtls_pk_context pub, prv, alt;
+#if defined(MBEDTLS_PSA_CRYPTO_C)
     mbedtls_svc_key_id_t opaque_key_id = MBEDTLS_SVC_KEY_ID_INIT;
     int opaque_ret = ret;
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
     mbedtls_pk_init(&pub);
     mbedtls_pk_init(&prv);
     mbedtls_pk_init(&alt);
-    USE_PSA_INIT();
+    PSA_INIT();
 
     /* In case of EC keys, mbedtls_pk_check_pair() returns either PK or ECP
      * error codes depending on whether PSA or ECP functions are used to perform
@@ -760,7 +762,9 @@ void mbedtls_pk_check_pair(char *pub_file, char *prv_file, int ret)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+#if defined(MBEDTLS_PSA_CRYPTO_C)
         opaque_ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+#endif /* MBEDTLS_PSA_CRYPTO_C */
     }
 
     TEST_ASSERT(mbedtls_pk_parse_public_keyfile(&pub, pub_file) == 0);
@@ -782,23 +786,24 @@ void mbedtls_pk_check_pair(char *pub_file, char *prv_file, int ret)
                     == ret);
     }
 #endif
+#if defined(MBEDTLS_PSA_CRYPTO_C)
     if (mbedtls_pk_get_type(&prv) == MBEDTLS_PK_ECKEY) {
-        if (ret == MBEDTLS_ERR_ECP_BAD_INPUT_DATA) {
-            ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-        }
         TEST_EQUAL(mbedtls_pk_wrap_as_opaque(&prv, &opaque_key_id,
                                              PSA_ALG_ANY_HASH,
                                              PSA_KEY_USAGE_EXPORT, 0), 0);
         TEST_EQUAL(mbedtls_pk_check_pair(&pub, &prv, mbedtls_test_rnd_std_rand,
                                          NULL), opaque_ret);
     }
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 exit:
+#if defined(MBEDTLS_PSA_CRYPTO_C)
     psa_destroy_key(opaque_key_id);
+#endif /* MBEDTLS_PSA_CRYPTO_C */
     mbedtls_pk_free(&pub);
     mbedtls_pk_free(&prv);
     mbedtls_pk_free(&alt);
-    USE_PSA_DONE();
+    PSA_DONE();
 }
 /* END_CASE */
 
@@ -1270,7 +1275,7 @@ void pk_wrap_rsa_decrypt_test_vec(data_t *cipher, int mod,
     mbedtls_pk_init(&pk);
     mbedtls_mpi_init(&N); mbedtls_mpi_init(&P);
     mbedtls_mpi_init(&Q); mbedtls_mpi_init(&E);
-    USE_PSA_INIT();
+    PSA_INIT();
 
     memset(&rnd_info,  0, sizeof(mbedtls_test_rnd_pseudo_info));
 
@@ -1315,7 +1320,7 @@ exit:
     mbedtls_mpi_free(&N); mbedtls_mpi_free(&P);
     mbedtls_mpi_free(&Q); mbedtls_mpi_free(&E);
     mbedtls_pk_free(&pk);
-    USE_PSA_DONE();
+    PSA_DONE();
 }
 /* END_CASE */
 
@@ -1516,7 +1521,7 @@ void pk_psa_sign(int curve_or_keybits, int psa_type, int expected_bits)
      */
 
     mbedtls_pk_init(&pk);
-    USE_PSA_INIT();
+    PSA_INIT();
 
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_GENPRIME)
     if (PSA_KEY_TYPE_IS_RSA(psa_type)) {
@@ -1640,7 +1645,7 @@ exit:
     psa_reset_key_attributes(&attributes);
 
     mbedtls_pk_free(&pk);
-    USE_PSA_DONE();
+    PSA_DONE();
 }
 /* END_CASE */
 

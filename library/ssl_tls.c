@@ -4113,6 +4113,7 @@ static const unsigned char ssl_serialized_session_header[] = {
  * #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
  *    opaque peer_cert<0..2^24-1>;    // length 0 means no peer cert
  * #else
+ *    uint8 peer_cert_digest_type;
  *    opaque peer_cert_digest<0..2^8-1>
  * #endif
  *     select (endpoint) {

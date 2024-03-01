@@ -4457,7 +4457,8 @@ void tls13_cli_max_early_data_size(int max_early_data_size_arg)
     mbedtls_test_handshake_test_options client_options;
     mbedtls_test_handshake_test_options server_options;
     mbedtls_ssl_session saved_session;
-    unsigned char buf[64];
+    unsigned char *buf = NULL;
+    uint32_t buf_size = 64;
     uint32_t max_early_data_size;
     uint32_t written_early_data_size = 0;
     uint32_t read_early_data_size = 0;
@@ -4469,6 +4470,7 @@ void tls13_cli_max_early_data_size(int max_early_data_size_arg)
     mbedtls_ssl_session_init(&saved_session);
 
     PSA_INIT();
+    TEST_CALLOC(buf, buf_size);
 
     /*
      * Run first handshake to get a ticket from the server.
@@ -4528,23 +4530,22 @@ void tls13_cli_max_early_data_size(int max_early_data_size_arg)
     TEST_EQUAL(ret, 0);
 
     while (written_early_data_size < max_early_data_size) {
-        size_t early_data_len = sizeof(buf);
         uint32_t remaining = max_early_data_size - written_early_data_size;
 
-        for (size_t i = 0; i < early_data_len; i++) {
+        for (size_t i = 0; i < buf_size; i++) {
             buf[i] = (unsigned char) (written_early_data_size + i);
         }
 
         ret = mbedtls_ssl_write_early_data(&(client_ep.ssl),
                                            buf,
-                                           early_data_len);
+                                           buf_size);
 
-        if (early_data_len <= remaining) {
-            TEST_EQUAL(ret, early_data_len);
+        if (buf_size <= remaining) {
+            TEST_EQUAL(ret, buf_size);
         } else {
             TEST_EQUAL(ret, remaining);
         }
-        written_early_data_size += early_data_len;
+        written_early_data_size += buf_size;
     }
 
     /* In case we reached exactly the limit in the loop above, do another one
@@ -4569,7 +4570,7 @@ void tls13_cli_max_early_data_size(int max_early_data_size_arg)
 
         ret = mbedtls_ssl_read_early_data(&(server_ep.ssl),
                                           buf,
-                                          sizeof(buf));
+                                          buf_size);
         TEST_ASSERT(ret > 0);
 
         for (size_t i = 0; i < (size_t) ret; i++) {
@@ -4595,6 +4596,7 @@ exit:
     mbedtls_test_free_handshake_options(&client_options);
     mbedtls_test_free_handshake_options(&server_options);
     mbedtls_ssl_session_free(&saved_session);
+    mbedtls_free(buf);
     PSA_DONE();
 }
 /* END_CASE */

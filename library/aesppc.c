@@ -1,21 +1,8 @@
 /*
  *  AES PPC (ppc64le)  support functions
  *
- *  Copyright 2023 - IBM Corp. All rights reserved
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -135,9 +122,9 @@ static void aes_decrypt(const unsigned char *in, unsigned char *out,
  * AES PPC AES-ECB block en(de)cryption
  */
 int mbedtls_aesppc_crypt_ecb(mbedtls_aes_context *ctx,
-                            int mode,
-                            const unsigned char input[16],
-                            unsigned char output[16])
+                             int mode,
+                             const unsigned char input[16],
+                             unsigned char output[16])
 {
     int rounds = ctx->nr;
     unsigned char *rkey = (unsigned char *) (ctx->buf + ctx->rk_offset);
@@ -277,7 +264,7 @@ void mbedtls_aesppc_gcm_mult(unsigned char output[16],
                              const unsigned char x[16],
                              const unsigned char h[16])
 {
-    unsigned char H[64] = {0,};
+    unsigned char H[64] = { 0, };
 
     /* Shift H <<< 1 and arrange hash in (L, M, H) */
     ppc_gcm_shift(h, H);
@@ -317,12 +304,12 @@ void mbedtls_aesppc_gcm_mult(unsigned char output[16],
  * -------------------------------------------------------------
  */
 
-static uint8_t const rcon1[16] = {0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x1,
-                                  0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x1};
-static uint8_t const rcon1b[16] = {0x0, 0x0, 0x0, 0x1b, 0x0, 0x0, 0x0, 0x1b,
-                                   0x0, 0x0, 0x0, 0x1b, 0x0, 0x0, 0x0, 0x1b};
-static uint8_t const mask[16] = {0xc, 0xf, 0xe, 0xd, 0xc, 0xf, 0xe, 0xd,
-                                 0xc, 0xf, 0xe, 0xd, 0xc, 0xf, 0xe, 0xd};
+static uint8_t const rcon1[16] = { 0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x1,
+                                   0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x1};
+static uint8_t const rcon1b[16] = { 0x0, 0x0, 0x0, 0x1b, 0x0, 0x0, 0x0, 0x1b,
+                                    0x0, 0x0, 0x0, 0x1b, 0x0, 0x0, 0x0, 0x1b};
+static uint8_t const mask[16] = { 0xc, 0xf, 0xe, 0xd, 0xc, 0xf, 0xe, 0xd,
+                                  0xc, 0xf, 0xe, 0xd, 0xc, 0xf, 0xe, 0xd};
 
 static void _ppc_setkey128(const unsigned char *key, unsigned char *rk)
 {
@@ -566,15 +553,15 @@ int mbedtls_aesppc_setkey_enc(unsigned char *rk, const unsigned char *key,
         case 128:
             _ppc_setkey128(key, t1);
             nr = 10;
-    break;
+            break;
         case 192:
             _ppc_setkey192(key, t1);
             nr = 12;
-    break;
+            break;
         case 256:
             _ppc_setkey256(key, t1);
             nr = 14;
-    break;
+            break;
     }
 
     /* Reverse word order */

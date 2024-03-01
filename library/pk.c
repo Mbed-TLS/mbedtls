@@ -322,14 +322,7 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
     }
 
     psa_algorithm_t key_alg = psa_get_key_algorithm(&attributes);
-    /* Key's enrollment is available only when MBEDTLS_PSA_CRYPTO_CLIENT is
-     * defined, i.e. when the Mbed TLS implementation of PSA Crypto is being used.
-     * Even though we don't officially support using other implementations of PSA
-     * Crypto with TLS and X.509 (yet), we're still trying to simplify the life of
-     * people who would like to try it before it's officially supported. */
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
     psa_algorithm_t key_alg2 = psa_get_key_enrollment_algorithm(&attributes);
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
     key_usage = psa_get_key_usage_flags(&attributes);
     psa_reset_key_attributes(&attributes);
 
@@ -347,11 +340,9 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
     if (alg == key_alg) {
         return 1;
     }
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
     if (alg == key_alg2) {
         return 1;
     }
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
     /*
      * If key_alg [or key_alg2] is a hash-and-sign with a wildcard for the hash,

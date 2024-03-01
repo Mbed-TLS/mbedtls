@@ -454,7 +454,7 @@ static inline size_t mbedtls_pk_get_len(const mbedtls_pk_context *ctx)
  */
 int mbedtls_pk_can_do(const mbedtls_pk_context *ctx, mbedtls_pk_type_t type);
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 /**
  * \brief           Tell if context can do the operation given by PSA algorithm
  *
@@ -465,7 +465,7 @@ int mbedtls_pk_can_do(const mbedtls_pk_context *ctx, mbedtls_pk_type_t type);
  *                  PSA_ALG_RSA_PKCS1V15_CRYPT,
  *                  PSA_ALG_ECDSA(hash),
  *                  PSA_ALG_ECDH, where hash is a specific hash.
- * \param usage  PSA usage flag to check against, must be composed of:
+ * \param usage     PSA usage flag to check against, must be composed of:
  *                  PSA_KEY_USAGE_SIGN_HASH
  *                  PSA_KEY_USAGE_DECRYPT
  *                  PSA_KEY_USAGE_DERIVE.
@@ -484,7 +484,7 @@ int mbedtls_pk_can_do(const mbedtls_pk_context *ctx, mbedtls_pk_type_t type);
  */
 int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
                           psa_key_usage_t usage);
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 /**

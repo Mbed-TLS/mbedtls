@@ -4506,8 +4506,8 @@ void tls13_cli_max_early_data_size(int max_early_data_size_arg)
     /*
      * (max_early_data_size + 1024) for the size of the socket buffers for the
      * server one to be able to contain the maximum number of early data bytes
-     * plus the first flight client messages. Needed because we cannot initiate
-     * the handshake on server side before doing all the calls to
+     * plus the first flight of client messages. Needed because we cannot
+     * initiate the handshake on server side before doing all the calls to
      * mbedtls_ssl_write_early_data() we want to test. See below for more
      * information.
      */
@@ -4547,10 +4547,8 @@ void tls13_cli_max_early_data_size(int max_early_data_size_arg)
         }
         written_early_data_size += buf_size;
     }
+    TEST_EQUAL(client_ep.ssl.total_early_data_size, max_early_data_size);
 
-    /* In case we reached exactly the limit in the loop above, do another one
-     * byte early data write.
-     */
     ret = mbedtls_ssl_write_early_data(&(client_ep.ssl), buf, 1);
     TEST_EQUAL(ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
     TEST_EQUAL(client_ep.ssl.total_early_data_size, max_early_data_size);
@@ -4584,11 +4582,9 @@ void tls13_cli_max_early_data_size(int max_early_data_size_arg)
     ret = mbedtls_ssl_handshake(&(server_ep.ssl));
     TEST_EQUAL(ret, MBEDTLS_ERR_SSL_WANT_READ);
 
-    ret = mbedtls_ssl_write_early_data(&(client_ep.ssl), buf, 1);
-    TEST_EQUAL(ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
-    TEST_EQUAL(client_ep.ssl.total_early_data_size, max_early_data_size);
-    TEST_EQUAL(client_ep.ssl.early_data_status,
-               MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE);
+    TEST_ASSERT(mbedtls_test_move_handshake_to_state(
+                    &(client_ep.ssl), &(server_ep.ssl), MBEDTLS_SSL_HANDSHAKE_OVER)
+                ==  0);
 
 exit:
     mbedtls_test_ssl_endpoint_free(&client_ep, NULL);

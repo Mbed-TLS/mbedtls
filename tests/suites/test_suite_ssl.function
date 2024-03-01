@@ -18,6 +18,47 @@
 #define TEST_EARLY_DATA_SERVER_REJECTS 2
 #define TEST_EARLY_DATA_HRR 3
 
+#if (!defined(MBEDTLS_SSL_PROTO_TLS1_2)) && \
+    defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C) && \
+    defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_DEBUG_C) && \
+    defined(MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE) && \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED) && \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED) && \
+    defined(MBEDTLS_MD_CAN_SHA256) && \
+    defined(MBEDTLS_ECP_HAVE_SECP256R1) && defined(MBEDTLS_ECP_HAVE_SECP384R1) && \
+    defined(MBEDTLS_PK_CAN_ECDSA_VERIFY) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+/*
+ * Test function to write early data for negative tests where
+ * mbedtls_ssl_write_early_data() cannot be used.
+ */
+static int write_early_data(mbedtls_ssl_context *ssl,
+                            unsigned char *buf, size_t len)
+{
+    int ret = mbedtls_ssl_get_max_out_record_payload(ssl);
+
+    TEST_ASSERT(ret > 0);
+    TEST_ASSERT(len <= (size_t) ret);
+
+    ret = mbedtls_ssl_flush_output(ssl);
+    TEST_EQUAL(ret, 0);
+    TEST_EQUAL(ssl->out_left, 0);
+
+    ssl->out_msglen = len;
+    ssl->out_msgtype = MBEDTLS_SSL_MSG_APPLICATION_DATA;
+    if (len > 0) {
+        memcpy(ssl->out_msg, buf, len);
+    }
+
+    ret = mbedtls_ssl_write_record(ssl, 1);
+    TEST_EQUAL(ret, 0);
+
+    ret = len;
+
+exit:
+    return ret;
+}
+#endif
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

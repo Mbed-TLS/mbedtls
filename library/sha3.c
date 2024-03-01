@@ -20,26 +20,29 @@
  * Unrolling has a major impact on both performance and code size. gcc performance benefits a lot
  * from manually unrolling at higher optimisation levels.
  *
- * Rolling up the theta loop saves a lot of code-size at small performance cost. The code-size
- * saving then enables us to unroll the other loops for a net code-size saving with a net
- * performance win.
- *
  * Depending on your size/perf priorities, compiler and target, it may be beneficial to adjust
- * these; the defaults here should give sensible trade-offs for gcc and clang.
+ * these; the defaults here should give sensible trade-offs for gcc and clang on aarch64 and
+ * x86-64.
  */
 #if !defined(MBEDTLS_SHA3_THETA_UNROLL)
-    #define MBEDTLS_SHA3_THETA_UNROLL 0 //no-check-names
+    #if defined(__OPTIMIZE_SIZE__)
+        #define MBEDTLS_SHA3_THETA_UNROLL 0 //no-check-names
+    #else
+        #define MBEDTLS_SHA3_THETA_UNROLL 1 //no-check-names
+    #endif
 #endif
 #if !defined(MBEDTLS_SHA3_PI_UNROLL)
-    #define MBEDTLS_SHA3_PI_UNROLL 1 //no-check-names
+    #if defined(__OPTIMIZE_SIZE__)
+        #define MBEDTLS_SHA3_PI_UNROLL 0 //no-check-names
+    #else
+        #define MBEDTLS_SHA3_PI_UNROLL 1 //no-check-names
+    #endif
 #endif
 #if !defined(MBEDTLS_SHA3_CHI_UNROLL)
-    #if !defined(MBEDTLS_COMPILER_IS_GCC) || defined(__OPTIMIZE_SIZE__)
-/* GCC doesn't perform well with the rolled-up version, especially at -O2, so only enable on gcc
- * if optimising for size. Always enable for other compilers. */
-        #define MBEDTLS_SHA3_CHI_UNROLL 0 //no-check-names
-    #else
+    #if defined(__OPTIMIZE_SIZE__)
         #define MBEDTLS_SHA3_CHI_UNROLL 1 //no-check-names
+    #else
+        #define MBEDTLS_SHA3_CHI_UNROLL 0 //no-check-names
     #endif
 #endif
 #if !defined(MBEDTLS_SHA3_RHO_UNROLL)

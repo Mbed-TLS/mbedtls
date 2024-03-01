@@ -1318,7 +1318,8 @@ component_build_full_psa_crypto_client_without_crypto_provider () {
 
     # Ensure that desired functions are included into the build (extend the
     # following list as required).
-    grep mbedtls_pk_wrap_as_opaque library/libmbedcrypto.a
+    grep mbedtls_pk_setup_opaque library/libmbedcrypto.a
+    grep mbedtls_pk_can_do_ext library/libmbedcrypto.a
 }
 
 component_test_psa_crypto_rsa_no_genprime() {

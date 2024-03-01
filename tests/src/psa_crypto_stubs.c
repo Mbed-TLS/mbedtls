@@ -22,4 +22,4 @@ psa_status_t psa_generate_random(uint8_t *output,
     return PSA_ERROR_COMMUNICATION_FAILURE;
 }
 
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT !MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT && !MBEDTLS_PSA_CRYPTO_C */

@@ -4,8 +4,7 @@ This document describes the compile-time configuration option
 This option:
 - makes the X.509 and TLS libraries use PSA for cryptographic operations as
   much as possible, see "Internal changes" below;
-- enables new APIs for using keys handled by PSA Crypto, such as
-  `mbedtls_pk_setup_opaque()` and `mbedtls_ssl_conf_psk_opaque()`, see
+- enables new APIs for using keys handled by PSA Crypto, see
 "New APIs / API extensions" below.
 
 General considerations
@@ -66,32 +65,6 @@ as TLS 1.3, can be introduced with a requirement to call `psa_crypto_init()`.
 
 New APIs / API extensions
 -------------------------
-
-### PSA-held (opaque) keys in the PK layer
-
-**New API function:** `mbedtls_pk_setup_opaque()` - can be used to
-wrap a PSA key pair into a PK context. The key can be used for private-key
-operations and its public part can be exported.
-
-**Benefits:** isolation of long-term secrets, use of PSA Crypto drivers.
-
-**Limitations:** can only wrap a key pair, can only use it for private key
-operations. (That is, signature generation, and for RSA decryption too.)
-Note: for ECDSA, currently this uses randomized ECDSA while Mbed TLS uses
-deterministic ECDSA by default. The following operations are not supported
-with a context set this way, while they would be available with a normal
-context: `mbedtls_pk_check_pair()`, `mbedtls_pk_debug()`, all public key
-operations.
-
-**Use in X.509 and TLS:** opt-in. The application needs to construct the PK context
-using the new API in order to get the benefits; it can then pass the
-resulting context to the following existing APIs:
-
-- `mbedtls_ssl_conf_own_cert()` or `mbedtls_ssl_set_hs_own_cert()` to use the
-  key together with a certificate for certificate-based key exchanges;
-- `mbedtls_x509write_csr_set_key()` to generate a CSR (certificate signature
-  request);
-- `mbedtls_x509write_crt_set_issuer_key()` to generate a certificate.
 
 ### PSA-held (opaque) keys for TLS pre-shared keys (PSK)
 

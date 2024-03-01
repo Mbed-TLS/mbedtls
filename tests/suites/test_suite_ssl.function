@@ -4552,7 +4552,7 @@ void tls13_cli_max_early_data_size(int max_early_data_size_arg)
      */
     ret = mbedtls_ssl_write_early_data(&(client_ep.ssl), buf, 1);
     TEST_EQUAL(ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
-    TEST_EQUAL(client_ep.ssl.early_data_count, max_early_data_size);
+    TEST_EQUAL(client_ep.ssl.total_early_data_size, max_early_data_size);
     TEST_EQUAL(client_ep.ssl.early_data_status,
                MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE);
 
@@ -4585,7 +4585,7 @@ void tls13_cli_max_early_data_size(int max_early_data_size_arg)
 
     ret = mbedtls_ssl_write_early_data(&(client_ep.ssl), buf, 1);
     TEST_EQUAL(ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
-    TEST_EQUAL(client_ep.ssl.early_data_count, max_early_data_size);
+    TEST_EQUAL(client_ep.ssl.total_early_data_size, max_early_data_size);
     TEST_EQUAL(client_ep.ssl.early_data_status,
                MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE);
 

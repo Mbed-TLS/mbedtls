@@ -750,10 +750,10 @@ typedef enum {
 
 typedef enum {
 /*
- * The client has not sent the first ClientHello yet, it is unknown if the
- * client will send an early data indication extension or not.
+ * The client has not sent the first ClientHello yet, the negotiation of early
+ * data has not started yet.
  */
-    MBEDTLS_SSL_EARLY_DATA_STATE_UNKNOWN,
+    MBEDTLS_SSL_EARLY_DATA_STATE_IDLE,
 
 /*
  * The client has not indicated the use of early data to the server.
@@ -1756,7 +1756,7 @@ struct mbedtls_ssl_context {
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
     /**
      * State of the negotiation and transfer of early data. Reset to
-     * MBEDTLS_SSL_EARLY_DATA_STATE_UNKNOWN when the context is reset.
+     * MBEDTLS_SSL_EARLY_DATA_STATE_IDLE when the context is reset.
      */
     mbedtls_ssl_early_data_state MBEDTLS_PRIVATE(early_data_state);
 #endif

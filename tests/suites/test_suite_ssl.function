@@ -3904,13 +3904,13 @@ void tls13_cli_early_data_state(int scenario)
                     case TEST_EARLY_DATA_NO_INDICATION_SENT: /* Intentional fallthrough */
                     case TEST_EARLY_DATA_SERVER_REJECTS:
                         TEST_EQUAL(client_ep.ssl.early_data_state,
-                                   MBEDTLS_SSL_EARLY_DATA_STATE_UNKNOWN);
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_IDLE);
                         break;
 
                     case TEST_EARLY_DATA_HRR:
                         if (!client_ep.ssl.handshake->hello_retry_request_flag) {
                             TEST_EQUAL(client_ep.ssl.early_data_state,
-                                       MBEDTLS_SSL_EARLY_DATA_STATE_UNKNOWN);
+                                       MBEDTLS_SSL_EARLY_DATA_STATE_IDLE);
                         } else {
                             TEST_EQUAL(client_ep.ssl.early_data_state,
                                        MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);

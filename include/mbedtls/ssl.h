@@ -756,9 +756,10 @@ typedef enum {
     MBEDTLS_SSL_EARLY_DATA_STATE_IDLE,
 
 /*
- * The client has not indicated the use of early data to the server.
+ * In its ClientHello, the client has not included an early data indication
+ * extension.
  */
-    MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT,
+    MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT,
 
 /*
  * The client has indicated the use of early data and the server has accepted

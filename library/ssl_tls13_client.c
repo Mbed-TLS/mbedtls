@@ -1185,7 +1185,7 @@ int mbedtls_ssl_tls13_write_client_hello_exts(mbedtls_ssl_context *ssl,
      * If an HRR has been received and thus we are currently writing the
      * second ClientHello, the second ClientHello must not contain an early
      * data extension and the early data state must stay as it is:
-     * MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT or
+     * MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT or
      * MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED.
      */
     if (!ssl->handshake->hello_retry_request_flag) {
@@ -1201,7 +1201,7 @@ int mbedtls_ssl_tls13_write_client_hello_exts(mbedtls_ssl_context *ssl,
 
             ssl->early_data_state = MBEDTLS_SSL_EARLY_DATA_STATE_SENT;
         } else {
-            ssl->early_data_state = MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT;
+            ssl->early_data_state = MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT;
         }
     }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
@@ -1919,7 +1919,7 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
      * cases we compute it here.
      */
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (ssl->early_data_state == MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT ||
+    if (ssl->early_data_state == MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT ||
         handshake->key_exchange_mode ==
         MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL)
 #endif
@@ -1975,7 +1975,7 @@ static int ssl_tls13_postprocess_hrr(mbedtls_ssl_context *ssl)
     ssl->session_negotiate->ciphersuite = ssl->handshake->ciphersuite_info->id;
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (ssl->early_data_state != MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT) {
+    if (ssl->early_data_state != MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT) {
         ssl->early_data_state = MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED;
     }
 #endif
@@ -2239,7 +2239,8 @@ static int ssl_tls13_process_encrypted_extensions(mbedtls_ssl_context *ssl)
         }
 
         ssl->early_data_state = MBEDTLS_SSL_EARLY_DATA_STATE_ACCEPTED;
-    } else if (ssl->early_data_state != MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT) {
+    } else if (ssl->early_data_state !=
+               MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT) {
         ssl->early_data_state = MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED;
     }
 #endif
@@ -2325,7 +2326,7 @@ int mbedtls_ssl_get_early_data_status(mbedtls_ssl_context *ssl)
     }
 
     switch (ssl->early_data_state) {
-        case MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT:
+        case MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT:
             return MBEDTLS_SSL_EARLY_DATA_STATUS_NO_IND_SENT;
             break;
 

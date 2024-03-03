@@ -3739,7 +3739,7 @@ void tls13_read_early_data(int scenario)
                                        early_data_len);
 
     if (client_ep.ssl.early_data_state !=
-        MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT) {
+        MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT) {
         TEST_EQUAL(ret, early_data_len);
     } else {
         TEST_EQUAL(ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
@@ -3932,7 +3932,7 @@ void tls13_cli_early_data_state(int scenario)
 
                     case TEST_EARLY_DATA_NO_INDICATION_SENT:
                         TEST_EQUAL(client_ep.ssl.early_data_state,
-                                   MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT);
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT);
                         break;
 
                     case TEST_EARLY_DATA_HRR:
@@ -3960,7 +3960,7 @@ void tls13_cli_early_data_state(int scenario)
 
                     case TEST_EARLY_DATA_NO_INDICATION_SENT:
                         TEST_EQUAL(client_ep.ssl.early_data_state,
-                                   MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT);
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT);
                         break;
 
                     case TEST_EARLY_DATA_HRR:
@@ -3982,7 +3982,7 @@ void tls13_cli_early_data_state(int scenario)
 
                     case TEST_EARLY_DATA_NO_INDICATION_SENT:
                         TEST_EQUAL(client_ep.ssl.early_data_state,
-                                   MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT);
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT);
                         break;
 
                     case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
@@ -4011,7 +4011,7 @@ void tls13_cli_early_data_state(int scenario)
 
                     case TEST_EARLY_DATA_NO_INDICATION_SENT:
                         TEST_EQUAL(client_ep.ssl.early_data_state,
-                                   MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT);
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT);
                         break;
 
                     case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
@@ -4034,7 +4034,7 @@ void tls13_cli_early_data_state(int scenario)
 
                     case TEST_EARLY_DATA_NO_INDICATION_SENT:
                         TEST_EQUAL(client_ep.ssl.early_data_state,
-                                   MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT);
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT);
                         break;
 
                     case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
@@ -4073,7 +4073,7 @@ void tls13_cli_early_data_state(int scenario)
                 switch (scenario) {
                     case TEST_EARLY_DATA_NO_INDICATION_SENT:
                         TEST_EQUAL(client_ep.ssl.early_data_state,
-                                   MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT);
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT);
                         break;
 
                     case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
@@ -4099,7 +4099,7 @@ void tls13_cli_early_data_state(int scenario)
 
                     case TEST_EARLY_DATA_NO_INDICATION_SENT:
                         TEST_EQUAL(client_ep.ssl.early_data_state,
-                                   MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT);
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT);
                         break;
 
                     case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
@@ -4781,7 +4781,7 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
                    MBEDTLS_SSL_SERVER_HELLO), 0);
 
     TEST_ASSERT(client_ep.ssl.early_data_state !=
-                MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT);
+                MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT);
 
     ret = mbedtls_ssl_handshake(&(server_ep.ssl));
     TEST_EQUAL(ret, MBEDTLS_ERR_SSL_WANT_READ);

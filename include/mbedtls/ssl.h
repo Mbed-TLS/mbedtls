@@ -743,7 +743,7 @@ typedef enum {
 /*
  * See documentation of mbedtls_ssl_get_early_data_status().
  */
-    MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT,
+    MBEDTLS_SSL_EARLY_DATA_STATUS_NO_IND_SENT,
     MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED,
     MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED,
 } mbedtls_ssl_early_data_status;
@@ -5358,7 +5358,7 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
  * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if this function is called
  *                 prior to completion of the handshake.
  *
- * \return         #MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT if the client has
+ * \return         #MBEDTLS_SSL_EARLY_DATA_STATUS_NO_IND_SENT if the client has
  *                 not indicated the use of early data to the server.
  *
  * \return         #MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED if the client has

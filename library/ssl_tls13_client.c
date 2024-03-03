@@ -2326,7 +2326,7 @@ int mbedtls_ssl_get_early_data_status(mbedtls_ssl_context *ssl)
 
     switch (ssl->early_data_state) {
         case MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT:
-            return MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT;
+            return MBEDTLS_SSL_EARLY_DATA_STATUS_NO_IND_SENT;
             break;
 
         case MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED:

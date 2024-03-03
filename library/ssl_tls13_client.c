@@ -1199,7 +1199,7 @@ int mbedtls_ssl_tls13_write_client_hello_exts(mbedtls_ssl_context *ssl,
             }
             p += ext_len;
 
-            ssl->early_data_state = MBEDTLS_SSL_EARLY_DATA_STATE_SENT;
+            ssl->early_data_state = MBEDTLS_SSL_EARLY_DATA_STATE_IND_SENT;
         } else {
             ssl->early_data_state = MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT;
         }
@@ -1239,7 +1239,7 @@ int mbedtls_ssl_tls13_finalize_client_hello(mbedtls_ssl_context *ssl)
     size_t psk_len;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 
-    if (ssl->early_data_state == MBEDTLS_SSL_EARLY_DATA_STATE_SENT) {
+    if (ssl->early_data_state == MBEDTLS_SSL_EARLY_DATA_STATE_IND_SENT) {
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("Set hs psk for early data when writing the first psk"));
 

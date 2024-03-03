@@ -4055,7 +4055,7 @@ void tls13_cli_early_data_state(int scenario)
                     case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
                     case TEST_EARLY_DATA_HRR:
                         TEST_EQUAL(client_ep.ssl.early_data_state,
-                                   MBEDTLS_SSL_EARLY_DATA_STATE_SENT);
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_IND_SENT);
                         break;
 
                     default:

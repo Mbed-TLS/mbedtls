@@ -777,9 +777,10 @@ typedef enum {
  * The client has sent an early data indication extension in its first
  * ClientHello, it has not received the response (ServerHello or
  * HelloRetryRequest) from the server yet. The transform to protect early data
- * is not set and early data cannot be sent yet.
+ * is not set either as for middlebox compatibility a dummy CCs may have to be
+ * sent in clear. Early data cannot be sent to the server yet.
  */
-    MBEDTLS_SSL_EARLY_DATA_STATE_SENT,
+    MBEDTLS_SSL_EARLY_DATA_STATE_IND_SENT,
 
 /*
  * The client has sent an early data indication extension in its first

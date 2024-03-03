@@ -3738,8 +3738,8 @@ void tls13_read_early_data(int scenario)
                                        (unsigned char *) early_data,
                                        early_data_len);
 
-    if (client_ep.ssl.early_data_status !=
-        MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT) {
+    if (client_ep.ssl.early_data_state !=
+        MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT) {
         TEST_EQUAL(ret, early_data_len);
     } else {
         TEST_EQUAL(ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
@@ -3790,7 +3790,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_EARLY_DATA:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED:MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_ECP_HAVE_SECP384R1:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_SSL_SESSION_TICKETS */
-void tls13_cli_early_data_status(int scenario)
+void tls13_cli_early_data_state(int scenario)
 {
     int ret = -1;
     mbedtls_test_ssl_endpoint client_ep, server_ep;
@@ -3903,17 +3903,17 @@ void tls13_cli_early_data_status(int scenario)
                     case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
                     case TEST_EARLY_DATA_NO_INDICATION_SENT: /* Intentional fallthrough */
                     case TEST_EARLY_DATA_SERVER_REJECTS:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_UNKNOWN);
                         break;
 
                     case TEST_EARLY_DATA_HRR:
                         if (!client_ep.ssl.handshake->hello_retry_request_flag) {
-                            TEST_EQUAL(client_ep.ssl.early_data_status,
-                                       MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN);
+                            TEST_EQUAL(client_ep.ssl.early_data_state,
+                                       MBEDTLS_SSL_EARLY_DATA_STATE_UNKNOWN);
                         } else {
-                            TEST_EQUAL(client_ep.ssl.early_data_status,
-                                       MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED);
+                            TEST_EQUAL(client_ep.ssl.early_data_state,
+                                       MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);
                         }
                         break;
 
@@ -3926,22 +3926,22 @@ void tls13_cli_early_data_status(int scenario)
                 switch (scenario) {
                     case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
                     case TEST_EARLY_DATA_SERVER_REJECTS:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_CAN_WRITE);
                         break;
 
                     case TEST_EARLY_DATA_NO_INDICATION_SENT:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT);
                         break;
 
                     case TEST_EARLY_DATA_HRR:
                         if (!client_ep.ssl.handshake->hello_retry_request_flag) {
-                            TEST_EQUAL(client_ep.ssl.early_data_status,
-                                       MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE);
+                            TEST_EQUAL(client_ep.ssl.early_data_state,
+                                       MBEDTLS_SSL_EARLY_DATA_STATE_CAN_WRITE);
                         } else {
-                            TEST_EQUAL(client_ep.ssl.early_data_status,
-                                       MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED);
+                            TEST_EQUAL(client_ep.ssl.early_data_state,
+                                       MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);
                         }
                         break;
 
@@ -3954,18 +3954,18 @@ void tls13_cli_early_data_status(int scenario)
                 switch (scenario) {
                     case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
                     case TEST_EARLY_DATA_SERVER_REJECTS:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_CAN_WRITE);
                         break;
 
                     case TEST_EARLY_DATA_NO_INDICATION_SENT:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT);
                         break;
 
                     case TEST_EARLY_DATA_HRR:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);
                         break;
 
                     default:
@@ -3976,19 +3976,19 @@ void tls13_cli_early_data_status(int scenario)
             case MBEDTLS_SSL_SERVER_FINISHED:
                 switch (scenario) {
                     case TEST_EARLY_DATA_ACCEPTED:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_ACCEPTED);
                         break;
 
                     case TEST_EARLY_DATA_NO_INDICATION_SENT:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT);
                         break;
 
                     case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
                     case TEST_EARLY_DATA_HRR:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);
                         break;
 
                     default:
@@ -3998,26 +3998,26 @@ void tls13_cli_early_data_status(int scenario)
 
             case MBEDTLS_SSL_END_OF_EARLY_DATA:
                 TEST_EQUAL(scenario, TEST_EARLY_DATA_ACCEPTED);
-                TEST_EQUAL(client_ep.ssl.early_data_status,
-                           MBEDTLS_SSL_EARLY_DATA_STATUS_SERVER_FINISHED_RECEIVED);
+                TEST_EQUAL(client_ep.ssl.early_data_state,
+                           MBEDTLS_SSL_EARLY_DATA_STATE_SERVER_FINISHED_RECEIVED);
                 break;
 
             case MBEDTLS_SSL_CLIENT_CERTIFICATE:
                 switch (scenario) {
                     case TEST_EARLY_DATA_ACCEPTED:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_SERVER_FINISHED_RECEIVED);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_SERVER_FINISHED_RECEIVED);
                         break;
 
                     case TEST_EARLY_DATA_NO_INDICATION_SENT:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT);
                         break;
 
                     case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
                     case TEST_EARLY_DATA_HRR:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);
                         break;
 
                     default:
@@ -4028,19 +4028,19 @@ void tls13_cli_early_data_status(int scenario)
             case MBEDTLS_SSL_CLIENT_FINISHED:
                 switch (scenario) {
                     case TEST_EARLY_DATA_ACCEPTED:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_SERVER_FINISHED_RECEIVED);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_SERVER_FINISHED_RECEIVED);
                         break;
 
                     case TEST_EARLY_DATA_NO_INDICATION_SENT:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT);
                         break;
 
                     case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
                     case TEST_EARLY_DATA_HRR:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);
                         break;
 
                     default:
@@ -4054,8 +4054,8 @@ void tls13_cli_early_data_status(int scenario)
                     case TEST_EARLY_DATA_ACCEPTED: /* Intentional fallthrough */
                     case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
                     case TEST_EARLY_DATA_HRR:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_SENT);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_SENT);
                         break;
 
                     default:
@@ -4065,21 +4065,21 @@ void tls13_cli_early_data_status(int scenario)
 
             case MBEDTLS_SSL_CLIENT_CCS_BEFORE_2ND_CLIENT_HELLO:
                 TEST_ASSERT(scenario == TEST_EARLY_DATA_HRR);
-                TEST_EQUAL(client_ep.ssl.early_data_status,
-                           MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED);
+                TEST_EQUAL(client_ep.ssl.early_data_state,
+                           MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);
                 break;
 
             case MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED:
                 switch (scenario) {
                     case TEST_EARLY_DATA_NO_INDICATION_SENT:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT);
                         break;
 
                     case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
                     case TEST_EARLY_DATA_HRR:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);
                         break;
 
                     default:
@@ -4093,19 +4093,19 @@ void tls13_cli_early_data_status(int scenario)
             case MBEDTLS_SSL_HANDSHAKE_OVER:
                 switch (scenario) {
                     case TEST_EARLY_DATA_ACCEPTED:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_SERVER_FINISHED_RECEIVED);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_SERVER_FINISHED_RECEIVED);
                         break;
 
                     case TEST_EARLY_DATA_NO_INDICATION_SENT:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT);
                         break;
 
                     case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */
                     case TEST_EARLY_DATA_HRR:
-                        TEST_EQUAL(client_ep.ssl.early_data_status,
-                                   MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED);
+                        TEST_EQUAL(client_ep.ssl.early_data_state,
+                                   MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED);
                         break;
 
                     default:
@@ -4606,8 +4606,8 @@ void tls13_cli_max_early_data_size(int max_early_data_size_arg)
     ret = mbedtls_ssl_write_early_data(&(client_ep.ssl), buf, 1);
     TEST_EQUAL(ret, MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA);
     TEST_EQUAL(client_ep.ssl.total_early_data_size, max_early_data_size);
-    TEST_EQUAL(client_ep.ssl.early_data_status,
-               MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE);
+    TEST_EQUAL(client_ep.ssl.early_data_state,
+               MBEDTLS_SSL_EARLY_DATA_STATE_CAN_WRITE);
 
     /*
      * Now, check data on server side. It is not done in the previous loop as
@@ -4780,8 +4780,8 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
                    &(client_ep.ssl), &(server_ep.ssl),
                    MBEDTLS_SSL_SERVER_HELLO), 0);
 
-    TEST_ASSERT(client_ep.ssl.early_data_status !=
-                MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT);
+    TEST_ASSERT(client_ep.ssl.early_data_state !=
+                MBEDTLS_SSL_EARLY_DATA_STATE_NOT_SENT);
 
     ret = mbedtls_ssl_handshake(&(server_ep.ssl));
     TEST_EQUAL(ret, MBEDTLS_ERR_SSL_WANT_READ);

@@ -954,7 +954,8 @@ The following subsections describe the PSA signature mechanisms that correspond 
 
 #### ECDSA signature
 
-**Note: in the PSA API, the format of an ECDSA signature is the raw fixed-size format. This is different from the legacy API** which uses the ASN.1 DER format for ECDSA signatures. A future version of Mbed TLS [will provide a way to convert between the two formats](https://github.com/Mbed-TLS/mbedtls/issues/7765).
+**Note: in the PSA API, the format of an ECDSA signature is the raw fixed-size format. This is different from the legacy API** which uses the ASN.1 DER format for ECDSA signatures. To convert between the two formats, use [`mbedtls_ecdsa_raw_to_der`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/psa__util_8h/#group__psa__tls__helpers_1ga9295799b5437bdff8ce8abd524c5ef2e) or [`mbedtls_ecdsa_der_to_raw`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/psa__util_8h/#group__psa__tls__helpers_1ga33b3cf65d5992ccc724b7ee00186ae61).
+
 <!-- The following are specific to the DER format and therefore have no PSA equivalent: MBEDTLS_ECDSA_MAX_SIG_LEN, MBEDTLS_ECDSA_MAX_LEN -->
 
 ECDSA is the mechanism provided by `mbedtls_pk_sign` and `mbedtls_pk_verify` for ECDSA keys, as well as by `mbedtls_ecdsa_sign`, `mbedtls_ecdsa_sign_det_ext`, `mbedtls_ecdsa_write_signature`, `mbedtls_ecdsa_verify` and `mbedtls_ecdsa_read_signature`.

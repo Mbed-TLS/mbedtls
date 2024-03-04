@@ -2718,6 +2718,30 @@ static inline int mbedtls_ssl_session_get_ticket_creation_time(
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
 
 /**
+ * \brief          Get the session-id buffer.
+ *
+ * \param session  SSL session.
+ *
+ * \return         The address of the session-id buffer.
+ */
+static inline const unsigned char[32]* mbedtls_ssl_session_get_id(const mbedtls_ssl_session *session)
+{
+    return &session->MBEDTLS_PRIVATE(id);
+}
+
+/**
+ * \brief          Get the size of the session-id.
+ *
+ * \param session  SSL session.
+ *
+ * \return         size_t size of session-id buffer.
+ */
+static inline const size_t mbedtls_ssl_session_get_id_len(const mbedtls_ssl_session *session)
+{
+    return session->MBEDTLS_PRIVATE(id_len);
+}
+
+/**
  * \brief   Configure a key export callback.
  *          (Default: none.)
  *

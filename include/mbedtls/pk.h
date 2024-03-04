@@ -484,20 +484,20 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
  * \brief           Determine valid PSA attributes that can be used to
  *                  import a key into PSA.
  *
- *                  The attributes determined by this function are suitable
- *                  for calling mbedtls_pk_import_into_psa() to create
- *                  a PSA key with the same key material.
+ * The attributes determined by this function are suitable
+ * for calling mbedtls_pk_import_into_psa() to create
+ * a PSA key with the same key material.
  *
- *                  The typical flow of operations involving this function is
- *                  ```
- *                  psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
- *                  int ret = mbedtls_pk_get_psa_attributes(pk, &attributes);
- *                  if (ret != 0) ...; // error handling omitted
- *                  // Tweak attributes if desired
- *                  psa_key_id_t key_id = 0;
- *                  ret = mbedtls_pk_import_into_psa(pk, &attributes, &key_id);
- *                  if (ret != 0) ...; // error handling omitted
- *                  ```
+ * The typical flow of operations involving this function is
+ * ```
+ * psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+ * int ret = mbedtls_pk_get_psa_attributes(pk, &attributes);
+ * if (ret != 0) ...; // error handling omitted
+ * // Tweak attributes if desired
+ * psa_key_id_t key_id = 0;
+ * ret = mbedtls_pk_import_into_psa(pk, &attributes, &key_id);
+ * if (ret != 0) ...; // error handling omitted
+ * ```
  *
  * \note            This function does not support RSA-alt contexts
  *                  (set up with mbedtls_pk_setup_rsa_alt()).
@@ -596,24 +596,23 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
 /**
  * \brief           Import a key into the PSA key store.
  *
- *                  This function is equivalent to calling psa_import_key()
- *                  with the key material from \p pk.
+ * This function is equivalent to calling psa_import_key()
+ * with the key material from \p pk.
  *
- *                  The typical way to use this function is:
- *                  -# Call mbedtls_pk_get_psa_attributes() to obtain
- *                     attributes for the given key.
- *                  -# If desired, modify the attributes, for example:
- *                      - To create a persistent key, call
- *                        psa_set_key_identifier() and optionally
- *                        psa_set_key_lifetime().
- *                      - To import only the public part of a key pair:
- *                        ```
- *                        psa_set_key_type(&attributes,
- *                                         PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(
- *                                             psa_get_key_type(&attributes)));
- *                        ```
- *                      - Restrict the key usage if desired.
- *                  -# Call mbedtls_pk_import_into_psa().
+ * The typical way to use this function is:
+ * -# Call mbedtls_pk_get_psa_attributes() to obtain
+ *    attributes for the given key.
+ * -# If desired, modify the attributes, for example:
+ *     - To create a persistent key, call
+ *       psa_set_key_identifier() and optionally
+ *       psa_set_key_lifetime().
+ *     - To import only the public part of a key pair:
+ *
+ *           psa_set_key_type(&attributes,
+ *                            PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(
+ *                                psa_get_key_type(&attributes)));
+ *     - Restrict the key usage if desired.
+ * -# Call mbedtls_pk_import_into_psa().
  *
  * \note            This function does not support RSA-alt contexts
  *                  (set up with mbedtls_pk_setup_rsa_alt()).

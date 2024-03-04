@@ -321,6 +321,7 @@ class TabIssueTracker(LineIssueTracker):
         ".make",
         ".pem", # some openssl dumps have tabs
         ".sln",
+        "/.gitmodules",
         "/Makefile",
         "/Makefile.inc",
         "/generate_visualc_files.pl",
@@ -481,6 +482,12 @@ class IntegrityChecker:
         bytes_output = subprocess.check_output(['git', 'ls-files', '-z'])
         bytes_filepaths = bytes_output.split(b'\0')[:-1]
         ascii_filepaths = map(lambda fp: fp.decode('ascii'), bytes_filepaths)
+        # Filter out directories. Normally Git doesn't list directories
+        # (it only knows about the files inside them), but there is
+        # at least one case where 'git ls-files' includes a directory:
+        # submodules. Just skip submodules (and any other directories).
+        ascii_filepaths = [fp for fp in ascii_filepaths
+                           if os.path.isfile(fp)]
         # Prepend './' to files in the top-level directory so that
         # something like `'/Makefile' in fp` matches in the top-level
         # directory as well as in subdirectories.

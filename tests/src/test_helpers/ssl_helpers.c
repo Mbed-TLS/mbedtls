@@ -43,7 +43,7 @@ void mbedtls_test_init_handshake_options(
     mbedtls_test_handshake_test_options *opts)
 {
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-    int rng_seed = 0xBEEF;
+    static int rng_seed = 0xBEEF;
 
     srand(rng_seed);
     rng_seed += 0xD0;

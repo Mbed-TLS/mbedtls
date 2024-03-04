@@ -779,7 +779,7 @@ A finite-field Diffie-Hellman key can be used for key agreement with the algorit
 
 The easiest way to create a key pair object is by randomly generating it with [`psa_generate_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__random/#group__random_1ga1985eae417dfbccedf50d5fff54ea8c5). Compared with the low-level functions from the legacy API (`mbedtls_rsa_gen_key`, `mbedtls_ecp_gen_privkey`, `mbedtls_ecp_gen_keypair`, `mbedtls_ecp_gen_keypair_base`, `mbedtls_ecdsa_genkey`), this directly creates an object that can be used with high-level APIs, but removes some of the flexibility. Note that if you want to export the generated private key, you must pass the flag [`PSA_KEY_USAGE_EXPORT`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__policy/#group__policy_1ga7dddccdd1303176e87a4d20c87b589ed) to [`psa_set_key_usage_flags`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1ga42a65b3c4522ce9b67ea5ea7720e17de); exporting the public key with [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) is always permitted.
 
-For RSA keys, `psa_generate_key` always uses 65537 as the public exponent. If you need a different public exponent, use the legacy interface to create the key then import it as described in “[Importing legacy keys via the PK module](#importing-legacy-keys-via-the-pk-module)”.
+For RSA keys, `psa_generate_key` uses 65537 as the public exponent. You can use [`psa_generate_key_ext`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__random/#group__random_1ga6776360ae8046a4456a5f990f997da58) to select a different public exponent. As of Mbed TLS 3.6.0, selecting a different public exponent is only supported with the built-in RSA implementation, not with PSA drivers.
 
 To create a key object from existing material, use [`psa_import_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga0336ea76bf30587ab204a8296462327b). While this function has the same basic goal as the PK parse functions (`mbedtls_pk_parse_key`, `mbedtls_pk_parse_public_key`, `mbedtls_pk_parse_subpubkey`), it is limited to a single format that just contains the number(s) that make up the key, with very little metadata. This format is a substring of one of the formats accepted by the PK functions (except for finite-field Diffie-Hellman which the PK module does not support). The table below summarizes the PSA import/export format for key pairs and public keys; see the documentation of [`psa_export_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga668e35be8d2852ad3feeef74ac6f75bf) and [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) for more details.
 
@@ -804,7 +804,6 @@ You can use glue functions in the PK module to create a key object using the leg
 * Parsing a key in a format with metadata without knowing its type ahead of time.
 * Importing a key which you have in the form of a list of numbers, rather than the binary encoding required by `psa_import_key`.
 * Importing a key with less information than what the PSA API needs, for example an ECC public key in a compressed format, an RSA private key without the private exponent, or an RSA private key without the CRT parameters.
-* Generating an RSA key with $e \ne 65537$.
 
 #### Importing a PK key by wrapping
 
@@ -819,7 +818,6 @@ You can use this workflow to import an RSA key via an `mbedtls_rsa_context` obje
 2. Call `mbedtls_pk_rsa` or `mbedtls_pk_ec` to obtain the underlying low-level context.
 3. Call `mbedtls_rsa_xxx` or `mbedtls_ecp_xxx` functions to construct the desired key. For example:
     * `mbedtls_rsa_import` or `mbedtls_rsa_import_raw` followed by `mbedtls_rsa_complete` to create an RSA private key without all the parameters required by the PSA API.
-    * `mbedtls_rsa_gen_key` to generate an RSA private key with a custom public exponent.
 4. Call `mbedtls_pk_wrap_as_opaque` as described above to create a corresponding PSA key object.
 5. Call `mbedtls_pk_free` to free the resources associated with the PK object.
 

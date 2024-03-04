@@ -2,7 +2,19 @@ DESTDIR=/usr/local
 PREFIX=mbedtls_
 PERL ?= perl
 
-include framework/exported.make
+ifneq (,$(filter-out lib library/%,$(or $(MAKECMDGOALS),all)))
+    ifeq (,$(wildcard framework/exported.make))
+        # Use the define keyword to get a multi-line message.
+        # GNU make appends ".  Stop.", so tweak the ending of our message accordingly.
+        define error_message
+$(MBEDTLS_PATH)/framework/exported.make not found.
+Run `git submodule update --init` to fetch the submodule contents.
+This is a fatal error
+        endef
+        $(error $(error_message))
+    endif
+    include framework/exported.make
+endif
 
 .SILENT:
 

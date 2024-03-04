@@ -1,4 +1,8 @@
-include ../framework/exported.make
+ifndef MBEDTLS_PATH
+MBEDTLS_PATH := ..
+endif
+
+include $(MBEDTLS_PATH)/framework/exported.make
 
 # Also see "include/mbedtls/mbedtls_config.h"
 

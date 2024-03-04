@@ -675,10 +675,7 @@ static int import_pair_into_psa(const mbedtls_pk_context *pk,
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
             psa_ecc_family_t from_family = pk->ec_family;
 #else /* MBEDTLS_PK_USE_PSA_EC_DATA */
-            /* We're only reading the key, but mbedtls_ecp_write_key()
-             * is missing a const annotation on its key parameter, so
-             * we need the non-const accessor here. */
-            mbedtls_ecp_keypair *ec = mbedtls_pk_ec_rw(*pk);
+            const mbedtls_ecp_keypair *ec = mbedtls_pk_ec_ro(*pk);
             size_t from_bits = 0;
             psa_ecc_family_t from_family = mbedtls_ecc_group_to_psa(ec->grp.id,
                                                                     &from_bits);
@@ -704,12 +701,9 @@ static int import_pair_into_psa(const mbedtls_pk_context *pk,
                 return MBEDTLS_ERR_PK_TYPE_MISMATCH;
             }
             unsigned char key_buffer[PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
-            /* Make sure to pass the exact key length to
-             * mbedtls_ecp_write_key(), because it writes Montgomery keys
-             * at the start of the buffer but Weierstrass keys at the
-             * end of the buffer. */
-            size_t key_length = PSA_BITS_TO_BYTES(ec->grp.nbits);
-            int ret = mbedtls_ecp_write_key(ec, key_buffer, key_length);
+            size_t key_length = 0;
+            int ret = mbedtls_ecp_write_key_ext(ec, &key_length,
+                                                key_buffer, sizeof(key_buffer));
             if (ret < 0) {
                 return ret;
             }

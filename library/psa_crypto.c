@@ -4423,7 +4423,7 @@ psa_status_t psa_cipher_generate_iv(psa_cipher_operation_t *operation,
 
     LOCAL_OUTPUT_ALLOC(iv_external, default_iv_length, iv);
 
-    status = psa_generate_random_internal(local_iv, default_iv_length);
+    status = psa_generate_random_internal(iv, default_iv_length);
     if (status != PSA_SUCCESS) {
         goto exit;
     }

@@ -2743,6 +2743,18 @@ static inline size_t mbedtls_ssl_session_get_id_len(const mbedtls_ssl_session *s
 }
 
 /**
+ * \brief          Get the ciphersuite-id.
+ *
+ * \param session  SSL session.
+ *
+ * \return         int represetation for ciphersuite.
+ */
+static inline int mbedtls_ssl_session_get_ciphersuite_id(const mbedtls_ssl_session *session)
+{
+    return session->MBEDTLS_PRIVATE(ciphersuite);
+}
+
+/**
  * \brief   Configure a key export callback.
  *          (Default: none.)
  *

@@ -25,25 +25,17 @@
  * x86-64.
  */
 #if !defined(MBEDTLS_SHA3_THETA_UNROLL)
-    #if defined(__OPTIMIZE_SIZE__)
-        #define MBEDTLS_SHA3_THETA_UNROLL 0 //no-check-names
-    #else
-        #define MBEDTLS_SHA3_THETA_UNROLL 1 //no-check-names
-    #endif
-#endif
-#if !defined(MBEDTLS_SHA3_PI_UNROLL)
-    #if defined(__OPTIMIZE_SIZE__)
-        #define MBEDTLS_SHA3_PI_UNROLL 0 //no-check-names
-    #else
-        #define MBEDTLS_SHA3_PI_UNROLL 1 //no-check-names
-    #endif
+    #define MBEDTLS_SHA3_THETA_UNROLL 0 //no-check-names
 #endif
 #if !defined(MBEDTLS_SHA3_CHI_UNROLL)
     #if defined(__OPTIMIZE_SIZE__)
-        #define MBEDTLS_SHA3_CHI_UNROLL 1 //no-check-names
-    #else
         #define MBEDTLS_SHA3_CHI_UNROLL 0 //no-check-names
+    #else
+        #define MBEDTLS_SHA3_CHI_UNROLL 1 //no-check-names
     #endif
+#endif
+#if !defined(MBEDTLS_SHA3_PI_UNROLL)
+    #define MBEDTLS_SHA3_PI_UNROLL 1 //no-check-names
 #endif
 #if !defined(MBEDTLS_SHA3_RHO_UNROLL)
     #define MBEDTLS_SHA3_RHO_UNROLL 1 //no-check-names

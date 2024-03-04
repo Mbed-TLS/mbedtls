@@ -167,11 +167,16 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
                              'psa_hash_compute',
                              'psa_hash_compare'):
             return True
+        if function_name == 'psa_generate_random':
+            return True
         if function_name in ('psa_mac_update',
                              'psa_mac_sign_finish',
                              'psa_mac_verify_finish',
                              'psa_mac_compute',
                              'psa_mac_verify'):
+            return True
+        if function_name in ('psa_asymmetric_encrypt',
+                             'psa_asymmetric_decrypt'):
             return True
         return False
 

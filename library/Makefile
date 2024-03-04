@@ -2,6 +2,14 @@ ifndef MBEDTLS_PATH
 MBEDTLS_PATH := ..
 endif
 
+ifeq (,$(wildcard $(MBEDTLS_PATH)/framework/exported.make))
+define error_message
+$(MBEDTLS_PATH)/framework/exported.make not found.
+Run `git submodule update --init` to fetch the submodule contents.
+This is a fatal error
+endef
+$(error $(error_message))
+endif
 include $(MBEDTLS_PATH)/framework/exported.make
 
 # Also see "include/mbedtls/mbedtls_config.h"

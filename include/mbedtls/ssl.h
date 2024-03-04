@@ -2724,7 +2724,8 @@ static inline int mbedtls_ssl_session_get_ticket_creation_time(
  *
  * \return         The address of the session-id buffer.
  */
-static inline const unsigned char[32]* mbedtls_ssl_session_get_id(const mbedtls_ssl_session *session)
+static inline unsigned const char (*mbedtls_ssl_session_get_id(const mbedtls_ssl_session *
+                                                               session))[32]
 {
     return &session->MBEDTLS_PRIVATE(id);
 }
@@ -2736,7 +2737,7 @@ static inline const unsigned char[32]* mbedtls_ssl_session_get_id(const mbedtls_
  *
  * \return         size_t size of session-id buffer.
  */
-static inline const size_t mbedtls_ssl_session_get_id_len(const mbedtls_ssl_session *session)
+static inline size_t mbedtls_ssl_session_get_id_len(const mbedtls_ssl_session *session)
 {
     return session->MBEDTLS_PRIVATE(id_len);
 }

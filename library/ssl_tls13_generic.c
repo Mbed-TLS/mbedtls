@@ -1379,6 +1379,12 @@ int mbedtls_ssl_tls13_write_change_cipher_spec(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write change cipher spec"));
 
+    /* Only one CCS to send. */
+    if (ssl->handshake->ccs_sent) {
+        ret = 0;
+        goto cleanup;
+    }
+
     /* Write CCS message */
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_write_change_cipher_spec_body(
                              ssl, ssl->out_msg,
@@ -1390,7 +1396,7 @@ int mbedtls_ssl_tls13_write_change_cipher_spec(mbedtls_ssl_context *ssl)
     /* Dispatch message */
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_write_record(ssl, 0));
 
-    ssl->handshake->ccs_count++;
+    ssl->handshake->ccs_sent = 1;
 
 cleanup:
 

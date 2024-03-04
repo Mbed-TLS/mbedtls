@@ -665,21 +665,21 @@ struct mbedtls_ssl_handshake_params {
 #if defined(MBEDTLS_SSL_CLI_C)
     /** Minimum TLS version to be negotiated.
      *
-     *  It is set up in the ClientHello writing preparation stage and used
-     *  throughout the ClientHello writing. Not relevant anymore as soon as
-     *  the protocol version has been negotiated thus as soon as the
-     *  ServerHello is received.
-     *  For a fresh handshake not linked to any previous handshake, it is
-     *  equal to the configured minimum minor version to be negotiated. When
-     *  renegotiating or resuming a session, it is equal to the previously
-     *  negotiated minor version.
+     * It is set up in the ClientHello writing preparation stage and used
+     * throughout the ClientHello writing. Not relevant anymore as soon as
+     * the protocol version has been negotiated thus as soon as the
+     * ServerHello is received.
+     * For a fresh handshake not linked to any previous handshake, it is
+     * equal to the configured minimum minor version to be negotiated. When
+     * renegotiating or resuming a session, it is equal to the previously
+     * negotiated minor version.
      *
-     *  There is no maximum TLS version field in this handshake context.
-     *  From the start of the handshake, we need to define a current protocol
-     *  version for the record layer which we define as the maximum TLS
-     *  version to be negotiated. The `tls_version` field of the SSL context is
-     *  used to store this maximum value until it contains the actual
-     *  negotiated value.
+     * There is no maximum TLS version field in this handshake context.
+     * From the start of the handshake, we need to define a current protocol
+     * version for the record layer which we define as the maximum TLS
+     * version to be negotiated. The `tls_version` field of the SSL context is
+     * used to store this maximum value until it contains the actual
+     * negotiated value.
      */
     mbedtls_ssl_protocol_version min_tls_version;
 #endif
@@ -730,16 +730,21 @@ struct mbedtls_ssl_handshake_params {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     uint8_t key_exchange_mode; /*!< Selected key exchange mode */
 
-    /** Number of HelloRetryRequest messages received/sent from/to the server. */
-    uint8_t hello_retry_request_count;
+    /**
+     * Flag indicating if, in the course of the current handshake, an
+     * HelloRetryRequest message has been sent by the server or received by
+     * the client (<> 0) or not (0).
+     */
+    uint8_t hello_retry_request_flag;
 
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
     /**
-     *  Number of dummy change_cipher_spec (CCS) record sent. Used to send only
-     *  one CCS per handshake without having to complicate the handshake state
-     *  transitions.
+     * Flag indicating if, in the course of the current handshake, a dummy
+     * change_cipher_spec (CCS) record has already been sent. Used to send only
+     * one CCS per handshake while not complicating the handshake state
+     * transitions for that purpose.
      */
-    uint8_t ccs_count;
+    uint8_t ccs_sent;
 #endif
 
 #if defined(MBEDTLS_SSL_SRV_C)
@@ -2145,38 +2150,6 @@ int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
                                            unsigned char *buf,
                                            const unsigned char *end,
                                            size_t *out_len);
-
-#if defined(MBEDTLS_SSL_CLI_C)
-/*
- * The client has not sent the first ClientHello yet, it is unknown if the
- * client will send an early data indication extension or not.
- */
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN 0
-
-/*
- * The client has sent an early data indication extension in its first
- * ClientHello, it has not received the response (ServerHello or
- * HelloRetryRequest) from the server yet. The transform to protect early data
- * is not set and early data cannot be sent yet.
- */
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_SENT 4
-
-/*
- * The client has sent an early data indication extension in its first
- * ClientHello, it has not received the response (ServerHello or
- * HelloRetryRequest) from the server yet. The transform to protect early data
- * has been set and early data can be written now.
- */
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE 5
-
-/*
- * The client has sent an early data indication extension in its first
- * ClientHello, the server has accepted them and the client has received the
- * server Finished message. It cannot send early data to the server anymore.
- */
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_SERVER_FINISHED_RECEIVED 6
-#endif /* MBEDTLS_SSL_CLI_C */
-
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

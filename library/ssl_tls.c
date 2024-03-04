@@ -5296,13 +5296,15 @@ static const unsigned char ssl_serialized_session_header[] = {
  *     opaque session_id[32];
  *     opaque master[48];           // fixed length in the standard
  *     uint32 verify_result;
+ * #if defined(MBEDTLS_X509_CRT_PARSE_C)
  * #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
  *     opaque peer_cert<0..2^24-1>; // length 0 means no peer cert
  * #else
  *     uint8 peer_cert_digest_type;
  *     opaque peer_cert_digest<0..2^8-1>
  * #endif
- * #if defined(MBEDTLS_SSL_SESSION_TICKETS)
+ * #endif
+ * #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
  *     opaque ticket<0..2^24-1>;    // length 0 means no ticket
  *     uint32 ticket_lifetime;
  * #endif

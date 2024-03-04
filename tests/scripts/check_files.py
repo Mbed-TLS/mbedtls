@@ -468,6 +468,7 @@ class IntegrityChecker:
         ]
 
     def setup_logger(self, log_file, level=logging.INFO):
+        """Log to log_file if provided, or to stderr if None."""
         self.logger = logging.getLogger()
         self.logger.setLevel(level)
         if log_file:
@@ -479,6 +480,10 @@ class IntegrityChecker:
 
     @staticmethod
     def collect_files():
+        """Return the list of files to check.
+
+        These are the regular files commited into Git.
+        """
         bytes_output = subprocess.check_output(['git', 'ls-files', '-z'])
         bytes_filepaths = bytes_output.split(b'\0')[:-1]
         ascii_filepaths = map(lambda fp: fp.decode('ascii'), bytes_filepaths)
@@ -495,12 +500,17 @@ class IntegrityChecker:
                 for fp in ascii_filepaths]
 
     def check_files(self):
+        """Check all files for all issues."""
         for issue_to_check in self.issues_to_check:
             for filepath in self.collect_files():
                 if issue_to_check.should_check_file(filepath):
                     issue_to_check.check_file_for_issue(filepath)
 
     def output_issues(self):
+        """Log the issues found and their locations.
+
+        Return 1 if there were issues, 0 otherwise.
+        """
         integrity_return_code = 0
         for issue_to_check in self.issues_to_check:
             if issue_to_check.files_with_issues:

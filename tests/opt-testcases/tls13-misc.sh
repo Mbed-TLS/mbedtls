@@ -253,20 +253,49 @@ run_test    "TLS 1.3: G->m: PSK: configured ephemeral only, good." \
             -s "key exchange mode: ephemeral$"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test    "TLS 1.3: NewSessionTicket: Basic check, m->O" \
-            "$O_NEXT_SRV -msg -tls1_3 -no_resume_ephemeral -no_cache --num_tickets 4" \
-            "$P_CLI debug_level=1 reco_mode=1 reconnect=1" \
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+run_test    "TLS 1.3 m->O: resumption" \
+            "$O_NEXT_SRV -msg -tls1_3 -no_resume_ephemeral -no_cache --num_tickets 1" \
+            "$P_CLI reco_mode=1 reconnect=1" \
             0 \
             -c "Protocol is TLSv1.3" \
-            -c "got new session ticket." \
+            -c "Saving session for reuse... ok" \
+            -c "Reconnecting with saved session... ok" \
+            -c "HTTP/1.0 200 ok"
+
+# No early data m->O tests for the time being. The option -early_data is needed
+# to enable early data on OpenSSL server and it is not compatible with the
+# -www option we usually use for testing with OpenSSL server (see
+# O_NEXT_SRV_EARLY_DATA definition). In this configuration when running the
+# ephemeral then ticket based scenario we use for early data testing the first
+# handshake fails. The following skipped test is here to illustrate the kind
+# of testing we would like to do.
+skip_next_test
+requires_openssl_tls1_3_with_compatible_ephemeral
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_EARLY_DATA \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+run_test    "TLS 1.3 m->O: resumption with early data" \
+            "$O_NEXT_SRV_EARLY_DATA -msg -tls1_3 -no_resume_ephemeral -no_cache --num_tickets 1" \
+            "$P_CLI debug_level=3 early_data=1 reco_mode=1 reconnect=1" \
+             0 \
+            -c "Protocol is TLSv1.3" \
             -c "Saving session for reuse... ok" \
             -c "Reconnecting with saved session" \
-            -c "HTTP/1.0 200 ok"
+            -c "HTTP/1.0 200 OK" \
+            -c "received max_early_data_size: 16384" \
+            -c "NewSessionTicket: early_data(42) extension received." \
+            -c "ClientHello: early_data(42) extension exists." \
+            -c "EncryptedExtensions: early_data(42) extension received." \
+            -c "bytes of early data written" \
+            -s "decrypted early data with length:"
 
 requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C \

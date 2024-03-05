@@ -454,73 +454,167 @@ run_test    "TLS 1.3: NewSessionTicket: Basic check, O->m" \
             -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH"
 
 requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test    "TLS 1.3: NewSessionTicket: Basic check, G->m" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4" \
+run_test    "TLS 1.3 G->m: resumption" \
+            "$P_SRV debug_level=2 tickets=1" \
             "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -r" \
             0 \
-            -c "Connecting again- trying to resume previous session" \
-            -c "NEW SESSION TICKET (4) was received" \
-            -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
-            -s "key exchange mode: ephemeral" \
-            -s "key exchange mode: psk_ephemeral" \
-            -s "found pre_shared_key extension"
+            -s "Protocol is TLSv1.3" \
+            -s "key exchange mode: psk" \
+            -s "Select PSK ciphersuite"
+
+requires_gnutls_tls1_3
+requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+requires_ciphersuite_enabled TLS1-3-AES-256-GCM-SHA384
+# Test the session resumption when the cipher suite for the original session is
+# TLS1-3-AES-256-GCM-SHA384. In that case, the PSK is 384 bits long and not
+# 256 bits long as with all the other TLS 1.3 cipher suites.
+run_test    "TLS 1.3 G->m: resumption with AES-256-GCM-SHA384 only" \
+            "$P_SRV debug_level=2 tickets=1" \
+            "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-CIPHER-ALL:+AES-256-GCM -V -r" \
+            0 \
+            -s "Protocol is TLSv1.3" \
+            -s "key exchange mode: psk" \
+            -s "Select PSK ciphersuite: 1302 - TLS1-3-AES-256-GCM-SHA384"
 
 EARLY_DATA_INPUT_LEN_BLOCKS=$(( ( $( cat $EARLY_DATA_INPUT | wc -c ) + 31 ) / 32 ))
 EARLY_DATA_INPUT_LEN=$(( $EARLY_DATA_INPUT_LEN_BLOCKS * 32 ))
 
-requires_gnutls_next
-requires_all_configs_enabled MBEDTLS_SSL_EARLY_DATA MBEDTLS_SSL_SESSION_TICKETS \
-                             MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_gnutls_tls1_3
+requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_EARLY_DATA MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 G->m: EarlyData: feature is enabled, good." \
-         "$P_SRV force_version=tls13 debug_level=4 early_data=1 max_early_data_size=$EARLY_DATA_INPUT_LEN" \
-         "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+GROUP-ALL:+KX-ALL \
-                      -d 10 -r --earlydata $EARLY_DATA_INPUT " \
+run_test "TLS 1.3 G->m: resumption with early data" \
+         "$P_SRV debug_level=4 tickets=1 early_data=1 max_early_data_size=$EARLY_DATA_INPUT_LEN" \
+         "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -r \
+                      --earlydata $EARLY_DATA_INPUT" \
          0 \
-         -s "Sent max_early_data_size=$EARLY_DATA_INPUT_LEN"                \
-         -s "NewSessionTicket: early_data(42) extension exists."            \
-         -s "ClientHello: early_data(42) extension exists."                 \
-         -s "EncryptedExtensions: early_data(42) extension exists."         \
-         -s "$( head -1 $EARLY_DATA_INPUT )"                                \
-         -s "$( tail -1 $EARLY_DATA_INPUT )"                                \
-         -s "200 early data bytes read"                                     \
+         -s "Protocol is TLSv1.3" \
+         -s "key exchange mode: psk" \
+         -s "Select PSK ciphersuite" \
+         -s "Sent max_early_data_size=$EARLY_DATA_INPUT_LEN"        \
+         -s "NewSessionTicket: early_data(42) extension exists."    \
+         -s "ClientHello: early_data(42) extension exists."         \
+         -s "EncryptedExtensions: early_data(42) extension exists." \
+         -s "$( head -1 $EARLY_DATA_INPUT )"                        \
+         -s "$( tail -1 $EARLY_DATA_INPUT )"                        \
+         -s "200 early data bytes read"                             \
          -s "106 early data bytes read"
 
 requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_EARLY_DATA MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-# Test the session resumption when the cipher suite for the original session is
-# TLS1-3-AES-256-GCM-SHA384. In that case, the PSK is 384 bits long and not
-# 256 bits long as with all the other TLS 1.3 cipher suites.
 requires_ciphersuite_enabled TLS1-3-AES-256-GCM-SHA384
-run_test    "TLS 1.3: NewSessionTicket: Basic check with AES-256-GCM only, G->m" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=4" \
-            "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-CIPHER-ALL:+AES-256-GCM -V -r" \
-            0 \
-            -c "Connecting again- trying to resume previous session" \
-            -c "NEW SESSION TICKET (4) was received" \
-            -s "Ciphersuite is TLS1-3-AES-256-GCM-SHA384" \
-            -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
-            -s "key exchange mode: ephemeral" \
-            -s "key exchange mode: psk_ephemeral" \
-            -s "found pre_shared_key extension"
+run_test "TLS 1.3 G->m: resumption with early data, AES-256-GCM-SHA384 only" \
+         "$P_SRV debug_level=4 tickets=1 early_data=1 max_early_data_size=$EARLY_DATA_INPUT_LEN" \
+         "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-CIPHER-ALL:+AES-256-GCM -V -r \
+                      --earlydata $EARLY_DATA_INPUT" \
+         0 \
+         -s "Protocol is TLSv1.3" \
+         -s "key exchange mode: psk" \
+         -s "Select PSK ciphersuite: 1302 - TLS1-3-AES-256-GCM-SHA384" \
+         -s "Sent max_early_data_size=$EARLY_DATA_INPUT_LEN"        \
+         -s "NewSessionTicket: early_data(42) extension exists."    \
+         -s "ClientHello: early_data(42) extension exists."         \
+         -s "EncryptedExtensions: early_data(42) extension exists." \
+         -s "$( head -1 $EARLY_DATA_INPUT )"                        \
+         -s "$( tail -1 $EARLY_DATA_INPUT )"                        \
+         -s "200 early data bytes read"                             \
+         -s "106 early data bytes read"
+
+# The Mbed TLS server does not allow early data for the ticket it sends but
+# the GnuTLS indicates early data anyway when resuming with the ticket and
+# sends early data. The Mbed TLS server does not expect early data in
+# association with the ticket thus it eventually fails the resumption
+# handshake. The GnuTLS client behavior is not compliant here with the TLS 1.3
+# specification and thus its behavior may change in following versions.
+requires_gnutls_tls1_3
+requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_EARLY_DATA MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test "TLS 1.3 G->m: resumption, early data cli-enabled/srv-default" \
+         "$P_SRV debug_level=4 tickets=1" \
+         "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -r \
+                      --earlydata $EARLY_DATA_INPUT" \
+         1 \
+         -s "Protocol is TLSv1.3" \
+         -s "key exchange mode: psk" \
+         -s "Select PSK ciphersuite" \
+         -S "Sent max_early_data_size" \
+         -S "NewSessionTicket: early_data(42) extension exists." \
+         -s "ClientHello: early_data(42) extension exists." \
+         -s "EarlyData: rejected, feature disabled in server configuration." \
+         -S "EncryptedExtensions: early_data(42) extension exists." \
+         -s "EarlyData: deprotect and discard app data records" \
+         -s "EarlyData: Too much early data received"
+
+# The Mbed TLS server does not allow early data for the ticket it sends but
+# the GnuTLS indicates early data anyway when resuming with the ticket and
+# sends early data. The Mbed TLS server does not expect early data in
+# association with the ticket thus it eventually fails the resumption
+# handshake. The GnuTLS client behavior is not compliant here with the TLS 1.3
+# specification and thus its behavior may change in following versions.
+requires_gnutls_tls1_3
+requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_EARLY_DATA MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test "TLS 1.3 G->m: resumption, early data cli-enabled/srv-disabled" \
+         "$P_SRV debug_level=4 tickets=1 early_data=0" \
+         "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -r \
+                      --earlydata $EARLY_DATA_INPUT" \
+         1 \
+         -s "Protocol is TLSv1.3" \
+         -s "key exchange mode: psk" \
+         -s "Select PSK ciphersuite" \
+         -S "Sent max_early_data_size" \
+         -S "NewSessionTicket: early_data(42) extension exists." \
+         -s "ClientHello: early_data(42) extension exists." \
+         -s "EarlyData: rejected, feature disabled in server configuration." \
+         -S "EncryptedExtensions: early_data(42) extension exists." \
+         -s "EarlyData: deprotect and discard app data records" \
+         -s "EarlyData: Too much early data received"
+
+requires_gnutls_tls1_3
+requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_EARLY_DATA MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test "TLS 1.3 G->m: resumption, early data cli-disabled/srv-enabled" \
+         "$P_SRV debug_level=4 tickets=1 early_data=1" \
+         "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -r" \
+         0 \
+         -s "Protocol is TLSv1.3" \
+         -s "key exchange mode: psk" \
+         -s "Select PSK ciphersuite" \
+         -s "Sent max_early_data_size" \
+         -s "NewSessionTicket: early_data(42) extension exists." \
+         -S "ClientHello: early_data(42) extension exists." \
+         -S "EncryptedExtensions: early_data(42) extension exists."
 
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 requires_config_enabled MBEDTLS_SSL_SRV_C

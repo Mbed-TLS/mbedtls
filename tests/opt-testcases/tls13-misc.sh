@@ -592,26 +592,6 @@ run_test    "TLS 1.3: NewSessionTicket: servername negative check, m->m" \
             -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
             -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH"
 
-#TODO: OpenSSL tests don't work now. It might be openssl options issue, cause GnuTLS has worked.
-skip_next_test
-requires_openssl_tls1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_EARLY_DATA
-requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
-run_test    "TLS 1.3, ext PSK, early data" \
-            "$O_NEXT_SRV_EARLY_DATA -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex -nocert" \
-            "$P_CLI debug_level=5 tls13_kex_modes=psk early_data=1 psk=010203 psk_identity=0a0b0c" \
-             1 \
-            -c "Reconnecting with saved session" \
-            -c "NewSessionTicket: early_data(42) extension received." \
-            -c "ClientHello: early_data(42) extension exists." \
-            -c "EncryptedExtensions: early_data(42) extension received." \
-            -c "EncryptedExtensions: early_data(42) extension ( ignored )."
-
 EARLY_DATA_INPUT_LEN_BLOCKS=$(( ( $( cat $EARLY_DATA_INPUT | wc -c ) + 31 ) / 32 ))
 EARLY_DATA_INPUT_LEN=$(( $EARLY_DATA_INPUT_LEN_BLOCKS * 32 ))
 

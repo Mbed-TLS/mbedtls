@@ -16,4 +16,4 @@ export NO_SILENCE=" --version "
 
 export TOOL="cmake"
 
-exec "$(dirname "$0")/quiet.sh" "$@"
+. "$(dirname "$0")/quiet.sh"

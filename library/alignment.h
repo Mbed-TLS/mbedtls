@@ -681,4 +681,88 @@ static const uint16_t mbedtls_byte_order_detector = { 0x100 };
         }                                                                        \
     }
 
+/**
+ * Similar to memcpy, but byteswap elements. \p dest and \p src may be equal,
+ * but may not overlap in other ways.
+ *
+ * Elements do not need to be aligned.
+ *
+ * \param   dest    Destination address to write to.
+ * \param   src     Source address.
+ * \param   n       Number of bytes to copy. Must be a multiple of \p e_size.
+ * \param   e_size  Element size in bytes. Must be 2, 4, or 8.
+ */
+static inline void mbedtls_memcpy_bs(void *dest, const void *src, size_t n, size_t e_size)
+{
+    uint8_t *d = dest;
+    const uint8_t *s = src;
+    if (e_size == 8) {
+        while (n >= 8) {
+            mbedtls_put_unaligned_uint64(d, MBEDTLS_BSWAP64(mbedtls_get_unaligned_uint64(s)));
+            s += 8;
+            d += 8;
+            n -= 8;
+        }
+    } else if (e_size == 4) {
+        while (n >= 4) {
+            mbedtls_put_unaligned_uint32(d, MBEDTLS_BSWAP32(mbedtls_get_unaligned_uint32(s)));
+            s += 4;
+            d += 4;
+            n -= 4;
+        }
+    } else if (e_size == 2) {
+        while (n >= 2) {
+            mbedtls_put_unaligned_uint16(d, MBEDTLS_BSWAP16(mbedtls_get_unaligned_uint16(s)));
+            s += 2;
+            d += 2;
+            n -= 2;
+        }
+    }
+}
+
+
+/**
+ * Similar to memcpy, but byteswap elements iff running on a little-endian host - i.e., memcpy from
+ * native endianness to big-endian.
+ *
+ * \p dest and \p src may not overlap.
+ *
+ * Elements do not need to be aligned.
+ *
+ * \param   dest    Destination address to write to.
+ * \param   src     Source address.
+ * \param   n       Number of bytes to copy. Must be a multiple of \p e_size.
+ * \param   e_size  Element size in bytes. Must be 2, 4, or 8.
+ */
+static inline void mbedtls_memcpy_to_be(void *dest, const void *src, size_t n, size_t e_size)
+{
+    if (MBEDTLS_IS_BIG_ENDIAN) {
+        memcpy(dest, src, n);
+    } else {
+        mbedtls_memcpy_bs(dest, src, n, e_size);
+    }
+}
+
+/**
+ * Similar to memcpy, but byteswap elements iff running on a big-endian host - i.e., memcpy from
+ * native endianness to little-endian.
+ *
+ * \p dest and \p src may not overlap.
+ *
+ * Elements do not need to be aligned.
+ *
+ * \param   dest    Destination address to write to.
+ * \param   src     Source address.
+ * \param   n       Number of bytes to copy. Must be a multiple of \p e_size.
+ * \param   e_size  Element size in bytes. Must be 2, 4, or 8.
+ */
+static inline void mbedtls_memcpy_to_le(void *dest, const void *src, size_t n, size_t e_size)
+{
+    if (!MBEDTLS_IS_BIG_ENDIAN) {
+        memcpy(dest, src, n);
+    } else {
+        mbedtls_memcpy_bs(dest, src, n, e_size);
+    }
+}
+
 #endif /* MBEDTLS_LIBRARY_ALIGNMENT_H */

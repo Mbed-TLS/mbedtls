@@ -2178,6 +2178,9 @@ component_test_tsan () {
     scripts/config.py set MBEDTLS_THREADING_C
     scripts/config.py set MBEDTLS_THREADING_PTHREAD
 
+    # The deprecated MBEDTLS_PSA_CRYPTO_SE_C interface is not thread safe.
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=TSan .
     make
 

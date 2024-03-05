@@ -59,7 +59,7 @@ typedef enum {
  * and metadata for one key.
  */
 typedef struct {
-    psa_core_key_attributes_t attr;
+    psa_key_attributes_t attr;
 
     /*
      * The current state of the key slot, as described in
@@ -159,11 +159,6 @@ typedef struct {
     } while (0);
 #endif
 
-/* A mask of key attribute flags used only internally.
- * Currently there aren't any. */
-#define PSA_KA_MASK_INTERNAL_ONLY (     \
-        0)
-
 /** Test whether a key slot has any registered readers.
  * If multi-threading is enabled, the caller must hold the
  * global key slot mutex.
@@ -175,56 +170,6 @@ typedef struct {
 static inline int psa_key_slot_has_readers(const psa_key_slot_t *slot)
 {
     return slot->registered_readers > 0;
-}
-
-/** Retrieve flags from psa_key_slot_t::attr::core::flags.
- *
- * \param[in] slot      The key slot to query.
- * \param mask          The mask of bits to extract.
- *
- * \return The key attribute flags in the given slot,
- *         bitwise-anded with \p mask.
- */
-static inline uint16_t psa_key_slot_get_flags(const psa_key_slot_t *slot,
-                                              uint16_t mask)
-{
-    return slot->attr.flags & mask;
-}
-
-/** Set flags in psa_key_slot_t::attr::core::flags.
- *
- * \param[in,out] slot  The key slot to modify.
- * \param mask          The mask of bits to modify.
- * \param value         The new value of the selected bits.
- */
-static inline void psa_key_slot_set_flags(psa_key_slot_t *slot,
-                                          uint16_t mask,
-                                          uint16_t value)
-{
-    slot->attr.flags = ((~mask & slot->attr.flags) |
-                        (mask & value));
-}
-
-/** Turn on flags in psa_key_slot_t::attr::core::flags.
- *
- * \param[in,out] slot  The key slot to modify.
- * \param mask          The mask of bits to set.
- */
-static inline void psa_key_slot_set_bits_in_flags(psa_key_slot_t *slot,
-                                                  uint16_t mask)
-{
-    slot->attr.flags |= mask;
-}
-
-/** Turn off flags in psa_key_slot_t::attr::core::flags.
- *
- * \param[in,out] slot  The key slot to modify.
- * \param mask          The mask of bits to clear.
- */
-static inline void psa_key_slot_clear_bits(psa_key_slot_t *slot,
-                                           uint16_t mask)
-{
-    slot->attr.flags &= ~mask;
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)

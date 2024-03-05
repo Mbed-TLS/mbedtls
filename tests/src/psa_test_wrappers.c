@@ -182,7 +182,15 @@ psa_status_t mbedtls_test_wrap_psa_cipher_decrypt(
     size_t arg5_output_size,
     size_t *arg6_output_length)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg2_input, arg3_input_length);
+    MBEDTLS_TEST_MEMORY_POISON(arg4_output, arg5_output_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_cipher_decrypt)(arg0_key, arg1_alg, arg2_input, arg3_input_length, arg4_output, arg5_output_size, arg6_output_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg2_input, arg3_input_length);
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg4_output, arg5_output_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 
@@ -235,7 +243,13 @@ psa_status_t mbedtls_test_wrap_psa_cipher_finish(
     size_t arg2_output_size,
     size_t *arg3_output_length)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg1_output, arg2_output_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_cipher_finish)(arg0_operation, arg1_output, arg2_output_size, arg3_output_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg1_output, arg2_output_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 
@@ -246,7 +260,13 @@ psa_status_t mbedtls_test_wrap_psa_cipher_generate_iv(
     size_t arg2_iv_size,
     size_t *arg3_iv_length)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg1_iv, arg2_iv_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_cipher_generate_iv)(arg0_operation, arg1_iv, arg2_iv_size, arg3_iv_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg1_iv, arg2_iv_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 
@@ -256,7 +276,13 @@ psa_status_t mbedtls_test_wrap_psa_cipher_set_iv(
     const uint8_t *arg1_iv,
     size_t arg2_iv_length)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg1_iv, arg2_iv_length);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_cipher_set_iv)(arg0_operation, arg1_iv, arg2_iv_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg1_iv, arg2_iv_length);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 
@@ -269,7 +295,15 @@ psa_status_t mbedtls_test_wrap_psa_cipher_update(
     size_t arg4_output_size,
     size_t *arg5_output_length)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg1_input, arg2_input_length);
+    MBEDTLS_TEST_MEMORY_POISON(arg3_output, arg4_output_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_cipher_update)(arg0_operation, arg1_input, arg2_input_length, arg3_output, arg4_output_size, arg5_output_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg1_input, arg2_input_length);
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg3_output, arg4_output_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 

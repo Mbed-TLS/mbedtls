@@ -285,6 +285,74 @@ run_test    "TLS 1.3: NewSessionTicket: Basic check, m->G" \
             -c "HTTP/1.0 200 OK" \
             -s "This is a resumed session"
 
+requires_gnutls_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_EARLY_DATA
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+run_test    "TLS 1.3 m->G: EarlyData: basic check, good" \
+            "$G_NEXT_SRV -d 10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:+ECDHE-PSK:+PSK \
+                         --earlydata --maxearlydata 16384 --disable-client-cert" \
+            "$P_CLI debug_level=4 early_data=1 reco_mode=1 reconnect=1 reco_delay=900" \
+            0 \
+            -c "received max_early_data_size: 16384" \
+            -c "Reconnecting with saved session" \
+            -c "NewSessionTicket: early_data(42) extension received." \
+            -c "ClientHello: early_data(42) extension exists." \
+            -c "EncryptedExtensions: early_data(42) extension received." \
+            -c "EncryptedExtensions: early_data(42) extension exists." \
+            -c "<= write EndOfEarlyData" \
+            -s "Parsing extension 'Early Data/42' (0 bytes)" \
+            -s "Sending extension Early Data/42 (0 bytes)" \
+            -s "END OF EARLY DATA (5) was received." \
+            -s "early data accepted"
+
+requires_gnutls_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_EARLY_DATA
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+run_test    "TLS 1.3 m->G: EarlyData: write early data, good" \
+            "$G_NEXT_SRV -d 10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:+ECDHE-PSK:+PSK --earlydata --disable-client-cert" \
+            "$P_CLI debug_level=4 early_data=1 reco_mode=1 reconnect=1 reco_delay=900" \
+            0 \
+            -c "Reconnecting with saved session" \
+            -c "NewSessionTicket: early_data(42) extension received." \
+            -c "ClientHello: early_data(42) extension exists." \
+            -c "EncryptedExtensions: early_data(42) extension received." \
+            -c "EncryptedExtensions: early_data(42) extension exists." \
+            -c "<= write early_data" \
+            -c "<= write EndOfEarlyData" \
+            -s "Parsing extension 'Early Data/42' (0 bytes)" \
+            -s "Sending extension Early Data/42 (0 bytes)" \
+            -s "END OF EARLY DATA (5) was received." \
+            -s "early data accepted" \
+            -s "decrypted early data with length"
+
+requires_gnutls_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_EARLY_DATA
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+run_test    "TLS 1.3 m->G: EarlyData: no early_data in NewSessionTicket, good" \
+            "$G_NEXT_SRV -d 10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:+ECDHE-PSK:+PSK --disable-client-cert" \
+            "$P_CLI debug_level=4 early_data=1 reco_mode=1 reconnect=1" \
+            0 \
+            -c "Reconnecting with saved session" \
+            -C "NewSessionTicket: early_data(42) extension received." \
+            -c "ClientHello: early_data(42) extension does not exist." \
+            -C "EncryptedExtensions: early_data(42) extension received." \
+            -C "EncryptedExtensions: early_data(42) extension exists."
+
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -470,74 +538,6 @@ run_test    "TLS 1.3: NewSessionTicket: servername negative check, m->m" \
             -s "=> write NewSessionTicket msg" \
             -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
             -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH"
-
-requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_EARLY_DATA
-requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
-run_test    "TLS 1.3 m->G: EarlyData: basic check, good" \
-            "$G_NEXT_SRV -d 10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:+ECDHE-PSK:+PSK \
-                         --earlydata --maxearlydata 16384 --disable-client-cert" \
-            "$P_CLI debug_level=4 early_data=1 reco_mode=1 reconnect=1 reco_delay=900" \
-            0 \
-            -c "received max_early_data_size: 16384" \
-            -c "Reconnecting with saved session" \
-            -c "NewSessionTicket: early_data(42) extension received." \
-            -c "ClientHello: early_data(42) extension exists." \
-            -c "EncryptedExtensions: early_data(42) extension received." \
-            -c "EncryptedExtensions: early_data(42) extension exists." \
-            -c "<= write EndOfEarlyData" \
-            -s "Parsing extension 'Early Data/42' (0 bytes)" \
-            -s "Sending extension Early Data/42 (0 bytes)" \
-            -s "END OF EARLY DATA (5) was received." \
-            -s "early data accepted"
-
-requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_EARLY_DATA
-requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
-run_test    "TLS 1.3 m->G: EarlyData: write early data, good" \
-            "$G_NEXT_SRV -d 10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:+ECDHE-PSK:+PSK --earlydata --disable-client-cert" \
-            "$P_CLI debug_level=4 early_data=1 reco_mode=1 reconnect=1 reco_delay=900" \
-            0 \
-            -c "Reconnecting with saved session" \
-            -c "NewSessionTicket: early_data(42) extension received." \
-            -c "ClientHello: early_data(42) extension exists." \
-            -c "EncryptedExtensions: early_data(42) extension received." \
-            -c "EncryptedExtensions: early_data(42) extension exists." \
-            -c "<= write early_data" \
-            -c "<= write EndOfEarlyData" \
-            -s "Parsing extension 'Early Data/42' (0 bytes)" \
-            -s "Sending extension Early Data/42 (0 bytes)" \
-            -s "END OF EARLY DATA (5) was received." \
-            -s "early data accepted" \
-            -s "decrypted early data with length"
-
-requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_EARLY_DATA
-requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
-run_test    "TLS 1.3 m->G: EarlyData: no early_data in NewSessionTicket, good" \
-            "$G_NEXT_SRV -d 10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:+ECDHE-PSK:+PSK --disable-client-cert" \
-            "$P_CLI debug_level=4 early_data=1 reco_mode=1 reconnect=1" \
-            0 \
-            -c "Reconnecting with saved session" \
-            -C "NewSessionTicket: early_data(42) extension received." \
-            -c "ClientHello: early_data(42) extension does not exist." \
-            -C "EncryptedExtensions: early_data(42) extension received." \
-            -C "EncryptedExtensions: early_data(42) extension exists."
 
 #TODO: OpenSSL tests don't work now. It might be openssl options issue, cause GnuTLS has worked.
 skip_next_test

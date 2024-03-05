@@ -1111,7 +1111,6 @@ component_check_test_dependencies () {
     # No PSA equivalent - needed by some init tests
     echo "MBEDTLS_ENTROPY_NV_SEED" >> $expected
     # No PSA equivalent - required to run threaded tests.
-    echo "MBEDTLS_THREADING_C" >> $expected
     echo "MBEDTLS_THREADING_PTHREAD" >> $expected
 
     # Compare reality with expectation.

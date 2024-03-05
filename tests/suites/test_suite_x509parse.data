@@ -3163,6 +3163,10 @@ X509 File parse & read the ca_istrue field (Set)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAVE_TIME_DATE:MBEDTLS_MD_CAN_SHA1
 mbedtls_x509_get_ca_istrue:"data_files/test-ca.crt":1
 
+X509 File parse & read the ca_istrue field (Legacy Certificate)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAVE_TIME_DATE:MBEDTLS_MD_CAN_SHA1:MBEDTLS_MD_CAN_SHA256
+mbedtls_x509_get_ca_istrue:"data_files/server1-v1.crt":MBEDTLS_ERR_X509_INVALID_EXTENSIONS
+
 X509 Get time (UTC no issues)
 depends_on:MBEDTLS_X509_USE_C
 x509_get_time:MBEDTLS_ASN1_UTC_TIME:"500101000000Z":0:1950:1:1:0:0:0

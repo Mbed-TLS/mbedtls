@@ -473,6 +473,30 @@ run_test    "TLS 1.3: NewSessionTicket: Basic check, G->m" \
             -s "key exchange mode: psk_ephemeral" \
             -s "found pre_shared_key extension"
 
+EARLY_DATA_INPUT_LEN_BLOCKS=$(( ( $( cat $EARLY_DATA_INPUT | wc -c ) + 31 ) / 32 ))
+EARLY_DATA_INPUT_LEN=$(( $EARLY_DATA_INPUT_LEN_BLOCKS * 32 ))
+
+requires_gnutls_next
+requires_all_configs_enabled MBEDTLS_SSL_EARLY_DATA MBEDTLS_SSL_SESSION_TICKETS \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test "TLS 1.3 G->m: EarlyData: feature is enabled, good." \
+         "$P_SRV force_version=tls13 debug_level=4 early_data=1 max_early_data_size=$EARLY_DATA_INPUT_LEN" \
+         "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+GROUP-ALL:+KX-ALL \
+                      -d 10 -r --earlydata $EARLY_DATA_INPUT " \
+         0 \
+         -s "Sent max_early_data_size=$EARLY_DATA_INPUT_LEN"                \
+         -s "NewSessionTicket: early_data(42) extension exists."            \
+         -s "ClientHello: early_data(42) extension exists."                 \
+         -s "EncryptedExtensions: early_data(42) extension exists."         \
+         -s "$( head -1 $EARLY_DATA_INPUT )"                                \
+         -s "$( tail -1 $EARLY_DATA_INPUT )"                                \
+         -s "200 early data bytes read"                                     \
+         -s "106 early data bytes read"
+
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -620,30 +644,6 @@ run_test    "TLS 1.3: NewSessionTicket: servername negative check, m->m" \
             -s "=> write NewSessionTicket msg" \
             -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
             -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH"
-
-EARLY_DATA_INPUT_LEN_BLOCKS=$(( ( $( cat $EARLY_DATA_INPUT | wc -c ) + 31 ) / 32 ))
-EARLY_DATA_INPUT_LEN=$(( $EARLY_DATA_INPUT_LEN_BLOCKS * 32 ))
-
-requires_gnutls_next
-requires_all_configs_enabled MBEDTLS_SSL_EARLY_DATA MBEDTLS_SSL_SESSION_TICKETS \
-                             MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 G->m: EarlyData: feature is enabled, good." \
-         "$P_SRV force_version=tls13 debug_level=4 early_data=1 max_early_data_size=$EARLY_DATA_INPUT_LEN" \
-         "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+GROUP-ALL:+KX-ALL \
-                      -d 10 -r --earlydata $EARLY_DATA_INPUT " \
-         0 \
-         -s "Sent max_early_data_size=$EARLY_DATA_INPUT_LEN"                \
-         -s "NewSessionTicket: early_data(42) extension exists."            \
-         -s "ClientHello: early_data(42) extension exists."                 \
-         -s "EncryptedExtensions: early_data(42) extension exists."         \
-         -s "$( head -1 $EARLY_DATA_INPUT )"                                \
-         -s "$( tail -1 $EARLY_DATA_INPUT )"                                \
-         -s "200 early data bytes read"                                     \
-         -s "106 early data bytes read"
 
 requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS \
                              MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \

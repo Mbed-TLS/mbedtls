@@ -269,64 +269,142 @@ run_test    "TLS 1.3: NewSessionTicket: Basic check, m->O" \
             -c "HTTP/1.0 200 ok"
 
 requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test    "TLS 1.3: NewSessionTicket: Basic check, m->G" \
-            "$G_NEXT_SRV -d 10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 --disable-client-cert" \
-            "$P_CLI debug_level=1 reco_mode=1 reconnect=1" \
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+run_test    "TLS 1.3 m->G: resumption" \
+            "$G_NEXT_SRV -d 5 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 --disable-client-cert" \
+            "$P_CLI reco_mode=1 reconnect=1" \
             0 \
             -c "Protocol is TLSv1.3" \
-            -c "got new session ticket." \
+            -c "Saving session for reuse... ok" \
+            -c "Reconnecting with saved session... ok" \
+            -c "HTTP/1.0 200 OK"
+
+requires_gnutls_tls1_3
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+requires_ciphersuite_enabled TLS1-3-AES-256-GCM-SHA384
+run_test    "TLS 1.3 m->G: resumption with AES-256-GCM-SHA384 only" \
+            "$G_NEXT_SRV -d 5 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 --disable-client-cert" \
+            "$P_CLI force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 reco_mode=1 reconnect=1" \
+            0 \
+            -c "Protocol is TLSv1.3" \
+            -c "Ciphersuite is TLS1-3-AES-256-GCM-SHA384" \
+            -c "Saving session for reuse... ok" \
+            -c "Reconnecting with saved session... ok" \
+            -c "HTTP/1.0 200 OK"
+
+requires_gnutls_tls1_3
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_EARLY_DATA \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+run_test    "TLS 1.3 m->G: resumption with early data" \
+            "$G_NEXT_SRV -d 5 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 --disable-client-cert \
+                         --earlydata --maxearlydata 16384" \
+            "$P_CLI debug_level=3 early_data=1 reco_mode=1 reconnect=1" \
+            0 \
+            -c "Protocol is TLSv1.3" \
             -c "Saving session for reuse... ok" \
             -c "Reconnecting with saved session" \
             -c "HTTP/1.0 200 OK" \
-            -s "This is a resumed session"
-
-requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_EARLY_DATA
-requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
-run_test    "TLS 1.3 m->G: EarlyData: basic check, good" \
-            "$G_NEXT_SRV -d 10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:+ECDHE-PSK:+PSK \
-                         --earlydata --maxearlydata 16384 --disable-client-cert" \
-            "$P_CLI debug_level=4 early_data=1 reco_mode=1 reconnect=1 reco_delay=900" \
-            0 \
             -c "received max_early_data_size: 16384" \
-            -c "Reconnecting with saved session" \
             -c "NewSessionTicket: early_data(42) extension received." \
             -c "ClientHello: early_data(42) extension exists." \
             -c "EncryptedExtensions: early_data(42) extension received." \
-            -c "EncryptedExtensions: early_data(42) extension exists." \
-            -c "<= write EndOfEarlyData" \
-            -s "Parsing extension 'Early Data/42' (0 bytes)" \
-            -s "Sending extension Early Data/42 (0 bytes)" \
-            -s "END OF EARLY DATA (5) was received." \
-            -s "early data accepted"
+            -c "bytes of early data written" \
+            -s "decrypted early data with length:"
 
 requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_EARLY_DATA
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_EARLY_DATA \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
-run_test    "TLS 1.3 m->G: EarlyData: no early_data in NewSessionTicket, good" \
-            "$G_NEXT_SRV -d 10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:+ECDHE-PSK:+PSK --disable-client-cert" \
-            "$P_CLI debug_level=4 early_data=1 reco_mode=1 reconnect=1" \
+requires_ciphersuite_enabled TLS1-3-AES-256-GCM-SHA384
+run_test    "TLS 1.3 m->G: resumption with early data, AES-256-GCM-SHA384 only" \
+            "$G_NEXT_SRV -d 5 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 --disable-client-cert \
+                         --earlydata --maxearlydata 16384" \
+            "$P_CLI debug_level=3 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 early_data=1 reco_mode=1 reconnect=1" \
             0 \
+            -c "Protocol is TLSv1.3" \
+            -c "Ciphersuite is TLS1-3-AES-256-GCM-SHA384" \
+            -c "Saving session for reuse... ok" \
             -c "Reconnecting with saved session" \
+            -c "HTTP/1.0 200 OK" \
+            -c "received max_early_data_size: 16384" \
+            -c "NewSessionTicket: early_data(42) extension received." \
+            -c "ClientHello: early_data(42) extension exists." \
+            -c "EncryptedExtensions: early_data(42) extension received." \
+            -c "bytes of early data written" \
+            -s "decrypted early data with length:"
+
+requires_gnutls_tls1_3
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_EARLY_DATA \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+run_test    "TLS 1.3 m->G: resumption, early data cli-enabled/srv-disabled" \
+            "$G_NEXT_SRV -d 5 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:+ECDHE-PSK:+PSK --disable-client-cert" \
+            "$P_CLI debug_level=3 early_data=1 reco_mode=1 reconnect=1" \
+            0 \
+            -c "Protocol is TLSv1.3" \
+            -c "Saving session for reuse... ok" \
+            -c "Reconnecting with saved session" \
+            -c "HTTP/1.0 200 OK" \
+            -C "received max_early_data_size: 16384" \
             -C "NewSessionTicket: early_data(42) extension received." \
-            -c "ClientHello: early_data(42) extension does not exist." \
-            -C "EncryptedExtensions: early_data(42) extension received." \
-            -C "EncryptedExtensions: early_data(42) extension exists."
+
+requires_gnutls_tls1_3
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_EARLY_DATA \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+run_test    "TLS 1.3 m->G: resumption, early data cli-default/srv-enabled" \
+            "$G_NEXT_SRV -d 5 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 --disable-client-cert \
+                         --earlydata --maxearlydata 16384" \
+            "$P_CLI debug_level=3 reco_mode=1 reconnect=1" \
+            0 \
+            -c "Protocol is TLSv1.3" \
+            -c "Saving session for reuse... ok" \
+            -c "Reconnecting with saved session" \
+            -c "HTTP/1.0 200 OK" \
+            -c "received max_early_data_size: 16384" \
+            -c "NewSessionTicket: early_data(42) extension received." \
+            -C "ClientHello: early_data(42) extension exists." \
+
+requires_gnutls_tls1_3
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_EARLY_DATA \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+run_test    "TLS 1.3 m->G: resumption, early data cli-disabled/srv-enabled" \
+            "$G_NEXT_SRV -d 5 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 --disable-client-cert \
+                         --earlydata --maxearlydata 16384" \
+            "$P_CLI debug_level=3 early_data=0 reco_mode=1 reconnect=1" \
+            0 \
+            -c "Protocol is TLSv1.3" \
+            -c "Saving session for reuse... ok" \
+            -c "Reconnecting with saved session" \
+            -c "HTTP/1.0 200 OK" \
+            -c "received max_early_data_size: 16384" \
+            -c "NewSessionTicket: early_data(42) extension received." \
+            -C "ClientHello: early_data(42) extension exists." \
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS

@@ -252,6 +252,225 @@ run_test    "TLS 1.3: G->m: PSK: configured ephemeral only, good." \
             0 \
             -s "key exchange mode: ephemeral$"
 
+requires_openssl_tls1_3_with_compatible_ephemeral
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test    "TLS 1.3: NewSessionTicket: Basic check, m->O" \
+            "$O_NEXT_SRV -msg -tls1_3 -no_resume_ephemeral -no_cache --num_tickets 4" \
+            "$P_CLI debug_level=1 reco_mode=1 reconnect=1" \
+            0 \
+            -c "Protocol is TLSv1.3" \
+            -c "got new session ticket." \
+            -c "Saving session for reuse... ok" \
+            -c "Reconnecting with saved session" \
+            -c "HTTP/1.0 200 ok"
+
+requires_gnutls_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test    "TLS 1.3: NewSessionTicket: Basic check, m->G" \
+            "$G_NEXT_SRV -d 10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 --disable-client-cert" \
+            "$P_CLI debug_level=1 reco_mode=1 reconnect=1" \
+            0 \
+            -c "Protocol is TLSv1.3" \
+            -c "got new session ticket." \
+            -c "Saving session for reuse... ok" \
+            -c "Reconnecting with saved session" \
+            -c "HTTP/1.0 200 OK" \
+            -s "This is a resumed session"
+
+requires_openssl_tls1_3_with_compatible_ephemeral
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+# https://github.com/openssl/openssl/issues/10714
+# Until now, OpenSSL client does not support reconnect.
+skip_next_test
+run_test    "TLS 1.3: NewSessionTicket: Basic check, O->m" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4" \
+            "$O_NEXT_CLI -msg -debug -tls1_3 -reconnect" \
+            0 \
+            -s "=> write NewSessionTicket msg" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH"
+
+requires_gnutls_tls1_3
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test    "TLS 1.3: NewSessionTicket: Basic check, G->m" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4" \
+            "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -r" \
+            0 \
+            -c "Connecting again- trying to resume previous session" \
+            -c "NEW SESSION TICKET (4) was received" \
+            -s "=> write NewSessionTicket msg" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
+            -s "key exchange mode: ephemeral" \
+            -s "key exchange mode: psk_ephemeral" \
+            -s "found pre_shared_key extension"
+
+requires_gnutls_tls1_3
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+# Test the session resumption when the cipher suite for the original session is
+# TLS1-3-AES-256-GCM-SHA384. In that case, the PSK is 384 bits long and not
+# 256 bits long as with all the other TLS 1.3 cipher suites.
+requires_ciphersuite_enabled TLS1-3-AES-256-GCM-SHA384
+run_test    "TLS 1.3: NewSessionTicket: Basic check with AES-256-GCM only, G->m" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=4" \
+            "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-CIPHER-ALL:+AES-256-GCM -V -r" \
+            0 \
+            -c "Connecting again- trying to resume previous session" \
+            -c "NEW SESSION TICKET (4) was received" \
+            -s "Ciphersuite is TLS1-3-AES-256-GCM-SHA384" \
+            -s "=> write NewSessionTicket msg" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
+            -s "key exchange mode: ephemeral" \
+            -s "key exchange mode: psk_ephemeral" \
+            -s "found pre_shared_key extension"
+
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test    "TLS 1.3: NewSessionTicket: Basic check, m->m" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4" \
+            "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
+            0 \
+            -c "Protocol is TLSv1.3" \
+            -c "got new session ticket ( 3 )" \
+            -c "Saving session for reuse... ok" \
+            -c "Reconnecting with saved session" \
+            -c "HTTP/1.0 200 OK"    \
+            -s "=> write NewSessionTicket msg" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
+            -s "key exchange mode: ephemeral" \
+            -s "key exchange mode: psk_ephemeral" \
+            -s "found pre_shared_key extension"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test    "TLS 1.3 m->m: NewSessionTicket: Ticket lifetime max value (7d)" \
+            "$P_SRV debug_level=1 crt_file=data_files/server5.crt key_file=data_files/server5.key ticket_timeout=604800 tickets=1" \
+            "$P_CLI reco_mode=1 reconnect=1" \
+            0 \
+            -c "Protocol is TLSv1.3" \
+            -c "HTTP/1.0 200 OK" \
+            -c "got new session ticket" \
+            -c "Reconnecting with saved session... ok" \
+            -s "Protocol is TLSv1.3" \
+            -S "Ticket lifetime (604800) is greater than 7 days."
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test    "TLS 1.3 m->m: NewSessionTicket: Ticket lifetime too long (7d + 1s)" \
+            "$P_SRV debug_level=1 crt_file=data_files/server5.crt key_file=data_files/server5.key ticket_timeout=604801 tickets=1" \
+            "$P_CLI reco_mode=1 reconnect=1" \
+            1 \
+            -c "Protocol is TLSv1.3" \
+            -C "HTTP/1.0 200 OK" \
+            -C "got new session ticket" \
+            -C "Reconnecting with saved session... ok" \
+            -S "Protocol is TLSv1.3" \
+            -s "Ticket lifetime (604801) is greater than 7 days."
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test    "TLS 1.3 m->m: NewSessionTicket: ticket lifetime=0" \
+            "$P_SRV debug_level=2 crt_file=data_files/server5.crt key_file=data_files/server5.key ticket_timeout=0 tickets=1" \
+            "$P_CLI debug_level=2 reco_mode=1 reconnect=1" \
+            1 \
+            -c "Protocol is TLSv1.3" \
+            -c "HTTP/1.0 200 OK" \
+            -c "Discard new session ticket" \
+            -C "got new session ticket" \
+            -c "Reconnecting with saved session... failed" \
+            -s "Protocol is TLSv1.3" \
+            -s "<= write new session ticket"
+
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test    "TLS 1.3: NewSessionTicket: servername check, m->m" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4 \
+            sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
+            "$P_CLI debug_level=4 server_name=localhost reco_mode=1 reconnect=1" \
+            0 \
+            -c "Protocol is TLSv1.3" \
+            -c "got new session ticket." \
+            -c "Saving session for reuse... ok" \
+            -c "Reconnecting with saved session" \
+            -c "HTTP/1.0 200 OK"    \
+            -s "=> write NewSessionTicket msg" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
+            -s "key exchange mode: ephemeral" \
+            -s "key exchange mode: psk_ephemeral" \
+            -s "found pre_shared_key extension"
+
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test    "TLS 1.3: NewSessionTicket: servername negative check, m->m" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4 \
+            sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
+            "$P_CLI debug_level=4 server_name=localhost reco_server_name=remote reco_mode=1 reconnect=1" \
+            1 \
+            -c "Protocol is TLSv1.3" \
+            -c "got new session ticket." \
+            -c "Saving session for reuse... ok" \
+            -c "Reconnecting with saved session" \
+            -c "Hostname mismatch the session ticket, disable session resumption."    \
+            -s "=> write NewSessionTicket msg" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH"
+
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
@@ -339,6 +558,30 @@ run_test    "TLS 1.3, ext PSK, early data" \
             -c "ClientHello: early_data(42) extension exists." \
             -c "EncryptedExtensions: early_data(42) extension received." \
             -c "EncryptedExtensions: early_data(42) extension ( ignored )."
+
+EARLY_DATA_INPUT_LEN_BLOCKS=$(( ( $( cat $EARLY_DATA_INPUT | wc -c ) + 31 ) / 32 ))
+EARLY_DATA_INPUT_LEN=$(( $EARLY_DATA_INPUT_LEN_BLOCKS * 32 ))
+
+requires_gnutls_next
+requires_all_configs_enabled MBEDTLS_SSL_EARLY_DATA MBEDTLS_SSL_SESSION_TICKETS \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test "TLS 1.3 G->m: EarlyData: feature is enabled, good." \
+         "$P_SRV force_version=tls13 debug_level=4 early_data=1 max_early_data_size=$EARLY_DATA_INPUT_LEN" \
+         "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+GROUP-ALL:+KX-ALL \
+                      -d 10 -r --earlydata $EARLY_DATA_INPUT " \
+         0 \
+         -s "Sent max_early_data_size=$EARLY_DATA_INPUT_LEN"                \
+         -s "NewSessionTicket: early_data(42) extension exists."            \
+         -s "ClientHello: early_data(42) extension exists."                 \
+         -s "EncryptedExtensions: early_data(42) extension exists."         \
+         -s "$( head -1 $EARLY_DATA_INPUT )"                                \
+         -s "$( tail -1 $EARLY_DATA_INPUT )"                                \
+         -s "200 early data bytes read"                                     \
+         -s "106 early data bytes read"
 
 requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS \
                              MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
@@ -511,30 +754,6 @@ run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_all/psk_all." \
          -S "No suitable PSK key exchange mode" \
          -s "found matched identity" \
          -s "key exchange mode: psk_ephemeral"
-
-EARLY_DATA_INPUT_LEN_BLOCKS=$(( ( $( cat $EARLY_DATA_INPUT | wc -c ) + 31 ) / 32 ))
-EARLY_DATA_INPUT_LEN=$(( $EARLY_DATA_INPUT_LEN_BLOCKS * 32 ))
-
-requires_gnutls_next
-requires_all_configs_enabled MBEDTLS_SSL_EARLY_DATA MBEDTLS_SSL_SESSION_TICKETS \
-                             MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 G->m: EarlyData: feature is enabled, good." \
-         "$P_SRV force_version=tls13 debug_level=4 early_data=1 max_early_data_size=$EARLY_DATA_INPUT_LEN" \
-         "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+GROUP-ALL:+KX-ALL \
-                      -d 10 -r --earlydata $EARLY_DATA_INPUT " \
-         0 \
-         -s "Sent max_early_data_size=$EARLY_DATA_INPUT_LEN"                \
-         -s "NewSessionTicket: early_data(42) extension exists."            \
-         -s "ClientHello: early_data(42) extension exists."                 \
-         -s "EncryptedExtensions: early_data(42) extension exists."         \
-         -s "$( head -1 $EARLY_DATA_INPUT )"                                \
-         -s "$( tail -1 $EARLY_DATA_INPUT )"                                \
-         -s "200 early data bytes read"                                     \
-         -s "106 early data bytes read"
 
 requires_all_configs_enabled MBEDTLS_SSL_EARLY_DATA MBEDTLS_SSL_SESSION_TICKETS \
                              MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \

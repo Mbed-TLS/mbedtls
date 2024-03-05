@@ -209,15 +209,6 @@ static int mbedtls_a64_crypto_sha512_determine_support(void)
 
 #define SHA512_BLOCK_SIZE 128
 
-#if defined(MBEDTLS_SHA512_SMALLER)
-static void sha512_put_uint64_be(uint64_t n, unsigned char *b, uint8_t i)
-{
-    MBEDTLS_PUT_UINT64_BE(n, b, i);
-}
-#else
-#define sha512_put_uint64_be    MBEDTLS_PUT_UINT64_BE
-#endif /* MBEDTLS_SHA512_SMALLER */
-
 void mbedtls_sha512_init(mbedtls_sha512_context *ctx)
 {
     memset(ctx, 0, sizeof(mbedtls_sha512_context));
@@ -627,15 +618,13 @@ int mbedtls_internal_sha512_process_c(mbedtls_sha512_context *ctx,
         (d) += local.temp1; (h) = local.temp1 + local.temp2;        \
     } while (0)
 
-    for (i = 0; i < 8; i++) {
-        local.A[i] = ctx->state[i];
-    }
+    memcpy(local.A, ctx->state, 64);
+
+    mbedtls_memcpy_to_be(local.W, data, 16 * 8, 8);
 
 #if defined(MBEDTLS_SHA512_SMALLER)
     for (i = 0; i < 80; i++) {
-        if (i < 16) {
-            local.W[i] = MBEDTLS_GET_UINT64_BE(data, i << 3);
-        } else {
+        if (i >= 16) {
             local.W[i] = S1(local.W[i -  2]) + local.W[i -  7] +
                          S0(local.W[i - 15]) + local.W[i - 16];
         }
@@ -650,11 +639,8 @@ int mbedtls_internal_sha512_process_c(mbedtls_sha512_context *ctx,
         local.A[0] = local.temp1;
     }
 #else /* MBEDTLS_SHA512_SMALLER */
-    for (i = 0; i < 16; i++) {
-        local.W[i] = MBEDTLS_GET_UINT64_BE(data, i << 3);
-    }
 
-    for (; i < 80; i++) {
+    for (i = 16; i < 80; i++) {
         local.W[i] = S1(local.W[i -  2]) + local.W[i -  7] +
                      S0(local.W[i - 15]) + local.W[i - 16];
     }
@@ -847,8 +833,8 @@ int mbedtls_sha512_finish(mbedtls_sha512_context *ctx,
            | (ctx->total[1] <<  3);
     low  = (ctx->total[0] <<  3);
 
-    sha512_put_uint64_be(high, ctx->buffer, 112);
-    sha512_put_uint64_be(low,  ctx->buffer, 120);
+    MBEDTLS_PUT_UINT64_BE(high, ctx->buffer, 112);
+    MBEDTLS_PUT_UINT64_BE(low,  ctx->buffer, 120);
 
     if ((ret = mbedtls_internal_sha512_process(ctx, ctx->buffer)) != 0) {
         goto exit;
@@ -857,20 +843,11 @@ int mbedtls_sha512_finish(mbedtls_sha512_context *ctx,
     /*
      * Output final state
      */
-    sha512_put_uint64_be(ctx->state[0], output,  0);
-    sha512_put_uint64_be(ctx->state[1], output,  8);
-    sha512_put_uint64_be(ctx->state[2], output, 16);
-    sha512_put_uint64_be(ctx->state[3], output, 24);
-    sha512_put_uint64_be(ctx->state[4], output, 32);
-    sha512_put_uint64_be(ctx->state[5], output, 40);
 
 #if defined(MBEDTLS_SHA384_C)
     truncated = ctx->is384;
 #endif
-    if (!truncated) {
-        sha512_put_uint64_be(ctx->state[6], output, 48);
-        sha512_put_uint64_be(ctx->state[7], output, 56);
-    }
+    mbedtls_memcpy_to_be(output, ctx->state, truncated ? 48 : 64, 8);
 
     ret = 0;
 

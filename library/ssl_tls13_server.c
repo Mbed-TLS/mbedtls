@@ -50,9 +50,9 @@ static void ssl_tls13_select_ciphersuite(
     *selected_ciphersuite_info = NULL;
 
     /*
-     * This function assumes that the length of the list of ciphersuites is
-     * even and it should have been checked it is so in the main ClientHello
-     * parsing function. Double check here.
+     * In a compliant ClientHello the byte-length of the list of ciphersuites
+     * is even and this function relies on this fact. This should have been
+     * checked in the main ClientHello parsing function. Double check here.
      */
     if ((cipher_suites_end - cipher_suites) & 1) {
         return;
@@ -146,6 +146,27 @@ static int ssl_tls13_parse_key_exchange_modes_ext(mbedtls_ssl_context *ssl,
     return 0;
 }
 
+/*
+ * Non-error return values of
+ * ssl_tls13_offered_psks_check_identity_match_ticket() and
+ * ssl_tls13_offered_psks_check_identity_match(). They are positive to
+ * not collide with error codes that are negative. Zero
+ * (SSL_TLS1_3_PSK_IDENTITY_MATCH) in case of success as it may be propagated
+ * up by the callers of this function as a generic success condition.
+ *
+ * The return value SSL_TLS1_3_PSK_IDENTITY_MATCH_BUT_PSK_NOT_USABLE means
+ * that the pre-shared-key identity matches that of a ticket or an external
+ * provisioned pre-shared-key. We have thus been able to retrieve the
+ * attributes of the pre-shared-key but at least one of them does not meet
+ * some criteria and the pre-shared-key cannot be used. For example, a ticket
+ * is expired or its version is not TLS 1.3. Note eventually that the return
+ * value SSL_TLS1_3_PSK_IDENTITY_MATCH_BUT_PSK_NOT_USABLE does not have
+ * anything to do with binder check. A binder check is done only when a
+ * suitable pre-shared-key has been selected and only for that selected
+ * pre-shared-key: if the binder check fails, we fail the handshake and we do
+ * not try to find another pre-shared-key for which the binder check would
+ * succeed as recommended by the specification.
+ */
 #define SSL_TLS1_3_PSK_IDENTITY_DOES_NOT_MATCH 2
 #define SSL_TLS1_3_PSK_IDENTITY_MATCH_BUT_PSK_NOT_USABLE 1
 #define SSL_TLS1_3_PSK_IDENTITY_MATCH 0
@@ -220,6 +241,10 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
         goto exit;
     }
 
+    /*
+     * The identity matches that of a ticket. Now check that it has suitable
+     * attributes and bet it will not be the case.
+     */
     ret = SSL_TLS1_3_PSK_IDENTITY_MATCH_BUT_PSK_NOT_USABLE;
 
     if (session->tls_version != MBEDTLS_SSL_VERSION_TLS1_3) {
@@ -281,6 +306,9 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     }
 #endif /* MBEDTLS_HAVE_TIME */
 
+    /*
+     * All good, we have found a suitable ticket.
+     */
     ret = SSL_TLS1_3_PSK_IDENTITY_MATCH;
 
 exit:
@@ -360,6 +388,12 @@ static int ssl_tls13_offered_psks_check_identity_match(
     return SSL_TLS1_3_PSK_IDENTITY_DOES_NOT_MATCH;
 }
 
+/*
+ * Non-error return values of ssl_tls13_offered_psks_check_binder_match().
+ * They are positive to not collide with error codes that are negative. Zero
+ * (SSL_TLS1_3_BINDER_MATCH) in case of success as it may be propagated up
+ * by the callers of this function as a generic success condition.
+ */
 #define SSL_TLS1_3_BINDER_DOES_NOT_MATCH 1
 #define SSL_TLS1_3_BINDER_MATCH 0
 MBEDTLS_CHECK_RETURN_CRITICAL

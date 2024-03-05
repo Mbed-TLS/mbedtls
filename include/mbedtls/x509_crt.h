@@ -922,7 +922,7 @@ static inline int mbedtls_x509_crt_has_ext_type(const mbedtls_x509_crt *ctx,
  * \param[in] crt       Certificate to be queried, must not be \c NULL
  *
  * \return              \c 1 if this a CA certificate \c 0 otherwise.
- * \return              MBEDTLS_ERR_X509_INVALID_EXTENSIONS if the certificate does not support
+ * \return              MBEDTLS_ERR_X509_INVALID_EXTENSIONS if the certificate does not contain
  *                      the Optional Basic Constraint extension.
  *
  */

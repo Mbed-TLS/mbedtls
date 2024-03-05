@@ -218,20 +218,24 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     ret = ssl->conf->f_ticket_parse(ssl->conf->p_ticket,
                                     session,
                                     ticket_buffer, identity_len);
-    if (ret == 0) {
-        ret = SSL_TLS1_3_PSK_IDENTITY_MATCH;
-    } else {
-        if (ret == MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED) {
+    switch (ret) {
+        case 0:
+            ret = SSL_TLS1_3_PSK_IDENTITY_MATCH;
+            break;
+
+        case MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED:
             MBEDTLS_SSL_DEBUG_MSG(3, ("ticket is expired"));
             ret = SSL_TLS1_3_PSK_IDENTITY_MATCH_BUT_PSK_NOT_USABLE;
-        } else {
-            if (ret == MBEDTLS_ERR_SSL_INVALID_MAC) {
-                MBEDTLS_SSL_DEBUG_MSG(3, ("ticket is not authentic"));
-            } else {
-                MBEDTLS_SSL_DEBUG_RET(1, "ticket_parse", ret);
-            }
+            break;
+
+        case MBEDTLS_ERR_SSL_INVALID_MAC:
+            MBEDTLS_SSL_DEBUG_MSG(3, ("ticket is not authentic"));
             ret = SSL_TLS1_3_PSK_IDENTITY_DOES_NOT_MATCH;
-        }
+            break;
+
+        default:
+            MBEDTLS_SSL_DEBUG_RET(1, "ticket_parse", ret);
+            ret = SSL_TLS1_3_PSK_IDENTITY_DOES_NOT_MATCH;
     }
 
     /* We delete the temporary buffer */

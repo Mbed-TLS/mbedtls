@@ -2106,11 +2106,10 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
             original.max_early_data_size == restored.max_early_data_size);
 #if defined(MBEDTLS_SSL_ALPN) && defined(MBEDTLS_SSL_SRV_C)
         if (endpoint_type == MBEDTLS_SSL_IS_SERVER) {
-            TEST_ASSERT(original.alpn != NULL);
-            TEST_ASSERT(restored.alpn != NULL);
-            TEST_ASSERT(memcmp(original.alpn,
-                               restored.alpn,
-                               strlen(original.alpn)) == 0);
+            TEST_ASSERT(original.ticket_alpn != NULL);
+            TEST_ASSERT(restored.ticket_alpn != NULL);
+            TEST_MEMORY_COMPARE(original.ticket_alpn, strlen(original.ticket_alpn),
+                                restored.ticket_alpn, strlen(restored.ticket_alpn));
         }
 #endif
 #endif

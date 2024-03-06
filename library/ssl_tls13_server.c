@@ -469,12 +469,10 @@ static int ssl_tls13_session_copy_ticket(mbedtls_ssl_session *dst,
     dst->max_early_data_size = src->max_early_data_size;
 
 #if defined(MBEDTLS_SSL_ALPN)
-    if (src->alpn != NULL) {
-        dst->alpn = mbedtls_calloc(strlen(src->alpn) + 1, sizeof(char));
-        if (dst->alpn == NULL) {
-            return MBEDTLS_ERR_SSL_ALLOC_FAILED;
-        }
-        memcpy(dst->alpn, src->alpn, strlen(src->alpn) + 1);
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    ret = mbedtls_ssl_session_set_alpn(dst, src->ticket_alpn);
+    if (ret != 0) {
+        return ret;
     }
 #endif /* MBEDTLS_SSL_ALPN */
 #endif /* MBEDTLS_SSL_EARLY_DATA*/
@@ -3148,12 +3146,9 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_PRINT_TICKET_FLAGS(4, session->ticket_flags);
 
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
-    if (ssl->alpn_chosen != NULL) {
-        session->alpn = mbedtls_calloc(strlen(ssl->alpn_chosen) + 1, sizeof(char));
-        if (session->alpn == NULL) {
-            return MBEDTLS_ERR_SSL_ALLOC_FAILED;
-        }
-        memcpy(session->alpn, ssl->alpn_chosen, strlen(ssl->alpn_chosen) + 1);
+    ret = mbedtls_ssl_session_set_alpn(session, ssl->alpn_chosen);
+    if (ret != 0) {
+        return ret;
     }
 #endif
 

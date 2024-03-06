@@ -2638,3 +2638,58 @@ exit:
     PSA_DONE();
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C*/
+void pk_copy_public_from_psa(data_t *priv_key_data, int key_type_arg)
+{
+    psa_key_type_t key_type = key_type_arg;
+    mbedtls_pk_context pk_from_exportable;
+    mbedtls_pk_init(&pk_from_exportable);
+    mbedtls_pk_context pk_from_non_exportable;
+    mbedtls_pk_init(&pk_from_non_exportable);
+    mbedtls_pk_context pk_private;
+    mbedtls_pk_init(&pk_private);
+    mbedtls_svc_key_id_t non_exportable_key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_svc_key_id_t exportable_key_id = MBEDTLS_SVC_KEY_ID_INIT;
+
+    PSA_INIT();
+
+    PSA_ASSERT(pk_psa_import_key(priv_key_data->x, priv_key_data->len,
+                                 key_type,
+                                 PSA_KEY_USAGE_EXPORT,
+                                 PSA_ALG_NONE,
+                                 &exportable_key_id));
+    PSA_ASSERT(pk_psa_import_key(priv_key_data->x, priv_key_data->len,
+                                 key_type,
+                                 0,
+                                 PSA_ALG_NONE,
+                                 &non_exportable_key_id));
+
+    TEST_EQUAL(mbedtls_pk_copy_public_from_psa(exportable_key_id,
+                                               &pk_from_exportable), 0);
+    TEST_EQUAL(mbedtls_pk_copy_public_from_psa(non_exportable_key_id,
+                                               &pk_from_non_exportable), 0);
+
+    /* Check that the non-exportable key really is non-exportable */
+    TEST_EQUAL(mbedtls_pk_copy_from_psa(non_exportable_key_id, &pk_private),
+               MBEDTLS_ERR_PK_TYPE_MISMATCH);
+
+    psa_destroy_key(exportable_key_id);
+    psa_destroy_key(non_exportable_key_id);
+
+    /* The goal of this test function is mostly to check that
+     * mbedtls_pk_copy_public_from_psa works with a non-exportable key pair.
+     * We check that the resulting key is the same as for an exportable
+     * key pair. We rely on pk_copy_from_psa_success tests to validate that
+     * the result is correct. */
+    TEST_ASSERT(pk_public_same(&pk_from_non_exportable, &pk_from_exportable));
+
+exit:
+    mbedtls_pk_free(&pk_from_non_exportable);
+    mbedtls_pk_free(&pk_from_exportable);
+    mbedtls_pk_free(&pk_private);
+    psa_destroy_key(exportable_key_id);
+    psa_destroy_key(non_exportable_key_id);
+    PSA_DONE();
+}
+/* END_CASE */

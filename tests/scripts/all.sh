@@ -5235,7 +5235,7 @@ test_build_opt () {
     # Older versions of compilers don't support all the flags, so we adjust flags depending on compiler version.
     warning_flags_common="-std=c99 -pedantic -Wall -Wextra -Werror -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wconversion -Wsign-conversion"
     warning_flags_clang="-Wasm-operand-widths -Wunreachable-code -Wshorten-64-to-32 -Wno-static-in-inline"
-    warning_flags_gcc="-Wformat-signedness -Wformat-overflow=2 -Wformat-truncation -Wlogical-op"
+    warning_flags_gcc="-Wformat-signedness -Wformat-overflow=2 -Wformat-truncation -Wlogical-op -Werror=maybe-uninitialized"
     if [[ $cc == *clang* ]]; then
         # match things like "/usr/bin/clang-15"
         warning_flags="${warning_flags_common} ${warning_flags_clang}"

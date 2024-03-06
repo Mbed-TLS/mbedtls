@@ -6873,29 +6873,30 @@ run_test    "Event-driven I/O, DTLS: session-id resume, UDP packing" \
 
 # Tests for version negotiation, MbedTLS client and server
 
-run_test    "Version check: all -> 1.2" \
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Version negotiation check m->m: 1.2 (max=1.2) / 1.2+1.3 -> 1.2" \
             "$P_SRV" \
-            "$P_CLI force_version=tls12" \
+            "$P_CLI max_version=tls12" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.2" \
             -c "Protocol is TLSv1.2"
 
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test "TLS 1.3 m->m: Not supported version check: cli TLS 1.2 only, srv TLS 1.3 only, fail" \
-         "$P_SRV debug_level=4 max_version=tls13 min_version=tls13" \
-         "$P_CLI debug_level=4 max_version=tls12 min_version=tls12" \
-         1 \
-         -c "The SSL configuration is tls12 only"                   \
-         -c "supported_versions(43) extension does not exist."      \
-         -c "A fatal alert message was received from our peer"      \
-         -s "The SSL configuration is tls13 only"                   \
-         -s "TLS 1.2 not supported."
+requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Not supported version check m->m: 1.2 (max=1.2) / 1.3 (min=1.3)" \
+            "$P_SRV min_version=tls13" \
+            "$P_CLI max_version=tls12" \
+            1 \
+            -s "Handshake protocol not within min/max boundaries" \
+            -S "Protocol is TLSv1.2" \
+            -C "Protocol is TLSv1.2" \
+            -S "Protocol is TLSv1.3" \
+            -C "Protocol is TLSv1.3"
 
 # Tests of version negotiation on server side against GnuTLS client
 

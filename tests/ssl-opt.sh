@@ -6871,7 +6871,7 @@ run_test    "Event-driven I/O, DTLS: session-id resume, UDP packing" \
             0 \
             -c "Read from server: .* bytes read"
 
-# Tests for version negotiation
+# Tests for version negotiation, MbedTLS client and server
 
 run_test    "Version check: all -> 1.2" \
             "$P_SRV" \
@@ -6881,6 +6881,21 @@ run_test    "Version check: all -> 1.2" \
             -C "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.2" \
             -c "Protocol is TLSv1.2"
+
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_SRV_C
+run_test "TLS 1.3 m->m: Not supported version check: cli TLS 1.2 only, srv TLS 1.3 only, fail" \
+         "$P_SRV debug_level=4 max_version=tls13 min_version=tls13" \
+         "$P_CLI debug_level=4 max_version=tls12 min_version=tls12" \
+         1 \
+         -c "The SSL configuration is tls12 only"                   \
+         -c "supported_versions(43) extension does not exist."      \
+         -c "A fatal alert message was received from our peer"      \
+         -s "The SSL configuration is tls13 only"                   \
+         -s "TLS 1.2 not supported."
 
 # Tests of version negotiation on server side against GnuTLS client
 
@@ -12035,21 +12050,6 @@ run_test    "TLS 1.3: server alpn - gnutls" \
             -s "Protocol is TLSv1.3" \
             -s "HTTP/1.0 200 OK" \
             -s "Application Layer Protocol is h2"
-
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test "TLS 1.3 m->m: Not supported version check: cli TLS 1.2 only, srv TLS 1.3 only, fail" \
-         "$P_SRV debug_level=4 max_version=tls13 min_version=tls13" \
-         "$P_CLI debug_level=4 max_version=tls12 min_version=tls12" \
-         1 \
-         -c "The SSL configuration is tls12 only"                   \
-         -c "supported_versions(43) extension does not exist."      \
-         -c "A fatal alert message was received from our peer"      \
-         -s "The SSL configuration is tls13 only"                   \
-         -s "TLS 1.2 not supported."
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_DEBUG_C

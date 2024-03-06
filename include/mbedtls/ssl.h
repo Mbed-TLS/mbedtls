@@ -1608,14 +1608,14 @@ struct mbedtls_ssl_config {
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
     mbedtls_svc_key_id_t MBEDTLS_PRIVATE(psk_opaque); /*!< PSA key slot holding opaque PSK. This field
                                                        *   should only be set via
                                                        *   mbedtls_ssl_conf_psk_opaque().
                                                        *   If either no PSK or a raw PSK have been
                                                        *   configured, this has value \c 0.
                                                        */
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
     unsigned char *MBEDTLS_PRIVATE(psk);      /*!< The raw pre-shared key. This field should
                                                *   only be set via mbedtls_ssl_conf_psk().
                                                *   If either no PSK or an opaque PSK

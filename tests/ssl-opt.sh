@@ -6884,15 +6884,45 @@ run_test    "Version check: all -> 1.2" \
 
 # Tests of version negotiation on server side against GnuTLS client
 
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Server version nego check G->m: 1.2+1.3 / 1.2 -> 1.2" \
+run_test    "Server version nego check G->m: 1.2 / 1.2+(1.3) -> 1.2" \
             "$P_SRV" \
-            "$G_NEXT_CLI localhost --priority=NORMAL" \
+            "$G_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.2"
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Server version nego check G->m: 1.2 / 1.2 (max=1.2) -> 1.2" \
+            "$P_SRV max_version=tls12" \
+            "$G_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.2"
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test    "Server version nego check G->m: 1.3 / (1.2)+1.3 -> 1.3" \
+            "$P_SRV" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.3"
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test    "Server version nego check G->m: 1.3 / 1.3 (min=1.3) -> 1.3" \
+            "$P_SRV min_version=tls13" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.3"
 
 requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
@@ -6931,6 +6961,37 @@ run_test    "Server version nego check G->m: [1.2]+1.3 / 1.2+1.3 -> 1.2" \
             1 \
             -c "Detected downgrade to TLS 1.2 from TLS 1.3"
 
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test    "Server version nego check G->m: 1.2+1.3 / 1.3 (min=1.3) -> 1.3" \
+            "$P_SRV min_version=tls13" \
+            "$G_NEXT_CLI localhost --priority=NORMAL" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.3"
+
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Server version nego check G->m: 1.2+1.3 / 1.2 -> 1.2" \
+            "$P_SRV" \
+            "$G_NEXT_CLI localhost --priority=NORMAL" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.2"
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+run_test    "Server version nego check G->m: 1.2+1.3 / 1.2 (max=1.2) -> 1.2" \
+            "$P_SRV max_version=tls12" \
+            "$G_NEXT_CLI localhost --priority=NORMAL" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -s "Protocol is TLSv1.2"
+
 requires_config_enabled MBEDTLS_SSL_SRV_C
 run_test    "Not supported version check G->m: 1.0 / (1.2)+(1.3)" \
             "$P_SRV" \
@@ -6946,6 +7007,46 @@ run_test    "Not supported version check G->m: 1.1 / (1.2)+(1.3)" \
             1 \
             -s "Handshake protocol not within min/max boundaries" \
             -S "Protocol is TLSv1.1"
+
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "Not supported version check G->m: 1.2 / 1.3" \
+            "$P_SRV" \
+            "$G_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2" \
+            1 \
+            -s "Handshake protocol not within min/max boundaries" \
+            -S "Protocol is TLSv1.2"
+
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_3
+run_test    "Not supported version check G->m: 1.3 / 1.2" \
+            "$P_SRV" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3" \
+            1 \
+            -S "Handshake protocol not within min/max boundaries" \
+            -s "The handshake negotiation failed" \
+            -S "Protocol is TLSv1.3"
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+run_test    "Not supported version check G->m: 1.2 / 1.3 (min=1.3)" \
+            "$P_SRV min_version=tls13" \
+            "$G_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2" \
+            1 \
+            -s "Handshake protocol not within min/max boundaries" \
+            -S "Protocol is TLSv1.2"
+
+requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
+run_test    "Not supported version check G->m: 1.3 / 1.2 (max=1.2)" \
+            "$P_SRV max_version=tls12" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3" \
+            1 \
+            -S "Handshake protocol not within min/max boundaries" \
+            -s "The handshake negotiation failed" \
+            -S "Protocol is TLSv1.3"
+
+# Tests of version negotiation on client side against GnuTLS server
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Not supported version check: srv max TLS 1.0" \

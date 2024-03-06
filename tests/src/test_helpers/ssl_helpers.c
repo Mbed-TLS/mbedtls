@@ -9,7 +9,7 @@
  */
 
 #include <test/ssl_helpers.h>
-#include "md_psa.h"
+#include "mbedtls/psa_util.h"
 
 #if defined(MBEDTLS_SSL_TLS_C)
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
@@ -1775,6 +1775,10 @@ int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
         }
     }
 #endif /* MBEDTLS_SSL_CLI_C */
+
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    session->record_size_limit = 2048;
+#endif
 
     return 0;
 }

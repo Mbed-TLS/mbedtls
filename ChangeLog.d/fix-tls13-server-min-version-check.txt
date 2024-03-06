@@ -1,0 +1,3 @@
+Bugfix
+   * Fix TLS server accepting TLS 1.2 handshake while TLS 1.2
+     is disabled at runtime. Fixes #8593.

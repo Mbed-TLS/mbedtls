@@ -6,6 +6,8 @@
 #include "mbedtls/oid.h"
 #include "common.h"
 
+#include "mbedtls/psa_util.h"
+
 /* For MBEDTLS_CTR_DRBG_MAX_REQUEST, knowing that psa_generate_random()
  * uses mbedtls_ctr_drbg internally. */
 #include "mbedtls/ctr_drbg.h"
@@ -2106,7 +2108,8 @@ void asymmetric_encryption_key_policy(int policy_usage_arg,
                                       int policy_alg,
                                       int key_type,
                                       data_t *key_data,
-                                      int exercise_alg)
+                                      int exercise_alg,
+                                      int use_opaque_key)
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -2122,6 +2125,11 @@ void asymmetric_encryption_key_policy(int policy_usage_arg,
     psa_set_key_usage_flags(&attributes, policy_usage);
     psa_set_key_algorithm(&attributes, policy_alg);
     psa_set_key_type(&attributes, key_type);
+
+    if (use_opaque_key) {
+        psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+                                 PSA_KEY_PERSISTENCE_VOLATILE, TEST_DRIVER_LOCATION));
+    }
 
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
                               &key));
@@ -4607,7 +4615,8 @@ void cipher_verify_output_multipart(int alg_arg,
     PSA_ASSERT(psa_cipher_update(&operation1,
                                  input->x + first_part_size,
                                  input->len - first_part_size,
-                                 output1, output1_buffer_size,
+                                 output1 + output1_length,
+                                 output1_buffer_size - output1_length,
                                  &function_output_length));
     TEST_LE_U(function_output_length,
               PSA_CIPHER_UPDATE_OUTPUT_SIZE(key_type,
@@ -4653,7 +4662,8 @@ void cipher_verify_output_multipart(int alg_arg,
     PSA_ASSERT(psa_cipher_update(&operation2,
                                  output1 + first_part_size,
                                  output1_length - first_part_size,
-                                 output2, output2_buffer_size,
+                                 output2 + output2_length,
+                                 output2_buffer_size - output2_length,
                                  &function_output_length));
     TEST_LE_U(function_output_length,
               PSA_CIPHER_UPDATE_OUTPUT_SIZE(key_type,
@@ -5121,7 +5131,9 @@ void aead_multipart_generate_nonce(int key_type_arg, data_t *key_data,
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_aead_operation_t operation = PSA_AEAD_OPERATION_INIT;
-    uint8_t nonce_buffer[PSA_AEAD_NONCE_MAX_SIZE];
+    /* Some tests try to get more than the maximum nonce length,
+     * so allocate double. */
+    uint8_t nonce_buffer[PSA_AEAD_NONCE_MAX_SIZE * 2];
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     psa_status_t expected_status = expected_status_arg;
@@ -9478,6 +9490,45 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
+void ecc_conversion_functions(int grp_id_arg, int psa_family_arg, int bits_arg)
+{
+    mbedtls_ecp_group_id grp_id = grp_id_arg;
+    psa_ecc_family_t ecc_family = psa_family_arg;
+    size_t bits = bits_arg;
+    size_t bits_tmp;
+
+    TEST_EQUAL(ecc_family, mbedtls_ecc_group_to_psa(grp_id, &bits_tmp));
+    TEST_EQUAL(bits, bits_tmp);
+    TEST_EQUAL(grp_id, mbedtls_ecc_group_from_psa(ecc_family, bits));
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
+void ecc_conversion_functions_fail()
+{
+    size_t bits;
+
+    /* Invalid legacy curve identifiers. */
+    TEST_EQUAL(0, mbedtls_ecc_group_to_psa(MBEDTLS_ECP_DP_MAX, &bits));
+    TEST_EQUAL(0, bits);
+    TEST_EQUAL(0, mbedtls_ecc_group_to_psa(MBEDTLS_ECP_DP_NONE, &bits));
+    TEST_EQUAL(0, bits);
+
+    /* Invalid PSA EC family. */
+    TEST_EQUAL(MBEDTLS_ECP_DP_NONE, mbedtls_ecc_group_from_psa(0, 192));
+    /* Invalid bit-size for a valid EC family. */
+    TEST_EQUAL(MBEDTLS_ECP_DP_NONE, mbedtls_ecc_group_from_psa(PSA_ECC_FAMILY_SECP_R1, 512));
+
+    /* Twisted-Edward curves are not supported yet. */
+    TEST_EQUAL(MBEDTLS_ECP_DP_NONE,
+               mbedtls_ecc_group_from_psa(PSA_ECC_FAMILY_TWISTED_EDWARDS, 255));
+    TEST_EQUAL(MBEDTLS_ECP_DP_NONE,
+               mbedtls_ecc_group_from_psa(PSA_ECC_FAMILY_TWISTED_EDWARDS, 448));
+}
+/* END_CASE */
+
+
 /* BEGIN_CASE */
 void key_agreement_output(int alg_arg,
                           int our_key_type_arg, data_t *our_key_data,
@@ -9687,14 +9738,24 @@ void generate_key_rsa(int bits_arg,
     PSA_ASSERT(psa_get_key_attributes(key, &attributes));
     TEST_EQUAL(psa_get_key_type(&attributes), type);
     TEST_EQUAL(psa_get_key_bits(&attributes), bits);
-    PSA_ASSERT(psa_get_key_domain_parameters(&attributes,
-                                             e_read_buffer, e_read_size,
-                                             &e_read_length));
+    psa_status_t status = psa_get_key_domain_parameters(&attributes,
+                                                        e_read_buffer, e_read_size,
+                                                        &e_read_length);
+
+
+#if (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) && \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
     if (is_default_public_exponent) {
         TEST_EQUAL(e_read_length, 0);
     } else {
+        TEST_EQUAL(status, PSA_SUCCESS);
         TEST_MEMORY_COMPARE(e_read_buffer, e_read_length, e_arg->x, e_arg->len);
     }
+#else
+    (void) is_default_public_exponent;
+    TEST_EQUAL(status, PSA_ERROR_NOT_SUPPORTED);
+#endif
 
     /* Do something with the key according to its type and permitted usage. */
     if (!mbedtls_test_psa_exercise_key(key, usage, alg)) {

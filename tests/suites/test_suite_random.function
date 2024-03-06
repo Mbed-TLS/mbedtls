@@ -26,7 +26,12 @@ void random_twice_with_ctr_drbg()
     unsigned char output1[OUTPUT_SIZE];
     unsigned char output2[OUTPUT_SIZE];
 
+#if defined(MBEDTLS_AES_C)
     MD_PSA_INIT();
+#else
+    USE_PSA_INIT();
+#endif
+
 
     /* First round */
     mbedtls_entropy_init(&entropy);
@@ -56,7 +61,11 @@ void random_twice_with_ctr_drbg()
 exit:
     mbedtls_ctr_drbg_free(&drbg);
     mbedtls_entropy_free(&entropy);
+#if defined(MBEDTLS_AES_C)
     MD_PSA_DONE();
+#else
+    USE_PSA_DONE();
+#endif
 }
 /* END_CASE */
 

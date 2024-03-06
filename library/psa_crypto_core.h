@@ -33,10 +33,24 @@
  */
 int psa_can_do_hash(psa_algorithm_t hash_alg);
 
+/**
+ * Tell if PSA is ready for this cipher.
+ *
+ * \note            For now, only checks the state of the driver subsystem,
+ *                  not the algorithm. Might do more in the future.
+ *
+ * \param cipher_alg  The cipher algorithm (ignored for now).
+ *
+ * \return 1 if the driver subsytem is ready, 0 otherwise.
+ */
+int psa_can_do_cipher(psa_key_type_t key_type, psa_algorithm_t cipher_alg);
+
 typedef enum {
     PSA_SLOT_EMPTY = 0,
-    PSA_SLOT_OCCUPIED,
-} psa_key_slot_status_t;
+    PSA_SLOT_FILLING,
+    PSA_SLOT_FULL,
+    PSA_SLOT_PENDING_DELETION,
+} psa_key_slot_state_t;
 
 /** The data structure representing a key slot, containing key material
  * and metadata for one key.
@@ -44,18 +58,37 @@ typedef enum {
 typedef struct {
     psa_core_key_attributes_t attr;
 
-    psa_key_slot_status_t status;
+    /*
+     * The current state of the key slot, as described in
+     * docs/architecture/psa-thread-safety/psa-thread-safety.md.
+     *
+     * Library functions can modify the state of a key slot by calling
+     * psa_key_slot_state_transition.
+     *
+     * The state variable is used to help determine whether library functions
+     * which operate on the slot succeed. For example, psa_finish_key_creation,
+     * which transfers the state of a slot from PSA_SLOT_FILLING to
+     * PSA_SLOT_FULL, must fail with error code PSA_ERROR_CORRUPTION_DETECTED
+     * if the state of the slot is not PSA_SLOT_FILLING.
+     *
+     * Library functions which traverse the array of key slots only consider
+     * slots that are in a suitable state for the function.
+     * For example, psa_get_and_lock_key_slot_in_memory, which finds a slot
+     * containing a given key ID, will only check slots whose state variable is
+     * PSA_SLOT_FULL. */
+    psa_key_slot_state_t state;
 
     /*
-     * Number of locks on the key slot held by the library.
+     * Number of functions registered as reading the material in the key slot.
      *
-     * This counter is incremented by one each time a library function
-     * retrieves through one of the dedicated internal API a pointer to the
-     * key slot.
+     * Library functions must not write directly to registered_readers
      *
-     * This counter is decremented by one each time a library function stops
-     * accessing the key slot and states it by calling the
-     * psa_unlock_key_slot() API.
+     * A function must call psa_register_read(slot) before reading the current
+     * contents of the slot for an operation.
+     * They then must call psa_unregister_read(slot) once they have finished
+     * reading the current contents of the slot.
+     * A function must call psa_key_slot_has_readers(slot) to check if
+     * the slot is in use for reading.
      *
      * This counter is used to prevent resetting the key slot while the library
      * may access it. For example, such control is needed in the following
@@ -66,10 +99,9 @@ typedef struct {
      *   the library cannot be reclaimed to free a key slot to load the
      *   persistent key.
      * . In case of a multi-threaded application where one thread asks to close
-     *   or purge or destroy a key while it is in used by the library through
-     *   another thread.
-     */
-    size_t lock_count;
+     *   or purge or destroy a key while it is in use by the library through
+     *   another thread. */
+    size_t registered_readers;
 
     /* Dynamically allocated key data buffer.
      * Format as specified in psa_export_key(). */
@@ -84,31 +116,17 @@ typedef struct {
 #define PSA_KA_MASK_INTERNAL_ONLY (     \
         0)
 
-/** Test whether a key slot is occupied.
- *
- * A key slot is occupied iff the key type is nonzero. This works because
- * no valid key can have 0 as its key type.
+/** Test whether a key slot has any registered readers.
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
  *
  * \param[in] slot      The key slot to test.
  *
- * \return 1 if the slot is occupied, 0 otherwise.
+ * \return 1 if the slot has any registered readers, 0 otherwise.
  */
-static inline int psa_is_key_slot_occupied(const psa_key_slot_t *slot)
+static inline int psa_key_slot_has_readers(const psa_key_slot_t *slot)
 {
-    return slot->status == PSA_SLOT_OCCUPIED;
-}
-
-/** Test whether a key slot is locked.
- *
- * A key slot is locked iff its lock counter is strictly greater than 0.
- *
- * \param[in] slot  The key slot to test.
- *
- * \return 1 if the slot is locked, 0 otherwise.
- */
-static inline int psa_is_key_slot_locked(const psa_key_slot_t *slot)
-{
-    return slot->lock_count > 0;
+    return slot->registered_readers > 0;
 }
 
 /** Retrieve flags from psa_key_slot_t::attr::core::flags.
@@ -178,13 +196,20 @@ static inline psa_key_slot_number_t psa_key_slot_get_slot_number(
 /** Completely wipe a slot in memory, including its policy.
  *
  * Persistent storage is not affected.
+ * Sets the slot's state to PSA_SLOT_EMPTY.
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
  *
  * \param[in,out] slot  The key slot to wipe.
  *
  * \retval #PSA_SUCCESS
- *         Success. This includes the case of a key slot that was
- *         already fully wiped.
- * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ *         The slot has been successfully wiped.
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ *         The slot's state was PSA_SLOT_FULL or PSA_SLOT_PENDING_DELETION, and
+ *         the amount of registered readers was not equal to 1. Or,
+ *         the slot's state was PSA_SLOT_EMPTY. Or,
+ *         the slot's state was PSA_SLOT_FILLING, and the amount
+ *         of registered readers was not equal to 0.
  */
 psa_status_t psa_wipe_key_slot(psa_key_slot_t *slot);
 
@@ -905,6 +930,25 @@ typedef struct psa_crypto_local_output_s {
  */
 psa_status_t psa_crypto_local_output_alloc(uint8_t *output, size_t output_len,
                                            psa_crypto_local_output_t *local_output);
+
+/** Allocate a local copy of an output buffer and copy the contents into it.
+ *
+ * \note                        This allocates and copies a buffer
+ *                              whose contents will be copied back to the
+ *                              original in a future call to
+ *                              psa_crypto_local_output_free().
+ *
+ * \param[in] output            Pointer to output buffer.
+ * \param[in] output_len        Length of the output buffer.
+ * \param[out] local_output     Pointer to a psa_crypto_local_output_t struct to
+ *                              populate with the local output copy.
+ * \return                      #PSA_SUCCESS, if the buffer was successfully
+ *                              copied.
+ * \return                      #PSA_ERROR_INSUFFICIENT_MEMORY, if a copy of
+ *                              the buffer cannot be allocated.
+ */
+psa_status_t psa_crypto_local_output_alloc_with_copy(uint8_t *output, size_t output_len,
+                                                     psa_crypto_local_output_t *local_output);
 
 /** Copy from a local copy of an output buffer back to the original, then
  *  free the local copy.

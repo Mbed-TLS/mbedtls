@@ -32,7 +32,14 @@
 
 #include "mbedtls/build_info.h"
 
+/* In case AES_C is defined then it is the primary option for backward
+ * compatibility purposes. If that's not available, PSA is used instead */
+#if defined(MBEDTLS_AES_C)
 #include "mbedtls/aes.h"
+#else
+#include "psa/crypto.h"
+#endif
+
 #include "entropy.h"
 
 #if defined(MBEDTLS_THREADING_C)
@@ -150,6 +157,13 @@ extern "C" {
 #define MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN (MBEDTLS_CTR_DRBG_ENTROPY_LEN + 1) / 2
 #endif
 
+#if !defined(MBEDTLS_AES_C)
+typedef struct mbedtls_ctr_drbg_psa_context {
+    mbedtls_svc_key_id_t key_id;
+    psa_cipher_operation_t operation;
+} mbedtls_ctr_drbg_psa_context;
+#endif
+
 /**
  * \brief          The CTR_DRBG context structure.
  */
@@ -175,7 +189,11 @@ typedef struct mbedtls_ctr_drbg_context {
                                                   * This is the maximum number of requests
                                                   * that can be made between reseedings. */
 
+#if defined(MBEDTLS_AES_C)
     mbedtls_aes_context MBEDTLS_PRIVATE(aes_ctx);        /*!< The AES context. */
+#else
+    mbedtls_ctr_drbg_psa_context MBEDTLS_PRIVATE(psa_ctx); /*!< The PSA context. */
+#endif
 
     /*
      * Callbacks (Entropy)

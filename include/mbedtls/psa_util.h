@@ -14,6 +14,8 @@
 
 #include "mbedtls/build_info.h"
 
+#include "psa/crypto.h"
+
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
 /* Expose whatever RNG the PSA subsystem uses to applications using the
@@ -99,6 +101,82 @@ extern mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state;
 #define MBEDTLS_PSA_RANDOM_STATE mbedtls_psa_random_state
 
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) */
+
+/** \defgroup psa_tls_helpers TLS helper functions
+ * @{
+ */
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
+#include <mbedtls/ecp.h>
+
+/** Convert an ECC curve identifier from the Mbed TLS encoding to PSA.
+ *
+ * \param grpid         An Mbed TLS elliptic curve identifier
+ *                      (`MBEDTLS_ECP_DP_xxx`).
+ * \param[out] bits     On success the bit size of the curve; 0 on failure.
+ *
+ * \return              If the curve is supported in the PSA API, this function
+ *                      returns the proper PSA curve identifier
+ *                      (`PSA_ECC_FAMILY_xxx`). This holds even if the curve is
+ *                      not supported by the ECP module.
+ * \return              \c 0 if the curve is not supported in the PSA API.
+ */
+psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
+                                          size_t *bits);
+
+/** Convert an ECC curve identifier from the PSA encoding to Mbed TLS.
+ *
+ * \param family        A PSA elliptic curve family identifier
+ *                      (`PSA_ECC_FAMILY_xxx`).
+ * \param bits          The bit-length of a private key on \p curve.
+ *
+ * \return              If the curve is supported in the PSA API, this function
+ *                      returns the corresponding Mbed TLS elliptic curve
+ *                      identifier (`MBEDTLS_ECP_DP_xxx`).
+ * \return              #MBEDTLS_ECP_DP_NONE if the combination of \c curve
+ *                      and \p bits is not supported.
+ */
+mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t family,
+                                                size_t bits);
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
+
+/**
+ * \brief           This function returns the PSA algorithm identifier
+ *                  associated with the given digest type.
+ *
+ * \param md_type   The type of digest to search for. Must not be NONE.
+ *
+ * \warning         If \p md_type is \c MBEDTLS_MD_NONE, this function will
+ *                  not return \c PSA_ALG_NONE, but an invalid algorithm.
+ *
+ * \warning         This function does not check if the algorithm is
+ *                  supported, it always returns the corresponding identifier.
+ *
+ * \return          The PSA algorithm identifier associated with \p md_type,
+ *                  regardless of whether it is supported or not.
+ */
+static inline psa_algorithm_t mbedtls_md_psa_alg_from_type(mbedtls_md_type_t md_type)
+{
+    return PSA_ALG_CATEGORY_HASH | (psa_algorithm_t) md_type;
+}
+
+/**
+ * \brief           This function returns the given digest type
+ *                  associated with the PSA algorithm identifier.
+ *
+ * \param psa_alg   The PSA algorithm identifier to search for.
+ *
+ * \warning         This function does not check if the algorithm is
+ *                  supported, it always returns the corresponding identifier.
+ *
+ * \return          The MD type associated with \p psa_alg,
+ *                  regardless of whether it is supported or not.
+ */
+static inline mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa_alg)
+{
+    return (mbedtls_md_type_t) (psa_alg & PSA_ALG_HASH_MASK);
+}
+
+/**@}*/
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 #endif /* MBEDTLS_PSA_UTIL_H */

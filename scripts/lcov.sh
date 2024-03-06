@@ -32,8 +32,8 @@ set -eu
 
 # Repository detection
 in_mbedtls_build_dir () {
-     test -d library
- }
+    test -d library
+}
 
 # Collect stats and build a HTML report.
 lcov_library_report () {

@@ -16,7 +16,7 @@
 #include "psa_crypto_random_impl.h"
 #include "psa_crypto_rsa.h"
 #include "psa_crypto_hash.h"
-#include "md_psa.h"
+#include "mbedtls/psa_util.h"
 
 #include <stdlib.h>
 #include <string.h>

@@ -52,7 +52,7 @@ int main(void)
 #define DFL_KEY_OPAQUE          0
 #define DFL_KEY_PWD             ""
 #define DFL_PSK                 ""
-#define DFL_EARLY_DATA          MBEDTLS_SSL_EARLY_DATA_DISABLED
+#define DFL_EARLY_DATA          ""
 #define DFL_PSK_OPAQUE          0
 #define DFL_PSK_IDENTITY        "Client_identity"
 #define DFL_ECJPAKE_PW          NULL
@@ -347,8 +347,9 @@ int main(void)
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 #define USAGE_EARLY_DATA \
-    "    early_data=%%d        default: 0 (disabled)\n"      \
-    "                        options: 0 (disabled), 1 (enabled)\n"
+    "    early_data=%%s      The file path to read early data from\n" \
+    "                        default: \"\" (do nothing)\n"            \
+    "                        option: a file path\n"
 #else
 #define USAGE_EARLY_DATA ""
 #endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_PROTO_TLS1_3 */
@@ -543,7 +544,7 @@ struct options {
     int reproducible;           /* make communication reproducible          */
     int skip_close_notify;      /* skip sending the close_notify alert      */
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    int early_data;             /* support for early data                   */
+    const char *early_data;     /* the path of the file to read early data from */
 #endif
     int query_config_mode;      /* whether to read config                   */
     int use_srtp;               /* Support SRTP                             */
@@ -740,6 +741,10 @@ int main(int argc, char *argv[])
     size_t cid_len = 0;
     size_t cid_renego_len = 0;
 #endif
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    FILE *early_data_fp = NULL;
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_SSL_ALPN)
     const char *alpn_list[ALPN_LIST_SIZE];
@@ -1196,15 +1201,7 @@ usage:
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #if defined(MBEDTLS_SSL_EARLY_DATA)
         else if (strcmp(p, "early_data") == 0) {
-            switch (atoi(q)) {
-                case 0:
-                    opt.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
-                    break;
-                case 1:
-                    opt.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
-                    break;
-                default: goto usage;
-            }
+            opt.early_data = q;
         }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
@@ -1971,7 +1968,16 @@ usage:
     }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    mbedtls_ssl_conf_early_data(&conf, opt.early_data);
+    int early_data_enabled = MBEDTLS_SSL_EARLY_DATA_DISABLED;
+    if (strlen(opt.early_data) > 0) {
+        if ((early_data_fp = fopen(opt.early_data, "rb")) == NULL) {
+            mbedtls_printf("failed\n  ! Cannot open '%s' for reading.\n",
+                           opt.early_data);
+            goto exit;
+        }
+        early_data_enabled = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+    }
+    mbedtls_ssl_conf_early_data(&conf, early_data_enabled);
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
     if ((ret = mbedtls_ssl_setup(&ssl, &conf)) != 0) {
@@ -3028,6 +3034,12 @@ exit:
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);
     mbedtls_ssl_session_free(&saved_session);
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (early_data_fp != NULL) {
+        fclose(early_data_fp);
+    }
+#endif
 
     if (session_data != NULL) {
         mbedtls_platform_zeroize(session_data, session_data_len);

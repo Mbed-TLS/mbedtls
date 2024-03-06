@@ -15,6 +15,8 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/error.h"
+#include "mbedtls/ecp.h"
+#include "pk_internal.h"
 
 #include <string.h>
 
@@ -26,10 +28,6 @@
 /* Key types */
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"
-#endif
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
-#include "mbedtls/ecp.h"
-#include "pk_internal.h"
 #endif
 
 /* Extended formats */
@@ -105,16 +103,21 @@ static int pk_ecc_set_key(mbedtls_pk_context *pk,
 {
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_usage_t flags;
     psa_status_t status;
 
     psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(pk->ec_family));
-    psa_set_key_algorithm(&attributes, PSA_ALG_ECDH);
-    psa_key_usage_t flags = PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_DERIVE;
-    /* Montgomery allows only ECDH, others ECDSA too */
-    if (pk->ec_family != PSA_ECC_FAMILY_MONTGOMERY) {
-        flags |= PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_SIGN_MESSAGE;
-        psa_set_key_enrollment_algorithm(&attributes,
-                                         MBEDTLS_PK_PSA_ALG_ECDSA_MAYBE_DET(PSA_ALG_ANY_HASH));
+    if (pk->ec_family == PSA_ECC_FAMILY_MONTGOMERY) {
+        /* Do not set algorithm here because Montgomery keys cannot do ECDSA and
+         * the PK module cannot do ECDH. When the key will be used in TLS for
+         * ECDH, it will be exported and then re-imported with proper flags
+         * and algorithm. */
+        flags = PSA_KEY_USAGE_EXPORT;
+    } else {
+        psa_set_key_algorithm(&attributes,
+                              MBEDTLS_PK_PSA_ALG_ECDSA_MAYBE_DET(PSA_ALG_ANY_HASH));
+        flags = PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_SIGN_MESSAGE |
+                PSA_KEY_USAGE_EXPORT;
     }
     psa_set_key_usage_flags(&attributes, flags);
 
@@ -247,7 +250,7 @@ static int pk_ecc_set_pubkey_psa_ecp_fallback(mbedtls_pk_context *pk,
     mbedtls_ecp_group_id ecp_group_id;
     int ret;
 
-    ecp_group_id = mbedtls_ecc_group_of_psa(pk->ec_family, pk->ec_bits, 0);
+    ecp_group_id = mbedtls_ecc_group_from_psa(pk->ec_family, pk->ec_bits);
 
     mbedtls_ecp_keypair_init(&ecp_key);
     ret = mbedtls_ecp_group_load(&(ecp_key.grp), ecp_group_id);
@@ -863,12 +866,6 @@ static int pk_get_pk_alg(unsigned char **p,
     return 0;
 }
 
-/* Helper for Montgomery curves */
-#if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
-#define MBEDTLS_PK_IS_RFC8410_GROUP_ID(id)  \
-    ((id == MBEDTLS_ECP_DP_CURVE25519) || (id == MBEDTLS_ECP_DP_CURVE448))
-#endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
-
 /*
  *  SubjectPublicKeyInfo  ::=  SEQUENCE  {
  *       algorithm            AlgorithmIdentifier,
@@ -1412,7 +1409,7 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_pk_parse_key_pkcs8_encrypted_der(
     unsigned char *buf;
     unsigned char *p, *end;
     mbedtls_asn1_buf pbe_alg_oid, pbe_params;
-#if defined(MBEDTLS_PKCS12_C) && defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+#if defined(MBEDTLS_PKCS12_C) && defined(MBEDTLS_CIPHER_PADDING_PKCS7) && defined(MBEDTLS_CIPHER_C)
     mbedtls_cipher_type_t cipher_alg;
     mbedtls_md_type_t md_alg;
 #endif
@@ -1460,7 +1457,7 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_pk_parse_key_pkcs8_encrypted_der(
     /*
      * Decrypt EncryptedData with appropriate PBE
      */
-#if defined(MBEDTLS_PKCS12_C) && defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+#if defined(MBEDTLS_PKCS12_C) && defined(MBEDTLS_CIPHER_PADDING_PKCS7) && defined(MBEDTLS_CIPHER_C)
     if (mbedtls_oid_get_pkcs12_pbe_alg(&pbe_alg_oid, &md_alg, &cipher_alg) == 0) {
         if ((ret = mbedtls_pkcs12_pbe_ext(&pbe_params, MBEDTLS_PKCS12_PBE_DECRYPT,
                                           cipher_alg, md_alg,
@@ -1474,8 +1471,8 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_pk_parse_key_pkcs8_encrypted_der(
 
         decrypted = 1;
     } else
-#endif /* MBEDTLS_PKCS12_C */
-#if defined(MBEDTLS_PKCS5_C) && defined(MBEDTLS_CIPHER_PADDING_PKCS7)
+#endif /* MBEDTLS_PKCS12_C && MBEDTLS_CIPHER_PADDING_PKCS7 && MBEDTLS_CIPHER_C */
+#if defined(MBEDTLS_PKCS5_C) && defined(MBEDTLS_CIPHER_PADDING_PKCS7) && defined(MBEDTLS_CIPHER_C)
     if (MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS5_PBES2, &pbe_alg_oid) == 0) {
         if ((ret = mbedtls_pkcs5_pbes2_ext(&pbe_params, MBEDTLS_PKCS5_DECRYPT, pwd, pwdlen,
                                            p, len, buf, len, &outlen)) != 0) {
@@ -1488,7 +1485,7 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_pk_parse_key_pkcs8_encrypted_der(
 
         decrypted = 1;
     } else
-#endif /* MBEDTLS_PKCS5_C */
+#endif /* MBEDTLS_PKCS5_C && MBEDTLS_CIPHER_PADDING_PKCS7 && MBEDTLS_CIPHER_C */
     {
         ((void) pwd);
     }
@@ -1534,8 +1531,7 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
         ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
     } else {
         ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN RSA PRIVATE KEY-----",
-                                      "-----END RSA PRIVATE KEY-----",
+                                      PEM_BEGIN_PRIVATE_KEY_RSA, PEM_END_PRIVATE_KEY_RSA,
                                       key, pwd, pwdlen, &len);
     }
 
@@ -1564,8 +1560,8 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
         ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
     } else {
         ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN EC PRIVATE KEY-----",
-                                      "-----END EC PRIVATE KEY-----",
+                                      PEM_BEGIN_PRIVATE_KEY_EC,
+                                      PEM_END_PRIVATE_KEY_EC,
                                       key, pwd, pwdlen, &len);
     }
     if (ret == 0) {
@@ -1594,8 +1590,7 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
         ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
     } else {
         ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN PRIVATE KEY-----",
-                                      "-----END PRIVATE KEY-----",
+                                      PEM_BEGIN_PRIVATE_KEY_PKCS8, PEM_END_PRIVATE_KEY_PKCS8,
                                       key, NULL, 0, &len);
     }
     if (ret == 0) {
@@ -1616,8 +1611,8 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
         ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
     } else {
         ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN ENCRYPTED PRIVATE KEY-----",
-                                      "-----END ENCRYPTED PRIVATE KEY-----",
+                                      PEM_BEGIN_ENCRYPTED_PRIVATE_KEY_PKCS8,
+                                      PEM_END_ENCRYPTED_PRIVATE_KEY_PKCS8,
                                       key, NULL, 0, &len);
     }
     if (ret == 0) {
@@ -1743,8 +1738,7 @@ int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
         ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
     } else {
         ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN RSA PUBLIC KEY-----",
-                                      "-----END RSA PUBLIC KEY-----",
+                                      PEM_BEGIN_PUBLIC_KEY_RSA, PEM_END_PUBLIC_KEY_RSA,
                                       key, NULL, 0, &len);
     }
 
@@ -1777,8 +1771,7 @@ int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
         ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
     } else {
         ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN PUBLIC KEY-----",
-                                      "-----END PUBLIC KEY-----",
+                                      PEM_BEGIN_PUBLIC_KEY, PEM_END_PUBLIC_KEY,
                                       key, NULL, 0, &len);
     }
 

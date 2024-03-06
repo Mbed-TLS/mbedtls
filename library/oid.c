@@ -866,7 +866,7 @@ static const oid_md_hmac_t oid_md_hmac[] =
 FN_OID_TYPED_FROM_ASN1(oid_md_hmac_t, md_hmac, oid_md_hmac)
 FN_OID_GET_ATTR1(mbedtls_oid_get_md_hmac, oid_md_hmac_t, md_hmac, mbedtls_md_type_t, md_hmac)
 
-#if defined(MBEDTLS_PKCS12_C)
+#if defined(MBEDTLS_PKCS12_C) && defined(MBEDTLS_CIPHER_C)
 /*
  * For PKCS#12 PBEs
  */
@@ -904,7 +904,7 @@ FN_OID_GET_ATTR2(mbedtls_oid_get_pkcs12_pbe_alg,
                  md_alg,
                  mbedtls_cipher_type_t,
                  cipher_alg)
-#endif /* MBEDTLS_PKCS12_C */
+#endif /* MBEDTLS_PKCS12_C && MBEDTLS_CIPHER_C */
 
 /* Return the x.y.z.... style numeric string for the given OID */
 int mbedtls_oid_get_numeric_string(char *buf, size_t size,

@@ -447,7 +447,7 @@
 
 /*
  * TLS 1.3 signature algorithms
- * RFC 8446, Section 4.2.2
+ * RFC 8446, Section 4.2.3
  */
 
 /* RSASSA-PKCS1-v1_5 algorithms */
@@ -687,7 +687,6 @@ typedef enum {
     MBEDTLS_SSL_SERVER_FINISHED,
     MBEDTLS_SSL_FLUSH_BUFFERS,
     MBEDTLS_SSL_HANDSHAKE_WRAPUP,
-
     MBEDTLS_SSL_NEW_SESSION_TICKET,
     MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT,
     MBEDTLS_SSL_HELLO_RETRY_REQUEST,
@@ -1188,6 +1187,11 @@ struct mbedtls_ssl_session {
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     unsigned char MBEDTLS_PRIVATE(mfl_code);     /*!< MaxFragmentLength negotiated by peer */
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
+/*!< RecordSizeLimit received from the peer */
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    uint16_t MBEDTLS_PRIVATE(record_size_limit);
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
     unsigned char MBEDTLS_PRIVATE(exported);
 
@@ -3752,6 +3756,8 @@ void mbedtls_ssl_conf_groups(mbedtls_ssl_config *conf,
  *                 used for certificate signature are controlled by the
  *                 verification profile, see \c mbedtls_ssl_conf_cert_profile().
  *
+ * \deprecated     Superseded by mbedtls_ssl_conf_sig_algs().
+ *
  * \note           This list should be ordered by decreasing preference
  *                 (preferred hash first).
  *
@@ -3776,13 +3782,16 @@ void MBEDTLS_DEPRECATED mbedtls_ssl_conf_sig_hashes(mbedtls_ssl_config *conf,
 #endif /* !MBEDTLS_DEPRECATED_REMOVED && MBEDTLS_SSL_PROTO_TLS1_2 */
 
 /**
- * \brief          Configure allowed signature algorithms for use in TLS 1.3
+ * \brief          Configure allowed signature algorithms for use in TLS
  *
  * \param conf     The SSL configuration to use.
  * \param sig_algs List of allowed IANA values for TLS 1.3 signature algorithms,
- *                 terminated by \c MBEDTLS_TLS1_3_SIG_NONE. The list must remain
- *                 available throughout the lifetime of the conf object. Supported
- *                 values are available as \c MBEDTLS_TLS1_3_SIG_XXXX
+ *                 terminated by #MBEDTLS_TLS1_3_SIG_NONE. The list must remain
+ *                 available throughout the lifetime of the conf object.
+ *                 - For TLS 1.3, values of \c MBEDTLS_TLS1_3_SIG_XXXX should be
+ *                   used.
+ *                 - For TLS 1.2, values should be given as
+ *                   "(HashAlgorithm << 8) | SignatureAlgorithm".
  */
 void mbedtls_ssl_conf_sig_algs(mbedtls_ssl_config *conf,
                                const uint16_t *sig_algs);

@@ -159,7 +159,7 @@ static psa_status_t mbedtls_test_opaque_wrap_key(
  * The argument key_buffer_length is filled with the unwrapped(clear)
  * key_size on success.
  * */
-static psa_status_t mbedtls_test_opaque_unwrap_key(
+psa_status_t mbedtls_test_opaque_unwrap_key(
     const uint8_t *wrapped_key,
     size_t wrapped_key_length,
     uint8_t *key_buffer,
@@ -529,6 +529,7 @@ psa_status_t mbedtls_test_transparent_export_public_key(
     uint8_t *data, size_t data_size, size_t *data_length)
 {
     ++mbedtls_test_driver_key_management_hooks.hits;
+    ++mbedtls_test_driver_key_management_hooks.hits_export_public_key;
 
     if (mbedtls_test_driver_key_management_hooks.forced_status != PSA_SUCCESS) {
         return mbedtls_test_driver_key_management_hooks.forced_status;

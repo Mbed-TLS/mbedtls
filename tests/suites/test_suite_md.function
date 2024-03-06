@@ -1,6 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/md.h"
-#include "md_psa.h"
+#include "mbedtls/psa_util.h"
 
 #include "mbedtls/oid.h"
 #include "mbedtls/asn1.h"

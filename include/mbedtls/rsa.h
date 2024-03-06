@@ -878,6 +878,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign(mbedtls_rsa_context *ctx,
                                       const unsigned char *hash,
                                       unsigned char *sig);
 
+#if defined(MBEDTLS_PKCS1_V21)
 /**
  * \brief          This function performs a PKCS#1 v2.1 PSS signature
  *                 operation (RSASSA-PSS-SIGN).
@@ -978,6 +979,7 @@ int mbedtls_rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
                                 unsigned int hashlen,
                                 const unsigned char *hash,
                                 unsigned char *sig);
+#endif /* MBEDTLS_PKCS1_V21 */
 
 /**
  * \brief          This function performs a public RSA operation and checks

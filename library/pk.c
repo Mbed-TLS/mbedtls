@@ -18,6 +18,9 @@
 
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"
+#if defined(MBEDTLS_PKCS1_V21) && !defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "rsa_internal.h"
+#endif
 #endif
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #include "mbedtls/ecp.h"
@@ -26,9 +29,9 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa_util_internal.h"
-#include "md_psa.h"
+#include "mbedtls/psa_util.h"
 #endif
 
 #include <limits.h>
@@ -41,9 +44,9 @@ void mbedtls_pk_init(mbedtls_pk_context *ctx)
 {
     ctx->pk_info = NULL;
     ctx->pk_ctx = NULL;
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
     ctx->priv_id = MBEDTLS_SVC_KEY_ID_INIT;
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     memset(ctx->pub_raw, 0, sizeof(ctx->pub_raw));
     ctx->pub_raw_len = 0;
@@ -311,7 +314,6 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
     }
 
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_algorithm_t key_alg, key_alg2;
     psa_status_t status;
 
     status = psa_get_key_attributes(ctx->priv_id, &attributes);
@@ -319,8 +321,15 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
         return 0;
     }
 
-    key_alg = psa_get_key_algorithm(&attributes);
-    key_alg2 = psa_get_key_enrollment_algorithm(&attributes);
+    psa_algorithm_t key_alg = psa_get_key_algorithm(&attributes);
+    /* Key's enrollment is available only when MBEDTLS_PSA_CRYPTO_CLIENT is
+     * defined, i.e. when the Mbed TLS implementation of PSA Crypto is being used.
+     * Even though we don't officially support using other implementations of PSA
+     * Crypto with TLS and X.509 (yet), we're still trying to simplify the life of
+     * people who would like to try it before it's officially supported. */
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+    psa_algorithm_t key_alg2 = psa_get_key_enrollment_algorithm(&attributes);
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
     key_usage = psa_get_key_usage_flags(&attributes);
     psa_reset_key_attributes(&attributes);
 
@@ -329,18 +338,23 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
     }
 
     /*
-     * Common case: the key alg or alg2 only allows alg.
+     * Common case: the key alg [or alg2] only allows alg.
      * This will match PSA_ALG_RSA_PKCS1V15_CRYPT & PSA_ALG_IS_ECDH
      * directly.
      * This would also match ECDSA/RSA_PKCS1V15_SIGN/RSA_PSS with
-     * a fixed hash on key_alg/key_alg2.
+     * a fixed hash on key_alg [or key_alg2].
      */
-    if (alg == key_alg || alg == key_alg2) {
+    if (alg == key_alg) {
         return 1;
     }
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+    if (alg == key_alg2) {
+        return 1;
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
     /*
-     * If key_alg or key_alg2 is a hash-and-sign with a wildcard for the hash,
+     * If key_alg [or key_alg2] is a hash-and-sign with a wildcard for the hash,
      * and alg is the same hash-and-sign family with any hash,
      * then alg is compliant with this key alg
      */
@@ -351,12 +365,13 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
             (alg & ~PSA_ALG_HASH_MASK) == (key_alg & ~PSA_ALG_HASH_MASK)) {
             return 1;
         }
-
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
         if (PSA_ALG_IS_SIGN_HASH(key_alg2) &&
             PSA_ALG_SIGN_GET_HASH(key_alg2) == PSA_ALG_ANY_HASH &&
             (alg & ~PSA_ALG_HASH_MASK) == (key_alg2 & ~PSA_ALG_HASH_MASK)) {
             return 1;
         }
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
     }
 
     return 0;
@@ -567,7 +582,7 @@ int mbedtls_pk_verify_ext(mbedtls_pk_type_t type, const void *options,
 
         return PSA_PK_RSA_TO_MBEDTLS_ERR(status);
     } else
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     {
         if (sig_len < mbedtls_pk_get_len(ctx)) {
             return MBEDTLS_ERR_RSA_VERIFY_FAILED;
@@ -660,7 +675,6 @@ int mbedtls_pk_sign(mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
                                        f_rng, p_rng, NULL);
 }
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
 /*
  * Make a signature given a signature type.
  */
@@ -672,11 +686,6 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
                         int (*f_rng)(void *, unsigned char *, size_t),
                         void *p_rng)
 {
-#if defined(MBEDTLS_RSA_C)
-    psa_algorithm_t psa_md_alg;
-#endif /* MBEDTLS_RSA_C */
-    *sig_len = 0;
-
     if (ctx->pk_info == NULL) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
@@ -690,8 +699,10 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
                                sig, sig_size, sig_len, f_rng, p_rng);
     }
 
-#if defined(MBEDTLS_RSA_C)
-    psa_md_alg = mbedtls_md_psa_alg_from_type(md_alg);
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PKCS1_V21)
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    const psa_algorithm_t psa_md_alg = mbedtls_md_psa_alg_from_type(md_alg);
     if (psa_md_alg == 0) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
@@ -708,12 +719,31 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
     return mbedtls_pk_psa_rsa_sign_ext(PSA_ALG_RSA_PSS(psa_md_alg),
                                        ctx->pk_ctx, hash, hash_len,
                                        sig, sig_size, sig_len);
-#else /* MBEDTLS_RSA_C */
-    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-#endif /* !MBEDTLS_RSA_C */
+#else /* MBEDTLS_USE_PSA_CRYPTO */
 
+    if (sig_size < mbedtls_pk_get_len(ctx)) {
+        return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
+    }
+
+    if (pk_hashlen_helper(md_alg, &hash_len) != 0) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
+
+    mbedtls_rsa_context *const rsa_ctx = mbedtls_pk_rsa(*ctx);
+
+    const int ret = mbedtls_rsa_rsassa_pss_sign_no_mode_check(rsa_ctx, f_rng, p_rng, md_alg,
+                                                              (unsigned int) hash_len, hash, sig);
+    if (ret == 0) {
+        *sig_len = rsa_ctx->len;
+    }
+    return ret;
+
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+#else
+    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+#endif /* MBEDTLS_RSA_C && MBEDTLS_PKCS1_V21 */
 }
-#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 /*
  * Decrypt message

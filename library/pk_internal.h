@@ -19,9 +19,7 @@
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
-#endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
 #include "psa_util_internal.h"
 #define PSA_PK_TO_MBEDTLS_ERR(status) psa_pk_status_to_mbedtls(status)
 #define PSA_PK_RSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,     \
@@ -30,9 +28,23 @@
 #define PSA_PK_ECDSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
                                                                     psa_to_pk_ecdsa_errors,        \
                                                                     psa_pk_status_to_mbedtls)
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+/* Headers/footers for PEM files */
+#define PEM_BEGIN_PUBLIC_KEY    "-----BEGIN PUBLIC KEY-----"
+#define PEM_END_PUBLIC_KEY      "-----END PUBLIC KEY-----"
+#define PEM_BEGIN_PRIVATE_KEY_RSA   "-----BEGIN RSA PRIVATE KEY-----"
+#define PEM_END_PRIVATE_KEY_RSA     "-----END RSA PRIVATE KEY-----"
+#define PEM_BEGIN_PUBLIC_KEY_RSA     "-----BEGIN RSA PUBLIC KEY-----"
+#define PEM_END_PUBLIC_KEY_RSA     "-----END RSA PUBLIC KEY-----"
+#define PEM_BEGIN_PRIVATE_KEY_EC    "-----BEGIN EC PRIVATE KEY-----"
+#define PEM_END_PRIVATE_KEY_EC      "-----END EC PRIVATE KEY-----"
+#define PEM_BEGIN_PRIVATE_KEY_PKCS8 "-----BEGIN PRIVATE KEY-----"
+#define PEM_END_PRIVATE_KEY_PKCS8   "-----END PRIVATE KEY-----"
+#define PEM_BEGIN_ENCRYPTED_PRIVATE_KEY_PKCS8 "-----BEGIN ENCRYPTED PRIVATE KEY-----"
+#define PEM_END_ENCRYPTED_PRIVATE_KEY_PKCS8   "-----END ENCRYPTED PRIVATE KEY-----"
+
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 /**
  * Public function mbedtls_pk_ec() can be used to get direct access to the
  * wrapped ecp_keypair structure pointed to the pk_ctx. However this is not
@@ -68,10 +80,10 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec_rw(const mbedtls_pk_context pk)
             return NULL;
     }
 }
-#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS && !MBEDTLS_PK_USE_PSA_EC_DATA */
 
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
-static inline mbedtls_ecp_group_id mbedtls_pk_get_group_id(const mbedtls_pk_context *pk)
+static inline mbedtls_ecp_group_id mbedtls_pk_get_ec_group_id(const mbedtls_pk_context *pk)
 {
     mbedtls_ecp_group_id id;
 
@@ -86,13 +98,13 @@ static inline mbedtls_ecp_group_id mbedtls_pk_get_group_id(const mbedtls_pk_cont
         }
         opaque_key_type = psa_get_key_type(&opaque_attrs);
         curve = PSA_KEY_TYPE_ECC_GET_FAMILY(opaque_key_type);
-        id = mbedtls_ecc_group_of_psa(curve, psa_get_key_bits(&opaque_attrs), 0);
+        id = mbedtls_ecc_group_from_psa(curve, psa_get_key_bits(&opaque_attrs));
         psa_reset_key_attributes(&opaque_attrs);
     } else
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     {
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-        id = mbedtls_ecc_group_of_psa(pk->ec_family, pk->ec_bits, 0);
+        id = mbedtls_ecc_group_from_psa(pk->ec_family, pk->ec_bits);
 #else /* MBEDTLS_PK_USE_PSA_EC_DATA */
         id = mbedtls_pk_ec_ro(*pk)->grp.id;
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
@@ -105,6 +117,16 @@ static inline mbedtls_ecp_group_id mbedtls_pk_get_group_id(const mbedtls_pk_cont
 #if defined(MBEDTLS_ECP_HAVE_CURVE25519) || defined(MBEDTLS_ECP_HAVE_CURVE448)
 #define MBEDTLS_PK_HAVE_RFC8410_CURVES
 #endif /* MBEDTLS_ECP_HAVE_CURVE25519 || MBEDTLS_ECP_DP_CURVE448 */
+
+#define MBEDTLS_PK_IS_RFC8410_GROUP_ID(id)  \
+    ((id == MBEDTLS_ECP_DP_CURVE25519) || (id == MBEDTLS_ECP_DP_CURVE448))
+
+static inline int mbedtls_pk_is_rfc8410(const mbedtls_pk_context *pk)
+{
+    mbedtls_ecp_group_id id = mbedtls_pk_get_ec_group_id(pk);
+
+    return MBEDTLS_PK_IS_RFC8410_GROUP_ID(id);
+}
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
 /* Helper for (deterministic) ECDSA */

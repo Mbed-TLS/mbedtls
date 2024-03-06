@@ -23,7 +23,7 @@
  * By defining the macros ourselves we gain access to those declarations without
  * requiring -march on the command line.
  *
- * `arm_neon.h` could be included by any header file, so we put these defines
+ * `arm_neon.h` is included by common.h, so we put these defines
  * at the top of this file, before any includes.
  */
 #define __ARM_FEATURE_CRYPTO 1
@@ -45,7 +45,7 @@
 
 #include "aesce.h"
 
-#if defined(MBEDTLS_ARCH_IS_ARMV8_A) && defined(__ARM_NEON)
+#if defined(MBEDTLS_AESCE_HAVE_CODE)
 
 /* Compiler version checks. */
 #if defined(__clang__)
@@ -74,12 +74,6 @@
 #    elif defined(MBEDTLS_ARCH_IS_ARM64) && (__ARMCC_VERSION < 6060000)
 #         error "Minimum version of armclang for MBEDTLS_AESCE_C on aarch64 is 6.6."
 #    endif
-#endif
-
-#ifdef __ARM_NEON
-#include <arm_neon.h>
-#else
-#error "Target does not support NEON instructions"
 #endif
 
 #if !(defined(__ARM_FEATURE_CRYPTO) || defined(__ARM_FEATURE_AES)) || \
@@ -619,6 +613,6 @@ void mbedtls_aesce_gcm_mult(unsigned char c[16],
 #undef MBEDTLS_POP_TARGET_PRAGMA
 #endif
 
-#endif /* MBEDTLS_ARCH_IS_ARMV8_A */
+#endif /* MBEDTLS_AESCE_HAVE_CODE */
 
 #endif /* MBEDTLS_AESCE_C */

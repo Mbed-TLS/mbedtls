@@ -230,7 +230,7 @@ void mbedtls_debug_print_mpi(const mbedtls_ssl_context *ssl, int level,
                              const char *text, const mbedtls_mpi *X);
 #endif
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 /**
  * \brief   Print an ECP point to the debug output. This function is always
  *          used through the MBEDTLS_SSL_DEBUG_ECP() macro, which supplies the

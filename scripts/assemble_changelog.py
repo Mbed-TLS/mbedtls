@@ -115,7 +115,7 @@ class ChangelogFormat:
 class TextChangelogFormat(ChangelogFormat):
     """The traditional Mbed TLS changelog format."""
 
-    _unreleased_version_text = '= Mbed TLS x.x.x branch released xxxx-xx-xx'
+    _unreleased_version_text = '= {} x.x.x branch released xxxx-xx-xx'
     @classmethod
     def is_released_version(cls, title):
         # Look for an incomplete release date
@@ -123,6 +123,7 @@ class TextChangelogFormat(ChangelogFormat):
 
     _top_version_re = re.compile(r'(?:\A|\n)(=[^\n]*\n+)(.*?\n)(?:=|$)',
                                  re.DOTALL)
+    _name_re = re.compile(r'=\s(.*)\s[0-9x]+\.', re.DOTALL)
     @classmethod
     def extract_top_version(cls, changelog_file_content):
         """A version section starts with a line starting with '='."""
@@ -131,9 +132,10 @@ class TextChangelogFormat(ChangelogFormat):
         top_version_end = m.end(2)
         top_version_title = m.group(1)
         top_version_body = m.group(2)
+        name = re.match(cls._name_re, top_version_title).group(1)
         if cls.is_released_version(top_version_title):
             top_version_end = top_version_start
-            top_version_title = cls._unreleased_version_text + '\n\n'
+            top_version_title = cls._unreleased_version_text.format(name) + '\n\n'
             top_version_body = ''
         return (changelog_file_content[:top_version_start],
                 top_version_title, top_version_body,
@@ -245,6 +247,7 @@ class ChangeLog:
         for category in STANDARD_CATEGORIES:
             self.categories[category] = ''
         offset = (self.header + self.top_version_title).count('\n') + 1
+
         self.add_categories_from_text(input_stream.name, offset,
                                       top_version_body, True)
 

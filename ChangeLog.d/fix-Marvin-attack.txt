@@ -1,8 +1,0 @@
-Security
-   * Fix a timing side channel in private key RSA operations. This side channel
-     could be sufficient for an attacker to recover the plaintext. A local
-     attacker or a remote attacker who is close to the victim on the network
-     might have precise enough timing measurements to exploit this. It requires
-     the attacker to send a large number of messages for decryption. For
-     details, see "Everlasting ROBOT: the Marvin Attack", Hubert Kario. Reported
-     by Hubert Kario, Red Hat.

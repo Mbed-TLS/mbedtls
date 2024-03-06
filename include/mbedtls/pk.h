@@ -426,6 +426,39 @@ int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
  *                  parameters are not correct.
  */
 int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id, mbedtls_pk_context *pk);
+
+/**
+ * \brief           Create a PK context for the public key of a PSA key.
+ *
+ *                  The key must be an RSA or ECC key. It can be either a
+ *                  public key or a key pair, and only the public key is copied.
+ *                  The resulting PK object will be a transparent type:
+ *                  - #MBEDTLS_PK_RSA for RSA keys or
+ *                  - #MBEDTLS_PK_ECKEY for EC keys.
+ *
+ *                  Once this functions returns the PK object will be completely
+ *                  independent from the original PSA key that it was generated
+ *                  from.
+ *                  Calling mbedtls_pk_verify() or
+ *                  mbedtls_pk_encrypt() on the resulting
+ *                  PK context will perform the corresponding algorithm for that
+ *                  PK context type.
+ *
+ *                  For an RSA key, the output PK context will allow both
+ *                  encrypt and verify regardless of the original key's policy.
+ *                  The original key's policy determines the output key's padding
+ *                  mode: PCKS1 v2.1 is set if the PSA key policy is OAEP or PSS,
+ *                  otherwise PKCS1 v1.5 is set.
+ *
+ * \param key_id    The key identifier of the key stored in PSA.
+ * \param pk        The PK context that will be filled. It must be initialized,
+ *                  but not set up.
+ *
+ * \return          0 on success.
+ * \return          MBEDTLS_ERR_PK_BAD_INPUT_DATA in case the provided input
+ *                  parameters are not correct.
+ */
+int mbedtls_pk_copy_public_from_psa(mbedtls_svc_key_id_t key_id, mbedtls_pk_context *pk);
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)

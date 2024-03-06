@@ -7046,7 +7046,7 @@ run_test    "Not supported version check G->m: 1.3 / 1.2 (max=1.2)" \
             -s "The handshake negotiation failed" \
             -S "Protocol is TLSv1.3"
 
-# Tests of version negotiation on client side against GnuTLS server
+# Tests of version negotiation on client side against GnuTLS and OpenSSL server
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Not supported version check: srv max TLS 1.0" \
@@ -7067,6 +7067,88 @@ run_test    "Not supported version check: srv max TLS 1.1" \
             -c "Handshake protocol not within min/max boundaries" \
             -S "Version: TLS1.1" \
             -C "Protocol is TLSv1.1"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+skip_handshake_stage_check
+requires_gnutls_tls1_3
+run_test    "TLS 1.3: Not supported version check:gnutls: srv max TLS 1.0" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0 -d 4" \
+            "$P_CLI debug_level=4" \
+            1 \
+            -s "Client's version: 3.3" \
+            -S "Version: TLS1.0" \
+            -C "Protocol is TLSv1.0"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+skip_handshake_stage_check
+requires_gnutls_tls1_3
+run_test    "TLS 1.3: Not supported version check:gnutls: srv max TLS 1.1" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.1 -d 4" \
+            "$P_CLI debug_level=4" \
+            1 \
+            -s "Client's version: 3.3" \
+            -S "Version: TLS1.1" \
+            -C "Protocol is TLSv1.1"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+skip_handshake_stage_check
+requires_gnutls_tls1_3
+run_test    "TLS 1.3: Not supported version check:gnutls: srv max TLS 1.2" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.2 -d 4" \
+            "$P_CLI force_version=tls13 debug_level=4" \
+            1 \
+            -s "Client's version: 3.3" \
+            -c "is a fatal alert message (msg 40)" \
+            -S "Version: TLS1.2" \
+            -C "Protocol is TLSv1.2"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+skip_handshake_stage_check
+requires_openssl_next
+run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.0" \
+            "$O_NEXT_SRV -msg -tls1" \
+            "$P_CLI debug_level=4" \
+            1 \
+            -s "fatal protocol_version" \
+            -c "is a fatal alert message (msg 70)" \
+            -S "Version: TLS1.0" \
+            -C "Protocol  : TLSv1.0"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+skip_handshake_stage_check
+requires_openssl_next
+run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.1" \
+            "$O_NEXT_SRV -msg -tls1_1" \
+            "$P_CLI debug_level=4" \
+            1 \
+            -s "fatal protocol_version" \
+            -c "is a fatal alert message (msg 70)" \
+            -S "Version: TLS1.1" \
+            -C "Protocol  : TLSv1.1"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+skip_handshake_stage_check
+requires_openssl_next
+run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.2" \
+            "$O_NEXT_SRV -msg -tls1_2" \
+            "$P_CLI force_version=tls13 debug_level=4" \
+            1 \
+            -s "fatal protocol_version" \
+            -c "is a fatal alert message (msg 70)" \
+            -S "Version: TLS1.2" \
+            -C "Protocol  : TLSv1.2"
 
 # Tests for ALPN extension
 
@@ -11953,88 +12035,6 @@ run_test    "TLS 1.3: server alpn - gnutls" \
             -s "Protocol is TLSv1.3" \
             -s "HTTP/1.0 200 OK" \
             -s "Application Layer Protocol is h2"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-skip_handshake_stage_check
-requires_gnutls_tls1_3
-run_test    "TLS 1.3: Not supported version check:gnutls: srv max TLS 1.0" \
-            "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0 -d 4" \
-            "$P_CLI debug_level=4" \
-            1 \
-            -s "Client's version: 3.3" \
-            -S "Version: TLS1.0" \
-            -C "Protocol is TLSv1.0"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-skip_handshake_stage_check
-requires_gnutls_tls1_3
-run_test    "TLS 1.3: Not supported version check:gnutls: srv max TLS 1.1" \
-            "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.1 -d 4" \
-            "$P_CLI debug_level=4" \
-            1 \
-            -s "Client's version: 3.3" \
-            -S "Version: TLS1.1" \
-            -C "Protocol is TLSv1.1"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-skip_handshake_stage_check
-requires_gnutls_tls1_3
-run_test    "TLS 1.3: Not supported version check:gnutls: srv max TLS 1.2" \
-            "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.2 -d 4" \
-            "$P_CLI force_version=tls13 debug_level=4" \
-            1 \
-            -s "Client's version: 3.3" \
-            -c "is a fatal alert message (msg 40)" \
-            -S "Version: TLS1.2" \
-            -C "Protocol is TLSv1.2"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-skip_handshake_stage_check
-requires_openssl_next
-run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.0" \
-            "$O_NEXT_SRV -msg -tls1" \
-            "$P_CLI debug_level=4" \
-            1 \
-            -s "fatal protocol_version" \
-            -c "is a fatal alert message (msg 70)" \
-            -S "Version: TLS1.0" \
-            -C "Protocol  : TLSv1.0"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-skip_handshake_stage_check
-requires_openssl_next
-run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.1" \
-            "$O_NEXT_SRV -msg -tls1_1" \
-            "$P_CLI debug_level=4" \
-            1 \
-            -s "fatal protocol_version" \
-            -c "is a fatal alert message (msg 70)" \
-            -S "Version: TLS1.1" \
-            -C "Protocol  : TLSv1.1"
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-skip_handshake_stage_check
-requires_openssl_next
-run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.2" \
-            "$O_NEXT_SRV -msg -tls1_2" \
-            "$P_CLI force_version=tls13 debug_level=4" \
-            1 \
-            -s "fatal protocol_version" \
-            -c "is a fatal alert message (msg 70)" \
-            -S "Version: TLS1.2" \
-            -C "Protocol  : TLSv1.2"
 
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

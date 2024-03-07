@@ -688,15 +688,16 @@ static int ssl_pick_cert(mbedtls_ssl_context *ssl,
                          const mbedtls_ssl_ciphersuite_t *ciphersuite_info)
 {
     mbedtls_ssl_key_cert *cur, *list;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_algorithm_t pk_alg =
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+    psa_algorithm_t psa_alg =
         mbedtls_ssl_get_ciphersuite_sig_pk_psa_alg(ciphersuite_info);
-    psa_key_usage_t pk_usage =
+    psa_key_usage_t psa_usage =
         mbedtls_ssl_get_ciphersuite_sig_pk_psa_usage(ciphersuite_info);
-#else
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_pk_type_t pk_alg =
         mbedtls_ssl_get_ciphersuite_sig_pk_alg(ciphersuite_info);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
     uint32_t flags;
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
@@ -708,7 +709,7 @@ static int ssl_pick_cert(mbedtls_ssl_context *ssl,
 
     int pk_alg_is_none = 0;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    pk_alg_is_none = (pk_alg == PSA_ALG_NONE);
+    pk_alg_is_none = (psa_alg == PSA_ALG_NONE);
 #else
     pk_alg_is_none = (pk_alg == MBEDTLS_PK_NONE);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -729,19 +730,19 @@ static int ssl_pick_cert(mbedtls_ssl_context *ssl,
                               cur->cert);
 
         int key_type_matches = 0;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         key_type_matches = ((ssl->conf->f_async_sign_start != NULL ||
                              ssl->conf->f_async_decrypt_start != NULL ||
-                             mbedtls_pk_can_do_ext(cur->key, pk_alg, pk_usage)) &&
-                            mbedtls_pk_can_do_ext(&cur->cert->pk, pk_alg, pk_usage));
+                             mbedtls_pk_can_do_ext(cur->key, psa_alg, psa_usage)) &&
+                            mbedtls_pk_can_do_ext(&cur->cert->pk, psa_alg, psa_usage));
 #else
         key_type_matches = (
-            mbedtls_pk_can_do_ext(cur->key, pk_alg, pk_usage));
+            mbedtls_pk_can_do_ext(cur->key, psa_alg, psa_usage));
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 #else
         key_type_matches = mbedtls_pk_can_do(&cur->cert->pk, pk_alg);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
         if (!key_type_matches) {
             MBEDTLS_SSL_DEBUG_MSG(3, ("certificate mismatch: key type"));
             continue;
@@ -763,7 +764,12 @@ static int ssl_pick_cert(mbedtls_ssl_context *ssl,
         }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)
-        if (pk_alg == MBEDTLS_PK_ECDSA &&
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        const int is_ecdsa = PSA_ALG_IS_ECDSA(psa_alg);
+#else
+        const int is_ecdsa = pk_alg == MBEDTLS_PK_ECDSA;
+#endif
+        if (is_ecdsa &&
             ssl_check_key_curve(&cur->cert->pk,
                                 ssl->handshake->curves_tls_id) != 0) {
             MBEDTLS_SSL_DEBUG_MSG(3, ("certificate mismatch: elliptic curve"));

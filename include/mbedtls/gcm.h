@@ -70,6 +70,7 @@ typedef struct mbedtls_gcm_context {
     unsigned char MBEDTLS_PRIVATE(mode);                     /*!< The operation to perform:
                                                               #MBEDTLS_GCM_ENCRYPT or
                                                               #MBEDTLS_GCM_DECRYPT. */
+    unsigned char MBEDTLS_PRIVATE(unused);                   /*!< UNUSED. This field should be removed in 4.x */
 }
 mbedtls_gcm_context;
 

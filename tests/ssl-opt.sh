@@ -2259,7 +2259,7 @@ run_test    "Opaque key for server authentication: ECDHE-ECDSA" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_PSA_CRYPTO_C
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_256
 run_test    "Opaque key for server authentication: ECDH-" \
@@ -2274,6 +2274,23 @@ run_test    "Opaque key for server authentication: ECDH-" \
             -s "Ciphersuite is TLS-ECDH-" \
             -S "error" \
             -C "error"
+
+# Static ECDH is not yet supported with opaque keys when MBEDTLS_USE_PSA_CRYPTO
+# is disabled. Check that we get an internal error and not a crash. When
+# this limitation is lifted, remove this test case and adjust the previous
+# one to depend on MBEDTLS_PSA_CRYPTO_C instead of MBEDTLS_USE_PSA_CRYPTO.
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_hash_alg SHA_256
+run_test    "Opaque key for server authentication: ECDH- (no USE_PSA_CRYPTO)" \
+            "$P_SRV auth_mode=required key_opaque=1\
+             crt_file=data_files/server5.ku-ka.crt\
+             key_file=data_files/server5.key key_opaque_algs=ecdh,none" \
+            "$P_CLI force_version=tls12" \
+            1 \
+            -s "key types: Opaque, none" \
+            -s "Internal error"
 
 requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
@@ -2372,7 +2389,7 @@ run_test    "Opaque keys for server authentication: EC keys with different algs,
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_PSA_CRYPTO_C
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_384
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
@@ -2390,6 +2407,25 @@ run_test    "Opaque keys for server authentication: EC keys with different algs,
             -s "Ciphersuite is TLS-ECDH-ECDSA" \
             -S "error" \
             -C "error"
+
+# Static ECDH is not yet supported with opaque keys when MBEDTLS_USE_PSA_CRYPTO
+# is disabled. Check that we get an internal error and not a crash. When
+# this limitation is lifted, remove this test case and adjust the previous
+# one to depend on MBEDTLS_PSA_CRYPTO_C instead of MBEDTLS_USE_PSA_CRYPTO.
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_hash_alg SHA_384
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+run_test    "Opaque keys for server authentication: EC keys with different algs, force ECDH-ECDSA (no USE_PSA_CRYPTO)" \
+            "$P_SRV key_opaque=1 crt_file=data_files/server7.crt \
+             key_file=data_files/server7.key key_opaque_algs=ecdsa-sign,none \
+             crt_file2=data_files/server5.crt key_file2=data_files/server5.key \
+             key_opaque_algs2=ecdh,none debug_level=3" \
+            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDH-ECDSA-WITH-CAMELLIA-256-CBC-SHA384" \
+            1 \
+            -s "key types: Opaque, Opaque" \
+            -s "Internal error"
 
 requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C

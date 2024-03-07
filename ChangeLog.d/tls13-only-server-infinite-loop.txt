@@ -1,5 +1,0 @@
-Security
-   * Fixed a denial of service in TLS 1.3-only server (TLS 1.2 support
-     disabled at build time): a TLS client could put the TLS 1.3-only server in
-     an infinite loop processing a TLS 1.2 ClientHello. Reported by Matthias
-     Mucha and Thomas Blattmann, SICK AG.

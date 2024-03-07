@@ -2743,8 +2743,12 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
     }
 
-    if ((ret = mbedtls_ecdh_get_params(&ssl->handshake->ecdh_ctx,
-                                       mbedtls_pk_ec_ro(*mbedtls_ssl_own_key(ssl)),
+    const mbedtls_ecp_keypair *ec = mbedtls_pk_ec_ro(*private_key);
+    if (ec == NULL) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("key for ECDH is ECKEY but not mbedtls_ecp"));
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+    if ((ret = mbedtls_ecdh_get_params(&ssl->handshake->ecdh_ctx, ec,
                                        MBEDTLS_ECDH_OURS)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ecdh_get_params"), ret);
         return ret;

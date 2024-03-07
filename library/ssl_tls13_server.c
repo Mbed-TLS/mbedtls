@@ -74,8 +74,8 @@ static void ssl_tls13_select_ciphersuite(
         }
 
         /*
-         * If a valid PSK ciphersuite identifier has been passed in, we seek
-         * for an exact match.
+         * If a valid PSK ciphersuite identifier has been passed in, we want
+         * an exact match.
          */
         if (psk_ciphersuite_id != 0) {
             if (id != psk_ciphersuite_id) {
@@ -155,7 +155,7 @@ static int ssl_tls13_parse_key_exchange_modes_ext(mbedtls_ssl_context *ssl,
  * up by the callers of this function as a generic success condition.
  *
  * The return value SSL_TLS1_3_PSK_IDENTITY_MATCH_BUT_PSK_NOT_USABLE means
- * that the pre-shared-key identity matches that of a ticket or an external
+ * that the pre-shared-key identity matches that of a ticket or an externally-
  * provisioned pre-shared-key. We have thus been able to retrieve the
  * attributes of the pre-shared-key but at least one of them does not meet
  * some criteria and the pre-shared-key cannot be used. For example, a ticket
@@ -1673,7 +1673,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     /* Update checksum with either
      * - The entire content of the CH message, if no PSK extension is present
      * - The content up to but excluding the PSK extension, if present.
-     * Always parse the pre-shared key extension when present in the
+     * Always parse the pre-shared-key extension when present in the
      * ClientHello even if some pre-requisites for PSK key exchange modes are
      * not met. That way we always validate the syntax of the extension.
      */

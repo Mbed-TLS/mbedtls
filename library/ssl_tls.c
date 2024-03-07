@@ -3736,6 +3736,7 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /* Serialization of TLS 1.3 sessions:
  *
+ * For more detail, see the description of ssl_session_save().
  *     struct {
  *       opaque hostname<0..2^16-1>;
  *       uint64 ticket_reception_time;
@@ -4130,6 +4131,12 @@ static int ssl_tls13_session_load(const mbedtls_ssl_session *session,
 #define SSL_SERIALIZED_SESSION_CONFIG_RECORD_SIZE 0
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
+#if defined(MBEDTLS_SSL_ALPN)
+#define SSL_SERIALIZED_SESSION_CONFIG_ALPN 1
+#else
+#define SSL_SERIALIZED_SESSION_CONFIG_ALPN 0
+#endif /* MBEDTLS_SSL_ALPN */
+
 #define SSL_SERIALIZED_SESSION_CONFIG_TIME_BIT          0
 #define SSL_SERIALIZED_SESSION_CONFIG_CRT_BIT           1
 #define SSL_SERIALIZED_SESSION_CONFIG_CLIENT_TICKET_BIT 2
@@ -4140,6 +4147,7 @@ static int ssl_tls13_session_load(const mbedtls_ssl_session *session,
 #define SSL_SERIALIZED_SESSION_CONFIG_SNI_BIT           7
 #define SSL_SERIALIZED_SESSION_CONFIG_EARLY_DATA_BIT    8
 #define SSL_SERIALIZED_SESSION_CONFIG_RECORD_SIZE_BIT   9
+#define SSL_SERIALIZED_SESSION_CONFIG_ALPN_BIT          10
 
 #define SSL_SERIALIZED_SESSION_CONFIG_BITFLAG                           \
     ((uint16_t) (                                                      \
@@ -4156,7 +4164,9 @@ static int ssl_tls13_session_load(const mbedtls_ssl_session *session,
          (SSL_SERIALIZED_SESSION_CONFIG_EARLY_DATA << \
              SSL_SERIALIZED_SESSION_CONFIG_EARLY_DATA_BIT) | \
          (SSL_SERIALIZED_SESSION_CONFIG_RECORD_SIZE << \
-             SSL_SERIALIZED_SESSION_CONFIG_RECORD_SIZE_BIT)))
+             SSL_SERIALIZED_SESSION_CONFIG_RECORD_SIZE_BIT) | \
+        (SSL_SERIALIZED_SESSION_CONFIG_ALPN << \
+             SSL_SERIALIZED_SESSION_CONFIG_ALPN_BIT)))
 
 static const unsigned char ssl_serialized_session_header[] = {
     MBEDTLS_VERSION_MAJOR,

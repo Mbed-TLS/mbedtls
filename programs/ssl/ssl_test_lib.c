@@ -219,7 +219,7 @@ int key_opaque_alg_parse(const char *arg, const char **alg1, const char **alg2)
     return 0;
 }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 int key_opaque_set_alg_usage(const char *alg1, const char *alg2,
                              psa_algorithm_t *psa_alg1,
                              psa_algorithm_t *psa_alg2,
@@ -275,7 +275,7 @@ int key_opaque_set_alg_usage(const char *alg1, const char *alg2,
 
     return 0;
 }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 int ca_callback(void *data, mbedtls_x509_crt const *child,

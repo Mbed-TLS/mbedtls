@@ -39,4 +39,3 @@ void mbedtls_aesppc_gcm_mult(unsigned char output[16],
 #endif /* PPC_LITTLE_ENDIAN */
 
 #endif /* powerpc64 */
-

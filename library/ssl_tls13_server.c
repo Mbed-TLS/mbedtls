@@ -92,7 +92,8 @@ static void ssl_tls13_select_ciphersuite(
         return;
     }
 
-    MBEDTLS_SSL_DEBUG_MSG(2, ("No matched ciphersuite"));
+    MBEDTLS_SSL_DEBUG_MSG(2, ("No matched ciphersuite, psk_ciphersuite_id=%x, psk_hash_alg=%x",
+                              (unsigned) psk_ciphersuite_id, psk_hash_alg));
 }
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
@@ -210,7 +211,6 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      */
     ticket_buffer = mbedtls_calloc(1, identity_len);
     if (ticket_buffer == NULL) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("buffer too small"));
         return MBEDTLS_ERR_SSL_ALLOC_FAILED;
     }
     memcpy(ticket_buffer, identity, identity_len);

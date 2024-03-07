@@ -1472,6 +1472,10 @@ int mbedtls_ssl_tls13_check_early_data_len(mbedtls_ssl_context *ssl,
      *
      * A server receiving more than max_early_data_size bytes of 0-RTT data
      * SHOULD terminate the connection with an "unexpected_message" alert.
+     * Note that if it is still possible to send early_data_len bytes of early
+     * data, it means that early_data_len is smaller than max_early_data_size
+     * (type uint32_t) and can fit in an uint32_t. We use this further
+     * down.
      */
     if (early_data_len >
         (ssl->session_negotiate->max_early_data_size -
@@ -1489,11 +1493,10 @@ int mbedtls_ssl_tls13_check_early_data_len(mbedtls_ssl_context *ssl,
     }
 
     /*
-     * The check just above implies that early_data_len is lower than
-     * UINT32_MAX thus its cast to an uint32_t below is safe. We need it
-     * to appease some compilers.
+     * early_data_len has been checked to be less than max_early_data_size
+     * that is uint32_t. Its cast to an uint32_t below is thus safe. We need
+     * the cast to appease some compilers.
      */
-
     ssl->total_early_data_size += (uint32_t) early_data_len;
 
     return 0;

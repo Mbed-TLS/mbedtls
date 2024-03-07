@@ -4146,7 +4146,7 @@ static int ssl_tls13_session_load(const mbedtls_ssl_session *session,
              SSL_SERIALIZED_SESSION_CONFIG_EARLY_DATA_BIT) | \
          (SSL_SERIALIZED_SESSION_CONFIG_RECORD_SIZE << \
              SSL_SERIALIZED_SESSION_CONFIG_RECORD_SIZE_BIT) | \
-        (SSL_SERIALIZED_SESSION_CONFIG_ALPN << \
+         (SSL_SERIALIZED_SESSION_CONFIG_ALPN << \
              SSL_SERIALIZED_SESSION_CONFIG_ALPN_BIT)))
 
 static const unsigned char ssl_serialized_session_header[] = {

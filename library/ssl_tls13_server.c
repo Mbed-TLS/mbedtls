@@ -478,7 +478,7 @@ struct psk_attributes {
     int key_exchange_mode;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 };
-#define PSK_ATTRIBUTES_INIT { 0, 0, 0 }
+#define PSK_ATTRIBUTES_INIT { 0, 0, NULL }
 
 /* Parser for pre_shared_key extension in client hello
  *    struct {

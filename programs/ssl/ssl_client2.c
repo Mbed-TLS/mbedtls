@@ -817,8 +817,8 @@ int main(int argc, char *argv[])
     psa_algorithm_t alg = 0;
     psa_key_attributes_t key_attributes;
 #endif
-    psa_status_t status;
-#elif defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#endif
+#if defined(MBEDTLS_PSA_CRYPTO_C)
     psa_status_t status;
 #endif
 
@@ -837,7 +837,7 @@ int main(int argc, char *argv[])
     mbedtls_x509_crt clicert;
     mbedtls_pk_context pkey;
     mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
     mbedtls_svc_key_id_t key_slot = MBEDTLS_SVC_KEY_ID_INIT; /* invalid key slot */
 #endif
 #endif  /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
@@ -894,15 +894,6 @@ int main(int argc, char *argv[])
     memset((void *) alpn_list, 0, sizeof(alpn_list));
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    status = psa_crypto_init();
-    if (status != PSA_SUCCESS) {
-        mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
-                        (int) status);
-        ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
-        goto exit;
-    }
-#endif  /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
     mbedtls_test_enable_insecure_external_rng();
 #endif  /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
@@ -1111,7 +1102,7 @@ usage:
         } else if (strcmp(p, "key_pwd") == 0) {
             opt.key_pwd = q;
         }
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
         else if (strcmp(p, "key_opaque") == 0) {
             opt.key_opaque = atoi(q);
         }
@@ -1663,6 +1654,25 @@ usage:
     mbedtls_printf("\n  . Seeding the random number generator...");
     fflush(stdout);
 
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+    int need_psa = 0;
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    need_psa = 1;
+#endif
+    if (opt.key_opaque != 0) {
+        need_psa = 1;
+    }
+    if (need_psa) {
+        status = psa_crypto_init();
+        if (status != PSA_SUCCESS) {
+            mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
+                            (int) status);
+            ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+            goto exit;
+        }
+    }
+#endif
+
     ret = rng_seed(&rng, opt.reproducible, pers);
     if (ret != 0) {
         goto exit;
@@ -1759,7 +1769,7 @@ usage:
         goto exit;
     }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
     if (opt.key_opaque != 0) {
         psa_algorithm_t psa_alg, psa_alg2 = PSA_ALG_NONE;
         psa_key_usage_t usage = 0;
@@ -1778,7 +1788,7 @@ usage:
             }
         }
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
     mbedtls_printf(" ok (key type: %s)\n",
                    strlen(opt.key_file) || strlen(opt.key_opaque_alg1) ?
@@ -3132,7 +3142,7 @@ exit:
     mbedtls_x509_crt_free(&clicert);
     mbedtls_x509_crt_free(&cacert);
     mbedtls_pk_free(&pkey);
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
     psa_destroy_key(key_slot);
 #endif
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
@@ -3192,8 +3202,7 @@ exit:
 
     /* For builds with MBEDTLS_TEST_USE_PSA_CRYPTO_RNG psa crypto
      * resources are freed by rng_free(). */
-#if (defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)) && \
-    !defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
+#if defined(MBEDTLS_PSA_CRYPTO_C) && !defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
     mbedtls_psa_crypto_free();
 #endif
 

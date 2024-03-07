@@ -214,7 +214,7 @@ int rng_get(void *p_rng, unsigned char *output, size_t output_len);
  */
 int key_opaque_alg_parse(const char *arg, const char **alg1, const char **alg2);
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 /** Parse given opaque key algorithms to obtain psa algs and usage
  *  that will be passed to mbedtls_pk_wrap_as_opaque().
  *
@@ -260,7 +260,7 @@ int key_opaque_set_alg_usage(const char *alg1, const char *alg2,
 int pk_wrap_as_opaque(mbedtls_pk_context *pk, psa_algorithm_t psa_alg, psa_algorithm_t psa_alg2,
                       psa_key_usage_t psa_usage, mbedtls_svc_key_id_t *key_id);
 #endif /* MBEDTLS_PK_C */
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 /* The test implementation of the PSA external RNG is insecure. When

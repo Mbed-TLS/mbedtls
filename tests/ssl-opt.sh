@@ -2188,7 +2188,7 @@ run_test    "CA callback on server" \
             -C "error"
 
 # Test using an EC opaque private key for client authentication
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 requires_hash_alg SHA_256
@@ -2206,7 +2206,7 @@ run_test    "Opaque key for client authentication: ECDHE-ECDSA" \
             -C "error"
 
 # Test using a RSA opaque private key for client authentication
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
@@ -2224,7 +2224,7 @@ run_test    "Opaque key for client authentication: ECDHE-RSA" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
@@ -2243,7 +2243,7 @@ run_test    "Opaque key for client authentication: DHE-RSA" \
             -C "error"
 
 # Test using an EC opaque private key for server authentication
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 requires_hash_alg SHA_256
@@ -2259,7 +2259,7 @@ run_test    "Opaque key for server authentication: ECDHE-ECDSA" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_256
 run_test    "Opaque key for server authentication: ECDH-" \
@@ -2275,7 +2275,7 @@ run_test    "Opaque key for server authentication: ECDH-" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_disabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_hash_alg SHA_256
@@ -2290,7 +2290,7 @@ run_test    "Opaque key for server authentication: invalid key: decrypt with ECC
             -c "error" \
             -c "Public key type mismatch"
 
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_RSA_C
@@ -2307,7 +2307,7 @@ run_test    "Opaque key for server authentication: invalid key: ecdh with RSA ke
             -c "error" \
             -c "Public key type mismatch"
 
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_hash_alg SHA_256
@@ -2322,7 +2322,7 @@ run_test    "Opaque key for server authentication: invalid alg: decrypt with ECC
             -s "error" \
             -c "error"
 
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
@@ -2338,7 +2338,7 @@ run_test    "Opaque key for server authentication: invalid alg: ecdh with RSA ke
             -s "error" \
             -c "error"
 
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_256
 run_test    "Opaque key for server authentication: invalid alg: ECDHE-ECDSA with ecdh" \
@@ -2352,7 +2352,7 @@ run_test    "Opaque key for server authentication: invalid alg: ECDHE-ECDSA with
             -s "error" \
             -c "error"
 
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 requires_hash_alg SHA_256
@@ -2372,7 +2372,7 @@ run_test    "Opaque keys for server authentication: EC keys with different algs,
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_384
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
@@ -2391,7 +2391,7 @@ run_test    "Opaque keys for server authentication: EC keys with different algs,
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_384
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
@@ -2468,7 +2468,7 @@ run_test    "TLS 1.3 opaque key: 2 keys on server, suitable algorithm found" \
             -S "error" \
 
 # Test using a RSA opaque private key for server authentication
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
@@ -2485,7 +2485,7 @@ run_test    "Opaque key for server authentication: ECDHE-RSA" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
@@ -2501,7 +2501,7 @@ run_test    "Opaque key for server authentication: DHE-RSA" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
@@ -2518,7 +2518,7 @@ run_test    "Opaque key for server authentication: RSA-PSK" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
@@ -2533,7 +2533,7 @@ run_test    "Opaque key for server authentication: RSA-" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
@@ -2548,7 +2548,7 @@ run_test    "Opaque key for server authentication: DHE-RSA, PSS instead of PKCS1
             -s "error" \
             -c "error"
 
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
@@ -2569,7 +2569,7 @@ run_test    "Opaque keys for server authentication: RSA keys with different algs
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_384
@@ -2590,7 +2590,7 @@ run_test    "Opaque keys for server authentication: EC + RSA, force DHE-RSA" \
             -C "error"
 
 # Test using an EC opaque private key for client/server authentication
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 requires_hash_alg SHA_256
@@ -2610,7 +2610,7 @@ run_test    "Opaque key for client/server authentication: ECDHE-ECDSA" \
             -C "error"
 
 # Test using a RSA opaque private key for client/server authentication
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
@@ -2630,7 +2630,7 @@ run_test    "Opaque key for client/server authentication: ECDHE-RSA" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_PSA_CRYPTO_C
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256

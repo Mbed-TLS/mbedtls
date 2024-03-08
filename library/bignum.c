@@ -37,6 +37,19 @@
 
 #include "mbedtls/platform.h"
 
+
+
+/*
+ * Conditionally select an MPI sign in constant time.
+ * (MPI sign is the field s in mbedtls_mpi. It is unsigned short and only 1 and -1 are valid
+ * values.)
+ */
+static inline unsigned short mbedtls_ct_mpi_sign_if(mbedtls_ct_condition_t cond,
+                                                    unsigned short sign1, unsigned short sign2)
+{
+    return (unsigned short) mbedtls_ct_uint_if(cond, sign1 + 1, sign2 + 1) - 1;
+}
+
 /*
  * Compare signed values in constant time
  */
@@ -112,7 +125,7 @@ int mbedtls_mpi_safe_cond_assign(mbedtls_mpi *X,
     {
         mbedtls_ct_condition_t do_assign = mbedtls_ct_bool(assign);
 
-        X->s = (int) mbedtls_ct_uint_if(do_assign, Y->s, X->s);
+        X->s = mbedtls_ct_mpi_sign_if(do_assign, Y->s, X->s);
 
         mbedtls_mpi_core_cond_assign(X->p, Y->p, Y->n, do_assign);
 
@@ -149,8 +162,8 @@ int mbedtls_mpi_safe_cond_swap(mbedtls_mpi *X,
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(Y, X->n));
 
     s = X->s;
-    X->s = (int) mbedtls_ct_uint_if(do_swap, Y->s, X->s);
-    Y->s = (int) mbedtls_ct_uint_if(do_swap, s, Y->s);
+    X->s = mbedtls_ct_mpi_sign_if(do_swap, Y->s, X->s);
+    Y->s = mbedtls_ct_mpi_sign_if(do_swap, s, Y->s);
 
     mbedtls_mpi_core_cond_swap(X->p, Y->p, X->n, do_swap);
 
@@ -1690,7 +1703,7 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
      */
     if (A->s == -1 && (E->p[0] & 1) != 0) {
         mbedtls_ct_condition_t is_x_non_zero = mbedtls_mpi_core_check_zero_ct(X->p, X->n);
-        X->s = mbedtls_ct_uint_if(is_x_non_zero, -1, 1);
+        X->s = mbedtls_ct_mpi_sign_if(is_x_non_zero, -1, 1);
 
         MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(X, N, X));
     }

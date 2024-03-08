@@ -4202,7 +4202,7 @@ void tls13_write_early_data(int scenario)
         case TEST_EARLY_DATA_HRR:
             /*
              * Remove server support for the group negotiated in
-             * mbedtls_test_get_tls13_ticket() forcing an HelloRetryRequest.
+             * mbedtls_test_get_tls13_ticket() forcing a HelloRetryRequest.
              */
             server_options.group_list = group_list + 1;
             break;
@@ -4696,8 +4696,9 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
                  * max_early_data_size is smaller than the smallest possible
                  * inner content/protected record. Take into account this
                  * possibility here but only for max_early_data_size values
-                 * that are close to write_size. Below, chosen 1 for one byte
-                 * of inner type and 16 bytes for AEAD expansion (IV, ...).
+                 * that are close to write_size. Below, '1' is for the inner
+                 * type byte and '16' is to take into account some AEAD
+                 * expansion (tag, ...).
                  */
                 if (ret == MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE) {
                     if (scenario == TEST_EARLY_DATA_SERVER_REJECTS) {

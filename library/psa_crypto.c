@@ -1106,6 +1106,17 @@ psa_status_t psa_destroy_key(mbedtls_svc_key_id_t key)
      * fully destroyed. */
     PSA_THREADING_CHK_GOTO_EXIT(mbedtls_mutex_lock(
                                     &mbedtls_threading_key_slot_mutex));
+
+    if (slot->state == PSA_SLOT_PENDING_DELETION) {
+        /* Another thread has destroyed the key between us locking the slot
+         * and us gaining the mutex. Unregister from the slot,
+         * and report that the key does not exist. */
+        status = psa_unregister_read(slot);
+
+        PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                                  &mbedtls_threading_key_slot_mutex));
+        return (status == PSA_SUCCESS) ? PSA_ERROR_INVALID_HANDLE : status;
+    }
 #endif
     /* Set the key slot containing the key description's state to
      * PENDING_DELETION. This stops new operations from registering
@@ -1115,10 +1126,10 @@ psa_status_t psa_destroy_key(mbedtls_svc_key_id_t key)
      * If the key is persistent, we can now delete the copy of the key
      * from memory. If the key is opaque, we require the driver to
      * deal with the deletion. */
-    status = psa_key_slot_state_transition(slot, PSA_SLOT_FULL,
-                                           PSA_SLOT_PENDING_DELETION);
+    overall_status = psa_key_slot_state_transition(slot, PSA_SLOT_FULL,
+                                                   PSA_SLOT_PENDING_DELETION);
 
-    if (status != PSA_SUCCESS) {
+    if (overall_status != PSA_SUCCESS) {
         goto exit;
     }
 

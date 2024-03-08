@@ -12,9 +12,7 @@
 #include "mbedtls/psa_util.h"
 
 #if defined(MBEDTLS_SSL_TLS_C)
-#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-static int rng_seed = 0xBEEF;
-static int rng_get(void *p_rng, unsigned char *output, size_t output_len)
+int mbedtls_test_random(void *p_rng, unsigned char *output, size_t output_len)
 {
     (void) p_rng;
     for (size_t i = 0; i < output_len; i++) {
@@ -23,7 +21,6 @@ static int rng_get(void *p_rng, unsigned char *output, size_t output_len)
 
     return 0;
 }
-#endif
 
 void mbedtls_test_ssl_log_analyzer(void *ctx, int level,
                                    const char *file, int line,
@@ -46,6 +43,8 @@ void mbedtls_test_init_handshake_options(
     mbedtls_test_handshake_test_options *opts)
 {
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+    static int rng_seed = 0xBEEF;
+
     srand(rng_seed);
     rng_seed += 0xD0;
 #endif
@@ -755,7 +754,7 @@ int mbedtls_test_ssl_endpoint_init(
 
     mbedtls_ssl_init(&(ep->ssl));
     mbedtls_ssl_config_init(&(ep->conf));
-    mbedtls_ssl_conf_rng(&(ep->conf), rng_get, NULL);
+    mbedtls_ssl_conf_rng(&(ep->conf), mbedtls_test_random, NULL);
 
     TEST_ASSERT(mbedtls_ssl_conf_get_user_data_p(&ep->conf) == NULL);
     TEST_EQUAL(mbedtls_ssl_conf_get_user_data_n(&ep->conf), 0);

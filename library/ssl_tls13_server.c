@@ -1973,10 +1973,6 @@ static int ssl_tls13_prepare_server_hello(mbedtls_ssl_context *ssl)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *server_randbytes =
         ssl->handshake->randbytes + MBEDTLS_CLIENT_HELLO_RANDOM_LEN;
-    if (ssl->conf->f_rng == NULL) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("no RNG provided"));
-        return MBEDTLS_ERR_SSL_NO_RNG;
-    }
 
     if ((ret = ssl->conf->f_rng(ssl->conf->p_rng, server_randbytes,
                                 MBEDTLS_SERVER_HELLO_RANDOM_LEN)) != 0) {

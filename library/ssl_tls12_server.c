@@ -2178,11 +2178,6 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
     }
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY */
 
-    if (ssl->conf->f_rng == NULL) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("no RNG provided"));
-        return MBEDTLS_ERR_SSL_NO_RNG;
-    }
-
     /*
      *     0  .   0   handshake type
      *     1  .   3   handshake length

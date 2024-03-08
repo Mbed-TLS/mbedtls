@@ -1361,6 +1361,11 @@ static int ssl_conf_check(const mbedtls_ssl_context *ssl)
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
+    if (ssl->conf->f_rng == NULL) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("no RNG provided"));
+        return MBEDTLS_ERR_SSL_NO_RNG;
+    }
+
     /* Space for further checks */
 
     return 0;

@@ -859,7 +859,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub_int(mbedtls_mpi_uint *X,
 mbedtls_ct_condition_t mbedtls_mpi_core_check_zero_ct(const mbedtls_mpi_uint *A,
                                                       size_t limbs)
 {
-    mbedtls_mpi_uint bits = 0;
+    volatile mbedtls_mpi_uint bits = 0;
 
     for (size_t i = 0; i < limbs; i++) {
         bits |= A[i];

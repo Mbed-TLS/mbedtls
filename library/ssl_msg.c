@@ -4133,13 +4133,14 @@ static int ssl_prepare_record_content(mbedtls_ssl_context *ssl,
      */
     if (ssl->discard_early_data_record == MBEDTLS_SSL_EARLY_DATA_DISCARD) {
         if (rec->type == MBEDTLS_SSL_MSG_APPLICATION_DATA) {
-            MBEDTLS_SSL_DEBUG_MSG(
-                3, ("EarlyData: Ignore application message before 2nd ClientHello"));
 
             ret = mbedtls_ssl_tls13_check_early_data_len(ssl, rec->data_len);
             if (ret != 0) {
                 return ret;
             }
+
+            MBEDTLS_SSL_DEBUG_MSG(
+                3, ("EarlyData: Ignore application message before 2nd ClientHello"));
 
             return MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
         } else if (rec->type == MBEDTLS_SSL_MSG_HANDSHAKE) {

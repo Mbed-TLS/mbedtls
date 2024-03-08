@@ -4200,6 +4200,10 @@ void tls13_write_early_data(int scenario)
             break;
 
         case TEST_EARLY_DATA_HRR:
+            /*
+             * Remove server support for the group negotiated in
+             * mbedtls_test_get_tls13_ticket() forcing an HelloRetryRequest.
+             */
             server_options.group_list = group_list + 1;
             break;
 
@@ -4570,6 +4574,10 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
             break;
 
         case TEST_EARLY_DATA_HRR:
+            /*
+             * Remove server support for the group negotiated in
+             * mbedtls_test_get_tls13_ticket() forcing an HelloRetryRequest.
+             */
             server_options.group_list = group_list + 1;
             ret = mbedtls_snprintf(
                 pattern, sizeof(pattern),
@@ -4628,6 +4636,11 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
     do {
         uint32_t read_early_data_size = 0;
 
+        /*
+         * The contents of the early data are not very important, write a
+         * pattern that varies byte-by-byte and is different for every chunk of
+         * early data.
+         */
         if ((written_early_data_size + write_size) > max_early_data_size) {
             break;
         }

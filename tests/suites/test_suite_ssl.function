@@ -37,7 +37,7 @@ static int write_early_data(mbedtls_ssl_context *ssl,
     int ret = mbedtls_ssl_get_max_out_record_payload(ssl);
 
     TEST_ASSERT(ret > 0);
-    TEST_ASSERT(len <= (size_t) ret);
+    TEST_LE_U(len, (size_t) ret);
 
     ret = mbedtls_ssl_flush_output(ssl);
     TEST_EQUAL(ret, 0);
@@ -4514,7 +4514,7 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
     uint32_t write_size = (uint32_t) write_size_arg;
     unsigned char *buf_read = NULL;
     uint32_t read_size;
-    uint32_t expended_early_data_len = 0;
+    uint32_t expanded_early_data_chunk_size = 0;
     uint32_t written_early_data_size = 0;
     uint32_t max_early_data_size;
 
@@ -4634,13 +4634,13 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
 
         /*
          * If the server rejected early data, base the determination of when
-         * to stop the loop on the expended size (padding and encryption
+         * to stop the loop on the expanded size (padding and encryption
          * expansion) of early data on server side and the number of early data
-         * received so far by the server (multiple of the expended size).
+         * received so far by the server (multiple of the expanded size).
          */
-        if ((expended_early_data_len != 0) &&
+        if ((expanded_early_data_chunk_size != 0) &&
             ((server_ep.ssl.total_early_data_size +
-              expended_early_data_len) > max_early_data_size)) {
+              expanded_early_data_chunk_size) > max_early_data_size)) {
             break;
         }
 
@@ -4703,12 +4703,12 @@ void tls13_srv_max_early_data_size(int scenario, int max_early_data_size_arg, in
 
                 TEST_EQUAL(server_pattern.counter, 1);
                 server_pattern.counter = 0;
-                if (expended_early_data_len == 0) {
-                    expended_early_data_len = server_ep.ssl.total_early_data_size;
+                if (expanded_early_data_chunk_size == 0) {
+                    expanded_early_data_chunk_size = server_ep.ssl.total_early_data_size;
                 }
                 break;
         }
-        TEST_ASSERT(server_ep.ssl.total_early_data_size <= max_early_data_size);
+        TEST_LE_U(server_ep.ssl.total_early_data_size, max_early_data_size);
     } while (1);
 
     mbedtls_debug_set_threshold(3);

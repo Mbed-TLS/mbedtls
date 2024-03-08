@@ -143,6 +143,8 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
         """Whether the specified buffer argument to a PSA function should be copied.
         """
         #pylint: disable=too-many-return-statements
+        if function_name.startswith('psa_pake'):
+            return True
         if function_name.startswith('psa_aead'):
             return True
         if function_name in {'psa_cipher_encrypt', 'psa_cipher_decrypt',

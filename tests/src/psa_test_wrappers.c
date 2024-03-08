@@ -1002,7 +1002,13 @@ psa_status_t mbedtls_test_wrap_psa_pake_input(
     const uint8_t *arg2_input,
     size_t arg3_input_length)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg2_input, arg3_input_length);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_pake_input)(arg0_operation, arg1_step, arg2_input, arg3_input_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg2_input, arg3_input_length);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 
@@ -1014,7 +1020,13 @@ psa_status_t mbedtls_test_wrap_psa_pake_output(
     size_t arg3_output_size,
     size_t *arg4_output_length)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg2_output, arg3_output_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_pake_output)(arg0_operation, arg1_step, arg2_output, arg3_output_size, arg4_output_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg2_output, arg3_output_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 
@@ -1033,7 +1045,13 @@ psa_status_t mbedtls_test_wrap_psa_pake_set_peer(
     const uint8_t *arg1_peer_id,
     size_t arg2_peer_id_len)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg1_peer_id, arg2_peer_id_len);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_pake_set_peer)(arg0_operation, arg1_peer_id, arg2_peer_id_len);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg1_peer_id, arg2_peer_id_len);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 
@@ -1052,7 +1070,13 @@ psa_status_t mbedtls_test_wrap_psa_pake_set_user(
     const uint8_t *arg1_user_id,
     size_t arg2_user_id_len)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg1_user_id, arg2_user_id_len);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_pake_set_user)(arg0_operation, arg1_user_id, arg2_user_id_len);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg1_user_id, arg2_user_id_len);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 

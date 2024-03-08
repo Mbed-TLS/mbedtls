@@ -543,7 +543,7 @@ requires_all_configs_enabled MBEDTLS_SSL_EARLY_DATA MBEDTLS_SSL_SESSION_TICKETS 
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: Ephemeral over PSK kex with early data enabled" \
          "$P_SRV force_version=tls13 debug_level=4 max_early_data_size=1024" \
-         "$P_CLI debug_level=4 early_data=$EARLY_DATA_INPUT tls13_kex_modes=psk_or_ephemeral reco_mode=1 reconnect=1" \
+         "$P_CLI debug_level=4 early_data=1 tls13_kex_modes=psk_or_ephemeral reco_mode=1 reconnect=1" \
          0 \
          -s "key exchange mode: ephemeral" \
          -S "key exchange mode: psk" \

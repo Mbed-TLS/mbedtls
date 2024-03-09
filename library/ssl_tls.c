@@ -1101,6 +1101,7 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_SSL_SRV_C)
     ssl->discard_early_data_record = MBEDTLS_SSL_EARLY_DATA_NO_DISCARD;
 #endif
+    ssl->total_early_data_size = 0;
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
     /* Initialize structures */

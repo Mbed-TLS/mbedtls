@@ -4005,7 +4005,11 @@ static int ssl_prepare_record_content(mbedtls_ssl_context *ssl,
                  MBEDTLS_SSL_EARLY_DATA_TRY_TO_DEPROTECT_AND_DISCARD)) {
                 MBEDTLS_SSL_DEBUG_MSG(
                     3, ("EarlyData: deprotect and discard app data records."));
-                /* TODO: Add max_early_data_size check here, see issue 6347 */
+
+                ret = mbedtls_ssl_tls13_check_early_data_len(ssl, rec->data_len);
+                if (ret != 0) {
+                    return ret;
+                }
                 ret = MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
             }
 #endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_SRV_C */
@@ -4129,9 +4133,15 @@ static int ssl_prepare_record_content(mbedtls_ssl_context *ssl,
      */
     if (ssl->discard_early_data_record == MBEDTLS_SSL_EARLY_DATA_DISCARD) {
         if (rec->type == MBEDTLS_SSL_MSG_APPLICATION_DATA) {
+
+            ret = mbedtls_ssl_tls13_check_early_data_len(ssl, rec->data_len);
+            if (ret != 0) {
+                return ret;
+            }
+
             MBEDTLS_SSL_DEBUG_MSG(
                 3, ("EarlyData: Ignore application message before 2nd ClientHello"));
-            /* TODO: Add max_early_data_size check here, see issue 6347 */
+
             return MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
         } else if (rec->type == MBEDTLS_SSL_MSG_HANDSHAKE) {
             ssl->discard_early_data_record = MBEDTLS_SSL_EARLY_DATA_NO_DISCARD;

@@ -1859,7 +1859,8 @@ struct mbedtls_ssl_context {
                                                          *   within a single datagram.  */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+#if defined(MBEDTLS_SSL_SRV_C)
     /*
      * One of:
      * MBEDTLS_SSL_EARLY_DATA_NO_DISCARD
@@ -1868,6 +1869,8 @@ struct mbedtls_ssl_context {
      */
     uint8_t MBEDTLS_PRIVATE(discard_early_data_record);
 #endif
+    uint32_t MBEDTLS_PRIVATE(total_early_data_size); /*!< Number of received/written early data bytes */
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
     /*
      * Record layer (outgoing data)

@@ -138,29 +138,6 @@ run_test    "TLS 1.3: G->m: PSK: configured ephemeral only, good." \
             0 \
             -s "key exchange mode: ephemeral$"
 
-requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test    "TLS 1.3: NewSessionTicket: Basic check, m->m" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4" \
-            "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
-            0 \
-            -c "Protocol is TLSv1.3" \
-            -c "got new session ticket ( 3 )" \
-            -c "Saving session for reuse... ok" \
-            -c "Reconnecting with saved session" \
-            -c "HTTP/1.0 200 OK"    \
-            -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
-            -s "key exchange mode: ephemeral" \
-            -s "key exchange mode: psk_ephemeral" \
-            -s "found pre_shared_key extension"
-
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
@@ -168,333 +145,405 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test    "TLS 1.3 m->m: NewSessionTicket: Ticket lifetime max value (7d)" \
-            "$P_SRV debug_level=1 crt_file=data_files/server5.crt key_file=data_files/server5.key ticket_timeout=604800 tickets=1" \
-            "$P_CLI reco_mode=1 reconnect=1" \
-            0 \
-            -c "Protocol is TLSv1.3" \
-            -c "HTTP/1.0 200 OK" \
-            -c "got new session ticket" \
-            -c "Reconnecting with saved session... ok" \
-            -s "Protocol is TLSv1.3" \
-            -S "Ticket lifetime (604800) is greater than 7 days."
-
-requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
-                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
-                             MBEDTLS_DEBUG_C \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test    "TLS 1.3 m->m: NewSessionTicket: Ticket lifetime too long (7d + 1s)" \
-            "$P_SRV debug_level=1 crt_file=data_files/server5.crt key_file=data_files/server5.key ticket_timeout=604801 tickets=1" \
-            "$P_CLI reco_mode=1 reconnect=1" \
-            1 \
-            -c "Protocol is TLSv1.3" \
-            -C "HTTP/1.0 200 OK" \
-            -C "got new session ticket" \
-            -C "Reconnecting with saved session... ok" \
-            -S "Protocol is TLSv1.3" \
-            -s "Ticket lifetime (604801) is greater than 7 days."
-
-requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
-                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
-                             MBEDTLS_DEBUG_C \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test    "TLS 1.3 m->m: NewSessionTicket: ticket lifetime=0" \
-            "$P_SRV debug_level=2 crt_file=data_files/server5.crt key_file=data_files/server5.key ticket_timeout=0 tickets=1" \
-            "$P_CLI debug_level=2 reco_mode=1 reconnect=1" \
-            1 \
-            -c "Protocol is TLSv1.3" \
-            -c "HTTP/1.0 200 OK" \
-            -c "Discard new session ticket" \
-            -C "got new session ticket" \
-            -c "Reconnecting with saved session... failed" \
-            -s "Protocol is TLSv1.3" \
-            -s "<= write new session ticket"
-
-requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test    "TLS 1.3: NewSessionTicket: servername check, m->m" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4 \
-            sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
-            "$P_CLI debug_level=4 server_name=localhost reco_mode=1 reconnect=1" \
-            0 \
-            -c "Protocol is TLSv1.3" \
-            -c "got new session ticket." \
-            -c "Saving session for reuse... ok" \
-            -c "Reconnecting with saved session" \
-            -c "HTTP/1.0 200 OK"    \
-            -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
-            -s "key exchange mode: ephemeral" \
-            -s "key exchange mode: psk_ephemeral" \
-            -s "found pre_shared_key extension"
-
-requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test    "TLS 1.3: NewSessionTicket: servername negative check, m->m" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4 \
-            sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
-            "$P_CLI debug_level=4 server_name=localhost reco_server_name=remote reco_mode=1 reconnect=1" \
-            1 \
-            -c "Protocol is TLSv1.3" \
-            -c "got new session ticket." \
-            -c "Saving session for reuse... ok" \
-            -c "Reconnecting with saved session" \
-            -c "Hostname mismatch the session ticket, disable session resumption."    \
-            -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH"
-
-requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 m->m: Session resumption failure, ticket authentication failed." \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=8 dummy_ticket=1" \
-         "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
+run_test "TLS 1.3 m->m: resumption" \
+         "$P_SRV debug_level=2 crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+         "$P_CLI reco_mode=1 reconnect=1" \
          0 \
-         -c "Pre-configured PSK number = 1" \
-         -S "sent selected_identity:" \
+         -c "Protocol is TLSv1.3" \
+         -c "Saving session for reuse... ok" \
+         -c "Reconnecting with saved session... ok" \
+         -c "HTTP/1.0 200 OK" \
+         -s "Protocol is TLSv1.3" \
+         -s "key exchange mode: psk" \
+         -s "Select PSK ciphersuite"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test "TLS 1.3 m->m: resumption with servername" \
+         "$P_SRV debug_level=2 crt_file=data_files/server5.crt key_file=data_files/server5.key \
+            sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
+         "$P_CLI server_name=localhost reco_mode=1 reconnect=1" \
+         0 \
+         -c "Protocol is TLSv1.3" \
+         -c "Saving session for reuse... ok" \
+         -c "Reconnecting with saved session... ok" \
+         -c "HTTP/1.0 200 OK" \
+         -s "Protocol is TLSv1.3" \
+         -s "key exchange mode: psk" \
+         -s "Select PSK ciphersuite"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test "TLS 1.3 m->m: resumption with ticket max lifetime (7d)" \
+         "$P_SRV debug_level=2 crt_file=data_files/server5.crt key_file=data_files/server5.key ticket_timeout=604800 tickets=1" \
+         "$P_CLI reco_mode=1 reconnect=1" \
+         0 \
+         -c "Protocol is TLSv1.3" \
+         -c "Saving session for reuse... ok" \
+         -c "Reconnecting with saved session... ok" \
+         -c "HTTP/1.0 200 OK" \
+         -s "Protocol is TLSv1.3" \
+         -s "key exchange mode: psk" \
+         -s "Select PSK ciphersuite"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test "TLS 1.3 m->m: resumption fails, ticket lifetime too long (7d + 1s)" \
+         "$P_SRV debug_level=2 crt_file=data_files/server5.crt key_file=data_files/server5.key ticket_timeout=604801 tickets=1" \
+         "$P_CLI reco_mode=1 reconnect=1" \
+         1 \
+         -c "Protocol is TLSv1.3" \
+         -C "Saving session for reuse... ok" \
+         -c "Reconnecting with saved session... failed" \
+         -S "Protocol is TLSv1.3" \
+         -S "key exchange mode: psk" \
+         -S "Select PSK ciphersuite" \
+         -s "Ticket lifetime (604801) is greater than 7 days."
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test "TLS 1.3 m->m: resumption fails, ticket lifetime=0" \
+         "$P_SRV debug_level=2 crt_file=data_files/server5.crt key_file=data_files/server5.key ticket_timeout=0 tickets=1" \
+         "$P_CLI debug_level=2 reco_mode=1 reconnect=1" \
+         1 \
+         -c "Protocol is TLSv1.3" \
+         -C "Saving session for reuse... ok" \
+         -c "Discard new session ticket" \
+         -c "Reconnecting with saved session... failed" \
+         -s "Protocol is TLSv1.3" \
+         -S "key exchange mode: psk" \
+         -S "Select PSK ciphersuite"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test "TLS 1.3 m->m: resumption fails, servername check failed" \
+         "$P_SRV debug_level=2 crt_file=data_files/server5.crt key_file=data_files/server5.key \
+            sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
+         "$P_CLI debug_level=4 server_name=localhost reco_server_name=remote reco_mode=1 reconnect=1" \
+         1 \
+         -c "Protocol is TLSv1.3" \
+         -c "Saving session for reuse... ok" \
+         -c "Reconnecting with saved session" \
+         -c "Hostname mismatch the session ticket, disable session resumption." \
+         -s "Protocol is TLSv1.3" \
+         -S "key exchange mode: psk" \
+         -S "Select PSK ciphersuite"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test "TLS 1.3 m->m: resumption fails, ticket auth failed." \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=8 dummy_ticket=1" \
+         "$P_CLI reco_mode=1 reconnect=1" \
+         0 \
+         -c "Protocol is TLSv1.3" \
          -s "key exchange mode: ephemeral" \
-         -S "key exchange mode: psk_ephemeral" \
-         -S "key exchange mode: psk$" \
+         -s "Protocol is TLSv1.3" \
+         -c "Saving session for reuse... ok" \
+         -c "Reconnecting with saved session" \
+         -S "key exchange mode: psk" \
          -s "ticket is not authentic" \
          -S "ticket is expired" \
          -S "Invalid ticket creation time" \
          -S "Ticket age exceeds limitation" \
          -S "Ticket age outside tolerance window"
 
-requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 m->m: Session resumption failure, ticket expired." \
+run_test "TLS 1.3 m->m: resumption fails, ticket expired." \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=8 dummy_ticket=2" \
-         "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
+         "$P_CLI reco_mode=1 reconnect=1" \
          0 \
-         -c "Pre-configured PSK number = 1" \
-         -S "sent selected_identity:" \
+         -c "Protocol is TLSv1.3" \
          -s "key exchange mode: ephemeral" \
-         -S "key exchange mode: psk_ephemeral" \
-         -S "key exchange mode: psk$" \
+         -s "Protocol is TLSv1.3" \
+         -c "Saving session for reuse... ok" \
+         -c "Reconnecting with saved session" \
+         -S "key exchange mode: psk" \
          -S "ticket is not authentic" \
          -s "ticket is expired" \
          -S "Invalid ticket creation time" \
          -S "Ticket age exceeds limitation" \
          -S "Ticket age outside tolerance window"
 
-requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 m->m: Session resumption failure, invalid start time." \
+run_test "TLS 1.3 m->m: resumption fails, invalid creation time." \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=8 dummy_ticket=3" \
          "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
          0 \
-         -c "Pre-configured PSK number = 1" \
-         -S "sent selected_identity:" \
+         -c "Protocol is TLSv1.3" \
          -s "key exchange mode: ephemeral" \
-         -S "key exchange mode: psk_ephemeral" \
-         -S "key exchange mode: psk$" \
+         -s "Protocol is TLSv1.3" \
+         -c "Saving session for reuse... ok" \
+         -c "Reconnecting with saved session" \
+         -S "key exchange mode: psk" \
          -S "ticket is not authentic" \
          -S "ticket is expired" \
          -s "Invalid ticket creation time" \
          -S "Ticket age exceeds limitation" \
          -S "Ticket age outside tolerance window"
 
-requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 m->m: Session resumption failure, ticket expired. too old" \
+run_test "TLS 1.3 m->m: resumption fails, ticket expired, too old" \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=8 dummy_ticket=4" \
          "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
          0 \
-         -c "Pre-configured PSK number = 1" \
-         -S "sent selected_identity:" \
+         -c "Protocol is TLSv1.3" \
          -s "key exchange mode: ephemeral" \
-         -S "key exchange mode: psk_ephemeral" \
-         -S "key exchange mode: psk$" \
+         -s "Protocol is TLSv1.3" \
+         -c "Saving session for reuse... ok" \
+         -c "Reconnecting with saved session" \
+         -S "key exchange mode: psk" \
          -S "ticket is not authentic" \
          -S "ticket is expired" \
          -S "Invalid ticket creation time" \
          -s "Ticket age exceeds limitation" \
          -S "Ticket age outside tolerance window"
 
-requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 m->m: Session resumption failure, age outside tolerance window, too young." \
+run_test "TLS 1.3 m->m: resumption fails, age outside tolerance window, too young" \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=8 dummy_ticket=5" \
          "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
          0 \
-         -c "Pre-configured PSK number = 1" \
-         -S "sent selected_identity:" \
+         -c "Protocol is TLSv1.3" \
          -s "key exchange mode: ephemeral" \
-         -S "key exchange mode: psk_ephemeral" \
-         -S "key exchange mode: psk$" \
+         -s "Protocol is TLSv1.3" \
+         -c "Saving session for reuse... ok" \
+         -c "Reconnecting with saved session" \
+         -S "key exchange mode: psk" \
          -S "ticket is not authentic" \
          -S "ticket is expired" \
          -S "Invalid ticket creation time" \
          -S "Ticket age exceeds limitation" \
          -s "Ticket age outside tolerance window"
 
-requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
-                             MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 m->m: Session resumption failure, age outside tolerance window, too old." \
+run_test "TLS 1.3 m->m: resumption fails, age outside tolerance window, too old" \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=8 dummy_ticket=6" \
          "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
          0 \
-         -c "Pre-configured PSK number = 1" \
-         -S "sent selected_identity:" \
+         -c "Protocol is TLSv1.3" \
          -s "key exchange mode: ephemeral" \
-         -S "key exchange mode: psk_ephemeral" \
-         -S "key exchange mode: psk$" \
+         -s "Protocol is TLSv1.3" \
+         -c "Saving session for reuse... ok" \
+         -c "Reconnecting with saved session" \
+         -S "key exchange mode: psk" \
          -S "ticket is not authentic" \
          -S "ticket is expired" \
          -S "Invalid ticket creation time" \
          -S "Ticket age exceeds limitation" \
          -s "Ticket age outside tolerance window"
 
-requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS \
-                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
-run_test "TLS 1.3 m->m: Resumption with ticket flags, psk/none." \
+run_test "TLS 1.3 m->m: resumption fails, cli/tkt kex modes psk/none" \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=7" \
          "$P_CLI debug_level=4 tls13_kex_modes=psk_or_ephemeral reconnect=1" \
          0 \
-         -c "Pre-configured PSK number = 1" \
-         -S "sent selected_identity:" \
+         -c "Protocol is TLSv1.3" \
          -s "key exchange mode: ephemeral" \
          -S "key exchange mode: psk_ephemeral" \
          -S "key exchange mode: psk$" \
+         -s "found matched identity" \
          -s "No suitable PSK key exchange mode" \
          -s "No usable PSK or ticket"
 
-requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS \
-                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
-run_test "TLS 1.3 m->m: Resumption with ticket flags, psk/psk." \
+run_test "TLS 1.3 m->m: ephemeral over psk resumption, cli/tkt kex modes psk/psk" \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=8" \
          "$P_CLI debug_level=4 tls13_kex_modes=psk_or_ephemeral reconnect=1" \
          0 \
-         -c "Pre-configured PSK number = 1" \
-         -S "No suitable PSK key exchange mode" \
-         -s "found matched identity"
-
-requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS \
-                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
-run_test "TLS 1.3 m->m: Resumption with ticket flags, psk/psk_ephemeral." \
-         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=9" \
-         "$P_CLI debug_level=4 tls13_kex_modes=psk_or_ephemeral reconnect=1" \
-         0 \
-         -c "Pre-configured PSK number = 1" \
-         -S "sent selected_identity:" \
+         -c "Protocol is TLSv1.3" \
          -s "key exchange mode: ephemeral" \
          -S "key exchange mode: psk_ephemeral" \
          -S "key exchange mode: psk$" \
+         -s "found matched identity" \
+         -S "No suitable PSK key exchange mode" \
+         -S "No usable PSK or ticket"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+run_test "TLS 1.3 m->m: resumption fails, cli/tkt kex modes psk/psk_ephemeral" \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=9" \
+         "$P_CLI debug_level=4 tls13_kex_modes=psk_or_ephemeral reconnect=1" \
+         0 \
+         -c "Protocol is TLSv1.3" \
+         -s "key exchange mode: ephemeral" \
+         -S "key exchange mode: psk_ephemeral" \
+         -S "key exchange mode: psk$" \
+         -s "found matched identity" \
          -s "No suitable PSK key exchange mode" \
          -s "No usable PSK or ticket"
 
-requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS \
-                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
-run_test "TLS 1.3 m->m: Resumption with ticket flags, psk/psk_all." \
+run_test "TLS 1.3 m->m: ephemeral over psk resumption, cli/tkt kex modes psk/psk_all" \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=10" \
          "$P_CLI debug_level=4 tls13_kex_modes=psk_or_ephemeral reconnect=1" \
          0 \
-         -c "Pre-configured PSK number = 1" \
+         -c "Protocol is TLSv1.3" \
+         -s "key exchange mode: ephemeral" \
+         -S "key exchange mode: psk_ephemeral" \
+         -S "key exchange mode: psk$" \
+         -s "found matched identity" \
          -S "No suitable PSK key exchange mode" \
-         -s "found matched identity"
+         -S "No usable PSK or ticket"
 
-requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS \
-                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_ephemeral/none." \
+run_test "TLS 1.3 m->m: resumption fails, cli/tkt kex modes psk_ephemeral/none" \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=7" \
          "$P_CLI debug_level=4 tls13_kex_modes=ephemeral_all reconnect=1" \
          0 \
-         -c "Pre-configured PSK number = 1" \
-         -S "sent selected_identity:" \
+         -c "Protocol is TLSv1.3" \
          -s "key exchange mode: ephemeral" \
          -S "key exchange mode: psk_ephemeral" \
          -S "key exchange mode: psk$" \
+         -s "found matched identity" \
          -s "No suitable PSK key exchange mode" \
          -s "No usable PSK or ticket"
 
-requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS \
-                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_ephemeral/psk." \
+run_test "TLS 1.3 m->m: resumption fails, cli/tkt kex modes psk_ephemeral/psk" \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=8" \
          "$P_CLI debug_level=4 tls13_kex_modes=ephemeral_all reconnect=1" \
          0 \
-         -c "Pre-configured PSK number = 1" \
-         -S "sent selected_identity:" \
+         -c "Protocol is TLSv1.3" \
          -s "key exchange mode: ephemeral" \
          -S "key exchange mode: psk_ephemeral" \
          -S "key exchange mode: psk$" \
+         -s "found matched identity" \
          -s "No suitable PSK key exchange mode" \
          -s "No usable PSK or ticket"
 
-requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS \
-                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_ephemeral/psk_ephemeral." \
+run_test "TLS 1.3 m->m: resumption, cli/tkt kex modes psk_ephemeral/psk_ephemeral" \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=9" \
          "$P_CLI debug_level=4 tls13_kex_modes=ephemeral_all reconnect=1" \
          0 \
-         -c "Pre-configured PSK number = 1" \
-         -S "No suitable PSK key exchange mode" \
+         -c "Protocol is TLSv1.3" \
+         -s "key exchange mode: ephemeral" \
+         -s "key exchange mode: psk_ephemeral" \
+         -S "key exchange mode: psk$" \
          -s "found matched identity" \
-         -s "key exchange mode: psk_ephemeral"
+         -S "No suitable PSK key exchange mode" \
+         -S "No usable PSK or ticket"
 
-requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS \
-                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_ephemeral/psk_all." \
+run_test "TLS 1.3 m->m: resumption, cli/tkt kex modes psk_ephemeral/psk_all" \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=10" \
          "$P_CLI debug_level=4 tls13_kex_modes=ephemeral_all reconnect=1" \
          0 \
-         -c "Pre-configured PSK number = 1" \
-         -S "No suitable PSK key exchange mode" \
+         -c "Protocol is TLSv1.3" \
+         -s "key exchange mode: ephemeral" \
+         -s "key exchange mode: psk_ephemeral" \
+         -S "key exchange mode: psk$" \
          -s "found matched identity" \
-         -s "key exchange mode: psk_ephemeral"
+         -S "No suitable PSK key exchange mode" \
+         -S "No usable PSK or ticket"
 
-requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS \
-                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_all/none." \
+run_test "TLS 1.3 m->m: resumption fails, cli/tkt kex modes psk_all/none" \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=7" \
          "$P_CLI debug_level=4 tls13_kex_modes=all reconnect=1" \
          0 \
@@ -506,46 +555,62 @@ run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_all/none." \
          -s "No suitable PSK key exchange mode" \
          -s "No usable PSK or ticket"
 
-requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS \
-                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_all/psk." \
+run_test "TLS 1.3 m->m: ephemeral over psk resumption, cli/tkt kex modes psk_all/psk" \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=8" \
          "$P_CLI debug_level=4 tls13_kex_modes=all reconnect=1" \
          0 \
-         -c "Pre-configured PSK number = 1" \
+         -c "Protocol is TLSv1.3" \
+         -s "key exchange mode: ephemeral" \
+         -S "key exchange mode: psk_ephemeral" \
+         -S "key exchange mode: psk$" \
+         -s "found matched identity" \
          -S "No suitable PSK key exchange mode" \
-         -s "found matched identity"
+         -S "No usable PSK or ticket"
 
-requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS \
-                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_all/psk_ephemeral." \
+run_test "TLS 1.3 m->m: resumption, cli/tkt kex modes psk_all/psk_ephemeral" \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=9" \
          "$P_CLI debug_level=4 tls13_kex_modes=all reconnect=1" \
          0 \
-         -c "Pre-configured PSK number = 1" \
-         -S "No suitable PSK key exchange mode" \
+         -c "Protocol is TLSv1.3" \
+         -s "key exchange mode: ephemeral" \
+         -s "key exchange mode: psk_ephemeral" \
+         -S "key exchange mode: psk$" \
          -s "found matched identity" \
-         -s "key exchange mode: psk_ephemeral"
+         -S "No suitable PSK key exchange mode" \
+         -S "No usable PSK or ticket"
 
-requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS \
-                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C \
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_all/psk_all." \
+run_test "TLS 1.3 m->m: resumption, cli/tkt kex modes psk_all/psk_all" \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key dummy_ticket=10" \
          "$P_CLI debug_level=4 tls13_kex_modes=all reconnect=1" \
          0 \
-         -c "Pre-configured PSK number = 1" \
-         -S "No suitable PSK key exchange mode" \
+         -c "Protocol is TLSv1.3" \
+         -s "key exchange mode: ephemeral" \
+         -s "key exchange mode: psk_ephemeral" \
+         -S "key exchange mode: psk$" \
          -s "found matched identity" \
-         -s "key exchange mode: psk_ephemeral"
+         -S "No suitable PSK key exchange mode" \
+         -S "No usable PSK or ticket"
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C \

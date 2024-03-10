@@ -845,7 +845,6 @@ For an ECC private key (a future version of Mbed TLS [will provide a more direct
 
 ```
 unsigned char buf[PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
-size_t length = PSA_BITS_TO_BYTES(mbedtls_pk_bitlen(&pk));
 mbedtls_ecp_keypair *ec = mbedtls_pk_ec(&pk);
 psa_ecc_curve_t curve;
 {
@@ -862,7 +861,8 @@ psa_ecc_curve_t curve;
     mbedtls_ecp_point_free(&Q);
     mbedtls_mpi_free(&d);
 }
-mbedtls_ecp_write_key(ec, buf, length);
+size_t length;
+mbedtls_ecp_write_key_ext(ec, &length, buf, sizeof(buf));
 psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
 psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_... | ...);
@@ -900,8 +900,8 @@ mbedtls_ecp_keypair_init(&ec);
 // Omitted: fill ec with key material
 // (the public key will not be used and does not need to be set)
 unsigned char buf[PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
-size_t length = PSA_BITS_TO_BYTES(mbedtls_pk_bitlen(&pk));
-mbedtls_ecp_write_key(&ec, buf, length);
+size_t length;
+mbedtls_ecp_write_key_ext(&ec, &length, buf, sizeof(buf));
 psa_ecc_curve_t curve = ...; // need to determine the curve family manually
 psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 psa_set_key_attributes(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
@@ -1300,7 +1300,7 @@ There is no PSA equivalent to the types `mbedtls_ecdsa_context` and `mbedtls_ecd
 The PSA API is a cryptography API, not an arithmetic API. As a consequence, there is no PSA equivalent for the ECC arithmetic functionality exposed by `ecp.h`:
 
 * Manipulation of point objects and input-output: the type `mbedtls_ecp_point` and functions operating on it (`mbedtls_ecp_point_xxx`, `mbedtls_ecp_copy`, `mbedtls_ecp_{set,is}_zero`, `mbedtls_ecp_tls_{read,write}_point`). Note that the PSA export format for public keys corresponds to the uncompressed point format (`MBEDTLS_ECP_PF_UNCOMPRESSED`), so [`psa_import_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga0336ea76bf30587ab204a8296462327b), [`psa_export_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga668e35be8d2852ad3feeef74ac6f75bf) and [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) are equivalent to `mbedtls_ecp_point_read_binary` and `mbedtls_ecp_point_write_binary` for uncompressed points. The PSA API does not currently support compressed points, but it is likely that such support will be added in the future.
-* Manipulation of key pairs as such, with a bridge to bignum arithmetic (`mbedtls_ecp_keypair` type, `mbedtls_ecp_export`). However, the PSA export format for ECC private keys used by [`psa_import_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga0336ea76bf30587ab204a8296462327b), [`psa_export_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga668e35be8d2852ad3feeef74ac6f75bf) is the same as the format used by `mbedtls_ecp_read_key` and `mbedtls_ecp_write_key`.
+* Manipulation of key pairs as such, with a bridge to bignum arithmetic (`mbedtls_ecp_keypair` type, `mbedtls_ecp_export`). However, the PSA export format for ECC private keys used by [`psa_import_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga0336ea76bf30587ab204a8296462327b), [`psa_export_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga668e35be8d2852ad3feeef74ac6f75bf) is the same as the format used by `mbedtls_ecp_read_key` and `mbedtls_ecp_write_key_ext`.
 * Elliptic curve arithmetic (`mbedtls_ecp_mul`, `mbedtls_ecp_muladd` and their restartable variants).
 
 ### Additional information about RSA

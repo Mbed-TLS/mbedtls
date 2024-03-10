@@ -2178,11 +2178,6 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
     }
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY */
 
-    if (ssl->conf->f_rng == NULL) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("no RNG provided"));
-        return MBEDTLS_ERR_SSL_NO_RNG;
-    }
-
     /*
      *     0  .   0   handshake type
      *     1  .   3   handshake length
@@ -2703,8 +2698,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
                              PSA_KEY_TYPE_ECC_KEY_PAIR(ssl->handshake->xxdh_psa_type));
             psa_set_key_bits(&key_attributes, ssl->handshake->xxdh_psa_bits);
 
-            key_len = PSA_BITS_TO_BYTES(key->grp.pbits);
-            ret = mbedtls_ecp_write_key(key, buf, key_len);
+            ret = mbedtls_ecp_write_key_ext(key, &key_len, buf, sizeof(buf));
             if (ret != 0) {
                 mbedtls_platform_zeroize(buf, sizeof(buf));
                 break;

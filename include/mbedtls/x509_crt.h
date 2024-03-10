@@ -916,6 +916,18 @@ static inline int mbedtls_x509_crt_has_ext_type(const mbedtls_x509_crt *ctx,
     return ctx->MBEDTLS_PRIVATE(ext_types) & ext_type;
 }
 
+/**
+ * \brief               Access the ca_istrue field
+ *
+ * \param[in] crt       Certificate to be queried, must not be \c NULL
+ *
+ * \return              \c 1 if this a CA certificate \c 0 otherwise.
+ * \return              MBEDTLS_ERR_X509_INVALID_EXTENSIONS if the certificate does not contain
+ *                      the Optional Basic Constraint extension.
+ *
+ */
+int mbedtls_x509_crt_get_ca_istrue(const mbedtls_x509_crt *crt);
+
 /** \} name Structures and functions for parsing and writing X.509 certificates */
 
 #if defined(MBEDTLS_X509_CRT_WRITE_C)

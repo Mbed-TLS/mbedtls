@@ -12,9 +12,7 @@
 #include "mbedtls/psa_util.h"
 
 #if defined(MBEDTLS_SSL_TLS_C)
-#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-static int rng_seed = 0xBEEF;
-static int rng_get(void *p_rng, unsigned char *output, size_t output_len)
+int mbedtls_test_random(void *p_rng, unsigned char *output, size_t output_len)
 {
     (void) p_rng;
     for (size_t i = 0; i < output_len; i++) {
@@ -23,7 +21,6 @@ static int rng_get(void *p_rng, unsigned char *output, size_t output_len)
 
     return 0;
 }
-#endif
 
 void mbedtls_test_ssl_log_analyzer(void *ctx, int level,
                                    const char *file, int line,
@@ -46,6 +43,8 @@ void mbedtls_test_init_handshake_options(
     mbedtls_test_handshake_test_options *opts)
 {
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+    static int rng_seed = 0xBEEF;
+
     srand(rng_seed);
     rng_seed += 0xD0;
 #endif
@@ -686,9 +685,20 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (opaque_alg != 0) {
-        TEST_EQUAL(mbedtls_pk_wrap_as_opaque(cert->pkey, &key_slot,
-                                             opaque_alg, opaque_usage,
-                                             opaque_alg2), 0);
+        psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
+        /* Use a fake key usage to get a successful initial guess for the PSA attributes. */
+        TEST_EQUAL(mbedtls_pk_get_psa_attributes(cert->pkey, PSA_KEY_USAGE_SIGN_HASH,
+                                                 &key_attr), 0);
+        /* Then manually usage, alg and alg2 as requested by the test. */
+        psa_set_key_usage_flags(&key_attr, opaque_usage);
+        psa_set_key_algorithm(&key_attr, opaque_alg);
+        if (opaque_alg2 != PSA_ALG_NONE) {
+            psa_set_key_enrollment_algorithm(&key_attr, opaque_alg2);
+        }
+        TEST_EQUAL(mbedtls_pk_import_into_psa(cert->pkey, &key_attr, &key_slot), 0);
+        mbedtls_pk_free(cert->pkey);
+        mbedtls_pk_init(cert->pkey);
+        TEST_EQUAL(mbedtls_pk_setup_opaque(cert->pkey, key_slot), 0);
     }
 #else
     (void) opaque_alg;
@@ -745,7 +755,7 @@ int mbedtls_test_ssl_endpoint_init(
 
     mbedtls_ssl_init(&(ep->ssl));
     mbedtls_ssl_config_init(&(ep->conf));
-    mbedtls_ssl_conf_rng(&(ep->conf), rng_get, NULL);
+    mbedtls_ssl_conf_rng(&(ep->conf), mbedtls_test_random, NULL);
 
     TEST_ASSERT(mbedtls_ssl_conf_get_user_data_p(&ep->conf) == NULL);
     TEST_EQUAL(mbedtls_ssl_conf_get_user_data_n(&ep->conf), 0);

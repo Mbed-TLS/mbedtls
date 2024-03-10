@@ -24,6 +24,7 @@
 #include "mbedtls/private_access.h"
 
 #include "mbedtls/build_info.h"
+#include "mbedtls/platform_util.h"
 
 #include "mbedtls/bignum.h"
 
@@ -1327,10 +1328,11 @@ int mbedtls_ecp_set_public_key(mbedtls_ecp_group_id grp_id,
 int mbedtls_ecp_read_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
                          const unsigned char *buf, size_t buflen);
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief           This function exports an elliptic curve private key.
  *
- * \note            Note that although this function accepts an output
+ * \deprecated      Note that although this function accepts an output
  *                  buffer that is smaller or larger than the key, most key
  *                  import interfaces require the output to have exactly
  *                  key's nominal length. It is generally simplest to
@@ -1338,6 +1340,10 @@ int mbedtls_ecp_read_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
  *                  checking that the output buffer is large enough.
  *                  See the description of the \p buflen parameter for
  *                  how to calculate the nominal length.
+ *                  To avoid this difficulty, use mbedtls_ecp_write_key_ext()
+ *                  instead.
+ *                  mbedtls_ecp_write_key() is deprecated and will be
+ *                  removed in a future version of the library.
  *
  * \note            If the private key was not set in \p key,
  *                  the output is unspecified. Future versions
@@ -1367,8 +1373,31 @@ int mbedtls_ecp_read_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
  *                  representation is larger than the available space in \p buf.
  * \return          Another negative error code on different kinds of failure.
  */
-int mbedtls_ecp_write_key(mbedtls_ecp_keypair *key,
-                          unsigned char *buf, size_t buflen);
+int MBEDTLS_DEPRECATED mbedtls_ecp_write_key(mbedtls_ecp_keypair *key,
+                                             unsigned char *buf, size_t buflen);
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
+
+/**
+ * \brief           This function exports an elliptic curve private key.
+ *
+ * \param key       The private key.
+ * \param olen      On success, the length of the private key.
+ *                  This is always (`grp->nbits` + 7) / 8 bytes
+ *                  where `grp->nbits` is the private key size in bits.
+ * \param buf       The output buffer for containing the binary representation
+ *                  of the key.
+ * \param buflen    The total length of the buffer in bytes.
+ *                  #MBEDTLS_ECP_MAX_BYTES is always sufficient.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL if the \p key
+ *                  representation is larger than the available space in \p buf.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if no private key is
+ *                  set in \p key.
+ * \return          Another negative error code on different kinds of failure.
+ */
+int mbedtls_ecp_write_key_ext(const mbedtls_ecp_keypair *key,
+                              size_t *olen, unsigned char *buf, size_t buflen);
 
 /**
  * \brief           This function exports an elliptic curve public key.

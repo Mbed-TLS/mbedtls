@@ -1,0 +1,8 @@
+Features
+   * The new function mbedtls_ecp_write_key_ext() is similar to
+     mbedtls_ecp_write_key(), but can be used without separately calculating
+     the output length.
+
+New deprecations
+   * mbedtls_ecp_write_key() is deprecated in favor of
+     mbedtls_ecp_write_key_ext().

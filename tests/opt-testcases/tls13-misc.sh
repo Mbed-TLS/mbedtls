@@ -436,22 +436,21 @@ run_test    "TLS 1.3 m->G: resumption, early data cli-disabled/srv-enabled" \
             -C "ClientHello: early_data(42) extension exists." \
 
 requires_openssl_tls1_3_with_compatible_ephemeral
-requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 # https://github.com/openssl/openssl/issues/10714
 # Until now, OpenSSL client does not support reconnect.
 skip_next_test
-run_test    "TLS 1.3: NewSessionTicket: Basic check, O->m" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4" \
+run_test    "TLS 1.3 O->m: resumption" \
+            "$P_SRV debug_level=2 tickets=1" \
             "$O_NEXT_CLI -msg -debug -tls1_3 -reconnect" \
             0 \
-            -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH"
+            -s "Protocol is TLSv1.3" \
+            -s "key exchange mode: psk" \
+            -s "Select PSK ciphersuite"
 
 requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \

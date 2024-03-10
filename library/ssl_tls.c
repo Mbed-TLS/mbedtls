@@ -344,12 +344,21 @@ static void handle_buffer_resizing(mbedtls_ssl_context *ssl, int downsizing,
                                    size_t out_buf_new_len)
 {
     int modified = 0;
-    size_t written_in = 0, iv_offset_in = 0, len_offset_in = 0;
+    size_t written_in = 0, iv_offset_in = 0, len_offset_in = 0, hdr_in = 0;
     size_t written_out = 0, iv_offset_out = 0, len_offset_out = 0;
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    size_t hshdr_in = 0;
+#endif
     if (ssl->in_buf != NULL) {
         written_in = ssl->in_msg - ssl->in_buf;
         iv_offset_in = ssl->in_iv - ssl->in_buf;
         len_offset_in = ssl->in_len - ssl->in_buf;
+        hdr_in = ssl->in_hdr - ssl->in_buf;
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+        if (ssl->in_hshdr != NULL) {
+            hshdr_in = ssl->in_hshdr - ssl->in_buf;
+        }
+#endif
         if (downsizing ?
             ssl->in_buf_len > in_buf_new_len && ssl->in_left < in_buf_new_len :
             ssl->in_buf_len < in_buf_new_len) {
@@ -381,7 +390,10 @@ static void handle_buffer_resizing(mbedtls_ssl_context *ssl, int downsizing,
     }
     if (modified) {
         /* Update pointers here to avoid doing it twice. */
-        mbedtls_ssl_reset_in_out_pointers(ssl);
+        ssl->in_hdr = ssl->in_buf + hdr_in;
+        mbedtls_ssl_update_in_pointers(ssl);
+        mbedtls_ssl_reset_out_pointers(ssl);
+
         /* Fields below might not be properly updated with record
          * splitting or with CID, so they are manually updated here. */
         ssl->out_msg = ssl->out_buf + written_out;
@@ -391,6 +403,11 @@ static void handle_buffer_resizing(mbedtls_ssl_context *ssl, int downsizing,
         ssl->in_msg = ssl->in_buf + written_in;
         ssl->in_len = ssl->in_buf + len_offset_in;
         ssl->in_iv = ssl->in_buf + iv_offset_in;
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+        if (ssl->in_hshdr != NULL) {
+            ssl->in_hshdr = ssl->in_buf + hshdr_in;
+        }
+#endif
     }
 }
 #endif /* MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH */
@@ -1507,6 +1524,10 @@ void mbedtls_ssl_session_reset_msg_layer(mbedtls_ssl_context *ssl,
     ssl->in_hslen   = 0;
     ssl->keep_current_message = 0;
     ssl->transform_in  = NULL;
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    ssl->in_hshdr = NULL;
+    ssl->in_hsfraglen = 0;
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     ssl->next_record_offset = 0;

@@ -101,11 +101,6 @@ typedef struct {
 
 static psa_global_data_t global_data;
 
-#if !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
-mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
-    &global_data.rng.drbg;
-#endif
-
 #define GUARD_MODULE_INITIALIZED        \
     if (global_data.initialized == 0)  \
     return PSA_ERROR_BAD_STATE;
@@ -7103,7 +7098,7 @@ static void mbedtls_psa_random_init(mbedtls_psa_random_context_t *rng)
                                MBEDTLS_ENTROPY_SOURCE_STRONG);
 #endif
 
-    mbedtls_psa_drbg_init(MBEDTLS_PSA_RANDOM_STATE);
+    mbedtls_psa_drbg_init(&rng->drbg);
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
 
@@ -7114,7 +7109,7 @@ static void mbedtls_psa_random_free(mbedtls_psa_random_context_t *rng)
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
     memset(rng, 0, sizeof(*rng));
 #else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
-    mbedtls_psa_drbg_free(MBEDTLS_PSA_RANDOM_STATE);
+    mbedtls_psa_drbg_free(&rng->drbg);
     rng->entropy_free(&rng->entropy);
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
@@ -7129,7 +7124,7 @@ static psa_status_t mbedtls_psa_random_seed(mbedtls_psa_random_context_t *rng)
     return PSA_SUCCESS;
 #else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
     const unsigned char drbg_seed[] = "PSA";
-    int ret = mbedtls_psa_drbg_seed(&rng->entropy,
+    int ret = mbedtls_psa_drbg_seed(&rng->drbg, &rng->entropy,
                                     drbg_seed, sizeof(drbg_seed) - 1);
     return mbedtls_to_psa_error(ret);
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
@@ -7159,12 +7154,16 @@ psa_status_t psa_generate_random(uint8_t *output,
 #else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
     while (output_size > 0) {
+        int ret = MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED;
         size_t request_size =
             (output_size > MBEDTLS_PSA_RANDOM_MAX_REQUEST ?
              MBEDTLS_PSA_RANDOM_MAX_REQUEST :
              output_size);
-        int ret = mbedtls_psa_get_random(MBEDTLS_PSA_RANDOM_STATE,
-                                         output, request_size);
+#if defined(MBEDTLS_CTR_DRBG_C)
+        ret = mbedtls_ctr_drbg_random(&global_data.rng.drbg, output, request_size);
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+        ret = mbedtls_hmac_drbg_random(&global_data.rng.drbg, output, request_size);
+#endif /* !MBEDTLS_CTR_DRBG_C && !MBEDTLS_HMAC_DRBG_C */
         if (ret != 0) {
             return mbedtls_to_psa_error(ret);
         }
@@ -7174,39 +7173,6 @@ psa_status_t psa_generate_random(uint8_t *output,
     return PSA_SUCCESS;
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
-
-/* Wrapper function allowing the classic API to use the PSA RNG.
- *
- * `mbedtls_psa_get_random(MBEDTLS_PSA_RANDOM_STATE, ...)` calls
- * `psa_generate_random(...)`. The state parameter is ignored since the
- * PSA API doesn't support passing an explicit state.
- *
- * In the non-external case, psa_generate_random() calls an
- * `mbedtls_xxx_drbg_random` function which has exactly the same signature
- * and semantics as mbedtls_psa_get_random(). As an optimization,
- * instead of doing this back-and-forth between the PSA API and the
- * classic API, psa_crypto_random_impl.h defines `mbedtls_psa_get_random`
- * as a constant function pointer to `mbedtls_xxx_drbg_random`.
- */
-#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
-int mbedtls_psa_get_random(void *p_rng,
-                           unsigned char *output,
-                           size_t output_size)
-{
-    /* This function takes a pointer to the RNG state because that's what
-     * classic mbedtls functions using an RNG expect. The PSA RNG manages
-     * its own state internally and doesn't let the caller access that state.
-     * So we just ignore the state parameter, and in practice we'll pass
-     * NULL. */
-    (void) p_rng;
-    psa_status_t status = psa_generate_random(output, output_size);
-    if (status == PSA_SUCCESS) {
-        return 0;
-    } else {
-        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
-    }
-}
-#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
 psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,

@@ -3717,12 +3717,15 @@ static psa_status_t psa_verify_hash_abort_internal(
 psa_status_t psa_verify_hash_start(
     psa_verify_hash_interruptible_operation_t *operation,
     mbedtls_svc_key_id_t key, psa_algorithm_t alg,
-    const uint8_t *hash, size_t hash_length,
-    const uint8_t *signature, size_t signature_length)
+    const uint8_t *hash_external, size_t hash_length,
+    const uint8_t *signature_external, size_t signature_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
+
+    LOCAL_INPUT_DECLARE(hash_external, hash);
+    LOCAL_INPUT_DECLARE(signature_external, signature);
 
     /* Check that start has not been previously called, or operation has not
      * previously errored. */
@@ -3745,6 +3748,9 @@ psa_status_t psa_verify_hash_start(
         return status;
     }
 
+    LOCAL_INPUT_ALLOC(hash_external, hash_length, hash);
+    LOCAL_INPUT_ALLOC(signature_external, signature_length, signature);
+
     psa_key_attributes_t attributes = {
         .core = slot->attr
     };
@@ -3757,6 +3763,9 @@ psa_status_t psa_verify_hash_start(
                                                   slot->key.bytes,
                                                   alg, hash, hash_length,
                                                   signature, signature_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+exit:
+#endif
 
     if (status != PSA_SUCCESS) {
         operation->error_occurred = 1;
@@ -3768,6 +3777,9 @@ psa_status_t psa_verify_hash_start(
     if (unlock_status != PSA_SUCCESS) {
         operation->error_occurred = 1;
     }
+
+    LOCAL_INPUT_FREE(hash_external, hash);
+    LOCAL_INPUT_FREE(signature_external, signature);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }

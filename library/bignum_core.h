@@ -665,7 +665,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub_int(mbedtls_mpi_uint *X,
  * \return        MBEDTLS_CT_FALSE if `A == 0`
  *                MBEDTLS_CT_TRUE  if `A != 0`.
  */
-mbedtls_ct_condition_t mbedtls_mpi_core_check_zero_ct(const mbedtls_mpi_uint *A,
+mbedtls_ct_condition_t mbedtls_mpi_core_check_zero_ct(volatile const mbedtls_mpi_uint *A,
                                                       size_t limbs);
 
 /**

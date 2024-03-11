@@ -2352,8 +2352,8 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN:MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR_BASIC:!MBEDTLS_RSA_C */
-void pk_copy_from_psa_builtin_fail()
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C */
+void pk_copy_from_psa_builtin_fail(int key_type, int key_alg)
 {
     mbedtls_pk_context pk_ctx;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
@@ -2361,10 +2361,10 @@ void pk_copy_from_psa_builtin_fail()
     mbedtls_pk_init(&pk_ctx);
     PSA_INIT();
 
-    PSA_ASSERT(pk_psa_genkey_generic(PSA_KEY_TYPE_RSA_KEY_PAIR,
+    PSA_ASSERT(pk_psa_genkey_generic(key_type,
                                      PSA_VENDOR_RSA_GENERATE_MIN_KEY_BITS,
                                      PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_EXPORT,
-                                     PSA_ALG_RSA_PKCS1V15_SIGN(PSA_ALG_SHA_256),
+                                     key_alg,
                                      &key_id));
     TEST_EQUAL(mbedtls_pk_copy_from_psa(key_id, &pk_ctx), MBEDTLS_ERR_PK_BAD_INPUT_DATA);
 exit:

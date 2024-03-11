@@ -1459,8 +1459,13 @@ pk_import_into_psa_opaque:PSA_KEY_TYPE_ECC_KEY_PAIR(MBEDTLS_TEST_PSA_ECC_ONE_FAM
 Copy from PSA: use wrong parameters
 pk_copy_from_psa_fail:
 
-Copy from PSA: accelerated key only, not available as built-in
-pk_copy_from_psa_builtin_fail:
+Copy from PSA: RSA PKCS1V15 accelerated only, not available as built-in
+depends_on:MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN:MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR_BASIC:!MBEDTLS_RSA_C
+pk_copy_from_psa_builtin_fail:PSA_KEY_TYPE_RSA_KEY_PAIR:PSA_ALG_RSA_PKCS1V15_SIGN(PSA_ALG_SHA_256)
+
+Copy from PSA: EC SECP256R1 accelerated only, not available as built-in
+depends_on:MBEDTLS_PSA_ACCEL_ECC_SECP_R1_256:MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_BASIC:MBEDTLS_PSA_ACCEL_ALG_ECDSA:!MBEDTLS_ECDSA_C:!MBEDTLS_ECP_DP_SECP256R1:MBEDTLS_PSA_ACCEL_ALG_SHA_256
+pk_copy_from_psa_builtin_fail:PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1):PSA_ALG_ECDSA(PSA_ALG_SHA_256)
 
 Copy from PSA: valid EC (SECP_R1_256 + ECDSA + ANY_HASH)
 depends_on:MBEDTLS_ECP_HAVE_SECP256R1:MBEDTLS_PK_CAN_ECDSA_SIGN:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_MD_ALG_FOR_TEST

@@ -72,6 +72,18 @@ psa_status_t psa_destroy_key(mbedtls_svc_key_id_t key)
     return PSA_ERROR_COMMUNICATION_FAILURE;
 }
 
+psa_status_t psa_export_key(mbedtls_svc_key_id_t key,
+                            uint8_t *data,
+                            size_t data_size,
+                            size_t *data_length)
+{
+    (void) key;
+    (void) data;
+    (void) data_size;
+    (void) data_length;
+    return PSA_ERROR_COMMUNICATION_FAILURE;
+}
+
 psa_status_t psa_export_public_key(mbedtls_svc_key_id_t key,
                                    uint8_t *data,
                                    size_t data_size,

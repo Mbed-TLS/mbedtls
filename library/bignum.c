@@ -44,10 +44,10 @@
  * (MPI sign is the field s in mbedtls_mpi. It is unsigned short and only 1 and -1 are valid
  * values.)
  */
-static inline unsigned short mbedtls_ct_mpi_sign_if(mbedtls_ct_condition_t cond,
-                                                    unsigned short sign1, unsigned short sign2)
+static inline signed short mbedtls_ct_mpi_sign_if(mbedtls_ct_condition_t cond,
+                                                  signed short sign1, signed short sign2)
 {
-    return (unsigned short) mbedtls_ct_uint_if(cond, sign1 + 1, sign2 + 1) - 1;
+    return (signed short) mbedtls_ct_uint_if(cond, sign1 + 1, sign2 + 1) - 1;
 }
 
 /*

@@ -1110,6 +1110,8 @@ component_check_test_dependencies () {
     echo "MBEDTLS_ECP_RESTARTABLE" >> $expected
     # No PSA equivalent - needed by some init tests
     echo "MBEDTLS_ENTROPY_NV_SEED" >> $expected
+    # No PSA equivalent - required to run threaded tests.
+    echo "MBEDTLS_THREADING_PTHREAD" >> $expected
 
     # Compare reality with expectation.
     # We want an exact match, to ensure the above list remains up-to-date.
@@ -2198,6 +2200,8 @@ component_test_tsan () {
     scripts/config.py full
     scripts/config.py set MBEDTLS_THREADING_C
     scripts/config.py set MBEDTLS_THREADING_PTHREAD
+    # Self-tests do not currently use multiple threads.
+    scripts/config.py unset MBEDTLS_SELF_TEST
 
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=TSan .
     make

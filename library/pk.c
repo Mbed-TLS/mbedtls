@@ -1402,7 +1402,7 @@ int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id, mbedtls_pk_context *pk
 
     status = psa_export_key(key_id, exp_key, sizeof(exp_key), &exp_key_len);
     if (status != PSA_SUCCESS) {
-        ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+        ret = PSA_PK_TO_MBEDTLS_ERR(status);
         goto exit;
     }
 
@@ -1429,8 +1429,7 @@ int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id, mbedtls_pk_context *pk
         }
 
         mbedtls_md_type_t md_type = MBEDTLS_MD_NONE;
-        if ((PSA_ALG_GET_HASH(alg_type) != PSA_ALG_NONE) &&
-            (PSA_ALG_GET_HASH(alg_type) != PSA_ALG_ANY_HASH)) {
+        if (PSA_ALG_GET_HASH(alg_type) != PSA_ALG_ANY_HASH) {
             md_type = mbedtls_md_type_from_psa_alg(alg_type);
         }
 

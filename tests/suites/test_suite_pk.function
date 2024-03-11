@@ -2340,7 +2340,7 @@ void pk_copy_from_psa_fail(void)
     /* Generate an EC key which cannot be exported. */
     PSA_ASSERT(pk_psa_genkey_generic(PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1), 256,
                                      0, PSA_ALG_NONE, &key_id));
-    TEST_EQUAL(mbedtls_pk_copy_from_psa(key_id, &pk_ctx), MBEDTLS_ERR_PK_BAD_INPUT_DATA);
+    TEST_EQUAL(mbedtls_pk_copy_from_psa(key_id, &pk_ctx), MBEDTLS_ERR_PK_TYPE_MISMATCH);
     psa_destroy_key(key_id);
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS && PSA_WANT_ECC_SECP_R1_256 &&
           PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE */

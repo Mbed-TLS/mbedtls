@@ -747,57 +747,6 @@ typedef enum {
     MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED,
     MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED,
 } mbedtls_ssl_early_data_status;
-
-typedef enum {
-/*
- * The client has not sent the first ClientHello yet, the negotiation of early
- * data has not started yet.
- */
-    MBEDTLS_SSL_EARLY_DATA_STATE_IDLE,
-
-/*
- * In its ClientHello, the client has not included an early data indication
- * extension.
- */
-    MBEDTLS_SSL_EARLY_DATA_STATE_NO_IND_SENT,
-
-/*
- * The client has sent an early data indication extension in its first
- * ClientHello, it has not received the response (ServerHello or
- * HelloRetryRequest) from the server yet. The transform to protect early data
- * is not set either as for middlebox compatibility a dummy CCs may have to be
- * sent in clear. Early data cannot be sent to the server yet.
- */
-    MBEDTLS_SSL_EARLY_DATA_STATE_IND_SENT,
-
-/*
- * The client has sent an early data indication extension in its first
- * ClientHello, it has not received the response (ServerHello or
- * HelloRetryRequest) from the server yet. The transform to protect early data
- * has been set and early data can be written now.
- */
-    MBEDTLS_SSL_EARLY_DATA_STATE_CAN_WRITE,
-
-/*
- * The client has indicated the use of early data and the server has accepted
- * it.
- */
-    MBEDTLS_SSL_EARLY_DATA_STATE_ACCEPTED,
-
-/*
- * The client has indicated the use of early data but the server has rejected
- * it.
- */
-    MBEDTLS_SSL_EARLY_DATA_STATE_REJECTED,
-
-/*
- * The client has sent an early data indication extension in its first
- * ClientHello, the server has accepted them and the client has received the
- * server Finished message. It cannot send early data to the server anymore.
- */
-    MBEDTLS_SSL_EARLY_DATA_STATE_SERVER_FINISHED_RECEIVED,
-
-} mbedtls_ssl_early_data_state;
 #endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
 
 /**
@@ -1761,7 +1710,7 @@ struct mbedtls_ssl_context {
      * State of the negotiation and transfer of early data. Reset to
      * MBEDTLS_SSL_EARLY_DATA_STATE_IDLE when the context is reset.
      */
-    mbedtls_ssl_early_data_state MBEDTLS_PRIVATE(early_data_state);
+    int MBEDTLS_PRIVATE(early_data_state);
 #endif
 
     unsigned MBEDTLS_PRIVATE(badmac_seen);       /*!< records with a bad MAC received    */

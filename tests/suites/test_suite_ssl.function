@@ -4125,7 +4125,7 @@ void tls13_cli_early_data_state(int scenario)
             break;
 
         case TEST_EARLY_DATA_NO_INDICATION_SENT:
-            TEST_EQUAL(ret, MBEDTLS_SSL_EARLY_DATA_STATUS_NO_IND_SENT);
+            TEST_EQUAL(ret, MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_INDICATED);
             break;
 
         case TEST_EARLY_DATA_SERVER_REJECTS: /* Intentional fallthrough */

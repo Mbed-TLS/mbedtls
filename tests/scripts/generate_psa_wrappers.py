@@ -150,46 +150,9 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
                                     _buffer_name: Optional[str]) -> bool:
         """Whether the specified buffer argument to a PSA function should be copied.
         """
-        #pylint: disable=too-many-return-statements
-        if function_name.startswith('psa_aead'):
-            return True
-        if function_name in {'psa_cipher_encrypt', 'psa_cipher_decrypt',
-                             'psa_cipher_update', 'psa_cipher_finish',
-                             'psa_cipher_generate_iv', 'psa_cipher_set_iv'}:
-            return True
-        if function_name in ('psa_key_derivation_output_bytes',
-                             'psa_key_derivation_input_bytes'):
-            return True
-        if function_name in ('psa_import_key',
-                             'psa_export_key',
-                             'psa_export_public_key'):
-            return True
-        if function_name in ('psa_sign_message',
-                             'psa_verify_message',
-                             'psa_sign_hash',
-                             'psa_verify_hash'):
-            return True
-        if function_name in ('psa_hash_update',
-                             'psa_hash_finish',
-                             'psa_hash_verify',
-                             'psa_hash_compute',
-                             'psa_hash_compare'):
-            return True
-        if function_name in ('psa_key_derivation_key_agreement',
-                             'psa_raw_key_agreement'):
-            return True
-        if function_name == 'psa_generate_random':
-            return True
-        if function_name in ('psa_mac_update',
-                             'psa_mac_sign_finish',
-                             'psa_mac_verify_finish',
-                             'psa_mac_compute',
-                             'psa_mac_verify'):
-            return True
-        if function_name in ('psa_asymmetric_encrypt',
-                             'psa_asymmetric_decrypt'):
-            return True
-        return False
+        if function_name == 'mbedtls_psa_inject_entropy':
+            return False
+        return True
 
     def _write_function_call(self, out: typing_util.Writable,
                              function: c_wrapper_generator.FunctionInfo,

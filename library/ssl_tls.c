@@ -1280,6 +1280,14 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
     }
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
+
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    /* Client starts with the desired fragment length. */
+    if (ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT) {
+        ssl->session_negotiate->mfl_code = ssl->conf->mfl_code;
+    }
+#endif
+
     return 0;
 }
 
@@ -3183,17 +3191,9 @@ size_t mbedtls_ssl_get_input_max_frag_len(const mbedtls_ssl_context *ssl)
     size_t max_len = MBEDTLS_SSL_IN_CONTENT_LEN;
     size_t read_mfl;
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    /* Use the configured MFL for the client if we're past SERVER_HELLO_DONE */
-    if (ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
-        ssl->state >= MBEDTLS_SSL_SERVER_HELLO_DONE) {
-        return ssl_mfl_code_to_length(ssl->conf->mfl_code);
-    }
-#endif
-
     /* Check if a smaller max length was negotiated */
-    if (ssl->session_out != NULL) {
-        read_mfl = ssl_mfl_code_to_length(ssl->session_out->mfl_code);
+    if (ssl->session_in != NULL) {
+        read_mfl = ssl_mfl_code_to_length(ssl->session_in->mfl_code);
         if (read_mfl < max_len) {
             max_len = read_mfl;
         }

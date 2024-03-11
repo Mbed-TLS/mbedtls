@@ -364,17 +364,11 @@ int mbedtls_pk_setup(mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info);
  *                  This function replaces mbedtls_pk_setup() for contexts
  *                  that wrap a (possibly opaque) PSA key instead of
  *                  storing and manipulating the key material directly. Only EC
- *                  and RSA keys are supported.
- *                  The resulting PK context will be of type #MBEDTLS_PK_OPAQUE
- *                  and it will allow the following operations based on the
- *                  wrapped key type:
- *                  - EC key: mbedtls_pk_get_bitlen(), mbedtls_pk_can_do(),
- *                            mbedtls_pk_sign(), mbedtls_pk_verify(),
- *                            mbedtls_pk_check_pair().
- *                  - RSA key: mbedtls_pk_get_bitlen(), mbedtls_pk_can_do(),
- *                            mbedtls_pk_sign(), mbedtls_pk_decrypt().
+ *                  and RSA key pairs are supported. The resulting PK context
+ *                  will be of type #MBEDTLS_PK_OPAQUE.
  *
- * \warning         psa_crypto_init() must be called before using this function.
+ * \warning         psa_crypto_init() must be called before using this function
+ *                  for wrapping a persistent key.
  *
  * \warning         The wrapped key must remain valid as long as the
  *                  wrapping PK context is in use, that is at least between

@@ -395,8 +395,7 @@ int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
  * \brief           Create a PK context starting from a key stored in PSA.
  *                  This key:
  *                  - must be exportable and
- *                  - must be a either an RSA or EC key (DH is not managed in PK) and
- *                  - must be either a key pair or a public key.
+ *                  - must be an RSA or EC key pair or public key (FFDH is not supported in PK).
  *
  *                  The resulting PK object will be a transparent type:
  *                  - #MBEDTLS_PK_RSA for RSA keys or
@@ -423,7 +422,7 @@ int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
  *                  but not set up.
  *
  * \return          0 on success.
- * \return          MBEDTLS_ERR_PK_BAD_INPUT_DATA in case the provided input
+ * \return          #MBEDTLS_ERR_PK_BAD_INPUT_DATA in case the provided input
  *                  parameters are not correct.
  */
 int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id, mbedtls_pk_context *pk);

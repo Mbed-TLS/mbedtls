@@ -169,6 +169,9 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
                              'psa_hash_compute',
                              'psa_hash_compare'):
             return True
+        if function_name in ('psa_key_derivation_key_agreement',
+                             'psa_raw_key_agreement'):
+            return True
         if function_name == 'psa_generate_random':
             return True
         if function_name in ('psa_mac_update',

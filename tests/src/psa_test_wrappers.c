@@ -810,7 +810,13 @@ psa_status_t mbedtls_test_wrap_psa_key_derivation_key_agreement(
     const uint8_t *arg3_peer_key,
     size_t arg4_peer_key_length)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg3_peer_key, arg4_peer_key_length);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_key_derivation_key_agreement)(arg0_operation, arg1_step, arg2_private_key, arg3_peer_key, arg4_peer_key_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg3_peer_key, arg4_peer_key_length);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 
@@ -1107,7 +1113,15 @@ psa_status_t mbedtls_test_wrap_psa_raw_key_agreement(
     size_t arg5_output_size,
     size_t *arg6_output_length)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg2_peer_key, arg3_peer_key_length);
+    MBEDTLS_TEST_MEMORY_POISON(arg4_output, arg5_output_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_raw_key_agreement)(arg0_alg, arg1_private_key, arg2_peer_key, arg3_peer_key_length, arg4_output, arg5_output_size, arg6_output_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg2_peer_key, arg3_peer_key_length);
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg4_output, arg5_output_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 

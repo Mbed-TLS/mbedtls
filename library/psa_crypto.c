@@ -3658,8 +3658,10 @@ psa_status_t psa_sign_hash_complete(
 
 exit:
 
-    psa_wipe_tag_output_buffer(signature, status, signature_size,
-                               *signature_length);
+    if (signature != NULL) {
+        psa_wipe_tag_output_buffer(signature, status, signature_size,
+                                   *signature_length);
+    }
 
     if (status != PSA_OPERATION_INCOMPLETE) {
         if (status != PSA_SUCCESS) {

@@ -3556,12 +3556,14 @@ static psa_status_t psa_sign_hash_abort_internal(
 psa_status_t psa_sign_hash_start(
     psa_sign_hash_interruptible_operation_t *operation,
     mbedtls_svc_key_id_t key, psa_algorithm_t alg,
-    const uint8_t *hash, size_t hash_length)
+    const uint8_t *hash_external, size_t hash_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
     psa_key_attributes_t attributes;
+
+    LOCAL_INPUT_DECLARE(hash_external, hash);
 
     /* Check that start has not been previously called, or operation has not
      * previously errored. */
@@ -3588,6 +3590,8 @@ psa_status_t psa_sign_hash_start(
         goto exit;
     }
 
+    LOCAL_INPUT_ALLOC(hash_external, hash_length, hash);
+
     attributes = (psa_key_attributes_t) {
         .core = slot->attr
     };
@@ -3612,16 +3616,20 @@ exit:
         operation->error_occurred = 1;
     }
 
+    LOCAL_INPUT_FREE(hash_external, hash);
+
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
 
 psa_status_t psa_sign_hash_complete(
     psa_sign_hash_interruptible_operation_t *operation,
-    uint8_t *signature, size_t signature_size,
+    uint8_t *signature_external, size_t signature_size,
     size_t *signature_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    LOCAL_OUTPUT_DECLARE(signature_external, signature);
 
     *signature_length = 0;
 
@@ -3638,6 +3646,8 @@ psa_status_t psa_sign_hash_complete(
         status = PSA_ERROR_BUFFER_TOO_SMALL;
         goto exit;
     }
+
+    LOCAL_OUTPUT_ALLOC(signature_external, signature_size, signature);
 
     status = psa_driver_wrapper_sign_hash_complete(operation, signature,
                                                    signature_size,
@@ -3658,6 +3668,8 @@ exit:
 
         psa_sign_hash_abort_internal(operation);
     }
+
+    LOCAL_OUTPUT_FREE(signature_external, signature);
 
     return status;
 }

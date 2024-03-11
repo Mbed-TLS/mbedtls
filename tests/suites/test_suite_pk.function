@@ -2547,14 +2547,36 @@ void pk_copy_from_psa_success(data_t *priv_key_data, int key_type_arg,
      * - Verify with the PK context generated using public key.
      * - Verify using the public PSA key directly.
      */
-    TEST_EQUAL(mbedtls_pk_sign(&pk_priv, md_for_test, in_buf, in_buf_len,
-                               out_buf, sizeof(out_buf), &out_buf_len,
-                               mbedtls_test_rnd_std_rand, NULL), 0);
 
-    TEST_EQUAL(mbedtls_pk_verify(&pk_priv, md_for_test, in_buf, in_buf_len,
-                                 out_buf, out_buf_len), 0);
-    TEST_EQUAL(mbedtls_pk_verify(&pk_pub, md_for_test, in_buf, in_buf_len,
-                                 out_buf, out_buf_len), 0);
+    /* Edge cases: in a build with RSA key support but not RSA padding modes,
+     * or with ECDSA verify support but not signature, the signature might be
+     * impossible. */
+    int pk_can_sign = 0;
+#if defined(MBEDTLS_PKCS1_V15)
+    if (PSA_ALG_IS_RSA_PKCS1V15_SIGN(key_alg) || key_alg == PSA_ALG_RSA_PKCS1V15_CRYPT) {
+        pk_can_sign = 1;
+    }
+#endif
+#if defined(MBEDTLS_PKCS1_V21)
+    if (PSA_ALG_IS_RSA_PSS(key_alg) || PSA_ALG_IS_RSA_OAEP(key_alg)) {
+        pk_can_sign = 1;
+    }
+#endif
+#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
+    if (PSA_ALG_IS_ECDSA(key_alg) || PSA_ALG_IS_DETERMINISTIC_ECDSA(key_alg)) {
+        pk_can_sign = 1;
+    }
+#endif
+    if (pk_can_sign) {
+        TEST_EQUAL(mbedtls_pk_sign(&pk_priv, md_for_test, in_buf, in_buf_len,
+                                   out_buf, sizeof(out_buf), &out_buf_len,
+                                   mbedtls_test_rnd_std_rand, NULL), 0);
+
+        TEST_EQUAL(mbedtls_pk_verify(&pk_priv, md_for_test, in_buf, in_buf_len,
+                                     out_buf, out_buf_len), 0);
+        TEST_EQUAL(mbedtls_pk_verify(&pk_pub, md_for_test, in_buf, in_buf_len,
+                                     out_buf, out_buf_len), 0);
+    }
 
     if (PSA_ALG_IS_HASH_AND_SIGN(key_alg)) {
 #if defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)

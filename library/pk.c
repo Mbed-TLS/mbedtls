@@ -1444,7 +1444,8 @@ static int copy_from_psa(mbedtls_svc_key_id_t key_id,
 
         if (PSA_ALG_IS_RSA_OAEP(alg_type) || PSA_ALG_IS_RSA_PSS(alg_type)) {
             ret = mbedtls_rsa_set_padding(mbedtls_pk_rsa(*pk), MBEDTLS_RSA_PKCS_V21, md_type);
-        } else {
+        } else if (PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg_type) ||
+                   alg_type == PSA_ALG_RSA_PKCS1V15_CRYPT) {
             ret = mbedtls_rsa_set_padding(mbedtls_pk_rsa(*pk), MBEDTLS_RSA_PKCS_V15, md_type);
         }
         if (ret != 0) {

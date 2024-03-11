@@ -445,8 +445,8 @@ exit:
  * key which is provided in input. For this new key:
  * - Type is the public counterpart of the private key.
  * - Usage is the copied from the original private key, but the PSA_KEY_USAGE_EXPORT
- *   flag is removed. This is to prove that public keys are always exportable
- *   even if the EXPORT flag is not explicitly set.
+ *   flag is removed. This is to prove that mbedtls_pk_copy_from_psa() doesn't
+ *   require the key to have the EXPORT flag.
  * - Algorithm is copied from the original key pair.
  */
 static mbedtls_svc_key_id_t psa_pub_key_from_priv(mbedtls_svc_key_id_t priv_id)
@@ -2404,7 +2404,7 @@ void pk_copy_from_psa_success(data_t *priv_key_data, int key_type_arg,
                                  key_type, key_usage, key_alg, &priv_key_id));
     pub_key_id = psa_pub_key_from_priv(priv_key_id);
 
-    /* Generate 2 PK contexts starting from the PSA keys we just created. */
+    /* Create 2 PK contexts starting from the PSA keys we just created. */
     TEST_EQUAL(mbedtls_pk_copy_from_psa(priv_key_id, &pk_priv), 0);
     TEST_EQUAL(mbedtls_pk_copy_from_psa(pub_key_id, &pk_pub), 0);
 

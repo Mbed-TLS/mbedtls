@@ -151,6 +151,7 @@ void mbedtls_threading_set_alt(void (*mutex_init)(mbedtls_threading_mutex_t *),
 #if defined(MBEDTLS_PSA_CRYPTO_C)
     mbedtls_mutex_init(&mbedtls_threading_key_slot_mutex);
     mbedtls_mutex_init(&mbedtls_threading_psa_globaldata_mutex);
+    mbedtls_mutex_init(&mbedtls_threading_psa_rngdata_mutex);
 #endif
 }
 
@@ -168,6 +169,7 @@ void mbedtls_threading_free_alt(void)
 #if defined(MBEDTLS_PSA_CRYPTO_C)
     mbedtls_mutex_free(&mbedtls_threading_key_slot_mutex);
     mbedtls_mutex_free(&mbedtls_threading_psa_globaldata_mutex);
+    mbedtls_mutex_free(&mbedtls_threading_psa_rngdata_mutex);
 #endif
 }
 #endif /* MBEDTLS_THREADING_ALT */
@@ -187,6 +189,7 @@ mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex MUTEX_INIT;
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 mbedtls_threading_mutex_t mbedtls_threading_key_slot_mutex MUTEX_INIT;
 mbedtls_threading_mutex_t mbedtls_threading_psa_globaldata_mutex MUTEX_INIT;
+mbedtls_threading_mutex_t mbedtls_threading_psa_rngdata_mutex MUTEX_INIT;
 #endif
 
 #endif /* MBEDTLS_THREADING_C */

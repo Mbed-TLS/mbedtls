@@ -114,11 +114,18 @@ extern mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex;
 extern mbedtls_threading_mutex_t mbedtls_threading_key_slot_mutex;
 
 /*
- * A mutex used to make the PSA global_data struct members thread safe.
+ * A mutex used to make the non-rng PSA global_data struct members thread safe.
  *
- * This mutex must be held when any read or write to a any of the PSA
- * global_data structure members. */
+ * This mutex must be held when reading or writing to any of the PSA global_data
+ * structure members, other than the rng_state or rng struct. */
 extern mbedtls_threading_mutex_t mbedtls_threading_psa_globaldata_mutex;
+
+/*
+ * A mutex used to make the PSA global_data rng data thread safe.
+ *
+ * This mutex must be held when reading or writing to the PSA
+ * global_data rng_state or rng struct members. */
+extern mbedtls_threading_mutex_t mbedtls_threading_psa_rngdata_mutex;
 #endif
 
 #endif /* MBEDTLS_THREADING_C */

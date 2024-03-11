@@ -856,13 +856,14 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub_int(mbedtls_mpi_uint *X,
     return c;
 }
 
-mbedtls_ct_condition_t mbedtls_mpi_core_check_zero_ct(volatile const mbedtls_mpi_uint *A,
+mbedtls_ct_condition_t mbedtls_mpi_core_check_zero_ct(const mbedtls_mpi_uint *A,
                                                       size_t limbs)
 {
+    volatile const mbedtls_mpi_uint* force_read_A = A;
     mbedtls_mpi_uint bits = 0;
 
     for (size_t i = 0; i < limbs; i++) {
-        bits |= A[i];
+        bits |= force_read_A[i];
     }
 
     return mbedtls_ct_bool(bits);

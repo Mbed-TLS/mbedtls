@@ -731,7 +731,7 @@ int main(int argc, char *argv[])
     mbedtls_net_init(&server_fd);
     mbedtls_ssl_init(&ssl);
     mbedtls_ssl_config_init(&conf);
-    memset(&saved_session, 0, sizeof(mbedtls_ssl_session));
+    mbedtls_ssl_session_init(&saved_session);
     rng_init(&rng);
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     mbedtls_x509_crt_init(&cacert);

@@ -2572,7 +2572,7 @@ void raw_agreement_key_policy(int policy_usage,
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
                               &key));
 
-    status = mbedtls_test_psa_raw_key_agreement_with_self(exercise_alg, key);
+    status = mbedtls_test_psa_raw_key_agreement_with_self(exercise_alg, key, 0);
 
     TEST_EQUAL(status, expected_status);
 

@@ -146,12 +146,15 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
  *
  * \param alg               A key agreement algorithm compatible with \p key.
  * \param key               A key that allows key agreement with \p alg.
+ * \param key_destroyable   If set to 1, a failure due to the key not existing
+ *                          or the key being destroyed mid-operation will only
+ *                          be reported if the error code is unexpected.
  *
  * \return                  \c 1 on success, \c 0 on failure.
  */
 psa_status_t mbedtls_test_psa_raw_key_agreement_with_self(
     psa_algorithm_t alg,
-    mbedtls_svc_key_id_t key);
+    mbedtls_svc_key_id_t key, int key_destroyable);
 
 /** Perform a key agreement using the given key pair against its public key
  * using psa_key_derivation_raw_key().

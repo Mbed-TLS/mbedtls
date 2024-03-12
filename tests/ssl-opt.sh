@@ -2047,64 +2047,6 @@ run_test    "Default, DTLS" \
             -s "Protocol is DTLSv1.2" \
             -s "Ciphersuite is TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256"
 
-# GnuTLS can be setup to send a ClientHello containing a supported versions
-# extension proposing TLS 1.2 (preferred) and then TLS 1.3. In that case,
-# a TLS 1.3 and TLS 1.2 capable server is supposed to negotiate TLS 1.2 and
-# to indicate in the ServerHello that it downgrades from TLS 1.3. The GnuTLS
-# client then detects the downgrade indication and aborts the handshake even
-# if TLS 1.2 was its preferred version. Keeping the test even if the
-# handshake fails eventually as it exercices parts of the Mbed TLS
-# implementation that are otherwise not exercised.
-requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-run_test    "Server selecting TLS 1.2 over TLS 1.3" \
-            "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key" \
-            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:+VERS-TLS1.3" \
-            1 \
-            -c "Detected downgrade to TLS 1.2 from TLS 1.3"
-
-requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-run_test    "Server selecting TLS 1.2" \
-            "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key" \
-            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:+VERS-TLS1.3" \
-            0 \
-            -s "Protocol is TLSv1.2" \
-            -c "HTTP/1.0 200 OK"
-
-requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "Server selecting TLS 1.3, over TLS 1.2 if supported" \
-            "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key" \
-            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+VERS-TLS1.2:%DISABLE_TLS13_COMPAT_MODE" \
-            0 \
-            -s "Protocol is TLSv1.3" \
-            -c "HTTP/1.0 200 OK"
-
-requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-run_test    "Server selecting TLS 1.3, over TLS 1.2 if supported - compat mode enabled" \
-            "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key" \
-            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+VERS-TLS1.2" \
-            0 \
-            -s "Protocol is TLSv1.3" \
-            -c "HTTP/1.0 200 OK"
-
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "TLS client auth: required" \
             "$P_SRV auth_mode=required" \
@@ -6939,6 +6881,66 @@ run_test    "Version check: all -> 1.2" \
             -C "mbedtls_ssl_handshake returned" \
             -s "Protocol is TLSv1.2" \
             -c "Protocol is TLSv1.2"
+
+# Tests of version negotiation on server side against GnuTLS client
+
+requires_gnutls_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+run_test    "Server selecting TLS 1.2" \
+            "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:+VERS-TLS1.3" \
+            0 \
+            -s "Protocol is TLSv1.2" \
+            -c "HTTP/1.0 200 OK"
+
+requires_gnutls_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test    "Server selecting TLS 1.3, over TLS 1.2 if supported - compat mode enabled" \
+            "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+VERS-TLS1.2" \
+            0 \
+            -s "Protocol is TLSv1.3" \
+            -c "HTTP/1.0 200 OK"
+
+requires_gnutls_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "Server selecting TLS 1.3, over TLS 1.2 if supported" \
+            "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+VERS-TLS1.2:%DISABLE_TLS13_COMPAT_MODE" \
+            0 \
+            -s "Protocol is TLSv1.3" \
+            -c "HTTP/1.0 200 OK"
+
+# GnuTLS can be setup to send a ClientHello containing a supported versions
+# extension proposing TLS 1.2 (preferred) and then TLS 1.3. In that case,
+# a TLS 1.3 and TLS 1.2 capable server is supposed to negotiate TLS 1.2 and
+# to indicate in the ServerHello that it downgrades from TLS 1.3. The GnuTLS
+# client then detects the downgrade indication and aborts the handshake even
+# if TLS 1.2 was its preferred version. Keeping the test even if the
+# handshake fails eventually as it exercices parts of the Mbed TLS
+# implementation that are otherwise not exercised.
+requires_gnutls_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+run_test    "Server selecting TLS 1.2 over TLS 1.3" \
+            "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:+VERS-TLS1.3" \
+            1 \
+            -c "Detected downgrade to TLS 1.2 from TLS 1.3"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Not supported version check: cli TLS 1.0" \

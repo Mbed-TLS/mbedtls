@@ -119,20 +119,27 @@ exit:
 
 static int exercise_mac_key(mbedtls_svc_key_id_t key,
                             psa_key_usage_t usage,
-                            psa_algorithm_t alg)
+                            psa_algorithm_t alg,
+                            int key_destroyable)
 {
     psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
     const unsigned char input[] = "foo";
     unsigned char mac[PSA_MAC_MAX_SIZE] = { 0 };
     size_t mac_length = sizeof(mac);
-
+    psa_status_t status = PSA_SUCCESS;
     /* Convert wildcard algorithm to exercisable algorithm */
     if (alg & PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG) {
         alg = PSA_ALG_TRUNCATED_MAC(alg, PSA_MAC_TRUNCATED_LENGTH(alg));
     }
 
     if (usage & PSA_KEY_USAGE_SIGN_HASH) {
-        PSA_ASSERT(psa_mac_sign_setup(&operation, key, alg));
+        status = psa_mac_sign_setup(&operation, key, alg);
+        if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+            /* The key has been destroyed. */
+            PSA_ASSERT(psa_mac_abort(&operation));
+            return 1;
+        }
+        PSA_ASSERT(status);
         PSA_ASSERT(psa_mac_update(&operation,
                                   input, sizeof(input)));
         PSA_ASSERT(psa_mac_sign_finish(&operation,
@@ -145,7 +152,13 @@ static int exercise_mac_key(mbedtls_svc_key_id_t key,
             (usage & PSA_KEY_USAGE_SIGN_HASH ?
              PSA_SUCCESS :
              PSA_ERROR_INVALID_SIGNATURE);
-        PSA_ASSERT(psa_mac_verify_setup(&operation, key, alg));
+        status = psa_mac_verify_setup(&operation, key, alg);
+        if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+            /* The key has been destroyed. */
+            PSA_ASSERT(psa_mac_abort(&operation));
+            return 1;
+        }
+        PSA_ASSERT(status);
         PSA_ASSERT(psa_mac_update(&operation,
                                   input, sizeof(input)));
         TEST_EQUAL(psa_mac_verify_finish(&operation, mac, mac_length),

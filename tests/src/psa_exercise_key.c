@@ -337,7 +337,8 @@ static int can_sign_or_verify_message(psa_key_usage_t usage,
 
 static int exercise_signature_key(mbedtls_svc_key_id_t key,
                                   psa_key_usage_t usage,
-                                  psa_algorithm_t alg)
+                                  psa_algorithm_t alg,
+                                  int key_destroyable)
 {
     /* If the policy allows signing with any hash, just pick one. */
     psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH(alg);
@@ -351,6 +352,7 @@ static int exercise_signature_key(mbedtls_svc_key_id_t key,
         TEST_FAIL("No hash algorithm for hash-and-sign testing");
 #endif
     }
+    psa_status_t status = PSA_SUCCESS;
 
     if (usage & (PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH) &&
         PSA_ALG_IS_SIGN_HASH(alg)) {
@@ -367,10 +369,15 @@ static int exercise_signature_key(mbedtls_svc_key_id_t key,
         }
 
         if (usage & PSA_KEY_USAGE_SIGN_HASH) {
-            PSA_ASSERT(psa_sign_hash(key, alg,
-                                     payload, payload_length,
-                                     signature, sizeof(signature),
-                                     &signature_length));
+            status = psa_sign_hash(key, alg,
+                                   payload, payload_length,
+                                   signature, sizeof(signature),
+                                   &signature_length);
+            if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+                /* The key has been destroyed. */
+                return 1;
+            }
+            PSA_ASSERT(status);
         }
 
         if (usage & PSA_KEY_USAGE_VERIFY_HASH) {
@@ -378,10 +385,14 @@ static int exercise_signature_key(mbedtls_svc_key_id_t key,
                 (usage & PSA_KEY_USAGE_SIGN_HASH ?
                  PSA_SUCCESS :
                  PSA_ERROR_INVALID_SIGNATURE);
-            TEST_EQUAL(psa_verify_hash(key, alg,
-                                       payload, payload_length,
-                                       signature, signature_length),
-                       verify_status);
+            status = psa_verify_hash(key, alg,
+                                     payload, payload_length,
+                                     signature, signature_length);
+            if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+                /* The key has been destroyed. */
+                return 1;
+            }
+            TEST_ASSERT(status == verify_status);
         }
     }
 
@@ -392,10 +403,15 @@ static int exercise_signature_key(mbedtls_svc_key_id_t key,
         size_t signature_length = sizeof(signature);
 
         if (usage & PSA_KEY_USAGE_SIGN_MESSAGE) {
-            PSA_ASSERT(psa_sign_message(key, alg,
-                                        message, message_length,
-                                        signature, sizeof(signature),
-                                        &signature_length));
+            status = psa_sign_message(key, alg,
+                                      message, message_length,
+                                      signature, sizeof(signature),
+                                      &signature_length);
+            if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+                /* The key has been destroyed. */
+                return 1;
+            }
+            PSA_ASSERT(status);
         }
 
         if (usage & PSA_KEY_USAGE_VERIFY_MESSAGE) {
@@ -403,10 +419,14 @@ static int exercise_signature_key(mbedtls_svc_key_id_t key,
                 (usage & PSA_KEY_USAGE_SIGN_MESSAGE ?
                  PSA_SUCCESS :
                  PSA_ERROR_INVALID_SIGNATURE);
-            TEST_EQUAL(psa_verify_message(key, alg,
-                                          message, message_length,
-                                          signature, signature_length),
-                       verify_status);
+            status = psa_verify_message(key, alg,
+                                        message, message_length,
+                                        signature, signature_length);
+            if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+                /* The key has been destroyed. */
+                return 1;
+            }
+            TEST_ASSERT(status == verify_status);
         }
     }
 

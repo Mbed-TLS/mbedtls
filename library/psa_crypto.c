@@ -3556,12 +3556,14 @@ static psa_status_t psa_sign_hash_abort_internal(
 psa_status_t psa_sign_hash_start(
     psa_sign_hash_interruptible_operation_t *operation,
     mbedtls_svc_key_id_t key, psa_algorithm_t alg,
-    const uint8_t *hash, size_t hash_length)
+    const uint8_t *hash_external, size_t hash_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
     psa_key_attributes_t attributes;
+
+    LOCAL_INPUT_DECLARE(hash_external, hash);
 
     /* Check that start has not been previously called, or operation has not
      * previously errored. */
@@ -3588,6 +3590,8 @@ psa_status_t psa_sign_hash_start(
         goto exit;
     }
 
+    LOCAL_INPUT_ALLOC(hash_external, hash_length, hash);
+
     attributes = (psa_key_attributes_t) {
         .core = slot->attr
     };
@@ -3612,16 +3616,20 @@ exit:
         operation->error_occurred = 1;
     }
 
+    LOCAL_INPUT_FREE(hash_external, hash);
+
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
 
 psa_status_t psa_sign_hash_complete(
     psa_sign_hash_interruptible_operation_t *operation,
-    uint8_t *signature, size_t signature_size,
+    uint8_t *signature_external, size_t signature_size,
     size_t *signature_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    LOCAL_OUTPUT_DECLARE(signature_external, signature);
 
     *signature_length = 0;
 
@@ -3639,6 +3647,8 @@ psa_status_t psa_sign_hash_complete(
         goto exit;
     }
 
+    LOCAL_OUTPUT_ALLOC(signature_external, signature_size, signature);
+
     status = psa_driver_wrapper_sign_hash_complete(operation, signature,
                                                    signature_size,
                                                    signature_length);
@@ -3648,8 +3658,10 @@ psa_status_t psa_sign_hash_complete(
 
 exit:
 
-    psa_wipe_tag_output_buffer(signature, status, signature_size,
-                               *signature_length);
+    if (signature != NULL) {
+        psa_wipe_tag_output_buffer(signature, status, signature_size,
+                                   *signature_length);
+    }
 
     if (status != PSA_OPERATION_INCOMPLETE) {
         if (status != PSA_SUCCESS) {
@@ -3658,6 +3670,8 @@ exit:
 
         psa_sign_hash_abort_internal(operation);
     }
+
+    LOCAL_OUTPUT_FREE(signature_external, signature);
 
     return status;
 }
@@ -3705,12 +3719,15 @@ static psa_status_t psa_verify_hash_abort_internal(
 psa_status_t psa_verify_hash_start(
     psa_verify_hash_interruptible_operation_t *operation,
     mbedtls_svc_key_id_t key, psa_algorithm_t alg,
-    const uint8_t *hash, size_t hash_length,
-    const uint8_t *signature, size_t signature_length)
+    const uint8_t *hash_external, size_t hash_length,
+    const uint8_t *signature_external, size_t signature_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
+
+    LOCAL_INPUT_DECLARE(hash_external, hash);
+    LOCAL_INPUT_DECLARE(signature_external, signature);
 
     /* Check that start has not been previously called, or operation has not
      * previously errored. */
@@ -3733,6 +3750,9 @@ psa_status_t psa_verify_hash_start(
         return status;
     }
 
+    LOCAL_INPUT_ALLOC(hash_external, hash_length, hash);
+    LOCAL_INPUT_ALLOC(signature_external, signature_length, signature);
+
     psa_key_attributes_t attributes = {
         .core = slot->attr
     };
@@ -3745,6 +3765,9 @@ psa_status_t psa_verify_hash_start(
                                                   slot->key.bytes,
                                                   alg, hash, hash_length,
                                                   signature, signature_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+exit:
+#endif
 
     if (status != PSA_SUCCESS) {
         operation->error_occurred = 1;
@@ -3756,6 +3779,9 @@ psa_status_t psa_verify_hash_start(
     if (unlock_status != PSA_SUCCESS) {
         operation->error_occurred = 1;
     }
+
+    LOCAL_INPUT_FREE(hash_external, hash);
+    LOCAL_INPUT_FREE(signature_external, signature);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }

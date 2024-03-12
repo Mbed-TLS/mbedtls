@@ -1162,7 +1162,13 @@ psa_status_t mbedtls_test_wrap_psa_sign_hash_complete(
     size_t arg2_signature_size,
     size_t *arg3_signature_length)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg1_signature, arg2_signature_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_sign_hash_complete)(arg0_operation, arg1_signature, arg2_signature_size, arg3_signature_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg1_signature, arg2_signature_size);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 
@@ -1174,7 +1180,13 @@ psa_status_t mbedtls_test_wrap_psa_sign_hash_start(
     const uint8_t *arg3_hash,
     size_t arg4_hash_length)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg3_hash, arg4_hash_length);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_sign_hash_start)(arg0_operation, arg1_key, arg2_alg, arg3_hash, arg4_hash_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg3_hash, arg4_hash_length);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 
@@ -1247,7 +1259,15 @@ psa_status_t mbedtls_test_wrap_psa_verify_hash_start(
     const uint8_t *arg5_signature,
     size_t arg6_signature_length)
 {
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_POISON(arg3_hash, arg4_hash_length);
+    MBEDTLS_TEST_MEMORY_POISON(arg5_signature, arg6_signature_length);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     psa_status_t status = (psa_verify_hash_start)(arg0_operation, arg1_key, arg2_alg, arg3_hash, arg4_hash_length, arg5_signature, arg6_signature_length);
+#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg3_hash, arg4_hash_length);
+    MBEDTLS_TEST_MEMORY_UNPOISON(arg5_signature, arg6_signature_length);
+#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */
     return status;
 }
 

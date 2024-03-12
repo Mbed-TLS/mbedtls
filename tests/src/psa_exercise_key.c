@@ -262,7 +262,8 @@ exit:
 
 static int exercise_aead_key(mbedtls_svc_key_id_t key,
                              psa_key_usage_t usage,
-                             psa_algorithm_t alg)
+                             psa_algorithm_t alg,
+                             int key_destroyable)
 {
     unsigned char nonce[PSA_AEAD_NONCE_MAX_SIZE] = { 0 };
     size_t nonce_length;
@@ -272,6 +273,7 @@ static int exercise_aead_key(mbedtls_svc_key_id_t key,
     unsigned char ciphertext[48] = "(wabblewebblewibblewobblewubble)";
     size_t ciphertext_length = sizeof(ciphertext);
     size_t plaintext_length = sizeof(ciphertext);
+    psa_status_t status = PSA_SUCCESS;
 
     /* Convert wildcard algorithm to exercisable algorithm */
     if (alg & PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG) {
@@ -283,12 +285,17 @@ static int exercise_aead_key(mbedtls_svc_key_id_t key,
     nonce_length = PSA_AEAD_NONCE_LENGTH(key_type, alg);
 
     if (usage & PSA_KEY_USAGE_ENCRYPT) {
-        PSA_ASSERT(psa_aead_encrypt(key, alg,
-                                    nonce, nonce_length,
-                                    NULL, 0,
-                                    plaintext, sizeof(plaintext),
-                                    ciphertext, sizeof(ciphertext),
-                                    &ciphertext_length));
+        status = psa_aead_encrypt(key, alg,
+                                  nonce, nonce_length,
+                                  NULL, 0,
+                                  plaintext, sizeof(plaintext),
+                                  ciphertext, sizeof(ciphertext),
+                                  &ciphertext_length);
+        if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+            /* The key has been destroyed. */
+            return 1;
+        }
+        PSA_ASSERT(status);
     }
 
     if (usage & PSA_KEY_USAGE_DECRYPT) {
@@ -296,13 +303,17 @@ static int exercise_aead_key(mbedtls_svc_key_id_t key,
             (usage & PSA_KEY_USAGE_ENCRYPT ?
              PSA_SUCCESS :
              PSA_ERROR_INVALID_SIGNATURE);
-        TEST_EQUAL(psa_aead_decrypt(key, alg,
-                                    nonce, nonce_length,
-                                    NULL, 0,
-                                    ciphertext, ciphertext_length,
-                                    plaintext, sizeof(plaintext),
-                                    &plaintext_length),
-                   verify_status);
+        status = psa_aead_decrypt(key, alg,
+                                  nonce, nonce_length,
+                                  NULL, 0,
+                                  ciphertext, ciphertext_length,
+                                  plaintext, sizeof(plaintext),
+                                  &plaintext_length);
+        if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+            /* The key has been destroyed. */
+            return 1;
+        }
+        TEST_ASSERT(status == verify_status);
     }
 
     return 1;

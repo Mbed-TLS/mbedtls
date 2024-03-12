@@ -1379,7 +1379,7 @@ void *thread_generate_key(void *ctx)
 
         /* Do something with the key according
          * to its type and permitted usage. */
-        if (!mbedtls_test_psa_exercise_key(key, gkc->usage, gkc->alg)) {
+        if (!mbedtls_test_psa_exercise_key(key, gkc->usage, gkc->alg, 0)) {
             psa_destroy_key(key);
             goto exit;
         }
@@ -1715,7 +1715,7 @@ void import_export(data_t *data,
      * this doesn't directly validate the implementation, but it still helps
      * by cross-validating the test data with the sanity check code. */
     if (!psa_key_lifetime_is_external(lifetime)) {
-        if (!mbedtls_test_psa_exercise_key(key, usage_arg, 0)) {
+        if (!mbedtls_test_psa_exercise_key(key, usage_arg, 0, 0)) {
             goto exit;
         }
     }
@@ -1853,7 +1853,7 @@ void import_and_exercise_key(data_t *data,
     TEST_EQUAL(psa_get_key_bits(&got_attributes), bits);
 
     /* Do something with the key according to its type and permitted usage. */
-    if (!mbedtls_test_psa_exercise_key(key, usage, alg)) {
+    if (!mbedtls_test_psa_exercise_key(key, usage, alg, 0)) {
         goto exit;
     }
 
@@ -2529,10 +2529,10 @@ void key_policy_alg2(int key_type_arg, data_t *key_data,
     TEST_EQUAL(psa_get_key_algorithm(&got_attributes), alg);
     TEST_EQUAL(psa_get_key_enrollment_algorithm(&got_attributes), alg2);
 
-    if (!mbedtls_test_psa_exercise_key(key, usage, alg)) {
+    if (!mbedtls_test_psa_exercise_key(key, usage, alg, 0)) {
         goto exit;
     }
-    if (!mbedtls_test_psa_exercise_key(key, usage, alg2)) {
+    if (!mbedtls_test_psa_exercise_key(key, usage, alg2, 0)) {
         goto exit;
     }
 
@@ -2663,10 +2663,10 @@ void copy_success(int source_usage_arg,
     }
 
     if (!psa_key_lifetime_is_external(target_lifetime)) {
-        if (!mbedtls_test_psa_exercise_key(target_key, expected_usage, expected_alg)) {
+        if (!mbedtls_test_psa_exercise_key(target_key, expected_usage, expected_alg, 0)) {
             goto exit;
         }
-        if (!mbedtls_test_psa_exercise_key(target_key, expected_usage, expected_alg2)) {
+        if (!mbedtls_test_psa_exercise_key(target_key, expected_usage, expected_alg2, 0)) {
             goto exit;
         }
     }
@@ -9233,7 +9233,7 @@ void derive_key_exercise(int alg_arg,
     TEST_EQUAL(psa_get_key_bits(&got_attributes), derived_bits);
 
     /* Exercise the derived key. */
-    if (!mbedtls_test_psa_exercise_key(derived_key, derived_usage, derived_alg)) {
+    if (!mbedtls_test_psa_exercise_key(derived_key, derived_usage, derived_alg, 0)) {
         goto exit;
     }
 
@@ -9941,7 +9941,7 @@ void generate_key(int type_arg,
     TEST_EQUAL(psa_get_key_bits(&got_attributes), bits);
 
     /* Do something with the key according to its type and permitted usage. */
-    if (!mbedtls_test_psa_exercise_key(key, usage, alg)) {
+    if (!mbedtls_test_psa_exercise_key(key, usage, alg, 0)) {
         goto exit;
     }
 
@@ -10011,7 +10011,7 @@ void generate_key_ext(int type_arg,
 #endif
 
     /* Do something with the key according to its type and permitted usage. */
-    if (!mbedtls_test_psa_exercise_key(key, usage, alg)) {
+    if (!mbedtls_test_psa_exercise_key(key, usage, alg, 0)) {
         goto exit;
     }
 
@@ -10162,7 +10162,7 @@ void persistent_key_load_key_from_storage(data_t *data,
     }
 
     /* Do something with the key according to its type and permitted usage. */
-    if (!mbedtls_test_psa_exercise_key(key, usage_flags, alg)) {
+    if (!mbedtls_test_psa_exercise_key(key, usage_flags, alg, 0)) {
         goto exit;
     }
 

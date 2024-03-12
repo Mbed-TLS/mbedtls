@@ -948,38 +948,43 @@ exit:
 
 int mbedtls_test_psa_exercise_key(mbedtls_svc_key_id_t key,
                                   psa_key_usage_t usage,
-                                  psa_algorithm_t alg)
+                                  psa_algorithm_t alg,
+                                  int key_destroyable)
 {
     int ok = 0;
 
-    if (!check_key_attributes_sanity(key)) {
+    if (!check_key_attributes_sanity(key, key_destroyable)) {
         return 0;
     }
 
     if (alg == 0) {
         ok = 1; /* If no algorithm, do nothing (used for raw data "keys"). */
     } else if (PSA_ALG_IS_MAC(alg)) {
-        ok = exercise_mac_key(key, usage, alg);
+        ok = exercise_mac_key(key, usage, alg, key_destroyable);
     } else if (PSA_ALG_IS_CIPHER(alg)) {
-        ok = exercise_cipher_key(key, usage, alg);
+        ok = exercise_cipher_key(key, usage, alg, key_destroyable);
     } else if (PSA_ALG_IS_AEAD(alg)) {
-        ok = exercise_aead_key(key, usage, alg);
+        ok = exercise_aead_key(key, usage, alg, key_destroyable);
     } else if (PSA_ALG_IS_SIGN(alg)) {
-        ok = exercise_signature_key(key, usage, alg);
+        ok = exercise_signature_key(key, usage, alg, key_destroyable);
     } else if (PSA_ALG_IS_ASYMMETRIC_ENCRYPTION(alg)) {
-        ok = exercise_asymmetric_encryption_key(key, usage, alg);
+        ok = exercise_asymmetric_encryption_key(key, usage, alg,
+                                                key_destroyable);
     } else if (PSA_ALG_IS_KEY_DERIVATION(alg)) {
-        ok = exercise_key_derivation_key(key, usage, alg);
+        ok = exercise_key_derivation_key(key, usage, alg, key_destroyable);
     } else if (PSA_ALG_IS_RAW_KEY_AGREEMENT(alg)) {
-        ok = exercise_raw_key_agreement_key(key, usage, alg);
+        ok = exercise_raw_key_agreement_key(key, usage, alg, key_destroyable);
     } else if (PSA_ALG_IS_KEY_AGREEMENT(alg)) {
-        ok = exercise_key_agreement_key(key, usage, alg);
+        ok = exercise_key_agreement_key(key, usage, alg, key_destroyable);
     } else {
         TEST_FAIL("No code to exercise this category of algorithm");
     }
 
-    ok = ok && exercise_export_key(key, usage);
-    ok = ok && exercise_export_public_key(key);
+    ok = ok && exercise_export_key(key,
+                                   usage,
+                                   key_destroyable);
+    ok = ok && exercise_export_public_key(key,
+                                          key_destroyable);
 
 exit:
     return ok;

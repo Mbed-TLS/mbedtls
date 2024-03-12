@@ -209,18 +209,26 @@ int mbedtls_test_psa_exported_key_sanity_check(
  * ```
  * if( ! exercise_key( ... ) ) goto exit;
  * ```
+ * To use this function for multi-threaded tests where the key
+ * may be destroyed at any point: call this function with key_destroyable set
+ * to 1, while another thread calls psa_destroy_key on the same key;
+ * this will test whether destroying the key in use leads to any corruption.
  *
- * \param key       The key to exercise. It should be capable of performing
- *                  \p alg.
- * \param usage     The usage flags to assume.
- * \param alg       The algorithm to exercise.
+ * \param key               The key to exercise. It should be capable of performing
+ *                          \p alg.
+ * \param usage             The usage flags to assume.
+ * \param alg               The algorithm to exercise.
+ * \param key_destroyable   If set to 1, a failure due to the key not existing
+ *                          or the key being destroyed mid-operation will only
+ *                          be reported if the error code is unexpected.
  *
  * \retval 0 The key failed the smoke tests.
  * \retval 1 The key passed the smoke tests.
  */
 int mbedtls_test_psa_exercise_key(mbedtls_svc_key_id_t key,
                                   psa_key_usage_t usage,
-                                  psa_algorithm_t alg);
+                                  psa_algorithm_t alg,
+                                  int key_destroyable);
 
 psa_key_usage_t mbedtls_test_psa_usage_to_exercise(psa_key_type_t type,
                                                    psa_algorithm_t alg);

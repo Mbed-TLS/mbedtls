@@ -1,3 +1,5 @@
 Features
    * PK provides support for opaque keys as soon as MBEDTLS_PSA_CRYPTO_C is
-     enabled, regardless of the status of MBEDTLS_USE_PSA_CRYPTO.
+     enabled, regardless of the status of MBEDTLS_USE_PSA_CRYPTO. This allows
+     persitent opaque keys to be used in TLS even if only MBEDTLS_PSA_CRYPTO_C
+     is defined while MBEDTLS_USE_PSA_CRYPTO is not.

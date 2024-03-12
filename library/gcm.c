@@ -412,7 +412,16 @@ int mbedtls_gcm_starts(mbedtls_gcm_context *ctx,
         while (iv_len > 0) {
             use_len = (iv_len < 16) ? iv_len : 16;
 
+#if defined(MBEDTLS_COMPILER_IS_GCC)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic warning "-Wstringop-overflow=0"
+#endif
+
             mbedtls_xor(ctx->y, ctx->y, p, use_len);
+
+#if defined(MBEDTLS_COMPILER_IS_GCC)
+#pragma GCC diagnostic pop
+#endif
 
             gcm_mult(ctx, ctx->y, ctx->y);
 

@@ -2450,7 +2450,6 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 
-
 psa_status_t mbedtls_ssl_cipher_to_psa(mbedtls_cipher_type_t mbedtls_cipher_type,
                                        size_t taglen,
                                        psa_algorithm_t *alg,
@@ -3755,7 +3754,7 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
 #if defined(MBEDTLS_SSL_SRV_C) && \
     defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
     const uint8_t alpn_len = (session->ticket_alpn == NULL) ?
-                             0 : (uint8_t) strlen(session->ticket_alpn) + 1;
+                             0 : (uint8_t) strlen(session->ticket_alpn);
 #endif
     size_t needed =   4  /* ticket_age_add */
                     + 1  /* ticket_flags */
@@ -3934,7 +3933,6 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
 
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
         uint8_t alpn_len;
-        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
         if (end - p < 1) {
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
@@ -3945,11 +3943,20 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
         }
 
+        if (alpn_len > MBEDTLS_SSL_MAX_ALPN_NAME_LEN) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+
         if (alpn_len > 0) {
-            ret = mbedtls_ssl_session_set_alpn(session, (const char *) p);
-            if (ret != 0) {
-                return ret;
+            if (session->ticket_alpn != NULL) {
+                mbedtls_zeroize_and_free(session->ticket_alpn,
+                                         strlen(session->ticket_alpn));
             }
+            session->ticket_alpn = mbedtls_calloc(alpn_len + 1, sizeof(char));
+            if (session->ticket_alpn == NULL) {
+                return MBEDTLS_ERR_SSL_ALLOC_FAILED;
+            }
+            memcpy(session->ticket_alpn, p, alpn_len);
             p += alpn_len;
         }
 #endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_ALPN */
@@ -4112,7 +4119,8 @@ static int ssl_tls13_session_load(const mbedtls_ssl_session *session,
 #define SSL_SERIALIZED_SESSION_CONFIG_RECORD_SIZE 0
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
-#if defined(MBEDTLS_SSL_ALPN)
+#if defined(MBEDTLS_SSL_ALPN) && defined(MBEDTLS_SSL_SRV_C) && \
+    defined(MBEDTLS_SSL_EARLY_DATA)
 #define SSL_SERIALIZED_SESSION_CONFIG_ALPN 1
 #else
 #define SSL_SERIALIZED_SESSION_CONFIG_ALPN 0
@@ -4222,11 +4230,11 @@ static const unsigned char ssl_serialized_session_header[] = {
  * #endif
  *    select ( endpoint ) {
  *         case client: ClientOnlyData;
+ *         case server:
  * #if defined(MBEDTLS_HAVE_TIME)
- *         case server: uint64 ticket_creation_time;
+ *                      uint64 ticket_creation_time;
  * #endif
  * #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
- *                      uint8 alpn_len;
  *                      opaque ticket_alpn<0..255>;
  * #endif
  *     };
@@ -9870,8 +9878,8 @@ int mbedtls_ssl_session_set_hostname(mbedtls_ssl_session *session,
 
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_EARLY_DATA) && \
     defined(MBEDTLS_SSL_ALPN)
-int mbedtls_ssl_session_set_alpn(mbedtls_ssl_session *session,
-                                 const char *alpn)
+int mbedtls_ssl_session_set_ticket_alpn(mbedtls_ssl_session *session,
+                                        const char *alpn)
 {
     size_t alpn_len = 0;
 
@@ -9886,16 +9894,15 @@ int mbedtls_ssl_session_set_alpn(mbedtls_ssl_session *session,
     if (session->ticket_alpn != NULL) {
         mbedtls_zeroize_and_free(session->ticket_alpn,
                                  strlen(session->ticket_alpn));
+        session->ticket_alpn = NULL;
     }
 
-    if (alpn == NULL) {
-        session->ticket_alpn = NULL;
-    } else {
-        session->ticket_alpn = mbedtls_calloc(strlen(alpn) + 1, sizeof(char));
+    if (alpn != NULL) {
+        session->ticket_alpn = mbedtls_calloc(alpn_len + 1, 1);
         if (session->ticket_alpn == NULL) {
             return MBEDTLS_ERR_SSL_ALLOC_FAILED;
         }
-        memcpy(session->ticket_alpn, alpn, strlen(alpn) + 1);
+        memcpy(session->ticket_alpn, alpn, alpn_len);
     }
 
     return 0;

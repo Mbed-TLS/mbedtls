@@ -906,10 +906,11 @@ A future extension of the PSA API will support other export formats. Until those
 
 #### Exposing a PSA key via PK
 
-This section discusses how to use a PSA key in a context that requires a PK object, such as PK formatting functions (`mbedtls_pk_write_key_der`, `mbedtls_pk_write_pubkey_der`, `mbedtls_pk_write_pubkey_pem`, `mbedtls_pk_write_key_pem` or `mbedtls_pk_write_pubkey`), Mbed TLS X.509 functions, Mbed TLS SSL functions, or another API that involves `mbedtls_pk_context` objects. Two functions from `pk.h` help with that:
+This section discusses how to use a PSA key in a context that requires a PK object, such as PK formatting functions (`mbedtls_pk_write_key_der`, `mbedtls_pk_write_pubkey_der`, `mbedtls_pk_write_pubkey_pem`, `mbedtls_pk_write_key_pem` or `mbedtls_pk_write_pubkey`), Mbed TLS X.509 functions, Mbed TLS SSL functions, or another API that involves `mbedtls_pk_context` objects. Three functions from `pk.h` help with that:
 
 * [`mbedtls_pk_copy_from_psa`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/pk_8h/#pk_8h_1ab8e88836fd9ee344ffe630c40447bd08) copies a PSA key into a PK object. The PSA key must be exportable. The PK object remains valid even if the PSA key is destroyed.
 * [`mbedtls_pk_setup_opaque`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/pk_8h/#pk_8h_1a4c04ac22ab9c1ae09cc29438c308bf05) sets up a PK object that wraps the PSA key. The PK object can only be used as permitted by the PSA key's policy. The PK object contains a reference to the PSA key identifier, therefore PSA key must not be destroyed as long as the PK object remains alive.
+* [`mbedtls_pk_copy_public_from_psa`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/pk_8h/#pk_8h_1a2a50247a528889c12ea0ddddb8b15a4e) copies a PSA key into a PK object. The PSA key must be exportable. The PK object remains valid even if the PSA key is destroyed.
 
 Here is some sample code illustrating how to use the PK module to format a PSA public key or the public key of a PSA key pair.
 ```
@@ -917,7 +918,7 @@ int write_psa_pubkey(psa_key_id_t key_id,
                      unsigned char *buf, size_t size, size_t *len) {
     mbedtls_pk_context pk;
     mbedtls_pk_init(&pk);
-    int ret = mbedtls_pk_setup_opaque(&pk, key_id);
+    int ret = mbedtls_pk_copy_public_from_psa(key_id, &pk);
     if (ret != 0) goto exit;
     ret = mbedtls_pk_write_pubkey_der(&pk, buf, size);
     if (ret < 0) goto exit;

@@ -239,7 +239,7 @@ foreach(target IN LISTS target_libraries)
             PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
     endif()
     install(TARGETS ${target}
-            DESTINATION ${LIB_INSTALL_DIR}
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
             PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 endforeach(target)
 

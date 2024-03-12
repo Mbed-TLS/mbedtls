@@ -22,16 +22,13 @@
 #              be silenced, e.g. " --version | test ". In this example, "make lib test" will
 #              not be silent, but "make lib" will be.
 
-# Function to normalise paths
-get_real_filename() {
-    leafname="$(basename "$1")"
-    ( cd $(dirname "$1"); echo "$(pwd)/$leafname" )
-}
-
-# Normalise path to wrapper script
-WRAPPER_WITH_PATH=$(get_real_filename "$0")
-# Identify original tool (compare normalised path to WRAPPER_WITH_PATH to avoid recursively calling the same wrapper script)
-ORIGINAL_TOOL="$(for p in $(type -ap "$TOOL"); do get_real_filename "$p" ; done | grep -v -Fx "$WRAPPER_WITH_PATH" | head -n1)"
+# Identify path to original tool. There is an edge-case here where the quiet wrapper is on the path via
+# a symlink or relative path, but "type -ap" yields the wrapper with it's normalised path. We use
+# the -ef operator to compare paths, to avoid picking the wrapper in this case (to avoid infinitely
+# recursing).
+while IFS= read -r ORIGINAL_TOOL; do
+    if ! [[ $ORIGINAL_TOOL -ef "$0" ]]; then break; fi
+done < <(type -ap -- "$TOOL")
 
 print_quoted_args() {
     # similar to printf '%q' "$@"

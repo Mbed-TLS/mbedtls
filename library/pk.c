@@ -324,14 +324,14 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
     }
 
     psa_algorithm_t key_alg = psa_get_key_algorithm(&attributes);
-    /* Key's enrollment is available only when MBEDTLS_PSA_CRYPTO_CLIENT is
-     * defined, i.e. when the Mbed TLS implementation of PSA Crypto is being used.
+    /* Key's enrollment is available only when an Mbed TLS implementation of PSA
+     * Crypto is being used, i.e. when MBEDTLS_PSA_CRYPTO_C is defined.
      * Even though we don't officially support using other implementations of PSA
-     * Crypto with TLS and X.509 (yet), we're still trying to simplify the life of
-     * people who would like to try it before it's officially supported. */
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+     * Crypto with TLS and X.509 (yet), we try to keep vendor's customizations
+     * separated. */
+#if defined(MBEDTLS_PSA_CRYPTO_C)
     psa_algorithm_t key_alg2 = psa_get_key_enrollment_algorithm(&attributes);
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
     key_usage = psa_get_key_usage_flags(&attributes);
     psa_reset_key_attributes(&attributes);
 
@@ -349,11 +349,11 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
     if (alg == key_alg) {
         return 1;
     }
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
     if (alg == key_alg2) {
         return 1;
     }
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
     /*
      * If key_alg [or key_alg2] is a hash-and-sign with a wildcard for the hash,
@@ -361,19 +361,18 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
      * then alg is compliant with this key alg
      */
     if (PSA_ALG_IS_SIGN_HASH(alg)) {
-
         if (PSA_ALG_IS_SIGN_HASH(key_alg) &&
             PSA_ALG_SIGN_GET_HASH(key_alg) == PSA_ALG_ANY_HASH &&
             (alg & ~PSA_ALG_HASH_MASK) == (key_alg & ~PSA_ALG_HASH_MASK)) {
             return 1;
         }
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
         if (PSA_ALG_IS_SIGN_HASH(key_alg2) &&
             PSA_ALG_SIGN_GET_HASH(key_alg2) == PSA_ALG_ANY_HASH &&
             (alg & ~PSA_ALG_HASH_MASK) == (key_alg2 & ~PSA_ALG_HASH_MASK)) {
             return 1;
         }
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
     }
 
     return 0;
@@ -1323,7 +1322,10 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
 
     if (mbedtls_pk_get_type(ctx) == MBEDTLS_PK_OPAQUE) {
         psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
-        psa_algorithm_t psa_alg, psa_enrollment_alg, sign_alg;
+        psa_algorithm_t psa_alg, sign_alg;
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+        psa_algorithm_t psa_enrollment_alg;
+#endif /* MBEDTLS_PSA_CRYPTO_C */
         psa_status_t status;
 
         status = psa_get_key_attributes(ctx->priv_id, &key_attr);
@@ -1331,16 +1333,22 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
             return PSA_PK_RSA_TO_MBEDTLS_ERR(status);
         }
         psa_alg = psa_get_key_algorithm(&key_attr);
+#if defined(MBEDTLS_PSA_CRYPTO_C)
         psa_enrollment_alg = psa_get_key_enrollment_algorithm(&key_attr);
+#endif /* MBEDTLS_PSA_CRYPTO_C */
         psa_reset_key_attributes(&key_attr);
 
         /* Since we're PK type is MBEDTLS_PK_RSASSA_PSS at least one between
          * alg and enrollment alg should be of type RSA_PSS. */
         if (PSA_ALG_IS_RSA_PSS(psa_alg)) {
             sign_alg = psa_alg;
-        } else if (PSA_ALG_IS_RSA_PSS(psa_enrollment_alg)) {
+        }
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+        else if (PSA_ALG_IS_RSA_PSS(psa_enrollment_alg)) {
             sign_alg = psa_enrollment_alg;
-        } else {
+        }
+#endif /* MBEDTLS_PSA_CRYPTO_C */
+        else {
             /* The opaque key has no RSA PSS algorithm associated. */
             return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
         }

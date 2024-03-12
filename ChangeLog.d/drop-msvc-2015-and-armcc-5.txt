@@ -1,0 +1,2 @@
+Requirement changes
+   * Drop support for MSVC 2013, 2015 and Arm Compiler 5.

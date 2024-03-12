@@ -1,8 +1,10 @@
 Security
-   * Support calling PSA functions with buffer arguments that are in memory
-     shared with an untrusted party. The PSA core now makes copies of all
-     buffers before passing them to drivers to protect drivers against
-     modification of buffers during operations.
-     This feature increases code-size and memory usage. If buffers passed to
-     PSA functions are all trusted, buffer copying may be disabled by
-     unsetting MBEDTLS_PSA_COPY_CALLER_BUFFERS.
+   * Passing buffers that are stored in untrusted memory as arguments
+     to PSA functions is now secure by default.
+     The PSA core now protects against modification of inputs or exposure
+     of intermediate outputs during operations. This is currently implemented
+     by copying buffers.
+     This feature increases code size and memory usage. If buffers passed to
+     PSA functions are owned exclusively by the PSA core for the duration of
+     the function call, copying may be disabled by setting
+     MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS.

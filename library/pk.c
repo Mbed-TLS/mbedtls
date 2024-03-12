@@ -324,7 +324,14 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
     }
 
     psa_algorithm_t key_alg = psa_get_key_algorithm(&attributes);
+    /* Key's enrollment is available only when an Mbed TLS implementation of PSA
+     * Crypto is being used, i.e. when MBEDTLS_PSA_CRYPTO_C is defined.
+     * Even though we don't officially support using other implementations of PSA
+     * Crypto with TLS and X.509 (yet), we try to keep vendor's customizations
+     * separated. */
+#if defined(MBEDTLS_PSA_CRYPTO_C)
     psa_algorithm_t key_alg2 = psa_get_key_enrollment_algorithm(&attributes);
+#endif
     key_usage = psa_get_key_usage_flags(&attributes);
     psa_reset_key_attributes(&attributes);
 
@@ -342,9 +349,11 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
     if (alg == key_alg) {
         return 1;
     }
+#if defined(MBEDTLS_PSA_CRYPTO_C)
     if (alg == key_alg2) {
         return 1;
     }
+#endif
 
     /*
      * If key_alg [or key_alg2] is a hash-and-sign with a wildcard for the hash,
@@ -358,13 +367,13 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
             (alg & ~PSA_ALG_HASH_MASK) == (key_alg & ~PSA_ALG_HASH_MASK)) {
             return 1;
         }
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
         if (PSA_ALG_IS_SIGN_HASH(key_alg2) &&
             PSA_ALG_SIGN_GET_HASH(key_alg2) == PSA_ALG_ANY_HASH &&
             (alg & ~PSA_ALG_HASH_MASK) == (key_alg2 & ~PSA_ALG_HASH_MASK)) {
             return 1;
         }
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
     }
 
     return 0;
@@ -566,7 +575,14 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
     }
 
     psa_set_key_usage_flags(attributes, more_usage);
+    /* Key's enrollment is available only when an Mbed TLS implementation of PSA
+     * Crypto is being used, i.e. when MBEDTLS_PSA_CRYPTO_C is defined.
+     * Even though we don't officially support using other implementations of PSA
+     * Crypto with TLS and X.509 (yet), we try to keep vendor's customizations
+     * separated. */
+#if defined(MBEDTLS_PSA_CRYPTO_C)
     psa_set_key_enrollment_algorithm(attributes, PSA_ALG_NONE);
+#endif
 
     return 0;
 }

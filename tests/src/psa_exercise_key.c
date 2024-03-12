@@ -174,7 +174,8 @@ exit:
 
 static int exercise_cipher_key(mbedtls_svc_key_id_t key,
                                psa_key_usage_t usage,
-                               psa_algorithm_t alg)
+                               psa_algorithm_t alg,
+                               int key_destroyable)
 {
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     unsigned char iv[PSA_CIPHER_IV_MAX_SIZE] = { 0 };
@@ -186,13 +187,20 @@ static int exercise_cipher_key(mbedtls_svc_key_id_t key,
     size_t ciphertext_length = sizeof(ciphertext);
     unsigned char decrypted[sizeof(ciphertext)];
     size_t part_length;
+    psa_status_t status = PSA_SUCCESS;
 
     PSA_ASSERT(psa_get_key_attributes(key, &attributes));
     key_type = psa_get_key_type(&attributes);
     iv_length = PSA_CIPHER_IV_LENGTH(key_type, alg);
 
     if (usage & PSA_KEY_USAGE_ENCRYPT) {
-        PSA_ASSERT(psa_cipher_encrypt_setup(&operation, key, alg));
+        status = psa_cipher_encrypt_setup(&operation, key, alg);
+        if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+            /* The key has been destroyed. */
+            PSA_ASSERT(psa_cipher_abort(&operation));
+            return 1;
+        }
+        PSA_ASSERT(status);
         if (iv_length != 0) {
             PSA_ASSERT(psa_cipher_generate_iv(&operation,
                                               iv, sizeof(iv),
@@ -210,12 +218,17 @@ static int exercise_cipher_key(mbedtls_svc_key_id_t key,
     }
 
     if (usage & PSA_KEY_USAGE_DECRYPT) {
-        psa_status_t status;
         int maybe_invalid_padding = 0;
         if (!(usage & PSA_KEY_USAGE_ENCRYPT)) {
             maybe_invalid_padding = !PSA_ALG_IS_STREAM_CIPHER(alg);
         }
-        PSA_ASSERT(psa_cipher_decrypt_setup(&operation, key, alg));
+        status = psa_cipher_decrypt_setup(&operation, key, alg);
+        if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+            /* The key has been destroyed. */
+            PSA_ASSERT(psa_cipher_abort(&operation));
+            return 1;
+        }
+        PSA_ASSERT(status);
         if (iv_length != 0) {
             PSA_ASSERT(psa_cipher_set_iv(&operation,
                                          iv, iv_length));

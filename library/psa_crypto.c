@@ -7624,7 +7624,7 @@ psa_status_t psa_key_derivation_key_agreement(psa_key_derivation_operation_t *op
         return status;
     }
 
-    LOCAL_INPUT_ALLOC(peer_key_external, peer_key_length, peer_key)
+    LOCAL_INPUT_ALLOC(peer_key_external, peer_key_length, peer_key);
     status = psa_key_agreement_internal(operation, step,
                                         slot,
                                         peer_key, peer_key_length);

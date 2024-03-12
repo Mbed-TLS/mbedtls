@@ -2030,6 +2030,92 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE:MBEDTLS_TEST_PSA_ECC_AT_LEAST_ONE_CURVE:MBEDTLS_PSA_CRYPTO_STORAGE_C */
+void pk_import_into_psa_lifetime(int from_opaque,
+                                 int from_persistent, /* when from opaque */
+                                 int from_exportable, /* when from opaque */
+                                 int to_public,
+                                 int to_persistent)
+{
+    mbedtls_pk_context pk;
+    mbedtls_pk_init(&pk);
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t old_key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_svc_key_id_t new_key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_svc_key_id_t expected_key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_lifetime_t expected_lifetime = PSA_KEY_LIFETIME_VOLATILE;
+
+    PSA_INIT();
+
+    if (from_opaque) {
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        psa_key_type_t from_psa_type =
+            PSA_KEY_TYPE_ECC_KEY_PAIR(MBEDTLS_TEST_PSA_ECC_ONE_FAMILY);
+        psa_set_key_type(&attributes, from_psa_type);
+        psa_set_key_bits(&attributes, MBEDTLS_TEST_PSA_ECC_ONE_CURVE_BITS);
+        psa_set_key_usage_flags(
+            &attributes,
+            (from_exportable ? PSA_KEY_USAGE_EXPORT : PSA_KEY_USAGE_COPY) |
+            PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH);
+        psa_set_key_algorithm(&attributes, PSA_ALG_ECDH);
+        if (from_persistent) {
+            psa_set_key_id(&attributes, mbedtls_svc_key_id_make(0, 1));
+        }
+        PSA_ASSERT(psa_generate_key(&attributes, &old_key_id));
+        TEST_EQUAL(mbedtls_pk_setup_opaque(&pk, old_key_id), 0);
+        psa_reset_key_attributes(&attributes);
+#else
+        (void) from_persistent;
+        (void) from_exportable;
+        TEST_FAIL("Attempted to test opaque key without opaque key support");
+#endif
+    } else {
+        psa_key_type_t psa_type_according_to_setup;
+        TEST_EQUAL(pk_setup_for_type(MBEDTLS_PK_ECKEY, 1,
+                                     &pk, &psa_type_according_to_setup), 0);
+    }
+
+    if (to_persistent) {
+        expected_key_id = mbedtls_svc_key_id_make(42, 2);
+        psa_set_key_id(&attributes, expected_key_id);
+        /* psa_set_key_id() sets the lifetime to PERSISTENT */
+        expected_lifetime = PSA_KEY_LIFETIME_PERSISTENT;
+    }
+
+    psa_key_usage_t to_usage =
+        to_public ? PSA_KEY_USAGE_VERIFY_HASH : PSA_KEY_USAGE_SIGN_HASH;
+    TEST_EQUAL(mbedtls_pk_get_psa_attributes(&pk, to_usage,
+                                             &attributes), 0);
+    /* mbedtls_pk_get_psa_attributes() is specified to not modify
+     * the persistence attributes. */
+    TEST_EQUAL(psa_get_key_lifetime(&attributes), expected_lifetime);
+    TEST_EQUAL(MBEDTLS_SVC_KEY_ID_GET_KEY_ID(psa_get_key_id(&attributes)),
+               MBEDTLS_SVC_KEY_ID_GET_KEY_ID(expected_key_id));
+
+    TEST_EQUAL(mbedtls_pk_import_into_psa(&pk, &attributes, &new_key_id), 0);
+    if (!mbedtls_test_key_consistency_psa_pk(new_key_id, &pk)) {
+        goto exit;
+    }
+
+    PSA_ASSERT(psa_get_key_attributes(new_key_id, &attributes));
+    TEST_EQUAL(psa_get_key_lifetime(&attributes), expected_lifetime);
+    /* Here expected_key_id=0 for a volatile key, but we expect
+     * attributes to contain a dynamically assigned key id which we
+     * can't predict. */
+    if (to_persistent) {
+        TEST_ASSERT(mbedtls_svc_key_id_equal(psa_get_key_id(&attributes),
+                                             expected_key_id));
+    }
+
+exit:
+    mbedtls_pk_free(&pk);
+    psa_reset_key_attributes(&attributes);
+    psa_destroy_key(old_key_id);
+    psa_destroy_key(new_key_id);
+    PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_USE_PSA_CRYPTO */
 void pk_get_psa_attributes_opaque(int from_type_arg, int from_bits_arg,
                                   int from_usage_arg, int from_alg_arg,
@@ -2056,7 +2142,6 @@ void pk_get_psa_attributes_opaque(int from_type_arg, int from_bits_arg,
     psa_set_key_usage_flags(&attributes, from_usage);
     psa_set_key_algorithm(&attributes, alg);
     psa_set_key_enrollment_algorithm(&attributes, 42);
-    //TODO: test with persistent key
     PSA_ASSERT(psa_generate_key(&attributes, &old_key_id));
     TEST_EQUAL(mbedtls_pk_setup_opaque(&pk, old_key_id), 0);
 

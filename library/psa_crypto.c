@@ -7749,7 +7749,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  * \param  bits  The number of bits of the key
  *
  * \retval #PSA_SUCCESS
- *        The key type and size are valid.
+ *         The key type and size are valid.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The size in bits of the key is not valid.
  * \retval #PSA_ERROR_NOT_SUPPORTED

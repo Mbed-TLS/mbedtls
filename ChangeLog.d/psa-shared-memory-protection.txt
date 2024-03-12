@@ -8,3 +8,7 @@ Security
      PSA functions are owned exclusively by the PSA core for the duration of
      the function call, copying may be disabled by setting
      MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS.
+Bugfix
+   * Fully support arbitrary overlap between inputs and outputs of PSA
+     functions. Note that overlap is only partial supported when
+     MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS is set.

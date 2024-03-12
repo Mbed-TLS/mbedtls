@@ -1459,6 +1459,15 @@ pk_import_into_psa_opaque:PSA_KEY_TYPE_ECC_KEY_PAIR(MBEDTLS_TEST_PSA_ECC_ONE_FAM
 Copy from PSA: use wrong parameters
 pk_copy_from_psa_fail:
 
+# The following test is only possible for RSA keys and not for EC ones:
+# - for the former it is possible to have an accelerated RSA key in PSA while
+#   having RSA_C disabled. Since RSA path is guarded by RSA_C in mbedtls_pk_copy_from_psa(),
+#   any attempt to copy that key will fail.
+# - for the latter instead the guard is PK_HAVE_ECC_KEYS which is enabled as soon
+#   as there is any curve supported either builtin or in a driver. In a scenario
+#   in which a certain EC key is only available through a driver and not as
+#   builtin mbedtls_pk_copy_from_psa() uses functions that will all succeed
+#   and therefore it will succeed.
 Copy from PSA: accelerated key only, not available as built-in
 pk_copy_from_psa_builtin_fail:
 

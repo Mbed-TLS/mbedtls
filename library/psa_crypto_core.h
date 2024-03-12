@@ -20,6 +20,9 @@
 
 #include "psa/crypto.h"
 #include "psa/crypto_se_driver.h"
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#endif
 
 /**
  * Tell if PSA is ready for this hash.
@@ -56,7 +59,7 @@ typedef enum {
  * and metadata for one key.
  */
 typedef struct {
-    psa_core_key_attributes_t attr;
+    psa_key_attributes_t attr;
 
     /*
      * The current state of the key slot, as described in
@@ -86,7 +89,9 @@ typedef struct {
      * A function must call psa_register_read(slot) before reading the current
      * contents of the slot for an operation.
      * They then must call psa_unregister_read(slot) once they have finished
-     * reading the current contents of the slot.
+     * reading the current contents of the slot. If the key slot mutex is not
+     * held (when mutexes are enabled), this call must be done via a call to
+     * psa_unregister_read_under_mutex(slot).
      * A function must call psa_key_slot_has_readers(slot) to check if
      * the slot is in use for reading.
      *
@@ -111,10 +116,48 @@ typedef struct {
     } key;
 } psa_key_slot_t;
 
-/* A mask of key attribute flags used only internally.
- * Currently there aren't any. */
-#define PSA_KA_MASK_INTERNAL_ONLY (     \
-        0)
+#if defined(MBEDTLS_THREADING_C)
+
+/** Perform a mutex operation and return immediately upon failure.
+ *
+ * Returns PSA_ERROR_SERVICE_FAILURE if the operation fails
+ * and status was PSA_SUCCESS.
+ *
+ * Assumptions:
+ *  psa_status_t status exists.
+ *  f is a mutex operation which returns 0 upon success.
+ */
+#define PSA_THREADING_CHK_RET(f)                       \
+    do                                                 \
+    {                                                  \
+        if ((f) != 0) {                                \
+            if (status == PSA_SUCCESS) {               \
+                return PSA_ERROR_SERVICE_FAILURE;      \
+            }                                          \
+            return status;                             \
+        }                                              \
+    } while (0);
+
+/** Perform a mutex operation and goto exit on failure.
+ *
+ * Sets status to PSA_ERROR_SERVICE_FAILURE if status was PSA_SUCCESS.
+ *
+ * Assumptions:
+ *  psa_status_t status exists.
+ *  Label exit: exists.
+ *  f is a mutex operation which returns 0 upon success.
+ */
+#define PSA_THREADING_CHK_GOTO_EXIT(f)                 \
+    do                                                 \
+    {                                                  \
+        if ((f) != 0) {                                \
+            if (status == PSA_SUCCESS) {               \
+                status = PSA_ERROR_SERVICE_FAILURE;    \
+            }                                          \
+            goto exit;                                 \
+        }                                              \
+    } while (0);
+#endif
 
 /** Test whether a key slot has any registered readers.
  * If multi-threading is enabled, the caller must hold the
@@ -127,56 +170,6 @@ typedef struct {
 static inline int psa_key_slot_has_readers(const psa_key_slot_t *slot)
 {
     return slot->registered_readers > 0;
-}
-
-/** Retrieve flags from psa_key_slot_t::attr::core::flags.
- *
- * \param[in] slot      The key slot to query.
- * \param mask          The mask of bits to extract.
- *
- * \return The key attribute flags in the given slot,
- *         bitwise-anded with \p mask.
- */
-static inline uint16_t psa_key_slot_get_flags(const psa_key_slot_t *slot,
-                                              uint16_t mask)
-{
-    return slot->attr.flags & mask;
-}
-
-/** Set flags in psa_key_slot_t::attr::core::flags.
- *
- * \param[in,out] slot  The key slot to modify.
- * \param mask          The mask of bits to modify.
- * \param value         The new value of the selected bits.
- */
-static inline void psa_key_slot_set_flags(psa_key_slot_t *slot,
-                                          uint16_t mask,
-                                          uint16_t value)
-{
-    slot->attr.flags = ((~mask & slot->attr.flags) |
-                        (mask & value));
-}
-
-/** Turn on flags in psa_key_slot_t::attr::core::flags.
- *
- * \param[in,out] slot  The key slot to modify.
- * \param mask          The mask of bits to set.
- */
-static inline void psa_key_slot_set_bits_in_flags(psa_key_slot_t *slot,
-                                                  uint16_t mask)
-{
-    slot->attr.flags |= mask;
-}
-
-/** Turn off flags in psa_key_slot_t::attr::core::flags.
- *
- * \param[in,out] slot  The key slot to modify.
- * \param mask          The mask of bits to clear.
- */
-static inline void psa_key_slot_clear_bits(psa_key_slot_t *slot,
-                                           uint16_t mask)
-{
-    slot->attr.flags &= ~mask;
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -350,6 +343,18 @@ psa_status_t psa_export_public_key_internal(
     const uint8_t *key_buffer, size_t key_buffer_size,
     uint8_t *data, size_t data_size, size_t *data_length);
 
+/** Whether a key production parameters structure is the default.
+ *
+ * Calls to a key generation driver with non-default production parameters
+ * require a driver supporting custom production parameters.
+ *
+ * \param[in] params            The key production parameters to check.
+ * \param params_data_length    Size of `params->data` in bytes.
+ */
+int psa_key_production_parameters_are_default(
+    const psa_key_production_parameters_t *params,
+    size_t params_data_length);
+
 /**
  * \brief Generate a key.
  *
@@ -357,6 +362,9 @@ psa_status_t psa_export_public_key_internal(
  *       entry point.
  *
  * \param[in]  attributes         The attributes for the key to generate.
+ * \param[in]  params             The production parameters from
+ *                                psa_generate_key_ext().
+ * \param      params_data_length The size of `params->data` in bytes.
  * \param[out] key_buffer         Buffer where the key data is to be written.
  * \param[in]  key_buffer_size    Size of \p key_buffer in bytes.
  * \param[out] key_buffer_length  On success, the number of bytes written in
@@ -371,6 +379,8 @@ psa_status_t psa_export_public_key_internal(
  *         The size of \p key_buffer is too small.
  */
 psa_status_t psa_generate_key_internal(const psa_key_attributes_t *attributes,
+                                       const psa_key_production_parameters_t *params,
+                                       size_t params_data_length,
                                        uint8_t *key_buffer,
                                        size_t key_buffer_size,
                                        size_t *key_buffer_length);

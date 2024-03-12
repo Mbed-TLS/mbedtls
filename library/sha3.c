@@ -14,6 +14,33 @@
 
 #if defined(MBEDTLS_SHA3_C)
 
+/*
+ * These macros select manually unrolled implementations of parts of the main permutation function.
+ *
+ * Unrolling has a major impact on both performance and code size. gcc performance benefits a lot
+ * from manually unrolling at higher optimisation levels.
+ *
+ * Depending on your size/perf priorities, compiler and target, it may be beneficial to adjust
+ * these; the defaults here should give sensible trade-offs for gcc and clang on aarch64 and
+ * x86-64.
+ */
+#if !defined(MBEDTLS_SHA3_THETA_UNROLL)
+    #define MBEDTLS_SHA3_THETA_UNROLL 0 //no-check-names
+#endif
+#if !defined(MBEDTLS_SHA3_CHI_UNROLL)
+    #if defined(__OPTIMIZE_SIZE__)
+        #define MBEDTLS_SHA3_CHI_UNROLL 0 //no-check-names
+    #else
+        #define MBEDTLS_SHA3_CHI_UNROLL 1 //no-check-names
+    #endif
+#endif
+#if !defined(MBEDTLS_SHA3_PI_UNROLL)
+    #define MBEDTLS_SHA3_PI_UNROLL 1 //no-check-names
+#endif
+#if !defined(MBEDTLS_SHA3_RHO_UNROLL)
+    #define MBEDTLS_SHA3_RHO_UNROLL 1 //no-check-names
+#endif
+
 #include "mbedtls/sha3.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
@@ -26,46 +53,45 @@
 
 #define XOR_BYTE 0x6
 
-typedef struct mbedtls_sha3_family_functions {
-    mbedtls_sha3_id id;
-
-    uint16_t r;
-    uint16_t olen;
-}
-mbedtls_sha3_family_functions;
-
-/*
- * List of supported SHA-3 families
+/* Precomputed masks for the iota transform.
+ *
+ * Each round uses a 64-bit mask value. In each mask values, only
+ * bits whose position is of the form 2^k-1 can be set, thus only
+ * 7 of 64 bits of the mask need to be known for each mask value.
+ *
+ * We use a compressed encoding of the mask where bits 63, 31 and 15
+ * are moved to bits 4-6. This allows us to make each mask value
+ * 1 byte rather than 8 bytes, saving 7*24 = 168 bytes of data (with
+ * perhaps a little variation due to alignment). Decompressing this
+ * requires a little code, but much less than the savings on the table.
+ *
+ * The impact on performance depends on the platform and compiler.
+ * There's a bit more computation, but less memory bandwidth. A quick
+ * benchmark on x86_64 shows a 7% speed improvement with GCC and a
+ * 5% speed penalty with Clang, compared to the naive uint64_t[24] table.
+ * YMMV.
  */
-static mbedtls_sha3_family_functions sha3_families[] = {
-    { MBEDTLS_SHA3_224,      1152, 224 },
-    { MBEDTLS_SHA3_256,      1088, 256 },
-    { MBEDTLS_SHA3_384,       832, 384 },
-    { MBEDTLS_SHA3_512,       576, 512 },
-    { MBEDTLS_SHA3_NONE, 0, 0 }
+/* Helper macro to set the values of the higher bits in unused low positions */
+#define H(b63, b31, b15) (b63 << 6 | b31 << 5 | b15 << 4)
+static const uint8_t iota_r_packed[24] = {
+    H(0, 0, 0) | 0x01, H(0, 0, 1) | 0x82, H(1, 0, 1) | 0x8a, H(1, 1, 1) | 0x00,
+    H(0, 0, 1) | 0x8b, H(0, 1, 0) | 0x01, H(1, 1, 1) | 0x81, H(1, 0, 1) | 0x09,
+    H(0, 0, 0) | 0x8a, H(0, 0, 0) | 0x88, H(0, 1, 1) | 0x09, H(0, 1, 0) | 0x0a,
+    H(0, 1, 1) | 0x8b, H(1, 0, 0) | 0x8b, H(1, 0, 1) | 0x89, H(1, 0, 1) | 0x03,
+    H(1, 0, 1) | 0x02, H(1, 0, 0) | 0x80, H(0, 0, 1) | 0x0a, H(1, 1, 0) | 0x0a,
+    H(1, 1, 1) | 0x81, H(1, 0, 1) | 0x80, H(0, 1, 0) | 0x01, H(1, 1, 1) | 0x08,
+};
+#undef H
+
+static const uint32_t rho[6] = {
+    0x3f022425, 0x1c143a09, 0x2c3d3615, 0x27191713, 0x312b382e, 0x3e030832
 };
 
-static const uint64_t rc[24] = {
-    0x0000000000000001, 0x0000000000008082, 0x800000000000808a, 0x8000000080008000,
-    0x000000000000808b, 0x0000000080000001, 0x8000000080008081, 0x8000000000008009,
-    0x000000000000008a, 0x0000000000000088, 0x0000000080008009, 0x000000008000000a,
-    0x000000008000808b, 0x800000000000008b, 0x8000000000008089, 0x8000000000008003,
-    0x8000000000008002, 0x8000000000000080, 0x000000000000800a, 0x800000008000000a,
-    0x8000000080008081, 0x8000000000008080, 0x0000000080000001, 0x8000000080008008,
+static const uint32_t pi[6] = {
+    0x110b070a, 0x10050312, 0x04181508, 0x0d13170f, 0x0e14020c, 0x01060916
 };
 
-static const uint8_t rho[24] = {
-    1, 62, 28, 27, 36, 44,  6, 55, 20,
-    3, 10, 43, 25, 39, 41, 45, 15,
-    21,  8, 18,  2, 61, 56, 14
-};
-
-static const uint8_t pi[24] = {
-    10,  7, 11, 17, 18, 3,  5, 16,  8, 21, 24, 4,
-    15, 23, 19, 13, 12, 2, 20, 14, 22,  9,  6, 1,
-};
-
-#define ROT64(x, y) (((x) << (y)) | ((x) >> (64U - (y))))
+#define ROTR64(x, y) (((x) << (64U - (y))) | ((x) >> (y))) // 64-bit rotate right
 #define ABSORB(ctx, idx, v) do { ctx->state[(idx) >> 3] ^= ((uint64_t) (v)) << (((idx) & 0x7) << 3); \
 } while (0)
 #define SQUEEZE(ctx, idx) ((uint8_t) (ctx->state[(idx) >> 3] >> (((idx) & 0x7) << 3)))
@@ -82,39 +108,97 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
         uint64_t t;
 
         /* Theta */
+#if MBEDTLS_SHA3_THETA_UNROLL == 0 //no-check-names
+        for (i = 0; i < 5; i++) {
+            lane[i] = s[i] ^ s[i + 5] ^ s[i + 10] ^ s[i + 15] ^ s[i + 20];
+        }
+        for (i = 0; i < 5; i++) {
+            t = lane[(i + 4) % 5] ^ ROTR64(lane[(i + 1) % 5], 63);
+            s[i] ^= t; s[i + 5] ^= t; s[i + 10] ^= t; s[i + 15] ^= t; s[i + 20] ^= t;
+        }
+#else
         lane[0] = s[0] ^ s[5] ^ s[10] ^ s[15] ^ s[20];
         lane[1] = s[1] ^ s[6] ^ s[11] ^ s[16] ^ s[21];
         lane[2] = s[2] ^ s[7] ^ s[12] ^ s[17] ^ s[22];
         lane[3] = s[3] ^ s[8] ^ s[13] ^ s[18] ^ s[23];
         lane[4] = s[4] ^ s[9] ^ s[14] ^ s[19] ^ s[24];
 
-        t = lane[4] ^ ROT64(lane[1], 1);
+        t = lane[4] ^ ROTR64(lane[1], 63);
         s[0] ^= t; s[5] ^= t; s[10] ^= t; s[15] ^= t; s[20] ^= t;
 
-        t = lane[0] ^ ROT64(lane[2], 1);
+        t = lane[0] ^ ROTR64(lane[2], 63);
         s[1] ^= t; s[6] ^= t; s[11] ^= t; s[16] ^= t; s[21] ^= t;
 
-        t = lane[1] ^ ROT64(lane[3], 1);
+        t = lane[1] ^ ROTR64(lane[3], 63);
         s[2] ^= t; s[7] ^= t; s[12] ^= t; s[17] ^= t; s[22] ^= t;
 
-        t = lane[2] ^ ROT64(lane[4], 1);
+        t = lane[2] ^ ROTR64(lane[4], 63);
         s[3] ^= t; s[8] ^= t; s[13] ^= t; s[18] ^= t; s[23] ^= t;
 
-        t = lane[3] ^ ROT64(lane[0], 1);
+        t = lane[3] ^ ROTR64(lane[0], 63);
         s[4] ^= t; s[9] ^= t; s[14] ^= t; s[19] ^= t; s[24] ^= t;
+#endif
 
         /* Rho */
-        for (i = 1; i < 25; i++) {
-            s[i] = ROT64(s[i], rho[i-1]);
+        for (i = 1; i < 25; i += 4) {
+            uint32_t r = rho[(i - 1) >> 2];
+#if MBEDTLS_SHA3_RHO_UNROLL == 0
+            for (int j = i; j < i + 4; j++) {
+                uint8_t r8 = (uint8_t) (r >> 24);
+                r <<= 8;
+                s[j] = ROTR64(s[j], r8);
+            }
+#else
+            s[i + 0] = ROTR64(s[i + 0], MBEDTLS_BYTE_3(r));
+            s[i + 1] = ROTR64(s[i + 1], MBEDTLS_BYTE_2(r));
+            s[i + 2] = ROTR64(s[i + 2], MBEDTLS_BYTE_1(r));
+            s[i + 3] = ROTR64(s[i + 3], MBEDTLS_BYTE_0(r));
+#endif
         }
 
         /* Pi */
         t = s[1];
-        for (i = 0; i < 24; i++) {
-            SWAP(s[pi[i]], t);
+#if MBEDTLS_SHA3_PI_UNROLL == 0
+        for (i = 0; i < 24; i += 4) {
+            uint32_t p = pi[i >> 2];
+            for (unsigned j = 0; j < 4; j++) {
+                SWAP(s[p & 0xff], t);
+                p >>= 8;
+            }
         }
+#else
+        uint32_t p = pi[0];
+        SWAP(s[MBEDTLS_BYTE_0(p)], t); SWAP(s[MBEDTLS_BYTE_1(p)], t);
+        SWAP(s[MBEDTLS_BYTE_2(p)], t); SWAP(s[MBEDTLS_BYTE_3(p)], t);
+        p = pi[1];
+        SWAP(s[MBEDTLS_BYTE_0(p)], t); SWAP(s[MBEDTLS_BYTE_1(p)], t);
+        SWAP(s[MBEDTLS_BYTE_2(p)], t); SWAP(s[MBEDTLS_BYTE_3(p)], t);
+        p = pi[2];
+        SWAP(s[MBEDTLS_BYTE_0(p)], t); SWAP(s[MBEDTLS_BYTE_1(p)], t);
+        SWAP(s[MBEDTLS_BYTE_2(p)], t); SWAP(s[MBEDTLS_BYTE_3(p)], t);
+        p = pi[3];
+        SWAP(s[MBEDTLS_BYTE_0(p)], t); SWAP(s[MBEDTLS_BYTE_1(p)], t);
+        SWAP(s[MBEDTLS_BYTE_2(p)], t); SWAP(s[MBEDTLS_BYTE_3(p)], t);
+        p = pi[4];
+        SWAP(s[MBEDTLS_BYTE_0(p)], t); SWAP(s[MBEDTLS_BYTE_1(p)], t);
+        SWAP(s[MBEDTLS_BYTE_2(p)], t); SWAP(s[MBEDTLS_BYTE_3(p)], t);
+        p = pi[5];
+        SWAP(s[MBEDTLS_BYTE_0(p)], t); SWAP(s[MBEDTLS_BYTE_1(p)], t);
+        SWAP(s[MBEDTLS_BYTE_2(p)], t); SWAP(s[MBEDTLS_BYTE_3(p)], t);
+#endif
 
         /* Chi */
+#if MBEDTLS_SHA3_CHI_UNROLL == 0 //no-check-names
+        for (i = 0; i <= 20; i += 5) {
+            lane[0] = s[i]; lane[1] = s[i + 1]; lane[2] = s[i + 2];
+            lane[3] = s[i + 3]; lane[4] = s[i + 4];
+            s[i + 0] ^= (~lane[1]) & lane[2];
+            s[i + 1] ^= (~lane[2]) & lane[3];
+            s[i + 2] ^= (~lane[3]) & lane[4];
+            s[i + 3] ^= (~lane[4]) & lane[0];
+            s[i + 4] ^= (~lane[0]) & lane[1];
+        }
+#else
         lane[0] = s[0]; lane[1] = s[1]; lane[2] = s[2]; lane[3] = s[3]; lane[4] = s[4];
         s[0] ^= (~lane[1]) & lane[2];
         s[1] ^= (~lane[2]) & lane[3];
@@ -149,9 +233,14 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
         s[22] ^= (~lane[3]) & lane[4];
         s[23] ^= (~lane[4]) & lane[0];
         s[24] ^= (~lane[0]) & lane[1];
+#endif
 
         /* Iota */
-        s[0] ^= rc[round];
+        /* Decompress the round masks (see definition of rc) */
+        s[0] ^= ((iota_r_packed[round] & 0x40ull) << 57 |
+                 (iota_r_packed[round] & 0x20ull) << 26 |
+                 (iota_r_packed[round] & 0x10ull) << 11 |
+                 (iota_r_packed[round] & 0x8f));
     }
 }
 
@@ -180,20 +269,26 @@ void mbedtls_sha3_clone(mbedtls_sha3_context *dst,
  */
 int mbedtls_sha3_starts(mbedtls_sha3_context *ctx, mbedtls_sha3_id id)
 {
-    mbedtls_sha3_family_functions *p = NULL;
-
-    for (p = sha3_families; p->id != MBEDTLS_SHA3_NONE; p++) {
-        if (p->id == id) {
+    switch (id) {
+        case MBEDTLS_SHA3_224:
+            ctx->olen = 224 / 8;
+            ctx->max_block_size = 1152 / 8;
             break;
-        }
+        case MBEDTLS_SHA3_256:
+            ctx->olen = 256 / 8;
+            ctx->max_block_size = 1088 / 8;
+            break;
+        case MBEDTLS_SHA3_384:
+            ctx->olen = 384 / 8;
+            ctx->max_block_size = 832 / 8;
+            break;
+        case MBEDTLS_SHA3_512:
+            ctx->olen = 512 / 8;
+            ctx->max_block_size = 576 / 8;
+            break;
+        default:
+            return MBEDTLS_ERR_SHA3_BAD_INPUT_DATA;
     }
-
-    if (p->id == MBEDTLS_SHA3_NONE) {
-        return MBEDTLS_ERR_SHA3_BAD_INPUT_DATA;
-    }
-
-    ctx->olen = p->olen / 8;
-    ctx->max_block_size = p->r / 8;
 
     memset(ctx->state, 0, sizeof(ctx->state));
     ctx->index = 0;

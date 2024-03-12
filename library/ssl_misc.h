@@ -44,6 +44,8 @@
 #endif
 
 #include "mbedtls/pk.h"
+#include "ssl_ciphersuites_internal.h"
+#include "x509_internal.h"
 #include "pk_internal.h"
 #include "common.h"
 
@@ -650,6 +652,10 @@ struct mbedtls_ssl_handshake_params {
     /* Flag indicating if a CertificateRequest message has been sent
      * to the client or not. */
     uint8_t certificate_request_sent;
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    /* Flag indicating if the server has accepted early data or not. */
+    uint8_t early_data_accepted;
+#endif
 #endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
@@ -659,21 +665,21 @@ struct mbedtls_ssl_handshake_params {
 #if defined(MBEDTLS_SSL_CLI_C)
     /** Minimum TLS version to be negotiated.
      *
-     *  It is set up in the ClientHello writing preparation stage and used
-     *  throughout the ClientHello writing. Not relevant anymore as soon as
-     *  the protocol version has been negotiated thus as soon as the
-     *  ServerHello is received.
-     *  For a fresh handshake not linked to any previous handshake, it is
-     *  equal to the configured minimum minor version to be negotiated. When
-     *  renegotiating or resuming a session, it is equal to the previously
-     *  negotiated minor version.
+     * It is set up in the ClientHello writing preparation stage and used
+     * throughout the ClientHello writing. Not relevant anymore as soon as
+     * the protocol version has been negotiated thus as soon as the
+     * ServerHello is received.
+     * For a fresh handshake not linked to any previous handshake, it is
+     * equal to the configured minimum minor version to be negotiated. When
+     * renegotiating or resuming a session, it is equal to the previously
+     * negotiated minor version.
      *
-     *  There is no maximum TLS version field in this handshake context.
-     *  From the start of the handshake, we need to define a current protocol
-     *  version for the record layer which we define as the maximum TLS
-     *  version to be negotiated. The `tls_version` field of the SSL context is
-     *  used to store this maximum value until it contains the actual
-     *  negotiated value.
+     * There is no maximum TLS version field in this handshake context.
+     * From the start of the handshake, we need to define a current protocol
+     * version for the record layer which we define as the maximum TLS
+     * version to be negotiated. The `tls_version` field of the SSL context is
+     * used to store this maximum value until it contains the actual
+     * negotiated value.
      */
     mbedtls_ssl_protocol_version min_tls_version;
 #endif
@@ -724,15 +730,29 @@ struct mbedtls_ssl_handshake_params {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     uint8_t key_exchange_mode; /*!< Selected key exchange mode */
 
-    /** Number of HelloRetryRequest messages received/sent from/to the server. */
-    int hello_retry_request_count;
+    /**
+     * Flag indicating if, in the course of the current handshake, an
+     * HelloRetryRequest message has been sent by the server or received by
+     * the client (<> 0) or not (0).
+     */
+    uint8_t hello_retry_request_flag;
+
+#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
+    /**
+     * Flag indicating if, in the course of the current handshake, a dummy
+     * change_cipher_spec (CCS) record has already been sent. Used to send only
+     * one CCS per handshake while not complicating the handshake state
+     * transitions for that purpose.
+     */
+    uint8_t ccs_sent;
+#endif
 
 #if defined(MBEDTLS_SSL_SRV_C)
-    /** selected_group of key_share extension in HelloRetryRequest message. */
-    uint16_t hrr_selected_group;
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     uint8_t tls13_kex_modes; /*!< Key exchange modes supported by the client */
 #endif
+    /** selected_group of key_share extension in HelloRetryRequest message. */
+    uint16_t hrr_selected_group;
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     uint16_t new_session_tickets_count;         /*!< number of session tickets */
 #endif
@@ -2131,11 +2151,8 @@ int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
                                            const unsigned char *end,
                                            size_t *out_len);
 
-#if defined(MBEDTLS_SSL_SRV_C)
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_RECEIVED \
-    MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT
-#endif /* MBEDTLS_SSL_SRV_C */
-
+int mbedtls_ssl_tls13_check_early_data_len(mbedtls_ssl_context *ssl,
+                                           size_t early_data_len);
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

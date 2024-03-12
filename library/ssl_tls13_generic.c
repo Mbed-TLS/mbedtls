@@ -12,7 +12,7 @@
 #include <string.h>
 
 #include "mbedtls/error.h"
-#include "mbedtls/debug.h"
+#include "debug_internal.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/constant_time.h"
@@ -1379,6 +1379,12 @@ int mbedtls_ssl_tls13_write_change_cipher_spec(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write change cipher spec"));
 
+    /* Only one CCS to send. */
+    if (ssl->handshake->ccs_sent) {
+        ret = 0;
+        goto cleanup;
+    }
+
     /* Write CCS message */
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_write_change_cipher_spec_body(
                              ssl, ssl->out_msg,
@@ -1389,6 +1395,8 @@ int mbedtls_ssl_tls13_write_change_cipher_spec(mbedtls_ssl_context *ssl)
 
     /* Dispatch message */
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_write_record(ssl, 0));
+
+    ssl->handshake->ccs_sent = 1;
 
 cleanup:
 
@@ -1446,6 +1454,54 @@ int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
 
     return 0;
 }
+
+#if defined(MBEDTLS_SSL_SRV_C)
+int mbedtls_ssl_tls13_check_early_data_len(mbedtls_ssl_context *ssl,
+                                           size_t early_data_len)
+{
+    /*
+     * This function should be called only while an handshake is in progress
+     * and thus a session under negotiation. Add a sanity check to detect a
+     * misuse.
+     */
+    if (ssl->session_negotiate == NULL) {
+        return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    /* RFC 8446 section 4.6.1
+     *
+     * A server receiving more than max_early_data_size bytes of 0-RTT data
+     * SHOULD terminate the connection with an "unexpected_message" alert.
+     * Note that if it is still possible to send early_data_len bytes of early
+     * data, it means that early_data_len is smaller than max_early_data_size
+     * (type uint32_t) and can fit in an uint32_t. We use this further
+     * down.
+     */
+    if (early_data_len >
+        (ssl->session_negotiate->max_early_data_size -
+         ssl->total_early_data_size)) {
+
+        MBEDTLS_SSL_DEBUG_MSG(
+            2, ("EarlyData: Too much early data received, %u + %" MBEDTLS_PRINTF_SIZET " > %u",
+                ssl->total_early_data_size, early_data_len,
+                ssl->session_negotiate->max_early_data_size));
+
+        MBEDTLS_SSL_PEND_FATAL_ALERT(
+            MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
+            MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE);
+        return MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+    }
+
+    /*
+     * early_data_len has been checked to be less than max_early_data_size
+     * that is uint32_t. Its cast to an uint32_t below is thus safe. We need
+     * the cast to appease some compilers.
+     */
+    ssl->total_early_data_size += (uint32_t) early_data_len;
+
+    return 0;
+}
+#endif /* MBEDTLS_SSL_SRV_C */
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 /* Reset SSL context and update hash for handling HRR.
@@ -1539,26 +1595,36 @@ static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
     uint16_t tls_id, size_t *bits, psa_key_type_t *key_type)
 {
     switch (tls_id) {
+#if defined(PSA_WANT_DH_RFC7919_2048)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048:
             *bits = 2048;
             *key_type = PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_2048 */
+#if defined(PSA_WANT_DH_RFC7919_3072)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072:
             *bits = 3072;
             *key_type =  PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_3072 */
+#if defined(PSA_WANT_DH_RFC7919_4096)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096:
             *bits = 4096;
             *key_type =  PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_4096 */
+#if defined(PSA_WANT_DH_RFC7919_6144)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144:
             *bits = 6144;
             *key_type =  PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_6144 */
+#if defined(PSA_WANT_DH_RFC7919_8192)
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192:
             *bits = 8192;
             *key_type =  PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
             return PSA_SUCCESS;
+#endif /* PSA_WANT_DH_RFC7919_8192 */
         default:
             return PSA_ERROR_NOT_SUPPORTED;
     }

@@ -12,7 +12,7 @@
 
 #include <string.h>
 
-#include "mbedtls/debug.h"
+#include "debug_internal.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform.h"
 
@@ -764,11 +764,6 @@ static int ssl_prepare_client_hello(mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 &&
           MBEDTLS_SSL_SESSION_TICKETS &&
           MBEDTLS_HAVE_TIME */
-
-    if (ssl->conf->f_rng == NULL) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("no RNG provided"));
-        return MBEDTLS_ERR_SSL_NO_RNG;
-    }
 
     /* Bet on the highest configured version if we are not in a TLS 1.2
      * renegotiation or session resumption.

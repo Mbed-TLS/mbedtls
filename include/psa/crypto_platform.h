@@ -89,4 +89,14 @@ typedef struct {
 } mbedtls_psa_external_random_context_t;
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+/** The type of the client handle used in context structures
+ *
+ * When a client view of the multipart context structures is required,
+ * this handle is used to keep a mapping with the service side of the
+ * context which contains the actual data.
+ */
+typedef uint32_t mbedtls_psa_client_handle_t;
+#endif
+
 #endif /* PSA_CRYPTO_PLATFORM_H */

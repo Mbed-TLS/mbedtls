@@ -73,11 +73,11 @@ void mbedtls_pem_init(mbedtls_pem_context *ctx);
  * \param data      source data to look in (must be nul-terminated)
  * \param pwd       password for decryption (can be NULL)
  * \param pwdlen    length of password
- * \param use_len   destination for total length used (set after header is
- *                  correctly read, so unless you get
+ * \param use_len   destination for total length used from data buffer. It is
+ *                  set after header is correctly read, so unless you get
  *                  MBEDTLS_ERR_PEM_BAD_INPUT_DATA or
  *                  MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT, use_len is
- *                  the length to skip)
+ *                  the length to skip.
  *
  * \note            Attempts to check password correctness by verifying if
  *                  the decrypted text starts with an ASN.1 sequence of

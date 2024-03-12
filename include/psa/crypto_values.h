@@ -413,7 +413,7 @@
     ((type) | PSA_KEY_TYPE_CATEGORY_FLAG_PAIR)
 /** The public key type corresponding to a key pair type.
  *
- * You may also pass a key pair type as \p type, it will be left unchanged.
+ * You may also pass a public key type as \p type, it will be left unchanged.
  *
  * \param type      A public key type or key pair type.
  *

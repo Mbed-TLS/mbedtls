@@ -1,0 +1,6 @@
+Removals
+   * Temporary function mbedtls_pk_wrap_as_opaque() is removed. To mimic the
+     same behavior mbedtls_pk_get_psa_attributes() and
+     mbedtls_pk_import_into_psa() can be used to import a PK key into PSA,
+     while mbedtls_pk_setup_opaque() can be used to wrap a PSA key into a opaque
+     PK context.

@@ -17,7 +17,7 @@
 #include "mbedtls/ecp.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 #include "psa/crypto.h"
 
 #include "psa_util_internal.h"
@@ -28,7 +28,7 @@
 #define PSA_PK_ECDSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
                                                                     psa_to_pk_ecdsa_errors,        \
                                                                     psa_pk_status_to_mbedtls)
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
 /* Headers/footers for PEM files */
 #define PEM_BEGIN_PUBLIC_KEY    "-----BEGIN PUBLIC KEY-----"
@@ -142,6 +142,10 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_pk_parse_key_pkcs8_encrypted_der(
     unsigned char *key, size_t keylen,
     const unsigned char *pwd, size_t pwdlen,
     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng);
+#endif
+
+#if defined(MBEDTLS_FS_IO)
+int mbedtls_pk_load_file(const char *path, unsigned char **buf, size_t *n);
 #endif
 
 #endif /* MBEDTLS_PK_INTERNAL_H */

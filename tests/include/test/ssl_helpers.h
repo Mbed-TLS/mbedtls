@@ -85,6 +85,7 @@ typedef struct mbedtls_test_ssl_log_pattern {
 
 typedef struct mbedtls_test_handshake_test_options {
     const char *cipher;
+    uint16_t *group_list;
     mbedtls_ssl_protocol_version client_min_version;
     mbedtls_ssl_protocol_version client_max_version;
     mbedtls_ssl_protocol_version server_min_version;
@@ -112,6 +113,8 @@ typedef struct mbedtls_test_handshake_test_options {
     void (*srv_log_fun)(void *, int, const char *, int, const char *);
     void (*cli_log_fun)(void *, int, const char *, int, const char *);
     int resize_buffers;
+    int early_data;
+    int max_early_data_size;
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_context *cache;
 #endif
@@ -192,6 +195,13 @@ typedef struct mbedtls_test_ssl_endpoint {
 } mbedtls_test_ssl_endpoint;
 
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
+
+/*
+ * Random number generator aimed for TLS unitary tests. Its main purpose is to
+ * simplify the set-up of a random number generator for TLS
+ * unitary tests: no need to set up a good entropy source for example.
+ */
+int mbedtls_test_random(void *p_rng, unsigned char *output, size_t output_len);
 
 /*
  * This function can be passed to mbedtls to receive output logs from it. In
@@ -440,8 +450,7 @@ int mbedtls_test_ssl_endpoint_init(
     mbedtls_test_handshake_test_options *options,
     mbedtls_test_message_socket_context *dtls_context,
     mbedtls_test_ssl_message_queue *input_queue,
-    mbedtls_test_ssl_message_queue *output_queue,
-    uint16_t *group_list);
+    mbedtls_test_ssl_message_queue *output_queue);
 
 /*
  * Deinitializes endpoint represented by \p ep.
@@ -531,6 +540,7 @@ int mbedtls_test_ssl_prepare_record_mac(mbedtls_record *record,
  */
 int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
                                             int ticket_len,
+                                            int endpoint_type,
                                             const char *crt_file);
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
@@ -588,6 +598,25 @@ int mbedtls_test_tweak_tls13_certificate_msg_vector_len(
     unsigned char *buf, unsigned char **end, int tweak,
     int *expected_result, mbedtls_ssl_chk_buf_ptr_args *args);
 #endif /* MBEDTLS_TEST_HOOKS */
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+int mbedtls_test_ticket_write(
+    void *p_ticket, const mbedtls_ssl_session *session,
+    unsigned char *start, const unsigned char *end,
+    size_t *tlen, uint32_t *ticket_lifetime);
+
+int mbedtls_test_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
+                              unsigned char *buf, size_t len);
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
+#if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SRV_C) && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+int mbedtls_test_get_tls13_ticket(
+    mbedtls_test_handshake_test_options *client_options,
+    mbedtls_test_handshake_test_options *server_options,
+    mbedtls_ssl_session *session);
+#endif
 
 #define ECJPAKE_TEST_PWD        "bla"
 

@@ -1,5 +1,3 @@
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
-
 #include <stdint.h>
 #include "mbedtls/x509_csr.h"
 

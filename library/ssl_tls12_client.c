@@ -14,7 +14,7 @@
 #include "mbedtls/ssl.h"
 #include "ssl_client.h"
 #include "ssl_misc.h"
-#include "mbedtls/debug.h"
+#include "debug_internal.h"
 #include "mbedtls/error.h"
 #include "mbedtls/constant_time.h"
 
@@ -1268,6 +1268,7 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
     ssl->tls_version = (mbedtls_ssl_protocol_version) mbedtls_ssl_read_version(buf,
                                                                                ssl->conf->transport);
     ssl->session_negotiate->tls_version = ssl->tls_version;
+    ssl->session_negotiate->endpoint = ssl->conf->endpoint;
 
     if (ssl->tls_version < ssl->conf->min_tls_version ||
         ssl->tls_version > ssl->conf->max_tls_version) {
@@ -2005,9 +2006,9 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
     }
 
-#if defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     const mbedtls_ecp_keypair *peer_key = mbedtls_pk_ec_ro(*peer_pk);
-#endif /* MBEDTLS_ECP_C */
+#endif /* !defined(MBEDTLS_PK_USE_PSA_EC_DATA) */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     uint16_t tls_id = 0;

@@ -101,11 +101,6 @@ typedef struct {
 
 static psa_global_data_t global_data;
 
-#if !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
-mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
-    &global_data.rng.drbg;
-#endif
-
 #define GUARD_MODULE_INITIALIZED        \
     if (global_data.initialized == 0)  \
     return PSA_ERROR_BAD_STATE;
@@ -260,12 +255,30 @@ int psa_can_do_cipher(psa_key_type_t key_type, psa_algorithm_t cipher_alg)
     defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE)
 static int psa_is_dh_key_size_valid(size_t bits)
 {
-    if (bits != 2048 && bits != 3072 && bits != 4096 &&
-        bits != 6144 && bits != 8192) {
-        return 0;
+    switch (bits) {
+#if defined(PSA_WANT_DH_RFC7919_2048)
+        case 2048:
+            return 1;
+#endif /* PSA_WANT_DH_RFC7919_2048 */
+#if defined(PSA_WANT_DH_RFC7919_3072)
+        case 3072:
+            return 1;
+#endif /* PSA_WANT_DH_RFC7919_3072 */
+#if defined(PSA_WANT_DH_RFC7919_4096)
+        case 4096:
+            return 1;
+#endif /* PSA_WANT_DH_RFC7919_4096 */
+#if defined(PSA_WANT_DH_RFC7919_6144)
+        case 6144:
+            return 1;
+#endif /* PSA_WANT_DH_RFC7919_6144 */
+#if defined(PSA_WANT_DH_RFC7919_8192)
+        case 8192:
+            return 1;
+#endif /* PSA_WANT_DH_RFC7919_8192 */
+        default:
+            return 0;
     }
-
-    return 1;
 }
 #endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_IMPORT ||
           MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY ||
@@ -681,7 +694,7 @@ psa_status_t psa_import_key_into_slot(
     size_t *key_buffer_length, size_t *bits)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_type_t type = attributes->core.type;
+    psa_key_type_t type = attributes->type;
 
     /* zero-length keys are never supported. */
     if (data_length == 0) {
@@ -691,7 +704,7 @@ psa_status_t psa_import_key_into_slot(
     if (key_type_is_raw_bytes(type)) {
         *bits = PSA_BYTES_TO_BITS(data_length);
 
-        status = psa_validate_unstructured_key_bit_size(attributes->core.type,
+        status = psa_validate_unstructured_key_bit_size(attributes->type,
                                                         *bits);
         if (status != PSA_SUCCESS) {
             return status;
@@ -708,7 +721,7 @@ psa_status_t psa_import_key_into_slot(
         defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY)
         if (PSA_KEY_TYPE_IS_DH(type)) {
             if (psa_is_dh_key_size_valid(PSA_BYTES_TO_BITS(data_length)) == 0) {
-                return PSA_ERROR_INVALID_ARGUMENT;
+                return PSA_ERROR_NOT_SUPPORTED;
             }
             return mbedtls_psa_ffdh_import_key(attributes,
                                                data, data_length,
@@ -1022,8 +1035,13 @@ static psa_status_t psa_restrict_key_policy(
  * into a key slot if not already done.
  *
  * On success, the returned key slot has been registered for reading.
- * It is the responsibility of the caller to call psa_unregister_read(slot)
- * when they have finished reading the contents of the slot.
+ * It is the responsibility of the caller to then unregister
+ * once they have finished reading the contents of the slot.
+ * The caller unregisters by calling psa_unregister_read() or
+ * psa_unregister_read_under_mutex(). psa_unregister_read() must be called
+ * if and only if the caller already holds the global key slot mutex
+ * (when mutexes are enabled). psa_unregister_read_under_mutex() encapsulates
+ * the unregister with mutex lock and unlock operations.
  */
 static psa_status_t psa_get_and_lock_key_slot_with_policy(
     mbedtls_svc_key_id_t key,
@@ -1067,7 +1085,7 @@ static psa_status_t psa_get_and_lock_key_slot_with_policy(
 
 error:
     *p_slot = NULL;
-    psa_unregister_read(slot);
+    psa_unregister_read_under_mutex(slot);
 
     return status;
 }
@@ -1083,8 +1101,13 @@ error:
  * for a cryptographic operation.
  *
  * On success, the returned key slot has been registered for reading.
- * It is the responsibility of the caller to call psa_unregister_read(slot)
- * when they have finished reading the contents of the slot.
+ * It is the responsibility of the caller to then unregister
+ * once they have finished reading the contents of the slot.
+ * The caller unregisters by calling psa_unregister_read() or
+ * psa_unregister_read_under_mutex(). psa_unregister_read() must be called
+ * if and only if the caller already holds the global key slot mutex
+ * (when mutexes are enabled). psa_unregister_read_under_mutex() encapsulates
+ * psa_unregister_read() with mutex lock and unlock operations.
  */
 static psa_status_t psa_get_and_lock_transparent_key_slot_with_policy(
     mbedtls_svc_key_id_t key,
@@ -1099,7 +1122,7 @@ static psa_status_t psa_get_and_lock_transparent_key_slot_with_policy(
     }
 
     if (psa_key_lifetime_is_external((*p_slot)->attr.lifetime)) {
-        psa_unregister_read(*p_slot);
+        psa_unregister_read_under_mutex(*p_slot);
         *p_slot = NULL;
         return PSA_ERROR_NOT_SUPPORTED;
     }
@@ -1202,6 +1225,25 @@ psa_status_t psa_destroy_key(mbedtls_svc_key_id_t key)
         return status;
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    /* We cannot unlock between setting the state to PENDING_DELETION
+     * and destroying the key in storage, as otherwise another thread
+     * could load the key into a new slot and the key will not be
+     * fully destroyed. */
+    PSA_THREADING_CHK_GOTO_EXIT(mbedtls_mutex_lock(
+                                    &mbedtls_threading_key_slot_mutex));
+
+    if (slot->state == PSA_SLOT_PENDING_DELETION) {
+        /* Another thread has destroyed the key between us locking the slot
+         * and us gaining the mutex. Unregister from the slot,
+         * and report that the key does not exist. */
+        status = psa_unregister_read(slot);
+
+        PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                                  &mbedtls_threading_key_slot_mutex));
+        return (status == PSA_SUCCESS) ? PSA_ERROR_INVALID_HANDLE : status;
+    }
+#endif
     /* Set the key slot containing the key description's state to
      * PENDING_DELETION. This stops new operations from registering
      * to read the slot. Current readers can safely continue to access
@@ -1210,7 +1252,12 @@ psa_status_t psa_destroy_key(mbedtls_svc_key_id_t key)
      * If the key is persistent, we can now delete the copy of the key
      * from memory. If the key is opaque, we require the driver to
      * deal with the deletion. */
-    slot->state = PSA_SLOT_PENDING_DELETION;
+    overall_status = psa_key_slot_state_transition(slot, PSA_SLOT_FULL,
+                                                   PSA_SLOT_PENDING_DELETION);
+
+    if (overall_status != PSA_SUCCESS) {
+        goto exit;
+    }
 
     if (PSA_KEY_LIFETIME_IS_READ_ONLY(slot->attr.lifetime)) {
         /* Refuse the destruction of a read-only key (which may or may not work
@@ -1265,11 +1312,6 @@ psa_status_t psa_destroy_key(mbedtls_svc_key_id_t key)
         if (overall_status == PSA_SUCCESS) {
             overall_status = status;
         }
-
-        /* TODO: other slots may have a copy of the same key. We should
-         * invalidate them.
-         * https://github.com/ARMmbed/mbed-crypto/issues/214
-         */
     }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
@@ -1295,53 +1337,16 @@ exit:
     if (status != PSA_SUCCESS) {
         overall_status = status;
     }
+
+#if defined(MBEDTLS_THREADING_C)
+    /* Don't overwrite existing errors if the unlock fails. */
+    status = overall_status;
+    PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
+
     return overall_status;
 }
-
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
-static psa_status_t psa_get_rsa_public_exponent(
-    const mbedtls_rsa_context *rsa,
-    psa_key_attributes_t *attributes)
-{
-    mbedtls_mpi mpi;
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    uint8_t *buffer = NULL;
-    size_t buflen;
-    mbedtls_mpi_init(&mpi);
-
-    ret = mbedtls_rsa_export(rsa, NULL, NULL, NULL, NULL, &mpi);
-    if (ret != 0) {
-        goto exit;
-    }
-    if (mbedtls_mpi_cmp_int(&mpi, 65537) == 0) {
-        /* It's the default value, which is reported as an empty string,
-         * so there's nothing to do. */
-        goto exit;
-    }
-
-    buflen = mbedtls_mpi_size(&mpi);
-    buffer = mbedtls_calloc(1, buflen);
-    if (buffer == NULL) {
-        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
-        goto exit;
-    }
-    ret = mbedtls_mpi_write_binary(&mpi, buffer, buflen);
-    if (ret != 0) {
-        goto exit;
-    }
-    attributes->domain_parameters = buffer;
-    attributes->domain_parameters_size = buflen;
-
-exit:
-    mbedtls_mpi_free(&mpi);
-    if (ret != 0) {
-        mbedtls_free(buffer);
-    }
-    return mbedtls_to_psa_error(ret);
-}
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT) ||
-        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
 
 /** Retrieve all the publicly-accessible attributes of a key.
  */
@@ -1349,7 +1354,6 @@ psa_status_t psa_get_key_attributes(mbedtls_svc_key_id_t key,
                                     psa_key_attributes_t *attributes)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
 
     psa_reset_key_attributes(attributes);
@@ -1359,9 +1363,7 @@ psa_status_t psa_get_key_attributes(mbedtls_svc_key_id_t key,
         return status;
     }
 
-    attributes->core = slot->attr;
-    attributes->core.flags &= (MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY |
-                               MBEDTLS_PSA_KA_MASK_DUAL_USE);
+    *attributes = slot->attr;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if (psa_get_se_driver_entry(slot->attr.lifetime) != NULL) {
@@ -1370,55 +1372,7 @@ psa_status_t psa_get_key_attributes(mbedtls_svc_key_id_t key,
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-    switch (slot->attr.type) {
-#if (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) && \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
-        case PSA_KEY_TYPE_RSA_KEY_PAIR:
-        case PSA_KEY_TYPE_RSA_PUBLIC_KEY:
-            /* TODO: This is a temporary situation where domain parameters are deprecated,
-             * but we need it for namely generating an RSA key with a non-default exponent.
-             * This would be improved after https://github.com/Mbed-TLS/mbedtls/issues/6494.
-             */
-            if (!psa_key_lifetime_is_external(slot->attr.lifetime)) {
-                mbedtls_rsa_context *rsa = NULL;
-
-                status = mbedtls_psa_rsa_load_representation(
-                    slot->attr.type,
-                    slot->key.data,
-                    slot->key.bytes,
-                    &rsa);
-                if (status != PSA_SUCCESS) {
-                    break;
-                }
-
-                status = psa_get_rsa_public_exponent(rsa,
-                                                     attributes);
-                mbedtls_rsa_free(rsa);
-                mbedtls_free(rsa);
-            }
-            break;
-#else
-        case PSA_KEY_TYPE_RSA_KEY_PAIR:
-        case PSA_KEY_TYPE_RSA_PUBLIC_KEY:
-            attributes->domain_parameters = NULL;
-            attributes->domain_parameters_size = SIZE_MAX;
-            break;
-#endif /* (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) && \
-        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) ||
-        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
-        default:
-            /* Nothing else to do. */
-            break;
-    }
-
-    if (status != PSA_SUCCESS) {
-        psa_reset_key_attributes(attributes);
-    }
-
-    unlock_status = psa_unregister_read(slot);
-
-    return (status == PSA_SUCCESS) ? unlock_status : status;
+    return psa_unregister_read_under_mutex(slot);
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -1426,7 +1380,7 @@ psa_status_t psa_get_key_slot_number(
     const psa_key_attributes_t *attributes,
     psa_key_slot_number_t *slot_number)
 {
-    if (attributes->core.flags & MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER) {
+    if (attributes->has_slot_number) {
         *slot_number = attributes->slot_number;
         return PSA_SUCCESS;
     } else {
@@ -1456,7 +1410,7 @@ psa_status_t psa_export_key_internal(
     const uint8_t *key_buffer, size_t key_buffer_size,
     uint8_t *data, size_t data_size, size_t *data_length)
 {
-    psa_key_type_t type = attributes->core.type;
+    psa_key_type_t type = attributes->type;
 
     if (key_type_is_raw_bytes(type) ||
         PSA_KEY_TYPE_IS_RSA(type)   ||
@@ -1508,17 +1462,14 @@ psa_status_t psa_export_key(mbedtls_svc_key_id_t key,
 
     LOCAL_OUTPUT_ALLOC(data_external, data_size, data);
 
-    psa_key_attributes_t attributes = {
-        .core = slot->attr
-    };
-    status = psa_driver_wrapper_export_key(&attributes,
+    status = psa_driver_wrapper_export_key(&slot->attr,
                                            slot->key.data, slot->key.bytes,
                                            data, data_size, data_length);
 
 #if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
 exit:
 #endif
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
 
     LOCAL_OUTPUT_FREE(data_external, data);
     return (status == PSA_SUCCESS) ? unlock_status : status;
@@ -1532,7 +1483,7 @@ psa_status_t psa_export_public_key_internal(
     size_t data_size,
     size_t *data_length)
 {
-    psa_key_type_t type = attributes->core.type;
+    psa_key_type_t type = attributes->type;
 
     if (PSA_KEY_TYPE_IS_PUBLIC_KEY(type) &&
         (PSA_KEY_TYPE_IS_RSA(type) || PSA_KEY_TYPE_IS_ECC(type) ||
@@ -1599,7 +1550,7 @@ psa_status_t psa_export_public_key(mbedtls_svc_key_id_t key,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
-    psa_key_attributes_t attributes;
+
     LOCAL_OUTPUT_DECLARE(data_external, data);
 
     /* Reject a zero-length output buffer now, since this can never be a
@@ -1628,29 +1579,16 @@ psa_status_t psa_export_public_key(mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    attributes = (psa_key_attributes_t) {
-        .core = slot->attr
-    };
     status = psa_driver_wrapper_export_public_key(
-        &attributes, slot->key.data, slot->key.bytes,
+        &slot->attr, slot->key.data, slot->key.bytes,
         data, data_size, data_length);
 
 exit:
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
 
     LOCAL_OUTPUT_FREE(data_external, data);
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
-
-MBEDTLS_STATIC_ASSERT(
-    (MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_DUAL_USE) == 0,
-    "One or more key attribute flag is listed as both external-only and dual-use")
-MBEDTLS_STATIC_ASSERT(
-    (PSA_KA_MASK_INTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_DUAL_USE) == 0,
-    "One or more key attribute flag is listed as both internal-only and dual-use")
-MBEDTLS_STATIC_ASSERT(
-    (PSA_KA_MASK_INTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY) == 0,
-    "One or more key attribute flag is listed as both internal-only and external-only")
 
 /** Validate that a key policy is internally well-formed.
  *
@@ -1717,7 +1655,7 @@ static psa_status_t psa_validate_key_attributes(
         }
     }
 
-    status = psa_validate_key_policy(&attributes->core.policy);
+    status = psa_validate_key_policy(&attributes->policy);
     if (status != PSA_SUCCESS) {
         return status;
     }
@@ -1728,12 +1666,6 @@ static psa_status_t psa_validate_key_attributes(
      * psa_import_key() needs its own checks. */
     if (psa_get_key_bits(attributes) > PSA_MAX_KEY_BITS) {
         return PSA_ERROR_NOT_SUPPORTED;
-    }
-
-    /* Reject invalid flags. These should not be reachable through the API. */
-    if (attributes->core.flags & ~(MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY |
-                                   MBEDTLS_PSA_KA_MASK_DUAL_USE)) {
-        return PSA_ERROR_INVALID_ARGUMENT;
     }
 
     return PSA_SUCCESS;
@@ -1787,7 +1719,15 @@ static psa_status_t psa_start_key_creation(
         return status;
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
     status = psa_reserve_free_key_slot(&volatile_key_id, p_slot);
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
     if (status != PSA_SUCCESS) {
         return status;
     }
@@ -1801,7 +1741,7 @@ static psa_status_t psa_start_key_creation(
      * volatile key identifier associated to the slot returned to contain its
      * definition. */
 
-    slot->attr = attributes->core;
+    slot->attr = *attributes;
     if (PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) {
 #if !defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
         slot->attr.id = volatile_key_id;
@@ -1809,13 +1749,6 @@ static psa_status_t psa_start_key_creation(
         slot->attr.id.key_id = volatile_key_id;
 #endif
     }
-
-    /* Erase external-only flags from the internal copy. To access
-     * external-only flags, query `attributes`. Thanks to the check
-     * in psa_validate_key_attributes(), this leaves the dual-use
-     * flags and any internal flag that psa_reserve_free_key_slot()
-     * may have set. */
-    slot->attr.flags &= ~MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* For a key in a secure element, we need to do three things
@@ -1843,7 +1776,7 @@ static psa_status_t psa_start_key_creation(
             return status;
         }
 
-        if (!PSA_KEY_LIFETIME_IS_VOLATILE(attributes->core.lifetime)) {
+        if (!PSA_KEY_LIFETIME_IS_VOLATILE(attributes->lifetime)) {
             psa_crypto_prepare_transaction(PSA_CRYPTO_TRANSACTION_CREATE_KEY);
             psa_crypto_transaction.key.lifetime = slot->attr.lifetime;
             psa_crypto_transaction.key.slot = slot_number;
@@ -1907,6 +1840,11 @@ static psa_status_t psa_finish_key_creation(
     (void) slot;
     (void) driver;
 
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_lock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
+
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     if (!PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) {
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -1946,6 +1884,11 @@ static psa_status_t psa_finish_key_creation(
         status = psa_save_se_persistent_data(driver);
         if (status != PSA_SUCCESS) {
             psa_destroy_persistent_key(slot->attr.id);
+
+#if defined(MBEDTLS_THREADING_C)
+            PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                                      &mbedtls_threading_key_slot_mutex));
+#endif
             return status;
         }
         status = psa_crypto_stop_transaction();
@@ -1961,6 +1904,10 @@ static psa_status_t psa_finish_key_creation(
         }
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    PSA_THREADING_CHK_RET(mbedtls_mutex_unlock(
+                              &mbedtls_threading_key_slot_mutex));
+#endif
     return status;
 }
 
@@ -1985,6 +1932,13 @@ static void psa_fail_key_creation(psa_key_slot_t *slot,
         return;
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    /* If the lock operation fails we still wipe the slot.
+     * Operations will no longer work after a failed lock,
+     * but we still need to wipe the slot of confidential data. */
+    mbedtls_mutex_lock(&mbedtls_threading_key_slot_mutex);
+#endif
+
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* TODO: If the key has already been created in the secure
      * element, and the failure happened later (when saving metadata
@@ -2003,6 +1957,10 @@ static void psa_fail_key_creation(psa_key_slot_t *slot,
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     psa_wipe_key_slot(slot);
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_unlock(&mbedtls_threading_key_slot_mutex);
+#endif
 }
 
 /** Validate optional attributes during key creation.
@@ -2018,65 +1976,14 @@ static psa_status_t psa_validate_optional_attributes(
     const psa_key_slot_t *slot,
     const psa_key_attributes_t *attributes)
 {
-    if (attributes->core.type != 0) {
-        if (attributes->core.type != slot->attr.type) {
+    if (attributes->type != 0) {
+        if (attributes->type != slot->attr.type) {
             return PSA_ERROR_INVALID_ARGUMENT;
         }
     }
 
-    if (attributes->domain_parameters_size != 0) {
-#if (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) && \
-        defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) || \
-        defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
-        if (PSA_KEY_TYPE_IS_RSA(slot->attr.type)) {
-            mbedtls_rsa_context *rsa = NULL;
-            mbedtls_mpi actual, required;
-            int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-            psa_status_t status = mbedtls_psa_rsa_load_representation(
-                slot->attr.type,
-                slot->key.data,
-                slot->key.bytes,
-                &rsa);
-            if (status != PSA_SUCCESS) {
-                return status;
-            }
-
-            mbedtls_mpi_init(&actual);
-            mbedtls_mpi_init(&required);
-            ret = mbedtls_rsa_export(rsa,
-                                     NULL, NULL, NULL, NULL, &actual);
-            mbedtls_rsa_free(rsa);
-            mbedtls_free(rsa);
-            if (ret != 0) {
-                goto rsa_exit;
-            }
-            ret = mbedtls_mpi_read_binary(&required,
-                                          attributes->domain_parameters,
-                                          attributes->domain_parameters_size);
-            if (ret != 0) {
-                goto rsa_exit;
-            }
-            if (mbedtls_mpi_cmp_mpi(&actual, &required) != 0) {
-                ret = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
-            }
-rsa_exit:
-            mbedtls_mpi_free(&actual);
-            mbedtls_mpi_free(&required);
-            if (ret != 0) {
-                return mbedtls_to_psa_error(ret);
-            }
-        } else
-#endif /* (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) &&
-        *  defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) ||
-        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
-        {
-            return PSA_ERROR_INVALID_ARGUMENT;
-        }
-    }
-
-    if (attributes->core.bits != 0) {
-        if (attributes->core.bits != slot->attr.bits) {
+    if (attributes->bits != 0) {
+        if (attributes->bits != slot->attr.bits) {
             return PSA_ERROR_INVALID_ARGUMENT;
         }
     }
@@ -2123,7 +2030,7 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
      * with storage ( MBEDTLS_PSA_CRYPTO_SE_C ) ),we have to allocate a
      * buffer to hold the imported key material. */
     if (slot->key.data == NULL) {
-        if (psa_key_lifetime_is_external(attributes->core.lifetime)) {
+        if (psa_key_lifetime_is_external(attributes->lifetime)) {
             status = psa_driver_wrapper_get_key_buffer_size_from_key_data(
                 attributes, data, data_length, &storage_size);
             if (status != PSA_SUCCESS) {
@@ -2244,12 +2151,12 @@ psa_status_t psa_copy_key(mbedtls_svc_key_id_t source_key,
      * equal to the ones of the source key. So it is safe to inherit
      * them from the source key now."
      * */
-    actual_attributes.core.bits = source_slot->attr.bits;
-    actual_attributes.core.type = source_slot->attr.type;
+    actual_attributes.bits = source_slot->attr.bits;
+    actual_attributes.type = source_slot->attr.type;
 
 
     status = psa_restrict_key_policy(source_slot->attr.type,
-                                     &actual_attributes.core.policy,
+                                     &actual_attributes.policy,
                                      &source_slot->attr.policy);
     if (status != PSA_SUCCESS) {
         goto exit;
@@ -2278,7 +2185,7 @@ psa_status_t psa_copy_key(mbedtls_svc_key_id_t source_key,
      * - For opaque keys this translates to an invocation of the drivers'
      *   copy_key entry point through the dispatch layer.
      * */
-    if (psa_key_lifetime_is_external(actual_attributes.core.lifetime)) {
+    if (psa_key_lifetime_is_external(actual_attributes.lifetime)) {
         status = psa_driver_wrapper_get_key_buffer_size(&actual_attributes,
                                                         &storage_size);
         if (status != PSA_SUCCESS) {
@@ -2313,7 +2220,7 @@ exit:
         psa_fail_key_creation(target_slot, driver);
     }
 
-    unlock_status = psa_unregister_read(source_slot);
+    unlock_status = psa_unregister_read_under_mutex(source_slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -2639,7 +2546,6 @@ static psa_status_t psa_mac_setup(psa_mac_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot = NULL;
-    psa_key_attributes_t attributes;
 
     /* A context must be freshly initialized before it can be set up. */
     if (operation->id != 0) {
@@ -2656,11 +2562,7 @@ static psa_status_t psa_mac_setup(psa_mac_operation_t *operation,
         goto exit;
     }
 
-    attributes = (psa_key_attributes_t) {
-        .core = slot->attr
-    };
-
-    status = psa_mac_finalize_alg_and_key_validation(alg, &attributes,
+    status = psa_mac_finalize_alg_and_key_validation(alg, &slot->attr,
                                                      &operation->mac_size);
     if (status != PSA_SUCCESS) {
         goto exit;
@@ -2670,13 +2572,13 @@ static psa_status_t psa_mac_setup(psa_mac_operation_t *operation,
     /* Dispatch the MAC setup call with validated input */
     if (is_sign) {
         status = psa_driver_wrapper_mac_sign_setup(operation,
-                                                   &attributes,
+                                                   &slot->attr,
                                                    slot->key.data,
                                                    slot->key.bytes,
                                                    alg);
     } else {
         status = psa_driver_wrapper_mac_verify_setup(operation,
-                                                     &attributes,
+                                                     &slot->attr,
                                                      slot->key.data,
                                                      slot->key.bytes,
                                                      alg);
@@ -2687,7 +2589,7 @@ exit:
         psa_mac_abort(operation);
     }
 
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -2846,7 +2748,6 @@ static psa_status_t psa_mac_compute_internal(mbedtls_svc_key_id_t key,
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
     uint8_t operation_mac_size = 0;
-    psa_key_attributes_t attributes;
 
     status = psa_get_and_lock_key_slot_with_policy(
         key,
@@ -2857,11 +2758,7 @@ static psa_status_t psa_mac_compute_internal(mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    attributes = (psa_key_attributes_t) {
-        .core = slot->attr
-    };
-
-    status = psa_mac_finalize_alg_and_key_validation(alg, &attributes,
+    status = psa_mac_finalize_alg_and_key_validation(alg, &slot->attr,
                                                      &operation_mac_size);
     if (status != PSA_SUCCESS) {
         goto exit;
@@ -2873,7 +2770,7 @@ static psa_status_t psa_mac_compute_internal(mbedtls_svc_key_id_t key,
     }
 
     status = psa_driver_wrapper_mac_compute(
-        &attributes,
+        &slot->attr,
         slot->key.data, slot->key.bytes,
         alg,
         input, input_length,
@@ -2893,7 +2790,7 @@ exit:
 
     psa_wipe_tag_output_buffer(mac, status, mac_size, *mac_length);
 
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -3004,7 +2901,6 @@ static psa_status_t psa_sign_internal(mbedtls_svc_key_id_t key,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
-    psa_key_attributes_t attributes;
 
     *signature_length = 0;
 
@@ -3036,19 +2932,15 @@ static psa_status_t psa_sign_internal(mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    attributes = (psa_key_attributes_t) {
-        .core = slot->attr
-    };
-
     if (input_is_message) {
         status = psa_driver_wrapper_sign_message(
-            &attributes, slot->key.data, slot->key.bytes,
+            &slot->attr, slot->key.data, slot->key.bytes,
             alg, input, input_length,
             signature, signature_size, signature_length);
     } else {
 
         status = psa_driver_wrapper_sign_hash(
-            &attributes, slot->key.data, slot->key.bytes,
+            &slot->attr, slot->key.data, slot->key.bytes,
             alg, input, input_length,
             signature, signature_size, signature_length);
     }
@@ -3058,7 +2950,7 @@ exit:
     psa_wipe_tag_output_buffer(signature, status, signature_size,
                                *signature_length);
 
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -3090,23 +2982,19 @@ static psa_status_t psa_verify_internal(mbedtls_svc_key_id_t key,
         return status;
     }
 
-    psa_key_attributes_t attributes = {
-        .core = slot->attr
-    };
-
     if (input_is_message) {
         status = psa_driver_wrapper_verify_message(
-            &attributes, slot->key.data, slot->key.bytes,
+            &slot->attr, slot->key.data, slot->key.bytes,
             alg, input, input_length,
             signature, signature_length);
     } else {
         status = psa_driver_wrapper_verify_hash(
-            &attributes, slot->key.data, slot->key.bytes,
+            &slot->attr, slot->key.data, slot->key.bytes,
             alg, input, input_length,
             signature, signature_length);
     }
 
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 
@@ -3237,7 +3125,7 @@ psa_status_t psa_sign_hash_builtin(
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
     uint8_t *signature, size_t signature_size, size_t *signature_length)
 {
-    if (attributes->core.type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
+    if (attributes->type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
         if (PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||
             PSA_ALG_IS_RSA_PSS(alg)) {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
@@ -3252,7 +3140,7 @@ psa_status_t psa_sign_hash_builtin(
         } else {
             return PSA_ERROR_INVALID_ARGUMENT;
         }
-    } else if (PSA_KEY_TYPE_IS_ECC(attributes->core.type)) {
+    } else if (PSA_KEY_TYPE_IS_ECC(attributes->type)) {
         if (PSA_ALG_IS_ECDSA(alg)) {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
             defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
@@ -3311,7 +3199,7 @@ psa_status_t psa_verify_hash_builtin(
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
     const uint8_t *signature, size_t signature_length)
 {
-    if (PSA_KEY_TYPE_IS_RSA(attributes->core.type)) {
+    if (PSA_KEY_TYPE_IS_RSA(attributes->type)) {
         if (PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||
             PSA_ALG_IS_RSA_PSS(alg)) {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
@@ -3326,7 +3214,7 @@ psa_status_t psa_verify_hash_builtin(
         } else {
             return PSA_ERROR_INVALID_ARGUMENT;
         }
-    } else if (PSA_KEY_TYPE_IS_ECC(attributes->core.type)) {
+    } else if (PSA_KEY_TYPE_IS_ECC(attributes->type)) {
         if (PSA_ALG_IS_ECDSA(alg)) {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
             defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
@@ -3390,7 +3278,7 @@ psa_status_t psa_asymmetric_encrypt(mbedtls_svc_key_id_t key,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
-    psa_key_attributes_t attributes;
+
     LOCAL_INPUT_DECLARE(input_external, input);
     LOCAL_INPUT_DECLARE(salt_external, salt);
     LOCAL_OUTPUT_DECLARE(output_external, output);
@@ -3418,19 +3306,16 @@ psa_status_t psa_asymmetric_encrypt(mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    attributes = (psa_key_attributes_t) {
-        .core = slot->attr
-    };
-
     LOCAL_INPUT_ALLOC(input_external, input_length, input);
     LOCAL_INPUT_ALLOC(salt_external, salt_length, salt);
     LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
+
     status = psa_driver_wrapper_asymmetric_encrypt(
-        &attributes, slot->key.data, slot->key.bytes,
+        &slot->attr, slot->key.data, slot->key.bytes,
         alg, input, input_length, salt, salt_length,
         output, output_size, output_length);
 exit:
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
 
     LOCAL_INPUT_FREE(input_external, input);
     LOCAL_INPUT_FREE(salt_external, salt);
@@ -3452,7 +3337,6 @@ psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
-    psa_key_attributes_t attributes;
 
     LOCAL_INPUT_DECLARE(input_external, input);
     LOCAL_INPUT_DECLARE(salt_external, salt);
@@ -3480,20 +3364,17 @@ psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    attributes = (psa_key_attributes_t) {
-        .core = slot->attr
-    };
-
     LOCAL_INPUT_ALLOC(input_external, input_length, input);
     LOCAL_INPUT_ALLOC(salt_external, salt_length, salt);
     LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
+
     status = psa_driver_wrapper_asymmetric_decrypt(
-        &attributes, slot->key.data, slot->key.bytes,
+        &slot->attr, slot->key.data, slot->key.bytes,
         alg, input, input_length, salt, salt_length,
         output, output_size, output_length);
 
 exit:
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
 
     LOCAL_INPUT_FREE(input_external, input);
     LOCAL_INPUT_FREE(salt_external, salt);
@@ -3561,7 +3442,6 @@ psa_status_t psa_sign_hash_start(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
-    psa_key_attributes_t attributes;
 
     LOCAL_INPUT_DECLARE(hash_external, hash);
 
@@ -3592,14 +3472,10 @@ psa_status_t psa_sign_hash_start(
 
     LOCAL_INPUT_ALLOC(hash_external, hash_length, hash);
 
-    attributes = (psa_key_attributes_t) {
-        .core = slot->attr
-    };
-
     /* Ensure ops count gets reset, in case of operation re-use. */
     operation->num_ops = 0;
 
-    status = psa_driver_wrapper_sign_hash_start(operation, &attributes,
+    status = psa_driver_wrapper_sign_hash_start(operation, &slot->attr,
                                                 slot->key.data,
                                                 slot->key.bytes, alg,
                                                 hash, hash_length);
@@ -3610,7 +3486,7 @@ exit:
         psa_sign_hash_abort_internal(operation);
     }
 
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
 
     if (unlock_status != PSA_SUCCESS) {
         operation->error_occurred = 1;
@@ -3753,14 +3629,10 @@ psa_status_t psa_verify_hash_start(
     LOCAL_INPUT_ALLOC(hash_external, hash_length, hash);
     LOCAL_INPUT_ALLOC(signature_external, signature_length, signature);
 
-    psa_key_attributes_t attributes = {
-        .core = slot->attr
-    };
-
     /* Ensure ops count gets reset, in case of operation re-use. */
     operation->num_ops = 0;
 
-    status = psa_driver_wrapper_verify_hash_start(operation, &attributes,
+    status = psa_driver_wrapper_verify_hash_start(operation, &slot->attr,
                                                   slot->key.data,
                                                   slot->key.bytes,
                                                   alg, hash, hash_length,
@@ -3774,7 +3646,7 @@ exit:
         psa_verify_hash_abort_internal(operation);
     }
 
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
 
     if (unlock_status != PSA_SUCCESS) {
         operation->error_occurred = 1;
@@ -3901,7 +3773,7 @@ psa_status_t mbedtls_psa_sign_hash_start(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t required_hash_length;
 
-    if (!PSA_KEY_TYPE_IS_ECC(attributes->core.type)) {
+    if (!PSA_KEY_TYPE_IS_ECC(attributes->type)) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
@@ -3918,8 +3790,8 @@ psa_status_t mbedtls_psa_sign_hash_start(
     /* Ensure num_ops is zero'ed in case of context re-use. */
     operation->num_ops = 0;
 
-    status = mbedtls_psa_ecp_load_representation(attributes->core.type,
-                                                 attributes->core.bits,
+    status = mbedtls_psa_ecp_load_representation(attributes->type,
+                                                 attributes->bits,
                                                  key_buffer,
                                                  key_buffer_size,
                                                  &operation->ctx);
@@ -4117,7 +3989,7 @@ psa_status_t mbedtls_psa_verify_hash_start(
     size_t coordinate_bytes = 0;
     size_t required_hash_length = 0;
 
-    if (!PSA_KEY_TYPE_IS_ECC(attributes->core.type)) {
+    if (!PSA_KEY_TYPE_IS_ECC(attributes->type)) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
@@ -4136,8 +4008,8 @@ psa_status_t mbedtls_psa_verify_hash_start(
     /* Ensure num_ops is zero'ed in case of context re-use. */
     operation->num_ops = 0;
 
-    status = mbedtls_psa_ecp_load_representation(attributes->core.type,
-                                                 attributes->core.bits,
+    status = mbedtls_psa_ecp_load_representation(attributes->type,
+                                                 attributes->bits,
                                                  key_buffer,
                                                  key_buffer_size,
                                                  &operation->ctx);
@@ -4285,8 +4157,6 @@ static psa_status_t psa_generate_random_internal(uint8_t *output,
 {
     GUARD_MODULE_INITIALIZED;
 
-    psa_status_t status;
-
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 
     size_t output_length = 0;
@@ -4307,24 +4177,24 @@ static psa_status_t psa_generate_random_internal(uint8_t *output,
 #else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
     while (output_size > 0) {
+        int ret = MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED;
         size_t request_size =
             (output_size > MBEDTLS_PSA_RANDOM_MAX_REQUEST ?
              MBEDTLS_PSA_RANDOM_MAX_REQUEST :
              output_size);
-        int ret = mbedtls_psa_get_random(MBEDTLS_PSA_RANDOM_STATE,
-                                         output, request_size);
+#if defined(MBEDTLS_CTR_DRBG_C)
+        ret = mbedtls_ctr_drbg_random(&global_data.rng.drbg, output, request_size);
+#elif defined(MBEDTLS_HMAC_DRBG_C)
+        ret = mbedtls_hmac_drbg_random(&global_data.rng.drbg, output, request_size);
+#endif /* !MBEDTLS_CTR_DRBG_C && !MBEDTLS_HMAC_DRBG_C */
         if (ret != 0) {
-            status = mbedtls_to_psa_error(ret);
-            goto exit;
+            return mbedtls_to_psa_error(ret);
         }
         output_size -= request_size;
         output += request_size;
     }
-    status = PSA_SUCCESS;
+    return PSA_SUCCESS;
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
-
-exit:
-    return status;
 }
 
 
@@ -4343,7 +4213,6 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
     psa_key_usage_t usage = (cipher_operation == MBEDTLS_ENCRYPT ?
                              PSA_KEY_USAGE_ENCRYPT :
                              PSA_KEY_USAGE_DECRYPT);
-    psa_key_attributes_t attributes;
 
     /* A context must be freshly initialized before it can be set up. */
     if (operation->id != 0) {
@@ -4373,20 +4242,16 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
     }
     operation->default_iv_length = PSA_CIPHER_IV_LENGTH(slot->attr.type, alg);
 
-    attributes = (psa_key_attributes_t) {
-        .core = slot->attr
-    };
-
     /* Try doing the operation through a driver before using software fallback. */
     if (cipher_operation == MBEDTLS_ENCRYPT) {
         status = psa_driver_wrapper_cipher_encrypt_setup(operation,
-                                                         &attributes,
+                                                         &slot->attr,
                                                          slot->key.data,
                                                          slot->key.bytes,
                                                          alg);
     } else {
         status = psa_driver_wrapper_cipher_decrypt_setup(operation,
-                                                         &attributes,
+                                                         &slot->attr,
                                                          slot->key.data,
                                                          slot->key.bytes,
                                                          alg);
@@ -4397,7 +4262,7 @@ exit:
         psa_cipher_abort(operation);
     }
 
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -4627,7 +4492,6 @@ psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
     psa_key_slot_t *slot = NULL;
     uint8_t local_iv[PSA_CIPHER_IV_MAX_SIZE];
     size_t default_iv_length = 0;
-    psa_key_attributes_t attributes;
 
     LOCAL_INPUT_DECLARE(input_external, input);
     LOCAL_OUTPUT_DECLARE(output_external, output);
@@ -4643,10 +4507,6 @@ psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
     if (status != PSA_SUCCESS) {
         goto exit;
     }
-
-    attributes = (psa_key_attributes_t) {
-        .core = slot->attr
-    };
 
     default_iv_length = PSA_CIPHER_IV_LENGTH(slot->attr.type, alg);
     if (default_iv_length > PSA_CIPHER_IV_MAX_SIZE) {
@@ -4670,13 +4530,13 @@ psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
     LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
 
     status = psa_driver_wrapper_cipher_encrypt(
-        &attributes, slot->key.data, slot->key.bytes,
+        &slot->attr, slot->key.data, slot->key.bytes,
         alg, local_iv, default_iv_length, input, input_length,
         psa_crypto_buffer_offset(output, default_iv_length),
         output_size - default_iv_length, output_length);
 
 exit:
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
     if (status == PSA_SUCCESS) {
         status = unlock_status;
     }
@@ -4707,7 +4567,6 @@ psa_status_t psa_cipher_decrypt(mbedtls_svc_key_id_t key,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot = NULL;
-    psa_key_attributes_t attributes;
 
     LOCAL_INPUT_DECLARE(input_external, input);
     LOCAL_OUTPUT_DECLARE(output_external, output);
@@ -4724,10 +4583,6 @@ psa_status_t psa_cipher_decrypt(mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    attributes = (psa_key_attributes_t) {
-        .core = slot->attr
-    };
-
     if (alg == PSA_ALG_CCM_STAR_NO_TAG &&
         input_length < PSA_BLOCK_CIPHER_BLOCK_LENGTH(slot->attr.type)) {
         status = PSA_ERROR_INVALID_ARGUMENT;
@@ -4741,12 +4596,12 @@ psa_status_t psa_cipher_decrypt(mbedtls_svc_key_id_t key,
     LOCAL_OUTPUT_ALLOC(output_external, output_size, output);
 
     status = psa_driver_wrapper_cipher_decrypt(
-        &attributes, slot->key.data, slot->key.bytes,
+        &slot->attr, slot->key.data, slot->key.bytes,
         alg, input, input_length,
         output, output_size, output_length);
 
 exit:
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
     if (status == PSA_SUCCESS) {
         status = unlock_status;
     }
@@ -4858,10 +4713,6 @@ psa_status_t psa_aead_encrypt(mbedtls_svc_key_id_t key,
         return status;
     }
 
-    psa_key_attributes_t attributes = {
-        .core = slot->attr
-    };
-
     LOCAL_INPUT_ALLOC(nonce_external, nonce_length, nonce);
     LOCAL_INPUT_ALLOC(additional_data_external, additional_data_length, additional_data);
     LOCAL_INPUT_ALLOC(plaintext_external, plaintext_length, plaintext);
@@ -4873,7 +4724,7 @@ psa_status_t psa_aead_encrypt(mbedtls_svc_key_id_t key,
     }
 
     status = psa_driver_wrapper_aead_encrypt(
-        &attributes, slot->key.data, slot->key.bytes,
+        &slot->attr, slot->key.data, slot->key.bytes,
         alg,
         nonce, nonce_length,
         additional_data, additional_data_length,
@@ -4890,7 +4741,7 @@ exit:
     LOCAL_INPUT_FREE(plaintext_external, plaintext);
     LOCAL_OUTPUT_FREE(ciphertext_external, ciphertext);
 
-    psa_unregister_read(slot);
+    psa_unregister_read_under_mutex(slot);
 
     return status;
 }
@@ -4928,10 +4779,6 @@ psa_status_t psa_aead_decrypt(mbedtls_svc_key_id_t key,
         return status;
     }
 
-    psa_key_attributes_t attributes = {
-        .core = slot->attr
-    };
-
     LOCAL_INPUT_ALLOC(nonce_external, nonce_length, nonce);
     LOCAL_INPUT_ALLOC(additional_data_external, additional_data_length,
                       additional_data);
@@ -4944,7 +4791,7 @@ psa_status_t psa_aead_decrypt(mbedtls_svc_key_id_t key,
     }
 
     status = psa_driver_wrapper_aead_decrypt(
-        &attributes, slot->key.data, slot->key.bytes,
+        &slot->attr, slot->key.data, slot->key.bytes,
         alg,
         nonce, nonce_length,
         additional_data, additional_data_length,
@@ -4961,7 +4808,7 @@ exit:
     LOCAL_INPUT_FREE(ciphertext_external, ciphertext);
     LOCAL_OUTPUT_FREE(plaintext_external, plaintext);
 
-    psa_unregister_read(slot);
+    psa_unregister_read_under_mutex(slot);
 
     return status;
 }
@@ -5015,7 +4862,6 @@ static psa_status_t psa_aead_setup(psa_aead_operation_t *operation,
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot = NULL;
     psa_key_usage_t key_usage = 0;
-    psa_key_attributes_t attributes;
 
     status = psa_aead_check_algorithm(alg);
     if (status != PSA_SUCCESS) {
@@ -5045,23 +4891,19 @@ static psa_status_t psa_aead_setup(psa_aead_operation_t *operation,
         goto exit;
     }
 
-    attributes = (psa_key_attributes_t) {
-        .core = slot->attr
-    };
-
     if ((status = psa_validate_tag_length(alg)) != PSA_SUCCESS) {
         goto exit;
     }
 
     if (is_encrypt) {
         status = psa_driver_wrapper_aead_encrypt_setup(operation,
-                                                       &attributes,
+                                                       &slot->attr,
                                                        slot->key.data,
                                                        slot->key.bytes,
                                                        alg);
     } else {
         status = psa_driver_wrapper_aead_decrypt_setup(operation,
-                                                       &attributes,
+                                                       &slot->attr,
                                                        slot->key.data,
                                                        slot->key.bytes,
                                                        alg);
@@ -5070,10 +4912,10 @@ static psa_status_t psa_aead_setup(psa_aead_operation_t *operation,
         goto exit;
     }
 
-    operation->key_type = psa_get_key_type(&attributes);
+    operation->key_type = psa_get_key_type(&slot->attr);
 
 exit:
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
 
     if (status == PSA_SUCCESS) {
         status = unlock_status;
@@ -6445,7 +6287,6 @@ static psa_status_t psa_generate_derived_key_internal(
     size_t bytes = PSA_BITS_TO_BYTES(bits);
     size_t storage_size = bytes;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_attributes_t attributes;
 
     if (PSA_KEY_TYPE_IS_PUBLIC_KEY(slot->attr.type)) {
         return PSA_ERROR_INVALID_ARGUMENT;
@@ -6494,12 +6335,9 @@ static psa_status_t psa_generate_derived_key_internal(
     }
 
     slot->attr.bits = (psa_key_bits_t) bits;
-    attributes = (psa_key_attributes_t) {
-        .core = slot->attr
-    };
 
-    if (psa_key_lifetime_is_external(attributes.core.lifetime)) {
-        status = psa_driver_wrapper_get_key_buffer_size(&attributes,
+    if (psa_key_lifetime_is_external(slot->attr.lifetime)) {
+        status = psa_driver_wrapper_get_key_buffer_size(&slot->attr,
                                                         &storage_size);
         if (status != PSA_SUCCESS) {
             goto exit;
@@ -6510,7 +6348,7 @@ static psa_status_t psa_generate_derived_key_internal(
         goto exit;
     }
 
-    status = psa_driver_wrapper_import_key(&attributes,
+    status = psa_driver_wrapper_import_key(&slot->attr,
                                            data, bytes,
                                            slot->key.data,
                                            slot->key.bytes,
@@ -6524,9 +6362,28 @@ exit:
     return status;
 }
 
-psa_status_t psa_key_derivation_output_key(const psa_key_attributes_t *attributes,
-                                           psa_key_derivation_operation_t *operation,
-                                           mbedtls_svc_key_id_t *key)
+static const psa_key_production_parameters_t default_production_parameters =
+    PSA_KEY_PRODUCTION_PARAMETERS_INIT;
+
+int psa_key_production_parameters_are_default(
+    const psa_key_production_parameters_t *params,
+    size_t params_data_length)
+{
+    if (params->flags != 0) {
+        return 0;
+    }
+    if (params_data_length != 0) {
+        return 0;
+    }
+    return 1;
+}
+
+psa_status_t psa_key_derivation_output_key_ext(
+    const psa_key_attributes_t *attributes,
+    psa_key_derivation_operation_t *operation,
+    const psa_key_production_parameters_t *params,
+    size_t params_data_length,
+    mbedtls_svc_key_id_t *key)
 {
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
@@ -6537,6 +6394,10 @@ psa_status_t psa_key_derivation_output_key(const psa_key_attributes_t *attribute
     /* Reject any attempt to create a zero-length key so that we don't
      * risk tripping up later, e.g. on a malloc(0) that returns NULL. */
     if (psa_get_key_bits(attributes) == 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (!psa_key_production_parameters_are_default(params, params_data_length)) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
@@ -6558,7 +6419,7 @@ psa_status_t psa_key_derivation_output_key(const psa_key_attributes_t *attribute
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     if (status == PSA_SUCCESS) {
         status = psa_generate_derived_key_internal(slot,
-                                                   attributes->core.bits,
+                                                   attributes->bits,
                                                    operation);
     }
     if (status == PSA_SUCCESS) {
@@ -6571,6 +6432,15 @@ psa_status_t psa_key_derivation_output_key(const psa_key_attributes_t *attribute
     return status;
 }
 
+psa_status_t psa_key_derivation_output_key(
+    const psa_key_attributes_t *attributes,
+    psa_key_derivation_operation_t *operation,
+    mbedtls_svc_key_id_t *key)
+{
+    return psa_key_derivation_output_key_ext(attributes, operation,
+                                             &default_production_parameters, 0,
+                                             key);
+}
 
 
 /****************************************************************/
@@ -6631,6 +6501,91 @@ static psa_status_t psa_hash_try_support(psa_algorithm_t alg)
     return status;
 }
 
+static psa_status_t psa_key_derivation_set_maximum_capacity(
+    psa_key_derivation_operation_t *operation,
+    psa_algorithm_t kdf_alg)
+{
+#if defined(PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS)
+    if (kdf_alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS) {
+        operation->capacity = PSA_HASH_LENGTH(PSA_ALG_SHA_256);
+        return PSA_SUCCESS;
+    }
+#endif
+#if defined(PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128)
+    if (kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
+#if (SIZE_MAX > UINT32_MAX)
+        operation->capacity = UINT32_MAX * (size_t) PSA_MAC_LENGTH(
+            PSA_KEY_TYPE_AES,
+            128U,
+            PSA_ALG_CMAC);
+#else
+        operation->capacity = SIZE_MAX;
+#endif
+        return PSA_SUCCESS;
+    }
+#endif /* PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128 */
+
+    /* After this point, if kdf_alg is not valid then value of hash_alg may be
+     * invalid or meaningless but it does not affect this function */
+    psa_algorithm_t hash_alg = PSA_ALG_GET_HASH(kdf_alg);
+    size_t hash_size = PSA_HASH_LENGTH(hash_alg);
+    if (hash_size == 0) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    /* Make sure that hash_alg is a supported hash algorithm. Otherwise
+     * we might fail later, which is somewhat unfriendly and potentially
+     * risk-prone. */
+    psa_status_t status = psa_hash_try_support(hash_alg);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+#if defined(PSA_WANT_ALG_HKDF)
+    if (PSA_ALG_IS_HKDF(kdf_alg)) {
+        operation->capacity = 255 * hash_size;
+    } else
+#endif
+#if defined(PSA_WANT_ALG_HKDF_EXTRACT)
+    if (PSA_ALG_IS_HKDF_EXTRACT(kdf_alg)) {
+        operation->capacity = hash_size;
+    } else
+#endif
+#if defined(PSA_WANT_ALG_HKDF_EXPAND)
+    if (PSA_ALG_IS_HKDF_EXPAND(kdf_alg)) {
+        operation->capacity = 255 * hash_size;
+    } else
+#endif
+#if defined(PSA_WANT_ALG_TLS12_PRF)
+    if (PSA_ALG_IS_TLS12_PRF(kdf_alg) &&
+        (hash_alg == PSA_ALG_SHA_256 || hash_alg == PSA_ALG_SHA_384)) {
+        operation->capacity = SIZE_MAX;
+    } else
+#endif
+#if defined(PSA_WANT_ALG_TLS12_PSK_TO_MS)
+    if (PSA_ALG_IS_TLS12_PSK_TO_MS(kdf_alg) &&
+        (hash_alg == PSA_ALG_SHA_256 || hash_alg == PSA_ALG_SHA_384)) {
+        /* Master Secret is always 48 bytes
+         * https://datatracker.ietf.org/doc/html/rfc5246.html#section-8.1 */
+        operation->capacity = 48U;
+    } else
+#endif
+#if defined(PSA_WANT_ALG_PBKDF2_HMAC)
+    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
+#if (SIZE_MAX > UINT32_MAX)
+        operation->capacity = UINT32_MAX * hash_size;
+#else
+        operation->capacity = SIZE_MAX;
+#endif
+    } else
+#endif /* PSA_WANT_ALG_PBKDF2_HMAC */
+    {
+        (void) hash_size;
+        status = PSA_ERROR_NOT_SUPPORTED;
+    }
+    return status;
+}
+
 static psa_status_t psa_key_derivation_setup_kdf(
     psa_key_derivation_operation_t *operation,
     psa_algorithm_t kdf_alg)
@@ -6644,43 +6599,9 @@ static psa_status_t psa_key_derivation_setup_kdf(
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
-    /* All currently supported key derivation algorithms (apart from
-     * ecjpake to pms and pbkdf2_aes_cmac_128) are based on a hash algorithm. */
-    psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH(kdf_alg);
-    size_t hash_size = PSA_HASH_LENGTH(hash_alg);
-    if (kdf_alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS) {
-        hash_size = PSA_HASH_LENGTH(PSA_ALG_SHA_256);
-    } else if (kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
-        hash_size = PSA_MAC_LENGTH(PSA_KEY_TYPE_AES, 128U, PSA_ALG_CMAC);
-    } else {
-        if (hash_size == 0) {
-            return PSA_ERROR_NOT_SUPPORTED;
-        }
-
-        /* Make sure that hash_alg is a supported hash algorithm. Otherwise
-         * we might fail later, which is somewhat unfriendly and potentially
-         * risk-prone. */
-        psa_status_t status = psa_hash_try_support(hash_alg);
-        if (status != PSA_SUCCESS) {
-            return status;
-        }
-    }
-
-    if ((PSA_ALG_IS_TLS12_PRF(kdf_alg) ||
-         PSA_ALG_IS_TLS12_PSK_TO_MS(kdf_alg)) &&
-        !(hash_alg == PSA_ALG_SHA_256 || hash_alg == PSA_ALG_SHA_384)) {
-        return PSA_ERROR_NOT_SUPPORTED;
-    }
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS)
-    if (PSA_ALG_IS_HKDF_EXTRACT(kdf_alg) ||
-        (kdf_alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS)) {
-        operation->capacity = hash_size;
-    } else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT ||
-          MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS */
-    operation->capacity = 255 * hash_size;
-    return PSA_SUCCESS;
+    psa_status_t status = psa_key_derivation_set_maximum_capacity(operation,
+                                                                  kdf_alg);
+    return status;
 }
 
 static psa_status_t psa_key_agreement_try_support(psa_algorithm_t alg)
@@ -7478,7 +7399,7 @@ psa_status_t psa_key_derivation_input_key(
                                                slot->key.data,
                                                slot->key.bytes);
 
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
 
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
@@ -7553,11 +7474,7 @@ static psa_status_t psa_key_agreement_raw_internal(psa_algorithm_t alg,
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
-    psa_key_attributes_t attributes = {
-        .core = private_key->attr
-    };
-
-    return psa_driver_wrapper_key_agreement(&attributes,
+    return psa_driver_wrapper_key_agreement(&private_key->attr,
                                             private_key->key.data,
                                             private_key->key.bytes, alg,
                                             peer_key, peer_key_length,
@@ -7576,7 +7493,7 @@ static psa_status_t psa_key_agreement_internal(psa_key_derivation_operation_t *o
                                                size_t peer_key_length)
 {
     psa_status_t status;
-    uint8_t shared_secret[PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE];
+    uint8_t shared_secret[PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE] = { 0 };
     size_t shared_secret_length = 0;
     psa_algorithm_t ka_alg = PSA_ALG_KEY_AGREEMENT_GET_BASE(operation->alg);
 
@@ -7642,8 +7559,9 @@ exit:
         }
     }
 
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
     LOCAL_INPUT_FREE(peer_key_external, peer_key);
+
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
@@ -7714,7 +7632,7 @@ exit:
         *output_length = 0;
     }
 
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
 
     LOCAL_INPUT_FREE(peer_key_external, peer_key);
     LOCAL_OUTPUT_FREE(output_external, output);
@@ -7758,7 +7676,7 @@ static void mbedtls_psa_random_init(mbedtls_psa_random_context_t *rng)
                                MBEDTLS_ENTROPY_SOURCE_STRONG);
 #endif
 
-    mbedtls_psa_drbg_init(MBEDTLS_PSA_RANDOM_STATE);
+    mbedtls_psa_drbg_init(&rng->drbg);
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
 
@@ -7769,7 +7687,7 @@ static void mbedtls_psa_random_free(mbedtls_psa_random_context_t *rng)
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
     memset(rng, 0, sizeof(*rng));
 #else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
-    mbedtls_psa_drbg_free(MBEDTLS_PSA_RANDOM_STATE);
+    mbedtls_psa_drbg_free(&rng->drbg);
     rng->entropy_free(&rng->entropy);
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
@@ -7784,7 +7702,7 @@ static psa_status_t mbedtls_psa_random_seed(mbedtls_psa_random_context_t *rng)
     return PSA_SUCCESS;
 #else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
     const unsigned char drbg_seed[] = "PSA";
-    int ret = mbedtls_psa_drbg_seed(&rng->entropy,
+    int ret = mbedtls_psa_drbg_seed(&rng->drbg, &rng->entropy,
                                     drbg_seed, sizeof(drbg_seed) - 1);
     return mbedtls_to_psa_error(ret);
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
@@ -7806,39 +7724,6 @@ exit:
     LOCAL_OUTPUT_FREE(output_external, output);
     return status;
 }
-
-/* Wrapper function allowing the classic API to use the PSA RNG.
- *
- * `mbedtls_psa_get_random(MBEDTLS_PSA_RANDOM_STATE, ...)` calls
- * `psa_generate_random(...)`. The state parameter is ignored since the
- * PSA API doesn't support passing an explicit state.
- *
- * In the non-external case, psa_generate_random() calls an
- * `mbedtls_xxx_drbg_random` function which has exactly the same signature
- * and semantics as mbedtls_psa_get_random(). As an optimization,
- * instead of doing this back-and-forth between the PSA API and the
- * classic API, psa_crypto_random_impl.h defines `mbedtls_psa_get_random`
- * as a constant function pointer to `mbedtls_xxx_drbg_random`.
- */
-#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
-int mbedtls_psa_get_random(void *p_rng,
-                           unsigned char *output,
-                           size_t output_size)
-{
-    /* This function takes a pointer to the RNG state because that's what
-     * classic mbedtls functions using an RNG expect. The PSA RNG manages
-     * its own state internally and doesn't let the caller access that state.
-     * So we just ignore the state parameter, and in practice we'll pass
-     * NULL. */
-    (void) p_rng;
-    psa_status_t status = psa_generate_random(output, output_size);
-    if (status == PSA_SUCCESS) {
-        return 0;
-    } else {
-        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
-    }
-}
-#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
 psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
@@ -7864,7 +7749,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  * \param  bits  The number of bits of the key
  *
  * \retval #PSA_SUCCESS
- *         The key type and size are valid.
+ *        The key type and size are valid.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The size in bits of the key is not valid.
  * \retval #PSA_ERROR_NOT_SUPPORTED
@@ -7922,18 +7807,18 @@ static psa_status_t psa_validate_key_type_and_size_for_key_generation(
 
 psa_status_t psa_generate_key_internal(
     const psa_key_attributes_t *attributes,
+    const psa_key_production_parameters_t *params, size_t params_data_length,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_type_t type = attributes->core.type;
+    psa_key_type_t type = attributes->type;
 
-    if ((attributes->domain_parameters == NULL) &&
-        (attributes->domain_parameters_size != 0)) {
-        return PSA_ERROR_INVALID_ARGUMENT;
-    }
+    /* Only used for RSA */
+    (void) params;
+    (void) params_data_length;
 
     if (key_type_is_raw_bytes(type)) {
-        status = psa_generate_random(key_buffer, key_buffer_size);
+        status = psa_generate_random_internal(key_buffer, key_buffer_size);
         if (status != PSA_SUCCESS) {
             return status;
         }
@@ -7948,6 +7833,7 @@ psa_status_t psa_generate_key_internal(
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
     if (type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
         return mbedtls_psa_rsa_generate_key(attributes,
+                                            params, params_data_length,
                                             key_buffer,
                                             key_buffer_size,
                                             key_buffer_length);
@@ -7979,8 +7865,10 @@ psa_status_t psa_generate_key_internal(
     return PSA_SUCCESS;
 }
 
-psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
-                              mbedtls_svc_key_id_t *key)
+psa_status_t psa_generate_key_ext(const psa_key_attributes_t *attributes,
+                                  const psa_key_production_parameters_t *params,
+                                  size_t params_data_length,
+                                  mbedtls_svc_key_id_t *key)
 {
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
@@ -7996,7 +7884,18 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
     }
 
     /* Reject any attempt to create a public key. */
-    if (PSA_KEY_TYPE_IS_PUBLIC_KEY(attributes->core.type)) {
+    if (PSA_KEY_TYPE_IS_PUBLIC_KEY(attributes->type)) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
+    if (attributes->type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
+        if (params->flags != 0) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    } else
+#endif
+    if (!psa_key_production_parameters_are_default(params, params_data_length)) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
@@ -8011,17 +7910,17 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
      * with storage ( MBEDTLS_PSA_CRYPTO_SE_C ) ),we have to allocate a
      * buffer to hold the generated key material. */
     if (slot->key.data == NULL) {
-        if (PSA_KEY_LIFETIME_GET_LOCATION(attributes->core.lifetime) ==
+        if (PSA_KEY_LIFETIME_GET_LOCATION(attributes->lifetime) ==
             PSA_KEY_LOCATION_LOCAL_STORAGE) {
             status = psa_validate_key_type_and_size_for_key_generation(
-                attributes->core.type, attributes->core.bits);
+                attributes->type, attributes->bits);
             if (status != PSA_SUCCESS) {
                 goto exit;
             }
 
             key_buffer_size = PSA_EXPORT_KEY_OUTPUT_SIZE(
-                attributes->core.type,
-                attributes->core.bits);
+                attributes->type,
+                attributes->bits);
         } else {
             status = psa_driver_wrapper_get_key_buffer_size(
                 attributes, &key_buffer_size);
@@ -8037,8 +7936,9 @@ psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
     }
 
     status = psa_driver_wrapper_generate_key(attributes,
-                                             slot->key.data, slot->key.bytes, &slot->key.bytes);
-
+                                             params, params_data_length,
+                                             slot->key.data, slot->key.bytes,
+                                             &slot->key.bytes);
     if (status != PSA_SUCCESS) {
         psa_remove_key_data_from_memory(slot);
     }
@@ -8052,6 +7952,14 @@ exit:
     }
 
     return status;
+}
+
+psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
+                              mbedtls_svc_key_id_t *key)
+{
+    return psa_generate_key_ext(attributes,
+                                &default_production_parameters, 0,
+                                key);
 }
 
 /****************************************************************/
@@ -8326,7 +8234,6 @@ psa_status_t psa_pake_set_password_key(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot = NULL;
-    psa_key_attributes_t attributes;
     psa_key_type_t type;
 
     if (operation->stage != PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS) {
@@ -8341,11 +8248,7 @@ psa_status_t psa_pake_set_password_key(
         goto exit;
     }
 
-    attributes = (psa_key_attributes_t) {
-        .core = slot->attr
-    };
-
-    type = psa_get_key_type(&attributes);
+    type = psa_get_key_type(&slot->attr);
 
     if (type != PSA_KEY_TYPE_PASSWORD &&
         type != PSA_KEY_TYPE_PASSWORD_HASH) {
@@ -8361,12 +8264,13 @@ psa_status_t psa_pake_set_password_key(
 
     memcpy(operation->data.inputs.password, slot->key.data, slot->key.bytes);
     operation->data.inputs.password_len = slot->key.bytes;
-    operation->data.inputs.attributes = attributes;
+    operation->data.inputs.attributes = slot->attr;
+
 exit:
     if (status != PSA_SUCCESS) {
         psa_pake_abort(operation);
     }
-    unlock_status = psa_unregister_read(slot);
+    unlock_status = psa_unregister_read_under_mutex(slot);
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 

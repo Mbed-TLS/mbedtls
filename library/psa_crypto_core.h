@@ -560,25 +560,6 @@ typedef struct psa_crypto_local_output_s {
 psa_status_t psa_crypto_local_output_alloc(uint8_t *output, size_t output_len,
                                            psa_crypto_local_output_t *local_output);
 
-/** Allocate a local copy of an output buffer and copy the contents into it.
- *
- * \note                        This allocates and copies a buffer
- *                              whose contents will be copied back to the
- *                              original in a future call to
- *                              psa_crypto_local_output_free().
- *
- * \param[in] output            Pointer to output buffer.
- * \param[in] output_len        Length of the output buffer.
- * \param[out] local_output     Pointer to a psa_crypto_local_output_t struct to
- *                              populate with the local output copy.
- * \return                      #PSA_SUCCESS, if the buffer was successfully
- *                              copied.
- * \return                      #PSA_ERROR_INSUFFICIENT_MEMORY, if a copy of
- *                              the buffer cannot be allocated.
- */
-psa_status_t psa_crypto_local_output_alloc_with_copy(uint8_t *output, size_t output_len,
-                                                     psa_crypto_local_output_t *local_output);
-
 /** Copy from a local copy of an output buffer back to the original, then
  *  free the local copy.
  *

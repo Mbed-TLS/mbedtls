@@ -552,7 +552,7 @@ psa_status_t pk_psa_genkey_generic(psa_key_type_t type, size_t bits,
  */
 mbedtls_svc_key_id_t pk_psa_genkey_ecc(void)
 {
-    mbedtls_svc_key_id_t key;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
 
     pk_psa_genkey_generic(PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1), 256,
                           PSA_KEY_USAGE_SIGN_HASH, PSA_ALG_ECDSA(PSA_ALG_SHA_256),
@@ -567,7 +567,7 @@ mbedtls_svc_key_id_t pk_psa_genkey_ecc(void)
  */
 mbedtls_svc_key_id_t pk_psa_genkey_rsa(void)
 {
-    mbedtls_svc_key_id_t key;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
 
     pk_psa_genkey_generic(PSA_KEY_TYPE_RSA_KEY_PAIR, 1024, PSA_KEY_USAGE_SIGN_HASH,
                           PSA_ALG_RSA_PKCS1V15_SIGN_RAW, &key);

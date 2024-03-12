@@ -4159,20 +4159,20 @@ static psa_status_t psa_generate_random_internal(uint8_t *output,
 
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 
+    psa_status_t status;
     size_t output_length = 0;
     status = mbedtls_psa_external_get_random(&global_data.rng,
                                              output, output_size,
                                              &output_length);
     if (status != PSA_SUCCESS) {
-        goto exit;
+        return status;
     }
     /* Breaking up a request into smaller chunks is currently not supported
      * for the external RNG interface. */
     if (output_length != output_size) {
-        status = PSA_ERROR_INSUFFICIENT_ENTROPY;
-        goto exit;
+        return PSA_ERROR_INSUFFICIENT_ENTROPY;
     }
-    status = PSA_SUCCESS;
+    return PSA_SUCCESS;
 
 #else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 

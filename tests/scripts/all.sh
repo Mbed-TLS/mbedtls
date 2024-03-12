@@ -1554,6 +1554,23 @@ component_test_sw_inet_pton () {
     make test
 }
 
+component_full_no_pkparse_pkwrite() {
+    msg "build: full without pkparse and pkwrite"
+
+    scripts/config.py crypto_full
+    scripts/config.py unset MBEDTLS_PK_PARSE_C
+    scripts/config.py unset MBEDTLS_PK_WRITE_C
+
+    make CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+
+    # Ensure that PK_[PARSE|WRITE]_C were not re-enabled accidentally (additive config).
+    not grep mbedtls_pk_parse_key library/pkparse.o
+    not grep mbedtls_pk_write_key_der library/pkwrite.o
+
+    msg "test: full without pkparse and pkwrite"
+    make test
+}
+
 component_test_crypto_full_md_light_only () {
     msg "build: crypto_full with only the light subset of MD"
     scripts/config.py crypto_full

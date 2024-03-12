@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 # Generate main file, individual apps and solution files for
-# MS Visual Studio 2013
+# MS Visual Studio 2017
 #
 # Must be run from Mbed TLS root or scripts directory.
 # Takes no argument.

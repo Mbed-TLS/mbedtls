@@ -628,31 +628,45 @@ exit:
  * private key against its own public key. */
 psa_status_t mbedtls_test_psa_key_agreement_with_self(
     psa_key_derivation_operation_t *operation,
-    mbedtls_svc_key_id_t key)
+    mbedtls_svc_key_id_t key, int key_destroyable)
 {
     psa_key_type_t private_key_type;
     psa_key_type_t public_key_type;
     size_t key_bits;
     uint8_t *public_key = NULL;
     size_t public_key_length;
-    /* Return GENERIC_ERROR if something other than the final call to
-     * psa_key_derivation_key_agreement fails. This isn't fully satisfactory,
-     * but it's good enough: callers will report it as a failed test anyway. */
-    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    PSA_ASSERT(psa_get_key_attributes(key, &attributes));
+    psa_status_t status = psa_get_key_attributes(key, &attributes);
+    if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+        /* The key has been destroyed. */
+        psa_reset_key_attributes(&attributes);
+        return PSA_SUCCESS;
+    }
+    PSA_ASSERT(status);
+
     private_key_type = psa_get_key_type(&attributes);
     key_bits = psa_get_key_bits(&attributes);
     public_key_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(private_key_type);
     public_key_length = PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(public_key_type, key_bits);
     TEST_CALLOC(public_key, public_key_length);
-    PSA_ASSERT(psa_export_public_key(key, public_key, public_key_length,
-                                     &public_key_length));
+    status = psa_export_public_key(key, public_key, public_key_length,
+                                   &public_key_length);
+    if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+        /* The key has been destroyed. */
+        status = PSA_SUCCESS;
+        goto exit;
+    }
+    PSA_ASSERT(status);
 
     status = psa_key_derivation_key_agreement(
         operation, PSA_KEY_DERIVATION_INPUT_SECRET, key,
         public_key, public_key_length);
+    if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+        /* The key has been destroyed. */
+        status = PSA_SUCCESS;
+        goto exit;
+    }
 exit:
     /*
      * Key attributes may have been returned by psa_get_key_attributes()
@@ -750,7 +764,8 @@ exit:
 
 static int exercise_key_agreement_key(mbedtls_svc_key_id_t key,
                                       psa_key_usage_t usage,
-                                      psa_algorithm_t alg)
+                                      psa_algorithm_t alg,
+                                      int key_destroyable)
 {
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
     unsigned char input[1] = { 0 };
@@ -781,7 +796,12 @@ static int exercise_key_agreement_key(mbedtls_svc_key_id_t key,
            hash length. Otherwise test should fail with INVALID_ARGUMENT. */
         if (PSA_ALG_IS_HKDF_EXPAND(kdf_alg)) {
             psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-            PSA_ASSERT(psa_get_key_attributes(key, &attributes));
+            psa_status_t status = psa_get_key_attributes(key, &attributes);
+            if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+                /* The key has been destroyed. */
+                ok = 1;
+            }
+            PSA_ASSERT(status);
             size_t key_bits = psa_get_key_bits(&attributes);
             psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH(kdf_alg);
 
@@ -790,7 +810,8 @@ static int exercise_key_agreement_key(mbedtls_svc_key_id_t key,
             }
         }
 
-        TEST_EQUAL(mbedtls_test_psa_key_agreement_with_self(&operation, key),
+        TEST_EQUAL(mbedtls_test_psa_key_agreement_with_self(&operation, key,
+                                                            key_destroyable),
                    expected_key_agreement_status);
 
         if (expected_key_agreement_status != PSA_SUCCESS) {

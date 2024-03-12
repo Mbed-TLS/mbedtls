@@ -168,12 +168,15 @@ psa_status_t mbedtls_test_psa_raw_key_agreement_with_self(
  *                          \p key.
  * \param key               A key pair object that is suitable for a key
  *                          agreement with \p operation.
+ * \param key_destroyable   If set to 1, a failure due to the key not existing
+ *                          or the key being destroyed mid-operation will only
+ *                          be reported if the error code is unexpected.
  *
  * \return                  \c 1 on success, \c 0 on failure.
  */
 psa_status_t mbedtls_test_psa_key_agreement_with_self(
     psa_key_derivation_operation_t *operation,
-    mbedtls_svc_key_id_t key);
+    mbedtls_svc_key_id_t key, int key_destroyable);
 
 /** Perform sanity checks on the given key representation.
  *

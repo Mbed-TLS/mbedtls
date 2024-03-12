@@ -2490,7 +2490,7 @@ void agreement_key_policy(int policy_usage,
                               &key));
 
     PSA_ASSERT(psa_key_derivation_setup(&operation, exercise_alg));
-    status = mbedtls_test_psa_key_agreement_with_self(&operation, key);
+    status = mbedtls_test_psa_key_agreement_with_self(&operation, key, 0);
 
     TEST_EQUAL(status, expected_status);
 
@@ -8681,7 +8681,7 @@ void derive_input(int alg_arg,
                 // When taking a private key as secret input, use key agreement
                 // to add the shared secret to the derivation
                 TEST_EQUAL(mbedtls_test_psa_key_agreement_with_self(
-                               &operation, keys[i]),
+                               &operation, keys[i], 0),
                            expected_statuses[i]);
             } else {
                 TEST_EQUAL(psa_key_derivation_input_key(&operation, steps[i],

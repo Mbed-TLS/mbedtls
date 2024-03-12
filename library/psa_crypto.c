@@ -186,23 +186,6 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
     } \
     output_copy = LOCAL_OUTPUT_COPY_OF_##output.buffer;
 
-/* Allocate a copy of the buffer output and set the pointer output_copy to
- * point to the start of the copy.
- *
- * Assumptions:
- * - psa_status_t status exists
- * - An exit label is declared
- * - output is the name of a pointer to the buffer to be copied
- * - LOCAL_OUTPUT_DECLARE(output, output_copy) has previously been called
- */
-#define LOCAL_OUTPUT_ALLOC_WITH_COPY(output, length, output_copy) \
-    status = psa_crypto_local_output_alloc_with_copy(output, length, \
-                                                     &LOCAL_OUTPUT_COPY_OF_##output); \
-    if (status != PSA_SUCCESS) { \
-        goto exit; \
-    } \
-    output_copy = LOCAL_OUTPUT_COPY_OF_##output.buffer;
-
 /* Free the local output copy allocated previously by LOCAL_OUTPUT_ALLOC()
  * after first copying back its contents to the original buffer.
  *
@@ -9017,39 +9000,6 @@ psa_status_t psa_crypto_local_output_alloc(uint8_t *output, size_t output_len,
     local_output->original = output;
 
     return PSA_SUCCESS;
-}
-
-psa_status_t psa_crypto_local_output_alloc_with_copy(uint8_t *output, size_t output_len,
-                                                     psa_crypto_local_output_t *local_output)
-{
-    psa_status_t status;
-    *local_output = PSA_CRYPTO_LOCAL_OUTPUT_INIT;
-
-    if (output_len == 0) {
-        return PSA_SUCCESS;
-    }
-    local_output->buffer = mbedtls_calloc(output_len, 1);
-    if (local_output->buffer == NULL) {
-        /* Since we dealt with the zero-length case above, we know that
-         * a NULL return value means a failure of allocation. */
-        return PSA_ERROR_INSUFFICIENT_MEMORY;
-    }
-    local_output->length = output_len;
-    local_output->original = output;
-
-    status = psa_crypto_copy_input(output, output_len,
-                                   local_output->buffer, local_output->length);
-    if (status != PSA_SUCCESS) {
-        goto error;
-    }
-
-    return PSA_SUCCESS;
-
-error:
-    mbedtls_free(local_output->buffer);
-    local_output->buffer = NULL;
-    local_output->length = 0;
-    return status;
 }
 
 psa_status_t psa_crypto_local_output_free(psa_crypto_local_output_t *local_output)

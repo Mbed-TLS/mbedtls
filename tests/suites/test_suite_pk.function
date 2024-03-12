@@ -2490,7 +2490,7 @@ void pk_copy_from_psa_success(data_t *priv_key_data, int key_type_arg,
 
     /* Create 4 PK contexts starting from the PSA keys we just created. */
     TEST_EQUAL(mbedtls_pk_copy_from_psa(priv_key_id, &pk_priv), 0);
-    TEST_EQUAL(mbedtls_pk_copy_public_from_psa(pub_key_id, &pk_priv_copy_public), 0);
+    TEST_EQUAL(mbedtls_pk_copy_public_from_psa(priv_key_id, &pk_priv_copy_public), 0);
     TEST_EQUAL(mbedtls_pk_copy_from_psa(pub_key_id, &pk_pub), 0);
     TEST_EQUAL(mbedtls_pk_copy_public_from_psa(pub_key_id, &pk_pub_copy_public), 0);
 

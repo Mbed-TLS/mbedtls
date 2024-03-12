@@ -8780,7 +8780,7 @@ void derive_over_capacity(int alg_arg)
     if (!mbedtls_test_psa_setup_key_derivation_wrap(&operation, key, alg,
                                                     input1, input1_length,
                                                     input2, input2_length,
-                                                    capacity)) {
+                                                    capacity, 0)) {
         goto exit;
     }
 
@@ -9099,7 +9099,7 @@ void derive_full(int alg_arg,
     if (!mbedtls_test_psa_setup_key_derivation_wrap(&operation, key, alg,
                                                     input1->x, input1->len,
                                                     input2->x, input2->len,
-                                                    requested_capacity)) {
+                                                    requested_capacity, 0)) {
         goto exit;
     }
 
@@ -9216,7 +9216,7 @@ void derive_key_exercise(int alg_arg,
     if (!mbedtls_test_psa_setup_key_derivation_wrap(&operation, base_key, alg,
                                                     input1->x, input1->len,
                                                     input2->x, input2->len,
-                                                    capacity)) {
+                                                    capacity, 0)) {
         goto exit;
     }
 
@@ -9286,7 +9286,7 @@ void derive_key_export(int alg_arg,
     if (!mbedtls_test_psa_setup_key_derivation_wrap(&operation, base_key, alg,
                                                     input1->x, input1->len,
                                                     input2->x, input2->len,
-                                                    capacity)) {
+                                                    capacity, 0)) {
         goto exit;
     }
 
@@ -9299,7 +9299,7 @@ void derive_key_export(int alg_arg,
     if (!mbedtls_test_psa_setup_key_derivation_wrap(&operation, base_key, alg,
                                                     input1->x, input1->len,
                                                     input2->x, input2->len,
-                                                    capacity)) {
+                                                    capacity, 0)) {
         goto exit;
     }
 
@@ -9370,7 +9370,7 @@ void derive_key_type(int alg_arg,
             &operation, base_key, alg,
             input1->x, input1->len,
             input2->x, input2->len,
-            PSA_KEY_DERIVATION_UNLIMITED_CAPACITY) == 0) {
+            PSA_KEY_DERIVATION_UNLIMITED_CAPACITY, 0) == 0) {
         goto exit;
     }
 
@@ -9435,7 +9435,7 @@ void derive_key_ext(int alg_arg,
             &operation, base_key, alg,
             input1->x, input1->len,
             input2->x, input2->len,
-            PSA_KEY_DERIVATION_UNLIMITED_CAPACITY) == 0) {
+            PSA_KEY_DERIVATION_UNLIMITED_CAPACITY, 0) == 0) {
         goto exit;
     }
 
@@ -9499,7 +9499,7 @@ void derive_key(int alg_arg,
     if (!mbedtls_test_psa_setup_key_derivation_wrap(&operation, base_key, alg,
                                                     input1->x, input1->len,
                                                     input2->x, input2->len,
-                                                    SIZE_MAX)) {
+                                                    SIZE_MAX, 0)) {
         goto exit;
     }
 

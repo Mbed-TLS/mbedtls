@@ -123,6 +123,9 @@
  * \param input2            The first input to pass.
  * \param input2_length     The length of \p input2 in bytes.
  * \param capacity          The capacity to set.
+ * \param key_destroyable   If set to 1, a failure due to the key not existing
+ *                          or the key being destroyed mid-operation will only
+ *                          be reported if the error code is unexpected.
  *
  * \return                  \c 1 on success, \c 0 on failure.
  */
@@ -132,7 +135,7 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
     psa_algorithm_t alg,
     const unsigned char *input1, size_t input1_length,
     const unsigned char *input2, size_t input2_length,
-    size_t capacity);
+    size_t capacity, int key_destroyable);
 
 /** Perform a key agreement using the given key pair against its public key
  * using psa_raw_key_agreement().

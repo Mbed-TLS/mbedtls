@@ -489,16 +489,22 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
     psa_algorithm_t alg,
     const unsigned char *input1, size_t input1_length,
     const unsigned char *input2, size_t input2_length,
-    size_t capacity)
+    size_t capacity, int key_destroyable)
 {
     PSA_ASSERT(psa_key_derivation_setup(operation, alg));
+    psa_status_t status = PSA_SUCCESS;
     if (PSA_ALG_IS_HKDF(alg)) {
         PSA_ASSERT(psa_key_derivation_input_bytes(operation,
                                                   PSA_KEY_DERIVATION_INPUT_SALT,
                                                   input1, input1_length));
-        PSA_ASSERT(psa_key_derivation_input_key(operation,
-                                                PSA_KEY_DERIVATION_INPUT_SECRET,
-                                                key));
+        status = psa_key_derivation_input_key(operation,
+                                              PSA_KEY_DERIVATION_INPUT_SECRET,
+                                              key);
+        if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+            /* The key has been destroyed. */
+            return 1;
+        }
+        PSA_ASSERT(status);
         PSA_ASSERT(psa_key_derivation_input_bytes(operation,
                                                   PSA_KEY_DERIVATION_INPUT_INFO,
                                                   input2,
@@ -507,13 +513,23 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
         PSA_ASSERT(psa_key_derivation_input_bytes(operation,
                                                   PSA_KEY_DERIVATION_INPUT_SALT,
                                                   input1, input1_length));
-        PSA_ASSERT(psa_key_derivation_input_key(operation,
-                                                PSA_KEY_DERIVATION_INPUT_SECRET,
-                                                key));
+        status = psa_key_derivation_input_key(operation,
+                                              PSA_KEY_DERIVATION_INPUT_SECRET,
+                                              key);
+        if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+            /* The key has been destroyed. */
+            return 1;
+        }
+        PSA_ASSERT(status);
     } else if (PSA_ALG_IS_HKDF_EXPAND(alg)) {
-        PSA_ASSERT(psa_key_derivation_input_key(operation,
-                                                PSA_KEY_DERIVATION_INPUT_SECRET,
-                                                key));
+        status = psa_key_derivation_input_key(operation,
+                                              PSA_KEY_DERIVATION_INPUT_SECRET,
+                                              key);
+        if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+            /* The key has been destroyed. */
+            return 1;
+        }
+        PSA_ASSERT(status);
         PSA_ASSERT(psa_key_derivation_input_bytes(operation,
                                                   PSA_KEY_DERIVATION_INPUT_INFO,
                                                   input2,
@@ -523,9 +539,14 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
         PSA_ASSERT(psa_key_derivation_input_bytes(operation,
                                                   PSA_KEY_DERIVATION_INPUT_SEED,
                                                   input1, input1_length));
-        PSA_ASSERT(psa_key_derivation_input_key(operation,
-                                                PSA_KEY_DERIVATION_INPUT_SECRET,
-                                                key));
+        status = psa_key_derivation_input_key(operation,
+                                              PSA_KEY_DERIVATION_INPUT_SECRET,
+                                              key);
+        if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+            /* The key has been destroyed. */
+            return 1;
+        }
+        PSA_ASSERT(status);
         PSA_ASSERT(psa_key_derivation_input_bytes(operation,
                                                   PSA_KEY_DERIVATION_INPUT_LABEL,
                                                   input2, input2_length));
@@ -537,9 +558,14 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
                                                   PSA_KEY_DERIVATION_INPUT_SALT,
                                                   input2,
                                                   input2_length));
-        PSA_ASSERT(psa_key_derivation_input_key(operation,
-                                                PSA_KEY_DERIVATION_INPUT_PASSWORD,
-                                                key));
+        status = psa_key_derivation_input_key(operation,
+                                              PSA_KEY_DERIVATION_INPUT_PASSWORD,
+                                              key);
+        if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+            /* The key has been destroyed. */
+            return 1;
+        }
+        PSA_ASSERT(status);
     } else if (alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS) {
         PSA_ASSERT(psa_key_derivation_input_bytes(operation,
                                                   PSA_KEY_DERIVATION_INPUT_SECRET,
@@ -561,7 +587,8 @@ exit:
 
 static int exercise_key_derivation_key(mbedtls_svc_key_id_t key,
                                        psa_key_usage_t usage,
-                                       psa_algorithm_t alg)
+                                       psa_algorithm_t alg,
+                                       int key_destroyable)
 {
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
     unsigned char input1[] = "Input 1";
@@ -575,14 +602,20 @@ static int exercise_key_derivation_key(mbedtls_svc_key_id_t key,
         if (!mbedtls_test_psa_setup_key_derivation_wrap(&operation, key, alg,
                                                         input1, input1_length,
                                                         input2, input2_length,
-                                                        capacity)) {
+                                                        capacity, key_destroyable)) {
             goto exit;
         }
 
-        PSA_ASSERT(psa_key_derivation_output_bytes(&operation,
-                                                   output,
-                                                   capacity));
-        PSA_ASSERT(psa_key_derivation_abort(&operation));
+        psa_status_t status = psa_key_derivation_output_bytes(&operation,
+                                                              output,
+                                                              capacity);
+        if (key_destroyable && status == PSA_ERROR_BAD_STATE) {
+            /* The key has been destroyed. */
+            PSA_ASSERT(psa_key_derivation_abort(&operation));
+        } else {
+            PSA_ASSERT(status);
+            PSA_ASSERT(psa_key_derivation_abort(&operation));
+        }
     }
 
     return 1;

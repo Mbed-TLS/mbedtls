@@ -18,6 +18,13 @@
 #define RSA_KEY_SIZE 512
 #define RSA_KEY_LEN   64
 
+#if defined(MBEDTLS_RSA_C) ||                                           \
+    defined(MBEDTLS_PK_RSA_ALT_SUPPORT) ||                              \
+    defined(MBEDTLS_ECDSA_C) ||                                         \
+    defined(MBEDTLS_USE_PSA_CRYPTO)
+#define PK_CAN_SIGN_SOME
+#endif
+
 /** Generate a key of the desired type.
  *
  * \param pk        The PK object to fill. It must have been initialized
@@ -155,7 +162,7 @@ void pk_psa_utils()
     TEST_ASSERT(strcmp(mbedtls_pk_get_name(&pk), name) == 0);
 
     TEST_ASSERT(mbedtls_pk_get_bitlen(&pk) == bitlen);
-    TEST_ASSERT(mbedtls_pk_get_len(&pk) == bitlen / 8);
+    TEST_ASSERT(mbedtls_pk_get_len(&pk) == (bitlen + 7) / 8);
 
     TEST_ASSERT(mbedtls_pk_can_do(&pk, MBEDTLS_PK_ECKEY) == 1);
     TEST_ASSERT(mbedtls_pk_can_do(&pk, MBEDTLS_PK_ECDSA) == 1);
@@ -683,7 +690,7 @@ void pk_rsa_verify_test_vec(data_t *message_str, int digest, int mod,
     TEST_ASSERT(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)) == 0);
     rsa = mbedtls_pk_rsa(pk);
 
-    rsa->len = mod / 8;
+    rsa->len = (mod + 7) / 8;
     TEST_ASSERT(mbedtls_test_read_mpi(&rsa->N, input_N) == 0);
     TEST_ASSERT(mbedtls_test_read_mpi(&rsa->E, input_E) == 0);
 
@@ -731,7 +738,7 @@ void pk_rsa_verify_ext_test_vec(data_t *message_str, int digest,
     TEST_ASSERT(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)) == 0);
     rsa = mbedtls_pk_rsa(pk);
 
-    rsa->len = mod / 8;
+    rsa->len = (mod + 7) / 8;
     TEST_ASSERT(mbedtls_test_read_mpi(&rsa->N, input_N) == 0);
     TEST_ASSERT(mbedtls_test_read_mpi(&rsa->E, input_E) == 0);
 
@@ -894,7 +901,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C:PK_CAN_SIGN_SOME */
 void pk_sign_verify(int type, int parameter, int sign_ret, int verify_ret)
 {
     mbedtls_pk_context pk;
@@ -1004,7 +1011,7 @@ void pk_rsa_encrypt_test_vec(data_t *message, int mod,
     TEST_ASSERT(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)) == 0);
     rsa = mbedtls_pk_rsa(pk);
 
-    rsa->len = mod / 8;
+    rsa->len = (mod + 7) / 8;
     TEST_ASSERT(mbedtls_test_read_mpi(&rsa->N, input_N) == 0);
     TEST_ASSERT(mbedtls_test_read_mpi(&rsa->E, input_E) == 0);
 
@@ -1053,8 +1060,11 @@ void pk_rsa_decrypt_test_vec(data_t *cipher, int mod,
     TEST_ASSERT(mbedtls_test_read_mpi(&P, input_P) == 0);
     TEST_ASSERT(mbedtls_test_read_mpi(&Q, input_Q) == 0);
     TEST_ASSERT(mbedtls_rsa_import(rsa, &N, &P, &Q, NULL, &E) == 0);
-    TEST_ASSERT(mbedtls_rsa_get_len(rsa) == (size_t) (mod / 8));
+    TEST_EQUAL(mbedtls_rsa_get_len(rsa), (mod + 7) / 8);
     TEST_ASSERT(mbedtls_rsa_complete(rsa) == 0);
+
+    TEST_EQUAL(mbedtls_pk_get_bitlen(&pk), mod);
+    TEST_EQUAL(mbedtls_pk_get_len(&pk), (mod + 7) / 8);
 
     /* decryption test */
     memset(output, 0, sizeof(output));

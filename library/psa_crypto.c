@@ -4822,21 +4822,10 @@ static psa_status_t psa_hash_try_support(psa_algorithm_t alg)
     return status;
 }
 
-static psa_status_t psa_key_derivation_setup_kdf(
+static psa_status_t psa_key_derivation_set_maximum_capacity(
     psa_key_derivation_operation_t *operation,
     psa_algorithm_t kdf_alg)
 {
-    /* Make sure that operation->ctx is properly zero-initialised. (Macro
-     * initialisers for this union leave some bytes unspecified.) */
-    memset(&operation->ctx, 0, sizeof(operation->ctx));
-
-    /* Make sure that kdf_alg is a supported key derivation algorithm. */
-    if (!is_kdf_alg_supported(kdf_alg)) {
-        return PSA_ERROR_NOT_SUPPORTED;
-    }
-
-    /* All currently supported key derivation algorithms are based on a
-     * hash algorithm. */
     psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH(kdf_alg);
     size_t hash_size = PSA_HASH_LENGTH(hash_alg);
     if (hash_size == 0) {
@@ -4851,14 +4840,48 @@ static psa_status_t psa_key_derivation_setup_kdf(
         return status;
     }
 
-    if ((PSA_ALG_IS_TLS12_PRF(kdf_alg) ||
-         PSA_ALG_IS_TLS12_PSK_TO_MS(kdf_alg)) &&
-        !(hash_alg == PSA_ALG_SHA_256 || hash_alg == PSA_ALG_SHA_384)) {
+#if defined(PSA_WANT_ALG_HKDF)
+    if (PSA_ALG_IS_HKDF(kdf_alg)) {
+        operation->capacity = 255 * hash_size;
+    } else
+#endif
+#if defined(PSA_WANT_ALG_TLS12_PRF)
+    if (PSA_ALG_IS_TLS12_PRF(kdf_alg) &&
+        (hash_alg == PSA_ALG_SHA_256 || hash_alg == PSA_ALG_SHA_384)) {
+        operation->capacity = SIZE_MAX;
+    } else
+#endif
+#if defined(PSA_WANT_ALG_TLS12_PSK_TO_MS)
+    if (PSA_ALG_IS_TLS12_PSK_TO_MS(kdf_alg) &&
+        (hash_alg == PSA_ALG_SHA_256 || hash_alg == PSA_ALG_SHA_384)) {
+        /* Master Secret is always 48 bytes
+         * https://datatracker.ietf.org/doc/html/rfc5246.html#section-8.1 */
+        operation->capacity = 48U;
+    } else
+#endif
+    {
+        (void) hash_size;
+        status = PSA_ERROR_NOT_SUPPORTED;
+    }
+    return status;
+}
+
+
+static psa_status_t psa_key_derivation_setup_kdf(
+    psa_key_derivation_operation_t *operation,
+    psa_algorithm_t kdf_alg)
+{
+    /* Make sure that operation->ctx is properly zero-initialised. (Macro
+     * initialisers for this union leave some bytes unspecified.) */
+    memset(&operation->ctx, 0, sizeof(operation->ctx));
+    /* Make sure that kdf_alg is a supported key derivation algorithm. */
+    if (!is_kdf_alg_supported(kdf_alg)) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
-    operation->capacity = 255 * hash_size;
-    return PSA_SUCCESS;
+    psa_status_t status = psa_key_derivation_set_maximum_capacity(operation,
+                                                                  kdf_alg);
+    return status;
 }
 
 static psa_status_t psa_key_agreement_try_support(psa_algorithm_t alg)

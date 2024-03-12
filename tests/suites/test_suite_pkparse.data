@@ -938,6 +938,22 @@ Parse RSA Key #99.2 (PKCS#8 encrypted v2 PBKDF2 DES hmacWithSHA512 DER, 4096-bit
 depends_on:MBEDTLS_DES_C:MBEDTLS_SHA512_C:MBEDTLS_PKCS5_C
 pk_parse_keyfile_rsa:"data_files/rsa_pkcs8_pbes2_pbkdf2_4096_des_sha512.der":"":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
+Parse RSA Key #100.1 (512-bit)
+depends_on:MBEDTLS_PEM_C
+pk_parse_keyfile_rsa:"data_files/rsa512.key":"":0
+
+Parse RSA Key #100.1 (521-bit)
+depends_on:MBEDTLS_PEM_C
+pk_parse_keyfile_rsa:"data_files/rsa521.key":"":0
+
+Parse RSA Key #100.1 (522-bit)
+depends_on:MBEDTLS_PEM_C
+pk_parse_keyfile_rsa:"data_files/rsa522.key":"":0
+
+Parse RSA Key #100.1 (528-bit)
+depends_on:MBEDTLS_PEM_C
+pk_parse_keyfile_rsa:"data_files/rsa528.key":"":0
+
 Parse Public RSA Key #1 (PKCS#8 wrapped)
 depends_on:MBEDTLS_PEM_PARSE_C
 pk_parse_public_keyfile_rsa:"data_files/rsa_pkcs8_2048_public.pem":0

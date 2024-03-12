@@ -1002,7 +1002,8 @@ exit:
 }
 
 static int exercise_export_key(mbedtls_svc_key_id_t key,
-                               psa_key_usage_t usage)
+                               psa_key_usage_t usage,
+                               int key_destroyable)
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     uint8_t *exported = NULL;
@@ -1010,25 +1011,31 @@ static int exercise_export_key(mbedtls_svc_key_id_t key,
     size_t exported_length = 0;
     int ok = 0;
 
-    PSA_ASSERT(psa_get_key_attributes(key, &attributes));
+    psa_status_t status = psa_get_key_attributes(key, &attributes);
+    if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+        /* The key has been destroyed. */
+        psa_reset_key_attributes(&attributes);
+        return 1;
+    }
+    PSA_ASSERT(status);
 
     exported_size = PSA_EXPORT_KEY_OUTPUT_SIZE(
         psa_get_key_type(&attributes),
         psa_get_key_bits(&attributes));
     TEST_CALLOC(exported, exported_size);
 
-    if ((usage & PSA_KEY_USAGE_EXPORT) == 0 &&
-        !PSA_KEY_TYPE_IS_PUBLIC_KEY(psa_get_key_type(&attributes))) {
-        TEST_EQUAL(psa_export_key(key, exported,
-                                  exported_size, &exported_length),
-                   PSA_ERROR_NOT_PERMITTED);
+    status = psa_export_key(key, exported, exported_size, &exported_length);
+    if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+        /* The key has been destroyed. */
+        ok = 1;
+        goto exit;
+    } else if ((usage & PSA_KEY_USAGE_EXPORT) == 0 &&
+               !PSA_KEY_TYPE_IS_PUBLIC_KEY(psa_get_key_type(&attributes))) {
+        TEST_EQUAL(status, PSA_ERROR_NOT_PERMITTED);
         ok = 1;
         goto exit;
     }
-
-    PSA_ASSERT(psa_export_key(key,
-                              exported, exported_size,
-                              &exported_length));
+    PSA_ASSERT(status);
     ok = mbedtls_test_psa_exported_key_sanity_check(
         psa_get_key_type(&attributes), psa_get_key_bits(&attributes),
         exported, exported_length);
@@ -1044,7 +1051,8 @@ exit:
     return ok;
 }
 
-static int exercise_export_public_key(mbedtls_svc_key_id_t key)
+static int exercise_export_public_key(mbedtls_svc_key_id_t key,
+                                      int key_destroyable)
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t public_type;
@@ -1053,16 +1061,27 @@ static int exercise_export_public_key(mbedtls_svc_key_id_t key)
     size_t exported_length = 0;
     int ok = 0;
 
-    PSA_ASSERT(psa_get_key_attributes(key, &attributes));
+    psa_status_t status = psa_get_key_attributes(key, &attributes);
+    if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+        /* The key has been destroyed. */
+        psa_reset_key_attributes(&attributes);
+        return 1;
+    }
+    PSA_ASSERT(status);
     if (!PSA_KEY_TYPE_IS_ASYMMETRIC(psa_get_key_type(&attributes))) {
         exported_size = PSA_EXPORT_KEY_OUTPUT_SIZE(
             psa_get_key_type(&attributes),
             psa_get_key_bits(&attributes));
         TEST_CALLOC(exported, exported_size);
 
-        TEST_EQUAL(psa_export_public_key(key, exported,
-                                         exported_size, &exported_length),
-                   PSA_ERROR_INVALID_ARGUMENT);
+        status = psa_export_public_key(key, exported,
+                                       exported_size, &exported_length);
+        if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+            /* The key has been destroyed. */
+            ok = 1;
+            goto exit;
+        }
+        TEST_EQUAL(status, PSA_ERROR_INVALID_ARGUMENT);
         ok = 1;
         goto exit;
     }
@@ -1073,9 +1092,14 @@ static int exercise_export_public_key(mbedtls_svc_key_id_t key)
                                                       psa_get_key_bits(&attributes));
     TEST_CALLOC(exported, exported_size);
 
-    PSA_ASSERT(psa_export_public_key(key,
-                                     exported, exported_size,
-                                     &exported_length));
+    status = psa_export_public_key(key, exported,
+                                   exported_size, &exported_length);
+    if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+        /* The key has been destroyed. */
+        ok = 1;
+        goto exit;
+    }
+    PSA_ASSERT(status);
     ok = mbedtls_test_psa_exported_key_sanity_check(
         public_type, psa_get_key_bits(&attributes),
         exported, exported_length);

@@ -56,22 +56,29 @@ static int cmac_multiply_by_u(unsigned char *output,
                               size_t blocksize)
 {
     const unsigned char R_128 = 0x87;
-    const unsigned char R_64 = 0x1B;
     unsigned char R_n, mask;
-    unsigned char overflow = 0x00;
+    uint32_t overflow = 0x00;
     int i;
 
     if (blocksize == MBEDTLS_AES_BLOCK_SIZE) {
         R_n = R_128;
-    } else if (blocksize == MBEDTLS_DES3_BLOCK_SIZE) {
+    }
+#if defined(MBEDTLS_DES_C)
+    else if (blocksize == MBEDTLS_DES3_BLOCK_SIZE) {
+        const unsigned char R_64 = 0x1B;
         R_n = R_64;
-    } else {
+    }
+#endif
+    else {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-    for (i = (int) blocksize - 1; i >= 0; i--) {
-        output[i] = input[i] << 1 | overflow;
-        overflow = input[i] >> 7;
+    for (i = (int) blocksize - 4; i >= 0; i -= 4) {
+        uint32_t i32 = MBEDTLS_GET_UINT32_BE(&input[i], 0);
+        uint32_t new_overflow = i32 >> 31;
+        i32 = (i32 << 1) | overflow;
+        MBEDTLS_PUT_UINT32_BE(i32, &output[i], 0);
+        overflow = new_overflow;
     }
 
     /* mask = ( input[0] >> 7 ) ? 0xff : 0x00

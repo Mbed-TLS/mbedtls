@@ -2855,8 +2855,8 @@ int mbedtls_ssl_session_set_hostname(mbedtls_ssl_session *session,
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_EARLY_DATA) && \
     defined(MBEDTLS_SSL_ALPN)
 MBEDTLS_CHECK_RETURN_CRITICAL
-int mbedtls_ssl_session_set_alpn(mbedtls_ssl_session *session,
-                                 const char *alpn);
+int mbedtls_ssl_session_set_ticket_alpn(mbedtls_ssl_session *session,
+                                        const char *alpn);
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)

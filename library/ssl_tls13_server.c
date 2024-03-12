@@ -469,8 +469,7 @@ static int ssl_tls13_session_copy_ticket(mbedtls_ssl_session *dst,
     dst->max_early_data_size = src->max_early_data_size;
 
 #if defined(MBEDTLS_SSL_ALPN)
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    ret = mbedtls_ssl_session_set_alpn(dst, src->ticket_alpn);
+    int ret = mbedtls_ssl_session_set_ticket_alpn(dst, src->ticket_alpn);
     if (ret != 0) {
         return ret;
     }
@@ -3146,9 +3145,11 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_PRINT_TICKET_FLAGS(4, session->ticket_flags);
 
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
-    ret = mbedtls_ssl_session_set_alpn(session, ssl->alpn_chosen);
-    if (ret != 0) {
-        return ret;
+    if (session->ticket_alpn == NULL) {
+        ret = mbedtls_ssl_session_set_ticket_alpn(session, ssl->alpn_chosen);
+        if (ret != 0) {
+            return ret;
+        }
     }
 #endif
 

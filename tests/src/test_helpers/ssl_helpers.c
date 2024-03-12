@@ -1794,8 +1794,7 @@ int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     session->max_early_data_size = 0x87654321;
 #if defined(MBEDTLS_SSL_ALPN) && defined(MBEDTLS_SSL_SRV_C)
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    ret = mbedtls_ssl_session_set_alpn(session, "ALPNExample");
+    int ret = mbedtls_ssl_session_set_ticket_alpn(session, "ALPNExample");
     if (ret != 0) {
         return -1;
     }

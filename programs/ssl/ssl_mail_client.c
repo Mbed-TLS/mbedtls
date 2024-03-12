@@ -724,6 +724,10 @@ usage:
     fflush(stdout);
 
     len = mbedtls_snprintf((char *) buf, sizeof(buf), "MAIL FROM:<%s>\r\n", opt.mail_from);
+    if (len < 0 || (size_t)len >= sizeof(buf)) {
+        mbedtls_printf(" failed\n  ! mbedtls_snprintf encountered error or truncated output\n\n");
+        goto exit;
+    }
     ret = write_ssl_and_get_response(&ssl, buf, len);
     if (ret < 200 || ret > 299) {
         mbedtls_printf(" failed\n  ! server responded with %d\n\n", ret);
@@ -736,6 +740,10 @@ usage:
     fflush(stdout);
 
     len = mbedtls_snprintf((char *) buf, sizeof(buf), "RCPT TO:<%s>\r\n", opt.mail_to);
+    if (len < 0 || (size_t)len >= sizeof(buf)) {
+        mbedtls_printf(" failed\n  ! mbedtls_snprintf encountered error or truncated output\n\n");
+        goto exit;
+    }
     ret = write_ssl_and_get_response(&ssl, buf, len);
     if (ret < 200 || ret > 299) {
         mbedtls_printf(" failed\n  ! server responded with %d\n\n", ret);
@@ -765,6 +773,10 @@ usage:
                    "Mbed TLS mail client example.\r\n"
                    "\r\n"
                    "Enjoy!", opt.mail_from);
+    if (len < 0 || (size_t)len >= sizeof(buf)) {
+        mbedtls_printf(" failed\n  ! mbedtls_snprintf encountered error or truncated output\n\n");
+        goto exit;
+    }
     ret = write_ssl_data(&ssl, buf, len);
 
     len = sprintf((char *) buf, "\r\n.\r\n");

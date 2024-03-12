@@ -438,7 +438,8 @@ exit:
 
 static int exercise_asymmetric_encryption_key(mbedtls_svc_key_id_t key,
                                               psa_key_usage_t usage,
-                                              psa_algorithm_t alg)
+                                              psa_algorithm_t alg,
+                                              int key_destroyable)
 {
     unsigned char plaintext[PSA_ASYMMETRIC_DECRYPT_OUTPUT_MAX_SIZE] =
         "Hello, world...";
@@ -446,22 +447,30 @@ static int exercise_asymmetric_encryption_key(mbedtls_svc_key_id_t key,
         "(wabblewebblewibblewobblewubble)";
     size_t ciphertext_length = sizeof(ciphertext);
     size_t plaintext_length = 16;
-
+    psa_status_t status = PSA_SUCCESS;
     if (usage & PSA_KEY_USAGE_ENCRYPT) {
-        PSA_ASSERT(psa_asymmetric_encrypt(key, alg,
-                                          plaintext, plaintext_length,
-                                          NULL, 0,
-                                          ciphertext, sizeof(ciphertext),
-                                          &ciphertext_length));
+        status = psa_asymmetric_encrypt(key, alg,
+                                        plaintext, plaintext_length,
+                                        NULL, 0,
+                                        ciphertext, sizeof(ciphertext),
+                                        &ciphertext_length);
+        if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+            /* The key has been destroyed. */
+            return 1;
+        }
+        PSA_ASSERT(status);
     }
 
     if (usage & PSA_KEY_USAGE_DECRYPT) {
-        psa_status_t status =
-            psa_asymmetric_decrypt(key, alg,
-                                   ciphertext, ciphertext_length,
-                                   NULL, 0,
-                                   plaintext, sizeof(plaintext),
-                                   &plaintext_length);
+        status = psa_asymmetric_decrypt(key, alg,
+                                        ciphertext, ciphertext_length,
+                                        NULL, 0,
+                                        plaintext, sizeof(plaintext),
+                                        &plaintext_length);
+        if (key_destroyable && status == PSA_ERROR_INVALID_HANDLE) {
+            /* The key has been destroyed. */
+            return 1;
+        }
         TEST_ASSERT(status == PSA_SUCCESS ||
                     ((usage & PSA_KEY_USAGE_ENCRYPT) == 0 &&
                      (status == PSA_ERROR_INVALID_ARGUMENT ||

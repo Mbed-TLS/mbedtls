@@ -318,9 +318,9 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
 
 /** \def USE_PSA_INIT
  *
- * Call this macro to initialize the PSA subsystem if #MBEDTLS_USE_PSA_CRYPTO or
- * #MBEDTLS_PSA_CRYPTO_CLIENT or #MBEDTLS_SSL_PROTO_TLS1_3 (In contrast to
- * TLS 1.2 implementation, the TLS 1.3 one uses PSA independently of the definition of
+ * Call this macro to initialize the PSA subsystem if #MBEDTLS_USE_PSA_CRYPTO
+ * or #MBEDTLS_SSL_PROTO_TLS1_3 (In contrast to TLS 1.2 implementation, the
+ * TLS 1.3 one uses PSA independently of the definition of
  * #MBEDTLS_USE_PSA_CRYPTO) is enabled and do nothing otherwise.
  *
  * If the initialization fails, mark the test case as failed and jump to the
@@ -333,19 +333,16 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  * This is like #PSA_DONE except it does nothing under the same conditions as
  * #USE_PSA_INIT.
  */
-#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3) || \
-    defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #define USE_PSA_INIT() PSA_INIT()
 #define USE_PSA_DONE() PSA_DONE()
-#else /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 ||
-         MBEDTLS_PSA_CRYPTO_CLIENT */
+#else /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 /* Define empty macros so that we can use them in the preamble and teardown
  * of every test function that uses PSA conditionally based on
  * MBEDTLS_USE_PSA_CRYPTO. */
 #define USE_PSA_INIT() ((void) 0)
 #define USE_PSA_DONE() ((void) 0)
-#endif /* !MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_SSL_PROTO_TLS1_3 &&
-          !MBEDTLS_PSA_CRYPTO_CLIENT */
+#endif /* !MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_SSL_PROTO_TLS1_3 */
 
 /** \def MD_PSA_INIT
  *
@@ -397,8 +394,8 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
 /** \def MD_OR_USE_PSA_INIT
  *
  * Call this macro to initialize the PSA subsystem if MD uses a driver,
- * or if #MBEDTLS_USE_PSA_CRYPTO or #MBEDTLS_PSA_CRYPTO_CLIENT or
- * #MBEDTLS_SSL_PROTO_TLS1_3 is enabled, and do nothing otherwise.
+ * or if #MBEDTLS_USE_PSA_CRYPTO or #MBEDTLS_SSL_PROTO_TLS1_3 is enabled,
+ * and do nothing otherwise.
  *
  * If the initialization fails, mark the test case as failed and jump to the
  * \p exit label.
@@ -411,8 +408,7 @@ uint64_t mbedtls_test_parse_binary_string(data_t *bin_string);
  * #MD_OR_USE_PSA_INIT.
  */
 #if defined(MBEDTLS_MD_SOME_PSA) || \
-    defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3) || \
-    defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+    defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #define MD_OR_USE_PSA_INIT()   PSA_INIT()
 #define MD_OR_USE_PSA_DONE()   PSA_DONE()
 #else

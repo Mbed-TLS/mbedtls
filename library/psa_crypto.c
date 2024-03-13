@@ -106,7 +106,7 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
     if (global_data.initialized == 0)  \
     return PSA_ERROR_BAD_STATE;
 
-#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
 
 /* Declare a local copy of an input buffer and a variable that will be used
  * to store a pointer to the start of the buffer.
@@ -202,7 +202,7 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
             status = local_output_status; \
         } \
     } while (0)
-#else /* MBEDTLS_PSA_COPY_CALLER_BUFFERS */
+#else /* !MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS */
 #define LOCAL_INPUT_DECLARE(input, input_copy_name) \
     const uint8_t *input_copy_name = NULL;
 #define LOCAL_INPUT_ALLOC(input, length, input_copy) \
@@ -215,7 +215,7 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
     output_copy = output;
 #define LOCAL_OUTPUT_FREE(output, output_copy) \
     output_copy = NULL;
-#endif /* MBEDTLS_PSA_COPY_CALLER_BUFFERS */
+#endif /* !MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS */
 
 psa_status_t mbedtls_to_psa_error(int ret)
 {
@@ -1506,7 +1506,7 @@ psa_status_t psa_export_key(mbedtls_svc_key_id_t key,
                                            slot->key.data, slot->key.bytes,
                                            data, data_size, data_length);
 
-#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
 exit:
 #endif
     unlock_status = psa_unlock_key_slot(slot);
@@ -2362,7 +2362,7 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
     LOCAL_OUTPUT_ALLOC(hash_external, hash_size, hash);
     status = psa_hash_finish_internal(operation, hash, hash_size, hash_length);
 
-#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
 exit:
 #endif
     LOCAL_OUTPUT_FREE(hash_external, hash);
@@ -2425,7 +2425,7 @@ psa_status_t psa_hash_compute(psa_algorithm_t alg,
     status = psa_driver_wrapper_hash_compute(alg, input, input_length,
                                              hash, hash_size, hash_length);
 
-#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
 exit:
 #endif
     LOCAL_INPUT_FREE(input_external, input);
@@ -2667,7 +2667,7 @@ psa_status_t psa_mac_update(psa_mac_operation_t *operation,
         psa_mac_abort(operation);
     }
 
-#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
 exit:
 #endif
     LOCAL_INPUT_FREE(input_external, input);
@@ -2852,7 +2852,7 @@ psa_status_t psa_mac_compute(mbedtls_svc_key_id_t key,
                                       input, input_length,
                                       mac, mac_size, mac_length, 1);
 
-#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
 exit:
 #endif
     LOCAL_INPUT_FREE(input_external, input);
@@ -3110,7 +3110,7 @@ psa_status_t psa_sign_message(mbedtls_svc_key_id_t key,
     status = psa_sign_internal(key, 1, alg, input, input_length, signature,
                                signature_size, signature_length);
 
-#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
 exit:
 #endif
     LOCAL_INPUT_FREE(input_external, input);
@@ -3168,7 +3168,7 @@ psa_status_t psa_verify_message(mbedtls_svc_key_id_t key,
     status = psa_verify_internal(key, 1, alg, input, input_length, signature,
                                  signature_length);
 
-#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
 exit:
 #endif
     LOCAL_INPUT_FREE(input_external, input);
@@ -3242,7 +3242,7 @@ psa_status_t psa_sign_hash(mbedtls_svc_key_id_t key,
     status = psa_sign_internal(key, 0, alg, hash, hash_length, signature,
                                signature_size, signature_length);
 
-#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
 exit:
 #endif
     LOCAL_INPUT_FREE(hash_external, hash);
@@ -3314,7 +3314,7 @@ psa_status_t psa_verify_hash(mbedtls_svc_key_id_t key,
     status = psa_verify_internal(key, 0, alg, hash, hash_length, signature,
                                  signature_length);
 
-#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
 exit:
 #endif
     LOCAL_INPUT_FREE(hash_external, hash);
@@ -4106,7 +4106,7 @@ psa_status_t psa_aead_encrypt(mbedtls_svc_key_id_t key,
     }
 
 /* Exit label is only used for buffer copying, prevent unused warnings. */
-#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
 exit:
 #endif
     LOCAL_INPUT_FREE(nonce_external, nonce);
@@ -4174,7 +4174,7 @@ psa_status_t psa_aead_decrypt(mbedtls_svc_key_id_t key,
     }
 
 /* Exit label is only used for buffer copying, prevent unused warnings. */
-#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
 exit:
 #endif
     LOCAL_INPUT_FREE(nonce_external, nonce);
@@ -5232,7 +5232,7 @@ psa_status_t psa_key_derivation_input_bytes(
     status = psa_key_derivation_input_internal(operation, step,
                                                PSA_KEY_TYPE_NONE,
                                                data, data_length);
-#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
 exit:
 #endif
     LOCAL_INPUT_FREE(data_external, data);
@@ -5450,7 +5450,7 @@ psa_status_t psa_key_derivation_key_agreement(psa_key_derivation_operation_t *op
                                         slot,
                                         peer_key, peer_key_length);
 
-#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
 exit:
 #endif
     if (status != PSA_SUCCESS) {
@@ -5622,7 +5622,7 @@ psa_status_t psa_generate_random(uint8_t *output_external,
 
     status = psa_generate_random_internal(output, output_size);
 
-#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)
+#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
 exit:
 #endif
     LOCAL_OUTPUT_FREE(output_external, output);

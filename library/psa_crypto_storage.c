@@ -17,12 +17,7 @@
 #include "psa_crypto_storage.h"
 #include "mbedtls/platform_util.h"
 
-#if defined(MBEDTLS_PSA_ITS_FILE_C)
 #include "psa_crypto_its.h"
-#else /* Native ITS implementation */
-#include "psa/error.h"
-#include "psa/internal_trusted_storage.h"
-#endif
 
 #include "mbedtls/platform.h"
 

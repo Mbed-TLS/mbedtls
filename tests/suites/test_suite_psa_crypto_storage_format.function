@@ -34,6 +34,10 @@ static int test_written_key(const psa_key_attributes_t *attributes,
                                          created_key_id));
 
     /* Check that the key is represented as expected. */
+    /* Initialize the size field, in case the compiler sees that
+     * psa_its_get_info does not initialize it systematically but does
+     * not see that it is always initialized on success. */
+    storage_info.size = 0;
     PSA_ASSERT(psa_its_get_info(uid, &storage_info));
     TEST_EQUAL(storage_info.size, expected_representation->len);
     TEST_CALLOC(actual_representation, storage_info.size);

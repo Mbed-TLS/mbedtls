@@ -9,10 +9,19 @@
 #ifndef PSA_CRYPTO_ITS_H
 #define PSA_CRYPTO_ITS_H
 
+/* Include the configuration directly, without going through common.h,
+ * to make this header file somewhat independent from the rest of the
+ * library. We do of course still need the library configuration . */
+#include "mbedtls/build_info.h"
+
+#if defined(MBEDTLS_PSA_ITS_FILE_C)
+
 #include <stddef.h>
 #include <stdint.h>
 
+/* For psa_status_t. */
 #include <psa/crypto_types.h>
+/* For PSA_ERROR_xxx constants used by the ITS implementation. */
 #include <psa/crypto_values.h>
 
 #ifdef __cplusplus
@@ -127,5 +136,14 @@ psa_status_t psa_its_remove(psa_storage_uid_t uid);
 #ifdef __cplusplus
 }
 #endif
+
+#else /* Native ITS implementation */
+
+/* Include the native PSA ITS headers, in case it tweaks the API in a way
+ * that makes it different from our copy (e.g. it may implement a different
+ * PSA_ITS_API_VERSION_MINOR). */
+#include "psa/internal_trusted_storage.h"
+
+#endif /* MBEDTLS_PSA_ITS_FILE_C */
 
 #endif /* PSA_CRYPTO_ITS_H */

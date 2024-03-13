@@ -1298,6 +1298,16 @@ component_test_psa_crypto_client () {
     make test
 }
 
+component_build_psa_native_its () {
+    msg "build: full config - MBEDTLS_PSA_ITS_FILE_C, make"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
+    make CFLAGS="-I '$PWD/tests/include/psa-its-fake' -O"
+
+    # We don't run the tests because the fake ITS implementation we're linking
+    # with doesn't actually work: it's only enough for compiling and linking.
+}
+
 component_test_psa_crypto_rsa_no_genprime() {
     msg "build: default config minus MBEDTLS_GENPRIME"
     scripts/config.py unset MBEDTLS_GENPRIME

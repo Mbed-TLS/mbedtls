@@ -224,6 +224,10 @@ int mbedtls_cipher_cmac_update(mbedtls_cipher_context_t *ctx,
     block_size = mbedtls_cipher_info_get_block_size(ctx->cipher_info);
     state = ctx->cmac_ctx->state;
 
+    /* Without the MBEDTLS_ASSUME below, gcc -O3 will generate a warning of the form
+     * error: writing 16 bytes into a region of size 0 [-Werror=stringop-overflow=] */
+    MBEDTLS_ASSUME(block_size <= MBEDTLS_CMAC_MAX_BLOCK_SIZE);
+
     /* Is there data still to process from the last call, that's greater in
      * size than a block? */
     if (cmac_ctx->unprocessed_len > 0 &&
@@ -291,6 +295,7 @@ int mbedtls_cipher_cmac_finish(mbedtls_cipher_context_t *ctx,
 
     cmac_ctx = ctx->cmac_ctx;
     block_size = mbedtls_cipher_info_get_block_size(ctx->cipher_info);
+    MBEDTLS_ASSUME(block_size <= MBEDTLS_CMAC_MAX_BLOCK_SIZE); // silence GCC warning
     state = cmac_ctx->state;
 
     mbedtls_platform_zeroize(K1, sizeof(K1));

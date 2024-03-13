@@ -9,9 +9,9 @@ Security
      the function call (i.e. no buffer parameters are in shared memory),
      copying may be disabled by setting MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS.
      Note that setting this option will cause input-output buffer overlap to
-     be only partially supported.
+     be only partially supported (#3266).
      Fixes CVE-2024-28960
 Bugfix
    * Fully support arbitrary overlap between inputs and outputs of PSA
      functions. Note that overlap is still only partially supported when
-     MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS is set.
+     MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS is set (#3266).

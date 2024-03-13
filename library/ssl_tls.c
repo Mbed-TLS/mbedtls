@@ -3754,7 +3754,7 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
 #if defined(MBEDTLS_SSL_SRV_C) && \
     defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
     const size_t alpn_len = (session->ticket_alpn == NULL) ?
-                             0 : strlen(session->ticket_alpn) + 1;
+                            0 : strlen(session->ticket_alpn) + 1;
 #endif
     size_t needed =   4  /* ticket_age_add */
                     + 1  /* ticket_flags */

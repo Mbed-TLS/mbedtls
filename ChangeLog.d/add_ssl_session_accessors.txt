@@ -1,0 +1,6 @@
+Features
+   * Add new accessors to expose the private session-id,
+     session-id length, and ciphersuite-id members of
+     `mbedtls_ssl_session` structure.
+     Add new accessor to expose the ciphersuite-id of
+     `mbedtls_ssl_ciphersuite_t` structure.Design ref: #8529

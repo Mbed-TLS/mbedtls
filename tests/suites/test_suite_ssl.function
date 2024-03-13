@@ -2422,6 +2422,54 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void ssl_session_id_accessors_check(int tls_version)
+{
+    mbedtls_ssl_session session;
+    int ciphersuite_id;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+
+    mbedtls_ssl_session_init(&session);
+    USE_PSA_INIT();
+
+    switch (tls_version) {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        case MBEDTLS_SSL_VERSION_TLS1_3:
+            ciphersuite_id = MBEDTLS_TLS1_3_AES_128_GCM_SHA256;
+            TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
+                            &session, 0, MBEDTLS_SSL_IS_SERVER) == 0);
+            break;
+#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        case MBEDTLS_SSL_VERSION_TLS1_2:
+            ciphersuite_id = MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256;
+            TEST_ASSERT(mbedtls_test_ssl_tls12_populate_session(
+                            &session, 0, MBEDTLS_SSL_IS_SERVER, NULL) == 0);
+
+            break;
+#endif
+        default:
+            /* should never happen */
+            TEST_ASSERT(0);
+            break;
+    }
+    TEST_ASSERT(*mbedtls_ssl_session_get_id(&session) == session.id);
+    TEST_ASSERT(mbedtls_ssl_session_get_id_len(&session) == session.id_len);
+    /* mbedtls_test_ssl_tls1x_populate_session sets a mock suite-id of 0xabcd */
+    TEST_ASSERT(mbedtls_ssl_session_get_ciphersuite_id(&session) == 0xabcd);
+
+    /* Test setting a reference id for tls1.3 and tls1.2 */
+    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(ciphersuite_id);
+    if (ciphersuite_info != NULL) {
+        TEST_ASSERT(mbedtls_ssl_ciphersuite_get_id(ciphersuite_info) == ciphersuite_id);
+    }
+
+exit:
+    mbedtls_ssl_session_free(&session);
+    USE_PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_RSA_C:MBEDTLS_ECP_HAVE_SECP384R1:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_MD_CAN_SHA256 */
 void mbedtls_endpoint_sanity(int endpoint_type)
 {

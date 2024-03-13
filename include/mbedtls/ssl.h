@@ -2721,6 +2721,43 @@ static inline int mbedtls_ssl_session_get_ticket_creation_time(
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
 
 /**
+ * \brief          Get the session-id buffer.
+ *
+ * \param session  SSL session.
+ *
+ * \return         The address of the session-id buffer.
+ */
+static inline unsigned const char (*mbedtls_ssl_session_get_id(const mbedtls_ssl_session *
+                                                               session))[32]
+{
+    return &session->MBEDTLS_PRIVATE(id);
+}
+
+/**
+ * \brief          Get the size of the session-id.
+ *
+ * \param session  SSL session.
+ *
+ * \return         size_t size of session-id buffer.
+ */
+static inline size_t mbedtls_ssl_session_get_id_len(const mbedtls_ssl_session *session)
+{
+    return session->MBEDTLS_PRIVATE(id_len);
+}
+
+/**
+ * \brief          Get the ciphersuite-id.
+ *
+ * \param session  SSL session.
+ *
+ * \return         int represetation for ciphersuite.
+ */
+static inline int mbedtls_ssl_session_get_ciphersuite_id(const mbedtls_ssl_session *session)
+{
+    return session->MBEDTLS_PRIVATE(ciphersuite);
+}
+
+/**
  * \brief   Configure a key export callback.
  *          (Default: none.)
  *

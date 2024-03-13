@@ -802,7 +802,7 @@ A future extension of the PSA API will support other import formats. Until those
 You can use the PK module as an intermediate step to create an RSA or ECC key for use with PSA. This is useful for use cases that the PSA API does not currently cover, such as:
 
 * Parsing a key in a format with metadata without knowing its type ahead of time.
-* Parsing a key in a format that the PK module supports, but`psa_import_key` doesn't.
+* Parsing a key in a format that the PK module supports, but `psa_import_key` doesn't.
 * Importing a key which you have in the form of a list of numbers, rather than the binary encoding required by `psa_import_key`.
 * Importing a key with less information than what the PSA API needs, for example an ECC public key in a compressed format, an RSA private key without the private exponent, or an RSA private key without the CRT parameters.
 
@@ -909,7 +909,7 @@ A future extension of the PSA API will support other export formats. Until those
 This section discusses how to use a PSA key in a context that requires a PK object, such as PK formatting functions (`mbedtls_pk_write_key_der`, `mbedtls_pk_write_pubkey_der`, `mbedtls_pk_write_pubkey_pem`, `mbedtls_pk_write_key_pem` or `mbedtls_pk_write_pubkey`), Mbed TLS X.509 functions, Mbed TLS SSL functions, or another API that involves `mbedtls_pk_context` objects. The PSA key must be an RSA or ECC key since the PK module does not support DH keys. Three functions from `pk.h` help with that:
 
 * [`mbedtls_pk_copy_from_psa`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/pk_8h/#pk_8h_1ab8e88836fd9ee344ffe630c40447bd08) copies a PSA key into a PK object. The PSA key must be exportable. The PK object remains valid even if the PSA key is destroyed.
-* [`mbedtls_pk_copy_public_from_psa`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/pk_8h/#pk_8h_1a2a50247a528889c12ea0ddddb8b15a4e) copies a PSA key into a PK object. The PSA key must be exportable. The PK object remains valid even if the PSA key is destroyed.
+* [`mbedtls_pk_copy_public_from_psa`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/pk_8h/#pk_8h_1a2a50247a528889c12ea0ddddb8b15a4e) copies the public part of a PSA key into a PK object. The PK object remains valid even if the PSA key is destroyed.
 * [`mbedtls_pk_setup_opaque`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/pk_8h/#pk_8h_1a4c04ac22ab9c1ae09cc29438c308bf05) sets up a PK object that wraps the PSA key. This functionality is only available when `MBEDTLS_USE_PSA_CRYPTO` is enabled. The PK object has the type `MBEDTLS_PK_OPAQUE` regardless of whether the key is an RSA or ECC key. The PK object can only be used as permitted by the PSA key's policy. The PK object contains a reference to the PSA key identifier, therefore PSA key must not be destroyed as long as the PK object remains alive.
 
 Here is some sample code illustrating how to use the PK module to format a PSA public key or the public key of a PSA key pair.

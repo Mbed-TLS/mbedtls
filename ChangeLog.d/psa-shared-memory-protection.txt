@@ -6,9 +6,12 @@ Security
      by copying buffers.
      This feature increases code size and memory usage. If buffers passed to
      PSA functions are owned exclusively by the PSA core for the duration of
-     the function call, copying may be disabled by setting
+     the function call (i.e. no buffer parameters are stored in memory shared
+     with an untrusted party), copying may be disabled by setting
      MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS.
+     Note that setting this option will cause input-output buffer overlap to
+     be only partially supported.
 Bugfix
    * Fully support arbitrary overlap between inputs and outputs of PSA
-     functions. Note that overlap is only partial supported when
+     functions. Note that overlap is still only partially supported when
      MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS is set.

@@ -6,9 +6,8 @@ Security
      by copying buffers.
      This feature increases code size and memory usage. If buffers passed to
      PSA functions are owned exclusively by the PSA core for the duration of
-     the function call (i.e. no buffer parameters are stored in memory shared
-     with an untrusted party), copying may be disabled by setting
-     MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS.
+     the function call (i.e. no buffer parameters are in shared memory),
+     copying may be disabled by setting MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS.
      Note that setting this option will cause input-output buffer overlap to
      be only partially supported.
      Fixes CVE-2024-28960

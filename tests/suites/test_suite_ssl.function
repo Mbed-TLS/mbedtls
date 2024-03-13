@@ -2419,7 +2419,7 @@ void ssl_session_serialize_version_check(int corrupt_major,
      * corrupt them bit-by-bit. */
     for (cur_byte = 0; cur_byte < sizeof(should_corrupt_byte); cur_byte++) {
         int cur_bit;
-        unsigned char * const byte = &serialized_session[cur_byte];
+        unsigned char *const byte = &serialized_session[cur_byte];
 
         if (should_corrupt_byte[cur_byte] == 0) {
             continue;
@@ -3932,11 +3932,16 @@ void tls13_cli_early_data_status(int scenario)
                         if (client_ep.ssl.handshake->hello_retry_request_count == 0) {
                             TEST_EQUAL(client_ep.ssl.early_data_status,
                                        MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE);
-                            memcpy(client_random, client_ep.ssl.handshake->randbytes, MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
+                            memcpy(client_random,
+                                   client_ep.ssl.handshake->randbytes,
+                                   MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
                         } else {
                             TEST_EQUAL(client_ep.ssl.early_data_status,
                                        MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED);
-                            TEST_MEMORY_COMPARE(client_random, MBEDTLS_CLIENT_HELLO_RANDOM_LEN, client_ep.ssl.handshake->randbytes, MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
+                            TEST_MEMORY_COMPARE(client_random,
+                                                MBEDTLS_CLIENT_HELLO_RANDOM_LEN,
+                                                client_ep.ssl.handshake->randbytes,
+                                                MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
                         }
                         break;
                 }

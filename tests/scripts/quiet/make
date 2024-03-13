@@ -12,8 +12,8 @@
 # export VERBOSE_LOGS=1
 
 # don't silence invocations containing these arguments
-export NO_SILENCE=" --version | test "
+NO_SILENCE=" --version | test "
 
-export TOOL="make"
+TOOL="make"
 
-exec "$(dirname "$0")/quiet.sh" "$@"
+. "$(dirname "$0")/quiet.sh"

@@ -11,6 +11,7 @@ Security
      MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS.
      Note that setting this option will cause input-output buffer overlap to
      be only partially supported.
+     Fixes CVE-2024-28960
 Bugfix
    * Fully support arbitrary overlap between inputs and outputs of PSA
      functions. Note that overlap is still only partially supported when

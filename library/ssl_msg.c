@@ -6097,21 +6097,21 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
     }
 
     /*
-     * If we are at the beginning of the handshake, the early data status being
-     * equal to MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN or
-     * MBEDTLS_SSL_EARLY_DATA_STATUS_SENT advance the handshake just
+     * If we are at the beginning of the handshake, the early data state being
+     * equal to MBEDTLS_SSL_EARLY_DATA_STATE_IDLE or
+     * MBEDTLS_SSL_EARLY_DATA_STATE_IND_SENT advance the handshake just
      * enough to be able to send early data if possible. That way, we can
      * guarantee that when starting the handshake with this function we will
-     * send at least one record of early data. Note that when the status is
-     * MBEDTLS_SSL_EARLY_DATA_STATUS_SENT and not yet
-     * MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE, we cannot send early data yet
+     * send at least one record of early data. Note that when the state is
+     * MBEDTLS_SSL_EARLY_DATA_STATE_IND_SENT and not yet
+     * MBEDTLS_SSL_EARLY_DATA_STATE_CAN_WRITE, we cannot send early data
      * as the early data outbound transform has not been set as we may have to
      * first send a dummy CCS in clear.
      */
-    if ((ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN) ||
-        (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_SENT)) {
-        while ((ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN) ||
-               (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_SENT)) {
+    if ((ssl->early_data_state == MBEDTLS_SSL_EARLY_DATA_STATE_IDLE) ||
+        (ssl->early_data_state == MBEDTLS_SSL_EARLY_DATA_STATE_IND_SENT)) {
+        while ((ssl->early_data_state == MBEDTLS_SSL_EARLY_DATA_STATE_IDLE) ||
+               (ssl->early_data_state == MBEDTLS_SSL_EARLY_DATA_STATE_IND_SENT)) {
             ret = mbedtls_ssl_handshake_step(ssl);
             if (ret != 0) {
                 MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_handshake_step", ret);
@@ -6133,8 +6133,8 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
          * it too much. If we reach a point where we can still send early data,
          * then we will send some.
          */
-        if ((ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE) &&
-            (ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED)) {
+        if ((ssl->early_data_state != MBEDTLS_SSL_EARLY_DATA_STATE_CAN_WRITE) &&
+            (ssl->early_data_state != MBEDTLS_SSL_EARLY_DATA_STATE_ACCEPTED)) {
             return MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA;
         }
 
@@ -6152,8 +6152,8 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
         }
     }
 
-    if (((ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE) &&
-         (ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED))
+    if (((ssl->early_data_state != MBEDTLS_SSL_EARLY_DATA_STATE_CAN_WRITE) &&
+         (ssl->early_data_state != MBEDTLS_SSL_EARLY_DATA_STATE_ACCEPTED))
         || (remaining == 0)) {
         return MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA;
     }

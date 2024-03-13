@@ -3294,17 +3294,17 @@ tls13_read_early_data:TEST_EARLY_DATA_SERVER_REJECTS
 TLS 1.3 read early data, discard after HRR
 tls13_read_early_data:TEST_EARLY_DATA_HRR
 
-TLS 1.3 cli, early data status, early data accepted
-tls13_cli_early_data_status:TEST_EARLY_DATA_ACCEPTED
+TLS 1.3 cli, early data state, early data accepted
+tls13_cli_early_data_state:TEST_EARLY_DATA_ACCEPTED
 
-TLS 1.3 cli, early data status, no early data indication
-tls13_cli_early_data_status:TEST_EARLY_DATA_NO_INDICATION_SENT
+TLS 1.3 cli, early data state, no early data indication
+tls13_cli_early_data_state:TEST_EARLY_DATA_NO_INDICATION_SENT
 
-TLS 1.3 cli, early data status, server rejects early data
-tls13_cli_early_data_status:TEST_EARLY_DATA_SERVER_REJECTS
+TLS 1.3 cli, early data state, server rejects early data
+tls13_cli_early_data_state:TEST_EARLY_DATA_SERVER_REJECTS
 
-TLS 1.3 cli, early data status, hello retry request
-tls13_cli_early_data_status:TEST_EARLY_DATA_HRR
+TLS 1.3 cli, early data state, hello retry request
+tls13_cli_early_data_state:TEST_EARLY_DATA_HRR
 
 TLS 1.3 write early data, early data accepted
 tls13_write_early_data:TEST_EARLY_DATA_ACCEPTED

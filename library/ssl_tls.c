@@ -1096,7 +1096,7 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 #if defined(MBEDTLS_SSL_CLI_C)
-    ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN;
+    ssl->early_data_state = MBEDTLS_SSL_EARLY_DATA_STATE_IDLE;
 #endif
 #if defined(MBEDTLS_SSL_SRV_C)
     ssl->discard_early_data_record = MBEDTLS_SSL_EARLY_DATA_NO_DISCARD;

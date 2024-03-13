@@ -33,7 +33,7 @@ Support description
 
   - Mbed TLS supports session resumption via the ticket mechanism.
 
-  - Mbed TLS does not support sending or receiving early data (0-RTT data).
+  - Mbed TLS supports sending and receiving early data (0-RTT data).
 
 - Supported cipher suites: depends on the library configuration. Potentially
   all of them:
@@ -59,7 +59,7 @@ Support description
   | key_share                    | YES     |
   | pre_shared_key               | YES     |
   | psk_key_exchange_modes       | YES     |
-  | early_data                   | no      |
+  | early_data                   | YES     |
   | cookie                       | no      |
   | supported_versions           | YES     |
   | certificate_authorities      | no      |
@@ -172,8 +172,6 @@ Prototype upstreaming status
 ----------------------------
 
 The following parts of the TLS 1.3 prototype remain to be upstreamed:
-
-- Sending (client) and receiving (server) early data (0-RTT data).
 
 - New TLS Message Processing Stack (MPS)
 

@@ -3201,6 +3201,9 @@
  * \deprecated This feature is deprecated. Please switch to the PSA driver
  *             interface.
  *
+ * \warning    This feature is not thread-safe, and should not be used in a
+ *             multi-threaded environment.
+ *
  * Module:  library/psa_crypto_se.c
  *
  * Requires: MBEDTLS_PSA_CRYPTO_C, MBEDTLS_PSA_CRYPTO_STORAGE_C

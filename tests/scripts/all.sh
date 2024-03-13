@@ -2220,6 +2220,9 @@ component_test_tsan () {
     # Self-tests do not currently use multiple threads.
     scripts/config.py unset MBEDTLS_SELF_TEST
 
+    # The deprecated MBEDTLS_PSA_CRYPTO_SE_C interface is not thread safe.
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=TSan .
     make
 

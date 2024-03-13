@@ -1,6 +1,6 @@
 
-Writing and reading early or 0-RTT data
----------------------------------------
+Writing early data
+------------------
 
 An application function to write and send a buffer of data to a server through
 TLS may plausibly look like:
@@ -144,34 +144,49 @@ if (ret < 0) {
 data_written += early_data_written;
 ```
 
-Basically, the same holds for reading early data on the server side without the
-complication of possible rejection. An application function to read early data
-into a given buffer could plausibly look like:
+Reading early data
+------------------
+Mbed TLS provides the mbedtls_ssl_read_early_data() API to read the early data
+that a TLS 1.3 server might receive during the TLS 1.3 handshake.
+
+While establishing a TLS 1.3 connection with a client using a combination
+of the mbedtls_ssl_handshake(), mbedtls_ssl_read() and mbedtls_ssl_write() APIs,
+the reception of early data is signaled by an API returning the
+MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA error code. Early data can then be read
+with the mbedtls_ssl_read_early_data() API.
+
+For example, a typical code to establish a TLS connection, where ssl is the SSL
+context to use:
 ```
-int read_early_data( mbedtls_ssl_context *ssl,
-                     unsigned char *buffer,
-                     size_t buffer_size,
-                     size_t *data_len )
-{
-    *data_len = 0;
+while ((int ret = mbedtls_ssl_handshake(&ssl)) != 0) {
 
-    while( *data_len < buffer_size )
-    {
-        ret = mbedtls_ssl_read_early_data( ssl, buffer + *data_len,
-                                           buffer_size - *data_len );
-
-        if( ret < 0 &&
-            ret != MBEDTLS_ERR_SSL_WANT_READ &&
-            ret != MBEDTLS_ERR_SSL_WANT_WRITE )
-        {
-            return( ret );
-        }
-
-        *data_len += ret;
+    if (ret < 0 &&
+        ret != MBEDTLS_ERR_SSL_WANT_READ &&
+        ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
+        break;
     }
-
-    return( 0 );
 }
 ```
-with again calls to read_early_data() expected to be done with a fresh SSL
-context.
+could be adapted to handle early data in the following way:
+```
+size_t data_read_len = 0;
+while ((ret = mbedtls_ssl_handshake(&ssl)) != 0) {
+
+    if (ret == MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA) {
+        ret = mbedtls_ssl_read_early_data(&ssl,
+                                          buffer + data_read_len,
+                                          sizeof(buffer) - data_read_len);
+        if (ret < 0) {
+            break;
+        }
+        data_read_len += ret;
+        continue;
+    }
+
+    if (ret < 0 &&
+        ret != MBEDTLS_ERR_SSL_WANT_READ &&
+        ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
+        break;
+    }
+}
+```

@@ -26,7 +26,7 @@ Support description
 
   - Mbed TLS supports ECDHE key establishment.
 
-  - Mbed TLS does not support DHE key establishment.
+  - Mbed TLS supports DHE key establishment.
 
   - Mbed TLS supports pre-shared keys for key establishment, pre-shared keys
     provisioned externally as well as provisioned via the ticket mechanism.
@@ -51,7 +51,7 @@ Support description
   | signature_algorithms         | YES     |
   | use_srtp                     | no      |
   | heartbeat                    | no      |
-  | apln                         | YES     |
+  | alpn                         | YES     |
   | signed_certificate_timestamp | no      |
   | client_certificate_type      | no      |
   | server_certificate_type      | no      |
@@ -71,7 +71,8 @@ Support description
   Potentially all ECDHE groups:
   secp256r1, x25519, secp384r1, x448 and secp521r1.
 
-  Finite field groups (DHE) are not supported.
+  Potentially all DHE groups:
+  ffdhe2048, ffdhe3072, ffdhe4096, ffdhe6144 and ffdhe8192.
 
 - Supported signature algorithms (both for certificates and CertificateVerify):
   depends on the library configuration.
@@ -105,7 +106,7 @@ Support description
 
   | Mbed TLS configuration option            | Support |
   | ---------------------------------------- | ------- |
-  | MBEDTLS_SSL_ALL_ALERT_MESSAGES           | no      |
+  | MBEDTLS_SSL_ALL_ALERT_MESSAGES           | yes     |
   | MBEDTLS_SSL_ASYNC_PRIVATE                | no      |
   | MBEDTLS_SSL_CONTEXT_SERIALIZATION        | no      |
   | MBEDTLS_SSL_DEBUG_ALL                    | no      |

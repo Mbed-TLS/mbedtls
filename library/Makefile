@@ -1,3 +1,26 @@
+ifndef MBEDTLS_PATH
+MBEDTLS_PATH := ..
+endif
+
+GENERATED_FILES := \
+	error.c version_features.c \
+	ssl_debug_helpers_generated.c \
+	psa_crypto_driver_wrappers.h \
+	psa_crypto_driver_wrappers_no_static.c
+
+ifneq ($(GENERATED_FILES),$(wildcard $(GENERATED_FILES)))
+    ifeq (,$(wildcard $(MBEDTLS_PATH)/framework/exported.make))
+        # Use the define keyword to get a multi-line message.
+        # GNU make appends ".  Stop.", so tweak the ending of our message accordingly.
+        define error_message
+$(MBEDTLS_PATH)/framework/exported.make not found.
+Run `git submodule update --init` to fetch the submodule contents.
+This is a fatal error
+        endef
+        $(error $(error_message))
+    endif
+    include $(MBEDTLS_PATH)/framework/exported.make
+endif
 
 # Also see "include/mbedtls/mbedtls_config.h"
 
@@ -315,11 +338,6 @@ libmbedcrypto.dll: $(OBJS_CRYPTO)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
 .PHONY: generated_files
-GENERATED_FILES = \
-	error.c version_features.c \
-	ssl_debug_helpers_generated.c \
-	psa_crypto_driver_wrappers.h \
-	psa_crypto_driver_wrappers_no_static.c
 generated_files: $(GENERATED_FILES)
 
 # See root Makefile

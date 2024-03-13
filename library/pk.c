@@ -1379,7 +1379,9 @@ mbedtls_pk_type_t mbedtls_pk_get_type(const mbedtls_pk_context *ctx)
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id, mbedtls_pk_context *pk)
+static int copy_from_psa(mbedtls_svc_key_id_t key_id,
+                         mbedtls_pk_context *pk,
+                         int public_only)
 {
     psa_status_t status;
     psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
@@ -1400,13 +1402,20 @@ int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id, mbedtls_pk_context *pk
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 
-    status = psa_export_key(key_id, exp_key, sizeof(exp_key), &exp_key_len);
+    if (public_only) {
+        status = psa_export_public_key(key_id, exp_key, sizeof(exp_key), &exp_key_len);
+    } else {
+        status = psa_export_key(key_id, exp_key, sizeof(exp_key), &exp_key_len);
+    }
     if (status != PSA_SUCCESS) {
         ret = PSA_PK_TO_MBEDTLS_ERR(status);
         goto exit;
     }
 
     key_type = psa_get_key_type(&key_attr);
+    if (public_only) {
+        key_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(key_type);
+    }
     key_bits = psa_get_key_bits(&key_attr);
     alg_type = psa_get_key_algorithm(&key_attr);
 
@@ -1435,7 +1444,8 @@ int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id, mbedtls_pk_context *pk
 
         if (PSA_ALG_IS_RSA_OAEP(alg_type) || PSA_ALG_IS_RSA_PSS(alg_type)) {
             ret = mbedtls_rsa_set_padding(mbedtls_pk_rsa(*pk), MBEDTLS_RSA_PKCS_V21, md_type);
-        } else {
+        } else if (PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg_type) ||
+                   alg_type == PSA_ALG_RSA_PKCS1V15_CRYPT) {
             ret = mbedtls_rsa_set_padding(mbedtls_pk_rsa(*pk), MBEDTLS_RSA_PKCS_V15, md_type);
         }
         if (ret != 0) {
@@ -1484,6 +1494,19 @@ exit:
     mbedtls_platform_zeroize(exp_key, sizeof(exp_key));
 
     return ret;
+}
+
+
+int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id,
+                             mbedtls_pk_context *pk)
+{
+    return copy_from_psa(key_id, pk, 0);
+}
+
+int mbedtls_pk_copy_public_from_psa(mbedtls_svc_key_id_t key_id,
+                                    mbedtls_pk_context *pk)
+{
+    return copy_from_psa(key_id, pk, 1);
 }
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 

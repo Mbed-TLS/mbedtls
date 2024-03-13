@@ -1,3 +1,4 @@
 Features
-   * The new function mbedtls_pk_copy_from_psa() provides a way to set up a PK
-     context with the same content as a PSA key.
+   * The new functions mbedtls_pk_copy_from_psa() and
+     mbedtls_pk_copy_public_from_psa() provide ways to set up a PK context
+     with the same content as a PSA key.

@@ -4,17 +4,8 @@ TLS 1.3 support
 Overview
 --------
 
-Mbed TLS provides a partial implementation of the TLS 1.3 protocol defined in
-the "Support description" section below. The TLS 1.3 support enablement
-is controlled by the MBEDTLS_SSL_PROTO_TLS1_3 configuration option.
-
-The development of the TLS 1.3 protocol is based on the TLS 1.3 prototype
-located at https://github.com/hannestschofenig/mbedtls. The prototype is
-itself based on a version of the development branch that we aim to keep as
-recent as possible (ideally the head) by merging regularly commits of the
-development branch into the prototype. The section "Prototype upstreaming
-status" below describes what remains to be upstreamed.
-
+Mbed TLS provides an implementation of the TLS 1.3. The TLS 1.3 support
+enablement is controlled by the MBEDTLS_SSL_PROTO_TLS1_3 configuration option.
 
 Support description
 -------------------
@@ -168,31 +159,6 @@ Support description
     TLS 1.3 specification.
 
 
-Prototype upstreaming status
-----------------------------
-
-The following parts of the TLS 1.3 prototype remain to be upstreamed:
-
-- New TLS Message Processing Stack (MPS)
-
-  The TLS 1.3 prototype is developed alongside a rewrite of the TLS messaging layer,
-  encompassing low-level details such as record parsing, handshake reassembly, and
-  DTLS retransmission state machine.
-
-  MPS has the following components:
-  - Layer 1 (Datagram handling)
-  - Layer 2 (Record handling)
-  - Layer 3 (Message handling)
-  - Layer 4 (Retransmission State Machine)
-  - Reader  (Abstracted pointer arithmetic and reassembly logic for incoming data)
-  - Writer  (Abstracted pointer arithmetic and fragmentation logic for outgoing data)
-
-  Of those components, the following have been upstreamed
-  as part of `MBEDTLS_SSL_PROTO_TLS1_3`:
-
-  - Reader ([`library/mps_reader.h`](../../library/mps_reader.h))
-
-
 Coding rules checklist for TLS 1.3
 ----------------------------------
 
@@ -264,10 +230,6 @@ TLS 1.3 specific coding rules:
       `MBEDTLS_SSL_CHK_BUF_PTR`.
     - the macro to check for data when reading from an input buffer
       `MBEDTLS_SSL_CHK_BUF_READ_PTR`.
-
-    These macros were introduced after the prototype was written thus are
-    likely not to be used in prototype where we now would use them in
-    development.
 
     The three first types, MBEDTLS_BYTE_{0-8}, MBEDTLS_PUT_UINT{8|16|32|64}_BE
     and MBEDTLS_GET_UINT{8|16|32|64}_BE improve the readability of the code and

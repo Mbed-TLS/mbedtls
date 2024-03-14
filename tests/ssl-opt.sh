@@ -13532,6 +13532,61 @@ run_test    "TLS 1.3: NewSessionTicket: Basic check, m->m" \
             -s "key exchange mode: psk_ephemeral" \
             -s "found pre_shared_key extension"
 
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test    "TLS 1.3 m->m: NewSessionTicket: Ticket lifetime max value (7d)" \
+            "$P_SRV debug_level=1 crt_file=data_files/server5.crt key_file=data_files/server5.key ticket_timeout=604800 tickets=1" \
+            "$P_CLI reco_mode=1 reconnect=1" \
+            0 \
+            -c "Protocol is TLSv1.3" \
+            -c "HTTP/1.0 200 OK" \
+            -c "got new session ticket" \
+            -c "Reconnecting with saved session... ok" \
+            -s "Protocol is TLSv1.3" \
+            -S "Ticket lifetime (604800) is greater than 7 days."
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test    "TLS 1.3 m->m: NewSessionTicket: Ticket lifetime too long (7d + 1s)" \
+            "$P_SRV debug_level=1 crt_file=data_files/server5.crt key_file=data_files/server5.key ticket_timeout=604801 tickets=1" \
+            "$P_CLI reco_mode=1 reconnect=1" \
+            1 \
+            -c "Protocol is TLSv1.3" \
+            -C "HTTP/1.0 200 OK" \
+            -C "got new session ticket" \
+            -C "Reconnecting with saved session... ok" \
+            -S "Protocol is TLSv1.3" \
+            -s "Ticket lifetime (604801) is greater than 7 days."
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
+                             MBEDTLS_DEBUG_C \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test    "TLS 1.3 m->m: NewSessionTicket: ticket lifetime=0" \
+            "$P_SRV debug_level=2 crt_file=data_files/server5.crt key_file=data_files/server5.key ticket_timeout=0 tickets=1" \
+            "$P_CLI debug_level=2 reco_mode=1 reconnect=1" \
+            1 \
+            -c "Protocol is TLSv1.3" \
+            -c "HTTP/1.0 200 OK" \
+            -c "Discard new session ticket" \
+            -C "got new session ticket" \
+            -c "Reconnecting with saved session... failed" \
+            -s "Protocol is TLSv1.3" \
+            -s "<= write new session ticket"
+
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_DEBUG_C

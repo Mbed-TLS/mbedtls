@@ -2917,12 +2917,17 @@ static int ssl_tls13_parse_new_session_ticket(mbedtls_ssl_context *ssl,
         return ret;
     }
 
-    /* session has been updated, allow export */
-    session->exported = 0;
-
     return 0;
 }
 
+/* Non negative return values for ssl_tls13_postprocess_new_session_ticket().
+ * - POSTPROCESS_NEW_SESSION_TICKET_SIGNAL, all good, we have to signal the
+ *   application that a valid ticket has been received.
+ * - POSTPROCESS_NEW_SESSION_TICKET_DISCARD, no fatal error, we keep the
+ *   connection alive but we do not signal the ticket to the application.
+ */
+#define POSTPROCESS_NEW_SESSION_TICKET_SIGNAL 0
+#define POSTPROCESS_NEW_SESSION_TICKET_DISCARD 1
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_postprocess_new_session_ticket(mbedtls_ssl_context *ssl,
                                                     unsigned char *ticket_nonce,
@@ -2933,6 +2938,10 @@ static int ssl_tls13_postprocess_new_session_ticket(mbedtls_ssl_context *ssl,
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     psa_algorithm_t psa_hash_alg;
     int hash_length;
+
+    if (session->ticket_lifetime == 0) {
+        return POSTPROCESS_NEW_SESSION_TICKET_DISCARD;
+    }
 
 #if defined(MBEDTLS_HAVE_TIME)
     /* Store ticket creation time */
@@ -2990,7 +2999,7 @@ static int ssl_tls13_postprocess_new_session_ticket(mbedtls_ssl_context *ssl,
         session, ssl->conf->tls13_kex_modes);
     MBEDTLS_SSL_PRINT_TICKET_FLAGS(4, session->ticket_flags);
 
-    return 0;
+    return POSTPROCESS_NEW_SESSION_TICKET_SIGNAL;
 }
 
 /*
@@ -3011,12 +3020,37 @@ static int ssl_tls13_process_new_session_ticket(mbedtls_ssl_context *ssl)
                              ssl, MBEDTLS_SSL_HS_NEW_SESSION_TICKET,
                              &buf, &buf_len));
 
+    /*
+     * We are about to update (maybe only partially) ticket data thus block
+     * any session export for the time being.
+     */
+    ssl->session->exported = 1;
+
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_parse_new_session_ticket(
                              ssl, buf, buf + buf_len,
                              &ticket_nonce, &ticket_nonce_len));
 
-    MBEDTLS_SSL_PROC_CHK(ssl_tls13_postprocess_new_session_ticket(
-                             ssl, ticket_nonce, ticket_nonce_len));
+    MBEDTLS_SSL_PROC_CHK_NEG(ssl_tls13_postprocess_new_session_ticket(
+                                 ssl, ticket_nonce, ticket_nonce_len));
+
+    switch (ret) {
+        case POSTPROCESS_NEW_SESSION_TICKET_SIGNAL:
+            /*
+             * All good, we have received a new valid ticket, session data can
+             * be exported now and we signal the ticket to the application.
+             */
+            ssl->session->exported = 0;
+            ret = MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET;
+            break;
+
+        case POSTPROCESS_NEW_SESSION_TICKET_DISCARD:
+            ret = 0;
+            MBEDTLS_SSL_DEBUG_MSG(2, ("Discard new session ticket"));
+            break;
+
+        default:
+            ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
 
     mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_HANDSHAKE_OVER);
 
@@ -3133,10 +3167,6 @@ int mbedtls_ssl_tls13_handshake_client_step(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
         case MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET:
             ret = ssl_tls13_process_new_session_ticket(ssl);
-            if (ret != 0) {
-                break;
-            }
-            ret = MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET;
             break;
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 

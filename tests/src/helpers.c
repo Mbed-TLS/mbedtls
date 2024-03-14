@@ -51,7 +51,7 @@ int mbedtls_test_platform_setup(void)
     int ret = 0;
 
 #if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_PSA_CRYPTO_C) \
-    && defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) \
+    && !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS) \
     && defined(MBEDTLS_TEST_MEMORY_CAN_POISON)
     mbedtls_poison_test_hooks_setup();
 #endif
@@ -77,7 +77,7 @@ int mbedtls_test_platform_setup(void)
 void mbedtls_test_platform_teardown(void)
 {
 #if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_PSA_CRYPTO_C) \
-    && defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) \
+    && !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS) \
     &&  defined(MBEDTLS_TEST_MEMORY_CAN_POISON)
     mbedtls_poison_test_hooks_teardown();
 #endif

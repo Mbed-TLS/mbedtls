@@ -947,14 +947,14 @@ component_test_psa_crypto_key_id_encodes_owner () {
     make test
 }
 
-component_test_no_psa_copy_caller_buffers () {
-    msg "build: full config - MBEDTLS_PSA_COPY_CALLER_BUFFERS, cmake, gcc, ASan"
+component_test_psa_assume_exclusive_buffers () {
+    msg "build: full config + MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS, cmake, gcc, ASan"
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_PSA_COPY_CALLER_BUFFERS
+    scripts/config.py set MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: full config - MBEDTLS_PSA_COPY_CALLER_BUFFERS, cmake, gcc, ASan"
+    msg "test: full config + MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS, cmake, gcc, ASan"
     make test
 }
 

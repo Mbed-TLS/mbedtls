@@ -1370,7 +1370,7 @@ void *thread_import_key(void *ctx)
                 if (skc->key_loaded) {
                     mbedtls_mutex_unlock(&skc->key_loaded_mutex);
                     /* More than one thread has succeeded, report a failure. */
-                    TEST_EQUAL(skc->key_loaded, 0);
+                    TEST_FAIL("The same key has been loaded into the key store multiple times.");
                 }
                 skc->key_loaded = 1;
                 mbedtls_mutex_unlock(&skc->key_loaded_mutex);
@@ -1445,8 +1445,7 @@ void *thread_use_and_destroy_key(void *ctx)
             /* Ensure that we are the only thread to succeed. */
             if (skc->key_loaded != 1) {
                 mbedtls_mutex_unlock(&skc->key_loaded_mutex);
-                //Will always fail
-                TEST_EQUAL(skc->key_loaded, 1);
+                TEST_FAIL("The same key has been destroyed multiple times.");
             }
             skc->key_loaded = 0;
             mbedtls_mutex_unlock(&skc->key_loaded_mutex);

@@ -223,6 +223,14 @@ int mbedtls_test_psa_exported_key_sanity_check(
  * to 1, while another thread calls psa_destroy_key on the same key;
  * this will test whether destroying the key in use leads to any corruption.
  *
+ * There cannot be a set of concurrent calls:
+ * `mbedtls_test_psa_exercise_key(ki,...)` such that each ki is a unique
+ * persistent key not loaded into any key slot, and i is greater than the
+ * number of free key slots.
+ * This is because such scenarios can lead to unsupported
+ * `PSA_ERROR_INSUFFICIENT_MEMORY` return codes.
+ *
+ *
  * \param key               The key to exercise. It should be capable of performing
  *                          \p alg.
  * \param usage             The usage flags to assume.

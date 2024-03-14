@@ -2684,11 +2684,13 @@ find_parent:
 }
 
 #ifdef _WIN32
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && _WIN32_WINNT >= 0x0600 /* _WIN32_WINNT_VISTA */
+
 #pragma comment(lib, "ws2_32.lib")
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#elif (defined(__MINGW32__) || defined(__MINGW64__)) && _WIN32_WINNT >= 0x0600
+#elif (defined(__MINGW32__) || defined(__MINGW64__)) && _WIN32_WINNT >= 0x0600 /* _WIN32_WINNT_VISTA */
+
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else

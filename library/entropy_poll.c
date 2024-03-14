@@ -37,8 +37,11 @@
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 
 #include <windows.h>
+
+#if _WIN32_WINNT >= 0x0600 /* _WIN32_WINNT_VISTA */
 #include <bcrypt.h>
 #include <intsafe.h>
+#pragma comment( lib, "bcrypt.lib" )
 
 int mbedtls_platform_entropy_poll(void *data, unsigned char *output, size_t len,
                                   size_t *olen)
@@ -66,6 +69,38 @@ int mbedtls_platform_entropy_poll(void *data, unsigned char *output, size_t len,
 
     return 0;
 }
+#else /* _WIN32_WINNT_VISTA */
+
+#if _WIN32_WINNT < 0x0501 /* _WIN32_WINNT_WINXP */
+#error "Entropy not available before Windows XP, use MBEDTLS_NO_PLATFORM_ENTROPY"
+#endif /* _WIN32_WINNT_WINXP */
+
+#include <wincrypt.h>
+
+int mbedtls_platform_entropy_poll(void *data, unsigned char *output, size_t len,
+                                  size_t *olen)
+{
+    HCRYPTPROV provider;
+    ((void) data);
+    *olen = 0;
+
+    if (CryptAcquireContext(&provider, NULL, NULL,
+                            PROV_RSA_FULL, CRYPT_VERIFYCONTEXT) == FALSE) {
+        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
+    }
+
+    if (CryptGenRandom(provider, (DWORD) len, output) == FALSE) {
+        CryptReleaseContext(provider, 0);
+        return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
+    }
+
+    CryptReleaseContext(provider, 0);
+    *olen = len;
+
+    return 0;
+}
+#endif /* _WIN32_WINNT_VISTA */
+
 #else /* _WIN32 && !EFIX64 && !EFI32 */
 
 /*

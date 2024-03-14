@@ -200,6 +200,7 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_TEST_NULL_ENTROPY', # removes a feature
     'MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION', # influences the use of X.509 in TLS
     'MBEDTLS_ZLIB_SUPPORT', # build dependency (libz)
+    'MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS', # removes a feature
 ])
 
 def is_seamless_alt(name):

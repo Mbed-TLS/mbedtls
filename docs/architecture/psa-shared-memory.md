@@ -524,17 +524,48 @@ As discussed in [Copying code](#copying-code), it is simpler to use a single uni
 
 These seem to be a repeat of the same function, however it is useful to retain two separate functions for input and output parameters so that we can use different test hooks in each when using memory poisoning for tests.
 
-Given that the majority of functions will be allocating memory on the heap to copy, it may help to build convenience functions that allocate the memory as well. One function allocates and copies the buffers:
+Given that the majority of functions will be allocating memory on the heap to copy, it is helpful to build convenience functions that allocate the memory as well.
 
-* `psa_crypto_alloc_and_copy(const uint8_t *input, size_t input_length, uint8_t *output, size_t output_length, struct {uint8_t *inp, size_t inp_len, uint8_t *out, size_t out_len} *buffers)`
+In order to keep track of allocated copies on the heap, we can create new structs:
 
-This function allocates an input and output buffer in `buffers` and copy the input from the user-supplied input buffer to `buffers->inp`.
+```c
+typedef struct psa_crypto_local_input_s {
+    uint8_t *buffer;
+    size_t length;
+} psa_crypto_local_input_t;
 
-An analogous function is needed to copy and free the buffers:
+typedef struct psa_crypto_local_output_s {
+    uint8_t *original;
+    uint8_t *buffer;
+    size_t length;
+} psa_crypto_local_output_t;
+```
 
-* `psa_crypto_copy_and_free(struct {uint8_t *inp, size_t inp_len, uint8_t *out, size_t out_len} buffers, const uint8_t *input, size_t input_length, const uint8_t *output, size_t output_length)`
+These may be used to keep track of input and output copies' state, and ensure that their length is always stored with them. In the case of output copies, we keep a pointer to the original buffer so that it is easy to perform a writeback to the original once we have finished outputting.
 
-This function would first copy the `buffers->out` buffer to the user-supplied output buffer and then free `buffers->inp` and `buffers->out`.
+With these structs we may create 2 pairs of functions, one pair for input copies:
+
+```c
+psa_status_t psa_crypto_local_input_alloc(const uint8_t *input, size_t input_len,
+                                          psa_crypto_local_input_t *local_input);
+
+void psa_crypto_local_input_free(psa_crypto_local_input_t *local_input);
+```
+
+* `psa_crypto_local_input_alloc()` calls `calloc()` to allocate a new buffer of length `input_len`, copies the contents across from `input`. It then stores `input_len` and the pointer to the copy in the struct `local_input`.
+* `psa_crypto_local_input_free()` calls `free()` on the local input that is referred to by `local_input` and sets the pointer in the struct to `NULL`.
+
+We also create a pair of functions for output copies:
+
+```c
+psa_status_t psa_crypto_local_output_alloc(uint8_t *output, size_t output_len,
+                                           psa_crypto_local_output_t *local_output);
+
+psa_status_t psa_crypto_local_output_free(psa_crypto_local_output_t *local_output);
+```
+
+* `psa_crypto_local_output_alloc()` calls `calloc()` to allocate a new buffer of length `output_len` and stores `output_len` and the pointer to the buffer in the struct `local_output`. It also stores a pointer to `output` in `local_output->original`.
+* `psa_crypto_local_output_free()` copies the contents of the output buffer `local_output->buffer` into the buffer `local_output->original`, calls `free()` on `local_output->buffer` and sets it to `NULL`.
 
 Some PSA functions may not use these convenience functions as they may have local optimizations that reduce memory usage. For example, ciphers may be able to use a single intermediate buffer for both input and output.
 

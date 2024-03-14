@@ -8,3 +8,4 @@ Security
      - If the TLS 1.2 implementation was disabled at runtime, a TLS 1.2 client
        was able to successfully establish a TLS 1.2 connection with the server.
        Reported by alluettiv on GitHub.
+    Fixes CVE-2024-28836.

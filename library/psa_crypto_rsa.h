@@ -109,6 +109,15 @@ psa_status_t mbedtls_psa_rsa_export_public_key(
  *       entry point.
  *
  * \param[in]  attributes         The attributes for the RSA key to generate.
+ * \param[in]  params             Production parameters for the key
+ *                                generation. This function only uses
+ *                                `params->data`,
+ *                                which contains the public exponent.
+ *                                This can be a null pointer if
+ *                                \c params_data_length is 0.
+ * \param params_data_length      Length of `params->data` in bytes.
+ *                                This can be 0, in which case the
+ *                                public exponent will be 65537.
  * \param[out] key_buffer         Buffer where the key data is to be written.
  * \param[in]  key_buffer_size    Size of \p key_buffer in bytes.
  * \param[out] key_buffer_length  On success, the number of bytes written in
@@ -123,6 +132,7 @@ psa_status_t mbedtls_psa_rsa_export_public_key(
  */
 psa_status_t mbedtls_psa_rsa_generate_key(
     const psa_key_attributes_t *attributes,
+    const psa_key_production_parameters_t *params, size_t params_data_length,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length);
 
 /** Sign an already-calculated hash with an RSA private key.

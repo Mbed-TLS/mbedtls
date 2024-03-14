@@ -158,7 +158,8 @@
  *   (e.g. MBEDTLS_MD_LIGHT)
  */
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG) /* PSA_WANT_xxx influences MBEDTLS_xxx */ || \
-    defined(MBEDTLS_PSA_CRYPTO_C) /* MBEDTLS_xxx influences PSA_WANT_xxx */
+    defined(MBEDTLS_PSA_CRYPTO_C) /* MBEDTLS_xxx influences PSA_WANT_xxx */ || \
+    defined(MBEDTLS_PSA_CRYPTO_CLIENT) /* The same as the previous, but with separation only */
 #include "mbedtls/config_psa.h"
 #endif
 

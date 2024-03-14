@@ -34,9 +34,15 @@ cmake_policy(SET CMP0011 NEW)
 cmake_policy(SET CMP0012 NEW)
 
 if(TEST_CPP)
-    project("Mbed TLS" LANGUAGES C CXX)
+    project("Mbed TLS"
+        LANGUAGES C CXX
+        VERSION 3.5.2
+    )
 else()
-    project("Mbed TLS" LANGUAGES C)
+    project("Mbed TLS"
+        LANGUAGES C
+        VERSION 3.5.2
+    )
 endif()
 
 include(GNUInstallDirs)
@@ -113,6 +119,11 @@ if(MBEDTLS_PYTHON_EXECUTABLE)
     endif()
 
 endif()
+
+# We now potentially need to link all executables against PThreads, if available
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package(Threads)
 
 # If this is the root project add longer list of available CMAKE_BUILD_TYPE values
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
@@ -277,6 +288,8 @@ add_subdirectory(include)
 add_subdirectory(3rdparty)
 
 add_subdirectory(library)
+
+add_subdirectory(pkgconfig)
 
 #
 # The C files in tests/src directory contain test code shared among test suites

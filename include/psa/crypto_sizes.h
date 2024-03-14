@@ -224,10 +224,20 @@
 #endif
 
 /* The maximum size of an DH key on this implementation, in bits.
- *
- * Note that an implementation may set different size limits for different
- * operations, and does not need to accept all key sizes up to the limit. */
+ * This is a vendor-specific macro.*/
+#if defined(PSA_WANT_DH_RFC7919_8192)
 #define PSA_VENDOR_FFDH_MAX_KEY_BITS 8192u
+#elif defined(PSA_WANT_DH_RFC7919_6144)
+#define PSA_VENDOR_FFDH_MAX_KEY_BITS 6144u
+#elif defined(PSA_WANT_DH_RFC7919_4096)
+#define PSA_VENDOR_FFDH_MAX_KEY_BITS 4096u
+#elif defined(PSA_WANT_DH_RFC7919_3072)
+#define PSA_VENDOR_FFDH_MAX_KEY_BITS 3072u
+#elif defined(PSA_WANT_DH_RFC7919_2048)
+#define PSA_VENDOR_FFDH_MAX_KEY_BITS 2048u
+#else
+#define PSA_VENDOR_FFDH_MAX_KEY_BITS 0u
+#endif
 
 /* The maximum size of an ECC key on this implementation, in bits.
  * This is a vendor-specific macro. */

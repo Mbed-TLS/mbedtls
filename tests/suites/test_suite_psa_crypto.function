@@ -27,6 +27,10 @@
 #define TEST_DRIVER_LOCATION 0x7fffff
 #endif
 
+#if defined(MBEDTLS_THREADING_PTHREAD)
+#include "mbedtls/threading.h"
+#endif
+
 /* If this comes up, it's a bug in the test code or in the test data. */
 #define UNUSED 0xdeadbeef
 
@@ -1253,6 +1257,144 @@ static void interruptible_signverify_get_minmax_completes(uint32_t max_ops,
     }
 }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
+
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
+static int rsa_test_e(mbedtls_svc_key_id_t key,
+                      size_t bits,
+                      const data_t *e_arg)
+{
+    uint8_t *exported = NULL;
+    size_t exported_size =
+        PSA_EXPORT_KEY_OUTPUT_SIZE(PSA_KEY_TYPE_RSA_PUBLIC_KEY, bits);
+    size_t exported_length = SIZE_MAX;
+    int ok = 0;
+
+    TEST_CALLOC(exported, exported_size);
+    PSA_ASSERT(psa_export_public_key(key,
+                                     exported, exported_size,
+                                     &exported_length));
+    uint8_t *p = exported;
+    uint8_t *end = exported + exported_length;
+    size_t len;
+    /*   RSAPublicKey ::= SEQUENCE {
+     *      modulus            INTEGER,    -- n
+     *      publicExponent     INTEGER  }  -- e
+     */
+    TEST_EQUAL(0, mbedtls_asn1_get_tag(&p, end, &len,
+                                       MBEDTLS_ASN1_SEQUENCE |
+                                       MBEDTLS_ASN1_CONSTRUCTED));
+    TEST_ASSERT(mbedtls_test_asn1_skip_integer(&p, end, bits, bits, 1));
+    TEST_EQUAL(0, mbedtls_asn1_get_tag(&p, end, &len,
+                                       MBEDTLS_ASN1_INTEGER));
+    if (len >= 1 && p[0] == 0) {
+        ++p;
+        --len;
+    }
+    if (e_arg->len == 0) {
+        TEST_EQUAL(len, 3);
+        TEST_EQUAL(p[0], 1);
+        TEST_EQUAL(p[1], 0);
+        TEST_EQUAL(p[2], 1);
+    } else {
+        const uint8_t *expected = e_arg->x;
+        size_t expected_len = e_arg->len;
+        while (expected_len > 0 && *expected == 0) {
+            ++expected;
+            --expected_len;
+        }
+        TEST_MEMORY_COMPARE(p, len, expected, expected_len);
+    }
+    ok = 1;
+
+exit:
+    mbedtls_free(exported);
+    return ok;
+}
+#endif /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE */
+
+static int setup_key_production_parameters(
+    psa_key_production_parameters_t **params, size_t *params_data_length,
+    int flags_arg, const data_t *params_data)
+{
+    *params_data_length = params_data->len;
+    /* If there are N bytes of padding at the end of
+     * psa_key_production_parameters_t, then it's enough to allocate
+     * MIN(sizeof(psa_key_production_parameters_t),
+     *     offsetof(psa_key_production_parameters_t, data) + params_data_length).
+     *
+     * For simplicity, here, we allocate up to N more bytes than necessary.
+     * In practice, the current layout of psa_key_production_parameters_t
+     * makes padding extremely unlikely, so we don't worry about testing
+     * that the library code doesn't try to access these extra N bytes.
+     */
+    *params = mbedtls_calloc(1, sizeof(**params) + *params_data_length);
+    TEST_ASSERT(*params != NULL);
+    (*params)->flags = (uint32_t) flags_arg;
+    memcpy((*params)->data, params_data->x, params_data->len);
+    return 1;
+exit:
+    return 0;
+}
+
+#if defined(MBEDTLS_THREADING_PTHREAD)
+typedef struct generate_key_context {
+    psa_key_type_t type;
+    psa_key_usage_t usage;
+    size_t bits;
+    psa_algorithm_t alg;
+    psa_status_t expected_status;
+    psa_key_attributes_t *attributes;
+    int is_large_key;
+    int reps;
+}
+generate_key_context;
+void *thread_generate_key(void *ctx)
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    generate_key_context *gkc = (struct generate_key_context *) ctx;
+
+    /* If there are race conditions, it is likely the case that they do not
+     * arise every time the code runs. We repeat the code to increase the
+     * chance that any race conditions will be hit. */
+    for (int n = 0; n < gkc->reps; n++) {
+        /* Generate a key */
+        psa_status_t status = psa_generate_key(gkc->attributes, &key);
+
+        if (gkc->is_large_key > 0) {
+            TEST_ASSUME(status != PSA_ERROR_INSUFFICIENT_MEMORY);
+        }
+
+        TEST_EQUAL(status, gkc->expected_status);
+        if (gkc->expected_status != PSA_SUCCESS) {
+            PSA_ASSERT(psa_destroy_key(key));
+            goto exit;
+        }
+
+        /* Test the key information */
+        PSA_ASSERT(psa_get_key_attributes(key, &got_attributes));
+        TEST_EQUAL(psa_get_key_type(&got_attributes), gkc->type);
+        TEST_EQUAL(psa_get_key_bits(&got_attributes), gkc->bits);
+
+        /* Do something with the key according
+         * to its type and permitted usage. */
+        if (!mbedtls_test_psa_exercise_key(key, gkc->usage, gkc->alg)) {
+            psa_destroy_key(key);
+            goto exit;
+        }
+        psa_reset_key_attributes(&got_attributes);
+
+        PSA_ASSERT(psa_destroy_key(key));
+    }
+exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes(&got_attributes);
+    return NULL;
+}
+#endif /* MBEDTLS_THREADING_PTHREAD */
 
 /* END_HEADER */
 
@@ -8462,7 +8604,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void derive_set_capacity(int alg_arg, int capacity_arg,
+void derive_set_capacity(int alg_arg, int64_t capacity_arg,
                          int expected_status_arg)
 {
     psa_algorithm_t alg = alg_arg;
@@ -8943,7 +9085,7 @@ void derive_full(int alg_arg,
     psa_algorithm_t alg = alg_arg;
     size_t requested_capacity = requested_capacity_arg;
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
-    unsigned char output_buffer[16];
+    unsigned char output_buffer[32];
     size_t expected_capacity = requested_capacity;
     size_t current_capacity;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -9250,6 +9392,81 @@ void derive_key_type(int alg_arg,
 
 exit:
     mbedtls_free(export_buffer);
+    psa_key_derivation_abort(&operation);
+    psa_destroy_key(base_key);
+    psa_destroy_key(derived_key);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void derive_key_ext(int alg_arg,
+                    data_t *key_data,
+                    data_t *input1,
+                    data_t *input2,
+                    int key_type_arg, int bits_arg,
+                    int flags_arg,
+                    data_t *params_data,
+                    psa_status_t expected_status,
+                    data_t *expected_export)
+{
+    mbedtls_svc_key_id_t base_key = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_svc_key_id_t derived_key = MBEDTLS_SVC_KEY_ID_INIT;
+    const psa_algorithm_t alg = alg_arg;
+    const psa_key_type_t key_type = key_type_arg;
+    const size_t bits = bits_arg;
+    psa_key_production_parameters_t *params = NULL;
+    size_t params_data_length = 0;
+    psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
+    const size_t export_buffer_size =
+        PSA_EXPORT_KEY_OUTPUT_SIZE(key_type, bits);
+    uint8_t *export_buffer = NULL;
+    psa_key_attributes_t base_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t derived_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    size_t export_length;
+
+    TEST_CALLOC(export_buffer, export_buffer_size);
+    PSA_ASSERT(psa_crypto_init());
+
+    psa_set_key_usage_flags(&base_attributes, PSA_KEY_USAGE_DERIVE);
+    psa_set_key_algorithm(&base_attributes, alg);
+    psa_set_key_type(&base_attributes, PSA_KEY_TYPE_DERIVE);
+    PSA_ASSERT(psa_import_key(&base_attributes, key_data->x, key_data->len,
+                              &base_key));
+
+    if (mbedtls_test_psa_setup_key_derivation_wrap(
+            &operation, base_key, alg,
+            input1->x, input1->len,
+            input2->x, input2->len,
+            PSA_KEY_DERIVATION_UNLIMITED_CAPACITY) == 0) {
+        goto exit;
+    }
+
+    psa_set_key_usage_flags(&derived_attributes, PSA_KEY_USAGE_EXPORT);
+    psa_set_key_algorithm(&derived_attributes, 0);
+    psa_set_key_type(&derived_attributes, key_type);
+    psa_set_key_bits(&derived_attributes, bits);
+    if (!setup_key_production_parameters(&params, &params_data_length,
+                                         flags_arg, params_data)) {
+        goto exit;
+    }
+
+    TEST_EQUAL(psa_key_derivation_output_key_ext(&derived_attributes, &operation,
+                                                 params, params_data_length,
+                                                 &derived_key),
+               expected_status);
+
+    if (expected_status == PSA_SUCCESS) {
+        PSA_ASSERT(psa_export_key(derived_key,
+                                  export_buffer, export_buffer_size,
+                                  &export_length));
+        TEST_MEMORY_COMPARE(export_buffer, export_length,
+                            expected_export->x, expected_export->len);
+    }
+
+exit:
+    mbedtls_free(export_buffer);
+    mbedtls_free(params);
     psa_key_derivation_abort(&operation);
     psa_destroy_key(base_key);
     psa_destroy_key(derived_key);
@@ -9633,6 +9850,59 @@ exit:
 }
 /* END_CASE */
 
+#if defined MBEDTLS_THREADING_PTHREAD
+
+/* BEGIN_CASE depends_on:MBEDTLS_THREADING_PTHREAD */
+void concurrently_generate_keys(int type_arg,
+                                int bits_arg,
+                                int usage_arg,
+                                int alg_arg,
+                                int expected_status_arg,
+                                int is_large_key_arg,
+                                int arg_thread_count,
+                                int reps_arg)
+{
+    size_t thread_count = (size_t) arg_thread_count;
+    mbedtls_test_thread_t *threads = NULL;
+    generate_key_context gkc;
+    gkc.type = type_arg;
+    gkc.usage = usage_arg;
+    gkc.bits = bits_arg;
+    gkc.alg = alg_arg;
+    gkc.expected_status = expected_status_arg;
+    gkc.is_large_key = is_large_key_arg;
+    gkc.reps = reps_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    PSA_ASSERT(psa_crypto_init());
+
+    psa_set_key_usage_flags(&attributes, usage_arg);
+    psa_set_key_algorithm(&attributes, alg_arg);
+    psa_set_key_type(&attributes, type_arg);
+    psa_set_key_bits(&attributes, bits_arg);
+    gkc.attributes = &attributes;
+
+    TEST_CALLOC(threads, sizeof(mbedtls_test_thread_t) * thread_count);
+
+    /* Split threads to generate key then destroy key. */
+    for (size_t i = 0; i < thread_count; i++) {
+        TEST_EQUAL(
+            mbedtls_test_thread_create(&threads[i], thread_generate_key,
+                                       (void *) &gkc), 0);
+    }
+
+    /* Join threads. */
+    for (size_t i = 0; i < thread_count; i++) {
+        TEST_EQUAL(mbedtls_test_thread_join(&threads[i]), 0);
+    }
+
+exit:
+    mbedtls_free(threads);
+    PSA_DONE();
+}
+/* END_CASE */
+#endif
+
 /* BEGIN_CASE */
 void generate_key(int type_arg,
                   int bits_arg,
@@ -9690,71 +9960,57 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE:PSA_WANT_ALG_RSA_PKCS1V15_CRYPT:PSA_WANT_ALG_RSA_PKCS1V15_SIGN */
-void generate_key_rsa(int bits_arg,
-                      data_t *e_arg,
+/* BEGIN_CASE */
+void generate_key_ext(int type_arg,
+                      int bits_arg,
+                      int usage_arg,
+                      int alg_arg,
+                      int flags_arg,
+                      data_t *params_data,
                       int expected_status_arg)
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
-    psa_key_type_t type = PSA_KEY_TYPE_RSA_KEY_PAIR;
+    psa_key_type_t type = type_arg;
+    psa_key_usage_t usage = usage_arg;
     size_t bits = bits_arg;
-    psa_key_usage_t usage = PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT;
-    psa_algorithm_t alg = PSA_ALG_RSA_PKCS1V15_SIGN_RAW;
+    psa_algorithm_t alg = alg_arg;
     psa_status_t expected_status = expected_status_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    uint8_t *exported = NULL;
-    size_t exported_size =
-        PSA_EXPORT_KEY_OUTPUT_SIZE(PSA_KEY_TYPE_RSA_PUBLIC_KEY, bits);
-    size_t exported_length = SIZE_MAX;
-    uint8_t *e_read_buffer = NULL;
-    int is_default_public_exponent = 0;
-    size_t e_read_size = PSA_KEY_DOMAIN_PARAMETERS_SIZE(type, bits);
-    size_t e_read_length = SIZE_MAX;
-
-    if (e_arg->len == 0 ||
-        (e_arg->len == 3 &&
-         e_arg->x[0] == 1 && e_arg->x[1] == 0 && e_arg->x[2] == 1)) {
-        is_default_public_exponent = 1;
-        e_read_size = 0;
-    }
-    TEST_CALLOC(e_read_buffer, e_read_size);
-    TEST_CALLOC(exported, exported_size);
+    psa_key_production_parameters_t *params = NULL;
+    size_t params_data_length = 0;
+    psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT(psa_crypto_init());
 
     psa_set_key_usage_flags(&attributes, usage);
     psa_set_key_algorithm(&attributes, alg);
-    PSA_ASSERT(psa_set_key_domain_parameters(&attributes, type,
-                                             e_arg->x, e_arg->len));
+    psa_set_key_type(&attributes, type);
     psa_set_key_bits(&attributes, bits);
 
+    if (!setup_key_production_parameters(&params, &params_data_length,
+                                         flags_arg, params_data)) {
+        goto exit;
+    }
+
     /* Generate a key */
-    TEST_EQUAL(psa_generate_key(&attributes, &key), expected_status);
+    psa_status_t status = psa_generate_key_ext(&attributes,
+                                               params, params_data_length,
+                                               &key);
+
+    TEST_EQUAL(status, expected_status);
     if (expected_status != PSA_SUCCESS) {
         goto exit;
     }
 
     /* Test the key information */
-    PSA_ASSERT(psa_get_key_attributes(key, &attributes));
-    TEST_EQUAL(psa_get_key_type(&attributes), type);
-    TEST_EQUAL(psa_get_key_bits(&attributes), bits);
-    psa_status_t status = psa_get_key_domain_parameters(&attributes,
-                                                        e_read_buffer, e_read_size,
-                                                        &e_read_length);
+    PSA_ASSERT(psa_get_key_attributes(key, &got_attributes));
+    TEST_EQUAL(psa_get_key_type(&got_attributes), type);
+    TEST_EQUAL(psa_get_key_bits(&got_attributes), bits);
 
-
-#if (defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_IMPORT) && \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_EXPORT)) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
-    if (is_default_public_exponent) {
-        TEST_EQUAL(e_read_length, 0);
-    } else {
-        TEST_EQUAL(status, PSA_SUCCESS);
-        TEST_MEMORY_COMPARE(e_read_buffer, e_read_length, e_arg->x, e_arg->len);
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
+    if (type == PSA_KEY_TYPE_RSA_KEY_PAIR) {
+        TEST_ASSERT(rsa_test_e(key, bits, params_data));
     }
-#else
-    (void) is_default_public_exponent;
-    TEST_EQUAL(status, PSA_ERROR_NOT_SUPPORTED);
 #endif
 
     /* Do something with the key according to its type and permitted usage. */
@@ -9762,49 +10018,27 @@ void generate_key_rsa(int bits_arg,
         goto exit;
     }
 
-    /* Export the key and check the public exponent. */
-    PSA_ASSERT(psa_export_public_key(key,
-                                     exported, exported_size,
-                                     &exported_length));
-    {
-        uint8_t *p = exported;
-        uint8_t *end = exported + exported_length;
-        size_t len;
-        /*   RSAPublicKey ::= SEQUENCE {
-         *      modulus            INTEGER,    -- n
-         *      publicExponent     INTEGER  }  -- e
-         */
-        TEST_EQUAL(0, mbedtls_asn1_get_tag(&p, end, &len,
-                                           MBEDTLS_ASN1_SEQUENCE |
-                                           MBEDTLS_ASN1_CONSTRUCTED));
-        TEST_ASSERT(mbedtls_test_asn1_skip_integer(&p, end, bits, bits, 1));
-        TEST_EQUAL(0, mbedtls_asn1_get_tag(&p, end, &len,
-                                           MBEDTLS_ASN1_INTEGER));
-        if (len >= 1 && p[0] == 0) {
-            ++p;
-            --len;
-        }
-        if (e_arg->len == 0) {
-            TEST_EQUAL(len, 3);
-            TEST_EQUAL(p[0], 1);
-            TEST_EQUAL(p[1], 0);
-            TEST_EQUAL(p[2], 1);
-        } else {
-            TEST_MEMORY_COMPARE(p, len, e_arg->x, e_arg->len);
-        }
-    }
-
 exit:
     /*
-     * Key attributes may have been returned by psa_get_key_attributes() or
-     * set by psa_set_key_domain_parameters() thus reset them as required.
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
      */
-    psa_reset_key_attributes(&attributes);
-
+    psa_reset_key_attributes(&got_attributes);
+    mbedtls_free(params);
     psa_destroy_key(key);
     PSA_DONE();
-    mbedtls_free(e_read_buffer);
-    mbedtls_free(exported);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void key_production_parameters_init()
+{
+    psa_key_production_parameters_t init = PSA_KEY_PRODUCTION_PARAMETERS_INIT;
+    psa_key_production_parameters_t zero;
+    memset(&zero, 0, sizeof(zero));
+
+    TEST_EQUAL(init.flags, 0);
+    TEST_EQUAL(zero.flags, 0);
 }
 /* END_CASE */
 

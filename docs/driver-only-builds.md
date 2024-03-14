@@ -105,7 +105,28 @@ provided by a driver or built-in, you should use the following macros:
 - for code that uses only the PSA Crypto API: `PSA_WANT_ALG_xxx` from
   `psa/crypto.h`;
 - for code that uses non-PSA crypto APIs: `MBEDTLS_MD_CAN_xxx` from
-  `mbedtls/md.h`.
+  `mbedtls/config_adjust_legacy_crypto.h`.
+
+### HMAC
+
+In addition to accelerated hash operations, it is also possible to accelerate
+HMAC by enabling and accelerating:
+- HMAC algorithm and key type, i.e. `[PSA_WANT|MBEDTLS_PSA_ACCEL]_ALG_HMAC` and
+  `[PSA_WANT|MBEDTLS_PSA_ACCEL]KEY_TYPE_HMAC`.
+- Required hash algorithm(s) as explained in [Hashes](#hashes) section.
+
+In such a build it is possible to disable legacy HMAC support by disabling
+`MBEDTLS_MD_C` and still getting crypto operations, X.509 and TLS to work as
+usual. Exceptions are:
+- As mentioned in [Hashes](#hashes) direct calls to legacy lo-level hash APIs
+  (`mbedtls_sha256()` etc.) will not be possible for the legacy modules that
+  are disabled.
+- Legacy HMAC support (`mbedtls_md_hmac_xxx()`) won't be possible.
+- `MBEDTLS_PKCS[5|7]_C`, `MBEDTLS_HMAC_DRBG_C` and `MBEDTLS_HKDF_C` since they
+  depend on the legacy implementation of HMAC.
+  - disabling HMAC_DRBG_C cause deterministic ECDSA (i.e.
+  `MBEDTLS_DETERMINISTIC_ECDSA` on the legacy side and 
+  `PSA_WANT_ALG_DETERMINISTIC_ECDSA` on the PSA one) to be not available.
 
 Elliptic-curve cryptography (ECC)
 ---------------------------------

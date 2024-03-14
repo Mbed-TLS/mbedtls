@@ -216,8 +216,8 @@ psa_status_t mbedtls_psa_ecp_import_key(
     mbedtls_ecp_keypair *ecp = NULL;
 
     /* Parse input */
-    status = mbedtls_psa_ecp_load_representation(attributes->core.type,
-                                                 attributes->core.bits,
+    status = mbedtls_psa_ecp_load_representation(attributes->type,
+                                                 attributes->bits,
                                                  data,
                                                  data_length,
                                                  &ecp);
@@ -225,7 +225,7 @@ psa_status_t mbedtls_psa_ecp_import_key(
         goto exit;
     }
 
-    if (PSA_KEY_TYPE_ECC_GET_FAMILY(attributes->core.type) ==
+    if (PSA_KEY_TYPE_ECC_GET_FAMILY(attributes->type) ==
         PSA_ECC_FAMILY_MONTGOMERY) {
         *bits = ecp->grp.nbits + 1;
     } else {
@@ -235,7 +235,7 @@ psa_status_t mbedtls_psa_ecp_import_key(
     /* Re-export the data to PSA export format. There is currently no support
      * for other input formats then the export format, so this is a 1-1
      * copy operation. */
-    status = mbedtls_psa_ecp_export_key(attributes->core.type,
+    status = mbedtls_psa_ecp_export_key(attributes->type,
                                         ecp,
                                         key_buffer,
                                         key_buffer_size,
@@ -281,20 +281,8 @@ psa_status_t mbedtls_psa_ecp_export_key(psa_key_type_t type,
 
         return status;
     } else {
-        if (data_size < PSA_BITS_TO_BYTES(ecp->grp.nbits)) {
-            return PSA_ERROR_BUFFER_TOO_SMALL;
-        }
-
         status = mbedtls_to_psa_error(
-            mbedtls_ecp_write_key(ecp,
-                                  data,
-                                  PSA_BITS_TO_BYTES(ecp->grp.nbits)));
-        if (status == PSA_SUCCESS) {
-            *data_length = PSA_BITS_TO_BYTES(ecp->grp.nbits);
-        } else {
-            memset(data, 0, data_size);
-        }
-
+            mbedtls_ecp_write_key_ext(ecp, data_length, data, data_size));
         return status;
     }
 }
@@ -308,7 +296,7 @@ psa_status_t mbedtls_psa_ecp_export_public_key(
     mbedtls_ecp_keypair *ecp = NULL;
 
     status = mbedtls_psa_ecp_load_representation(
-        attributes->core.type, attributes->core.bits,
+        attributes->type, attributes->bits,
         key_buffer, key_buffer_size, &ecp);
     if (status != PSA_SUCCESS) {
         return status;
@@ -316,7 +304,7 @@ psa_status_t mbedtls_psa_ecp_export_public_key(
 
     status = mbedtls_psa_ecp_export_key(
         PSA_KEY_TYPE_ECC_PUBLIC_KEY(
-            PSA_KEY_TYPE_ECC_GET_FAMILY(attributes->core.type)),
+            PSA_KEY_TYPE_ECC_GET_FAMILY(attributes->type)),
         ecp, data, data_size, data_length);
 
     mbedtls_ecp_keypair_free(ecp);
@@ -337,17 +325,13 @@ psa_status_t mbedtls_psa_ecp_generate_key(
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY(
-        attributes->core.type);
+        attributes->type);
     mbedtls_ecp_group_id grp_id =
-        mbedtls_ecc_group_from_psa(curve, attributes->core.bits);
+        mbedtls_ecc_group_from_psa(curve, attributes->bits);
 
     const mbedtls_ecp_curve_info *curve_info =
         mbedtls_ecp_curve_info_from_grp_id(grp_id);
     mbedtls_ecp_keypair ecp;
-
-    if (attributes->domain_parameters_size != 0) {
-        return PSA_ERROR_NOT_SUPPORTED;
-    }
 
     if (grp_id == MBEDTLS_ECP_DP_NONE || curve_info == NULL) {
         return PSA_ERROR_NOT_SUPPORTED;
@@ -363,13 +347,10 @@ psa_status_t mbedtls_psa_ecp_generate_key(
     }
 
     status = mbedtls_to_psa_error(
-        mbedtls_ecp_write_key(&ecp, key_buffer, key_buffer_size));
+        mbedtls_ecp_write_key_ext(&ecp, key_buffer_length,
+                                  key_buffer, key_buffer_size));
 
     mbedtls_ecp_keypair_free(&ecp);
-
-    if (status == PSA_SUCCESS) {
-        *key_buffer_length = key_buffer_size;
-    }
 
     return status;
 }
@@ -393,8 +374,8 @@ psa_status_t mbedtls_psa_ecdsa_sign_hash(
     size_t curve_bytes;
     mbedtls_mpi r, s;
 
-    status = mbedtls_psa_ecp_load_representation(attributes->core.type,
-                                                 attributes->core.bits,
+    status = mbedtls_psa_ecp_load_representation(attributes->type,
+                                                 attributes->bits,
                                                  key_buffer,
                                                  key_buffer_size,
                                                  &ecp);
@@ -480,8 +461,8 @@ psa_status_t mbedtls_psa_ecdsa_verify_hash(
 
     (void) alg;
 
-    status = mbedtls_psa_ecp_load_representation(attributes->core.type,
-                                                 attributes->core.bits,
+    status = mbedtls_psa_ecp_load_representation(attributes->type,
+                                                 attributes->bits,
                                                  key_buffer,
                                                  key_buffer_size,
                                                  &ecp);
@@ -545,14 +526,14 @@ psa_status_t mbedtls_psa_key_agreement_ecdh(
     size_t *shared_secret_length)
 {
     psa_status_t status;
-    if (!PSA_KEY_TYPE_IS_ECC_KEY_PAIR(attributes->core.type) ||
+    if (!PSA_KEY_TYPE_IS_ECC_KEY_PAIR(attributes->type) ||
         !PSA_ALG_IS_ECDH(alg)) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
     mbedtls_ecp_keypair *ecp = NULL;
     status = mbedtls_psa_ecp_load_representation(
-        attributes->core.type,
-        attributes->core.bits,
+        attributes->type,
+        attributes->bits,
         key_buffer,
         key_buffer_size,
         &ecp);

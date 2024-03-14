@@ -289,14 +289,14 @@ static psa_status_t psa_cipher_setup(
     int ret = 0;
     size_t key_bits;
     const mbedtls_cipher_info_t *cipher_info = NULL;
-    psa_key_type_t key_type = attributes->core.type;
+    psa_key_type_t key_type = attributes->type;
 
     (void) key_buffer_size;
 
     mbedtls_cipher_init(&operation->ctx.cipher);
 
     operation->alg = alg;
-    key_bits = attributes->core.bits;
+    key_bits = attributes->bits;
     cipher_info = mbedtls_cipher_info_from_psa(alg, key_type,
                                                key_bits, NULL);
     if (cipher_info == NULL) {

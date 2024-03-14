@@ -13,7 +13,7 @@
 
 #include "mbedtls/ssl.h"
 #include "ssl_misc.h"
-#include "mbedtls/debug.h"
+#include "debug_internal.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 #include "constant_time_internal.h"
@@ -1161,6 +1161,7 @@ read_record_header:
     ssl->tls_version = (mbedtls_ssl_protocol_version) mbedtls_ssl_read_version(buf,
                                                                                ssl->conf->transport);
     ssl->session_negotiate->tls_version = ssl->tls_version;
+    ssl->session_negotiate->endpoint = ssl->conf->endpoint;
 
     if (ssl->tls_version != MBEDTLS_SSL_VERSION_TLS1_2) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("server only supports TLS 1.2"));
@@ -2177,11 +2178,6 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
     }
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY */
 
-    if (ssl->conf->f_rng == NULL) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("no RNG provided"));
-        return MBEDTLS_ERR_SSL_NO_RNG;
-    }
-
     /*
      *     0  .   0   handshake type
      *     1  .   3   handshake length
@@ -2702,8 +2698,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
                              PSA_KEY_TYPE_ECC_KEY_PAIR(ssl->handshake->xxdh_psa_type));
             psa_set_key_bits(&key_attributes, ssl->handshake->xxdh_psa_bits);
 
-            key_len = PSA_BITS_TO_BYTES(key->grp.pbits);
-            ret = mbedtls_ecp_write_key(key, buf, key_len);
+            ret = mbedtls_ecp_write_key_ext(key, &key_len, buf, sizeof(buf));
             if (ret != 0) {
                 mbedtls_platform_zeroize(buf, sizeof(buf));
                 break;
@@ -4281,6 +4276,9 @@ static int ssl_write_new_session_ticket(mbedtls_ssl_context *ssl)
      * 10 .  9+n ticket content
      */
 
+#if defined(MBEDTLS_HAVE_TIME)
+    ssl->session_negotiate->ticket_creation_time = mbedtls_ms_time();
+#endif
     if ((ret = ssl->conf->f_ticket_write(ssl->conf->p_ticket,
                                          ssl->session_negotiate,
                                          ssl->out_msg + 10,

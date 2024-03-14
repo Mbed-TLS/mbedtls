@@ -132,10 +132,10 @@ class PSAWrapperGenerator(c_wrapper_generator.Base):
         """
         if not buffer_parameters:
             return
-        out.write('#if defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS)\n')
+        out.write('#if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)\n')
         for param in buffer_parameters:
             self._write_poison_buffer_parameter(out, param, poison)
-        out.write('#endif /* defined(MBEDTLS_PSA_COPY_CALLER_BUFFERS) */\n')
+        out.write('#endif /* !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS) */\n')
 
     @staticmethod
     def _parameter_should_be_copied(function_name: str,

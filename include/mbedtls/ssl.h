@@ -5224,6 +5224,11 @@ int mbedtls_ssl_close_notify(mbedtls_ssl_context *ssl);
  *                   same warnings apply to any use of the
  *                   early_exporter_master_secret.
  *
+ *                 Mbed TLS does not implement one of the anti-replay defenses
+ *                 defined in section 8 of the TLS 1.3 specification:
+ *                 single-ticket use or ClientHello recording within a given
+ *                 time window.
+ *
  * \note           This function is used in conjunction with
  *                 mbedtls_ssl_handshake(), mbedtls_ssl_handshake_step(),
  *                 mbedtls_ssl_read() and mbedtls_ssl_write() to read early

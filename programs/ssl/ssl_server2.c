@@ -1420,7 +1420,6 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
             return MBEDTLS_ERR_SSL_INVALID_MAC;
         case 2:
             return MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         case 3:
             /* Creation time in the future. */
             session->ticket_creation_time = mbedtls_ms_time() + 1000;
@@ -1430,6 +1429,7 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
             session->ticket_creation_time = mbedtls_ms_time() -
                                             (7 * 24 * 3600 * 1000 + 1000);
             break;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         case 5:
             /* Ticket is valid, but client age is below the lower bound of the tolerance window. */
             session->ticket_age_add += MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE + 4 * 1000;
@@ -2708,12 +2708,10 @@ usage:
                                      &psa_alg, &psa_alg2,
                                      &psa_usage,
                                      mbedtls_pk_get_type(&pkey)) == 0) {
-            ret = mbedtls_pk_wrap_as_opaque(&pkey, &key_slot,
-                                            psa_alg, psa_usage, psa_alg2);
-
+            ret = pk_wrap_as_opaque(&pkey, psa_alg, psa_alg2, psa_usage, &key_slot);
             if (ret != 0) {
                 mbedtls_printf(" failed\n  !  "
-                               "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n",
+                               "pk_wrap_as_opaque returned -0x%x\n\n",
                                (unsigned int)  -ret);
                 goto exit;
             }
@@ -2727,12 +2725,10 @@ usage:
                                      &psa_alg, &psa_alg2,
                                      &psa_usage,
                                      mbedtls_pk_get_type(&pkey2)) == 0) {
-            ret = mbedtls_pk_wrap_as_opaque(&pkey2, &key_slot2,
-                                            psa_alg, psa_usage, psa_alg2);
-
+            ret = pk_wrap_as_opaque(&pkey2, psa_alg, psa_alg2, psa_usage, &key_slot2);
             if (ret != 0) {
                 mbedtls_printf(" failed\n  !  "
-                               "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n",
+                               "mbedtls_pk_get_psa_attributes returned -0x%x\n\n",
                                (unsigned int)  -ret);
                 goto exit;
             }

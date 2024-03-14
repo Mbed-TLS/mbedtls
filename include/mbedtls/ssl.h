@@ -734,6 +734,21 @@ typedef enum {
 }
 mbedtls_ssl_states;
 
+/*
+ * Early data status, client side only.
+ */
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+typedef enum {
+/*
+ * See documentation of mbedtls_ssl_get_early_data_status().
+ */
+    MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_INDICATED,
+    MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED,
+    MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED,
+} mbedtls_ssl_early_data_status;
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
+
 /**
  * \brief          Callback type: send data on the network.
  *
@@ -1224,6 +1239,7 @@ struct mbedtls_ssl_session {
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
     unsigned char MBEDTLS_PRIVATE(exported);
+    uint8_t MBEDTLS_PRIVATE(endpoint);          /*!< 0: client, 1: server */
 
     /** TLS version negotiated in the session. Used if and when renegotiating
      *  or resuming a session instead of the configured minor TLS version.
@@ -1257,26 +1273,41 @@ struct mbedtls_ssl_session {
     uint32_t MBEDTLS_PRIVATE(ticket_lifetime);   /*!< ticket lifetime hint    */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_SRV_C) && \
+    defined(MBEDTLS_HAVE_TIME)
+    /*! When a ticket is created by a TLS server as part of an established TLS
+     *  session, the ticket creation time may need to be saved for the ticket
+     *  module to be able to check the ticket age when the ticket is used.
+     *  That's the purpose of this field.
+     *  Before creating a new ticket, an Mbed TLS server set this field with
+     *  its current time in milliseconds. This time may then be saved in the
+     *  session ticket data by the session ticket writing function and
+     *  recovered by the ticket parsing function later when the ticket is used.
+     *  The ticket module may then use this time to compute the ticket age and
+     *  determine if it has expired or not.
+     *  The Mbed TLS implementations of the session ticket writing and parsing
+     *  functions save and retrieve the ticket creation time as part of the
+     *  session ticket data. The session ticket parsing function relies on
+     *  the mbedtls_ssl_session_get_ticket_creation_time() API to get the
+     *  ticket creation time from the session ticket data.
+     */
+    mbedtls_ms_time_t MBEDTLS_PRIVATE(ticket_creation_time);
+#endif
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
-    uint8_t MBEDTLS_PRIVATE(endpoint);          /*!< 0: client, 1: server */
-    uint8_t MBEDTLS_PRIVATE(ticket_flags);      /*!< Ticket flags */
-    uint32_t MBEDTLS_PRIVATE(ticket_age_add);               /*!< Randomly generated value used to obscure the age of the ticket */
-    uint8_t MBEDTLS_PRIVATE(resumption_key_len);            /*!< resumption_key length */
+    uint32_t MBEDTLS_PRIVATE(ticket_age_add);     /*!< Randomly generated value used to obscure the age of the ticket */
+    uint8_t MBEDTLS_PRIVATE(ticket_flags);        /*!< Ticket flags */
+    uint8_t MBEDTLS_PRIVATE(resumption_key_len);  /*!< resumption_key length */
     unsigned char MBEDTLS_PRIVATE(resumption_key)[MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN];
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && defined(MBEDTLS_SSL_CLI_C)
     char *MBEDTLS_PRIVATE(hostname);             /*!< host name binded with tickets */
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION && MBEDTLS_SSL_CLI_C */
 
-#if defined(MBEDTLS_HAVE_TIME)
-#if defined(MBEDTLS_SSL_CLI_C)
-    mbedtls_ms_time_t MBEDTLS_PRIVATE(ticket_reception_time);   /*!< time when ticket was received. */
+#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_CLI_C)
+    /*! Time in milliseconds when the last ticket was received. */
+    mbedtls_ms_time_t MBEDTLS_PRIVATE(ticket_reception_time);
 #endif
-#if defined(MBEDTLS_SSL_SRV_C)
-    mbedtls_ms_time_t MBEDTLS_PRIVATE(ticket_creation_time);    /*!< time when ticket was created. */
-#endif
-#endif /* MBEDTLS_HAVE_TIME */
-
 #endif /*  MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
@@ -1657,33 +1688,29 @@ struct mbedtls_ssl_context {
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
     /**
-     *  Maximum TLS version to be negotiated, then negotiated TLS version.
+     * Maximum TLS version to be negotiated, then negotiated TLS version.
      *
-     *  It is initialized as the configured maximum TLS version to be
-     *  negotiated by mbedtls_ssl_setup().
+     * It is initialized as the configured maximum TLS version to be
+     * negotiated by mbedtls_ssl_setup().
      *
-     *  When renegotiating or resuming a session, it is overwritten in the
-     *  ClientHello writing preparation stage with the previously negotiated
-     *  TLS version.
+     * When renegotiating or resuming a session, it is overwritten in the
+     * ClientHello writing preparation stage with the previously negotiated
+     * TLS version.
      *
-     *  On client side, it is updated to the TLS version selected by the server
-     *  for the handshake when the ServerHello is received.
+     * On client side, it is updated to the TLS version selected by the server
+     * for the handshake when the ServerHello is received.
      *
-     *  On server side, it is updated to the TLS version the server selects for
-     *  the handshake when the ClientHello is received.
+     * On server side, it is updated to the TLS version the server selects for
+     * the handshake when the ClientHello is received.
      */
     mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(tls_version);
 
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
     /**
-     *  Status of the negotiation of the use of early data.
-     *  See the documentation of mbedtls_ssl_get_early_data_status() for more
-     *  information.
-     *
-     *  Reset to #MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT when the context is
-     *  reset.
+     * State of the negotiation and transfer of early data. Reset to
+     * MBEDTLS_SSL_EARLY_DATA_STATE_IDLE when the context is reset.
      */
-    int MBEDTLS_PRIVATE(early_data_status);
+    int MBEDTLS_PRIVATE(early_data_state);
 #endif
 
     unsigned MBEDTLS_PRIVATE(badmac_seen);       /*!< records with a bad MAC received    */
@@ -1802,7 +1829,8 @@ struct mbedtls_ssl_context {
                                                          *   within a single datagram.  */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+#if defined(MBEDTLS_SSL_SRV_C)
     /*
      * One of:
      * MBEDTLS_SSL_EARLY_DATA_NO_DISCARD
@@ -1811,6 +1839,8 @@ struct mbedtls_ssl_context {
      */
     uint8_t MBEDTLS_PRIVATE(discard_early_data_record);
 #endif
+    uint32_t MBEDTLS_PRIVATE(total_early_data_size); /*!< Number of received/written early data bytes */
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
     /*
      * Record layer (outgoing data)
@@ -2630,7 +2660,72 @@ void mbedtls_ssl_conf_session_tickets_cb(mbedtls_ssl_config *conf,
                                          mbedtls_ssl_ticket_write_t *f_ticket_write,
                                          mbedtls_ssl_ticket_parse_t *f_ticket_parse,
                                          void *p_ticket);
+
+#if defined(MBEDTLS_HAVE_TIME)
+/**
+ * \brief Get the creation time of a session ticket.
+ *
+ * \note See the documentation of \c ticket_creation_time for information about
+ *       the intended usage of this function.
+ *
+ * \param session  SSL session
+ * \param ticket_creation_time  On exit, holds the ticket creation time in
+ *                              milliseconds.
+ *
+ * \return         0 on success,
+ *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if an input is not valid.
+ */
+static inline int mbedtls_ssl_session_get_ticket_creation_time(
+    mbedtls_ssl_session *session, mbedtls_ms_time_t *ticket_creation_time)
+{
+    if (session == NULL || ticket_creation_time == NULL ||
+        session->MBEDTLS_PRIVATE(endpoint) != MBEDTLS_SSL_IS_SERVER) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    *ticket_creation_time = session->MBEDTLS_PRIVATE(ticket_creation_time);
+
+    return 0;
+}
+#endif /* MBEDTLS_HAVE_TIME */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
+
+/**
+ * \brief          Get the session-id buffer.
+ *
+ * \param session  SSL session.
+ *
+ * \return         The address of the session-id buffer.
+ */
+static inline unsigned const char (*mbedtls_ssl_session_get_id(const mbedtls_ssl_session *
+                                                               session))[32]
+{
+    return &session->MBEDTLS_PRIVATE(id);
+}
+
+/**
+ * \brief          Get the size of the session-id.
+ *
+ * \param session  SSL session.
+ *
+ * \return         size_t size of session-id buffer.
+ */
+static inline size_t mbedtls_ssl_session_get_id_len(const mbedtls_ssl_session *session)
+{
+    return session->MBEDTLS_PRIVATE(id_len);
+}
+
+/**
+ * \brief          Get the ciphersuite-id.
+ *
+ * \param session  SSL session.
+ *
+ * \return         int represetation for ciphersuite.
+ */
+static inline int mbedtls_ssl_session_get_ciphersuite_id(const mbedtls_ssl_session *session)
+{
+    return session->MBEDTLS_PRIVATE(ciphersuite);
+}
 
 /**
  * \brief   Configure a key export callback.
@@ -4737,7 +4832,7 @@ const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert(const mbedtls_ssl_context *ssl
  * \param ssl      The SSL context representing the connection for which to
  *                 to export a session structure for later resumption.
  * \param session  The target structure in which to store the exported session.
- *                 This must have been initialized with mbedtls_ssl_init_session()
+ *                 This must have been initialized with mbedtls_ssl_session_init()
  *                 but otherwise be unused.
  *
  * \note           This function can handle a variety of mechanisms for session
@@ -5106,10 +5201,6 @@ int mbedtls_ssl_close_notify(mbedtls_ssl_context *ssl);
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT  1
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED  2
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED  3
-
 #if defined(MBEDTLS_SSL_SRV_C)
 /**
  * \brief          Read at most 'len' bytes of early data
@@ -5162,17 +5253,43 @@ int mbedtls_ssl_read_early_data(mbedtls_ssl_context *ssl,
  * \brief          Try to write exactly 'len' application data bytes while
  *                 performing the handshake (early data).
  *
+ * \warning        Early data is defined in the TLS 1.3 specification, RFC 8446.
+ *                 IMPORTANT NOTE from section 2.3 of the specification:
+ *
+ *                 The security properties for 0-RTT data are weaker than
+ *                 those for other kinds of TLS data. Specifically:
+ *                 - This data is not forward secret, as it is encrypted
+ *                   solely under keys derived using the offered PSK.
+ *                 - There are no guarantees of non-replay between connections.
+ *                   Protection against replay for ordinary TLS 1.3 1-RTT data
+ *                   is provided via the server's Random value, but 0-RTT data
+ *                   does not depend on the ServerHello and therefore has
+ *                   weaker guarantees. This is especially relevant if the
+ *                   data is authenticated either with TLS client
+ *                   authentication or inside the application protocol. The
+ *                   same warnings apply to any use of the
+ *                   early_exporter_master_secret.
+ *
  * \note           This function behaves mainly as mbedtls_ssl_write(). The
  *                 specification of mbedtls_ssl_write() relevant to TLS 1.3
  *                 (thus not the parts specific to (D)TLS1.2) applies to this
- *                 function and the present documentation is restricted to the
- *                 differences with mbedtls_ssl_write().
+ *                 function and the present documentation is mainly restricted
+ *                 to the differences with mbedtls_ssl_write(). One noticeable
+ *                 difference though is that mbedtls_ssl_write() aims to
+ *                 complete the handshake before to write application data
+ *                 while mbedtls_ssl_write_early() aims to drive the handshake
+ *                 just past the point where it is not possible to send early
+ *                 data anymore.
  *
  * \param ssl      SSL context
  * \param buf      buffer holding the data
  * \param len      how many bytes must be written
  *
- * \return         One additional specific return value:
+ * \return         The (non-negative) number of bytes actually written if
+ *                 successful (may be less than \p len).
+ *
+ * \return         One additional specific error code compared to
+ *                 mbedtls_ssl_write():
  *                 #MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA.
  *
  *                 #MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA is returned when it
@@ -5193,9 +5310,11 @@ int mbedtls_ssl_read_early_data(mbedtls_ssl_context *ssl,
  *                 already completed.
  *
  *                 It is not possible to write early data for the SSL context
- *                 \p ssl but this does not preclude for using it with
+ *                 \p ssl and any subsequent call to this API will return this
+ *                 error code. But this does not preclude for using it with
  *                 mbedtls_ssl_write(), mbedtls_ssl_read() or
- *                 mbedtls_ssl_handshake().
+ *                 mbedtls_ssl_handshake() and the handshake can be
+ *                 completed by calling one of these APIs.
  *
  * \note           This function may write early data only if the SSL context
  *                 has been configured for the handshake with a PSK for which
@@ -5228,8 +5347,8 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
  * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if this function is called
  *                 prior to completion of the handshake.
  *
- * \return         #MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT if the client has
- *                 not indicated the use of early data to the server.
+ * \return         #MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_INDICATED if the client
+ *                 has not indicated the use of early data to the server.
  *
  * \return         #MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED if the client has
  *                 indicated the use of early data and the server has accepted

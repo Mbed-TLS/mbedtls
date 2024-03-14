@@ -468,6 +468,11 @@ static inline const char *mbedtls_ssl_ciphersuite_get_name(const mbedtls_ssl_cip
     return info->MBEDTLS_PRIVATE(name);
 }
 
+static inline int mbedtls_ssl_ciphersuite_get_id(const mbedtls_ssl_ciphersuite_t *info)
+{
+    return info->MBEDTLS_PRIVATE(id);
+}
+
 size_t mbedtls_ssl_ciphersuite_get_cipher_key_bitlen(const mbedtls_ssl_ciphersuite_t *info);
 
 #ifdef __cplusplus

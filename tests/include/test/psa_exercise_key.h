@@ -14,21 +14,17 @@
 
 #include <psa/crypto.h>
 
+#if defined(MBEDTLS_PK_C)
+#include <mbedtls/pk.h>
+#endif
+
 /** \def KNOWN_SUPPORTED_HASH_ALG
  *
  * A hash algorithm that is known to be supported.
  *
  * This is used in some smoke tests.
  */
-#if defined(PSA_WANT_ALG_MD5)
-#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_MD5
-/* PSA_WANT_ALG_RIPEMD160 omitted. This is necessary for the sake of
- * exercise_signature_key() because Mbed TLS doesn't support RIPEMD160
- * in RSA PKCS#1v1.5 signatures. A RIPEMD160-only configuration would be
- * implausible anyway. */
-#elif defined(PSA_WANT_ALG_SHA_1)
-#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_1
-#elif defined(PSA_WANT_ALG_SHA_256)
+#if defined(PSA_WANT_ALG_SHA_256)
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_256
 #elif defined(PSA_WANT_ALG_SHA_384)
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_384
@@ -36,6 +32,14 @@
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_512
 #elif defined(PSA_WANT_ALG_SHA3_256)
 #define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA3_256
+#elif defined(PSA_WANT_ALG_SHA_1)
+#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_SHA_1
+#elif defined(PSA_WANT_ALG_MD5)
+#define KNOWN_SUPPORTED_HASH_ALG PSA_ALG_MD5
+/* PSA_WANT_ALG_RIPEMD160 omitted. This is necessary for the sake of
+ * exercise_signature_key() because Mbed TLS doesn't support RIPEMD160
+ * in RSA PKCS#1v1.5 signatures. A RIPEMD160-only configuration would be
+ * implausible anyway. */
 #else
 #undef KNOWN_SUPPORTED_HASH_ALG
 #endif
@@ -220,5 +224,38 @@ int mbedtls_test_psa_exercise_key(mbedtls_svc_key_id_t key,
 
 psa_key_usage_t mbedtls_test_psa_usage_to_exercise(psa_key_type_t type,
                                                    psa_algorithm_t alg);
+
+/** Whether the specified algorithm can be exercised.
+ *
+ * \note This function is solely based on the algorithm and does not
+ *       consider potential issues with the compatibility of a key.
+ *       The idea is that you already have a key, so you know that the
+ *       key type is supported, and you want to exercise the key but
+ *       only if the algorithm given in its policy is enabled in the
+ *       compile-time configuration.
+ *
+ * \note This function currently only supports signature algorithms
+ *       (including wildcards).
+ *       TODO: a more general mechanism, which should be automatically
+ *       generated and possibly available as a library function?
+ */
+int mbedtls_test_can_exercise_psa_algorithm(psa_algorithm_t alg);
+
+#if defined(MBEDTLS_PK_C)
+/** PK-PSA key consistency test.
+ *
+ * This function tests that the pk context and the PSA key are
+ * consistent. At a minimum:
+ *
+ * - The two objects must contain keys of the same type,
+ *   or a key pair and a public key of the matching type.
+ * - The two objects must have the same public key.
+ *
+ * \retval 0 The key failed the consistency tests.
+ * \retval 1 The key passed the consistency tests.
+ */
+int mbedtls_test_key_consistency_psa_pk(mbedtls_svc_key_id_t psa_key,
+                                        const mbedtls_pk_context *pk);
+#endif /* MBEDTLS_PK_C */
 
 #endif /* PSA_EXERCISE_KEY_H */

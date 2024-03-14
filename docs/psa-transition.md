@@ -50,7 +50,7 @@ Then use the [summary of API modules](#summary-of-api-modules), the table of con
 
 To make the PSA API available, make sure that the configuration option [`MBEDTLS_PSA_CRYPTO_C`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/mbedtls__config_8h/#c.MBEDTLS_PSA_CRYPTO_C) is enabled. (It is enabled in the default configuration.)
 
-You should probably enable [`MBEDTLS_USE_PSA_CRYPTO`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/mbedtls__config_8h/#mbedtls__config_8h_1a70fd7b97d5f11170546583f2095942a6) as well (it is disabled by default). This option causes the PK, X.509 and TLS modules to use PSA crypto under the hood. Some functions that facilitate the transition (for example, to convert between metadata encodings or between key representations) are only available when `MBEDTLS_USE_PSA_CRYPTO` is enabled.
+You should probably enable [`MBEDTLS_USE_PSA_CRYPTO`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/mbedtls__config_8h/#mbedtls__config_8h_1a70fd7b97d5f11170546583f2095942a6) as well (it is disabled by default). This option causes the PK, X.509 and TLS modules to use PSA crypto under the hood.
 
 By default, the PSA crypto API offers a similar set of cryptographic mechanisms as those offered by the legacy API (configured by `MBEDTLS_XXX` macros). The PSA crypto API also has its own configuration mechanism; see “[Cryptographic mechanism availability](#cryptographic-mechanism-availability)”.
 
@@ -779,9 +779,9 @@ A finite-field Diffie-Hellman key can be used for key agreement with the algorit
 
 The easiest way to create a key pair object is by randomly generating it with [`psa_generate_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__random/#group__random_1ga1985eae417dfbccedf50d5fff54ea8c5). Compared with the low-level functions from the legacy API (`mbedtls_rsa_gen_key`, `mbedtls_ecp_gen_privkey`, `mbedtls_ecp_gen_keypair`, `mbedtls_ecp_gen_keypair_base`, `mbedtls_ecdsa_genkey`), this directly creates an object that can be used with high-level APIs, but removes some of the flexibility. Note that if you want to export the generated private key, you must pass the flag [`PSA_KEY_USAGE_EXPORT`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__policy/#group__policy_1ga7dddccdd1303176e87a4d20c87b589ed) to [`psa_set_key_usage_flags`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1ga42a65b3c4522ce9b67ea5ea7720e17de); exporting the public key with [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) is always permitted.
 
-For RSA keys, `psa_generate_key` always uses 65537 as the public exponent. If you need a different public exponent, use the legacy interface to create the key then import it as described in “[Importing legacy keys via the PK module](#importing-legacy-keys-via-the-pk-module)”.
+For RSA keys, `psa_generate_key` uses 65537 as the public exponent. You can use [`psa_generate_key_ext`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__random/#group__random_1ga6776360ae8046a4456a5f990f997da58) to select a different public exponent. As of Mbed TLS 3.6.0, selecting a different public exponent is only supported with the built-in RSA implementation, not with PSA drivers.
 
-To create a key object from existing material, use [`psa_import_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga0336ea76bf30587ab204a8296462327b). While this function has the same basic goal as the PK parse functions (`mbedtls_pk_parse_key`, `mbedtls_pk_parse_public_key`, `mbedtls_pk_parse_subpubkey`), it is limited to a single format that just contains the number(s) that make up the key, with very little metadata. This format is a substring of one of the formats accepted by the PK functions (except for finite-field Diffie-Hellman which the PK module does not support). The table below summarizes the PSA import/export format for key pairs and public keys; see the documentation of [`psa_export_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga668e35be8d2852ad3feeef74ac6f75bf) and [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) for more details.
+To create a key object from existing material, use [`psa_import_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga0336ea76bf30587ab204a8296462327b). This function has the same basic goal as the PK parse functions (`mbedtls_pk_parse_key`, `mbedtls_pk_parse_public_key`, `mbedtls_pk_parse_subpubkey`), but only supports a single format that just contains the number(s) that make up the key, with very little metadata. The table below summarizes the PSA import/export format for key pairs and public keys; see the documentation of [`psa_export_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga668e35be8d2852ad3feeef74ac6f75bf) and [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) for more details.
 
 | Key type | PSA import/export format |
 | -------- | ------------------------ |
@@ -795,95 +795,45 @@ To create a key object from existing material, use [`psa_import_key`](https://mb
 
 There is no equivalent of `mbedtls_pk_parse_keyfile` and `mbedtls_pk_parse_public_keyfile`. Either call the legacy function or load the file data manually.
 
-A future extension of the PSA API will support other import formats. Until those are implemented, see the following subsections for ways to use the PK module for key parsing and construct a PSA key object from the PK object.
+A future extension of the PSA API will support other import formats. Until those are implemented, see the following subsection for how to use the PK module for key parsing and construct a PSA key object from the PK object.
 
-#### Importing legacy keys via the PK module
+### Creating a PSA key via PK
 
-You can use glue functions in the PK module to create a key object using the legacy API, then import that object into the PSA subsystem. This is useful for use cases that the PSA API does not currently cover, such as:
+You can use the PK module as an intermediate step to create an RSA or ECC key for use with PSA. This is useful for use cases that the PSA API does not currently cover, such as:
 
 * Parsing a key in a format with metadata without knowing its type ahead of time.
+* Parsing a key in a format that the PK module supports, but `psa_import_key` doesn't.
 * Importing a key which you have in the form of a list of numbers, rather than the binary encoding required by `psa_import_key`.
 * Importing a key with less information than what the PSA API needs, for example an ECC public key in a compressed format, an RSA private key without the private exponent, or an RSA private key without the CRT parameters.
-* Generating an RSA key with $e \ne 65537$.
 
-#### Importing a PK key by wrapping
+For such use cases:
 
-If you have a PK object, you can call `mbedtls_pk_wrap_as_opaque` to create a PSA key object with the same key material. (This function is only present in builds with `MBEDTLS_USE_PSA_CRYPTO` enabled. It is experimental and [will likely be replaced by a slightly different interface in a future version of Mbed TLS](https://github.com/Mbed-TLS/mbedtls/issues/7760)). This function automatically determines the PSA key type and lets you specify the usage policy (see “[Public-key cryptography policies](#public-key-cryptography-policies)”). Once you've called this function, you can destroy the PK object. This function calls `psa_import_key` internally; call [`psa_destroy_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__management/#group__key__management_1ga5f52644312291335682fbc0292c43cd2) to destroy the PSA key object once your application no longer needs it. Common scenarios where this workflow is useful are:
+1. First create a PK object with the desired key material.
+2. Call [`mbedtls_pk_get_psa_attributes`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/pk_8h/#pk_8h_1a7aa7b33cffb6981d95d1632631de9244) to fill PSA attributes corresponding to the PK key. Pass one of the following values as the `usage` parameter:
+    * `PSA_KEY_USAGE_SIGN_HASH` or `PSA_KEY_USAGE_SIGN_MESSAGE` for a key pair used for signing.
+    * `PSA_KEY_USAGE_DECRYPT` for a key pair used for decryption.
+    * `PSA_KEY_USAGE_DERIVE` for a key pair used for key agreement.
+    * `PSA_KEY_USAGE_VERIFY_HASH` or `PSA_KEY_USAGE_VERIFY_MESSAGE` for a public key pair used for signature verification.
+    * `PSA_KEY_USAGE_ENCRYPT` for a key pair used for encryption.
+3. Optionally, tweak the attributes (this is rarely necessary). For example:
+    * Call [`psa_set_key_usage_flags`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1ga42a65b3c4522ce9b67ea5ea7720e17de), [`psa_set_key_algorithm`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1gaeb8341ca52baa0279475ea3fd3bcdc98) and/or [`psa_set_key_enrollment_algorithm`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__extra_8h/#group__attributes_1gaffa134b74aa52aa3ed9397fcab4005aa) to change the key's policy (by default, it allows what can be done through the PK module).
+    · Call [`psa_set_key_id`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1gae48fcfdc72a23e7499957d7f54ff5a64) and perhaps [`psa_set_key_lifetime`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1gac03ccf09ca6d36cc3d5b43f8303db6f7) to create a PSA persistent key.
+4. Call [`mbedtls_pk_import_into_psa`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/pk_8h/#pk_8h_1ad59835d14832daf0f4b4bd0a4555abb9) to import the key into the PSA key store.
+5. You can now free the PK object with `mbedtls_pk_free`.
 
-* You have working code that's calling `mbedtls_pk_parse_key`, `mbedtls_pk_parse_public_key`, `mbedtls_pk_parse_subpubkey`, `mbedtls_pk_parse_keyfile` or `mbedtls_pk_parse_public_keyfile` to create a PK object.
-* You have working code that's using the `rsa.h` or `ecp.h` API to create a key object, and there is no PSA equivalent.
-
-You can use this workflow to import an RSA key via an `mbedtls_rsa_context` object or an ECC key via an `mbedtls_ecp_keypair` object:
-
-1. Call `mbedtls_pk_init` then `mbedtls_pk_setup` to set up a PK context for the desired key type (`MBEDTLS_PK_RSA` or `MBEDTLS_PK_ECKEY`).
-2. Call `mbedtls_pk_rsa` or `mbedtls_pk_ec` to obtain the underlying low-level context.
-3. Call `mbedtls_rsa_xxx` or `mbedtls_ecp_xxx` functions to construct the desired key. For example:
-    * `mbedtls_rsa_import` or `mbedtls_rsa_import_raw` followed by `mbedtls_rsa_complete` to create an RSA private key without all the parameters required by the PSA API.
-    * `mbedtls_rsa_gen_key` to generate an RSA private key with a custom public exponent.
-4. Call `mbedtls_pk_wrap_as_opaque` as described above to create a corresponding PSA key object.
-5. Call `mbedtls_pk_free` to free the resources associated with the PK object.
-
-#### Importing a PK key by export-import
-
-This section explains how to export a PK object in the PSA import format. The process depends on the key type. You can use `mbedtls_pk_get_type` or `mbedtls_pk_can_do` to distinguish between RSA and ECC keys. The snippets below assume that the key is in an `mbedtls_pk_context pk`, and omit error checking.
-
-For an RSA private key:
+Here is some sample code illustrating the above process, with error checking omitted.
 
 ```
-unsigned char buf[PSA_EXPORT_KEY_PAIR_MAX_SIZE];
-size_t length = mbedtls_pk_write_key_der(&pk, buf, sizeof(buf));
+mbedtls_pk_context pk;
+mbedtls_pk_init(&pk);
+mbedtls_pk_parse_key(&pk, key_buffer, key_buffer_length, NULL, 0,
+                     mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE);
 psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-psa_set_key_attributes(&attributes, PSA_KEY_TYPE_RSA_KEY_PAIR);
-psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_... | ...);
-psa_set_key_algorithm(&attributes, PSA_ALGORITHM_...);
-psa_key_id_t key_id = 0;
-psa_import_key(&attributes, buf + sizeof(buf) - length, length, &key_id);
+mbedtls_pk_get_psa_attributes(&pk, PSA_KEY_USAGE_SIGN_HASH, &attributes);
+psa_key_id_t key_id;
+mbedtls_pk_import_into_psa(&pk, &attributes, &key_id);
 mbedtls_pk_free(&pk);
-```
-
-For an ECC private key (a future version of Mbed TLS [will provide a more direct way to find the curve family](https://github.com/Mbed-TLS/mbedtls/issues/7764)):
-
-```
-unsigned char buf[PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
-size_t length = PSA_BITS_TO_BYTES(mbedtls_pk_bitlen(&pk));
-mbedtls_ecp_keypair *ec = mbedtls_pk_ec(&pk);
-psa_ecc_curve_t curve;
-{
-    mbedtls_ecp_group grp;
-    mbedtls_ecp_group_init(&grp);
-    mbedtls_ecp_point Q;
-    mbedtls_ecp_point_init(&Q);
-    mbedtls_mpi d;
-    mbedtls_mpi_init(&d);
-    mbedtls_ecp_export(ec, &grp, &d, &Q);
-    size_t bits;
-    curve = mbedtls_ecc_group_to_psa(grp.id, &bits);
-    mbedtls_ecp_group_free(&grp);
-    mbedtls_ecp_point_free(&Q);
-    mbedtls_mpi_free(&d);
-}
-mbedtls_ecp_write_key(ec, buf, length);
-psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
-psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_... | ...);
-psa_set_key_algorithm(&attributes, PSA_ALGORITHM_...);
-psa_key_id_t key_id = 0;
-psa_import_key(&attributes, buf, length, &key_id);
-mbedtls_pk_free(&pk);
-```
-
-For an RSA or ECC public key:
-
-```
-unsigned char buf[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
-size_t length = mbedtls_pk_write_pubkey(&pk, buf, sizeof(buf));
-psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-psa_set_key_attributes(&attributes, ...); // need to determine the type manually
-psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_... | ...);
-psa_set_key_algorithm(&attributes, PSA_ALGORITHM_...);
-psa_key_id_t key_id = 0;
-psa_import_key(&attributes, buf + sizeof(buf) - length, length, &key_id);
-mbedtls_pk_free(&pk);
+psa_sign_hash(key_id, ...);
 ```
 
 #### Importing an elliptic curve key from ECP
@@ -900,8 +850,8 @@ mbedtls_ecp_keypair_init(&ec);
 // Omitted: fill ec with key material
 // (the public key will not be used and does not need to be set)
 unsigned char buf[PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
-size_t length = PSA_BITS_TO_BYTES(mbedtls_pk_bitlen(&pk));
-mbedtls_ecp_write_key(&ec, buf, length);
+size_t length;
+mbedtls_ecp_write_key_ext(&ec, &length, buf, sizeof(buf));
 psa_ecc_curve_t curve = ...; // need to determine the curve family manually
 psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 psa_set_key_attributes(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
@@ -952,11 +902,33 @@ To export a PSA public key or to export the public key of a PSA key pair object,
 
 The export format is the same format used for `psa_import_key`, described in “[Creating keys for asymmetric cryptography](#creating-keys-for-asymmetric-cryptography)” above.
 
-A future extension of the PSA API will support other export formats. Until those are implemented, see “[Exporting a PK key by wrapping](#exporting-a-pk-key-by-wrapping)” for ways to use the PK module to format a PSA key.
+A future extension of the PSA API will support other export formats. Until those are implemented, see “[Exposing a PSA key via PK](#exposing-a-psa-key-via-pk)” for ways to use the PK module to format a PSA key.
 
-#### Exporting a PK key by wrapping
+#### Exposing a PSA key via PK
 
-You can wrap a PSA key object in a PK key context with `mbedtls_pk_setup_opaque`. This allows you to call functions such as `mbedtls_pk_write_key_der`, `mbedtls_pk_write_pubkey_der`, `mbedtls_pk_write_pubkey_pem`, `mbedtls_pk_write_key_pem` or `mbedtls_pk_write_pubkey` to export the key data in various formats.
+This section discusses how to use a PSA key in a context that requires a PK object, such as PK formatting functions (`mbedtls_pk_write_key_der`, `mbedtls_pk_write_pubkey_der`, `mbedtls_pk_write_pubkey_pem`, `mbedtls_pk_write_key_pem` or `mbedtls_pk_write_pubkey`), Mbed TLS X.509 functions, Mbed TLS SSL functions, or another API that involves `mbedtls_pk_context` objects. The PSA key must be an RSA or ECC key since the PK module does not support DH keys. Three functions from `pk.h` help with that:
+
+* [`mbedtls_pk_copy_from_psa`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/pk_8h/#pk_8h_1ab8e88836fd9ee344ffe630c40447bd08) copies a PSA key into a PK object. The PSA key must be exportable. The PK object remains valid even if the PSA key is destroyed.
+* [`mbedtls_pk_copy_public_from_psa`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/pk_8h/#pk_8h_1a2a50247a528889c12ea0ddddb8b15a4e) copies the public part of a PSA key into a PK object. The PK object remains valid even if the PSA key is destroyed.
+* [`mbedtls_pk_setup_opaque`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/pk_8h/#pk_8h_1a4c04ac22ab9c1ae09cc29438c308bf05) sets up a PK object that wraps the PSA key. This functionality is only available when `MBEDTLS_USE_PSA_CRYPTO` is enabled. The PK object has the type `MBEDTLS_PK_OPAQUE` regardless of whether the key is an RSA or ECC key. The PK object can only be used as permitted by the PSA key's policy. The PK object contains a reference to the PSA key identifier, therefore PSA key must not be destroyed as long as the PK object remains alive.
+
+Here is some sample code illustrating how to use the PK module to format a PSA public key or the public key of a PSA key pair.
+```
+int write_psa_pubkey(psa_key_id_t key_id,
+                     unsigned char *buf, size_t size, size_t *len) {
+    mbedtls_pk_context pk;
+    mbedtls_pk_init(&pk);
+    int ret = mbedtls_pk_copy_public_from_psa(key_id, &pk);
+    if (ret != 0) goto exit;
+    ret = mbedtls_pk_write_pubkey_der(&pk, buf, size);
+    if (ret < 0) goto exit;
+    *len = ret;
+    memmove(buf, buf + size - ret, ret);
+    ret = 0;
+exit:
+    mbedtls_pk_free(&pk);
+}
+```
 
 ### Signature operations
 
@@ -983,7 +955,8 @@ The following subsections describe the PSA signature mechanisms that correspond 
 
 #### ECDSA signature
 
-**Note: in the PSA API, the format of an ECDSA signature is the raw fixed-size format. This is different from the legacy API** which uses the ASN.1 DER format for ECDSA signatures. A future version of Mbed TLS [will provide a way to convert between the two formats](https://github.com/Mbed-TLS/mbedtls/issues/7765).
+**Note: in the PSA API, the format of an ECDSA signature is the raw fixed-size format. This is different from the legacy API** which uses the ASN.1 DER format for ECDSA signatures. To convert between the two formats, use [`mbedtls_ecdsa_raw_to_der`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/psa__util_8h/#group__psa__tls__helpers_1ga9295799b5437bdff8ce8abd524c5ef2e) or [`mbedtls_ecdsa_der_to_raw`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/psa__util_8h/#group__psa__tls__helpers_1ga33b3cf65d5992ccc724b7ee00186ae61).
+
 <!-- The following are specific to the DER format and therefore have no PSA equivalent: MBEDTLS_ECDSA_MAX_SIG_LEN, MBEDTLS_ECDSA_MAX_LEN -->
 
 ECDSA is the mechanism provided by `mbedtls_pk_sign` and `mbedtls_pk_verify` for ECDSA keys, as well as by `mbedtls_ecdsa_sign`, `mbedtls_ecdsa_sign_det_ext`, `mbedtls_ecdsa_write_signature`, `mbedtls_ecdsa_verify` and `mbedtls_ecdsa_read_signature`.
@@ -1300,7 +1273,7 @@ There is no PSA equivalent to the types `mbedtls_ecdsa_context` and `mbedtls_ecd
 The PSA API is a cryptography API, not an arithmetic API. As a consequence, there is no PSA equivalent for the ECC arithmetic functionality exposed by `ecp.h`:
 
 * Manipulation of point objects and input-output: the type `mbedtls_ecp_point` and functions operating on it (`mbedtls_ecp_point_xxx`, `mbedtls_ecp_copy`, `mbedtls_ecp_{set,is}_zero`, `mbedtls_ecp_tls_{read,write}_point`). Note that the PSA export format for public keys corresponds to the uncompressed point format (`MBEDTLS_ECP_PF_UNCOMPRESSED`), so [`psa_import_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga0336ea76bf30587ab204a8296462327b), [`psa_export_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga668e35be8d2852ad3feeef74ac6f75bf) and [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) are equivalent to `mbedtls_ecp_point_read_binary` and `mbedtls_ecp_point_write_binary` for uncompressed points. The PSA API does not currently support compressed points, but it is likely that such support will be added in the future.
-* Manipulation of key pairs as such, with a bridge to bignum arithmetic (`mbedtls_ecp_keypair` type, `mbedtls_ecp_export`). However, the PSA export format for ECC private keys used by [`psa_import_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga0336ea76bf30587ab204a8296462327b), [`psa_export_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga668e35be8d2852ad3feeef74ac6f75bf) is the same as the format used by `mbedtls_ecp_read_key` and `mbedtls_ecp_write_key`.
+* Manipulation of key pairs as such, with a bridge to bignum arithmetic (`mbedtls_ecp_keypair` type, `mbedtls_ecp_export`). However, the PSA export format for ECC private keys used by [`psa_import_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga0336ea76bf30587ab204a8296462327b), [`psa_export_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga668e35be8d2852ad3feeef74ac6f75bf) is the same as the format used by `mbedtls_ecp_read_key` and `mbedtls_ecp_write_key_ext`.
 * Elliptic curve arithmetic (`mbedtls_ecp_mul`, `mbedtls_ecp_muladd` and their restartable variants).
 
 ### Additional information about RSA

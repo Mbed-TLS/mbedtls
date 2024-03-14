@@ -458,7 +458,7 @@ void create_fail(int lifetime_arg, int id_arg,
          * PSA key attributes APIs thus accessing to the attributes
          * directly.
          */
-        attributes.core.id = id;
+        attributes.id = id;
     } else {
         psa_set_key_id(&attributes, id);
     }
@@ -992,7 +992,7 @@ void non_reusable_key_slots_integrity_in_case_of_key_slot_starvation()
      * Check that we can now access the persistent key again.
      */
     PSA_ASSERT(psa_get_key_attributes(persistent_key, &attributes));
-    TEST_ASSERT(mbedtls_svc_key_id_equal(attributes.core.id,
+    TEST_ASSERT(mbedtls_svc_key_id_equal(attributes.id,
                                          persistent_key));
 
     /*

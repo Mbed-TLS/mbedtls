@@ -107,6 +107,9 @@ void psa_wipe_all_key_slots(void);
  * It is the responsibility of the caller to change the slot's state to
  * PSA_SLOT_EMPTY/FULL once key creation has finished.
  *
+ * If multi-threading is enabled, the caller must hold the
+ * global key slot mutex.
+ *
  * \param[out] volatile_key_id   On success, volatile key identifier
  *                               associated to the returned slot.
  * \param[out] p_slot            On success, a pointer to the slot.
@@ -201,6 +204,27 @@ static inline psa_status_t psa_register_read(psa_key_slot_t *slot)
  *             Or registered_readers was equal to 0.
  */
 psa_status_t psa_unregister_read(psa_key_slot_t *slot);
+
+/** Wrap a call to psa_unregister_read in the global key slot mutex.
+ *
+ * If threading is disabled, this simply calls psa_unregister_read.
+ *
+ * \note To ease the handling of errors in retrieving a key slot
+ *       a NULL input pointer is valid, and the function returns
+ *       successfully without doing anything in that case.
+ *
+ * \param[in] slot  The key slot.
+ * \retval #PSA_SUCCESS
+ *             \p slot is NULL or the key slot reader counter has been
+ *             decremented (and potentially wiped) successfully.
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ *             The slot's state was neither PSA_SLOT_FULL nor
+ *             PSA_SLOT_PENDING_DELETION.
+ *             Or a wipe was attempted and the slot's state was not
+ *             PSA_SLOT_PENDING_DELETION.
+ *             Or registered_readers was equal to 0.
+ */
+psa_status_t psa_unregister_read_under_mutex(psa_key_slot_t *slot);
 
 /** Test whether a lifetime designates a key in an external cryptoprocessor.
  *

@@ -1204,35 +1204,148 @@ void mbedtls_ecp_read_key(int grp_id, data_t *in_key, int expected, int canonica
         TEST_EQUAL(mbedtls_mpi_cmp_int(&key.Q.Y, 2), 0);
         TEST_EQUAL(mbedtls_mpi_cmp_int(&key.Q.Z, 3), 0);
 
-        if (canonical) {
+        if (canonical && in_key->len == (key.grp.nbits + 7) / 8) {
             unsigned char buf[MBEDTLS_ECP_MAX_BYTES];
+            size_t length = 0xdeadbeef;
 
-            ret = mbedtls_ecp_write_key(&key, buf, in_key->len);
-            TEST_ASSERT(ret == 0);
+            TEST_EQUAL(mbedtls_ecp_write_key_ext(&key,
+                                                 &length, buf, in_key->len), 0);
+            TEST_MEMORY_COMPARE(in_key->x, in_key->len,
+                                buf, length);
 
+#if defined(MBEDTLS_TEST_DEPRECATED)
+            memset(buf, 0, sizeof(buf));
+            TEST_EQUAL(mbedtls_ecp_write_key(&key, buf, in_key->len), 0);
             TEST_MEMORY_COMPARE(in_key->x, in_key->len,
                                 buf, in_key->len);
+#endif /* MBEDTLS_TEST_DEPRECATED */
         } else {
             unsigned char export1[MBEDTLS_ECP_MAX_BYTES];
             unsigned char export2[MBEDTLS_ECP_MAX_BYTES];
 
-            ret = mbedtls_ecp_write_key(&key, export1, in_key->len);
-            TEST_ASSERT(ret == 0);
+            size_t length1 = 0xdeadbeef;
+            TEST_EQUAL(mbedtls_ecp_write_key_ext(&key, &length1,
+                                                 export1, sizeof(export1)), 0);
+            TEST_EQUAL(mbedtls_ecp_read_key(grp_id, &key2, export1, length1),
+                       expected);
+            size_t length2 = 0xdeadbeef;
+            TEST_EQUAL(mbedtls_ecp_write_key_ext(&key2, &length2,
+                                                 export2, sizeof(export2)), 0);
+            TEST_MEMORY_COMPARE(export1, length1,
+                                export2, length2);
 
-            ret = mbedtls_ecp_read_key(grp_id, &key2, export1, in_key->len);
-            TEST_ASSERT(ret == expected);
-
-            ret = mbedtls_ecp_write_key(&key2, export2, in_key->len);
-            TEST_ASSERT(ret == 0);
-
+#if defined(MBEDTLS_TEST_DEPRECATED)
+            memset(export1, 0, sizeof(export1));
+            memset(export2, 0, sizeof(export2));
+            TEST_EQUAL(mbedtls_ecp_write_key(&key, export1, in_key->len), 0);
+            TEST_EQUAL(mbedtls_ecp_read_key(grp_id, &key2, export1, in_key->len),
+                       expected);
+            TEST_EQUAL(mbedtls_ecp_write_key(&key2, export2, in_key->len), 0);
             TEST_MEMORY_COMPARE(export1, in_key->len,
                                 export2, in_key->len);
+#endif /* MBEDTLS_TEST_DEPRECATED */
         }
     }
 
 exit:
     mbedtls_ecp_keypair_free(&key);
     mbedtls_ecp_keypair_free(&key2);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_DEPRECATED */
+void ecp_write_key(int grp_id, data_t *in_key,
+                   int exported_size, int expected_ret)
+{
+    mbedtls_ecp_keypair key;
+    mbedtls_ecp_keypair_init(&key);
+    unsigned char *exported = NULL;
+
+    TEST_EQUAL(mbedtls_ecp_read_key(grp_id, &key, in_key->x, in_key->len), 0);
+
+    TEST_CALLOC(exported, exported_size);
+    TEST_EQUAL(mbedtls_ecp_write_key(&key, exported, exported_size),
+               expected_ret);
+
+    if (expected_ret == 0) {
+        size_t length = (key.grp.nbits + 7) / 8;
+        const unsigned char *key_start = NULL;
+        const unsigned char *zeros_start = NULL;
+        switch (mbedtls_ecp_get_type(&key.grp)) {
+            case MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS:
+                if ((size_t) exported_size < length) {
+                    length = exported_size;
+                }
+                key_start = exported + exported_size - length;
+                zeros_start = exported;
+                break;
+            case MBEDTLS_ECP_TYPE_MONTGOMERY:
+                TEST_LE_U(length, exported_size);
+                key_start = exported;
+                zeros_start = exported + length;
+                break;
+            default:
+                TEST_FAIL("Unknown ECP curve type");
+                break;
+        }
+
+        if (length < in_key->len) {
+            /* Shorter output (only possible with Weierstrass keys) */
+            for (size_t i = 0; i < in_key->len - length; i++) {
+                mbedtls_test_set_step(i);
+                TEST_EQUAL(in_key->x[i], 0);
+            }
+            TEST_MEMORY_COMPARE(in_key->x + in_key->len - length, length,
+                                key_start, length);
+        } else {
+            TEST_MEMORY_COMPARE(in_key->x, in_key->len,
+                                key_start, length);
+            for (size_t i = 0; i < exported_size - length; i++) {
+                mbedtls_test_set_step(i);
+                TEST_EQUAL(zeros_start[i], 0);
+            }
+        }
+    }
+
+exit:
+    mbedtls_ecp_keypair_free(&key);
+    mbedtls_free(exported);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ecp_write_key_ext(int grp_id, data_t *in_key,
+                       int exported_size, int expected_ret)
+{
+    mbedtls_ecp_keypair key;
+    mbedtls_ecp_keypair_init(&key);
+    unsigned char *exported = NULL;
+
+    if (in_key->len != 0) {
+        TEST_EQUAL(mbedtls_ecp_read_key(grp_id, &key, in_key->x, in_key->len), 0);
+    } else if (grp_id != MBEDTLS_ECP_DP_NONE) {
+        TEST_EQUAL(mbedtls_ecp_group_load(&key.grp, grp_id), 0);
+    }
+
+    TEST_CALLOC(exported, exported_size);
+    size_t olen = 0xdeadbeef;
+    TEST_EQUAL(mbedtls_ecp_write_key_ext(&key, &olen, exported, exported_size),
+               expected_ret);
+
+    if (expected_ret == 0) {
+        TEST_EQUAL(olen, (key.grp.nbits + 7) / 8);
+        TEST_LE_U(olen, MBEDTLS_ECP_MAX_BYTES);
+        TEST_MEMORY_COMPARE(in_key->x, in_key->len,
+                            exported, olen);
+    } else {
+        /* Robustness check: even in the error case, insist that olen is less
+         * than the buffer size. */
+        TEST_LE_U(olen, exported_size);
+    }
+
+exit:
+    mbedtls_ecp_keypair_free(&key);
+    mbedtls_free(exported);
 }
 /* END_CASE */
 

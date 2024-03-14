@@ -225,10 +225,13 @@ psa_status_t mbedtls_test_transparent_generate_key(
         defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
         return libtestdriver1_mbedtls_psa_rsa_generate_key(
             (const libtestdriver1_psa_key_attributes_t *) attributes,
+            NULL, 0, /* We don't support custom e in the test driver yet */
             key, key_size, key_length);
 #elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
         return mbedtls_psa_rsa_generate_key(
-            attributes, key, key_size, key_length);
+            attributes,
+            NULL, 0, /* We don't support custom e in the test driver yet */
+            key, key_size, key_length);
 #endif
     } else if (PSA_KEY_TYPE_IS_DH(psa_get_key_type(attributes))
                && PSA_KEY_TYPE_IS_KEY_PAIR(psa_get_key_type(attributes))) {

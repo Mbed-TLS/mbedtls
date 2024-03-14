@@ -432,10 +432,6 @@ static int ssl_calc_verify_tls_sha384(const mbedtls_ssl_context *, unsigned char
 static int ssl_calc_finished_tls_sha384(mbedtls_ssl_context *, unsigned char *, int);
 #endif /* MBEDTLS_MD_CAN_SHA384*/
 
-static size_t ssl_tls12_session_save(const mbedtls_ssl_session *session,
-                                     unsigned char *buf,
-                                     size_t buf_len);
-
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls12_session_load(mbedtls_ssl_session *session,
                                   const unsigned char *buf,
@@ -1100,11 +1096,12 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 #if defined(MBEDTLS_SSL_CLI_C)
-    ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN;
+    ssl->early_data_state = MBEDTLS_SSL_EARLY_DATA_STATE_IDLE;
 #endif
 #if defined(MBEDTLS_SSL_SRV_C)
     ssl->discard_early_data_record = MBEDTLS_SSL_EARLY_DATA_NO_DISCARD;
 #endif
+    ssl->total_early_data_size = 0;
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
     /* Initialize structures */
@@ -1364,6 +1361,11 @@ static int ssl_conf_check(const mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_BAD_CONFIG;
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
+    if (ssl->conf->f_rng == NULL) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("no RNG provided"));
+        return MBEDTLS_ERR_SSL_NO_RNG;
+    }
 
     /* Space for further checks */
 
@@ -2448,290 +2450,6 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-/* Serialization of TLS 1.3 sessions:
- *
- *     struct {
- *       opaque hostname<0..2^16-1>;
- *       uint64 ticket_reception_time;
- *       uint32 ticket_lifetime;
- *       opaque ticket<1..2^16-1>;
- *     } ClientOnlyData;
- *
- *     struct {
- *       uint8 endpoint;
- *       uint8 ciphersuite[2];
- *       uint32 ticket_age_add;
- *       uint8 ticket_flags;
- *       opaque resumption_key<0..255>;
- *       uint32 max_early_data_size;
- *       uint16 record_size_limit;
- *       select ( endpoint ) {
- *            case client: ClientOnlyData;
- *            case server: uint64 ticket_creation_time;
- *        };
- *     } serialized_session_tls13;
- *
- */
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
-                                  unsigned char *buf,
-                                  size_t buf_len,
-                                  size_t *olen)
-{
-    unsigned char *p = buf;
-#if defined(MBEDTLS_SSL_CLI_C) && \
-    defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    size_t hostname_len = (session->hostname == NULL) ?
-                          0 : strlen(session->hostname) + 1;
-#endif
-    size_t needed =   1                             /* endpoint */
-                    + 2                             /* ciphersuite */
-                    + 4                             /* ticket_age_add */
-                    + 1                             /* ticket_flags */
-                    + 1;                            /* resumption_key length */
-    *olen = 0;
-
-    if (session->resumption_key_len > MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
-    needed += session->resumption_key_len;  /* resumption_key */
-
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-    needed += 4;                            /* max_early_data_size */
-#endif
-#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
-    needed += 2;                            /* record_size_limit */
-#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
-
-#if defined(MBEDTLS_HAVE_TIME)
-    needed += 8; /* ticket_creation_time or ticket_reception_time */
-#endif
-
-#if defined(MBEDTLS_SSL_CLI_C)
-    if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-        needed +=  2                        /* hostname_len */
-                  + hostname_len;           /* hostname */
-#endif
-
-        needed +=   4                       /* ticket_lifetime */
-                  + 2;                      /* ticket_len */
-
-        /* Check size_t overflow */
-        if (session->ticket_len > SIZE_MAX - needed) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-
-        needed += session->ticket_len;      /* ticket */
-    }
-#endif /* MBEDTLS_SSL_CLI_C */
-
-    *olen = needed;
-    if (needed > buf_len) {
-        return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
-    }
-
-    p[0] = session->endpoint;
-    MBEDTLS_PUT_UINT16_BE(session->ciphersuite, p, 1);
-    MBEDTLS_PUT_UINT32_BE(session->ticket_age_add, p, 3);
-    p[7] = session->ticket_flags;
-
-    /* save resumption_key */
-    p[8] = session->resumption_key_len;
-    p += 9;
-    memcpy(p, session->resumption_key, session->resumption_key_len);
-    p += session->resumption_key_len;
-
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-    MBEDTLS_PUT_UINT32_BE(session->max_early_data_size, p, 0);
-    p += 4;
-#endif
-#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
-    MBEDTLS_PUT_UINT16_BE(session->record_size_limit, p, 0);
-    p += 2;
-#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
-
-#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
-    if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
-        MBEDTLS_PUT_UINT64_BE((uint64_t) session->ticket_creation_time, p, 0);
-        p += 8;
-    }
-#endif /* MBEDTLS_HAVE_TIME */
-
-#if defined(MBEDTLS_SSL_CLI_C)
-    if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-        MBEDTLS_PUT_UINT16_BE(hostname_len, p, 0);
-        p += 2;
-        if (hostname_len > 0) {
-            /* save host name */
-            memcpy(p, session->hostname, hostname_len);
-            p += hostname_len;
-        }
-#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
-
-#if defined(MBEDTLS_HAVE_TIME)
-        MBEDTLS_PUT_UINT64_BE((uint64_t) session->ticket_reception_time, p, 0);
-        p += 8;
-#endif
-        MBEDTLS_PUT_UINT32_BE(session->ticket_lifetime, p, 0);
-        p += 4;
-
-        MBEDTLS_PUT_UINT16_BE(session->ticket_len, p, 0);
-        p += 2;
-
-        if (session->ticket != NULL && session->ticket_len > 0) {
-            memcpy(p, session->ticket, session->ticket_len);
-            p += session->ticket_len;
-        }
-    }
-#endif /* MBEDTLS_SSL_CLI_C */
-    return 0;
-}
-
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_session_load(mbedtls_ssl_session *session,
-                                  const unsigned char *buf,
-                                  size_t len)
-{
-    const unsigned char *p = buf;
-    const unsigned char *end = buf + len;
-
-    if (end - p < 9) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
-    session->endpoint = p[0];
-    session->ciphersuite = MBEDTLS_GET_UINT16_BE(p, 1);
-    session->ticket_age_add = MBEDTLS_GET_UINT32_BE(p, 3);
-    session->ticket_flags = p[7];
-
-    /* load resumption_key */
-    session->resumption_key_len = p[8];
-    p += 9;
-
-    if (end - p < session->resumption_key_len) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
-
-    if (sizeof(session->resumption_key) < session->resumption_key_len) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
-    memcpy(session->resumption_key, p, session->resumption_key_len);
-    p += session->resumption_key_len;
-
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (end - p < 4) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
-    session->max_early_data_size = MBEDTLS_GET_UINT32_BE(p, 0);
-    p += 4;
-#endif
-#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
-    if (end - p < 2) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
-    session->record_size_limit = MBEDTLS_GET_UINT16_BE(p, 0);
-    p += 2;
-#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
-
-#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
-    if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
-        if (end - p < 8) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-        session->ticket_creation_time = MBEDTLS_GET_UINT64_BE(p, 0);
-        p += 8;
-    }
-#endif /* MBEDTLS_HAVE_TIME */
-
-#if defined(MBEDTLS_SSL_CLI_C)
-    if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-        size_t hostname_len;
-        /* load host name */
-        if (end - p < 2) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-        hostname_len = MBEDTLS_GET_UINT16_BE(p, 0);
-        p += 2;
-
-        if (end - p < (long int) hostname_len) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-        if (hostname_len > 0) {
-            session->hostname = mbedtls_calloc(1, hostname_len);
-            if (session->hostname == NULL) {
-                return MBEDTLS_ERR_SSL_ALLOC_FAILED;
-            }
-            memcpy(session->hostname, p, hostname_len);
-            p += hostname_len;
-        }
-#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
-
-#if defined(MBEDTLS_HAVE_TIME)
-        if (end - p < 8) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-        session->ticket_reception_time = MBEDTLS_GET_UINT64_BE(p, 0);
-        p += 8;
-#endif
-        if (end - p < 4) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-        session->ticket_lifetime = MBEDTLS_GET_UINT32_BE(p, 0);
-        p += 4;
-
-        if (end - p <  2) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-        session->ticket_len = MBEDTLS_GET_UINT16_BE(p, 0);
-        p += 2;
-
-        if (end - p < (long int) session->ticket_len) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-        if (session->ticket_len > 0) {
-            session->ticket = mbedtls_calloc(1, session->ticket_len);
-            if (session->ticket == NULL) {
-                return MBEDTLS_ERR_SSL_ALLOC_FAILED;
-            }
-            memcpy(session->ticket, p, session->ticket_len);
-            p += session->ticket_len;
-        }
-    }
-#endif /* MBEDTLS_SSL_CLI_C */
-
-    return 0;
-
-}
-#else /* MBEDTLS_SSL_SESSION_TICKETS */
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
-                                  unsigned char *buf,
-                                  size_t buf_len,
-                                  size_t *olen)
-{
-    ((void) session);
-    ((void) buf);
-    ((void) buf_len);
-    *olen = 0;
-    return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-}
-
-static int ssl_tls13_session_load(const mbedtls_ssl_session *session,
-                                  unsigned char *buf,
-                                  size_t buf_len)
-{
-    ((void) session);
-    ((void) buf);
-    ((void) buf_len);
-    return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-}
-#endif /* !MBEDTLS_SSL_SESSION_TICKETS */
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
-
 psa_status_t mbedtls_ssl_cipher_to_psa(mbedtls_cipher_type_t mbedtls_cipher_type,
                                        size_t taglen,
                                        psa_algorithm_t *alg,
@@ -3648,6 +3366,630 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_CLI_C */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+
+/* Serialization of TLS 1.2 sessions
+ *
+ * For more detail, see the description of ssl_session_save().
+ */
+static size_t ssl_tls12_session_save(const mbedtls_ssl_session *session,
+                                     unsigned char *buf,
+                                     size_t buf_len)
+{
+    unsigned char *p = buf;
+    size_t used = 0;
+
+#if defined(MBEDTLS_HAVE_TIME)
+    uint64_t start;
+#endif
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    size_t cert_len;
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+    /*
+     * Time
+     */
+#if defined(MBEDTLS_HAVE_TIME)
+    used += 8;
+
+    if (used <= buf_len) {
+        start = (uint64_t) session->start;
+
+        MBEDTLS_PUT_UINT64_BE(start, p, 0);
+        p += 8;
+    }
+#endif /* MBEDTLS_HAVE_TIME */
+
+    /*
+     * Basic mandatory fields
+     */
+    used += 1 /* id_len */
+            + sizeof(session->id)
+            + sizeof(session->master)
+            + 4; /* verify_result */
+
+    if (used <= buf_len) {
+        *p++ = MBEDTLS_BYTE_0(session->id_len);
+        memcpy(p, session->id, 32);
+        p += 32;
+
+        memcpy(p, session->master, 48);
+        p += 48;
+
+        MBEDTLS_PUT_UINT32_BE(session->verify_result, p, 0);
+        p += 4;
+    }
+
+    /*
+     * Peer's end-entity certificate
+     */
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    if (session->peer_cert == NULL) {
+        cert_len = 0;
+    } else {
+        cert_len = session->peer_cert->raw.len;
+    }
+
+    used += 3 + cert_len;
+
+    if (used <= buf_len) {
+        *p++ = MBEDTLS_BYTE_2(cert_len);
+        *p++ = MBEDTLS_BYTE_1(cert_len);
+        *p++ = MBEDTLS_BYTE_0(cert_len);
+
+        if (session->peer_cert != NULL) {
+            memcpy(p, session->peer_cert->raw.p, cert_len);
+            p += cert_len;
+        }
+    }
+#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+    if (session->peer_cert_digest != NULL) {
+        used += 1 /* type */ + 1 /* length */ + session->peer_cert_digest_len;
+        if (used <= buf_len) {
+            *p++ = (unsigned char) session->peer_cert_digest_type;
+            *p++ = (unsigned char) session->peer_cert_digest_len;
+            memcpy(p, session->peer_cert_digest,
+                   session->peer_cert_digest_len);
+            p += session->peer_cert_digest_len;
+        }
+    } else {
+        used += 2;
+        if (used <= buf_len) {
+            *p++ = (unsigned char) MBEDTLS_MD_NONE;
+            *p++ = 0;
+        }
+    }
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+    /*
+     * Session ticket if any, plus associated data
+     */
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_CLI_C)
+    if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
+        used += 3 + session->ticket_len + 4; /* len + ticket + lifetime */
+
+        if (used <= buf_len) {
+            *p++ = MBEDTLS_BYTE_2(session->ticket_len);
+            *p++ = MBEDTLS_BYTE_1(session->ticket_len);
+            *p++ = MBEDTLS_BYTE_0(session->ticket_len);
+
+            if (session->ticket != NULL) {
+                memcpy(p, session->ticket, session->ticket_len);
+                p += session->ticket_len;
+            }
+
+            MBEDTLS_PUT_UINT32_BE(session->ticket_lifetime, p, 0);
+            p += 4;
+        }
+    }
+#endif /* MBEDTLS_SSL_CLI_C */
+#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
+    if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
+        used += 8;
+
+        if (used <= buf_len) {
+            MBEDTLS_PUT_UINT64_BE((uint64_t) session->ticket_creation_time, p, 0);
+            p += 8;
+        }
+    }
+#endif /* MBEDTLS_HAVE_TIME && MBEDTLS_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
+    /*
+     * Misc extension-related info
+     */
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    used += 1;
+
+    if (used <= buf_len) {
+        *p++ = session->mfl_code;
+    }
+#endif
+
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+    used += 1;
+
+    if (used <= buf_len) {
+        *p++ = MBEDTLS_BYTE_0(session->encrypt_then_mac);
+    }
+#endif
+
+    return used;
+}
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls12_session_load(mbedtls_ssl_session *session,
+                                  const unsigned char *buf,
+                                  size_t len)
+{
+#if defined(MBEDTLS_HAVE_TIME)
+    uint64_t start;
+#endif
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    size_t cert_len;
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+    const unsigned char *p = buf;
+    const unsigned char * const end = buf + len;
+
+    /*
+     * Time
+     */
+#if defined(MBEDTLS_HAVE_TIME)
+    if (8 > (size_t) (end - p)) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    start = MBEDTLS_GET_UINT64_BE(p, 0);
+    p += 8;
+
+    session->start = (time_t) start;
+#endif /* MBEDTLS_HAVE_TIME */
+
+    /*
+     * Basic mandatory fields
+     */
+    if (1 + 32 + 48 + 4 > (size_t) (end - p)) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    session->id_len = *p++;
+    memcpy(session->id, p, 32);
+    p += 32;
+
+    memcpy(session->master, p, 48);
+    p += 48;
+
+    session->verify_result = MBEDTLS_GET_UINT32_BE(p, 0);
+    p += 4;
+
+    /* Immediately clear invalid pointer values that have been read, in case
+     * we exit early before we replaced them with valid ones. */
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    session->peer_cert = NULL;
+#else
+    session->peer_cert_digest = NULL;
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+    session->ticket = NULL;
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
+
+    /*
+     * Peer certificate
+     */
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    /* Deserialize CRT from the end of the ticket. */
+    if (3 > (size_t) (end - p)) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    cert_len = MBEDTLS_GET_UINT24_BE(p, 0);
+    p += 3;
+
+    if (cert_len != 0) {
+        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+        if (cert_len > (size_t) (end - p)) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+
+        session->peer_cert = mbedtls_calloc(1, sizeof(mbedtls_x509_crt));
+
+        if (session->peer_cert == NULL) {
+            return MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        }
+
+        mbedtls_x509_crt_init(session->peer_cert);
+
+        if ((ret = mbedtls_x509_crt_parse_der(session->peer_cert,
+                                              p, cert_len)) != 0) {
+            mbedtls_x509_crt_free(session->peer_cert);
+            mbedtls_free(session->peer_cert);
+            session->peer_cert = NULL;
+            return ret;
+        }
+
+        p += cert_len;
+    }
+#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+    /* Deserialize CRT digest from the end of the ticket. */
+    if (2 > (size_t) (end - p)) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    session->peer_cert_digest_type = (mbedtls_md_type_t) *p++;
+    session->peer_cert_digest_len  = (size_t) *p++;
+
+    if (session->peer_cert_digest_len != 0) {
+        const mbedtls_md_info_t *md_info =
+            mbedtls_md_info_from_type(session->peer_cert_digest_type);
+        if (md_info == NULL) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+        if (session->peer_cert_digest_len != mbedtls_md_get_size(md_info)) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+
+        if (session->peer_cert_digest_len > (size_t) (end - p)) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+
+        session->peer_cert_digest =
+            mbedtls_calloc(1, session->peer_cert_digest_len);
+        if (session->peer_cert_digest == NULL) {
+            return MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        }
+
+        memcpy(session->peer_cert_digest, p,
+               session->peer_cert_digest_len);
+        p += session->peer_cert_digest_len;
+    }
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+    /*
+     * Session ticket and associated data
+     */
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_CLI_C)
+    if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
+        if (3 > (size_t) (end - p)) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+
+        session->ticket_len = MBEDTLS_GET_UINT24_BE(p, 0);
+        p += 3;
+
+        if (session->ticket_len != 0) {
+            if (session->ticket_len > (size_t) (end - p)) {
+                return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+            }
+
+            session->ticket = mbedtls_calloc(1, session->ticket_len);
+            if (session->ticket == NULL) {
+                return MBEDTLS_ERR_SSL_ALLOC_FAILED;
+            }
+
+            memcpy(session->ticket, p, session->ticket_len);
+            p += session->ticket_len;
+        }
+
+        if (4 > (size_t) (end - p)) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+
+        session->ticket_lifetime = MBEDTLS_GET_UINT32_BE(p, 0);
+        p += 4;
+    }
+#endif /* MBEDTLS_SSL_CLI_C */
+#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
+    if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
+        if (8 > (size_t) (end - p)) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+        session->ticket_creation_time = MBEDTLS_GET_UINT64_BE(p, 0);
+        p += 8;
+    }
+#endif /* MBEDTLS_HAVE_TIME && MBEDTLS_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
+    /*
+     * Misc extension-related info
+     */
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    if (1 > (size_t) (end - p)) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    session->mfl_code = *p++;
+#endif
+
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+    if (1 > (size_t) (end - p)) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    session->encrypt_then_mac = *p++;
+#endif
+
+    /* Done, should have consumed entire buffer */
+    if (p != end) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    return 0;
+}
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+/* Serialization of TLS 1.3 sessions:
+ *
+ * For more detail, see the description of ssl_session_save().
+ */
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
+                                  unsigned char *buf,
+                                  size_t buf_len,
+                                  size_t *olen)
+{
+    unsigned char *p = buf;
+#if defined(MBEDTLS_SSL_CLI_C) && \
+    defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    size_t hostname_len = (session->hostname == NULL) ?
+                          0 : strlen(session->hostname) + 1;
+#endif
+    size_t needed =   4  /* ticket_age_add */
+                    + 1  /* ticket_flags */
+                    + 1; /* resumption_key length */
+    *olen = 0;
+
+    if (session->resumption_key_len > MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+    needed += session->resumption_key_len;  /* resumption_key */
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    needed += 4;                            /* max_early_data_size */
+#endif
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    needed += 2;                            /* record_size_limit */
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
+
+#if defined(MBEDTLS_HAVE_TIME)
+    needed += 8; /* ticket_creation_time or ticket_reception_time */
+#endif
+
+#if defined(MBEDTLS_SSL_CLI_C)
+    if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+        needed +=  2                        /* hostname_len */
+                  + hostname_len;           /* hostname */
+#endif
+
+        needed +=   4                       /* ticket_lifetime */
+                  + 2;                      /* ticket_len */
+
+        /* Check size_t overflow */
+        if (session->ticket_len > SIZE_MAX - needed) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+
+        needed += session->ticket_len;      /* ticket */
+    }
+#endif /* MBEDTLS_SSL_CLI_C */
+
+    *olen = needed;
+    if (needed > buf_len) {
+        return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
+    }
+
+    MBEDTLS_PUT_UINT32_BE(session->ticket_age_add, p, 0);
+    p[4] = session->ticket_flags;
+
+    /* save resumption_key */
+    p[5] = session->resumption_key_len;
+    p += 6;
+    memcpy(p, session->resumption_key, session->resumption_key_len);
+    p += session->resumption_key_len;
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    MBEDTLS_PUT_UINT32_BE(session->max_early_data_size, p, 0);
+    p += 4;
+#endif
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    MBEDTLS_PUT_UINT16_BE(session->record_size_limit, p, 0);
+    p += 2;
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
+
+#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
+    if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
+        MBEDTLS_PUT_UINT64_BE((uint64_t) session->ticket_creation_time, p, 0);
+        p += 8;
+    }
+#endif /* MBEDTLS_HAVE_TIME */
+
+#if defined(MBEDTLS_SSL_CLI_C)
+    if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+        MBEDTLS_PUT_UINT16_BE(hostname_len, p, 0);
+        p += 2;
+        if (hostname_len > 0) {
+            /* save host name */
+            memcpy(p, session->hostname, hostname_len);
+            p += hostname_len;
+        }
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
+#if defined(MBEDTLS_HAVE_TIME)
+        MBEDTLS_PUT_UINT64_BE((uint64_t) session->ticket_reception_time, p, 0);
+        p += 8;
+#endif
+        MBEDTLS_PUT_UINT32_BE(session->ticket_lifetime, p, 0);
+        p += 4;
+
+        MBEDTLS_PUT_UINT16_BE(session->ticket_len, p, 0);
+        p += 2;
+
+        if (session->ticket != NULL && session->ticket_len > 0) {
+            memcpy(p, session->ticket, session->ticket_len);
+            p += session->ticket_len;
+        }
+    }
+#endif /* MBEDTLS_SSL_CLI_C */
+    return 0;
+}
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_session_load(mbedtls_ssl_session *session,
+                                  const unsigned char *buf,
+                                  size_t len)
+{
+    const unsigned char *p = buf;
+    const unsigned char *end = buf + len;
+
+    if (end - p < 6) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+    session->ticket_age_add = MBEDTLS_GET_UINT32_BE(p, 0);
+    session->ticket_flags = p[4];
+
+    /* load resumption_key */
+    session->resumption_key_len = p[5];
+    p += 6;
+
+    if (end - p < session->resumption_key_len) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    if (sizeof(session->resumption_key) < session->resumption_key_len) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+    memcpy(session->resumption_key, p, session->resumption_key_len);
+    p += session->resumption_key_len;
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (end - p < 4) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+    session->max_early_data_size = MBEDTLS_GET_UINT32_BE(p, 0);
+    p += 4;
+#endif
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    if (end - p < 2) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+    session->record_size_limit = MBEDTLS_GET_UINT16_BE(p, 0);
+    p += 2;
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
+
+#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
+    if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
+        if (end - p < 8) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+        session->ticket_creation_time = MBEDTLS_GET_UINT64_BE(p, 0);
+        p += 8;
+    }
+#endif /* MBEDTLS_HAVE_TIME */
+
+#if defined(MBEDTLS_SSL_CLI_C)
+    if (session->endpoint == MBEDTLS_SSL_IS_CLIENT) {
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+        size_t hostname_len;
+        /* load host name */
+        if (end - p < 2) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+        hostname_len = MBEDTLS_GET_UINT16_BE(p, 0);
+        p += 2;
+
+        if (end - p < (long int) hostname_len) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+        if (hostname_len > 0) {
+            session->hostname = mbedtls_calloc(1, hostname_len);
+            if (session->hostname == NULL) {
+                return MBEDTLS_ERR_SSL_ALLOC_FAILED;
+            }
+            memcpy(session->hostname, p, hostname_len);
+            p += hostname_len;
+        }
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
+#if defined(MBEDTLS_HAVE_TIME)
+        if (end - p < 8) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+        session->ticket_reception_time = MBEDTLS_GET_UINT64_BE(p, 0);
+        p += 8;
+#endif
+        if (end - p < 4) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+        session->ticket_lifetime = MBEDTLS_GET_UINT32_BE(p, 0);
+        p += 4;
+
+        if (end - p <  2) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+        session->ticket_len = MBEDTLS_GET_UINT16_BE(p, 0);
+        p += 2;
+
+        if (end - p < (long int) session->ticket_len) {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+        if (session->ticket_len > 0) {
+            session->ticket = mbedtls_calloc(1, session->ticket_len);
+            if (session->ticket == NULL) {
+                return MBEDTLS_ERR_SSL_ALLOC_FAILED;
+            }
+            memcpy(session->ticket, p, session->ticket_len);
+            p += session->ticket_len;
+        }
+    }
+#endif /* MBEDTLS_SSL_CLI_C */
+
+    return 0;
+
+}
+#else /* MBEDTLS_SSL_SESSION_TICKETS */
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
+                                  unsigned char *buf,
+                                  size_t buf_len,
+                                  size_t *olen)
+{
+    ((void) session);
+    ((void) buf);
+    ((void) buf_len);
+    *olen = 0;
+    return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+}
+
+static int ssl_tls13_session_load(const mbedtls_ssl_session *session,
+                                  unsigned char *buf,
+                                  size_t buf_len)
+{
+    ((void) session);
+    ((void) buf);
+    ((void) buf_len);
+    return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+}
+#endif /* !MBEDTLS_SSL_SESSION_TICKETS */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
 /*
  * Define ticket header determining Mbed TLS version
  * and structure of the ticket.
@@ -3669,6 +4011,12 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
 #else
 #define SSL_SERIALIZED_SESSION_CONFIG_CRT 0
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#define SSL_SERIALIZED_SESSION_CONFIG_KEEP_PEER_CRT 1
+#else
+#define SSL_SERIALIZED_SESSION_CONFIG_KEEP_PEER_CRT 0
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
 #if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SESSION_TICKETS)
 #define SSL_SERIALIZED_SESSION_CONFIG_CLIENT_TICKET 1
@@ -3694,12 +4042,34 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
 #define SSL_SERIALIZED_SESSION_CONFIG_TICKET 0
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+#define SSL_SERIALIZED_SESSION_CONFIG_SNI 1
+#else
+#define SSL_SERIALIZED_SESSION_CONFIG_SNI 0
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+#define SSL_SERIALIZED_SESSION_CONFIG_EARLY_DATA 1
+#else
+#define SSL_SERIALIZED_SESSION_CONFIG_EARLY_DATA 0
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+#define SSL_SERIALIZED_SESSION_CONFIG_RECORD_SIZE 1
+#else
+#define SSL_SERIALIZED_SESSION_CONFIG_RECORD_SIZE 0
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
+
 #define SSL_SERIALIZED_SESSION_CONFIG_TIME_BIT          0
 #define SSL_SERIALIZED_SESSION_CONFIG_CRT_BIT           1
 #define SSL_SERIALIZED_SESSION_CONFIG_CLIENT_TICKET_BIT 2
 #define SSL_SERIALIZED_SESSION_CONFIG_MFL_BIT           3
 #define SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT           4
 #define SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT        5
+#define SSL_SERIALIZED_SESSION_CONFIG_KEEP_PEER_CRT_BIT 6
+#define SSL_SERIALIZED_SESSION_CONFIG_SNI_BIT           7
+#define SSL_SERIALIZED_SESSION_CONFIG_EARLY_DATA_BIT    8
+#define SSL_SERIALIZED_SESSION_CONFIG_RECORD_SIZE_BIT   9
 
 #define SSL_SERIALIZED_SESSION_CONFIG_BITFLAG                           \
     ((uint16_t) (                                                      \
@@ -3709,7 +4079,14 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
              SSL_SERIALIZED_SESSION_CONFIG_CLIENT_TICKET_BIT) | \
          (SSL_SERIALIZED_SESSION_CONFIG_MFL << SSL_SERIALIZED_SESSION_CONFIG_MFL_BIT) | \
          (SSL_SERIALIZED_SESSION_CONFIG_ETM << SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT) | \
-         (SSL_SERIALIZED_SESSION_CONFIG_TICKET << SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT)))
+         (SSL_SERIALIZED_SESSION_CONFIG_TICKET << SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT) | \
+         (SSL_SERIALIZED_SESSION_CONFIG_KEEP_PEER_CRT << \
+             SSL_SERIALIZED_SESSION_CONFIG_KEEP_PEER_CRT_BIT) | \
+         (SSL_SERIALIZED_SESSION_CONFIG_SNI << SSL_SERIALIZED_SESSION_CONFIG_SNI_BIT) | \
+         (SSL_SERIALIZED_SESSION_CONFIG_EARLY_DATA << \
+             SSL_SERIALIZED_SESSION_CONFIG_EARLY_DATA_BIT) | \
+         (SSL_SERIALIZED_SESSION_CONFIG_RECORD_SIZE << \
+             SSL_SERIALIZED_SESSION_CONFIG_RECORD_SIZE_BIT)))
 
 static const unsigned char ssl_serialized_session_header[] = {
     MBEDTLS_VERSION_MAJOR,
@@ -3723,7 +4100,77 @@ static const unsigned char ssl_serialized_session_header[] = {
  * Serialize a session in the following format:
  * (in the presentation language of TLS, RFC 8446 section 3)
  *
- *  struct {
+ * TLS 1.2 session:
+ *
+ * struct {
+ * #if defined(MBEDTLS_SSL_SESSION_TICKETS)
+ *    opaque ticket<0..2^24-1>;       // length 0 means no ticket
+ *    uint32 ticket_lifetime;
+ * #endif
+ * } ClientOnlyData;
+ *
+ * struct {
+ * #if defined(MBEDTLS_HAVE_TIME)
+ *    uint64 start_time;
+ * #endif
+ *     uint8 session_id_len;           // at most 32
+ *     opaque session_id[32];
+ *     opaque master[48];              // fixed length in the standard
+ *     uint32 verify_result;
+ * #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
+ *    opaque peer_cert<0..2^24-1>;    // length 0 means no peer cert
+ * #else
+ *    uint8 peer_cert_digest_type;
+ *    opaque peer_cert_digest<0..2^8-1>
+ * #endif
+ *     select (endpoint) {
+ *         case client: ClientOnlyData;
+ *         case server: uint64 ticket_creation_time;
+ *     };
+ * #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+ *    uint8 mfl_code;                 // up to 255 according to standard
+ * #endif
+ * #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+ *    uint8 encrypt_then_mac;         // 0 or 1
+ * #endif
+ * } serialized_session_tls12;
+ *
+ *
+ * TLS 1.3 Session:
+ *
+ * struct {
+ * #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+ *    opaque hostname<0..2^16-1>;
+ * #endif
+ * #if defined(MBEDTLS_HAVE_TIME)
+ *    uint64 ticket_reception_time;
+ * #endif
+ *    uint32 ticket_lifetime;
+ *    opaque ticket<1..2^16-1>;
+ * } ClientOnlyData;
+ *
+ * struct {
+ *    uint32 ticket_age_add;
+ *    uint8 ticket_flags;
+ *    opaque resumption_key<0..255>;
+ * #if defined(MBEDTLS_SSL_EARLY_DATA)
+ *    uint32 max_early_data_size;
+ * #endif
+ * #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+ *    uint16 record_size_limit;
+ * #endif
+ *    select ( endpoint ) {
+ *         case client: ClientOnlyData;
+ * #if defined(MBEDTLS_HAVE_TIME)
+ *         case server: uint64 ticket_creation_time;
+ * #endif
+ *     };
+ * } serialized_session_tls13;
+ *
+ *
+ * SSL session:
+ *
+ * struct {
  *
  *    opaque mbedtls_version[3];   // library version: major, minor, patch
  *    opaque session_format[2];    // library-version specific 16-bit field
@@ -3741,6 +4188,8 @@ static const unsigned char ssl_serialized_session_header[] = {
  *    uint8_t minor_ver;           // Protocol minor version. Possible values:
  *                                 // - TLS 1.2 (0x0303)
  *                                 // - TLS 1.3 (0x0304)
+ *    uint8_t endpoint;
+ *    uint16_t ciphersuite;
  *
  *    select (serialized_session.tls_version) {
  *
@@ -3787,11 +4236,16 @@ static int ssl_session_save(const mbedtls_ssl_session *session,
     }
 
     /*
-     * TLS version identifier
+     * TLS version identifier, endpoint, ciphersuite
      */
-    used += 1;
+    used += 1    /* TLS version */
+            + 1  /* endpoint */
+            + 2; /* ciphersuite */
     if (used <= buf_len) {
         *p++ = MBEDTLS_BYTE_0(session->tls_version);
+        *p++ = session->endpoint;
+        MBEDTLS_PUT_UINT16_BE(session->ciphersuite, p, 0);
+        p += 2;
     }
 
     /* Forward to version-specific serialization routine. */
@@ -3874,12 +4328,15 @@ static int ssl_session_load(mbedtls_ssl_session *session,
     }
 
     /*
-     * TLS version identifier
+     * TLS version identifier, endpoint, ciphersuite
      */
-    if (1 > (size_t) (end - p)) {
+    if (4 > (size_t) (end - p)) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
     session->tls_version = (mbedtls_ssl_protocol_version) (0x0300 | *p++);
+    session->endpoint = *p++;
+    session->ciphersuite = MBEDTLS_GET_UINT16_BE(p, 0);
+    p += 2;
 
     /* Dispatch according to TLS version. */
     remaining_len = (size_t) (end - p);
@@ -8948,360 +9405,6 @@ unsigned int mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
-/* Serialization of TLS 1.2 sessions:
- *
- * struct {
- *    uint64 start_time;
- *    uint8 ciphersuite[2];           // defined by the standard
- *    uint8 session_id_len;           // at most 32
- *    opaque session_id[32];
- *    opaque master[48];              // fixed length in the standard
- *    uint32 verify_result;
- *    opaque peer_cert<0..2^24-1>;    // length 0 means no peer cert
- *    opaque ticket<0..2^24-1>;       // length 0 means no ticket
- *    uint32 ticket_lifetime;
- *    uint8 mfl_code;                 // up to 255 according to standard
- *    uint8 encrypt_then_mac;         // 0 or 1
- * } serialized_session_tls12;
- *
- */
-static size_t ssl_tls12_session_save(const mbedtls_ssl_session *session,
-                                     unsigned char *buf,
-                                     size_t buf_len)
-{
-    unsigned char *p = buf;
-    size_t used = 0;
-
-#if defined(MBEDTLS_HAVE_TIME)
-    uint64_t start;
-#endif
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    size_t cert_len;
-#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
-
-    /*
-     * Time
-     */
-#if defined(MBEDTLS_HAVE_TIME)
-    used += 8;
-
-    if (used <= buf_len) {
-        start = (uint64_t) session->start;
-
-        MBEDTLS_PUT_UINT64_BE(start, p, 0);
-        p += 8;
-    }
-#endif /* MBEDTLS_HAVE_TIME */
-
-    /*
-     * Basic mandatory fields
-     */
-    used += 2   /* ciphersuite */
-            + 1 /* id_len */
-            + sizeof(session->id)
-            + sizeof(session->master)
-            + 4; /* verify_result */
-
-    if (used <= buf_len) {
-        MBEDTLS_PUT_UINT16_BE(session->ciphersuite, p, 0);
-        p += 2;
-
-        *p++ = MBEDTLS_BYTE_0(session->id_len);
-        memcpy(p, session->id, 32);
-        p += 32;
-
-        memcpy(p, session->master, 48);
-        p += 48;
-
-        MBEDTLS_PUT_UINT32_BE(session->verify_result, p, 0);
-        p += 4;
-    }
-
-    /*
-     * Peer's end-entity certificate
-     */
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    if (session->peer_cert == NULL) {
-        cert_len = 0;
-    } else {
-        cert_len = session->peer_cert->raw.len;
-    }
-
-    used += 3 + cert_len;
-
-    if (used <= buf_len) {
-        *p++ = MBEDTLS_BYTE_2(cert_len);
-        *p++ = MBEDTLS_BYTE_1(cert_len);
-        *p++ = MBEDTLS_BYTE_0(cert_len);
-
-        if (session->peer_cert != NULL) {
-            memcpy(p, session->peer_cert->raw.p, cert_len);
-            p += cert_len;
-        }
-    }
-#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-    if (session->peer_cert_digest != NULL) {
-        used += 1 /* type */ + 1 /* length */ + session->peer_cert_digest_len;
-        if (used <= buf_len) {
-            *p++ = (unsigned char) session->peer_cert_digest_type;
-            *p++ = (unsigned char) session->peer_cert_digest_len;
-            memcpy(p, session->peer_cert_digest,
-                   session->peer_cert_digest_len);
-            p += session->peer_cert_digest_len;
-        }
-    } else {
-        used += 2;
-        if (used <= buf_len) {
-            *p++ = (unsigned char) MBEDTLS_MD_NONE;
-            *p++ = 0;
-        }
-    }
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
-
-    /*
-     * Session ticket if any, plus associated data
-     */
-#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
-    used += 3 + session->ticket_len + 4; /* len + ticket + lifetime */
-
-    if (used <= buf_len) {
-        *p++ = MBEDTLS_BYTE_2(session->ticket_len);
-        *p++ = MBEDTLS_BYTE_1(session->ticket_len);
-        *p++ = MBEDTLS_BYTE_0(session->ticket_len);
-
-        if (session->ticket != NULL) {
-            memcpy(p, session->ticket, session->ticket_len);
-            p += session->ticket_len;
-        }
-
-        MBEDTLS_PUT_UINT32_BE(session->ticket_lifetime, p, 0);
-        p += 4;
-    }
-#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
-
-    /*
-     * Misc extension-related info
-     */
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    used += 1;
-
-    if (used <= buf_len) {
-        *p++ = session->mfl_code;
-    }
-#endif
-
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-    used += 1;
-
-    if (used <= buf_len) {
-        *p++ = MBEDTLS_BYTE_0(session->encrypt_then_mac);
-    }
-#endif
-
-    return used;
-}
-
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls12_session_load(mbedtls_ssl_session *session,
-                                  const unsigned char *buf,
-                                  size_t len)
-{
-#if defined(MBEDTLS_HAVE_TIME)
-    uint64_t start;
-#endif
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    size_t cert_len;
-#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
-
-    const unsigned char *p = buf;
-    const unsigned char * const end = buf + len;
-
-    /*
-     * Time
-     */
-#if defined(MBEDTLS_HAVE_TIME)
-    if (8 > (size_t) (end - p)) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
-
-    start = MBEDTLS_GET_UINT64_BE(p, 0);
-    p += 8;
-
-    session->start = (time_t) start;
-#endif /* MBEDTLS_HAVE_TIME */
-
-    /*
-     * Basic mandatory fields
-     */
-    if (2 + 1 + 32 + 48 + 4 > (size_t) (end - p)) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
-
-    session->ciphersuite = MBEDTLS_GET_UINT16_BE(p, 0);
-    p += 2;
-
-    session->id_len = *p++;
-    memcpy(session->id, p, 32);
-    p += 32;
-
-    memcpy(session->master, p, 48);
-    p += 48;
-
-    session->verify_result = MBEDTLS_GET_UINT32_BE(p, 0);
-    p += 4;
-
-    /* Immediately clear invalid pointer values that have been read, in case
-     * we exit early before we replaced them with valid ones. */
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    session->peer_cert = NULL;
-#else
-    session->peer_cert_digest = NULL;
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
-#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
-    session->ticket = NULL;
-#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
-
-    /*
-     * Peer certificate
-     */
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    /* Deserialize CRT from the end of the ticket. */
-    if (3 > (size_t) (end - p)) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
-
-    cert_len = MBEDTLS_GET_UINT24_BE(p, 0);
-    p += 3;
-
-    if (cert_len != 0) {
-        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-        if (cert_len > (size_t) (end - p)) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-
-        session->peer_cert = mbedtls_calloc(1, sizeof(mbedtls_x509_crt));
-
-        if (session->peer_cert == NULL) {
-            return MBEDTLS_ERR_SSL_ALLOC_FAILED;
-        }
-
-        mbedtls_x509_crt_init(session->peer_cert);
-
-        if ((ret = mbedtls_x509_crt_parse_der(session->peer_cert,
-                                              p, cert_len)) != 0) {
-            mbedtls_x509_crt_free(session->peer_cert);
-            mbedtls_free(session->peer_cert);
-            session->peer_cert = NULL;
-            return ret;
-        }
-
-        p += cert_len;
-    }
-#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-    /* Deserialize CRT digest from the end of the ticket. */
-    if (2 > (size_t) (end - p)) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
-
-    session->peer_cert_digest_type = (mbedtls_md_type_t) *p++;
-    session->peer_cert_digest_len  = (size_t) *p++;
-
-    if (session->peer_cert_digest_len != 0) {
-        const mbedtls_md_info_t *md_info =
-            mbedtls_md_info_from_type(session->peer_cert_digest_type);
-        if (md_info == NULL) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-        if (session->peer_cert_digest_len != mbedtls_md_get_size(md_info)) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-
-        if (session->peer_cert_digest_len > (size_t) (end - p)) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-
-        session->peer_cert_digest =
-            mbedtls_calloc(1, session->peer_cert_digest_len);
-        if (session->peer_cert_digest == NULL) {
-            return MBEDTLS_ERR_SSL_ALLOC_FAILED;
-        }
-
-        memcpy(session->peer_cert_digest, p,
-               session->peer_cert_digest_len);
-        p += session->peer_cert_digest_len;
-    }
-#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
-
-    /*
-     * Session ticket and associated data
-     */
-#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
-    if (3 > (size_t) (end - p)) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
-
-    session->ticket_len = MBEDTLS_GET_UINT24_BE(p, 0);
-    p += 3;
-
-    if (session->ticket_len != 0) {
-        if (session->ticket_len > (size_t) (end - p)) {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-
-        session->ticket = mbedtls_calloc(1, session->ticket_len);
-        if (session->ticket == NULL) {
-            return MBEDTLS_ERR_SSL_ALLOC_FAILED;
-        }
-
-        memcpy(session->ticket, p, session->ticket_len);
-        p += session->ticket_len;
-    }
-
-    if (4 > (size_t) (end - p)) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
-
-    session->ticket_lifetime = MBEDTLS_GET_UINT32_BE(p, 0);
-    p += 4;
-#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
-
-    /*
-     * Misc extension-related info
-     */
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    if (1 > (size_t) (end - p)) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
-
-    session->mfl_code = *p++;
-#endif
-
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-    if (1 > (size_t) (end - p)) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
-
-    session->encrypt_then_mac = *p++;
-#endif
-
-    /* Done, should have consumed entire buffer */
-    if (p != end) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
-
-    return 0;
-}
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 int mbedtls_ssl_validate_ciphersuite(

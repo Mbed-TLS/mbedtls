@@ -8,7 +8,6 @@
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
 #include "ssl_test_lib.h"
 
@@ -275,6 +274,37 @@ int key_opaque_set_alg_usage(const char *alg1, const char *alg2,
 
     return 0;
 }
+
+#if defined(MBEDTLS_PK_C)
+int pk_wrap_as_opaque(mbedtls_pk_context *pk, psa_algorithm_t psa_alg, psa_algorithm_t psa_alg2,
+                      psa_key_usage_t psa_usage, mbedtls_svc_key_id_t *key_id)
+{
+    int ret;
+    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
+
+    ret = mbedtls_pk_get_psa_attributes(pk, PSA_KEY_USAGE_SIGN_HASH, &key_attr);
+    if (ret != 0) {
+        return ret;
+    }
+    psa_set_key_usage_flags(&key_attr, psa_usage);
+    psa_set_key_algorithm(&key_attr, psa_alg);
+    if (psa_alg2 != PSA_ALG_NONE) {
+        psa_set_key_enrollment_algorithm(&key_attr, psa_alg2);
+    }
+    ret = mbedtls_pk_import_into_psa(pk, &key_attr, key_id);
+    if (ret != 0) {
+        return ret;
+    }
+    mbedtls_pk_free(pk);
+    mbedtls_pk_init(pk);
+    ret = mbedtls_pk_setup_opaque(pk, *key_id);
+    if (ret != 0) {
+        return ret;
+    }
+
+    return 0;
+}
+#endif /* MBEDTLS_PK_C */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)

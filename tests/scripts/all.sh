@@ -212,8 +212,19 @@ pre_initialize_variables () {
     # defined in this script whose name starts with "component_".
     ALL_COMPONENTS=$(compgen -A function component_ | sed 's/component_//')
 
-    # Delay determinig SUPPORTED_COMPONENTS until the command line options have a chance to override
+    # Delay determining SUPPORTED_COMPONENTS until the command line options have a chance to override
     # the commands set by the environment
+}
+
+setup_quiet_wrappers()
+{
+    # Pick up "quiet" wrappers for make and cmake, which don't output very much
+    # unless there is an error. This reduces logging overhead in the CI.
+    #
+    # Note that the cmake wrapper breaks unless we use an absolute path here.
+    if [[ -e ${PWD}/tests/scripts/quiet ]]; then
+        export PATH=${PWD}/tests/scripts/quiet:$PATH
+    fi
 }
 
 # Test whether the component $1 is included in the command line patterns.
@@ -889,6 +900,16 @@ helper_libtestdriver1_adjust_config() {
     # Dynamic secure element support is a deprecated feature and needs to be disabled here.
     # This is done to have the same form of psa_key_attributes_s for libdriver and library.
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+
+    # If threading is enabled on the normal build, then we need to enable it in the drivers as well,
+    # otherwise we will end up running multithreaded tests without mutexes to protect them.
+    if scripts/config.py get MBEDTLS_THREADING_C; then
+        scripts/config.py -f "$CONFIG_TEST_DRIVER_H" set MBEDTLS_THREADING_C
+    fi
+
+    if scripts/config.py get MBEDTLS_THREADING_PTHREAD; then
+        scripts/config.py -f "$CONFIG_TEST_DRIVER_H" set MBEDTLS_THREADING_PTHREAD
+    fi
 }
 
 # When called with no parameter this function disables all builtin curves.
@@ -1089,6 +1110,8 @@ component_check_test_dependencies () {
     echo "MBEDTLS_ECP_RESTARTABLE" >> $expected
     # No PSA equivalent - needed by some init tests
     echo "MBEDTLS_ENTROPY_NV_SEED" >> $expected
+    # No PSA equivalent - required to run threaded tests.
+    echo "MBEDTLS_THREADING_PTHREAD" >> $expected
 
     # Compare reality with expectation.
     # We want an exact match, to ensure the above list remains up-to-date.
@@ -1528,6 +1551,23 @@ component_test_sw_inet_pton () {
     make CFLAGS="-DMBEDTLS_TEST_SW_INET_PTON"
 
     msg "test: default plus MBEDTLS_TEST_SW_INET_PTON"
+    make test
+}
+
+component_full_no_pkparse_pkwrite() {
+    msg "build: full without pkparse and pkwrite"
+
+    scripts/config.py crypto_full
+    scripts/config.py unset MBEDTLS_PK_PARSE_C
+    scripts/config.py unset MBEDTLS_PK_WRITE_C
+
+    make CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+
+    # Ensure that PK_[PARSE|WRITE]_C were not re-enabled accidentally (additive config).
+    not grep mbedtls_pk_parse_key library/pkparse.o
+    not grep mbedtls_pk_write_key_der library/pkwrite.o
+
+    msg "test: full without pkparse and pkwrite"
     make test
 }
 
@@ -2177,6 +2217,11 @@ component_test_tsan () {
     scripts/config.py full
     scripts/config.py set MBEDTLS_THREADING_C
     scripts/config.py set MBEDTLS_THREADING_PTHREAD
+    # Self-tests do not currently use multiple threads.
+    scripts/config.py unset MBEDTLS_SELF_TEST
+
+    # The deprecated MBEDTLS_PSA_CRYPTO_SE_C interface is not thread safe.
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
 
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=TSan .
     make
@@ -4756,6 +4801,26 @@ component_test_aesni () { # ~ 60s
     not grep -q "AES note: built-in implementation." ./programs/test/selftest
 }
 
+component_test_sha3_variations() {
+    msg "sha3 loop unroll variations"
+
+    # define minimal config sufficient to test SHA3
+    cat > include/mbedtls/mbedtls_config.h << END
+        #define MBEDTLS_SELF_TEST
+        #define MBEDTLS_SHA3_C
+END
+
+    msg "all loops unrolled"
+    make clean
+    make -C tests test_suite_shax CFLAGS="-DMBEDTLS_SHA3_THETA_UNROLL=1 -DMBEDTLS_SHA3_PI_UNROLL=1 -DMBEDTLS_SHA3_CHI_UNROLL=1 -DMBEDTLS_SHA3_RHO_UNROLL=1"
+    ./tests/test_suite_shax
+
+    msg "all loops rolled up"
+    make clean
+    make -C tests test_suite_shax CFLAGS="-DMBEDTLS_SHA3_THETA_UNROLL=0 -DMBEDTLS_SHA3_PI_UNROLL=0 -DMBEDTLS_SHA3_CHI_UNROLL=0 -DMBEDTLS_SHA3_RHO_UNROLL=0"
+    ./tests/test_suite_shax
+}
+
 support_test_aesni_m32() {
     support_test_m32_no_asm && (lscpu | grep -qw aes)
 }
@@ -5034,6 +5099,19 @@ component_test_aes_only_128_bit_keys_have_builtins () {
 
     msg "selftest: default config + AES_ONLY_128_BIT_KEY_LENGTH - AESNI_C - AESCE_C"
     programs/test/selftest
+}
+
+component_test_gcm_largetable () {
+    msg "build: default config + GCM_LARGE_TABLE - AESNI_C - AESCE_C"
+    scripts/config.py set MBEDTLS_GCM_LARGE_TABLE
+    scripts/config.py unset MBEDTLS_PADLOCK_C
+    scripts/config.py unset MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_AESCE_C
+
+    make CFLAGS='-O2 -Werror -Wall -Wextra'
+
+    msg "test: default config - GCM_LARGE_TABLE - AESNI_C - AESCE_C"
+    make test
 }
 
 component_test_aes_fewer_tables () {
@@ -6340,6 +6418,7 @@ pre_check_environment
 pre_initialize_variables
 pre_parse_command_line "$@"
 
+setup_quiet_wrappers
 pre_check_git
 pre_restore_files
 pre_back_up

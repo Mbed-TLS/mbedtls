@@ -50,6 +50,10 @@ typedef struct mbedtls_ssl_ticket_key {
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t MBEDTLS_PRIVATE(generation_time); /*!< key generation timestamp (seconds) */
 #endif
+    /*! Lifetime of the key in seconds. This is also the lifetime of the
+     *  tickets created under that key.
+     */
+    uint32_t MBEDTLS_PRIVATE(lifetime);
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_cipher_context_t MBEDTLS_PRIVATE(ctx);   /*!< context for auth enc/decryption    */
 #else

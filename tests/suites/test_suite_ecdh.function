@@ -464,3 +464,20 @@ exit:
     mbedtls_ecp_keypair_free(&their_key);
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void ecdh_context_grp(int id)
+{
+    mbedtls_ecdh_context srv;
+
+    mbedtls_ecdh_init(&srv);
+    TEST_ASSERT(mbedtls_ecdh_setup(&srv, id) == 0);
+
+    /* Test the retrieved group id matches/*/
+    TEST_ASSERT((int) mbedtls_ecdh_get_grp_id(&srv) == id);
+
+exit:
+    mbedtls_ecdh_free(&srv);
+
+}
+/* END_CASE */

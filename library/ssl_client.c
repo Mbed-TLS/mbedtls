@@ -793,7 +793,7 @@ static int ssl_prepare_client_hello(mbedtls_ssl_context *ssl)
 #endif
     {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-        if (ssl->handshake->hello_retry_request_count == 0)
+        if (!ssl->handshake->hello_retry_request_flag)
 #endif
         {
             ret = ssl_generate_random(ssl);

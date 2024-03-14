@@ -833,6 +833,12 @@ int mbedtls_test_ssl_endpoint_init(
                                              options->max_early_data_size);
     }
 #endif
+#if defined(MBEDTLS_SSL_ALPN)
+    /* check that alpn_list contains at least one valid entry */
+    if (options->alpn_list[0] != NULL) {
+        mbedtls_ssl_conf_alpn_protocols(&(ep->conf), options->alpn_list);
+    }
+#endif
 #endif
 
 #if defined(MBEDTLS_SSL_CACHE_C) && defined(MBEDTLS_SSL_SRV_C)

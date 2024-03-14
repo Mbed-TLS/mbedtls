@@ -1819,7 +1819,6 @@ static int ssl_tls13_check_early_data_requirements(mbedtls_ssl_context *ssl)
      * NOTE:
      *  - The TLS version number is checked in
      *    ssl_tls13_offered_psks_check_identity_match_ticket().
-     *  - ALPN is not checked for the time being (TODO).
      */
 
     if (handshake->selected_identity != 0) {
@@ -1845,6 +1844,28 @@ static int ssl_tls13_check_early_data_requirements(mbedtls_ssl_context *ssl)
              "permission bits."));
         return -1;
     }
+
+#if defined(MBEDTLS_SSL_ALPN)
+    const char *alpn = mbedtls_ssl_get_alpn_protocol(ssl);
+    size_t alpn_len;
+
+    if (alpn == NULL && ssl->session_negotiate->ticket_alpn == NULL) {
+        return 0;
+    }
+
+    if (alpn != NULL) {
+        alpn_len = strlen(alpn);
+    }
+
+    if (alpn == NULL ||
+        ssl->session_negotiate->ticket_alpn == NULL ||
+        alpn_len != strlen(ssl->session_negotiate->ticket_alpn) ||
+        (memcmp(alpn, ssl->session_negotiate->ticket_alpn, alpn_len) != 0)) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("EarlyData: rejected, the selected ALPN is different "
+                                  "from the one associated with the pre-shared key."));
+        return -1;
+    }
+#endif
 
     return 0;
 }

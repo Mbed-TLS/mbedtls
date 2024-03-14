@@ -238,6 +238,11 @@ int mbedtls_ssl_session_copy(mbedtls_ssl_session *dst,
 #endif
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_ALPN) && \
+    defined(MBEDTLS_SSL_EARLY_DATA)
+    dst->ticket_alpn = NULL;
+#endif
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
@@ -274,6 +279,16 @@ int mbedtls_ssl_session_copy(mbedtls_ssl_session *dst,
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_ALPN) && \
+    defined(MBEDTLS_SSL_EARLY_DATA)
+    {
+        int ret = mbedtls_ssl_session_set_ticket_alpn(dst, src->ticket_alpn);
+        if (ret != 0) {
+            return ret;
+        }
+    }
+#endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_ALPN && MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
     if (src->ticket != NULL) {

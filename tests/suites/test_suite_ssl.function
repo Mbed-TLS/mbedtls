@@ -3988,7 +3988,7 @@ void tls13_cli_early_data_state(int scenario)
                         if (!client_ep.ssl.handshake->hello_retry_request_flag) {
                             TEST_EQUAL(client_ep.ssl.early_data_state,
                                        MBEDTLS_SSL_EARLY_DATA_STATE_CAN_WRITE);
-                             memcpy(client_random,
+                            memcpy(client_random,
                                    client_ep.ssl.handshake->randbytes,
                                    MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
                         } else {

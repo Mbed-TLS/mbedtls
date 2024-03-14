@@ -715,6 +715,7 @@ psa_status_t mbedtls_test_psa_raw_key_agreement_with_self(
         status = PSA_SUCCESS;
         goto exit;
     }
+    PSA_ASSERT(status);
 
     status = psa_raw_key_agreement(alg, key,
                                    public_key, public_key_length,

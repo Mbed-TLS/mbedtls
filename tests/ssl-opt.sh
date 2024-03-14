@@ -1629,7 +1629,7 @@ run_test() {
     fi
 
     if [ "$LIST_TESTS" -gt 0 ]; then
-        printf "%s\n" "$NAME"
+        printf "%s\n" "${TEST_SUITE_NAME:-ssl-opt};$NAME"
         return
     fi
 

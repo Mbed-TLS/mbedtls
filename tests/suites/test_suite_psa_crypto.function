@@ -1361,7 +1361,7 @@ void *thread_import_key(void *ctx)
     same_key_context *skc = (struct same_key_context *) ctx;
     psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    /* Import the key, exactly one thread must succceed. */
+    /* Import the key, exactly one thread must succeed. */
     psa_status_t status = psa_import_key(skc->attributes, skc->data->x,
                                          skc->data->len, &returned_key_id);
     switch (status) {

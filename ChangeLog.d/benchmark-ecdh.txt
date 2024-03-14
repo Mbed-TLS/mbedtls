@@ -1,0 +1,3 @@
+Features
+   * The benchmark program now reports times for both ephemeral and static
+     ECDH in all ECDH configurations.

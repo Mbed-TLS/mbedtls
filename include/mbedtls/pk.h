@@ -181,13 +181,6 @@ typedef struct mbedtls_pk_rsassa_pss_options {
 #define MBEDTLS_PK_USE_PSA_EC_DATA
 #endif
 
-/* Helper symbol to state that the PK module has support for EC keys. This
- * can either be provided through the legacy ECP solution or through the
- * PSA friendly MBEDTLS_PK_USE_PSA_EC_DATA. */
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA) || defined(MBEDTLS_ECP_C)
-#define MBEDTLS_PK_HAVE_ECC_KEYS
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA || MBEDTLS_ECP_C */
-
 /**
  * \brief           Types for interfacing with the debug module
  */
@@ -397,6 +390,77 @@ int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
                             const mbedtls_svc_key_id_t key);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+/**
+ * \brief           Create a PK context starting from a key stored in PSA.
+ *                  This key:
+ *                  - must be exportable and
+ *                  - must be an RSA or EC key pair or public key (FFDH is not supported in PK).
+ *
+ *                  The resulting PK object will be a transparent type:
+ *                  - #MBEDTLS_PK_RSA for RSA keys or
+ *                  - #MBEDTLS_PK_ECKEY for EC keys.
+ *
+ *                  Once this functions returns the PK object will be completely
+ *                  independent from the original PSA key that it was generated
+ *                  from.
+ *                  Calling mbedtls_pk_sign(), mbedtls_pk_verify(),
+ *                  mbedtls_pk_encrypt(), mbedtls_pk_decrypt() on the resulting
+ *                  PK context will perform the corresponding algorithm for that
+ *                  PK context type.
+ *                  * For ECDSA, the choice of deterministic vs randomized will
+ *                    be based on the compile-time setting #MBEDTLS_ECDSA_DETERMINISTIC.
+ *                  * For an RSA key, the output PK context will allow both
+ *                    encrypt/decrypt and sign/verify regardless of the original
+ *                    key's policy.
+ *                    The original key's policy determines the output key's padding
+ *                    mode: PCKS1 v2.1 is set if the PSA key policy is OAEP or PSS,
+ *                    otherwise PKCS1 v1.5 is set.
+ *
+ * \param key_id    The key identifier of the key stored in PSA.
+ * \param pk        The PK context that will be filled. It must be initialized,
+ *                  but not set up.
+ *
+ * \return          0 on success.
+ * \return          #MBEDTLS_ERR_PK_BAD_INPUT_DATA in case the provided input
+ *                  parameters are not correct.
+ */
+int mbedtls_pk_copy_from_psa(mbedtls_svc_key_id_t key_id, mbedtls_pk_context *pk);
+
+/**
+ * \brief           Create a PK context for the public key of a PSA key.
+ *
+ *                  The key must be an RSA or ECC key. It can be either a
+ *                  public key or a key pair, and only the public key is copied.
+ *                  The resulting PK object will be a transparent type:
+ *                  - #MBEDTLS_PK_RSA for RSA keys or
+ *                  - #MBEDTLS_PK_ECKEY for EC keys.
+ *
+ *                  Once this functions returns the PK object will be completely
+ *                  independent from the original PSA key that it was generated
+ *                  from.
+ *                  Calling mbedtls_pk_verify() or
+ *                  mbedtls_pk_encrypt() on the resulting
+ *                  PK context will perform the corresponding algorithm for that
+ *                  PK context type.
+ *
+ *                  For an RSA key, the output PK context will allow both
+ *                  encrypt and verify regardless of the original key's policy.
+ *                  The original key's policy determines the output key's padding
+ *                  mode: PCKS1 v2.1 is set if the PSA key policy is OAEP or PSS,
+ *                  otherwise PKCS1 v1.5 is set.
+ *
+ * \param key_id    The key identifier of the key stored in PSA.
+ * \param pk        The PK context that will be filled. It must be initialized,
+ *                  but not set up.
+ *
+ * \return          0 on success.
+ * \return          MBEDTLS_ERR_PK_BAD_INPUT_DATA in case the provided input
+ *                  parameters are not correct.
+ */
+int mbedtls_pk_copy_public_from_psa(mbedtls_svc_key_id_t key_id, mbedtls_pk_context *pk);
+#endif /* MBEDTLS_PSA_CRYPTO_C */
+
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /**
  * \brief           Initialize an RSA-alt context
@@ -491,20 +555,20 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
  * \brief           Determine valid PSA attributes that can be used to
  *                  import a key into PSA.
  *
- *                  The attributes determined by this function are suitable
- *                  for calling mbedtls_pk_import_into_psa() to create
- *                  a PSA key with the same key material.
+ * The attributes determined by this function are suitable
+ * for calling mbedtls_pk_import_into_psa() to create
+ * a PSA key with the same key material.
  *
- *                  The typical flow of operations involving this function is
- *                  ```
- *                  psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
- *                  int ret = mbedtls_pk_get_psa_attributes(pk, &attributes);
- *                  if (ret != 0) ...; // error handling omitted
- *                  // Tweak attributes if desired
- *                  psa_key_id_t key_id = 0;
- *                  ret = mbedtls_pk_import_into_psa(pk, &attributes, &key_id);
- *                  if (ret != 0) ...; // error handling omitted
- *                  ```
+ * The typical flow of operations involving this function is
+ * ```
+ * psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+ * int ret = mbedtls_pk_get_psa_attributes(pk, &attributes);
+ * if (ret != 0) ...; // error handling omitted
+ * // Tweak attributes if desired
+ * psa_key_id_t key_id = 0;
+ * ret = mbedtls_pk_import_into_psa(pk, &attributes, &key_id);
+ * if (ret != 0) ...; // error handling omitted
+ * ```
  *
  * \note            This function does not support RSA-alt contexts
  *                  (set up with mbedtls_pk_setup_rsa_alt()).
@@ -599,6 +663,53 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
 int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
                                   psa_key_usage_t usage,
                                   psa_key_attributes_t *attributes);
+
+/**
+ * \brief           Import a key into the PSA key store.
+ *
+ * This function is equivalent to calling psa_import_key()
+ * with the key material from \p pk.
+ *
+ * The typical way to use this function is:
+ * -# Call mbedtls_pk_get_psa_attributes() to obtain
+ *    attributes for the given key.
+ * -# If desired, modify the attributes, for example:
+ *     - To create a persistent key, call
+ *       psa_set_key_identifier() and optionally
+ *       psa_set_key_lifetime().
+ *     - To import only the public part of a key pair:
+ *
+ *           psa_set_key_type(&attributes,
+ *                            PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(
+ *                                psa_get_key_type(&attributes)));
+ *     - Restrict the key usage if desired.
+ * -# Call mbedtls_pk_import_into_psa().
+ *
+ * \note            This function does not support RSA-alt contexts
+ *                  (set up with mbedtls_pk_setup_rsa_alt()).
+ *
+ * \param[in] pk    The PK context to use. It must have been set up.
+ *                  It can either contain a key pair or just a public key.
+ * \param[in] attributes
+ *                  The attributes to use for the new key. They must be
+ *                  compatible with \p pk. In particular, the key type
+ *                  must match the content of \p pk.
+ *                  If \p pk contains a key pair, the key type in
+ *                  attributes can be either the key pair type or the
+ *                  corresponding public key type (to import only the
+ *                  public part).
+ * \param[out] key_id
+ *                  On success, the identifier of the newly created key.
+ *                  On error, this is #MBEDTLS_SVC_KEY_ID_INIT.
+ *
+ * \return          0 on success.
+ *                  #MBEDTLS_ERR_PK_TYPE_MISMATCH if \p pk does not contain
+ *                  a key of the type identified in \p attributes.
+ *                  Another error code on other failures.
+ */
+int mbedtls_pk_import_into_psa(const mbedtls_pk_context *pk,
+                               const psa_key_attributes_t *attributes,
+                               mbedtls_svc_key_id_t *key_id);
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
 /**
@@ -619,14 +730,17 @@ int mbedtls_pk_get_psa_attributes(const mbedtls_pk_context *pk,
  * \param sig       Signature to verify
  * \param sig_len   Signature length
  *
+ * \note            For keys of type #MBEDTLS_PK_RSA, the signature algorithm is
+ *                  either PKCS#1 v1.5 or PSS (accepting any salt length),
+ *                  depending on the padding mode in the underlying RSA context.
+ *                  For a pk object constructed by parsing, this is PKCS#1 v1.5
+ *                  by default. Use mbedtls_pk_verify_ext() to explicitly select
+ *                  a different algorithm.
+ *
  * \return          0 on success (signature is valid),
  *                  #MBEDTLS_ERR_PK_SIG_LEN_MISMATCH if there is a valid
  *                  signature in \p sig but its length is less than \p sig_len,
  *                  or a specific error code.
- *
- * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
- *                  Use \c mbedtls_pk_verify_ext( MBEDTLS_PK_RSASSA_PSS, ... )
- *                  to verify RSASSA_PSS signatures.
  */
 int mbedtls_pk_verify(mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
                       const unsigned char *hash, size_t hash_len,
@@ -713,11 +827,15 @@ int mbedtls_pk_verify_ext(mbedtls_pk_type_t type, const void *options,
  * \param f_rng     RNG function, must not be \c NULL.
  * \param p_rng     RNG parameter
  *
- * \return          0 on success, or a specific error code.
+ * \note            For keys of type #MBEDTLS_PK_RSA, the signature algorithm is
+ *                  either PKCS#1 v1.5 or PSS (using the largest possible salt
+ *                  length up to the hash length), depending on the padding mode
+ *                  in the underlying RSA context. For a pk object constructed
+ *                  by parsing, this is PKCS#1 v1.5 by default. Use
+ *                  mbedtls_pk_verify_ext() to explicitly select a different
+ *                  algorithm.
  *
- * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
- *                  There is no interface in the PK module to make RSASSA-PSS
- *                  signatures yet.
+ * \return          0 on success, or a specific error code.
  *
  * \note            For RSA, md_alg may be MBEDTLS_MD_NONE if hash_len != 0.
  *                  For ECDSA, md_alg may never be MBEDTLS_MD_NONE.
@@ -813,7 +931,10 @@ int mbedtls_pk_sign_restartable(mbedtls_pk_context *ctx,
  * \param f_rng     RNG function, must not be \c NULL.
  * \param p_rng     RNG parameter
  *
- * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
+ * \note            For keys of type #MBEDTLS_PK_RSA, the signature algorithm is
+ *                  either PKCS#1 v1.5 or OAEP, depending on the padding mode in
+ *                  the underlying RSA context. For a pk object constructed by
+ *                  parsing, this is PKCS#1 v1.5 by default.
  *
  * \return          0 on success, or a specific error code.
  */
@@ -834,9 +955,12 @@ int mbedtls_pk_decrypt(mbedtls_pk_context *ctx,
  * \param f_rng     RNG function, must not be \c NULL.
  * \param p_rng     RNG parameter
  *
- * \note            \p f_rng is used for padding generation.
+ * \note            For keys of type #MBEDTLS_PK_RSA, the signature algorithm is
+ *                  either PKCS#1 v1.5 or OAEP, depending on the padding mode in
+ *                  the underlying RSA context. For a pk object constructed by
+ *                  parsing, this is PKCS#1 v1.5 by default.
  *
- * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
+ * \note            \p f_rng is used for padding generation.
  *
  * \return          0 on success, or a specific error code.
  */
@@ -1158,33 +1282,6 @@ int mbedtls_pk_parse_subpubkey(unsigned char **p, const unsigned char *end,
 int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
                             const mbedtls_pk_context *key);
 #endif /* MBEDTLS_PK_WRITE_C */
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-/**
- * \brief           Turn an EC or RSA key into an opaque one.
- *
- * \warning         This is a temporary utility function for tests. It might
- *                  change or be removed at any time without notice.
- *
- * \param pk        Input: the EC or RSA key to import to a PSA key.
- *                  Output: a PK context wrapping that PSA key.
- * \param key       Output: a PSA key identifier.
- *                  It's the caller's responsibility to call
- *                  psa_destroy_key() on that key identifier after calling
- *                  mbedtls_pk_free() on the PK context.
- * \param alg       The algorithm to allow for use with that key.
- * \param usage     The usage to allow for use with that key.
- * \param alg2      The secondary algorithm to allow for use with that key.
- *
- * \return          \c 0 if successful.
- * \return          An Mbed TLS error code otherwise.
- */
-int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
-                              mbedtls_svc_key_id_t *key,
-                              psa_algorithm_t alg,
-                              psa_key_usage_t usage,
-                              psa_algorithm_t alg2);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #ifdef __cplusplus
 }

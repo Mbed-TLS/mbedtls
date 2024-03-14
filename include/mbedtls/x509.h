@@ -322,7 +322,149 @@ mbedtls_x509_san_list;
  */
 int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn);
 
+/**
+ * \brief            Convert the certificate DN string \p name into
+ *                   a linked list of mbedtls_x509_name (equivalent to
+ *                   mbedtls_asn1_named_data).
+ *
+ * \note             This function allocates a linked list, and places the head
+ *                   pointer in \p head. This list must later be freed by a
+ *                   call to mbedtls_asn1_free_named_data_list().
+ *
+ * \param[out] head  Address in which to store the pointer to the head of the
+ *                   allocated list of mbedtls_x509_name
+ * \param[in] name   The string representation of a DN to convert
+ *
+ * \return           0 on success, or a negative error code.
+ */
 int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *name);
+
+/**
+ * \brief          Return the next relative DN in an X509 name.
+ *
+ * \note           Intended use is to compare function result to dn->next
+ *                 in order to detect boundaries of multi-valued RDNs.
+ *
+ * \param dn       Current node in the X509 name
+ *
+ * \return         Pointer to the first attribute-value pair of the
+ *                 next RDN in sequence, or NULL if end is reached.
+ */
+static inline mbedtls_x509_name *mbedtls_x509_dn_get_next(
+    mbedtls_x509_name *dn)
+{
+    while (dn->MBEDTLS_PRIVATE(next_merged) && dn->next != NULL) {
+        dn = dn->next;
+    }
+    return dn->next;
+}
+
+/**
+ * \brief          Store the certificate serial in printable form into buf;
+ *                 no more than size characters will be written.
+ *
+ * \param buf      Buffer to write to
+ * \param size     Maximum size of buffer
+ * \param serial   The X509 serial to represent
+ *
+ * \return         The length of the string written (not including the
+ *                 terminated nul byte), or a negative error code.
+ */
+int mbedtls_x509_serial_gets(char *buf, size_t size, const mbedtls_x509_buf *serial);
+
+/**
+ * \brief          Compare pair of mbedtls_x509_time.
+ *
+ * \param t1       mbedtls_x509_time to compare
+ * \param t2       mbedtls_x509_time to compare
+ *
+ * \return         < 0 if t1 is before t2
+ *                   0 if t1 equals t2
+ *                 > 0 if t1 is after t2
+ */
+int mbedtls_x509_time_cmp(const mbedtls_x509_time *t1, const mbedtls_x509_time *t2);
+
+#if defined(MBEDTLS_HAVE_TIME_DATE)
+/**
+ * \brief          Fill mbedtls_x509_time with provided mbedtls_time_t.
+ *
+ * \param tt       mbedtls_time_t to convert
+ * \param now      mbedtls_x509_time to fill with converted mbedtls_time_t
+ *
+ * \return         \c 0 on success
+ * \return         A non-zero return value on failure.
+ */
+int mbedtls_x509_time_gmtime(mbedtls_time_t tt, mbedtls_x509_time *now);
+#endif /* MBEDTLS_HAVE_TIME_DATE */
+
+/**
+ * \brief          Check a given mbedtls_x509_time against the system time
+ *                 and tell if it's in the past.
+ *
+ * \note           Intended usage is "if( is_past( valid_to ) ) ERROR".
+ *                 Hence the return value of 1 if on internal errors.
+ *
+ * \param to       mbedtls_x509_time to check
+ *
+ * \return         1 if the given time is in the past or an error occurred,
+ *                 0 otherwise.
+ */
+int mbedtls_x509_time_is_past(const mbedtls_x509_time *to);
+
+/**
+ * \brief          Check a given mbedtls_x509_time against the system time
+ *                 and tell if it's in the future.
+ *
+ * \note           Intended usage is "if( is_future( valid_from ) ) ERROR".
+ *                 Hence the return value of 1 if on internal errors.
+ *
+ * \param from     mbedtls_x509_time to check
+ *
+ * \return         1 if the given time is in the future or an error occurred,
+ *                 0 otherwise.
+ */
+int mbedtls_x509_time_is_future(const mbedtls_x509_time *from);
+
+/**
+ * \brief          This function parses an item in the SubjectAlternativeNames
+ *                 extension. Please note that this function might allocate
+ *                 additional memory for a subject alternative name, thus
+ *                 mbedtls_x509_free_subject_alt_name has to be called
+ *                 to dispose of this additional memory afterwards.
+ *
+ * \param san_buf  The buffer holding the raw data item of the subject
+ *                 alternative name.
+ * \param san      The target structure to populate with the parsed presentation
+ *                 of the subject alternative name encoded in \p san_buf.
+ *
+ * \note           Supported GeneralName types, as defined in RFC 5280:
+ *                 "rfc822Name", "dnsName", "directoryName",
+ *                 "uniformResourceIdentifier" and "hardware_module_name"
+ *                 of type "otherName", as defined in RFC 4108.
+ *
+ * \note           This function should be called on a single raw data of
+ *                 subject alternative name. For example, after successful
+ *                 certificate parsing, one must iterate on every item in the
+ *                 \c crt->subject_alt_names sequence, and pass it to
+ *                 this function.
+ *
+ * \warning        The target structure contains pointers to the raw data of the
+ *                 parsed certificate, and its lifetime is restricted by the
+ *                 lifetime of the certificate.
+ *
+ * \return         \c 0 on success
+ * \return         #MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE for an unsupported
+ *                 SAN type.
+ * \return         Another negative value for any other failure.
+ */
+int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
+                                        mbedtls_x509_subject_alternative_name *san);
+/**
+ * \brief          Unallocate all data related to subject alternative name
+ *
+ * \param san      SAN structure - extra memory owned by this structure will be freed
+ */
+void mbedtls_x509_free_subject_alt_name(mbedtls_x509_subject_alternative_name *san);
 
 /**
  * \brief          This function parses a CN string as an IP address.

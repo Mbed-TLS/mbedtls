@@ -34,9 +34,15 @@ cmake_policy(SET CMP0011 NEW)
 cmake_policy(SET CMP0012 NEW)
 
 if(TEST_CPP)
-    project("Mbed TLS" LANGUAGES C CXX)
+    project("Mbed TLS"
+        LANGUAGES C CXX
+        VERSION 3.5.2
+    )
 else()
-    project("Mbed TLS" LANGUAGES C)
+    project("Mbed TLS"
+        LANGUAGES C
+        VERSION 3.5.2
+    )
 endif()
 
 include(GNUInstallDirs)
@@ -277,11 +283,18 @@ if(LIB_INSTALL_DIR)
     set(CMAKE_INSTALL_LIBDIR "${LIB_INSTALL_DIR}")
 endif()
 
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/framework/CMakeLists.txt")
+    message(FATAL_ERROR "${CMAKE_CURRENT_SOURCE_DIR}/framework/CMakeLists.txt not found. Run `git submodule update --init` from the source tree to fetch the submodule contents.")
+endif()
+add_subdirectory(framework)
+
 add_subdirectory(include)
 
 add_subdirectory(3rdparty)
 
 add_subdirectory(library)
+
+add_subdirectory(pkgconfig)
 
 #
 # The C files in tests/src directory contain test code shared among test suites

@@ -570,6 +570,11 @@ KNOWN_TASKS = {
                     re.compile(r'mbedtls_ct_zeroize_if .*'),
                     re.compile(r'mbedtls_ct_memmove_left .*')
                 ],
+                'test_suite_psa_crypto': [
+                    # We don't support generate_key_ext entry points
+                    # in drivers yet.
+                    re.compile(r'PSA generate key ext: RSA, e=.*'),
+                ],
             }
         }
     },
@@ -614,8 +619,7 @@ KNOWN_TASKS = {
                 'test_suite_pem': [
                     # Following tests require AES_C, but this is diabled in the
                     # accelerated component.
-                    'PEM read (AES-128-CBC + invalid iv)',
-                    'PEM read (malformed PEM AES-128-CBC)',
+                    re.compile('PEM read .*AES.*'),
                     'PEM read (unknown encryption algorithm)',
                 ],
                 'test_suite_error': [

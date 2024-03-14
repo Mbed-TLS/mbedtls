@@ -142,6 +142,19 @@ typedef struct mbedtls_ecdh_context {
 mbedtls_ecdh_context;
 
 /**
+ * \brief          Return the ECP group for provided context.
+ *
+ * \note           To access group specific fields, users should use
+ *                 `mbedtls_ecp_curve_info_from_grp_id` or
+ *                 `mbedtls_ecp_group_load` on the extracted `group_id`.
+ *
+ * \param ctx      The ECDH context to parse. This must not be \c NULL.
+ *
+ * \return         The \c mbedtls_ecp_group_id of the context.
+ */
+mbedtls_ecp_group_id mbedtls_ecdh_get_grp_id(mbedtls_ecdh_context *ctx);
+
+/**
  * \brief          Check whether a given group can be used for ECDH.
  *
  * \param gid      The ECP group ID to check.

@@ -114,6 +114,7 @@ typedef struct mbedtls_test_handshake_test_options {
     void (*cli_log_fun)(void *, int, const char *, int, const char *);
     int resize_buffers;
     int early_data;
+    int max_early_data_size;
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_context *cache;
 #endif
@@ -194,6 +195,13 @@ typedef struct mbedtls_test_ssl_endpoint {
 } mbedtls_test_ssl_endpoint;
 
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
+
+/*
+ * Random number generator aimed for TLS unitary tests. Its main purpose is to
+ * simplify the set-up of a random number generator for TLS
+ * unitary tests: no need to set up a good entropy source for example.
+ */
+int mbedtls_test_random(void *p_rng, unsigned char *output, size_t output_len);
 
 /*
  * This function can be passed to mbedtls to receive output logs from it. In
@@ -532,6 +540,7 @@ int mbedtls_test_ssl_prepare_record_mac(mbedtls_record *record,
  */
 int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
                                             int ticket_len,
+                                            int endpoint_type,
                                             const char *crt_file);
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
@@ -607,9 +616,7 @@ int mbedtls_test_get_tls13_ticket(
     mbedtls_test_handshake_test_options *client_options,
     mbedtls_test_handshake_test_options *server_options,
     mbedtls_ssl_session *session);
-#endif /* MBEDTLS_SSL_CLI_C && MBEDTLS_SSL_SRV_C &&
-          MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS &&
-          MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
+#endif
 
 #define ECJPAKE_TEST_PWD        "bla"
 

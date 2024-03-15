@@ -102,6 +102,7 @@ typedef enum {
     PSA_CRYPTO_SUBSYSTEM_TRANSACTION,
 } mbedtls_psa_crypto_subsystem;
 
+/* Initialization flags for global_data::initialized */
 #define PSA_CRYPTO_SUBSYSTEM_DRIVER_WRAPPERS_INITIALIZED    0x01
 #define PSA_CRYPTO_SUBSYSTEM_KEY_SLOTS_INITIALIZED          0x02
 #define PSA_CRYPTO_SUBSYSTEM_TRANSACTION_INITIALIZED        0x04

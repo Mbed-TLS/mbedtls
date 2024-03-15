@@ -10,13 +10,13 @@ Summary of recent work:
     - Slot states are described in the [Key slot states](#key-slot-states) section. They guarantee safe concurrent access to slot contents.
     - Key slots are protected by a global mutex, as described in [Key store consistency and abstraction function](#key-store-consistency-and-abstraction-function).
     - Key destruction strategy abiding by [Key destruction guarantees](#key-destruction-guarantees), with an implementation discussed in [Key destruction implementation](#key-destruction-implementation).
-- The main `global_data` (the one in `psa_crypto.c`) is protected by its own mutex as described in the [Global data](#global-data) section.
+- `global_data` variables in `psa_crypto.c` and `psa_crypto_slot_management.c` are now protected by mutexes, as described in the [Global data](#global-data) section.
 - The testing system has now been made thread-safe. Tests can now spin up multiple threads, see [Thread-safe testing](#thread-safe-testing) for details.
 - Some multithreaded testing of the key management API has been added, this is outlined in [Testing-and-analysis](#testing-and-analysis).
 - The solution uses the pre-existing `MBEDTLS_THREADING_C` threading abstraction.
 - The core makes no additional guarantees for drivers. See [Driver policy](#driver-policy) for details.
 
-The usage of keys within other PSA Crypto APIs is planned to be made thread-safe in future, but currently we are not testing this.
+The other functions in the PSA Crypto API are planned to be made thread-safe in future, but currently we are not testing this.
 
 ## Overview of the document
 
@@ -30,7 +30,7 @@ The usage of keys within other PSA Crypto APIs is planned to be made thread-safe
 
 *Concurrent calls*
 
-The PSA specification defines concurrent calls as: "In some environments, an application can make calls to the Crypto API in separate threads. In such an environment, concurrent calls are two or more calls to the API whose execution can overlap in time." (https://arm-software.github.io/psa-api/crypto/1.1/overview/conventions.html#concurrent-calls).
+The PSA specification defines concurrent calls as: "In some environments, an application can make calls to the Crypto API in separate threads. In such an environment, concurrent calls are two or more calls to the API whose execution can overlap in time." (See PSA documentation [here](https://arm-software.github.io/psa-api/crypto/1.1/overview/conventions.html#concurrent-calls).)
 
 *Thread-safety*
 
@@ -56,7 +56,7 @@ These are the conventions which are planned to be added to the PSA 1.2 specifica
 >
 > * There is no overlap between an output parameter of one call and an input or output parameter of another call. Overlap between input parameters is permitted.
 >
-> * A call to :code:`psa_destroy_key()` must not overlap with a concurrent call to any of the following functions:
+> * A call to `psa_destroy_key()` must not overlap with a concurrent call to any of the following functions:
 >     - Any call where the same key identifier is a parameter to the call.
 >     - Any call in a multi-part operation, where the same key identifier was used as a parameter to a previous step in the multi-part operation.
 >
@@ -67,9 +67,9 @@ These are the conventions which are planned to be added to the PSA 1.2 specifica
 > The consistency requirement does not apply to errors that arise from resource failures or limitations. For example, errors resulting from resource exhaustion can arise in concurrent execution that do not arise in sequential execution.
 >
 > As an example of this rule: suppose two calls are executed concurrently which both attempt to create a new key with the same key identifier that is not already in the key store. Then:
-> * If one call returns :code:`PSA_ERROR_ALREADY_EXISTS`, then the other call must succeed.
-> * If one of the calls succeeds, then the other must fail: either with :code:`PSA_ERROR_ALREADY_EXISTS` or some other error status.
-> * Both calls can fail with error codes that are not :code:`PSA_ERROR_ALREADY_EXISTS`.
+> * If one call returns `PSA_ERROR_ALREADY_EXISTS`, then the other call must succeed.
+> * If one of the calls succeeds, then the other must fail: either with `PSA_ERROR_ALREADY_EXISTS` or some other error status.
+> * Both calls can fail with error codes that are not `PSA_ERROR_ALREADY_EXISTS`.
 >
 > If the application concurrently modifies an input parameter while a function call is in progress, the behaviour is undefined.
 
@@ -104,9 +104,9 @@ The core makes no additional guarantees for drivers. Driver entry points may be 
 
 The PSA RNG can be accessed both from various PSA functions, and from application code via `mbedtls_psa_get_random`.
 
-When using the built-in RNG implementations, i.e. when `MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG` is disabled, querying the RNG is thread-safe (`init` and `seed` are only thread-safe when called as part of `psa_crypto_init`, but not when called directly. `free` is not thread-safe).
+When using the built-in RNG implementations, i.e. when `MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG` is disabled, querying the RNG is thread-safe (`mbedtls_psa_random_init` and `mbedtls_psa_random_seed` are only thread-safe when called while holding `mbedtls_threading_psa_rngdata_mutex`. `mbedtls_psa_random_free` is not thread-safe).
 
-When `MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG` is enabled, thread-safety depends on the implementation.
+When `MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG` is enabled, it is down to the external implementation to ensure thread-safety, should threading be enabled.
 
 ## Usage guide
 
@@ -118,7 +118,7 @@ The PSA subsystem is initialized via a call to [`psa_crypto_init`](https://arm-s
 
 Once initialized, threads can use any PSA function if there is no overlap between their calls. All threads share the same set of keys, as soon as one thread returns from creating/loading a key via a key management API call the key can be used by any thread. If multiple threads attempt to load the same persistent key, with the same key identifier, only one thread can succeed - the others will return `PSA_ERROR_ALREADY_EXISTS`.
 
-Applications may need careful handling of resource management errors. As explained in ([PSA Concurrent calling conventions](#psa-concurrent-calling-conventions)) operations in progress can have memory related side effects, it is possible for a lack of resources to cause errors which do not arise in sequential execution. For example, multiple threads attempting to load the same persistent key can lead to some threads returning `PSA_ERROR_INSUFFICIENT_MEMORY` if the key is not currently in the key store - while trying to load a persistent key into the key store a thread temporarily reserves a free key slot.
+Applications may need careful handling of resource management errors. As explained in ([PSA Concurrent calling conventions](#psa-concurrent-calling-conventions)), operations in progress can have memory related side effects. It is possible for a lack of resources to cause errors which do not arise in sequential execution. For example, multiple threads attempting to load the same persistent key can lead to some threads returning `PSA_ERROR_INSUFFICIENT_MEMORY` if the key is not currently in the key store - while trying to load a persistent key into the key store a thread temporarily reserves a free key slot.
 
 If a mutex operation fails, which only happens if the mutex implementation fails, the error code `PSA_ERROR_SERVICE_FAILURE` will be returned. If this code is returned, execution of the PSA subsystem must be stopped. All functions which have internal mutex locks and unlocks (except for when the lock/unlock occurs in a function that has no return value) will return with this error code in this situation.
 
@@ -143,7 +143,12 @@ There are two `psa_global_data_t` structs, each with a single instance `global_d
 * The struct in `library/psa_crypto.c` is protected by `mbedtls_threading_psa_globaldata_mutex`. The RNG fields within this struct are not protected by this mutex, and are not always thread-safe (see [Random number generators](#random-number-generators)).
 * The struct in `library/psa_crypto_slot_management.c` has two fields: `key_slots` is protected as described in [Key slots](#key-slots), `key_slots_initialized` is protected by the global data mutex.
 
+#### Mutex usage
+
+A deadlock would occur if a thread attempts to lock a mutex while already holding it. Functions which need to be called while holding the global mutex have documentation to say this.
+
 #### Key slots
+
 
 Keys are stored internally in a global array of key slots known as the "key store", defined in `library/psa_slot_management.c`.
 
@@ -166,7 +171,7 @@ In the state transition diagram above, an arrow between two states `q1` and `q2`
 The state transition diagram can be generated in https://app.diagrams.net/ via this [url](https://viewer.diagrams.net/?tags=%7B%7D&highlight=0000ff&edit=_blank&layers=1&nav=1#R3Vxbd5s4EP4t%2B%2BDH5CBxf6zrJJvW7aYn7W7dFx9qZFstBg7gW379CnMxkoUtY%2BGQ%2BiVISCPQjD59mhnSU98vNg%2BRE84%2FBS7yelBxNz110IMQAEsnf9KabVZjmHnFLMJu3mhf8YxfUF6p5LVL7KKYapgEgZfgkK6cBL6PJglV50RRsKabTQOPHjV0Zuig4nnieIe1%2F2E3mWe1FjT39X8jPJsXIwPDzu4snKJx%2Fibx3HGDdaVKveup76MgSLKrxeY98tLJK%2BYl63dfc7d8sAj5iUiHH%2BBlOP338cP6i%2B37%2Ff7oV%2Fjr442aSVk53jJ%2F4R40PCKv7%2BIVuZyll%2FffhsOimsiv3OE0njvxOEKOi6K4uPszYtuzUnbzk2yLSScPTvRLCv31HCfoOXQm6Z01MbF0hGThkRIgl04cZkqf4g1yS1HVScnnaYWiBG0qVfkkPaBggZJoS5rkdzUrV1hhsUpeXlf0n1fNK6ov6pzc4mal5L1SyEWulzN0BABHSeyM%2Be671NpJaeI5cYwn9ERFwdJ30xkaKKREJifafs9v7QqjamGwqbYbbIvSBidlJ3I9qtTvu6SFoketNuJgGU3QabtMnGiGkiPttKwdcqlVfKjbiu50ju6Kugh5ToJX9NrnKTQf4SnA5M1qTUc3GJvI3jvvVV2rrCDTvrUrP4sSq6mM2GyaDsTurK2chAsMENaiBC7WcBg746UfoRmOExTtEKCy2HH9UieaGzo%2Fya5BL2wPz%2FzUmInloIhUpOsXE1h%2Bl99YYNdNZfQjFOMX5%2BdOXmpzYToLu3nR%2Bz19wLXC48uMRYpyc8lHofCbhyDKLVRMm1LZDbzMwAoxgOkSTKcxakfpIjvD3aenr6O3CfOdQ3lbOsrneK1U8BocxetyXygLo2qhZl9ojvJQEOVBt1CetpwDNBYG%2BRObRcuoXvDSU6g%2BdbA3%2Fo224wkB9QQH%2FlvD9WJhdRHXc8mQEsr2bw%2FkDzf2%2B8fh8PHzQ6exWjVeGas1kb3xrFPTX3%2FcsenVlaSLKOnp7vNgZ%2B6CehrcDe%2B%2BPv7z%2BW3qqHOkx2yL84ifUZudhZtznsKJdYrzwE5xHqiQzc%2FSoAnI2VTTDXoX1DXj1gS6CS1TJwWVES9KiIDBMCvtuozIEkEMLkciZAVFKzSeRgjtuFLsBQmfJwkCDXeYmExAwuViXBw6OWpnOVuBC12kbKUY7VosDfD4hnyYvNWbHA6zXq96POyWEzCFSkUpoNIgqEaDGkhdewVWqpZiNgNLTWHAkti6yphk237B5oA5xT6O5wLHyjcGXOVSvRi5bogVabZJQ5cqx0ItrtQrABmPkzO6nCzJRuqWFOx6YQ1xN1lzRBMNa6idQjStiNmWMdyGHi%2FdYASxB4sawCI24GwrzfLlWf%2FANo2NpqIcfy7ItAcn2mvWMfnkInvipotn0NcmAD9MQu8FLR%2Fxs%2F7uaSN2nq1hpyejMpew0pqwTzNKKjYkMZKx47tjL5j8Lvn2%2BPtFA6VyJ14Q7wj8Wb3CJbHaaq%2BDwf8wel7iuIxdDqgWvZou5Oe5ZJr0Q%2F1ae5zKS6mQQtarG5SgT6PCztuN5GiCG1u3IjnQhJSV6HrDjQ3UOdauxMRV3gmRi1UuipMo2F6OcXLwtLMQVy5jCS4IzTLoM2CxDC403xuaTdktQByXicj32nKJ%2Bym0Oh8X28e3bnltVYbX6k1D1arJOBsEibssi6t3NDR1w3YBeI4uLinUymYc9ZJwBxRujjY9CNzZuUqSjLAnlIarFj2hon4DvdPwY4Cm8MOkyhjtJUByra547orZHXCpzgKKtPSXFFCKrpKJDO3mbCP9ha%2FXK2VWn4aGJjDUHE50QTjp2Gmtxkt3NpxAhs0Y7WXe8c0O1tKZhr42eZ61NQ4PqdPbdV8dX%2FYywsvlF05yIRGorwSJPKrNaFJ6iKaxX6oryMTEGxoHSFTNvIWWpWtQszUbqpbKyqVCy1AIts6NnpC3qY4CbPohTEW9NaFS%2FtTjbwTso8IAOEeY3vzJ2gnKcLP23%2FKnMcdBQQJgKrpFc0hJFLKNbJwnvNwMp3BsWbMvqx%2F3Hye%2BH3I%2FjJHDGanEmkZf47XGGEWzFruViqMyOTI667YSxmX9hCNNHmPk2pwQYUxxBi%2FCIEsRPMtPP0M%2BipykgYM%2FCM%2BPJaT00kURXu3yfsbBMgmX1DOfn1X9GlB5FB0kIKWuAe65%2BGLvHSX0almMsLMJDCeyCeScfv6wT%2FdEAyKimUz7YFkRebtSbpNNu7IPcs6F8zEZQaIh4L0gqUvww0j7vh7F%2FW9ujL7iR%2FfmYWy1QF0KOy2JxzmWSicnvP4nF93KumPJi9n4UMmQFxOKWea550bW3W9qcrPiuCZdz4yaJ4x1gVwcXb8SyAWwDTlsQmUijIxPogmYkeL%2B3%2BJkzff%2FXEi9%2Bx8%3D).
 ##### Key slot access primitives
 
-The state of a key slot is updated via the internal function `psa_key_slot_state_transition`. To change the state of `slot` from `expected_state` to `new_state`, when `new_state` is not `PSA_SLOT_EMPTY`, one must call `psa_key_slot_state_transition(slot, expected_state, new_state)`; if the state was not `expected_state` then `PSA_ERROR_CORRUPTION_DETECTED` is returned, this must not be a possibility in our code. The sole reason for having an expected state parameter here is to guarantee that our functions work as expected.
+The state of a key slot is updated via the internal function `psa_key_slot_state_transition`. To change the state of `slot` from `expected_state` to `new_state`, when `new_state` is not `PSA_SLOT_EMPTY`, one must call `psa_key_slot_state_transition(slot, expected_state, new_state)`; if the state was not `expected_state` then `PSA_ERROR_CORRUPTION_DETECTED` is returned. The sole reason for having an expected state parameter here is to help guarantee that our functions work as expected, this error code cannot occur without an internal coding error.
 
 Changing a slot's state to `PSA_SLOT_EMPTY` is done via `psa_wipe_key_slot`, this function wipes the entirety of the key slot.
 
@@ -184,7 +189,7 @@ A thread can only traverse the key store while holding `mbedtls_threading_key_sl
                                   (slot->state == PSA_SLOT_FULL) &&
                                   (slot->attr.id == k)]}
 
-The union of this set and the set of persistent keys not currently loaded into slots is our abstraction function for the key store, any key not in this union does not currently exist (even if the key is in a slot which has a `PSA_SLOT_FILLING` or `PSA_SLOT_PENDING_DELETION` state). Attempting to start using any key which is not a member of the union will result in a `PSA_ERROR_INVALID_HANDLE` error code.
+The union of this set and the set of persistent keys not currently loaded into slots is our abstraction function for the key store, any key not in this union does not currently exist as far as the code is concerned (even if the key is in a slot which has a `PSA_SLOT_FILLING` or `PSA_SLOT_PENDING_DELETION` state). Attempting to start using any key which is not a member of the union will result in a `PSA_ERROR_INVALID_HANDLE` error code.
 
 ##### Locking and unlocking the mutex
 
@@ -211,35 +216,35 @@ If `psa_reserve_free_key_slot` cannot find a suitable slot, the key cannot be lo
 
 One-shot operations follow a standard pattern when using an existing key:
 
-* They call some `psa_get_and_lock_key_slot_X` function, which finds the key and registers the thread as a reader.
-* They operate on the key slot, usually copying the key into a separate buffer to be used by the operation. This step is not done under the mutex.
+* They call one of the `psa_get_and_lock_key_slot_X` functions, which then finds the key and registers the thread as a reader.
+* They operate on the key slot, usually copying the key into a separate buffer to be used by the operation. This step is not performed under the key slot mutex.
 * Once finished, they call `psa_unregister_read_under_mutex`.
 
-Multi-part and restartable operations each have a "setup" function where the key is inputted. This function follows the above pattern. The key is copied into the `operation` object, and the thread unregisters. They do not access the key slots again. The copy of the key will not be destroyed during a call to `psa_destroy_key`, the thread running the operation is responsible for deleting this copy in the clean-up. This may need to change to enforce the long term key requirements ([Long term key destruction requirements](#long-term-key-destruction-requirements)).
+Multi-part and restartable operations each have a "setup" function where the key is passed in, these functions follow the above pattern. The key is copied into the `operation` object, and the thread unregisters from reading the key (the operations do not access the key slots again). The copy of the key will not be destroyed during a call to `psa_destroy_key`, the thread running the operation is responsible for deleting its copy in the clean-up. This may need to change to enforce the long term key requirements ([Long term key destruction requirements](#long-term-key-destruction-requirements)).
 
 ##### Key destruction implementation
 
 The locking strategy here is explained in `library/psa_crypto.c`. The destroying thread (the thread calling `psa_destroy_key`) does not always wipe the key slot. The destroying thread registers to read the key, sets the slot's state to `PSA_SLOT_PENDING_DELETION`, wipes the slot from memory if the key is persistent, and then unregisters from reading the slot.
 
-`psa_unregister_read` internally calls `psa_wipe_key_slot` iff the slot's state is `PSA_SLOT_PENDING_DELETION` and the slot's registered reader counter is equal to 1. This implements a "last one out closes the door" approach, where the final thread to unregister from reading a destroyed key will automatically wipe the contents of the slot; this ensure that there is no corruption.
+`psa_unregister_read` internally calls `psa_wipe_key_slot` if and only if the slot's state is `PSA_SLOT_PENDING_DELETION` and the slot's registered reader counter is equal to 1. This implements a "last one out closes the door" approach. The final thread to unregister from reading a destroyed key will automatically wipe the contents of the slot; no readers remain to reference the slot post deletion, so there cannot be corruption.
 
-### Linearisability of the system
+### linearizability of the system
 
-To satisfy the requirements in [Correctness out of the box](#correctness-out-of-the-box), we require our functions to be "linearisable" (under certain constraints). This means that any (constraint satisfying) set of concurrent calls are performed as if they were executed in some sequential order.
+To satisfy the requirements in [Correctness out of the box](#correctness-out-of-the-box), we require our functions to be "linearizable" (under certain constraints). This means that any (constraint satisfying) set of concurrent calls are performed as if they were executed in some sequential order.
 
 The standard way of reasoning that this is the case is to identify a "linearization point" for each call, this is a single execution step where the function takes effect (this is usually a step in which the effects of the call become visible to other threads). If every call has a linearization point, the set of calls is equivalent to sequentially performing the calls in order of when their linearization point occurred.
 
-We only require linearisability to hold in the case where a resource-management error is not returned. In a set of concurrent calls, it is permitted for a call c to fail with a `PSA_ERROR_INSUFFICIENT_MEMORY` return code even if there does not exist a sequential ordering of the calls in which c returns this error. Even if such an error occurs, all calls are still required to be functionally correct.
+We only require linearizability to hold in the case where a resource-management error is not returned. In a set of concurrent calls, it is permitted for a call c to fail with a `PSA_ERROR_INSUFFICIENT_MEMORY` return code even if there does not exist a sequential ordering of the calls in which c returns this error. Even if such an error occurs, all calls are still required to be functionally correct.
 
-To help justify that our system is linearisable, here are the linearization points/planned linearization points of each PSA call :
+To help justify that our system is linearizable, here are the linearization points/planned linearization points of each PSA call :
 
 * Key creation functions (including `psa_copy_key`) - The linearization point for a successful call is the mutex unlock within `psa_finish_key_creation`; it is at this point that the key becomes visible to other threads. The linearization point for a failed call is the closest mutex unlock after the failure is first identified.
 * `psa_destroy_key` - The linearization point for a successful destruction is the mutex unlock, the slot is now in the state `PSA_SLOT_PENDING_DELETION` meaning that the key has been destroyed. For failures, the linearization point is the same.
 * `psa_purge_key`, `psa_close_key` - The linearization point is the mutex unlock after wiping the slot for a success, or unregistering for a failure.
-* One shot operations - The linearization point is the final unlock of the mutex within `psa_get_and_lock_key_slot`, as that is the point in which it is decided whether the key exists.
+* One shot operations - The linearization point is the final unlock of the mutex within `psa_get_and_lock_key_slot`, as that is the point in which it is decided whether or not the key exists.
 * Multi-part operations - The linearization point of the key input function is the final unlock of the mutex within `psa_get_and_lock_key_slot`. All other steps have no non resource-related side effects (except for key derivation, covered in the key creation functions).
 
-Please note that one shot operations and multi-part operations are not yet considered thread-safe, as we do not test whether they rely on unprotected global resources.
+Please note that one shot operations and multi-part operations are not yet considered thread-safe, as we have not yet tested whether they rely on unprotected global resources. The key slot access in these operations is thread-safe.
 
 ## Testing and analysis
 
@@ -247,19 +252,19 @@ Please note that one shot operations and multi-part operations are not yet consi
 
 It is now possible for individual tests to spin up multiple threads. This work has made the global variables used in tests thread-safe. If multiple threads fail a test assert, the first failure will be reported with correct line numbers.
 
-The `step` feature used in some tests is not thread-safe, it cannot be made thread-safe unless we introduce thread-local variables.
+Although the `step` feature used in some tests is thread-safe, it may produce unexpected results for multi-threaded tests. `mbedtls_test_set_step` or `mbedtls_test_increment_step` calls within threads can happen in any order, thus may not produce the desired result when precise ordering is required.
 
 ### Current state of testing
 
-Our testing is a work in progress. It is not feasible to run our traditional, single-threaded, tests in such a way that tests concurrency. Therefore, we must write a new suite of testing.
+Our testing is a work in progress. It is not feasible to run our traditional, single-threaded, tests in such a way that tests concurrency. We need to write new test suites for concurrency testing.
 
-Our tests currently only run on pthread.
+Our tests currently only run on pthread, we hope to expand this in the future (our API already allows this).
 
-We run tests using [ThreadSanitizer](https://clang.llvm.org/docs/ThreadSanitizer.html) to detect data races. We test the key store, and test that our key slot state system is enforced.
+We run tests using [ThreadSanitizer](https://clang.llvm.org/docs/ThreadSanitizer.html) to detect data races. We test the key store, and test that our key slot state system is enforced. We also test the thread-safety of `psa_crypto_init`.
 
-Currently, not every API call is tested, we also cannot feasibly test every combination of concurrent API calls. API calls can in general be split into a few categories, each category calling the same internal functions in the same order - it is the internal functions that are in charge of locking mutexes and interacting with the key store; we have tests which cover every category.
+Currently, not every API call is tested, we also cannot feasibly test every combination of concurrent API calls. API calls can in general be split into a few categories, each category calling the same internal key management functions in the same order - it is the internal functions that are in charge of locking mutexes and interacting with the key store; we test the thread-safety of these functions.
 
-Since we do not run every cryptographic operation concurrently, we do not test that operations are free of unexpected global variables, cryptographic operations are not considered thread-safe.
+Since we do not run every cryptographic operation concurrently, we do not test that operations are free of unexpected global variables.
 
 ### Expanding testing
 
@@ -268,7 +273,8 @@ Through future work on testing, it would be good to:
 * For every API call, have a test which runs multiple copies of the call simultaneously.
 * After implementing other threading platforms, expand the tests to these platforms.
 * Have increased testing for kicking persistent keys out of slots.
-* Explicitly test that there all global variables are protected, for this we need to cover every operation in a concurrent scenario while running ThreadSanitizer.
+* Explicitly test that all global variables are protected, for this we would need to cover every operation in a concurrent scenario while running ThreadSanitizer.
+* Run tests on more threading implementations, once these implementations are supported.
 
 ### Performance
 
@@ -285,7 +291,9 @@ As explained previously, we eventually aim to make the entirety of the PSA API t
 
 ### Long term performance requirements
 
-Our plan for cryptographic operations is that they are not performed under any global mutex. One-shot operations and multi-part operations will each only hold the global mutex for finding the relevant key in the key slot, and unregistering as a reader after the operation.
+Our plan for cryptographic operations is that they are not performed under any global mutex. One-shot operations and multi-part operations will each only hold the global mutex for finding the relevant key in the key slot, and unregistering as a reader after the operation, using their own operation-specific mutexes to guard any shared data that they use.
+
+We aim to eventually replace some/all of the mutexes with RWLocks, if possible.
 
 ### Long term key destruction requirements
 

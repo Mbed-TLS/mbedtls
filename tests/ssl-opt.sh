@@ -6871,12 +6871,23 @@ run_test    "Event-driven I/O, DTLS: session-id resume, UDP packing" \
             0 \
             -c "Read from server: .* bytes read"
 
+# Tests for version negotiation. Some information to ease the understanding
+# of the version negotiation test titles below:
+# . 1.2/1.3 means that only TLS 1.2/TLS 1.3 is enabled.
+# . 1.2+1.3 means that both TLS 1.2 and TLS 1.3 are enabled.
+# . 1.2+(1.3)/(1.2)+1.3 means that TLS 1.2/1.3 is enabled and that
+#   TLS 1.3/1.2 may be enabled or not.
+# . max=1.2 means that both TLS 1.2 and TLS 1.3 are enabled at build time but
+#   TLS 1.3 is disabled at runtime (maximum negotiable version is TLS 1.2).
+# . min=1.3 means that both TLS 1.2 and TLS 1.3 are enabled at build time but
+#   TLS 1.2 is disabled at runtime (minimum negotiable version is TLS 1.3).
+
 # Tests for version negotiation, MbedTLS client and server
 
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C
 requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Version negotiation check m->m: 1.2 / 1.2 -> 1.2" \
+run_test    "Version nego m->m: cli 1.2, srv 1.2 -> 1.2" \
             "$P_SRV" \
             "$P_CLI" \
             0 \
@@ -6888,7 +6899,7 @@ run_test    "Version negotiation check m->m: 1.2 / 1.2 -> 1.2" \
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Version negotiation check m->m: 1.2 (max=1.2) / 1.2 (max=1.2) -> 1.2" \
+run_test    "Version nego m->m: cli max=1.2, srv max=1.2 -> 1.2" \
             "$P_SRV max_version=tls12" \
             "$P_CLI max_version=tls12" \
             0 \
@@ -6900,7 +6911,7 @@ run_test    "Version negotiation check m->m: 1.2 (max=1.2) / 1.2 (max=1.2) -> 1.
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Version negotiation check m->m: 1.3 / 1.3 -> 1.3" \
+run_test    "Version nego m->m: cli 1.3, srv 1.3 -> 1.3" \
             "$P_SRV" \
             "$P_CLI" \
             0 \
@@ -6912,7 +6923,7 @@ run_test    "Version negotiation check m->m: 1.3 / 1.3 -> 1.3" \
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "Version negotiation check m->m: 1.3 (min=1.3) / 1.3 (min=1.3) -> 1.3" \
+run_test    "Version nego m->m: cli min=1.3, srv min=1.3 -> 1.3" \
             "$P_SRV min_version=tls13" \
             "$P_CLI min_version=tls13" \
             0 \
@@ -6924,7 +6935,7 @@ run_test    "Version negotiation check m->m: 1.3 (min=1.3) / 1.3 (min=1.3) -> 1.
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "Version negotiation check m->m: 1.2+1.3 / 1.2+1.3 -> 1.3" \
+run_test    "Version nego m->m: cli 1.2+1.3, srv 1.2+1.3 -> 1.3" \
             "$P_SRV" \
             "$P_CLI" \
             0 \
@@ -6936,7 +6947,7 @@ run_test    "Version negotiation check m->m: 1.2+1.3 / 1.2+1.3 -> 1.3" \
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "Version negotiation check m->m: 1.2+1.3 / 1.3 (min=1.3) -> 1.3" \
+run_test    "Version nego m->m: cli 1.2+1.3, srv min=1.3 -> 1.3" \
             "$P_SRV min_version=tls13" \
             "$P_CLI" \
             0 \
@@ -6948,7 +6959,7 @@ run_test    "Version negotiation check m->m: 1.2+1.3 / 1.3 (min=1.3) -> 1.3" \
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Version negotiation check m->m: 1.2+1.3 / 1.2 (max=1.2) -> 1.2" \
+run_test    "Version nego m->m: cli 1.2+1.3, srv max=1.2 -> 1.2" \
             "$P_SRV max_version=tls12" \
             "$P_CLI" \
             0 \
@@ -6960,7 +6971,7 @@ run_test    "Version negotiation check m->m: 1.2+1.3 / 1.2 (max=1.2) -> 1.2" \
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Version negotiation check m->m: 1.2 (max=1.2) / 1.2+1.3 -> 1.2" \
+run_test    "Version nego m->m: cli max=1.2, srv 1.2+1.3 -> 1.2" \
             "$P_SRV" \
             "$P_CLI max_version=tls12" \
             0 \
@@ -6972,7 +6983,7 @@ run_test    "Version negotiation check m->m: 1.2 (max=1.2) / 1.2+1.3 -> 1.2" \
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "Version negotiation check m->m: 1.3 (min=1.3) / 1.2+1.3 -> 1.3" \
+run_test    "Version nego m->m: cli min=1.3, srv 1.2+1.3 -> 1.3" \
             "$P_SRV" \
             "$P_CLI min_version=tls13" \
             0 \
@@ -6983,7 +6994,7 @@ run_test    "Version negotiation check m->m: 1.3 (min=1.3) / 1.2+1.3 -> 1.3" \
 
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Not supported version check m->m: 1.2 (max=1.2) / 1.3 (min=1.3)" \
+run_test    "Not supported version m->m: cli max=1.2, srv min=1.3" \
             "$P_SRV min_version=tls13" \
             "$P_CLI max_version=tls12" \
             1 \
@@ -6995,7 +7006,7 @@ run_test    "Not supported version check m->m: 1.2 (max=1.2) / 1.3 (min=1.3)" \
 
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Not supported version check m->m: 1.3 (min=1.3) / 1.2 (max=1.2)" \
+run_test    "Not supported version m->m: cli min=1.3, srv max=1.2" \
             "$P_SRV max_version=tls12" \
             "$P_CLI min_version=tls13" \
             1 \
@@ -7009,7 +7020,7 @@ run_test    "Not supported version check m->m: 1.3 (min=1.3) / 1.2 (max=1.2)" \
 
 requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Server version nego check G->m: 1.2 / 1.2+(1.3) -> 1.2" \
+run_test    "Server version nego G->m: cli 1.2, srv 1.2+(1.3) -> 1.2" \
             "$P_SRV" \
             "$G_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2" \
             0 \
@@ -7019,7 +7030,7 @@ run_test    "Server version nego check G->m: 1.2 / 1.2+(1.3) -> 1.2" \
 requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Server version nego check G->m: 1.2 / 1.2 (max=1.2) -> 1.2" \
+run_test    "Server version nego G->m: cli 1.2, srv max=1.2 -> 1.2" \
             "$P_SRV max_version=tls12" \
             "$G_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2" \
             0 \
@@ -7029,7 +7040,7 @@ run_test    "Server version nego check G->m: 1.2 / 1.2 (max=1.2) -> 1.2" \
 requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-run_test    "Server version nego check G->m: 1.3 / (1.2)+1.3 -> 1.3" \
+run_test    "Server version nego G->m: cli 1.3, srv (1.2)+1.3 -> 1.3" \
             "$P_SRV" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3" \
             0 \
@@ -7040,7 +7051,7 @@ requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-run_test    "Server version nego check G->m: 1.3 / 1.3 (min=1.3) -> 1.3" \
+run_test    "Server version nego G->m: cli 1.3, srv min=1.3 -> 1.3" \
             "$P_SRV min_version=tls13" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3" \
             0 \
@@ -7050,7 +7061,7 @@ run_test    "Server version nego check G->m: 1.3 / 1.3 (min=1.3) -> 1.3" \
 requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-run_test    "Server version nego check G->m: 1.2+1.3 / (1.2)+1.3 -> 1.3" \
+run_test    "Server version nego G->m: cli 1.2+1.3, srv (1.2)+1.3 -> 1.3" \
             "$P_SRV" \
             "$G_NEXT_CLI localhost --priority=NORMAL" \
             0 \
@@ -7060,7 +7071,7 @@ run_test    "Server version nego check G->m: 1.2+1.3 / (1.2)+1.3 -> 1.3" \
 requires_gnutls_next_disable_tls13_compat
 requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "Server version nego check G->m (no compat): 1.2+1.3 / (1.2)+1.3 -> 1.3" \
+run_test    "Server version nego G->m (no compat): cli 1.2+1.3, srv (1.2)+1.3 -> 1.3" \
             "$P_SRV" \
             "$G_NEXT_CLI localhost --priority=NORMAL:%DISABLE_TLS13_COMPAT_MODE" \
             0 \
@@ -7078,7 +7089,7 @@ run_test    "Server version nego check G->m (no compat): 1.2+1.3 / (1.2)+1.3 -> 
 requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-run_test    "Server version nego check G->m: [1.2]+1.3 / 1.2+1.3 -> 1.2" \
+run_test    "Server version nego G->m: cli 1.2+1.3 (1.2 preferred!), srv 1.2+1.3 -> 1.2" \
             "$P_SRV" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:+VERS-TLS1.3" \
             1 \
@@ -7088,7 +7099,7 @@ requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-run_test    "Server version nego check G->m: 1.2+1.3 / 1.3 (min=1.3) -> 1.3" \
+run_test    "Server version nego G->m: cli 1.2+1.3, srv min=1.3 -> 1.3" \
             "$P_SRV min_version=tls13" \
             "$G_NEXT_CLI localhost --priority=NORMAL" \
             0 \
@@ -7098,7 +7109,7 @@ run_test    "Server version nego check G->m: 1.2+1.3 / 1.3 (min=1.3) -> 1.3" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Server version nego check G->m: 1.2+1.3 / 1.2 -> 1.2" \
+run_test    "Server version nego G->m: cli 1.2+1.3, srv 1.2 -> 1.2" \
             "$P_SRV" \
             "$G_NEXT_CLI localhost --priority=NORMAL" \
             0 \
@@ -7108,7 +7119,7 @@ run_test    "Server version nego check G->m: 1.2+1.3 / 1.2 -> 1.2" \
 requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Server version nego check G->m: 1.2+1.3 / 1.2 (max=1.2) -> 1.2" \
+run_test    "Server version nego G->m: cli 1.2+1.3, max=1.2 -> 1.2" \
             "$P_SRV max_version=tls12" \
             "$G_NEXT_CLI localhost --priority=NORMAL" \
             0 \
@@ -7116,7 +7127,7 @@ run_test    "Server version nego check G->m: 1.2+1.3 / 1.2 (max=1.2) -> 1.2" \
             -s "Protocol is TLSv1.2"
 
 requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test    "Not supported version check G->m: 1.0 / (1.2)+(1.3)" \
+run_test    "Not supported version G->m: cli 1.0, (1.2)+(1.3)" \
             "$P_SRV" \
             "$G_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.0" \
             1 \
@@ -7124,7 +7135,7 @@ run_test    "Not supported version check G->m: 1.0 / (1.2)+(1.3)" \
             -S "Protocol is TLSv1.0"
 
 requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test    "Not supported version check G->m: 1.1 / (1.2)+(1.3)" \
+run_test    "Not supported version G->m: cli 1.1, (1.2)+(1.3)" \
             "$P_SRV" \
             "$G_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.1" \
             1 \
@@ -7133,7 +7144,7 @@ run_test    "Not supported version check G->m: 1.1 / (1.2)+(1.3)" \
 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Not supported version check G->m: 1.2 / 1.3" \
+run_test    "Not supported version G->m: cli 1.2, srv 1.3" \
             "$P_SRV" \
             "$G_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2" \
             1 \
@@ -7142,7 +7153,7 @@ run_test    "Not supported version check G->m: 1.2 / 1.3" \
 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Not supported version check G->m: 1.3 / 1.2" \
+run_test    "Not supported version G->m: cli 1.3, srv 1.2" \
             "$P_SRV" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3" \
             1 \
@@ -7152,7 +7163,7 @@ run_test    "Not supported version check G->m: 1.3 / 1.2" \
 
 requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Not supported version check G->m: 1.2 / 1.3 (min=1.3)" \
+run_test    "Not supported version G->m: cli 1.2, srv min=1.3" \
             "$P_SRV min_version=tls13" \
             "$G_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2" \
             1 \
@@ -7161,7 +7172,7 @@ run_test    "Not supported version check G->m: 1.2 / 1.3 (min=1.3)" \
 
 requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Not supported version check G->m: 1.3 / 1.2 (max=1.2)" \
+run_test    "Not supported version G->m: cli 1.3, srv max=1.2" \
             "$P_SRV max_version=tls12" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3" \
             1 \
@@ -7173,7 +7184,7 @@ run_test    "Not supported version check G->m: 1.3 / 1.2 (max=1.2)" \
 
 requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Server version nego check O->m: 1.2 / 1.2+(1.3) -> 1.2" \
+run_test    "Server version nego O->m: cli 1.2, srv 1.2+(1.3) -> 1.2" \
             "$P_SRV" \
             "$O_NEXT_CLI -tls1_2" \
             0 \
@@ -7183,7 +7194,7 @@ run_test    "Server version nego check O->m: 1.2 / 1.2+(1.3) -> 1.2" \
 requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Server version nego check O->m: 1.2 / 1.2 (max=1.2) -> 1.2" \
+run_test    "Server version nego O->m: cli 1.2, srv max=1.2 -> 1.2" \
             "$P_SRV max_version=tls12" \
             "$O_NEXT_CLI -tls1_2" \
             0 \
@@ -7194,7 +7205,7 @@ requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-run_test    "Server version nego check O->m: 1.3 / (1.2)+1.3 -> 1.3" \
+run_test    "Server version nego O->m: cli 1.3, srv (1.2)+1.3 -> 1.3" \
             "$P_SRV" \
             "$O_NEXT_CLI -tls1_3" \
             0 \
@@ -7206,7 +7217,7 @@ requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-run_test    "Server version nego check O->m: 1.3 / 1.3 (min=1.3) -> 1.3" \
+run_test    "Server version nego O->m: cli 1.3, srv min=1.3 -> 1.3" \
             "$P_SRV min_version=tls13" \
             "$O_NEXT_CLI -tls1_3" \
             0 \
@@ -7217,7 +7228,7 @@ requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-run_test    "Server version nego check O->m: 1.2+1.3 / (1.2)+1.3 -> 1.3" \
+run_test    "Server version nego O->m: cli 1.2+1.3, srv (1.2)+1.3 -> 1.3" \
             "$P_SRV" \
             "$O_NEXT_CLI" \
             0 \
@@ -7227,7 +7238,7 @@ run_test    "Server version nego check O->m: 1.2+1.3 / (1.2)+1.3 -> 1.3" \
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_SRV_C MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "Server version nego check O->m (no compat): 1.2+1.3 / (1.2)+1.3 -> 1.3" \
+run_test    "Server version nego O->m (no compat): cli 1.2+1.3, srv (1.2)+1.3 -> 1.3" \
             "$P_SRV" \
             "$O_NEXT_CLI -no_middlebox" \
             0 \
@@ -7239,7 +7250,7 @@ requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3 \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-run_test    "Server version nego check O->m: 1.2+1.3 / 1.3 (min=1.3) -> 1.3" \
+run_test    "Server version nego O->m: cli 1.2+1.3, srv min=1.3 -> 1.3" \
             "$P_SRV min_version=tls13" \
             "$O_NEXT_CLI" \
             0 \
@@ -7249,7 +7260,7 @@ run_test    "Server version nego check O->m: 1.2+1.3 / 1.3 (min=1.3) -> 1.3" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Server version nego check O->m: 1.2+1.3 / 1.2 -> 1.2" \
+run_test    "Server version nego O->m: cli 1.2+1.3, srv 1.2 -> 1.2" \
             "$P_SRV" \
             "$O_NEXT_CLI" \
             0 \
@@ -7259,7 +7270,7 @@ run_test    "Server version nego check O->m: 1.2+1.3 / 1.2 -> 1.2" \
 requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Server version nego check O->m: 1.2+1.3 / 1.2 (max=1.2) -> 1.2" \
+run_test    "Server version nego O->m: cli 1.2+1.3, srv max=1.2 -> 1.2" \
             "$P_SRV max_version=tls12" \
             "$O_NEXT_CLI" \
             0 \
@@ -7267,7 +7278,7 @@ run_test    "Server version nego check O->m: 1.2+1.3 / 1.2 (max=1.2) -> 1.2" \
             -s "Protocol is TLSv1.2"
 
 requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test    "Not supported version check O->m: 1.0 / (1.2)+(1.3)" \
+run_test    "Not supported version O->m: cli 1.0, srv (1.2)+(1.3)" \
             "$P_SRV" \
             "$O_CLI -tls1" \
             1 \
@@ -7275,7 +7286,7 @@ run_test    "Not supported version check O->m: 1.0 / (1.2)+(1.3)" \
             -S "Protocol is TLSv1.0"
 
 requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test    "Not supported version check O->m: 1.1 / (1.2)+(1.3)" \
+run_test    "Not supported version O->m: cli 1.1, srv (1.2)+(1.3)" \
             "$P_SRV" \
             "$O_CLI -tls1_1" \
             1 \
@@ -7284,7 +7295,7 @@ run_test    "Not supported version check O->m: 1.1 / (1.2)+(1.3)" \
 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Not supported version check O->m: 1.2 / 1.3" \
+run_test    "Not supported version O->m: cli 1.2, srv 1.3" \
             "$P_SRV" \
             "$O_NEXT_CLI -tls1_2" \
             1 \
@@ -7293,7 +7304,7 @@ run_test    "Not supported version check O->m: 1.2 / 1.3" \
 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Not supported version check O->m: 1.3 / 1.2" \
+run_test    "Not supported version O->m: cli 1.3, srv 1.2" \
             "$P_SRV" \
             "$O_NEXT_CLI -tls1_3" \
             1 \
@@ -7303,7 +7314,7 @@ run_test    "Not supported version check O->m: 1.3 / 1.2" \
 
 requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Not supported version check O->m: 1.2 / 1.3 (min=1.3)" \
+run_test    "Not supported version O->m: cli 1.2, srv min=1.3" \
             "$P_SRV min_version=tls13" \
             "$O_NEXT_CLI -tls1_2" \
             1 \
@@ -7312,7 +7323,7 @@ run_test    "Not supported version check O->m: 1.2 / 1.3 (min=1.3)" \
 
 requires_all_configs_enabled MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_PROTO_TLS1_2 MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "Not supported version check O->m: 1.3 / 1.2 (max=1.2)" \
+run_test    "Not supported version O->m: cli 1.3, srv max=1.2" \
             "$P_SRV max_version=tls12" \
             "$O_NEXT_CLI -tls1_3" \
             1 \
@@ -7323,7 +7334,7 @@ run_test    "Not supported version check O->m: 1.3 / 1.2 (max=1.2)" \
 # Tests of version negotiation on client side against GnuTLS and OpenSSL server
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Not supported version check: srv max TLS 1.0" \
+run_test    "Not supported version: srv max TLS 1.0" \
             "$G_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0" \
             "$P_CLI" \
             1 \
@@ -7333,7 +7344,7 @@ run_test    "Not supported version check: srv max TLS 1.0" \
             -C "Protocol is TLSv1.0"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "Not supported version check: srv max TLS 1.1" \
+run_test    "Not supported version: srv max TLS 1.1" \
             "$G_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.1" \
             "$P_CLI" \
             1 \
@@ -7347,7 +7358,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
 requires_gnutls_tls1_3
-run_test    "TLS 1.3: Not supported version check:gnutls: srv max TLS 1.0" \
+run_test    "TLS 1.3: Not supported version:gnutls: srv max TLS 1.0" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0 -d 4" \
             "$P_CLI debug_level=4" \
             1 \
@@ -7360,7 +7371,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
 requires_gnutls_tls1_3
-run_test    "TLS 1.3: Not supported version check:gnutls: srv max TLS 1.1" \
+run_test    "TLS 1.3: Not supported version:gnutls: srv max TLS 1.1" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.1 -d 4" \
             "$P_CLI debug_level=4" \
             1 \
@@ -7373,7 +7384,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
 requires_gnutls_tls1_3
-run_test    "TLS 1.3: Not supported version check:gnutls: srv max TLS 1.2" \
+run_test    "TLS 1.3: Not supported version:gnutls: srv max TLS 1.2" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.2 -d 4" \
             "$P_CLI force_version=tls13 debug_level=4" \
             1 \
@@ -7387,7 +7398,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
 requires_openssl_next
-run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.0" \
+run_test    "TLS 1.3: Not supported version:openssl: srv max TLS 1.0" \
             "$O_NEXT_SRV -msg -tls1" \
             "$P_CLI debug_level=4" \
             1 \
@@ -7401,7 +7412,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
 requires_openssl_next
-run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.1" \
+run_test    "TLS 1.3: Not supported version:openssl: srv max TLS 1.1" \
             "$O_NEXT_SRV -msg -tls1_1" \
             "$P_CLI debug_level=4" \
             1 \
@@ -7415,7 +7426,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
 requires_openssl_next
-run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.2" \
+run_test    "TLS 1.3: Not supported version:openssl: srv max TLS 1.2" \
             "$O_NEXT_SRV -msg -tls1_2" \
             "$P_CLI force_version=tls13 debug_level=4" \
             1 \

@@ -4,8 +4,8 @@ TLS 1.3 support
 Overview
 --------
 
-Mbed TLS provides an implementation of the TLS 1.3. The TLS 1.3 support
-enablement is controlled by the MBEDTLS_SSL_PROTO_TLS1_3 configuration option.
+Mbed TLS provides an implementation of the TLS 1.3 protocol. The TLS 1.3 support
+may be enabled using the MBEDTLS_SSL_PROTO_TLS1_3 configuration option.
 
 Support description
 -------------------

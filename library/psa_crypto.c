@@ -93,8 +93,10 @@ static int key_type_is_raw_bytes(psa_key_type_t type)
 #define RNG_INITIALIZED 1
 #define RNG_SEEDED 2
 
+/* IDs for PSA crypto subsystems. Starts at 1 to catch potential uninitialized
+ * variables as arguments. */
 typedef enum {
-    PSA_CRYPTO_SUBSYSTEM_DRIVER_WRAPPERS = 0,
+    PSA_CRYPTO_SUBSYSTEM_DRIVER_WRAPPERS = 1,
     PSA_CRYPTO_SUBSYSTEM_KEY_SLOTS,
     PSA_CRYPTO_SUBSYSTEM_RNG,
     PSA_CRYPTO_SUBSYSTEM_TRANSACTION,

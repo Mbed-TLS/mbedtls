@@ -1854,9 +1854,6 @@
  * Comment this to disable support for early data. If MBEDTLS_SSL_PROTO_TLS1_3
  * is not enabled, this option does not have any effect on the build.
  *
- * This feature is experimental, not completed and thus not ready for
- * production.
- *
  * \note The maximum amount of early data can be set with
  *       MBEDTLS_SSL_MAX_EARLY_DATA_SIZE.
  *
@@ -4145,10 +4142,6 @@
  *
  * If MBEDTLS_SSL_EARLY_DATA is not defined, this default value does not
  * have any impact on the build.
- *
- * This feature is experimental, not completed and thus not ready for
- * production.
- *
  */
 //#define MBEDTLS_SSL_MAX_EARLY_DATA_SIZE        1024
 

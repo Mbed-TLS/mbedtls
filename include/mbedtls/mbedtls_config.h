@@ -2211,7 +2211,7 @@
  * Enable AES-NI support on x86-64 or x86-32.
  *
  * \note AESNI is only supported with certain compilers and target options:
- * - Visual Studio 2013: supported.
+ * - Visual Studio: supported
  * - GCC, x86-64, target not explicitly supporting AESNI:
  *   requires MBEDTLS_HAVE_ASM.
  * - GCC, x86-32, target not explicitly supporting AESNI:

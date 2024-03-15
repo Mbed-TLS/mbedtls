@@ -74,7 +74,7 @@ gen_file_dep = |
 endif
 
 .PHONY: visualc_files
-VISUALC_FILES = visualc/VS2013/mbedTLS.sln visualc/VS2013/mbedTLS.vcxproj
+VISUALC_FILES = visualc/VS2017/mbedTLS.sln visualc/VS2017/mbedTLS.vcxproj
 # TODO: $(app).vcxproj for each $(app) in programs/
 visualc_files: $(VISUALC_FILES)
 
@@ -83,9 +83,9 @@ visualc_files: $(VISUALC_FILES)
 # they just need to be present.
 $(VISUALC_FILES): | library/generated_files
 $(VISUALC_FILES): $(gen_file_dep) scripts/generate_visualc_files.pl
-$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2013-app-template.vcxproj
-$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2013-main-template.vcxproj
-$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2013-sln-template.sln
+$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2017-app-template.vcxproj
+$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2017-main-template.vcxproj
+$(VISUALC_FILES): $(gen_file_dep) scripts/data_files/vs2017-sln-template.sln
 # TODO: also the list of .c and .h source files, but not their content
 $(VISUALC_FILES):
 	echo "  Gen   $@ ..."
@@ -161,10 +161,10 @@ neat: clean_more_on_top
 	$(MAKE) -C programs neat
 	$(MAKE) -C tests neat
 ifndef WINDOWS
-	rm -f visualc/VS2013/*.vcxproj visualc/VS2013/mbedTLS.sln
+	rm -f visualc/VS2017/*.vcxproj visualc/VS2017/mbedTLS.sln
 else
-	if exist visualc\VS2013\*.vcxproj del /Q /F visualc\VS2013\*.vcxproj
-	if exist visualc\VS2013\mbedTLS.sln del /Q /F visualc\VS2013\mbedTLS.sln
+	if exist visualc\VS2017\*.vcxproj del /Q /F visualc\VS2017\*.vcxproj
+	if exist visualc\VS2017\mbedTLS.sln del /Q /F visualc\VS2017\mbedTLS.sln
 endif
 
 check: lib tests

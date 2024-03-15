@@ -1,0 +1,5 @@
+Requirement changes
+   * Drop support for Visual Studio 2013 and 2015, and Arm Compiler 5.
+Changes
+   * Rename directory containing Visual Studio files from visualc/VS2013 to
+     visualc/VS2017.

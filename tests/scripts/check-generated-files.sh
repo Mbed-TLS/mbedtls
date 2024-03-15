@@ -142,5 +142,5 @@ if in_mbedtls_repo; then
     # generate_visualc_files enumerates source files (library/*.c). It doesn't
     # care about their content, but the files must exist. So it must run after
     # the step that creates or updates these files.
-    check scripts/generate_visualc_files.pl visualc/VS2013
+    check scripts/generate_visualc_files.pl visualc/VS2017
 fi

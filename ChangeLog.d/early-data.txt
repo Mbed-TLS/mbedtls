@@ -1,0 +1,5 @@
+Features
+   * Mbed TLS now supports the writing and reading of TLS 1.3 early data (see
+     docs/tls13-early-data.md). The support enablement is controlled at build
+     time by the MBEDTLS_SSL_EARLY_DATA configuration option and at runtime by
+     the mbedtls_ssl_conf_early_data() API (by default disabled in both cases).

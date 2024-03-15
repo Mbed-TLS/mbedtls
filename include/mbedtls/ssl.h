@@ -2102,9 +2102,6 @@ void mbedtls_ssl_conf_authmode(mbedtls_ssl_config *conf, int authmode);
  *  MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA indicating that some early data have
  *  been received. To read the early data, call mbedtls_ssl_read_early_data()
  *  before calling the original function again.
- *
- * \warning This interface is experimental and may change without notice.
- *
  */
 void mbedtls_ssl_conf_early_data(mbedtls_ssl_config *conf,
                                  int early_data_enabled);
@@ -2130,12 +2127,9 @@ void mbedtls_ssl_conf_early_data(mbedtls_ssl_config *conf,
  * \param[in] conf                  The SSL configuration to use.
  * \param[in] max_early_data_size   The maximum amount of 0-RTT data.
  *
- * \warning This interface is experimental and may change without notice.
- *
  * \warning This interface DOES NOT influence/limit the amount of early data
  *          that can be received through previously created and issued tickets,
  *          which clients may have stored.
- *
  */
 void mbedtls_ssl_conf_max_early_data_size(
     mbedtls_ssl_config *conf, uint32_t max_early_data_size);
@@ -5228,6 +5222,11 @@ int mbedtls_ssl_close_notify(mbedtls_ssl_context *ssl);
  *                   authentication or inside the application protocol. The
  *                   same warnings apply to any use of the
  *                   early_exporter_master_secret.
+ *
+ * \warning        Mbed TLS does not implement any of the anti-replay defenses
+ *                 defined in section 8 of the TLS 1.3 specification:
+ *                 single-use of tickets or ClientHello recording within a
+ *                 given time window.
  *
  * \note           This function is used in conjunction with
  *                 mbedtls_ssl_handshake(), mbedtls_ssl_handshake_step(),

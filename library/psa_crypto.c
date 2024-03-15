@@ -7675,7 +7675,6 @@ static psa_status_t mbedtls_psa_crypto_init_subsystem(mbedtls_psa_crypto_subsyst
                                             &mbedtls_threading_psa_rngdata_mutex));
 #endif /* defined(MBEDTLS_THREADING_C) */
 
-
             break;
 
         case PSA_CRYPTO_SUBSYSTEM_TRANSACTION:

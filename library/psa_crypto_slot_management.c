@@ -36,7 +36,6 @@ static psa_global_data_t global_data;
 
 static uint8_t psa_get_key_slots_initialized(void)
 {
-
     uint8_t initialized;
 
 #if defined(MBEDTLS_THREADING_C)

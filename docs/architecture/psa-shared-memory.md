@@ -301,14 +301,14 @@ In the library, the code that does the copying temporarily unpoisons the memory 
 ```c
 static void copy_to_user(void *copy_buffer, void *const input_buffer, size_t length) {
 #if defined(MBEDTLS_TEST_HOOKS)
-    if (mbedtls_psa_core_poison_memory != NULL) {
-        mbedtls_psa_core_poison_memory(copy_buffer, length, 0);
+    if (memory_poison_hook != NULL) {
+        memory_poison_hook(copy_buffer, length);
     }
 #endif
     memcpy(copy_buffer, input_buffer, length);
 #if defined(MBEDTLS_TEST_HOOKS)
-    if (mbedtls_psa_core_poison_memory != NULL) {
-        mbedtls_psa_core_poison_memory(copy_buffer, length, 1);
+    if (memory_unpoison_hook != NULL) {
+        memory_unpoison_hook(copy_buffer, length);
     }
 #endif
 }

@@ -5872,6 +5872,22 @@ support_build_armcc () {
     (check_tools "$armc5_cc" "$armc6_cc" > /dev/null 2>&1)
 }
 
+component_test_tls12_only () {
+    msg "build: default config without MBEDTLS_SSL_PROTO_TLS1_3, cmake, gcc, ASan"
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: main suites (inc. selftests) (ASan build)"
+    make test
+
+    msg "test: ssl-opt.sh (ASan build)"
+    tests/ssl-opt.sh
+
+    msg "test: compat.sh (ASan build)"
+    tests/compat.sh
+}
+
 component_test_tls13_only () {
     msg "build: default config without MBEDTLS_SSL_PROTO_TLS1_2"
     scripts/config.py set MBEDTLS_SSL_EARLY_DATA

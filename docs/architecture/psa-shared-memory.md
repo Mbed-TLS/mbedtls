@@ -680,4 +680,4 @@ To make sure that we can correctly detect functions that access their input/outp
 
 Then, we could write a test that uses this function with memory poisoning and ensure that it fails. Since we are expecting a failure due to memory-poisoning, we would run this test separately from the rest of the memory-poisoning testing.
 
-However, performing this testing automatically is not urgent. It will suffice to manually verify that the test framework works, automatic tests are a 'nice to have' feature that may be left to future work.
+This testing is implemented in `programs/test/metatest.c`, which is a program designed to check that test failures happen correctly. It may be run via the script `tests/scripts/run-metatests.sh`.

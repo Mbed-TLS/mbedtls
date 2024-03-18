@@ -132,6 +132,9 @@ __MBEDTLS_TEST_TEMPLATE__EXPRESSION_CODE
             expressions in the .data file and
             generates code to handle enumerated
             expression Ids and return the values.
+__MBEDTLS_TEST_TEMPLATE__SUITE_DEPENDENCIES
+            A preprocessor expression for the build dependencies
+            that apply to the whole test suite.
 __MBEDTLS_TEST_TEMPLATE__DEP_CHECK_CODE
             This script enumerates all
             build dependencies and generate
@@ -288,18 +291,19 @@ def gen_dependencies(dependencies):
     return dep_start, dep_end
 
 
-def gen_dependencies_one_line(dependencies):
+def gen_dependencies_expression(dependencies):
     """
-    Similar to gen_dependencies() but generates dependency checks in one line.
+    Similar to gen_dependencies() but generates a preprocessor expression.
     Useful for generating code with #else block.
 
     :param dependencies: List of dependencies.
     :return: Preprocessor check code
     """
-    defines = '#if ' if dependencies else ''
-    defines += ' && '.join(['%sdefined(%s)' % (x, y) for x, y in map(
-        split_dep, dependencies)])
-    return defines
+    if dependencies:
+        return ' && '.join(['%sdefined(%s)' % (x, y)
+                            for x, y in map(split_dep, dependencies)])
+    else:
+        return '1'
 
 
 def gen_function_wrapper(name, local_vars, args_dispatch):
@@ -341,9 +345,9 @@ def gen_dispatch(name, dependencies):
     :return: Dispatch code.
     """
     if dependencies:
-        preprocessor_check = gen_dependencies_one_line(dependencies)
+        preprocessor_check = gen_dependencies_expression(dependencies)
         dispatch_code = '''
-{preprocessor_check}
+#if {preprocessor_check}
     {name}_wrapper,
 #else
     NULL,
@@ -599,13 +603,12 @@ def skip_comments(line, stream):
     # Strip whitespace at the end of lines (it's irrelevant to error messages).
     return re.sub(r' +(\n|\Z)', r'\1', line)
 
-def parse_function_code(funcs_f, dependencies, suite_dependencies):
+def parse_function_code(funcs_f, dependencies):
     """
     Parses out a function from function file object and generates
     function and dispatch code.
 
     :param funcs_f: file object of the functions file.
-    :param dependencies: List of dependencies
     :param suite_dependencies: List of test suite dependencies
     :return: Function name, arguments, function code and dispatch code.
     """
@@ -661,7 +664,7 @@ def parse_function_code(funcs_f, dependencies, suite_dependencies):
     code = line_directive + code
     code = generate_function_code(name, code, local_vars, args_dispatch,
                                   dependencies)
-    dispatch_code = gen_dispatch(name, suite_dependencies + dependencies)
+    dispatch_code = gen_dispatch(name, dependencies)
     return (name, args, code, dispatch_code)
 
 
@@ -697,7 +700,7 @@ def parse_functions(funcs_f):
                     "%s:%d: %s" % (funcs_f.name, funcs_f.line_no,
                                    str(error)))
             func_name, args, func_code, func_dispatch =\
-                parse_function_code(funcs_f, dependencies, suite_dependencies)
+                parse_function_code(funcs_f, dependencies)
             suite_functions += func_code
             # Generate dispatch code and enumeration info
             if func_name in func_info:
@@ -943,14 +946,14 @@ def gen_suite_dep_checks(suite_dependencies, dep_check_code, expression_code):
              dependencies.
     """
     if suite_dependencies:
-        preprocessor_check = gen_dependencies_one_line(suite_dependencies)
+        preprocessor_check = gen_dependencies_expression(suite_dependencies)
         dep_check_code = '''
-{preprocessor_check}
+#if {preprocessor_check}
 {code}
 #endif
 '''.format(preprocessor_check=preprocessor_check, code=dep_check_code)
         expression_code = '''
-{preprocessor_check}
+#if {preprocessor_check}
 {code}
 #endif
 '''.format(preprocessor_check=preprocessor_check, code=expression_code)
@@ -1113,6 +1116,8 @@ def parse_function_file(funcs_file, snippets):
     with FileWrapper(funcs_file) as funcs_f:
         suite_dependencies, dispatch_code, func_code, func_info = \
             parse_functions(funcs_f)
+        snippets['suite_dependencies'] = \
+            gen_dependencies_expression(suite_dependencies)
         snippets['functions_code'] = func_code
         snippets['dispatch_code'] = dispatch_code
         return suite_dependencies, func_info

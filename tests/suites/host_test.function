@@ -415,14 +415,17 @@ static void write_outcome_result(FILE *outcome_file,
                     break;
             }
             break;
+        case UNSUPPORTED_TEST_FUNCTION_DEPENDENCY:
+            mbedtls_fprintf(outcome_file, "SKIP;Unsupported function");
+            break;
+        case UNSUPPORTED_TEST_SUITE_DEPENDENCY:
+            mbedtls_fprintf(outcome_file, "SKIP;Unsupported suite");
+            break;
         case DISPATCH_TEST_FN_NOT_FOUND:
             mbedtls_fprintf(outcome_file, "FAIL;Test function not found");
             break;
         case DISPATCH_INVALID_TEST_DATA:
             mbedtls_fprintf(outcome_file, "FAIL;Invalid test data");
-            break;
-        case UNSUPPORTED_TEST_SUITE_DEPENDENCY:
-            mbedtls_fprintf(outcome_file, "SKIP;Unsupported suite");
             break;
         default:
             mbedtls_fprintf(outcome_file, "FAIL;Unknown cause");
@@ -691,12 +694,18 @@ int execute_tests(int argc, const char **argv)
                                  unmet_dep_count, unmet_dependencies,
                                  missing_unmet_dependencies,
                                  ret, &mbedtls_test_info);
-            if (unmet_dep_count > 0 || ret == UNSUPPORTED_TEST_SUITE_DEPENDENCY) {
+            if (unmet_dep_count > 0 ||
+                ret == UNSUPPORTED_TEST_FUNCTION_DEPENDENCY ||
+                ret == UNSUPPORTED_TEST_SUITE_DEPENDENCY) {
                 total_skipped++;
                 mbedtls_fprintf(stdout, "----");
 
-                if (1 == option_verbose && ret == UNSUPPORTED_TEST_SUITE_DEPENDENCY) {
-                    mbedtls_fprintf(stdout, "\n   Test Suite not enabled");
+                if (1 == option_verbose) {
+                    if (ret == UNSUPPORTED_TEST_SUITE_DEPENDENCY) {
+                        mbedtls_fprintf(stdout, "\n   Test suite not enabled");
+                    } else if (ret == UNSUPPORTED_TEST_FUNCTION_DEPENDENCY) {
+                        mbedtls_fprintf(stdout, "\n   Test function not enabled");
+                    }
                 }
 
                 if (1 == option_verbose && unmet_dep_count > 0) {

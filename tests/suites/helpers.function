@@ -38,13 +38,15 @@
 
 #define KEY_VALUE_MAPPING_NOT_FOUND       -1  /* Integer expression not found */
 #define UNSUPPORTED_TEST_CASE_DEPENDENCY  -2  /* Dependency not supported */
-#define DISPATCH_TEST_FN_NOT_FOUND        -3  /* Test function not found */
-#define DISPATCH_INVALID_TEST_DATA        -4  /* Invalid test parameter type.
+#define UNSUPPORTED_TEST_FUNCTION_DEPENDENCY -3  /* Test function not supported
+                                                    by the build */
+#define UNSUPPORTED_TEST_SUITE_DEPENDENCY -4  /* Test suite not supported by the
+                                                 build */
+#define DISPATCH_TEST_FN_NOT_FOUND        -5  /* Test function not found */
+#define DISPATCH_INVALID_TEST_DATA        -6  /* Invalid test parameter type.
                                                  Only int, string, binary data
                                                  and integer expressions are
                                                  allowed */
-#define UNSUPPORTED_TEST_SUITE_DEPENDENCY -5  /* Test suite not supported by the
-                                                 build */
 
 /*----------------------------------------------------------------------------*/
 /* Global variables */

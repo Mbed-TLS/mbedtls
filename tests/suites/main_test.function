@@ -143,7 +143,7 @@ int dep_check(int dep_id)
  */
 typedef void (*TestWrapper_t)(void **param_array);
 
-
+#if __MBEDTLS_TEST_TEMPLATE__SUITE_DEPENDENCIES
 /**
  * \brief       Table of test function wrappers. Used by dispatch_test().
  *              This table is populated by script:
@@ -155,6 +155,7 @@ TestWrapper_t test_funcs[] =
     __MBEDTLS_TEST_TEMPLATE__DISPATCH_CODE
 #line __MBEDTLS_TEST_TEMPLATE__LINE_NO "suites/main_test.function"
 };
+#endif /* __MBEDTLS_TEST_TEMPLATE__SUITE_DEPENDENCIES */
 
 /**
  * \brief        Execute the test function.
@@ -206,10 +207,14 @@ void execute_function_ptr(TestWrapper_t fp, void **params)
  *
  * \return       DISPATCH_TEST_SUCCESS if found
  *               DISPATCH_TEST_FN_NOT_FOUND if not found
- *               UNSUPPORTED_TEST_SUITE_DEPENDENCY if not compile time enabled.
+ *               UNSUPPORTED_TEST_FUNCTION_DEPENDENCY if the function
+ *               is not enabled at compile time.
+ *               UNSUPPORTED_TEST_SUITE_DEPENDENCY if the test suite
+ *               is not enabled at compile time.
  */
 int dispatch_test(size_t func_idx, void **params)
 {
+#if __MBEDTLS_TEST_TEMPLATE__SUITE_DEPENDENCIES
     int ret = DISPATCH_TEST_SUCCESS;
     TestWrapper_t fp = NULL;
 
@@ -218,13 +223,19 @@ int dispatch_test(size_t func_idx, void **params)
         if (fp) {
             execute_function_ptr(fp, params);
         } else {
-            ret = UNSUPPORTED_TEST_SUITE_DEPENDENCY;
+            ret = UNSUPPORTED_TEST_FUNCTION_DEPENDENCY;
         }
     } else {
         ret = DISPATCH_TEST_FN_NOT_FOUND;
     }
 
     return ret;
+
+#else /* __MBEDTLS_TEST_TEMPLATE__SUITE_DEPENDENCIES */
+    (void) func_idx;
+    (void) params;
+    return UNSUPPORTED_TEST_SUITE_DEPENDENCY;
+#endif /* __MBEDTLS_TEST_TEMPLATE__SUITE_DEPENDENCIES */
 }
 
 
@@ -236,23 +247,32 @@ int dispatch_test(size_t func_idx, void **params)
  *
  * \return       DISPATCH_TEST_SUCCESS if found
  *               DISPATCH_TEST_FN_NOT_FOUND if not found
- *               UNSUPPORTED_TEST_SUITE_DEPENDENCY if not compile time enabled.
+ *               UNSUPPORTED_TEST_FUNCTION_DEPENDENCY if the function
+ *               is not enabled at compile time.
+ *               UNSUPPORTED_TEST_SUITE_DEPENDENCY if the test suite
+ *               is not enabled at compile time.
  */
 int check_test(size_t func_idx)
 {
+#if __MBEDTLS_TEST_TEMPLATE__SUITE_DEPENDENCIES
     int ret = DISPATCH_TEST_SUCCESS;
     TestWrapper_t fp = NULL;
 
     if (func_idx < (int) (sizeof(test_funcs)/sizeof(TestWrapper_t))) {
         fp = test_funcs[func_idx];
         if (fp == NULL) {
-            ret = UNSUPPORTED_TEST_SUITE_DEPENDENCY;
+            ret = UNSUPPORTED_TEST_FUNCTION_DEPENDENCY;
         }
     } else {
         ret = DISPATCH_TEST_FN_NOT_FOUND;
     }
 
     return ret;
+
+#else /* __MBEDTLS_TEST_TEMPLATE__SUITE_DEPENDENCIES */
+    (void) func_idx;
+    return UNSUPPORTED_TEST_SUITE_DEPENDENCY;
+#endif /* __MBEDTLS_TEST_TEMPLATE__SUITE_DEPENDENCIES */
 }
 
 

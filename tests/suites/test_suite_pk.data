@@ -1310,6 +1310,82 @@ PSA import into PSA: ECDSA public to pair (bad)
 depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_TEST_PSA_ECC_AT_LEAST_ONE_CURVE:MBEDTLS_PK_CAN_ECDSA_SOME
 pk_import_into_psa_fail:MBEDTLS_PK_ECDSA:FROM_PUBLIC:PSA_KEY_TYPE_ECC_KEY_PAIR(MBEDTLS_TEST_PSA_ECC_ONE_FAMILY):0:MBEDTLS_ERR_PK_TYPE_MISMATCH
 
+PSA import into PSA: transparent -> volatile pair
+pk_import_into_psa_lifetime:0:0:1:0:0
+
+PSA import into PSA: transparent -> persistent pair
+pk_import_into_psa_lifetime:0:0:1:0:1
+
+PSA import into PSA: transparent -> volatile public
+pk_import_into_psa_lifetime:0:0:1:1:0
+
+PSA import into PSA: transparent -> persistent public
+pk_import_into_psa_lifetime:0:0:1:1:1
+
+PSA import into PSA: opaque volatile [export] -> volatile pair
+depends_on:MBEDTLS_USE_PSA_CRYPTO
+pk_import_into_psa_lifetime:1:0:1:0:0
+
+PSA import into PSA: opaque volatile [export] -> persistent pair
+depends_on:MBEDTLS_USE_PSA_CRYPTO
+pk_import_into_psa_lifetime:1:0:1:0:1
+
+PSA import into PSA: opaque volatile [export] -> volatile public
+depends_on:MBEDTLS_USE_PSA_CRYPTO
+pk_import_into_psa_lifetime:1:0:1:1:0
+
+PSA import into PSA: opaque volatile [export] -> persistent public
+depends_on:MBEDTLS_USE_PSA_CRYPTO
+pk_import_into_psa_lifetime:1:0:1:1:1
+
+PSA import into PSA: opaque volatile [copy] -> volatile pair
+depends_on:MBEDTLS_USE_PSA_CRYPTO
+pk_import_into_psa_lifetime:1:0:0:0:0
+
+PSA import into PSA: opaque volatile [copy] -> persistent pair
+depends_on:MBEDTLS_USE_PSA_CRYPTO
+pk_import_into_psa_lifetime:1:0:0:0:1
+
+PSA import into PSA: opaque volatile [copy] -> volatile public
+depends_on:MBEDTLS_USE_PSA_CRYPTO
+pk_import_into_psa_lifetime:1:0:0:1:0
+
+PSA import into PSA: opaque volatile [copy] -> persistent public
+depends_on:MBEDTLS_USE_PSA_CRYPTO
+pk_import_into_psa_lifetime:1:0:0:1:1
+
+PSA import into PSA: opaque persistent [export] -> volatile pair
+depends_on:MBEDTLS_USE_PSA_CRYPTO
+pk_import_into_psa_lifetime:1:1:1:0:0
+
+PSA import into PSA: opaque persistent [export] -> persistent pair
+depends_on:MBEDTLS_USE_PSA_CRYPTO
+pk_import_into_psa_lifetime:1:1:1:0:1
+
+PSA import into PSA: opaque persistent [export] -> volatile public
+depends_on:MBEDTLS_USE_PSA_CRYPTO
+pk_import_into_psa_lifetime:1:1:1:1:0
+
+PSA import into PSA: opaque persistent [export] -> persistent public
+depends_on:MBEDTLS_USE_PSA_CRYPTO
+pk_import_into_psa_lifetime:1:1:1:1:1
+
+PSA import into PSA: opaque persistent [copy] -> volatile pair
+depends_on:MBEDTLS_USE_PSA_CRYPTO
+pk_import_into_psa_lifetime:1:1:0:0:0
+
+PSA import into PSA: opaque persistent [copy] -> persistent pair
+depends_on:MBEDTLS_USE_PSA_CRYPTO
+pk_import_into_psa_lifetime:1:1:0:0:1
+
+PSA import into PSA: opaque persistent [copy] -> volatile public
+depends_on:MBEDTLS_USE_PSA_CRYPTO
+pk_import_into_psa_lifetime:1:1:0:1:0
+
+PSA import into PSA: opaque persistent [copy] -> persistent public
+depends_on:MBEDTLS_USE_PSA_CRYPTO
+pk_import_into_psa_lifetime:1:1:0:1:1
+
 PSA import into PSA: opaque RSA, COPY (ok)
 depends_on:PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE:PSA_WANT_ALG_RSA_PKCS1V15_SIGN
 pk_import_into_psa_opaque:PSA_KEY_TYPE_RSA_KEY_PAIR:MBEDTLS_RSA_GEN_KEY_MIN_BITS:PSA_KEY_USAGE_COPY | PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_SIGN_MESSAGE:PSA_ALG_RSA_PKCS1V15_SIGN_RAW:PSA_KEY_TYPE_RSA_KEY_PAIR:MBEDTLS_RSA_GEN_KEY_MIN_BITS:PSA_KEY_USAGE_COPY | PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_SIGN_MESSAGE:PSA_ALG_RSA_PKCS1V15_SIGN_RAW:0

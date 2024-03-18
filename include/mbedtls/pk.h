@@ -374,10 +374,19 @@ int mbedtls_pk_setup(mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info);
  *                  operations and, based on the key type, used algorithms will be:
  *                  * EC:
  *                      * verify: #PSA_ALG_ECDSA_ANY;
- *                      * sign: try both deterministic and non-deterministic ECDSA.
+ *                      * sign: try #PSA_ALG_DETERMINISTIC_ECDSA() first and, in
+ *                        case it fails, try with #PSA_ALG_ECDSA().
  *                  * RSA:
  *                      * sign: #PSA_ALG_RSA_PKCS1V15_SIGN();
- *                      * decrypt: #PSA_ALG_RSA_PKCS1V15_CRYPT.
+ *                      * sign_ext: use the algorithm associated with the wrapped
+ *                        PSA key;
+ *                      * verify: not supported;
+ *                      * verify_ext: not supported;
+ *                      * decrypt: #PSA_ALG_RSA_PKCS1V15_CRYPT;
+ *                      * encrypt: not supported.
+ *                  In order to have above mentioned operations to succeed it is
+ *                  mandatory that the wrapped PSA key allows the specified
+ *                  algorithm in its policy.
  *
  * \param ctx       The context to initialize. It must be empty (type NONE).
  * \param key       The PSA key to wrap, which must hold an ECC or RSA key

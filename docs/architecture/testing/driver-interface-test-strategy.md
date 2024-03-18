@@ -469,7 +469,9 @@ Hash (key types: none)
   parity testing.
 
 HMAC (key type: HMAC)
-- No driver-only testing here, see #8564.
+- `test_psa_crypto_config_accel_hmac`: all algs, full config except a few
+  exclusions (PKCS5, PKCS7, HMAC-DRBG, legacy HKDF, deterministic ECDSA), with
+parity testing.
 
 Cipher, AEAD and CMAC (key types: DES, AES, ARIA, CHACHA20, CAMELLIA):
 - `test_psa_crypto_config_accel_cipher_aead_cmac`: all key types and algs, full

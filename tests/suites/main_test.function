@@ -110,11 +110,11 @@ int get_expression(int32_t exp_id, intmax_t *out_value)
  *
  * \param dep_id    Dependency identifier.
  *
- * \return       DEPENDENCY_SUPPORTED if set else DEPENDENCY_NOT_SUPPORTED
+ * \return       DEPENDENCY_SUPPORTED if set else UNSUPPORTED_TEST_CASE_DEPENDENCY
  */
 int dep_check(int dep_id)
 {
-    int ret = DEPENDENCY_NOT_SUPPORTED;
+    int ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
 
     (void) dep_id;
 
@@ -206,7 +206,7 @@ void execute_function_ptr(TestWrapper_t fp, void **params)
  *
  * \return       DISPATCH_TEST_SUCCESS if found
  *               DISPATCH_TEST_FN_NOT_FOUND if not found
- *               DISPATCH_UNSUPPORTED_SUITE if not compile time enabled.
+ *               UNSUPPORTED_TEST_SUITE_DEPENDENCY if not compile time enabled.
  */
 int dispatch_test(size_t func_idx, void **params)
 {
@@ -218,7 +218,7 @@ int dispatch_test(size_t func_idx, void **params)
         if (fp) {
             execute_function_ptr(fp, params);
         } else {
-            ret = DISPATCH_UNSUPPORTED_SUITE;
+            ret = UNSUPPORTED_TEST_SUITE_DEPENDENCY;
         }
     } else {
         ret = DISPATCH_TEST_FN_NOT_FOUND;
@@ -236,7 +236,7 @@ int dispatch_test(size_t func_idx, void **params)
  *
  * \return       DISPATCH_TEST_SUCCESS if found
  *               DISPATCH_TEST_FN_NOT_FOUND if not found
- *               DISPATCH_UNSUPPORTED_SUITE if not compile time enabled.
+ *               UNSUPPORTED_TEST_SUITE_DEPENDENCY if not compile time enabled.
  */
 int check_test(size_t func_idx)
 {
@@ -246,7 +246,7 @@ int check_test(size_t func_idx)
     if (func_idx < (int) (sizeof(test_funcs)/sizeof(TestWrapper_t))) {
         fp = test_funcs[func_idx];
         if (fp == NULL) {
-            ret = DISPATCH_UNSUPPORTED_SUITE;
+            ret = UNSUPPORTED_TEST_SUITE_DEPENDENCY;
         }
     } else {
         ret = DISPATCH_TEST_FN_NOT_FOUND;

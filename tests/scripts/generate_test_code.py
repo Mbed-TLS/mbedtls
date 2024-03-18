@@ -827,7 +827,7 @@ def gen_dep_check(dep_id, dep):
 #if {_not}{_defined}({macro}{_cond}{_value})
                 ret = DEPENDENCY_SUPPORTED;
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
 #endif
             }}
             break;'''.format(_not=_not, _defined=_defined,

@@ -421,7 +421,7 @@ static void write_outcome_result(FILE *outcome_file,
         case DISPATCH_INVALID_TEST_DATA:
             mbedtls_fprintf(outcome_file, "FAIL;Invalid test data");
             break;
-        case DISPATCH_UNSUPPORTED_SUITE:
+        case UNSUPPORTED_TEST_SUITE_DEPENDENCY:
             mbedtls_fprintf(outcome_file, "SKIP;Unsupported suite");
             break;
         default:
@@ -691,11 +691,11 @@ int execute_tests(int argc, const char **argv)
                                  unmet_dep_count, unmet_dependencies,
                                  missing_unmet_dependencies,
                                  ret, &mbedtls_test_info);
-            if (unmet_dep_count > 0 || ret == DISPATCH_UNSUPPORTED_SUITE) {
+            if (unmet_dep_count > 0 || ret == UNSUPPORTED_TEST_SUITE_DEPENDENCY) {
                 total_skipped++;
                 mbedtls_fprintf(stdout, "----");
 
-                if (1 == option_verbose && ret == DISPATCH_UNSUPPORTED_SUITE) {
+                if (1 == option_verbose && ret == UNSUPPORTED_TEST_SUITE_DEPENDENCY) {
                     mbedtls_fprintf(stdout, "\n   Test Suite not enabled");
                 }
 

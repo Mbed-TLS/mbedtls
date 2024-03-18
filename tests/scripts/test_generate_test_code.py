@@ -1404,7 +1404,7 @@ class GenDepCheck(TestCase):
 #if defined(YAHOO)
                 ret = DEPENDENCY_SUPPORTED;
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
 #endif
             }
             break;"""
@@ -1422,7 +1422,7 @@ class GenDepCheck(TestCase):
 #if !defined(YAHOO)
                 ret = DEPENDENCY_SUPPORTED;
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
 #endif
             }
             break;"""
@@ -1512,7 +1512,7 @@ class WriteDependencies(TestCase):
 #if defined(DEP3)
                 ret = DEPENDENCY_SUPPORTED;
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
 #endif
             }
             break;
@@ -1521,7 +1521,7 @@ class WriteDependencies(TestCase):
 #if defined(DEP2)
                 ret = DEPENDENCY_SUPPORTED;
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
 #endif
             }
             break;
@@ -1530,7 +1530,7 @@ class WriteDependencies(TestCase):
 #if defined(DEP1)
                 ret = DEPENDENCY_SUPPORTED;
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
 #endif
             }
             break;'''
@@ -1558,7 +1558,7 @@ class WriteDependencies(TestCase):
 #if defined(DEP3)
                 ret = DEPENDENCY_SUPPORTED;
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
 #endif
             }
             break;
@@ -1567,7 +1567,7 @@ class WriteDependencies(TestCase):
 #if defined(DEP2)
                 ret = DEPENDENCY_SUPPORTED;
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
 #endif
             }
             break;
@@ -1576,7 +1576,7 @@ class WriteDependencies(TestCase):
 #if defined(DEP1)
                 ret = DEPENDENCY_SUPPORTED;
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
 #endif
             }
             break;'''
@@ -1803,7 +1803,7 @@ func1:0
 #if defined(DEP1)
                 ret = DEPENDENCY_SUPPORTED;
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
 #endif
             }
             break;'''
@@ -1873,7 +1873,7 @@ func2:"yahoo":88:MACRO1
 #if defined(DEP1)
                 ret = DEPENDENCY_SUPPORTED;
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
 #endif
             }
             break;
@@ -1882,7 +1882,7 @@ func2:"yahoo":88:MACRO1
 #if defined(DEP2)
                 ret = DEPENDENCY_SUPPORTED;
 #else
-                ret = DEPENDENCY_NOT_SUPPORTED;
+                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
 #endif
             }
             break;'''

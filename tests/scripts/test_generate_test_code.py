@@ -1705,11 +1705,10 @@ func1:0
         data_f = StringIOWrapper('test_suite_ut.data', data)
         out_data_f = StringIOWrapper('test_suite_ut.datax', '')
         func_info = {'test_func1': (1, ('int',))}
-        suite_dependencies = []
         write_parameters_mock.side_effect = write_parameters
         write_dependencies_mock.side_effect = write_dependencies
         gen_dependencies_array_mock.side_effect = gen_dependencies_array
-        gen_from_test_data(data_f, out_data_f, func_info, suite_dependencies)
+        gen_from_test_data(data_f, out_data_f, func_info)
         write_dependencies_mock.assert_called_with(out_data_f,
                                                    ['DEP1'], ['DEP1'])
         write_parameters_mock.assert_called_with(out_data_f, ['0'],
@@ -1729,9 +1728,8 @@ func1:0
         data_f = StringIOWrapper('test_suite_ut.data', data)
         out_data_f = StringIOWrapper('test_suite_ut.datax', '')
         func_info = {'test_func2': (1, ('int',))}
-        suite_dependencies = []
         self.assertRaises(GeneratorInputError, gen_from_test_data,
-                          data_f, out_data_f, func_info, suite_dependencies)
+                          data_f, out_data_f, func_info)
 
     def test_different_func_args(self):
         """
@@ -1747,9 +1745,8 @@ func1:0
         data_f = StringIOWrapper('test_suite_ut.data', data)
         out_data_f = StringIOWrapper('test_suite_ut.datax', '')
         func_info = {'test_func2': (1, ('int', 'hex'))}
-        suite_dependencies = []
         self.assertRaises(GeneratorInputError, gen_from_test_data, data_f,
-                          out_data_f, func_info, suite_dependencies)
+                          out_data_f, func_info)
 
     def test_output(self):
         """
@@ -1769,10 +1766,8 @@ func2:"yahoo":88:MACRO1
         out_data_f = StringIOWrapper('test_suite_ut.datax', '')
         func_info = {'test_func1': (0, ('int', 'int', 'int', 'int')),
                      'test_func2': (1, ('char*', 'int', 'int'))}
-        suite_dependencies = []
         dep_check_code, expression_code = \
-            gen_from_test_data(data_f, out_data_f, func_info,
-                               suite_dependencies)
+            gen_from_test_data(data_f, out_data_f, func_info)
         expected_dependencies_code = '''\
 #if defined(DEP1)
         NULL,

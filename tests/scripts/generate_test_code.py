@@ -947,7 +947,7 @@ def get_function_info(func_info, function_name, line_no):
     return func_info[test_function_name]
 
 
-def gen_from_test_data(data_f, out_data_f, func_info, suite_dependencies):
+def gen_from_test_data(data_f, out_data_f, func_info):
     """
     This function reads test case name, dependencies and test vectors
     from the .data file. This information is correlated with the test
@@ -1091,7 +1091,7 @@ def parse_function_file(funcs_file, snippets):
 
 
 def generate_intermediate_data_file(data_file, out_data_file,
-                                    suite_dependencies, func_info, snippets):
+                                    func_info, snippets):
     """
     Generates intermediate data file from input data file and
     information read from functions file.
@@ -1107,7 +1107,7 @@ def generate_intermediate_data_file(data_file, out_data_file,
     with FileWrapper(data_file) as data_f, \
             open(out_data_file, 'w') as out_data_f:
         dependencies_code, expression_code = gen_from_test_data(
-            data_f, out_data_f, func_info, suite_dependencies)
+            data_f, out_data_f, func_info)
         snippets['dependencies_code'] = dependencies_code
         snippets['expression_code'] = expression_code
 
@@ -1152,7 +1152,7 @@ def generate_code(**input_info):
                    c_file, snippets)
     suite_dependencies, func_info = parse_function_file(funcs_file, snippets)
     generate_intermediate_data_file(data_file, out_data_file,
-                                    suite_dependencies, func_info, snippets)
+                                    func_info, snippets)
     write_test_source_file(template_file, c_file, snippets)
 
 

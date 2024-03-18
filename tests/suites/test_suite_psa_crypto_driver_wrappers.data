@@ -241,7 +241,7 @@ generate_ec_key through transparent driver: in-driver
 generate_ec_key:PSA_SUCCESS:"":PSA_SUCCESS
 
 generate_ec_key through transparent driver: fallback
-depends_on:MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_GENERATE
+depends_on:MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_GENERATE:MBEDTLS_PSA_BUILTIN_ECC_SECP_R1_256
 generate_ec_key:PSA_ERROR_NOT_SUPPORTED:"":PSA_SUCCESS
 
 generate_ec_key through transparent driver: fallback not available

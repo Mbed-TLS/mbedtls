@@ -569,6 +569,52 @@ psa_status_t psa_crypto_local_output_free(psa_crypto_local_output_t *local_outpu
 
 Some PSA functions may not use these convenience functions as they may have local optimizations that reduce memory usage. For example, ciphers may be able to use a single intermediate buffer for both input and output.
 
+In order to abstract the management of the copy state further, to make it simpler to add, we create the following 6 convenience macros:
+
+For inputs:
+
+* `LOCAL_INPUT_DECLARE(input, input_copy_name)`, which declares and initializes a `psa_crypto_local_input_t` and a pointer with the name `input_copy_name` in the current scope.
+* `LOCAL_INPUT_ALLOC(input, input_size, input_copy)`, which tries to allocate an input using `psa_crypto_local_input_alloc()`. On failure, it sets an error code and jumps to an exit label. On success, it sets `input_copy` to point to the copy of the buffer.
+* `LOCAL_INPUT_FREE(input, input_copy)`, which frees the input copy using `psa_crypto_local_input_free()` and sets `input_copy` to `NULL`.
+
+For outputs:
+
+* `LOCAL_OUTPUT_DECLARE(output, output_copy_name)`, analogous to `LOCAL_INPUT_DECLARE()` for `psa_crypto_local_output_t`.
+* `LOCAL_OUTPUT_ALLOC(output, output_size, output_copy)`, analogous to `LOCAL_INPUT_ALLOC()` for outputs, calling `psa_crypto_local_output_alloc()`.
+* `LOCAL_OUTPUT_FREE(output, output_copy)`, analogous to `LOCAL_INPUT_FREE()` for outputs. If the `psa_crypto_local_output_t` is in an invalid state (the copy pointer is valid, but the original pointer is `NULL`) this macro sets an error status.
+
+These macros allow PSA functions to have copying added while keeping the code mostly unmodified. Consider a hypothetical PSA function:
+
+```c
+psa_status_t psa_foo(const uint8_t *input, size_t input_length,
+                     uint8_t *output, size_t output_size, size_t *output_length)
+{
+    /* Do some operation on input and output */
+}
+```
+
+By changing the name of the input and output parameters, we can retain the original variable name as the name of the local copy while using a new name (e.g. with the suffix `_external`) for the original buffer. This allows copying to be added near-seamlessly as follows:
+
+```c
+psa_status_t psa_foo(const uint8_t *input_external, size_t input_length,
+                     uint8_t *output_external, size_t output_size, size_t *output_length)
+{
+    psa_status_t status;
+
+    LOCAL_INPUT_DECLARE(input_external, input);
+    LOCAL_OUTPUT_DECLARE(output_external, output);
+
+    LOCAL_INPUT_ALLOC(input_external, input);
+    LOCAL_OUTPUT_ALLOC(output_external, output);
+
+    /* Do some operation on input and output */
+
+exit:
+    LOCAL_INPUT_FREE(input_external, input);
+    LOCAL_OUTPUT_FREE(output_external, output);
+}
+```
+
 ### Implementation of copying validation
 
 As discussed in the [design exploration of copying validation](#validation-of-copying), the best strategy for validation of copies appears to be validation by memory poisoning, implemented using Valgrind and ASan.

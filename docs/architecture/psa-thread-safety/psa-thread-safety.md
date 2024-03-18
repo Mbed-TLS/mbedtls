@@ -147,6 +147,8 @@ There are two `psa_global_data_t` structs, each with a single instance `global_d
 
 A deadlock would occur if a thread attempts to lock a mutex while already holding it. Functions which need to be called while holding the global mutex have documentation to say this.
 
+To avoid performance degradation, functions must hold mutexes for as short a time as possible. In particular, they must not start expensive operations (eg. doing cryptography) while holding the mutex.
+
 #### Key slots
 
 

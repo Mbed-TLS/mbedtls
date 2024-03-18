@@ -301,14 +301,14 @@ In the library, the code that does the copying temporarily unpoisons the memory 
 ```c
 static void copy_to_user(void *copy_buffer, void *const input_buffer, size_t length) {
 #if defined(MBEDTLS_TEST_HOOKS)
-    if (mbedtls_psa_core_poison_memory != NULL) {
-        mbedtls_psa_core_poison_memory(copy_buffer, length, 0);
+    if (memory_poison_hook != NULL) {
+        memory_poison_hook(copy_buffer, length);
     }
 #endif
     memcpy(copy_buffer, input_buffer, length);
 #if defined(MBEDTLS_TEST_HOOKS)
-    if (mbedtls_psa_core_poison_memory != NULL) {
-        mbedtls_psa_core_poison_memory(copy_buffer, length, 1);
+    if (memory_unpoison_hook != NULL) {
+        memory_unpoison_hook(copy_buffer, length);
     }
 #endif
 }
@@ -341,8 +341,6 @@ It should be possible to work around this by manually rounding buffer lengths up
 
 **Design decision: Implement memory poisoning tests with both Valgrind's memcheck and ASan manual poisoning.**
 
-**Question: Should we try to build memory poisoning validation on existing Mbed TLS tests, or write new tests for this?**
-
 ##### Validation with new tests
 
 Validation with newly created tests would be simpler to implement than using existing tests, since the tests can be written to take into account memory poisoning. It is also possible to build such a testsuite using existing tests as a starting point - `mbedtls_test_psa_exercise_key` is a test helper that already exercises many PSA operations on a key. This would need to be extended to cover operations without keys (e.g. hashes) and multipart operations, but it provides a good base from which to build all of the required testing.
@@ -364,7 +362,7 @@ It may be possible to transparently implement memory poisoning so that existing 
 
 These issues may be solved by creating some kind of test wrapper around every PSA function call that poisons the memory. However, it is unclear how straightforward this will be in practice. If this is simple to achieve, the extra coverage and time saved on new tests will be a benefit. If not, writing new tests is the best strategy.
 
-**Design decision: Attempt to add memory poisoning transparently to existing tests. If this proves difficult, write new tests instead.**
+**Design decision: Add memory poisoning transparently to existing tests.**
 
 #### Discussion of copying validation
 
@@ -524,32 +522,114 @@ As discussed in [Copying code](#copying-code), it is simpler to use a single uni
 
 These seem to be a repeat of the same function, however it is useful to retain two separate functions for input and output parameters so that we can use different test hooks in each when using memory poisoning for tests.
 
-Given that the majority of functions will be allocating memory on the heap to copy, it may help to build convenience functions that allocate the memory as well. One function allocates and copies the buffers:
+Given that the majority of functions will be allocating memory on the heap to copy, it is helpful to build convenience functions that allocate the memory as well.
 
-* `psa_crypto_alloc_and_copy(const uint8_t *input, size_t input_length, uint8_t *output, size_t output_length, struct {uint8_t *inp, size_t inp_len, uint8_t *out, size_t out_len} *buffers)`
+In order to keep track of allocated copies on the heap, we can create new structs:
 
-This function allocates an input and output buffer in `buffers` and copy the input from the user-supplied input buffer to `buffers->inp`.
+```c
+typedef struct psa_crypto_local_input_s {
+    uint8_t *buffer;
+    size_t length;
+} psa_crypto_local_input_t;
 
-An analogous function is needed to copy and free the buffers:
+typedef struct psa_crypto_local_output_s {
+    uint8_t *original;
+    uint8_t *buffer;
+    size_t length;
+} psa_crypto_local_output_t;
+```
 
-* `psa_crypto_copy_and_free(struct {uint8_t *inp, size_t inp_len, uint8_t *out, size_t out_len} buffers, const uint8_t *input, size_t input_length, const uint8_t *output, size_t output_length)`
+These may be used to keep track of input and output copies' state, and ensure that their length is always stored with them. In the case of output copies, we keep a pointer to the original buffer so that it is easy to perform a writeback to the original once we have finished outputting.
 
-This function would first copy the `buffers->out` buffer to the user-supplied output buffer and then free `buffers->inp` and `buffers->out`.
+With these structs we may create 2 pairs of functions, one pair for input copies:
+
+```c
+psa_status_t psa_crypto_local_input_alloc(const uint8_t *input, size_t input_len,
+                                          psa_crypto_local_input_t *local_input);
+
+void psa_crypto_local_input_free(psa_crypto_local_input_t *local_input);
+```
+
+* `psa_crypto_local_input_alloc()` calls `calloc()` to allocate a new buffer of length `input_len`, copies the contents across from `input`. It then stores `input_len` and the pointer to the copy in the struct `local_input`.
+* `psa_crypto_local_input_free()` calls `free()` on the local input that is referred to by `local_input` and sets the pointer in the struct to `NULL`.
+
+We also create a pair of functions for output copies:
+
+```c
+psa_status_t psa_crypto_local_output_alloc(uint8_t *output, size_t output_len,
+                                           psa_crypto_local_output_t *local_output);
+
+psa_status_t psa_crypto_local_output_free(psa_crypto_local_output_t *local_output);
+```
+
+* `psa_crypto_local_output_alloc()` calls `calloc()` to allocate a new buffer of length `output_len` and stores `output_len` and the pointer to the buffer in the struct `local_output`. It also stores a pointer to `output` in `local_output->original`.
+* `psa_crypto_local_output_free()` copies the contents of the output buffer `local_output->buffer` into the buffer `local_output->original`, calls `free()` on `local_output->buffer` and sets it to `NULL`.
 
 Some PSA functions may not use these convenience functions as they may have local optimizations that reduce memory usage. For example, ciphers may be able to use a single intermediate buffer for both input and output.
+
+In order to abstract the management of the copy state further, to make it simpler to add, we create the following 6 convenience macros:
+
+For inputs:
+
+* `LOCAL_INPUT_DECLARE(input, input_copy_name)`, which declares and initializes a `psa_crypto_local_input_t` and a pointer with the name `input_copy_name` in the current scope.
+* `LOCAL_INPUT_ALLOC(input, input_size, input_copy)`, which tries to allocate an input using `psa_crypto_local_input_alloc()`. On failure, it sets an error code and jumps to an exit label. On success, it sets `input_copy` to point to the copy of the buffer.
+* `LOCAL_INPUT_FREE(input, input_copy)`, which frees the input copy using `psa_crypto_local_input_free()` and sets `input_copy` to `NULL`.
+
+For outputs:
+
+* `LOCAL_OUTPUT_DECLARE(output, output_copy_name)`, analogous to `LOCAL_INPUT_DECLARE()` for `psa_crypto_local_output_t`.
+* `LOCAL_OUTPUT_ALLOC(output, output_size, output_copy)`, analogous to `LOCAL_INPUT_ALLOC()` for outputs, calling `psa_crypto_local_output_alloc()`.
+* `LOCAL_OUTPUT_FREE(output, output_copy)`, analogous to `LOCAL_INPUT_FREE()` for outputs. If the `psa_crypto_local_output_t` is in an invalid state (the copy pointer is valid, but the original pointer is `NULL`) this macro sets an error status.
+
+These macros allow PSA functions to have copying added while keeping the code mostly unmodified. Consider a hypothetical PSA function:
+
+```c
+psa_status_t psa_foo(const uint8_t *input, size_t input_length,
+                     uint8_t *output, size_t output_size, size_t *output_length)
+{
+    /* Do some operation on input and output */
+}
+```
+
+By changing the name of the input and output parameters, we can retain the original variable name as the name of the local copy while using a new name (e.g. with the suffix `_external`) for the original buffer. This allows copying to be added near-seamlessly as follows:
+
+```c
+psa_status_t psa_foo(const uint8_t *input_external, size_t input_length,
+                     uint8_t *output_external, size_t output_size, size_t *output_length)
+{
+    psa_status_t status;
+
+    LOCAL_INPUT_DECLARE(input_external, input);
+    LOCAL_OUTPUT_DECLARE(output_external, output);
+
+    LOCAL_INPUT_ALLOC(input_external, input);
+    LOCAL_OUTPUT_ALLOC(output_external, output);
+
+    /* Do some operation on input and output */
+
+exit:
+    LOCAL_INPUT_FREE(input_external, input);
+    LOCAL_OUTPUT_FREE(output_external, output);
+}
+```
+
+A second advantage of using macros for the copying (other than simple convenience) is that it allows copying to be easily disabled by defining alternate macros that function as no-ops. Since buffer copying is specific to systems where shared memory is passed to PSA functions, it is useful to be able to disable it where it is not needed, to save code size.
+
+To this end, the macros above are defined conditionally on a new config option, `MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS`, which may be set whenever PSA functions are assumed to have exclusive access to their input and output buffers. When `MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS` is set, the macros do not perform copying.
 
 ### Implementation of copying validation
 
 As discussed in the [design exploration of copying validation](#validation-of-copying), the best strategy for validation of copies appears to be validation by memory poisoning, implemented using Valgrind and ASan.
 
-To perform memory poisoning, we must implement the function alluded to in [Validation of copying by memory poisoning](#validation-of-copying-by-memory-poisoning):
+To perform memory poisoning, we must implement the functions alluded to in [Validation of copying by memory poisoning](#validation-of-copying-by-memory-poisoning):
 ```c
-mbedtls_psa_core_poison_memory(uint8_t *buffer, size_t length, int should_poison);
+void mbedtls_test_memory_poison(const unsigned char *ptr, size_t size);
+void mbedtls_test_memory_unpoison(const unsigned char *ptr, size_t size);
 ```
-This should either poison or unpoison the given buffer based on the value of `should_poison`:
+This should poison or unpoison the given buffer, respectively.
 
-* When `should_poison == 1`, this is equivalent to calling `VALGRIND_MAKE_MEM_NOACCESS(buffer, length)` or `ASAN_POISON_MEMORY_REGION(buffer, length)`.
-* When `should_poison == 0`, this is equivalent to calling `VALGRIND_MAKE_MEM_DEFINED(buffer, length)` or `ASAN_UNPOISON_MEMORY_REGION(buffer, length)`.
+* `mbedtls_test_memory_poison()` is equivalent to calling `VALGRIND_MAKE_MEM_NOACCESS(ptr, size)` or `ASAN_POISON_MEMORY_REGION(ptr, size)`.
+* `mbedtls_test_memory_unpoison()` is equivalent to calling `VALGRIND_MAKE_MEM_DEFINED(ptr, size)` or `ASAN_UNPOISON_MEMORY_REGION(ptr, size)`.
 
 The PSA copying function must then have test hooks implemented as outlined in [Validation of copying by memory poisoning](#validation-of-copying-by-memory-poisoning).
 
@@ -568,12 +648,12 @@ psa_status_t mem_poison_psa_aead_update(psa_aead_operation_t *operation,
                                         size_t output_size,
                                         size_t *output_length)
 {
-    mbedtls_psa_core_poison_memory(input, input_length, 1);
-    mbedtls_psa_core_poison_memory(output, output_size, 1);
+    mbedtls_test_memory_poison(input, input_length);
+    mbedtls_test_memory_poison(output, output_size);
     psa_status_t status = psa_aead_update(operation, input, input_length,
                                           output, output_size, output_length);
-    mbedtls_psa_core_poison_memory(input, input_length, 0);
-    mbedtls_psa_core_poison_memory(output, output_size, 0);
+    mbedtls_test_memory_unpoison(input, input_length);
+    mbedtls_test_memory_unpoison(output, output_size);
 
     return status;
 }
@@ -581,9 +661,17 @@ psa_status_t mem_poison_psa_aead_update(psa_aead_operation_t *operation,
 #define psa_aead_update(...) mem_poison_psa_aead_update(__VA_ARGS__)
 ```
 
+There now exists a more generic mechanism for making exactly this kind of transformation - the PSA test wrappers, which exist in the files `tests/include/test/psa_test_wrappers.h` and `tests/src/psa_test_wrappers.c`. These are wrappers around all PSA functions that allow testing code to be inserted at the start and end of a PSA function call.
+
+The test wrappers are generated by a script, although they are not automatically generated as part of the build process. Instead, they are checked into source control and must be manually updated when functions change by running `tests/scripts/generate_psa_wrappers.py`.
+
+Poisoning code is added to these test wrappers where relevant in order to pre-poison and post-unpoison the parameters to the functions.
+
 #### Configuration of poisoning tests
 
-Since the memory poisoning tests will require the use of interfaces specific to the sanitizers used to poison memory, they must be guarded by new config options, for example `MBEDTLS_TEST_PSA_COPYING_ASAN` and `MBEDTLS_TEST_PSA_COPYING_VALGRIND`, as well as `MBEDTLS_TEST_HOOKS`. These would be analogous to the existing `MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN` and `MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND`. Since they require special tooling and are for testing only, these options should not be present in `mbedtls_config.h`. Instead, they should be set only in a new component in `all.sh` that performs the copy testing with Valgrind or ASan.
+Since the memory poisoning tests will require the use of interfaces specific to the sanitizers used to poison memory, they must only be enabled when we are building with ASan or Valgrind. For now, we can auto-detect ASan at compile-time and set an option: `MBEDTLS_TEST_MEMORY_CAN_POISON`. When this option is enabled, we build with memory-poisoning support. This enables transparent testing with ASan without needing any extra configuration options.
+
+Auto-detection and memory-poisoning with Valgrind is left for future work.
 
 #### Validation of validation for copying
 
@@ -594,4 +682,4 @@ To make sure that we can correctly detect functions that access their input/outp
 
 Then, we could write a test that uses this function with memory poisoning and ensure that it fails. Since we are expecting a failure due to memory-poisoning, we would run this test separately from the rest of the memory-poisoning testing.
 
-However, performing this testing automatically is not urgent. It will suffice to manually verify that the test framework works, automatic tests are a 'nice to have' feature that may be left to future work.
+This testing is implemented in `programs/test/metatest.c`, which is a program designed to check that test failures happen correctly. It may be run via the script `tests/scripts/run-metatests.sh`.

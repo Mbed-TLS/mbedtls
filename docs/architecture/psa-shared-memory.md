@@ -667,7 +667,9 @@ Poisoning code is added to these test wrappers where relevant in order to pre-po
 
 #### Configuration of poisoning tests
 
-Since the memory poisoning tests will require the use of interfaces specific to the sanitizers used to poison memory, they must be guarded by new config options, for example `MBEDTLS_TEST_PSA_COPYING_ASAN` and `MBEDTLS_TEST_PSA_COPYING_VALGRIND`, as well as `MBEDTLS_TEST_HOOKS`. These would be analogous to the existing `MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN` and `MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND`. Since they require special tooling and are for testing only, these options should not be present in `mbedtls_config.h`. Instead, they should be set only in a new component in `all.sh` that performs the copy testing with Valgrind or ASan.
+Since the memory poisoning tests will require the use of interfaces specific to the sanitizers used to poison memory, they must only be enabled when we are building with ASan or Valgrind. For now, we can auto-detect ASan at compile-time and set an option: `MBEDTLS_TEST_MEMORY_CAN_POISON`. When this option is enabled, we build with memory-poisoning support. This enables transparent testing with ASan without needing any extra configuration options.
+
+Auto-detection and memory-poisoning with Valgrind is left for future work.
 
 #### Validation of validation for copying
 

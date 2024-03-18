@@ -361,23 +361,27 @@ int mbedtls_pk_setup(mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info);
 /**
  * \brief           Initialize a PK context to wrap a PSA key.
  *
- * \note            This function replaces mbedtls_pk_setup() for contexts
- *                  that wrap a (possibly opaque) PSA key instead of
- *                  storing and manipulating the key material directly.
+ *                  This function helps creating a PK context which wraps a
+ *                  PSA key. The PSA wrapped key must:
+ *                  * remain valid as long as the wrapping PK context is in use,
+ *                    that is at least between the point this function is
+ *                    called and the point mbedtls_pk_free() is called on this
+ *                    context;
+ *                  * be a key pair;
+ *                  * be an EC or RSA type (DH is not suported in PK module).
+ *
+ *                  Under the hood PSA functions are used to perform the required
+ *                  operations and, based on the key type, used algorithms will be:
+ *                  * EC:
+ *                      * verify: #PSA_ALG_ECDSA_ANY;
+ *                      * sign: try both deterministic and non-deterministic ECDSA.
+ *                  * RSA:
+ *                      * sign: #PSA_ALG_RSA_PKCS1V15_SIGN();
+ *                      * decrypt: #PSA_ALG_RSA_PKCS1V15_CRYPT.
  *
  * \param ctx       The context to initialize. It must be empty (type NONE).
  * \param key       The PSA key to wrap, which must hold an ECC or RSA key
  *                  pair (see notes below).
- *
- * \note            The wrapped key must remain valid as long as the
- *                  wrapping PK context is in use, that is at least between
- *                  the point this function is called and the point
- *                  mbedtls_pk_free() is called on this context. The wrapped
- *                  key might then be independently used or destroyed.
- *
- * \note            This function is currently only available for ECC or RSA
- *                  key pairs (that is, keys containing private key material).
- *                  Support for other key types may be added later.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_PK_BAD_INPUT_DATA on invalid input

@@ -724,7 +724,7 @@ usage:
     fflush(stdout);
 
     len = mbedtls_snprintf((char *) buf, sizeof(buf), "MAIL FROM:<%s>\r\n", opt.mail_from);
-    if (len < 0 || (size_t)len >= sizeof(buf)) {
+    if (len < 0 || (size_t) len >= sizeof(buf)) {
         mbedtls_printf(" failed\n  ! mbedtls_snprintf encountered error or truncated output\n\n");
         goto exit;
     }
@@ -740,7 +740,7 @@ usage:
     fflush(stdout);
 
     len = mbedtls_snprintf((char *) buf, sizeof(buf), "RCPT TO:<%s>\r\n", opt.mail_to);
-    if (len < 0 || (size_t)len >= sizeof(buf)) {
+    if (len < 0 || (size_t) len >= sizeof(buf)) {
         mbedtls_printf(" failed\n  ! mbedtls_snprintf encountered error or truncated output\n\n");
         goto exit;
     }
@@ -768,12 +768,12 @@ usage:
     fflush(stdout);
 
     len = mbedtls_snprintf((char *) buf, sizeof(buf),
-                   "From: %s\r\nSubject: Mbed TLS Test mail\r\n\r\n"
-                   "This is a simple test mail from the "
-                   "Mbed TLS mail client example.\r\n"
-                   "\r\n"
-                   "Enjoy!", opt.mail_from);
-    if (len < 0 || (size_t)len >= sizeof(buf)) {
+                           "From: %s\r\nSubject: Mbed TLS Test mail\r\n\r\n"
+                           "This is a simple test mail from the "
+                           "Mbed TLS mail client example.\r\n"
+                           "\r\n"
+                           "Enjoy!", opt.mail_from);
+    if (len < 0 || (size_t) len >= sizeof(buf)) {
         mbedtls_printf(" failed\n  ! mbedtls_snprintf encountered error or truncated output\n\n");
         goto exit;
     }

@@ -2060,6 +2060,18 @@ void pk_psa_wrap_sign_ext(int pk_type, int key_bits, int key_pk_type, int md_alg
                                    sig, sizeof(sig), &sig_len,
                                    mbedtls_test_rnd_std_rand, NULL), 0);
 
+    /* Trying to perform a verify_ext() using the opaque context is not supported
+     * so here we verify that this does not crash. */
+    if (key_pk_type == MBEDTLS_PK_RSASSA_PSS) {
+        mbedtls_pk_rsassa_pss_options pss_opts = {
+            .mgf1_hash_id = md_alg,
+            .expected_salt_len = MBEDTLS_RSA_SALT_LEN_ANY,
+        };
+        TEST_EQUAL(mbedtls_pk_verify_ext(key_pk_type, &pss_opts, &pk, md_alg,
+                                         hash, hash_len, sig, sig_len),
+                   MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE);
+    }
+
     mbedtls_pk_free(&pk);
     TEST_EQUAL(PSA_SUCCESS, psa_destroy_key(key_id));
 

@@ -1,0 +1,6 @@
+Features
+   * Add protection for multithreaded access to the PSA keystore and protection
+     for multithreaded access to the the PSA global state, including
+     concurrently calling psa_crypto_init() when MBEDTLS_THREADING_C and
+     MBEDTLS_THREADING_PTHREAD are defined. See
+     docs/architecture/psa-thread-safety/psa-thread-safety.md for more details.

@@ -341,8 +341,6 @@ It should be possible to work around this by manually rounding buffer lengths up
 
 **Design decision: Implement memory poisoning tests with both Valgrind's memcheck and ASan manual poisoning.**
 
-**Question: Should we try to build memory poisoning validation on existing Mbed TLS tests, or write new tests for this?**
-
 ##### Validation with new tests
 
 Validation with newly created tests would be simpler to implement than using existing tests, since the tests can be written to take into account memory poisoning. It is also possible to build such a testsuite using existing tests as a starting point - `mbedtls_test_psa_exercise_key` is a test helper that already exercises many PSA operations on a key. This would need to be extended to cover operations without keys (e.g. hashes) and multipart operations, but it provides a good base from which to build all of the required testing.

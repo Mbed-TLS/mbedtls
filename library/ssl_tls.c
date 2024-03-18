@@ -5385,7 +5385,7 @@ static const uint16_t ssl_preset_default_sig_algs[] = {
 
 /* NOTICE: see above */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-static uint16_t ssl_tls12_preset_default_sig_algs[] = {
+static const uint16_t ssl_tls12_preset_default_sig_algs[] = {
 
 #if defined(PSA_WANT_ALG_SHA_512)
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDSA_CERT_REQ_ALLOWED_ENABLED)

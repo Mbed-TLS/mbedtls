@@ -20,9 +20,10 @@ from generate_test_code import parse_function_dependencies
 from generate_test_code import parse_function_arguments, parse_function_code
 from generate_test_code import parse_functions, END_HEADER_REGEX
 from generate_test_code import END_SUITE_HELPERS_REGEX, escaped_split
-from generate_test_code import parse_test_data, gen_dep_check
+from generate_test_code import parse_test_data
+from generate_test_code import gen_dependencies_element, gen_dependencies_array
 from generate_test_code import gen_expression_check, write_dependencies
-from generate_test_code import write_parameters, gen_suite_dep_checks
+from generate_test_code import write_parameters
 from generate_test_code import gen_from_test_data
 
 
@@ -1388,26 +1389,23 @@ depends_on:YAHOO
 
 class GenDepCheck(TestCase):
     """
-    Test suite for gen_dep_check(). It is assumed this function is
+    Test suite for gen_dependencies_element(). It is assumed this function is
     called with valid inputs.
     """
 
-    def test_gen_dep_check(self):
+    def test_gen_dependencies_element(self):
         """
-        Test that dependency check code generated correctly.
+        Test that dependency element is generated correctly.
         :return:
         """
-        expected = """
-        case 5:
-            {
+        expected = """\
 #if defined(YAHOO)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
+        "YAHOO",
 #endif
-            }
-            break;"""
-        out = gen_dep_check(5, 'YAHOO')
+"""
+        out = gen_dependencies_element('YAHOO')
         self.assertEqual(out, expected)
 
     def test_not_defined_dependency(self):
@@ -1415,17 +1413,14 @@ class GenDepCheck(TestCase):
         Test dependency with !.
         :return:
         """
-        expected = """
-        case 5:
-            {
+        expected = """\
 #if !defined(YAHOO)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
+        "!YAHOO",
 #endif
-            }
-            break;"""
-        out = gen_dep_check(5, '!YAHOO')
+"""
+        out = gen_dependencies_element('!YAHOO')
         self.assertEqual(out, expected)
 
     def test_empty_dependency(self):
@@ -1433,14 +1428,7 @@ class GenDepCheck(TestCase):
         Test invalid dependency input.
         :return:
         """
-        self.assertRaises(GeneratorInputError, gen_dep_check, 5, '!')
-
-    def test_negative_dep_id(self):
-        """
-        Test invalid dependency input.
-        :return:
-        """
-        self.assertRaises(GeneratorInputError, gen_dep_check, -1, 'YAHOO')
+        self.assertRaises(GeneratorInputError, gen_dependencies_element, '!')
 
 
 class GenExpCheck(TestCase):
@@ -1491,8 +1479,9 @@ class WriteDependencies(TestCase):
         """
         stream = StringIOWrapper('test_suite_ut.data', '')
         unique_dependencies = []
-        dep_check_code = write_dependencies(stream, [], unique_dependencies)
-        self.assertEqual(dep_check_code, '')
+        write_dependencies(stream, [], unique_dependencies)
+        dependencies_code = gen_dependencies_array(unique_dependencies)
+        self.assertEqual(dependencies_code, '')
         self.assertEqual(len(unique_dependencies), 0)
         self.assertEqual(stream.getvalue(), '')
 
@@ -1503,37 +1492,27 @@ class WriteDependencies(TestCase):
         """
         stream = StringIOWrapper('test_suite_ut.data', '')
         unique_dependencies = []
-        dep_check_code = write_dependencies(stream, ['DEP3', 'DEP2', 'DEP1'],
-                                            unique_dependencies)
-        expect_dep_check_code = '''
-        case 0:
-            {
+        write_dependencies(stream, ['DEP3', 'DEP2', 'DEP1'],
+                           unique_dependencies)
+        dependencies_code = gen_dependencies_array(unique_dependencies)
+        expect_dependencies_code = '''\
 #if defined(DEP3)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
+        "DEP3",
 #endif
-            }
-            break;
-        case 1:
-            {
 #if defined(DEP2)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
+        "DEP2",
 #endif
-            }
-            break;
-        case 2:
-            {
 #if defined(DEP1)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
+        "DEP1",
 #endif
-            }
-            break;'''
-        self.assertEqual(dep_check_code, expect_dep_check_code)
+'''
+        self.assertEqual(dependencies_code, expect_dependencies_code)
         self.assertEqual(len(unique_dependencies), 3)
         self.assertEqual(stream.getvalue(), 'depends_on:0:1:2\n')
 
@@ -1544,42 +1523,28 @@ class WriteDependencies(TestCase):
         """
         stream = StringIOWrapper('test_suite_ut.data', '')
         unique_dependencies = []
-        dep_check_code = ''
-        dep_check_code += write_dependencies(stream, ['DEP3', 'DEP2'],
-                                             unique_dependencies)
-        dep_check_code += write_dependencies(stream, ['DEP2', 'DEP1'],
-                                             unique_dependencies)
-        dep_check_code += write_dependencies(stream, ['DEP1', 'DEP3'],
-                                             unique_dependencies)
-        expect_dep_check_code = '''
-        case 0:
-            {
+        write_dependencies(stream, ['DEP3', 'DEP2'], unique_dependencies)
+        write_dependencies(stream, ['DEP2', 'DEP1'], unique_dependencies)
+        write_dependencies(stream, ['DEP1', 'DEP3'], unique_dependencies)
+        dependencies_code = gen_dependencies_array(unique_dependencies)
+        expect_dependencies_code = '''\
 #if defined(DEP3)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
+        "DEP3",
 #endif
-            }
-            break;
-        case 1:
-            {
 #if defined(DEP2)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
+        "DEP2",
 #endif
-            }
-            break;
-        case 2:
-            {
 #if defined(DEP1)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
+        "DEP1",
 #endif
-            }
-            break;'''
-        self.assertEqual(dep_check_code, expect_dep_check_code)
+'''
+        self.assertEqual(dependencies_code, expect_dependencies_code)
         self.assertEqual(len(unique_dependencies), 3)
         self.assertEqual(stream.getvalue(),
                          'depends_on:0:1\ndepends_on:1:2\ndepends_on:2:0\n')
@@ -1716,53 +1681,6 @@ class WriteParams(TestCase):
         self.assertEqual(stream.getvalue(), expected_data_file)
 
 
-class GenTestSuiteDependenciesChecks(TestCase):
-    """
-    Test suite for testing gen_suite_dep_checks()
-    """
-    def test_empty_suite_dependencies(self):
-        """
-        Test with empty suite_dependencies list.
-
-        :return:
-        """
-        dep_check_code, expression_code = \
-            gen_suite_dep_checks([], 'DEP_CHECK_CODE', 'EXPRESSION_CODE')
-        self.assertEqual(dep_check_code, 'DEP_CHECK_CODE')
-        self.assertEqual(expression_code, 'EXPRESSION_CODE')
-
-    def test_suite_dependencies(self):
-        """
-        Test with suite_dependencies list.
-
-        :return:
-        """
-        dep_check_code, expression_code = \
-            gen_suite_dep_checks(['SUITE_DEP'], 'DEP_CHECK_CODE',
-                                 'EXPRESSION_CODE')
-        expected_dep_check_code = '''
-#if defined(SUITE_DEP)
-DEP_CHECK_CODE
-#endif
-'''
-        expected_expression_code = '''
-#if defined(SUITE_DEP)
-EXPRESSION_CODE
-#endif
-'''
-        self.assertEqual(dep_check_code, expected_dep_check_code)
-        self.assertEqual(expression_code, expected_expression_code)
-
-    def test_no_dep_no_exp(self):
-        """
-        Test when there are no dependency and expression code.
-        :return:
-        """
-        dep_check_code, expression_code = gen_suite_dep_checks([], '', '')
-        self.assertEqual(dep_check_code, '')
-        self.assertEqual(expression_code, '')
-
-
 class GenFromTestData(TestCase):
     """
     Test suite for gen_from_test_data()
@@ -1771,8 +1689,8 @@ class GenFromTestData(TestCase):
     @staticmethod
     @patch("generate_test_code.write_dependencies")
     @patch("generate_test_code.write_parameters")
-    @patch("generate_test_code.gen_suite_dep_checks")
-    def test_intermediate_data_file(func_mock1,
+    @patch("generate_test_code.gen_dependencies_array")
+    def test_intermediate_data_file(gen_dependencies_array_mock,
                                     write_parameters_mock,
                                     write_dependencies_mock):
         """
@@ -1790,24 +1708,13 @@ func1:0
         suite_dependencies = []
         write_parameters_mock.side_effect = write_parameters
         write_dependencies_mock.side_effect = write_dependencies
-        func_mock1.side_effect = gen_suite_dep_checks
+        gen_dependencies_array_mock.side_effect = gen_dependencies_array
         gen_from_test_data(data_f, out_data_f, func_info, suite_dependencies)
         write_dependencies_mock.assert_called_with(out_data_f,
                                                    ['DEP1'], ['DEP1'])
         write_parameters_mock.assert_called_with(out_data_f, ['0'],
                                                  ('int',), [])
-        expected_dep_check_code = '''
-        case 0:
-            {
-#if defined(DEP1)
-                ret = DEPENDENCY_SUPPORTED;
-#else
-                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
-#endif
-            }
-            break;'''
-        func_mock1.assert_called_with(
-            suite_dependencies, expected_dep_check_code, '')
+        gen_dependencies_array_mock.assert_called_with(['DEP1'])
 
     def test_function_not_found(self):
         """
@@ -1866,25 +1773,18 @@ func2:"yahoo":88:MACRO1
         dep_check_code, expression_code = \
             gen_from_test_data(data_f, out_data_f, func_info,
                                suite_dependencies)
-        expected_dep_check_code = '''
-        case 0:
-            {
+        expected_dependencies_code = '''\
 #if defined(DEP1)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
+        "DEP1",
 #endif
-            }
-            break;
-        case 1:
-            {
 #if defined(DEP2)
-                ret = DEPENDENCY_SUPPORTED;
+        NULL,
 #else
-                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
+        "DEP2",
 #endif
-            }
-            break;'''
+'''
         expected_data = '''My test 1
 depends_on:0
 0:int:0:int:0xfa:exp:0:exp:1
@@ -1905,7 +1805,7 @@ depends_on:0:1
                 *out_value = MACRO2;
             }
             break;'''
-        self.assertEqual(dep_check_code, expected_dep_check_code)
+        self.assertEqual(dep_check_code, expected_dependencies_code)
         self.assertEqual(out_data_f.getvalue(), expected_data)
         self.assertEqual(expression_code, expected_expression_code)
 

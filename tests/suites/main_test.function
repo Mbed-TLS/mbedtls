@@ -89,8 +89,10 @@ int get_expression(int32_t exp_id, intmax_t *out_value)
     (void) out_value;
 
     switch (exp_id) {
+#if __MBEDTLS_TEST_TEMPLATE__SUITE_DEPENDENCIES
     __MBEDTLS_TEST_TEMPLATE__EXPRESSION_CODE
 #line __MBEDTLS_TEST_TEMPLATE__LINE_NO "suites/main_test.function"
+#endif /* __MBEDTLS_TEST_TEMPLATE__SUITE_DEPENDENCIES */
         default:
         {
             ret = KEY_VALUE_MAPPING_NOT_FOUND;
@@ -100,6 +102,14 @@ int get_expression(int32_t exp_id, intmax_t *out_value)
     return ret;
 }
 
+
+static const char *unsupported_dependencies[] = {
+#if __MBEDTLS_TEST_TEMPLATE__SUITE_DEPENDENCIES
+    __MBEDTLS_TEST_TEMPLATE__DEPENDENCIES_CODE
+#endif /* __MBEDTLS_TEST_TEMPLATE__SUITE_DEPENDENCIES */
+    NULL                        /* Make sure the array is never empty */
+};
+#line __MBEDTLS_TEST_TEMPLATE__LINE_NO "suites/main_test.function"
 
 /**
  * \brief       Checks if the dependency i.e. the compile flag is set.
@@ -112,19 +122,16 @@ int get_expression(int32_t exp_id, intmax_t *out_value)
  *
  * \return       DEPENDENCY_SUPPORTED if set else UNSUPPORTED_TEST_CASE_DEPENDENCY
  */
-int dep_check(int dep_id)
+int dep_check(unsigned dep_id)
 {
-    int ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
-
-    (void) dep_id;
-
-    switch (dep_id) {
-    __MBEDTLS_TEST_TEMPLATE__DEP_CHECK_CODE
-#line __MBEDTLS_TEST_TEMPLATE__LINE_NO "suites/main_test.function"
-        default:
-            break;
+    if (dep_id >= ARRAY_LENGTH(unsupported_dependencies)) {
+        return DISPATCH_INVALID_TEST_DATA;
     }
-    return ret;
+    if (unsupported_dependencies[dep_id] == NULL) {
+        return DEPENDENCY_SUPPORTED;
+    } else {
+        return UNSUPPORTED_TEST_CASE_DEPENDENCY;
+    }
 }
 
 

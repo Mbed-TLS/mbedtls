@@ -375,7 +375,7 @@ static void write_outcome_entry(FILE *outcome_file,
  */
 static void write_outcome_result(FILE *outcome_file,
                                  size_t unmet_dep_count,
-                                 int unmet_dependencies[],
+                                 const unsigned unmet_dependencies[],
                                  int missing_unmet_dependencies,
                                  int ret,
                                  const mbedtls_test_info_t *info)
@@ -392,7 +392,7 @@ static void write_outcome_result(FILE *outcome_file,
                 size_t i;
                 mbedtls_fprintf(outcome_file, "SKIP");
                 for (i = 0; i < unmet_dep_count; i++) {
-                    mbedtls_fprintf(outcome_file, "%c%d",
+                    mbedtls_fprintf(outcome_file, "%c%u",
                                     i == 0 ? ';' : ':',
                                     unmet_dependencies[i]);
                 }
@@ -589,7 +589,7 @@ int execute_tests(int argc, const char **argv)
          testfile_index < testfile_count;
          testfile_index++) {
         size_t unmet_dep_count = 0;
-        int unmet_dependencies[20];
+        unsigned unmet_dependencies[20];
         int missing_unmet_dependencies = 0;
 
         test_filename = test_files[testfile_index];
@@ -637,7 +637,7 @@ int execute_tests(int argc, const char **argv)
 
             if (strcmp(params[0], "depends_on") == 0) {
                 for (i = 1; i < cnt; i++) {
-                    int dep_id = strtol(params[i], NULL, 10);
+                    unsigned dep_id = strtoul(params[i], NULL, 10);
                     if (dep_check(dep_id) != DEPENDENCY_SUPPORTED) {
                         if (unmet_dep_count <
                             ARRAY_LENGTH(unmet_dependencies)) {
@@ -688,6 +688,8 @@ int execute_tests(int argc, const char **argv)
                 }
 #endif /* __unix__ || __APPLE__ __MACH__ */
 
+            } else {
+                ret = UNSUPPORTED_TEST_CASE_DEPENDENCY;
             }
 
             write_outcome_result(outcome_file,
@@ -708,11 +710,19 @@ int execute_tests(int argc, const char **argv)
                     }
                 }
 
-                if (1 == option_verbose && unmet_dep_count > 0) {
+                if (1 == option_verbose && ret == UNSUPPORTED_TEST_CASE_DEPENDENCY) {
                     mbedtls_fprintf(stdout, "\n   Unmet dependencies: ");
                     for (i = 0; i < unmet_dep_count; i++) {
-                        mbedtls_fprintf(stdout, "%d ",
-                                        unmet_dependencies[i]);
+                        unsigned dep_id = unmet_dependencies[i];
+                        const char *name = NULL;
+                        if (dep_id < ARRAY_LENGTH(unsupported_dependencies)) {
+                            name = unsupported_dependencies[dep_id];
+                        }
+                        if (name == NULL) {
+                            mbedtls_fprintf(stdout, "%u ", dep_id);
+                        } else {
+                            mbedtls_fprintf(stdout, "%s ", name);
+                        }
                     }
                     if (missing_unmet_dependencies) {
                         mbedtls_fprintf(stdout, "...");

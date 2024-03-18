@@ -364,7 +364,7 @@ It may be possible to transparently implement memory poisoning so that existing 
 
 These issues may be solved by creating some kind of test wrapper around every PSA function call that poisons the memory. However, it is unclear how straightforward this will be in practice. If this is simple to achieve, the extra coverage and time saved on new tests will be a benefit. If not, writing new tests is the best strategy.
 
-**Design decision: Attempt to add memory poisoning transparently to existing tests. If this proves difficult, write new tests instead.**
+**Design decision: Add memory poisoning transparently to existing tests.**
 
 #### Discussion of copying validation
 

@@ -613,6 +613,10 @@ exit:
 }
 ```
 
+A second advantage of using macros for the copying (other than simple convenience) is that it allows copying to be easily disabled by defining alternate macros that function as no-ops. Since buffer copying is specific to systems where shared memory is passed to PSA functions, it is useful to be able to disable it where it is not needed, to save code size.
+
+To this end, the macros above are defined conditionally on a new config option, `MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS`, which may be set whenever PSA functions are assumed to have exclusive access to their input and output buffers. When `MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS` is set, the macros do not perform copying.
+
 ### Implementation of copying validation
 
 As discussed in the [design exploration of copying validation](#validation-of-copying), the best strategy for validation of copies appears to be validation by memory poisoning, implemented using Valgrind and ASan.

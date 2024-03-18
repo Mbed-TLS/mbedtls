@@ -573,14 +573,15 @@ Some PSA functions may not use these convenience functions as they may have loca
 
 As discussed in the [design exploration of copying validation](#validation-of-copying), the best strategy for validation of copies appears to be validation by memory poisoning, implemented using Valgrind and ASan.
 
-To perform memory poisoning, we must implement the function alluded to in [Validation of copying by memory poisoning](#validation-of-copying-by-memory-poisoning):
+To perform memory poisoning, we must implement the functions alluded to in [Validation of copying by memory poisoning](#validation-of-copying-by-memory-poisoning):
 ```c
-mbedtls_psa_core_poison_memory(uint8_t *buffer, size_t length, int should_poison);
+void mbedtls_test_memory_poison(const unsigned char *ptr, size_t size);
+void mbedtls_test_memory_unpoison(const unsigned char *ptr, size_t size);
 ```
-This should either poison or unpoison the given buffer based on the value of `should_poison`:
+This should poison or unpoison the given buffer, respectively.
 
-* When `should_poison == 1`, this is equivalent to calling `VALGRIND_MAKE_MEM_NOACCESS(buffer, length)` or `ASAN_POISON_MEMORY_REGION(buffer, length)`.
-* When `should_poison == 0`, this is equivalent to calling `VALGRIND_MAKE_MEM_DEFINED(buffer, length)` or `ASAN_UNPOISON_MEMORY_REGION(buffer, length)`.
+* `mbedtls_test_memory_poison()` is equivalent to calling `VALGRIND_MAKE_MEM_NOACCESS(ptr, size)` or `ASAN_POISON_MEMORY_REGION(ptr, size)`.
+* `mbedtls_test_memory_unpoison()` is equivalent to calling `VALGRIND_MAKE_MEM_DEFINED(ptr, size)` or `ASAN_UNPOISON_MEMORY_REGION(ptr, size)`.
 
 The PSA copying function must then have test hooks implemented as outlined in [Validation of copying by memory poisoning](#validation-of-copying-by-memory-poisoning).
 
@@ -599,12 +600,12 @@ psa_status_t mem_poison_psa_aead_update(psa_aead_operation_t *operation,
                                         size_t output_size,
                                         size_t *output_length)
 {
-    mbedtls_psa_core_poison_memory(input, input_length, 1);
-    mbedtls_psa_core_poison_memory(output, output_size, 1);
+    mbedtls_test_memory_poison(input, input_length);
+    mbedtls_test_memory_poison(output, output_size);
     psa_status_t status = psa_aead_update(operation, input, input_length,
                                           output, output_size, output_length);
-    mbedtls_psa_core_poison_memory(input, input_length, 0);
-    mbedtls_psa_core_poison_memory(output, output_size, 0);
+    mbedtls_test_memory_unpoison(input, input_length);
+    mbedtls_test_memory_unpoison(output, output_size);
 
     return status;
 }

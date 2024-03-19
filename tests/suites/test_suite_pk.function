@@ -1817,7 +1817,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_TEST_PK_PSA_SIGN */
-void pk_psa_sign(int psa_type, int bits)
+void pk_psa_sign(int psa_type, int bits, int rsa_padding)
 {
     mbedtls_pk_context pk;
     unsigned char hash[32];
@@ -1851,6 +1851,7 @@ void pk_psa_sign(int psa_type, int bits)
                                      mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)) == 0);
         TEST_ASSERT(mbedtls_rsa_gen_key(mbedtls_pk_rsa(pk), mbedtls_test_rnd_std_rand, NULL,
                                         bits, 3) == 0);
+        TEST_EQUAL(mbedtls_rsa_set_padding(mbedtls_pk_rsa(pk), rsa_padding, MBEDTLS_MD_NONE), 0);
     } else
 #endif /* MBEDTLS_RSA_C && MBEDTLS_GENPRIME */
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
@@ -1861,6 +1862,7 @@ void pk_psa_sign(int psa_type, int bits)
     } else
 #endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
     {
+        (void) rsa_padding;
         TEST_ASSUME(!"Opaque PK key not supported in this configuration");
     }
 
@@ -1960,6 +1962,11 @@ void pk_psa_sign(int psa_type, int bits)
                                             legacy_pub_key_len), 0);
     }
 #endif
+#if defined(MBEDTLS_RSA_C)
+    if (PSA_KEY_TYPE_IS_RSA(psa_type)) {
+        TEST_EQUAL(mbedtls_rsa_set_padding(mbedtls_pk_rsa(pk), rsa_padding, MBEDTLS_MD_NONE), 0);
+    }
+#endif /* MBEDTLS_RSA_C */
     TEST_ASSERT(mbedtls_pk_verify(&pk, MBEDTLS_MD_SHA256,
                                   hash, sizeof(hash), sig, sig_len) == 0);
 

@@ -405,7 +405,7 @@ int mbedtls_entropy_write_seed_file(mbedtls_entropy_context *ctx, const char *pa
     FILE *f = NULL;
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
 
-    if ((ret = mbedtls_entropy_func(ctx, buf, MBEDTLS_ENTROPY_BLOCK_SIZE)) != 0) {
+    if (mbedtls_entropy_func(ctx, buf, MBEDTLS_ENTROPY_BLOCK_SIZE) != 0) {
         ret = MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
         goto exit;
     }

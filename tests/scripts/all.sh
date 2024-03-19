@@ -1305,6 +1305,7 @@ component_test_default_psa_crypto_client_without_crypto_provider () {
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CLIENT
     scripts/config.py unset MBEDTLS_LMS_C
 
@@ -1843,6 +1844,8 @@ component_test_tls1_2_default_stream_cipher_only () {
     scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+    #Disable TLS 1.3 (as no AEAD)
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Disable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     # Disable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
@@ -1869,6 +1872,8 @@ component_test_tls1_2_default_stream_cipher_only_use_psa () {
     scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+    #Disable TLS 1.3 (as no AEAD)
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Disable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     # Disable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
@@ -1894,6 +1899,8 @@ component_test_tls1_2_default_cbc_legacy_cipher_only () {
     scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+    #Disable TLS 1.3 (as no AEAD)
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Enable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
     scripts/config.py set MBEDTLS_CIPHER_MODE_CBC
     # Disable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
@@ -1921,6 +1928,8 @@ component_test_tls1_2_deafult_cbc_legacy_cipher_only_use_psa () {
     scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+    #Disable TLS 1.3 (as no AEAD)
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Enable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
     scripts/config.py set MBEDTLS_CIPHER_MODE_CBC
     # Disable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
@@ -1947,6 +1956,8 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only () {
     scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+    #Disable TLS 1.3 (as no AEAD)
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Enable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
     scripts/config.py set MBEDTLS_CIPHER_MODE_CBC
     # Enable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
@@ -1974,6 +1985,8 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only_use_psa () {
     scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+    #Disable TLS 1.3 (as no AEAD)
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Enable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
     scripts/config.py set MBEDTLS_CIPHER_MODE_CBC
     # Enable CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
@@ -2609,7 +2622,6 @@ component_test_psa_crypto_config_accel_ecdsa () {
 
     # Start from default config (no USE_PSA) + TLS 1.3
     helper_libtestdriver1_adjust_config "default"
-    scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3
 
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_ECDSA_C
@@ -2650,7 +2662,7 @@ component_test_psa_crypto_config_accel_ecdh () {
     # Configure
     # ---------
 
-    # Start from default config (no TLS 1.3, no USE_PSA)
+    # Start from default config (no USE_PSA)
     helper_libtestdriver1_adjust_config "default"
 
     # Disable the module that's accelerated
@@ -3643,7 +3655,7 @@ component_test_psa_crypto_config_accel_hash () {
     # Configure
     # ---------
 
-    # Start from default config (no TLS 1.3, no USE_PSA)
+    # Start from default config (no USE_PSA)
     helper_libtestdriver1_adjust_config "default"
 
     # Disable the things that are being accelerated
@@ -3687,7 +3699,7 @@ component_test_psa_crypto_config_accel_hash_keep_builtins () {
                     ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512 \
                     ALG_SHA3_224 ALG_SHA3_256 ALG_SHA3_384 ALG_SHA3_512"
 
-    # Start from default config (no TLS 1.3, no USE_PSA)
+    # Start from default config (no USE_PSA)
     helper_libtestdriver1_adjust_config "default"
 
     helper_libtestdriver1_make_drivers "$loc_accel_list"
@@ -4182,7 +4194,6 @@ component_build_psa_accel_alg_hkdf() {
     msg "build: full - MBEDTLS_USE_PSA_CRYPTO + PSA_WANT_ALG_HKDF without MBEDTLS_HKDF_C"
     scripts/config.py full
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     scripts/config.py unset MBEDTLS_HKDF_C
     # Make sure to unset TLS1_3 since it requires HKDF_C and will not build properly without it.
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
@@ -4645,6 +4656,7 @@ component_test_no_max_fragment_length () {
 component_test_asan_remove_peer_certificate () {
     msg "build: default config with MBEDTLS_SSL_KEEP_PEER_CERTIFICATE disabled (ASan build)"
     scripts/config.py unset MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
@@ -5860,8 +5872,24 @@ support_build_armcc () {
     (check_tools "$armc5_cc" "$armc6_cc" > /dev/null 2>&1)
 }
 
+component_test_tls12_only () {
+    msg "build: default config without MBEDTLS_SSL_PROTO_TLS1_3, cmake, gcc, ASan"
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: main suites (inc. selftests) (ASan build)"
+    make test
+
+    msg "test: ssl-opt.sh (ASan build)"
+    tests/ssl-opt.sh
+
+    msg "test: compat.sh (ASan build)"
+    tests/compat.sh
+}
+
 component_test_tls13_only () {
-    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3, without MBEDTLS_SSL_PROTO_TLS1_2"
+    msg "build: default config without MBEDTLS_SSL_PROTO_TLS1_2"
     scripts/config.py set MBEDTLS_SSL_EARLY_DATA
     scripts/config.py set MBEDTLS_SSL_RECORD_SIZE_LIMIT
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
@@ -5998,29 +6026,25 @@ component_test_tls13_only_ephemeral_all () {
     tests/ssl-opt.sh
 }
 
-component_test_tls13 () {
-    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
-    scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py set MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+component_test_tls13_no_padding () {
+    msg "build: default config plus early data minus padding"
     scripts/config.py set MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY 1
     scripts/config.py set MBEDTLS_SSL_EARLY_DATA
     CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
-    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
+    msg "test: default config plus early data minus padding"
     make test
-    msg "ssl-opt.sh (TLS 1.3)"
+    msg "ssl-opt.sh (TLS 1.3 no padding)"
     tests/ssl-opt.sh
 }
 
 component_test_tls13_no_compatibility_mode () {
-    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
-    scripts/config.py set   MBEDTLS_SSL_PROTO_TLS1_3
+    msg "build: default config plus early data minus middlebox compatibility mode"
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-    scripts/config.py set   MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY 1
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
     CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
-    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
+    msg "test: default config plus early data minus middlebox compatibility mode"
     make test
     msg "ssl-opt.sh (TLS 1.3 no compatibility mode)"
     tests/ssl-opt.sh

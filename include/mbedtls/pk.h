@@ -377,9 +377,8 @@ int mbedtls_pk_setup(mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info);
  *                      * sign, sign_ext: try #PSA_ALG_DETERMINISTIC_ECDSA()
  *                        first and, in case it fails, try with #PSA_ALG_ECDSA().
  *                  * RSA:
- *                      * sign: #PSA_ALG_RSA_PKCS1V15_SIGN();
- *                      * sign_ext: use the algorithm associated with the wrapped
- *                        PSA key;
+ *                      * sign, sign_ext: use the algorithm associated with the
+ *                        wrapped PSA key;
  *                      * verify: not supported;
  *                      * verify_ext: not supported;
  *                      * decrypt: #PSA_ALG_RSA_PKCS1V15_CRYPT;

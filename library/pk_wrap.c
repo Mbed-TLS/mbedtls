@@ -1508,10 +1508,11 @@ static int rsa_opaque_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg
     }
 
     type = psa_get_key_type(&attributes);
+    alg = psa_get_key_algorithm(&attributes);
     psa_reset_key_attributes(&attributes);
 
     if (PSA_KEY_TYPE_IS_RSA(type)) {
-        alg = PSA_ALG_RSA_PKCS1V15_SIGN(mbedtls_md_psa_alg_from_type(md_alg));
+        alg = (alg & ~PSA_ALG_HASH_MASK) | mbedtls_md_psa_alg_from_type(md_alg);
     } else {
         return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
     }

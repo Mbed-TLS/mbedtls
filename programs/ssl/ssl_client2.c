@@ -3072,16 +3072,16 @@ reconnect:
                 frags++;
                 written += ret;
             } while (written < len);
-        }
 
 end_of_early_data:
 
-        buf[written] = '\0';
-        mbedtls_printf(
-            " %" MBEDTLS_PRINTF_SIZET " bytes of early data written in %" MBEDTLS_PRINTF_SIZET " fragments\n\n%s\n",
-            written,
-            frags,
-            (char *) buf);
+            buf[written] = '\0';
+            mbedtls_printf(
+                " %" MBEDTLS_PRINTF_SIZET " bytes of early data written in %" MBEDTLS_PRINTF_SIZET " fragments\n\n%s\n",
+                written,
+                frags,
+                (char *) buf);
+        }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
         while ((ret = mbedtls_ssl_handshake(&ssl)) != 0) {

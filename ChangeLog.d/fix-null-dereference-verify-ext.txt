@@ -1,0 +1,3 @@
+Bugfix
+   * Fix NULL pointer dereference in mbedtls_pk_verify_ext() when called using
+     an opaque RSA context and specifying MBEDTLS_PK_RSASSA_PSS as key type.

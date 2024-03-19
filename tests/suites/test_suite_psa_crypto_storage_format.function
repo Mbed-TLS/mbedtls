@@ -187,7 +187,7 @@ static int test_read_key(const psa_key_attributes_t *expected_attributes,
         TEST_ASSERT(mbedtls_test_psa_exercise_key(
                         key_id,
                         psa_get_key_usage_flags(expected_attributes),
-                        psa_get_key_algorithm(expected_attributes)));
+                        psa_get_key_algorithm(expected_attributes), 0));
     }
 
 

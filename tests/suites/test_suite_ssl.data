@@ -961,6 +961,14 @@ TLS 1.3: SRV: session serialization: Wrong config
 depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SRV_C
 ssl_session_serialize_version_check:0:0:0:1:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_VERSION_TLS1_3
 
+Test Session id & Ciphersuite accessors TLS 1.2
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
+ssl_session_id_accessors_check:MBEDTLS_SSL_VERSION_TLS1_2
+
+Test Session id & Ciphersuite accessors TLS 1.3
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_session_id_accessors_check:MBEDTLS_SSL_VERSION_TLS1_3
+
 Record crypt, AES-128-CBC, 1.2, SHA-384
 depends_on:MBEDTLS_SSL_HAVE_AES:MBEDTLS_SSL_HAVE_CBC:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_MD_CAN_SHA384
 ssl_crypt_record:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_MD_SHA384:0:0:MBEDTLS_SSL_VERSION_TLS1_2:0:0
@@ -3286,17 +3294,33 @@ tls13_read_early_data:TEST_EARLY_DATA_SERVER_REJECTS
 TLS 1.3 read early data, discard after HRR
 tls13_read_early_data:TEST_EARLY_DATA_HRR
 
-TLS 1.3 cli, early data status, early data accepted
-tls13_cli_early_data_status:TEST_EARLY_DATA_ACCEPTED
+TLS 1.3 cli, early data, same ALPN
+depends_on:MBEDTLS_SSL_ALPN
+tls13_read_early_data:TEST_EARLY_DATA_SAME_ALPN
 
-TLS 1.3 cli, early data status, no early data indication
-tls13_cli_early_data_status:TEST_EARLY_DATA_NO_INDICATION_SENT
+TLS 1.3 cli, early data, different ALPN
+depends_on:MBEDTLS_SSL_ALPN
+tls13_read_early_data:TEST_EARLY_DATA_DIFF_ALPN
 
-TLS 1.3 cli, early data status, server rejects early data
-tls13_cli_early_data_status:TEST_EARLY_DATA_SERVER_REJECTS
+TLS 1.3 cli, early data, no initial ALPN
+depends_on:MBEDTLS_SSL_ALPN
+tls13_read_early_data:TEST_EARLY_DATA_NO_INITIAL_ALPN
 
-TLS 1.3 cli, early data status, hello retry request
-tls13_cli_early_data_status:TEST_EARLY_DATA_HRR
+TLS 1.3 cli, early data, no later ALPN
+depends_on:MBEDTLS_SSL_ALPN
+tls13_read_early_data:TEST_EARLY_DATA_NO_LATER_ALPN
+
+TLS 1.3 cli, early data state, early data accepted
+tls13_cli_early_data_state:TEST_EARLY_DATA_ACCEPTED
+
+TLS 1.3 cli, early data state, no early data indication
+tls13_cli_early_data_state:TEST_EARLY_DATA_NO_INDICATION_SENT
+
+TLS 1.3 cli, early data state, server rejects early data
+tls13_cli_early_data_state:TEST_EARLY_DATA_SERVER_REJECTS
+
+TLS 1.3 cli, early data state, hello retry request
+tls13_cli_early_data_state:TEST_EARLY_DATA_HRR
 
 TLS 1.3 write early data, early data accepted
 tls13_write_early_data:TEST_EARLY_DATA_ACCEPTED
@@ -3309,6 +3333,18 @@ tls13_write_early_data:TEST_EARLY_DATA_SERVER_REJECTS
 
 TLS 1.3 write early data, hello retry request
 tls13_write_early_data:TEST_EARLY_DATA_HRR
+
+TLS 1.3 cli, maximum early data size, default size
+tls13_cli_max_early_data_size:-1
+
+TLS 1.3 cli, maximum early data size, zero
+tls13_cli_max_early_data_size:0
+
+TLS 1.3 cli, maximum early data size, very small but not 0
+tls13_cli_max_early_data_size:3
+
+TLS 1.3 cli, maximum early data size, 93
+tls13_cli_max_early_data_size:93
 
 TLS 1.3 srv, max early data size, dflt, wsz=96
 tls13_srv_max_early_data_size:TEST_EARLY_DATA_ACCEPTED:-1:96

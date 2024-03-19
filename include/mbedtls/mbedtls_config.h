@@ -1794,7 +1794,7 @@
  *
  * Uncomment this macro to enable the support for TLS 1.3.
  */
-//#define MBEDTLS_SSL_PROTO_TLS1_3
+#define MBEDTLS_SSL_PROTO_TLS1_3
 
 /**
  * \def MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
@@ -1816,7 +1816,7 @@
  * effect on the build.
  *
  */
-//#define MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+#define MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 
 /**
  * \def MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
@@ -1873,9 +1873,6 @@
  *
  * Comment this to disable support for early data. If MBEDTLS_SSL_PROTO_TLS1_3
  * is not enabled, this option does not have any effect on the build.
- *
- * This feature is experimental, not completed and thus not ready for
- * production.
  *
  * \note The maximum amount of early data can be set with
  *       MBEDTLS_SSL_MAX_EARLY_DATA_SIZE.
@@ -2231,7 +2228,7 @@
  * Enable AES-NI support on x86-64 or x86-32.
  *
  * \note AESNI is only supported with certain compilers and target options:
- * - Visual Studio 2013: supported.
+ * - Visual Studio: supported
  * - GCC, x86-64, target not explicitly supporting AESNI:
  *   requires MBEDTLS_HAVE_ASM.
  * - GCC, x86-32, target not explicitly supporting AESNI:
@@ -3221,6 +3218,9 @@
  * \deprecated This feature is deprecated. Please switch to the PSA driver
  *             interface.
  *
+ * \warning    This feature is not thread-safe, and should not be used in a
+ *             multi-threaded environment.
+ *
  * Module:  library/psa_crypto_se.c
  *
  * Requires: MBEDTLS_PSA_CRYPTO_C, MBEDTLS_PSA_CRYPTO_STORAGE_C
@@ -4162,10 +4162,6 @@
  *
  * If MBEDTLS_SSL_EARLY_DATA is not defined, this default value does not
  * have any impact on the build.
- *
- * This feature is experimental, not completed and thus not ready for
- * production.
- *
  */
 //#define MBEDTLS_SSL_MAX_EARLY_DATA_SIZE        1024
 

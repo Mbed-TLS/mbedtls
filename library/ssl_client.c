@@ -792,10 +792,15 @@ static int ssl_prepare_client_hello(mbedtls_ssl_context *ssl)
         (ssl->handshake->cookie == NULL))
 #endif
     {
-        ret = ssl_generate_random(ssl);
-        if (ret != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, "Random bytes generation failed", ret);
-            return ret;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        if (!ssl->handshake->hello_retry_request_flag)
+#endif
+        {
+            ret = ssl_generate_random(ssl);
+            if (ret != 0) {
+                MBEDTLS_SSL_DEBUG_RET(1, "Random bytes generation failed", ret);
+                return ret;
+            }
         }
     }
 

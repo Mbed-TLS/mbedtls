@@ -414,6 +414,10 @@ static int ssl_tls13_offered_psks_check_binder_match(
     size_t psk_len;
     unsigned char server_computed_binder[PSA_HASH_MAX_SIZE];
 
+    if (binder_len != PSA_HASH_LENGTH(psk_hash_alg)) {
+        return SSL_TLS1_3_BINDER_DOES_NOT_MATCH;
+    }
+
     /* Get current state of handshake transcript. */
     ret = mbedtls_ssl_get_handshake_transcript(
         ssl, mbedtls_md_type_from_psa_alg(psk_hash_alg),
@@ -443,7 +447,9 @@ static int ssl_tls13_offered_psks_check_binder_match(
                           server_computed_binder, transcript_len);
     MBEDTLS_SSL_DEBUG_BUF(3, "psk binder ( received ): ", binder, binder_len);
 
-    if (mbedtls_ct_memcmp(server_computed_binder, binder, binder_len) == 0) {
+    if (mbedtls_ct_memcmp(server_computed_binder,
+                          binder,
+                          PSA_HASH_LENGTH(psk_hash_alg)) == 0) {
         return SSL_TLS1_3_BINDER_MATCH;
     }
 

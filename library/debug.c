@@ -385,7 +385,7 @@ void mbedtls_debug_print_crt(const mbedtls_ssl_context *ssl, int level,
                              const char *file, int line,
                              const char *text, const mbedtls_x509_crt *crt)
 {
-    char str[DEBUG_BUF_SIZE];
+    char *buf = NULL;
     int i = 0;
 
     if (NULL == ssl              ||
@@ -396,19 +396,22 @@ void mbedtls_debug_print_crt(const mbedtls_ssl_context *ssl, int level,
         return;
     }
 
+    buf = mbedtls_calloc(1, 1024);
+    if (buf == NULL) {
+        return;
+    }
     while (crt != NULL) {
-        char buf[1024];
+        mbedtls_snprintf(buf, 1023, "%s #%d:\n", text, ++i);
+        debug_send_line(ssl, level, file, line, buf);
 
-        mbedtls_snprintf(str, sizeof(str), "%s #%d:\n", text, ++i);
-        debug_send_line(ssl, level, file, line, str);
-
-        mbedtls_x509_crt_info(buf, sizeof(buf) - 1, "", crt);
+        mbedtls_x509_crt_info(buf, 1023, "", crt);
         debug_print_line_by_line(ssl, level, file, line, buf);
 
         debug_print_pk(ssl, level, file, line, "crt->", &crt->pk);
 
         crt = crt->next;
     }
+    mbedtls_free(buf);
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_X509_REMOVE_INFO */
 

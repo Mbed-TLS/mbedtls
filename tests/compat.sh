@@ -640,24 +640,14 @@ add_gnutls_ciphersuites()
             ;;
 
         "RSA")
-            # TLS-RSA-WITH-NULL-SHA256 is a (D)TLS 1.2-only cipher suite,
-            # like all SHA256 cipher suites. But Mbed TLS supports it with
-            # (D)TLS 1.0 and 1.1 as well. So do ancient versions of GnuTLS,
-            # but this was considered a bug which was fixed in GnuTLS 3.4.7.
-            # Check the GnuTLS support list to see what the protocol version
-            # requirement is for that cipher suite.
-            if [ `minor_ver "$MODE"` -ge 3 ] || {
-                   [ `minor_ver "$MODE"` -gt 0 ] &&
-                   $GNUTLS_CLI --list | grep -q '^TLS_RSA_NULL_SHA256.*0$'
-               }
-            then
-                M_CIPHERS="$M_CIPHERS                           \
+            # Not actually supported with all GnuTLS versions. See
+            # GNUTLS_HAS_TLS1_RSA_NULL_SHA256= below.
+            M_CIPHERS="$M_CIPHERS                               \
                     TLS-RSA-WITH-NULL-SHA256                    \
                     "
-                G_CIPHERS="$G_CIPHERS                           \
+            G_CIPHERS="$G_CIPHERS                               \
                     +RSA:+NULL:+SHA256                          \
                     "
-            fi
             if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 M_CIPHERS="$M_CIPHERS                           \
@@ -928,6 +918,23 @@ o_check_ciphersuite()
         esac
     fi
 }
+
+# g_check_ciphersuite CIPHER_SUITE_NAME
+g_check_ciphersuite()
+{
+    set -x
+    if [ -z "$GNUTLS_HAS_TLS1_RSA_NULL_SHA256" ]; then
+        case "$MODE" in
+            tls1|tls1_1|dtls1)
+                case "$1" in
+                    TLS-RSA-WITH-NULL-SHA256|+RSA:+NULL:+SHA256)
+                        SKIP_NEXT="YES";;
+                esac;;
+        esac
+    fi
+    set +x
+}
+
 
 setup_arguments()
 {
@@ -1415,6 +1422,19 @@ for PEER in $PEERS; do
     esac
 done
 
+case " $PEERS " in *\ [Gg]nu*)
+    GNUTLS_HAS_TLS1_RSA_NULL_SHA256=
+    # TLS-RSA-WITH-NULL-SHA256 is a (D)TLS 1.2-only cipher suite,
+    # like all SHA256 cipher suites. But Mbed TLS supports it with
+    # (D)TLS 1.0 and 1.1 as well. So do ancient versions of GnuTLS,
+    # but this was considered a bug which was fixed in GnuTLS 3.4.7.
+    # Check the GnuTLS support list to see what the protocol version
+    # requirement is for that cipher suite.
+    if $GNUTLS_CLI --list | grep -q '^TLS_RSA_NULL_SHA256.*0$'; then
+        GNUTLS_HAS_TLS1_RSA_NULL_SHA256=YES
+    fi
+esac
+
 # Pick a "unique" port in the range 10000-19999.
 PORT="0000$$"
 PORT="1$(echo $PORT | tail -c 5)"
@@ -1504,6 +1524,7 @@ for MODE in $MODES; do
                     if [ "X" != "X$M_CIPHERS" ]; then
                         start_server "GnuTLS"
                         for i in $M_CIPHERS; do
+                            g_check_ciphersuite "$i"
                             run_client mbedTLS $i
                         done
                         stop_server
@@ -1512,6 +1533,7 @@ for MODE in $MODES; do
                     if [ "X" != "X$G_CIPHERS" ]; then
                         start_server "mbedTLS"
                         for i in $G_CIPHERS; do
+                            g_check_ciphersuite "$i"
                             run_client GnuTLS $i
                         done
                         stop_server

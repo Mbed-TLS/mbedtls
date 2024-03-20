@@ -23,6 +23,9 @@
 
 #include <test/psa_exercise_key.h>
 
+/* Needed for the definition of MBEDTLS_PK_WRITE_PUBKEY_MAX_SIZE. */
+#include "pkwrite.h"
+
 /* Used for properly sizing the key buffer in pk_genkey_ec() */
 #include "psa_util_internal.h"
 
@@ -1828,13 +1831,8 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
     mbedtls_pk_context pk;
     unsigned char hash[32];
     unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
-    /* These buffers will be used to contain the key in DER format. Unfortunately
-     * when only EC is supported on the PSA side (i.e. no RSA or DH)
-     * PSA_EXPORT_PUBLIC_KEY_MAX_SIZE falls to PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(),
-     * but this is not enough to contain the DER representation of the public key.
-     * Therefore we pick the RSA size to be safe. */
-    unsigned char legacy_pub_key[RSA_WRITE_PUBKEY_MAX_SIZE];
-    unsigned char opaque_pub_key[RSA_WRITE_PUBKEY_MAX_SIZE];
+    unsigned char legacy_pub_key[MBEDTLS_PK_WRITE_PUBKEY_MAX_SIZE];
+    unsigned char opaque_pub_key[MBEDTLS_PK_WRITE_PUBKEY_MAX_SIZE];
     size_t sig_len, legacy_pub_key_len, opaque_pub_key_len;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;

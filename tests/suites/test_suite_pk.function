@@ -1576,6 +1576,7 @@ exit:
 void pk_wrap_rsa_decrypt_test_vec(data_t *cipher, int mod,
                                   char *input_P, char *input_Q,
                                   char *input_N, char *input_E,
+                                  int padding_mode,
                                   data_t *clear, int ret)
 {
     unsigned char output[256];
@@ -1609,6 +1610,11 @@ void pk_wrap_rsa_decrypt_test_vec(data_t *cipher, int mod,
     TEST_EQUAL(mbedtls_rsa_import(rsa, &N, &P, &Q, NULL, &E), 0);
     TEST_EQUAL(mbedtls_rsa_get_len(rsa), (mod + 7) / 8);
     TEST_EQUAL(mbedtls_rsa_complete(rsa), 0);
+
+    /* Set padding mode */
+    if (padding_mode == MBEDTLS_RSA_PKCS_V21) {
+        TEST_EQUAL(mbedtls_rsa_set_padding(rsa, padding_mode, MBEDTLS_MD_SHA1), 0);
+    }
 
     /* Turn PK context into an opaque one. */
     TEST_EQUAL(mbedtls_pk_get_psa_attributes(&pk, PSA_KEY_USAGE_DECRYPT, &key_attr), 0);

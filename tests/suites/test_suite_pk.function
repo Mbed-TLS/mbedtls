@@ -1830,9 +1830,11 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
     unsigned char legacy_pub_key[RSA_WRITE_PUBKEY_MAX_SIZE];
     unsigned char opaque_pub_key[RSA_WRITE_PUBKEY_MAX_SIZE];
     size_t sig_len, legacy_pub_key_len, opaque_pub_key_len;
-    int ret;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_PK_WRITE_C)
+    int ret;
+#endif /* MBEDTLS_RSA_C || MBEDTLS_PK_WRITE_C */
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
     mbedtls_ecp_group_id ecp_grp_id;
 #endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
@@ -1857,19 +1859,17 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
         TEST_ASSERT(mbedtls_rsa_gen_key(mbedtls_pk_rsa(pk), mbedtls_test_rnd_std_rand, NULL,
                                         bits, 3) == 0);
         TEST_EQUAL(mbedtls_rsa_set_padding(mbedtls_pk_rsa(pk), rsa_padding, MBEDTLS_MD_NONE), 0);
-    } else
+    }
+#else /* MBEDTLS_RSA_C && MBEDTLS_GENPRIME */
+    (void) rsa_padding;
 #endif /* MBEDTLS_RSA_C && MBEDTLS_GENPRIME */
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(psa_type)) {
         ecp_grp_id = mbedtls_ecc_group_from_psa(psa_type, bits);
         TEST_ASSERT(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY)) == 0);
         TEST_ASSERT(pk_genkey(&pk, ecp_grp_id) == 0);
-    } else
-#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
-    {
-        (void) rsa_padding;
-        TEST_ASSUME(!"Opaque PK key not supported in this configuration");
     }
+#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
 
     /* Export public key from the non-opaque PK context we just created. */
 #if defined(MBEDTLS_PK_WRITE_C)
@@ -1882,13 +1882,17 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
             legacy_pub_key + sizeof(legacy_pub_key) - legacy_pub_key_len,
             legacy_pub_key_len);
 #else /* MBEDTLS_PK_WRITE_C */
+#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(psa_type)) {
         TEST_EQUAL(mbedtls_ecp_point_write_binary(&(mbedtls_pk_ec_ro(pk)->grp),
                                                   &(mbedtls_pk_ec_ro(pk)->Q),
                                                   MBEDTLS_ECP_PF_UNCOMPRESSED,
                                                   &legacy_pub_key_len, legacy_pub_key,
                                                   sizeof(legacy_pub_key)), 0);
-    } else {
+    }
+#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
+#if defined(MBEDTLS_RSA_C)
+    if (PSA_KEY_TYPE_IS_RSA(psa_type)) {
         unsigned char *end = legacy_pub_key + sizeof(legacy_pub_key);
         ret = mbedtls_rsa_write_pubkey(mbedtls_pk_rsa(pk), legacy_pub_key, &end);
         legacy_pub_key_len = (size_t) ret;
@@ -1897,6 +1901,7 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
          * we shift that to the origin of the buffer instead. */
         memmove(legacy_pub_key, end, legacy_pub_key_len);
     }
+#endif /* MBEDTLS_RSA_C */
 #endif /* MBEDTLS_PK_WRITE_C */
 
     /* Turn the PK context into an opaque one. */
@@ -1932,7 +1937,7 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
     memmove(opaque_pub_key,
             opaque_pub_key + sizeof(opaque_pub_key) - opaque_pub_key_len,
             opaque_pub_key_len);
-#else
+#else /* MBEDTLS_PK_WRITE_C */
     TEST_EQUAL(psa_export_public_key(key_id, opaque_pub_key, sizeof(opaque_pub_key),
                                      &opaque_pub_key_len), PSA_SUCCESS);
 #endif /* MBEDTLS_PK_WRITE_C */
@@ -1954,19 +1959,25 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
     mbedtls_pk_init(&pk);
 #if defined(MBEDTLS_PK_WRITE_C) && defined(MBEDTLS_PK_PARSE_C)
     TEST_EQUAL(mbedtls_pk_parse_public_key(&pk, legacy_pub_key, legacy_pub_key_len), 0);
-#else
+#else /* MBEDTLS_PK_WRITE_C && MBEDTLS_PK_PARSE_C */
+#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(psa_type)) {
         TEST_EQUAL(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY)), 0);
         TEST_EQUAL(mbedtls_ecp_group_load(&(mbedtls_pk_ec_rw(pk)->grp), ecp_grp_id), 0);
         TEST_EQUAL(mbedtls_ecp_point_read_binary(&(mbedtls_pk_ec_ro(pk)->grp),
                                                  &(mbedtls_pk_ec_rw(pk)->Q),
                                                  legacy_pub_key, legacy_pub_key_len), 0);
-    } else {
+    }
+#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
+#if defined(MBEDTLS_RSA_C)
+    if (PSA_KEY_TYPE_IS_RSA(psa_type)) {
         TEST_EQUAL(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)), 0);
         TEST_EQUAL(mbedtls_rsa_parse_pubkey(mbedtls_pk_rsa(pk), legacy_pub_key,
                                             legacy_pub_key_len), 0);
     }
-#endif
+#endif /* MBEDTLS_RSA_C */
+#endif /* MBEDTLS_PK_WRITE_C && MBEDTLS_PK_PARSE_C */
+
 #if defined(MBEDTLS_RSA_C)
     if (PSA_KEY_TYPE_IS_RSA(psa_type)) {
         TEST_EQUAL(mbedtls_rsa_set_padding(mbedtls_pk_rsa(pk), rsa_padding, MBEDTLS_MD_NONE), 0);

@@ -1469,16 +1469,29 @@ static int rsa_opaque_decrypt(mbedtls_pk_context *pk,
                               unsigned char *output, size_t *olen, size_t osize,
                               int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_algorithm_t alg;
+    psa_key_type_t type;
     psa_status_t status;
 
     /* PSA has its own RNG */
     (void) f_rng;
     (void) p_rng;
 
-    status = psa_asymmetric_decrypt(pk->priv_id, PSA_ALG_RSA_PKCS1V15_CRYPT,
-                                    input, ilen,
-                                    NULL, 0,
-                                    output, osize, olen);
+    status = psa_get_key_attributes(pk->priv_id, &attributes);
+    if (status != PSA_SUCCESS) {
+        return PSA_PK_TO_MBEDTLS_ERR(status);
+    }
+
+    type = psa_get_key_type(&attributes);
+    alg = psa_get_key_algorithm(&attributes);
+    psa_reset_key_attributes(&attributes);
+
+    if (!PSA_KEY_TYPE_IS_RSA(type)) {
+        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+    }
+
+    status = psa_asymmetric_decrypt(pk->priv_id, alg, input, ilen, NULL, 0, output, osize, olen);
     if (status != PSA_SUCCESS) {
         return PSA_PK_RSA_TO_MBEDTLS_ERR(status);
     }
@@ -1517,9 +1530,7 @@ static int rsa_opaque_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg
         return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
     }
 
-    /* make the signature */
-    status = psa_sign_hash(pk->priv_id, alg, hash, hash_len,
-                           sig, sig_size, sig_len);
+    status = psa_sign_hash(pk->priv_id, alg, hash, hash_len, sig, sig_size, sig_len);
     if (status != PSA_SUCCESS) {
         if (PSA_KEY_TYPE_IS_RSA(type)) {
             return PSA_PK_RSA_TO_MBEDTLS_ERR(status);

@@ -1956,16 +1956,11 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
     mbedtls_pk_free(&pk);
     TEST_ASSERT(PSA_SUCCESS == psa_destroy_key(key_id));
 
-    /* Create a new non-opaque PK context to verify the signature.
-     *
-     * Note: if we used "pk_write" previously, then we go for a "pk_parse" here;
-     * otherwise if we went for "ecp_point_write_binary" then we'll go
-     * for a "ecp_point_read_binary" here. This allows to drop dependencies
-     * on "PK_WRITE" and "PK_PARSE" if required */
+    /* Create a new non-opaque PK context to verify the signature. */
     mbedtls_pk_init(&pk);
-#if defined(MBEDTLS_PK_WRITE_C) && defined(MBEDTLS_PK_PARSE_C)
+#if defined(MBEDTLS_PK_PARSE_C)
     TEST_EQUAL(mbedtls_pk_parse_public_key(&pk, legacy_pub_key, legacy_pub_key_len), 0);
-#else /* MBEDTLS_PK_WRITE_C && MBEDTLS_PK_PARSE_C */
+#else /* MBEDTLS_PK_PARSE_C */
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(psa_type)) {
         TEST_EQUAL(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY)), 0);
@@ -1982,7 +1977,7 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
                                             legacy_pub_key_len), 0);
     }
 #endif /* MBEDTLS_RSA_C */
-#endif /* MBEDTLS_PK_WRITE_C && MBEDTLS_PK_PARSE_C */
+#endif /* MBEDTLS_PK_PARSE_C */
 
 #if defined(MBEDTLS_RSA_C)
     if (PSA_KEY_TYPE_IS_RSA(psa_type)) {

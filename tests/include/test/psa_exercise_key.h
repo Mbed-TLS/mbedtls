@@ -123,6 +123,9 @@
  * \param input2            The first input to pass.
  * \param input2_length     The length of \p input2 in bytes.
  * \param capacity          The capacity to set.
+ * \param key_destroyable   If set to 1, a failure due to the key not existing
+ *                          or the key being destroyed mid-operation will only
+ *                          be reported if the error code is unexpected.
  *
  * \return                  \c 1 on success, \c 0 on failure.
  */
@@ -132,7 +135,7 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
     psa_algorithm_t alg,
     const unsigned char *input1, size_t input1_length,
     const unsigned char *input2, size_t input2_length,
-    size_t capacity);
+    size_t capacity, int key_destroyable);
 
 /** Perform a key agreement using the given key pair against its public key
  * using psa_raw_key_agreement().
@@ -143,12 +146,15 @@ int mbedtls_test_psa_setup_key_derivation_wrap(
  *
  * \param alg               A key agreement algorithm compatible with \p key.
  * \param key               A key that allows key agreement with \p alg.
+ * \param key_destroyable   If set to 1, a failure due to the key not existing
+ *                          or the key being destroyed mid-operation will only
+ *                          be reported if the error code is unexpected.
  *
  * \return                  \c 1 on success, \c 0 on failure.
  */
 psa_status_t mbedtls_test_psa_raw_key_agreement_with_self(
     psa_algorithm_t alg,
-    mbedtls_svc_key_id_t key);
+    mbedtls_svc_key_id_t key, int key_destroyable);
 
 /** Perform a key agreement using the given key pair against its public key
  * using psa_key_derivation_raw_key().
@@ -162,12 +168,15 @@ psa_status_t mbedtls_test_psa_raw_key_agreement_with_self(
  *                          \p key.
  * \param key               A key pair object that is suitable for a key
  *                          agreement with \p operation.
+ * \param key_destroyable   If set to 1, a failure due to the key not existing
+ *                          or the key being destroyed mid-operation will only
+ *                          be reported if the error code is unexpected.
  *
  * \return                  \c 1 on success, \c 0 on failure.
  */
 psa_status_t mbedtls_test_psa_key_agreement_with_self(
     psa_key_derivation_operation_t *operation,
-    mbedtls_svc_key_id_t key);
+    mbedtls_svc_key_id_t key, int key_destroyable);
 
 /** Perform sanity checks on the given key representation.
  *
@@ -209,18 +218,34 @@ int mbedtls_test_psa_exported_key_sanity_check(
  * ```
  * if( ! exercise_key( ... ) ) goto exit;
  * ```
+ * To use this function for multi-threaded tests where the key
+ * may be destroyed at any point: call this function with key_destroyable set
+ * to 1, while another thread calls psa_destroy_key on the same key;
+ * this will test whether destroying the key in use leads to any corruption.
  *
- * \param key       The key to exercise. It should be capable of performing
- *                  \p alg.
- * \param usage     The usage flags to assume.
- * \param alg       The algorithm to exercise.
+ * There cannot be a set of concurrent calls:
+ * `mbedtls_test_psa_exercise_key(ki,...)` such that each ki is a unique
+ * persistent key not loaded into any key slot, and i is greater than the
+ * number of free key slots.
+ * This is because such scenarios can lead to unsupported
+ * `PSA_ERROR_INSUFFICIENT_MEMORY` return codes.
+ *
+ *
+ * \param key               The key to exercise. It should be capable of performing
+ *                          \p alg.
+ * \param usage             The usage flags to assume.
+ * \param alg               The algorithm to exercise.
+ * \param key_destroyable   If set to 1, a failure due to the key not existing
+ *                          or the key being destroyed mid-operation will only
+ *                          be reported if the error code is unexpected.
  *
  * \retval 0 The key failed the smoke tests.
  * \retval 1 The key passed the smoke tests.
  */
 int mbedtls_test_psa_exercise_key(mbedtls_svc_key_id_t key,
                                   psa_key_usage_t usage,
-                                  psa_algorithm_t alg);
+                                  psa_algorithm_t alg,
+                                  int key_destroyable);
 
 psa_key_usage_t mbedtls_test_psa_usage_to_exercise(psa_key_type_t type,
                                                    psa_algorithm_t alg);

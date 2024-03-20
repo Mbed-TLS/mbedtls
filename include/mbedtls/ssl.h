@@ -741,42 +741,12 @@ mbedtls_ssl_states;
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
 typedef enum {
 /*
- * The client has not sent the first ClientHello yet, it is unknown if the
- * client will send an early data indication extension or not.
- */
-    MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN,
-
-/*
  * See documentation of mbedtls_ssl_get_early_data_status().
  */
-    MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT,
+    MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_INDICATED,
     MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED,
     MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED,
-
-/*
- * The client has sent an early data indication extension in its first
- * ClientHello, it has not received the response (ServerHello or
- * HelloRetryRequest) from the server yet. The transform to protect early data
- * is not set and early data cannot be sent yet.
- */
-    MBEDTLS_SSL_EARLY_DATA_STATUS_SENT,
-
-/*
- * The client has sent an early data indication extension in its first
- * ClientHello, it has not received the response (ServerHello or
- * HelloRetryRequest) from the server yet. The transform to protect early data
- * has been set and early data can be written now.
- */
-    MBEDTLS_SSL_EARLY_DATA_STATUS_CAN_WRITE,
-
-/*
- * The client has sent an early data indication extension in its first
- * ClientHello, the server has accepted them and the client has received the
- * server Finished message. It cannot send early data to the server anymore.
- */
-    MBEDTLS_SSL_EARLY_DATA_STATUS_SERVER_FINISHED_RECEIVED,
 } mbedtls_ssl_early_data_status;
-
 #endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
 
 /**
@@ -1334,6 +1304,11 @@ struct mbedtls_ssl_session {
     char *MBEDTLS_PRIVATE(hostname);             /*!< host name binded with tickets */
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION && MBEDTLS_SSL_CLI_C */
 
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN) && defined(MBEDTLS_SSL_SRV_C)
+    char *ticket_alpn;                      /*!< ALPN negotiated in the session
+                                                 during which the ticket was generated. */
+#endif
+
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_CLI_C)
     /*! Time in milliseconds when the last ticket was received. */
     mbedtls_ms_time_t MBEDTLS_PRIVATE(ticket_reception_time);
@@ -1737,10 +1712,10 @@ struct mbedtls_ssl_context {
 
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
     /**
-     * Status of the negotiation of the use of early data. Reset to
-     * MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN when the context is reset.
+     * State of the negotiation and transfer of early data. Reset to
+     * MBEDTLS_SSL_EARLY_DATA_STATE_IDLE when the context is reset.
      */
-    mbedtls_ssl_early_data_status MBEDTLS_PRIVATE(early_data_status);
+    int MBEDTLS_PRIVATE(early_data_state);
 #endif
 
     unsigned MBEDTLS_PRIVATE(badmac_seen);       /*!< records with a bad MAC received    */
@@ -2127,9 +2102,6 @@ void mbedtls_ssl_conf_authmode(mbedtls_ssl_config *conf, int authmode);
  *  MBEDTLS_ERR_SSL_RECEIVED_EARLY_DATA indicating that some early data have
  *  been received. To read the early data, call mbedtls_ssl_read_early_data()
  *  before calling the original function again.
- *
- * \warning This interface is experimental and may change without notice.
- *
  */
 void mbedtls_ssl_conf_early_data(mbedtls_ssl_config *conf,
                                  int early_data_enabled);
@@ -2155,12 +2127,9 @@ void mbedtls_ssl_conf_early_data(mbedtls_ssl_config *conf,
  * \param[in] conf                  The SSL configuration to use.
  * \param[in] max_early_data_size   The maximum amount of 0-RTT data.
  *
- * \warning This interface is experimental and may change without notice.
- *
  * \warning This interface DOES NOT influence/limit the amount of early data
  *          that can be received through previously created and issued tickets,
  *          which clients may have stored.
- *
  */
 void mbedtls_ssl_conf_max_early_data_size(
     mbedtls_ssl_config *conf, uint32_t max_early_data_size);
@@ -2719,6 +2688,43 @@ static inline int mbedtls_ssl_session_get_ticket_creation_time(
 }
 #endif /* MBEDTLS_HAVE_TIME */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
+
+/**
+ * \brief          Get the session-id buffer.
+ *
+ * \param session  SSL session.
+ *
+ * \return         The address of the session-id buffer.
+ */
+static inline unsigned const char (*mbedtls_ssl_session_get_id(const mbedtls_ssl_session *
+                                                               session))[32]
+{
+    return &session->MBEDTLS_PRIVATE(id);
+}
+
+/**
+ * \brief          Get the size of the session-id.
+ *
+ * \param session  SSL session.
+ *
+ * \return         size_t size of session-id buffer.
+ */
+static inline size_t mbedtls_ssl_session_get_id_len(const mbedtls_ssl_session *session)
+{
+    return session->MBEDTLS_PRIVATE(id_len);
+}
+
+/**
+ * \brief          Get the ciphersuite-id.
+ *
+ * \param session  SSL session.
+ *
+ * \return         int represetation for ciphersuite.
+ */
+static inline int mbedtls_ssl_session_get_ciphersuite_id(const mbedtls_ssl_session *session)
+{
+    return session->MBEDTLS_PRIVATE(ciphersuite);
+}
 
 /**
  * \brief   Configure a key export callback.
@@ -5217,6 +5223,11 @@ int mbedtls_ssl_close_notify(mbedtls_ssl_context *ssl);
  *                   same warnings apply to any use of the
  *                   early_exporter_master_secret.
  *
+ * \warning        Mbed TLS does not implement any of the anti-replay defenses
+ *                 defined in section 8 of the TLS 1.3 specification:
+ *                 single-use of tickets or ClientHello recording within a
+ *                 given time window.
+ *
  * \note           This function is used in conjunction with
  *                 mbedtls_ssl_handshake(), mbedtls_ssl_handshake_step(),
  *                 mbedtls_ssl_read() and mbedtls_ssl_write() to read early
@@ -5340,8 +5351,8 @@ int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
  * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if this function is called
  *                 prior to completion of the handshake.
  *
- * \return         #MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT if the client has
- *                 not indicated the use of early data to the server.
+ * \return         #MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_INDICATED if the client
+ *                 has not indicated the use of early data to the server.
  *
  * \return         #MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED if the client has
  *                 indicated the use of early data and the server has accepted

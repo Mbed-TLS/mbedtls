@@ -323,6 +323,7 @@ class TabIssueTracker(LineIssueTracker):
         ".make",
         ".pem", # some openssl dumps have tabs
         ".sln",
+        "/.gitmodules",
         "/Makefile",
         "/Makefile.inc",
         "/generate_visualc_files.pl",
@@ -469,6 +470,7 @@ class IntegrityChecker:
         ]
 
     def setup_logger(self, log_file, level=logging.INFO):
+        """Log to log_file if provided, or to stderr if None."""
         self.logger = logging.getLogger()
         self.logger.setLevel(level)
         if log_file:
@@ -480,9 +482,19 @@ class IntegrityChecker:
 
     @staticmethod
     def collect_files():
+        """Return the list of files to check.
+
+        These are the regular files commited into Git.
+        """
         bytes_output = subprocess.check_output(['git', 'ls-files', '-z'])
         bytes_filepaths = bytes_output.split(b'\0')[:-1]
         ascii_filepaths = map(lambda fp: fp.decode('ascii'), bytes_filepaths)
+        # Filter out directories. Normally Git doesn't list directories
+        # (it only knows about the files inside them), but there is
+        # at least one case where 'git ls-files' includes a directory:
+        # submodules. Just skip submodules (and any other directories).
+        ascii_filepaths = [fp for fp in ascii_filepaths
+                           if os.path.isfile(fp)]
         # Prepend './' to files in the top-level directory so that
         # something like `'/Makefile' in fp` matches in the top-level
         # directory as well as in subdirectories.
@@ -490,12 +502,17 @@ class IntegrityChecker:
                 for fp in ascii_filepaths]
 
     def check_files(self):
+        """Check all files for all issues."""
         for issue_to_check in self.issues_to_check:
             for filepath in self.collect_files():
                 if issue_to_check.should_check_file(filepath):
                     issue_to_check.check_file_for_issue(filepath)
 
     def output_issues(self):
+        """Log the issues found and their locations.
+
+        Return 1 if there were issues, 0 otherwise.
+        """
         integrity_return_code = 0
         for issue_to_check in self.issues_to_check:
             if issue_to_check.files_with_issues:

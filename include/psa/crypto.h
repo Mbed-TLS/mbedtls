@@ -527,6 +527,11 @@ psa_status_t psa_copy_key(mbedtls_svc_key_id_t source_key,
  * If a key is currently in use in a multipart operation, then destroying the
  * key will cause the multipart operation to fail.
  *
+ * \warning    We can only guarantee that the the key material will
+ *             eventually be wiped from memory. With threading enabled
+ *             and during concurrent execution, copies of the key material may
+ *             still exist until all threads have finished using the key.
+ *
  * \param key  Identifier of the key to erase. If this is \c 0, do nothing and
  *             return #PSA_SUCCESS.
  *

@@ -34,6 +34,23 @@ typedef struct {
 
 static psa_global_data_t global_data;
 
+static uint8_t psa_get_key_slots_initialized(void)
+{
+    uint8_t initialized;
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_lock(&mbedtls_threading_psa_globaldata_mutex);
+#endif /* defined(MBEDTLS_THREADING_C) */
+
+    initialized = global_data.key_slots_initialized;
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_unlock(&mbedtls_threading_psa_globaldata_mutex);
+#endif /* defined(MBEDTLS_THREADING_C) */
+
+    return initialized;
+}
+
 int psa_is_valid_key_id(mbedtls_svc_key_id_t key, int vendor_ok)
 {
     psa_key_id_t key_id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID(key);
@@ -136,7 +153,9 @@ psa_status_t psa_initialize_key_slots(void)
 {
     /* Nothing to do: program startup and psa_wipe_all_key_slots() both
      * guarantee that the key slots are initialized to all-zero, which
-     * means that all the key slots are in a valid, empty state. */
+     * means that all the key slots are in a valid, empty state. The global
+     * data mutex is already held when calling this function, so no need to
+     * lock it here, to set the flag. */
     global_data.key_slots_initialized = 1;
     return PSA_SUCCESS;
 }
@@ -151,6 +170,7 @@ void psa_wipe_all_key_slots(void)
         slot->state = PSA_SLOT_PENDING_DELETION;
         (void) psa_wipe_key_slot(slot);
     }
+    /* The global data mutex is already held when calling this function. */
     global_data.key_slots_initialized = 0;
 }
 
@@ -161,7 +181,7 @@ psa_status_t psa_reserve_free_key_slot(psa_key_id_t *volatile_key_id,
     size_t slot_idx;
     psa_key_slot_t *selected_slot, *unused_persistent_key_slot;
 
-    if (!global_data.key_slots_initialized) {
+    if (!psa_get_key_slots_initialized()) {
         status = PSA_ERROR_BAD_STATE;
         goto error;
     }
@@ -344,7 +364,7 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     *p_slot = NULL;
-    if (!global_data.key_slots_initialized) {
+    if (!psa_get_key_slots_initialized()) {
         return PSA_ERROR_BAD_STATE;
     }
 

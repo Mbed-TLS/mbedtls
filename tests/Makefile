@@ -208,6 +208,7 @@ define libtestdriver1_rewrite :=
 	s/\b(?=mbedtls_|psa_)/libtestdriver1_/g;
 endef
 
+libtestdriver1.a: export MBEDTLS_PATH := $(patsubst ../..//%,/%,../../$(MBEDTLS_PATH))
 libtestdriver1.a:
 	# Copy the library and fake a 3rdparty Makefile include.
 	rm -Rf ./libtestdriver1

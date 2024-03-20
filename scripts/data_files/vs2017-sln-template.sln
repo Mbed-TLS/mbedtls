@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio 2017
+VisualStudioVersion = 15.0.26228.4
+MinimumVisualStudioVersion = 15.0.26228.4
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbedTLS", "mbedTLS.vcxproj", "{46CF2D25-6A36-4189-B59C-E4815388E554}"
 EndProject
 APP_ENTRIES

@@ -78,6 +78,10 @@ enum {
 #undef MBEDTLS_SSL_TLS1_3_LABEL
 };
 
+#if defined(MBEDTLS_SSL_ALPN)
+#define MBEDTLS_TEST_MAX_ALPN_LIST_SIZE 10
+#endif
+
 typedef struct mbedtls_test_ssl_log_pattern {
     const char *pattern;
     size_t counter;
@@ -117,6 +121,9 @@ typedef struct mbedtls_test_handshake_test_options {
     int max_early_data_size;
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_context *cache;
+#endif
+#if defined(MBEDTLS_SSL_ALPN)
+    const char *alpn_list[MBEDTLS_TEST_MAX_ALPN_LIST_SIZE];
 #endif
 } mbedtls_test_handshake_test_options;
 

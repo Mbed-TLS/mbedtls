@@ -473,7 +473,14 @@ static int ssl_tls13_session_copy_ticket(mbedtls_ssl_session *dst,
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     dst->max_early_data_size = src->max_early_data_size;
-#endif
+
+#if defined(MBEDTLS_SSL_ALPN)
+    int ret = mbedtls_ssl_session_set_ticket_alpn(dst, src->ticket_alpn);
+    if (ret != 0) {
+        return ret;
+    }
+#endif /* MBEDTLS_SSL_ALPN */
+#endif /* MBEDTLS_SSL_EARLY_DATA*/
 
     return 0;
 }
@@ -1818,7 +1825,6 @@ static int ssl_tls13_check_early_data_requirements(mbedtls_ssl_context *ssl)
      * NOTE:
      *  - The TLS version number is checked in
      *    ssl_tls13_offered_psks_check_identity_match_ticket().
-     *  - ALPN is not checked for the time being (TODO).
      */
 
     if (handshake->selected_identity != 0) {
@@ -1844,6 +1850,28 @@ static int ssl_tls13_check_early_data_requirements(mbedtls_ssl_context *ssl)
              "permission bits."));
         return -1;
     }
+
+#if defined(MBEDTLS_SSL_ALPN)
+    const char *alpn = mbedtls_ssl_get_alpn_protocol(ssl);
+    size_t alpn_len;
+
+    if (alpn == NULL && ssl->session_negotiate->ticket_alpn == NULL) {
+        return 0;
+    }
+
+    if (alpn != NULL) {
+        alpn_len = strlen(alpn);
+    }
+
+    if (alpn == NULL ||
+        ssl->session_negotiate->ticket_alpn == NULL ||
+        alpn_len != strlen(ssl->session_negotiate->ticket_alpn) ||
+        (memcmp(alpn, ssl->session_negotiate->ticket_alpn, alpn_len) != 0)) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("EarlyData: rejected, the selected ALPN is different "
+                                  "from the one associated with the pre-shared key."));
+        return -1;
+    }
+#endif
 
     return 0;
 }
@@ -3143,6 +3171,15 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_PRINT_TICKET_FLAGS(4, session->ticket_flags);
 
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
+    if (session->ticket_alpn == NULL) {
+        ret = mbedtls_ssl_session_set_ticket_alpn(session, ssl->alpn_chosen);
+        if (ret != 0) {
+            return ret;
+        }
+    }
+#endif
+
     /* Generate ticket_age_add */
     if ((ret = ssl->conf->f_rng(ssl->conf->p_rng,
                                 (unsigned char *) &session->ticket_age_add,
@@ -3272,20 +3309,21 @@ static int ssl_tls13_write_new_session_ticket_body(mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_RET(1, "write_ticket", ret);
         return ret;
     }
-    /* RFC 8446 4.6.1
+
+    /* RFC 8446 section 4.6.1
+     *
      *  ticket_lifetime:  Indicates the lifetime in seconds as a 32-bit
-     *      unsigned integer in network byte order from the time of ticket
-     *      issuance.  Servers MUST NOT use any value greater than
-     *      604800 seconds (7 days).  The value of zero indicates that the
-     *      ticket should be discarded immediately.  Clients MUST NOT cache
-     *      tickets for longer than 7 days, regardless of the ticket_lifetime,
-     *      and MAY delete tickets earlier based on local policy.  A server
-     *      MAY treat a ticket as valid for a shorter period of time than what
-     *      is stated in the ticket_lifetime.
+     *     unsigned integer in network byte order from the time of ticket
+     *     issuance.  Servers MUST NOT use any value greater than
+     *     604800 seconds (7 days) ...
      */
     if (ticket_lifetime > MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME) {
-        ticket_lifetime = MBEDTLS_SSL_TLS1_3_MAX_ALLOWED_TICKET_LIFETIME;
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("Ticket lifetime (%u) is greater than 7 days.",
+                (unsigned int) ticket_lifetime));
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
+
     MBEDTLS_PUT_UINT32_BE(ticket_lifetime, p, 0);
     MBEDTLS_SSL_DEBUG_MSG(3, ("ticket_lifetime: %u",
                               (unsigned int) ticket_lifetime));

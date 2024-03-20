@@ -4,6 +4,18 @@ ifndef MBEDTLS_PATH
 MBEDTLS_PATH := ..
 endif
 
+ifeq (,$(wildcard $(MBEDTLS_PATH)/framework/exported.make))
+    # Use the define keyword to get a multi-line message.
+    # GNU make appends ".  Stop.", so tweak the ending of our message accordingly.
+    define error_message
+$(MBEDTLS_PATH)/framework/exported.make not found.
+Run `git submodule update --init` to fetch the submodule contents.
+This is a fatal error
+    endef
+    $(error $(error_message))
+endif
+include $(MBEDTLS_PATH)/framework/exported.make
+
 CFLAGS	?= -O2
 WARNING_CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 WARNING_CXXFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral

@@ -1337,6 +1337,126 @@ exit:
 }
 
 #if defined(MBEDTLS_THREADING_PTHREAD)
+
+typedef struct same_key_context {
+    data_t *data;
+    mbedtls_svc_key_id_t key;
+    psa_key_attributes_t *attributes;
+    int type;
+    int bits;
+    /* The following two parameters are used to ensure that when multiple
+     * threads attempt to load/destroy the key, exactly one thread succeeds. */
+    int key_loaded;
+    mbedtls_threading_mutex_t MBEDTLS_PRIVATE(key_loaded_mutex);
+}
+same_key_context;
+
+/* Attempt to import the key in ctx. This handles any valid error codes
+ * and reports an error for any invalid codes. This function also insures
+ * that once imported by some thread, all threads can use the key. */
+void *thread_import_key(void *ctx)
+{
+    mbedtls_svc_key_id_t returned_key_id;
+    same_key_context *skc = (struct same_key_context *) ctx;
+    psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    /* Import the key, exactly one thread must succeed. */
+    psa_status_t status = psa_import_key(skc->attributes, skc->data->x,
+                                         skc->data->len, &returned_key_id);
+    switch (status) {
+        case PSA_SUCCESS:
+            if (mbedtls_mutex_lock(&skc->key_loaded_mutex) == 0) {
+                if (skc->key_loaded) {
+                    mbedtls_mutex_unlock(&skc->key_loaded_mutex);
+                    /* More than one thread has succeeded, report a failure. */
+                    TEST_FAIL("The same key has been loaded into the key store multiple times.");
+                }
+                skc->key_loaded = 1;
+                mbedtls_mutex_unlock(&skc->key_loaded_mutex);
+            }
+            break;
+        case PSA_ERROR_INSUFFICIENT_MEMORY:
+            /* If all of the key slots are reserved when a thread
+             * locks the mutex to reserve a new slot, it will return
+             * PSA_ERROR_INSUFFICIENT_MEMORY; this is correct behaviour.
+             * There is a chance for this to occur here when the number of
+             * threads running this function is larger than the number of
+             * free key slots. Each thread reserves an empty key slot,
+             * unlocks the mutex, then relocks it to finalize key creation.
+             * It is at that point where the thread sees that the key
+             * already exists, releases the reserved slot,
+             * and returns PSA_ERROR_ALREADY_EXISTS.
+             * There is no guarantee that the key is loaded upon this return
+             * code, so we can't test the key information. Just stop this
+             * thread from executing, note that this is not an error. */
+            goto exit;
+            break;
+        case PSA_ERROR_ALREADY_EXISTS:
+            /* The key has been loaded by a different thread. */
+            break;
+        default:
+            PSA_ASSERT(status);
+    }
+    /* At this point the key must exist, test the key information. */
+    status = psa_get_key_attributes(skc->key, &got_attributes);
+    if (status == PSA_ERROR_INSUFFICIENT_MEMORY) {
+        /* This is not a test failure. The following sequence of events
+         * causes this to occur:
+         * 1: This thread successfuly imports a persistent key skc->key.
+         * 2: N threads reserve an empty key slot in psa_import_key,
+         *    where N is equal to the number of free key slots.
+         * 3: A final thread attempts to reserve an empty key slot, kicking
+         *    skc->key (which has no registered readers) out of its slot.
+         * 4: This thread calls psa_get_key_attributes(skc->key,...):
+         *    it sees that skc->key is not in a slot, attempts to load it and
+         *    finds that there are no free slots.
+         * This thread returns PSA_ERROR_INSUFFICIENT_MEMORY.
+         *
+         * The PSA spec allows this behaviour, it is an unavoidable consequence
+         * of allowing persistent keys to be kicked out of the key store while
+         * they are still valid. */
+        goto exit;
+    }
+    PSA_ASSERT(status);
+    TEST_EQUAL(psa_get_key_type(&got_attributes), skc->type);
+    TEST_EQUAL(psa_get_key_bits(&got_attributes), skc->bits);
+
+exit:
+    /* Key attributes may have been returned by psa_get_key_attributes(),
+     * reset them as required. */
+    psa_reset_key_attributes(&got_attributes);
+    return NULL;
+}
+
+void *thread_use_and_destroy_key(void *ctx)
+{
+    same_key_context *skc = (struct same_key_context *) ctx;
+
+    /* Do something with the key according
+     * to its type and permitted usage. */
+    TEST_ASSERT(mbedtls_test_psa_exercise_key(skc->key,
+                                              skc->attributes->policy.usage,
+                                              skc->attributes->policy.alg, 1));
+
+    psa_status_t status = psa_destroy_key(skc->key);
+    if (status == PSA_SUCCESS) {
+        if (mbedtls_mutex_lock(&skc->key_loaded_mutex) == 0) {
+            /* Ensure that we are the only thread to succeed. */
+            if (skc->key_loaded != 1) {
+                mbedtls_mutex_unlock(&skc->key_loaded_mutex);
+                TEST_FAIL("The same key has been destroyed multiple times.");
+            }
+            skc->key_loaded = 0;
+            mbedtls_mutex_unlock(&skc->key_loaded_mutex);
+        }
+    } else {
+        TEST_EQUAL(status, PSA_ERROR_INVALID_HANDLE);
+    }
+
+exit:
+    return NULL;
+}
+
 typedef struct generate_key_context {
     psa_key_type_t type;
     psa_key_usage_t usage;
@@ -1378,7 +1498,7 @@ void *thread_generate_key(void *ctx)
 
         /* Do something with the key according
          * to its type and permitted usage. */
-        if (!mbedtls_test_psa_exercise_key(key, gkc->usage, gkc->alg)) {
+        if (!mbedtls_test_psa_exercise_key(key, gkc->usage, gkc->alg, 0)) {
             psa_destroy_key(key);
             goto exit;
         }
@@ -1714,7 +1834,7 @@ void import_export(data_t *data,
      * this doesn't directly validate the implementation, but it still helps
      * by cross-validating the test data with the sanity check code. */
     if (!psa_key_lifetime_is_external(lifetime)) {
-        if (!mbedtls_test_psa_exercise_key(key, usage_arg, 0)) {
+        if (!mbedtls_test_psa_exercise_key(key, usage_arg, 0, 0)) {
             goto exit;
         }
     }
@@ -1823,6 +1943,78 @@ exit:
 }
 /* END_CASE */
 
+
+#if defined(MBEDTLS_THREADING_PTHREAD)
+/* BEGIN_CASE depends_on:MBEDTLS_THREADING_PTHREAD:MBEDTLS_PSA_CRYPTO_STORAGE_C */
+void concurrently_use_same_persistent_key(data_t *data,
+                                          int type_arg,
+                                          int bits_arg,
+                                          int alg_arg,
+                                          int thread_count_arg)
+{
+    size_t thread_count = (size_t) thread_count_arg;
+    mbedtls_test_thread_t *threads = NULL;
+    mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make(1, 1);
+    same_key_context skc;
+    skc.data = data;
+    skc.key = key_id;
+    skc.type = type_arg;
+    skc.bits = bits_arg;
+    skc.key_loaded = 0;
+    mbedtls_mutex_init(&skc.key_loaded_mutex);
+    psa_key_usage_t usage = mbedtls_test_psa_usage_to_exercise(skc.type, alg_arg);
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    PSA_ASSERT(psa_crypto_init());
+
+    psa_set_key_id(&attributes, key_id);
+    psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_PERSISTENT);
+    psa_set_key_usage_flags(&attributes, usage);
+    psa_set_key_algorithm(&attributes, alg_arg);
+    psa_set_key_type(&attributes, type_arg);
+    psa_set_key_bits(&attributes, bits_arg);
+    skc.attributes = &attributes;
+
+    TEST_CALLOC(threads, sizeof(mbedtls_test_thread_t) * thread_count);
+
+    /* Test that when multiple threads import the same key,
+     * exactly one thread succeeds and the rest fail with valid errors.
+     * Also test that all threads can use the key as soon as it has been
+     * imported. */
+    for (size_t i = 0; i < thread_count; i++) {
+        TEST_EQUAL(
+            mbedtls_test_thread_create(&threads[i], thread_import_key,
+                                       (void *) &skc), 0);
+    }
+
+    /* Join threads. */
+    for (size_t i = 0; i < thread_count; i++) {
+        TEST_EQUAL(mbedtls_test_thread_join(&threads[i]), 0);
+    }
+
+    /* Test that when multiple threads use and destroy a key no corruption
+     * occurs, and exactly one thread succeeds when destroying the key. */
+    for (size_t i = 0; i < thread_count; i++) {
+        TEST_EQUAL(
+            mbedtls_test_thread_create(&threads[i], thread_use_and_destroy_key,
+                                       (void *) &skc), 0);
+    }
+
+    /* Join threads. */
+    for (size_t i = 0; i < thread_count; i++) {
+        TEST_EQUAL(mbedtls_test_thread_join(&threads[i]), 0);
+    }
+    /* Ensure that one thread succeeded in destroying the key. */
+    TEST_ASSERT(!skc.key_loaded);
+exit:
+    psa_reset_key_attributes(&attributes);
+    mbedtls_mutex_free(&skc.key_loaded_mutex);
+    mbedtls_free(threads);
+    PSA_DONE();
+}
+/* END_CASE */
+#endif
+
 /* BEGIN_CASE */
 void import_and_exercise_key(data_t *data,
                              int type_arg,
@@ -1852,7 +2044,7 @@ void import_and_exercise_key(data_t *data,
     TEST_EQUAL(psa_get_key_bits(&got_attributes), bits);
 
     /* Do something with the key according to its type and permitted usage. */
-    if (!mbedtls_test_psa_exercise_key(key, usage, alg)) {
+    if (!mbedtls_test_psa_exercise_key(key, usage, alg, 0)) {
         goto exit;
     }
 
@@ -2489,7 +2681,7 @@ void agreement_key_policy(int policy_usage,
                               &key));
 
     PSA_ASSERT(psa_key_derivation_setup(&operation, exercise_alg));
-    status = mbedtls_test_psa_key_agreement_with_self(&operation, key);
+    status = mbedtls_test_psa_key_agreement_with_self(&operation, key, 0);
 
     TEST_EQUAL(status, expected_status);
 
@@ -2528,10 +2720,10 @@ void key_policy_alg2(int key_type_arg, data_t *key_data,
     TEST_EQUAL(psa_get_key_algorithm(&got_attributes), alg);
     TEST_EQUAL(psa_get_key_enrollment_algorithm(&got_attributes), alg2);
 
-    if (!mbedtls_test_psa_exercise_key(key, usage, alg)) {
+    if (!mbedtls_test_psa_exercise_key(key, usage, alg, 0)) {
         goto exit;
     }
-    if (!mbedtls_test_psa_exercise_key(key, usage, alg2)) {
+    if (!mbedtls_test_psa_exercise_key(key, usage, alg2, 0)) {
         goto exit;
     }
 
@@ -2571,7 +2763,7 @@ void raw_agreement_key_policy(int policy_usage,
     PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
                               &key));
 
-    status = mbedtls_test_psa_raw_key_agreement_with_self(exercise_alg, key);
+    status = mbedtls_test_psa_raw_key_agreement_with_self(exercise_alg, key, 0);
 
     TEST_EQUAL(status, expected_status);
 
@@ -2662,10 +2854,10 @@ void copy_success(int source_usage_arg,
     }
 
     if (!psa_key_lifetime_is_external(target_lifetime)) {
-        if (!mbedtls_test_psa_exercise_key(target_key, expected_usage, expected_alg)) {
+        if (!mbedtls_test_psa_exercise_key(target_key, expected_usage, expected_alg, 0)) {
             goto exit;
         }
-        if (!mbedtls_test_psa_exercise_key(target_key, expected_usage, expected_alg2)) {
+        if (!mbedtls_test_psa_exercise_key(target_key, expected_usage, expected_alg2, 0)) {
             goto exit;
         }
     }
@@ -8684,7 +8876,7 @@ void derive_input(int alg_arg,
                 // When taking a private key as secret input, use key agreement
                 // to add the shared secret to the derivation
                 TEST_EQUAL(mbedtls_test_psa_key_agreement_with_self(
-                               &operation, keys[i]),
+                               &operation, keys[i], 0),
                            expected_statuses[i]);
             } else {
                 TEST_EQUAL(psa_key_derivation_input_key(&operation, steps[i],
@@ -8783,7 +8975,7 @@ void derive_over_capacity(int alg_arg)
     if (!mbedtls_test_psa_setup_key_derivation_wrap(&operation, key, alg,
                                                     input1, input1_length,
                                                     input2, input2_length,
-                                                    capacity)) {
+                                                    capacity, 0)) {
         goto exit;
     }
 
@@ -9102,7 +9294,7 @@ void derive_full(int alg_arg,
     if (!mbedtls_test_psa_setup_key_derivation_wrap(&operation, key, alg,
                                                     input1->x, input1->len,
                                                     input2->x, input2->len,
-                                                    requested_capacity)) {
+                                                    requested_capacity, 0)) {
         goto exit;
     }
 
@@ -9219,7 +9411,7 @@ void derive_key_exercise(int alg_arg,
     if (!mbedtls_test_psa_setup_key_derivation_wrap(&operation, base_key, alg,
                                                     input1->x, input1->len,
                                                     input2->x, input2->len,
-                                                    capacity)) {
+                                                    capacity, 0)) {
         goto exit;
     }
 
@@ -9236,7 +9428,7 @@ void derive_key_exercise(int alg_arg,
     TEST_EQUAL(psa_get_key_bits(&got_attributes), derived_bits);
 
     /* Exercise the derived key. */
-    if (!mbedtls_test_psa_exercise_key(derived_key, derived_usage, derived_alg)) {
+    if (!mbedtls_test_psa_exercise_key(derived_key, derived_usage, derived_alg, 0)) {
         goto exit;
     }
 
@@ -9289,7 +9481,7 @@ void derive_key_export(int alg_arg,
     if (!mbedtls_test_psa_setup_key_derivation_wrap(&operation, base_key, alg,
                                                     input1->x, input1->len,
                                                     input2->x, input2->len,
-                                                    capacity)) {
+                                                    capacity, 0)) {
         goto exit;
     }
 
@@ -9302,7 +9494,7 @@ void derive_key_export(int alg_arg,
     if (!mbedtls_test_psa_setup_key_derivation_wrap(&operation, base_key, alg,
                                                     input1->x, input1->len,
                                                     input2->x, input2->len,
-                                                    capacity)) {
+                                                    capacity, 0)) {
         goto exit;
     }
 
@@ -9373,7 +9565,7 @@ void derive_key_type(int alg_arg,
             &operation, base_key, alg,
             input1->x, input1->len,
             input2->x, input2->len,
-            PSA_KEY_DERIVATION_UNLIMITED_CAPACITY) == 0) {
+            PSA_KEY_DERIVATION_UNLIMITED_CAPACITY, 0) == 0) {
         goto exit;
     }
 
@@ -9438,7 +9630,7 @@ void derive_key_ext(int alg_arg,
             &operation, base_key, alg,
             input1->x, input1->len,
             input2->x, input2->len,
-            PSA_KEY_DERIVATION_UNLIMITED_CAPACITY) == 0) {
+            PSA_KEY_DERIVATION_UNLIMITED_CAPACITY, 0) == 0) {
         goto exit;
     }
 
@@ -9502,7 +9694,7 @@ void derive_key(int alg_arg,
     if (!mbedtls_test_psa_setup_key_derivation_wrap(&operation, base_key, alg,
                                                     input1->x, input1->len,
                                                     input2->x, input2->len,
-                                                    SIZE_MAX)) {
+                                                    SIZE_MAX, 0)) {
         goto exit;
     }
 
@@ -9944,7 +10136,7 @@ void generate_key(int type_arg,
     TEST_EQUAL(psa_get_key_bits(&got_attributes), bits);
 
     /* Do something with the key according to its type and permitted usage. */
-    if (!mbedtls_test_psa_exercise_key(key, usage, alg)) {
+    if (!mbedtls_test_psa_exercise_key(key, usage, alg, 0)) {
         goto exit;
     }
 
@@ -10014,7 +10206,7 @@ void generate_key_ext(int type_arg,
 #endif
 
     /* Do something with the key according to its type and permitted usage. */
-    if (!mbedtls_test_psa_exercise_key(key, usage, alg)) {
+    if (!mbedtls_test_psa_exercise_key(key, usage, alg, 0)) {
         goto exit;
     }
 
@@ -10165,7 +10357,7 @@ void persistent_key_load_key_from_storage(data_t *data,
     }
 
     /* Do something with the key according to its type and permitted usage. */
-    if (!mbedtls_test_psa_exercise_key(key, usage_flags, alg)) {
+    if (!mbedtls_test_psa_exercise_key(key, usage_flags, alg, 0)) {
         goto exit;
     }
 

@@ -82,6 +82,41 @@ void meta_test_fail(const char *name)
     mbedtls_test_fail("Forced test failure", __LINE__, __FILE__);
 }
 
+void meta_test_not_equal(const char *name)
+{
+    int left = 20;
+    int right = 10;
+
+    (void) name;
+
+    TEST_EQUAL(left, right);
+exit:
+    ;
+}
+
+void meta_test_not_le_s(const char *name)
+{
+    int left = 20;
+    int right = 10;
+
+    (void) name;
+
+    TEST_LE_S(left, right);
+exit:
+    ;
+}
+
+void meta_test_not_le_u(const char *name)
+{
+    size_t left = 20;
+    size_t right = 10;
+
+    (void) name;
+
+    TEST_LE_U(left, right);
+exit:
+    ;
+}
 
 /****************************************************************/
 /* Platform features */
@@ -356,6 +391,9 @@ typedef struct {
  */
 metatest_t metatests[] = {
     { "test_fail", "any", meta_test_fail },
+    { "test_not_equal", "any", meta_test_not_equal },
+    { "test_not_le_s", "any", meta_test_not_le_s },
+    { "test_not_le_u", "any", meta_test_not_le_u },
     { "null_dereference", "any", null_pointer_dereference },
     { "null_call", "any", null_pointer_call },
     { "read_after_free", "asan", read_after_free },

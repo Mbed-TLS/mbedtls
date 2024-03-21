@@ -1,3 +1,0 @@
-Features
-   * Add new accessor to expose the private group id member of
-     `mbedtls_ecdh_context` structure.

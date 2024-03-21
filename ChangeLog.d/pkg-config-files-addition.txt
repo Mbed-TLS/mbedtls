@@ -1,4 +1,0 @@
-Features
-   * Add pc files for pkg-config, e.g.:
-     pkg-config --cflags --libs (mbedtls|mbedcrypto|mbedx509)
-

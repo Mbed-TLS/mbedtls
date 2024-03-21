@@ -1,3 +1,0 @@
-Bugfix
-   * Fix RSA opaque keys always using PKCS1 v1.5 algorithms instead of the
-     primary algorithm of the wrapped PSA key.

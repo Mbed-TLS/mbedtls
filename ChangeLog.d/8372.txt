@@ -1,3 +1,0 @@
-Features
-   *  AES-NI is now supported in Windows builds with clang and clang-cl.
-      Resolves #8372.

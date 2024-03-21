@@ -1,3 +1,0 @@
-Features
-   * Improve performance of AES-GCM, AES-CTR and CTR-DRBG when
-     hardware accelerated AES is not present (around 13-23% on 64-bit Arm).

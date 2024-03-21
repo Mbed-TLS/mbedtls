@@ -1,3 +1,0 @@
-Bugfix
-   * Fix the restoration of the ALPN when loading serialized connection with
-   * the mbedtls_ssl_context_load() API.

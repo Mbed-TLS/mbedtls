@@ -901,7 +901,7 @@ component_test_default_cmake_gcc_asan () {
     programs/test/selftest
 
     msg "test: metatests (GCC, ASan build)"
-    tests/scripts/run-metatests.sh any asan
+    tests/scripts/run-metatests.sh any asan poison
 
     msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
     tests/ssl-opt.sh
@@ -944,6 +944,17 @@ component_test_psa_crypto_key_id_encodes_owner () {
     make
 
     msg "test: full config - USE_PSA_CRYPTO + PSA_CRYPTO_KEY_ID_ENCODES_OWNER, cmake, gcc, ASan"
+    make test
+}
+
+component_test_psa_assume_exclusive_buffers () {
+    msg "build: full config + MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS, cmake, gcc, ASan"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: full config + MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS, cmake, gcc, ASan"
     make test
 }
 
@@ -1514,7 +1525,7 @@ component_test_everest () {
     make test
 
     msg "test: metatests (clang, ASan)"
-    tests/scripts/run-metatests.sh any asan
+    tests/scripts/run-metatests.sh any asan poison
 
     msg "test: Everest ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
     tests/ssl-opt.sh -f ECDH

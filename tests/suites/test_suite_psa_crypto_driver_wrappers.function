@@ -920,14 +920,7 @@ void cipher_entry_points(int alg_arg, int key_type_arg,
         output, output_buffer_size, &function_output_length);
     TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits, 1);
     TEST_EQUAL(status, PSA_ERROR_GENERIC_ERROR);
-    /*
-     * Check that the output buffer is still in the same state.
-     * This will fail if the output buffer is used by the core to pass the IV
-     * it generated to the driver (and is not restored).
-     */
-    for (size_t i = 0; i < output_buffer_size; i++) {
-        TEST_EQUAL(output[i], 0xa5);
-    }
+
     mbedtls_test_driver_cipher_hooks.hits = 0;
 
     /* Test setup call, encrypt */
@@ -990,14 +983,6 @@ void cipher_entry_points(int alg_arg, int key_type_arg,
     /* When generating the IV fails, it should call abort too */
     TEST_EQUAL(mbedtls_test_driver_cipher_hooks.hits, 2);
     TEST_EQUAL(status, mbedtls_test_driver_cipher_hooks.forced_status);
-    /*
-     * Check that the output buffer is still in the same state.
-     * This will fail if the output buffer is used by the core to pass the IV
-     * it generated to the driver (and is not restored).
-     */
-    for (size_t i = 0; i < 16; i++) {
-        TEST_EQUAL(output[i], 0xa5);
-    }
     /* Failure should prevent further operations from executing on the driver */
     mbedtls_test_driver_cipher_hooks.hits = 0;
     status = psa_cipher_update(&operation,

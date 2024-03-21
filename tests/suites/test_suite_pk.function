@@ -1875,7 +1875,7 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
 #endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
 
     /* Export public key from the non-opaque PK context we just created. */
-#if defined(MBEDTLS_PK_WRITE_C)
+#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PK_WRITE_C)
     ret = mbedtls_pk_write_pubkey_der(&pk, legacy_pub_key, sizeof(legacy_pub_key));
     TEST_ASSERT(ret >= 0);
     legacy_pub_key_len = (size_t) ret;
@@ -1884,7 +1884,7 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
     memmove(legacy_pub_key,
             legacy_pub_key + sizeof(legacy_pub_key) - legacy_pub_key_len,
             legacy_pub_key_len);
-#else /* MBEDTLS_PK_WRITE_C */
+#else /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C */
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(psa_type)) {
         TEST_EQUAL(mbedtls_ecp_point_write_binary(&(mbedtls_pk_ec_ro(pk)->grp),
@@ -1905,7 +1905,7 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
         memmove(legacy_pub_key, end, legacy_pub_key_len);
     }
 #endif /* MBEDTLS_RSA_C */
-#endif /* MBEDTLS_PK_WRITE_C */
+#endif /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C */
 
     /* Turn the PK context into an opaque one. */
     TEST_EQUAL(mbedtls_pk_get_psa_attributes(&pk, PSA_KEY_USAGE_SIGN_HASH, &attributes), 0);
@@ -1932,7 +1932,7 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
     }
 
     /* Export public key from the opaque PK context. */
-#if defined(MBEDTLS_PK_WRITE_C)
+#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PK_WRITE_C)
     ret = mbedtls_pk_write_pubkey_der(&pk, opaque_pub_key, sizeof(opaque_pub_key));
     TEST_ASSERT(ret >= 0);
     opaque_pub_key_len = (size_t) ret;
@@ -1940,10 +1940,10 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
     memmove(opaque_pub_key,
             opaque_pub_key + sizeof(opaque_pub_key) - opaque_pub_key_len,
             opaque_pub_key_len);
-#else /* MBEDTLS_PK_WRITE_C */
+#else /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C */
     TEST_EQUAL(psa_export_public_key(key_id, opaque_pub_key, sizeof(opaque_pub_key),
                                      &opaque_pub_key_len), PSA_SUCCESS);
-#endif /* MBEDTLS_PK_WRITE_C */
+#endif /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C */
 
     /* Check that the public keys of opaque and non-opaque PK contexts match. */
     TEST_EQUAL(opaque_pub_key_len, legacy_pub_key_len);
@@ -1955,9 +1955,9 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
 
     /* Create a new non-opaque PK context to verify the signature. */
     mbedtls_pk_init(&pk);
-#if defined(MBEDTLS_PK_PARSE_C)
+#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PK_WRITE_C)
     TEST_EQUAL(mbedtls_pk_parse_public_key(&pk, legacy_pub_key, legacy_pub_key_len), 0);
-#else /* MBEDTLS_PK_PARSE_C */
+#else /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C */
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(psa_type)) {
         TEST_EQUAL(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY)), 0);
@@ -1974,7 +1974,7 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
                                             legacy_pub_key_len), 0);
     }
 #endif /* MBEDTLS_RSA_C */
-#endif /* MBEDTLS_PK_PARSE_C */
+#endif /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C */
 
 #if defined(MBEDTLS_RSA_C)
     if (PSA_KEY_TYPE_IS_RSA(psa_type)) {

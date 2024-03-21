@@ -17,6 +17,7 @@ FAKETIME ?= faketime
 TOP_DIR = ../..
 MBEDTLS_CERT_WRITE ?= $(TOP_DIR)/programs/x509/cert_write
 MBEDTLS_CERT_REQ ?= $(TOP_DIR)/programs/x509/cert_req
+MBEDTLS_GEN_KEY ?= $(TOP_DIR)/programs/pkey/gen_key
 
 
 ## Build the generated test data. Note that since the final outputs
@@ -718,6 +719,21 @@ rsa_pkcs1_4096_clear.pem:
 	$(OPENSSL) genrsa -out $@ 4096
 all_final += rsa_pkcs1_4096_clear.pem
 
+### RSA keys in DER format used in test_suite_pk.
+rsa_1024.der: $(MBEDTLS_GEN_KEY)
+	$(MBEDTLS_GEN_KEY) type=rsa rsa_keysize=1024 format=der filename="$@"
+rsa_1026.der: $(MBEDTLS_GEN_KEY)
+	$(MBEDTLS_GEN_KEY) type=rsa rsa_keysize=1026 format=der filename="$@"
+rsa_1028.der: $(MBEDTLS_GEN_KEY)
+	$(MBEDTLS_GEN_KEY) type=rsa rsa_keysize=1028 format=der filename="$@"
+rsa_1030.der: $(MBEDTLS_GEN_KEY)
+	$(MBEDTLS_GEN_KEY) type=rsa rsa_keysize=1030 format=der filename="$@"
+rsa_2048.der: $(MBEDTLS_GEN_KEY)
+	$(MBEDTLS_GEN_KEY) type=rsa rsa_keysize=2048 format=der filename="$@"
+rsa_4096.der: $(MBEDTLS_GEN_KEY)
+	$(MBEDTLS_GEN_KEY) type=rsa rsa_keysize=4096 format=der filename="$@"
+all_final += rsa_1024.der rsa_1026.der rsa_1028.der rsa_1030.der rsa_2048.der rsa_4096.der
+
 ###
 ### PKCS1-encoded, encrypted RSA keys
 ###
@@ -1188,6 +1204,41 @@ keys_rsa_all: keys_rsa_unenc keys_rsa_enc_basic keys_rsa_enc_pkcs8_v1 keys_rsa_e
 ################################################################
 #### Generate various EC keys
 ################################################################
+
+### EC keys in DER format to be used in test_suite_pk.
+seedfile:
+	ln -s $(TOP_DIR)/seedfile ./seedfile
+
+ec_brainpoolP256r1.der: seedfile
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=brainpoolP256r1 format=der filename="$@"
+ec_brainpoolP384r1.der: seedfile
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=brainpoolP384r1 format=der filename="$@"
+ec_brainpoolP512r1.der: seedfile
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=brainpoolP512r1 format=der filename="$@"
+ec_secp192k1.der: seedfile
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=secp192k1 format=der filename="$@"
+ec_secp192r1.der: seedfile
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=secp192r1 format=der filename="$@"
+ec_secp224k1.der: seedfile
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=secp224k1 format=der filename="$@"
+ec_secp224r1.der: seedfile
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=secp224r1 format=der filename="$@"
+ec_secp256k1.der: seedfile
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=secp256k1 format=der filename="$@"
+ec_secp256r1.der: seedfile
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=secp256r1 format=der filename="$@"
+ec_secp384r1.der: seedfile
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=secp384r1 format=der filename="$@"
+ec_secp521r1.der: seedfile
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=secp521r1 format=der filename="$@"
+ec_x25519.der: seedfile
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=x25519 format=der filename="$@"
+ec_x448.der: seedfile
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=x448 format=der filename="$@"
+all_final += ec_brainpoolP256r1.der ec_brainpoolP384r1.der ec_brainpoolP512r1.der \
+		ec_secp192k1.der ec_secp192r1.der ec_secp224k1.der ec_secp224r1.der \
+		ec_secp256k1.der ec_secp256r1.der ec_secp384r1.der ec_secp521r1.der \
+		ec_x25519.der ec_x448.der
 
 ###
 ### PKCS8 encoded

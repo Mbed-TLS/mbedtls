@@ -922,7 +922,6 @@ o_check_ciphersuite()
 # g_check_ciphersuite CIPHER_SUITE_NAME
 g_check_ciphersuite()
 {
-    set -x
     if [ -z "$GNUTLS_HAS_TLS1_RSA_NULL_SHA256" ]; then
         case "$MODE" in
             tls1|tls1_1|dtls1)
@@ -932,7 +931,6 @@ g_check_ciphersuite()
                 esac;;
         esac
     fi
-    set +x
 }
 
 

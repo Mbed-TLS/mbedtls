@@ -369,7 +369,9 @@ int mbedtls_pk_setup(mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info);
  * * EC:
  *     * verify, verify_ext, sign, sign_ext: ECDSA.
  * * RSA:
- *     * sign, sign_ext, decrypt: use the primary algorithm in the wrapped PSA key;
+ *     * sign, decrypt: use the primary algorithm in the wrapped PSA key;
+ *     * sign_ext: RSA PSS if the pk_type is #MBEDTLS_PK_RSASSA_PSS, otherwise
+ *       it falls back to the sign() case;
  *     * verify, verify_ext, encrypt: not supported.
  *
  * In order for the above operations to succeed, the policy of the wrapped PSA

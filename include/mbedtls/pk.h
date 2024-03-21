@@ -377,6 +377,9 @@ int mbedtls_pk_setup(mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info);
  * In order for the above operations to succeed, the policy of the wrapped PSA
  * key must allow the specified algorithm.
  *
+ * Opaque PK contexts wrapping an EC keys also support \c mbedtls_pk_check_pair(),
+ * whereas RSA ones do not.
+ *
  * \warning The PSA wrapped key must remain valid as long as the wrapping PK
  *          context is in use, that is at least between the point this function
  *          is called and the point mbedtls_pk_free() is called on this context.

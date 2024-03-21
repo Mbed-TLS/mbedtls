@@ -135,7 +135,12 @@ print_test_case() {
 list_test_cases() {
     for MODE in $MODES; do
         for TYPE in $TYPES; do
-            for VERIFY in $VERIFIES; do
+            # PSK cipher suites do not allow client certificate verification.
+            SUB_VERIFIES=$VERIFIES
+            if [ "$TYPE" = "PSK" ]; then
+                SUB_VERIFIES="NO"
+            fi
+            for VERIFY in $SUB_VERIFIES; do
                 VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
                 reset_ciphersuites
                 add_common_ciphersuites
@@ -277,12 +282,6 @@ filter_ciphersuites()
 
         # Ciphersuite for GnuTLS
         G_CIPHERS=$( filter "$G_CIPHERS" )
-    fi
-
-    # For GnuTLS client -> Mbed TLS server,
-    # we need to force IPv4 by connecting to 127.0.0.1 but then auth fails
-    if is_dtls "$MODE" && [ "X$VERIFY" = "XYES" ]; then
-        G_CIPHERS=""
     fi
 }
 
@@ -641,24 +640,14 @@ add_gnutls_ciphersuites()
             ;;
 
         "RSA")
-            # TLS-RSA-WITH-NULL-SHA256 is a (D)TLS 1.2-only cipher suite,
-            # like all SHA256 cipher suites. But Mbed TLS supports it with
-            # (D)TLS 1.0 and 1.1 as well. So do ancient versions of GnuTLS,
-            # but this was considered a bug which was fixed in GnuTLS 3.4.7.
-            # Check the GnuTLS support list to see what the protocol version
-            # requirement is for that cipher suite.
-            if [ `minor_ver "$MODE"` -ge 3 ] || {
-                   [ `minor_ver "$MODE"` -gt 0 ] &&
-                   $GNUTLS_CLI --list | grep -q '^TLS_RSA_NULL_SHA256.*0$'
-               }
-            then
-                M_CIPHERS="$M_CIPHERS                           \
+            # Not actually supported with all GnuTLS versions. See
+            # GNUTLS_HAS_TLS1_RSA_NULL_SHA256= below.
+            M_CIPHERS="$M_CIPHERS                               \
                     TLS-RSA-WITH-NULL-SHA256                    \
                     "
-                G_CIPHERS="$G_CIPHERS                           \
+            G_CIPHERS="$G_CIPHERS                               \
                     +RSA:+NULL:+SHA256                          \
                     "
-            fi
             if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 M_CIPHERS="$M_CIPHERS                           \
@@ -929,6 +918,21 @@ o_check_ciphersuite()
         esac
     fi
 }
+
+# g_check_ciphersuite CIPHER_SUITE_NAME
+g_check_ciphersuite()
+{
+    if [ -z "$GNUTLS_HAS_TLS1_RSA_NULL_SHA256" ]; then
+        case "$MODE" in
+            tls1|tls1_1|dtls1)
+                case "$1" in
+                    TLS-RSA-WITH-NULL-SHA256|+RSA:+NULL:+SHA256)
+                        SKIP_NEXT="YES";;
+                esac;;
+        esac
+    fi
+}
+
 
 setup_arguments()
 {
@@ -1287,13 +1291,7 @@ run_client() {
             ;;
 
         [Gg]nu*)
-            # need to force IPv4 with UDP, but keep localhost for auth
-            if is_dtls "$MODE"; then
-                G_HOST="127.0.0.1"
-            else
-                G_HOST="localhost"
-            fi
-            CLIENT_CMD="$GNUTLS_CLI $G_CLIENT_ARGS --priority $G_PRIO_MODE:$2 $G_HOST"
+            CLIENT_CMD="$GNUTLS_CLI $G_CLIENT_ARGS --priority $G_PRIO_MODE:$2 localhost"
             log "$CLIENT_CMD"
             echo "$CLIENT_CMD" > $CLI_OUT
             printf 'GET HTTP/1.0\r\n\r\n' | $CLIENT_CMD >> $CLI_OUT 2>&1 &
@@ -1422,6 +1420,19 @@ for PEER in $PEERS; do
     esac
 done
 
+case " $PEERS " in *\ [Gg]nu*)
+    GNUTLS_HAS_TLS1_RSA_NULL_SHA256=
+    # TLS-RSA-WITH-NULL-SHA256 is a (D)TLS 1.2-only cipher suite,
+    # like all SHA256 cipher suites. But Mbed TLS supports it with
+    # (D)TLS 1.0 and 1.1 as well. So do ancient versions of GnuTLS,
+    # but this was considered a bug which was fixed in GnuTLS 3.4.7.
+    # Check the GnuTLS support list to see what the protocol version
+    # requirement is for that cipher suite.
+    if $GNUTLS_CLI --list | grep -q '^TLS_RSA_NULL_SHA256.*0$'; then
+        GNUTLS_HAS_TLS1_RSA_NULL_SHA256=YES
+    fi
+esac
+
 # Pick a "unique" port in the range 10000-19999.
 PORT="0000$$"
 PORT="1$(echo $PORT | tail -c 5)"
@@ -1511,6 +1522,7 @@ for MODE in $MODES; do
                     if [ "X" != "X$M_CIPHERS" ]; then
                         start_server "GnuTLS"
                         for i in $M_CIPHERS; do
+                            g_check_ciphersuite "$i"
                             run_client mbedTLS $i
                         done
                         stop_server
@@ -1519,6 +1531,7 @@ for MODE in $MODES; do
                     if [ "X" != "X$G_CIPHERS" ]; then
                         start_server "mbedTLS"
                         for i in $G_CIPHERS; do
+                            g_check_ciphersuite "$i"
                             run_client GnuTLS $i
                         done
                         stop_server

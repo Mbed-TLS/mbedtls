@@ -23,6 +23,9 @@
 
 #include <test/psa_exercise_key.h>
 
+/* Needed for the definition of MBEDTLS_PK_WRITE_PUBKEY_MAX_SIZE. */
+#include "pkwrite.h"
+
 /* Used for properly sizing the key buffer in pk_genkey_ec() */
 #include "psa_util_internal.h"
 
@@ -1576,6 +1579,7 @@ exit:
 void pk_wrap_rsa_decrypt_test_vec(data_t *cipher, int mod,
                                   char *input_P, char *input_Q,
                                   char *input_N, char *input_E,
+                                  int padding_mode,
                                   data_t *clear, int ret)
 {
     unsigned char output[256];
@@ -1609,6 +1613,11 @@ void pk_wrap_rsa_decrypt_test_vec(data_t *cipher, int mod,
     TEST_EQUAL(mbedtls_rsa_import(rsa, &N, &P, &Q, NULL, &E), 0);
     TEST_EQUAL(mbedtls_rsa_get_len(rsa), (mod + 7) / 8);
     TEST_EQUAL(mbedtls_rsa_complete(rsa), 0);
+
+    /* Set padding mode */
+    if (padding_mode == MBEDTLS_RSA_PKCS_V21) {
+        TEST_EQUAL(mbedtls_rsa_set_padding(rsa, padding_mode, MBEDTLS_MD_SHA1), 0);
+    }
 
     /* Turn PK context into an opaque one. */
     TEST_EQUAL(mbedtls_pk_get_psa_attributes(&pk, PSA_KEY_USAGE_DECRYPT, &key_attr), 0);
@@ -1817,74 +1826,88 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_TEST_PK_PSA_SIGN */
-void pk_psa_sign(int curve_or_keybits, int psa_type, int expected_bits)
+void pk_psa_sign(int psa_type, int bits, int rsa_padding)
 {
     mbedtls_pk_context pk;
     unsigned char hash[32];
     unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
-    unsigned char pkey_legacy[200];
-    unsigned char pkey_psa[200];
-    unsigned char *pkey_legacy_start, *pkey_psa_start;
-    size_t sig_len, klen_legacy, klen_psa;
-    int ret;
+    unsigned char legacy_pub_key[MBEDTLS_PK_WRITE_PUBKEY_MAX_SIZE];
+    unsigned char opaque_pub_key[MBEDTLS_PK_WRITE_PUBKEY_MAX_SIZE];
+    size_t sig_len, legacy_pub_key_len, opaque_pub_key_len;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_PK_WRITE_C)
+    int ret;
+#endif /* MBEDTLS_RSA_C || MBEDTLS_PK_WRITE_C */
+#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
+    mbedtls_ecp_group_id ecp_grp_id;
+#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
 
     /*
-     * This tests making signatures with a wrapped PSA key:
-     * - generate a fresh ECP/RSA legacy PK context
-     * - wrap it in a PK context and make a signature this way
-     * - extract the public key
-     * - parse it to a PK context and verify the signature this way
+     * Following checks are perfomed:
+     * - create an RSA/EC opaque context;
+     * - sign with opaque context for both EC and RSA keys;
+     * - [EC only] verify with opaque context;
+     * - verify that public keys of opaque and non-opaque contexts match;
+     * - verify with non-opaque context.
      */
 
     mbedtls_pk_init(&pk);
     USE_PSA_INIT();
 
+    /* Create the legacy EC/RSA PK context. */
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_GENPRIME)
     if (PSA_KEY_TYPE_IS_RSA(psa_type)) {
-        /* Create legacy RSA public/private key in PK context. */
         TEST_ASSERT(mbedtls_pk_setup(&pk,
                                      mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)) == 0);
-        TEST_ASSERT(mbedtls_rsa_gen_key(mbedtls_pk_rsa(pk),
-                                        mbedtls_test_rnd_std_rand, NULL,
-                                        curve_or_keybits, 3) == 0);
-    } else
+        TEST_EQUAL(pk_genkey(&pk, bits), 0);
+        TEST_EQUAL(mbedtls_rsa_set_padding(mbedtls_pk_rsa(pk), rsa_padding, MBEDTLS_MD_NONE), 0);
+    }
+#else /* MBEDTLS_RSA_C && MBEDTLS_GENPRIME */
+    (void) rsa_padding;
 #endif /* MBEDTLS_RSA_C && MBEDTLS_GENPRIME */
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(psa_type)) {
-        mbedtls_ecp_group_id grpid = curve_or_keybits;
-
-        /* Create legacy EC public/private key in PK context. */
-        TEST_ASSERT(mbedtls_pk_setup(&pk,
-                                     mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY)) == 0);
-        TEST_ASSERT(pk_genkey(&pk, grpid) == 0);
-    } else
-#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
-    {
-        (void) curve_or_keybits;
-        TEST_ASSUME(!"Opaque PK key not supported in this configuration");
+        ecp_grp_id = mbedtls_ecc_group_from_psa(psa_type, bits);
+        TEST_ASSERT(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY)) == 0);
+        TEST_ASSERT(pk_genkey(&pk, ecp_grp_id) == 0);
     }
+#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
 
-    /* Export underlying public key for re-importing in a legacy context. */
-#if defined(MBEDTLS_PK_WRITE_C)
-    ret = mbedtls_pk_write_pubkey_der(&pk, pkey_legacy,
-                                      sizeof(pkey_legacy));
+    /* Export public key from the non-opaque PK context we just created. */
+#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PK_WRITE_C)
+    ret = mbedtls_pk_write_pubkey_der(&pk, legacy_pub_key, sizeof(legacy_pub_key));
     TEST_ASSERT(ret >= 0);
-    klen_legacy = (size_t) ret;
-    /* mbedtls_pk_write_pubkey_der() writes backwards in the data buffer. */
-    pkey_legacy_start = pkey_legacy + sizeof(pkey_legacy) - klen_legacy;
-#else
-    ret = mbedtls_ecp_point_write_binary(&(mbedtls_pk_ec_ro(pk)->grp),
-                                         &(mbedtls_pk_ec_ro(pk)->Q),
-                                         MBEDTLS_ECP_PF_UNCOMPRESSED,
-                                         &klen_legacy, pkey_legacy,
-                                         sizeof(pkey_legacy));
-    TEST_EQUAL(ret, 0);
-    pkey_legacy_start = pkey_legacy;
-#endif /* MBEDTLS_PK_WRITE_C */
+    legacy_pub_key_len = (size_t) ret;
+    /* mbedtls_pk_write_pubkey_der() writes backwards in the data buffer so we
+     * shift data back to the beginning of the buffer. */
+    memmove(legacy_pub_key,
+            legacy_pub_key + sizeof(legacy_pub_key) - legacy_pub_key_len,
+            legacy_pub_key_len);
+#else /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C */
+#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
+    if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(psa_type)) {
+        TEST_EQUAL(mbedtls_ecp_point_write_binary(&(mbedtls_pk_ec_ro(pk)->grp),
+                                                  &(mbedtls_pk_ec_ro(pk)->Q),
+                                                  MBEDTLS_ECP_PF_UNCOMPRESSED,
+                                                  &legacy_pub_key_len, legacy_pub_key,
+                                                  sizeof(legacy_pub_key)), 0);
+    }
+#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
+#if defined(MBEDTLS_RSA_C)
+    if (PSA_KEY_TYPE_IS_RSA(psa_type)) {
+        unsigned char *end = legacy_pub_key + sizeof(legacy_pub_key);
+        ret = mbedtls_rsa_write_pubkey(mbedtls_pk_rsa(pk), legacy_pub_key, &end);
+        legacy_pub_key_len = (size_t) ret;
+        TEST_ASSERT(legacy_pub_key_len > 0);
+        /* mbedtls_rsa_write_pubkey() writes data backward in the buffer so
+         * we shift that to the origin of the buffer instead. */
+        memmove(legacy_pub_key, end, legacy_pub_key_len);
+    }
+#endif /* MBEDTLS_RSA_C */
+#endif /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C */
 
-    /* Turn PK context into an opaque one. */
+    /* Turn the PK context into an opaque one. */
     TEST_EQUAL(mbedtls_pk_get_psa_attributes(&pk, PSA_KEY_USAGE_SIGN_HASH, &attributes), 0);
     TEST_EQUAL(mbedtls_pk_import_into_psa(&pk, &attributes, &key_id), 0);
     mbedtls_pk_free(&pk);
@@ -1893,13 +1916,12 @@ void pk_psa_sign(int curve_or_keybits, int psa_type, int expected_bits)
 
     PSA_ASSERT(psa_get_key_attributes(key_id, &attributes));
     TEST_EQUAL(psa_get_key_type(&attributes), (psa_key_type_t) psa_type);
-    TEST_EQUAL(psa_get_key_bits(&attributes), (size_t) expected_bits);
-    TEST_EQUAL(psa_get_key_lifetime(&attributes),
-               PSA_KEY_LIFETIME_VOLATILE);
+    TEST_EQUAL(psa_get_key_bits(&attributes), (size_t) bits);
+    TEST_EQUAL(psa_get_key_lifetime(&attributes), PSA_KEY_LIFETIME_VOLATILE);
 
+    /* Sign with the opaque context. */
     memset(hash, 0x2a, sizeof(hash));
     memset(sig, 0, sizeof(sig));
-
     TEST_ASSERT(mbedtls_pk_sign(&pk, MBEDTLS_MD_SHA256,
                                 hash, sizeof(hash), sig, sizeof(sig), &sig_len,
                                 NULL, NULL) == 0);
@@ -1909,56 +1931,60 @@ void pk_psa_sign(int curve_or_keybits, int psa_type, int expected_bits)
                                       hash, sizeof(hash), sig, sig_len) == 0);
     }
 
-    /* Export underlying public key for re-importing in a psa context. */
-#if defined(MBEDTLS_PK_WRITE_C)
-    ret = mbedtls_pk_write_pubkey_der(&pk, pkey_psa,
-                                      sizeof(pkey_psa));
+    /* Export public key from the opaque PK context. */
+#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PK_WRITE_C)
+    ret = mbedtls_pk_write_pubkey_der(&pk, opaque_pub_key, sizeof(opaque_pub_key));
     TEST_ASSERT(ret >= 0);
-    klen_psa = (size_t) ret;
+    opaque_pub_key_len = (size_t) ret;
     /* mbedtls_pk_write_pubkey_der() writes backwards in the data buffer. */
-    pkey_psa_start = pkey_psa + sizeof(pkey_psa) - klen_psa;
-#else
-    psa_status_t status;
+    memmove(opaque_pub_key,
+            opaque_pub_key + sizeof(opaque_pub_key) - opaque_pub_key_len,
+            opaque_pub_key_len);
+#else /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C */
+    TEST_EQUAL(psa_export_public_key(key_id, opaque_pub_key, sizeof(opaque_pub_key),
+                                     &opaque_pub_key_len), PSA_SUCCESS);
+#endif /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C */
 
-    status = psa_export_public_key(key_id, pkey_psa, sizeof(pkey_psa),
-                                   &klen_psa);
-    TEST_EQUAL(status, PSA_SUCCESS);
-    pkey_psa_start = pkey_psa;
-#endif /* MBEDTLS_PK_WRITE_C */
+    /* Check that the public keys of opaque and non-opaque PK contexts match. */
+    TEST_EQUAL(opaque_pub_key_len, legacy_pub_key_len);
+    TEST_MEMORY_COMPARE(opaque_pub_key, opaque_pub_key_len, legacy_pub_key, legacy_pub_key_len);
 
-    TEST_ASSERT(klen_psa == klen_legacy);
-    TEST_ASSERT(memcmp(pkey_psa_start, pkey_legacy_start, klen_psa) == 0);
-
+    /* Destroy the opaque PK context and the wrapped PSA key. */
     mbedtls_pk_free(&pk);
     TEST_ASSERT(PSA_SUCCESS == psa_destroy_key(key_id));
 
+    /* Create a new non-opaque PK context to verify the signature. */
     mbedtls_pk_init(&pk);
+#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PK_WRITE_C)
+    TEST_EQUAL(mbedtls_pk_parse_public_key(&pk, legacy_pub_key, legacy_pub_key_len), 0);
+#else /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C */
+#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
+    if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(psa_type)) {
+        TEST_EQUAL(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY)), 0);
+        TEST_EQUAL(mbedtls_ecp_group_load(&(mbedtls_pk_ec_rw(pk)->grp), ecp_grp_id), 0);
+        TEST_EQUAL(mbedtls_ecp_point_read_binary(&(mbedtls_pk_ec_ro(pk)->grp),
+                                                 &(mbedtls_pk_ec_rw(pk)->Q),
+                                                 legacy_pub_key, legacy_pub_key_len), 0);
+    }
+#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
+#if defined(MBEDTLS_RSA_C)
+    if (PSA_KEY_TYPE_IS_RSA(psa_type)) {
+        TEST_EQUAL(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)), 0);
+        TEST_EQUAL(mbedtls_rsa_parse_pubkey(mbedtls_pk_rsa(pk), legacy_pub_key,
+                                            legacy_pub_key_len), 0);
+    }
+#endif /* MBEDTLS_RSA_C */
+#endif /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C */
 
-    /* If we used "pk_write" previously, then we go for a "pk_parse" here;
-     * otherwise if we went for "ecp_point_write_binary" then we'll go
-     * for a "ecp_point_read_binary" here. This allows to drop dependencies
-     * on "PK_WRITE" and "PK_PARSE" if required */
-#if defined(MBEDTLS_PK_WRITE_C) && defined(MBEDTLS_PK_PARSE_C)
-    TEST_EQUAL(mbedtls_pk_parse_public_key(&pk, pkey_legacy_start,
-                                           klen_legacy), 0);
-#else
-    TEST_EQUAL(mbedtls_pk_setup(&pk,
-                                mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY)), 0);
-    TEST_EQUAL(mbedtls_ecp_group_load(
-                   &(mbedtls_pk_ec_rw(pk)->grp),
-                   (mbedtls_ecp_group_id) curve_or_keybits), 0);
-    TEST_EQUAL(mbedtls_ecp_point_read_binary(&(mbedtls_pk_ec_ro(pk)->grp),
-                                             &(mbedtls_pk_ec_rw(pk)->Q),
-                                             pkey_legacy_start, klen_legacy), 0);
-#endif
+#if defined(MBEDTLS_RSA_C)
+    if (PSA_KEY_TYPE_IS_RSA(psa_type)) {
+        TEST_EQUAL(mbedtls_rsa_set_padding(mbedtls_pk_rsa(pk), rsa_padding, MBEDTLS_MD_NONE), 0);
+    }
+#endif /* MBEDTLS_RSA_C */
     TEST_ASSERT(mbedtls_pk_verify(&pk, MBEDTLS_MD_SHA256,
                                   hash, sizeof(hash), sig, sig_len) == 0);
 
 exit:
-    /*
-     * Key attributes may have been returned by psa_get_key_attributes()
-     * thus reset them as required.
-     */
     psa_reset_key_attributes(&attributes);
 
     mbedtls_pk_free(&pk);

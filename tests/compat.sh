@@ -131,22 +131,28 @@ print_test_case() {
 
 # list_test_cases lists all potential test cases in compat.sh without execution
 list_test_cases() {
-    reset_ciphersuites
     for TYPE in $TYPES; do
+        reset_ciphersuites
         add_common_ciphersuites
         add_openssl_ciphersuites
         add_gnutls_ciphersuites
         add_mbedtls_ciphersuites
-    done
 
-    for VERIFY in $VERIFIES; do
-        VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
-        for MODE in $MODES; do
-            print_test_case m O "$O_CIPHERS"
-            print_test_case O m "$O_CIPHERS"
-            print_test_case m G "$G_CIPHERS"
-            print_test_case G m "$G_CIPHERS"
-            print_test_case m m "$M_CIPHERS"
+        # PSK cipher suites do not allow client certificate verification.
+        SUB_VERIFIES=$VERIFIES
+        if [ "$TYPE" = "PSK" ]; then
+            SUB_VERIFIES="NO"
+        fi
+
+        for VERIFY in $SUB_VERIFIES; do
+            VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
+            for MODE in $MODES; do
+                print_test_case m O "$O_CIPHERS"
+                print_test_case O m "$O_CIPHERS"
+                print_test_case m G "$G_CIPHERS"
+                print_test_case G m "$G_CIPHERS"
+                print_test_case m m "$M_CIPHERS"
+            done
         done
     done
 }
@@ -263,12 +269,6 @@ filter_ciphersuites()
 
         # Ciphersuite for GnuTLS
         G_CIPHERS=$( filter "$G_CIPHERS" )
-    fi
-
-    # For GnuTLS client -> Mbed TLS server,
-    # we need to force IPv4 by connecting to 127.0.0.1 but then auth fails
-    if is_dtls "$MODE" && [ "X$VERIFY" = "XYES" ]; then
-        G_CIPHERS=""
     fi
 }
 
@@ -939,13 +939,7 @@ run_client() {
             ;;
 
         [Gg]nu*)
-            # need to force IPv4 with UDP, but keep localhost for auth
-            if is_dtls "$MODE"; then
-                G_HOST="127.0.0.1"
-            else
-                G_HOST="localhost"
-            fi
-            CLIENT_CMD="$GNUTLS_CLI $G_CLIENT_ARGS --priority $G_PRIO_MODE:$3 $G_HOST"
+            CLIENT_CMD="$GNUTLS_CLI $G_CLIENT_ARGS --priority $G_PRIO_MODE:$3 localhost"
             log "$CLIENT_CMD"
             echo "$CLIENT_CMD" > $CLI_OUT
             printf 'GET HTTP/1.0\r\n\r\n' | $CLIENT_CMD >> $CLI_OUT 2>&1 &

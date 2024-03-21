@@ -1,6 +1,6 @@
 Mbed TLS ChangeLog (Sorted per branch, date)
 
-= Mbed TLS x.x.x branch released xxxx-xx-xx
+= Mbed TLS 3.6.0 branch released 2024-03-28
 
 API changes
    * Remove `tls13_` in mbedtls_ssl_tls13_conf_early_data() and

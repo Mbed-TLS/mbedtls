@@ -1,0 +1,4 @@
+Security
+   * Fix a stack buffer overread (less than 256 bytes) when parsing a TLS 1.3
+     ClientHello in a TLS 1.3 server supporting some PSK key exchange mode. A
+     malicious client could cause information disclosure or a denial of service.

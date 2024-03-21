@@ -2736,6 +2736,11 @@ PSA symmetric encrypt/decrypt multipart: AES-CBC-nopad, 16 bytes, good
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
 cipher_verify_output_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":16
 
+# Encrypt 48 bytes total, initially 16. This forces both calls to update() to output data.
+PSA symmetric encrypt/decrypt multipart: AES-CBC-nopad, 48 bytes, good
+depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
+cipher_verify_output_multipart:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a6bc1bee22e409f96e93d7e117393172a6bc1bee22e409f96e93d7e117393172a":16
+
 PSA symmetric encrypt/decrypt multipart: AES-CBC-PKCS#7, 16 bytes
 depends_on:PSA_WANT_ALG_CBC_PKCS7:PSA_WANT_KEY_TYPE_AES
 cipher_verify_output_multipart:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":16

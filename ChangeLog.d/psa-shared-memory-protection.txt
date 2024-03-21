@@ -1,0 +1,17 @@
+Security
+   * Passing buffers that are stored in untrusted memory as arguments
+     to PSA functions is now secure by default.
+     The PSA core now protects against modification of inputs or exposure
+     of intermediate outputs during operations. This is currently implemented
+     by copying buffers.
+     This feature increases code size and memory usage. If buffers passed to
+     PSA functions are owned exclusively by the PSA core for the duration of
+     the function call (i.e. no buffer parameters are in shared memory),
+     copying may be disabled by setting MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS.
+     Note that setting this option will cause input-output buffer overlap to
+     be only partially supported (#3266).
+     Fixes CVE-2024-28960
+Bugfix
+   * Fully support arbitrary overlap between inputs and outputs of PSA
+     functions. Note that overlap is still only partially supported when
+     MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS is set (#3266).

@@ -78,6 +78,9 @@ foreach(exe IN LISTS executables_libs executables_mbedcrypto)
         target_include_directories(${exe} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     endif()
 
+    # Request C11, required for memory poisoning
+    set_target_properties(${exe} PROPERTIES C_STANDARD 11)
+
     # This emulates "if ( ... IN_LIST ... )" which becomes available in CMake 3.3
     list(FIND executables_libs ${exe} exe_index)
     if (${exe_index} GREATER -1)

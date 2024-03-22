@@ -539,9 +539,11 @@ psa_status_t pk_psa_import_key(unsigned char *key_data, size_t key_len,
     return status;
 }
 
-psa_status_t pk_psa_genkey_generic(psa_key_type_t type, size_t bits,
-                                   psa_key_usage_t usage, psa_algorithm_t alg,
-                                   mbedtls_svc_key_id_t *key)
+psa_status_t pk_psa_genkey(psa_key_type_t type, size_t bits,
+                           psa_key_usage_t usage, psa_algorithm_t alg,
+                           psa_algorithm_t enrollment_alg,
+                           mbedtls_svc_key_id_t persistent_key_id,
+                           mbedtls_svc_key_id_t *key)
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status;
@@ -550,41 +552,15 @@ psa_status_t pk_psa_genkey_generic(psa_key_type_t type, size_t bits,
 
     psa_set_key_usage_flags(&attributes, usage);
     psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_enrollment_algorithm(&attributes, enrollment_alg);
     psa_set_key_type(&attributes, type);
     psa_set_key_bits(&attributes, bits);
+    if (!mbedtls_svc_key_id_is_null(persistent_key_id)) {
+        psa_set_key_id(&attributes, persistent_key_id);
+    }
     status = psa_generate_key(&attributes, key);
 
     return status;
-}
-
-/*
- * Generate an ECC key using PSA and return the key identifier of that key,
- * or 0 if the key generation failed.
- * The key uses NIST P-256 and is usable for signing with SHA-256.
- */
-mbedtls_svc_key_id_t pk_psa_genkey_ecc(void)
-{
-    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
-
-    pk_psa_genkey_generic(PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1), 256,
-                          PSA_KEY_USAGE_SIGN_HASH, PSA_ALG_ECDSA(PSA_ALG_SHA_256),
-                          &key);
-
-    return key;
-}
-
-/*
- * Generate an RSA key using PSA and return the key identifier of that key,
- * or 0 if the key generation failed.
- */
-mbedtls_svc_key_id_t pk_psa_genkey_rsa(void)
-{
-    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
-
-    pk_psa_genkey_generic(PSA_KEY_TYPE_RSA_KEY_PAIR, 1024, PSA_KEY_USAGE_SIGN_HASH,
-                          PSA_ALG_RSA_PKCS1V15_SIGN_RAW, &key);
-
-    return key;
 }
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 /* END_HEADER */
@@ -620,11 +596,15 @@ void pk_psa_utils(int key_is_rsa)
     mbedtls_pk_init(&pk);
 
     if (key_is_rsa) {
-        bitlen = 1024; /* hardcoded in genkey() */
-        key = pk_psa_genkey_rsa();
+        bitlen = 1024;
+        key = pk_psa_genkey(PSA_KEY_TYPE_RSA_KEY_PAIR, 1024, PSA_KEY_USAGE_SIGN_HASH,
+                            PSA_ALG_RSA_PKCS1V15_SIGN_RAW, PSA_ALG_NONE,
+                            PSA_KEY_ID_NULL, &key);
     } else {
-        bitlen = 256; /* hardcoded in genkey() */
-        key = pk_psa_genkey_ecc();
+        bitlen = 256;
+        key = pk_psa_genkey(PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1), 256,
+                            PSA_KEY_USAGE_SIGN_HASH, PSA_ALG_ECDSA(PSA_ALG_SHA_256),
+                            PSA_ALG_NONE, PSA_KEY_ID_NULL, &key);
     }
     if (mbedtls_svc_key_id_is_null(key)) {
         goto exit;
@@ -709,16 +689,8 @@ void pk_can_do_ext(int opaque_key, int key_type, int key_usage, int key_alg,
     USE_PSA_INIT();
 
     if (opaque_key == 1) {
-        psa_set_key_usage_flags(&attributes, key_usage);
-        psa_set_key_algorithm(&attributes, key_alg);
-        if (key_alg2 != 0) {
-            psa_set_key_enrollment_algorithm(&attributes, key_alg2);
-        }
-        psa_set_key_type(&attributes, key_type);
-        psa_set_key_bits(&attributes, curve_or_keybits);
-
-        PSA_ASSERT(psa_generate_key(&attributes, &key));
-
+        PSA_ASSERT(pk_psa_genkey(key_type, curve_or_keybits, key_usage,
+                                 key_alg, key_alg2, PSA_KEY_ID_NULL, &key));
         if (mbedtls_svc_key_id_is_null(key)) {
             goto exit;
         }
@@ -2234,17 +2206,18 @@ void pk_import_into_psa_lifetime(int from_opaque,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         psa_key_type_t from_psa_type =
             PSA_KEY_TYPE_ECC_KEY_PAIR(MBEDTLS_TEST_PSA_ECC_ONE_FAMILY);
-        psa_set_key_type(&attributes, from_psa_type);
-        psa_set_key_bits(&attributes, MBEDTLS_TEST_PSA_ECC_ONE_CURVE_BITS);
-        psa_set_key_usage_flags(
-            &attributes,
+        psa_key_usage_t psa_key_usage =
             (from_exportable ? PSA_KEY_USAGE_EXPORT : PSA_KEY_USAGE_COPY) |
-            PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH);
-        psa_set_key_algorithm(&attributes, PSA_ALG_ECDH);
+            PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH;
+        mbedtls_svc_key_id_t persistent_key_id = MBEDTLS_SVC_KEY_ID_INIT;
+
         if (from_persistent) {
-            psa_set_key_id(&attributes, mbedtls_svc_key_id_make(0, 1));
+            persistent_key_id = mbedtls_svc_key_id_make(0, 1);
         }
-        PSA_ASSERT(psa_generate_key(&attributes, &old_key_id));
+
+        PSA_ASSERT(pk_psa_genkey(from_psa_type, MBEDTLS_TEST_PSA_ECC_ONE_CURVE_BITS,
+                                 psa_key_usage, PSA_ALG_ECDH, PSA_ALG_NONE,
+                                 persistent_key_id, &old_key_id));
         TEST_EQUAL(mbedtls_pk_setup_opaque(&pk, old_key_id), 0);
         psa_reset_key_attributes(&attributes);
 #else
@@ -2320,12 +2293,8 @@ void pk_get_psa_attributes_opaque(int from_type_arg, int from_bits_arg,
 
     PSA_INIT();
 
-    psa_set_key_type(&attributes, from_type);
-    psa_set_key_bits(&attributes, bits);
-    psa_set_key_usage_flags(&attributes, from_usage);
-    psa_set_key_algorithm(&attributes, alg);
-    psa_set_key_enrollment_algorithm(&attributes, 42);
-    PSA_ASSERT(psa_generate_key(&attributes, &old_key_id));
+    PSA_ASSERT(pk_psa_genkey(from_type, bits, from_usage, alg, 42,
+                             PSA_KEY_ID_NULL, &old_key_id));
     TEST_EQUAL(mbedtls_pk_setup_opaque(&pk, old_key_id), 0);
 
     psa_key_type_t expected_psa_type =
@@ -2417,11 +2386,8 @@ void pk_import_into_psa_opaque(int from_type, int from_bits,
 
     PSA_INIT();
 
-    psa_set_key_type(&from_attributes, from_type);
-    psa_set_key_bits(&from_attributes, from_bits);
-    psa_set_key_usage_flags(&from_attributes, from_usage);
-    psa_set_key_algorithm(&from_attributes, from_alg);
-    PSA_ASSERT(psa_generate_key(&from_attributes, &from_key_id));
+    PSA_ASSERT(pk_psa_genkey(from_type, from_bits, from_usage, from_alg, PSA_ALG_NONE,
+                             PSA_KEY_ID_NULL, &from_key_id));
     TEST_EQUAL(mbedtls_pk_setup_opaque(&pk, from_key_id), 0);
 
     psa_set_key_type(&to_attributes, to_type);
@@ -2488,8 +2454,9 @@ void pk_copy_from_psa_fail(void)
 
 #if defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE)
     /* Generate a key type that is not handled by the PK module. */
-    PSA_ASSERT(pk_psa_genkey_generic(PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919), 2048,
-                                     PSA_KEY_USAGE_EXPORT, PSA_ALG_NONE, &key_id));
+    PSA_ASSERT(pk_psa_genkey(PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919), 2048,
+                             PSA_KEY_USAGE_EXPORT, PSA_ALG_NONE, PSA_ALG_NONE,
+                             PSA_KEY_ID_NULL, &key_id));
     TEST_EQUAL(mbedtls_pk_copy_from_psa(key_id, &pk_ctx), MBEDTLS_ERR_PK_BAD_INPUT_DATA);
     TEST_EQUAL(mbedtls_pk_copy_public_from_psa(key_id, &pk_ctx), MBEDTLS_ERR_PK_BAD_INPUT_DATA);
     psa_destroy_key(key_id);
@@ -2498,8 +2465,8 @@ void pk_copy_from_psa_fail(void)
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && defined(PSA_WANT_ECC_SECP_R1_256) && \
     defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE)
     /* Generate an EC key which cannot be exported. */
-    PSA_ASSERT(pk_psa_genkey_generic(PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1), 256,
-                                     0, PSA_ALG_NONE, &key_id));
+    PSA_ASSERT(pk_psa_genkey(PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1), 256,
+                             0, PSA_ALG_NONE, PSA_ALG_NONE, PSA_KEY_ID_NULL, &key_id));
     TEST_EQUAL(mbedtls_pk_copy_from_psa(key_id, &pk_ctx), MBEDTLS_ERR_PK_TYPE_MISMATCH);
     psa_destroy_key(key_id);
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS && PSA_WANT_ECC_SECP_R1_256 &&
@@ -2521,11 +2488,11 @@ void pk_copy_from_psa_builtin_fail()
     mbedtls_pk_init(&pk_ctx);
     PSA_INIT();
 
-    PSA_ASSERT(pk_psa_genkey_generic(PSA_KEY_TYPE_RSA_KEY_PAIR,
-                                     PSA_VENDOR_RSA_GENERATE_MIN_KEY_BITS,
-                                     PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_EXPORT,
-                                     PSA_ALG_RSA_PKCS1V15_SIGN(PSA_ALG_SHA_256),
-                                     &key_id));
+    PSA_ASSERT(pk_psa_genkey(PSA_KEY_TYPE_RSA_KEY_PAIR,
+                             PSA_VENDOR_RSA_GENERATE_MIN_KEY_BITS,
+                             PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_EXPORT,
+                             PSA_ALG_RSA_PKCS1V15_SIGN(PSA_ALG_SHA_256),
+                             PSA_KEY_ID_NULL, &key_id));
     TEST_EQUAL(mbedtls_pk_copy_from_psa(key_id, &pk_ctx), MBEDTLS_ERR_PK_BAD_INPUT_DATA);
 exit:
     mbedtls_pk_free(&pk_ctx);

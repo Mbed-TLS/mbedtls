@@ -18,9 +18,9 @@ Requirement changes
    * Drop support for Visual Studio 2013 and 2015, and Arm Compiler 5.
 
 New deprecations
-    * Rename the MBEDTLS_SHA256_USE_A64_CRYPTO_xxx config options to
-      MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_xxx. The old names may still
-      be used, but are deprecated.
+   * Rename the MBEDTLS_SHA256_USE_A64_CRYPTO_xxx config options to
+     MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_xxx. The old names may still
+     be used, but are deprecated.
    * In the PSA API, domain parameters are no longer used for anything.
      They are deprecated and will be removed in a future version of the
      library.
@@ -39,10 +39,10 @@ Removals
 
 Features
    * Added an example program showing how to hash with the PSA API.
-    * Support Armv8-A Crypto Extension acceleration for SHA-256
-      when compiling for Thumb (T32) or 32-bit Arm (A32).
-   *  AES-NI is now supported in Windows builds with clang and clang-cl.
-      Resolves #8372.
+   * Support Armv8-A Crypto Extension acceleration for SHA-256
+     when compiling for Thumb (T32) or 32-bit Arm (A32).
+   * AES-NI is now supported in Windows builds with clang and clang-cl.
+     Resolves #8372.
    * Add new mbedtls_x509_csr_parse_der_with_ext_cb() routine which allows
      parsing unsupported certificate extensions via user provided callback.
    * Enable the new option MBEDTLS_BLOCK_CIPHER_NO_DECRYPT to omit
@@ -102,9 +102,9 @@ Features
      key from a PK key.
    * The benchmark program now reports times for both ephemeral and static
      ECDH in all ECDH configurations.
-    * Add support for 8-bit GCM tables for Shoup's algorithm to speedup GCM
-      operations when hardware accelerated AES is not present. Improves
-      performance by around 30% on 64-bit Intel; 125% on Armv7-M.
+   * Add support for 8-bit GCM tables for Shoup's algorithm to speedup GCM
+     operations when hardware accelerated AES is not present. Improves
+     performance by around 30% on 64-bit Intel; 125% on Armv7-M.
    * The new function psa_generate_key_ext() allows generating an RSA
      key pair with a custom public exponent.
    * The new function mbedtls_ecp_write_key_ext() is similar to
@@ -155,7 +155,7 @@ Security
      copying may be disabled by setting MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS.
      Note that setting this option will cause input-output buffer overlap to
      be only partially supported (#3266).
-     Fixes CVE-2024-28960
+     Fixes CVE-2024-28960.
    * Restore the maximum TLS version to be negotiated to the configured one
      when an SSL context is reset with the mbedtls_ssl_session_reset() API.
      An attacker was able to prevent an Mbed TLS server from establishing any
@@ -182,15 +182,15 @@ Bugfix
      in the san parameter is not separated by a colon.
    * Fix possible NULL dereference issue in X509 cert_write program if an entry
      in the san parameter is not separated by a colon.
-  * Fix an inconsistency between implementations and usages of `__cpuid`,
-    which mainly causes failures when building Windows target using
-    mingw or clang. Fixes #8334 & #8332.
+   * Fix an inconsistency between implementations and usages of `__cpuid`,
+     which mainly causes failures when building Windows target using
+     mingw or clang. Fixes #8334 & #8332.
    * Fix build failure in conda-forge.  Fixes #8422.
    * Fix parsing of CSRs with critical extensions.
-    * Switch to milliseconds as the unit for ticket creation and reception time
-      instead of seconds. That avoids rounding errors when computing the age of
-      tickets compared to peer using a millisecond clock (observed with GnuTLS).
-      Fixes #6623.
+   * Switch to milliseconds as the unit for ticket creation and reception time
+     instead of seconds. That avoids rounding errors when computing the age of
+     tickets compared to peer using a millisecond clock (observed with GnuTLS).
+     Fixes #6623.
    * Fix TLS server accepting TLS 1.2 handshake while TLS 1.2
      is disabled at runtime. Fixes #8593.
    * Remove accidental introduction of RSA signature algorithms
@@ -221,7 +221,7 @@ Bugfix
    * In TLS 1.3 clients, fix an interoperability problem due to the client
      generating a new random after a HelloRetryRequest. Fixes #8669.
    * Fix the restoration of the ALPN when loading serialized connection with
-   * the mbedtls_ssl_context_load() API.
+     the mbedtls_ssl_context_load() API.
    * Fix NULL pointer dereference in mbedtls_pk_verify_ext() when called using
      an opaque RSA context and specifying MBEDTLS_PK_RSASSA_PSS as key type.
    * Fix RSA opaque keys always using PKCS1 v1.5 algorithms instead of the
@@ -234,13 +234,13 @@ Changes
    * Use heap memory to allocate DER encoded public/private key.
      This reduces stack usage significantly for writing a public/private
      key to a PEM string.
-    * PSA_WANT_ALG_CCM and PSA_WANT_ALG_CCM_STAR_NO_TAG are no more synonyms and
-      they are now treated separately. This means that they should be
-      individually enabled in order to enable respective support; also the
-      corresponding MBEDTLS_PSA_ACCEL symbol should be defined in case
-      acceleration is required.
-    * Moved declaration of functions mbedtls_ecc_group_to_psa and
-      mbedtls_ecc_group_of_psa from psa/crypto_extra.h to mbedtls/psa_util.h
+   * PSA_WANT_ALG_CCM and PSA_WANT_ALG_CCM_STAR_NO_TAG are no more synonyms and
+     they are now treated separately. This means that they should be
+     individually enabled in order to enable respective support; also the
+     corresponding MBEDTLS_PSA_ACCEL symbol should be defined in case
+     acceleration is required.
+   * Moved declaration of functions mbedtls_ecc_group_to_psa and
+     mbedtls_ecc_group_of_psa from psa/crypto_extra.h to mbedtls/psa_util.h
    * mbedtls_pk_sign_ext() is now always available, not just when
      PSA (MBEDTLS_PSA_CRYPTO_C) is enabled.
    * Extended PSA Crypto configurations options for FFDH by making it possible

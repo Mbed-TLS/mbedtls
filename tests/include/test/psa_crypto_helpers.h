@@ -21,6 +21,7 @@
 #include "mbedtls/psa_util.h"
 #endif
 
+
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
 
 /* Internal function for #TEST_USES_KEY_ID. Return 1 on success, 0 on failure. */

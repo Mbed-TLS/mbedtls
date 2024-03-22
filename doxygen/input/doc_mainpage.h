@@ -10,7 +10,7 @@
  */
 
 /**
- * @mainpage Mbed TLS v2.28.7 API Documentation
+ * @mainpage Mbed TLS v2.28.8 API Documentation
  *
  * This documentation describes the internal structure of Mbed TLS.  It was
  * automatically generated from specially formatted comment blocks in

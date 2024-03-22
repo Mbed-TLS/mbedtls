@@ -206,11 +206,11 @@ key_buffer_length
     psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( psa_get_key_lifetime(attributes) );
     switch( location )
     {
-#if defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 {% with nest_indent=8 %}
 {% include "OS-template-opaque.jinja" -%}
 {% endwith -%}
-#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
         default:
             (void) slot_number;
             (void) key_buffer;

@@ -8441,4 +8441,631 @@ psa_status_t psa_pake_abort(
 }
 #endif /* PSA_WANT_ALG_SOME_PAKE */
 
+#include <mbedtls/base64.h>
+
+struct key_data_format_info {
+    psa_key_data_format_t format;
+    psa_key_type_t key_type;
+    const char *pem_label;
+};
+
+static const struct key_data_format_info key_data_format_infos[] = {
+    {
+        .format =  PSA_KEY_DATA_FORMAT_RSA_PUBLIC_KEY,
+        .key_type = PSA_KEY_TYPE_RSA_PUBLIC_KEY,
+        .pem_label = "RSA PUBLIC KEY",
+    },
+    {
+        .format =  PSA_KEY_DATA_FORMAT_SUBJECT_PUBLIC_KEY_INFO,
+        .key_type = PSA_KEY_TYPE_NONE,
+        .pem_label = "PUBLIC KEY",
+    },
+    {
+        .format =  PSA_KEY_DATA_FORMAT_RSA_PRIVATE_KEY,
+        .key_type = PSA_KEY_TYPE_RSA_KEY_PAIR,
+        .pem_label = "RSA PRIVATE KEY",
+    },
+    {
+        .format =  PSA_KEY_DATA_FORMAT_EC_PRIVATE_KEY,
+        .key_type = PSA_KEY_TYPE_NONE,
+        .pem_label = "EC PRIVATE KEY",
+    },
+    {
+        .format =  PSA_KEY_DATA_FORMAT_ONE_ASYMMETRIC_KEY,
+        .key_type = PSA_KEY_TYPE_NONE,
+        .pem_label = "PRIVATE KEY",
+    },
+};
+
+static void find_pem_header(const uint8_t *data, size_t data_length,
+                            const uint8_t **header, const uint8_t **header_end)
+{
+    (void) data_length;
+
+    *header = (uint8_t *) strstr((const char *) data, "-----BEGIN ");
+    if (*header == NULL) {
+        return;
+    }
+
+    *header_end = (uint8_t *) strstr((const char *) *header + 11, "-----");
+    if (*header_end == NULL) {
+        *header = NULL;
+        return;
+    }
+
+    *header_end += 5;
+}
+
+static void find_pem_footer(const uint8_t *data, size_t data_length,
+                            const uint8_t **footer, const uint8_t **footer_end)
+{
+    (void) data_length;
+
+    *footer = (uint8_t *) strstr((const char *) data, "-----END ");
+    if (*footer == NULL) {
+        return;
+    }
+
+    *footer_end = (uint8_t *) strstr((const char *) *footer + 9, "-----");
+    if (*footer_end == NULL) {
+        *footer = NULL;
+        return;
+    }
+
+    *footer_end += 5;
+}
+
+static psa_status_t mbedtls_psa_extract_from_pem(
+    const uint8_t *data, size_t data_length,
+    psa_key_data_format_t *format, psa_key_type_t *key_type,
+    const uint8_t **key_data, size_t *key_data_length)
+{
+    const struct key_data_format_info *key_data_format_info = NULL;
+    const uint8_t *header, *header_end, *footer = NULL, *footer_end;
+    const uint8_t *begin_label, *end_label;
+    size_t begin_label_length, end_label_length;
+
+    while (data_length > 0) {
+        find_pem_header(data, data_length, &header, &header_end);
+        if (header == NULL) {
+            return PSA_ERROR_NOT_SUPPORTED;
+        }
+
+        begin_label = header + 11;
+        begin_label_length = (header_end - begin_label) - 5;
+
+        for (size_t i = 0; i < ARRAY_LENGTH(key_data_format_infos); i++) {
+            const char *label = key_data_format_infos[i].pem_label;
+
+            if (label == NULL) {
+                continue;
+            }
+
+            if (begin_label_length == strlen(label) &&
+                (memcmp(begin_label, label, begin_label_length) == 0)) {
+                key_data_format_info = &key_data_format_infos[i];
+                break;
+            }
+        }
+
+        data_length -= header_end - data;
+        data = header_end;
+
+        if (key_data_format_info == NULL) {
+            continue;
+        }
+
+        find_pem_footer(data, data_length, &footer, &footer_end);
+        if (footer == NULL) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+
+        end_label = footer + 9;
+        end_label_length = (footer_end - end_label) - 5;
+        if ((end_label_length != begin_label_length) ||
+            (memcmp(end_label, begin_label, end_label_length) != 0)) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+        break;
+    }
+
+    if (key_data_format_info == NULL) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    *format = key_data_format_info->format;
+    *key_type = key_data_format_info->key_type;
+    *key_data = header_end;
+    *key_data_length = footer - header_end;
+
+    return PSA_SUCCESS;
+}
+
+/*
+ * ECParameters ::= CHOICE {
+ *   namedCurve         OBJECT IDENTIFIER
+ *   -- specifiedCurve  SpecifiedECDomain
+ *   -- implicitCurve   NULL
+ * }
+ */
+static psa_status_t parse_asn1_ec_parameters(
+    unsigned char **p, const unsigned char *end,
+    psa_ecc_family_t *ecc_family)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_asn1_buf params;
+    mbedtls_ecp_group_id ecp_group_id;
+    size_t bits;
+
+    if ((ret = mbedtls_asn1_get_tag(p, end, &params.len, MBEDTLS_ASN1_OID)) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    params.tag = MBEDTLS_ASN1_OID;
+    params.p = *p;
+    *p += params.len;
+
+    if (mbedtls_oid_get_ec_grp(&params, &ecp_group_id) != 0) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    *ecc_family = mbedtls_ecc_group_to_psa(ecp_group_id, &bits);
+
+    return PSA_SUCCESS;
+}
+
+/* Parse a DER encoded ASN.1 AlgorithmIdentifier data structure
+ *
+ *  AlgorithmIdentifier  ::=  SEQUENCE  {
+ *       algorithm               OBJECT IDENTIFIER,
+ *       parameters              ANY DEFINED BY algorithm OPTIONAL  }
+ */
+static psa_status_t parse_asn1_algorithm_identifier(
+    unsigned char **p, const unsigned char *end,
+    psa_algorithm_t *alg,
+    psa_key_type_t *key_type,
+    psa_key_type_t *public_key_type)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_asn1_buf oid = { 0 };
+    mbedtls_asn1_buf params = { 0 };
+    mbedtls_pk_type_t pk_alg;
+    mbedtls_ecp_group_id ec_group_id = MBEDTLS_ECP_DP_NONE;
+    int parse_ec_params = 0;
+
+    if ((ret = mbedtls_asn1_get_alg(p, end, &oid, &params)) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    ret = mbedtls_oid_get_pk_alg(&oid, &pk_alg);
+    if (ret == 0) {
+        parse_ec_params = (pk_alg == MBEDTLS_PK_ECKEY) ||
+                          (pk_alg == MBEDTLS_PK_ECKEY_DH);
+    }
+#if defined(MBEDTLS_ECP_LIGHT)
+    else if (ret == MBEDTLS_ERR_OID_NOT_FOUND) {
+        ret = mbedtls_oid_get_ec_grp_algid(&oid, &ec_group_id);
+        if (ret == 0) {
+            pk_alg = MBEDTLS_PK_ECKEY;
+            if ((params.tag != 0) || (params.len != 0)) {
+                return PSA_ERROR_INVALID_ARGUMENT;
+            }
+        }
+    }
+#else
+    (void) ec_group_id;
+#endif
+    if (ret != 0) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    if (parse_ec_params) {
+        if (params.tag != MBEDTLS_ASN1_OID) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+
+        ret = mbedtls_oid_get_ec_grp(&params, &ec_group_id);
+        if (ret != 0) {
+            return PSA_ERROR_NOT_SUPPORTED;
+        }
+    }
+
+    switch (pk_alg) {
+        case MBEDTLS_PK_RSA:
+            if ((params.tag != MBEDTLS_ASN1_NULL && params.tag != 0) ||
+                (params.len != 0)) {
+                return PSA_ERROR_INVALID_ARGUMENT;
+            }
+            *key_type = PSA_KEY_TYPE_RSA_KEY_PAIR;
+            *public_key_type = PSA_KEY_TYPE_RSA_PUBLIC_KEY;
+            *alg = PSA_ALG_RSA_PKCS1V15_CRYPT;
+            break;
+
+        case MBEDTLS_PK_ECKEY:
+        case MBEDTLS_PK_ECKEY_DH:
+            size_t bits;
+            psa_ecc_family_t ecc_family = mbedtls_ecc_group_to_psa(
+                ec_group_id, &bits);
+            *key_type = PSA_KEY_TYPE_ECC_KEY_PAIR(ecc_family);
+            *public_key_type = PSA_KEY_TYPE_ECC_PUBLIC_KEY(ecc_family);
+            *alg = (pk_alg == MBEDTLS_PK_ECKEY_DH) ? PSA_ALG_ECDH : PSA_ALG_NONE;
+            break;
+
+        default:
+            return PSA_ERROR_GENERIC_ERROR;
+    }
+
+    return PSA_SUCCESS;
+}
+
+/*
+ *  SubjectPublicKeyInfo  ::=  SEQUENCE  {
+ *       algorithm            AlgorithmIdentifier,
+ *       subjectPublicKey     BIT STRING }
+ */
+static psa_status_t import_key_from_subject_public_key_info(
+    psa_key_attributes_t *attributes,
+    const uint8_t *data, size_t data_length,
+    mbedtls_svc_key_id_t *key)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    unsigned char *p = (unsigned char *) data;
+    const unsigned char *end = p + data_length;
+    size_t len;
+    psa_algorithm_t alg;
+    psa_key_type_t key_type;
+    psa_key_type_t public_key_type;
+
+    if ((ret = mbedtls_asn1_get_tag(&p, end, &len,
+                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    end = p + len;
+
+    status = parse_asn1_algorithm_identifier(&p, end, &alg,
+                                             &key_type, &public_key_type);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    if ((ret = mbedtls_asn1_get_bitstring_null(&p, end, &len)) != 0) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_INVALID_PUBKEY, ret);
+    }
+
+    if (p + len != end) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (psa_get_key_type(attributes) == PSA_KEY_TYPE_NONE) {
+        psa_set_key_type(attributes, public_key_type);
+    } else {
+        if (psa_get_key_type(attributes) != public_key_type) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
+
+    if (psa_get_key_algorithm(attributes) == PSA_ALG_NONE) {
+        psa_set_key_algorithm(attributes, alg);
+    } else if (alg != PSA_ALG_NONE) {
+        if (psa_get_key_algorithm(attributes) != alg) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
+
+    status = psa_import_key(attributes, p, end - p, key);
+
+    return status;
+}
+
+/*
+ * RFC 5915, or SEC1 Appendix C.4
+ *
+ * ECPrivateKey ::= SEQUENCE {
+ *      version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+ *      privateKey     OCTET STRING,
+ *      parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+ *      publicKey  [1] BIT STRING OPTIONAL
+ * }
+ */
+static psa_status_t import_key_from_ec_private_key(
+    psa_key_attributes_t *attributes,
+    const uint8_t *data, size_t data_length,
+    mbedtls_svc_key_id_t *key)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    unsigned char *p = (unsigned char *) data;
+    const unsigned char *end = p + data_length;
+    size_t len;
+    const uint8_t *key_data;
+    size_t key_data_length;
+    int version;
+    psa_ecc_family_t ecc_family;
+
+    if ((ret = mbedtls_asn1_get_tag(&p, end, &len,
+                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    end = p + len;
+
+    if ((ret = mbedtls_asn1_get_int(&p, end, &version)) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (version != 1) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    if ((ret = mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_OCTET_STRING)) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    key_data = p;
+    key_data_length = len;
+    p += len;
+
+    if ((ret = mbedtls_asn1_get_tag(&p, end, &len,
+                                    MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED)) ==
+        0) {
+        psa_key_type_t key_type;
+
+        status = parse_asn1_ec_parameters(&p, end, &ecc_family);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
+
+        key_type = psa_get_key_type(attributes);
+        if (key_type == PSA_KEY_TYPE_NONE) {
+            psa_set_key_type(attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(ecc_family));
+        } else {
+            if (key_type != PSA_KEY_TYPE_ECC_KEY_PAIR(ecc_family)) {
+                return PSA_ERROR_INVALID_ARGUMENT;
+            }
+        }
+    }
+
+/* TODO read and check public key */
+
+    return psa_import_key(attributes, key_data, key_data_length, key);
+}
+
+/*
+ * Parse an RFC 8410 encoded private EC key
+ *
+ * CurvePrivateKey ::= OCTET STRING
+ */
+static psa_status_t import_key_from_rfc8410_curve_private_key(
+    psa_key_attributes_t *attributes,
+    const uint8_t *data, size_t data_length,
+    mbedtls_svc_key_id_t *key)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char *p = (unsigned char *) data;
+    size_t len;
+
+    if ((ret = mbedtls_asn1_get_tag(&p, data + data_length,
+                                    &len, MBEDTLS_ASN1_OCTET_STRING)) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    return psa_import_key(attributes, p, len, key);
+}
+
+/*
+ *  OneAsymmetricKey ::= SEQUENCE {
+ *    version                   Version,
+ *    privateKeyAlgorithm       PrivateKeyAlgorithmIdentifier,
+ *    privateKey                PrivateKey,
+ *    attributes            [0] Attributes OPTIONAL,
+ *    ...,
+ *    [[2: publicKey [1] PublicKey OPTIONAL ]],
+ *    ...
+ *  }
+ *  Version ::= INTEGER { v1(0), v2(1) } (v1, ..., v2)
+ *  PrivateKeyAlgorithmIdentifier ::= AlgorithmIdentifier
+ *                                     { PUBLIC-KEY,
+ *                                       { PrivateKeyAlgorithms } }
+ *  PrivateKey ::= OCTET STRING
+ *  PublicKey ::= BIT STRING
+ *  Attributes ::= SET OF Attribute { { OneAsymmetricKeyAttributes } }
+ *  OneAsymmetricKeyAttributes ATTRIBUTE ::= {
+ *     ...   -- For local profiles
+ *  }
+ */
+static psa_status_t import_key_from_one_asymmetric_key(
+    psa_key_attributes_t *attributes,
+    const uint8_t *data, size_t data_length,
+    mbedtls_svc_key_id_t *key)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    unsigned char *p = (unsigned char *) data;
+    const unsigned char *end = p + data_length;
+    size_t len;
+    int version;
+    psa_algorithm_t alg;
+    psa_key_type_t key_type;
+    psa_key_type_t public_key_type;
+
+    if ((ret = mbedtls_asn1_get_tag(&p, end, &len,
+                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    end = p + len;
+
+    if ((ret = mbedtls_asn1_get_int(&p, end, &version)) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (version != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    status = parse_asn1_algorithm_identifier(&p, end, &alg,
+                                             &key_type, &public_key_type);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    if ((ret = mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_OCTET_STRING)) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+/* TODO check end of the data ? */
+
+    if (psa_get_key_type(attributes) == PSA_KEY_TYPE_NONE) {
+        psa_set_key_type(attributes, key_type);
+    } else {
+        if (psa_get_key_type(attributes) != key_type) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
+
+    if (psa_get_key_algorithm(attributes) == PSA_ALG_NONE) {
+        psa_set_key_algorithm(attributes, alg);
+    } else if (alg != PSA_ALG_NONE) {
+        if (psa_get_key_algorithm(attributes) != alg) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
+
+    status = PSA_ERROR_GENERIC_ERROR;
+
+    if (PSA_KEY_TYPE_IS_ECC(key_type)) {
+        if (PSA_KEY_TYPE_ECC_GET_FAMILY(key_type) ==
+            PSA_ECC_FAMILY_MONTGOMERY) {
+            status = import_key_from_rfc8410_curve_private_key(
+                attributes, p, len, key);
+        } else {
+            status = import_key_from_ec_private_key(
+                attributes, p, len, key);
+        }
+    } else if (PSA_KEY_TYPE_IS_RSA(key_type)) {
+        status = psa_import_key(attributes, p, len, key);
+    }
+
+    return status;
+}
+
+psa_status_t psa_import_key_ext(const psa_key_attributes_t *attributes,
+                                psa_key_data_format_t format,
+                                const uint8_t *data,
+                                size_t data_length,
+                                mbedtls_svc_key_id_t *key)
+{
+    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+    psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
+    psa_key_attributes_t l_attributes;
+    psa_key_data_format_t pem_format;
+    const uint8_t *key_data;
+    unsigned char *base64_decode_dst = NULL;
+    size_t key_data_length, base64_decode_dst_size;
+
+    *key = MBEDTLS_SVC_KEY_ID_INIT;
+
+    if ((format >= PSA_KEY_DATA_FORMAT_COUNT) ||
+        (format == PSA_KEY_DATA_FORMAT_NONE)) {
+        goto cleanup;
+    }
+
+    status = mbedtls_psa_extract_from_pem(data, data_length,
+                                          &pem_format, &key_type,
+                                          &key_data, &key_data_length);
+    switch (status) {
+        case PSA_SUCCESS:
+            if (pem_format != format) {
+                goto cleanup;
+            }
+
+            int ret = mbedtls_base64_decode(NULL, 0, &base64_decode_dst_size,
+                                            key_data, key_data_length);
+            if (ret != MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL) {
+                status = PSA_ERROR_GENERIC_ERROR;
+                goto cleanup;
+            }
+
+            if ((base64_decode_dst =
+                     mbedtls_calloc(1, base64_decode_dst_size)) == NULL) {
+                status = PSA_ERROR_INSUFFICIENT_MEMORY;
+                goto cleanup;
+            }
+
+            size_t dlen;
+            if ((ret = mbedtls_base64_decode(
+                     base64_decode_dst, base64_decode_dst_size, &dlen,
+                     key_data, key_data_length)) != 0) {
+                goto cleanup;
+            }
+            key_data = base64_decode_dst;
+            key_data_length = base64_decode_dst_size;
+            break;
+
+        case PSA_ERROR_NOT_SUPPORTED:
+            key_data = data;
+            key_data_length = data_length;
+            break;
+
+        default:
+            goto cleanup;
+    }
+
+    l_attributes = *attributes;
+
+    switch (format) {
+        case PSA_KEY_DATA_FORMAT_RSA_PUBLIC_KEY:
+            if ((key_type != PSA_KEY_TYPE_NONE) &&
+                (key_type != PSA_KEY_TYPE_RSA_PUBLIC_KEY)) {
+                goto cleanup;
+            }
+            psa_set_key_type(&l_attributes, PSA_KEY_TYPE_RSA_PUBLIC_KEY);
+            status = psa_import_key(&l_attributes, key_data, key_data_length,
+                                    key);
+            break;
+
+        case PSA_KEY_DATA_FORMAT_SUBJECT_PUBLIC_KEY_INFO:
+            status = import_key_from_subject_public_key_info(
+                &l_attributes, key_data, key_data_length, key);
+            /* TODO try PSA_KEY_DATA_FORMAT_RSA_PUBLIC_KEY in case of failure */
+            break;
+
+        case PSA_KEY_DATA_FORMAT_RSA_PRIVATE_KEY:
+            if ((key_type != PSA_KEY_TYPE_NONE) &&
+                (key_type != PSA_KEY_TYPE_RSA_KEY_PAIR)) {
+                goto cleanup;
+            }
+            psa_set_key_type(&l_attributes, PSA_KEY_TYPE_RSA_KEY_PAIR);
+            status = psa_import_key(&l_attributes, key_data, key_data_length,
+                                    key);
+            break;
+
+        case PSA_KEY_DATA_FORMAT_EC_PRIVATE_KEY:
+            status = import_key_from_ec_private_key(
+                &l_attributes, key_data, key_data_length, key);
+            break;
+
+        case PSA_KEY_DATA_FORMAT_ONE_ASYMMETRIC_KEY:
+            status = import_key_from_one_asymmetric_key(
+                &l_attributes, key_data, key_data_length, key);
+            /* TODO try PSA_KEY_DATA_FORMAT_RSA_PRIVATE_KEY or
+                        PSA_KEY_DATA_FORMAT_EC_PRIVATE_KEY in case of failure */
+            break;
+
+        default:
+            status = PSA_ERROR_GENERIC_ERROR;
+            break;
+    }
+
+cleanup:
+
+    if (base64_decode_dst != NULL) {
+        mbedtls_platform_zeroize(base64_decode_dst, base64_decode_dst_size);
+        mbedtls_free(base64_decode_dst);
+    }
+
+    return status;
+}
 #endif /* MBEDTLS_PSA_CRYPTO_C */

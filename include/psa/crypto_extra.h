@@ -1876,6 +1876,264 @@ static inline struct psa_pake_operation_s psa_pake_operation_init(void)
     return v;
 }
 
+typedef enum {
+/** An invalid key data format identifier. */
+    PSA_KEY_DATA_FORMAT_NONE,
+/**
+ *  DER or PEM encoded RSAPublicKey data structure as defined in RFC 8017
+ *  (PKCS#1) with:
+ *
+ *  RSAPublicKey ::= SEQUENCE {
+ *       modulus          INTEGER, -- n
+ *       publicExponent   INTEGER  -- e }
+ *
+ *  Key attributes when importing:
+ *  . key permitted-algorithm: required for keys that will be used for a
+ *    cryptographic operation.
+ *  . key usage: a key usage may be provided to limit the usage of the key to
+ *    encryption/decryption or signature/verification only according to its
+ *    permitted-algorithm.
+ */
+    PSA_KEY_DATA_FORMAT_RSA_PUBLIC_KEY,
+/**
+ *  DER or PEM encoded SubjectPublicKeyInfo data structure as defined in
+ *  RFC 5280 (Internet X.509 Public Key Infrastructure Certificate and
+ *  Certificate Revocation List (CRL) Profile) or one of its sub-format namely
+ *  RSAPublicKey.
+ *
+ *  The definition of SubjectPublicKeyInfo is:
+ *
+ *  SubjectPublicKeyInfo  ::=  SEQUENCE  {
+ *       algorithm            AlgorithmIdentifier,
+ *       subjectPublicKey     BIT STRING }
+ *  with
+ *  AlgorithmIdentifier ::= SEQUENCE {
+ *       algorithm            OBJECT IDENTIFIER,
+ *       parameters           ANY DEFINED BY algorithm OPTIONAL }
+ *
+ *  The supported algorithm object identifiers are:
+ *  . rsaEncryption as defined in RFC 8017 (PKCS#1) with:
+ *    . NULL as parameters
+ *    . An RSA public key as described for PSA_KEY_DATA_FORMAT_RSA_PUBLIC_KEY
+ *      key data format.
+ *
+ *  . id-ecPublicKey and id-ecDH (ECDH algorithm only) as defined in RFC 5480
+ *    with:
+ *     . ECParameters ::= CHOICE {
+ *         namedCurve         OBJECT IDENTIFIER
+ *         -- implicitCurve   NULL
+ *         -- specifiedCurve  SpecifiedECDomain
+ *       }
+ *     . ECPoint ::= OCTET STRING
+ *
+ *  . id-X25519 and id-X448 (define the curve and ECDH algorithm only):
+ *     . no parameters
+ *     . ECPoint ::= OCTET STRING
+ *
+ *  Key attributes when importing:
+ *  . key permitted-algorithm: required in the case of rsaEncryption and
+ *    id-ecPublicKey for keys that will be used for a cryptographic operation.
+ *    Otherwise, if defined, the import functions check that it is compatible
+ *    with the algorithm specified in key data.
+ *  . key usage: a key usage may be provided to limit the usage of the key to
+ *    encryption/decryption or signature/verification only according to its
+ *    permitted-algorithm.
+ */
+    PSA_KEY_DATA_FORMAT_SUBJECT_PUBLIC_KEY_INFO,
+
+/**
+ *  DER or PEM encoded RSAPrivateKey data structure as defined in RFC 8017
+ *  (PKCS#1) with:
+ *
+ *  RSAPrivateKey ::= SEQUENCE {
+ *      version           Version,
+ *      modulus           INTEGER, -- n
+ *      publicExponent    INTEGER, -- e
+ *      privateExponent   INTEGER, -- d
+ *      prime1            INTEGER, -- p
+ *      prime2            INTEGER, -- q
+ *      exponent1         INTEGER, -- d mod (p-1)
+ *      exponent2         INTEGER, -- d mod (q-1)
+ *      coefficient       INTEGER, -- (inverse of q) mod p
+ *      otherPrimeInfos   OtherPrimeInfos OPTIONAL
+ *  }
+ *
+ *  Key attributes when importing:
+ *  . key permitted-alegorithm: required for keys that will be used for a
+ *    cryptographic operation.
+ *  . key usage: a key usage may be provided to limit the usage of the key to
+ *    encryption/decryption or signature/verification only according to its
+ *    permitted-algorithm.
+ */
+    PSA_KEY_DATA_FORMAT_RSA_PRIVATE_KEY,
+
+/**
+ *  DER or PEM encoded ECPrivateKey data structure as defined in RFC 5915
+ *  (Elliptic Curve Private Key Structure) with:
+ *
+ *  ECPrivateKey ::= SEQUENCE {
+ *    version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+ *    privateKey     OCTET STRING,
+ *    parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+ *    publicKey  [1] BIT STRING OPTIONAL
+ *  }
+ *
+ *  with privateKey content for the different type of curves as defined in the
+ *  documentation of #psa_export_key().
+ *
+ *  with ECParameters as defined in RFC 5480 (Elliptic Curve Cryptography
+ *  Subject Public Key Information):
+ *
+ *  ECParameters ::= CHOICE {
+ *    namedCurve OBJECT IDENTIFIER
+ *    -- implicitCurve NULL
+ *    -- specifiedCurve SpecifiedECDomain
+ *  }
+ *    -- implicitCurve and specifiedCurve MUST NOT be used in PKIX.
+ *    -- Details for SpecifiedECDomain can be found in [X9.62].
+ *    -- Any future additions to this CHOICE should be coordinated
+ *    -- with ANSI X9.
+ *
+ *  Key attributes when importing:
+ *  . key permitted-algorithm: required for keys that will be used for a
+ *    cryptographic operation.
+ *  . key usage: a key usage may be provided to limit the usage of the key for
+ *    signature/verification only.
+ */
+    PSA_KEY_DATA_FORMAT_EC_PRIVATE_KEY,
+
+/**
+ *  DER or PEM encoded OneAsymmetricKey (previously PrivateKeyInfo) data
+ *  structure as defined in RFC 5958 (Asymmetric Key Packages) or one of its
+ *  sub-format namely #PSA_KEY_DATA_FORMAT_RSA_PRIVATE_KEY or
+ *  ##PSA_KEY_DATA_FORMAT_EC_PRIVATE_KEY.
+ *
+ *  OneAsymmetricKey ::= SEQUENCE {
+ *    version                   Version,
+ *    privateKeyAlgorithm       PrivateKeyAlgorithmIdentifier,
+ *    privateKey                PrivateKey,
+ *    attributes            [0] Attributes OPTIONAL,
+ *    ...,
+ *    [[2: publicKey [1] PublicKey OPTIONAL ]],
+ *    ...
+ *  }
+ *  with Version ::= INTEGER { v1(0), v2(1) } (v1, ..., v2)
+ *  with PrivateKeyAlgorithmIdentifier ::= AlgorithmIdentifier
+ *                                          { PUBLIC-KEY,
+ *                                            { PrivateKeyAlgorithms } }
+ *  The same algorithm identifiers are supported as for the
+ *  #PSA_KEY_DATA_FORMAT_SUBJECT_PUBLIC_KEY_INFO key data format.
+ *
+ *  with PrivateKey ::= OCTET STRING
+ *                         -- Content varies based on type of key. The
+ *                         -- algorithm identifier dictates the format of
+ *                         -- the key.
+ *  The function supports RSAPrivateKey and ECPrivateKey data structures, see
+ *  documentation of #PSA_KEY_DATA_FORMAT_RSA_PRIVATE_KEY and
+ *  #PSA_KEY_DATA_FORMAT_EC_PRIVATE_KEY key data formats.
+ *
+ *  with PublicKey ::= BIT STRING
+ *                         -- Content varies based on type of key. The
+ *                         -- algorithm identifier dictates the format of
+ *                         -- the key.
+ *
+ *  with Attributes ::= SET OF Attribute { { OneAsymmetricKeyAttributes } }
+ *       OneAsymmetricKeyAttributes ATTRIBUTE ::= {
+ *         ...   -- For local profiles
+ *       }
+ *
+ *  Key attributes when importing:
+ *  . key permitted-algorithm: required in the case of rsaEncryption and
+ *    id-ecPublicKey algorithm identifiers for keys that will be used for a
+ *    cryptographic operation. Otherwise, if defined, the import functions
+ *    check that it is compatible with the algorithm specified in key data.
+ *  . key usage: a key usage may be provided to limit the usage of the key to
+ *    encryption/decryption or signature/verification only according to its
+ *    permitted-algorithm.
+ */
+    PSA_KEY_DATA_FORMAT_ONE_ASYMMETRIC_KEY,
+
+    PSA_KEY_DATA_FORMAT_COUNT
+} psa_key_data_format_t;
+
+/**
+ * \brief Import a key in one of the supported key data formats.
+ *
+ * This functions supports the formats as defined in the documentation of
+ * #psa_key_data_format_t.
+ *
+ * \param[in] attributes    The attributes for the new key. This function uses
+ *                          the attributes as follows:
+ *                          . The key type is inferred from the key data
+ *                            in \p data or the key data format \p format (see
+ *                            the documentation of #psa_key_data_format_t for
+ *                            more information). If provided in \p attributes,
+ *                            it must match the inferred key type.
+ *                          . The key size is always determined from the key
+ *                            data. If the key size in \p attributes is nonzero,
+ *                            it must be equal to the size determined from the
+ *                            key data.
+ *                          . The key permitted-algorithm policy may be
+ *                            required for keys that will be used for a
+ *                            cryptographic operation, see the documentation of
+ *                            the key data formats for more information. If the
+ *                            key data imposes restrictions on the algorithms
+ *                            the key can be used for, the key
+ *                            permitted-algorithm policy must comply with
+ *                            those restrictions.
+ *                          . The key usage flags define what operations are
+ *                            permitted with the key. If the key data imposes
+ *                            restrictions on the operations the key can be
+ *                            used for, the key usage flags must comply with
+ *                            those restrictions.
+ *                          . The key lifetime and identifier are required
+ *                            for a persistent key.
+ *
+ * \param[in] format        The format of the key data in the \p data buffer.
+ * \param[out] key          On success, an identifier to the newly created key.
+ *                          For persistent keys, this is the key identifier
+ *                          defined in \p attributes.
+ *                          \c 0 on failure.
+ * \param[in] data    Buffer containing the key data. The content of the buffer
+ *                    is interpreted according to the format of the key data
+ *                    as defined by \p format.
+ * \param data_length Size of the \p data buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ *         If the key is persistent, the key material and the key's metadata
+ *         have been saved to persistent storage.
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         This is an attempt to create a persistent key, and there is
+ *         already a persistent key with the given identifier.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The key data format of the key type or key size is not supported,
+ *         either by the implementation in general or in this particular
+ *         persistent location.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The key attributes, as a whole, are invalid, or
+ *         the key data is not correctly formatted, or
+ *         the size in \p attributes is nonzero and does not match the size
+ *         of the key data.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_import_key_ext(const psa_key_attributes_t *attributes,
+                                psa_key_data_format_t format,
+                                const uint8_t *data,
+                                size_t data_length,
+                                mbedtls_svc_key_id_t *key);
+
 #ifdef __cplusplus
 }
 #endif

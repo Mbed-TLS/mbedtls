@@ -1,6 +1,0 @@
-Changes
-   * mbedtls_mpi_exp_mod and code that uses it, notably RSA and DHM operations,
-     have changed their speed/memory compromise as part of a proactive security
-     improvement. The new default value of MBEDTLS_MPI_WINDOW_SIZE roughly
-     preserves the current speed, at the expense of increasing memory
-     consumption.

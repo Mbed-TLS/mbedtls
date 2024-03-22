@@ -1,9 +1,0 @@
-New deprecations
-   * In the PSA API, domain parameters are no longer used for anything.
-     They are deprecated and will be removed in a future version of the
-     library.
-
-Removals
-   * In the PSA API, the experimental way to encode the public exponent of
-     an RSA key as a domain parameter is no longer supported. Use
-     psa_generate_key_ext() instead.

@@ -15,7 +15,6 @@
 #include "psa/crypto.h"
 #include "psa_crypto_slot_management.h"
 
-/* For psa_can_do_hash() */
 #include "psa_crypto_core.h"
 
 #include "test/asn1_helpers.h"
@@ -747,37 +746,37 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             /* Server first round Output */
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_KEY_SHARE,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_g1_len));
+                                       buffer_length - buffer0_off, &s_g1_len));
             TEST_EQUAL(s_g1_len, expected_size_key_share);
             s_g1_off = buffer0_off;
             buffer0_off += s_g1_len;
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PUBLIC,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_x1_pk_len));
+                                       buffer_length - buffer0_off, &s_x1_pk_len));
             TEST_EQUAL(s_x1_pk_len, expected_size_zk_public);
             s_x1_pk_off = buffer0_off;
             buffer0_off += s_x1_pk_len;
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PROOF,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_x1_pr_len));
+                                       buffer_length - buffer0_off, &s_x1_pr_len));
             TEST_LE_U(s_x1_pr_len, max_expected_size_zk_proof);
             s_x1_pr_off = buffer0_off;
             buffer0_off += s_x1_pr_len;
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_KEY_SHARE,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_g2_len));
+                                       buffer_length - buffer0_off, &s_g2_len));
             TEST_EQUAL(s_g2_len, expected_size_key_share);
             s_g2_off = buffer0_off;
             buffer0_off += s_g2_len;
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PUBLIC,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_x2_pk_len));
+                                       buffer_length - buffer0_off, &s_x2_pk_len));
             TEST_EQUAL(s_x2_pk_len, expected_size_zk_public);
             s_x2_pk_off = buffer0_off;
             buffer0_off += s_x2_pk_len;
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PROOF,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_x2_pr_len));
+                                       buffer_length - buffer0_off, &s_x2_pr_len));
             TEST_LE_U(s_x2_pr_len, max_expected_size_zk_proof);
             s_x2_pr_off = buffer0_off;
             buffer0_off += s_x2_pr_len;
@@ -867,37 +866,37 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
             /* Client first round Output */
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_KEY_SHARE,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_g1_len));
+                                       buffer_length - buffer1_off, &c_g1_len));
             TEST_EQUAL(c_g1_len, expected_size_key_share);
             c_g1_off = buffer1_off;
             buffer1_off += c_g1_len;
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PUBLIC,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_x1_pk_len));
+                                       buffer_length - buffer1_off, &c_x1_pk_len));
             TEST_EQUAL(c_x1_pk_len, expected_size_zk_public);
             c_x1_pk_off = buffer1_off;
             buffer1_off += c_x1_pk_len;
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PROOF,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_x1_pr_len));
+                                       buffer_length - buffer1_off, &c_x1_pr_len));
             TEST_LE_U(c_x1_pr_len, max_expected_size_zk_proof);
             c_x1_pr_off = buffer1_off;
             buffer1_off += c_x1_pr_len;
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_KEY_SHARE,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_g2_len));
+                                       buffer_length - buffer1_off, &c_g2_len));
             TEST_EQUAL(c_g2_len, expected_size_key_share);
             c_g2_off = buffer1_off;
             buffer1_off += c_g2_len;
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PUBLIC,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_x2_pk_len));
+                                       buffer_length - buffer1_off, &c_x2_pk_len));
             TEST_EQUAL(c_x2_pk_len, expected_size_zk_public);
             c_x2_pk_off = buffer1_off;
             buffer1_off += c_x2_pk_len;
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PROOF,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_x2_pr_len));
+                                       buffer_length - buffer1_off, &c_x2_pr_len));
             TEST_LE_U(c_x2_pr_len, max_expected_size_zk_proof);
             c_x2_pr_off = buffer1_off;
             buffer1_off += c_x2_pr_len;
@@ -1045,19 +1044,19 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_KEY_SHARE,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_a_len));
+                                       buffer_length - buffer0_off, &s_a_len));
             TEST_EQUAL(s_a_len, expected_size_key_share);
             s_a_off = buffer0_off;
             buffer0_off += s_a_len;
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PUBLIC,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_x2s_pk_len));
+                                       buffer_length - buffer0_off, &s_x2s_pk_len));
             TEST_EQUAL(s_x2s_pk_len, expected_size_zk_public);
             s_x2s_pk_off = buffer0_off;
             buffer0_off += s_x2s_pk_len;
             PSA_ASSERT(psa_pake_output(server, PSA_PAKE_STEP_ZK_PROOF,
                                        buffer0 + buffer0_off,
-                                       512 - buffer0_off, &s_x2s_pr_len));
+                                       buffer_length - buffer0_off, &s_x2s_pr_len));
             TEST_LE_U(s_x2s_pr_len, max_expected_size_zk_proof);
             s_x2s_pr_off = buffer0_off;
             buffer0_off += s_x2s_pr_len;
@@ -1110,19 +1109,19 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
 
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_KEY_SHARE,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_a_len));
+                                       buffer_length - buffer1_off, &c_a_len));
             TEST_EQUAL(c_a_len, expected_size_key_share);
             c_a_off = buffer1_off;
             buffer1_off += c_a_len;
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PUBLIC,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_x2s_pk_len));
+                                       buffer_length - buffer1_off, &c_x2s_pk_len));
             TEST_EQUAL(c_x2s_pk_len, expected_size_zk_public);
             c_x2s_pk_off = buffer1_off;
             buffer1_off += c_x2s_pk_len;
             PSA_ASSERT(psa_pake_output(client, PSA_PAKE_STEP_ZK_PROOF,
                                        buffer1 + buffer1_off,
-                                       512 - buffer1_off, &c_x2s_pr_len));
+                                       buffer_length - buffer1_off, &c_x2s_pr_len));
             TEST_LE_U(c_x2s_pr_len, max_expected_size_zk_proof);
             c_x2s_pr_off = buffer1_off;
             buffer1_off += c_x2s_pr_len;
@@ -4950,7 +4949,8 @@ void cipher_verify_output_multipart(int alg_arg,
     PSA_ASSERT(psa_cipher_update(&operation1,
                                  input->x + first_part_size,
                                  input->len - first_part_size,
-                                 output1, output1_buffer_size,
+                                 output1 + output1_length,
+                                 output1_buffer_size - output1_length,
                                  &function_output_length));
     TEST_LE_U(function_output_length,
               PSA_CIPHER_UPDATE_OUTPUT_SIZE(key_type,
@@ -4996,7 +4996,8 @@ void cipher_verify_output_multipart(int alg_arg,
     PSA_ASSERT(psa_cipher_update(&operation2,
                                  output1 + first_part_size,
                                  output1_length - first_part_size,
-                                 output2, output2_buffer_size,
+                                 output2 + output2_length,
+                                 output2_buffer_size - output2_length,
                                  &function_output_length));
     TEST_LE_U(function_output_length,
               PSA_CIPHER_UPDATE_OUTPUT_SIZE(key_type,
@@ -5464,7 +5465,9 @@ void aead_multipart_generate_nonce(int key_type_arg, data_t *key_data,
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_aead_operation_t operation = PSA_AEAD_OPERATION_INIT;
-    uint8_t nonce_buffer[PSA_AEAD_NONCE_MAX_SIZE];
+    /* Some tests try to get more than the maximum nonce length,
+     * so allocate double. */
+    uint8_t nonce_buffer[PSA_AEAD_NONCE_MAX_SIZE * 2];
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     psa_status_t expected_status = expected_status_arg;

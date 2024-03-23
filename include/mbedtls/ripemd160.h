@@ -21,8 +21,7 @@ extern "C" {
 #endif
 
 #if !defined(MBEDTLS_RIPEMD160_ALT)
-// Regular implementation
-//
+/* Regular implementation */
 
 /**
  * \brief          RIPEMD-160 context structure

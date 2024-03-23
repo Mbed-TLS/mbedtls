@@ -38,8 +38,7 @@ typedef enum {
 } mbedtls_nist_kw_mode_t;
 
 #if !defined(MBEDTLS_NIST_KW_ALT)
-// Regular implementation
-//
+/* Regular implementation */
 
 /**
  * \brief    The key wrapping context-type definition. The key wrapping context is passed

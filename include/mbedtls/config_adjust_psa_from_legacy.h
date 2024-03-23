@@ -47,7 +47,7 @@
 #define PSA_WANT_ALG_ECDSA 1
 #define PSA_WANT_ALG_ECDSA_ANY 1
 
-// Only add in DETERMINISTIC support if ECDSA is also enabled
+/* Only add in DETERMINISTIC support if ECDSA is also enabled */
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 #define MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA 1
 #define PSA_WANT_ALG_DETERMINISTIC_ECDSA 1

@@ -31,8 +31,7 @@ extern "C" {
 #endif
 
 #if !defined(MBEDTLS_SHA1_ALT)
-// Regular implementation
-//
+/* Regular implementation */
 
 /**
  * \brief          The SHA-1 context structure.

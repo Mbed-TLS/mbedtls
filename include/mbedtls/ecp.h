@@ -340,7 +340,7 @@ mbedtls_ecp_group;
 #elif defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
 #define MBEDTLS_ECP_MAX_BITS 255
 #elif defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
-#define MBEDTLS_ECP_MAX_BITS 225 // n is slightly above 2^224
+#define MBEDTLS_ECP_MAX_BITS 225 /* n is slightly above 2^224 */
 #elif defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
 #define MBEDTLS_ECP_MAX_BITS 224
 #elif defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)

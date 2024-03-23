@@ -968,7 +968,7 @@ void mbedtls_x509write_crt_set_version(mbedtls_x509write_cert *ctx, int version)
  */
 int MBEDTLS_DEPRECATED mbedtls_x509write_crt_set_serial(
     mbedtls_x509write_cert *ctx, const mbedtls_mpi *serial);
-#endif // MBEDTLS_BIGNUM_C && !MBEDTLS_DEPRECATED_REMOVED
+#endif /* MBEDTLS_BIGNUM_C && !MBEDTLS_DEPRECATED_REMOVED */
 
 /**
  * \brief           Set the serial number for a Certificate.

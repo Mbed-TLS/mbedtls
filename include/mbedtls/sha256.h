@@ -27,8 +27,7 @@ extern "C" {
 #endif
 
 #if !defined(MBEDTLS_SHA256_ALT)
-// Regular implementation
-//
+/* Regular implementation */
 
 /**
  * \brief          The SHA-256 context structure.

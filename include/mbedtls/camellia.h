@@ -32,8 +32,7 @@ extern "C" {
 #endif
 
 #if !defined(MBEDTLS_CAMELLIA_ALT)
-// Regular implementation
-//
+/* Regular implementation */
 
 /**
  * \brief          CAMELLIA context structure

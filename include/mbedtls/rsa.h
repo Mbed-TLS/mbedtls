@@ -70,8 +70,7 @@ extern "C" {
 #endif
 
 #if !defined(MBEDTLS_RSA_ALT)
-// Regular implementation
-//
+/* Regular implementation */
 
 #if !defined(MBEDTLS_RSA_GEN_KEY_MIN_BITS)
 #define MBEDTLS_RSA_GEN_KEY_MIN_BITS 1024

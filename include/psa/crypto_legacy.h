@@ -19,7 +19,7 @@
 #ifndef MBEDTLS_PSA_CRYPTO_LEGACY_H
 #define MBEDTLS_PSA_CRYPTO_LEGACY_H
 
-#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) //no-check-names
+#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) /* //no-check-names */
 #if !defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC)
 #define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC      1
 #endif
@@ -37,7 +37,7 @@
 #endif
 #endif
 
-#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR) //no-check-names
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR) /* //no-check-names */
 #if !defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC)
 #define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC      1
 #endif
@@ -52,7 +52,7 @@
 #endif
 #endif
 
-#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) //no-check-names
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) /* //no-check-names */
 #if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_BASIC)
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_BASIC
 #endif
@@ -70,7 +70,7 @@
 #endif
 #endif
 
-#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) //no-check-names
+#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) /* //no-check-names */
 #if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR_BASIC)
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR_BASIC
 #endif

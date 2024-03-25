@@ -3548,11 +3548,16 @@ component_test_cmake_as_package () {
 
 component_test_cmake_as_package_install () {
     msg "build: cmake 'as-installed-package' build"
+    root_dir="$(pwd)"
     cd programs/test/cmake_package_install
+    build_variant_dir="$(pwd)"
     # Note: Explicitly generate files as these are turned off in releases
     cmake .
     make
     ./cmake_package_install
+    if [[ "$OSTYPE" == linux* ]]; then
+        PKG_CONFIG_PATH="${build_variant_dir}/mbedtls/lib/pkgconfig" ${root_dir}/tests/scripts/pkgconfig.sh
+    fi
 }
 
 component_build_cmake_custom_config_file () {

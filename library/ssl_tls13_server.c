@@ -172,12 +172,12 @@ static int ssl_tls13_parse_key_exchange_modes_ext(mbedtls_ssl_context *ssl,
 #define SSL_TLS1_3_PSK_IDENTITY_MATCH_BUT_PSK_NOT_USABLE 1
 #define SSL_TLS1_3_PSK_IDENTITY_MATCH 0
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_key_exchange_is_psk_available(mbedtls_ssl_context *ssl);
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_key_exchange_is_psk_ephemeral_available(mbedtls_ssl_context *ssl);
 
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_offered_psks_check_identity_match_ticket(
     mbedtls_ssl_context *ssl,

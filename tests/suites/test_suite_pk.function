@@ -21,6 +21,8 @@
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
 
+#include "pkwrite.h"
+
 #include <test/psa_exercise_key.h>
 
 /* Needed for the definition of MBEDTLS_PK_WRITE_PUBKEY_MAX_SIZE. */
@@ -184,6 +186,7 @@
 
 const char *curve_names_lut[] = {
     [MBEDTLS_ECP_DP_SECP192R1] = "secp192r1",
+    [MBEDTLS_ECP_DP_SECP224R1] = "secp224r1",
     [MBEDTLS_ECP_DP_SECP256R1] = "secp256r1",
     [MBEDTLS_ECP_DP_SECP384R1] = "secp384r1",
     [MBEDTLS_ECP_DP_SECP521R1] = "secp521r1",
@@ -196,10 +199,11 @@ const char *curve_names_lut[] = {
     [MBEDTLS_ECP_DP_CURVE448] = "x448",
 };
 
+#if defined(MBEDTLS_PK_PARSE_C)
 /** Fill the provided PK context with a proper key.
  *
- * Instead of generating a new key every time, use predefined ones to speed up
- * testing.
+ * This is a fake implementation of key generation because instead of generating
+ * a new key every time, we use predefined ones to speed up testing.
  * This function assumes that the PK context has already been setup
  * (mbedtls_pk_setup() has been called on the PK context ) so that it
  * can determine the key type to be loaded from the PK context itself.
@@ -232,6 +236,94 @@ static int pk_genkey(mbedtls_pk_context *pk, int curve_or_keybits)
 
     return ret;
 }
+
+/** Create a PSA key of the desired type and properties.
+ *
+ * This is similar to pk_genkey() above in the sense that it does not really
+ * generates a key every time, but it takes the key from a file instead in
+ * order to speedup testing.
+ *
+ * \param type                  PSA key type. Only RSA and EC keys are supported.
+ * \param bits                  PSA key bit size.
+ * \param usage                 PSA key usage flags.
+ * \param alg                   PSA key primary algorithm.
+ * \param enrollment_alg        PSA key enrollment algorithm.
+ * \param persistent_key_id     PSA key ID for persistent keys. Set to PSA_KEY_ID_NULL
+ *                              for volatile keys.
+ * \param[out] key              Identifier of the "generated" (actually imported) PSA key.
+ */
+psa_status_t pk_psa_genkey(psa_key_type_t type, size_t bits,
+                           psa_key_usage_t usage, psa_algorithm_t alg,
+                           psa_algorithm_t enrollment_alg,
+                           mbedtls_svc_key_id_t persistent_key_id,
+                           mbedtls_svc_key_id_t *key)
+{
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+    mbedtls_pk_context pk;
+    char file_name[128] = { 0 };
+    unsigned char key_data[MBEDTLS_PK_WRITE_PUBKEY_MAX_SIZE] = { 0 };
+    size_t key_data_len;
+    unsigned char *key_data_start;
+    int ret;
+
+    mbedtls_pk_init(&pk);
+
+    /* Get the name of the key file to load. */
+    if (PSA_KEY_TYPE_IS_RSA(type)) {
+        sprintf(file_name, "data_files/rsa_%lu.der", bits);
+    } else if (PSA_KEY_TYPE_IS_ECC(type)) {
+        psa_ecc_family_t ec_family = PSA_KEY_TYPE_ECC_GET_FAMILY(type);
+        mbedtls_ecp_group_id grp_id = mbedtls_ecc_group_from_psa(ec_family, bits);
+        sprintf(file_name, "data_files/ec_%s.der", curve_names_lut[grp_id]);
+    } else {
+        TEST_FAIL("Only EC or RSA key type is supported.");
+    }
+    /* Parse the key file and write the key material to the key_data buffer. */
+    TEST_EQUAL(mbedtls_pk_parse_keyfile(&pk, file_name, NULL, mbedtls_test_rnd_std_rand, NULL), 0);
+    if (mbedtls_pk_get_type(&pk) == MBEDTLS_PK_RSA) {
+#if defined(MBEDTLS_PK_WRITE_C)
+        ret = mbedtls_pk_write_key_der(&pk, key_data, sizeof(key_data));
+        TEST_ASSERT(ret > 0);
+        key_data_len = (size_t) ret;
+#else
+        TEST_FAIL("RSA is unsupported");
+#endif /* MBEDTLS_PK_WRITE_C */
+    } else if (mbedtls_pk_get_type(&pk) == MBEDTLS_PK_ECKEY) {
+#if defined(MBEDTLS_PK_USE_EC_DATA)
+        PSA_ASSERT(psa_export_key(pk->priv_id, key_data, sizeof(key_data), &key_data_len));
+#elif defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+        const mbedtls_ecp_keypair *ec_ctx = mbedtls_pk_ec_ro(pk);
+        TEST_EQUAL(mbedtls_mpi_write_binary(&(ec_ctx->d), key_data, sizeof(key_data)), 0);
+        key_data_len = PSA_BITS_TO_BYTES(mbedtls_mpi_bitlen(&(ec_ctx->d)));
+#else /* !MBEDTLS_PK_USE_EC_DATA && !MBEDTLS_PK_HAVE_ECC_KEYS */
+        TEST_FAIL("EC is unsupported");
+#endif /*  */
+    } else {
+        TEST_FAIL("Unknown key type");
+    }
+    /* Data was written to the end of the key_data buffer so we shift that to
+     * the beginnig. */
+    key_data_start = key_data + sizeof(key_data) - key_data_len;
+    memmove(key_data, key_data_start, key_data_len);
+
+    /* Import the key into PSA. */
+    *key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_set_key_usage_flags(&attributes, usage);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_enrollment_algorithm(&attributes, enrollment_alg);
+    psa_set_key_type(&attributes, type);
+    psa_set_key_bits(&attributes, bits);
+    if (!mbedtls_svc_key_id_is_null(persistent_key_id)) {
+        psa_set_key_id(&attributes, persistent_key_id);
+    }
+    status = psa_import_key(&attributes, key_data, key_data_len, key);
+
+exit:
+    mbedtls_pk_free(&pk);
+    return status;
+}
+#endif /* MBEDTLS_PK_PARSE_C */
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 static psa_key_usage_t pk_get_psa_attributes_implied_usage(
@@ -538,30 +630,6 @@ psa_status_t pk_psa_import_key(unsigned char *key_data, size_t key_len,
 
     return status;
 }
-
-psa_status_t pk_psa_genkey(psa_key_type_t type, size_t bits,
-                           psa_key_usage_t usage, psa_algorithm_t alg,
-                           psa_algorithm_t enrollment_alg,
-                           mbedtls_svc_key_id_t persistent_key_id,
-                           mbedtls_svc_key_id_t *key)
-{
-    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_status_t status;
-
-    *key = MBEDTLS_SVC_KEY_ID_INIT;
-
-    psa_set_key_usage_flags(&attributes, usage);
-    psa_set_key_algorithm(&attributes, alg);
-    psa_set_key_enrollment_algorithm(&attributes, enrollment_alg);
-    psa_set_key_type(&attributes, type);
-    psa_set_key_bits(&attributes, bits);
-    if (!mbedtls_svc_key_id_is_null(persistent_key_id)) {
-        psa_set_key_id(&attributes, persistent_key_id);
-    }
-    status = psa_generate_key(&attributes, key);
-
-    return status;
-}
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 /* END_HEADER */
 
@@ -597,14 +665,14 @@ void pk_psa_utils(int key_is_rsa)
 
     if (key_is_rsa) {
         bitlen = 1024;
-        key = pk_psa_genkey(PSA_KEY_TYPE_RSA_KEY_PAIR, 1024, PSA_KEY_USAGE_SIGN_HASH,
-                            PSA_ALG_RSA_PKCS1V15_SIGN_RAW, PSA_ALG_NONE,
-                            PSA_KEY_ID_NULL, &key);
+        PSA_ASSERT(pk_psa_genkey(PSA_KEY_TYPE_RSA_KEY_PAIR, 1024, PSA_KEY_USAGE_SIGN_HASH,
+                                 PSA_ALG_RSA_PKCS1V15_SIGN_RAW, PSA_ALG_NONE,
+                                 PSA_KEY_ID_NULL, &key));
     } else {
         bitlen = 256;
-        key = pk_psa_genkey(PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1), 256,
-                            PSA_KEY_USAGE_SIGN_HASH, PSA_ALG_ECDSA(PSA_ALG_SHA_256),
-                            PSA_ALG_NONE, PSA_KEY_ID_NULL, &key);
+        PSA_ASSERT(pk_psa_genkey(PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1), 256,
+                                 PSA_KEY_USAGE_SIGN_HASH, PSA_ALG_ECDSA(PSA_ALG_SHA_256),
+                                 PSA_ALG_NONE, PSA_KEY_ID_NULL, &key));
     }
     if (mbedtls_svc_key_id_is_null(key)) {
         goto exit;
@@ -2433,10 +2501,15 @@ void pk_copy_from_psa_fail(void)
                MBEDTLS_ERR_PK_BAD_INPUT_DATA);
 
 #if defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE)
-    /* Generate a key type that is not handled by the PK module. */
-    PSA_ASSERT(pk_psa_genkey(PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919), 2048,
-                             PSA_KEY_USAGE_EXPORT, PSA_ALG_NONE, PSA_ALG_NONE,
-                             PSA_KEY_ID_NULL, &key_id));
+    /* Generate a key type that is not handled by the PK module.
+     * Note: we cannot use pk_psa_genkey() in this case because that function relies
+     * on PK module functionality and PK module does not support DH keys. */
+    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
+
+    psa_set_key_type(&key_attr, PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919));
+    psa_set_key_bits(&key_attr, 2048);
+    psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_EXPORT);
+    psa_generate_key(&key_attr, &key_id);
     TEST_EQUAL(mbedtls_pk_copy_from_psa(key_id, &pk_ctx), MBEDTLS_ERR_PK_BAD_INPUT_DATA);
     TEST_EQUAL(mbedtls_pk_copy_public_from_psa(key_id, &pk_ctx), MBEDTLS_ERR_PK_BAD_INPUT_DATA);
     psa_destroy_key(key_id);

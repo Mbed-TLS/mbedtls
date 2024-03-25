@@ -2253,7 +2253,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE:MBEDTLS_TEST_PSA_ECC_AT_LEAST_ONE_CURVE:MBEDTLS_PSA_CRYPTO_STORAGE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_TEST_PSA_ECC_AT_LEAST_ONE_CURVE:MBEDTLS_PSA_CRYPTO_STORAGE_C */
 void pk_import_into_psa_lifetime(int from_opaque,
                                  int from_persistent, /* when from opaque */
                                  int from_exportable, /* when from opaque */
@@ -2535,15 +2535,13 @@ void pk_copy_from_psa_fail(void)
     psa_destroy_key(key_id);
 #endif /* PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE */
 
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && defined(PSA_WANT_ECC_SECP_R1_256) && \
-    defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS) && defined(PSA_WANT_ECC_SECP_R1_256)
     /* Generate an EC key which cannot be exported. */
     PSA_ASSERT(pk_psa_genkey(PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1), 256,
                              0, PSA_ALG_NONE, PSA_ALG_NONE, PSA_KEY_ID_NULL, &key_id));
     TEST_EQUAL(mbedtls_pk_copy_from_psa(key_id, &pk_ctx), MBEDTLS_ERR_PK_TYPE_MISMATCH);
     psa_destroy_key(key_id);
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS && PSA_WANT_ECC_SECP_R1_256 &&
-          PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS && PSA_WANT_ECC_SECP_R1_256 */
 
 exit:
     mbedtls_pk_free(&pk_ctx);

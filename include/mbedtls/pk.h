@@ -361,10 +361,10 @@ int mbedtls_pk_setup(mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info);
 /**
  * \brief Initialize a PK context to wrap a PSA key.
  *
- * This function helps creating a PK context which wraps a PSA key. The PSA wrapped
- * key must be an EC or RSA key pair (DH is not suported in PK module).
+ * This function creates a PK context which wraps a PSA key. The PSA wrapped
+ * key must be an EC or RSA key pair (DH is not suported in the PK module).
  *
- * Under the hood PSA functions are used to perform the required
+ * Under the hood PSA functions will be used to perform the required
  * operations and, based on the key type, used algorithms will be:
  * * EC:
  *     * verify, verify_ext, sign, sign_ext: ECDSA.

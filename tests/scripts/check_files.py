@@ -24,7 +24,7 @@ except ImportError:
     pass
 
 import scripts_path # pylint: disable=unused-import
-from mbedtls_dev import build_tree
+from framework_dev import build_tree
 
 
 class FileIssueTracker:

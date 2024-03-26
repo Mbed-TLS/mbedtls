@@ -19,8 +19,8 @@ import sys
 from typing import List
 
 #pylint: disable=unused-import
-import scripts_path
-from mbedtls_dev import build_tree
+import scripts_path # pylint: disable=unused-import
+from framework_dev import build_tree
 
 # PSA Compliance tests we expect to fail due to known defects in Mbed TLS /
 # TF-PSA-Crypto (or the test suite).

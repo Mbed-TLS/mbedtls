@@ -21,9 +21,10 @@ import sys
 import typing
 from enum import Enum
 
-from mbedtls_dev import build_tree
-from mbedtls_dev import logging_util
-from mbedtls_dev import typing_util
+import framework_path # pylint: disable=unused-import
+from framework_dev import build_tree
+from framework_dev import logging_util
+from framework_dev import typing_util
 
 class SupportedArch(Enum):
     """Supported architecture for code size measurement."""

@@ -15,10 +15,10 @@ import os
 from typing import Iterator, List, Optional, Tuple
 
 import scripts_path #pylint: disable=unused-import
-from mbedtls_dev import build_tree
-from mbedtls_dev import c_parsing_helper
-from mbedtls_dev import c_wrapper_generator
-from mbedtls_dev import typing_util
+from framework_dev import build_tree
+from framework_dev import c_parsing_helper
+from framework_dev import c_wrapper_generator
+from framework_dev import typing_util
 
 
 class BufferParameter:

@@ -50,35 +50,35 @@ generated_files: $(GENERATED_FILES)
 .SECONDARY: generated_bignum_test_data generated_ecp_test_data generated_psa_test_data
 $(GENERATED_BIGNUM_DATA_FILES): $(gen_file_dep) generated_bignum_test_data
 generated_bignum_test_data: scripts/generate_bignum_tests.py
-generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_common.py
-generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_core.py
-generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_mod_raw.py
-generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_mod.py
-generated_bignum_test_data: ../scripts/mbedtls_dev/test_case.py
-generated_bignum_test_data: ../scripts/mbedtls_dev/test_data_generation.py
+generated_bignum_test_data: ../framework/scripts/framework_dev/bignum_common.py
+generated_bignum_test_data: ../framework/scripts/framework_dev/bignum_core.py
+generated_bignum_test_data: ../framework/scripts/framework_dev/bignum_mod_raw.py
+generated_bignum_test_data: ../framework/scripts/framework_dev/bignum_mod.py
+generated_bignum_test_data: ../framework/scripts/framework_dev/test_case.py
+generated_bignum_test_data: ../framework/scripts/framework_dev/test_data_generation.py
 generated_bignum_test_data:
 	echo "  Gen   $(GENERATED_BIGNUM_DATA_FILES)"
 	$(PYTHON) scripts/generate_bignum_tests.py
 
 $(GENERATED_ECP_DATA_FILES): $(gen_file_dep) generated_ecp_test_data
 generated_ecp_test_data: scripts/generate_ecp_tests.py
-generated_ecp_test_data: ../scripts/mbedtls_dev/bignum_common.py
-generated_ecp_test_data: ../scripts/mbedtls_dev/ecp.py
-generated_ecp_test_data: ../scripts/mbedtls_dev/test_case.py
-generated_ecp_test_data: ../scripts/mbedtls_dev/test_data_generation.py
+generated_ecp_test_data: ../framework/scripts/framework_dev/bignum_common.py
+generated_ecp_test_data: ../framework/scripts/framework_dev/ecp.py
+generated_ecp_test_data: ../framework/scripts/framework_dev/test_case.py
+generated_ecp_test_data: ../framework/scripts/framework_dev/test_data_generation.py
 generated_ecp_test_data:
 	echo "  Gen   $(GENERATED_ECP_DATA_FILES)"
 	$(PYTHON) scripts/generate_ecp_tests.py
 
 $(GENERATED_PSA_DATA_FILES): $(gen_file_dep) generated_psa_test_data
 generated_psa_test_data: scripts/generate_psa_tests.py
-generated_psa_test_data: ../scripts/mbedtls_dev/crypto_data_tests.py
-generated_psa_test_data: ../scripts/mbedtls_dev/crypto_knowledge.py
-generated_psa_test_data: ../scripts/mbedtls_dev/macro_collector.py
-generated_psa_test_data: ../scripts/mbedtls_dev/psa_information.py
-generated_psa_test_data: ../scripts/mbedtls_dev/psa_storage.py
-generated_psa_test_data: ../scripts/mbedtls_dev/test_case.py
-generated_psa_test_data: ../scripts/mbedtls_dev/test_data_generation.py
+generated_psa_test_data: ../framework/scripts/framework_dev/crypto_data_tests.py
+generated_psa_test_data: ../framework/scripts/framework_dev/crypto_knowledge.py
+generated_psa_test_data: ../framework/scripts/framework_dev/macro_collector.py
+generated_psa_test_data: ../framework/scripts/framework_dev/psa_information.py
+generated_psa_test_data: ../framework/scripts/framework_dev/psa_storage.py
+generated_psa_test_data: ../framework/scripts/framework_dev/test_case.py
+generated_psa_test_data: ../framework/scripts/framework_dev/test_data_generation.py
 ## The generated file only depends on the options that are present in
 ## crypto_config.h, not on which options are set. To avoid regenerating this
 ## file all the time when switching between configurations, don't declare

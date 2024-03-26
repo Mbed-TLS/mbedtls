@@ -2094,6 +2094,7 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
         TEST_ASSERT(original.ciphersuite == restored.ciphersuite);
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
         TEST_ASSERT(original.ticket_age_add == restored.ticket_age_add);
         TEST_ASSERT(original.ticket_flags == restored.ticket_flags);
         TEST_ASSERT(original.resumption_key_len == restored.resumption_key_len);
@@ -2104,22 +2105,24 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
                                restored.resumption_key,
                                original.resumption_key_len) == 0);
         }
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-        TEST_ASSERT(
-            original.max_early_data_size == restored.max_early_data_size);
-#if defined(MBEDTLS_SSL_ALPN) && defined(MBEDTLS_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_SRV_C)
         if (endpoint_type == MBEDTLS_SSL_IS_SERVER) {
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
             TEST_ASSERT(original.ticket_alpn != NULL);
             TEST_ASSERT(restored.ticket_alpn != NULL);
             TEST_MEMORY_COMPARE(original.ticket_alpn, strlen(original.ticket_alpn),
                                 restored.ticket_alpn, strlen(restored.ticket_alpn));
+#endif
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
         }
-#endif
-#endif
+#endif /* MBEDTLS_SSL_SRV_C */
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_CLI_C)
         if (endpoint_type == MBEDTLS_SSL_IS_CLIENT) {
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
 #if defined(MBEDTLS_HAVE_TIME)
             TEST_ASSERT(original.ticket_reception_time == restored.ticket_reception_time);
 #endif
@@ -2132,11 +2135,16 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
                                    restored.ticket,
                                    original.ticket_len) == 0);
             }
-
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
         }
-#endif
+#endif /* MBEDTLS_SSL_CLI_C */
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    TEST_ASSERT(
+        original.max_early_data_size == restored.max_early_data_size);
+#endif
 
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
     TEST_ASSERT(original.record_size_limit == restored.record_size_limit);

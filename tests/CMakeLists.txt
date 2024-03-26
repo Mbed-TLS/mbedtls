@@ -220,7 +220,7 @@ function(add_test_suite suite_name)
             test_suite_${data_name}.c
         COMMAND
             ${MBEDTLS_PYTHON_EXECUTABLE}
-            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_test_code.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_test_code.py
             -f ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${suite_name}.function
             -d ${data_file}
             -t ${CMAKE_CURRENT_SOURCE_DIR}/suites/main_test.function
@@ -229,7 +229,7 @@ function(add_test_suite suite_name)
             --helpers-file ${CMAKE_CURRENT_SOURCE_DIR}/suites/helpers.function
             -o .
         DEPENDS
-            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_test_code.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../framework/scripts/generate_test_code.py
             ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${suite_name}.function
             ${data_file}
             ${CMAKE_CURRENT_SOURCE_DIR}/suites/main_test.function

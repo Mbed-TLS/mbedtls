@@ -62,7 +62,7 @@ $PYTHON -m pylint framework/scripts/framework_dev/*.py scripts/*.py tests/script
 
 echo
 echo 'Running mypy ...'
-$PYTHON -m mypy scripts/*.py tests/scripts/*.py ||
+$PYTHON -m mypy framework/scripts/*.py scripts/*.py tests/scripts/*.py ||
   ret=1
 
 exit $ret

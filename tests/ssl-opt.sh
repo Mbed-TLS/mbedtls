@@ -7666,7 +7666,7 @@ requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli 1.3: DigitalSignature+KeyEncipherment, RSA: OK" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server2.key \
-             -cert data_files/server2.ku-ds_ke.crt" \
+             -cert data_files/server2-sha256.ku-ds_ke.crt" \
             "$P_CLI debug_level=3" \
             0 \
             -C "bad certificate (usage extensions)" \
@@ -7678,7 +7678,7 @@ requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli 1.3: KeyEncipherment, RSA: fail" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server2.key \
-             -cert data_files/server2.ku-ke.crt" \
+             -cert data_files/server2-sha256.ku-ke.crt" \
             "$P_CLI debug_level=1" \
             1 \
             -c "bad certificate (usage extensions)" \
@@ -7690,7 +7690,7 @@ requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "keyUsage cli 1.3: KeyAgreement, RSA: fail" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server2.key \
-             -cert data_files/server2.ku-ka.crt" \
+             -cert data_files/server2-sha256.ku-ka.crt" \
             "$P_CLI debug_level=1" \
             1 \
             -c "bad certificate (usage extensions)" \
@@ -7789,7 +7789,7 @@ requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
 run_test    "keyUsage cli-auth 1.3: RSA, DigitalSignature: OK" \
             "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key data_files/server2.key \
-             -cert data_files/server2.ku-ds.crt" \
+             -cert data_files/server2-sha256.ku-ds.crt" \
             0 \
             -s "Verifying peer X.509 certificate... ok" \
             -S "bad certificate (usage extensions)" \
@@ -7801,7 +7801,7 @@ requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
 run_test    "keyUsage cli-auth 1.3: RSA, KeyEncipherment: fail (soft)" \
             "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key data_files/server2.key \
-             -cert data_files/server2.ku-ke.crt" \
+             -cert data_files/server2-sha256.ku-ke.crt" \
             0 \
             -s "bad certificate (usage extensions)" \
             -S "Processing of the Certificate handshake message failed"

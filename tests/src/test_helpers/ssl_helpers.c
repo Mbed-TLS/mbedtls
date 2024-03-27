@@ -1831,6 +1831,14 @@ int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
             }
             memset(session->ticket, 33, ticket_len);
         }
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+        char hostname[] = "hostname example";
+        session->hostname = mbedtls_calloc(1, sizeof(hostname));
+        if (session->hostname == NULL) {
+            return -1;
+        }
+        memcpy(session->hostname, hostname, sizeof(hostname));
+#endif
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
     }
 #endif /* MBEDTLS_SSL_CLI_C */

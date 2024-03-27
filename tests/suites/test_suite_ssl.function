@@ -2134,6 +2134,12 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
                                    restored.ticket,
                                    original.ticket_len) == 0);
             }
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+            TEST_ASSERT(original.hostname != NULL);
+            TEST_ASSERT(restored.hostname != NULL);
+            TEST_MEMORY_COMPARE(original.hostname, strlen(original.hostname),
+                                restored.hostname, strlen(restored.hostname));
+#endif
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
         }
 #endif /* MBEDTLS_SSL_CLI_C */

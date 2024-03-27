@@ -199,7 +199,7 @@ C_SOURCE_FILES = $(wildcard \
 	library/*.[hc] \
 	programs/*/*.[hc] \
 	tests/include/*/*.h tests/include/*/*/*.h \
-	tests/src/*.c tests/src/*/*.c \
+	framework/src/*.c framework/src/*/*.c \
 	tests/suites/*.function \
 )
 # Exuberant-ctags invocation. Other ctags implementations may require different options.

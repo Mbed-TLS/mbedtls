@@ -15,12 +15,12 @@
  *   http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38b.pdf
  *
  * - RFC 4493 - The AES-CMAC Algorithm
- *   https://tools.ietf.org/html/rfc4493
+ *   https://datatracker.ietf.org/doc/html/rfc4493
  *
  * - RFC 4615 - The Advanced Encryption Standard-Cipher-based Message
  *      Authentication Code-Pseudo-Random Function-128 (AES-CMAC-PRF-128)
  *      Algorithm for the Internet Key Exchange Protocol (IKE)
- *   https://tools.ietf.org/html/rfc4615
+ *   https://datatracker.ietf.org/doc/html/rfc4615
  *
  *   Additional test vectors: ISO/IEC 9797-1
  *
@@ -436,7 +436,7 @@ exit:
  * http://csrc.nist.gov/groups/ST/toolkit/documents/Examples/TDES_CMAC.pdf
  *
  * AES-CMAC-PRF-128 test data from RFC 4615
- * https://tools.ietf.org/html/rfc4615#page-4
+ * https://datatracker.ietf.org/doc/html/rfc4615#page-4
  */
 
 #define NB_CMAC_TESTS_PER_KEY 4

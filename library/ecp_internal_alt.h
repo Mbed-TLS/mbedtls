@@ -36,7 +36,7 @@
  *
  * [7] Elliptic Curve Cryptography (ECC) Cipher Suites for Transport Layer
  *     Security (TLS), RFC 4492.
- *     <https://tools.ietf.org/search/rfc4492>
+ *     <https://datatracker.ietf.org/doc/html/rfc4492>
  *
  * [8] <http://www.hyperelliptic.org/EFD/g1p/auto-shortw-jacobian.html>
  *

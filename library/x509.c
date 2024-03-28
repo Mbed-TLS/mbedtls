@@ -7,9 +7,9 @@
 /*
  *  The ITU-T X.509 standard defines a certificate format for PKI.
  *
- *  http://www.ietf.org/rfc/rfc5280.txt (Certificates and CRLs)
- *  http://www.ietf.org/rfc/rfc3279.txt (Alg IDs for CRLs)
- *  http://www.ietf.org/rfc/rfc2986.txt (CSRs, aka PKCS#10)
+ *  https://datatracker.ietf.org/doc/html/rfc5280 (Certificates and CRLs)
+ *  https://datatracker.ietf.org/doc/html/rfc3279 (Alg IDs for CRLs)
+ *  https://datatracker.ietf.org/doc/html/rfc2986 (CSRs, aka PKCS#10)
  *
  *  http://www.itu.int/ITU-T/studygroups/com17/languages/X.680-0207.pdf
  *  http://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf

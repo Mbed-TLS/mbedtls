@@ -51,7 +51,7 @@ mbedtls_ecp_variant mbedtls_ecp_get_variant(void);
  * has the lower bits masked but is not necessarily canonical.
  *
  * \note            - [Curve25519] http://cr.yp.to/ecdh/curve25519-20060209.pdf
- *                  - [RFC7748] https://tools.ietf.org/html/rfc7748
+ *                  - [RFC7748] https://datatracker.ietf.org/doc/html/rfc7748
  *
  * \p high_bit      The position of the high-order bit of the key to generate.
  *                  This is the bit-size of the key minus 1:

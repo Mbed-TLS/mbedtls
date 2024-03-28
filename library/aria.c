@@ -8,7 +8,7 @@
 /*
  * This implementation is based on the following standards:
  * [1] http://210.104.33.10/ARIA/doc/ARIA-specification-e.pdf
- * [2] https://tools.ietf.org/html/rfc5794
+ * [2] https://datatracker.ietf.org/doc/html/rfc5794
  */
 
 #include "common.h"

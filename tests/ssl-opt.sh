@@ -84,6 +84,19 @@ else
     O_NEXT_CLI=false
 fi
 
+if [ -n "${OPENSSL_3:-}" ]; then
+    O_3_SRV="$OPENSSL_3 s_server -www -cert data_files/server5.crt -key data_files/server5.key"
+    O_3_SRV_EARLY_DATA="$OPENSSL_3 s_server -early_data -cert data_files/server5.crt -key data_files/server5.key"
+    O_3_SRV_NO_CERT="$OPENSSL_3 s_server -www "
+    O_3_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_3 s_client -CAfile data_files/test-ca_cat12.crt"
+    O_3_CLI_NO_CERT="echo 'GET / HTTP/1.0' | $OPENSSL_3 s_client"
+else
+    O_3_SRV=false
+    O_3_SRV_NO_CERT=false
+    O_3_SRV_EARLY_DATA=false
+    O_3_CLI_NO_CERT=false
+    O_3_CLI=false
+fi
 if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
     G_NEXT_SRV="$GNUTLS_NEXT_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
     G_NEXT_SRV_NO_CERT="$GNUTLS_NEXT_SERV"
@@ -1991,6 +2004,14 @@ if [ "$LIST_TESTS" -eq 0 ];then
         O_NEXT_SRV_EARLY_DATA="$O_NEXT_SRV_EARLY_DATA -accept $SRV_PORT"
         O_NEXT_CLI="$O_NEXT_CLI -connect 127.0.0.1:+SRV_PORT"
         O_NEXT_CLI_NO_CERT="$O_NEXT_CLI_NO_CERT -connect 127.0.0.1:+SRV_PORT"
+    fi
+
+    if [ -n "${OPENSSL_3:-}" ]; then
+        O_3_SRV="$O_3_SRV -accept $SRV_PORT"
+        O_3_SRV_NO_CERT="$O_3_SRV_NO_CERT -accept $SRV_PORT"
+        O_3_SRV_EARLY_DATA="$O_3_SRV_EARLY_DATA -accept $SRV_PORT"
+        O_3_CLI="$O_3_CLI -connect 127.0.0.1:+SRV_PORT"
+        O_3_CLI_NO_CERT="$O_3_CLI_NO_CERT -connect 127.0.0.1:+SRV_PORT"
     fi
 
     if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then

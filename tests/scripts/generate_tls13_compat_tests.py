@@ -163,13 +163,8 @@ class OpenSSLBase(TLSProgram):
         return ret
 
     def pre_checks(self):
-        ret = ["requires_openssl_tls1_3"]
-
-        # ffdh groups require at least openssl 3.0
-        ffdh_groups = ['ffdhe2048']
-
-        if any(x in ffdh_groups for x in self._named_groups):
-            ret = ["requires_openssl_tls1_3_with_ffdh"]
+        # we're explicitly using OpenSSL 3.x, which is enough for everything
+        ret = []
 
         return ret
 
@@ -188,7 +183,7 @@ class OpenSSLServ(OpenSSLBase):
         return ['-c "HTTP/1.0 200 ok"']
 
     def pre_cmd(self):
-        ret = ['$O_NEXT_SRV_NO_CERT']
+        ret = ['$O_3_SRV_NO_CERT']
         for _, cert, key in map(lambda sig_alg: CERTIFICATES[sig_alg], self._cert_sig_algs):
             ret += ['-cert {cert} -key {key}'.format(cert=cert, key=key)]
         return ret
@@ -200,7 +195,7 @@ class OpenSSLCli(OpenSSLBase):
     """
 
     def pre_cmd(self):
-        return ['$O_NEXT_CLI_NO_CERT',
+        return ['$O_3_CLI_NO_CERT',
                 '-CAfile {cafile}'.format(cafile=CERTIFICATES[self._cert_sig_algs[0]].cafile)]
 
 

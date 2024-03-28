@@ -117,9 +117,10 @@ check()
 }
 
 # Note: if the format of calls to the "check" function changes, update
-# scripts/code_style.py accordingly. For generated C source files (*.h or *.c),
-# the format must be "check SCRIPT FILENAME...". For other source files,
-# any shell syntax is permitted (including e.g. command substitution).
+# framework/scripts/code_style.py accordingly. For generated C source files
+# (*.h or *.c), the format must be "check SCRIPT FILENAME...". For other
+# source files, any shell syntax is permitted (including e.g. command
+# substitution).
 
 # Note: Instructions to generate those files are replicated in:
 #   - **/Makefile (to (re)build them with make)

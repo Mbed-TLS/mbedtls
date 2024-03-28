@@ -56,6 +56,7 @@ typedef struct {
 
 typedef struct {
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
+    uint8_t truncation_length;
     union {
         unsigned MBEDTLS_PRIVATE(dummy); /* Make the union non-empty even with no supported algorithms. */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC) || defined(PSA_CRYPTO_DRIVER_TEST)
@@ -67,7 +68,7 @@ typedef struct {
     } MBEDTLS_PRIVATE(ctx);
 } mbedtls_psa_mac_operation_t;
 
-#define MBEDTLS_PSA_MAC_OPERATION_INIT { 0, { 0 } }
+#define MBEDTLS_PSA_MAC_OPERATION_INIT { 0, 0, { 0 } }
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_CCM) || \

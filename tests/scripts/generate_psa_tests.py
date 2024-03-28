@@ -830,6 +830,8 @@ class PSATestGenerator(test_data_generation.TestGenerator):
         lambda info: KeyTypeNotSupported(info).test_cases_for_not_supported(),
         'test_suite_psa_crypto_low_hash.generated':
         lambda info: crypto_data_tests.HashPSALowLevel(info).all_test_cases(),
+        'test_suite_psa_crypto_low_mac.generated':
+        lambda info: crypto_data_tests.MacPSALowLevel(info).all_test_cases(),
         'test_suite_psa_crypto_op_fail.generated':
         lambda info: OpFail(info).all_test_cases(),
         'test_suite_psa_crypto_storage_format.current':

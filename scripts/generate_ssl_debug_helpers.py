@@ -14,7 +14,9 @@ import re
 import os
 import textwrap
 import argparse
-from mbedtls_dev import build_tree
+
+import framework_path # pylint: disable=unused-import
+from framework_dev import build_tree
 
 
 def remove_c_comments(string):

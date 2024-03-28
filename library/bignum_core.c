@@ -133,7 +133,7 @@ mbedtls_ct_condition_t mbedtls_mpi_core_lt_ct(const mbedtls_mpi_uint *A,
                                               const mbedtls_mpi_uint *B,
                                               size_t limbs)
 {
-    mbedtls_ct_condition_t ret = MBEDTLS_CT_FALSE, cond = MBEDTLS_CT_FALSE, done = MBEDTLS_CT_FALSE;
+    mbedtls_ct_condition_t ret = MBEDTLS_CT_FALSE, cond, done = MBEDTLS_CT_FALSE;
 
     for (size_t i = limbs; i > 0; i--) {
         /*
@@ -641,7 +641,7 @@ int mbedtls_mpi_core_random(mbedtls_mpi_uint *X,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng)
 {
-    mbedtls_ct_condition_t ge_lower = MBEDTLS_CT_TRUE, lt_upper = MBEDTLS_CT_FALSE;
+    mbedtls_ct_condition_t ge_lower, lt_upper;
     size_t n_bits = mbedtls_mpi_core_bitlen(N, limbs);
     size_t n_bytes = (n_bits + 7) / 8;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

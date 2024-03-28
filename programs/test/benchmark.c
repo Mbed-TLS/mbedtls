@@ -46,6 +46,8 @@ int main(void)
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/ecdh.h"
 
+#include "mbedtls/lms.h"
+
 #include "mbedtls/error.h"
 
 /* *INDENT-OFF* */
@@ -510,7 +512,8 @@ typedef struct {
          aria, camellia, chacha20,
          poly1305,
          ctr_drbg, hmac_drbg,
-         rsa, dhm, ecdsa, ecdh;
+         rsa, dhm, ecdsa, ecdh,
+         lms;
 } todo_list;
 
 
@@ -603,6 +606,8 @@ int main(int argc, char *argv[])
                 todo.ecdsa = 1;
             } else if (strcmp(argv[i], "ecdh") == 0) {
                 todo.ecdh = 1;
+            } else if (strcmp(argv[i], "lms") == 0) {
+                todo.lms = 1;
             }
 #if defined(MBEDTLS_ECP_C)
             else if (set_ecp_curve(argv[i], single_curve)) {
@@ -1256,6 +1261,41 @@ int main(int argc, char *argv[])
             mbedtls_ecdh_free(&ecdh_cli);
             mbedtls_ecdh_free(&ecdh_srv);
         }
+    }
+#endif
+
+#if defined(MBEDTLS_LMS_C) && defined(MBEDTLS_LMS_PRIVATE)
+    if (todo.lms) {
+        mbedtls_lms_public_t pub_ctx;
+        mbedtls_lms_private_t priv_ctx;
+        unsigned char sig[MBEDTLS_LMS_SIG_LEN(MBEDTLS_LMS_SHA256_M32_H10, MBEDTLS_LMOTS_SHA256_N32_W8)];
+
+        mbedtls_snprintf(title, sizeof(title), "LMS");
+
+        mbedtls_lms_public_init(&pub_ctx);
+        mbedtls_lms_private_init(&priv_ctx);
+
+        mbedtls_lms_generate_private_key(&priv_ctx, MBEDTLS_LMS_SHA256_M32_H10,
+                                                    MBEDTLS_LMOTS_SHA256_N32_W8,
+                                                    myrand, NULL,
+                                                    buf, BUFSIZE);
+
+        mbedtls_lms_calculate_public_key(&pub_ctx, &priv_ctx);
+
+        TIME_PUBLIC(title, "sign",
+            ret = mbedtls_lms_sign(&priv_ctx, myrand, NULL, buf, BUFSIZE, sig, sizeof(sig), NULL);
+            if (ret == MBEDTLS_ERR_LMS_OUT_OF_PRIVATE_KEYS) {
+                ret = 0;
+                break;
+            }
+        );
+
+        TIME_PUBLIC(title, "verify",
+            ret = mbedtls_lms_verify(&pub_ctx, buf, BUFSIZE, sig, sizeof(sig));
+        );
+
+        mbedtls_lms_public_free(&pub_ctx);
+        mbedtls_lms_private_free(&priv_ctx);
     }
 #endif
 

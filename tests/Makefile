@@ -120,16 +120,16 @@ ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 TEST_OBJS_DEPS += include/test/instrument_record_status.h
 endif
 
-# Rule to compile common test C files in src folder
-src/%.o : src/%.c $(TEST_OBJS_DEPS)
+# Rule to compile common test C files in ../framework/src folder
+../framework/src/%.o : ../framework/src/%.c $(TEST_OBJS_DEPS)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
-src/drivers/%.o : src/drivers/%.c
+../framework/src/drivers/%.o : ../framework/src/drivers/%.c
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
-src/test_helpers/%.o : src/test_helpers/%.c
+../framework/src/test_helpers/%.o : ../framework/src/test_helpers/%.c
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
@@ -169,7 +169,7 @@ $(BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(TEST_OBJS_DEPS) $(MBEDTLS_TEST_OBJS)
 clean:
 ifndef WINDOWS
 	rm -rf $(BINARIES) *.c *.datax
-	rm -f src/*.o src/drivers/*.o src/test_helpers/*.o src/libmbed*
+	rm -f ../framework/src/*.o ../framework/src/drivers/*.o ../framework/src/test_helpers/*.o ../framework/src/libmbed*
 	rm -f include/test/instrument_record_status.h
 	rm -f include/alt-extra/*/*_alt.h
 	rm -rf libtestdriver1
@@ -178,10 +178,10 @@ else
 	if exist *.c del /Q /F *.c
 	if exist *.exe del /Q /F *.exe
 	if exist *.datax del /Q /F *.datax
-	if exist src/*.o del /Q /F src/*.o
-	if exist src/drivers/*.o del /Q /F src/drivers/*.o
-	if exist src/test_helpers/*.o del /Q /F src/test_helpers/*.o
-	if exist src/libmbed* del /Q /F src/libmed*
+	if exist ../framework/src/*.o del /Q /F ../framework/src/*.o
+	if exist ../framework/src/drivers/*.o del /Q /F ../framework/src/drivers/*.o
+	if exist ../framework/src/test_helpers/*.o del /Q /F ../framework/src/test_helpers/*.o
+	if exist ../framework/src/libmbed* del /Q /F ../framework/src/libmed*
 	if exist include/test/instrument_record_status.h del /Q /F include/test/instrument_record_status.h
 endif
 

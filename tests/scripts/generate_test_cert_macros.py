@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Generate `tests/src/test_certs.h` which includes certficaties/keys/certificate list for testing.
+Generate `framework/src/test_certs.h` which includes certficaties/keys/certificate list for testing.
 """
 
 #

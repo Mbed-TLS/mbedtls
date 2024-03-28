@@ -265,7 +265,7 @@ static int ssl_write_max_fragment_length_ext(mbedtls_ssl_context *ssl,
 
     *olen = 0;
 
-    if (ssl->conf->mfl_code == MBEDTLS_SSL_MAX_FRAG_LEN_NONE) {
+    if (ssl->session_negotiate->mfl_code == MBEDTLS_SSL_MAX_FRAG_LEN_NONE) {
         return 0;
     }
 
@@ -280,7 +280,7 @@ static int ssl_write_max_fragment_length_ext(mbedtls_ssl_context *ssl,
     *p++ = 0x00;
     *p++ = 1;
 
-    *p++ = ssl->conf->mfl_code;
+    *p++ = ssl->session_negotiate->mfl_code;
 
     *olen = 5;
 
@@ -1187,6 +1187,9 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     int renegotiation_info_seen = 0;
 #endif
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    int max_fragment_length_seen = 0;
+#endif
     int handshake_failure = 0;
     const mbedtls_ssl_ciphersuite_t *suite_info;
 
@@ -1482,6 +1485,8 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
                     return ret;
                 }
 
+                max_fragment_length_seen = 1;
+
                 break;
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
@@ -1655,6 +1660,15 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
             MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE);
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
+
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    if (ssl->session_negotiate->mfl_code != MBEDTLS_SSL_MAX_FRAG_LEN_NONE &&
+        !max_fragment_length_seen) {
+        MBEDTLS_SSL_DEBUG_MSG(3,
+                              ("server did not confirm our fragment length request, disabling"));
+        ssl->session_negotiate->mfl_code = MBEDTLS_SSL_MAX_FRAG_LEN_NONE;
+    }
+#endif
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("<= parse server hello"));
 

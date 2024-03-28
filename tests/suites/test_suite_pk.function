@@ -2082,6 +2082,19 @@ void pk_psa_wrap_sign_ext(int pk_type, int key_bits, int key_pk_type, int md_alg
     memset(hash, 0x2a, sizeof(hash));
     memset(sig, 0, sizeof(sig));
 
+#if defined(MBEDTLS_PKCS1_V21)
+    /* Check that trying to use the wrong pk_type in sign_ext() results in a failure.
+     * The PSA key was setup to use PKCS1 v1.5 signature algorithm, but here we try
+     * to use it for PSS (PKCS1 v2.1) and it should fail. */
+    if (key_pk_type == MBEDTLS_PK_RSA) {
+        TEST_EQUAL(mbedtls_pk_sign_ext(MBEDTLS_PK_RSASSA_PSS, &pk, md_alg, hash, hash_len,
+                                       sig, sizeof(sig), &sig_len,
+                                       mbedtls_test_rnd_std_rand, NULL),
+                   MBEDTLS_ERR_RSA_BAD_INPUT_DATA);
+    }
+#endif /* MBEDTLS_PKCS1_V21 */
+
+    /* Perform sign_ext() with the correct pk_type. */
     TEST_EQUAL(mbedtls_pk_sign_ext(key_pk_type, &pk, md_alg, hash, hash_len,
                                    sig, sizeof(sig), &sig_len,
                                    mbedtls_test_rnd_std_rand, NULL), 0);

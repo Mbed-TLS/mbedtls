@@ -75,13 +75,8 @@ operations and its public part can be exported.
 
 **Benefits:** isolation of long-term secrets, use of PSA Crypto drivers.
 
-**Limitations:** can only wrap a key pair, can only use it for private key
-operations. (That is, signature generation, and for RSA decryption too.)
-Note: for ECDSA, currently this uses randomized ECDSA while Mbed TLS uses
-deterministic ECDSA by default. The following operations are not supported
-with a context set this way, while they would be available with a normal
-context: `mbedtls_pk_check_pair()`, `mbedtls_pk_debug()`, all public key
-operations.
+**Limitations:** please refer to the documentation of `mbedtls_pk_setup_opaque()`
+for a full list of supported operations and limitations.
 
 **Use in X.509 and TLS:** opt-in. The application needs to construct the PK context
 using the new API in order to get the benefits; it can then pass the

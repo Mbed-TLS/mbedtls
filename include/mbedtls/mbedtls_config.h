@@ -527,6 +527,8 @@
 //#define MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT
 //#define MBEDTLS_ECP_RANDOMIZE_MXZ_ALT
 //#define MBEDTLS_ECP_NORMALIZE_MXZ_ALT
+/* Support for curves with Edwards arithmetic */
+//#define MBEDTLS_ECP_DOUBLE_ADD_EDXYZ_ALT
 
 /**
  * \def MBEDTLS_ENTROPY_HARDWARE_ALT
@@ -768,9 +770,11 @@
 #define MBEDTLS_ECP_DP_BP256R1_ENABLED
 #define MBEDTLS_ECP_DP_BP384R1_ENABLED
 #define MBEDTLS_ECP_DP_BP512R1_ENABLED
-/* Montgomery curves (supporting ECP) */
+/* Montgomery curves (supporting ECP, ECDH) */
 #define MBEDTLS_ECP_DP_CURVE25519_ENABLED
 #define MBEDTLS_ECP_DP_CURVE448_ENABLED
+/* Edwards curves (supporting ECP, EdDSA) */
+#define MBEDTLS_ECP_DP_ED25519_ENABLED
 
 /**
  * \def MBEDTLS_ECP_NIST_OPTIM
@@ -2736,6 +2740,21 @@
  *           short Weierstrass curve.
  */
 #define MBEDTLS_ECDSA_C
+
+/**
+ * \def MBEDTLS_EDDSA_C
+ *
+ * Enable the Edwards-curve DSA library.
+ *
+ * Module:  library/eddsa.c
+ * Caller:
+ *
+ * Requires: MBEDTLS_ECP_C
+ *           MBEDTLS_SHA512_C for Ed25519
+ *           and at least one MBEDTLS_ECP_DP_XXX_ENABLED for a
+ *           Edwards curve.
+ */
+#define MBEDTLS_EDDSA_C
 
 /**
  * \def MBEDTLS_ECJPAKE_C

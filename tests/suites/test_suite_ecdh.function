@@ -159,7 +159,7 @@ void ecdh_primitive_testvec(int id, data_t *rnd_buf_A, char *xA_str,
     TEST_ASSERT(mbedtls_ecdh_gen_public(&grp, &dA, &qA,
                                         mbedtls_test_rnd_buffer_rand,
                                         &rnd_info_A) == 0);
-    TEST_ASSERT(!mbedtls_ecp_is_zero(&qA));
+    TEST_ASSERT(!mbedtls_ecp_is_zero_ext(&grp, &qA));
     TEST_ASSERT(mbedtls_test_read_mpi(&check, xA_str) == 0);
     TEST_ASSERT(mbedtls_mpi_cmp_mpi(&qA.X, &check) == 0);
     TEST_ASSERT(mbedtls_test_read_mpi(&check, yA_str) == 0);
@@ -168,7 +168,7 @@ void ecdh_primitive_testvec(int id, data_t *rnd_buf_A, char *xA_str,
     TEST_ASSERT(mbedtls_ecdh_gen_public(&grp, &dB, &qB,
                                         mbedtls_test_rnd_buffer_rand,
                                         &rnd_info_B) == 0);
-    TEST_ASSERT(!mbedtls_ecp_is_zero(&qB));
+    TEST_ASSERT(!mbedtls_ecp_is_zero_ext(&grp, &qB));
     TEST_ASSERT(mbedtls_test_read_mpi(&check, xB_str) == 0);
     TEST_ASSERT(mbedtls_mpi_cmp_mpi(&qB.X, &check) == 0);
     TEST_ASSERT(mbedtls_test_read_mpi(&check, yB_str) == 0);

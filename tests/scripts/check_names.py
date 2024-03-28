@@ -44,6 +44,8 @@ import shutil
 import subprocess
 import logging
 
+from typing import List
+
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import build_tree
 
@@ -54,6 +56,133 @@ PUBLIC_MACRO_PATTERN = r"^(MBEDTLS|PSA)_[0-9A-Z_]*[0-9A-Z]$"
 INTERNAL_MACRO_PATTERN = r"^[0-9A-Za-z_]*[0-9A-Z]$"
 CONSTANTS_PATTERN = PUBLIC_MACRO_PATTERN
 IDENTIFIER_PATTERN = r"^(mbedtls|psa)_[0-9a-z_]*[0-9a-z]$"
+
+class MbedTLS(): # pylint: disable=too-few-public-methods
+    """
+    A class for Mbed TLS specific parsing options.
+    """
+    config_files = [
+        "include/mbedtls/mbedtls_config.h"
+    ]
+
+    object_files = [
+        "library/libmbedcrypto.a",
+        "library/libmbedtls.a",
+        "library/libmbedx509.a"
+    ]
+
+    use_cmake = False
+
+    public_macro_files = [
+        "include/mbedtls/*.h",
+        "include/psa/*.h",
+        "3rdparty/everest/include/everest/everest.h",
+        "3rdparty/everest/include/everest/x25519.h"
+    ]
+
+    internal_macro_files = [
+        "library/*.h",
+        "tests/include/test/drivers/*.h"
+    ]
+
+    private_macro_files = [
+        "library/*.c"
+    ]
+
+    enum_const_files = [
+        "include/mbedtls/*.h",
+        "include/psa/*.h",
+        "library/*.h",
+        "library/*.c",
+        "3rdparty/everest/include/everest/everest.h",
+        "3rdparty/everest/include/everest/x25519.h"
+    ]
+
+    identifier_files = [
+        "include/mbedtls/*.h",
+        "include/psa/*.h",
+        "library/*.h",
+        "3rdparty/everest/include/everest/everest.h",
+        "3rdparty/everest/include/everest/x25519.h"
+    ]
+
+    excluded_identifier_files = [
+        "3rdparty/p256-m/p256-m/p256-m.h"
+    ]
+
+    mbed_psa_word_files = [
+        "include/mbedtls/*.h",
+        "include/psa/*.h",
+        "library/*.h",
+        "3rdparty/everest/include/everest/everest.h",
+        "3rdparty/everest/include/everest/x25519.h",
+        "library/*.c",
+        "3rdparty/everest/library/everest.c",
+        "3rdparty/everest/library/x25519.c"
+    ]
+
+    excluded_mbed_psa_word_files = [
+        "library/psa_crypto_driver_wrappers.h"
+    ]
+
+class TFPSACrypto(): # pylint: disable=too-few-public-methods
+    """
+    A class for TF PSA Crypto specific parsing options.
+    """
+    config_files = [
+        "drivers/builtin/mbedtls_config.h"
+    ]
+
+    object_files = [
+        "core/libtfpsacrypto.a"
+    ]
+
+    use_cmake = True
+
+    public_macro_files = [
+        "include/TF_PSA_Crypto/*.h",
+        "include/psa/*.h",
+        "drivers/builtin/include/mbedtls/*.h"
+    ]
+
+    internal_macro_files = [
+        "core/*.h",
+        "drivers/builtin/src/*.h",
+        "tests/include/test/drivers/*.h"
+    ]
+
+    private_macro_files = [
+        "core/*.c",
+        "drivers/builtin/src/*.c"
+    ]
+
+    enum_const_files = [
+        "drivers/builtin/include/mbedtls/*.h",
+        "include/psa/*.h",
+        "core/*.h",
+        "drivers/builtin/src/*.c",
+        "core/*.c"
+    ]
+
+    identifier_files = [
+        "drivers/builtin/include/mbedtls/*.h",
+        "include/psa/*.h",
+        "core/*.h"
+    ]
+
+    excluded_identifier_files = [
+    ] # type: List[str]
+
+    mbed_psa_word_files = [
+        "drivers/builtin/include/mbedtls/*.h",
+        "include/psa/*.h",
+        "core/*.h",
+        "drivers/builtin/src/*.c",
+        "core/*.c"
+    ]
+
+    excluded_mbed_psa_word_files = [
+    ] # type: List[str]
 
 class Match(): # pylint: disable=too-few-public-methods
     """
@@ -214,6 +343,11 @@ class CodeParser():
         self.log = log
         build_tree.check_repo_path()
 
+        if build_tree.looks_like_mbedtls_root("."):
+            self.project = MbedTLS()
+        elif build_tree.looks_like_tf_psa_crypto_root("."):
+            self.project = TFPSACrypto()
+
         # Memo for storing "glob expression": set(filepaths)
         self.files = {}
 
@@ -235,44 +369,16 @@ class CodeParser():
         )
 
         all_macros = {"public": [], "internal": [], "private":[]}
-        all_macros["public"] = self.parse_macros([
-            "include/mbedtls/*.h",
-            "include/psa/*.h",
-            "3rdparty/everest/include/everest/everest.h",
-            "3rdparty/everest/include/everest/x25519.h"
-        ])
-        all_macros["internal"] = self.parse_macros([
-            "library/*.h",
-            "tests/include/test/drivers/*.h",
-        ])
-        all_macros["private"] = self.parse_macros([
-            "library/*.c",
-        ])
-        enum_consts = self.parse_enum_consts([
-            "include/mbedtls/*.h",
-            "include/psa/*.h",
-            "library/*.h",
-            "library/*.c",
-            "3rdparty/everest/include/everest/everest.h",
-            "3rdparty/everest/include/everest/x25519.h"
-        ])
-        identifiers, excluded_identifiers = self.parse_identifiers([
-            "include/mbedtls/*.h",
-            "include/psa/*.h",
-            "library/*.h",
-            "3rdparty/everest/include/everest/everest.h",
-            "3rdparty/everest/include/everest/x25519.h"
-        ], ["3rdparty/p256-m/p256-m/p256-m.h"])
-        mbed_psa_words = self.parse_mbed_psa_words([
-            "include/mbedtls/*.h",
-            "include/psa/*.h",
-            "library/*.h",
-            "3rdparty/everest/include/everest/everest.h",
-            "3rdparty/everest/include/everest/x25519.h",
-            "library/*.c",
-            "3rdparty/everest/library/everest.c",
-            "3rdparty/everest/library/x25519.c"
-        ], ["library/psa_crypto_driver_wrappers.h"])
+        all_macros["public"] = self.parse_macros(self.project.public_macro_files)
+        all_macros["internal"] = self.parse_macros(self.project.internal_macro_files)
+        all_macros["private"] = self.parse_macros(self.project.private_macro_files)
+        enum_consts = self.parse_enum_consts(self.project.enum_const_files)
+        identifiers, excluded_identifiers = self.parse_identifiers(
+            self.project.identifier_files,
+            self.project.excluded_identifier_files)
+        mbed_psa_words = self.parse_mbed_psa_words(
+            self.project.mbed_psa_word_files,
+            self.project.excluded_mbed_psa_word_files)
         symbols = self.parse_symbols()
 
         # Remove identifier macros like mbedtls_printf or mbedtls_calloc
@@ -673,10 +779,8 @@ class CodeParser():
         symbols = []
 
         # Back up the config and atomically compile with the full configuration.
-        shutil.copy(
-            "include/mbedtls/mbedtls_config.h",
-            "include/mbedtls/mbedtls_config.h.bak"
-        )
+        for config_file in self.project.config_files:
+            shutil.copy(config_file, config_file + ".bak")
         try:
             # Use check=True in all subprocess calls so that failures are raised
             # as exceptions and logged.
@@ -687,6 +791,23 @@ class CodeParser():
             )
             my_environment = os.environ.copy()
             my_environment["CFLAGS"] = "-fno-asynchronous-unwind-tables"
+
+            if self.project.use_cmake:
+                # Delete the cmake cache to apply CFLAGS changes
+                cache_file = "CMakeCache.txt"
+                if os.path.exists(cache_file):
+                    os.remove(cache_file)
+
+                # Run cmake configuration
+                subprocess.run(
+                    ["cmake", "."],
+                    env=my_environment,
+                    universal_newlines=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    check=True
+                )
+
             # Run make clean separately to lib to prevent unwanted behavior when
             # make is invoked with parallelism.
             subprocess.run(
@@ -704,11 +825,7 @@ class CodeParser():
             )
 
             # Perform object file analysis using nm
-            symbols = self.parse_symbols_from_nm([
-                "library/libmbedcrypto.a",
-                "library/libmbedtls.a",
-                "library/libmbedx509.a"
-            ])
+            symbols = self.parse_symbols_from_nm(self.project.object_files)
 
             subprocess.run(
                 ["make", "clean"],
@@ -721,10 +838,8 @@ class CodeParser():
         finally:
             # Put back the original config regardless of there being errors.
             # Works also for keyboard interrupts.
-            shutil.move(
-                "include/mbedtls/mbedtls_config.h.bak",
-                "include/mbedtls/mbedtls_config.h"
-            )
+            for config_file in self.project.config_files:
+                shutil.move(config_file + ".bak", config_file)
 
         return symbols
 

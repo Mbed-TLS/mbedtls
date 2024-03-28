@@ -31,6 +31,7 @@ endif
 ## make sure to check that it still works if you tweak the format here.
 APPS = \
 	aes/crypt_and_hash \
+	asn1/asn_decoder \
 	cipher/cipher_aead_demo \
 	hash/generic_sum \
 	hash/hello \
@@ -149,6 +150,10 @@ test/query_config.c:
 aes/crypt_and_hash$(EXEXT): aes/crypt_and_hash.c $(DEP)
 	echo "  CC    aes/crypt_and_hash.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) aes/crypt_and_hash.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+asn1/asn_decoder$(EXEXT): asn1/asn_decoder.c $(DEP)
+	echo "  CC    asn1/asn_decoder.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) asn1/asn_decoder.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 cipher/cipher_aead_demo$(EXEXT): cipher/cipher_aead_demo.c $(DEP)
 	echo "  CC    cipher/cipher_aead_demo.c"

@@ -36,7 +36,7 @@
  * do nothing are defined for convenience.
  *
  * \note #TEST_CF_SECRET must be called directly from within a .function file,
- *       not indirectly via a macro defined under tests/include or a function
+ *       not indirectly via a macro defined under framework/include or a function
  *       under framework/src. This is because we only run Valgrind for constant
  *       flow on test suites that have greppable annotations inside them (see
  *       `skip_suites_without_constant_flow` in `tests/scripts/all.sh`).

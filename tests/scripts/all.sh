@@ -137,7 +137,7 @@ pre_initialize_variables () {
         CONFIG_H='drivers/builtin/include/mbedtls/mbedtls_config.h'
     fi
     CRYPTO_CONFIG_H='include/psa/crypto_config.h'
-    CONFIG_TEST_DRIVER_H='tests/include/test/drivers/config_test_driver.h'
+    CONFIG_TEST_DRIVER_H='framework/include/test/drivers/config_test_driver.h'
 
     # Files that are clobbered by some jobs will be backed up. Use a different
     # suffix from auxiliary scripts so that all.sh and auxiliary scripts can
@@ -866,7 +866,7 @@ clang_version() {
 #        being accelerated. You may need to also disable modules that depend
 #        on them or options that are not supported with drivers.
 #    2d. On top of psa/crypto_config.h, the driver library uses its own config
-#        file: tests/include/test/drivers/config_test_driver.h. You usually
+#        file: framework/include/test/drivers/config_test_driver.h. You usually
 #        don't need to edit it: using loc_extra_list (see below) is preferred.
 #        However, when there's no PSA symbol for what you want to enable,
 #        calling scripts/config.py on this file remains the only option.
@@ -991,7 +991,7 @@ helper_libtestdriver1_make_main() {
     # we need flags both with and without the LIBTESTDRIVER1_ prefix
     loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" "$@"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -I../framework/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" "$@"
 }
 
 ################################################################
@@ -1288,12 +1288,12 @@ component_build_psa_crypto_spm () {
     # We can only compile, not link, since our test and sample programs
     # aren't equipped for the modified names used when MBEDTLS_PSA_CRYPTO_SPM
     # is active.
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -I../tests/include/spe' lib
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -I../framework/include/spe' lib
 
     # Check that if a symbol is renamed by crypto_spe.h, the non-renamed
     # version is not present.
     echo "Checking for renamed symbols in the library"
-    check_renamed_symbols tests/include/spe/crypto_spe.h library/libmbedcrypto.a
+    check_renamed_symbols framework/include/spe/crypto_spe.h library/libmbedcrypto.a
 }
 
 # Get a list of library-wise undefined symbols and ensure that they only
@@ -2172,7 +2172,7 @@ component_test_full_cmake_clang () {
 skip_suites_without_constant_flow () {
     # Skip the test suites that don't have any constant-flow annotations.
     # This will need to be adjusted if we ever start declaring things as
-    # secret from macros or functions inside tests/include or framework/src.
+    # secret from macros or functions inside framework/include or framework/src.
     SKIP_TEST_SUITES=$(
         git -C tests/suites grep -L TEST_CF_ 'test_suite_*.function' |
             sed 's/test_suite_//; s/\.function$//' |
@@ -2418,7 +2418,7 @@ component_test_crypto_for_psa_service () {
 component_build_crypto_baremetal () {
   msg "build: make, crypto only, baremetal config"
   scripts/config.py crypto_baremetal
-  make CFLAGS="-O1 -Werror -I$PWD/tests/include/baremetal-override/"
+  make CFLAGS="-O1 -Werror -I$PWD/framework/include/baremetal-override/"
   are_empty_libraries library/libmbedx509.* library/libmbedtls.*
 }
 support_build_crypto_baremetal () {
@@ -2428,7 +2428,7 @@ support_build_crypto_baremetal () {
 component_build_baremetal () {
   msg "build: make, baremetal config"
   scripts/config.py baremetal
-  make CFLAGS="-O1 -Werror -I$PWD/tests/include/baremetal-override/"
+  make CFLAGS="-O1 -Werror -I$PWD/framework/include/baremetal-override/"
 }
 support_build_baremetal () {
     # Older Glibc versions include time.h from other headers such as stdlib.h,
@@ -2538,7 +2538,7 @@ component_build_no_pk_rsa_alt_support () {
     scripts/config.py set MBEDTLS_X509_CRT_WRITE_C
 
     # Only compile - this is primarily to test for compile issues
-    make CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy'
+    make CFLAGS='-Werror -Wall -Wextra -I../framework/include/alt-dummy'
 }
 
 component_build_module_alt () {
@@ -2571,7 +2571,7 @@ component_build_module_alt () {
 
     # We can only compile, not link, since we don't have any implementations
     # suitable for testing with the dummy alt headers.
-    make CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy' lib
+    make CFLAGS='-Werror -Wall -Wextra -I../framework/include/alt-dummy' lib
 }
 
 component_build_dhm_alt () {
@@ -2582,7 +2582,7 @@ component_build_dhm_alt () {
     scripts/config.py unset MBEDTLS_DEBUG_C
     # We can only compile, not link, since we don't have any implementations
     # suitable for testing with the dummy alt headers.
-    make CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy' lib
+    make CFLAGS='-Werror -Wall -Wextra -I../framework/include/alt-dummy' lib
 }
 
 component_test_no_psa_crypto_full_cmake_asan() {
@@ -3415,7 +3415,7 @@ component_test_tfm_config_p256m_driver_accel_ec () {
     common_tfm_config
 
     # Build crypto library
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -I../tests/include/spe" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -I../framework/include/spe" LDFLAGS="$ASAN_CFLAGS"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
@@ -3449,7 +3449,7 @@ component_test_tfm_config() {
     echo "#undef MBEDTLS_PSA_P256M_DRIVER_ENABLED" >> "$CONFIG_H"
 
     msg "build: TF-M config"
-    make CFLAGS='-Werror -Wall -Wextra -I../tests/include/spe' tests
+    make CFLAGS='-Werror -Wall -Wextra -I../framework/include/spe' tests
 
     # Check that p256m was not built
     not grep p256_ecdsa_ library/libmbedcrypto.a
@@ -4187,7 +4187,7 @@ component_build_psa_accel_alg_ecdh() {
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_ECDH -I../tests/include" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_ECDH -I../framework/include" LDFLAGS="$ASAN_CFLAGS"
 }
 
 # This should be renamed to test and updated once the accelerator HMAC code is in place and ready to test.
@@ -4197,7 +4197,7 @@ component_build_psa_accel_alg_hmac() {
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_HMAC -I../tests/include" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_HMAC -I../framework/include" LDFLAGS="$ASAN_CFLAGS"
 }
 
 # This should be renamed to test and updated once the accelerator HKDF code is in place and ready to test.
@@ -4209,7 +4209,7 @@ component_build_psa_accel_alg_hkdf() {
     # Make sure to unset TLS1_3 since it requires HKDF_C and will not build properly without it.
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_HKDF -I../tests/include" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_HKDF -I../framework/include" LDFLAGS="$ASAN_CFLAGS"
 }
 
 # This should be renamed to test and updated once the accelerator MD5 code is in place and ready to test.
@@ -4228,7 +4228,7 @@ component_build_psa_accel_alg_md5() {
     scripts/config.py unset MBEDTLS_LMS_C
     scripts/config.py unset MBEDTLS_LMS_PRIVATE
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_MD5 -I../tests/include" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_MD5 -I../framework/include" LDFLAGS="$ASAN_CFLAGS"
 }
 
 # This should be renamed to test and updated once the accelerator RIPEMD160 code is in place and ready to test.
@@ -4247,7 +4247,7 @@ component_build_psa_accel_alg_ripemd160() {
     scripts/config.py unset MBEDTLS_LMS_C
     scripts/config.py unset MBEDTLS_LMS_PRIVATE
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RIPEMD160 -I../tests/include" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RIPEMD160 -I../framework/include" LDFLAGS="$ASAN_CFLAGS"
 }
 
 # This should be renamed to test and updated once the accelerator SHA1 code is in place and ready to test.
@@ -4266,7 +4266,7 @@ component_build_psa_accel_alg_sha1() {
     scripts/config.py unset MBEDTLS_LMS_C
     scripts/config.py unset MBEDTLS_LMS_PRIVATE
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_SHA_1 -I../tests/include" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_SHA_1 -I../framework/include" LDFLAGS="$ASAN_CFLAGS"
 }
 
 # This should be renamed to test and updated once the accelerator SHA224 code is in place and ready to test.
@@ -4282,7 +4282,7 @@ component_build_psa_accel_alg_sha224() {
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_512
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_SHA_224 -I../tests/include" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_SHA_224 -I../framework/include" LDFLAGS="$ASAN_CFLAGS"
 }
 
 # This should be renamed to test and updated once the accelerator SHA256 code is in place and ready to test.
@@ -4298,7 +4298,7 @@ component_build_psa_accel_alg_sha256() {
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_384
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_SHA_512
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_SHA_256 -I../tests/include" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_SHA_256 -I../framework/include" LDFLAGS="$ASAN_CFLAGS"
 }
 
 # This should be renamed to test and updated once the accelerator SHA384 code is in place and ready to test.
@@ -4316,7 +4316,7 @@ component_build_psa_accel_alg_sha384() {
     scripts/config.py unset MBEDTLS_LMS_C
     scripts/config.py unset MBEDTLS_LMS_PRIVATE
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_SHA_384 -I../tests/include" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_SHA_384 -I../framework/include" LDFLAGS="$ASAN_CFLAGS"
 }
 
 # This should be renamed to test and updated once the accelerator SHA512 code is in place and ready to test.
@@ -4335,7 +4335,7 @@ component_build_psa_accel_alg_sha512() {
     scripts/config.py unset MBEDTLS_LMS_C
     scripts/config.py unset MBEDTLS_LMS_PRIVATE
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_SHA_512 -I../tests/include" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_SHA_512 -I../framework/include" LDFLAGS="$ASAN_CFLAGS"
 }
 
 # This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
@@ -4349,7 +4349,7 @@ component_build_psa_accel_alg_rsa_pkcs1v15_crypt() {
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_OAEP
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_PSS
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_CRYPT -I../tests/include" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_CRYPT -I../framework/include" LDFLAGS="$ASAN_CFLAGS"
 }
 
 # This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
@@ -4363,7 +4363,7 @@ component_build_psa_accel_alg_rsa_pkcs1v15_sign() {
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_OAEP
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_PSS
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN -I../tests/include" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN -I../framework/include" LDFLAGS="$ASAN_CFLAGS"
 }
 
 # This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
@@ -4377,7 +4377,7 @@ component_build_psa_accel_alg_rsa_oaep() {
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_PKCS1V15_SIGN
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_PSS
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RSA_OAEP -I../tests/include" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RSA_OAEP -I../framework/include" LDFLAGS="$ASAN_CFLAGS"
 }
 
 # This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
@@ -4391,7 +4391,7 @@ component_build_psa_accel_alg_rsa_pss() {
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_PKCS1V15_SIGN
     scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_RSA_OAEP
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RSA_PSS -I../tests/include" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_RSA_PSS -I../framework/include" LDFLAGS="$ASAN_CFLAGS"
 }
 
 # This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
@@ -4406,7 +4406,7 @@ component_build_psa_accel_key_type_rsa_key_pair() {
     scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT 1
     scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE 1
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR -I../tests/include" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR -I../framework/include" LDFLAGS="$ASAN_CFLAGS"
 }
 
 # This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
@@ -4418,7 +4418,7 @@ component_build_psa_accel_key_type_rsa_public_key() {
     scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_ALG_RSA_PSS 1
     scripts/config.py -f "$CRYPTO_CONFIG_H" set PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY 1
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
-    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY -I../tests/include" LDFLAGS="$ASAN_CFLAGS"
+    make CC=$ASAN_CC CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY -I../framework/include" LDFLAGS="$ASAN_CFLAGS"
 }
 
 
@@ -4431,7 +4431,7 @@ component_build_tfm_armcc() {
     cp configs/config-tfm.h "$CONFIG_H"
 
     msg "build: TF-M config, armclang armv7-m thumb2"
-    armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../tests/include/spe"
+    armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../framework/include/spe"
 }
 
 component_build_tfm() {
@@ -4443,11 +4443,11 @@ component_build_tfm() {
     cp configs/config-tfm.h "$CONFIG_H"
 
     msg "build: TF-M config, clang, armv7-m thumb2"
-    make lib CC="clang" CFLAGS="--target=arm-linux-gnueabihf -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../tests/include/spe"
+    make lib CC="clang" CFLAGS="--target=arm-linux-gnueabihf -march=armv7-m -mthumb -Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wasm-operand-widths -Wunused -I../framework/include/spe"
 
     msg "build: TF-M config, gcc native build"
     make clean
-    make lib CC="gcc" CFLAGS="-Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wformat-signedness -Wlogical-op -I../tests/include/spe"
+    make lib CC="gcc" CFLAGS="-Os -std=c99 -Werror -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wshadow -Wvla -Wformat=2 -Wno-format-nonliteral -Wshadow -Wformat-signedness -Wlogical-op -I../framework/include/spe"
 }
 
 # Test that the given .o file builds with all (valid) combinations of the given options.
@@ -5421,7 +5421,7 @@ component_test_psa_crypto_drivers () {
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_CONFIG
     loc_cflags="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST_ALL"
     loc_cflags="${loc_cflags} '-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'"
-    loc_cflags="${loc_cflags} -I../tests/include -O2"
+    loc_cflags="${loc_cflags} -I../framework/include -O2"
 
     make CC=$ASAN_CC CFLAGS="${loc_cflags}" LDFLAGS="$ASAN_CFLAGS"
 
@@ -5551,8 +5551,8 @@ component_build_psa_alt_headers () {
     # Build the library and some programs.
     # Don't build the fuzzers to avoid having to go through hoops to set
     # a correct include path for programs/fuzz/Makefile.
-    make CFLAGS="-I ../tests/include/alt-extra -DMBEDTLS_PSA_CRYPTO_PLATFORM_FILE='\"psa/crypto_platform_alt.h\"' -DMBEDTLS_PSA_CRYPTO_STRUCT_FILE='\"psa/crypto_struct_alt.h\"'" lib
-    make -C programs -o fuzz CFLAGS="-I ../tests/include/alt-extra -DMBEDTLS_PSA_CRYPTO_PLATFORM_FILE='\"psa/crypto_platform_alt.h\"' -DMBEDTLS_PSA_CRYPTO_STRUCT_FILE='\"psa/crypto_struct_alt.h\"'"
+    make CFLAGS="-I ../framework/include/alt-extra -DMBEDTLS_PSA_CRYPTO_PLATFORM_FILE='\"psa/crypto_platform_alt.h\"' -DMBEDTLS_PSA_CRYPTO_STRUCT_FILE='\"psa/crypto_struct_alt.h\"'" lib
+    make -C programs -o fuzz CFLAGS="-I ../framework/include/alt-extra -DMBEDTLS_PSA_CRYPTO_PLATFORM_FILE='\"psa/crypto_platform_alt.h\"' -DMBEDTLS_PSA_CRYPTO_STRUCT_FILE='\"psa/crypto_struct_alt.h\"'"
 
     # Check that we're getting the alternative include guards and not the
     # original include guards.

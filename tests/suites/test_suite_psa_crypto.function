@@ -9721,6 +9721,103 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void derive_verify_bytes(int alg_arg,
+                         data_t *key_data, data_t *input1, data_t *input2,
+                         int requested_capacity_arg,
+                         data_t *expected_output, int expected_output_status)
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_algorithm_t alg = alg_arg;
+    size_t requested_capacity = requested_capacity_arg;
+    psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
+
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    PSA_ASSERT(psa_crypto_init());
+
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DERIVE);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_DERIVE);
+
+    PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len, &key));
+
+    if (!mbedtls_test_psa_setup_key_derivation_wrap(&operation, key, alg,
+                                                    input1->x, input1->len,
+                                                    input2->x, input2->len,
+                                                    requested_capacity)) {
+        goto exit;
+    }
+
+    TEST_EQUAL(psa_key_derivation_verify_bytes(&operation,
+                                               expected_output->x,
+                                               expected_output->len),
+               expected_output_status);
+
+exit:
+    psa_key_derivation_abort(&operation);
+    psa_destroy_key(key);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void derive_verify_key(int alg_arg,
+                       data_t *key_data, data_t *input1, data_t *input2,
+                       int requested_capacity_arg,
+                       int expected_type_arg,
+                       int expected_bits_arg,
+                       data_t *expected_data_arg,
+                       int expected_usage_arg,
+                       int expected_alg_arg, int expected_output_status)
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_svc_key_id_t expected_key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_algorithm_t alg = alg_arg;
+    size_t requested_capacity = requested_capacity_arg;
+    psa_key_type_t expected_type = expected_type_arg;
+    size_t expected_bits = expected_bits_arg;
+    psa_key_usage_t expected_usage = expected_usage_arg;
+    psa_algorithm_t expected_alg = expected_alg_arg;
+    psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
+
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t expected_attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    PSA_ASSERT(psa_crypto_init());
+
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DERIVE);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_DERIVE);
+
+    PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len, &key));
+
+    if (!mbedtls_test_psa_setup_key_derivation_wrap(&operation, key, alg,
+                                                    input1->x, input1->len,
+                                                    input2->x, input2->len,
+                                                    requested_capacity)) {
+        goto exit;
+    }
+
+    psa_set_key_usage_flags(&expected_attributes, expected_usage);
+    psa_set_key_algorithm(&expected_attributes, expected_alg);
+    psa_set_key_type(&expected_attributes, expected_type);
+    psa_set_key_bits(&expected_attributes, expected_bits);
+
+    PSA_ASSERT(psa_import_key(&expected_attributes, expected_data_arg->x,
+                              expected_data_arg->len, &expected_key));
+
+    TEST_EQUAL(psa_key_derivation_verify_key(&operation, expected_key),
+               expected_output_status);
+
+exit:
+    psa_key_derivation_abort(&operation);
+    psa_destroy_key(key);
+    psa_destroy_key(expected_key);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void key_agreement_setup(int alg_arg,
                          int our_key_type_arg, int our_key_alg_arg,
                          data_t *our_key_data, data_t *peer_key_data,

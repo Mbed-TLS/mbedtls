@@ -18,9 +18,35 @@
 #ifndef PSA_CRYPTO_COMPAT_H
 #define PSA_CRYPTO_COMPAT_H
 
+#include "crypto_types.h"
+
+#include <mbedtls/platform_util.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+
+/** \addtogroup attributes
+ * @{
+ */
+
+#if !defined MBEDTLS_DEPRECATED_REMOVED
+/** Custom Diffie-Hellman group.
+ *
+ * For keys of type #PSA_KEY_TYPE_DH_PUBLIC_KEY(#PSA_DH_FAMILY_CUSTOM) or
+ * #PSA_KEY_TYPE_DH_KEY_PAIR(#PSA_DH_FAMILY_CUSTOM), the group data comes
+ * from domain parameters set by psa_set_key_domain_parameters().
+ *
+ * \deprecated This family is not supported in Mbed TLS, and there is
+ *             currently no plan to support it. This constant will be removed
+ *             in a future version of the library.
+ */
+#define PSA_DH_FAMILY_CUSTOM ((psa_dh_family_t) MBEDTLS_DEPRECATED_NUMERIC_CONSTANT(0x7e))
+#endif
+
+/**@}*/
+
 
 /*
  * To support both openless APIs and psa_open_key() temporarily, define

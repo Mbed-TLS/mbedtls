@@ -316,7 +316,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
          ${CMAKE_CURRENT_SOURCE_DIR}/framework/src/drivers/*.c)
     add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
     target_include_directories(mbedtls_test
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/framework/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library)
     # Request C11, needed for memory poisoning tests
@@ -326,7 +326,7 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
          ${CMAKE_CURRENT_SOURCE_DIR}/framework/src/test_helpers/*.c)
     add_library(mbedtls_test_helpers OBJECT ${MBEDTLS_TEST_HELPER_FILES})
     target_include_directories(mbedtls_test_helpers
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/framework/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/everest/include)

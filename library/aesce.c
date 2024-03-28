@@ -168,6 +168,9 @@ static uint8x16_t aesce_encrypt_block(uint8x16_t block,
                                       int rounds)
 {
     /* 10, 12 or 14 rounds. Unroll loop. */
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+    (void) rounds;
+#else
     if (rounds == 10) {
         goto rounds_10;
     }
@@ -178,6 +181,7 @@ static uint8x16_t aesce_encrypt_block(uint8x16_t block,
 rounds_12:
     AESCE_ENCRYPT_ROUND_X2;
 rounds_10:
+#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
     AESCE_ENCRYPT_ROUND_X2;
     AESCE_ENCRYPT_ROUND_X2;
     AESCE_ENCRYPT_ROUND_X2;
@@ -231,6 +235,9 @@ static uint8x16_t aesce_decrypt_block(uint8x16_t block,
                                       int rounds)
 {
     /* 10, 12 or 14 rounds. Unroll loop. */
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+    (void) rounds;
+#else
     if (rounds == 10) {
         goto rounds_10;
     }
@@ -241,6 +248,7 @@ static uint8x16_t aesce_decrypt_block(uint8x16_t block,
 rounds_12:
     AESCE_DECRYPT_ROUND_X2;
 rounds_10:
+#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
     AESCE_DECRYPT_ROUND_X2;
     AESCE_DECRYPT_ROUND_X2;
     AESCE_DECRYPT_ROUND_X2;
@@ -294,6 +302,9 @@ void mbedtls_aesce_inverse_key(unsigned char *invkey,
                                int nr)
 {
     int i, j;
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+    MBEDTLS_ASSUME(nr == 10);
+#endif
     j = nr;
     vst1q_u8(invkey, vld1q_u8(fwdkey + j * 16));
     for (i = 1, j--; j > 0; i++, j--) {
@@ -324,9 +335,9 @@ static inline uint32_t aes_sub_word(uint32_t in)
 /*
  * Key expansion function
  */
-static void aesce_setkey_enc(unsigned char *rk,
-                             const unsigned char *key,
-                             const size_t key_bit_length)
+void mbedtls_aesce_setkey_enc(unsigned char *rk,
+                              const unsigned char *key,
+                              const uint32_t key_bit_length)
 {
     static uint8_t const rcon[] = { 0x01, 0x02, 0x04, 0x08, 0x10,
                                     0x20, 0x40, 0x80, 0x1b, 0x36 };
@@ -334,7 +345,10 @@ static void aesce_setkey_enc(unsigned char *rk,
      *   - Section 5, Nr = Nk + 6
      *   - Section 5.2, the length of round keys is Nb*(Nr+1)
      */
-    const size_t key_len_in_words = key_bit_length / 32;    /* Nk */
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+    MBEDTLS_ASSUME(key_bit_length == 128);
+#endif
+    const uint32_t key_len_in_words = key_bit_length / 32;  /* Nk */
     const size_t round_key_len_in_words = 4;                /* Nb */
     const size_t rounds_needed = key_len_in_words + 6;      /* Nr */
     const size_t round_keys_len_in_words =
@@ -343,11 +357,11 @@ static void aesce_setkey_enc(unsigned char *rk,
 
     memcpy(rk, key, key_len_in_words * 4);
 
+    size_t iteration = 0;
     for (uint32_t *rki = (uint32_t *) rk;
          rki + key_len_in_words < rko_end;
-         rki += key_len_in_words) {
+         rki += key_len_in_words, iteration++) {
 
-        size_t iteration = (size_t) (rki - (uint32_t *) rk) / key_len_in_words;
         uint32_t *rko;
         rko = rki + key_len_in_words;
         rko[0] = aes_rot_word(aes_sub_word(rki[key_len_in_words - 1]));
@@ -376,26 +390,6 @@ static void aesce_setkey_enc(unsigned char *rk,
         }
 #endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
     }
-}
-
-/*
- * Key expansion, wrapper
- */
-int mbedtls_aesce_setkey_enc(unsigned char *rk,
-                             const unsigned char *key,
-                             size_t bits)
-{
-    switch (bits) {
-        case 128:
-        case 192:
-        case 256:
-            aesce_setkey_enc(rk, key, bits);
-            break;
-        default:
-            return MBEDTLS_ERR_AES_INVALID_KEY_LENGTH;
-    }
-
-    return 0;
 }
 
 #if defined(MBEDTLS_GCM_C)

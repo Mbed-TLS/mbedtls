@@ -112,13 +112,11 @@ void mbedtls_aesce_inverse_key(unsigned char *invkey,
  *
  * \param rk        Destination buffer where the round keys are written
  * \param key       Encryption key
- * \param bits      Key size in bits (must be 128, 192 or 256)
- *
- * \return          0 if successful, or MBEDTLS_ERR_AES_INVALID_KEY_LENGTH
+ * \param key_bit_length Key size in bits (must be 128, 192 or 256)
  */
-int mbedtls_aesce_setkey_enc(unsigned char *rk,
-                             const unsigned char *key,
-                             size_t bits);
+void mbedtls_aesce_setkey_enc(unsigned char *rk,
+                              const unsigned char *key,
+                              uint32_t key_bit_length);
 
 #ifdef __cplusplus
 }

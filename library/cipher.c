@@ -831,11 +831,8 @@ static void add_pkcs_padding(unsigned char *output, size_t output_len,
                              size_t data_len)
 {
     size_t padding_len = output_len - data_len;
-    unsigned char i;
 
-    for (i = 0; i < padding_len; i++) {
-        output[data_len + i] = (unsigned char) padding_len;
-    }
+    memset(&output[data_len], (unsigned char) padding_len, padding_len);
 }
 
 static int get_pkcs_padding(unsigned char *input, size_t input_len,
@@ -875,12 +872,9 @@ static void add_one_and_zeros_padding(unsigned char *output,
                                       size_t output_len, size_t data_len)
 {
     size_t padding_len = output_len - data_len;
-    unsigned char i = 0;
 
     output[data_len] = 0x80;
-    for (i = 1; i < padding_len; i++) {
-        output[data_len + i] = 0x00;
-    }
+    memset(&output[data_len + 1], 0, padding_len - 1);
 }
 
 static int get_one_and_zeros_padding(unsigned char *input, size_t input_len,
@@ -919,12 +913,9 @@ static void add_zeros_and_len_padding(unsigned char *output,
                                       size_t output_len, size_t data_len)
 {
     size_t padding_len = output_len - data_len;
-    unsigned char i = 0;
 
-    for (i = 1; i < padding_len; i++) {
-        output[data_len + i - 1] = 0x00;
-    }
     output[output_len - 1] = (unsigned char) padding_len;
+    memset(&output[data_len], 0, padding_len - 1);
 }
 
 static int get_zeros_and_len_padding(unsigned char *input, size_t input_len,

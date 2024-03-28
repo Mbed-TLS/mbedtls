@@ -172,12 +172,12 @@ static int ssl_tls13_parse_key_exchange_modes_ext(mbedtls_ssl_context *ssl,
 #define SSL_TLS1_3_PSK_IDENTITY_MATCH_BUT_PSK_NOT_USABLE 1
 #define SSL_TLS1_3_PSK_IDENTITY_MATCH 0
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_key_exchange_is_psk_available(mbedtls_ssl_context *ssl);
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_key_exchange_is_psk_ephemeral_available(mbedtls_ssl_context *ssl);
 
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_offered_psks_check_identity_match_ticket(
     mbedtls_ssl_context *ssl,
@@ -575,10 +575,8 @@ static int ssl_tls13_parse_pre_shared_key_ext(
         psa_algorithm_t psk_hash_alg;
         int allowed_key_exchange_modes;
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
         mbedtls_ssl_session session;
         mbedtls_ssl_session_init(&session);
-#endif
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR(p_identity_len, identities_end, 2 + 1 + 4);
         identity_len = MBEDTLS_GET_UINT16_BE(p_identity_len, 0);
@@ -3109,6 +3107,7 @@ static int ssl_tls13_handshake_wrapup(mbedtls_ssl_context *ssl)
     return 0;
 }
 
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
 /*
  * Handler for MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET
  */
@@ -3138,7 +3137,6 @@ static int ssl_tls13_write_new_session_ticket_coordinate(mbedtls_ssl_context *ss
     return SSL_NEW_SESSION_TICKET_WRITE;
 }
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
                                                 unsigned char *ticket_nonce,

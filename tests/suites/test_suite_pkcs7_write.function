@@ -1,0 +1,111 @@
+/* BEGIN_HEADER */
+#include "mbedtls/bignum.h"
+#include "mbedtls/pkcs7.h"
+#include "mbedtls/pkcs7_write.h"
+#include "mbedtls/x509.h"
+#include "mbedtls/x509_crt.h"
+#include "mbedtls/x509_crl.h"
+#include "mbedtls/oid.h"
+#include "sys/types.h"
+#include "sys/stat.h"
+#include "mbedtls/pem.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PKCS7_WRITE_C:MBEDTLS_PKCS7_C:MBEDTLS_FS_IO:MBEDTLS_RSA_C:MBEDTLS_SHA256_C:MBEDTLS_SHA512_C:MBEDTLS_SHA1_C:MBEDTLS_MD5_C:MBEDTLS_RIPEMD160_C:MBEDTLS_ASN1_WRITE_C:!MBEDTLS_SHA512_NO_SHA384:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void pkcs7_write( char *data_file, char *cert_file, char *key_file, int md, int keys_are_signatures, int expect_fail )
+{
+    unsigned char *pkcs7_buf = NULL, *new_data = NULL, *key_pem = NULL, *key = NULL, *crt_pem = NULL, *crt = NULL, **crts = NULL, **keys = NULL;
+    size_t pkcs7_len, new_data_len, key_pem_len, key_len, crt_pem_len, crt_len, *crt_sizes = NULL, *key_sizes = NULL;
+    int res, key_pairs;
+    mbedtls_x509_crt *x509 = NULL;
+    mbedtls_pkcs7 pkcs7;
+    mbedtls_pem_context key_ctx, crt_ctx;
+
+    mbedtls_pkcs7_init( &pkcs7 );
+    mbedtls_pem_init( &key_ctx );
+    mbedtls_pem_init( &crt_ctx );
+
+    key_pairs = 1;
+    res = mbedtls_pk_load_file( data_file, &new_data, &new_data_len );
+    TEST_ASSERT( res == 0 );
+    if( keys_are_signatures )
+    {
+        res = mbedtls_pk_load_file( key_file, &key, &key_len);
+        TEST_ASSERT( res == 0 );
+    }
+    else
+    {
+        res = mbedtls_pk_load_file( key_file, &key_pem, &key_pem_len );
+        TEST_ASSERT( res == 0 );
+        res = mbedtls_pem_read_buffer( &key_ctx, "-----",
+                                       "-----END", &(key_pem[1]),
+                                        NULL, 0, &key_len );
+        TEST_ASSERT( res == 0 );
+        key = (unsigned char *)mbedtls_pem_get_buffer(&key_ctx, &key_len);
+    }
+    res = mbedtls_pk_load_file( cert_file, &crt_pem, &crt_pem_len );
+    TEST_ASSERT( res == 0 );
+    res = mbedtls_pem_read_buffer( &crt_ctx, "-----",
+                                   "-----END", &(crt_pem[1]),
+                                    NULL, 0, &crt_len );
+    TEST_ASSERT( res == 0 );
+    crt = (unsigned char *)mbedtls_pem_get_buffer(&crt_ctx, &crt_len);
+
+    ASSERT_ALLOC( keys, key_pairs * sizeof( &key ) );
+    keys[0] = key;
+    ASSERT_ALLOC( crts, key_pairs * sizeof( &crt ) );
+    crts[0] = crt;
+    ASSERT_ALLOC( crt_sizes, key_pairs * sizeof(crt_len) );
+    crt_sizes[0] = crt_len;
+    ASSERT_ALLOC( key_sizes , key_pairs * sizeof(key_len) );
+    key_sizes[0] = key_len;
+
+    /* test that we can correctly create a pkcs7 */
+    res = mbedtls_pkcs7_create(&pkcs7_buf, &pkcs7_len, new_data, new_data_len, (const unsigned char **) crts,(const unsigned char **) keys, crt_sizes, key_sizes, key_pairs, md, mbedtls_test_rnd_pseudo_rand, NULL, keys_are_signatures);
+    if( expect_fail )
+    {
+        TEST_ASSERT( res != 0 );
+        goto expect_fail_exit;
+
+    }
+    else
+        TEST_ASSERT( res == 0 );
+
+    /* test that it can be parsed */
+    res = mbedtls_pkcs7_parse_der( &pkcs7, pkcs7_buf, pkcs7_len );
+    TEST_ASSERT( res == MBEDTLS_PKCS7_SIGNED_DATA );
+
+    /* test that the original data was signed correctly */
+    ASSERT_ALLOC( x509, sizeof( *x509 ) );
+    mbedtls_x509_crt_init ( x509 );
+    res = mbedtls_x509_crt_parse( x509, crts[0], crt_sizes[0] );
+    TEST_ASSERT( res == 0 );
+    res = mbedtls_pkcs7_signed_data_verify( &pkcs7, x509, new_data, new_data_len );
+    TEST_ASSERT( res == 0 );
+
+exit:
+    mbedtls_x509_crt_free( x509 );
+    mbedtls_free( x509 );
+expect_fail_exit:
+    mbedtls_free( pkcs7_buf );
+    mbedtls_pkcs7_free( &pkcs7 );
+    mbedtls_pem_free( &crt_ctx );
+    mbedtls_pem_free( &key_ctx );
+    mbedtls_free( crts );
+    mbedtls_free( keys );
+    mbedtls_free( new_data );
+    if( !keys_are_signatures )
+        mbedtls_free( key_pem );
+    else
+        mbedtls_free( key );
+    mbedtls_free( crt_pem );
+    mbedtls_free( key_sizes );
+    mbedtls_free( crt_sizes );
+}
+/* END_CASE */
+

@@ -1,5 +1,0 @@
-Features
-   * Add new accessor to expose the `MBEDTLS_PRIVATE(ca_istrue)` member of
-     `mbedtls_x509_crt` structure. This requires setting
-     the MBEDTLS_X509_EXT_BASIC_CONSTRAINTS bit in the certificate's
-     ext_types field.

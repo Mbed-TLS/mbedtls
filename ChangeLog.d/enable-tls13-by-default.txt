@@ -1,2 +1,0 @@
-Changes
-   * The TLS 1.3 protocol is now enabled in the default configuration.

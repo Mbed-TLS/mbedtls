@@ -1,5 +1,265 @@
 Mbed TLS ChangeLog (Sorted per branch, date)
 
+= Mbed TLS 3.6.0 branch released 2024-03-28
+
+API changes
+   * Remove `tls13_` in mbedtls_ssl_tls13_conf_early_data() and
+     mbedtls_ssl_tls13_conf_max_early_data_size() API names. Early data
+     feature may not be TLS 1.3 specific in the future. Fixes #6909.
+
+Default behavior changes
+   * psa_import_key() now only accepts RSA keys in the PSA standard formats.
+     The undocumented ability to import other formats (PKCS#8, SubjectPublicKey,
+     PEM) accepted by the pkparse module has been removed. Applications that
+     need these formats can call mbedtls_pk_parse_{public,}key() followed by
+     mbedtls_pk_import_into_psa().
+
+Requirement changes
+   * Drop support for Visual Studio 2013 and 2015, and Arm Compiler 5.
+
+New deprecations
+   * Rename the MBEDTLS_SHA256_USE_A64_CRYPTO_xxx config options to
+     MBEDTLS_SHA256_USE_ARMV8_A_CRYPTO_xxx. The old names may still
+     be used, but are deprecated.
+   * In the PSA API, domain parameters are no longer used for anything.
+     They are deprecated and will be removed in a future version of the
+     library.
+   * mbedtls_ecp_write_key() is deprecated in favor of
+     mbedtls_ecp_write_key_ext().
+
+Removals
+   * In the PSA API, the experimental way to encode the public exponent of
+     an RSA key as a domain parameter is no longer supported. Use
+     psa_generate_key_ext() instead.
+   * Temporary function mbedtls_pk_wrap_as_opaque() is removed. To mimic the
+     same behavior mbedtls_pk_get_psa_attributes() and
+     mbedtls_pk_import_into_psa() can be used to import a PK key into PSA,
+     while mbedtls_pk_setup_opaque() can be used to wrap a PSA key into a opaque
+     PK context.
+
+Features
+   * Added an example program showing how to hash with the PSA API.
+   * Support Armv8-A Crypto Extension acceleration for SHA-256
+     when compiling for Thumb (T32) or 32-bit Arm (A32).
+   * AES-NI is now supported in Windows builds with clang and clang-cl.
+     Resolves #8372.
+   * Add new mbedtls_x509_csr_parse_der_with_ext_cb() routine which allows
+     parsing unsupported certificate extensions via user provided callback.
+   * Enable the new option MBEDTLS_BLOCK_CIPHER_NO_DECRYPT to omit
+     the decryption direction of block ciphers (AES, ARIA, Camellia).
+     This affects both the low-level modules and the high-level APIs
+     (the cipher and PSA interfaces). This option is incompatible with modes
+     that use the decryption direction (ECB in PSA, CBC, XTS, KW) and with DES.
+   * Support use of Armv8-A Cryptographic Extensions for hardware acclerated
+     AES when compiling for Thumb (T32) or 32-bit Arm (A32).
+   * If a cipher or AEAD mechanism has a PSA driver, you can now build the
+     library without the corresponding built-in implementation. Generally
+     speaking that requires both the key type and algorithm to be accelerated
+     or they'll both be built in. However, for CCM and GCM the built-in
+     implementation is able to take advantage of a driver that only
+     accelerates the key type (that is, the block cipher primitive). See
+     docs/driver-only-builds.md for full details and current limitations.
+   * The CTR_DRBG module will now use AES from a PSA driver if MBEDTLS_AES_C is
+     disabled. This requires PSA_WANT_ALG_ECB_NO_PADDING in addition to
+     MBEDTLS_PSA_CRYPTO_C and PSA_WANT_KEY_TYPE_AES.
+   * Fewer modules depend on MBEDTLS_CIPHER_C, making it possible to save code
+     size by disabling it in more circumstances. In particular, the CCM and
+     GCM modules no longer depend on MBEDTLS_CIPHER_C. Also,
+     MBEDTLS_PSA_CRYPTO can now be enabled without MBEDTLS_CIPHER_C if all
+     unauthenticated (non-AEAD) ciphers are disabled, or if they're all
+     fully provided by drivers. See docs/driver-only-builds.md for full
+     details and current limitations; in particular, NIST_KW and PKCS5/PKCS12
+     decryption still unconditionally depend on MBEDTLS_CIPHER_C.
+   * Add support for record size limit extension as defined by RFC 8449
+     and configured with MBEDTLS_SSL_RECORD_SIZE_LIMIT.
+     Application data sent and received will be fragmented according to
+     Record size limits negotiated during handshake.
+   * Improve performance of AES-GCM, AES-CTR and CTR-DRBG when
+     hardware accelerated AES is not present (around 13-23% on 64-bit Arm).
+   * Add functions mbedtls_ecc_group_to_psa() and mbedtls_ecc_group_from_psa()
+     to convert between Mbed TLS and PSA curve identifiers.
+   * Add utility functions to manipulate mbedtls_ecp_keypair objects, filling
+     gaps made by making its fields private: mbedtls_ecp_set_public_key(),
+     mbedtls_ecp_write_public_key(), mbedtls_ecp_keypair_calc_public(),
+     mbedtls_ecp_keypair_get_group_id(). Fixes #5017, #5441, #8367, #8652.
+   * Add functions mbedtls_md_psa_alg_from_type() and
+     mbedtls_md_type_from_psa_alg() to convert between mbedtls_md_type_t and
+     psa_algorithm_t.
+   * Add partial platform support for z/OS.
+   * Improve performance for gcc (versions older than 9.3.0) and IAR.
+   * Add functions mbedtls_ecdsa_raw_to_der() and mbedtls_ecdsa_der_to_raw() to
+     convert ECDSA signatures between raw and DER (ASN.1) formats.
+   * Add support for using AES-CBC 128, 192, and 256 bit schemes
+     with PKCS#5 PBES2. Keys encrypted this way can now be parsed by PK parse.
+   * The new function mbedtls_rsa_get_bitlen() returns the length of the modulus
+     in bits, i.e. the key size for an RSA key.
+   * Add pc files for pkg-config, e.g.:
+     pkg-config --cflags --libs (mbedtls|mbedcrypto|mbedx509)
+   * Add getter (mbedtls_ssl_session_get_ticket_creation_time()) to access
+     `mbedtls_ssl_session.ticket_creation_time`.
+   * The new functions mbedtls_pk_get_psa_attributes() and
+     mbedtls_pk_import_into_psa() provide a uniform way to create a PSA
+     key from a PK key.
+   * The benchmark program now reports times for both ephemeral and static
+     ECDH in all ECDH configurations.
+   * Add support for 8-bit GCM tables for Shoup's algorithm to speedup GCM
+     operations when hardware accelerated AES is not present. Improves
+     performance by around 30% on 64-bit Intel; 125% on Armv7-M.
+   * The new function psa_generate_key_ext() allows generating an RSA
+     key pair with a custom public exponent.
+   * The new function mbedtls_ecp_write_key_ext() is similar to
+     mbedtls_ecp_write_key(), but can be used without separately calculating
+     the output length.
+   * Add new accessor to expose the private group id member of
+     `mbedtls_ecdh_context` structure.
+   * Add new accessor to expose the `MBEDTLS_PRIVATE(ca_istrue)` member of
+     `mbedtls_x509_crt` structure. This requires setting
+     the MBEDTLS_X509_EXT_BASIC_CONSTRAINTS bit in the certificate's
+     ext_types field.
+   * mbedtls_psa_get_random() is always available as soon as
+     MBEDTLS_PSA_CRYPTO_CLIENT is enabled at build time and psa_crypto_init() is
+     called at runtime. This together with MBEDTLS_PSA_RANDOM_STATE can be
+     used as random number generator function (f_rng) and context (p_rng) in
+     legacy functions.
+   * The new functions mbedtls_pk_copy_from_psa() and
+     mbedtls_pk_copy_public_from_psa() provide ways to set up a PK context
+     with the same content as a PSA key.
+   * Add new accessors to expose the private session-id,
+     session-id length, and ciphersuite-id members of
+     `mbedtls_ssl_session` structure.
+     Add new accessor to expose the ciphersuite-id of
+     `mbedtls_ssl_ciphersuite_t` structure.Design ref: #8529
+   * Mbed TLS now supports the writing and reading of TLS 1.3 early data (see
+     docs/tls13-early-data.md). The support enablement is controlled at build
+     time by the MBEDTLS_SSL_EARLY_DATA configuration option and at runtime by
+     the mbedtls_ssl_conf_early_data() API (by default disabled in both cases).
+   * Add protection for multithreaded access to the PSA keystore and protection
+     for multithreaded access to the the PSA global state, including
+     concurrently calling psa_crypto_init() when MBEDTLS_THREADING_C and
+     MBEDTLS_THREADING_PTHREAD are defined. See
+     docs/architecture/psa-thread-safety/psa-thread-safety.md for more details.
+     Resolves issues #3263 and #7945.
+
+Security
+   * Fix a stack buffer overread (less than 256 bytes) when parsing a TLS 1.3
+     ClientHello in a TLS 1.3 server supporting some PSK key exchange mode. A
+     malicious client could cause information disclosure or a denial of service.
+   * Passing buffers that are stored in untrusted memory as arguments
+     to PSA functions is now secure by default.
+     The PSA core now protects against modification of inputs or exposure
+     of intermediate outputs during operations. This is currently implemented
+     by copying buffers.
+     This feature increases code size and memory usage. If buffers passed to
+     PSA functions are owned exclusively by the PSA core for the duration of
+     the function call (i.e. no buffer parameters are in shared memory),
+     copying may be disabled by setting MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS.
+     Note that setting this option will cause input-output buffer overlap to
+     be only partially supported (#3266).
+     Fixes CVE-2024-28960.
+   * Restore the maximum TLS version to be negotiated to the configured one
+     when an SSL context is reset with the mbedtls_ssl_session_reset() API.
+     An attacker was able to prevent an Mbed TLS server from establishing any
+     TLS 1.3 connection potentially resulting in a Denial of Service or forced
+     version downgrade from TLS 1.3 to TLS 1.2. Fixes #8654 reported by hey3e.
+     Fixes CVE-2024-28755.
+   * When negotiating TLS version on server side, do not fall back to the
+     TLS 1.2 implementation of the protocol if it is disabled.
+     - If the TLS 1.2 implementation was disabled at build time, a TLS 1.2
+       client could put the TLS 1.3-only server in an infinite loop processing
+       a TLS 1.2 ClientHello, resulting in a denial of service. Reported by
+       Matthias Mucha and Thomas Blattmann, SICK AG.
+     - If the TLS 1.2 implementation was disabled at runtime, a TLS 1.2 client
+       was able to successfully establish a TLS 1.2 connection with the server.
+       Reported by alluettiv on GitHub.
+    Fixes CVE-2024-28836.
+
+Bugfix
+   * Fix the build with CMake when Everest or P256-m is enabled through
+     a user configuration file or the compiler command line. Fixes #8165.
+   * Fix compilation error in C++ programs when MBEDTLS_ASN1_PARSE_C is
+     disabled.
+   * Fix possible NULL dereference issue in X509 cert_req program if an entry
+     in the san parameter is not separated by a colon.
+   * Fix possible NULL dereference issue in X509 cert_write program if an entry
+     in the san parameter is not separated by a colon.
+   * Fix an inconsistency between implementations and usages of `__cpuid`,
+     which mainly causes failures when building Windows target using
+     mingw or clang. Fixes #8334 & #8332.
+   * Fix build failure in conda-forge.  Fixes #8422.
+   * Fix parsing of CSRs with critical extensions.
+   * Switch to milliseconds as the unit for ticket creation and reception time
+     instead of seconds. That avoids rounding errors when computing the age of
+     tickets compared to peer using a millisecond clock (observed with GnuTLS).
+     Fixes #6623.
+   * Fix TLS server accepting TLS 1.2 handshake while TLS 1.2
+     is disabled at runtime. Fixes #8593.
+   * Remove accidental introduction of RSA signature algorithms
+     in TLS Suite B Profile. Fixes #8221.
+   * Fix unsupported PSA asymmetric encryption and decryption
+     (psa_asymmetric_[en|de]crypt) with opaque keys.
+     Resolves #8461.
+   * On Linux on ARMv8, fix a build error with SHA-256 and SHA-512
+     acceleration detection when the libc headers do not define the
+     corresponding constant. Reported by valord577.
+   * Correct initial capacities for key derivation algorithms:TLS12_PRF,
+     TLS12_PSK_TO_MS, PBKDF2-HMAC, PBKDF2-CMAC
+   * Fix mbedtls_pk_get_bitlen() for RSA keys whose size is not a
+     multiple of 8. Fixes #868.
+   * Avoid segmentation fault caused by releasing not initialized
+     entropy resource in gen_key example. Fixes #8809.
+   * mbedtls_pem_read_buffer() now performs a check on the padding data of
+     decrypted keys and it rejects invalid ones.
+   * Fix mbedtls_pk_sign(), mbedtls_pk_verify(), mbedtls_pk_decrypt() and
+     mbedtls_pk_encrypt() on non-opaque RSA keys to honor the padding mode in
+     the RSA context. Before, if MBEDTLS_USE_PSA_CRYPTO was enabled and the
+     RSA context was configured for PKCS#1 v2.1 (PSS/OAEP), the sign/verify
+     functions performed a PKCS#1 v1.5 signature instead and the
+     encrypt/decrypt functions returned an error. Fixes #8824.
+   * Fix missing bitflags in SSL session serialization headers. Their absence
+     allowed SSL sessions saved in one configuration to be loaded in a
+     different, incompatible configuration.
+   * In TLS 1.3 clients, fix an interoperability problem due to the client
+     generating a new random after a HelloRetryRequest. Fixes #8669.
+   * Fix the restoration of the ALPN when loading serialized connection with
+     the mbedtls_ssl_context_load() API.
+   * Fix NULL pointer dereference in mbedtls_pk_verify_ext() when called using
+     an opaque RSA context and specifying MBEDTLS_PK_RSASSA_PSS as key type.
+   * Fix RSA opaque keys always using PKCS1 v1.5 algorithms instead of the
+     primary algorithm of the wrapped PSA key.
+   * Fully support arbitrary overlap between inputs and outputs of PSA
+     functions. Note that overlap is still only partially supported when
+     MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS is set (#3266).
+
+Changes
+   * Use heap memory to allocate DER encoded public/private key.
+     This reduces stack usage significantly for writing a public/private
+     key to a PEM string.
+   * PSA_WANT_ALG_CCM and PSA_WANT_ALG_CCM_STAR_NO_TAG are no more synonyms and
+     they are now treated separately. This means that they should be
+     individually enabled in order to enable respective support; also the
+     corresponding MBEDTLS_PSA_ACCEL symbol should be defined in case
+     acceleration is required.
+   * Moved declaration of functions mbedtls_ecc_group_to_psa and
+     mbedtls_ecc_group_of_psa from psa/crypto_extra.h to mbedtls/psa_util.h
+   * mbedtls_pk_sign_ext() is now always available, not just when
+     PSA (MBEDTLS_PSA_CRYPTO_C) is enabled.
+   * Extended PSA Crypto configurations options for FFDH by making it possible
+     to select only some of the parameters / groups, with the macros
+     PSA_WANT_DH_RFC7919_XXXX. You now need to defined the corresponding macro
+     for each size you want to support. Also, if you have an FFDH accelerator,
+     you'll need to define the appropriate MBEDTLS_PSA_ACCEL macros to signal
+     support for these domain parameters.
+   * RSA support in PSA no longer auto-enables the pkparse and pkwrite modules,
+     saving code size when those are not otherwise enabled.
+   * mbedtls_mpi_exp_mod and code that uses it, notably RSA and DHM operations,
+     have changed their speed/memory compromise as part of a proactive security
+     improvement. The new default value of MBEDTLS_MPI_WINDOW_SIZE roughly
+     preserves the current speed, at the expense of increasing memory
+     consumption.
+   * Rename directory containing Visual Studio files from visualc/VS2013 to
+     visualc/VS2017.
+   * The TLS 1.3 protocol is now enabled in the default configuration.
+
 = Mbed TLS 3.5.2 branch released 2024-01-26
 
 Security

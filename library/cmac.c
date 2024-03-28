@@ -34,6 +34,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform.h"
+#include "constant_time_internal.h"
 
 #include <string.h>
 
@@ -56,7 +57,7 @@ static int cmac_multiply_by_u(unsigned char *output,
                               size_t blocksize)
 {
     const unsigned char R_128 = 0x87;
-    unsigned char R_n, mask;
+    unsigned char R_n;
     uint32_t overflow = 0x00;
     int i;
 
@@ -81,21 +82,8 @@ static int cmac_multiply_by_u(unsigned char *output,
         overflow = new_overflow;
     }
 
-    /* mask = ( input[0] >> 7 ) ? 0xff : 0x00
-     * using bit operations to avoid branches */
-
-    /* MSVC has a warning about unary minus on unsigned, but this is
-     * well-defined and precisely what we want to do here */
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4146 )
-#endif
-    mask = -(input[0] >> 7);
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
-
-    output[blocksize - 1] ^= R_n & mask;
+    R_n = (unsigned char) mbedtls_ct_uint_if_else_0(mbedtls_ct_bool(input[0] >> 7), R_n);
+    output[blocksize - 1] ^= R_n;
 
     return 0;
 }

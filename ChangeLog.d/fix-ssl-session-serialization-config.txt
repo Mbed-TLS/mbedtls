@@ -1,4 +1,0 @@
-Bugfix
-   * Fix missing bitflags in SSL session serialization headers. Their absence
-     allowed SSL sessions saved in one configuration to be loaded in a
-     different, incompatible configuration.

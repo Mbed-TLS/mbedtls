@@ -1,6 +1,0 @@
-Features
-   * mbedtls_psa_get_random() is always available as soon as
-     MBEDTLS_PSA_CRYPTO_CLIENT is enabled at build time and psa_crypto_init() is
-     called at runtime. This together with MBEDTLS_PSA_RANDOM_STATE can be
-     used as random number generator function (f_rng) and context (p_rng) in
-     legacy functions.

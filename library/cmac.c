@@ -172,10 +172,17 @@ int mbedtls_cipher_cmac_starts(mbedtls_cipher_context_t *ctx,
     type = mbedtls_cipher_info_get_type(ctx->cipher_info);
 
     switch (type) {
+#if defined(MBEDTLS_AES_C)		
         case MBEDTLS_CIPHER_AES_128_ECB:
         case MBEDTLS_CIPHER_AES_192_ECB:
-        case MBEDTLS_CIPHER_AES_256_ECB:
+        case MBEDTLS_CIPHER_AES_256_ECB:		
+#endif		
+#if defined(MBEDTLS_ARIA_C)
+        case MBEDTLS_CIPHER_ARIA_128_ECB:
+#endif
+#if defined(MBEDTLS_DES_C)
         case MBEDTLS_CIPHER_DES_EDE3_ECB:
+#endif		
             break;
         default:
             return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;

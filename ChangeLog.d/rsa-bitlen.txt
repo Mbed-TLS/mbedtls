@@ -1,3 +1,0 @@
-Bugfix
-   * Fix mbedtls_pk_get_bitlen() for RSA keys whose size is not a
-     multiple of 8. Fixes #868.

@@ -1,5 +1,57 @@
 Mbed TLS ChangeLog (Sorted per branch, date)
 
+= Mbed TLS 2.28.8 branch released 2024-03-28
+
+Features
+   * AES-NI is now supported in Windows builds with clang and clang-cl.
+     Resolves #8372.
+   * Add pc files for pkg-config, e.g.:
+     pkg-config --cflags --libs (mbedtls|mbedcrypto|mbedx509)
+
+Security
+   * Passing buffers that are stored in untrusted memory as arguments
+     to PSA functions is now secure by default.
+     The PSA core now protects against modification of inputs or exposure
+     of intermediate outputs during operations. This is currently implemented
+     by copying buffers.
+     This feature increases code size and memory usage. If buffers passed to
+     PSA functions are owned exclusively by the PSA core for the duration of
+     the function call (i.e. no buffer parameters are in shared memory),
+     copying may be disabled by setting MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS.
+     Note that setting this option will cause input-output buffer overlap to
+     be only partially supported (#3266).
+     Fixes CVE-2024-28960.
+
+Bugfix
+   * Fix the build with CMake when Everest is enabled through
+     a user configuration file or the compiler command line. Fixes #8165.
+   * Fix an inconsistency between implementations and usages of `__cpuid`,
+     which mainly causes failures when building Windows target using
+     mingw or clang. Fixes #8334 & #8332.
+   * Correct initial capacities for key derivation algorithms: TLS12_PRF,
+     TLS12_PSK_TO_MS.
+   * Fix mbedtls_pk_get_bitlen() for RSA keys whose size is not a
+     multiple of 8. Fixes #868.
+   * Avoid segmentation fault caused by releasing not initialized
+     entropy resource in gen_key example. Fixes #8809.
+   * Fix missing bitflags in SSL session serialization headers. Their absence
+     allowed SSL sessions saved in one configuration to be loaded in a
+     different, incompatible configuration.
+   * Fix the restoration of the ALPN when loading serialized connection with
+     the mbedtls_ssl_context_load() API.
+   * Fully support arbitrary overlap between inputs and outputs of PSA
+     functions. Note that overlap is still only partially supported when
+     MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS is set (#3266).
+
+Changes
+   * Use heap memory to allocate DER encoded public/private key.
+     This reduces stack usage significantly for writing a public/private
+     key to a PEM string.
+   * cmake: Use GnuInstallDirs to customize install directories
+     Replace custom LIB_INSTALL_DIR variable with standard CMAKE_INSTALL_LIBDIR
+     variable. For backward compatibility, set CMAKE_INSTALL_LIBDIR if
+     LIB_INSTALL_DIR is set.
+
 = Mbed TLS 2.28.7 branch released 2024-01-26
 
 Security

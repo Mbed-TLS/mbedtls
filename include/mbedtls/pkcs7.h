@@ -28,7 +28,7 @@
  *    for CRLs so it is assumed to be an empty list.
  *  - The RFC allows for SignerInfo structure to optionally contain
  *    unauthenticatedAttributes and authenticatedAttributes. In Mbed TLS it is
- *    assumed these fields are empty.
+ *    assumed the unauthenticatedAttributes field is empty.
  *  - The RFC allows for the signed Data type to contain contentInfo. This
  *    implementation assumes the type is DATA and the content is empty.
  */
@@ -59,6 +59,7 @@
 #define MBEDTLS_ERR_PKCS7_ALLOC_FAILED                     -0x5780  /**< Allocation of memory failed. */
 #define MBEDTLS_ERR_PKCS7_VERIFY_FAIL                      -0x5800  /**< Verification Failed */
 #define MBEDTLS_ERR_PKCS7_CERT_DATE_INVALID                -0x5880  /**< The PKCS #7 date issued/expired dates are invalid */
+#define MBEDTLS_ERR_PKCS7_INVALID_AUTH_ATTR                -0x5900  /**< Authenticated attributes are invalid or cannot be parsed. */
 /* \} name */
 
 /**
@@ -113,6 +114,10 @@ typedef struct mbedtls_pkcs7_signer_info {
     mbedtls_x509_buf MBEDTLS_PRIVATE(alg_identifier);
     mbedtls_x509_buf MBEDTLS_PRIVATE(sig_alg_identifier);
     mbedtls_x509_buf MBEDTLS_PRIVATE(sig);
+    int MBEDTLS_PRIVATE(no_of_auth_attr);
+    mbedtls_x509_buf MBEDTLS_PRIVATE(auth_attrs);
+    unsigned char *MBEDTLS_PRIVATE(message_digest);
+    size_t MBEDTLS_PRIVATE(message_digest_len);
     struct mbedtls_pkcs7_signer_info *MBEDTLS_PRIVATE(next);
 }
 mbedtls_pkcs7_signer_info;

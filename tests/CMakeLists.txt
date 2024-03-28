@@ -245,12 +245,12 @@ function(add_test_suite suite_name)
                    $<TARGET_OBJECTS:mbedtls_test_helpers>)
     add_dependencies(test_suite_${data_name} ${dependency})
     target_link_libraries(test_suite_${data_name} ${libs})
-    # Include test-specific header files from ./include and private header
-    # files (used by some invasive tests) from ../library. Public header
+    # Include test-specific header files from ../framework/include and private
+    # header files (used by some invasive tests) from ../library. Public header
     # files are automatically included because the library targets declare
     # them as PUBLIC.
     target_include_directories(test_suite_${data_name}
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../framework/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../library)
     # Request C11, which is needed for memory poisoning tests
     set_target_properties(test_suite_${data_name} PROPERTIES C_STANDARD 11)

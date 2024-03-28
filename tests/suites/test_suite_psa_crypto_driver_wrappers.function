@@ -748,7 +748,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256:MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE */
 void generate_ec_key(int force_status_arg,
                      data_t *fake_output,
                      int expected_status_arg)
@@ -782,13 +782,14 @@ void generate_ec_key(int force_status_arg,
                 fake_output->len;
     }
 
-    mbedtls_test_driver_key_management_hooks.hits = 0;
-    mbedtls_test_driver_key_management_hooks.forced_status = force_status;
-
     PSA_ASSERT(psa_crypto_init());
 
+    mbedtls_test_driver_key_management_hooks.hits = 0;
+    mbedtls_test_driver_key_management_hooks.hits_generate_key = 0;
+    mbedtls_test_driver_key_management_hooks.forced_status = force_status;
+
     actual_status = psa_generate_key(&attributes, &key);
-    TEST_EQUAL(mbedtls_test_driver_key_management_hooks.hits, 1);
+    TEST_EQUAL(mbedtls_test_driver_key_management_hooks.hits_generate_key, 1);
     TEST_EQUAL(actual_status, expected_status);
 
     if (actual_status == PSA_SUCCESS) {

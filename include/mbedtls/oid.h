@@ -343,6 +343,12 @@
 #define MBEDTLS_OID_PKCS9_CSR_EXT_REQ           MBEDTLS_OID_PKCS9 "\x0e" /**< extensionRequest OBJECT IDENTIFIER ::= {pkcs-9 14} */
 
 /*
+ * PKCS#9 OIDs
+ */
+#define MBEDTLS_OID_PKCS9_CONTENT_TYPE          MBEDTLS_OID_PKCS9 "\x03" /** < pkcs-9-at-contentType OBJECT IDENTIFIER ::= {pkcs-9 3} */
+#define MBEDTLS_OID_PKCS9_MESSAGE_DIGEST        MBEDTLS_OID_PKCS9 "\x04" /** < pkcs-9-at-messageDigest OBJECT IDENTIFIER ::= {pkcs-9 4} */
+
+/*
  * PKCS#12 PBE OIDs
  */
 #define MBEDTLS_OID_PKCS12_PBE                      MBEDTLS_OID_PKCS12 "\x01" /**< pkcs-12PbeIds OBJECT IDENTIFIER ::= {pkcs-12 1} */

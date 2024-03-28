@@ -13,6 +13,7 @@
 #include "mbedtls/x509_crl.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/error.h"
+#include "mbedtls/rsa.h"
 
 #if defined(MBEDTLS_FS_IO)
 #include <sys/types.h>
@@ -171,11 +172,11 @@ static int pkcs7_get_certificates(unsigned char **p, unsigned char *end,
                                   mbedtls_x509_crt *certs)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t len1 = 0;
-    size_t len2 = 0;
-    unsigned char *end_set, *end_cert, *start;
+    size_t len_set = 0, len_cert = 0;
+    unsigned char *end_set, *end_cert, *start_cert;
+    int cert_cnt = 0;
 
-    ret = mbedtls_asn1_get_tag(p, end, &len1, MBEDTLS_ASN1_CONSTRUCTED
+    ret = mbedtls_asn1_get_tag(p, end, &len_set, MBEDTLS_ASN1_CONSTRUCTED
                                | MBEDTLS_ASN1_CONTEXT_SPECIFIC);
     if (ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
         return 0;
@@ -183,38 +184,31 @@ static int pkcs7_get_certificates(unsigned char **p, unsigned char *end,
     if (ret != 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_FORMAT, ret);
     }
-    start = *p;
-    end_set = *p + len1;
 
-    ret = mbedtls_asn1_get_tag(p, end_set, &len2, MBEDTLS_ASN1_CONSTRUCTED
-                               | MBEDTLS_ASN1_SEQUENCE);
-    if (ret != 0) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_CERT, ret);
+    end_set = *p + len_set;
+
+    while (*p != end_set) {
+        start_cert = *p;
+
+        ret = mbedtls_asn1_get_tag(p, end_set, &len_cert, MBEDTLS_ASN1_CONSTRUCTED
+                                   | MBEDTLS_ASN1_SEQUENCE);
+        if (ret != 0) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_CERT, ret);
+        }
+
+        end_cert = *p + len_cert;
+
+        if ((ret = mbedtls_x509_crt_parse_der(certs, start_cert, end_cert - start_cert)) < 0) {
+            return MBEDTLS_ERR_PKCS7_INVALID_CERT;
+        }
+
+        cert_cnt++;
+        *p = end_cert;
     }
 
-    end_cert = *p + len2;
+    *p = end_set;
 
-    /*
-     * This is to verify that there is only one signer certificate. It seems it is
-     * not easy to differentiate between the chain vs different signer's certificate.
-     * So, we support only the root certificate and the single signer.
-     * The behaviour would be improved with addition of multiple signer support.
-     */
-    if (end_cert != end_set) {
-        return MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
-    }
-
-    if ((ret = mbedtls_x509_crt_parse_der(certs, start, len1)) < 0) {
-        return MBEDTLS_ERR_PKCS7_INVALID_CERT;
-    }
-
-    *p = end_cert;
-
-    /*
-     * Since in this version we strictly support single certificate, and reaching
-     * here implies we have parsed successfully, we return 1.
-     */
-    return 1;
+    return cert_cnt;
 }
 
 /**
@@ -240,6 +234,169 @@ static int pkcs7_get_signature(unsigned char **p, unsigned char *end,
     return 0;
 }
 
+/**
+ * Return number of authenticated attributes from SignerInfo.
+ *
+ * From RFC2315 section 9.2:
+ * authenticatedAttributes
+ *     [0] IMPLICIT Attributes OPTIONAL,
+ *
+ * We expect the attributes to have the following format:
+ * Attribute ::= SEQUENCE {
+ *     attrType OBJECT IDENTIFIER,
+ *     attrValues SET OF AttributeValue }
+ *
+ * AttributeValue ::= ANY
+ *
+ * If authenticated attributes are present, it must contain at minimum two attributes:
+ *     - A PKCS #9 content-type attribute having as its value the content type of the
+ *       ContentInfo value being signed.
+ *     - A PKCS #9 message-digest attribute, having as its value the message digest
+ *       of the content.
+ *
+ * That leaves us with the following return codes:
+ *  < 0     - Parse error or invalid authenticated attributes set
+ *  0       - SignerInfo has no authenticated attributes
+ *  >= 2    - Valid authenticated attributes section
+ */
+static int pkcs7_get_auth_attrs(unsigned char **p, unsigned char *end,
+                                mbedtls_pkcs7_signer_info *signer)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len_set = 0, len_seq = 0, len_content = 0;
+    unsigned char *start_set, *end_set, *start_seq, *start_auth_attrs;
+    int total_attr_cnt = 0, required_attr_cnt = 0;
+
+    start_auth_attrs = *p;
+
+    ret = mbedtls_asn1_get_tag(p, end, &len_set, MBEDTLS_ASN1_CONSTRUCTED
+                               | MBEDTLS_ASN1_CONTEXT_SPECIFIC);
+
+    /* No authenticated attributes */
+    if (ret != 0) {
+        *p = start_auth_attrs;
+        return 0;
+    }
+
+    start_set = *p;
+    end_set = *p + len_set;
+
+    /* Go through the list of attributes */
+    while (*p != end_set) {
+
+        ret = mbedtls_asn1_get_tag(p, end_set, &len_seq, MBEDTLS_ASN1_CONSTRUCTED
+                                   | MBEDTLS_ASN1_SEQUENCE);
+        if (ret != 0) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_AUTH_ATTR, ret);
+        }
+
+        start_seq = *p;
+
+        ret = mbedtls_asn1_get_tag(&start_seq, end_set, &len_content,
+                                   MBEDTLS_ASN1_OID);
+        if (ret != 0) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_AUTH_ATTR, ret);
+        }
+
+        /* If OID is contentType, value needs to be PKCS#7 data type */
+        if (MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS9_CONTENT_TYPE, start_seq,
+                                len_content) == 0) {
+            start_seq += len_content;
+
+            ret = mbedtls_asn1_get_tag(&start_seq, end_set, &len_content,
+                                       MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SET);
+            if (ret != 0) {
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_AUTH_ATTR, ret);
+            }
+
+            ret = mbedtls_asn1_get_tag(&start_seq, end_set, &len_content,
+                                       MBEDTLS_ASN1_OID);
+            if (ret != 0) {
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_AUTH_ATTR, ret);
+            }
+
+            if (MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS7_DATA,
+                                    start_seq, len_content) == 0) {
+                /* This is a valid contentType attribute, update counter and jump to the next one */
+                total_attr_cnt++;
+                required_attr_cnt++;
+                *p += len_seq;
+                continue;
+            } else {
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_AUTH_ATTR, ret);
+            }
+        }
+
+        /* If OID is messageDigest, value needs to be digest of data */
+        if (MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS9_MESSAGE_DIGEST, start_seq,
+                                len_content) == 0) {
+            /*
+             * Since we don't have access to the data here, we store the digest octet string
+             * and check if it's actually correct at a later point in time when we verify
+             * the signature.
+             */
+            start_seq += len_content;
+
+            ret = mbedtls_asn1_get_tag(&start_seq, end_set, &len_content,
+                                       MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SET);
+            if (ret != 0) {
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_AUTH_ATTR, ret);
+            }
+
+            ret = mbedtls_asn1_get_tag(&start_seq, end_set, &len_content,
+                                       MBEDTLS_ASN1_OCTET_STRING);
+            if (ret != 0) {
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_AUTH_ATTR, ret);
+            }
+
+            /* Allocate memory for message digest */
+            signer->message_digest = mbedtls_calloc(len_content, sizeof(unsigned char));
+            if (signer->message_digest == NULL) {
+                return MBEDTLS_ERR_PKCS7_ALLOC_FAILED;
+            }
+
+            /* Copy it to buffer */
+            memcpy(signer->message_digest, start_seq, len_content);
+            signer->message_digest_len = len_content;
+
+            /* Assume valid attribute and jump to next one */
+            total_attr_cnt++;
+            required_attr_cnt++;
+            *p += len_seq;
+            continue;
+        }
+
+        /*
+         * If the attribute is not one of the two that are required, make sure the
+         * remaining data after the OID is a SET OF.
+         */
+        start_seq += len_content;
+
+        ret = mbedtls_asn1_get_tag(&start_seq, end_set, &len_content,
+                                   MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SET);
+        if (ret != 0) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_AUTH_ATTR, ret);
+        }
+        total_attr_cnt++;
+        *p += len_seq;
+    }
+
+    /* Minimum requirements are not met, this is an invalid set */
+    if (required_attr_cnt < 2) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_AUTH_ATTR, ret);
+    }
+
+    /*
+     * As per RFC2315, section 9.3, when using authenticated attributes in
+     * message-digesting process, tag is expected to be a SET OF and not IMPLICIT [0].
+     */
+    signer->auth_attrs.len = len_set + start_set - start_auth_attrs;
+    signer->auth_attrs.p = start_auth_attrs;
+    signer->auth_attrs.p[0] = MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SET;
+
+    return total_attr_cnt;
+}
+
 static void pkcs7_free_signer_info(mbedtls_pkcs7_signer_info *signer)
 {
     mbedtls_x509_name *name_cur;
@@ -256,6 +413,11 @@ static void pkcs7_free_signer_info(mbedtls_pkcs7_signer_info *signer)
         mbedtls_free(name_prv);
     }
     signer->issuer.next = NULL;
+
+    if (signer->message_digest != NULL) {
+        mbedtls_free(signer->message_digest);
+        signer->message_digest = NULL;
+    }
 }
 
 /**
@@ -271,8 +433,7 @@ static void pkcs7_free_signer_info(mbedtls_pkcs7_signer_info *signer)
  *              [1] IMPLICIT Attributes OPTIONAL,
  * Returns 0 if the signerInfo is valid.
  * Return negative error code for failure.
- * Structure must not contain vales for authenticatedAttributes
- * and unauthenticatedAttributes.
+ * Structure must not contain values for unauthenticatedAttributes.
  **/
 static int pkcs7_get_signer_info(unsigned char **p, unsigned char *end,
                                  mbedtls_pkcs7_signer_info *signer,
@@ -342,12 +503,21 @@ static int pkcs7_get_signer_info(unsigned char **p, unsigned char *end,
         goto out;
     }
 
-    /* Assume authenticatedAttributes is nonexistent */
+    /* Get authenticated attributes */
+    ret = pkcs7_get_auth_attrs(p, end_signer, signer);
+    if (ret < 0) {
+        goto out;
+    }
+
+    signer->no_of_auth_attr = ret;
+
+    /* Get digest algorithm */
     ret = pkcs7_get_digest_algorithm(p, end_signer, &signer->sig_alg_identifier);
     if (ret != 0) {
         goto out;
     }
 
+    /* Get signature */
     ret = pkcs7_get_signature(p, end_signer, &signer->sig);
     if (ret != 0) {
         goto out;
@@ -639,6 +809,165 @@ out:
     return ret;
 }
 
+/*
+ * Search for a certificate in the provided chain, by matching the serial number.
+ */
+static mbedtls_x509_crt *mbedtls_pkcs7_find_cert_in_list(const mbedtls_x509_buf *serial,
+                                                         const mbedtls_x509_crt *cert)
+{
+    mbedtls_x509_crt *iterator = (mbedtls_x509_crt *) cert;
+    while (iterator != NULL) {
+        if (serial->len == iterator->serial.len &&
+            memcmp(serial->p, iterator->serial.p, serial->len) == 0) {
+            return iterator;
+        }
+        iterator = iterator->next;
+    }
+    return NULL;
+}
+
+/*
+ * Verify signature against the embedded certificates in the signed data.
+ * If there are no embedded certs, verify against the public keys from
+ * provided cert files.
+ */
+static int mbedtls_pkcs7_pk_verify(mbedtls_pkcs7 *pkcs7,
+                                   const mbedtls_x509_crt *cert,
+                                   mbedtls_pkcs7_signer_info *signer,
+                                   unsigned char *data_hash,
+                                   const mbedtls_md_info_t *md_info,
+                                   mbedtls_md_type_t *md_alg)
+{
+    mbedtls_x509_crt *pk_crt;
+    unsigned char *auth_attr_hash;
+    uint32_t flags;
+    mbedtls_x509_crt *trust_ca = (mbedtls_x509_crt *) cert;
+    size_t hashlen = mbedtls_md_get_size(md_info);
+    int ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
+
+    /*
+     * If there are any embedded certificates, we treat the provided certs as
+     * trusted CAs and verify through a chain of trust.
+     */
+    if (pkcs7->signed_data.no_of_certs > 0) {
+
+        /* Search through the list of embedded certs */
+        pk_crt = mbedtls_pkcs7_find_cert_in_list(&signer->serial, &pkcs7->signed_data.certs);
+
+        if (pk_crt != NULL) {
+            if (mbedtls_x509_crt_verify(pk_crt, trust_ca, &pkcs7->signed_data.crl, NULL,
+                                        &flags, NULL, NULL) != 0) {
+                return MBEDTLS_ERR_RSA_VERIFY_FAILED;
+            }
+
+            /* If we have authenticated attributes, first verify message digest */
+            if (signer->no_of_auth_attr > 0) {
+
+                auth_attr_hash = mbedtls_calloc(hashlen, 1);
+                if (auth_attr_hash == NULL) {
+                    return MBEDTLS_ERR_PKCS7_ALLOC_FAILED;
+                }
+
+                if (signer->message_digest_len != hashlen ||
+                    memcmp(data_hash, signer->message_digest, hashlen) != 0) {
+
+                    mbedtls_free(auth_attr_hash);
+                    return MBEDTLS_ERR_PKCS7_INVALID_AUTH_ATTR;
+                }
+
+                /* Get digest of authenticated attributes */
+                ret = mbedtls_md(md_info, signer->auth_attrs.p, signer->auth_attrs.len,
+                                 auth_attr_hash);
+                if (ret != 0) {
+                    mbedtls_free(auth_attr_hash);
+                    return MBEDTLS_ERR_RSA_VERIFY_FAILED;
+                }
+
+                /* Verify signature */
+                ret = mbedtls_pk_verify(&pk_crt->pk, *md_alg, auth_attr_hash,
+                                        hashlen, signer->sig.p, signer->sig.len);
+                if (ret == 0) {
+                    mbedtls_free(auth_attr_hash);
+                    return ret;
+                }
+
+                /* Signature verification failed */
+                mbedtls_free(auth_attr_hash);
+                return MBEDTLS_ERR_RSA_VERIFY_FAILED;
+
+            } else {
+                /* Signer has no authenticated attributes */
+                ret = mbedtls_pk_verify(&pk_crt->pk, *md_alg, data_hash,
+                                        hashlen, signer->sig.p, signer->sig.len);
+                if (ret == 0) {
+                    return ret;
+                }
+
+                /* Signature verification failed */
+                return MBEDTLS_ERR_RSA_VERIFY_FAILED;
+            }
+        }
+    } else {
+        /*
+         * If we have no embedded certs, we verify against the public key in
+         * the provided certificates.
+         */
+        pk_crt = mbedtls_pkcs7_find_cert_in_list(&signer->serial, cert);
+
+        if (pk_crt != NULL) {
+
+            /* If we have authenticated attributes, first verify message digest */
+            if (signer->no_of_auth_attr > 0) {
+
+                auth_attr_hash = mbedtls_calloc(hashlen, 1);
+                if (auth_attr_hash == NULL) {
+                    return MBEDTLS_ERR_PKCS7_ALLOC_FAILED;
+                }
+
+                if (signer->message_digest_len != hashlen ||
+                    memcmp(data_hash, signer->message_digest, hashlen) != 0) {
+
+                    mbedtls_free(auth_attr_hash);
+                    return MBEDTLS_ERR_PKCS7_INVALID_AUTH_ATTR;
+                }
+
+                /* Get digest of authenticated attributes */
+                ret = mbedtls_md(md_info, signer->auth_attrs.p, signer->auth_attrs.len,
+                                 auth_attr_hash);
+                if (ret != 0) {
+                    mbedtls_free(auth_attr_hash);
+                    return MBEDTLS_ERR_RSA_VERIFY_FAILED;
+                }
+
+                /* Verify signature */
+                ret = mbedtls_pk_verify(&pk_crt->pk, *md_alg, auth_attr_hash,
+                                        hashlen, signer->sig.p, signer->sig.len);
+                if (ret == 0) {
+                    mbedtls_free(auth_attr_hash);
+                    return ret;
+                }
+
+                /* Signature verification failed */
+                mbedtls_free(auth_attr_hash);
+                return MBEDTLS_ERR_RSA_VERIFY_FAILED;
+
+            } else {
+                /* Signer has no authenticated attributes */
+                ret = mbedtls_pk_verify(&pk_crt->pk, *md_alg, data_hash,
+                                        hashlen, signer->sig.p, signer->sig.len);
+                if (ret == 0) {
+                    return ret;
+                }
+
+                /* Signature verification failed */
+                return MBEDTLS_ERR_RSA_VERIFY_FAILED;
+            }
+        }
+    }
+
+    return ret;
+}
+
 static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
                                              const mbedtls_x509_crt *cert,
                                              const unsigned char *data,
@@ -646,11 +975,11 @@ static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
                                              const int is_data_hash)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char *hash;
-    mbedtls_pk_context pk_cxt = cert->pk;
+    unsigned char *data_hash;
     const mbedtls_md_info_t *md_info;
     mbedtls_md_type_t md_alg;
     mbedtls_pkcs7_signer_info *signer;
+    size_t hashlen;
 
     if (pkcs7->signed_data.no_of_signers == 0) {
         return MBEDTLS_ERR_PKCS7_INVALID_CERT;
@@ -671,23 +1000,26 @@ static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
         return MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
     }
 
-    hash = mbedtls_calloc(mbedtls_md_get_size(md_info), 1);
-    if (hash == NULL) {
+    hashlen = mbedtls_md_get_size(md_info);
+
+    data_hash = mbedtls_calloc(hashlen, 1);
+    if (data_hash == NULL) {
         return MBEDTLS_ERR_PKCS7_ALLOC_FAILED;
     }
 
     /* BEGIN must free hash before jumping out */
     if (is_data_hash) {
-        if (datalen != mbedtls_md_get_size(md_info)) {
+        if (datalen != hashlen) {
             ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
         } else {
-            memcpy(hash, data, datalen);
+            memcpy(data_hash, data, datalen);
         }
     } else {
-        ret = mbedtls_md(md_info, data, datalen, hash);
+        ret = mbedtls_md(md_info, data, datalen, data_hash);
     }
+
     if (ret != 0) {
-        mbedtls_free(hash);
+        mbedtls_free(data_hash);
         return MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
     }
 
@@ -705,16 +1037,14 @@ static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
      * failed to validate'.
      */
     for (signer = &pkcs7->signed_data.signers; signer; signer = signer->next) {
-        ret = mbedtls_pk_verify(&pk_cxt, md_alg, hash,
-                                mbedtls_md_get_size(md_info),
-                                signer->sig.p, signer->sig.len);
 
+        ret = mbedtls_pkcs7_pk_verify(pkcs7, cert, signer, data_hash, md_info, &md_alg);
         if (ret == 0) {
             break;
         }
     }
 
-    mbedtls_free(hash);
+    mbedtls_free(data_hash);
     /* END must free hash before jumping out */
     return ret;
 }

@@ -58,6 +58,11 @@ int mbedtls_asn1_get_len(unsigned char **p,
     return 0;
 }
 
+static int mbedtls_asn1_bad_tag(int tag)
+{
+    return tag < 1 || (tag & ~0xE0) >= 0x1F;
+}
+
 int mbedtls_asn1_get_tag(unsigned char **p,
                          const unsigned char *end,
                          size_t *len, int tag)
@@ -242,6 +247,10 @@ int mbedtls_asn1_traverse_sequence_of(
     while (*p < end) {
         unsigned char const tag = *(*p)++;
 
+        if (mbedtls_asn1_bad_tag(tag)) {
+            return MBEDTLS_ERR_ASN1_UNEXPECTED_TAG;
+        }
+
         if ((tag & tag_must_mask) != tag_must_val) {
             return MBEDTLS_ERR_ASN1_UNEXPECTED_TAG;
         }
@@ -381,6 +390,10 @@ int mbedtls_asn1_get_alg(unsigned char **p,
 
     params->tag = **p;
     (*p)++;
+
+    if (mbedtls_asn1_bad_tag(params->tag)) {
+        return MBEDTLS_ERR_ASN1_UNEXPECTED_TAG;
+    }
 
     if ((ret = mbedtls_asn1_get_len(p, end, &params->len)) != 0) {
         return ret;

@@ -6407,6 +6407,12 @@ component_check_test_helpers () {
     python3 -m unittest tests/scripts/translate_ciphers.py 2>&1
 }
 
+component_test_pkgconfig () {
+    msg "configure: default config"
+    cmake .
+    msg "test: pkgconfig.sh"
+    PKG_CONFIG_PATH="$(pwd)/pkgconfig" tests/pkgconfig.sh
+}
 
 ################################################################
 #### Termination

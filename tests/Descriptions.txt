@@ -20,3 +20,7 @@ ssl_opt
     The 'tests/ssl-opt.sh' script checks various options and/or operations not
     covered by compat.sh: session resumption (using session cache or tickets),
     renegotiation, SNI, other extensions, etc.
+
+pkgconfig
+    The 'tests/pkgconfig.sh' script that checks if pkgconfig files are working
+    as expected.

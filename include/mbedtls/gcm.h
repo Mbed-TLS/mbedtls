@@ -115,10 +115,9 @@ int mbedtls_gcm_setkey(mbedtls_gcm_context *ctx,
 /**
  * \brief           This function performs GCM encryption or decryption of a buffer.
  *
- * \note            For encryption, the output buffer can be the same as the
- *                  input buffer. For decryption, the output buffer cannot be
- *                  the same as input buffer. If the buffers overlap, the output
- *                  buffer must trail at least 8 Bytes behind the input buffer.
+ * \note            The output buffer \p output can be the same as the input
+ *                  buffer \p input. If \p output is greater than \p input, they
+ *                  cannot overlap.
  *
  * \warning         When this function performs a decryption, it outputs the
  *                  authentication tag and does not verify that the data is
@@ -179,9 +178,9 @@ int mbedtls_gcm_crypt_and_tag(mbedtls_gcm_context *ctx,
  * \brief           This function performs a GCM authenticated decryption of a
  *                  buffer.
  *
- * \note            For decryption, the output buffer cannot be the same as
- *                  input buffer. If the buffers overlap, the output buffer
- *                  must trail at least 8 Bytes behind the input buffer.
+ * \note            The output buffer \p output can be the same as the input
+ *                  buffer \p input. If \p output is greater than \p input, they
+ *                  cannot overlap.
  *
  * \param ctx       The GCM context. This must be initialized.
  * \param length    The length of the ciphertext to decrypt, which is also
@@ -271,25 +270,9 @@ int mbedtls_gcm_update_ad(mbedtls_gcm_context *ctx,
  *                  decrypt. After the last part of the input, call
  *                  mbedtls_gcm_finish().
  *
- *                  This function may produce output in one of the following
- *                  ways:
- *                  - Immediate output: the output length is always equal
- *                    to the input length.
- *                  - Buffered output: the output consists of a whole number
- *                    of 16-byte blocks. If the total input length so far
- *                    (not including associated data) is 16 \* *B* + *A*
- *                    with *A* < 16 then the total output length is 16 \* *B*.
- *
- *                  In particular:
- *                  - It is always correct to call this function with
- *                    \p output_size >= \p input_length + 15.
- *                  - If \p input_length is a multiple of 16 for all the calls
- *                    to this function during an operation, then it is
- *                    correct to use \p output_size = \p input_length.
- *
- * \note            For decryption, the output buffer cannot be the same as
- *                  input buffer. If the buffers overlap, the output buffer
- *                  must trail at least 8 Bytes behind the input buffer.
+ * \note            The output buffer \p output can be the same as the input
+ *                  buffer \p input. If \p output is greater than \p input, they
+ *                  cannot overlap.
  *
  * \param ctx           The GCM context. This must be initialized.
  * \param input         The buffer holding the input data. If \p input_length
@@ -300,9 +283,9 @@ int mbedtls_gcm_update_ad(mbedtls_gcm_context *ctx,
  *                      is greater than zero, this must be a writable buffer of
  *                      of at least \p output_size bytes.
  * \param output_size   The size of the output buffer in bytes.
- *                      See the function description regarding the output size.
  * \param output_length On success, \p *output_length contains the actual
- *                      length of the output written in \p output.
+ *                      length of the output written in \p output, which is
+ *                      equal to \p input_length.
  *                      On failure, the content of \p *output_length is
  *                      unspecified.
  *

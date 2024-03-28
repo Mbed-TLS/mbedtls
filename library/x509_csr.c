@@ -600,6 +600,9 @@ int mbedtls_x509_csr_info(char *buf, size_t size, const char *prefix,
     }
 
     return (int) (size - n);
+
+cleanup:
+    return ret;
 }
 #endif /* MBEDTLS_X509_REMOVE_INFO */
 

@@ -222,8 +222,10 @@ int verify_print(void *data, mbedtls_x509_crt *crt, int certificate_depth, uint3
     MBEDTLS_X509_SAFE_SNPRINTF;
 
     ctx->p = p;
+    ret = 0;
 
-    return 0;
+cleanup:
+    return ret;
 }
 
 int verify_parse_san(mbedtls_x509_subject_alternative_name *san,
@@ -313,8 +315,10 @@ int verify_parse_san(mbedtls_x509_subject_alternative_name *san,
 
     *size = n;
     *buf = p;
+    ret = 0;
 
-    return 0;
+cleanup:
+    return ret;
 }
 
 int parse_crt_ext_cb(void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf const *oid,
@@ -524,18 +528,17 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:!MBEDTLS_X509_REMOVE_INFO:MBEDTLS_X509_CRT_PARSE_C */
-void x509_cert_info(char *crt_file, char *result_str)
+void x509_cert_info(char *crt_file, int buf_size, char *result_str)
 {
     mbedtls_x509_crt   crt;
-    char buf[2000];
     int res;
 
     mbedtls_x509_crt_init(&crt);
+    char *buf = calloc(1, buf_size);
     USE_PSA_INIT();
-    memset(buf, 0, 2000);
 
     TEST_EQUAL(mbedtls_x509_crt_parse_file(&crt, crt_file), 0);
-    res = mbedtls_x509_crt_info(buf, 2000, "", &crt);
+    res = mbedtls_x509_crt_info(buf, buf_size, "", &crt);
 
     TEST_ASSERT(res != -1);
     TEST_ASSERT(res != -2);
@@ -543,6 +546,7 @@ void x509_cert_info(char *crt_file, char *result_str)
     TEST_EQUAL(strcmp(buf, result_str), 0);
 
 exit:
+    free(buf);
     mbedtls_x509_crt_free(&crt);
     USE_PSA_DONE();
 }

@@ -250,6 +250,12 @@ static const oid_x520_attr_t oid_x520_attr_type[] =
         "uniqueIdentifier",
     },
     {
+        OID_DESCRIPTOR(MBEDTLS_OID_PKCS9_CHALLENGE_PASSWORD,
+                       "challengePassword",
+                       "A challenge password"),
+        "challengePassword",
+    },
+    {
         NULL_OID_DESCRIPTOR,
         NULL,
     }

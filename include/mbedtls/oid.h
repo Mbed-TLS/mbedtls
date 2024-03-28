@@ -237,7 +237,11 @@
 
 #define MBEDTLS_OID_RSA_SHA_OBS         "\x2B\x0E\x03\x02\x1D"
 
-#define MBEDTLS_OID_PKCS9_EMAIL         MBEDTLS_OID_PKCS9 "\x01" /**< emailAddress AttributeType ::= { pkcs-9 1 } */
+/*
+ * PKCS#9 OIDs
+ */
+#define MBEDTLS_OID_PKCS9_EMAIL                 MBEDTLS_OID_PKCS9 "\x01" /**< emailAddress AttributeType ::= { pkcs-9 1 } */
+#define MBEDTLS_OID_PKCS9_CHALLENGE_PASSWORD    MBEDTLS_OID_PKCS9 "\x07" /**< challengePassword AttributeType ::= { pkcs-9 7 } */
 
 /* RFC 4055 */
 #define MBEDTLS_OID_RSASSA_PSS          MBEDTLS_OID_PKCS1 "\x0a" /**< id-RSASSA-PSS ::= { pkcs-1 10 } */

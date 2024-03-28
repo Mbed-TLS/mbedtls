@@ -124,7 +124,9 @@ in_tf_psa_crypto_repo () {
 }
 
 pre_check_environment () {
-    if in_mbedtls_repo || in_tf_psa_crypto_repo; then :; else
+    if in_mbedtls_repo || in_tf_psa_crypto_repo; then
+        export MBEDTLS_TEST_REPO_ROOT_DIR="$PWD"
+    else
         echo "Must be run from Mbed TLS / TF-PSA-Crypto root" >&2
         exit 1
     fi
@@ -349,11 +351,21 @@ cleanup()
     done
 }
 
+cleanup_component_build_dirs () {
+    for dir in */; do
+        case "$dir" in
+            mbedtls_*_build_dir/)
+            rm -rf "$dir"
+        esac
+    done
+}
+
 # Final cleanup when this script exits (except when exiting on a failure
 # in non-keep-going mode).
 final_cleanup () {
+    cd "$MBEDTLS_TEST_REPO_ROOT_DIR"
     cleanup
-
+    cleanup_component_build_dirs
     for x in $files_to_back_up; do
         rm -f "$x$backup_suffix"
     done
@@ -563,6 +575,7 @@ pre_check_git () {
         rm -rf "$OUT_OF_SOURCE_DIR"
         git checkout-index -f -q $CONFIG_H
         cleanup
+        cleanup_component_build_dirs
     else
 
         if [ -d "$OUT_OF_SOURCE_DIR" ]; then
@@ -571,6 +584,17 @@ pre_check_git () {
             echo "the script as: $0 --force --out-of-source-dir $OUT_OF_SOURCE_DIR"
             exit 1
         fi
+
+        for dir in */; do
+            case "$dir" in
+                mbedtls_*_build_dir/)
+                echo "Warning - there is a component out of source build directory '$dir'" >&2
+                echo "You can either delete it manually, or force the test by rerunning"
+                echo "the script as: $0 --force"
+                exit 1
+                ;;
+            esac
+        done
 
         if ! git diff --quiet "$CONFIG_H"; then
             err_msg "Warning - the configuration file '$CONFIG_H' has been edited. "
@@ -6187,11 +6211,10 @@ component_test_cmake_out_of_source () {
     make neat
 
     msg "build: cmake 'out-of-source' build"
-    MBEDTLS_ROOT_DIR="$PWD"
     mkdir "$OUT_OF_SOURCE_DIR"
     cd "$OUT_OF_SOURCE_DIR"
     # Note: Explicitly generate files as these are turned off in releases
-    cmake -D CMAKE_BUILD_TYPE:String=Check -D GEN_FILES=ON "$MBEDTLS_ROOT_DIR"
+    cmake -D CMAKE_BUILD_TYPE:String=Check -D GEN_FILES=ON "$MBEDTLS_TEST_REPO_ROOT_DIR"
     make
 
     msg "test: cmake 'out-of-source' build"
@@ -6207,7 +6230,7 @@ component_test_cmake_out_of_source () {
     # If ssl-opt.err is non-empty, record an error and keep going.
     [ ! -s ssl-opt.err ]
     rm ssl-opt.out ssl-opt.err
-    cd "$MBEDTLS_ROOT_DIR"
+    cd "$MBEDTLS_TEST_REPO_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
 }
 
@@ -6261,18 +6284,17 @@ component_build_cmake_custom_config_file () {
     # Make a copy of config file to use for the in-tree test
     cp "$CONFIG_H" include/mbedtls_config_in_tree_copy.h
 
-    MBEDTLS_ROOT_DIR="$PWD"
     mkdir "$OUT_OF_SOURCE_DIR"
     cd "$OUT_OF_SOURCE_DIR"
 
     # Build once to get the generated files (which need an intact config file)
-    cmake "$MBEDTLS_ROOT_DIR"
+    cmake "$MBEDTLS_TEST_REPO_ROOT_DIR"
     make
 
     msg "build: cmake with -DMBEDTLS_CONFIG_FILE"
     scripts/config.py -w full_config.h full
-    echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_ROOT_DIR/$CONFIG_H"
-    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h "$MBEDTLS_ROOT_DIR"
+    echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_TEST_REPO_ROOT_DIR/$CONFIG_H"
+    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h "$MBEDTLS_TEST_REPO_ROOT_DIR"
     make
 
     msg "build: cmake with -DMBEDTLS_CONFIG_FILE + -DMBEDTLS_USER_CONFIG_FILE"
@@ -6280,13 +6302,13 @@ component_build_cmake_custom_config_file () {
     # that nothing else depends on).
     echo '#undef MBEDTLS_NIST_KW_C' >user_config.h
 
-    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h -DMBEDTLS_USER_CONFIG_FILE=user_config.h "$MBEDTLS_ROOT_DIR"
+    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h -DMBEDTLS_USER_CONFIG_FILE=user_config.h "$MBEDTLS_TEST_REPO_ROOT_DIR"
     make
     not programs/test/query_compile_time_config MBEDTLS_NIST_KW_C
 
     rm -f user_config.h full_config.h
 
-    cd "$MBEDTLS_ROOT_DIR"
+    cd "$MBEDTLS_TEST_REPO_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
 
     # Now repeat the test for an in-tree build:
@@ -6300,7 +6322,7 @@ component_build_cmake_custom_config_file () {
 
     msg "build: cmake (in-tree) with -DMBEDTLS_CONFIG_FILE"
     scripts/config.py -w full_config.h full
-    echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_ROOT_DIR/$CONFIG_H"
+    echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_TEST_REPO_ROOT_DIR/$CONFIG_H"
     cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h .
     make
 
@@ -6446,6 +6468,7 @@ pseudo_component_error_test () {
 # Run one component and clean up afterwards.
 run_component () {
     current_component="$1"
+    build_dir="mbedtls_${current_component#component_}_build_dir"
     export MBEDTLS_TEST_CONFIGURATION="$current_component"
 
     # Unconditionally create a seedfile that's sufficiently long.
@@ -6457,6 +6480,11 @@ run_component () {
         linux*|freebsd*|openbsd*) dd_cmd+=(status=none)
     esac
     "${dd_cmd[@]}"
+
+    if in_tf_psa_crypto_repo; then
+        mkdir "$build_dir"
+        cd "$build_dir"
+    fi
 
     # Run the component in a subshell, with error trapping and output
     # redirection set up based on the relevant options.
@@ -6491,9 +6519,14 @@ run_component () {
         fi
     fi
 
+    cd "$MBEDTLS_TEST_REPO_ROOT_DIR"
+    if in_tf_psa_crypto_repo; then
+        rm -rf "$build_dir"
+    fi
     # Restore the build tree to a clean state.
     cleanup
     unset current_component
+    unset build_dir
 }
 
 # Preliminary setup

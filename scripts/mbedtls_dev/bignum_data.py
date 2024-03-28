@@ -140,6 +140,19 @@ ONLY_PRIME_MODULI = [
         SAFE_PRIME_1024_BIT_SEED_3, # safe prime
         ]
 
+
+BIT_SHIFT_VALUES = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a',
+                    '1f', '20', '21', '3f', '40', '41', '47', '48', '4f',
+                    '50', '51', '58', '80', '81', '88']
+BIT_SHIFT_INPUT = ["0", "00", "1", "01", "40", "dee5ca1a7ef10a75",
+                   "ffffffffffffffff", "0fffffffffffffff", "1000000000000001",
+                   "a1055eb0bb1efa1150ff", "002e7ab0070ad57001",
+                   "020100000000000000001011121314151617",
+                   ("1946e2958a85d8863ae21f4904fcc49478412534ed53eaf321f63f2a2"
+                    "227a3c63acbf50b6305595f90cfa8327f6db80d986fe96080bcbb5df1"
+                    "bdbe9b74fb8dedf2bddb3f8215b54dffd66409323bcc473e45a8fe9d0"
+                    "8e77a511698b5dad0416305db7fcf")]
+
 def __gen_safe_prime(bits, seed):
     '''
     Generate a safe prime.

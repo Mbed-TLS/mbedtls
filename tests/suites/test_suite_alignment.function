@@ -358,3 +358,68 @@ void mbedtls_is_big_endian()
     }
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_memcpy_to(int len, int e_size)
+{
+    unsigned char d[1024], s[1024];
+
+    TEST_ASSERT(e_size == 2 || e_size == 4 || e_size == 8);
+    TEST_ASSERT((len % e_size) == 0);
+
+    for (size_t i = 0; i < sizeof(d); i++) {
+        s[i] = (unsigned char) i;
+    }
+
+    memset(d, 0, sizeof(d));
+    mbedtls_memcpy_to_le(d, s, len, e_size);
+
+    for (int i = 0; i < len; i += e_size) {
+        // a is the actual value written, with no byte swapping applied
+        uint64_t a = 0;
+        switch (e_size) {
+            case 2: a = mbedtls_get_unaligned_uint16(&d[i]); break;
+            case 4: a = mbedtls_get_unaligned_uint32(&d[i]); break;
+            case 8: a = mbedtls_get_unaligned_uint64(&d[i]); break;
+        }
+        // r is the reference value, which will be byte-swapped by MBEDTLS_GET_UINTxx_LE
+        // iff we are on big-endian
+        uint64_t r = 0;
+        switch (e_size) {
+            case 2: r = MBEDTLS_GET_UINT16_LE(&s[i], 0); break;
+            case 4: r = MBEDTLS_GET_UINT32_LE(&s[i], 0); break;
+            case 8: r = MBEDTLS_GET_UINT64_LE(&s[i], 0); break;
+        }
+        TEST_EQUAL(r, a);
+    }
+    // Byte-swap the destination, if we expect it to have been byte-swapped, and check that it
+    // is equal to the source. This is really repeating the above check.
+    if (MBEDTLS_IS_BIG_ENDIAN) {
+        mbedtls_memcpy_bs(d, d, len, e_size);
+    }
+    TEST_MEMORY_COMPARE(d, len, s, len);
+
+    memset(d, 0, sizeof(d));
+    mbedtls_memcpy_to_be(d, s, len, e_size);
+
+    for (int i = 0; i < len; i += e_size) {
+        uint64_t a = 0;
+        switch (e_size) {
+            case 2: a = mbedtls_get_unaligned_uint16(&d[i]); break;
+            case 4: a = mbedtls_get_unaligned_uint32(&d[i]); break;
+            case 8: a = mbedtls_get_unaligned_uint64(&d[i]); break;
+        }
+        uint64_t r = 1;
+        switch (e_size) {
+            case 2: r = MBEDTLS_GET_UINT16_BE(&s[i], 0); break;
+            case 4: r = MBEDTLS_GET_UINT32_BE(&s[i], 0); break;
+            case 8: r = MBEDTLS_GET_UINT64_BE(&s[i], 0); break;
+        }
+        TEST_EQUAL(r, a);
+    }
+    if (!MBEDTLS_IS_BIG_ENDIAN) {
+        mbedtls_memcpy_bs(d, d, len, e_size);
+    }
+    TEST_MEMORY_COMPARE(d, len, s, len);
+}
+/* END_CASE */

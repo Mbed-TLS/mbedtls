@@ -278,61 +278,38 @@ psa_status_t pk_psa_genkey(psa_key_type_t type, size_t bits,
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
-    mbedtls_pk_context pk;
     unsigned char *key_data = NULL;
     size_t key_data_size = 0; /* Overall size of key_data in bytes. It includes leading
                                * zeros (if any). */
     size_t key_data_len = 0; /* Length of valid bytes in key_data. */
     unsigned char *key_data_start;
-    int ret;
 
-    mbedtls_pk_init(&pk);
-
-    /* Get the predefined key (in DER format) and parse it. */
+    /* Get the predefined key:
+     * - RSA keys are already in a valid format to be imported into PSA.
+     * - EC ones instead would require some adaptation. However instead of going
+     *   through the PK module for import/export, we can directly skip the
+     *   unrelevant data and go directly to the private key.
+     */
     if (PSA_KEY_TYPE_IS_RSA(type)) {
         TEST_EQUAL(get_predefined_key_data(1, bits, &key_data, &key_data_size), 0);
+        key_data_start = key_data;
+        key_data_len = key_data_size;
     } else {
         mbedtls_ecp_group_id grp_id;
         grp_id = mbedtls_ecc_group_from_psa(PSA_KEY_TYPE_ECC_GET_FAMILY(type), bits);
         TEST_EQUAL(get_predefined_key_data(0, grp_id, &key_data, &key_data_size), 0);
-    }
-    TEST_EQUAL(mbedtls_pk_parse_key(&pk, key_data, key_data_size, NULL, 0,
-                                    mbedtls_test_rnd_std_rand, NULL), 0);
-    /* Resize key_data buffer. */
-    mbedtls_free(key_data);
-    key_data = NULL;
-    TEST_CALLOC(key_data, MBEDTLS_PK_WRITE_PUBKEY_MAX_SIZE);
-    key_data_size = MBEDTLS_PK_WRITE_PUBKEY_MAX_SIZE;
 
-    /* Export only the key data material in a PSA friendly format.
-     *
-     * Note: mbedtls_pk_write_key_der() and mbedtls_mpi_write_binary() write
-     * key data at the end of the provided buffer, whereas psa_export_key()
-     * writes the key at the beginning.
-     */
-    if (mbedtls_pk_get_type(&pk) == MBEDTLS_PK_RSA) {
-#if defined(MBEDTLS_PK_WRITE_C)
-        ret = mbedtls_pk_write_key_der(&pk, key_data, key_data_size);
-        TEST_ASSERT(ret > 0);
-        key_data_len = (size_t) ret;
-        key_data_start = key_data + key_data_size - key_data_len;
-#else
-        TEST_FAIL("RSA is unsupported");
-#endif /* MBEDTLS_PK_WRITE_C */
-    } else if (mbedtls_pk_get_type(&pk) == MBEDTLS_PK_ECKEY) {
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-        PSA_ASSERT(psa_export_key(pk.priv_id, key_data, key_data_size, &key_data_len));
-        key_data_start = key_data;
-#elif defined(MBEDTLS_PK_HAVE_ECC_KEYS)
-        const mbedtls_ecp_keypair *ec_ctx = mbedtls_pk_ec_ro(pk);
-        TEST_EQUAL(mbedtls_mpi_write_binary(&(ec_ctx->d), key_data, key_data_size), 0);
-        key_data_len = PSA_BITS_TO_BYTES(mbedtls_mpi_bitlen(&(ec_ctx->d)));
-        key_data_start = key_data + key_data_size - key_data_len;
-#else /* !MBEDTLS_PK_USE_EC_DATA && !MBEDTLS_PK_HAVE_ECC_KEYS */
-        TEST_FAIL("EC is unsupported");
-#endif /*  */
-    } else {
-        TEST_FAIL("Unknown key type");
+        unsigned char *p = key_data;
+        unsigned char *end = key_data + key_data_size;
+        size_t len;
+        int version;
+
+        TEST_EQUAL(mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_SEQUENCE |
+                                        MBEDTLS_ASN1_CONSTRUCTED), 0);
+        TEST_EQUAL(mbedtls_asn1_get_int(&p, end, &version), 0);
+        TEST_EQUAL(mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_OCTET_STRING), 0);
+        key_data_start = p;
+        key_data_len = len;
     }
 
     /* Import the key into PSA. */
@@ -349,7 +326,6 @@ psa_status_t pk_psa_genkey(psa_key_type_t type, size_t bits,
 
 exit:
     mbedtls_free(key_data);
-    mbedtls_pk_free(&pk);
     return status;
 }
 #endif /* MBEDTLS_PSA_CRYPTO_CLIENT */

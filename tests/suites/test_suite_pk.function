@@ -187,36 +187,46 @@
 #if defined(MBEDTLS_PK_PARSE_C)
 
 #include <../src/test_keys.h>
-static int get_predefined_key_data(int is_rsa, int curve_or_keybits,
-                                   unsigned char **outbuf, size_t *out_buf_size)
+struct key_lut_element {
+    int curve_or_keybits;
+    const unsigned char *key;
+    size_t key_len;
+};
+
+struct key_lut_element keys_lut[] = {
+    { 1024, test_rsa_1024, sizeof(test_rsa_1024) },
+    { 1026, test_rsa_1026, sizeof(test_rsa_1026) },
+    { 1028, test_rsa_1028, sizeof(test_rsa_1028) },
+    { 1030, test_rsa_1030, sizeof(test_rsa_1030) },
+    { 2048, test_rsa_2048, sizeof(test_rsa_2048) },
+    { 4096, test_rsa_4096, sizeof(test_rsa_4096) },
+    { MBEDTLS_ECP_DP_SECP192R1, test_ec_secp192r1, sizeof(test_ec_secp192r1) },
+    { MBEDTLS_ECP_DP_SECP224R1, test_ec_secp224r1, sizeof(test_ec_secp224r1) },
+    { MBEDTLS_ECP_DP_SECP256R1, test_ec_secp256r1, sizeof(test_ec_secp256r1) },
+    { MBEDTLS_ECP_DP_SECP384R1, test_ec_secp384r1, sizeof(test_ec_secp384r1) },
+    { MBEDTLS_ECP_DP_SECP521R1, test_ec_secp521r1, sizeof(test_ec_secp521r1) },
+    { MBEDTLS_ECP_DP_BP256R1, test_ec_bp256r1, sizeof(test_ec_bp256r1) },
+    { MBEDTLS_ECP_DP_BP384R1, test_ec_bp384r1, sizeof(test_ec_bp384r1) },
+    { MBEDTLS_ECP_DP_BP512R1, test_ec_bp512r1, sizeof(test_ec_bp512r1) },
+    { MBEDTLS_ECP_DP_CURVE25519, test_ec_curve25519, sizeof(test_ec_curve25519) },
+    { MBEDTLS_ECP_DP_SECP192K1, test_ec_secp192k1, sizeof(test_ec_secp192k1) },
+    { MBEDTLS_ECP_DP_SECP256K1, test_ec_secp256k1, sizeof(test_ec_secp256k1) },
+    { MBEDTLS_ECP_DP_CURVE448, test_ec_curve448, sizeof(test_ec_curve448) },
+};
+
+static int get_predefined_key_data(int curve_or_keybits,
+                                   const unsigned char **key, size_t *key_len)
 {
-    const char *key_data_hex = NULL;
-    size_t out_buf_len = 0;
-
-    if (is_rsa) {
-        size_t i;
-        for (i = 0; i < ARRAY_LENGTH(rsa_key_data_lut); i++) {
-            if (curve_or_keybits == rsa_key_data_lut[i].bits) {
-                key_data_hex = rsa_key_data_lut[i].key;
-                break;
-            }
+    size_t i;
+    for (i = 0; i < ARRAY_LENGTH(keys_lut); i++) {
+        if (curve_or_keybits == keys_lut[i].curve_or_keybits) {
+            *key = keys_lut[i].key;
+            *key_len = keys_lut[i].key_len;
+            return 0;
         }
-    } else {
-        key_data_hex = ec_key_data_lut[curve_or_keybits];
     }
 
-    if (key_data_hex == NULL) {
-        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-    }
-
-    *out_buf_size = strlen(key_data_hex)/2;
-    *outbuf = mbedtls_calloc(*out_buf_size, sizeof(unsigned char));
-    if (*outbuf == NULL) {
-        return MBEDTLS_ERR_PK_ALLOC_FAILED;
-    }
-    mbedtls_test_unhexify(*outbuf, *out_buf_size, key_data_hex, &out_buf_len);
-
-    return 0;
+    return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
 }
 
 /** Fill the provided PK context with a proper key.
@@ -237,12 +247,11 @@ static int get_predefined_key_data(int is_rsa, int curve_or_keybits,
  */
 static int pk_genkey(mbedtls_pk_context *pk, const mbedtls_pk_info_t *pk_info, int curve_or_keybits)
 {
-    unsigned char *key_data = NULL;
+    const unsigned char *key_data = NULL;
     size_t key_data_len = 0;
     int ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-    int is_rsa = (curve_or_keybits >= 1024);
 
-    TEST_EQUAL(get_predefined_key_data(is_rsa, curve_or_keybits, &key_data, &key_data_len), 0);
+    TEST_EQUAL(get_predefined_key_data(curve_or_keybits, &key_data, &key_data_len), 0);
     TEST_EQUAL(mbedtls_pk_parse_key(pk, key_data, key_data_len, NULL, 0,
                                     mbedtls_test_rnd_std_rand, NULL), 0);
     /* Override pk_info. */
@@ -250,7 +259,6 @@ static int pk_genkey(mbedtls_pk_context *pk, const mbedtls_pk_info_t *pk_info, i
     ret = 0;
 
 exit:
-    mbedtls_free(key_data);
     return ret;
 }
 
@@ -278,11 +286,11 @@ psa_status_t pk_psa_genkey(psa_key_type_t type, size_t bits,
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
-    unsigned char *key_data = NULL;
+    const unsigned char *key_data = NULL;
     size_t key_data_size = 0; /* Overall size of key_data in bytes. It includes leading
                                * zeros (if any). */
     size_t key_data_len = 0; /* Length of valid bytes in key_data. */
-    unsigned char *key_data_start;
+    const unsigned char *key_data_start;
 
     /* Get the predefined key:
      * - RSA keys are already in a valid format to be imported into PSA.
@@ -291,16 +299,16 @@ psa_status_t pk_psa_genkey(psa_key_type_t type, size_t bits,
      *   unrelevant data and go directly to the private key.
      */
     if (PSA_KEY_TYPE_IS_RSA(type)) {
-        TEST_EQUAL(get_predefined_key_data(1, bits, &key_data, &key_data_size), 0);
-        key_data_start = key_data;
+        TEST_EQUAL(get_predefined_key_data(bits, &key_data, &key_data_size), 0);
+        key_data_start = (unsigned char *) key_data;
         key_data_len = key_data_size;
     } else {
         mbedtls_ecp_group_id grp_id;
         grp_id = mbedtls_ecc_group_from_psa(PSA_KEY_TYPE_ECC_GET_FAMILY(type), bits);
-        TEST_EQUAL(get_predefined_key_data(0, grp_id, &key_data, &key_data_size), 0);
+        TEST_EQUAL(get_predefined_key_data(grp_id, &key_data, &key_data_size), 0);
 
-        unsigned char *p = key_data;
-        unsigned char *end = key_data + key_data_size;
+        unsigned char *p = (unsigned char *)  key_data;
+        unsigned char *end = (unsigned char *) key_data + key_data_size;
         size_t len;
         int version;
 
@@ -325,7 +333,6 @@ psa_status_t pk_psa_genkey(psa_key_type_t type, size_t bits,
     status = psa_import_key(&attributes, key_data_start, key_data_len, key);
 
 exit:
-    mbedtls_free(key_data);
     return status;
 }
 #endif /* MBEDTLS_PSA_CRYPTO_CLIENT */

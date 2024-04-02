@@ -44,7 +44,7 @@
 #     * GNUTLS_{CLI,SERV} = 3.4.10
 #     * GNUTLS_NEXT_{CLI,SERV} = 3.7.2
 #     * OPENSSL = 1.0.2g (without Debian/Ubuntu patches)
-#     * OPENSSL_NEXT = 1.1.1a
+#     * OPENSSL_NEXT = 3.1.2
 # See the invocation of check_tools below for details.
 #
 # This script must be invoked from the toplevel directory of a git
@@ -193,6 +193,10 @@ pre_initialize_variables () {
     # if CC is not set, use clang by default (if present) to improve build times
     if [ -z "${CC+set}" ] && (type clang > /dev/null 2>&1); then
         export CC="clang"
+    fi
+
+    if [ -n "${OPENSSL_3+set}" ]; then
+        export OPENSSL_NEXT="$OPENSSL_3"
     fi
 
     # Include more verbose output for failing tests run by CMake or make

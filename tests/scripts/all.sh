@@ -6050,14 +6050,16 @@ component_test_tls13_no_compatibility_mode () {
     tests/ssl-opt.sh
 }
 
-component_test_default_minus_session_tickets() {
-    msg "build: default config without session tickets"
+component_test_full_minus_session_tickets() {
+    msg "build: full config without session tickets"
+    scripts/config.py full
     scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS
+    scripts/config.py unset MBEDTLS_SSL_EARLY_DATA
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
-    msg "test: default config without session tickets"
+    msg "test: full config without session tickets"
     make test
-    msg "ssl-opt.sh (default config without session tickets)"
+    msg "ssl-opt.sh (full config without session tickets)"
     tests/ssl-opt.sh
 }
 

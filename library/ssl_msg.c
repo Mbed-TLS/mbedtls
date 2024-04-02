@@ -5572,15 +5572,15 @@ static int ssl_check_ctr_renegotiate(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_SSL_CLI_C)
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_check_new_session_ticket(mbedtls_ssl_context *ssl)
+static int ssl_tls13_is_new_session_ticket(mbedtls_ssl_context *ssl)
 {
 
     if ((ssl->in_hslen == mbedtls_ssl_hs_hdr_len(ssl)) ||
         (ssl->in_msg[0] != MBEDTLS_SSL_HS_NEW_SESSION_TICKET)) {
-        return -1;
+        return 0;
     }
 
-    return 0;
+    return 1;
 }
 #endif /* MBEDTLS_SSL_CLI_C */
 
@@ -5592,8 +5592,7 @@ static int ssl_tls13_handle_hs_message_post_handshake(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_SSL_CLI_C)
     if (ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT) {
-        int ret = ssl_tls13_check_new_session_ticket(ssl);
-        if (ret == 0) {
+        if (ssl_tls13_is_new_session_ticket(ssl)) {
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
             MBEDTLS_SSL_DEBUG_MSG(3, ("NewSessionTicket received"));
             ssl->keep_current_message = 1;

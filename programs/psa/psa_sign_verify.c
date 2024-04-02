@@ -33,12 +33,13 @@
 #include <stdlib.h>
 
 #include "mbedtls/build_info.h"
+#include "mbedtls/platform.h"
 
 #if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 int main(void)
 {
-    printf("MBEDTLS_PSA_CRYPTO_C and MBEDTLS_ECDSA_C"
+    mbedtls_printf("MBEDTLS_PSA_CRYPTO_C and MBEDTLS_ECDSA_C"
            "not defined and/or "
            "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\r\n");
     return 0;
@@ -65,7 +66,7 @@ int main(void)
 
     status = psa_crypto_init();
     if (status != PSA_SUCCESS) {
-        printf("psa_crypto_init failed\n");
+        mbedtls_printf("psa_crypto_init failed\n");
         return EXIT_FAILURE;
     }
 
@@ -76,7 +77,7 @@ int main(void)
 
     status = psa_import_key(&attributes, key_bytes, sizeof(key_bytes), &key_id);
     if (status != PSA_SUCCESS) {
-        printf("psa_import_key failed\n");
+        mbedtls_printf("psa_import_key failed\n");
         return EXIT_FAILURE;
     }
 
@@ -86,30 +87,30 @@ int main(void)
                            signature, sizeof(signature),    // signature (as output)
                            &signature_length);              // length of signature output
     if (status != PSA_SUCCESS) {
-        printf("psa_sign_hash failed\n");
+        mbedtls_printf("psa_sign_hash failed\n");
         return EXIT_FAILURE;
     }
 
-    printf("ECDSA-SHA256 signature of SHA-256('%s'):\n", plaintext);
+    mbedtls_printf("ECDSA-SHA256 signature of SHA-256('%s'):\n", plaintext);
 
     for (size_t j = 0; j < signature_length; j++) {
         if (j % 8 == 0) {
-            printf("\n    ");
+            mbedtls_printf("\n    ");
         }
-        printf("%02x ", signature[j]);
+        mbedtls_printf("%02x ", signature[j]);
     }
 
-    printf("\n");
+    mbedtls_printf("\n");
 
     status = psa_verify_hash(key_id,                      // key handle
                              PSA_ALG_ECDSA(PSA_ALG_SHA_256),  // signature algorithm
                              hash, sizeof(hash),              // hash of message
                              signature, signature_length);    // signature
     if (status != PSA_SUCCESS) {
-        printf("psa_verify_hash failed\n");
+        mbedtls_printf("psa_verify_hash failed\n");
         return EXIT_FAILURE;
     } else {
-        printf("\nSignature verification successful!\n");
+        mbedtls_printf("\nSignature verification successful!\n");
     }
 
     psa_destroy_key(key_id);

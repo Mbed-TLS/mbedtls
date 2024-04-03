@@ -768,7 +768,7 @@ static int smoke_test_key(mbedtls_svc_key_id_t key)
     }
 #else
     (void) derivation_operation;
-#endif /* PSA_WANT_ALG_SHA_256 && PSA_WANT_ALG_HKDF */
+#endif /* PSA_WANT_ALG_SHA_256 && MBEDTLS_PSA_BUILTIN_ALG_HKDF */
 
     ok = 1;
 

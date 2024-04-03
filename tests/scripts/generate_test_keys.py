@@ -40,7 +40,7 @@ KEYS = {
 
 def generate_der_file(curve_type: str, curve_or_bits: str):
     if not os.path.exists(KEY_GEN):
-        raise Exception("Key generation program does not exist.")
+        raise Exception(KEY_GEN + " does not exist. Please build it before running this script.")
     if curve_type == 'ec':
         cob_param = 'ec_curve=' + curve_or_bits
     else:
@@ -66,13 +66,6 @@ def convert_der_to_c(array_name: str) -> str:
 
     return output_text
 
-def write_header(macro_name: str):
-    return ("/* This macro was generated from tests/scripts/generate_test_keys.py */\n" +
-            "/* BEGIN FILE string macro {} */\n".format(macro_name))
-
-def write_footer():
-    return "/* END FILE */\n"
-
 def main():
     # Remove intermediate and output files if already existing.
     if os.path.exists(OUTPUT_HEADER_FILE):
@@ -81,6 +74,13 @@ def main():
         os.remove(TMP_DER_FILE)
 
     output_file = open(OUTPUT_HEADER_FILE, 'at')
+    output_file.write(
+        "/*********************************************************************************\n" +
+        " * This file was automatically generated from tests/scripts/generate_test_keys.py.\n" +
+        " * Please do not edit it manually.\n" +
+        " *********************************************************************************/\n" +
+        "\n"
+    )
 
     add_newline = False
     for key in KEYS:
@@ -91,10 +91,8 @@ def main():
         # to the output header file.
         if add_newline:
             output_file.write("\n")
-        output_file.write(write_header(key))
         c_data = convert_der_to_c(key)
         output_file.write(c_data)
-        output_file.write(write_footer())
         # Remove the temporary key file.
         os.remove(TMP_DER_FILE)
         add_newline = True

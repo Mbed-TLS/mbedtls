@@ -232,9 +232,11 @@ static int get_predefined_key_data(int curve_or_keybits,
  *
  * This is a fake implementation of key generation because instead of generating
  * a new key every time, we use predefined ones to speed up testing.
- * This function assumes that the PK context has already been setup
- * (mbedtls_pk_setup() has been called on the PK context ) so that it
- * can determine the key type to be loaded from the PK context itself.
+ *
+ * These keys are taken from "test/src/test_keys.h" which is automatically
+ * generated using "tests/scripts/generate_test_keys.py". Therefore if new
+ * EC curves or RSA key bits need to be tested, please update "test_keys.h"
+ * using this script.
  *
  * \param pk               The PK object to fill. It must  have been initialized
  *                         (mbedtls_pk_init()), but not setup (mbedtls_pk_setup()).
@@ -309,7 +311,7 @@ psa_status_t pk_psa_genkey(psa_key_type_t type, size_t bits,
         TEST_EQUAL(get_predefined_key_data(grp_id, &key_data, &key_data_size), 0);
 
         unsigned char *p = (unsigned char *)  key_data;
-        unsigned char *end = (unsigned char *) key_data + key_data_size;
+        const unsigned char *end = key_data + key_data_size;
         size_t len;
         int version;
 
@@ -1849,9 +1851,9 @@ void pk_psa_sign(int psa_type, int bits, int rsa_padding)
         TEST_EQUAL(pk_genkey(&pk, MBEDTLS_PK_RSA, bits), 0);
         TEST_EQUAL(mbedtls_rsa_set_padding(mbedtls_pk_rsa(pk), rsa_padding, MBEDTLS_MD_NONE), 0);
     }
-#else /* MBEDTLS_RSA_C && MBEDTLS_PK_PARSE_C */
+#else /* MBEDTLS_RSA_C */
     (void) rsa_padding;
-#endif /* MBEDTLS_RSA_C && MBEDTLS_GENPRIME */
+#endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(psa_type)) {
         ecp_grp_id = mbedtls_ecc_group_from_psa(psa_type, bits);

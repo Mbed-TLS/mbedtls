@@ -6177,7 +6177,7 @@ run_test    "Authentication, CA callback: server ECDH p256v1, client optional, p
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Authentication, CA callback: client SHA256, server required" \
+run_test    "Authentication, CA callback: client SHA384, server required" \
             "$P_SRV ca_callback=1 debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=data_files/server6.crt \
              key_file=data_files/server6.key \
@@ -6189,7 +6189,7 @@ run_test    "Authentication, CA callback: client SHA256, server required" \
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Authentication, CA callback: client SHA384, server required" \
+run_test    "Authentication, CA callback: client SHA256, server required" \
             "$P_SRV ca_callback=1 debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=data_files/server6.crt \
              key_file=data_files/server6.key \

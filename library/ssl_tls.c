@@ -1760,6 +1760,7 @@ int mbedtls_ssl_set_session(mbedtls_ssl_context *ssl, const mbedtls_ssl_session 
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if (session->tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
         const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
             mbedtls_ssl_ciphersuite_from_id(session->ciphersuite);
 
@@ -1770,6 +1771,14 @@ int mbedtls_ssl_set_session(mbedtls_ssl_context *ssl, const mbedtls_ssl_session 
                                       session->ciphersuite));
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
         }
+#else
+        /*
+         * If session tickets are not enabled, it is not possible to resume a
+         * TLS 1.3 session, thus do not make any change to the SSL context in
+         * the first place.
+         */
+        return 0;
+#endif
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 

@@ -1,0 +1,16 @@
+module(
+    name = "mbedtls",
+    version = "3.6.0",
+    compatibility_level = 0,
+)
+
+bazel_dep(name = "rules_perl", version = "0.2.0")
+bazel_dep(name = "rules_python", version = "0.31.0")
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    hub_name = "mbedtls_pip_deps",
+    python_version = "3.11",
+    requirements_lock = "//:driver.requirements_lock.txt",
+)
+use_repo(pip, "mbedtls_pip_deps")

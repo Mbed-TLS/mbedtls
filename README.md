@@ -36,6 +36,7 @@ There are currently three active build systems used within Mbed TLS releases:
 
 -   GNU Make
 -   CMake
+-   Bazel
 -   Microsoft Visual Studio
 
 The main systems used for development are CMake and GNU Make. Those systems are always complete and up-to-date. The others should reflect all changes present in the CMake and Make build system, although features may not be ported there automatically.
@@ -222,6 +223,51 @@ its include directories to your target (transitively, in the case of `PUBLIC` or
 Mbed TLS supports being built as a CMake subproject. One can
 use `add_subdirectory()` from a parent CMake project to include Mbed TLS as a
 subproject.
+
+### Bazel
+Currently Bazel support is minimal and limited to the library itself i.e. none
+of the tests are captured by the Bazel build configs.
+
+To start off add the following to your WORKSPACE;
+```py
+# //:WORKSPACE
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "mbedtls",
+    remote = "https://github.com/ARMmbed/mbedtls.git",
+    commit = "<TODO>",
+)
+```
+
+Now you can make use of mbedtls from a `cc_library` e.g.
+
+```py
+# //:BUILD.bazel
+cc_library(
+    name = "my_lib",
+    deps = ["@mbedtls//:mbedtls"],
+    # ...
+)
+
+# Optionally create your own mbedtls config target.
+cc_library(
+    name = "my_mbedtls_config",
+    includes = ["my_mbedtls_config.h"],
+    defines = ["MBEDTLS_CONFIG_FILE=$(location my_mbedtls_config.h)"],
+)
+```
+To build your library with the default config, you can use the command;
+
+`bazel build //:my_lib`
+
+To use your custom config as defined in the target `//:my_mbedtls_config` you
+can use the command line;
+
+`bazel build //:my_lib --@mbedtls//:mbedtls_config=@//:my_mbedtls_config`.
+
+You can of course add this to your `.bazelrc` and create a selectable dependency
+to switch the config based on your platform.
 
 ### Microsoft Visual Studio
 

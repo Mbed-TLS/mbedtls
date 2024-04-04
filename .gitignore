@@ -67,3 +67,6 @@ massif-*
 compile_commands.json
 # clangd index files
 /.cache/clangd/index/
+
+# Bazel outputs
+bazel-*

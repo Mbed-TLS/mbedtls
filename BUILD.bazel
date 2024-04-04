@@ -1,0 +1,133 @@
+load("@mbedtls_pip_deps//:requirements.bzl", "requirement")
+load("@rules_perl//perl:perl.bzl", "perl_binary")
+load("@rules_python//python:py_binary.bzl", "py_binary")
+load("@rules_python//python:py_library.bzl", "py_library")
+
+cc_library(
+    name = "mbedtls",
+    srcs = glob(["library/*.c"]) + [
+        ":driver_wrappers_generated",
+        ":generate_error_c",
+        ":ssl_debug_helpers_generated_c",
+    ],
+    hdrs = glob(
+        [
+            "include/**/*.h",
+            "library/*.h",
+        ],
+        exclude = ["include/mbedtls/mbedtls_config.h"],
+    ),
+    includes = [
+        "include",
+        "library",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [":mbedtls_config"],
+)
+
+cc_library(
+    name = "mbedtls_default_config",
+    hdrs = ["include/mbedtls/mbedtls_config.h"],
+    includes = [
+        "include",
+    ],
+)
+
+label_flag(
+    name = "mbedtls_config",
+    build_setting_default = ":mbedtls_default_config",
+    visibility = ["//visibility:public"],
+)
+
+cc_binary(
+    name = "linktest",
+    linkopts = select({
+        "@platforms//os:macos": ["-all_load"],
+        "//conditions:default": [],
+    }),
+    linkshared = True,
+    visibility = ["//visibility:private"],
+    deps = ["mbedtls"],
+)
+
+perl_binary(
+    name = "generate_errors",
+    srcs = ["scripts/generate_errors.pl"],
+)
+
+genrule(
+    name = "generate_error_c",
+    srcs = glob([
+        "include/mbedtls/*.h",
+        "scripts/data_files/**",
+    ]),
+    outs = ["error.c"],
+    cmd = "$(location :generate_errors) $$(dirname $(location :include/mbedtls/aes.h)) $$(dirname $(location :scripts/data_files/error.fmt)) $(OUTS)",
+    tools = [":generate_errors"],
+)
+
+perl_binary(
+    name = "generate_features",
+    srcs = ["scripts/generate_features.pl"],
+)
+
+genrule(
+    name = "version_features_c",
+    srcs = glob([
+        "include/mbedtls/*.h",
+        "scripts/data_files/**",
+    ]),
+    outs = ["version_features.c"],
+    cmd = "$(location :generate_features) $$(dirname $(location :include/mbedtls/aes.h)) $$(dirname $(location :scripts/data_files/error.fmt)) $(OUTS)",
+    tools = [":generate_features"],
+)
+
+py_library(
+    name = "mbedtls_dev",
+    srcs = glob(["scripts/mbedtls_dev/*.py"]),
+    imports = ["scripts"],
+)
+
+py_binary(
+    name = "generate_ssl_debug_helpers",
+    srcs = ["scripts/generate_ssl_debug_helpers.py"],
+    deps = [":mbedtls_dev"],
+)
+
+genrule(
+    name = "ssl_debug_helpers_generated_c",
+    srcs = glob(["include/mbedtls/*.h"]),
+    outs = ["ssl_debug_helpers_generated.c"],
+    cmd = "$(location :generate_ssl_debug_helpers) --mbedtls-root . $(GENDIR)",
+    tools = [":generate_ssl_debug_helpers"],
+)
+
+py_binary(
+    name = "generate_driver_wrappers",
+    srcs = ["scripts/generate_driver_wrappers.py"],
+    deps = [
+        ":mbedtls_dev",
+        requirement("jsonschema"),
+        requirement("jinja2"),
+    ],
+)
+
+genrule(
+    name = "driver_wrappers_generated",
+    srcs = glob([
+        "scripts/data_files/driver_templates/*",
+        "scripts/data_files/driver_jsons/*.json",
+    ]) + [
+        # The above python script relies on the presence of these directories
+        "include/CMakeLists.txt",
+        "library/CMakeLists.txt",
+        "programs/README.md",
+        "tests/CMakeLists.txt",
+    ],
+    outs = [
+        "psa_crypto_driver_wrappers.h",
+        "psa_crypto_driver_wrappers_no_static.c",
+    ],
+    cmd = "$(location :generate_driver_wrappers) --project-root . $(GENDIR)",
+    tools = [":generate_driver_wrappers"],
+)

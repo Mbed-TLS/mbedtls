@@ -45,6 +45,22 @@ int main(void)
     return 0;
 }
 #else
+
+#define KEY_BYTES_VALUE {                                                       \
+        0x49, 0xc9, 0xa8, 0xc1, 0x8c, 0x4b, 0x88, 0x56, 0x38, 0xc4, 0x31, 0xcf, \
+        0x1d, 0xf1, 0xc9, 0x94, 0x13, 0x16, 0x09, 0xb5, 0x80, 0xd4, 0xfd, 0x43, \
+        0xa0, 0xca, 0xb1, 0x7d, 0xb2, 0xf1, 0x3e, 0xee                          \
+}
+
+#define PLAINTEXT_VALUE "Hello World!"
+
+/* SHA-256(plaintext) */
+#define HASH_VALUE {                                                            \
+        0x5a, 0x09, 0xe8, 0xfa, 0x9c, 0x77, 0x80, 0x7b, 0x24, 0xe9, 0x9c, 0x9c, \
+        0xf9, 0x99, 0xde, 0xbf, 0xad, 0x84, 0x41, 0xe2, 0x69, 0xeb, 0x96, 0x0e, \
+        0x20, 0x1f, 0x61, 0xfc, 0x3d, 0xe2, 0x0d, 0x5a                          \
+}
+
 int main(void)
 {
     psa_status_t status;
@@ -52,17 +68,9 @@ int main(void)
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     uint8_t signature[PSA_SIGNATURE_MAX_SIZE] = { 0 };
     size_t signature_length;
-    const uint8_t key_bytes[] = {
-        0x49, 0xc9, 0xa8, 0xc1, 0x8c, 0x4b, 0x88, 0x56, 0x38, 0xc4, 0x31, 0xcf,
-        0x1d, 0xf1, 0xc9, 0x94, 0x13, 0x16, 0x09, 0xb5, 0x80, 0xd4, 0xfd, 0x43,
-        0xa0, 0xca, 0xb1, 0x7d, 0xb2, 0xf1, 0x3e, 0xee
-    };
-    uint8_t plaintext[] = "Hello World!";
-    const uint8_t hash[] = { /* SHA-256(plaintext) */
-        0x5a, 0x09, 0xe8, 0xfa, 0x9c, 0x77, 0x80, 0x7b, 0x24, 0xe9, 0x9c, 0x9c, \
-        0xf9, 0x99, 0xde, 0xbf, 0xad, 0x84, 0x41, 0xe2, 0x69, 0xeb, 0x96, 0x0e, \
-        0x20, 0x1f, 0x61, 0xfc, 0x3d, 0xe2, 0x0d, 0x5a                          \
-    };
+    const uint8_t key_bytes[] = KEY_BYTES_VALUE;
+    const uint8_t plaintext[] = PLAINTEXT_VALUE;
+    const uint8_t hash[] = HASH_VALUE;
 
     status = psa_crypto_init();
     if (status != PSA_SUCCESS) {
@@ -81,7 +89,7 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    status = psa_sign_hash(key_id,                      // key handle
+    status = psa_sign_hash(key_id,                          // key handle
                            PSA_ALG_ECDSA(PSA_ALG_SHA_256),  // signature algorithm
                            hash, sizeof(hash),              // hash of the message
                            signature, sizeof(signature),    // signature (as output)
@@ -102,7 +110,7 @@ int main(void)
 
     mbedtls_printf("\n");
 
-    status = psa_verify_hash(key_id,                      // key handle
+    status = psa_verify_hash(key_id,                          // key handle
                              PSA_ALG_ECDSA(PSA_ALG_SHA_256),  // signature algorithm
                              hash, sizeof(hash),              // hash of message
                              signature, signature_length);    // signature

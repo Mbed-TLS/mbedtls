@@ -4845,8 +4845,12 @@ const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert(const mbedtls_ssl_context *ssl
  * \note           This function can handle a variety of mechanisms for session
  *                 resumption: For TLS 1.2, both session ID-based resumption and
  *                 ticket-based resumption will be considered. For TLS 1.3,
- *                 sessions equate to tickets, and this function exports the
- *                 last received ticket.
+ *                 sessions equate to tickets, and if session tickets are
+ *                 enabled (see #MBEDTLS_SSL_SESSION_TICKETS configuration
+ *                 option), this function exports the last received ticket and
+ *                 the exported session may be used to resume the TLS 1.3
+ *                 session. If session tickets are disabled, exported sessions
+ *                 cannot be used to resume a TLS 1.3 session.
  *
  * \return         \c 0 if successful. In this case, \p session can be used for
  *                 session resumption by passing it to mbedtls_ssl_set_session(),

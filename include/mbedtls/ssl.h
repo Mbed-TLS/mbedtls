@@ -3220,7 +3220,12 @@ void mbedtls_ssl_conf_session_cache(mbedtls_ssl_config *conf,
  *                 and ticket-based resumption will be considered. For TLS 1.3,
  *                 sessions equate to tickets, and loading one session by
  *                 calling this function will lead to its corresponding ticket
- *                 being advertised as resumption PSK by the client.
+ *                 being advertised as resumption PSK by the client. This
+ *                 depends on session tickets being enabled (see
+ *                 #MBEDTLS_SSL_SESSION_TICKETS configuration option) though.
+ *                 If session tickets are disabled, a call to this function
+ *                 with a TLS 1.3 session, will not have any effect on the next
+ *                 handshake for the SSL context \p ssl.
  *
  * \param ssl      The SSL context representing the connection which should
  *                 be attempted to be setup using session resumption. This

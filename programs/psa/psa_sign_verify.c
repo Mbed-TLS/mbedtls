@@ -40,8 +40,8 @@
 int main(void)
 {
     mbedtls_printf("MBEDTLS_PSA_CRYPTO_C and MBEDTLS_ECDSA_C"
-           "not defined and/or "
-           "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\r\n");
+                   "not defined and/or "
+                   "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\r\n");
     return 0;
 }
 #else

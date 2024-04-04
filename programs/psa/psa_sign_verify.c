@@ -123,6 +123,6 @@ int main(void)
 
     psa_destroy_key(key_id);
     mbedtls_psa_crypto_free();
-    return 0;
+    return EXIT_SUCCESS;
 }
 #endif /* MBEDTLS_PSA_CRYPTO_C && MBEDTLS_ECDSA_C */

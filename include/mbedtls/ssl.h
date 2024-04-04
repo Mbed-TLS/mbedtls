@@ -3309,8 +3309,16 @@ int mbedtls_ssl_session_load(mbedtls_ssl_session *session,
  *                 to determine the necessary size by calling this function
  *                 with \p buf set to \c NULL and \p buf_len to \c 0.
  *
+ * \note           For TLS 1.3 sessions, this feature is supported only if the
+ *                 MBEDTLS_SSL_SESSION_TICKETS configuration option is enabled,
+ *                 as in TLS 1.3 session resumption is possible only with
+ *                 tickets.
+ *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if \p buf is too small.
+ * \return         #MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE if the
+ *                 MBEDTLS_SSL_SESSION_TICKETS configuration option is disabled
+ *                 and the session is a TLS 1.3 session.
  */
 int mbedtls_ssl_session_save(const mbedtls_ssl_session *session,
                              unsigned char *buf,

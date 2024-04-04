@@ -390,7 +390,8 @@ int mbedtls_pk_setup(mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info);
  * \return    \c 0 on success.
  * \return    #MBEDTLS_ERR_PK_BAD_INPUT_DATA on invalid input (context already
  *            used, invalid key identifier).
- * \return    #MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE if the key is not an ECC key pair.
+ * \return    #MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE if the key is not an ECC or
+ *            RSA key pair.
  * \return    #MBEDTLS_ERR_PK_ALLOC_FAILED on allocation failure.
  */
 int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,

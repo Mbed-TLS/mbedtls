@@ -3216,16 +3216,11 @@ void mbedtls_ssl_conf_session_cache(mbedtls_ssl_config *conf,
  *                 a full handshake.
  *
  * \note           This function can handle a variety of mechanisms for session
- *                 resumption: For TLS 1.2, both session ID-based resumption and
- *                 ticket-based resumption will be considered. For TLS 1.3,
- *                 once implemented, sessions equate to tickets, and loading
- *                 one or more sessions via this call will lead to their
- *                 corresponding tickets being advertised as resumption PSKs
- *                 by the client.
- *
- * \note           Calling this function multiple times will only be useful
- *                 once TLS 1.3 is supported. For TLS 1.2 connections, this
- *                 function should be called at most once.
+ *                 resumption: For TLS 1.2, both session ID-based resumption
+ *                 and ticket-based resumption will be considered. For TLS 1.3,
+ *                 sessions equate to tickets, and loading one session by
+ *                 calling this function will lead to its corresponding ticket
+ *                 being advertised as resumption PSK by the client.
  *
  * \param ssl      The SSL context representing the connection which should
  *                 be attempted to be setup using session resumption. This
@@ -3240,9 +3235,10 @@ void mbedtls_ssl_conf_session_cache(mbedtls_ssl_config *conf,
  *
  * \return         \c 0 if successful.
  * \return         \c MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE if the session
- *                 could not be loaded because of an implementation limitation.
- *                 This error is non-fatal, and has no observable effect on
- *                 the SSL context or the session that was attempted to be loaded.
+ *                 could not be loaded because one session has already been
+ *                 loaded. This error is non-fatal, and has no observable
+ *                 effect on the SSL context or the session that was attempted
+ *                 to be loaded.
  * \return         Another negative error code on other kinds of failure.
  *
  * \sa             mbedtls_ssl_get_session()

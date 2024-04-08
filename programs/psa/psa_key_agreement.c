@@ -35,8 +35,8 @@
 int main(void)
 {
     mbedtls_printf("MBEDTLS_PSA_CRYPTO_C, MBEDTLS_ECP_C or "
-           "MBEDTLS_ECP_DP_SECP256R1_ENABLED not defined and/or "
-           "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\r\n");
+                   "MBEDTLS_ECP_DP_SECP256R1_ENABLED not defined and/or "
+                   "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\r\n");
     return 0;
 }
 #else

@@ -39,6 +39,7 @@
 #include <stdlib.h>
 #include "mbedtls/build_info.h"
 #include "mbedtls/debug.h"
+#include "mbedtls/platform.h"
 
 #define BUFFER_SIZE 500
 
@@ -47,7 +48,7 @@
     defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 int main(void)
 {
-    printf("MBEDTLS_PSA_CRYPTO_C, MBEDTLS_ECP_C or "
+    mbedtls_printf("MBEDTLS_PSA_CRYPTO_C, MBEDTLS_ECP_C or "
            "MBEDTLS_ECP_DP_SECP256R1_ENABLED not defined and/or "
            "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\r\n");
     return 0;
@@ -81,7 +82,7 @@ int main(void)
 
     status = psa_crypto_init();
     if (status != PSA_SUCCESS) {
-        printf("psa_crypto_init failed\n");
+        mbedtls_printf("psa_crypto_init failed\n");
         return EXIT_FAILURE;
     }
 
@@ -93,26 +94,26 @@ int main(void)
     /* Generate ephemeral key pair */
     status = psa_generate_key(&client_attributes, &client_key_id);
     if (status != PSA_SUCCESS) {
-        printf("psa_generate_key failed\n");
+        mbedtls_printf("psa_generate_key failed\n");
         return EXIT_FAILURE;
     }
     status = psa_export_public_key(client_key_id,
                                    client_pk, sizeof(client_pk),
                                    &client_pk_len);
     if (status != PSA_SUCCESS) {
-        printf("psa_export_public_key failed\n");
+        mbedtls_printf("psa_export_public_key failed\n");
         return EXIT_FAILURE;
     }
 
-    printf("Client Public Key (%" MBEDTLS_PRINTF_SIZET " bytes):\n", client_pk_len);
+    mbedtls_printf("Client Public Key (%" MBEDTLS_PRINTF_SIZET " bytes):\n", client_pk_len);
 
     for (size_t j = 0; j < client_pk_len; j++) {
         if (j % 8 == 0) {
-            printf("\n    ");
+            mbedtls_printf("\n    ");
         }
-        printf("%02x ", client_pk[j]);
+        mbedtls_printf("%02x ", client_pk[j]);
     }
-    printf("\n\n");
+    mbedtls_printf("\n\n");
 
     psa_set_key_usage_flags(&server_attributes, PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT);
     psa_set_key_algorithm(&server_attributes, PSA_ALG_ECDSA_ANY);
@@ -121,37 +122,37 @@ int main(void)
     /* Import server public key */
     status = psa_import_key(&server_attributes, server_pk, sizeof(server_pk), &server_key_id);
     if (status != PSA_SUCCESS) {
-        printf("psa_import_key failed\n");
+        mbedtls_printf("psa_import_key failed\n");
         return EXIT_FAILURE;
     }
 
     status = psa_get_key_attributes(server_key_id, &check_attributes);
     if (status != PSA_SUCCESS) {
-        printf("psa_get_key_attributes failed\n");
+        mbedtls_printf("psa_get_key_attributes failed\n");
         return EXIT_FAILURE;
     }
 
     key_bits = psa_get_key_bits(&check_attributes);
     if (key_bits != 256) {
-        printf("Incompatible key size!\n");
+        mbedtls_printf("Incompatible key size!\n");
         return EXIT_FAILURE;
     }
 
     key_type = psa_get_key_type(&check_attributes);
     if (key_type != PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_SECP_R1)) {
-        printf("Unsupported key type!\n");
+        mbedtls_printf("Unsupported key type!\n");
         return EXIT_FAILURE;
     }
 
-    printf("Server Public Key (%" MBEDTLS_PRINTF_SIZET " bytes):\n", sizeof(server_pk));
+    mbedtls_printf("Server Public Key (%" MBEDTLS_PRINTF_SIZET " bytes):\n", sizeof(server_pk));
 
     for (size_t j = 0; j < sizeof(server_pk); j++) {
         if (j % 8 == 0) {
-            printf("\n    ");
+            mbedtls_printf("\n    ");
         }
-        printf("%02x ", server_pk[j]);
+        mbedtls_printf("%02x ", server_pk[j]);
     }
-    printf("\n\n");
+    mbedtls_printf("\n\n");
 
     /* Generate ECDHE derived key */
     status = psa_raw_key_agreement(PSA_ALG_ECDH,                        // algorithm
@@ -160,19 +161,19 @@ int main(void)
                                    derived_key, sizeof(derived_key),    // buffer to store derived key
                                    &derived_key_len);
     if (status != PSA_SUCCESS) {
-        printf("psa_raw_key_agreement failed\n");
+        mbedtls_printf("psa_raw_key_agreement failed\n");
         return EXIT_FAILURE;
     }
 
-    printf("Derived Key (%" MBEDTLS_PRINTF_SIZET " bytes):\n", derived_key_len);
+    mbedtls_printf("Derived Key (%" MBEDTLS_PRINTF_SIZET " bytes):\n", derived_key_len);
 
     for (size_t j = 0; j < derived_key_len; j++) {
         if (j % 8 == 0) {
-            printf("\n    ");
+            mbedtls_printf("\n    ");
         }
-        printf("%02x ", derived_key[j]);
+        mbedtls_printf("%02x ", derived_key[j]);
     }
-    printf("\n");
+    mbedtls_printf("\n");
 
     psa_destroy_key(server_key_id);
     psa_destroy_key(client_key_id);

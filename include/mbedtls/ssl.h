@@ -3216,16 +3216,16 @@ void mbedtls_ssl_conf_session_cache(mbedtls_ssl_config *conf,
  *                 a full handshake.
  *
  * \note           This function can handle a variety of mechanisms for session
- *                 resumption: For TLS 1.2, both session ID-based resumption and
- *                 ticket-based resumption will be considered. For TLS 1.3,
- *                 once implemented, sessions equate to tickets, and loading
- *                 one or more sessions via this call will lead to their
- *                 corresponding tickets being advertised as resumption PSKs
- *                 by the client.
- *
- * \note           Calling this function multiple times will only be useful
- *                 once TLS 1.3 is supported. For TLS 1.2 connections, this
- *                 function should be called at most once.
+ *                 resumption: For TLS 1.2, both session ID-based resumption
+ *                 and ticket-based resumption will be considered. For TLS 1.3,
+ *                 sessions equate to tickets, and loading one session by
+ *                 calling this function will lead to its corresponding ticket
+ *                 being advertised as resumption PSK by the client. This
+ *                 depends on session tickets being enabled (see
+ *                 #MBEDTLS_SSL_SESSION_TICKETS configuration option) though.
+ *                 If session tickets are disabled, a call to this function
+ *                 with a TLS 1.3 session, will not have any effect on the next
+ *                 handshake for the SSL context \p ssl.
  *
  * \param ssl      The SSL context representing the connection which should
  *                 be attempted to be setup using session resumption. This
@@ -3240,9 +3240,10 @@ void mbedtls_ssl_conf_session_cache(mbedtls_ssl_config *conf,
  *
  * \return         \c 0 if successful.
  * \return         \c MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE if the session
- *                 could not be loaded because of an implementation limitation.
- *                 This error is non-fatal, and has no observable effect on
- *                 the SSL context or the session that was attempted to be loaded.
+ *                 could not be loaded because one session has already been
+ *                 loaded. This error is non-fatal, and has no observable
+ *                 effect on the SSL context or the session that was attempted
+ *                 to be loaded.
  * \return         Another negative error code on other kinds of failure.
  *
  * \sa             mbedtls_ssl_get_session()
@@ -3309,8 +3310,16 @@ int mbedtls_ssl_session_load(mbedtls_ssl_session *session,
  *                 to determine the necessary size by calling this function
  *                 with \p buf set to \c NULL and \p buf_len to \c 0.
  *
+ * \note           For TLS 1.3 sessions, this feature is supported only if the
+ *                 MBEDTLS_SSL_SESSION_TICKETS configuration option is enabled,
+ *                 as in TLS 1.3 session resumption is possible only with
+ *                 tickets.
+ *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if \p buf is too small.
+ * \return         #MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE if the
+ *                 MBEDTLS_SSL_SESSION_TICKETS configuration option is disabled
+ *                 and the session is a TLS 1.3 session.
  */
 int mbedtls_ssl_session_save(const mbedtls_ssl_session *session,
                              unsigned char *buf,
@@ -4837,23 +4846,16 @@ const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert(const mbedtls_ssl_context *ssl
  * \note           This function can handle a variety of mechanisms for session
  *                 resumption: For TLS 1.2, both session ID-based resumption and
  *                 ticket-based resumption will be considered. For TLS 1.3,
- *                 once implemented, sessions equate to tickets, and calling
- *                 this function multiple times will export the available
- *                 tickets one a time until no further tickets are available,
- *                 in which case MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE will
- *                 be returned.
- *
- * \note           Calling this function multiple times will only be useful
- *                 once TLS 1.3 is supported. For TLS 1.2 connections, this
- *                 function should be called at most once.
+ *                 sessions equate to tickets, and if session tickets are
+ *                 enabled (see #MBEDTLS_SSL_SESSION_TICKETS configuration
+ *                 option), this function exports the last received ticket and
+ *                 the exported session may be used to resume the TLS 1.3
+ *                 session. If session tickets are disabled, exported sessions
+ *                 cannot be used to resume a TLS 1.3 session.
  *
  * \return         \c 0 if successful. In this case, \p session can be used for
  *                 session resumption by passing it to mbedtls_ssl_set_session(),
  *                 and serialized for storage via mbedtls_ssl_session_save().
- * \return         #MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE if no further session
- *                 is available for export.
- *                 This error is a non-fatal, and has no observable effect on
- *                 the SSL context or the destination session.
  * \return         Another negative error code on other kinds of failure.
  *
  * \sa             mbedtls_ssl_set_session()

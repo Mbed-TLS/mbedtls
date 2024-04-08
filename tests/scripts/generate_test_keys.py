@@ -9,6 +9,7 @@ generating the required key at run time. This helps speeding up testing."""
 import os
 from typing import Iterator
 import re
+import argparse
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
 
@@ -90,11 +91,17 @@ def get_look_up_table_entry(key_type: str, group_id_or_keybits: str,
     yield "      {0}, sizeof({0}) }},".format(pub_array_name)
 
 def main() -> None:
-    # Remove output file if already existing.
-    if os.path.exists(OUTPUT_HEADER_FILE):
-        os.remove(OUTPUT_HEADER_FILE)
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("--output", required=True, help="Output file")
+    args = argparser.parse_args()
 
-    output_file = open(OUTPUT_HEADER_FILE, 'at')
+    output_file = args.output
+    # Remove output file if already existing.
+    if os.path.exists(output_file):
+        print("Warning: {} already existing, it will be overwritten.", output_file)
+        os.remove(output_file)
+
+    output_file = open(output_file, 'at')
     output_file.write(
         "/*********************************************************************************\n" +
         " * This file was automatically generated from tests/scripts/generate_test_keys.py.\n" +

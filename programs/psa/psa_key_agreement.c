@@ -54,6 +54,8 @@ int main(void)
         0xf3, 0x20                                            \
 }
 
+#define KEY_BITS 256
+
 int main(void)
 {
     psa_status_t status;
@@ -80,7 +82,7 @@ int main(void)
     psa_set_key_usage_flags(&client_attributes, PSA_KEY_USAGE_DERIVE);
     psa_set_key_algorithm(&client_attributes, PSA_ALG_ECDH);
     psa_set_key_type(&client_attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
-    psa_set_key_bits(&client_attributes, 256);
+    psa_set_key_bits(&client_attributes, KEY_BITS);
 
     /* Generate ephemeral key pair */
     status = psa_generate_key(&client_attributes, &client_key_id);

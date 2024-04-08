@@ -27,9 +27,9 @@ from generate_test_code import write_parameters
 from generate_test_code import gen_from_test_data
 
 
-class GenDep(TestCase):
+class GenDependencies(TestCase):
     """
-    Test suite for function gen_dep()
+    Test suite for function gen_dependencies()
     """
 
     def test_dependencies_list(self):
@@ -117,7 +117,7 @@ class GenDep(TestCase):
                          'Preprocessor generated incorrectly')
 
 
-class GenDepOneLine(TestCase):
+class GenDependenciesExpression(TestCase):
     """
     Test Suite for testing gen_dependencies_expression()
     """
@@ -459,7 +459,7 @@ class ParseFuncDependencies(TestCase):
         self.assertEqual(dependencies, ['MBEDTLS_FS_IO', 'A', '!B', 'C', 'F'])
 
 
-class ParseFuncSignature(TestCase):
+class ParseFunctionArguments(TestCase):
     """
     Test Suite for parse_function_arguments().
     """
@@ -938,7 +938,7 @@ exit:
         self.assertEqual(code, expected)
 
 
-class ParseFunction(TestCase):
+class ParseFunctions(TestCase):
     """
     Test Suite for testing parse_functions()
     """
@@ -1261,7 +1261,7 @@ class EscapedSplit(TestCase):
 
 class ParseTestData(TestCase):
     """
-    Test suite for parse test data.
+    Test suite for parse_test_data.
     """
 
     def test_parser(self):
@@ -1387,7 +1387,7 @@ depends_on:YAHOO
             self.assertEqual(type(err), GeneratorInputError)
 
 
-class GenDepCheck(TestCase):
+class GenDependenciesElement(TestCase):
     """
     Test suite for gen_dependencies_element(). It is assumed this function is
     called with valid inputs.
@@ -1431,7 +1431,7 @@ class GenDepCheck(TestCase):
         self.assertRaises(GeneratorInputError, gen_dependencies_element, '!')
 
 
-class GenExpCheck(TestCase):
+class GenExpressionCheck(TestCase):
     """
     Test suite for gen_expression_check(). It is assumed this function
     is called with valid inputs.
@@ -1550,7 +1550,7 @@ class WriteDependencies(TestCase):
                          'depends_on:0:1\ndepends_on:1:2\ndepends_on:2:0\n')
 
 
-class WriteParams(TestCase):
+class WriteParameters(TestCase):
     """
     Test Suite for testing write_parameters().
     """

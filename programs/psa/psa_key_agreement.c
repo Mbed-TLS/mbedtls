@@ -171,6 +171,6 @@ int main(void)
     psa_destroy_key(server_key_id);
     psa_destroy_key(client_key_id);
     mbedtls_psa_crypto_free();
-    return 0;
+    return EXIT_SUCCESS;
 }
 #endif /* MBEDTLS_PSA_CRYPTO_C || MBEDTLS_ECP_C || MBEDTLS_ECP_DP_SECP256R1_ENABLED */

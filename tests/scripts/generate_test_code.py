@@ -805,7 +805,7 @@ def gen_dependencies_element(dep):
     :param dep: Dependency macro
     :return: Dependency array element initializer
     """
-    _not, core_dep = ('!', dep[1:]) if dep[0] == '!' else ('', dep)
+    not_, core_dep = ('!', dep[1:]) if dep[0] == '!' else ('', dep)
     if not core_dep:
         raise GeneratorInputError("Dependency should not be an empty string.")
 
@@ -813,13 +813,13 @@ def gen_dependencies_element(dep):
     if not dependency:
         raise GeneratorInputError('Invalid dependency %s' % dep)
 
-    _defined = '' if dependency.group(2) else 'defined'
-    _cond = dependency.group(2) if dependency.group(2) else ''
-    _value = dependency.group(3) if dependency.group(3) else ''
+    defined = '' if dependency.group(2) else 'defined'
+    cond = dependency.group(2) if dependency.group(2) else ''
+    value = dependency.group(3) if dependency.group(3) else ''
 
-    pp_expr = '{_not}{_defined}({macro}{_cond}{_value})'.format(
-        _not=_not, _defined=_defined, macro=dependency.group(1),
-        _cond=_cond, _value=_value)
+    pp_expr = '{not_}{defined}({macro}{cond}{value})'.format(
+        not_=not_, defined=defined, macro=dependency.group(1),
+        cond=cond, value=value)
     dep_check = '''\
 #if {pp_expr}
         NULL,

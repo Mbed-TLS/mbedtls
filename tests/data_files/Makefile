@@ -2184,6 +2184,9 @@ TEST_CERTS_H_INPUT_FILES=test-ca2.crt \
 				--string TEST_CLI_KEY_RSA_PEM=cli-rsa.key \
 				--binary TEST_CLI_KEY_RSA_DER=cli-rsa.key.der
 
+../src/test_keys.h: ../scripts/generate_test_keys.py
+	../scripts/generate_test_keys.py --output $@
+
 ################################################################
 #### Diffie-Hellman parameters
 ################################################################

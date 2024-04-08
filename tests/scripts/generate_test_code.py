@@ -817,11 +817,11 @@ def gen_dependencies_element(dep):
     _cond = dependency.group(2) if dependency.group(2) else ''
     _value = dependency.group(3) if dependency.group(3) else ''
 
-    pp_expr = '{_not}{_defined}({macro}{_cond}{_value}'.format(
+    pp_expr = '{_not}{_defined}({macro}{_cond}{_value})'.format(
         _not=_not, _defined=_defined, macro=dependency.group(1),
         _cond=_cond, _value=_value)
     dep_check = '''\
-#if {pp_expr})
+#if {pp_expr}
         NULL,
 #else
         "{dep}",

@@ -607,7 +607,7 @@ def parse_function_code(funcs_f, dependencies):
     function and dispatch code.
 
     :param funcs_f: file object of the functions file.
-    :param suite_dependencies: List of test suite dependencies
+    :param dependencies: List of dependencies of the function.
     :return: Function name, arguments, function code and dispatch code.
     """
     line_directive = '#line %d "%s"\n' % (funcs_f.line_no + 1, funcs_f.name)

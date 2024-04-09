@@ -138,6 +138,9 @@ list_test_cases() {
     EXCLUDE='^$'
     FILTER=""
 
+    # ssl3 is excluded by default, but it's still available
+    MODES="ssl3 $MODES"
+
     for MODE in $MODES; do
         for TYPE in $TYPES; do
             # PSK cipher suites do not allow client certificate verification.

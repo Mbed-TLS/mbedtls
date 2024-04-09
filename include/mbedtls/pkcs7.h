@@ -107,8 +107,8 @@ mbedtls_pkcs7_type;
  * Secure Boot
  */
 typedef struct mbedtls_pkcs7_authattrs {
-	size_t data_len;
-	void *data;
+    size_t data_len;
+    void *data;
 }
 mbedtls_pkcs7_authattrs;
 

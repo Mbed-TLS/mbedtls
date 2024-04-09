@@ -13,6 +13,19 @@
 #include "psa/internal_trusted_storage.h"
 #endif
 
+/* Same in library/psa_crypto.c */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) ||          \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) ||  \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
+#define BUILTIN_ALG_ANY_HKDF 1
+#endif
+#if defined(BUILTIN_ALG_ANY_HKDF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS) || \
+    defined(PSA_HAVE_SOFT_PBKDF2)
+#define AT_LEAST_ONE_BUILTIN_KDF
+#endif
 
 /****************************************************************/
 /* Test driver helpers */
@@ -656,10 +669,8 @@ static int smoke_test_key(mbedtls_svc_key_id_t key)
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_mac_operation_t mac_operation = PSA_MAC_OPERATION_INIT;
     psa_cipher_operation_t cipher_operation = PSA_CIPHER_OPERATION_INIT;
-#if defined(MBEDTLS_SHA256_C)
     psa_key_derivation_operation_t derivation_operation =
         PSA_KEY_DERIVATION_OPERATION_INIT;
-#endif
     uint8_t buffer[80]; /* large enough for a public key for ECDH */
     size_t length;
     mbedtls_svc_key_id_t key2 = MBEDTLS_SVC_KEY_ID_INIT;
@@ -714,7 +725,7 @@ static int smoke_test_key(mbedtls_svc_key_id_t key)
                                         buffer, sizeof(buffer), NULL, 0,
                                         buffer, sizeof(buffer), &length));
 
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
     /* Try the key in a plain key derivation. */
     PSA_ASSERT(psa_key_derivation_setup(&derivation_operation,
                                         PSA_ALG_HKDF(PSA_ALG_SHA_256)));
@@ -747,7 +758,9 @@ static int smoke_test_key(mbedtls_svc_key_id_t key)
                          alg, key, buffer, length,
                          buffer, sizeof(buffer), &length));
     }
-#endif /* MBEDTLS_SHA256_C */
+#else
+    (void) derivation_operation;
+#endif /* MBEDTLS_SHA256_C && MBEDTLS_PSA_BUILTIN_ALG_HKDF */
 
     ok = 1;
 

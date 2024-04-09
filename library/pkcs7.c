@@ -30,10 +30,10 @@
 #endif
 
 enum OID {
-	/* PKCS#7 {iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) pkcs-7(7)} */
-	OID_data = 13,			/* 1.2.840.113549.1.7.1 */
-	/* Microsoft Authenticode & Software Publishing */
-	OID_msIndirectData = 24,		/* 1.3.6.1.4.1.311.2.1.4 */
+    /* PKCS#7 {iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) pkcs-7(7)} */
+    MBEDTLS_OID_DATA = 13,          /* 1.2.840.113549.1.7.1 */
+    /* Microsoft Authenticode & Software Publishing */
+    MBEDTLS_OID_MS_INDIRECTDATA = 24,        /* 1.3.6.1.4.1.311.2.1.4 */
 };
 
 /**
@@ -544,10 +544,10 @@ static int pkcs7_get_signed_data(unsigned char *buf, size_t buflen,
      * U-Boot Secure Boot
      */
     if (!MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS7_DATA, &content_type)) {
-        pkcs7->content_data.data_type = OID_data;
+        pkcs7->content_data.data_type = MBEDTLS_OID_DATA;
     } else if (!MBEDTLS_OID_CMP(MBEDTLS_OID_MICROSOFT_INDIRECTDATA,
                                 &content_type)) {
-        pkcs7->content_data.data_type = OID_msIndirectData;
+        pkcs7->content_data.data_type = MBEDTLS_OID_MS_INDIRECTDATA;
     } else {
         return MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO;
     }

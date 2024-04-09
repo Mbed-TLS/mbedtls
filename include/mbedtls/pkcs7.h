@@ -145,10 +145,10 @@ mbedtls_pkcs7_signed_data;
 
 /* Content Data for MicroSoft Authentication Code using in U-Boot Secure Boot */
 typedef struct mbedtls_pkcs7_conten_data {
-	int	data_type;	/* Type of Data */
-	size_t data_len;	/* Length of Data */
-	size_t data_hdrlen;	/* Length of Data ASN.1 header */
-	void *data;		/* Content Data */
+    int data_type;  /* Type of Data */
+    size_t data_len;    /* Length of Data */
+    size_t data_hdrlen; /* Length of Data ASN.1 header */
+    void *data;     /* Content Data */
 }
 mbedtls_pkcs7_conten_data;
 

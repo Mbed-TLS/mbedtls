@@ -272,17 +272,9 @@ filter()
 
 filter_ciphersuites()
 {
-    if [ "X" != "X$FILTER" -o "X" != "X$EXCLUDE" ];
-    then
-        # Ciphersuite for Mbed TLS
-        M_CIPHERS=$( filter "$M_CIPHERS" )
-
-        # Ciphersuite for OpenSSL
-        O_CIPHERS=$( filter "$O_CIPHERS" )
-
-        # Ciphersuite for GnuTLS
-        G_CIPHERS=$( filter "$G_CIPHERS" )
-    fi
+    M_CIPHERS=$( filter "$M_CIPHERS" )
+    O_CIPHERS=$( filter "$O_CIPHERS" )
+    G_CIPHERS=$( filter "$G_CIPHERS" )
 }
 
 reset_ciphersuites()

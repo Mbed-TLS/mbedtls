@@ -147,17 +147,31 @@ list_test_cases() {
             fi
             for VERIFY in $SUB_VERIFIES; do
                 VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
-                reset_ciphersuites
-                add_common_ciphersuites
-                add_openssl_ciphersuites
-                add_gnutls_ciphersuites
-                add_mbedtls_ciphersuites
-                filter_ciphersuites
-                print_test_case m O "$O_CIPHERS"
-                print_test_case O m "$O_CIPHERS"
-                print_test_case m G "$G_CIPHERS"
-                print_test_case G m "$G_CIPHERS"
-                print_test_case m m "$M_CIPHERS"
+                for PEER in $PEERS; do
+                    reset_ciphersuites
+                    add_common_ciphersuites
+                    case "$PEER" in
+                        [Oo]pen*)
+                            add_openssl_ciphersuites
+                            filter_ciphersuites
+                            print_test_case m O "$M_CIPHERS"
+                            print_test_case O m "$O_CIPHERS"
+                            ;;
+                        [Gg]nu*)
+                            add_gnutls_ciphersuites
+                            filter_ciphersuites
+                            print_test_case m G "$M_CIPHERS"
+                            print_test_case G m "$G_CIPHERS"
+                            ;;
+                        mbed*)
+                            add_openssl_ciphersuites
+                            add_gnutls_ciphersuites
+                            add_mbedtls_ciphersuites
+                            filter_ciphersuites
+                            print_test_case m m "$M_CIPHERS"
+                            ;;
+                    esac
+                done
             done
         done
     done

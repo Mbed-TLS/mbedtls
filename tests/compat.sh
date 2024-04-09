@@ -133,6 +133,11 @@ print_test_case() {
 
 # list_test_case lists all potential test cases in compat.sh without execution
 list_test_cases() {
+    # We want to call filter_ciphersuites to apply standard-defined exclusions
+    # (like "no RC4 with DTLS") but without user-defined exludes/filters.
+    EXCLUDE='^$'
+    FILTER=""
+
     for MODE in $MODES; do
         for TYPE in $TYPES; do
             # PSK cipher suites do not allow client certificate verification.
@@ -147,6 +152,7 @@ list_test_cases() {
                 add_openssl_ciphersuites
                 add_gnutls_ciphersuites
                 add_mbedtls_ciphersuites
+                filter_ciphersuites
                 print_test_case m O "$O_CIPHERS"
                 print_test_case O m "$O_CIPHERS"
                 print_test_case m G "$G_CIPHERS"

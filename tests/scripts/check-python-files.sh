@@ -62,6 +62,7 @@ $PYTHON -m pylint scripts/mbedtls_dev/*.py scripts/*.py tests/scripts/*.py || {
 
 echo
 echo 'Running mypy ...'
+export MYPYPATH="../../scripts"
 $PYTHON -m mypy scripts/*.py tests/scripts/*.py ||
   ret=1
 

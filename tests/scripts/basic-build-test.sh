@@ -110,7 +110,8 @@ echo '################ compat.sh ################'
 
     echo '#### compat.sh: legacy (null, DES, RC4)'
     OPENSSL="$OPENSSL_LEGACY" \
-    sh compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR'
+    sh compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR' \
+        -m 'ssl3 tls1 tls1_1 tls12 dtls1 dtls12'
     echo
 
     echo '#### compat.sh: next (ARIA, ChaCha)'

@@ -384,8 +384,10 @@ The following entry points are declared (transparent and opaque):
 The transparent driver fully implements the declared entry points, and can use
 any backend: internal or libtestdriver1.
 
-The opaque driver is not implemented at all, neither instumentation nor the
-operation: entry points always return `NOT_SUPPORTED`.
+The opaque driver implements the declared entry points, and can use any
+backend: internal or libtestdriver1. However it does not implement the
+instrumentation (hits, forced output/status), as this [was not an immediate
+priority](https://github.com/Mbed-TLS/mbedtls/pull/8700#issuecomment-1892466159).
 
 Note: the instrumentation also allows forcing a specific output and output
 length.
@@ -528,7 +530,6 @@ we thought about something when writing the test driver, but not when writing
 test functions/data.
 
 Key management:
-- `mbedtls_test_opaque_unwrap_key()` is never called.
 - `mbedtls_test_transparent_generate_key()` is not tested with RSA keys.
 - `mbedtls_test_transparent_import_key()` is not tested with DH keys.
 - `mbedtls_test_opaque_import_key()` is not tested with unstructured keys nor
@@ -569,9 +570,6 @@ AEAD:
 
 Signature:
 - `sign_hash()` is not tested with RSA-PSS
-- No opaque entry point is tested (they're not implemented either).
-
-Asymmetric encryption:
 - No opaque entry point is tested (they're not implemented either).
 
 Key agreement:

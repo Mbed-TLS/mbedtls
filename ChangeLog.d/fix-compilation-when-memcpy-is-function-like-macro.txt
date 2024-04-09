@@ -1,0 +1,2 @@
+Bugfix
+   * Fix compilation error when memcpy() is a function-like macros. Fixes #8994.

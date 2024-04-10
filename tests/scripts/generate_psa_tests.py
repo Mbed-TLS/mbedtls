@@ -124,21 +124,18 @@ class KeyTypeNotSupported:
 
 def test_case_for_key_generation(
         key_type: str, bits: int,
-        dependencies: List[str],
         *args: str,
         result: str = ''
 ) -> test_case.TestCase:
     """Return one test case exercising a key generation.
     """
-    psa_information.hack_dependencies_not_implemented(dependencies)
-    tc = test_case.TestCase()
+    tc = psa_information.TestCase()
     short_key_type = crypto_knowledge.short_expression(key_type)
     tc.set_description('PSA {} {}-bit'
                        .format(short_key_type, bits))
-    tc.set_dependencies(sorted(dependencies))
     tc.set_function('generate_key')
+    tc.set_key_bits(bits)
     tc.set_arguments([key_type] + list(args) + [result])
-
     return tc
 
 class KeyGenerate:
@@ -160,28 +157,25 @@ class KeyGenerate:
         PSA_ERROR_INVALID_ARGUMENT status is expected.
         """
         result = 'PSA_SUCCESS'
-
-        import_dependencies = [psa_information.psa_want_symbol(kt.name)]
-        if kt.params is not None:
-            import_dependencies += [psa_information.psa_want_symbol(sym)
-                                    for i, sym in enumerate(kt.params)]
         if kt.name.endswith('_PUBLIC_KEY'):
-            # The library checks whether the key type is a public key generically,
-            # before it reaches a point where it needs support for the specific key
-            # type, so it returns INVALID_ARGUMENT for unsupported public key types.
-            generate_dependencies = []
             result = 'PSA_ERROR_INVALID_ARGUMENT'
-        else:
-            generate_dependencies = import_dependencies
-            if kt.name == 'PSA_KEY_TYPE_RSA_KEY_PAIR':
-                generate_dependencies.append("MBEDTLS_GENPRIME")
         for bits in kt.sizes_to_test():
-            yield test_case_for_key_generation(
+            tc = test_case_for_key_generation(
                 kt.expression, bits,
-                psa_information.finish_family_dependencies(generate_dependencies, bits),
                 str(bits),
                 result
             )
+            if result == 'PSA_ERROR_INVALID_ARGUMENT':
+                # The library checks whether the key type is a public key generically,
+                # before it reaches a point where it needs support for the specific key
+                # type, so it returns INVALID_ARGUMENT for unsupported public key types.
+                tc.set_dependencies([])
+            elif kt.name == 'PSA_KEY_TYPE_RSA_KEY_PAIR':
+                # A necessary deviation because PSA_WANT symbols don't
+                # distinguish between key generation and usage, but for
+                # RSA key generation has an extra requirement.
+                tc.dependencies.insert(0, 'MBEDTLS_GENPRIME')
+            yield tc
 
     def test_cases_for_key_generation(self) -> Iterator[test_case.TestCase]:
         """Generate test cases that exercise the generation of keys."""

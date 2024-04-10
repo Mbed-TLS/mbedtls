@@ -655,14 +655,18 @@ add_gnutls_ciphersuites()
             ;;
 
         "RSA")
-            # Not actually supported with all GnuTLS versions. See
-            # GNUTLS_HAS_TLS1_RSA_NULL_SHA256= below.
-            M_CIPHERS="$M_CIPHERS                               \
-                    TLS-RSA-WITH-NULL-SHA256                    \
-                    "
-            G_CIPHERS="$G_CIPHERS                               \
-                    +RSA:+NULL:+SHA256                          \
-                    "
+            if [ `minor_ver "$MODE"` -ge 1 ]
+            then
+                # Not actually supported with all GnuTLS versions. See
+                # GNUTLS_HAS_TLS1_RSA_NULL_SHA256= below.
+                M_CIPHERS="$M_CIPHERS                               \
+                        TLS-RSA-WITH-NULL-SHA256                    \
+                        "
+                G_CIPHERS="$G_CIPHERS                               \
+                        +RSA:+NULL:+SHA256                          \
+                        "
+            fi
+
             if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 M_CIPHERS="$M_CIPHERS                           \

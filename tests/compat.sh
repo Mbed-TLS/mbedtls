@@ -593,13 +593,9 @@ o_check_ciphersuite()
         SKIP_NEXT_="YES"
     fi
 
-    # OpenSSL <1.0.2 doesn't support DTLS 1.2. Check if OpenSSL
-    # supports $O_MODE from the s_server help. (The s_client
-    # help isn't accurate as of 1.0.2g: it supports DTLS 1.2
-    # but doesn't list it. But the s_server help seems to be
-    # accurate.)
-    if ! $OPENSSL s_server -help 2>&1 | grep -q "^ *-$O_MODE "; then
-        SKIP_NEXT_="YES"
+    # skip DTLS 1.2 is support was not detected
+    if [ "$O_SUPPORT_DTLS12" = "NO" -a "$MODE" = "dtls12" ]; then
+        SKIP_NEXT="YES"
     fi
 
     # skip static ECDH when OpenSSL doesn't support it
@@ -683,6 +679,21 @@ setup_arguments()
         *ECDH-ECDSA*|*ECDH-RSA*) O_SUPPORT_STATIC_ECDH="YES";;
         *) O_SUPPORT_STATIC_ECDH="NO";;
     esac
+
+    case $($OPENSSL ciphers ALL) in
+        *DES-CBC-*) O_SUPPORT_SINGLE_DES="YES";;
+        *) O_SUPPORT_SINGLE_DES="NO";;
+    esac
+
+    # OpenSSL <1.0.2 doesn't support DTLS 1.2. Check if OpenSSL
+    # supports -dtls1_2 from the s_server help. (The s_client
+    # help isn't accurate as of 1.0.2g: it supports DTLS 1.2
+    # but doesn't list it. But the s_server help seems to be
+    # accurate.)
+    O_SUPPORT_DTLS12="NO"
+    if $OPENSSL s_server -help 2>&1 | grep -q "^ *-dtls1_2 "; then
+        O_SUPPORT_DTLS12="YES"
+    fi
 
     if [ "X$VERIFY" = "XYES" ];
     then

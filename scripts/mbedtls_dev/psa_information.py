@@ -9,6 +9,7 @@ import re
 from typing import Dict, FrozenSet, List, Optional
 
 from . import macro_collector
+from . import test_case
 
 
 def psa_want_symbol(name: str) -> str:
@@ -105,3 +106,29 @@ class Information:
         self.remove_unwanted_macros(constructors)
         constructors.gather_arguments()
         return constructors
+
+
+class TestCase(test_case.TestCase):
+    """A PSA test case with automatically inferred dependencies."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.key_bits = None #type: Optional[int]
+
+    def set_key_bits(self, key_bits: Optional[int]) -> None:
+        """Use the given key size for automatic dependency generation.
+
+        Call this function before set_arguments() if relevant.
+
+        This is only relevant for ECC and DH keys. For other key types,
+        this information is ignored.
+        """
+        self.key_bits = key_bits
+
+    def set_arguments(self, arguments: List[str]) -> None:
+        """Set test case arguments and automatically infer dependencies."""
+        super().set_arguments(arguments)
+        dependencies = automatic_dependencies(*arguments)
+        if self.key_bits is not None:
+            dependencies = finish_family_dependencies(dependencies, self.key_bits)
+        self.dependencies += dependencies

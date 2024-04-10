@@ -6,7 +6,7 @@
 
 
 import re
-from typing import Dict, FrozenSet, List, Optional
+from typing import Dict, FrozenSet, List, Optional, Set
 
 from . import macro_collector
 from . import test_case
@@ -116,6 +116,20 @@ class TestCase(test_case.TestCase):
     def __init__(self) -> None:
         super().__init__()
         self.key_bits = None #type: Optional[int]
+        self.negated_dependencies = set() #type: Set[str]
+
+    def assumes_not_supported(self, name: str) -> None:
+        """Negate the given mechanism for automatic dependency generation.
+
+        Call this function before set_arguments() for a test case that should
+        run if the given mechanism is not supported.
+
+        A mechanism is a PSA_XXX symbol, e.g. PSA_KEY_TYPE_AES, PSA_ALG_HMAC,
+        etc. For mechanisms like ECC curves where the support status includes
+        the key bit-size, this class assumes that only one bit-size is
+        involved in a given test case.
+        """
+        self.negated_dependencies.add(psa_want_symbol(name))
 
     def set_key_bits(self, key_bits: Optional[int]) -> None:
         """Use the given key size for automatic dependency generation.
@@ -131,6 +145,9 @@ class TestCase(test_case.TestCase):
         """Set test case arguments and automatically infer dependencies."""
         super().set_arguments(arguments)
         dependencies = automatic_dependencies(*arguments)
+        for i in range(len(dependencies)): #pylint: disable=consider-using-enumerate
+            if dependencies[i] in self.negated_dependencies:
+                dependencies[i] = '!' + dependencies[i]
         if self.key_bits is not None:
             dependencies = finish_family_dependencies(dependencies, self.key_bits)
         hack_dependencies_not_implemented(dependencies)

@@ -25,23 +25,21 @@ from mbedtls_dev import test_data_generation
 
 def test_case_for_key_type_not_supported(
         verb: str, key_type: str, bits: int,
-        dependencies: List[str],
+        not_supported_mechanism: str,
         *args: str,
         param_descr: str = ''
 ) -> test_case.TestCase:
     """Return one test case exercising a key creation method
     for an unsupported key type or size.
     """
-    psa_information.hack_dependencies_not_implemented(dependencies)
-    tc = test_case.TestCase()
+    tc = psa_information.TestCase()
     short_key_type = crypto_knowledge.short_expression(key_type)
-    adverb = 'not' if dependencies else 'never'
-    if param_descr:
-        adverb = param_descr + ' ' + adverb
-    tc.set_description('PSA {} {} {}-bit {} supported'
-                       .format(verb, short_key_type, bits, adverb))
-    tc.set_dependencies(sorted(dependencies))
+    tc.set_description('PSA {} {} {}-bit{} not supported'
+                       .format(verb, short_key_type, bits,
+                               ' ' + param_descr if param_descr else ''))
     tc.set_function(verb + '_not_supported')
+    tc.set_key_bits(bits)
+    tc.assumes_not_supported(not_supported_mechanism)
     tc.set_arguments([key_type] + list(args))
     return tc
 
@@ -71,34 +69,27 @@ class KeyTypeNotSupported:
             # Don't generate test cases for key types that are always supported.
             # They would be skipped in all configurations, which is noise.
             return
-        import_dependencies = [('!' if param is None else '') +
-                               psa_information.psa_want_symbol(kt.name)]
-        if kt.params is not None:
-            import_dependencies += [('!' if param == i else '') +
-                                    psa_information.psa_want_symbol(sym)
-                                    for i, sym in enumerate(kt.params)]
-        if kt.name.endswith('_PUBLIC_KEY'):
-            generate_dependencies = []
+        if param is None:
+            not_supported_mechanism = kt.name
         else:
-            generate_dependencies = import_dependencies
+            assert kt.params is not None
+            not_supported_mechanism = kt.params[param]
         for bits in kt.sizes_to_test():
             yield test_case_for_key_type_not_supported(
                 'import', kt.expression, bits,
-                psa_information.finish_family_dependencies(import_dependencies, bits),
+                not_supported_mechanism,
                 test_case.hex_string(kt.key_material(bits)),
                 param_descr=param_descr,
             )
-            if not generate_dependencies and param is not None:
-                # If generation is impossible for this key type, rather than
-                # supported or not depending on implementation capabilities,
-                # only generate the test case once.
-                continue
-                # For public key we expect that key generation fails with
-                # INVALID_ARGUMENT. It is handled by KeyGenerate class.
+            # Don't generate not-supported test cases for key generation of
+            # public keys. Our implementation always returns
+            # PSA_ERROR_INVALID_ARGUMENT when attempting to generate a
+            # public key, so we cover this together with the positive cases
+            # in the KeyGenerate class.
             if not kt.is_public():
                 yield test_case_for_key_type_not_supported(
                     'generate', kt.expression, bits,
-                    psa_information.finish_family_dependencies(generate_dependencies, bits),
+                    not_supported_mechanism,
                     str(bits),
                     param_descr=param_descr,
                 )

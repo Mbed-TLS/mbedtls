@@ -111,7 +111,12 @@ class Information:
 
 
 class TestCase(test_case.TestCase):
-    """A PSA test case with automatically inferred dependencies."""
+    """A PSA test case with automatically inferred dependencies.
+
+    For mechanisms like ECC curves where the support status includes
+    the key bit-size, this class assumes that only one bit-size is
+    involved in a given test case.
+    """
 
     def __init__(self) -> None:
         super().__init__()
@@ -124,12 +129,13 @@ class TestCase(test_case.TestCase):
         Call this function before set_arguments() for a test case that should
         run if the given mechanism is not supported.
 
-        A mechanism is a PSA_XXX symbol, e.g. PSA_KEY_TYPE_AES, PSA_ALG_HMAC,
-        etc. For mechanisms like ECC curves where the support status includes
-        the key bit-size, this class assumes that only one bit-size is
-        involved in a given test case.
+        A mechanism is either a PSA_XXX symbol (e.g. PSA_KEY_TYPE_AES,
+        PSA_ALG_HMAC, etc.) or a PSA_WANT_XXX symbol.
         """
-        self.negated_dependencies.add(psa_want_symbol(name))
+        symbol = name
+        if not symbol.startswith('PSA_WANT_'):
+            symbol = psa_want_symbol(name)
+        self.negated_dependencies.add(symbol)
 
     def set_key_bits(self, key_bits: Optional[int]) -> None:
         """Use the given key size for automatic dependency generation.

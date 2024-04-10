@@ -208,7 +208,7 @@ class OpFail:
     ) -> test_case.TestCase:
         """Construct a failure test case for a one-key or keyless operation."""
         #pylint: disable=too-many-arguments,too-many-locals
-        tc = test_case.TestCase()
+        tc = psa_information.TestCase()
         pretty_alg = alg.short_expression()
         if reason == self.Reason.NOT_SUPPORTED:
             short_deps = [re.sub(r'PSA_WANT_ALG_', r'', dep)
@@ -227,22 +227,21 @@ class OpFail:
                                    pretty_alg,
                                    pretty_reason,
                                    ' with ' + pretty_type if pretty_type else ''))
-        dependencies = psa_information.automatic_dependencies(alg.base_expression, key_type)
-        for i, dep in enumerate(dependencies):
-            if dep in not_deps:
-                dependencies[i] = '!' + dep
-        tc.set_dependencies(sorted(dependencies))
         tc.set_function(category.name.lower() + '_fail')
         arguments = [] # type: List[str]
         if kt:
-            key_material = kt.key_material(kt.sizes_to_test()[0])
+            bits = kt.sizes_to_test()[0]
+            key_material = kt.key_material(bits)
             arguments += [key_type, test_case.hex_string(key_material)]
+            tc.set_key_bits(bits)
         arguments.append(alg.expression)
         if category.is_asymmetric():
             arguments.append('1' if reason == self.Reason.PUBLIC else '0')
         error = ('NOT_SUPPORTED' if reason == self.Reason.NOT_SUPPORTED else
                  'INVALID_ARGUMENT')
         arguments.append('PSA_ERROR_' + error)
+        for dep in not_deps:
+            tc.assumes_not_supported(dep)
         tc.set_arguments(arguments)
         return tc
 

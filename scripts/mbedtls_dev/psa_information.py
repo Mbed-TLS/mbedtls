@@ -69,10 +69,10 @@ def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
     if _implemented_dependencies is None:
         _implemented_dependencies = \
             read_implemented_dependencies('include/psa/crypto_config.h')
-    if not all((dep.lstrip('!') in _implemented_dependencies or
-                not dep.lstrip('!').startswith('PSA_WANT'))
-               for dep in dependencies):
-        dependencies.append('DEPENDENCY_NOT_IMPLEMENTED_YET')
+    for dep in dependencies:
+        dep = dep.lstrip('!')
+        if dep.startswith('PSA_WANT') and dep not in _implemented_dependencies:
+            dependencies.append('DEPENDENCY_NOT_IMPLEMENTED_YET_' + dep)
 
 class Information:
     """Gather information about PSA constructors."""

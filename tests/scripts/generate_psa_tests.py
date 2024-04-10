@@ -40,7 +40,7 @@ def test_case_for_key_type_not_supported(
         adverb = param_descr + ' ' + adverb
     tc.set_description('PSA {} {} {}-bit {} supported'
                        .format(verb, short_key_type, bits, adverb))
-    tc.set_dependencies(dependencies)
+    tc.set_dependencies(sorted(dependencies))
     tc.set_function(verb + '_not_supported')
     tc.set_arguments([key_type] + list(args))
     return tc
@@ -135,7 +135,7 @@ def test_case_for_key_generation(
     short_key_type = crypto_knowledge.short_expression(key_type)
     tc.set_description('PSA {} {}-bit'
                        .format(short_key_type, bits))
-    tc.set_dependencies(dependencies)
+    tc.set_dependencies(sorted(dependencies))
     tc.set_function('generate_key')
     tc.set_arguments([key_type] + list(args) + [result])
 
@@ -246,7 +246,7 @@ class OpFail:
         for i, dep in enumerate(dependencies):
             if dep in not_deps:
                 dependencies[i] = '!' + dep
-        tc.set_dependencies(dependencies)
+        tc.set_dependencies(sorted(dependencies))
         tc.set_function(category.name.lower() + '_fail')
         arguments = [] # type: List[str]
         if kt:
@@ -468,7 +468,7 @@ class StorageFormat:
             key.alg.string, key.alg2.string,
         )
         dependencies = psa_information.finish_family_dependencies(dependencies, key.bits)
-        tc.set_dependencies(dependencies)
+        tc.set_dependencies(sorted(dependencies))
         tc.set_function('key_storage_' + verb)
         if self.forward:
             extra_arguments = []

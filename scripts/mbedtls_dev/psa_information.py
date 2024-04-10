@@ -70,6 +70,8 @@ def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
     if _implemented_dependencies is None:
         _implemented_dependencies = \
             read_implemented_dependencies('include/psa/crypto_config.h')
+        _implemented_dependencies = _implemented_dependencies.union(
+            read_implemented_dependencies('include/mbedtls/config_psa.h'))
     for dep in dependencies:
         dep = dep.lstrip('!')
         if dep.startswith('PSA_WANT') and dep not in _implemented_dependencies:

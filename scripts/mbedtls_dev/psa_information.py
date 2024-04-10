@@ -133,4 +133,5 @@ class TestCase(test_case.TestCase):
         dependencies = automatic_dependencies(*arguments)
         if self.key_bits is not None:
             dependencies = finish_family_dependencies(dependencies, self.key_bits)
+        hack_dependencies_not_implemented(dependencies)
         self.dependencies += dependencies

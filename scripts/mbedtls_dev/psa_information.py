@@ -128,13 +128,13 @@ class TestCase(test_case.TestCase):
     def detect_not_implemented_dependencies(self) -> None:
         """Detect dependencies that are not implemented."""
         all_implemented_dependencies = self.read_implemented_dependencies()
-        not_implemented = set()
-        for dep in self.dependencies:
-            if (dep.startswith('PSA_WANT') and
-                    dep not in all_implemented_dependencies):
-                not_implemented.add('DEPENDENCY_NOT_IMPLEMENTED_YET_' + dep)
-        self.dependencies = sorted(not_implemented) + self.dependencies
-        self.dependencies.sort()
+        not_implemented = [dep
+                           for dep in self.dependencies
+                           if (dep.startswith('PSA_WANT') and
+                               dep not in all_implemented_dependencies)]
+        if not_implemented:
+            self.skip_because('not implemented: ' +
+                              ' '.join(not_implemented))
 
     def __init__(self) -> None:
         super().__init__()

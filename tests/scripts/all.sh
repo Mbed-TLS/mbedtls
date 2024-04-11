@@ -6371,7 +6371,7 @@ component_test_zeroize () {
     done
 }
 
-component_test_psa_compliance () {
+component_release_test_psa_compliance () {
     # The arch tests build with gcc, so require use of gcc here to link properly
     msg "build: make, default config (out-of-box), libmbedcrypto.a only"
     CC=gcc make -C library libmbedcrypto.a
@@ -6380,7 +6380,7 @@ component_test_psa_compliance () {
     CC=gcc ./tests/scripts/test_psa_compliance.py
 }
 
-support_test_psa_compliance () {
+support_release_test_psa_compliance () {
     # psa-compliance-tests only supports CMake >= 3.10.0
     ver="$(cmake --version)"
     ver="${ver#cmake version }"

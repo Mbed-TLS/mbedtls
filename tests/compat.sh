@@ -955,8 +955,6 @@ o_check_ciphersuite()
             *ECDH-*) SKIP_NEXT="YES"
         esac
     fi
-
-    printf "\no_check: $MODE $1 ($O_SUPPORT_DTLS12) -> $SKIP_NEXT\n"
 }
 
 # g_check_ciphersuite CIPHER_SUITE_NAME

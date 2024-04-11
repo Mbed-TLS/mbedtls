@@ -65,8 +65,13 @@ class Information:
     def remove_unwanted_macros(
             constructors: macro_collector.PSAMacroEnumerator
     ) -> None:
-        # Mbed TLS doesn't support finite-field DH yet and will not support
-        # finite-field DSA. Don't attempt to generate any related test case.
+        """Remove macros from consideration during value enumeration."""
+        # Remove some mechanisms that are declared but not implemented.
+        # The corresponding test cases would be commented out anyway
+        # thanks to the detect_not_implemented_dependencies mechanism,
+        # but for those particular key types, we don't even have enough
+        # support in the test scripts to construct test keys. So
+        # we arrange to not even attempt to generate test cases.
         constructors.key_types.discard('PSA_KEY_TYPE_DH_KEY_PAIR')
         constructors.key_types.discard('PSA_KEY_TYPE_DH_PUBLIC_KEY')
         constructors.key_types.discard('PSA_KEY_TYPE_DSA_KEY_PAIR')

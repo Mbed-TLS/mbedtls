@@ -176,7 +176,7 @@ src/test_certs.h: scripts/generate_test_cert_macros.py \
 				--binary TEST_CLI_KEY_RSA_DER=data_files/cli-rsa.key.der
 
 src/test_keys.h: scripts/generate_test_keys.py
-	scripts/generate_test_keys.py --output $@
+	$(PYTHON) scripts/generate_test_keys.py --output $@
 
 TEST_OBJS_DEPS = $(wildcard include/test/*.h include/test/*/*.h)
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG

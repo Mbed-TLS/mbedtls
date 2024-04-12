@@ -342,10 +342,9 @@ the total number of hits for this family.
 
 Not covered at all by the test drivers.
 
-That's a gap in our testing, as the driver interface does define a key
-derivation family of entry points. This gap is probably related to the fact
-that our internal code structure doesn't obey the guidelines and is not
-aligned with the driver interface, see #5488 and related issues.
+That's a test gap which reflects a feature gap: the driver interface does
+define a key derivation family of entry points, but we don't currently
+implement that part of the driver interface, see #5488 and related issues.
 
 #### Asymmetric signature
 
@@ -483,7 +482,7 @@ Cipher, AEAD and CMAC (key types: DES, AES, ARIA, CHACHA20, CAMELLIA):
 
 Key derivation (key types: `DERIVE`, `RAW_DATA`, `PASSWORD`, `PEPPER`,
 `PASSWORD_HASH`):
-- No testing as we don't have test driver support yet (see previous section).
+- No testing as we don't have driver support yet (see previous section).
 
 RSA (key types: `RSA_KEY_PAIR_xxx`, `RSA_PUBLIC_KEY`):
 - `test_psa_crypto_config_accel_rsa_crypto`: all 4 algs (encryption &

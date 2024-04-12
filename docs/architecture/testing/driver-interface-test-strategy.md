@@ -155,15 +155,11 @@ The drivers can use one of two back-ends:
   the build.
 
 Historical note: internal was initially the only back-end; then support for
-libtestdriver1 was added gradually.
-
-Question: if/when we have complete libtestdriver1 support, do we still need
-internal? Thoughts:
-- It's useful to have builds with both a driver and the built-in, in
-order to test fallback to built-in, but this could be achieved with
-libtestdriver1 too.
-  - Performance might be better with internal though?
-- The instrumentation works the same with both back-ends.
+libtestdriver1 was added gradually. Support for libtestdriver1 is now complete
+(see following sub-sections), so we could remove internal now. Note it's
+useful to have builds with both a driver and the built-in, in order to test
+fallback to built-in, which is currently done only with internal, but this can
+be achieved with libtestdriver1 just as well.
 
 Note: our test drivers tend to provide all possible entry points (with a few
 exceptions that may not be intentional, see the next sections). However, in

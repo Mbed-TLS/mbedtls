@@ -177,8 +177,10 @@ they're available);
 Ideally, we'd want build options for the test drivers so that we can test with
 different combinations of entry points present, and make sure the core behaves
 appropriately when some entry points are absent but other entry points allow
-implementing the operation. This is currently not supported by our test
-drivers.
+implementing the operation. This will remain hard to test until we have proper
+support for JSON-defined drivers with auto-generation of dispatch code.
+(The `MBEDTLS_PSA_ACCEL_xxx` macros we currently use are not expressive enough
+to specify which entry points are support for a given mechanism.)
 
 Our implementation of PSA Crypto is structured in a way that the built-in
 implementation of each operation follows the driver API, see

@@ -194,7 +194,10 @@ A nice consequence of that strategy is that when an entry point has
 test-driver support, most of the time, it automatically works for all
 algorithms and key types supported by the library. (The exception being when
 the driver needs to call a different function for different key types, as is
-the case with some asymmetric key management operations.)
+the case with some asymmetric key management operations.) (Note: it's still
+useful to test drivers in configurations with partial algorithm support, and
+that can still be done by configuring libtestdriver1 and the main library as
+desired.)
 
 The renaming process for `libtestdriver1` is implemented as a few Perl regexes
 applied to a copy of the library code, see the `libtestdriver1.a` target in
@@ -437,13 +440,19 @@ We have a test suite dedicated to driver dispatch, which takes advantage of the
 instrumentation in the test drivers described in the previous section, in
 order to check that drivers are called when they're supposed to, and that the
 core behaves as expected when they return errors (in particular, that we fall
-back to the built-in implementation when the driver returns `NOT_SUPPORTED).
+back to the built-in implementation when the driver returns `NOT_SUPPORTED`).
 
 This is `test_suite_psa_crypto_driver_wrappers`, which is maintained manually
 (that is, the test cases in the `.data` files are not auto-generated). The
 entire test suite depends on the test drivers being enabled
 (`PSA_CRYPTO_DRIVER_TEST`), which is not the case in the default or full
 config.
+
+The test suite is focused on driver usage (mostly by checking the expected
+number of hits) but also does some validation of the results: for
+deterministic algorithms, known-answers tests are used, and for the rest, some
+consistency checks are done (more or less detailled depending on the algorithm
+and build configuration).
 
 #### Configurations coverage
 
@@ -519,12 +528,13 @@ have "fallback not available" cases for MAC, see #8565.
 #### Test case coverage
 
 Since `test_suite_psa_crypto_driver_wrappers.data` is maintained manually,
-we need to make sure it exercises all the cases that need to be tested.
+we need to make sure it exercises all the cases that need to be tested. In the
+future, this file should be generated in order to ensure exhaustiveness.
 
-One way to evaluate this is to look at line coverage in test driver
-implementaitons - this doesn't reveal all gaps, but it does reveal cases where
-we thought about something when writing the test driver, but not when writing
-test functions/data.
+In the meantime, one way to observe (lack of) completeness is to look at line
+coverage in test driver implementaitons - this doesn't reveal all gaps, but it
+does reveal cases where we thought about something when writing the test
+driver, but not when writing test functions/data.
 
 Key management:
 - `mbedtls_test_transparent_generate_key()` is not tested with RSA keys.

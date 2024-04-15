@@ -1765,6 +1765,22 @@ server2-sha256.crt: server2.req.sha256
 	$(MBEDTLS_CERT_WRITE) request_file=server2.req.sha256 serial=2 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144406 not_after=20290210144406 md=SHA256 version=3 output_file=$@
 all_final += server2-sha256.crt
 
+server2-sha256.ku-ka.crt: SERVER2_CRT_SERIAL=22
+server2-sha256.ku-ka.crt: SERVER2_KEY_USAGE=key_agreement
+server2-sha256.ku-ke.crt: SERVER2_CRT_SERIAL=23
+server2-sha256.ku-ke.crt: SERVER2_KEY_USAGE=key_encipherment
+server2-sha256.ku-ds.crt: SERVER2_CRT_SERIAL=24
+server2-sha256.ku-ds.crt: SERVER2_KEY_USAGE=digital_signature
+server2-sha256.ku-ds_ke.crt: SERVER2_CRT_SERIAL=28
+server2-sha256.ku-ds_ke.crt: SERVER2_KEY_USAGE=digital_signature,key_encipherment
+server2-sha256.ku-%.crt: server2.req.sha256
+	$(MBEDTLS_CERT_WRITE) request_file=server2.req.sha256 serial=$(SERVER2_CRT_SERIAL) \
+		issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) \
+		key_usage="$(SERVER2_KEY_USAGE)" \
+		not_before=20190210144406 not_after=20290210144406 md=SHA256 version=3 output_file=$@
+all_final += server2-sha256.ku-ka.crt server2-sha256.ku-ke.crt server2-sha256.ku-ds.crt server2-sha256.ku-ds_ke.crt
+
+all_final += server2.ku-ka.crt server2.ku-ke.crt server2.ku-ds.crt server2.ku-ds_ke.crt
 server2.ku-ka.crt: SERVER2_CRT_SERIAL=42
 server2.ku-ka.crt: SERVER2_KEY_USAGE=key_agreement
 server2.ku-ke.crt: SERVER2_CRT_SERIAL=43

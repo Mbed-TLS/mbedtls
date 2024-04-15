@@ -147,7 +147,8 @@ Each entry point is instrumented to record the number of hits for each part of
 the driver (same division as the files) and the status of the last call. It is
 also possible to force the next call to return a specified status, and
 sometimes more things can be forced: see the various
-`mbedtls_test_driver_XXX_hooks_t` structures declared by each driver.
+`mbedtls_test_driver_XXX_hooks_t` structures declared by each driver (and
+subsections below).
 
 The drivers can use one of two back-ends:
 - internal: this requires the built-in implementation to be present.
@@ -160,6 +161,15 @@ libtestdriver1 was added gradually. Support for libtestdriver1 is now complete
 useful to have builds with both a driver and the built-in, in order to test
 fallback to built-in, which is currently done only with internal, but this can
 be achieved with libtestdriver1 just as well.
+
+Note on instrumentation: originally, when only the internal backend was
+available, hits were how we knew that the driver was called, as opposed to
+directly calling the built-in code. With libtestdriver1, we can check that by
+ensuring that the built-in code is not present, so if the operation gives the
+correct result, only a driver call can have calculated that result. So,
+nowadays there is low value in checking the hit count. There is still some
+value for hit counts, e.g. checking that we don't call a multipart entry point
+when we intended to call the one-shot entry point, but it's limited.
 
 Note: our test drivers tend to provide all possible entry points (with a few
 exceptions that may not be intentional, see the next sections). However, in
@@ -180,7 +190,7 @@ appropriately when some entry points are absent but other entry points allow
 implementing the operation. This will remain hard to test until we have proper
 support for JSON-defined drivers with auto-generation of dispatch code.
 (The `MBEDTLS_PSA_ACCEL_xxx` macros we currently use are not expressive enough
-to specify which entry points are support for a given mechanism.)
+to specify which entry points are supported for a given mechanism.)
 
 Our implementation of PSA Crypto is structured in a way that the built-in
 implementation of each operation follows the driver API, see

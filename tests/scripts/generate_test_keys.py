@@ -20,12 +20,18 @@ BYTES_PER_LINE = 16
 
 KEYS = {
     # RSA keys
-    'test_rsa_1024': ['PSA_KEY_TYPE_RSA_KEY_PAIR', 1024],
-    'test_rsa_1026': ['PSA_KEY_TYPE_RSA_KEY_PAIR', 1026],
-    'test_rsa_1028': ['PSA_KEY_TYPE_RSA_KEY_PAIR', 1028],
-    'test_rsa_1030': ['PSA_KEY_TYPE_RSA_KEY_PAIR', 1030],
-    'test_rsa_2048': ['PSA_KEY_TYPE_RSA_KEY_PAIR', 2048],
-    'test_rsa_4096': ['PSA_KEY_TYPE_RSA_KEY_PAIR', 4096],
+    'test_rsa_1024_priv': ['PSA_KEY_TYPE_RSA_KEY_PAIR', 1024],
+    'test_rsa_1024_pub': ['PSA_KEY_TYPE_RSA_PUBLIC_KEY', 1024],
+    'test_rsa_1026_priv': ['PSA_KEY_TYPE_RSA_KEY_PAIR', 1026],
+    'test_rsa_1026_pub': ['PSA_KEY_TYPE_RSA_PUBLIC_KEY', 1026],
+    'test_rsa_1028_priv': ['PSA_KEY_TYPE_RSA_KEY_PAIR', 1028],
+    'test_rsa_1028_pub': ['PSA_KEY_TYPE_RSA_PUBLIC_KEY', 1028],
+    'test_rsa_1030_priv': ['PSA_KEY_TYPE_RSA_KEY_PAIR', 1030],
+    'test_rsa_1030_pub': ['PSA_KEY_TYPE_RSA_PUBLIC_KEY', 1030],
+    'test_rsa_2048_priv': ['PSA_KEY_TYPE_RSA_KEY_PAIR', 2048],
+    'test_rsa_2048_pub': ['PSA_KEY_TYPE_RSA_PUBLIC_KEY', 2048],
+    'test_rsa_4096_priv': ['PSA_KEY_TYPE_RSA_KEY_PAIR', 4096],
+    'test_rsa_4096_pub': ['PSA_KEY_TYPE_RSA_PUBLIC_KEY', 4096],
     # EC keys
     'test_ec_secp192r1_priv': ['PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1)', 192],
     'test_ec_secp192r1_pub': ['PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_SECP_R1)', 192],

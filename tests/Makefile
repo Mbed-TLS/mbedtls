@@ -112,68 +112,9 @@ all: $(BINARIES)
 
 mbedtls_test: $(MBEDTLS_TEST_OBJS)
 
-TEST_CERTS_H_INPUT_FILES=\
-					data_files/test-ca2.crt \
-					data_files/test-ca2.crt.der \
-					data_files/test-ca2.key.enc \
-					data_files/test-ca2.key.der \
-					data_files/test-ca-sha256.crt \
-					data_files/test-ca-sha256.crt.der \
-					data_files/test-ca-sha1.crt \
-					data_files/test-ca-sha1.crt.der \
-					data_files/test-ca.key \
-					data_files/test-ca.key.der \
-					data_files/server5.crt \
-					data_files/server5.crt.der \
-					data_files/server5.key \
-					data_files/server5.key.der \
-					data_files/server2-sha256.crt \
-					data_files/server2-sha256.crt.der \
-					data_files/server2.crt \
-					data_files/server2.crt.der \
-					data_files/server2.key \
-					data_files/server2.key.der \
-					data_files/cli2.crt \
-					data_files/cli2.crt.der \
-					data_files/cli2.key \
-					data_files/cli2.key.der \
-					data_files/cli-rsa-sha256.crt \
-					data_files/cli-rsa-sha256.crt.der \
-					data_files/cli-rsa.key \
-					data_files/cli-rsa.key.der
 src/test_certs.h: scripts/generate_test_cert_macros.py \
-					 $(TEST_CERTS_H_INPUT_FILES)
-	$(PYTHON) scripts/generate_test_cert_macros.py --output $@ \
-				--string TEST_CA_CRT_EC_PEM=data_files/test-ca2.crt \
-				--binary TEST_CA_CRT_EC_DER=data_files/test-ca2.crt.der \
-				--string TEST_CA_KEY_EC_PEM=data_files/test-ca2.key.enc \
-				--password TEST_CA_PWD_EC_PEM=PolarSSLTest \
-				--binary TEST_CA_KEY_EC_DER=data_files/test-ca2.key.der \
-				--string TEST_CA_CRT_RSA_SHA256_PEM=data_files/test-ca-sha256.crt \
-				--binary TEST_CA_CRT_RSA_SHA256_DER=data_files/test-ca-sha256.crt.der \
-				--string TEST_CA_CRT_RSA_SHA1_PEM=data_files/test-ca-sha1.crt \
-				--binary TEST_CA_CRT_RSA_SHA1_DER=data_files/test-ca-sha1.crt.der \
-				--string TEST_CA_KEY_RSA_PEM=data_files/test-ca.key \
-				--password TEST_CA_PWD_RSA_PEM=PolarSSLTest \
-				--binary TEST_CA_KEY_RSA_DER=data_files/test-ca.key.der \
-				--string TEST_SRV_CRT_EC_PEM=data_files/server5.crt \
-				--binary TEST_SRV_CRT_EC_DER=data_files/server5.crt.der \
-				--string TEST_SRV_KEY_EC_PEM=data_files/server5.key \
-				--binary TEST_SRV_KEY_EC_DER=data_files/server5.key.der \
-				--string TEST_SRV_CRT_RSA_SHA256_PEM=data_files/server2-sha256.crt \
-				--binary TEST_SRV_CRT_RSA_SHA256_DER=data_files/server2-sha256.crt.der \
-				--string TEST_SRV_CRT_RSA_SHA1_PEM=data_files/server2.crt \
-				--binary TEST_SRV_CRT_RSA_SHA1_DER=data_files/server2.crt.der \
-				--string TEST_SRV_KEY_RSA_PEM=data_files/server2.key \
-				--binary TEST_SRV_KEY_RSA_DER=data_files/server2.key.der \
-				--string TEST_CLI_CRT_EC_PEM=data_files/cli2.crt \
-				--binary TEST_CLI_CRT_EC_DER=data_files/cli2.crt.der \
-				--string TEST_CLI_KEY_EC_PEM=data_files/cli2.key \
-				--binary TEST_CLI_KEY_EC_DER=data_files/cli2.key.der \
-				--string TEST_CLI_CRT_RSA_PEM=data_files/cli-rsa-sha256.crt \
-				--binary TEST_CLI_CRT_RSA_DER=data_files/cli-rsa-sha256.crt.der \
-				--string TEST_CLI_KEY_RSA_PEM=data_files/cli-rsa.key \
-				--binary TEST_CLI_KEY_RSA_DER=data_files/cli-rsa.key.der
+				  $($(PYTHON) scripts/generate_test_cert_macros.py --list-dependencies)
+	$(PYTHON) scripts/generate_test_cert_macros.py --output $@
 
 src/test_keys.h: scripts/generate_test_keys.py
 	$(PYTHON) scripts/generate_test_keys.py --output $@

@@ -12,6 +12,7 @@ import sys
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/"
 sys.path.append(SCRIPT_DIR + "../../scripts/")
 from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
+import scripts_path # pylint: disable=unused-import
 
 OUTPUT_HEADER_FILE = SCRIPT_DIR + "../src/test_keys.h"
 BYTES_PER_LINE = 12

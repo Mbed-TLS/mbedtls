@@ -8,6 +8,7 @@ generating the required key at run time. This helps speeding up testing."""
 
 import os
 import sys
+from typing import Iterator
 # pylint: disable=wrong-import-position
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/"
 sys.path.append(SCRIPT_DIR + "../../scripts/")
@@ -15,7 +16,7 @@ from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
 import scripts_path # pylint: disable=unused-import
 
 OUTPUT_HEADER_FILE = SCRIPT_DIR + "../src/test_keys.h"
-BYTES_PER_LINE = 12
+BYTES_PER_LINE = 16
 
 KEYS = {
     # RSA keys
@@ -52,23 +53,20 @@ KEYS = {
     'test_ec_curve448_pub': ['PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_MONTGOMERY)', 448],
 }
 
+def c_byte_array_literal_content(array_name: str, key_data: bytes) -> Iterator[str]:
+    yield 'const unsigned char '
+    yield array_name
+    yield '[] = {'
+    for index in range(0, len(key_data), BYTES_PER_LINE):
+        yield '\n   '
+        for b in key_data[index:index + BYTES_PER_LINE]:
+            yield ' {:#04x},'.format(b)
+    yield '\n};'
+
 def convert_der_to_c(array_name: str, key_data: bytearray) -> str:
-    """Convert a DER content to a C array."""
-    output_text = "const unsigned char {}[] = {{\n".format(array_name)
+    return ''.join(c_byte_array_literal_content(array_name, key_data))
 
-    def get_data_chunk(data):
-        for index in range(0, len(data), BYTES_PER_LINE):
-            yield data[index : index + BYTES_PER_LINE]
-
-    for bytes_chunk in get_data_chunk(key_data):
-        new_line = '    ' + ', '.join(['{:#04x}'.format(b) for b in bytes_chunk])
-        output_text = output_text + new_line + ",\n"
-
-    output_text = output_text + "};"
-
-    return output_text
-
-def main():
+def main() -> None:
     # Remove output file if already existing.
     if os.path.exists(OUTPUT_HEADER_FILE):
         os.remove(OUTPUT_HEADER_FILE)
@@ -90,4 +88,4 @@ def main():
         output_file.write("\n")
 
 if __name__ == '__main__':
-    sys.exit(main())
+    main()

@@ -28,9 +28,6 @@
 /* Needed for the definition of MBEDTLS_PK_WRITE_PUBKEY_MAX_SIZE. */
 #include "pkwrite.h"
 
-#define RSA_KEY_SIZE   MBEDTLS_RSA_GEN_KEY_MIN_BITS
-#define RSA_KEY_LEN   (MBEDTLS_RSA_GEN_KEY_MIN_BITS/8)
-
 #if defined(MBEDTLS_RSA_C) ||                                           \
     defined(MBEDTLS_PK_RSA_ALT_SUPPORT) ||                              \
     defined(MBEDTLS_ECDSA_C) ||                                         \
@@ -43,8 +40,7 @@
  * - The build has built-in ECC and ECDSA signature.
  */
 #if (defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_PK_WRITE_C) && \
-    ((defined(MBEDTLS_RSA_C) && defined(MBEDTLS_GENPRIME)) || \
-    defined(MBEDTLS_PK_CAN_ECDSA_SIGN))) || \
+    (defined(MBEDTLS_RSA_C) || defined(MBEDTLS_PK_CAN_ECDSA_SIGN))) || \
     (defined(MBEDTLS_ECP_C) && defined(MBEDTLS_PK_CAN_ECDSA_SIGN))
 #define MBEDTLS_TEST_PK_PSA_SIGN
 #endif
@@ -185,6 +181,10 @@
 #endif
 
 #include <../src/test_keys.h>
+
+/* Define an RSA key size we know it's present in predefined_key[] array. */
+#define RSA_KEY_SIZE   1024
+#define RSA_KEY_LEN   (RSA_KEY_SIZE/8)
 
 static int get_predefined_key_data(int is_ec, int curve_or_keybits,
                                    const unsigned char **key, size_t *key_len,
@@ -504,7 +504,7 @@ static int pk_setup_for_type(mbedtls_pk_type_t pk_type, int want_pair,
         case MBEDTLS_PK_RSA:
         {
             *psa_type = PSA_KEY_TYPE_RSA_KEY_PAIR;
-            TEST_EQUAL(pk_setup(pk, pk_type, MBEDTLS_RSA_GEN_KEY_MIN_BITS), 0);
+            TEST_EQUAL(pk_setup(pk, pk_type, RSA_KEY_SIZE), 0);
             if (!want_pair) {
                 mbedtls_rsa_context *rsa = mbedtls_pk_rsa(*pk);
                 mbedtls_mpi_free(&rsa->D);
@@ -1996,7 +1996,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_RSA_C:MBEDTLS_GENPRIME:MBEDTLS_USE_PSA_CRYPTO */
+/* BEGIN_CASE depends_on:MBEDTLS_RSA_C:MBEDTLS_USE_PSA_CRYPTO */
 void pk_psa_wrap_sign_ext(int pk_type, int key_bits, int key_pk_type, int md_alg)
 {
     mbedtls_pk_context pk;

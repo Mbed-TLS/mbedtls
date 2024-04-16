@@ -9,6 +9,7 @@ generating the required key at run time. This helps speeding up testing."""
 import os
 import sys
 from typing import Iterator
+import re
 # pylint: disable=wrong-import-position
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/"
 sys.path.append(SCRIPT_DIR + "../../scripts/")
@@ -17,47 +18,6 @@ import scripts_path # pylint: disable=unused-import
 
 OUTPUT_HEADER_FILE = SCRIPT_DIR + "../src/test_keys.h"
 BYTES_PER_LINE = 16
-
-KEYS = {
-    # RSA keys
-    'test_rsa_1024_priv': ['PSA_KEY_TYPE_RSA_KEY_PAIR', 1024],
-    'test_rsa_1024_pub': ['PSA_KEY_TYPE_RSA_PUBLIC_KEY', 1024],
-    'test_rsa_1026_priv': ['PSA_KEY_TYPE_RSA_KEY_PAIR', 1026],
-    'test_rsa_1026_pub': ['PSA_KEY_TYPE_RSA_PUBLIC_KEY', 1026],
-    'test_rsa_1028_priv': ['PSA_KEY_TYPE_RSA_KEY_PAIR', 1028],
-    'test_rsa_1028_pub': ['PSA_KEY_TYPE_RSA_PUBLIC_KEY', 1028],
-    'test_rsa_1030_priv': ['PSA_KEY_TYPE_RSA_KEY_PAIR', 1030],
-    'test_rsa_1030_pub': ['PSA_KEY_TYPE_RSA_PUBLIC_KEY', 1030],
-    'test_rsa_2048_priv': ['PSA_KEY_TYPE_RSA_KEY_PAIR', 2048],
-    'test_rsa_2048_pub': ['PSA_KEY_TYPE_RSA_PUBLIC_KEY', 2048],
-    'test_rsa_4096_priv': ['PSA_KEY_TYPE_RSA_KEY_PAIR', 4096],
-    'test_rsa_4096_pub': ['PSA_KEY_TYPE_RSA_PUBLIC_KEY', 4096],
-    # EC keys
-    'test_ec_secp192r1_priv': ['PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1)', 192],
-    'test_ec_secp192r1_pub': ['PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_SECP_R1)', 192],
-    'test_ec_secp224r1_priv': ['PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1)', 224],
-    'test_ec_secp224r1_pub': ['PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_SECP_R1)', 224],
-    'test_ec_secp256r1_priv': ['PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1)', 256],
-    'test_ec_secp256r1_pub': ['PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_SECP_R1)', 256],
-    'test_ec_secp384r1_priv': ['PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1)', 384],
-    'test_ec_secp384r1_pub': ['PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_SECP_R1)', 384],
-    'test_ec_secp521r1_priv': ['PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1)', 521],
-    'test_ec_secp521r1_pub': ['PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_SECP_R1)', 521],
-    'test_ec_bp256r1_priv': ['PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_BRAINPOOL_P_R1)', 256],
-    'test_ec_bp256r1_pub': ['PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_BRAINPOOL_P_R1)', 256],
-    'test_ec_bp384r1_priv': ['PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_BRAINPOOL_P_R1)', 384],
-    'test_ec_bp384r1_pub': ['PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_BRAINPOOL_P_R1)', 384],
-    'test_ec_bp512r1_priv': ['PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_BRAINPOOL_P_R1)', 512],
-    'test_ec_bp512r1_pub': ['PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_BRAINPOOL_P_R1)', 512],
-    'test_ec_secp192k1_priv': ['PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_K1)', 192],
-    'test_ec_secp192k1_pub': ['PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_SECP_K1)', 192],
-    'test_ec_secp256k1_priv': ['PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_K1)', 256],
-    'test_ec_secp256k1_pub': ['PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_SECP_K1)', 256],
-    'test_ec_curve25519_priv': ['PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_MONTGOMERY)', 255],
-    'test_ec_curve25519_pub': ['PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_MONTGOMERY)', 255],
-    'test_ec_curve448_priv': ['PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_MONTGOMERY)', 448],
-    'test_ec_curve448_pub': ['PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_MONTGOMERY)', 448],
-}
 
 def c_byte_array_literal_content(array_name: str, key_data: bytes) -> Iterator[str]:
     yield 'const unsigned char '
@@ -69,8 +29,36 @@ def c_byte_array_literal_content(array_name: str, key_data: bytes) -> Iterator[s
             yield ' {:#04x},'.format(b)
     yield '\n};'
 
-def convert_der_to_c(array_name: str, key_data: bytearray) -> str:
+def convert_der_to_c(array_name: str, key_data: bytes) -> str:
     return ''.join(c_byte_array_literal_content(array_name, key_data))
+
+EC_NAME_CONVERSION = {
+    'PSA_ECC_FAMILY_SECP_K1': ['secp', 'k1'],
+    'PSA_ECC_FAMILY_SECP_R1': ['secp', 'r1'],
+    'PSA_ECC_FAMILY_BRAINPOOL_P_R1': ['bp', 'r1'],
+    'PSA_ECC_FAMILY_MONTGOMERY': ['curve', ''],
+}
+
+def get_key_type(key: str) -> str:
+    if re.match('PSA_KEY_TYPE_RSA_.*', key):
+        return "rsa"
+    elif re.match('PSA_KEY_TYPE_ECC_.*', key):
+        return "ec"
+    else:
+        print("Unhandled key type {}".format(key))
+        return "unknown"
+
+def get_ec_key_family(key: str) -> str:
+    match = re.search(r'.*\((.*)\)', key)
+    if match is None:
+        raise Exception("Unable to get EC family from {}".format(key))
+    return match.group(1)
+
+def get_key_role(key_type: str) -> str:
+    if re.match('PSA_KEY_TYPE_.*_KEY_PAIR', key_type):
+        return "priv"
+    else:
+        return "pub"
 
 def main() -> None:
     # Remove output file if already existing.
@@ -85,13 +73,33 @@ def main() -> None:
         " *********************************************************************************/\n"
     )
 
-    for key in KEYS:
-        key_type = KEYS[key][0]
-        key_bitsize = KEYS[key][1]
-        c_array = convert_der_to_c(key, ASYMMETRIC_KEY_DATA[key_type][key_bitsize])
-        output_file.write("\n")
-        output_file.write(c_array)
-        output_file.write("\n")
+    for key in ASYMMETRIC_KEY_DATA:
+        key_type = get_key_type(key)
+        # Ignore keys which are not EC or RSA
+        if key_type == "unknown":
+            continue
+        # Ignore undesired EC keys
+        if key_type == "ec":
+            ec_family = get_ec_key_family(key)
+            if not ec_family in EC_NAME_CONVERSION:
+                continue
+        role = get_key_role(key)
+
+        for bits in ASYMMETRIC_KEY_DATA[key]:
+            # Create output array name
+            if key_type == "rsa":
+                array_name = "_".join(["test", key_type, str(bits), role])
+            else:
+                prefix = EC_NAME_CONVERSION[ec_family][0]
+                suffix = EC_NAME_CONVERSION[ec_family][1]
+                curve = "".join([prefix, str(bits), suffix])
+                array_name = "_".join(["test", key_type, curve, role])
+            # Convert bytearray to C array
+            c_array = convert_der_to_c(array_name, ASYMMETRIC_KEY_DATA[key][bits])
+            # Write the C array to the output file
+            output_file.write("\n")
+            output_file.write(c_array)
+            output_file.write("\n")
 
 if __name__ == '__main__':
     main()

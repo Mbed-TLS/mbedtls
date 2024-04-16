@@ -231,7 +231,6 @@ psa_status_t pk_psa_import_key(const unsigned char *key_data, size_t key_len,
 }
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
-#if defined(MBEDTLS_PK_PARSE_C)
 /** Setup the provided PK context.
  *
  * Predefined keys used for the setup are taken from "test/src/test_keys.h"
@@ -253,15 +252,19 @@ static int pk_setup(mbedtls_pk_context *pk, mbedtls_pk_type_t pk_type, int curve
     size_t pub_key_data_len = 0;
     int ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
 
+    TEST_EQUAL(mbedtls_pk_setup(pk, mbedtls_pk_info_from_type(pk_type)), 0);
+
     if (pk_type == MBEDTLS_PK_RSA) {
+#if defined(MBEDTLS_RSA_C)
         TEST_EQUAL(get_predefined_key_data(0, curve_or_keybits, &key_data, &key_data_len,
                                            NULL, 0), 0);
-        TEST_EQUAL(mbedtls_pk_parse_key(pk, key_data, key_data_len, NULL, 0,
-                                        mbedtls_test_rnd_std_rand, NULL), 0);
+        TEST_EQUAL(mbedtls_rsa_parse_key(mbedtls_pk_rsa(*pk), key_data, key_data_len), 0);
+#else /* MBEDTLS_RSA_C */
+        TEST_FAIL("RSA keys not supported.");
+#endif /* MBEDTLS_RSA_C */
     } else {
         TEST_EQUAL(get_predefined_key_data(1, curve_or_keybits, &key_data, &key_data_len,
                                            &pub_key_data, &pub_key_data_len), 0);
-        TEST_EQUAL(mbedtls_pk_setup(pk, mbedtls_pk_info_from_type(pk_type)), 0);
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
         pk->ec_family = mbedtls_ecc_group_to_psa(curve_or_keybits, &pk->ec_bits);
         TEST_EQUAL(pk_psa_import_key(key_data, key_data_len,
@@ -291,7 +294,6 @@ static int pk_setup(mbedtls_pk_context *pk, mbedtls_pk_type_t pk_type, int curve
 exit:
     return ret;
 }
-#endif /* MBEDTLS_PK_PARSE_C */
 
 #if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 /** Create a PSA key of the desired type and properties.
@@ -355,7 +357,6 @@ exit:
 #endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-#if defined(MBEDTLS_PK_PARSE_C)
 static psa_key_usage_t pk_get_psa_attributes_implied_usage(
     psa_key_usage_t expected_usage)
 {
@@ -379,7 +380,6 @@ static psa_key_usage_t pk_get_psa_attributes_implied_usage(
     expected_usage |= PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_COPY;
     return expected_usage;
 }
-#endif /* MBEDTLS_PK_PARSE_C */
 
 #define RSA_WRITE_PUBKEY_MAX_SIZE                                       \
     PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_RSA_MAX_KEY_BITS)
@@ -491,7 +491,7 @@ typedef enum {
     FROM_PAIR = 1
 } from_pair_t;
 
-#if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_PK_PARSE_C)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 static int pk_setup_for_type(mbedtls_pk_type_t pk_type, int want_pair,
                              mbedtls_pk_context *pk, psa_key_type_t *psa_type)
 {
@@ -559,7 +559,7 @@ static int pk_setup_for_type(mbedtls_pk_type_t pk_type, int want_pair,
 exit:
     return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
 }
-#endif /* MBEDTLS_PSA_CRYPTO_C && MBEDTLS_PK_PARSE_C */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 /* Create a new PSA key which will contain only the public part of the private
@@ -742,7 +742,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PK_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_USE_PSA_CRYPTO */
 void pk_can_do_ext(int opaque_key, int key_type, int key_usage, int key_alg,
                    int key_alg2, int curve_or_keybits, int alg_check, int usage_check,
                    int result)
@@ -959,7 +959,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PK_PARSE_C */
+/* BEGIN_CASE */
 void pk_utils(int type, int curve_or_keybits, int bitlen, int len, char *name)
 {
     mbedtls_pk_context pk;
@@ -1308,7 +1308,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_MD_CAN_SHA256:PK_CAN_SIGN_SOME */
+/* BEGIN_CASE depends_on:MBEDTLS_MD_CAN_SHA256:PK_CAN_SIGN_SOME */
 void pk_sign_verify(int type, int curve_or_keybits, int rsa_padding, int rsa_md_alg,
                     int sign_ret, int verify_ret)
 {
@@ -1700,7 +1700,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PK_RSA_ALT_SUPPORT */
+/* BEGIN_CASE depends_on:MBEDTLS_RSA_C:MBEDTLS_PK_RSA_ALT_SUPPORT */
 void pk_rsa_alt()
 {
     /*
@@ -1960,7 +1960,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PK_PARSE_C */
+/* BEGIN_CASE */
 void pk_sign_ext(int pk_type, int curve_or_keybits, int key_pk_type, int md_alg)
 {
     mbedtls_pk_context pk;
@@ -2099,7 +2099,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_PK_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C */
 void pk_get_psa_attributes(int pk_type, int from_pair,
                            int usage_arg,
                            int to_pair, int expected_alg)
@@ -2162,7 +2162,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V21:MBEDTLS_PK_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V21 */
 void pk_rsa_v21_get_psa_attributes(int md_type, int from_pair,
                                    int usage_arg,
                                    int to_pair, int expected_alg)
@@ -2210,7 +2210,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_PK_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C */
 void pk_get_psa_attributes_fail(int pk_type, int from_pair,
                                 int usage_arg,
                                 int expected_ret)
@@ -2236,7 +2236,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_PK_PARSE_C:MBEDTLS_TEST_PSA_ECC_AT_LEAST_ONE_CURVE:MBEDTLS_PSA_CRYPTO_STORAGE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_TEST_PSA_ECC_AT_LEAST_ONE_CURVE:MBEDTLS_PSA_CRYPTO_STORAGE_C */
 void pk_import_into_psa_lifetime(int from_opaque,
                                  int from_persistent, /* when from opaque */
                                  int from_exportable, /* when from opaque */
@@ -2387,7 +2387,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_PK_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C */
 void pk_import_into_psa_fail(int pk_type, int from_pair,
                              int type_arg, int bits_arg,
                              int expected_ret)

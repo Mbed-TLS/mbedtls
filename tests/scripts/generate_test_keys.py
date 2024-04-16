@@ -32,13 +32,6 @@ def c_byte_array_literal_content(array_name: str, key_data: bytes) -> Iterator[s
 def convert_der_to_c(array_name: str, key_data: bytes) -> str:
     return ''.join(c_byte_array_literal_content(array_name, key_data))
 
-EC_NAME_CONVERSION = {
-    'PSA_ECC_FAMILY_SECP_K1': ['secp', 'k1'],
-    'PSA_ECC_FAMILY_SECP_R1': ['secp', 'r1'],
-    'PSA_ECC_FAMILY_BRAINPOOL_P_R1': ['bp', 'r1'],
-    'PSA_ECC_FAMILY_MONTGOMERY': ['curve', ''],
-}
-
 def get_key_type(key: str) -> str:
     if re.match('PSA_KEY_TYPE_RSA_.*', key):
         return "rsa"
@@ -54,11 +47,49 @@ def get_ec_key_family(key: str) -> str:
         raise Exception("Unable to get EC family from {}".format(key))
     return match.group(1)
 
-def get_key_role(key_type: str) -> str:
-    if re.match('PSA_KEY_TYPE_.*_KEY_PAIR', key_type):
-        return "priv"
-    else:
-        return "pub"
+# Legacy EC group ID do not support all the key types that PSA does, so the
+# following dictionaries are used for:
+# - getting prefix/suffix for legacy curve names
+# - understand if the curve is supported in legacy symbols (MBEDTLS_ECP_DP_...)
+EC_NAME_CONVERSION = {
+    'PSA_ECC_FAMILY_SECP_K1': {
+        192: ['secp', 'k1'],
+        224: ['secp', 'k1'],
+        256: ['secp', 'k1']
+    },
+    'PSA_ECC_FAMILY_SECP_R1': {
+        192: ['secp', 'r1'],
+        224: ['secp', 'r1'],
+        256: ['secp', 'r1'],
+        384: ['secp', 'r1'],
+        521: ['secp', 'r1']
+    },
+    'PSA_ECC_FAMILY_BRAINPOOL_P_R1': {
+        256: ['bp', 'r1'],
+        384: ['bp', 'r1'],
+        512: ['bp', 'r1']
+    },
+    'PSA_ECC_FAMILY_MONTGOMERY': {
+        255: ['curve', '19'],
+        448: ['curve', '']
+    }
+}
+
+def get_ec_curve_name(priv_key: str, bits: int) -> str:
+    ec_family = get_ec_key_family(priv_key)
+    try:
+        prefix = EC_NAME_CONVERSION[ec_family][bits][0]
+        suffix = EC_NAME_CONVERSION[ec_family][bits][1]
+    except: # pylint: disable=bare-except
+        return ""
+    return prefix + str(bits) + suffix
+
+def get_look_up_table_entry(key_type: str, curve_or_keybits: str,
+                            priv_array_name: str, pub_array_name: str) -> Iterator[str]:
+    yield "\n    {{ {}, ".format("1" if key_type == "ec" else "0")
+    yield "{},\n".format(curve_or_keybits)
+    yield "      {0}, sizeof({0}),\n".format(priv_array_name)
+    yield "      {0}, sizeof({0}) }},".format(pub_array_name)
 
 def main() -> None:
     # Remove output file if already existing.
@@ -73,33 +104,60 @@ def main() -> None:
         " *********************************************************************************/\n"
     )
 
-    for key in ASYMMETRIC_KEY_DATA:
-        key_type = get_key_type(key)
+    look_up_table = ""
+
+    # Get a list of private keys only in order to get a single item for every
+    # (key type, key bits) pair. We know that ASYMMETRIC_KEY_DATA
+    # contains also the public counterpart.
+    priv_keys = [key for key in ASYMMETRIC_KEY_DATA if re.match(r'.*_KEY_PAIR', key)]
+
+    for priv_key in priv_keys:
+        key_type = get_key_type(priv_key)
         # Ignore keys which are not EC or RSA
         if key_type == "unknown":
             continue
-        # Ignore undesired EC keys
-        if key_type == "ec":
-            ec_family = get_ec_key_family(key)
-            if not ec_family in EC_NAME_CONVERSION:
-                continue
-        role = get_key_role(key)
 
-        for bits in ASYMMETRIC_KEY_DATA[key]:
+        pub_key = re.sub('_KEY_PAIR', '_PUBLIC_KEY', priv_key)
+
+        for bits in ASYMMETRIC_KEY_DATA[priv_key]:
+            if key_type == "ec":
+                curve = get_ec_curve_name(priv_key, bits)
+                # Ignore EC curves unsupported in legacy symbols
+                if curve == "":
+                    continue
             # Create output array name
             if key_type == "rsa":
-                array_name = "_".join(["test", key_type, str(bits), role])
+                array_name_base = "_".join(["test", key_type, str(bits)])
             else:
-                prefix = EC_NAME_CONVERSION[ec_family][0]
-                suffix = EC_NAME_CONVERSION[ec_family][1]
-                curve = "".join([prefix, str(bits), suffix])
-                array_name = "_".join(["test", key_type, curve, role])
+                array_name_base = "_".join(["test", key_type, curve])
+            array_name_priv = array_name_base + "_priv"
+            array_name_pub = array_name_base + "_pub"
             # Convert bytearray to C array
-            c_array = convert_der_to_c(array_name, ASYMMETRIC_KEY_DATA[key][bits])
+            c_array_priv = convert_der_to_c(array_name_priv, ASYMMETRIC_KEY_DATA[priv_key][bits])
+            c_array_pub = convert_der_to_c(array_name_pub, ASYMMETRIC_KEY_DATA[pub_key][bits])
             # Write the C array to the output file
-            output_file.write("\n")
-            output_file.write(c_array)
-            output_file.write("\n")
+            output_file.write(''.join(["\n", c_array_priv, "\n", c_array_pub, "\n"]))
+            # Update the lookup table
+            if key_type == "ec":
+                curve_or_keybits = "MBEDTLS_ECP_DP_" + curve.upper()
+            else:
+                curve_or_keybits = str(bits)
+            look_up_table = look_up_table + \
+                            ''.join(get_look_up_table_entry(key_type, curve_or_keybits,
+                                                            array_name_priv, array_name_pub))
+    # Write the lookup table: the struct containing pointers to all the arrays we created above.
+    output_file.write("""
+struct predefined_key_element {
+    int is_ec;  // 1 for EC keys; 0 for RSA
+    int curve_or_keybits;
+    const unsigned char *priv_key;
+    size_t priv_key_len;
+    const unsigned char *pub_key;
+    size_t pub_key_len;
+};
+
+struct predefined_key_element predefined_keys[] = {""")
+    output_file.write("{}\n}};\n".format(look_up_table))
 
 if __name__ == '__main__':
     main()

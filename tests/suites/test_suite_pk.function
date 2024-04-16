@@ -2013,11 +2013,7 @@ void pk_psa_wrap_sign_ext(int pk_type, int key_bits, int key_pk_type, int md_alg
 
     /* Create legacy RSA public/private key in PK context. */
     mbedtls_pk_init(&pk);
-    TEST_EQUAL(mbedtls_pk_setup(&pk,
-                                mbedtls_pk_info_from_type(pk_type)), 0);
-    TEST_EQUAL(mbedtls_rsa_gen_key(mbedtls_pk_rsa(pk),
-                                   mbedtls_test_rnd_std_rand, NULL,
-                                   key_bits, 3), 0);
+    TEST_EQUAL(pk_setup(&pk, pk_type, key_bits), 0);
 
     if (key_pk_type == MBEDTLS_PK_RSASSA_PSS) {
         mbedtls_rsa_set_padding(mbedtls_pk_rsa(pk), MBEDTLS_RSA_PKCS_V21, MBEDTLS_MD_NONE);

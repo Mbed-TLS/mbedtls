@@ -14,61 +14,61 @@ import sys
 import argparse
 import jinja2
 
-this_dir = os.path.dirname(os.path.abspath(__file__))
-data_files_path = os.path.join(this_dir, '..', 'data_files')
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_FILES_PATH = os.path.join(THIS_DIR, '..', 'data_files')
 
 INPUT_ARGS = [
-    ("string", "TEST_CA_CRT_EC_PEM", data_files_path + "/test-ca2.crt"),
-    ("binary", "TEST_CA_CRT_EC_DER", data_files_path + "/test-ca2.crt.der"),
-    ("string", "TEST_CA_KEY_EC_PEM", data_files_path + "/test-ca2.key.enc"),
+    ("string", "TEST_CA_CRT_EC_PEM", DATA_FILES_PATH + "/test-ca2.crt"),
+    ("binary", "TEST_CA_CRT_EC_DER", DATA_FILES_PATH + "/test-ca2.crt.der"),
+    ("string", "TEST_CA_KEY_EC_PEM", DATA_FILES_PATH + "/test-ca2.key.enc"),
     ("password", "TEST_CA_PWD_EC_PEM", "PolarSSLTest"),
-    ("binary", "TEST_CA_KEY_EC_DER", data_files_path + "/test-ca2.key.der"),
-    ("string", "TEST_CA_CRT_RSA_SHA256_PEM", data_files_path + "/test-ca-sha256.crt"),
-    ("binary", "TEST_CA_CRT_RSA_SHA256_DER", data_files_path + "/test-ca-sha256.crt.der"),
-    ("string", "TEST_CA_CRT_RSA_SHA1_PEM", data_files_path + "/test-ca-sha1.crt"),
-    ("binary", "TEST_CA_CRT_RSA_SHA1_DER", data_files_path + "/test-ca-sha1.crt.der"),
-    ("string", "TEST_CA_KEY_RSA_PEM", data_files_path + "/test-ca.key"),
+    ("binary", "TEST_CA_KEY_EC_DER", DATA_FILES_PATH + "/test-ca2.key.der"),
+    ("string", "TEST_CA_CRT_RSA_SHA256_PEM", DATA_FILES_PATH + "/test-ca-sha256.crt"),
+    ("binary", "TEST_CA_CRT_RSA_SHA256_DER", DATA_FILES_PATH + "/test-ca-sha256.crt.der"),
+    ("string", "TEST_CA_CRT_RSA_SHA1_PEM", DATA_FILES_PATH + "/test-ca-sha1.crt"),
+    ("binary", "TEST_CA_CRT_RSA_SHA1_DER", DATA_FILES_PATH + "/test-ca-sha1.crt.der"),
+    ("string", "TEST_CA_KEY_RSA_PEM", DATA_FILES_PATH + "/test-ca.key"),
     ("password", "TEST_CA_PWD_RSA_PEM", "PolarSSLTest"),
-    ("binary", "TEST_CA_KEY_RSA_DER", data_files_path + "/test-ca.key.der"),
-    ("string", "TEST_SRV_CRT_EC_PEM", data_files_path + "/server5.crt"),
-    ("binary", "TEST_SRV_CRT_EC_DER", data_files_path + "/server5.crt.der"),
-    ("string", "TEST_SRV_KEY_EC_PEM", data_files_path + "/server5.key"),
-    ("binary", "TEST_SRV_KEY_EC_DER", data_files_path + "/server5.key.der"),
-    ("string", "TEST_SRV_CRT_RSA_SHA256_PEM", data_files_path + "/server2-sha256.crt"),
-    ("binary", "TEST_SRV_CRT_RSA_SHA256_DER", data_files_path + "/server2-sha256.crt.der"),
-    ("string", "TEST_SRV_CRT_RSA_SHA1_PEM", data_files_path + "/server2.crt"),
-    ("binary", "TEST_SRV_CRT_RSA_SHA1_DER", data_files_path + "/server2.crt.der"),
-    ("string", "TEST_SRV_KEY_RSA_PEM", data_files_path + "/server2.key"),
-    ("binary", "TEST_SRV_KEY_RSA_DER", data_files_path + "/server2.key.der"),
-    ("string", "TEST_CLI_CRT_EC_PEM", data_files_path + "/cli2.crt"),
-    ("binary", "TEST_CLI_CRT_EC_DER", data_files_path + "/cli2.crt.der"),
-    ("string", "TEST_CLI_KEY_EC_PEM", data_files_path + "/cli2.key"),
-    ("binary", "TEST_CLI_KEY_EC_DER", data_files_path + "/cli2.key.der"),
-    ("string", "TEST_CLI_CRT_RSA_PEM", data_files_path + "/cli-rsa-sha256.crt"),
-    ("binary", "TEST_CLI_CRT_RSA_DER", data_files_path + "/cli-rsa-sha256.crt.der"),
-    ("string", "TEST_CLI_KEY_RSA_PEM", data_files_path + "/cli-rsa.key"),
-    ("binary", "TEST_CLI_KEY_RSA_DER", data_files_path + "/cli-rsa.key.der"),
+    ("binary", "TEST_CA_KEY_RSA_DER", DATA_FILES_PATH + "/test-ca.key.der"),
+    ("string", "TEST_SRV_CRT_EC_PEM", DATA_FILES_PATH + "/server5.crt"),
+    ("binary", "TEST_SRV_CRT_EC_DER", DATA_FILES_PATH + "/server5.crt.der"),
+    ("string", "TEST_SRV_KEY_EC_PEM", DATA_FILES_PATH + "/server5.key"),
+    ("binary", "TEST_SRV_KEY_EC_DER", DATA_FILES_PATH + "/server5.key.der"),
+    ("string", "TEST_SRV_CRT_RSA_SHA256_PEM", DATA_FILES_PATH + "/server2-sha256.crt"),
+    ("binary", "TEST_SRV_CRT_RSA_SHA256_DER", DATA_FILES_PATH + "/server2-sha256.crt.der"),
+    ("string", "TEST_SRV_CRT_RSA_SHA1_PEM", DATA_FILES_PATH + "/server2.crt"),
+    ("binary", "TEST_SRV_CRT_RSA_SHA1_DER", DATA_FILES_PATH + "/server2.crt.der"),
+    ("string", "TEST_SRV_KEY_RSA_PEM", DATA_FILES_PATH + "/server2.key"),
+    ("binary", "TEST_SRV_KEY_RSA_DER", DATA_FILES_PATH + "/server2.key.der"),
+    ("string", "TEST_CLI_CRT_EC_PEM", DATA_FILES_PATH + "/cli2.crt"),
+    ("binary", "TEST_CLI_CRT_EC_DER", DATA_FILES_PATH + "/cli2.crt.der"),
+    ("string", "TEST_CLI_KEY_EC_PEM", DATA_FILES_PATH + "/cli2.key"),
+    ("binary", "TEST_CLI_KEY_EC_DER", DATA_FILES_PATH + "/cli2.key.der"),
+    ("string", "TEST_CLI_CRT_RSA_PEM", DATA_FILES_PATH + "/cli-rsa-sha256.crt"),
+    ("binary", "TEST_CLI_CRT_RSA_DER", DATA_FILES_PATH + "/cli-rsa-sha256.crt.der"),
+    ("string", "TEST_CLI_KEY_RSA_PEM", DATA_FILES_PATH + "/cli-rsa.key"),
+    ("binary", "TEST_CLI_KEY_RSA_DER", DATA_FILES_PATH + "/cli-rsa.key.der"),
 ]
 
 def main():
     parser = argparse.ArgumentParser()
-    default_output_path = os.path.join(this_dir, '..', 'test_certs.h')
+    default_output_path = os.path.join(THIS_DIR, '..', 'test_certs.h')
     parser.add_argument('--output', type=str, default=default_output_path)
     parser.add_argument('--list-dependencies', action='store_true')
     args = parser.parse_args()
 
-    if (args.list_dependencies is True):
+    if args.list_dependencies is True:
         files_list = [arg[2] for arg in INPUT_ARGS]
         print(" ".join(files_list))
         return
 
-    return generate(INPUT_ARGS, output=args.output)
+    generate(INPUT_ARGS, output=args.output)
 
 #pylint: disable=dangerous-default-value, unused-argument
 def generate(values=[], output=None):
     """Generate C header file.
     """
-    template_loader = jinja2.FileSystemLoader(data_files_path)
+    template_loader = jinja2.FileSystemLoader(DATA_FILES_PATH)
     template_env = jinja2.Environment(
         loader=template_loader, lstrip_blocks=True, trim_blocks=True)
 

@@ -204,7 +204,10 @@ static int get_predefined_key_data(int is_ec, int curve_or_keybits,
         }
     }
 
-    return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    TEST_FAIL("Unsupported key");
+    /* "exit" label is to make the compiler happy. */
+exit:
+    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)

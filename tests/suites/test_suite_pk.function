@@ -498,20 +498,13 @@ static int pk_setup_for_type(mbedtls_pk_type_t pk_type, int want_pair,
 #if defined(MBEDTLS_RSA_C)
         case MBEDTLS_PK_RSA:
         {
-            TEST_EQUAL(mbedtls_pk_setup(pk, mbedtls_pk_info_from_type(pk_type)), 0);
             *psa_type = PSA_KEY_TYPE_RSA_KEY_PAIR;
-            if (want_pair) {
-                TEST_EQUAL(pk_setup(pk, pk_type, MBEDTLS_RSA_GEN_KEY_MIN_BITS), 0);
-            } else {
-                unsigned char N[PSA_BITS_TO_BYTES(MBEDTLS_RSA_GEN_KEY_MIN_BITS)] = { 0xff };
-                N[sizeof(N) - 1] = 0x03;
-                const unsigned char E[1] = { 0x03 };
+            TEST_EQUAL(pk_setup(pk, pk_type, MBEDTLS_RSA_GEN_KEY_MIN_BITS), 0);
+            if (!want_pair) {
                 mbedtls_rsa_context *rsa = mbedtls_pk_rsa(*pk);
-                TEST_EQUAL(mbedtls_rsa_import_raw(rsa,
-                                                  N, sizeof(N),
-                                                  NULL, 0, NULL, 0, NULL, 0,
-                                                  E, sizeof(E)), 0);
-                TEST_EQUAL(mbedtls_rsa_complete(rsa), 0);
+                mbedtls_mpi_free(&rsa->D);
+                mbedtls_mpi_free(&rsa->P);
+                mbedtls_mpi_free(&rsa->Q);
             }
             break;
         }

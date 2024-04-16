@@ -296,11 +296,10 @@ exit:
 #if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
 /** Create a PSA key of the desired type and properties.
  *
- * This is similar to pk_setup() above in the sense that it uses predefined
- * keys, but in this case instead of setting up a PK context, the key is
- * imported into PSA.
+ * - For RSA and EC keys predefined key data is used (as in the pk_setup() above).
+ * - Other key types (ex: DH) are generated at runtime.
  *
- * \param type                  PSA key type. Only RSA and EC keys are supported.
+ * \param type                  PSA key type.
  * \param bits                  PSA key bit size.
  * \param usage                 PSA key usage flags.
  * \param alg                   PSA key primary algorithm.
@@ -320,19 +319,6 @@ psa_status_t pk_psa_setup(psa_key_type_t type, size_t bits,
     const unsigned char *key_data = NULL;
     size_t key_data_size = 0;
 
-    if (PSA_KEY_TYPE_IS_RSA(type)) {
-        TEST_EQUAL(get_predefined_key_data(0, bits, &key_data, &key_data_size, NULL, 0), 0);
-    } else {
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-        mbedtls_ecp_group_id grp_id;
-        grp_id = mbedtls_ecc_group_from_psa(PSA_KEY_TYPE_ECC_GET_FAMILY(type), bits);
-        TEST_EQUAL(get_predefined_key_data(1, grp_id, &key_data, &key_data_size, NULL, 0), 0);
-#else /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
-        TEST_FAIL("EC keys are not supported");
-#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
-    }
-
-    /* Import the key into PSA. */
     *key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_set_key_usage_flags(&attributes, usage);
     psa_set_key_algorithm(&attributes, alg);
@@ -342,6 +328,25 @@ psa_status_t pk_psa_setup(psa_key_type_t type, size_t bits,
     if (!mbedtls_svc_key_id_is_null(persistent_key_id)) {
         psa_set_key_id(&attributes, persistent_key_id);
     }
+
+    /* For EC and RSA keys we use predefined keys in order to:
+     * - speed up testing and
+     * - ease requirements/dependencies on test cases.
+     * For other keys (ex: DH) psa_generate_key() is used instead. */
+    if (PSA_KEY_TYPE_IS_RSA(type)) {
+        TEST_EQUAL(get_predefined_key_data(0, bits, &key_data, &key_data_size, NULL, 0), 0);
+    } else if (PSA_KEY_TYPE_IS_ECC(type)) {
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
+        mbedtls_ecp_group_id grp_id;
+        grp_id = mbedtls_ecc_group_from_psa(PSA_KEY_TYPE_ECC_GET_FAMILY(type), bits);
+        TEST_EQUAL(get_predefined_key_data(1, grp_id, &key_data, &key_data_size, NULL, 0), 0);
+#else /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
+        TEST_FAIL("EC keys are not supported");
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
+    } else {
+        return psa_generate_key(&attributes, key);
+    }
+
     status = psa_import_key(&attributes, key_data, key_data_size, key);
 
 exit:
@@ -2479,15 +2484,9 @@ void pk_copy_from_psa_fail(void)
                MBEDTLS_ERR_PK_BAD_INPUT_DATA);
 
 #if defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE)
-    /* Generate a key type that is not handled by the PK module.
-     * Note: we cannot use pk_psa_setup() in this case because that function relies
-     * on PK module functionality and PK module does not support DH keys. */
-    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
-
-    psa_set_key_type(&key_attr, PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919));
-    psa_set_key_bits(&key_attr, 2048);
-    psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_EXPORT);
-    psa_generate_key(&key_attr, &key_id);
+    pk_psa_setup(PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919), 2048,
+                 PSA_KEY_USAGE_EXPORT, PSA_ALG_NONE, PSA_ALG_NONE,
+                 MBEDTLS_SVC_KEY_ID_INIT, &key_id);
     TEST_EQUAL(mbedtls_pk_copy_from_psa(key_id, &pk_ctx), MBEDTLS_ERR_PK_BAD_INPUT_DATA);
     TEST_EQUAL(mbedtls_pk_copy_public_from_psa(key_id, &pk_ctx), MBEDTLS_ERR_PK_BAD_INPUT_DATA);
     psa_destroy_key(key_id);

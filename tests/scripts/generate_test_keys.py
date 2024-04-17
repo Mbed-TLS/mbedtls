@@ -80,10 +80,12 @@ def get_ec_curve_name(priv_key: str, bits: int) -> str:
         return ""
     return prefix + str(bits) + suffix
 
-def get_look_up_table_entry(key_type: str, curve_or_keybits: str,
+def get_look_up_table_entry(key_type: str, group_id_or_keybits: str,
                             priv_array_name: str, pub_array_name: str) -> Iterator[str]:
-    yield "    {{ {}, ".format("1" if key_type == "ec" else "0")
-    yield "{},\n".format(curve_or_keybits)
+    if key_type == "ec":
+        yield "    {{ {}, 0,\n".format(group_id_or_keybits)
+    else:
+        yield "    {{ 0, {},\n".format(group_id_or_keybits)
     yield "      {0}, sizeof({0}),\n".format(priv_array_name)
     yield "      {0}, sizeof({0}) }},".format(pub_array_name)
 
@@ -135,16 +137,16 @@ def main() -> None:
             output_file.write(''.join(["\n", c_array_priv, "\n", c_array_pub, "\n"]))
             # Update the lookup table
             if key_type == "ec":
-                curve_or_keybits = "MBEDTLS_ECP_DP_" + curve.upper()
+                group_id_or_keybits = "MBEDTLS_ECP_DP_" + curve.upper()
             else:
-                curve_or_keybits = str(bits)
-            look_up_table.append(''.join(get_look_up_table_entry(key_type, curve_or_keybits,
+                group_id_or_keybits = str(bits)
+            look_up_table.append(''.join(get_look_up_table_entry(key_type, group_id_or_keybits,
                                                                  array_name_priv, array_name_pub)))
     # Write the lookup table: the struct containing pointers to all the arrays we created above.
     output_file.write("""
 struct predefined_key_element {
-    int is_ec;  // 1 for EC keys; 0 for RSA
-    int curve_or_keybits;
+    int group_id;  // EC group ID; 0 for RSA keys
+    int keybits;  // bits size of RSA key; 0 for EC keys
     const unsigned char *priv_key;
     size_t priv_key_len;
     const unsigned char *pub_key;

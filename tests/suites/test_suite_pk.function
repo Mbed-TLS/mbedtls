@@ -186,22 +186,31 @@
 #define RSA_KEY_SIZE   1024
 #define RSA_KEY_LEN   (RSA_KEY_SIZE/8)
 
-static int get_predefined_key_data(int is_ec, int curve_or_keybits,
+static int get_predefined_key_data(int is_ec, int group_id_or_keybits,
                                    const unsigned char **key, size_t *key_len,
                                    const unsigned char **pub_key, size_t *pub_key_len)
 {
     size_t i;
+    struct predefined_key_element *predefined_key = NULL;
+
     for (i = 0; i < ARRAY_LENGTH(predefined_keys); i++) {
-        if ((is_ec == predefined_keys[i].is_ec) &&
-            (curve_or_keybits == predefined_keys[i].curve_or_keybits)) {
-            *key = predefined_keys[i].priv_key;
-            *key_len = predefined_keys[i].priv_key_len;
-            if (pub_key != NULL) {
-                *pub_key = predefined_keys[i].pub_key;
-                *pub_key_len = predefined_keys[i].pub_key_len;
+        if (is_ec) {
+            if (group_id_or_keybits == predefined_keys[i].group_id) {
+                predefined_key = &predefined_keys[i];
             }
-            return 0;
+        } else if (group_id_or_keybits == predefined_keys[i].keybits) {
+            predefined_key = &predefined_keys[i];
         }
+    }
+
+    if (predefined_key != NULL) {
+        *key = predefined_key->priv_key;
+        *key_len = predefined_key->priv_key_len;
+        if (pub_key != NULL) {
+            *pub_key = predefined_key->pub_key;
+            *pub_key_len = predefined_key->pub_key_len;
+        }
+        return 0;
     }
 
     TEST_FAIL("Unsupported key");

@@ -295,7 +295,7 @@ exit:
     return ret;
 }
 
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 /** Create a PSA key of the desired type and properties.
  *
  * - For RSA and EC keys predefined key data is used (as in the pk_setup() above).
@@ -354,9 +354,7 @@ psa_status_t pk_psa_setup(psa_key_type_t type, size_t bits,
 exit:
     return status;
 }
-#endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
 static psa_key_usage_t pk_get_psa_attributes_implied_usage(
     psa_key_usage_t expected_usage)
 {

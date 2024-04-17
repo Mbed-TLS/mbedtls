@@ -730,8 +730,8 @@ const unsigned char test_rsa_4096_pub[] = {
 };
 
 struct predefined_key_element {
-    int is_ec;  // 1 for EC keys; 0 for RSA
-    int curve_or_keybits;
+    int group_id;  // EC group ID; 0 for RSA keys
+    int keybits;  // bits size of RSA key; 0 for EC keys
     const unsigned char *priv_key;
     size_t priv_key_len;
     const unsigned char *pub_key;
@@ -739,40 +739,40 @@ struct predefined_key_element {
 };
 
 struct predefined_key_element predefined_keys[] = {
-    { 1, MBEDTLS_ECP_DP_SECP192K1,
+    { MBEDTLS_ECP_DP_SECP192K1, 0,
       test_ec_secp192k1_priv, sizeof(test_ec_secp192k1_priv),
       test_ec_secp192k1_pub, sizeof(test_ec_secp192k1_pub) },
-    { 1, MBEDTLS_ECP_DP_SECP256K1,
+    { MBEDTLS_ECP_DP_SECP256K1, 0,
       test_ec_secp256k1_priv, sizeof(test_ec_secp256k1_priv),
       test_ec_secp256k1_pub, sizeof(test_ec_secp256k1_pub) },
-    { 1, MBEDTLS_ECP_DP_SECP192R1,
+    { MBEDTLS_ECP_DP_SECP192R1, 0,
       test_ec_secp192r1_priv, sizeof(test_ec_secp192r1_priv),
       test_ec_secp192r1_pub, sizeof(test_ec_secp192r1_pub) },
-    { 1, MBEDTLS_ECP_DP_SECP224R1,
+    { MBEDTLS_ECP_DP_SECP224R1, 0,
       test_ec_secp224r1_priv, sizeof(test_ec_secp224r1_priv),
       test_ec_secp224r1_pub, sizeof(test_ec_secp224r1_pub) },
-    { 1, MBEDTLS_ECP_DP_SECP256R1,
+    { MBEDTLS_ECP_DP_SECP256R1, 0,
       test_ec_secp256r1_priv, sizeof(test_ec_secp256r1_priv),
       test_ec_secp256r1_pub, sizeof(test_ec_secp256r1_pub) },
-    { 1, MBEDTLS_ECP_DP_SECP384R1,
+    { MBEDTLS_ECP_DP_SECP384R1, 0,
       test_ec_secp384r1_priv, sizeof(test_ec_secp384r1_priv),
       test_ec_secp384r1_pub, sizeof(test_ec_secp384r1_pub) },
-    { 1, MBEDTLS_ECP_DP_SECP521R1,
+    { MBEDTLS_ECP_DP_SECP521R1, 0,
       test_ec_secp521r1_priv, sizeof(test_ec_secp521r1_priv),
       test_ec_secp521r1_pub, sizeof(test_ec_secp521r1_pub) },
-    { 1, MBEDTLS_ECP_DP_BP256R1,
+    { MBEDTLS_ECP_DP_BP256R1, 0,
       test_ec_bp256r1_priv, sizeof(test_ec_bp256r1_priv),
       test_ec_bp256r1_pub, sizeof(test_ec_bp256r1_pub) },
-    { 1, MBEDTLS_ECP_DP_BP384R1,
+    { MBEDTLS_ECP_DP_BP384R1, 0,
       test_ec_bp384r1_priv, sizeof(test_ec_bp384r1_priv),
       test_ec_bp384r1_pub, sizeof(test_ec_bp384r1_pub) },
-    { 1, MBEDTLS_ECP_DP_BP512R1,
+    { MBEDTLS_ECP_DP_BP512R1, 0,
       test_ec_bp512r1_priv, sizeof(test_ec_bp512r1_priv),
       test_ec_bp512r1_pub, sizeof(test_ec_bp512r1_pub) },
-    { 1, MBEDTLS_ECP_DP_CURVE25519,
+    { MBEDTLS_ECP_DP_CURVE25519, 0,
       test_ec_curve25519_priv, sizeof(test_ec_curve25519_priv),
       test_ec_curve25519_pub, sizeof(test_ec_curve25519_pub) },
-    { 1, MBEDTLS_ECP_DP_CURVE448,
+    { MBEDTLS_ECP_DP_CURVE448, 0,
       test_ec_curve448_priv, sizeof(test_ec_curve448_priv),
       test_ec_curve448_pub, sizeof(test_ec_curve448_pub) },
     { 0, 1024,

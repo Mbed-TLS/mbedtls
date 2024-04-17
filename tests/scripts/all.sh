@@ -1218,8 +1218,11 @@ component_test_full_cmake_gcc_asan () {
     msg "test: ssl-opt.sh (full config, ASan build)"
     tests/ssl-opt.sh
 
-    msg "test: compat.sh (full config, ASan build)"
-    tests/compat.sh
+    msg "test: compat.sh: NULL (full config, ASan build)"
+    tests/compat.sh -f 'NULL'
+
+    msg "test: compat.sh next: all except NULL (full config, ASan build)"
+    env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e 'NULL'
 
     msg "test: context-info.sh (full config, ASan build)" # ~ 15 sec
     tests/context-info.sh
@@ -1242,8 +1245,11 @@ component_test_full_cmake_gcc_asan_new_bignum () {
     msg "test: ssl-opt.sh (full config, ASan build)"
     tests/ssl-opt.sh
 
-    msg "test: compat.sh (full config, ASan build)"
-    tests/compat.sh
+    msg "test: compat.sh: NULL (full config, ASan build)"
+    tests/compat.sh -f 'NULL'
+
+    msg "test: compat.sh next: all except NULL (full config, ASan build)"
+    env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e 'NULL'
 
     msg "test: context-info.sh (full config, ASan build)" # ~ 15 sec
     tests/context-info.sh
@@ -2161,12 +2167,6 @@ component_test_full_cmake_clang () {
 
     msg "test: ssl-opt.sh default, ECJPAKE, SSL async (full config)" # ~ 1s
     tests/ssl-opt.sh -f 'Default\|ECJPAKE\|SSL async private'
-
-    msg "test: compat.sh NULL (full config)" # ~ 2 min
-    tests/compat.sh -e '^$' -f 'NULL'
-
-    msg "test: compat.sh ARIA + ChachaPoly"
-    env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
 skip_suites_without_constant_flow () {
@@ -2610,14 +2610,11 @@ component_test_no_psa_crypto_full_cmake_asan() {
     msg "test: ssl-opt.sh (full minus PSA crypto)"
     tests/ssl-opt.sh
 
-    msg "test: compat.sh default (full minus PSA crypto)"
-    tests/compat.sh
-
-    msg "test: compat.sh NULL (full minus PSA crypto)"
+    msg "test: compat.sh: NULL (full minus PSA crypto)"
     tests/compat.sh -f 'NULL'
 
-    msg "test: compat.sh ARIA + ChachaPoly (full minus PSA crypto)"
-    env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
+    msg "test: compat.sh next: all except NULL (full minus PSA crypto)"
+    env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e 'NULL'
 }
 
 component_test_psa_crypto_config_accel_ecdsa () {

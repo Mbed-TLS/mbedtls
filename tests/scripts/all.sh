@@ -928,8 +928,18 @@ component_test_full_cmake_gcc_asan () {
     msg "test: ssl-opt.sh (full config, ASan build)"
     tests/ssl-opt.sh
 
-    msg "test: compat.sh (full config, ASan build)"
-    tests/compat.sh
+    msg "test: compat.sh all except legacy/next (full config, ASan build)"
+    tests/compat.sh -e '^DES-CBC-\|-DES-CBC-\|ARIA\|CHACHA' \
+        -m 'ssl3 tls1 tls1_1 tls12 dtls1 dtls12'
+
+    msg "test: compat.sh single-DES (full config, ASan build)"
+    env OPENSSL="$OPENSSL_LEGACY" tests/compat.sh -e '^$' -f '^DES-CBC\|-DES-CBC-' \
+        -m 'ssl3 tls1 tls1_1 tls12 dtls1 dtls12'
+
+    # ARIA and ChachaPoly are both (D)TLS 1.2 only
+    msg "test: compat.sh ARIA + ChachaPoly (full config, ASan build)"
+    env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA' \
+        -m 'dtls12 dtls12'
 
     msg "test: context-info.sh (full config, ASan build)" # ~ 15 sec
     tests/context-info.sh
@@ -1628,19 +1638,6 @@ component_test_full_cmake_clang () {
 
     msg "test: ssl-opt.sh default, ECJPAKE, SSL async (full config)" # ~ 1s
     tests/ssl-opt.sh -f 'Default\|ECJPAKE\|SSL async private'
-
-    msg "test: compat.sh all except legacy/next (full config)"
-    tests/compat.sh -e '^DES-CBC-\|-DES-CBC-\|ARIA\|CHACHA' \
-        -m 'ssl3 tls1 tls1_1 tls12 dtls1 dtls12'
-
-    msg "test: compat.sh single-DES (full config)"
-    env OPENSSL="$OPENSSL_LEGACY" tests/compat.sh -e '^$' -f '^DES-CBC\|-DES-CBC-' \
-        -m 'ssl3 tls1 tls1_1 tls12 dtls1 dtls12'
-
-    # ARIA and ChachaPoly are both (D)TLS 1.2 only
-    msg "test: compat.sh ARIA + ChachaPoly (full config)"
-    env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA' \
-        -m 'dtls12 dtls12'
 }
 
 skip_suites_without_constant_flow () {

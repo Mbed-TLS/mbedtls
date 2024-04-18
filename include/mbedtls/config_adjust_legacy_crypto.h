@@ -293,6 +293,14 @@
 #define MBEDTLS_ECP_LIGHT
 #endif
 
+/* Backward compatibility: after #8740 the RSA module offers functions to parse
+ * and write RSA private/public keys without relying on the PK one. Of course
+ * this needs ASN1 support to do so, so we enable it here. */
+#if defined(MBEDTLS_RSA_C)
+#define MBEDTLS_ASN1_PARSE_C
+#define MBEDTLS_ASN1_WRITE_C
+#endif
+
 /* MBEDTLS_PK_PARSE_EC_COMPRESSED is introduced in Mbed TLS version 3.5, while
  * in previous version compressed points were automatically supported as long
  * as PK_PARSE_C and ECP_C were enabled. As a consequence, for backward

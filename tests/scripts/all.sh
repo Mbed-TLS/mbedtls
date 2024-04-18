@@ -1366,12 +1366,13 @@ component_build_full_psa_crypto_client_without_crypto_provider () {
     grep mbedtls_pk_copy_from_psa library/libmbedcrypto.a
 }
 
-component_test_psa_crypto_rsa_no_genprime() {
-    msg "build: default config minus MBEDTLS_GENPRIME"
+component_test_no_rsa_key_pair_generation() {
+    msg "build: default config minus PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE"
     scripts/config.py unset MBEDTLS_GENPRIME
+    scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
     make
 
-    msg "test: default config minus MBEDTLS_GENPRIME"
+    msg "test: default config minus PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE"
     make test
 }
 

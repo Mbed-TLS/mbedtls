@@ -939,7 +939,7 @@ component_test_full_cmake_gcc_asan () {
     # ARIA and ChachaPoly are both (D)TLS 1.2 only
     msg "test: compat.sh ARIA + ChachaPoly (full config, ASan build)"
     env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA' \
-        -m 'dtls12 dtls12'
+        -m 'tls12 dtls12'
 
     msg "test: context-info.sh (full config, ASan build)" # ~ 15 sec
     tests/context-info.sh
@@ -1937,7 +1937,7 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     # ARIA and ChachaPoly are both (D)TLS 1.2 only
     msg "test: compat.sh ARIA + ChachaPoly (full minus MBEDTLS_USE_PSA_CRYPTO)"
     env OPENSSL="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA' \
-        -m 'dtls12 dtls12'
+        -m 'tls12 dtls12'
 }
 
 component_test_psa_crypto_config_accel_ecdsa () {

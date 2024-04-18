@@ -117,7 +117,7 @@ echo '################ compat.sh ################'
     # ARIA and ChachaPoly are both (D)TLS 1.2 only
     echo '#### compat.sh: next (ARIA, ChaCha)'
     OPENSSL="$OPENSSL_NEXT" sh compat.sh -e '^$' -f 'ARIA\|CHACHA' \
-        -m 'dtls12 dtls12'
+        -m 'tls12 dtls12'
     echo
 } | tee compat-test-$TEST_OUTPUT
 echo '^^^^^^^^^^^^^^^^ compat.sh ^^^^^^^^^^^^^^^^'

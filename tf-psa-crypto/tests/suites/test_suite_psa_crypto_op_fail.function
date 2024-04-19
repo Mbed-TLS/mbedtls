@@ -252,8 +252,8 @@ void sign_fail(int key_type_arg, data_t *key_data,
     PSA_ASSERT(psa_sign_hash_abort(&sign_operation));
 
     if (!private_only) {
-        /* Determine a plausible signature size to avoid an INVALID_SIGNATURE
-         * error based on this. */
+        /* Construct a signature candidate of a plausible size to avoid an
+         * INVALID_SIGNATURE error based on an early size verification. */
         PSA_ASSERT(psa_get_key_attributes(key_id, &attributes));
         size_t key_bits = psa_get_key_bits(&attributes);
         size_t output_length = sizeof(output);

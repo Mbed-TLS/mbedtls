@@ -236,7 +236,8 @@ class OpFail:
             tc.set_key_bits(bits)
         arguments.append(alg.expression)
         if category.is_asymmetric():
-            arguments.append('1' if reason == self.Reason.PUBLIC else '0')
+            private_only = (reason == self.Reason.PUBLIC)
+            arguments.append('1' if private_only else '0')
         error = ('NOT_SUPPORTED' if reason == self.Reason.NOT_SUPPORTED else
                  'INVALID_ARGUMENT')
         arguments.append('PSA_ERROR_' + error)
@@ -272,9 +273,25 @@ class OpFail:
             if key_is_compatible and alg.can_do(category):
                 # Compatible key and operation, unsupported algorithm
                 for dep in psa_information.automatic_dependencies(alg.base_expression):
+                    deps = [dep]
+                    # Special case: if one of deterministic/randomized
+                    # ECDSA is supported but not the other, then the one
+                    # that is not supported in the signature direction is
+                    # still supported in the verification direction,
+                    # because the two verification algorithms are
+                    # identical. This property is how Mbed TLS chooses to
+                    # behave, the specification would also allow it to
+                    # reject the algorithm. In the generated test cases,
+                    # we avoid this difficulty by not running the
+                    # not-supported test case when exactly one of the
+                    # two variants is supported.
+                    if dep == 'PSA_WANT_ALG_DETERMINISTIC_ECDSA':
+                        deps.append('PSA_WANT_ALG_ECDSA')
+                    elif dep == 'PSA_WANT_ALG_ECDSA':
+                        deps.append('PSA_WANT_ALG_DETERMINISTIC_ECDSA')
                     yield self.make_test_case(alg, category,
                                               self.Reason.NOT_SUPPORTED,
-                                              kt=kt, not_deps=frozenset([dep]))
+                                              kt=kt, not_deps=frozenset(deps))
                 # Public key for a private-key operation
                 if category.is_asymmetric() and kt.is_public():
                     yield self.make_test_case(alg, category,

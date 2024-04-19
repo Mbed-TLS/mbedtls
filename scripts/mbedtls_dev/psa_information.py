@@ -174,9 +174,16 @@ class TestCase(test_case.TestCase):
         """Set test case arguments and automatically infer dependencies."""
         super().set_arguments(arguments)
         dependencies = automatic_dependencies(*arguments)
-        for i in range(len(dependencies)): #pylint: disable=consider-using-enumerate
-            if dependencies[i] in self.negated_dependencies:
-                dependencies[i] = '!' + dependencies[i]
+        # In test cases for not-supported features, the dependencies for
+        # the not-supported feature(s) must be negated. We make sure that
+        # all negated dependencies are present in the result, even in edge
+        # cases where they would not be detected automatically (for example,
+        # to restrict ECDSA-not-supported test cases to configurations
+        # where neither deterministic ECDSA nor randomized ECDSA are supported,
+        # to avoid the edge case that both ECDSA verifications are the same).
+        dependencies = ([dep for dep in dependencies
+                         if dep not in self.negated_dependencies] +
+                        ['!' + dep for dep in self.negated_dependencies])
         if self.key_bits is not None:
             dependencies = finish_family_dependencies(dependencies, self.key_bits)
         self.dependencies += sorted(dependencies)

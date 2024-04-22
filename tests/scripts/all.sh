@@ -1368,6 +1368,7 @@ component_build_full_psa_crypto_client_without_crypto_provider () {
 
 component_test_no_rsa_key_pair_generation() {
     msg "build: default config minus PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE"
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py unset MBEDTLS_GENPRIME
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
     make

@@ -915,19 +915,19 @@ depends_on:MBEDTLS_AES_C:MBEDTLS_MD_CAN_SHA384:MBEDTLS_PKCS5_C:MBEDTLS_CIPHER_C:
 pk_parse_keyfile_rsa:"data_files/rsa_pkcs8_pbes2_pbkdf2_2048_aes256cbc_sha384.der":"PolarSSLTest":0
 
 Parse RSA Key #100.1 (512-bit)
-depends_on:MBEDTLS_PEM_C
+depends_on:MBEDTLS_PEM_PARSE_C
 pk_parse_keyfile_rsa:"data_files/rsa512.key":"":0
 
 Parse RSA Key #100.1 (521-bit)
-depends_on:MBEDTLS_PEM_C
+depends_on:MBEDTLS_PEM_PARSE_C
 pk_parse_keyfile_rsa:"data_files/rsa521.key":"":0
 
 Parse RSA Key #100.1 (522-bit)
-depends_on:MBEDTLS_PEM_C
+depends_on:MBEDTLS_PEM_PARSE_C
 pk_parse_keyfile_rsa:"data_files/rsa522.key":"":0
 
 Parse RSA Key #100.1 (528-bit)
-depends_on:MBEDTLS_PEM_C
+depends_on:MBEDTLS_PEM_PARSE_C
 pk_parse_keyfile_rsa:"data_files/rsa528.key":"":0
 
 Parse Public RSA Key #1 (PKCS#8 wrapped)

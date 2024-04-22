@@ -102,12 +102,12 @@ echo
 # Step 2c - Compatibility tests (keep going even if some tests fail)
 echo '################ compat.sh ################'
 {
-    echo '#### compat.sh: NULL ciphersuites'
-    sh compat.sh -e '^$' -f 'NULL'
+    echo '#### compat.sh: Default versions'
+    sh compat.sh -e 'ARIA\|CHACHA'
     echo
 
-    echo '#### compat.sh: next (all except NULL)'
-    OPENSSL="$OPENSSL_NEXT" sh compat.sh -e 'NULL'
+    echo '#### compat.sh: next (ARIA, ChaCha)'
+    OPENSSL="$OPENSSL_NEXT" sh compat.sh -e '^$' -f 'ARIA\|CHACHA'
     echo
 } | tee compat-test-$TEST_OUTPUT
 echo '^^^^^^^^^^^^^^^^ compat.sh ^^^^^^^^^^^^^^^^'

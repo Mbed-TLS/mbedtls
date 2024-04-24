@@ -710,13 +710,21 @@ keys_rsa_pkcs8_pwd = PolarSSLTest
 ### all other encrypted RSA keys are derived.
 rsa_pkcs1_1024_clear.pem:
 	$(OPENSSL) genrsa -out $@ 1024
-all_final += rsa_pkcs1_1024_clear.pem
+keys_rsa_base += rsa_pkcs1_1024_clear.pem
 rsa_pkcs1_2048_clear.pem:
 	$(OPENSSL) genrsa -out $@ 2048
-all_final += rsa_pkcs1_2048_clear.pem
+keys_rsa_base += rsa_pkcs1_2048_clear.pem
 rsa_pkcs1_4096_clear.pem:
 	$(OPENSSL) genrsa -out $@ 4096
-all_final += rsa_pkcs1_4096_clear.pem
+keys_rsa_base += rsa_pkcs1_4096_clear.pem
+
+all_final += $(keys_rsa_base)
+
+### PKCS1-encoded, plaintext RSA keys in derived forms
+
+rsa_pkcs1_%.der: rsa_pkcs1_%.pem
+	$(OPENSSL) rsa -inform PEM -in $< -outform DER -out $@
+all_final += $(keys_rsa_base:.pem=.der)
 
 ###
 ### PKCS1-encoded, encrypted RSA keys
@@ -1170,8 +1178,8 @@ keys_rsa_enc_pkcs8_v2_4096_sha512: keys_rsa_enc_pkcs8_v2_4096_3des_sha512 keys_r
 ### Rules to generate all RSA keys from a particular class
 ###
 
-### Generate basic unencrypted RSA keys
-keys_rsa_unenc: rsa_pkcs1_1024_clear.pem rsa_pkcs1_2048_clear.pem rsa_pkcs1_4096_clear.pem
+### Generate cleartext RSA keys in derived formats
+keys_rsa_cleartext: $(keys_rsa_base) $(keys_rsa_base:.pem=.der)
 
 ### Generate PKCS1-encoded encrypted RSA keys
 keys_rsa_enc_basic: keys_rsa_enc_basic_1024 keys_rsa_enc_basic_2048 keys_rsa_enc_basic_4096
@@ -1183,7 +1191,8 @@ keys_rsa_enc_pkcs8_v1: keys_rsa_enc_pkcs8_v1_1024 keys_rsa_enc_pkcs8_v1_2048 key
 keys_rsa_enc_pkcs8_v2: keys_rsa_enc_pkcs8_v2_1024 keys_rsa_enc_pkcs8_v2_2048 keys_rsa_enc_pkcs8_v2_4096 keys_rsa_enc_pkcs8_v2_1024_sha224 keys_rsa_enc_pkcs8_v2_2048_sha224 keys_rsa_enc_pkcs8_v2_4096_sha224 keys_rsa_enc_pkcs8_v2_1024_sha256 keys_rsa_enc_pkcs8_v2_2048_sha256 keys_rsa_enc_pkcs8_v2_4096_sha256 keys_rsa_enc_pkcs8_v2_1024_sha384 keys_rsa_enc_pkcs8_v2_2048_sha384 keys_rsa_enc_pkcs8_v2_4096_sha384 keys_rsa_enc_pkcs8_v2_1024_sha512 keys_rsa_enc_pkcs8_v2_2048_sha512 keys_rsa_enc_pkcs8_v2_4096_sha512
 
 ### Generate all RSA keys
-keys_rsa_all: keys_rsa_unenc keys_rsa_enc_basic keys_rsa_enc_pkcs8_v1 keys_rsa_enc_pkcs8_v2
+keys_rsa_all: keys_rsa_base keys_rsa_cleartext
+keys_rsa_all: keys_rsa_enc_basic keys_rsa_enc_pkcs8_v1 keys_rsa_enc_pkcs8_v2
 
 ################################################################
 #### Generate various EC keys
@@ -2177,7 +2186,7 @@ all: $(all_intermediate) $(all_final)
 
 .PHONY: default all_final all
 .PHONY: keys_rsa_all
-.PHONY: keys_rsa_unenc keys_rsa_enc_basic
+.PHONY: keys_rsa_enc_basic
 .PHONY: keys_rsa_enc_pkcs8_v1 keys_rsa_enc_pkcs8_v2
 .PHONY: keys_rsa_enc_basic_1024 keys_rsa_enc_basic_2048 keys_rsa_enc_basic_4096
 .PHONY: keys_rsa_enc_pkcs8_v1_1024 keys_rsa_enc_pkcs8_v2_1024

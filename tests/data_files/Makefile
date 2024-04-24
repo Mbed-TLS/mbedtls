@@ -706,8 +706,24 @@ keys_rsa_basic_pwd = testkey
 ### Password used for PKCS8-encoded encrypted RSA keys
 keys_rsa_pkcs8_pwd = PolarSSLTest
 
-### Basic 1024-, 2048- and 4096-bit unencrypted RSA keys from which
+### Basic unencrypted RSA keys from which
 ### all other encrypted RSA keys are derived.
+keys_rsa_base =
+rsa_pkcs1_768_clear.pem:
+	$(OPENSSL) genrsa -out $@ 768
+keys_rsa_base += rsa_pkcs1_768_clear.pem
+rsa_pkcs1_769_clear.pem:
+	$(OPENSSL) genrsa -out $@ 769
+keys_rsa_base += rsa_pkcs1_769_clear.pem
+rsa_pkcs1_770_clear.pem:
+	$(OPENSSL) genrsa -out $@ 770
+keys_rsa_base += rsa_pkcs1_770_clear.pem
+rsa_pkcs1_776_clear.pem:
+	$(OPENSSL) genrsa -out $@ 776
+keys_rsa_base += rsa_pkcs1_776_clear.pem
+rsa_pkcs1_784_clear.pem:
+	$(OPENSSL) genrsa -out $@ 784
+keys_rsa_base += rsa_pkcs1_784_clear.pem
 rsa_pkcs1_1024_clear.pem:
 	$(OPENSSL) genrsa -out $@ 1024
 keys_rsa_base += rsa_pkcs1_1024_clear.pem

@@ -133,6 +133,14 @@ print_test_case() {
 
 # list_test_case lists all potential test cases in compat.sh without execution
 list_test_cases() {
+    # We want to call filter_ciphersuites to apply standard-defined exclusions
+    # (like "no RC4 with DTLS") but without user-defined exludes/filters.
+    EXCLUDE='^$'
+    FILTER=""
+
+    # ssl3 is excluded by default, but it's still available
+    MODES="ssl3 $MODES"
+
     for MODE in $MODES; do
         for TYPE in $TYPES; do
             # PSK cipher suites do not allow client certificate verification.
@@ -142,16 +150,31 @@ list_test_cases() {
             fi
             for VERIFY in $SUB_VERIFIES; do
                 VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
-                reset_ciphersuites
-                add_common_ciphersuites
-                add_openssl_ciphersuites
-                add_gnutls_ciphersuites
-                add_mbedtls_ciphersuites
-                print_test_case m O "$O_CIPHERS"
-                print_test_case O m "$O_CIPHERS"
-                print_test_case m G "$G_CIPHERS"
-                print_test_case G m "$G_CIPHERS"
-                print_test_case m m "$M_CIPHERS"
+                for PEER in $PEERS; do
+                    reset_ciphersuites
+                    add_common_ciphersuites
+                    case "$PEER" in
+                        [Oo]pen*)
+                            add_openssl_ciphersuites
+                            filter_ciphersuites
+                            print_test_case m O "$M_CIPHERS"
+                            print_test_case O m "$O_CIPHERS"
+                            ;;
+                        [Gg]nu*)
+                            add_gnutls_ciphersuites
+                            filter_ciphersuites
+                            print_test_case m G "$M_CIPHERS"
+                            print_test_case G m "$G_CIPHERS"
+                            ;;
+                        mbed*)
+                            add_openssl_ciphersuites
+                            add_gnutls_ciphersuites
+                            add_mbedtls_ciphersuites
+                            filter_ciphersuites
+                            print_test_case m m "$M_CIPHERS"
+                            ;;
+                    esac
+                done
             done
         done
     done
@@ -272,17 +295,9 @@ filter()
 
 filter_ciphersuites()
 {
-    if [ "X" != "X$FILTER" -o "X" != "X$EXCLUDE" ];
-    then
-        # Ciphersuite for Mbed TLS
-        M_CIPHERS=$( filter "$M_CIPHERS" )
-
-        # Ciphersuite for OpenSSL
-        O_CIPHERS=$( filter "$O_CIPHERS" )
-
-        # Ciphersuite for GnuTLS
-        G_CIPHERS=$( filter "$G_CIPHERS" )
-    fi
+    M_CIPHERS=$( filter "$M_CIPHERS" )
+    O_CIPHERS=$( filter "$O_CIPHERS" )
+    G_CIPHERS=$( filter "$G_CIPHERS" )
 }
 
 reset_ciphersuites()
@@ -640,14 +655,18 @@ add_gnutls_ciphersuites()
             ;;
 
         "RSA")
-            # Not actually supported with all GnuTLS versions. See
-            # GNUTLS_HAS_TLS1_RSA_NULL_SHA256= below.
-            M_CIPHERS="$M_CIPHERS                               \
-                    TLS-RSA-WITH-NULL-SHA256                    \
-                    "
-            G_CIPHERS="$G_CIPHERS                               \
-                    +RSA:+NULL:+SHA256                          \
-                    "
+            if [ `minor_ver "$MODE"` -ge 1 ]
+            then
+                # Not actually supported with all GnuTLS versions. See
+                # GNUTLS_HAS_TLS1_RSA_NULL_SHA256= below.
+                M_CIPHERS="$M_CIPHERS                               \
+                        TLS-RSA-WITH-NULL-SHA256                    \
+                        "
+                G_CIPHERS="$G_CIPHERS                               \
+                        +RSA:+NULL:+SHA256                          \
+                        "
+            fi
+
             if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 M_CIPHERS="$M_CIPHERS                           \
@@ -912,7 +931,26 @@ add_mbedtls_ciphersuites()
 # o_check_ciphersuite CIPHER_SUITE_NAME
 o_check_ciphersuite()
 {
-    if [ "${O_SUPPORT_ECDH}" = "NO" ]; then
+    # skip DTLS when lack of support was declared
+    if test "$OSSL_NO_DTLS" -gt 0 && is_dtls "$MODE"; then
+        SKIP_NEXT_="YES"
+    fi
+
+    # skip DTLS 1.2 is support was not detected
+    if [ "$O_SUPPORT_DTLS12" = "NO" -a "$MODE" = "dtls12" ]; then
+        SKIP_NEXT="YES"
+    fi
+
+    # skip single-DES ciphersuite if no longer supported
+    if [ "$O_SUPPORT_SINGLE_DES" = "NO" ]; then
+        case "$1" in
+            # note: 3DES is DES-CBC3 for OpenSSL, 3DES for Mbed TLS
+            *-DES-CBC-*|DES-CBC-*) SKIP_NEXT="YES"
+        esac
+    fi
+
+    # skip static ECDH when OpenSSL doesn't support it
+    if [ "${O_SUPPORT_STATIC_ECDH}" = "NO" ]; then
         case "$1" in
             *ECDH-*) SKIP_NEXT="YES"
         esac
@@ -1021,9 +1059,24 @@ setup_arguments()
     esac
 
     case $($OPENSSL ciphers ALL) in
-        *ECDH-ECDSA*|*ECDH-RSA*) O_SUPPORT_ECDH="YES";;
-        *) O_SUPPORT_ECDH="NO";;
+        *ECDH-ECDSA*|*ECDH-RSA*) O_SUPPORT_STATIC_ECDH="YES";;
+        *) O_SUPPORT_STATIC_ECDH="NO";;
     esac
+
+    case $($OPENSSL ciphers ALL) in
+        *DES-CBC-*) O_SUPPORT_SINGLE_DES="YES";;
+        *) O_SUPPORT_SINGLE_DES="NO";;
+    esac
+
+    # OpenSSL <1.0.2 doesn't support DTLS 1.2. Check if OpenSSL
+    # supports -dtls1_2 from the s_server help. (The s_client
+    # help isn't accurate as of 1.0.2g: it supports DTLS 1.2
+    # but doesn't list it. But the s_server help seems to be
+    # accurate.)
+    O_SUPPORT_DTLS12="NO"
+    if $OPENSSL s_server -help 2>&1 | grep -q "^ *-dtls1_2 "; then
+        O_SUPPORT_DTLS12="YES"
+    fi
 
     if [ "X$VERIFY" = "XYES" ];
     then
@@ -1473,19 +1526,6 @@ for MODE in $MODES; do
             case "$PEER" in
 
                 [Oo]pen*)
-
-                    if test "$OSSL_NO_DTLS" -gt 0 && is_dtls "$MODE"; then
-                        continue;
-                    fi
-
-                    # OpenSSL <1.0.2 doesn't support DTLS 1.2. Check if OpenSSL
-                    # supports $O_MODE from the s_server help. (The s_client
-                    # help isn't accurate as of 1.0.2g: it supports DTLS 1.2
-                    # but doesn't list it. But the s_server help seems to be
-                    # accurate.)
-                    if ! $OPENSSL s_server -help 2>&1 | grep -q "^ *-$O_MODE "; then
-                        continue;
-                    fi
 
                     reset_ciphersuites
                     add_common_ciphersuites

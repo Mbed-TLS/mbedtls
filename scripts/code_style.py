@@ -75,16 +75,37 @@ def get_src_files(since: Optional[str]) -> List[str]:
     output = subprocess.check_output(["git", "ls-files"] + file_patterns,
                                      universal_newlines=True)
     src_files = output.split()
+    output = subprocess.check_output(["git", "-C", "framework", "ls-files"]
+                                     + file_patterns, universal_newlines=True)
+    framework_src_files = output.split()
+
     if since:
-        # get all files changed in commits since the starting point
-        cmd = ["git", "log", since + "..HEAD", "--name-only", "--pretty=", "--"] + src_files
+        # get all files changed in commits since the starting point in ...
+        # ... the main repository
+        cmd = ["git", "log", since + "..HEAD", "--ignore-submodules",
+               "--name-only", "--pretty=", "--"] + src_files
         output = subprocess.check_output(cmd, universal_newlines=True)
         committed_changed_files = output.split()
-        # and also get all files with uncommitted changes
+        # ... the framework submodule
+        cmd = ["git", "-C", "framework", "log", since + "..HEAD",
+               "--name-only", "--pretty=", "--"] + framework_src_files
+        output = subprocess.check_output(cmd, universal_newlines=True)
+        committed_changed_files += ["framework/" + s for s in output.split()]
+
+        # and also get all files with uncommitted changes in ...
+        # ... the main repository
         cmd = ["git", "diff", "--name-only", "--"] + src_files
         output = subprocess.check_output(cmd, universal_newlines=True)
         uncommitted_changed_files = output.split()
-        src_files = list(set(committed_changed_files + uncommitted_changed_files))
+        # ... the framework submodule
+        cmd = ["git", "-C", "framework", "diff", "--name-only", "--"] + \
+              framework_src_files
+        output = subprocess.check_output(cmd, universal_newlines=True)
+        uncommitted_changed_files += ["framework/" + s for s in output.split()]
+
+        src_files = committed_changed_files + uncommitted_changed_files
+    else:
+        src_files += ["framework/" + s for s in framework_src_files]
 
     generated_files = list_generated_files()
     # Don't correct style for third-party files (and, for simplicity,

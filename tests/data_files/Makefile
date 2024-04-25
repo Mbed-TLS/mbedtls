@@ -739,7 +739,7 @@ all_final += $(keys_rsa_base)
 ### PKCS1-encoded, plaintext RSA keys in derived forms
 
 rsa_pkcs1_%.der: rsa_pkcs1_%.pem
-	$(OPENSSL) rsa -inform PEM -in $< -outform DER -out $@
+	$(OPENSSL) pkey -inform PEM -in $< -outform DER -out $@
 all_final += $(keys_rsa_base:.pem=.der)
 
 ###

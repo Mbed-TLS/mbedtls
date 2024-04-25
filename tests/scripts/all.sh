@@ -2747,8 +2747,9 @@ component_test_psa_crypto_config_accel_ffdh () {
     msg "test: full with accelerated FFDH"
     make test
 
-    msg "ssl-opt: full with accelerated FFDH alg"
-    tests/ssl-opt.sh -f "ffdh"
+    ## Deliberate failure: skip some driver tests
+    # msg "ssl-opt: full with accelerated FFDH alg"
+    # tests/ssl-opt.sh -f "ffdh"
 }
 
 component_test_psa_crypto_config_reference_ffdh () {

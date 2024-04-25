@@ -23,19 +23,20 @@
  * See README.txt for usage instructions.
  */
 
+#define MBEDTLS_PSA_CRYPTO_CONFIG_FILE "../configs/crypto-config-ccm-psk-tls1_2.h"
+
+#define MBEDTLS_PSA_CRYPTO_CONFIG
+
 /* System support */
 //#define MBEDTLS_HAVE_TIME /* Optionally used in Hello messages */
 /* Other MBEDTLS_HAVE_XXX flags irrelevant for this configuration */
 
 /* Mbed TLS modules */
-#define MBEDTLS_AES_C
-#define MBEDTLS_CCM_C
 #define MBEDTLS_CIPHER_C
 #define MBEDTLS_CTR_DRBG_C
 #define MBEDTLS_ENTROPY_C
 #define MBEDTLS_MD_C
 #define MBEDTLS_NET_C
-#define MBEDTLS_SHA256_C
 #define MBEDTLS_SSL_CLI_C
 #define MBEDTLS_SSL_COOKIE_C
 #define MBEDTLS_SSL_SRV_C

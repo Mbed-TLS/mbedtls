@@ -22,10 +22,6 @@
  *
  * To be used in conjunction with configs/config-suite-b.h. */
 
-#define MBEDTLS_PSA_CRYPTO_CONFIG_FILE "../configs/crypto-config-suite-b.h"
-
-#define MBEDTLS_PSA_CRYPTO_CONFIG
-
 #ifndef PSA_CRYPTO_CONFIG_H
 #define PSA_CRYPTO_CONFIG_H
 

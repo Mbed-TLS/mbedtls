@@ -443,9 +443,9 @@ detect_required_features() {
     esac
 
     case "$CMD_LINE" in
-        *server5*|\
-        *server7*|\
-        *dir-maxpath*)
+        */server5*|\
+        */server7*|\
+        */dir-maxpath*)
             if [ "$TLS_VERSION" = "TLS13" ]; then
                 # In case of TLS13 the support for ECDSA is enough
                 requires_pk_alg "ECDSA"
@@ -477,8 +477,8 @@ detect_required_features() {
     esac
 
     case "$CMD_LINE" in
-        *server2*|\
-        *server7*)
+        */server2*|\
+        */server7*)
             # server2 and server7 certificates use RSA encryption
             requires_config_enabled "MBEDTLS_RSA_C"
     esac

@@ -2,6 +2,8 @@
  * \file psa/crypto_adjust_config_synonyms.h
  * \brief Adjust PSA configuration: enable quasi-synonyms
  *
+ * This is an internal header. Do not include it directly.
+ *
  * When two features require almost the same code, we automatically enable
  * both when either one is requested, to reduce the combinatorics of
  * possible configurations.

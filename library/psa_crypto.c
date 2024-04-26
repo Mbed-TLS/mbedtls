@@ -5194,6 +5194,12 @@ psa_status_t psa_aead_update_ad(psa_aead_operation_t *operation,
         goto exit;
     }
 
+    /* No input to add (zero length), nothing to do. */
+    if (input_length == 0) {
+        status = PSA_SUCCESS;
+        goto exit;
+    }
+
     if (operation->lengths_set) {
         if (operation->ad_remaining < input_length) {
             status = PSA_ERROR_INVALID_ARGUMENT;

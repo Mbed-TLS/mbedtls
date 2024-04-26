@@ -2,6 +2,13 @@
  * \file check_config.h
  *
  * \brief Consistency checks for configuration options
+ *
+ * This is an internal header. Do not include it directly.
+ *
+ * This header is included automatically by all public Mbed TLS headers
+ * (via mbedtls/build_info.h). Do not include it directly in a configuration
+ * file such as mbedtls/mbedtls_config.h or #MBEDTLS_USER_CONFIG_FILE!
+ * It would run at the wrong time due to missing derived symbols.
  */
 /*
  *  Copyright The Mbed TLS Contributors

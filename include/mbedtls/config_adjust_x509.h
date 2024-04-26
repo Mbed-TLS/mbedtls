@@ -2,6 +2,8 @@
  * \file mbedtls/config_adjust_x509.h
  * \brief Adjust X.509 configuration
  *
+ * This is an internal header. Do not include it directly.
+ *
  * Automatically enable certain dependencies. Generally, MBEDLTS_xxx
  * configurations need to be explicitly enabled by the user: enabling
  * MBEDTLS_xxx_A but not MBEDTLS_xxx_B when A requires B results in a

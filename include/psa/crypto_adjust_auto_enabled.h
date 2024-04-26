@@ -2,6 +2,8 @@
  * \file psa/crypto_adjust_auto_enabled.h
  * \brief Adjust PSA configuration: enable always-on features
  *
+ * This is an internal header. Do not include it directly.
+ *
  * Always enable certain features which require a negligible amount of code
  * to implement, to avoid some edge cases in the configuration combinatorics.
  */

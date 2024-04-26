@@ -2,6 +2,8 @@
  * \file mbedtls/config_adjust_psa_superset_legacy.h
  * \brief Adjust PSA configuration: automatic enablement from legacy
  *
+ * This is an internal header. Do not include it directly.
+ *
  * To simplify some edge cases, we automatically enable certain cryptographic
  * mechanisms in the PSA API if they are enabled in the legacy API. The general
  * idea is that if legacy module M uses mechanism A internally, and A has

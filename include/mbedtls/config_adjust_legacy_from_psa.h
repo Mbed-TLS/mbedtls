@@ -2,6 +2,8 @@
  * \file mbedtls/config_adjust_legacy_from_psa.h
  * \brief Adjust PSA configuration: activate legacy implementations
  *
+ * This is an internal header. Do not include it directly.
+ *
  * When MBEDTLS_PSA_CRYPTO_CONFIG is enabled, activate legacy implementations
  * of cryptographic mechanisms as needed to fulfill the needs of the PSA
  * configuration. Generally speaking, we activate a legacy mechanism if

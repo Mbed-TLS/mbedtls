@@ -1,0 +1,6 @@
+Changes
+   * Explicitly state that mbedtls/check_config.h must not be included manually.
+     When migrating from Mbed TLS 2.x, if you had a custom config.h that
+     included check_config.h, remove this inclusion from the Mbed TLS 3.x
+     configuration file (renamed to mbedtls_config.h). This change was made
+     in Mbed TLS 3.0, but was not announced in a changelog entry at the time.

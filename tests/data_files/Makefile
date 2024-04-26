@@ -709,6 +709,8 @@ keys_rsa_pkcs8_pwd = PolarSSLTest
 ### Basic unencrypted RSA keys from which
 ### all other encrypted RSA keys are derived.
 keys_rsa_base =
+### TODO: the commands require OpenSSL 1.x to work as desired. With
+### OpenSSL 3.x, they produce pkcs8 files.
 rsa_pkcs1_768_clear.pem:
 	$(OPENSSL) genrsa -out $@ 768
 keys_rsa_base += rsa_pkcs1_768_clear.pem

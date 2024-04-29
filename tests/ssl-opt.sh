@@ -502,7 +502,7 @@ adapt_cmd_for_psk () {
     case "$2" in
         *openssl*s_server*) s='-psk abc123 -nocert';;
         *openssl*) s='-psk abc123';;
-        *gnutls-*) s='--pskkey=abc123';;
+        *gnutls-*) s='--pskusername=Client_identity --pskkey=abc123';;
         *) s='psk=abc123';;
     esac
     eval $1='"$2 $s"'

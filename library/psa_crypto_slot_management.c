@@ -424,6 +424,8 @@ psa_status_t psa_get_and_lock_key_slot(mbedtls_svc_key_id_t key,
     if (status != PSA_SUCCESS) {
         psa_wipe_key_slot(*p_slot);
 
+        /* If the key does not exist, we need to return
+         * PSA_ERROR_INVALID_HANDLE. */
         if (status == PSA_ERROR_DOES_NOT_EXIST) {
             status = PSA_ERROR_INVALID_HANDLE;
         }

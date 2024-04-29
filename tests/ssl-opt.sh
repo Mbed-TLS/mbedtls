@@ -477,9 +477,15 @@ detect_required_features() {
     esac
 
     case "$CMD_LINE" in
+        */server1*|\
         */server2*|\
         */server7*)
-            # server2 and server7 certificates use RSA encryption
+            # Certificates with an RSA key. The algorithm requirement is
+            # some subset of {PKCS#1v1.5 encryption, PKCS#1v1.5 signature,
+            # PSS signature}. We can't easily tell which subset works, and
+            # we aren't currently running ssl-opt.sh in configurations
+            # where partial RSA support is a problem, so generically, we
+            # just require RSA and it works out for our tests so far.
             requires_config_enabled "MBEDTLS_RSA_C"
     esac
 

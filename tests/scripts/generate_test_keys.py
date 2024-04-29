@@ -12,6 +12,7 @@ import re
 import argparse
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
+from mbedtls_dev.build_tree import guess_project_root
 
 OUTPUT_HEADER_FILE = os.path.dirname(os.path.abspath(__file__)) + "/../src/test_keys.h"
 BYTES_PER_LINE = 16
@@ -91,8 +92,7 @@ def get_look_up_table_entry(key_type: str, group_id_or_keybits: str,
     yield "      {0}, sizeof({0}) }},".format(pub_array_name)
 
 def main() -> None:
-    current_path = os.path.dirname(os.path.realpath(__file__))
-    default_output_path = current_path + "/../src/test_keys.h"
+    default_output_path = guess_project_root() + "/tests/src/test_keys.h"
 
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--output", help="Output file", default=default_output_path)

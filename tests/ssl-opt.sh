@@ -1936,12 +1936,15 @@ run_test    "CertificateRequest with empty CA list, TLS 1.0 (GnuTLS server)" \
 
 # Tests for SHA-1 support
 
+requires_config_enabled MBEDTLS_SHA1_C
+requires_config_enabled MBEDTLS_RSA_C
 run_test    "SHA-1 forbidden by default in server certificate" \
             "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
             "$P_CLI debug_level=2 allow_sha1=0" \
             1 \
             -c "The certificate is signed with an unacceptable hash"
 
+requires_config_enabled MBEDTLS_SHA1_C
 run_test    "SHA-1 explicitly allowed in server certificate" \
             "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
             "$P_CLI allow_sha1=1" \
@@ -1952,17 +1955,23 @@ run_test    "SHA-256 allowed by default in server certificate" \
             "$P_CLI allow_sha1=0" \
             0
 
+requires_config_enabled MBEDTLS_SHA1_C
+requires_config_enabled MBEDTLS_RSA_C
 run_test    "SHA-1 forbidden by default in client certificate" \
             "$P_SRV auth_mode=required allow_sha1=0" \
             "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha1.crt" \
             1 \
             -s "The certificate is signed with an unacceptable hash"
 
+requires_config_enabled MBEDTLS_SHA1_C
+requires_config_enabled MBEDTLS_RSA_C
 run_test    "SHA-1 explicitly allowed in client certificate" \
             "$P_SRV auth_mode=required allow_sha1=1" \
             "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha1.crt" \
             0
 
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_SHA256_C
 run_test    "SHA-256 allowed by default in client certificate" \
             "$P_SRV auth_mode=required allow_sha1=0" \
             "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha256.crt" \
@@ -6625,11 +6634,24 @@ run_test    "Per-version suites: TLS 1.2" \
 
 # Test for ClientHello without extensions
 
+# Without extensions, ECC is impossible (no curve negotiation).
+requires_config_enabled MBEDTLS_RSA_C
 requires_gnutls
-run_test    "ClientHello without extensions" \
+run_test    "ClientHello without extensions: RSA" \
             "$P_SRV debug_level=3" \
             "$G_CLI --priority=NORMAL:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION localhost" \
             0 \
+            -s "Ciphersuite is .*-RSA-WITH-.*" \
+            -S "Ciphersuite is .*-EC.*" \
+            -s "dumping 'client hello extensions' (0 bytes)"
+
+requires_gnutls
+run_test    "ClientHello without extensions: PSK" \
+            "$P_SRV debug_level=3 psk=73776f726466697368" \
+            "$G_CLI --priority=NORMAL:+PSK:-RSA:-DHE-RSA:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION --pskusername=Client_identity --pskkey=73776f726466697368 localhost" \
+            0 \
+            -s "Ciphersuite is .*-PSK-.*" \
+            -S "Ciphersuite is .*-EC.*" \
             -s "dumping 'client hello extensions' (0 bytes)"
 
 # Tests for mbedtls_ssl_get_bytes_avail()

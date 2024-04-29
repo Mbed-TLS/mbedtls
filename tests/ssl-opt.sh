@@ -70,6 +70,32 @@ TCP_CLIENT="$PERL scripts/tcp_client.pl"
 
 # alternative versions of OpenSSL and GnuTLS (no default path)
 
+# If $OPENSSL is at least 1.1.1, use it as OPENSSL_NEXT as well.
+if [ -z "${OPENSSL_NEXT:-}" ]; then
+    case $($OPENSSL version) in
+        OpenSSL\ 1.1.[1-9]*) OPENSSL_NEXT=$OPENSSL;;
+        OpenSSL\ [3-9]*) OPENSSL_NEXT=$OPENSSL;;
+    esac
+fi
+
+# If $GNUTLS_CLI is at least 3.7, use it as GNUTLS_NEXT_CLI as well.
+if [ -z "${GNUTLS_NEXT_CLI:-}" ]; then
+    case $($GNUTLS_CLI --version) in
+        gnutls-cli\ 3.[1-9][0-9]*) GNUTLS_NEXT_CLI=$GNUTLS_CLI;;
+        gnutls-cli\ 3.[7-9].*) GNUTLS_NEXT_CLI=$GNUTLS_CLI;;
+        gnutls-cli\ [4-9]*) GNUTLS_NEXT_CLI=$GNUTLS_CLI;;
+    esac
+fi
+
+# If $GNUTLS_SERV is at least 3.7, use it as GNUTLS_NEXT_SERV as well.
+if [ -z "${GNUTLS_NEXT_SERV:-}" ]; then
+    case $($GNUTLS_SERV --version) in
+        gnutls-cli\ 3.[1-9][0-9]*) GNUTLS_NEXT_SERV=$GNUTLS_SERV;;
+        gnutls-cli\ 3.[7-9].*) GNUTLS_NEXT_SERV=$GNUTLS_SERV;;
+        gnutls-cli\ [4-9]*) GNUTLS_NEXT_SERV=$GNUTLS_SERV;;
+    esac
+fi
+
 if [ -n "${OPENSSL_NEXT:-}" ]; then
     O_NEXT_SRV="$OPENSSL_NEXT s_server -www -cert data_files/server5.crt -key data_files/server5.key"
     O_NEXT_SRV_EARLY_DATA="$OPENSSL_NEXT s_server -early_data -cert data_files/server5.crt -key data_files/server5.key"

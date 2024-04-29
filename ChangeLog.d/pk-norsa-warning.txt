@@ -1,0 +1,2 @@
+Bugfix
+   * Fix a compilation warning in pk.c when PSA is enabled and RSA is disabled.

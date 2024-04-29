@@ -4485,6 +4485,7 @@ run_test    "Renegotiation: DTLS, gnutls server, client-initiated" \
 # Test for the "secure renegotiation" extension only (no actual renegotiation)
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renego ext: gnutls server strict, client default" \
             "$G_SRV --priority=NORMAL:%SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3" \
@@ -4494,6 +4495,7 @@ run_test    "Renego ext: gnutls server strict, client default" \
             -c "HTTP/1.0 200 [Oo][Kk]"
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renego ext: gnutls server unsafe, client default" \
             "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3" \
@@ -4503,6 +4505,7 @@ run_test    "Renego ext: gnutls server unsafe, client default" \
             -c "HTTP/1.0 200 [Oo][Kk]"
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renego ext: gnutls server unsafe, client break legacy" \
             "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 allow_legacy=-1" \
@@ -4512,6 +4515,7 @@ run_test    "Renego ext: gnutls server unsafe, client break legacy" \
             -C "HTTP/1.0 200 [Oo][Kk]"
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renego ext: gnutls client strict, server default" \
             "$P_SRV debug_level=3" \
             "$G_CLI --priority=NORMAL:%SAFE_RENEGOTIATION localhost" \
@@ -4520,6 +4524,7 @@ run_test    "Renego ext: gnutls client strict, server default" \
             -s "server hello, secure renegotiation extension"
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renego ext: gnutls client unsafe, server default" \
             "$P_SRV debug_level=3" \
             "$G_CLI --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION localhost" \
@@ -4528,6 +4533,7 @@ run_test    "Renego ext: gnutls client unsafe, server default" \
             -S "server hello, secure renegotiation extension"
 
 requires_gnutls
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renego ext: gnutls client unsafe, server break legacy" \
             "$P_SRV debug_level=3 allow_legacy=-1" \
             "$G_CLI --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION localhost" \

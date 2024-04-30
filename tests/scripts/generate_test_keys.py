@@ -91,6 +91,7 @@ def get_look_up_table_entry(key_type: str, group_id_or_keybits: str,
     yield "      {0}, sizeof({0}),\n".format(priv_array_name)
     yield "      {0}, sizeof({0}) }},".format(pub_array_name)
 
+#pylint: disable=too-many-locals
 def main() -> None:
     default_output_path = guess_project_root() + "/tests/src/test_keys.h"
 
@@ -166,6 +167,7 @@ struct predefined_key_element predefined_keys[] = {
 """)
     output_file.write("\n".join(look_up_table))
     output_file.write("\n};\n")
+    output_file.flush()
 
 if __name__ == '__main__':
     main()

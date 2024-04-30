@@ -7,7 +7,7 @@
 
 import re
 import subprocess
-from typing import Optional
+from typing import List, Optional
 import unittest
 
 # No types :-( https://github.com/wbond/asn1crypto/issues/106
@@ -63,6 +63,24 @@ class TestKeyData(unittest.TestCase):
         self.maxDiff = None #pylint: disable=invalid-name
         self.openssl = 'openssl'
 
+    def run_openssl(self,
+                    cmd: List[str],
+                    input: bytes = None #pylint: disable=redefined-builtin
+                    ) -> bytes:
+        """Run the openssl command line tool with the given command line.
+
+        Pass input on standard input, if specified.
+
+        Return the combined stdout from OpenSSL.
+        """
+        # Pylint <<2.5.0 (technically, Astroid <<2.4.0) doesn't know
+        # that `subprocess.check_input` accepts `input`.
+        # https://github.com/pylint-dev/pylint/issues/3317
+        # At the time of writing our official Pylint version is 2.4.4.
+        #pylint: disable=unexpected-keyword-arg
+        return subprocess.check_output([self.openssl] + cmd,
+                                       input=input)
+
     def assertBytesEqual(self, #pylint: disable=invalid-name
                          first: bytes, second: bytes,
                          msg: Optional[str] = None) -> None:
@@ -82,8 +100,8 @@ class TestKeyData(unittest.TestCase):
         correctness and consistency of the internal values (public values
         match private values, etc.).
         """
-        check_result = subprocess.check_output(
-            [self.openssl, 'pkey', '-inform', 'DER', '-noout', '-check'],
+        check_result = self.run_openssl(
+            ['pkey', '-inform', 'DER', '-noout', '-check'],
             input=pair_der)
         self.assertEqual(check_result, b'Key is valid\n')
 
@@ -92,9 +110,8 @@ class TestKeyData(unittest.TestCase):
 
         Both keys must be in a DER format accepted by openssl.
         """
-        public_from_openssl = subprocess.check_output(
-            [self.openssl, 'pkey', '-inform', 'DER',
-             '-outform', 'DER', '-pubout'],
+        public_from_openssl = self.run_openssl(
+            ['pkey', '-inform', 'DER', '-outform', 'DER', '-pubout'],
             input=private_der)
         self.assertBytesEqual(public_der, public_from_openssl)
 
@@ -118,8 +135,8 @@ class TestKeyData(unittest.TestCase):
             'secp192r1': 'prime192v1',
             'secp256r1': 'prime256v1',
         }.get(curve_name, curve_name)
-        oid_der = subprocess.check_output(
-            [self.openssl, 'ecparam', '-name', curve_name, '-outform', 'DER'])
+        oid_der = self.run_openssl(
+            ['ecparam', '-name', curve_name, '-outform', 'DER'])
         return oid_der
 
     def check_ec_weierstrass_keys(self, family: str, bits: int,
@@ -165,9 +182,8 @@ class TestKeyData(unittest.TestCase):
         """Check the correctness and consistency of RSA keys."""
         # Check for strict ASN.1 compliance, including the absence of
         # trailing garbage.
-        asn1_dump = subprocess.check_output(
-            [self.openssl, 'asn1parse', '-inform', 'DER'],
-            input=private).splitlines()
+        asn1_dump = self.run_openssl(['asn1parse', '-inform', 'DER'],
+                                     input=private).splitlines()
         # Check that we have a SEQUENCE of 9 INTEGERs, which is the
         # concrete syntax of RSAPublicKey.
         self.assertEqual(len(asn1_dump), 10)
@@ -179,9 +195,8 @@ class TestKeyData(unittest.TestCase):
         self.assertEqual(len(bin(int(modulus_hex, 16))) - 2, bits)
 
         # Check that the public key is valid and consistent with the private key.
-        public_from_openssl = subprocess.check_output(
-            [self.openssl, 'rsa', '-inform', 'DER',
-             '-outform', 'DER', '-RSAPublicKey_out'],
+        public_from_openssl = self.run_openssl(
+            ['rsa', '-inform', 'DER', '-outform', 'DER', '-RSAPublicKey_out'],
             input=private)
         self.assertBytesEqual(public, public_from_openssl)
 

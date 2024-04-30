@@ -33,17 +33,20 @@
 #define PSA_WANT_ALG_RIPEMD160                  1
 #define PSA_WANT_ALG_SHA_1                      1
 #define PSA_WANT_ALG_STREAM_CIPHER              1
-#define PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS       1
-#define PSA_WANT_ALG_TLS12_PRF                  1
-#define PSA_WANT_ALG_TLS12_PSK_TO_MS            1
-
-/* The library does not currently support enabling SHA-224 without SHA-256.
- * A future version of the library will have this option disabled
- * by default. */
 #define PSA_WANT_ALG_SHA_224                    1
 #define PSA_WANT_ALG_SHA_256                    1
 #define PSA_WANT_ALG_SHA_384                    1
 #define PSA_WANT_ALG_SHA_512                    1
+#define PSA_WANT_ALG_SHA3_224                   1
+#define PSA_WANT_ALG_SHA3_256                   1
+#define PSA_WANT_ALG_SHA3_384                   1
+#define PSA_WANT_ALG_SHA3_512                   1
+#define PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS       1
+#define PSA_WANT_ALG_TLS12_PRF                  1
+#define PSA_WANT_ALG_TLS12_PSK_TO_MS            1
+
+/* XTS is not yet supported via the PSA API in Mbed TLS. */
+//#define PSA_WANT_ALG_XTS                        1
 
 #define PSA_WANT_KEY_TYPE_AES                   1
 #define PSA_WANT_KEY_TYPE_ARIA                  1

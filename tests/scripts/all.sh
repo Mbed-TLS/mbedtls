@@ -804,8 +804,10 @@ pre_check_tools () {
             ARMC5_CC="$ARMC5_BIN_DIR/armcc"
             ARMC5_AR="$ARMC5_BIN_DIR/armar"
             ARMC5_FROMELF="$ARMC5_BIN_DIR/fromelf"
-            set "$@" ARMC5_CC="$ARMC5_CC"
+            set "$@" ARMC5_CC="$ARMC5_CC" RUN_ARMC5=1
             check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC5_FROMELF";;
+        *)
+            set "$@" RUN_ARMC5=0;;
     esac
 
     case " $RUN_COMPONENTS " in
@@ -813,8 +815,10 @@ pre_check_tools () {
             ARMC6_CC="$ARMC6_BIN_DIR/armclang"
             ARMC6_AR="$ARMC6_BIN_DIR/armar"
             ARMC6_FROMELF="$ARMC6_BIN_DIR/fromelf"
-            set "$@" ARMC6_CC="$ARMC6_CC"
+            set "$@" ARMC6_CC="$ARMC6_CC" RUN_ARMC6=1
             check_tools "$ARMC6_CC" "$ARMC6_AR" "$ARMC6_FROMELF";;
+        *)
+            set "$@" RUN_ARMC6=0;;
     esac
 
     # past this point, no call to check_tool, only printing output

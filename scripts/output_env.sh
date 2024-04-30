@@ -77,13 +77,17 @@ echo
 print_version "cmake" "--version" "" "head -n 1"
 echo
 
-: "${ARMC5_CC:=armcc}"
-print_version "$ARMC5_CC" "--vsn" "" "head -n 2"
-echo
+if [ "${RUN_ARMC5:-1}" -ne 0 ]; then
+    : "${ARMC5_CC:=armcc}"
+    print_version "$ARMC5_CC" "--vsn" "" "head -n 2"
+    echo
+fi
 
-: "${ARMC6_CC:=armclang}"
-print_version "$ARMC6_CC" "--vsn" "" "head -n 2"
-echo
+if [ "${RUN_ARMC6:-1}" -ne 0 ]; then
+    : "${ARMC6_CC:=armclang}"
+    print_version "$ARMC6_CC" "--vsn" "" "head -n 2"
+    echo
+fi
 
 print_version "arm-none-eabi-gcc" "--version" "" "head -n 1"
 echo

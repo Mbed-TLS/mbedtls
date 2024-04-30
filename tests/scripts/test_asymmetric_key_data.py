@@ -5,6 +5,7 @@
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
+import os
 import re
 import subprocess
 from typing import List, Optional
@@ -61,7 +62,14 @@ class TestKeyData(unittest.TestCase):
         # The field maxDiff exists in this parent class, even though
         # for some reason pylint doesn't find it.
         self.maxDiff = None #pylint: disable=invalid-name
-        self.openssl = 'openssl'
+        self.openssl = os.getenv('OPENSSL_3',
+                                 os.getenv('OPENSSL',
+                                           'openssl'))
+        openssl_version = self.run_openssl(['version'])
+        if re.match(br'OpenSSL 1\.', openssl_version):
+            # OpenSSL 1.1.1a doesn't support 'pkey -check' for Montgomery
+            # and Edwards keys. OpenSSL 3.0.2 works.
+            raise Exception('OpenSSL 1.x is known to be too old. Please use OpenSSL 3.')
 
     def run_openssl(self,
                     cmd: List[str],

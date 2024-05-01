@@ -849,7 +849,7 @@ static int get_pkcs_padding(unsigned char *input, size_t input_len,
     }
 
     padding_len = input[input_len - 1];
-    if (padding_len == 0 || padding_len > (int)input_len) {
+    if (padding_len == 0 || padding_len > input_len) {
         return MBEDTLS_ERR_CIPHER_INVALID_PADDING;
     }
     *data_len = input_len - padding_len;

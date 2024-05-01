@@ -6,12 +6,13 @@ Please write a few sentences describing the overall goals of the pull request's 
 
 ## PR checklist
 
-Please tick as appropriate and edit the reasons (e.g.: "backport: not needed because this is a new feature")
+Please remove add/remove strikethrough ~~ as appropriate, and add any relevant link/s to the end of the line.
 
-- [ ] **changelog** provided, or not required
-- [ ] **3.6 backport** done, or not required
-- [ ] **2.28 backport** done, or not required
-- [ ] **tests** provided, or not required
+- [ ] **changelog** provided, ~~not required~~, ~~covered~~ . Link --> #XYZ
+- [ ] **dev PR** provided, ~~not required~~ Link --> #XYZ
+- [ ] **3.6 PR** provided, ~~not required~~ Link --> #XYZ
+- [ ] **2.28** PR provided, ~~not required~~ Link --> #XYZ
+- **tests**  provided, ~~not required~~, ~~covered~~ Link --> #XYZ
 
 
 

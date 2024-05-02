@@ -58,6 +58,9 @@ static inline int psa_key_id_is_volatile(psa_key_id_t key_id)
  * It is the responsibility of the caller to call psa_unregister_read(slot)
  * when they have finished reading the contents of the slot.
  *
+ * On failure, `*p_slot` is set to NULL. This ensures that it is always valid
+ * to call psa_unregister_read on the returned slot.
+ *
  * \param key           Key identifier to query.
  * \param[out] p_slot   On success, `*p_slot` contains a pointer to the
  *                      key slot containing the description of the key

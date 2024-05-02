@@ -47,7 +47,19 @@ static int test_psa_bridge(const mbedtls_pk_context *ctx,
     int ok = 0;
 
     TEST_EQUAL(mbedtls_pk_get_psa_attributes(ctx, usage_flag, &attributes), 0);
-    TEST_EQUAL(mbedtls_pk_import_into_psa(ctx, &attributes, &psa_key), 0);
+    int ret = mbedtls_pk_import_into_psa(ctx, &attributes, &psa_key);
+    if (mbedtls_pk_get_type(ctx) == MBEDTLS_PK_RSA &&
+        mbedtls_pk_get_bitlen(ctx) % 8 != 0 &&
+        ret == MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE) {
+        /* There is a historical limitation with support for RSA keys in PSA:
+         * only byte-aligned sizes are supported.
+         * https://github.com/Mbed-TLS/mbedtls/issues/9048
+         * For now, for such keys, treat not-supported from PSA as a success.
+         */
+        ok = 1;
+        goto exit;
+    }
+    TEST_EQUAL(ret, 0);
     if (!mbedtls_test_key_consistency_psa_pk(psa_key, ctx)) {
         goto exit;
     }

@@ -14,7 +14,6 @@ import scripts_path # pylint: disable=unused-import
 from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
 from mbedtls_dev.build_tree import guess_project_root
 
-OUTPUT_HEADER_FILE = os.path.dirname(os.path.abspath(__file__)) + "/../src/test_keys.h"
 BYTES_PER_LINE = 16
 
 def c_byte_array_literal_content(array_name: str, key_data: bytes) -> Iterator[str]:

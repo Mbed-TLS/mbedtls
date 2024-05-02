@@ -1904,6 +1904,10 @@ component_test_tls1_2_default_stream_cipher_only_use_psa () {
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_GCM
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CHACHA20_POLY1305
+    # Note: The three unsets below are to be removed for Mbed TLS 4.0
+    scripts/config.py unset MBEDTLS_GCM_C
+    scripts/config.py unset MBEDTLS_CCM_C
+    scripts/config.py unset MBEDTLS_CHACHAPOLY_C
     #Disable TLS 1.3 (as no AEAD)
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Disable CBC. Note: When implemented, PSA_WANT_ALG_CBC_MAC will also need to be unset here to fully disable CBC
@@ -1962,6 +1966,10 @@ component_test_tls1_2_deafult_cbc_legacy_cipher_only_use_psa () {
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_GCM
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CHACHA20_POLY1305
+    # Note: The three unsets below are to be removed for Mbed TLS 4.0
+    scripts/config.py unset MBEDTLS_GCM_C
+    scripts/config.py unset MBEDTLS_CCM_C
+    scripts/config.py unset MBEDTLS_CHACHAPOLY_C
     #Disable TLS 1.3 (as no AEAD)
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Enable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
@@ -2022,6 +2030,10 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only_use_psa () {
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CCM
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_GCM
     scripts/config.py -f $CRYPTO_CONFIG_H unset PSA_WANT_ALG_CHACHA20_POLY1305
+    # Note: The three unsets below are to be removed for Mbed TLS 4.0
+    scripts/config.py unset MBEDTLS_GCM_C
+    scripts/config.py unset MBEDTLS_CCM_C
+    scripts/config.py unset MBEDTLS_CHACHAPOLY_C
     #Disable TLS 1.3 (as no AEAD)
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Enable CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))

@@ -4160,3 +4160,23 @@ component_test_no_strings () {
     msg "test: no strings" # ~ 10s
     make test
 }
+
+component_test_asan_remove_peer_certificate () {
+    msg "build: default config with MBEDTLS_SSL_KEEP_PEER_CERTIFICATE disabled (ASan build)"
+    scripts/config.py unset MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
+    CC=$ASAN_CC cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
+    make test
+
+    msg "test: ssl-opt.sh, !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
+    tests/ssl-opt.sh
+
+    msg "test: compat.sh, !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
+    tests/compat.sh
+
+    msg "test: context-info.sh, !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
+    tests/context-info.sh
+}

@@ -13,9 +13,11 @@ import os
 import sys
 import argparse
 import jinja2
+import scripts_path # pylint: disable=unused-import
+from mbedtls_dev.build_tree import guess_project_root
 
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_FILES_PATH = os.path.join(THIS_DIR, '..', 'data_files')
+TEST_DIR = os.path.join(guess_project_root(), 'tests')
+DATA_FILES_PATH = os.path.join(TEST_DIR, 'data_files')
 
 INPUT_ARGS = [
     ("string", "TEST_CA_CRT_EC_PEM", DATA_FILES_PATH + "/test-ca2.crt"),
@@ -52,12 +54,12 @@ INPUT_ARGS = [
 
 def main():
     parser = argparse.ArgumentParser()
-    default_output_path = os.path.join(THIS_DIR, '..', 'test_certs.h')
+    default_output_path = os.path.join(TEST_DIR, 'src', 'test_certs.h')
     parser.add_argument('--output', type=str, default=default_output_path)
     parser.add_argument('--list-dependencies', action='store_true')
     args = parser.parse_args()
 
-    if args.list_dependencies is True:
+    if args.list_dependencies:
         files_list = [arg[2] for arg in INPUT_ARGS]
         print(" ".join(files_list))
         return

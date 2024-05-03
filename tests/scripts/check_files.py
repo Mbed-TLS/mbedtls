@@ -487,10 +487,17 @@ class IntegrityChecker:
 
         These are the regular files commited into Git.
         """
-        bytes_output = subprocess.check_output(['git', 'ls-files',
-                                                '--recurse-submodules', '-z'])
-        bytes_filepaths = bytes_output.split(b'\0')[:-1]
+        bytes_output = subprocess.check_output(['git', '-C', 'framework',
+                                                'ls-files', '-z'])
+        bytes_framework_filepaths = bytes_output.split(b'\0')[:-1]
+        bytes_framework_filepaths = ["framework/".encode() + filepath
+                                     for filepath in bytes_framework_filepaths]
+
+        bytes_output = subprocess.check_output(['git', 'ls-files', '-z'])
+        bytes_filepaths = bytes_output.split(b'\0')[:-1] + \
+                          bytes_framework_filepaths
         ascii_filepaths = map(lambda fp: fp.decode('ascii'), bytes_filepaths)
+
         # Filter out directories. Normally Git doesn't list directories
         # (it only knows about the files inside them), but there is
         # at least one case where 'git ls-files' includes a directory:

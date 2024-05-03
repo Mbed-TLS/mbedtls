@@ -17,6 +17,8 @@ from traceback import format_tb
 import argparse
 import jsonschema
 import jinja2
+
+import framework_path # pylint: disable=unused-import
 from mbedtls_framework import build_tree
 
 JSONSchema = NewType('JSONSchema', object)
